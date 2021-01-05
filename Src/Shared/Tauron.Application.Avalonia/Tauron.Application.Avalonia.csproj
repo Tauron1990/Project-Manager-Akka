@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Desktop" Version="0.9.12" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Tauron.Application.CommonUI\Tauron.Application.CommonUI.csproj" />
+  </ItemGroup>
+
+</Project>

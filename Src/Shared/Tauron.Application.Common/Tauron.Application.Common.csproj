@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <RootNamespace>Tauron</RootNamespace>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <NoWarn>1701;1702; 8669;</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="ActorFlowBuilder - Backup.cs" />
+    <Compile Remove="Async.cs" />
+    <Compile Remove="SecurityHelper.cs" />
+    <Compile Remove="SerializationExtensions.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="ActorFlowBuilder - Backup.cs" />
+    <None Include="Async.cs" />
+    <None Include="SecurityHelper.cs" />
+    <None Include="SerializationExtensions.cs" />
+    <Compile Remove="ActorFlowBuilder.cs" />
+    <None Include="ActorFlowBuilder.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Akka" Version="1.4.14" />
+    <PackageReference Include="Akka.DI.AutoFac" Version="1.4.1" />
+    <PackageReference Include="Akka.DI.Core" Version="1.4.14" />
+    <PackageReference Include="Akka.Logger.Serilog" Version="1.4.11" />
+    <PackageReference Include="Autofac" Version="6.1.0" />
+    <PackageReference Include="FastExpressionCompiler" Version="2.0.0" />
+    <PackageReference Include="JetBrains.Annotations" Version="2020.3.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />
+    <PackageReference Include="Serilog" Version="2.10.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
+    <PackageReference Include="System.Reactive" Version="5.0.0" />
+  </ItemGroup>
+
+</Project>

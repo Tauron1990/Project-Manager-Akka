@@ -1,0 +1,20 @@
+﻿<dialogs:DialogBase xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:dialogs="clr-namespace:Tauron.Application.Avalonia.Dialogs"
+             xmlns:ui="clr-namespace:Tauron.Application.Avalonia.UI"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Tauron.Application.Avalonia.Dialogs.MessageDialog">
+    <dialogs:DialogBase.Content>
+        <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto,Auto">
+            <TextBlock Name="ContentBox" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Margin="5" />
+            <!-- ReSharper disable once Xaml.InvalidType -->
+            <Button Content="{ui:Loc Common_OK}" Click="Ok_OnClick" Grid.Row="1" Grid.Column="2" MinWidth="100"
+                    Margin="5" IsDefault="True" />
+            <!-- ReSharper disable once Xaml.InvalidType -->
+            <Button Content="{ui:Loc Common_Cancel}" Click="Cancel_OnClick" Name="CancelButton" Grid.Row="1"
+                    Grid.Column="1" MinWidth="100" Margin="5" IsCancel="True" />
+        </Grid>
+    </dialogs:DialogBase.Content>
+</dialogs:DialogBase>

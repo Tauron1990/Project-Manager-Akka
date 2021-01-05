@@ -1,0 +1,58 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <StartupObject>Tauron.Application.Localizer.CoreProgramm</StartupObject>
+    <ApplicationIcon>icon.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="SpellCheck\SpellChecker.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="icon.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="SpellCheck\SpellChecker.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Simple.Wpf.Terminal" Version="2.3.15" />
+    <PackageReference Include="Syncfusion.SfBusyIndicator.WPF" Version="18.1.0.57" />
+    <PackageReference Include="Syncfusion.SfGrid.WPF" Version="18.1.0.57" />
+    <PackageReference Include="Syncfusion.SfInput.WPF" Version="18.1.0.57" />
+    <PackageReference Include="Syncfusion.SfSkinManager.WPF" Version="18.1.0.57" />
+    <PackageReference Include="Syncfusion.Shared.WPF" Version="18.1.0.57" />
+    <PackageReference Include="Syncfusion.Themes.Blend.WPF" Version="18.1.0.57" />
+    <PackageReference Include="Syncfusion.Tools.WPF" Version="18.1.0.57" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Akka.Code.Configuration\Akka.Code.Configuration.csproj" />
+    <ProjectReference Include="..\Tauron.Application.Localizer.UIModels\Tauron.Application.Localizer.UIModels.csproj" />
+    <ProjectReference Include="..\Tauron.Application.Logging\Tauron.Application.Logging.csproj" />
+    <ProjectReference Include="..\Tauron.Application.Wpf.SerilogViewer\Tauron.Application.Wpf.SerilogViewer.csproj" />
+    <ProjectReference Include="..\Tauron.Application.Wpf\Tauron.Application.Wpf.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="icon.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="lang\de.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="lang\en.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>
+
+</Project>

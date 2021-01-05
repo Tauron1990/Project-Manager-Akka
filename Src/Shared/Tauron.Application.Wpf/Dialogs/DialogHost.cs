@@ -1,0 +1,91 @@
+﻿using System.ComponentModel;
+using System.Windows;
+using System.Windows.Controls;
+using Autofac;
+using JetBrains.Annotations;
+using Tauron.Application.CommonUI.Dialogs;
+using Tauron.Host;
+
+namespace Tauron.Application.Wpf.Dialogs
+{
+    [PublicAPI]
+    [System.Windows.Markup.ContentProperty("Main")]
+    [DefaultProperty("Main")]
+    [TemplatePart(Name = "DialogContent", Type = typeof(ContentPresenter))]
+    [TemplatePart(Name = "MainContent", Type = typeof(ContentPresenter))]
+    public class DialogHost : Control
+    {
+        static DialogHost() => DefaultStyleKeyProperty.OverrideMetadata(typeof(DialogHost), new FrameworkPropertyMetadata(typeof(DialogHost)));
+
+        public static readonly DependencyProperty DialogProperty = DependencyProperty.Register(
+            "Dialog", typeof(object), typeof(DialogHost), new PropertyMetadata(default, (o, args) => ((DialogHost)o).DialogContent?.SetValue(ContentControl.ContentProperty, args.NewValue)));
+
+        public object Dialog
+        {
+            get => GetValue(DialogProperty);
+            set => SetValue(DialogProperty, value);
+        }
+
+        public static readonly DependencyProperty MainProperty = DependencyProperty.Register(
+            "Main", typeof(object), typeof(DialogHost), new PropertyMetadata(default, (o, args) => ((DialogHost)o).MainContent?.SetValue(ContentControl.ContentProperty, args.NewValue)));
+
+        public object Main
+        {
+            get => GetValue(MainProperty);
+            set => SetValue(MainProperty, value);
+        }
+
+        public DialogHost()
+        {
+            if(!ActorApplication.IsStarted)
+                return;
+
+            var coordinator = (IDialogCoordinatorUIEvents)ActorApplication.Application.Continer.Resolve<IDialogCoordinator>();
+
+            coordinator.HideDialogEvent += () =>
+                                           {
+                                               if (MainContent != null)
+                                               {
+                                                   MainContent.IsEnabled = true;
+                                                   MainContent.Visibility = Visibility.Visible;
+                                               }
+
+                                               if (DialogContent == null) return;
+                                               DialogContent.Content = null;
+                                               DialogContent.IsEnabled = false;
+                                               DialogContent.Visibility = Visibility.Collapsed;
+                                           };
+
+            coordinator.ShowDialogEvent += o =>
+                                           {
+                                               if (MainContent != null)
+                                               {
+                                                   MainContent.IsEnabled = false;
+                                                   MainContent.Visibility = Visibility.Collapsed;
+                                               }
+
+                                               if (DialogContent == null) return;
+                                               DialogContent.Content = o;
+                                               DialogContent.IsEnabled = true;
+                                               DialogContent.Visibility = Visibility.Visible;
+                                           };
+        }
+
+        private ContentPresenter? DialogContent { get; set; }
+
+        private ContentPresenter? MainContent { get; set; }
+
+        public override void OnApplyTemplate()
+        {
+            MainContent = GetTemplateChild("MainContent") as ContentPresenter;
+            DialogContent = GetTemplateChild("DialogContent") as ContentPresenter;
+
+            if (MainContent != null)
+                MainContent.Content = Main;
+            if (DialogContent != null)
+                DialogContent.Content = Dialog;
+
+            base.OnApplyTemplate();
+        }
+    }
+}

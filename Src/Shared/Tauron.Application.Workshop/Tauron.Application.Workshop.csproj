@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="obj\**" />
+    <Compile Remove="StateManagement\Data\**" />
+    <EmbeddedResource Remove="obj\**" />
+    <EmbeddedResource Remove="StateManagement\Data\**" />
+    <None Remove="obj\**" />
+    <None Remove="StateManagement\Data\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="9.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Tauron.Application.Common\Tauron.Application.Common.csproj" />
+  </ItemGroup>
+
+</Project>
