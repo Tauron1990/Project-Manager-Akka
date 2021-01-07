@@ -225,6 +225,7 @@ namespace Tauron.Application.Localizer.UIModels
                 viewList.Add(new ProjectViewContainer(project, view));
 
                 CurrentProject += Views.Count - 1;
+                CurrentProject.Take(1).Subscribe(_ => CurrentProject += Views.Count - 1);
             }
 
             NewCommad

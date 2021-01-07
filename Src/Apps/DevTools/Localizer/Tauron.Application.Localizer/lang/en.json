@@ -44,7 +44,7 @@
   "MainWindow_BuildProject_Search_Label": "Search",
   "MainWindow_Build_Start_Label": "Export",
 
-  "MainWindowodel_BuildProject_Operation": "Eport project: {0}",
+  "MainWindowodel_BuildProject_Operation": "Export Projects",
   "MainWindow_BuildProject_GatherData": "Gathering Data",
   "MainWindow_Buildproject_NoData": "No Data Found",
   "MainWindow_BuildProject_GenerateLangFile": "Json is generated",

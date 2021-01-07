@@ -41,7 +41,7 @@
                       SelectedIndex="{tau:ActorBinding ImportSelectIndex, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
         </DockPanel>
         <TabControl Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="4" Margin="5" TabStripPlacement="Top"  
-                                  SelectedIndex="{tau:ActorBinding SelectedIndex}" ItemsSource="{tau:ActorBinding ProjectEntrys}">
+                                  SelectedIndex="{tau:ActorBinding SelectedIndex, Mode=TwoWay}" ItemsSource="{tau:ActorBinding ProjectEntrys}">
             <TabControl.ItemTemplate>
                 <DataTemplate DataType="uiModels:ProjectEntryModel">
                     <Grid Margin="5">

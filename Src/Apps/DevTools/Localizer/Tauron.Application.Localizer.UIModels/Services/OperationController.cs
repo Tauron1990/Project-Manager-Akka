@@ -6,14 +6,16 @@ namespace Tauron.Application.Localizer.UIModels.Services
     public sealed class OperationController
     {
         private readonly LocLocalizer _localizer;
+        private readonly IObserver<RunningOperation> _failing;
         private readonly RunningOperation _operation;
 
         private Action? _statusChanged;
 
-        public OperationController(RunningOperation operation, LocLocalizer localizer, Action statusChanged)
+        public OperationController(RunningOperation operation, LocLocalizer localizer, Action statusChanged, IObserver<RunningOperation> failing)
         {
             _operation = operation;
             _localizer = localizer;
+            _failing = failing;
             if (_operation.Operation == OperationStatus.Running)
                 _statusChanged = statusChanged;
         }
@@ -46,6 +48,8 @@ namespace Tauron.Application.Localizer.UIModels.Services
             _operation.Status = msg;
             _statusChanged?.Invoke();
             _statusChanged = null;
+
+            _failing.OnNext(_operation);
         }
 
         public void UpdateStatus(string msg)

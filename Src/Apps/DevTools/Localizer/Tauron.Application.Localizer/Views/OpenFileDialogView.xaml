@@ -5,7 +5,7 @@
                  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                  xmlns:ui="http://schemas.TauronWpf.com"
                  Loaded="OpenFileDialogView_OnLoaded"
-                 mc:Ignorable="d"
+                 mc:Ignorable="d" MinWidth="400"
                  d:DesignHeight="250" d:DesignWidth="800" MaxHeight="250" MaxWidth="1000" Width="700">
     <Grid VerticalAlignment="Center" FocusManager.IsFocusScope="True">
         <Grid.RowDefinitions>

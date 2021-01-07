@@ -33,25 +33,24 @@ namespace Tauron.Application.Localizer
         private readonly LocLocalizer _localizer;
         private readonly IMainWindowCoordinator _mainWindowCoordinator;
         private readonly ProjectFileWorkspace _workspace;
+        private readonly CommonUIFramework _framework;
 
-        public MainWindow(IViewModel<MainWindowViewModel> model, LocLocalizer localizer, IMainWindowCoordinator mainWindowCoordinator, IDialogCoordinator coordinator, ProjectFileWorkspace workspace)
+        public MainWindow(IViewModel<MainWindowViewModel> model, LocLocalizer localizer, IMainWindowCoordinator mainWindowCoordinator, IDialogCoordinator coordinator, ProjectFileWorkspace workspace,
+            CommonUIFramework framework, IOperationManager operationManager)
             : base(model)
         {
             _localizer = localizer;
             _mainWindowCoordinator = mainWindowCoordinator;
             _coordinator = coordinator;
             _workspace = workspace;
+            _framework = framework;
 
             InitializeComponent();
 
             var diag = ((IDialogCoordinatorUIEvents) _coordinator);
 
             diag.ShowDialogEvent += o => this.ShowDialog(o);
-            diag.HideDialogEvent += () =>
-            {
-                ((ICommand)DialogHost.CloseDialogCommand).Execute(null);
-                DialogHost.IsOpen = false;
-            };
+            diag.HideDialogEvent += () => Dialogs.CurrentSession?.Close();
 
             _mainWindowCoordinator.TitleChanged += () => Dispatcher.BeginInvoke(new Action(MainWindowCoordinatorOnTitleChanged));
             _mainWindowCoordinator.IsBusyChanged += IsBusyChanged;
@@ -65,24 +64,46 @@ namespace Tauron.Application.Localizer
                 await Task.Delay(TimeSpan.FromSeconds(60));
                 Process.GetCurrentProcess().Kill(false);
             };
+
+            operationManager.OperationFailed
+                .ObserveOnDispatcher()
+                .Subscribe(f =>
+                {
+                    if (Snackbar.MessageQueue == null)
+                        Snackbar.MessageQueue = new SnackbarMessageQueue(TimeSpan.FromSeconds(5));
+                    Snackbar.MessageQueue.Enqueue($"{f.Status ?? " / "}");
+                });
         }
         
         public event EventHandler? Shutdown;
 
         private void IsBusyChanged() => Dispatcher.Invoke(() => BusyIndicator.IsBusy = _mainWindowCoordinator.IsBusy);
 
+        private bool _forceClose = false;
+
         private void OnClosing(object sender, CancelEventArgs e)
         {
+            if(_forceClose) return;
             if (_mainWindowCoordinator.Saved) return;
 
-            if (_coordinator.ShowModalMessageWindow(_localizer.CommonWarnig, _localizer.MainWindowCloseWarning).Result == false)
-            {
-                e.Cancel = true;
-                return;
-            }
+            e.Cancel = true;
 
-            if (!_workspace.ProjectFile.IsEmpty)
-                _workspace.ProjectFile.Operator.Tell(ForceSave.Seal(_workspace.ProjectFile), ActorRefs.NoSender);
+            if (Dialogs.IsOpen)
+                Dialogs.IsOpen = false;
+
+            Dialogs.ShowDialog(_framework.CreateDefaultMessageContent(_localizer.CommonWarnig, _localizer.MainWindowCloseWarning,
+                    res => Dialogs.CurrentSession.Close(res == true), true))
+                .ContinueWith(t =>
+                {
+                    if (!t.IsCompletedSuccessfully || t.Result is not bool result) return;
+                    if (!result) return;
+
+                    if (!_workspace.ProjectFile.IsEmpty)
+                        _workspace.ProjectFile.Operator.Tell(ForceSave.Seal(_workspace.ProjectFile), ActorRefs.NoSender);
+
+                    _forceClose = true;
+                    Dispatcher.InvokeAsync(Close);
+                });
         }
 
         private void MainWindowCoordinatorOnTitleChanged() => Title = _localizer.MainWindowTitle + " - " + _mainWindowCoordinator.TitlePostfix;

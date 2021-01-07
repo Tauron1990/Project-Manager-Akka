@@ -39,14 +39,14 @@ namespace Tauron.Application.CommonUI.Dialogs
 
         public void HideDialog() => HideDialogEvent?.Invoke();
 
-        public Task<bool?> ShowModalMessageWindow(string title, string message)
-        {
-            var window = _framework.CreateMessageDialog(title, message);
+        //public Task<bool?> ShowModalMessageWindow(string title, string message)
+        //{
+        //    var window = _framework.CreateMessageDialog(title, message);
 
-            OnWindowConstructed?.Invoke(window);
+        //    OnWindowConstructed?.Invoke(window);
 
-            return window.ShowDialog();
-        }
+        //    return window.ShowDialog();
+        //}
 
         private event Action<object>? ShowDialogEvent;
 

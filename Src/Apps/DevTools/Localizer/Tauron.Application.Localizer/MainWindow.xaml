@@ -5,9 +5,8 @@
             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
             xmlns:tau="http://schemas.TauronWpf.com"
             xmlns:uiModels="clr-namespace:Tauron.Application.Localizer.UIModels;assembly=Tauron.Application.Localizer.UIModels"
-            xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-            xmlns:controls="clr-namespace:MaterialDesignExtensions.Controls;assembly=MaterialDesignExtensions"
-            xmlns:dockingPanes="clr-namespace:Tauron.Application.Localizer.Views.DockingPanes"
+            xmlns:mat="http://materialdesigninxaml.net/winfx/xaml/themes"
+            xmlns:matExt="clr-namespace:MaterialDesignExtensions.Controls;assembly=MaterialDesignExtensions"
             mc:Ignorable="d" WindowState="Maximized"
             Title="{tau:Loc MainWindow_Title}" Height="450" Width="800" Icon="icon.ico"
             TextElement.Foreground="White"
@@ -35,11 +34,12 @@
             </LayoutPanel>
         </LayoutRoot>
     </Window.Resources>
-    <materialDesign:DialogHost Name="DialogHost">
+    <mat:DialogHost Name="Dialogs" CloseOnClickAway="True">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition />
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <Menu Margin="5">
                 <MenuItem Header="{tau:Loc MainWindow_MainMenu_File}">
@@ -68,7 +68,8 @@
             <DockingManager Name="DockingManager" Grid.Row="1" Loaded="FrameworkElement_OnLoaded" Margin="5" LayoutChanged="DockingManager_OnLayoutChanging">
                 
             </DockingManager>
-            <controls:BusyOverlay Grid.Row="0" Grid.RowSpan="2" Name="BusyIndicator" Style="{StaticResource MaterialBusyOverlayCircular}"/>
+            <matExt:BusyOverlay Grid.Row="0" Grid.RowSpan="2" Name="BusyIndicator" Style="{StaticResource MaterialBusyOverlayCircular}"/>
+            <mat:Snackbar Grid.Row="2" Name="Snackbar"/>
         </Grid>
-    </materialDesign:DialogHost>
+    </mat:DialogHost>
 </tau:Window>

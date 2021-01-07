@@ -5,6 +5,8 @@ namespace Tauron.Application.Localizer.UIModels.Services
 {
     public interface IOperationManager
     {
+        public IObservable<RunningOperation> OperationFailed { get; }
+
         IEnumerable<RunningOperation> RunningOperations { get; }
 
         IObservable<OperationController> StartOperation(string name);

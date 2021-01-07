@@ -166,7 +166,7 @@ namespace Tauron.Application.Localizer.Views
             }
         }
 
-        public ICommand AddCommand { get; }
+        public SimpleCommand AddCommand { get; }
 
         public ICommand RejectCommand { get; }
 
@@ -210,7 +210,7 @@ namespace Tauron.Application.Localizer.Views
                 _current.IsSelected = false;
 
             _current = selectable;
-            CommandManager.InvalidateRequerySuggested();
+            _dispatcher.InvokeAsync(AddCommand.RaiseCanExecuteChanged);
         }
     }
 }

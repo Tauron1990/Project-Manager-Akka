@@ -5,6 +5,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using DynamicData.Binding;
 using Tauron.Application.CommonUI.AppCore;
 using Tauron.Application.Localizer.UIModels.lang;
@@ -17,6 +18,7 @@ namespace Tauron.Application.Localizer.UIModels.Services
 
         private readonly LocLocalizer _localizer;
         private readonly OperationList _operations = new();
+        private readonly Subject<RunningOperation> _fail = new();
 
         public OperationManager(LocLocalizer localizer, IUIDispatcher dispatcher)
         {
@@ -24,6 +26,7 @@ namespace Tauron.Application.Localizer.UIModels.Services
             _dispatcher = dispatcher;
         }
 
+        public IObservable<RunningOperation> OperationFailed => _fail.AsObservable();
         public IEnumerable<RunningOperation> RunningOperations => _operations;
 
         public IObservable<OperationController> StartOperation(string name)
@@ -35,7 +38,7 @@ namespace Tauron.Application.Localizer.UIModels.Services
                     Clear();
 
                 _operations.Add(op);
-                return new OperationController(op, _localizer, OperationChanged);
+                return new OperationController(op, _localizer, OperationChanged, _fail);
             });
         }
 
@@ -44,7 +47,7 @@ namespace Tauron.Application.Localizer.UIModels.Services
             return _dispatcher.InvokeAsync(() =>
                                            {
                                                var op = _operations.FirstOrDefault(ro => ro.Key == id);
-                                               return op == null ? null : new OperationController(op, _localizer, OperationChanged);
+                                               return op == null ? null : new OperationController(op, _localizer, OperationChanged, _fail);
                                            });
         }
 

@@ -17,8 +17,8 @@ namespace Tauron.Application.Localizer.DataModel.Workspace.Mutating
         {
             _engine = engine;
             _workspace = workspace;
-            SaveRequest = engine.EventSource(mc => new SaveRequest(_workspace.ProjectFile), context => !(context.Change is ResetChange));
-            ProjectReset = engine.EventSource(mc => new ProjectRest(_workspace.ProjectFile), context => context.Change is ResetChange);
+            SaveRequest = engine.EventSource(_ => new SaveRequest(_workspace.ProjectFile), context => !(context.Change is ResetChange));
+            ProjectReset = engine.EventSource(_ => new ProjectRest(_workspace.ProjectFile), context => context.Change is ResetChange);
             SourceUpdate = engine.EventSource(mc => new SourceUpdated(mc.Data.Source), context => context.Change is SourceChange);
         }
 

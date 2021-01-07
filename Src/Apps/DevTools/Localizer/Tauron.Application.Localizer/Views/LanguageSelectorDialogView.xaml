@@ -5,6 +5,7 @@
                  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                  xmlns:local="clr-namespace:Tauron.Application.Localizer.Views"
                  xmlns:tau="http://schemas.TauronWpf.com"
+                 xmlns:mat="http://materialdesigninxaml.net/winfx/xaml/themes"
                  xmlns:controls="clr-namespace:MaterialDesignExtensions.Controls;assembly=MaterialDesignExtensions"
                  Width="1200" Height="1000"
                  mc:Ignorable="d"
@@ -24,7 +25,7 @@
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
         <controls:BusyOverlay Grid.Row="0" Grid.RowSpan="4" Grid.Column="0" Grid.ColumnSpan="3" IsBusy="{Binding IsLoading}" Style="{StaticResource MaterialBusyOverlayCircular}"/>
-        <TextBox Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Margin="20" FontSize="15" Text="{tau:Loc LanguageSelectorDialogView_Title}"/>
+        <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Margin="20" FontSize="15" Text="{tau:Loc LanguageSelectorDialogView_Title}"/>
         <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="5">
             <TextBlock Text="Suche: " Margin="5"/>
             <TextBox Margin="5" MinWidth="190" Text="{Binding FilterContent, Delay=70, UpdateSourceTrigger=PropertyChanged}"/>
