@@ -13,14 +13,14 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Tauron.Application.Localizer.Views
+namespace Tauron.Application.Localizer.Views.DockingPanes
 {
     /// <summary>
-    /// Interaktionslogik für AnalyserPane.xaml
+    /// Interaktionslogik für OperationPane.xaml
     /// </summary>
-    public partial class AnalyserPane
+    public partial class OperationPane : UserControl
     {
-        public AnalyserPane()
+        public OperationPane()
         {
             InitializeComponent();
         }

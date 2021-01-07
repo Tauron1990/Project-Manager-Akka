@@ -23,7 +23,7 @@
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <controls:BusyOverlay IsBusy="{Binding IsLoading}" Style="{StaticResource MaterialBusyOverlayCircular}"/>
+        <controls:BusyOverlay Grid.Row="0" Grid.RowSpan="4" Grid.Column="0" Grid.ColumnSpan="3" IsBusy="{Binding IsLoading}" Style="{StaticResource MaterialBusyOverlayCircular}"/>
         <TextBox Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Margin="20" FontSize="15" Text="{tau:Loc LanguageSelectorDialogView_Title}"/>
         <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="5">
             <TextBlock Text="Suche: " Margin="5"/>

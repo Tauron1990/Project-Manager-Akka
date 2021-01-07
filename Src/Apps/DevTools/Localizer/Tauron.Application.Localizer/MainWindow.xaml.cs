@@ -2,13 +2,16 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.IO.IsolatedStorage;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Xml.Serialization;
 using Akka.Actor;
+using AvalonDock;
 using AvalonDock.Layout;
 using MaterialDesignThemes.Wpf;
+using Serilog;
 using Tauron.Application.CommonUI;
 using Tauron.Application.CommonUI.AppCore;
 using Tauron.Application.CommonUI.Dialogs;
@@ -17,6 +20,7 @@ using Tauron.Application.Localizer.DataModel.Workspace;
 using Tauron.Application.Localizer.UIModels;
 using Tauron.Application.Localizer.UIModels.lang;
 using Tauron.Application.Localizer.UIModels.Services;
+using Tauron.Application.Localizer.Views.DockingPanes;
 
 namespace Tauron.Application.Localizer
 {
@@ -43,7 +47,11 @@ namespace Tauron.Application.Localizer
             var diag = ((IDialogCoordinatorUIEvents) _coordinator);
 
             diag.ShowDialogEvent += o => this.ShowDialog(o);
-            diag.HideDialogEvent += () => DialogHost.IsOpen = false;
+            diag.HideDialogEvent += () =>
+            {
+                ((ICommand)DialogHost.CloseDialogCommand).Execute(null);
+                DialogHost.IsOpen = false;
+            };
 
             _mainWindowCoordinator.TitleChanged += () => Dispatcher.BeginInvoke(new Action(MainWindowCoordinatorOnTitleChanged));
             _mainWindowCoordinator.IsBusyChanged += IsBusyChanged;
@@ -51,6 +59,7 @@ namespace Tauron.Application.Localizer
             Closing += OnClosing;
             Closed += async (_, _) =>
             {
+                SaveLayout();
                 Shutdown?.Invoke(this, EventArgs.Empty);
 
                 await Task.Delay(TimeSpan.FromSeconds(60));
@@ -78,22 +87,49 @@ namespace Tauron.Application.Localizer
 
         private void MainWindowCoordinatorOnTitleChanged() => Title = _localizer.MainWindowTitle + " - " + _mainWindowCoordinator.TitlePostfix;
 
+        private const string LayoutFile = "Layout.xml";
+
+        private void SaveLayout()
+        {
+            using var stream = IsolatedStorageFile.GetUserStoreForApplication().OpenFile(LayoutFile, FileMode.Create);
+            var ser = new XmlSerializer(typeof(LayoutRoot));
+            ser.Serialize(stream, DockingManager.Layout);
+        }
+
         private void FrameworkElement_OnLoaded(object sender, RoutedEventArgs e)
         {
-            //var ser = new XmlSerializer(typeof(LayoutRoot));
-            //var testWriter = new StringWriter();
-            //ser.Serialize(testWriter, DockingManager.Layout);
-            //var resr = testWriter.ToString();
+            try
+            {
+                var store = IsolatedStorageFile.GetUserStoreForApplication();
+                if (store.FileExists(LayoutFile))
+                {
+                    var seralizer = new XmlSerializer(typeof(LayoutRoot));
+                    using var stream = store.OpenFile(LayoutFile, FileMode.Open);
+                    if(!(seralizer.Deserialize(stream) is LayoutRoot layout))
+                        DockReset(null, null);
+                    else
+                        DockingManager.Layout = layout;
+                }
+                else
+                    DockReset(null, null);
+            }
+            catch (Exception exception)
+            {
+                Log.ForContext<MainWindow>().Error(exception, "Error on Load Dock State");
+                DockReset(null, null);
+            }
+        }
 
-            //try
-            //{
-            //    DockingManager.LoadDockState();
-            //}
-            //catch (Exception exception)
-            //{
-            //    Log.ForContext<MainWindow>().Error(exception, "Error on Load Dock State");
-            //    DockingManager.ResetState();
-            //}
+        private void DockingManager_OnLayoutChanging(object? sender, EventArgs e)
+        {
+            var layout = ((DockingManager) sender!).Layout;
+            LayoutBuilder.ProcessLayout(layout);
+        }
+
+        private void DockReset(object? sender, RoutedEventArgs? e)
+        {
+            DockingManager.Layout = (LayoutRoot) FindResource("LayoutRoot");
+            DockingManager.UpdateLayout();
         }
     }
 }

@@ -4,14 +4,10 @@
             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
             xmlns:tau="http://schemas.TauronWpf.com"
-            xmlns:serilogViewer="clr-namespace:Tauron.Application.Wpf.SerilogViewer;assembly=Tauron.Application.Wpf.SerilogViewer"
-            xmlns:services="clr-namespace:Tauron.Application.Localizer.UIModels.Services;assembly=Tauron.Application.Localizer.UIModels"
-            xmlns:converter="clr-namespace:Tauron.Application.Localizer.Core.Converter"
             xmlns:uiModels="clr-namespace:Tauron.Application.Localizer.UIModels;assembly=Tauron.Application.Localizer.UIModels"
-            xmlns:li="http://schemas.syncfusion.com/wpf"
             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
             xmlns:controls="clr-namespace:MaterialDesignExtensions.Controls;assembly=MaterialDesignExtensions"
-            xmlns:views="clr-namespace:Tauron.Application.Localizer.Views"
+            xmlns:dockingPanes="clr-namespace:Tauron.Application.Localizer.Views.DockingPanes"
             mc:Ignorable="d" WindowState="Maximized"
             Title="{tau:Loc MainWindow_Title}" Height="450" Width="800" Icon="icon.ico"
             TextElement.Foreground="White"
@@ -19,6 +15,26 @@
             TextElement.FontSize="17"
             TextOptions.TextFormattingMode="Ideal"
             TextOptions.TextRenderingMode="Auto">
+    <Window.Resources>
+        <LayoutRoot x:Key="LayoutRoot">
+            <LayoutRoot.BottomSide>
+                <LayoutAnchorSide>
+                    <LayoutAnchorGroup>
+                        <LayoutAnchorable ContentId="Operation" CanClose="False" AutoHideMinHeight="400"
+                                          Title="{tau:Loc MainWindow_Operation_Tabs_Label_Ops}"/>
+                        <LayoutAnchorable ContentId="Logger" Title="{tau:Loc MainWindow_Operation_Tabs_Label_Logs}" CanDockAsTabbedDocument="True" AutoHideMinHeight="400" CanClose="False"/>
+                    </LayoutAnchorGroup>
+                </LayoutAnchorSide>
+            </LayoutRoot.BottomSide>
+            <LayoutPanel>
+                <LayoutDocumentPane>
+                    <LayoutDocument ContentId="Projects" Title="{tau:Loc MainWindow_ProjectContainer_Header}" CanClose="False" />
+                    <LayoutDocument ContentId="BuildControl" Title="{tau:Loc MainWindow_Build_Meader}" CanClose="False"/>
+                    <LayoutDocument ContentId="Analyzer" CanClose="False" Title="{tau:Loc MainWindow_Analyzer_Header}"/>
+                </LayoutDocumentPane>
+            </LayoutPanel>
+        </LayoutRoot>
+    </Window.Resources>
     <materialDesign:DialogHost Name="DialogHost">
         <Grid>
             <Grid.RowDefinitions>
@@ -46,60 +62,13 @@
                     </MenuItem.ItemTemplate>
                 </MenuItem>
                 <MenuItem Header="{tau:Loc MainWindow_MainMenu_View}">
-                    <!--<MenuItem Header="{tau:Loc MainWindow_MainMenu_Reset}" Click="DockReset"/>-->
+                    <MenuItem Header="{tau:Loc MainWindow_MainMenu_Reset}" Click="DockReset"/>
                 </MenuItem>
             </Menu>
-            <controls:BusyOverlay Grid.Row="0" Name="BusyIndicator" Style="{StaticResource MaterialBusyOverlayCircular}"/>
-            <DockingManager Name="DockingManager" Grid.Row="1" Loaded="FrameworkElement_OnLoaded" Margin="5">
-                <LayoutRoot>
-                    <LayoutRoot.BottomSide>
-                        <LayoutAnchorSide>
-                            <LayoutAnchorGroup>
-                                <LayoutAnchorable ContentId="Operation" CanClose="False" AutoHideMinHeight="400"
-                                                  Title="{tau:Loc MainWindow_Operation_Tabs_Label_Ops}">
-                                    <StackPanel>
-                                        <ToolBar>
-                                            <Button Margin="2" Content="{tau:Loc MainWindow_Operation_Delete}"
-                                                        Command="{tau:ActorBinding ClearOp}" />
-                                            <Button Margin="2" Content="{tau:Loc MainWindow_Operation_Delete_All}"
-                                                        Command="{tau:ActorBinding ClearAllOp}" />
-                                        </ToolBar>
-                                        <ListBox ItemsSource="{tau:ActorBinding RunningOperations}">
-                                            <ListBox.ItemTemplate>
-                                                <DataTemplate DataType="services:RunningOperation">
-                                                    <StackPanel Margin="3" Orientation="Horizontal">
-                                                        <Border MinWidth="20" Margin="3,0,15,0"
-                                                                    Background="{Binding Operation, Converter={converter:OperationStateConverter}}"
-                                                                    CornerRadius="15" />
-                                                        <TextBlock MinWidth="250" Text="{Binding Name}" />
-                                                        <TextBlock Text="{Binding Status}" Margin="10,0" />
-                                                    </StackPanel>
-                                                </DataTemplate>
-                                            </ListBox.ItemTemplate>
-                                        </ListBox>
-                                    </StackPanel>
-                                </LayoutAnchorable>
-                                <LayoutAnchorable ContentId="Logger" Title="{tau:Loc MainWindow_Operation_Tabs_Label_Logs}" CanDockAsTabbedDocument="True" AutoHideMinHeight="400" CanClose="False">
-                                    <serilogViewer:SerilogViewer Name="Logger"/>
-                                </LayoutAnchorable>
-                            </LayoutAnchorGroup>
-                        </LayoutAnchorSide>
-                    </LayoutRoot.BottomSide>
-                    <LayoutPanel>
-                        <LayoutDocumentPane>
-                            <LayoutDocument ContentId="Projects" Title="{tau:Loc MainWindow_ProjectContainer_Header}" CanClose="False" >
-                                <ContentControl Margin="5" Content="{tau:ViewModelBinding CenterView}"/>
-                            </LayoutDocument>
-                            <LayoutDocument ContentId="BuildControl" Title="{tau:Loc MainWindow_Build_Meader}" CanClose="False">
-                                <ContentControl Margin="5"  Content="{tau:ViewModelBinding BuildModel}"/>
-                            </LayoutDocument>
-                            <LayoutDocument ContentId="Analyzer" CanClose="False" Title="{tau:Loc MainWindow_Analyzer_Header}">
-                                <views:AnalyserPane/>
-                            </LayoutDocument>
-                        </LayoutDocumentPane>
-                    </LayoutPanel>
-                </LayoutRoot>
+            <DockingManager Name="DockingManager" Grid.Row="1" Loaded="FrameworkElement_OnLoaded" Margin="5" LayoutChanged="DockingManager_OnLayoutChanging">
+                
             </DockingManager>
+            <controls:BusyOverlay Grid.Row="0" Grid.RowSpan="2" Name="BusyIndicator" Style="{StaticResource MaterialBusyOverlayCircular}"/>
         </Grid>
     </materialDesign:DialogHost>
 </tau:Window>

@@ -98,7 +98,8 @@ namespace Tauron.Application.Localizer.UIModels
             #region Open File
 
             IDisposable NewProjectFile(IObservable<SourceSelected> source)
-                => source.SelectMany(SourceSelectedFunc)
+                => source
+                    .SelectMany(SourceSelectedFunc)
                          .NotNull()
                          .ObserveOnSelf()
                          .Select(ProjectLoaded)
@@ -134,24 +135,30 @@ namespace Tauron.Application.Localizer.UIModels
 
             SupplyNewProjectFile? ProjectLoaded(LoadedProjectFile obj)
             {
-                if (loadingOperation!.Value != null)
+                try
                 {
-                    if (obj.Ok)
-                        loadingOperation.Value.Compled();
-                    else
+                    if (loadingOperation!.Value != null)
                     {
-                        mainWindowCoordinator.IsBusy = false;
-                        loadingOperation.Value.Failed(obj.ErrorReason?.Message ?? localizer.CommonError);
-                        return null;
+                        if (obj.Ok)
+                            loadingOperation.Value.Compled();
+                        else
+                        {
+                            loadingOperation.Value.Failed(obj.ErrorReason?.Message ?? localizer.CommonError);
+                            return null;
+                        }
                     }
+
+                    loadingOperation.Value = null;
+                    if (obj.Ok) RenctFiles!.Value.AddNewFile(obj.ProjectFile.Source);
+
+                    last!.Value = obj.ProjectFile;
+
+                    return new SupplyNewProjectFile(obj.ProjectFile);
                 }
-
-                loadingOperation.Value = null;
-                if (obj.Ok) RenctFiles!.Value.AddNewFile(obj.ProjectFile.Source);
-
-                last!.Value = obj.ProjectFile;
-
-                return new SupplyNewProjectFile(obj.ProjectFile);
+                finally
+                {
+                    mainWindowCoordinator.IsBusy = false;
+                }
             }
 
             NewCommad.WithCanExecute(loadingOperation.Select(oc => oc == null))
