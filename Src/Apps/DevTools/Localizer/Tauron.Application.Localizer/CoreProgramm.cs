@@ -20,7 +20,7 @@ namespace Tauron.Application.Localizer
             var builder = ActorApplication.Create(args);
 
             builder
-               .ConfigureLogging((context, configuration) => configuration.ConfigDefaultLogging("Localizer").WriteTo.Sink<SeriLogViewerSink>())
+               .ConfigureLogging((_, configuration) => configuration.ConfigDefaultLogging("Localizer").WriteTo.Sink<SeriLogViewerSink>())
                .ConfigureAutoFac(cb => cb.RegisterModule<MainModule>().RegisterModule<UIModule>())
                .ConfigurateAkkaSystem((context, system) => system.RegisterLocalization())
                .UseWpf<MainWindow>(c => c.WithAppFactory(() => new WpfFramework.DelegateApplication(new App())));

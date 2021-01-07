@@ -50,7 +50,7 @@ namespace Tauron.Application.Workshop.Mutation
             {
                 using var sender = new Subject<TData>();
 
-                transform(sender.AsObservable()).NotNull().Subscribe(_responder);
+                transform(sender.AsObservable()).NotNull().Subscribe(m => _responder.OnNext(m));
                 sender.OnNext(_dataSource.GetData());
                 sender.OnCompleted();
                 sender.Dispose();

@@ -31,7 +31,7 @@ namespace Tauron.Application.CommonUI
         }
 
         public static IDisposable ToModel<TRecieve>(this IObservable<TRecieve> selector, IViewModel model)
-            => selector.ToActor(model.Actor);
+            => selector.ToActor(() => model.Actor);
 
         #endregion
 
