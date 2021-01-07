@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using JetBrains.Annotations;
 using Serilog.Events;
+using Tauron.Application.CommonUI;
 
 namespace Tauron.Application.Wpf.SerilogViewer
 {
@@ -16,12 +17,13 @@ namespace Tauron.Application.Wpf.SerilogViewer
     {
         public SerilogViewer()
         {
+            if (DesignerProperties.GetIsInDesignMode(this)) return;
+
             IsTargetConfigured = false;
             LogEntries = new UIObservableCollection<LogEventViewModel>();
 
             InitializeComponent();
 
-            if (DesignerProperties.GetIsInDesignMode(this)) return;
             if (SeriLogViewerSink.CurrentSink == null) return;
             IsTargetConfigured = true;
 
@@ -72,7 +74,7 @@ namespace Tauron.Application.Wpf.SerilogViewer
 
         protected void LogReceived(LogEvent log)
         {
-            LogEventViewModel vm = new LogEventViewModel(log);
+            LogEventViewModel vm = new(log);
 
             Dispatcher.BeginInvoke(new Action(() =>
             {

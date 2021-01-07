@@ -1,10 +1,12 @@
 ﻿using System;
 using System.IO;
 using System.Windows.Input;
-using Tauron.Application.Wpf.Commands;
+using JetBrains.Annotations;
+using Tauron.Application.CommonUI.Commands;
 
 namespace Tauron.Application.Localizer.UIModels
 {
+    [PublicAPI]
     public sealed class RenctFile
     {
         public RenctFile(string file, Action<string> loadFileAction)

@@ -35,6 +35,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Localizer", "Localizer", "{
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tauron.Application.Localizer.DataModel", "Src\Apps\DevTools\Localizer\Tauron.Application.Localizer.DataModel\Tauron.Application.Localizer.DataModel.csproj", "{2C336734-6EA1-452C-9C9B-694731170AE3}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tauron.Application.Localizer.UIModels", "Src\Apps\DevTools\Localizer\Tauron.Application.Localizer.UIModels\Tauron.Application.Localizer.UIModels.csproj", "{16E02E49-1116-4284-B4BB-2641C8A40327}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tauron.Application.Localizer", "Src\Apps\DevTools\Localizer\Tauron.Application.Localizer\Tauron.Application.Localizer.csproj", "{88EC912A-E819-491A-8FCD-C18A79E70645}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tauron.Application.Wpf.SerilogViewer", "Src\Shared\Tauron.Application.Wpf.SerilogViewer\Tauron.Application.Wpf.SerilogViewer.csproj", "{064CAF13-F47E-4600-81FB-6EE65111127F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -81,6 +87,18 @@ Global
 		{2C336734-6EA1-452C-9C9B-694731170AE3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2C336734-6EA1-452C-9C9B-694731170AE3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2C336734-6EA1-452C-9C9B-694731170AE3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{16E02E49-1116-4284-B4BB-2641C8A40327}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{16E02E49-1116-4284-B4BB-2641C8A40327}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{16E02E49-1116-4284-B4BB-2641C8A40327}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{16E02E49-1116-4284-B4BB-2641C8A40327}.Release|Any CPU.Build.0 = Release|Any CPU
+		{88EC912A-E819-491A-8FCD-C18A79E70645}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{88EC912A-E819-491A-8FCD-C18A79E70645}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{88EC912A-E819-491A-8FCD-C18A79E70645}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{88EC912A-E819-491A-8FCD-C18A79E70645}.Release|Any CPU.Build.0 = Release|Any CPU
+		{064CAF13-F47E-4600-81FB-6EE65111127F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{064CAF13-F47E-4600-81FB-6EE65111127F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{064CAF13-F47E-4600-81FB-6EE65111127F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{064CAF13-F47E-4600-81FB-6EE65111127F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -101,6 +119,9 @@ Global
 		{D32A84E7-9DA0-461D-B03B-267E84B7D778} = {79F4F24B-7CCF-4905-8933-2D43F86AE096}
 		{D4A2CFCE-6382-4E73-9BE9-E5EC6482D1CE} = {D32A84E7-9DA0-461D-B03B-267E84B7D778}
 		{2C336734-6EA1-452C-9C9B-694731170AE3} = {D4A2CFCE-6382-4E73-9BE9-E5EC6482D1CE}
+		{16E02E49-1116-4284-B4BB-2641C8A40327} = {D4A2CFCE-6382-4E73-9BE9-E5EC6482D1CE}
+		{88EC912A-E819-491A-8FCD-C18A79E70645} = {D4A2CFCE-6382-4E73-9BE9-E5EC6482D1CE}
+		{064CAF13-F47E-4600-81FB-6EE65111127F} = {9F0D00CD-133F-412C-B87F-EE6051E28700}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F63AD2ED-4320-43AB-8761-A3FEBC507539}

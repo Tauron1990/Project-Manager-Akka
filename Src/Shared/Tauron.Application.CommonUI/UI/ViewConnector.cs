@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Globalization;
+using System.Reactive.Linq;
 using Tauron.Application.CommonUI.AppCore;
 using Tauron.Application.CommonUI.Helper;
 using Tauron.Application.CommonUI.ModelMessages;
@@ -29,18 +29,11 @@ namespace Tauron.Application.CommonUI.UI
             if(View == null) return;
 
             var converter = new ViewModelConverter();
-            if (!(obj.Value is IViewModel viewModel)) return;
+            if (!(obj is {Value: IViewModel viewModel})) return;
 
             var viewTask = _dispatcher.InvokeAsync(() => converter.Convert(viewModel) as IView);
 
-            viewTask.ContinueWith(t =>
-                                  {
-                                      var view = t.Result;
-
-                                      if (view == null) return;
-
-                                      _updater(view);
-                                  });
+            viewTask.NotNull().Take(1).Subscribe(view => _updater(view));
         }
 
         public override string ToString() => "View Connector Loading...";

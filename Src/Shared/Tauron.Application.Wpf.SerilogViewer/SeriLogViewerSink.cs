@@ -14,7 +14,7 @@ namespace Tauron.Application.Wpf.SerilogViewer
 
         internal static SeriLogViewerSink? CurrentSink { get; private set; }
 
-        public LimitedList<LogEvent> Logs { get; } = new LimitedList<LogEvent>(150);
+        public LimitedList<LogEvent> Logs { get; } = new(150);
 
         [DebuggerHidden]
         public void Emit(LogEvent logEvent)

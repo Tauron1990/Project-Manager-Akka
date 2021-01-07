@@ -42,19 +42,21 @@ namespace Tauron.Application.CommonUI.AppCore
                 _internalApplication.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
                 _internalApplication.Startup += (_, _) =>
-                {
-                    // ReSharper disable AccessToDisposedClosure
-                    var splash = scope.ResolveOptional<ISplashScreen>()?.Window;
-                    splash?.Show();
+                                                {
+                                                    DispatcherScheduler.CurrentDispatcher = DispatcherScheduler.From(scope.Resolve<IUIDispatcher>());
 
-                    var mainWindow = scope.Resolve<IMainWindow>();
-                    mainWindow.Window.Show();
-                    mainWindow.Shutdown += (_, _)
-                        => ShutdownApp();
+                                                    // ReSharper disable AccessToDisposedClosure
+                                                    var splash = scope.ResolveOptional<ISplashScreen>()?.Window;
+                                                    splash?.Show();
 
-                    splash?.Hide();
-                    // ReSharper restore AccessToDisposedClosure
-                };
+                                                    var mainWindow = scope.Resolve<IMainWindow>();
+                                                    mainWindow.Window.Show();
+                                                    mainWindow.Shutdown += (_, _)
+                                                                               => ShutdownApp();
+
+                                                    splash?.Hide();
+                                                    // ReSharper restore AccessToDisposedClosure
+                                                };
 
                 system.RegisterOnTermination(() => _internalApplication.Dispatcher.Post(() => _internalApplication.Shutdown(0)));
 

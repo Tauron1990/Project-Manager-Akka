@@ -1,6 +1,6 @@
 ﻿namespace Tauron.Application.Localizer.UIModels.Views
 {
-    public sealed class AnalyzerEntry
+    public sealed record AnalyzerEntry(string RuleName, string ErrorName, string project, string Message)
     {
         public sealed class Builder
         {
@@ -14,23 +14,7 @@
             }
 
             public AnalyzerEntry Entry(string errorName, string message)
-                => new AnalyzerEntry(_ruleName, _project, message, errorName);
-        }
-
-        public string RuleName { get; }
-
-        public string ErrorName { get; }
-
-        public string Project { get; }
-
-        public string Message { get; }
-
-        public AnalyzerEntry(string ruleName, string project, string message, string errorName)
-        {
-            RuleName = ruleName;
-            Project = project;
-            Message = message;
-            ErrorName = errorName;
+                => new(_ruleName, _project, message, errorName);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -22,9 +23,9 @@ namespace Tauron.Application.Avalonia
 
             public Task InvokeAsync(Action action) => Dispatcher.UIThread.InvokeAsync(action);
 
-            public Task<TResult> InvokeAsync<TResult>(Func<Task<TResult>> action) => Dispatcher.UIThread.InvokeAsync(action);
+            public IObservable<TResult> InvokeAsync<TResult>(Func<Task<TResult>> action) => Dispatcher.UIThread.InvokeAsync(action).ToObservable();
 
-            public Task<TResult> InvokeAsync<TResult>(Func<TResult> action) => Dispatcher.UIThread.InvokeAsync(action);
+            public IObservable<TResult> InvokeAsync<TResult>(Func<TResult> action) => Dispatcher.UIThread.InvokeAsync(action).ToObservable();
             public bool CheckAccess() => Dispatcher.UIThread.CheckAccess();
         }
         

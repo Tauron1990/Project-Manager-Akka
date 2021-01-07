@@ -9,111 +9,97 @@
             xmlns:converter="clr-namespace:Tauron.Application.Localizer.Core.Converter"
             xmlns:uiModels="clr-namespace:Tauron.Application.Localizer.UIModels;assembly=Tauron.Application.Localizer.UIModels"
             xmlns:li="http://schemas.syncfusion.com/wpf"
-            xmlns:sfSkinManager="clr-namespace:Syncfusion.SfSkinManager;assembly=Syncfusion.SfSkinManager.WPF"
-            mc:Ignorable="d" WindowState="Maximized" sfSkinManager:SfSkinManager.VisualStyle="Blend"
+            xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+            xmlns:controls="clr-namespace:MaterialDesignExtensions.Controls;assembly=MaterialDesignExtensions"
+            xmlns:views="clr-namespace:Tauron.Application.Localizer.Views"
+            mc:Ignorable="d" WindowState="Maximized"
             Title="{tau:Loc MainWindow_Title}" Height="450" Width="800" Icon="icon.ico"
             TextElement.Foreground="White"
             TextElement.FontWeight="Medium"
             TextElement.FontSize="17"
             TextOptions.TextFormattingMode="Ideal"
             TextOptions.TextRenderingMode="Auto">
-    <li:SfBusyIndicator x:Name="SfBusyIndicator" IsBusy="False">
-
-        <tau:DialogHost>
-            <tau:DialogHost.Resources>
-                <DataTemplate x:Key="HeaderTemplate">
-                    <TextBlock Text="{Binding}" FontSize="14"/>
-                </DataTemplate>
-            </tau:DialogHost.Resources>
-            
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition />
-                </Grid.RowDefinitions>
-                <Menu Margin="5">
-                    <MenuItem Header="{tau:Loc MainWindow_MainMenu_File}">
-                        <MenuItem Header="{tau:Loc MainWindow_MainMenu_File_Open}" Command="{tau:ActorBinding OpenFile}" />
-                        <MenuItem Header="{tau:Loc MainWindow_MainMenu_File_New}" Command="{tau:ActorBinding NewFile}" />
-                        <Separator />
-                        <MenuItem Header="{tau:Loc MainWindow_MainMenu_File_SaveAs}" Command="{tau:ActorBinding SaveAs}" />
-                    </MenuItem>
-                    <MenuItem Header="{tau:Loc MainWindow_MainMwnu_RenctFile}"
+    <materialDesign:DialogHost Name="DialogHost">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <Menu Margin="5">
+                <MenuItem Header="{tau:Loc MainWindow_MainMenu_File}">
+                    <MenuItem Header="{tau:Loc MainWindow_MainMenu_File_Open}" Command="{tau:ActorBinding OpenFile}" />
+                    <MenuItem Header="{tau:Loc MainWindow_MainMenu_File_New}" Command="{tau:ActorBinding NewFile}" />
+                    <Separator />
+                    <MenuItem Header="{tau:Loc MainWindow_MainMenu_File_SaveAs}" Command="{tau:ActorBinding SaveAs}" />
+                </MenuItem>
+                <MenuItem Header="{tau:Loc MainWindow_MainMwnu_RenctFile}"
                               ItemsSource="{tau:ActorBinding RenctFiles}">
-                        <MenuItem.ItemTemplate>
-                            <DataTemplate DataType="uiModels:RenctFile">
-                                <MenuItem HorizontalContentAlignment="Left" Command="{Binding Runner}"
+                    <MenuItem.ItemTemplate>
+                        <DataTemplate DataType="uiModels:RenctFile">
+                            <MenuItem HorizontalContentAlignment="Left" Command="{Binding Runner}"
                                           ToolTip="{Binding File}">
-                                    <MenuItem.Header>
-                                        <TextBlock Text="{Binding Name}" />
-                                    </MenuItem.Header>
-                                </MenuItem>
-                            </DataTemplate>
-                        </MenuItem.ItemTemplate>
-                    </MenuItem>
-                    <MenuItem Header="{tau:Loc MainWindow_MainMenu_View}">
-                        <MenuItem Header="{tau:Loc MainWindow_MainMenu_Reset}" Click="DockReset"/>
-                    </MenuItem>
-                </Menu>
-                <li:DockingManager Name="DockingManager" Grid.Row="1" UseDocumentContainer="True" Margin="5" PersistState="True" IsEnableHotTracking="True" Loaded="FrameworkElement_OnLoaded">
-                    <li:DockingManager.Resources>
-                        <Style x:Key="DockBase">
-                            <Setter Property="li:DockingManager.CanClose" Value="False"/>
-                            <Setter Property="li:DockingManager.DockAbility" Value="All"/>
-                        </Style>
-                        <Style x:Key="DocumentStyle" BasedOn="{StaticResource DockBase}">
-                            <Setter Property="li:DockingManager.State" Value="Document"/>
-                        </Style>
-                        <Style x:Key="ButtomStyle" BasedOn="{StaticResource DockBase}">
-                            <Setter Property="li:DockingManager.State" Value="AutoHidden"/>
-                            <Setter Property="li:DockingManager.DesiredHeightInDockedMode" Value="500"/>
-                            <Setter Property="li:DockingManager.SideInDockedMode" Value="Bottom"/>
-                        </Style>
-                    </li:DockingManager.Resources>
-                    <ContentControl Name="BuildControl" Style="{StaticResource DocumentStyle}" Margin="5" li:DockingManager.Header="{tau:Loc MainWindow_Build_Meader}" 
-                            li:DockingManager.HeaderTemplate="{StaticResource HeaderTemplate}" Content="{tau:ViewModelBinding BuildModel}" li:DockingManager.DocumentTabOrderIndex="2"/>
-                    <ContentControl Name="Projects" Margin="5" li:DockingManager.Header="{tau:Loc MainWindow_ProjectContainer_Header}" Content="{tau:ViewModelBinding CenterView}"
-                            li:DockingManager.HeaderTemplate="{StaticResource HeaderTemplate}" li:DockingManager.DocumentTabOrderIndex="0" Style="{StaticResource DocumentStyle}"/>
-                    
-                    <ContentControl Name="Analyzer" BorderBrush="LightGray" BorderThickness="1" Margin="5" Style="{StaticResource DocumentStyle}"
-                                    li:DockingManager.Header="{tau:Loc MainWindow_Analyzer_Header}" li:DockingManager.HeaderTemplate="{StaticResource HeaderTemplate}" 
-                                    li:DockingManager.DocumentTabOrderIndex="1">
-                        <li:SfDataGrid ItemsSource="{tau:ActorBinding AnalyzerEntries}" ColumnSizer="AutoLastColumnFill" AllowResizingColumns="True" AllowSorting="True" AllowFiltering="True"
-                                       ShowSortNumbers="True" AllowGrouping="True" ShowGroupDropArea="True" AllowTriStateSorting="True" AllowEditing="False">
-                            <li:SfDataGrid.Columns>
-                                <li:GridTextColumn HeaderText="{tau:Loc MainWindow_Analyzer_RuleName}" MappingName="RuleName" FilteredFrom="AdvancedFilter" ImmediateUpdateColumnFilter="True"/>
-                                <li:GridTextColumn HeaderText="{tau:Loc MainWindow_Analyzer_Issue}" MappingName="ErrorName"  FilteredFrom="AdvancedFilter"/>
-                                <li:GridTextColumn HeaderText="{tau:Loc MainWindow_Analyzer_Project}" MappingName="Project" FilteredFrom="AdvancedFilter"/>
-                                <li:GridTextColumn HeaderText="{tau:Loc MainWindow_Analyzer_IssueDescription}" MappingName="Message" AllowSorting="False" AllowFiltering="False"/>
-                            </li:SfDataGrid.Columns>
-                        </li:SfDataGrid>
-                    </ContentControl>
-                    <StackPanel Name="Operations" li:DockingManager.Header="{tau:Loc MainWindow_Operation_Tabs_Label_Ops}" li:DockingManager.HeaderTemplate="{StaticResource HeaderTemplate}" 
-                                Style="{StaticResource ButtomStyle}">
-                        <ToolBar>
-                            <Button Margin="2" Content="{tau:Loc MainWindow_Operation_Delete}"
-                                                Command="{tau:ActorBinding ClearOp}" />
-                            <Button Margin="2" Content="{tau:Loc MainWindow_Operation_Delete_All}"
-                                                Command="{tau:ActorBinding ClearAllOp}" />
-                        </ToolBar>
-                        <ListBox ItemsSource="{tau:ActorBinding RunningOperations}">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate DataType="services:RunningOperation">
-                                    <StackPanel Margin="3" Orientation="Horizontal">
-                                        <Border MinWidth="20" Margin="3,0,15,0"
-                                                            Background="{Binding Operation, Converter={converter:OperationStateConverter}}"
-                                                            CornerRadius="15" />
-                                        <TextBlock MinWidth="250" Text="{Binding Name}" />
-                                        <TextBlock Text="{Binding Status}" Margin="10,0" />
+                                <MenuItem.Header>
+                                    <TextBlock Text="{Binding Name}" />
+                                </MenuItem.Header>
+                            </MenuItem>
+                        </DataTemplate>
+                    </MenuItem.ItemTemplate>
+                </MenuItem>
+                <MenuItem Header="{tau:Loc MainWindow_MainMenu_View}">
+                    <!--<MenuItem Header="{tau:Loc MainWindow_MainMenu_Reset}" Click="DockReset"/>-->
+                </MenuItem>
+            </Menu>
+            <controls:BusyOverlay Grid.Row="0" Name="BusyIndicator" Style="{StaticResource MaterialBusyOverlayCircular}"/>
+            <DockingManager Name="DockingManager" Grid.Row="1" Loaded="FrameworkElement_OnLoaded" Margin="5">
+                <LayoutRoot>
+                    <LayoutRoot.BottomSide>
+                        <LayoutAnchorSide>
+                            <LayoutAnchorGroup>
+                                <LayoutAnchorable ContentId="Operation" CanClose="False" AutoHideMinHeight="400"
+                                                  Title="{tau:Loc MainWindow_Operation_Tabs_Label_Ops}">
+                                    <StackPanel>
+                                        <ToolBar>
+                                            <Button Margin="2" Content="{tau:Loc MainWindow_Operation_Delete}"
+                                                        Command="{tau:ActorBinding ClearOp}" />
+                                            <Button Margin="2" Content="{tau:Loc MainWindow_Operation_Delete_All}"
+                                                        Command="{tau:ActorBinding ClearAllOp}" />
+                                        </ToolBar>
+                                        <ListBox ItemsSource="{tau:ActorBinding RunningOperations}">
+                                            <ListBox.ItemTemplate>
+                                                <DataTemplate DataType="services:RunningOperation">
+                                                    <StackPanel Margin="3" Orientation="Horizontal">
+                                                        <Border MinWidth="20" Margin="3,0,15,0"
+                                                                    Background="{Binding Operation, Converter={converter:OperationStateConverter}}"
+                                                                    CornerRadius="15" />
+                                                        <TextBlock MinWidth="250" Text="{Binding Name}" />
+                                                        <TextBlock Text="{Binding Status}" Margin="10,0" />
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </ListBox.ItemTemplate>
+                                        </ListBox>
                                     </StackPanel>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
-                    </StackPanel>
-                    <serilogViewer:SerilogViewer Name="Logger" li:DockingManager.Header="{tau:Loc MainWindow_Operation_Tabs_Label_Logs}" Style="{StaticResource ButtomStyle}"
-                                                 li:DockingManager.HeaderTemplate="{StaticResource HeaderTemplate}"/>
-                </li:DockingManager>
-            </Grid>
-        </tau:DialogHost>
-    </li:SfBusyIndicator>
+                                </LayoutAnchorable>
+                                <LayoutAnchorable ContentId="Logger" Title="{tau:Loc MainWindow_Operation_Tabs_Label_Logs}" CanDockAsTabbedDocument="True" AutoHideMinHeight="400" CanClose="False">
+                                    <serilogViewer:SerilogViewer Name="Logger"/>
+                                </LayoutAnchorable>
+                            </LayoutAnchorGroup>
+                        </LayoutAnchorSide>
+                    </LayoutRoot.BottomSide>
+                    <LayoutPanel>
+                        <LayoutDocumentPane>
+                            <LayoutDocument ContentId="Projects" Title="{tau:Loc MainWindow_ProjectContainer_Header}" CanClose="False" >
+                                <ContentControl Margin="5" Content="{tau:ViewModelBinding CenterView}"/>
+                            </LayoutDocument>
+                            <LayoutDocument ContentId="BuildControl" Title="{tau:Loc MainWindow_Build_Meader}" CanClose="False">
+                                <ContentControl Margin="5"  Content="{tau:ViewModelBinding BuildModel}"/>
+                            </LayoutDocument>
+                            <LayoutDocument ContentId="Analyzer" CanClose="False" Title="{tau:Loc MainWindow_Analyzer_Header}">
+                                <views:AnalyserPane/>
+                            </LayoutDocument>
+                        </LayoutDocumentPane>
+                    </LayoutPanel>
+                </LayoutRoot>
+            </DockingManager>
+        </Grid>
+    </materialDesign:DialogHost>
 </tau:Window>

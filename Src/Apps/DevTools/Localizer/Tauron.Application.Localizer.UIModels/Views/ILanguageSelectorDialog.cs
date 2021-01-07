@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Globalization;
-using Tauron.Application.Wpf.Dialogs;
+using Tauron.Application.CommonUI.Dialogs;
 
 namespace Tauron.Application.Localizer.UIModels.Views
 {

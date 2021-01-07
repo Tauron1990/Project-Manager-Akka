@@ -1,66 +1,62 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Threading;
 using Akka.Actor;
 using Autofac;
+using DynamicData;
 using JetBrains.Annotations;
+using Tauron.Akka;
+using Tauron.Application.CommonUI;
+using Tauron.Application.CommonUI.AppCore;
+using Tauron.Application.CommonUI.Dialogs;
+using Tauron.Application.CommonUI.Helper;
+using Tauron.Application.CommonUI.Model;
 using Tauron.Application.Localizer.DataModel;
 using Tauron.Application.Localizer.DataModel.Processing;
 using Tauron.Application.Localizer.DataModel.Workspace;
-using Tauron.Application.Localizer.UIModels.Core;
 using Tauron.Application.Localizer.UIModels.lang;
 using Tauron.Application.Localizer.UIModels.Messages;
 using Tauron.Application.Localizer.UIModels.Services;
 using Tauron.Application.Localizer.UIModels.Views;
 using Tauron.Application.Workshop;
 using Tauron.Application.Workshop.Mutation;
-using Tauron.Application.Wpf;
-using Tauron.Application.Wpf.Dialogs;
-using Tauron.Application.Wpf.Helper;
-using Tauron.Application.Wpf.Model;
 
 namespace Tauron.Application.Localizer.UIModels
 {
     [UsedImplicitly]
     public sealed class CenterViewModel : UiActor
     {
-        public CenterViewModel(ILifetimeScope lifetimeScope, Dispatcher dispatcher, IOperationManager manager, LocLocalizer localizer, IDialogCoordinator dialogCoordinator,
+        public CenterViewModel(ILifetimeScope lifetimeScope, IUIDispatcher dispatcher, IOperationManager manager, LocLocalizer localizer, IDialogCoordinator dialogCoordinator,
             IMainWindowCoordinator mainWindow, ProjectFileWorkspace workspace)
             : base(lifetimeScope, dispatcher)
         {
             Receive<IncommingEvent>(e => e.Action());
 
-            Views = this.RegisterUiCollection<ProjectViewContainer>(nameof(Views)).AndAsync();
+            Views = this.RegisterUiCollection<ProjectViewContainer>(nameof(Views)).BindToList(out var viewList);
             CurrentProject = RegisterProperty<int?>(nameof(CurrentProject));
 
-            AddProject(new Project().WithProjectName("Dummy"));
+            AddProject(new Project() { ProjectName = "Dummy" });
 
-            static string GetActorName(string projectName)
-            {
-                return projectName.Replace(' ', '_') + "-View";
-            }
+            static string GetActorName(string projectName) => projectName.Replace(' ', '_') + "-View";
 
             #region Project Save
 
-            void ProjectSaved(SavedProject obj)
+            void ProjectSaved((SavedProject, OperationController?) input)
             {
-                var controller = manager.Find(obj.OperationId);
-                if (controller == null) return;
+                var ((_, isOk, error), controller) = input;
 
-                if (obj.Ok)
+                if (isOk)
                 {
                     mainWindow.Saved = true;
-                    controller.Compled();
+                    controller?.Compled();
                 }
                 else
                 {
                     mainWindow.Saved = false;
-                    controller.Failed(obj.Exception?.Message);
+                    controller?.Failed(error?.Message);
                 }
             }
 
@@ -70,29 +66,29 @@ namespace Tauron.Application.Localizer.UIModels
 
                 var operation = manager.StartOperation(string.Format(localizer.CenterViewSaveProjectOperation, Path.GetFileName(obj.ProjectFile.Source)));
                 var file = obj.ProjectFile;
-                file.Operator.Tell(new SaveProject(operation.Id, file), Self);
+
+                operation.Select(op => new SaveProject(op.Id, file))
+                         .ObserveOnSelf()
+                         .ToActor(sp => sp.ProjectFile.Operator);
             }
 
-            Flow<SaveRequest>(b =>
-            {
-                b.EventSource(workspace.Source.SaveRequest).ToSelf()
-                   .Then(b2 =>
-                    {
-                        b2.Action(SaveRequested)
-                           .Then<SavedProject>(b3 => b3.Action(ProjectSaved));
-                    });
-            });
+            workspace.Source.SaveRequest
+                     .ObserveOnSelf()
+                     .Subscribe(SaveRequested)
+                     .DisposeWith(this);
+
+            (from savedProject in WhenReceive<SavedProject>()
+             from controller in manager.Find(savedProject.OperationId)
+             select (savedProject, controller))
+               .Subscribe(ProjectSaved)
+               .DisposeWith(this);
 
             #endregion
 
             #region Update Source
 
-            Flow<UpdateSource>(b =>
-            {
-                b.Mutate(workspace.Source).With(sm => sm.SourceUpdate, sm => us => sm.UpdateSource(us.Name)).ToSelf()
-                   .Then(b2 => b2.Action(su => mainWindow.TitlePostfix = Path.GetFileNameWithoutExtension(su.Source)));
-            });
-
+            WhenReceive<UpdateSource>().Mutate(workspace.Source).With(sm => sm.SourceUpdate, sm => us => sm.UpdateSource(us.Name))
+                                       .Subscribe(su => mainWindow.TitlePostfix = Path.GetFileNameWithoutExtension(su.Source));
             #endregion
 
             #region Remove Project
@@ -107,46 +103,43 @@ namespace Tauron.Application.Localizer.UIModels
                 return new RemoveProjectName(projectName);
             }
 
-            void RemoveDialog(RemoveProjectName? project)
+            void RemoveDialog(RemoveProjectName project)
             {
-                UICall(c =>
-                {
-                    dialogCoordinator.ShowMessage(string.Format(localizer.CenterViewRemoveProjectDialogTitle, project?.Name),
-                        localizer.CenterViewRemoveProjectDialogMessage, result =>
-                        {
-                            if (result == true)
-                                workspace.Projects.RemoveProject(project?.Name ?? string.Empty);
-                        });
-                });
+                UICall(_ =>
+                       {
+                           dialogCoordinator.ShowMessage(string.Format(localizer.CenterViewRemoveProjectDialogTitle, project.Name),
+                                                         localizer.CenterViewRemoveProjectDialogMessage,
+                                                         result =>
+                                                         {
+                                                             if (result == true)
+                                                                 workspace.Projects.RemoveProject(project.Name);
+                                                         });
+                       });
             }
 
             void RemoveProject(Project project)
             {
-                var proj = Views.FirstOrDefault(p => p.Project.ProjectName == project.ProjectName);
+                var proj = Views!.FirstOrDefault(p => p.Project.ProjectName == project.ProjectName);
                 if (proj == null) return;
 
                 Context.Stop(proj.Model.Actor);
-                Views.Remove(proj);
+                viewList!.Remove(proj);
             }
 
-            NewCommad
-               .WithCanExecute(b => new[]
-                                    {
-                                        b.FromProperty(CurrentProject, i => i != null),
-                                        b.NoEmptyProjectFile(workspace)
-                                    })
-               .ThenFlow(TryGetRemoveProjectName, b =>
-                {
-                    b.Mutate(workspace.Projects).With(pm => pm.RemovedProject, pm => RemoveDialog).ToSelf()
-                       .Then(b2 => b2.Action(rp => RemoveProject(rp.Project)));
-                })
-               .ThenRegister("RemoveProject");
+            NewCommad.WithCanExecute(from project in CurrentProject
+                                     from file in workspace
+                                     select project != null && !file.IsEmpty)
+                     .ThenFlow(TryGetRemoveProjectName,
+                               obs => obs.NotNull()
+                                         .Mutate(workspace.Projects).With(pm => pm.RemovedProject, _ => RemoveDialog)
+                                         .Subscribe(rp => RemoveProject(rp.Project)))
+                     .ThenRegister("RemoveProject");
 
             #endregion
 
             #region Project Reset
 
-            OnPreRestart += (exception, msg) => Self.Tell(new ProjectRest(workspace.ProjectFile));
+            OnPreRestart += (_, _) => Self.Tell(new ProjectRest(workspace.ProjectFile));
             OnPostStop += () =>
             {
                 Views.Foreach(c => Context.Stop(c.Model.Actor));
@@ -157,8 +150,9 @@ namespace Tauron.Application.Localizer.UIModels
             {
                 mainWindow.Saved = File.Exists(obj.ProjectFile.Source);
 
-                if (Views.Count != 0)
+                if (Views!.Count != 0)
                 {
+
                     Task.WhenAll(Views.Select(c => c.Model.Actor.GracefulStop(TimeSpan.FromMinutes(1)).ContinueWith(t => (c.Model.Actor, t))))
                        .ContinueWith(t =>
                         {
@@ -181,7 +175,7 @@ namespace Tauron.Application.Localizer.UIModels
                             }
                             finally
                             {
-                                Views.Clear();
+                                viewList!.Clear();
                             }
                         }).PipeTo(Self, Sender, () => obj, _ => obj);
 
@@ -208,12 +202,9 @@ namespace Tauron.Application.Localizer.UIModels
                 mainWindow.IsBusy = false;
             }
 
-            Flow<SupplyNewProjectFile>(b =>
-            {
-                b.Mutate(workspace.Source).With(sm => sm.ProjectReset, sm => np => sm.Reset(np.File)).ToSelf()
-                   .Then(b2 => b2.Action(ProjectRest));
-            });
-
+            WhenReceiveSafe<SupplyNewProjectFile>(obs => obs
+                                                        .Mutate(workspace.Source).With(sm => sm.ProjectReset, sm => np => sm.Reset(np.File))
+                                                        .Subscribe(ProjectRest));
             #endregion
 
             #region Add Project
@@ -223,7 +214,7 @@ namespace Tauron.Application.Localizer.UIModels
                 string name = GetActorName(project.ProjectName);
                 if (!ActorPath.IsValidPathElement(name))
                 {
-                    UICall(c => dialogCoordinator.ShowMessage(localizer.CommonError, localizer.CenterViewNewProjectInvalidNameMessage));
+                    UICall(_ => dialogCoordinator.ShowMessage(localizer.CommonError, localizer.CenterViewNewProjectInvalidNameMessage));
                     return;
                 }
 
@@ -231,32 +222,32 @@ namespace Tauron.Application.Localizer.UIModels
                 view.InitModel(Context, name);
 
                 view.AwaitInit(() => view.Actor.Tell(new InitProjectViewModel(project), Self));
-                Views.Add(new ProjectViewContainer(view, project));
+                viewList.Add(new ProjectViewContainer(project, view));
 
                 CurrentProject += Views.Count - 1;
             }
 
-            NewCommad.WithCanExecute(b => b.NoEmptyProjectFile(workspace))
-               .ThenFlow(
-                    this.ShowDialog<IProjectNameDialog, NewProjectDialogResult, IEnumerable<string>>(() => workspace.ProjectFile.Projects.Select(p => p.ProjectName)),
-                    b =>
-                    {
-                        b.Mutate(workspace.Projects).With(pm => pm.NewProject, pm => result => pm.AddProject(result.Name)).ToSelf()
-                           .Then(b2 => b2.Action(p => AddProject(p.Project)));
-                    })
+            NewCommad
+               .WithCanExecute(workspace.Select(pf => !pf.IsEmpty))
+               .ThenFlow(ob => ob.Select(_ => workspace.ProjectFile.Projects.Select(p => p.ProjectName))
+                                 .Dialog(this).Of<IProjectNameDialog, NewProjectDialogResult>()
+                                 .Mutate(workspace.Projects).With(pm => pm.NewProject, pm => result => pm.AddProject(result.Name))
+                                 .Select(p => p.Project)
+                                 .ObserveOnSelf()
+                                 .Subscribe(AddProject))
                .ThenRegister("AddNewProject");
 
             #endregion
 
             #region Add Global Language
 
-            NewCommad.WithCanExecute(b => b.NoEmptyProjectFile(workspace))
-               .ThenFlow(
-                    this.ShowDialog<ILanguageSelectorDialog, AddLanguageDialogResult?, IEnumerable<CultureInfo>>(() => workspace.ProjectFile.GlobalLanguages.Select(al => al.ToCulture())),
-                    b =>
-                    {
-                        b.Mutate(workspace.Projects).With(mutator => result => mutator.AddLanguage(result?.CultureInfo));
-                    })
+            NewCommad
+               .WithCanExecute(workspace.Select(pf => !pf.IsEmpty))
+               .ThenFlow(obs => obs
+                               .Select(_ => workspace.ProjectFile.GlobalLanguages.Select(al => al.ToCulture()))
+                               .Dialog(this).Of<ILanguageSelectorDialog, AddLanguageDialogResult?>()
+                               .NotNull()
+                               .Mutate(workspace.Projects).With(mutator => result => mutator.AddLanguage(result.CultureInfo)))
                .ThenRegister("AddGlobalLang");
 
             #endregion

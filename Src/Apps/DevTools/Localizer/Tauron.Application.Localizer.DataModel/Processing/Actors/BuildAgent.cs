@@ -3,19 +3,18 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reactive.Linq;
 using Tauron.Akka;
 using Tauron.Localization;
 
 namespace Tauron.Application.Localizer.DataModel.Processing.Actors
 {
-    public sealed class BuildAgent : ExposedReceiveActor
+    public sealed class BuildAgent : ExpandedReceiveActor
     {
-        public BuildAgent()
-        {
-            Flow<PreparedBuild>(b => b.Func(OnBuild).Forward.ToParent());
-        }
+        public BuildAgent() 
+            => WhenReceiveSafe<PreparedBuild>(obs => obs.Select(OnBuild).ForwardToParent());
 
-        private AgentCompled OnBuild(PreparedBuild build)
+        private static AgentCompled OnBuild(PreparedBuild build)
         {
             try
             {
@@ -49,9 +48,9 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
                               (string.Empty, build.TargetProject)
                           };
             imports.AddRange(build.TargetProject.Imports
-               .Select(pn => build.ProjectFile.Projects.Find(p => p.ProjectName == pn))
-               .Where(p => p != null)
-               .Select(p => build.BuildInfo.IntigrateProjects ? (string.Empty, p) : (p.ProjectName, p)));
+                                  .Select(pn => build.ProjectFile.Projects.Find(p => p.ProjectName == pn))
+                                  .Where(p => p != null)
+                                  .Select(p => build.BuildInfo.IntigrateProjects ? (string.Empty, p!) : (p!.ProjectName, p!)));
 
             foreach (var (fileName, project) in imports)
             {
@@ -185,8 +184,8 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
             tabs--;
             writer.WriteLine(new string('\t', tabs) + "}");
 
-            foreach (var entry in entryValue) 
-                writer.WriteLine($"{new string('\t', tabs)}public string {entry.FieldName} => {ToRealFieldName(entry.FieldName)}.Result;");
+            foreach (var (fieldName, _) in entryValue) 
+                writer.WriteLine($"{new string('\t', tabs)}public string {fieldName} => {ToRealFieldName(fieldName)}.Result;");
         }
 
         private static string ToRealFieldName(string name)

@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Threading.Tasks;
+using System.Reactive;
 using System.Windows;
 using JetBrains.Annotations;
 using Ookii.Dialogs.Wpf;
@@ -20,13 +20,13 @@ namespace Tauron.Application.Wpf.Implementation
 
         private IUIDispatcher CurrentDispatcher { get; }
 
-        public Task FormatException(System.Windows.Window? owner, Exception exception)
-            => ShowMessageBox(owner, $"Type: {exception.GetType().Name} \n {exception.Message}", "Error", MsgBoxButton.Ok, MsgBoxImage.Error);
+        public IObservable<Unit> FormatException(System.Windows.Window? owner, Exception exception)
+            => ShowMessageBox(owner, $"Type: {exception.GetType().Name} \n {exception.Message}", "Error", MsgBoxButton.Ok, MsgBoxImage.Error).ToUnit();
 
-        public Task<MsgBoxResult> ShowMessageBox(System.Windows.Window? owner, string text, string caption, MsgBoxButton button, MsgBoxImage icon)
+        public IObservable<MsgBoxResult> ShowMessageBox(System.Windows.Window? owner, string text, string caption, MsgBoxButton button, MsgBoxImage icon)
             => CurrentDispatcher.InvokeAsync(() => (MsgBoxResult) MessageBox.Show(owner ?? _mainWindow, text, caption, (MessageBoxButton) button, (MessageBoxImage) icon));
 
-        public Task<string[]?> ShowOpenFileDialog(Window? owner, bool checkFileExists, string defaultExt, bool dereferenceLinks, string filter,
+        public IObservable<string[]?> ShowOpenFileDialog(Window? owner, bool checkFileExists, string defaultExt, bool dereferenceLinks, string filter,
             bool multiSelect, string title, bool validateNames, bool checkPathExists)
             => CurrentDispatcher.InvokeAsync(() =>
                                              {
@@ -54,7 +54,7 @@ namespace Tauron.Application.Wpf.Implementation
                                                             : dialog.FileNames;
                                              });
 
-        public Task<string?> ShowOpenFolderDialog(System.Windows.Window? owner, string description, Environment.SpecialFolder rootFolder, bool showNewFolderButton,
+        public IObservable<string?> ShowOpenFolderDialog(System.Windows.Window? owner, string description, Environment.SpecialFolder rootFolder, bool showNewFolderButton,
             bool useDescriptionForTitle)
             => CurrentDispatcher.InvokeAsync(
                                              () =>
@@ -76,7 +76,7 @@ namespace Tauron.Application.Wpf.Implementation
                                                             : dialog.SelectedPath;
                                              });
 
-        public Task<string?> ShowOpenFolderDialog(System.Windows.Window? owner, string description, string rootFolder, bool showNewFolderButton, bool useDescriptionForTitle)
+        public IObservable<string?> ShowOpenFolderDialog(System.Windows.Window? owner, string description, string rootFolder, bool showNewFolderButton, bool useDescriptionForTitle)
             => CurrentDispatcher.InvokeAsync(
                                         () =>
                                         {
@@ -97,7 +97,7 @@ namespace Tauron.Application.Wpf.Implementation
                                                        : dialog.SelectedPath;
                                         });
 
-        public Task<string?> ShowSaveFileDialog(System.Windows.Window? owner, bool addExtension, bool checkFileExists, bool checkPathExists, string defaultExt, bool dereferenceLinks, string filter,
+        public IObservable<string?> ShowSaveFileDialog(System.Windows.Window? owner, bool addExtension, bool checkFileExists, bool checkPathExists, string defaultExt, bool dereferenceLinks, string filter,
             bool createPrompt, bool overwritePrompt, string title, string initialDirectory)
             => CurrentDispatcher.InvokeAsync(
                                              () =>

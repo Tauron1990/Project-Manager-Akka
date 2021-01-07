@@ -1,12 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Linq;
 using Tauron.Akka;
 using Akka.Actor;
 using Akka.Event;
 
 namespace Tauron.Application.Localizer.DataModel.Processing.Actors
 {
-    public sealed class BuildActorCoordinator : ExposedReceiveActor
+    public sealed class BuildActorCoordinator : ExpandedReceiveActor
     {
         private readonly ILoggingAdapter _log = Context.GetLogger();
 
@@ -15,8 +17,8 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
 
         public BuildActorCoordinator()
         {
-            Flow<BuildRequest>(b => b.Action(ProcessRequest));
-            Flow<AgentCompled>(b => b.Func(SingleBuildCompled).ToSender());
+            Receive<BuildRequest>(ProcessRequest);
+            WhenReceiveSafe<AgentCompled>(obs => obs.Select(SingleBuildCompled).ToSender());
         }
 
         private BuildCompled? SingleBuildCompled(AgentCompled arg)
@@ -33,33 +35,39 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
 
         private void ProcessRequest(BuildRequest obj)
         {
-            Context.Sender.Tell(BuildMessage.GatherData(obj.OperationId));
+            var (idObservable, data) = obj;
+            idObservable
+               .Take(1)
+               .ObserveOnSelf()
+               .Subscribe(operationId =>
+                          {
 
-            _remaining = 0;
-            _fail = false;
+                              Context.Sender.Tell(BuildMessage.GatherData(operationId));
 
-            var data = obj.ProjectFile;
-            var toBuild = new List<PreparedBuild>(data.Projects.Count);
-            
-            toBuild.AddRange(
-                from project in data.Projects 
-                let path = data.FindProjectPath(project) 
-                where !string.IsNullOrWhiteSpace(path) 
-                select new PreparedBuild(data.BuildInfo, project, data, obj.OperationId, path));
+                              _remaining = 0;
+                              _fail = false;
 
-            if (toBuild.Count == 0)
-            {
-                Context.Sender.Tell(BuildMessage.NoData(obj.OperationId));
-                return;
-            }
+                              var toBuild = new List<PreparedBuild>(data.Projects.Count);
 
-            var agent = 1;
-            foreach (var preparedBuild in toBuild)
-            {
-                _remaining++;
-                Context.GetOrAdd<BuildAgent>("Agent-" + agent).Forward(preparedBuild);
-                agent++;
-            }
+                              toBuild.AddRange(from project in data.Projects
+                                               let path = data.FindProjectPath(project)
+                                               where !string.IsNullOrWhiteSpace(path)
+                                               select new PreparedBuild(data.BuildInfo, project, data, operationId, path));
+
+                              if (toBuild.Count == 0)
+                              {
+                                  Context.Sender.Tell(BuildMessage.NoData(operationId));
+                                  return;
+                              }
+
+                              var agent = 1;
+                              foreach (var preparedBuild in toBuild)
+                              {
+                                  _remaining++;
+                                  Context.GetOrAdd<BuildAgent>("Agent-" + agent).Forward(preparedBuild);
+                                  agent++;
+                              }
+                          });
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace Tauron.Application.Localizer.DataModel.Processing
 {
-    public sealed record ForceSave(bool AnfSeal, ProjectFile File)
+    public sealed record ForceSave(bool AndSeal, ProjectFile File)
     {
         public static ForceSave Force(ProjectFile file) => new(false, file);
 

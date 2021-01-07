@@ -1,17 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Reactive;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 
 namespace Tauron.Application.Wpf
 {
-    [SuppressMessage("Microsoft.Design", "CA1027:MarkEnumsWithFlags")]
+    #pragma warning disable CA1069 // Enumerationswerte dürfen nicht dupliziert werden
     [PublicAPI]
     public enum MsgBoxImage
     {
         None = 0,
         Error = 16,
+
         Hand = 16,
         Stop = 16,
         Question = 32,
@@ -40,15 +42,17 @@ namespace Tauron.Application.Wpf
         No = 7
     }
 
+    #pragma warning restore CA1069 // Enumerationswerte dürfen nicht dupliziert werden
+
     [PublicAPI]
     public interface IDialogFactory
     {
-        Task FormatException(System.Windows.Window? owner, Exception exception);
+        IObservable<Unit> FormatException(System.Windows.Window? owner, Exception exception);
 
-        Task<MsgBoxResult> ShowMessageBox(System.Windows.Window? owner, string text, string caption, MsgBoxButton button, MsgBoxImage icon);
+        IObservable<MsgBoxResult> ShowMessageBox(System.Windows.Window? owner, string text, string caption, MsgBoxButton button, MsgBoxImage icon);
 
 
-        Task<string[]?> ShowOpenFileDialog(Window? owner,
+        IObservable<string[]?> ShowOpenFileDialog(Window? owner,
             bool checkFileExists, string defaultExt,
             bool dereferenceLinks, string filter,
             bool multiSelect, string title,
@@ -56,12 +60,12 @@ namespace Tauron.Application.Wpf
             bool checkPathExists);
 
 
-        Task<string?> ShowOpenFolderDialog(System.Windows.Window? owner, string description, Environment.SpecialFolder rootFolder, bool showNewFolderButton, bool useDescriptionForTitle);
+        IObservable<string?> ShowOpenFolderDialog(System.Windows.Window? owner, string description, Environment.SpecialFolder rootFolder, bool showNewFolderButton, bool useDescriptionForTitle);
 
-        Task<string?> ShowOpenFolderDialog(System.Windows.Window? owner, string description, string rootFolder, bool showNewFolderButton, bool useDescriptionForTitle);
+        IObservable<string?> ShowOpenFolderDialog(System.Windows.Window? owner, string description, string rootFolder, bool showNewFolderButton, bool useDescriptionForTitle);
 
 
-        Task<string?> ShowSaveFileDialog(System.Windows.Window? owner, bool addExtension, bool checkFileExists, bool checkPathExists, string defaultExt, bool dereferenceLinks, string filter,
+        IObservable<string?> ShowSaveFileDialog(System.Windows.Window? owner, bool addExtension, bool checkFileExists, bool checkPathExists, string defaultExt, bool dereferenceLinks, string filter,
             bool createPrompt, bool overwritePrompt, string title, string initialDirectory);
     }
 }

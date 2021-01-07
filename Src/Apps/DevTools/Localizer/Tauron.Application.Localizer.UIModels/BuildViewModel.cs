@@ -1,40 +1,36 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
+using System.Reactive.Threading.Tasks;
 using System.Windows.Input;
-using System.Windows.Threading;
 using Autofac;
+using DynamicData;
 using JetBrains.Annotations;
+using Tauron.Akka;
+using Tauron.Application.CommonUI;
+using Tauron.Application.CommonUI.AppCore;
+using Tauron.Application.CommonUI.Commands;
+using Tauron.Application.CommonUI.Model;
 using Tauron.Application.Localizer.DataModel;
 using Tauron.Application.Localizer.DataModel.Processing;
 using Tauron.Application.Localizer.DataModel.Workspace;
-using Tauron.Application.Localizer.UIModels.Core;
 using Tauron.Application.Localizer.UIModels.lang;
 using Tauron.Application.Localizer.UIModels.Services;
 using Tauron.Application.Workshop;
 using Tauron.Application.Workshop.Mutation;
 using Tauron.Application.Wpf;
-using Tauron.Application.Wpf.Commands;
-using Tauron.Application.Wpf.Model;
+using Tauron.ObservableExt;
 
 namespace Tauron.Application.Localizer.UIModels
 {
-    public sealed class ProjectBuildpathRequest
-    {
-        public string TargetPath { get; }
+    public sealed record ProjectBuildpathRequest(string TargetPath, string Project);
 
-        public string Project { get; }
-
-        public ProjectBuildpathRequest(string targetPath, string project)
-        {
-            TargetPath = targetPath;
-            Project = project;
-        }
-    }
-
+    [PublicAPI]
     public sealed class BuildProjectViewModel : ObservableObject
     {
-        private readonly EnterFlow<ProjectBuildpathRequest> _updatePath;
+        private readonly IObserver<ProjectBuildpathRequest> _updatePath;
         private string _path;
         private readonly LocLocalizer _localizer;
         private readonly IDialogFactory _dialogFactory;
@@ -55,18 +51,18 @@ namespace Tauron.Application.Localizer.UIModels
                 _path = value;
                 OnPropertyChanged();
 
-                _updatePath(new ProjectBuildpathRequest(value, Project));
+                _updatePath.OnNext(new ProjectBuildpathRequest(value, Project));
             }
         }
 
-        public BuildProjectViewModel(EnterFlow<ProjectBuildpathRequest> updatePath, string? path, string project, LocLocalizer localizer, IDialogFactory dialogFactory, string source)
+        public BuildProjectViewModel(IObserver<ProjectBuildpathRequest> updatePath, string? path, string project, LocLocalizer localizer, IDialogFactory dialogFactory, string? source)
         {
             _path = path ?? string.Empty;
             Project = project;
             _localizer = localizer;
             _dialogFactory = dialogFactory;
 
-            source = source.GetDirectoryName();
+            source = source?.GetDirectoryName();
             _source = string.IsNullOrWhiteSpace(source) ? Environment.CurrentDirectory : source;
             _updatePath = updatePath;
 
@@ -76,15 +72,18 @@ namespace Tauron.Application.Localizer.UIModels
 
         private void SetPathDialog()
         {
-            var path = _dialogFactory.ShowOpenFolderDialog(null, 
-                _localizer.MainWindowBuildProjectFolderBrowserDescription, _source, 
-                true, false, out var isOk);
+            var path = _dialogFactory.ShowOpenFolderDialog(null,
+                                                           _localizer.MainWindowBuildProjectFolderBrowserDescription, _source,
+                                                           true, false)
+                                     .NotEmpty()
+                                     .Select(s => s.CombinePath("lang"))
+                                     .Select(s => BuildViewModel.MakeRelativePath(s, _source));
 
-            if(isOk != true) return;
-            
-            if(string.IsNullOrWhiteSpace(path)) return;
-
-            Path = BuildViewModel.MakeRelativePath(path.CombinePath("lang"), _source);
+            path.ToTask().ContinueWith(t =>
+                                       {
+                                           if (t.IsCompletedSuccessfully && !string.IsNullOrWhiteSpace(t.Result))
+                                               Path = t.Result;
+                                       });
         }
 
         public void UpdateSource(string newSource)
@@ -96,10 +95,10 @@ namespace Tauron.Application.Localizer.UIModels
         }
     }
 
-    [UsedImplicitly]
+    [UsedImplicitly, PublicAPI]
     public sealed class BuildViewModel : UiActor
     {
-        public BuildViewModel(ILifetimeScope lifetimeScope, Dispatcher dispatcher, ProjectFileWorkspace workspace, LocLocalizer localizer, IDialogFactory dialogFactory, IOperationManager manager) 
+        public BuildViewModel(ILifetimeScope lifetimeScope, IUIDispatcher dispatcher, ProjectFileWorkspace workspace, LocLocalizer localizer, IDialogFactory dialogFactory, IOperationManager manager) 
             : base(lifetimeScope, dispatcher)
         {
             Receive<IncommingEvent>(e => e.Action());
@@ -107,35 +106,36 @@ namespace Tauron.Application.Localizer.UIModels
             #region Import Integration
 
             Importintegration = RegisterProperty<bool>(nameof(Importintegration))
-               .WithDefaultValue(true).ThenFlow(b => new ChangeIntigrate(b), this, b =>
-                {
-                    b.Mutate(workspace.Build).With(bm => bm.Intigrate, bm => ci => bm.SetIntigrate(ci.ToIntigrate)).ToSelf()
-                       .Then(b2 => b2.Action(ii => Importintegration!.Set(ii.IsIntigrated)));
-                });
+                               .WithDefaultValue(true)
+                               .ThenSubscribe(obs => obs.Select(b => new ChangeIntigrate(b))
+                                                        .Mutate(workspace.Build).With(bm => bm.Intigrate, bm => ci => bm.SetIntigrate(ci.ToIntigrate))
+                                                        .ObserveOnSelf()
+                                                        .Subscribe(ii => Importintegration!.Set(ii.IsIntigrated)));
             
             #endregion
 
             #region Projects
 
-            Projects = this.RegisterUiCollection<BuildProjectViewModel>(nameof(Projects)).AndAsync();
+            
+            Projects = this.RegisterUiCollection<BuildProjectViewModel>(nameof(Projects)).BindToList(out var projectsSource);
 
-            var flow = EnterFlow<ProjectBuildpathRequest>(b =>
-            {
-                b.Mutate(workspace.Build).With(bm => bm.ProjectPath, bm => r => bm.SetProjectPath(r.Project, r.TargetPath)).ToSelf()
-                   .Then(b2 => b2.Action(UpdatePath).AndBuild());
-            });
+            var projectPathSetter = new Subject<ProjectBuildpathRequest>().DisposeWith(this);
+
+            projectPathSetter.Mutate(workspace.Build).With(bm => bm.ProjectPath, bm => r => bm.SetProjectPath(r.Project, r.TargetPath))
+                             .ObserveOnSelf()
+                             .Subscribe(UpdatePath)
+                             .DisposeWith(this);
+            
 
             BuildProjectViewModel GetBuildModel(Project p, ProjectFile file)
-                => new BuildProjectViewModel(flow ?? throw new InvalidOperationException("Flow was null"), file.FindProjectPath(p), p.ProjectName, localizer, dialogFactory, file.Source);
+                => new(projectPathSetter ?? throw new InvalidOperationException("Flow was null"), file.FindProjectPath(p), p.ProjectName, localizer, dialogFactory, file.Source);
 
             void InitProjects(ProjectRest rest)
             {
-                if(flow == null) return;
-
                 var file = rest.ProjectFile;
 
-                Projects.Clear();
-                Projects.AddRange(file.Projects.Select(p => GetBuildModel(p, file)));
+                projectsSource.Clear();
+                projectsSource.AddRange(file.Projects.Select(p => GetBuildModel(p, file)));
             }
 
             void UpdatePath(ProjectPathChanged changed)
@@ -146,13 +146,13 @@ namespace Tauron.Application.Localizer.UIModels
                 model.Path = changed.TargetPath;
             }
 
-            this.RespondOnEventSource(workspace.Projects.NewProject, project => Projects.Add(GetBuildModel(project.Project, workspace.ProjectFile)));
+            this.RespondOnEventSource(workspace.Projects.NewProject, project => projectsSource.Add(GetBuildModel(project.Project, workspace.ProjectFile)));
             this.RespondOnEventSource(workspace.Projects.RemovedProject, project =>
             {
                 var model = Projects.FirstOrDefault(m => m.Project == project.Project.ProjectName);
                 if(model == null) return;
 
-                Projects.Remove(model);
+                projectsSource.Remove(model);
             });
             this.RespondOnEventSource(workspace.Source.SourceUpdate, updated => Projects.Foreach(m => m.UpdateSource(updated.Source)));
 
@@ -160,54 +160,53 @@ namespace Tauron.Application.Localizer.UIModels
 
             #region Terminal
 
-            TerminalMessages = this.RegisterUiCollection<string>(nameof(TerminalMessages));
+            TerminalMessages = this.RegisterUiCollection<string>(nameof(TerminalMessages)).BindToList(out var terminalMessages);
             var buildMessageLocalizer = new BuildMessageLocalizer(localizer);
 
-            Flow<BuildMessage>(b => b.Action(AddMessage));
-
-            void ClearTerminal() => UICall(TerminalMessages.Clear);
-
+            Receive<BuildMessage>(AddMessage);
+            
             void AddMessage(BuildMessage message)
             {
                 var locMsg = buildMessageLocalizer.Get(message);
-                manager.Find(message.OperationId)?.UpdateStatus(locMsg);
-                UICall(() => TerminalMessages.Add(locMsg));
+                manager.Find(message.OperationId).NotNull().Subscribe(c => c.UpdateStatus(locMsg));
+                terminalMessages.Add(locMsg);
             }
 
             #endregion
 
             #region Build
 
-            var canBuild = QueryProperty.Create(true);
+            var canBuild = true.ToRx();
 
             this.RespondOnEventSource(workspace.Source.SaveRequest, _ => InvokeCommand("StartBuild"));
 
             NewCommad
-               .WithCanExecute(b => new[]
-                                    {
-                                        b.FromProperty(canBuild),
-                                        b.FromEventSource(workspace.Source.ProjectReset, _ => !workspace.ProjectFile.IsEmpty && !string.IsNullOrWhiteSpace(workspace.ProjectFile.Source))
-                                    })
-               .WithExecute(ClearTerminal)
+               .WithCanExecute(from value in canBuild
+                               from reset in workspace.Source.ProjectReset 
+                               select value && !reset.ProjectFile.IsEmpty && !string.IsNullOrWhiteSpace(reset.ProjectFile.Source))
+               .WithExecute(terminalMessages.Clear)
                .WithExecute(() => canBuild.Value = false)
-               .ThenFlow(() => new BuildRequest(manager.StartOperation(localizer.MainWindowodelBuildProjectOperation).Id, workspace.ProjectFile), b =>
-                {
-                    b.External<BuildCompled>(() => workspace.ProjectFile.Operator)
-                       .Then(b2 => b2.Action(BuildCompled));
-                })
+               .ThenFlow(obs => obs.Select(_ => new BuildRequest(manager.StartOperation(localizer.MainWindowodelBuildProjectOperation).Select(oc => oc.Id), workspace.ProjectFile))
+                                   .ToActor(r => r.ProjectFile.Operator))
                .ThenRegister("StartBuild");
+
+            Receive<BuildCompled>(BuildCompled);
 
             void BuildCompled(BuildCompled msg)
             {
-                var op = manager.Find(msg.OperationId);
-                if(op == null) return;
+                var (operationId, isFailed) = msg;
+                manager.Find(operationId)
+                       .NotNull()
+                       .Subscribe(op =>
+                                  {
 
-                if(msg.Failed)
-                    op.Failed();
-                else
-                    op.Compled();
+                                      if (isFailed)
+                                          op.Failed();
+                                      else
+                                          op.Compled();
 
-                canBuild!.Value = true;
+                                      canBuild!.Value = true;
+                                  });
             }
 
             #endregion
@@ -238,13 +237,13 @@ namespace Tauron.Application.Localizer.UIModels
             //string folder = Path.IsPathRooted(pivotFolder)
             //    ? pivotFolder : Path.GetFullPath(pivotFolder);
             string folder = pivotFolder;
-            Uri pathUri = new Uri(absolutePath);
+            Uri pathUri = new(absolutePath);
             // Folders must end in a slash
             if (!folder.EndsWith(Path.DirectorySeparatorChar.ToString()))
             {
                 folder += Path.DirectorySeparatorChar;
             }
-            Uri folderUri = new Uri(folder);
+            Uri folderUri = new(folder);
             Uri relativeUri = folderUri.MakeRelativeUri(pathUri);
             return Uri.UnescapeDataString(
                 relativeUri.ToString().Replace('/', Path.DirectorySeparatorChar));
@@ -270,11 +269,6 @@ namespace Tauron.Application.Localizer.UIModels
             }
         }
 
-        private sealed class ChangeIntigrate
-        {
-            public bool ToIntigrate { get; }
-
-            public ChangeIntigrate(bool intigrate) => ToIntigrate = intigrate;
-        }
+        private sealed record ChangeIntigrate(bool ToIntigrate);
     }
 }

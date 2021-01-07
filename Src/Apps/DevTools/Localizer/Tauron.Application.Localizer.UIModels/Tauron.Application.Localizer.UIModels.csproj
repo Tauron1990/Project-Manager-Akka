@@ -1,19 +1,13 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-    <UseWPF>true</UseWPF>
+    <TargetFramework>net5.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Amadevus.RecordGenerator" Version="0.6.0" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Shared\Tauron.Application.Wpf\Tauron.Application.Wpf.csproj" />
     <ProjectReference Include="..\Tauron.Application.Localizer.DataModel\Tauron.Application.Localizer.DataModel.csproj" />
-    <ProjectReference Include="..\Tauron.Application.Settings\Tauron.Application.Settings.csproj" />
-    <ProjectReference Include="..\Tauron.Application.Wpf\Tauron.Application.Wpf.csproj" />
   </ItemGroup>
 
 </Project>

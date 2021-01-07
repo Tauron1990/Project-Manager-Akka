@@ -1,4 +1,6 @@
-﻿namespace Tauron.Application.Localizer.UIModels.Services
+﻿using JetBrains.Annotations;
+
+namespace Tauron.Application.Localizer.UIModels.Services
 {
     public enum OperationStatus
     {
@@ -7,6 +9,7 @@
         Success
     }
 
+    [PublicAPI]
     public sealed class RunningOperation : ObservableObject
     {
         private OperationStatus _operation;

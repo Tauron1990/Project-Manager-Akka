@@ -35,9 +35,9 @@ namespace Tauron.Application.Localizer.Core.UI
         /// <summary>
         ///     Commands.
         /// </summary>
-        public static readonly RoutedCommand ShowAdornerCommand = new RoutedCommand("ShowAdorner", typeof(AdornedControl));
+        public static readonly RoutedCommand ShowAdornerCommand = new("ShowAdorner", typeof(AdornedControl));
 
-        public static readonly RoutedCommand HideAdornerCommand = new RoutedCommand("HideAdorner", typeof(AdornedControl));
+        public static readonly RoutedCommand HideAdornerCommand = new("HideAdorner", typeof(AdornedControl));
 
         public AdornedControl()
         {

@@ -56,6 +56,12 @@ namespace Tauron.Application.CommonUI.Model
             return this;
         }
 
+        public FluentPropertyRegistration<TData> ThenSubscribe(Func<IObservable<TData>, IDisposable> subscribe)
+        {
+            Actor.AddResource(subscribe(Property));
+            return this;
+        }
+
         public static implicit operator UIProperty<TData>(FluentPropertyRegistration<TData> config) => config.Property;
     }
 }

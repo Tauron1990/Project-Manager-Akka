@@ -4,9 +4,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using MaterialDesignExtensions.Model;
+using Tauron.Application.CommonUI.Commands;
 using Tauron.Application.Localizer.UIModels.lang;
 using Tauron.Application.Localizer.UIModels.Views;
-using Tauron.Application.Wpf.Commands;
 
 namespace Tauron.Application.Localizer.Views
 {
@@ -47,14 +48,14 @@ namespace Tauron.Application.Localizer.Views
         private string _content = string.Empty;
         private string _error = string.Empty;
 
-        public string[] Suggests { get; }
+        public ITextBoxSuggestionsSource Suggests { get; }
 
         public NewEntryDialogViewModel(Action<string?> selector, IEnumerable<NewEntryInfoBase> infos, LocLocalizer localizer)
         {
             _localizer = localizer;
 
-            List<string> entrys = new List<string>();
-            List<string> suggests = new List<string>();
+            List<string> entrys = new();
+            List<string> suggests = new();
 
             foreach (var info in infos)
             {
@@ -70,7 +71,7 @@ namespace Tauron.Application.Localizer.Views
             }
 
             _entrys = entrys.ToArray();
-            Suggests = suggests.ToArray();
+            Suggests = new StaticSuggestion(suggests);
 
             Return = new SimpleCommand(() => string.IsNullOrWhiteSpace(Error),() => selector(Content));
         }
@@ -116,6 +117,15 @@ namespace Tauron.Application.Localizer.Views
             }
 
             return string.Empty;
+        }
+
+        private sealed class StaticSuggestion : TextBoxSuggestionsSource
+        {
+            private readonly List<string> _infos;
+
+            public StaticSuggestion(List<string> infos) => _infos = infos;
+
+            public override IEnumerable<string> Search(string searchTerm) => _infos.Where(s => s.Contains(searchTerm));
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
@@ -23,13 +24,15 @@ namespace Tauron.Application.Wpf
 
             public Task InvokeAsync(Action action) => _dispatcher.InvokeAsync(action).Task;
 
-            public async Task<TResult> InvokeAsync<TResult>(Func<Task<TResult>> action)
+            public IObservable<TResult> InvokeAsync<TResult>(Func<Task<TResult>> action)
             {
-                var res = await _dispatcher.InvokeAsync(action).Task;
-                return await res;
+                async Task<TResult> Invoker() => await await _dispatcher.InvokeAsync(action).Task;
+
+                return Invoker().ToObservable();
             }
 
-            public Task<TResult> InvokeAsync<TResult>(Func<TResult> action) => _dispatcher.InvokeAsync(action).Task;
+            public IObservable<TResult> InvokeAsync<TResult>(Func<TResult> action) 
+                => _dispatcher.InvokeAsync(action).Task.ToObservable();
             public bool CheckAccess() => _dispatcher.CheckAccess();
         }
         

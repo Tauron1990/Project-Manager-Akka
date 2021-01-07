@@ -8,7 +8,7 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
 {
     public sealed class ProjectSaver : ReceiveActor, IWithTimers
     {
-        private readonly List<(SaveProject toSave, IActorRef Sender)> _toSave = new List<(SaveProject toSave, IActorRef Sender)>();
+        private readonly List<(SaveProject toSave, IActorRef Sender)> _toSave = new();
         private bool _sealed;
 
         public ProjectSaver()
@@ -27,8 +27,9 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
             Timers.Cancel(nameof(InitSave));
             StartNormalSave(null);
 
-            TrySave(obj.File);
-            if (!obj.AndSeal) return;
+            var (andSeal, projectFile) = obj;
+            TrySave(projectFile);
+            if (!andSeal) return;
 
             _sealed = true;
             Timers.CancelAll();
@@ -37,14 +38,16 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
         private void StartNormalSave(InitSave? obj)
         {
             if (_toSave.Count > 1)
+            {
                 foreach (var (toSave, sender) in _toSave.Take(_toSave.Count - 1))
                     sender.Tell(new SavedProject(toSave.OperationId, true, null));
+            }
 
             if (_toSave.Count > 0)
             {
-                var (saveProject, send) = _toSave[^1];
-                var result = TrySave(saveProject.ProjectFile);
-                send.Tell(new SavedProject(saveProject.OperationId, result == null, result));
+                var ((operationId, projectFile), send) = _toSave[^1];
+                var result = TrySave(projectFile);
+                send.Tell(new SavedProject(operationId, result == null, result));
             }
 
             Timers.Cancel(nameof(InitSave));

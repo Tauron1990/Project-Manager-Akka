@@ -4,9 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using Tauron.Application.CommonUI.Commands;
 using Tauron.Application.Localizer.UIModels.lang;
 using Tauron.Application.Localizer.UIModels.Views;
-using Tauron.Application.Wpf.Commands;
 
 namespace Tauron.Application.Localizer.Views
 {
@@ -22,7 +22,7 @@ namespace Tauron.Application.Localizer.Views
             _localizer = localizer;
             _blocked = blocked.ToArray();
 
-            Return = new SimpleCommand(execute: o => target(new NewProjectDialogResult(Content)), canExecute: o => string.IsNullOrWhiteSpace(Error));
+            Return = new SimpleCommand(execute: _ => target(new NewProjectDialogResult(Content)), canExecute: o => string.IsNullOrWhiteSpace(Error));
         }
 
         public string? Error

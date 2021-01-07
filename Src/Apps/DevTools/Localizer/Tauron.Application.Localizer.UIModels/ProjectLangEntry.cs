@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Windows.Markup;
+using JetBrains.Annotations;
 using Tauron.Application.Localizer.DataModel;
 
 namespace Tauron.Application.Localizer.UIModels
 {
+    [PublicAPI]
     public sealed class ProjectLangEntry : ObservableObject
     {
         private readonly Action<string, ActiveLanguage> _changed;

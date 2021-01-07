@@ -2,9 +2,8 @@
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
-using Syncfusion.Windows.Tools.Controls;
+using Tauron.Application.CommonUI;
 using Tauron.Application.Localizer.UIModels;
-using Tauron.Application.Wpf;
 using Tauron.Host;
 using Tauron.Localization;
 
@@ -35,29 +34,29 @@ namespace Tauron.Application.Localizer.Views
             
             foreach (string str in spellingError.Suggestions)
             {
-                MenuItem mi = new MenuItem
+                MenuItem mi = new()
                               {
-                                  Header = str,
-                                  FontWeight = FontWeights.Bold,
-                                  Command = EditingCommands.CorrectSpellingError,
-                                  CommandParameter = str,
-                                  CommandTarget = myTextBox
-                              };
+                                        Header = str,
+                                        FontWeight = FontWeights.Bold,
+                                        Command = EditingCommands.CorrectSpellingError,
+                                        CommandParameter = str,
+                                        CommandTarget = myTextBox
+                                    };
                 myTextBox.ContextMenu.Items.Insert(cmdIndex, mi);
                 cmdIndex++;
             }
             Separator separatorMenuItem1 = new Separator();
             myTextBox.ContextMenu.Items.Insert(cmdIndex, separatorMenuItem1);
             cmdIndex++;
-            MenuItem ignoreAllMi = new MenuItem
+            MenuItem ignoreAllMi = new()
                                    {
-                                       Header = ActorApplication.Application.ActorSystem.Loc().Request("CorrectSpellingError") as string,
-                                       Command = EditingCommands.IgnoreSpellingError, 
-                                       CommandTarget = myTextBox
-                                   };
+                                             Header = ActorApplication.Application.ActorSystem.Loc().Request("CorrectSpellingError") as string,
+                                             Command = EditingCommands.IgnoreSpellingError, 
+                                             CommandTarget = myTextBox
+                                         };
             myTextBox.ContextMenu.Items.Insert(cmdIndex, ignoreAllMi);
             cmdIndex++;
-            Separator separatorMenuItem2 = new Separator();
+            Separator separatorMenuItem2 = new();
             myTextBox.ContextMenu.Items.Insert(cmdIndex, separatorMenuItem2);
         }
     }

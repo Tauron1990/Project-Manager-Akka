@@ -28,7 +28,7 @@
 
   "MainWindow_Analyzer_Header": "Analyse",
   "MainWindow_Analyzer_RuleName": "Regel",
-  "MainWindow_Analyzer_Issue": "Wharnung Type",
+  "MainWindow_Analyzer_Issue": "Warnung Type",
   "MainWindow_Analyzer_Project": "Projekt Name",
   "MainWindow_Analyzer_IssueDescription": "Fehler Beschreibung",
 

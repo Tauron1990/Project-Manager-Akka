@@ -12,13 +12,14 @@ namespace Tauron.Application.CommonUI.Model
     public sealed class FluentCollectionPropertyRegistration<TData>
     {
         private readonly UiActor _actor;
-        private ObservableCollectionExtended<TData> _collection = new();
+        private readonly ObservableCollectionExtended<TData> _collection = new();
 
         internal FluentCollectionPropertyRegistration(string name, UiActor actor)
         {
             _actor = actor;
             Property = new UIProperty<IObservableCollection<TData>>(name);
             Property.Set(_collection);
+            Property.LockSet();
             actor.RegisterProperty(Property);
         }
 
@@ -35,15 +36,46 @@ namespace Tauron.Application.CommonUI.Model
             return this;
         }
 
-        public IDisposable BindTo(IObservable<IChangeSet<TData>> source, Func<IObservable<IChangeSet<TData>>, IDisposable>? subscriber = null)
+        public UICollectionProperty<TData> BindTo(IObservable<IChangeSet<TData>> source, Func<IObservable<IChangeSet<TData>>, IDisposable>? subscriber = null)
         {
             subscriber ??= set => set.Subscribe();
 
-            return subscriber(source
-                             .ObserveOn(DispatcherScheduler.From(_actor.Dispatcher))
-                             .Bind(_collection));
+            subscriber(source
+                      .ObserveOn(DispatcherScheduler.From(_actor.Dispatcher))
+                      .Bind(_collection))
+               .DisposeWith(_actor);
+
+            return this;
         }
-        
+
+        public UICollectionProperty<TData> BindTo<TKey>(IObservable<IChangeSet<TData, TKey>> source, Func<IObservable<IChangeSet<TData, TKey>>, IDisposable>? subscriber = null)
+            where TKey : notnull
+        {
+            subscriber ??= set => set.Subscribe();
+
+            subscriber(source
+                      .ObserveOn(DispatcherScheduler.From(_actor.Dispatcher))
+                      .Bind(_collection))
+               .DisposeWith(_actor);
+
+            return this;
+        }
+
+        public UICollectionProperty<TData> BindToCache<TKey>(Func<TData, TKey> keySelector, out SourceCache<TData, TKey> sourceCollection)
+            where TKey : notnull
+        {
+            sourceCollection = new SourceCache<TData, TKey>(keySelector);
+
+            return BindTo(sourceCollection.Connect());
+        }
+
+        public UICollectionProperty<TData> BindToList(out SourceList<TData> sourceCollection)
+        {
+            sourceCollection = new SourceList<TData>();
+
+            return BindTo(sourceCollection.Connect());
+        }
+
         public static implicit operator UICollectionProperty<TData>(FluentCollectionPropertyRegistration<TData> config) => new(config.Property);
     }
 }

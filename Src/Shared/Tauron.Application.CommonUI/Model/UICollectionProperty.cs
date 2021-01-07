@@ -1,13 +1,17 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.ComponentModel;
+using System.Reactive.Disposables;
 using DynamicData.Binding;
 using JetBrains.Annotations;
 
 namespace Tauron.Application.CommonUI.Model
 {
     [PublicAPI]
-    public class UICollectionProperty<TData> : IList<TData>, IReadOnlyList<TData>
+    public class UICollectionProperty<TData> : IReadOnlyList<TData>, INotifyCollectionChanged,
+                                               INotifyPropertyChanged, INotifyCollectionChangedSuspender
     {
         private IObservableCollection<TData>? _collection;
 
@@ -24,70 +28,88 @@ namespace Tauron.Application.CommonUI.Model
 
         public int Count => _collection?.Count ?? -1;
 
-        public IEnumerator<TData> GetEnumerator()
-        {
-            return _collection?.GetEnumerator() ?? (IEnumerator<TData>) Array.Empty<TData>().GetEnumerator();
-        }
+        public IEnumerator<TData> GetEnumerator() => _collection?.GetEnumerator() ?? (IEnumerator<TData>)Array.Empty<TData>().GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public void Add(TData item) => _collection?.Add(item);
+        //public void Add(TData item) => _collection?.Add(item);
 
-        public void Add(TData item, Action<int> then)
-        {
-            if (_collection == null) return;
-            _collection?.Add(item);
-            then(Count);
-        }
+        //public void Add(TData item, Action<int> then)
+        //{
+        //    if (_collection == null) return;
+        //    _collection?.Add(item);
+        //    then(Count);
+        //}
 
-        public void Add(TData item, Action<TData> then)
-        {
-            if(_collection == null) return;
-            _collection.Add(item);
-            then(item);
-        }
+        //public void Add(TData item, Action<TData> then)
+        //{
+        //    if(_collection == null) return;
+        //    _collection.Add(item);
+        //    then(item);
+        //}
 
-        public void Clear() => _collection?.Clear();
+        //public void Clear() => _collection?.Clear();
 
-        public bool Contains(TData item) => _collection?.Contains(item) ?? false;
+        //public bool Contains(TData item) => _collection?.Contains(item) ?? false;
 
-        public void CopyTo(TData[] array, int arrayIndex) => _collection?.CopyTo(array, arrayIndex);
+        //public void CopyTo(TData[] array, int arrayIndex) => _collection?.CopyTo(array, arrayIndex);
 
-        public bool Remove(TData item) => _collection?.Remove(item) ?? false;
+        //public bool Remove(TData item) => _collection?.Remove(item) ?? false;
 
-        int ICollection<TData>.Count => _collection?.Count ?? -1;
+        //int ICollection<TData>.Count => _collection?.Count ?? -1;
 
-        public bool IsReadOnly => _collection?.IsReadOnly ?? true;
+        //public bool IsReadOnly => _collection?.IsReadOnly ?? true;
 
-        public int IndexOf(TData item) => _collection?.IndexOf(item) ?? -1;
+        //public int IndexOf(TData item) => _collection?.IndexOf(item) ?? -1;
 
-        public void Insert(int index, TData item) => _collection?.Insert(index, item);
+        //public void Insert(int index, TData item) => _collection?.Insert(index, item);
 
-        public void RemoveAt(int index) => _collection?.RemoveAt(index);
+        //public void RemoveAt(int index) => _collection?.RemoveAt(index);
 
         public TData this[int index]
+            => _collection != null ? _collection[index] : default!;
+        //set
+        //{
+        //    if (_collection == null) return;
+        //    _collection[index] = value;
+        //}
+        //int IReadOnlyCollection<TData>.Count => _collection?.Count ?? -1;
+
+        //public void AddRange(IEnumerable<TData> datas)
+        //{
+        //    foreach (var data in datas) _collection?.Add(data);
+        //}
+
+        //public void RemoveRange(IEnumerable<TData> toRemove)
+        //{
+        //    foreach (var data in toRemove) _collection?.Remove(data);
+        //}
+        public event NotifyCollectionChangedEventHandler? CollectionChanged
         {
-            get => _collection != null ? _collection[index] : default!;
-            set
+            add
             {
-                if (_collection == null) return;
-                _collection[index] = value;
+                if (_collection != null) _collection.CollectionChanged += value;
+            }
+            remove
+            {
+                if (_collection != null) _collection.CollectionChanged -= value;
             }
         }
 
-        int IReadOnlyCollection<TData>.Count => _collection?.Count ?? -1;
-
-        public void AddRange(IEnumerable<TData> datas)
+        public event PropertyChangedEventHandler? PropertyChanged
         {
-            foreach (var data in datas) _collection?.Add(data);
+            add
+            {
+                if (_collection != null) _collection.PropertyChanged += value;
+            }
+            remove
+            {
+                if (_collection != null) _collection.PropertyChanged -= value;
+            }
         }
 
-        public void RemoveRange(IEnumerable<TData> toRemove)
-        {
-            foreach (var data in toRemove) _collection?.Remove(data);
-        }
+        public IDisposable SuspendCount() => _collection?.SuspendCount() ?? Disposable.Empty;
+
+        public IDisposable SuspendNotifications() => _collection?.SuspendNotifications() ?? Disposable.Empty;
     }
 }

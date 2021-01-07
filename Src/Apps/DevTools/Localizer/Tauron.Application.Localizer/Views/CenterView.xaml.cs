@@ -1,6 +1,6 @@
 ﻿using System.Windows.Media;
+using Tauron.Application.CommonUI;
 using Tauron.Application.Localizer.UIModels;
-using Tauron.Application.Wpf;
 
 namespace Tauron.Application.Localizer.Views
 {

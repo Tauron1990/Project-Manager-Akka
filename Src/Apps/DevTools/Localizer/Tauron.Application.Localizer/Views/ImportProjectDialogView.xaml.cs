@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Tauron.Application.CommonUI.Commands;
 using Tauron.Application.Localizer.UIModels.Views;
-using Tauron.Application.Wpf.Commands;
 
 namespace Tauron.Application.Localizer.Views
 {

@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using System.Windows.Media;
 using Tauron.Application.CommonUI;
 
@@ -15,7 +16,15 @@ namespace Tauron.Application.Wpf.AppCore
             if (DependencyObject is FrameworkElement {TemplatedParent: { }} ele)
                 return ElementMapper.Create(ele.TemplatedParent);
 
-            var temp = LogicalTreeHelper.GetParent(DependencyObject) ?? VisualTreeHelper.GetParent(DependencyObject);
+            DependencyObject? temp;
+            try
+            {
+                temp = LogicalTreeHelper.GetParent(DependencyObject) ?? VisualTreeHelper.GetParent(DependencyObject);
+            }
+            catch(InvalidOperationException)
+            {
+                temp = null;
+            }
             return temp == null ? null : ElementMapper.Create(temp);
         }
 

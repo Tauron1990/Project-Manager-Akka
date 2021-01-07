@@ -9,6 +9,7 @@ namespace Tauron.Application.Localizer.UIModels.Services
         bool Saved { get; set; }
 
         bool IsBusy { get; set; }
+
         public event Action TitleChanged;
 
         public event Action IsBusyChanged;

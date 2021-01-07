@@ -22,6 +22,9 @@ namespace Tauron
 
         public static IObservable<TData> NotNull<TData>(this IObservable<TData?> source) => source.Where(d => d != null)!;
 
+        public static IObservable<string> NotEmpty(this IObservable<string?> source)
+            => source.Where(s => !string.IsNullOrWhiteSpace(s))!;
+
         public static IObservable<CallResult<TResult>> SelectSafe<TEvent, TResult>(this IObservable<TEvent> observable, Func<TEvent, TResult> selector)
         {
             return observable.Select<TEvent, CallResult<TResult>>(evt =>

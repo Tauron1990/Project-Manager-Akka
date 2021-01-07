@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Threading;
+using Tauron.Application.CommonUI.Commands;
 using Tauron.Application.Localizer.UIModels.Views;
-using Tauron.Application.Wpf.Commands;
 
 namespace Tauron.Application.Localizer.Views
 {
@@ -22,7 +22,7 @@ namespace Tauron.Application.Localizer.Views
         {
             InitializeComponent();
 
-            Loaded += (sender, args) => ((LanguageSelectorDialogViewModel) DataContext).OnLoad();
+            Loaded += (_, _) => ((LanguageSelectorDialogViewModel)DataContext).OnLoad();
         }
 
 
@@ -33,6 +33,7 @@ namespace Tauron.Application.Localizer.Views
             DataContext = new LanguageSelectorDialogViewModel(c => result.SetResult(c == null ? null : new AddLanguageDialogResult(c)), initalData.Contains!, Dispatcher);
 
             return result.Task;
+
         }
     }
 

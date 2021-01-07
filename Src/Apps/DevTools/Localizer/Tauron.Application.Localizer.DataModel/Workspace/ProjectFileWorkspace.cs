@@ -1,4 +1,6 @@
-﻿using System.Threading;
+﻿using System;
+using System.Reactive.Subjects;
+using System.Threading;
 using Akka.Actor;
 using JetBrains.Annotations;
 using Tauron.Application.Localizer.DataModel.Workspace.Analyzing;
@@ -9,14 +11,14 @@ using Tauron.Application.Workshop.Mutating;
 namespace Tauron.Application.Localizer.DataModel.Workspace
 {
     [PublicAPI]
-    public sealed class ProjectFileWorkspace : Workspace<ProjectFileWorkspace, ProjectFile>
+    public sealed class ProjectFileWorkspace : Workspace<ProjectFileWorkspace, ProjectFile>, IObservable<ProjectFile>, IDisposable
     {
-        private ProjectFile _projectFile;
+        private readonly BehaviorSubject<ProjectFile> _projectFile;
 
         public ProjectFileWorkspace(IActorRefFactory factory)
             : base(new WorkspaceSuperviser(factory, "Project_File_Workspace"))
         {
-            _projectFile = new ProjectFile();
+            _projectFile = new BehaviorSubject<ProjectFile>(new ProjectFile());
 
             Projects = new ProjectMutator(Engine, this);
             Source = new SourceMutator(Engine, this);
@@ -26,7 +28,7 @@ namespace Tauron.Application.Localizer.DataModel.Workspace
             Analyzer.RegisterRule(new SourceRule());
         }
 
-        public ProjectFile ProjectFile => _projectFile;
+        public ProjectFile ProjectFile => _projectFile.Value;
 
         public SourceMutator Source { get; }
 
@@ -40,9 +42,12 @@ namespace Tauron.Application.Localizer.DataModel.Workspace
             => ProjectFile.Projects.Find(p => p.ProjectName == name) ?? new Project();
 
         protected override MutatingContext<ProjectFile> GetDataInternal() 
-            => MutatingContext<ProjectFile>.New(_projectFile);
+            => MutatingContext<ProjectFile>.New(_projectFile.Value);
 
         protected override void SetDataInternal(MutatingContext<ProjectFile> data) 
-            => Interlocked.Exchange(ref _projectFile, data.Data);
+            => _projectFile.OnNext(data.Data);
+
+        public IDisposable Subscribe(IObserver<ProjectFile> observer) => _projectFile.Subscribe(observer);
+        public void Dispose() => _projectFile.Dispose();
     }
 }

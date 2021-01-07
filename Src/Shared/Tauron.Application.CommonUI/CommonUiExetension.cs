@@ -3,12 +3,13 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using JetBrains.Annotations;
+using Tauron.Application.CommonUI.AppCore;
 using Tauron.Application.CommonUI.Model;
 
 namespace Tauron.Application.CommonUI
 {
     [PublicAPI]
-    public static class ActorFlowWpfExetension
+    public static class CommonUiExetension
     {
         #region Command
 
@@ -29,7 +30,7 @@ namespace Tauron.Application.CommonUI
             return builder.WithExecute(() => ob.OnNext(trigger()));
         }
 
-        public static IObservable<Unit> ToModel<TRecieve>(this IObservable<TRecieve> selector, IViewModel model)
+        public static IDisposable ToModel<TRecieve>(this IObservable<TRecieve> selector, IViewModel model)
             => selector.ToActor(model.Actor);
 
         #endregion
@@ -47,5 +48,8 @@ namespace Tauron.Application.CommonUI
         }
 
         #endregion
+
+        public static IObservable<TData> ObserveOnDispatcher<TData>(this IObservable<TData> observable)
+            => observable.ObserveOn(DispatcherScheduler.CurrentDispatcher);
     }
 }

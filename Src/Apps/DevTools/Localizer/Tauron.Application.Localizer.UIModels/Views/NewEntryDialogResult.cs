@@ -1,31 +1,10 @@
 ﻿namespace Tauron.Application.Localizer.UIModels.Views
 {
-    public sealed class NewEntryDialogResult
-    {
-        public NewEntryDialogResult(string name)
-        {
-            Name = name;
-        }
+    public sealed record NewEntryDialogResult(string Name);
 
-        public string Name { get; }
-    }
+    public abstract record NewEntryInfoBase;
 
-    public abstract class NewEntryInfoBase
-    {
+    public sealed record NewEntryInfo(string Name) : NewEntryInfoBase;
 
-    }
-
-    public sealed class NewEntryInfo : NewEntryInfoBase
-    {
-        public string Name { get; }
-
-        public NewEntryInfo(string name) => Name = name;
-    }
-
-    public sealed class NewEntrySuggestInfo : NewEntryInfoBase
-    {
-        public string Name { get; }
-
-        public NewEntrySuggestInfo(string name) => Name = name;
-    }
+    public sealed record NewEntrySuggestInfo(string Name) : NewEntryInfoBase;
 }

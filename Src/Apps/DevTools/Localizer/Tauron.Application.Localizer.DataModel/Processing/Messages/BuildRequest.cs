@@ -1,4 +1,6 @@
-﻿namespace Tauron.Application.Localizer.DataModel.Processing
+﻿using System;
+
+namespace Tauron.Application.Localizer.DataModel.Processing
 {
-    public sealed record BuildRequest(string OperationId, ProjectFile ProjectFile);
+    public sealed record BuildRequest(IObservable<string> OperationId, ProjectFile ProjectFile);
 }

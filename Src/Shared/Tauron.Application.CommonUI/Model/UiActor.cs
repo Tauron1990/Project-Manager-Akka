@@ -94,12 +94,12 @@ namespace Tauron.Application.CommonUI.Model
 
         protected Task UICall(Action executor) => Dispatcher.InvokeAsync(executor);
 
-        protected Task<T> UICall<T>(Func<Task<T>> executor)
+        protected IObservable<T> UICall<T>(Func<Task<T>> executor)
         {
             return Dispatcher.InvokeAsync(executor);
         }
 
-        protected Task<T> UICall<T>(Func<IUntypedActorContext, Task<T>> executor)
+        protected IObservable<T> UICall<T>(Func<IUntypedActorContext, Task<T>> executor)
         {
             var context = Context;
             return Dispatcher.InvokeAsync(() => executor(context));

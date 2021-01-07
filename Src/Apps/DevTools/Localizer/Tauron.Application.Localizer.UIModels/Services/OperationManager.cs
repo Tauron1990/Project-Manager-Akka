@@ -4,20 +4,21 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
-using System.Windows.Threading;
+using System.Reactive.Linq;
+using DynamicData.Binding;
+using Tauron.Application.CommonUI.AppCore;
 using Tauron.Application.Localizer.UIModels.lang;
-using Tauron.Application.Wpf.Model;
 
 namespace Tauron.Application.Localizer.UIModels.Services
 {
     public sealed class OperationManager : IOperationManager
     {
-        private readonly Dispatcher _dispatcher;
+        private readonly IUIDispatcher _dispatcher;
 
         private readonly LocLocalizer _localizer;
-        private readonly OperationList _operations = new OperationList();
+        private readonly OperationList _operations = new();
 
-        public OperationManager(LocLocalizer localizer, Dispatcher dispatcher)
+        public OperationManager(LocLocalizer localizer, IUIDispatcher dispatcher)
         {
             _localizer = localizer;
             _dispatcher = dispatcher;
@@ -25,9 +26,9 @@ namespace Tauron.Application.Localizer.UIModels.Services
 
         public IEnumerable<RunningOperation> RunningOperations => _operations;
 
-        public OperationController StartOperation(string name)
+        public IObservable<OperationController> StartOperation(string name)
         {
-            return _dispatcher.Invoke(() =>
+            return _dispatcher.InvokeAsync(() =>
             {
                 var op = new RunningOperation(Guid.NewGuid().ToString(), name) {Status = _localizer.OperationControllerRunning};
                 if (_operations.Count > 15)
@@ -38,61 +39,44 @@ namespace Tauron.Application.Localizer.UIModels.Services
             });
         }
 
-        public OperationController? Find(string id)
+        public IObservable<OperationController?> Find(string id)
         {
-            return _dispatcher.Invoke(() =>
-            {
-                var op = _operations.FirstOrDefault(op => op.Key == id);
-                return op == null ? null : new OperationController(op, _localizer, OperationChanged);
-            });
+            return _dispatcher.InvokeAsync(() =>
+                                           {
+                                               var op = _operations.FirstOrDefault(ro => ro.Key == id);
+                                               return op == null ? null : new OperationController(op, _localizer, OperationChanged);
+                                           });
         }
 
-        public CommandQuery ShouldClear(CommandQueryBuilder builder, Action<IDisposable> subscription)
-        {
-            var query = builder.FromTrigger(ShouldClear, out var trigger);
-            subscription(new ObservableSubscription(trigger, _operations));
-            return query;
-        }
-
-        private bool ShouldClear()
-        {
-            return _operations.Any(op => op.Operation == OperationStatus.Success);
-        }
+        public IObservable<bool> ShouldClear() 
+            => _operations.WhenPropertyChanged(l => l.RunningOperations, false)
+                          .Select(v => v.Sender.Count != v.Value);
 
         public void Clear()
         {
-            _dispatcher.Invoke(() =>
-            {
-                foreach (var operation in _operations.Where(op => op.Operation == OperationStatus.Success).ToArray())
-                    _operations.Remove(operation);
-            });
+            _dispatcher.InvokeAsync(() =>
+                                    {
+                                        foreach (var operation in _operations.Where(op => op.Operation == OperationStatus.Success).ToArray())
+                                            _operations.Remove(operation);
+                                    });
         }
 
-        public CommandQuery ShouldCompledClear(CommandQueryBuilder builder, Action<IDisposable> subscription)
-        {
-            var query = builder.FromTrigger(ShouldCompledClear, out var trigger);
-            subscription(new ObservableSubscription(trigger, _operations));
-            return query;
-        }
+        public IObservable<bool> ShouldCompledClear()
+            => _operations.WhenPropertyChanged(l => l.RunningOperations).Select(p => ShouldCompledClear(p.Sender));
+            
 
-        public bool ShouldCompledClear()
-        {
-            return _operations.Any(op => op.Operation != OperationStatus.Running);
-        }
+        private static bool ShouldCompledClear(OperationList list) => list.Any(op => op.Operation != OperationStatus.Running);
 
         public void CompledClear()
         {
-            _dispatcher.Invoke(() =>
-            {
-                foreach (var operation in _operations.Where(op => op.Operation != OperationStatus.Running).ToArray())
-                    _operations.Remove(operation);
-            });
+            _dispatcher.InvokeAsync(() =>
+                                    {
+                                        foreach (var operation in _operations.Where(op => op.Operation != OperationStatus.Running).ToArray())
+                                            _operations.Remove(operation);
+                                    });
         }
 
-        private void OperationChanged()
-        {
-            _dispatcher.Invoke(_operations.OperationStatusCchanged);
-        }
+        private void OperationChanged() => _dispatcher.InvokeAsync(_operations.OperationStatusCchanged);
 
         private sealed class OperationList : ObservableCollection<RunningOperation>
         {
@@ -104,28 +88,7 @@ namespace Tauron.Application.Localizer.UIModels.Services
                 OnPropertyChanged(new PropertyChangedEventArgs(nameof(RunningOperations)));
             }
 
-            public void OperationStatusCchanged()
-            {
-                OnPropertyChanged(new PropertyChangedEventArgs(nameof(RunningOperations)));
-            }
-        }
-
-        private sealed class ObservableSubscription : IDisposable
-        {
-            private readonly Action _trigger;
-            private OperationList _list;
-
-            public ObservableSubscription(Action trigger, OperationList list)
-            {
-                _trigger = trigger;
-                _list = list;
-
-                _list.CollectionChanged += ListOnCollectionChanged;
-            }
-
-            private void ListOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e) => _trigger();
-
-            public void Dispose() => _list.CollectionChanged -= ListOnCollectionChanged;
+            public void OperationStatusCchanged() => OnPropertyChanged(new PropertyChangedEventArgs(nameof(RunningOperations)));
         }
     }
 }

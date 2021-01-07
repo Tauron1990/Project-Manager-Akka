@@ -2,13 +2,5 @@
 
 namespace Tauron.Application.Localizer.UIModels.Messages
 {
-    public sealed class SupplyNewProjectFile
-    {
-        public SupplyNewProjectFile(ProjectFile file)
-        {
-            File = file;
-        }
-
-        public ProjectFile File { get; }
-    }
+    public sealed record SupplyNewProjectFile(ProjectFile File);
 }

@@ -34,21 +34,23 @@ namespace Tauron.Application.CommonUI.AppCore
         void Post(Action action);
         Task InvokeAsync(Action action);
 
-        Task<TResult> InvokeAsync<TResult>(Func<Task<TResult>> action);
+        IObservable<TResult> InvokeAsync<TResult>(Func<Task<TResult>> action);
 
-        Task<TResult> InvokeAsync<TResult>(Func<TResult> action);
+        IObservable<TResult> InvokeAsync<TResult>(Func<TResult> action);
         bool CheckAccess();
     }
     
     public sealed class DispatcherScheduler : LocalScheduler
     {
+        public static IScheduler CurrentDispatcher { get; internal set; } = null!;
+
         private readonly IUIDispatcher _dispatcher;
 
         private DispatcherScheduler(IUIDispatcher dispatcher) => _dispatcher = dispatcher;
 
         public static IScheduler From(IUIDispatcher dispatcher)
             => new DispatcherScheduler(dispatcher);
-        
+
         public override IDisposable Schedule<TState>(TState state, TimeSpan dueTime, Func<IScheduler, TState, IDisposable> action)
         {
             var target = Scheduler.Normalize(dueTime);

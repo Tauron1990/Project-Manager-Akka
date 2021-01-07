@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Reactive.Linq;
 using JetBrains.Annotations;
 using Serilog;
 
@@ -47,7 +48,7 @@ namespace Tauron.Application.CommonUI.Helper
                         _noContext?.Invoke();
                 }
 
-                _element.DataContextChanged.SingleTimeSubscribe(OnElementOnDataContextChanged);
+                _element.DataContextChanged.Take(1).Subscribe(OnElementOnDataContextChanged);
             }
             else
                 _noContext?.Invoke();
@@ -78,7 +79,7 @@ namespace Tauron.Application.CommonUI.Helper
                     _noContext?.Invoke();
             }
 
-            elementBase.Loaded.SingleTimeSubscribe(_ => OnLoad());
+            elementBase.Loaded.Take(1).Subscribe(_ => OnLoad());
         }
 
         public override void OnUnload(Action unload) => _unload = unload;
@@ -143,7 +144,7 @@ namespace Tauron.Application.CommonUI.Helper
                     _binderList.Remove(key);
                 }
 
-                element.Unloaded.SingleTimeSubscribe(_ => OnElementOnUnloaded());
+                element.Unloaded.Take(1).Subscribe(_ => OnElementOnUnloaded());
             }
 
             _binderList[key] = (disposer, bindable);
@@ -229,7 +230,7 @@ namespace Tauron.Application.CommonUI.Helper
         public static void MakeLazy(IUIElement target, string? newValue, string? oldValue, Action<string?, string?, IBinderControllable, IUIObject> runner)
         {
             var temp = new LazyHelper(target, newValue, oldValue, runner);
-            target.Loaded.SingleTimeSubscribe(_ => temp.ElementOnLoaded());
+            target.Loaded.Take(1).Subscribe(_ => temp.ElementOnLoaded());
         }
 
         private class LazyHelper

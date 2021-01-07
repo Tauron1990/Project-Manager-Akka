@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -7,6 +8,7 @@ using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Actor.Dsl;
 using Akka.Event;
+using Akka.Util.Internal;
 using JetBrains.Annotations;
 
 namespace Tauron.Akka
@@ -25,6 +27,8 @@ namespace Tauron.Akka
     public class ExpandedReceiveActor : ReceiveActor, IActorDsl, IExpandedReceiveActor, IDisposable
     {
         private readonly CompositeDisposable _resources = new();
+        private readonly Dictionary<Type, ObsSenderBase> _genericSource = new();
+
         private Action<Exception, IActorContext>? _onPostRestart;
         private Action<IActorContext>? _onPostStop;
         private Action<Exception, object, IActorContext>? _onPreRestart;
@@ -42,6 +46,22 @@ namespace Tauron.Akka
             => _resources.Remove(res);
         
         protected internal ILoggingAdapter Log { get; } = Context.GetLogger();
+
+        protected override bool AroundReceive(Receive receive, object message)
+        {
+            switch (message)
+            {
+                case TransmitAction act:
+                    return act.Runner();
+                default:
+                    if (_genericSource.TryGetValue(message.GetType(), out var sender))
+                    {
+                        sender.Run(message);
+                        return true;
+                    }
+                    return base.AroundReceive(receive, message);
+            }
+        }
 
         #region ActorDsl
 
@@ -156,6 +176,22 @@ namespace Tauron.Akka
         protected void WhenReceive<TEvent>(Func<IObservable<TEvent>, IObservable<Unit>> handler)
             => AddResource(new ObservableInvoker<TEvent, Unit>(handler, ThrowError, this).Construct());
 
+        protected IObservable<TEvent> WhenReceive<TEvent>()
+        {
+            ObsSender<TEvent> typedsender;
+
+            if (_genericSource.TryGetValue(typeof(TEvent), out var sender))
+                typedsender = (ObsSender<TEvent>) sender;
+            else
+            {
+                typedsender = new ObsSender<TEvent>();
+                typedsender.Sender.DisposeWith(this);
+                _genericSource[typeof(TEvent)] = typedsender;
+            }
+
+            return typedsender.Sender.AsObservable();
+        }
+
         protected void WhenReceive<TEvent>(Func<IObservable<TEvent>, IObservable<TEvent>> handler)
             => AddResource(new ObservableInvoker<TEvent, TEvent>(handler, ThrowError, this).Construct());
 
@@ -237,6 +273,35 @@ namespace Tauron.Akka
             }
         }
 
-        public virtual void Dispose() => _resources.Dispose();
+        private abstract class ObsSenderBase
+        {
+            public abstract void Run(object msg);
+        }
+
+        private sealed class ObsSender<TType> : ObsSenderBase
+        {
+            public Subject<TType> Sender { get; }
+
+            public ObsSender() => Sender = new Subject<TType>();
+
+            public override void Run(object msg)
+                => Sender.OnNext((TType) msg);
+        }
+
+        public virtual void Dispose()
+        {
+            _resources.Dispose();
+            GC.SuppressFinalize(this);
+        }
+
+        public record TransmitAction(Func<bool> Runner)
+        {
+            public TransmitAction(Action action)
+                : this(() =>
+                       {
+                           action();
+                            return true;
+                        }) { }
+        }
     }
 }

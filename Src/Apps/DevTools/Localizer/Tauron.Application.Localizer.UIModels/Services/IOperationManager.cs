@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Tauron.Application.Wpf.Model;
 
 namespace Tauron.Application.Localizer.UIModels.Services
 {
@@ -8,16 +7,16 @@ namespace Tauron.Application.Localizer.UIModels.Services
     {
         IEnumerable<RunningOperation> RunningOperations { get; }
 
-        OperationController StartOperation(string name);
+        IObservable<OperationController> StartOperation(string name);
 
-        OperationController? Find(string id);
+        IObservable<OperationController?> Find(string id);
 
-        CommandQuery ShouldClear(CommandQueryBuilder builder, Action<IDisposable> subscription);
+        IObservable<bool> ShouldClear();
 
         void Clear();
 
 
-        CommandQuery ShouldCompledClear(CommandQueryBuilder builder, Action<IDisposable> subscription);
+        IObservable<bool> ShouldCompledClear();
 
         void CompledClear();
     }
