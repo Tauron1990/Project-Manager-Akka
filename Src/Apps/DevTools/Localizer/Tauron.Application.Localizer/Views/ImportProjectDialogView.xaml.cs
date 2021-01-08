@@ -49,10 +49,11 @@ namespace Tauron.Application.Localizer.Views
                 if (value == _curretElement) return;
                 _curretElement = value;
                 OnPropertyChanged();
+                SelectCommand.RaiseCanExecuteChanged();
             }
         }
 
-        public ICommand SelectCommand { get; }
+        public SimpleCommand SelectCommand { get; }
 
         public ICommand CancelCommand { get; }
     }

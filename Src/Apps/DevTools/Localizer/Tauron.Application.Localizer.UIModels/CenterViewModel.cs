@@ -23,6 +23,7 @@ using Tauron.Application.Localizer.UIModels.Services;
 using Tauron.Application.Localizer.UIModels.Views;
 using Tauron.Application.Workshop;
 using Tauron.Application.Workshop.Mutation;
+using ActorRefFactoryExtensions = Tauron.Akka.ActorRefFactoryExtensions;
 
 namespace Tauron.Application.Localizer.UIModels
 {
@@ -33,6 +34,8 @@ namespace Tauron.Application.Localizer.UIModels
             IMainWindowCoordinator mainWindow, ProjectFileWorkspace workspace)
             : base(lifetimeScope, dispatcher)
         {
+            var proxy = ActorRefFactoryExtensions.ActorOf<ExpandedReceiveActor>(Context, "Loading_Proxy");
+
             Receive<IncommingEvent>(e => e.Action());
 
             Views = this.RegisterUiCollection<ProjectViewContainer>(nameof(Views)).BindToList(out var viewList);
@@ -150,60 +153,71 @@ namespace Tauron.Application.Localizer.UIModels
             {
                 mainWindow.Saved = File.Exists(obj.ProjectFile.Source);
 
+                var target = Observable.Return(obj);
+
+                var self = Self;
+
                 if (Views!.Count != 0)
                 {
+                    target = target
+                            .ObserveOn(ActorScheduler.From(proxy))
+                            .SelectMany(pr => Task.WhenAll(Views.Select(c => c.Model.Actor.GracefulStop(TimeSpan.FromMinutes(1)).ContinueWith(t => (c.Model.Actor, t))))
+                                                  .ContinueWith(t =>
+                                                                {
+                                                                    try
+                                                                    {
+                                                                        foreach (var (actor, stopped) in t.Result)
+                                                                        {
+                                                                            try
+                                                                            {
+                                                                                if (stopped.Result)
+                                                                                    continue;
+                                                                            }
+                                                                            catch (Exception e)
+                                                                            {
+                                                                                Log.Error(e, "Error on Stop Project Actor");
+                                                                            }
 
-                    Task.WhenAll(Views.Select(c => c.Model.Actor.GracefulStop(TimeSpan.FromMinutes(1)).ContinueWith(t => (c.Model.Actor, t))))
-                       .ContinueWith(t =>
-                        {
-                            try
-                            {
-                                foreach (var (actor, stopped) in t.Result)
-                                {
-                                    try
-                                    {
-                                        if (stopped.Result)
-                                            continue;
-                                    }
-                                    catch (Exception e)
-                                    {
-                                        Log.Error(e, "Error on Stop Project Actor");
-                                    }
+                                                                            actor.Tell(Kill.Instance);
+                                                                        }
+                                                                    }
+                                                                    finally
+                                                                    {
+                                                                        viewList!.Clear();
+                                                                    }
 
-                                    actor.Tell(Kill.Instance);
-                                }
-                            }
-                            finally
-                            {
-                                viewList!.Clear();
-                            }
-                        }).PipeTo(Self, Sender, () => obj, _ => obj);
-
-                    return;
+                                                                    return pr;
+                                                                }));
                 }
 
-                string titleName = obj.ProjectFile.Source;
-                if (string.IsNullOrWhiteSpace(titleName))
-                {
-                    titleName = localizer.CommonUnkowen;
-                }
-                else
-                {
-                    titleName = Path.GetFileNameWithoutExtension(obj.ProjectFile.Source);
-                    if (string.IsNullOrWhiteSpace(titleName))
-                        titleName = localizer.CommonUnkowen;
-                }
+                target
+                   .ObserveOnSelf()
+                   .Subscribe(pr =>
+                              {
+                                  string titleName = pr.ProjectFile.Source;
+                                  if (string.IsNullOrWhiteSpace(titleName))
+                                  {
+                                      titleName = localizer.CommonUnkowen;
+                                  }
+                                  else
+                                  {
+                                      titleName = Path.GetFileNameWithoutExtension(pr.ProjectFile.Source);
+                                      if (string.IsNullOrWhiteSpace(titleName))
+                                          titleName = localizer.CommonUnkowen;
+                                  }
 
-                mainWindow.TitlePostfix = titleName;
+                                  mainWindow.TitlePostfix = titleName;
 
-                foreach (var project in obj.ProjectFile.Projects)
-                    AddProject(project);
+                                  foreach (var project in pr.ProjectFile.Projects)
+                                      AddProject(project);
 
-                mainWindow.IsBusy = false;
+                                  mainWindow.IsBusy = false;
+                              });
             }
 
             WhenReceiveSafe<SupplyNewProjectFile>(obs => obs
                                                         .Mutate(workspace.Source).With(sm => sm.ProjectReset, sm => np => sm.Reset(np.File))
+                                                        .ObserveOnSelf()
                                                         .Subscribe(ProjectRest));
             #endregion
 
@@ -224,8 +238,7 @@ namespace Tauron.Application.Localizer.UIModels
                 view.AwaitInit(() => view.Actor.Tell(new InitProjectViewModel(project), Self));
                 viewList.Add(new ProjectViewContainer(project, view));
 
-                CurrentProject += Views.Count - 1;
-                CurrentProject.Take(1).Subscribe(_ => CurrentProject += Views.Count - 1);
+                UICall(() => CurrentProject += Views.Count - 1);
             }
 
             NewCommad
@@ -258,14 +271,8 @@ namespace Tauron.Application.Localizer.UIModels
 
         private UIProperty<int?> CurrentProject { get; set; }
 
-        private sealed class RemoveProjectName
-        {
-            public RemoveProjectName(string name)
-            {
-                Name = name;
-            }
+        private sealed record RemoveProjectName(string Name);
 
-            public string Name { get; }
-        }
+        private sealed record Reset2(ProjectRest Reset);
     }
 }

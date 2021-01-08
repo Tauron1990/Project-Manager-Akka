@@ -84,8 +84,9 @@ namespace Tauron.Application.Localizer.UIModels
 
             async Task<(bool, string)> CheckSourceOk(string source)
             {
+                if (!string.IsNullOrWhiteSpace(source)) return (true, source);
                 await UICall(() => dialogCoordinator.ShowMessage(localizer.CommonError, localizer.MainWindowModelLoadProjectSourceEmpty!));
-                return (true, source);
+                return (false, source);
             }
 
             NewCommad.WithCanExecute(last.Select(pf => pf != null && !pf.IsEmpty))
@@ -123,6 +124,7 @@ namespace Tauron.Application.Localizer.UIModels
                           .Select(p => p.Item2)
                           .Do(_ => mainWindowCoordinator.IsBusy = true)
                           .SelectMany(source => operationManager.StartOperation(string.Format(localizer.MainWindowModelLoadProjectOperation, Path.GetFileName(source)))
+                                                                .Do(op => loadingOperation!.Value = op)
                                                                 .Select(operationController => (operationController, source)))
                           .Do(_ =>
                               {
@@ -167,6 +169,7 @@ namespace Tauron.Application.Localizer.UIModels
                      .ThenRegister("OpenFile");
 
             NewProjectFile(WhenReceive<SourceSelected>()).DisposeWith(this);
+            WhenReceive<LoadedProjectFile>(ob => ob.Select(ProjectLoaded).ToModel(CenterView!));
 
             #endregion
 

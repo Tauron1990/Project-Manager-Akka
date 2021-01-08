@@ -53,7 +53,7 @@
                     <MenuItem.ItemTemplate>
                         <DataTemplate DataType="uiModels:RenctFile">
                             <MenuItem HorizontalContentAlignment="Left" Command="{Binding Runner}"
-                                          ToolTip="{Binding File}">
+                                          ToolTip="{Binding File}" MaxWidth="500" Style="{StaticResource MaterialDesignMenuItem}">
                                 <MenuItem.Header>
                                     <TextBlock Text="{Binding Name}" />
                                 </MenuItem.Header>

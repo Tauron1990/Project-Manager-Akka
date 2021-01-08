@@ -166,8 +166,7 @@ namespace Tauron.Application.Localizer.UIModels
 
             ImportSelectIndex = RegisterProperty<int>(nameof(ImportSelectIndex)).WithDefaultValue(-1);
 
-            NewCommad.WithCanExecute(from import in workspace.Projects.NewImport
-                                     from trigger in loadTrigger
+            NewCommad.WithCanExecute(from trigger in loadTrigger
                                      select GetImportableProjects().Any())
                      .ThenFlow(ob => ob.Select(_ => GetImportableProjects())
                                        .Dialog(this).Of<IImportProjectDialog, ImportProjectDialogResult?>()
@@ -190,6 +189,9 @@ namespace Tauron.Application.Localizer.UIModels
                                        .Mutate(workspace.Projects).With(pm => pm.RemoveImport, pm => ir => pm.TryRemoveImport(_project, ir.ToRemove))
                                        .Subscribe(RemoveImport))
                .ThenRegister("RemoveImport");
+
+            workspace.Projects.NewImport.ToUnit().Subscribe(loadTrigger).DisposeWith(this);
+            workspace.Projects.RemoveImport.ToUnit().Subscribe(loadTrigger).DisposeWith(this);
 
             #endregion
 
