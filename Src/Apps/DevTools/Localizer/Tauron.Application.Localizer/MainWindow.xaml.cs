@@ -69,8 +69,7 @@ namespace Tauron.Application.Localizer
                 .ObserveOnDispatcher()
                 .Subscribe(f =>
                 {
-                    if (Snackbar.MessageQueue == null)
-                        Snackbar.MessageQueue = new SnackbarMessageQueue(TimeSpan.FromSeconds(5));
+                    Snackbar.MessageQueue ??= new SnackbarMessageQueue(TimeSpan.FromSeconds(5));
                     Snackbar.MessageQueue.Enqueue($"{f.Status ?? " / "}");
                 });
         }
