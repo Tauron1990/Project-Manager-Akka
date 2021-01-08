@@ -12,10 +12,7 @@ namespace Tauron.Application.Workshop
         {
             return builder.ConfigureAutoFac(cb => cb.RegisterStateManager((b, context) =>
                                                                           {
-                                                                              foreach (var assembly in assemblys)
-                                                                              {
-                                                                                  b.AddFromAssembly(assembly, context);
-                                                                              }
+                                                                              foreach (var assembly in assemblys) b.AddFromAssembly(assembly, context);
                                                                           }));
         }
     }

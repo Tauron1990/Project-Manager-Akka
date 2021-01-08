@@ -8,10 +8,6 @@ namespace Akkatecture.Core.VersionedTypes
 {
     public abstract class VersionedTypeDefinition : ValueObject
     {
-        public int Version { get; }
-        public Type Type { get; }
-        public string Name { get; }
-
         protected VersionedTypeDefinition(
             int version,
             Type type,
@@ -21,6 +17,10 @@ namespace Akkatecture.Core.VersionedTypes
             Type = type;
             Name = name;
         }
+
+        public int Version { get; }
+        public Type Type { get; }
+        public string Name { get; }
 
         public override string ToString()
         {

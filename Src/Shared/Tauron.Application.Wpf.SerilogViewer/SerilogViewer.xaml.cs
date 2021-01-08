@@ -77,13 +77,13 @@ namespace Tauron.Application.Wpf.SerilogViewer
             LogEventViewModel vm = new(log);
 
             Dispatcher.BeginInvoke(new Action(() =>
-            {
-                if (MaxRowCount > 0 && LogEntries.Count >= MaxRowCount)
-                    LogEntries.RemoveAt(0);
-                LogEntries.Add(vm);
-                if (AutoScrollToLast) ScrollToLast();
-                ItemAdded(this, (SerilogEvent) log);
-            }));
+                                              {
+                                                  if (MaxRowCount > 0 && LogEntries.Count >= MaxRowCount)
+                                                      LogEntries.RemoveAt(0);
+                                                  LogEntries.Add(vm);
+                                                  if (AutoScrollToLast) ScrollToLast();
+                                                  ItemAdded(this, (SerilogEvent) log);
+                                              }));
         }
 
         public void Clear()

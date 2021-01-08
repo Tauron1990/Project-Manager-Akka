@@ -7,19 +7,13 @@ namespace Tauron.Application.Avalonia.Converter
     [PublicAPI]
     public class StringToIntConverter : ValueConverterFactoryBase
     {
-        protected override IValueConverter Create()
-        {
-            return new Converter();
-        }
+        protected override IValueConverter Create() => new Converter();
 
         private class Converter : StringConverterBase<int>
         {
             protected override bool CanConvertBack => true;
 
-            protected override string Convert(int value)
-            {
-                return value.ToString();
-            }
+            protected override string Convert(int value) => value.ToString();
 
             protected override int ConvertBack(string value)
             {

@@ -1,6 +1,4 @@
-﻿using JetBrains.Annotations;
-
-namespace Tauron.Application.Workshop.StateManagement.DataFactorys
+﻿namespace Tauron.Application.Workshop.StateManagement.DataFactorys
 {
     public partial class MergeFactory
     {
@@ -16,7 +14,7 @@ namespace Tauron.Application.Workshop.StateManagement.DataFactorys
 
             for (var i = 0; i < factories.Length; i++)
             {
-                if(i == foundFac) continue;
+                if (i == foundFac) continue;
 
                 factory.Register(factories[i]);
             }

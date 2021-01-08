@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security;
@@ -15,7 +14,7 @@ namespace Tauron
         {
             ex = Unwrap(ex);
             return ex is StackOverflowException || ex is OutOfMemoryException || ex is ThreadAbortException
-                   || ex is SecurityException;
+                || ex is SecurityException;
         }
 
 
@@ -23,7 +22,7 @@ namespace Tauron
         {
             ex = Unwrap(ex);
             return ex is NullReferenceException || ex is StackOverflowException || ex is OutOfMemoryException
-                   || ex is ThreadAbortException || ex is SEHException || ex is SecurityException;
+                || ex is ThreadAbortException || ex is SEHException || ex is SecurityException;
         }
 
 

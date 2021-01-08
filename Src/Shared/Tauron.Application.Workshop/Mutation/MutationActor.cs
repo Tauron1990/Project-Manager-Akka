@@ -15,6 +15,8 @@ namespace Tauron.Application.Workshop.Mutation
             ReceiveAsync<IAsyncMutation>(Mutation);
         }
 
+        private static ILoggingAdapter Log => Context.GetLogger();
+
         private async Task Mutation(IAsyncMutation mutation)
         {
             try
@@ -28,8 +30,6 @@ namespace Tauron.Application.Workshop.Mutation
                 Log.Error(e, "Mutation Failed: {Name}", mutation.Name);
             }
         }
-
-        private static ILoggingAdapter Log => Context.GetLogger();
 
         private void Mutation(ISyncMutation obj)
         {

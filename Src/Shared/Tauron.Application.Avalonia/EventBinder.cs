@@ -25,10 +25,7 @@ namespace Tauron.Application.Avalonia
         private EventBinder() { }
 
         [NotNull]
-        public static string GetEvents(Control obj)
-        {
-            return Argument.NotNull(obj, nameof(obj)).GetValue(EventsProperty);
-        }
+        public static string GetEvents(Control obj) => Argument.NotNull(obj, nameof(obj)).GetValue(EventsProperty);
 
         public static void SetEvents(Control obj, string value)
         {
@@ -43,7 +40,7 @@ namespace Tauron.Application.Avalonia
             var root = ControlBindLogic.FindRoot(ele);
             if (root == null)
             {
-                ControlBindLogic.MakeLazy((IUIElement)ele, newValue, oldValue, BindInternal);
+                ControlBindLogic.MakeLazy((IUIElement) ele, newValue, oldValue, BindInternal);
                 return;
             }
 
@@ -62,8 +59,8 @@ namespace Tauron.Application.Avalonia
 
         private sealed class EventLinker : ControlBindableBase
         {
-            private readonly List<InternalEventLinker> _linkers = new();
             private static readonly ILogger Log = Serilog.Log.ForContext<EventLinker>();
+            private readonly List<InternalEventLinker> _linkers = new();
 
             public string? Commands { get; init; }
 
@@ -122,7 +119,7 @@ namespace Tauron.Application.Avalonia
             private class InternalEventLinker : IDisposable
             {
                 private static readonly MethodInfo Method = typeof(InternalEventLinker).GetMethods(BindingFlags.Instance | BindingFlags.NonPublic)
-                    .First(m => m.Name == "Handler");
+                                                                                       .First(m => m.Name == "Handler");
 
                 private static readonly ILogger InternalLog = Log.ForContext<InternalEventLinker>();
 

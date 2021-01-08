@@ -38,11 +38,6 @@ namespace Akkatecture.Aggregates
         where TIdentity : IIdentity
         where TCommand : ICommand<TAggregate, TIdentity>
     {
-        protected ILoggingAdapter Logger { get; set; }
-        protected Func<DeadLetter, bool> DeadLetterHandler => Handle;
-        public AggregateManagerSettings Settings { get; }
-        public string Name { get; }
-
         protected AggregateManager()
         {
             Logger = Context.GetLogger();
@@ -59,6 +54,11 @@ namespace Akkatecture.Aggregates
                 Receive(DeadLetterHandler);
             }
         }
+
+        protected ILoggingAdapter Logger { get; set; }
+        protected Func<DeadLetter, bool> DeadLetterHandler => Handle;
+        public AggregateManagerSettings Settings { get; }
+        public string Name { get; }
 
         protected virtual bool Dispatch(TCommand command)
         {
@@ -85,10 +85,9 @@ namespace Akkatecture.Aggregates
 
         protected bool Handle(DeadLetter deadLetter)
         {
-            if (!(deadLetter.Message is TCommand) || (deadLetter.Message as dynamic).AggregateId.GetType() != typeof(TIdentity)) return true;
-            var command = deadLetter.Message as dynamic;
+            if (!(deadLetter.Message is TCommand) || deadLetter.Message.GetPropertyValue("AggregateId")?.GetType() != typeof(TIdentity)) return true;
 
-            ReDispatch(command);
+            ReDispatch((TCommand) deadLetter.Message);
 
             return true;
         }
@@ -124,7 +123,7 @@ namespace Akkatecture.Aggregates
                 3000,
                 x =>
                 {
-                    logger.Warning(x, "AggregateManager of Type={0}; will supervise Exception={1} to be decided as {2}.", Name, x.ToString(), Directive.Restart);
+                    logger.Warning("AggregateManager of Type={0}; will supervise Exception={1} to be decided as {2}.", Name, x.ToString(), Directive.Restart);
                     return Directive.Restart;
                 });
         }

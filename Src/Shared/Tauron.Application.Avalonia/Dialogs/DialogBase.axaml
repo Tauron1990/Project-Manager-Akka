@@ -1,48 +1,48 @@
 ﻿<TemplatedControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:dialogs="clr-namespace:Tauron.Application.Avalonia.Dialogs"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="Tauron.Application.Avalonia.Dialogs.DialogBase">
+                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                  xmlns:dialogs="clr-namespace:Tauron.Application.Avalonia.Dialogs"
+                  mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+                  x:Class="Tauron.Application.Avalonia.Dialogs.DialogBase">
     <TemplatedControl.Styles>
-      <Style Selector="dialogs|DialogBase">
-          <Setter Property="Background" Value="{Binding BackgroundBrush}" />
-          <Setter Property="DialogTitleFontSize" Value="25" />
-          <Setter Property="HorizontalAlignment" Value="Stretch" />
-          <Setter Property="Opacity" Value="1" />
-          <Setter Property="Padding" Value="0 10 0 0" />
-          <Setter Property="VerticalAlignment" Value="Center" />
-      </Style>
+        <Style Selector="dialogs|DialogBase">
+            <Setter Property="Background" Value="{Binding BackgroundBrush}" />
+            <Setter Property="DialogTitleFontSize" Value="25" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="Opacity" Value="1" />
+            <Setter Property="Padding" Value="0 10 0 0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
     </TemplatedControl.Styles>
     <TemplatedControl.Template>
-    <ControlTemplate>
-      <Grid Background="{TemplateBinding Background}" RowDefinitions="Auto,*,Auto">
-          <ContentPresenter x:Name="PART_Top" Content="{TemplateBinding Top}"
-                            Grid.Row="0" />
-        <Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto">
-            <!--  Content area  -->
-          <Grid Grid.Column="1" Margin="{TemplateBinding Padding}" RowDefinitions="Auto,*">
-              <Grid.Styles>
-                  <Style Selector="TextBlock#PART_Title[Text={x:Null}]">
-                      <Setter Property="IsVisible" Value="False"/>
-                  </Style>
-              </Grid.Styles>
-              <TextBlock x:Name="PART_Title"
-                         Grid.Row="0" Text="{TemplateBinding Title}"
-                         FontSize="{TemplateBinding DialogTitleFontSize}"
-                         Foreground="{TemplateBinding Foreground}"
-                         TextWrapping="Wrap" />
-            <ContentPresenter x:Name="PART_Content"
-                              Grid.Row="1" Content="{TemplateBinding Content}"
-                              HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
-                              VerticalAlignment="{TemplateBinding VerticalAlignment}"
-                              ContentTemplate="{TemplateBinding ContentTemplate}" Margin="10" />
-          </Grid>
-        </Grid>
-        <ContentPresenter x:Name="PART_Bottom" Content="{TemplateBinding Bottom}"
-                          Grid.Row="2" />
-      </Grid>
-    </ControlTemplate>
-  </TemplatedControl.Template>
+        <ControlTemplate>
+            <Grid Background="{TemplateBinding Background}" RowDefinitions="Auto,*,Auto">
+                <ContentPresenter x:Name="PART_Top" Content="{TemplateBinding Top}"
+                                  Grid.Row="0" />
+                <Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto">
+                    <!--  Content area  -->
+                    <Grid Grid.Column="1" Margin="{TemplateBinding Padding}" RowDefinitions="Auto,*">
+                        <Grid.Styles>
+                            <Style Selector="TextBlock#PART_Title[Text={x:Null}]">
+                                <Setter Property="IsVisible" Value="False" />
+                            </Style>
+                        </Grid.Styles>
+                        <TextBlock x:Name="PART_Title"
+                                   Grid.Row="0" Text="{TemplateBinding Title}"
+                                   FontSize="{TemplateBinding DialogTitleFontSize}"
+                                   Foreground="{TemplateBinding Foreground}"
+                                   TextWrapping="Wrap" />
+                        <ContentPresenter x:Name="PART_Content"
+                                          Grid.Row="1" Content="{TemplateBinding Content}"
+                                          HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalAlignment}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}" Margin="10" />
+                    </Grid>
+                </Grid>
+                <ContentPresenter x:Name="PART_Bottom" Content="{TemplateBinding Bottom}"
+                                  Grid.Row="2" />
+            </Grid>
+        </ControlTemplate>
+    </TemplatedControl.Template>
 </TemplatedControl>

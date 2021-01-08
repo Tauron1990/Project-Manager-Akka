@@ -10,29 +10,29 @@ namespace Akka.Cluster.Utility
         // Notify other ClusterActorDiscoveries that I'm up
         public class RegisterCluster
         {
-            public UniqueAddress ClusterAddress { get; }
-            public List<ClusterActorUp> ActorUpList { get; }
-
             public RegisterCluster(UniqueAddress clusterAddress, List<ClusterActorUp> actorUpList = null)
             {
                 ClusterAddress = clusterAddress;
                 ActorUpList = actorUpList;
             }
+
+            public UniqueAddress ClusterAddress { get; }
+            public List<ClusterActorUp> ActorUpList { get; }
         }
 
         // Notify other ClusterActorDiscoveries that I'm up again
         public class ResyncCluster
         {
-            public UniqueAddress ClusterAddress { get; }
-            public List<ClusterActorUp> ActorUpList { get; }
-            public bool Request { get; }
-
             public ResyncCluster(UniqueAddress clusterAddress, List<ClusterActorUp> actorUpList, bool request)
             {
                 ClusterAddress = clusterAddress;
                 ActorUpList = actorUpList;
                 Request = request;
             }
+
+            public UniqueAddress ClusterAddress { get; }
+            public List<ClusterActorUp> ActorUpList { get; }
+            public bool Request { get; }
         }
 
         //// Notify other ClusterNodeActors that I'm down
@@ -49,89 +49,85 @@ namespace Akka.Cluster.Utility
         // Notify other ClusterNodeActors that Actor in my cluster node is up
         public class ClusterActorUp
         {
-            public IActorRef Actor { get; }
-            public string Tag { get; }
-
             public ClusterActorUp(IActorRef actor, string tag)
             {
                 Actor = actor;
                 Tag = tag;
             }
+
+            public IActorRef Actor { get; }
+            public string Tag { get; }
         }
 
         // Notify other ClusterNodeActors that Actor in my cluster node is down
         public class ClusterActorDown
         {
-            public IActorRef Actor { get; }
+            public ClusterActorDown(IActorRef actor) => Actor = actor;
 
-            public ClusterActorDown(IActorRef actor)
-                => Actor = actor;
+            public IActorRef Actor { get; }
         }
 
         // Notify watcher that actor monitored is up
         public class ActorUp
         {
-            public IActorRef Actor { get; }
-            public string Tag { get; }
-
             public ActorUp(IActorRef actor, string tag)
             {
                 Actor = actor;
                 Tag = tag;
             }
+
+            public IActorRef Actor { get; }
+            public string Tag { get; }
         }
 
         // Notify watcher that actor monitored is down
         public class ActorDown
         {
-            public IActorRef Actor { get; }
-            public string Tag { get; }
-
             public ActorDown(IActorRef actor, string tag)
             {
                 Actor = actor;
                 Tag = tag;
             }
+
+            public IActorRef Actor { get; }
+            public string Tag { get; }
         }
 
         // Notify discovery actor that actor is up
         public class RegisterActor
         {
-            public IActorRef Actor { get; }
-            public string Tag { get; }
-
             public RegisterActor(IActorRef actor, string tag)
             {
                 Actor = actor;
                 Tag = tag;
             }
+
+            public IActorRef Actor { get; }
+            public string Tag { get; }
         }
 
         // Notify discovery actor that actor is down
         public class UnregisterActor
         {
-            public IActorRef Actor { get; }
+            public UnregisterActor(IActorRef actor) => Actor = actor;
 
-            public UnregisterActor(IActorRef actor)
-                => Actor = actor;
+            public IActorRef Actor { get; }
         }
 
         // Monitors actors with specific tag up or down.
         public class MonitorActor
         {
-            public string Tag { get; }
+            public MonitorActor(string tag) => Tag = tag;
 
-            public MonitorActor(string tag)
-                => Tag = tag;
+            public string Tag { get; }
         }
 
         // Stops monitoring actors with specific tag up or down.
         public class UnmonitorActor
         {
-            public string Tag { get; }
+            public UnmonitorActor(string tag) => Tag = tag;
 
-            public UnmonitorActor(string tag)
-                => Tag = tag;
+            public string Tag { get; }
         }
     }
 }

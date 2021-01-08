@@ -33,15 +33,27 @@ namespace Tauron.Application.CommonUI.UI
             WireUpUnloaded();
         }
 
-        public void Register(string key, IControlBindable bindable, IUIObject affectedPart) => BindLogic.Register(key, bindable, affectedPart);
+        public void Register(string key, IControlBindable bindable, IUIObject affectedPart)
+        {
+            BindLogic.Register(key, bindable, affectedPart);
+        }
 
-        public void CleanUp(string key) => BindLogic.CleanUp(key);
-        
+        public void CleanUp(string key)
+        {
+            BindLogic.CleanUp(key);
+        }
+
         public event Action? ControlUnload;
 
-        protected virtual void WireUpLoaded() => UserControl.Loaded.Subscribe(_ => UserControlOnLoaded());
+        protected virtual void WireUpLoaded()
+        {
+            UserControl.Loaded.Subscribe(_ => UserControlOnLoaded());
+        }
 
-        protected virtual void WireUpUnloaded() => UserControl.Unloaded.Subscribe(_ =>  UserControlOnUnloaded());
+        protected virtual void WireUpUnloaded()
+        {
+            UserControl.Unloaded.Subscribe(_ => UserControlOnUnloaded());
+        }
 
         protected virtual void UserControlOnUnloaded()
         {
@@ -70,7 +82,7 @@ namespace Tauron.Application.CommonUI.UI
                 else
                 {
                     ViewModelSuperviser.Get(ActorApplication.Application.ActorSystem)
-                       .Create(Model);
+                                       .Create(Model);
                 }
             }
 

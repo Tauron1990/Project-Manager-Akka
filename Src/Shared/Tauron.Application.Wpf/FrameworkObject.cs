@@ -42,13 +42,6 @@ namespace Tauron.Application.Wpf
             // ReSharper restore AssignNullToNotNullAttribute
         }
 
-        public IUIObject? CreateElement()
-        {
-            if (TryGetFrameworkElement(out var el))
-                return ElementMapper.Create(el);
-            return TryGetFrameworkContentElement(out var ce) ? ElementMapper.Create(ce) : null;
-        } 
-
         public object? DataContext
         {
             get
@@ -108,6 +101,13 @@ namespace Tauron.Application.Wpf
 
                 return _isFce && (_fce?.IsAlive ?? false);
             }
+        }
+
+        public IUIObject? CreateElement()
+        {
+            if (TryGetFrameworkElement(out var el))
+                return ElementMapper.Create(el);
+            return TryGetFrameworkContentElement(out var ce) ? ElementMapper.Create(ce) : null;
         }
 
         public event DependencyPropertyChangedEventHandler DataContextChanged

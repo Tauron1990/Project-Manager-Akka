@@ -33,9 +33,6 @@ namespace Akkatecture.Clustering.Dispatchers
     public class SingletonDomainEventSubscriberDispatcher<TDomainEventSubscriber> : ReceiveActor
         where TDomainEventSubscriber : DomainEventSubscriber
     {
-        public ILoggingAdapter Logger { get; }
-        public IActorRef DomainEventProxy { get; }
-        
         public SingletonDomainEventSubscriberDispatcher(IActorRef domainEventProxy)
         {
             Logger = Context.GetLogger();
@@ -44,21 +41,21 @@ namespace Akkatecture.Clustering.Dispatchers
 
             var subscriptionTypes =
                 subscriberType
-                    .GetDomainEventSubscriptionTypes();
-            
-            foreach (var type in subscriptionTypes)
-            {
-                Context.System.EventStream.Subscribe(Self, type);
-            }
-            
+                   .GetDomainEventSubscriptionTypes();
+
+            foreach (var type in subscriptionTypes) Context.System.EventStream.Subscribe(Self, type);
+
             Receive<IDomainEvent>(Dispatch);
         }
-        
+
+        public ILoggingAdapter Logger { get; }
+        public IActorRef DomainEventProxy { get; }
+
         protected virtual bool Dispatch(IDomainEvent domainEvent)
         {
             DomainEventProxy.Tell(domainEvent);
 
-            Logger.Debug("{0} just dispatched {1} to {2}",GetType().PrettyPrint(), domainEvent.GetType().PrettyPrint(), DomainEventProxy.Path.Name);
+            Logger.Debug("{0} just dispatched {1} to {2}", GetType().PrettyPrint(), domainEvent.GetType().PrettyPrint(), DomainEventProxy.Path.Name);
             return true;
         }
     }

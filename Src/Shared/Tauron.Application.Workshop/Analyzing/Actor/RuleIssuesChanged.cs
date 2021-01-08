@@ -19,7 +19,9 @@ namespace Tauron.Application.Workshop.Analyzing.Actor
 
         public IEnumerable<Issue.IssueCompleter> Issues { get; }
 
-        public IssuesEvent ToEvent() 
-            => new(Rule.Name, Issues.Select(i => i.Build(Rule.Name)));
+        public IssuesEvent ToEvent()
+        {
+            return new(Rule.Name, Issues.Select(i => i.Build(Rule.Name)));
+        }
     }
 }

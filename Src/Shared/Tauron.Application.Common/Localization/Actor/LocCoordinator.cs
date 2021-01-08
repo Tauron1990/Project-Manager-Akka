@@ -8,9 +8,7 @@ namespace Tauron.Localization.Actor
 {
     public sealed class LocCoordinator : ReceiveActor, IWithTimers
     {
-        private readonly Dictionary<string, Request> _requests = new ();
-
-        public ITimerScheduler Timers { get; set; } = null!;
+        private readonly Dictionary<string, Request> _requests = new();
 
         public LocCoordinator(IEnumerable<ILocStoreProducer> producers)
         {
@@ -19,6 +17,8 @@ namespace Tauron.Localization.Actor
             Receive<LocStoreActorBase.QueryResponse>(QueryResponseHandler);
             Receive<SendInvalidate>(Invalidate);
         }
+
+        public ITimerScheduler Timers { get; set; } = null!;
 
         private void QueryResponseHandler(LocStoreActorBase.QueryResponse obj)
         {

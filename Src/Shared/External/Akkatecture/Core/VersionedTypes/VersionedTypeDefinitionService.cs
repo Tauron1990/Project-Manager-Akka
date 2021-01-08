@@ -42,46 +42,48 @@ namespace Akkatecture.Core.VersionedTypes
         where TDefinition : VersionedTypeDefinition
     {
         // ReSharper disable once StaticMemberInGenericType
-        private static readonly Regex NameRegex = new Regex(
+        private static readonly Regex NameRegex = new(
             @"^(Old){0,1}(?<name>[\p{L}\p{Nd}]+?)(V(?<version>[0-9]+)){0,1}$",
             RegexOptions.Compiled);
 
-        private readonly ConcurrentDictionary<string, Dictionary<int, TDefinition>> _definitionByNameAndVersion = new ConcurrentDictionary<string, Dictionary<int, TDefinition>>();
-        private readonly ConcurrentDictionary<Type, List<TDefinition>> _definitionsByType = new ConcurrentDictionary<Type, List<TDefinition>>();
+        private readonly ConcurrentDictionary<string, Dictionary<int, TDefinition>> _definitionByNameAndVersion = new();
+        private readonly ConcurrentDictionary<Type, List<TDefinition>> _definitionsByType = new();
         private readonly ILoggingAdapter? _logger;
 
-        private readonly object _syncRoot = new object();
+        private readonly object _syncRoot = new();
 
         protected VersionedTypeDefinitionService(
-            ILoggingAdapter? logger) =>
-            _logger = logger;
+            ILoggingAdapter? logger)
+            => _logger = logger;
 
         public void Load(params Type[] types)
-            => Load((IReadOnlyCollection<Type>) types);
+        {
+            Load((IReadOnlyCollection<Type>) types);
+        }
 
         public void Load(IReadOnlyCollection<Type> types)
         {
             if (types == null) return;
 
             var invalidTypes = types
-               .Where(t => !typeof(TTypeCheck).GetTypeInfo().IsAssignableFrom(t))
-               .ToList();
+                              .Where(t => !typeof(TTypeCheck).GetTypeInfo().IsAssignableFrom(t))
+                              .ToList();
             if (invalidTypes.Any()) throw new ArgumentException($"The following types are not of type '{typeof(TTypeCheck).PrettyPrint()}': {string.Join(", ", invalidTypes.Select(t => t.PrettyPrint()))}");
 
             lock (_syncRoot)
             {
                 var definitions = types
-                   .Distinct()
-                   .Where(t => !_definitionsByType.ContainsKey(t))
-                   .SelectMany(CreateDefinitions)
-                   .ToList();
+                                 .Distinct()
+                                 .Where(t => !_definitionsByType.ContainsKey(t))
+                                 .SelectMany(CreateDefinitions)
+                                 .ToList();
                 if (!definitions.Any()) return;
 
                 var assemblies = definitions
-                   .Select(d => d.Type.GetTypeInfo().Assembly.GetName().Name)
-                   .Distinct()
-                   .OrderBy(n => n)
-                   .ToList();
+                                .Select(d => d.Type.GetTypeInfo().Assembly.GetName().Name)
+                                .Distinct()
+                                .OrderBy(n => n)
+                                .ToList();
 
                 var logs = $"Added {definitions.Count} versioned types to '{GetType().PrettyPrint()}' from these assemblies: {string.Join(", ", assemblies)}";
 
@@ -117,12 +119,14 @@ namespace Akkatecture.Core.VersionedTypes
         public IEnumerable<TDefinition> GetDefinitions(string name)
         {
             return _definitionByNameAndVersion.TryGetValue(name, out var versions)
-                ? versions.Values.OrderBy(d => d.Version)
-                : Enumerable.Empty<TDefinition>();
+                       ? versions.Values.OrderBy(d => d.Version)
+                       : Enumerable.Empty<TDefinition>();
         }
 
         public IEnumerable<TDefinition> GetAllDefinitions()
-            => _definitionByNameAndVersion.SelectMany(kv => kv.Value.Values);
+        {
+            return _definitionByNameAndVersion.SelectMany(kv => kv.Value.Values);
+        }
 
         public bool TryGetDefinition(string name, int version, out TDefinition definition)
         {
@@ -217,10 +221,10 @@ namespace Akkatecture.Core.VersionedTypes
         private IEnumerable<TDefinition> CreateDefinitionFromAttribute(Type versionedType)
         {
             return versionedType
-               .GetTypeInfo()
-               .GetCustomAttributes()
-               .OfType<TAttribute>()
-               .Select(a => CreateDefinition(a.Version, versionedType, a.Name));
+                  .GetTypeInfo()
+                  .GetCustomAttributes()
+                  .OfType<TAttribute>()
+                  .Select(a => CreateDefinition(a.Version, versionedType, a.Name));
         }
     }
 }

@@ -21,21 +21,18 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
         public override IDataMutation? TryDipatch(IStateAction action, IObserver<IReducerResult> sendResult, IObserver<Unit> onCompled)
         {
             var type = action.GetType();
-            return !_map.TryGetValue(type, out var runner) 
-                ? null 
-                : new WorkspaceMutation(() => runner(_source, action), sendResult, onCompled, action.ActionName, action.ActionName);
+            return !_map.TryGetValue(type, out var runner)
+                       ? null
+                       : new WorkspaceMutation(() => runner(_source, action), sendResult, onCompled, action.ActionName, action.ActionName);
         }
 
-        public override void Dispose()
-        {
-
-        }
+        public override void Dispose() { }
 
         private sealed class WorkspaceMutation : ISyncMutation
         {
-            private readonly Func<IDataMutation> _run;
-            private readonly IObserver<IReducerResult> _result;
             private readonly IObserver<Unit> _compled;
+            private readonly IObserver<IReducerResult> _result;
+            private readonly Func<IDataMutation> _run;
 
             public WorkspaceMutation(Func<IDataMutation> run, IObserver<IReducerResult> result, IObserver<Unit> compled, object hashKey, string actionName)
             {

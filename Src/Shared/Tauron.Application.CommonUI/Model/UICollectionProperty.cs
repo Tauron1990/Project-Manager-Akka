@@ -11,7 +11,7 @@ namespace Tauron.Application.CommonUI.Model
 {
     [PublicAPI]
     public class UICollectionProperty<TData> : IReadOnlyList<TData>, INotifyCollectionChanged,
-                                               INotifyPropertyChanged, INotifyCollectionChangedSuspender
+        INotifyPropertyChanged, INotifyCollectionChangedSuspender
     {
         private IObservableCollection<TData>? _collection;
 
@@ -25,10 +25,53 @@ namespace Tauron.Application.CommonUI.Model
         public UIProperty<IObservableCollection<TData>> Property { get; }
 
         public bool IsNull => _collection == null;
+        //set
+        //{
+        //    if (_collection == null) return;
+        //    _collection[index] = value;
+        //}
+        //int IReadOnlyCollection<TData>.Count => _collection?.Count ?? -1;
+
+        //public void AddRange(IEnumerable<TData> datas)
+        //{
+        //    foreach (var data in datas) _collection?.Add(data);
+        //}
+
+        //public void RemoveRange(IEnumerable<TData> toRemove)
+        //{
+        //    foreach (var data in toRemove) _collection?.Remove(data);
+        //}
+        public event NotifyCollectionChangedEventHandler? CollectionChanged
+        {
+            add
+            {
+                if (_collection != null) _collection.CollectionChanged += value;
+            }
+            remove
+            {
+                if (_collection != null) _collection.CollectionChanged -= value;
+            }
+        }
+
+        public IDisposable SuspendCount() => _collection?.SuspendCount() ?? Disposable.Empty;
+
+        public IDisposable SuspendNotifications() => _collection?.SuspendNotifications() ?? Disposable.Empty;
+
+        public event PropertyChangedEventHandler? PropertyChanged
+        {
+            add
+            {
+                if (_collection != null) _collection.PropertyChanged += value;
+            }
+            remove
+            {
+                if (_collection != null) _collection.PropertyChanged -= value;
+            }
+        }
 
         public int Count => _collection?.Count ?? -1;
 
-        public IEnumerator<TData> GetEnumerator() => _collection?.GetEnumerator() ?? (IEnumerator<TData>)Array.Empty<TData>().GetEnumerator();
+        public IEnumerator<TData> GetEnumerator() => _collection?.GetEnumerator() ?? (IEnumerator<TData>) Array.Empty<TData>().GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
@@ -68,48 +111,5 @@ namespace Tauron.Application.CommonUI.Model
 
         public TData this[int index]
             => _collection != null ? _collection[index] : default!;
-        //set
-        //{
-        //    if (_collection == null) return;
-        //    _collection[index] = value;
-        //}
-        //int IReadOnlyCollection<TData>.Count => _collection?.Count ?? -1;
-
-        //public void AddRange(IEnumerable<TData> datas)
-        //{
-        //    foreach (var data in datas) _collection?.Add(data);
-        //}
-
-        //public void RemoveRange(IEnumerable<TData> toRemove)
-        //{
-        //    foreach (var data in toRemove) _collection?.Remove(data);
-        //}
-        public event NotifyCollectionChangedEventHandler? CollectionChanged
-        {
-            add
-            {
-                if (_collection != null) _collection.CollectionChanged += value;
-            }
-            remove
-            {
-                if (_collection != null) _collection.CollectionChanged -= value;
-            }
-        }
-
-        public event PropertyChangedEventHandler? PropertyChanged
-        {
-            add
-            {
-                if (_collection != null) _collection.PropertyChanged += value;
-            }
-            remove
-            {
-                if (_collection != null) _collection.PropertyChanged -= value;
-            }
-        }
-
-        public IDisposable SuspendCount() => _collection?.SuspendCount() ?? Disposable.Empty;
-
-        public IDisposable SuspendNotifications() => _collection?.SuspendNotifications() ?? Disposable.Empty;
     }
 }

@@ -29,18 +29,18 @@ namespace Akkatecture.Jobs.Events
         where TJob : IJob
         where TIdentity : IJobId
     {
-        public TIdentity JobId { get; }
-        public DateTime TriggerDate { get; }
-
         public Cancelled(
             TIdentity jobId,
             DateTime triggerDate)
         {
-            if (jobId       == null) throw new ArgumentNullException(nameof(jobId));
+            if (jobId == null) throw new ArgumentNullException(nameof(jobId));
             if (triggerDate == default) throw new ArgumentException(nameof(triggerDate));
 
             JobId = jobId;
             TriggerDate = triggerDate;
         }
+
+        public TIdentity JobId { get; }
+        public DateTime TriggerDate { get; }
     }
 }

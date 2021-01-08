@@ -13,30 +13,14 @@ namespace Tauron.Application.Avalonia.Dialogs
     [PublicAPI]
     public class DialogHost : TemplatedControl
     {
-        public static readonly StyledProperty<object> DialogProperty = AvaloniaProperty.Register<DialogHost, object>("Dialog", defaultBindingMode:BindingMode.TwoWay);
+        public static readonly StyledProperty<object> DialogProperty = AvaloniaProperty.Register<DialogHost, object>("Dialog", defaultBindingMode: BindingMode.TwoWay);
         public static readonly StyledProperty<object> MainProperty = AvaloniaProperty.Register<DialogHost, object>("Main", defaultBindingMode: BindingMode.TwoWay);
-
-
-        private ContentControl MainContent => this.Get<ContentControl>("MainContent");
-        private ContentControl DialogContent => this.Get<ContentControl>("DialogContent");
-        
-        public object Dialog
-        {
-            get => GetValue(DialogProperty);
-            set => SetValue(DialogProperty, value);
-        }
-
-        public object Main
-        {
-            get => GetValue(MainProperty);
-            set => SetValue(MainProperty, value);
-        }
 
         public DialogHost()
         {
             InitializeComponent();
 
-            var coordinator = (IDialogCoordinatorUIEvents)ActorApplication.Application.Continer.Resolve<IDialogCoordinator>();
+            var coordinator = (IDialogCoordinatorUIEvents) ActorApplication.Application.Continer.Resolve<IDialogCoordinator>();
 
             coordinator.HideDialogEvent += () =>
                                            {
@@ -57,6 +41,22 @@ namespace Tauron.Application.Avalonia.Dialogs
                                                DialogContent.IsEnabled = true;
                                                DialogContent.IsVisible = true;
                                            };
+        }
+
+
+        private ContentControl MainContent => this.Get<ContentControl>("MainContent");
+        private ContentControl DialogContent => this.Get<ContentControl>("DialogContent");
+
+        public object Dialog
+        {
+            get => GetValue(DialogProperty);
+            set => SetValue(DialogProperty, value);
+        }
+
+        public object Main
+        {
+            get => GetValue(MainProperty);
+            set => SetValue(MainProperty, value);
         }
 
         private void InitializeComponent()

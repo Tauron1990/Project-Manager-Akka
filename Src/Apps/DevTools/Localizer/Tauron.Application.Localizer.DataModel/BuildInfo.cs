@@ -6,10 +6,8 @@ namespace Tauron.Application.Localizer.DataModel
 {
     public sealed record BuildInfo(bool IntigrateProjects, ImmutableDictionary<string, string> ProjectPaths) : IWriteable
     {
-
         public BuildInfo()
-            : this(true, ImmutableDictionary<string, string>.Empty)
-        { }
+            : this(true, ImmutableDictionary<string, string>.Empty) { }
 
         public void Write(BinaryWriter writer)
         {

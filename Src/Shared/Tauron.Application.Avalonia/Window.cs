@@ -18,7 +18,7 @@ namespace Tauron.Application.Avalonia
 
         protected Window(IViewModel viewModel)
         {
-            _element = (IWindow)ElementMapper.Create(this);
+            _element = (IWindow) ElementMapper.Create(this);
             _controlLogic = new WindowControlLogic(this, viewModel);
         }
 
@@ -31,7 +31,7 @@ namespace Tauron.Application.Avalonia
         {
             _controlLogic.CleanUp(key);
         }
-        
+
         public event Action? ControlUnload
         {
             add => _controlLogic.ControlUnload += value;
@@ -39,14 +39,17 @@ namespace Tauron.Application.Avalonia
         }
 
         IUIObject? IUIObject.GetPerent() => _element.GetPerent();
+
         public object Object => this;
 
         IObservable<object> IUIElement.DataContextChanged => _element.DataContextChanged;
 
         IObservable<Unit> IUIElement.Loaded => _element.Loaded;
 
-        IObservable<Unit> IUIElement.Unloaded     => _element.Unloaded;
-        public Task<bool?>           ShowDialog() => _element.ShowDialog();
+        IObservable<Unit> IUIElement.Unloaded => _element.Unloaded;
+
+        public Task<bool?> ShowDialog() => _element.ShowDialog();
+
         IWindow IWindowProvider.Window => _element;
     }
 }

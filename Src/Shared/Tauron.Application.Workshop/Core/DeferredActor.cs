@@ -8,22 +8,21 @@ namespace Tauron.Application.Workshop.Core
     {
         private ImmutableList<object>? _stash;
 
-        private IActorRef _actorRef = ActorRefs.Nobody;
-        private IActorRef Actor => _actorRef;
-
         protected DeferredActor(Task<IActorRef> actor)
         {
             actor.ContinueWith(OnCompleded);
             _stash = ImmutableList<object>.Empty;
         }
 
+        private IActorRef Actor { get; set; } = ActorRefs.Nobody;
+
         private void OnCompleded(Task<IActorRef> obj)
         {
             lock (this)
             {
-                _actorRef = obj.Result;
-                foreach (var message in _stash ?? ImmutableList<object>.Empty) 
-                    _actorRef.Tell(message);
+                Actor = obj.Result;
+                foreach (var message in _stash ?? ImmutableList<object>.Empty)
+                    Actor.Tell(message);
 
                 _stash = null;
             }

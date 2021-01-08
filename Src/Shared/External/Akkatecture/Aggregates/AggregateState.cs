@@ -35,9 +35,7 @@ namespace Akkatecture.Aggregates
     [PublicAPI]
     public abstract class AggregateState<TAggregate, TIdentity> : AggregateState<TAggregate, TIdentity, IMessageApplier<TAggregate, TIdentity>>
         where TAggregate : IAggregateRoot<TIdentity>
-        where TIdentity : IIdentity
-    {
-    }
+        where TIdentity : IIdentity { }
 
     public abstract class AggregateState<TAggregate, TIdentity, TMessageApplier> : IMessageApplier<TAggregate, TIdentity>
         where TMessageApplier : class, IMessageApplier<TAggregate, TIdentity>

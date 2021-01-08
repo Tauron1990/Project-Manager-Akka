@@ -16,11 +16,12 @@ namespace Tauron.Akka
 
         public EventActor(bool killOnFirstRespond) => _killOnFirstRespond = killOnFirstRespond;
 
-        public static IEventActor From(IActorRef actorRef) 
-            => new HookEventActor(actorRef);
+        public static IEventActor From(IActorRef actorRef) => new HookEventActor(actorRef);
 
-        public static IEventActor Create(IActorRefFactory system, string? name, bool killOnFirstResponse = false) 
-            => new HookEventActor(system.ActorOf(Props.Create(() => new EventActor(killOnFirstResponse)), name));
+        public static IEventActor Create(IActorRefFactory system, string? name, bool killOnFirstResponse = false)
+        {
+            return new HookEventActor(system.ActorOf(Props.Create(() => new EventActor(killOnFirstResponse)), name));
+        }
 
         public static IEventActor Create<TPayload>(IActorRefFactory system, Action<TPayload> handler, bool killOnFirstResponse = false)
         {
@@ -58,9 +59,7 @@ namespace Tauron.Akka
                             Context.Stop(Context.Self);
                     }
                     else
-                    {
                         Unhandled(message);
-                    }
 
                     break;
             }
@@ -68,16 +67,19 @@ namespace Tauron.Akka
 
         private sealed class HookEventActor : IEventActor
         {
-            public HookEventActor(IActorRef actorRef) 
-                => OriginalRef = actorRef;
+            public HookEventActor(IActorRef actorRef) => OriginalRef = actorRef;
 
             public IActorRef OriginalRef { get; }
 
             public void Register(HookEvent hookEvent)
-                => OriginalRef.Tell(hookEvent);
+            {
+                OriginalRef.Tell(hookEvent);
+            }
 
-            public void Send(IActorRef actor, object send) 
-                => actor.Tell(send, OriginalRef);
+            public void Send(IActorRef actor, object send)
+            {
+                actor.Tell(send, OriginalRef);
+            }
         }
     }
 }

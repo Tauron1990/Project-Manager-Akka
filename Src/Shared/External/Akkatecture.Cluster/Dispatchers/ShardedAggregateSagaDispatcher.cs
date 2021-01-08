@@ -34,40 +34,38 @@ using Akkatecture.Sagas.AggregateSaga;
 namespace Akkatecture.Clustering.Dispatchers
 {
     public class ShardedAggregateSagaDispatcher<TAggregateSagaManager, TAggregateSaga, TIdentity, TSagaLocator> : ReceiveActor
-        where TAggregateSagaManager : ReceiveActor ,IAggregateSagaManager<TAggregateSaga, TIdentity, TSagaLocator>
+        where TAggregateSagaManager : ReceiveActor, IAggregateSagaManager<TAggregateSaga, TIdentity, TSagaLocator>
         where TAggregateSaga : ReceivePersistentActor, IAggregateSaga<TIdentity>
         where TIdentity : SagaId<TIdentity>
         where TSagaLocator : class, ISagaLocator<TIdentity>, new()
     {
-        public IActorRef AggregateSagaManager { get; }
-        private ILoggingAdapter Logger { get; }
         public ShardedAggregateSagaDispatcher(string proxyRoleName, int numberOfShards)
         {
             Logger = Context.GetLogger();
 
             AggregateSagaManager =
                 ClusterFactory<TAggregateSagaManager, TAggregateSaga, TIdentity, TSagaLocator>
-                    .StartAggregateSagaClusterProxy(Context.System, proxyRoleName, numberOfShards);
+                   .StartAggregateSagaClusterProxy(Context.System, proxyRoleName, numberOfShards);
 
             var sagaType = typeof(TAggregateSaga);
 
             var sagaHandlesSubscriptionTypes =
                 sagaType
-                    .GetSagaEventSubscriptionTypes();
+                   .GetSagaEventSubscriptionTypes();
 
-            foreach (var type in sagaHandlesSubscriptionTypes)
-            {
-                Context.System.EventStream.Subscribe(Self, type);
-            }
-            
+            foreach (var type in sagaHandlesSubscriptionTypes) Context.System.EventStream.Subscribe(Self, type);
+
             Receive<IDomainEvent>(Dispatch);
         }
+
+        public IActorRef AggregateSagaManager { get; }
+        private ILoggingAdapter Logger { get; }
 
         protected virtual bool Dispatch(IDomainEvent domainEvent)
         {
             AggregateSagaManager.Tell(domainEvent);
 
-            Logger.Debug("{0} just dispatched {1} to {2}",GetType().PrettyPrint(), domainEvent.GetType().PrettyPrint(), AggregateSagaManager.Path.Name);
+            Logger.Debug("{0} just dispatched {1} to {2}", GetType().PrettyPrint(), domainEvent.GetType().PrettyPrint(), AggregateSagaManager.Path.Name);
             return true;
         }
     }

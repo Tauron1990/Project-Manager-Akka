@@ -59,8 +59,8 @@ namespace Akkatecture.Specifications.Provided
                 var expBody = expression.Body.ToString();
 
                 expBody = expBody
-                   .Replace("AndAlso", "&&")
-                   .Replace("OrElse", "||");
+                         .Replace("AndAlso", "&&")
+                         .Replace("OrElse", "||");
 
                 return $"{paramName} => {expBody}";
             }

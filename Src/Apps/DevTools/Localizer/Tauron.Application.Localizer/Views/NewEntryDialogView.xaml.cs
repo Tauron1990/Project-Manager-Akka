@@ -12,7 +12,7 @@ using Tauron.Application.Localizer.UIModels.Views;
 namespace Tauron.Application.Localizer.Views
 {
     /// <summary>
-    /// Interaktionslogik für NewEntryDialogView.xaml
+    ///     Interaktionslogik für NewEntryDialogView.xaml
     /// </summary>
     public partial class NewEntryDialogView : INewEntryDialog
     {
@@ -42,13 +42,11 @@ namespace Tauron.Application.Localizer.Views
 
     public sealed class NewEntryDialogViewModel : ObservableObject
     {
-        private readonly LocLocalizer _localizer;
         private readonly string[] _entrys;
+        private readonly LocLocalizer _localizer;
 
         private string _content = string.Empty;
         private string _error = string.Empty;
-
-        public ITextBoxSuggestionsSource Suggests { get; }
 
         public NewEntryDialogViewModel(Action<string?> selector, IEnumerable<NewEntryInfoBase> infos, LocLocalizer localizer)
         {
@@ -61,7 +59,7 @@ namespace Tauron.Application.Localizer.Views
             {
                 switch (info)
                 {
-                    case NewEntryInfo entry: 
+                    case NewEntryInfo entry:
                         entrys.Add(entry.Name);
                         break;
                     case NewEntrySuggestInfo suggest:
@@ -73,8 +71,10 @@ namespace Tauron.Application.Localizer.Views
             _entrys = entrys.ToArray();
             Suggests = new StaticSuggestion(suggests);
 
-            Return = new SimpleCommand(() => string.IsNullOrWhiteSpace(Error),() => selector(Content));
+            Return = new SimpleCommand(() => string.IsNullOrWhiteSpace(Error), () => selector(Content));
         }
+
+        public ITextBoxSuggestionsSource Suggests { get; }
 
         public string Content
         {
@@ -105,7 +105,7 @@ namespace Tauron.Application.Localizer.Views
         {
             if (string.IsNullOrWhiteSpace(value)) return string.Empty;
 
-            if(char.IsDigit(value[0]))
+            if (char.IsDigit(value[0]))
                 return string.Format(_localizer.NewEntryDialogViewCharError, 0);
 
             for (var index = 0; index < value.Length; index++)
@@ -125,7 +125,10 @@ namespace Tauron.Application.Localizer.Views
 
             public StaticSuggestion(List<string> infos) => _infos = infos;
 
-            public override IEnumerable<string> Search(string searchTerm) => _infos.Where(s => s.Contains(searchTerm));
+            public override IEnumerable<string> Search(string searchTerm)
+            {
+                return _infos.Where(s => s.Contains(searchTerm));
+            }
         }
     }
 }

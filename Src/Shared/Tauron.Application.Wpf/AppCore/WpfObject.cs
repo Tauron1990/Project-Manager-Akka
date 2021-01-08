@@ -21,10 +21,11 @@ namespace Tauron.Application.Wpf.AppCore
             {
                 temp = LogicalTreeHelper.GetParent(DependencyObject) ?? VisualTreeHelper.GetParent(DependencyObject);
             }
-            catch(InvalidOperationException)
+            catch (InvalidOperationException)
             {
                 temp = null;
             }
+
             return temp == null ? null : ElementMapper.Create(temp);
         }
 

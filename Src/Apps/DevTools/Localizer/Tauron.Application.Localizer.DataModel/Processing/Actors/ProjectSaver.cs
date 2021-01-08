@@ -79,8 +79,6 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
             }
         }
 
-        private sealed class InitSave
-        {
-        }
+        private sealed class InitSave { }
     }
 }

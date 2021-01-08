@@ -37,12 +37,11 @@ namespace Akkatecture.Clustering.Core
         where TIdentity : SagaId<TIdentity>
         where TSagaLocator : class, ISagaLocator<TIdentity>, new()
     {
-        private TSagaLocator SagaLocator { get; }
-        public MessageExtractor(int maxNumberOfShards) 
+        public MessageExtractor(int maxNumberOfShards)
             : base(maxNumberOfShards)
-        {
-            SagaLocator = new TSagaLocator();
-        }
+            => SagaLocator = new TSagaLocator();
+
+        private TSagaLocator SagaLocator { get; }
 
         public override string EntityId(object message)
         {
@@ -56,14 +55,13 @@ namespace Akkatecture.Clustering.Core
             throw new ArgumentException(nameof(message));
         }
     }
+
     public class MessageExtractor<TAggregate, TIdentity> : HashCodeMessageExtractor
         where TAggregate : IAggregateRoot<TIdentity>
         where TIdentity : IIdentity
     {
-        public MessageExtractor(int maxNumberOfShards) 
-            : base(maxNumberOfShards)
-        {
-        }
+        public MessageExtractor(int maxNumberOfShards)
+            : base(maxNumberOfShards) { }
 
         public override string EntityId(object message)
         {

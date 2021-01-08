@@ -14,8 +14,7 @@ namespace Tauron.ObservableExt
             return obs;
         }
 
-        public static BranchBuilder<TSource> Branch<TSource>(this IObservable<TSource> observable) 
-            => new(observable.Publish().RefCount());
+        public static BranchBuilder<TSource> Branch<TSource>(this IObservable<TSource> observable) => new(observable.Publish().RefCount());
     }
 
     [PublicAPI]
@@ -23,7 +22,6 @@ namespace Tauron.ObservableExt
     {
         private readonly IObservable<TSource> _target;
 
-        public BranchBuilder(IObservable<TSource> target) 
-            => _target = target;
+        public BranchBuilder(IObservable<TSource> target) => _target = target;
     }
 }

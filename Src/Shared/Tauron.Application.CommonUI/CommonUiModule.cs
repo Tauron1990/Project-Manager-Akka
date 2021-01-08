@@ -13,7 +13,7 @@ namespace Tauron.Application.CommonUI
         {
             builder.RegisterType<AppLifetime>().Named<IAppRoute>("default");
             builder.RegisterType<DialogCoordinator>().As<IDialogCoordinator>().SingleInstance();
-            
+
             base.Load(builder);
         }
     }

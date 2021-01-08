@@ -1,6 +1,4 @@
-﻿
-using System;
-using AkkaTest.Test;
+﻿using AkkaTest.Test;
 
 namespace AkkaTest
 {
@@ -14,7 +12,6 @@ namespace AkkaTest
                          let num2 = num + 1
                          where num > 5
                          select num + num2;
-            
         }
     }
 }

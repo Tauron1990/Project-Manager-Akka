@@ -1,9 +1,9 @@
-﻿using Akka.Actor;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
+using Akka.Actor;
 using Tauron.Akka;
 using Tauron.Localization;
 
@@ -11,8 +11,10 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
 {
     public sealed class BuildAgent : ExpandedReceiveActor
     {
-        public BuildAgent() 
-            => WhenReceiveSafe<PreparedBuild>(obs => obs.Select(OnBuild).ForwardToParent());
+        public BuildAgent()
+        {
+            WhenReceiveSafe<PreparedBuild>(obs => obs.Select(OnBuild).ForwardToParent());
+        }
 
         private static AgentCompled OnBuild(PreparedBuild build)
         {
@@ -22,7 +24,7 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
 
                 Context.Sender.Tell(BuildMessage.GatherData(build.Operation, agentName));
                 var data = GetData(build);
-                
+
                 Context.Sender.Tell(BuildMessage.GenerateLangFiles(build.Operation, agentName));
                 GenerateJson(data, build.TargetPath);
 
@@ -61,10 +63,8 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
                 }
 
                 foreach (var (_, id, values) in project.Entries)
-                {
-                    foreach (var ((shortcut, _), value) in values)
-                        entrys.Add(shortcut, (id, value));
-                }
+                foreach (var ((shortcut, _), value) in values)
+                    entrys.Add(shortcut, (id, value));
             }
 
             return files;
@@ -76,32 +76,30 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
                 Directory.CreateDirectory(targetPath);
 
             foreach (var (key, value) in data)
+            foreach (var (lang, entrys) in value)
             {
-                foreach (var (lang, entrys) in value)
+                var fileName = (string.IsNullOrWhiteSpace(key) ? string.Empty : key + ".") + lang + ".json";
+                using var writer = new StreamWriter(File.Open(targetPath.CombinePath(fileName), FileMode.Create));
+                var tester = new HashSet<string>();
+                writer.WriteLine("{");
+
+                foreach (var (id, content) in entrys)
                 {
-                    var fileName = (string.IsNullOrWhiteSpace(key) ? string.Empty : key + ".") + lang + ".json";
-                    using var writer = new StreamWriter(File.Open(targetPath.CombinePath(fileName), FileMode.Create));
-                    var tester = new HashSet<string>();
-                    writer.WriteLine("{");
-
-                    foreach (var (id, content) in entrys)
-                    {
-                        if(tester.Add(id))
-                            writer.WriteLine($"  \"{id}\": \"{EscapeHelper.Ecode(content)}\",");
-                    }
-
-                    writer.WriteLine("}");
-                    writer.Flush();
+                    if (tester.Add(id))
+                        writer.WriteLine($"  \"{id}\": \"{EscapeHelper.Ecode(content)}\",");
                 }
+
+                writer.WriteLine("}");
+                writer.Flush();
             }
         }
 
         private static void GenerateCode(Dictionary<string, GroupDictionary<string, (string Id, string Content)>> data, string targetPath)
         {
             var ids = new HashSet<string>(data
-               .SelectMany(e => e.Value)
-               .SelectMany(e => e.Value)
-               .Select(e => e.Id));
+                                         .SelectMany(e => e.Value)
+                                         .SelectMany(e => e.Value)
+                                         .Select(e => e.Id));
 
             var entrys = new GroupDictionary<string, (string FieldName, string Original)>
                          {
@@ -146,11 +144,11 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
             }
 
             WriteClassData(file, "LocLocalizer", entrys[string.Empty], 2,
-                writer =>
-                {
-                    foreach (var @class in classes)
-                        writer(@class + " = new " + @class + "Res" + "(system);");
-                });
+                           writer =>
+                           {
+                               foreach (var @class in classes)
+                                   writer(@class + " = new " + @class + "Res" + "(system);");
+                           });
 
             foreach (var @class in classes)
                 file.WriteLine("\t\tpublic " + @class + "Res " + @class + " { get; }");
@@ -164,7 +162,7 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
             file.Flush();
         }
 
-        private static void WriteClassData(StreamWriter writer, string className, ICollection<(string FieldName, string Original)> entryValue, int tabs, 
+        private static void WriteClassData(StreamWriter writer, string className, ICollection<(string FieldName, string Original)> entryValue, int tabs,
             Action<Action<string>>? constructorCallback = null)
         {
             foreach (var (fieldName, _) in entryValue)
@@ -176,19 +174,18 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
             writer.WriteLine($"{new string('\t', tabs)}var loc = system.Loc();");
 
             // ReSharper disable once AccessToModifiedClosure
-            constructorCallback?.Invoke(s => writer.WriteLine($"{new string('\t', tabs)} {s}") );
+            constructorCallback?.Invoke(s => writer.WriteLine($"{new string('\t', tabs)} {s}"));
 
-            foreach (var (fieldName, original) in entryValue) 
+            foreach (var (fieldName, original) in entryValue)
                 writer.WriteLine($"{new string('\t', tabs)}{ToRealFieldName(fieldName)} = LocLocalizer.ToString(loc.RequestTask(\"{original}\"));");
 
             tabs--;
             writer.WriteLine(new string('\t', tabs) + "}");
 
-            foreach (var (fieldName, _) in entryValue) 
+            foreach (var (fieldName, _) in entryValue)
                 writer.WriteLine($"{new string('\t', tabs)}public string {fieldName} => {ToRealFieldName(fieldName)}.Result;");
         }
 
-        private static string ToRealFieldName(string name)
-            => "__" + name;
+        private static string ToRealFieldName(string name) => "__" + name;
     }
 }

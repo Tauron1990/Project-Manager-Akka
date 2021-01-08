@@ -28,11 +28,15 @@ namespace Tauron.Application.Localizer.DataModel.Workspace.Mutating
 
         public IEventSource<SourceUpdated> SourceUpdate { get; }
 
-        public void Reset(ProjectFile file) 
-            => _workspace.Reset(file);
+        public void Reset(ProjectFile file)
+        {
+            _workspace.Reset(file);
+        }
         //    => _engine.Mutate(nameof(Reset), context => context.Update(new ResetChange(), file));
 
         public void UpdateSource(string file)
-            => _engine.Mutate(nameof(UpdateSource), context => context.Select(c => c.Update(new SourceChange(), c.Data with{ Source = file})));
+        {
+            _engine.Mutate(nameof(UpdateSource), context => context.Select(c => c.Update(new SourceChange(), c.Data with {Source = file})));
+        }
     }
 }

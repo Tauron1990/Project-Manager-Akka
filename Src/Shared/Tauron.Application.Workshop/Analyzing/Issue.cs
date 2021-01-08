@@ -5,23 +5,6 @@ namespace Tauron.Application.Workshop.Analyzing
     [PublicAPI]
     public sealed class Issue
     {
-        public sealed class IssueCompleter
-        {
-            private readonly string _type;
-            private readonly string _project;
-            private readonly object? _data;
-
-            public IssueCompleter(string type, string project, object? data)
-            {
-                _type = type;
-                _project = project;
-                _data = data;
-            }
-
-            public Issue Build(string ruleName)
-                => new(_type, _data, _project, ruleName);
-        }
-
         private Issue(string issueType, object? data, string project, string ruleName)
         {
             IssueType = issueType;
@@ -38,7 +21,22 @@ namespace Tauron.Application.Workshop.Analyzing
 
         public object? Data { get; }
 
-        public static IssueCompleter New(string type)
-            => new IssueCompleter(type, string.Empty, null);
+        public static IssueCompleter New(string type) => new(type, string.Empty, null);
+
+        public sealed class IssueCompleter
+        {
+            private readonly object? _data;
+            private readonly string _project;
+            private readonly string _type;
+
+            public IssueCompleter(string type, string project, object? data)
+            {
+                _type = type;
+                _project = project;
+                _data = data;
+            }
+
+            public Issue Build(string ruleName) => new(_type, _data, _project, ruleName);
+        }
     }
 }

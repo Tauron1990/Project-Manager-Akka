@@ -18,9 +18,6 @@
             //root.ViewManager.ThenRegister(model, view, root);
         }
 
-        public object? ConvertBack(object value)
-        {
-            return ((dynamic)value).DataContext;
-        }
+        public object? ConvertBack(object value) => ((dynamic) value).DataContext;
     }
 }

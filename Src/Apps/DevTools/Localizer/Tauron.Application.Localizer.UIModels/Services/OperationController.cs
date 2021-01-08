@@ -5,8 +5,8 @@ namespace Tauron.Application.Localizer.UIModels.Services
 {
     public sealed class OperationController
     {
-        private readonly LocLocalizer _localizer;
         private readonly IObserver<RunningOperation> _failing;
+        private readonly LocLocalizer _localizer;
         private readonly RunningOperation _operation;
 
         private Action? _statusChanged;

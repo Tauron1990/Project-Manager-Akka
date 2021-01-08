@@ -9,7 +9,7 @@ namespace Tauron.Application.Avalonia.AppCore
 {
     public sealed class AvaloniaConfiguration : BaseAppConfiguration
     {
-        public AvaloniaConfiguration([NotNull] ContainerBuilder serviceCollection) 
+        public AvaloniaConfiguration([NotNull] ContainerBuilder serviceCollection)
             : base(serviceCollection) { }
 
         public AvaloniaConfiguration WithApp<TApp>(Func<AppBuilder, AppBuilder> config)

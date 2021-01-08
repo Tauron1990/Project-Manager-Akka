@@ -2,18 +2,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
-using Tauron.Akka;
 using Akka.Actor;
 using Akka.Event;
+using Tauron.Akka;
 
 namespace Tauron.Application.Localizer.DataModel.Processing.Actors
 {
     public sealed class BuildActorCoordinator : ExpandedReceiveActor
     {
         private readonly ILoggingAdapter _log = Context.GetLogger();
+        private bool _fail;
 
         private int _remaining;
-        private bool _fail;
 
         public BuildActorCoordinator()
         {
@@ -41,7 +41,6 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
                .ObserveOnSelf()
                .Subscribe(operationId =>
                           {
-
                               Context.Sender.Tell(BuildMessage.GatherData(operationId));
 
                               _remaining = 0;

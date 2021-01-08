@@ -39,8 +39,6 @@ namespace Akkatecture.Core
         private int _end;
         private int _start;
 
-        public int Capacity => _buffer.Length - 1;
-
         public CircularBuffer(int capacity)
         {
             if (capacity <= 0) throw new ArgumentException(nameof(capacity));
@@ -59,6 +57,8 @@ namespace Akkatecture.Core
 
             foreach (var item in items) Put(item);
         }
+
+        public int Capacity => _buffer.Length - 1;
 
         public IEnumerator<T> GetEnumerator()
         {

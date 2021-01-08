@@ -43,7 +43,6 @@ namespace Tauron.Host
 
         public Task ShutdownTask { get; private set; } = Task.CompletedTask;
 
-        private IAppRoute GetRoute(string? name) 
-            => name == null ? _factory.Resolve<IAppRoute>() : _factory.ResolveNamed<IAppRoute>(name);
+        private IAppRoute GetRoute(string? name) => name == null ? _factory.Resolve<IAppRoute>() : _factory.ResolveNamed<IAppRoute>(name);
     }
 }

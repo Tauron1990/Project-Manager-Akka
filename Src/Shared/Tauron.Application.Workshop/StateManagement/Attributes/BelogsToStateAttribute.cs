@@ -8,9 +8,8 @@ namespace Tauron.Application.Workshop.StateManagement.Attributes
     [MeansImplicitUse(ImplicitUseKindFlags.Access)]
     public sealed class BelogsToStateAttribute : Attribute
     {
-        public Type StateType { get; }
+        public BelogsToStateAttribute(Type stateType) => StateType = stateType;
 
-        public BelogsToStateAttribute(Type stateType) 
-            => StateType = stateType;
+        public Type StateType { get; }
     }
 }

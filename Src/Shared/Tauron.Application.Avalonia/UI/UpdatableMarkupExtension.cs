@@ -25,7 +25,7 @@ namespace Tauron.Application.Avalonia.UI
                 TargetObject = service.TargetObject;
                 TargetProperty = service.TargetProperty;
             }
-            
+
             return ProvideValueInternal(serviceProvider);
         }
 
@@ -47,7 +47,7 @@ namespace Tauron.Application.Avalonia.UI
 
                     if (obj?.CheckAccess() == true)
                         UpdateAction();
-                    else if(obj != null)
+                    else if (obj != null)
                         Dispatcher.UIThread.InvokeAsync(UpdateAction, DispatcherPriority.Background);
                 }
                 else // _targetProperty is PropertyInfo
@@ -71,7 +71,7 @@ namespace Tauron.Application.Avalonia.UI
             dp = service.TargetProperty as AvaloniaProperty;
             return target != null && dp != null;
         }
-        
+
         protected abstract object ProvideValueInternal(IServiceProvider serviceProvider);
     }
 }

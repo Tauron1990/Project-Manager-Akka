@@ -19,11 +19,11 @@ namespace Tauron.Application.CommonUI
 
             builder.RegisterType<TView>().As<TView>().InstancePerDependency();
             return builder.RegisterType<ViewModelActorRef<TModel>>().As<IViewModel<TModel>>().Keyed<IViewModel>(typeof(TModel)).InstancePerLifetimeScope()
-                .OnRelease(vm =>
-                {
-                    if (vm.IsInitialized)
-                        vm.Actor.Tell(PoisonPill.Instance);
-                });
+                          .OnRelease(vm =>
+                                     {
+                                         if (vm.IsInitialized)
+                                             vm.Actor.Tell(PoisonPill.Instance);
+                                     });
         }
 
         public static IRegistrationBuilder<DefaultActorRef<TActor>, ConcreteReflectionActivatorData, SingleRegistrationStyle> RegisterModelActor<TActor>(this ContainerBuilder builder)

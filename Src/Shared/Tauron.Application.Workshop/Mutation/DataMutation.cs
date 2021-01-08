@@ -8,7 +8,6 @@ namespace Tauron.Application.Workshop.Mutation
     public interface IDataMutation : IConsistentHashable
     {
         string Name { get; }
-
     }
 
     public interface ISyncMutation : IDataMutation
@@ -25,8 +24,8 @@ namespace Tauron.Application.Workshop.Mutation
     public sealed class DataMutation<TData> : ISyncMutation
         where TData : class
     {
-        private readonly Action _task;
         private readonly object? _hash;
+        private readonly Action _task;
 
         public DataMutation(Action task, string name, object? hash = null)
         {
@@ -45,8 +44,8 @@ namespace Tauron.Application.Workshop.Mutation
     public sealed class AsyncDataMutation<TData> : IAsyncMutation
         where TData : class
     {
-        private readonly Func<Task> _task;
         private readonly object? _hash;
+        private readonly Func<Task> _task;
 
         public AsyncDataMutation(Func<Task> task, string name, object? hash = null)
         {

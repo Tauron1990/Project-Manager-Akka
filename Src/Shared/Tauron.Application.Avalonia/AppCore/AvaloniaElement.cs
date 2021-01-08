@@ -10,14 +10,15 @@ namespace Tauron.Application.Avalonia.AppCore
     {
         private readonly StyledElement _element;
 
+        public AvaloniaElement(StyledElement element)
+            : base(element)
+            => _element = element;
+
         public object DataContext
         {
             get => _element.DataContext;
             set => _element.DataContext = value;
         }
-
-        public AvaloniaElement(StyledElement element)
-            : base(element) => _element = element;
 
         public IObservable<object> DataContextChanged => _element.GetPropertyChangedObservable(StyledElement.DataContextProperty);
 

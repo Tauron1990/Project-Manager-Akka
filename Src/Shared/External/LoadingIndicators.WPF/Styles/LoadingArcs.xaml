@@ -72,8 +72,8 @@
                                                                 <PathFigure.Segments>
                                                                     <PathSegmentCollection>
                                                                         <ArcSegment Size="40,40" IsLargeArc="True"
-                                                                                    SweepDirection="CounterClockwise"
-                                                                                    Point="40,40" />
+                                                                            SweepDirection="CounterClockwise"
+                                                                            Point="40,40" />
                                                                     </PathSegmentCollection>
                                                                 </PathFigure.Segments>
                                                             </PathFigure>
@@ -97,8 +97,8 @@
                                                                 <PathFigure.Segments>
                                                                     <PathSegmentCollection>
                                                                         <ArcSegment Size="30,30" IsLargeArc="True"
-                                                                                    SweepDirection="Clockwise"
-                                                                                    Point="40,40" />
+                                                                            SweepDirection="Clockwise"
+                                                                            Point="40,40" />
                                                                     </PathSegmentCollection>
                                                                 </PathFigure.Segments>
                                                             </PathFigure>

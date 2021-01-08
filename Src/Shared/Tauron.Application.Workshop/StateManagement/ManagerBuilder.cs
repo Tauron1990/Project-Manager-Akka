@@ -12,24 +12,24 @@ namespace Tauron.Application.Workshop.StateManagement
     [PublicAPI]
     public sealed class ManagerBuilder
     {
+        private readonly List<Func<IEffect>> _effects = new();
+        private readonly List<Func<IMiddleware>> _middlewares = new();
+        private readonly List<StateBuilderBase> _states = new();
+
+        private Func<IStateDispatcherConfigurator> _dispatcherFunc = () => new DefaultStateDispatcher();
+
+        private bool _sendBackSetting;
+
+        internal ManagerBuilder(WorkspaceSuperviser superviser) => Superviser = superviser;
+
+        public WorkspaceSuperviser Superviser { get; }
+
         public static RootManager CreateManager(WorkspaceSuperviser superviser, Action<ManagerBuilder> builder)
         {
             var managerBuilder = new ManagerBuilder(superviser);
             builder(managerBuilder);
             return managerBuilder.Build(null, null);
         }
-
-        public WorkspaceSuperviser Superviser { get; }
-
-        private Func<IStateDispatcherConfigurator> _dispatcherFunc = () => new DefaultStateDispatcher();
-        private readonly List<Func<IEffect>> _effects = new();
-        private readonly List<Func<IMiddleware>> _middlewares = new();
-        private readonly List<StateBuilderBase> _states = new();
-        
-        private bool _sendBackSetting;
-
-        internal ManagerBuilder(WorkspaceSuperviser superviser) 
-            => Superviser = superviser;
 
         public IWorkspaceMapBuilder<TData> WithWorkspace<TData>(Func<WorkspaceBase<TData>> source)
             where TData : class
@@ -39,7 +39,7 @@ namespace Tauron.Application.Workshop.StateManagement
             return builder;
         }
 
-        public IStateBuilder<TData> WithDataSource<TData>(Func<IExtendedDataSource<TData>> source) 
+        public IStateBuilder<TData> WithDataSource<TData>(Func<IExtendedDataSource<TData>> source)
             where TData : class, IStateEntity
         {
             var builder = new StateBuilder<TData>(source);
@@ -70,7 +70,7 @@ namespace Tauron.Application.Workshop.StateManagement
             _dispatcherFunc = factory;
             return this;
         }
-        
+
 
         internal RootManager Build(IComponentContext? componentContext, AutofacOptions? autofacOptions)
         {
@@ -81,16 +81,16 @@ namespace Tauron.Application.Workshop.StateManagement
             {
                 autofacOptions ??= new AutofacOptions();
 
-                if(autofacOptions.ResolveEffects)
+                if (autofacOptions.ResolveEffects)
                     additionalEffects.AddRange(componentContext.Resolve<IEnumerable<IEffect>>());
-                if(autofacOptions.ResolveMiddleware)
+                if (autofacOptions.ResolveMiddleware)
                     additionalMiddlewares.AddRange(componentContext.Resolve<IEnumerable<IMiddleware>>());
             }
 
-            return new RootManager(Superviser, _dispatcherFunc(), _states, 
-                _effects.Select(e => e()).Concat(additionalEffects), 
-                _middlewares.Select(m => m()).Concat(additionalMiddlewares), 
-                _sendBackSetting, componentContext);
+            return new RootManager(Superviser, _dispatcherFunc(), _states,
+                                   _effects.Select(e => e()).Concat(additionalEffects),
+                                   _middlewares.Select(m => m()).Concat(additionalMiddlewares),
+                                   _sendBackSetting, componentContext);
         }
     }
 }

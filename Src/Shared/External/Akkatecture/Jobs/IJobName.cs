@@ -25,7 +25,5 @@ using Akkatecture.Core;
 
 namespace Akkatecture.Jobs
 {
-    public interface IJobName : IIdentity
-    {
-    }
+    public interface IJobName : IIdentity { }
 }

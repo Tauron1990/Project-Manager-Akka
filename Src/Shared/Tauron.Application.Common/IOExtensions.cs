@@ -86,7 +86,7 @@ namespace Tauron
             if (dic == null) throw new ArgumentNullException(nameof(dic));
 
             var dic2 = Path.GetDirectoryName(dic);
-            if(!string.IsNullOrWhiteSpace(dic2))
+            if (!string.IsNullOrWhiteSpace(dic2))
                 ClearDirectory(dic2);
         }
 
@@ -94,7 +94,7 @@ namespace Tauron
         public static string CombinePath(this string path, params string[] paths)
         {
             paths = paths.Select(str => str.TrimStart('\\')).ToArray();
-            if (Path.HasExtension(path)) 
+            if (Path.HasExtension(path))
                 path = Path.GetDirectoryName(path) ?? path;
 
             var tempPath = Path.Combine(paths);
@@ -103,12 +103,10 @@ namespace Tauron
         }
 
 
-        public static string CombinePath(this string path, string path1) 
-            => string.IsNullOrWhiteSpace(path) ? path1 : Path.Combine(path, path1);
+        public static string CombinePath(this string path, string path1) => string.IsNullOrWhiteSpace(path) ? path1 : Path.Combine(path, path1);
 
         [JetBrains.Annotations.NotNull]
-        public static string CombinePath(this FileSystemInfo path, string path1) 
-            => CombinePath(path.FullName, path1);
+        public static string CombinePath(this FileSystemInfo path, string path1) => CombinePath(path.FullName, path1);
 
         public static void CopyFileTo(this string source, string destination)
         {
@@ -159,16 +157,14 @@ namespace Tauron
             {
                 if (Directory.Exists(path)) Directory.Delete(path, true);
             }
-            catch (UnauthorizedAccessException)
-            {
-            }
+            catch (UnauthorizedAccessException) { }
         }
 
         public static void DeleteDirectory(this string path, object sub)
         {
             var tempsub = sub.ToString();
 
-            if(string.IsNullOrWhiteSpace(tempsub))
+            if (string.IsNullOrWhiteSpace(tempsub))
                 return;
 
             var compl = CombinePath(path, tempsub);
@@ -200,26 +196,19 @@ namespace Tauron
             return path.Any(invalid.Contains);
         }
 
-        public static IEnumerable<string> EnumrateFileSystemEntries(this string dic) 
-            => Directory.EnumerateFileSystemEntries(dic);
+        public static IEnumerable<string> EnumrateFileSystemEntries(this string dic) => Directory.EnumerateFileSystemEntries(dic);
 
-        public static IEnumerable<string> EnumerateAllFiles(this string dic) 
-            => Directory.EnumerateFiles(dic, "*.*", SearchOption.AllDirectories);
+        public static IEnumerable<string> EnumerateAllFiles(this string dic) => Directory.EnumerateFiles(dic, "*.*", SearchOption.AllDirectories);
 
-        public static IEnumerable<string> EnumerateAllFiles(this string dic, string filter) 
-            => Directory.EnumerateFiles(dic, filter, SearchOption.AllDirectories);
+        public static IEnumerable<string> EnumerateAllFiles(this string dic, string filter) => Directory.EnumerateFiles(dic, filter, SearchOption.AllDirectories);
 
-        public static IEnumerable<string> EnumerateDirectorys(this string path) 
-            => Directory.Exists(path) ? Enumerable.Empty<string>() : Directory.EnumerateDirectories(path);
+        public static IEnumerable<string> EnumerateDirectorys(this string path) => Directory.Exists(path) ? Enumerable.Empty<string>() : Directory.EnumerateDirectories(path);
 
-        public static IEnumerable<FileSystemInfo> EnumerateFileSystemEntrys(this string path) 
-            => new DirectoryInfo(path).EnumerateFileSystemInfos();
+        public static IEnumerable<FileSystemInfo> EnumerateFileSystemEntrys(this string path) => new DirectoryInfo(path).EnumerateFileSystemInfos();
 
-        public static IEnumerable<string> EnumerateFiles(this string dic) 
-            => Directory.EnumerateFiles(dic, "*.*", SearchOption.TopDirectoryOnly);
+        public static IEnumerable<string> EnumerateFiles(this string dic) => Directory.EnumerateFiles(dic, "*.*", SearchOption.TopDirectoryOnly);
 
-        public static IEnumerable<string> EnumerateFiles(this string dic, string filter) 
-            => Directory.EnumerateFiles(dic, filter, SearchOption.TopDirectoryOnly);
+        public static IEnumerable<string> EnumerateFiles(this string dic, string filter) => Directory.EnumerateFiles(dic, filter, SearchOption.TopDirectoryOnly);
 
         public static IEnumerable<string> EnumerateTextLinesIfExis(this string path)
         {
@@ -247,8 +236,7 @@ namespace Tauron
             }
         }
 
-        public static bool ExisDirectory(this string path) 
-            => Directory.Exists(path);
+        public static bool ExisDirectory(this string path) => Directory.Exists(path);
 
         public static bool ExisFile(this string workingDirectory, string file)
         {
@@ -262,33 +250,24 @@ namespace Tauron
             }
         }
 
-        public static bool ExisFile(this string? file) 
-            => !string.IsNullOrWhiteSpace(file) && File.Exists(file);
+        public static bool ExisFile(this string? file) => !string.IsNullOrWhiteSpace(file) && File.Exists(file);
 
-        public static DateTime GetDirectoryCreationTime(this string path) 
-            => Directory.GetCreationTime(path);
+        public static DateTime GetDirectoryCreationTime(this string path) => Directory.GetCreationTime(path);
 
-        public static string? GetDirectoryName(this string path) 
-            => Path.GetDirectoryName(path);
+        public static string? GetDirectoryName(this string path) => Path.GetDirectoryName(path);
 
-        public static string? GetDirectoryName(this StringBuilder path) 
-            => GetDirectoryName(path.ToString());
+        public static string? GetDirectoryName(this StringBuilder path) => GetDirectoryName(path.ToString());
 
 
-        public static string[] GetDirectorys(this string path) 
-            => Directory.GetDirectories(path);
+        public static string[] GetDirectorys(this string path) => Directory.GetDirectories(path);
 
-        public static string GetExtension(this string path) 
-            => Path.GetExtension(path);
+        public static string GetExtension(this string path) => Path.GetExtension(path);
 
-        public static string GetFileName(this string path) 
-            => Path.GetFileName(path);
+        public static string GetFileName(this string path) => Path.GetFileName(path);
 
-        public static string GetFileNameWithoutExtension(this string path) 
-            => Path.GetFileNameWithoutExtension(path);
+        public static string GetFileNameWithoutExtension(this string path) => Path.GetFileNameWithoutExtension(path);
 
-        public static int GetFileSystemCount(this string strDir) 
-            => GetFileSystemCount(new DirectoryInfo(strDir));
+        public static int GetFileSystemCount(this string strDir) => GetFileSystemCount(new DirectoryInfo(strDir));
 
         public static int GetFileSystemCount(this DirectoryInfo di)
         {
@@ -307,23 +286,20 @@ namespace Tauron
             return count;
         }
 
-        public static string[] GetFiles(this string dic) 
-            => Directory.GetFiles(dic);
+        public static string[] GetFiles(this string dic) => Directory.GetFiles(dic);
 
-        public static string[] GetFiles(this string path, string pattern, SearchOption option) 
-            => Directory.GetFiles(path, pattern, option);
+        public static string[] GetFiles(this string path, string pattern, SearchOption option) => Directory.GetFiles(path, pattern, option);
 
-        public static string GetFullPath(this string path) 
-            => Path.GetFullPath(path);
+        public static string GetFullPath(this string path) => Path.GetFullPath(path);
 
-        public static bool HasExtension(this string path) 
-            => Path.HasExtension(path);
+        public static bool HasExtension(this string path) => Path.HasExtension(path);
 
-        public static bool IsPathRooted(this string path) 
-            => Path.IsPathRooted(path);
+        public static bool IsPathRooted(this string path) => Path.IsPathRooted(path);
 
-        public static void MoveTo(this string source, string dest) 
-            => File.Move(source, dest);
+        public static void MoveTo(this string source, string dest)
+        {
+            File.Move(source, dest);
+        }
 
         public static void MoveTo(this string source, string workingDirectory, string dest)
         {
@@ -347,8 +323,7 @@ namespace Tauron
             return new FileStream(path, FileMode.OpenOrCreate, FileAccess.Read, share);
         }
 
-        public static Stream OpenRead(this string path) 
-            => OpenRead(path, FileShare.None);
+        public static Stream OpenRead(this string path) => OpenRead(path, FileShare.None);
 
         public static StreamWriter OpenTextAppend(this string path)
         {
@@ -356,8 +331,7 @@ namespace Tauron
             return new StreamWriter(new FileStream(path, FileMode.Append, FileAccess.Write, FileShare.None));
         }
 
-        public static StreamReader OpenTextRead(this string path) 
-            => File.OpenText(path);
+        public static StreamReader OpenTextRead(this string path) => File.OpenText(path);
 
         public static StreamWriter OpenTextWrite(this string path)
         {
@@ -365,8 +339,7 @@ namespace Tauron
             return new StreamWriter(path);
         }
 
-        public static Stream OpenWrite(this string path, bool delete = true) 
-            => OpenWrite(path, FileShare.None, delete);
+        public static Stream OpenWrite(this string path, bool delete = true) => OpenWrite(path, FileShare.None, delete);
 
         public static Stream OpenWrite(this string path, FileShare share, bool delete = true)
         {
@@ -378,17 +351,13 @@ namespace Tauron
             return new FileStream(path, FileMode.OpenOrCreate, FileAccess.Write, share);
         }
 
-        public static byte[] ReadAllBytesIfExis(this string path) 
-            => !File.Exists(path) ? Array.Empty<byte>() : File.ReadAllBytes(path);
+        public static byte[] ReadAllBytesIfExis(this string path) => !File.Exists(path) ? Array.Empty<byte>() : File.ReadAllBytes(path);
 
-        public static byte[] ReadAllBytes(this string path) 
-            => File.ReadAllBytes(path);
+        public static byte[] ReadAllBytes(this string path) => File.ReadAllBytes(path);
 
-        public static string ReadTextIfExis(this string path) 
-            => File.Exists(path) ? File.ReadAllText(path) : string.Empty;
+        public static string ReadTextIfExis(this string path) => File.Exists(path) ? File.ReadAllText(path) : string.Empty;
 
-        public static string ReadTextIfExis(this string workingDirectory, string subPath) 
-            => ReadTextIfExis(CombinePath(workingDirectory, subPath));
+        public static string ReadTextIfExis(this string workingDirectory, string subPath) => ReadTextIfExis(CombinePath(workingDirectory, subPath));
 
         public static IEnumerable<string> ReadTextLinesIfExis(this string path)
         {
@@ -420,11 +389,15 @@ namespace Tauron
             return flag;
         }
 
-        public static void WriteTextContentTo(this string content, string path) 
-            => File.WriteAllText(path, content);
+        public static void WriteTextContentTo(this string content, string path)
+        {
+            File.WriteAllText(path, content);
+        }
 
 
-        public static void WriteTextContentTo(this string content, string workingDirectory, string path) 
-            => WriteTextContentTo(content, CombinePath(workingDirectory, path));
+        public static void WriteTextContentTo(this string content, string workingDirectory, string path)
+        {
+            WriteTextContentTo(content, CombinePath(workingDirectory, path));
+        }
     }
 }

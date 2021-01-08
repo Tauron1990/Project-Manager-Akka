@@ -21,6 +21,7 @@ namespace Tauron.Application.CommonUI.Dialogs
 
         void ShowMessage(string title, string message);
         void ShowDialog(object dialog);
+
         void HideDialog();
         //Task<bool?> ShowModalMessageWindow(string title, string message);
     }

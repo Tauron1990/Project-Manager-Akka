@@ -50,11 +50,10 @@ namespace Tauron.Application.Localizer.UIModels
             #region Restarting
 
             OnPreRestart += (_, _) =>
-            {
-                if(last != null)
-                    Self.Tell(last);
-
-            };
+                            {
+                                if (last != null)
+                                    Self.Tell(last);
+                            };
             Receive<ProjectFile>(workspace.Reset);
 
             #endregion
@@ -74,7 +73,7 @@ namespace Tauron.Application.Localizer.UIModels
             IObservable<UpdateSource> SaveAsProject()
             {
                 var targetFile = dialogFactory.ShowSaveFileDialog(null, true, false, true, "transp", true,
-                    localizer.OpenFileDialogViewDialogFilter, true, true, localizer.MainWindowMainMenuFileSaveAs, Directory.GetCurrentDirectory());
+                                                                  localizer.OpenFileDialogViewDialogFilter, true, true, localizer.MainWindowMainMenuFileSaveAs, Directory.GetCurrentDirectory());
 
                 return targetFile.NotEmpty()
                                  .SelectMany(CheckSourceOk)
@@ -92,19 +91,18 @@ namespace Tauron.Application.Localizer.UIModels
             NewCommad.WithCanExecute(last.Select(pf => pf != null && !pf.IsEmpty))
                      .ThenFlow(ob => ob.SelectMany(_ => SaveAsProject())
                                        .ToModel(CenterView))
-                .ThenRegister("SaveAs");
+                     .ThenRegister("SaveAs");
 
             #endregion
 
             #region Open File
 
-            IDisposable NewProjectFile(IObservable<SourceSelected> source)
-                => source
-                    .SelectMany(SourceSelectedFunc)
-                         .NotNull()
-                         .ObserveOnSelf()
-                         .Select(ProjectLoaded)
-                         .ToModel(CenterView!);
+            IDisposable NewProjectFile(IObservable<SourceSelected> source) => source
+                                                                             .SelectMany(SourceSelectedFunc)
+                                                                             .NotNull()
+                                                                             .ObserveOnSelf()
+                                                                             .Select(ProjectLoaded)
+                                                                             .ToModel(CenterView!);
 
 
             Receive<InternlRenctFile>(o => OpentFileSource(o.File));
@@ -175,12 +173,12 @@ namespace Tauron.Application.Localizer.UIModels
 
             #region New File
 
-             IObservable<LoadedProjectFile?> NewFileSource(string? source)
-             {
-                 source ??= string.Empty;
+            IObservable<LoadedProjectFile?> NewFileSource(string? source)
+            {
+                source ??= string.Empty;
                 var data = new LoadedProjectFile(string.Empty, ProjectFile.NewProjectFile(Context, source, "Project_Operator"), null, true);
 
-                 if (File.Exists(source))
+                if (File.Exists(source))
                 {
                     //TODO NewFile Filog Message
                     var result = UICall(async () => await dialogCoordinator.ShowMessage(localizer.CommonError!, "", null));
@@ -287,10 +285,10 @@ namespace Tauron.Application.Localizer.UIModels
                 var builder = new AnalyzerEntry.Builder(issue.RuleName, issue.Project);
 
                 return issue.IssueType switch
-                {
-                    Issues.EmptySource => builder.Entry(_localizer.MainWindowAnalyerRuleSourceName, _localizer.MainWindowAnalyerRuleSource),
-                    _ => new AnalyzerEntry(_localizer.CommonUnkowen, issue.Project, issue.Data?.ToString() ?? string.Empty, _localizer.CommonUnkowen)
-                };
+                       {
+                           Issues.EmptySource => builder.Entry(_localizer.MainWindowAnalyerRuleSourceName, _localizer.MainWindowAnalyerRuleSource),
+                           _                  => new AnalyzerEntry(_localizer.CommonUnkowen, issue.Project, issue.Data?.ToString() ?? string.Empty, _localizer.CommonUnkowen)
+                       };
             }
         }
     }

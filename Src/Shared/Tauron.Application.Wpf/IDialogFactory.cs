@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Reactive;
-using System.Threading.Tasks;
 using JetBrains.Annotations;
 
 namespace Tauron.Application.Wpf

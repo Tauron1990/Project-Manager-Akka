@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Reactive.Subjects;
-using System.Threading;
 using Akka.Actor;
 using JetBrains.Annotations;
 using Tauron.Application.Localizer.DataModel.Workspace.Analyzing;
@@ -38,16 +37,23 @@ namespace Tauron.Application.Localizer.DataModel.Workspace
 
         public BuildMutator Build { get; }
 
-        public Project Get(string name) 
-            => ProjectFile.Projects.Find(p => p.ProjectName == name) ?? new Project();
-
-        protected override MutatingContext<ProjectFile> GetDataInternal() 
-            => MutatingContext<ProjectFile>.New(_projectFile.Value);
-
-        protected override void SetDataInternal(MutatingContext<ProjectFile> data) 
-            => _projectFile.OnNext(data.Data);
+        public void Dispose()
+        {
+            _projectFile.Dispose();
+        }
 
         public IDisposable Subscribe(IObserver<ProjectFile> observer) => _projectFile.Subscribe(observer);
-        public void Dispose() => _projectFile.Dispose();
+
+        public Project Get(string name)
+        {
+            return ProjectFile.Projects.Find(p => p.ProjectName == name) ?? new Project();
+        }
+
+        protected override MutatingContext<ProjectFile> GetDataInternal() => MutatingContext<ProjectFile>.New(_projectFile.Value);
+
+        protected override void SetDataInternal(MutatingContext<ProjectFile> data)
+        {
+            _projectFile.OnNext(data.Data);
+        }
     }
 }

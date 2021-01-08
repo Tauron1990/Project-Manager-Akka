@@ -34,17 +34,16 @@ namespace Akkatecture.Aggregates.ExecutionResults
     [PublicAPI]
     public class FailedExecutionResult : ExecutionResult
     {
+        public FailedExecutionResult(
+            IEnumerable<string> errors)
+            => Errors = (errors ?? Enumerable.Empty<string>()).ToList();
+
         public IReadOnlyCollection<string> Errors { get; }
 
         public override bool IsSuccess { get; }
 
-        public FailedExecutionResult(
-            IEnumerable<string> errors) =>
-            Errors = (errors ?? Enumerable.Empty<string>()).ToList();
-
-        public override string ToString() =>
-            Errors.Any()
-                ? $"Failed execution due to: {string.Join(", ", Errors)}"
-                : "Failed execution";
+        public override string ToString() => Errors.Any()
+                                                 ? $"Failed execution due to: {string.Join(", ", Errors)}"
+                                                 : "Failed execution";
     }
 }

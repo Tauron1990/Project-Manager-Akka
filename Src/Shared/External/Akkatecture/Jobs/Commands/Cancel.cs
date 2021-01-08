@@ -34,12 +34,10 @@ namespace Akkatecture.Jobs.Commands
             TIdentity jobId,
             object? ack = null,
             object? nack = null)
-            : base(jobId, ack, nack)
-        {
-        }
+            : base(jobId, ack, nack) { }
 
-        public virtual Cancel<TJob, TIdentity> WithAck(object ack) => new Cancel<TJob, TIdentity>(JobId, ack, Nack);
+        public virtual Cancel<TJob, TIdentity> WithAck(object ack) => new(JobId, ack, Nack);
 
-        public virtual Cancel<TJob, TIdentity> WithNack(object nack) => new Cancel<TJob, TIdentity>(JobId, Ack, nack);
+        public virtual Cancel<TJob, TIdentity> WithNack(object nack) => new(JobId, Ack, nack);
     }
 }

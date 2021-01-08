@@ -12,8 +12,13 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
 
         public MutationDataSource(string cacheKey, IExtendedDataSource<TData> original) => _original = original;
 
-        public async Task<MutatingContext<TData>> GetData(IQuery query) 
-            => MutatingContext<TData>.New(await _original.GetData(query));
+        public void Dispose()
+        {
+            if (_original is IDisposable source)
+                source.Dispose();
+        }
+
+        public async Task<MutatingContext<TData>> GetData(IQuery query) => MutatingContext<TData>.New(await _original.GetData(query));
 
         public async Task SetData(IQuery query, MutatingContext<TData> data)
         {
@@ -21,16 +26,10 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
 
             // ReSharper disable once SuspiciousTypeConversion.Global
             if (entity is IChangeTrackable {IsChanged: false}) return;
-            
+
             await _original.SetData(query, entity);
         }
 
         public Task OnCompled(IQuery query) => _original.OnCompled(query);
-
-        public void Dispose()
-        {
-            if(_original is IDisposable source)
-                source.Dispose();
-        }
     }
 }

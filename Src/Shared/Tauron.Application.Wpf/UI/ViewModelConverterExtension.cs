@@ -10,6 +10,8 @@ namespace Tauron.Application.Wpf.UI
     [PublicAPI]
     public sealed class ViewModelConverterExtension : ValueConverterFactoryBase
     {
+        protected override IValueConverter Create() => new Conv();
+
         private sealed class Conv : IValueConverter
         {
             private readonly ViewModelConverter _converter = new();
@@ -18,7 +20,5 @@ namespace Tauron.Application.Wpf.UI
 
             public object? ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => _converter.ConvertBack(value);
         }
-
-        protected override IValueConverter Create() => new Conv();
     }
 }

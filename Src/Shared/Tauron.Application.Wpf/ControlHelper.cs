@@ -24,15 +24,9 @@ namespace Tauron.Application.Wpf
         public static readonly DependencyProperty MarkWindowProperty =
             DependencyProperty.RegisterAttached("MarkWindow", typeof(string), typeof(ControlHelper), new UIPropertyMetadata(null, MarkWindowChanged));
 
-        public static string GetMarkControl(DependencyObject obj)
-        {
-            return (string) Argument.NotNull(obj, nameof(obj)).GetValue(MarkControlProperty);
-        }
+        public static string GetMarkControl(DependencyObject obj) => (string) Argument.NotNull(obj, nameof(obj)).GetValue(MarkControlProperty);
 
-        public static string GetMarkWindow(DependencyObject obj)
-        {
-            return (string) Argument.NotNull(obj, nameof(obj)).GetValue(MarkWindowProperty);
-        }
+        public static string GetMarkWindow(DependencyObject obj) => (string) Argument.NotNull(obj, nameof(obj)).GetValue(MarkWindowProperty);
 
         public static void SetMarkControl(DependencyObject obj, string value)
         {
@@ -67,8 +61,8 @@ namespace Tauron.Application.Wpf
             var root = ControlBindLogic.FindRoot(ele);
             if (root == null)
             {
-                ControlBindLogic.MakeLazy((IUIElement) ele, newName, oldName, 
-                    (name, old, controllable, dependencyObject) => SetLinker(old, name, controllable, dependencyObject, factory));
+                ControlBindLogic.MakeLazy((IUIElement) ele, newName, oldName,
+                                          (name, old, controllable, dependencyObject) => SetLinker(old, name, controllable, dependencyObject, factory));
                 return;
             }
 
@@ -105,9 +99,7 @@ namespace Tauron.Application.Wpf
 
             protected abstract void Scan();
 
-            protected override void CleanUp()
-            {
-            }
+            protected override void CleanUp() { }
 
             protected override void Bind(object context)
             {
@@ -130,7 +122,7 @@ namespace Tauron.Application.Wpf
                     windowName = nameSplit[1];
                 }
 
-                var priTarget = ((WpfObject)AffectedObject).DependencyObject;
+                var priTarget = ((WpfObject) AffectedObject).DependencyObject;
 
                 if (windowName == null)
                 {

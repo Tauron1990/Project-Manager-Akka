@@ -17,14 +17,10 @@ namespace Tauron.Application.CommonUI
     {
         private bool _isBlocked;
 
-        public UIObservableCollection()
-        {
-        }
+        public UIObservableCollection() { }
 
         public UIObservableCollection(IEnumerable<TType> enumerable)
-            : base(enumerable)
-        {
-        }
+            : base(enumerable) { }
 
         [NotNull] protected IUIDispatcher InternalUISynchronize { get; } = ActorApplication.Application.Continer.Resolve<IUIDispatcher>();
 
@@ -34,10 +30,7 @@ namespace Tauron.Application.CommonUI
             foreach (var item in enumerable) Add(item);
         }
 
-        public IDisposable BlockChangedMessages()
-        {
-            return new DispoableBlocker(this);
-        }
+        public IDisposable BlockChangedMessages() => new DispoableBlocker(this);
 
         protected override void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
         {

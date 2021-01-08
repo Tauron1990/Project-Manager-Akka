@@ -20,20 +20,17 @@ namespace Tauron.Application.Logging
                 loggerConfiguration.WriteTo.File(new CompactJsonFormatter(), "Logs\\Log.log", fileSizeLimitBytes: 5_242_880, retainedFileCountLimit: 5);
 
             return loggerConfiguration
-                .MinimumLevel.Debug()
-                .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-                .MinimumLevel.Override("System", LogEventLevel.Warning)
-                .Enrich.With<LogLevelWriter>()
-                .Enrich.WithProperty("ApplicationName", applicationName)
-                .Enrich.FromLogContext()
-                .Enrich.WithExceptionDetails()
-                .Enrich.WithEventTypeEnricher();
+                  .MinimumLevel.Debug()
+                  .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+                  .MinimumLevel.Override("System", LogEventLevel.Warning)
+                  .Enrich.With<LogLevelWriter>()
+                  .Enrich.WithProperty("ApplicationName", applicationName)
+                  .Enrich.FromLogContext()
+                  .Enrich.WithExceptionDetails()
+                  .Enrich.WithEventTypeEnricher();
         }
 
-        public static LoggerConfiguration WithEventTypeEnricher(this LoggerEnrichmentConfiguration config)
-        {
-            return config.With<EventTypeEnricher>();
-        }
+        public static LoggerConfiguration WithEventTypeEnricher(this LoggerEnrichmentConfiguration config) => config.With<EventTypeEnricher>();
 
         public static ContainerBuilder AddTauronLogging(this ContainerBuilder collection)
         {

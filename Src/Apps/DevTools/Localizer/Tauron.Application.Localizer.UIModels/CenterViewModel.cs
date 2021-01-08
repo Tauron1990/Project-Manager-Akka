@@ -41,7 +41,7 @@ namespace Tauron.Application.Localizer.UIModels
             Views = this.RegisterUiCollection<ProjectViewContainer>(nameof(Views)).BindToList(out var viewList);
             CurrentProject = RegisterProperty<int?>(nameof(CurrentProject));
 
-            AddProject(new Project() { ProjectName = "Dummy" });
+            AddProject(new Project {ProjectName = "Dummy"});
 
             static string GetActorName(string projectName) => projectName.Replace(' ', '_') + "-View";
 
@@ -92,6 +92,7 @@ namespace Tauron.Application.Localizer.UIModels
 
             WhenReceive<UpdateSource>().Mutate(workspace.Source).With(sm => sm.SourceUpdate, sm => us => sm.UpdateSource(us.Name))
                                        .Subscribe(su => mainWindow.TitlePostfix = Path.GetFileNameWithoutExtension(su.Source));
+
             #endregion
 
             #region Remove Project
@@ -144,10 +145,10 @@ namespace Tauron.Application.Localizer.UIModels
 
             OnPreRestart += (_, _) => Self.Tell(new ProjectRest(workspace.ProjectFile));
             OnPostStop += () =>
-            {
-                Views.Foreach(c => Context.Stop(c.Model.Actor));
-                Thread.Sleep(1000);
-            };
+                          {
+                              Views.Foreach(c => Context.Stop(c.Model.Actor));
+                              Thread.Sleep(1000);
+                          };
 
             void ProjectRest(ProjectRest obj)
             {
@@ -196,9 +197,7 @@ namespace Tauron.Application.Localizer.UIModels
                               {
                                   string titleName = pr.ProjectFile.Source;
                                   if (string.IsNullOrWhiteSpace(titleName))
-                                  {
                                       titleName = localizer.CommonUnkowen;
-                                  }
                                   else
                                   {
                                       titleName = Path.GetFileNameWithoutExtension(pr.ProjectFile.Source);
@@ -219,6 +218,7 @@ namespace Tauron.Application.Localizer.UIModels
                                                         .Mutate(workspace.Source).With(sm => sm.ProjectReset, sm => np => sm.Reset(np.File))
                                                         .ObserveOnSelf()
                                                         .Subscribe(ProjectRest));
+
             #endregion
 
             #region Add Project

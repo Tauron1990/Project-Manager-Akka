@@ -36,8 +36,8 @@ namespace Akkatecture.Specifications.Provided
         private readonly ISpecification<T> _specification;
 
         public NotSpecification(
-            ISpecification<T> specification) =>
-            _specification = specification ?? throw new ArgumentNullException(nameof(specification));
+            ISpecification<T> specification)
+            => _specification = specification ?? throw new ArgumentNullException(nameof(specification));
 
         protected override IEnumerable<string> IsNotSatisfiedBecause(T aggregate)
         {

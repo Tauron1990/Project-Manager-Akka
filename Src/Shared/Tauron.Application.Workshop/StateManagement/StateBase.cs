@@ -10,14 +10,17 @@ namespace Tauron.Application.Workshop.StateManagement
     {
         private IExtendedDataSource<MutatingContext<TData>>? _source;
 
-        public IEventSource<TData> OnChange { get; }
-
         protected StateBase(ExtendedMutatingEngine<MutatingContext<TData>> engine)
         {
             OnChange = engine.EventSource(c => c.Data);
         }
 
-        void ICanQuery<TData>.DataSource(IExtendedDataSource<MutatingContext<TData>> source) => _source = source;
+        public IEventSource<TData> OnChange { get; }
+
+        void ICanQuery<TData>.DataSource(IExtendedDataSource<MutatingContext<TData>> source)
+        {
+            _source = source;
+        }
 
         public async Task<TData?> Query(IQuery query)
         {
@@ -28,7 +31,7 @@ namespace Tauron.Application.Workshop.StateManagement
             }
             finally
             {
-                if(source != null)
+                if (source != null)
                     await source.OnCompled(query);
             }
         }

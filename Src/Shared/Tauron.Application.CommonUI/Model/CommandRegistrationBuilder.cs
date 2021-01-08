@@ -30,14 +30,14 @@ namespace Tauron.Application.CommonUI.Model
 
             return canExecute != null ? WithCanExecute(canExecute) : this;
         }
-        
+
         public CommandRegistrationBuilder WithExecute(Action execute, IEnumerable<IObservable<bool>> canExecute)
         {
             _command = Delegate.Combine(_command, new ActionMapper(execute).Action);
 
             return WithCanExecute(canExecute);
         }
-        
+
         public CommandRegistrationBuilder WithExecute(Action<object?> execute, IObservable<bool>? canExecute)
         {
             _command = Delegate.Combine(_command, execute);
@@ -84,11 +84,11 @@ namespace Tauron.Application.CommonUI.Model
             if (_command == null) return null;
 
             var canExec = _canExecute.Count switch
-            {
-                0 => null,
-                1 => _canExecute[0],
-                _ => _canExecute.CombineLatest(list => list.All(b => b))
-            };
+                          {
+                              0 => null,
+                              1 => _canExecute[0],
+                              _ => _canExecute.CombineLatest(list => list.All(b => b))
+                          };
 
             return _register(name, (Action<object?>) _command, canExec);
         }
@@ -97,10 +97,7 @@ namespace Tauron.Application.CommonUI.Model
         {
             private readonly Action _action;
 
-            public ActionMapper(Action action)
-            {
-                _action = action;
-            }
+            public ActionMapper(Action action) => _action = action;
 
             public Action<object?> Action => ActionImpl;
 

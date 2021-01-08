@@ -8,8 +8,7 @@ namespace Tauron.Localization.Provider
     {
         private readonly ActorSystem _actorSystem;
 
-        public LocJsonProvider(ActorSystem actorSystem) 
-            => _actorSystem = actorSystem;
+        public LocJsonProvider(ActorSystem actorSystem) => _actorSystem = actorSystem;
 
         public string Name => "Json";
 

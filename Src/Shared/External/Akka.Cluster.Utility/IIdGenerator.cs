@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Akka.Cluster.Utility
+﻿namespace Akka.Cluster.Utility
 {
     public interface IIdGenerator<out TKey>
     {

@@ -28,18 +28,12 @@ namespace Akkatecture.Jobs
 {
     public abstract class SchedulerMessage<TJob, TIdentity> : ValueObject
         where TJob : IJob
-        where TIdentity : IJobId
-    {
-    }
+        where TIdentity : IJobId { }
 
     public abstract class SchedulerCommand<TJob, TIdentity> : SchedulerMessage<TJob, TIdentity>
         where TJob : IJob
         where TIdentity : IJobId
     {
-        public TIdentity JobId { get; }
-        public object? Ack { get; }
-        public object? Nack { get; }
-
         public SchedulerCommand(
             TIdentity jobId,
             object? ack = null,
@@ -51,5 +45,9 @@ namespace Akkatecture.Jobs
             Ack = ack;
             Nack = nack;
         }
+
+        public TIdentity JobId { get; }
+        public object? Ack { get; }
+        public object? Nack { get; }
     }
 }

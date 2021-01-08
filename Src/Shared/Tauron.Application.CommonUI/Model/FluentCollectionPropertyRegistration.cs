@@ -24,13 +24,12 @@ namespace Tauron.Application.CommonUI.Model
         }
 
         public UIProperty<IObservableCollection<TData>> Property { get; }
-        
-        public FluentCollectionPropertyRegistration<TData> AndInitialElements(params TData[] elements) 
-            => AndInitialElements((IEnumerable<TData>) elements);
+
+        public FluentCollectionPropertyRegistration<TData> AndInitialElements(params TData[] elements) => AndInitialElements((IEnumerable<TData>) elements);
 
         public FluentCollectionPropertyRegistration<TData> AndInitialElements(IEnumerable<TData> elements)
         {
-            foreach (var element in elements) 
+            foreach (var element in elements)
                 _collection.Add(element);
 
             return this;

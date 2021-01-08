@@ -9,9 +9,9 @@ namespace AkkaTest.Test
     {
         IOperationResult Underlaying { get; }
 
-        Maybe<TResult> Process<TResult>(Func<TType, TResult> process);
-
         bool Success { get; }
+
+        Maybe<TResult> Process<TResult>(Func<TType, TResult> process);
     }
 
     [PublicAPI]
@@ -22,7 +22,7 @@ namespace AkkaTest.Test
         public Result(IOperationResult result)
         {
             Underlaying = result;
-            _value = Maybe.From<TType>(() => result.Ok && result is {Outcome: TType value} ? value : default);
+            _value = Maybe.From(() => result.Ok && result is {Outcome: TType value} ? value : default);
         }
 
         public Result(Maybe<TType> maybe)
@@ -33,8 +33,7 @@ namespace AkkaTest.Test
 
         public IOperationResult? Underlaying { get; }
 
-        public Maybe<TResult> Process<TResult>(Func<TType, TResult> process) 
-            => _value.Map(process);
+        public Maybe<TResult> Process<TResult>(Func<TType, TResult> process) => _value.Map(process);
 
         public bool Success => Underlaying?.Ok ?? _value.HasValue;
 
@@ -42,9 +41,15 @@ namespace AkkaTest.Test
 
         public TType? Value => _value.Value;
 
-        void IMaybe<TType>.OnValue(Action<TType> valueAction) => _value.OnValue(valueAction);
+        void IMaybe<TType>.OnValue(Action<TType> valueAction)
+        {
+            _value.OnValue(valueAction);
+        }
 
-        void IMaybe<TType>.OnNothing(Action action) => _value.OnNothing(action);
+        void IMaybe<TType>.OnNothing(Action action)
+        {
+            _value.OnNothing(action);
+        }
 
         //Nullable dont works on Explicit Implementation
         #pragma warning disable CS8617 // Die NULL-Zulässigkeit von Verweistypen im Typ des Parameters entspricht nicht dem implementierten Member.
@@ -61,11 +66,9 @@ namespace AkkaTest.Test
     [PublicAPI]
     public static class Result
     {
-        public static IResult<TType> FromOperation<TType>(IOperationResult operationResult)
-            => new Result<TType>(operationResult);
+        public static IResult<TType> FromOperation<TType>(IOperationResult operationResult) => new Result<TType>(operationResult);
 
-        public static IResult<TType> Create<TType>(TType value)
-            => new Result<TType>(OperationResult.Success(value));
+        public static IResult<TType> Create<TType>(TType value) => new Result<TType>(OperationResult.Success(value));
     }
 
     [PublicAPI]

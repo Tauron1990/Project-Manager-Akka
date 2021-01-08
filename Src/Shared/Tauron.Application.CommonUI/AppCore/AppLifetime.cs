@@ -27,10 +27,10 @@ namespace Tauron.Application.CommonUI.AppCore
             void ShutdownApp()
             {
                 Task.Run(async () =>
-                {
-                    await Task.Delay(TimeSpan.FromSeconds(60));
-                    Process.GetCurrentProcess().Kill(false);
-                });
+                         {
+                             await Task.Delay(TimeSpan.FromSeconds(60));
+                             Process.GetCurrentProcess().Kill(false);
+                         });
                 system.Terminate();
             }
 
@@ -64,11 +64,11 @@ namespace Tauron.Application.CommonUI.AppCore
             }
 
             Thread uiThread = new(Runner)
-            {
-                Name = "UI Thread",
-                IsBackground = true
-            };
-            if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                              {
+                                  Name = "UI Thread",
+                                  IsBackground = true
+                              };
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 uiThread.SetApartmentState(ApartmentState.STA);
             uiThread.Start();
 

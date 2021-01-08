@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Akka.Cluster.Utility
+﻿namespace Akka.Cluster.Utility
 {
     public class IncrementalIntegerIdGenerator : IIdGenerator<long>
     {
@@ -9,7 +7,7 @@ namespace Akka.Cluster.Utility
         public void Initialize(object[] args)
         {
             if (args != null && args.Length == 1)
-                _lastId = (long)args[0];
+                _lastId = (long) args[0];
         }
 
         public long GenerateId()

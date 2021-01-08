@@ -34,8 +34,6 @@ namespace Akkatecture.Jobs.Commands
     {
         private readonly CronExpression _expression;
 
-        public string CronExpression { get; }
-
         public ScheduleCron(
             TIdentity jobId,
             TJob job,
@@ -51,14 +49,16 @@ namespace Akkatecture.Jobs.Commands
             _expression = Cronos.CronExpression.Parse(cronExpression);
         }
 
+        public string CronExpression { get; }
+
         public override Schedule<TJob, TIdentity>? WithNextTriggerDate(DateTime utcDate)
         {
             var next = _expression.GetNextOccurrence(utcDate);
             return next.HasValue ? new ScheduleCron<TJob, TIdentity>(JobId, Job, CronExpression, next.Value) : null;
         }
 
-        public override Schedule<TJob, TIdentity> WithAck(object ack) => new ScheduleCron<TJob, TIdentity>(JobId, Job, CronExpression, TriggerDate, ack, Nack);
+        public override Schedule<TJob, TIdentity> WithAck(object? ack) => new ScheduleCron<TJob, TIdentity>(JobId, Job, CronExpression, TriggerDate, ack, Nack);
 
-        public override Schedule<TJob, TIdentity> WithNack(object nack) => new ScheduleCron<TJob, TIdentity>(JobId, Job, CronExpression, TriggerDate, Ack, nack);
+        public override Schedule<TJob, TIdentity> WithNack(object? nack) => new ScheduleCron<TJob, TIdentity>(JobId, Job, CronExpression, TriggerDate, Ack, nack);
     }
 }

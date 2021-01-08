@@ -35,8 +35,8 @@ namespace Tauron.Application
         {
             return
                 DefaultProfilePath.CombinePath(application)
-                    .EnumerateDirectorys()
-                    .Select(ent => ent.Split('\\').Last());
+                                  .EnumerateDirectorys()
+                                  .Select(ent => ent.Split('\\').Last());
         }
     }
 }

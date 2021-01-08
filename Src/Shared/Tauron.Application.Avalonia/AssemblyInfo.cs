@@ -1,5 +1,3 @@
-using System.Windows;
-using System.Windows.Markup;
 using Avalonia.Metadata;
 
 [assembly: XmlnsDefinition("http://schemas.TauronWpf.com", "Tauron.Application.Wpf")]

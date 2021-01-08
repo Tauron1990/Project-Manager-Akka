@@ -9,13 +9,13 @@ namespace Tauron
     [PublicAPI]
     public class SynchronizationContextRemover : INotifyCompletion
     {
-        public static SynchronizationContextRemover Run => new ();
+        public static SynchronizationContextRemover Run => new();
 
         public bool IsCompleted => SynchronizationContext.Current == null;
 
         public void OnCompleted(Action continuation)
         {
-            SynchronizationContext? current = SynchronizationContext.Current;
+            var current = SynchronizationContext.Current;
             try
             {
                 SynchronizationContext.SetSynchronizationContext(null);
@@ -27,15 +27,9 @@ namespace Tauron
             }
         }
 
-        public SynchronizationContextRemover GetAwaiter()
-        {
-            return this;
-        }
+        public SynchronizationContextRemover GetAwaiter() => this;
 
 
-        public void GetResult()
-
-        {
-        }
+        public void GetResult() { }
     }
 }

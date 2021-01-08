@@ -16,14 +16,13 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
     public sealed class StateBuilder<TData> : StateBuilderBase, IStateBuilder<TData>
         where TData : class, IStateEntity
     {
-        private readonly Func<IExtendedDataSource<TData>> _source;
         private readonly List<Func<IReducer<TData>>> _reducers = new();
-
-        private Type? _state;
+        private readonly Func<IExtendedDataSource<TData>> _source;
         private string? _key;
 
-        public StateBuilder(Func<IExtendedDataSource<TData>> source)
-            => _source = source;
+        private Type? _state;
+
+        public StateBuilder(Func<IExtendedDataSource<TData>> source) => _source = source;
 
         public IStateBuilder<TData> WithStateType<TState>()
             where TState : IState<TData>
@@ -54,7 +53,7 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
         {
             if (_state == null)
                 throw new InvalidOperationException("A State type or Instance Must be set");
-            
+
             var cacheKey = $"{_state.Name}--{Guid.NewGuid():N}";
             var dataSource = new MutationDataSource<TData>(cacheKey, _source());
 
@@ -62,7 +61,7 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
 
             IState? targetState = null;
 
-            if (componentContext != null) 
+            if (componentContext != null)
                 targetState = componentContext.ResolveOptional(_state, new TypedParameter(dataEngine.GetType(), dataEngine)) as IState;
 
             targetState ??= FastReflection.Shared.FastCreateInstance(_state, dataEngine) as IState;
@@ -81,6 +80,4 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
             return (container, _key ?? string.Empty);
         }
     }
-
-
 }

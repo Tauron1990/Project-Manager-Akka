@@ -9,60 +9,32 @@ namespace Akka.Cluster.Utility
     [PublicAPI]
     public class DistributedActorTableContainer<TKey> : ReceiveActor
     {
-        private sealed class SimpleActorFactory : IActorFactory
-        {
-            private object _actor;
-
-            public void Initialize(object[] args)
-            {
-                _actor = args[0];
-            }
-
-            private Props GetProps(object[] args)
-            {
-                return _actor switch
-                {
-                    Props props => props,
-                    Type type => Props.Create(type, args),
-                    _ => null
-                };
-            }
-
-            public IActorRef CreateActor(IActorRefFactory actorRefFactory, object id, object[] args) => actorRefFactory.ActorOf(GetProps(args), id.ToString());
-        }
-
-        private readonly string _name;
-        private readonly IActorRef _clusterActorDiscovery;
         private readonly IActorFactory _actorFactory;
+        private readonly Dictionary<IActorRef, TKey> _actorInverseMap = new();
+        private readonly Dictionary<TKey, IActorRef> _actorMap = new();
+
+        private readonly Dictionary<TKey, IActorRef> _addingMap = new();
+        private readonly IActorRef _clusterActorDiscovery;
         private readonly object _downMessage;
         private readonly ILoggingAdapter _log;
 
-        private IActorRef _table;
-        private readonly Dictionary<TKey, IActorRef> _actorMap = new Dictionary<TKey, IActorRef>();
-        private readonly Dictionary<IActorRef, TKey> _actorInverseMap = new Dictionary<IActorRef, TKey>();
-        private int _watchingActorCount;
-
-        private readonly Dictionary<TKey, IActorRef> _addingMap = new Dictionary<TKey, IActorRef>();
+        private readonly string _name;
 
         private bool _stopping;
 
+        private IActorRef _table;
+        private int _watchingActorCount;
+
 
         public DistributedActorTableContainer(string name, ActorSystem system, Type actorType)
-            : this(name, ClusterActorDiscovery.Get(system).Discovery, actorType)
-        {
-
-        }
+            : this(name, ClusterActorDiscovery.Get(system).Discovery, actorType) { }
 
         public DistributedActorTableContainer(string name, IActorRef clusterActorDiscovery, Type actorType)
-            : this(name, clusterActorDiscovery, typeof(SimpleActorFactory), new object[]{actorType})
-
-        {
-
-        }
+            : this(name, clusterActorDiscovery, typeof(SimpleActorFactory), new object[] {actorType}) { }
 
         public DistributedActorTableContainer(string name, IActorRef clusterActorDiscovery,
-                                              Type actorFactoryType, object[] actorFactoryInitalizeArgs,
-                                              object downMessage = null)
+            Type actorFactoryType, object[] actorFactoryInitalizeArgs,
+            object downMessage = null)
         {
             _name = name;
             _clusterActorDiscovery = clusterActorDiscovery;
@@ -73,7 +45,7 @@ namespace Akka.Cluster.Utility
             {
                 try
                 {
-                    _actorFactory = (IActorFactory)Activator.CreateInstance(actorFactoryType);
+                    _actorFactory = (IActorFactory) Activator.CreateInstance(actorFactoryType);
                     _actorFactory.Initialize(actorFactoryInitalizeArgs);
                 }
                 catch (Exception e)
@@ -131,10 +103,7 @@ namespace Akka.Cluster.Utility
 
             CancelAllPendingAddRequests();
 
-            foreach (var i in _actorMap)
-            {
-                i.Value.Tell(_downMessage ?? PoisonPill.Instance);
-            }
+            foreach (var i in _actorMap) i.Value.Tell(_downMessage ?? PoisonPill.Instance);
 
             // NOTE: should we clear actor map or let them to be removed ?
         }
@@ -221,17 +190,13 @@ namespace Akka.Cluster.Utility
         private void Handle(DistributedActorTableMessage<TKey>.Internal.AddReply m)
         {
             if (_addingMap.TryGetValue(m.Id, out var requester) == false)
-            {
                 // already removed locally
                 return;
-            }
 
             _addingMap.Remove(m.Id);
 
             if (m.Added)
-            {
                 requester.Tell(new DistributedActorTableMessage<TKey>.AddReply(m.Id, m.Actor, true));
-            }
             else
             {
                 _actorMap.Remove(m.Id);
@@ -270,14 +235,10 @@ namespace Akka.Cluster.Utility
             if (_actorMap.Count > 0)
             {
                 foreach (var i in _actorMap)
-                {
                     i.Value.Tell(m.StopMessage ?? PoisonPill.Instance);
-                }
             }
             else
-            {
                 Context.Stop(Self);
-            }
         }
 
         private void Handle(Terminated m)
@@ -295,8 +256,28 @@ namespace Akka.Cluster.Utility
                     Context.Stop(Self);
             }
             else
-            {
                 _table?.Tell(new DistributedActorTableMessage<TKey>.Internal.Remove(id));
+        }
+
+        private sealed class SimpleActorFactory : IActorFactory
+        {
+            private object _actor;
+
+            public void Initialize(object[] args)
+            {
+                _actor = args[0];
+            }
+
+            public IActorRef CreateActor(IActorRefFactory actorRefFactory, object id, object[] args) => actorRefFactory.ActorOf(GetProps(args), id.ToString());
+
+            private Props GetProps(object[] args)
+            {
+                return _actor switch
+                       {
+                           Props props => props,
+                           Type type   => Props.Create(type, args),
+                           _           => null
+                       };
             }
         }
     }

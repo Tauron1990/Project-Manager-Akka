@@ -48,7 +48,7 @@ namespace Akkatecture.Aggregates
             if (aggregateSequenceNumber <= 0) throw new ArgumentOutOfRangeException(nameof(aggregateSequenceNumber));
 
             AggregateEvent = aggregateEvent ?? throw new ArgumentNullException(nameof(aggregateEvent));
-            Metadata = metadata             ?? throw new ArgumentNullException(nameof(metadata));
+            Metadata = metadata ?? throw new ArgumentNullException(nameof(metadata));
             Timestamp = timestamp;
             AggregateIdentity = aggregateIdentity;
             AggregateSequenceNumber = aggregateSequenceNumber;

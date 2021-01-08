@@ -16,9 +16,7 @@ namespace Tauron.Application.CommonUI.UI
         private object? _value;
 
         public DeferredSource(string name, DataContextPromise promise)
-            : base(name, promise)
-        {
-        }
+            : base(name, promise) { }
 
         public object? Value
         {

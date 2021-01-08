@@ -30,9 +30,10 @@ namespace Akkatecture.Jobs.Events
         where TJob : IJob
         where TIdentity : IJobId
     {
-        public Schedule<TJob, TIdentity> Entry { get; }
-
         public Scheduled(
-            Schedule<TJob, TIdentity> entry) => Entry = entry ?? throw new ArgumentException(nameof(entry));
+            Schedule<TJob, TIdentity> entry)
+            => Entry = entry ?? throw new ArgumentException(nameof(entry));
+
+        public Schedule<TJob, TIdentity> Entry { get; }
     }
 }

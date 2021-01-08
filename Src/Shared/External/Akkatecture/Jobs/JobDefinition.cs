@@ -32,8 +32,6 @@ namespace Akkatecture.Jobs
             int version,
             Type type,
             string name)
-            : base(version, type, name)
-        {
-        }
+            : base(version, type, name) { }
     }
 }

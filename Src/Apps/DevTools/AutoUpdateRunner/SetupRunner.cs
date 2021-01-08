@@ -10,9 +10,8 @@ namespace AutoUpdateRunner
 {
     public sealed class SetupRunner
     {
-        private readonly ILogger _logger = Log.ForContext<SetupRunner>();
-
         private readonly SetupInfo _info;
+        private readonly ILogger _logger = Log.ForContext<SetupRunner>();
 
         public SetupRunner(SetupInfo info) => _info = info;
 
@@ -22,7 +21,7 @@ namespace AutoUpdateRunner
 
             var failed = false;
             var backUpNeed = false;
-            
+
             try
             {
                 KillProcess();
@@ -52,7 +51,8 @@ namespace AutoUpdateRunner
                     _logger.Information("Replay Backup {Backup} To {Target}", backup, _info.Target);
                     MoveDic(backup, _info.Target);
                 }
-                if(Directory.Exists(backup))
+
+                if (Directory.Exists(backup))
                     Directory.Delete(backup, true);
                 StartHost();
             }
@@ -74,11 +74,9 @@ namespace AutoUpdateRunner
             newVersion = ZipFile.Open(_info.DownloadFile, ZipArchiveMode.Read);
             // ReSharper disable once InvertIf
             if (Validate(_info.StartFile, nameof(_info.StartFile), Path.HasExtension)
-                && Validate(_info.RunningProcess, nameof(_info.RunningProcess), i => i > 0)
-                && Validate(_info.Target, nameof(_info.Target), Directory.Exists))
-            {
+             && Validate(_info.RunningProcess, nameof(_info.RunningProcess), i => i > 0)
+             && Validate(_info.Target, nameof(_info.Target), Directory.Exists))
                 return false;
-            }
 
             _logger.Warning("Validating Data Failed");
             return true;
@@ -103,9 +101,7 @@ namespace AutoUpdateRunner
                     break;
                 }
             }
-            catch (ArgumentException)
-            {
-            }
+            catch (ArgumentException) { }
             catch (Exception e)
             {
                 _logger.Error(e, "Error on Getting Process");
@@ -131,12 +127,12 @@ namespace AutoUpdateRunner
             return validator(value);
         }
 
-        private static void MoveDic(string @from, string to)
+        private static void MoveDic(string from, string to)
         {
             ClearDictionary(to);
 
             var elements = new Queue<(DirectoryInfo Dic, string Base, string Target)>();
-            elements.Enqueue((new DirectoryInfo(from), @from, to));
+            elements.Enqueue((new DirectoryInfo(from), from, to));
 
             while (elements.Count != 0)
             {
@@ -160,7 +156,7 @@ namespace AutoUpdateRunner
 
         private static void ClearDictionary(string target)
         {
-            if(Directory.Exists(target))
+            if (Directory.Exists(target))
                 Directory.Delete(target, true);
             Directory.CreateDirectory(target);
         }

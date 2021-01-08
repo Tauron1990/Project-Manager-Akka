@@ -7,10 +7,7 @@ namespace Tauron.Application.Avalonia.Converter
 {
     public sealed class BrushValueConverter : ValueConverterFactoryBase
     {
-        protected override IValueConverter Create()
-        {
-            return new Converter();
-        }
+        protected override IValueConverter Create() => new Converter();
 
         private class Converter : ValueConverterBase<string, IBrush>
         {

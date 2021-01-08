@@ -12,21 +12,21 @@ namespace Tauron.Application.Workshop
     public abstract class WorkspaceBase<TData> : IDataSource<TData>, IState<TData>
         where TData : class
     {
-        protected WorkspaceBase(WorkspaceSuperviser superviser)
-        {
-            Engine = MutatingEngine.From(this, superviser);
-        }
-
-        public void Dispatch(IDataMutation mutationOld)
-            => Engine.Mutate(mutationOld);
+        protected WorkspaceBase(WorkspaceSuperviser superviser) => Engine = MutatingEngine.From(this, superviser);
 
         protected MutatingEngine<TData> Engine { get; }
 
-        TData IDataSource<TData>.GetData() 
-            => GetDataInternal();
+        TData IDataSource<TData>.GetData() => GetDataInternal();
 
-        void IDataSource<TData>.SetData(TData data) 
-            => SetDataInternal(data);
+        void IDataSource<TData>.SetData(TData data)
+        {
+            SetDataInternal(data);
+        }
+
+        public void Dispatch(IDataMutation mutationOld)
+        {
+            Engine.Mutate(mutationOld);
+        }
 
         protected abstract TData GetDataInternal();
 
@@ -39,12 +39,14 @@ namespace Tauron.Application.Workshop
 
     {
         protected Workspace(WorkspaceSuperviser superviser)
-            : base(superviser) =>
-            Analyzer = Analyzing.Analyzer.From<TThis, MutatingContext<TRawData>>((TThis) this, superviser);
+            : base(superviser)
+            => Analyzer = Analyzing.Analyzer.From<TThis, MutatingContext<TRawData>>((TThis) this, superviser);
 
         public IAnalyzer<TThis, MutatingContext<TRawData>> Analyzer { get; }
 
-        public void Reset(TRawData newData) 
-            => Engine.Mutate(nameof(Reset), data => data.Select(d => d.Update(new ResetChange(), newData)));
+        public void Reset(TRawData newData)
+        {
+            Engine.Mutate(nameof(Reset), data => data.Select(d => d.Update(new ResetChange(), newData)));
+        }
     }
 }

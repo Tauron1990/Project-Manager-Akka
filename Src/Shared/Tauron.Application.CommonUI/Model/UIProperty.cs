@@ -8,13 +8,12 @@ using Tauron.Operations;
 
 namespace Tauron.Application.CommonUI.Model
 {
-
     [PublicAPI]
     public sealed class UIProperty<TData> : UIPropertyBase, IObservable<TData>, IDisposable
     {
-        private readonly CompositeDisposable _disposable = new();
-        private readonly BehaviorSubject<TData> _currentValue = new(default!);
         private readonly BehaviorSubject<Error?> _currentError = new(null);
+        private readonly BehaviorSubject<TData> _currentValue = new(default!);
+        private readonly CompositeDisposable _disposable = new();
 
         private bool _isLocked;
 
@@ -23,9 +22,6 @@ namespace Tauron.Application.CommonUI.Model
             _disposable.Add(_currentError);
             _disposable.Add(_currentValue);
         }
-
-        public void SetValidator(Func<IObservable<TData>, IObservable<Error?>> validator) 
-            => _disposable.Add(validator(PropertyValueChangedData).Subscribe(_currentError));
 
         public override IObservable<Error?> Validator => _currentError;
 
@@ -36,7 +32,7 @@ namespace Tauron.Application.CommonUI.Model
             get => Value;
             set
             {
-                if(value is TData dat)
+                if (value is TData dat)
                     Set(dat);
             }
         }
@@ -44,6 +40,18 @@ namespace Tauron.Application.CommonUI.Model
         public IObservable<TData> PropertyValueChangedData => _currentValue.AsObservable();
 
         public TData Value => _currentValue.Value;
+
+        public void Dispose()
+        {
+            _disposable.Dispose();
+        }
+
+        public IDisposable Subscribe(IObserver<TData> observer) => _currentValue.Subscribe(observer);
+
+        public void SetValidator(Func<IObservable<TData>, IObservable<Error?>> validator)
+        {
+            _disposable.Add(validator(PropertyValueChangedData).Subscribe(_currentError));
+        }
 
         protected internal override UIPropertyBase LockSet()
         {
@@ -53,7 +61,7 @@ namespace Tauron.Application.CommonUI.Model
 
         public void Set(TData data)
         {
-            if(_isLocked) return;
+            if (_isLocked) return;
 
             _currentValue.OnNext(data);
         }
@@ -64,11 +72,6 @@ namespace Tauron.Application.CommonUI.Model
             return this;
         }
 
-        public IDisposable Subscribe(IObserver<TData> observer) 
-            => _currentValue.Subscribe(observer);
-
-        public void Dispose() => _disposable.Dispose();
-        
         public static implicit operator TData(UIProperty<TData> property) => property.Value;
 
         public static UIProperty<TData> operator +(UIProperty<TData> prop, TData data)
@@ -84,12 +87,14 @@ namespace Tauron.Application.CommonUI.Model
         public override int GetHashCode() => Value?.GetHashCode() ?? 0;
 
         public override bool Equals(object? obj)
-            => obj switch
-            {
-                UIProperty<TData> prop => Equals(prop.Value, Value),
-                TData val => Equals(val, Value),
-                _ => false
-            };
+        {
+            return obj switch
+                   {
+                       UIProperty<TData> prop => Equals(prop.Value, Value),
+                       TData val              => Equals(val, Value),
+                       _                      => false
+                   };
+        }
 
         public override string ToString() => Value?.ToString() ?? "null--" + typeof(TData);
     }

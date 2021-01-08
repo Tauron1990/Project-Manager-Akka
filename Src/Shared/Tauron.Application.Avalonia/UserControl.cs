@@ -17,34 +17,12 @@ namespace Tauron.Application.Avalonia
 
         protected UserControl(IViewModel viewModel)
         {
-            _element = (IUIElement)ElementMapper.Create(this);
+            _element = (IUIElement) ElementMapper.Create(this);
             _controlLogic = new UserControlLogic(this, viewModel);
         }
 
-        public void Register(string key, IControlBindable bindable, IUIObject affectedPart)
-        {
-            _controlLogic.Register(key, bindable, affectedPart);
-        }
-        
-        protected override void OnInitialized()
-        {
-            Background = Brushes.Transparent;
-            base.OnInitialized();
-        }
-
-        public void CleanUp(string key)
-        {
-            _controlLogic.CleanUp(key);
-        }
-        
-
-        public event Action? ControlUnload
-        {
-            add => _controlLogic.ControlUnload += value;
-            remove => _controlLogic.ControlUnload -= value;
-        }
-
         IUIObject? IUIObject.GetPerent() => _element.GetPerent();
+
         public object Object => this;
 
         IObservable<object> IUIElement.DataContextChanged => _element.DataContextChanged;
@@ -52,5 +30,28 @@ namespace Tauron.Application.Avalonia
         IObservable<Unit> IUIElement.Loaded => _element.Loaded;
 
         IObservable<Unit> IUIElement.Unloaded => _element.Unloaded;
+
+        public void Register(string key, IControlBindable bindable, IUIObject affectedPart)
+        {
+            _controlLogic.Register(key, bindable, affectedPart);
+        }
+
+        public void CleanUp(string key)
+        {
+            _controlLogic.CleanUp(key);
+        }
+
+
+        public event Action? ControlUnload
+        {
+            add => _controlLogic.ControlUnload += value;
+            remove => _controlLogic.ControlUnload -= value;
+        }
+
+        protected override void OnInitialized()
+        {
+            Background = Brushes.Transparent;
+            base.OnInitialized();
+        }
     }
 }

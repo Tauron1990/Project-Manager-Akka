@@ -15,10 +15,13 @@ namespace Tauron.Application.Workshop
         }
 
         public static void RespondOn<TData>(this IEventSource<TData> source, Action<TData> action)
-            => source.RespondOn(null, action);
+        {
+            source.RespondOn(null, action);
+        }
 
         public static MutateClass<TRecieve, TMutator> Mutate<TRecieve, TMutator>(
-            this IObservable<TRecieve> selector, TMutator mutator) => new(mutator, selector);
+            this IObservable<TRecieve> selector, TMutator mutator)
+            => new(mutator, selector);
 
 
         #region Mutate
@@ -40,8 +43,7 @@ namespace Tauron.Application.Workshop
                 return eventSource(_mutator);
             }
 
-            public IDisposable With(Func<TMutator, Action<TRecieve>> run) 
-                => _selector.Subscribe(run(_mutator));
+            public IDisposable With(Func<TMutator, Action<TRecieve>> run) => _selector.Subscribe(run(_mutator));
         }
 
         #endregion

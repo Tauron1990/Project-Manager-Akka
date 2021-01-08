@@ -15,31 +15,13 @@
             TextOptions.TextFormattingMode="Ideal"
             TextOptions.TextRenderingMode="Auto">
     <Window.Resources>
-        <LayoutRoot x:Key="LayoutRoot">
-            <LayoutRoot.BottomSide>
-                <LayoutAnchorSide>
-                    <LayoutAnchorGroup>
-                        <LayoutAnchorable ContentId="Operation" CanClose="False" AutoHideMinHeight="400"
-                                          Title="{tau:Loc MainWindow_Operation_Tabs_Label_Ops}"/>
-                        <LayoutAnchorable ContentId="Logger" Title="{tau:Loc MainWindow_Operation_Tabs_Label_Logs}" CanDockAsTabbedDocument="True" AutoHideMinHeight="400" CanClose="False"/>
-                    </LayoutAnchorGroup>
-                </LayoutAnchorSide>
-            </LayoutRoot.BottomSide>
-            <LayoutPanel>
-                <LayoutDocumentPane>
-                    <LayoutDocument ContentId="Projects" Title="{tau:Loc MainWindow_ProjectContainer_Header}" CanClose="False" />
-                    <LayoutDocument ContentId="BuildControl" Title="{tau:Loc MainWindow_Build_Meader}" CanClose="False"/>
-                    <LayoutDocument ContentId="Analyzer" CanClose="False" Title="{tau:Loc MainWindow_Analyzer_Header}"/>
-                </LayoutDocumentPane>
-            </LayoutPanel>
-        </LayoutRoot>
     </Window.Resources>
     <mat:DialogHost Name="Dialogs" CloseOnClickAway="True">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition />
-                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <Menu Margin="5">
                 <MenuItem Header="{tau:Loc MainWindow_MainMenu_File}">
@@ -49,11 +31,12 @@
                     <MenuItem Header="{tau:Loc MainWindow_MainMenu_File_SaveAs}" Command="{tau:ActorBinding SaveAs}" />
                 </MenuItem>
                 <MenuItem Header="{tau:Loc MainWindow_MainMwnu_RenctFile}"
-                              ItemsSource="{tau:ActorBinding RenctFiles}">
+                          ItemsSource="{tau:ActorBinding RenctFiles}">
                     <MenuItem.ItemTemplate>
                         <DataTemplate DataType="uiModels:RenctFile">
                             <MenuItem HorizontalContentAlignment="Left" Command="{Binding Runner}"
-                                          ToolTip="{Binding File}" MaxWidth="500" Style="{StaticResource MaterialDesignMenuItem}">
+                                      ToolTip="{Binding File}" MaxWidth="500"
+                                      Style="{StaticResource MaterialDesignMenuItem}">
                                 <MenuItem.Header>
                                     <TextBlock Text="{Binding Name}" />
                                 </MenuItem.Header>
@@ -62,14 +45,14 @@
                     </MenuItem.ItemTemplate>
                 </MenuItem>
                 <MenuItem Header="{tau:Loc MainWindow_MainMenu_View}">
-                    <MenuItem Header="{tau:Loc MainWindow_MainMenu_Reset}" Click="DockReset"/>
+                    <MenuItem Header="{tau:Loc MainWindow_MainMenu_Reset}" Click="DockReset" />
                 </MenuItem>
             </Menu>
-            <DockingManager Name="DockingManager" Grid.Row="1" Loaded="FrameworkElement_OnLoaded" Margin="5" LayoutChanged="DockingManager_OnLayoutChanging">
-                
-            </DockingManager>
-            <matExt:BusyOverlay Grid.Row="0" Grid.RowSpan="2" Name="BusyIndicator" Style="{StaticResource MaterialBusyOverlayCircular}"/>
-            <mat:Snackbar Grid.Row="2" Name="Snackbar"/>
+            <DockingManager Name="DockingManager" Grid.Row="1" Loaded="FrameworkElement_OnLoaded" Margin="5"
+                            LayoutChanged="DockingManager_OnLayoutChanging" />
+            <matExt:BusyOverlay Grid.Row="0" Grid.RowSpan="2" Name="BusyIndicator"
+                                Style="{StaticResource MaterialBusyOverlayCircular}" />
+            <mat:Snackbar Grid.Row="2" Name="Snackbar" />
         </Grid>
     </mat:DialogHost>
 </tau:Window>

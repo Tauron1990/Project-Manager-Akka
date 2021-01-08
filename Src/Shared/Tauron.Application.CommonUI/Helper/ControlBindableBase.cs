@@ -32,10 +32,7 @@ namespace Tauron.Application.CommonUI.Helper
             private readonly ControlBindableBase _control;
             private bool _isDisposed;
 
-            public CleanUpHelper(ControlBindableBase control)
-            {
-                _control = control;
-            }
+            public CleanUpHelper(ControlBindableBase control) => _control = control;
 
             public void Dispose()
             {
@@ -48,10 +45,7 @@ namespace Tauron.Application.CommonUI.Helper
 
         private class Dummy : IUIObject
         {
-            public IUIObject? GetPerent()
-            {
-                return null;
-            }
+            public IUIObject? GetPerent() => null;
 
             public object Object => new();
         }

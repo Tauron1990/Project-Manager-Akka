@@ -11,11 +11,11 @@ namespace Tauron.Application.Workshop.Mutation
     [PublicAPI]
     public abstract class EventSourceBase<TRespond> : DeferredActor, IEventSource<TRespond>
     {
-        private readonly WorkspaceSuperviser _superviser;
         private readonly Subject<TRespond> _subject = new();
+        private readonly WorkspaceSuperviser _superviser;
 
         protected EventSourceBase(Task<IActorRef> mutator, WorkspaceSuperviser superviser)
-            : base(mutator) 
+            : base(mutator)
             => _superviser = superviser;
 
         public IDisposable RespondOn(IActorRef actorRef)
@@ -29,14 +29,14 @@ namespace Tauron.Application.Workshop.Mutation
         {
             if (source.IsNobody())
                 return _subject.Subscribe(action);
-            
+
             var dispo = _subject.Subscribe(t => source.Tell(IncommingEvent.From(t, action)));
             _superviser.WatchIntrest(new WatchIntrest(dispo.Dispose, source!));
             return dispo;
         }
 
-        protected IObserver<TRespond> Sender() => _subject.AsObserver();
-
         public IDisposable Subscribe(IObserver<TRespond> observer) => _subject.Subscribe(observer);
+
+        protected IObserver<TRespond> Sender() => _subject.AsObserver();
     }
 }

@@ -13,14 +13,10 @@ namespace Tauron.Application
         where TType : class
     {
         public GenericWeakReference(TType target)
-            : base(target)
-        {
-        }
+            : base(target) { }
 
         private GenericWeakReference(SerializationInfo info, StreamingContext context)
-            : base(info, context)
-        {
-        }
+            : base(info, context) { }
 
         public TType? TypedTarget
         {
@@ -58,16 +54,12 @@ namespace Tauron.Application
             return target == null ? 0 : target.GetHashCode();
         }
 
-        public static bool operator ==(GenericWeakReference<TType> left, GenericWeakReference<TType> right) 
-            => Equals(left, right);
+        public static bool operator ==(GenericWeakReference<TType> left, GenericWeakReference<TType> right) => Equals(left, right);
 
-        public static bool operator !=(GenericWeakReference<TType> left, GenericWeakReference<TType> right) 
-            => !Equals(left, right);
+        public static bool operator !=(GenericWeakReference<TType> left, GenericWeakReference<TType> right) => !Equals(left, right);
 
-        public static bool operator ==(GenericWeakReference<TType> left, object right) 
-            => Equals(left, right);
+        public static bool operator ==(GenericWeakReference<TType> left, object right) => Equals(left, right);
 
-        public static bool operator !=(GenericWeakReference<TType> left, object right) 
-            => !Equals(left, right);
+        public static bool operator !=(GenericWeakReference<TType> left, object right) => !Equals(left, right);
     }
 }

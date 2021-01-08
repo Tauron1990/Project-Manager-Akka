@@ -37,7 +37,7 @@ namespace Akkatecture.ValueObjects
     [PublicAPI]
     public class SingleValueObjectConverter : JsonConverter
     {
-        private static readonly ConcurrentDictionary<Type, Type> ConstructorArgumenTypes = new ConcurrentDictionary<Type, Type>();
+        private static readonly ConcurrentDictionary<Type, Type> ConstructorArgumenTypes = new();
 
         public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {

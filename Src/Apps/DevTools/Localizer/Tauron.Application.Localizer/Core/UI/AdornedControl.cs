@@ -12,19 +12,19 @@ namespace Tauron.Application.Localizer.Core.UI
         /// </summary>
         public static readonly DependencyProperty IsAdornerVisibleProperty =
             DependencyProperty.Register("IsAdornerVisible", typeof(bool), typeof(AdornedControl),
-                new FrameworkPropertyMetadata(IsAdornerVisible_PropertyChanged));
+                                        new FrameworkPropertyMetadata(IsAdornerVisible_PropertyChanged));
 
         public static readonly DependencyProperty AdornerContentProperty =
             DependencyProperty.Register("AdornerContent", typeof(FrameworkElement), typeof(AdornedControl),
-                new FrameworkPropertyMetadata(AdornerContent_PropertyChanged));
+                                        new FrameworkPropertyMetadata(AdornerContent_PropertyChanged));
 
         public static readonly DependencyProperty HorizontalAdornerPlacementProperty =
             DependencyProperty.Register("HorizontalAdornerPlacement", typeof(AdornerPlacement), typeof(AdornedControl),
-                new FrameworkPropertyMetadata(AdornerPlacement.Inside));
+                                        new FrameworkPropertyMetadata(AdornerPlacement.Inside));
 
         public static readonly DependencyProperty VerticalAdornerPlacementProperty =
             DependencyProperty.Register("VerticalAdornerPlacement", typeof(AdornerPlacement), typeof(AdornedControl),
-                new FrameworkPropertyMetadata(AdornerPlacement.Inside));
+                                        new FrameworkPropertyMetadata(AdornerPlacement.Inside));
 
         public static readonly DependencyProperty AdornerOffsetXProperty =
             DependencyProperty.Register("AdornerOffsetX", typeof(double), typeof(AdornedControl));
@@ -39,10 +39,7 @@ namespace Tauron.Application.Localizer.Core.UI
 
         public static readonly RoutedCommand HideAdornerCommand = new("HideAdorner", typeof(AdornedControl));
 
-        public AdornedControl()
-        {
-            DataContextChanged += AdornedControl_DataContextChanged;
-        }
+        public AdornedControl() => DataContextChanged += AdornedControl_DataContextChanged;
 
         /// <summary>
         ///     Shows or hides the adorner.
@@ -137,9 +134,9 @@ namespace Tauron.Application.Localizer.Core.UI
         /// <summary>
         ///     Command bindings.
         /// </summary>
-        private static readonly CommandBinding ShowAdornerCommandBinding = new CommandBinding(ShowAdornerCommand, ShowAdornerCommand_Executed);
+        private static readonly CommandBinding ShowAdornerCommandBinding = new(ShowAdornerCommand, ShowAdornerCommand_Executed);
 
-        private static readonly CommandBinding HideAdornerCommandBinding = new CommandBinding(HideAdornerCommand, HideAdornerCommand_Executed);
+        private static readonly CommandBinding HideAdornerCommandBinding = new(HideAdornerCommand, HideAdornerCommand_Executed);
 
         /// <summary>
         ///     Caches the adorner layer.
@@ -225,7 +222,7 @@ namespace Tauron.Application.Localizer.Core.UI
 
             if (_adornerLayer == null) return;
             _adorner = new FrameworkElementAdorner(AdornerContent, this, HorizontalAdornerPlacement, VerticalAdornerPlacement,
-                AdornerOffsetX, AdornerOffsetY);
+                                                   AdornerOffsetX, AdornerOffsetY);
 
             _adornerLayer.Add(_adorner);
 

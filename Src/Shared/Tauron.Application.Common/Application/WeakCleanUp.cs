@@ -67,7 +67,7 @@ namespace Tauron.Application
             {
                 object? target;
                 return (((target = _reference?.Target) != null ? target.GetHashCode() : 0) * 397)
-                       ^ _method.GetHashCode();
+                     ^ _method.GetHashCode();
             }
         }
 
@@ -87,16 +87,13 @@ namespace Tauron.Application
 
         private static readonly List<WeakDelegate> Actions = Initialize();
 
-#pragma warning disable IDE0052 // Ungelesene private Member entfernen
+        #pragma warning disable IDE0052 // Ungelesene private Member entfernen
         private static Timer? _timer;
-#pragma warning restore IDE0052 // Ungelesene private Member entfernen
+        #pragma warning restore IDE0052 // Ungelesene private Member entfernen
 
         public static void RegisterAction([NotNull] Action action)
         {
-            lock (Actions)
-            {
-                Actions.Add(new WeakDelegate(Argument.NotNull(action, nameof(action))));
-            }
+            lock (Actions) Actions.Add(new WeakDelegate(Argument.NotNull(action, nameof(action))));
         }
 
         private static List<WeakDelegate> Initialize()
@@ -118,9 +115,7 @@ namespace Tauron.Application
                         {
                             weakDelegate.Invoke();
                         }
-                        catch (ApplicationException)
-                        {
-                        }
+                        catch (ApplicationException) { }
                     }
                     else
                         dead.Add(weakDelegate);

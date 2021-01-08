@@ -89,8 +89,8 @@ namespace Tauron.Application.Localizer.DataModel.Workspace.Mutating
                            obs => obs.Select(context =>
                                              {
                                                  context = context.Update(
-                                                                          new GlobalLanguageChange(newLang),
-                                                                          context.Data with {GlobalLanguages = context.Data.GlobalLanguages.Add(newLang)});
+                                                     new GlobalLanguageChange(newLang),
+                                                     context.Data with {GlobalLanguages = context.Data.GlobalLanguages.Add(newLang)});
 
                                                  foreach (var project in context.Data.Projects.Select(p => p.ProjectName))
                                                      AddLanguage(project, info);

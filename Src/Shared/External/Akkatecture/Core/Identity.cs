@@ -33,6 +33,7 @@ using System.Text.RegularExpressions;
 using Akkatecture.Extensions;
 using Akkatecture.ValueObjects;
 using JetBrains.Annotations;
+using Tauron;
 
 namespace Akkatecture.Core
 {
@@ -41,10 +42,10 @@ namespace Akkatecture.Core
         where T : Identity<T>
     {
         // ReSharper disable StaticMemberInGenericType
-        private static readonly Regex NameReplace = new Regex("Id$");
+        private static readonly Regex NameReplace = new("Id$");
         private static readonly string Name = NameReplace.Replace(typeof(T).Name, string.Empty).ToLowerInvariant();
 
-        private static readonly Regex ValueValidation = new Regex(
+        private static readonly Regex ValueValidation = new(
             @"^[a-z0-9]+\-(?<guid>[a-f0-9]{8}\-[a-f0-9]{4}\-[a-f0-9]{4}\-[a-f0-9]{4}\-[a-f0-9]{12})$",
             RegexOptions.Compiled);
         // ReSharper enable StaticMemberInGenericType
@@ -73,7 +74,7 @@ namespace Akkatecture.Core
         {
             try
             {
-                return (T) Activator.CreateInstance(typeof(T), value);
+                return (T) (FastReflection.Shared.FastCreateInstance(typeof(T)) ?? throw new InvalidOperationException($"No Instantance of {typeof(T)} Created"));
             }
             catch (TargetInvocationException e)
             {

@@ -25,15 +25,9 @@ namespace Tauron.Application.Avalonia
 
         private ControlHelper() { }
 
-        public static string GetMarkControl(Control obj)
-        {
-            return Argument.NotNull(obj, nameof(obj)).GetValue(MarkControlProperty);
-        }
+        public static string GetMarkControl(Control obj) => Argument.NotNull(obj, nameof(obj)).GetValue(MarkControlProperty);
 
-        public static string GetMarkWindow(Control obj)
-        {
-            return Argument.NotNull(obj, nameof(obj)).GetValue(MarkWindowProperty);
-        }
+        public static string GetMarkWindow(Control obj) => Argument.NotNull(obj, nameof(obj)).GetValue(MarkWindowProperty);
 
         public static void SetMarkControl(Control obj, string value)
         {
@@ -49,9 +43,15 @@ namespace Tauron.Application.Avalonia
             MarkWindowChanged(obj, value, old);
         }
 
-        private static void MarkControl(AvaloniaObject d, string newValue, string oldValue) => SetLinker(d, oldValue, newValue, () => new ControlLinker());
+        private static void MarkControl(AvaloniaObject d, string newValue, string oldValue)
+        {
+            SetLinker(d, oldValue, newValue, () => new ControlLinker());
+        }
 
-        private static void MarkWindowChanged(AvaloniaObject d, string newValue, string oldValue) => SetLinker(d, oldValue, newValue, () => new WindowLinker());
+        private static void MarkWindowChanged(AvaloniaObject d, string newValue, string oldValue)
+        {
+            SetLinker(d, oldValue, newValue, () => new WindowLinker());
+        }
 
         private static void SetLinker(AvaloniaObject obj, string? oldName, string? newName, Func<LinkerBase> factory)
         {
@@ -65,8 +65,8 @@ namespace Tauron.Application.Avalonia
             var root = ControlBindLogic.FindRoot(ele);
             if (root == null)
             {
-                ControlBindLogic.MakeLazy((IUIElement) ele, newName, oldName, 
-                    (name, old, controllable, dependencyObject) => SetLinker(old, name, controllable, dependencyObject, factory));
+                ControlBindLogic.MakeLazy((IUIElement) ele, newName, oldName,
+                                          (name, old, controllable, dependencyObject) => SetLinker(old, name, controllable, dependencyObject, factory));
                 return;
             }
 
@@ -103,9 +103,7 @@ namespace Tauron.Application.Avalonia
 
             protected abstract void Scan();
 
-            protected override void CleanUp()
-            {
-            }
+            protected override void CleanUp() { }
 
             protected override void Bind(object context)
             {
@@ -128,13 +126,13 @@ namespace Tauron.Application.Avalonia
                     windowName = nameSplit[1];
                 }
 
-                var priTarget = ((AvaObject)AffectedObject).Obj;
+                var priTarget = ((AvaObject) AffectedObject).Obj;
 
                 if (windowName == null)
                 {
                     if (!(priTarget is Window))
                     {
-                        while (priTarget != null) 
+                        while (priTarget != null)
                             priTarget = priTarget is StyledElement {Parent: StyledElement parent} ? parent : null;
                     }
 
@@ -143,8 +141,8 @@ namespace Tauron.Application.Avalonia
                 }
                 else
                 {
-                    priTarget = global::Avalonia.Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime 
-                                    ? lifetime.Windows.FirstOrDefault(win => win.Name == windowName) 
+                    priTarget = global::Avalonia.Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime
+                                    ? lifetime.Windows.FirstOrDefault(win => win.Name == windowName)
                                     : null;
 
                     if (priTarget == null)

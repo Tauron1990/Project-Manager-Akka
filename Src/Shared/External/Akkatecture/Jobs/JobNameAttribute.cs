@@ -28,8 +28,6 @@ namespace Akkatecture.Jobs
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     public class JobNameAttribute : Attribute
     {
-        public string Name { get; }
-
         public JobNameAttribute(string name)
         {
             if (string.IsNullOrEmpty(name))
@@ -37,5 +35,7 @@ namespace Akkatecture.Jobs
 
             Name = name;
         }
+
+        public string Name { get; }
     }
 }

@@ -7,8 +7,10 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
 {
     public sealed class ProjectLoader : ExpandedReceiveActor
     {
-        public ProjectLoader() 
-            => Receive<InternalLoadProject>(LoadProjectFile);
+        public ProjectLoader()
+        {
+            Receive<InternalLoadProject>(LoadProjectFile);
+        }
 
         private void LoadProjectFile(InternalLoadProject obj)
         {

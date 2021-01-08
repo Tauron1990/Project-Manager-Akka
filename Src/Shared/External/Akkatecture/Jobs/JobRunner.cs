@@ -26,6 +26,7 @@ using System.Linq;
 using System.Reflection;
 using Akka.Actor;
 using Akkatecture.Extensions;
+using Tauron;
 
 namespace Akkatecture.Jobs
 {
@@ -45,35 +46,35 @@ namespace Akkatecture.Jobs
                    .GetJobRunTypes();
 
             var methods = type
-               .GetTypeInfo()
-               .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-               .Where(mi =>
-                {
-                    if (mi.Name != "Run")
-                        return false;
+                         .GetTypeInfo()
+                         .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                         .Where(mi =>
+                                {
+                                    if (mi.Name != "Run")
+                                        return false;
 
-                    var parameters = mi.GetParameters();
+                                    var parameters = mi.GetParameters();
 
-                    return
-                        parameters.Length == 1;
-                })
-               .ToDictionary(
-                    mi => mi.GetParameters()[0].ParameterType,
-                    mi => mi);
+                                    return
+                                        parameters.Length == 1;
+                                })
+                         .ToDictionary(
+                              mi => mi.GetParameters()[0].ParameterType,
+                              mi => mi);
 
 
             var method = type
-               .GetBaseType("ReceiveActor")
-               .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-               .Where(mi =>
-                {
-                    if (mi.Name != "Receive") return false;
-                    var parameters = mi.GetParameters();
-                    return
-                        parameters.Length == 1
-                     && parameters[0].ParameterType.Name.Contains("Func");
-                })
-               .First();
+                        .GetBaseType("ReceiveActor")
+                        .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                        .Where(mi =>
+                               {
+                                   if (mi.Name != "Receive") return false;
+                                   var parameters = mi.GetParameters();
+                                   return
+                                       parameters.Length == 1
+                                    && parameters[0].ParameterType.Name.Contains("Func");
+                               })
+                        .First();
 
             foreach (var subscriptionType in subscriptionTypes)
             {
@@ -81,14 +82,12 @@ namespace Akkatecture.Jobs
                 var subscriptionFunction = Delegate.CreateDelegate(funcType, this, methods[subscriptionType]);
                 var actorReceiveMethod = method.MakeGenericMethod(subscriptionType);
 
-                actorReceiveMethod.Invoke(this, new[] {subscriptionFunction});
+                actorReceiveMethod.InvokeFast(this, subscriptionFunction);
             }
         }
     }
 
     public abstract class JobRunner<TJob, TIdentity> : JobRunner
         where TJob : IJob
-        where TIdentity : IJobId
-    {
-    }
+        where TIdentity : IJobId { }
 }

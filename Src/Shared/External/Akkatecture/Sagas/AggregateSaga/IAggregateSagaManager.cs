@@ -26,9 +26,7 @@ using System.Linq.Expressions;
 
 namespace Akkatecture.Sagas.AggregateSaga
 {
-    public interface IAggregateSagaManager
-    {
-    }
+    public interface IAggregateSagaManager { }
 
     public interface IAggregateSagaManager<TAggregateSaga, TIdentity, TSagaLocator> : IAggregateSagaManager
         where TAggregateSaga : IAggregateSaga<TIdentity>

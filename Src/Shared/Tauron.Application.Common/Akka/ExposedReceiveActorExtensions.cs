@@ -14,20 +14,22 @@ namespace Tauron.Akka
             return state;
         }
 
-        public static FSMBase.State<TS, TD> ReplyingSelf<TS, TD>(this FSMBase.State<TS, TD> state, object msg) => state.Replying(msg, ExpandedReceiveActor.ExposedContext.Self);
+        public static FSMBase.State<TS, TD> ReplyingSelf<TS, TD>(this FSMBase.State<TS, TD> state, object msg)
+            => state.Replying(msg, ExpandedReceiveActor.ExposedContext.Self);
 
-        public static FSMBase.State<TS, TD> ReplyingParent<TS, TD>(this FSMBase.State<TS, TD> state, object msg) => state.Replying(msg, ExpandedReceiveActor.ExposedContext.Parent);
+        public static FSMBase.State<TS, TD> ReplyingParent<TS, TD>(this FSMBase.State<TS, TD> state, object msg)
+            => state.Replying(msg, ExpandedReceiveActor.ExposedContext.Parent);
 
-        public static void SubscribeToEvent<TEvent>(this IExpandedReceiveActor actor, Action<TEvent> handler) 
+        public static void SubscribeToEvent<TEvent>(this IExpandedReceiveActor actor, Action<TEvent> handler)
             => new EventHolder<TEvent>(actor, handler).Register();
 
-        public static void SendEvent<TType>(this IExpandedReceiveActor actor, TType evt) 
+        public static void SendEvent<TType>(this IExpandedReceiveActor actor, TType evt)
             => ExpandedReceiveActor.ExposedContext.System.EventStream.Publish(evt);
 
         private sealed class EventHolder<TEvent>
         {
-            private readonly Action<TEvent> _handler;
             private readonly IExpandedReceiveActor _actor;
+            private readonly Action<TEvent> _handler;
 
             public EventHolder(IExpandedReceiveActor actor, Action<TEvent> handler)
             {

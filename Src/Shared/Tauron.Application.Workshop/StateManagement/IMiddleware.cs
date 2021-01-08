@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace Tauron.Application.Workshop.StateManagement
+﻿namespace Tauron.Application.Workshop.StateManagement
 {
     public interface IMiddleware
     {
@@ -11,6 +9,5 @@ namespace Tauron.Application.Workshop.StateManagement
         bool MayDispatchAction(IStateAction action);
 
         void BeforeDispatch(IStateAction action);
-
     }
 }

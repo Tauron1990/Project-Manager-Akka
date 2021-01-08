@@ -37,8 +37,8 @@ namespace Akkatecture.Subscribers
             var domainEventSubscriberConfig = config.WithFallback(AkkatectureDefaultSettings.DefaultConfig());
             domainEventSubscriberConfig = domainEventSubscriberConfig.GetConfig(_section);
 
-            AutoSubscribe = domainEventSubscriberConfig.GetBoolean("auto-subscribe");
-            AutoReceive = domainEventSubscriberConfig.GetBoolean("auto-receive");
+            AutoSubscribe = domainEventSubscriberConfig.GetBoolean("auto-subscribe", true);
+            AutoReceive = domainEventSubscriberConfig.GetBoolean("auto-receive", true);
         }
     }
 }

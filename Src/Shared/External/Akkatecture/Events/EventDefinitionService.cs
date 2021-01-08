@@ -35,10 +35,8 @@ namespace Akkatecture.Events
     public class EventDefinitionService : VersionedTypeDefinitionService<IAggregateEvent, EventVersionAttribute, EventDefinition>, IEventDefinitionService
     {
         public EventDefinitionService(ILoggingAdapter? logger)
-            : base(logger)
-        {
-        }
+            : base(logger) { }
 
-        protected override EventDefinition CreateDefinition(int version, Type type, string name) => new EventDefinition(version, type, name);
+        protected override EventDefinition CreateDefinition(int version, Type type, string name) => new(version, type, name);
     }
 }

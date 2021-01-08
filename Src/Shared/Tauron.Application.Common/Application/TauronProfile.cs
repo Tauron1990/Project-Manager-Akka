@@ -45,11 +45,12 @@ namespace Tauron.Application
 
         protected string? FilePath { get; private set; }
 
-        public IEnumerator<string> GetEnumerator() 
-            => _settings.Select(k => k.Key).GetEnumerator();
+        public IEnumerator<string> GetEnumerator()
+        {
+            return _settings.Select(k => k.Key).GetEnumerator();
+        }
 
-        IEnumerator IEnumerable.GetEnumerator()
-            => GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         public void Delete()
         {
@@ -75,8 +76,8 @@ namespace Tauron.Application
             _settings.Clear();
             foreach (var vals in
                 FilePath.EnumerateTextLinesIfExis()
-                    .Select(line => line.Split(ContentSplitter, 2))
-                    .Where(vals => vals.Length == 2))
+                        .Select(line => line.Split(ContentSplitter, 2))
+                        .Where(vals => vals.Length == 2))
             {
                 _logger.Information("key: {0} | Value {1}", vals[0], vals[1]);
 
@@ -116,11 +117,9 @@ namespace Tauron.Application
             return !_settings.ContainsKey(cKey) ? defaultValue : _settings[cKey];
         }
 
-        public virtual int GetValue(int defaultValue, [CallerMemberName] string? key = null) 
-            => int.TryParse(GetValue(null, key), out var result) ? result : defaultValue;
+        public virtual int GetValue(int defaultValue, [CallerMemberName] string? key = null) => int.TryParse(GetValue(null, key), out var result) ? result : defaultValue;
 
-        public virtual bool GetValue(bool defaultValue, [CallerMemberName] string? key = null) 
-            => bool.TryParse(GetValue(null, key), out var result) ? result : defaultValue;
+        public virtual bool GetValue(bool defaultValue, [CallerMemberName] string? key = null) => bool.TryParse(GetValue(null, key), out var result) ? result : defaultValue;
 
         public virtual void SetVaue(object value, [CallerMemberName] string? key = null)
         {
@@ -132,10 +131,14 @@ namespace Tauron.Application
             OnPropertyChangedExplicit(cKey);
         }
 
-        private static void IlligalCharCheck(string key) 
-            => Argument.Check(key.Contains('='), () => new ArgumentException($"The Key ({key}) Contains an Illigal Char: ="));
+        private static void IlligalCharCheck(string key)
+        {
+            Argument.Check(key.Contains('='), () => new ArgumentException($"The Key ({key}) Contains an Illigal Char: ="));
+        }
 
-        public void Clear() 
-            => _settings.Clear();
+        public void Clear()
+        {
+            _settings.Clear();
+        }
     }
 }

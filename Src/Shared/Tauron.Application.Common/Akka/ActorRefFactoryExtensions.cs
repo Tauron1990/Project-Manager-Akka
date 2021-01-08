@@ -20,10 +20,8 @@ namespace Tauron.Akka
             return child.Equals(ActorRefs.Nobody) ? context.ActorOf(props, name) : child;
         }
 
-        public static IActorRef ActorOf<TActor>(this IActorRefFactory fac, Expression<Func<TActor>> creator, string? name) where TActor : ActorBase
-            => fac.ActorOf(Props.Create(creator), name);
+        public static IActorRef ActorOf<TActor>(this IActorRefFactory fac, Expression<Func<TActor>> creator, string? name) where TActor : ActorBase => fac.ActorOf(Props.Create(creator), name);
 
-        public static IActorRef ActorOf<TActor>(this IActorRefFactory fac, string? name = null) where TActor : ActorBase
-            => fac.ActorOf(Props.Create<TActor>(), name);
+        public static IActorRef ActorOf<TActor>(this IActorRefFactory fac, string? name = null) where TActor : ActorBase => fac.ActorOf(Props.Create<TActor>(), name);
     }
 }

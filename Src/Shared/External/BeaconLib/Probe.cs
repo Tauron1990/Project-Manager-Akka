@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -12,10 +11,10 @@ using Serilog;
 namespace BeaconLib
 {
     /// <summary>
-    /// Counterpart of the beacon, searches for beacons
+    ///     Counterpart of the beacon, searches for beacons
     /// </summary>
     /// <remarks>
-    /// The beacon list event will not be raised on your main thread!
+    ///     The beacon list event will not be raised on your main thread!
     /// </remarks>
     [PublicAPI]
     public sealed class Probe : IDisposable
@@ -23,15 +22,13 @@ namespace BeaconLib
         private static ILogger _log = Log.ForContext<Probe>();
 
         /// <summary>
-        /// Remove beacons older than this
+        ///     Remove beacons older than this
         /// </summary>
         private static readonly TimeSpan BeaconTimeout = new TimeSpan(0, 0, 0, 5); // seconds
 
-        public event Action<IEnumerable<BeaconLocation>>? BeaconsUpdated;
-
         private readonly Task _thread;
-        private readonly EventWaitHandle _waitHandle = new EventWaitHandle(false, EventResetMode.AutoReset);
         private readonly UdpClient _udp = new UdpClient();
+        private readonly EventWaitHandle _waitHandle = new EventWaitHandle(false, EventResetMode.AutoReset);
         private IEnumerable<BeaconLocation> _currentBeacons = Enumerable.Empty<BeaconLocation>();
 
         private bool _running = true;
@@ -45,7 +42,7 @@ namespace BeaconLib
 
             _log.Information("Bind Probe To Port 0");
             _udp.Client.Bind(new IPEndPoint(IPAddress.Any, 0));
-            try 
+            try
             {
                 _udp.AllowNatTraversal(true);
             }
@@ -56,6 +53,22 @@ namespace BeaconLib
 
             _udp.BeginReceive(ResponseReceived, null);
         }
+
+        public string BeaconType { get; private set; }
+
+        public void Dispose()
+        {
+            try
+            {
+                Stop();
+            }
+            catch (Exception ex)
+            {
+                _log.Error(ex, "Error On Dispose Probe");
+            }
+        }
+
+        public event Action<IEnumerable<BeaconLocation>>? BeaconsUpdated;
 
         public void Start()
         {
@@ -76,8 +89,8 @@ namespace BeaconLib
                 {
                     _log.Information("Processing Response");
                     var portBytes = bytes.Skip(typeBytes.Length).Take(2).ToArray();
-                    var port      = (ushort)IPAddress.NetworkToHostOrder((short)BitConverter.ToUInt16(portBytes, 0));
-                    var payload   = Beacon.Decode(bytes.Skip(typeBytes.Length + 2));
+                    var port = (ushort) IPAddress.NetworkToHostOrder((short) BitConverter.ToUInt16(portBytes, 0));
+                    var payload = Beacon.Decode(bytes.Skip(typeBytes.Length + 2));
                     NewBeacon(new BeaconLocation(new IPEndPoint(remote.Address, port), payload, DateTime.Now));
                 }
                 catch (Exception ex)
@@ -86,14 +99,10 @@ namespace BeaconLib
                 }
             }
             else
-            {
                 _log.Information("Incompatiple Data");
-            }
 
             _udp.BeginReceive(ResponseReceived, null);
         }
-
-        public string BeaconType { get; private set; }
 
         private void BackgroundLoop()
         {
@@ -137,17 +146,20 @@ namespace BeaconLib
         {
             _log.Information("Updating Beacons");
             var newBeacons = _currentBeacons
-                .Where(_ => !_.Equals(newBeacon))
-                .Concat(new [] { newBeacon })
-                .OrderBy(_ => _.Data)
-                .ThenBy(_ => _.Address, IpEndPointComparer.Instance)
-                .ToList();
+                            .Where(_ => !_.Equals(newBeacon))
+                            .Concat(new[] {newBeacon})
+                            .OrderBy(_ => _.Data)
+                            .ThenBy(_ => _.Address, IpEndPointComparer.Instance)
+                            .ToList();
             var u = BeaconsUpdated;
             u?.Invoke(newBeacons);
             _currentBeacons = newBeacons;
         }
 
-        private static bool EnumsEqual<T>(List<T> xs, List<T> ys) => xs.Zip(ys, (x, y) => x != null && x.Equals(y)).Count() == xs.Count();
+        private static bool EnumsEqual<T>(List<T> xs, List<T> ys)
+        {
+            return xs.Zip(ys, (x, y) => x != null && x.Equals(y)).Count() == xs.Count();
+        }
 
         public void Stop()
         {
@@ -155,18 +167,6 @@ namespace BeaconLib
             _running = false;
             _waitHandle.Set();
             _thread.Wait();
-        }
-
-        public void Dispose()
-        {
-            try
-            {
-                Stop();
-            }
-            catch (Exception ex)
-            {
-                _log.Error(ex, "Error On Dispose Probe");
-            }
         }
     }
 }

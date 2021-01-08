@@ -5,14 +5,25 @@ namespace Tauron.Application.Wpf.AppCore
 {
     public sealed class WpfWindow : WpfElement, IWindow
     {
-        private readonly System.Windows.Window _window;
-
         public WpfWindow(System.Windows.Window window)
-            : base(window) => _window = window;
+            : base(window)
+            => Window = window;
 
-        public System.Windows.Window Window => _window;
-        public void Show() => _window.Show();
-        public void Hide() => _window.Hide();
-        public Task<bool?> ShowDialog() => _window.Dispatcher.InvokeAsync(() => _window.ShowDialog()).Task;
+        public System.Windows.Window Window { get; }
+
+        public void Show()
+        {
+            Window.Show();
+        }
+
+        public void Hide()
+        {
+            Window.Hide();
+        }
+
+        public Task<bool?> ShowDialog()
+        {
+            return Window.Dispatcher.InvokeAsync(() => Window.ShowDialog()).Task;
+        }
     }
 }

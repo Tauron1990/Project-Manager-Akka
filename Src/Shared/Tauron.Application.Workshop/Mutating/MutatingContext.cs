@@ -8,24 +8,21 @@ namespace Tauron.Application.Workshop.Mutating
     [PublicAPI]
     public sealed class MutatingContext<TData>
     {
-        public MutatingChange? Change { get; }
-
-        public TData Data { get; }
-
-        public TType GetChange<TType>()
-            where TType : MutatingChange
-        {
-            return Change?.Cast<TType>() ?? throw new InvalidCastException("Change has not the Requested Type");
-        }
-
         private MutatingContext(MutatingChange? change, TData data)
         {
             Change = change;
             Data = data;
         }
 
-        public static MutatingContext<TData> New(TData data)
-            => new(null, data);
+        public MutatingChange? Change { get; }
+
+        public TData Data { get; }
+
+        public TType GetChange<TType>()
+            where TType : MutatingChange
+            => Change?.Cast<TType>() ?? throw new InvalidCastException("Change has not the Requested Type");
+
+        public static MutatingContext<TData> New(TData data) => new(null, data);
 
 
         public void Deconstruct(out MutatingChange? mutatingChange, out TData data)
@@ -40,7 +37,7 @@ namespace Tauron.Application.Workshop.Mutating
                 newData = apply.Apply(change);
 
             if (Change == null || change == null || ReferenceEquals(Change, change)) return new MutatingContext<TData>(change, newData);
-            
+
             if (Change is MultiChange multiChange)
                 change = new MultiChange(multiChange.Changes.Add(change));
             else
@@ -49,7 +46,6 @@ namespace Tauron.Application.Workshop.Mutating
             return new MutatingContext<TData>(change, newData);
         }
 
-        public MutatingContext<TData> WithChange(MutatingChange mutatingChange) 
-            => Update(mutatingChange, Data);
+        public MutatingContext<TData> WithChange(MutatingChange mutatingChange) => Update(mutatingChange, Data);
     }
 }

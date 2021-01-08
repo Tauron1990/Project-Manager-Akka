@@ -9,6 +9,8 @@ namespace Tauron.Application.CommonUI.Model
     [PublicAPI]
     public abstract class UIPropertyBase
     {
+        public UIPropertyBase(string name) => Name = name;
+
         public string Name { get; }
 
         public IObservable<bool> IsValid => Validator.Select(e => e == null);
@@ -19,8 +21,6 @@ namespace Tauron.Application.CommonUI.Model
         protected internal abstract object? ObjectValue { get; set; }
 
         protected internal abstract UIPropertyBase LockSet();
-
-        public UIPropertyBase(string name) => Name = name;
     }
 
     //[PublicAPI]
@@ -28,7 +28,7 @@ namespace Tauron.Application.CommonUI.Model
     //{
     //    private bool _isSetLocked;
     //    private readonly Lazy<RxVar<bool>> _isValid = new(() => false.ToRx());
-        
+
     //    protected UIPropertyBase(string name)
     //    {
     //        Name = name;

@@ -45,7 +45,7 @@ namespace Akkatecture.Commands
             TSourceIdentity sourceId)
         {
             if (aggregateId == null) throw new ArgumentNullException(nameof(aggregateId));
-            if (sourceId    == null) throw new ArgumentNullException(nameof(sourceId));
+            if (sourceId == null) throw new ArgumentNullException(nameof(sourceId));
 
             AggregateId = aggregateId;
             SourceId = sourceId;
@@ -66,15 +66,11 @@ namespace Akkatecture.Commands
     {
         protected Command(
             TIdentity aggregateId)
-            : this(aggregateId, CommandId.New)
-        {
-        }
+            : this(aggregateId, CommandId.New) { }
 
         protected Command(
             TIdentity aggregateId,
             CommandId sourceId)
-            : base(aggregateId, sourceId)
-        {
-        }
+            : base(aggregateId, sourceId) { }
     }
 }

@@ -19,22 +19,22 @@ namespace Tauron.Application.Workshop.StateManagement
     [PublicAPI]
     public sealed class RootManager : DisposeableBase, IActionInvoker
     {
+        private readonly IEffect[] _effects;
+        private readonly MutatingEngine _engine;
+        private readonly IMiddleware[] _middlewares;
         private readonly bool _sendBackSetting;
         private readonly ConcurrentDictionary<string, ConcurrentBag<StateContainer>> _stateContainers = new();
         private readonly StateContainer[] _states;
-        private readonly MutatingEngine _engine;
-        private readonly IEffect[] _effects;
-        private readonly IMiddleware[] _middlewares;
 
         internal RootManager(WorkspaceSuperviser superviser, IStateDispatcherConfigurator stateDispatcher, IEnumerable<StateBuilderBase> states,
-            IEnumerable<IEffect?> effects, IEnumerable<IMiddleware?> middlewares, bool sendBackSetting, 
+            IEnumerable<IEffect?> effects, IEnumerable<IMiddleware?> middlewares, bool sendBackSetting,
             IComponentContext? componentContext)
         {
             _sendBackSetting = sendBackSetting;
             _engine = MutatingEngine.Create(superviser, stateDispatcher.Configurate);
             _effects = effects.Where(e => e != null).ToArray()!;
             _middlewares = middlewares.Where(m => m != null).ToArray()!;
-            
+
             foreach (var stateBuilder in states)
             {
                 var (container, key) = stateBuilder.Materialize(_engine, componentContext);
@@ -43,10 +43,10 @@ namespace Tauron.Application.Workshop.StateManagement
 
             _states = _stateContainers.SelectMany(b => b.Value).ToArray();
 
-            foreach (var middleware in _middlewares) 
+            foreach (var middleware in _middlewares)
                 middleware.Initialize(this);
 
-            foreach (var middleware in _middlewares) 
+            foreach (var middleware in _middlewares)
                 middleware.AfterInitializeAllMiddlewares();
         }
 
@@ -58,7 +58,7 @@ namespace Tauron.Application.Workshop.StateManagement
             where TState : class
         {
             if (!_stateContainers.TryGetValue(key, out var bag)) return null;
-            
+
             foreach (var stateContainer in bag)
             {
                 if (stateContainer.Instance is TState state)
@@ -70,7 +70,7 @@ namespace Tauron.Application.Workshop.StateManagement
 
         public void Run(IStateAction action, bool? sendBack)
         {
-            if(_middlewares.Any(m => !m.MayDispatchAction(action)))
+            if (_middlewares.Any(m => !m.MayDispatchAction(action)))
                 return;
 
             _middlewares.Foreach(m => m.BeforeDispatch(action));
@@ -85,8 +85,8 @@ namespace Tauron.Application.Workshop.StateManagement
 
             foreach (var dataMutation in _states.Select(sc => sc.TryDipatch(action, resultInvoker.AddResult(), resultInvoker.WorkCompled())))
             {
-                if(dataMutation == null) continue;
-                
+                if (dataMutation == null) continue;
+
                 resultInvoker.PushWork();
                 _engine.Mutate(dataMutation);
             }
@@ -95,20 +95,20 @@ namespace Tauron.Application.Workshop.StateManagement
         protected override void DisposeCore(bool disposing)
         {
             if (!disposing) return;
-            
+
             _stateContainers.Values.Foreach(s => s.Foreach(d => d.Dispose()));
             _stateContainers.Clear();
         }
 
         private sealed class ResultInvoker : ISyncMutation
         {
-            private int _pending;
-            private readonly ConcurrentBag<IReducerResult> _results = new();
+            private readonly IStateAction _action;
             private readonly EffectInvoker _effectInvoker;
             private readonly MutatingEngine _mutatingEngine;
-            private readonly IActorRef _sender;
+            private readonly ConcurrentBag<IReducerResult> _results = new();
             private readonly bool _sendBack;
-            private readonly IStateAction _action;
+            private readonly IActorRef _sender;
+            private int _pending;
 
             private IObserver<IReducerResult>? _result;
             private IObserver<Unit>? _workCompled;
@@ -146,10 +146,14 @@ namespace Tauron.Application.Workshop.StateManagement
             }
 
             public void PushWork()
-                => Interlocked.Increment(ref _pending);
+            {
+                Interlocked.Increment(ref _pending);
+            }
 
             public IObserver<IReducerResult> AddResult()
-                => _result ??= new AnonymousObserver<IReducerResult>(n => _results.Add(n), _ => {});
+            {
+                return _result ??= new AnonymousObserver<IReducerResult>(n => _results.Add(n), _ => { });
+            }
 
             public IObserver<Unit> WorkCompled()
             {
@@ -162,24 +166,20 @@ namespace Tauron.Application.Workshop.StateManagement
                 }
 
                 return _workCompled ??= new AnonymousObserver<Unit>(_ => { },
-                                                   e =>
-                                                   {
-                                                       _results.Add(new ErrorResult(e));
-                                                       Compled();
-                                                   },
-                                                   Compled);
+                                                                    e =>
+                                                                    {
+                                                                        _results.Add(new ErrorResult(e));
+                                                                        Compled();
+                                                                    },
+                                                                    Compled);
             }
         }
 
         private sealed class EffectInvoker : ISyncMutation
         {
-            private readonly IEnumerable<IEffect> _effects;
             private readonly IStateAction _action;
+            private readonly IEnumerable<IEffect> _effects;
             private readonly IActionInvoker _invoker;
-
-            public object ConsistentHashKey => "RootManagerInternals";
-            public string Name => "Invoke Effects";
-            public Action Run => () => _effects.Foreach(e => e.Handle(_action, _invoker));
 
             public EffectInvoker(IEnumerable<IEffect> effects, IStateAction action, IActionInvoker invoker)
             {
@@ -187,6 +187,10 @@ namespace Tauron.Application.Workshop.StateManagement
                 _action = action;
                 _invoker = invoker;
             }
+
+            public object ConsistentHashKey => "RootManagerInternals";
+            public string Name => "Invoke Effects";
+            public Action Run => () => _effects.Foreach(e => e.Handle(_action, _invoker));
         }
     }
 }

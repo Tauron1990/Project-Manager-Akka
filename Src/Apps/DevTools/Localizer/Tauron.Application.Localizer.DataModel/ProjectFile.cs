@@ -15,9 +15,7 @@ namespace Tauron.Application.Localizer.DataModel
         public const int Version = 2;
 
         public ProjectFile()
-            : this(ImmutableList<Project>.Empty, ImmutableList<ActiveLanguage>.Empty, string.Empty, ActorRefs.Nobody, new BuildInfo())
-        {
-        }
+            : this(ImmutableList<Project>.Empty, ImmutableList<ActiveLanguage>.Empty, string.Empty, ActorRefs.Nobody, new BuildInfo()) { }
 
         private ProjectFile(string source, IActorRef op)
             : this()
@@ -25,7 +23,7 @@ namespace Tauron.Application.Localizer.DataModel
             Source = source;
             Operator = op;
         }
-        
+
         public bool IsEmpty => Operator.Equals(ActorRefs.Nobody);
 
         public void Write(BinaryWriter writer)
@@ -36,13 +34,12 @@ namespace Tauron.Application.Localizer.DataModel
             BuildInfo.Write(writer);
         }
 
-        public static ProjectFile FromSource(string source, IActorRef op) 
-            => new(source, op);
+        public static ProjectFile FromSource(string source, IActorRef op) => new(source, op);
 
         public static ProjectFile ReadFile(BinaryReader reader, string source, IActorRef op)
         {
             var file = new ProjectFile(source, op);
-           
+
             var vers = reader.ReadInt32();
 
             return file with

@@ -6,10 +6,8 @@ namespace Tauron.Application.CommonUI.AppCore
     {
         private readonly Func<IUIApplication> _creator;
 
-        public DelegateAppFactory(Func<IUIApplication> creator) 
-            => _creator = creator;
+        public DelegateAppFactory(Func<IUIApplication> creator) => _creator = creator;
 
-        public IUIApplication Create() 
-            => _creator();
+        public IUIApplication Create() => _creator();
     }
 }

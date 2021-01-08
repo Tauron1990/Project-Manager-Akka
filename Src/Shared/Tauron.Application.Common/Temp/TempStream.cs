@@ -55,17 +55,15 @@ namespace Tauron.Temp
 
         /// <inheritdoc />
         public override Task CopyToAsync(
-          Stream destination,
-          int bufferSize,
-          CancellationToken cancellationToken)
-        {
-            return _wrappedStream.CopyToAsync(destination, bufferSize, cancellationToken);
-        }
+            Stream destination,
+            int bufferSize,
+            CancellationToken cancellationToken)
+            => _wrappedStream.CopyToAsync(destination, bufferSize, cancellationToken);
 
         /// <inheritdoc />
         protected override void Dispose(bool disposing)
         {
-            if(_file.NoStreamDispose) return;
+            if (_file.NoStreamDispose) return;
             _file.Dispose();
         }
 
@@ -73,7 +71,10 @@ namespace Tauron.Temp
         public override bool Equals(object? obj) => _wrappedStream.Equals(obj);
 
         /// <inheritdoc />
-        public override void Flush() => _wrappedStream.Flush();
+        public override void Flush()
+        {
+            _wrappedStream.Flush();
+        }
 
         /// <inheritdoc />
         public override Task FlushAsync(CancellationToken cancellationToken) => _wrappedStream.FlushAsync(cancellationToken);
@@ -86,13 +87,11 @@ namespace Tauron.Temp
 
         /// <inheritdoc />
         public override Task<int> ReadAsync(
-          byte[] buffer,
-          int offset,
-          int count,
-          CancellationToken cancellationToken)
-        {
-            return _wrappedStream.ReadAsync(buffer, offset, count, cancellationToken);
-        }
+            byte[] buffer,
+            int offset,
+            int count,
+            CancellationToken cancellationToken)
+            => _wrappedStream.ReadAsync(buffer, offset, count, cancellationToken);
 
         /// <inheritdoc />
         public override int ReadByte() => _wrappedStream.ReadByte();
@@ -101,25 +100,32 @@ namespace Tauron.Temp
         public override long Seek(long offset, SeekOrigin origin) => _wrappedStream.Seek(offset, origin);
 
         /// <inheritdoc />
-        public override void SetLength(long value) => _wrappedStream.SetLength(value);
+        public override void SetLength(long value)
+        {
+            _wrappedStream.SetLength(value);
+        }
 
         /// <inheritdoc />
         public override string? ToString() => _wrappedStream.ToString();
 
         /// <inheritdoc />
-        public override void Write(byte[] buffer, int offset, int count) => _wrappedStream.Write(buffer, offset, count);
-
-        /// <inheritdoc />
-        public override Task WriteAsync(
-          byte[] buffer,
-          int offset,
-          int count,
-          CancellationToken cancellationToken)
+        public override void Write(byte[] buffer, int offset, int count)
         {
-            return _wrappedStream.WriteAsync(buffer, offset, count, cancellationToken);
+            _wrappedStream.Write(buffer, offset, count);
         }
 
         /// <inheritdoc />
-        public override void WriteByte(byte value) => _wrappedStream.WriteByte(value);
+        public override Task WriteAsync(
+            byte[] buffer,
+            int offset,
+            int count,
+            CancellationToken cancellationToken)
+            => _wrappedStream.WriteAsync(buffer, offset, count, cancellationToken);
+
+        /// <inheritdoc />
+        public override void WriteByte(byte value)
+        {
+            _wrappedStream.WriteByte(value);
+        }
     }
 }

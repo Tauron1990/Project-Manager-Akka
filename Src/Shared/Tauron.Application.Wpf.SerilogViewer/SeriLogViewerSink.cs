@@ -7,10 +7,7 @@ namespace Tauron.Application.Wpf.SerilogViewer
 {
     public sealed class SeriLogViewerSink : ILogEventSink
     {
-        public SeriLogViewerSink()
-        {
-            CurrentSink = this;
-        }
+        public SeriLogViewerSink() => CurrentSink = this;
 
         internal static SeriLogViewerSink? CurrentSink { get; private set; }
 

@@ -13,20 +13,17 @@ namespace Tauron.Application
     [DebuggerStepThrough]
     public class GroupDictionary<TKey, TValue> : Dictionary<TKey, ICollection<TValue>>
         where TKey : notnull
-        //where TKey : class where TValue : class
+    //where TKey : class where TValue : class
     {
         private readonly Type _listType;
 
         private Type? _genericTemp;
 
-        public GroupDictionary(Type listType) 
-            => _listType = Argument.NotNull(listType, nameof(listType));
+        public GroupDictionary(Type listType) => _listType = Argument.NotNull(listType, nameof(listType));
 
-        public GroupDictionary() 
-            => _listType = typeof(List<TValue>);
+        public GroupDictionary() => _listType = typeof(List<TValue>);
 
-        public GroupDictionary(bool singleList) 
-            => _listType = singleList ? typeof(HashSet<TValue>) : typeof(List<TValue>);
+        public GroupDictionary(bool singleList) => _listType = singleList ? typeof(HashSet<TValue>) : typeof(List<TValue>);
 
         public GroupDictionary(GroupDictionary<TKey, TValue> groupDictionary)
             : base(groupDictionary)
@@ -118,25 +115,13 @@ namespace Tauron.Application
         }
 
 
-        public bool RemoveValue(TValue value)
-        {
-            return RemoveImpl(default!, value, false, true);
-        }
+        public bool RemoveValue(TValue value) => RemoveImpl(default!, value, false, true);
 
-        public bool Remove(TValue value, bool removeEmptyLists)
-        {
-            return RemoveImpl(default!, value, removeEmptyLists, true);
-        }
+        public bool Remove(TValue value, bool removeEmptyLists) => RemoveImpl(default!, value, removeEmptyLists, true);
 
-        public bool Remove(TKey key, TValue value)
-        {
-            return RemoveImpl(key, value, false, false);
-        }
+        public bool Remove(TKey key, TValue value) => RemoveImpl(key, value, false, false);
 
-        public bool Remove(TKey key, TValue value, bool removeListIfEmpty)
-        {
-            return RemoveImpl(key, value, removeListIfEmpty, false);
-        }
+        public bool Remove(TKey key, TValue value, bool removeListIfEmpty) => RemoveImpl(key, value, removeListIfEmpty, false);
 
         private bool RemoveImpl(TKey key, TValue val, bool removeEmpty, bool removeAll)
         {
@@ -194,10 +179,7 @@ namespace Tauron.Application
         {
             private readonly GroupDictionary<TKey, TValue> _list;
 
-            public AllValueCollection(GroupDictionary<TKey, TValue> list)
-            {
-                _list = Argument.NotNull(list, nameof(list));
-            }
+            public AllValueCollection(GroupDictionary<TKey, TValue> list) => _list = Argument.NotNull(list, nameof(list));
 
             private IEnumerable<TValue> GetAll => _list.SelectMany(pair => pair.Value);
 
@@ -207,13 +189,22 @@ namespace Tauron.Application
 
             public bool IsReadOnly => true;
 
-            public void Add(TValue item) => throw new NotSupportedException();
+            public void Add(TValue item)
+            {
+                throw new NotSupportedException();
+            }
 
-            public void Clear() => throw new NotSupportedException();
+            public void Clear()
+            {
+                throw new NotSupportedException();
+            }
 
             public bool Contains(TValue item) => GetAll.Contains(item);
 
-            public void CopyTo(TValue[] array, int arrayIndex) => GetAll.ToArray().CopyTo(array, arrayIndex);
+            public void CopyTo(TValue[] array, int arrayIndex)
+            {
+                GetAll.ToArray().CopyTo(array, arrayIndex);
+            }
 
             public IEnumerator<TValue> GetEnumerator() => GetAll.GetEnumerator();
 

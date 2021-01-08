@@ -39,13 +39,13 @@ namespace Tauron.Application.CommonUI.Commands
         {
             var temp = parameter as EventData;
             var args = _methodType switch
-            {
-                MethodType.Zero => Array.Empty<object>(),
-                MethodType.One => new object?[] {temp},
-                MethodType.Two => new[] {temp?.Sender, temp?.EventArgs},
-                MethodType.EventArgs => new[] {temp?.EventArgs},
-                _ => Array.Empty<object>()
-            };
+                       {
+                           MethodType.Zero      => Array.Empty<object>(),
+                           MethodType.One       => new object?[] {temp},
+                           MethodType.Two       => new[] {temp?.Sender, temp?.EventArgs},
+                           MethodType.EventArgs => new[] {temp?.EventArgs},
+                           _                    => Array.Empty<object>()
+                       };
 
             _method.InvokeFast(Context, args);
         }

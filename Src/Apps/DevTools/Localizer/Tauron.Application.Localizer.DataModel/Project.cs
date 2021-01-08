@@ -13,9 +13,7 @@ namespace Tauron.Application.Localizer.DataModel
 
         public Project(string name)
             : this()
-        {
-            ProjectName = name;
-        }
+            => ProjectName = name;
 
         public void Write(BinaryWriter writer)
         {

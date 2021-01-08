@@ -8,12 +8,12 @@ namespace Tauron.Application.CommonUI.Commands
     public abstract class CommandBase : ICommand
     {
         private readonly WeakReferenceCollection<WeakDelegate> _referenceCollection = new();
-        
+
         public event EventHandler? CanExecuteChanged
         {
             add
             {
-                if(value != null)
+                if (value != null)
                     _referenceCollection.Add(new WeakDelegate(value));
             }
             remove
@@ -29,7 +29,7 @@ namespace Tauron.Application.CommonUI.Commands
 
         public virtual void RaiseCanExecuteChanged()
         {
-            foreach (var weakDelegate in _referenceCollection) 
+            foreach (var weakDelegate in _referenceCollection)
                 weakDelegate.Invoke(this, EventArgs.Empty);
         }
     }

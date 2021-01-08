@@ -12,22 +12,31 @@ namespace Tauron.Application.Workshop.StateManagement.DataFactorys
     {
         private readonly Lazy<object> _lazyData;
 
-        protected SingleValueDataFactory() 
-            => _lazyData = new Lazy<object>(() => new SingleValueSource(CreateValue()), LazyThreadSafetyMode.ExecutionAndPublication);
+        protected SingleValueDataFactory()
+        {
+            _lazyData = new Lazy<object>(() => new SingleValueSource(CreateValue()), LazyThreadSafetyMode.ExecutionAndPublication);
+        }
 
         public override bool CanSupply(Type dataType) => dataType == typeof(TData);
 
-        public override Func<IExtendedDataSource<TRealData>> Create<TRealData>() 
-            => () => (IExtendedDataSource<TRealData>) _lazyData.Value;
+        public override Func<IExtendedDataSource<TRealData>> Create<TRealData>()
+        {
+            return () => (IExtendedDataSource<TRealData>) _lazyData.Value;
+        }
 
         protected abstract Task<TData> CreateValue();
 
         private sealed class SingleValueSource : IExtendedDataSource<TData>, IDisposable
         {
-            private Task<TData> _value;
             private readonly SemaphoreSlim _semaphore = new(0, 1);
+            private Task<TData> _value;
 
             public SingleValueSource(Task<TData> value) => _value = value;
+
+            public void Dispose()
+            {
+                _semaphore.Dispose();
+            }
 
             public async Task<TData> GetData(IQuery query)
             {
@@ -46,8 +55,6 @@ namespace Tauron.Application.Workshop.StateManagement.DataFactorys
                 _semaphore.Release();
                 return Task.CompletedTask;
             }
-
-            public void Dispose() => _semaphore.Dispose();
         }
     }
 }

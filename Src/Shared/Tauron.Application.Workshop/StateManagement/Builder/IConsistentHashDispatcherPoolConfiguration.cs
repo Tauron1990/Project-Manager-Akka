@@ -1,5 +1,4 @@
-﻿using Akka.Routing;
-using JetBrains.Annotations;
+﻿using JetBrains.Annotations;
 
 namespace Tauron.Application.Workshop.StateManagement.Builder
 {

@@ -6,10 +6,7 @@ namespace Tauron.Application.Workflow
     [PublicAPI]
     public class SimpleCondition<TContext> : ICondition<TContext>
     {
-        public SimpleCondition()
-        {
-            Target = StepId.None;
-        }
+        public SimpleCondition() => Target = StepId.None;
 
         public Func<TContext, IStep<TContext>, bool>? Guard { get; set; }
 
@@ -22,9 +19,6 @@ namespace Tauron.Application.Workflow
             return StepId.None;
         }
 
-        public override string ToString()
-        {
-            return "Target: " + Target;
-        }
+        public override string ToString() => "Target: " + Target;
     }
 }

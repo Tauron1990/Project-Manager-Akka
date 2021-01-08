@@ -14,16 +14,15 @@ namespace Tauron.Akka
     {
         private readonly IActorRef _targetActor;
 
+        private ActorScheduler(IActorRef target) => _targetActor = target;
+
+        private ActorScheduler()
+            : this(ExpandedReceiveActor.ExposedContext.Self) { }
+
         public static IScheduler CurrentSelf => new ActorScheduler();
 
         public static IScheduler From(IActorRef actor) => new ActorScheduler(actor);
-        
-        private ActorScheduler(IActorRef target)
-            => _targetActor = target;
-        
-        private ActorScheduler()
-            : this(ExpandedReceiveActor.ExposedContext.Self) { }
-        
+
         public override IDisposable Schedule<TState>(TState state, TimeSpan dueTime, Func<IScheduler, TState, IDisposable> action)
         {
             var target = Scheduler.Normalize(dueTime);
@@ -32,10 +31,10 @@ namespace Tauron.Akka
 
             void TryRun()
             {
-                if(disposable.IsDisposed) return;
+                if (disposable.IsDisposed) return;
                 disposable.Disposable = action(this, state);
             }
-            
+
             if (target == TimeSpan.Zero)
                 _targetActor.Tell(new ExpandedReceiveActor.TransmitAction(TryRun));
             else
@@ -44,9 +43,9 @@ namespace Tauron.Akka
                 Timer timer = new(o =>
                                   {
                                       _targetActor.Tell(new ExpandedReceiveActor.TransmitAction(TryRun));
-                                      ((IDisposable)o!).Dispose();
+                                      ((IDisposable) o!).Dispose();
                                   }, timerDispose, dueTime, Timeout.InfiniteTimeSpan);
-                
+
                 timerDispose.Disposable = timer;
             }
 
@@ -56,9 +55,6 @@ namespace Tauron.Akka
 
     public static class ActorSchedulerExtensions
     {
-        public static IObservable<TType> ObserveOnSelf<TType>(this IObservable<TType> observable)
-        {
-            return observable.ObserveOn(ActorScheduler.CurrentSelf);
-        }
+        public static IObservable<TType> ObserveOnSelf<TType>(this IObservable<TType> observable) => observable.ObserveOn(ActorScheduler.CurrentSelf);
     }
 }

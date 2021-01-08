@@ -14,8 +14,8 @@ namespace Tauron.Application.Localizer.UIModels
     [PublicAPI]
     public sealed class ProjectEntryModel : ObservableObject, IDisposable
     {
-        private readonly SourceList<ProjectLangEntry> _entries = new();
         private readonly IDisposable _connection;
+        private readonly SourceList<ProjectLangEntry> _entries = new();
         private readonly string _projectName;
         private readonly Action<(string ProjectName, string EntryName, ActiveLanguage Lang, string Content)> _updater;
 
@@ -26,8 +26,8 @@ namespace Tauron.Application.Localizer.UIModels
             _projectName = project.ProjectName;
             EntryName = target.Key;
 
-           _connection = _entries.Connect().ObserveOnDispatcher().Bind(out var entrys).Subscribe();
-           Entries = entrys;
+            _connection = _entries.Connect().ObserveOnDispatcher().Bind(out var entrys).Subscribe();
+            Entries = entrys;
 
             RemoveCommand = new SimpleCommand(() => remove((_projectName, EntryName)));
             CopyCommand = new SimpleCommand(() => Clipboard.SetText(EntryName));
@@ -48,9 +48,21 @@ namespace Tauron.Application.Localizer.UIModels
 
         public ICommand RemoveCommand { get; }
 
-        private void EntryChanged(string content, ActiveLanguage language) => _updater((_projectName, EntryName, language, content));
+        public void Dispose()
+        {
+            _entries.Dispose();
+            _connection.Dispose();
+        }
 
-        public void AddLanguage(ActiveLanguage lang) => _entries.Add(new ProjectLangEntry(EntryChanged, lang, string.Empty));
+        private void EntryChanged(string content, ActiveLanguage language)
+        {
+            _updater((_projectName, EntryName, language, content));
+        }
+
+        public void AddLanguage(ActiveLanguage lang)
+        {
+            _entries.Add(new ProjectLangEntry(EntryChanged, lang, string.Empty));
+        }
 
         public void Update(LocEntry entry)
         {
@@ -62,12 +74,6 @@ namespace Tauron.Application.Localizer.UIModels
                 else
                     ent.UpdateContent(content);
             }
-        }
-
-        public void Dispose()
-        {
-            _entries.Dispose();
-            _connection.Dispose();
         }
     }
 }

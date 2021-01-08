@@ -7,8 +7,5 @@ namespace Tauron.Application.Workshop.StateManagement.Attributes
     [MeansImplicitUse]
     [PublicAPI]
     [BaseTypeRequired(typeof(IEffect))]
-    public sealed class EffectAttribute : Attribute
-    {
-        
-    }
+    public sealed class EffectAttribute : Attribute { }
 }

@@ -25,7 +25,5 @@ using Akkatecture.Core.VersionedTypes;
 
 namespace Akkatecture.Aggregates.Snapshot
 {
-    public interface ISnapshotDefinitionService : IVersionedTypeDefinitionService<SnapshotVersionAttribute, SnapshotDefinition>
-    {
-    }
+    public interface ISnapshotDefinitionService : IVersionedTypeDefinitionService<SnapshotVersionAttribute, SnapshotDefinition> { }
 }

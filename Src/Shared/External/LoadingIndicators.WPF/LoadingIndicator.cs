@@ -18,14 +18,14 @@ namespace LoadingIndicators.WPF
         /// </summary>
         public static readonly DependencyProperty SpeedRatioProperty =
             DependencyProperty.Register("SpeedRatio", typeof(double), typeof(LoadingIndicator), new PropertyMetadata(1d,
-                OnSpeedRatioChanged));
+                                                                                                                     OnSpeedRatioChanged));
 
         /// <summary>
         ///     Identifies the <see cref="LoadingIndicators.WPF.LoadingIndicator.IsActive" /> dependency property.
         /// </summary>
         public static readonly DependencyProperty IsActiveProperty =
             DependencyProperty.Register("IsActive", typeof(bool), typeof(LoadingIndicator), new PropertyMetadata(true,
-                OnIsActiveChanged));
+                                                                                                                 OnIsActiveChanged));
 
         public static readonly DependencyProperty ModeProperty = DependencyProperty.Register(
             "Mode", typeof(LoadingIndicatorMode), typeof(LoadingIndicator),
@@ -37,7 +37,7 @@ namespace LoadingIndicators.WPF
         static LoadingIndicator()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(LoadingIndicator),
-                new FrameworkPropertyMetadata(typeof(LoadingIndicator)));
+                                                     new FrameworkPropertyMetadata(typeof(LoadingIndicator)));
         }
 
         public LoadingIndicatorMode Mode
@@ -82,7 +82,7 @@ namespace LoadingIndicators.WPF
             if ((bool) e.NewValue == false)
             {
                 VisualStateManager.GoToElementState(li.PART_Border, IndicatorVisualStateNames.InactiveState.Name,
-                    false);
+                                                    false);
                 li.PART_Border.SetCurrentValue(VisibilityProperty, Visibility.Collapsed);
             }
             else
@@ -115,9 +115,9 @@ namespace LoadingIndicators.WPF
             if (PART_Border == null) return;
 
             VisualStateManager.GoToElementState(PART_Border,
-                IsActive
-                    ? IndicatorVisualStateNames.ActiveState.Name
-                    : IndicatorVisualStateNames.InactiveState.Name, false);
+                                                IsActive
+                                                    ? IndicatorVisualStateNames.ActiveState.Name
+                                                    : IndicatorVisualStateNames.InactiveState.Name, false);
 
             SetStoryBoardSpeedRatio(PART_Border, SpeedRatio);
 

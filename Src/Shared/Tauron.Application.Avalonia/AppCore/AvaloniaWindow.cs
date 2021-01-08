@@ -11,11 +11,20 @@ namespace Tauron.Application.Avalonia.AppCore
     {
         private readonly global::Avalonia.Controls.Window _window;
 
-        public AvaloniaWindow(global::Avalonia.Controls.Window window) 
-            : base(window) => _window = window;
+        public AvaloniaWindow(global::Avalonia.Controls.Window window)
+            : base(window)
+            => _window = window;
 
-        public void Show() => _window.Show();
-        public void Hide() => _window.Hide();
+        public void Show()
+        {
+            _window.Show();
+        }
+
+        public void Hide()
+        {
+            _window.Hide();
+        }
+
         public Task<bool?> ShowDialog() => _window.ShowDialog<bool?>((Window) _window.Owner);
 
         public override IObservable<Unit> Loaded

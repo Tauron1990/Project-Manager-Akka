@@ -37,7 +37,7 @@ namespace Akkatecture.ValueObjects
     [PublicAPI]
     public abstract class ValueObject
     {
-        private static readonly ConcurrentDictionary<Type, IReadOnlyCollection<PropertyInfo>> TypeProperties = new ConcurrentDictionary<Type, IReadOnlyCollection<PropertyInfo>>();
+        private static readonly ConcurrentDictionary<Type, IReadOnlyCollection<PropertyInfo>> TypeProperties = new();
 
         public override bool Equals(object? obj)
         {
@@ -74,10 +74,10 @@ namespace Akkatecture.ValueObjects
             return TypeProperties.GetOrAdd(
                 GetType(),
                 t => t
-                   .GetTypeInfo()
-                   .GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                   .OrderBy(p => p.Name)
-                   .ToList());
+                    .GetTypeInfo()
+                    .GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                    .OrderBy(p => p.Name)
+                    .ToList());
         }
     }
 }

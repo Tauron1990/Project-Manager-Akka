@@ -32,6 +32,10 @@ namespace Akkatecture.Specifications.Provided
 {
     public class AggregateIsNewSpecification : Specification<IAggregateRoot>
     {
+        public static readonly AggregateIsNewSpecification Instance = new();
+
+        private AggregateIsNewSpecification() { }
+
         protected override IEnumerable<string> IsNotSatisfiedBecause(IAggregateRoot aggregate)
         {
             if (!aggregate.IsNew) yield return $"'{aggregate.Name}' with ID '{aggregate.GetIdentity()}' is not new";

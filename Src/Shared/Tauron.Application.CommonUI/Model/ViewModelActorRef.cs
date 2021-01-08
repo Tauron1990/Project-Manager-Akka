@@ -16,13 +16,13 @@ namespace Tauron.Application.CommonUI.Model
     }
 
     [PublicAPI]
-    public sealed class ViewModelActorRef<TModel> : ViewModelActorRef,  IViewModel<TModel>
+    public sealed class ViewModelActorRef<TModel> : ViewModelActorRef, IViewModel<TModel>
         where TModel : UiActor
     {
+        private IActorRef _actor = ActorRefs.Nobody;
         private bool _isInitialized;
 
         private List<Action>? _waiter = new();
-        private  IActorRef _actor = ActorRefs.Nobody;
 
         public override IActorRef Actor => _actor;
 
@@ -48,7 +48,7 @@ namespace Tauron.Application.CommonUI.Model
             lock (this)
             {
                 _isInitialized = true;
-                foreach (var action in _waiter!) 
+                foreach (var action in _waiter!)
                     action();
 
                 _waiter = null;

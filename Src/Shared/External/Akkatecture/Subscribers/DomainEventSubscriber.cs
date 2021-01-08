@@ -31,24 +31,18 @@ using Akka.Event;
 using Akkatecture.Extensions;
 using Akkatecture.Messages;
 using JetBrains.Annotations;
+using Tauron;
 
 namespace Akkatecture.Subscribers
 {
     [PublicAPI]
     public abstract class DomainEventSubscriber : ReceiveActor
     {
-        private IReadOnlyList<Type> SubscriptionTypes { get; }
-        protected ILoggingAdapter Logger { get; }
-        public DomainEventSubscriberSettings Settings { get; }
-
         protected DomainEventSubscriber(
             DomainEventSubscriberSettings? settings = null)
         {
             Logger = Context.GetLogger();
-            if (settings == null)
-                Settings = new DomainEventSubscriberSettings(Context.System.Settings.Config);
-            else
-                Settings = settings;
+            Settings = settings ?? new DomainEventSubscriberSettings(Context.System.Settings.Config);
 
             SubscriptionTypes = new List<Type>();
 
@@ -83,6 +77,10 @@ namespace Akkatecture.Subscribers
             Receive<UnsubscribeFromAll>(Handle);
         }
 
+        private IReadOnlyList<Type> SubscriptionTypes { get; }
+        protected ILoggingAdapter Logger { get; }
+        public DomainEventSubscriberSettings Settings { get; }
+
         public void InitReceives()
         {
             var type = GetType();
@@ -92,31 +90,31 @@ namespace Akkatecture.Subscribers
                    .GetDomainEventSubscriberSubscriptionTypes();
 
             var methods = type
-               .GetTypeInfo()
-               .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-               .Where(mi =>
-                {
-                    if (mi.Name != "Handle") return false;
-                    var parameters = mi.GetParameters();
-                    return
-                        parameters.Length == 1;
-                })
-               .ToDictionary(
-                    mi => mi.GetParameters()[0].ParameterType,
-                    mi => mi);
+                         .GetTypeInfo()
+                         .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                         .Where(mi =>
+                                {
+                                    if (mi.Name != "Handle") return false;
+                                    var parameters = mi.GetParameters();
+                                    return
+                                        parameters.Length == 1;
+                                })
+                         .ToDictionary(
+                              mi => mi.GetParameters()[0].ParameterType,
+                              mi => mi);
 
             var method = type
-               .GetBaseType("ReceiveActor")
-               .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-               .Where(mi =>
-                {
-                    if (mi.Name != "Receive") return false;
-                    var parameters = mi.GetParameters();
-                    return
-                        parameters.Length == 1
-                     && parameters[0].ParameterType.Name.Contains("Func");
-                })
-               .First();
+                        .GetBaseType("ReceiveActor")
+                        .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                        .Where(mi =>
+                               {
+                                   if (mi.Name != "Receive") return false;
+                                   var parameters = mi.GetParameters();
+                                   return
+                                       parameters.Length == 1
+                                    && parameters[0].ParameterType.Name.Contains("Func");
+                               })
+                        .First();
 
             foreach (var subscriptionType in subscriptionTypes)
             {
@@ -124,7 +122,7 @@ namespace Akkatecture.Subscribers
                 var subscriptionFunction = Delegate.CreateDelegate(funcType, this, methods[subscriptionType]);
                 var actorReceiveMethod = method.MakeGenericMethod(subscriptionType);
 
-                actorReceiveMethod.Invoke(this, new object[] {subscriptionFunction});
+                actorReceiveMethod.InvokeFast(this, subscriptionFunction);
             }
         }
 
@@ -137,32 +135,32 @@ namespace Akkatecture.Subscribers
                    .GetAsyncDomainEventSubscriberSubscriptionTypes();
 
             var methods = type
-               .GetTypeInfo()
-               .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-               .Where(mi =>
-                {
-                    if (mi.Name != "HandleAsync") return false;
-                    var parameters = mi.GetParameters();
-                    return
-                        parameters.Length == 1;
-                })
-               .ToDictionary(
-                    mi => mi.GetParameters()[0].ParameterType,
-                    mi => mi);
+                         .GetTypeInfo()
+                         .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                         .Where(mi =>
+                                {
+                                    if (mi.Name != "HandleAsync") return false;
+                                    var parameters = mi.GetParameters();
+                                    return
+                                        parameters.Length == 1;
+                                })
+                         .ToDictionary(
+                              mi => mi.GetParameters()[0].ParameterType,
+                              mi => mi);
 
 
             var method = type
-               .GetBaseType("ReceiveActor")
-               .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-               .Where(mi =>
-                {
-                    if (mi.Name != "ReceiveAsync") return false;
-                    var parameters = mi.GetParameters();
-                    return
-                        parameters.Length == 2
-                     && parameters[0].ParameterType.Name.Contains("Func");
-                })
-               .First();
+                        .GetBaseType("ReceiveActor")
+                        .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                        .Where(mi =>
+                               {
+                                   if (mi.Name != "ReceiveAsync") return false;
+                                   var parameters = mi.GetParameters();
+                                   return
+                                       parameters.Length == 2
+                                    && parameters[0].ParameterType.Name.Contains("Func");
+                               })
+                        .First();
 
             foreach (var subscriptionType in subscriptionTypes)
             {
@@ -170,7 +168,7 @@ namespace Akkatecture.Subscribers
                 var subscriptionFunction = Delegate.CreateDelegate(funcType, this, methods[subscriptionType]);
                 var actorReceiveMethod = method.MakeGenericMethod(subscriptionType);
 
-                actorReceiveMethod.Invoke(this, new[] {subscriptionFunction, null});
+                actorReceiveMethod.InvokeFast(this, subscriptionFunction, null);
             }
         }
 

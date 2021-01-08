@@ -39,7 +39,7 @@ namespace Tauron.Application.CommonUI.Helper
                     modelAction(model, view);
                     return;
                 }
-                
+
                 void OnElementOnDataContextChanged(object newValue)
                 {
                     if (newValue is IViewModel localModel)
@@ -54,14 +54,17 @@ namespace Tauron.Application.CommonUI.Helper
                 _noContext?.Invoke();
         }
 
-        public override void OnNoContext(Action action) => _noContext = action;
+        public override void OnNoContext(Action action)
+        {
+            _noContext = action;
+        }
     }
 
     public sealed class DisconnectedDataContextRoot : DataContextPromise
     {
-        private Action? _unload;
         private Action<IViewModel, IView>? _modelAction;
         private Action? _noContext;
+        private Action? _unload;
 
         public DisconnectedDataContextRoot(IUIElement elementBase)
         {
@@ -82,11 +85,20 @@ namespace Tauron.Application.CommonUI.Helper
             elementBase.Loaded.Take(1).Subscribe(_ => OnLoad());
         }
 
-        public override void OnUnload(Action unload) => _unload = unload;
+        public override void OnUnload(Action unload)
+        {
+            _unload = unload;
+        }
 
-        public override void OnContext(Action<IViewModel, IView> modelAction) => _modelAction = modelAction;
+        public override void OnContext(Action<IViewModel, IView> modelAction)
+        {
+            _modelAction = modelAction;
+        }
 
-        public override void OnNoContext(Action noContext) => _noContext = noContext;
+        public override void OnNoContext(Action noContext)
+        {
+            _noContext = noContext;
+        }
     }
 
     [PublicAPI]
@@ -172,6 +184,7 @@ namespace Tauron.Application.CommonUI.Helper
                     Log.Debug("Root Found for {Element}", affected.GetType());
                     return binder;
                 }
+
                 affected = affected?.GetPerent();
             } while (affected != null);
 
@@ -220,7 +233,7 @@ namespace Tauron.Application.CommonUI.Helper
             var root = FindRoot(affected);
             if (root is IUIElement element)
                 promise = new RootedDataContextPromise(element);
-            else if(affected is IUIElement affectedElement)
+            else if (affected is IUIElement affectedElement)
                 promise = new DisconnectedDataContextRoot(affectedElement);
 
 

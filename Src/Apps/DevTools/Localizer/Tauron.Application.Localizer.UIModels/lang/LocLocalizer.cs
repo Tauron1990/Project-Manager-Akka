@@ -6,7 +6,8 @@ using Tauron.Localization;
 
 namespace Tauron.Application.Localizer.UIModels.lang
 {
-    [PublicAPI, CompilerGenerated]
+    [PublicAPI]
+    [CompilerGenerated]
     public sealed class LocLocalizer
     {
         private readonly Task<string> _centerViewNewProjectInvalidNameMessage;
@@ -23,6 +24,24 @@ namespace Tauron.Application.Localizer.UIModels.lang
 
         private readonly Task<string> _commonWarnig;
 
+        private readonly Task<string> _mainWindowAnalyerRuleSource;
+
+        private readonly Task<string> _mainWindowAnalyerRuleSourceName;
+
+        private readonly Task<string> _mainWindowBuildProjectAgentCompled;
+
+        private readonly Task<string> _mainWindowBuildProjectFolderBrowserDescription;
+
+        private readonly Task<string> _mainWindowBuildProjectGatherData;
+
+        private readonly Task<string> _mainWindowBuildProjectGenerateCsFile;
+
+        private readonly Task<string> _mainWindowBuildProjectGenerateLangFile;
+
+        private readonly Task<string> _mainWindowBuildProjectLabel;
+
+        private readonly Task<string> _mainWindowBuildprojectNoData;
+
         private readonly Task<string> _mainWindowCloseWarning;
 
         private readonly Task<string> _mainWindowMainMenuFileSaveAs;
@@ -31,7 +50,13 @@ namespace Tauron.Application.Localizer.UIModels.lang
 
         private readonly Task<string> _mainWindowModelLoadProjectSourceEmpty;
 
+        private readonly Task<string> _mainWindowodelBuildProjectOperation;
+
         private readonly Task<string> _mainWindowTitle;
+
+        private readonly Task<string> _newEntryDialogViewCharError;
+
+        private readonly Task<string> _newEntryDialogViewDuplicateError;
 
         private readonly Task<string> _newProjectDialogViewErrorDuplicate;
 
@@ -48,30 +73,6 @@ namespace Tauron.Application.Localizer.UIModels.lang
         private readonly Task<string> _operationControllerSucess;
 
         private readonly Task<string> _projectViewLanguageBoxFirstLabel;
-
-        private readonly Task<string> _newEntryDialogViewDuplicateError;
-
-        private readonly Task<string> _newEntryDialogViewCharError;
-
-        private readonly Task<string> _mainWindowAnalyerRuleSource;
-
-        private readonly Task<string> _mainWindowAnalyerRuleSourceName;
-
-        private readonly Task<string> _mainWindowBuildProjectLabel;
-
-        private readonly Task<string> _mainWindowBuildProjectFolderBrowserDescription;
-
-        private readonly Task<string> _mainWindowodelBuildProjectOperation;
-
-        private readonly Task<string> _mainWindowBuildProjectGatherData;
-
-        private readonly Task<string> _mainWindowBuildprojectNoData;
-
-        private readonly Task<string> _mainWindowBuildProjectGenerateLangFile;
-
-        private readonly Task<string> _mainWindowBuildProjectGenerateCsFile;
-
-        private readonly Task<string> _mainWindowBuildProjectAgentCompled;
 
         public LocLocalizer(ActorSystem system)
         {
@@ -175,7 +176,9 @@ namespace Tauron.Application.Localizer.UIModels.lang
 
         public string ProjectViewLanguageBoxFirstLabel => _projectViewLanguageBoxFirstLabel.Result;
 
-        private static Task<string> ToString(Task<object?> task) 
-            => task.ContinueWith(t => t.Result as string ?? string.Empty);
+        private static Task<string> ToString(Task<object?> task)
+        {
+            return task.ContinueWith(t => t.Result as string ?? string.Empty);
+        }
     }
 }

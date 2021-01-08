@@ -12,7 +12,9 @@ namespace Tauron.Application.Workshop.StateManagement.DataFactorys
 
         public void Register<TSource, TData>(Func<TSource> factory)
             where TSource : IExtendedDataSource<TData>
-            => Map[typeof(TData)] = () => factory();
+        {
+            Map[typeof(TData)] = () => factory();
+        }
 
         public override bool CanSupply(Type dataType) => Map.ContainsKey(dataType);
 

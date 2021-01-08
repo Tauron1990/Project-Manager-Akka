@@ -26,9 +26,9 @@ namespace Tauron.Application.CommonUI.Model
     {
         private readonly Dictionary<string, CommandRegistration> _commandRegistrations = new();
         private readonly GroupDictionary<string, InvokeHelper> _eventRegistrations = new();
-        private readonly Dictionary<string, PropertyData> _propertys = new();
         private readonly Subject<string> _onPropertyChanged = new();
-            
+        private readonly Dictionary<string, PropertyData> _propertys = new();
+
         private bool _isSeald;
 
         protected UiActor(ILifetimeScope lifetimeScope, IUIDispatcher dispatcher)
@@ -73,14 +73,147 @@ namespace Tauron.Application.CommonUI.Model
             Receive<InitParentViewModel>(InitParentViewModel);
             Receive<ReviveActor>(RestartActor);
         }
-        
+
         #region ControlEvents
 
-        protected virtual void SetControl(string name, IUIElement element)
-        {
-        }
+        protected virtual void SetControl(string name, IUIElement element) { }
 
         #endregion
+
+        private sealed class PropertyTermination
+        {
+            public PropertyTermination(IActorRef actorRef, string name)
+            {
+                ActorRef = actorRef;
+                Name = name;
+            }
+
+            public IActorRef ActorRef { get; }
+
+            public string Name { get; }
+        }
+
+        private sealed class CommandRegistration
+        {
+            public CommandRegistration(Action<object?> command, Func<bool> canExecute)
+            {
+                Command = command;
+                CanExecute = canExecute;
+            }
+
+            public Action<object?> Command { get; }
+
+            public Func<bool> CanExecute { get; }
+        }
+
+        private sealed class InvokeHelper
+        {
+            private readonly Delegate _method;
+            private readonly MethodType _methodType;
+
+            public InvokeHelper(Delegate del)
+            {
+                _method = del;
+                var method = del.Method;
+
+                _methodType = (MethodType) method.GetParameters().Length;
+                if (_methodType != MethodType.One) return;
+                if (method.GetParameters()[0].ParameterType != typeof(EventData)) _methodType = MethodType.EventArgs;
+            }
+
+            public void Execute(EventData? parameter)
+            {
+                var args = _methodType switch
+                           {
+                               MethodType.Zero      => Array.Empty<object>(),
+                               MethodType.One       => new object[] {parameter!},
+                               MethodType.Two       => new[] {parameter?.Sender, parameter?.EventArgs},
+                               MethodType.EventArgs => new[] {parameter?.EventArgs},
+                               _                    => Array.Empty<object>()
+                           };
+
+                _method.Method.InvokeFast(_method.Target, args);
+            }
+
+            private enum MethodType
+            {
+                Zero = 0,
+                One,
+                Two,
+                EventArgs
+            }
+        }
+
+        private sealed class PropertyData
+        {
+            public PropertyData(UIPropertyBase propertyBase) => PropertyBase = propertyBase;
+
+            public UIPropertyBase PropertyBase { get; }
+
+            public Error? Error { get; set; }
+
+            public List<IActorRef> Subscriptors { get; } = new();
+
+            public void SetValue(object value)
+            {
+                PropertyBase.ObjectValue = value;
+            }
+        }
+
+        private sealed class ActorCommand : CommandBase, IDisposable
+        {
+            private readonly BehaviorSubject<bool> _canExecute = new(false);
+            private readonly AtomicBoolean _deactivated = new();
+            private readonly IUIDispatcher _dispatcher;
+            private readonly SingleAssignmentDisposable _disposable = new();
+            private readonly string _name;
+            private readonly IActorRef _self;
+
+            public ActorCommand(string name, IActorRef self, IObservable<bool>? canExecute, IUIDispatcher dispatcher)
+            {
+                _name = name;
+                _self = self;
+                _dispatcher = dispatcher;
+                if (canExecute == null)
+                    _canExecute.OnNext(true);
+                else
+                {
+                    _disposable.Disposable = canExecute.Subscribe(b =>
+                                                                  {
+                                                                      _canExecute.OnNext(b);
+                                                                      _dispatcher.Post(RaiseCanExecuteChanged);
+                                                                  });
+                }
+            }
+
+            public void Dispose()
+            {
+                _canExecute.Dispose();
+                _disposable.Dispose();
+            }
+
+            public override void Execute(object? parameter)
+            {
+                _self.Tell(new CommandExecuteEvent(_name, parameter));
+            }
+
+            public override bool CanExecute(object? parameter) => _canExecute.Value;
+
+            public void Deactivate()
+            {
+                _deactivated.GetAndSet(true);
+                _canExecute.OnNext(false);
+                _canExecute.OnCompleted();
+                _dispatcher.Post(RaiseCanExecuteChanged);
+            }
+        }
+
+        private sealed class ReviveActor
+        {
+            public ReviveActor(KeyValuePair<string, PropertyData>[] data) => Data = data;
+
+            public KeyValuePair<string, PropertyData>[] Data { get; }
+        }
 
         #region Dispatcher
 
@@ -94,10 +227,7 @@ namespace Tauron.Application.CommonUI.Model
 
         protected Task UICall(Action executor) => Dispatcher.InvokeAsync(executor);
 
-        protected IObservable<T> UICall<T>(Func<Task<T>> executor)
-        {
-            return Dispatcher.InvokeAsync(executor);
-        }
+        protected IObservable<T> UICall<T>(Func<Task<T>> executor) => Dispatcher.InvokeAsync(executor);
 
         protected IObservable<T> UICall<T>(Func<IUntypedActorContext, Task<T>> executor)
         {
@@ -120,33 +250,33 @@ namespace Tauron.Application.CommonUI.Model
             else
                 Log.Error("Command not Found {Name}", name);
         }
-        
+
         protected void InvokeCommand(string name)
         {
-            if(!_commandRegistrations.TryGetValue(name, out var cr))
+            if (!_commandRegistrations.TryGetValue(name, out var cr))
                 return;
 
-            if (cr.CanExecute()) 
+            if (cr.CanExecute())
                 cr.Command(null);
         }
 
         protected CommandRegistrationBuilder NewCommad
             => new(
-                   (key, command, canExecute) =>
-                   {
-                       var actorCommand = new ActorCommand(key, Context.Self, canExecute, Dispatcher).DisposeWith(this);
-                       var prop = new UIProperty<ICommand>(key).ForceSet(actorCommand);
-                       prop.LockSet();
-                       var data = new PropertyData(prop);
+                (key, command, canExecute) =>
+                {
+                    var actorCommand = new ActorCommand(key, Context.Self, canExecute, Dispatcher).DisposeWith(this);
+                    var prop = new UIProperty<ICommand>(key).ForceSet(actorCommand);
+                    prop.LockSet();
+                    var data = new PropertyData(prop);
 
-                       _propertys.Add(key, data);
+                    _propertys.Add(key, data);
 
-                       PropertyValueChanged(data);
-                       
-                       _commandRegistrations.Add(key, new CommandRegistration(command, () => actorCommand.CanExecute(null)));
+                    PropertyValueChanged(data);
 
-                       return data.PropertyBase;
-                   }, this);
+                    _commandRegistrations.Add(key, new CommandRegistration(command, () => actorCommand.CanExecute(null)));
+
+                    return data.PropertyBase;
+                }, this);
 
         #endregion
 
@@ -155,10 +285,8 @@ namespace Tauron.Application.CommonUI.Model
         private void RestartActor(ReviveActor actor)
         {
             foreach (var (name, data) in actor.Data)
-            {
-                foreach (var actorRef in data.Subscriptors)
-                    TrackProperty(new TrackPropertyEvent(name), actorRef);
-            }
+            foreach (var actorRef in data.Subscriptors)
+                TrackProperty(new TrackPropertyEvent(name), actorRef);
         }
 
         protected override void PreRestart(Exception reason, object message)
@@ -177,9 +305,7 @@ namespace Tauron.Application.CommonUI.Model
             base.PreRestart(reason, message);
         }
 
-        protected virtual void ActorTermination(Terminated obj)
-        {
-        }
+        protected virtual void ActorTermination(Terminated obj) { }
 
         protected override void PostStop()
         {
@@ -202,11 +328,12 @@ namespace Tauron.Application.CommonUI.Model
         }
 
         protected void ShowWindow<TWindow>()
-            where TWindow : IWindow => Dispatcher.Post(() => LifetimeScope.Resolve<TWindow>().Show());
-
-        protected virtual void Initialize(InitEvent evt)
+            where TWindow : IWindow
         {
+            Dispatcher.Post(() => LifetimeScope.Resolve<TWindow>().Show());
         }
+
+        protected virtual void Initialize(InitEvent evt) { }
 
         protected virtual Task InitializeAsync(InitEvent evt)
         {
@@ -214,14 +341,12 @@ namespace Tauron.Application.CommonUI.Model
             return Task.CompletedTask;
         }
 
-        protected virtual void ControlUnload(UnloadEvent obj)
-        { 
-        }
+        protected virtual void ControlUnload(UnloadEvent obj) { }
 
         protected virtual void InitParentViewModel(InitParentViewModel obj)
         {
             ViewModelSuperviser.Get(Context.System)
-               .Create(obj.Model);
+                               .Create(obj.Model);
         }
 
         #endregion
@@ -261,8 +386,8 @@ namespace Tauron.Application.CommonUI.Model
         private void GetPropertyValue(GetValueRequest obj)
         {
             Context.Sender.Tell(_propertys.TryGetValue(obj.Name, out var propertyData)
-                ? new GetValueResponse(obj.Name, propertyData.PropertyBase.ObjectValue)
-                : new GetValueResponse(obj.Name, null));
+                                    ? new GetValueResponse(obj.Name, propertyData.PropertyBase.ObjectValue)
+                                    : new GetValueResponse(obj.Name, null));
         }
 
         private void SetPropertyValue(SetValue obj)
@@ -320,141 +445,8 @@ namespace Tauron.Application.CommonUI.Model
             _propertys.Add(prop.Name, data);
         }
 
-        public UIProperty<TData> Property<TData>(Expression<Func<UIProperty<TData>>> propName) 
-            => (UIProperty<TData>) _propertys[Reflex.PropertyName(propName)].PropertyBase;
+        public UIProperty<TData> Property<TData>(Expression<Func<UIProperty<TData>>> propName) => (UIProperty<TData>) _propertys[Reflex.PropertyName(propName)].PropertyBase;
 
         #endregion
-
-        private sealed class PropertyTermination
-        {
-            public PropertyTermination(IActorRef actorRef, string name)
-            {
-                ActorRef = actorRef;
-                Name = name;
-            }
-
-            public IActorRef ActorRef { get; }
-
-            public string Name { get; }
-        }
-
-        private sealed class CommandRegistration
-        {
-            public CommandRegistration(Action<object?> command, Func<bool> canExecute)
-            {
-                Command = command;
-                CanExecute = canExecute;
-            }
-
-            public Action<object?> Command { get; }
-
-            public Func<bool> CanExecute { get; }
-        }
-
-        private sealed class InvokeHelper
-        {
-            private readonly Delegate _method;
-            private readonly MethodType _methodType;
-
-            public InvokeHelper(Delegate del)
-            {
-                _method = del;
-                var method = del.Method;
-
-                _methodType = (MethodType)method.GetParameters().Length;
-                if (_methodType != MethodType.One) return;
-                if (method.GetParameters()[0].ParameterType != typeof(EventData)) _methodType = MethodType.EventArgs;
-            }
-
-            public void Execute(EventData? parameter)
-            {
-                var args = _methodType switch
-                {
-                    MethodType.Zero => Array.Empty<object>(),
-                    MethodType.One => new object[] { parameter! },
-                    MethodType.Two => new[] { parameter?.Sender, parameter?.EventArgs },
-                    MethodType.EventArgs => new[] { parameter?.EventArgs },
-                    _ => Array.Empty<object>()
-                };
-
-                _method.Method.InvokeFast(_method.Target, args);
-            }
-
-            private enum MethodType
-            {
-                Zero = 0,
-                One,
-                Two,
-                EventArgs
-            }
-        }
-
-        private sealed class PropertyData
-        {
-            public PropertyData(UIPropertyBase propertyBase)
-            {
-                PropertyBase = propertyBase;
-            }
-
-            public UIPropertyBase PropertyBase { get; }
-
-            public Error? Error { get; set; }
-
-            public List<IActorRef> Subscriptors { get; } = new();
-
-            public void SetValue(object value) => PropertyBase.ObjectValue = value;
-        }
-
-        private sealed class ActorCommand : CommandBase, IDisposable
-        {
-            private readonly string _name;
-            private readonly IActorRef _self;
-            private readonly IUIDispatcher _dispatcher;
-            private readonly BehaviorSubject<bool> _canExecute = new(false);
-            private readonly AtomicBoolean _deactivated = new();
-            private readonly SingleAssignmentDisposable _disposable = new();
-            
-            public ActorCommand(string name, IActorRef self, IObservable<bool>? canExecute, IUIDispatcher dispatcher)
-            {
-                _name = name;
-                _self = self;
-                _dispatcher = dispatcher;
-                if (canExecute == null)
-                    _canExecute.OnNext(true);
-                else
-                {
-                    _disposable.Disposable = canExecute.Subscribe(b =>
-                                                                  {
-                                                                      _canExecute.OnNext(b);
-                                                                      _dispatcher.Post(RaiseCanExecuteChanged);
-                                                                  });
-                }
-            }
-
-            public override void Execute(object? parameter) => _self.Tell(new CommandExecuteEvent(_name, parameter));
-
-            public override bool CanExecute(object? parameter) => _canExecute.Value;
-
-            public void Deactivate()
-            {
-                _deactivated.GetAndSet(true);
-                _canExecute.OnNext(false);
-                _canExecute.OnCompleted();
-                _dispatcher.Post(RaiseCanExecuteChanged);
-            }
-
-            public void Dispose()
-            {
-                _canExecute.Dispose();
-                _disposable.Dispose();
-            }
-        }
-
-        private sealed class ReviveActor
-        {
-            public KeyValuePair<string, PropertyData>[] Data { get; }
-
-            public ReviveActor(KeyValuePair<string, PropertyData>[] data) => Data = data;
-        }
     }
 }

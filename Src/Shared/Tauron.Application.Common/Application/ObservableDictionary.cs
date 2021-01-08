@@ -18,20 +18,15 @@ namespace Tauron.Application
     {
         private Entry[] _entrys;
 
-        [NonSerialized] 
-        private BlockHelper _helper;
+        [NonSerialized] private BlockHelper _helper;
 
-        [NonSerialized] 
-        private IEqualityComparer<TKey> _keyEquals;
+        [NonSerialized] private IEqualityComparer<TKey> _keyEquals;
 
-        [NonSerialized]
-        private KeyCollection _keys;
+        [NonSerialized] private KeyCollection _keys;
 
-        [NonSerialized] 
-        private ValueCollection _values;
+        [NonSerialized] private ValueCollection _values;
 
-        [NonSerialized] 
-        private int _version;
+        [NonSerialized] private int _version;
 
         public ObservableDictionary()
         {
@@ -60,9 +55,7 @@ namespace Tauron.Application
                 var entry = FindEntry(key, out var index);
 
                 if (entry == null)
-                {
                     AddCore(key, value);
-                }
                 else
                 {
                     var temp = Entry.Construct(entry);
@@ -94,10 +87,7 @@ namespace Tauron.Application
             OnCollectionReset();
         }
 
-        public bool ContainsKey(TKey key)
-        {
-            return FindEntry(key, out _) != null;
-        }
+        public bool ContainsKey(TKey key) => FindEntry(key, out _) != null;
 
         public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
         {
@@ -163,15 +153,9 @@ namespace Tauron.Application
             }
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> item)
-        {
-            return Remove(item.Key);
-        }
+        bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> item) => Remove(item.Key);
 
         public event NotifyCollectionChangedEventHandler? CollectionChanged;
 
@@ -240,7 +224,7 @@ namespace Tauron.Application
             {
                 InvokeCollectionChanged(
                     new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, changed,
-                        index));
+                                                         index));
                 _keys.OnCollectionAdd(changed.Key, index);
                 _values.OnCollectionAdd(changed.Value, index);
                 InvokePropertyChanged();
@@ -253,7 +237,7 @@ namespace Tauron.Application
             {
                 InvokeCollectionChanged(
                     new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove,
-                        changed, index));
+                                                         changed, index));
                 _keys.OnCollectionRemove(changed.Key, index);
                 _values.OnCollectionRemove(changed.Value, index);
                 InvokePropertyChanged();
@@ -266,7 +250,7 @@ namespace Tauron.Application
             {
                 InvokeCollectionChanged(
                     new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace,
-                        newItem, oldItem, index));
+                                                         newItem, oldItem, index));
                 _values.OnCollectionReplace(newItem.Value, oldItem.Value, index);
                 InvokePropertyChanged();
             }
@@ -315,10 +299,7 @@ namespace Tauron.Application
 
             [AllowNull] public TValue Value = default!;
 
-            public static KeyValuePair<TKey, TValue> Construct(TKey key, TValue value)
-            {
-                return new KeyValuePair<TKey, TValue>(key, value);
-            }
+            public static KeyValuePair<TKey, TValue> Construct(TKey key, TValue value) => new(key, value);
 
             public static KeyValuePair<TKey, TValue> Construct(Entry entry)
             {
@@ -334,11 +315,9 @@ namespace Tauron.Application
             public KeyCollection(ObservableDictionary<TKey, TValue> collection)
                 : base(collection) { }
 
-            protected override bool Contains(Entry entry, TKey target) 
-                => entry != null && Dictionary._keyEquals.Equals(entry.Key, target);
+            protected override bool Contains(Entry entry, TKey target) => entry != null && Dictionary._keyEquals.Equals(entry.Key, target);
 
-            protected override TKey Select(Entry entry) 
-                => entry.Key;
+            protected override TKey Select(Entry entry) => entry.Key;
         }
 
         [Serializable]
@@ -347,15 +326,9 @@ namespace Tauron.Application
         {
             protected readonly ObservableDictionary<TKey, TValue> Dictionary;
 
-            protected NotifyCollectionChangedBase(ObservableDictionary<TKey, TValue> dictionary)
-            {
-                Dictionary = Argument.NotNull(dictionary, nameof(dictionary));
-            }
+            protected NotifyCollectionChangedBase(ObservableDictionary<TKey, TValue> dictionary) => Dictionary = Argument.NotNull(dictionary, nameof(dictionary));
 
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return GetEnumerator();
-            }
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
             public int Count => Dictionary.Count;
 
@@ -403,10 +376,7 @@ namespace Tauron.Application
                 }
             }
 
-            public bool Remove(TTarget item)
-            {
-                throw new NotSupportedException();
-            }
+            public bool Remove(TTarget item) => throw new NotSupportedException();
 
             public event NotifyCollectionChangedEventHandler? CollectionChanged;
 
@@ -456,11 +426,9 @@ namespace Tauron.Application
             public ValueCollection(ObservableDictionary<TKey, TValue> collection)
                 : base(collection) { }
 
-            protected override bool Contains(Entry entry, TValue target) 
-                => EqualityComparer<TValue>.Default.Equals(entry.Value, target);
+            protected override bool Contains(Entry entry, TValue target) => EqualityComparer<TValue>.Default.Equals(entry.Value, target);
 
-            protected override TValue Select(Entry entry) 
-                => entry.Value;
+            protected override TValue Select(Entry entry) => entry.Value;
         }
     }
 }

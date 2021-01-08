@@ -13,12 +13,6 @@ namespace Tauron
 
         public bool IsDisposed => _isDisposed.Value;
 
-        protected void ThrowDispose()
-        {
-            if(_isDisposed.Value)
-                throw new ObjectDisposedException(nameof(GetType));
-        }
-
 
         public void Dispose()
         {
@@ -26,15 +20,25 @@ namespace Tauron
             GC.SuppressFinalize(this);
         }
 
-        public void TrackDispose(Action action)
-            => _tracker = _tracker.Combine(action);
+        protected void ThrowDispose()
+        {
+            if (_isDisposed.Value)
+                throw new ObjectDisposedException(nameof(GetType));
+        }
 
-        public void RemoveTrackDispose(Action action) 
-            => _tracker = _tracker.Remove(action);
+        public void TrackDispose(Action action)
+        {
+            _tracker = _tracker.Combine(action);
+        }
+
+        public void RemoveTrackDispose(Action action)
+        {
+            _tracker = _tracker.Remove(action);
+        }
 
         protected void Dispose(bool disposing)
         {
-            if(!_isDisposed.GetAndSet(true))
+            if (!_isDisposed.GetAndSet(true))
                 return;
 
             DisposeCore(disposing);

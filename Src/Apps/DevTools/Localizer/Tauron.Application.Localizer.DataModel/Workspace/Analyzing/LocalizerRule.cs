@@ -25,7 +25,9 @@ namespace Tauron.Application.Localizer.DataModel.Workspace.Analyzing
 
         protected abstract void RegisterRespond(IExpandedReceiveActor actor);
 
-        protected void RegisterRespond<TData>(IEventSource<TData> source, Func<TData, IEnumerable<Issue.IssueCompleter>> validator) 
-            => Actor.RespondOnEventSource(source, data => SendIssues(validator(data), ExpandedReceiveActor.ExposedContext));
+        protected void RegisterRespond<TData>(IEventSource<TData> source, Func<TData, IEnumerable<Issue.IssueCompleter>> validator)
+        {
+            Actor.RespondOnEventSource(source, data => SendIssues(validator(data), ExpandedReceiveActor.ExposedContext));
+        }
     }
 }

@@ -24,10 +24,7 @@ namespace Tauron.Application.Wpf
             DependencyProperty.RegisterAttached("Events", typeof(string), typeof(EventBinder), new UIPropertyMetadata(null, OnEventsChanged));
 
         [NotNull]
-        public static string GetEvents(DependencyObject obj)
-        {
-            return (string) Argument.NotNull(obj, nameof(obj)).GetValue(EventsProperty);
-        }
+        public static string GetEvents(DependencyObject obj) => (string) Argument.NotNull(obj, nameof(obj)).GetValue(EventsProperty);
 
         public static void SetEvents(DependencyObject obj, string value)
         {
@@ -43,7 +40,7 @@ namespace Tauron.Application.Wpf
             if (root == null)
             {
                 if (d is FrameworkElement)
-                    ControlBindLogic.MakeLazy((IUIElement)ele, e.NewValue as string, e.OldValue as string, BindInternal);
+                    ControlBindLogic.MakeLazy((IUIElement) ele, e.NewValue as string, e.OldValue as string, BindInternal);
                 return;
             }
 
@@ -62,8 +59,8 @@ namespace Tauron.Application.Wpf
 
         private sealed class EventLinker : ControlBindableBase
         {
-            private readonly List<InternalEventLinker> _linkers = new();
             private static readonly ILogger Log = Serilog.Log.ForContext<EventLinker>();
+            private readonly List<InternalEventLinker> _linkers = new();
 
             public string? Commands { get; init; }
 
@@ -122,7 +119,7 @@ namespace Tauron.Application.Wpf
             private class InternalEventLinker : IDisposable
             {
                 private static readonly MethodInfo Method = typeof(InternalEventLinker).GetMethods(BindingFlags.Instance | BindingFlags.NonPublic)
-                    .First(m => m.Name == "Handler");
+                                                                                       .First(m => m.Name == "Handler");
 
                 private static readonly ILogger InternalLog = Log.ForContext<InternalEventLinker>();
 

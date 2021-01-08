@@ -4,8 +4,8 @@
     {
         public sealed class Builder
         {
-            private readonly string _ruleName;
             private readonly string _project;
+            private readonly string _ruleName;
 
             public Builder(string ruleName, string project)
             {
@@ -13,8 +13,7 @@
                 _project = project;
             }
 
-            public AnalyzerEntry Entry(string errorName, string message)
-                => new(_ruleName, _project, message, errorName);
+            public AnalyzerEntry Entry(string errorName, string message) => new(_ruleName, _project, message, errorName);
         }
     }
 }

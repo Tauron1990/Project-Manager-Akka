@@ -37,8 +37,8 @@ namespace Akkatecture.Aggregates
             var aggregateManagerConfig = config.WithFallback(AkkatectureDefaultSettings.DefaultConfig());
             aggregateManagerConfig = aggregateManagerConfig.GetConfig(_section);
 
-            HandleDeadLetters = aggregateManagerConfig.GetBoolean("handle-deadletters");
-            AutoDispatchOnReceive = aggregateManagerConfig.GetBoolean("auto-dispatch-on-receive");
+            HandleDeadLetters = aggregateManagerConfig.GetBoolean("handle-deadletters", true);
+            AutoDispatchOnReceive = aggregateManagerConfig.GetBoolean("auto-dispatch-on-receive", true);
         }
     }
 }

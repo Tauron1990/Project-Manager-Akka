@@ -41,29 +41,29 @@ namespace Akkatecture.Clustering.Core
             var name = typeof(TDomainEventSubscriber).Name;
 
             var domainEventSubscriberProps = Props.Create(domainEventSubscriberFactory);
-            
+
             actorSystem.ActorOf(ClusterSingletonManager.Props(
-                    singletonProps: Props.Create(() => new ClusterParentProxy(domainEventSubscriberProps, true)),
-                    terminationMessage: PoisonPill.Instance,
-                    settings: ClusterSingletonManagerSettings.Create(actorSystem).WithRole(roleName).WithSingletonName(name)),
-                name: name);
+                                    Props.Create(() => new ClusterParentProxy(domainEventSubscriberProps, true)),
+                                    PoisonPill.Instance,
+                                    ClusterSingletonManagerSettings.Create(actorSystem).WithRole(roleName).WithSingletonName(name)),
+                                name);
 
             var proxy = StartSingletonSubscriberProxy(actorSystem, roleName);
 
             actorSystem.ActorOf(Props.Create(() =>
-                new SingletonDomainEventSubscriberDispatcher<TDomainEventSubscriber>(proxy)),$"{typeof(TDomainEventSubscriber).Name}Dispatcher");
-                
+                                                 new SingletonDomainEventSubscriberDispatcher<TDomainEventSubscriber>(proxy)), $"{typeof(TDomainEventSubscriber).Name}Dispatcher");
+
             return proxy;
         }
 
         public static IActorRef StartSingletonSubscriberProxy(ActorSystem actorSystem, string roleName)
         {
             var name = typeof(TDomainEventSubscriber).Name;
-            
+
             var proxy = actorSystem.ActorOf(ClusterSingletonProxy.Props(
-                    singletonManagerPath: $"/user/{name}",
-                    settings: ClusterSingletonProxySettings.Create(actorSystem).WithRole(roleName).WithSingletonName(name)),
-                name: $"{name}Proxy");
+                                                $"/user/{name}",
+                                                ClusterSingletonProxySettings.Create(actorSystem).WithRole(roleName).WithSingletonName(name)),
+                                            $"{name}Proxy");
 
             return proxy;
         }

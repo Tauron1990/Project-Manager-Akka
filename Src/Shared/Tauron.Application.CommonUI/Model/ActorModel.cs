@@ -15,13 +15,13 @@ namespace Tauron.Application.CommonUI.Model
     {
         private readonly Dictionary<Type, Action<IOperationResult>> _compledActions = new();
 
-        public IActionInvoker ActionInvoker { get; }
-
         protected ActorModel(IActionInvoker actionInvoker)
         {
             ActionInvoker = actionInvoker;
             Receive<IOperationResult>(OnOperationCompled);
         }
+
+        public IActionInvoker ActionInvoker { get; }
 
         protected virtual void OnOperationCompled(IOperationResult result)
         {
@@ -42,16 +42,19 @@ namespace Tauron.Application.CommonUI.Model
         }
 
         public UIStateConfiguration<TState> WhenStateChanges<TState>(string? name = null)
-            where TState : class => new(ActionInvoker.GetState<TState>(name ?? string.Empty) ?? throw new ArgumentException("No such State Found"), this);
+            where TState : class
+            => new(ActionInvoker.GetState<TState>(name ?? string.Empty) ?? throw new ArgumentException("No such State Found"), this);
 
         public void DispatchAction(IStateAction action, bool? sendBack = true)
-            => ActionInvoker.Run(action, sendBack);
+        {
+            ActionInvoker.Run(action, sendBack);
+        }
 
         [PublicAPI]
         public sealed class UIStateConfiguration<TState>
         {
-            private readonly TState _state;
             private readonly ActorModel _actor;
+            private readonly TState _state;
 
             public UIStateConfiguration(TState state, ActorModel actor)
             {
@@ -70,8 +73,8 @@ namespace Tauron.Application.CommonUI.Model
         [PublicAPI]
         public sealed class UIStateEventConfiguration<TEvent>
         {
-            private readonly IEventSource<TEvent> _eventSource;
             private readonly ActorModel _actor;
+            private readonly IEventSource<TEvent> _eventSource;
 
             public UIStateEventConfiguration(IEventSource<TEvent> eventSource, ActorModel actor)
             {

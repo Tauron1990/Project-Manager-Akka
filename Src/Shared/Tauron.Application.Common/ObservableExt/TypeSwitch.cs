@@ -7,8 +7,7 @@ namespace Tauron.ObservableExt
     [PublicAPI]
     public static class TypeSwitchExtension
     {
-        public static TypeSwitchTypeConfig<TSource> TypeSwitch<TSource>(this IObservable<TSource> observable)
-            => new(observable.ConditionalSelect());
+        public static TypeSwitchTypeConfig<TSource> TypeSwitch<TSource>(this IObservable<TSource> observable) => new(observable.ConditionalSelect());
     }
 
     [PublicAPI]
@@ -27,8 +26,7 @@ namespace Tauron.ObservableExt
                                                  });
         }
 
-        public IObservable<TSource> ToSame(Action<TypeSwitchSelectBuilder<TSource, TSource>> builder)
-            => ToResult(builder);
+        public IObservable<TSource> ToSame(Action<TypeSwitchSelectBuilder<TSource, TSource>> builder) => ToResult(builder);
     }
 
     [PublicAPI]
@@ -41,8 +39,7 @@ namespace Tauron.ObservableExt
         public TypeSwitchSelectBuilder<TSource, TResult> When<TType>(Func<IObservable<TType>, IObservable<TResult>> then)
             where TType : TSource
         {
-            
-            _registrations.Add(s => s is TType, o => then(o.Select(obj => (TType)obj!)));
+            _registrations.Add(s => s is TType, o => then(o.Select(obj => (TType) obj!)));
             return this;
         }
     }

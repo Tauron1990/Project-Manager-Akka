@@ -18,10 +18,7 @@ namespace Tauron.Application.Settings.Provider
             _fileName = Path.GetFullPath(fileName);
         }
 
-        public ImmutableDictionary<string, string> Load()
-        {
-            return File.Exists(_fileName) ? JsonConvert.DeserializeObject<ImmutableDictionary<string, string>>(File.ReadAllText(_fileName)) : ImmutableDictionary<string, string>.Empty;
-        }
+        public ImmutableDictionary<string, string> Load() => File.Exists(_fileName) ? JsonConvert.DeserializeObject<ImmutableDictionary<string, string>>(File.ReadAllText(_fileName)) : ImmutableDictionary<string, string>.Empty;
 
         public void Save(ImmutableDictionary<string, string> data)
         {

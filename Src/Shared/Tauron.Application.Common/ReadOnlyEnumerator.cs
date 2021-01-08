@@ -9,13 +9,10 @@ namespace Tauron
     {
         private readonly IEnumerable<T> _enumerable;
 
-        public ReadOnlyEnumerator([NotNull] IEnumerable<T> enumerable) 
-            => _enumerable = enumerable;
+        public ReadOnlyEnumerator([NotNull] IEnumerable<T> enumerable) => _enumerable = enumerable;
 
-        public IEnumerator<T> GetEnumerator() 
-            => _enumerable.GetEnumerator();
+        public IEnumerator<T> GetEnumerator() => _enumerable.GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator() 
-            => GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

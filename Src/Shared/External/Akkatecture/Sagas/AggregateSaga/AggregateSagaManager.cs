@@ -38,11 +38,6 @@ namespace Akkatecture.Sagas.AggregateSaga
         where TIdentity : SagaId<TIdentity>
         where TSagaLocator : class, ISagaLocator<TIdentity>, new()
     {
-        private IReadOnlyList<Type> _subscriptionTypes { get; }
-        protected ILoggingAdapter Logger { get; }
-        protected TSagaLocator SagaLocator { get; }
-        public AggregateSagaManagerSettings Settings { get; }
-
         protected AggregateSagaManager(Expression<Func<TAggregateSaga>> sagaFactory)
         {
             Logger = Context.GetLogger();
@@ -78,7 +73,13 @@ namespace Akkatecture.Sagas.AggregateSaga
             if (Settings.AutoSpawnOnReceive) Receive<IDomainEvent>(Handle);
 
             Receive<UnsubscribeFromAll>(Handle);
+            Receive<Terminated>(Terminate);
         }
+
+        private IReadOnlyList<Type> _subscriptionTypes { get; }
+        protected ILoggingAdapter Logger { get; }
+        protected TSagaLocator SagaLocator { get; }
+        public AggregateSagaManagerSettings Settings { get; }
 
         public Expression<Func<TAggregateSaga>> SagaFactory { get; }
 
@@ -117,7 +118,7 @@ namespace Akkatecture.Sagas.AggregateSaga
                 x =>
                 {
                     Logger.Warning("{0} will supervise Exception={1} to be decided as {2}.",
-                        GetType().PrettyPrint(), x.ToString(), Directive.Restart);
+                                   GetType().PrettyPrint(), x.ToString(), Directive.Restart);
                     return Directive.Restart;
                 });
         }

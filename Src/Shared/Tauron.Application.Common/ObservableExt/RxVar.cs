@@ -9,26 +9,20 @@ namespace Tauron.ObservableExt
     [PublicAPI]
     public static class RxVar
     {
-        public static RxVar<TData> ToRx<TData>(this TData data)
-            => new(data);
+        public static RxVar<TData> ToRx<TData>(this TData data) => new(data);
 
-        public static RxVal<TData> ToRxVal<TData>(this IObservable<TData> stream)
-            => new(stream);
+        public static RxVal<TData> ToRxVal<TData>(this IObservable<TData> stream) => new(stream);
     }
 
     [PublicAPI]
     public sealed class RxVar<T> : IDisposable, IObservable<T>, IObserver<T>, IEquatable<RxVar<T>>, IEquatable<T>, IComparable<T>
     {
-        private readonly CompositeDisposable _disposable = new();
-        private readonly BehaviorSubject<T> _subject;
-        private readonly IEqualityComparer<T> _equalityComparer = EqualityComparer<T>.Default;
         private readonly IComparer<T> _comparer = Comparer<T>.Default;
+        private readonly CompositeDisposable _disposable = new();
+        private readonly IEqualityComparer<T> _equalityComparer = EqualityComparer<T>.Default;
+        private readonly BehaviorSubject<T> _subject;
 
-        public RxVar(T initial)
-            => _subject = new BehaviorSubject<T>(initial).DisposeWith(_disposable);
-
-        public void Dispose()
-            => _disposable.Dispose();
+        public RxVar(T initial) => _subject = new BehaviorSubject<T>(initial).DisposeWith(_disposable);
 
         public bool IsDistinctMode { get; set; }
 
@@ -38,14 +32,28 @@ namespace Tauron.ObservableExt
             set => ((IObserver<T>) this).OnNext(value);
         }
 
-        public IDisposable ListenTo(IObserver<T> intrest)
-            => _subject.Subscribe(intrest).DisposeWith(_disposable);
+        public int CompareTo(T? other) => _comparer.Compare(Value, other);
+
+        public void Dispose()
+        {
+            _disposable.Dispose();
+        }
+
+        public bool Equals(RxVar<T>? other) => other != null && _equalityComparer.Equals(Value, other.Value);
+
+        public bool Equals(T? other) => _equalityComparer.Equals(Value, other);
 
         IDisposable IObservable<T>.Subscribe(IObserver<T> observer) => _subject.Subscribe(observer);
 
-        void IObserver<T>.OnCompleted() => _subject.OnCompleted();
+        void IObserver<T>.OnCompleted()
+        {
+            _subject.OnCompleted();
+        }
 
-        void IObserver<T>.OnError(Exception error) => _subject.OnError(error);
+        void IObserver<T>.OnError(Exception error)
+        {
+            _subject.OnError(error);
+        }
 
         void IObserver<T>.OnNext(T value)
         {
@@ -55,11 +63,7 @@ namespace Tauron.ObservableExt
             _subject.OnNext(value);
         }
 
-        public bool Equals(RxVar<T>? other)
-            => other != null && _equalityComparer.Equals(Value, other.Value);
-
-        public bool Equals(T? other)
-            => _equalityComparer.Equals(Value, other);
+        public IDisposable ListenTo(IObserver<T> intrest) => _subject.Subscribe(intrest).DisposeWith(_disposable);
 
         public override int GetHashCode()
         {
@@ -67,20 +71,18 @@ namespace Tauron.ObservableExt
             return val == null ? 0 : _equalityComparer.GetHashCode(val);
         }
 
-        public int CompareTo(T? other)
-            => _comparer.Compare(Value, other);
-
         public override bool Equals(object? obj)
-            => obj switch
-            {
-                RxVar<T> rxVar => Equals(rxVar),
-                T data => Equals(data),
-                null => false,
-                _ => Equals(this, obj)
-            };
+        {
+            return obj switch
+                   {
+                       RxVar<T> rxVar => Equals(rxVar),
+                       T data         => Equals(data),
+                       null           => false,
+                       _              => Equals(this, obj)
+                   };
+        }
 
-        public static implicit operator T(RxVar<T> v)
-            => v._subject.Value;
+        public static implicit operator T(RxVar<T> v) => v._subject.Value;
 
         public static bool operator ==(RxVar<T> left, T? right) => Equals(left, right);
 
@@ -100,10 +102,10 @@ namespace Tauron.ObservableExt
     [PublicAPI]
     public sealed class RxVal<T> : IDisposable, IObservable<T?>, IEquatable<RxVal<T>>, IEquatable<T>, IComparable<T>, IConvertible
     {
-        private readonly CompositeDisposable _disposable = new();
-        private readonly BehaviorSubject<T?> _subject;
-        private readonly IEqualityComparer<T> _equalityComparer = EqualityComparer<T>.Default;
         private readonly IComparer<T> _comparer = Comparer<T>.Default;
+        private readonly CompositeDisposable _disposable = new();
+        private readonly IEqualityComparer<T> _equalityComparer = EqualityComparer<T>.Default;
+        private readonly BehaviorSubject<T?> _subject;
 
         public RxVal(IObservable<T> source)
         {
@@ -111,21 +113,22 @@ namespace Tauron.ObservableExt
             source.Subscribe(_subject).DisposeWith(_disposable);
         }
 
-        public void Dispose()
-            => _disposable.Dispose();
-
         public T? Value => _subject.Value;
 
-        public IDisposable ListenTo(IObserver<T?> intrest)
-            => _subject.Subscribe(intrest).DisposeWith(_disposable);
+        public int CompareTo(T? other) => _comparer.Compare(Value, other);
+
+        public void Dispose()
+        {
+            _disposable.Dispose();
+        }
+
+        public bool Equals(RxVal<T>? other) => other != null && _equalityComparer.Equals(Value, other.Value);
+
+        public bool Equals(T? other) => _equalityComparer.Equals(Value, other);
 
         IDisposable IObservable<T?>.Subscribe(IObserver<T?> observer) => _subject.Subscribe(observer);
 
-        public bool Equals(RxVal<T>? other)
-            => other != null && _equalityComparer.Equals(Value, other.Value);
-
-        public bool Equals(T? other)
-            => _equalityComparer.Equals(Value, other);
+        public IDisposable ListenTo(IObserver<T?> intrest) => _subject.Subscribe(intrest).DisposeWith(_disposable);
 
         public override int GetHashCode()
         {
@@ -133,20 +136,18 @@ namespace Tauron.ObservableExt
             return val == null ? 0 : _equalityComparer.GetHashCode(val);
         }
 
-        public int CompareTo(T? other)
-            => _comparer.Compare(Value, other);
-
         public override bool Equals(object? obj)
-            => obj switch
-            {
-                RxVar<T> rxVar => Equals(rxVar),
-                T data => Equals(data),
-                null => false,
-                _ => Equals(this, obj)
-            };
+        {
+            return obj switch
+                   {
+                       RxVar<T> rxVar => Equals(rxVar),
+                       T data         => Equals(data),
+                       null           => false,
+                       _              => Equals(this, obj)
+                   };
+        }
 
-        public static implicit operator T?(RxVal<T> v)
-            => v._subject.Value;
+        public static implicit operator T?(RxVal<T> v) => v._subject.Value;
 
         public static bool operator ==(RxVal<T> left, T? right) => Equals(left, right);
 

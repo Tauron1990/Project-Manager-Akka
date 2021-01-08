@@ -47,19 +47,15 @@ namespace AkkaTest.Test
                 action();
         }
 
-        public Maybe<TResult> Map<TResult>(Func<TValue, TResult?> map) 
-            => HasValue && Value is not null ? new(map(Value), true) : new();
+        public Maybe<TResult> Map<TResult>(Func<TValue, TResult?> map) => HasValue && Value is not null ? new Maybe<TResult>(map(Value), true) : new Maybe<TResult>();
 
-        public Maybe<TResult> Bind<TResult>(Func<TValue, Maybe<TResult>> map)
-            => HasValue && Value is not null ? map(Value) : new();
+        public Maybe<TResult> Bind<TResult>(Func<TValue, Maybe<TResult>> map) => HasValue && Value is not null ? map(Value) : new Maybe<TResult>();
 
-        public Maybe<TValue> AsNothing()
-            => new();
+        public Maybe<TValue> AsNothing() => new();
 
         public Maybe<TValue> AsMaybe() => this;
 
-        public Maybe<TValue> WithValue(TValue value)
-            => new(value, true);
+        public Maybe<TValue> WithValue(TValue value) => new(value, true);
     }
 
     [PublicAPI]
@@ -68,29 +64,29 @@ namespace AkkaTest.Test
         public static Maybe<TValue> Just<TValue>(TValue? value)
         {
             if (value is null)
-                return new();
-            return new(value, true);
+                return new Maybe<TValue>();
+            return new Maybe<TValue>(value, true);
         }
 
-        public static Maybe<TValue> Nothing<TValue>()
-            => new();
+        public static Maybe<TValue> Nothing<TValue>() => new();
 
         public static Maybe<TValue> From<TValue>(Func<TValue?> factory)
         {
             var val = factory();
             if (val is null)
-                return new();
-            return new(val, true);
+                return new Maybe<TValue>();
+            return new Maybe<TValue>(val, true);
         }
     }
 
     public static class MaybeExtensions
     {
-        public static Maybe<TResult> Select<TValue, TResult>(this IMaybe<TValue> source, Func<TValue, TResult> selector)
-            => source.Map(selector);
+        public static Maybe<TResult> Select<TValue, TResult>(this IMaybe<TValue> source, Func<TValue, TResult> selector) => source.Map(selector);
 
         public static Maybe<TValue> Where<TValue>(this IMaybe<TValue> value, Predicate<TValue> predicate)
-            => value.Bind(v => predicate(v) ? value.AsMaybe() : value.AsNothing());
+        {
+            return value.Bind(v => predicate(v) ? value.AsMaybe() : value.AsNothing());
+        }
 
         //public static Maybe<(TValue1, TValue2)> Combine<TValue1, TValue2>(this IMaybe<TValue1> first, IMaybe<TValue2> second)
         //{

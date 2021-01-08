@@ -34,13 +34,13 @@ namespace Tauron.Application.CommonUI.UI
                               Model = model;
 
                               if (model.IsInitialized)
-                              {
                                   Task.Run(async () => await InitAsync());
-                              }
                               else
                               {
-                                  void OnModelOnInitialized() 
-                                      => Task.Run(async () => await InitAsync());
+                                  void OnModelOnInitialized()
+                                  {
+                                      Task.Run(async () => await InitAsync());
+                                  }
 
                                   model.AwaitInit(OnModelOnInitialized);
                               }

@@ -10,9 +10,7 @@ namespace Tauron.Application.Localizer.UIModels
         private ImmutableList<string>? _renctFiles;
 
         public AppConfig(IDefaultActorRef<SettingsManager> actor, string scope)
-            : base(actor, scope)
-        {
-        }
+            : base(actor, scope) { }
 
         public ImmutableList<string> RenctFiles
         {

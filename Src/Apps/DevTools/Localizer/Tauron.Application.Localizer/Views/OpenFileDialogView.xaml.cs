@@ -38,8 +38,8 @@ namespace Tauron.Application.Localizer.Views
         private void Search_OnClick(object sender, RoutedEventArgs e)
         {
             var result = _dialogFactory.ShowOpenFileDialog(null, _filemode == OpenFileMode.OpenExistingFile, "transp", true, _localizer.OpenFileDialogViewDialogFilter, false,
-                _localizer.OpenFileDialogViewDialogTitle,
-                true, true)
+                                                           _localizer.OpenFileDialogViewDialogTitle,
+                                                           true, true)
                                        .NotNull()
                                        .Select(s => s.FirstOrDefault())
                                        .NotNull()

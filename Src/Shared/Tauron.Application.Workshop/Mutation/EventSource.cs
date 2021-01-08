@@ -19,6 +19,9 @@ namespace Tauron.Application.Workshop.Mutation
         }
 
         public EventSource(WorkspaceSuperviser superviser, Task<IActorRef> mutator, IObservable<TRespond> handler)
-            : base(mutator, superviser) => handler.Subscribe(Sender());
+            : base(mutator, superviser)
+        {
+            handler.Subscribe(Sender());
+        }
     }
 }

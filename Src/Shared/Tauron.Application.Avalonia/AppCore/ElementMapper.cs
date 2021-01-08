@@ -1,5 +1,4 @@
 ﻿using Avalonia;
-using Avalonia.Controls;
 using Tauron.Application.CommonUI;
 
 namespace Tauron.Application.Avalonia.AppCore
@@ -9,11 +8,11 @@ namespace Tauron.Application.Avalonia.AppCore
         public static IUIObject Create(AvaloniaObject obj)
         {
             return obj switch
-            {
-                Window w => new AvaloniaWindow(w),
-                StyledElement c => new AvaloniaElement(c),
-                _ => new AvaObject(obj)
-            };
+                   {
+                       Window w        => new AvaloniaWindow(w),
+                       StyledElement c => new AvaloniaElement(c),
+                       _               => new AvaObject(obj)
+                   };
         }
     }
 }

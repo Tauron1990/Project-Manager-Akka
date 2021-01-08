@@ -17,10 +17,11 @@ namespace Tauron.Application.Avalonia.Dialogs
         public static readonly StyledProperty<object> TopProperty = AvaloniaProperty.Register<DialogBase, object>("Top");
         public static readonly StyledProperty<object> BottomProperty = AvaloniaProperty.Register<DialogBase, object>("Bottom");
         public static readonly StyledProperty<DataTemplate> ContentTemplateProperty = AvaloniaProperty.Register<DialogBase, DataTemplate>("ContentTemplate");
-        
-        public DialogBase() => InitializeComponent();
 
-        private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
+        public DialogBase()
+        {
+            InitializeComponent();
+        }
 
         public int DialogTitleFontSize
         {
@@ -56,6 +57,11 @@ namespace Tauron.Application.Avalonia.Dialogs
         {
             get => GetValue(ContentTemplateProperty);
             set => SetValue(ContentTemplateProperty, value);
+        }
+
+        private void InitializeComponent()
+        {
+            AvaloniaXamlLoader.Load(this);
         }
 
         public Task<TResult> MakeTask<TResult>(Func<TaskCompletionSource<TResult>, object> factory)

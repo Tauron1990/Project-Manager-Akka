@@ -8,20 +8,27 @@ namespace Tauron.Localization
     [PublicAPI]
     public class EscapeHelper
     {
+        public static string Ecode(string input) => Coder.Encode(input);
+
+        public static string Decode(string input) => Coder.Decode(input);
+
         private static class Coder
         {
-            private static readonly Dictionary<string, char> Parts
-                = new()
-                {
-                    {"001", '\r'},
-                    {"002", '\t'},
-                    {"003", '\n'},
-                    {"004", ':'}
-                };
-
             private const char EscapeStart = '@';
 
-            private static string? GetPartforChar(char @char) => Parts.FirstOrDefault(ep => ep.Value == @char).Key;
+            private static readonly Dictionary<string, char> Parts
+                = new()
+                  {
+                      {"001", '\r'},
+                      {"002", '\t'},
+                      {"003", '\n'},
+                      {"004", ':'}
+                  };
+
+            private static string? GetPartforChar(char @char)
+            {
+                return Parts.FirstOrDefault(ep => ep.Value == @char).Key;
+            }
 
             private static char? GetPartforSequence(string @char)
             {
@@ -81,16 +88,15 @@ namespace Tauron.Localization
                             builder.Append(EscapeStart).Append(@char);
                             flag = false;
                         }
-                        else temp += @char;
+                        else
+                            temp += @char;
                     }
                     else
                     {
                         flag = @char == EscapeStart;
 
                         if (!flag)
-                        {
                             builder.Append(@char);
-                        }
                         else temp += @char;
                     }
                 }
@@ -98,11 +104,5 @@ namespace Tauron.Localization
                 return builder.ToString();
             }
         }
-
-        public static string Ecode(string input)
-            => Coder.Encode(input);
-
-        public static string Decode(string input)
-            => Coder.Decode(input);
     }
 }

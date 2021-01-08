@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Markup;
 using Autofac;
 using JetBrains.Annotations;
 using Tauron.Application.CommonUI.Dialogs;
@@ -9,38 +10,29 @@ using Tauron.Host;
 namespace Tauron.Application.Wpf.Dialogs
 {
     [PublicAPI]
-    [System.Windows.Markup.ContentProperty("Main")]
+    [ContentProperty("Main")]
     [DefaultProperty("Main")]
     [TemplatePart(Name = "DialogContent", Type = typeof(ContentPresenter))]
     [TemplatePart(Name = "MainContent", Type = typeof(ContentPresenter))]
     public class DialogHost : Control
     {
-        static DialogHost() => DefaultStyleKeyProperty.OverrideMetadata(typeof(DialogHost), new FrameworkPropertyMetadata(typeof(DialogHost)));
-
         public static readonly DependencyProperty DialogProperty = DependencyProperty.Register(
-            "Dialog", typeof(object), typeof(DialogHost), new PropertyMetadata(default, (o, args) => ((DialogHost)o).DialogContent?.SetValue(ContentControl.ContentProperty, args.NewValue)));
-
-        public object Dialog
-        {
-            get => GetValue(DialogProperty);
-            set => SetValue(DialogProperty, value);
-        }
+            "Dialog", typeof(object), typeof(DialogHost), new PropertyMetadata(default, (o, args) => ((DialogHost) o).DialogContent?.SetValue(ContentControl.ContentProperty, args.NewValue)));
 
         public static readonly DependencyProperty MainProperty = DependencyProperty.Register(
-            "Main", typeof(object), typeof(DialogHost), new PropertyMetadata(default, (o, args) => ((DialogHost)o).MainContent?.SetValue(ContentControl.ContentProperty, args.NewValue)));
+            "Main", typeof(object), typeof(DialogHost), new PropertyMetadata(default, (o, args) => ((DialogHost) o).MainContent?.SetValue(ContentControl.ContentProperty, args.NewValue)));
 
-        public object Main
+        static DialogHost()
         {
-            get => GetValue(MainProperty);
-            set => SetValue(MainProperty, value);
+            DefaultStyleKeyProperty.OverrideMetadata(typeof(DialogHost), new FrameworkPropertyMetadata(typeof(DialogHost)));
         }
 
         public DialogHost()
         {
-            if(!ActorApplication.IsStarted)
+            if (!ActorApplication.IsStarted)
                 return;
 
-            var coordinator = (IDialogCoordinatorUIEvents)ActorApplication.Application.Continer.Resolve<IDialogCoordinator>();
+            var coordinator = (IDialogCoordinatorUIEvents) ActorApplication.Application.Continer.Resolve<IDialogCoordinator>();
 
             coordinator.HideDialogEvent += () =>
                                            {
@@ -69,6 +61,18 @@ namespace Tauron.Application.Wpf.Dialogs
                                                DialogContent.IsEnabled = true;
                                                DialogContent.Visibility = Visibility.Visible;
                                            };
+        }
+
+        public object Dialog
+        {
+            get => GetValue(DialogProperty);
+            set => SetValue(DialogProperty, value);
+        }
+
+        public object Main
+        {
+            get => GetValue(MainProperty);
+            set => SetValue(MainProperty, value);
         }
 
         private ContentPresenter? DialogContent { get; set; }

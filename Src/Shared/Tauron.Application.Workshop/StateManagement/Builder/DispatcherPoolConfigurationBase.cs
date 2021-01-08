@@ -7,14 +7,14 @@ using Tauron.Application.Workshop.StateManagement.Dispatcher;
 namespace Tauron.Application.Workshop.StateManagement.Builder
 {
     [PublicAPI]
-    public abstract class DispatcherPoolConfigurationBase<TConfig> : IDispatcherPoolConfiguration<TConfig> 
+    public abstract class DispatcherPoolConfigurationBase<TConfig> : IDispatcherPoolConfiguration<TConfig>
         where TConfig : class, IDispatcherPoolConfiguration<TConfig>
     {
-        protected int Instances = 2;
-        protected SupervisorStrategy SupervisorStrategy = Pool.DefaultSupervisorStrategy;
-        protected Resizer? Resizer;
-        protected string? Dispatcher;
         protected Func<Props, Props>? Custom;
+        protected string? Dispatcher;
+        protected int Instances = 2;
+        protected Resizer? Resizer;
+        protected SupervisorStrategy SupervisorStrategy = Pool.DefaultSupervisorStrategy;
 
         public TConfig NrOfInstances(int number)
         {
@@ -24,7 +24,7 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
 
         public TConfig WithSupervisorStrategy(SupervisorStrategy strategy)
         {
-            SupervisorStrategy = strategy; 
+            SupervisorStrategy = strategy;
             return (this as TConfig)!;
         }
 

@@ -11,11 +11,11 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
 
         private sealed class ActualDispatcher : IStateDispatcherConfigurator
         {
+            private readonly Func<Props, Props>? _custom;
+            private readonly string? _dispatcher;
             private readonly int _instances;
             private readonly Resizer? _resizer;
             private readonly SupervisorStrategy _supervisorStrategy;
-            private readonly string? _dispatcher;
-            private readonly Func<Props, Props>? _custom;
 
             public ActualDispatcher(int instances, Resizer? resizer, SupervisorStrategy supervisorStrategy, string? dispatcher, Func<Props, Props>? custom)
             {
@@ -35,7 +35,7 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
                     route = route.WithResizer(_resizer);
                 if (!string.IsNullOrWhiteSpace(_dispatcher))
                     route = route.WithDispatcher(_dispatcher);
-                
+
                 mutator = mutator.WithRouter(route);
                 return _custom != null ? _custom(mutator) : mutator;
             }

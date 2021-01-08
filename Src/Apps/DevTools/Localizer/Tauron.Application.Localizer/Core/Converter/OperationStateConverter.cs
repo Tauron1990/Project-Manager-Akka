@@ -10,11 +10,11 @@ namespace Tauron.Application.Localizer.Core.Converter
         protected override IValueConverter Create()
         {
             return CreateCommonConverter<OperationStatus, SolidColorBrush>(s => s switch
-            {
-                OperationStatus.Running => Brushes.DarkSlateBlue,
-                OperationStatus.Success => Brushes.DarkGreen,
-                _ => Brushes.DarkRed
-            });
+                                                                                {
+                                                                                    OperationStatus.Running => Brushes.DarkSlateBlue,
+                                                                                    OperationStatus.Success => Brushes.DarkGreen,
+                                                                                    _                       => Brushes.DarkRed
+                                                                                });
         }
     }
 }

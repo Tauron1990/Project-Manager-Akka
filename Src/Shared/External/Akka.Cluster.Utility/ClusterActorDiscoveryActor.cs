@@ -9,60 +9,34 @@ namespace Akka.Cluster.Utility
     [PublicAPI]
     public sealed class ClusterActorDiscovery : IExtension
     {
-        public IActorRef Discovery { get; }
-
         public ClusterActorDiscovery(ExtendedActorSystem system) => Discovery = system.ActorOf<ClusterActorDiscoveryActor>(nameof(ClusterActorDiscovery));
 
-        public static ClusterActorDiscovery Get(ActorSystem system)
-            => system.GetExtension<ClusterActorDiscovery>();
+        public IActorRef Discovery { get; }
+
+        public static ClusterActorDiscovery Get(ActorSystem system) => system.GetExtension<ClusterActorDiscovery>();
     }
 
     [PublicAPI]
     public sealed class ClusterActorDiscoveryId : ExtensionIdProvider<ClusterActorDiscovery>
     {
-        public override ClusterActorDiscovery CreateExtension(ExtendedActorSystem system) => new ClusterActorDiscovery(system);
+        public override ClusterActorDiscovery CreateExtension(ExtendedActorSystem system) => new(system);
     }
 
     [PublicAPI]
     public class ClusterActorDiscoveryActor : ReceiveActor
     {
-        private readonly Cluster _cluster;
-        private readonly ILoggingAdapter _log;
-        private readonly string _name;
-
-        // Per cluster-node data
-
-        private class NodeItem
-        {
-            public UniqueAddress ClusterAddress;
-            public List<ActorItem> ActorItems;
-        }
-
-        private readonly Dictionary<IActorRef, NodeItem> _nodeMap = new Dictionary<IActorRef, NodeItem>();
-
-        // Actors in cluster
-
-        private class ActorItem
-        {
-            public IActorRef Actor;
-            public string Tag;
-        }
-
-        private readonly List<ActorItem> _actorItems = new List<ActorItem>();
-
-        // Monitor items registered in this discovery actor
-
-        private class MonitorItem
-        {
-            public IActorRef Actor;
-            public string Tag;
-        }
-
-        private readonly List<MonitorItem> _monitorItems = new List<MonitorItem>();
+        private readonly List<ActorItem> _actorItems = new();
 
         // Watching actors
 
-        private readonly Dictionary<IActorRef, int[]> _actorWatchCountMap = new Dictionary<IActorRef, int[]>();
+        private readonly Dictionary<IActorRef, int[]> _actorWatchCountMap = new();
+        private readonly Cluster _cluster;
+        private readonly ILoggingAdapter _log;
+
+        private readonly List<MonitorItem> _monitorItems = new();
+        private readonly string _name;
+
+        private readonly Dictionary<IActorRef, NodeItem> _nodeMap = new();
 
         public ClusterActorDiscoveryActor()
         {
@@ -86,17 +60,21 @@ namespace Akka.Cluster.Utility
             Receive<Terminated>(Handle);
         }
 
-        protected override void PreStart() 
-            => _cluster?.Subscribe(Self, ClusterEvent.SubscriptionInitialStateMode.InitialStateAsEvents, 
-                typeof(ClusterEvent.MemberUp), typeof(ClusterEvent.ReachableMember), typeof(ClusterEvent.UnreachableMember), typeof(ClusterEvent.MemberRemoved));
+        protected override void PreStart()
+        {
+            _cluster?.Subscribe(Self, ClusterEvent.SubscriptionInitialStateMode.InitialStateAsEvents,
+                                typeof(ClusterEvent.MemberUp), typeof(ClusterEvent.ReachableMember), typeof(ClusterEvent.UnreachableMember), typeof(ClusterEvent.MemberRemoved));
+        }
 
-        protected override void PostStop() 
-            => _cluster?.Unsubscribe(Self);
+        protected override void PostStop()
+        {
+            _cluster?.Unsubscribe(Self);
+        }
 
         private void Handle(ClusterEvent.MemberUp m)
         {
             if (_cluster == null) return;
-            
+
             if (_cluster.SelfUniqueAddress == m.Member.UniqueAddress)
             {
                 var roles = string.Join(", ", _cluster.SelfRoles);
@@ -115,7 +93,7 @@ namespace Akka.Cluster.Utility
         private void Handle(ClusterEvent.ReachableMember m)
         {
             if (_cluster == null) return;
-            
+
             if (_cluster.SelfUniqueAddress == m.Member.UniqueAddress)
             {
                 var roles = string.Join(", ", _cluster.SelfRoles);
@@ -166,15 +144,15 @@ namespace Akka.Cluster.Utility
             }
 
             _nodeMap.Add(Sender, new NodeItem
-            {
-                ClusterAddress = m.ClusterAddress,
-                ActorItems = new List<ActorItem>()
-            });
+                                 {
+                                     ClusterAddress = m.ClusterAddress,
+                                     ActorItems = new List<ActorItem>()
+                                 });
 
             // Process attached actorUp messages
 
             if (m.ActorUpList == null) return;
-            
+
             foreach (var actorUp in m.ActorUpList)
                 Handle(actorUp);
         }
@@ -190,10 +168,10 @@ namespace Akka.Cluster.Utility
                 RemoveNode(key);
 
             _nodeMap.Add(Sender, new NodeItem
-            {
-                ClusterAddress = m.ClusterAddress,
-                ActorItems = new List<ActorItem>()
-            });
+                                 {
+                                     ClusterAddress = m.ClusterAddress,
+                                     ActorItems = new List<ActorItem>()
+                                 });
 
             // Process attached actorUp messages
 
@@ -245,7 +223,7 @@ namespace Akka.Cluster.Utility
                 return;
             }
 
-            node.ActorItems.Add(new ActorItem { Actor = m.Actor, Tag = m.Tag });
+            node.ActorItems.Add(new ActorItem {Actor = m.Actor, Tag = m.Tag});
 
             NotifyActorUpToMonitor(m.Actor, m.Tag);
         }
@@ -288,7 +266,7 @@ namespace Akka.Cluster.Utility
                 return;
             }
 
-            _actorItems.Add(new ActorItem { Actor = m.Actor, Tag = m.Tag });
+            _actorItems.Add(new ActorItem {Actor = m.Actor, Tag = m.Tag});
             WatchActor(m.Actor, 0);
 
             // tell monitors & other discovery actors that local actor up
@@ -323,7 +301,7 @@ namespace Akka.Cluster.Utility
         {
             _log.Debug($"MonitorActor: Monitor={Sender.Path} Tag={m.Tag}");
 
-            _monitorItems.Add(new MonitorItem { Actor = Sender, Tag = m.Tag });
+            _monitorItems.Add(new MonitorItem {Actor = Sender, Tag = m.Tag});
             WatchActor(Sender, 1);
 
             // Send actor up message to just registered monitor
@@ -331,7 +309,7 @@ namespace Akka.Cluster.Utility
             foreach (var actor in _actorItems.Where(a => a.Tag == m.Tag))
                 Sender.Tell(new ClusterActorDiscoveryMessage.ActorUp(actor.Actor, actor.Tag));
 
-            foreach (var actor in _nodeMap.Values.SelectMany(node => node.ActorItems.Where(a => a.Tag == m.Tag))) 
+            foreach (var actor in _nodeMap.Values.SelectMany(node => node.ActorItems.Where(a => a.Tag == m.Tag)))
                 Sender.Tell(new ClusterActorDiscoveryMessage.ActorUp(actor.Actor, actor.Tag));
         }
 
@@ -358,10 +336,10 @@ namespace Akka.Cluster.Utility
             }
 
             if (counts[0] <= 0) return;
-            
+
             var index = _actorItems.FindIndex(a => a.Actor.Equals(m.ActorRef));
             if (index == -1) return;
-            
+
             var tag = _actorItems[index].Tag;
             _actorItems.RemoveAt(index);
 
@@ -413,6 +391,30 @@ namespace Akka.Cluster.Utility
 
             _actorWatchCountMap.Remove(actor);
             Context.Unwatch(actor);
+        }
+
+        // Per cluster-node data
+
+        private class NodeItem
+        {
+            public List<ActorItem> ActorItems;
+            public UniqueAddress ClusterAddress;
+        }
+
+        // Actors in cluster
+
+        private class ActorItem
+        {
+            public IActorRef Actor;
+            public string Tag;
+        }
+
+        // Monitor items registered in this discovery actor
+
+        private class MonitorItem
+        {
+            public IActorRef Actor;
+            public string Tag;
         }
     }
 }

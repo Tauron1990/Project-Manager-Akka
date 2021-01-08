@@ -18,26 +18,27 @@ namespace Tauron.Host
             where TMainWindow : class, IMainWindow
         {
             hostBuilder.ConfigureAutoFac(sc =>
-            {
-                sc.RegisterModule<WpfModule>();
+                                         {
+                                             sc.RegisterModule<WpfModule>();
 
-                sc.RegisterType<TMainWindow>().As<IMainWindow>().SingleInstance();
+                                             sc.RegisterType<TMainWindow>().As<IMainWindow>().SingleInstance();
 
-                var wpf = new BaseAppConfiguration(sc);
-                config?.Invoke(wpf);
-            });
+                                             var wpf = new BaseAppConfiguration(sc);
+                                             config?.Invoke(wpf);
+                                         });
 
             return hostBuilder;
         }
 
-        public static IApplicationBuilder UseWpf<TMainWindow, TApp>(this IApplicationBuilder builder) 
-            where TApp : System.Windows.Application, new() 
+        public static IApplicationBuilder UseWpf<TMainWindow, TApp>(this IApplicationBuilder builder)
+            where TApp : System.Windows.Application, new()
             where TMainWindow : class, IMainWindow
         {
             return UseWpf<TMainWindow>(builder, c => c.WithAppFactory(() => new WpfFramework.DelegateApplication(new TApp())));
         }
 
         public static IRegistrationBuilder<SimpleSplashScreen<TWindow>, ConcreteReflectionActivatorData, SingleRegistrationStyle>
-            AddSplash<TWindow>(this ContainerBuilder collection) where TWindow : Window, IWindow, new() => collection.RegisterType<SimpleSplashScreen<TWindow>>().As<ISplashScreen>();
+            AddSplash<TWindow>(this ContainerBuilder collection) where TWindow : Window, IWindow, new()
+            => collection.RegisterType<SimpleSplashScreen<TWindow>>().As<ISplashScreen>();
     }
 }

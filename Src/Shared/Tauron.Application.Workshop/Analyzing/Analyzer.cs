@@ -12,16 +12,17 @@ using Tauron.Application.Workshop.Mutation;
 namespace Tauron.Application.Workshop.Analyzing
 {
     [PublicAPI]
-    public sealed class Analyzer<TWorkspace, TData> : DeferredActor, IAnalyzer<TWorkspace, TData> 
+    public sealed class Analyzer<TWorkspace, TData> : DeferredActor, IAnalyzer<TWorkspace, TData>
         where TWorkspace : WorkspaceBase<TData> where TData : class
     {
         private readonly HashSet<string> _rules = new();
 
         internal Analyzer(Task<IActorRef> actor, IEventSource<IssuesEvent> source)
-            : base(actor) => Issues = source;
+            : base(actor)
+            => Issues = source;
 
         internal Analyzer()
-            : base(Task.FromResult<IActorRef>(ActorRefs.Nobody)) 
+            : base(Task.FromResult<IActorRef>(ActorRefs.Nobody))
             => Issues = new AnalyzerEventSource<TWorkspace, TData>(Task.FromResult<IActorRef>(ActorRefs.Nobody), new WorkspaceSuperviser());
 
         public void RegisterRule(IRule<TWorkspace, TData> rule)
@@ -57,8 +58,10 @@ namespace Tauron.Application.Workshop.Analyzing
             public AnalyzerEventSource<TWorkspace, TData>? EventSource { get; private set; }
 
 
-            public void Init(Task<IActorRef> actor, WorkspaceSuperviser superviser) 
-                => EventSource = new AnalyzerEventSource<TWorkspace, TData>(actor, superviser);
+            public void Init(Task<IActorRef> actor, WorkspaceSuperviser superviser)
+            {
+                EventSource = new AnalyzerEventSource<TWorkspace, TData>(actor, superviser);
+            }
 
             public IObserver<RuleIssuesChanged<TWorkspace, TData>> Send()
             {

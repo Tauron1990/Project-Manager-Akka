@@ -5,7 +5,7 @@ using Tauron.Application.Localizer.UIModels;
 namespace Tauron.Application.Localizer.Views
 {
     /// <summary>
-    /// Interaktionslogik für BuildView.xaml
+    ///     Interaktionslogik für BuildView.xaml
     /// </summary>
     public partial class BuildView
     {

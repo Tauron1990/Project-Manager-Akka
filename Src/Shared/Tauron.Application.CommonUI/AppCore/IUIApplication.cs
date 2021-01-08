@@ -18,12 +18,11 @@ namespace Tauron.Application.CommonUI.AppCore
     [PublicAPI]
     public interface IUIApplication
     {
+        ShutdownMode ShutdownMode { get; set; }
+
+        IUIDispatcher Dispatcher { get; }
         event EventHandler? Startup;
 
-        ShutdownMode ShutdownMode { get; set; }
-        
-        IUIDispatcher Dispatcher { get; }
-        
         void Shutdown(int returnValue);
         int Run();
     }
@@ -39,17 +38,16 @@ namespace Tauron.Application.CommonUI.AppCore
         IObservable<TResult> InvokeAsync<TResult>(Func<TResult> action);
         bool CheckAccess();
     }
-    
+
     public sealed class DispatcherScheduler : LocalScheduler
     {
-        public static IScheduler CurrentDispatcher { get; internal set; } = null!;
-
         private readonly IUIDispatcher _dispatcher;
 
         private DispatcherScheduler(IUIDispatcher dispatcher) => _dispatcher = dispatcher;
 
-        public static IScheduler From(IUIDispatcher dispatcher)
-            => new DispatcherScheduler(dispatcher);
+        public static IScheduler CurrentDispatcher { get; internal set; } = null!;
+
+        public static IScheduler From(IUIDispatcher dispatcher) => new DispatcherScheduler(dispatcher);
 
         public override IDisposable Schedule<TState>(TState state, TimeSpan dueTime, Func<IScheduler, TState, IDisposable> action)
         {
@@ -71,7 +69,7 @@ namespace Tauron.Application.CommonUI.AppCore
                 Timer timer = new(o =>
                                   {
                                       _dispatcher.Post(TryRun);
-                                      ((IDisposable)o!).Dispose();
+                                      ((IDisposable) o!).Dispose();
                                   }, timerDispose, dueTime, Timeout.InfiniteTimeSpan);
 
                 timerDispose.Disposable = timer;

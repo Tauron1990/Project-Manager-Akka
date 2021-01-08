@@ -10,19 +10,22 @@ namespace Tauron.Host
     public static class HostExtensions
     {
         public static IApplicationBuilder AddModule<TModule>(this IApplicationBuilder builder)
-            where TModule : Module, new() => builder.ConfigureAutoFac(cb => cb.RegisterModule<TModule>());
+            where TModule : Module, new()
+        {
+            return builder.ConfigureAutoFac(cb => cb.RegisterModule<TModule>());
+        }
 
         public static IApplicationBuilder UseContentRoot(this IApplicationBuilder hostBuilder, string contentRoot)
         {
             return hostBuilder.Configuration(configBuilder =>
-            {
-                configBuilder
-                    .AddInMemoryCollection(new[]
-                    {
-                        new KeyValuePair<string, string>(HostDefaults.ContentRootKey, contentRoot
-                                                                                      ?? throw new ArgumentNullException(nameof(contentRoot)))
-                    });
-            });
+                                             {
+                                                 configBuilder
+                                                    .AddInMemoryCollection(new[]
+                                                                           {
+                                                                               new KeyValuePair<string, string>(HostDefaults.ContentRootKey, contentRoot
+                                                                                                                                          ?? throw new ArgumentNullException(nameof(contentRoot)))
+                                                                           });
+                                             });
         }
     }
 }

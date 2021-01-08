@@ -11,9 +11,7 @@ namespace Tauron.Application.Workshop.Analyzing.Core
         where TWorkspace : WorkspaceBase<TData> where TData : class
     {
         public AnalyzerEventSource(Task<IActorRef> mutator, WorkspaceSuperviser superviser)
-            : base(mutator, superviser)
-        {
-        }
+            : base(mutator, superviser) { }
 
         public IObserver<RuleIssuesChanged<TWorkspace, TData>> SendEvent()
         {

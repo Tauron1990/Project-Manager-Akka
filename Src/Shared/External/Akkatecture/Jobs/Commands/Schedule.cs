@@ -31,9 +31,6 @@ namespace Akkatecture.Jobs.Commands
         where TJob : IJob
         where TIdentity : IJobId
     {
-        public TJob Job { get; }
-        public DateTime TriggerDate { get; }
-
         public Schedule(
             TIdentity jobId,
             TJob job,
@@ -42,18 +39,21 @@ namespace Akkatecture.Jobs.Commands
             object? nack = null)
             : base(jobId, ack, nack)
         {
-            if (job         == null) throw new ArgumentNullException(nameof(job));
+            if (job == null) throw new ArgumentNullException(nameof(job));
             if (triggerDate == default) throw new ArgumentException(nameof(triggerDate));
 
             Job = job;
             TriggerDate = triggerDate;
         }
 
+        public TJob Job { get; }
+        public DateTime TriggerDate { get; }
+
         public virtual Schedule<TJob, TIdentity>? WithNextTriggerDate(DateTime utcDate) => null;
 
-        public virtual Schedule<TJob, TIdentity> WithAck(object? ack) => new Schedule<TJob, TIdentity>(JobId, Job, TriggerDate, ack, Nack);
+        public virtual Schedule<TJob, TIdentity> WithAck(object? ack) => new(JobId, Job, TriggerDate, ack, Nack);
 
-        public virtual Schedule<TJob, TIdentity> WithNack(object? nack) => new Schedule<TJob, TIdentity>(JobId, Job, TriggerDate, Ack, nack);
+        public virtual Schedule<TJob, TIdentity> WithNack(object? nack) => new(JobId, Job, TriggerDate, Ack, nack);
 
         public virtual Schedule<TJob, TIdentity> WithOutAcks() => WithAck(null).WithNack(null);
     }

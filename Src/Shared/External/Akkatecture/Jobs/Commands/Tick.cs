@@ -27,10 +27,8 @@ namespace Akkatecture.Jobs.Commands
         where TJob : IJob
         where TIdentity : IJobId
     {
-        public static Tick<TJob, TIdentity> Instance { get; } = new Tick<TJob, TIdentity>();
+        private Tick() { }
 
-        private Tick()
-        {
-        }
+        public static Tick<TJob, TIdentity> Instance { get; } = new();
     }
 }

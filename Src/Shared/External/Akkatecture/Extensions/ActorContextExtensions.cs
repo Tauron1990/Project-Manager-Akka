@@ -29,7 +29,7 @@ namespace Akkatecture.Extensions
     public static class ActorContextExtensions
     {
         public static IActorRef Child<TIdentity>(this IActorContext context, TIdentity identity)
-            where TIdentity : IIdentity =>
-            context.Child(identity.Value);
+            where TIdentity : IIdentity
+            => context.Child(identity.Value);
     }
 }

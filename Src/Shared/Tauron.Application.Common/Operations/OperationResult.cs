@@ -18,11 +18,16 @@ namespace Tauron.Operations
     }
 
     [PublicAPI]
-    public sealed record OperationResult(bool Ok, Error[]? Errors, object? Outcome): IOperationResult
+    public sealed record OperationResult(bool Ok, Error[]? Errors, object? Outcome) : IOperationResult
     {
+        [JsonIgnore] public string? Error => Errors == null ? null : string.Join(", ", Errors.Select(e => e.Info ?? e.Code));
+
         public static IOperationResult Success(object? result = null) => new OperationResult(true, null, result);
 
-        public static IOperationResult Failure(Error error, object? outcome = null) => new OperationResult(false, new []{ error }, outcome);
+        public static IOperationResult Failure(Error error, object? outcome = null)
+        {
+            return new OperationResult(false, new[] {error}, outcome);
+        }
 
         public static IOperationResult Failure(IEnumerable<Error> errors, object? outcome = null) => new OperationResult(false, errors.ToArray(), outcome);
 
@@ -33,8 +38,5 @@ namespace Tauron.Operations
             var unwarped = error.Unwrap() ?? error;
             return new OperationResult(false, new[] {new Error(unwarped.Message, unwarped.HResult.ToString())}, null);
         }
-
-        [JsonIgnore]
-        public string? Error => Errors == null ? null : string.Join(", ", Errors.Select(e => e.Info ?? e.Code));
     }
 }

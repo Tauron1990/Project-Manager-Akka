@@ -14,7 +14,7 @@ namespace Tauron.Application.Avalonia.UI
         private readonly string _name;
 
         public ActorBinding(string name) => _name = name;
-        
+
         public string? Path { get; set; }
 
         protected override object ProvideValueInternal(IServiceProvider serviceProvider)
@@ -24,7 +24,7 @@ namespace Tauron.Application.Avalonia.UI
                 if (!TryGetTargetItems(serviceProvider, out var target, out _))
                     return AvaloniaProperty.UnsetValue;
 
-                if (!ControlBindLogic.FindDataContext(ElementMapper.Create(target), out var model)) 
+                if (!ControlBindLogic.FindDataContext(ElementMapper.Create(target), out var model))
                     return AvaloniaProperty.UnsetValue;
 
                 var binding = new Binding();

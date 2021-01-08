@@ -38,9 +38,9 @@ namespace Akkatecture.Sagas.AggregateSaga
             var aggregateSagaConfig = config.WithFallback(AkkatectureDefaultSettings.DefaultConfig());
             aggregateSagaConfig = aggregateSagaConfig.GetConfig(_section);
 
-            AutoReceive = aggregateSagaConfig.GetBoolean("auto-receive");
-            UseDefaultEventRecover = aggregateSagaConfig.GetBoolean("use-default-event-recover");
-            UseDefaultSnapshotRecover = aggregateSagaConfig.GetBoolean("use-default-snapshot-recover");
+            AutoReceive = aggregateSagaConfig.GetBoolean("auto-receive", true);
+            UseDefaultEventRecover = aggregateSagaConfig.GetBoolean("use-default-event-recover", true);
+            UseDefaultSnapshotRecover = aggregateSagaConfig.GetBoolean("use-default-snapshot-recover", true);
         }
     }
 }

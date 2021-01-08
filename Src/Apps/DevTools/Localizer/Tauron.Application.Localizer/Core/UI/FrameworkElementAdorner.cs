@@ -71,7 +71,7 @@ namespace Tauron.Application.Localizer.Core.UI
         {
             get
             {
-                ArrayList list = new ArrayList {_child};
+                ArrayList list = new() {_child};
                 return list.GetEnumerator();
             }
         }
@@ -190,13 +190,13 @@ namespace Tauron.Application.Localizer.Core.UI
             if (!double.IsNaN(PositionX)) return _child.DesiredSize.Width;
 
             return _child.HorizontalAlignment switch
-            {
-                HorizontalAlignment.Left => _child.DesiredSize.Width,
-                HorizontalAlignment.Right => _child.DesiredSize.Width,
-                HorizontalAlignment.Center => _child.DesiredSize.Width,
-                HorizontalAlignment.Stretch => AdornedElement.ActualWidth,
-                _ => 0.0
-            };
+                   {
+                       HorizontalAlignment.Left    => _child.DesiredSize.Width,
+                       HorizontalAlignment.Right   => _child.DesiredSize.Width,
+                       HorizontalAlignment.Center  => _child.DesiredSize.Width,
+                       HorizontalAlignment.Stretch => AdornedElement.ActualWidth,
+                       _                           => 0.0
+                   };
         }
 
         /// <summary>
@@ -207,13 +207,13 @@ namespace Tauron.Application.Localizer.Core.UI
             if (!double.IsNaN(PositionY)) return _child.DesiredSize.Height;
 
             return _child.VerticalAlignment switch
-            {
-                VerticalAlignment.Top => _child.DesiredSize.Height,
-                VerticalAlignment.Bottom => _child.DesiredSize.Height,
-                VerticalAlignment.Center => _child.DesiredSize.Height,
-                VerticalAlignment.Stretch => AdornedElement.ActualHeight,
-                _ => 0.0
-            };
+                   {
+                       VerticalAlignment.Top     => _child.DesiredSize.Height,
+                       VerticalAlignment.Bottom  => _child.DesiredSize.Height,
+                       VerticalAlignment.Center  => _child.DesiredSize.Height,
+                       VerticalAlignment.Stretch => AdornedElement.ActualHeight,
+                       _                         => 0.0
+                   };
         }
 
         protected override Size ArrangeOverride(Size finalSize)
@@ -228,10 +228,7 @@ namespace Tauron.Application.Localizer.Core.UI
             return finalSize;
         }
 
-        protected override Visual GetVisualChild(int index)
-        {
-            return _child;
-        }
+        protected override Visual GetVisualChild(int index) => _child;
 
         /// <summary>
         ///     Disconnect the child element from the visual tree so that it may be reused later.

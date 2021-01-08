@@ -10,11 +10,9 @@ namespace Tauron.Application.Wpf.AppCore
     {
         private readonly FrameworkElement _element;
 
-        public WpfElement(FrameworkElement element) 
+        public WpfElement(FrameworkElement element)
             : base(element)
-        {
-            _element = element;
-        }
+            => _element = element;
 
         public object DataContext
         {
@@ -38,9 +36,7 @@ namespace Tauron.Application.Wpf.AppCore
 
         public WpfContentElement(FrameworkContentElement element)
             : base(element)
-        {
-            _element = element;
-        }
+            => _element = element;
 
         public object DataContext
         {

@@ -8,19 +8,12 @@ namespace Tauron.Application.Avalonia.Dialogs
 {
     public class MessageDialog : DialogBase
     {
-        private Button CancelButton => this.Get<Button>("CancelButton");
-        private TextBlock ContentBox => this.Get<TextBlock>("ContentBox");
-
         private readonly bool _canCnacel;
         private readonly Action<bool?>? _result;
 
-        public MessageDialog()
-        {
-            throw new NotSupportedException(); // Compiler Enforcement
-            //InitializeComponent();
+        public MessageDialog() => throw new NotSupportedException(); // Compiler Enforcement
 
-        }
-        
+        //InitializeComponent();
         public MessageDialog(string title, string content, Action<bool?>? result, bool canCnacel)
         {
             _result = result;
@@ -32,6 +25,9 @@ namespace Tauron.Application.Avalonia.Dialogs
             if (!canCnacel)
                 CancelButton.IsVisible = false;
         }
+
+        private Button CancelButton => this.Get<Button>("CancelButton");
+        private TextBlock ContentBox => this.Get<TextBlock>("ContentBox");
 
         [UsedImplicitly]
         private void Ok_OnClick(object sender, RoutedEventArgs e)
@@ -47,7 +43,7 @@ namespace Tauron.Application.Avalonia.Dialogs
         {
             _result?.Invoke(false);
         }
-        
+
         private void InitializeComponent()
         {
             AvaloniaXamlLoader.Load(this);

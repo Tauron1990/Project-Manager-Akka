@@ -8,14 +8,11 @@ namespace Tauron.Application.Wpf.Implementation
 {
     public class ImageHelper : IImageHelper
     {
-        private readonly WeakReferenceCollection<KeyedImage> _cache = new WeakReferenceCollection<KeyedImage>();
+        private readonly WeakReferenceCollection<KeyedImage> _cache = new();
 
         private readonly IPackUriHelper _packUriHelper;
 
-        public ImageHelper(IPackUriHelper packUriHelper)
-        {
-            _packUriHelper = packUriHelper;
-        }
+        public ImageHelper(IPackUriHelper packUriHelper) => _packUriHelper = packUriHelper;
 
         public ImageSource? Convert(Uri target, string assembly)
         {
@@ -47,10 +44,7 @@ namespace Tauron.Application.Wpf.Implementation
             }
         }
 
-        public ImageSource? Convert(string uri, string assembly)
-        {
-            return Uri.TryCreate(uri, UriKind.RelativeOrAbsolute, out var target) ? Convert(target, assembly) : null;
-        }
+        public ImageSource? Convert(string uri, string assembly) => Uri.TryCreate(uri, UriKind.RelativeOrAbsolute, out var target) ? Convert(target, assembly) : null;
 
         private class KeyedImage : IWeakReference
         {
@@ -66,10 +60,7 @@ namespace Tauron.Application.Wpf.Implementation
 
             public bool IsAlive => _source.IsAlive;
 
-            public ImageSource? GetImage()
-            {
-                return _source.Target as ImageSource;
-            }
+            public ImageSource? GetImage() => _source.Target as ImageSource;
         }
     }
 }

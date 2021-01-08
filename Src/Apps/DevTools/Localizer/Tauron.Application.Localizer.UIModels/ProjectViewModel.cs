@@ -34,7 +34,7 @@ namespace Tauron.Application.Localizer.UIModels
 
             Languages = this.RegisterUiCollection<ProjectViewLanguageModel>(nameof(Languages)).BindToList(out var languages);
             ProjectEntrys = this.RegisterUiCollection<ProjectEntryModel>(nameof(ProjectEntrys)).BindToList(out var projectEntrys);
-            ImportetProjects = this.RegisterUiCollection<string>(nameof(ImportetProjects)).BindToList(out var  importprojects);
+            ImportetProjects = this.RegisterUiCollection<string>(nameof(ImportetProjects)).BindToList(out var importprojects);
 
             var loadTrigger = new Subject<Unit>();
 
@@ -91,17 +91,16 @@ namespace Tauron.Application.Localizer.UIModels
                 var allEntrys = list.SelectMany(pro => workspace.Get(pro).Entries.Select(e => e.Key)).ToArray();
 
                 return allEntrys.Select(e => new NewEntryInfo(e)).OfType<NewEntryInfoBase>()
-                    .Concat(allEntrys
-                        .Select(s => s.Split('_', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault())
-                        .Where(s => !string.IsNullOrWhiteSpace(s))
-                        .Distinct(StringComparer.Ordinal)
-                        .Select(s => new NewEntrySuggestInfo(s!)));
-
+                                .Concat(allEntrys
+                                       .Select(s => s.Split('_', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault())
+                                       .Where(s => !string.IsNullOrWhiteSpace(s))
+                                       .Distinct(StringComparer.Ordinal)
+                                       .Select(s => new NewEntrySuggestInfo(s!)));
             }
 
             void AddEntry(EntryAdd entry)
             {
-                if(_project != entry.Entry.Project) return;
+                if (_project != entry.Entry.Project) return;
 
                 projectEntrys.Add(new ProjectEntryModel(workspace.Get(_project), entry.Entry, TryUpdateEntry, TryRemoveEntry));
             }
@@ -131,6 +130,7 @@ namespace Tauron.Application.Localizer.UIModels
             WhenReceive<RemoveRequest>(obs => obs.Mutate(workspace.Entrys).With(em => em.EntryRemove, em => rr => em.RemoveEntry(rr.ProjectName, rr.EntryName))
                                                  .ObserveOnSelf()
                                                  .Subscribe(RemoveEntry));
+
             #endregion
 
             #region Update Request
@@ -188,7 +188,7 @@ namespace Tauron.Application.Localizer.UIModels
                      .ThenFlow(ob => ob.Select(_ => new InitImportRemove(ImportetProjects[ImportSelectIndex]))
                                        .Mutate(workspace.Projects).With(pm => pm.RemoveImport, pm => ir => pm.TryRemoveImport(_project, ir.ToRemove))
                                        .Subscribe(RemoveImport))
-               .ThenRegister("RemoveImport");
+                     .ThenRegister("RemoveImport");
 
             workspace.Projects.NewImport.ToUnit().Subscribe(loadTrigger).DisposeWith(this);
             workspace.Projects.RemoveImport.ToUnit().Subscribe(loadTrigger).DisposeWith(this);
@@ -229,7 +229,9 @@ namespace Tauron.Application.Localizer.UIModels
         public UICollectionProperty<string> ImportetProjects { get; }
 
         private sealed record InitImportRemove(string ToRemove);
+
         private sealed record UpdateRequest(string EntryName, ActiveLanguage Language, string Content, string ProjectName);
+
         private sealed record RemoveRequest(string EntryName, string ProjectName);
     }
 }

@@ -7,16 +7,10 @@ namespace LoadingIndicators.WPF.Utilities
 {
     internal static class VisualStateUtilities
     {
-        public static IEnumerable<VisualStateGroup> GetActiveVisualStateGroups(this FrameworkElement element)
-        {
-            return element.GetVisualStateGroupsByName(IndicatorVisualStateGroupNames.ActiveStates.Name);
-        }
+        public static IEnumerable<VisualStateGroup> GetActiveVisualStateGroups(this FrameworkElement element) => element.GetVisualStateGroupsByName(IndicatorVisualStateGroupNames.ActiveStates.Name);
 
-        public static IEnumerable<VisualState> GetActiveVisualStates(this FrameworkElement element)
-        {
-            return element
-                .GetActiveVisualStateGroups().GetAllVisualStatesByName(IndicatorVisualStateNames.ActiveState.Name);
-        }
+        public static IEnumerable<VisualState> GetActiveVisualStates(this FrameworkElement element) => element
+                                                                                                      .GetActiveVisualStateGroups().GetAllVisualStatesByName(IndicatorVisualStateNames.ActiveState.Name);
 
         public static IEnumerable<VisualState> GetAllVisualStatesByName(
             this IEnumerable<VisualStateGroup> visualStateGroups, string name)
@@ -54,8 +48,8 @@ namespace LoadingIndicators.WPF.Utilities
             }
 
             return string.IsNullOrWhiteSpace(name)
-                ? castedVisualStateGroups
-                : castedVisualStateGroups.Where(vsg => vsg.Name == name);
+                       ? castedVisualStateGroups
+                       : castedVisualStateGroups.Where(vsg => vsg.Name == name);
         }
 
         public static IEnumerable<VisualState> GetVisualStates(this VisualStateGroup visualStateGroup)

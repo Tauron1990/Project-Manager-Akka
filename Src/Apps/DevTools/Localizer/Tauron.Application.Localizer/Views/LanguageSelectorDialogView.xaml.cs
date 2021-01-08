@@ -22,7 +22,7 @@ namespace Tauron.Application.Localizer.Views
         {
             InitializeComponent();
 
-            Loaded += (_, _) => ((LanguageSelectorDialogViewModel)DataContext).OnLoad();
+            Loaded += (_, _) => ((LanguageSelectorDialogViewModel) DataContext).OnLoad();
         }
 
 
@@ -33,7 +33,6 @@ namespace Tauron.Application.Localizer.Views
             DataContext = new LanguageSelectorDialogViewModel(c => result.SetResult(c == null ? null : new AddLanguageDialogResult(c)), initalData.Contains!, Dispatcher);
 
             return result.Task;
-
         }
     }
 
@@ -42,10 +41,7 @@ namespace Tauron.Application.Localizer.Views
         private readonly Action<LanguageSelectable> _isSelectedAction;
         private bool _isSelected;
 
-        protected LanguageSelectable(Action<LanguageSelectable> isSelected)
-        {
-            _isSelectedAction = isSelected;
-        }
+        protected LanguageSelectable(Action<LanguageSelectable> isSelected) => _isSelectedAction = isSelected;
 
         public bool IsSelected
         {
@@ -66,9 +62,7 @@ namespace Tauron.Application.Localizer.Views
     {
         public SubLanguage(CultureInfo info, Action<LanguageSelectable> isSelected)
             : base(isSelected)
-        {
-            Info = info;
-        }
+            => Info = info;
 
         public override CultureInfo Info { get; }
     }
@@ -99,10 +93,10 @@ namespace Tauron.Application.Localizer.Views
         private readonly ICollectionView _view;
 
         private LanguageSelectable? _current;
+        private string _filterContent = string.Empty;
         private bool _isLoading = true;
 
         private int _position;
-        private string _filterContent = string.Empty;
 
         public LanguageSelectorDialogViewModel(Action<CultureInfo?> selector, Predicate<CultureInfo> filter, Dispatcher dispatcher)
         {
@@ -124,22 +118,7 @@ namespace Tauron.Application.Localizer.Views
             _view.Filter += FilterLang;
         }
 
-        private bool FilterLang(object obj)
-        {
-            if (string.IsNullOrWhiteSpace(_filterContent)) return true;
-
-            if (obj is LanguageGroup group)
-            {
-                var lang = group.Info;
-                if (lang.Name.Contains(FilterContent) || lang.DisplayName.Contains(FilterContent) || lang.EnglishName.Contains(FilterContent))
-                    return true;
-                return false;
-            }
-
-            return true;
-        }
-
-        public ObservableCollection<LanguageGroup> LanguageGroups { get; } = new ObservableCollection<LanguageGroup>();
+        public ObservableCollection<LanguageGroup> LanguageGroups { get; } = new();
 
         private bool IsSomethingSelected => _current != null;
 
@@ -169,6 +148,21 @@ namespace Tauron.Application.Localizer.Views
         public SimpleCommand AddCommand { get; }
 
         public ICommand RejectCommand { get; }
+
+        private bool FilterLang(object obj)
+        {
+            if (string.IsNullOrWhiteSpace(_filterContent)) return true;
+
+            if (obj is LanguageGroup group)
+            {
+                var lang = group.Info;
+                if (lang.Name.Contains(FilterContent) || lang.DisplayName.Contains(FilterContent) || lang.EnglishName.Contains(FilterContent))
+                    return true;
+                return false;
+            }
+
+            return true;
+        }
 
         public void OnLoad()
         {

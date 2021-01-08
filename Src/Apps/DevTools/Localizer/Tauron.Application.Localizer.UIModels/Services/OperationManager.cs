@@ -15,10 +15,10 @@ namespace Tauron.Application.Localizer.UIModels.Services
     public sealed class OperationManager : IOperationManager
     {
         private readonly IUIDispatcher _dispatcher;
+        private readonly Subject<RunningOperation> _fail = new();
 
         private readonly LocLocalizer _localizer;
         private readonly OperationList _operations = new();
-        private readonly Subject<RunningOperation> _fail = new();
 
         public OperationManager(LocLocalizer localizer, IUIDispatcher dispatcher)
         {
@@ -32,14 +32,14 @@ namespace Tauron.Application.Localizer.UIModels.Services
         public IObservable<OperationController> StartOperation(string name)
         {
             return _dispatcher.InvokeAsync(() =>
-            {
-                var op = new RunningOperation(Guid.NewGuid().ToString(), name) {Status = _localizer.OperationControllerRunning};
-                if (_operations.Count > 15)
-                    Clear();
+                                           {
+                                               var op = new RunningOperation(Guid.NewGuid().ToString(), name) {Status = _localizer.OperationControllerRunning};
+                                               if (_operations.Count > 15)
+                                                   Clear();
 
-                _operations.Add(op);
-                return new OperationController(op, _localizer, OperationChanged, _fail);
-            });
+                                               _operations.Add(op);
+                                               return new OperationController(op, _localizer, OperationChanged, _fail);
+                                           });
         }
 
         public IObservable<OperationController?> Find(string id)
@@ -51,9 +51,11 @@ namespace Tauron.Application.Localizer.UIModels.Services
                                            });
         }
 
-        public IObservable<bool> ShouldClear() 
-            => _operations.WhenPropertyChanged(l => l.RunningOperations, false)
-                          .Select(v => v.Sender.Count != v.Value);
+        public IObservable<bool> ShouldClear()
+        {
+            return _operations.WhenPropertyChanged(l => l.RunningOperations, false)
+                              .Select(v => v.Sender.Count != v.Value);
+        }
 
         public void Clear()
         {
@@ -65,10 +67,9 @@ namespace Tauron.Application.Localizer.UIModels.Services
         }
 
         public IObservable<bool> ShouldCompledClear()
-            => _operations.WhenPropertyChanged(l => l.RunningOperations).Select(p => ShouldCompledClear(p.Sender));
-            
-
-        private static bool ShouldCompledClear(OperationList list) => list.Any(op => op.Operation != OperationStatus.Running);
+        {
+            return _operations.WhenPropertyChanged(l => l.RunningOperations).Select(p => ShouldCompledClear(p.Sender));
+        }
 
         public void CompledClear()
         {
@@ -79,7 +80,16 @@ namespace Tauron.Application.Localizer.UIModels.Services
                                     });
         }
 
-        private void OperationChanged() => _dispatcher.InvokeAsync(_operations.OperationStatusCchanged);
+
+        private static bool ShouldCompledClear(OperationList list)
+        {
+            return list.Any(op => op.Operation != OperationStatus.Running);
+        }
+
+        private void OperationChanged()
+        {
+            _dispatcher.InvokeAsync(_operations.OperationStatusCchanged);
+        }
 
         private sealed class OperationList : ObservableCollection<RunningOperation>
         {
@@ -91,7 +101,10 @@ namespace Tauron.Application.Localizer.UIModels.Services
                 OnPropertyChanged(new PropertyChangedEventArgs(nameof(RunningOperations)));
             }
 
-            public void OperationStatusCchanged() => OnPropertyChanged(new PropertyChangedEventArgs(nameof(RunningOperations)));
+            public void OperationStatusCchanged()
+            {
+                OnPropertyChanged(new PropertyChangedEventArgs(nameof(RunningOperations)));
+            }
         }
     }
 }

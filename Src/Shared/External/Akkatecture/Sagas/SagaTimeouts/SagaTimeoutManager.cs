@@ -34,8 +34,6 @@ namespace Akkatecture.Sagas.SagaTimeouts
     {
         public SagaTimeoutManager() : base(
             () => new SagaTimeoutJobScheduler<TTimeout>(),
-            () => new SagaTimeoutJobRunner<TTimeout>())
-        {
-        }
+            () => new SagaTimeoutJobRunner<TTimeout>()) { }
     }
 }

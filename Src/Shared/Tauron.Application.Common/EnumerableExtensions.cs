@@ -13,50 +13,64 @@ namespace Tauron
     public sealed record ErrorCallResult<TResult>(Exception Error) : CallResult<TResult>(false);
 
     public sealed record SucessCallResult<TResult>(TResult Result) : CallResult<TResult>(true);
-    
+
     [DebuggerNonUserCode]
     [PublicAPI]
     public static class EnumerableExtensions
     {
-        public static IObservable<TData> NotDefault<TData>(this IObservable<TData?> source) => source.Where(d => !Equals(d, default(TData)))!;
+        public static IObservable<TData> NotDefault<TData>(this IObservable<TData?> source)
+        {
+            return source.Where(d => !Equals(d, default(TData)))!;
+        }
 
-        public static IObservable<TData> NotNull<TData>(this IObservable<TData?> source) => source.Where(d => d != null)!;
+        public static IObservable<TData> NotNull<TData>(this IObservable<TData?> source)
+        {
+            return source.Where(d => d != null)!;
+        }
 
         public static IObservable<string> NotEmpty(this IObservable<string?> source)
-            => source.Where(s => !string.IsNullOrWhiteSpace(s))!;
+        {
+            return source.Where(s => !string.IsNullOrWhiteSpace(s))!;
+        }
 
         public static IObservable<CallResult<TResult>> SelectSafe<TEvent, TResult>(this IObservable<TEvent> observable, Func<TEvent, TResult> selector)
         {
             return observable.Select<TEvent, CallResult<TResult>>(evt =>
-                                                      {
-                                                          try
-                                                          {
-                                                              return new SucessCallResult<TResult>(selector(evt));
-                                                          }
-                                                          catch (Exception e)
-                                                          {
-                                                              return new ErrorCallResult<TResult>(e);
-                                                          }
-                                                      });
+                                                                  {
+                                                                      try
+                                                                      {
+                                                                          return new SucessCallResult<TResult>(selector(evt));
+                                                                      }
+                                                                      catch (Exception e)
+                                                                      {
+                                                                          return new ErrorCallResult<TResult>(e);
+                                                                      }
+                                                                  });
         }
 
-        public static IObservable<Exception> OnError<TResult>(this IObservable<CallResult<TResult>> observable) 
-            => observable.Where(cr => cr is ErrorCallResult<TResult>).Cast<ErrorCallResult<TResult>>().Select(er => er.Error);
+        public static IObservable<Exception> OnError<TResult>(this IObservable<CallResult<TResult>> observable)
+        {
+            return observable.Where(cr => cr is ErrorCallResult<TResult>).Cast<ErrorCallResult<TResult>>().Select(er => er.Error);
+        }
 
         public static IObservable<TResult> OnResult<TResult>(this IObservable<CallResult<TResult>> observable)
-            => observable.Where(cr => cr is SucessCallResult<TResult>).Cast<SucessCallResult<TResult>>().Select(sr => sr.Result);
+        {
+            return observable.Where(cr => cr is SucessCallResult<TResult>).Cast<SucessCallResult<TResult>>().Select(sr => sr.Result);
+        }
 
-        public static IObservable<TData> ConvertResult<TData, TResult>(this IObservable<CallResult<TResult>> result, Func<TResult, TData> onSucess, Func<Exception, TData> error) 
-            => result.Select(cr => cr.ConvertResult(onSucess, error));
+        public static IObservable<TData> ConvertResult<TData, TResult>(this IObservable<CallResult<TResult>> result, Func<TResult, TData> onSucess, Func<Exception, TData> error)
+        {
+            return result.Select(cr => cr.ConvertResult(onSucess, error));
+        }
 
         public static TData ConvertResult<TData, TResult>(this CallResult<TResult> result, Func<TResult, TData> onSucess, Func<Exception, TData> error)
         {
             return result switch
-            {
-                SucessCallResult<TResult> sucess => onSucess(sucess.Result),
-                ErrorCallResult<TResult> err => error(err.Error),
-                _ => throw new InvalidOperationException("Incompatiple Call Result")
-            };
+                   {
+                       SucessCallResult<TResult> sucess => onSucess(sucess.Result),
+                       ErrorCallResult<TResult> err     => error(err.Error),
+                       _                                => throw new InvalidOperationException("Incompatiple Call Result")
+                   };
         }
 
         public static TType AddAnd<TType>(this ICollection<TType> collection, TType item)
@@ -84,15 +98,9 @@ namespace Tauron
             array[newIndex] = tmp;
         }
 
-        public static string Concat(this IEnumerable<string> strings)
-        {
-            return string.Concat(strings);
-        }
+        public static string Concat(this IEnumerable<string> strings) => string.Concat(strings);
 
-        public static string Concat([NotNull] this IEnumerable<object> objects)
-        {
-            return string.Concat(objects);
-        }
+        public static string Concat([NotNull] this IEnumerable<object> objects) => string.Concat(objects);
 
         public static void Foreach<TValue>(this IEnumerable<TValue> enumerator, [NotNull] Action<TValue> action)
         {
@@ -147,10 +155,10 @@ namespace Tauron
             var c = 0;
             var e = source.GetEnumerator();
             e.DynamicUsing(() =>
-            {
-                while (e.MoveNext())
-                    c++;
-            });
+                           {
+                               while (e.MoveNext())
+                                   c++;
+                           });
 
             return c;
         }

@@ -8,16 +8,12 @@ namespace Tauron.Application.Workshop.StateManagement
 
         private readonly string? _hash;
 
-        public string ToHash() => _hash ?? nameof(EmptyQuery);
-
-        private EmptyQuery()
-        {
-            
-        }
+        private EmptyQuery() { }
 
         private EmptyQuery(string? hash) => _hash = hash;
 
-        public EmptyQuery WithHash(string hash)
-            => new(hash);
+        public string ToHash() => _hash ?? nameof(EmptyQuery);
+
+        public EmptyQuery WithHash(string hash) => new(hash);
     }
 }

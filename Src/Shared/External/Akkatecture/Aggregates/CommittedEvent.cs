@@ -50,7 +50,7 @@ namespace Akkatecture.Aggregates
             AggregateIdentity = aggregateIdentity;
             AggregateSequenceNumber = aggregateSequenceNumber;
             AggregateEvent = aggregateEvent ?? throw new ArgumentNullException(nameof(aggregateEvent));
-            Metadata = metadata             ?? throw new ArgumentNullException(nameof(metadata));
+            Metadata = metadata ?? throw new ArgumentNullException(nameof(metadata));
             Timestamp = timestamp;
         }
 

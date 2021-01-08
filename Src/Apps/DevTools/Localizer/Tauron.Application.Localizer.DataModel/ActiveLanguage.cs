@@ -7,7 +7,7 @@ namespace Tauron.Application.Localizer.DataModel
     public sealed record ActiveLanguage(string Shortcut, string Name) : IWriteable
     {
         public static readonly ActiveLanguage Invariant = FromCulture(CultureInfo.InvariantCulture);
-        
+
 
         public void Write(BinaryWriter writer)
         {
@@ -23,10 +23,10 @@ namespace Tauron.Application.Localizer.DataModel
         public static ActiveLanguage ReadFrom(BinaryReader reader)
         {
             var lang = new
-            {
-                Shortcut = reader.ReadString(),
-                Name = reader.ReadString()
-            };
+                       {
+                           Shortcut = reader.ReadString(),
+                           Name = reader.ReadString()
+                       };
             return new ActiveLanguage(lang.Shortcut, lang.Name);
         }
     }

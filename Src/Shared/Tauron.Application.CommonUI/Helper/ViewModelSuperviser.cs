@@ -15,7 +15,9 @@ namespace Tauron.Application.CommonUI.Helper
     public static class ViewModelSuperviserExtensions
     {
         public static void InitModel(this IViewModel model, IUntypedActorContext context, string? name = null)
-            => ViewModelSuperviser.Get(context.System).Create(model, name);
+        {
+            ViewModelSuperviser.Get(context.System).Create(model, name);
+        }
     }
 
     public sealed class ViewModelSuperviser
@@ -23,13 +25,15 @@ namespace Tauron.Application.CommonUI.Helper
         private static ViewModelSuperviser? _superviser;
 
 
-        public static ViewModelSuperviser Get(ActorSystem system)
-            => _superviser ??= new ViewModelSuperviser(system.ActorOf(system.DI().Props<ViewModelSuperviserActor>(), nameof(ViewModelSuperviser)));
-
-
         private readonly IActorRef _coordinator;
 
         private ViewModelSuperviser(IActorRef coordinator) => _coordinator = coordinator;
+
+
+        public static ViewModelSuperviser Get(ActorSystem system)
+        {
+            return _superviser ??= new ViewModelSuperviser(system.ActorOf(system.DI().Props<ViewModelSuperviserActor>(), nameof(ViewModelSuperviser)));
+        }
 
         public void Create(IViewModel model, string? name = null)
         {
@@ -41,15 +45,15 @@ namespace Tauron.Application.CommonUI.Helper
 
         internal sealed class CreateModel
         {
-            public ViewModelActorRef Model { get; }
-
-            public string? Name { get; }
-
             public CreateModel(ViewModelActorRef model, string? name)
             {
                 Model = model;
                 Name = name;
             }
+
+            public ViewModelActorRef Model { get; }
+
+            public string? Name { get; }
         }
     }
 
@@ -74,8 +78,7 @@ namespace Tauron.Application.CommonUI.Helper
             obj.Model.Init(actor);
         }
 
-        protected override SupervisorStrategy SupervisorStrategy() 
-            => new CircuitBreakerStrategy(Log);
+        protected override SupervisorStrategy SupervisorStrategy() => new CircuitBreakerStrategy(Log);
 
         private sealed class CircuitBreakerStrategy : SupervisorStrategy
         {
@@ -83,14 +86,12 @@ namespace Tauron.Application.CommonUI.Helper
 
             private readonly ConcurrentDictionary<IActorRef, IDecider> _deciders = new();
 
-            private CircuitBreakerStrategy(Func<IDecider> decider) 
-                => _decider = decider;
+            private CircuitBreakerStrategy(Func<IDecider> decider) => _decider = decider;
 
             public CircuitBreakerStrategy(ILoggingAdapter log)
-                : this(() => new CircuitBreakerDecider(log))
-            {
-                
-            }
+                : this(() => new CircuitBreakerDecider(log)) { }
+
+            public override IDecider Decider => throw new NotSupportedException("Single Decider not Supportet");
 
             protected override Directive Handle(IActorRef child, Exception exception)
             {
@@ -106,13 +107,12 @@ namespace Tauron.Application.CommonUI.Helper
                     context.Stop(child);
             }
 
-            public override void HandleChildTerminated(IActorContext actorContext, IActorRef child, IEnumerable<IInternalActorRef> children) 
-                => _deciders.TryRemove(child, out _);
+            public override void HandleChildTerminated(IActorContext actorContext, IActorRef child, IEnumerable<IInternalActorRef> children)
+            {
+                _deciders.TryRemove(child, out _);
+            }
 
-            public override ISurrogate ToSurrogate(ActorSystem system) 
-                => throw new NotSupportedException("Can not serialize CircuitBreakerStrategy");
-
-            public override IDecider Decider => throw new NotSupportedException("Single Decider not Supportet");
+            public override ISurrogate ToSurrogate(ActorSystem system) => throw new NotSupportedException("Can not serialize CircuitBreakerStrategy");
         }
 
         private sealed class CircuitBreakerDecider : IDecider
@@ -121,7 +121,7 @@ namespace Tauron.Application.CommonUI.Helper
             private readonly Stopwatch _time = new();
 
             private InternalState _currentState = InternalState.Closed;
-            
+
             private int _restartAtempt;
 
             public CircuitBreakerDecider(ILoggingAdapter log) => _log = log;
@@ -174,7 +174,7 @@ namespace Tauron.Application.CommonUI.Helper
             private enum InternalState
             {
                 Closed,
-                HalfOpen,
+                HalfOpen
             }
         }
     }
