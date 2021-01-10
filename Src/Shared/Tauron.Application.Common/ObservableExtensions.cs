@@ -19,6 +19,24 @@ namespace Tauron
 
         public static IObservable<TType> Isonlate<TType>(this IObservable<TType> obs) => obs.Publish().RefCount();
 
+        public static IObservable<Unit> ToUnit<TMessage>(this IObservable<TMessage> source, Action<TMessage> action)
+        {
+            return source.Select(m =>
+                                 {
+                                     action(m);
+                                     return Unit.Default;
+                                 });
+        }
+
+        public static IObservable<Unit> ToUnit<TMessage>(this IObservable<TMessage> source, Action action)
+        {
+            return source.Select(_ =>
+                                 {
+                                     action();
+                                     return Unit.Default;
+                                 });
+        }
+
 
         #region Send To Actor
 

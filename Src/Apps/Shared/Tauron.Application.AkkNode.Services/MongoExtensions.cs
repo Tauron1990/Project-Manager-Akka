@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using MongoDB.Driver;
 
@@ -15,6 +16,15 @@ namespace Tauron.Application.AkkNode.Services
             }
 
             return false;
+        }
+
+        public static IEnumerable<TSource> ToEnumerable<TSource>(this IAsyncCursor<TSource> cursor)
+        {
+            while (cursor.MoveNext())
+            {
+                foreach (var data in cursor.Current)
+                    yield return data;
+            }
         }
     }
 }

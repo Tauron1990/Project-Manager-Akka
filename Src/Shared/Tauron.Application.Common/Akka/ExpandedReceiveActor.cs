@@ -78,16 +78,16 @@ namespace Tauron.Akka
                 base.Unhandled(message);
         }
 
-        protected void WhenReceiveSafe<TEvent>(Func<IObservable<TEvent>, IObservable<Unit>> handler) 
+        //public void WhenReceiveSafe<TEvent>(Func<IObservable<TEvent>, IObservable<Unit>> handler) 
+        //    => AddResource(new ObservableInvoker<TEvent, Unit>(handler, DefaultError, this).Construct());
+
+        //public void WhenReceiveSafe<TEvent>(Func<IObservable<TEvent>, IObservable<TEvent>> handler) 
+        //    => AddResource(new ObservableInvoker<TEvent, TEvent>(handler, DefaultError, this).Construct());
+
+        public void WhenReceive<TEvent>(Func<IObservable<TEvent>, IObservable<Unit>> handler) 
             => AddResource(new ObservableInvoker<TEvent, Unit>(handler, DefaultError, this).Construct());
 
-        protected void WhenReceiveSafe<TEvent>(Func<IObservable<TEvent>, IObservable<TEvent>> handler) 
-            => AddResource(new ObservableInvoker<TEvent, TEvent>(handler, DefaultError, this).Construct());
-
-        protected void WhenReceive<TEvent>(Func<IObservable<TEvent>, IObservable<Unit>> handler) 
-            => AddResource(new ObservableInvoker<TEvent, Unit>(handler, ThrowError, this).Construct());
-
-        protected IObservable<TEvent> WhenReceive<TEvent>()
+        public IObservable<TEvent> WhenReceive<TEvent>()
         {
             ObsSender<TEvent> typedsender;
 
@@ -103,28 +103,28 @@ namespace Tauron.Akka
             return typedsender.Sender.AsObservable();
         }
 
-        protected void WhenReceive<TEvent>(Func<IObservable<TEvent>, IObservable<TEvent>> handler) 
-            => AddResource(new ObservableInvoker<TEvent, TEvent>(handler, ThrowError, this).Construct());
+        public void WhenReceive<TEvent>(Func<IObservable<TEvent>, IObservable<TEvent>> handler) 
+            => AddResource(new ObservableInvoker<TEvent, TEvent>(handler, DefaultError, this).Construct());
 
-        protected void WhenReceive<TEvent>(Func<IObservable<TEvent>, IObservable<Unit>> handler, Func<Exception, bool> errorHandler) 
+        public void WhenReceive<TEvent>(Func<IObservable<TEvent>, IObservable<Unit>> handler, Func<Exception, bool> errorHandler) 
             => AddResource(new ObservableInvoker<TEvent, Unit>(handler, errorHandler, this).Construct());
 
-        protected void WhenReceive<TEvent>(Func<IObservable<TEvent>, IObservable<TEvent>> handler, Func<Exception, bool> errorHandler) 
+        public void WhenReceive<TEvent>(Func<IObservable<TEvent>, IObservable<TEvent>> handler, Func<Exception, bool> errorHandler) 
             => AddResource(new ObservableInvoker<TEvent, TEvent>(handler, errorHandler, this).Construct());
 
-        protected void WhenReceiveSafe<TEvent>(Func<IObservable<TEvent>, IDisposable> handler) 
-            => AddResource(new ObservableInvoker<TEvent, Unit>(handler, this, true).Construct());
+        //protected void WhenReceiveSafe<TEvent>(Func<IObservable<TEvent>, IDisposable> handler) 
+        //    => AddResource(new ObservableInvoker<TEvent, Unit>(handler, this, true).Construct());
 
-        protected void WhenReceive<TEvent>(Func<IObservable<TEvent>, IDisposable> handler) 
-            => AddResource(new ObservableInvoker<TEvent, TEvent>(handler, this, false).Construct());
+        public void WhenReceive<TEvent>(Func<IObservable<TEvent>, IDisposable> handler) 
+            => AddResource(new ObservableInvoker<TEvent, TEvent>(handler, this, true).Construct());
 
-        private bool ThrowError(Exception e)
+        public bool ThrowError(Exception e)
         {
             Log.Error(e, "Error on Process Event");
             throw e;
         }
 
-        private bool DefaultError(Exception e)
+        public bool DefaultError(Exception e)
         {
             Log.Error(e, "Error on Process Event");
             return true;

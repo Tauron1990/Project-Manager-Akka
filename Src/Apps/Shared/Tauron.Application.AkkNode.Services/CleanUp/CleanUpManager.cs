@@ -1,64 +1,62 @@
 ﻿using System;
-using System.Linq;
+using System.Reactive;
+using System.Reactive.Linq;
 using Akka.Actor;
+using JetBrains.Annotations;
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
 using Tauron.Akka;
+using Tauron.Application.AkkNode.Services.Features;
 
 namespace Tauron.Application.AkkNode.Services.CleanUp
 {
-    public sealed class CleanUpManager : ExposedReceiveActor, IWithTimers
+    [PublicAPI]
+    public sealed class CleanUpManager : FeatureActorBase<CleanUpManager, CleanUpManager.CleanUpManagerState>
     {
-        public static readonly InitCleanUp Initialization = new InitCleanUp();
+        public static readonly InitCleanUp Initialization = new();
 
-        public ITimerScheduler Timers { get; set; } = null!;
+        public Props Create(IMongoDatabase database, string cleanUpCollection, IMongoCollection<ToDeleteRevision> revisions, GridFSBucket bucked)
+            => Create(new CleanUpManagerState(database, cleanUpCollection, revisions, bucked),
+                      () => new[] { Make.Feature(Initializing) });
 
-        public CleanUpManager(IMongoDatabase database, string cleanUpCollection, IMongoCollection<ToDeleteRevision> revisions, GridFSBucket bucked)
-        {
+        private static void Initializing(IFeatureActor<CleanUpManagerState> actorBase)
+            => actorBase.WhenReceive<InitCleanUp>(obs => obs.Select(init =>
+                                                                    {
+                                                                        var (database, cleanUpCollection, _, _) = init.State;
 
+                                                                        if (!database.ListCollectionNames().Contains(s => s == cleanUpCollection))
+                                                                            database.CreateCollection("CleanUp", new CreateCollectionOptions {Capped = true, MaxDocuments = 1, MaxSize = 1024});
+                                                                        return init;
+                                                                    })
+                                                            .Select(init => init.State.Database.GetCollection<CleanUpTime>(init.State.CleanUpCollection))
+                                                            .SelectMany(async db => new {Data = await db.AsQueryable().FirstOrDefaultAsync(), Datbase = db})
+                                                            .SelectMany(async db =>
+                                                                        {
+                                                                            if (db.Data == null)
+                                                                                await db.Datbase.InsertOneAsync(new CleanUpTime(default, TimeSpan.FromDays(7), DateTime.Now));
 
-            void Initializing()
-            {
-                Receive<InitCleanUp>(_ =>
-                {
-                    if (!database.ListCollectionNames().Contains(s => s == cleanUpCollection))
-                        database.CreateCollection("CleanUp", new CreateCollectionOptions {Capped = true, MaxDocuments = 1, MaxSize = 1024});
+                                                                            return Unit.Default;
+                                                                        })
+                                                            .ObserveOnSelf()
+                                                            .SubscribeWithStatus(_ =>
+                                                                                 {
+                                                                                     actorBase.Timers.StartPeriodicTimer(Initialization, new StartCleanUp(), TimeSpan.FromHours(1));
+                                                                                     actorBase.Become(new[] {Simple.Feature(Running)});
+                                                                                 }));
 
-                    var cleanUp = database.GetCollection<CleanUpTime>(cleanUpCollection);
+        private static void Running(IFeatureActor<CleanUpManagerState> actorBase)
+            => actorBase.WhenReceive<StartCleanUp>(obs => obs.Select(data => CleanUpOperator.Create(data.State.Database.GetCollection<CleanUpTime>(data.State.CleanUpCollection),
+                                                                                                                    data.State.Revisions, data.State.Bucket))
+                                                             .ForwardToActor(props => actorBase.Context.ActorOf(props)));
 
-                    var data = cleanUp.AsQueryable().FirstOrDefault();
-                    if (data == null)
-                    {
-                        data = new CleanUpTime
-                               {
-                                   Interval = TimeSpan.FromDays(7),
-                                   Last = DateTime.Now
-                               };
-
-                        cleanUp.InsertOne(data);
-                    }
-
-                    Timers.StartPeriodicTimer(data, new StartCleanUp(), TimeSpan.FromHours(1));
-
-                    Become(Running);
-                });
-            }
-
-            void Running()
-            {
-                Receive<StartCleanUp>(r => Context.ActorOf(Props.Create(() => new CleanUpOperator(database.GetCollection<CleanUpTime>(cleanUpCollection, null), revisions, bucked))).Forward(r));
-            }
-
-            Become(Initializing);
-        }
-
-
-        public sealed class InitCleanUp
+        public sealed record InitCleanUp
         {
             internal InitCleanUp()
             {
-                
+
             }
         }
+
+        public sealed record CleanUpManagerState(IMongoDatabase Database, string CleanUpCollection, IMongoCollection<ToDeleteRevision> Revisions, GridFSBucket Bucket);
     }
 }

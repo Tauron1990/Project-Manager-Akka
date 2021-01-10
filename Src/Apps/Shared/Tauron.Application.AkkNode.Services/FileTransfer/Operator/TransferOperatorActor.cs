@@ -23,7 +23,7 @@ namespace Tauron.Application.AkkNode.Services.FileTransfer.Operator
 
     public sealed class OperatorData
     {
-        public static readonly Crc32 Crc32 = new Crc32();
+        public static readonly Crc32 Crc32 = new();
 
         public string OperationId { get; }
 
@@ -66,8 +66,8 @@ namespace Tauron.Application.AkkNode.Services.FileTransfer.Operator
 
         private OperatorData Copy(string? id = null, IActorRef? target = null, Func<ITransferData>? data = null, string? metadata = null, InternalCrcStream? stream = null, 
             TransferError? failed = null, TaskCompletionSource<TransferMessages.TransferCompled>? completion = null, bool? sendBack = false, IActorRef? sender = null) 
-            => new OperatorData(id ?? OperationId, target ?? TargetManager, data ?? Data, metadata ?? Metadata, stream ?? TransferStrem, failed ?? Error, completion ?? Completion,
-                sendBack ?? SendBack, sender ?? Sender);
+            => new(id ?? OperationId, target ?? TargetManager, data ?? Data, metadata ?? Metadata, stream ?? TransferStrem, failed ?? Error, completion ?? Completion,
+                   sendBack ?? SendBack, sender ?? Sender);
 
         public OperatorData StartSending(DataTransferRequest id, IActorRef sender)
             => Copy(id.OperationId, id.Target.Actor, id.Source, id.Data, sendBack:id.SendCompletionBack, sender:sender);
@@ -131,7 +131,7 @@ namespace Tauron.Application.AkkNode.Services.FileTransfer.Operator
                 {
                     switch (state.FsmEvent)
                     {
-                        case BeginTransfering _:
+                        case BeginTransfering:
                             _log.Info("Start Tranfer {Id}", GetId(state));
                             try
                             {
@@ -144,7 +144,7 @@ namespace Tauron.Application.AkkNode.Services.FileTransfer.Operator
                                 _log.Error(e, "Open Sending Stream Failed {Id}", GetId(state));
                                 return GoTo(OperatorState.Failed).Using(state.StateData.Failed(Parent, FailReason.StreamError, e.Message));
                             }
-                        case RequestDeny _:
+                        case RequestDeny:
                             _log.Info("Tranfer Request Deny {Id}", state.StateData.OperationId);
                             return GoTo(OperatorState.Failed).Using(state.StateData.Failed(Parent, FailReason.Deny, null));
                         default:
@@ -184,8 +184,8 @@ namespace Tauron.Application.AkkNode.Services.FileTransfer.Operator
                 {
                     switch (state.FsmEvent)
                     {
-                        case SendNextChunk _:
-                        case StartTrensfering _:
+                        case SendNextChunk:
+                        case StartTrensfering:
                             _outgoningBytes ??= ArrayPool<byte>.Shared.Rent(1024 * 1024);
                             try
                             {
@@ -205,9 +205,10 @@ namespace Tauron.Application.AkkNode.Services.FileTransfer.Operator
                                 _log.Error(e, "Error on Read Stream or Sending");
                                 return GoTo(OperatorState.Failed).Using(state.StateData.Failed(Parent, FailReason.ReadError, e.Message));
                             }
-                        case SendingCompled _: 
+                        case SendingCompled: 
                             state.StateData.TransferStrem.Dispose();
-                            ArrayPool<byte>.Shared.Return(_outgoningBytes);
+                            if(_outgoningBytes != null)
+                                ArrayPool<byte>.Shared.Return(_outgoningBytes);
                             _outgoningBytes = null;
 
                             var comp = new TransferCompled(state.StateData.OperationId, state.StateData.Metadata);
@@ -216,7 +217,7 @@ namespace Tauron.Application.AkkNode.Services.FileTransfer.Operator
                                 state.StateData.Sender.Tell(comp);
 
                             return GoTo(OperatorState.Compled);
-                        case RepeadChunk _:
+                        case RepeadChunk:
                             _sendingAttempts += 1;
                             if (_sendingAttempts > 5)
                                 return GoTo(OperatorState.Failed).Using(state.StateData.Failed(Parent, FailReason.ToManyResends, null));
@@ -276,7 +277,7 @@ namespace Tauron.Application.AkkNode.Services.FileTransfer.Operator
                                 _log.Error(e, "Error on Write Stream");
                                 return GoTo(OperatorState.Failed).Using(state.StateData.Failed(Parent, FailReason.WriteError, e.Message));
                             }
-                        case RequestDeny _:
+                        case RequestDeny:
                             return Stay();
                         default:
                             return null;
@@ -303,7 +304,7 @@ namespace Tauron.Application.AkkNode.Services.FileTransfer.Operator
                                                    Set(error.ToFailed());
                                                    break;
                                                }
-                                               case StateTimeout _:
+                                               case StateTimeout:
                                                    Set(new TransferFailed(GetId(state), FailReason.Timeout, null));
                                                    break;
                                                default:
@@ -320,9 +321,9 @@ namespace Tauron.Application.AkkNode.Services.FileTransfer.Operator
                                            return Stay();
                                        }, TimeSpan.FromSeconds(30));
 
-            When(OperatorState.Compled, s => null);
+            When(OperatorState.Compled, _ => null);
 
-            OnTransition((state, nextState) =>
+            OnTransition((_, nextState) =>
             {
                 if (nextState != OperatorState.Failed && nextState != OperatorState.Compled) return;
 
@@ -336,13 +337,13 @@ namespace Tauron.Application.AkkNode.Services.FileTransfer.Operator
                 {
                     switch (state.FsmEvent)
                     {
-                        case StateTimeout _:
+                        case StateTimeout:
                             _log.Error("Trisnmission Timeout {Id}", GetId(state));
                             return GoTo(OperatorState.Failed).Using(state.StateData.Failed(Parent, FailReason.Timeout, null));
                         case TransferError error:
                             _log.Warning("Incoming Transfer Failed {Id}", GetId(state));
                             return GoTo(OperatorState.Failed).Using(state.StateData.InComingError(error));
-                        case DataTranfer _:
+                        case DataTranfer:
                             _log.Warning("Incorrect DataTransfer Event {Id}", GetId(state));
                             return GoTo(OperatorState.Failed).Using(state.StateData.Failed(Parent, FailReason.ComunicationError, null));
                         default:
