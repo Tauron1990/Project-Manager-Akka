@@ -1,4 +1,6 @@
-﻿using AkkaTest.Test;
+﻿using System;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 
 namespace AkkaTest
 {
@@ -6,12 +8,13 @@ namespace AkkaTest
     {
         private static void Main()
         {
-            var test = Result.Create(10); //Maybe.Just(10);
+            using var sub = new Subject<string>();
 
-            var result = from num in test
-                         let num2 = num + 1
-                         where num > 5
-                         select num + num2;
+            sub.Select(int.Parse).Subscribe(Console.WriteLine);
+
+            sub.Select<string, int>(_ => throw new InvalidOperationException()).Subscribe(Console.WriteLine, e => Console.WriteLine(e));
+
+            sub.OnNext("123");
         }
     }
 }

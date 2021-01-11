@@ -17,7 +17,7 @@ namespace Tauron.Application.Localizer.DataModel.Workspace.Analyzing
         protected override void ActorConstruct(IExpandedReceiveActor actor)
         {
             Actor = actor;
-            actor.RespondOnEventSource(Workspace.Source.ProjectReset, rest => SendIssues(ValidateAll(rest, ExpandedReceiveActor.ExposedContext), ExpandedReceiveActor.ExposedContext));
+            actor.RespondOnEventSource(Workspace.Source.ProjectReset, rest => SendIssues(ValidateAll(rest, ObservableActor.ExposedContext), ObservableActor.ExposedContext));
             RegisterRespond(actor);
         }
 
@@ -27,7 +27,7 @@ namespace Tauron.Application.Localizer.DataModel.Workspace.Analyzing
 
         protected void RegisterRespond<TData>(IEventSource<TData> source, Func<TData, IEnumerable<Issue.IssueCompleter>> validator)
         {
-            Actor.RespondOnEventSource(source, data => SendIssues(validator(data), ExpandedReceiveActor.ExposedContext));
+            Actor.RespondOnEventSource(source, data => SendIssues(validator(data), ObservableActor.ExposedContext));
         }
     }
 }

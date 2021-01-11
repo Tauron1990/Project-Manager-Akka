@@ -1,10 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using Akka.Configuration;
+using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
 
 namespace Tauron.Application.AkkNode.Services.Configuration
 {
+    [PublicAPI]
     public sealed class HoconConfigurationSource : IConfigurationSource
     {
         private readonly Func<Config> _config;

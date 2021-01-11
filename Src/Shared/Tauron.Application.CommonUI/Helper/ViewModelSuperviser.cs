@@ -57,7 +57,7 @@ namespace Tauron.Application.CommonUI.Helper
         }
     }
 
-    public sealed class ViewModelSuperviserActor : ExpandedReceiveActor
+    public sealed class ViewModelSuperviserActor : ObservableActor
     {
         private int _count;
 

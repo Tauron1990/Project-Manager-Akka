@@ -4,7 +4,7 @@ using Tauron.Application.Localizer.DataModel.Processing.Actors;
 
 namespace Tauron.Application.Localizer.DataModel.Processing
 {
-    public sealed class ProjectFileOperator : ExpandedReceiveActor
+    public sealed class ProjectFileOperator : ObservableActor
     {
         public ProjectFileOperator()
         {

@@ -33,6 +33,14 @@ namespace Tauron
             }
         }
 
+        public static bool WhenTrue(this bool input, Action run)
+        {
+            if (input)
+                run();
+
+            return input;
+        }
+
         //public static TResult To<TInput, TResult>(this TInput input, Func<TInput, TResult> transformer)
         //    => transformer(input);
 

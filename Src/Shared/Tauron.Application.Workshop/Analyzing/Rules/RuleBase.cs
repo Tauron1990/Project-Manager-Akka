@@ -28,7 +28,7 @@ namespace Tauron.Application.Workshop.Analyzing.Rules
             context.Parent.Tell(new RuleIssuesChanged<TWorkspace, TData>(this, issues));
         }
 
-        private sealed class InternalRuleActor : ExpandedReceiveActor
+        private sealed class InternalRuleActor : ObservableActor
         {
             public InternalRuleActor(Action<IExpandedReceiveActor> constructor)
             {

@@ -10,7 +10,7 @@ namespace Tauron.Application.Workshop
     {
         public static void RespondOnEventSource<TData>(this IExpandedReceiveActor actor, IEventSource<TData> eventSource, Action<TData> action)
         {
-            eventSource.RespondOn(ExpandedReceiveActor.ExposedContext.Self);
+            eventSource.RespondOn(ObservableActor.ExposedContext.Self);
             actor.Exposed.Receive<TData>((data, _) => action(data));
         }
 

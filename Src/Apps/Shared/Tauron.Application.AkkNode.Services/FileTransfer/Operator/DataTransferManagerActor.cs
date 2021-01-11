@@ -4,14 +4,15 @@ using JetBrains.Annotations;
 using Tauron.Akka;
 using Akka.Actor;
 using Tauron.Application.AkkNode.Services.Core;
+using Tauron.Application.AkkNode.Services.Features;
 
 namespace Tauron.Application.AkkNode.Services.FileTransfer.Operator
 {
     [UsedImplicitly(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature)]
-    public sealed class DataTransferManagerActor : ExposedReceiveActor, IWithTimers
+    public sealed class DataTransferManagerActor : ExpandedReceiveActor, IWithTimers
     {
-        private readonly Dictionary<string, IncomingDataTransfer> _pendingTransfers = new Dictionary<string, IncomingDataTransfer>();
-        private readonly Dictionary<string, AwaitRequestInternal> _awaiters = new Dictionary<string, AwaitRequestInternal>();
+        private readonly Dictionary<string, IncomingDataTransfer> _pendingTransfers = new();
+        private readonly Dictionary<string, AwaitRequestInternal> _awaiters = new();
 
         public ITimerScheduler Timers { get; set; } = null!;
 

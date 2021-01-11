@@ -5,7 +5,7 @@ using Tauron.Akka;
 
 namespace Tauron.Application.Localizer.DataModel.Processing.Actors
 {
-    public sealed class ProjectLoader : ExpandedReceiveActor
+    public sealed class ProjectLoader : ObservableActor
     {
         public ProjectLoader()
         {

@@ -27,7 +27,7 @@ namespace Tauron.Application.CommonUI
         public static ModelProperty RegisterModel<TModel>(this UiActor actor, string propertyName, string actorName)
         {
             var model = actor.LifetimeScope.Resolve<IViewModel<TModel>>();
-            model.InitModel(ExpandedReceiveActor.ExposedContext, actorName);
+            model.InitModel(ObservableActor.ExposedContext, actorName);
 
             return new ModelProperty(model.Actor, actor.RegisterProperty<IViewModel<TModel>>(propertyName).WithDefaultValue(model).Property.LockSet());
         }

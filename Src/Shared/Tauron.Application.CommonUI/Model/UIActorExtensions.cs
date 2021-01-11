@@ -14,7 +14,7 @@ namespace Tauron.Application.CommonUI.Model
             model ??= actor.LifetimeScope.Resolve<IViewModel<TModel>>();
 
             if (!model.IsInitialized)
-                model.InitModel(ExpandedReceiveActor.ExposedContext, name);
+                model.InitModel(ObservableActor.ExposedContext, name);
 
             return new UIModel<TModel>(actor.RegisterProperty<IViewModel<TModel>>(name).WithDefaultValue(model).Property);
         }
