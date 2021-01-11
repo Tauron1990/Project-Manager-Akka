@@ -8,10 +8,10 @@ namespace Tauron.Application.Workshop
     [PublicAPI]
     public static class EventSourceExtensions
     {
-        public static void RespondOnEventSource<TData>(this IExpandedReceiveActor actor, IEventSource<TData> eventSource, Action<TData> action)
+        public static void RespondOnEventSource<TData>(this IObservableActor actor, IEventSource<TData> eventSource, Action<TData> action)
         {
             eventSource.RespondOn(ObservableActor.ExposedContext.Self);
-            actor.Exposed.Receive<TData>((data, _) => action(data));
+            actor.Receive<TData>(obs => obs.SubscribeWithStatus(action));
         }
 
         public static void RespondOn<TData>(this IEventSource<TData> source, Action<TData> action)

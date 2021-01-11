@@ -20,7 +20,7 @@ namespace Tauron.Akka
         public static FSMBase.State<TS, TD> ReplyingParent<TS, TD>(this FSMBase.State<TS, TD> state, object msg)
             => state.Replying(msg, ObservableActor.ExposedContext.Parent);
 
-        public static void SubscribeToEvent<TEvent>(this IObservableActor actor, Action<TEvent> handler)
+        public static void SubscribeToEvent<TEvent>(this IObservableActor actor, Func<IObservable<TEvent>, IDisposable> handler)
             => new EventHolder<TEvent>(actor, handler).Register();
 
         public static void SendEvent<TType>(this IObservableActor actor, TType evt)
@@ -29,9 +29,9 @@ namespace Tauron.Akka
         private sealed class EventHolder<TEvent>
         {
             private readonly IObservableActor _actor;
-            private readonly Action<TEvent> _handler;
+            private readonly Func<IObservable<TEvent>, IDisposable> _handler;
 
-            public EventHolder(IObservableActor actor, Action<TEvent> handler)
+            public EventHolder(IObservableActor actor, Func<IObservable<TEvent>, IDisposable> handler)
             {
                 _handler = handler;
                 _actor = actor;
@@ -39,10 +39,11 @@ namespace Tauron.Akka
 
             public void Register()
             {
-                _actor.Exposed.Receive<TEvent>((e, c) => _handler(e));
+                _actor.Receive(_handler);
 
-                _actor.Exposed.OnPreStart += context => context.System.EventStream.Subscribe<TEvent>(context.Self);
-                _actor.Exposed.OnPostStop += context => context.System.EventStream.Unsubscribe<TEvent>(context.Self);
+                
+                _actor.Start.Subscribe(context => context.System.EventStream.Subscribe<TEvent>(context.Self)).DisposeWith(_actor);
+                _actor.Stop.Subscribe(context => context.System.EventStream.Unsubscribe<TEvent>(context.Self)).DisposeWith(_actor);
             }
         }
     }

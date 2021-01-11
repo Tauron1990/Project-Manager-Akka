@@ -13,20 +13,22 @@ namespace Tauron.Application.Workshop.Core
 
         public WorkspaceSuperviserActor()
         {
-            Receive<SuperviseActorBase>(CreateActor);
+            Receive<SuperviseActorBase>(obs => obs.SubscribeWithStatus(CreateActor));
 
-            Receive<WatchIntrest>(wi =>
-                                  {
-                                      ImmutableInterlocked.AddOrUpdate(ref _intrest, wi.Target, _ => wi.OnRemove, (_, action) => action.Combine(wi.OnRemove) ?? wi.OnRemove);
-                                      Context.Watch(wi.Target);
-                                  });
-            Receive<Terminated>(t =>
-                                {
-                                    if (!_intrest.TryGetValue(t.ActorRef, out var action)) return;
+            Receive<WatchIntrest>(obs => obs.SubscribeWithStatus(wi =>
+                                                                 {
+                                                                     ImmutableInterlocked.AddOrUpdate(ref _intrest, 
+                                                                                                      wi.Target, _ => wi.OnRemove,
+                                                                                                      (_, action) => action.Combine(wi.OnRemove) ?? wi.OnRemove);
+                                                                     Context.Watch(wi.Target);
+                                                                 }));
+            Receive<Terminated>(obs => obs.SubscribeWithStatus(t =>
+                                                               {
+                                                                   if (!_intrest.TryGetValue(t.ActorRef, out var action)) return;
 
-                                    action();
-                                    _intrest = _intrest.Remove(t.ActorRef);
-                                });
+                                                                   action();
+                                                                   _intrest = _intrest.Remove(t.ActorRef);
+                                                               }));
         }
 
         private void CreateActor(SuperviseActorBase obj)

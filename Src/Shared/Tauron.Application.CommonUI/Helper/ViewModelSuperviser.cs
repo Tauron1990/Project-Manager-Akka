@@ -14,7 +14,7 @@ namespace Tauron.Application.CommonUI.Helper
 {
     public static class ViewModelSuperviserExtensions
     {
-        public static void InitModel(this IViewModel model, IUntypedActorContext context, string? name = null)
+        public static void InitModel(this IViewModel model, IActorContext context, string? name = null)
         {
             ViewModelSuperviser.Get(context.System).Create(model, name);
         }
@@ -63,7 +63,7 @@ namespace Tauron.Application.CommonUI.Helper
 
         public ViewModelSuperviserActor()
         {
-            Receive<ViewModelSuperviser.CreateModel>(NewModel);
+            Receive<ViewModelSuperviser.CreateModel>(obs => obs.SubscribeWithStatus(NewModel));
         }
 
         private void NewModel(ViewModelSuperviser.CreateModel obj)
@@ -167,7 +167,7 @@ namespace Tauron.Application.CommonUI.Helper
                             return Directive.Restart;
                         }
                     default:
-                        throw new ArgumentOutOfRangeException();
+                        return Directive.Escalate;
                 }
             }
 

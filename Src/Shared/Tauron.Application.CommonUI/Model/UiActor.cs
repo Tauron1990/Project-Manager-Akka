@@ -59,19 +59,33 @@ namespace Tauron.Application.CommonUI.Model
 
         protected void InitHandler()
         {
-            Receive<CommandExecuteEvent>(CommandExecute);
-            Receive<ControlSetEvent>(msg => SetControl(msg.Name, msg.Element));
-            Receive<MakeEventHook>(msg => Context.Sender.Tell(Context.GetOrCreateEventActor(msg.Name + "-EventActor")));
-            Receive<ExecuteEventExent>(ExecuteEvent);
-            Receive<GetValueRequest>(GetPropertyValue);
-            ReceiveAsync<InitEvent>(async evt => await InitializeAsync(evt));
-            Receive<SetValue>(SetPropertyValue);
-            Receive<TrackPropertyEvent>(t => TrackProperty(t, Sender));
-            Receive<Terminated>(ActorTermination);
-            Receive<PropertyTermination>(PropertyTerminationHandler);
-            Receive<UnloadEvent>(ControlUnload);
-            Receive<InitParentViewModel>(InitParentViewModel);
-            Receive<ReviveActor>(RestartActor);
+            Receive<InitEvent>(obs => obs.ToUnit(async evt => await InitializeAsync(evt)));
+            Receive<Terminated>(obs => obs.Subscribe());
+        }
+
+        protected override bool Receive(object message)
+        {
+            static bool Run<TMsg>(TMsg msg, Action<TMsg> handler)
+            {
+                handler(msg);
+                return true;
+            }
+
+            return message switch
+                   {
+                       CommandExecuteEvent commandExecuteEvent => Run(commandExecuteEvent, CommandExecute),
+                       ControlSetEvent controlSetEvent         => Run(controlSetEvent, msg => SetControl(msg.Name, msg.Element)),
+                       MakeEventHook makeEventHook             => Run(makeEventHook, msg => Context.Sender.Tell(Context.GetOrCreateEventActor(msg.Name + "-EventActor"))),
+                       ExecuteEventEvent executeEventEvent     => Run(executeEventEvent, ExecuteEvent),
+                       GetValueRequest getValueRequest         => Run(getValueRequest, GetPropertyValue),
+                       SetValue setValue                       => Run(setValue, SetPropertyValue),
+                       TrackPropertyEvent trackPropertyEvent   => Run(trackPropertyEvent, t => TrackProperty(t, Sender)),
+                       PropertyTermination propertyTermination => Run(propertyTermination, PropertyTerminationHandler),
+                       UnloadEvent unloadEvent                 => Run(unloadEvent, ControlUnload),
+                       InitParentViewModel initParentViewModel => Run(initParentViewModel, InitParentViewModel),
+                       ReviveActor reviveActor                 => Run(reviveActor, RestartActor),
+                       _                                       => base.Receive(message)
+                   };
         }
 
         #region ControlEvents
@@ -305,8 +319,6 @@ namespace Tauron.Application.CommonUI.Model
             base.PreRestart(reason, message);
         }
 
-        protected virtual void ActorTermination(Terminated obj) { }
-
         protected override void PostStop()
         {
             Log.Info("UiActor Terminated {ActorType}", GetType());
@@ -353,7 +365,7 @@ namespace Tauron.Application.CommonUI.Model
 
         #region Events
 
-        private void ExecuteEvent(ExecuteEventExent obj)
+        private void ExecuteEvent(ExecuteEventEvent obj)
         {
             var (eventData, name) = obj;
             if (_eventRegistrations.TryGetValue(name, out var reg))

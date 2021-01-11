@@ -1,30 +1,16 @@
 ﻿using JetBrains.Annotations;
 
-namespace Tauron.Application.AkkNode.Services.Features
+namespace Tauron.Features
 {
-    public interface IFeature
+    public interface IFeature<TState>
     {
-        void Init(IFeatureActorBase actorBase);
+        public void Init(IFeatureActor<TState> actor);
     }
-
-    public interface IStatedFeature<TState> : IFeature
-    {
-
-    }
+    
 
     [PublicAPI]
-    public abstract class ActorFeatureBase : IFeature
+    public abstract class ActorFeatureBase<TState> : IFeature<TState>
     {
-        void IFeature.Init(IFeatureActorBase actorBase) => Init((IFeatureActor)actorBase);
-
-        protected abstract void Init(IFeatureActor actorBase);
-    }
-
-    [PublicAPI]
-    public abstract class ActorFeatureBase<TState> : IStatedFeature<TState>
-    {
-        void IFeature.Init(IFeatureActorBase actorBase) => Init((IFeatureActor<TState>)actorBase);
-
-        protected abstract void Init(IFeatureActor<TState> actorBase);
+        public abstract void Init(IFeatureActor<TState> actor);
     }
 }

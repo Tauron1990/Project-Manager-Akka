@@ -12,9 +12,9 @@ namespace Tauron.Application.Localizer.DataModel.Workspace.Analyzing
 {
     public abstract class LocalizerRule : RuleBase<ProjectFileWorkspace, MutatingContext<ProjectFile>>
     {
-        public IExpandedReceiveActor Actor { get; private set; } = null!;
+        public IObservableActor Actor { get; private set; } = null!;
 
-        protected override void ActorConstruct(IExpandedReceiveActor actor)
+        protected override void ActorConstruct(IObservableActor actor)
         {
             Actor = actor;
             actor.RespondOnEventSource(Workspace.Source.ProjectReset, rest => SendIssues(ValidateAll(rest, ObservableActor.ExposedContext), ObservableActor.ExposedContext));
@@ -23,7 +23,7 @@ namespace Tauron.Application.Localizer.DataModel.Workspace.Analyzing
 
         protected abstract IEnumerable<Issue.IssueCompleter> ValidateAll(ProjectRest projectRest, IActorContext context);
 
-        protected abstract void RegisterRespond(IExpandedReceiveActor actor);
+        protected abstract void RegisterRespond(IObservableActor actor);
 
         protected void RegisterRespond<TData>(IEventSource<TData> source, Func<TData, IEnumerable<Issue.IssueCompleter>> validator)
         {

@@ -93,12 +93,9 @@ namespace Tauron.Application.Avalonia
                 {
                     Log.Error("EventBinder: EventPairs not Valid: {Commands}", Commands);
                 }
-
-                if (context == null) return;
-
-                var dataContext = context as IViewModel;
+                
                 var host = AffectedObject;
-                if (host == null || dataContext == null) return;
+                if (context is not IViewModel dataContext) return;
 
                 var hostType = host.GetType();
 
@@ -157,10 +154,8 @@ namespace Tauron.Application.Avalonia
                 private bool EnsureCommandStade()
                 {
                     if (_command != null) return true;
-
-                    if (_dataContext == null) return false;
-
-                    _command = d => _dataContext.Actor.Tell(new ExecuteEventExent(d, _targetName));
+                    
+                    _command = d => _dataContext.Actor.Tell(new ExecuteEventEvent(d, _targetName));
 
 
                     return _command != null && !_isDirty;

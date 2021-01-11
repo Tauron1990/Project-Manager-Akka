@@ -19,7 +19,7 @@ namespace Tauron.Application.CommonUI.Model
         protected StateUIActor(ILifetimeScope lifetimeScope, IUIDispatcher dispatcher, IActionInvoker actionInvoker) : base(lifetimeScope, dispatcher)
         {
             ActionInvoker = actionInvoker;
-            Receive<IOperationResult>(InternalOnOperationCompled);
+            Receive<IOperationResult>(obs => obs.SubscribeWithStatus(InternalOnOperationCompled));
         }
 
         public IActionInvoker ActionInvoker { get; }

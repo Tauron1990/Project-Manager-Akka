@@ -1,20 +1,58 @@
 ﻿using System;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Threading.Tasks;
+using Akka.Actor;
+using Tauron;
+using Tauron.Features;
 
 namespace AkkaTest
 {
+    public record KillMessage;
+
+    public record AlarmMessage;
+
+    public record HelloMessage;
+
+    public record WorldMessage;
+
     internal static class Program
     {
-        private static void Main()
+        private sealed class KillFeature : IFeature<EmptyState>
         {
-            using var sub = new Subject<string>();
+            public void Init(IFeatureActor<EmptyState> actor) 
+                => actor.Receive<KillMessage>(obs => obs.SubscribeWithStatus(_ => actor.Context.System.Terminate()));
+        }
 
-            sub.Select(int.Parse).Subscribe(Console.WriteLine);
+        private sealed class HelloFeature : IFeature<EmptyState>
+        {
+            public void Init(IFeatureActor<EmptyState> actor)
+            {
+                actor.Receive<AlarmMessage>(obs => obs.SubscribeWithStatus(_ => Console.WriteLine("Here Is Hello Feature")));
+                actor.Receive<HelloMessage>(obs => obs.SubscribeWithStatus(_ => Console.Write("Hello ")));
+            }
+        }
 
-            sub.Select<string, int>(_ => throw new InvalidOperationException()).Subscribe(Console.WriteLine, e => Console.WriteLine(e));
+        private sealed class WorldFeature : IFeature<EmptyState>
+        {
+            public void Init(IFeatureActor<EmptyState> actor)
+            {
+                actor.Receive<AlarmMessage>(obs => obs.SubscribeWithStatus(_ => Console.WriteLine("Here Is World Feature")));
+                actor.Receive<WorldMessage>(obs => obs.SubscribeWithStatus(_ => Console.WriteLine("World!")));
+            }
+        }
 
-            sub.OnNext("123");
+        private static async Task Main()
+        {
+            using var system = ActorSystem.Create("Test");
+
+            var test = system.ActorOf(Feature.Create(new KillFeature(), new HelloFeature(), new WorldFeature()));
+            test.Tell(new AlarmMessage());
+            test.Tell(new HelloMessage());
+            test.Tell(new WorldMessage());
+            test.Tell(new KillMessage());
+
+            await system.WhenTerminated;
         }
     }
 }

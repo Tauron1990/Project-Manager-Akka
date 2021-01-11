@@ -9,7 +9,7 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
     {
         public ProjectLoader()
         {
-            Receive<InternalLoadProject>(LoadProjectFile);
+            Receive<InternalLoadProject>(obs => obs.SubscribeWithStatus(LoadProjectFile));
         }
 
         private void LoadProjectFile(InternalLoadProject obj)

@@ -17,8 +17,8 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
 
         public BuildActorCoordinator()
         {
-            Receive<BuildRequest>(ProcessRequest);
-            WhenReceiveSafe<AgentCompled>(obs => obs.Select(SingleBuildCompled).ToSender());
+            Receive<BuildRequest>(obs => obs.SubscribeWithStatus(ProcessRequest));
+            Receive<AgentCompled>(obs => obs.Select(SingleBuildCompled).ToSender());
         }
 
         private BuildCompled? SingleBuildCompled(AgentCompled arg)

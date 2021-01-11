@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Actor.Internal;
 using JetBrains.Annotations;
@@ -37,6 +38,14 @@ namespace Tauron
                                  });
         }
 
+        public static IObservable<Unit> ToUnit<TMessage>(this IObservable<TMessage> source, Func<Task> action)
+        {
+            return source.SelectMany(async _ =>
+                                     {
+                                         await action();
+                                         return Unit.Default;
+                                     });
+        }
 
         #region Send To Actor
 
@@ -45,13 +54,13 @@ namespace Tauron
         public static IDisposable ToParent<TMessage>(this IObservable<TMessage> source) 
             => ToParent(source, ObservableActor.ExposedContext);
 
-        public static IDisposable ToParent<TMessage>(this IObservable<TMessage> source, IUntypedActorContext context) 
+        public static IDisposable ToParent<TMessage>(this IObservable<TMessage> source, IActorContext context) 
             => source.SubscribeWithStatus(m => context.Parent.Tell(m));
 
         public static IDisposable ToSender<TMessage>(this IObservable<TMessage> source) 
             => ToSender(source, ObservableActor.ExposedContext);
 
-        public static IDisposable ToSender<TMessage>(this IObservable<TMessage> source, IUntypedActorContext context) 
+        public static IDisposable ToSender<TMessage>(this IObservable<TMessage> source, IActorContext context) 
             => source.SubscribeWithStatus(m => context.Sender.Tell(m));
 
         public static IDisposable ToActor<TMessage>(this IObservable<TMessage> source, IActorRef target) 
@@ -60,7 +69,7 @@ namespace Tauron
         public static IDisposable ToActor<TMessage>(this IObservable<TMessage> source, Func<IActorRef> target) 
             => source.SubscribeWithStatus(m => target().Tell(m));
 
-        public static IDisposable ToActor<TMessage>(this IObservable<TMessage> source, Func<IUntypedActorContext, IActorRef> target) 
+        public static IDisposable ToActor<TMessage>(this IObservable<TMessage> source, Func<IActorContext, IActorRef> target) 
             => source.SubscribeWithStatus(m => target(ObservableActor.ExposedContext).Tell(m));
 
         public static IDisposable ToActor<TMessage>(this IObservable<TMessage> source, Func<TMessage, IActorRef> target) 
@@ -69,12 +78,12 @@ namespace Tauron
 
         public static IDisposable ForwardToParent<TMessage>(this IObservable<TMessage> source) => ForwardToParent(source, ObservableActor.ExposedContext);
 
-        public static IDisposable ForwardToParent<TMessage>(this IObservable<TMessage> source, IUntypedActorContext context) 
+        public static IDisposable ForwardToParent<TMessage>(this IObservable<TMessage> source, IActorContext context) 
             => source.SubscribeWithStatus(m => context.Parent.Forward(m));
 
         public static IDisposable ForwardToSender<TMessage>(this IObservable<TMessage> source) => ForwardToSender(source, ObservableActor.ExposedContext);
 
-        public static IDisposable ForwardToSender<TMessage>(this IObservable<TMessage> source, IUntypedActorContext context) 
+        public static IDisposable ForwardToSender<TMessage>(this IObservable<TMessage> source, IActorContext context) 
             => source.SubscribeWithStatus(m => context.Sender.Forward(m));
 
         public static IDisposable ForwardToActor<TMessage>(this IObservable<TMessage> source, IActorRef target) 
@@ -83,7 +92,7 @@ namespace Tauron
         public static IDisposable ForwardToActor<TMessage>(this IObservable<TMessage> source, Func<IActorRef> target) 
             => source.SubscribeWithStatus(m => target().Forward(m));
 
-        public static IDisposable ForwardToActor<TMessage>(this IObservable<TMessage> source, Func<IUntypedActorContext, IActorRef> target) 
+        public static IDisposable ForwardToActor<TMessage>(this IObservable<TMessage> source, Func<IActorContext, IActorRef> target) 
             => source.SubscribeWithStatus(m => target(ObservableActor.ExposedContext).Forward(m));
 
         public static IDisposable ForwardToActor<TMessage>(this IObservable<TMessage> source, Func<TMessage, IActorRef> target) 

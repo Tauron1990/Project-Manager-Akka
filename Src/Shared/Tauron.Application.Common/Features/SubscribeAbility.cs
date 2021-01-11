@@ -1,82 +1,80 @@
 ﻿using System;
+using System.Collections.Immutable;
 using System.Reactive.Linq;
 using Akka.Actor;
 using JetBrains.Annotations;
-using Tauron.Akka;
-using Tauron.Application;
 
 namespace Tauron.Features
 {
-
-    [PublicAPI]
-    public sealed class SubscribeAbility
+    public sealed class SubscribeFeature : IFeature<SubscribeFeature.State>
     {
+        [PublicAPI]
+        public static IPreparedFeature New()
+            => Feature.Create(new SubscribeFeature(), new State(ImmutableDictionary<Type, ImmutableList<IActorRef>>.Empty));
+
+        public sealed record State(ImmutableDictionary<Type, ImmutableList<IActorRef>> Subscriptions)
+        {
+            public State Update(Type type, Func<ImmutableList<IActorRef>, ImmutableList<IActorRef>> listUpdate)
+            {
+                if (!Subscriptions.TryGetValue(type, out var list)) 
+                    return this with {Subscriptions = Subscriptions.SetItem(type, listUpdate(ImmutableList<IActorRef>.Empty))};
+
+                list = listUpdate(list);
+                if (list.IsEmpty)
+                    return this with {Subscriptions = Subscriptions.Remove(type)};
+
+                return this with {Subscriptions = Subscriptions.SetItem(type, list)};
+
+            }
+        }
+
         private sealed record KeyHint(IActorRef Target, Type Key);
 
-        private readonly ObservableActor _actor;
-
-        private IUntypedActorContext ActorContext => ObservableActor.ExposedContext;
-
-        public event Action<Terminated>? Terminated;
-
-        public event Action<InternalEventSubscription>? NewSubscription; 
-
-        private GroupDictionary<Type, IActorRef> _sunscriptions = new();
-
-        public SubscribeAbility(ObservableActor actor) 
-            => _actor = actor;
-
-        public void MakeReceive()
-        {
-            _actor.Receive<Terminated>(obs => obs.ToUnit(t => Terminated?.Invoke(t)));
-
-            _actor.Receive<KeyHint>(obs => obs.ToUnit(kh => _sunscriptions.Remove(kh.Key, kh.Target)));
-            
-            _actor.Receive<EventSubscribe>(obs => obs.Select(m => new { Message = m, ObservableActor.ExposedContext.Sender, Context = ObservableActor.ExposedContext })
-                                                         .Where(d => !d.Sender.IsNobody())
-                                                         .Do(d =>
-                                                             {
-                                                                 if (d.Message.Watch)
-                                                                     d.Context.WatchWith(d.Sender, new KeyHint(d.Sender, d.Message.Event));
-                                                             })
-                                                         .Select(d =>
-                                                                 {
-                                                                     _sunscriptions.Add(d.Message.Event, d.Sender);
-                                                                     return new InternalEventSubscription(d.Sender, d.Message.Event);
-                                                                 })
-                                                         .ToUnit(evt => NewSubscription?.Invoke(evt)));
-            
-            _actor.Receive<EventUnSubscribe>(obs => obs.Select(msg => new { Message = msg, ObservableActor.ExposedContext.Sender })
-                                                           .Where(d => !d.Sender.IsNobody())
-                                                           .ToUnit(d =>
-                                                                   {
-                                                                       ActorContext.Unwatch(d.Sender);
-                                                                       _sunscriptions.Remove(d.Message.Event, d.Sender);
-                                                                   }));
-        }
-
-        public TType Send<TType>(TType payload)
-        {
-            if (!_sunscriptions.TryGetValue(typeof(TType), out var coll)) return payload;
-            
-            foreach (var actorRef in coll) actorRef.Tell(payload);
-            return payload;
-        }
-
-        public TType Send<TType>(TType payload, Type evtType)
-        {
-            if (!_sunscriptions.TryGetValue(evtType, out var coll)) return payload;
-
-            foreach (var actorRef in coll) actorRef.Tell(payload);
-            return payload;
-        }
-
         public sealed record InternalEventSubscription(IActorRef Intrest, Type Type);
-    }
 
+        public void Init(IFeatureActor<State> actor)
+        {
+            actor.Receive<Terminated>(obs => obs.ToUnit());
+            actor.Receive<KeyHint>(obs  => obs.Select(data => data.State.Update(data.Event.Key, refs => refs.Remove(data.Event.Target))));
+
+            actor.Receive<EventSubscribe>(obs => obs.Where(_ => !actor.Sender.IsNobody())
+                                                    .Do(m => m.Event.Watch.WhenTrue(() => actor.Context.WatchWith(actor.Sender, new KeyHint(actor.Sender!, m.Event.Event))))
+                                                    .Select(m =>
+                                                            {
+                                                                var ((_, @event), state, _) = m;
+
+                                                                actor.TellSelf(new InternalEventSubscription(actor.Sender, @event));
+                                                                return state.Update(@event, refs => refs.Add(actor.Sender));
+                                                            }));
+            actor.Receive<EventUnSubscribe>(obs => obs.Where(_ => !actor.Sender.IsNobody())
+                                                      .Select(m =>
+                                                              {
+                                                                  actor.Context.Unwatch(actor.Sender!);
+                                                                  var (eventUnSubscribe, state, _) = m;
+                                                                  return state.Update(eventUnSubscribe.Event, refs => refs.Remove(actor.Sender));
+                                                              }));
+
+            actor.Receive<SendEvent>(obs => obs.ToUnit(m =>
+                                                       {
+                                                           var ((@event, eventType), state, _) = m;
+
+                                                           if(state.Subscriptions.TryGetValue(eventType, out var intrests))
+                                                               intrests.ForEach(r => r.Tell(@event));
+                                                       }));
+        }
+    }
+    
     [PublicAPI]
     public sealed record EventUnSubscribe(Type Event);
 
     [PublicAPI]
     public sealed record EventSubscribe(bool Watch, Type Event);
+
+    public sealed record SendEvent(object Event, Type EventType)
+    {
+        [PublicAPI]
+        public static SendEvent Create<TType>(TType evt)
+            where TType : notnull
+            => new(evt, typeof(TType));
+    }
 }

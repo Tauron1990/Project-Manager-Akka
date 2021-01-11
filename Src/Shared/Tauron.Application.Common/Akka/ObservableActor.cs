@@ -13,6 +13,10 @@ namespace Tauron.Akka
     [PublicAPI]
     public interface IObservableActor : IDisposable
     {
+        IObservable<IActorContext> Start { get; }
+
+        IObservable<IActorContext> Stop { get; }
+
         ILoggingAdapter Log { get; }
         IActorRef Self { get; }
         IActorRef Parent { get; }
@@ -35,15 +39,19 @@ namespace Tauron.Akka
         private readonly Dictionary<Type, object> _selectors = new();
         private readonly CompositeDisposable _resources = new();
         private readonly Subject<object> _receiver = new();
+        private readonly BehaviorSubject<IActorContext?> _start = new(null);
+        private readonly BehaviorSubject<IActorContext?> _stop = new(null);
 
         private bool _isReceived;
 
+        public IObservable<IActorContext> Start => _start.NotNull();
+        public IObservable<IActorContext> Stop => _stop.NotNull();
         public ILoggingAdapter Log { get; } = ActorBase.Context.GetLogger();
         
         public new IActorRef Self { get; }
         public IActorRef Parent { get; }
-        public new IActorRef? Sender => Context.Sender;
-        public new IUntypedActorContext Context => (IUntypedActorContext)ActorBase.Context;
+        public new IActorRef Sender => Context.Sender;
+        public new static IUntypedActorContext Context => (IUntypedActorContext)ActorBase.Context;
 
         public ObservableActor()
         {
@@ -51,6 +59,8 @@ namespace Tauron.Akka
             Parent = ActorBase.Context.Parent;
 
             _resources.Add(_receiver);
+            _resources.Add(_start);
+            _resources.Add(_stop);
         }
 
         public virtual void Dispose()
@@ -79,6 +89,21 @@ namespace Tauron.Akka
             }
         }
 
+        public override void AroundPreStart()
+        {
+            _start.OnNext(Context);
+            base.AroundPreStart();
+        }
+
+        public override void AroundPostStop()
+        {
+            _stop.OnNext(Context);
+            _start.OnCompleted();
+            _receiver.OnCompleted();
+            base.AroundPostStop();
+            _stop.OnCompleted();
+        }
+
         protected override void Unhandled(object message)
         {
             if (message is Status status)
@@ -98,6 +123,8 @@ namespace Tauron.Akka
 
             return _isReceived;
         }
+
+        public void TellSelf(object msg) => _receiver.OnNext(msg);
 
         protected virtual bool OnError(Status.Failure failure) => ThrowError(failure.Cause);
 
@@ -126,7 +153,7 @@ namespace Tauron.Akka
         public IObservable<TEvent> Receive<TEvent>() => GetSelector<TEvent>();
 
         public void Receive<TEvent>(Func<IObservable<TEvent>, IObservable<TEvent>> handler) 
-            => AddResource(new ObservableInvoker<TEvent, TEvent>(handler, DefaultError, GetSelector<TEvent>()).Construct());
+            => AddResource(new ObservableInvoker<TEvent, TEvent>(handler, ThrowError, GetSelector<TEvent>()).Construct());
 
         public void Receive<TEvent>(Func<IObservable<TEvent>, IObservable<Unit>> handler, Func<Exception, bool> errorHandler) 
             => AddResource(new ObservableInvoker<TEvent, Unit>(handler, errorHandler, GetSelector<TEvent>()).Construct());

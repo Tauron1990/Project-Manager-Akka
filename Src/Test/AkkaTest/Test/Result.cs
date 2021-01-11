@@ -7,7 +7,7 @@ namespace AkkaTest.Test
     [PublicAPI]
     public interface IResult<TType> : IMaybe<TType>
     {
-        IOperationResult Underlaying { get; }
+        IOperationResult? Underlaying { get; }
 
         bool Success { get; }
 

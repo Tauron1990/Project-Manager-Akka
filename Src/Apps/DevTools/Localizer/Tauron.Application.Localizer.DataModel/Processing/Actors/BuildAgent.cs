@@ -13,7 +13,7 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
     {
         public BuildAgent()
         {
-            WhenReceiveSafe<PreparedBuild>(obs => obs.Select(OnBuild).ForwardToParent());
+            Receive<PreparedBuild>(obs => obs.Select(OnBuild).ForwardToParent());
         }
 
         private static AgentCompled OnBuild(PreparedBuild build)

@@ -2,5 +2,5 @@
 
 namespace Tauron.Application.CommonUI.ModelMessages
 {
-    public sealed record ExecuteEventExent(EventData Data, string Name);
+    public sealed record ExecuteEventEvent(EventData Data, string Name);
 }

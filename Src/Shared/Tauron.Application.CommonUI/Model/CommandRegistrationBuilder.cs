@@ -12,17 +12,17 @@ namespace Tauron.Application.CommonUI.Model
     {
         private readonly Func<string, Action<object?>, IObservable<bool>?, UIPropertyBase> _register;
 
-        private List<IObservable<bool>> _canExecute = new();
+        private readonly List<IObservable<bool>> _canExecute = new();
 
         private Delegate? _command;
 
-        internal CommandRegistrationBuilder(Func<string, Action<object?>, IObservable<bool>?, UIPropertyBase> register, IExpandedReceiveActor target)
+        internal CommandRegistrationBuilder(Func<string, Action<object?>, IObservable<bool>?, UIPropertyBase> register, IObservableActor target)
         {
             Target = target;
             _register = register;
         }
 
-        public IExpandedReceiveActor Target { get; }
+        public IObservableActor Target { get; }
 
         public CommandRegistrationBuilder WithExecute(Action<object?> execute, IEnumerable<IObservable<bool>>? canExecute)
         {

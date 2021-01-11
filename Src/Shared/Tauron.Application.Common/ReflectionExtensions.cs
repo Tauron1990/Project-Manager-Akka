@@ -371,7 +371,7 @@ namespace Tauron
 
             return info switch
                    {
-                       PropertyInfo property => FastReflection.Shared.GetPropertyAccessor(property, () => property.GetIndexParameters().Select(pi => pi.ParameterType))(instance, parameter) is TType pType
+                       PropertyInfo property => FastReflection.Shared.GetPropertyAccessor(property, () => property.GetIndexParameters().Select(pi => pi.ParameterType))?.Invoke(instance, parameter) is TType pType
                                                     ? pType
                                                     : default,
                        FieldInfo field                 => FastReflection.Shared.GetFieldAccessor(field)(instance) is TType type ? type : default,
@@ -550,10 +550,8 @@ namespace Tauron
 
         public static object FastCreate(this ConstructorInfo info, params object[] parms) => FastReflection.Shared.GetCreator(Argument.NotNull(info, nameof(info)))(parms);
 
-        public static object? GetValueFast(this PropertyInfo info, object? instance, params object[] index)
-        {
-            return FastReflection.Shared.GetPropertyAccessor(Argument.NotNull(info, nameof(info)), () => info.GetIndexParameters().Select(pi => pi.ParameterType))(instance, index);
-        }
+        public static object? GetValueFast(this PropertyInfo info, object? instance, params object[] index) 
+            => FastReflection.Shared.GetPropertyAccessor(Argument.NotNull(info, nameof(info)), () => info.GetIndexParameters().Select(pi => pi.ParameterType))?.Invoke(instance, index);
 
         public static object? GetValueFast(this FieldInfo info, object? instance) => FastReflection.Shared.GetFieldAccessor(Argument.NotNull(info, nameof(info)))(instance);
     }

@@ -17,7 +17,7 @@ namespace Tauron.Application.Settings
             Receive<RequestAllValues>(RequestAllValues);
         }
 
-        private bool GetChild(string name, out IActorRef actor)
+        private static bool GetChild(string name, out IActorRef actor)
         {
             actor = Context.Child(name);
             return actor.Equals(ActorRefs.Nobody);

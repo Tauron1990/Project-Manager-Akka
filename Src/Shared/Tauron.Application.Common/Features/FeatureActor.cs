@@ -4,53 +4,34 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Akka.Actor;
-using Akka.Actor.Dsl;
 using Akka.Event;
 using JetBrains.Annotations;
 using Tauron.Akka;
 
-namespace Tauron.Application.AkkNode.Services.Features
+namespace Tauron.Features
 {
     [PublicAPI]
-    public interface IFeatureActorBase : IObservableActor, IWithTimers
+    public interface IFeatureActor<TState> : IObservable<TState>
     {
+        TState CurrentState { get; }
+
+        void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler);
+        void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<TState>> handler);
+        void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler, Func<Exception, bool> errorHandler);
+        void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IDisposable> handler);
+
+        void TellSelf(object msg);
+
         ILoggingAdapter Log { get; }
-        IObservable<TEvent> WhenReceive<TEvent>();
+        IObservable<TEvent> Receive<TEvent>();
 
         IActorRef Self { get; }
 
         IActorRef Parent { get; }
 
-        IActorRef? Sender { get; }
+        IActorRef Sender { get; }
 
         IUntypedActorContext Context { get; }
-
-        void Become(IEnumerable<IFeature> futures);
-
-        void BecomeStacked(IEnumerable<IFeature> futures);
-
-        void UnbecomeStacked();
-    }
-
-    [PublicAPI]
-    public interface IFeatureActor : IFeatureActorBase
-    {
-        void WhenReceive<TEvent>(Func<IObservable<TEvent>, IObservable<Unit>> handler);
-        void WhenReceive<TEvent>(Func<IObservable<TEvent>, IObservable<TEvent>> handler);
-        void WhenReceive<TEvent>(Func<IObservable<TEvent>, IObservable<Unit>> handler, Func<Exception, bool> errorHandler);
-        void WhenReceive<TEvent>(Func<IObservable<TEvent>, IObservable<TEvent>> handler, Func<Exception, bool> errorHandler);
-        void WhenReceive<TEvent>(Func<IObservable<TEvent>, IDisposable> handler);
-    }
-
-    [PublicAPI]
-    public interface IFeatureActor<TState> : IFeatureActorBase, IObservable<TState>
-    {
-        TState CurrentState { get; }
-
-        void WhenReceive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler);
-        void WhenReceive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<TState>> handler);
-        void WhenReceive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler, Func<Exception, bool> errorHandler);
-        void WhenReceive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IDisposable> handler);
     }
 
     public sealed record StatePair<TEvent, TState>(TEvent Event, TState State, ITimerScheduler Timers)
@@ -60,7 +41,7 @@ namespace Tauron.Application.AkkNode.Services.Features
     }
 
     [PublicAPI]
-    public abstract class FeatureActorBase<TFeatured, TState> : ObservableActor, IFeatureActor<TState>, IFeatureActor
+    public abstract class FeatureActorBase<TFeatured, TState> : ObservableActor, IFeatureActor<TState>
         where TFeatured : FeatureActorBase<TFeatured, TState>, new()
     {
         private BehaviorSubject<TState>? _currentState;
@@ -86,18 +67,11 @@ namespace Tauron.Application.AkkNode.Services.Features
             => Create(() => initialState, builder);
 
         TState IFeatureActor<TState>.CurrentState => CurrentState.Value;
-
-        protected FeatureActorBase()
-        {
-            Log = base.Log;
-            Self = base.Self;
-            Parent = Context.Parent;
-        }
-
-        public void WhenReceive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler)
+        
+        public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler)
             => Receive<TEvent>(obs => handler(obs.Select(evt => new StatePair<TEvent, TState>(evt, CurrentState.Value, Timers))));
 
-        public void WhenReceive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<TState>> handler)
+        public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<TState>> handler)
         {
             IDisposable CreateHandler(IObservable<TEvent> observable) 
                 => handler(observable.Select(evt => new StatePair<TEvent, TState>(evt, CurrentState.Value, Timers)))
@@ -106,26 +80,23 @@ namespace Tauron.Application.AkkNode.Services.Features
             Receive<TEvent>(obs => CreateHandler(obs));
         }
 
-        public void WhenReceive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler, Func<Exception, bool> errorHandler)
+        public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler, Func<Exception, bool> errorHandler)
             => Receive<TEvent>(obs => handler(obs.Select(evt => new StatePair<TEvent, TState>(evt, CurrentState.Value, Timers))), errorHandler);
 
-        public void WhenReceive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IDisposable> handler)
+        public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IDisposable> handler)
             => Receive<TEvent>(obs => handler(obs.Select(evt => new StatePair<TEvent, TState>(evt, CurrentState.Value, Timers))));
+
+        IUntypedActorContext IFeatureActor<TState>.Context => Context;
 
         private void InitialState(TState initial)
             => _currentState = new BehaviorSubject<TState>(initial);
 
-        private void RegisterFeature(IFeature feature)
+        private void RegisterFeature(IFeature<TState> feature)
             => feature.Init(this);
 
         public IDisposable Subscribe(IObserver<TState> observer)
             => CurrentState.Subscribe(observer);
-
-        public void Become(IEnumerable<IFeature> futures) => BecomeStacked(() => futures.Foreach(f => f.Init(this)));
-
-        public void BecomeStacked(IEnumerable<IFeature> futures) => BecomeStacked(() => futures.Foreach(f => f.Init(this)));
-        void IFeatureActorBase.UnbecomeStacked() => UnbecomeStacked();
-
+        
         private sealed class ActorFactory : IIndirectActorProducer
         {
             private readonly Action<ActorBuilder<TState>> _builder;
@@ -160,7 +131,7 @@ namespace Tauron.Application.AkkNode.Services.Features
         [PublicAPI]
         public static class Simple
         {
-            public static IFeature Feature(Action<IFeatureActor<TState>> initializer)
+            public static IFeature<TState> Feature(Action<IFeatureActor<TState>> initializer)
                 => new DelegatingFeature(initializer);
         }
 
@@ -170,57 +141,64 @@ namespace Tauron.Application.AkkNode.Services.Features
 
             public DelegatingFeature(Action<IFeatureActor<TState>> initializer) => _initializer = initializer;
 
-            protected override void Init(IFeatureActor<TState> actorBase) => _initializer(actorBase);
+            public override void Init(IFeatureActor<TState> actor) => _initializer(actor);
         }
 
         public ITimerScheduler Timers { get; set; } = null!;
     }
 
-    public sealed record EmptyState;
+    public sealed record EmptyState
+    {
+        public static readonly EmptyState Inst = new();
+    }
 
     [PublicAPI]
     public sealed class ActorBuilder<TState>
     {
-        private readonly Action<IFeature> _registrar;
+        private readonly Action<IFeature<TState>> _registrar;
 
-        public ActorBuilder(Action<IFeature> registrar) => _registrar = registrar;
+        public ActorBuilder(Action<IFeature<TState>> registrar) => _registrar = registrar;
 
-        public ActorBuilder<TState> WithFeature(IFeature feature)
+        public ActorBuilder<TState> WithFeature(IFeature<TState> feature)
         {
             _registrar(feature);
             return this;
         }
 
-        public ActorBuilder<TState> WithFeature(IStatedFeature<TState> feature)
-            => WithFeature((IFeature) feature);
+        public ActorBuilder<TState> WithFeatures(IEnumerable<IFeature<TState>> features)
+        {
+            foreach (var feature in features) 
+                _registrar(feature);
+            return this;
+        }
 
-        public ActorBuilder<TState> WithFeature<TNewState>(IStatedFeature<TNewState> feature, Func<TState, TNewState> convert, Func<TNewState, TState> convertBack)
+        public ActorBuilder<TState> WithFeature<TNewState>(IFeature<TNewState> feature, Func<TState, TNewState> convert, Func<TState, TNewState, TState> convertBack)
             => WithFeature(new ConvertingFeature<TNewState, TState>(feature, convert, convertBack));
 
-        private sealed class ConvertingFeature<TTarget, TOriginal> : IStatedFeature<TTarget>
+        internal class ConvertingFeature<TTarget, TOriginal> : IFeature<TOriginal>
         {
-            private readonly IStatedFeature<TTarget> _feature;
+            private readonly IFeature<TTarget> _feature;
             private readonly Func<TOriginal, TTarget> _convert;
-            private readonly Func<TTarget, TOriginal> _convertBack;
+            private readonly Func<TOriginal, TTarget, TOriginal> _convertBack;
 
-            public ConvertingFeature(IStatedFeature<TTarget> feature, Func<TOriginal, TTarget> convert, Func<TTarget, TOriginal> convertBack)
+            public ConvertingFeature(IFeature<TTarget> feature, Func<TOriginal, TTarget> convert, Func<TOriginal, TTarget, TOriginal> convertBack)
             {
                 _feature = feature;
                 _convert = convert;
                 _convertBack = convertBack;
             }
 
-            public void Init(IFeatureActorBase actorBase) 
-                => _feature.Init(new StateDelegator<TTarget,TOriginal>((IFeatureActor<TOriginal>)actorBase, _convert, _convertBack));
+            public virtual void Init(IFeatureActor<TOriginal> actor) 
+                => _feature.Init(new StateDelegator<TTarget,TOriginal>(actor, _convert, _convertBack));
         }
 
         private sealed class StateDelegator<TTarget, TOriginal> : IFeatureActor<TTarget>
         {
             private readonly IFeatureActor<TOriginal> _original;
             private readonly Func<TOriginal, TTarget> _convert;
-            private readonly Func<TTarget, TOriginal> _convertBack;
+            private readonly Func<TOriginal, TTarget, TOriginal> _convertBack;
 
-            public StateDelegator(IFeatureActor<TOriginal> original, Func<TOriginal, TTarget> convert, Func<TTarget, TOriginal> convertBack)
+            public StateDelegator(IFeatureActor<TOriginal> original, Func<TOriginal, TTarget> convert, Func<TOriginal, TTarget, TOriginal> convertBack)
             {
                 _original = original;
                 _convert = convert;
@@ -228,7 +206,7 @@ namespace Tauron.Application.AkkNode.Services.Features
             }
             
             public IObservable<TEvent> Receive<TEvent>() 
-                => _original.WhenReceive<TEvent>();
+                => _original.Receive<TEvent>();
 
             public IActorRef Self
                 => _original.Self;
@@ -236,17 +214,13 @@ namespace Tauron.Application.AkkNode.Services.Features
             public IActorRef Parent
                 => _original.Parent;
 
-            public IActorRef? Sender
+            public IActorRef Sender
                 => _original.Sender;
 
             public IUntypedActorContext Context
                 => _original.Context;
 
-            public void Become(IEnumerable<IFeature> futures) => _original.Become(futures);
-
-            public void BecomeStacked(IEnumerable<IFeature> futures) => _original.BecomeStacked(futures);
-
-            public void UnbecomeStacked() => _original.UnbecomeStacked();
+            public void TellSelf(object msg) => _original.TellSelf(msg);
 
             public ILoggingAdapter Log
                 => _original.Log;
@@ -255,33 +229,18 @@ namespace Tauron.Application.AkkNode.Services.Features
 
             public TTarget CurrentState => _convert(_original.CurrentState);
 
-            public void WhenReceive<TEvent>(Func<IObservable<StatePair<TEvent, TTarget>>, IObservable<Unit>> handler)
-                => _original.WhenReceive<TEvent>(obs => handler(obs.Select(d => d.Convert(_convert))));
+            public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TTarget>>, IObservable<Unit>> handler)
+                => _original.Receive<TEvent>(obs => handler(obs.Select(d => d.Convert(_convert))));
 
-            public void WhenReceive<TEvent>(Func<IObservable<StatePair<TEvent, TTarget>>, IObservable<TTarget>> handler)
-                => _original.WhenReceive<TEvent>(obs => handler(obs.Select(d => d.Convert(_convert))).Select(_convertBack));
+            public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TTarget>>, IObservable<TTarget>> handler)
+                => _original.Receive<TEvent>(obs => handler(obs.Select(d => d.Convert(_convert))).Select(s => _convertBack(_original.CurrentState, s)));
 
-            public void WhenReceive<TEvent>(Func<IObservable<StatePair<TEvent, TTarget>>, IObservable<Unit>> handler, Func<Exception, bool> errorHandler)
-                => _original.WhenReceive<TEvent>(obs => handler(obs.Select(d => d.Convert(_convert))), errorHandler);
+            public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TTarget>>, IObservable<Unit>> handler, Func<Exception, bool> errorHandler)
+                => _original.Receive<TEvent>(obs => handler(obs.Select(d => d.Convert(_convert))), errorHandler);
 
-            public void WhenReceive<TEvent>(Func<IObservable<StatePair<TEvent, TTarget>>, IDisposable> handler)
-                => _original.WhenReceive<TEvent>(obs => handler(obs.Select(d => d.Convert(_convert))));
+            public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TTarget>>, IDisposable> handler)
+                => _original.Receive<TEvent>(obs => handler(obs.Select(d => d.Convert(_convert))));
 
-
-            public IActorDsl Exposed
-                => _original.Exposed;
-
-            public void AddResource(IDisposable res) 
-                => _original.AddResource(res);
-
-            public void RemoveResources(IDisposable res) 
-                => _original.RemoveResources(res);
-
-            public ITimerScheduler Timers
-            {
-                get => _original.Timers;
-                set => _original.Timers = value;
-            }
         }
     }
 

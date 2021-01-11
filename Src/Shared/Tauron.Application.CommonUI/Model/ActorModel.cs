@@ -18,7 +18,7 @@ namespace Tauron.Application.CommonUI.Model
         protected ActorModel(IActionInvoker actionInvoker)
         {
             ActionInvoker = actionInvoker;
-            Receive<IOperationResult>(OnOperationCompled);
+            Receive<IOperationResult>(obs => obs.SubscribeWithStatus(OnOperationCompled));
         }
 
         public IActionInvoker ActionInvoker { get; }
