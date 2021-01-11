@@ -1,34 +1,20 @@
-﻿using System.IO;
-using MongoDB.Bson.IO;
-using MongoDB.Bson.Serialization;
+﻿using System;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 
 namespace AkkaTest
 {
-    public record TestData(string Name, int Test1, string Hallo);
-
     internal static class Program
     {
         private static void Main()
         {
-            var first = new TestData();
-            var ser = BsonSerializer.SerializerRegistry.GetSerializer(typeof(TestData));
-            using var writer = new StringWriter();
-            ser.Serialize(BsonSerializationContext.CreateRoot(new JsonWriter(writer)), first);
-            var second = ser.Deserialize(BsonDeserializationContext.CreateRoot(new JsonReader(writer.ToString())));
+            using var sub = new Subject<string>();
 
-            //var alt = new Subject<string>();
-            //var subTest = new Subject<string>();
+            sub.Select(int.Parse).Subscribe(Console.WriteLine);
 
-            //subTest.Subscribe(Console.WriteLine, exception => Console.WriteLine(exception));
+            sub.Select<string, int>(_ => throw new InvalidOperationException()).Subscribe(Console.WriteLine, e => Console.WriteLine(e));
 
-            //subTest.OnError(new InvalidOperationException());
-
-            //var test = Result.Create(10); //Maybe.Just(10);
-
-            //var result = from num in test
-            //             let num2 = num + 1
-            //             where num > 5
-            //             select num + num2;
+            sub.OnNext("123");
         }
     }
 }

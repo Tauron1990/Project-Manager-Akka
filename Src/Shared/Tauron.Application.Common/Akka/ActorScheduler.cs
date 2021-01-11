@@ -17,7 +17,7 @@ namespace Tauron.Akka
         private ActorScheduler(IActorRef target) => _targetActor = target;
 
         private ActorScheduler()
-            : this(ExpandedReceiveActor.ExposedContext.Self) { }
+            : this(ObservableActor.ExposedContext.Self) { }
 
         public static IScheduler CurrentSelf => new ActorScheduler();
 
@@ -36,13 +36,13 @@ namespace Tauron.Akka
             }
 
             if (target == TimeSpan.Zero)
-                _targetActor.Tell(new ExpandedReceiveActor.TransmitAction(TryRun));
+                _targetActor.Tell(new ObservableActor.TransmitAction(TryRun));
             else
             {
                 var timerDispose = new SingleAssignmentDisposable();
                 Timer timer = new(o =>
                                   {
-                                      _targetActor.Tell(new ExpandedReceiveActor.TransmitAction(TryRun));
+                                      _targetActor.Tell(new ObservableActor.TransmitAction(TryRun));
                                       ((IDisposable) o!).Dispose();
                                   }, timerDispose, dueTime, Timeout.InfiniteTimeSpan);
 

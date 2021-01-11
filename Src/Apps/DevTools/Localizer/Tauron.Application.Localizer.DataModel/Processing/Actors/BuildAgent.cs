@@ -9,7 +9,7 @@ using Tauron.Localization;
 
 namespace Tauron.Application.Localizer.DataModel.Processing.Actors
 {
-    public sealed class BuildAgent : ExpandedReceiveActor
+    public sealed class BuildAgent : ObservableActor
     {
         public BuildAgent()
         {

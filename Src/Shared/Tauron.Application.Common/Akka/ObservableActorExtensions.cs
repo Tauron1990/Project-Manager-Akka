@@ -6,7 +6,7 @@ using JetBrains.Annotations;
 namespace Tauron.Akka
 {
     [PublicAPI]
-    public static class ExposedReceiveActorExtensions
+    public static class ObservableActorExtensions
     {
         public static FSMBase.State<TS, TD> Replying<TS, TD>(this FSMBase.State<TS, TD> state, object msg, IActorRef actor)
         {
@@ -15,23 +15,23 @@ namespace Tauron.Akka
         }
 
         public static FSMBase.State<TS, TD> ReplyingSelf<TS, TD>(this FSMBase.State<TS, TD> state, object msg)
-            => state.Replying(msg, ExpandedReceiveActor.ExposedContext.Self);
+            => state.Replying(msg, ObservableActor.ExposedContext.Self);
 
         public static FSMBase.State<TS, TD> ReplyingParent<TS, TD>(this FSMBase.State<TS, TD> state, object msg)
-            => state.Replying(msg, ExpandedReceiveActor.ExposedContext.Parent);
+            => state.Replying(msg, ObservableActor.ExposedContext.Parent);
 
-        public static void SubscribeToEvent<TEvent>(this IExpandedReceiveActor actor, Action<TEvent> handler)
+        public static void SubscribeToEvent<TEvent>(this IObservableActor actor, Action<TEvent> handler)
             => new EventHolder<TEvent>(actor, handler).Register();
 
-        public static void SendEvent<TType>(this IExpandedReceiveActor actor, TType evt)
-            => ExpandedReceiveActor.ExposedContext.System.EventStream.Publish(evt);
+        public static void SendEvent<TType>(this IObservableActor actor, TType evt)
+            => ObservableActor.ExposedContext.System.EventStream.Publish(evt);
 
         private sealed class EventHolder<TEvent>
         {
-            private readonly IExpandedReceiveActor _actor;
+            private readonly IObservableActor _actor;
             private readonly Action<TEvent> _handler;
 
-            public EventHolder(IExpandedReceiveActor actor, Action<TEvent> handler)
+            public EventHolder(IObservableActor actor, Action<TEvent> handler)
             {
                 _handler = handler;
                 _actor = actor;

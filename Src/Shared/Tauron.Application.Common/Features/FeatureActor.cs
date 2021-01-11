@@ -12,7 +12,7 @@ using Tauron.Akka;
 namespace Tauron.Application.AkkNode.Services.Features
 {
     [PublicAPI]
-    public interface IFeatureActorBase : IExpandedReceiveActor, IWithTimers
+    public interface IFeatureActorBase : IObservableActor, IWithTimers
     {
         ILoggingAdapter Log { get; }
         IObservable<TEvent> WhenReceive<TEvent>();
@@ -60,7 +60,7 @@ namespace Tauron.Application.AkkNode.Services.Features
     }
 
     [PublicAPI]
-    public abstract class FeatureActorBase<TFeatured, TState> : ExpandedReceiveActor, IFeatureActor<TState>, IFeatureActor
+    public abstract class FeatureActorBase<TFeatured, TState> : ObservableActor, IFeatureActor<TState>, IFeatureActor
         where TFeatured : FeatureActorBase<TFeatured, TState>, new()
     {
         private BehaviorSubject<TState>? _currentState;
@@ -87,12 +87,6 @@ namespace Tauron.Application.AkkNode.Services.Features
 
         TState IFeatureActor<TState>.CurrentState => CurrentState.Value;
 
-        public new ILoggingAdapter Log { get; }
-        public new IActorRef Self { get; }
-        public IActorRef Parent { get; }
-        public new IActorRef? Sender => Context.Sender;
-        public new IUntypedActorContext Context => UntypedActor.Context;
-
         protected FeatureActorBase()
         {
             Log = base.Log;
@@ -101,7 +95,7 @@ namespace Tauron.Application.AkkNode.Services.Features
         }
 
         public void WhenReceive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler)
-            => WhenReceive<TEvent>(obs => handler(obs.Select(evt => new StatePair<TEvent, TState>(evt, CurrentState.Value, Timers))));
+            => Receive<TEvent>(obs => handler(obs.Select(evt => new StatePair<TEvent, TState>(evt, CurrentState.Value, Timers))));
 
         public void WhenReceive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<TState>> handler)
         {
@@ -109,14 +103,14 @@ namespace Tauron.Application.AkkNode.Services.Features
                 => handler(observable.Select(evt => new StatePair<TEvent, TState>(evt, CurrentState.Value, Timers)))
                .SubscribeWithStatus(CurrentState.OnNext);
 
-            WhenReceive<TEvent>(obs => CreateHandler(obs));
+            Receive<TEvent>(obs => CreateHandler(obs));
         }
 
         public void WhenReceive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler, Func<Exception, bool> errorHandler)
-            => WhenReceive<TEvent>(obs => handler(obs.Select(evt => new StatePair<TEvent, TState>(evt, CurrentState.Value, Timers))), errorHandler);
+            => Receive<TEvent>(obs => handler(obs.Select(evt => new StatePair<TEvent, TState>(evt, CurrentState.Value, Timers))), errorHandler);
 
         public void WhenReceive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IDisposable> handler)
-            => WhenReceive<TEvent>(obs => handler(obs.Select(evt => new StatePair<TEvent, TState>(evt, CurrentState.Value, Timers))));
+            => Receive<TEvent>(obs => handler(obs.Select(evt => new StatePair<TEvent, TState>(evt, CurrentState.Value, Timers))));
 
         private void InitialState(TState initial)
             => _currentState = new BehaviorSubject<TState>(initial);
@@ -233,7 +227,7 @@ namespace Tauron.Application.AkkNode.Services.Features
                 _convertBack = convertBack;
             }
             
-            public IObservable<TEvent> WhenReceive<TEvent>() 
+            public IObservable<TEvent> Receive<TEvent>() 
                 => _original.WhenReceive<TEvent>();
 
             public IActorRef Self

@@ -8,7 +8,7 @@ using Tauron.Akka;
 
 namespace Tauron.Application.Localizer.DataModel.Processing.Actors
 {
-    public sealed class BuildActorCoordinator : ExpandedReceiveActor
+    public sealed class BuildActorCoordinator : ObservableActor
     {
         private readonly ILoggingAdapter _log = Context.GetLogger();
         private bool _fail;

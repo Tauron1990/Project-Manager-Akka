@@ -13,6 +13,9 @@
   <ItemGroup>
     <Compile Remove="ActorFlowBuilder - Backup.cs" />
     <Compile Remove="Async.cs" />
+    <Compile Remove="Features\FeatureActor.cs" />
+    <Compile Remove="Features\IFeature.cs" />
+    <Compile Remove="Features\SubscribeAbility.cs" />
     <Compile Remove="SecurityHelper.cs" />
     <Compile Remove="SerializationExtensions.cs" />
   </ItemGroup>
@@ -20,6 +23,9 @@
   <ItemGroup>
     <None Include="ActorFlowBuilder - Backup.cs" />
     <None Include="Async.cs" />
+    <None Include="Features\FeatureActor.cs" />
+    <None Include="Features\IFeature.cs" />
+    <None Include="Features\SubscribeAbility.cs" />
     <None Include="SecurityHelper.cs" />
     <None Include="SerializationExtensions.cs" />
     <Compile Remove="ActorFlowBuilder.cs" />

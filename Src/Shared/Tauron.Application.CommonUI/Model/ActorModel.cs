@@ -11,7 +11,7 @@ using Tauron.Operations;
 namespace Tauron.Application.CommonUI.Model
 {
     [PublicAPI]
-    public abstract class ActorModel : ExpandedReceiveActor
+    public abstract class ActorModel : ObservableActor
     {
         private readonly Dictionary<Type, Action<IOperationResult>> _compledActions = new();
 

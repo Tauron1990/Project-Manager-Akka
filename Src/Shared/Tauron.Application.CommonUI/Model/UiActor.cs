@@ -22,7 +22,7 @@ using Tauron.Operations;
 namespace Tauron.Application.CommonUI.Model
 {
     [PublicAPI]
-    public abstract class UiActor : ExpandedReceiveActor, IObservablePropertyChanged
+    public abstract class UiActor : ObservableActor, IObservablePropertyChanged
     {
         private readonly Dictionary<string, CommandRegistration> _commandRegistrations = new();
         private readonly GroupDictionary<string, InvokeHelper> _eventRegistrations = new();

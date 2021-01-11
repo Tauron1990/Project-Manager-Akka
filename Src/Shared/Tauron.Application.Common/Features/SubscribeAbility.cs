@@ -3,19 +3,19 @@ using System.Reactive.Linq;
 using Akka.Actor;
 using JetBrains.Annotations;
 using Tauron.Akka;
+using Tauron.Application;
 
-namespace Tauron.Application.AkkNode.Services.Features
+namespace Tauron.Features
 {
-    public sealed class SubscribeFeature
 
     [PublicAPI]
     public sealed class SubscribeAbility
     {
         private sealed record KeyHint(IActorRef Target, Type Key);
 
-        private readonly ExpandedReceiveActor _actor;
+        private readonly ObservableActor _actor;
 
-        private IUntypedActorContext ActorContext => ExpandedReceiveActor.ExposedContext;
+        private IUntypedActorContext ActorContext => ObservableActor.ExposedContext;
 
         public event Action<Terminated>? Terminated;
 
@@ -23,16 +23,16 @@ namespace Tauron.Application.AkkNode.Services.Features
 
         private GroupDictionary<Type, IActorRef> _sunscriptions = new();
 
-        public SubscribeAbility(ExpandedReceiveActor actor) 
+        public SubscribeAbility(ObservableActor actor) 
             => _actor = actor;
 
         public void MakeReceive()
         {
-            _actor.WhenReceive<Terminated>(obs => obs.ToUnit(t => Terminated?.Invoke(t)));
+            _actor.Receive<Terminated>(obs => obs.ToUnit(t => Terminated?.Invoke(t)));
 
-            _actor.WhenReceive<KeyHint>(obs => obs.ToUnit(kh => _sunscriptions.Remove(kh.Key, kh.Target)));
+            _actor.Receive<KeyHint>(obs => obs.ToUnit(kh => _sunscriptions.Remove(kh.Key, kh.Target)));
             
-            _actor.WhenReceive<EventSubscribe>(obs => obs.Select(m => new { Message = m, ExpandedReceiveActor.ExposedContext.Sender, Context = ExpandedReceiveActor.ExposedContext })
+            _actor.Receive<EventSubscribe>(obs => obs.Select(m => new { Message = m, ObservableActor.ExposedContext.Sender, Context = ObservableActor.ExposedContext })
                                                          .Where(d => !d.Sender.IsNobody())
                                                          .Do(d =>
                                                              {
@@ -46,7 +46,7 @@ namespace Tauron.Application.AkkNode.Services.Features
                                                                  })
                                                          .ToUnit(evt => NewSubscription?.Invoke(evt)));
             
-            _actor.WhenReceive<EventUnSubscribe>(obs => obs.Select(msg => new { Message = msg, ExpandedReceiveActor.ExposedContext.Sender })
+            _actor.Receive<EventUnSubscribe>(obs => obs.Select(msg => new { Message = msg, ObservableActor.ExposedContext.Sender })
                                                            .Where(d => !d.Sender.IsNobody())
                                                            .ToUnit(d =>
                                                                    {
