@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Akka.Actor;
 using JetBrains.Annotations;
 
-namespace Tauron.Application.AkkNode.Services.Commands
+namespace Tauron.Application.AkkNode.Services.CommandsOld
 {
     [PublicAPI]
     public abstract class SimpleCommand<TSender, TThis> : ReporterCommandBase<TSender, TThis> 

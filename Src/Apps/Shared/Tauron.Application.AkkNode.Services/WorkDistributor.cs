@@ -1,67 +1,113 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Reactive;
+using System.Reactive.Linq;
 using Akka.Actor;
+using Akka.Streams.Implementation;
 using JetBrains.Annotations;
 using Tauron.Akka;
+using Tauron.Features;
 
 namespace Tauron.Application.AkkNode.Services
 {
     [PublicAPI]
-    public sealed class WorkDistributor<TInput, TFinishMessage>
+    public interface IWorkDistributor<in TInput>
     {
-        private readonly IActorRef _actor;
+        void PushWork(TInput workLoad);
+    }
 
-        private WorkDistributor(IActorRef actor) => _actor = actor;
+    public sealed class WorkDistributorFeature<TInput, TFinishMessage> : ActorFeatureBase<WorkDistributorFeature<TInput, TFinishMessage>.WorkDistributorFeatureState>
+    {
+        public sealed record DistributorConfig(Props Worker, string WorkerName, TimeSpan Timeout, int WorkerCount);
 
-        public static WorkDistributor<TInput, TFinishMessage> Create(Props worker, string workerName, TimeSpan timeout, string? name = null)
-            => Create(ExposedReceiveActor.ExposedContext, worker, workerName, timeout, name);
-
-        public static WorkDistributor<TInput, TFinishMessage> Create(IActorRefFactory factory, Props worker, string workerName, TimeSpan timeout, string? name = null)
+        public sealed record WorkDistributorFeatureState(DistributorConfig Configuration, ImmutableQueue<(TInput, IActorRef)> PendingWorkload, ImmutableList<IActorRef> Worker,
+            ImmutableQueue<IActorRef> Ready, ImmutableList<IActorRef> Running, int WorkerId)
         {
-            var actor = factory.ActorOf(() => new WorkDistributorActor(worker, workerName, timeout), name);
-            return new WorkDistributor<TInput, TFinishMessage>(actor);
+            public WorkDistributorFeatureState(DistributorConfig config)
+                : this(config, ImmutableQueue<(TInput, IActorRef)>.Empty, ImmutableList<IActorRef>.Empty, ImmutableQueue<IActorRef>.Empty, ImmutableList<IActorRef>.Empty, 1) { }
         }
 
-        public void PushWork(TInput work)
-            => _actor.Forward(work);
+        [PublicAPI]
+        public static IWorkDistributor<TInput> Create(Props worker, string workerName, TimeSpan timeout, string? name = null)
+            => Create(ObservableActor.ExposedContext, worker, workerName, timeout, name);
 
-        private sealed class WorkDistributorActor : ExposedReceiveActor, IWithTimers
+        [PublicAPI]
+        public static IWorkDistributor<TInput> Create(IActorRefFactory factory, Props worker, string workerName, TimeSpan timeout, string? name = null)
         {
-            private int _id = 5;
-            private readonly Props _workerProps;
-            private readonly string _workerName;
-            private readonly TimeSpan _timeout;
+            var actor = factory.ActorOf(name, 
+                                        Feature.Create(new WorkDistributorFeature<TInput, TFinishMessage>(), 
+                                                       () => new WorkDistributorFeatureState(new DistributorConfig(worker, workerName, timeout, 5))));
 
-            private readonly Queue<(TInput, IActorRef)> _pendingWorkload = new Queue<(TInput, IActorRef)>();
-            private readonly List<IActorRef> _worker = new List<IActorRef>();
+            return new WorkSender(actor);
+        }
 
-            private readonly Queue<IActorRef> _ready = new Queue<IActorRef>();
-            private readonly List<IActorRef> _running = new List<IActorRef>();
+        protected override void Config()
+        {
+            SupervisorStrategy = SupervisorStrategy.StoppingStrategy;
 
-            public ITimerScheduler Timers { get; set; } = null!;
+            Receive<Terminated>(obs => obs.Do(_ => Self.Tell(new CheckWorker()))
+                                          .Select(m => m.State with
+                                                       {
+                                                           Ready = m.State.Ready
+                                                                    .Where(a => !a.Equals(m.Event.ActorRef))
+                                                                    .Aggregate(ImmutableQueue<IActorRef>.Empty, (current, actorRef) => current.Enqueue(actorRef)),
+                                                           Worker = m.State.Worker.Remove(m.Event.ActorRef),
+                                                           Running = m.State.Running.Remove(m.Event.ActorRef)
+                                                       }));
 
-            public WorkDistributorActor(Props workerProps, string workerName, TimeSpan timeout)
-            {
-                _workerProps = workerProps;
-                _workerName = workerName;
-                _timeout = timeout;
+            Receive<CheckWorker>(obs => obs.Where(s => s.State.Worker.Count < s.State.Configuration.WorkerCount)
+                                           .SelectMany(s => Observable.Repeat(new SetupWorker(), s.State.Worker.Count - s.State.Configuration.WorkerCount))
+                                           .SubscribeWithStatus(m => Self.Tell(m)));
 
-                Receive<Terminated>(HandleTerminate);
-                Receive<WorkerTimeout>(t =>
-                {
-                    if(_running.Contains(t.Worker))
-                        Context.Stop(t.Worker);
-                });
+            Receive<SetupWorker>(obs => obs.Select(s =>
+                                                   {
+                                                       var (_, state, _) = s;
+                                                       var worker = Context.ActorOf(state.Configuration.Worker, $"{state.Configuration.WorkerName}-{state.WorkerId}");
+                                                       Context.Watch(worker);
 
-                foreach (var pos in Enumerable.Range(1, 5))
-                {
-                    var worker = Context.ActorOf(workerProps, $"{workerName}-{pos}");
-                    Context.Watch(worker);
-                    _worker.Add(worker);
-                    _ready.Enqueue(worker);
-                }
+                                                       return new {Worker = worker, State = state};
+                                                   })
+                                           .Select(s => s.State with
+                                                        {
+                                                            Worker = s.State.Worker.Add(s.Worker), 
+                                                            Ready = s.State.Ready.Enqueue(s.Worker)
+                                                        }));
 
+            Receive<WorkerTimeout>(obs => obs.Where(m => m.State.Running.Contains(m.Event.Worker))
+                                             .SubscribeWithStatus(m => Context.Stop(m.Event.Worker)));
+
+            Self.Tell(new CheckWorker());
+        }
+
+        private sealed class WorkSender : IWorkDistributor<TInput>
+        {
+            private readonly IActorRef _actor;
+
+            public WorkSender(IActorRef actor) => _actor = actor;
+
+            public void PushWork(TInput workLoad) => _actor.Forward(workLoad);
+        }
+
+        private sealed record SetupWorker;
+
+        private sealed record CheckWorker;
+
+        private sealed record WorkerTimeout(IActorRef Worker);
+    }
+
+    [PublicAPI]
+    public sealed class WorkDistributorÔld<TInput, TFinishMessage>
+    {
+                Receive<WorkerTimeout>(obs => obs
+                                             .Where(to => _running.Contains(to.Worker))
+                                          .SubscribeWithStatus(t =>
+                                                                      {
+                                                                          if (_running.Contains(t.Worker))
+                                                                              Context.Stop(t.Worker);
+                                                                      }));
+    
                 Receive<TFinishMessage>(WorkFinish);
                 Receive<TInput>(PushWork);
             }
@@ -80,27 +126,6 @@ namespace Tauron.Application.AkkNode.Services
                     _running.Remove(Context.Sender);
                     _ready.Enqueue(Context.Sender);
                 }
-            }
-
-            private void HandleTerminate(Terminated terminated)
-            {
-                if (!_worker.Remove(terminated.ActorRef)) return;
-                if (!_running.Remove(terminated.ActorRef))
-                {
-                    var temp = _ready.ToArray();
-                    _ready.Clear();
-                    foreach (var worker in temp)
-                    {
-                        if (worker.Equals(terminated.ActorRef)) continue;
-                        _ready.Enqueue(worker);
-                    }
-                }
-
-                _id++;
-                var newWorker = Context.ActorOf(_workerProps, $"{_workerName}-{_id}");
-                Context.Watch(newWorker);
-                _ready.Enqueue(newWorker);
-                _worker.Add(newWorker);
             }
 
             private void PushWork(TInput input)
@@ -122,12 +147,7 @@ namespace Tauron.Application.AkkNode.Services
 
             protected override SupervisorStrategy SupervisorStrategy() => global::Akka.Actor.SupervisorStrategy.StoppingStrategy;
 
-            private sealed class WorkerTimeout
-            {
-                public IActorRef Worker { get; }
 
-                public WorkerTimeout(IActorRef worker) => Worker = worker;
-            }
         }
     }
 }

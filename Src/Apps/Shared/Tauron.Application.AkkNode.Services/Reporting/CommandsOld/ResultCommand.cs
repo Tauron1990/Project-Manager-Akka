@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace Tauron.Application.AkkNode.Services.Commands
+namespace Tauron.Application.AkkNode.Services.CommandsOld
 {
     public abstract class ResultCommand<TSender, TThis, TResult> : ReporterCommandBase<TSender, TThis> 
         where TSender : ISender 

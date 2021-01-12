@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Tauron.Application.AkkNode.Services.FileTransfer;
 
-namespace Tauron.Application.AkkNode.Services.Commands
+namespace Tauron.Application.AkkNode.Services.CommandsOld
 {
     [PublicAPI]
     public abstract class FileTransferCommand<TSender, TThis> : ReporterCommandBase<TSender, TThis> 

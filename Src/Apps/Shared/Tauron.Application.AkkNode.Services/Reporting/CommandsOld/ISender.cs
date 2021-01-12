@@ -1,4 +1,4 @@
-﻿namespace Tauron.Application.AkkNode.Services.Commands
+﻿namespace Tauron.Application.AkkNode.Services.CommandsOld
 {
     public interface ISender
     {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -94,8 +95,14 @@ namespace Tauron.Features
         private void InitialState(TState initial)
             => _currentState = new BehaviorSubject<TState>(initial);
 
+        private readonly HashSet<string> _featureIds = new();
         private void RegisterFeature(IFeature<TState> feature)
-            => feature.Init(this);
+        {
+            if (feature.Identify().Any(id => !_featureIds.Add(id)))
+                throw new InvalidOperationException("Duplicate Feature Added");
+
+            feature.Init(this);
+        }
 
         public IDisposable Subscribe(IObserver<TState> observer)
             => CurrentState.Subscribe(observer);
@@ -129,24 +136,31 @@ namespace Tauron.Features
         [PublicAPI]
         public static class Make
         {
-            public static Action<ActorBuilder<TState>> Feature(Action<IFeatureActor<TState>> initializer) 
-                => b => b.WithFeature(new DelegatingFeature(initializer));
+            public static Action<ActorBuilder<TState>> Feature(Action<IFeatureActor<TState>> initializer, params string[] ids) 
+                => b => b.WithFeature(new DelegatingFeature(initializer, ids));
         }
 
         [PublicAPI]
         public static class Simple
         {
-            public static IFeature<TState> Feature(Action<IFeatureActor<TState>> initializer)
-                => new DelegatingFeature(initializer);
+            public static IFeature<TState> Feature(Action<IFeatureActor<TState>> initializer, params string[] ids)
+                => new DelegatingFeature(initializer, ids);
         }
 
-        private class DelegatingFeature : ActorFeatureBase<TState>
+        private class DelegatingFeature : IFeature<TState>
         {
             private readonly Action<IFeatureActor<TState>> _initializer;
+            private readonly IEnumerable<string> _ids;
 
-            public DelegatingFeature(Action<IFeatureActor<TState>> initializer) => _initializer = initializer;
+            public DelegatingFeature(Action<IFeatureActor<TState>> initializer, IEnumerable<string> ids)
+            {
+                _initializer = initializer;
+                _ids = ids;
+            }
 
-            public override void Init(IFeatureActor<TState> actor) => _initializer(actor);
+            public IEnumerable<string> Identify() => _ids;
+
+            public void Init(IFeatureActor<TState> actor) => _initializer(actor);
         }
 
         public ITimerScheduler Timers { get; set; } = null!;
@@ -193,6 +207,8 @@ namespace Tauron.Features
                 _convertBack = convertBack;
             }
 
+            public IEnumerable<string> Identify() => _feature.Identify();
+
             public virtual void Init(IFeatureActor<TOriginal> actor) 
                 => _feature.Init(new StateDelegator<TTarget,TOriginal>(actor, _convert, _convertBack));
         }
@@ -224,6 +240,12 @@ namespace Tauron.Features
 
             public IUntypedActorContext Context
                 => _original.Context;
+
+            public SupervisorStrategy? SupervisorStrategy
+            {
+                get => _original.SupervisorStrategy;
+                set => _original.SupervisorStrategy = value;
+            }
 
             public void TellSelf(object msg) => _original.TellSelf(msg);
 

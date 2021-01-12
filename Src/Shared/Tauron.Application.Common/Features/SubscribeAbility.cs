@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Reactive.Linq;
 using Akka.Actor;
@@ -32,7 +33,12 @@ namespace Tauron.Features
 
         public sealed record InternalEventSubscription(IActorRef Intrest, Type Type);
 
-        public void Init(IFeatureActor<State> actor)
+        IEnumerable<string> IFeature<State>.Identify()
+        {
+            yield return nameof(SubscribeFeature);
+        }
+
+        void IFeature<State>.Init(IFeatureActor<State> actor)
         {
             actor.Receive<Terminated>(obs => obs.ToUnit());
             actor.Receive<KeyHint>(obs  => obs.Select(data => data.State.Update(data.Event.Key, refs => refs.Remove(data.Event.Target))));

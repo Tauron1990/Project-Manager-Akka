@@ -2,7 +2,7 @@
 using Akka.Actor;
 using JetBrains.Annotations;
 
-namespace Tauron.Application.AkkNode.Services.Commands
+namespace Tauron.Application.AkkNode.Services.CommandsOld
 {
     public abstract class ReporterCommandBase<TSender, TThis> : IReporterMessage
         where TSender : ISender 

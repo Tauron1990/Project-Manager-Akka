@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
@@ -20,12 +21,22 @@ namespace AkkaTest
     {
         private sealed class KillFeature : IFeature<EmptyState>
         {
+            public IEnumerable<string> Identify()
+            {
+                yield return nameof(KillFeature);
+            }
+
             public void Init(IFeatureActor<EmptyState> actor) 
                 => actor.Receive<KillMessage>(obs => obs.SubscribeWithStatus(_ => actor.Context.System.Terminate()));
         }
 
         private sealed class HelloFeature : IFeature<EmptyState>
         {
+            public IEnumerable<string> Identify()
+            {
+                yield return nameof(HelloFeature);
+            }
+
             public void Init(IFeatureActor<EmptyState> actor)
             {
                 actor.Receive<AlarmMessage>(obs => obs.SubscribeWithStatus(_ => Console.WriteLine("Here Is Hello Feature")));
@@ -35,6 +46,11 @@ namespace AkkaTest
 
         private sealed class WorldFeature : IFeature<EmptyState>
         {
+            public IEnumerable<string> Identify()
+            {
+                yield return nameof(WorldFeature);
+            }
+
             public void Init(IFeatureActor<EmptyState> actor)
             {
                 actor.Receive<AlarmMessage>(obs => obs.SubscribeWithStatus(_ => Console.WriteLine("Here Is World Feature")));

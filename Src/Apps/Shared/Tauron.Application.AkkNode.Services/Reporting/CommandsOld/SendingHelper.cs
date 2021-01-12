@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Akka.Actor;
-using Tauron.Akka;
 using Tauron.Host;
 
-namespace Tauron.Application.AkkNode.Services.Commands
+namespace Tauron.Application.AkkNode.Services.CommandsOld
 {
     public static class SendingHelper
     {

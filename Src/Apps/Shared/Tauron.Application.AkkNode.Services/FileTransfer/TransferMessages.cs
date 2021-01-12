@@ -44,7 +44,7 @@ namespace Tauron.Application.AkkNode.Services.FileTransfer
             }
             
             public TransferFailed ToFailed()
-                => new TransferFailed(OperationId, FailReason, Data);
+                => new(OperationId, FailReason, Data);
         }
 
         public sealed class NextChunk : DataTranfer
