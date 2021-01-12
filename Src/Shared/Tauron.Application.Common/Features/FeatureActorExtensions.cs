@@ -7,15 +7,17 @@ using JetBrains.Annotations;
 
 namespace Tauron.Features
 {
-    public interface IPreparedFeature : IFeature<GenericState>
+    public interface IPreparedFeature
     {
-        KeyValuePair<Type, object> InitialState { get; }
+        IEnumerable<IFeature<GenericState>> Materialize();
+
+        KeyValuePair<Type, object> InitialState();
     }
 
     public sealed record GenericState(ImmutableDictionary<Type, object> States)
     {
         public GenericState(IEnumerable<IPreparedFeature> features)
-            : this(ImmutableDictionary<Type, object>.Empty.AddRange(features.Select(f => f.InitialState))) { }
+            : this(ImmutableDictionary<Type, object>.Empty.AddRange(features.Select(f => f.InitialState()))) { }
     }
 
     [PublicAPI]
@@ -31,7 +33,7 @@ namespace Tauron.Features
         internal sealed class GenericActor : FeatureActorBase<GenericActor, GenericState>
         {
             public static Props Create(IPreparedFeature[] features)
-                => Create(new GenericState(features), builder => builder.WithFeatures(features));
+                => Create(new GenericState(features), builder => builder.WithFeatures(features.SelectMany(f => f.Materialize())));
         }
 
     }
@@ -39,18 +41,33 @@ namespace Tauron.Features
     [PublicAPI]
     public static class Feature
     {
-        private sealed class PreparedFeature<TState> : ActorBuilder<TState>.ConvertingFeature<TState, GenericState>, IPreparedFeature
+        private sealed class FeatureImpl<TState> : ActorBuilder<TState>.ConvertingFeature<TState, GenericState>
             where TState : notnull
         {
-            private readonly Func<TState> _builder;
-
-            public PreparedFeature(IFeature<TState> target, Func<TState> builder)
+            public FeatureImpl(IFeature<TState> target)
                 : base(target, state => (TState)state.States[typeof(TState)], (original, state) => original with{ States = original.States.SetItem(typeof(TState), state)} )
             {
-                _builder = builder;
             }
-            
-            public KeyValuePair<Type, object> InitialState => new(typeof(TState), _builder());
+        }
+
+        private sealed class PreparedFeature<TState> : IPreparedFeature
+            where TState : notnull
+        {
+            private readonly Func<IFeature<TState>> _feature;
+            private readonly Func<TState> _stateBuilder;
+
+            public PreparedFeature(Func<IFeature<TState>> feature, Func<TState> stateBuilder)
+            {
+                _feature = feature;
+                _stateBuilder = stateBuilder;
+            }
+
+            public IEnumerable<IFeature<GenericState>> Materialize()
+            {
+                yield return new FeatureImpl<TState>(_feature());
+            }
+
+            public KeyValuePair<Type, object> InitialState() => throw new NotImplementedException();
         }
 
         private sealed class PreparedFeatureList<TState> : IPreparedFeature
@@ -64,28 +81,23 @@ namespace Tauron.Features
                 _target = target.ToArray();
                 _builder = builder;
             }
+            
+            public KeyValuePair<Type, object> InitialState() => new(typeof(TState), _builder());
 
-            public IEnumerable<string> Identify() => _target.SelectMany(preparedFeature => preparedFeature.Identify());
-
-            public void Init(IFeatureActor<GenericState> actor)
-            {
-                _target.Foreach(f => f.Init(actor));    
-            }
-
-            public KeyValuePair<Type, object> InitialState => new(typeof(TState), _builder());
+            public IEnumerable<IFeature<GenericState>> Materialize() => _target.SelectMany(preparedFeature => preparedFeature.Materialize());
         }
 
         public static Props Props(params IPreparedFeature[] features)
             => FeatureActorExtensions.GenericActor.Create(features);
 
-        public static IPreparedFeature Create<TState>(IFeature<TState> feature, Func<TState> stateFunc)
+        public static IPreparedFeature Create<TState>(Func<IFeature<TState>> feature, Func<TState> stateFunc)
             where TState : notnull
             => new PreparedFeature<TState>(feature, stateFunc);
 
-        public static IPreparedFeature Create(IFeature<EmptyState> feature)
+        public static IPreparedFeature Create(Func<IFeature<EmptyState>> feature)
             => Create(feature, () => EmptyState.Inst);
 
-        public static IPreparedFeature Create<TState>(IFeature<TState> feature, TState state)
+        public static IPreparedFeature Create<TState>(Func<IFeature<TState>> feature, TState state)
             where TState : notnull
             => Create(feature, () => state);
 
@@ -93,25 +105,25 @@ namespace Tauron.Features
             where TState : notnull
             => Create(feature, () => state);
 
-        public static IPreparedFeature Create<TState>(IEnumerable<IFeature<TState>> features, Func<TState> stateFunc)
+        public static IPreparedFeature Create<TState>(IEnumerable<Func<IFeature<TState>>> features, Func<TState> stateFunc)
             where TState : notnull
             => new PreparedFeatureList<TState>(features.Select(feature => Create(feature, stateFunc)), stateFunc);
 
-        public static IPreparedFeature Create<TState>(Func<TState> stateFunc, params IFeature<TState>[] features)
+        public static IPreparedFeature Create<TState>(Func<TState> stateFunc, params Func<IFeature<TState>>[] features)
             where TState : notnull
             => new PreparedFeatureList<TState>(features.Select(feature => Create(feature, stateFunc)), stateFunc);
 
-        public static IPreparedFeature Create(IEnumerable<IFeature<EmptyState>> feature)
+        public static IPreparedFeature Create(IEnumerable<Func<IFeature<EmptyState>>> feature)
             => Create(feature, () => EmptyState.Inst);
 
-        public static IPreparedFeature Create(params IFeature<EmptyState>[] feature)
+        public static IPreparedFeature Create(params Func<IFeature<EmptyState>>[] feature)
             => Create(feature, () => EmptyState.Inst);
 
-        public static IPreparedFeature Create<TState>(IEnumerable<IFeature<TState>> feature, TState state)
+        public static IPreparedFeature Create<TState>(IEnumerable<Func<IFeature<TState>>> feature, TState state)
             where TState : notnull
             => Create(feature, () => state);
 
-        public static IPreparedFeature Create<TState>(TState state, params IFeature<TState>[] feature)
+        public static IPreparedFeature Create<TState>(TState state, params Func<IFeature<TState>>[] feature)
             where TState : notnull
             => Create(feature, () => state);
     }

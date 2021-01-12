@@ -78,7 +78,19 @@ namespace Tauron.Application.AkkNode.Services
             Receive<WorkerTimeout>(obs => obs.Where(m => m.State.Running.Contains(m.Event.Worker))
                                              .SubscribeWithStatus(m => Context.Stop(m.Event.Worker)));
 
+            Receive<TFinishMessage>(obs => obs.Where(m => m.State.Running.Contains(Sender))
+                                              .Select(m =>
+                                                      {
+
+                                                      }));
+
             Self.Tell(new CheckWorker());
+        }
+
+        private void RunWork(TInput input, IActorRef worker, IActorRef sender, ITimerScheduler timers, TimeSpan timeout)
+        {
+            worker.Tell(input, sender);
+            timers.StartSingleTimer(worker, new WorkerTimeout(worker), timeout);
         }
 
         private sealed class WorkSender : IWorkDistributor<TInput>
@@ -100,13 +112,6 @@ namespace Tauron.Application.AkkNode.Services
     [PublicAPI]
     public sealed class WorkDistributorÔld<TInput, TFinishMessage>
     {
-                Receive<WorkerTimeout>(obs => obs
-                                             .Where(to => _running.Contains(to.Worker))
-                                          .SubscribeWithStatus(t =>
-                                                                      {
-                                                                          if (_running.Contains(t.Worker))
-                                                                              Context.Stop(t.Worker);
-                                                                      }));
     
                 Receive<TFinishMessage>(WorkFinish);
                 Receive<TInput>(PushWork);
@@ -139,13 +144,7 @@ namespace Tauron.Application.AkkNode.Services
                     _pendingWorkload.Enqueue((input, Sender));
             }
 
-            private void RunWork(TInput input, IActorRef worker, IActorRef sender)
-            {
-                worker.Tell(input, sender);
-                Timers.StartSingleTimer(worker, new WorkerTimeout(worker), _timeout);
-            }
-
-            protected override SupervisorStrategy SupervisorStrategy() => global::Akka.Actor.SupervisorStrategy.StoppingStrategy;
+protected override SupervisorStrategy SupervisorStrategy() => global::Akka.Actor.SupervisorStrategy.StoppingStrategy;
 
 
         }
