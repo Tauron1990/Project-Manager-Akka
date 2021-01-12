@@ -5,6 +5,7 @@ using Akka.Actor;
 using JetBrains.Annotations;
 using Tauron.Application.AkkNode.Services.Core;
 using Tauron.Application.AkkNode.Services.FileTransfer.Operator;
+using Tauron.Features;
 
 namespace Tauron.Application.AkkNode.Services.FileTransfer
 {
@@ -12,7 +13,7 @@ namespace Tauron.Application.AkkNode.Services.FileTransfer
     public sealed class DataTransferManager
     {
         public static DataTransferManager New(IActorRefFactory factory, string? name = null) 
-            => new DataTransferManager(factory.ActorOf(Props.Create<DataTransferManagerActor>(), name));
+            => new(factory.ActorOf(name, DataTransferManagerFeature.New(), SubscribeFeature.New()));
 
         public IActorRef Actor { get; }
 

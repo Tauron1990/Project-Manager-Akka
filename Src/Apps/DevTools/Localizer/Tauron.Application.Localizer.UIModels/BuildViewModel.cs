@@ -102,7 +102,7 @@ namespace Tauron.Application.Localizer.UIModels
         public BuildViewModel(ILifetimeScope lifetimeScope, IUIDispatcher dispatcher, ProjectFileWorkspace workspace, LocLocalizer localizer, IDialogFactory dialogFactory, IOperationManager manager)
             : base(lifetimeScope, dispatcher)
         {
-            Receive<IncommingEvent>(e => e.Action());
+            this.Receive<IncommingEvent>(e => e.Action());
 
             #region Import Integration
 
@@ -162,7 +162,7 @@ namespace Tauron.Application.Localizer.UIModels
             TerminalMessages = this.RegisterUiCollection<string>(nameof(TerminalMessages)).BindToList(out var terminalMessages);
             var buildMessageLocalizer = new BuildMessageLocalizer(localizer);
 
-            Receive<BuildMessage>(AddMessage);
+            this.Receive<BuildMessage>(AddMessage);
 
             void AddMessage(BuildMessage message)
             {
@@ -189,7 +189,7 @@ namespace Tauron.Application.Localizer.UIModels
                                    .ToActor(r => r.ProjectFile.Operator))
                .ThenRegister("StartBuild");
 
-            Receive<BuildCompled>(BuildCompled);
+            this.Receive<BuildCompled>(BuildCompled);
 
             void BuildCompled(BuildCompled msg)
             {

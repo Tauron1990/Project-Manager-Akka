@@ -32,6 +32,8 @@ namespace Tauron.Features
         IActorRef Sender { get; }
 
         IUntypedActorContext Context { get; }
+
+        SupervisorStrategy? SupervisorStrategy { get; set; }
     }
 
     public sealed record StatePair<TEvent, TState>(TEvent Event, TState State, ITimerScheduler Timers)
@@ -87,6 +89,7 @@ namespace Tauron.Features
             => Receive<TEvent>(obs => handler(obs.Select(evt => new StatePair<TEvent, TState>(evt, CurrentState.Value, Timers))));
 
         IUntypedActorContext IFeatureActor<TState>.Context => Context;
+        SupervisorStrategy? IFeatureActor<TState>.SupervisorStrategy { get; set; }
 
         private void InitialState(TState initial)
             => _currentState = new BehaviorSubject<TState>(initial);
@@ -96,7 +99,9 @@ namespace Tauron.Features
 
         public IDisposable Subscribe(IObserver<TState> observer)
             => CurrentState.Subscribe(observer);
-        
+
+        protected override SupervisorStrategy SupervisorStrategy() => ((IFeatureActor<TState>)this).SupervisorStrategy ?? base.SupervisorStrategy();
+
         private sealed class ActorFactory : IIndirectActorProducer
         {
             private readonly Action<ActorBuilder<TState>> _builder;

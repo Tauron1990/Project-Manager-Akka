@@ -20,6 +20,9 @@ namespace Tauron.Akka
         public static FSMBase.State<TS, TD> ReplyingParent<TS, TD>(this FSMBase.State<TS, TD> state, object msg)
             => state.Replying(msg, ObservableActor.ExposedContext.Parent);
 
+        public static void Receive<TEvent>(this IObservableActor actor, Action<TEvent> handler)
+            => actor.Receive<TEvent>(obs => obs.SubscribeWithStatus(handler));
+
         public static void SubscribeToEvent<TEvent>(this IObservableActor actor, Func<IObservable<TEvent>, IDisposable> handler)
             => new EventHolder<TEvent>(actor, handler).Register();
 

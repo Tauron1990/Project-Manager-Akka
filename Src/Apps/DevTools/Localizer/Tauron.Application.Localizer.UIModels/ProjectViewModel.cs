@@ -38,7 +38,7 @@ namespace Tauron.Application.Localizer.UIModels
 
             var loadTrigger = new Subject<Unit>();
 
-            Receive<IncommingEvent>(e => e.Action());
+            this.Receive<IncommingEvent>(e => e.Action());
 
             IsEnabled = RegisterProperty<bool>(nameof(IsEnabled)).WithDefaultValue(!workspace.ProjectFile.IsEmpty);
             SelectedIndex = RegisterProperty<int>(nameof(SelectedIndex));
@@ -58,7 +58,7 @@ namespace Tauron.Application.Localizer.UIModels
                 self.Tell(new RemoveRequest(entryName, projectName));
             }
 
-            OnPreRestart += (_, _) => Self.Tell(new InitProjectViewModel(workspace.Get(_project)));
+            Start.Subscribe(_ => Self.Tell(new InitProjectViewModel(workspace.Get(_project))));
 
             void InitProjectViewModel(InitProjectViewModel obj)
             {
@@ -77,7 +77,7 @@ namespace Tauron.Application.Localizer.UIModels
                 loadTrigger.OnNext(Unit.Default);
             }
 
-            Receive<InitProjectViewModel>(InitProjectViewModel);
+            this.Receive<InitProjectViewModel>(InitProjectViewModel);
 
             #endregion
 
@@ -127,9 +127,9 @@ namespace Tauron.Application.Localizer.UIModels
                 projectEntrys!.RemoveAt(index);
             }
 
-            WhenReceive<RemoveRequest>(obs => obs.Mutate(workspace.Entrys).With(em => em.EntryRemove, em => rr => em.RemoveEntry(rr.ProjectName, rr.EntryName))
-                                                 .ObserveOnSelf()
-                                                 .Subscribe(RemoveEntry));
+            Receive<RemoveRequest>(obs => obs.Mutate(workspace.Entrys).With(em => em.EntryRemove, em => rr => em.RemoveEntry(rr.ProjectName, rr.EntryName))
+                                             .ObserveOnSelf()
+                                             .Subscribe(RemoveEntry));
 
             #endregion
 
@@ -143,9 +143,9 @@ namespace Tauron.Application.Localizer.UIModels
                 model?.Update(obj.Entry);
             }
 
-            WhenReceive<UpdateRequest>(obs => obs.Mutate(workspace.Entrys).With(em => em.EntryUpdate, em => ur => em.UpdateEntry(ur.ProjectName, ur.Language, ur.EntryName, ur.Content))
-                                                 .ObserveOnSelf()
-                                                 .Subscribe(UpdateEntry));
+            Receive<UpdateRequest>(obs => obs.Mutate(workspace.Entrys).With(em => em.EntryUpdate, em => ur => em.UpdateEntry(ur.ProjectName, ur.Language, ur.EntryName, ur.Content))
+                                             .ObserveOnSelf()
+                                             .Subscribe(UpdateEntry));
 
             #endregion
 

@@ -36,7 +36,7 @@ namespace Tauron.Application.Localizer.UIModels
         {
             var proxy = ActorRefFactoryExtensions.ActorOf<ObservableActor>(Context, "Loading_Proxy");
 
-            Receive<IncommingEvent>(e => e.Action());
+            this.Receive<IncommingEvent>(e => e.Action());
 
             Views = this.RegisterUiCollection<ProjectViewContainer>(nameof(Views)).BindToList(out var viewList);
             CurrentProject = RegisterProperty<int?>(nameof(CurrentProject));
@@ -80,7 +80,7 @@ namespace Tauron.Application.Localizer.UIModels
                      .Subscribe(SaveRequested)
                      .DisposeWith(this);
 
-            (from savedProject in WhenReceive<SavedProject>()
+            (from savedProject in Receive<SavedProject>()
              from controller in manager.Find(savedProject.OperationId)
              select (savedProject, controller))
                .Subscribe(ProjectSaved)
@@ -90,7 +90,7 @@ namespace Tauron.Application.Localizer.UIModels
 
             #region Update Source
 
-            WhenReceive<UpdateSource>().Mutate(workspace.Source).With(sm => sm.SourceUpdate, sm => us => sm.UpdateSource(us.Name))
+            Receive<UpdateSource>().Mutate(workspace.Source).With(sm => sm.SourceUpdate, sm => us => sm.UpdateSource(us.Name))
                                        .Subscribe(su => mainWindow.TitlePostfix = Path.GetFileNameWithoutExtension(su.Source));
 
             #endregion
@@ -143,20 +143,18 @@ namespace Tauron.Application.Localizer.UIModels
 
             #region Project Reset
 
-            OnPreRestart += (_, _) => Self.Tell(new ProjectRest(workspace.ProjectFile));
-            OnPostStop += () =>
+            Start.Subscribe(_ => Self.Tell(new ProjectRest(workspace.ProjectFile)));
+            Stop.Subscribe(_ =>
                           {
                               Views.Foreach(c => Context.Stop(c.Model.Actor));
                               Thread.Sleep(1000);
-                          };
+                          });
 
             void ProjectRest(ProjectRest obj)
             {
                 mainWindow.Saved = File.Exists(obj.ProjectFile.Source);
 
                 var target = Observable.Return(obj);
-
-                var self = Self;
 
                 if (Views!.Count != 0)
                 {
@@ -214,10 +212,10 @@ namespace Tauron.Application.Localizer.UIModels
                               });
             }
 
-            WhenReceiveSafe<SupplyNewProjectFile>(obs => obs
-                                                        .Mutate(workspace.Source).With(sm => sm.ProjectReset, sm => np => sm.Reset(np.File))
-                                                        .ObserveOnSelf()
-                                                        .Subscribe(ProjectRest));
+            Receive<SupplyNewProjectFile>(obs => obs
+                                                .Mutate(workspace.Source).With(sm => sm.ProjectReset, sm => np => sm.Reset(np.File))
+                                                .ObserveOnSelf()
+                                                .Subscribe(ProjectRest));
 
             #endregion
 
@@ -272,7 +270,5 @@ namespace Tauron.Application.Localizer.UIModels
         private UIProperty<int?> CurrentProject { get; set; }
 
         private sealed record RemoveProjectName(string Name);
-
-        private sealed record Reset2(ProjectRest Reset);
     }
 }

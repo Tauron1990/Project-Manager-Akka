@@ -38,7 +38,7 @@ namespace Tauron.Application.Localizer.UIModels
             AppConfig config, IDialogFactory dialogFactory, IViewModel<CenterViewModel> model, IMainWindowCoordinator mainWindowCoordinator, ProjectFileWorkspace workspace)
             : base(lifetimeScope, dispatcher)
         {
-            Receive<IncommingEvent>(e => e.Action());
+            this.Receive<IncommingEvent>(e => e.Action());
 
             var last = new RxVar<ProjectFile?>(null);
             var loadingOperation = new RxVar<OperationController?>(null);
@@ -49,12 +49,12 @@ namespace Tauron.Application.Localizer.UIModels
 
             #region Restarting
 
-            OnPreRestart += (_, _) =>
+            Start.Subscribe(_ =>
                             {
                                 if (last != null)
                                     Self.Tell(last);
-                            };
-            Receive<ProjectFile>(workspace.Reset);
+                            });
+            this.Receive<ProjectFile>(workspace.Reset);
 
             #endregion
 
@@ -105,7 +105,7 @@ namespace Tauron.Application.Localizer.UIModels
                                                                              .ToModel(CenterView!);
 
 
-            Receive<InternlRenctFile>(o => OpentFileSource(o.File));
+            this.Receive<InternlRenctFile>(o => OpentFileSource(o.File));
 
             IObservable<LoadedProjectFile?> SourceSelectedFunc(SourceSelected s)
             {
@@ -166,8 +166,8 @@ namespace Tauron.Application.Localizer.UIModels
                                                         .Select(s => SourceSelected.From(s, OpenFileMode.OpenExistingFile))))
                      .ThenRegister("OpenFile");
 
-            NewProjectFile(WhenReceive<SourceSelected>()).DisposeWith(this);
-            WhenReceive<LoadedProjectFile>(ob => ob.Select(ProjectLoaded).ToModel(CenterView!));
+            NewProjectFile(Receive<SourceSelected>()).DisposeWith(this);
+            Receive<LoadedProjectFile>(ob => ob.Select(ProjectLoaded).ToModel(CenterView!));
 
             #endregion
 
