@@ -71,6 +71,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tauron.Application.Software
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tauron.Application.AkkNode.Services", "Src\Apps\Shared\Tauron.Application.AkkNode.Services\Tauron.Application.AkkNode.Services.csproj", "{DA9FE433-00BC-4867-B7B2-110A479353D0}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tauron.Application.Master.Commands", "Src\Apps\Shared\Tauron.Application.Master.Commands\Tauron.Application.Master.Commands.csproj", "{5796968C-4CF1-4604-B206-DC073E836D0D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tauron.Application.AkkaNode.Boottrap", "Src\Apps\Shared\Tauron.Application.AkkaNode.Boottrap\Tauron.Application.AkkaNode.Boottrap.csproj", "{A5C372A4-9762-4CE5-906C-24075813C668}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Master.Seed.Node", "Src\Apps\Backend\Master.Seed.Node\Master.Seed.Node.csproj", "{11BB59CC-0AF4-4CD0-9011-F72D129E1291}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -173,6 +179,18 @@ Global
 		{DA9FE433-00BC-4867-B7B2-110A479353D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DA9FE433-00BC-4867-B7B2-110A479353D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DA9FE433-00BC-4867-B7B2-110A479353D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5796968C-4CF1-4604-B206-DC073E836D0D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5796968C-4CF1-4604-B206-DC073E836D0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5796968C-4CF1-4604-B206-DC073E836D0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5796968C-4CF1-4604-B206-DC073E836D0D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A5C372A4-9762-4CE5-906C-24075813C668}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A5C372A4-9762-4CE5-906C-24075813C668}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A5C372A4-9762-4CE5-906C-24075813C668}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A5C372A4-9762-4CE5-906C-24075813C668}.Release|Any CPU.Build.0 = Release|Any CPU
+		{11BB59CC-0AF4-4CD0-9011-F72D129E1291}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{11BB59CC-0AF4-4CD0-9011-F72D129E1291}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{11BB59CC-0AF4-4CD0-9011-F72D129E1291}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{11BB59CC-0AF4-4CD0-9011-F72D129E1291}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -211,6 +229,9 @@ Global
 		{5BF63585-1BC8-4426-B759-1A8F11C84B84} = {79F4F24B-7CCF-4905-8933-2D43F86AE096}
 		{F625FE82-9C0C-4311-8DF9-9D5F715A3C93} = {9F0D00CD-133F-412C-B87F-EE6051E28700}
 		{DA9FE433-00BC-4867-B7B2-110A479353D0} = {5BF63585-1BC8-4426-B759-1A8F11C84B84}
+		{5796968C-4CF1-4604-B206-DC073E836D0D} = {5BF63585-1BC8-4426-B759-1A8F11C84B84}
+		{A5C372A4-9762-4CE5-906C-24075813C668} = {5BF63585-1BC8-4426-B759-1A8F11C84B84}
+		{11BB59CC-0AF4-4CD0-9011-F72D129E1291} = {5240E794-95D4-4B50-8E87-22417D517216}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F63AD2ED-4320-43AB-8761-A3FEBC507539}

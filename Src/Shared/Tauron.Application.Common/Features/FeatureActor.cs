@@ -14,6 +14,10 @@ namespace Tauron.Features
     [PublicAPI]
     public interface IFeatureActor<TState> : IObservable<TState>
     {
+        IObservable<IActorContext> Start { get; }
+
+        IObservable<IActorContext> Stop { get; }
+
         TState CurrentState { get; }
 
         void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler);
@@ -254,6 +258,8 @@ namespace Tauron.Features
 
             public IDisposable Subscribe(IObserver<TTarget> observer) => _original.Select(_convert).Subscribe(observer);
 
+            public IObservable<IActorContext> Start => _original.Start;
+            public IObservable<IActorContext> Stop => _original.Stop;
             public TTarget CurrentState => _convert(_original.CurrentState);
 
             public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TTarget>>, IObservable<Unit>> handler)

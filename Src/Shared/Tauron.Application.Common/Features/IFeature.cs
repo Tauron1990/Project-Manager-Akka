@@ -20,6 +20,10 @@ namespace Tauron.Features
     {
         private IFeatureActor<TState> _actor = null!;
 
+        public IObservable<IActorContext> Start => _actor.Start;
+
+        public IObservable<IActorContext> Stop => _actor.Stop;
+
         public TState CurrentState => _actor.CurrentState;
 
         public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler) => _actor.Receive(handler);

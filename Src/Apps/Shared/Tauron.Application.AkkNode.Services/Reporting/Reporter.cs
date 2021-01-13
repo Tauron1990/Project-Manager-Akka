@@ -38,7 +38,7 @@ namespace Tauron.Application.AkkNode.Services
         public static IActorRef CreateListner(IActorRefFactory factory, Action<string> listner, TimeSpan timeout, string? name, Action<Task<IOperationResult>> onCompled)
         {
             var source = new TaskCompletionSource<IOperationResult>();
-            var actor =  CreateListner(factory, listner, source, timeout, null);
+            var actor =  CreateListner(factory, listner, source, timeout, name);
             onCompled(source.Task);
             return actor;
         }
@@ -61,7 +61,7 @@ namespace Tauron.Application.AkkNode.Services
         public static IActorRef CreateListner(IActorRefFactory factory, Action<string> listner, TimeSpan timeout, string? name, out Task<IOperationResult> onCompled)
         {
             var source = new TaskCompletionSource<IOperationResult>();
-            var actor = CreateListner(factory, listner, source, timeout, null);
+            var actor = CreateListner(factory, listner, source, timeout, name);
             onCompled = source.Task;
             return actor;
         }
@@ -70,7 +70,7 @@ namespace Tauron.Application.AkkNode.Services
             => CreateListner(factory, listner, timeout, null, out onCompled);
 
         private readonly IActorRef _reporter;
-        private AtomicBoolean _compledCalled = new();
+        private readonly AtomicBoolean _compledCalled = new();
 
         public bool IsCompled => _compledCalled.Value;
 

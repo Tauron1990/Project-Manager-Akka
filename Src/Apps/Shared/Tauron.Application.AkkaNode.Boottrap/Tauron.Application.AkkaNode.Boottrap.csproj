@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <AssemblyName>Tauron.Application.AkkaNode.Bootstrap</AssemblyName>
+    <RootNamespace>Tauron.Application.AkkaNode.Bootstrap</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="base.conf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="base.conf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Akka.Cluster.Sharding" Version="1.4.14" />
+    <PackageReference Include="AnyConsole" Version="1.0.65" />
+    <PackageReference Include="Serilog.Enrichers.EnrichedProperties" Version="1.0.63" />
+    <PackageReference Include="Serilog.Exceptions" Version="6.0.0" />
+    <PackageReference Include="Serilog.Formatting.Compact" Version="1.1.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
+    <PackageReference Include="Serilog.Sinks.File" Version="4.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Tauron.Application.Master.Commands\Tauron.Application.Master.Commands.csproj" />
+  </ItemGroup>
+
+</Project>

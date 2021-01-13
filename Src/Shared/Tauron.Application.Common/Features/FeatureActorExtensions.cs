@@ -67,7 +67,7 @@ namespace Tauron.Features
                 yield return new FeatureImpl<TState>(_feature());
             }
 
-            public KeyValuePair<Type, object> InitialState() => throw new NotImplementedException();
+            public KeyValuePair<Type, object> InitialState() => new(typeof(TState), _stateBuilder());
         }
 
         private sealed class PreparedFeatureList<TState> : IPreparedFeature
@@ -101,7 +101,7 @@ namespace Tauron.Features
             where TState : notnull
             => Create(feature, () => state);
 
-        public static IPreparedFeature Create<TState>(TState state, IFeature<TState> feature)
+        public static IPreparedFeature Create<TState>(TState state, Func<IFeature<TState>> feature)
             where TState : notnull
             => Create(feature, () => state);
 

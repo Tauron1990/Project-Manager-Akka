@@ -4,6 +4,8 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using Akka.Actor;
+using Newtonsoft.Json;
+using Serilog.Parsing;
 using Tauron;
 using Tauron.Application.AkkNode.Services;
 using Tauron.Application.AkkNode.Services.Commands;
@@ -21,12 +23,13 @@ namespace AkkaTest
 
     internal static class Program
     {
+        public abstract record CommandBase(string Target, [property: JsonIgnore] int Type);
         public sealed class TestSender : ISender
         {
             public void SendCommand(IReporterMessage command) { }
         }
 
-        public sealed class TestCommand : ResultCommand<TestSender, TestCommand, string>
+        public sealed record TestCommand : ResultCommand<TestSender, TestCommand, string>
         {
             protected override string Info => nameof(TestCommand);
         }
@@ -72,6 +75,8 @@ namespace AkkaTest
 
         private static async Task Main()
         {
+            var t = new MessageTemplateParser().Parse("[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}");
+
             var testSender = new TestSender();
             var testCommand = new TestCommand();
             

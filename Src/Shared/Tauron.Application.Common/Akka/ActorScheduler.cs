@@ -4,6 +4,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
 using Akka.Actor;
+using Akka.Actor.Internal;
 using JetBrains.Annotations;
 using IScheduler = System.Reactive.Concurrency.IScheduler;
 
@@ -36,7 +37,13 @@ namespace Tauron.Akka
             }
 
             if (target == TimeSpan.Zero)
-                _targetActor.Tell(new ObservableActor.TransmitAction(TryRun));
+            {
+                var currentCell = InternalCurrentActorCellKeeper.Current;
+                if(currentCell != null && currentCell.Self.Equals(_targetActor))
+                    TryRun();
+                else
+                    _targetActor.Tell(new ObservableActor.TransmitAction(TryRun));
+            }
             else
             {
                 var timerDispose = new SingleAssignmentDisposable();

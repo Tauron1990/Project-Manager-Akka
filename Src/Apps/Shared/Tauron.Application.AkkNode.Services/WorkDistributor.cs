@@ -116,7 +116,7 @@ namespace Tauron.Application.AkkNode.Services
             Self.Tell(new CheckWorker());
         }
 
-        private void RunWork(TInput input, IActorRef worker, IActorRef sender, ITimerScheduler timers, TimeSpan timeout)
+        private static void RunWork(TInput input, IActorRef worker, IActorRef sender, ITimerScheduler timers, TimeSpan timeout)
         {
             worker.Tell(input, sender);
             timers.StartSingleTimer(worker, new WorkerTimeout(worker), timeout);

@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="akka.conf" />
+    <None Remove="seed.conf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="seed.conf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="akka.conf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Akka.Cluster" Version="1.4.14" />
+    <PackageReference Include="Akka.Cluster.Sharding" Version="1.4.14" />
+    <PackageReference Include="Akka.Cluster.Tools" Version="1.4.14" />
+    <PackageReference Include="Akka.Logger.Serilog" Version="1.4.11" />
+    <PackageReference Include="Petabridge.Cmd.Cluster" Version="0.8.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Shared\Tauron.Application.AkkaNode.Boottrap\Tauron.Application.AkkaNode.Boottrap.csproj" />
+  </ItemGroup>
+
+</Project>

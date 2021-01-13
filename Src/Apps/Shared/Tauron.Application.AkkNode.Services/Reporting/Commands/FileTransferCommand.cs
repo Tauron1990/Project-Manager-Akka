@@ -7,7 +7,7 @@ using Tauron.Application.AkkNode.Services.FileTransfer;
 namespace Tauron.Application.AkkNode.Services.Commands
 {
     [PublicAPI]
-    public abstract class FileTransferCommand<TSender, TThis> : ReporterCommandBase<TSender, TThis> 
+    public abstract record FileTransferCommand<TSender, TThis> : ReporterCommandBase<TSender, TThis> 
         where TThis : FileTransferCommand<TSender, TThis> 
         where TSender : ISender
     {

@@ -4,7 +4,7 @@ using JetBrains.Annotations;
 
 namespace Tauron.Application.AkkNode.Services.Commands
 {
-    public abstract class ReporterCommandBase<TSender, TThis> : IReporterMessage
+    public abstract record ReporterCommandBase<TSender, TThis> : IReporterMessage
         where TSender : ISender 
         where TThis : ReporterCommandBase<TSender, TThis>
     {
@@ -26,9 +26,6 @@ namespace Tauron.Application.AkkNode.Services.Commands
 
         protected abstract string Info { get; }
         
-        public void SetListner(IActorRef listner)
-        {
-            Listner = listner;
-        }
+        public void SetListner(IActorRef listner) => Listner = listner;
     }
 }

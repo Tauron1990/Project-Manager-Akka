@@ -5,7 +5,7 @@ using JetBrains.Annotations;
 namespace Tauron.Application.AkkNode.Services.Commands
 {
     [PublicAPI]
-    public abstract class SimpleCommand<TSender, TThis> : ReporterCommandBase<TSender, TThis> 
+    public abstract record SimpleCommand<TSender, TThis> : ReporterCommandBase<TSender, TThis> 
         where TThis : SimpleCommand<TSender, TThis>
         where TSender : ISender { }
 

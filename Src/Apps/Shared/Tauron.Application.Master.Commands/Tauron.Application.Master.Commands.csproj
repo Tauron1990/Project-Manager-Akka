@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Projections\**" />
+    <EmbeddedResource Remove="Projections\**" />
+    <None Remove="Projections\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Akka.Cluster.Tools" Version="1.4.14" />
+    <PackageReference Include="Akka.DistributedData" Version="1.4.14" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Shared\External\Akka.Cluster.Utility\Akka.Cluster.Utility.csproj" />
+    <ProjectReference Include="..\Tauron.Application.AkkNode.Services\Tauron.Application.AkkNode.Services.csproj" />
+  </ItemGroup>
+
+</Project>
