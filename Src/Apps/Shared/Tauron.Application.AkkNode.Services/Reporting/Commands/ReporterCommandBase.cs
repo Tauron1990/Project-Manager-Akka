@@ -2,13 +2,13 @@
 using Akka.Actor;
 using JetBrains.Annotations;
 
-namespace Tauron.Application.AkkNode.Services.CommandsOld
+namespace Tauron.Application.AkkNode.Services.Commands
 {
     public abstract class ReporterCommandBase<TSender, TThis> : IReporterMessage
         where TSender : ISender 
         where TThis : ReporterCommandBase<TSender, TThis>
     {
-        private IActorRef _listner;
+        private IActorRef _listner = ActorRefs.NoSender;
 
         [UsedImplicitly]
         public IActorRef Listner

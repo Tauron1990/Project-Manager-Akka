@@ -14,7 +14,8 @@ namespace Tauron.Application.AkkNode.Services.FileTransfer.Operator
         public sealed record State(ImmutableDictionary<string, IncomingDataTransfer> PendingTransfers, ImmutableDictionary<string, AwaitRequestInternal> Awaiters);
 
         public static IPreparedFeature New()
-            => Feature.Create(new DataTransferManagerFeature(), () => new State(ImmutableDictionary<string, IncomingDataTransfer>.Empty, ImmutableDictionary<string, AwaitRequestInternal>.Empty));
+            => Feature.Create(() => new DataTransferManagerFeature(), 
+                              () => new State(ImmutableDictionary<string, IncomingDataTransfer>.Empty, ImmutableDictionary<string, AwaitRequestInternal>.Empty));
 
         protected override void Config()
         {

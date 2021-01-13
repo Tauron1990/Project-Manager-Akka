@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Linq;
 using Akka.Actor;
-using Akka.Streams.Implementation;
 using JetBrains.Annotations;
 using Tauron.Akka;
 using Tauron.Features;
@@ -37,7 +34,7 @@ namespace Tauron.Application.AkkNode.Services
         public static IWorkDistributor<TInput> Create(IActorRefFactory factory, Props worker, string workerName, TimeSpan timeout, string? name = null)
         {
             var actor = factory.ActorOf(name, 
-                                        Feature.Create(new WorkDistributorFeature<TInput, TFinishMessage>(), 
+                                        Feature.Create(() => new WorkDistributorFeature<TInput, TFinishMessage>(), 
                                                        () => new WorkDistributorFeatureState(new DistributorConfig(worker, workerName, timeout, 5))));
 
             return new WorkSender(actor);
@@ -81,8 +78,40 @@ namespace Tauron.Application.AkkNode.Services
             Receive<TFinishMessage>(obs => obs.Where(m => m.State.Running.Contains(Sender))
                                               .Select(m =>
                                                       {
+                                                          var (_, state, timerScheduler) = m;
 
+                                                          if (state.PendingWorkload.IsEmpty)
+                                                          {
+                                                              return state with
+                                                                     {
+                                                                         Running = state.Running.Remove(Context.Sender),
+                                                                         Ready = state.Ready.Enqueue(Context.Sender)
+                                                                     };
+                                                          }
+
+                                                          var newQueue = state.PendingWorkload.Dequeue(out var work);
+
+                                                          RunWork(work.Item1, Context.Sender, work.Item2, timerScheduler, state.Configuration.Timeout);
+
+                                                          return state with {PendingWorkload = newQueue};
                                                       }));
+
+            Receive<TInput>(obs => obs.Select(m =>
+                                              {
+                                                  var (input, state, timerScheduler) = m;
+
+                                                  if (state.Ready.IsEmpty)
+                                                      return state with {PendingWorkload = state.PendingWorkload.Enqueue((input, Context.Sender))};
+                                                  
+                                                  var newQueue = state.Ready.Dequeue(out var worker);
+                                                  RunWork(input, worker, Context.Sender, timerScheduler, state.Configuration.Timeout);
+
+                                                  return state with
+                                                         {
+                                                             Running = state.Running.Add(worker), 
+                                                             Ready = newQueue
+                                                         };
+                                              }));
 
             Self.Tell(new CheckWorker());
         }
@@ -107,46 +136,5 @@ namespace Tauron.Application.AkkNode.Services
         private sealed record CheckWorker;
 
         private sealed record WorkerTimeout(IActorRef Worker);
-    }
-
-    [PublicAPI]
-    public sealed class WorkDistributorÔld<TInput, TFinishMessage>
-    {
-    
-                Receive<TFinishMessage>(WorkFinish);
-                Receive<TInput>(PushWork);
-            }
-
-            private void WorkFinish(TFinishMessage msg)
-            {
-                if (!_running.Contains(Context.Sender)) return;
-
-                if (_pendingWorkload.TryDequeue(out var elemnt))
-                {
-                    var (input, sender) = elemnt;
-                    RunWork(input, Sender, sender);
-                }
-                else
-                {
-                    _running.Remove(Context.Sender);
-                    _ready.Enqueue(Context.Sender);
-                }
-            }
-
-            private void PushWork(TInput input)
-            {
-                if (_ready.TryDequeue(out var worker))
-                {
-                    RunWork(input, worker, Sender);
-                    _running.Add(worker);
-                }
-                else
-                    _pendingWorkload.Enqueue((input, Sender));
-            }
-
-protected override SupervisorStrategy SupervisorStrategy() => global::Akka.Actor.SupervisorStrategy.StoppingStrategy;
-
-
-        }
     }
 }

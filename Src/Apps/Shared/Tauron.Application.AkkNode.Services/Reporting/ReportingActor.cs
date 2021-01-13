@@ -1,20 +1,19 @@
 ﻿using System;
+using JetBrains.Annotations;
 using Tauron.Akka;
+using Tauron.Operations;
 
 namespace Tauron.Application.AkkNode.Services
 {
-    public abstract class ReportingActor : ExposedReceiveActor
+    public abstract class ReportingActor : ObservableActor
     {
+        [PublicAPI]
         protected void Receive<TMessage>(string name, Action<TMessage, Reporter> process) 
-            where TMessage : IReporterMessage
-        {
-            Receive<TMessage>(m => TryExecute(m, name, process));
-        }
+            where TMessage : IReporterMessage => Receive<TMessage>(obs => obs.Subscribe(m => TryExecute(m, name, process)));
+
+        [PublicAPI]
         protected void ReceiveContinue<TMessage>(string name, Action<TMessage, Reporter> process)
-            where TMessage : IDelegatingMessage
-        {
-            Receive<TMessage>(m => TryContinue(m, name, process));
-        }
+            where TMessage : IDelegatingMessage => Receive<TMessage>(obs => obs.Subscribe(m => TryContinue(m, name, process)));
 
         protected virtual void TryExecute<TMessage>(TMessage msg, string name, Action<TMessage, Reporter> process)
             where TMessage : IReporterMessage
@@ -30,7 +29,7 @@ namespace Tauron.Application.AkkNode.Services
             catch (Exception e)
             {
                 Log.Error(e, "Repository Operation {Name} Failed {Repository}", name, msg.Info);
-                reporter.Compled(Operations.OperationResult.Failure(e.Unwrap()?.Message ?? "Unkowen"));
+                reporter.Compled(OperationResult.Failure(new Error(e.Unwrap()?.Message ?? "Unkowen", nameof(TryExecute))));
             }
         }
 
@@ -45,7 +44,7 @@ namespace Tauron.Application.AkkNode.Services
             catch (Exception e)
             {
                 Log.Error(e, "Repository Operation {Name} Failed {Repository}", name, msg.Info);
-                msg.Reporter.Compled(Operations.OperationResult.Failure(e.Unwrap()?.Message ?? "Unkowen"));
+                msg.Reporter.Compled(OperationResult.Failure(new Error(e.Unwrap()?.Message ?? "Unkowen", nameof(TryContinue))));
             }
         }
     }

@@ -15,7 +15,7 @@ namespace Tauron.Application.AkkNode.Services
         public const string TimeoutError = nameof(TimeoutError);
 
         public static Reporter CreateReporter(IActorRefFactory factory, string? name = "Reporter") 
-            => new Reporter(factory.ActorOf(Props.Create(() => new ReporterActor()).WithSupervisorStrategy(SupervisorStrategy.StoppingStrategy), name));
+            => new(factory.ActorOf(Props.Create(() => new ReporterActor()).WithSupervisorStrategy(SupervisorStrategy.StoppingStrategy), name));
 
         public static IActorRef CreateListner(IActorRefFactory factory, Action<string> listner, Action<IOperationResult> onCompled, TimeSpan timeout,  string? name = "LogListner")
             => factory.ActorOf(Props.Create(() => new Listner(listner, onCompled, timeout)).WithSupervisorStrategy(SupervisorStrategy.StoppingStrategy), name);
@@ -70,7 +70,7 @@ namespace Tauron.Application.AkkNode.Services
             => CreateListner(factory, listner, timeout, null, out onCompled);
 
         private readonly IActorRef _reporter;
-        private AtomicBoolean _compledCalled = new AtomicBoolean();
+        private AtomicBoolean _compledCalled = new();
 
         public bool IsCompled => _compledCalled.Value;
 
@@ -111,7 +111,7 @@ namespace Tauron.Application.AkkNode.Services
                 if(timeSpan == Timeout.InfiniteTimeSpan)
                     return;
 
-                Timers.StartSingleTimer(timeSpan, OperationResult.Failure(TimeoutError), timeSpan);
+                Timers.StartSingleTimer(timeSpan, OperationResult.Failure(new Error(TimeoutError, TimeoutError)), timeSpan);
             }
 
             public ITimerScheduler Timers { get; set; } = null!;
@@ -119,7 +119,7 @@ namespace Tauron.Application.AkkNode.Services
 
         private sealed class ReporterActor : ReceiveActor
         {
-            private readonly List<IActorRef> _listner = new List<IActorRef>();
+            private readonly List<IActorRef> _listner = new();
 
             public ReporterActor()
             {
@@ -147,18 +147,7 @@ namespace Tauron.Application.AkkNode.Services
             }
         }
 
-        private sealed class ListeningActor
-        {
-            public IActorRef Actor { get; }
-
-            public ListeningActor(IActorRef actor) => Actor = actor;
-        }
-
-        private sealed class TransferedMessage
-        {
-            public string Message { get; private set; }
-
-            public TransferedMessage(string message) => Message = message;
-        }
+        private sealed record ListeningActor(IActorRef Actor);
+        private sealed record TransferedMessage(string Message);
     }
 }

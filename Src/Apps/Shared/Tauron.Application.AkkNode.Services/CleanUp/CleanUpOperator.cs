@@ -13,7 +13,7 @@ namespace Tauron.Application.AkkNode.Services.CleanUp
     public sealed class CleanUpOperator : ActorFeatureBase<CleanUpOperator.State>
     {
         public static IPreparedFeature New(IMongoCollection<CleanUpTime> cleanUp, IMongoCollection<ToDeleteRevision> revisions, GridFSBucket bucket)
-            => Feature.Create(new CleanUpOperator(), () => new State(cleanUp, revisions, bucket));
+            => Feature.Create(() => new CleanUpOperator(), () => new State(cleanUp, revisions, bucket));
 
         protected override void Config()
             => Receive<StartCleanUp>(obs => obs.Take(1)

@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Akka.Actor;
+using Tauron.Akka;
 using Tauron.Host;
 
-namespace Tauron.Application.AkkNode.Services.CommandsOld
+namespace Tauron.Application.AkkNode.Services.Commands
 {
     public static class SendingHelper
     {
@@ -16,7 +17,7 @@ namespace Tauron.Application.AkkNode.Services.CommandsOld
 
             try
             {
-                factory = ExposedReceiveActor.ExposedContext;
+                factory = ObservableActor.ExposedContext;
             }
             catch (NotSupportedException)
             {
