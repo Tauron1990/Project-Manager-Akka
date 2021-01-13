@@ -75,7 +75,7 @@ namespace AkkaTest
             var testSender = new TestSender();
             var testCommand = new TestCommand();
             
-            testSender.SendResult(testCommand, TimeSpan.FromHours(1), Console.WriteLine).Wait();
+            testSender.Send(testCommand, TimeSpan.FromHours(1), ResultCommand.As<string>(), Console.WriteLine).Wait();
 
             using var system = ActorSystem.Create("Test");
 

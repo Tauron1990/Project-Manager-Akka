@@ -12,9 +12,8 @@ namespace Tauron.Application.AkkNode.Services.Commands
             where TCommand : class, IReporterMessage
         {
             var task = new TaskCompletionSource<TResult>();
-
             IActorRefFactory factory;
-
+            
             try
             {
                 factory = ObservableActor.ExposedContext;

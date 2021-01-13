@@ -9,10 +9,15 @@ namespace Tauron.Application.AkkNode.Services.Commands
         where TThis : ResultCommand<TSender, TThis, TResult>
     { }
 
+    public static class ResultCommand
+    {
+        public static TResult? As<TResult>() => default;
+    }
+
     public static class ResultCommandExtensions
     {
         [PublicAPI]
-        public static Task<TResult> SendResult<TSender, TCommand, TResult>(this TSender sender, TCommand command, TimeSpan timeout, Action<string> messages)
+        public static Task<TResult> Send<TSender, TCommand, TResult>(this TSender sender, TCommand command, TimeSpan timeout, TResult? resultInfo, Action<string> messages)
             where TSender : ISender
             where TCommand : ResultCommand<TSender, TCommand, TResult>
             => SendingHelper.Send<TResult, TCommand>(sender, command, messages, timeout, false);
