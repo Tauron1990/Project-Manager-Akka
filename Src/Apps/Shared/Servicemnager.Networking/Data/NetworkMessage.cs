@@ -4,25 +4,28 @@ using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Servicemnager.Networking.Data
 {
     public sealed class NetworkMessageFormatter
     {
-        private readonly ArrayPool<byte> _pool = ArrayPool<byte>.Shared;
+        private static readonly byte[] Head = Encoding.ASCII.GetBytes("HEAD");
 
-        public readonly byte[] Head = Encoding.ASCII.GetBytes("HEAD");
+        public static readonly byte[] End = Encoding.ASCII.GetBytes("ENDING");
 
-        public readonly byte[] End = Encoding.ASCII.GetBytes("ENDING");
+        private readonly MemoryPool<byte> _pool;
 
-        public byte[] WriteMessage(NetworkMessage msg)
+        public NetworkMessageFormatter(MemoryPool<byte> pool) => _pool = pool;
+
+        public (IMemoryOwner<byte> Message, int Lenght) WriteMessage(NetworkMessage msg)
         {
             var typeLenght = Encoding.UTF8.GetByteCount(msg.Type);
             var lenght = Head.Length + End.Length + msg.RealLength + typeLenght + 12;
 
             var message = _pool.Rent(lenght + 4);
-            var data = message.AsSpan();
+            var data = message.Memory.Span;
 
             Head.CopyTo(data);
             BinaryPrimitives.WriteInt32LittleEndian(data[4..], lenght);
@@ -33,48 +36,54 @@ namespace Servicemnager.Networking.Data
 
             var targetLenght = msg.Lenght == -1 ? msg.Data.Length : msg.Lenght;
 
-            BinaryPrimitives.WriteInt32LittleEndian(data.Slice(pos), targetLenght);
-            msg.Data.AsSpan()[targetLenght..]
-               .CopyTo(data[(pos + 4)..]);
+            BinaryPrimitives.WriteInt32LittleEndian(data[pos..], targetLenght);
+            var msgData = targetLenght != msg.Data.Length ? msg.Data.AsMemory()[targetLenght..] : msg.Data.AsMemory();
+            var msgPos = message.Memory[(pos + 4)..];
+
+            msgData.CopyTo(msgPos);
 
             pos += targetLenght + 4;
             End.CopyTo(data[pos..]);
 
-            return message;
+            return (message, lenght);
         }
 
-        public bool HasHeader(byte[] buffer)
+        public bool HasHeader(Memory<byte> buffer)
         {
             var pos = 0;
-            return CheckPresence(buffer, Head, ref pos);
+            return CheckPresence(buffer.Span, Head, ref pos);
         }
 
-        public bool HasTail(byte[] buffer)
+        public bool HasTail(Memory<byte> buffer)
         {
             if (buffer.Length < End.Length)
                 return false;
 
             var pos = buffer.Length - End.Length;
-            return CheckPresence(buffer, End, ref pos);
+            return CheckPresence(buffer.Span, End, ref pos);
         }
 
-        public NetworkMessage ReadMessage(byte[] buffer)
+        public NetworkMessage ReadMessage(IMemoryOwner<byte> bufferMemory)
         {
-            int bufferPos = 0;
+            var bufferPos = 0;
+            var buffer = bufferMemory.Memory.Span;
 
             if (!CheckPresence(buffer, Head, ref bufferPos))
                 throw new InvalidOperationException("Invalid Message Format");
 
-            var fullLenght = ReadInt(buffer, ref bufferPos);
-            //if (fullLenght != buffer.Length)
-            //    throw new InvalidOperationException("Invalid message Lenght");
+            var fullLenght = BinaryPrimitives.ReadInt32LittleEndian(buffer[bufferPos..]);
+            bufferPos += 4;
 
-            var typeLenght = ReadInt(buffer, ref bufferPos);
-            var type = Encoding.UTF8.GetString(buffer, bufferPos, typeLenght);
+            var typeLenght = BinaryPrimitives.ReadInt32LittleEndian(buffer[bufferPos..]);
+            bufferPos += 4;
+
+            var type = Encoding.UTF8.GetString(buffer[bufferPos..(bufferPos + typeLenght)]); //Encoding.UTF8.GetString(buffer, bufferPos, typeLenght);
             bufferPos += typeLenght;
 
-            var dataLenght = ReadInt(buffer, ref bufferPos);
-            var data = buffer.Skip(bufferPos).Take(dataLenght).ToArray();
+            var dataLenght = BinaryPrimitives.ReadInt32LittleEndian(buffer[bufferPos..]);
+            bufferPos += 4;
+
+            var data = buffer[bufferPos..(bufferPos + dataLenght)].ToArray();
             bufferPos += dataLenght;
 
             if (!CheckPresence(buffer, End, ref bufferPos) || fullLenght != bufferPos)
@@ -83,20 +92,8 @@ namespace Servicemnager.Networking.Data
             return new NetworkMessage(type, data, -1);
         }
 
-        public NetworkMessage Create(string type, byte[] data, int lenght = -1) => new NetworkMessage(type, data, lenght);
-
-        public NetworkMessage Create(string type) => new NetworkMessage(type, Array.Empty<byte>(), -1);
-
-        private int ReadInt(byte[] buffer, ref int pos)
-        {
-            int int32 = BitConverter.ToInt32(buffer, pos);
-            pos = pos + 4;
-
-            return int32;
-        }
-
-        [DebuggerHidden]
-        private bool CheckPresence(IReadOnlyList<byte> buffer, IEnumerable<byte> target, ref int pos)
+        [DebuggerHidden, MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private bool CheckPresence(Span<byte> buffer, IEnumerable<byte> target, ref int pos)
         {
             foreach (var ent in target)
             {
@@ -126,5 +123,9 @@ namespace Servicemnager.Networking.Data
             Data = data;
             Lenght = lenght;
         }
+
+        public static NetworkMessage Create(string type, byte[] data, int lenght = -1) => new(type, data, lenght);
+
+        public static NetworkMessage Create(string type) => new(type, Array.Empty<byte>(), -1);
     }
 }

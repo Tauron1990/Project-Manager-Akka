@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
@@ -25,7 +26,8 @@ namespace Servicemnager.Networking.Server
     {
         private readonly SimpleTcpServer _server;
 
-        private readonly ConcurrentDictionary<string, MessageBuffer> _clients = new ConcurrentDictionary<string, MessageBuffer>();
+        private readonly ConcurrentDictionary<string, MessageBuffer> _clients = new();
+        private readonly NetworkMessageFormatter _messageFormatter = new(MemoryPool<byte>.Shared);
 
         private EndPoint? _endPoint;
 
@@ -40,14 +42,14 @@ namespace Servicemnager.Networking.Server
                           Keepalive = {EnableTcpKeepAlives = true}
                       };
 
-            _server.Events.ClientConnected += (sender, args) => _clients.TryAdd(args.IpPort, new MessageBuffer());
+            _server.Events.ClientConnected += (_, args) => _clients.TryAdd(args.IpPort, new MessageBuffer(MemoryPool<byte>.Shared));
             _server.Events.ClientDisconnected += (sender, args) => _clients.TryRemove(args.IpPort, out _);
             _server.Events.DataReceived += EventsOnDataReceived;
         }
 
-        private void EventsOnDataReceived(object sender, DataReceivedEventArgs e)
+        private void EventsOnDataReceived(object? sender, DataReceivedEventArgs e)
         {
-            var buffer = _clients.GetOrAdd(e.IpPort, s => new MessageBuffer());
+            var buffer = _clients.GetOrAdd(e.IpPort, _ => new MessageBuffer(MemoryPool<byte>.Shared));
             var msg = buffer.AddBuffer(e.Data);
 
             if(msg != null)
@@ -70,7 +72,13 @@ namespace Servicemnager.Networking.Server
 
         public void Start() => _server.Start();
 
-        public void Send(string client, NetworkMessage message) => _server.Send(client, NetworkMessage.WriteMessage(message));
+        public void Send(string client, NetworkMessage message)
+        {
+            var data = _messageFormatter.WriteMessage(message);
+            using var memory = data.Message;
+
+            _server.Send(client, memory.Memory[..data.Lenght].ToArray());
+        }
 
         public void Dispose() => _server.Dispose();
     }

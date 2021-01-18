@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using Servicemnager.Networking.Data;
 using SimpleTcp;
 
@@ -10,11 +11,12 @@ namespace Servicemnager.Networking.Server
 
         public MessageFromServerEventArgs(NetworkMessage message) => Message = message;
     }
-
+    
     public sealed class DataClient
     {
         private readonly SimpleTcpClient _client;
-        private readonly MessageBuffer _messageBuffer = new MessageBuffer();
+        private readonly MessageBuffer _messageBuffer = new(MemoryPool<byte>.Shared);
+        private readonly NetworkMessageFormatter _messageFormatter = new(MemoryPool<byte>.Shared);
 
         public DataClient(string host, int port = 0)
         {
@@ -23,7 +25,7 @@ namespace Servicemnager.Networking.Server
                           Keepalive = {EnableTcpKeepAlives = true}
                       };
 
-            _client.Events.DataReceived += (sender, args) =>
+            _client.Events.DataReceived += (_, args) =>
                                            {
                                                var msg = _messageBuffer.AddBuffer(args.Data);
                                                if(msg != null)
@@ -47,7 +49,12 @@ namespace Servicemnager.Networking.Server
 
         public event EventHandler<MessageFromServerEventArgs>? OnMessageReceived;
 
-        public void Send(NetworkMessage msg) 
-            => _client.Send(NetworkMessage.WriteMessage(msg));
+        public void Send(NetworkMessage msg)
+        {
+            var data = _messageFormatter.WriteMessage(msg);
+            using var memory = data.Message;
+
+            _client.Send(memory.Memory[..data.Lenght].ToArray());
+        }
     }
 }

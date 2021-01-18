@@ -63,7 +63,7 @@ namespace Servicemnager.Networking.Data
 
         public NetworkMessage ReadMessage(IMemoryOwner<byte> bufferMemory)
         {
-            int bufferPos = 0;
+            var bufferPos = 0;
             var buffer = bufferMemory.Memory.Span;
 
             if (!CheckPresence(buffer, Head, ref bufferPos))
@@ -75,11 +75,13 @@ namespace Servicemnager.Networking.Data
             var typeLenght = BinaryPrimitives.ReadInt32LittleEndian(buffer[bufferPos..]);
             bufferPos += 4;
 
-            var type = Encoding.UTF8.GetString(buffer, bufferPos, typeLenght);
+            var type = Encoding.UTF8.GetString(buffer[bufferPos..(bufferPos + typeLenght)]); //Encoding.UTF8.GetString(buffer, bufferPos, typeLenght);
             bufferPos += typeLenght;
 
-            var dataLenght = ReadInt(buffer, ref bufferPos);
-            var data = buffer.Skip(bufferPos).Take(dataLenght).ToArray();
+            var dataLenght = BinaryPrimitives.ReadInt32LittleEndian(buffer[bufferPos..]);
+            bufferPos += 4;
+
+            var data = buffer[bufferPos..(bufferPos + dataLenght)].ToArray();
             bufferPos += dataLenght;
 
             if (!CheckPresence(buffer, End, ref bufferPos) || fullLenght != bufferPos)

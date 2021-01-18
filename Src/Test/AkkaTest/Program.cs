@@ -6,6 +6,8 @@ namespace AkkaTest
 {
     internal static class Program
     {
+        
+
         private static void Main()
         {
             var formatter = new NetworkMessageFormatter();
@@ -13,7 +15,7 @@ namespace AkkaTest
             var output = formatter.WriteMessage(formatter.Create("TestMessage", Encoding.ASCII.GetBytes("Hallo Welt")));
             using var data = output.Message;
 
-            var result = Encoding.ASCII.GetString(formatter.ReadMessage(data.Memory.ToArray().Take(output.Lenght).ToArray()).Data);
+            var result = Encoding.ASCII.GetString(formatter.ReadMessage(data).Data);
         }
     }
 }
