@@ -19,7 +19,6 @@
 
   <ItemGroup>
     <PackageReference Include="Akka.Cluster.Sharding" Version="1.4.14" />
-    <PackageReference Include="AnyConsole" Version="1.0.65" />
     <PackageReference Include="Serilog.Enrichers.EnrichedProperties" Version="1.0.63" />
     <PackageReference Include="Serilog.Exceptions" Version="6.0.0" />
     <PackageReference Include="Serilog.Formatting.Compact" Version="1.1.0" />

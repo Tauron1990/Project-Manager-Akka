@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
+using Servicemnager.Networking.Data;
 using SimpleTcp;
 
 namespace Servicemnager.Networking.Server
@@ -34,13 +35,17 @@ namespace Servicemnager.Networking.Server
 
         public DataServer(string host, int port = 0)
         {
-            _server = new SimpleTcpServer(host, port, false, null, null);
+            _server = new SimpleTcpServer(host, port, false, null, null)
+                      {
+                          Keepalive = {EnableTcpKeepAlives = true}
+                      };
+
             _server.Events.ClientConnected += (sender, args) => _clients.TryAdd(args.IpPort, new MessageBuffer());
             _server.Events.ClientDisconnected += (sender, args) => _clients.TryRemove(args.IpPort, out _);
             _server.Events.DataReceived += EventsOnDataReceived;
         }
 
-        private void EventsOnDataReceived(object sender, DataReceivedFromClientEventArgs e)
+        private void EventsOnDataReceived(object sender, DataReceivedEventArgs e)
         {
             var buffer = _clients.GetOrAdd(e.IpPort, s => new MessageBuffer());
             var msg = buffer.AddBuffer(e.Data);

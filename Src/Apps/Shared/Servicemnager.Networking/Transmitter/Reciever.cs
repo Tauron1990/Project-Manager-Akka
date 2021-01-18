@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using Servicemnager.Networking.Data;
 using Servicemnager.Networking.Server;
 
 namespace Servicemnager.Networking.Transmitter

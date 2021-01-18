@@ -4,7 +4,6 @@ using System.IO.Pipes;
 using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Configuration;
-using AnyConsole;
 using Autofac;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
@@ -13,9 +12,7 @@ using Serilog.Core;
 using Serilog.Events;
 using Serilog.Exceptions;
 using Serilog.Formatting.Compact;
-using Serilog.Sinks.SystemConsole.Themes;
 using Tauron.Application.AkkNode.Services.Configuration;
-using Tauron.Application.Master.Commands;
 using Tauron.Host;
 
 namespace Tauron.Application.AkkaNode.Bootstrap
@@ -33,7 +30,7 @@ namespace Tauron.Application.AkkaNode.Bootstrap
                         ("akka.appinfo.applicationName", "applicationName"),
                         ("akka.appinfo.actorsystem", "actorsystem"),
                         ("akka.appinfo.appslocation", "AppsLocation"))))
-               .ConfigureAkka(hbc => config)
+               .ConfigureAkka(_ => config)
                .ConfigureLogging((context, configuration) =>
                 {
                     configuration.WriteTo.File(new CompactJsonFormatter(), "Logs\\Log.log", fileSizeLimitBytes: 5_242_880, retainedFileCountLimit: 2);

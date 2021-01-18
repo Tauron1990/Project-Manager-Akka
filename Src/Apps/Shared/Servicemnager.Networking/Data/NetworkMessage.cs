@@ -1,0 +1,130 @@
+﻿using System;
+using System.Buffers;
+using System.Buffers.Binary;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Text;
+
+namespace Servicemnager.Networking.Data
+{
+    public sealed class NetworkMessageFormatter
+    {
+        private readonly ArrayPool<byte> _pool = ArrayPool<byte>.Shared;
+
+        public readonly byte[] Head = Encoding.ASCII.GetBytes("HEAD");
+
+        public readonly byte[] End = Encoding.ASCII.GetBytes("ENDING");
+
+        public byte[] WriteMessage(NetworkMessage msg)
+        {
+            var typeLenght = Encoding.UTF8.GetByteCount(msg.Type);
+            var lenght = Head.Length + End.Length + msg.RealLength + typeLenght + 12;
+
+            var message = _pool.Rent(lenght + 4);
+            var data = message.AsSpan();
+
+            Head.CopyTo(data);
+            BinaryPrimitives.WriteInt32LittleEndian(data[4..], lenght);
+
+            BinaryPrimitives.WriteInt32LittleEndian(data[8..], typeLenght);
+            Encoding.UTF8.GetBytes(msg.Type, data[12..]);
+            int pos = 12 + typeLenght;
+
+            var targetLenght = msg.Lenght == -1 ? msg.Data.Length : msg.Lenght;
+
+            BinaryPrimitives.WriteInt32LittleEndian(data.Slice(pos), targetLenght);
+            msg.Data.AsSpan()[targetLenght..]
+               .CopyTo(data[(pos + 4)..]);
+
+            pos += targetLenght + 4;
+            End.CopyTo(data[pos..]);
+
+            return message;
+        }
+
+        public bool HasHeader(byte[] buffer)
+        {
+            var pos = 0;
+            return CheckPresence(buffer, Head, ref pos);
+        }
+
+        public bool HasTail(byte[] buffer)
+        {
+            if (buffer.Length < End.Length)
+                return false;
+
+            var pos = buffer.Length - End.Length;
+            return CheckPresence(buffer, End, ref pos);
+        }
+
+        public NetworkMessage ReadMessage(byte[] buffer)
+        {
+            int bufferPos = 0;
+
+            if (!CheckPresence(buffer, Head, ref bufferPos))
+                throw new InvalidOperationException("Invalid Message Format");
+
+            var fullLenght = ReadInt(buffer, ref bufferPos);
+            //if (fullLenght != buffer.Length)
+            //    throw new InvalidOperationException("Invalid message Lenght");
+
+            var typeLenght = ReadInt(buffer, ref bufferPos);
+            var type = Encoding.UTF8.GetString(buffer, bufferPos, typeLenght);
+            bufferPos += typeLenght;
+
+            var dataLenght = ReadInt(buffer, ref bufferPos);
+            var data = buffer.Skip(bufferPos).Take(dataLenght).ToArray();
+            bufferPos += dataLenght;
+
+            if (!CheckPresence(buffer, End, ref bufferPos) || fullLenght != bufferPos)
+                throw new InvalidOperationException("Invalid Message Format");
+
+            return new NetworkMessage(type, data, -1);
+        }
+
+        public NetworkMessage Create(string type, byte[] data, int lenght = -1) => new NetworkMessage(type, data, lenght);
+
+        public NetworkMessage Create(string type) => new NetworkMessage(type, Array.Empty<byte>(), -1);
+
+        private int ReadInt(byte[] buffer, ref int pos)
+        {
+            int int32 = BitConverter.ToInt32(buffer, pos);
+            pos = pos + 4;
+
+            return int32;
+        }
+
+        [DebuggerHidden]
+        private bool CheckPresence(IReadOnlyList<byte> buffer, IEnumerable<byte> target, ref int pos)
+        {
+            foreach (var ent in target)
+            {
+                if (buffer[pos] != ent)
+                    return false;
+
+                pos++;
+            }
+
+            return true;
+        }
+    }
+
+    public class NetworkMessage
+    {
+        public string Type { get; }
+
+        public byte[] Data { get; }
+
+        public int Lenght { get; }
+
+        public int RealLength => Lenght == -1 ? Data.Length : Lenght;
+
+        public NetworkMessage(string type, byte[] data, int lenght)
+        {
+            Type = type;
+            Data = data;
+            Lenght = lenght;
+        }
+    }
+}

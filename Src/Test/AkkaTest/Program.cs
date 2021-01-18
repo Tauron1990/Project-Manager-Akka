@@ -1,96 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
-using System.Threading.Tasks;
-using Akka.Actor;
-using Newtonsoft.Json;
-using Serilog.Parsing;
-using Tauron;
-using Tauron.Application.AkkNode.Services;
-using Tauron.Application.AkkNode.Services.Commands;
-using Tauron.Features;
+﻿using System.Text;
+using System.Linq;
+using Servicemnager.Networking.Data;
 
 namespace AkkaTest
 {
-    public record KillMessage;
-
-    public record AlarmMessage;
-
-    public record HelloMessage;
-
-    public record WorldMessage;
-
     internal static class Program
     {
-        public abstract record CommandBase(string Target, [property: JsonIgnore] int Type);
-        public sealed class TestSender : ISender
+        private static void Main()
         {
-            public void SendCommand(IReporterMessage command) { }
-        }
+            var formatter = new NetworkMessageFormatter();
 
-        public sealed record TestCommand : ResultCommand<TestSender, TestCommand, string>
-        {
-            protected override string Info => nameof(TestCommand);
-        }
+            var output = formatter.WriteMessage(formatter.Create("TestMessage", Encoding.ASCII.GetBytes("Hallo Welt")));
+            using var data = output.Message;
 
-        private sealed class KillFeature : IFeature<EmptyState>
-        {
-            public IEnumerable<string> Identify()
-            {
-                yield return nameof(KillFeature);
-            }
-
-            public void Init(IFeatureActor<EmptyState> actor) 
-                => actor.Receive<KillMessage>(obs => obs.SubscribeWithStatus(_ => actor.Context.System.Terminate()));
-        }
-
-        private sealed class HelloFeature : IFeature<EmptyState>
-        {
-            public IEnumerable<string> Identify()
-            {
-                yield return nameof(HelloFeature);
-            }
-
-            public void Init(IFeatureActor<EmptyState> actor)
-            {
-                actor.Receive<AlarmMessage>(obs => obs.SubscribeWithStatus(_ => Console.WriteLine("Here Is Hello Feature")));
-                actor.Receive<HelloMessage>(obs => obs.SubscribeWithStatus(_ => Console.Write("Hello ")));
-            }
-        }
-
-        private sealed class WorldFeature : IFeature<EmptyState>
-        {
-            public IEnumerable<string> Identify()
-            {
-                yield return nameof(WorldFeature);
-            }
-
-            public void Init(IFeatureActor<EmptyState> actor)
-            {
-                actor.Receive<AlarmMessage>(obs => obs.SubscribeWithStatus(_ => Console.WriteLine("Here Is World Feature")));
-                actor.Receive<WorldMessage>(obs => obs.SubscribeWithStatus(_ => Console.WriteLine("World!")));
-            }
-        }
-
-        private static async Task Main()
-        {
-            var t = new MessageTemplateParser().Parse("[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}");
-
-            var testSender = new TestSender();
-            var testCommand = new TestCommand();
-            
-            testSender.Send(testCommand, TimeSpan.FromHours(1), ResultCommand.As<string>(), Console.WriteLine).Wait();
-
-            using var system = ActorSystem.Create("Test");
-
-            var test = system.ActorOf(Feature.Create(() => new KillFeature(), () => new HelloFeature(), () => new WorldFeature()));
-            test.Tell(new AlarmMessage());
-            test.Tell(new HelloMessage());
-            test.Tell(new WorldMessage());
-            test.Tell(new KillMessage());
-
-            await system.WhenTerminated;
+            var result = Encoding.ASCII.GetString(formatter.ReadMessage(data.Memory.ToArray().Take(output.Lenght).ToArray()).Data);
         }
     }
 }

@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Akka.Actor;
-using AnyConsole;
 using Autofac.Features.OwnedInstances;
 using Serilog;
 using Tauron.Host;
@@ -14,13 +13,8 @@ namespace Tauron.Application.AkkaNode.Bootstrap.Console
     public sealed class ConsoleAppRoute : IAppRoute
     {
         private Owned<IEnumerable<IStartUpAction>>? _actions;
-        private readonly ExtendedConsole _console;
 
-        public ConsoleAppRoute(Owned<IEnumerable<IStartUpAction>> startUpActions, ExtendedConsole console)
-        {
-            _actions = startUpActions;
-            _console = console;
-        }
+        public ConsoleAppRoute(Owned<IEnumerable<IStartUpAction>> startUpActions) => _actions = startUpActions;
 
         public Task ShutdownTask { get; private set; } = Task.CompletedTask;
         public Task WaitForStartAsync(ActorSystem actorSystem)
@@ -33,8 +27,6 @@ namespace Tauron.Application.AkkaNode.Bootstrap.Console
             Maximize();
             Task.Run(() =>
             {
-                _console.Start();
-
                 if (_actions != null)
                 {
                     foreach (var startUpAction in _actions.Value)

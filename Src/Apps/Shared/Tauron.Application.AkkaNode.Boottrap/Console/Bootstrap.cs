@@ -1,7 +1,7 @@
-﻿using AnyConsole;
-using Autofac;
+﻿using Autofac;
 using JetBrains.Annotations;
 using Serilog;
+using Serilog.Sinks.SystemConsole.Themes;
 using Tauron.Application.AkkaNode.Bootstrap.Console;
 using Tauron.Application.Master.Commands;
 using Tauron.Host;
@@ -14,24 +14,19 @@ namespace Tauron.Application.AkkaNode.Bootstrap
         [PublicAPI]
         public static IApplicationBuilder StartNode(string[] args, KillRecpientType type)
         {
-            var console = new ExtendedConsole();
-
-            console.Configure();
-
             //Assemblys.WireUp();
             return ActorApplication.Create(args)
                                    .ConfigureAutoFac(cb =>
                                                      {
-                                                         cb.RegisterInstance(console).SingleInstance().OnActivated(c => c.Instance.Configure(ConsoleConfiguration.Configuration));
                                                          cb.RegisterType<ConsoleAppRoute>().Named<IAppRoute>("default");
                                                          cb.RegisterType<KillHelper>().As<IStartUpAction>();
                                                      })
                                    .ConfigurateNode()
                                    .ConfigureLogging((context, configuration) =>
                                                      {
-                                                         console.Title = context.HostEnvironment.ApplicationName;
+                                                         System.Console.Title = context.HostEnvironment.ApplicationName;
 
-                                                         configuration.WriteTo.Sink(new AnyConsoleSink(console));
+                                                         configuration.WriteTo.Console(theme:AnsiConsoleTheme.Code);
                                                      })
                                    .ConfigurateAkkaSystem((_, system) =>
                                                           {

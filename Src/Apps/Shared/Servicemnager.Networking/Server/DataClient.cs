@@ -1,4 +1,5 @@
 ﻿using System;
+using Servicemnager.Networking.Data;
 using SimpleTcp;
 
 namespace Servicemnager.Networking.Server
@@ -17,24 +18,28 @@ namespace Servicemnager.Networking.Server
 
         public DataClient(string host, int port = 0)
         {
-            _client = new SimpleTcpClient(host, port, false, null, null);
+            _client = new SimpleTcpClient(host, port, false, null, null)
+                      {
+                          Keepalive = {EnableTcpKeepAlives = true}
+                      };
+
             _client.Events.DataReceived += (sender, args) =>
-            {
-                var msg = _messageBuffer.AddBuffer(args.Data);
-                if(msg != null)
-                    OnMessageReceived?.Invoke(this, new MessageFromServerEventArgs(msg));
-            };
+                                           {
+                                               var msg = _messageBuffer.AddBuffer(args.Data);
+                                               if(msg != null)
+                                                   OnMessageReceived?.Invoke(this, new MessageFromServerEventArgs(msg));
+                                           };
         }
 
         public void Connect() => _client.Connect();
 
-        public event EventHandler? Connected
+        public event EventHandler<ClientConnectedEventArgs>? Connected
         {
             add => _client.Events.Connected += value;
             remove => _client.Events.Connected -= value;
         }
 
-        public event EventHandler? Disconnected
+        public event EventHandler<ClientDisconnectedEventArgs>? Disconnected
         {
             add => _client.Events.Disconnected += value;
             remove => _client.Events.Disconnected -= value;
