@@ -107,22 +107,9 @@ namespace Servicemnager.Networking.Data
         }
     }
 
-    public class NetworkMessage
+    public record NetworkMessage(string Type, byte[] Data, int Lenght)
     {
-        public string Type { get; }
-
-        public byte[] Data { get; }
-
-        public int Lenght { get; }
-
         public int RealLength => Lenght == -1 ? Data.Length : Lenght;
-
-        public NetworkMessage(string type, byte[] data, int lenght)
-        {
-            Type = type;
-            Data = data;
-            Lenght = lenght;
-        }
 
         public static NetworkMessage Create(string type, byte[] data, int lenght = -1) => new(type, data, lenght);
 
