@@ -4,6 +4,7 @@ using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Servicemnager.Networking.Data
@@ -16,7 +17,7 @@ namespace Servicemnager.Networking.Data
 
         private static readonly byte[] End = Encoding.ASCII.GetBytes("ENDING");
 
-        public (IMemoryOwner<Byte> Message, int Lenght) WriteMessage(NetworkMessage msg)
+        public (IMemoryOwner<byte> Message, int Lenght) WriteMessage(NetworkMessage msg)
         {
             var typeLenght = Encoding.UTF8.GetByteCount(msg.Type);
             var lenght = Head.Length + End.Length + msg.RealLength + typeLenght + 12;
@@ -60,18 +61,20 @@ namespace Servicemnager.Networking.Data
             return CheckPresence(buffer, End, ref pos);
         }
 
-        public NetworkMessage ReadMessage(byte[] buffer)
+        public NetworkMessage ReadMessage(IMemoryOwner<byte> bufferMemory)
         {
             int bufferPos = 0;
+            var buffer = bufferMemory.Memory.Span;
 
             if (!CheckPresence(buffer, Head, ref bufferPos))
                 throw new InvalidOperationException("Invalid Message Format");
 
-            var fullLenght = ReadInt(buffer, ref bufferPos);
-            //if (fullLenght != buffer.Length)
-            //    throw new InvalidOperationException("Invalid message Lenght");
+            var fullLenght = BinaryPrimitives.ReadInt32LittleEndian(buffer[bufferPos..]);
+            bufferPos += 4;
 
-            var typeLenght = ReadInt(buffer, ref bufferPos);
+            var typeLenght = BinaryPrimitives.ReadInt32LittleEndian(buffer[bufferPos..]);
+            bufferPos += 4;
+
             var type = Encoding.UTF8.GetString(buffer, bufferPos, typeLenght);
             bufferPos += typeLenght;
 
@@ -89,16 +92,8 @@ namespace Servicemnager.Networking.Data
 
         public NetworkMessage Create(string type) => new(type, Array.Empty<byte>(), -1);
 
-        private int ReadInt(byte[] buffer, ref int pos)
-        {
-            int int32 = BitConverter.ToInt32(buffer, pos);
-            pos = pos + 4;
-
-            return int32;
-        }
-
-        [DebuggerHidden]
-        private bool CheckPresence(IReadOnlyList<byte> buffer, IEnumerable<byte> target, ref int pos)
+        [DebuggerHidden, MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private bool CheckPresence(Span<byte> buffer, IEnumerable<byte> target, ref int pos)
         {
             foreach (var ent in target)
             {
