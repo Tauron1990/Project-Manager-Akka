@@ -11,12 +11,12 @@ namespace Servicemnager.Networking.Server
 
         public MessageFromServerEventArgs(NetworkMessage message) => Message = message;
     }
-    
-    public sealed class DataClient
+
+    public sealed class DataClient : IDataClient
     {
         private readonly SimpleTcpClient _client;
         private readonly MessageBuffer _messageBuffer = new(MemoryPool<byte>.Shared);
-        private readonly NetworkMessageFormatter _messageFormatter = new(MemoryPool<byte>.Shared);
+        private readonly NetworkMessageFormatter _messageFormatter = NetworkMessageFormatter.Shared;
 
         public DataClient(string host, int port = 0)
         {

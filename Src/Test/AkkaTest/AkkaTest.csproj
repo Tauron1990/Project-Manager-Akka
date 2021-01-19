@@ -7,12 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Test\Schema\**" />
-    <EmbeddedResource Remove="Test\Schema\**" />
-    <None Remove="Test\Schema\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Akka.DI.Core" Version="1.4.14" />
     <PackageReference Include="Akka.Logger.Serilog" Version="1.4.11" />
     <PackageReference Include="Akka.Remote" Version="1.4.14" />
@@ -24,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Apps\Shared\Servicemnager.Networking\Servicemnager.Networking.csproj" />
     <ProjectReference Include="..\..\Apps\Shared\Tauron.Application.AkkNode.Services\Tauron.Application.AkkNode.Services.csproj" />
     <ProjectReference Include="..\..\Shared\Tauron.Application.Common\Tauron.Application.Common.csproj" />
   </ItemGroup>

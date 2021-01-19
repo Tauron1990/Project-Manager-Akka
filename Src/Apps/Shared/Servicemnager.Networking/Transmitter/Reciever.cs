@@ -1,18 +1,17 @@
 ﻿using System;
 using System.IO;
 using Servicemnager.Networking.Data;
-using Servicemnager.Networking.Server;
 
 namespace Servicemnager.Networking.Transmitter
 {
     public sealed class Reciever : IDisposable
     {
         private readonly Func<Stream> _target;
-        private readonly DataClient _client;
+        private readonly IDataClient _client;
 
         private Stream? _stream;
 
-        public Reciever(Func<Stream> target, DataClient client)
+        public Reciever(Func<Stream> target, IDataClient client)
         {
             _target = target;
             _client = client;

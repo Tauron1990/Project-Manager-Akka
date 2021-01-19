@@ -3,7 +3,6 @@ using System.Buffers;
 using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -15,37 +14,65 @@ namespace Servicemnager.Networking.Data
 
         public static readonly byte[] End = Encoding.ASCII.GetBytes("ENDING");
 
+        public static readonly NetworkMessageFormatter Shared = new(MemoryPool<byte>.Shared);
+
         private readonly MemoryPool<byte> _pool;
 
         public NetworkMessageFormatter(MemoryPool<byte> pool) => _pool = pool;
 
-        public (IMemoryOwner<byte> Message, int Lenght) WriteMessage(NetworkMessage msg)
+        public (IMemoryOwner<byte> Message, int Lenght) WriteMessage(NetworkMessage msg, Func<int, (IMemoryOwner<byte> Memory, int Start)>? allocate = null)
         {
             var typeLenght = Encoding.UTF8.GetByteCount(msg.Type);
             var lenght = Head.Length + End.Length + msg.RealLength + typeLenght + 12;
+            var msgStart = 0;
 
-            var message = _pool.Rent(lenght + 4);
-            var data = message.Memory.Span;
+            IMemoryOwner<byte> memoryOwner = null!;
 
-            Head.CopyTo(data);
-            BinaryPrimitives.WriteInt32LittleEndian(data[4..], lenght);
+            try
+            {
+                Memory<byte> message;
+                Span<byte> data;
 
-            BinaryPrimitives.WriteInt32LittleEndian(data[8..], typeLenght);
-            Encoding.UTF8.GetBytes(msg.Type, data[12..]);
-            int pos = 12 + typeLenght;
+                if (allocate == null)
+                {
+                    memoryOwner = _pool.Rent(lenght + 4);
+                    message = memoryOwner.Memory;
+                    data = memoryOwner.Memory.Span;
+                }
+                else
+                {
+                    var (owner, start) = allocate(lenght + 4);
+                    msgStart = start;
+                    memoryOwner = owner;
+                    message = start == 0 ? memoryOwner.Memory : memoryOwner.Memory[start..];
+                    data = message.Span;
+                }
 
-            var targetLenght = msg.Lenght == -1 ? msg.Data.Length : msg.Lenght;
+                Head.CopyTo(data);
+                BinaryPrimitives.WriteInt32LittleEndian(data[4..], lenght);
 
-            BinaryPrimitives.WriteInt32LittleEndian(data[pos..], targetLenght);
-            var msgData = targetLenght != msg.Data.Length ? msg.Data.AsMemory()[targetLenght..] : msg.Data.AsMemory();
-            var msgPos = message.Memory[(pos + 4)..];
+                BinaryPrimitives.WriteInt32LittleEndian(data[8..], typeLenght);
+                Encoding.UTF8.GetBytes(msg.Type, data[12..]);
+                int pos = 12 + typeLenght;
 
-            msgData.CopyTo(msgPos);
+                var targetLenght = msg.Lenght == -1 ? msg.Data.Length : msg.Lenght;
 
-            pos += targetLenght + 4;
-            End.CopyTo(data[pos..]);
+                BinaryPrimitives.WriteInt32LittleEndian(data[pos..], targetLenght);
+                var msgData = targetLenght != msg.Data.Length ? msg.Data.AsMemory()[targetLenght..] : msg.Data.AsMemory();
+                var msgPos = message[(pos + 4)..];
 
-            return (message, lenght);
+                msgData.CopyTo(msgPos);
+
+                pos += targetLenght + 4;
+                End.CopyTo(data[pos..]);
+
+                return (memoryOwner, lenght + msgStart);
+            }
+            catch
+            {
+                memoryOwner?.Dispose();
+                throw;
+            }
         }
 
         public bool HasHeader(Memory<byte> buffer)
@@ -63,10 +90,10 @@ namespace Servicemnager.Networking.Data
             return CheckPresence(buffer.Span, End, ref pos);
         }
 
-        public NetworkMessage ReadMessage(IMemoryOwner<byte> bufferMemory)
+        public NetworkMessage ReadMessage(Memory<byte> bufferMemory)
         {
             var bufferPos = 0;
-            var buffer = bufferMemory.Memory.Span;
+            var buffer = bufferMemory.Span;
 
             if (!CheckPresence(buffer, Head, ref bufferPos))
                 throw new InvalidOperationException("Invalid Message Format");

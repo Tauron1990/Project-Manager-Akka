@@ -22,12 +22,12 @@ namespace Servicemnager.Networking.Server
         }
     }
 
-    public sealed class DataServer : IDisposable
+    public sealed class DataServer : IDataServer
     {
         private readonly SimpleTcpServer _server;
 
         private readonly ConcurrentDictionary<string, MessageBuffer> _clients = new();
-        private readonly NetworkMessageFormatter _messageFormatter = new(MemoryPool<byte>.Shared);
+        private readonly NetworkMessageFormatter _messageFormatter = NetworkMessageFormatter.Shared;
 
         private EndPoint? _endPoint;
 

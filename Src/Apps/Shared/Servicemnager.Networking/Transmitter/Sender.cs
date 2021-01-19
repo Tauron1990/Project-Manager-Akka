@@ -2,7 +2,6 @@
 using System.IO;
 using System.Threading;
 using Servicemnager.Networking.Data;
-using Servicemnager.Networking.Server;
 
 namespace Servicemnager.Networking.Transmitter
 {
@@ -10,14 +9,14 @@ namespace Servicemnager.Networking.Transmitter
     {
         private readonly Stream _toSend;
         private readonly string _client;
-        private readonly DataServer _server;
+        private readonly IDataServer _server;
         private readonly Func<byte[]> _getArray;
         private readonly Action<byte[]> _returnArray;
         private readonly Action<Exception> _errorHandler;
 
         private bool _isRunnging;
 
-        public Sender(Stream toSend, string client, DataServer server, Func<byte[]> getArray, Action<byte[]> returnArray, Action<Exception> errorHandler)
+        public Sender(Stream toSend, string client, IDataServer server, Func<byte[]> getArray, Action<byte[]> returnArray, Action<Exception> errorHandler)
         {
             _toSend = toSend;
             _client = client;
@@ -78,6 +77,6 @@ namespace Servicemnager.Networking.Transmitter
             }
         }
 
-        public void Dispose() => _toSend?.Dispose();
+        public void Dispose() => _toSend.Dispose();
     }
 }

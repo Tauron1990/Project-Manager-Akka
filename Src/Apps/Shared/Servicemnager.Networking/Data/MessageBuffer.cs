@@ -29,7 +29,7 @@ namespace Servicemnager.Networking.Data
                 using var merge = temp.Memory;
 
                 if (_messageFormatter.HasTail(merge.Memory))
-                    return _messageFormatter.ReadMessage(merge);
+                    return _messageFormatter.ReadMessage(merge.Memory);
 
                 _incomming.Add(merge.Memory[..temp.Lenght].ToArray());
                 return null;
@@ -41,7 +41,7 @@ namespace Servicemnager.Networking.Data
                 var merge = Merge();
                 using var data = merge.Memory;
 
-                return _messageFormatter.ReadMessage(data);
+                return _messageFormatter.ReadMessage(data.Memory);
             }
 
             if (_messageFormatter.HasTail(buffer))
@@ -50,7 +50,7 @@ namespace Servicemnager.Networking.Data
                 var merge = Merge();
                 using var data = merge.Memory;
 
-                return _messageFormatter.ReadMessage(data);
+                return _messageFormatter.ReadMessage(data.Memory);
             }
 
             _incomming.Add(buffer);

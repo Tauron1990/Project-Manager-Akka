@@ -84,6 +84,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Info.txt = Info.txt
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WpfApp", "Src\Test\WpfApp\WpfApp.csproj", "{636C476F-8ED4-423E-87C0-20D327A1C293}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -202,6 +204,10 @@ Global
 		{F7E8094E-1875-4EA4-8A72-48DCF2123F0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F7E8094E-1875-4EA4-8A72-48DCF2123F0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F7E8094E-1875-4EA4-8A72-48DCF2123F0A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{636C476F-8ED4-423E-87C0-20D327A1C293}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{636C476F-8ED4-423E-87C0-20D327A1C293}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{636C476F-8ED4-423E-87C0-20D327A1C293}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{636C476F-8ED4-423E-87C0-20D327A1C293}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -244,6 +250,7 @@ Global
 		{A5C372A4-9762-4CE5-906C-24075813C668} = {5BF63585-1BC8-4426-B759-1A8F11C84B84}
 		{11BB59CC-0AF4-4CD0-9011-F72D129E1291} = {5240E794-95D4-4B50-8E87-22417D517216}
 		{F7E8094E-1875-4EA4-8A72-48DCF2123F0A} = {5BF63585-1BC8-4426-B759-1A8F11C84B84}
+		{636C476F-8ED4-423E-87C0-20D327A1C293} = {06C2AE73-CFD3-4AF4-92F5-723E0C47D65B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F63AD2ED-4320-43AB-8761-A3FEBC507539}
