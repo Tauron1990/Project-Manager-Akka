@@ -42,8 +42,16 @@ namespace Servicemnager.Networking.Server
                           Keepalive = {EnableTcpKeepAlives = true}
                       };
 
-            _server.Events.ClientConnected += (_, args) => _clients.TryAdd(args.IpPort, new MessageBuffer(MemoryPool<byte>.Shared));
-            _server.Events.ClientDisconnected += (sender, args) => _clients.TryRemove(args.IpPort, out _);
+            _server.Events.ClientConnected += (_, args) =>
+                                              {
+                                                  _clients.TryAdd(args.IpPort, new MessageBuffer(MemoryPool<byte>.Shared));
+                                                  ClientConnected?.Invoke(this, new ClientConnectedArgs(args.IpPort));
+                                              };
+            _server.Events.ClientDisconnected += (sender, args) =>
+                                                 {
+                                                     _clients.TryRemove(args.IpPort, out _);
+                                                     ClientDisconnected?.Invoke(this, new ClientDisconnectedArgs(args.IpPort, args.Reason));
+                                                 };
             _server.Events.DataReceived += EventsOnDataReceived;
         }
 
@@ -56,18 +64,8 @@ namespace Servicemnager.Networking.Server
                 OnMessageReceived?.Invoke(this, new MessageFromClientEventArgs(msg, e.IpPort));
         }
 
-        public event EventHandler<ClientConnectedEventArgs> ClientConnected
-        {
-            add => _server.Events.ClientConnected += value;
-            remove => _server.Events.ClientConnected -= value;
-        }
-
-        public event EventHandler<ClientDisconnectedEventArgs> ClientDisconnected
-        {
-            add => _server.Events.ClientDisconnected += value;
-            remove => _server.Events.ClientDisconnected -= value;
-        }
-
+        public event EventHandler<ClientConnectedArgs>? ClientConnected;
+        public event EventHandler<ClientDisconnectedArgs>? ClientDisconnected;
         public event EventHandler<MessageFromClientEventArgs>? OnMessageReceived;
 
         public void Start() => _server.Start();

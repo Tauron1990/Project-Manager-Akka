@@ -4,6 +4,7 @@ using Master.Seed.Node.Commands;
 using Petabridge.Cmd.Cluster;
 using Petabridge.Cmd.Host;
 using Tauron.Application.AkkaNode.Bootstrap;
+using Tauron.Application.AkkaNode.Bootstrap.Console;
 using Tauron.Application.Master.Commands;
 
 namespace Master.Seed.Node
@@ -15,7 +16,7 @@ namespace Master.Seed.Node
         {
             //Beacon? beacon = null;
 
-            await Bootstrap.StartNode(args, KillRecpientType.Seed)
+            await Bootstrap.StartNode(args, KillRecpientType.Seed, IpcApplicationType.Client)
                 .ConfigurateAkkaSystem((context, system) =>
                 {
                     var cluster = Cluster.Get(system);

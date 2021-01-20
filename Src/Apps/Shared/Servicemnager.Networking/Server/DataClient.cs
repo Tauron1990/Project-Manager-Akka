@@ -25,6 +25,9 @@ namespace Servicemnager.Networking.Server
                           Keepalive = {EnableTcpKeepAlives = true}
                       };
 
+            _client.Events.Connected += (_, args) => Connected?.Invoke(this, new ClientConnectedArgs(args.IpPort));
+            _client.Events.Disconnected += (_, args) => Disconnected?.Invoke(this, new ClientDisconnectedArgs(args.IpPort, args.Reason));
+
             _client.Events.DataReceived += (_, args) =>
                                            {
                                                var msg = _messageBuffer.AddBuffer(args.Data);
@@ -35,17 +38,9 @@ namespace Servicemnager.Networking.Server
 
         public void Connect() => _client.Connect();
 
-        public event EventHandler<ClientConnectedEventArgs>? Connected
-        {
-            add => _client.Events.Connected += value;
-            remove => _client.Events.Connected -= value;
-        }
+        public event EventHandler<ClientConnectedArgs>? Connected;
 
-        public event EventHandler<ClientDisconnectedEventArgs>? Disconnected
-        {
-            add => _client.Events.Disconnected += value;
-            remove => _client.Events.Disconnected -= value;
-        }
+        public event EventHandler<ClientDisconnectedArgs>? Disconnected;
 
         public event EventHandler<MessageFromServerEventArgs>? OnMessageReceived;
 
