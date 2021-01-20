@@ -16,7 +16,7 @@ namespace Tauron.Application.AkkaNode.Bootstrap
 
         [PublicAPI]
         public static IApplicationBuilder StartNode(string[] args, KillRecpientType type, IpcApplicationType ipcType)
-        {iz
+        {iz2
             var masterReady = false;
             if (ipcType != IpcApplicationType.NoIpc)
                 masterReady = MasterIpcReady();
