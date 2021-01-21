@@ -10,6 +10,6 @@ namespace Servicemnager.Networking
         event EventHandler<ClientDisconnectedArgs>? ClientDisconnected;
         event EventHandler<MessageFromClientEventArgs>? OnMessageReceived;
         void Start();
-        void Send(string client, NetworkMessage message);
+        bool Send(string client, NetworkMessage message);
     }
 }

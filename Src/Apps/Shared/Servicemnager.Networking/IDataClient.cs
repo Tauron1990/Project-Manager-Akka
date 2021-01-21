@@ -35,6 +35,6 @@ namespace Servicemnager.Networking
         event EventHandler<ClientConnectedArgs>? Connected;
         event EventHandler<ClientDisconnectedArgs>? Disconnected;
         event EventHandler<MessageFromServerEventArgs>? OnMessageReceived;
-        void Send(NetworkMessage msg);
+        bool Send(NetworkMessage msg);
     }
 }

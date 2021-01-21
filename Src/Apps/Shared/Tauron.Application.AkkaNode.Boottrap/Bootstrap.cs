@@ -25,7 +25,7 @@ namespace Tauron.Application.AkkaNode.Bootstrap
             var config = GetConfig();
 
             return builder
-               .ConfigureAppConfiguration((context, configurationBuilder) => configurationBuilder.Add(
+               .ConfigureAppConfiguration((_, configurationBuilder) => configurationBuilder.Add(
                     new HoconConfigurationSource(() => config, 
                         ("akka.appinfo.applicationName", "applicationName"),
                         ("akka.appinfo.actorsystem", "actorsystem"),
@@ -72,60 +72,6 @@ namespace Tauron.Application.AkkaNode.Bootstrap
             public void Enrich(LogEvent logEvent, ILogEventPropertyFactory propertyFactory)
             {
                 logEvent.AddPropertyIfAbsent(new LogEventProperty("Level", new ScalarValue(logEvent.Level)));
-            }
-        }
-
-        [UsedImplicitly]
-        private sealed class KillHelper : IStartUpAction
-        {
-            [UsedImplicitly]
-            private static KillHelper? _keeper;
-
-            private readonly ActorSystem _system;
-            private readonly ILogger _logger;
-            private readonly string? _comHandle;
-
-            public KillHelper(IConfiguration configuration, ActorSystem system)
-            {
-                _logger = Log.ForContext<KillHelper>();
-                _comHandle = configuration["ComHandle"];
-                _system = system;
-
-                _keeper = this;
-                _system.RegisterOnTermination(() => _keeper = null);
-            }
-
-            public void Run()
-            {
-                Task.Factory.StartNew(() =>
-                {
-                    if (_keeper == null || string.IsNullOrWhiteSpace(_comHandle))
-                        return;
-
-                    try
-                    {
-                        using var client = new AnonymousPipeClientStream(PipeDirection.In, _comHandle);
-                        using var reader = new BinaryReader(client);
-
-                        while (_keeper != null)
-                        {
-                            var data = reader.ReadString();
-
-                            switch (data)
-                            {
-                                case "Kill-Node":
-                                    _logger.Information("Reciving Killing Notification");
-                                    _system.Terminate();
-                                    _keeper = null;
-                                    break;
-                            }
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        _logger.Error(e, "Error on Setup Service kill Watch");
-                    }
-                }, TaskCreationOptions.LongRunning);
             }
         }
     }
