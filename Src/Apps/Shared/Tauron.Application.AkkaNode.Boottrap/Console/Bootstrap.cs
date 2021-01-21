@@ -10,7 +10,10 @@ using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
 using Serilog;
 using Serilog.Sinks.SystemConsole.Themes;
+using Servicemnager.Networking;
 using Servicemnager.Networking.Data;
+using Servicemnager.Networking.IPC;
+using Servicemnager.Networking.Server;
 using Tauron.Application.AkkaNode.Bootstrap.Console;
 using Tauron.Application.Master.Commands;
 using Tauron.Host;
@@ -71,6 +74,8 @@ namespace Tauron.Application.AkkaNode.Bootstrap
         private sealed class IpcConnection : IIpcConnection, IDisposable
         {
             private readonly Subject<NetworkMessage> _messageHandler = new();
+            private readonly IDataClient? _dataClient;
+            private readonly IDataServer? _dataServer;
 
             public string ErrorMessage { get; }
 
@@ -78,16 +83,31 @@ namespace Tauron.Application.AkkaNode.Bootstrap
 
             public IpcConnection(bool masterExists, IpcApplicationType type)
             {
-                switch (type)
+                try
                 {
-                    case IpcApplicationType.Server:
-                        break;
-                    case IpcApplicationType.Client:
-                        break;
-                    case IpcApplicationType.NoIpc:
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException(nameof(type), type, null);
+                    switch (type)
+                    {
+                        case IpcApplicationType.Server:
+                            if (masterExists)
+                            {
+                                IsReady = false;
+                                ErrorMessage = "Duplicate Server Start";
+                            }
+
+                            _dataServer = new SharmServer(IpcName);
+                            break;
+                        case IpcApplicationType.Client:
+                            break;
+                        case IpcApplicationType.NoIpc:
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException(nameof(type), type, null);
+                    }
+                }
+                catch(Exception e)
+                {
+                    ErrorMessage = e.ToString();
+                    IsReady = false;
                 }
             }
 
@@ -96,12 +116,19 @@ namespace Tauron.Application.AkkaNode.Bootstrap
 
             }
 
+            public bool SendMessage<TMessage>(string to, TMessage message) => throw new NotImplementedException();
+
             public void Start(string serviceName)
             {
 
             }
 
-            public void Dispose() => _messageHandler.Dispose();
+            public void Dispose()
+            {
+                _messageHandler.Dispose();
+                (_dataClient as IDisposable)?.Dispose();
+                _dataServer?.Dispose();
+            }
         }
 
 
