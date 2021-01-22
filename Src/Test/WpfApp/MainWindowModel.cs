@@ -7,20 +7,20 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
+using JetBrains.Annotations;
 using tiesky.com;
-using WpfApp.Annotations;
 
 namespace WpfApp
 {
     public class MainWindowModel : INotifyPropertyChanged, IDisposable
     {
-        private static string _id = "697E36BC-028B-46C3-A253-AC3374FA4652";
+        public static string _id = "697E36BC-028B-46C3-A253-AC3374FA4652";
 
         private readonly Dispatcher _dispatcher = Application.Current.Dispatcher;
-        private readonly SharmIpc _ipc;
+        private readonly IpcConnection _ipc;
         private string _toSend;
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         [NotifyPropertyChangedInvocator]
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -66,10 +66,7 @@ namespace WpfApp
             try
             {
                 Log("Send Data");
-                if (_ipc.RemoteRequestWithoutResponse(Encoding.UTF8.GetBytes(ToSend))) 
-                    Log("Send Compled");
-                else
-                    Log("Send Failed");
+                Log(_ipc.RemoteRequestWithoutResponse(Encoding.UTF8.GetBytes(ToSend)) ? "Send Compled" : "Send Failed");
             }
             catch (Exception e)
             {

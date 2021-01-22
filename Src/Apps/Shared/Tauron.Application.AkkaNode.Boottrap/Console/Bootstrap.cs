@@ -1,11 +1,7 @@
 ﻿using System;
-using System.IO;
-using System.IO.Pipes;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using Akka.Actor;
 using Autofac;
 using JetBrains.Annotations;
@@ -33,7 +29,7 @@ namespace Tauron.Application.AkkaNode.Bootstrap
         {
             var masterReady = false;
             if (ipcType != IpcApplicationType.NoIpc)
-                masterReady = MasterIpcReady();
+                masterReady = SharmComunicator.MasterIpcReady(IpcName);
             var ipc = new IpcConnection(masterReady, ipcType);
 
             return ActorApplication.Create(args)
@@ -59,28 +55,11 @@ namespace Tauron.Application.AkkaNode.Bootstrap
                                                           });
         }
 
-        private static bool MasterIpcReady()
-        {
-            try
-            {
-                using var mt = new Mutex(true, "Global\\" + IpcName + "SharmNet_MasterMutex");
-                if (!mt.WaitOne(500)) return true;
-                
-                mt.ReleaseMutex();
-                return false;
-
-            }
-            catch (AbandonedMutexException)
-            {
-                return false;
-            }
-        }
-
         private sealed class IpcConnection : IIpcConnection, IDisposable
         {
             private readonly Subject<NetworkMessage> _messageHandler = new();
-            private readonly IDataClient? _dataClient;
-            private readonly IDataServer? _dataServer;
+            private IDataClient? _dataClient;
+            private IDataServer? _dataServer;
 
             public string ErrorMessage { get; private set; } = string.Empty;
 
@@ -131,6 +110,9 @@ namespace Tauron.Application.AkkaNode.Bootstrap
 
             public IObservable<CallResult<TType>> OnMessage<TType>()
             {
+                if (!IsReady)
+                    return Observable.Empty<CallResult<TType>>();
+
                 string type = typeof(TType).AssemblyQualifiedName ?? throw new InvalidOperationException("Invalid Message Type");
 
                 return _messageHandler.Where(nm => nm.Type == type).SelectSafe(nm => JsonConvert.DeserializeObject<TType>(Encoding.UTF8.GetString(nm.Data)));
@@ -161,7 +143,13 @@ namespace Tauron.Application.AkkaNode.Bootstrap
                     if (_dataClient == null) return;
                     
                     _dataClient.Connect();
-                    SendMessage(new RegisterNewClient(SharmComunicator.ProcessId, serviceName));
+                    if (SendMessage(new RegisterNewClient(SharmComunicator.ProcessId, serviceName)))
+                        return;
+
+                    IsReady = false;
+                    ErrorMessage = "Client Message Registration Fail";
+
+                    Dispose();
                 }
                 catch (Exception e)
                 {
@@ -170,6 +158,8 @@ namespace Tauron.Application.AkkaNode.Bootstrap
 
                     Log.ForContext<IpcConnection>()
                        .Error(e, "Error on Starting Ipc");
+
+                    Dispose();
                 }
             }
 
@@ -178,19 +168,26 @@ namespace Tauron.Application.AkkaNode.Bootstrap
                 _messageHandler.Dispose();
                 (_dataClient as IDisposable)?.Dispose();
                 _dataServer?.Dispose();
+
+                _dataClient = null;
+                _dataServer = null;
+            }
+
+            public void Disconnect()
+            {
+                if(_dataClient is SharmClient client)
+                    client.Disconnect();
             }
         }
-
-
 
         [UsedImplicitly]
         private sealed class KillHelper : IStartUpAction
         {
             [UsedImplicitly]
             private static KillHelper? _keeper;
-
+            
             private readonly ActorSystem _system;
-            private readonly IIpcConnection _ipcConnection;
+            private readonly IpcConnection _ipcConnection;
             private readonly ILogger _logger;
             private readonly string? _comHandle;
 
@@ -199,43 +196,38 @@ namespace Tauron.Application.AkkaNode.Bootstrap
                 _logger = Log.ForContext<KillHelper>();
                 _comHandle = configuration["ComHandle"];
                 _system = system;
-                _ipcConnection = ipcConnection;
+                _ipcConnection = (IpcConnection)ipcConnection;
 
                 _keeper = this;
-                _system.RegisterOnTermination(() => _keeper = null);
+                _system.RegisterOnTermination(() =>
+                                              {
+                                                  _ipcConnection.Disconnect();
+                                                  _keeper = null;
+                                              });
             }
 
             public void Run()
             {
-                Task.Factory.StartNew(() =>
-                                      {
-                                          if (_keeper == null || string.IsNullOrWhiteSpace(_comHandle))
-                                              return;
+                if (string.IsNullOrWhiteSpace(_comHandle)) return;
 
-                                          try
-                                          {
-                                              using var client = new AnonymousPipeClientStream(PipeDirection.In, _comHandle);
-                                              using var reader = new BinaryReader(client);
+                string? errorToReport = null;
+                if (_ipcConnection.IsReady)
+                {
+                    _ipcConnection.Start(_comHandle);
+                    if (!_ipcConnection.IsReady)
+                        errorToReport = _ipcConnection.ErrorMessage;
+                }
+                else
+                    errorToReport = _ipcConnection.ErrorMessage;
 
-                                              while (_keeper != null)
-                                              {
-                                                  var data = reader.ReadString();
+                if (!string.IsNullOrWhiteSpace(errorToReport))
+                {
+                    _logger.Warning("Error on Start Kill Watch: {Error}", errorToReport);
+                    return;
+                }
 
-                                                  switch (data)
-                                                  {
-                                                      case "Kill-Node":
-                                                          _logger.Information("Reciving Killing Notification");
-                                                          _system.Terminate();
-                                                          _keeper = null;
-                                                          break;
-                                                  }
-                                              }
-                                          }
-                                          catch (Exception e)
-                                          {
-                                              _logger.Error(e, "Error on Setup Service kill Watch");
-                                          }
-                                      }, TaskCreationOptions.LongRunning);
+                _ipcConnection.OnMessage<KillNode>()
+                              .Subscribe(_ => _system.Terminate(), exception => _logger.Error(exception, "Error On Killwatch Message Recieve"));
             }
         }
     }

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Buffers;
 using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using Servicemnager.Networking.Data;
 using Servicemnager.Networking.Server;
 using SimpleTcp;
@@ -14,6 +14,23 @@ namespace Servicemnager.Networking.IPC
     public sealed class SharmComunicator : IDisposable
     {
         public static readonly string ProcessId = Guid.NewGuid().ToString("N");
+
+        public static bool MasterIpcReady(string id)
+        {
+            try
+            {
+                using var mt = new Mutex(true, "Global\\" + id + "SharmNet_MasterMutex");
+                if (!mt.WaitOne(500)) return true;
+
+                mt.ReleaseMutex();
+                return false;
+
+            }
+            catch (AbandonedMutexException)
+            {
+                return false;
+            }
+        }
 
         private ISharmIpc _sharmIpc = new Dummy();
         private readonly string _globalId;
@@ -31,7 +48,7 @@ namespace Servicemnager.Networking.IPC
             _sharmIpc.OnMessage += (message, messageId, processsId) => OnMessage?.Invoke(message, messageId, processsId);
         }
 
-        public void Send(NetworkMessage msg, string target)
+        public bool Send(NetworkMessage msg, string target)
         {
             target = target.Length switch
                      {
@@ -51,14 +68,14 @@ namespace Servicemnager.Networking.IPC
                                                       });
 
             using var data = toSend.Message;
-            _sharmIpc.Send(data.Memory[..toSend.Lenght].ToArray());
+            return _sharmIpc.Send(data.Memory[..toSend.Lenght].ToArray());
         }
         
         private interface ISharmIpc : IDisposable
         {
             event SharmMessageHandler OnMessage;
 
-            void Send(byte[] msg);
+            bool Send(byte[] msg);
         }
 
         private sealed class Dummy : ISharmIpc
@@ -74,10 +91,7 @@ namespace Servicemnager.Networking.IPC
                 remove { }
             }
 
-            public void Send(byte[] msg)
-            {
-                throw new InvalidOperationException("Ipc Not Started");
-            }
+            public bool Send(byte[] msg) => throw new InvalidOperationException("Ipc Not Started");
         }
 
         private sealed class Connection : ISharmIpc
@@ -102,12 +116,7 @@ namespace Servicemnager.Networking.IPC
 
             public event SharmMessageHandler? OnMessage;
 
-            public void Send(byte[] msg)
-            {
-                if(_sharmIpc.RemoteRequestWithoutResponse(msg))
-                    return;
-                throw new InvalidOperationException("Message was not send");
-            }
+            public bool Send(byte[] msg) => _sharmIpc.RemoteRequestWithoutResponse(msg);
         }
     }
 
@@ -149,7 +158,7 @@ namespace Servicemnager.Networking.IPC
 
         public void Start() => _comunicator.Connect();
 
-        public void Send(string client, NetworkMessage message) => _comunicator.Send(message, client);
+        public bool Send(string client, NetworkMessage message) => _comunicator.Send(message, client);
     }
 
     public sealed class SharmClient : IDataClient, IDisposable
@@ -189,7 +198,7 @@ namespace Servicemnager.Networking.IPC
         public event EventHandler<ClientDisconnectedArgs>? Disconnected;
         public event EventHandler<MessageFromServerEventArgs>? OnMessageReceived;
 
-        public void Send(NetworkMessage msg) 
+        public bool Send(NetworkMessage msg) 
             => _comunicator.Send(msg, "All");
 
         public void Disconnect() 

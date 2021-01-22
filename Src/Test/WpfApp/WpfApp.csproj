@@ -2,13 +2,19 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>Net5.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="SharmIPC" Version="1.18.0" />
     <PackageReference Include="Simple.Wpf.Terminal" Version="2.3.15" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Apps\Shared\Servicemnager.Networking\Servicemnager.Networking.csproj" />
+    <ProjectReference Include="..\..\Shared\Tauron.Application.Common\Tauron.Application.Common.csproj" />
   </ItemGroup>
 
 </Project>
