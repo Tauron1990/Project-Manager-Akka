@@ -23,6 +23,7 @@ namespace Tauron.Application.CommonUI.UI
             get => _value;
             set
             {
+                if (Equals(_value, value)) return;
                 _value = value;
                 Model?.Actor.Tell(new SetValue(Name, value));
             }
