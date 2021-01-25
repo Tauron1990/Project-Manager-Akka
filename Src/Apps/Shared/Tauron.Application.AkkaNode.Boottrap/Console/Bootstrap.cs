@@ -30,7 +30,7 @@ namespace Tauron.Application.AkkaNode.Bootstrap
             var masterReady = false;
             if (ipcType != IpcApplicationType.NoIpc)
                 masterReady = SharmComunicator.MasterIpcReady(IpcName);
-            var ipc = new IpcConnection(masterReady, ipcType);
+            var ipc = new IpcConnection(masterReady, ipcType, (s, exception) => Log.ForContext(typeof(Bootstrap)).Error(exception, "Ipc Error: {Info}", s));
 
             return ActorApplication.Create(args)
                                    .ConfigureAutoFac(cb =>
@@ -65,7 +65,7 @@ namespace Tauron.Application.AkkaNode.Bootstrap
 
             public bool IsReady { get; private set; } = true;
 
-            public IpcConnection(bool masterExists, IpcApplicationType type)
+            public IpcConnection(bool masterExists, IpcApplicationType type, Action<string, Exception> errorHandler)
             {
                 try
                 {
@@ -79,7 +79,7 @@ namespace Tauron.Application.AkkaNode.Bootstrap
                                 return;
                             }
 
-                            _dataServer = new SharmServer(IpcName);
+                            _dataServer = new SharmServer(IpcName, errorHandler);
                             _dataServer.OnMessageReceived += (_, args) => _messageHandler.OnNext(args.Message);
                             break;
                         case IpcApplicationType.Client:
@@ -90,7 +90,7 @@ namespace Tauron.Application.AkkaNode.Bootstrap
                                 return;
                             }
 
-                            _dataClient = new SharmClient(IpcName);
+                            _dataClient = new SharmClient(IpcName, errorHandler);
                             _dataClient.OnMessageReceived += (_, args) => _messageHandler.OnNext(args.Message);
                             break;
                         case IpcApplicationType.NoIpc:

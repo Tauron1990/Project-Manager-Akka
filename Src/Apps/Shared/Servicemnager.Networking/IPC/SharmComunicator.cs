@@ -19,7 +19,7 @@ namespace Servicemnager.Networking.IPC
         {
             try
             {
-                using var mt = new Mutex(true, "Global\\" + id + "SharmNet_MasterMutex");
+                using var mt = new Mutex(true, id + "SharmNet_MasterMutex");
                 if (!mt.WaitOne(500)) return true;
 
                 mt.ReleaseMutex();
@@ -34,17 +34,22 @@ namespace Servicemnager.Networking.IPC
 
         private ISharmIpc _sharmIpc = new Dummy();
         private readonly string _globalId;
+        private readonly Action<string, Exception> _errorHandler;
         private readonly NetworkMessageFormatter _formatter = NetworkMessageFormatter.Shared;
 
         public event SharmMessageHandler? OnMessage;
 
-        public SharmComunicator(string globalId) => _globalId = globalId;
+        public SharmComunicator(string globalId, Action<string, Exception> errorHandler)
+        {
+            _globalId = globalId;
+            _errorHandler = errorHandler;
+        }
 
         public void Dispose() => _sharmIpc.Dispose();
 
         public void Connect()
         {
-            _sharmIpc = new Connection(_globalId);
+            _sharmIpc = new Connection(_globalId, _errorHandler);
             _sharmIpc.OnMessage += (message, messageId, processsId) => OnMessage?.Invoke(message, messageId, processsId);
         }
 
@@ -99,11 +104,8 @@ namespace Servicemnager.Networking.IPC
             private readonly SharmIpc _sharmIpc;
             private readonly NetworkMessageFormatter _messageFormatter = NetworkMessageFormatter.Shared;
 
-            public Connection(string globalId)
-            {
-                globalId = "Global\\" + globalId;
-                _sharmIpc = new SharmIpc(globalId, Handle, protocolVersion: SharmIpc.eProtocolVersion.V2);
-            }
+            public Connection(string globalId, Action<string, Exception> errorHandler) 
+                => _sharmIpc = new SharmIpc(globalId, Handle, ExternalExceptionHandler:errorHandler, protocolVersion: SharmIpc.eProtocolVersion.V2);
 
             private void Handle(ulong arg1, byte[] arg2)
             {
@@ -124,9 +126,9 @@ namespace Servicemnager.Networking.IPC
     {
         private readonly SharmComunicator _comunicator;
 
-        public SharmServer(string uniqeName)
+        public SharmServer(string uniqeName, Action<string, Exception> errorHandler)
         {
-            _comunicator = new SharmComunicator(uniqeName);
+            _comunicator = new SharmComunicator(uniqeName, errorHandler);
             _comunicator.OnMessage += ComunicatorOnOnMessage;
         }
 
@@ -165,9 +167,9 @@ namespace Servicemnager.Networking.IPC
     {
         private readonly SharmComunicator _comunicator;
 
-        public SharmClient(string uniqeName)
+        public SharmClient(string uniqeName, Action<string, Exception> errorHandler)
         {
-            _comunicator = new SharmComunicator(uniqeName);
+            _comunicator = new SharmComunicator(uniqeName, errorHandler);
             _comunicator.OnMessage += ComunicatorOnOnMessage;
         }
 

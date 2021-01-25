@@ -22,7 +22,7 @@ namespace WpfApp
 
         public bool IsReady { get; private set; } = true;
 
-        public IpcConnection(bool masterExists, IpcApplicationType type, Action<string, Exception> erro)
+        public IpcConnection(bool masterExists, IpcApplicationType type, Action<string, Exception> errorHandler)
         {
             try
             {
@@ -36,7 +36,7 @@ namespace WpfApp
                             return;
                         }
 
-                        _dataServer = new SharmServer(MainWindowModel._id);
+                        _dataServer = new SharmServer(MainWindowModel._id, errorHandler);
                         _dataServer.OnMessageReceived += (_, args) => _messageHandler.OnNext(args.Message);
                         break;
                     case IpcApplicationType.Client:
@@ -47,7 +47,7 @@ namespace WpfApp
                             return;
                         }
 
-                        _dataClient = new SharmClient(MainWindowModel._id);
+                        _dataClient = new SharmClient(MainWindowModel._id, errorHandler);
                         _dataClient.OnMessageReceived += (_, args) => _messageHandler.OnNext(args.Message);
                         break;
                     case IpcApplicationType.NoIpc:
@@ -91,7 +91,7 @@ namespace WpfApp
 
         public bool SendMessage<TMessage>(TMessage message) => SendMessage("All", message);
 
-        public void Start(string serviceName)
+        public void Start()
         {
             try
             {

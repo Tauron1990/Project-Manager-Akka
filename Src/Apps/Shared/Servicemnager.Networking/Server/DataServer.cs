@@ -70,12 +70,13 @@ namespace Servicemnager.Networking.Server
 
         public void Start() => _server.Start();
 
-        public void Send(string client, NetworkMessage message)
+        public bool Send(string client, NetworkMessage message)
         {
             var data = _messageFormatter.WriteMessage(message);
             using var memory = data.Message;
 
             _server.Send(client, memory.Memory[..data.Lenght].ToArray());
+            return true;
         }
 
         public void Dispose() => _server.Dispose();

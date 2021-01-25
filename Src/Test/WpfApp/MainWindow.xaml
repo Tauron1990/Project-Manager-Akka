@@ -17,18 +17,20 @@
             <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition/>
             <RowDefinition/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <GroupBox Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Header="Eingang" Margin="5">
+        <TextBlock Margin="5" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Text="{Binding Mode}"/>
+        <GroupBox Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Header="Eingang" Margin="5">
             <terminal:Terminal IsReadOnly="True" Margin="5" ItemsSource="{Binding Input}"/>
         </GroupBox>
-        <GroupBox Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Header="Augang" Margin="5">
+        <GroupBox Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Header="Augang" Margin="5">
             <terminal:Terminal IsReadOnly="True" Margin="5" ItemsSource="{Binding Output}"/>
         </GroupBox>
-        <TextBox Grid.Row="2" Grid.Column="0" Margin="5" Text="{Binding ToSend}"/>
-        <Button Grid.Row="2" Grid.Column="1" Content=" Senden" Margin="5" Command="{Binding Send}"/>
-        <Button Grid.Row="2" Grid.Column="2" Content="Neuer Process" Margin="5" Command="{Binding NewProcess}"/>
+        <TextBox Grid.Row="3" Grid.Column="0" Margin="5" Text="{Binding ToSend}"/>
+        <Button Grid.Row="3" Grid.Column="1" Content=" Senden" Margin="5" Command="{Binding Send}"/>
+        <Button Grid.Row="3" Grid.Column="2" Content="Neuer Process" Margin="5" Command="{Binding NewProcess}"/>
     </Grid>
 </Window>

@@ -44,12 +44,13 @@ namespace Servicemnager.Networking.Server
 
         public event EventHandler<MessageFromServerEventArgs>? OnMessageReceived;
 
-        public void Send(NetworkMessage msg)
+        public bool Send(NetworkMessage msg)
         {
             var data = _messageFormatter.WriteMessage(msg);
             using var memory = data.Message;
 
             _client.Send(memory.Memory[..data.Lenght].ToArray());
+            return true;
         }
     }
 }
