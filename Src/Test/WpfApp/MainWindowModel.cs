@@ -6,8 +6,12 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Interop;
 using System.Windows.Threading;
 using JetBrains.Annotations;
+using Servicemnager.Networking.IPC;
+using Tauron;
+using Tauron.Application.AkkaNode.Bootstrap.Console;
 using tiesky.com;
 
 namespace WpfApp
@@ -18,7 +22,7 @@ namespace WpfApp
 
         private readonly Dispatcher _dispatcher = Application.Current.Dispatcher;
         private readonly IpcConnection _ipc;
-        private string _toSend;
+        private string _toSend = string.Empty;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -30,7 +34,6 @@ namespace WpfApp
         public SimpleCommand Send { get; }
 
         public string ToSend
-
         {
             get => _toSend;
             set
@@ -41,13 +44,24 @@ namespace WpfApp
             }
         }
 
+        public string Mode { get; }
+
         public ObservableCollection<string> Input { get; }
 
         public ObservableCollection<string> Output { get; }
 
         public MainWindowModel()
         {
-            _ipc = new SharmIpc(_id, InputHandler, ExternalExceptionHandler:ErrorHandler, protocolVersion:SharmIpc.eProtocolVersion.V2);
+            var master = SharmComunicator.MasterIpcReady(_id);
+            Mode = !master ? "Server" : "Client";
+
+            _ipc = new IpcConnection(master, master ? IpcApplicationType.Client : IpcApplicationType.Server, ErrorHandler);
+            _ipc.Start();
+            var handler = _ipc.OnMessage<TestMessage>().Isonlate();
+
+            handler.OnError().Subscribe(e => ErrorHandler("Serialization", e));
+            handler.OnResult().Subscribe(InputHandler);
+
             Input = new ObservableCollection<string>();
             Output = new ObservableCollection<string>();
             NewProcess = new SimpleCommand(StartNew);
@@ -66,7 +80,7 @@ namespace WpfApp
             try
             {
                 Log("Send Data");
-                Log(_ipc.RemoteRequestWithoutResponse(Encoding.UTF8.GetBytes(ToSend)) ? "Send Compled" : "Send Failed");
+                Log(_ipc.SendMessage(new TestMessage(ToSend)) ? "Send Compled" : "Send Failed");
             }
             catch (Exception e)
             {
@@ -81,9 +95,9 @@ namespace WpfApp
             _dispatcher.Invoke(() => Output.Add(msg));
         }
 
-        private void InputHandler(ulong arg1, byte[] arg2)
+        private void InputHandler(TestMessage testMsg)
         {
-            string msg = $"Id: {arg1} -- Message: {Encoding.UTF8.GetString(arg2)}";
+            string msg = $"Message: {testMsg.Message}";
 
             _dispatcher.Invoke(() => Input.Add(msg));
         }
