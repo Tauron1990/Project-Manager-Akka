@@ -18,7 +18,7 @@ namespace WpfApp
 {
     public class MainWindowModel : INotifyPropertyChanged, IDisposable
     {
-        public static string _id = "697E36BC-028B-46C3-A253-AC3374FA4652";
+        public const string Id = "697E36BC-028B-46C3-A253-AC3374FA4652";
 
         private readonly Dispatcher _dispatcher = Application.Current.Dispatcher;
         private readonly IpcConnection _ipc;
@@ -52,7 +52,7 @@ namespace WpfApp
 
         public MainWindowModel()
         {
-            var master = SharmComunicator.MasterIpcReady(_id);
+            var master = SharmComunicator.MasterIpcReady(Id);
             Mode = !master ? "Server" : "Client";
 
             _ipc = new IpcConnection(master, master ? IpcApplicationType.Client : IpcApplicationType.Server, ErrorHandler);
@@ -72,7 +72,11 @@ namespace WpfApp
         {
             Log("New Process");
 
+#if DEBUG
+            new MainWindow().Show();
+#else
             Process.Start("WpfApp.exe");
+#endif
         }
 
         private void SendData()

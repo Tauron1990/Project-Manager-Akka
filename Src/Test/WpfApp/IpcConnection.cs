@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Text;
+using System.Threading;
 using Newtonsoft.Json;
 using Serilog;
 using Servicemnager.Networking;
@@ -14,6 +16,13 @@ namespace WpfApp
 {
     internal sealed class IpcConnection : IDisposable
     {
+        #if DEBUG
+        static IpcConnection()
+        {
+            SharmComunicator.ConnectionFac = () => new DebugConnection(MainWindowModel.Id);
+        }
+        #endif
+
         private readonly Subject<NetworkMessage> _messageHandler = new();
         private IDataClient? _dataClient;
         private IDataServer? _dataServer;
@@ -36,7 +45,7 @@ namespace WpfApp
                             return;
                         }
 
-                        _dataServer = new SharmServer(MainWindowModel._id, errorHandler);
+                        _dataServer = new SharmServer(MainWindowModel.Id, errorHandler);
                         _dataServer.OnMessageReceived += (_, args) => _messageHandler.OnNext(args.Message);
                         break;
                     case IpcApplicationType.Client:
@@ -47,7 +56,7 @@ namespace WpfApp
                             return;
                         }
 
-                        _dataClient = new SharmClient(MainWindowModel._id, errorHandler);
+                        _dataClient = new SharmClient(MainWindowModel.Id, errorHandler);
                         _dataClient.OnMessageReceived += (_, args) => _messageHandler.OnNext(args.Message);
                         break;
                     case IpcApplicationType.NoIpc:
@@ -134,4 +143,47 @@ namespace WpfApp
                 client.Disconnect();
         }
     }
+
+    #if DEBUG
+    
+    internal sealed class DebugConnection : SharmComunicator.ISharmIpc
+    {
+        private static DebugConnection? _master;
+        private static readonly List<DebugConnection> _clients = new();
+
+        private readonly Mutex? _mutex;
+
+        public DebugConnection(string id)
+        {
+            if (_master == null)
+            {
+                _mutex = new Mutex(true, id + "SharmNet_MasterMutex");
+                _master = this;
+            }
+            else
+                _clients.Add(this);
+        }
+
+        public void Dispose()
+        {
+            if (_mutex != null)
+            {
+                _mutex.ReleaseMutex();
+                _mutex.Dispose();
+
+                _master = null;
+            }
+            else
+                _clients.Remove(this);
+        }
+
+        public event SharmMessageHandler? OnMessage;
+
+        public bool Send(byte[] msg)
+        {
+
+        }
+    }
+
+    #endif
 }
