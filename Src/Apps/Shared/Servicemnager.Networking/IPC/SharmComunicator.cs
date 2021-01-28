@@ -13,6 +13,10 @@ namespace Servicemnager.Networking.IPC
 
     public sealed class SharmComunicator : IDisposable
     {
+        #if DEBUG
+        public static Func<ISharmIpc>? ConnectionFac { get; set; }
+        #endif
+
         public static readonly string ProcessId = Guid.NewGuid().ToString("N");
 
         public static bool MasterIpcReady(string id)
@@ -44,7 +48,13 @@ namespace Servicemnager.Networking.IPC
 
         public void Connect()
         {
-            _sharmIpc = new Connection(_globalId);
+            #if DEBUG
+
+            _sharmIpc = ConnectionFac == null ? new Connection(_globalId) : ConnectionFac();
+
+            #else
+            _sharmIpc = new Connection(_globalId);  
+            #endif
             _sharmIpc.OnMessage += (message, messageId, processsId) => OnMessage?.Invoke(message, messageId, processsId);
         }
 
@@ -70,8 +80,13 @@ namespace Servicemnager.Networking.IPC
             using var data = toSend.Message;
             return _sharmIpc.Send(data.Memory[..toSend.Lenght].ToArray());
         }
-        
-        private interface ISharmIpc : IDisposable
+
+#if DEBUG
+        public 
+#else
+        private
+#endif
+        interface ISharmIpc : IDisposable
         {
             event SharmMessageHandler OnMessage;
 
