@@ -24,14 +24,14 @@ namespace ServiceManager.ProjectRepository.Actors
 {
     public sealed class OperatorActor : ReportingActor, IWithTimers
     {
-        private static readonly ReaderWriterLockSlim UpdateLock = new ReaderWriterLockSlim();
+        private static readonly ReaderWriterLockSlim UpdateLock = new();
 
         private readonly IMongoCollection<RepositoryEntry> _repos;
         private readonly GridFSBucket _bucket;
         private readonly IMongoCollection<ToDeleteRevision> _revisions;
         private readonly DataTransferManager _dataTransfer;
         private readonly GitHubClient _gitHubClient;
-        private readonly Dictionary<string, ITempFile> _currentTransfers = new Dictionary<string, ITempFile>();
+        private readonly Dictionary<string, ITempFile> _currentTransfers = new();
 
         public OperatorActor(IMongoCollection<RepositoryEntry> repos, GridFSBucket bucket, IMongoCollection<ToDeleteRevision> revisions, DataTransferManager dataTransfer)
         {
@@ -41,19 +41,17 @@ namespace ServiceManager.ProjectRepository.Actors
             _dataTransfer = dataTransfer;
             _gitHubClient = new GitHubClient(new ProductHeaderValue(Context.System.Settings.Config.GetString("akka.appinfo.applicationName", "Test Apps").Replace(' ', '_')));
 
-            Receive<RegisterRepository>(r =>
-            {
-                TryExecute(r, "RegisterRepository", RegisterRepository);
-                Context.Stop(Self);
-            });
+            Receive<RegisterRepository>("RegisterRepository", RegisterRepository);
             
-            Receive<TransferRepository>(r => TryExecute(r, "RequestRepository", RequestRepository));
+            Receive<TransferRepository>("RequestRepository", RequestRepository);
 
-            Receive<TransferMessages.TransferCompled>(c =>
-            {
-                if(_currentTransfers.TryGetValue(c.OperationId, out var f))
-                    f.Dispose();
-            });
+            Receive<TransferMessages.TransferCompled>(obs =>
+                                                          obs.SubscribeWithStatus(c =>
+                                                                                  {
+                                                                                      if (_currentTransfers.TryGetValue(c.OperationId, out var f))
+                                                                                          f.Dispose();
+                                                                                      Context.Stop(Self);
+                                                                                  }));
         }
 
         private void RegisterRepository(RegisterRepository repository, Reporter reporter)
@@ -118,6 +116,7 @@ namespace ServiceManager.ProjectRepository.Actors
             finally
             {
                 UpdateLock.ExitUpgradeableReadLock();
+                Context.Stop(Self);
             }
         }
 
@@ -153,7 +152,8 @@ namespace ServiceManager.ProjectRepository.Actors
 
                 //repozip.Seek(0, SeekOrigin.Begin);
                 //Timers.StartSingleTimer(_reporter, new TransferFailed(string.Empty, FailReason.Timeout, data.RepoName), TimeSpan.FromMinutes(10));
-                var request = DataTransferRequest.FromStream(repository.OperationId, repozip, repository.Manager ?? throw new ArgumentNullException("FileManager"), commitInfo);
+                // ReSharper disable once NotResolvedInText
+                var request = DataTransferRequest.FromStream(repository.OperationId, repozip, repository.Manager ?? throw new ArgumentNullException(@"FileManager"), commitInfo);
                 request.SendCompletionBack = true;
 
                 _dataTransfer.Request(request);
@@ -174,7 +174,7 @@ namespace ServiceManager.ProjectRepository.Actors
             try
             {
                 var downloadCompled = false;
-                var repoConfiguration = new RepositoryConfiguration(reporter, data);
+                var repoConfiguration = new RepositoryConfiguration(data.SourceUrl, reporter);
                 using var repoPath = RepoEnv.TempFiles.CreateDic();
 
                 var data2 = _repos.AsQueryable().FirstOrDefault(r => r.RepoName == repository.RepoName);

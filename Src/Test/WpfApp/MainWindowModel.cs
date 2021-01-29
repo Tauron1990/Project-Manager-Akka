@@ -3,16 +3,13 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Interop;
 using System.Windows.Threading;
 using JetBrains.Annotations;
 using Servicemnager.Networking.IPC;
 using Tauron;
 using Tauron.Application.AkkaNode.Bootstrap.Console;
-using tiesky.com;
 
 namespace WpfApp
 {
@@ -27,7 +24,7 @@ namespace WpfApp
         public event PropertyChangedEventHandler? PropertyChanged;
 
         [NotifyPropertyChangedInvocator]
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
         public SimpleCommand NewProcess { get; }
 
@@ -43,7 +40,7 @@ namespace WpfApp
                 OnPropertyChanged();
             }
         }
-
+        
         public string Mode { get; }
 
         public ObservableCollection<string> Input { get; }
@@ -57,7 +54,7 @@ namespace WpfApp
 
             _ipc = new IpcConnection(master, master ? IpcApplicationType.Client : IpcApplicationType.Server, ErrorHandler);
             _ipc.Start();
-            var handler = _ipc.OnMessage<TestMessage>().Isonlate();
+            var handler = _ipc.OnMessage<TestMessage>();
 
             handler.OnError().Subscribe(e => ErrorHandler("Serialization", e));
             handler.OnResult().Subscribe(InputHandler);
@@ -72,11 +69,11 @@ namespace WpfApp
         {
             Log("New Process");
 
-#if DEBUG
-            new MainWindow().Show();
-#else
+//#if DEBUG
+//            new MainWindow().Show();
+//#else
             Process.Start("WpfApp.exe");
-#endif
+//#endif
         }
 
         private void SendData()

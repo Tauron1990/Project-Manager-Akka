@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -16,13 +17,6 @@ namespace WpfApp
 {
     internal sealed class IpcConnection : IDisposable
     {
-        #if DEBUG
-        static IpcConnection()
-        {
-            SharmComunicator.ConnectionFac = () => new DebugConnection(MainWindowModel.Id);
-        }
-        #endif
-
         private readonly Subject<NetworkMessage> _messageHandler = new();
         private IDataClient? _dataClient;
         private IDataServer? _dataServer;
@@ -81,7 +75,7 @@ namespace WpfApp
 
             string type = typeof(TType).AssemblyQualifiedName ?? throw new InvalidOperationException("Invalid Message Type");
 
-            return _messageHandler.Where(nm => nm.Type == type).SelectSafe(nm => JsonConvert.DeserializeObject<TType>(Encoding.UTF8.GetString(nm.Data)));
+            return _messageHandler.Where(nm => nm.Type == type).SelectSafe(nm => JsonConvert.DeserializeObject<TType>(Encoding.UTF8.GetString(nm.Data))).Isonlate();
         }
 
         public bool SendMessage<TMessage>(string to, TMessage message)
@@ -109,11 +103,6 @@ namespace WpfApp
                 if (_dataClient == null) return;
 
                 _dataClient.Connect();
-
-                IsReady = false;
-                ErrorMessage = "Client Message Registration Fail";
-
-                Dispose();
             }
             catch (Exception e)
             {
@@ -148,16 +137,19 @@ namespace WpfApp
     
     internal sealed class DebugConnection : SharmComunicator.ISharmIpc
     {
+        private static readonly NetworkMessageFormatter MessageFormatter = new(MemoryPool<byte>.Shared);
         private static DebugConnection? _master;
         private static readonly List<DebugConnection> _clients = new();
 
         private readonly Mutex? _mutex;
+        private ulong _msgId = 1;
 
         public DebugConnection(string id)
         {
             if (_master == null)
             {
                 _mutex = new Mutex(true, id + "SharmNet_MasterMutex");
+                _mutex.WaitOne();
                 _master = this;
             }
             else
@@ -179,9 +171,24 @@ namespace WpfApp
 
         public event SharmMessageHandler? OnMessage;
 
-        public bool Send(byte[] msg)
+        public bool Send(byte[] arg2)
         {
+            string id = Encoding.ASCII.GetString(arg2, 0, 32).Trim();
+            string from = Encoding.ASCII.GetString(arg2, 31, 32).Trim();
+            string processid = SharmComunicator.ProcessId;
+            var test = processid == from;
 
+            var msg = MessageFormatter.ReadMessage(arg2.AsMemory()[63..]);
+
+            if (_mutex == null)
+                _master?.OnMessage?.Invoke(msg, _msgId, from);
+            else
+            {
+                foreach (var client in _clients) client.OnMessage?.Invoke(msg, _msgId, from);
+            }
+
+            _msgId++;
+            return true;
         }
     }
 

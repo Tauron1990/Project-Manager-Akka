@@ -2,16 +2,11 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Dynamic;
 using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Documents;
 using System.Windows.Input;
 using JetBrains.Annotations;
 using Newtonsoft.Json.Linq;
@@ -20,13 +15,13 @@ using Syncfusion.UI.Xaml.Grid;
 
 namespace SeriLogViewer
 {
-    public class MainWindowModel : INotifyPropertyChanged
+    public sealed class MainWindowModel : INotifyPropertyChanged
     {
         private readonly SfDataGrid _grid;
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        private int _isLoading = 0;
-        private ObservableCollection<dynamic> _entrys = new ObservableCollection<dynamic>();
+        private int _isLoading;
+        private ObservableCollection<dynamic> _entrys = new();
 
         public ICommand OpenCommand { get; }
 
@@ -55,7 +50,7 @@ namespace SeriLogViewer
                 Interlocked.Exchange(ref _isLoading, 1);
 
                 using var reader = new StreamReader(file);
-                string? line = string.Empty;
+                string? line;
 
                 while ((line = reader.ReadLine()) != null)
                 {
@@ -138,7 +133,7 @@ namespace SeriLogViewer
         }
 
         [NotifyPropertyChangedInvocator]
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null!) 
+        private void OnPropertyChanged([CallerMemberName] string propertyName = null!) 
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }

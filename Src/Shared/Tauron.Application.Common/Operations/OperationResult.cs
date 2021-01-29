@@ -6,7 +6,11 @@ using Newtonsoft.Json;
 
 namespace Tauron.Operations
 {
-    public sealed record Error(string? Info, string Code);
+    public sealed record Error(string? Info, string Code)
+    {
+        public static implicit operator Error(string code)
+            => new(null, code);
+    }
 
     [PublicAPI]
     public interface IOperationResult

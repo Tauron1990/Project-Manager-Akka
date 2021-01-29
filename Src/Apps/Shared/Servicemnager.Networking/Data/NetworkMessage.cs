@@ -120,7 +120,7 @@ namespace Servicemnager.Networking.Data
         }
 
         [DebuggerHidden, MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool CheckPresence(Span<byte> buffer, IEnumerable<byte> target, ref int pos)
+        private static bool CheckPresence(Span<byte> buffer, IEnumerable<byte> target, ref int pos)
         {
             foreach (var ent in target)
             {

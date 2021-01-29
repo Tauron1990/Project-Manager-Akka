@@ -6,18 +6,18 @@ namespace SeriLogViewer
 {
     public abstract class CommandBase : ICommand
     {
-        public virtual event EventHandler CanExecuteChanged
+        public virtual event EventHandler? CanExecuteChanged
         {
             add => CommandManager.RequerySuggested += value;
             remove => CommandManager.RequerySuggested -= value;
         }
 
-        public virtual bool CanExecute([CanBeNull] object parameter)
+        public virtual bool CanExecute(object? parameter)
         {
             return true;
         }
 
-        public abstract void Execute([CanBeNull] object parameter);
+        public abstract void Execute(object? parameter);
 
         [UsedImplicitly]
         public virtual void RaiseCanExecuteChanged()

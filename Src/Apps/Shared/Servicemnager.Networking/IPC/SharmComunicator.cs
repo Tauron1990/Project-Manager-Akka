@@ -23,8 +23,8 @@ namespace Servicemnager.Networking.IPC
         {
             try
             {
-                using var mt = new Mutex(true, id + "SharmNet_MasterMutex");
-                if (!mt.WaitOne(500)) return true;
+                using var mt = new Mutex(true, id + "SharmNet_MasterMutex", out var created);
+                if (!created) return true;
 
                 mt.ReleaseMutex();
                 return false;
@@ -124,8 +124,8 @@ namespace Servicemnager.Networking.IPC
 
             private void Handle(ulong arg1, byte[] arg2)
             {
-                string id = Encoding.ASCII.GetString(arg2, 0, 32);
-                string from = Encoding.ASCII.GetString(arg2, 31, 32);
+                string id = Encoding.ASCII.GetString(arg2, 0, 32).Trim();
+                string from = Encoding.ASCII.GetString(arg2, 31, 32).Trim();
                 if (id.StartsWith("All") || id == ProcessId) OnMessage?.Invoke(_messageFormatter.ReadMessage(arg2.AsMemory()[63..]), arg1, from);
             }
 

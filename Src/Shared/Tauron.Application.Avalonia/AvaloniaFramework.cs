@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Logging.Serilog;
 using Avalonia.Threading;
 using Tauron.Application.Avalonia.AppCore;
 using Tauron.Application.Avalonia.Dialogs;
@@ -24,7 +23,7 @@ namespace Tauron.Application.Avalonia
         public override IUIApplication CreateDefault() => (IUIApplication) AppBuilder
                                                                           .Configure<AvalonApp>()
                                                                           .UsePlatformDetect()
-                                                                          .LogToDebug()
+                                                                          .LogToTrace()
                                                                           .SetupWithLifetime(new ClassicDesktopStyleApplicationLifetime())
                                                                           .Instance;
 
@@ -33,7 +32,7 @@ namespace Tauron.Application.Avalonia
             var window = new global::Avalonia.Controls.Window();
             window.Content = new MessageDialog(title, message, b => window.Close(b), true) {Margin = new Thickness(10)};
             window.SizeToContent = SizeToContent.WidthAndHeight;
-            window.Owner = ((IClassicDesktopStyleApplicationLifetime) global::Avalonia.Application.Current.ApplicationLifetime).MainWindow;
+            //window.Owner = ((IClassicDesktopStyleApplicationLifetime) global::Avalonia.Application.Current.ApplicationLifetime).MainWindow;
             window.WindowStartupLocation = WindowStartupLocation.CenterOwner;
             window.ShowInTaskbar = false;
 

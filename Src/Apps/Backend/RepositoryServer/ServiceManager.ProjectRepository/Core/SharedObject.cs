@@ -21,9 +21,9 @@ namespace ServiceManager.ProjectRepository.Core
         }
 
         // ReSharper disable once StaticMemberInGenericType
-        protected static readonly object Lock = new object();
+        protected static readonly object Lock = new();
 
-        private static readonly Dictionary<TConfiguration, ObjectEntry> SharedObjects = new Dictionary<TConfiguration, ObjectEntry>();
+        private static readonly Dictionary<TConfiguration, ObjectEntry> SharedObjects = new();
 
         public static TObject GetOrNew(TConfiguration configuration)
         {
@@ -56,7 +56,7 @@ namespace ServiceManager.ProjectRepository.Core
         private bool _disposed;
         private TConfiguration? _configuration;
 
-        protected virtual void Init(TConfiguration configuration) => Configuration = configuration; 
+        private void Init(TConfiguration configuration) => Configuration = configuration; 
 
         protected virtual void InternalDispose() { }
 

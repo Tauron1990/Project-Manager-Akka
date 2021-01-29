@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="SharmIPC" Version="1.18.0" />
-    <PackageReference Include="SuperSimpleTcp" Version="2.2.1" />
+    <PackageReference Include="SuperSimpleTcp" Version="2.2.1.1" />
   </ItemGroup>
 
 </Project>

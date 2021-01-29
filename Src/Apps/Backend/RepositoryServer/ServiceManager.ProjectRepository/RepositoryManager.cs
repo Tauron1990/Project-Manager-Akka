@@ -6,23 +6,26 @@ using ServiceManager.ProjectRepository.Actors;
 using Tauron.Application.AkkNode.Services.CleanUp;
 using Tauron.Application.AkkNode.Services.FileTransfer;
 using Tauron.Application.Master.Commands.Deployment.Repository;
+using Tauron.Features;
 
 namespace ServiceManager.ProjectRepository
 {
     [PublicAPI]
     public sealed class RepositoryManager
     {
-        public static readonly RepositoryManager Empty = new RepositoryManager(ActorRefs.Nobody); 
+        public static readonly RepositoryManager Empty = new(ActorRefs.Nobody); 
 
         public static RepositoryManager CreateInstance(IActorRefFactory factory, string connectionString, DataTransferManager tranferManager)
-            => new RepositoryManager(factory.ActorOf(Props.Create(() => new RepositoryManagerImpl(new MongoClient(connectionString), tranferManager))));
+        {
+            return new(factory.ActorOf(RepositoryManagerImpl.Create(new MongoClient(connectionString), tranferManager)));
+        }
 
         public static RepositoryManager InitRepositoryManager(ActorSystem actorSystem, string connectionString, DataTransferManager tranferManager) 
             => InitRepositoryManager(actorSystem, new MongoClient(connectionString), tranferManager);
 
         public static RepositoryManager InitRepositoryManager(ActorSystem actorSystem, IMongoClient client, DataTransferManager tranferManager)
         {
-            var repo = ClusterSingletonManager.Props(Props.Create(() => new RepositoryManagerImpl(client, tranferManager)),
+            var repo = ClusterSingletonManager.Props(Feature.Props(RepositoryManagerImpl.Create(client, tranferManager)),
                 ClusterSingletonManagerSettings.Create(actorSystem).WithRole("UpdateSystem"));
             return new RepositoryManager(actorSystem.ActorOf(repo, RepositoryApi.RepositoryPath));
         }

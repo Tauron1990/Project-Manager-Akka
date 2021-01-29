@@ -36,12 +36,12 @@ namespace ServiceManager.ProjectRepository.Core
                 }
 
                 SendMessage(RepositoryMessages.UpdateRepository);
-                return Update(source);
+                return Update();
             }
 
         }
 
-        private (string Path, string Sha) Update(string source)
+        private (string Path, string Sha) Update()
         {
             if (_repository == null)
                 throw new InvalidOperationException("Not Repository Set");
@@ -59,7 +59,8 @@ namespace ServiceManager.ProjectRepository.Core
 
         protected override void InternalDispose()
         {
-            _repository?.Dispose();
+            lock (Lock) 
+                _repository?.Dispose();
             base.InternalDispose();
         }
     }

@@ -7,6 +7,8 @@ namespace Tauron.Application.AkkNode.Services
 {
     public abstract class ReportingActor : ObservableActor
     {
+        public static string GenralError = nameof(GenralError);
+
         [PublicAPI]
         protected void Receive<TMessage>(string name, Action<TMessage, Reporter> process) 
             where TMessage : IReporterMessage => Receive<TMessage>(obs => obs.Subscribe(m => TryExecute(m, name, process)));
@@ -29,7 +31,7 @@ namespace Tauron.Application.AkkNode.Services
             catch (Exception e)
             {
                 Log.Error(e, "Repository Operation {Name} Failed {Repository}", name, msg.Info);
-                reporter.Compled(OperationResult.Failure(new Error(e.Unwrap()?.Message ?? "Unkowen", nameof(TryExecute))));
+                reporter.Compled(OperationResult.Failure(new Error(e.Unwrap()?.Message ?? "Unkowen", GenralError)));
             }
         }
 
@@ -44,7 +46,7 @@ namespace Tauron.Application.AkkNode.Services
             catch (Exception e)
             {
                 Log.Error(e, "Repository Operation {Name} Failed {Repository}", name, msg.Info);
-                msg.Reporter.Compled(OperationResult.Failure(new Error(e.Unwrap()?.Message ?? "Unkowen", nameof(TryContinue))));
+                msg.Reporter.Compled(OperationResult.Failure(new Error(e.Unwrap()?.Message ?? "Unkowen", GenralError)));
             }
         }
     }

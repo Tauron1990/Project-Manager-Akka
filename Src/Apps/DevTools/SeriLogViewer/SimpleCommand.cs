@@ -44,9 +44,8 @@ namespace SeriLogViewer
 
         public override void Execute(object? parameter)
         {
-            if (parameter == null)
-                parameter = _parameter;
-            _execute?.Invoke(parameter);
+            parameter ??= _parameter;
+            _execute.Invoke(parameter);
         }
     }
 }
