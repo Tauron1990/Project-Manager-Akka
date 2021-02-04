@@ -29,7 +29,7 @@ using Akkatecture.Core;
 using Akkatecture.Sagas;
 using Akkatecture.Sagas.AggregateSaga;
 
-namespace Akkatecture.Clustering.Core
+namespace Akkatecture.Cluster.Core
 {
     public class MessageExtractor<TAggregateSagaManager, TAggregateSaga, TIdentity, TSagaLocator> : HashCodeMessageExtractor
         where TAggregateSagaManager : IAggregateSagaManager<TAggregateSaga, TIdentity, TSagaLocator>

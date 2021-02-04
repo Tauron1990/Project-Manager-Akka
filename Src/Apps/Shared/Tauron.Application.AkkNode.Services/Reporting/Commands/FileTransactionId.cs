@@ -1,6 +1,6 @@
 ﻿using JetBrains.Annotations;
 
-namespace Tauron.Application.AkkNode.Services.Commands
+namespace Tauron.Application.AkkaNode.Services.Commands
 {
     [PublicAPI]
     public sealed record FileTransactionId(string Id);

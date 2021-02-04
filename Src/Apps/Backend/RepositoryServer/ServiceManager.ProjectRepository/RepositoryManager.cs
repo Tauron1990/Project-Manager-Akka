@@ -3,8 +3,8 @@ using Akka.Cluster.Tools.Singleton;
 using JetBrains.Annotations;
 using MongoDB.Driver;
 using ServiceManager.ProjectRepository.Actors;
-using Tauron.Application.AkkNode.Services.CleanUp;
-using Tauron.Application.AkkNode.Services.FileTransfer;
+using Tauron.Application.AkkaNode.Services.CleanUp;
+using Tauron.Application.AkkaNode.Services.FileTransfer;
 using Tauron.Application.Master.Commands.Deployment.Repository;
 using Tauron.Features;
 

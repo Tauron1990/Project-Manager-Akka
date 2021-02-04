@@ -1,9 +1,9 @@
 ﻿using Akka.Actor;
 using Akka.Cluster.Tools.Singleton;
 using JetBrains.Annotations;
-using Tauron.Application.AkkNode.Services;
-using Tauron.Application.AkkNode.Services.CleanUp;
-using Tauron.Application.AkkNode.Services.Commands;
+using Tauron.Application.AkkaNode.Services;
+using Tauron.Application.AkkaNode.Services.CleanUp;
+using Tauron.Application.AkkaNode.Services.Commands;
 
 namespace Tauron.Application.Master.Commands.Deployment.Repository
 {

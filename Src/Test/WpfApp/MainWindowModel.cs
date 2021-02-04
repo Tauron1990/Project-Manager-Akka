@@ -9,7 +9,6 @@ using System.Windows.Threading;
 using JetBrains.Annotations;
 using Servicemnager.Networking.IPC;
 using Tauron;
-using Tauron.Application.AkkaNode.Bootstrap.Console;
 
 namespace WpfApp
 {

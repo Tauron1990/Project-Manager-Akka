@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Tauron.Application.Files.Serialization.Core.Impl.Converter;
 using Tauron.Application.Files.Serialization.Core.Managment;
 
 namespace Tauron.Application.Files.Serialization.Core.Impl.Mapper.Ini

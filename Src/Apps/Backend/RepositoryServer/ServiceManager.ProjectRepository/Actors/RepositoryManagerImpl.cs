@@ -1,19 +1,15 @@
 ﻿using System;
 using System.Reactive.Linq;
 using Akka.Actor;
-using Akka.Event;
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
 using ServiceManager.ProjectRepository.Data;
 using Tauron;
-using Tauron.Akka;
-using Tauron.Application.AkkNode.Services;
-using Tauron.Application.AkkNode.Services.CleanUp;
-using Tauron.Application.AkkNode.Services.FileTransfer;
+using Tauron.Application.AkkaNode.Services.CleanUp;
+using Tauron.Application.AkkaNode.Services.FileTransfer;
 using Tauron.Application.Master.Commands.Deployment.Repository;
 using Tauron.Features;
 using Tauron.ObservableExt;
-using ActorRefFactoryExtensions = Tauron.Akka.ActorRefFactoryExtensions;
 
 namespace ServiceManager.ProjectRepository.Actors
 {
@@ -30,7 +26,7 @@ namespace ServiceManager.ProjectRepository.Actors
             IMongoCollection<ToDeleteRevision> TrashBin() => database.GetCollection<ToDeleteRevision>("TrashBin");
             GridFSBucket GridFsBucket() => new(database, new GridFSBucketOptions {BucketName = "RepositoryData", ChunkSizeBytes = 1048576});
 
-            return Feature.Create(() => new RepositoryManagerImpl(), () => new RmIState(database, TrashBin(), GridFsBucket(), dataTransferManager, RepositoryData()));
+            return Feature.Create(() => new RepositoryManagerImpl(), _ => new RmIState(database, TrashBin(), GridFsBucket(), dataTransferManager, RepositoryData()));
         }
 
 
@@ -38,10 +34,10 @@ namespace ServiceManager.ProjectRepository.Actors
         {
             IActorRef CreateCleaner()
             {
-                var cleaner = Context.ActorOf("CleanUp-Manager", CleanUpManager.New(CurrentState.Database, "CleanUp", CurrentState.TrashBin, CurrentState.GridFsBucket));
-                cleaner.Tell(CleanUpManager.Initialization);
-                Context.Watch(cleaner);
-                return cleaner;
+                var cleanerActor = Context.ActorOf("CleanUp-Manager", CleanUpManager.New(CurrentState.Database, "CleanUp", CurrentState.TrashBin, CurrentState.GridFsBucket));
+                cleanerActor.Tell(CleanUpManager.Initialization);
+                Context.Watch(cleanerActor);
+                return cleanerActor;
             }
 
             var cleaner = CreateCleaner().ToRx();
@@ -57,8 +53,8 @@ namespace ServiceManager.ProjectRepository.Actors
 
             Receive<IRepositoryAction>(obs => obs.Select(d => new
                                                               {
-                                                                  Actor = Context.ActorOf(() => new OperatorActor(d.State.RepositoryData, d.State.GridFsBucket,
-                                                                                                                  d.State.TrashBin, d.State.DataTransferManager)),
+                                                                  Actor = Context.ActorOf(OperatorActor.New(d.State.RepositoryData, d.State.GridFsBucket,
+                                                                                                            d.State.TrashBin, d.State.DataTransferManager)),
                                                                   d.Event
                                                               })
                                                  .ToUnit(evt => evt.Actor.Forward(evt.Event)));

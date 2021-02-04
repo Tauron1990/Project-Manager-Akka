@@ -27,12 +27,12 @@ using Akka.Actor;
 using Akka.Cluster.Sharding;
 using Akka.Persistence;
 using Akkatecture.Aggregates;
-using Akkatecture.Clustering.Dispatchers;
+using Akkatecture.Cluster.Dispatchers;
 using Akkatecture.Core;
 using Akkatecture.Sagas;
 using Akkatecture.Sagas.AggregateSaga;
 
-namespace Akkatecture.Clustering.Core
+namespace Akkatecture.Cluster.Core
 {
     public static class ClusterFactory<TAggregateManager, TAggregate, TIdentity>
         where TAggregateManager : ReceiveActor, IAggregateManager<TAggregate, TIdentity>

@@ -41,10 +41,21 @@ namespace Tauron.Features
         SupervisorStrategy? SupervisorStrategy { get; set; }
     }
 
+    [PublicAPI]
     public sealed record StatePair<TEvent, TState>(TEvent Event, TState State, ITimerScheduler Timers)
     {
         public StatePair<TEvent, TNew> Convert<TNew>(Func<TState, TNew> converter)
             => new(Event, converter(State), Timers);
+
+
+        public void Deconstruct(out TEvent evt, out TState state)
+        {
+            evt = Event;
+            state = State;
+        }
+
+        public StatePair<TNew, TState> NewEvent<TNew>(TNew evt)
+            => new(evt, State, Timers);
     }
 
     [PublicAPI]
@@ -64,14 +75,14 @@ namespace Tauron.Features
             }
         }
 
-        protected static Props Create(Func<TState> initialState, Action<ActorBuilder<TState>> builder)
+        protected static Props Create(Func<IUntypedActorContext, TState> initialState, Action<ActorBuilder<TState>> builder)
             => Props.Create(typeof(ActorFactory), builder, initialState);
 
         protected static Props Create(TState initialState, Func<IEnumerable<Action<ActorBuilder<TState>>>> builder)
-            => Create(() => initialState, actorBuilder => builder().Foreach(f => f(actorBuilder)));
+            => Create(_ => initialState, actorBuilder => builder().Foreach(f => f(actorBuilder)));
 
         protected static Props Create(TState initialState, Action<ActorBuilder<TState>> builder)
-            => Create(() => initialState, builder);
+            => Create(_ => initialState, builder);
 
         TState IFeatureActor<TState>.CurrentState => CurrentState.Value;
         
@@ -109,16 +120,16 @@ namespace Tauron.Features
         }
 
         public IDisposable Subscribe(IObserver<TState> observer)
-            => CurrentState.Subscribe(observer);
+            => CurrentState.DistinctUntilChanged().Subscribe(observer);
 
         protected override SupervisorStrategy SupervisorStrategy() => ((IFeatureActor<TState>)this).SupervisorStrategy ?? base.SupervisorStrategy();
 
         private sealed class ActorFactory : IIndirectActorProducer
         {
             private readonly Action<ActorBuilder<TState>> _builder;
-            private readonly Func<TState> _initialState;
+            private readonly Func<IUntypedActorContext, TState> _initialState;
 
-            public ActorFactory(Action<ActorBuilder<TState>> builder, Func<TState> initialState)
+            public ActorFactory(Action<ActorBuilder<TState>> builder, Func<IUntypedActorContext, TState> initialState)
             {
                 _builder = builder;
                 _initialState = initialState;
@@ -127,7 +138,7 @@ namespace Tauron.Features
             public ActorBase Produce()
             {
                 var fut = new TFeatured();
-                fut.InitialState(_initialState());
+                fut.InitialState(_initialState(Context));
                 _builder(new ActorBuilder<TState>(fut.RegisterFeature));
                 return fut;
             }

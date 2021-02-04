@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using JetBrains.Annotations;
 using Tauron.Application.Files.Serialization.Core.Managment;
 
-namespace Tauron.Application.Files.Serialization.Core.Fluent
+namespace Tauron.Application.Files.Serialization.Core.Fluent.Ini
 {
     [PublicAPI]
     public interface IIniKeySerializerConfiguration : IWithMember<IIniKeySerializerConfiguration>

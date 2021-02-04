@@ -24,11 +24,11 @@
 using Akka.Actor;
 using Akka.Event;
 using Akkatecture.Aggregates;
-using Akkatecture.Clustering.Extentions;
+using Akkatecture.Cluster.Extentions;
 using Akkatecture.Extensions;
 using Akkatecture.Subscribers;
 
-namespace Akkatecture.Clustering.Dispatchers
+namespace Akkatecture.Cluster.Dispatchers
 {
     public class SingletonDomainEventSubscriberDispatcher<TDomainEventSubscriber> : ReceiveActor
         where TDomainEventSubscriber : DomainEventSubscriber

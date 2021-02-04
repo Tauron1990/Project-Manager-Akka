@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Linq;
 using System.Reactive.Linq;
 using Akka.Actor;
 using Akka.Cluster.Utility;
-using Tauron.Akka;
-using Tauron.Application.AkkNode.Services.Core;
-using Tauron.Application.Master.Commands.Administration.Host;
 using Tauron.Features;
 using static Tauron.Application.Master.Commands.Administration.Host.InternalHostMessages;
 using static Akka.Cluster.Utility.ClusterActorDiscoveryMessage;
@@ -19,7 +14,7 @@ namespace Tauron.Application.Master.Commands.Administration.Host
         public sealed record ApiState(ImmutableDictionary<ActorPath, HostEntry> Entries);
 
         public static IPreparedFeature Create()
-            => Feature.Create(() => new HostApiManagerFeature(), () => new ApiState(ImmutableDictionary<ActorPath, HostEntry>.Empty));
+            => Feature.Create(() => new HostApiManagerFeature(), _ => new ApiState(ImmutableDictionary<ActorPath, HostEntry>.Empty));
 
         protected override void Config()
         {

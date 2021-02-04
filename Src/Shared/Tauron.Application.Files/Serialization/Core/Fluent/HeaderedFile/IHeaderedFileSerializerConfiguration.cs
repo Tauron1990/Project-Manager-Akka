@@ -1,6 +1,6 @@
 ﻿using JetBrains.Annotations;
 
-namespace Tauron.Application.Files.Serialization.Core.Fluent
+namespace Tauron.Application.Files.Serialization.Core.Fluent.HeaderedFile
 {
     [PublicAPI]
     public interface IHeaderedFileSerializerConfiguration : ISerializerRootConfiguration, IConstructorConfig<IHeaderedFileSerializerConfiguration>

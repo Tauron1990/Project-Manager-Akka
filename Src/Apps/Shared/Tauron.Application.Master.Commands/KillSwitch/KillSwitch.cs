@@ -51,7 +51,7 @@ namespace Tauron.Application.Master.Commands
             public sealed record KillState(ImmutableList<ActorElement> Actors);
 
             public static IPreparedFeature Create()
-                => Feature.Create(() => new KillSwitchFeature(), () => new KillState(ImmutableList<ActorElement>.Empty));
+                => Feature.Create(() => new KillSwitchFeature(), _ => new KillState(ImmutableList<ActorElement>.Empty));
 
             protected override void Config()
             {

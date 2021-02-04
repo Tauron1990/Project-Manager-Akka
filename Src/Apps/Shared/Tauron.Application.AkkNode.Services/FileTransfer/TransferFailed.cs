@@ -1,6 +1,4 @@
-﻿using System.IO;
-
-namespace Tauron.Application.AkkNode.Services.FileTransfer
+﻿namespace Tauron.Application.AkkaNode.Services.FileTransfer
 {
     public enum FailReason
     {

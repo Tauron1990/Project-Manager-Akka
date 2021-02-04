@@ -1,9 +1,10 @@
 ﻿using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters;
 using System.Runtime.Serialization.Formatters.Binary;
+using Tauron.Application.Files.Serialization.Core.Fluent.Binary;
 using Tauron.Application.Files.Serialization.Core.Impl;
 
-namespace Tauron.Application.Files.Serialization.Core.Fluent.Impl
+namespace Tauron.Application.Files.Serialization.Core.Fluent.Impl.Binary
 {
     internal class BinarySerializerConfiguration : SerializerRootConfigurationBase, IBinaryConfiguration
     {

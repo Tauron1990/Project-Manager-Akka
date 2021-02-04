@@ -3,10 +3,11 @@ using System.Xml.Linq;
 using JetBrains.Annotations;
 using Tauron.Application.Files.Serialization.Core.Fluent;
 using Tauron.Application.Files.Serialization.Core.Fluent.Impl;
+using Tauron.Application.Files.Serialization.Core.Fluent.Xml;
 using Tauron.Application.Files.Serialization.Core.Impl.Mapper.Xml;
 using Tauron.Application.Files.Serialization.Core.Managment;
 
-namespace Tauron.Application.Files.Serialization.Core.Impl
+namespace Tauron.Application.Files.Serialization.Core.Impl.Xml
 {
     internal class XmlSerializerConfiguration : SerializerRootConfigurationBase, IXmlSerializerConfiguration
     {

@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using JetBrains.Annotations;
 
-namespace Tauron.Application.AkkNode.Services.FileTransfer.Internal
+namespace Tauron.Application.AkkaNode.Services.FileTransfer.Internal
 {
     /// <summary>
     ///     Encapsulates a <see cref="System.IO.Stream" /> to calculate the CRC32 checksum on-the-fly as data passes through.

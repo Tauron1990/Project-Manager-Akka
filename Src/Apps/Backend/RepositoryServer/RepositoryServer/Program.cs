@@ -1,7 +1,8 @@
 ﻿using System.Threading.Tasks;
 using ServiceManager.ProjectRepository;
 using Tauron.Application.AkkaNode.Bootstrap;
-using Tauron.Application.AkkNode.Services.FileTransfer;
+using Tauron.Application.AkkaNode.Bootstrap.Console;
+using Tauron.Application.AkkaNode.Services.FileTransfer;
 using Tauron.Application.Master.Commands;
 
 namespace RepositoryServer
@@ -10,8 +11,8 @@ namespace RepositoryServer
     {
         public static async Task Main(string[] args)
         {
-            await Bootstrap.StartNode(args, KillRecpientType.Service)
-               .ConfigurateAkkaSystem((context, system) =>
+            await Bootstrap.StartNode(args, KillRecpientType.Service, IpcApplicationType.Client)
+               .ConfigurateAkkaSystem((_, system) =>
                     {
                         RepositoryManager.InitRepositoryManager(
                             system, 

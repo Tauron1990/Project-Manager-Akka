@@ -12,7 +12,7 @@ using Serilog.Core;
 using Serilog.Events;
 using Serilog.Exceptions;
 using Serilog.Formatting.Compact;
-using Tauron.Application.AkkNode.Services.Configuration;
+using Tauron.Application.AkkaNode.Services.Configuration;
 using Tauron.Host;
 
 namespace Tauron.Application.AkkaNode.Bootstrap

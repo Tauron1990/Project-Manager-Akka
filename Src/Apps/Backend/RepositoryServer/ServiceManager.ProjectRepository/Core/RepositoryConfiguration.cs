@@ -1,5 +1,5 @@
 ﻿using JetBrains.Annotations;
-using Tauron.Application.AkkNode.Services;
+using Tauron.Application.AkkaNode.Services;
 
 namespace ServiceManager.ProjectRepository.Core
 {

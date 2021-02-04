@@ -4,7 +4,7 @@ using JetBrains.Annotations;
 using Tauron.Akka;
 using Tauron.Features;
 
-namespace Tauron.Application.AkkNode.Services.Core
+namespace Tauron.Application.AkkaNode.Services.Core
 {
 
     [PublicAPI]

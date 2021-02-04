@@ -1,4 +1,4 @@
-﻿namespace Tauron.Application.AkkNode.Services.CleanUp
+﻿namespace Tauron.Application.AkkaNode.Services.CleanUp
 {
     public sealed record StartCleanUp;
 }

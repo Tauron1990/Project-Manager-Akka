@@ -1,7 +1,7 @@
 using Akka.Actor;
 using Akkatecture.Messages;
 
-namespace Akkatecture.Clustering
+namespace Akkatecture.Cluster
 {
     public class ClusterParentProxy : ReceiveActor
     {

@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 
-namespace Tauron.Application.AkkNode.Services.Commands
+namespace Tauron.Application.AkkaNode.Services.Commands
 {
     [PublicAPI]
     public abstract record SimpleCommand<TSender, TThis> : ReporterCommandBase<TSender, TThis> 

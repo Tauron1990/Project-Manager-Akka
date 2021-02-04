@@ -5,9 +5,9 @@ using System.Threading;
 using Akka.Actor;
 using Tauron.Features;
 using Tauron.ObservableExt;
-using Dm = Tauron.Application.AkkNode.Services.FileTransfer.TransferMessages;
+using Dm = Tauron.Application.AkkaNode.Services.FileTransfer.TransferMessages;
 
-namespace Tauron.Application.AkkNode.Services.FileTransfer.Operator
+namespace Tauron.Application.AkkaNode.Services.FileTransfer.Operator
 {
     public sealed class DataTransferManagerFeature : ActorFeatureBase<DataTransferManagerFeature.State>
     {
@@ -15,7 +15,7 @@ namespace Tauron.Application.AkkNode.Services.FileTransfer.Operator
 
         public static IPreparedFeature New()
             => Feature.Create(() => new DataTransferManagerFeature(), 
-                              () => new State(ImmutableDictionary<string, IncomingDataTransfer>.Empty, ImmutableDictionary<string, AwaitRequestInternal>.Empty));
+                              _ => new State(ImmutableDictionary<string, IncomingDataTransfer>.Empty, ImmutableDictionary<string, AwaitRequestInternal>.Empty));
 
         protected override void Config()
         {

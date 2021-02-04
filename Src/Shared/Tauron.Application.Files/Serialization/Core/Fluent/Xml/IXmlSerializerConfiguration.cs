@@ -1,4 +1,4 @@
-﻿namespace Tauron.Application.Files.Serialization.Core.Fluent
+﻿namespace Tauron.Application.Files.Serialization.Core.Fluent.Xml
 {
     public interface IXmlSerializerConfiguration : ISerializerRootConfiguration, IConstructorConfig<IXmlSerializerConfiguration>
     {

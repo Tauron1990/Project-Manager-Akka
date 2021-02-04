@@ -4,7 +4,7 @@ using JetBrains.Annotations;
 using Tauron.Application.Files.Serialization.Core.Impl.Mapper;
 using Tauron.Application.Files.Serialization.Core.Managment;
 
-namespace Tauron.Application.Files.Serialization.Core.Impl
+namespace Tauron.Application.Files.Serialization.Core.Impl.Converter
 {
     internal class UniversalListConverter : SimpleConverter<IEnumerable<string>>
     {

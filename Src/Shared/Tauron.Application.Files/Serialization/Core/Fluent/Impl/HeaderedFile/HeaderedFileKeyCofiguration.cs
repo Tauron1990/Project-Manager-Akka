@@ -1,8 +1,9 @@
 ﻿using System;
+using Tauron.Application.Files.Serialization.Core.Fluent.HeaderedFile;
 using Tauron.Application.Files.Serialization.Core.Impl.Mapper.HeaderedText;
 using Tauron.Application.Files.Serialization.Core.Managment;
 
-namespace Tauron.Application.Files.Serialization.Core.Fluent.Impl
+namespace Tauron.Application.Files.Serialization.Core.Fluent.Impl.HeaderedFile
 {
     internal enum MappingType
     {

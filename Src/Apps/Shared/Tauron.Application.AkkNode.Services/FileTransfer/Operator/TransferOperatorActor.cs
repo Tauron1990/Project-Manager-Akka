@@ -5,10 +5,10 @@ using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Event;
 using JetBrains.Annotations;
-using Tauron.Application.AkkNode.Services.FileTransfer.Internal;
-using static Tauron.Application.AkkNode.Services.FileTransfer.TransferMessages;
+using Tauron.Application.AkkaNode.Services.FileTransfer.Internal;
+using static Tauron.Application.AkkaNode.Services.FileTransfer.TransferMessages;
 
-namespace Tauron.Application.AkkNode.Services.FileTransfer.Operator
+namespace Tauron.Application.AkkaNode.Services.FileTransfer.Operator
 {
     public enum OperatorState
     {

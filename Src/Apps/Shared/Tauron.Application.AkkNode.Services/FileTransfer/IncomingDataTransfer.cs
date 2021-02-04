@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Akka.Actor;
 using JetBrains.Annotations;
 
-namespace Tauron.Application.AkkNode.Services.FileTransfer
+namespace Tauron.Application.AkkaNode.Services.FileTransfer
 {
     [PublicAPI]
     public sealed class IncomingDataTransfer : TransferMessages.TransferMessage

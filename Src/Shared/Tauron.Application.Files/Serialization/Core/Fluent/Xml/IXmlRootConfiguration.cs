@@ -1,6 +1,6 @@
 ﻿using System.Xml.Linq;
 
-namespace Tauron.Application.Files.Serialization.Core.Fluent
+namespace Tauron.Application.Files.Serialization.Core.Fluent.Xml
 {
     public interface IXmlRootConfiguration<out TConfig> : IWithMember<TConfig>
     {

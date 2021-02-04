@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using ServiceManager.ProjectDeployment.Data;
-using Tauron.Application.AkkNode.Services;
+using Tauron.Application.AkkaNode.Services;
 using Tauron.Application.Master.Commands.Deployment.Repository;
 using Tauron.Temp;
 
@@ -26,7 +26,7 @@ namespace ServiceManager.ProjectDeployment.Build
             TargetFile = targetFile;
         }
 
-        public static Task<(string, ITempFile)> SendWork(WorkDistributor<BuildRequest, BuildCompled> distributor, Reporter source, AppData appData, RepositoryApi repositoryApi, ITempFile targetFile)
+        public static Task<(string, ITempFile)> SendWork(IWorkDistributor<BuildRequest> distributor, Reporter source, AppData appData, RepositoryApi repositoryApi, ITempFile targetFile)
         {
             var request = new BuildRequest(source, appData, repositoryApi, targetFile);
             distributor.PushWork(request);

@@ -6,9 +6,8 @@ using MongoDB.Driver.GridFS;
 using ServiceManager.ProjectDeployment.Build;
 using ServiceManager.ProjectDeployment.Data;
 using Tauron.Akka;
-using Tauron.Application.AkkNode.Services;
-using Tauron.Application.AkkNode.Services.CleanUp;
-using Tauron.Application.AkkNode.Services.FileTransfer;
+using Tauron.Application.AkkaNode.Services.CleanUp;
+using Tauron.Application.AkkaNode.Services.FileTransfer;
 using Tauron.Application.Master.Commands.Deployment.Build;
 using Tauron.Application.Master.Commands.Deployment.Repository;
 

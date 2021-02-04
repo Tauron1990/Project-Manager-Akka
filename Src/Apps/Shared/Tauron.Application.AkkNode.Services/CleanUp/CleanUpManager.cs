@@ -6,7 +6,7 @@ using MongoDB.Driver.GridFS;
 using Tauron.Akka;
 using Tauron.Features;
 
-namespace Tauron.Application.AkkNode.Services.CleanUp
+namespace Tauron.Application.AkkaNode.Services.CleanUp
 {
     [PublicAPI]
     public sealed class CleanUpManager : ActorFeatureBase<CleanUpManager.CleanUpManagerState>
@@ -25,7 +25,7 @@ namespace Tauron.Application.AkkNode.Services.CleanUp
 
         [PublicAPI]
         public static IPreparedFeature New(IMongoDatabase database, string cleanUpCollection, IMongoCollection<ToDeleteRevision> revisions, GridFSBucket bucked)
-            => Feature.Create(() => new CleanUpManager(), () => new CleanUpManagerState(database, cleanUpCollection, revisions, bucked, false));
+            => Feature.Create(() => new CleanUpManager(), _ => new CleanUpManagerState(database, cleanUpCollection, revisions, bucked, false));
 
         protected override void Config()
         {

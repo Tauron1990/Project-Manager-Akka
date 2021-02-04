@@ -1,8 +1,16 @@
 ﻿using System.Xml.Linq;
 using JetBrains.Annotations;
 using Tauron.Application.Files.Serialization.Core.Fluent;
+using Tauron.Application.Files.Serialization.Core.Fluent.Binary;
+using Tauron.Application.Files.Serialization.Core.Fluent.HeaderedFile;
 using Tauron.Application.Files.Serialization.Core.Fluent.Impl;
+using Tauron.Application.Files.Serialization.Core.Fluent.Impl.Binary;
+using Tauron.Application.Files.Serialization.Core.Fluent.Impl.HeaderedFile;
+using Tauron.Application.Files.Serialization.Core.Fluent.Impl.Ini;
+using Tauron.Application.Files.Serialization.Core.Fluent.Ini;
+using Tauron.Application.Files.Serialization.Core.Fluent.Xml;
 using Tauron.Application.Files.Serialization.Core.Impl;
+using Tauron.Application.Files.Serialization.Core.Impl.Xml;
 
 namespace Tauron.Application.Files
 {

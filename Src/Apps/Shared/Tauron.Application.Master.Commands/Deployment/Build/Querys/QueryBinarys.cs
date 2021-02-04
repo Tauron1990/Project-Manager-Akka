@@ -1,5 +1,5 @@
 ﻿using JetBrains.Annotations;
-using Tauron.Application.AkkNode.Services.Commands;
+using Tauron.Application.AkkaNode.Services.Commands;
 
 namespace Tauron.Application.Master.Commands.Deployment.Build.Querys
 {

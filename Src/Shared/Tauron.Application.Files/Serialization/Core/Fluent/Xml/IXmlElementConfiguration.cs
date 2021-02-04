@@ -1,7 +1,7 @@
 ﻿using System.Xml.Serialization;
 using JetBrains.Annotations;
 
-namespace Tauron.Application.Files.Serialization.Core.Fluent
+namespace Tauron.Application.Files.Serialization.Core.Fluent.Xml
 {
     [PublicAPI]
     public interface IXmlElementConfiguration : IXmlRootConfiguration<IXmlElementConfiguration>

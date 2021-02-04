@@ -3,11 +3,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
 using JetBrains.Annotations;
-using Tauron.Application.AkkNode.Services.Core;
-using Tauron.Application.AkkNode.Services.FileTransfer.Operator;
+using Tauron.Application.AkkaNode.Services.Core;
+using Tauron.Application.AkkaNode.Services.FileTransfer.Operator;
 using Tauron.Features;
 
-namespace Tauron.Application.AkkNode.Services.FileTransfer
+namespace Tauron.Application.AkkaNode.Services.FileTransfer
 {
     [PublicAPI]
     public sealed class DataTransferManager

@@ -1,6 +1,6 @@
 ﻿using JetBrains.Annotations;
 
-namespace Tauron.Application.Files.Serialization.Core.Fluent
+namespace Tauron.Application.Files.Serialization.Core.Fluent.Ini
 {
     [PublicAPI]
     public interface IIniSerializerConfiguration : ISerializerRootConfiguration, IConstructorConfig<IIniSerializerConfiguration>

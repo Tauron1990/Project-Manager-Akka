@@ -2,9 +2,9 @@
 using System.IO;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
-using Tauron.Application.AkkNode.Services.FileTransfer;
+using Tauron.Application.AkkaNode.Services.FileTransfer;
 
-namespace Tauron.Application.AkkNode.Services.Commands
+namespace Tauron.Application.AkkaNode.Services.Commands
 {
     [PublicAPI]
     public abstract record FileTransferCommand<TSender, TThis> : ReporterCommandBase<TSender, TThis> 

@@ -29,7 +29,7 @@ using Akkatecture.Aggregates;
 using Akkatecture.Sagas;
 using Akkatecture.Subscribers;
 
-namespace Akkatecture.Clustering.Extentions
+namespace Akkatecture.Cluster.Extentions
 {
     public static class TypeExtensions
     {

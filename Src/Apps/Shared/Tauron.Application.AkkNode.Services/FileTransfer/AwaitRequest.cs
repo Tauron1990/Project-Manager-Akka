@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace Tauron.Application.AkkNode.Services.FileTransfer
+namespace Tauron.Application.AkkaNode.Services.FileTransfer
 {
     public sealed class AwaitResponse
     {

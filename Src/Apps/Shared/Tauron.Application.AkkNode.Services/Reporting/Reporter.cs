@@ -7,7 +7,7 @@ using Akka.Util;
 using JetBrains.Annotations;
 using Tauron.Operations;
 
-namespace Tauron.Application.AkkNode.Services
+namespace Tauron.Application.AkkaNode.Services
 {
     [PublicAPI]
     public sealed class Reporter
@@ -94,6 +94,7 @@ namespace Tauron.Application.AkkNode.Services
         {
             if (_compledCalled.GetAndSet(true))
                 throw new InvalidOperationException("Reporter is Compled");
+
             _reporter.Tell(result);
         }
 

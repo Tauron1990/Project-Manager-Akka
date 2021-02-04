@@ -25,10 +25,10 @@ using System;
 using System.Linq.Expressions;
 using Akka.Actor;
 using Akka.Cluster.Tools.Singleton;
-using Akkatecture.Clustering.Dispatchers;
+using Akkatecture.Cluster.Dispatchers;
 using Akkatecture.Subscribers;
 
-namespace Akkatecture.Clustering.Core
+namespace Akkatecture.Cluster.Core
 {
     public static class SingletonFactory<TDomainEventSubscriber>
         where TDomainEventSubscriber : DomainEventSubscriber

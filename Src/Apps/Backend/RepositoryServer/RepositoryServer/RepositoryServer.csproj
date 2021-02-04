@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,7 +20,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Tauron.Application.AkkaNode.Boottrap\Tauron.Application.AkkaNode.Boottrap.csproj" />
+    <ProjectReference Include="..\..\..\Shared\Tauron.Application.AkkaNode.Boottrap\Tauron.Application.AkkaNode.Boottrap.csproj" />
+    <ProjectReference Include="..\ServiceManager.ProjectRepository\ServiceManager.ProjectRepository.csproj" />
   </ItemGroup>
 
 </Project>

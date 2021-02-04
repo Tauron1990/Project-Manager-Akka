@@ -1,11 +1,12 @@
 ﻿using System;
 using JetBrains.Annotations;
 using Tauron.Application.Files.HeaderedText;
+using Tauron.Application.Files.Serialization.Core.Fluent.HeaderedFile;
 using Tauron.Application.Files.Serialization.Core.Impl;
 using Tauron.Application.Files.Serialization.Core.Impl.Mapper.HeaderedText;
 using Tauron.Application.Files.Serialization.Core.Managment;
 
-namespace Tauron.Application.Files.Serialization.Core.Fluent.Impl
+namespace Tauron.Application.Files.Serialization.Core.Fluent.Impl.HeaderedFile
 {
     internal class HeaderedFileSerializerConfiguration : SerializerRootConfigurationBase, IHeaderedFileSerializerConfiguration
     {

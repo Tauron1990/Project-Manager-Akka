@@ -23,7 +23,7 @@
 
 using Akka.Configuration;
 
-namespace Akkatecture.Clustering.Configuration
+namespace Akkatecture.Cluster.Configuration
 {
     public class AkkatectureClusteringDefaultSettings
     {

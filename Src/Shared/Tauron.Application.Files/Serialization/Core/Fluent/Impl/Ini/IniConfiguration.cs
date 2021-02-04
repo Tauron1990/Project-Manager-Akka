@@ -1,10 +1,11 @@
 ﻿using System;
 using JetBrains.Annotations;
+using Tauron.Application.Files.Serialization.Core.Fluent.Ini;
 using Tauron.Application.Files.Serialization.Core.Impl;
 using Tauron.Application.Files.Serialization.Core.Impl.Mapper.Ini;
 using Tauron.Application.Files.Serialization.Core.Managment;
 
-namespace Tauron.Application.Files.Serialization.Core.Fluent.Impl
+namespace Tauron.Application.Files.Serialization.Core.Fluent.Impl.Ini
 {
     internal class IniConfiguration : SerializerRootConfigurationBase, IIniSerializerConfiguration
     {

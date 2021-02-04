@@ -1,6 +1,6 @@
 ﻿using Tauron.Application.Files.Serialization.Core.Managment;
 
-namespace Tauron.Application.Files.Serialization.Core.Impl
+namespace Tauron.Application.Files.Serialization.Core.Impl.Converter
 {
     internal class StringCnverter : SimpleConverter<string>
     {

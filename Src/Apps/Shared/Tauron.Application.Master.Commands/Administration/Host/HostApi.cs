@@ -3,7 +3,7 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Akka.Actor;
 using JetBrains.Annotations;
-using Tauron.Application.AkkNode.Services.Core;
+using Tauron.Application.AkkaNode.Services.Core;
 using Tauron.Features;
 
 namespace Tauron.Application.Master.Commands.Administration.Host

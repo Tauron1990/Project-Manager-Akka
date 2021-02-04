@@ -1,4 +1,4 @@
-﻿namespace Tauron.Application.AkkaNode.Bootstrap.Console
+﻿namespace WpfApp
 {
     public enum IpcApplicationType
     {

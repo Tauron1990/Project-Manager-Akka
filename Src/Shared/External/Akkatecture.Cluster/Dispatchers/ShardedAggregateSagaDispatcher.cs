@@ -25,13 +25,13 @@ using Akka.Actor;
 using Akka.Event;
 using Akka.Persistence;
 using Akkatecture.Aggregates;
-using Akkatecture.Clustering.Core;
-using Akkatecture.Clustering.Extentions;
+using Akkatecture.Cluster.Core;
+using Akkatecture.Cluster.Extentions;
 using Akkatecture.Extensions;
 using Akkatecture.Sagas;
 using Akkatecture.Sagas.AggregateSaga;
 
-namespace Akkatecture.Clustering.Dispatchers
+namespace Akkatecture.Cluster.Dispatchers
 {
     public class ShardedAggregateSagaDispatcher<TAggregateSagaManager, TAggregateSaga, TIdentity, TSagaLocator> : ReceiveActor
         where TAggregateSagaManager : ReceiveActor, IAggregateSagaManager<TAggregateSaga, TIdentity, TSagaLocator>

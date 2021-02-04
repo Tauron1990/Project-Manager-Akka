@@ -12,62 +12,62 @@ using Octokit;
 using ServiceManager.ProjectRepository.Core;
 using ServiceManager.ProjectRepository.Data;
 using Tauron;
-using Tauron.Application.AkkNode.Services;
-using Tauron.Application.AkkNode.Services.CleanUp;
-using Tauron.Application.AkkNode.Services.Commands;
-using Tauron.Application.AkkNode.Services.FileTransfer;
+using Tauron.Application.AkkaNode.Services;
+using Tauron.Application.AkkaNode.Services.CleanUp;
+using Tauron.Application.AkkaNode.Services.Commands;
+using Tauron.Application.AkkaNode.Services.FileTransfer;
 using Tauron.Application.Master.Commands.Deployment.Repository;
+using Tauron.Features;
 using Tauron.Operations;
 using Tauron.Temp;
 
 namespace ServiceManager.ProjectRepository.Actors
 {
-    public sealed class OperatorActor : ReportingActor, IWithTimers
+    public sealed class OperatorActor : ReportingActor<OperatorActor.OperatorState>, IWithTimers
     {
         private static readonly ReaderWriterLockSlim UpdateLock = new();
 
-        private readonly IMongoCollection<RepositoryEntry> _repos;
-        private readonly GridFSBucket _bucket;
-        private readonly IMongoCollection<ToDeleteRevision> _revisions;
-        private readonly DataTransferManager _dataTransfer;
-        private readonly GitHubClient _gitHubClient;
-        private readonly Dictionary<string, ITempFile> _currentTransfers = new();
+        public sealed record OperatorState(IMongoCollection<RepositoryEntry> Repos, GridFSBucket Bucket, IMongoCollection<ToDeleteRevision> Revisions, DataTransferManager DataTransferManager,
+            GitHubClient GitHubClient, Dictionary<string, ITempFile> CurrentTransfers);
 
-        public OperatorActor(IMongoCollection<RepositoryEntry> repos, GridFSBucket bucket, IMongoCollection<ToDeleteRevision> revisions, DataTransferManager dataTransfer)
+        public static IPreparedFeature New(IMongoCollection<RepositoryEntry> repos, GridFSBucket bucket, IMongoCollection<ToDeleteRevision> revisions, DataTransferManager dataTransfer)
+            => Feature.Create(() => new OperatorActor(), c => new OperatorState(repos, bucket, revisions, dataTransfer,
+                                                                                new GitHubClient(new ProductHeaderValue(
+                                                                                                     c.System.Settings.Config.GetString("akka.appinfo.applicationName",
+                                                                                                                                        "Test Apps").Replace(' ', '_'))),
+                                                             new Dictionary<string, ITempFile>()));
+
+        protected override void Config()
         {
-            _repos = repos;
-            _bucket = bucket;
-            _revisions = revisions;
-            _dataTransfer = dataTransfer;
-            _gitHubClient = new GitHubClient(new ProductHeaderValue(Context.System.Settings.Config.GetString("akka.appinfo.applicationName", "Test Apps").Replace(' ', '_')));
-
             Receive<RegisterRepository>("RegisterRepository", RegisterRepository);
-            
+
             Receive<TransferRepository>("RequestRepository", RequestRepository);
 
             Receive<TransferMessages.TransferCompled>(obs =>
                                                           obs.SubscribeWithStatus(c =>
                                                                                   {
-                                                                                      if (_currentTransfers.TryGetValue(c.OperationId, out var f))
+                                                                                      if (c.State.CurrentTransfers.TryGetValue(c.Event.OperationId, out var f))
                                                                                           f.Dispose();
                                                                                       Context.Stop(Self);
                                                                                   }));
         }
-
-        private void RegisterRepository(RegisterRepository repository, Reporter reporter)
+        
+        private void RegisterRepository(StatePair<RegisterRepository, OperatorState> msg, Reporter reporter)
         {
+            var ((repoName, ignoreDuplicate), (repos, _, _, _, gitHubClient, _), _) = msg;
+
             UpdateLock.EnterUpgradeableReadLock();
             try
             {
-                Log.Info("Incomming Registration Request for Repository {Name}", repository.RepoName);
+                Log.Info("Incomming Registration Request for Repository {Name}", repoName);
 
                 reporter.Send(RepositoryMessages.GetRepo);
-                var data = _repos.AsQueryable().FirstOrDefault(e => e.RepoName == repository.RepoName);
+                var data = repos.AsQueryable().FirstOrDefault(e => e.RepoName == repoName);
 
                 if (data != null)
                 {
-                    Log.Info("Repository {Name} is Registrated", repository.RepoName);
-                    if (repository.IgnoreDuplicate)
+                    Log.Info("Repository {Name} is Registrated", repoName);
+                    if (ignoreDuplicate)
                     {
                         reporter.Compled(OperationResult.Success());
                         return;
@@ -76,27 +76,27 @@ namespace ServiceManager.ProjectRepository.Actors
                     return;
                 }
 
-                if (!repository.RepoName.Contains('/'))
+                if (!repoName.Contains('/'))
                 {
-                    Log.Info("Repository {Name} Name is Invalid", repository.RepoName);
+                    Log.Info("Repository {Name} Name is Invalid", repoName);
                     reporter.Compled(OperationResult.Failure(RepoErrorCodes.InvalidRepoName));
                     return;
                 }
 
-                var nameSplit = repository.RepoName.Split('/');
-                var repoInfo = _gitHubClient.Repository.Get(nameSplit[0], nameSplit[1]).Result;
+                var nameSplit = repoName.Split('/');
+                var repoInfo = gitHubClient.Repository.Get(nameSplit[0], nameSplit[1]).Result;
 
                 if (repoInfo == null)
                 {
-                    Log.Info("Repository {Name} Name not found on Github", repository.RepoName);
+                    Log.Info("Repository {Name} Name not found on Github", repoName);
                     reporter.Compled(OperationResult.Failure(RepoErrorCodes.GithubNoRepoFound));
                     return;
                 }
 
-                Log.Info("Savin new Repository {Name} on Database", repository.RepoName);
+                Log.Info("Savin new Repository {Name} on Database", repoName);
                 data = new RepositoryEntry
                        {
-                           RepoName = repository.RepoName,
+                           RepoName = repoName,
                            SourceUrl = repoInfo.CloneUrl,
                            RepoId = repoInfo.Id
                        };
@@ -104,7 +104,7 @@ namespace ServiceManager.ProjectRepository.Actors
                 UpdateLock.EnterWriteLock();
                 try
                 {
-                    _repos.InsertOne(data);
+                    repos.InsertOne(data);
                 }
                 finally
                 {
@@ -120,8 +120,10 @@ namespace ServiceManager.ProjectRepository.Actors
             }
         }
 
-        private void RequestRepository(TransferRepository repository, Reporter reporter)
+        private void RequestRepository(StatePair<TransferRepository, OperatorState> msg, Reporter reporter)
         {
+            var (repository, (repos, bucket, _, dataTransfer, gitHubClient, currentTransfers), _) = msg;
+
             var repozipFile = RepoEnv.TempFiles.CreateFile();
             UpdateLock.EnterUpgradeableReadLock();
             try
@@ -129,23 +131,23 @@ namespace ServiceManager.ProjectRepository.Actors
                 Log.Info("Incomming Transfer Request for Repository {Name}", repository.RepoName);
                 reporter.Send(RepositoryMessages.GetRepo);
 
-                var data = _repos.AsQueryable().FirstOrDefault(r => r.RepoName == repository.RepoName);
+                var data = repos.AsQueryable().FirstOrDefault(r => r.RepoName == repository.RepoName);
                 if (data == null)
                 {
                     reporter.Compled(OperationResult.Failure(RepoErrorCodes.DatabaseNoRepoFound));
                     return;
                 }
 
-                var commitInfo = _gitHubClient.Repository.Commit.GetSha1(data.RepoId, "HEAD").Result;
+                var commitInfo = gitHubClient.Repository.Commit.GetSha1(data.RepoId, "HEAD").Result;
 
                 var repozip = repozipFile.Stream;
 
-                if (!(commitInfo != data.LastUpdate && UpdateRepository(data, reporter, repository, commitInfo, repozip)))
+                if (!(commitInfo != data.LastUpdate && UpdateRepository(data, reporter, repository, commitInfo, repozip, msg.State)))
                 {
                     reporter.Send(RepositoryMessages.GetRepositoryFromDatabase);
                     Log.Info("Downloading Repository {Name} From Server", repository.RepoName);
                     repozip.SetLength(0);
-                    _bucket.DownloadToStream(ObjectId.Parse(data.FileName), repozip);
+                    bucket.DownloadToStream(ObjectId.Parse(data.FileName), repozip);
                 }
 
                 //_reporter = reporter;
@@ -156,8 +158,8 @@ namespace ServiceManager.ProjectRepository.Actors
                 var request = DataTransferRequest.FromStream(repository.OperationId, repozip, repository.Manager ?? throw new ArgumentNullException(@"FileManager"), commitInfo);
                 request.SendCompletionBack = true;
 
-                _dataTransfer.Request(request);
-                _currentTransfers[request.OperationId] = repozipFile;
+                dataTransfer.Request(request);
+                currentTransfers[request.OperationId] = repozipFile;
 
                 reporter.Compled(OperationResult.Success(new FileTransactionId(request.OperationId)));
             }
@@ -167,8 +169,10 @@ namespace ServiceManager.ProjectRepository.Actors
             }
         }
         
-        private bool UpdateRepository(RepositoryEntry data, Reporter reporter, TransferRepository repository, string commitInfo, Stream repozip)
+        private bool UpdateRepository(RepositoryEntry data, Reporter reporter, TransferRepository repository, string commitInfo, Stream repozip, OperatorState state)
         {
+            var (repos, bucket, revisions, _, _, _) = state;
+
             Log.Info("Try Update Repository");
             UpdateLock.EnterWriteLock();
             try
@@ -177,17 +181,18 @@ namespace ServiceManager.ProjectRepository.Actors
                 var repoConfiguration = new RepositoryConfiguration(data.SourceUrl, reporter);
                 using var repoPath = RepoEnv.TempFiles.CreateDic();
 
-                var data2 = _repos.AsQueryable().FirstOrDefault(r => r.RepoName == repository.RepoName);
+                var (repoName, _) = repository;
+                var data2 = repos.AsQueryable().FirstOrDefault(r => r.RepoName == repoName);
                 if (data2 != null && commitInfo != data2.LastUpdate)
                 {
                     if (!string.IsNullOrWhiteSpace(data.FileName))
                     {
                         try
                         {
-                            Log.Info("Downloading Repository {Name} From Server", repository.RepoName);
+                            Log.Info("Downloading Repository {Name} From Server", repoName);
 
                             reporter.Send(RepositoryMessages.GetRepositoryFromDatabase);
-                            _bucket.DownloadToStream(ObjectId.Parse(data.FileName), repozip);
+                            bucket.DownloadToStream(ObjectId.Parse(data.FileName), repozip);
 
                             downloadCompled = true;
                         }
@@ -199,7 +204,7 @@ namespace ServiceManager.ProjectRepository.Actors
 
                     if (downloadCompled)
                     {
-                        Log.Info("Unpack Repository {Name}", repository.RepoName);
+                        Log.Info("Unpack Repository {Name}", repoName);
 
                         repozip.Seek(0, SeekOrigin.Begin);
                         using var unpackZip = new ZipArchive(repozip);
@@ -208,12 +213,12 @@ namespace ServiceManager.ProjectRepository.Actors
                         unpackZip.ExtractToDirectory(repoPath.FullPath);
                     }
 
-                    Log.Info("Execute Git Pull for {Name}", repository.RepoName);
+                    Log.Info("Execute Git Pull for {Name}", repoName);
                     using var updater = GitUpdater.GetOrNew(repoConfiguration);
                     var result = updater.RunUpdate(repoPath.FullPath);
                     var dataUpdate = Builders<RepositoryEntry>.Update.Set(e => e.LastUpdate, result.Sha);
 
-                    Log.Info("Compress Repository {Name}", repository.RepoName);
+                    Log.Info("Compress Repository {Name}", repoName);
                     reporter.Send(RepositoryMessages.CompressRepository);
 
                     if (repozip.Length != 0)
@@ -224,16 +229,16 @@ namespace ServiceManager.ProjectRepository.Actors
 
                     repozip.Seek(0, SeekOrigin.Begin);
 
-                    Log.Info("Upload and Update Repository {Name}", repository.RepoName);
+                    Log.Info("Upload and Update Repository {Name}", repoName);
                     reporter.Send(RepositoryMessages.UploadRepositoryToDatabase);
                     var current = data.FileName;
-                    var id = _bucket.UploadFromStream(repository.RepoName.Replace('/', '_') + ".zip", repozip);
+                    var id = bucket.UploadFromStream(repoName.Replace('/', '_') + ".zip", repozip);
                     dataUpdate = dataUpdate.Set(e => e.FileName, id.ToString());
 
                     if (!string.IsNullOrWhiteSpace(current))
-                        _revisions.InsertOne(new ToDeleteRevision(current));
+                        revisions.InsertOne(new ToDeleteRevision(current));
 
-                    _repos.UpdateOne(e => e.RepoName == data.RepoName, dataUpdate);
+                    repos.UpdateOne(e => e.RepoName == data.RepoName, dataUpdate);
                     data.FileName = id.ToString();
 
                     repozip.Seek(0, SeekOrigin.Begin);

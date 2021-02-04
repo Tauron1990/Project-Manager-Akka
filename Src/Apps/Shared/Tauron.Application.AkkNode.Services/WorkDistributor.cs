@@ -7,7 +7,7 @@ using JetBrains.Annotations;
 using Tauron.Akka;
 using Tauron.Features;
 
-namespace Tauron.Application.AkkNode.Services
+namespace Tauron.Application.AkkaNode.Services
 {
     [PublicAPI]
     public interface IWorkDistributor<in TInput>
@@ -35,7 +35,7 @@ namespace Tauron.Application.AkkNode.Services
         {
             var actor = factory.ActorOf(name, 
                                         Feature.Create(() => new WorkDistributorFeature<TInput, TFinishMessage>(), 
-                                                       () => new WorkDistributorFeatureState(new DistributorConfig(worker, workerName, timeout, 5))));
+                                                       _ => new WorkDistributorFeatureState(new DistributorConfig(worker, workerName, timeout, 5))));
 
             return new WorkSender(actor);
         }

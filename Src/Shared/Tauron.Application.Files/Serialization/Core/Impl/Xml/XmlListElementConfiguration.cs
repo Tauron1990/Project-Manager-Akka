@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Xml.Linq;
 using Tauron.Application.Files.Serialization.Core.Fluent;
+using Tauron.Application.Files.Serialization.Core.Fluent.Xml;
 using Tauron.Application.Files.Serialization.Core.Impl.Mapper.Xml;
 using Tauron.Application.Files.Serialization.Core.Managment;
 
-namespace Tauron.Application.Files.Serialization.Core.Impl
+namespace Tauron.Application.Files.Serialization.Core.Impl.Xml
 {
     internal class XmlListElementConfiguration : IXmlListElementConfiguration, IXmlListAttributeConfiguration
     {

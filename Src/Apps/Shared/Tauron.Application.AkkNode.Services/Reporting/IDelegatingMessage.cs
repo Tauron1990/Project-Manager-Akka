@@ -1,6 +1,4 @@
-﻿using Akka.Actor;
-
-namespace Tauron.Application.AkkNode.Services
+﻿namespace Tauron.Application.AkkaNode.Services
 {
     public interface IDelegatingMessage
     {

@@ -2,7 +2,7 @@
 using System.IO;
 using JetBrains.Annotations;
 
-namespace Tauron.Application.AkkNode.Services.FileTransfer
+namespace Tauron.Application.AkkaNode.Services.FileTransfer
 {
     [PublicAPI]
     public abstract class DataTransferRequest : TransferMessages.TransferMessage

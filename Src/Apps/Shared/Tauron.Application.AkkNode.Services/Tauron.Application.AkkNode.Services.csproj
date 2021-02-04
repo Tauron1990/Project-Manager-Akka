@@ -3,6 +3,8 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <Nullable>enable</Nullable>
+    <AssemblyName>Tauron.Application.AkkaNode.Services</AssemblyName>
+    <RootNamespace>Tauron.Application.AkkaNode.Services</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

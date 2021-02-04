@@ -2,7 +2,7 @@
 using System.Runtime.Serialization.Formatters;
 using JetBrains.Annotations;
 
-namespace Tauron.Application.Files.Serialization.Core.Fluent
+namespace Tauron.Application.Files.Serialization.Core.Fluent.Binary
 {
     [PublicAPI]
     public interface IBinaryConfiguration : ISerializerRootConfiguration
