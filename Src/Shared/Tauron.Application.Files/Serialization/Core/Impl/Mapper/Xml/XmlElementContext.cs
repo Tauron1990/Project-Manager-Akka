@@ -45,7 +45,8 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Mapper.Xml
         {
             if (Original.SerializerMode != SerializerMode.Serialize) return;
 
-            using (var writer = XmlWriter.Create(TextWriter, new XmlWriterSettings {Indent = true, NamespaceHandling = NamespaceHandling.OmitDuplicates}))
+            using (var writer = XmlWriter.Create(TextWriter,
+                new XmlWriterSettings {Indent = true, NamespaceHandling = NamespaceHandling.OmitDuplicates}))
             {
                 _currentElement?.WriteTo(writer);
                 _currentElement = null;

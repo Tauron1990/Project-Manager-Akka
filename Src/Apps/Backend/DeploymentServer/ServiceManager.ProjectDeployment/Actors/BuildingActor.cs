@@ -31,23 +31,6 @@ namespace ServiceManager.ProjectDeployment.Actors
     public sealed class BuildPaths : IDisposable
     {
         private ITempFile? _repoFile;
-        public ITempDic BasePath { get; } = TempDic.Null;
-
-        public ITempFile RepoFile
-        {
-            get
-            {
-                if (_repoFile != null) return _repoFile;
-                
-                _repoFile = BasePath.CreateFile();
-                _repoFile.NoStreamDispose = true;
-
-                return _repoFile;
-            }
-        }
-
-        public ITempDic BuildPath { get; } = TempDic.Null;
-        public ITempDic RepoPath { get; } = TempDic.Null;
 
         public BuildPaths(ITempDic basePath)
         {
@@ -58,10 +41,27 @@ namespace ServiceManager.ProjectDeployment.Actors
 
         public BuildPaths()
         {
-            
         }
 
-        public void Dispose() 
+        public ITempDic BasePath { get; } = TempDic.Null;
+
+        public ITempFile RepoFile
+        {
+            get
+            {
+                if (_repoFile != null) return _repoFile;
+
+                _repoFile = BasePath.CreateFile();
+                _repoFile.NoStreamDispose = true;
+
+                return _repoFile;
+            }
+        }
+
+        public ITempDic BuildPath { get; } = TempDic.Null;
+        public ITempDic RepoPath { get; } = TempDic.Null;
+
+        public void Dispose()
             => BasePath.Dispose();
     }
 
@@ -70,7 +70,7 @@ namespace ServiceManager.ProjectDeployment.Actors
         public Reporter? Reporter { get; private set; }
 
         public AppData AppData { get; private set; } = AppData.Empty;
-        
+
         public RepositoryApi Api { get; private set; } = RepositoryApi.Empty;
 
         private IActorRef CurrentListner { get; set; } = ActorRefs.Nobody;
@@ -79,7 +79,7 @@ namespace ServiceManager.ProjectDeployment.Actors
 
         public string OperationId { get; private set; } = string.Empty;
 
-        public BuildPaths Paths { get; private set; } = new BuildPaths();
+        public BuildPaths Paths { get; private set; } = new();
 
         public ITempFile Target { get; private set; } = null!;
 
@@ -98,7 +98,7 @@ namespace ServiceManager.ProjectDeployment.Actors
             CompletionSource = request.CompletionSource;
             return this;
         }
-        
+
         public BuildData SetError(string error)
         {
             Error = error;
@@ -155,8 +155,9 @@ namespace ServiceManager.ProjectDeployment.Actors
                         var newData = evt.StateData.Set(request);
 
                         new TransferRepository(newData.AppData.Repository, newData.OperationId)
-                           .Send(newData.Api, TimeSpan.FromMinutes(5), fileHandler, newData.Reporter!.Send, () => newData.Paths.RepoFile.Stream)
-                           .PipeTo(Self);
+                            .Send(newData.Api, TimeSpan.FromMinutes(5), fileHandler, newData.Reporter!.Send,
+                                () => newData.Paths.RepoFile.Stream)
+                            .PipeTo(Self);
                         return GoTo(BuildState.Repository)
                             .Using(newData.SetListner(ActorRefs.Nobody));
                     }
@@ -170,7 +171,8 @@ namespace ServiceManager.ProjectDeployment.Actors
                 switch (evt.FsmEvent)
                 {
                     case TransferFailed fail:
-                        _log.Warning("Repository Transfer Failed {Name}--{Reason}", evt.StateData.AppData.Name, fail.Reason);
+                        _log.Warning("Repository Transfer Failed {Name}--{Reason}", evt.StateData.AppData.Name,
+                            fail.Reason);
                         if (fail.OperationId != evt.StateData.OperationId)
                             return Stay();
                         return GoTo(BuildState.Failing)
@@ -181,7 +183,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                             return Stay();
                         evt.StateData.Commit = c.Data ?? "Unkowen";
                         return GoTo(BuildState.Extracting)
-                           .ReplyingSelf(Trigger.Inst);
+                            .ReplyingSelf(Trigger.Inst);
                     default:
                         return null;
                 }
@@ -201,13 +203,12 @@ namespace ServiceManager.ProjectDeployment.Actors
                             stream.Seek(0, SeekOrigin.Begin);
                             using var archive = new ZipArchive(stream, ZipArchiveMode.Read);
                             archive.ExtractToDirectory(paths.RepoPath.FullPath, true);
-
-                        }).PipeTo(Self, success:() => new Status.Success(null));
+                        }).PipeTo(Self, success: () => new Status.Success(null));
                         return Stay();
                     case Status.Success _:
                         _log.Info("Repository Extracted {Name}", evt.StateData.AppData.Name);
                         return GoTo(BuildState.Building)
-                           .ReplyingSelf(Trigger.Inst);
+                            .ReplyingSelf(Trigger.Inst);
                     default:
                         return null;
                 }
@@ -221,14 +222,17 @@ namespace ServiceManager.ProjectDeployment.Actors
                         evt.StateData.Reporter?.Send(DeploymentMessages.BuildRunBuilding);
                         try
                         {
-                            _log.Info("Try Find Project {ProjectName} for {Name}", evt.StateData.AppData.ProjectName, evt.StateData.AppData.Name);
+                            _log.Info("Try Find Project {ProjectName} for {Name}", evt.StateData.AppData.ProjectName,
+                                evt.StateData.AppData.Name);
                             evt.StateData.Reporter?.Send(DeploymentMessages.BuildTryFindProject);
                             var finder = new ProjectFinder(new DirectoryInfo(evt.StateData.Paths.RepoPath.FullPath));
                             var file = finder.Search(evt.StateData.AppData.ProjectName);
                             if (file == null)
                             {
-                                _log.Warning("Project {ProjectName} Not found for {Name}", evt.StateData.AppData.ProjectName, evt.StateData.AppData.Name);
-                                return GoTo(BuildState.Failing).Using(evt.StateData.SetError(BuildErrorCodes.BuildProjectNotFound));
+                                _log.Warning("Project {ProjectName} Not found for {Name}",
+                                    evt.StateData.AppData.ProjectName, evt.StateData.AppData.Name);
+                                return GoTo(BuildState.Failing)
+                                    .Using(evt.StateData.SetError(BuildErrorCodes.BuildProjectNotFound));
                             }
 
                             _log.Info("Start Building Task for {Name}", evt.StateData.AppData.Name);
@@ -240,19 +244,25 @@ namespace ServiceManager.ProjectDeployment.Actors
                                 log = s => { };
 
                             Task
-                               .Run(async () => await DotNetBuilder.BuildApplication(file, evt.StateData.Paths.BuildPath.FullPath, log))
-                               .PipeTo(Self, success: s => string.IsNullOrWhiteSpace(s) ? OperationResult.Success() : OperationResult.Failure(s));
+                                .Run(async ()
+                                    => await DotNetBuilder.BuildApplication(file,
+                                        evt.StateData.Paths.BuildPath.FullPath, log))
+                                .PipeTo(Self,
+                                    success: s => string.IsNullOrWhiteSpace(s)
+                                        ? OperationResult.Success()
+                                        : OperationResult.Failure(s));
 
                             return Stay();
                         }
                         catch (Exception e)
                         {
                             evt.StateData.CompletionSource?.TrySetException(e);
-                            return GoTo(BuildState.Failing).Using(evt.StateData.SetError(e.Unwrap()?.Message ?? "Unkowen"));
+                            return GoTo(BuildState.Failing)
+                                .Using(evt.StateData.SetError(e.Unwrap()?.Message ?? "Unkowen"));
                         }
                     case IOperationResult result:
-                        return !result.Ok 
-                            ? GoTo(BuildState.Failing).Using(StateData.SetError(result.Error ?? string.Empty)) 
+                        return !result.Ok
+                            ? GoTo(BuildState.Failing).Using(StateData.SetError(result.Error ?? string.Empty))
                             : GoTo(BuildState.Compressing).ReplyingSelf(Trigger.Inst);
                     default:
                         return null;
@@ -268,7 +278,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                         {
                             using var zip = new ZipArchive(evt.StateData.Target.Stream, ZipArchiveMode.Create, true);
                             zip.AddFilesFromDictionary(evt.StateData.Paths.BuildPath.FullPath);
-                        }).PipeTo(Self, success:() => new Status.Success(null));
+                        }).PipeTo(Self, success: () => new Status.Success(null));
                         return Stay();
                     case Status.Success _:
                         evt.StateData.CompletionSource?.SetResult((StateData.Commit, StateData.Target));
@@ -284,8 +294,8 @@ namespace ServiceManager.ProjectDeployment.Actors
             {
                 evt.StateData.Target.Dispose();
                 return GoTo(BuildState.Waiting)
-                   .Using(evt.StateData.Clear(_log))
-                   .ReplyingParent(BuildCompled.Inst);
+                    .Using(evt.StateData.Clear(_log))
+                    .ReplyingParent(BuildCompled.Inst);
             });
 
             WhenUnhandled(evt =>
@@ -301,9 +311,11 @@ namespace ServiceManager.ProjectDeployment.Actors
                         _log.Info("Timeout in Building {Name}", evt.StateData.AppData.Name);
                         return GoTo(BuildState.Failing).Using(evt.StateData.SetError(Reporter.TimeoutError));
                     case Status.Failure f when StateName != BuildState.Waiting:
-                        _log.Warning("Operation Failed {Name}--{Error}", evt.StateData.AppData.Name, f.Cause.Unwrap()?.Message);
+                        _log.Warning("Operation Failed {Name}--{Error}", evt.StateData.AppData.Name,
+                            f.Cause.Unwrap()?.Message);
                         evt.StateData.CompletionSource?.TrySetException(f.Cause);
-                        return GoTo(BuildState.Failing).Using(evt.StateData.SetError(f.Cause.Unwrap()?.Message ?? "Unkowen"));
+                        return GoTo(BuildState.Failing)
+                            .Using(evt.StateData.SetError(f.Cause.Unwrap()?.Message ?? "Unkowen"));
                     default:
                         return Stay();
                 }
@@ -316,8 +328,8 @@ namespace ServiceManager.ProjectDeployment.Actors
                     case BuildState.Failing:
                         StateData.Reporter?.Compled(
                             OperationResult.Failure(string.IsNullOrWhiteSpace(StateData.Error)
-                            ? BuildErrorCodes.GernalBuildError
-                            : StateData.Error));
+                                ? BuildErrorCodes.GernalBuildError
+                                : StateData.Error));
                         Self.Tell(Trigger.Inst);
                         break;
                 }
@@ -345,7 +357,7 @@ namespace ServiceManager.ProjectDeployment.Actors
 
         private sealed class Trigger
         {
-            public static readonly Trigger Inst = new Trigger();
+            public static readonly Trigger Inst = new();
         }
     }
 }

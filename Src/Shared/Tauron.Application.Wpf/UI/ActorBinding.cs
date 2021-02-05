@@ -26,9 +26,12 @@ namespace Tauron.Application.Wpf.UI
                 if (DesignerProperties.GetIsInDesignMode(dependencyObject))
                     return DependencyProperty.UnsetValue;
 
-                if (!ControlBindLogic.FindDataContext(ElementMapper.Create(dependencyObject), out var model)) return null;
+                if (!ControlBindLogic.FindDataContext(ElementMapper.Create(dependencyObject), out var model))
+                    return null;
 
-                Path = Path != null ? new PropertyPath("Value." + Path.Path, Path.PathParameters) : new PropertyPath("Value");
+                Path = Path != null
+                    ? new PropertyPath("Value." + Path.Path, Path.PathParameters)
+                    : new PropertyPath("Value");
                 Source = new DeferredSource(_name, model);
                 Binding.Delay = 200;
                 UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;

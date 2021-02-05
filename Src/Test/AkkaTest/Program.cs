@@ -13,11 +13,10 @@ namespace AkkaTest
             var id = Guid.NewGuid().ToString("N");
 
             _master = new TextIpc(id, false);
-            
+
 
             try
             {
-
                 _master.Send("Hallo Welt");
 
                 Console.ReadKey();
@@ -29,12 +28,12 @@ namespace AkkaTest
         }
     }
 
-    class TextIpc : IDisposable
+    internal class TextIpc : IDisposable
     {
         private static int _counter = 1;
+        private readonly SharmIpc _ipc;
 
-        private string _name;
-        private SharmIpc _ipc;
+        private readonly string _name;
 
         public TextIpc(string name, bool slave)
         {
@@ -44,10 +43,15 @@ namespace AkkaTest
                 _counter++;
             }
             else
+            {
                 _name = "Master";
+            }
 
-            _ipc = new SharmIpc(name, RemoteCallHandler, ExternalExceptionHandler:((s, exception) => Console.WriteLine(exception.ToString())));
+            _ipc = new SharmIpc(name, RemoteCallHandler,
+                ExternalExceptionHandler: (s, exception) => Console.WriteLine(exception.ToString()));
         }
+
+        public void Dispose() => _ipc.Dispose();
 
         private void RemoteCallHandler(ulong arg1, byte[] arg2)
         {
@@ -56,10 +60,8 @@ namespace AkkaTest
 
         public void Send(string message)
         {
-            if (!_ipc.RemoteRequestWithoutResponse(Encoding.UTF8.GetBytes(message))) 
+            if (!_ipc.RemoteRequestWithoutResponse(Encoding.UTF8.GetBytes(message)))
                 Console.WriteLine("Error on Send");
         }
-
-        public void Dispose() => _ipc.Dispose();
     }
 }

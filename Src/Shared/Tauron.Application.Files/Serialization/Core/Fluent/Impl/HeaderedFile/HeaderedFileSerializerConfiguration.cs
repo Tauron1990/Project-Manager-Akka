@@ -8,7 +8,8 @@ using Tauron.Application.Files.Serialization.Core.Managment;
 
 namespace Tauron.Application.Files.Serialization.Core.Fluent.Impl.HeaderedFile
 {
-    internal class HeaderedFileSerializerConfiguration : SerializerRootConfigurationBase, IHeaderedFileSerializerConfiguration
+    internal class HeaderedFileSerializerConfiguration : SerializerRootConfigurationBase,
+        IHeaderedFileSerializerConfiguration
     {
         private readonly ObjectBuilder _builder;
 
@@ -22,13 +23,17 @@ namespace Tauron.Application.Files.Serialization.Core.Fluent.Impl.HeaderedFile
             _builder = new ObjectBuilder(targetType);
         }
 
-        public IConstructorConfiguration<IHeaderedFileSerializerConfiguration> ConfigConstructor() => new ConstructorConfiguration<IHeaderedFileSerializerConfiguration>(_builder, this);
+        public IConstructorConfiguration<IHeaderedFileSerializerConfiguration> ConfigConstructor()
+            => new ConstructorConfiguration<IHeaderedFileSerializerConfiguration>(_builder, this);
 
-        public IHeaderedFileKeywordConfiguration AddKeyword(string key) => new HeaderedFileKeyCofiguration(this, _mapper, key, MappingType.SingleKey, _targetType);
+        public IHeaderedFileKeywordConfiguration AddKeyword(string key)
+            => new HeaderedFileKeyCofiguration(this, _mapper, key, MappingType.SingleKey, _targetType);
 
-        public IHeaderedFileKeywordConfiguration AddKeywordList(string key) => new HeaderedFileKeyCofiguration(this, _mapper, key, MappingType.MultiKey, _targetType);
+        public IHeaderedFileKeywordConfiguration AddKeywordList(string key)
+            => new HeaderedFileKeyCofiguration(this, _mapper, key, MappingType.MultiKey, _targetType);
 
-        public IHeaderedFileKeywordConfiguration MapContent() => new HeaderedFileKeyCofiguration(this, _mapper, "Content", MappingType.Content, _targetType);
+        public IHeaderedFileKeywordConfiguration MapContent()
+            => new HeaderedFileKeyCofiguration(this, _mapper, "Content", MappingType.Content, _targetType);
 
         public override ISerializer ApplyInternal()
         {

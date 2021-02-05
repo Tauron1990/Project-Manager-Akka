@@ -7,9 +7,9 @@ namespace Servicemnager.Networking.Data
 {
     public sealed class MessageBuffer
     {
-        private readonly MemoryPool<byte> _pool;
-        private readonly NetworkMessageFormatter _messageFormatter;
         private readonly List<Memory<byte>> _incomming = new();
+        private readonly NetworkMessageFormatter _messageFormatter;
+        private readonly MemoryPool<byte> _pool;
 
         public MessageBuffer(MemoryPool<byte> pool)
         {
@@ -19,7 +19,7 @@ namespace Servicemnager.Networking.Data
 
         public NetworkMessage? AddBuffer(Memory<byte> buffer)
         {
-            if(_incomming.Count == 0 && !_messageFormatter.HasHeader(buffer))
+            if (_incomming.Count == 0 && !_messageFormatter.HasHeader(buffer))
                 throw new InvalidOperationException("Incomming Message has no header");
             if (_incomming.Count != 0 && buffer.Length < NetworkMessageFormatter.End.Length)
             {

@@ -12,13 +12,7 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer
     {
         private readonly Timer _denyTimer;
 
-        public event Action? DenyEvent;
-
-        public DataTransferManager Manager { get; }
-        
-        public string? Data { get; }
-
-        public IncomingDataTransfer(string operationId, DataTransferManager manager, string? data) 
+        public IncomingDataTransfer(string operationId, DataTransferManager manager, string? data)
             : base(operationId)
         {
             Manager = manager;
@@ -26,6 +20,12 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer
 
             _denyTimer = new Timer(s => Deny(), null, TimeSpan.FromMinutes(1), Timeout.InfiniteTimeSpan);
         }
+
+        public DataTransferManager Manager { get; }
+
+        public string? Data { get; }
+
+        public event Action? DenyEvent;
 
         public void Deny()
         {

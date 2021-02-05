@@ -36,16 +36,24 @@ namespace Akkatecture.Core
     [PublicAPI]
     public class MetadataContainer : Dictionary<string, string>
     {
-        public MetadataContainer() { }
+        public MetadataContainer()
+        {
+        }
 
         public MetadataContainer(IDictionary<string, string> keyValuePairs)
-            : base(keyValuePairs) { }
+            : base(keyValuePairs)
+        {
+        }
 
         public MetadataContainer(IEnumerable<KeyValuePair<string, string>> keyValuePairs)
-            : base(keyValuePairs.ToDictionary(kv => kv.Key, kv => kv.Value)) { }
+            : base(keyValuePairs.ToDictionary(kv => kv.Key, kv => kv.Value))
+        {
+        }
 
         public MetadataContainer(params KeyValuePair<string, string>[] keyValuePairs)
-            : this((IEnumerable<KeyValuePair<string, string>>) keyValuePairs) { }
+            : this((IEnumerable<KeyValuePair<string, string>>) keyValuePairs)
+        {
+        }
 
         public void AddRange(params KeyValuePair<string, string>[] keyValuePairs)
         {

@@ -22,8 +22,10 @@ namespace Tauron.Application.Files.Serialization.Core.Fluent.Impl.Ini
             _targeType = targeType;
         }
 
-        public IIniKeySerializerConfiguration WithSingleKey() => new IniKeyConfiguration(_section, _configuration, _mapper, true, _targeType);
+        public IIniKeySerializerConfiguration WithSingleKey()
+            => new IniKeyConfiguration(_section, _configuration, _mapper, true, _targeType);
 
-        public IIniKeySerializerConfiguration WithListKey() => new IniKeyConfiguration(_section, _configuration, _mapper, false, _targeType);
+        public IIniKeySerializerConfiguration WithListKey()
+            => new IniKeyConfiguration(_section, _configuration, _mapper, false, _targeType);
     }
 }

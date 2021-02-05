@@ -44,13 +44,19 @@ namespace Akkatecture.Aggregates
         }
 
         public Metadata(IDictionary<string, string> keyValuePairs)
-            : base(keyValuePairs) { }
+            : base(keyValuePairs)
+        {
+        }
 
         public Metadata(IEnumerable<KeyValuePair<string, string>> keyValuePairs)
-            : base(keyValuePairs.ToDictionary(kv => kv.Key, kv => kv.Value)) { }
+            : base(keyValuePairs.ToDictionary(kv => kv.Key, kv => kv.Value))
+        {
+        }
 
         public Metadata(params KeyValuePair<string, string>[] keyValuePairs)
-            : this((IEnumerable<KeyValuePair<string, string>>) keyValuePairs) { }
+            : this((IEnumerable<KeyValuePair<string, string>>) keyValuePairs)
+        {
+        }
 
         public static IMetadata Empty { get; } = new Metadata();
 
@@ -129,7 +135,8 @@ namespace Akkatecture.Aggregates
             set => Add(MetadataKeys.EventId, value.Value);
         }
 
-        public IMetadata CloneWith(params KeyValuePair<string, string>[] keyValuePairs) => CloneWith((IEnumerable<KeyValuePair<string, string>>) keyValuePairs);
+        public IMetadata CloneWith(params KeyValuePair<string, string>[] keyValuePairs)
+            => CloneWith((IEnumerable<KeyValuePair<string, string>>) keyValuePairs);
 
         public IMetadata CloneWith(IEnumerable<KeyValuePair<string, string>> keyValuePairs)
         {
@@ -143,9 +150,11 @@ namespace Akkatecture.Aggregates
             return metadata;
         }
 
-        public static IMetadata With(IEnumerable<KeyValuePair<string, string>> keyValuePairs) => new Metadata(keyValuePairs);
+        public static IMetadata With(IEnumerable<KeyValuePair<string, string>> keyValuePairs)
+            => new Metadata(keyValuePairs);
 
-        public static IMetadata With(params KeyValuePair<string, string>[] keyValuePairs) => new Metadata(keyValuePairs);
+        public static IMetadata With(params KeyValuePair<string, string>[] keyValuePairs)
+            => new Metadata(keyValuePairs);
 
         public static IMetadata With(IDictionary<string, string> keyValuePairs) => new Metadata(keyValuePairs);
     }

@@ -9,7 +9,8 @@ namespace Akka.Cluster.Utility
     [PublicAPI]
     public sealed class ClusterActorDiscovery : IExtension
     {
-        public ClusterActorDiscovery(ExtendedActorSystem system) => Discovery = system.ActorOf<ClusterActorDiscoveryActor>(nameof(ClusterActorDiscovery));
+        public ClusterActorDiscovery(ExtendedActorSystem system)
+            => Discovery = system.ActorOf<ClusterActorDiscoveryActor>(nameof(ClusterActorDiscovery));
 
         public IActorRef Discovery { get; }
 
@@ -63,7 +64,8 @@ namespace Akka.Cluster.Utility
         protected override void PreStart()
         {
             _cluster?.Subscribe(Self, ClusterEvent.SubscriptionInitialStateMode.InitialStateAsEvents,
-                                typeof(ClusterEvent.MemberUp), typeof(ClusterEvent.ReachableMember), typeof(ClusterEvent.UnreachableMember), typeof(ClusterEvent.MemberRemoved));
+                typeof(ClusterEvent.MemberUp), typeof(ClusterEvent.ReachableMember),
+                typeof(ClusterEvent.UnreachableMember), typeof(ClusterEvent.MemberRemoved));
         }
 
         protected override void PostStop()
@@ -86,7 +88,8 @@ namespace Akka.Cluster.Utility
                 remoteDiscoveryActor.Tell(
                     new ClusterActorDiscoveryMessage.RegisterCluster(
                         _cluster.SelfUniqueAddress,
-                        _actorItems.Select(a => new ClusterActorDiscoveryMessage.ClusterActorUp(a.Actor, a.Tag)).ToList()));
+                        _actorItems.Select(a => new ClusterActorDiscoveryMessage.ClusterActorUp(a.Actor, a.Tag))
+                            .ToList()));
             }
         }
 
@@ -107,7 +110,8 @@ namespace Akka.Cluster.Utility
                 remoteDiscoveryActor.Tell(
                     new ClusterActorDiscoveryMessage.ResyncCluster(
                         _cluster.SelfUniqueAddress,
-                        _actorItems.Select(a => new ClusterActorDiscoveryMessage.ClusterActorUp(a.Actor, a.Tag)).ToList(),
+                        _actorItems.Select(a => new ClusterActorDiscoveryMessage.ClusterActorUp(a.Actor, a.Tag))
+                            .ToList(),
                         true));
             }
         }
@@ -144,10 +148,10 @@ namespace Akka.Cluster.Utility
             }
 
             _nodeMap.Add(Sender, new NodeItem
-                                 {
-                                     ClusterAddress = m.ClusterAddress,
-                                     ActorItems = new List<ActorItem>()
-                                 });
+            {
+                ClusterAddress = m.ClusterAddress,
+                ActorItems = new List<ActorItem>()
+            });
 
             // Process attached actorUp messages
 
@@ -168,29 +172,26 @@ namespace Akka.Cluster.Utility
                 RemoveNode(key);
 
             _nodeMap.Add(Sender, new NodeItem
-                                 {
-                                     ClusterAddress = m.ClusterAddress,
-                                     ActorItems = new List<ActorItem>()
-                                 });
+            {
+                ClusterAddress = m.ClusterAddress,
+                ActorItems = new List<ActorItem>()
+            });
 
             // Process attached actorUp messages
 
             if (m.ActorUpList != null)
-            {
                 foreach (var actorUp in m.ActorUpList)
                     Handle(actorUp);
-            }
 
             // Response
 
             if (m.Request)
-            {
                 Sender.Tell(
                     new ClusterActorDiscoveryMessage.ResyncCluster(
                         _cluster.SelfUniqueAddress,
-                        _actorItems.Select(a => new ClusterActorDiscoveryMessage.ClusterActorUp(a.Actor, a.Tag)).ToList(),
+                        _actorItems.Select(a => new ClusterActorDiscoveryMessage.ClusterActorUp(a.Actor, a.Tag))
+                            .ToList(),
                         false));
-            }
         }
 
         //private void Handle(ClusterActorDiscoveryMessage.UnregisterCluster m)

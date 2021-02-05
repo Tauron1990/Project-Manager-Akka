@@ -3,5 +3,8 @@
 namespace Tauron.Application.Workshop.StateManagement.Builder
 {
     [PublicAPI]
-    public interface IConcurrentDispatcherConfugiration : IDispatcherPoolConfiguration<IConcurrentDispatcherConfugiration> { }
+    public interface
+        IConcurrentDispatcherConfugiration : IDispatcherPoolConfiguration<IConcurrentDispatcherConfugiration>
+    {
+    }
 }

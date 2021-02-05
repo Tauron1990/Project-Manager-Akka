@@ -18,7 +18,9 @@ namespace Tauron.Application.Files.Serialization.Sources
 
         public abstract IStreamSource OpenSideLocation(string? relativePath);
 
-        protected virtual void Dispose(bool disposing) { }
+        protected virtual void Dispose(bool disposing)
+        {
+        }
 
         ~AbstractSource()
         {

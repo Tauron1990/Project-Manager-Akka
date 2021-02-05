@@ -19,7 +19,8 @@ namespace Tauron.Application.Files.Serialization.Core.Impl
             _xNamespace = xNamespace;
         }
 
-        public override XmlElementContext BuildContext(SerializationContext context) => new(Argument.NotNull(context, nameof(context)), _declaration, _xNamespace, _rootName);
+        public override XmlElementContext BuildContext(SerializationContext context)
+            => new(Argument.NotNull(context, nameof(context)), _declaration, _xNamespace, _rootName);
 
         public override void CleanUp(XmlElementContext context)
         {

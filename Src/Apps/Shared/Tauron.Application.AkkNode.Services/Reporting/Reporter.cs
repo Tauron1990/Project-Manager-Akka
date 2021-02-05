@@ -13,52 +13,76 @@ namespace Tauron.Application.AkkaNode.Services
     public sealed class Reporter
     {
         public const string TimeoutError = nameof(TimeoutError);
+        private readonly AtomicBoolean _compledCalled = new();
 
-        public static Reporter CreateReporter(IActorRefFactory factory, string? name = "Reporter") 
-            => new(factory.ActorOf(Props.Create(() => new ReporterActor()).WithSupervisorStrategy(SupervisorStrategy.StoppingStrategy), name));
+        private readonly IActorRef _reporter;
 
-        public static IActorRef CreateListner(IActorRefFactory factory, Action<string> listner, Action<IOperationResult> onCompled, TimeSpan timeout,  string? name = "LogListner")
-            => factory.ActorOf(Props.Create(() => new Listner(listner, onCompled, timeout)).WithSupervisorStrategy(SupervisorStrategy.StoppingStrategy), name);
+        public Reporter(IActorRef reporter) => _reporter = reporter;
 
-        public static IActorRef CreateListner(IActorRefFactory factory, Action<string> listner, Action<IOperationResult> onCompled, string? name = "LogListner")
+        public bool IsCompled => _compledCalled.Value;
+
+        public static Reporter CreateReporter(IActorRefFactory factory, string? name = "Reporter")
+            => new(factory.ActorOf(
+                Props.Create(() => new ReporterActor()).WithSupervisorStrategy(SupervisorStrategy.StoppingStrategy),
+                name));
+
+        public static IActorRef CreateListner(IActorRefFactory factory, Action<string> listner,
+            Action<IOperationResult> onCompled, TimeSpan timeout, string? name = "LogListner")
+            => factory.ActorOf(
+                Props.Create(() => new Listner(listner, onCompled, timeout))
+                    .WithSupervisorStrategy(SupervisorStrategy.StoppingStrategy), name);
+
+        public static IActorRef CreateListner(IActorRefFactory factory, Action<string> listner,
+            Action<IOperationResult> onCompled, string? name = "LogListner")
             => CreateListner(factory, listner, onCompled, Timeout.InfiniteTimeSpan, name);
 
-        public static IActorRef CreateListner(IActorRefFactory factory, Reporter reporter, Action<IOperationResult> onCompled, TimeSpan timeout, string? name = "LogListner")
+        public static IActorRef CreateListner(IActorRefFactory factory, Reporter reporter,
+            Action<IOperationResult> onCompled, TimeSpan timeout, string? name = "LogListner")
             => CreateListner(factory, reporter.Send, onCompled, timeout, name);
 
-        public static IActorRef CreateListner(IActorRefFactory factory, Action<string> listner, TaskCompletionSource<IOperationResult> onCompled, TimeSpan timeout, string? name = "LogListner")
+        public static IActorRef CreateListner(IActorRefFactory factory, Action<string> listner,
+            TaskCompletionSource<IOperationResult> onCompled, TimeSpan timeout, string? name = "LogListner")
             => CreateListner(factory, listner, onCompled.SetResult, timeout, name);
 
-        public static IActorRef CreateListner(IActorRefFactory factory, Action<string> listner, TaskCompletionSource<IOperationResult> onCompled, string? name = "LogListner")
+        public static IActorRef CreateListner(IActorRefFactory factory, Action<string> listner,
+            TaskCompletionSource<IOperationResult> onCompled, string? name = "LogListner")
             => CreateListner(factory, listner, onCompled, Timeout.InfiniteTimeSpan, name);
 
-        public static IActorRef CreateListner(IActorRefFactory factory, Reporter reporter, TaskCompletionSource<IOperationResult> onCompled, TimeSpan timeout, string? name = "LogListner")
+        public static IActorRef CreateListner(IActorRefFactory factory, Reporter reporter,
+            TaskCompletionSource<IOperationResult> onCompled, TimeSpan timeout, string? name = "LogListner")
             => CreateListner(factory, reporter.Send, onCompled, timeout, name);
 
-        public static IActorRef CreateListner(IActorRefFactory factory, Action<string> listner, TimeSpan timeout, string? name, Action<Task<IOperationResult>> onCompled)
+        public static IActorRef CreateListner(IActorRefFactory factory, Action<string> listner, TimeSpan timeout,
+            string? name, Action<Task<IOperationResult>> onCompled)
         {
             var source = new TaskCompletionSource<IOperationResult>();
-            var actor =  CreateListner(factory, listner, source, timeout, name);
+            var actor = CreateListner(factory, listner, source, timeout, name);
             onCompled(source.Task);
             return actor;
         }
 
-        public static IActorRef CreateListner(IActorRefFactory factory, Action<string> listner, string name, Action<Task<IOperationResult>> onCompled)
+        public static IActorRef CreateListner(IActorRefFactory factory, Action<string> listner, string name,
+            Action<Task<IOperationResult>> onCompled)
             => CreateListner(factory, listner, Timeout.InfiniteTimeSpan, name, onCompled);
 
-        public static IActorRef CreateListner(IActorRefFactory factory, Reporter reporter, TimeSpan timeout, string? name, Action<Task<IOperationResult>> onCompled)
+        public static IActorRef CreateListner(IActorRefFactory factory, Reporter reporter, TimeSpan timeout,
+            string? name, Action<Task<IOperationResult>> onCompled)
             => CreateListner(factory, reporter.Send, timeout, name, onCompled);
 
-        public static IActorRef CreateListner(IActorRefFactory factory, Action<string> listner, TimeSpan timeout, Action<Task<IOperationResult>> onCompled)
+        public static IActorRef CreateListner(IActorRefFactory factory, Action<string> listner, TimeSpan timeout,
+            Action<Task<IOperationResult>> onCompled)
             => CreateListner(factory, listner, timeout, null, onCompled);
 
-        public static IActorRef CreateListner(IActorRefFactory factory, Action<string> listner, Action<Task<IOperationResult>> onCompled)
+        public static IActorRef CreateListner(IActorRefFactory factory, Action<string> listner,
+            Action<Task<IOperationResult>> onCompled)
             => CreateListner(factory, listner, Timeout.InfiniteTimeSpan, null, onCompled);
 
-        public static IActorRef CreateListner(IActorRefFactory factory, Reporter reporter, TimeSpan timeout, Action<Task<IOperationResult>> onCompled)
+        public static IActorRef CreateListner(IActorRefFactory factory, Reporter reporter, TimeSpan timeout,
+            Action<Task<IOperationResult>> onCompled)
             => CreateListner(factory, reporter.Send, timeout, null, onCompled);
 
-        public static IActorRef CreateListner(IActorRefFactory factory, Action<string> listner, TimeSpan timeout, string? name, out Task<IOperationResult> onCompled)
+        public static IActorRef CreateListner(IActorRefFactory factory, Action<string> listner, TimeSpan timeout,
+            string? name, out Task<IOperationResult> onCompled)
         {
             var source = new TaskCompletionSource<IOperationResult>();
             var actor = CreateListner(factory, listner, source, timeout, name);
@@ -66,19 +90,13 @@ namespace Tauron.Application.AkkaNode.Services
             return actor;
         }
 
-        public static IActorRef CreateListner(IActorRefFactory factory, Action<string> listner, TimeSpan timeout, out Task<IOperationResult> onCompled)
+        public static IActorRef CreateListner(IActorRefFactory factory, Action<string> listner, TimeSpan timeout,
+            out Task<IOperationResult> onCompled)
             => CreateListner(factory, listner, timeout, null, out onCompled);
-
-        private readonly IActorRef _reporter;
-        private readonly AtomicBoolean _compledCalled = new();
-
-        public bool IsCompled => _compledCalled.Value;
-
-        public Reporter(IActorRef reporter) => _reporter = reporter;
 
         public void Listen(IActorRef actor)
         {
-            if(_compledCalled.Value)
+            if (_compledCalled.Value)
                 throw new InvalidOperationException("Reporter is Compled");
             _reporter.Tell(new ListeningActor(actor));
         }
@@ -109,10 +127,11 @@ namespace Tauron.Application.AkkaNode.Services
                 });
                 Receive<TransferedMessage>(m => listner(m.Message));
 
-                if(timeSpan == Timeout.InfiniteTimeSpan)
+                if (timeSpan == Timeout.InfiniteTimeSpan)
                     return;
 
-                Timers.StartSingleTimer(timeSpan, OperationResult.Failure(new Error(TimeoutError, TimeoutError)), timeSpan);
+                Timers.StartSingleTimer(timeSpan, OperationResult.Failure(new Error(TimeoutError, TimeoutError)),
+                    timeSpan);
             }
 
             public ITimerScheduler Timers { get; set; } = null!;
@@ -141,14 +160,12 @@ namespace Tauron.Application.AkkaNode.Services
                     _listner.Add(a.Actor);
                 });
 
-                Receive<Terminated>(t =>
-                {
-                    _listner.Remove(t.ActorRef);
-                });
+                Receive<Terminated>(t => { _listner.Remove(t.ActorRef); });
             }
         }
 
         private sealed record ListeningActor(IActorRef Actor);
+
         private sealed record TransferedMessage(string Message);
     }
 }

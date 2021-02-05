@@ -19,7 +19,8 @@ namespace Tauron.Application.Logging.impl
 
         public ILogger ForContext(IEnumerable<ILogEventEnricher> enrichers) => _logger.ForContext(enrichers);
 
-        public ILogger ForContext(string propertyName, object value, bool destructureObjects = false) => _logger.ForContext(propertyName, value, destructureObjects);
+        public ILogger ForContext(string propertyName, object value, bool destructureObjects = false)
+            => _logger.ForContext(propertyName, value, destructureObjects);
 
         public ILogger ForContext<TSource>() => _logger.ForContext<TSource>();
 
@@ -45,7 +46,8 @@ namespace Tauron.Application.Logging.impl
             _logger.Write(level, messageTemplate, propertyValue0, propertyValue1);
         }
 
-        public void Write<T0, T1, T2>(LogEventLevel level, string messageTemplate, T0 propertyValue0, T1 propertyValue1, T2 propertyValue2)
+        public void Write<T0, T1, T2>(LogEventLevel level, string messageTemplate, T0 propertyValue0, T1 propertyValue1,
+            T2 propertyValue2)
         {
             _logger.Write(level, messageTemplate, propertyValue0, propertyValue1, propertyValue2);
         }
@@ -65,17 +67,20 @@ namespace Tauron.Application.Logging.impl
             _logger.Write(level, exception, messageTemplate, propertyValue);
         }
 
-        public void Write<T0, T1>(LogEventLevel level, Exception exception, string messageTemplate, T0 propertyValue0, T1 propertyValue1)
+        public void Write<T0, T1>(LogEventLevel level, Exception exception, string messageTemplate, T0 propertyValue0,
+            T1 propertyValue1)
         {
             _logger.Write(level, exception, messageTemplate, propertyValue0, propertyValue1);
         }
 
-        public void Write<T0, T1, T2>(LogEventLevel level, Exception exception, string messageTemplate, T0 propertyValue0, T1 propertyValue1, T2 propertyValue2)
+        public void Write<T0, T1, T2>(LogEventLevel level, Exception exception, string messageTemplate,
+            T0 propertyValue0, T1 propertyValue1, T2 propertyValue2)
         {
             _logger.Write(level, exception, messageTemplate, propertyValue0, propertyValue1, propertyValue2);
         }
 
-        public void Write(LogEventLevel level, Exception exception, string messageTemplate, params object[] propertyValues)
+        public void Write(LogEventLevel level, Exception exception, string messageTemplate,
+            params object[] propertyValues)
         {
             _logger.Write(level, exception, messageTemplate, propertyValues);
         }
@@ -122,7 +127,8 @@ namespace Tauron.Application.Logging.impl
             _logger.Verbose(exception, messageTemplate, propertyValue0, propertyValue1);
         }
 
-        public void Verbose<T0, T1, T2>(Exception exception, string messageTemplate, T0 propertyValue0, T1 propertyValue1, T2 propertyValue2)
+        public void Verbose<T0, T1, T2>(Exception exception, string messageTemplate, T0 propertyValue0,
+            T1 propertyValue1, T2 propertyValue2)
         {
             _logger.Verbose(exception, messageTemplate, propertyValue0, propertyValue1, propertyValue2);
         }
@@ -172,7 +178,8 @@ namespace Tauron.Application.Logging.impl
             _logger.Debug(exception, messageTemplate, propertyValue0, propertyValue1);
         }
 
-        public void Debug<T0, T1, T2>(Exception exception, string messageTemplate, T0 propertyValue0, T1 propertyValue1, T2 propertyValue2)
+        public void Debug<T0, T1, T2>(Exception exception, string messageTemplate, T0 propertyValue0, T1 propertyValue1,
+            T2 propertyValue2)
         {
             _logger.Debug(exception, messageTemplate, propertyValue0, propertyValue1, propertyValue2);
         }
@@ -197,7 +204,8 @@ namespace Tauron.Application.Logging.impl
             _logger.Information(messageTemplate, propertyValue0, propertyValue1);
         }
 
-        public void Information<T0, T1, T2>(string messageTemplate, T0 propertyValue0, T1 propertyValue1, T2 propertyValue2)
+        public void Information<T0, T1, T2>(string messageTemplate, T0 propertyValue0, T1 propertyValue1,
+            T2 propertyValue2)
         {
             _logger.Information(messageTemplate, propertyValue0, propertyValue1, propertyValue2);
         }
@@ -217,12 +225,14 @@ namespace Tauron.Application.Logging.impl
             _logger.Information(exception, messageTemplate, propertyValue);
         }
 
-        public void Information<T0, T1>(Exception exception, string messageTemplate, T0 propertyValue0, T1 propertyValue1)
+        public void Information<T0, T1>(Exception exception, string messageTemplate, T0 propertyValue0,
+            T1 propertyValue1)
         {
             _logger.Information(exception, messageTemplate, propertyValue0, propertyValue1);
         }
 
-        public void Information<T0, T1, T2>(Exception exception, string messageTemplate, T0 propertyValue0, T1 propertyValue1, T2 propertyValue2)
+        public void Information<T0, T1, T2>(Exception exception, string messageTemplate, T0 propertyValue0,
+            T1 propertyValue1, T2 propertyValue2)
         {
             _logger.Information(exception, messageTemplate, propertyValue0, propertyValue1, propertyValue2);
         }
@@ -272,7 +282,8 @@ namespace Tauron.Application.Logging.impl
             _logger.Warning(exception, messageTemplate, propertyValue0, propertyValue1);
         }
 
-        public void Warning<T0, T1, T2>(Exception exception, string messageTemplate, T0 propertyValue0, T1 propertyValue1, T2 propertyValue2)
+        public void Warning<T0, T1, T2>(Exception exception, string messageTemplate, T0 propertyValue0,
+            T1 propertyValue1, T2 propertyValue2)
         {
             _logger.Warning(exception, messageTemplate, propertyValue0, propertyValue1, propertyValue2);
         }
@@ -322,7 +333,8 @@ namespace Tauron.Application.Logging.impl
             _logger.Error(exception, messageTemplate, propertyValue0, propertyValue1);
         }
 
-        public void Error<T0, T1, T2>(Exception exception, string messageTemplate, T0 propertyValue0, T1 propertyValue1, T2 propertyValue2)
+        public void Error<T0, T1, T2>(Exception exception, string messageTemplate, T0 propertyValue0, T1 propertyValue1,
+            T2 propertyValue2)
         {
             _logger.Error(exception, messageTemplate, propertyValue0, propertyValue1, propertyValue2);
         }
@@ -372,7 +384,8 @@ namespace Tauron.Application.Logging.impl
             _logger.Fatal(exception, messageTemplate, propertyValue0, propertyValue1);
         }
 
-        public void Fatal<T0, T1, T2>(Exception exception, string messageTemplate, T0 propertyValue0, T1 propertyValue1, T2 propertyValue2)
+        public void Fatal<T0, T1, T2>(Exception exception, string messageTemplate, T0 propertyValue0, T1 propertyValue1,
+            T2 propertyValue2)
         {
             _logger.Fatal(exception, messageTemplate, propertyValue0, propertyValue1, propertyValue2);
         }
@@ -382,9 +395,13 @@ namespace Tauron.Application.Logging.impl
             _logger.Fatal(exception, messageTemplate, propertyValues);
         }
 
-        public bool BindMessageTemplate(string messageTemplate, object[] propertyValues, out MessageTemplate parsedTemplate, out IEnumerable<LogEventProperty> boundProperties) => _logger.BindMessageTemplate(messageTemplate, propertyValues, out parsedTemplate, out boundProperties);
+        public bool BindMessageTemplate(string messageTemplate, object[] propertyValues,
+            out MessageTemplate parsedTemplate, out IEnumerable<LogEventProperty> boundProperties)
+            => _logger.BindMessageTemplate(messageTemplate, propertyValues, out parsedTemplate, out boundProperties);
 
-        public bool BindProperty(string propertyName, object value, bool destructureObjects, out LogEventProperty property) => _logger.BindProperty(propertyName, value, destructureObjects, out property);
+        public bool BindProperty(string propertyName, object value, bool destructureObjects,
+            out LogEventProperty property)
+            => _logger.BindProperty(propertyName, value, destructureObjects, out property);
     }
 }
 #pragma warning restore Serilog004 // Constant MessageTemplate verifier

@@ -6,8 +6,8 @@ namespace Servicemnager.Networking.Transmitter
 {
     public sealed class Reciever : IDisposable
     {
-        private readonly Func<Stream> _target;
         private readonly IDataClient _client;
+        private readonly Func<Stream> _target;
 
         private Stream? _stream;
 
@@ -16,6 +16,8 @@ namespace Servicemnager.Networking.Transmitter
             _target = target;
             _client = client;
         }
+
+        public void Dispose() => _stream?.Dispose();
 
         public bool ProcessMessage(NetworkMessage msg)
         {
@@ -32,7 +34,7 @@ namespace Servicemnager.Networking.Transmitter
                     case NetworkOperation.DataCompled:
                         return false;
                     case NetworkOperation.DataChunk:
-                        if(_stream == null)
+                        if (_stream == null)
                             throw new InvalidOperationException("Write Stream is null");
                         _stream.Write(msg.Data, 0, msg.RealLength);
                         _client.Send(NetworkMessage.Create(NetworkOperation.DataNext));
@@ -47,7 +49,5 @@ namespace Servicemnager.Networking.Transmitter
                 throw;
             }
         }
-
-        public void Dispose() => _stream?.Dispose();
     }
 }

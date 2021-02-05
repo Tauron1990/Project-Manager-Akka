@@ -74,7 +74,8 @@ namespace Akkatecture.Core
         {
             try
             {
-                return (T) (FastReflection.Shared.FastCreateInstance(typeof(T)) ?? throw new InvalidOperationException($"No Instantance of {typeof(T)} Created"));
+                return (T) (FastReflection.Shared.FastCreateInstance(typeof(T)) ??
+                            throw new InvalidOperationException($"No Instantance of {typeof(T)} Created"));
             }
             catch (TargetInvocationException e)
             {
@@ -100,18 +101,21 @@ namespace Akkatecture.Core
             }
 
             if (!string.Equals(value.Trim(), value, StringComparison.OrdinalIgnoreCase))
-                yield return $"Identity '{value}' of type '{typeof(T).PrettyPrint()}' contains leading and/or traling spaces";
+                yield return
+                    $"Identity '{value}' of type '{typeof(T).PrettyPrint()}' contains leading and/or traling spaces";
             if (!value.StartsWith(Name))
                 yield return $"Identity '{value}' of type '{typeof(T).PrettyPrint()}' does not start with '{Name}'";
             if (!ValueValidation.IsMatch(value))
-                yield return $"Identity '{value}' of type '{typeof(T).PrettyPrint()}' does not follow the syntax '[NAME]-[GUID]' in lower case";
+                yield return
+                    $"Identity '{value}' of type '{typeof(T).PrettyPrint()}' does not follow the syntax '[NAME]-[GUID]' in lower case";
         }
 
         protected Identity(string value)
             : base(value)
         {
             var validationErrors = Validate(value).ToList();
-            if (validationErrors.Any()) throw new ArgumentException($"Identity is invalid: {string.Join(", ", validationErrors)}");
+            if (validationErrors.Any())
+                throw new ArgumentException($"Identity is invalid: {string.Join(", ", validationErrors)}");
 
             _lazyGuid = new Lazy<Guid>(() => Guid.Parse(ValueValidation.Match(Value).Groups["guid"].Value));
         }

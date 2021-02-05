@@ -39,12 +39,12 @@ namespace Tauron.Application.Files.Serialization.Core.Fluent.Impl.HeaderedFile
             _member ??= _keyName;
 
             MappingEntry<HeaderdFileContext>? map = _mappingType switch
-                                                    {
-                                                        MappingType.Content   => new HeaderedFileContentMapper(_member, _type, _converter),
-                                                        MappingType.SingleKey => new HeaderedFileKeyMapper(_member, _type, _converter, _keyName),
-                                                        MappingType.MultiKey  => new HeaderedFileListKeyMapper(_member, _type, _keyName, _converter),
-                                                        _                     => null
-                                                    };
+            {
+                MappingType.Content => new HeaderedFileContentMapper(_member, _type, _converter),
+                MappingType.SingleKey => new HeaderedFileKeyMapper(_member, _type, _converter, _keyName),
+                MappingType.MultiKey => new HeaderedFileListKeyMapper(_member, _type, _keyName, _converter),
+                _ => null
+            };
 
             if (map != null)
                 _mapper.Entries.Add(map);

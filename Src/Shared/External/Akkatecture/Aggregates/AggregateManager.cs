@@ -33,7 +33,8 @@ using JetBrains.Annotations;
 namespace Akkatecture.Aggregates
 {
     [PublicAPI]
-    public abstract class AggregateManager<TAggregate, TIdentity, TCommand> : ReceiveActor, IAggregateManager<TAggregate, TIdentity>
+    public abstract class AggregateManager<TAggregate, TIdentity, TCommand> : ReceiveActor,
+        IAggregateManager<TAggregate, TIdentity>
         where TAggregate : ReceivePersistentActor, IAggregateRoot<TIdentity>
         where TIdentity : IIdentity
         where TCommand : ICommand<TAggregate, TIdentity>
@@ -62,7 +63,8 @@ namespace Akkatecture.Aggregates
 
         protected virtual bool Dispatch(TCommand command)
         {
-            Logger.Info("AggregateManager of Type={0}; has received a command of Type={1}", Name, command.GetType().PrettyPrint());
+            Logger.Info("AggregateManager of Type={0}; has received a command of Type={1}", Name,
+                command.GetType().PrettyPrint());
 
             var aggregateRef = FindOrCreate(command.AggregateId);
 
@@ -74,7 +76,8 @@ namespace Akkatecture.Aggregates
 
         protected virtual bool ReDispatch(TCommand command)
         {
-            Logger.Info("AggregateManager of Type={0}; is ReDispatching deadletter of Type={1}", Name, command.GetType().PrettyPrint());
+            Logger.Info("AggregateManager of Type={0}; is ReDispatching deadletter of Type={1}", Name,
+                command.GetType().PrettyPrint());
 
             var aggregateRef = FindOrCreate(command.AggregateId);
 
@@ -85,7 +88,8 @@ namespace Akkatecture.Aggregates
 
         protected bool Handle(DeadLetter deadLetter)
         {
-            if (!(deadLetter.Message is TCommand) || deadLetter.Message.GetPropertyValue("AggregateId")?.GetType() != typeof(TIdentity)) return true;
+            if (!(deadLetter.Message is TCommand) ||
+                deadLetter.Message.GetPropertyValue("AggregateId")?.GetType() != typeof(TIdentity)) return true;
 
             ReDispatch((TCommand) deadLetter.Message);
 
@@ -94,7 +98,8 @@ namespace Akkatecture.Aggregates
 
         protected virtual bool Terminate(Terminated message)
         {
-            Logger.Warning("Aggregate of Type={0}, and Id={1}; has terminated.", typeof(TAggregate).PrettyPrint(), message.ActorRef.Path.Name);
+            Logger.Warning("Aggregate of Type={0}, and Id={1}; has terminated.", typeof(TAggregate).PrettyPrint(),
+                message.ActorRef.Path.Name);
             Context.Unwatch(message.ActorRef);
             return true;
         }
@@ -123,7 +128,8 @@ namespace Akkatecture.Aggregates
                 3000,
                 x =>
                 {
-                    logger.Warning("AggregateManager of Type={0}; will supervise Exception={1} to be decided as {2}.", Name, x.ToString(), Directive.Restart);
+                    logger.Warning("AggregateManager of Type={0}; will supervise Exception={1} to be decided as {2}.",
+                        Name, x.ToString(), Directive.Restart);
                     return Directive.Restart;
                 });
         }

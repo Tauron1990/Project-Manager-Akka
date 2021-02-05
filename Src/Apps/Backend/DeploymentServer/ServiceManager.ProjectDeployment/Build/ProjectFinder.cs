@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace ServiceManager.ProjectDeployment.Build
 {
@@ -20,18 +18,16 @@ namespace ServiceManager.ProjectDeployment.Build
             while (current != null)
             {
                 foreach (var file in current.EnumerateFiles("*.*"))
-                {
                     if (file.Name.Contains(name))
                         return file;
-                }
 
-                foreach (var directory in current.EnumerateDirectories()) 
+                foreach (var directory in current.EnumerateDirectories())
                     directorys.Enqueue(directory);
 
 
                 if (directorys.Count == 0)
                     break;
-                
+
                 current = directorys.Dequeue();
             }
 

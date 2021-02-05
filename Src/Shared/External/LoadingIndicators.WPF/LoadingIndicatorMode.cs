@@ -35,10 +35,10 @@ namespace LoadingIndicators.WPF
     internal static class LoadingIndicatorModeUtility
     {
         public static string GetDescription(this LoadingIndicatorMode value) => value
-                                                                               .GetType()
-                                                                               .GetMember(value.ToString())
-                                                                               .FirstOrDefault()
-                                                                              ?.GetCustomAttribute<DescriptionAttribute>()
-                                                                              ?.Description;
+            .GetType()
+            .GetMember(value.ToString())
+            .FirstOrDefault()
+            ?.GetCustomAttribute<DescriptionAttribute>()
+            ?.Description;
     }
 }

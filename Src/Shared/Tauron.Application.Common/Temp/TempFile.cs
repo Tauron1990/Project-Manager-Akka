@@ -12,7 +12,8 @@ namespace Tauron.Temp
             FullPath = targetPath;
         }
 
-        internal Stream InternalStrem => _targetStream ??= new FileStream(FullPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Delete | FileShare.Read, 4096, FileOptions.DeleteOnClose);
+        internal Stream InternalStrem => _targetStream ??= new FileStream(FullPath, FileMode.OpenOrCreate,
+            FileAccess.ReadWrite, FileShare.Delete | FileShare.Read, 4096, FileOptions.DeleteOnClose);
 
         public ITempDic Parent { get; }
 

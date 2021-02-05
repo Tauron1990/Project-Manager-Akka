@@ -11,22 +11,28 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
         private readonly ImmutableDictionary<Type, Func<WorkspaceBase<TData>, IStateAction, IDataMutation>> _map;
         private readonly WorkspaceBase<TData> _source;
 
-        public WorkspaceContainer(ImmutableDictionary<Type, Func<WorkspaceBase<TData>, IStateAction, IDataMutation>> map, WorkspaceBase<TData> source)
+        public WorkspaceContainer(
+            ImmutableDictionary<Type, Func<WorkspaceBase<TData>, IStateAction, IDataMutation>> map,
+            WorkspaceBase<TData> source)
             : base(source)
         {
             _map = map;
             _source = source;
         }
 
-        public override IDataMutation? TryDipatch(IStateAction action, IObserver<IReducerResult> sendResult, IObserver<Unit> onCompled)
+        public override IDataMutation? TryDipatch(IStateAction action, IObserver<IReducerResult> sendResult,
+            IObserver<Unit> onCompled)
         {
             var type = action.GetType();
             return !_map.TryGetValue(type, out var runner)
-                       ? null
-                       : new WorkspaceMutation(() => runner(_source, action), sendResult, onCompled, action.ActionName, action.ActionName);
+                ? null
+                : new WorkspaceMutation(() => runner(_source, action), sendResult, onCompled, action.ActionName,
+                    action.ActionName);
         }
 
-        public override void Dispose() { }
+        public override void Dispose()
+        {
+        }
 
         private sealed class WorkspaceMutation : ISyncMutation
         {
@@ -34,7 +40,8 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
             private readonly IObserver<IReducerResult> _result;
             private readonly Func<IDataMutation> _run;
 
-            public WorkspaceMutation(Func<IDataMutation> run, IObserver<IReducerResult> result, IObserver<Unit> compled, object hashKey, string actionName)
+            public WorkspaceMutation(Func<IDataMutation> run, IObserver<IReducerResult> result, IObserver<Unit> compled,
+                object hashKey, string actionName)
             {
                 _run = run;
                 _result = result;

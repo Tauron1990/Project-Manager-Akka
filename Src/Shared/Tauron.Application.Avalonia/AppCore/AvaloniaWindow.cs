@@ -29,12 +29,12 @@ namespace Tauron.Application.Avalonia.AppCore
 
         public override IObservable<Unit> Loaded
             => _window.GetObservable(Visual.IsVisibleProperty)
-                      .Where(b => b)
-                      .ToUnit();
+                .Where(b => b)
+                .ToUnit();
 
         public override IObservable<Unit> Unloaded
             => _window.GetObservable(Visual.IsVisibleProperty)
-                      .Where(b => !b)
-                      .ToUnit();
+                .Where(b => !b)
+                .ToUnit();
     }
 }

@@ -32,7 +32,9 @@ using JetBrains.Annotations;
 
 namespace Akkatecture.Commands
 {
-    public interface ICommandHandler { }
+    public interface ICommandHandler
+    {
+    }
 
     [PublicAPI]
     public interface ICommandHandler<in TAggregate, TIdentity, out TResult, in TCommand> : ICommandHandler

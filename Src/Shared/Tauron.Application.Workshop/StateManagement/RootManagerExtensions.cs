@@ -4,7 +4,8 @@ namespace Tauron.Application.Workshop.StateManagement
 {
     public static class RootManagerExtensions
     {
-        public static IDisposable ToActionInvoker<TCommand>(this IObservable<TCommand?> commandProvider, IActionInvoker invoker)
+        public static IDisposable ToActionInvoker<TCommand>(this IObservable<TCommand?> commandProvider,
+            IActionInvoker invoker)
             where TCommand : IStateAction
         {
             return commandProvider.NotNull().Subscribe(c => invoker.Run(c));

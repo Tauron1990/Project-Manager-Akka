@@ -42,7 +42,6 @@ namespace Tauron.Application.Files.VirtualFiles.Zip
             var mainDic = directory;
 
             for (var i = 0; i < parts.Length; i++)
-            {
                 if (i == parts.Length - 1)
                 {
                     if (entry.IsDirectory)
@@ -51,14 +50,18 @@ namespace Tauron.Application.Files.VirtualFiles.Zip
                         mainDic.ZipEntry = entry;
                     }
                     else
+                    {
                         mainDic.AddFile(entry);
+                    }
                 }
                 else
+                {
                     mainDic = mainDic.GetOrAdd(parts[i]);
-            }
+                }
         }
 
-        public static string GetFileName(ZipEntry entry) => Argument.NotNull(entry, nameof(entry)).FileName.Split(PathSplit, StringSplitOptions.RemoveEmptyEntries).Last();
+        public static string GetFileName(ZipEntry entry) => Argument.NotNull(entry, nameof(entry)).FileName
+            .Split(PathSplit, StringSplitOptions.RemoveEmptyEntries).Last();
 
         internal InternalZipDirectory GetOrAdd(string name)
         {

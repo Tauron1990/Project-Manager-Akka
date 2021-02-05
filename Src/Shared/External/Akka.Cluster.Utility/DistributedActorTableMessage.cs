@@ -75,7 +75,9 @@ namespace Akka.Cluster.Utility
             public IActorRef Actor { get; }
         }
 
-        public class GetIds { }
+        public class GetIds
+        {
+        }
 
         public class GetIdsReply
         {

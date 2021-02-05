@@ -11,7 +11,7 @@ namespace Tauron.Application.Master.Commands.Administration.Host
             Installer
         }
 
-        public abstract record CommandBase(string Target, [property:JsonIgnore] CommandType Type);
+        public abstract record CommandBase(string Target, [property: JsonIgnore] CommandType Type);
 
         public sealed record GetHostName;
 

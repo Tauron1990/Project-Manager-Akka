@@ -57,8 +57,10 @@ namespace Akkatecture.Jobs.Commands
             return next.HasValue ? new ScheduleCron<TJob, TIdentity>(JobId, Job, CronExpression, next.Value) : null;
         }
 
-        public override Schedule<TJob, TIdentity> WithAck(object? ack) => new ScheduleCron<TJob, TIdentity>(JobId, Job, CronExpression, TriggerDate, ack, Nack);
+        public override Schedule<TJob, TIdentity> WithAck(object? ack)
+            => new ScheduleCron<TJob, TIdentity>(JobId, Job, CronExpression, TriggerDate, ack, Nack);
 
-        public override Schedule<TJob, TIdentity> WithNack(object? nack) => new ScheduleCron<TJob, TIdentity>(JobId, Job, CronExpression, TriggerDate, Ack, nack);
+        public override Schedule<TJob, TIdentity> WithNack(object? nack)
+            => new ScheduleCron<TJob, TIdentity>(JobId, Job, CronExpression, TriggerDate, Ack, nack);
     }
 }

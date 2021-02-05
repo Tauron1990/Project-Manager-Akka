@@ -14,7 +14,8 @@ namespace Tauron.Application.Workshop.StateManagement.DataFactorys
 
         protected SingleValueDataFactory()
         {
-            _lazyData = new Lazy<object>(() => new SingleValueSource(CreateValue()), LazyThreadSafetyMode.ExecutionAndPublication);
+            _lazyData = new Lazy<object>(() => new SingleValueSource(CreateValue()),
+                LazyThreadSafetyMode.ExecutionAndPublication);
         }
 
         public override bool CanSupply(Type dataType) => dataType == typeof(TData);

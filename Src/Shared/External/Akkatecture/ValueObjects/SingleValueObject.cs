@@ -40,7 +40,8 @@ namespace Akkatecture.ValueObjects
 
         protected SingleValueObject(T value)
         {
-            if (TypeInfo.IsEnum && !Enum.IsDefined(Type, value)) throw new ArgumentException($"The value '{value}' isn't defined in enum '{Type.PrettyPrint()}'");
+            if (TypeInfo.IsEnum && !Enum.IsDefined(Type, value))
+                throw new ArgumentException($"The value '{value}' isn't defined in enum '{Type.PrettyPrint()}'");
 
             Value = value;
         }
@@ -54,7 +55,8 @@ namespace Akkatecture.ValueObjects
             if (obj is SingleValueObject<T> other)
                 return Value.CompareTo(other.Value);
 
-            throw new ArgumentException($"Cannot compare '{GetType().PrettyPrint()}' and '{obj.GetType().PrettyPrint()}'");
+            throw new ArgumentException(
+                $"Cannot compare '{GetType().PrettyPrint()}' and '{obj.GetType().PrettyPrint()}'");
         }
 
         public object GetValue() => Value;
@@ -65,7 +67,7 @@ namespace Akkatecture.ValueObjects
         }
 
         public override string ToString() => ReferenceEquals(Value, null)
-                                                 ? string.Empty
-                                                 : Value.ToString();
+            ? string.Empty
+            : Value.ToString();
     }
 }

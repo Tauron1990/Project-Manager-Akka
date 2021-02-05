@@ -19,14 +19,18 @@ namespace Tauron.Application.Wpf
         private const string ControlHelperPrefix = "ControlHelper.";
 
         public static readonly DependencyProperty MarkControlProperty =
-            DependencyProperty.RegisterAttached("MarkControl", typeof(string), typeof(ControlHelper), new UIPropertyMetadata(string.Empty, MarkControl));
+            DependencyProperty.RegisterAttached("MarkControl", typeof(string), typeof(ControlHelper),
+                new UIPropertyMetadata(string.Empty, MarkControl));
 
         public static readonly DependencyProperty MarkWindowProperty =
-            DependencyProperty.RegisterAttached("MarkWindow", typeof(string), typeof(ControlHelper), new UIPropertyMetadata(null, MarkWindowChanged));
+            DependencyProperty.RegisterAttached("MarkWindow", typeof(string), typeof(ControlHelper),
+                new UIPropertyMetadata(null, MarkWindowChanged));
 
-        public static string GetMarkControl(DependencyObject obj) => (string) Argument.NotNull(obj, nameof(obj)).GetValue(MarkControlProperty);
+        public static string GetMarkControl(DependencyObject obj)
+            => (string) Argument.NotNull(obj, nameof(obj)).GetValue(MarkControlProperty);
 
-        public static string GetMarkWindow(DependencyObject obj) => (string) Argument.NotNull(obj, nameof(obj)).GetValue(MarkWindowProperty);
+        public static string GetMarkWindow(DependencyObject obj)
+            => (string) Argument.NotNull(obj, nameof(obj)).GetValue(MarkWindowProperty);
 
         public static void SetMarkControl(DependencyObject obj, string value)
         {
@@ -62,14 +66,16 @@ namespace Tauron.Application.Wpf
             if (root == null)
             {
                 ControlBindLogic.MakeLazy((IUIElement) ele, newName, oldName,
-                                          (name, old, controllable, dependencyObject) => SetLinker(old, name, controllable, dependencyObject, factory));
+                    (name, old, controllable, dependencyObject)
+                        => SetLinker(old, name, controllable, dependencyObject, factory));
                 return;
             }
 
             SetLinker(newName, oldName, root, ele, factory);
         }
 
-        private static void SetLinker(string? newName, string? oldName, IBinderControllable root, IUIObject obj, Func<LinkerBase> factory)
+        private static void SetLinker(string? newName, string? oldName, IBinderControllable root, IUIObject obj,
+            Func<LinkerBase> factory)
         {
             if (oldName != null)
                 root.CleanUp(ControlHelperPrefix + oldName);
@@ -99,7 +105,9 @@ namespace Tauron.Application.Wpf
 
             protected abstract void Scan();
 
-            protected override void CleanUp() { }
+            protected override void CleanUp()
+            {
+            }
 
             protected override void Bind(object context)
             {
@@ -135,7 +143,8 @@ namespace Tauron.Application.Wpf
                 else
                 {
                     priTarget =
-                        System.Windows.Application.Current.Windows.Cast<System.Windows.Window>().FirstOrDefault(win => win.Name == windowName);
+                        System.Windows.Application.Current.Windows.Cast<System.Windows.Window>()
+                            .FirstOrDefault(win => win.Name == windowName);
 
                     if (priTarget == null)
                         Log.Logger.Error($"ControlHelper: No Window Named {windowName} Found");

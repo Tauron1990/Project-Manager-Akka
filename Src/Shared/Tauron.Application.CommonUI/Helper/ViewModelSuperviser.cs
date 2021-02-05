@@ -32,7 +32,8 @@ namespace Tauron.Application.CommonUI.Helper
 
         public static ViewModelSuperviser Get(ActorSystem system)
         {
-            return _superviser ??= new ViewModelSuperviser(system.ActorOf(system.DI().Props<ViewModelSuperviserActor>(), nameof(ViewModelSuperviser)));
+            return _superviser ??= new ViewModelSuperviser(system.ActorOf(system.DI().Props<ViewModelSuperviserActor>(),
+                nameof(ViewModelSuperviser)));
         }
 
         public void Create(IViewModel model, string? name = null)
@@ -89,7 +90,9 @@ namespace Tauron.Application.CommonUI.Helper
             private CircuitBreakerStrategy(Func<IDecider> decider) => _decider = decider;
 
             public CircuitBreakerStrategy(ILoggingAdapter log)
-                : this(() => new CircuitBreakerDecider(log)) { }
+                : this(() => new CircuitBreakerDecider(log))
+            {
+            }
 
             public override IDecider Decider => throw new NotSupportedException("Single Decider not Supportet");
 
@@ -99,7 +102,8 @@ namespace Tauron.Application.CommonUI.Helper
                 return decider.Decide(exception);
             }
 
-            public override void ProcessFailure(IActorContext context, bool restart, IActorRef child, Exception cause, ChildRestartStats stats, IReadOnlyCollection<ChildRestartStats> children)
+            public override void ProcessFailure(IActorContext context, bool restart, IActorRef child, Exception cause,
+                ChildRestartStats stats, IReadOnlyCollection<ChildRestartStats> children)
             {
                 if (restart)
                     RestartChild(child, cause, false);
@@ -107,12 +111,14 @@ namespace Tauron.Application.CommonUI.Helper
                     context.Stop(child);
             }
 
-            public override void HandleChildTerminated(IActorContext actorContext, IActorRef child, IEnumerable<IInternalActorRef> children)
+            public override void HandleChildTerminated(IActorContext actorContext, IActorRef child,
+                IEnumerable<IInternalActorRef> children)
             {
                 _deciders.TryRemove(child, out _);
             }
 
-            public override ISurrogate ToSurrogate(ActorSystem system) => throw new NotSupportedException("Can not serialize CircuitBreakerStrategy");
+            public override ISurrogate ToSurrogate(ActorSystem system)
+                => throw new NotSupportedException("Can not serialize CircuitBreakerStrategy");
         }
 
         private sealed class CircuitBreakerDecider : IDecider
@@ -131,7 +137,8 @@ namespace Tauron.Application.CommonUI.Helper
                 switch (cause)
                 {
                     case ActorInitializationException m:
-                        _log.Error(m.InnerException ?? m, "Initialization Error from Model: {Actor}", m.Actor?.Path.Name ?? "Unkowen");
+                        _log.Error(m.InnerException ?? m, "Initialization Error from Model: {Actor}",
+                            m.Actor?.Path.Name ?? "Unkowen");
                         return Directive.Escalate;
                     case DeathPactException d:
                         _log.Error(d, "DeathPactException In Model");
@@ -155,12 +162,16 @@ namespace Tauron.Application.CommonUI.Helper
                             return Directive.Restart;
                         }
                         else
+                        {
                             _restartAtempt++;
+                        }
 
                         _time.Restart();
 
                         if (_restartAtempt > 6)
+                        {
                             return Directive.Escalate;
+                        }
                         else
                         {
                             _currentState = InternalState.Closed;

@@ -89,11 +89,11 @@ namespace Tauron.Application.CommonUI.Model
         public override bool Equals(object? obj)
         {
             return obj switch
-                   {
-                       UIProperty<TData> prop => Equals(prop.Value, Value),
-                       TData val              => Equals(val, Value),
-                       _                      => false
-                   };
+            {
+                UIProperty<TData> prop => Equals(prop.Value, Value),
+                TData val => Equals(val, Value),
+                _ => false
+            };
         }
 
         public override string ToString() => Value?.ToString() ?? "null--" + typeof(TData);

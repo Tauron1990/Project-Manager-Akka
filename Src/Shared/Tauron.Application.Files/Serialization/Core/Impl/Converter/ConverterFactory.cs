@@ -21,7 +21,8 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Converter
             return new TypeConverterConverter(GetConverter(member, targetType));
         }
 
-        public static SimpleConverter<IEnumerable<string>> CreateListConverter([CanBeNull] MemberInfo member, [CanBeNull] Type targeType)
+        public static SimpleConverter<IEnumerable<string>> CreateListConverter([CanBeNull] MemberInfo member,
+            [CanBeNull] Type targeType)
         {
             if (member == null || targeType == null) return new InvalidEnumConverter();
 

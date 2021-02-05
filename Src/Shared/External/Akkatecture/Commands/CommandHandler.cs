@@ -61,7 +61,8 @@ namespace Akkatecture.Commands
         {
             var logger = context.GetLogger();
             Handle(aggregate, context, command);
-            logger.Debug("Command of Type={0} handled in CommandHandler of Type={1}", command.GetType().PrettyPrint(), GetType().PrettyPrint());
+            logger.Debug("Command of Type={0} handled in CommandHandler of Type={1}", command.GetType().PrettyPrint(),
+                GetType().PrettyPrint());
             return true;
         }
 

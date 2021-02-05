@@ -20,9 +20,11 @@ namespace ServiceManager.ProjectDeployment.Actors
             _appInfos = queue;
 
             var hub = source.ToMaterialized(BroadcastHub.Sink<AppInfo>(), Keep.Right);
-            
 
-            Receive<QueryChangeSource>("QueryChanedSource", (changeSource, reporter) => reporter.Compled(OperationResult.Success(new AppChangedSource(hub.Run(mat)))));
+
+            Receive<QueryChangeSource>("QueryChanedSource",
+                (changeSource, reporter)
+                    => reporter.Compled(OperationResult.Success(new AppChangedSource(hub.Run(mat)))));
             Receive<AppInfo>(ai => _appInfos.OfferAsync(ai).PipeTo(Self));
             Receive<IQueueOfferResult>(r =>
             {

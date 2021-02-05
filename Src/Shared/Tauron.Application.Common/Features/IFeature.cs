@@ -11,7 +11,7 @@ namespace Tauron.Features
     {
         IEnumerable<string> Identify();
 
-       void Init(IFeatureActor<TState> actor);
+        void Init(IFeatureActor<TState> actor);
     }
 
 
@@ -20,19 +20,37 @@ namespace Tauron.Features
     {
         private IFeatureActor<TState> _actor = null!;
 
+        public IActorContext Context { get; private set; } = null!;
+
+        public virtual IEnumerable<string> Identify()
+        {
+            yield return GetType().Name;
+        }
+
+        public void Init(IFeatureActor<TState> actor)
+        {
+            Context = actor.Context;
+            _actor = actor;
+            Config();
+        }
+
         public IObservable<IActorContext> Start => _actor.Start;
 
         public IObservable<IActorContext> Stop => _actor.Stop;
 
         public TState CurrentState => _actor.CurrentState;
 
-        public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler) => _actor.Receive(handler);
+        public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler)
+            => _actor.Receive(handler);
 
-        public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<TState>> handler) => _actor.Receive(handler);
+        public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<TState>> handler)
+            => _actor.Receive(handler);
 
-        public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler, Func<Exception, bool> errorHandler) => _actor.Receive(handler, errorHandler);
+        public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler,
+            Func<Exception, bool> errorHandler) => _actor.Receive(handler, errorHandler);
 
-        public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IDisposable> handler) => _actor.Receive(handler);
+        public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IDisposable> handler)
+            => _actor.Receive(handler);
 
         public void TellSelf(object msg) => _actor.TellSelf(msg);
 
@@ -54,21 +72,8 @@ namespace Tauron.Features
             set => _actor.SupervisorStrategy = value;
         }
 
-        public IActorContext Context { get; private set; } = null!;
-
-        public virtual IEnumerable<string> Identify()
-        {
-            yield return GetType().Name;
-        }
-
-        public void Init(IFeatureActor<TState> actor)
-        {
-            Context = actor.Context;
-            _actor = actor;
-            Config();
-        }
+        public IDisposable Subscribe(IObserver<TState> observer) => _actor.Subscribe(observer);
 
         protected abstract void Config();
-        public IDisposable Subscribe(IObserver<TState> observer) => _actor.Subscribe(observer);
     }
 }

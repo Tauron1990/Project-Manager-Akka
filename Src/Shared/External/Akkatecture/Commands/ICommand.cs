@@ -50,5 +50,7 @@ namespace Akkatecture.Commands
 
     public interface ICommand<in TAggregate, out TIdentity> : ICommand<TAggregate, TIdentity, ISourceId>
         where TAggregate : IAggregateRoot<TIdentity>
-        where TIdentity : IIdentity { }
+        where TIdentity : IIdentity
+    {
+    }
 }

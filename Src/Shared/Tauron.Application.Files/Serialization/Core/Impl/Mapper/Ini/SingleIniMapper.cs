@@ -11,7 +11,8 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Mapper.Ini
         private readonly string _key;
         private readonly string _section;
 
-        public SingleIniMapper(string? membername, Type targetType, SimpleConverter<string>? converter, string section, string? key)
+        public SingleIniMapper(string? membername, Type targetType, SimpleConverter<string>? converter, string section,
+            string? key)
             : base(membername, targetType)
         {
             _converter = converter;

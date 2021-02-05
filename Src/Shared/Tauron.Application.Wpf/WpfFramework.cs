@@ -22,7 +22,8 @@ namespace Tauron.Application.Wpf
         public override IWindow CreateMessageDialog(string title, string message)
         {
             var window = new System.Windows.Window();
-            window.Content = new MessageDialog(title, message, b => window.DialogResult = b, true) {Margin = new Thickness(10)};
+            window.Content = new MessageDialog(title, message, b => window.DialogResult = b, true)
+                {Margin = new Thickness(10)};
 
             window.SizeToContent = SizeToContent.WidthAndHeight;
             window.ResizeMode = ResizeMode.NoResize;
@@ -34,7 +35,8 @@ namespace Tauron.Application.Wpf
             return new WpfWindow(window);
         }
 
-        public override object CreateDefaultMessageContent(string title, string message, Action<bool?>? result, bool canCnacel) => new MessageDialog(title, message, result, canCnacel);
+        public override object CreateDefaultMessageContent(string title, string message, Action<bool?>? result,
+            bool canCnacel) => new MessageDialog(title, message, result, canCnacel);
 
         private sealed class InternalDispatcher : IUIDispatcher
         {
@@ -56,7 +58,8 @@ namespace Tauron.Application.Wpf
                 return Invoker().ToObservable();
             }
 
-            public IObservable<TResult> InvokeAsync<TResult>(Func<TResult> action) => _dispatcher.InvokeAsync(action).Task.ToObservable();
+            public IObservable<TResult> InvokeAsync<TResult>(Func<TResult> action)
+                => _dispatcher.InvokeAsync(action).Task.ToObservable();
 
             public bool CheckAccess() => _dispatcher.CheckAccess();
         }
@@ -78,21 +81,21 @@ namespace Tauron.Application.Wpf
             public ShutdownMode ShutdownMode
             {
                 get => _application.ShutdownMode switch
-                       {
-                           System.Windows.ShutdownMode.OnLastWindowClose  => ShutdownMode.OnLastWindowClose,
-                           System.Windows.ShutdownMode.OnMainWindowClose  => ShutdownMode.OnMainWindowClose,
-                           System.Windows.ShutdownMode.OnExplicitShutdown => ShutdownMode.OnExplicitShutdown,
-                           _                                              => throw new ArgumentOutOfRangeException()
-                       };
+                {
+                    System.Windows.ShutdownMode.OnLastWindowClose => ShutdownMode.OnLastWindowClose,
+                    System.Windows.ShutdownMode.OnMainWindowClose => ShutdownMode.OnMainWindowClose,
+                    System.Windows.ShutdownMode.OnExplicitShutdown => ShutdownMode.OnExplicitShutdown,
+                    _ => throw new ArgumentOutOfRangeException()
+                };
                 set
                 {
                     _application.ShutdownMode = value switch
-                                                {
-                                                    ShutdownMode.OnLastWindowClose  => System.Windows.ShutdownMode.OnLastWindowClose,
-                                                    ShutdownMode.OnMainWindowClose  => System.Windows.ShutdownMode.OnMainWindowClose,
-                                                    ShutdownMode.OnExplicitShutdown => System.Windows.ShutdownMode.OnExplicitShutdown,
-                                                    _                               => throw new ArgumentOutOfRangeException(nameof(value), value, null)
-                                                };
+                    {
+                        ShutdownMode.OnLastWindowClose => System.Windows.ShutdownMode.OnLastWindowClose,
+                        ShutdownMode.OnMainWindowClose => System.Windows.ShutdownMode.OnMainWindowClose,
+                        ShutdownMode.OnExplicitShutdown => System.Windows.ShutdownMode.OnExplicitShutdown,
+                        _ => throw new ArgumentOutOfRangeException(nameof(value), value, null)
+                    };
                 }
             }
 

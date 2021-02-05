@@ -12,14 +12,14 @@ namespace RepositoryServer
         public static async Task Main(string[] args)
         {
             await Bootstrap.StartNode(args, KillRecpientType.Service, IpcApplicationType.Client)
-               .ConfigurateAkkaSystem((_, system) =>
-                    {
-                        RepositoryManager.InitRepositoryManager(
-                            system, 
-                            system.Settings.Config.GetString("akka.persistence.journal.mongodb.connection-string"),
-                            DataTransferManager.New(system, "Data-Tranfer-Manager"));
-                    })
-               .Build().Run();
+                .ConfigurateAkkaSystem((_, system) =>
+                {
+                    RepositoryManager.InitRepositoryManager(
+                        system,
+                        system.Settings.Config.GetString("akka.persistence.journal.mongodb.connection-string"),
+                        DataTransferManager.New(system, "Data-Tranfer-Manager"));
+                })
+                .Build().Run();
         }
     }
 }

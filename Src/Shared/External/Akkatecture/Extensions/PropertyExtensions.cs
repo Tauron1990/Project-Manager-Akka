@@ -13,28 +13,28 @@ namespace Akkatecture.Extensions
         {
             var key = new CacheKey(name, data.GetType());
             return _propertys.GetOrAdd(key, c =>
-                                            {
-                                                var fac = FastReflection.Shared.GetPropertyAccessor(c.Type.GetProperty(c.Name), Array.Empty<Type>);
+            {
+                var fac = FastReflection.Shared.GetPropertyAccessor(c.Type.GetProperty(c.Name), Array.Empty<Type>);
 
-                                                if (fac == null)
-                                                    throw new InvalidOperationException("no Factory Created");
+                if (fac == null)
+                    throw new InvalidOperationException("no Factory Created");
 
-                                                return fac;
-                                            })(data, Array.Empty<object>());
+                return fac;
+            })(data, Array.Empty<object>());
         }
 
         public static TReturn GetPropertyValue<TReturn>(this object data, string name)
         {
             var key = new CacheKey(name, data.GetType());
             return (TReturn) _propertys.GetOrAdd(key, c =>
-                                                      {
-                                                          var fac = FastReflection.Shared.GetPropertyAccessor(c.Type.GetProperty(c.Name), Array.Empty<Type>);
+            {
+                var fac = FastReflection.Shared.GetPropertyAccessor(c.Type.GetProperty(c.Name), Array.Empty<Type>);
 
-                                                          if (fac == null)
-                                                              throw new InvalidOperationException("no Factory Created");
+                if (fac == null)
+                    throw new InvalidOperationException("no Factory Created");
 
-                                                          return fac;
-                                                      })(data, Array.Empty<object>())!;
+                return fac;
+            })(data, Array.Empty<object>())!;
         }
 
         private sealed class CacheKey : IEquatable<CacheKey>
@@ -56,7 +56,8 @@ namespace Akkatecture.Extensions
                 return Name == other.Name && Type == other.Type;
             }
 
-            public override bool Equals(object? obj) => ReferenceEquals(this, obj) || obj is CacheKey other && Equals(other);
+            public override bool Equals(object? obj)
+                => ReferenceEquals(this, obj) || obj is CacheKey other && Equals(other);
 
             public override int GetHashCode() => HashCode.Combine(Name, Type);
 

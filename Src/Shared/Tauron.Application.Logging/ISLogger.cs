@@ -2,5 +2,7 @@
 
 namespace Tauron.Application.Logging
 {
-    public interface ISLogger<TLogger> : ILogger { }
+    public interface ISLogger<TLogger> : ILogger
+    {
+    }
 }

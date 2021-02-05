@@ -19,12 +19,10 @@ namespace Tauron.Application
             {
                 var temp = i;
                 for (var j = 8; j > 0; --j)
-                {
                     if ((temp & 1) == 1)
                         temp = (temp >> 1) ^ poly;
                     else
                         temp >>= 1;
-                }
 
                 _table[i] = temp;
             }
@@ -43,7 +41,8 @@ namespace Tauron.Application
             return ~crc;
         }
 
-        public byte[] ComputeChecksumBytes(byte[] bytes, int count) => BitConverter.GetBytes(ComputeChecksum(bytes, count));
+        public byte[] ComputeChecksumBytes(byte[] bytes, int count)
+            => BitConverter.GetBytes(ComputeChecksum(bytes, count));
     }
 
     /// <summary>
@@ -142,12 +141,10 @@ namespace Tauron.Application
                 {
                     var crc = i;
                     for (var j = 8; j > 0; j--)
-                    {
                         if ((crc & 1) == 1)
                             crc = (crc >> 1) ^ poly;
                         else
                             crc >>= 1;
-                    }
 
                     table[i] = crc;
                 }

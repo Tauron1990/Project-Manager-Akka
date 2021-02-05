@@ -26,7 +26,8 @@ namespace Tauron.Application.Workshop.StateManagement
         private readonly ConcurrentDictionary<string, ConcurrentBag<StateContainer>> _stateContainers = new();
         private readonly StateContainer[] _states;
 
-        internal RootManager(WorkspaceSuperviser superviser, IStateDispatcherConfigurator stateDispatcher, IEnumerable<StateBuilderBase> states,
+        internal RootManager(WorkspaceSuperviser superviser, IStateDispatcherConfigurator stateDispatcher,
+            IEnumerable<StateBuilderBase> states,
             IEnumerable<IEffect?> effects, IEnumerable<IMiddleware?> middlewares, bool sendBackSetting,
             IComponentContext? componentContext)
         {
@@ -60,10 +61,8 @@ namespace Tauron.Application.Workshop.StateManagement
             if (!_stateContainers.TryGetValue(key, out var bag)) return null;
 
             foreach (var stateContainer in bag)
-            {
                 if (stateContainer.Instance is TState state)
                     return state;
-            }
 
             return null;
         }
@@ -83,7 +82,8 @@ namespace Tauron.Application.Workshop.StateManagement
             var effects = new EffectInvoker(_effects.Where(e => e.ShouldReactToAction(action)), action, this);
             var resultInvoker = new ResultInvoker(effects, _engine, sender, sendBack ?? _sendBackSetting, action);
 
-            foreach (var dataMutation in _states.Select(sc => sc.TryDipatch(action, resultInvoker.AddResult(), resultInvoker.WorkCompled())))
+            foreach (var dataMutation in _states.Select(sc
+                => sc.TryDipatch(action, resultInvoker.AddResult(), resultInvoker.WorkCompled())))
             {
                 if (dataMutation == null) continue;
 
@@ -113,7 +113,8 @@ namespace Tauron.Application.Workshop.StateManagement
             private IObserver<IReducerResult>? _result;
             private IObserver<Unit>? _workCompled;
 
-            public ResultInvoker(EffectInvoker effectInvoker, MutatingEngine mutatingEngine, IActorRef sender, bool sendBack, IStateAction action)
+            public ResultInvoker(EffectInvoker effectInvoker, MutatingEngine mutatingEngine, IActorRef sender,
+                bool sendBack, IStateAction action)
             {
                 _effectInvoker = effectInvoker;
                 _mutatingEngine = mutatingEngine;
@@ -142,7 +143,10 @@ namespace Tauron.Application.Workshop.StateManagement
                     errors.AddRange(result.Errors ?? Array.Empty<string>());
                 }
 
-                _sender.Tell(fail ? OperationResult.Failure(errors.Select(s => new Error(s, s)), _action) : OperationResult.Success(_action), ActorRefs.NoSender);
+                _sender.Tell(
+                    fail
+                        ? OperationResult.Failure(errors.Select(s => new Error(s, s)), _action)
+                        : OperationResult.Success(_action), ActorRefs.NoSender);
             }
 
             public void PushWork()
@@ -166,12 +170,12 @@ namespace Tauron.Application.Workshop.StateManagement
                 }
 
                 return _workCompled ??= new AnonymousObserver<Unit>(_ => { },
-                                                                    e =>
-                                                                    {
-                                                                        _results.Add(new ErrorResult(e));
-                                                                        Compled();
-                                                                    },
-                                                                    Compled);
+                    e =>
+                    {
+                        _results.Add(new ErrorResult(e));
+                        Compled();
+                    },
+                    Compled);
             }
         }
 

@@ -19,15 +19,21 @@ namespace Tauron.Application.Avalonia
     {
         private const string ControlHelperPrefix = "ControlHelper.";
 
-        public static readonly AttachedProperty<string> MarkControlProperty = AvaloniaProperty.RegisterAttached<ControlHelper, Control, string>("MarkControl", string.Empty);
+        public static readonly AttachedProperty<string> MarkControlProperty =
+            AvaloniaProperty.RegisterAttached<ControlHelper, Control, string>("MarkControl", string.Empty);
 
-        public static readonly AttachedProperty<string> MarkWindowProperty = AvaloniaProperty.RegisterAttached<ControlHelper, Control, string>("MarkWindow", string.Empty);
+        public static readonly AttachedProperty<string> MarkWindowProperty =
+            AvaloniaProperty.RegisterAttached<ControlHelper, Control, string>("MarkWindow", string.Empty);
 
-        private ControlHelper() { }
+        private ControlHelper()
+        {
+        }
 
-        public static string GetMarkControl(Control obj) => Argument.NotNull(obj, nameof(obj)).GetValue(MarkControlProperty);
+        public static string GetMarkControl(Control obj)
+            => Argument.NotNull(obj, nameof(obj)).GetValue(MarkControlProperty);
 
-        public static string GetMarkWindow(Control obj) => Argument.NotNull(obj, nameof(obj)).GetValue(MarkWindowProperty);
+        public static string GetMarkWindow(Control obj)
+            => Argument.NotNull(obj, nameof(obj)).GetValue(MarkWindowProperty);
 
         public static void SetMarkControl(Control obj, string value)
         {
@@ -66,14 +72,16 @@ namespace Tauron.Application.Avalonia
             if (root == null)
             {
                 ControlBindLogic.MakeLazy((IUIElement) ele, newName, oldName,
-                                          (name, old, controllable, dependencyObject) => SetLinker(old, name, controllable, dependencyObject, factory));
+                    (name, old, controllable, dependencyObject)
+                        => SetLinker(old, name, controllable, dependencyObject, factory));
                 return;
             }
 
             SetLinker(newName, oldName, root, ele, factory);
         }
 
-        private static void SetLinker(string? newName, string? oldName, IBinderControllable root, IUIObject obj, Func<LinkerBase> factory)
+        private static void SetLinker(string? newName, string? oldName, IBinderControllable root, IUIObject obj,
+            Func<LinkerBase> factory)
         {
             if (oldName != null)
                 root.CleanUp(ControlHelperPrefix + oldName);
@@ -103,7 +111,9 @@ namespace Tauron.Application.Avalonia
 
             protected abstract void Scan();
 
-            protected override void CleanUp() { }
+            protected override void CleanUp()
+            {
+            }
 
             protected override void Bind(object context)
             {
@@ -131,19 +141,19 @@ namespace Tauron.Application.Avalonia
                 if (windowName == null)
                 {
                     if (!(priTarget is Window))
-                    {
                         while (priTarget != null)
                             priTarget = priTarget is StyledElement {Parent: StyledElement parent} ? parent : null;
-                    }
 
                     if (priTarget == null)
                         Log.Logger.Error($"ControlHelper: No Window Found: {DataContext.GetType()}|{realName}");
                 }
                 else
                 {
-                    priTarget = global::Avalonia.Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime
-                                    ? lifetime.Windows.FirstOrDefault(win => win.Name == windowName)
-                                    : null;
+                    priTarget =
+                        global::Avalonia.Application.Current.ApplicationLifetime is
+                            IClassicDesktopStyleApplicationLifetime lifetime
+                            ? lifetime.Windows.FirstOrDefault(win => win.Name == windowName)
+                            : null;
 
                     if (priTarget == null)
                         Log.Logger.Error($"ControlHelper: No Window Named {windowName} Found");

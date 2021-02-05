@@ -27,5 +27,7 @@
 
 namespace Akkatecture.Core
 {
-    public interface ISourceId : IIdentity { }
+    public interface ISourceId : IIdentity
+    {
+    }
 }

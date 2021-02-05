@@ -48,12 +48,10 @@ namespace Tauron.Application.Files.Ini.Parser
                 var entries = new Dictionary<string, IniEntry>(value.Count);
 
                 foreach (var (entryKey, collection) in value)
-                {
                     if (collection.Count < 1)
                         entries[entryKey] = new ListIniEntry(entryKey, new List<string>(collection));
                     else
                         entries[entryKey] = new SingleIniEntry(entryKey, collection.ElementAt(0));
-                }
 
                 sections[key] = new IniSection(entries, key);
             }

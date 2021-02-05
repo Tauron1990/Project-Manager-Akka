@@ -8,7 +8,9 @@ namespace Tauron.Application
     {
         private int _limit;
 
-        public LimitedList() : this(-1) { }
+        public LimitedList() : this(-1)
+        {
+        }
 
         public LimitedList(int limit) => _limit = limit;
 

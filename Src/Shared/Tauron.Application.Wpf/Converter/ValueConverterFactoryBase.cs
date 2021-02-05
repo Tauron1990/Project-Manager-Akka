@@ -17,9 +17,11 @@ namespace Tauron.Application.Wpf.Converter
         [NotNull]
         protected abstract IValueConverter Create();
 
-        protected static IValueConverter CreateStringConverter<TType>(Func<TType, string> converter) => new FuncStringConverter<TType>(converter);
+        protected static IValueConverter CreateStringConverter<TType>(Func<TType, string> converter)
+            => new FuncStringConverter<TType>(converter);
 
-        protected static IValueConverter CreateCommonConverter<TSource, TDest>(Func<TSource, TDest> converter) => new FuncCommonConverter<TSource, TDest>(converter);
+        protected static IValueConverter CreateCommonConverter<TSource, TDest>(Func<TSource, TDest> converter)
+            => new FuncCommonConverter<TSource, TDest>(converter);
 
         public override object ProvideValue(IServiceProvider serviceProvider)
         {
@@ -46,13 +48,16 @@ namespace Tauron.Application.Wpf.Converter
             protected override string Convert(TType value) => _converter(value);
         }
 
-        protected abstract class StringConverterBase<TSource> : ValueConverterBase<TSource, string> { }
+        protected abstract class StringConverterBase<TSource> : ValueConverterBase<TSource, string>
+        {
+        }
 
         protected abstract class ValueConverterBase<TSource, TDest> : IValueConverter
         {
             protected virtual bool CanConvertBack => false;
 
-            public virtual object? Convert(object value, [NotNull] Type targetType, object parameter, [NotNull] CultureInfo culture)
+            public virtual object? Convert(object value, [NotNull] Type targetType, object parameter,
+                [NotNull] CultureInfo culture)
             {
                 //if (value is TDest && typeof(TSource) != typeof(TDest)) return value;
                 if (!(value is TSource)) return null;
@@ -60,7 +65,8 @@ namespace Tauron.Application.Wpf.Converter
                 return Convert((TSource) value);
             }
 
-            public virtual object? ConvertBack(object value, [NotNull] Type targetType, object parameter, [NotNull] CultureInfo culture)
+            public virtual object? ConvertBack(object value, [NotNull] Type targetType, object parameter,
+                [NotNull] CultureInfo culture)
             {
                 if (!CanConvertBack || !(value is TDest)) return null;
 

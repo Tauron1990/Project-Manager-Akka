@@ -20,20 +20,25 @@ namespace Akka.Cluster.Utility
 
         public DistributedActorTableRef<TKey> WithTimeout(TimeSpan? timeout) => new(Target, timeout);
 
-        public Task<DistributedActorTableMessage<TKey>.CreateReply> Create(object[] args) => Target.Ask<DistributedActorTableMessage<TKey>.CreateReply>(
-            new DistributedActorTableMessage<TKey>.Create(args), Timeout);
+        public Task<DistributedActorTableMessage<TKey>.CreateReply> Create(object[] args)
+            => Target.Ask<DistributedActorTableMessage<TKey>.CreateReply>(
+                new DistributedActorTableMessage<TKey>.Create(args), Timeout);
 
-        public Task<DistributedActorTableMessage<TKey>.CreateReply> Create(TKey id, object[] args) => Target.Ask<DistributedActorTableMessage<TKey>.CreateReply>(
-            new DistributedActorTableMessage<TKey>.Create(id, args), Timeout);
+        public Task<DistributedActorTableMessage<TKey>.CreateReply> Create(TKey id, object[] args)
+            => Target.Ask<DistributedActorTableMessage<TKey>.CreateReply>(
+                new DistributedActorTableMessage<TKey>.Create(id, args), Timeout);
 
-        public Task<DistributedActorTableMessage<TKey>.GetOrCreateReply> GetOrCreate(TKey id, object[] args) => Target.Ask<DistributedActorTableMessage<TKey>.GetOrCreateReply>(
-            new DistributedActorTableMessage<TKey>.GetOrCreate(id, args), Timeout);
+        public Task<DistributedActorTableMessage<TKey>.GetOrCreateReply> GetOrCreate(TKey id, object[] args)
+            => Target.Ask<DistributedActorTableMessage<TKey>.GetOrCreateReply>(
+                new DistributedActorTableMessage<TKey>.GetOrCreate(id, args), Timeout);
 
-        public Task<DistributedActorTableMessage<TKey>.GetReply> Get(TKey id) => Target.Ask<DistributedActorTableMessage<TKey>.GetReply>(
-            new DistributedActorTableMessage<TKey>.Get(id), Timeout);
+        public Task<DistributedActorTableMessage<TKey>.GetReply> Get(TKey id)
+            => Target.Ask<DistributedActorTableMessage<TKey>.GetReply>(
+                new DistributedActorTableMessage<TKey>.Get(id), Timeout);
 
-        public Task<DistributedActorTableMessage<TKey>.GetIdsReply> GetIds() => Target.Ask<DistributedActorTableMessage<TKey>.GetIdsReply>(
-            new DistributedActorTableMessage<TKey>.GetIds(), Timeout);
+        public Task<DistributedActorTableMessage<TKey>.GetIdsReply> GetIds()
+            => Target.Ask<DistributedActorTableMessage<TKey>.GetIdsReply>(
+                new DistributedActorTableMessage<TKey>.GetIds(), Timeout);
 
         public void GracefulStop(object stopMessage)
         {
@@ -56,8 +61,9 @@ namespace Akka.Cluster.Utility
 
         public DistributedActorTableContainerRef<TKey> WithTimeout(TimeSpan? timeout) => new(Target, timeout);
 
-        public Task<DistributedActorTableMessage<TKey>.AddReply> Add(TKey id, IActorRef actor) => Target.Ask<DistributedActorTableMessage<TKey>.AddReply>(
-            new DistributedActorTableMessage<TKey>.Add(id, actor), Timeout);
+        public Task<DistributedActorTableMessage<TKey>.AddReply> Add(TKey id, IActorRef actor)
+            => Target.Ask<DistributedActorTableMessage<TKey>.AddReply>(
+                new DistributedActorTableMessage<TKey>.Add(id, actor), Timeout);
 
         public void Remove(TKey id)
         {

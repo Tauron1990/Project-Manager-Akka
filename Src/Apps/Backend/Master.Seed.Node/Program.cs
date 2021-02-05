@@ -9,10 +9,9 @@ using Tauron.Application.Master.Commands;
 
 namespace Master.Seed.Node
 {
-    class Program
+    internal class Program
     {
-
-        static async Task Main(string[] args)
+        private static async Task Main(string[] args)
         {
             //Beacon? beacon = null;
 
@@ -22,7 +21,9 @@ namespace Master.Seed.Node
                     var cluster = Cluster.Get(system);
                     cluster.RegisterOnMemberUp(() =>
                     {
-                        ServiceRegistry.Start(system, new RegisterService(context.HostEnvironment.ApplicationName, cluster.SelfUniqueAddress));
+                        ServiceRegistry.Start(system,
+                            new RegisterService(context.HostEnvironment.ApplicationName,
+                                cluster.SelfUniqueAddress));
                     });
 
                     var cmd = PetabridgeCmd.Get(system);

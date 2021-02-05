@@ -8,15 +8,6 @@ namespace ServiceManager.ProjectDeployment.Build
 {
     public sealed class BuildRequest
     {
-        public Reporter Source { get; }
-
-        public AppData AppData { get; }
-        public RepositoryApi RepositoryApi { get; }
-
-        public ITempFile TargetFile { get; }
-
-        public TaskCompletionSource<(string, ITempFile)> CompletionSource { get; }
-
         private BuildRequest(Reporter source, AppData appData, RepositoryApi repositoryApi, ITempFile targetFile)
         {
             CompletionSource = new TaskCompletionSource<(string, ITempFile)>();
@@ -26,7 +17,17 @@ namespace ServiceManager.ProjectDeployment.Build
             TargetFile = targetFile;
         }
 
-        public static Task<(string, ITempFile)> SendWork(IWorkDistributor<BuildRequest> distributor, Reporter source, AppData appData, RepositoryApi repositoryApi, ITempFile targetFile)
+        public Reporter Source { get; }
+
+        public AppData AppData { get; }
+        public RepositoryApi RepositoryApi { get; }
+
+        public ITempFile TargetFile { get; }
+
+        public TaskCompletionSource<(string, ITempFile)> CompletionSource { get; }
+
+        public static Task<(string, ITempFile)> SendWork(IWorkDistributor<BuildRequest> distributor, Reporter source,
+            AppData appData, RepositoryApi repositoryApi, ITempFile targetFile)
         {
             var request = new BuildRequest(source, appData, repositoryApi, targetFile);
             distributor.PushWork(request);

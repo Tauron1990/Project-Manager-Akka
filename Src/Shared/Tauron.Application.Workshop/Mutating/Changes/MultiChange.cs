@@ -7,10 +7,8 @@ namespace Tauron.Application.Workshop.Mutating.Changes
         public override TChange Cast<TChange>()
         {
             foreach (var change in Changes)
-            {
                 if (change is TChange c)
                     return c;
-            }
 
             return null!;
         }

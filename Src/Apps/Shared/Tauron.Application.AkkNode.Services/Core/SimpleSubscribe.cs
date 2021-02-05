@@ -6,18 +6,19 @@ using Tauron.Features;
 
 namespace Tauron.Application.AkkaNode.Services.Core
 {
-
     [PublicAPI]
     public static class SimpleSubscribe
     {
-        public static IEventActor SubscribeToEvent<TEvent>(this IActorRefFactory actor, IActorRef target, bool killOnFirstResponse = false)
+        public static IEventActor SubscribeToEvent<TEvent>(this IActorRefFactory actor, IActorRef target,
+            bool killOnFirstResponse = false)
         {
             var eventActor = EventActor.Create(actor, null, killOnFirstResponse);
             eventActor.Send(target, new EventSubscribe(true, typeof(TEvent)));
             return eventActor;
         }
 
-        public static IEventActor SubscribeToEvent<TEvent>(this IActorRefFactory actor, IActorRef target, Action<TEvent> handler, bool killOnFirstResponse = false)
+        public static IEventActor SubscribeToEvent<TEvent>(this IActorRefFactory actor, IActorRef target,
+            Action<TEvent> handler, bool killOnFirstResponse = false)
         {
             var eventActor = EventActor.Create(actor, handler, killOnFirstResponse);
             eventActor.Send(target, new EventSubscribe(true, typeof(TEvent)));
@@ -34,8 +35,6 @@ namespace Tauron.Application.AkkaNode.Services.Core
     [PublicAPI]
     public sealed class EventSubscribtion : IDisposable
     {
-        public static EventSubscribtion Empty { get; } = new(typeof(Type), ActorRefs.Nobody);
-
         private readonly Type _event;
         private readonly IActorRef _eventSource;
 
@@ -45,9 +44,11 @@ namespace Tauron.Application.AkkaNode.Services.Core
             _eventSource = eventSource;
         }
 
+        public static EventSubscribtion Empty { get; } = new(typeof(Type), ActorRefs.Nobody);
+
         public void Dispose()
         {
-            if(_eventSource.IsNobody()) return;
+            if (_eventSource.IsNobody()) return;
             _eventSource.Tell(new EventUnSubscribe(_event));
         }
     }

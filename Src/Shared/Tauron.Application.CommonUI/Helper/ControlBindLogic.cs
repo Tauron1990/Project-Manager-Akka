@@ -51,7 +51,9 @@ namespace Tauron.Application.CommonUI.Helper
                 _element.DataContextChanged.Take(1).Subscribe(OnElementOnDataContextChanged);
             }
             else
+            {
                 _noContext?.Invoke();
+            }
         }
 
         public override void OnNoContext(Action action)
@@ -79,7 +81,9 @@ namespace Tauron.Application.CommonUI.Helper
                         control.ControlUnload += _unload;
                 }
                 else
+                {
                     _noContext?.Invoke();
+                }
             }
 
             elementBase.Loaded.Take(1).Subscribe(_ => OnLoad());
@@ -141,7 +145,8 @@ namespace Tauron.Application.CommonUI.Helper
 
         public void Register(string key, IControlBindable bindable, IUIObject affectedPart)
         {
-            Log.Debug("Register Bind Element {Name} -- {LinkElement} -- {Part}", key, bindable.GetType(), affectedPart.GetType());
+            Log.Debug("Register Bind Element {Name} -- {LinkElement} -- {Part}", key, bindable.GetType(),
+                affectedPart.GetType());
 
             if (_dataContext == null)
                 return;
@@ -240,7 +245,8 @@ namespace Tauron.Application.CommonUI.Helper
             return promise != null;
         }
 
-        public static void MakeLazy(IUIElement target, string? newValue, string? oldValue, Action<string?, string?, IBinderControllable, IUIObject> runner)
+        public static void MakeLazy(IUIElement target, string? newValue, string? oldValue,
+            Action<string?, string?, IBinderControllable, IUIObject> runner)
         {
             var temp = new LazyHelper(target, newValue, oldValue, runner);
             target.Loaded.Take(1).Subscribe(_ => temp.ElementOnLoaded());
@@ -253,7 +259,8 @@ namespace Tauron.Application.CommonUI.Helper
             private readonly Action<string?, string?, IBinderControllable, IUIObject> _runner;
             private readonly IUIElement _target;
 
-            public LazyHelper(IUIElement target, string? newValue, string? oldValue, Action<string?, string?, IBinderControllable, IUIObject> runner)
+            public LazyHelper(IUIElement target, string? newValue, string? oldValue,
+                Action<string?, string?, IBinderControllable, IUIObject> runner)
             {
                 _target = target;
                 _newValue = newValue;

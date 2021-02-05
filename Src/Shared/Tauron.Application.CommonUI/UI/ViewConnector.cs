@@ -23,7 +23,9 @@ namespace Tauron.Application.CommonUI.UI
             _updater($"No Data Context Found for {Name}");
         }
 
-        protected override void ValidateCompled(ValidatingEvent obj) { }
+        protected override void ValidateCompled(ValidatingEvent obj)
+        {
+        }
 
         protected override void PropertyChangedHandler(PropertyChangedEvent obj)
         {

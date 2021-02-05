@@ -12,7 +12,8 @@ namespace Tauron.Application.Files.VirtualFiles.Zip
 
         private readonly ZipFile _file;
 
-        public InZipFile(IDirectory parentDirectory, string originalPath, ZipFile file, InternalZipDirectory directory, ZipEntry? entry)
+        public InZipFile(IDirectory parentDirectory, string originalPath, ZipFile file, InternalZipDirectory directory,
+            ZipEntry? entry)
             : base(() => parentDirectory, originalPath, Path.GetFileName(entry?.FileName ?? string.Empty))
         {
             _file = file;

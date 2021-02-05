@@ -17,7 +17,7 @@ namespace Tauron.Application.AkkaNode.Services.Configuration
             _names = names;
         }
 
-        public IConfigurationProvider Build(IConfigurationBuilder builder) 
+        public IConfigurationProvider Build(IConfigurationBuilder builder)
             => new HoconConfigurationProvider(_config, _names);
     }
 
@@ -34,16 +34,14 @@ namespace Tauron.Application.AkkaNode.Services.Configuration
 
         public override void Load()
         {
-            if(_config == null || _names == null)
+            if (_config == null || _names == null)
                 return;
 
             var config = _config();
 
             foreach (var (path, name) in _names)
-            {
                 if (config.HasPath(path))
                     Data[name] = config.GetString(path, string.Empty);
-            }
 
             _names = null;
             _config = null;

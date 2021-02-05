@@ -9,7 +9,8 @@ namespace Tauron.Akkatecture.Projections
     {
         protected internal readonly Projector Projector;
 
-        public DomainProjector(IEventMap<ProjectionContext> map, IEnumerable<Projector>? children = null) => Projector = new Projector(map, children) {ShouldRetry = ShouldRetry};
+        public DomainProjector(IEventMap<ProjectionContext> map, IEnumerable<Projector>? children = null)
+            => Projector = new Projector(map, children) {ShouldRetry = ShouldRetry};
 
         protected virtual async Task<bool> ShouldRetry(ProjectionException exception, int attempts)
         {

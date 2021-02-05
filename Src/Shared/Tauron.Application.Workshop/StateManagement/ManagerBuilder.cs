@@ -88,9 +88,9 @@ namespace Tauron.Application.Workshop.StateManagement
             }
 
             return new RootManager(Superviser, _dispatcherFunc(), _states,
-                                   _effects.Select(e => e()).Concat(additionalEffects),
-                                   _middlewares.Select(m => m()).Concat(additionalMiddlewares),
-                                   _sendBackSetting, componentContext);
+                _effects.Select(e => e()).Concat(additionalEffects),
+                _middlewares.Select(m => m()).Concat(additionalMiddlewares),
+                _sendBackSetting, componentContext);
         }
     }
 }

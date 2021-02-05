@@ -18,12 +18,9 @@ namespace SeriLogViewer
     public sealed class MainWindowModel : INotifyPropertyChanged
     {
         private readonly SfDataGrid _grid;
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        private int _isLoading;
         private ObservableCollection<dynamic> _entrys = new();
 
-        public ICommand OpenCommand { get; }
+        private int _isLoading;
 
         public MainWindowModel(SfDataGrid grid)
         {
@@ -31,10 +28,25 @@ namespace SeriLogViewer
             OpenCommand = new SimpleCommand(() => _isLoading == 0, TryLoad);
         }
 
+        public ICommand OpenCommand { get; }
+
+        public ObservableCollection<dynamic> Entrys
+        {
+            get => _entrys;
+            set
+            {
+                if (Equals(value, _entrys)) return;
+                _entrys = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
         private void TryLoad()
         {
             var diag = new VistaOpenFileDialog();
-            if(diag.ShowDialog(Application.Current.MainWindow) != true) return;
+            if (diag.ShowDialog(Application.Current.MainWindow) != true) return;
 
             Task.Run(() => Load(diag.FileName));
         }
@@ -45,7 +57,7 @@ namespace SeriLogViewer
             {
                 Application.Current.Dispatcher.Invoke(() => Entrys.Clear());
 
-                List<dynamic> entrys = new(); 
+                List<dynamic> entrys = new();
 
                 Interlocked.Exchange(ref _isLoading, 1);
 
@@ -61,10 +73,7 @@ namespace SeriLogViewer
 
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    foreach (dynamic entry in entrys)
-                    {
-                        Entrys.Add(entry);
-                    }
+                    foreach (dynamic entry in entrys) Entrys.Add(entry);
 
                     _grid.GridColumnSizer.ResetAutoCalculationforAllColumns();
                     _grid.GridColumnSizer.Refresh();
@@ -88,9 +97,7 @@ namespace SeriLogViewer
                 var prov = obj;
 
                 foreach (var match in FindComponent(msg))
-                {
                     msg = msg.Replace(match, prov[match[1..^1]]?.ToString() ?? string.Empty);
-                }
 
                 obj["@mt"] = JToken.FromObject(msg);
             }
@@ -107,7 +114,6 @@ namespace SeriLogViewer
             var start = 0;
 
             for (var i = 0; i < msg.Length; i++)
-            {
                 if (isIn && target[i] == '}')
                 {
                     isIn = false;
@@ -118,22 +124,10 @@ namespace SeriLogViewer
                     isIn = true;
                     start = i;
                 }
-            }
-        }
-
-        public ObservableCollection<dynamic> Entrys
-        {
-            get => _entrys;
-            set
-            {
-                if (Equals(value, _entrys)) return;
-                _entrys = value;
-                OnPropertyChanged();
-            }
         }
 
         [NotifyPropertyChangedInvocator]
-        private void OnPropertyChanged([CallerMemberName] string propertyName = null!) 
+        private void OnPropertyChanged([CallerMemberName] string propertyName = null!)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }

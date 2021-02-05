@@ -13,11 +13,23 @@ namespace Servicemnager.Networking.IPC
 
     public sealed class SharmComunicator : IDisposable
     {
+        public static readonly string ProcessId = Guid.NewGuid().ToString("N");
+        private readonly Action<string, Exception> _errorHandler;
+        private readonly NetworkMessageFormatter _formatter = NetworkMessageFormatter.Shared;
+        private readonly string _globalId;
+
+        private ISharmIpc _sharmIpc = new Dummy();
+
+        public SharmComunicator(string globalId, Action<string, Exception> errorHandler)
+        {
+            _globalId = globalId;
+            _errorHandler = errorHandler;
+        }
         #if DEBUG
         public static Func<ISharmIpc>? ConnectionFac { get; set; }
         #endif
 
-        public static readonly string ProcessId = Guid.NewGuid().ToString("N");
+        public void Dispose() => _sharmIpc.Dispose();
 
         public static bool MasterIpcReady(string id)
         {
@@ -28,7 +40,6 @@ namespace Servicemnager.Networking.IPC
 
                 mt.ReleaseMutex();
                 return false;
-
             }
             catch (AbandonedMutexException)
             {
@@ -36,62 +47,50 @@ namespace Servicemnager.Networking.IPC
             }
         }
 
-        private ISharmIpc _sharmIpc = new Dummy();
-        private readonly string _globalId;
-        private readonly Action<string, Exception> _errorHandler;
-        private readonly NetworkMessageFormatter _formatter = NetworkMessageFormatter.Shared;
-
         public event SharmMessageHandler? OnMessage;
-
-        public SharmComunicator(string globalId, Action<string, Exception> errorHandler)
-        {
-            _globalId = globalId;
-            _errorHandler = errorHandler;
-        }
-
-        public void Dispose() => _sharmIpc.Dispose();
 
         public void Connect()
         {
-#if DEBUG
+            #if DEBUG
 
             _sharmIpc = ConnectionFac == null ? new Connection(_globalId, _errorHandler) : ConnectionFac();
 
-#else
-            _sharmIpc = new Connection(_globalId, _errorHandler);  
+            #else
+            _sharmIpc = new Connection(_globalId, _errorHandler);
             #endif
-            _sharmIpc.OnMessage += (message, messageId, processsId) => OnMessage?.Invoke(message, messageId, processsId);
+            _sharmIpc.OnMessage += (message, messageId, processsId)
+                => OnMessage?.Invoke(message, messageId, processsId);
         }
 
         public bool Send(NetworkMessage msg, string target)
         {
             target = target.Length switch
-                     {
-                         > 32 => throw new ArgumentOutOfRangeException(nameof(target), target, "Id Longer then 32 Chars"),
-                         < 32 => target.PadRight(32),
-                         _    => target
-                     };
+            {
+                > 32 => throw new ArgumentOutOfRangeException(nameof(target), target, "Id Longer then 32 Chars"),
+                < 32 => target.PadRight(32),
+                _ => target
+            };
 
             var toSend = _formatter.WriteMessage(msg, i =>
-                                                      {
-                                                          var memory = MemoryPool<byte>.Shared.Rent(i + 64);
+            {
+                var memory = MemoryPool<byte>.Shared.Rent(i + 64);
 
-                                                          Encoding.ASCII.GetBytes(target, memory.Memory.Span);
-                                                          Encoding.ASCII.GetBytes(ProcessId, memory.Memory.Span[31..]);
+                Encoding.ASCII.GetBytes(target, memory.Memory.Span);
+                Encoding.ASCII.GetBytes(ProcessId, memory.Memory.Span[31..]);
 
-                                                          return (memory, 63);
-                                                      });
+                return (memory, 63);
+            });
 
             using var data = toSend.Message;
             return _sharmIpc.Send(data.Memory[..toSend.Lenght].ToArray());
         }
 
-#if DEBUG
-        public 
-#else
+        #if DEBUG
+        public
+            #else
         private
-#endif
-        interface ISharmIpc : IDisposable
+            #endif
+            interface ISharmIpc : IDisposable
         {
             event SharmMessageHandler OnMessage;
 
@@ -102,12 +101,11 @@ namespace Servicemnager.Networking.IPC
         {
             public void Dispose()
             {
-                
             }
 
             public event SharmMessageHandler OnMessage
             {
-                add {  }
+                add { }
                 remove { }
             }
 
@@ -116,24 +114,26 @@ namespace Servicemnager.Networking.IPC
 
         private sealed class Connection : ISharmIpc
         {
-            private readonly SharmIpc _sharmIpc;
             private readonly NetworkMessageFormatter _messageFormatter = NetworkMessageFormatter.Shared;
+            private readonly SharmIpc _sharmIpc;
 
-            public Connection(string globalId, Action<string, Exception> errorHandler) 
-                => _sharmIpc = new SharmIpc(globalId, Handle, ExternalExceptionHandler:errorHandler, protocolVersion: SharmIpc.eProtocolVersion.V2);
-
-            private void Handle(ulong arg1, byte[] arg2)
-            {
-                string id = Encoding.ASCII.GetString(arg2, 0, 32).Trim();
-                string from = Encoding.ASCII.GetString(arg2, 31, 32).Trim();
-                if (id.StartsWith("All") || id == ProcessId) OnMessage?.Invoke(_messageFormatter.ReadMessage(arg2.AsMemory()[63..]), arg1, from);
-            }
+            public Connection(string globalId, Action<string, Exception> errorHandler)
+                => _sharmIpc = new SharmIpc(globalId, Handle, ExternalExceptionHandler: errorHandler,
+                    protocolVersion: SharmIpc.eProtocolVersion.V2);
 
             public void Dispose() => _sharmIpc.Dispose();
 
             public event SharmMessageHandler? OnMessage;
 
             public bool Send(byte[] msg) => _sharmIpc.RemoteRequestWithoutResponse(msg);
+
+            private void Handle(ulong arg1, byte[] arg2)
+            {
+                string id = Encoding.ASCII.GetString(arg2, 0, 32).Trim();
+                string from = Encoding.ASCII.GetString(arg2, 31, 32).Trim();
+                if (id.StartsWith("All") || id == ProcessId)
+                    OnMessage?.Invoke(_messageFormatter.ReadMessage(arg2.AsMemory()[63..]), arg1, from);
+            }
         }
     }
 
@@ -146,6 +146,18 @@ namespace Servicemnager.Networking.IPC
             _comunicator = new SharmComunicator(uniqeName, errorHandler);
             _comunicator.OnMessage += ComunicatorOnOnMessage;
         }
+
+        public void Dispose() => _comunicator.Dispose();
+
+        public event EventHandler<ClientConnectedArgs>? ClientConnected;
+
+        public event EventHandler<ClientDisconnectedArgs>? ClientDisconnected;
+
+        public event EventHandler<MessageFromClientEventArgs>? OnMessageReceived;
+
+        public void Start() => _comunicator.Connect();
+
+        public bool Send(string client, NetworkMessage message) => _comunicator.Send(message, client);
 
         private void ComunicatorOnOnMessage(NetworkMessage message, ulong messageId, string processId)
         {
@@ -164,18 +176,6 @@ namespace Servicemnager.Networking.IPC
                     break;
             }
         }
-
-        public void Dispose() => _comunicator.Dispose();
-
-        public event EventHandler<ClientConnectedArgs>? ClientConnected;
-
-        public event EventHandler<ClientDisconnectedArgs>? ClientDisconnected;
-
-        public event EventHandler<MessageFromClientEventArgs>? OnMessageReceived;
-
-        public void Start() => _comunicator.Connect();
-
-        public bool Send(string client, NetworkMessage message) => _comunicator.Send(message, client);
     }
 
     public sealed class SharmClient : IDataClient, IDisposable
@@ -187,6 +187,21 @@ namespace Servicemnager.Networking.IPC
             _comunicator = new SharmComunicator(uniqeName, errorHandler);
             _comunicator.OnMessage += ComunicatorOnOnMessage;
         }
+
+        public void Connect()
+        {
+            _comunicator.Connect();
+            Send(NetworkMessage.Create(SharmComunicatorMessages.RegisterClient));
+        }
+
+        public event EventHandler<ClientConnectedArgs>? Connected;
+        public event EventHandler<ClientDisconnectedArgs>? Disconnected;
+        public event EventHandler<MessageFromServerEventArgs>? OnMessageReceived;
+
+        public bool Send(NetworkMessage msg)
+            => _comunicator.Send(msg, "All");
+
+        public void Dispose() => _comunicator.Dispose();
 
         private void ComunicatorOnOnMessage(NetworkMessage message, ulong messageid, string processsid)
         {
@@ -205,22 +220,7 @@ namespace Servicemnager.Networking.IPC
             }
         }
 
-        public void Connect()
-        {
-            _comunicator.Connect();
-            Send(NetworkMessage.Create(SharmComunicatorMessages.RegisterClient));
-        }
-
-        public event EventHandler<ClientConnectedArgs>? Connected;
-        public event EventHandler<ClientDisconnectedArgs>? Disconnected;
-        public event EventHandler<MessageFromServerEventArgs>? OnMessageReceived;
-
-        public bool Send(NetworkMessage msg) 
-            => _comunicator.Send(msg, "All");
-
-        public void Disconnect() 
+        public void Disconnect()
             => _comunicator.Send(NetworkMessage.Create(SharmComunicatorMessages.UnRegisterClient), "All");
-
-        public void Dispose() => _comunicator.Dispose();
     }
 }

@@ -22,7 +22,9 @@ namespace Tauron.Application.CommonUI.Commands
         }
 
         public SimpleCommand(Action<object?> execute)
-            : this(null, execute) { }
+            : this(null, execute)
+        {
+        }
 
         public SimpleCommand(Func<bool>? canExecute, Action execute)
         {
@@ -32,7 +34,9 @@ namespace Tauron.Application.CommonUI.Commands
         }
 
         public SimpleCommand(Action execute)
-            : this(null, execute) { }
+            : this(null, execute)
+        {
+        }
 
         public override bool CanExecute(object? parameter)
         {

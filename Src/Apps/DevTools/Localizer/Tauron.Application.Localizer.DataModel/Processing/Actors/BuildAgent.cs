@@ -41,18 +41,19 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
             }
         }
 
-        private static Dictionary<string, GroupDictionary<string, (string Id, string Content)>> GetData(PreparedBuild build)
+        private static Dictionary<string, GroupDictionary<string, (string Id, string Content)>> GetData(
+            PreparedBuild build)
         {
             var files = new Dictionary<string, GroupDictionary<string, (string Id, string Content)>>();
 
             var imports = new List<(string FileName, Project Project)>
-                          {
-                              (string.Empty, build.TargetProject)
-                          };
+            {
+                (string.Empty, build.TargetProject)
+            };
             imports.AddRange(build.TargetProject.Imports
-                                  .Select(pn => build.ProjectFile.Projects.Find(p => p.ProjectName == pn))
-                                  .Where(p => p != null)
-                                  .Select(p => build.BuildInfo.IntigrateProjects ? (string.Empty, p!) : (p!.ProjectName, p!)));
+                .Select(pn => build.ProjectFile.Projects.Find(p => p.ProjectName == pn))
+                .Where(p => p != null)
+                .Select(p => build.BuildInfo.IntigrateProjects ? (string.Empty, p!) : (p!.ProjectName, p!)));
 
             foreach (var (fileName, project) in imports)
             {
@@ -70,7 +71,8 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
             return files;
         }
 
-        private static void GenerateJson(Dictionary<string, GroupDictionary<string, (string Id, string Content)>> data, string targetPath)
+        private static void GenerateJson(Dictionary<string, GroupDictionary<string, (string Id, string Content)>> data,
+            string targetPath)
         {
             if (!Directory.Exists(targetPath))
                 Directory.CreateDirectory(targetPath);
@@ -84,27 +86,26 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
                 writer.WriteLine("{");
 
                 foreach (var (id, content) in entrys)
-                {
                     if (tester.Add(id))
                         writer.WriteLine($"  \"{id}\": \"{EscapeHelper.Ecode(content)}\",");
-                }
 
                 writer.WriteLine("}");
                 writer.Flush();
             }
         }
 
-        private static void GenerateCode(Dictionary<string, GroupDictionary<string, (string Id, string Content)>> data, string targetPath)
+        private static void GenerateCode(Dictionary<string, GroupDictionary<string, (string Id, string Content)>> data,
+            string targetPath)
         {
             var ids = new HashSet<string>(data
-                                         .SelectMany(e => e.Value)
-                                         .SelectMany(e => e.Value)
-                                         .Select(e => e.Id));
+                .SelectMany(e => e.Value)
+                .SelectMany(e => e.Value)
+                .Select(e => e.Id));
 
             var entrys = new GroupDictionary<string, (string FieldName, string Original)>
-                         {
-                             string.Empty
-                         };
+            {
+                string.Empty
+            };
 
             foreach (var id in ids)
             {
@@ -144,11 +145,11 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
             }
 
             WriteClassData(file, "LocLocalizer", entrys[string.Empty], 2,
-                           writer =>
-                           {
-                               foreach (var @class in classes)
-                                   writer(@class + " = new " + @class + "Res" + "(system);");
-                           });
+                writer =>
+                {
+                    foreach (var @class in classes)
+                        writer(@class + " = new " + @class + "Res" + "(system);");
+                });
 
             foreach (var @class in classes)
                 file.WriteLine("\t\tpublic " + @class + "Res " + @class + " { get; }");
@@ -162,11 +163,13 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
             file.Flush();
         }
 
-        private static void WriteClassData(StreamWriter writer, string className, ICollection<(string FieldName, string Original)> entryValue, int tabs,
+        private static void WriteClassData(StreamWriter writer, string className,
+            ICollection<(string FieldName, string Original)> entryValue, int tabs,
             Action<Action<string>>? constructorCallback = null)
         {
             foreach (var (fieldName, _) in entryValue)
-                writer.WriteLine($"{new string('\t', tabs)}private readonly Task<string> {ToRealFieldName(fieldName)};");
+                writer.WriteLine(
+                    $"{new string('\t', tabs)}private readonly Task<string> {ToRealFieldName(fieldName)};");
 
             writer.WriteLine($"{new string('\t', tabs)}public {className}(ActorSystem system)");
             writer.WriteLine(new string('\t', tabs) + "{");
@@ -177,13 +180,15 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
             constructorCallback?.Invoke(s => writer.WriteLine($"{new string('\t', tabs)} {s}"));
 
             foreach (var (fieldName, original) in entryValue)
-                writer.WriteLine($"{new string('\t', tabs)}{ToRealFieldName(fieldName)} = LocLocalizer.ToString(loc.RequestTask(\"{original}\"));");
+                writer.WriteLine(
+                    $"{new string('\t', tabs)}{ToRealFieldName(fieldName)} = LocLocalizer.ToString(loc.RequestTask(\"{original}\"));");
 
             tabs--;
             writer.WriteLine(new string('\t', tabs) + "}");
 
             foreach (var (fieldName, _) in entryValue)
-                writer.WriteLine($"{new string('\t', tabs)}public string {fieldName} => {ToRealFieldName(fieldName)}.Result;");
+                writer.WriteLine(
+                    $"{new string('\t', tabs)}public string {fieldName} => {ToRealFieldName(fieldName)}.Result;");
         }
 
         private static string ToRealFieldName(string name) => "__" + name;

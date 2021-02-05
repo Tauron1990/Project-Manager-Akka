@@ -24,9 +24,11 @@ namespace Tauron.Application.Files.Ini.Parser
                 {
                     _writer.WriteLine(string.Format(CultureInfo.InvariantCulture, "[{0}]", section.Name));
                     foreach (var iniEntry in section.Entries)
-                    {
                         if (iniEntry is SingleIniEntry entry)
-                            _writer.WriteLine(string.Format(CultureInfo.InvariantCulture, "{0}={1}", entry.Key, entry.Value));
+                        {
+                            _writer.WriteLine(string.Format(CultureInfo.InvariantCulture, "{0}={1}", entry.Key,
+                                entry.Value));
+                        }
                         else
                         {
                             var entry2 = (ListIniEntry) iniEntry;
@@ -34,7 +36,6 @@ namespace Tauron.Application.Files.Ini.Parser
                             foreach (var value in entry2.Values)
                                 _writer.WriteLine(string.Format(CultureInfo.InvariantCulture, "{0}={1}", name, value));
                         }
-                    }
                 }
             }
             finally

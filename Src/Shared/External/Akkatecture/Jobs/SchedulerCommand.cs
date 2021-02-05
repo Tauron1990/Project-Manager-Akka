@@ -28,7 +28,9 @@ namespace Akkatecture.Jobs
 {
     public abstract class SchedulerMessage<TJob, TIdentity> : ValueObject
         where TJob : IJob
-        where TIdentity : IJobId { }
+        where TIdentity : IJobId
+    {
+    }
 
     public abstract class SchedulerCommand<TJob, TIdentity> : SchedulerMessage<TJob, TIdentity>
         where TJob : IJob

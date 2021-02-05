@@ -6,7 +6,9 @@ namespace Tauron.Application.Files.VirtualFiles.InMemory.Data
     {
         private byte[]? _data;
 
-        public DataFile(string name) : base(name) { }
+        public DataFile(string name) : base(name)
+        {
+        }
 
         public DateTime LastModifed { get; set; } = DateTime.Now;
 

@@ -33,7 +33,8 @@ namespace Tauron.Application.Wpf.Implementation
         public T Load<T>(string pack) where T : class => Load<T>(pack, Assembly.GetCallingAssembly().GetName().Name);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public T Load<T>(string pack, string? assembly) where T : class => (T) System.Windows.Application.LoadComponent(GetUri(pack, assembly, false));
+        public T Load<T>(string pack, string? assembly) where T : class
+            => (T) System.Windows.Application.LoadComponent(GetUri(pack, assembly, false));
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         public Stream LoadStream(string pack) => LoadStream(pack, Assembly.GetCallingAssembly().GetName().Name);

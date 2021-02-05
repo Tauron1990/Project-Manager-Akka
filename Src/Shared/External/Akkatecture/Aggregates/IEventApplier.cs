@@ -31,5 +31,7 @@ namespace Akkatecture.Aggregates
 {
     public interface IEventApplier<TAggregate, TIdentity>
         where TAggregate : IAggregateRoot<TIdentity>
-        where TIdentity : IIdentity { }
+        where TIdentity : IIdentity
+    {
+    }
 }

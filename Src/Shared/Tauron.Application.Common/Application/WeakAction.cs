@@ -32,7 +32,8 @@ namespace Tauron.Application
             if (target != null)
                 TargetObject = new WeakReference(target);
 
-            var parames = method.GetParameters().OrderBy(parm => parm.Position).Select(parm => parm.ParameterType).ToArray();
+            var parames = method.GetParameters().OrderBy(parm => parm.Position).Select(parm => parm.ParameterType)
+                .ToArray();
             _parames = parames;
 
             //var returntype = method.ReturnType;
@@ -49,7 +50,8 @@ namespace Tauron.Application
 
         public WeakReference? TargetObject { get; }
 
-        private bool Equals(WeakAction other) => Equals(MethodInfo, other.MethodInfo) && Equals(TargetObject?.Target, other.TargetObject?.Target);
+        private bool Equals(WeakAction other) => Equals(MethodInfo, other.MethodInfo) &&
+                                                 Equals(TargetObject?.Target, other.TargetObject?.Target);
 
         public override int GetHashCode()
         {
@@ -78,8 +80,8 @@ namespace Tauron.Application
         {
             target = TargetObject?.Target;
             return target != null
-                       ? MethodInfo.GetMethodInvoker(() => _parames)
-                       : null;
+                ? MethodInfo.GetMethodInvoker(() => _parames)
+                : null;
         }
 
         //[NotNull]
@@ -114,7 +116,10 @@ namespace Tauron.Application
 
                 var dead = _delegates.Where(item => item.TargetObject?.IsAlive == false).ToList();
 
-                lock (this) dead.ForEach(ac => _delegates.Remove(ac));
+                lock (this)
+                {
+                    dead.ForEach(ac => _delegates.Remove(ac));
+                }
             }
         }
 
@@ -127,14 +132,17 @@ namespace Tauron.Application
             lock (this)
             {
                 if (_delegates.Where(del => del.MethodInfo == handler.Method)
-                              .Select(weakAction => weakAction.TargetObject?.Target)
-                              .Any(weakTarget => weakTarget == handler.Target))
+                    .Select(weakAction => weakAction.TargetObject?.Target)
+                    .Any(weakTarget => weakTarget == handler.Target))
                     return this;
             }
 
             var parameterType = parameters[0].ParameterType;
 
-            lock (this) _delegates.Add(new WeakAction(handler.Target, handler.Method, parameterType));
+            lock (this)
+            {
+                _delegates.Add(new WeakAction(handler.Target, handler.Method, parameterType));
+            }
 
             return this;
         }
@@ -158,7 +166,8 @@ namespace Tauron.Application
             Argument.NotNull(handler, nameof(handler));
             lock (this)
             {
-                foreach (var del in _delegates.Where(del => del.TargetObject != null && del.TargetObject.Target == handler.Target))
+                foreach (var del in _delegates.Where(del
+                    => del.TargetObject != null && del.TargetObject.Target == handler.Target))
                 {
                     _delegates.Remove(del);
                     return this;

@@ -10,7 +10,8 @@ namespace Tauron.Application.Workshop
     [PublicAPI]
     public sealed class WorkspaceSuperviser
     {
-        public WorkspaceSuperviser(IActorRefFactory context, string? name = null) => Superviser = context.ActorOf<WorkspaceSuperviserActor>(name);
+        public WorkspaceSuperviser(IActorRefFactory context, string? name = null)
+            => Superviser = context.ActorOf<WorkspaceSuperviserActor>(name);
 
         internal WorkspaceSuperviser() => Superviser = ActorRefs.Nobody;
 
@@ -18,13 +19,17 @@ namespace Tauron.Application.Workshop
 
         public async Task<IActorRef> Create(Props props, string name)
         {
-            var result = await Superviser.Ask<WorkspaceSuperviserActor.NewActor>(new WorkspaceSuperviserActor.SupervisePropsActor(props, name));
+            var result =
+                await Superviser.Ask<WorkspaceSuperviserActor.NewActor>(
+                    new WorkspaceSuperviserActor.SupervisePropsActor(props, name));
             return result.ActorRef;
         }
 
         public async Task<IActorRef> Create(Type actor, string name)
         {
-            var result = await Superviser.Ask<WorkspaceSuperviserActor.NewActor>(new WorkspaceSuperviserActor.SuperviseDiActor(actor, name));
+            var result =
+                await Superviser.Ask<WorkspaceSuperviserActor.NewActor>(
+                    new WorkspaceSuperviserActor.SuperviseDiActor(actor, name));
             return result.ActorRef;
         }
 

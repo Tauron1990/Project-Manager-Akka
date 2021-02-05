@@ -37,36 +37,36 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
         {
             var (idObservable, data) = obj;
             idObservable
-               .Take(1)
-               .ObserveOnSelf()
-               .Subscribe(operationId =>
-                          {
-                              Context.Sender.Tell(BuildMessage.GatherData(operationId));
+                .Take(1)
+                .ObserveOnSelf()
+                .Subscribe(operationId =>
+                {
+                    Context.Sender.Tell(BuildMessage.GatherData(operationId));
 
-                              _remaining = 0;
-                              _fail = false;
+                    _remaining = 0;
+                    _fail = false;
 
-                              var toBuild = new List<PreparedBuild>(data.Projects.Count);
+                    var toBuild = new List<PreparedBuild>(data.Projects.Count);
 
-                              toBuild.AddRange(from project in data.Projects
-                                               let path = data.FindProjectPath(project)
-                                               where !string.IsNullOrWhiteSpace(path)
-                                               select new PreparedBuild(data.BuildInfo, project, data, operationId, path));
+                    toBuild.AddRange(from project in data.Projects
+                        let path = data.FindProjectPath(project)
+                        where !string.IsNullOrWhiteSpace(path)
+                        select new PreparedBuild(data.BuildInfo, project, data, operationId, path));
 
-                              if (toBuild.Count == 0)
-                              {
-                                  Context.Sender.Tell(BuildMessage.NoData(operationId));
-                                  return;
-                              }
+                    if (toBuild.Count == 0)
+                    {
+                        Context.Sender.Tell(BuildMessage.NoData(operationId));
+                        return;
+                    }
 
-                              var agent = 1;
-                              foreach (var preparedBuild in toBuild)
-                              {
-                                  _remaining++;
-                                  Context.GetOrAdd<BuildAgent>("Agent-" + agent).Forward(preparedBuild);
-                                  agent++;
-                              }
-                          });
+                    var agent = 1;
+                    foreach (var preparedBuild in toBuild)
+                    {
+                        _remaining++;
+                        Context.GetOrAdd<BuildAgent>("Agent-" + agent).Forward(preparedBuild);
+                        agent++;
+                    }
+                });
         }
     }
 }

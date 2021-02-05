@@ -27,15 +27,15 @@ namespace ServiceManager.ProjectRepository.Actors
     {
         private static readonly ReaderWriterLockSlim UpdateLock = new();
 
-        public sealed record OperatorState(IMongoCollection<RepositoryEntry> Repos, GridFSBucket Bucket, IMongoCollection<ToDeleteRevision> Revisions, DataTransferManager DataTransferManager,
-            GitHubClient GitHubClient, Dictionary<string, ITempFile> CurrentTransfers);
+        public ITimerScheduler Timers { get; set; } = null!;
 
-        public static IPreparedFeature New(IMongoCollection<RepositoryEntry> repos, GridFSBucket bucket, IMongoCollection<ToDeleteRevision> revisions, DataTransferManager dataTransfer)
+        public static IPreparedFeature New(IMongoCollection<RepositoryEntry> repos, GridFSBucket bucket,
+            IMongoCollection<ToDeleteRevision> revisions, DataTransferManager dataTransfer)
             => Feature.Create(() => new OperatorActor(), c => new OperatorState(repos, bucket, revisions, dataTransfer,
-                                                                                new GitHubClient(new ProductHeaderValue(
-                                                                                                     c.System.Settings.Config.GetString("akka.appinfo.applicationName",
-                                                                                                                                        "Test Apps").Replace(' ', '_'))),
-                                                             new Dictionary<string, ITempFile>()));
+                new GitHubClient(new ProductHeaderValue(
+                    c.System.Settings.Config.GetString("akka.appinfo.applicationName",
+                        "Test Apps").Replace(' ', '_'))),
+                new Dictionary<string, ITempFile>()));
 
         protected override void Config()
         {
@@ -44,14 +44,14 @@ namespace ServiceManager.ProjectRepository.Actors
             Receive<TransferRepository>("RequestRepository", RequestRepository);
 
             Receive<TransferMessages.TransferCompled>(obs =>
-                                                          obs.SubscribeWithStatus(c =>
-                                                                                  {
-                                                                                      if (c.State.CurrentTransfers.TryGetValue(c.Event.OperationId, out var f))
-                                                                                          f.Dispose();
-                                                                                      Context.Stop(Self);
-                                                                                  }));
+                obs.SubscribeWithStatus(c =>
+                {
+                    if (c.State.CurrentTransfers.TryGetValue(c.Event.OperationId, out var f))
+                        f.Dispose();
+                    Context.Stop(Self);
+                }));
         }
-        
+
         private void RegisterRepository(StatePair<RegisterRepository, OperatorState> msg, Reporter reporter)
         {
             var ((repoName, ignoreDuplicate), (repos, _, _, _, gitHubClient, _), _) = msg;
@@ -72,6 +72,7 @@ namespace ServiceManager.ProjectRepository.Actors
                         reporter.Compled(OperationResult.Success());
                         return;
                     }
+
                     reporter.Compled(OperationResult.Failure(RepoErrorCodes.DuplicateRepository));
                     return;
                 }
@@ -95,11 +96,11 @@ namespace ServiceManager.ProjectRepository.Actors
 
                 Log.Info("Savin new Repository {Name} on Database", repoName);
                 data = new RepositoryEntry
-                       {
-                           RepoName = repoName,
-                           SourceUrl = repoInfo.CloneUrl,
-                           RepoId = repoInfo.Id
-                       };
+                {
+                    RepoName = repoName,
+                    SourceUrl = repoInfo.CloneUrl,
+                    RepoId = repoInfo.Id
+                };
 
                 UpdateLock.EnterWriteLock();
                 try
@@ -142,7 +143,8 @@ namespace ServiceManager.ProjectRepository.Actors
 
                 var repozip = repozipFile.Stream;
 
-                if (!(commitInfo != data.LastUpdate && UpdateRepository(data, reporter, repository, commitInfo, repozip, msg.State)))
+                if (!(commitInfo != data.LastUpdate &&
+                      UpdateRepository(data, reporter, repository, commitInfo, repozip, msg.State)))
                 {
                     reporter.Send(RepositoryMessages.GetRepositoryFromDatabase);
                     Log.Info("Downloading Repository {Name} From Server", repository.RepoName);
@@ -155,7 +157,8 @@ namespace ServiceManager.ProjectRepository.Actors
                 //repozip.Seek(0, SeekOrigin.Begin);
                 //Timers.StartSingleTimer(_reporter, new TransferFailed(string.Empty, FailReason.Timeout, data.RepoName), TimeSpan.FromMinutes(10));
                 // ReSharper disable once NotResolvedInText
-                var request = DataTransferRequest.FromStream(repository.OperationId, repozip, repository.Manager ?? throw new ArgumentNullException(@"FileManager"), commitInfo);
+                var request = DataTransferRequest.FromStream(repository.OperationId, repozip,
+                    repository.Manager ?? throw new ArgumentNullException(@"FileManager"), commitInfo);
                 request.SendCompletionBack = true;
 
                 dataTransfer.Request(request);
@@ -168,8 +171,9 @@ namespace ServiceManager.ProjectRepository.Actors
                 UpdateLock.ExitUpgradeableReadLock();
             }
         }
-        
-        private bool UpdateRepository(RepositoryEntry data, Reporter reporter, TransferRepository repository, string commitInfo, Stream repozip, OperatorState state)
+
+        private bool UpdateRepository(RepositoryEntry data, Reporter reporter, TransferRepository repository,
+            string commitInfo, Stream repozip, OperatorState state)
         {
             var (repos, bucket, revisions, _, _, _) = state;
 
@@ -186,7 +190,6 @@ namespace ServiceManager.ProjectRepository.Actors
                 if (data2 != null && commitInfo != data2.LastUpdate)
                 {
                     if (!string.IsNullOrWhiteSpace(data.FileName))
-                    {
                         try
                         {
                             Log.Info("Downloading Repository {Name} From Server", repoName);
@@ -200,7 +203,6 @@ namespace ServiceManager.ProjectRepository.Actors
                         {
                             Log.Error(e, "Error on Download Repo File {Name}", data.FileName);
                         }
-                    }
 
                     if (downloadCompled)
                     {
@@ -225,7 +227,9 @@ namespace ServiceManager.ProjectRepository.Actors
                         repozip.SetLength(0);
 
                     using (var archive = new ZipArchive(repozip, ZipArchiveMode.Create, true))
+                    {
                         archive.AddFilesFromDictionary(repoPath.FullPath);
+                    }
 
                     repozip.Seek(0, SeekOrigin.Begin);
 
@@ -254,6 +258,8 @@ namespace ServiceManager.ProjectRepository.Actors
             return false;
         }
 
-        public ITimerScheduler Timers { get; set; } = null!;
+        public sealed record OperatorState(IMongoCollection<RepositoryEntry> Repos, GridFSBucket Bucket,
+            IMongoCollection<ToDeleteRevision> Revisions, DataTransferManager DataTransferManager,
+            GitHubClient GitHubClient, Dictionary<string, ITempFile> CurrentTransfers);
     }
 }

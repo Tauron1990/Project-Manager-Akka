@@ -15,12 +15,16 @@ namespace Tauron
     [Serializable]
     public class OperationAlreadyStartedException : Exception
     {
-        public OperationAlreadyStartedException() { }
+        public OperationAlreadyStartedException()
+        {
+        }
 
         protected OperationAlreadyStartedException(
             SerializationInfo info,
             StreamingContext context)
-            : base(info, context) { }
+            : base(info, context)
+        {
+        }
     }
 
     /// <summary>
@@ -182,11 +186,11 @@ namespace Tauron
                     return TimeSpan.MaxValue;
 
                 var bytesPerSecond = UsedEstimatingMethod switch
-                                     {
-                                         EstimatingMethod.AverageBytesPerSecond => AverageBytesPerSecond,
-                                         EstimatingMethod.CurrentBytesPerSecond => CurrentBytesPerSecond,
-                                         _                                      => throw new InvalidOperationException("No Correct Estimating method")
-                                     };
+                {
+                    EstimatingMethod.AverageBytesPerSecond => AverageBytesPerSecond,
+                    EstimatingMethod.CurrentBytesPerSecond => CurrentBytesPerSecond,
+                    _ => throw new InvalidOperationException("No Correct Estimating method")
+                };
 
                 var seconds = (TotalBytesToRead - BytesRead) / bytesPerSecond;
                 if (seconds > 60 * 60 * 24 * 200) //over 200 Days -> infinite
@@ -200,7 +204,9 @@ namespace Tauron
         ///     If the operation will take more than 200 days, DateTime.MaxValue is returned.
         ///     If the operation has finished, the actual finishing time is returned.
         /// </summary>
-        public DateTime EstimatedFinishingTime => EstimatedDuration == TimeSpan.MaxValue ? DateTime.MaxValue : StartingTime + EstimatedDuration;
+        public DateTime EstimatedFinishingTime => EstimatedDuration == TimeSpan.MaxValue
+            ? DateTime.MaxValue
+            : StartingTime + EstimatedDuration;
 
         #endregion
 
@@ -246,7 +252,8 @@ namespace Tauron
             {
                 if (HasStarted)
                     throw new InvalidOperationException("Task has already started!");
-                if (value != _currentBytesSamples.Length) _currentBytesSamples = new KeyValuePair<DateTime, long>[value];
+                if (value != _currentBytesSamples.Length)
+                    _currentBytesSamples = new KeyValuePair<DateTime, long>[value];
             }
         }
 
@@ -257,7 +264,8 @@ namespace Tauron
 
         private void ProcessSample(long bytes)
         {
-            if ((DateTime.Now - _lastSample).Ticks <= CurrentBytesCalculationInterval.Ticks / _currentBytesSamples.Length) return;
+            if ((DateTime.Now - _lastSample).Ticks <=
+                CurrentBytesCalculationInterval.Ticks / _currentBytesSamples.Length) return;
 
             _lastSample = DateTime.Now;
 

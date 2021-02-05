@@ -41,7 +41,8 @@ namespace Akkatecture.Specifications.Provided
 
         protected override IEnumerable<string> IsNotSatisfiedBecause(T aggregate)
         {
-            if (_specification.IsSatisfiedBy(aggregate)) yield return $"Specification '{_specification.GetType().PrettyPrint()}' should not be satisfied";
+            if (_specification.IsSatisfiedBy(aggregate))
+                yield return $"Specification '{_specification.GetType().PrettyPrint()}' should not be satisfied";
         }
     }
 }

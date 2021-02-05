@@ -14,7 +14,8 @@ namespace Tauron.Application
     [PublicAPI]
     public static class ObservablePropertyChangedExtensions
     {
-        public static IObservable<TProp> WhenAny<TProp>(this IObservablePropertyChanged @this, Expression<Func<TProp>> prop)
+        public static IObservable<TProp> WhenAny<TProp>(this IObservablePropertyChanged @this,
+            Expression<Func<TProp>> prop)
         {
             var name = Reflex.PropertyName(prop);
             var func = prop.CompileFast();
@@ -54,7 +55,8 @@ namespace Tauron.Application
             OnPropertyChangedExplicit(Argument.NotNull(name!, nameof(name)));
         }
 
-        public void SetProperty<TType>(ref TType property, TType value, Action changed, [CallerMemberName] string? name = null)
+        public void SetProperty<TType>(ref TType property, TType value, Action changed,
+            [CallerMemberName] string? name = null)
         {
             if (EqualityComparer<TType>.Default.Equals(property, value)) return;
 
@@ -72,13 +74,15 @@ namespace Tauron.Application
         {
             if (!string.IsNullOrWhiteSpace(eventArgs.PropertyName))
                 _propertyChnaged.OnNext(eventArgs.PropertyName);
-            PropertyChanged?.Invoke(Argument.NotNull(sender, nameof(sender)), Argument.NotNull(eventArgs, nameof(eventArgs)));
+            PropertyChanged?.Invoke(Argument.NotNull(sender, nameof(sender)),
+                Argument.NotNull(eventArgs, nameof(eventArgs)));
         }
 
 
         public virtual void OnPropertyChanged<T>(Expression<Func<T>> eventArgs)
         {
-            OnPropertyChanged(new PropertyChangedEventArgs(Reflex.PropertyName(Argument.NotNull(eventArgs, nameof(eventArgs)))));
+            OnPropertyChanged(
+                new PropertyChangedEventArgs(Reflex.PropertyName(Argument.NotNull(eventArgs, nameof(eventArgs)))));
         }
 
 

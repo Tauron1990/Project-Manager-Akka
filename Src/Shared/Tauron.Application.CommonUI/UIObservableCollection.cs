@@ -17,12 +17,18 @@ namespace Tauron.Application.CommonUI
     {
         private bool _isBlocked;
 
-        public UIObservableCollection() { }
+        public UIObservableCollection()
+        {
+        }
 
         public UIObservableCollection(IEnumerable<TType> enumerable)
-            : base(enumerable) { }
+            : base(enumerable)
+        {
+        }
 
-        [NotNull] protected IUIDispatcher InternalUISynchronize { get; } = ActorApplication.Application.Continer.Resolve<IUIDispatcher>();
+        [NotNull]
+        protected IUIDispatcher InternalUISynchronize { get; } =
+            ActorApplication.Application.Continer.Resolve<IUIDispatcher>();
 
         public void AddRange(IEnumerable<TType> enumerable)
         {
@@ -60,7 +66,8 @@ namespace Tauron.Application.CommonUI
             public void Dispose()
             {
                 _collection._isBlocked = false;
-                _collection.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+                _collection.OnCollectionChanged(
+                    new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
             }
         }
     }

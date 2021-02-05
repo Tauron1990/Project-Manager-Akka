@@ -9,6 +9,6 @@ namespace Tauron.Application.Workshop.StateManagement.Dispatcher
     {
         public Props Configurate(Props mutator) => mutator.WithRouter(
             new ConsistentHashingPool(2)
-               .WithResizer(new DefaultResizer(2, 10)));
+                .WithResizer(new DefaultResizer(2, 10)));
     }
 }

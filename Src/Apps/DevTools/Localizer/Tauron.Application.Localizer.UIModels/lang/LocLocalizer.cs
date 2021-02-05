@@ -85,14 +85,16 @@ namespace Tauron.Application.Localizer.UIModels.lang
             _openFileDialogViewDialogFilter = ToString(loc.RequestTask("OpenFileDialogView_Dialog_Filter"));
             _openFileDialogViewDialogTitle = ToString(loc.RequestTask("OpenFileDialogView_Dialog_Title"));
             _commonError = ToString(loc.RequestTask("Common_Error"));
-            _mainWindowModelLoadProjectSourceEmpty = ToString(loc.RequestTask("MainWindowModel_LoadProject_SourceEmpty"));
+            _mainWindowModelLoadProjectSourceEmpty =
+                ToString(loc.RequestTask("MainWindowModel_LoadProject_SourceEmpty"));
             _openFileDialogViewHeaderNewPrefix = ToString(loc.RequestTask("OpenFileDialogView_Header_NewPrefix"));
             _mainWindowMainMenuFileSaveAs = ToString(loc.RequestTask("MainWindow_MainMenu_File_SaveAs"));
             _centerViewSaveProjectOperation = ToString(loc.RequestTask("CenterView_SaveProject_Operation"));
             _newProjectDialogViewErrorDuplicate = ToString(loc.RequestTask("NewProjectDialogView_Error_Duplicate"));
             _centerViewRemoveProjectDialogTitle = ToString(loc.RequestTask("CenterView_RemoveProjectDialog_Title"));
             _centerViewRemoveProjectDialogMessage = ToString(loc.RequestTask("CenterView_RemoveProjectDialog_Message"));
-            _centerViewNewProjectInvalidNameMessage = ToString(loc.RequestTask("CenterView_NewProject_InvalidName_Message"));
+            _centerViewNewProjectInvalidNameMessage =
+                ToString(loc.RequestTask("CenterView_NewProject_InvalidName_Message"));
             _commonUnkowen = ToString(loc.RequestTask("Common_Unkowen"));
             _mainWindowTitle = ToString(loc.RequestTask("MainWindow_Title"));
             _commonWarnig = ToString(loc.RequestTask("Common_Warnig"));
@@ -103,11 +105,13 @@ namespace Tauron.Application.Localizer.UIModels.lang
             _mainWindowAnalyerRuleSource = ToString(loc.RequestTask("MainWindow_Analyer_Rule_Source"));
             _mainWindowAnalyerRuleSourceName = ToString(loc.RequestTask("MainWindow_Analyer_Rule_Source_Name"));
             _mainWindowBuildProjectLabel = ToString(loc.RequestTask("MainWindow_BuildProject_Label"));
-            _mainWindowBuildProjectFolderBrowserDescription = ToString(loc.RequestTask("MainWindow_BuildProject_FolderBrowser_Description"));
+            _mainWindowBuildProjectFolderBrowserDescription =
+                ToString(loc.RequestTask("MainWindow_BuildProject_FolderBrowser_Description"));
             _mainWindowodelBuildProjectOperation = ToString(loc.RequestTask("MainWindowodel_BuildProject_Operation"));
             _mainWindowBuildProjectGatherData = ToString(loc.RequestTask("MainWindow_BuildProject_GatherData"));
             _mainWindowBuildprojectNoData = ToString(loc.RequestTask("MainWindow_Buildproject_NoData"));
-            _mainWindowBuildProjectGenerateLangFile = ToString(loc.RequestTask("MainWindow_BuildProject_GenerateLangFile"));
+            _mainWindowBuildProjectGenerateLangFile =
+                ToString(loc.RequestTask("MainWindow_BuildProject_GenerateLangFile"));
             _mainWindowBuildProjectGenerateCsFile = ToString(loc.RequestTask("MainWindow_BuildProject_GenerateCsFile"));
             _mainWindowBuildProjectAgentCompled = ToString(loc.RequestTask("MainWindow_BuildProject_AgentCompled"));
         }
@@ -124,7 +128,8 @@ namespace Tauron.Application.Localizer.UIModels.lang
 
         public string MainWindowodelBuildProjectOperation => _mainWindowodelBuildProjectOperation.Result;
 
-        public string MainWindowBuildProjectFolderBrowserDescription => _mainWindowBuildProjectFolderBrowserDescription.Result;
+        public string MainWindowBuildProjectFolderBrowserDescription
+            => _mainWindowBuildProjectFolderBrowserDescription.Result;
 
         public string MainWindowBuildProjectLabel => _mainWindowBuildProjectLabel.Result;
 

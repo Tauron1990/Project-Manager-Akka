@@ -31,7 +31,8 @@ using Akkatecture.Sagas.AggregateSaga;
 
 namespace Akkatecture.Cluster.Core
 {
-    public class MessageExtractor<TAggregateSagaManager, TAggregateSaga, TIdentity, TSagaLocator> : HashCodeMessageExtractor
+    public class
+        MessageExtractor<TAggregateSagaManager, TAggregateSaga, TIdentity, TSagaLocator> : HashCodeMessageExtractor
         where TAggregateSagaManager : IAggregateSagaManager<TAggregateSaga, TIdentity, TSagaLocator>
         where TAggregateSaga : IAggregateSaga<TIdentity>
         where TIdentity : SagaId<TIdentity>
@@ -61,7 +62,9 @@ namespace Akkatecture.Cluster.Core
         where TIdentity : IIdentity
     {
         public MessageExtractor(int maxNumberOfShards)
-            : base(maxNumberOfShards) { }
+            : base(maxNumberOfShards)
+        {
+        }
 
         public override string EntityId(object message)
         {

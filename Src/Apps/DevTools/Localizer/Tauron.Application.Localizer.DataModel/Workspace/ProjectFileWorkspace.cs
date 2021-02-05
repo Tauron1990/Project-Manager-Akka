@@ -10,7 +10,8 @@ using Tauron.Application.Workshop.Mutating;
 namespace Tauron.Application.Localizer.DataModel.Workspace
 {
     [PublicAPI]
-    public sealed class ProjectFileWorkspace : Workspace<ProjectFileWorkspace, ProjectFile>, IObservable<ProjectFile>, IDisposable
+    public sealed class ProjectFileWorkspace : Workspace<ProjectFileWorkspace, ProjectFile>, IObservable<ProjectFile>,
+        IDisposable
     {
         private readonly BehaviorSubject<ProjectFile> _projectFile;
 
@@ -49,7 +50,8 @@ namespace Tauron.Application.Localizer.DataModel.Workspace
             return ProjectFile.Projects.Find(p => p.ProjectName == name) ?? new Project();
         }
 
-        protected override MutatingContext<ProjectFile> GetDataInternal() => MutatingContext<ProjectFile>.New(_projectFile.Value);
+        protected override MutatingContext<ProjectFile> GetDataInternal()
+            => MutatingContext<ProjectFile>.New(_projectFile.Value);
 
         protected override void SetDataInternal(MutatingContext<ProjectFile> data)
         {

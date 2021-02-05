@@ -17,7 +17,9 @@ namespace Tauron.Application.Files.Ini
         }
 
         public IniSection(string name)
-            : this(new Dictionary<string, IniEntry>(), name) { }
+            : this(new Dictionary<string, IniEntry>(), name)
+        {
+        }
 
         public ReadOnlyEnumerator<IniEntry> Entries => new(_entries.Values);
 

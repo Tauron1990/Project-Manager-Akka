@@ -17,15 +17,18 @@ namespace Tauron.Application.Localizer.DataModel.Workspace.Analyzing
         protected override void ActorConstruct(IObservableActor actor)
         {
             Actor = actor;
-            actor.RespondOnEventSource(Workspace.Source.ProjectReset, rest => SendIssues(ValidateAll(rest, ObservableActor.ExposedContext), ObservableActor.ExposedContext));
+            actor.RespondOnEventSource(Workspace.Source.ProjectReset,
+                rest => SendIssues(ValidateAll(rest, ObservableActor.ExposedContext), ObservableActor.ExposedContext));
             RegisterRespond(actor);
         }
 
-        protected abstract IEnumerable<Issue.IssueCompleter> ValidateAll(ProjectRest projectRest, IActorContext context);
+        protected abstract IEnumerable<Issue.IssueCompleter>
+            ValidateAll(ProjectRest projectRest, IActorContext context);
 
         protected abstract void RegisterRespond(IObservableActor actor);
 
-        protected void RegisterRespond<TData>(IEventSource<TData> source, Func<TData, IEnumerable<Issue.IssueCompleter>> validator)
+        protected void RegisterRespond<TData>(IEventSource<TData> source,
+            Func<TData, IEnumerable<Issue.IssueCompleter>> validator)
         {
             Actor.RespondOnEventSource(source, data => SendIssues(validator(data), ObservableActor.ExposedContext));
         }

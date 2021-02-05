@@ -6,10 +6,14 @@ using Tauron.Application.Localizer.DataModel.Serialization;
 namespace Tauron.Application.Localizer.DataModel
 {
     [PublicAPI]
-    public sealed record Project(ImmutableList<LocEntry> Entries, string ProjectName, ImmutableList<ActiveLanguage> ActiveLanguages, ImmutableList<string> Imports) : IWriteable
+    public sealed record Project(ImmutableList<LocEntry> Entries, string ProjectName,
+        ImmutableList<ActiveLanguage> ActiveLanguages, ImmutableList<string> Imports) : IWriteable
     {
         public Project()
-            : this(ImmutableList<LocEntry>.Empty, string.Empty, ImmutableList<ActiveLanguage>.Empty, ImmutableList<string>.Empty) { }
+            : this(ImmutableList<LocEntry>.Empty, string.Empty, ImmutableList<ActiveLanguage>.Empty,
+                ImmutableList<string>.Empty)
+        {
+        }
 
         public Project(string name)
             : this()

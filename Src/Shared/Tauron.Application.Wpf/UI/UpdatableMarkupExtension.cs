@@ -27,7 +27,8 @@ namespace Tauron.Application.Wpf.UI
                 TargetProperty = service.TargetProperty;
             }
 
-            var isDesign = TargetObject is DependencyObject dependencyObject && DesignerProperties.GetIsInDesignMode(dependencyObject);
+            var isDesign = TargetObject is DependencyObject dependencyObject &&
+                           DesignerProperties.GetIsInDesignMode(dependencyObject);
 
             return isDesign ? DesignTime() : ProvideValueInternal(serviceProvider);
         }
@@ -61,7 +62,8 @@ namespace Tauron.Application.Wpf.UI
             }
         }
 
-        protected virtual bool TryGetTargetItems(IServiceProvider? provider, [NotNullWhen(true)] out DependencyObject? target, [NotNullWhen(true)] out DependencyProperty? dp)
+        protected virtual bool TryGetTargetItems(IServiceProvider? provider,
+            [NotNullWhen(true)] out DependencyObject? target, [NotNullWhen(true)] out DependencyProperty? dp)
         {
             target = null;
             dp = null;

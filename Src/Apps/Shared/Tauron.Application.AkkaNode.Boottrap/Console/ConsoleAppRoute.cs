@@ -14,12 +14,10 @@ namespace Tauron.Application.AkkaNode.Bootstrap.Console
     {
         private Owned<IEnumerable<IStartUpAction>>? _actions;
 
-        public ConsoleAppRoute(Owned<IEnumerable<IStartUpAction>> startUpActions)
-        {
-            _actions = startUpActions;
-        }
+        public ConsoleAppRoute(Owned<IEnumerable<IStartUpAction>> startUpActions) => _actions = startUpActions;
 
         public Task ShutdownTask { get; private set; } = Task.CompletedTask;
+
         public Task WaitForStartAsync(ActorSystem actorSystem)
         {
             var source = new TaskCompletionSource<object>();
@@ -31,9 +29,7 @@ namespace Tauron.Application.AkkaNode.Bootstrap.Console
             Task.Run(() =>
             {
                 if (_actions != null)
-                {
                     foreach (var startUpAction in _actions.Value)
-                    {
                         try
                         {
                             startUpAction.Run();
@@ -42,8 +38,6 @@ namespace Tauron.Application.AkkaNode.Bootstrap.Console
                         {
                             Log.Logger.Error(e, "Error on Startup Action");
                         }
-                    }
-                }
 
                 _actions?.Dispose();
                 _actions = null;

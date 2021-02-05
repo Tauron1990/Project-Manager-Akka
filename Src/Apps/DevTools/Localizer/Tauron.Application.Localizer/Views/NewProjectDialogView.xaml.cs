@@ -17,12 +17,14 @@ namespace Tauron.Application.Localizer.Views
         private string _content = string.Empty;
         private string? _error;
 
-        public NewProjectDialogViewModel(IEnumerable<string> blocked, Action<NewProjectDialogResult> target, LocLocalizer localizer)
+        public NewProjectDialogViewModel(IEnumerable<string> blocked, Action<NewProjectDialogResult> target,
+            LocLocalizer localizer)
         {
             _localizer = localizer;
             _blocked = blocked.ToArray();
 
-            Return = new SimpleCommand(execute: _ => target(new NewProjectDialogResult(Content)), canExecute: o => string.IsNullOrWhiteSpace(Error));
+            Return = new SimpleCommand(execute: _ => target(new NewProjectDialogResult(Content)),
+                canExecute: o => string.IsNullOrWhiteSpace(Error));
         }
 
         public string? Error

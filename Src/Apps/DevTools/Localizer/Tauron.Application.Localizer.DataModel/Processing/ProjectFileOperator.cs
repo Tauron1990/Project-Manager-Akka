@@ -8,7 +8,9 @@ namespace Tauron.Application.Localizer.DataModel.Processing
     {
         public ProjectFileOperator()
         {
-            Receive<LoadProjectFile>(observable => observable.Select(m => new InternalLoadProject(m, Context.Sender)).ToActor(c => c.ActorOf<ProjectLoader>()));
+            Receive<LoadProjectFile>(observable
+                => observable.Select(m => new InternalLoadProject(m, Context.Sender))
+                    .ToActor(c => c.ActorOf<ProjectLoader>()));
             Receive<SaveProject>(obs => obs.ForwardToActor(c => c.GetOrAdd<ProjectSaver>("Saver")));
             Receive<BuildRequest>(obs => obs.ForwardToActor(c => c.GetOrAdd<BuildActorCoordinator>("Builder")));
         }

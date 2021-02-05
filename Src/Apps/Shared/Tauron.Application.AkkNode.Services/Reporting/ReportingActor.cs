@@ -62,20 +62,27 @@ namespace Tauron.Application.AkkaNode.Services
 
         [PublicAPI]
         protected void Receive<TMessage>(string name, Action<StatePair<TMessage, TState>, Reporter> process)
-            where TMessage : IReporterMessage => Receive<TMessage>(obs => obs.SubscribeWithStatus(m => TryExecute(m, name, process)));
+            where TMessage : IReporterMessage
+            => Receive<TMessage>(obs => obs.SubscribeWithStatus(m => TryExecute(m, name, process)));
 
         [PublicAPI]
         protected void ReceiveContinue<TMessage>(string name, Action<StatePair<TMessage, TState>, Reporter> process)
-            where TMessage : IDelegatingMessage => Receive<TMessage>(obs => obs.SubscribeWithStatus(m => TryContinue(m, name, process)));
+            where TMessage : IDelegatingMessage
+            => Receive<TMessage>(obs => obs.SubscribeWithStatus(m => TryContinue(m, name, process)));
 
-        protected void Receive<TMessage>(string name, Func<Reporter, IObservable<StatePair<TMessage, TState>>, IObservable<Unit>> process)
-            where TMessage : IReporterMessage => Receive<TMessage>(obs => obs.SelectMany(m => TryExecute(m, name, process)));
+        protected void Receive<TMessage>(string name,
+            Func<Reporter, IObservable<StatePair<TMessage, TState>>, IObservable<Unit>> process)
+            where TMessage : IReporterMessage
+            => Receive<TMessage>(obs => obs.SelectMany(m => TryExecute(m, name, process)));
 
         [PublicAPI]
-        protected void ReceiveContinue<TMessage>(string name, Func<Reporter, IObservable<StatePair<TMessage, TState>>, IObservable<Unit>> process)
-            where TMessage : IDelegatingMessage => Receive<TMessage>(obs => obs.SelectMany(m => TryContinue(m, name, process)));
+        protected void ReceiveContinue<TMessage>(string name,
+            Func<Reporter, IObservable<StatePair<TMessage, TState>>, IObservable<Unit>> process)
+            where TMessage : IDelegatingMessage
+            => Receive<TMessage>(obs => obs.SelectMany(m => TryContinue(m, name, process)));
 
-        protected Task<Unit> TryExecute<TMessage>(StatePair<TMessage, TState> msg, string name, Func<Reporter, IObservable<StatePair<TMessage, TState>>, IObservable<Unit>> process)
+        protected Task<Unit> TryExecute<TMessage>(StatePair<TMessage, TState> msg, string name,
+            Func<Reporter, IObservable<StatePair<TMessage, TState>>, IObservable<Unit>> process)
             where TMessage : IReporterMessage
         {
             Log.Info("Enter Process {Name}", name);
@@ -83,20 +90,23 @@ namespace Tauron.Application.AkkaNode.Services
             reporter.Listen(msg.Event.Listner);
 
             return process(reporter, Observable.Return(msg))
-               .ToTask().ContinueWith(t =>
-                                      {
-                                          if (t.IsCompletedSuccessfully)
-                                              return t.Result;
+                .ToTask().ContinueWith(t =>
+                {
+                    if (t.IsCompletedSuccessfully)
+                        return t.Result;
 
-                                          if (t.IsFaulted && !reporter.IsCompled) 
-                                              reporter.Compled(OperationResult.Failure(new Error(t.Exception?.Unwrap()?.Message, GenralError)));
+                    if (t.IsFaulted && !reporter.IsCompled)
+                        reporter.Compled(
+                            OperationResult.Failure(new Error(t.Exception?.Unwrap()?.Message, GenralError)));
 
-                                          Log.Error((Exception?)t.Exception ?? new InvalidOperationException("Unkowen Error"), "Process Operation {Name} Failed {Info}", name, msg.Event.Info);
-                                          return Unit.Default;
-                                      }, TaskContinuationOptions.ExecuteSynchronously);
+                    Log.Error((Exception?) t.Exception ?? new InvalidOperationException("Unkowen Error"),
+                        "Process Operation {Name} Failed {Info}", name, msg.Event.Info);
+                    return Unit.Default;
+                }, TaskContinuationOptions.ExecuteSynchronously);
         }
 
-        protected void TryExecute<TMessage>(StatePair<TMessage, TState> msg, string name, Action<StatePair<TMessage, TState>, Reporter> process)
+        protected void TryExecute<TMessage>(StatePair<TMessage, TState> msg, string name,
+            Action<StatePair<TMessage, TState>, Reporter> process)
             where TMessage : IReporterMessage
         {
             Log.Info("Enter Process {Name}", name);
@@ -114,28 +124,31 @@ namespace Tauron.Application.AkkaNode.Services
             }
         }
 
-        protected Task<Unit> TryContinue<TMessage>(StatePair<TMessage, TState> msg, string name, Func<Reporter, IObservable<StatePair<TMessage, TState>>, IObservable<Unit>> process)
+        protected Task<Unit> TryContinue<TMessage>(StatePair<TMessage, TState> msg, string name,
+            Func<Reporter, IObservable<StatePair<TMessage, TState>>, IObservable<Unit>> process)
             where TMessage : IDelegatingMessage
         {
             Log.Info("Enter Process {Name}", name);
             var reporter = msg.Event.Reporter;
 
             return process(reporter, Observable.Return(msg))
-                  .ToTask().ContinueWith(t =>
-                                         {
-                                             if (t.IsCompletedSuccessfully)
-                                                 return t.Result;
+                .ToTask().ContinueWith(t =>
+                {
+                    if (t.IsCompletedSuccessfully)
+                        return t.Result;
 
-                                             if (t.IsFaulted && !reporter.IsCompled) 
-                                                 reporter.Compled(OperationResult.Failure(new Error(t.Exception?.Unwrap()?.Message, GenralError)));
+                    if (t.IsFaulted && !reporter.IsCompled)
+                        reporter.Compled(
+                            OperationResult.Failure(new Error(t.Exception?.Unwrap()?.Message, GenralError)));
 
-                                             Log.Error((Exception?)t.Exception ?? new InvalidOperationException("Unkowen Error"), "Continue Operation {Name} Failed {Info}", name, msg.Event.Info);
-                                             return Unit.Default;
-
-                                         }, TaskContinuationOptions.ExecuteSynchronously);
+                    Log.Error((Exception?) t.Exception ?? new InvalidOperationException("Unkowen Error"),
+                        "Continue Operation {Name} Failed {Info}", name, msg.Event.Info);
+                    return Unit.Default;
+                }, TaskContinuationOptions.ExecuteSynchronously);
         }
 
-        protected void TryContinue<TMessage>(StatePair<TMessage, TState> msg, string name, Action<StatePair<TMessage, TState>, Reporter> process)
+        protected void TryContinue<TMessage>(StatePair<TMessage, TState> msg, string name,
+            Action<StatePair<TMessage, TState>, Reporter> process)
             where TMessage : IDelegatingMessage
         {
             Log.Info("Enter Process {Name}", name);
@@ -146,7 +159,8 @@ namespace Tauron.Application.AkkaNode.Services
             catch (Exception e)
             {
                 Log.Error(e, "Continue Operation {Name} Failed {Info}", name, msg.Event.Info);
-                msg.Event.Reporter.Compled(OperationResult.Failure(new Error(e.Unwrap()?.Message ?? "Unkowen", GenralError)));
+                msg.Event.Reporter.Compled(
+                    OperationResult.Failure(new Error(e.Unwrap()?.Message ?? "Unkowen", GenralError)));
             }
         }
     }

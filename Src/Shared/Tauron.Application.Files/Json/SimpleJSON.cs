@@ -40,7 +40,6 @@ namespace Tauron.Application.Files.Json
             if (sb.Capacity < aText.Length + aText.Length / 10)
                 sb.Capacity = aText.Length + aText.Length / 10;
             foreach (var c in aText)
-            {
                 switch (c)
                 {
                     case '\\':
@@ -71,11 +70,12 @@ namespace Tauron.Application.Files.Json
                             sb.Append("\\u").Append(val.ToString("X4"));
                         }
                         else
+                        {
                             sb.Append(c);
+                        }
 
                         break;
                 }
-            }
 
             var result = sb.ToString();
             sb.Length = 0;
@@ -232,8 +232,8 @@ namespace Tauron.Application.Files.Json
                                 {
                                     var s = aJson.Substring(i + 1, 4);
                                     token.Append((char) int.Parse(
-                                                     s,
-                                                     NumberStyles.AllowHexSpecifier));
+                                        s,
+                                        NumberStyles.AllowHexSpecifier));
                                     i += 4;
                                     break;
                                 }
@@ -293,22 +293,22 @@ namespace Tauron.Application.Files.Json
                 get
                 {
                     return _type switch
-                           {
-                               Type.Array  => new KeyValuePair<string, JsonNode>(string.Empty, _array.Current),
-                               Type.Object => _object.Current,
-                               _           => throw new InvalidOperationException("No Element")
-                           };
+                    {
+                        Type.Array => new KeyValuePair<string, JsonNode>(string.Empty, _array.Current),
+                        Type.Object => _object.Current,
+                        _ => throw new InvalidOperationException("No Element")
+                    };
                 }
             }
 
             public bool MoveNext()
             {
                 return _type switch
-                       {
-                           Type.Array  => _array.MoveNext(),
-                           Type.Object => _object.MoveNext(),
-                           _           => false
-                       };
+                {
+                    Type.Array => _array.MoveNext(),
+                    Type.Object => _object.MoveNext(),
+                    _ => false
+                };
             }
         }
 
@@ -317,9 +317,13 @@ namespace Tauron.Application.Files.Json
         {
             private Enumerator _enumerator;
 
-            public ValueEnumerator(List<JsonNode>.Enumerator aArrayEnum) : this(new Enumerator(aArrayEnum)) { }
+            public ValueEnumerator(List<JsonNode>.Enumerator aArrayEnum) : this(new Enumerator(aArrayEnum))
+            {
+            }
 
-            public ValueEnumerator(Dictionary<string, JsonNode>.Enumerator aDictEnum) : this(new Enumerator(aDictEnum)) { }
+            public ValueEnumerator(Dictionary<string, JsonNode>.Enumerator aDictEnum) : this(new Enumerator(aDictEnum))
+            {
+            }
 
             public ValueEnumerator(Enumerator aEnumerator) => _enumerator = aEnumerator;
 
@@ -335,9 +339,13 @@ namespace Tauron.Application.Files.Json
         {
             private Enumerator _enumerator;
 
-            public KeyEnumerator(List<JsonNode>.Enumerator aArrayEnum) : this(new Enumerator(aArrayEnum)) { }
+            public KeyEnumerator(List<JsonNode>.Enumerator aArrayEnum) : this(new Enumerator(aArrayEnum))
+            {
+            }
 
-            public KeyEnumerator(Dictionary<string, JsonNode>.Enumerator aDictEnum) : this(new Enumerator(aDictEnum)) { }
+            public KeyEnumerator(Dictionary<string, JsonNode>.Enumerator aDictEnum) : this(new Enumerator(aDictEnum))
+            {
+            }
 
             public KeyEnumerator(Enumerator aEnumerator) => _enumerator = aEnumerator;
 
@@ -349,7 +357,8 @@ namespace Tauron.Application.Files.Json
         }
 
         [PublicAPI]
-        public class LinqEnumerator : IEnumerator<KeyValuePair<string, JsonNode>>, IEnumerable<KeyValuePair<string, JsonNode>>
+        public class LinqEnumerator : IEnumerator<KeyValuePair<string, JsonNode>>,
+            IEnumerable<KeyValuePair<string, JsonNode>>
         {
             private Enumerator _enumerator;
             private JsonNode? _node;
@@ -409,7 +418,9 @@ namespace Tauron.Application.Files.Json
 
         public abstract bool Inline { get; set; }
 
-        public virtual void Add(string aKey, JsonNode? aItem) { }
+        public virtual void Add(string aKey, JsonNode? aItem)
+        {
+        }
 
         public virtual void Add(JsonNode? aItem)
         {
@@ -735,7 +746,9 @@ namespace Tauron.Application.Files.Json
                     _dict.Add(aKey, aItem);
             }
             else
+            {
                 _dict.Add(Guid.NewGuid().ToString(), aItem);
+            }
         }
 
         public override JsonNode? Remove(string aKey)
@@ -1022,7 +1035,9 @@ namespace Tauron.Application.Files.Json
         private static readonly JsonNull StaticInstance = new();
         public static bool ReuseSameInstance = true;
 
-        private JsonNull() { }
+        private JsonNull()
+        {
+        }
 
         public override JsonNodeType Tag => JsonNodeType.NullValue;
 

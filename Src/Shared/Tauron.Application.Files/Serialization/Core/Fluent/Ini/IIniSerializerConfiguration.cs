@@ -3,7 +3,8 @@
 namespace Tauron.Application.Files.Serialization.Core.Fluent.Ini
 {
     [PublicAPI]
-    public interface IIniSerializerConfiguration : ISerializerRootConfiguration, IConstructorConfig<IIniSerializerConfiguration>
+    public interface IIniSerializerConfiguration : ISerializerRootConfiguration,
+        IConstructorConfig<IIniSerializerConfiguration>
     {
         IIniSectionSerializerConfiguration FromSection(string name);
 

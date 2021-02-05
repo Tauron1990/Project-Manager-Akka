@@ -21,11 +21,11 @@ namespace Tauron.Application.Avalonia
             => new AvaloniaDispatcher();
 
         public override IUIApplication CreateDefault() => (IUIApplication) AppBuilder
-                                                                          .Configure<AvalonApp>()
-                                                                          .UsePlatformDetect()
-                                                                          .LogToTrace()
-                                                                          .SetupWithLifetime(new ClassicDesktopStyleApplicationLifetime())
-                                                                          .Instance;
+            .Configure<AvalonApp>()
+            .UsePlatformDetect()
+            .LogToTrace()
+            .SetupWithLifetime(new ClassicDesktopStyleApplicationLifetime())
+            .Instance;
 
         public override IWindow CreateMessageDialog(string title, string message)
         {
@@ -39,7 +39,8 @@ namespace Tauron.Application.Avalonia
             return new AvaloniaWindow(window);
         }
 
-        public override object CreateDefaultMessageContent(string title, string message, Action<bool?>? result, bool canCnacel) => new MessageDialog(title, message, result, canCnacel);
+        public override object CreateDefaultMessageContent(string title, string message, Action<bool?>? result,
+            bool canCnacel) => new MessageDialog(title, message, result, canCnacel);
 
         private sealed class AvaloniaDispatcher : IUIDispatcher
         {
@@ -50,9 +51,11 @@ namespace Tauron.Application.Avalonia
 
             public Task InvokeAsync(Action action) => Dispatcher.UIThread.InvokeAsync(action);
 
-            public IObservable<TResult> InvokeAsync<TResult>(Func<Task<TResult>> action) => Dispatcher.UIThread.InvokeAsync(action).ToObservable();
+            public IObservable<TResult> InvokeAsync<TResult>(Func<Task<TResult>> action)
+                => Dispatcher.UIThread.InvokeAsync(action).ToObservable();
 
-            public IObservable<TResult> InvokeAsync<TResult>(Func<TResult> action) => Dispatcher.UIThread.InvokeAsync(action).ToObservable();
+            public IObservable<TResult> InvokeAsync<TResult>(Func<TResult> action)
+                => Dispatcher.UIThread.InvokeAsync(action).ToObservable();
 
             public bool CheckAccess() => Dispatcher.UIThread.CheckAccess();
         }
@@ -61,7 +64,8 @@ namespace Tauron.Application.Avalonia
         {
             public AvalonApp() => Dispatcher = new AvaloniaDispatcher();
 
-            private ClassicDesktopStyleApplicationLifetime AppLifetime => (ClassicDesktopStyleApplicationLifetime) ApplicationLifetime;
+            private ClassicDesktopStyleApplicationLifetime AppLifetime
+                => (ClassicDesktopStyleApplicationLifetime) ApplicationLifetime;
 
 
             public event EventHandler? Startup;
@@ -71,22 +75,22 @@ namespace Tauron.Application.Avalonia
                 get
                 {
                     return AppLifetime.ShutdownMode switch
-                           {
-                               global::Avalonia.Controls.ShutdownMode.OnLastWindowClose  => ShutdownMode.OnLastWindowClose,
-                               global::Avalonia.Controls.ShutdownMode.OnMainWindowClose  => ShutdownMode.OnMainWindowClose,
-                               global::Avalonia.Controls.ShutdownMode.OnExplicitShutdown => ShutdownMode.OnExplicitShutdown,
-                               _                                                         => throw new ArgumentOutOfRangeException()
-                           };
+                    {
+                        global::Avalonia.Controls.ShutdownMode.OnLastWindowClose => ShutdownMode.OnLastWindowClose,
+                        global::Avalonia.Controls.ShutdownMode.OnMainWindowClose => ShutdownMode.OnMainWindowClose,
+                        global::Avalonia.Controls.ShutdownMode.OnExplicitShutdown => ShutdownMode.OnExplicitShutdown,
+                        _ => throw new ArgumentOutOfRangeException()
+                    };
                 }
                 set
                 {
                     AppLifetime.ShutdownMode = value switch
-                                               {
-                                                   ShutdownMode.OnLastWindowClose  => global::Avalonia.Controls.ShutdownMode.OnLastWindowClose,
-                                                   ShutdownMode.OnMainWindowClose  => global::Avalonia.Controls.ShutdownMode.OnMainWindowClose,
-                                                   ShutdownMode.OnExplicitShutdown => global::Avalonia.Controls.ShutdownMode.OnExplicitShutdown,
-                                                   _                               => throw new ArgumentOutOfRangeException(nameof(value), value, null)
-                                               };
+                    {
+                        ShutdownMode.OnLastWindowClose => global::Avalonia.Controls.ShutdownMode.OnLastWindowClose,
+                        ShutdownMode.OnMainWindowClose => global::Avalonia.Controls.ShutdownMode.OnMainWindowClose,
+                        ShutdownMode.OnExplicitShutdown => global::Avalonia.Controls.ShutdownMode.OnExplicitShutdown,
+                        _ => throw new ArgumentOutOfRangeException(nameof(value), value, null)
+                    };
                 }
             }
 
@@ -114,7 +118,8 @@ namespace Tauron.Application.Avalonia
                 Dispatcher = new AvaloniaDispatcher();
             }
 
-            private ClassicDesktopStyleApplicationLifetime AppLifetime => (ClassicDesktopStyleApplicationLifetime) _application.ApplicationLifetime;
+            private ClassicDesktopStyleApplicationLifetime AppLifetime
+                => (ClassicDesktopStyleApplicationLifetime) _application.ApplicationLifetime;
 
 
             public event EventHandler? Startup;
@@ -124,22 +129,22 @@ namespace Tauron.Application.Avalonia
                 get
                 {
                     return AppLifetime.ShutdownMode switch
-                           {
-                               global::Avalonia.Controls.ShutdownMode.OnLastWindowClose  => ShutdownMode.OnLastWindowClose,
-                               global::Avalonia.Controls.ShutdownMode.OnMainWindowClose  => ShutdownMode.OnMainWindowClose,
-                               global::Avalonia.Controls.ShutdownMode.OnExplicitShutdown => ShutdownMode.OnExplicitShutdown,
-                               _                                                         => throw new ArgumentOutOfRangeException()
-                           };
+                    {
+                        global::Avalonia.Controls.ShutdownMode.OnLastWindowClose => ShutdownMode.OnLastWindowClose,
+                        global::Avalonia.Controls.ShutdownMode.OnMainWindowClose => ShutdownMode.OnMainWindowClose,
+                        global::Avalonia.Controls.ShutdownMode.OnExplicitShutdown => ShutdownMode.OnExplicitShutdown,
+                        _ => throw new ArgumentOutOfRangeException()
+                    };
                 }
                 set
                 {
                     AppLifetime.ShutdownMode = value switch
-                                               {
-                                                   ShutdownMode.OnLastWindowClose  => global::Avalonia.Controls.ShutdownMode.OnLastWindowClose,
-                                                   ShutdownMode.OnMainWindowClose  => global::Avalonia.Controls.ShutdownMode.OnMainWindowClose,
-                                                   ShutdownMode.OnExplicitShutdown => global::Avalonia.Controls.ShutdownMode.OnExplicitShutdown,
-                                                   _                               => throw new ArgumentOutOfRangeException(nameof(value), value, null)
-                                               };
+                    {
+                        ShutdownMode.OnLastWindowClose => global::Avalonia.Controls.ShutdownMode.OnLastWindowClose,
+                        ShutdownMode.OnMainWindowClose => global::Avalonia.Controls.ShutdownMode.OnMainWindowClose,
+                        ShutdownMode.OnExplicitShutdown => global::Avalonia.Controls.ShutdownMode.OnExplicitShutdown,
+                        _ => throw new ArgumentOutOfRangeException(nameof(value), value, null)
+                    };
                 }
             }
 

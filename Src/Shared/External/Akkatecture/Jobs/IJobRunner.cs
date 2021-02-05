@@ -23,5 +23,7 @@
 
 namespace Akkatecture.Jobs
 {
-    public interface IJobRunner { }
+    public interface IJobRunner
+    {
+    }
 }

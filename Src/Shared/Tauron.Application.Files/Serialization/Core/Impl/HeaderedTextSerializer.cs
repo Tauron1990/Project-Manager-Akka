@@ -9,7 +9,8 @@ namespace Tauron.Application.Files.Serialization.Core.Impl
     {
         private readonly FileDescription _description;
 
-        public HeaderedTextSerializer(ObjectBuilder builder, SimpleMapper<HeaderdFileContext> mapper, [NotNull] FileDescription description)
+        public HeaderedTextSerializer(ObjectBuilder builder, SimpleMapper<HeaderdFileContext> mapper,
+            [NotNull] FileDescription description)
             : base(builder, mapper, ContextMode.Text)
             => _description = Argument.NotNull(description, nameof(description));
 

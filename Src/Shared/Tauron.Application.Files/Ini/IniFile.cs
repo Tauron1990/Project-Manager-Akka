@@ -13,7 +13,8 @@ namespace Tauron.Application.Files.Ini
     {
         private readonly Dictionary<string, IniSection> _sections;
 
-        public IniFile(Dictionary<string, IniSection> sections) => _sections = Argument.NotNull(sections, nameof(sections));
+        public IniFile(Dictionary<string, IniSection> sections)
+            => _sections = Argument.NotNull(sections, nameof(sections));
 
         public IniFile() => _sections = new Dictionary<string, IniSection>();
 
@@ -71,7 +72,10 @@ namespace Tauron.Application.Files.Ini
 
         public static IniFile Parse(TextReader reader)
         {
-            using (reader) return new IniParser(reader).Parse();
+            using (reader)
+            {
+                return new IniParser(reader).Parse();
+            }
         }
 
         [SuppressMessage("Microsoft.Reliability", "CA2000:Objekte verwerfen, bevor Bereich verloren geht")]

@@ -15,7 +15,8 @@ namespace Tauron.ObservableExt
     }
 
     [PublicAPI]
-    public sealed class RxVar<T> : IDisposable, IObservable<T>, IObserver<T>, IEquatable<RxVar<T>>, IEquatable<T>, IComparable<T>
+    public sealed class RxVar<T> : IDisposable, IObservable<T>, IObserver<T>, IEquatable<RxVar<T>>, IEquatable<T>,
+        IComparable<T>
     {
         private readonly IComparer<T> _comparer = Comparer<T>.Default;
         private readonly CompositeDisposable _disposable = new();
@@ -74,12 +75,12 @@ namespace Tauron.ObservableExt
         public override bool Equals(object? obj)
         {
             return obj switch
-                   {
-                       RxVar<T> rxVar => Equals(rxVar),
-                       T data         => Equals(data),
-                       null           => false,
-                       _              => Equals(this, obj)
-                   };
+            {
+                RxVar<T> rxVar => Equals(rxVar),
+                T data => Equals(data),
+                null => false,
+                _ => Equals(this, obj)
+            };
         }
 
         public static implicit operator T(RxVar<T> v) => v._subject.Value;
@@ -100,7 +101,8 @@ namespace Tauron.ObservableExt
     }
 
     [PublicAPI]
-    public sealed class RxVal<T> : IDisposable, IObservable<T?>, IEquatable<RxVal<T>>, IEquatable<T>, IComparable<T>, IConvertible
+    public sealed class RxVal<T> : IDisposable, IObservable<T?>, IEquatable<RxVal<T>>, IEquatable<T>, IComparable<T>,
+        IConvertible
     {
         private readonly IComparer<T> _comparer = Comparer<T>.Default;
         private readonly CompositeDisposable _disposable = new();
@@ -139,12 +141,12 @@ namespace Tauron.ObservableExt
         public override bool Equals(object? obj)
         {
             return obj switch
-                   {
-                       RxVar<T> rxVar => Equals(rxVar),
-                       T data         => Equals(data),
-                       null           => false,
-                       _              => Equals(this, obj)
-                   };
+            {
+                RxVar<T> rxVar => Equals(rxVar),
+                T data => Equals(data),
+                null => false,
+                _ => Equals(this, obj)
+            };
         }
 
         public static implicit operator T?(RxVal<T> v) => v._subject.Value;
@@ -191,7 +193,8 @@ namespace Tauron.ObservableExt
 
         string IConvertible.ToString(IFormatProvider? provider) => Value?.ToString() ?? string.Empty;
 
-        object IConvertible.ToType(Type conversionType, IFormatProvider? provider) => Convert.ChangeType(Value, conversionType)!;
+        object IConvertible.ToType(Type conversionType, IFormatProvider? provider)
+            => Convert.ChangeType(Value, conversionType)!;
 
         ushort IConvertible.ToUInt16(IFormatProvider? provider) => Convert.ToUInt16(Value);
 

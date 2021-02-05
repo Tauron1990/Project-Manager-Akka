@@ -18,17 +18,22 @@ namespace Tauron.Akkatecture.Projections
 
         public DomainEventMapBuilder() => _builder = new EventMapBuilder<TProjection, TIdentity, ProjectionContext>();
 
-        public IEventMap<ProjectionContext> Build(ProjectorMap<TProjection, TIdentity, ProjectionContext> map) => _builder.Build(map);
+        public IEventMap<ProjectionContext> Build(ProjectorMap<TProjection, TIdentity, ProjectionContext> map)
+            => _builder.Build(map);
 
-        public IEventMap<ProjectionContext> Build(RepositoryProjectorMap<TProjection, TIdentity> map) => _builder.Build(map.ProjectorMap);
+        public IEventMap<ProjectionContext> Build(RepositoryProjectorMap<TProjection, TIdentity> map)
+            => _builder.Build(map.ProjectorMap);
 
-        public DomainEventMapBuilder<TProjection, TAggregate, TIdentity> Where(Func<object, ProjectionContext, Task<bool>> predicate)
+        public DomainEventMapBuilder<TProjection, TAggregate, TIdentity> Where(
+            Func<object, ProjectionContext, Task<bool>> predicate)
         {
             _builder.Where(predicate);
             return this;
         }
 
-        public DomainEventMapBuilder<TProjection, TAggregate, TIdentity> Map<TEvent>(Action<ICrudAction<IDomainEvent<TAggregate, TIdentity, TEvent>, TProjection, TIdentity, ProjectionContext>> builder)
+        public DomainEventMapBuilder<TProjection, TAggregate, TIdentity> Map<TEvent>(
+            Action<ICrudAction<IDomainEvent<TAggregate, TIdentity, TEvent>, TProjection, TIdentity, ProjectionContext>>
+                builder)
             where TEvent : class, IAggregateEvent<TAggregate, TIdentity>
         {
             builder(_builder.Map<IDomainEvent<TAggregate, TIdentity, TEvent>>());

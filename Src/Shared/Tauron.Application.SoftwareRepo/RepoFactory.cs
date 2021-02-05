@@ -19,16 +19,16 @@ namespace Tauron.Application.SoftwareRepo
             return temp;
         }
 
-        public bool IsValid(IDirectory path) 
+        public bool IsValid(IDirectory path)
             => path.GetFile(SoftwareRepository.FileName).Exist;
 
-        public SoftwareRepository Create(IActorRefFactory factory, string path) 
+        public SoftwareRepository Create(IActorRefFactory factory, string path)
             => Create(factory, VirtualFileFactory.CrerateLocal(path));
 
-        public SoftwareRepository Read(IActorRefFactory factory, string path) 
+        public SoftwareRepository Read(IActorRefFactory factory, string path)
             => Read(factory, VirtualFileFactory.CrerateLocal(path));
 
         public bool IsValid(string path)
             => IsValid(VirtualFileFactory.CrerateLocal(path));
-    }  
+    }
 }

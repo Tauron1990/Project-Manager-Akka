@@ -30,7 +30,8 @@ namespace Tauron.Application.Workshop.Mutation
             _responder.Subscribe(dataSource.SetData);
         }
 
-        public MutatingEngine(IDataSource<TData> dataSource) : base(Task.FromResult<IActorRef>(ActorRefs.Nobody), new WorkspaceSuperviser())
+        public MutatingEngine(IDataSource<TData> dataSource) : base(Task.FromResult<IActorRef>(ActorRefs.Nobody),
+            new WorkspaceSuperviser())
         {
             _mutator = Task.FromResult<IActorRef>(ActorRefs.Nobody);
             _dataSource = dataSource;
@@ -51,9 +52,12 @@ namespace Tauron.Application.Workshop.Mutation
         //    return new AsyncDataMutation<TData>(Runner, name, hash);
         //}
 
-        public IEventSource<TRespond> EventSource<TRespond>(Func<TData, TRespond> transformer, Func<TData, bool>? where = null) => new EventSource<TRespond, TData>(_superviser, _mutator, transformer, where, _responder);
+        public IEventSource<TRespond> EventSource<TRespond>(Func<TData, TRespond> transformer,
+            Func<TData, bool>? where = null)
+            => new EventSource<TRespond, TData>(_superviser, _mutator, transformer, where, _responder);
 
-        public IEventSource<TRespond> EventSource<TRespond>(Func<IObservable<TData>, IObservable<TRespond>> transform) => new EventSource<TRespond, TData>(_superviser, _mutator, transform(_responder.AsObservable()));
+        public IEventSource<TRespond> EventSource<TRespond>(Func<IObservable<TData>, IObservable<TRespond>> transform)
+            => new EventSource<TRespond, TData>(_superviser, _mutator, transform(_responder.AsObservable()));
 
 
         public void Mutate(string name, Func<IObservable<TData>, IObservable<TData?>> transform, object? hash = null)
@@ -61,7 +65,8 @@ namespace Tauron.Application.Workshop.Mutation
             Mutate(CreateMutate(name, transform, hash));
         }
 
-        public IDataMutation CreateMutate(string name, Func<IObservable<TData>, IObservable<TData?>> transform, object? hash = null)
+        public IDataMutation CreateMutate(string name, Func<IObservable<TData>, IObservable<TData?>> transform,
+            object? hash = null)
         {
             void Runner()
             {
@@ -86,7 +91,8 @@ namespace Tauron.Application.Workshop.Mutation
         private readonly ResponderList _responder;
         private readonly WorkspaceSuperviser _superviser;
 
-        internal ExtendedMutatingEngine(Task<IActorRef> mutator, IExtendedDataSource<TData> dataSource, WorkspaceSuperviser superviser)
+        internal ExtendedMutatingEngine(Task<IActorRef> mutator, IExtendedDataSource<TData> dataSource,
+            WorkspaceSuperviser superviser)
             : base(mutator, superviser)
         {
             _mutator = mutator;
@@ -95,16 +101,20 @@ namespace Tauron.Application.Workshop.Mutation
             _responder = new ResponderList(_dataSource.SetData, dataSource.OnCompled);
         }
 
-        public IEventSource<TRespond> EventSource<TRespond>(Func<TData, TRespond> transformer, Func<TData, bool>? where = null) => new EventSource<TRespond, TData>(_superviser, _mutator, transformer, where, _responder);
+        public IEventSource<TRespond> EventSource<TRespond>(Func<TData, TRespond> transformer,
+            Func<TData, bool>? where = null)
+            => new EventSource<TRespond, TData>(_superviser, _mutator, transformer, where, _responder);
 
-        public IEventSource<TRespond> EventSource<TRespond>(Func<IObservable<TData>, IObservable<TRespond>> transform) => new EventSource<TRespond, TData>(_superviser, _mutator, transform(_responder));
+        public IEventSource<TRespond> EventSource<TRespond>(Func<IObservable<TData>, IObservable<TRespond>> transform)
+            => new EventSource<TRespond, TData>(_superviser, _mutator, transform(_responder));
 
         public void Mutate(string name, IQuery query, Func<IObservable<TData>, IObservable<TData?>> transform)
         {
             Mutate(CreateMutate(name, query, transform));
         }
 
-        public IDataMutation CreateMutate(string name, IQuery query, Func<IObservable<TData>, IObservable<TData?>> transform)
+        public IDataMutation CreateMutate(string name, IQuery query,
+            Func<IObservable<TData>, IObservable<TData?>> transform)
         {
             async Task Runner()
             {
@@ -137,22 +147,22 @@ namespace Tauron.Application.Workshop.Mutation
             public void Push(IQuery query, IObservable<TData> dataFunc)
             {
                 dataFunc
-                   .SelectMany(async data =>
-                               {
-                                   try
-                                   {
-                                       await _root(query, data);
-                                       _handler.OnNext(data);
-                                   }
-                                   finally
-                                   {
-                                       await _completer(query);
-                                   }
+                    .SelectMany(async data =>
+                    {
+                        try
+                        {
+                            await _root(query, data);
+                            _handler.OnNext(data);
+                        }
+                        finally
+                        {
+                            await _completer(query);
+                        }
 
-                                   return Unit.Default;
-                               })
-                   .Timeout(TimeSpan.FromMinutes(10))
-                   .Subscribe();
+                        return Unit.Default;
+                    })
+                    .Timeout(TimeSpan.FromMinutes(10))
+                    .Subscribe();
             }
         }
     }
@@ -179,7 +189,8 @@ namespace Tauron.Application.Workshop.Mutation
             return new MutatingEngine(mutator, superviser);
         }
 
-        public static ExtendedMutatingEngine<TData> From<TData>(IExtendedDataSource<TData> source, WorkspaceSuperviser superviser, Func<Props, Props>? configurate = null)
+        public static ExtendedMutatingEngine<TData> From<TData>(IExtendedDataSource<TData> source,
+            WorkspaceSuperviser superviser, Func<Props, Props>? configurate = null)
             where TData : class
         {
             var mutatorProps = Props.Create<MutationActor>();
@@ -189,11 +200,13 @@ namespace Tauron.Application.Workshop.Mutation
             return new ExtendedMutatingEngine<TData>(mutator, source, superviser);
         }
 
-        public static ExtendedMutatingEngine<TData> From<TData>(IExtendedDataSource<TData> source, MutatingEngine parent)
+        public static ExtendedMutatingEngine<TData> From<TData>(IExtendedDataSource<TData> source,
+            MutatingEngine parent)
             where TData : class
             => new(parent._mutator, source, parent._superviser);
 
-        public static MutatingEngine<TData> From<TData>(IDataSource<TData> source, WorkspaceSuperviser superviser, Func<Props, Props>? configurate = null)
+        public static MutatingEngine<TData> From<TData>(IDataSource<TData> source, WorkspaceSuperviser superviser,
+            Func<Props, Props>? configurate = null)
             where TData : class
         {
             var mutatorProps = Props.Create<MutationActor>();
@@ -220,7 +233,8 @@ namespace Tauron.Application.Workshop.Mutation
     [PublicAPI]
     public static class MutatinEngineExtensions
     {
-        public static IEventSource<TEvent> EventSource<TData, TEvent>(this IEventSourceable<MutatingContext<TData>> engine)
+        public static IEventSource<TEvent> EventSource<TData, TEvent>(
+            this IEventSourceable<MutatingContext<TData>> engine)
             where TEvent : MutatingChange
         {
             return engine.EventSource(c => c.GetChange<TEvent>(), c => c.Change?.Cast<TEvent>() != null);

@@ -20,10 +20,24 @@ namespace WpfApp
         private readonly IpcConnection _ipc;
         private string _toSend = string.Empty;
 
-        public event PropertyChangedEventHandler? PropertyChanged;
+        public MainWindowModel()
+        {
+            var master = SharmComunicator.MasterIpcReady(Id);
+            Mode = !master ? "Server" : "Client";
 
-        [NotifyPropertyChangedInvocator]
-        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            _ipc = new IpcConnection(master, master ? IpcApplicationType.Client : IpcApplicationType.Server,
+                ErrorHandler);
+            _ipc.Start();
+            var handler = _ipc.OnMessage<TestMessage>();
+
+            handler.OnError().Subscribe(e => ErrorHandler("Serialization", e));
+            handler.OnResult().Subscribe(InputHandler);
+
+            Input = new ObservableCollection<string>();
+            Output = new ObservableCollection<string>();
+            NewProcess = new SimpleCommand(StartNew);
+            Send = new SimpleCommand(() => Task.Run(SendData));
+        }
 
         public SimpleCommand NewProcess { get; }
 
@@ -39,30 +53,20 @@ namespace WpfApp
                 OnPropertyChanged();
             }
         }
-        
+
         public string Mode { get; }
 
         public ObservableCollection<string> Input { get; }
 
         public ObservableCollection<string> Output { get; }
 
-        public MainWindowModel()
-        {
-            var master = SharmComunicator.MasterIpcReady(Id);
-            Mode = !master ? "Server" : "Client";
+        public void Dispose() => _ipc?.Dispose();
 
-            _ipc = new IpcConnection(master, master ? IpcApplicationType.Client : IpcApplicationType.Server, ErrorHandler);
-            _ipc.Start();
-            var handler = _ipc.OnMessage<TestMessage>();
+        public event PropertyChangedEventHandler? PropertyChanged;
 
-            handler.OnError().Subscribe(e => ErrorHandler("Serialization", e));
-            handler.OnResult().Subscribe(InputHandler);
-
-            Input = new ObservableCollection<string>();
-            Output = new ObservableCollection<string>();
-            NewProcess = new SimpleCommand(StartNew);
-            Send = new SimpleCommand(() => Task.Run(SendData));
-        }
+        [NotifyPropertyChangedInvocator]
+        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
         private void StartNew()
         {
@@ -104,7 +108,5 @@ namespace WpfApp
 
         private void Log(string info)
             => _dispatcher.Invoke(() => Output.Add(info));
-
-        public void Dispose() => _ipc?.Dispose();
     }
 }

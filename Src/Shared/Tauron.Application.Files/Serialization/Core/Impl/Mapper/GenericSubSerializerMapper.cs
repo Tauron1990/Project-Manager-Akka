@@ -16,7 +16,9 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Mapper
 
         protected override void Deserialize(object target, TContext context)
         {
-            SetValue(Argument.NotNull(target, nameof(target)), _serializer?.Deserialize(GetRealContext(Argument.NotNull(context, nameof(context)), SerializerMode.Deserialize)));
+            SetValue(Argument.NotNull(target, nameof(target)),
+                _serializer?.Deserialize(GetRealContext(Argument.NotNull(context, nameof(context)),
+                    SerializerMode.Deserialize)));
         }
 
         protected override void Serialize(object target, TContext context)
@@ -24,7 +26,8 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Mapper
             var graph = GetValue(Argument.NotNull(target, nameof(target)));
             if (graph == null) return;
 
-            _serializer?.Serialize(GetRealContext(Argument.NotNull(context, nameof(context)), SerializerMode.Serialize), graph);
+            _serializer?.Serialize(GetRealContext(Argument.NotNull(context, nameof(context)), SerializerMode.Serialize),
+                graph);
         }
 
         public override Exception? VerifyError()
@@ -37,8 +40,11 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Mapper
             return e;
         }
 
-        protected virtual SerializationContext GetRealContext(TContext origial, SerializerMode mode) => origial.Original;
+        protected virtual SerializationContext GetRealContext(TContext origial, SerializerMode mode)
+            => origial.Original;
 
-        protected virtual void PostProgressing(SerializationContext context) { }
+        protected virtual void PostProgressing(SerializationContext context)
+        {
+        }
     }
 }

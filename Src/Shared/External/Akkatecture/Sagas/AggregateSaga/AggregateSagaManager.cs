@@ -33,7 +33,8 @@ using Akkatecture.Messages;
 
 namespace Akkatecture.Sagas.AggregateSaga
 {
-    public abstract class AggregateSagaManager<TAggregateSaga, TIdentity, TSagaLocator> : ReceiveActor, IAggregateSagaManager<TAggregateSaga, TIdentity, TSagaLocator>
+    public abstract class AggregateSagaManager<TAggregateSaga, TIdentity, TSagaLocator> : ReceiveActor,
+        IAggregateSagaManager<TAggregateSaga, TIdentity, TSagaLocator>
         where TAggregateSaga : ReceivePersistentActor, IAggregateSaga<TIdentity>
         where TIdentity : SagaId<TIdentity>
         where TSagaLocator : class, ISagaLocator<TIdentity>, new()
@@ -54,11 +55,11 @@ namespace Akkatecture.Sagas.AggregateSaga
             {
                 var sagaEventSubscriptionTypes =
                     sagaType
-                       .GetSagaEventSubscriptionTypes();
+                        .GetSagaEventSubscriptionTypes();
 
                 var asyncSagaEventSubscriptionTypes =
                     sagaType
-                       .GetAsyncSagaEventSubscriptionTypes();
+                        .GetAsyncSagaEventSubscriptionTypes();
 
                 var subscriptionTypes = new List<Type>();
 
@@ -105,7 +106,8 @@ namespace Akkatecture.Sagas.AggregateSaga
 
         protected virtual bool Terminate(Terminated message)
         {
-            Logger.Warning("AggregateSaga of Type={0}, and Id={1}; has terminated.", typeof(TAggregateSaga).PrettyPrint(), message.ActorRef.Path.Name);
+            Logger.Warning("AggregateSaga of Type={0}, and Id={1}; has terminated.",
+                typeof(TAggregateSaga).PrettyPrint(), message.ActorRef.Path.Name);
             Context.Unwatch(message.ActorRef);
             return true;
         }
@@ -118,7 +120,7 @@ namespace Akkatecture.Sagas.AggregateSaga
                 x =>
                 {
                     Logger.Warning("{0} will supervise Exception={1} to be decided as {2}.",
-                                   GetType().PrettyPrint(), x.ToString(), Directive.Restart);
+                        GetType().PrettyPrint(), x.ToString(), Directive.Restart);
                     return Directive.Restart;
                 });
         }

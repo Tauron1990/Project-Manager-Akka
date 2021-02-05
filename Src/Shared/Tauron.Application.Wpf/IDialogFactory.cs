@@ -46,7 +46,8 @@ namespace Tauron.Application.Wpf
     {
         IObservable<Unit> FormatException(System.Windows.Window? owner, Exception exception);
 
-        IObservable<MsgBoxResult> ShowMessageBox(System.Windows.Window? owner, string text, string caption, MsgBoxButton button, MsgBoxImage icon);
+        IObservable<MsgBoxResult> ShowMessageBox(System.Windows.Window? owner, string text, string caption,
+            MsgBoxButton button, MsgBoxImage icon);
 
 
         IObservable<string[]?> ShowOpenFileDialog(Window? owner,
@@ -57,12 +58,15 @@ namespace Tauron.Application.Wpf
             bool checkPathExists);
 
 
-        IObservable<string?> ShowOpenFolderDialog(System.Windows.Window? owner, string description, Environment.SpecialFolder rootFolder, bool showNewFolderButton, bool useDescriptionForTitle);
+        IObservable<string?> ShowOpenFolderDialog(System.Windows.Window? owner, string description,
+            Environment.SpecialFolder rootFolder, bool showNewFolderButton, bool useDescriptionForTitle);
 
-        IObservable<string?> ShowOpenFolderDialog(System.Windows.Window? owner, string description, string rootFolder, bool showNewFolderButton, bool useDescriptionForTitle);
+        IObservable<string?> ShowOpenFolderDialog(System.Windows.Window? owner, string description, string rootFolder,
+            bool showNewFolderButton, bool useDescriptionForTitle);
 
 
-        IObservable<string?> ShowSaveFileDialog(System.Windows.Window? owner, bool addExtension, bool checkFileExists, bool checkPathExists, string defaultExt, bool dereferenceLinks, string filter,
+        IObservable<string?> ShowSaveFileDialog(System.Windows.Window? owner, bool addExtension, bool checkFileExists,
+            bool checkPathExists, string defaultExt, bool dereferenceLinks, string filter,
             bool createPrompt, bool overwritePrompt, string title, string initialDirectory);
     }
 }

@@ -36,7 +36,8 @@ namespace Tauron.Application.Files.HeaderedText
         public void Add(string key, string value)
         {
             if (!_description.Contains(key))
-                throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture, "The key {0} is Invalid", key));
+                throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture,
+                    "The key {0} is Invalid", key));
 
             _context.Add(new ContextEntry(key, value));
         }

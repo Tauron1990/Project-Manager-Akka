@@ -31,7 +31,8 @@ using Akkatecture.Extensions;
 
 namespace Akkatecture.Aggregates
 {
-    public class DomainEvent<TAggregate, TIdentity, TAggregateEvent> : IDomainEvent<TAggregate, TIdentity, TAggregateEvent>
+    public class
+        DomainEvent<TAggregate, TIdentity, TAggregateEvent> : IDomainEvent<TAggregate, TIdentity, TAggregateEvent>
         where TAggregate : IAggregateRoot<TIdentity>
         where TIdentity : IIdentity
         where TAggregateEvent : class, IAggregateEvent<TAggregate, TIdentity>
@@ -44,7 +45,8 @@ namespace Akkatecture.Aggregates
             long aggregateSequenceNumber)
         {
             if (timestamp == default) throw new ArgumentNullException(nameof(timestamp));
-            if (aggregateIdentity == null || string.IsNullOrEmpty(aggregateIdentity.Value)) throw new ArgumentNullException(nameof(aggregateIdentity));
+            if (aggregateIdentity == null || string.IsNullOrEmpty(aggregateIdentity.Value))
+                throw new ArgumentNullException(nameof(aggregateIdentity));
             if (aggregateSequenceNumber <= 0) throw new ArgumentOutOfRangeException(nameof(aggregateSequenceNumber));
 
             AggregateEvent = aggregateEvent ?? throw new ArgumentNullException(nameof(aggregateEvent));
@@ -68,6 +70,7 @@ namespace Akkatecture.Aggregates
 
         public IAggregateEvent GetAggregateEvent() => AggregateEvent;
 
-        public override string ToString() => $"{AggregateType.PrettyPrint()} v{AggregateSequenceNumber}/{EventType.PrettyPrint()}:{AggregateIdentity}";
+        public override string ToString()
+            => $"{AggregateType.PrettyPrint()} v{AggregateSequenceNumber}/{EventType.PrettyPrint()}:{AggregateIdentity}";
     }
 }

@@ -13,7 +13,8 @@
                 _project = project;
             }
 
-            public AnalyzerEntry Entry(string errorName, string message) => new(_ruleName, _project, message, errorName);
+            public AnalyzerEntry Entry(string errorName, string message)
+                => new(_ruleName, _project, message, errorName);
         }
     }
 }

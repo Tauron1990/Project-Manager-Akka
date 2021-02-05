@@ -27,5 +27,7 @@
 
 namespace Akkatecture.Core.VersionedTypes
 {
-    public interface IVersionedType { }
+    public interface IVersionedType
+    {
+    }
 }

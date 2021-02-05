@@ -19,7 +19,8 @@ namespace Tauron.Localization.Actor
         private readonly Dictionary<string, Dictionary<string, JToken>> _files = new();
         private bool _isInitialized;
 
-        public JsonLocLocStoreActor(ILifetimeScope scope) => _configuration = scope.ResolveOptional<JsonConfiguration>();
+        public JsonLocLocStoreActor(ILifetimeScope scope)
+            => _configuration = scope.ResolveOptional<JsonConfiguration>();
 
         protected override object? TryQuery(string name, CultureInfo target)
         {
@@ -45,17 +46,18 @@ namespace Tauron.Localization.Actor
             if (_configuration == null) return null;
 
             string language = _configuration.NameMode switch
-                              {
-                                  JsonFileNameMode.Name                           => target.Name,
-                                  JsonFileNameMode.TwoLetterIsoLanguageName       => target.TwoLetterISOLanguageName,
-                                  JsonFileNameMode.ThreeLetterIsoLanguageName     => target.ThreeLetterISOLanguageName,
-                                  JsonFileNameMode.ThreeLetterWindowsLanguageName => target.ThreeLetterWindowsLanguageName,
-                                  JsonFileNameMode.DisplayName                    => target.DisplayName,
-                                  JsonFileNameMode.EnglishName                    => target.EnglishName,
-                                  _                                               => throw new InvalidOperationException("No Valid Json File Name Mode")
-                              };
+            {
+                JsonFileNameMode.Name => target.Name,
+                JsonFileNameMode.TwoLetterIsoLanguageName => target.TwoLetterISOLanguageName,
+                JsonFileNameMode.ThreeLetterIsoLanguageName => target.ThreeLetterISOLanguageName,
+                JsonFileNameMode.ThreeLetterWindowsLanguageName => target.ThreeLetterWindowsLanguageName,
+                JsonFileNameMode.DisplayName => target.DisplayName,
+                JsonFileNameMode.EnglishName => target.EnglishName,
+                _ => throw new InvalidOperationException("No Valid Json File Name Mode")
+            };
 
-            if (!_files.TryGetValue(language, out var entrys) || !entrys.TryGetValue(name, out var entry) || entry is not JValue value) return null;
+            if (!_files.TryGetValue(language, out var entrys) || !entrys.TryGetValue(name, out var entry) ||
+                entry is not JValue value) return null;
 
             return value.Type == JTokenType.String ? EscapeHelper.Decode(value.Value<string>()) : value.Value;
         }
@@ -85,11 +87,11 @@ namespace Tauron.Localization.Actor
         {
             var data = Path.GetFileNameWithoutExtension(fileName).Split(Sep, StringSplitOptions.RemoveEmptyEntries);
             return data.Length switch
-                   {
-                       2 => data[1],
-                       1 => data[0],
-                       _ => null
-                   };
+            {
+                2 => data[1],
+                1 => data[0],
+                _ => null
+            };
         }
     }
 }

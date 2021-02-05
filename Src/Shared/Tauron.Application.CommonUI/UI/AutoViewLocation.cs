@@ -28,7 +28,10 @@ namespace Tauron.Application.CommonUI.UI
                 return null;
 
             var type = model.ModelType;
-            return Views.TryGetValue(type, out var view) ? _provider.ResolveOptional(view, new TypedParameter(typeof(IViewModel<>).MakeGenericType(type), viewModel)) as IView : null;
+            return Views.TryGetValue(type, out var view)
+                ? _provider.ResolveOptional(view,
+                    new TypedParameter(typeof(IViewModel<>).MakeGenericType(type), viewModel)) as IView
+                : null;
         }
     }
 }

@@ -48,7 +48,8 @@ namespace Akkatecture.Specifications.Provided
             if (!specificationList.Any())
                 throw new ArgumentException("Please provide some specifications", nameof(specifications));
             if (requiredSpecifications > specificationList.Count)
-                throw new ArgumentOutOfRangeException($"You required '{requiredSpecifications}' to be met, but only '{specificationList.Count}' was supplied");
+                throw new ArgumentOutOfRangeException(
+                    $"You required '{requiredSpecifications}' to be met, but only '{specificationList.Count}' was supplied");
 
             _requiredSpecifications = requiredSpecifications;
             _specifications = specificationList;
@@ -57,18 +58,18 @@ namespace Akkatecture.Specifications.Provided
         protected override IEnumerable<string> IsNotSatisfiedBecause(T aggregate)
         {
             var notStatisfiedReasons = _specifications
-                                      .Select(s => new
-                                                   {
-                                                       Specification = s,
-                                                       WhyIsNotStatisfied = s.WhyIsNotSatisfiedBy(aggregate).ToList()
-                                                   })
-                                      .Where(a => a.WhyIsNotStatisfied.Any())
-                                      .Select(a => $"{a.Specification.GetType().PrettyPrint()}: {string.Join(", ", a.WhyIsNotStatisfied)}")
-                                      .ToList();
+                .Select(s => new
+                {
+                    Specification = s,
+                    WhyIsNotStatisfied = s.WhyIsNotSatisfiedBy(aggregate).ToList()
+                })
+                .Where(a => a.WhyIsNotStatisfied.Any())
+                .Select(a => $"{a.Specification.GetType().PrettyPrint()}: {string.Join(", ", a.WhyIsNotStatisfied)}")
+                .ToList();
 
             return _specifications.Count - notStatisfiedReasons.Count >= _requiredSpecifications
-                       ? Enumerable.Empty<string>()
-                       : notStatisfiedReasons;
+                ? Enumerable.Empty<string>()
+                : notStatisfiedReasons;
         }
     }
 }

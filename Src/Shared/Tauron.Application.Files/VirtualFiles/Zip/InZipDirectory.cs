@@ -13,7 +13,8 @@ namespace Tauron.Application.Files.VirtualFiles.Zip
         private InternalZipDirectory _dic;
         private ZipFile _file;
 
-        public InZipDirectory(IDirectory? parentDirectory, string originalPath, InternalZipDirectory dic, ZipFile? file, string name)
+        public InZipDirectory(IDirectory? parentDirectory, string originalPath, InternalZipDirectory dic, ZipFile? file,
+            string name)
             : base(() => parentDirectory, originalPath, name)
         {
             _dic = Argument.NotNull(dic, nameof(dic));
@@ -25,9 +26,11 @@ namespace Tauron.Application.Files.VirtualFiles.Zip
         public override bool Exist => _dic.ZipEntry != null || _dic.Files.Count + _dic.Directorys.Count > 0;
 
         public override IEnumerable<IDirectory> Directories => _dic.Directorys.Select(internalZipDirectory
-                                                                                          => new InZipDirectory(this, OriginalPath.CombinePath(internalZipDirectory.Name), internalZipDirectory, _file, internalZipDirectory.Name));
+            => new InZipDirectory(this, OriginalPath.CombinePath(internalZipDirectory.Name), internalZipDirectory,
+                _file, internalZipDirectory.Name));
 
-        public override IEnumerable<IFile> Files => _dic.Files.Select(ent => new InZipFile(this, OriginalPath.CombinePath(InternalZipDirectory.GetFileName(ent)), _file, _dic, ent));
+        public override IEnumerable<IFile> Files => _dic.Files.Select(ent
+            => new InZipFile(this, OriginalPath.CombinePath(InternalZipDirectory.GetFileName(ent)), _file, _dic, ent));
 
         public override IDirectory GetDirectory(string name) => throw new NotSupportedException();
 
@@ -71,7 +74,8 @@ namespace Tauron.Application.Files.VirtualFiles.Zip
             for (var i = 0; i < parts.Length; i++)
             {
                 if (i == parts.Length - 1)
-                    return new InZipFile(inZipParent, originalPath.Append('\\').Append(parts[i]).ToString(), _file, dic, _file[originalPath.ToString()]);
+                    return new InZipFile(inZipParent, originalPath.Append('\\').Append(parts[i]).ToString(), _file, dic,
+                        _file[originalPath.ToString()]);
 
                 dic = dic.GetOrAdd(parts[i]);
                 originalPath.Append('\\').Append(parts[i]);

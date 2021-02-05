@@ -10,10 +10,8 @@ namespace Tauron.Application.AkkaNode.Services
         public static bool Contains<TSource>(this IAsyncCursor<TSource> cursor, Func<TSource, bool> predicate)
         {
             while (cursor.MoveNext())
-            {
                 if (cursor.Current.Any(predicate))
                     return true;
-            }
 
             return false;
         }
@@ -21,10 +19,8 @@ namespace Tauron.Application.AkkaNode.Services
         public static IEnumerable<TSource> ToEnumerable<TSource>(this IAsyncCursor<TSource> cursor)
         {
             while (cursor.MoveNext())
-            {
                 foreach (var data in cursor.Current)
                     yield return data;
-            }
         }
     }
 }

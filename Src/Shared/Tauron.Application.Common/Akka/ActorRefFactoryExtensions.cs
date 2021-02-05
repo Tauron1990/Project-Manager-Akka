@@ -8,7 +8,8 @@ namespace Tauron.Akka
     [PublicAPI]
     public static class ActorRefFactoryExtensions
     {
-        public static IActorRef GetOrAdd<TActor>(this IActorContext context, string? name) where TActor : ActorBase, new()
+        public static IActorRef GetOrAdd<TActor>(this IActorContext context, string? name)
+            where TActor : ActorBase, new()
         {
             var child = context.Child(name);
             return child.Equals(ActorRefs.Nobody) ? context.ActorOf<TActor>(name) : child;
@@ -20,8 +21,10 @@ namespace Tauron.Akka
             return child.Equals(ActorRefs.Nobody) ? context.ActorOf(props, name) : child;
         }
 
-        public static IActorRef ActorOf<TActor>(this IActorRefFactory fac, Expression<Func<TActor>> creator, string? name = null) where TActor : ActorBase => fac.ActorOf(Props.Create(creator), name);
+        public static IActorRef ActorOf<TActor>(this IActorRefFactory fac, Expression<Func<TActor>> creator,
+            string? name = null) where TActor : ActorBase => fac.ActorOf(Props.Create(creator), name);
 
-        public static IActorRef ActorOf<TActor>(this IActorRefFactory fac, string? name = null) where TActor : ActorBase => fac.ActorOf(Props.Create<TActor>(), name);
+        public static IActorRef ActorOf<TActor>(this IActorRefFactory fac, string? name = null) where TActor : ActorBase
+            => fac.ActorOf(Props.Create<TActor>(), name);
     }
 }

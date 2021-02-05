@@ -20,7 +20,8 @@ namespace Servicemnager.Networking.Data
 
         public NetworkMessageFormatter(MemoryPool<byte> pool) => _pool = pool;
 
-        public (IMemoryOwner<byte> Message, int Lenght) WriteMessage(NetworkMessage msg, Func<int, (IMemoryOwner<byte> Memory, int Start)>? allocate = null)
+        public (IMemoryOwner<byte> Message, int Lenght) WriteMessage(NetworkMessage msg,
+            Func<int, (IMemoryOwner<byte> Memory, int Start)>? allocate = null)
         {
             var typeLenght = Encoding.UTF8.GetByteCount(msg.Type);
             var lenght = Head.Length + End.Length + msg.RealLength + typeLenght + 12;
@@ -53,12 +54,14 @@ namespace Servicemnager.Networking.Data
 
                 BinaryPrimitives.WriteInt32LittleEndian(data[8..], typeLenght);
                 Encoding.UTF8.GetBytes(msg.Type, data[12..]);
-                int pos = 12 + typeLenght;
+                var pos = 12 + typeLenght;
 
                 var targetLenght = msg.Lenght == -1 ? msg.Data.Length : msg.Lenght;
 
                 BinaryPrimitives.WriteInt32LittleEndian(data[pos..], targetLenght);
-                var msgData = targetLenght != msg.Data.Length ? msg.Data.AsMemory()[targetLenght..] : msg.Data.AsMemory();
+                var msgData = targetLenght != msg.Data.Length
+                    ? msg.Data.AsMemory()[targetLenght..]
+                    : msg.Data.AsMemory();
                 var msgPos = message[(pos + 4)..];
 
                 msgData.CopyTo(msgPos);
@@ -104,7 +107,8 @@ namespace Servicemnager.Networking.Data
             var typeLenght = BinaryPrimitives.ReadInt32LittleEndian(buffer[bufferPos..]);
             bufferPos += 4;
 
-            var type = Encoding.UTF8.GetString(buffer[bufferPos..(bufferPos + typeLenght)]); //Encoding.UTF8.GetString(buffer, bufferPos, typeLenght);
+            var type = Encoding.UTF8.GetString(
+                buffer[bufferPos..(bufferPos + typeLenght)]); //Encoding.UTF8.GetString(buffer, bufferPos, typeLenght);
             bufferPos += typeLenght;
 
             var dataLenght = BinaryPrimitives.ReadInt32LittleEndian(buffer[bufferPos..]);
@@ -119,7 +123,8 @@ namespace Servicemnager.Networking.Data
             return new NetworkMessage(type, data, -1);
         }
 
-        [DebuggerHidden, MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [DebuggerHidden]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static bool CheckPresence(Span<byte> buffer, IEnumerable<byte> target, ref int pos)
         {
             foreach (var ent in target)

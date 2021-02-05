@@ -21,25 +21,30 @@ namespace Tauron.Application.Localizer.DataModel.Workspace.Mutating
             _engine = engine;
             _workspace = workspace;
 
-            NewProject = engine.EventSource(mc => new AddProject(mc.GetChange<NewProjectChange>().Project), context => context.Change is NewProjectChange);
-            RemovedProject = engine.EventSource(mc => new RemoveProject(mc.GetChange<RemoveProjectChange>().Project), context => context.Change is RemoveProjectChange);
-            NewLanguage = engine.EventSource(mc => mc.GetChange<LanguageChange>().ToEventData(), context => context.Change is LanguageChange);
-            NewImport = engine.EventSource(mc => mc.GetChange<AddImportChange>().ToEventData(), context => context.Change is AddImportChange);
-            RemoveImport = engine.EventSource(mc => mc.GetChange<RemoveImportChange>().ToData(), context => context.Change is RemoveImportChange);
+            NewProject = engine.EventSource(mc => new AddProject(mc.GetChange<NewProjectChange>().Project),
+                context => context.Change is NewProjectChange);
+            RemovedProject = engine.EventSource(mc => new RemoveProject(mc.GetChange<RemoveProjectChange>().Project),
+                context => context.Change is RemoveProjectChange);
+            NewLanguage = engine.EventSource(mc => mc.GetChange<LanguageChange>().ToEventData(),
+                context => context.Change is LanguageChange);
+            NewImport = engine.EventSource(mc => mc.GetChange<AddImportChange>().ToEventData(),
+                context => context.Change is AddImportChange);
+            RemoveImport = engine.EventSource(mc => mc.GetChange<RemoveImportChange>().ToData(),
+                context => context.Change is RemoveImportChange);
 
             NewLanguage.RespondOn(null, newLang =>
-                                        {
-                                            if (workspace.ProjectFile.GlobalLanguages.Contains(newLang.ActiveLanguage)) return;
+            {
+                if (workspace.ProjectFile.GlobalLanguages.Contains(newLang.ActiveLanguage)) return;
 
-                                            if (!Projects.All(p => p.ActiveLanguages.Contains(newLang.ActiveLanguage))) return;
+                if (!Projects.All(p => p.ActiveLanguages.Contains(newLang.ActiveLanguage))) return;
 
-                                            _engine.Mutate(nameof(AddLanguage) + "Global-Single",
-                                                           obs => obs.Select(context => context.Update(new GlobalLanguageChange(newLang.ActiveLanguage),
-                                                                                                       context.Data with
-                                                                                                       {
-                                                                                                           GlobalLanguages = context.Data.GlobalLanguages.Add(newLang.ActiveLanguage)
-                                                                                                       })));
-                                        });
+                _engine.Mutate(nameof(AddLanguage) + "Global-Single",
+                    obs => obs.Select(context => context.Update(new GlobalLanguageChange(newLang.ActiveLanguage),
+                        context.Data with
+                        {
+                            GlobalLanguages = context.Data.GlobalLanguages.Add(newLang.ActiveLanguage)
+                        })));
+            });
         }
 
         public IEnumerable<Project> Projects => _workspace.ProjectFile.Projects;
@@ -59,24 +64,25 @@ namespace Tauron.Application.Localizer.DataModel.Workspace.Mutating
             if (string.IsNullOrWhiteSpace(name)) return;
 
             _engine.Mutate(nameof(AddProject),
-                           obs => obs.Select(context =>
+                obs => obs.Select(context =>
 
-                                             {
-                                                 var project = new Project(name) {ActiveLanguages = ImmutableList.CreateRange(context.Data.GlobalLanguages)};
-                                                 var newFile = context.Data.AddProject(project);
-                                                 return context.Update(new NewProjectChange(project), newFile);
-                                             }));
+                {
+                    var project = new Project(name)
+                        {ActiveLanguages = ImmutableList.CreateRange(context.Data.GlobalLanguages)};
+                    var newFile = context.Data.AddProject(project);
+                    return context.Update(new NewProjectChange(project), newFile);
+                }));
         }
 
         public void RemoveProject(string name)
         {
             _engine.Mutate(nameof(RemovedProject),
-                           obs => obs.Select(context =>
-                                             {
-                                                 var project = context.Data.Projects.First(p => p.ProjectName == name);
-                                                 var newFile = context.Data.RemoveProject(project);
-                                                 return context.Update(new RemoveProjectChange(project), newFile);
-                                             }));
+                obs => obs.Select(context =>
+                {
+                    var project = context.Data.Projects.First(p => p.ProjectName == name);
+                    var newFile = context.Data.RemoveProject(project);
+                    return context.Update(new RemoveProjectChange(project), newFile);
+                }));
         }
 
         public void AddLanguage(CultureInfo? info)
@@ -86,30 +92,30 @@ namespace Tauron.Application.Localizer.DataModel.Workspace.Mutating
             var newLang = ActiveLanguage.FromCulture(info);
 
             _engine.Mutate(nameof(AddLanguage) + "Global",
-                           obs => obs.Select(context =>
-                                             {
-                                                 context = context.Update(
-                                                     new GlobalLanguageChange(newLang),
-                                                     context.Data with {GlobalLanguages = context.Data.GlobalLanguages.Add(newLang)});
+                obs => obs.Select(context =>
+                {
+                    context = context.Update(
+                        new GlobalLanguageChange(newLang),
+                        context.Data with {GlobalLanguages = context.Data.GlobalLanguages.Add(newLang)});
 
-                                                 foreach (var project in context.Data.Projects.Select(p => p.ProjectName))
-                                                     AddLanguage(project, info);
+                    foreach (var project in context.Data.Projects.Select(p => p.ProjectName))
+                        AddLanguage(project, info);
 
-                                                 return context;
-                                             }));
+                    return context;
+                }));
         }
 
         public void AddLanguage(string proj, CultureInfo info)
         {
             _engine.Mutate(nameof(AddLanguage),
-                           obs => obs.Select(context =>
-                                             {
-                                                 var project = context.Data.Projects.First(p => p.ProjectName == proj);
-                                                 var lang = ActiveLanguage.FromCulture(info);
-                                                 return project.ActiveLanguages.Contains(lang)
-                                                            ? context
-                                                            : context.Update(new LanguageChange(lang, proj), context.Data.AddLanguage(project, lang));
-                                             }));
+                obs => obs.Select(context =>
+                {
+                    var project = context.Data.Projects.First(p => p.ProjectName == proj);
+                    var lang = ActiveLanguage.FromCulture(info);
+                    return project.ActiveLanguages.Contains(lang)
+                        ? context
+                        : context.Update(new LanguageChange(lang, proj), context.Data.AddLanguage(project, lang));
+                }));
         }
 
         public void AddImport(string projectName, string toAdd)
@@ -118,27 +124,33 @@ namespace Tauron.Application.Localizer.DataModel.Workspace.Mutating
                 return;
 
             _engine.Mutate(nameof(AddImport),
-                           obs => obs.Select(context =>
-                                             {
-                                                 var project = context.Data.Projects.First(p => p.ProjectName == projectName);
-                                                 if (project.Imports.Contains(toAdd) || context.Data.Projects.All(p => toAdd != p.ProjectName)) return context;
+                obs => obs.Select(context =>
+                {
+                    var project = context.Data.Projects.First(p => p.ProjectName == projectName);
+                    if (project.Imports.Contains(toAdd) || context.Data.Projects.All(p => toAdd != p.ProjectName))
+                        return context;
 
-                                                 return context.Update(new AddImportChange(toAdd, projectName), context.Data.AddImport(project, toAdd));
-                                             }));
+                    return context.Update(new AddImportChange(toAdd, projectName),
+                        context.Data.AddImport(project, toAdd));
+                }));
         }
 
         public void TryRemoveImport(string projectName, string toRemove)
         {
             _engine.Mutate(nameof(RemoveImport),
-                           obs => obs.Select(context =>
-                                             {
-                                                 var pro = context.Data.Projects.Find(p => p.ProjectName == projectName);
-                                                 if (pro == null) return context;
-                                                 if (!pro.Imports.Contains(toRemove)) return context;
+                obs => obs.Select(context =>
+                {
+                    var pro = context.Data.Projects.Find(p => p.ProjectName == projectName);
+                    if (pro == null) return context;
+                    if (!pro.Imports.Contains(toRemove)) return context;
 
-                                                 var newData = context.Data with {Projects = context.Data.Projects.Replace(pro, pro with {Imports = pro.Imports.Remove(toRemove)})};
-                                                 return context.Update(new RemoveImportChange(projectName, toRemove), newData);
-                                             }));
+                    var newData = context.Data with
+                    {
+                        Projects = context.Data.Projects.Replace(pro,
+                            pro with {Imports = pro.Imports.Remove(toRemove)})
+                    };
+                    return context.Update(new RemoveImportChange(projectName, toRemove), newData);
+                }));
         }
     }
 }

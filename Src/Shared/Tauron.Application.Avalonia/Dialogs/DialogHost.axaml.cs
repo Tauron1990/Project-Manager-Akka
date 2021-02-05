@@ -13,34 +13,38 @@ namespace Tauron.Application.Avalonia.Dialogs
     [PublicAPI]
     public class DialogHost : TemplatedControl
     {
-        public static readonly StyledProperty<object> DialogProperty = AvaloniaProperty.Register<DialogHost, object>("Dialog", defaultBindingMode: BindingMode.TwoWay);
-        public static readonly StyledProperty<object> MainProperty = AvaloniaProperty.Register<DialogHost, object>("Main", defaultBindingMode: BindingMode.TwoWay);
+        public static readonly StyledProperty<object> DialogProperty =
+            AvaloniaProperty.Register<DialogHost, object>("Dialog", defaultBindingMode: BindingMode.TwoWay);
+
+        public static readonly StyledProperty<object> MainProperty =
+            AvaloniaProperty.Register<DialogHost, object>("Main", defaultBindingMode: BindingMode.TwoWay);
 
         public DialogHost()
         {
             InitializeComponent();
 
-            var coordinator = (IDialogCoordinatorUIEvents) ActorApplication.Application.Continer.Resolve<IDialogCoordinator>();
+            var coordinator =
+                (IDialogCoordinatorUIEvents) ActorApplication.Application.Continer.Resolve<IDialogCoordinator>();
 
             coordinator.HideDialogEvent += () =>
-                                           {
-                                               MainContent.IsEnabled = true;
-                                               MainContent.IsVisible = true;
+            {
+                MainContent.IsEnabled = true;
+                MainContent.IsVisible = true;
 
-                                               DialogContent.Content = null;
-                                               DialogContent.IsEnabled = false;
-                                               DialogContent.IsVisible = false;
-                                           };
+                DialogContent.Content = null;
+                DialogContent.IsEnabled = false;
+                DialogContent.IsVisible = false;
+            };
 
             coordinator.ShowDialogEvent += o =>
-                                           {
-                                               MainContent.IsEnabled = false;
-                                               MainContent.IsVisible = false;
+            {
+                MainContent.IsEnabled = false;
+                MainContent.IsVisible = false;
 
-                                               DialogContent.Content = o;
-                                               DialogContent.IsEnabled = true;
-                                               DialogContent.IsVisible = true;
-                                           };
+                DialogContent.Content = o;
+                DialogContent.IsEnabled = true;
+                DialogContent.IsVisible = true;
+            };
         }
 
 

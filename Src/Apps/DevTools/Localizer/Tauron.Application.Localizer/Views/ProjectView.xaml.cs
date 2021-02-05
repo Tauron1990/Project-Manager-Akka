@@ -35,13 +35,13 @@ namespace Tauron.Application.Localizer.Views
             foreach (string str in spellingError.Suggestions)
             {
                 MenuItem mi = new()
-                              {
-                                  Header = str,
-                                  FontWeight = FontWeights.Bold,
-                                  Command = EditingCommands.CorrectSpellingError,
-                                  CommandParameter = str,
-                                  CommandTarget = myTextBox
-                              };
+                {
+                    Header = str,
+                    FontWeight = FontWeights.Bold,
+                    Command = EditingCommands.CorrectSpellingError,
+                    CommandParameter = str,
+                    CommandTarget = myTextBox
+                };
                 myTextBox.ContextMenu.Items.Insert(cmdIndex, mi);
                 cmdIndex++;
             }
@@ -50,11 +50,11 @@ namespace Tauron.Application.Localizer.Views
             myTextBox.ContextMenu.Items.Insert(cmdIndex, separatorMenuItem1);
             cmdIndex++;
             MenuItem ignoreAllMi = new()
-                                   {
-                                       Header = ActorApplication.Application.ActorSystem.Loc().Request("CorrectSpellingError") as string,
-                                       Command = EditingCommands.IgnoreSpellingError,
-                                       CommandTarget = myTextBox
-                                   };
+            {
+                Header = ActorApplication.Application.ActorSystem.Loc().Request("CorrectSpellingError") as string,
+                Command = EditingCommands.IgnoreSpellingError,
+                CommandTarget = myTextBox
+            };
             myTextBox.ContextMenu.Items.Insert(cmdIndex, ignoreAllMi);
             cmdIndex++;
             Separator separatorMenuItem2 = new();

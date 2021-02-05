@@ -8,7 +8,8 @@ namespace Tauron.Host
     [PublicAPI]
     public sealed class HostBuilderContext
     {
-        public HostBuilderContext(IDictionary<object, object> properties, IConfiguration configuration, IHostEnvironment hostEnvironment)
+        public HostBuilderContext(IDictionary<object, object> properties, IConfiguration configuration,
+            IHostEnvironment hostEnvironment)
         {
             HostEnvironment = hostEnvironment;
             Configuration = configuration;

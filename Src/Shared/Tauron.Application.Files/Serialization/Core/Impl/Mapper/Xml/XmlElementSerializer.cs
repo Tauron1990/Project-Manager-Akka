@@ -18,7 +18,8 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Mapper.Xml
             _converter = converter;
         }
 
-        public static IEnumerable<XElement>? GetElements([NotNull] XElement ele, bool toWrite, XmlElementTarget? target, int count)
+        public static IEnumerable<XElement>? GetElements([NotNull] XElement ele, bool toWrite, XmlElementTarget? target,
+            int count)
         {
             var currentElement = Argument.NotNull(ele, nameof(ele));
             if (target == null) return new[] {currentElement};
@@ -73,7 +74,8 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Mapper.Xml
         {
             var currentElement = ele;
 
-            if (target == null || target.TargetType == XmlElementTargetType.Root && target.SubElement == null) return currentElement;
+            if (target == null || target.TargetType == XmlElementTargetType.Root && target.SubElement == null)
+                return currentElement;
 
             while (true)
             {

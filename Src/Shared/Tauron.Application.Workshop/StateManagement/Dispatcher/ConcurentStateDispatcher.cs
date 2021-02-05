@@ -9,8 +9,8 @@ namespace Tauron.Application.Workshop.StateManagement.Dispatcher
     {
         public Props Configurate(Props mutator) => mutator.WithRouter(
             new SmallestMailboxPool(2,
-                                    new DefaultResizer(2, 10),
-                                    Pool.DefaultSupervisorStrategy,
-                                    mutator.Dispatcher));
+                new DefaultResizer(2, 10),
+                Pool.DefaultSupervisorStrategy,
+                mutator.Dispatcher));
     }
 }

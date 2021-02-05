@@ -14,8 +14,9 @@ namespace Tauron.Application.Files.Serialization.Core.Managment
         {
             if (targetType == null || membername == null) return;
 
-            var mem = targetType.GetMember(membername, MemberTypes.Field | MemberTypes.Property, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                                .FirstOrDefault();
+            var mem = targetType.GetMember(membername, MemberTypes.Field | MemberTypes.Property,
+                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                .FirstOrDefault();
 
             if (mem == null) return;
 

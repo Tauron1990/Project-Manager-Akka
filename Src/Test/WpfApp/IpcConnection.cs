@@ -20,10 +20,6 @@ namespace WpfApp
         private IDataClient? _dataClient;
         private IDataServer? _dataServer;
 
-        public string ErrorMessage { get; private set; } = string.Empty;
-
-        public bool IsReady { get; private set; } = true;
-
         public IpcConnection(bool masterExists, IpcApplicationType type, Action<string, Exception> errorHandler)
         {
             try
@@ -67,14 +63,30 @@ namespace WpfApp
             }
         }
 
+        public string ErrorMessage { get; private set; } = string.Empty;
+
+        public bool IsReady { get; private set; } = true;
+
+        public void Dispose()
+        {
+            _messageHandler.Dispose();
+            (_dataClient as IDisposable)?.Dispose();
+            _dataServer?.Dispose();
+
+            _dataClient = null;
+            _dataServer = null;
+        }
+
         public IObservable<CallResult<TType>> OnMessage<TType>()
         {
             if (!IsReady)
                 return Observable.Empty<CallResult<TType>>();
 
-            string type = typeof(TType).AssemblyQualifiedName ?? throw new InvalidOperationException("Invalid Message Type");
+            string type = typeof(TType).AssemblyQualifiedName ??
+                          throw new InvalidOperationException("Invalid Message Type");
 
-            return _messageHandler.Where(nm => nm.Type == type).SelectSafe(nm => JsonConvert.DeserializeObject<TType>(Encoding.UTF8.GetString(nm.Data))).Isonlate();
+            return _messageHandler.Where(nm => nm.Type == type)
+                .SelectSafe(nm => JsonConvert.DeserializeObject<TType>(Encoding.UTF8.GetString(nm.Data))).Isonlate();
         }
 
         public bool SendMessage<TMessage>(string to, TMessage message)
@@ -82,7 +94,8 @@ namespace WpfApp
             if (!IsReady)
                 return false;
 
-            var name = typeof(TMessage).AssemblyQualifiedName ?? throw new InvalidOperationException("Invalid Message Type");
+            var name = typeof(TMessage).AssemblyQualifiedName ??
+                       throw new InvalidOperationException("Invalid Message Type");
             var data = JsonConvert.SerializeObject(message);
 
             var nm = NetworkMessage.Create(name, Encoding.UTF8.GetBytes(data));
@@ -109,20 +122,10 @@ namespace WpfApp
                 ErrorMessage = e.Message;
 
                 Log.ForContext<IpcConnection>()
-                   .Error(e, "Error on Starting Ipc");
+                    .Error(e, "Error on Starting Ipc");
 
                 Dispose();
             }
-        }
-
-        public void Dispose()
-        {
-            _messageHandler.Dispose();
-            (_dataClient as IDisposable)?.Dispose();
-            _dataServer?.Dispose();
-
-            _dataClient = null;
-            _dataServer = null;
         }
 
         public void Disconnect()
@@ -133,7 +136,7 @@ namespace WpfApp
     }
 
     #if DEBUG
-    
+
     internal sealed class DebugConnection : SharmComunicator.ISharmIpc
     {
         private static readonly NetworkMessageFormatter MessageFormatter = new(MemoryPool<byte>.Shared);
@@ -152,7 +155,9 @@ namespace WpfApp
                 _master = this;
             }
             else
+            {
                 _clients.Add(this);
+            }
         }
 
         public void Dispose()
@@ -165,7 +170,9 @@ namespace WpfApp
                 _master = null;
             }
             else
+            {
                 _clients.Remove(this);
+            }
         }
 
         public event SharmMessageHandler? OnMessage;
@@ -182,9 +189,8 @@ namespace WpfApp
             if (_mutex == null)
                 _master?.OnMessage?.Invoke(msg, _msgId, from);
             else
-            {
-                foreach (var client in _clients) client.OnMessage?.Invoke(msg, _msgId, from);
-            }
+                foreach (var client in _clients)
+                    client.OnMessage?.Invoke(msg, _msgId, @from);
 
             _msgId++;
             return true;

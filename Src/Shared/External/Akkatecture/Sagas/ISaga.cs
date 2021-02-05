@@ -28,8 +28,12 @@
 
 namespace Akkatecture.Sagas
 {
-    public interface ISaga { }
+    public interface ISaga
+    {
+    }
 
     public interface ISaga<TSagaId> : ISaga
-        where TSagaId : ISagaId { }
+        where TSagaId : ISagaId
+    {
+    }
 }

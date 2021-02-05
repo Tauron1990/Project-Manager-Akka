@@ -84,12 +84,14 @@ namespace BeaconLib
                 _log.Information("Responding Probe {Adress}", remote);
                 // If true, respond again with our type, port and payload
                 var responseData = Encode(BeaconType)
-                                  .Concat(BitConverter.GetBytes((ushort) IPAddress.HostToNetworkOrder((short) AdvertisedPort)))
-                                  .Concat(Encode(BeaconData)).ToArray();
+                    .Concat(BitConverter.GetBytes((ushort) IPAddress.HostToNetworkOrder((short) AdvertisedPort)))
+                    .Concat(Encode(BeaconData)).ToArray();
                 _udp.Send(responseData, responseData.Length, remote);
             }
             else
+            {
                 _log.Information("Incompatible Data");
+            }
 
             if (!Stopped) _udp.BeginReceive(ProbeReceived, null);
         }

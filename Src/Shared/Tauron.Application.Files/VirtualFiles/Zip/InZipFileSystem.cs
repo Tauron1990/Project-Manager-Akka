@@ -18,7 +18,9 @@ namespace Tauron.Application.Files.VirtualFiles.Zip
         }
 
         public InZipFileSystem()
-            : this(null) { }
+            : this(null)
+        {
+        }
 
         public void Dispose()
         {
@@ -30,7 +32,8 @@ namespace Tauron.Application.Files.VirtualFiles.Zip
         public bool IsRealTime => false;
         public bool SaveAfterDispose { get; set; }
 
-        public override DateTime LastModified => _file?.Name.ExisFile() == true ? File.GetLastWriteTime(_file.Name) : base.LastModified;
+        public override DateTime LastModified
+            => _file?.Name.ExisFile() == true ? File.GetLastWriteTime(_file.Name) : base.LastModified;
 
         public string Source => _file?.Name ?? string.Empty;
 

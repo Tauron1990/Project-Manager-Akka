@@ -7,16 +7,17 @@ namespace Servicemnager.Networking.Transmitter
 {
     public sealed class Sender : IDisposable
     {
-        private readonly Stream _toSend;
         private readonly string _client;
-        private readonly IDataServer _server;
+        private readonly Action<Exception> _errorHandler;
         private readonly Func<byte[]> _getArray;
         private readonly Action<byte[]> _returnArray;
-        private readonly Action<Exception> _errorHandler;
+        private readonly IDataServer _server;
+        private readonly Stream _toSend;
 
         private bool _isRunnging;
 
-        public Sender(Stream toSend, string client, IDataServer server, Func<byte[]> getArray, Action<byte[]> returnArray, Action<Exception> errorHandler)
+        public Sender(Stream toSend, string client, IDataServer server, Func<byte[]> getArray,
+            Action<byte[]> returnArray, Action<Exception> errorHandler)
         {
             _toSend = toSend;
             _client = client;
@@ -25,6 +26,8 @@ namespace Servicemnager.Networking.Transmitter
             _returnArray = returnArray;
             _errorHandler = errorHandler;
         }
+
+        public void Dispose() => _toSend.Dispose();
 
         public bool ProcessMessage(NetworkMessage msg)
         {
@@ -56,6 +59,7 @@ namespace Servicemnager.Networking.Transmitter
                                 Thread.Sleep(2000);
                                 return false;
                             }
+
                             _server.Send(_client, NetworkMessage.Create(NetworkOperation.DataChunk, chunk, count));
                             return true;
                         }
@@ -76,7 +80,5 @@ namespace Servicemnager.Networking.Transmitter
                 return false;
             }
         }
-
-        public void Dispose() => _toSend.Dispose();
     }
 }

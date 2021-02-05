@@ -2,6 +2,6 @@
 {
     public sealed class BuildCompled
     {
-        public static readonly BuildCompled Inst = new BuildCompled();
+        public static readonly BuildCompled Inst = new();
     }
 }

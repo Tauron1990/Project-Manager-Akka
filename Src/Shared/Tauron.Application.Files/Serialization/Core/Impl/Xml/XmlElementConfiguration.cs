@@ -18,7 +18,8 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Xml
 
         private string? _member;
 
-        public XmlElementConfiguration(IXmlSerializerConfiguration config, SimpleMapper<XmlElementContext> mapper, XmlElementTarget target,
+        public XmlElementConfiguration(IXmlSerializerConfiguration config, SimpleMapper<XmlElementContext> mapper,
+            XmlElementTarget target,
             XmlElementTarget root, Type targetType)
         {
             _config = Argument.NotNull(config, nameof(config));
@@ -68,7 +69,8 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Xml
 
         public IXmlElementConfiguration Element(string name)
         {
-            var target = new XmlElementTarget {TargetType = XmlElementTargetType.Element, Name = Argument.NotNull(name, nameof(name))};
+            var target = new XmlElementTarget
+                {TargetType = XmlElementTargetType.Element, Name = Argument.NotNull(name, nameof(name))};
             _target.SubElement = target;
 
             return new XmlElementConfiguration(_config, _mapper, target, _root, _targetType);
@@ -83,14 +85,16 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Xml
 
         public IXmlAttributConfiguration Attribute(string name)
         {
-            var target = new XmlElementTarget {TargetType = XmlElementTargetType.Attribute, Name = Argument.NotNull(name, nameof(name))};
+            var target = new XmlElementTarget
+                {TargetType = XmlElementTargetType.Attribute, Name = Argument.NotNull(name, nameof(name))};
             _target.SubElement = target;
             return new XmlAttributeConfiguration(_config, _root, target, _mapper, _targetType);
         }
 
         public IXmlListElementConfiguration WithElements(string name)
         {
-            var target = new XmlElementTarget {TargetType = XmlElementTargetType.Element, Name = Argument.NotNull(name, nameof(name))};
+            var target = new XmlElementTarget
+                {TargetType = XmlElementTargetType.Element, Name = Argument.NotNull(name, nameof(name))};
 
             return new XmlListElementConfiguration(_config, _mapper, _target, _root, target, _targetType);
         }

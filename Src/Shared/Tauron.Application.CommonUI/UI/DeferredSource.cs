@@ -9,14 +9,17 @@ using Tauron.Application.CommonUI.ModelMessages;
 
 namespace Tauron.Application.CommonUI.UI
 {
-    public sealed class DeferredSource : ModelConnectorBase<DeferredSource>, INotifyPropertyChanged, INotifyDataErrorInfo
+    public sealed class DeferredSource : ModelConnectorBase<DeferredSource>, INotifyPropertyChanged,
+        INotifyDataErrorInfo
     {
         private string? _error;
         private bool _hasErrors;
         private object? _value;
 
         public DeferredSource(string name, DataContextPromise promise)
-            : base(name, promise) { }
+            : base(name, promise)
+        {
+        }
 
         public object? Value
         {

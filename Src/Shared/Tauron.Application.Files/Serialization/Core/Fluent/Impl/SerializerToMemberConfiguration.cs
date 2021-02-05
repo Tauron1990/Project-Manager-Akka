@@ -5,7 +5,8 @@ using Tauron.Application.Files.Serialization.Core.Managment;
 
 namespace Tauron.Application.Files.Serialization.Core.Fluent.Impl
 {
-    internal class SerializerToMemberConfiguration<TTInterface, TMapperContext> : ISerializerToMemberConfiguration<TTInterface>
+    internal class
+        SerializerToMemberConfiguration<TTInterface, TMapperContext> : ISerializerToMemberConfiguration<TTInterface>
         where TMapperContext : IOrginalContextProvider
         where TTInterface : class, ISerializerRootConfiguration
     {
@@ -18,7 +19,8 @@ namespace Tauron.Application.Files.Serialization.Core.Fluent.Impl
 
         private ISerializer? _serializer;
 
-        public SerializerToMemberConfiguration(string targetMember, TTInterface targetConfiguration, SimpleMapper<TMapperContext> mapper,
+        public SerializerToMemberConfiguration(string targetMember, TTInterface targetConfiguration,
+            SimpleMapper<TMapperContext> mapper,
             Type serialType)
         {
             _targetMember = targetMember;
@@ -27,7 +29,8 @@ namespace Tauron.Application.Files.Serialization.Core.Fluent.Impl
             _serialType = serialType;
         }
 
-        public ISerializerToMemberConfiguration<TTInterface> WithSourceSelector(Func<object, SerializerMode, Stream> open, Func<string?, IStreamSource>? relativeFunc)
+        public ISerializerToMemberConfiguration<TTInterface> WithSourceSelector(
+            Func<object, SerializerMode, Stream> open, Func<string?, IStreamSource>? relativeFunc)
         {
             _open = open;
             _relativeFunc = relativeFunc;
@@ -46,7 +49,7 @@ namespace Tauron.Application.Files.Serialization.Core.Fluent.Impl
                 throw new InvalidOperationException("Open Func Null");
 
             _mapper.Entries.Add(new SerializerBindMapper<TMapperContext>(_targetMember, _serialType, _serializer,
-                                                                         new SerializerBindMapper<TMapperContext>.StreamManager(_open, _relativeFunc)));
+                new SerializerBindMapper<TMapperContext>.StreamManager(_open, _relativeFunc)));
             return _targetConfiguration;
         }
     }

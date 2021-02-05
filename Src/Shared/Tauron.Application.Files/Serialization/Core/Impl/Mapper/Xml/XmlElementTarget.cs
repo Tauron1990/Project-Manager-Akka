@@ -36,7 +36,7 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Mapper.Xml
             }
 
             builder.AppendFormat("{0}={1}", (Name ?? "NoName") + postfix,
-                                 SubElement == null ? "End" : SubElement.ToString());
+                SubElement == null ? "End" : SubElement.ToString());
 
             return builder.ToString();
         }

@@ -10,7 +10,8 @@ namespace Tauron.Application.Files.Serialization.Core.Fluent.Ini
     {
         IIniKeySerializerConfiguration WithKey(string? name);
 
-        [SuppressMessage("Microsoft.Design", "CA1006:DoNotNestGenericTypesInMemberSignatures", Justification = "No simpler way")]
+        [SuppressMessage("Microsoft.Design", "CA1006:DoNotNestGenericTypesInMemberSignatures",
+            Justification = "No simpler way")]
         IIniKeySerializerConfiguration WithConverter(SimpleConverter<IEnumerable<string>>? converter);
 
         IIniSerializerConfiguration Apply();

@@ -30,29 +30,30 @@ namespace Tauron.Application.AkkaNode.Bootstrap
             var masterReady = false;
             if (ipcType != IpcApplicationType.NoIpc)
                 masterReady = SharmComunicator.MasterIpcReady(IpcName);
-            var ipc = new IpcConnection(masterReady, ipcType, (s, exception) => Log.ForContext(typeof(Bootstrap)).Error(exception, "Ipc Error: {Info}", s));
+            var ipc = new IpcConnection(masterReady, ipcType,
+                (s, exception) => Log.ForContext(typeof(Bootstrap)).Error(exception, "Ipc Error: {Info}", s));
 
             return ActorApplication.Create(args)
-                                   .ConfigureAutoFac(cb =>
-                                                     {
-                                                         cb.RegisterType<ConsoleAppRoute>().Named<IAppRoute>("default");
-                                                         cb.RegisterType<KillHelper>().As<IStartUpAction>();
-                                                         cb.RegisterInstance(ipc).As<IIpcConnection>();
-                                                     })
-                                   .ConfigurateNode()
-                                   .ConfigureLogging((context, configuration) =>
-                                                     {
-                                                         System.Console.Title = context.HostEnvironment.ApplicationName;
+                .ConfigureAutoFac(cb =>
+                {
+                    cb.RegisterType<ConsoleAppRoute>().Named<IAppRoute>("default");
+                    cb.RegisterType<KillHelper>().As<IStartUpAction>();
+                    cb.RegisterInstance(ipc).As<IIpcConnection>();
+                })
+                .ConfigurateNode()
+                .ConfigureLogging((context, configuration) =>
+                {
+                    System.Console.Title = context.HostEnvironment.ApplicationName;
 
-                                                         configuration.WriteTo.Console(theme:AnsiConsoleTheme.Code);
-                                                     })
-                                   .ConfigurateAkkaSystem((_, system) =>
-                                                          {
-                                                              if (type == KillRecpientType.Seed)
-                                                                  KillSwitch.Setup(system);
-                                                              else
-                                                                  KillSwitch.Subscribe(system, type);
-                                                          });
+                    configuration.WriteTo.Console(theme: AnsiConsoleTheme.Code);
+                })
+                .ConfigurateAkkaSystem((_, system) =>
+                {
+                    if (type == KillRecpientType.Seed)
+                        KillSwitch.Setup(system);
+                    else
+                        KillSwitch.Subscribe(system, type);
+                });
         }
 
         private sealed class IpcConnection : IIpcConnection, IDisposable
@@ -60,10 +61,6 @@ namespace Tauron.Application.AkkaNode.Bootstrap
             private readonly Subject<NetworkMessage> _messageHandler = new();
             private IDataClient? _dataClient;
             private IDataServer? _dataServer;
-
-            public string ErrorMessage { get; private set; } = string.Empty;
-
-            public bool IsReady { get; private set; } = true;
 
             public IpcConnection(bool masterExists, IpcApplicationType type, Action<string, Exception> errorHandler)
             {
@@ -101,21 +98,37 @@ namespace Tauron.Application.AkkaNode.Bootstrap
                             throw new ArgumentOutOfRangeException(nameof(type), type, null);
                     }
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     ErrorMessage = e.Message;
                     IsReady = false;
                 }
             }
 
+            public string ErrorMessage { get; private set; } = string.Empty;
+
+            public void Dispose()
+            {
+                _messageHandler.Dispose();
+                (_dataClient as IDisposable)?.Dispose();
+                _dataServer?.Dispose();
+
+                _dataClient = null;
+                _dataServer = null;
+            }
+
+            public bool IsReady { get; private set; } = true;
+
             public IObservable<CallResult<TType>> OnMessage<TType>()
             {
                 if (!IsReady)
                     return Observable.Empty<CallResult<TType>>();
 
-                string type = typeof(TType).AssemblyQualifiedName ?? throw new InvalidOperationException("Invalid Message Type");
+                string type = typeof(TType).AssemblyQualifiedName ??
+                              throw new InvalidOperationException("Invalid Message Type");
 
-                return _messageHandler.Where(nm => nm.Type == type).SelectSafe(nm => JsonConvert.DeserializeObject<TType>(Encoding.UTF8.GetString(nm.Data)));
+                return _messageHandler.Where(nm => nm.Type == type).SelectSafe(nm
+                    => JsonConvert.DeserializeObject<TType>(Encoding.UTF8.GetString(nm.Data)));
             }
 
             public bool SendMessage<TMessage>(string to, TMessage message)
@@ -123,7 +136,8 @@ namespace Tauron.Application.AkkaNode.Bootstrap
                 if (!IsReady)
                     return false;
 
-                var name = typeof(TMessage).AssemblyQualifiedName ?? throw new InvalidOperationException("Invalid Message Type");
+                var name = typeof(TMessage).AssemblyQualifiedName ??
+                           throw new InvalidOperationException("Invalid Message Type");
                 var data = JsonConvert.SerializeObject(message);
 
                 var nm = NetworkMessage.Create(name, Encoding.UTF8.GetBytes(data));
@@ -141,7 +155,7 @@ namespace Tauron.Application.AkkaNode.Bootstrap
                     _dataServer?.Start();
 
                     if (_dataClient == null) return;
-                    
+
                     _dataClient.Connect();
                     if (SendMessage(new RegisterNewClient(SharmComunicator.ProcessId, serviceName)))
                         return;
@@ -157,25 +171,15 @@ namespace Tauron.Application.AkkaNode.Bootstrap
                     ErrorMessage = e.Message;
 
                     Log.ForContext<IpcConnection>()
-                       .Error(e, "Error on Starting Ipc");
+                        .Error(e, "Error on Starting Ipc");
 
                     Dispose();
                 }
             }
 
-            public void Dispose()
-            {
-                _messageHandler.Dispose();
-                (_dataClient as IDisposable)?.Dispose();
-                _dataServer?.Dispose();
-
-                _dataClient = null;
-                _dataServer = null;
-            }
-
             public void Disconnect()
             {
-                if(_dataClient is SharmClient client)
+                if (_dataClient is SharmClient client)
                     client.Disconnect();
             }
         }
@@ -183,27 +187,27 @@ namespace Tauron.Application.AkkaNode.Bootstrap
         [UsedImplicitly]
         private sealed class KillHelper : IStartUpAction
         {
-            [UsedImplicitly]
-            private static KillHelper? _keeper;
-            
-            private readonly ActorSystem _system;
+            [UsedImplicitly] private static KillHelper? _keeper;
+
+            private readonly string? _comHandle;
             private readonly IpcConnection _ipcConnection;
             private readonly ILogger _logger;
-            private readonly string? _comHandle;
+
+            private readonly ActorSystem _system;
 
             public KillHelper(IConfiguration configuration, ActorSystem system, IIpcConnection ipcConnection)
             {
                 _logger = Log.ForContext<KillHelper>();
                 _comHandle = configuration["ComHandle"];
                 _system = system;
-                _ipcConnection = (IpcConnection)ipcConnection;
+                _ipcConnection = (IpcConnection) ipcConnection;
 
                 _keeper = this;
                 _system.RegisterOnTermination(() =>
-                                              {
-                                                  _ipcConnection.Disconnect();
-                                                  _keeper = null;
-                                              });
+                {
+                    _ipcConnection.Disconnect();
+                    _keeper = null;
+                });
             }
 
             public void Run()
@@ -218,7 +222,9 @@ namespace Tauron.Application.AkkaNode.Bootstrap
                         errorToReport = _ipcConnection.ErrorMessage;
                 }
                 else
+                {
                     errorToReport = _ipcConnection.ErrorMessage;
+                }
 
                 if (!string.IsNullOrWhiteSpace(errorToReport))
                 {
@@ -227,7 +233,8 @@ namespace Tauron.Application.AkkaNode.Bootstrap
                 }
 
                 _ipcConnection.OnMessage<KillNode>()
-                              .Subscribe(_ => _system.Terminate(), exception => _logger.Error(exception, "Error On Killwatch Message Recieve"));
+                    .Subscribe(_ => _system.Terminate(),
+                        exception => _logger.Error(exception, "Error On Killwatch Message Recieve"));
             }
         }
     }

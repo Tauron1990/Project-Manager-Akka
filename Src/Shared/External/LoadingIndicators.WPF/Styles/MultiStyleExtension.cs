@@ -11,7 +11,8 @@ namespace LoadingIndicators.WPF.Styles
 
         public MultiStyleExtension(string inputResourceKeys)
         {
-            if (string.IsNullOrWhiteSpace(inputResourceKeys)) throw new ArgumentNullException(nameof(inputResourceKeys));
+            if (string.IsNullOrWhiteSpace(inputResourceKeys))
+                throw new ArgumentNullException(nameof(inputResourceKeys));
 
             _resourceKeys = inputResourceKeys.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
 

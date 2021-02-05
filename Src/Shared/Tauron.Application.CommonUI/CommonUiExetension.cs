@@ -13,7 +13,8 @@ namespace Tauron.Application.CommonUI
     {
         #region UIProperty
 
-        public static FluentPropertyRegistration<TData> ThenFlow<TData>(this FluentPropertyRegistration<TData> prop, Func<IObservable<TData>, IDisposable> flowBuilder)
+        public static FluentPropertyRegistration<TData> ThenFlow<TData>(this FluentPropertyRegistration<TData> prop,
+            Func<IObservable<TData>, IDisposable> flowBuilder)
         {
             var aFlow = new Subject<TData>();
 
@@ -25,18 +26,22 @@ namespace Tauron.Application.CommonUI
 
         #endregion
 
-        public static IObservable<TData> ObserveOnDispatcher<TData>(this IObservable<TData> observable) => observable.ObserveOn(DispatcherScheduler.CurrentDispatcher);
+        public static IObservable<TData> ObserveOnDispatcher<TData>(this IObservable<TData> observable)
+            => observable.ObserveOn(DispatcherScheduler.CurrentDispatcher);
 
         #region Command
 
-        public static CommandRegistrationBuilder ThenFlow(this CommandRegistrationBuilder builder, Func<IObservable<Unit>, IDisposable> flowBuilder) => ThenFlow(builder, Unit.Default, flowBuilder);
+        public static CommandRegistrationBuilder ThenFlow(this CommandRegistrationBuilder builder,
+            Func<IObservable<Unit>, IDisposable> flowBuilder) => ThenFlow(builder, Unit.Default, flowBuilder);
 
-        public static CommandRegistrationBuilder ThenFlow<TStart>(this CommandRegistrationBuilder builder, TStart trigger, Func<IObservable<TStart>, IDisposable> flowBuilder)
+        public static CommandRegistrationBuilder ThenFlow<TStart>(this CommandRegistrationBuilder builder,
+            TStart trigger, Func<IObservable<TStart>, IDisposable> flowBuilder)
         {
             return ThenFlow(builder, () => trigger, flowBuilder);
         }
 
-        public static CommandRegistrationBuilder ThenFlow<TStart>(this CommandRegistrationBuilder builder, Func<TStart> trigger, Func<IObservable<TStart>, IDisposable> flowBuilder)
+        public static CommandRegistrationBuilder ThenFlow<TStart>(this CommandRegistrationBuilder builder,
+            Func<TStart> trigger, Func<IObservable<TStart>, IDisposable> flowBuilder)
         {
             var ob = new Subject<TStart>();
             var sub = flowBuilder(ob.AsObservable());

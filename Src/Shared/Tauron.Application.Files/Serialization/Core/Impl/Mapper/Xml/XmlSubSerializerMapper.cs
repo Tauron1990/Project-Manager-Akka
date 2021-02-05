@@ -15,7 +15,8 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Mapper.Xml
 
         protected override SerializationContext GetRealContext(XmlElementContext origial, SerializerMode mode)
         {
-            if (!(XmlElementSerializer.GetElement(origial.XElement, mode == SerializerMode.Serialize, _target) is XElement ele))
+            if (!(XmlElementSerializer.GetElement(origial.XElement, mode == SerializerMode.Serialize, _target) is
+                XElement ele))
             {
                 _useSnapShot = false;
                 return origial.Original;

@@ -2,5 +2,6 @@
 
 namespace Tauron.Application.Master.Commands.Deployment.Build.Commands
 {
-    public sealed record PushVersionCommand(string AppName) : DeploymentCommandBase<PushVersionCommand, AppBinary>(AppName);
+    public sealed record PushVersionCommand
+        (string AppName) : DeploymentCommandBase<PushVersionCommand, AppBinary>(AppName);
 }

@@ -16,14 +16,15 @@ namespace Tauron.Application.Localizer.UIModels
         {
             builder.RegisterType<LocLocalizer>().AsSelf();
             builder.RegisterType<OperationManager>().As<IOperationManager>().SingleInstance();
-            builder.RegisterType<AppConfig>().AsSelf().WithParameter("scope", SettingTypes.AppConfig).InstancePerLifetimeScope();
+            builder.RegisterType<AppConfig>().AsSelf().WithParameter("scope", SettingTypes.AppConfig)
+                .InstancePerLifetimeScope();
 
             builder.RegisterType<AppConfiguration>().As<ISettingProviderConfiguration>();
 
             builder.RegisterType<DefaultActorRef<SettingsManager>>().As<IDefaultActorRef<SettingsManager>>()
-                   .OnActivating(i => i.Instance.Init("Settings-Manager"))
-                   .OnRelease(sm => sm.Actor.Tell(PoisonPill.Instance))
-                   .SingleInstance();
+                .OnActivating(i => i.Instance.Init("Settings-Manager"))
+                .OnRelease(sm => sm.Actor.Tell(PoisonPill.Instance))
+                .SingleInstance();
         }
     }
 }

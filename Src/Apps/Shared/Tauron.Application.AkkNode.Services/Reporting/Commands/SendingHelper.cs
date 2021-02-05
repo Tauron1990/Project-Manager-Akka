@@ -8,12 +8,13 @@ namespace Tauron.Application.AkkaNode.Services.Commands
 {
     public static class SendingHelper
     {
-        public static Task<TResult> Send<TResult, TCommand>(ISender sender, TCommand command, Action<string> messages, TimeSpan timeout, bool isEmpty) 
+        public static Task<TResult> Send<TResult, TCommand>(ISender sender, TCommand command, Action<string> messages,
+            TimeSpan timeout, bool isEmpty)
             where TCommand : class, IReporterMessage
         {
             var task = new TaskCompletionSource<TResult>();
             IActorRefFactory factory;
-            
+
             try
             {
                 factory = ObservableActor.ExposedContext;
@@ -27,12 +28,10 @@ namespace Tauron.Application.AkkaNode.Services.Commands
             {
                 if (result.Ok)
                 {
-                    if(isEmpty)
+                    if (isEmpty)
                         task.SetResult(default!);
                     else if (result.Outcome is TResult outcome)
-                    {
                         task.SetResult(outcome);
-                    }
                     else
                         task.SetException(new InvalidCastException(result.Outcome?.GetType().Name ?? "null-source"));
                 }

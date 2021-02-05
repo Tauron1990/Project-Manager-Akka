@@ -5,6 +5,5 @@
         Reporter Reporter { get; }
 
         string Info { get; }
-
     }
 }

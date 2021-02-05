@@ -18,13 +18,16 @@ namespace Tauron.Akka
         private ActorScheduler(IActorRef target) => _targetActor = target;
 
         private ActorScheduler()
-            : this(ObservableActor.ExposedContext.Self) { }
+            : this(ObservableActor.ExposedContext.Self)
+        {
+        }
 
         public static IScheduler CurrentSelf => new ActorScheduler();
 
         public static IScheduler From(IActorRef actor) => new ActorScheduler(actor);
 
-        public override IDisposable Schedule<TState>(TState state, TimeSpan dueTime, Func<IScheduler, TState, IDisposable> action)
+        public override IDisposable Schedule<TState>(TState state, TimeSpan dueTime,
+            Func<IScheduler, TState, IDisposable> action)
         {
             var target = Scheduler.Normalize(dueTime);
 
@@ -39,7 +42,7 @@ namespace Tauron.Akka
             if (target == TimeSpan.Zero)
             {
                 var currentCell = InternalCurrentActorCellKeeper.Current;
-                if(currentCell != null && currentCell.Self.Equals(_targetActor))
+                if (currentCell != null && currentCell.Self.Equals(_targetActor))
                     TryRun();
                 else
                     _targetActor.Tell(new ObservableActor.TransmitAction(TryRun));
@@ -48,10 +51,10 @@ namespace Tauron.Akka
             {
                 var timerDispose = new SingleAssignmentDisposable();
                 Timer timer = new(o =>
-                                  {
-                                      _targetActor.Tell(new ObservableActor.TransmitAction(TryRun));
-                                      ((IDisposable) o!).Dispose();
-                                  }, timerDispose, dueTime, Timeout.InfiniteTimeSpan);
+                {
+                    _targetActor.Tell(new ObservableActor.TransmitAction(TryRun));
+                    ((IDisposable) o!).Dispose();
+                }, timerDispose, dueTime, Timeout.InfiniteTimeSpan);
 
                 timerDispose.Disposable = timer;
             }
@@ -62,6 +65,7 @@ namespace Tauron.Akka
 
     public static class ActorSchedulerExtensions
     {
-        public static IObservable<TType> ObserveOnSelf<TType>(this IObservable<TType> observable) => observable.ObserveOn(ActorScheduler.CurrentSelf);
+        public static IObservable<TType> ObserveOnSelf<TType>(this IObservable<TType> observable)
+            => observable.ObserveOn(ActorScheduler.CurrentSelf);
     }
 }

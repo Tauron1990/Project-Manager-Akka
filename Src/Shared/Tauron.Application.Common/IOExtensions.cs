@@ -17,20 +17,21 @@ namespace Tauron
         public static void AddFilesFromDictionary(this ZipArchive destination, string sourceDirectoryName)
         {
             var stack = new Stack<FileSystemInfo>();
-            new DirectoryInfo(sourceDirectoryName).EnumerateFileSystemInfos("*.*", SearchOption.AllDirectories).Foreach(e => stack.Push(e));
+            new DirectoryInfo(sourceDirectoryName).EnumerateFileSystemInfos("*.*", SearchOption.AllDirectories)
+                .Foreach(e => stack.Push(e));
 
             while (stack.Count != 0)
-            {
                 switch (stack.Pop())
                 {
                     case FileInfo file:
-                        destination.CreateEntryFromFile(file.FullName, file.FullName.Replace(sourceDirectoryName, string.Empty, StringComparison.Ordinal), CompressionLevel.Optimal);
+                        destination.CreateEntryFromFile(file.FullName,
+                            file.FullName.Replace(sourceDirectoryName, string.Empty, StringComparison.Ordinal),
+                            CompressionLevel.Optimal);
                         break;
                     case DirectoryInfo directory:
                         destination.CreateEntry(directory.FullName.Replace(sourceDirectoryName, string.Empty));
                         break;
                 }
-            }
         }
 
         public static string PathShorten(this string path, int length)
@@ -60,7 +61,6 @@ namespace Tauron
             if (!dic.Exists) return;
 
             foreach (var entry in dic.GetFileSystemInfos())
-            {
                 switch (entry)
                 {
                     case FileInfo file:
@@ -71,7 +71,6 @@ namespace Tauron
                         dici.Delete();
                         break;
                 }
-            }
         }
 
         public static void ClearDirectory(this string dic)
@@ -103,7 +102,8 @@ namespace Tauron
         }
 
 
-        public static string CombinePath(this string path, string path1) => string.IsNullOrWhiteSpace(path) ? path1 : Path.Combine(path, path1);
+        public static string CombinePath(this string path, string path1)
+            => string.IsNullOrWhiteSpace(path) ? path1 : Path.Combine(path, path1);
 
         [JetBrains.Annotations.NotNull]
         public static string CombinePath(this FileSystemInfo path, string path1) => CombinePath(path.FullName, path1);
@@ -157,7 +157,9 @@ namespace Tauron
             {
                 if (Directory.Exists(path)) Directory.Delete(path, true);
             }
-            catch (UnauthorizedAccessException) { }
+            catch (UnauthorizedAccessException)
+            {
+            }
         }
 
         public static void DeleteDirectory(this string path, object sub)
@@ -196,19 +198,27 @@ namespace Tauron
             return path.Any(invalid.Contains);
         }
 
-        public static IEnumerable<string> EnumrateFileSystemEntries(this string dic) => Directory.EnumerateFileSystemEntries(dic);
+        public static IEnumerable<string> EnumrateFileSystemEntries(this string dic)
+            => Directory.EnumerateFileSystemEntries(dic);
 
-        public static IEnumerable<string> EnumerateAllFiles(this string dic) => Directory.EnumerateFiles(dic, "*.*", SearchOption.AllDirectories);
+        public static IEnumerable<string> EnumerateAllFiles(this string dic)
+            => Directory.EnumerateFiles(dic, "*.*", SearchOption.AllDirectories);
 
-        public static IEnumerable<string> EnumerateAllFiles(this string dic, string filter) => Directory.EnumerateFiles(dic, filter, SearchOption.AllDirectories);
+        public static IEnumerable<string> EnumerateAllFiles(this string dic, string filter)
+            => Directory.EnumerateFiles(dic, filter, SearchOption.AllDirectories);
 
-        public static IEnumerable<string> EnumerateDirectorys(this string path) => Directory.Exists(path) ? Enumerable.Empty<string>() : Directory.EnumerateDirectories(path);
+        public static IEnumerable<string> EnumerateDirectorys(this string path) => Directory.Exists(path)
+            ? Enumerable.Empty<string>()
+            : Directory.EnumerateDirectories(path);
 
-        public static IEnumerable<FileSystemInfo> EnumerateFileSystemEntrys(this string path) => new DirectoryInfo(path).EnumerateFileSystemInfos();
+        public static IEnumerable<FileSystemInfo> EnumerateFileSystemEntrys(this string path)
+            => new DirectoryInfo(path).EnumerateFileSystemInfos();
 
-        public static IEnumerable<string> EnumerateFiles(this string dic) => Directory.EnumerateFiles(dic, "*.*", SearchOption.TopDirectoryOnly);
+        public static IEnumerable<string> EnumerateFiles(this string dic)
+            => Directory.EnumerateFiles(dic, "*.*", SearchOption.TopDirectoryOnly);
 
-        public static IEnumerable<string> EnumerateFiles(this string dic, string filter) => Directory.EnumerateFiles(dic, filter, SearchOption.TopDirectoryOnly);
+        public static IEnumerable<string> EnumerateFiles(this string dic, string filter)
+            => Directory.EnumerateFiles(dic, filter, SearchOption.TopDirectoryOnly);
 
         public static IEnumerable<string> EnumerateTextLinesIfExis(this string path)
         {
@@ -288,7 +298,8 @@ namespace Tauron
 
         public static string[] GetFiles(this string dic) => Directory.GetFiles(dic);
 
-        public static string[] GetFiles(this string path, string pattern, SearchOption option) => Directory.GetFiles(path, pattern, option);
+        public static string[] GetFiles(this string path, string pattern, SearchOption option)
+            => Directory.GetFiles(path, pattern, option);
 
         public static string GetFullPath(this string path) => Path.GetFullPath(path);
 
@@ -351,13 +362,16 @@ namespace Tauron
             return new FileStream(path, FileMode.OpenOrCreate, FileAccess.Write, share);
         }
 
-        public static byte[] ReadAllBytesIfExis(this string path) => !File.Exists(path) ? Array.Empty<byte>() : File.ReadAllBytes(path);
+        public static byte[] ReadAllBytesIfExis(this string path)
+            => !File.Exists(path) ? Array.Empty<byte>() : File.ReadAllBytes(path);
 
         public static byte[] ReadAllBytes(this string path) => File.ReadAllBytes(path);
 
-        public static string ReadTextIfExis(this string path) => File.Exists(path) ? File.ReadAllText(path) : string.Empty;
+        public static string ReadTextIfExis(this string path)
+            => File.Exists(path) ? File.ReadAllText(path) : string.Empty;
 
-        public static string ReadTextIfExis(this string workingDirectory, string subPath) => ReadTextIfExis(CombinePath(workingDirectory, subPath));
+        public static string ReadTextIfExis(this string workingDirectory, string subPath)
+            => ReadTextIfExis(CombinePath(workingDirectory, subPath));
 
         public static IEnumerable<string> ReadTextLinesIfExis(this string path)
         {
@@ -373,16 +387,15 @@ namespace Tauron
             }
         }
 
-        public static bool TryCreateUriWithoutScheme(this string str, [MaybeNullWhen(false)] out Uri? uri, params string[] scheme)
+        public static bool TryCreateUriWithoutScheme(this string str, [MaybeNullWhen(false)] out Uri? uri,
+            params string[] scheme)
         {
             var flag = Uri.TryCreate(str, UriKind.RelativeOrAbsolute, out var target);
 
             // ReSharper disable once AccessToModifiedClosure
             if (flag)
-            {
                 foreach (var s in scheme.Where(s => flag))
                     flag = target!.Scheme != s;
-            }
 
             uri = flag ? target : null;
 

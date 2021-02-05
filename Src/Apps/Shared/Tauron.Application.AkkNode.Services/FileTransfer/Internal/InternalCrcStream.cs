@@ -38,6 +38,8 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer.Internal
         /// </summary>
         public uint WriteCrc => _writeCrc ^ 0xFFFFFFFF;
 
+        public void Dispose() => Stream.Dispose();
+
         public int Read(byte[] buffer, int offset, int count)
         {
             count = Stream.Read(buffer, offset, count);
@@ -75,12 +77,10 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer.Internal
                 {
                     var crc = i;
                     for (var j = 8; j > 0; j--)
-                    {
                         if ((crc & 1) == 1)
                             crc = (crc >> 1) ^ poly;
                         else
                             crc >>= 1;
-                    }
 
                     table[i] = crc;
                 }
@@ -88,7 +88,5 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer.Internal
                 return table;
             }
         }
-        
-        public void Dispose() => Stream.Dispose();
     }
 }

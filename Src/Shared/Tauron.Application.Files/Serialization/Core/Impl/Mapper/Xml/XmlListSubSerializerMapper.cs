@@ -14,7 +14,8 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Mapper.Xml
         private readonly ISubSerializer? _serializer;
         private readonly XmlElementTarget? _target;
 
-        public XmlListSubSerializerMapper(string? membername, Type targetType, XmlElementTarget? target, XmlElementTarget? rootTarget,
+        public XmlListSubSerializerMapper(string? membername, Type targetType, XmlElementTarget? target,
+            XmlElementTarget? rootTarget,
             ISubSerializer? serializer)
             : base(membername, targetType)
         {
@@ -64,8 +65,8 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Mapper.Xml
             if (realRoot == null && forWrite) throw new InvalidOperationException("Attributes not Supported");
 
             return realRoot == null
-                       ? Enumerable.Empty<XElement>()
-                       : XmlElementSerializer.GetElements(realRoot, forWrite, _target, count);
+                ? Enumerable.Empty<XElement>()
+                : XmlElementSerializer.GetElements(realRoot, forWrite, _target, count);
         }
 
         public override Exception? VerifyError()

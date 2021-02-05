@@ -19,7 +19,7 @@ namespace ServiceManager.ProjectRepository.Core
 
             var path = Repository.Discover(sourceDic);
 
-            if (!string.IsNullOrWhiteSpace(path)) 
+            if (!string.IsNullOrWhiteSpace(path))
                 _repository = new Repository(path);
         }
 
@@ -38,7 +38,6 @@ namespace ServiceManager.ProjectRepository.Core
                 SendMessage(RepositoryMessages.UpdateRepository);
                 return Update();
             }
-
         }
 
         private (string Path, string Sha) Update()
@@ -46,7 +45,8 @@ namespace ServiceManager.ProjectRepository.Core
             if (_repository == null)
                 throw new InvalidOperationException("Not Repository Set");
 
-            Commands.Pull(_repository, new Signature("ServiceManager", "Service@Manager.com", DateTimeOffset.Now), new PullOptions());
+            Commands.Pull(_repository, new Signature("ServiceManager", "Service@Manager.com", DateTimeOffset.Now),
+                new PullOptions());
             return (_repository.Info.WorkingDirectory, _repository.Head.Tip.Sha);
         }
 
@@ -59,8 +59,11 @@ namespace ServiceManager.ProjectRepository.Core
 
         protected override void InternalDispose()
         {
-            lock (Lock) 
+            lock (Lock)
+            {
                 _repository?.Dispose();
+            }
+
             base.InternalDispose();
         }
     }

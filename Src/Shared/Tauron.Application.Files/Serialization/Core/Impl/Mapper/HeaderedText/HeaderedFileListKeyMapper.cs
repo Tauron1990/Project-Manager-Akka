@@ -11,7 +11,8 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Mapper.HeaderedText
 
         private readonly ListBuilder? _listBuilder;
 
-        public HeaderedFileListKeyMapper(string? membername, Type targetType, string? keyName, SimpleConverter<string>? converter)
+        public HeaderedFileListKeyMapper(string? membername, Type targetType, string? keyName,
+            SimpleConverter<string>? converter)
             : base(membername, targetType)
         {
             _keyName = keyName;
@@ -23,7 +24,8 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Mapper.HeaderedText
 
             var elementType = _listBuilder.ElemenType;
 
-            if (_converter == null && elementType != null) _converter = ConverterFactory.CreateConverter(TargetMember, elementType);
+            if (_converter == null && elementType != null)
+                _converter = ConverterFactory.CreateConverter(TargetMember, elementType);
         }
 
         protected override void Deserialize(object target, HeaderdFileContext context)
@@ -36,7 +38,8 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Mapper.HeaderedText
 
             try
             {
-                foreach (var contextEnry in context.Context[_keyName]) _listBuilder?.Add(_converter?.ConvertBack(contextEnry.Content));
+                foreach (var contextEnry in context.Context[_keyName])
+                    _listBuilder?.Add(_converter?.ConvertBack(contextEnry.Content));
             }
             finally
             {

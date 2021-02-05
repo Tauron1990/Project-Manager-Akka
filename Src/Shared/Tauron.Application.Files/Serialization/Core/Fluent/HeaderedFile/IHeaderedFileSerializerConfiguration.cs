@@ -3,7 +3,8 @@
 namespace Tauron.Application.Files.Serialization.Core.Fluent.HeaderedFile
 {
     [PublicAPI]
-    public interface IHeaderedFileSerializerConfiguration : ISerializerRootConfiguration, IConstructorConfig<IHeaderedFileSerializerConfiguration>
+    public interface IHeaderedFileSerializerConfiguration : ISerializerRootConfiguration,
+        IConstructorConfig<IHeaderedFileSerializerConfiguration>
     {
         IHeaderedFileKeywordConfiguration AddKeyword([NotNull] string key);
 

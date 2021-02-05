@@ -23,7 +23,8 @@ namespace Tauron.Akka
             return new HookEventActor(system.ActorOf(Props.Create(() => new EventActor(killOnFirstResponse)), name));
         }
 
-        public static IEventActor Create<TPayload>(IActorRefFactory system, Action<TPayload> handler, bool killOnFirstResponse = false)
+        public static IEventActor Create<TPayload>(IActorRefFactory system, Action<TPayload> handler,
+            bool killOnFirstResponse = false)
         {
             var temp = Create(system, null, killOnFirstResponse);
             temp.Register(HookEvent.Create(handler));
@@ -59,7 +60,9 @@ namespace Tauron.Akka
                             Context.Stop(Context.Self);
                     }
                     else
+                    {
                         Unhandled(message);
+                    }
 
                     break;
             }

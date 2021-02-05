@@ -25,7 +25,8 @@ namespace Tauron.Application.CommonUI.Model
 
         public UIProperty<IObservableCollection<TData>> Property { get; }
 
-        public FluentCollectionPropertyRegistration<TData> AndInitialElements(params TData[] elements) => AndInitialElements((IEnumerable<TData>) elements);
+        public FluentCollectionPropertyRegistration<TData> AndInitialElements(params TData[] elements)
+            => AndInitialElements((IEnumerable<TData>) elements);
 
         public FluentCollectionPropertyRegistration<TData> AndInitialElements(IEnumerable<TData> elements)
         {
@@ -35,32 +36,35 @@ namespace Tauron.Application.CommonUI.Model
             return this;
         }
 
-        public UICollectionProperty<TData> BindTo(IObservable<IChangeSet<TData>> source, Func<IObservable<IChangeSet<TData>>, IDisposable>? subscriber = null)
+        public UICollectionProperty<TData> BindTo(IObservable<IChangeSet<TData>> source,
+            Func<IObservable<IChangeSet<TData>>, IDisposable>? subscriber = null)
         {
             subscriber ??= set => set.Subscribe();
 
             subscriber(source
-                      .ObserveOn(DispatcherScheduler.From(_actor.Dispatcher))
-                      .Bind(_collection))
-               .DisposeWith(_actor);
+                    .ObserveOn(DispatcherScheduler.From(_actor.Dispatcher))
+                    .Bind(_collection))
+                .DisposeWith(_actor);
 
             return this;
         }
 
-        public UICollectionProperty<TData> BindTo<TKey>(IObservable<IChangeSet<TData, TKey>> source, Func<IObservable<IChangeSet<TData, TKey>>, IDisposable>? subscriber = null)
+        public UICollectionProperty<TData> BindTo<TKey>(IObservable<IChangeSet<TData, TKey>> source,
+            Func<IObservable<IChangeSet<TData, TKey>>, IDisposable>? subscriber = null)
             where TKey : notnull
         {
             subscriber ??= set => set.Subscribe();
 
             subscriber(source
-                      .ObserveOn(DispatcherScheduler.From(_actor.Dispatcher))
-                      .Bind(_collection))
-               .DisposeWith(_actor);
+                    .ObserveOn(DispatcherScheduler.From(_actor.Dispatcher))
+                    .Bind(_collection))
+                .DisposeWith(_actor);
 
             return this;
         }
 
-        public UICollectionProperty<TData> BindToCache<TKey>(Func<TData, TKey> keySelector, out SourceCache<TData, TKey> sourceCollection)
+        public UICollectionProperty<TData> BindToCache<TKey>(Func<TData, TKey> keySelector,
+            out SourceCache<TData, TKey> sourceCollection)
             where TKey : notnull
         {
             sourceCollection = new SourceCache<TData, TKey>(keySelector);
@@ -75,6 +79,7 @@ namespace Tauron.Application.CommonUI.Model
             return BindTo(sourceCollection.Connect());
         }
 
-        public static implicit operator UICollectionProperty<TData>(FluentCollectionPropertyRegistration<TData> config) => new(config.Property);
+        public static implicit operator UICollectionProperty<TData>(FluentCollectionPropertyRegistration<TData> config)
+            => new(config.Property);
     }
 }

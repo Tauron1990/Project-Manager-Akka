@@ -12,10 +12,7 @@ namespace SeriLogViewer
             remove => CommandManager.RequerySuggested -= value;
         }
 
-        public virtual bool CanExecute(object? parameter)
-        {
-            return true;
-        }
+        public virtual bool CanExecute(object? parameter) => true;
 
         public abstract void Execute(object? parameter);
 

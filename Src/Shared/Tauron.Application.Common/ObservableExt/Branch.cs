@@ -7,14 +7,16 @@ namespace Tauron.ObservableExt
     [PublicAPI]
     public static class BranchExtensions
     {
-        public static IObservable<TSource> Branch<TSource>(this IObservable<TSource> observable, Action<BranchBuilder<TSource>> config)
+        public static IObservable<TSource> Branch<TSource>(this IObservable<TSource> observable,
+            Action<BranchBuilder<TSource>> config)
         {
             var obs = observable.Publish().RefCount();
             config(new BranchBuilder<TSource>(obs));
             return obs;
         }
 
-        public static BranchBuilder<TSource> Branch<TSource>(this IObservable<TSource> observable) => new(observable.Publish().RefCount());
+        public static BranchBuilder<TSource> Branch<TSource>(this IObservable<TSource> observable)
+            => new(observable.Publish().RefCount());
     }
 
     [PublicAPI]

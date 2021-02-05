@@ -21,10 +21,10 @@ namespace Tauron.Akkatecture.Projections
             Repo = repo;
 
             Dispatcher = new Dispatcher(reader.CreateSubscription)
-                         {
-                             ExceptionHandler = ExceptionHandler,
-                             SuccessHandler = SuccessHandler
-                         };
+            {
+                ExceptionHandler = ExceptionHandler,
+                SuccessHandler = SuccessHandler
+            };
         }
 
         public AggregateEventReader Reader { get; }
@@ -33,20 +33,26 @@ namespace Tauron.Akkatecture.Projections
 
         protected virtual Task SuccessHandler(SubscriptionInfo info) => Task.CompletedTask;
 
-        protected virtual Task<ExceptionResolution> ExceptionHandler(Exception exception, int attempts, SubscriptionInfo info) => !exception.IsCriticalApplicationException() && attempts < 3 ? Task.FromResult(ExceptionResolution.Retry) : Task.FromResult(ExceptionResolution.Abort);
+        protected virtual Task<ExceptionResolution>
+            ExceptionHandler(Exception exception, int attempts, SubscriptionInfo info)
+            => !exception.IsCriticalApplicationException() && attempts < 3
+                ? Task.FromResult(ExceptionResolution.Retry)
+                : Task.FromResult(ExceptionResolution.Abort);
 
         public IDisposable Subscribe<TAggregate>()
         {
             var options = new SubscriptionOptions {Id = "Type@" + typeof(TAggregate).AssemblyQualifiedName};
 
-            return Dispatcher.Subscribe(Repo.GetLastCheckpoint<TProjection, TIdentity>(), (list, info) => Projector.Projector.Handle(list), options);
+            return Dispatcher.Subscribe(Repo.GetLastCheckpoint<TProjection, TIdentity>(),
+                (list, info) => Projector.Projector.Handle(list), options);
         }
 
         public IDisposable Subscribe(string tag)
         {
             var options = new SubscriptionOptions {Id = "Tag@" + tag};
 
-            return Dispatcher.Subscribe(Repo.GetLastCheckpoint<TProjection, TIdentity>(), (list, info) => Projector.Projector.Handle(list), options);
+            return Dispatcher.Subscribe(Repo.GetLastCheckpoint<TProjection, TIdentity>(),
+                (list, info) => Projector.Projector.Handle(list), options);
         }
     }
 }

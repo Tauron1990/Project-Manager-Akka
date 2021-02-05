@@ -18,12 +18,12 @@ namespace Tauron.Localization
 
             private static readonly Dictionary<string, char> Parts
                 = new()
-                  {
-                      {"001", '\r'},
-                      {"002", '\t'},
-                      {"003", '\n'},
-                      {"004", ':'}
-                  };
+                {
+                    {"001", '\r'},
+                    {"002", '\t'},
+                    {"003", '\n'},
+                    {"004", ':'}
+                };
 
             private static string? GetPartforChar(char @char)
             {
@@ -62,7 +62,6 @@ namespace Tauron.Localization
                 var temp = string.Empty;
 
                 foreach (var @char in toDecode)
-                {
                     if (flag2)
                     {
                         sequence += @char;
@@ -89,7 +88,9 @@ namespace Tauron.Localization
                             flag = false;
                         }
                         else
+                        {
                             temp += @char;
+                        }
                     }
                     else
                     {
@@ -99,7 +100,6 @@ namespace Tauron.Localization
                             builder.Append(@char);
                         else temp += @char;
                     }
-                }
 
                 return builder.ToString();
             }

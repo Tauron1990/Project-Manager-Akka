@@ -41,14 +41,14 @@ namespace Akkatecture.Events
             try
             {
                 var aggregateName = evt
-                                   .GetType()
-                                   .GetCommittedEventAggregateRootName();
+                    .GetType()
+                    .GetCommittedEventAggregateRootName();
 
                 var eventDefinitionService = new EventDefinitionService(null);
 
                 var aggregateEventType = evt
-                                        .GetType()
-                                        .GetCommittedEventAggregateEventType();
+                    .GetType()
+                    .GetCommittedEventAggregateEventType();
 
                 eventDefinitionService.Load(aggregateEventType);
                 var eventDefinition = eventDefinitionService.GetDefinition(aggregateEventType);

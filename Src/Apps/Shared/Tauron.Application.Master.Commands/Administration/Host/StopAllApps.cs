@@ -2,7 +2,7 @@
 {
     public sealed record StopAllApps : InternalHostMessages.CommandBase
     {
-        public StopAllApps(string target) 
+        public StopAllApps(string target)
             : base(target, InternalHostMessages.CommandType.AppManager)
         {
         }

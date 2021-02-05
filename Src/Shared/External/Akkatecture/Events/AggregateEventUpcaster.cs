@@ -33,18 +33,25 @@ using Tauron;
 
 namespace Akkatecture.Events
 {
-    public abstract class AggregateEventUpcaster<TAggregate, TIdentity> : AggregateEventUpcaster<TAggregate, TIdentity, IEventUpcaster<TAggregate, TIdentity>>
+    public abstract class
+        AggregateEventUpcaster<TAggregate, TIdentity> : AggregateEventUpcaster<TAggregate, TIdentity,
+            IEventUpcaster<TAggregate, TIdentity>>
         where TAggregate : IAggregateRoot<TIdentity>
-        where TIdentity : IIdentity { }
+        where TIdentity : IIdentity
+    {
+    }
 
-    public abstract class AggregateEventUpcaster<TAggregate, TIdentity, TEventUpcaster> : IReadEventAdapter, IEventUpcaster<TAggregate, TIdentity>
+    public abstract class AggregateEventUpcaster<TAggregate, TIdentity, TEventUpcaster> : IReadEventAdapter,
+        IEventUpcaster<TAggregate, TIdentity>
         where TEventUpcaster : class, IEventUpcaster<TAggregate, TIdentity>
         where TAggregate : IAggregateRoot<TIdentity>
         where TIdentity : IIdentity
     {
         // ReSharper disable once StaticMemberInGenericType
         private static ConcurrentDictionary<Type, bool> _decisionCache = new();
-        private readonly IReadOnlyDictionary<Type, Func<TEventUpcaster, IAggregateEvent, IAggregateEvent>> _upcastFunctions;
+
+        private readonly IReadOnlyDictionary<Type, Func<TEventUpcaster, IAggregateEvent, IAggregateEvent>>
+            _upcastFunctions;
 
 
         protected AggregateEventUpcaster()
@@ -54,10 +61,8 @@ namespace Akkatecture.Events
             _decisionCache = new ConcurrentDictionary<Type, bool>(dictionary);
 
             if (!(this is TEventUpcaster))
-            {
                 throw new InvalidOperationException(
                     $"Event applier of type '{GetType().PrettyPrint()}' has a wrong generic argument '{typeof(TEventUpcaster).PrettyPrint()}'");
-            }
 
             _upcastFunctions = GetType().GetAggregateEventUpcastMethods<TAggregate, TIdentity, TEventUpcaster>();
         }
@@ -67,9 +72,11 @@ namespace Akkatecture.Events
         {
             var aggregateEventType = aggregateEvent.GetType();
 
-            if (!_upcastFunctions.TryGetValue(aggregateEventType, out var upcaster)) throw new ArgumentException(nameof(aggregateEventType));
+            if (!_upcastFunctions.TryGetValue(aggregateEventType, out var upcaster))
+                throw new ArgumentException(nameof(aggregateEventType));
 
-            var evt = upcaster((TEventUpcaster) (object) this, aggregateEvent) as IAggregateEvent<TAggregate, TIdentity>;
+            var evt =
+                upcaster((TEventUpcaster) (object) this, aggregateEvent) as IAggregateEvent<TAggregate, TIdentity>;
 
             return evt;
         }
@@ -78,17 +85,19 @@ namespace Akkatecture.Events
         {
             if (ShouldUpcast(evt))
             {
-                var upcastedEvent = Upcast(evt.GetPropertyValue<IAggregateEvent<TAggregate, TIdentity>>("AggregateEvent")) ?? throw new InvalidOperationException($"Error on Upcasting Event {evt}");
+                var upcastedEvent =
+                    Upcast(evt.GetPropertyValue<IAggregateEvent<TAggregate, TIdentity>>("AggregateEvent")) ??
+                    throw new InvalidOperationException($"Error on Upcasting Event {evt}");
 
                 Type genericType = typeof(CommittedEvent<,,>)
-                   .MakeGenericType(typeof(TAggregate), typeof(TIdentity), upcastedEvent.GetType());
+                    .MakeGenericType(typeof(TAggregate), typeof(TIdentity), upcastedEvent.GetType());
 
                 var upcastedCommittedEvent = FastReflection.Shared.FastCreateInstance(genericType,
-                                                                                      evt.GetPropertyValue("AggregateIdentity")!,
-                                                                                      upcastedEvent,
-                                                                                      evt.GetPropertyValue("Metadata")!,
-                                                                                      evt.GetPropertyValue("Timestamp")!,
-                                                                                      evt.GetPropertyValue("AggregateSequenceNumber")!);
+                    evt.GetPropertyValue("AggregateIdentity")!,
+                    upcastedEvent,
+                    evt.GetPropertyValue("Metadata")!,
+                    evt.GetPropertyValue("Timestamp")!,
+                    evt.GetPropertyValue("AggregateSequenceNumber")!);
 
                 return EventSequence.Single(upcastedCommittedEvent);
             }

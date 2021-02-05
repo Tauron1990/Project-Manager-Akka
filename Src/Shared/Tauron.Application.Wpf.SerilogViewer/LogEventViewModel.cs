@@ -18,7 +18,9 @@ namespace Tauron.Application.Wpf.SerilogViewer
             Level = logEventInfo.Level.ToString();
             FormattedMessage = msg;
             Exception = logEventInfo.Exception;
-            LoggerName = logEventInfo.Properties.TryGetValue("SourceContext", out var value) ? value.ToString() : "Unbekannt";
+            LoggerName = logEventInfo.Properties.TryGetValue("SourceContext", out var value)
+                ? value.ToString()
+                : "Unbekannt";
             Time = logEventInfo.Timestamp.ToString(CultureInfo.InvariantCulture);
 
             SetupColors(logEventInfo);

@@ -80,10 +80,8 @@ namespace Tauron.Application.CommonUI.UI
                 if (parent != null)
                     parent.Actor.Tell(new InitParentViewModel(Model));
                 else
-                {
                     ViewModelSuperviser.Get(ActorApplication.Application.ActorSystem)
-                                       .Create(Model);
-                }
+                        .Create(Model);
             }
 
             Model.AwaitInit(() => Model.Actor.Tell(new InitEvent()));

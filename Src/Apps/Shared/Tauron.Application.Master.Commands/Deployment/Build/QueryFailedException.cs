@@ -7,7 +7,6 @@ namespace Tauron.Application.Master.Commands.Deployment.Build
         public QueryFailedException(string msg)
             : base(msg)
         {
-            
         }
     }
 
@@ -16,7 +15,6 @@ namespace Tauron.Application.Master.Commands.Deployment.Build
         public BuildFailedException(string msg)
             : base(msg)
         {
-
         }
     }
 }

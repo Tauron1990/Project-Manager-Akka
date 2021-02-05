@@ -16,21 +16,22 @@ using Tauron.Operations;
 
 namespace ServiceManager.ProjectDeployment.Actors
 {
-    public sealed class AppQueryHandler : ReportingActor 
+    public sealed class AppQueryHandler : ReportingActor
     {
-        public AppQueryHandler(IMongoCollection<AppData> apps, GridFSBucket files, DataTransferManager dataTransfer, IActorRef changeTracker)
+        public AppQueryHandler(IMongoCollection<AppData> apps, GridFSBucket files, DataTransferManager dataTransfer,
+            IActorRef changeTracker)
         {
             Receive<QueryChangeSource>(changeTracker.Forward);
 
-            MakeQueryCall<QueryApps, AppList>("QueryApps", (query, _) 
-                    => new AppList(apps.AsQueryable().Select(ad => ad.ToInfo()).ToImmutableList()));
+            MakeQueryCall<QueryApps, AppList>("QueryApps", (query, _)
+                => new AppList(apps.AsQueryable().Select(ad => ad.ToInfo()).ToImmutableList()));
 
             MakeQueryCall<QueryApp, AppInfo>("QueryApp", (query, reporter) =>
             {
                 var data = apps.AsQueryable().FirstOrDefault(e => e.Name == query.AppName);
 
                 if (data != null) return data.ToInfo();
-                
+
                 reporter.Compled(OperationResult.Failure(BuildErrorCodes.QueryAppNotFound));
                 return null;
             });
@@ -57,7 +58,8 @@ namespace ServiceManager.ProjectDeployment.Actors
                     return null;
                 }
 
-                var request = DataTransferRequest.FromStream(() => files.OpenDownloadStream(file.File), query.Manager, query.AppName);
+                var request = DataTransferRequest.FromStream(() => files.OpenDownloadStream(file.File), query.Manager,
+                    query.AppName);
                 dataTransfer.Request(request);
 
                 return new FileTransactionId(request.OperationId);
@@ -66,11 +68,14 @@ namespace ServiceManager.ProjectDeployment.Actors
             MakeQueryCall<QueryBinaryInfo, BinaryList>("QueryBinaryInfo", (binarys, reporter) =>
             {
                 var data = apps.AsQueryable().FirstOrDefault(ad => ad.Name == binarys.AppName);
-                if (data != null) return new BinaryList(data.Versions.Select(i => new AppBinary(data.Name, i.Version, i.CreationTime, i.Deleted, i.Commit, data.Repository)).ToImmutableList());
-                
+                if (data != null)
+                    return new BinaryList(data.Versions.Select(i
+                            => new AppBinary(data.Name, i.Version, i.CreationTime, i.Deleted, i.Commit,
+                                data.Repository))
+                        .ToImmutableList());
+
                 reporter.Compled(OperationResult.Failure(BuildErrorCodes.QueryAppNotFound));
                 return null;
-
             });
         }
 
@@ -81,7 +86,9 @@ namespace ServiceManager.ProjectDeployment.Actors
             Receive<T>(name, (msg, reporter) =>
             {
                 var outcome = handler(msg, reporter);
-                reporter.Compled(outcome == default && !reporter.IsCompled ? OperationResult.Failure(BuildErrorCodes.GeneralQueryFailed) : OperationResult.Success(outcome));
+                reporter.Compled(outcome == default && !reporter.IsCompled
+                    ? OperationResult.Failure(BuildErrorCodes.GeneralQueryFailed)
+                    : OperationResult.Success(outcome));
             });
         }
     }

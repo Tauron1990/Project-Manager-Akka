@@ -19,7 +19,8 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Xml
 
         private string? _member;
 
-        public XmlListElementConfiguration(IXmlSerializerConfiguration config, SimpleMapper<XmlElementContext> mapper, XmlElementTarget target,
+        public XmlListElementConfiguration(IXmlSerializerConfiguration config, SimpleMapper<XmlElementContext> mapper,
+            XmlElementTarget target,
             XmlElementTarget root, XmlElementTarget parentTarget, Type targeType)
         {
             _config = Argument.NotNull(config, nameof(config));
@@ -30,13 +31,15 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Xml
             _targeType = Argument.NotNull(targeType, nameof(targeType));
         }
 
-        IXmlListAttributeConfiguration IXmlRootConfiguration<IXmlListAttributeConfiguration>.WithNamespace(XNamespace xNamespace)
+        IXmlListAttributeConfiguration IXmlRootConfiguration<IXmlListAttributeConfiguration>.WithNamespace(
+            XNamespace xNamespace)
         {
             WithNamespace(xNamespace);
             return this;
         }
 
-        IXmlListAttributeConfiguration IWithMember<IXmlListAttributeConfiguration>.WithConverter(SimpleConverter<string> converter)
+        IXmlListAttributeConfiguration IWithMember<IXmlListAttributeConfiguration>.WithConverter(
+            SimpleConverter<string> converter)
         {
             WithConverter(converter);
             return this;
@@ -72,7 +75,8 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Xml
 
         public IXmlListElementConfiguration Element(string name)
         {
-            var target = new XmlElementTarget {TargetType = XmlElementTargetType.Element, Name = Argument.NotNull(name, nameof(name))};
+            var target = new XmlElementTarget
+                {TargetType = XmlElementTargetType.Element, Name = Argument.NotNull(name, nameof(name))};
             _target.SubElement = target;
 
             return new XmlListElementConfiguration(_config, _mapper, target, _root, _parentTarget, _targeType);
@@ -88,7 +92,8 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Xml
         {
             _member ??= _target.Name;
 
-            var mapper = new XmlListSubSerializerMapper(_member, typeof(TSerisalize), _parentTarget, _root, serializer as ISubSerializer);
+            var mapper = new XmlListSubSerializerMapper(_member, typeof(TSerisalize), _parentTarget, _root,
+                serializer as ISubSerializer);
             _mapper.Entries.Add(mapper);
 
             return _config;
@@ -96,7 +101,8 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Xml
 
         public IXmlListAttributeConfiguration Attribute(string name)
         {
-            var target = new XmlElementTarget {TargetType = XmlElementTargetType.Attribute, Name = Argument.NotNull(name, nameof(name))};
+            var target = new XmlElementTarget
+                {TargetType = XmlElementTargetType.Attribute, Name = Argument.NotNull(name, nameof(name))};
             _target.SubElement = target;
 
             return new XmlListElementConfiguration(_config, _mapper, target, _root, _parentTarget, _targeType);

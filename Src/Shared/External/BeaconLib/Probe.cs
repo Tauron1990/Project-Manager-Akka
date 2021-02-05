@@ -84,7 +84,6 @@ namespace BeaconLib
 
             var typeBytes = Beacon.Encode(BeaconType);
             if (Beacon.HasPrefix(bytes, typeBytes))
-            {
                 try
                 {
                     _log.Information("Processing Response");
@@ -97,7 +96,6 @@ namespace BeaconLib
                 {
                     _log.Error(ex, "Error on Decode Recived Beacon");
                 }
-            }
             else
                 _log.Information("Incompatiple Data");
 
@@ -146,11 +144,11 @@ namespace BeaconLib
         {
             _log.Information("Updating Beacons");
             var newBeacons = _currentBeacons
-                            .Where(_ => !_.Equals(newBeacon))
-                            .Concat(new[] {newBeacon})
-                            .OrderBy(_ => _.Data)
-                            .ThenBy(_ => _.Address, IpEndPointComparer.Instance)
-                            .ToList();
+                .Where(_ => !_.Equals(newBeacon))
+                .Concat(new[] {newBeacon})
+                .OrderBy(_ => _.Data)
+                .ThenBy(_ => _.Address, IpEndPointComparer.Instance)
+                .ToList();
             var u = BeaconsUpdated;
             u?.Invoke(newBeacons);
             _currentBeacons = newBeacons;

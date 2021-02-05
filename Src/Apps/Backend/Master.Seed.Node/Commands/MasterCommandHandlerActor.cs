@@ -11,7 +11,7 @@ namespace Master.Seed.Node.Commands
     {
         private IActorRef _lastSemder = ActorRefs.Nobody;
 
-        public MasterCommandHandlerActor() 
+        public MasterCommandHandlerActor()
             : base(MasterCommands.MasterPalette)
         {
             Process(MasterCommands.Kill.Name, command => KillSwitch.KillCluster());
@@ -30,7 +30,7 @@ namespace Master.Seed.Node.Commands
                     {
                         var builder = new StringBuilder();
 
-                        foreach (var res in r.Result.Services) 
+                        foreach (var res in r.Result.Services)
                             builder.AppendLine($"{res.Name} - -{res.Address}");
                         return new CommandResponse(builder.ToString());
                     }

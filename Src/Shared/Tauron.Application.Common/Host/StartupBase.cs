@@ -10,6 +10,7 @@ namespace Tauron.Host
     {
         protected internal abstract void ConfigureServices(ContainerBuilder builder, IConfiguration config);
 
-        protected internal abstract void Configure(TApplication application, ActorSystem actorSystem, IContainer container);
+        protected internal abstract void Configure(TApplication application, ActorSystem actorSystem,
+            IContainer container);
     }
 }

@@ -11,14 +11,16 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Mapper.Xml
         private readonly XmlElementTarget _rootTarget;
         private readonly XmlElementSerializer _serializer;
 
-        public XmlListMapper(string? membername, Type targetType, XmlElementTarget rootTarget, XmlElementTarget target, SimpleConverter<string>? converter)
+        public XmlListMapper(string? membername, Type targetType, XmlElementTarget rootTarget, XmlElementTarget target,
+            SimpleConverter<string>? converter)
             : base(membername, targetType)
         {
             _rootTarget = rootTarget;
 
             if (MemberType != null) _listBuilder = new ListBuilder(MemberType);
 
-            if (converter == null && _listBuilder != null) converter = ConverterFactory.CreateConverter(TargetMember, _listBuilder.ElemenType);
+            if (converter == null && _listBuilder != null)
+                converter = ConverterFactory.CreateConverter(TargetMember, _listBuilder.ElemenType);
 
             _serializer = new XmlElementSerializer(target, converter);
         }
@@ -43,7 +45,8 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Mapper.Xml
             _listBuilder?.Begin(GetValue(target), true);
 
             var content = _listBuilder?.Objects;
-            var targetElements = XmlElementSerializer.GetElements(context.XElement, true, _rootTarget, content?.Length ?? 0)?.ToArray();
+            var targetElements = XmlElementSerializer
+                .GetElements(context.XElement, true, _rootTarget, content?.Length ?? 0)?.ToArray();
 
             if (targetElements == null)
                 throw new InvalidOperationException("Serialize No Data Returned");

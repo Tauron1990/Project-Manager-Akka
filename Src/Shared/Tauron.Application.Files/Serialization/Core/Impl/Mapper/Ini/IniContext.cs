@@ -9,8 +9,8 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Mapper.Ini
         public IniContext([NotNull] SerializationContext context)
             : base(context)
             => File = context.SerializerMode == SerializerMode.Deserialize
-                          ? IniFile.Parse(TextReader)
-                          : new IniFile();
+                ? IniFile.Parse(TextReader)
+                : new IniFile();
 
         public IniFile File { get; }
 

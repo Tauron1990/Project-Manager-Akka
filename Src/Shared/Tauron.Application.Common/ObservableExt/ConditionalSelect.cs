@@ -8,7 +8,8 @@ namespace Tauron.ObservableExt
     [PublicAPI]
     public static class ConditionalSelectExtension
     {
-        public static ConditionalSelectTypeConfig<TSource> ConditionalSelect<TSource>(this IObservable<TSource> observable) => new(observable);
+        public static ConditionalSelectTypeConfig<TSource> ConditionalSelect<TSource>(
+            this IObservable<TSource> observable) => new(observable);
     }
 
     [PublicAPI]
@@ -26,20 +27,23 @@ namespace Tauron.ObservableExt
             return setup.Build(_observable).Merge();
         }
 
-        public IObservable<TSource> ToSame(Action<ConditionalSelectBuilder<TSource, TSource>> builder) => ToResult(builder);
+        public IObservable<TSource> ToSame(Action<ConditionalSelectBuilder<TSource, TSource>> builder)
+            => ToResult(builder);
     }
 
     [PublicAPI]
     public sealed class ConditionalSelectBuilder<TSource, TResult>
     {
-        private readonly List<(Func<TSource, bool>, Func<IObservable<TSource>, IObservable<TResult>>)> _registrations = new();
+        private readonly List<(Func<TSource, bool>, Func<IObservable<TSource>, IObservable<TResult>>)> _registrations =
+            new();
 
         public void Add(Func<TSource, bool> when, Func<IObservable<TSource>, IObservable<TResult>> then)
         {
             _registrations.Add((when, then));
         }
 
-        public ConditionalSelectBuilder<TSource, TResult> When(Func<TSource, bool> when, Func<IObservable<TSource>, IObservable<TResult>> then)
+        public ConditionalSelectBuilder<TSource, TResult> When(Func<TSource, bool> when,
+            Func<IObservable<TSource>, IObservable<TResult>> then)
         {
             _registrations.Add((when, then));
             return this;

@@ -8,28 +8,28 @@ using Tauron.Features;
 
 namespace Tauron.Application.AkkaNode.Services.CleanUp
 {
-
-
     public sealed class CleanUpOperator : ActorFeatureBase<CleanUpOperator.State>
     {
-        public static IPreparedFeature New(IMongoCollection<CleanUpTime> cleanUp, IMongoCollection<ToDeleteRevision> revisions, GridFSBucket bucket)
+        public static IPreparedFeature New(IMongoCollection<CleanUpTime> cleanUp,
+            IMongoCollection<ToDeleteRevision> revisions, GridFSBucket bucket)
             => Feature.Create(() => new CleanUpOperator(), _ => new State(cleanUp, revisions, bucket));
 
         protected override void Config()
             => Receive<StartCleanUp>(obs => obs.Take(1)
-                                               .SelectMany(async s => new {s.State, Data = await s.State.CleanUp.AsQueryable().FirstAsync()})
-                                               .Where(d => d.Data.Last + d.Data.Interval < DateTime.Now)
-                                               .SelectMany(d => d.State.Revisions
-                                                                 .AsQueryable().ToCursor().ToEnumerable()
-                                                                 .Select(revision =>
-                                                                         {
-                                                                             var (_, buckedId) = revision;
-                                                                             d.State.Bucked.Delete(ObjectId.Parse(buckedId));
-                                                                             return Builders<ToDeleteRevision>.Filter.Eq(r => r.BuckedId == buckedId, true);
-                                                                         }))
-                                               .Finally(() => Context.Stop(Self))
-                                               .Subscribe(_ => { }, ex => Log.Error(ex, "Error on Clean up Database")));
+                .SelectMany(async s => new {s.State, Data = await s.State.CleanUp.AsQueryable().FirstAsync()})
+                .Where(d => d.Data.Last + d.Data.Interval < DateTime.Now)
+                .SelectMany(d => d.State.Revisions
+                    .AsQueryable().ToCursor().ToEnumerable()
+                    .Select(revision =>
+                    {
+                        var (_, buckedId) = revision;
+                        d.State.Bucked.Delete(ObjectId.Parse(buckedId));
+                        return Builders<ToDeleteRevision>.Filter.Eq(r => r.BuckedId == buckedId, true);
+                    }))
+                .Finally(() => Context.Stop(Self))
+                .Subscribe(_ => { }, ex => Log.Error(ex, "Error on Clean up Database")));
 
-        public sealed record State(IMongoCollection<CleanUpTime> CleanUp, IMongoCollection<ToDeleteRevision> Revisions, GridFSBucket Bucked);
+        public sealed record State(IMongoCollection<CleanUpTime> CleanUp, IMongoCollection<ToDeleteRevision> Revisions,
+            GridFSBucket Bucked);
     }
 }

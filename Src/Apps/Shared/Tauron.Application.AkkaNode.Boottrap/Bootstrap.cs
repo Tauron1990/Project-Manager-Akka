@@ -1,12 +1,6 @@
-﻿using System;
-using System.IO;
-using System.IO.Pipes;
-using System.Threading.Tasks;
-using Akka.Actor;
+﻿using System.IO;
 using Akka.Configuration;
-using Autofac;
 using JetBrains.Annotations;
-using Microsoft.Extensions.Configuration;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
@@ -25,25 +19,26 @@ namespace Tauron.Application.AkkaNode.Bootstrap
             var config = GetConfig();
 
             return builder
-               .ConfigureAppConfiguration((_, configurationBuilder) => configurationBuilder.Add(
-                    new HoconConfigurationSource(() => config, 
+                .ConfigureAppConfiguration((_, configurationBuilder) => configurationBuilder.Add(
+                    new HoconConfigurationSource(() => config,
                         ("akka.appinfo.applicationName", "applicationName"),
                         ("akka.appinfo.actorsystem", "actorsystem"),
                         ("akka.appinfo.appslocation", "AppsLocation"))))
-               .ConfigureAkka(_ => config)
-               .ConfigureLogging((context, configuration) =>
+                .ConfigureAkka(_ => config)
+                .ConfigureLogging((context, configuration) =>
                 {
-                    configuration.WriteTo.File(new CompactJsonFormatter(), "Logs\\Log.log", fileSizeLimitBytes: 5_242_880, retainedFileCountLimit: 2);
+                    configuration.WriteTo.File(new CompactJsonFormatter(), "Logs\\Log.log",
+                        fileSizeLimitBytes: 5_242_880, retainedFileCountLimit: 2);
 
                     configuration
-                       .MinimumLevel.Debug()
-                       .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-                       .MinimumLevel.Override("System", LogEventLevel.Warning)
-                       .Enrich.WithProperty("ApplicationName", context.HostEnvironment.ApplicationName)
-                       .Enrich.FromLogContext()
-                       .Enrich.WithExceptionDetails()
-                       .Enrich.With<EventTypeEnricher>()
-                       .Enrich.With<LogLevelWriter>();
+                        .MinimumLevel.Debug()
+                        .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+                        .MinimumLevel.Override("System", LogEventLevel.Warning)
+                        .Enrich.WithProperty("ApplicationName", context.HostEnvironment.ApplicationName)
+                        .Enrich.FromLogContext()
+                        .Enrich.WithExceptionDetails()
+                        .Enrich.With<EventTypeEnricher>()
+                        .Enrich.With<LogLevelWriter>();
                 });
         }
 

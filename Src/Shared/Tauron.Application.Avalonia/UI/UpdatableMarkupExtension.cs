@@ -58,7 +58,8 @@ namespace Tauron.Application.Avalonia.UI
             }
         }
 
-        protected virtual bool TryGetTargetItems(IServiceProvider? provider, [NotNullWhen(true)] out AvaloniaObject? target, [NotNullWhen(true)] out AvaloniaProperty? dp)
+        protected virtual bool TryGetTargetItems(IServiceProvider? provider,
+            [NotNullWhen(true)] out AvaloniaObject? target, [NotNullWhen(true)] out AvaloniaProperty? dp)
         {
             target = null;
             dp = null;

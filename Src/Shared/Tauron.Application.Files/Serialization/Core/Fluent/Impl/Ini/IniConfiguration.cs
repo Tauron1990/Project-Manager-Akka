@@ -19,12 +19,15 @@ namespace Tauron.Application.Files.Serialization.Core.Fluent.Impl.Ini
             _builder = new ObjectBuilder(targetType);
         }
 
-        public IConstructorConfiguration<IIniSerializerConfiguration> ConfigConstructor() => new ConstructorConfiguration<IIniSerializerConfiguration>(_builder, this);
+        public IConstructorConfiguration<IIniSerializerConfiguration> ConfigConstructor()
+            => new ConstructorConfiguration<IIniSerializerConfiguration>(_builder, this);
 
-        public IIniSectionSerializerConfiguration FromSection(string name) => new IniSectionConfiguration(name, _mapper, this, _targetType);
+        public IIniSectionSerializerConfiguration FromSection(string name)
+            => new IniSectionConfiguration(name, _mapper, this, _targetType);
 
-        public ISerializerToMemberConfiguration<IIniSerializerConfiguration> MapSerializer<TToSerial>(string memberName) => new SerializerToMemberConfiguration<IIniSerializerConfiguration, IniContext>(memberName, this, _mapper,
-                                                                                                                                                                                                         typeof(TToSerial));
+        public ISerializerToMemberConfiguration<IIniSerializerConfiguration> MapSerializer<TToSerial>(string memberName)
+            => new SerializerToMemberConfiguration<IIniSerializerConfiguration, IniContext>(memberName, this, _mapper,
+                typeof(TToSerial));
 
         public override ISerializer ApplyInternal()
         {

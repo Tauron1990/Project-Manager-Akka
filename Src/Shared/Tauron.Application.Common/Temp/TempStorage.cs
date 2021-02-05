@@ -10,7 +10,9 @@ namespace Tauron.Temp
         private static TempStorage? _default;
 
         public TempStorage()
-            : this(Path.GetRandomFileName, Path.GetTempPath(), false) { }
+            : this(Path.GetRandomFileName, Path.GetTempPath(), false)
+        {
+        }
 
         public TempStorage(Func<string> nameProvider, string basePath, bool deleteBasePath)
             : base(basePath, null, nameProvider, deleteBasePath)

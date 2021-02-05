@@ -44,7 +44,8 @@ namespace Tauron.Application.Wpf.Implementation
             }
         }
 
-        public ImageSource? Convert(string uri, string assembly) => Uri.TryCreate(uri, UriKind.RelativeOrAbsolute, out var target) ? Convert(target, assembly) : null;
+        public ImageSource? Convert(string uri, string assembly)
+            => Uri.TryCreate(uri, UriKind.RelativeOrAbsolute, out var target) ? Convert(target, assembly) : null;
 
         private class KeyedImage : IWeakReference
         {

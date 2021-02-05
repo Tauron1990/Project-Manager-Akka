@@ -22,16 +22,19 @@ namespace Tauron.Application.Files.Serialization
             Serializer.Deserialize(Argument.NotNull(source, nameof(source)), Argument.NotNull(target, nameof(target)));
         }
 
-        public TType Deserialize(IStreamSource source) => (TType) Serializer.Deserialize(Argument.NotNull(source, nameof(source)));
+        public TType Deserialize(IStreamSource source)
+            => (TType) Serializer.Deserialize(Argument.NotNull(source, nameof(source)));
 
         public void Serialize(string file, TType graph)
         {
-            Serializer.Serialize(new FileSource(Argument.NotNull(file, nameof(file))), Argument.NotNull(graph, nameof(graph)));
+            Serializer.Serialize(new FileSource(Argument.NotNull(file, nameof(file))),
+                Argument.NotNull(graph, nameof(graph)));
         }
 
         public void Deserialize(string file, TType target)
         {
-            Serializer.Deserialize(new FileSource(Argument.NotNull(file, nameof(file))), Argument.NotNull(target, nameof(target)));
+            Serializer.Deserialize(new FileSource(Argument.NotNull(file, nameof(file))),
+                Argument.NotNull(target, nameof(target)));
         }
 
         public TType Deserialize([NotNull] string file) => (TType) Serializer.Deserialize(new FileSource(file));

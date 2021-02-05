@@ -6,7 +6,8 @@ namespace Tauron.Application.Localizer.DataModel.Serialization
 {
     public static class BinaryHelper
     {
-        public static ImmutableDictionary<TKey, TValue> Read<TKey, TValue>(BinaryReader reader, Func<BinaryReader, TKey> keyConversion, Func<BinaryReader, TValue> valueConversion)
+        public static ImmutableDictionary<TKey, TValue> Read<TKey, TValue>(BinaryReader reader,
+            Func<BinaryReader, TKey> keyConversion, Func<BinaryReader, TValue> valueConversion)
             where TKey : notnull
         {
             var count = reader.ReadInt32();

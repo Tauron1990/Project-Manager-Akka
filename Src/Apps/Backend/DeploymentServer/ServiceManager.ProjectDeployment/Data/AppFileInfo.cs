@@ -6,21 +6,6 @@ namespace ServiceManager.ProjectDeployment.Data
 {
     public sealed class AppFileInfo
     {
-        [BsonElement]
-        public ObjectId File { get; }
-
-        [BsonElement]
-        public int Version { get; }
-
-        [BsonElement]
-        public DateTime CreationTime { get; }
-
-        [BsonElement]
-        public bool Deleted { get; set; }
-
-        [BsonElement]
-        public string Commit { get; }
-
         [BsonConstructor]
         public AppFileInfo(ObjectId file, int version, DateTime creationTime, bool deleted, string commit)
         {
@@ -30,5 +15,15 @@ namespace ServiceManager.ProjectDeployment.Data
             Deleted = deleted;
             Commit = commit;
         }
+
+        [BsonElement] public ObjectId File { get; }
+
+        [BsonElement] public int Version { get; }
+
+        [BsonElement] public DateTime CreationTime { get; }
+
+        [BsonElement] public bool Deleted { get; set; }
+
+        [BsonElement] public string Commit { get; }
     }
 }

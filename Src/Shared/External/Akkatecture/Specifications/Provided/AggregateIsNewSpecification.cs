@@ -34,7 +34,9 @@ namespace Akkatecture.Specifications.Provided
     {
         public static readonly AggregateIsNewSpecification Instance = new();
 
-        private AggregateIsNewSpecification() { }
+        private AggregateIsNewSpecification()
+        {
+        }
 
         protected override IEnumerable<string> IsNotSatisfiedBecause(IAggregateRoot aggregate)
         {

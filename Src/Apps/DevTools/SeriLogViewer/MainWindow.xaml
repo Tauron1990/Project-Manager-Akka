@@ -9,16 +9,18 @@
         Title="MainWindow" Height="450" Width="800">
     <DockPanel LastChildFill="True">
         <Menu DockPanel.Dock="Top">
-            <MenuItem Header="Öffnen" Command="{Binding OpenCommand}"/>
+            <MenuItem Header="Öffnen" Command="{Binding OpenCommand}" />
         </Menu>
-        <sy:SfDataGrid ColumnSizer="AutoWithLastColumnFill" AllowResizingColumns="True" AllowSorting="True" AllowFiltering="True" AutoGenerateColumns="True" ItemsSource="{Binding Entrys}" 
-                       ShowSortNumbers="True" AllowGrouping="True" ShowGroupDropArea="True" AllowTriStateSorting="True" AllowEditing="False" Name="Grid">
+        <sy:SfDataGrid ColumnSizer="AutoWithLastColumnFill" AllowResizingColumns="True" AllowSorting="True"
+                       AllowFiltering="True" AutoGenerateColumns="True" ItemsSource="{Binding Entrys}"
+                       ShowSortNumbers="True" AllowGrouping="True" ShowGroupDropArea="True" AllowTriStateSorting="True"
+                       AllowEditing="False" Name="Grid">
             <sy:SfDataGrid.Columns>
-                <sy:GridDateTimeColumn MappingName="@t" HeaderText="Zeit"/>
-                <sy:GridTextColumn MappingName="EventType" HeaderText="Type"/>
-                <sy:GridTextColumn MappingName="Level" HeaderText="Level"/>
-                <sy:GridTextColumn MappingName="@mt" HeaderText="Nachricht"/>
-                <sy:GridTextColumn MappingName="LogSource" HeaderText="Quelle"/>
+                <sy:GridDateTimeColumn MappingName="@t" HeaderText="Zeit" />
+                <sy:GridTextColumn MappingName="EventType" HeaderText="Type" />
+                <sy:GridTextColumn MappingName="Level" HeaderText="Level" />
+                <sy:GridTextColumn MappingName="@mt" HeaderText="Nachricht" />
+                <sy:GridTextColumn MappingName="LogSource" HeaderText="Quelle" />
             </sy:SfDataGrid.Columns>
 
         </sy:SfDataGrid>

@@ -7,23 +7,36 @@ namespace ServiceManager.ProjectRepository.Core
         where TObject : SharedObject<TObject, TConfiguration>, new()
         where TConfiguration : class, IReporterProvider, new()
     {
-        private sealed class ObjectEntry
-        {
-            public int Count { get; set; }
-
-            public TObject SharedObject { get; }
-
-            public ObjectEntry(TObject sharedObject)
-            {
-                SharedObject = sharedObject;
-                Count = 1;
-            }
-        }
-
         // ReSharper disable once StaticMemberInGenericType
         protected static readonly object Lock = new();
 
         private static readonly Dictionary<TConfiguration, ObjectEntry> SharedObjects = new();
+        private TConfiguration? _configuration;
+
+        private bool _disposed;
+
+        protected TConfiguration Configuration
+        {
+            get => _configuration ?? new TConfiguration();
+            private set => _configuration = value;
+        }
+
+        public void Dispose()
+        {
+            if (_disposed) return;
+            lock (Lock)
+            {
+                var target = SharedObjects[Configuration];
+                target.Count--;
+
+                if (target.Count != 0) return;
+
+                _disposed = true;
+                SharedObjects.Remove(Configuration);
+                InternalDispose();
+                GC.SuppressFinalize(this);
+            }
+        }
 
         public static TObject GetOrNew(TConfiguration configuration)
         {
@@ -34,51 +47,40 @@ namespace ServiceManager.ProjectRepository.Core
                     obj.Count++;
                     return obj.SharedObject;
                 }
-                
+
                 var sharedObject = new TObject();
                 sharedObject.Init(configuration);
 
                 SharedObjects[configuration] = new ObjectEntry(sharedObject);
 
                 return sharedObject;
-
             }
         }
 
         protected void SendMessage(string msg) => Configuration.SendMessage(msg);
 
-        protected TConfiguration Configuration
+        private void Init(TConfiguration configuration) => Configuration = configuration;
+
+        protected virtual void InternalDispose()
         {
-            get => _configuration ?? new TConfiguration();
-            private set => _configuration = value;
-        }
-        
-        private bool _disposed;
-        private TConfiguration? _configuration;
-
-        private void Init(TConfiguration configuration) => Configuration = configuration; 
-
-        protected virtual void InternalDispose() { }
-
-        public void Dispose()
-        {
-            if(_disposed) return;
-            lock (Lock)
-            {
-
-                var target = SharedObjects[Configuration];
-                target.Count--;
-
-                if(target.Count != 0) return;
-
-                _disposed = true;
-                SharedObjects.Remove(Configuration);
-                InternalDispose();
-                GC.SuppressFinalize(this);
-            }
         }
 
         ~SharedObject()
-        {Dispose();}
+        {
+            Dispose();
+        }
+
+        private sealed class ObjectEntry
+        {
+            public ObjectEntry(TObject sharedObject)
+            {
+                SharedObject = sharedObject;
+                Count = 1;
+            }
+
+            public int Count { get; set; }
+
+            public TObject SharedObject { get; }
+        }
     }
 }

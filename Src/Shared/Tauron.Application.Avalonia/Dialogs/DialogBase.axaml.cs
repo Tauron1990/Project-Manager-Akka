@@ -11,12 +11,23 @@ namespace Tauron.Application.Avalonia.Dialogs
     [PublicAPI]
     public class DialogBase : TemplatedControl
     {
-        public static readonly StyledProperty<int> DialogTitleFontSizeProperty = AvaloniaProperty.Register<DialogBase, int>("DialogTitleFontSize", 25);
-        public static readonly StyledProperty<object> ContentProperty = AvaloniaProperty.Register<DialogBase, object>("Content");
-        public static readonly StyledProperty<string> TitleProperty = AvaloniaProperty.Register<DialogBase, string>("Title");
-        public static readonly StyledProperty<object> TopProperty = AvaloniaProperty.Register<DialogBase, object>("Top");
-        public static readonly StyledProperty<object> BottomProperty = AvaloniaProperty.Register<DialogBase, object>("Bottom");
-        public static readonly StyledProperty<DataTemplate> ContentTemplateProperty = AvaloniaProperty.Register<DialogBase, DataTemplate>("ContentTemplate");
+        public static readonly StyledProperty<int> DialogTitleFontSizeProperty =
+            AvaloniaProperty.Register<DialogBase, int>("DialogTitleFontSize", 25);
+
+        public static readonly StyledProperty<object> ContentProperty =
+            AvaloniaProperty.Register<DialogBase, object>("Content");
+
+        public static readonly StyledProperty<string> TitleProperty =
+            AvaloniaProperty.Register<DialogBase, string>("Title");
+
+        public static readonly StyledProperty<object>
+            TopProperty = AvaloniaProperty.Register<DialogBase, object>("Top");
+
+        public static readonly StyledProperty<object> BottomProperty =
+            AvaloniaProperty.Register<DialogBase, object>("Bottom");
+
+        public static readonly StyledProperty<DataTemplate> ContentTemplateProperty =
+            AvaloniaProperty.Register<DialogBase, DataTemplate>("ContentTemplate");
 
         public DialogBase()
         {

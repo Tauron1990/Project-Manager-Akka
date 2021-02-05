@@ -10,10 +10,12 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Mapper.HeaderedText
         private readonly SimpleConverter<string>? _converter;
         private readonly string _keyName;
 
-        public HeaderedFileKeyMapper(string? membername, Type targetType, SimpleConverter<string>? converter, string keyName)
+        public HeaderedFileKeyMapper(string? membername, Type targetType, SimpleConverter<string>? converter,
+            string keyName)
             : base(membername, targetType)
         {
-            if (converter == null && TargetMember != null) converter = ConverterFactory.CreateConverter(TargetMember, MemberType);
+            if (converter == null && TargetMember != null)
+                converter = ConverterFactory.CreateConverter(TargetMember, MemberType);
 
             _converter = converter;
             _keyName = keyName;

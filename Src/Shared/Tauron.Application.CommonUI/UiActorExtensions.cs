@@ -29,14 +29,16 @@ namespace Tauron.Application.CommonUI
             var model = actor.LifetimeScope.Resolve<IViewModel<TModel>>();
             model.InitModel(ObservableActor.ExposedContext, actorName);
 
-            return new ModelProperty(model.Actor, actor.RegisterProperty<IViewModel<TModel>>(propertyName).WithDefaultValue(model).Property.LockSet());
+            return new ModelProperty(model.Actor,
+                actor.RegisterProperty<IViewModel<TModel>>(propertyName).WithDefaultValue(model).Property.LockSet());
         }
 
         public static UIProperty<TData> RegisterImport<TData>(this UiActor actor, string propertyName)
             where TData : notnull
         {
             var target = actor.LifetimeScope.Resolve<TData>();
-            return (UIProperty<TData>) actor.RegisterProperty<TData>(propertyName).WithDefaultValue(target).Property.LockSet();
+            return (UIProperty<TData>) actor.RegisterProperty<TData>(propertyName).WithDefaultValue(target).Property
+                .LockSet();
         }
     }
 }

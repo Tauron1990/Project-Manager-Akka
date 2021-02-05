@@ -29,16 +29,21 @@ namespace Tauron.Application.Wpf.UI
             try
             {
                 lock (_cache)
+                {
                     if (_cache.TryGetValue(EntryName, out var result))
                         return result!;
+                }
 
                 ActorApplication.Application.ActorSystem.Loc().Request(EntryName, o =>
-                                                                                  {
-                                                                                      var res = o ?? EntryName;
-                                                                                      lock (_cache) _cache[EntryName] = res;
+                {
+                    var res = o ?? EntryName;
+                    lock (_cache)
+                    {
+                        _cache[EntryName] = res;
+                    }
 
-                                                                                      UpdateValue(res);
-                                                                                  });
+                    UpdateValue(res);
+                });
 
                 return "Loading";
             }

@@ -45,13 +45,15 @@ namespace Akkatecture.ValueObjects
             serializer.Serialize(writer, singleValueObject.GetValue());
         }
 
-        public override object ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
+        public override object ReadJson(JsonReader reader, Type objectType, object? existingValue,
+            JsonSerializer serializer)
         {
             var parameterType = ConstructorArgumenTypes.GetOrAdd(
                 objectType,
                 t =>
                 {
-                    var constructorInfo = objectType.GetTypeInfo().GetConstructors(BindingFlags.Public | BindingFlags.Instance).Single();
+                    var constructorInfo = objectType.GetTypeInfo()
+                        .GetConstructors(BindingFlags.Public | BindingFlags.Instance).Single();
                     var parameterInfo = constructorInfo.GetParameters().Single();
                     return parameterInfo.ParameterType;
                 });
@@ -60,6 +62,7 @@ namespace Akkatecture.ValueObjects
             return Activator.CreateInstance(objectType, value);
         }
 
-        public override bool CanConvert(Type objectType) => typeof(ISingleValueObject).GetTypeInfo().IsAssignableFrom(objectType);
+        public override bool CanConvert(Type objectType)
+            => typeof(ISingleValueObject).GetTypeInfo().IsAssignableFrom(objectType);
     }
 }

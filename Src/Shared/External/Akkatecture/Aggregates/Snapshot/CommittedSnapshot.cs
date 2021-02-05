@@ -42,7 +42,8 @@ namespace Akkatecture.Aggregates.Snapshot
         {
             if (aggregateSnapshot == null) throw new ArgumentNullException(nameof(aggregateSnapshot));
             if (timestamp == default) throw new ArgumentNullException(nameof(timestamp));
-            if (aggregateIdentity == null || string.IsNullOrEmpty(aggregateIdentity.Value)) throw new ArgumentNullException(nameof(aggregateIdentity));
+            if (aggregateIdentity == null || string.IsNullOrEmpty(aggregateIdentity.Value))
+                throw new ArgumentNullException(nameof(aggregateIdentity));
             if (aggregateSequenceNumber <= 0) throw new ArgumentOutOfRangeException(nameof(aggregateSequenceNumber));
 
             AggregateIdentity = aggregateIdentity;

@@ -29,6 +29,8 @@ namespace Akkatecture.Configuration
     [PublicAPI]
     public class AkkatectureDefaultSettings
     {
-        public static Config DefaultConfig() => ConfigurationFactory.FromResource<AkkatectureDefaultSettings>("Akkatecture.Configuration.reference.conf");
+        public static Config DefaultConfig()
+            => ConfigurationFactory.FromResource<AkkatectureDefaultSettings>(
+                "Akkatecture.Configuration.reference.conf");
     }
 }

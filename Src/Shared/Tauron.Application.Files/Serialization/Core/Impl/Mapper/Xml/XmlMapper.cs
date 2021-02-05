@@ -8,7 +8,8 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Mapper.Xml
     {
         private readonly XmlElementSerializer _serializer;
 
-        public XmlMapper(string? membername, Type targetType, SimpleConverter<string>? converter, XmlElementTarget target)
+        public XmlMapper(string? membername, Type targetType, SimpleConverter<string>? converter,
+            XmlElementTarget target)
             : base(membername, targetType)
         {
             if (converter == null && TargetMember != null)

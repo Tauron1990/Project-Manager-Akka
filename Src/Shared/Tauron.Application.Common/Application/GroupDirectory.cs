@@ -23,7 +23,8 @@ namespace Tauron.Application
 
         public GroupDictionary() => _listType = typeof(List<TValue>);
 
-        public GroupDictionary(bool singleList) => _listType = singleList ? typeof(HashSet<TValue>) : typeof(List<TValue>);
+        public GroupDictionary(bool singleList)
+            => _listType = singleList ? typeof(HashSet<TValue>) : typeof(List<TValue>);
 
         public GroupDictionary(GroupDictionary<TKey, TValue> groupDictionary)
             : base(groupDictionary)
@@ -58,7 +59,9 @@ namespace Tauron.Application
         {
             if (!typeof(ICollection<TValue>).IsAssignableFrom(_listType)) throw new InvalidOperationException();
 
-            if (_genericTemp != null) return Activator.CreateInstance(_genericTemp) ?? throw new InvalidOperationException("List Creation Failed");
+            if (_genericTemp != null)
+                return Activator.CreateInstance(_genericTemp) ??
+                       throw new InvalidOperationException("List Creation Failed");
 
             if (_listType.ContainsGenericParameters)
             {
@@ -79,7 +82,8 @@ namespace Tauron.Application
 
             if (_genericTemp == null) throw new InvalidOperationException();
 
-            return Activator.CreateInstance(_genericTemp) ?? throw new InvalidOperationException("List Creation Failed");
+            return Activator.CreateInstance(_genericTemp) ??
+                   throw new InvalidOperationException("List Creation Failed");
         }
 
         public void Add(TKey key)
@@ -121,7 +125,8 @@ namespace Tauron.Application
 
         public bool Remove(TKey key, TValue value) => RemoveImpl(key, value, false, false);
 
-        public bool Remove(TKey key, TValue value, bool removeListIfEmpty) => RemoveImpl(key, value, removeListIfEmpty, false);
+        public bool Remove(TKey key, TValue value, bool removeListIfEmpty)
+            => RemoveImpl(key, value, removeListIfEmpty, false);
 
         private bool RemoveImpl(TKey key, TValue val, bool removeEmpty, bool removeAll)
         {
@@ -179,7 +184,8 @@ namespace Tauron.Application
         {
             private readonly GroupDictionary<TKey, TValue> _list;
 
-            public AllValueCollection(GroupDictionary<TKey, TValue> list) => _list = Argument.NotNull(list, nameof(list));
+            public AllValueCollection(GroupDictionary<TKey, TValue> list)
+                => _list = Argument.NotNull(list, nameof(list));
 
             private IEnumerable<TValue> GetAll => _list.SelectMany(pair => pair.Value);
 

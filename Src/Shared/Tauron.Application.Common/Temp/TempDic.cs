@@ -41,22 +41,22 @@ namespace Tauron.Temp
         {
             CheckNull();
             return _tempDics.GetOrAdd(name, s =>
-                                            {
-                                                var dic = new TempDic(Path.Combine(FullPath, s), this, _nameGenerator, true);
-                                                dic.TrackDispose(() => _tempDics.TryRemove(s, out _));
-                                                return dic;
-                                            });
+            {
+                var dic = new TempDic(Path.Combine(FullPath, s), this, _nameGenerator, true);
+                dic.TrackDispose(() => _tempDics.TryRemove(s, out _));
+                return dic;
+            });
         }
 
         public ITempFile CreateFile(string name)
         {
             CheckNull();
             return _tempFiles.GetOrAdd(name, s =>
-                                             {
-                                                 var file = new TempFile(Path.Combine(FullPath, s), this);
-                                                 file.TrackDispose(() => _tempFiles.TryRemove(s, out _));
-                                                 return file;
-                                             });
+            {
+                var file = new TempFile(Path.Combine(FullPath, s), this);
+                file.TrackDispose(() => _tempFiles.TryRemove(s, out _));
+                return file;
+            });
         }
 
         public ITempDic CreateDic() => CreateDic(_nameGenerator());
@@ -71,7 +71,6 @@ namespace Tauron.Temp
             void TryDispose(IEnumerable<ITempInfo> toDispose)
             {
                 foreach (var entry in toDispose)
-                {
                     try
                     {
                         entry.Dispose();
@@ -83,7 +82,6 @@ namespace Tauron.Temp
                         else
                             throw;
                     }
-                }
             }
 
             try

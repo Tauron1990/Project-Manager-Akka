@@ -33,7 +33,8 @@ using Akkatecture.Sagas.AggregateSaga;
 
 namespace Akkatecture.Cluster.Dispatchers
 {
-    public class ShardedAggregateSagaDispatcher<TAggregateSagaManager, TAggregateSaga, TIdentity, TSagaLocator> : ReceiveActor
+    public class
+        ShardedAggregateSagaDispatcher<TAggregateSagaManager, TAggregateSaga, TIdentity, TSagaLocator> : ReceiveActor
         where TAggregateSagaManager : ReceiveActor, IAggregateSagaManager<TAggregateSaga, TIdentity, TSagaLocator>
         where TAggregateSaga : ReceivePersistentActor, IAggregateSaga<TIdentity>
         where TIdentity : SagaId<TIdentity>
@@ -45,13 +46,13 @@ namespace Akkatecture.Cluster.Dispatchers
 
             AggregateSagaManager =
                 ClusterFactory<TAggregateSagaManager, TAggregateSaga, TIdentity, TSagaLocator>
-                   .StartAggregateSagaClusterProxy(Context.System, proxyRoleName, numberOfShards);
+                    .StartAggregateSagaClusterProxy(Context.System, proxyRoleName, numberOfShards);
 
             var sagaType = typeof(TAggregateSaga);
 
             var sagaHandlesSubscriptionTypes =
                 sagaType
-                   .GetSagaEventSubscriptionTypes();
+                    .GetSagaEventSubscriptionTypes();
 
             foreach (var type in sagaHandlesSubscriptionTypes) Context.System.EventStream.Subscribe(Self, type);
 
@@ -65,7 +66,8 @@ namespace Akkatecture.Cluster.Dispatchers
         {
             AggregateSagaManager.Tell(domainEvent);
 
-            Logger.Debug("{0} just dispatched {1} to {2}", GetType().PrettyPrint(), domainEvent.GetType().PrettyPrint(), AggregateSagaManager.Path.Name);
+            Logger.Debug("{0} just dispatched {1} to {2}", GetType().PrettyPrint(), domainEvent.GetType().PrettyPrint(),
+                AggregateSagaManager.Path.Name);
             return true;
         }
     }

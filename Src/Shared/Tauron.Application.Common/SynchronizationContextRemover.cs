@@ -30,6 +30,8 @@ namespace Tauron
         public SynchronizationContextRemover GetAwaiter() => this;
 
 
-        public void GetResult() { }
+        public void GetResult()
+        {
+        }
     }
 }

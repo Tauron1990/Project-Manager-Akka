@@ -16,11 +16,11 @@ namespace Tauron.Application.Files.Serialization.Core.Managment
             {
                 count = con.GetParameters().Count();
                 info = count switch
-                       {
-                           0 => con,
-                           1 => con,
-                           _ => info
-                       };
+                {
+                    0 => con,
+                    1 => con,
+                    _ => info
+                };
             }
 
             if (info == null) return;
@@ -41,14 +41,12 @@ namespace Tauron.Application.Files.Serialization.Core.Managment
             var single = parmCount == 0;
 
             if (parmCount == -1)
-            {
                 single = info.GetParameters().Length switch
-                         {
-                             0 => true,
-                             1 => false,
-                             _ => single
-                         };
-            }
+                {
+                    0 => true,
+                    1 => false,
+                    _ => single
+                };
 
             if (parmCount > 1) return;
 

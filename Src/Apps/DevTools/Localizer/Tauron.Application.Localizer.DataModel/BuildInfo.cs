@@ -4,10 +4,13 @@ using Tauron.Application.Localizer.DataModel.Serialization;
 
 namespace Tauron.Application.Localizer.DataModel
 {
-    public sealed record BuildInfo(bool IntigrateProjects, ImmutableDictionary<string, string> ProjectPaths) : IWriteable
+    public sealed record BuildInfo
+        (bool IntigrateProjects, ImmutableDictionary<string, string> ProjectPaths) : IWriteable
     {
         public BuildInfo()
-            : this(true, ImmutableDictionary<string, string>.Empty) { }
+            : this(true, ImmutableDictionary<string, string>.Empty)
+        {
+        }
 
         public void Write(BinaryWriter writer)
         {
@@ -18,10 +21,10 @@ namespace Tauron.Application.Localizer.DataModel
         public static BuildInfo ReadFrom(BinaryReader reader)
         {
             var builder = new
-                          {
-                              IntigrateProjects = reader.ReadBoolean(),
-                              ProjectPaths = BinaryHelper.Read(reader, r => r.ReadString(), r => r.ReadString())
-                          };
+            {
+                IntigrateProjects = reader.ReadBoolean(),
+                ProjectPaths = BinaryHelper.Read(reader, r => r.ReadString(), r => r.ReadString())
+            };
 
             return new BuildInfo(builder.IntigrateProjects, builder.ProjectPaths);
         }

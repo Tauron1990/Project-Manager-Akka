@@ -7,8 +7,8 @@ using Tauron.Application.AkkaNode.Services.FileTransfer;
 namespace Tauron.Application.AkkaNode.Services.Commands
 {
     [PublicAPI]
-    public abstract record FileTransferCommand<TSender, TThis> : ReporterCommandBase<TSender, TThis> 
-        where TThis : FileTransferCommand<TSender, TThis> 
+    public abstract record FileTransferCommand<TSender, TThis> : ReporterCommandBase<TSender, TThis>
+        where TThis : FileTransferCommand<TSender, TThis>
         where TSender : ISender
     {
         private DataTransferManager? _manager;
@@ -19,7 +19,7 @@ namespace Tauron.Application.AkkaNode.Services.Commands
             get => _manager;
             set
             {
-                if(_manager != null)
+                if (_manager != null)
                     throw new InvalidOperationException("Datamanager Should set only once");
                 _manager = value;
             }
@@ -29,16 +29,20 @@ namespace Tauron.Application.AkkaNode.Services.Commands
     [PublicAPI]
     public static class FileTransferCommandExtension
     {
-        public static Task<TransferMessages.TransferCompled> Send<TSender, TCommand>(this TSender sender, TCommand command, TimeSpan timeout, DataTransferManager manager, Action<string> messages, Func<Stream?> getdata)
+        public static Task<TransferMessages.TransferCompled> Send<TSender, TCommand>(this TSender sender,
+            TCommand command, TimeSpan timeout, DataTransferManager manager, Action<string> messages,
+            Func<Stream?> getdata)
             where TSender : ISender
             where TCommand : FileTransferCommand<TSender, TCommand>
             => Send(sender, command, timeout, manager, messages, () =>
-                                                        {
-                                                            var str = getdata();
-                                                            return str == null ? null : new StreamData(str);
-                                                        });
+            {
+                var str = getdata();
+                return str == null ? null : new StreamData(str);
+            });
 
-        public static async Task<TransferMessages.TransferCompled> Send<TSender, TCommand>(this TSender sender, TCommand command, TimeSpan timeout, DataTransferManager manager, Action<string> messages, Func<ITransferData?> getdata)
+        public static async Task<TransferMessages.TransferCompled> Send<TSender, TCommand>(this TSender sender,
+            TCommand command, TimeSpan timeout, DataTransferManager manager, Action<string> messages,
+            Func<ITransferData?> getdata)
             where TSender : ISender
             where TCommand : FileTransferCommand<TSender, TCommand>
         {

@@ -8,7 +8,9 @@ namespace Tauron.Application.Files.Serialization.Sources
     {
         public static readonly EmptySource Instance = new();
 
-        public void Dispose() { }
+        public void Dispose()
+        {
+        }
 
         public Stream OpenStream(FileAccess access) => Stream.Null;
 

@@ -83,14 +83,18 @@ namespace Akkatecture.Jobs
 
         private bool Forward(TJob command)
         {
-            Log.Info("JobManager for Job of Name={0} is forwarding job command of Type={1} to JobRunner at ActorPath={2}", Name, typeof(TJob).PrettyPrint(), JobRunner.Path);
+            Log.Info(
+                "JobManager for Job of Name={0} is forwarding job command of Type={1} to JobRunner at ActorPath={2}",
+                Name, typeof(TJob).PrettyPrint(), JobRunner.Path);
             JobRunner.Forward(command);
             return true;
         }
 
         private bool Forward(SchedulerMessage<TJob, TIdentity> command)
         {
-            Log.Info("JobManager for Job of Name={0} is forwarding job command of Type={1} to JobScheduler at ActorPath={2}", Name, typeof(TJob).PrettyPrint(), JobScheduler.Path);
+            Log.Info(
+                "JobManager for Job of Name={0} is forwarding job command of Type={1} to JobScheduler at ActorPath={2}",
+                Name, typeof(TJob).PrettyPrint(), JobScheduler.Path);
             JobScheduler.Forward(command);
             return true;
         }

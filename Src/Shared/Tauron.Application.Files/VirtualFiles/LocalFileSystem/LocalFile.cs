@@ -7,10 +7,14 @@ namespace Tauron.Application.Files.VirtualFiles.LocalFileSystem
     public class LocalFile : FileBase<FileInfo>
     {
         public LocalFile(string fullPath, IDirectory path)
-            : base(() => path, fullPath, fullPath.GetFileName()) { }
+            : base(() => path, fullPath, fullPath.GetFileName())
+        {
+        }
 
         private LocalFile(string fullPath)
-            : base(() => new LocalDirectory(fullPath.GetDirectoryName()), fullPath, fullPath.GetFileName()) { }
+            : base(() => new LocalDirectory(fullPath.GetDirectoryName()), fullPath, fullPath.GetFileName())
+        {
+        }
 
         public override DateTime LastModified => InfoObject?.LastWriteTime ?? DateTime.MinValue;
 
@@ -51,7 +55,8 @@ namespace Tauron.Application.Files.VirtualFiles.LocalFileSystem
 
         protected override FileInfo GetInfo(string path) => new(path);
 
-        protected override Stream CreateStream(FileAccess access, InternalFileMode mode) => new FileStream(OriginalPath, (FileMode) mode, access, access == FileAccess.Read ? FileShare.Read : FileShare.None);
+        protected override Stream CreateStream(FileAccess access, InternalFileMode mode) => new FileStream(OriginalPath,
+            (FileMode) mode, access, access == FileAccess.Read ? FileShare.Read : FileShare.None);
 
         private void MoveFile(FileInfo? old, string newLoc)
         {

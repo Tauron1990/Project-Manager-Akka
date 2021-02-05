@@ -15,24 +15,24 @@ namespace Tauron.Application.Localizer.DataModel
         }
 
         public ProjectFile AddLanguage(Project project, ActiveLanguage language) => this with
-                                                                                    {
-                                                                                        Projects = Projects.Replace(project, project with
-                                                                                                                             {
-                                                                                                                                 ActiveLanguages = project.ActiveLanguages.Add(language)
-                                                                                                                             })
-                                                                                    };
+        {
+            Projects = Projects.Replace(project, project with
+            {
+                ActiveLanguages = project.ActiveLanguages.Add(language)
+            })
+        };
 
         public ProjectFile AddProject(Project project) => this with {Projects = Projects.Add(project)};
 
         public ProjectFile RemoveProject(Project project) => this with {Projects = Projects.Remove(project)};
 
         public ProjectFile AddImport(Project project, string toAdd) => this with
-                                                                       {
-                                                                           Projects = Projects.Replace(project, project with
-                                                                                                                {
-                                                                                                                    Imports = project.Imports.Add(toAdd)
-                                                                                                                })
-                                                                       };
+        {
+            Projects = Projects.Replace(project, project with
+            {
+                Imports = project.Imports.Add(toAdd)
+            })
+        };
 
         public ProjectFile ReplaceEntry(LocEntry? oldEntry, LocEntry? newEntry)
         {
@@ -51,7 +51,10 @@ namespace Tauron.Application.Localizer.DataModel
             if (oldEntry != null && newEntry == null)
                 return this with {Projects = Projects.Replace(old, old with {Entries = old.Entries.Remove(oldEntry)})};
             if (oldEntry != null && newEntry != null)
-                return this with {Projects = Projects.Replace(old, old with {Entries = old.Entries.Replace(oldEntry, newEntry)})};
+                return this with
+                {
+                    Projects = Projects.Replace(old, old with {Entries = old.Entries.Replace(oldEntry, newEntry)})
+                };
 
             return this;
         }

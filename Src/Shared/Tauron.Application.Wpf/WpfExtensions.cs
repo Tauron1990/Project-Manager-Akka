@@ -9,7 +9,8 @@ namespace Tauron.Application.Wpf
     [PublicAPI]
     public static class WpfExtensions
     {
-        public static FluentCollectionPropertyRegistration<TData> AndConfigurateView<TData>(this FluentCollectionPropertyRegistration<TData> collection, Action<ICollectionView> view)
+        public static FluentCollectionPropertyRegistration<TData> AndConfigurateView<TData>(
+            this FluentCollectionPropertyRegistration<TData> collection, Action<ICollectionView> view)
         {
             view(CollectionViewSource.GetDefaultView(collection.Property.Value));
             return collection;

@@ -28,10 +28,8 @@ namespace Tauron.Application.CommonUI.Model
             var actionType = result.Outcome?.GetType();
 
             if (actionType?.IsAssignableTo<IStateAction>() == true)
-            {
                 if (_compledActions.TryGetValue(actionType, out var action))
                     action(result);
-            }
         }
 
         public void WhenActionComnpled<TAction>(Action<IOperationResult> opsAction)
@@ -43,7 +41,9 @@ namespace Tauron.Application.CommonUI.Model
 
         public UIStateConfiguration<TState> WhenStateChanges<TState>(string? name = null)
             where TState : class
-            => new(ActionInvoker.GetState<TState>(name ?? string.Empty) ?? throw new ArgumentException("No such State Found"), this);
+            => new(
+                ActionInvoker.GetState<TState>(name ?? string.Empty) ??
+                throw new ArgumentException("No such State Found"), this);
 
         public void DispatchAction(IStateAction action, bool? sendBack = true)
         {
@@ -62,7 +62,8 @@ namespace Tauron.Application.CommonUI.Model
                 _actor = actor;
             }
 
-            public UIStateEventConfiguration<TEvent> FromEvent<TEvent>(Func<TState, IEventSource<TEvent>> source, Action<UIStateEventConfiguration<TEvent>>? configAction = null)
+            public UIStateEventConfiguration<TEvent> FromEvent<TEvent>(Func<TState, IEventSource<TEvent>> source,
+                Action<UIStateEventConfiguration<TEvent>>? configAction = null)
             {
                 var config = new UIStateEventConfiguration<TEvent>(source(_state), _actor);
                 configAction?.Invoke(config);

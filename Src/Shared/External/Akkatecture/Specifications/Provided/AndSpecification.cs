@@ -44,6 +44,7 @@ namespace Akkatecture.Specifications.Provided
             _specification2 = specification2 ?? throw new ArgumentNullException(nameof(specification2));
         }
 
-        protected override IEnumerable<string> IsNotSatisfiedBecause(T aggregate) => _specification1.WhyIsNotSatisfiedBy(aggregate).Concat(_specification2.WhyIsNotSatisfiedBy(aggregate));
+        protected override IEnumerable<string> IsNotSatisfiedBecause(T aggregate) => _specification1
+            .WhyIsNotSatisfiedBy(aggregate).Concat(_specification2.WhyIsNotSatisfiedBy(aggregate));
     }
 }

@@ -37,14 +37,15 @@ namespace Akkatecture.Events
             if (!(evt is ICommittedEvent) || eventType.GenericTypeArguments.Length != 3) return evt;
 
             var genericType = typeof(DomainEvent<,,>)
-               .MakeGenericType(eventType.GetGenericArguments()[0], eventType.GetGenericArguments()[1], eventType.GetGenericArguments()[2]);
+                .MakeGenericType(eventType.GetGenericArguments()[0], eventType.GetGenericArguments()[1],
+                    eventType.GetGenericArguments()[2]);
 
             var domainEvent = FastReflection.Shared.FastCreateInstance(genericType,
-                                                                       evt.GetPropertyValue("AggregateIdentity")!,
-                                                                       evt.GetPropertyValue("AggregateEvent")!,
-                                                                       evt.GetPropertyValue("Metadata")!,
-                                                                       evt.GetPropertyValue("Timestamp")!,
-                                                                       evt.GetPropertyValue("AggregateSequenceNumber")!)!;
+                evt.GetPropertyValue("AggregateIdentity")!,
+                evt.GetPropertyValue("AggregateEvent")!,
+                evt.GetPropertyValue("Metadata")!,
+                evt.GetPropertyValue("Timestamp")!,
+                evt.GetPropertyValue("AggregateSequenceNumber")!)!;
 
             return domainEvent;
         }

@@ -8,7 +8,8 @@ namespace Tauron.Application.Files.HeaderedText
     [PublicAPI]
     public sealed class FileContext : IEnumerable<ContextEntry>
     {
-        internal FileContext([NotNull] FileDescription description) => Description = (FileDescription) description.Clone();
+        internal FileContext([NotNull] FileDescription description)
+            => Description = (FileDescription) description.Clone();
 
         internal FileDescription Description { get; }
 

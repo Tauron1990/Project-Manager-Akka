@@ -6,9 +6,13 @@ namespace Tauron.Application.Files.VirtualFiles.InMemory
     public sealed class InMemoryFileSystem : InMemoryDirectory, IVirtualFileSystem
     {
         public InMemoryFileSystem(string originalPath, string name, DataDirectory dic)
-            : base(null, originalPath, name, dic) { }
+            : base(null, originalPath, name, dic)
+        {
+        }
 
-        public void Dispose() { }
+        public void Dispose()
+        {
+        }
 
         public bool IsRealTime => true;
 

@@ -21,10 +21,12 @@ namespace Tauron.Application.Wpf
         private const string EventBinderPrefix = "EventBinder.";
 
         public static readonly DependencyProperty EventsProperty =
-            DependencyProperty.RegisterAttached("Events", typeof(string), typeof(EventBinder), new UIPropertyMetadata(null, OnEventsChanged));
+            DependencyProperty.RegisterAttached("Events", typeof(string), typeof(EventBinder),
+                new UIPropertyMetadata(null, OnEventsChanged));
 
         [NotNull]
-        public static string GetEvents(DependencyObject obj) => (string) Argument.NotNull(obj, nameof(obj)).GetValue(EventsProperty);
+        public static string GetEvents(DependencyObject obj)
+            => (string) Argument.NotNull(obj, nameof(obj)).GetValue(EventsProperty);
 
         public static void SetEvents(DependencyObject obj, string value)
         {
@@ -40,14 +42,16 @@ namespace Tauron.Application.Wpf
             if (root == null)
             {
                 if (d is FrameworkElement)
-                    ControlBindLogic.MakeLazy((IUIElement) ele, e.NewValue as string, e.OldValue as string, BindInternal);
+                    ControlBindLogic.MakeLazy((IUIElement) ele, e.NewValue as string, e.OldValue as string,
+                        BindInternal);
                 return;
             }
 
             BindInternal(e.OldValue as string, e.NewValue as string, root, ele);
         }
 
-        private static void BindInternal(string? oldValue, string? newValue, IBinderControllable binder, IUIObject affectedPart)
+        private static void BindInternal(string? oldValue, string? newValue, IBinderControllable binder,
+            IUIObject affectedPart)
         {
             if (oldValue != null)
                 binder.CleanUp(EventBinderPrefix + oldValue);
@@ -93,7 +97,7 @@ namespace Tauron.Application.Wpf
                 {
                     Log.Error("EventBinder: EventPairs not Valid: {Commands}", Commands);
                 }
-                
+
                 var host = AffectedObject;
                 if (context is not IViewModel dataContext) return;
 
@@ -115,8 +119,9 @@ namespace Tauron.Application.Wpf
 
             private class InternalEventLinker : IDisposable
             {
-                private static readonly MethodInfo Method = typeof(InternalEventLinker).GetMethods(BindingFlags.Instance | BindingFlags.NonPublic)
-                                                                                       .First(m => m.Name == "Handler");
+                private static readonly MethodInfo Method = typeof(InternalEventLinker)
+                    .GetMethods(BindingFlags.Instance | BindingFlags.NonPublic)
+                    .First(m => m.Name == "Handler");
 
                 private static readonly ILogger InternalLog = Log.ForContext<InternalEventLinker>();
 
@@ -129,7 +134,8 @@ namespace Tauron.Application.Wpf
                 private Delegate? _delegate;
                 private bool _isDirty;
 
-                public InternalEventLinker(EventInfo? @event, IViewModel dataContext, string targetName, IUIObject? host)
+                public InternalEventLinker(EventInfo? @event, IViewModel dataContext, string targetName,
+                    IUIObject? host)
                 {
                     _isDirty = @event == null;
 
@@ -154,7 +160,7 @@ namespace Tauron.Application.Wpf
                 private bool EnsureCommandStade()
                 {
                     if (_command != null) return true;
-                    
+
                     _command = d => _dataContext.Actor.Tell(new ExecuteEventEvent(d, _targetName));
 
 

@@ -13,7 +13,8 @@ namespace Tauron.Application.Files.HeaderedText
 
         public FileDescription() => _keys = new HashSet<string>();
 
-        private FileDescription(FileDescription parent) => _keys = new HashSet<string>(Argument.NotNull(parent, nameof(parent)).Keys);
+        private FileDescription(FileDescription parent)
+            => _keys = new HashSet<string>(Argument.NotNull(parent, nameof(parent)).Keys);
 
         public IEnumerable<string> Keys => _readonlyEnumerable ??= new ReadOnlyEnumerator<string>(_keys);
 

@@ -12,6 +12,8 @@ namespace Tauron.Application.Localizer
             InitializeComponent();
         }
 
-        private void App_OnStartup(object sender, StartupEventArgs e) { }
+        private void App_OnStartup(object sender, StartupEventArgs e)
+        {
+        }
     }
 }

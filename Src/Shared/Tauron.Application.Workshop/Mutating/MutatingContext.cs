@@ -36,7 +36,8 @@ namespace Tauron.Application.Workshop.Mutating
             if (change != null && change != Change && newData is ICanApplyChange<TData> apply)
                 newData = apply.Apply(change);
 
-            if (Change == null || change == null || ReferenceEquals(Change, change)) return new MutatingContext<TData>(change, newData);
+            if (Change == null || change == null || ReferenceEquals(Change, change))
+                return new MutatingContext<TData>(change, newData);
 
             if (Change is MultiChange multiChange)
                 change = new MultiChange(multiChange.Changes.Add(change));

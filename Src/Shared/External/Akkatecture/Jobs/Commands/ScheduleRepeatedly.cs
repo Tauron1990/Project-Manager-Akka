@@ -47,10 +47,13 @@ namespace Akkatecture.Jobs.Commands
 
         public TimeSpan Interval { get; }
 
-        public override Schedule<TJob, TIdentity> WithNextTriggerDate(DateTime utcDate) => new ScheduleRepeatedly<TJob, TIdentity>(JobId, Job, Interval, TriggerDate + Interval);
+        public override Schedule<TJob, TIdentity> WithNextTriggerDate(DateTime utcDate)
+            => new ScheduleRepeatedly<TJob, TIdentity>(JobId, Job, Interval, TriggerDate + Interval);
 
-        public override Schedule<TJob, TIdentity> WithAck(object? ack) => new ScheduleRepeatedly<TJob, TIdentity>(JobId, Job, Interval, TriggerDate, ack, Nack);
+        public override Schedule<TJob, TIdentity> WithAck(object? ack)
+            => new ScheduleRepeatedly<TJob, TIdentity>(JobId, Job, Interval, TriggerDate, ack, Nack);
 
-        public override Schedule<TJob, TIdentity> WithNack(object? nack) => new ScheduleRepeatedly<TJob, TIdentity>(JobId, Job, Interval, TriggerDate, Ack, nack);
+        public override Schedule<TJob, TIdentity> WithNack(object? nack)
+            => new ScheduleRepeatedly<TJob, TIdentity>(JobId, Job, Interval, TriggerDate, Ack, nack);
     }
 }

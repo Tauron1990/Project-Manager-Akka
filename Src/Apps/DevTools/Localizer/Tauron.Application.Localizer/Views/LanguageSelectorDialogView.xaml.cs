@@ -30,7 +30,9 @@ namespace Tauron.Application.Localizer.Views
         {
             var result = new TaskCompletionSource<AddLanguageDialogResult?>();
 
-            DataContext = new LanguageSelectorDialogViewModel(c => result.SetResult(c == null ? null : new AddLanguageDialogResult(c)), initalData.Contains!, Dispatcher);
+            DataContext = new LanguageSelectorDialogViewModel(
+                c => result.SetResult(c == null ? null : new AddLanguageDialogResult(c)), initalData.Contains!,
+                Dispatcher);
 
             return result.Task;
         }
@@ -98,7 +100,8 @@ namespace Tauron.Application.Localizer.Views
 
         private int _position;
 
-        public LanguageSelectorDialogViewModel(Action<CultureInfo?> selector, Predicate<CultureInfo> filter, Dispatcher dispatcher)
+        public LanguageSelectorDialogViewModel(Action<CultureInfo?> selector, Predicate<CultureInfo> filter,
+            Dispatcher dispatcher)
         {
             _filter = filter;
             _dispatcher = dispatcher;
@@ -156,7 +159,8 @@ namespace Tauron.Application.Localizer.Views
             if (obj is LanguageGroup group)
             {
                 var lang = group.Info;
-                if (lang.Name.Contains(FilterContent) || lang.DisplayName.Contains(FilterContent) || lang.EnglishName.Contains(FilterContent))
+                if (lang.Name.Contains(FilterContent) || lang.DisplayName.Contains(FilterContent) ||
+                    lang.EnglishName.Contains(FilterContent))
                     return true;
                 return false;
             }
@@ -179,7 +183,8 @@ namespace Tauron.Application.Localizer.Views
                 var group = new LanguageGroup(SelectionChanged, key);
                 group.IsFiltered = _filter(key);
 
-                foreach (var info in value.Where(c => !_filter(c))) group.List.Add(new SubLanguage(info, SelectionChanged));
+                foreach (var info in value.Where(c => !_filter(c)))
+                    group.List.Add(new SubLanguage(info, SelectionChanged));
 
                 if (!group.IsFiltered || group.List.Count != 0)
                     LanguageGroups.Add(group);

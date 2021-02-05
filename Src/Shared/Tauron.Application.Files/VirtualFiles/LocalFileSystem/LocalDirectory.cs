@@ -9,18 +9,24 @@ namespace Tauron.Application.Files.VirtualFiles.LocalFileSystem
     public class LocalDirectory : DirectoryBase<DirectoryInfo>
     {
         public LocalDirectory(string fullPath, Func<IDirectory?> parentDirectory)
-            : base(parentDirectory, fullPath, fullPath.GetFileName()) { }
+            : base(parentDirectory, fullPath, fullPath.GetFileName())
+        {
+        }
 
         public LocalDirectory(string fullPath)
-            : base(() => GetParentDirectory(fullPath), fullPath, fullPath.GetFileName()) { }
+            : base(() => GetParentDirectory(fullPath), fullPath, fullPath.GetFileName())
+        {
+        }
 
         public override DateTime LastModified => InfoObject?.LastWriteTime ?? DateTime.MinValue;
 
         public override bool Exist => InfoObject?.Exists ?? false;
 
-        public override IEnumerable<IDirectory> Directories => Directory.EnumerateDirectories(OriginalPath).Select(str => new LocalDirectory(str, () => this));
+        public override IEnumerable<IDirectory> Directories => Directory.EnumerateDirectories(OriginalPath)
+            .Select(str => new LocalDirectory(str, () => this));
 
-        public override IEnumerable<IFile> Files => Directory.EnumerateFiles(OriginalPath).Select(str => new LocalFile(str, this));
+        public override IEnumerable<IFile> Files
+            => Directory.EnumerateFiles(OriginalPath).Select(str => new LocalFile(str, this));
 
         public override IDirectory GetDirectory(string name)
         {

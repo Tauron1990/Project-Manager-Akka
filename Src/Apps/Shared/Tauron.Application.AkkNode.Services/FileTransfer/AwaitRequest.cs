@@ -11,7 +11,7 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer
 
         public async Task<TransferMessages.TransferCompled> TryStart(Func<ITransferData?> getdata)
         {
-            if(_request == null)
+            if (_request == null)
                 return new TransferFailed(string.Empty, FailReason.Deny, "NoData");
 
             var data = getdata();
@@ -24,14 +24,14 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer
 
     public sealed class AwaitRequest
     {
-        public TimeSpan Timeout { get; }
-
-        public string Id { get; }
-
         public AwaitRequest(TimeSpan timeout, string id)
         {
             Timeout = timeout;
             Id = id;
         }
+
+        public TimeSpan Timeout { get; }
+
+        public string Id { get; }
     }
 }

@@ -3,5 +3,7 @@
 namespace Tauron.Akka
 {
     [PublicAPI]
-    public interface ISyncActorRef<TActor> : IInitableActorRef { }
+    public interface ISyncActorRef<TActor> : IInitableActorRef
+    {
+    }
 }

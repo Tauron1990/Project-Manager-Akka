@@ -16,11 +16,10 @@ namespace ServiceManager.ProjectRepository.Core
 
         //public string Solotion { get; set; } = DefaultSoloution;
 
-        
+
         public RepositoryConfiguration()
             : this(DefaultUrl, null)
         {
-            
         }
 
         void IReporterProvider.SendMessage(string msg) => Logger?.Send(msg);

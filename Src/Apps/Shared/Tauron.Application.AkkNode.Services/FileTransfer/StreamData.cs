@@ -4,11 +4,10 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer
 {
     public sealed class StreamData : ITransferData
     {
-        public static ITransferData Null { get; } = new StreamData(Stream.Null);
-
         private readonly Stream _stream;
 
         public StreamData(Stream stream) => _stream = stream;
+        public static ITransferData Null { get; } = new StreamData(Stream.Null);
 
         public void Dispose() => _stream.Dispose();
         public int Read(byte[] buffer, in int offset, in int count) => _stream.Read(buffer, offset, count);

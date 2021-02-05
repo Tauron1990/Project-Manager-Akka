@@ -16,9 +16,11 @@ namespace Tauron.Application.Wpf.UI
         {
             private readonly ViewModelConverter _converter = new();
 
-            public object Convert(object value, Type targetType, object parameter, CultureInfo culture) => _converter.Convert(value);
+            public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+                => _converter.Convert(value);
 
-            public object? ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => _converter.ConvertBack(value);
+            public object? ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+                => _converter.ConvertBack(value);
         }
     }
 }

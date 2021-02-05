@@ -33,7 +33,6 @@ namespace Tauron.Application.Workshop.Core
             if (!Actor.IsNobody())
                 Actor.Tell(msg);
             else
-            {
                 lock (this)
                 {
                     if (!Actor.IsNobody())
@@ -44,7 +43,6 @@ namespace Tauron.Application.Workshop.Core
 
                     _stash = _stash?.Add(msg) ?? ImmutableList<object>.Empty.Add(msg);
                 }
-            }
         }
     }
 }

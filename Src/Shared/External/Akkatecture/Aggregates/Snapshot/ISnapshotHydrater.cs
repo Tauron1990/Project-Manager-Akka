@@ -27,5 +27,7 @@ namespace Akkatecture.Aggregates.Snapshot
 {
     public interface ISnapshotHydrater<TAggregate, TIdentity>
         where TAggregate : IAggregateRoot<TIdentity>
-        where TIdentity : IIdentity { }
+        where TIdentity : IIdentity
+    {
+    }
 }

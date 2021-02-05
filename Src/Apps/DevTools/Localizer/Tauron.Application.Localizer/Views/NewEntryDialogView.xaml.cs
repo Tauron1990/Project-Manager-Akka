@@ -28,7 +28,9 @@ namespace Tauron.Application.Localizer.Views
         {
             var result = new TaskCompletionSource<NewEntryDialogResult?>();
 
-            DataContext = new NewEntryDialogViewModel(s => result.SetResult(string.IsNullOrWhiteSpace(s) ? null : new NewEntryDialogResult(s)), initalData, _localizer);
+            DataContext = new NewEntryDialogViewModel(
+                s => result.SetResult(string.IsNullOrWhiteSpace(s) ? null : new NewEntryDialogResult(s)), initalData,
+                _localizer);
 
             return result.Task;
         }
@@ -48,7 +50,8 @@ namespace Tauron.Application.Localizer.Views
         private string _content = string.Empty;
         private string _error = string.Empty;
 
-        public NewEntryDialogViewModel(Action<string?> selector, IEnumerable<NewEntryInfoBase> infos, LocLocalizer localizer)
+        public NewEntryDialogViewModel(Action<string?> selector, IEnumerable<NewEntryInfoBase> infos,
+            LocLocalizer localizer)
         {
             _localizer = localizer;
 
@@ -56,7 +59,6 @@ namespace Tauron.Application.Localizer.Views
             List<string> suggests = new();
 
             foreach (var info in infos)
-            {
                 switch (info)
                 {
                     case NewEntryInfo entry:
@@ -66,7 +68,6 @@ namespace Tauron.Application.Localizer.Views
                         suggests.Add(suggest.Name);
                         break;
                 }
-            }
 
             _entrys = entrys.ToArray();
             Suggests = new StaticSuggestion(suggests);

@@ -18,7 +18,8 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Xml
         private readonly Type _targetType;
         private readonly XNamespace? _xNamespace;
 
-        public XmlSerializerConfiguration(string rootName, XDeclaration? declaration, XNamespace? xNamespace, [NotNull] Type targetType)
+        public XmlSerializerConfiguration(string rootName, XDeclaration? declaration, XNamespace? xNamespace,
+            [NotNull] Type targetType)
         {
             _rootName = Argument.NotNull(rootName, nameof(rootName));
             _declaration = declaration;
@@ -27,23 +28,27 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Xml
             _builder = new ObjectBuilder(_targetType);
         }
 
-        public IConstructorConfiguration<IXmlSerializerConfiguration> ConfigConstructor() => new ConstructorConfiguration<IXmlSerializerConfiguration>(_builder, this);
+        public IConstructorConfiguration<IXmlSerializerConfiguration> ConfigConstructor()
+            => new ConstructorConfiguration<IXmlSerializerConfiguration>(_builder, this);
 
         public IXmlAttributConfiguration WithAttribut(string name)
         {
-            var target = new XmlElementTarget {TargetType = XmlElementTargetType.Attribute, Name = Argument.NotNull(name, nameof(name))};
+            var target = new XmlElementTarget
+                {TargetType = XmlElementTargetType.Attribute, Name = Argument.NotNull(name, nameof(name))};
             return new XmlAttributeConfiguration(this, target, target, _mapper, _targetType);
         }
 
         public IXmlElementConfiguration WithElement(string name)
         {
-            var target = new XmlElementTarget {TargetType = XmlElementTargetType.Element, Name = Argument.NotNull(name, nameof(name))};
+            var target = new XmlElementTarget
+                {TargetType = XmlElementTargetType.Element, Name = Argument.NotNull(name, nameof(name))};
             return new XmlElementConfiguration(this, _mapper, target, target, _targetType);
         }
 
         public IXmlListElementConfiguration WithElements(string name)
         {
-            var target = new XmlElementTarget {TargetType = XmlElementTargetType.Element, Name = Argument.NotNull(name, nameof(name))};
+            var target = new XmlElementTarget
+                {TargetType = XmlElementTargetType.Element, Name = Argument.NotNull(name, nameof(name))};
             var empty = new XmlElementTarget {TargetType = XmlElementTargetType.Root};
 
             return new XmlListElementConfiguration(this, _mapper, empty, empty, target, _targetType);
@@ -51,7 +56,8 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Xml
 
         public IXmlSerializerConfiguration WithSubSerializer<TTarget>(ISerializer serializer, string member)
         {
-            var map = new XmlSubSerializerMapper(member, typeof(TTarget), serializer as ISubSerializer, new XmlElementTarget {TargetType = XmlElementTargetType.Root});
+            var map = new XmlSubSerializerMapper(member, typeof(TTarget), serializer as ISubSerializer,
+                new XmlElementTarget {TargetType = XmlElementTargetType.Root});
             _mapper.Entries.Add(map);
 
             return this;

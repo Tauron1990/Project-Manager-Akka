@@ -6,9 +6,12 @@ namespace Tauron.Application.Files.Serialization.Core.Impl
     internal class IniSerializer : SerializerBase<IniContext>
     {
         public IniSerializer(ObjectBuilder builder, SimpleMapper<IniContext> mapper)
-            : base(builder, mapper, ContextMode.Text) { }
+            : base(builder, mapper, ContextMode.Text)
+        {
+        }
 
-        public override IniContext BuildContext(SerializationContext context) => new(Argument.NotNull(context, nameof(context)));
+        public override IniContext BuildContext(SerializationContext context)
+            => new(Argument.NotNull(context, nameof(context)));
 
         public override void CleanUp(IniContext context)
         {

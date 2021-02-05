@@ -26,20 +26,20 @@ namespace Tauron.Application.Wpf.Dialogs
 
         public static readonly DependencyProperty ContentProperty = DependencyProperty.Register(
             "Content", typeof(object), typeof(DialogBase), new PropertyMetadata(default,
-                                                                                (o, args) => ((DialogBase) o).ContentChanged(args)));
+                (o, args) => ((DialogBase) o).ContentChanged(args)));
 
         public static readonly DependencyProperty TitleProperty = DependencyProperty.Register(
             "Title", typeof(string), typeof(DialogBase), new PropertyMetadata(default(string),
-                                                                              (o, args) => ((DialogBase) o).TitleChanged(args)));
+                (o, args) => ((DialogBase) o).TitleChanged(args)));
 
         public static readonly DependencyProperty TopProperty = DependencyProperty.Register(
             "Top", typeof(object), typeof(DialogBase), new PropertyMetadata(default,
-                                                                            (o, args) => ((DialogBase) o).TopChanged(args)));
+                (o, args) => ((DialogBase) o).TopChanged(args)));
 
 
         public static readonly DependencyProperty BottomProperty = DependencyProperty.Register(
             "Bottom", typeof(object), typeof(DialogBase), new PropertyMetadata(default,
-                                                                               (o, args) => ((DialogBase) o).ButtomChaned(args)));
+                (o, args) => ((DialogBase) o).ButtomChaned(args)));
 
         public static readonly DependencyProperty ContentTemplateProperty = DependencyProperty.Register(
             "ContentTemplate", typeof(DataTemplate), typeof(DialogBase), new PropertyMetadata(default(DataTemplate)));
@@ -53,7 +53,8 @@ namespace Tauron.Application.Wpf.Dialogs
 
         static DialogBase()
         {
-            DefaultStyleKeyProperty.OverrideMetadata(typeof(DialogBase), new FrameworkPropertyMetadata(typeof(DialogBase)));
+            DefaultStyleKeyProperty.OverrideMetadata(typeof(DialogBase),
+                new FrameworkPropertyMetadata(typeof(DialogBase)));
         }
 
         public DialogBase() => Loaded += OnLoaded;
@@ -97,12 +98,12 @@ namespace Tauron.Application.Wpf.Dialogs
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
             Dispatcher.BeginInvoke(new Action(() =>
-                                              {
-                                                  if (TryFindResource("Storyboard.Dialogs.Show") is Storyboard res)
-                                                      res.Begin(this);
-                                                  else
-                                                      Opacity = 1;
-                                              }));
+            {
+                if (TryFindResource("Storyboard.Dialogs.Show") is Storyboard res)
+                    res.Begin(this);
+                else
+                    Opacity = 1;
+            }));
         }
 
         private void ContentChanged(DependencyPropertyChangedEventArgs args)
@@ -153,7 +154,8 @@ namespace Tauron.Application.Wpf.Dialogs
 
     public static class DialogExtensions
     {
-        public static Task<TResult> MakeTask<TResult>(this FrameworkElement ele, Func<TaskCompletionSource<TResult>, object> factory)
+        public static Task<TResult> MakeTask<TResult>(this FrameworkElement ele,
+            Func<TaskCompletionSource<TResult>, object> factory)
         {
             var source = new TaskCompletionSource<TResult>();
 
@@ -164,7 +166,8 @@ namespace Tauron.Application.Wpf.Dialogs
             return source.Task;
         }
 
-        public static Task<TResult> MakeTask<TResult>(this FrameworkElement ele, Func<IObserver<TResult>, object> factory)
+        public static Task<TResult> MakeTask<TResult>(this FrameworkElement ele,
+            Func<IObserver<TResult>, object> factory)
         {
             var subject = new Subject<TResult>();
 

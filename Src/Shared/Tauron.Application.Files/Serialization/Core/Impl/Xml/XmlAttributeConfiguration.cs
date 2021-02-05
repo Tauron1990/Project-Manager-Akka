@@ -17,7 +17,8 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Xml
 
         private string? _member;
 
-        public XmlAttributeConfiguration(IXmlSerializerConfiguration config, XmlElementTarget rootTarget, XmlElementTarget target,
+        public XmlAttributeConfiguration(IXmlSerializerConfiguration config, XmlElementTarget rootTarget,
+            XmlElementTarget target,
             SimpleMapper<XmlElementContext> mapper, Type targetType)
         {
             _config = Argument.NotNull(config, nameof(config));

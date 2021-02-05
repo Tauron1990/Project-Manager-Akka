@@ -43,7 +43,7 @@ namespace Akkatecture.Aggregates.ExecutionResults
         public override bool IsSuccess { get; }
 
         public override string ToString() => Errors.Any()
-                                                 ? $"Failed execution due to: {string.Join(", ", Errors)}"
-                                                 : "Failed execution";
+            ? $"Failed execution due to: {string.Join(", ", Errors)}"
+            : "Failed execution";
     }
 }

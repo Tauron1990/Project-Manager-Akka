@@ -44,7 +44,9 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Mapper
             Type? elementType;
 
             if (_isArray)
+            {
                 elementType = _listType?.GetElementType();
+            }
             else
             {
                 if (_listType == null || !_listType.IsGenericType) return null;
@@ -88,12 +90,15 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Mapper
 
                 if (_isArray)
                 {
-                    var arr = Array.CreateInstance(Argument.CheckResult(_listType?.GetElementType(), "Initialization Error"), _list?.Count ?? 0);
+                    var arr = Array.CreateInstance(
+                        Argument.CheckResult(_listType?.GetElementType(), "Initialization Error"), _list?.Count ?? 0);
                     _list?.CopyTo(arr, 0);
                     value = arr;
                 }
                 else
+                {
                     value = _list;
+                }
 
                 return value;
             }
@@ -109,8 +114,8 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Mapper
             if (_listType == null) return new SerializerElementNullException("Unkowen List Type");
 
             return _listType.IsAssignableFrom(typeof(IList))
-                       ? new SerializerElementException("In Compatible MemerType! Must implement IList")
-                       : null;
+                ? new SerializerElementException("In Compatible MemerType! Must implement IList")
+                : null;
         }
     }
 }

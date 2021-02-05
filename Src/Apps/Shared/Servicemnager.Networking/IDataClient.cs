@@ -8,7 +8,7 @@ namespace Servicemnager.Networking
     public sealed class ClientConnectedArgs : EventArgs
     {
         public ClientConnectedArgs(string connection) => Connection = connection;
-        
+
         public string Connection { get; }
     }
 
@@ -21,7 +21,7 @@ namespace Servicemnager.Networking
         }
 
         /// <summary>
-        /// The IP address and port number of the disconnected client socket.
+        ///     The IP address and port number of the disconnected client socket.
         /// </summary>
         public string Connection { get; }
 

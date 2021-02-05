@@ -11,17 +11,18 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Mapper
     [PublicAPI]
     public abstract class ContextImplBase : IOrginalContextProvider, IDisposable
     {
-        protected ContextImplBase([NotNull] SerializationContext original) => Original = Argument.NotNull(original, nameof(original));
+        protected ContextImplBase([NotNull] SerializationContext original)
+            => Original = Argument.NotNull(original, nameof(original));
 
         [NotNull]
         protected TextWriter TextWriter => Original.ContextMode == ContextMode.Binary
-                                               ? new ConsistentTextWriter(Original.BinaryWriter)
-                                               : Original.TextWriter;
+            ? new ConsistentTextWriter(Original.BinaryWriter)
+            : Original.TextWriter;
 
         [NotNull]
         protected TextReader TextReader => Original.ContextMode == ContextMode.Text
-                                               ? Original.TextReader
-                                               : new ConsistentTextReader(Original.BinaryReader);
+            ? Original.TextReader
+            : new ConsistentTextReader(Original.BinaryReader);
 
         public void Dispose()
         {
@@ -129,7 +130,8 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Mapper
                 var builder = new StringBuilder();
 
                 if (_currentLinePosition == 0) builder.AppendLine(_currentLineString);
-                else if (_currentLinePosition < _currentLineString.Length) builder.AppendLine(_currentLineString.Substring(_currentLinePosition));
+                else if (_currentLinePosition < _currentLineString.Length)
+                    builder.AppendLine(_currentLineString.Substring(_currentLinePosition));
 
                 while (MoveToNextLine()) builder.AppendLine(_currentLineString);
 

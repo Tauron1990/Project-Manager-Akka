@@ -27,11 +27,15 @@ using Akkatecture.Core.VersionedTypes;
 
 namespace Akkatecture.Jobs
 {
-    public class JobDefinitionService : VersionedTypeDefinitionService<IJob, JobVersionAttribute, JobDefinition>, IJobDefinitionService
+    public class JobDefinitionService : VersionedTypeDefinitionService<IJob, JobVersionAttribute, JobDefinition>,
+        IJobDefinitionService
     {
         public JobDefinitionService(ILoggingAdapter logger)
-            : base(logger) { }
+            : base(logger)
+        {
+        }
 
-        protected override JobDefinition CreateDefinition(int version, Type type, string name) => new(version, type, name);
+        protected override JobDefinition CreateDefinition(int version, Type type, string name)
+            => new(version, type, name);
     }
 }

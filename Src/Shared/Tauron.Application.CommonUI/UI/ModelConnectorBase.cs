@@ -28,23 +28,25 @@ namespace Tauron.Application.CommonUI.UI
             promise.OnNoContext(NoDataContextFound);
 
             promise
-               .OnContext((model, view) =>
-                          {
-                              View = view;
-                              Model = model;
+                .OnContext((model, view) =>
+                {
+                    View = view;
+                    Model = model;
 
-                              if (model.IsInitialized)
-                                  Task.Run(async () => await InitAsync());
-                              else
-                              {
-                                  void OnModelOnInitialized()
-                                  {
-                                      Task.Run(async () => await InitAsync());
-                                  }
+                    if (model.IsInitialized)
+                    {
+                        Task.Run(async () => await InitAsync());
+                    }
+                    else
+                    {
+                        void OnModelOnInitialized()
+                        {
+                            Task.Run(async () => await InitAsync());
+                        }
 
-                                  model.AwaitInit(OnModelOnInitialized);
-                              }
-                          });
+                        model.AwaitInit(OnModelOnInitialized);
+                    }
+                });
         }
 
         protected string Name { get; }

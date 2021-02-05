@@ -13,28 +13,30 @@ namespace ServiceManager.ProjectRepository
     [PublicAPI]
     public sealed class RepositoryManager
     {
-        public static readonly RepositoryManager Empty = new(ActorRefs.Nobody); 
-
-        public static RepositoryManager CreateInstance(IActorRefFactory factory, string connectionString, DataTransferManager tranferManager)
-        {
-            return new(factory.ActorOf(RepositoryManagerImpl.Create(new MongoClient(connectionString), tranferManager)));
-        }
-
-        public static RepositoryManager InitRepositoryManager(ActorSystem actorSystem, string connectionString, DataTransferManager tranferManager) 
-            => InitRepositoryManager(actorSystem, new MongoClient(connectionString), tranferManager);
-
-        public static RepositoryManager InitRepositoryManager(ActorSystem actorSystem, IMongoClient client, DataTransferManager tranferManager)
-        {
-            var repo = ClusterSingletonManager.Props(Feature.Props(RepositoryManagerImpl.Create(client, tranferManager)),
-                ClusterSingletonManagerSettings.Create(actorSystem).WithRole("UpdateSystem"));
-            return new RepositoryManager(actorSystem.ActorOf(repo, RepositoryApi.RepositoryPath));
-        }
+        public static readonly RepositoryManager Empty = new(ActorRefs.Nobody);
 
         private readonly IActorRef _manager;
 
         private RepositoryManager(IActorRef manager) => _manager = manager;
 
         public bool IsOk => !_manager.IsNobody();
+
+        public static RepositoryManager CreateInstance(IActorRefFactory factory, string connectionString,
+            DataTransferManager tranferManager)
+            => new(factory.ActorOf(RepositoryManagerImpl.Create(new MongoClient(connectionString), tranferManager)));
+
+        public static RepositoryManager InitRepositoryManager(ActorSystem actorSystem, string connectionString,
+            DataTransferManager tranferManager)
+            => InitRepositoryManager(actorSystem, new MongoClient(connectionString), tranferManager);
+
+        public static RepositoryManager InitRepositoryManager(ActorSystem actorSystem, IMongoClient client,
+            DataTransferManager tranferManager)
+        {
+            var repo = ClusterSingletonManager.Props(
+                Feature.Props(RepositoryManagerImpl.Create(client, tranferManager)),
+                ClusterSingletonManagerSettings.Create(actorSystem).WithRole("UpdateSystem"));
+            return new RepositoryManager(actorSystem.ActorOf(repo, RepositoryApi.RepositoryPath));
+        }
 
         public void CleanUp()
             => _manager.Tell(new StartCleanUp());

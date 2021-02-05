@@ -60,7 +60,8 @@ namespace Tauron.Application.Wpf.SerilogViewer
         [TypeConverter(typeof(LengthConverter))]
         public double ExceptionWidth { get; set; } = 175;
 
-        [Description("Die maximale anzahl an Zeilen. Der Älteste eintrag wird gelöscht. Auf 0 Setzen für Unbegrenzte Einträge.")]
+        [Description(
+            "Die maximale anzahl an Zeilen. Der Älteste eintrag wird gelöscht. Auf 0 Setzen für Unbegrenzte Einträge.")]
         [Category("Data")]
         [TypeConverter(typeof(Int32Converter))]
         public int MaxRowCount { get; set; } = 1000;
@@ -77,13 +78,13 @@ namespace Tauron.Application.Wpf.SerilogViewer
             LogEventViewModel vm = new(log);
 
             Dispatcher.BeginInvoke(new Action(() =>
-                                              {
-                                                  if (MaxRowCount > 0 && LogEntries.Count >= MaxRowCount)
-                                                      LogEntries.RemoveAt(0);
-                                                  LogEntries.Add(vm);
-                                                  if (AutoScrollToLast) ScrollToLast();
-                                                  ItemAdded(this, (SerilogEvent) log);
-                                              }));
+            {
+                if (MaxRowCount > 0 && LogEntries.Count >= MaxRowCount)
+                    LogEntries.RemoveAt(0);
+                LogEntries.Add(vm);
+                if (AutoScrollToLast) ScrollToLast();
+                ItemAdded(this, (SerilogEvent) log);
+            }));
         }
 
         public void Clear()

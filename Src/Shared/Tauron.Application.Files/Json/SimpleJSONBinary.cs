@@ -162,6 +162,8 @@ namespace Tauron.Application.Files.Json
 
     internal partial class JsonLazyCreator
     {
-        public override void SerializeBinary(BinaryWriter aWriter) { }
+        public override void SerializeBinary(BinaryWriter aWriter)
+        {
+        }
     }
 }

@@ -28,10 +28,14 @@ namespace Akka.Cluster.Utility
         private bool _stopping;
 
         public DistributedActorTable(string name, ActorSystem system)
-            : this(name, ClusterActorDiscovery.Get(system).Discovery) { }
+            : this(name, ClusterActorDiscovery.Get(system).Discovery)
+        {
+        }
 
         public DistributedActorTable(string name, IActorRef clusterActorDiscovery)
-            : this(name, clusterActorDiscovery, typeof(IncrementalIntegerIdGenerator), Array.Empty<object>()) { }
+            : this(name, clusterActorDiscovery, typeof(IncrementalIntegerIdGenerator), Array.Empty<object>())
+        {
+        }
 
         public DistributedActorTable(string name, IActorRef clusterActorDiscovery,
             Type idGeneratorType, object[] idGeneratorInitializeArgs)
@@ -41,7 +45,6 @@ namespace Akka.Cluster.Utility
             _log = Context.GetLogger();
 
             if (idGeneratorType != null)
-            {
                 try
                 {
                     _idGenerator = (IIdGenerator<TKey>) Activator.CreateInstance(idGeneratorType);
@@ -52,7 +55,6 @@ namespace Akka.Cluster.Utility
                     _log.Error(e, $"Exception in initializing ${idGeneratorType.FullName}");
                     _idGenerator = null;
                 }
-            }
 
             Receive<ClusterActorDiscoveryMessage.ActorUp>(Handle);
             Receive<ClusterActorDiscoveryMessage.ActorDown>(Handle);
@@ -112,10 +114,10 @@ namespace Akka.Cluster.Utility
             }
 
             var container = new Container
-                            {
-                                //LinkTime = DateTime.UtcNow,
-                                ActorMap = new Dictionary<TKey, IActorRef>()
-                            };
+            {
+                //LinkTime = DateTime.UtcNow,
+                ActorMap = new Dictionary<TKey, IActorRef>()
+            };
             _containerMap.Add(m.Actor, container);
             RebuildContainerWorkQueue();
 
@@ -207,12 +209,12 @@ namespace Akka.Cluster.Utility
             _actorMap.Add(id, null);
 
             _creatingMap.Add(id, new Creating
-                                 {
-                                     Arguments = args,
-                                     RequestTime = DateTime.UtcNow,
-                                     Requesters = new List<Tuple<IActorRef, RequestType>> {Tuple.Create(Sender, requestType)},
-                                     WorkingContainer = container
-                                 });
+            {
+                Arguments = args,
+                RequestTime = DateTime.UtcNow,
+                Requesters = new List<Tuple<IActorRef, RequestType>> {Tuple.Create(Sender, requestType)},
+                WorkingContainer = container
+            });
 
             // send "create actor" request to container or enqueue it to pending list
 
@@ -222,18 +224,20 @@ namespace Akka.Cluster.Utility
                 container.Tell(new DistributedActorTableMessage<TKey>.Internal.Create(id, args));
             }
             else
+            {
                 _queuedCreatingExists = true;
+            }
         }
 
         private object CreateReplyMessage(RequestType requestType, TKey id, IActorRef actor, bool created)
         {
             return requestType switch
-                   {
-                       RequestType.Create      => new DistributedActorTableMessage<TKey>.CreateReply(id, actor),
-                       RequestType.GetOrCreate => new DistributedActorTableMessage<TKey>.GetOrCreateReply(id, actor, created),
-                       RequestType.Get         => new DistributedActorTableMessage<TKey>.GetReply(id, actor),
-                       _                       => throw new ArgumentOutOfRangeException(nameof(requestType), requestType, null)
-                   };
+            {
+                RequestType.Create => new DistributedActorTableMessage<TKey>.CreateReply(id, actor),
+                RequestType.GetOrCreate => new DistributedActorTableMessage<TKey>.GetOrCreateReply(id, actor, created),
+                RequestType.Get => new DistributedActorTableMessage<TKey>.GetReply(id, actor),
+                _ => throw new ArgumentOutOfRangeException(nameof(requestType), requestType, null)
+            };
         }
 
         private void PutOnCreateWaitingList(RequestType requestType, TKey id, IActorRef requester)
@@ -346,10 +350,8 @@ namespace Akka.Cluster.Utility
             _stopping = true;
 
             if (_containerMap.Count > 0)
-            {
                 foreach (var i in _containerMap)
                     i.Key.Tell(new DistributedActorTableMessage<TKey>.Internal.GracefulStop(m.StopMessage));
-            }
             else
                 Context.Stop(Self);
         }
@@ -368,7 +370,8 @@ namespace Akka.Cluster.Utility
 
             if (actor != null)
             {
-                _log.Error($"I got CreateReply but already have an actor. (Id={id} Actor={actor} ArrivedActor={m.Actor})");
+                _log.Error(
+                    $"I got CreateReply but already have an actor. (Id={id} Actor={actor} ArrivedActor={m.Actor})");
                 return;
             }
 

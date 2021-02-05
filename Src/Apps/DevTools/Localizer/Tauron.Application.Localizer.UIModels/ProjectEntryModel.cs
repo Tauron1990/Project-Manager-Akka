@@ -19,7 +19,8 @@ namespace Tauron.Application.Localizer.UIModels
         private readonly string _projectName;
         private readonly Action<(string ProjectName, string EntryName, ActiveLanguage Lang, string Content)> _updater;
 
-        public ProjectEntryModel(Project project, LocEntry target, Action<(string ProjectName, string EntryName, ActiveLanguage Lang, string Content)> updater,
+        public ProjectEntryModel(Project project, LocEntry target,
+            Action<(string ProjectName, string EntryName, ActiveLanguage Lang, string Content)> updater,
             Action<(string ProjectName, string EntryName)> remove)
         {
             _updater = updater;
@@ -33,11 +34,9 @@ namespace Tauron.Application.Localizer.UIModels
             CopyCommand = new SimpleCommand(() => Clipboard.SetText(EntryName));
 
             foreach (var language in project.ActiveLanguages)
-            {
                 _entries.Add(target.Values.TryGetValue(language, out var content)
-                                 ? new ProjectLangEntry(EntryChanged, language, content)
-                                 : new ProjectLangEntry(EntryChanged, language, string.Empty));
-            }
+                    ? new ProjectLangEntry(EntryChanged, language, content)
+                    : new ProjectLangEntry(EntryChanged, language, string.Empty));
         }
 
         public string EntryName { get; }

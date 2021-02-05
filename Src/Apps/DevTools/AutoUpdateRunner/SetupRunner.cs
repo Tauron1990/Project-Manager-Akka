@@ -74,8 +74,8 @@ namespace AutoUpdateRunner
             newVersion = ZipFile.Open(_info.DownloadFile, ZipArchiveMode.Read);
             // ReSharper disable once InvertIf
             if (Validate(_info.StartFile, nameof(_info.StartFile), Path.HasExtension)
-             && Validate(_info.RunningProcess, nameof(_info.RunningProcess), i => i > 0)
-             && Validate(_info.Target, nameof(_info.Target), Directory.Exists))
+                && Validate(_info.RunningProcess, nameof(_info.RunningProcess), i => i > 0)
+                && Validate(_info.Target, nameof(_info.Target), Directory.Exists))
                 return false;
 
             _logger.Warning("Validating Data Failed");
@@ -101,7 +101,9 @@ namespace AutoUpdateRunner
                     break;
                 }
             }
-            catch (ArgumentException) { }
+            catch (ArgumentException)
+            {
+            }
             catch (Exception e)
             {
                 _logger.Error(e, "Error on Getting Process");
@@ -113,7 +115,8 @@ namespace AutoUpdateRunner
             try
             {
                 Directory.SetCurrentDirectory(_info.Target);
-                Process.Start(Path.Combine(_info.Target, _info.StartFile), $"--cleanup true --id {Process.GetCurrentProcess().Id}");
+                Process.Start(Path.Combine(_info.Target, _info.StartFile),
+                    $"--cleanup true --id {Process.GetCurrentProcess().Id}");
             }
             catch (Exception e)
             {
@@ -138,7 +141,6 @@ namespace AutoUpdateRunner
             {
                 var currentTarget = elements.Dequeue();
                 foreach (var info in currentTarget.Dic.EnumerateFileSystemInfos())
-                {
                     switch (info)
                     {
                         case FileInfo file:
@@ -150,7 +152,6 @@ namespace AutoUpdateRunner
                             elements.Enqueue((dic, dic.FullName, newPath));
                             break;
                     }
-                }
             }
         }
 

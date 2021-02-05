@@ -34,11 +34,13 @@ namespace Akkatecture.Jobs
             ImmutableDictionary<TIdentity, Schedule<TJob, TIdentity>> entries)
             => Entries = entries;
 
-        public static SchedulerState<TJob, TIdentity> New { get; } = new(ImmutableDictionary<TIdentity, Schedule<TJob, TIdentity>>.Empty);
+        public static SchedulerState<TJob, TIdentity> New { get; } =
+            new(ImmutableDictionary<TIdentity, Schedule<TJob, TIdentity>>.Empty);
 
         public ImmutableDictionary<TIdentity, Schedule<TJob, TIdentity>> Entries { get; }
 
-        public SchedulerState<TJob, TIdentity> AddEntry(Schedule<TJob, TIdentity> entry) => new(Entries.SetItem(entry.JobId, entry));
+        public SchedulerState<TJob, TIdentity> AddEntry(Schedule<TJob, TIdentity> entry)
+            => new(Entries.SetItem(entry.JobId, entry));
 
         public SchedulerState<TJob, TIdentity> RemoveEntry(TIdentity jobId) => new(Entries.Remove(jobId));
     }

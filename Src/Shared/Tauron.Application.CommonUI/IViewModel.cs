@@ -14,5 +14,7 @@ namespace Tauron.Application.CommonUI
         public void AwaitInit(Action waiter);
     }
 
-    public interface IViewModel<TModel> : IViewModel { }
+    public interface IViewModel<TModel> : IViewModel
+    {
+    }
 }

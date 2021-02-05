@@ -41,8 +41,8 @@ namespace Akkatecture.Query
             where TJournal : IEventsByTagQuery, ICurrentEventsByTagQuery
         {
             var readJournal = PersistenceQuery
-                             .Get(ActorSystem)
-                             .ReadJournalFor<TJournal>(readJournalPluginId);
+                .Get(ActorSystem)
+                .ReadJournalFor<TJournal>(readJournalPluginId);
 
             return new Consumer<TJournal>(Name, ActorSystem, readJournal);
         }
@@ -67,12 +67,12 @@ namespace Akkatecture.Query
             var aggregateName = typeof(TAggregate).GetAggregateName();
 
             return Journal
-                  .EventsByTag(aggregateName.Value, offset)
-                  .Select(x =>
-                          {
-                              var domainEvent = mapper.FromJournal(x.Event, string.Empty).Events.Single();
-                              return new EventEnvelope(x.Offset, x.PersistenceId, x.SequenceNr, domainEvent);
-                          });
+                .EventsByTag(aggregateName.Value, offset)
+                .Select(x =>
+                {
+                    var domainEvent = mapper.FromJournal(x.Event, string.Empty).Events.Single();
+                    return new EventEnvelope(x.Offset, x.PersistenceId, x.SequenceNr, domainEvent);
+                });
         }
 
         public Source<EventEnvelope, NotUsed> CurrentEventsFromAggregate<TAggregate>(Offset? offset = null)
@@ -82,12 +82,12 @@ namespace Akkatecture.Query
             var aggregateName = typeof(TAggregate).GetAggregateName();
 
             return Journal
-                  .EventsByTag(aggregateName.Value, offset)
-                  .Select(x =>
-                          {
-                              var domainEvent = mapper.FromJournal(x.Event, string.Empty).Events.Single();
-                              return new EventEnvelope(x.Offset, x.PersistenceId, x.SequenceNr, domainEvent);
-                          });
+                .EventsByTag(aggregateName.Value, offset)
+                .Select(x =>
+                {
+                    var domainEvent = mapper.FromJournal(x.Event, string.Empty).Events.Single();
+                    return new EventEnvelope(x.Offset, x.PersistenceId, x.SequenceNr, domainEvent);
+                });
         }
     }
 }

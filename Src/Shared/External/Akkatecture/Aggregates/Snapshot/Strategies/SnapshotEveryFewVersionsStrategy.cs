@@ -39,7 +39,8 @@ namespace Akkatecture.Aggregates.Snapshot.Strategies
         public static ISnapshotStrategy Default { get; } = With();
 
 
-        public bool ShouldCreateSnapshot(IAggregateRoot snapshotAggregateRoot) => snapshotAggregateRoot.Version % SnapshotAfterVersions == 0 && !snapshotAggregateRoot.IsNew;
+        public bool ShouldCreateSnapshot(IAggregateRoot snapshotAggregateRoot)
+            => snapshotAggregateRoot.Version % SnapshotAfterVersions == 0 && !snapshotAggregateRoot.IsNew;
 
         public static SnapshotEveryFewVersionsStrategy With(
             int snapshotAfterVersions = DefautSnapshotAfterVersions)

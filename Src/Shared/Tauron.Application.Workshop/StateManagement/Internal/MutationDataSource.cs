@@ -18,7 +18,8 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
                 source.Dispose();
         }
 
-        public async Task<MutatingContext<TData>> GetData(IQuery query) => MutatingContext<TData>.New(await _original.GetData(query));
+        public async Task<MutatingContext<TData>> GetData(IQuery query)
+            => MutatingContext<TData>.New(await _original.GetData(query));
 
         public async Task SetData(IQuery query, MutatingContext<TData> data)
         {

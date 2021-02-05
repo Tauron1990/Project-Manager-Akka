@@ -8,7 +8,8 @@ namespace Tauron.Application.Workshop
     [PublicAPI]
     public static class EventSourceExtensions
     {
-        public static void RespondOnEventSource<TData>(this IObservableActor actor, IEventSource<TData> eventSource, Action<TData> action)
+        public static void RespondOnEventSource<TData>(this IObservableActor actor, IEventSource<TData> eventSource,
+            Action<TData> action)
         {
             eventSource.RespondOn(ObservableActor.ExposedContext.Self);
             actor.Receive<TData>(obs => obs.SubscribeWithStatus(action));
@@ -37,7 +38,8 @@ namespace Tauron.Application.Workshop
                 _selector = selector;
             }
 
-            public IObservable<TNext> With<TNext>(Func<TMutator, IEventSource<TNext>> eventSource, Func<TMutator, Action<TRecieve>> run)
+            public IObservable<TNext> With<TNext>(Func<TMutator, IEventSource<TNext>> eventSource,
+                Func<TMutator, Action<TRecieve>> run)
             {
                 With(run);
                 return eventSource(_mutator);

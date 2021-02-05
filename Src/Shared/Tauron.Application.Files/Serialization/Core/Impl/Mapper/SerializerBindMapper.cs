@@ -10,7 +10,8 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Mapper
         private readonly StreamManager? _manager;
         private readonly ISerializer? _serializer;
 
-        public SerializerBindMapper(string? membername, Type targetType, ISerializer? serializer, StreamManager? manager)
+        public SerializerBindMapper(string? membername, Type targetType, ISerializer? serializer,
+            StreamManager? manager)
             : base(membername, targetType)
         {
             _serializer = serializer;

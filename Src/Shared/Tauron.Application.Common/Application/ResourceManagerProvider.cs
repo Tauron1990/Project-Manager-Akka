@@ -29,7 +29,10 @@ namespace Tauron.Application
             if (key != null && Resources.TryGetValue(key, out var rm))
                 return rm.GetString(name);
 
-            return searchEverywere ? Resources.Select(rm2 => rm2.Value.GetString(name)).FirstOrDefault(str => !string.IsNullOrWhiteSpace(str)) : null;
+            return searchEverywere
+                ? Resources.Select(rm2 => rm2.Value.GetString(name))
+                    .FirstOrDefault(str => !string.IsNullOrWhiteSpace(str))
+                : null;
         }
     }
 }

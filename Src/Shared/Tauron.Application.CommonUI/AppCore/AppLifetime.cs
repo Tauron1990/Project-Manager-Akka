@@ -27,10 +27,10 @@ namespace Tauron.Application.CommonUI.AppCore
             void ShutdownApp()
             {
                 Task.Run(async () =>
-                         {
-                             await Task.Delay(TimeSpan.FromSeconds(60));
-                             Process.GetCurrentProcess().Kill(false);
-                         });
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(60));
+                    Process.GetCurrentProcess().Kill(false);
+                });
                 system.Terminate();
             }
 
@@ -42,32 +42,33 @@ namespace Tauron.Application.CommonUI.AppCore
                 _internalApplication.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
                 _internalApplication.Startup += (_, _) =>
-                                                {
-                                                    DispatcherScheduler.CurrentDispatcher = DispatcherScheduler.From(scope.Resolve<IUIDispatcher>());
+                {
+                    DispatcherScheduler.CurrentDispatcher = DispatcherScheduler.From(scope.Resolve<IUIDispatcher>());
 
-                                                    // ReSharper disable AccessToDisposedClosure
-                                                    var splash = scope.ResolveOptional<ISplashScreen>()?.Window;
-                                                    splash?.Show();
+                    // ReSharper disable AccessToDisposedClosure
+                    var splash = scope.ResolveOptional<ISplashScreen>()?.Window;
+                    splash?.Show();
 
-                                                    var mainWindow = scope.Resolve<IMainWindow>();
-                                                    mainWindow.Window.Show();
-                                                    mainWindow.Shutdown += (_, _)
-                                                                               => ShutdownApp();
+                    var mainWindow = scope.Resolve<IMainWindow>();
+                    mainWindow.Window.Show();
+                    mainWindow.Shutdown += (_, _)
+                        => ShutdownApp();
 
-                                                    splash?.Hide();
-                                                    // ReSharper restore AccessToDisposedClosure
-                                                };
+                    splash?.Hide();
+                    // ReSharper restore AccessToDisposedClosure
+                };
 
-                system.RegisterOnTermination(() => _internalApplication.Dispatcher.Post(() => _internalApplication.Shutdown(0)));
+                system.RegisterOnTermination(()
+                    => _internalApplication.Dispatcher.Post(() => _internalApplication.Shutdown(0)));
 
                 _shutdownWaiter.SetResult(_internalApplication.Run());
             }
 
             Thread uiThread = new(Runner)
-                              {
-                                  Name = "UI Thread",
-                                  IsBackground = true
-                              };
+            {
+                Name = "UI Thread",
+                IsBackground = true
+            };
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 uiThread.SetApartmentState(ApartmentState.STA);
             uiThread.Start();

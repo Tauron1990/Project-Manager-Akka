@@ -11,7 +11,8 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Converter
         private readonly SimpleConverter<string> _baseConverter;
         private readonly ListBuilder _listBuilder;
 
-        public UniversalListConverter([NotNull] SimpleConverter<string> baseConverter, [NotNull] ListBuilder listBuilder)
+        public UniversalListConverter([NotNull] SimpleConverter<string> baseConverter,
+            [NotNull] ListBuilder listBuilder)
         {
             _baseConverter = Argument.NotNull(baseConverter, nameof(baseConverter));
             _listBuilder = Argument.NotNull(listBuilder, nameof(listBuilder));

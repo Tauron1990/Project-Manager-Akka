@@ -123,8 +123,8 @@ namespace Akkatecture.Cluster.Core
 
 
             actorSystem.ActorOf(Props.Create(() =>
-                                                 new ShardedAggregateSagaDispatcher<TAggregateSagaManager, TAggregateSaga, TIdentity, TSagaLocator>(
-                                                     clusterRoleName, numberOfShards)), $"{typeof(TAggregateSaga).Name}Dispatcher");
+                new ShardedAggregateSagaDispatcher<TAggregateSagaManager, TAggregateSaga, TIdentity, TSagaLocator>(
+                    clusterRoleName, numberOfShards)), $"{typeof(TAggregateSaga).Name}Dispatcher");
 
             return shardRef;
         }

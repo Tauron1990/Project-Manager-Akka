@@ -75,7 +75,8 @@ namespace Tauron.Application.Files.Serialization.Core.Managment
             return obj;
         }
 
-        protected object BuildObject() => Argument.CheckResult(_builder?.BuilderFunc?.Invoke(_builder.CustomObject), "Object Build Was null");
+        protected object BuildObject() => Argument.CheckResult(_builder?.BuilderFunc?.Invoke(_builder.CustomObject),
+            "Object Build Was null");
 
         private void Progress(object graph, IStreamSource target, SerializerMode mode)
         {

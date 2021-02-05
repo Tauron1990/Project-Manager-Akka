@@ -77,7 +77,8 @@ namespace Tauron.Temp
         }
 
         /// <inheritdoc />
-        public override Task FlushAsync(CancellationToken cancellationToken) => _wrappedStream.FlushAsync(cancellationToken);
+        public override Task FlushAsync(CancellationToken cancellationToken)
+            => _wrappedStream.FlushAsync(cancellationToken);
 
         /// <inheritdoc />
         public override int GetHashCode() => _wrappedStream.GetHashCode();

@@ -24,7 +24,9 @@ namespace Tauron.Application.CommonUI.Commands
         }
 
         public SimpleReactiveCommand()
-            : this(Observable.Return(true)) { }
+            : this(Observable.Return(true))
+        {
+        }
 
         public void Dispose()
         {
