@@ -39,8 +39,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
         private IReadOnlyCollection<IReducer<TData>> Reducers { get; }
         private ExtendedMutatingEngine<MutatingContext<TData>> MutatingEngine { get; }
 
-        public override IDataMutation? TryDipatch(IStateAction action, IObserver<IReducerResult> sendResult,
-            IObserver<Unit> onCompled)
+        public override IDataMutation? TryDipatch(IStateAction action, IObserver<IReducerResult> sendResult, IObserver<Unit> onCompled)
         {
             var reducers = Reducers.Where(r => r.ShouldReduceStateForAction(action)).ToList();
             if (reducers.Count == 0)
@@ -78,7 +77,6 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
                                             });
                                     })).Switch().Publish().RefCount();
 
-                            subs.Add(processor.Select(_ => Unit.Default).Subscribe(onCompled));
                             subs.Add(processor.Cast<IReducerResult>().Subscribe(sendResult));
                             subs.Add(processor.Subscribe(_ => { }, () => subs.Dispose()));
 
@@ -89,7 +87,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
                             onCompled.OnCompleted();
                             throw;
                         }
-                    });
+                    }, onCompled);
         }
 
         public override void Dispose()

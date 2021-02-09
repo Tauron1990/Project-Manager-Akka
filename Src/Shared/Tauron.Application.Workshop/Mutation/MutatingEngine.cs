@@ -108,18 +108,15 @@ namespace Tauron.Application.Workshop.Mutation
         public IEventSource<TRespond> EventSource<TRespond>(Func<IObservable<TData>, IObservable<TRespond>> transform)
             => new EventSource<TRespond, TData>(_superviser, _mutator, transform(_responder));
 
-        public void Mutate(string name, IQuery query, Func<IObservable<TData>, IObservable<TData?>> transform)
-        {
-            Mutate(CreateMutate(name, query, transform));
-        }
+        public void Mutate(string name, IQuery query, Func<IObservable<TData>, IObservable<TData?>> transform, IObserver<Unit>? onCompled = null) 
+            => Mutate(CreateMutate(name, query, transform, onCompled));
 
-        public IDataMutation CreateMutate(string name, IQuery query,
-            Func<IObservable<TData>, IObservable<TData?>> transform)
+        public IDataMutation CreateMutate(string name, IQuery query, Func<IObservable<TData>, IObservable<TData?>> transform, IObserver<Unit>? onCompled = null)
         {
             async Task Runner()
             {
                 var sender = new Subject<TData>();
-                _responder.Push(query, transform(sender).NotNull());
+                _responder.Push(query, transform(sender).NotNull(), onCompled);
 
                 var data = await _dataSource.GetData(query);
 
@@ -144,9 +141,9 @@ namespace Tauron.Application.Workshop.Mutation
 
             public IDisposable Subscribe(IObserver<TData> observer) => _handler.Subscribe(observer);
 
-            public void Push(IQuery query, IObservable<TData> dataFunc)
+            public void Push(IQuery query, IObservable<TData> dataFunc, IObserver<Unit>? onCompled)
             {
-                dataFunc
+                var handler = dataFunc
                     .SelectMany(async data =>
                     {
                         try
@@ -161,8 +158,12 @@ namespace Tauron.Application.Workshop.Mutation
 
                         return Unit.Default;
                     })
-                    .Timeout(TimeSpan.FromMinutes(10))
-                    .Subscribe();
+                    .Timeout(TimeSpan.FromMinutes(10));
+
+                if (onCompled == null)
+                    handler.Subscribe();
+                else
+                    handler.SubscribeSafe(onCompled);
             }
         }
     }
