@@ -5,7 +5,7 @@ using JetBrains.Annotations;
 namespace Tauron.Application.Workshop.StateManagement.Dispatcher
 {
     [PublicAPI]
-    public sealed class ConcurentStateDispatcher : IStateDispatcherConfigurator
+    public sealed class ConcurrentStateDispatcher : IStateDispatcherConfigurator
     {
         public Props Configurate(Props mutator) => mutator.WithRouter(
             new SmallestMailboxPool(2,

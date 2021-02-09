@@ -149,15 +149,11 @@ namespace Tauron.Application.Workshop.StateManagement
                         : OperationResult.Success(_action), ActorRefs.NoSender);
             }
 
-            public void PushWork()
-            {
-                Interlocked.Increment(ref _pending);
-            }
+            public void PushWork() 
+                => Interlocked.Increment(ref _pending);
 
-            public IObserver<IReducerResult> AddResult()
-            {
-                return _result ??= new AnonymousObserver<IReducerResult>(n => _results.Add(n), _ => { });
-            }
+            public IObserver<IReducerResult> AddResult() 
+                => _result ??= new AnonymousObserver<IReducerResult>(n => _results.Add(n), _ => { });
 
             public IObserver<Unit> WorkCompled()
             {
