@@ -5,7 +5,7 @@ namespace Tauron.Application.Workshop.StateManagement
 {
     public interface IDataSourceFactory
     {
-        Func<IExtendedDataSource<TData>> Create<TData>()
+        Func<IExtendedDataSource<TData>> Create<TData>(CreationMetadata? metadata)
             where TData : class, IStateEntity;
     }
 }

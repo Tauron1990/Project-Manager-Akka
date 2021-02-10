@@ -10,22 +10,33 @@ namespace Tauron.Application.Workshop.StateManagement.DataFactorys
     public abstract class SingleValueDataFactory<TData> : AdvancedDataSourceFactory
         where TData : IStateEntity
     {
-        private readonly Lazy<object> _lazyData;
-
-        protected SingleValueDataFactory()
-        {
-            _lazyData = new Lazy<object>(() => new SingleValueSource(CreateValue()),
-                LazyThreadSafetyMode.ExecutionAndPublication);
-        }
+        private readonly object _lock = new();
+        private SingleValueSource? _source;
 
         public override bool CanSupply(Type dataType) => dataType == typeof(TData);
 
-        public override Func<IExtendedDataSource<TRealData>> Create<TRealData>()
+        public override Func<IExtendedDataSource<TRealData>> Create<TRealData>(CreationMetadata? metadata)
         {
-            return () => (IExtendedDataSource<TRealData>) _lazyData.Value;
+            return () =>
+                   {
+                       if (_source != null) return (IExtendedDataSource<TRealData>) (object) _source;
+                       
+                       lock (_lock)
+                       {
+                           switch (_source)
+                           {
+                               case null:
+                                   _source = new SingleValueSource(CreateValue(metadata));
+                                   return (IExtendedDataSource<TRealData>) (object) _source;
+                               default:
+                                   return (IExtendedDataSource<TRealData>) (object) _source;
+                           }
+                       }
+
+                   };
         }
 
-        protected abstract Task<TData> CreateValue();
+        protected abstract Task<TData> CreateValue(CreationMetadata? metadata);
 
         private sealed class SingleValueSource : IExtendedDataSource<TData>, IDisposable
         {

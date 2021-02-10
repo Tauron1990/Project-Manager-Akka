@@ -17,17 +17,14 @@ namespace Tauron.Application.Workshop.StateManagement
     [PublicAPI]
     public static class ManagerBuilderExtensions
     {
-        public static ContainerBuilder RegisterStateManager(this ContainerBuilder builder,
-            Action<ManagerBuilder, IComponentContext> configAction)
+        public static ContainerBuilder RegisterStateManager(this ContainerBuilder builder, Action<ManagerBuilder, IComponentContext> configAction)
             => RegisterStateManager(builder, new AutofacOptions(), configAction);
 
-        public static ContainerBuilder RegisterStateManager(this ContainerBuilder builder,
-            bool registerWorkspaceSuperviser, Action<ManagerBuilder, IComponentContext> configAction)
+        public static ContainerBuilder RegisterStateManager(this ContainerBuilder builder, bool registerWorkspaceSuperviser, Action<ManagerBuilder, IComponentContext> configAction)
             => RegisterStateManager(builder, new AutofacOptions {RegisterSuperviser = registerWorkspaceSuperviser},
                 configAction);
 
-        public static ContainerBuilder RegisterStateManager(this ContainerBuilder builder, AutofacOptions options,
-            Action<ManagerBuilder, IComponentContext> configAction)
+        public static ContainerBuilder RegisterStateManager(this ContainerBuilder builder, AutofacOptions options, Action<ManagerBuilder, IComponentContext> configAction)
         {
             static bool ImplementInterface(Type target, Type interfac) => target.GetInterface(interfac.Name) != null;
 
@@ -60,14 +57,56 @@ namespace Tauron.Application.Workshop.StateManagement
             IComponentContext? context = null) => AddFromAssembly(builder, typeof(TType).Assembly, factory, context);
 
         public static ManagerBuilder AddFromAssembly(this ManagerBuilder builder, Assembly assembly,
-            IDataSourceFactory factory, IComponentContext? context = null)
+            IDataSourceFactory factory, IComponentContext? context = null, CreationMetadata? metadata = null)
         {
-            new ReflectionSearchEngine(assembly, context).Add(builder, factory);
+            new ReflectionSearchEngine(Enumerable.Repeat(assembly, 1), context).Add(builder, factory, metadata);
             return builder;
         }
 
+        public static ManagerBuilder AddFromAssembly(this ManagerBuilder builder,
+            IDataSourceFactory factory, IComponentContext? context, CreationMetadata? metadata, IEnumerable<Assembly> assembly)
+        {
+            new ReflectionSearchEngine(assembly, context).Add(builder, factory, metadata);
+            return builder;
+        }
+
+        public static ManagerBuilder AddFromAssembly(this ManagerBuilder builder,
+            IDataSourceFactory factory, IComponentContext? context, CreationMetadata? metadata, params Assembly[] assembly)
+        {
+            new ReflectionSearchEngine(assembly, context).Add(builder, factory, metadata);
+            return builder;
+        }
+
+        public static ManagerBuilder AddFromAssembly(this ManagerBuilder builder,
+            IDataSourceFactory factory, IComponentContext? context, params Assembly[] assembly)
+            => AddFromAssembly(builder, factory, context, null, assembly);
+
+        public static ManagerBuilder AddFromAssembly(this ManagerBuilder builder,
+            IDataSourceFactory factory, CreationMetadata metadata, params Assembly[] assembly)
+            => AddFromAssembly(builder, factory, null, metadata, assembly);
+
+        public static ManagerBuilder AddFromAssembly(this ManagerBuilder builder,
+            IDataSourceFactory factory, params Assembly[] assembly)
+            => AddFromAssembly(builder, factory, null, null, assembly);
+
         public static ManagerBuilder AddFromAssembly<TType>(this ManagerBuilder builder, IComponentContext context)
             => AddFromAssembly(builder, typeof(TType).Assembly, context);
+
+        public static ManagerBuilder AddFromAssembly(this ManagerBuilder builder,
+            IDataSourceFactory factory, IComponentContext? context, CreationMetadata metadata, params Type[] assembly)
+            => AddFromAssembly(builder, factory, context, metadata, assembly.Select(t => t.Assembly));
+
+        public static ManagerBuilder AddFromAssembly(this ManagerBuilder builder,
+            IDataSourceFactory factory, IComponentContext? context, params Type[] assembly)
+            => AddFromAssembly(builder, factory, context, null, assembly.Select(t => t.Assembly));
+
+        public static ManagerBuilder AddFromAssembly(this ManagerBuilder builder,
+            IDataSourceFactory factory, CreationMetadata metadata, params Type[] assembly)
+            => AddFromAssembly(builder, factory, null, metadata, assembly.Select(t => t.Assembly));
+
+        public static ManagerBuilder AddFromAssembly(this ManagerBuilder builder,
+            IDataSourceFactory factory, params Type[] assembly)
+            => AddFromAssembly(builder, factory, null, null, assembly.Select(t => t.Assembly));
 
         public static ManagerBuilder
             AddFromAssembly(this ManagerBuilder builder, Assembly assembly, IComponentContext context)
