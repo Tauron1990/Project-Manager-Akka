@@ -11,19 +11,13 @@ namespace Tauron.Application.Workshop.StateManagement.DataFactorys
     {
         private ConcurrentBag<AdvancedDataSourceFactory> _factories = new();
 
-        public void Register(AdvancedDataSourceFactory factory)
-        {
-            _factories.Add(factory);
-        }
+        public void Register(AdvancedDataSourceFactory factory) => _factories.Add(factory);
 
-        public override bool CanSupply(Type dataType)
-        {
-            return _factories.Any(f => f.CanSupply(dataType));
-        }
+        public override bool CanSupply(Type dataType) => _factories.Any(f => f.CanSupply(dataType));
 
-        public override Func<IExtendedDataSource<TData>> Create<TData>()
+        public override Func<IExtendedDataSource<TData>> Create<TData>(CreationMetadata? metadata)
         {
-            return _factories.First(f => f.CanSupply(typeof(TData))).Create<TData>();
+            return _factories.First(f => f.CanSupply(typeof(TData))).Create<TData>(metadata);
         }
     }
 }

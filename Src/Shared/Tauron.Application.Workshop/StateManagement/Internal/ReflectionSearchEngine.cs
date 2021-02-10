@@ -20,16 +20,16 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
                 BindingFlags.Static | BindingFlags.NonPublic)
             ?? throw new InvalidOperationException("Method not Found");
 
-        private readonly Assembly _assembly;
+        private readonly IEnumerable<Assembly> _assembly;
         private readonly IComponentContext? _context;
 
-        public ReflectionSearchEngine(Assembly assembly, IComponentContext? context)
+        public ReflectionSearchEngine(IEnumerable<Assembly> assembly, IComponentContext? context)
         {
             _assembly = assembly;
             _context = context;
         }
 
-        public void Add(ManagerBuilder builder, IDataSourceFactory factory)
+        public void Add(ManagerBuilder builder, IDataSourceFactory factory, CreationMetadata? metadata)
         {
             Func<TType> CreateFactory<TType>(Type target)
             {
@@ -38,7 +38,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
                 return () => (TType) Activator.CreateInstance(target)!;
             }
 
-            var types = _assembly.GetTypes();
+            var types = _assembly.SelectMany(a => a.GetTypes()).ToArray();
             var states = new List<(Type, string?)>();
             var reducers = new GroupDictionary<Type, Type>();
             var factorys = new List<AdvancedDataSourceFactory>();
@@ -85,7 +85,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
 
                 var dataType = type.BaseType.GetGenericArguments()[0];
                 var actualMethod = ConfigurateStateMethod.MakeGenericMethod(dataType);
-                actualMethod.Invoke(null, new object?[] {type, builder, factory, reducers, key});
+                actualMethod.Invoke(null, new object?[] {type, builder, factory, reducers, key, metadata});
             }
 
             foreach (var processor in processors)
@@ -93,10 +93,10 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
         }
 
         private static void ConfigurateState<TData>(Type target, ManagerBuilder builder, IDataSourceFactory factory,
-            GroupDictionary<Type, Type> reducerMap, string? key)
+            GroupDictionary<Type, Type> reducerMap, string? key, CreationMetadata? metadata)
             where TData : class, IStateEntity
         {
-            var config = builder.WithDataSource(factory.Create<TData>());
+            var config = builder.WithDataSource(factory.Create<TData>(metadata));
 
             if (!string.IsNullOrWhiteSpace(key))
                 config.WithKey(key);
