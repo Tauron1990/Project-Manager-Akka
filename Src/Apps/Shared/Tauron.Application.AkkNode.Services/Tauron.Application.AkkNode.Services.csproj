@@ -35,4 +35,8 @@
     <ProjectReference Include="..\..\..\Shared\Tauron.Application.Common\Tauron.Application.Common.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="MongoDb\" />
+  </ItemGroup>
+
 </Project>
