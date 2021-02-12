@@ -1,4 +1,5 @@
-﻿using Autofac;
+﻿using System;
+using Autofac;
 using JetBrains.Annotations;
 using MongoDB.Driver;
 using Tauron.Application.Workshop.StateManagement;
@@ -19,7 +20,7 @@ namespace Tauron.Application.AkkaNode.Services.MongoDb
             builder.Register(ctx => new MongoDatabase(ctx.Resolve<IClientPool>().Get(url).GetDatabase(database), database)).AsSelf().SingleInstance();
         }
 
-        public static ManagerBuilder AddMongoFromAssembly(this ManagerBuilder builder, IComponentContext context)
-            => builder.AddFromAssembly(context.Resolve<MongoDataBaseFactory>())
+        public static ManagerBuilder AddMongoFromAssembly(this ManagerBuilder builder, IComponentContext context, string database, params Type[] types)
+            => builder.AddFromAssembly(context.Resolve<MongoDataBaseFactory>(), context, new CreationMetadata {{MongoDataBaseFactory.MongoDatabaseNameMeta, database}}, types);
     }
 }

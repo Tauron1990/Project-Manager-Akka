@@ -1,6 +1,6 @@
 ﻿using MongoDB.Bson;
 
-namespace Tauron.Application.AkkaNode.Services.CleanUp
+namespace Tauron.Application.AkkaNode.Services.CleanOld
 {
     public sealed record ToDeleteRevision(ObjectId Id, string BuckedId)
     {

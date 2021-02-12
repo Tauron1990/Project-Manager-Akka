@@ -14,7 +14,6 @@ namespace Tauron.Features
         void Init(IFeatureActor<TState> actor);
     }
 
-
     [PublicAPI]
     public abstract class ActorFeatureBase<TState> : IFeature<TState>, IFeatureActor<TState>
     {

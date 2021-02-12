@@ -35,4 +35,8 @@
     <ProjectReference Include="..\..\..\Shared\Tauron.Application.Workshop\Tauron.Application.Workshop.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="CleanUp\Core\" />
+  </ItemGroup>
+
 </Project>

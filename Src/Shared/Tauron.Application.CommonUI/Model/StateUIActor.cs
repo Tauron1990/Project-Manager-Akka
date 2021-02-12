@@ -72,10 +72,7 @@ namespace Tauron.Application.CommonUI.Model
                 ActionInvoker.GetState<TState>(name ?? string.Empty) ??
                 throw new ArgumentException("No such State Found"), this);
 
-        public void DispatchAction(IStateAction action, bool? sendBack = true)
-        {
-            ActionInvoker.Run(action, sendBack);
-        }
+        public void DispatchAction(IStateAction action, bool? sendBack = true) => ActionInvoker.Run(action, sendBack);
 
         [PublicAPI]
         public sealed class UIStateConfiguration<TState>

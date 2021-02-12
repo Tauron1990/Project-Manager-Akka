@@ -20,12 +20,18 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
                 BindingFlags.Static | BindingFlags.NonPublic)
             ?? throw new InvalidOperationException("Method not Found");
 
-        private readonly IEnumerable<Assembly> _assembly;
+        private readonly IEnumerable<Type> _types;
         private readonly IComponentContext? _context;
 
-        public ReflectionSearchEngine(IEnumerable<Assembly> assembly, IComponentContext? context)
+        public ReflectionSearchEngine(IEnumerable<Assembly> types, IComponentContext? context)
         {
-            _assembly = assembly;
+            _types = types.SelectMany(asm => asm.GetTypes());
+            _context = context;
+        }
+
+        public ReflectionSearchEngine(IEnumerable<Type> types, IComponentContext? context)
+        {
+            _types = types;
             _context = context;
         }
 
@@ -38,13 +44,12 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
                 return () => (TType) Activator.CreateInstance(target)!;
             }
 
-            var types = _assembly.SelectMany(a => a.GetTypes()).ToArray();
             var states = new List<(Type, string?)>();
             var reducers = new GroupDictionary<Type, Type>();
             var factorys = new List<AdvancedDataSourceFactory>();
             var processors = new List<Type>();
 
-            foreach (var type in types)
+            foreach (var type in _types)
             foreach (var customAttribute in type.GetCustomAttributes(false))
                 switch (customAttribute)
                 {

@@ -6,7 +6,7 @@ using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
 using Tauron.Features;
 
-namespace Tauron.Application.AkkaNode.Services.CleanUp
+namespace Tauron.Application.AkkaNode.Services.CleanOld
 {
     public sealed class CleanUpOperator : ActorFeatureBase<CleanUpOperator.State>
     {
