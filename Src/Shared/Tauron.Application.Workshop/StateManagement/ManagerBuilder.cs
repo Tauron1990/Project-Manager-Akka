@@ -18,6 +18,8 @@ namespace Tauron.Application.Workshop.StateManagement
 
         private Func<IStateDispatcherConfigurator> _dispatcherFunc = () => new DefaultStateDispatcher();
 
+        public IComponentContext? ComponentContext { get; set; }
+
         private bool _sendBackSetting;
 
         internal ManagerBuilder(WorkspaceSuperviser superviser) => Superviser = superviser;
@@ -28,7 +30,7 @@ namespace Tauron.Application.Workshop.StateManagement
         {
             var managerBuilder = new ManagerBuilder(superviser);
             builder(managerBuilder);
-            return managerBuilder.Build(null, null);
+            return managerBuilder.Build(null);
         }
 
         public IWorkspaceMapBuilder<TData> WithWorkspace<TData>(Func<WorkspaceBase<TData>> source)
@@ -72,25 +74,25 @@ namespace Tauron.Application.Workshop.StateManagement
         }
 
 
-        internal RootManager Build(IComponentContext? componentContext, AutofacOptions? autofacOptions)
+        internal RootManager Build(AutofacOptions? autofacOptions)
         {
             List<IEffect> additionalEffects = new();
             List<IMiddleware> additionalMiddlewares = new();
 
-            if (componentContext != null)
+            if (ComponentContext != null)
             {
                 autofacOptions ??= new AutofacOptions();
 
                 if (autofacOptions.ResolveEffects)
-                    additionalEffects.AddRange(componentContext.Resolve<IEnumerable<IEffect>>());
+                    additionalEffects.AddRange(ComponentContext.Resolve<IEnumerable<IEffect>>());
                 if (autofacOptions.ResolveMiddleware)
-                    additionalMiddlewares.AddRange(componentContext.Resolve<IEnumerable<IMiddleware>>());
+                    additionalMiddlewares.AddRange(ComponentContext.Resolve<IEnumerable<IMiddleware>>());
             }
 
             return new RootManager(Superviser, _dispatcherFunc(), _states,
                 _effects.Select(e => e()).Concat(additionalEffects),
                 _middlewares.Select(m => m()).Concat(additionalMiddlewares),
-                _sendBackSetting, componentContext);
+                _sendBackSetting, ComponentContext);
         }
     }
 }

@@ -26,10 +26,8 @@ namespace Tauron.Application.Workshop.StateManagement
         private readonly ConcurrentDictionary<string, ConcurrentBag<StateContainer>> _stateContainers = new();
         private readonly StateContainer[] _states;
 
-        internal RootManager(WorkspaceSuperviser superviser, IStateDispatcherConfigurator stateDispatcher,
-            IEnumerable<StateBuilderBase> states,
-            IEnumerable<IEffect?> effects, IEnumerable<IMiddleware?> middlewares, bool sendBackSetting,
-            IComponentContext? componentContext)
+        internal RootManager(WorkspaceSuperviser superviser, IStateDispatcherConfigurator stateDispatcher, IEnumerable<StateBuilderBase> states,
+            IEnumerable<IEffect?> effects, IEnumerable<IMiddleware?> middlewares, bool sendBackSetting, IComponentContext? componentContext)
         {
             _sendBackSetting = sendBackSetting;
             _engine = MutatingEngine.Create(superviser, stateDispatcher.Configurate);
@@ -38,7 +36,7 @@ namespace Tauron.Application.Workshop.StateManagement
 
             foreach (var stateBuilder in states)
             {
-                var (container, key) = stateBuilder.Materialize(_engine, componentContext);
+                var (container, key) = stateBuilder.Materialize(_engine, componentContext, this);
                 _stateContainers.GetOrAdd(key, _ => new ConcurrentBag<StateContainer>()).Add(container);
             }
 

@@ -36,7 +36,7 @@ namespace Tauron.Application.Workshop.StateManagement
                         {
                             b.When(_ => validation != null && !validation.IsValid,
                                 context => context.Select(c
-                                    => ReducerResult.Fail(c, validation!.Errors.Select(f => f.ErrorMessage))));
+                                    => ReducerResult.Fail<TData>(validation!.Errors.Select(f => f.ErrorMessage))));
                             b.When(_ => validation == null || validation.IsValid,
                                 context =>
                                     Reduce(context.Where(_ => validation == null || validation.IsValid), typedAction)
@@ -53,12 +53,12 @@ namespace Tauron.Application.Workshop.StateManagement
         protected ReducerResult<TData> Sucess(MutatingContext<TData> data) => ReducerResult.Sucess(data);
 
         protected ReducerResult<TData> Fail(MutatingContext<TData> data, IEnumerable<string> errors)
-            => ReducerResult.Fail(data, errors);
+            => ReducerResult.Fail<TData>(errors);
 
         protected Task<ReducerResult<TData>> SucessAsync(MutatingContext<TData> data)
             => Task.FromResult(ReducerResult.Sucess(data));
 
         protected Task<ReducerResult<TData>> FailAsync(MutatingContext<TData> data, IEnumerable<string> errors)
-            => Task.FromResult(ReducerResult.Fail(data, errors));
+            => Task.FromResult(ReducerResult.Fail<TData>(errors));
     }
 }

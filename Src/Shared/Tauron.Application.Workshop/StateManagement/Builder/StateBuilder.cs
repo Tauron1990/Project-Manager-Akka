@@ -10,8 +10,7 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
 {
     public abstract class StateBuilderBase
     {
-        public abstract (StateContainer State, string Key) Materialize(MutatingEngine engine,
-            IComponentContext? componentContext);
+        public abstract (StateContainer State, string Key) Materialize(MutatingEngine engine, IComponentContext? componentContext, IActionInvoker invoker);
     }
 
     public sealed class StateBuilder<TData> : StateBuilderBase, IStateBuilder<TData>
@@ -50,8 +49,7 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
             return this;
         }
 
-        public override (StateContainer State, string Key) Materialize(MutatingEngine engine,
-            IComponentContext? componentContext)
+        public override (StateContainer State, string Key) Materialize(MutatingEngine engine, IComponentContext? componentContext, IActionInvoker invoker)
         {
             if (_state == null)
                 throw new InvalidOperationException("A State type or Instance Must be set");
@@ -64,11 +62,15 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
             IState? targetState = null;
 
             if (componentContext != null)
-                targetState =
-                    componentContext.ResolveOptional(_state, new TypedParameter(dataEngine.GetType(), dataEngine)) as
-                        IState;
+                targetState = componentContext.ResolveOptional(_state, new TypedParameter(dataEngine.GetType(), dataEngine)) as IState;
 
-            targetState ??= FastReflection.Shared.FastCreateInstance(_state, dataEngine) as IState;
+            if (targetState == null)
+            {
+                if (_state.GetConstructors().Single().GetParameters().Length == 1)
+                    targetState = FastReflection.Shared.FastCreateInstance(_state, dataEngine) as IState;
+                else
+                    targetState = FastReflection.Shared.FastCreateInstance(_state, dataEngine, invoker) as IState;
+            }
 
             switch (targetState)
             {
@@ -79,8 +81,7 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
                     throw new InvalidOperationException("Failed to Create State");
             }
 
-            var container = new StateContainer<TData>(targetState, _reducers.Select(r => r()).ToImmutableList(),
-                dataEngine, dataSource);
+            var container = new StateContainer<TData>(targetState, _reducers.Select(r => r()).ToImmutableList(), dataEngine, dataSource);
 
             return (container, _key ?? string.Empty);
         }

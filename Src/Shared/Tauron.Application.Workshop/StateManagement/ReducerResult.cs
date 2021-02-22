@@ -1,15 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using Tauron.Application.Workshop.Mutating;
 
 namespace Tauron.Application.Workshop.StateManagement
 {
+    [PublicAPI]
     public static class ReducerResult
     {
         public static ReducerResult<TData> Sucess<TData>(MutatingContext<TData> data) => new(data, null);
 
-        public static ReducerResult<TData> Fail<TData>(MutatingContext<TData> context, IEnumerable<string> errors)
+        public static ReducerResult<TData> Fail<TData>(IEnumerable<string> errors)
         {
             if (errors is string[] array)
                 return new ReducerResult<TData>(null, array);
@@ -17,9 +19,9 @@ namespace Tauron.Application.Workshop.StateManagement
             return new ReducerResult<TData>(null, errors.ToArray());
         }
 
-        public static ReducerResult<TData> Fail<TData>(MutatingContext<TData> context, string error)
+        public static ReducerResult<TData> Fail<TData>(string error)
         {
-            return Fail(context, new[] {error});
+            return Fail<TData>(new[] {error});
         }
     }
 

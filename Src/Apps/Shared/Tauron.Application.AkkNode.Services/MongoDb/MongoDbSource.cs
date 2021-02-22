@@ -11,11 +11,11 @@ namespace Tauron.Application.AkkaNode.Services.MongoDb
 
         public MongoDbSource(IMongoCollection<TData> data) => _data = data;
 
-        public Task<TData> GetData(IQuery query)
+        public async Task<TData> GetData(IQuery query)
         {
             return query switch
             {
-                MongoQueryBase<TData> mongoQuery => _data.Find(mongoQuery.Create()).FirstOrDefaultAsync(),
+                MongoQueryBase<TData> mongoQuery => await _data.Find(mongoQuery.Create()).SingleOrDefaultAsync(),
                 _ => throw new InvalidOperationException("Only Mongo Query with Correct Type are Valid (MongoQueryBase<TData>)")
             };
         }
@@ -30,7 +30,7 @@ namespace Tauron.Application.AkkaNode.Services.MongoDb
                         ? _data.DeleteOneAsync(mongoQuery.Create()) 
                         : _data.UpdateOneAsync(mongoQuery.Create(), update.CreateUpdate()),
 
-                    _ => _data.ReplaceOneAsync(mongoQuery.Create(), data)
+                    _ => _data.ReplaceOneAsync(mongoQuery.Create(), data, new ReplaceOptions{ IsUpsert = true})
                 },
                 _ => throw new InvalidOperationException("Only Mongo Query with Correct Type are Valid (MongoQueryBase<TData>)")
             };

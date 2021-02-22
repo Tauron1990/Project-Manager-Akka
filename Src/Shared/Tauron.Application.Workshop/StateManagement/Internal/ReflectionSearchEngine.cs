@@ -21,26 +21,17 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
             ?? throw new InvalidOperationException("Method not Found");
 
         private readonly IEnumerable<Type> _types;
-        private readonly IComponentContext? _context;
 
-        public ReflectionSearchEngine(IEnumerable<Assembly> types, IComponentContext? context)
-        {
-            _types = types.SelectMany(asm => asm.GetTypes());
-            _context = context;
-        }
+        public ReflectionSearchEngine(IEnumerable<Assembly> types) => _types = types.SelectMany(asm => asm.GetTypes());
 
-        public ReflectionSearchEngine(IEnumerable<Type> types, IComponentContext? context)
-        {
-            _types = types;
-            _context = context;
-        }
+        public ReflectionSearchEngine(IEnumerable<Type> types) => _types = types;
 
         public void Add(ManagerBuilder builder, IDataSourceFactory factory, CreationMetadata? metadata)
         {
             Func<TType> CreateFactory<TType>(Type target)
             {
-                if (_context != null)
-                    return () => (TType) (_context.ResolveOptional(target) ?? Activator.CreateInstance(target))!;
+                if (builder.ComponentContext != null)
+                    return () => (TType) (builder.ComponentContext.ResolveOptional(target) ?? Activator.CreateInstance(target))!;
                 return () => (TType) Activator.CreateInstance(target)!;
             }
 
@@ -66,7 +57,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
                         reducers.Add(belogsTo.StateType, type);
                         break;
                     case DataSourceAttribute:
-                        factorys.Add((AdvancedDataSourceFactory) (_context?.ResolveOptional(type)
+                        factorys.Add((AdvancedDataSourceFactory) (builder.ComponentContext?.ResolveOptional(type)
                                                                   ?? Activator.CreateInstance(type)
                                                                   ?? throw new InvalidOperationException(
                                                                       "Data Source Creation Failed")));
@@ -82,13 +73,11 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
                 factory = MergeFactory.Merge(factorys.ToArray());
             }
 
-            foreach (var (type, key) in states)
+            foreach (var (type, key) in states
+                                       .SelectMany(i => i.Item1.GetInterfaces().Select(t => (Type: t, Name: i.Item2)))
+                                       .Where(t => t.Type.IsGenericType))
             {
-                if (type == null || type.BaseType?.IsGenericType != true ||
-                    type.BaseType?.GetGenericTypeDefinition() != typeof(StateBase<>))
-                    continue;
-
-                var dataType = type.BaseType.GetGenericArguments()[0];
+                var dataType = type.GetGenericArguments()[0];
                 var actualMethod = ConfigurateStateMethod.MakeGenericMethod(dataType);
                 actualMethod.Invoke(null, new object?[] {type, builder, factory, reducers, key, metadata});
             }
@@ -97,8 +86,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
                 builder.Superviser.CreateAnonym(processor, $"Processor--{processor.Name}");
         }
 
-        private static void ConfigurateState<TData>(Type target, ManagerBuilder builder, IDataSourceFactory factory,
-            GroupDictionary<Type, Type> reducerMap, string? key, CreationMetadata? metadata)
+        private static void ConfigurateState<TData>(Type target, ManagerBuilder builder, IDataSourceFactory factory, GroupDictionary<Type, Type> reducerMap, string? key, CreationMetadata? metadata)
             where TData : class, IStateEntity
         {
             var config = builder.WithDataSource(factory.Create<TData>(metadata));
@@ -115,8 +103,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
 
             foreach (var reducer in reducers)
             {
-                foreach (var method in reducer.GetMethods(BindingFlags.Public | BindingFlags.NonPublic |
-                                                          BindingFlags.Static))
+                foreach (var method in reducer.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static))
                 {
                     if (!method.HasAttribute<ReducerAttribute>())
                         continue;
@@ -128,8 +115,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
                     methods[parms[1].ParameterType] = method;
                 }
 
-                foreach (var property in reducer.GetProperties(BindingFlags.Public | BindingFlags.NonPublic |
-                                                               BindingFlags.Static))
+                foreach (var property in reducer.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static))
                 {
                     if (!property.HasAttribute<ValidatorAttribute>())
                         continue;

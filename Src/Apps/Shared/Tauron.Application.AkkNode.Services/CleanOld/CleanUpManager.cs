@@ -25,10 +25,9 @@ namespace Tauron.Application.AkkaNode.Services.CleanOld
                 .Select(init =>
                 {
                     var (database, cleanUpCollection, _, _, _) = init.State;
-
+                    
                     if (!database.ListCollectionNames().Contains(s => s == cleanUpCollection))
-                        database.CreateCollection("CleanUp",
-                            new CreateCollectionOptions {Capped = true, MaxDocuments = 1, MaxSize = 1024});
+                        database.CreateCollection("CleanUp", new CreateCollectionOptions {Capped = true, MaxDocuments = 1, MaxSize = 1024});
                     return init;
                 })
                 .Select(init => new
@@ -55,8 +54,7 @@ namespace Tauron.Application.AkkaNode.Services.CleanOld
                 .ForwardToActor(props => Context.ActorOf(props)));
         }
 
-        public sealed record CleanUpManagerState(IMongoDatabase Database, string CleanUpCollection,
-            IMongoCollection<ToDeleteRevision> Revisions, GridFSBucket Bucket, bool IsRunning);
+        public sealed record CleanUpManagerState(IMongoDatabase Database, string CleanUpCollection, IMongoCollection<ToDeleteRevision> Revisions, GridFSBucket Bucket, bool IsRunning);
 
         public sealed record InitCleanUp
         {

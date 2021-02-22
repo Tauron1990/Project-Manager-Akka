@@ -27,8 +27,7 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
             return this;
         }
 
-        public override (StateContainer State, string Key) Materialize(MutatingEngine engine,
-            IComponentContext? componentContext) => (
+        public override (StateContainer State, string Key) Materialize(MutatingEngine engine, IComponentContext? componentContext, IActionInvoker invoker) => (
             new WorkspaceContainer<TData>(_map.ToImmutableDictionary(), _workspace()), string.Empty);
     }
 }
