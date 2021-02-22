@@ -36,6 +36,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="MongoDb\" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="CleanUp\Core\" />
   </ItemGroup>
 
