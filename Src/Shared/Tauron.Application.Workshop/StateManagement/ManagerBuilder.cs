@@ -10,7 +10,7 @@ using Tauron.Application.Workshop.StateManagement.Dispatcher;
 namespace Tauron.Application.Workshop.StateManagement
 {
     [PublicAPI]
-    public sealed class ManagerBuilder
+    public sealed class ManagerBuilder : IDispatcherConfigurable<ManagerBuilder>
     {
         private readonly List<Func<IEffect>> _effects = new();
         private readonly List<Func<IMiddleware>> _middlewares = new();

@@ -27,8 +27,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
     {
         private readonly IDisposable _toDispose;
 
-        public StateContainer(IState instance, IReadOnlyCollection<IReducer<TData>> reducers,
-            ExtendedMutatingEngine<MutatingContext<TData>> mutatingEngine, IDisposable toDispose)
+        public StateContainer(IState instance, IReadOnlyCollection<IReducer<TData>> reducers, ExtendedMutatingEngine<MutatingContext<TData>> mutatingEngine, IDisposable toDispose)
             : base(instance)
         {
             _toDispose = toDispose;

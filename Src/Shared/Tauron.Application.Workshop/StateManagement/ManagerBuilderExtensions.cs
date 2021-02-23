@@ -100,7 +100,8 @@ namespace Tauron.Application.Workshop.StateManagement
         public static ManagerBuilder AddTypes(this ManagerBuilder builder, IDataSourceFactory factory, params Type[] types)
             => AddTypes(builder, factory, null, types);
 
-        public static IConcurrentDispatcherConfugiration WithConcurentDispatcher(this ManagerBuilder builder)
+        public static IConcurrentDispatcherConfugiration WithConcurentDispatcher<TReturn>(this IDispatcherConfigurable<TReturn> builder) 
+            where TReturn : IDispatcherConfigurable<TReturn>
         {
             var config = new ConcurrentDispatcherConfugiration();
             builder.WithDispatcher(config.Create);
@@ -108,8 +109,8 @@ namespace Tauron.Application.Workshop.StateManagement
             return config;
         }
 
-        public static IConsistentHashDispatcherPoolConfiguration WithConsistentHashDispatcher(
-            this ManagerBuilder builder)
+        public static IConsistentHashDispatcherPoolConfiguration WithConsistentHashDispatcher<TReturn>(this IDispatcherConfigurable<TReturn> builder)
+            where TReturn : IDispatcherConfigurable<TReturn>
         {
             var config = new ConsistentHashDispatcherConfiguration();
             builder.WithDispatcher(config.Create);
