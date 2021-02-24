@@ -172,13 +172,13 @@ namespace Tauron.Application.Workshop.Mutation
     public class MutatingEngine : DeferredActor
     {
         private readonly Task<IActorRef> _mutator;
-        private readonly WorkspaceSuperviser _superviser;
+        public WorkspaceSuperviser Superviser { get; }
 
         protected MutatingEngine(Task<IActorRef> mutator, WorkspaceSuperviser superviser)
             : base(mutator)
         {
             _mutator = mutator;
-            _superviser = superviser;
+            Superviser = superviser;
         }
 
         public static MutatingEngine Create(WorkspaceSuperviser superviser, Func<Props, Props>? configurate = null)
@@ -204,7 +204,7 @@ namespace Tauron.Application.Workshop.Mutation
         public static ExtendedMutatingEngine<TData> From<TData>(IExtendedDataSource<TData> source,
             MutatingEngine parent)
             where TData : class
-            => new(parent._mutator, source, parent._superviser);
+            => new(parent._mutator, source, parent.Superviser);
 
         public static MutatingEngine<TData> From<TData>(IDataSource<TData> source, WorkspaceSuperviser superviser,
             Func<Props, Props>? configurate = null)
@@ -219,7 +219,7 @@ namespace Tauron.Application.Workshop.Mutation
 
         public static MutatingEngine<TData> From<TData>(IDataSource<TData> source, MutatingEngine parent)
             where TData : class
-            => new(parent._mutator, source, parent._superviser);
+            => new(parent._mutator, source, parent.Superviser);
 
         public static MutatingEngine<TData> Dummy<TData>(IDataSource<TData> source)
             where TData : class

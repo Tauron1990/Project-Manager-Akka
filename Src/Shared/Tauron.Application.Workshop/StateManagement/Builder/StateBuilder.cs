@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Autofac;
+using Tauron.Application.Workshop.Mutating;
 using Tauron.Application.Workshop.Mutation;
+using Tauron.Application.Workshop.StateManagement.Dispatcher;
 using Tauron.Application.Workshop.StateManagement.Internal;
 
 namespace Tauron.Application.Workshop.StateManagement.Builder
@@ -18,22 +20,23 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
     {
         private readonly List<Func<IReducer<TData>>> _reducers = new();
         private readonly Func<IExtendedDataSource<TData>> _source;
-        private string? _key;
 
-        private Type? _state;
+        private Func<IStateDispatcherConfigurator>? _dispatcher;
+        private string? _key;
+        internal Type? State { get; private set; }
 
         public StateBuilder(Func<IExtendedDataSource<TData>> source) => _source = source;
 
         public IStateBuilder<TData> WithStateType<TState>()
             where TState : IState<TData>
         {
-            _state = typeof(TState);
+            State = typeof(TState);
             return this;
         }
 
         public IStateBuilder<TData> WithStateType(Type type)
         {
-            _state = type;
+            State = type;
             return this;
         }
 
@@ -51,25 +54,29 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
 
         public override (StateContainer State, string Key) Materialize(MutatingEngine engine, IComponentContext? componentContext, IActionInvoker invoker)
         {
-            if (_state == null)
+            if (State == null)
                 throw new InvalidOperationException("A State type or Instance Must be set");
 
-            var cacheKey = $"{_state.Name}--{Guid.NewGuid():N}";
+            var cacheKey = $"{State.Name}--{Guid.NewGuid():N}";
             var dataSource = new MutationDataSource<TData>(cacheKey, _source());
 
-            var dataEngine = MutatingEngine.From(dataSource, engine);
+            ExtendedMutatingEngine<MutatingContext<TData>> dataEngine;
+            if (_dispatcher == null)
+                dataEngine = MutatingEngine.From(dataSource, engine);
+            else
+                dataEngine = MutatingEngine.From(dataSource, engine.Superviser, _dispatcher().Configurate);
 
             IState? targetState = null;
 
             if (componentContext != null)
-                targetState = componentContext.ResolveOptional(_state, new TypedParameter(dataEngine.GetType(), dataEngine)) as IState;
+                targetState = componentContext.ResolveOptional(State, new TypedParameter(dataEngine.GetType(), dataEngine)) as IState;
 
             if (targetState == null)
             {
-                if (_state.GetConstructors().Single().GetParameters().Length == 1)
-                    targetState = FastReflection.Shared.FastCreateInstance(_state, dataEngine) as IState;
+                if (State.GetConstructors().Single().GetParameters().Length == 1)
+                    targetState = FastReflection.Shared.FastCreateInstance(State, dataEngine) as IState;
                 else
-                    targetState = FastReflection.Shared.FastCreateInstance(_state, dataEngine, invoker) as IState;
+                    targetState = FastReflection.Shared.FastCreateInstance(State, dataEngine, invoker) as IState;
             }
 
             switch (targetState)
@@ -84,6 +91,12 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
             var container = new StateContainer<TData>(targetState, _reducers.Select(r => r()).ToImmutableList(), dataEngine, dataSource);
 
             return (container, _key ?? string.Empty);
+        }
+
+        public IStateBuilder<TData> WithDispatcher(Func<IStateDispatcherConfigurator> factory)
+        {
+            _dispatcher = factory;
+            return this;
         }
     }
 }

@@ -4,6 +4,7 @@ using JetBrains.Annotations;
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
 using Tauron.Akka;
+using Tauron.Application.AkkaNode.Services.CleanUp.Core;
 using Tauron.Features;
 
 namespace Tauron.Application.AkkaNode.Services.CleanOld

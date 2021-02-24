@@ -5,8 +5,7 @@ using Tauron.Application.Workshop.StateManagement.Dispatcher;
 
 namespace Tauron.Application.Workshop.StateManagement.Builder
 {
-    public sealed class ConcurrentDispatcherConfugiration :
-        DispatcherPoolConfigurationBase<IConcurrentDispatcherConfugiration>, IConcurrentDispatcherConfugiration
+    public sealed class ConcurrentDispatcherConfugiration : DispatcherPoolConfigurationBase<IConcurrentDispatcherConfugiration>, IConcurrentDispatcherConfugiration
     {
         public override IStateDispatcherConfigurator Create()
             => new ActualDispatcher(Instances, Resizer, SupervisorStrategy, Dispatcher, Custom);

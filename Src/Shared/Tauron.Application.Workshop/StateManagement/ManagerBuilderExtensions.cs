@@ -10,6 +10,7 @@ using Autofac.Features.ResolveAnything;
 using JetBrains.Annotations;
 using Tauron.Application.Workshop.StateManagement.Builder;
 using Tauron.Application.Workshop.StateManagement.DataFactorys;
+using Tauron.Application.Workshop.StateManagement.Dispatcher.WorkDistributor;
 using Tauron.Application.Workshop.StateManagement.Internal;
 
 namespace Tauron.Application.Workshop.StateManagement
@@ -116,6 +117,14 @@ namespace Tauron.Application.Workshop.StateManagement
             builder.WithDispatcher(config.Create);
 
             return config;
+        }
+
+        public static TType WithWorkDistributorDispatcher<TType>(this TType source, TimeSpan? timeout = null)
+            where TType : IDispatcherConfigurable<TType>
+        {
+            timeout ??= TimeSpan.FromMinutes(1);
+
+            return source.WithDispatcher(() => new WorkDistributorConfigurator(timeout.Value));
         }
 
         public static TConfig WithDefaultConfig<TConfig>(this IDispatcherPoolConfiguration<TConfig> config)

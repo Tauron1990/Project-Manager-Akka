@@ -7,7 +7,7 @@ using JetBrains.Annotations;
 using Tauron.Akka;
 using Tauron.Features;
 
-namespace Tauron.Application.AkkaNode.Services
+namespace Tauron.Application.Workshop
 {
     [PublicAPI]
     public interface IWorkDistributor<in TInput>

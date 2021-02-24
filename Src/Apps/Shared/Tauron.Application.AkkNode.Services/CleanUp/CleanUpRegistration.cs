@@ -1,8 +1,6 @@
 ﻿using System;
-using FluentValidation;
 using JetBrains.Annotations;
 using MongoDB.Driver;
-using MongoDB.Driver.GridFS;
 using Tauron.Application.AkkaNode.Services.CleanOld;
 using Tauron.Application.AkkaNode.Services.CleanUp.Core;
 using Tauron.Application.AkkaNode.Services.MongoDb;
@@ -17,9 +15,7 @@ namespace Tauron.Application.AkkaNode.Services.CleanUp
         {
             if (builder.ComponentContext == null)
                 throw new InvalidOperationException("Need Component Context from Autofac");
-
-            builder.WithConsistentHashDispatcher();
-
+            
             CreationMetadata meta = new();
 
             MongoDataBaseFactory.SetCustomCollectionName(meta, typeof(CleanUpTime), databaseName, collectionName);

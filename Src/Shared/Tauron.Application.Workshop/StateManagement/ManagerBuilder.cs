@@ -41,6 +41,9 @@ namespace Tauron.Application.Workshop.StateManagement
             return builder;
         }
 
+        public bool StateRegistrated<TData>(Type state) where TData : class, IStateEntity 
+            => _states.OfType<StateBuilder<TData>>().Any(b => b.State == state);
+
         public IStateBuilder<TData> WithDataSource<TData>(Func<IExtendedDataSource<TData>> source)
             where TData : class, IStateEntity
         {
@@ -67,9 +70,9 @@ namespace Tauron.Application.Workshop.StateManagement
             return this;
         }
 
-        public ManagerBuilder WithDispatcher(Func<IStateDispatcherConfigurator> factory)
+        public ManagerBuilder WithDispatcher(Func<IStateDispatcherConfigurator>? factory)
         {
-            _dispatcherFunc = factory;
+            _dispatcherFunc = factory ?? (() => new DefaultStateDispatcher());
             return this;
         }
 

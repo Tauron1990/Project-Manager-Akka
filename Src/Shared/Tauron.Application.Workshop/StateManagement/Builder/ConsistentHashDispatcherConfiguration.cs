@@ -5,8 +5,7 @@ using Tauron.Application.Workshop.StateManagement.Dispatcher;
 
 namespace Tauron.Application.Workshop.StateManagement.Builder
 {
-    public sealed class ConsistentHashDispatcherConfiguration :
-        DispatcherPoolConfigurationBase<IConsistentHashDispatcherPoolConfiguration>,
+    public sealed class ConsistentHashDispatcherConfiguration : DispatcherPoolConfigurationBase<IConsistentHashDispatcherPoolConfiguration>,
         IConsistentHashDispatcherPoolConfiguration
     {
         private int? _vNotes;

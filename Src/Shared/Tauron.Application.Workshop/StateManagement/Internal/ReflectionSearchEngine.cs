@@ -89,12 +89,16 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
         private static void ConfigurateState<TData>(Type target, ManagerBuilder builder, IDataSourceFactory factory, GroupDictionary<Type, Type> reducerMap, string? key, CreationMetadata? metadata)
             where TData : class, IStateEntity
         {
+            if(builder.StateRegistrated<TData>(target))
+                return;
+
             var config = builder.WithDataSource(factory.Create<TData>(metadata));
 
             if (!string.IsNullOrWhiteSpace(key))
                 config.WithKey(key);
 
             config.WithStateType(target);
+            config.WithDispatcher(target.GetCustomAttribute<DispatcherAttribute>()?.CreateConfig());
 
             if (!reducerMap.TryGetValue(target, out var reducers)) return;
 
