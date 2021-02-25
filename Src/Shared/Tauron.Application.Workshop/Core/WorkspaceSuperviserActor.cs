@@ -10,6 +10,7 @@ namespace Tauron.Application.Workshop.Core
     public sealed class WorkspaceSuperviserActor : ObservableActor
     {
         private ImmutableDictionary<IActorRef, Action> _intrest = ImmutableDictionary<IActorRef, Action>.Empty;
+        private Random _random = new();
 
         public WorkspaceSuperviserActor()
         {
@@ -17,9 +18,7 @@ namespace Tauron.Application.Workshop.Core
 
             Receive<WatchIntrest>(obs => obs.SubscribeWithStatus(wi =>
             {
-                ImmutableInterlocked.AddOrUpdate(ref _intrest,
-                    wi.Target, _ => wi.OnRemove,
-                    (_, action) => action.Combine(wi.OnRemove) ?? wi.OnRemove);
+                ImmutableInterlocked.AddOrUpdate(ref _intrest, wi.Target, _ => wi.OnRemove, (_, action) => action.Combine(wi.OnRemove) ?? wi.OnRemove);
                 Context.Watch(wi.Target);
             }));
             Receive<Terminated>(obs => obs.SubscribeWithStatus(t =>
@@ -37,6 +36,10 @@ namespace Tauron.Application.Workshop.Core
 
             try
             {
+                string name = obj.Name;
+                while (!Context.Child(name).Equals(ActorRefs.Nobody)) 
+                    name = obj.Name + "-" + _random.Next();
+
                 props = obj.Props(Context);
                 var newActor = Context.ActorOf(props, obj.Name);
 

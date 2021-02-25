@@ -190,8 +190,7 @@ namespace Tauron.Application.Workshop.Mutation
             return new MutatingEngine(mutator, superviser);
         }
 
-        public static ExtendedMutatingEngine<TData> From<TData>(IExtendedDataSource<TData> source,
-            WorkspaceSuperviser superviser, Func<Props, Props>? configurate = null)
+        public static ExtendedMutatingEngine<TData> From<TData>(IExtendedDataSource<TData> source, WorkspaceSuperviser superviser, Func<Props, Props>? configurate = null)
             where TData : class
         {
             var mutatorProps = Props.Create<MutationActor>();
@@ -201,8 +200,7 @@ namespace Tauron.Application.Workshop.Mutation
             return new ExtendedMutatingEngine<TData>(mutator, source, superviser);
         }
 
-        public static ExtendedMutatingEngine<TData> From<TData>(IExtendedDataSource<TData> source,
-            MutatingEngine parent)
+        public static ExtendedMutatingEngine<TData> From<TData>(IExtendedDataSource<TData> source, MutatingEngine parent)
             where TData : class
             => new(parent._mutator, source, parent.Superviser);
 

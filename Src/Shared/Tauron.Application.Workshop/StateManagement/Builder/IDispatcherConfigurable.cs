@@ -7,5 +7,7 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
         where TThis : IDispatcherConfigurable<TThis>
     {
         public TThis WithDispatcher(Func<IStateDispatcherConfigurator>? factory);
+
+        public TThis WithDispatcher(string name, Func<IStateDispatcherConfigurator>? factory);
     }
 }

@@ -15,7 +15,6 @@ namespace Tauron.Application.AkkaNode.Services.CleanUp
         public CleanUpManager(ExtendedMutatingEngine<MutatingContext<ToDeleteRevision>> engine, IActionInvoker invoker) 
             : base(engine)
         {
-            EventSource<>
             _invoker = invoker;
         }
     }
