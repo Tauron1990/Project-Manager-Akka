@@ -95,6 +95,24 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
                 foreach (var constructorInfo in State.GetConstructors())
                 {
                     var param = constructorInfo.GetParameters();
+
+                    instance = param.Length switch
+                    {
+                        0 => FastReflection.Shared.FastCreateInstance(State) as IState,
+                        1 => param[0].ParameterType.IsAssignableTo<IActionInvoker>()
+                            ? FastReflection.Shared.GetCreator(constructorInfo)(new object?[]{ invoker }) as IState
+                            : FastReflection.Shared.GetCreator(constructorInfo)(new object?[] { dataEngine }) as IState,
+                        2 => FastReflection.Shared.GetCreator(constructorInfo)
+                        (
+                            param[0].ParameterType.IsAssignableTo<IActionInvoker>()
+                            ? new object?[] { invoker, dataEngine }
+                            : new object?[] { dataEngine, invoker }
+                        ) as IState,
+                        _ => instance
+                    };
+
+                    if(instance != null)
+                        break;
                 }
 
                 if (instance == null)
