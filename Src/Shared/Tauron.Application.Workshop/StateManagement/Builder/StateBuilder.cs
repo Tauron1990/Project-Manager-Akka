@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.Tracing;
 using System.Linq;
 using Akka.Util;
 using Autofac;
@@ -68,7 +67,7 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
             var cacheKey = $"{State.Name}--{Guid.NewGuid():N}";
             var dataSource = new MutationDataSource<TData>(cacheKey, _source());
 
-            bool pooledState = false;
+            var pooledState = false;
 
             if (State.Implements<IPooledState>() && string.IsNullOrWhiteSpace(_dispatcherKey) && _dispatcher != null)
             {
@@ -128,14 +127,15 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
 
             var targetState = pooledState ? statePool.Get(State, Factory) : Factory();
 
-            switch (targetState)
-            {
-                case ICanQuery<TData> canQuery:
-                    canQuery.DataSource(dataSource);
-                    break;
-                case null:
-                    throw new InvalidOperationException("Failed to Create State");
-            }
+            if (targetState == null) throw new InvalidOperationException("Failed to Create State");
+
+            if(targetState is IInitState<TData> init)
+                init.Init(dataEngine);
+
+            if (targetState is ICanQuery<TData> canQuery)
+                canQuery.DataSource(dataSource);
+
+
 
             var container = new StateContainer<TData>(targetState, _reducers.Select(r => r()).ToImmutableList(), dataEngine, dataSource);
 
@@ -153,6 +153,7 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
         {
             _dispatcherKey = name;
             _dispatcher = factory;
+            return this;
         }
     }
 }

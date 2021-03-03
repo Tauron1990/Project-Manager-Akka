@@ -20,14 +20,14 @@ namespace Tauron.Application.AkkaNode.Services.MongoDb
             builder.Register(ctx => new MongoDatabase(ctx.Resolve<IClientPool>().Get(url).GetDatabase(database), database)).AsSelf().SingleInstance();
         }
 
-        public static ManagerBuilder AddMongoFromAssembly(this ManagerBuilder builder, IComponentContext context, string database, params Type[] types)
-            => builder.AddFromAssembly(context.Resolve<MongoDataBaseFactory>(), new CreationMetadata {{MongoDataBaseFactory.MongoDatabaseNameMeta, database}}, types);
+        public static ManagerBuilder AddMongoFromTypes(this ManagerBuilder builder, IComponentContext context, string database, params Type[] types)
+            => builder.AddTypes(context.Resolve<MongoDataBaseFactory>(), new CreationMetadata {{MongoDataBaseFactory.MongoDatabaseNameMeta, database}}, types);
 
-        public static ManagerBuilder AddMongoFromAssembly(this ManagerBuilder builder, IComponentContext context, string database, CreationMetadata metadata, params Type[] types)
+        public static ManagerBuilder AddMongoFromTypes(this ManagerBuilder builder, IComponentContext context, string database, CreationMetadata metadata, params Type[] types)
         {
             metadata[MongoDataBaseFactory.MongoDatabaseNameMeta] = database;
 
-            return builder.AddFromAssembly(context.Resolve<MongoDataBaseFactory>(), metadata, types);
+            return builder.AddTypes(context.Resolve<MongoDataBaseFactory>(), metadata, types);
         }
     }
 }

@@ -26,8 +26,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
             var type = action.GetType();
             return !_map.TryGetValue(type, out var runner)
                 ? null
-                : new WorkspaceMutation(() => runner(_source, action), sendResult, onCompled, action.ActionName,
-                    action.ActionName);
+                : new WorkspaceMutation(() => runner(_source, action), sendResult, onCompled, action.ActionName, action.ActionName);
         }
 
         public override void Dispose()
@@ -40,8 +39,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
             private readonly IObserver<IReducerResult> _result;
             private readonly Func<IDataMutation> _run;
 
-            public WorkspaceMutation(Func<IDataMutation> run, IObserver<IReducerResult> result, IObserver<Unit> compled,
-                object hashKey, string actionName)
+            public WorkspaceMutation(Func<IDataMutation> run, IObserver<IReducerResult> result, IObserver<Unit> compled, object hashKey, string actionName)
             {
                 _run = run;
                 _result = result;

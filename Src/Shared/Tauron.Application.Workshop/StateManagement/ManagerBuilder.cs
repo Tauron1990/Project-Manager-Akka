@@ -76,6 +76,8 @@ namespace Tauron.Application.Workshop.StateManagement
             return this;
         }
 
+        public ManagerBuilder WithDispatcher(string name, Func<IStateDispatcherConfigurator>? factory) => throw new NotSupportedException("Polled Dispatcher not Supported");
+
 
         internal RootManager Build(AutofacOptions? autofacOptions)
         {

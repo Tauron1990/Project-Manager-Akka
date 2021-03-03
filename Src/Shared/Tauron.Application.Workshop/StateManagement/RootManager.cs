@@ -12,6 +12,7 @@ using Tauron.Application.Workshop.Mutation;
 using Tauron.Application.Workshop.StateManagement.Builder;
 using Tauron.Application.Workshop.StateManagement.Dispatcher;
 using Tauron.Application.Workshop.StateManagement.Internal;
+using Tauron.Application.Workshop.StateManagement.StatePooling;
 using Tauron.Operations;
 
 namespace Tauron.Application.Workshop.StateManagement
@@ -34,9 +35,11 @@ namespace Tauron.Application.Workshop.StateManagement
             _effects = effects.Where(e => e != null).ToArray()!;
             _middlewares = middlewares.Where(m => m != null).ToArray()!;
 
+            var builderParameter = new StateBuilderParameter(_engine, componentContext, this, new StatePool(), new DispatcherPool());
+
             foreach (var stateBuilder in states)
             {
-                var (container, key) = stateBuilder.Materialize(_engine, componentContext, this);
+                var (container, key) = stateBuilder.Materialize(builderParameter);
                 _stateContainers.GetOrAdd(key, _ => new ConcurrentBag<StateContainer>()).Add(container);
             }
 

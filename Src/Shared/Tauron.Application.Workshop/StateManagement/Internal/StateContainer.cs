@@ -18,8 +18,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
         public IState Instance { get; }
         public abstract void Dispose();
 
-        public abstract IDataMutation? TryDipatch(IStateAction action, IObserver<IReducerResult> sendResult,
-            IObserver<Unit> onCompled);
+        public abstract IDataMutation? TryDipatch(IStateAction action, IObserver<IReducerResult> sendResult, IObserver<Unit> onCompled);
     }
 
     public sealed class StateContainer<TData> : StateContainer

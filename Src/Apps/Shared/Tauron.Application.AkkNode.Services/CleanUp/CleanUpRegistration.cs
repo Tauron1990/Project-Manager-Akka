@@ -1,7 +1,6 @@
 ﻿using System;
 using JetBrains.Annotations;
 using MongoDB.Driver;
-using Tauron.Application.AkkaNode.Services.CleanOld;
 using Tauron.Application.AkkaNode.Services.CleanUp.Core;
 using Tauron.Application.AkkaNode.Services.MongoDb;
 using Tauron.Application.Workshop.StateManagement;
@@ -23,7 +22,7 @@ namespace Tauron.Application.AkkaNode.Services.CleanUp
 
             MongoDataBaseFactory.SetCustomCollectionName(meta, typeof(ToDeleteRevision), databaseName, revisionName);
 
-            return builder.AddMongoFromAssembly(builder.ComponentContext, databaseName, meta, typeof(CleanUpManager), typeof(CleanUpReducer));
+            return builder.AddMongoFromTypes(builder.ComponentContext, databaseName, meta, typeof(CleanUpManager), typeof(CleanUpReducer));
         }
     }
 }
