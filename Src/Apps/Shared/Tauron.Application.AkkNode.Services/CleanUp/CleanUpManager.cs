@@ -2,6 +2,7 @@
 using Tauron.Application.Workshop.StateManagement;
 using Tauron.Application.Workshop.StateManagement.Attributes;
 using Tauron.Application.Workshop.StateManagement.StatePooling;
+using Tauron.Features;
 
 namespace Tauron.Application.AkkaNode.Services.CleanUp
 {
@@ -9,5 +10,6 @@ namespace Tauron.Application.AkkaNode.Services.CleanUp
     [DefaultDispatcher]
     public sealed class CleanUpManager : IState<ToDeleteRevision>, IState<CleanUpTime>, IPooledState
     {
+
     }
 }

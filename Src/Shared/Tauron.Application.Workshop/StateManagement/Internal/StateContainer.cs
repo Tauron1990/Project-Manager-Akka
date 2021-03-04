@@ -13,20 +13,29 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
 {
     public abstract class StateContainer : IDisposable
     {
-        protected StateContainer(IState instance) => Instance = instance;
+        protected StateContainer(IStateInstance instance) => Instance = instance;
 
-        public IState Instance { get; }
+        public IStateInstance Instance { get; }
         public abstract void Dispose();
 
         public abstract IDataMutation? TryDipatch(IStateAction action, IObserver<IReducerResult> sendResult, IObserver<Unit> onCompled);
     }
+
+    public interface IStateInstance
+    {
+        void InitState<TData>(ExtendedMutatingEngine<MutatingContext<TData>> engine);
+        void ApplyQuery<TData>(IExtendedDataSource<TData> engine);
+
+    }
+
+    public sealed class PhysicalInstance : IStateInstance
 
     public sealed class StateContainer<TData> : StateContainer
         where TData : class
     {
         private readonly IDisposable _toDispose;
 
-        public StateContainer(IState instance, IReadOnlyCollection<IReducer<TData>> reducers, ExtendedMutatingEngine<MutatingContext<TData>> mutatingEngine, IDisposable toDispose)
+        public StateContainer(IStateInstance instance, IReadOnlyCollection<IReducer<TData>> reducers, ExtendedMutatingEngine<MutatingContext<TData>> mutatingEngine, IDisposable toDispose)
             : base(instance)
         {
             _toDispose = toDispose;

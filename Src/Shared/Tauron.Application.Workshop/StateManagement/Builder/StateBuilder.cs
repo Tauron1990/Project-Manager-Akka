@@ -135,8 +135,6 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
             if (targetState is ICanQuery<TData> canQuery)
                 canQuery.DataSource(dataSource);
 
-
-
             var container = new StateContainer<TData>(targetState, _reducers.Select(r => r()).ToImmutableList(), dataEngine, dataSource);
 
             return (container, _key ?? string.Empty);
