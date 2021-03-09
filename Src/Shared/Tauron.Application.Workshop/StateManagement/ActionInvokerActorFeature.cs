@@ -11,11 +11,11 @@ using Tauron.Operations;
 namespace Tauron.Application.Workshop.StateManagement
 {
     [PublicAPI]
-    public abstract class StateActorFeature<TClassState> : ActorFeatureBase<TClassState>
+    public abstract class ActionInvokerActorFeature<TClassState> : ActorFeatureBase<TClassState>
     {
         private readonly Dictionary<Type, Action<IOperationResult>> _compledActions = new();
 
-        protected StateActorFeature(IActionInvoker actionInvoker)
+        protected ActionInvokerActorFeature(IActionInvoker actionInvoker)
         {
             ActionInvoker = actionInvoker;
             Receive<IOperationResult>(obs => obs.Select(d => d.Event).SubscribeWithStatus(InternalOnOperationCompled));
@@ -73,9 +73,9 @@ namespace Tauron.Application.Workshop.StateManagement
         public sealed class StateConfig<TState>
         {
             private readonly TState _state;
-            private StateActorFeature<TClassState> _actor;
+            private ActionInvokerActorFeature<TClassState> _actor;
 
-            public StateConfig(TState state, StateActorFeature<TClassState> actor)
+            public StateConfig(TState state, ActionInvokerActorFeature<TClassState> actor)
             {
                 _state = state;
                 _actor = actor;

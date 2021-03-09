@@ -15,8 +15,7 @@ namespace Tauron.Application.Workshop
         void PushWork(TInput workLoad);
     }
 
-    public sealed class WorkDistributorFeature<TInput, TFinishMessage> : ActorFeatureBase<
-        WorkDistributorFeature<TInput, TFinishMessage>.WorkDistributorFeatureState>
+    public sealed class WorkDistributorFeature<TInput, TFinishMessage> : ActorFeatureBase<WorkDistributorFeature<TInput, TFinishMessage>.WorkDistributorFeatureState>
     {
         [PublicAPI]
         public static IWorkDistributor<TInput> Create(Props worker, string workerName, TimeSpan timeout,
@@ -34,7 +33,7 @@ namespace Tauron.Application.Workshop
             return new WorkSender(actor);
         }
 
-        protected override void Config()
+        protected override void ConfigImpl()
         {
             SupervisorStrategy = SupervisorStrategy.StoppingStrategy;
 

@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using Tauron.Application.Workshop.StateManagement.Internal;
 
 namespace Tauron.Application.Workshop.StateManagement.StatePooling
 {
     public sealed class StatePool
     {
-        private readonly Dictionary<Type, IState> _pooled = new();
+        private readonly Dictionary<Type, IStateInstance> _pooled = new();
 
-        public IState? Get(Type key, Func<IState?> factory)
+        public IStateInstance? Get(Type key, Func<IStateInstance?> factory)
         {
             if (_pooled.TryGetValue(key, out var inst))
                 return inst;

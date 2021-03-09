@@ -7,10 +7,13 @@ using JetBrains.Annotations;
 
 namespace Tauron.Features
 {
-    public interface IFeature<TState>
+    public interface IFeature
     {
         IEnumerable<string> Identify();
+    }
 
+    public interface IFeature<TState> : IFeature
+    {
         void Init(IFeatureActor<TState> actor);
     }
 
@@ -73,6 +76,8 @@ namespace Tauron.Features
 
         public IDisposable Subscribe(IObserver<TState> observer) => _actor.Subscribe(observer);
 
-        protected abstract void Config();
+        protected virtual void Config() => ConfigImpl();
+
+        protected abstract void ConfigImpl();
     }
 }

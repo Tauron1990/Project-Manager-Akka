@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection;
+using Akka.Actor;
 using Akka.Util;
 using Autofac;
 using Tauron.Application.Workshop.Mutating;
@@ -9,10 +11,12 @@ using Tauron.Application.Workshop.Mutation;
 using Tauron.Application.Workshop.StateManagement.Dispatcher;
 using Tauron.Application.Workshop.StateManagement.Internal;
 using Tauron.Application.Workshop.StateManagement.StatePooling;
+using Tauron.Features;
 
 namespace Tauron.Application.Workshop.StateManagement.Builder
 {
-    public sealed record StateBuilderParameter(MutatingEngine engine, IComponentContext? ComponentContext, IActionInvoker Invoker, StatePool StatePool, DispatcherPool DispatcherPool);
+    public sealed record StateBuilderParameter(MutatingEngine Engine, IComponentContext? ComponentContext, IActionInvoker Invoker, StatePool StatePool, DispatcherPool DispatcherPool, 
+        WorkspaceSuperviser Superviser);
 
     public abstract class StateBuilderBase
     {
@@ -59,7 +63,7 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
 
         public override (StateContainer State, string Key) Materialize(StateBuilderParameter parameter)
         {
-            var (engine, componentContext, invoker, statePool, dispatcherPool) = parameter;
+            var (engine, componentContext, invoker, statePool, dispatcherPool, superviser) = parameter;
 
             if (State == null)
                 throw new InvalidOperationException("A State type or Instance Must be set");
@@ -85,8 +89,26 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
             else
                 dataEngine = MutatingEngine.From(dataSource, dispatcherPool.Get(_dispatcherKey, engine.Superviser, _dispatcher().Configurate));
 
-            IState? Factory()
+            IStateInstance? Factory()
             {
+                static string MakeName() => typeof(TData).Name + "-State";
+
+                if (State.Implements<IFeature>())
+                {
+                    var factory = State.GetMethod("Create", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy, null, CallingConventions.Standard,
+                        Type.EmptyTypes, null);
+
+                    if (factory == null)
+                        return null;
+
+                    return FastReflection.Shared.GetMethodInvoker(factory, () => Type.EmptyTypes)(null, null) is not IPreparedFeature feature 
+                        ? null 
+                        : new ActorRefInstance(superviser.CreateCustom(MakeName(), _ => Feature.Props(feature)), State);
+                }
+
+                if (State.Implements<ActorStateBase>())
+                    return new ActorRefInstance(superviser.CreateCustom(MakeName(), _ => Props.Create(State)), State);
+
                 IState? instance = null;
 
                 if (componentContext != null) instance = componentContext.ResolveOptional(State, new TypedParameter(dataEngine.GetType(), dataEngine), new TypedParameter(typeof(IActionInvoker), invoker)) as IState;
@@ -122,18 +144,15 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
                         instance = FastReflection.Shared.FastCreateInstance(State, dataEngine, invoker) as IState;
                 }
 
-                return instance;
+                return instance == null ? null : new PhysicalInstance(instance);
             }
 
             var targetState = pooledState ? statePool.Get(State, Factory) : Factory();
 
             if (targetState == null) throw new InvalidOperationException("Failed to Create State");
 
-            if(targetState is IInitState<TData> init)
-                init.Init(dataEngine);
-
-            if (targetState is ICanQuery<TData> canQuery)
-                canQuery.DataSource(dataSource);
+            targetState.InitState(dataEngine);
+            targetState.ApplyQuery(dataSource);
 
             var container = new StateContainer<TData>(targetState, _reducers.Select(r => r()).ToImmutableList(), dataEngine, dataSource);
 

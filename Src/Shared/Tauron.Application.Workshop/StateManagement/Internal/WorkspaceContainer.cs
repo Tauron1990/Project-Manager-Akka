@@ -14,7 +14,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
         public WorkspaceContainer(
             ImmutableDictionary<Type, Func<WorkspaceBase<TData>, IStateAction, IDataMutation>> map,
             WorkspaceBase<TData> source)
-            : base(source)
+            : base(new PhysicalInstance(source))
         {
             _map = map;
             _source = source;

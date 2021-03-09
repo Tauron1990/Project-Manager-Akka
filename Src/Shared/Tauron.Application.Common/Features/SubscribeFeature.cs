@@ -9,7 +9,7 @@ namespace Tauron.Features
 {
     public sealed class SubscribeFeature : IFeature<SubscribeFeature.State>
     {
-        IEnumerable<string> IFeature<State>.Identify()
+        IEnumerable<string> IFeature.Identify()
         {
             yield return nameof(SubscribeFeature);
         }

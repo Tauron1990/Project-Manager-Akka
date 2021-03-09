@@ -35,7 +35,7 @@ namespace Tauron.Application.Workshop.StateManagement
             _effects = effects.Where(e => e != null).ToArray()!;
             _middlewares = middlewares.Where(m => m != null).ToArray()!;
 
-            var builderParameter = new StateBuilderParameter(_engine, componentContext, this, new StatePool(), new DispatcherPool());
+            var builderParameter = new StateBuilderParameter(_engine, componentContext, this, new StatePool(), new DispatcherPool(), superviser);
 
             foreach (var stateBuilder in states)
             {
@@ -62,8 +62,19 @@ namespace Tauron.Application.Workshop.StateManagement
             if (!_stateContainers.TryGetValue(key, out var bag)) return null;
 
             foreach (var stateContainer in bag)
-                if (stateContainer.Instance is TState state)
-                    return state;
+            {
+                switch (stateContainer.Instance)
+                {
+                    case PhysicalInstance physicalInstance:
+                        if (physicalInstance.State is TState state)
+                            return state;
+                        break;
+                    case ActorRefInstance actorRefInstance:
+                        if (typeof(TState) == typeof(IActorRef))
+                            return (TState) actorRefInstance.ActorRef.Result;
+                        break;
+                }
+            }
 
             return null;
         }
