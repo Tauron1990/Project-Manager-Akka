@@ -223,17 +223,13 @@ namespace Tauron.Application.Workshop.Mutation
             where TData : class
             => new(source);
 
-        public void Mutate(IDataMutation mutationOld)
-        {
-            TellToActor(mutationOld);
-        }
+        public void Mutate(IDataMutation mutationOld) => TellToActor(mutationOld);
     }
 
     [PublicAPI]
     public static class MutatinEngineExtensions
     {
-        public static IEventSource<TEvent> EventSource<TData, TEvent>(
-            this IEventSourceable<MutatingContext<TData>> engine)
+        public static IEventSource<TEvent> EventSource<TData, TEvent>(this IEventSourceable<MutatingContext<TData>> engine)
             where TEvent : MutatingChange
         {
             return engine.EventSource(c => c.GetChange<TEvent>(), c => c.Change?.Cast<TEvent>() != null);

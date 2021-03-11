@@ -7,4 +7,9 @@ namespace Tauron.Application.Workshop.StateManagement.StatePooling
     {
         void Init(ExtendedMutatingEngine<MutatingContext<TData>> engine);
     }
+
+    public interface IPostInit
+    {
+        void Init(IActionInvoker invoker);
+    }
 }

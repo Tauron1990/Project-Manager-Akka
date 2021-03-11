@@ -1,67 +1,26 @@
 ﻿using System;
 using System.Text;
+using MongoDB.Bson;
+using MongoDB.Bson.IO;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Bson.Serialization.Serializers;
 using tiesky.com;
 
 namespace AkkaTest
 {
+    public sealed record ToDeleteRevision(ObjectId Id, string BuckedId, [property: BsonIgnore] bool IsChanged = false);
+
     internal static class Program
     {
-        private static TextIpc _master;
 
         private static void Main()
         {
-            var id = Guid.NewGuid().ToString("N");
+            var doc = new BsonDocument();
 
-            _master = new TextIpc(id, false);
+            BsonSerializer.Serialize(new BsonDocumentWriter(doc), new ToDeleteRevision(ObjectId.Empty, "Test", true));
+            var test = BsonSerializer.Deserialize<ToDeleteRevision>(doc);
 
-
-            try
-            {
-                _master.Send("Hallo Welt");
-
-                Console.ReadKey();
-            }
-            finally
-            {
-                _master.Dispose();
-            }
-        }
-    }
-
-    internal class TextIpc : IDisposable
-    {
-        private static int _counter = 1;
-        private readonly SharmIpc _ipc;
-
-        private readonly string _name;
-
-        public TextIpc(string name, bool slave)
-        {
-            if (slave)
-            {
-                _name = $"Slave {_counter}";
-                _counter++;
-            }
-            else
-            {
-                _name = "Master";
-            }
-
-            _ipc = new SharmIpc(name, RemoteCallHandler,
-                ExternalExceptionHandler: (s, exception) => Console.WriteLine(exception.ToString()));
-        }
-
-        public void Dispose() => _ipc.Dispose();
-
-        private void RemoteCallHandler(ulong arg1, byte[] arg2)
-        {
-            Console.WriteLine($"{_name}: Message Id: {arg1} Message: {Encoding.UTF8.GetString(arg2)}");
-        }
-
-        public void Send(string message)
-        {
-            if (!_ipc.RemoteRequestWithoutResponse(Encoding.UTF8.GetBytes(message)))
-                Console.WriteLine("Error on Send");
         }
     }
 }

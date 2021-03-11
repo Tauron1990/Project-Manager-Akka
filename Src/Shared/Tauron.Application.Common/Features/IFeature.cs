@@ -33,6 +33,7 @@ namespace Tauron.Features
         {
             Context = actor.Context;
             _actor = actor;
+            Timers = actor.Timers;
             Config();
         }
 
@@ -79,5 +80,7 @@ namespace Tauron.Features
         protected virtual void Config() => ConfigImpl();
 
         protected abstract void ConfigImpl();
+
+        public ITimerScheduler Timers { get; set; } = null!;
     }
 }

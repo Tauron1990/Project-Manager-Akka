@@ -94,10 +94,12 @@ namespace Tauron.Application.Workshop.StateManagement
                     additionalMiddlewares.AddRange(ComponentContext.Resolve<IEnumerable<IMiddleware>>());
             }
 
-            return new RootManager(Superviser, _dispatcherFunc(), _states,
-                _effects.Select(e => e()).Concat(additionalEffects),
-                _middlewares.Select(m => m()).Concat(additionalMiddlewares),
+            var man = new RootManager(Superviser, _dispatcherFunc(), _states, _effects.Select(e => e()).Concat(additionalEffects), _middlewares.Select(m => m()).Concat(additionalMiddlewares),
                 _sendBackSetting, ComponentContext);
+
+            man.PostInit();
+
+            return man;
         }
     }
 }

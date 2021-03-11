@@ -20,6 +20,19 @@ namespace Tauron.Application.Workshop.StateManagement
     [PublicAPI]
     public sealed class RootManager : DisposeableBase, IActionInvoker
     {
+        private sealed class EmptyInvoker : IActionInvoker
+        {
+            public TState? GetState<TState>() where TState : class => null;
+
+            public TState? GetState<TState>(string key) where TState : class => null;
+
+            public void Run(IStateAction action, bool? sendBack = null)
+            {
+            }
+        }
+
+        public static readonly IActionInvoker Empty = new EmptyInvoker();
+
         private readonly IEffect[] _effects;
         private readonly MutatingEngine _engine;
         private readonly IMiddleware[] _middlewares;
@@ -102,6 +115,12 @@ namespace Tauron.Application.Workshop.StateManagement
                 resultInvoker.PushWork();
                 _engine.Mutate(dataMutation);
             }
+        }
+
+        internal void PostInit()
+        {
+            foreach (var instance in _states.Select(s => s.Instance)) 
+                instance.PostInit(this);
         }
 
         protected override void DisposeCore(bool disposing)

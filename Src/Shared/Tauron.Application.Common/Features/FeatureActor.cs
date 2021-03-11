@@ -12,7 +12,7 @@ using Tauron.Akka;
 namespace Tauron.Features
 {
     [PublicAPI]
-    public interface IFeatureActor<TState> : IObservable<TState>
+    public interface IFeatureActor<TState> : IObservable<TState>, IWithTimers
     {
         IObservable<IActorContext> Start { get; }
 
@@ -303,6 +303,12 @@ namespace Tauron.Features
 
             public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TTarget>>, IDisposable> handler)
                 => _original.Receive<TEvent>(obs => handler(obs.Select(d => d.Convert(_convert))));
+
+            public ITimerScheduler Timers
+            {
+                get => _original.Timers;
+                set => _original.Timers = value;
+            }
         }
     }
 }

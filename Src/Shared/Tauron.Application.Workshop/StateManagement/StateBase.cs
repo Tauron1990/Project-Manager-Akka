@@ -5,12 +5,14 @@ using JetBrains.Annotations;
 using Tauron.Application.Workshop.Mutating;
 using Tauron.Application.Workshop.Mutation;
 using Tauron.Application.Workshop.StateManagement.Internal;
+using Tauron.Application.Workshop.StateManagement.StatePooling;
 using Tauron.Features;
 
 namespace Tauron.Application.Workshop.StateManagement
 {
     [PublicAPI]
-    public abstract class StateBase<TData> : IState<TData>, ICanQuery<TData> where TData : class, IStateEntity
+    public abstract class StateBase<TData> : IState<TData>, ICanQuery<TData>
+        where TData : class, IStateEntity
     {
         private IExtendedDataSource<MutatingContext<TData>>? _source;
 

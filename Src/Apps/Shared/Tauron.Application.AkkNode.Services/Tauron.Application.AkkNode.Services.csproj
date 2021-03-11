@@ -26,17 +26,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Akka.Persistence.Query" Version="1.4.16" />
-    <PackageReference Include="MongoDB.Driver" Version="2.11.6" />
-    <PackageReference Include="MongoDB.Driver.GridFS" Version="2.11.6" />
+    <PackageReference Include="Akka.Persistence.Query" Version="1.4.17" />
+    <PackageReference Include="MongoDB.Driver" Version="2.12.0" />
+    <PackageReference Include="MongoDB.Driver.GridFS" Version="2.12.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Shared\Tauron.Application.Workshop\Tauron.Application.Workshop.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="MongoDb\" />
   </ItemGroup>
 
 </Project>

@@ -98,7 +98,16 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
                 config.WithKey(key);
 
             config.WithStateType(target);
-            config.WithDispatcher(target.GetCustomAttribute<DispatcherAttribute>()?.CreateConfig());
+
+            var dispatcherAttr = target.GetCustomAttribute<DispatcherAttribute>();
+
+            if (dispatcherAttr != null)
+            {
+                if (string.IsNullOrWhiteSpace(dispatcherAttr.Name))
+                    config.WithDispatcher(dispatcherAttr.CreateConfig());
+                else
+                    config.WithDispatcher(dispatcherAttr.Name, dispatcherAttr.CreateConfig());
+            }
 
             if (!reducerMap.TryGetValue(target, out var reducers)) return;
 
@@ -113,7 +122,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
                         continue;
 
                     var parms = method.GetParameters();
-                    if (parms.Length == 0)
+                    if (parms.Length != 2)
                         continue;
 
                     methods[parms[1].ParameterType] = method;
@@ -161,13 +170,11 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
 
         private static class ReducerBuilder
         {
-            private static readonly MethodInfo GenericBuilder =
-                Reflex.MethodInfo(() => Create<string, string>(null!)).GetGenericMethodDefinition();
+            private static readonly MethodInfo GenericBuilder = Reflex.MethodInfo(() => Create<string, string>(null!)).GetGenericMethodDefinition();
 
             public static ReducerBuilderBase? Create<TData>(MethodInfo info, Type actionType)
             {
-                return GenericBuilder.MakeGenericMethod(typeof(TData), actionType).Invoke(null, new object[] {info}) as
-                    ReducerBuilderBase;
+                return GenericBuilder.MakeGenericMethod(typeof(TData), actionType).Invoke(null, new object[] {info}) as ReducerBuilderBase;
             }
 
             [UsedImplicitly]
@@ -181,11 +188,9 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
                 var parm = parms[0];
 
                 //Observable Variants
-                if (parm == typeof(IObservable<MutatingContext<TData>>) &&
-                    returnType == typeof(IObservable<ReducerResult<TData>>))
+                if (parm == typeof(IObservable<MutatingContext<TData>>) && returnType == typeof(IObservable<ReducerResult<TData>>))
                     return new ReducerBuilder<TData, TAction>.ContextToResultMap(info);
-                if (parm == typeof(IObservable<MutatingContext<TData>>) &&
-                    returnType == typeof(IObservable<MutatingContext<TData>>))
+                if (parm == typeof(IObservable<MutatingContext<TData>>) && returnType == typeof(IObservable<MutatingContext<TData>>))
                     return new ReducerBuilder<TData, TAction>.ContextToContextMap(info);
                 if (parm == typeof(IObservable<MutatingContext<TData>>) && returnType == typeof(IObservable<TData>))
                     return new ReducerBuilder<TData, TAction>.ContextToDataMap(info);

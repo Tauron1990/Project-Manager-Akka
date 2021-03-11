@@ -108,20 +108,19 @@ namespace Tauron
 
         #region Subscriptions
 
-        public static IDisposable SubscribeWithStatus<TMessage>(this IObservable<TMessage> source,
-            object? sucessMessage, Action<TMessage> onNext)
+        public static IDisposable SubscribeWithStatus<TMessage>(this IObservable<TMessage> source, object? sucessMessage, Action<TMessage> onNext)
         {
             var cell = InternalCurrentActorCellKeeper.Current;
 
             if (cell == null)
                 return source.Subscribe(onNext);
             var self = cell.Self;
-            return source.Subscribe(onNext, exception => self.Tell(new Status.Failure(exception)),
+            return source.Subscribe(onNext, 
+                exception => self.Tell(new Status.Failure(exception)),
                 () => self.Tell(new Status.Success(sucessMessage)));
         }
 
-        public static IDisposable SubscribeWithStatus<TMessage>(this IObservable<TMessage> source,
-            Action<TMessage> onNext)
+        public static IDisposable SubscribeWithStatus<TMessage>(this IObservable<TMessage> source, Action<TMessage> onNext)
             => SubscribeWithStatus(source, null, onNext);
 
         #endregion

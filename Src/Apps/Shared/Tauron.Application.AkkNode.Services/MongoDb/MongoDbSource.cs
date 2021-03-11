@@ -15,7 +15,7 @@ namespace Tauron.Application.AkkaNode.Services.MongoDb
         {
             return query switch
             {
-                MongoQueryBase<TData> mongoQuery => await _data.Find(mongoQuery.Create()).SingleOrDefaultAsync(),
+                MongoQueryBase<TData> mongoQuery =>  await _data.Find(mongoQuery.Create()).SingleOrDefaultAsync(),
                 _ => throw new InvalidOperationException("Only Mongo Query with Correct Type are Valid (MongoQueryBase<TData>)")
             };
         }

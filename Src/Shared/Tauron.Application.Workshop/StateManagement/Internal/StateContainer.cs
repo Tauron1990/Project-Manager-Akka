@@ -31,11 +31,13 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
         void InitState<TData>(ExtendedMutatingEngine<MutatingContext<TData>> engine);
         void ApplyQuery<TData>(IExtendedDataSource<MutatingContext<TData>> engine)
             where TData : class, IStateEntity;
-
+        void PostInit(IActionInvoker actionInvoker);
     }
 
     public sealed class PhysicalInstance : IStateInstance
     {
+        private bool _initCalled;
+
         public IState State { get; }
 
         public PhysicalInstance(IState state) => State = state;
@@ -48,13 +50,24 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
 
         public void ApplyQuery<TData>(IExtendedDataSource<MutatingContext<TData>> engine) where TData : class, IStateEntity
         {
-            if(State is ICanQuery<TData> canQuery)
+            if(State is IGetSource<TData> canQuery)
                 canQuery.DataSource(engine);
+        }
+
+        public void PostInit(IActionInvoker actionInvoker)
+        {
+            if(_initCalled) return;
+            _initCalled = true;
+
+            if(State is IPostInit postInit)
+                postInit.Init(actionInvoker);
         }
     }
 
     public sealed class ActorRefInstance : IStateInstance
     {
+        private bool _initCalled;
+
         public Task<IActorRef> ActorRef { get; }
         private readonly Type _targetType;
 
@@ -73,8 +86,17 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
 
         public void ApplyQuery<TData>(IExtendedDataSource<MutatingContext<TData>> engine) where TData : class, IStateEntity
         {
-            if(_targetType.Implements<ICanQuery<TData>>())
+            if(_targetType.Implements<IGetSource<TData>>())
                 ActorRef.ToObservable().Subscribe(m => m.Tell(StateActorMessage.Create(engine)));
+        }
+
+        public void PostInit(IActionInvoker actionInvoker)
+        {
+            if (_initCalled) return;
+            _initCalled = true;
+
+            if (_targetType.Implements<IPostInit>())
+                ActorRef.ToObservable().Subscribe(m => m.Tell(StateActorMessage.Create(actionInvoker)));
         }
     }
 
@@ -105,11 +127,27 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
             }
         }
 
+        private sealed class PostInit : StateActorMessage
+        {
+            private readonly IActionInvoker _invoker;
+
+            public PostInit(IActionInvoker invoker) => _invoker = invoker;
+
+            public override void Apply(object @this)
+            {
+                if(@this is IPostInit postInit)
+                    postInit.Init(_invoker);
+            }
+        }
+
         public static StateActorMessage Create<TData>(IExtendedDataSource<MutatingContext<TData>> source) 
             where TData : class, IStateEntity => new QueryMessage<TData>(source);
 
         public static StateActorMessage Create<TData>(ExtendedMutatingEngine<MutatingContext<TData>> engine)
             => new InitMessage<TData>(engine);
+
+        public static StateActorMessage Create(IActionInvoker actionInvoker)
+            => new PostInit(actionInvoker);
 
         public abstract void Apply(object @this);
     }

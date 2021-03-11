@@ -4,11 +4,14 @@ using Tauron.Application.Workshop.Mutation;
 
 namespace Tauron.Application.Workshop.StateManagement
 {
-    public interface ICanQuery<TData>
+    public interface IGetSource<TData>
+    {
+        void DataSource(IExtendedDataSource<MutatingContext<TData>> dataSource);
+    }
+
+    public interface ICanQuery<TData> : IGetSource<TData>
         where TData : class, IStateEntity
     {
         Task<TData?> Query(IQuery query);
-
-        void DataSource(IExtendedDataSource<MutatingContext<TData>> dataSource);
     }
 }

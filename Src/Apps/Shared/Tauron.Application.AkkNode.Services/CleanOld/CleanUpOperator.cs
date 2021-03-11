@@ -4,6 +4,8 @@ using System.Reactive.Linq;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
+using Tauron.Application.AkkaNode.Services.CleanUp;
+using Tauron.Application.AkkaNode.Services.CleanUp.Core;
 using Tauron.Features;
 
 namespace Tauron.Application.AkkaNode.Services.CleanOld
