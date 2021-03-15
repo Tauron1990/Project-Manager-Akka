@@ -35,7 +35,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
                 return () => (TType) Activator.CreateInstance(target)!;
             }
 
-            var states = new List<(Type, string?)>();
+            var states = new List<(Type TargetState, string? Key, Type[] DataTypes)>();
             var reducers = new GroupDictionary<Type, Type>();
             var factorys = new List<AdvancedDataSourceFactory>();
             var processors = new List<Type>();
@@ -45,7 +45,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
                 switch (customAttribute)
                 {
                     case StateAttribute state:
-                        states.Add((type, state.Key));
+                        states.Add((type, state.Key, state.Types));
                         break;
                     case EffectAttribute:
                         builder.WithEffect(CreateFactory<IEffect>(type));
@@ -73,11 +73,8 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
                 factory = MergeFactory.Merge(factorys.ToArray());
             }
 
-            foreach (var (type, key) in states
-                                       .SelectMany(i => i.Item1.GetInterfaces().Select(t => (Type: t, Name: i.Item2)))
-                                       .Where(t => t.Type.IsGenericType))
+            foreach (var (type, key, dataType) in states.SelectMany(i => i.DataTypes.Select(e => (i.TargetState, i.Key, e))))
             {
-                var dataType = type.GetGenericArguments()[0];
                 var actualMethod = ConfigurateStateMethod.MakeGenericMethod(dataType);
                 actualMethod.Invoke(null, new object?[] {type, builder, factory, reducers, key, metadata});
             }

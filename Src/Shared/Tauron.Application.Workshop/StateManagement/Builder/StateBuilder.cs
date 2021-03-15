@@ -37,7 +37,7 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
         public StateBuilder(Func<IExtendedDataSource<TData>> source) => _source = source;
 
         public IStateBuilder<TData> WithStateType<TState>()
-            where TState : IState<TData>
+            where TState : IState
         {
             State = typeof(TState);
             return this;

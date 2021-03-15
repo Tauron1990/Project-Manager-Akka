@@ -31,7 +31,6 @@ namespace Tauron.Application.AkkaNode.Services.CleanOld
                 .Finally(() => Context.Stop(Self))
                 .Subscribe(_ => { }, ex => Log.Error(ex, "Error on Clean up Database")));
 
-        public sealed record State(IMongoCollection<CleanUpTime> CleanUp, IMongoCollection<ToDeleteRevision> Revisions,
-            GridFSBucket Bucked);
+        public sealed record State(IMongoCollection<CleanUpTime> CleanUp, IMongoCollection<ToDeleteRevision> Revisions, GridFSBucket Bucked);
     }
 }

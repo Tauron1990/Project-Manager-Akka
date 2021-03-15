@@ -1,8 +1,6 @@
 ﻿using System;
+using System.Collections.Immutable;
 using System.Reactive.Linq;
-using System.Reactive.Threading.Tasks;
-using System.Threading;
-using System.Threading.Tasks;
 using Tauron.Application.AkkaNode.Services.CleanUp.Core;
 using Tauron.Application.AkkaNode.Services.MongoDb;
 using Tauron.Application.Workshop.Mutating;
@@ -14,15 +12,13 @@ using Tauron.Features;
 
 namespace Tauron.Application.AkkaNode.Services.CleanUp
 {
-    [State]
+    [State(typeof(CleanUpTime), typeof(GridFSBucketEntity), typeof(ImmutableList<ToDeleteRevision>))]
     [DefaultDispatcher]
-    public sealed class CleanUpManager : ActorFeatureStateBase<EmptyState>, IState<ToDeleteRevision>, IState<CleanUpTime>, IState<GridFSBucketEntity>,
-        IPooledState, IPostInit, IInitState<CleanUpTime>, IGetSource<GridFSBucketEntity>
+    public sealed class CleanUpManager : ActorFeatureStateBase<EmptyState>, IPooledState, IPostInit, IInitState<CleanUpTime>, IInitState<GridFSBucketEntity>
     {
         private static readonly object Key = new();
 
         private IActionInvoker _actionInvoker = RootManager.Empty;
-        private IObservable<GridFSBucketEntity> _bucked = Observable.Empty<GridFSBucketEntity>();
 
         protected override void ConfigImpl()
         {
@@ -34,7 +30,7 @@ namespace Tauron.Application.AkkaNode.Services.CleanUp
         public void Init(IActionInvoker invoker)
         {
             _actionInvoker = invoker;
-            invoker.Run(new InitializeCleanUpCommand());
+            invoker.Run(new InitializeCleanUpAction());
         }
 
         public void Init(ExtendedMutatingEngine<MutatingContext<CleanUpTime>> engine)
@@ -44,7 +40,12 @@ namespace Tauron.Application.AkkaNode.Services.CleanUp
                   .SubscribeWithStatus(t => t.StartPeriodicTimer(Key, new StartCleanUp(), TimeSpan.FromHours(1)));
         }
 
-        public void DataSource(IExtendedDataSource<MutatingContext<GridFSBucketEntity>> dataSource) 
-            => _bucked = dataSource.GetData(EmptyQuery.Instance).ToObservable().Select(b => b.Data);
+        public void Init(ExtendedMutatingEngine<MutatingContext<GridFSBucketEntity>> engine)
+        {
+            engine.EventSource<GridFSBucketEntity, StartCleanUpEvent>()
+                  .Where(sc => sc.Action != null)
+                  .Select(sc => sc.Action)
+                  .ToActionInvoker(_actionInvoker);
+        }
     }
 }

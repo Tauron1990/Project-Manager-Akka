@@ -5,10 +5,17 @@ namespace Tauron.Application.Workshop.StateManagement.Attributes
 {
     [MeansImplicitUse(ImplicitUseKindFlags.Access)]
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-    [BaseTypeRequired(typeof(IState<>))]
+    [BaseTypeRequired(typeof(IState))]
     [PublicAPI]
     public sealed class StateAttribute : Attribute
     {
         public string? Key { get; set; }
+
+        public Type[] Types { get; }
+
+        public StateAttribute(params Type[] types)
+        {
+            Types = types;
+        }
     }
 }

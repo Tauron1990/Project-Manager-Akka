@@ -11,7 +11,7 @@ using Tauron.Features;
 namespace Tauron.Application.Workshop.StateManagement
 {
     [PublicAPI]
-    public abstract class StateBase<TData> : IState<TData>, ICanQuery<TData>
+    public abstract class StateBase<TData> : IState, ICanQuery<TData>
         where TData : class, IStateEntity
     {
         private IExtendedDataSource<MutatingContext<TData>>? _source;
@@ -23,7 +23,7 @@ namespace Tauron.Application.Workshop.StateManagement
 
         public IEventSource<TData> OnChange { get; }
 
-        void ICanQuery<TData>.DataSource(IExtendedDataSource<MutatingContext<TData>> source)
+        void IGetSource<TData>.DataSource(IExtendedDataSource<MutatingContext<TData>> source)
         {
             _source = source;
         }

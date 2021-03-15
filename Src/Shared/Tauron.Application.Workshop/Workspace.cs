@@ -9,7 +9,7 @@ using Tauron.Application.Workshop.StateManagement;
 namespace Tauron.Application.Workshop
 {
     [PublicAPI]
-    public abstract class WorkspaceBase<TData> : IDataSource<TData>, IState<TData>
+    public abstract class WorkspaceBase<TData> : IDataSource<TData>, IState
         where TData : class
     {
         protected WorkspaceBase(WorkspaceSuperviser superviser) => Engine = MutatingEngine.From(this, superviser);

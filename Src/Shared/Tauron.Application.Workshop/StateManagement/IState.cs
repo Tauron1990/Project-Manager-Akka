@@ -4,7 +4,7 @@
     {
     }
 
-    public interface IState<TData> : IState
-    {
-    }
+    //public interface IState<TData> : IState
+    //{
+    //}
 }

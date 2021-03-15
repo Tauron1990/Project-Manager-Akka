@@ -40,21 +40,43 @@ namespace Tauron.Application.AkkaNode.Services.MongoDb
                                  || !_databases.TryGetValue(name, out var database))
                 throw new InvalidOperationException("Not Mongo Database Found");
 
-            
-            string collectionName = typeof(TData).Name + "-Collection";
-            if (metadata.TryGetValue(MakeKey(name, typeof(TData)), out var collNameObj) && collNameObj is string collName)
+            Type dataType = typeof(TData);
+            var isList = dataType.IsGenericType && dataType.GetGenericTypeDefinition() == typeof(ImmutableList<>);
+
+            if (isList)
+                dataType = dataType.GetGenericArguments()[0];
+
+            string collectionName = dataType.Name + "-Collection";
+            if (metadata.TryGetValue(MakeKey(name, dataType), out var collNameObj) && collNameObj is string collName)
                 collectionName = collName;
 
-            if (metadata.TryGetValue(MakeSettingsKey(name, typeof(TData)), out var settingsObj) && settingsObj is CreateCollectionOptions options)
+            if (metadata.TryGetValue(MakeSettingsKey(name, dataType), out var settingsObj) && settingsObj is CreateCollectionOptions options)
             {
                 if (!database.ListCollectionNames().Contains(s => s == collectionName))
                     database.CreateCollection(collectionName, options);
             }
 
-            return () => new MongoDbSource<TData>(database.GetCollection<TData>(collectionName));
+            var coll = database.GetCollection<TData>(collectionName);
+
+            if (isList)
+                return () =>
+                       {
+                           var result = FastReflection.Shared.FastCreateInstance(typeof(MongoDbListSource<>).MakeGenericType(dataType), coll) as IExtendedDataSource<TData>;
+                           if (result == null)
+                               throw new InvalidOperationException("MongoDBListSource Creation Failed");
+
+                           return result;
+                       };
+
+            return () => new MongoDbSource<TData>(coll);
         }
 
-        public override bool CanSupply(Type dataType) 
-            => dataType.IsAssignableTo<IMongoEntity>();
+
+        public override bool CanSupply(Type dataType)
+        {
+            if (dataType.IsGenericType && dataType.GetGenericTypeDefinition() == typeof(ImmutableList<>))
+                return dataType.GetGenericArguments()[0].IsAssignableTo<IMongoEntity>();
+            return dataType.IsAssignableTo<IMongoEntity>();
+        }
     }
 }

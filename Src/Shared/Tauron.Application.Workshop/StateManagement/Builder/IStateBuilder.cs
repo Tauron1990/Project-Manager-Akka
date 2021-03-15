@@ -8,7 +8,7 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
         where TData : class
     {
         IStateBuilder<TData> WithStateType<TState>()
-            where TState : IState<TData>;
+            where TState : IState;
 
         IStateBuilder<TData> WithStateType(Type type);
 

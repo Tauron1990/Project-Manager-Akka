@@ -1,4 +1,6 @@
-﻿using MongoDB.Driver;
+﻿using System;
+using MongoDB.Driver;
+using MongoDB.Driver.GridFS;
 using Tauron.Application.AkkaNode.Services.MongoDb;
 using Tauron.Application.Workshop.Mutation;
 using Tauron.Application.Workshop.StateManagement;
@@ -15,5 +17,9 @@ namespace Tauron.Application.AkkaNode.Services.CleanUp.Core
         }
 
         public override IQuery Query { get; } = new CollectDataQuery();
+
+        public IObservable<GridFSBucket> BucketEntity { get; }
+
+        public RunCleanUpAction(IObservable<GridFSBucket> bucketEntity) => BucketEntity = bucketEntity;
     }
 }
