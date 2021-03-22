@@ -61,8 +61,7 @@ namespace Tauron.Application.AkkaNode.Services.MongoDb
             if (isList)
                 return () =>
                        {
-                           var result = FastReflection.Shared.FastCreateInstance(typeof(MongoDbListSource<>).MakeGenericType(dataType), coll) as IExtendedDataSource<TData>;
-                           if (result == null)
+                           if (!(FastReflection.Shared.FastCreateInstance(typeof(MongoDbListSource<>).MakeGenericType(dataType), coll) is IExtendedDataSource<TData> result))
                                throw new InvalidOperationException("MongoDBListSource Creation Failed");
 
                            return result;

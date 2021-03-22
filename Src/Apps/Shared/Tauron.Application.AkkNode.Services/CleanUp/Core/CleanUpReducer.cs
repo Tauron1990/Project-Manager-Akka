@@ -4,7 +4,7 @@ using MongoDB.Bson;
 using Tauron.Application.AkkaNode.Services.MongoDb;
 using Tauron.Application.Workshop.Mutating;
 using Tauron.Application.Workshop.StateManagement.Attributes;
-using RevisionList = Tauron.Application.Workshop.Mutating.MutatingContext<System.Collections.Immutable.ImmutableList<Tauron.Application.AkkaNode.Services.CleanUp.Core.ToDeleteRevision>>
+using RevisionList = Tauron.Application.Workshop.Mutating.MutatingContext<System.Collections.Immutable.ImmutableList<Tauron.Application.AkkaNode.Services.CleanUp.Core.ToDeleteRevision>>;
 
 namespace Tauron.Application.AkkaNode.Services.CleanUp.Core
 {
@@ -26,7 +26,14 @@ namespace Tauron.Application.AkkaNode.Services.CleanUp.Core
         [Reducer]
         public static IObservable<RevisionList> DeletData(IObservable<RevisionList> input, RunCleanUpAction action)
         {
+            return input.SelectMany(d => action.BucketEntity.Select(b => (Data:d, Bucked:b)))
+                        .Select(s =>
+                                {
+                                    var (context, bucked) = s;
+                                    var newData = context.Data;
 
+                                    return context.Update(new CleanUpCompledEvent(), newData);
+                                });
         }
     }
 }

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Immutable;
 using System.Reactive.Linq;
+using System.Reactive.Threading.Tasks;
+using MongoDB.Driver.GridFS;
 using Tauron.Application.AkkaNode.Services.CleanUp.Core;
 using Tauron.Application.AkkaNode.Services.MongoDb;
 using Tauron.Application.Workshop.Mutating;
@@ -14,11 +16,12 @@ namespace Tauron.Application.AkkaNode.Services.CleanUp
 {
     [State(typeof(CleanUpTime), typeof(GridFSBucketEntity), typeof(ImmutableList<ToDeleteRevision>))]
     [DefaultDispatcher]
-    public sealed class CleanUpManager : ActorFeatureStateBase<EmptyState>, IPooledState, IPostInit, IInitState<CleanUpTime>, IInitState<GridFSBucketEntity>
+    public sealed class CleanUpManager : ActorFeatureStateBase<EmptyState>, IPooledState, IPostInit, IInitState<CleanUpTime>, IGetSource<GridFSBucketEntity>
     {
         private static readonly object Key = new();
 
         private IActionInvoker _actionInvoker = RootManager.Empty;
+        private IObservable<GridFSBucket> _bucked;
 
         protected override void ConfigImpl()
         {
@@ -38,14 +41,15 @@ namespace Tauron.Application.AkkaNode.Services.CleanUp
             engine.EventSource<CleanUpTime, InitCompled>()
                   .Select(_ => Timers)
                   .SubscribeWithStatus(t => t.StartPeriodicTimer(Key, new StartCleanUp(), TimeSpan.FromHours(1)));
+
+
+            engine.EventSource<CleanUpTime, StartCleanUpEvent>()
+                  .Where(evt => evt.Run)
+                  .Select(_ => new RunCleanUpAction(_bucked));
+
         }
 
-        public void Init(ExtendedMutatingEngine<MutatingContext<GridFSBucketEntity>> engine)
-        {
-            engine.EventSource<GridFSBucketEntity, StartCleanUpEvent>()
-                  .Where(sc => sc.Action != null)
-                  .Select(sc => sc.Action)
-                  .ToActionInvoker(_actionInvoker);
-        }
+        public void DataSource(IExtendedDataSource<MutatingContext<GridFSBucketEntity>> dataSource) 
+            => _bucked = dataSource.GetData(EmptyQuery.Instance).ToObservable().Select(e => e.Data.Bucket);
     }
 }
