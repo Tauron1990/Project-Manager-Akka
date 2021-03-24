@@ -4,6 +4,7 @@ using System.Reactive;
 using Akka.Actor;
 using Akka.Event;
 using JetBrains.Annotations;
+using Tauron.Akka;
 
 namespace Tauron.Features
 {

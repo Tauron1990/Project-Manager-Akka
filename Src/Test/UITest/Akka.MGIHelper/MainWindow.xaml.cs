@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Windows;
 using Akka.MGIHelper.Core.Configuration;
+using Tauron.Application.CommonUI;
+using Tauron.Application.CommonUI.AppCore;
 using Tauron.Application.Wpf;
 using Tauron.Application.Wpf.AppCore;
 using Window = System.Windows.Window;
@@ -26,14 +28,9 @@ namespace Akka.MGIHelper
             WindowStartupLocation = WindowStartupLocation.Manual;
         }
 
-        public Window Window => this;
-
         public event EventHandler? Shutdown;
 
-        private void MainWindow_OnClosed(object? sender, EventArgs e)
-        {
-            Shutdown?.Invoke(sender, e);
-        }
+        private void MainWindow_OnClosed(object? sender, EventArgs e) => Shutdown?.Invoke(sender, e);
 
         private void MainWindow_OnLocationChanged(object? sender, EventArgs e)
         {

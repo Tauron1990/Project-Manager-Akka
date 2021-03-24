@@ -28,15 +28,9 @@ namespace Akka.MGIHelper.Core.FanControl.Components
 
         private readonly WebClient _webClient = new MyWebClient();
 
-        public DataFetchComponent(FanControlOptions options)
-        {
-            _options = options;
-        }
+        public DataFetchComponent(FanControlOptions options) => _options = options;
 
-        public void Dispose()
-        {
-            _webClient?.Dispose();
-        }
+        public void Dispose() => _webClient.Dispose();
 
         public async Task Handle(TickEvent msg, MessageBus messageBus)
         {
@@ -64,14 +58,11 @@ namespace Akka.MGIHelper.Core.FanControl.Components
 
         private class ValuePair
         {
-            public string Name { get; set; } = string.Empty;
+            public string Name { get; init; } = string.Empty;
 
-            public string Value { get; set; } = string.Empty;
+            public string Value { get; init; } = string.Empty;
 
-            public override string ToString()
-            {
-                return $"{Name}={Value}";
-            }
+            public override string ToString() => $"{Name}={Value}";
         }
 
         private sealed class MyWebClient : WebClient

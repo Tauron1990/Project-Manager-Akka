@@ -1,34 +1,36 @@
 ﻿using System.Reflection;
 using System.Text;
-using System.Windows.Threading;
 using Akka.Event;
 using Autofac;
-using Tauron.Application.Wpf.Model;
+using DynamicData;
+using Tauron;
+using Tauron.Akka;
+using Tauron.Application.CommonUI.AppCore;
+using Tauron.Application.CommonUI.Model;
 
 namespace Akka.MGIHelper.UI
 {
     public sealed class LogWindowViewModel : UiActor
     {
-        public LogWindowViewModel(ILifetimeScope lifetimeScope, Dispatcher dispatcher)
+        public LogWindowViewModel(ILifetimeScope lifetimeScope, IUIDispatcher dispatcher)
             : base(lifetimeScope, dispatcher)
         {
-            UnhandledMessages = this.RegisterUiCollection<string>(nameof(UnhandledMessages)).AndAsync();
-            UnhandledMessages.Add("Start");
+            UnhandledMessages = this.RegisterUiCollection<string>(nameof(UnhandledMessages)).BindToList(out var list);
+            list.Add("Start");
 
-            Receive<UnhandledMessage>(NewUnhandledMessage);
-            Context.System.EventStream.Subscribe(Context.Self, typeof(UnhandledMessage));
+            this.SubscribeToEvent<UnhandledMessage>(obs =>
+                                                        obs
+                                                           .SubscribeWithStatus(obj =>
+                                                                                {
+                                                                                    var builder = new StringBuilder($"Name: {obj.GetType().Name}");
+
+                                                                                    foreach (var propertyInfo in obj.Message.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
+                                                                                        builder.Append($" - {propertyInfo.GetValue(obj.Message)}");
+
+                                                                                    list.Add(builder.ToString());
+                                                                                }));
         }
 
         private UICollectionProperty<string> UnhandledMessages { get; }
-
-        private void NewUnhandledMessage(UnhandledMessage obj)
-        {
-            var builder = new StringBuilder($"Name: {obj.GetType().Name}");
-
-            foreach (var propertyInfo in obj.Message.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
-                builder.Append($" - {propertyInfo.GetValue(obj.Message)}");
-
-            UnhandledMessages.Add(builder.ToString());
-        }
     }
 }

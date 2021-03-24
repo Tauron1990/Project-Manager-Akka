@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Reactive.Disposables;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Akka.MGIHelper.Settings;
-using Tauron;
 using Tauron.Akka;
 using Tauron.Application;
 
@@ -31,7 +31,7 @@ namespace Akka.MGIHelper.Core.Configuration
         public IDisposable BlockSet()
         {
             _isBlocked = true;
-            return new ActionDispose(() => _isBlocked = false);
+            return Disposable.Create(() => _isBlocked = false);
         }
 
         private async Task LoadValues()
@@ -64,7 +64,7 @@ namespace Akka.MGIHelper.Core.Configuration
 
             if (string.IsNullOrEmpty(name)) return;
 
-            ImmutableInterlocked.AddOrUpdate(ref _dic, name, value, (s, s1) => value);
+            ImmutableInterlocked.AddOrUpdate(ref _dic, name, value, (_, _) => value);
 
             _actor.Tell(new SetSettingValue(_scope, name, value));
 

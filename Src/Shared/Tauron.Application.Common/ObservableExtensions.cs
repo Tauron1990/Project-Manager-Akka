@@ -70,12 +70,15 @@ namespace Tauron
         public static IDisposable ToActor<TMessage>(this IObservable<TMessage> source, Func<IActorRef> target)
             => source.SubscribeWithStatus(m => target().Tell(m));
 
-        public static IDisposable ToActor<TMessage>(this IObservable<TMessage> source,
-            Func<IActorContext, IActorRef> target)
+        public static IDisposable ToActor<TMessage>(this IObservable<TMessage> source, Func<IActorContext, IActorRef> target)
             => source.SubscribeWithStatus(m => target(ObservableActor.ExposedContext).Tell(m));
 
         public static IDisposable ToActor<TMessage>(this IObservable<TMessage> source, Func<TMessage, IActorRef> target)
             => source.SubscribeWithStatus(m => target(m).Tell(m));
+
+        public static IDisposable ToActor<TMessage>(this IObservable<TMessage> source, Func<TMessage, IActorRef> target, Func<TMessage, object> selector)
+            => source.SubscribeWithStatus(m => target(m).Tell(selector(m)));
+
 
 
         public static IDisposable ForwardToParent<TMessage>(this IObservable<TMessage> source)
@@ -96,20 +99,20 @@ namespace Tauron
         public static IDisposable ForwardToActor<TMessage>(this IObservable<TMessage> source, Func<IActorRef> target)
             => source.SubscribeWithStatus(m => target().Forward(m));
 
-        public static IDisposable ForwardToActor<TMessage>(this IObservable<TMessage> source,
-            Func<IActorContext, IActorRef> target)
+        public static IDisposable ForwardToActor<TMessage>(this IObservable<TMessage> source,            Func<IActorContext, IActorRef> target)
             => source.SubscribeWithStatus(m => target(ObservableActor.ExposedContext).Forward(m));
 
-        public static IDisposable ForwardToActor<TMessage>(this IObservable<TMessage> source,
-            Func<TMessage, IActorRef> target)
+        public static IDisposable ForwardToActor<TMessage>(this IObservable<TMessage> source, Func<TMessage, IActorRef> target)
             => source.SubscribeWithStatus(m => target(m).Forward(m));
+
+        public static IDisposable ForwardToActor<TMessage>(this IObservable<TMessage> source, Func<TMessage, IActorRef> target, Func<TMessage, object> selector)
+            => source.SubscribeWithStatus(m => target(m).Forward(selector(m)));
 
         #endregion
 
         #region Subscriptions
 
-        public static IDisposable SubscribeWithStatus<TMessage>(this IObservable<TMessage> source,
-            object? sucessMessage, Action<TMessage> onNext)
+        public static IDisposable SubscribeWithStatus<TMessage>(this IObservable<TMessage> source, object? sucessMessage, Action<TMessage> onNext)
         {
             var cell = InternalCurrentActorCellKeeper.Current;
 
@@ -120,9 +123,11 @@ namespace Tauron
                 () => self.Tell(new Status.Success(sucessMessage)));
         }
 
-        public static IDisposable SubscribeWithStatus<TMessage>(this IObservable<TMessage> source,
-            Action<TMessage> onNext)
+        public static IDisposable SubscribeWithStatus<TMessage>(this IObservable<TMessage> source, Action<TMessage> onNext)
             => SubscribeWithStatus(source, null, onNext);
+
+        public static IDisposable SubscribeWithStatus<TMessage>(this IObservable<TMessage> source)
+            => SubscribeWithStatus(source, null, _ => {});
 
         #endregion
     }

@@ -1,4 +1,5 @@
-﻿using Tauron.Application.Wpf;
+﻿using Tauron.Application.CommonUI;
+using Tauron.Application.Wpf;
 
 namespace Akka.MGIHelper.UI
 {

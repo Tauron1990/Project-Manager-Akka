@@ -8,7 +8,7 @@ using Tauron.Host;
 
 namespace Akka.MGIHelper.Core.FanControl.Components
 {
-    public sealed class ClockComponent : IHandler<ClockEvent>, IAsyncDisposable
+    public sealed class ClockComponent : IHandler<ClockEvent>, IDisposable
     {
         private readonly FanControlOptions _options;
         private readonly Timer _timer;
@@ -19,14 +19,11 @@ namespace Akka.MGIHelper.Core.FanControl.Components
         public ClockComponent(FanControlOptions options)
         {
             _options = options;
-            ActorApplication.Application.ActorSystem.RegisterOnTermination(() => _timer.Change(-1, -1));
             _timer = new Timer(Invoke);
+            ActorApplication.Application.ActorSystem.RegisterOnTermination(() => _timer.Change(-1, -1));
         }
 
-        public async ValueTask DisposeAsync()
-        {
-            await _timer.DisposeAsync();
-        }
+        public void Dispose() => _timer.Dispose();
 
         public Task Handle(ClockEvent msg, MessageBus messageBus)
         {
@@ -48,7 +45,7 @@ namespace Akka.MGIHelper.Core.FanControl.Components
             return Task.CompletedTask;
         }
 
-        private async void Invoke(object state)
+        private async void Invoke(object? state)
         {
             try
             {

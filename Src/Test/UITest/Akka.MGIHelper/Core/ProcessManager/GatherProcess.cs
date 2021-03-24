@@ -1,6 +1,7 @@
 ﻿namespace Akka.MGIHelper.Core.ProcessManager
 {
-    public class GatherProcess
+    public sealed record GatherProcess
     {
+        public static readonly GatherProcess Inst = new();
     }
 }

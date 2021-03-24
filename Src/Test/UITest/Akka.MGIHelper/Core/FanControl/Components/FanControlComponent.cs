@@ -36,7 +36,7 @@ namespace Akka.MGIHelper.Core.FanControl.Components
             _timer.Change(time, -1);
         }
 
-        private async void StopFan(object state)
+        private async void StopFan(object? state)
         {
             //TODO Stop Fan
 

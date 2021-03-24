@@ -1,6 +1,4 @@
 ﻿namespace Akka.MGIHelper.Core.FanControl.Events
 {
-    public class FanStartEvent
-    {
-    }
+    public sealed record FanStartEvent;
 }

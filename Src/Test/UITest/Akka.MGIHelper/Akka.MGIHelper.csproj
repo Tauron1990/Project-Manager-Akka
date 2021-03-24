@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <Nullable>enable</Nullable>
     <StartupObject>Akka.MGIHelper.CoreProgramm</StartupObject>
@@ -15,17 +15,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Amadevus.RecordGenerator" Version="0.6.0" />
     <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
-    <PackageReference Include="JetBrains.Annotations" Version="2020.1.0" />
-    <PackageReference Include="MaterialDesignThemes" Version="3.2.0-ci1494" />
+    <PackageReference Include="MaterialDesignThemes" Version="4.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Akka.Code.Configuration\Akka.Code.Configuration.csproj" />
-    <ProjectReference Include="..\..\Tauron.Application.Logging\Tauron.Application.Logging.csproj" />
-    <ProjectReference Include="..\..\Tauron.Application.Wpf.SerilogViewer\Tauron.Application.Wpf.SerilogViewer.csproj" />
-    <ProjectReference Include="..\..\Tauron.Application.Wpf\Tauron.Application.Wpf.csproj" />
+    <ProjectReference Include="..\..\..\Shared\Tauron.Application.Logging\Tauron.Application.Logging.csproj" />
+    <ProjectReference Include="..\..\..\Shared\Tauron.Application.Wpf.SerilogViewer\Tauron.Application.Wpf.SerilogViewer.csproj" />
+    <ProjectReference Include="..\..\..\Shared\Tauron.Application.Wpf\Tauron.Application.Wpf.csproj" />
   </ItemGroup>
 
   <ItemGroup>
