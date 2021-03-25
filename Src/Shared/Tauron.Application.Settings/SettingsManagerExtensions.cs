@@ -7,8 +7,7 @@ namespace Tauron.Application.Settings
 {
     public static class SettingsManagerExtensions
     {
-        public static void RegisterSettingsManager(this ContainerBuilder builder,
-            Action<SettingsConfiguration>? config = null)
+        public static void RegisterSettingsManager(this ContainerBuilder builder, Action<SettingsConfiguration>? config = null)
         {
             if (config != null)
             {

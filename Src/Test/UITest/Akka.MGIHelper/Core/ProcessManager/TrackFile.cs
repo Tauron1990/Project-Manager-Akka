@@ -1,10 +1,4 @@
-﻿using Amadevus.RecordGenerator;
-
-namespace Akka.MGIHelper.Core.ProcessManager
+﻿namespace Akka.MGIHelper.Core.ProcessManager
 {
-    [Record]
-    public sealed partial class TrackFile
-    {
-        public string FileName { get; } = string.Empty;
-    }
+    public sealed record TrackFile(string FileName);
 }

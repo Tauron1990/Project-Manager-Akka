@@ -67,10 +67,10 @@
                            TextAlignment="Right" />
                 <TextBlock Grid.Row="6" Grid.Column="2" Text="%" Margin="3" />
 
-                <TextBlock Grid.Row="7" Grid.Column="0"
+                <TextBlock Grid.Row="7" Grid.Column="0" Visibility="Hidden"
                            Text="{tau:ActorBinding FanRunning, Converter={StaticResource FanStadeConverter}}"
                            Margin="3" />
-                <Rectangle Grid.Row="7" Grid.Column="1"
+                <Rectangle Grid.Row="7" Grid.Column="1" Visibility="Hidden"
                            Fill="{tau:ActorBinding FanRunning, Converter={StaticResource ColorConverter}}" Margin="3"
                            RadiusX="20" RadiusY="50" />
 

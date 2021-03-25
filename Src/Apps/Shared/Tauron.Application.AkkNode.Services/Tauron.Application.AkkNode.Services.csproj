@@ -14,6 +14,15 @@
     <Compile Remove="Core\InternalSerializable.cs" />
     <Compile Remove="Core\InternalSerializableBase.cs" />
     <Compile Remove="Core\InternalSerializer.cs" />
+    <Compile Remove="MongoDb\ClientPool.cs" />
+    <Compile Remove="MongoDb\IClientPool.cs" />
+    <Compile Remove="MongoDb\IMongoEntity.cs" />
+    <Compile Remove="MongoDb\IMongoUpdateable.cs" />
+    <Compile Remove="MongoDb\MongoDatabase.cs" />
+    <Compile Remove="MongoDb\MongoDataBaseFactory.cs" />
+    <Compile Remove="MongoDb\MongoDbExtensions.cs" />
+    <Compile Remove="MongoDb\MongoDbSource.cs" />
+    <Compile Remove="MongoDb\MongoQueryBase.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -23,12 +32,21 @@
     <None Include="Core\InternalSerializable.cs" />
     <None Include="Core\InternalSerializableBase.cs" />
     <None Include="Core\InternalSerializer.cs" />
+    <None Include="MongoDb\ClientPool.cs" />
+    <None Include="MongoDb\IClientPool.cs" />
+    <None Include="MongoDb\IMongoEntity.cs" />
+    <None Include="MongoDb\IMongoUpdateable.cs" />
+    <None Include="MongoDb\MongoDatabase.cs" />
+    <None Include="MongoDb\MongoDataBaseFactory.cs" />
+    <None Include="MongoDb\MongoDbExtensions.cs" />
+    <None Include="MongoDb\MongoDbSource.cs" />
+    <None Include="MongoDb\MongoQueryBase.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Akka.Persistence.Query" Version="1.4.17" />
-    <PackageReference Include="MongoDB.Driver" Version="2.12.0" />
-    <PackageReference Include="MongoDB.Driver.GridFS" Version="2.12.0" />
+    <PackageReference Include="Akka.Persistence.Query" Version="1.4.18" />
+    <PackageReference Include="MongoDB.Driver" Version="2.12.1" />
+    <PackageReference Include="MongoDB.Driver.GridFS" Version="2.12.1" />
   </ItemGroup>
 
   <ItemGroup>

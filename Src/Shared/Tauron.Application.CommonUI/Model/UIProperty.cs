@@ -11,8 +11,12 @@ namespace Tauron.Application.CommonUI.Model
     [PublicAPI]
     public sealed class UIProperty<TData> : UIPropertyBase, IObservable<TData>, IDisposable
     {
+        private sealed record DataContainer(TData Data, bool IsNil = false)
+        {
+        }
+
         private readonly BehaviorSubject<Error?> _currentError = new(null);
-        private readonly BehaviorSubject<TData> _currentValue = new(default!);
+        private readonly BehaviorSubject<DataContainer> _currentValue = new(new DataContainer(default!, true));
         private readonly CompositeDisposable _disposable = new();
 
         private bool _isLocked;
@@ -37,21 +41,15 @@ namespace Tauron.Application.CommonUI.Model
             }
         }
 
-        public IObservable<TData> PropertyValueChangedData => _currentValue.AsObservable();
+        public IObservable<TData> PropertyValueChangedData => this.DistinctUntilChanged().AsObservable();
 
-        public TData Value => _currentValue.Value;
+        public TData Value => _currentValue.Value.Data;
 
-        public void Dispose()
-        {
-            _disposable.Dispose();
-        }
+        public void Dispose() => _disposable.Dispose();
 
-        public IDisposable Subscribe(IObserver<TData> observer) => _currentValue.Subscribe(observer);
+        public IDisposable Subscribe(IObserver<TData> observer) => _currentValue.Where(c => !c.IsNil).Select(c => c.Data).Subscribe(observer);
 
-        public void SetValidator(Func<IObservable<TData>, IObservable<Error?>> validator)
-        {
-            _disposable.Add(validator(PropertyValueChangedData).Subscribe(_currentError));
-        }
+        public void SetValidator(Func<IObservable<TData>, IObservable<Error?>> validator) => _disposable.Add(validator(PropertyValueChangedData).Subscribe(_currentError));
 
         protected internal override UIPropertyBase LockSet()
         {
@@ -63,12 +61,12 @@ namespace Tauron.Application.CommonUI.Model
         {
             if (_isLocked) return;
 
-            _currentValue.OnNext(data);
+            _currentValue.OnNext(new DataContainer(data));
         }
 
         internal UIProperty<TData> ForceSet(TData data)
         {
-            _currentValue.OnNext(data);
+            _currentValue.OnNext(new DataContainer(data));
             return this;
         }
 

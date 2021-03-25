@@ -1,15 +1,21 @@
 ﻿using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Text;
-using System.Windows.Threading;
+using System.Threading;
 using Akka.Actor;
 using Akka.DI.Core;
 using Akka.MGIHelper.Core.Configuration;
 using Akka.MGIHelper.Core.ProcessManager;
 using Autofac;
-using Tauron.Application.Wpf.Model;
-using Tauron.Application.Wpf.ModelMessages;
+using Tauron;
+using Tauron.Application.CommonUI.AppCore;
+using Tauron.Application.CommonUI.Model;
+using Tauron.Application.CommonUI.ModelMessages;
+using Tauron.Application.Wpf;
+using Tauron.Features;
 using Tauron.Localization;
 
 namespace Akka.MGIHelper.UI.MgiStarter
@@ -20,7 +26,7 @@ namespace Akka.MGIHelper.UI.MgiStarter
         private readonly LocalHelper _localHelper;
         private readonly IActorRef _processManager;
 
-        public MgiStarterControlModel(ILifetimeScope lifetimeScope, Dispatcher dispatcher, ProcessConfig config)
+        public MgiStarterControlModel(ILifetimeScope lifetimeScope, IUIDispatcher dispatcher, ProcessConfig config, IDialogFactory dialogFactory)
             : base(lifetimeScope, dispatcher)
         {
             Client = RegisterProperty<Process?>(nameof(Client)).OnChange(UpdateLabel);
@@ -31,33 +37,49 @@ namespace Akka.MGIHelper.UI.MgiStarter
 
             _localHelper = new LocalHelper(Context);
             _config = config;
-            _processManager = Context.ActorOf<ProcessManagerActor>("Process-Manager");
-            var mgiStarting = Context.ActorOf(Context.DI().Props<MgiStartingActor>(), "Mgi-Starter");
 
-            Receive<ProcessStateChange>(ProcessStateChangeHandler);
-            Receive<MgiStartingActor.TryStartResponse>(TryStartResponseHandler);
-            Receive<MgiStartingActor.StartStatusUpdate>(StatusUpdate);
+            _processManager = Context.ActorOf("Process-Manager", ProcessManagerActor.New());
+            var mgiStarting = Context.ActorOf("Mgi-Starter", MgiStartingActor.New(dialogFactory));
 
-            NewCommad
-                .WithCanExecute(() => InternalStart == false)
-                .WithExecute(() =>
-                {
-                    InternalStart += true;
-                    mgiStarting.Tell(new MgiStartingActor.TryStart(_config, () =>
-                    {
-                        Client.Value?.Kill(true);
-                        Kernel.Value?.Kill(true);
-                    }));
-                }).ThenRegister("TryStart");
+            var currentStart = new BehaviorSubject<CancellationTokenSource?>(null).DisposeWith(this);
+            (from start in currentStart
+             from state in InternalStart
+             where !state
+             select start
+                ).SubscribeWithStatus(s => s?.Dispose())
+                 .DisposeWith(this);
+
+            Receive<ProcessStateChange>(obs => obs.SubscribeWithStatus(ProcessStateChangeHandler));
+            Receive<MgiStartingActor.TryStartResponse>(obs => obs.SubscribeWithStatus(_ => InternalStart += false));
+            Receive<MgiStartingActor.StartStatusUpdate>(obs => obs.SubscribeWithStatus(s => Status += s.Status));
 
             NewCommad
-                .WithCanExecute(() => InternalStart == false && (Client != null || Kernel != null))
-                .WithExecute(() =>
-                {
-                    Client.Value?.Kill(true);
-                    Kernel.Value?.Kill(true);
-                }).ThenRegister("TryStop");
+               .WithCanExecute(InternalStart.Select(b => !b))
+               .WithExecute(() =>
+                            {
+                                InternalStart += true;
+                                currentStart.OnNext(new CancellationTokenSource());
 
+                                mgiStarting.Tell(new MgiStartingActor.TryStart(_config, currentStart.Value!.Token,
+                                    () =>
+                                    {
+                                        Client.Value?.Kill(true);
+                                        Kernel.Value?.Kill(true);
+                                    }));
+                            }).ThenRegister("TryStart");
+
+            NewCommad
+               .WithCanExecute(from client in Client
+                               from kernel in Kernel 
+                               select client != null || kernel != null)
+               .WithExecute(() =>
+                            {
+                                currentStart.Value?.Cancel();
+                                Client.Value?.Kill(true);
+                                Kernel.Value?.Kill(true);
+                            }).ThenRegister("TryStop");
+
+            InternalStart += false;
             UpdateLabel();
         }
 
@@ -70,17 +92,6 @@ namespace Akka.MGIHelper.UI.MgiStarter
         private UIProperty<bool> InternalStart { get; set; }
 
         private UIProperty<string?> StatusLabel { get; set; }
-
-        private void StatusUpdate(MgiStartingActor.StartStatusUpdate obj)
-        {
-            Status += obj.Status;
-        }
-
-        private void TryStartResponseHandler(MgiStartingActor.TryStartResponse obj)
-        {
-            InternalStart += false;
-            CommandChanged();
-        }
 
         private void ProcessStateChangeHandler(ProcessStateChange obj)
         {
@@ -142,10 +153,10 @@ namespace Akka.MGIHelper.UI.MgiStarter
         private void UpdateLabel()
         {
             var builder = new StringBuilder();
-
+            
             var status = Status;
-            var kernel = Kernel.Value != null;
-            var client = Client.Value != null;
+            var kernel = Kernel != null;
+            var client = Client != null;
             if (!string.IsNullOrWhiteSpace(status) && status.Value?.StartsWith("Fehler:") == true)
             {
                 StatusLabel = status;

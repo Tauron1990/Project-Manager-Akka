@@ -9,14 +9,8 @@ namespace Akka.MGIHelper.Core.FanControl.Components
     {
         private readonly Func<TrackingEvent, Task> _invoker;
 
-        public TrackingEventDeliveryComponent(Func<TrackingEvent, Task> invoker)
-        {
-            _invoker = invoker;
-        }
+        public TrackingEventDeliveryComponent(Func<TrackingEvent, Task> invoker) => _invoker = invoker;
 
-        public Task Handle(TrackingEvent msg, MessageBus messageBus)
-        {
-            return _invoker(msg);
-        }
+        public Task Handle(TrackingEvent msg, MessageBus messageBus) => _invoker(msg);
     }
 }

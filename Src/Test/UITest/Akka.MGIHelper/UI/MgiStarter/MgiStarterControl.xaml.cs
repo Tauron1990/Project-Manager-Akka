@@ -1,4 +1,4 @@
-﻿using Tauron.Application.Wpf;
+﻿using Tauron.Application.CommonUI;
 
 namespace Akka.MGIHelper.UI.MgiStarter
 {

@@ -2,93 +2,93 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Threading;
 using Akka.Actor;
 using Akka.Event;
+using Tauron;
+using Tauron.Features;
 
 namespace Akka.MGIHelper.Core.ProcessManager
 {
-    public sealed class ProcessTrackerActor : ReceiveActor
+    public sealed class ProcessTrackerActor : ActorFeatureBase<ProcessTrackerActor.ProcessTrackerState>
     {
-        private readonly ILoggingAdapter _log = Context.GetLogger();
-        private readonly Timer _processUpdater;
-        private ImmutableArray<string> _tracked = ImmutableArray<string>.Empty;
+        public sealed record ProcessTrackerState(Timer ProcessTimer, ImmutableArray<string> Tracked);
 
-        public ProcessTrackerActor()
+        public static IPreparedFeature New()
+            => Feature.Create(() => new ProcessTrackerActor(), c => new ProcessTrackerState(new Timer(_ => c.Self.Tell(GatherProcess.Inst), null, 5000, 5000), ImmutableArray<string>.Empty));
+
+        private ProcessTrackerActor()
         {
-            //_processUpdater = Context.System.Scheduler.ScheduleTellRepeatedlyCancelable(5000, 5000, Self, new GatherProcess(), ActorRefs.NoSender);
-            var self = Self;
-            _processUpdater = new Timer(o => self.Tell(new GatherProcess()), null, 5000, 5000);
-
-            Receive<GatherProcess>(GetProcesses);
-            Receive<ProcessExitMessage>(ProcessExit);
-            Receive<RegisterProcessFile>(Track);
         }
 
-        private void ProcessExit(ProcessExitMessage obj)
+        protected override void Config()
         {
-            Context.Parent.Tell(new ProcessStateChange(ProcessChange.Stopped, obj.Name, obj.Id, obj.Target));
+            Stop.Subscribe(_ => CurrentState.ProcessTimer.Dispose());
+
+            Receive<ProcessExitMessage>(obs => obs.Select(p => p.Event)
+                                                  .Select(obj => new ProcessStateChange(ProcessChange.Stopped, obj.Name, obj.Id, obj.Target))
+                                                  .ForwardToParent());
+
+            Receive<RegisterProcessFile>(obs => obs.Where(p => !string.IsNullOrWhiteSpace(p.Event.FileName))
+                                                   .Select(p => p.State with {Tracked = p.State.Tracked.Add(p.Event.FileName.Trim())}));
+
+            Receive<GatherProcess>(obs => obs.Where(pair => Context.GetChildren().Count() != pair.State.Tracked.Length)
+                                             .Do(_ => Log.Info("Update Processes"))
+                                             .SelectMany(_ =>
+                                                         {
+                                                             try
+                                                             {
+                                                                 return Process.GetProcesses();
+                                                             }
+                                                             catch (Exception e)
+                                                             {
+                                                                 Log.Error(e, "Error While Recieving Processes");
+                                                                 return Array.Empty<Process>();
+                                                             }
+                                                         })
+                                             .ToSelf());
+
+            Receive<Process>(obs => obs.Select(p =>
+                                               {
+                                                   var ok = false;
+                                                   Process process = p.Event;
+                                                   var id = -1;
+                                                   string name = string.Empty;
+
+                                                   try
+                                                   {
+                                                       name = process.ProcessName;
+                                                       id = process.Id;
+
+                                                       if (Context.Child(FormatName(process.Id)).Equals(ActorRefs.Nobody))
+                                                           ok = true;
+
+                                                       var processName = process.ProcessName;
+                                                       if (ok && p.State.Tracked.Any(s => s.Contains(processName)))
+                                                           ok = true;
+                                                       else
+                                                           ok = false;
+
+                                                       if (!ok)
+                                                           process.Dispose();
+                                                   }
+                                                   catch (Exception e)
+                                                   {
+                                                       Log.Error(e, "Error While inspecting Process");
+                                                   }
+
+                                                   return (ok, process, id, name);
+                                               })
+                                       .Where(p => p.ok)
+                                       .Do(e => Log.Info("Process Found {Name}", e.name))
+                                       .Do(e => Context.ActorOf(FormatName(e.id), TrackedProcessActor.New(e.process, e.id, e.name)))
+                                       .Select(p => new ProcessStateChange(ProcessChange.Started, p.name, p.id, p.process))
+                                       .ToParent());
+
+            SupervisorStrategy = new OneForOneStrategy(_ => Directive.Stop);
         }
 
-        private string FormatName(int id)
-        {
-            return $"Process-{id}";
-        }
-
-        private void GetProcesses(GatherProcess state)
-        {
-            try
-            {
-                if (Context.GetChildren().Count() == _tracked.Length)
-                    return;
-
-                _log.Info("Update Processes");
-                foreach (var process in Process.GetProcesses())
-                    try
-                    {
-                        if (!Context.Child(FormatName(process.Id)).Equals(ActorRefs.Nobody))
-                        {
-                            process.Dispose();
-                            continue;
-                        }
-
-                        var processName = process.ProcessName;
-                        if (!_tracked.Any(s => s.Contains(processName)))
-                        {
-                            process.Dispose();
-                            continue;
-                        }
-
-                        _log.Info("Process Found {Name}", process.ProcessName);
-                        Context.ActorOf(Props.Create(() => new TrackedProcessActor(process)), FormatName(process.Id));
-                        Context.Parent.Tell(new ProcessStateChange(ProcessChange.Started, processName, process.Id, process));
-                    }
-                    catch (Exception e)
-                    {
-                        _log.Error(e, "Error on Check Process");
-                    }
-            }
-            catch (Exception e)
-            {
-                _log.Error(e, "Error on Get Processes");
-            }
-        }
-
-        private void Track(RegisterProcessFile msg)
-        {
-            var fileName = msg.FileName.Trim();
-            if (string.IsNullOrWhiteSpace(fileName)) return;
-            _tracked = _tracked.Add(fileName);
-        }
-
-        protected override void PostStop()
-        {
-            _processUpdater.Dispose();
-        }
-
-        protected override SupervisorStrategy SupervisorStrategy()
-        {
-            return new OneForOneStrategy(exception => Directive.Stop);
-        }
+        private static string FormatName(int id) => $"Process-{id}";
     }
 }

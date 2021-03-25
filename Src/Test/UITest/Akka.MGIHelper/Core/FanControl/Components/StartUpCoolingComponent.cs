@@ -9,10 +9,7 @@ namespace Akka.MGIHelper.Core.FanControl.Components
     {
         private readonly FanControlOptions _options;
 
-        public StartUpCoolingComponent(FanControlOptions options)
-        {
-            _options = options;
-        }
+        public StartUpCoolingComponent(FanControlOptions options) => _options = options;
 
         public async Task Handle(TrackingEvent msg, MessageBus messageBus)
         {

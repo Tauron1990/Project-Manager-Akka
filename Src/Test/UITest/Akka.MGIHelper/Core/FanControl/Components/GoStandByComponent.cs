@@ -9,7 +9,7 @@ namespace Akka.MGIHelper.Core.FanControl.Components
     public class GoStandByComponent : IHandler<TrackingEvent>
     {
         private readonly FanControlOptions _options;
-        private readonly Stopwatch _stopwatch = new Stopwatch();
+        private readonly Stopwatch _stopwatch = new();
         private State _lastState = State.Idle;
 
         public GoStandByComponent(FanControlOptions options)
@@ -27,12 +27,18 @@ namespace Akka.MGIHelper.Core.FanControl.Components
                 switch (_lastState)
                 {
                     case State.StandBy when msg.State == State.StandBy:
-                        if (_stopwatch.IsRunning && _stopwatch.Elapsed.Seconds < _options.GoStandbyTime)
-                            await messageBus.Publish(new FanStartEvent());
-                        else if (_stopwatch.IsRunning)
-                            _stopwatch.Stop();
-                        else
-                            _stopwatch.Reset();
+                        switch (_stopwatch.IsRunning)
+                        {
+                            case true when _stopwatch.Elapsed.Seconds < _options.GoStandbyTime:
+                                await messageBus.Publish(new FanStartEvent());
+                                break;
+                            case true:
+                                _stopwatch.Stop();
+                                break;
+                            default:
+                                _stopwatch.Reset();
+                                break;
+                        }
                         break;
                     case State.Power when msg.State == State.StandBy:
                         await messageBus.Publish(new FanStartEvent());

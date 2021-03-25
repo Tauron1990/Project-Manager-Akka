@@ -1,43 +1,48 @@
 ﻿using System.Collections.Immutable;
 using System.Linq;
+using System.Reactive.Linq;
 using Akka.Actor;
 using Akka.Event;
+using Tauron;
+using Tauron.Features;
 
 namespace Akka.MGIHelper.Core.ProcessManager
 {
-    public sealed class ProcessManagerActor : ReceiveActor
+    public sealed class ProcessManagerActor : ActorFeatureBase<ProcessManagerActor.ProcesManagerState>
     {
-        private readonly ILoggingAdapter _log = Context.GetLogger();
+        public sealed record ProcesManagerState(IActorRef ProcessTracker, ImmutableDictionary<string, IActorRef> TargetProcesses);
 
-        private readonly IActorRef _processTracker;
-        private ImmutableDictionary<string, IActorRef> _targetProcesses = ImmutableDictionary<string, IActorRef>.Empty;
+        public static IPreparedFeature New()
+            => Feature.Create(() => new ProcessManagerActor(), c => new ProcesManagerState(c.ActorOf(ProcessTrackerActor.New()), ImmutableDictionary<string, IActorRef>.Empty));
 
-        public ProcessManagerActor()
+        private ProcessManagerActor() { }
+
+        protected override void Config()
         {
-            _processTracker = Context.ActorOf<ProcessTrackerActor>();
+            Receive<RegisterProcessList>(
+                obs => obs.Select(p =>
+                                  {
+                                      var (script, (processTracker, targetProcesses)) = p;
 
-            Receive<RegisterProcessList>(Register);
-            Receive<ProcessStateChange>(ProcessStateChange);
-        }
+                                      targetProcesses = script.Files
+                                                              .Where(fileName => !string.IsNullOrWhiteSpace(fileName))
+                                                              .Aggregate(targetProcesses, (dic, file) =>
+                                                                                          {
+                                                                                              if (dic.ContainsKey(file))
+                                                                                                  Log.Error("Only One Script per File Suporrtet: {Script}", script.Intrest.Path.ToString());
 
-        private void ProcessStateChange(ProcessStateChange obj)
-        {
-            var (key, target) = _targetProcesses.FirstOrDefault(p => p.Key.Contains(obj.Name));
-            if (string.IsNullOrWhiteSpace(key)) return;
+                                                                                              processTracker.Tell(new RegisterProcessFile(file));
+                                                                                              return dic.SetItem(file, script.Intrest);
+                                                                                          });
 
-            target.Tell(obj);
-        }
+                                      return p.State with {TargetProcesses = targetProcesses};
+                                  }));
 
-        private void Register(RegisterProcessList script)
-        {
-            foreach (var fileName in script.Files.Where(fileName => !string.IsNullOrWhiteSpace(fileName)))
-            {
-                if (_targetProcesses.ContainsKey(fileName))
-                    _log.Error("Only One Scrip per File Suporrtet: {Script}", script.Intrest.Path.ToString());
-
-                _targetProcesses = _targetProcesses.SetItem(fileName, script.Intrest);
-                _processTracker.Tell(new RegisterProcessFile(fileName));
-            }
+            
+            Receive<ProcessStateChange>(
+                obs => obs.Select(p => (Message:p.Event, Target:p.State.TargetProcesses.FirstOrDefault(d => d.Key.Contains(p.Event.Name))))
+                          .Where(d => !string.IsNullOrWhiteSpace(d.Target.Key))
+                          .ToActor(m => m.Target.Value, m => m.Message));
         }
     }
 }

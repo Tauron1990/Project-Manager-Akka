@@ -1,16 +1,16 @@
-﻿using System.Windows.Threading;
-using Akka.MGIHelper.UI;
+﻿using Akka.MGIHelper.UI;
 using Akka.MGIHelper.UI.FanControl;
 using Akka.MGIHelper.UI.MgiStarter;
 using Autofac;
-using Tauron.Application.Wpf;
-using Tauron.Application.Wpf.Model;
+using Tauron.Application.CommonUI;
+using Tauron.Application.CommonUI.AppCore;
+using Tauron.Application.CommonUI.Model;
 
 namespace Akka.MGIHelper
 {
     public sealed class MainWindowViewModel : UiActor
     {
-        public MainWindowViewModel(ILifetimeScope lifetimeScope, Dispatcher dispatcher, IViewModel<MgiStarterControlModel> mgiStarter, IViewModel<AutoFanControlModel> autoFanControl)
+        public MainWindowViewModel(ILifetimeScope lifetimeScope, IUIDispatcher dispatcher, IViewModel<MgiStarterControlModel> mgiStarter, IViewModel<AutoFanControlModel> autoFanControl)
             : base(lifetimeScope, dispatcher)
         {
             this.RegisterViewModel("MgiStarter", mgiStarter);

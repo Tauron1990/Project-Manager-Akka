@@ -34,10 +34,7 @@ namespace Tauron.Features
 
         void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler);
         void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<TState>> handler);
-
-        void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler,
-            Func<Exception, bool> errorHandler);
-
+        void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler, Func<Exception, bool> errorHandler);
         void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IDisposable> handler);
 
         void TellSelf(object msg);

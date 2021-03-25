@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reactive;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Tauron.Application.CommonUI;
 using Tauron.Application.CommonUI.AppCore;
@@ -10,7 +11,7 @@ using Tauron.Application.Wpf.UI;
 namespace Tauron.Application.Wpf
 {
     [PublicAPI]
-    public class Window : System.Windows.Window, IView, IUIElement, IWindowProvider
+    public class Window : System.Windows.Window, IView, IUIElement, IWindowProvider, IWindow
     {
         private readonly WindowControlLogic _controlLogic;
         private readonly IWindow _element;
@@ -48,5 +49,6 @@ namespace Tauron.Application.Wpf
         }
 
         IWindow IWindowProvider.Window => _element;
+        Task<bool?> IWindow.ShowDialog() => _element.ShowDialog();
     }
 }
