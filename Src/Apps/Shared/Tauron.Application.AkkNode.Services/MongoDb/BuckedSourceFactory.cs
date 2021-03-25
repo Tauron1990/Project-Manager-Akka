@@ -13,7 +13,11 @@ namespace Tauron.Application.AkkaNode.Services.MongoDb
     {
         private readonly GridFSBucket _bucket;
 
-        public BuckedSourceFactory(GridFSBucket bucket) { }
+        public BuckedSourceFactory(GridFSBucket bucket)
+        {
+            _bucket = bucket;
+        }
+
         protected override Task<GridFSBucketEntity> CreateValue(CreationMetadata? metadata) => Task.FromResult(new GridFSBucketEntity(_bucket));
     }
 }

@@ -5,7 +5,7 @@ using System.Threading;
 using Akka.Actor;
 using Tauron.Features;
 using Tauron.ObservableExt;
-using Dm = Tauron.Application.AkkaNode.Services.FileTransfer.TransferMessages;
+using static Tauron.Application.AkkaNode.Services.FileTransfer.TransferMessages;
 
 namespace Tauron.Application.AkkaNode.Services.FileTransfer.Operator
 {
@@ -16,11 +16,11 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer.Operator
                 _ => new State(ImmutableDictionary<string, IncomingDataTransfer>.Empty,
                     ImmutableDictionary<string, AwaitRequestInternal>.Empty));
 
-        protected override void Config()
+        protected override void ConfigImpl()
         {
             SupervisorStrategy = new OneForOneStrategy(_ => Directive.Stop);
 
-            Receive<TransferMessages.TransmitRequest>(obs => obs
+            Receive<TransmitRequest>(obs => obs
                 .Select(m => new {Child = Context.Child(m.Event.OperationId), Message = m.Event})
                 .ConditionalSelect()
                 .ToResult<Unit>(b =>
@@ -38,8 +38,8 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer.Operator
                             .ToUnit(i => i.Sender.Tell(i.Message)));
                 }));
 
-            Receive<TransferMessages.DataTranfer>(obs => obs
-                .Where(m => m.Event is TransferMessages.RequestAccept && m.Event is TransferMessages.RequestDeny)
+            Receive<DataTranfer>(obs => obs
+                .Where(m => m.Event is RequestAccept && m.Event is TransferMessages.RequestDeny)
                 .Do(m => Context.Child(m.Event.OperationId).Tell(m.Event))
                 .Select(m => m.State with {PendingTransfers = m.State.PendingTransfers.Remove(m.Event.OperationId)}));
 
@@ -94,7 +94,7 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer.Operator
                 Context.Stop(Context.Child(@event.OperationId));
             }));
 
-            Receive<TransferMessages.TransferMessage>(obs => obs.ToUnit(m =>
+            Receive<TransferMessage>(obs => obs.ToUnit(m =>
             {
                 var (transferMessage, _, _) = m;
 

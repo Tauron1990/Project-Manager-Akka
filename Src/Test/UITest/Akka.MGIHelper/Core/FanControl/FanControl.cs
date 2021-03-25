@@ -19,7 +19,7 @@ namespace Akka.MGIHelper.Core.FanControl
         private FanControl()
         { }
 
-        protected override void Config()
+        protected override void ConfigImpl()
         {
             var options = CurrentState;
             var parent = Context.Parent;

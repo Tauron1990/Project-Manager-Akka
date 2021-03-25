@@ -20,7 +20,7 @@ namespace Akka.MGIHelper.UI.MgiStarter
 
         private MgiStartingActor(){}
 
-        protected override void Config()
+        protected override void ConfigImpl()
         {
             Receive<TryStart>(obs => obs.Select(p => p.Event).SubscribeWithStatus(TryStartHandler));
         }

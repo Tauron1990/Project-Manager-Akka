@@ -17,7 +17,7 @@ namespace Akka.MGIHelper.Core.ProcessManager
 
         private TrackedProcessActor() { }
 
-        protected override  void Config()
+        protected override  void ConfigImpl()
         {
             Stop.Subscribe(_ =>
                            {

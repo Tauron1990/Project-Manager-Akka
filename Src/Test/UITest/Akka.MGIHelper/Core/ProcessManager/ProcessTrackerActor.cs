@@ -22,7 +22,7 @@ namespace Akka.MGIHelper.Core.ProcessManager
         {
         }
 
-        protected override void Config()
+        protected override void ConfigImpl()
         {
             Stop.Subscribe(_ => CurrentState.ProcessTimer.Dispose());
 

@@ -69,7 +69,7 @@ namespace Tauron.Application.Master.Commands
             public static IPreparedFeature Create()
                 => Feature.Create(() => new KillSwitchFeature(), _ => new KillState(ImmutableList<ActorElement>.Empty));
 
-            protected override void Config()
+            protected override void ConfigImpl()
             {
                 Receive<ActorDown>(obs => obs.Do(ad => Log.Info($"Remove KillSwitch Actor {ad.Event.Actor.Path}"))
                     .Select(m =>

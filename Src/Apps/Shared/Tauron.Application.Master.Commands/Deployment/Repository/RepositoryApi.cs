@@ -2,7 +2,6 @@
 using Akka.Cluster.Tools.Singleton;
 using JetBrains.Annotations;
 using Tauron.Application.AkkaNode.Services;
-using Tauron.Application.AkkaNode.Services.CleanOld;
 using Tauron.Application.AkkaNode.Services.CleanUp;
 using Tauron.Application.AkkaNode.Services.Commands;
 

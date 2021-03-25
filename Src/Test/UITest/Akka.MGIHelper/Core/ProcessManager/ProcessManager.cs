@@ -17,7 +17,7 @@ namespace Akka.MGIHelper.Core.ProcessManager
 
         private ProcessManagerActor() { }
 
-        protected override void Config()
+        protected override void ConfigImpl()
         {
             Receive<RegisterProcessList>(
                 obs => obs.Select(p =>

@@ -15,7 +15,7 @@ namespace Tauron.Application.Master.Commands.Administration.Host
             => Feature.Create(() => new HostApiManagerFeature(),
                 _ => new ApiState(ImmutableDictionary<ActorPath, HostEntry>.Empty));
 
-        protected override void Config()
+        protected override void ConfigImpl()
         {
             Receive<SubscribeFeature.InternalEventSubscription>(obs => obs
                 .SelectMany(m => m.State.Entries.Select(entry => (entry, m.Event.Intrest)))
