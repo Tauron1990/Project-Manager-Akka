@@ -8,7 +8,7 @@ namespace Tauron.Application.Workshop.StateManagement.Attributes
     [AttributeUsage(AttributeTargets.Class)]
     public abstract class DispatcherAttribute : Attribute
     {
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         protected internal abstract Func<IStateDispatcherConfigurator> CreateConfig();
     }

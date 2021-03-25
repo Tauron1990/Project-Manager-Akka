@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using JetBrains.Annotations;
 
 namespace Akkatecture.Core.VersionedTypes
@@ -36,14 +37,14 @@ namespace Akkatecture.Core.VersionedTypes
         where TAttribute : VersionedTypeAttribute
         where TDefinition : VersionedTypeDefinition
     {
-        void Load(IReadOnlyCollection<Type> types);
+        void Load(IReadOnlyCollection<Type>? types);
         IEnumerable<TDefinition> GetDefinitions(string name);
-        bool TryGetDefinition(string name, int version, out TDefinition definition);
+        bool TryGetDefinition(string name, int version, [NotNullWhen(true)]out TDefinition? definition);
         IEnumerable<TDefinition> GetAllDefinitions();
         TDefinition GetDefinition(string name, int version);
         TDefinition GetDefinition(Type type);
         IReadOnlyCollection<TDefinition> GetDefinitions(Type type);
-        bool TryGetDefinition(Type type, out TDefinition definition);
+        bool TryGetDefinition(Type type, [NotNullWhen(true)] out TDefinition? definition);
         bool TryGetDefinitions(Type type, out IReadOnlyCollection<TDefinition> definitions);
         void Load(params Type[] types);
     }

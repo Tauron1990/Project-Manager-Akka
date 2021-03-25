@@ -14,7 +14,7 @@ namespace Tauron.Application.Avalonia.AppCore
             : base(element)
             => _element = element;
 
-        public object DataContext
+        public object? DataContext
         {
             get => _element.DataContext;
             set => _element.DataContext = value;

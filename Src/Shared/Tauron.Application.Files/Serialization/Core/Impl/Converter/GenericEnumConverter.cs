@@ -17,6 +17,6 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Converter
 
         public override object ConvertBack([NotNull] string target) => Enum.Parse(_enumType, target);
 
-        public override string Convert(object? source) => source == null ? string.Empty : source.ToString();
+        public override string Convert(object? source) => source?.ToString() ?? string.Empty;
     }
 }

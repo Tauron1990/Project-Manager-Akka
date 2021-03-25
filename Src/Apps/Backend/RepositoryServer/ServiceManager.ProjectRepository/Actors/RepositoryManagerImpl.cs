@@ -32,7 +32,7 @@ namespace ServiceManager.ProjectRepository.Actors
         }
 
 
-        protected override void Config()
+        protected override void ConfigImpl()
         {
             IActorRef CreateCleaner()
             {

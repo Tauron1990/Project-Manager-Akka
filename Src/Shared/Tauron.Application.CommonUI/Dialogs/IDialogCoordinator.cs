@@ -15,7 +15,7 @@ namespace Tauron.Application.CommonUI.Dialogs
     [PublicAPI]
     public interface IDialogCoordinator
     {
-        event Action<IWindow>? OnWindowConstructed;
+        //event Action<IWindow>? OnWindowConstructed;
 
         Task<bool?> ShowMessage(string title, string message, Action<bool?>? result);
 

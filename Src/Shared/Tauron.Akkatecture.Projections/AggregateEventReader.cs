@@ -66,7 +66,7 @@ namespace Tauron.Akkatecture.Projections
         public override IDisposable CreateSubscription(long? lastProcessedCheckpoint, Subscriber subscriber,
             string subscriptionId)
         {
-            string ExtractInfo() => subscriptionId.Substring(subscriptionId.IndexOf('@') + 1);
+            string ExtractInfo() => subscriptionId[(subscriptionId.IndexOf('@') + 1)..];
 
             if (subscriptionId.StartsWith("Type"))
                 return MakeAggregateSubscription(lastProcessedCheckpoint, subscriber, Type.GetType(ExtractInfo())!);
@@ -229,7 +229,7 @@ namespace Tauron.Akkatecture.Projections
                     .Select(x =>
                     {
                         var domainEvent = Mapper.FromJournal(x.Event, string.Empty).Events.Single();
-                        return new EventEnvelope(x.Offset, x.PersistenceId, x.SequenceNr, domainEvent);
+                        return new EventEnvelope(x.Offset, x.PersistenceId, x.SequenceNr, domainEvent, x.Timestamp);
                     });
             }
         }
@@ -242,7 +242,7 @@ namespace Tauron.Akkatecture.Projections
 
             public SubscriptionBuilder(ActorMaterializer materializer, ActorSystem system, string journalId,
                 Subscriber subscriber)
-                : base(materializer, subscriber, typeof(TAggregate).AssemblyQualifiedName)
+                : base(materializer, subscriber, typeof(TAggregate).AssemblyQualifiedName ?? "Unkowne Type")
             {
                 _system = system;
                 _journalId = journalId;

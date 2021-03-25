@@ -22,7 +22,7 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Mapper.Xml
                 case SerializerMode.Serialize:
                     if (declaration != null)
                     {
-                        doc = new XDocument(declaration, new XElement(xNamespace + rootName));
+                        doc = new XDocument(declaration, xNamespace != null ? new XElement(xNamespace + rootName) : new XElement(rootName));
                         _currentElement = doc;
                     }
                     else
@@ -39,7 +39,7 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Mapper.Xml
             XElement = (ele ?? doc?.Root) ?? throw new InvalidOperationException("XElement is Null");
         }
 
-        public XElement XElement { get; set; }
+        public XElement XElement { get; }
 
         protected override void Dispose(bool disposing)
         {

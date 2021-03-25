@@ -39,7 +39,7 @@ namespace Tauron.Application.Files.VirtualFiles.LocalFileSystem
 
         private static IDirectory? GetParentDirectory(string fullpath)
         {
-            string name = Path.GetDirectoryName(fullpath);
+            string? name = Path.GetDirectoryName(fullpath);
             return string.IsNullOrEmpty(name) ? null : new LocalDirectory(fullpath);
         }
 

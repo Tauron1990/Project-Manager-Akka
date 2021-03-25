@@ -12,7 +12,7 @@ namespace Tauron.Application.Files.VirtualFiles.LocalFileSystem
         }
 
         private LocalFile(string fullPath)
-            : base(() => new LocalDirectory(fullPath.GetDirectoryName()), fullPath, fullPath.GetFileName())
+            : base(() => new LocalDirectory(fullPath.GetDirectoryName() ?? throw new InvalidOperationException("Directory Name not Found")), fullPath, fullPath.GetFileName())
         {
         }
 
@@ -48,19 +48,15 @@ namespace Tauron.Application.Files.VirtualFiles.LocalFileSystem
             return new LocalFile(location);
         }
 
-        protected override void DeleteImpl()
-        {
-            InfoObject?.Delete();
-        }
+        protected override void DeleteImpl() 
+            => InfoObject?.Delete();
 
         protected override FileInfo GetInfo(string path) => new(path);
 
         protected override Stream CreateStream(FileAccess access, InternalFileMode mode) => new FileStream(OriginalPath,
             (FileMode) mode, access, access == FileAccess.Read ? FileShare.Read : FileShare.None);
 
-        private void MoveFile(FileInfo? old, string newLoc)
-        {
-            old?.MoveTo(newLoc);
-        }
+        private static void MoveFile(FileInfo? old, string newLoc)
+            => old?.MoveTo(newLoc);
     }
 }

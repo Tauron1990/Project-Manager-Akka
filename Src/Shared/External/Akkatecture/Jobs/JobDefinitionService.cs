@@ -27,8 +27,7 @@ using Akkatecture.Core.VersionedTypes;
 
 namespace Akkatecture.Jobs
 {
-    public class JobDefinitionService : VersionedTypeDefinitionService<IJob, JobVersionAttribute, JobDefinition>,
-        IJobDefinitionService
+    public class JobDefinitionService : VersionedTypeDefinitionService<IJob, JobVersionAttribute, JobDefinition>, IJobDefinitionService
     {
         public JobDefinitionService(ILoggingAdapter logger)
             : base(logger)

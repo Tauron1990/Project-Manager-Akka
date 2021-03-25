@@ -4,7 +4,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Threading;
-using Akka.Actor;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
@@ -23,12 +22,10 @@ using Tauron.Temp;
 
 namespace ServiceManager.ProjectRepository.Actors
 {
-    public sealed class OperatorActor : ReportingActor<OperatorActor.OperatorState>, IWithTimers
+    public sealed class OperatorActor : ReportingActor<OperatorActor.OperatorState>
     {
         private static readonly ReaderWriterLockSlim UpdateLock = new();
-
-        public ITimerScheduler Timers { get; set; } = null!;
-
+        
         public static IPreparedFeature New(IMongoCollection<RepositoryEntry> repos, GridFSBucket bucket,
             IMongoCollection<ToDeleteRevision> revisions, DataTransferManager dataTransfer)
             => Feature.Create(() => new OperatorActor(), c => new OperatorState(repos, bucket, revisions, dataTransfer,
@@ -37,7 +34,7 @@ namespace ServiceManager.ProjectRepository.Actors
                         "Test Apps").Replace(' ', '_'))),
                 new Dictionary<string, ITempFile>()));
 
-        protected override void Config()
+        protected override void ConfigImpl()
         {
             Receive<RegisterRepository>("RegisterRepository", RegisterRepository);
 

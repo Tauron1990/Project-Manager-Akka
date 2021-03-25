@@ -4,19 +4,19 @@ using JetBrains.Annotations;
 
 namespace Tauron.Application.Files.Serialization.Core.Fluent.Binary
 {
-    [PublicAPI]
-    public interface IBinaryConfiguration : ISerializerRootConfiguration
-    {
-        IBinaryConfiguration WithFormat(FormatterAssemblyStyle format);
+    //[PublicAPI]
+    //public interface IBinaryConfiguration : ISerializerRootConfiguration
+    //{
+    //    IBinaryConfiguration WithFormat(FormatterAssemblyStyle format);
 
-        IBinaryConfiguration WithBinder(SerializationBinder binder);
+    //    IBinaryConfiguration WithBinder(SerializationBinder binder);
 
-        IBinaryConfiguration WithContext(StreamingContext context);
+    //    IBinaryConfiguration WithContext(StreamingContext context);
 
-        IBinaryConfiguration WithFilterLevel(TypeFilterLevel level);
+    //    IBinaryConfiguration WithFilterLevel(TypeFilterLevel level);
 
-        IBinaryConfiguration WithSelector(ISurrogateSelector selector);
+    //    IBinaryConfiguration WithSelector(ISurrogateSelector selector);
 
-        IBinaryConfiguration WithFormat(FormatterTypeStyle format);
-    }
+    //    IBinaryConfiguration WithFormat(FormatterTypeStyle format);
+    //}
 }

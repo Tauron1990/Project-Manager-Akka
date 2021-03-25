@@ -41,7 +41,7 @@ namespace Akkatecture.ValueObjects
 
         public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
-            if (!(value is ISingleValueObject singleValueObject)) return;
+            if (value is not ISingleValueObject singleValueObject) return;
             serializer.Serialize(writer, singleValueObject.GetValue());
         }
 
@@ -59,7 +59,7 @@ namespace Akkatecture.ValueObjects
                 });
 
             var value = serializer.Deserialize(reader, parameterType);
-            return Activator.CreateInstance(objectType, value);
+            return Activator.CreateInstance(objectType, value) ?? throw new InvalidOperationException("Could not Create Single Value Object");
         }
 
         public override bool CanConvert(Type objectType)

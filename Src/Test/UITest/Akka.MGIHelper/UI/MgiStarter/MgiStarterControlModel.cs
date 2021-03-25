@@ -123,12 +123,12 @@ namespace Akka.MGIHelper.UI.MgiStarter
                             Client += null!;
                         break;
                     default:
-                        throw new ArgumentOutOfRangeException();
+                        throw new InvalidOperationException("Invalid ProcessChange Enum");
                 }
 
                 if (Kernel != null && Client != null)
                     Status += Context.Loc().RequestString("uistatusstartet");
-                if (Kernel == null && Client == null)
+                if (Kernel!.Value == null && Client!.Value == null)
                     Status += Context.Loc().RequestString("uistatusstopped");
             }
             catch (Exception e)

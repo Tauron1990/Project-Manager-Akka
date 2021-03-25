@@ -48,15 +48,14 @@ namespace Akkatecture.ValueObjects
 
         public T Value { get; }
 
-        public int CompareTo(object obj)
+        public int CompareTo(object? obj)
         {
-            if (ReferenceEquals(null, obj)) throw new ArgumentNullException(nameof(obj));
-
-            if (obj is SingleValueObject<T> other)
-                return Value.CompareTo(other.Value);
-
-            throw new ArgumentException(
-                $"Cannot compare '{GetType().PrettyPrint()}' and '{obj.GetType().PrettyPrint()}'");
+            return obj switch
+            {
+                null => throw new ArgumentNullException(nameof(obj)),
+                SingleValueObject<T> other => Value.CompareTo(other.Value),
+                _ => throw new ArgumentException($"Cannot compare '{GetType().PrettyPrint()}' and '{obj.GetType().PrettyPrint()}'")
+            };
         }
 
         public object GetValue() => Value;
@@ -66,8 +65,6 @@ namespace Akkatecture.ValueObjects
             yield return Value;
         }
 
-        public override string ToString() => ReferenceEquals(Value, null)
-            ? string.Empty
-            : Value.ToString();
+        public override string ToString() => Value?.ToString() ?? string.Empty;
     }
 }

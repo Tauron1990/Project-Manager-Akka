@@ -42,7 +42,7 @@ namespace Akkatecture.ValueObjects
         public override bool Equals(object? obj)
         {
             if (ReferenceEquals(this, obj)) return true;
-            if (ReferenceEquals(null, obj)) return false;
+            if (obj is null) return false;
             if (GetType() != obj.GetType()) return false;
             return obj is ValueObject other && GetEqualityComponents().SequenceEqual(other.GetEqualityComponents());
         }
@@ -65,7 +65,7 @@ namespace Akkatecture.ValueObjects
             return $"{{{string.Join(", ", GetProperties().Select(f => $"{f.Name}: {f.GetValue(this)}"))}}}";
         }
 
-        protected virtual IEnumerable<object> GetEqualityComponents()
+        protected virtual IEnumerable<object?> GetEqualityComponents()
         {
             return GetProperties().Select(x => x.GetValue(this));
         }

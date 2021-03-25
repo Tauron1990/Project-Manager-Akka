@@ -17,12 +17,13 @@ namespace Tauron.Application.Wpf.SerilogViewer
     {
         public SerilogViewer()
         {
-            if (DesignerProperties.GetIsInDesignMode(this)) return;
-
-            IsTargetConfigured = false;
             LogEntries = new UIObservableCollection<LogEventViewModel>();
 
             InitializeComponent();
+
+            if (DesignerProperties.GetIsInDesignMode(this)) return;
+
+            IsTargetConfigured = false;
 
             if (SeriLogViewerSink.CurrentSink == null) return;
             IsTargetConfigured = true;

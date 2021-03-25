@@ -14,7 +14,7 @@ namespace Tauron.Application.Wpf.AppCore
             : base(element)
             => _element = element;
 
-        public object DataContext
+        public object? DataContext
         {
             get => _element.DataContext;
             set => _element.DataContext = value;
@@ -44,7 +44,7 @@ namespace Tauron.Application.Wpf.AppCore
             : base(element)
             => _element = element;
 
-        public object DataContext
+        public object? DataContext
         {
             get => _element.DataContext;
             set => _element.DataContext = value;

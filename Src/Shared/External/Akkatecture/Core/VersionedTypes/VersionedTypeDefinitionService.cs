@@ -29,6 +29,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -38,8 +39,7 @@ using Akkatecture.Extensions;
 namespace Akkatecture.Core.VersionedTypes
 {
     public abstract class
-        VersionedTypeDefinitionService<TTypeCheck, TAttribute, TDefinition> : IVersionedTypeDefinitionService<TAttribute
-            , TDefinition>
+        VersionedTypeDefinitionService<TTypeCheck, TAttribute, TDefinition> : IVersionedTypeDefinitionService<TAttribute, TDefinition>
         where TAttribute : VersionedTypeAttribute
         where TDefinition : VersionedTypeDefinition
     {
@@ -63,7 +63,7 @@ namespace Akkatecture.Core.VersionedTypes
             Load((IReadOnlyCollection<Type>) types);
         }
 
-        public void Load(IReadOnlyCollection<Type> types)
+        public void Load(IReadOnlyCollection<Type>? types)
         {
             if (types == null) return;
 
@@ -133,7 +133,7 @@ namespace Akkatecture.Core.VersionedTypes
             return _definitionByNameAndVersion.SelectMany(kv => kv.Value.Values);
         }
 
-        public bool TryGetDefinition(string name, int version, out TDefinition definition)
+        public bool TryGetDefinition(string name, int version, [NotNullWhen(true)] out TDefinition? definition)
         {
             if (_definitionByNameAndVersion.TryGetValue(name, out var versions))
                 return versions.TryGetValue(version, out definition);
@@ -155,8 +155,7 @@ namespace Akkatecture.Core.VersionedTypes
         public TDefinition GetDefinition(Type type)
         {
             if (!TryGetDefinition(type, out var definition))
-                throw new ArgumentException(
-                    $"No definition for type '{type.PrettyPrint()}', have you remembered to load it during Akkatecture initialization");
+                throw new ArgumentException($"No definition for type '{type.PrettyPrint()}', have you remembered to load it during Akkatecture initialization");
 
             return definition;
         }
@@ -170,11 +169,11 @@ namespace Akkatecture.Core.VersionedTypes
             return definitions;
         }
 
-        public bool TryGetDefinition(Type type, out TDefinition definition)
+        public bool TryGetDefinition(Type type, [NotNullWhen(true)] out TDefinition? definition)
         {
             if (!TryGetDefinitions(type, out var definitions))
             {
-                definition = default!;
+                definition = default;
                 return false;
             }
 

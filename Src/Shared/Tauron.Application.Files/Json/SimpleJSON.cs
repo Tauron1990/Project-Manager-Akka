@@ -327,7 +327,7 @@ namespace Tauron.Application.Files.Json
 
             public ValueEnumerator(Enumerator aEnumerator) => _enumerator = aEnumerator;
 
-            public JsonNode? Current => _enumerator.Current.Value;
+            public JsonNode Current => _enumerator.Current.Value;
 
             public bool MoveNext() => _enumerator.MoveNext();
 
@@ -383,6 +383,7 @@ namespace Tauron.Application.Files.Json
             {
                 _node = null;
                 _enumerator = new Enumerator();
+                GC.SuppressFinalize(this);
             }
 
             public void Reset()
@@ -510,7 +511,7 @@ namespace Tauron.Application.Files.Json
 
         public static implicit operator JsonNode(string s) => new JsonString(s);
 
-        public static implicit operator string?(JsonNode d) => d == null ? null : d.Value;
+        public static implicit operator string?(JsonNode? d) => d?.Value;
 
         public static implicit operator JsonNode(double n) => new JsonNumber(n);
 
@@ -543,8 +544,8 @@ namespace Tauron.Application.Files.Json
         {
             if (ReferenceEquals(a, b))
                 return true;
-            var aIsNull = a is JsonNull || ReferenceEquals(a, null) || a is JsonLazyCreator;
-            var bIsNull = b is JsonNull || ReferenceEquals(b, null) || b is JsonLazyCreator;
+            var aIsNull = a is JsonNull || a is null || a is JsonLazyCreator;
+            var bIsNull = b is JsonNull || b is null || b is JsonLazyCreator;
             if (aIsNull && bIsNull)
                 return true;
             return !aIsNull && a!.Equals(b!);
@@ -552,7 +553,7 @@ namespace Tauron.Application.Files.Json
 
         public static bool operator !=(JsonNode? a, object? b) => !(a == b);
 
-        public override bool Equals(object obj) => ReferenceEquals(this, obj);
+        public override bool Equals(object? obj) => ReferenceEquals(this, obj);
 
         // ReSharper disable once BaseObjectGetHashCodeCallInGetHashCode
         public override int GetHashCode() => base.GetHashCode();
@@ -855,7 +856,7 @@ namespace Tauron.Application.Files.Json
             aSb.Append('\"').Append(Escape(_data)).Append('\"');
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (base.Equals(obj))
                 return true;
@@ -939,7 +940,7 @@ namespace Tauron.Application.Files.Json
                                                                     || value is short || value is ushort
                                                                     || value is sbyte || value is byte;
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj == null)
                 return false;
@@ -1012,17 +1013,14 @@ namespace Tauron.Application.Files.Json
             aSb.Append(_data ? "true" : "false");
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
-            switch (obj)
+            return obj switch
             {
-                case null:
-                    return false;
-                case bool b:
-                    return _data == b;
-                default:
-                    return false;
-            }
+                null => false,
+                bool b => _data == b,
+                _ => false
+            };
         }
 
         // ReSharper disable once NonReadonlyMemberInGetHashCode
@@ -1030,10 +1028,11 @@ namespace Tauron.Application.Files.Json
     }
     // End of JSONBool
 
+    [PublicAPI]
     public partial class JsonNull : JsonNode
     {
         private static readonly JsonNull StaticInstance = new();
-        public static bool ReuseSameInstance = true;
+        public static bool ReuseSameInstance { get; set; } = true;
 
         private JsonNull()
         {
@@ -1077,7 +1076,7 @@ namespace Tauron.Application.Files.Json
 
         public override Enumerator GetEnumerator() => new();
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (ReferenceEquals(this, obj))
                 return true;
@@ -1221,11 +1220,11 @@ namespace Tauron.Application.Files.Json
             Set(new JsonObject()).Add(aKey, aItem);
         }
 
-        public static bool operator ==(JsonLazyCreator a, object b) => b == null || ReferenceEquals(a, b);
+        public static bool operator ==(JsonLazyCreator a, object? b) => b == null || ReferenceEquals(a, b);
 
-        public static bool operator !=(JsonLazyCreator a, object b) => !(a == b);
+        public static bool operator !=(JsonLazyCreator a, object? b) => !(a == b);
 
-        public override bool Equals(object obj) => obj == null || ReferenceEquals(this, obj);
+        public override bool Equals(object? obj) => obj == null || ReferenceEquals(this, obj);
 
         public override int GetHashCode() => 0;
 

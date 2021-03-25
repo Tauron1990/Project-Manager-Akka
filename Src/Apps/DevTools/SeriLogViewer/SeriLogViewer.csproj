@@ -10,12 +10,12 @@
 
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="2020.3.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="Ookii.Dialogs.Wpf" Version="3.1.0" />
-    <PackageReference Include="Syncfusion.SfGrid.WPF" Version="18.4.0.39" />
-    <PackageReference Include="Syncfusion.SfSkinManager.WPF" Version="18.4.0.39" />
-    <PackageReference Include="Syncfusion.Shared.WPF" Version="18.4.0.39" />
-    <PackageReference Include="Syncfusion.Themes.Blend.WPF" Version="18.4.0.39" />
+    <PackageReference Include="Syncfusion.SfGrid.WPF" Version="18.4.0.49" />
+    <PackageReference Include="Syncfusion.SfSkinManager.WPF" Version="18.4.0.49" />
+    <PackageReference Include="Syncfusion.Shared.WPF" Version="18.4.0.49" />
+    <PackageReference Include="Syncfusion.Themes.Blend.WPF" Version="18.4.0.49" />
   </ItemGroup>
 
 </Project>

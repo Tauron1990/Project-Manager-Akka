@@ -24,6 +24,7 @@
 using Akka.Persistence.Query;
 using Akkatecture.Aggregates;
 using Akkatecture.Extensions;
+using JetBrains.Annotations;
 using Tauron;
 
 namespace Akkatecture.Events
@@ -50,6 +51,7 @@ namespace Akkatecture.Events
             return domainEvent;
         }
 
+        [PublicAPI]
         public static EventEnvelope FromEnvelope(EventEnvelope eventEnvelope)
         {
             var domainEvent = FromCommittedEvent(eventEnvelope.Event);
@@ -58,7 +60,8 @@ namespace Akkatecture.Events
                 eventEnvelope.Offset,
                 eventEnvelope.PersistenceId,
                 eventEnvelope.SequenceNr,
-                domainEvent);
+                domainEvent,
+                eventEnvelope.Timestamp);
 
             return newEventEnvelope;
         }

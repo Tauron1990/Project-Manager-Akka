@@ -14,7 +14,7 @@ namespace Tauron.Application.Files
     [PublicAPI]
     public static class SerializerFactory
     {
-        public static IBinaryConfiguration CreateBinary() => new BinarySerializerConfiguration();
+        //public static IBinaryConfiguration CreateBinary() => new BinarySerializerConfiguration();
 
         public static IIniSerializerConfiguration CreateIni<TType>() => new IniConfiguration(typeof(TType));
 

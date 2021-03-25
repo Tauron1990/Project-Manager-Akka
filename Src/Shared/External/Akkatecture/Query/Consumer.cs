@@ -7,9 +7,11 @@ using Akka.Streams.Dsl;
 using Akkatecture.Aggregates;
 using Akkatecture.Events;
 using Akkatecture.Extensions;
+using JetBrains.Annotations;
 
 namespace Akkatecture.Query
 {
+    [PublicAPI]
     public class Consumer
     {
         internal Consumer(
@@ -48,6 +50,7 @@ namespace Akkatecture.Query
         }
     }
 
+    [PublicAPI]
     public class Consumer<TJournal> : Consumer
         where TJournal : IEventsByTagQuery, ICurrentEventsByTagQuery
     {
@@ -71,7 +74,7 @@ namespace Akkatecture.Query
                 .Select(x =>
                 {
                     var domainEvent = mapper.FromJournal(x.Event, string.Empty).Events.Single();
-                    return new EventEnvelope(x.Offset, x.PersistenceId, x.SequenceNr, domainEvent);
+                    return new EventEnvelope(x.Offset, x.PersistenceId, x.SequenceNr, domainEvent, x.Timestamp);
                 });
         }
 
@@ -86,7 +89,7 @@ namespace Akkatecture.Query
                 .Select(x =>
                 {
                     var domainEvent = mapper.FromJournal(x.Event, string.Empty).Events.Single();
-                    return new EventEnvelope(x.Offset, x.PersistenceId, x.SequenceNr, domainEvent);
+                    return new EventEnvelope(x.Offset, x.PersistenceId, x.SequenceNr, domainEvent, x.Timestamp);
                 });
         }
     }

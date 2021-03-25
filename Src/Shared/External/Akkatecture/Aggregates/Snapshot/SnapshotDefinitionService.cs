@@ -27,9 +27,7 @@ using Akkatecture.Core.VersionedTypes;
 
 namespace Akkatecture.Aggregates.Snapshot
 {
-    public class SnapshotDefinitionService :
-        VersionedTypeDefinitionService<IAggregateSnapshot, SnapshotVersionAttribute, SnapshotDefinition>,
-        ISnapshotDefinitionService
+    public class SnapshotDefinitionService : VersionedTypeDefinitionService<IAggregateSnapshot, SnapshotVersionAttribute, SnapshotDefinition>, ISnapshotDefinitionService
     {
         public SnapshotDefinitionService(ILoggingAdapter logger)
             : base(logger)

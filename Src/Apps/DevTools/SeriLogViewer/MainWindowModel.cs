@@ -89,11 +89,11 @@ namespace SeriLogViewer
             }
         }
 
-        private void ReconstructMessage(JToken obj)
+        private static void ReconstructMessage(JToken obj)
         {
             try
             {
-                string msg = obj["@mt"]!.Value<string>();
+                string msg = obj["@mt"]?.Value<string>() ?? string.Empty;
                 var prov = obj;
 
                 foreach (var match in FindComponent(msg))
@@ -107,7 +107,7 @@ namespace SeriLogViewer
             }
         }
 
-        private IEnumerable<string> FindComponent(string msg)
+        private static IEnumerable<string> FindComponent(string msg)
         {
             var target = msg;
             var isIn = false;
@@ -117,7 +117,7 @@ namespace SeriLogViewer
                 if (isIn && target[i] == '}')
                 {
                     isIn = false;
-                    yield return target.Substring(start, i + 1 - start);
+                    yield return target[start..(i + 1)];
                 }
                 else if (!isIn && msg[i] == '{')
                 {

@@ -102,7 +102,7 @@ namespace Tauron
         }
 
 
-        public static string CombinePath(this string path, string path1)
+        public static string CombinePath(this string? path, string path1)
             => string.IsNullOrWhiteSpace(path) ? path1 : Path.Combine(path, path1);
 
         [JetBrains.Annotations.NotNull]

@@ -62,6 +62,7 @@ namespace Akkatecture.Sagas.AggregateSaga
                 typeof(TSagaState).GetAggregateSnapshotHydrateMethods<TAggregateSaga, TIdentity, TSagaState>();
 
         private static readonly IAggregateName SagaName = typeof(TAggregateSaga).GetSagaName();
+        // ReSharper disable once StaticMemberInGenericType
         private static readonly List<Type> SagaTimeoutTypes = new();
         private CircularBuffer<ISourceId> _previousSourceIds = new(100);
 
@@ -71,7 +72,7 @@ namespace Akkatecture.Sagas.AggregateSaga
         protected AggregateSaga()
         {
             SetReceiveTimeout(TimeSpan.FromHours(1));
-            Command<ReceiveTimeout>(t => Context.Stop(Self));
+            Command<ReceiveTimeout>(_ => Context.Stop(Self));
 
             Settings = new AggregateSagaSettings(Context.System.Settings.Config);
             var idValue = Context.Self.Path.Name;
@@ -129,7 +130,7 @@ namespace Akkatecture.Sagas.AggregateSaga
         private Dictionary<Type, IActorRef>? SagaTimeoutManagers { get; set; }
 
         protected ISnapshotStrategy SnapshotStrategy { get; set; } = SnapshotNeverStrategy.Instance;
-        public TSagaState State { get; } = null!;
+        public TSagaState? State { get; }
         public override string PersistenceId { get; }
         public override Recovery Recovery => new(SnapshotSelectionCriteria.Latest);
         public AggregateSagaSettings Settings { get; }
@@ -153,8 +154,7 @@ namespace Akkatecture.Sagas.AggregateSaga
             foreach (var sagaTimeoutType in SagaTimeoutTypes)
             {
                 var sagaTimeoutManagerType = typeof(SagaTimeoutManager<>).MakeGenericType(sagaTimeoutType);
-                var sagaTimeoutManager = Context.ActorOf(Props.Create(() =>
-                        (ActorBase) Activator.CreateInstance(sagaTimeoutManagerType)),
+                var sagaTimeoutManager = Context.ActorOf(Props.Create(() => Activator.CreateInstance(sagaTimeoutManagerType) as ActorBase),
                     $"{sagaTimeoutType.Name}-timeoutmanager");
                 SagaTimeoutManagers.Add(sagaTimeoutType, sagaTimeoutManager);
             }
@@ -633,9 +633,10 @@ namespace Akkatecture.Sagas.AggregateSaga
             _previousSourceIds = new CircularBuffer<ISourceId>(count);
         }
 
-        protected virtual void SetSnapshotStrategy(ISnapshotStrategy snapshotStrategy)
+        protected virtual void SetSnapshotStrategy(ISnapshotStrategy? snapshotStrategy)
         {
-            if (snapshotStrategy != null) SnapshotStrategy = snapshotStrategy;
+            if (snapshotStrategy != null) 
+                SnapshotStrategy = snapshotStrategy;
         }
 
         protected virtual bool SnapshotStatus(SaveSnapshotSuccess snapshotSuccess)

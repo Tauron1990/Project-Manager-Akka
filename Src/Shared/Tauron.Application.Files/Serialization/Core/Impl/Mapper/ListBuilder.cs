@@ -23,7 +23,7 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Mapper
             _listType = _isArray ? typeof(ArrayList) : listType;
         }
 
-        public object[] Objects => _enumerable.Cast<object>().ToArray();
+        public object[] Objects => _enumerable?.Cast<object>().ToArray() ?? Array.Empty<object>();
 
         public Type? ElemenType
         {
@@ -69,16 +69,13 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Mapper
                 return;
             }
 
-            _list = Activator.CreateInstance(_listType) as IList;
+            _list = _listType == null ? null : Activator.CreateInstance(_listType) as IList;
 
             if (_list == null)
                 throw new InvalidOperationException("No IList Implemented");
         }
 
-        public void Add(object? value)
-        {
-            _list?.Add(value);
-        }
+        public void Add(object? value) => _list?.Add(value);
 
         public object? End()
         {

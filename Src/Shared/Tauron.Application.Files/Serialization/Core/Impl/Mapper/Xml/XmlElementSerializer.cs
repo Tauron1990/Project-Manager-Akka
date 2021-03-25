@@ -31,7 +31,7 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Mapper.Xml
                 if (target.TargetType == XmlElementTargetType.Attribute)
                     throw new InvalidOperationException("Attributes Not Supported");
 
-                var currentName = target.XNamespace + target.Name;
+                var currentName = target.XNamespace != null ? target.XNamespace + (target.Name ?? string.Empty) : target.Name ?? string.Empty;
 
                 if (target.SubElement != null)
                 {
@@ -81,7 +81,7 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Mapper.Xml
             {
                 if (target.XNamespace == null) target.XNamespace = XNamespace.None;
 
-                var currentName = target.XNamespace + target.Name;
+                var currentName = target.XNamespace != null ? target.XNamespace + (target.Name ?? string.Empty) : target.Name ?? string.Empty;
                 switch (target.TargetType)
                 {
                     case XmlElementTargetType.Attribute:
@@ -109,7 +109,7 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Mapper.Xml
                         target = target.SubElement;
                         continue;
                     default:
-                        throw new ArgumentOutOfRangeException();
+                        throw new InvalidOperationException("Only Element and Attribute Supportet");
                 }
             }
         }

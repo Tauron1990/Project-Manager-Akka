@@ -13,7 +13,7 @@ namespace Tauron.Application.CommonUI.Dialogs
 
         public DialogCoordinator(CommonUIFramework framework) => _framework = framework;
 
-        public event Action<IWindow>? OnWindowConstructed;
+        //public event Action<IWindow>? OnWindowConstructed;
 
         public Task<bool?> ShowMessage(string title, string message, Action<bool?>? result)
         {

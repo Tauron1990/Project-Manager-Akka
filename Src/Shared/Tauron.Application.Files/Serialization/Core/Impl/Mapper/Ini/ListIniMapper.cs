@@ -40,7 +40,7 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Mapper.Ini
             Argument.NotNull(context, nameof(context));
 
             var value = GetValue(target);
-            context.File.GetSection(_section)?.GetOrAddListEntry(_key).Values.AddRange(_converter?.Convert(value));
+            context.File.GetSection(_section)?.GetOrAddListEntry(_key).Values.AddRange(_converter?.Convert(value) ?? Array.Empty<string>());
         }
 
         public override Exception? VerifyError()

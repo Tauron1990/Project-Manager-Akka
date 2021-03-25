@@ -18,7 +18,7 @@ namespace Tauron.Application.Files.VirtualFiles.InMemory
 
         public override string Extension
         {
-            get => Path.GetExtension(InfoObject?.Name);
+            get => Path.GetExtension(InfoObject?.Name) ?? string.Empty;
             set
             {
                 var data = InfoObject;
