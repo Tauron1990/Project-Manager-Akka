@@ -8,7 +8,7 @@ namespace Akka.MGIHelper.UI.FanControl
     [ValueConversion(typeof(bool), typeof(Brush))]
     public class ColorConverter : IValueConverter
     {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public object Convert(object? value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value == null) return Brushes.Black;
 

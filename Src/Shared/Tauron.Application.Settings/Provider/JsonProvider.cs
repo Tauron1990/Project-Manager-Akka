@@ -14,7 +14,6 @@ namespace Tauron.Application.Settings.Provider
             if (!string.IsNullOrWhiteSpace(dic) && !Directory.Exists(dic))
                 Directory.CreateDirectory(dic);
 
-
             _fileName = Path.GetFullPath(fileName);
         }
 

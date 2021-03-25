@@ -12,8 +12,7 @@ namespace Tauron.Application.CommonUI
     [PublicAPI]
     public static class AutofacExtensions
     {
-        public static
-            IRegistrationBuilder<ViewModelActorRef<TModel>, ConcreteReflectionActivatorData, SingleRegistrationStyle>
+        public static IRegistrationBuilder<ViewModelActorRef<TModel>, ConcreteReflectionActivatorData, SingleRegistrationStyle>
             RegisterView<TView, TModel>(this ContainerBuilder builder)
             where TView : IView where TModel : UiActor
         {
@@ -21,28 +20,25 @@ namespace Tauron.Application.CommonUI
 
             builder.RegisterType<TView>().As<TView>().InstancePerDependency();
             return builder.RegisterType<ViewModelActorRef<TModel>>().As<IViewModel<TModel>>()
-                .Keyed<IViewModel>(typeof(TModel)).InstancePerLifetimeScope()
-                .OnRelease(vm =>
-                {
-                    if (vm.IsInitialized)
-                        vm.Actor.Tell(PoisonPill.Instance);
-                });
+                          .Keyed<IViewModel>(typeof(TModel)).InstancePerLifetimeScope()
+                          .OnRelease(vm =>
+                                     {
+                                         if (vm.IsInitialized)
+                                             vm.Actor.Tell(PoisonPill.Instance);
+                                     });
         }
 
-        public static
-            IRegistrationBuilder<DefaultActorRef<TActor>, ConcreteReflectionActivatorData, SingleRegistrationStyle>
+        public static IRegistrationBuilder<DefaultActorRef<TActor>, ConcreteReflectionActivatorData, SingleRegistrationStyle>
             RegisterModelActor<TActor>(this ContainerBuilder builder)
             where TActor : ActorModel
             => RegisterDefaultActor<TActor>(builder);
 
-        public static
-            IRegistrationBuilder<DefaultActorRef<TActor>, ConcreteReflectionActivatorData, SingleRegistrationStyle>
+        public static IRegistrationBuilder<DefaultActorRef<TActor>, ConcreteReflectionActivatorData, SingleRegistrationStyle>
             RegisterDefaultActor<TActor>(this ContainerBuilder builder)
             where TActor : ActorBase
             => builder.RegisterType<DefaultActorRef<TActor>>().As<IDefaultActorRef<TActor>>();
 
-        public static
-            IRegistrationBuilder<SyncActorRef<TActor>, ConcreteReflectionActivatorData, SingleRegistrationStyle>
+        public static IRegistrationBuilder<SyncActorRef<TActor>, ConcreteReflectionActivatorData, SingleRegistrationStyle>
             RegisterSyncActor<TActor>(this ContainerBuilder builder)
             where TActor : ActorBase
             => builder.RegisterType<SyncActorRef<TActor>>().As<ISyncActorRef<TActor>>();

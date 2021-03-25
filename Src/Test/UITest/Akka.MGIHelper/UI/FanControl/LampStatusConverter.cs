@@ -9,20 +9,20 @@ namespace Akka.MGIHelper.UI.FanControl
     [ValueConversion(typeof(State), typeof(string))]
     public class LampStatusConverter : IValueConverter
     {
-        private static readonly Dictionary<State, string> StadesLabels = new Dictionary<State, string>
-        {
-            {State.Cooldown, "Abkühlen"},
-            {State.Error, "Fehler"},
-            {State.Idle, "Aus"},
-            {State.Ignition, "Zünden"},
-            {State.Ready, "Bereit"},
-            {State.Power, "Betrieb"},
-            {State.StandBy, "Bereitschaft"},
-            {State.StartUp, "Starten"},
-            {State.TestRun, "Test"}
-        };
+        private static readonly Dictionary<State, string> StadesLabels = new()
+                                                                         {
+                                                                                   {State.Cooldown, "Abkühlen"},
+                                                                                   {State.Error, "Fehler"},
+                                                                                   {State.Idle, "Aus"},
+                                                                                   {State.Ignition, "Zünden"},
+                                                                                   {State.Ready, "Bereit"},
+                                                                                   {State.Power, "Betrieb"},
+                                                                                   {State.StandBy, "Bereitschaft"},
+                                                                                   {State.StartUp, "Starten"},
+                                                                                   {State.TestRun, "Test"}
+                                                                               };
 
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public object Convert(object? value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value == null) return "Keine Daten";
             return StadesLabels[(State) value];

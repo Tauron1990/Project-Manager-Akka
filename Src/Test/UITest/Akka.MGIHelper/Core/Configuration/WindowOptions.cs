@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
-using Akka.MGIHelper.Settings;
 using Tauron.Akka;
+using Tauron.Application.Settings;
 
 namespace Akka.MGIHelper.Core.Configuration
 {

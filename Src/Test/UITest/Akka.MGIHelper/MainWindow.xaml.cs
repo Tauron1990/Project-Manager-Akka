@@ -3,9 +3,6 @@ using System.Windows;
 using Akka.MGIHelper.Core.Configuration;
 using Tauron.Application.CommonUI;
 using Tauron.Application.CommonUI.AppCore;
-using Tauron.Application.Wpf;
-using Tauron.Application.Wpf.AppCore;
-using Window = System.Windows.Window;
 
 namespace Akka.MGIHelper
 {

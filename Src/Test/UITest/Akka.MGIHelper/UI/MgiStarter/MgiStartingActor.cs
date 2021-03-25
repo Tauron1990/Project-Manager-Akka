@@ -1,42 +1,44 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Reactive.Linq;
 using System.Threading;
 using Akka.Actor;
-using Akka.Event;
 using Akka.MGIHelper.Core.Configuration;
 using IniParser;
+using Tauron;
 using Tauron.Application.Wpf;
+using Tauron.Features;
 using Tauron.Localization;
 
 namespace Akka.MGIHelper.UI.MgiStarter
 {
-    public sealed class MgiStartingActor : ReceiveActor
+    public sealed class MgiStartingActor : ActorFeatureBase<IDialogFactory>
     {
-        private readonly IDialogFactory _dialogFactory;
+        public static IPreparedFeature New(IDialogFactory dialogFactory)
+            => Feature.Create(() => new MgiStartingActor(), dialogFactory);
 
-        private readonly ILoggingAdapter _log = Context.GetLogger();
+        private MgiStartingActor(){}
 
-        public MgiStartingActor(IDialogFactory dialogFactory)
+        protected override void Config()
         {
-            _dialogFactory = dialogFactory;
-            Receive<TryStart>(TryStartHandler);
+            Receive<TryStart>(obs => obs.Select(p => p.Event).SubscribeWithStatus(TryStartHandler));
         }
 
         private void TryStartHandler(TryStart obj)
         {
             try
             {
-                _log.Info("Start Mgi Process");
+                Log.Info("Start Mgi Process");
 
                 var config = obj.Config;
                 Sender.Tell(new StartStatusUpdate(Context.Loc().RequestString("kernelstartstartlabel")));
                 obj.Kill();
 
                 Thread.Sleep(500);
-                if (!CheckKernelRunning(config, out var target))
+                if (!CheckKernelRunning(config, obj.Cancel, out var target))
                 {
-                    _dialogFactory.ShowMessageBox(null, Context.Loc().RequestString("kernelstarterror"), "Error", MsgBoxButton.Ok, MsgBoxImage.Error);
+                    //CurrentState.ShowMessageBox(null, Context.Loc().RequestString("kernelstarterror"), "Error", MsgBoxButton.Ok, MsgBoxImage.Error);
                     try
                     {
                         target.Kill(true);
@@ -44,22 +46,29 @@ namespace Akka.MGIHelper.UI.MgiStarter
                     }
                     catch (Exception e)
                     {
-                        _log.Error(e, "Error on Kill Kernel");
+                        Log.Error(e, "Error on Kill Kernel");
                     }
 
                     return;
                 }
 
                 Thread.Sleep(500);
-                Directory.SetCurrentDirectory(Path.GetDirectoryName(config.Client.Trim()));
+                Directory.SetCurrentDirectory(Path.GetDirectoryName(config.Client.Trim()) ?? throw new InvalidOperationException("Current Directory Set Fail"));
+
+                if (obj.Cancel.IsCancellationRequested)
+                {
+                    target.Kill(true);
+                    return;
+                }
+
                 Process.Start(config.Client);
 
                 Sender.Tell(new StartStatusUpdate(Context.Loc().RequestString("kernelstartcompledlabel")));
             }
             catch (Exception e)
             {
-                _log.Warning(e, "Error on Start Mgi process");
-                _dialogFactory.FormatException(null, e);
+                Log.Warning(e, "Error on Start Mgi process");
+                CurrentState.FormatException(null, e);
             }
             finally
             {
@@ -67,7 +76,7 @@ namespace Akka.MGIHelper.UI.MgiStarter
             }
         }
 
-        private bool CheckKernelRunning(ProcessConfig config, out Process kernel)
+        private bool CheckKernelRunning(ProcessConfig config, CancellationToken token, out Process kernel)
         {
             var kernelPath = config.Kernel.Trim();
             var statusPath = Path.Combine(Path.GetDirectoryName(kernelPath) ?? string.Empty, "Status.ini");
@@ -77,14 +86,19 @@ namespace Akka.MGIHelper.UI.MgiStarter
             if (File.Exists(statusPath))
                 File.Delete(statusPath);
 
-            Directory.SetCurrentDirectory(Path.GetDirectoryName(kernelPath));
+            Directory.SetCurrentDirectory(Path.GetDirectoryName(kernelPath) ?? throw new InvalidOperationException("Current Directory Set Fail"));
             kernel = Process.Start(kernelPath);
+
+            if (token.IsCancellationRequested) return false;
 
             Thread.Sleep(5000);
 
             for (var i = 0; i < iterationCount; i++)
+            {
                 try
                 {
+                    if (token.IsCancellationRequested) return false;
+
                     Thread.Sleep(1100);
 
                     var data = parser.ReadFile(statusPath);
@@ -102,35 +116,15 @@ namespace Akka.MGIHelper.UI.MgiStarter
                 {
                     Thread.Sleep(500);
                 }
+            }
 
             return false;
         }
 
-        public sealed class TryStart
-        {
-            public TryStart(ProcessConfig config, Action kill)
-            {
-                Config = config;
-                Kill = kill;
-            }
+        public sealed record TryStart(ProcessConfig Config, CancellationToken Cancel, Action Kill);
 
-            public ProcessConfig Config { get; }
+        public sealed record TryStartResponse;
 
-            public Action Kill { get; }
-        }
-
-        public sealed class TryStartResponse
-        {
-        }
-
-        public sealed class StartStatusUpdate
-        {
-            public StartStatusUpdate(string status)
-            {
-                Status = status;
-            }
-
-            public string Status { get; }
-        }
+        public sealed record StartStatusUpdate(string Status);
     }
 }

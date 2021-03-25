@@ -16,9 +16,11 @@ namespace Akka.MGIHelper.Core.ProcessManager
         public sealed record ProcessTrackerState(Timer ProcessTimer, ImmutableArray<string> Tracked);
 
         public static IPreparedFeature New()
-            => Feature.Create(() => new ProcessTrackerActor(), c => new ProcessTrackerState(new Timer(_ => c.Self.Tell(GatherProcess.Inst), null, 20000, 10000), ImmutableArray<string>.Empty));
+            => Feature.Create(() => new ProcessTrackerActor(), c => new ProcessTrackerState(new Timer(_ => c.Self.Tell(GatherProcess.Inst), null, 5000, 5000), ImmutableArray<string>.Empty));
 
-        private ProcessTrackerActor(){ }
+        private ProcessTrackerActor()
+        {
+        }
 
         protected override void Config()
         {
@@ -29,7 +31,7 @@ namespace Akka.MGIHelper.Core.ProcessManager
                                                   .ForwardToParent());
 
             Receive<RegisterProcessFile>(obs => obs.Where(p => !string.IsNullOrWhiteSpace(p.Event.FileName))
-                                                   .Select(p => p.State with{Tracked = p.State.Tracked.Add(p.Event.FileName.Trim())}));
+                                                   .Select(p => p.State with {Tracked = p.State.Tracked.Add(p.Event.FileName.Trim())}));
 
             Receive<GatherProcess>(obs => obs.Where(pair => Context.GetChildren().Count() != pair.State.Tracked.Length)
                                              .Do(_ => Log.Info("Update Processes"))
@@ -63,10 +65,12 @@ namespace Akka.MGIHelper.Core.ProcessManager
                                                            ok = true;
 
                                                        var processName = process.ProcessName;
-                                                       if (ok || p.State.Tracked.Any(s => s.Contains(processName)))
+                                                       if (ok && p.State.Tracked.Any(s => s.Contains(processName)))
                                                            ok = true;
+                                                       else
+                                                           ok = false;
 
-                                                       if(!ok)
+                                                       if (!ok)
                                                            process.Dispose();
                                                    }
                                                    catch (Exception e)
@@ -84,7 +88,7 @@ namespace Akka.MGIHelper.Core.ProcessManager
 
             SupervisorStrategy = new OneForOneStrategy(_ => Directive.Stop);
         }
-        
+
         private static string FormatName(int id) => $"Process-{id}";
     }
 }

@@ -1,18 +1,22 @@
-﻿using System.Windows.Threading;
+﻿using System.Reactive.Linq;
+using System.Windows.Threading;
 using Akka.Actor;
 using Akka.MGIHelper.Core.Configuration;
 using Akka.MGIHelper.Core.FanControl;
 using Akka.MGIHelper.Core.FanControl.Events;
 using Autofac;
+using Tauron;
 using Tauron.Akka;
-using Tauron.Application.Wpf.Model;
-using Tauron.Application.Wpf.ModelMessages;
+using Tauron.Application.CommonUI.AppCore;
+using Tauron.Application.CommonUI.Model;
+using Tauron.Application.CommonUI.ModelMessages;
+using Tauron.Features;
 
 namespace Akka.MGIHelper.UI.FanControl
 {
     public class AutoFanControlModel : UiActor
     {
-        public AutoFanControlModel(ILifetimeScope scope, Dispatcher dispatcher, FanControlOptions options)
+        public AutoFanControlModel(ILifetimeScope scope, IUIDispatcher dispatcher, FanControlOptions options)
             : base(scope, dispatcher)
         {
             Options = RegisterProperty<FanControlOptions>(nameof(Options)).WithDefaultValue(options);
@@ -25,19 +29,19 @@ namespace Akka.MGIHelper.UI.FanControl
             Pt1000 = RegisterProperty<int>(nameof(Pt1000));
             FanRunning = RegisterProperty<bool>(nameof(FanRunning)).WithDefaultValue(false);
 
-            Context.ActorOf(() => new Core.FanControl.FanControl(options), "Fan-Control");
+            Context.ActorOf("Fan-Control", Core.FanControl.FanControl.New(options));
 
-            Receive<TrackingEvent>(evt =>
-            {
-                Error += evt.Error;
-                Reason += evt.Reason;
-                Power += evt.Power;
-                State += evt.State;
-                Pidout += evt.Pidout;
-                PidSetValue += evt.PidSetValue;
-                Pt1000 += evt.Pt1000;
-            });
-            Receive<FanStatusChange>(evt => FanRunning += evt.Running);
+            Receive<TrackingEvent>(obs => obs.SubscribeWithStatus(evt =>
+                                                                  {
+                                                                      Error += evt.Error;
+                                                                      Reason += evt.Reason;
+                                                                      Power += evt.Power;
+                                                                      State += evt.State;
+                                                                      Pidout += evt.Pidout;
+                                                                      PidSetValue += evt.PidSetValue;
+                                                                      Pt1000 += evt.Pt1000;
+                                                                  }));
+            Receive<FanStatusChange>(obs => obs.SubscribeWithStatus(evt => FanRunning += evt.Running));
         }
 
         private UIProperty<bool> Error { get; set; }
@@ -58,9 +62,7 @@ namespace Akka.MGIHelper.UI.FanControl
 
         private UIProperty<FanControlOptions> Options { get; }
 
-        protected override void Initialize(InitEvent evt)
-        {
-            Context.Child("Fan-Control").Tell(new ClockEvent(ClockState.Start));
-        }
+        protected override void Initialize(InitEvent evt) 
+            => Context.Child("Fan-Control").Tell(new ClockEvent(ClockState.Start));
     }
 }

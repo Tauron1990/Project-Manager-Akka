@@ -7,7 +7,7 @@ namespace Akka.MGIHelper.UI.FanControl
     [ValueConversion(typeof(bool), typeof(string))]
     public class FanStadeConverter : IValueConverter
     {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public object Convert(object? value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value == null) return "Keine Daten";
 

@@ -20,7 +20,6 @@ namespace Akka.MGIHelper.Core.FanControl.Components
         {
             _options = options;
             _timer = new Timer(Invoke);
-            ActorApplication.Application.ActorSystem.RegisterOnTermination(() => _timer.Change(-1, -1));
         }
 
         public void Dispose() => _timer.Dispose();

@@ -123,7 +123,7 @@ namespace Akkatecture.Core
 
             var lambdaExpression = Expression.Lambda<TResult>(block, lambdaArgument);
 
-            return lambdaExpression.CompileFast();
+            return lambdaExpression.CompileFast<TResult>();
         }
     }
 }

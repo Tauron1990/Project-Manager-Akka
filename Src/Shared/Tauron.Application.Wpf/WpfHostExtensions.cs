@@ -14,8 +14,7 @@ namespace Tauron.Host
     [PublicAPI]
     public static class WpfHostExtensions
     {
-        public static IApplicationBuilder UseWpf<TMainWindow>(this IApplicationBuilder hostBuilder,
-            Action<BaseAppConfiguration>? config = null)
+        public static IApplicationBuilder UseWpf<TMainWindow>(this IApplicationBuilder hostBuilder, Action<BaseAppConfiguration>? config = null)
             where TMainWindow : class, IMainWindow
         {
             hostBuilder.ConfigureAutoFac(sc =>

@@ -1,11 +1,13 @@
-﻿using Akka.Actor;
-using Akka.MGIHelper.Core.Configuration;
+﻿using Akka.MGIHelper.Core.Configuration;
 using Akka.MGIHelper.Settings;
+using Akka.MGIHelper.Settings.Provider;
 using Akka.MGIHelper.UI;
 using Akka.MGIHelper.UI.FanControl;
 using Akka.MGIHelper.UI.MgiStarter;
 using Autofac;
-using Tauron.Application.Wpf;
+using Tauron.Application.CommonUI;
+using Tauron.Application.Settings;
+using Tauron.Application.Settings.Provider;
 
 namespace Akka.MGIHelper
 {
@@ -13,20 +15,18 @@ namespace Akka.MGIHelper
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterView<MainWindow, MainWindowViewModel>().OnActivating(m => m.Instance.Init("Main-Window"));
+            builder.RegisterView<MainWindow, MainWindowViewModel>();
             builder.RegisterView<MgiStarterControl, MgiStarterControlModel>();
             builder.RegisterView<AutoFanControl, AutoFanControlModel>();
             builder.RegisterView<LogWindow, LogWindowViewModel>();
 
-            builder.RegisterDefaultActor<SettingsManager>().SingleInstance()
-                .OnActivating(e => e.Instance.Init(nameof(SettingsManager)))
-                .OnRelease(sm => sm.Actor.Tell(PoisonPill.Instance));
+            builder.RegisterSettingsManager(c => c.WithProvider<XmlProvider>()
+                                                  .WithProvider(ProviderConfig.Json(SettingTypes.FanControlOptions, "fancontrol.json"))
+                                                  .WithProvider(ProviderConfig.Json(SettingTypes.WindowOptions, "window.json")));
 
             builder.RegisterType<WindowOptions>().AsSelf().InstancePerLifetimeScope().WithParameter("scope", SettingTypes.WindowOptions);
             builder.RegisterType<FanControlOptions>().AsSelf().InstancePerLifetimeScope().WithParameter("scope", SettingTypes.FanControlOptions);
             builder.RegisterType<ProcessConfig>().AsSelf().InstancePerLifetimeScope().WithParameter("scope", SettingTypes.ProcessOptions);
-
-            builder.RegisterType<MgiStartingActor>().AsSelf();
         }
     }
 }

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
 using System.Threading.Tasks;
-using System.Windows.Navigation;
 using Tauron.Features;
 
 namespace Akka.MGIHelper.Core.FanControl.Bus
@@ -31,15 +30,15 @@ namespace Akka.MGIHelper.Core.FanControl.Bus
                 _handlers.TryAdd(msgType, new List<object> {handler});
         }
 
-        //public async Task<Unit> Publish<TMsg>(TMsg msg)
-        //{
-        //        foreach (var handler in _handlers[typeof(TMsg)].OfType<IHandler<TMsg>>()) await handler.Handle(msg, this).ConfigureAwait(false);
-        //        return Unit.Default;
-        //}
+        public async Task<Unit> Publish<TMsg>(TMsg msg)
+        {
+            foreach (var handler in _handlers[typeof(TMsg)].OfType<IHandler<TMsg>>()) await handler.Handle(msg, this).ConfigureAwait(false);
+            return Unit.Default;
+        }
 
         public async Task<TState> Publish<TState, TMsg>(StatePair<TMsg, TState> msg)
         {
-            foreach (var handler in _handlers[typeof(TMsg)].OfType<IHandler<TMsg>>()) await handler.Handle(msg.State, this).ConfigureAwait(false);
+            foreach (var handler in _handlers[typeof(TMsg)].OfType<IHandler<TMsg>>()) await handler.Handle(msg.Event, this).ConfigureAwait(false);
             return msg.State;
         }
 
