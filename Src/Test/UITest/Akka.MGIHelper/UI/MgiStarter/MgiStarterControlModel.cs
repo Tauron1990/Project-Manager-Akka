@@ -6,7 +6,6 @@ using System.Reactive.Subjects;
 using System.Text;
 using System.Threading;
 using Akka.Actor;
-using Akka.DI.Core;
 using Akka.MGIHelper.Core.Configuration;
 using Akka.MGIHelper.Core.ProcessManager;
 using Autofac;
@@ -50,7 +49,11 @@ namespace Akka.MGIHelper.UI.MgiStarter
                  .DisposeWith(this);
 
             Receive<ProcessStateChange>(obs => obs.SubscribeWithStatus(ProcessStateChangeHandler));
-            Receive<MgiStartingActor.TryStartResponse>(obs => obs.SubscribeWithStatus(_ => InternalStart += false));
+            Receive<MgiStartingActor.TryStartResponse>(obs => obs.SubscribeWithStatus(_ =>
+                                                                                      {
+                                                                                          currentStart.OnNext(null);
+                                                                                          InternalStart += false;
+                                                                                      }));
             Receive<MgiStartingActor.StartStatusUpdate>(obs => obs.SubscribeWithStatus(s => Status += s.Status));
 
             NewCommad

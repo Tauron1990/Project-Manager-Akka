@@ -1,5 +1,5 @@
 ﻿using Akka.Actor;
-using Akka.DI.Core;
+using Akka.DependencyInjection;
 using Tauron.Localization.Actor;
 
 namespace Tauron.Localization.Provider
@@ -12,6 +12,6 @@ namespace Tauron.Localization.Provider
 
         public string Name => "Json";
 
-        public Props GetProps() => _actorSystem.DI().Props(typeof(JsonLocLocStoreActor));
+        public Props GetProps() => _actorSystem.GetExtension<ServiceProvider>().Props<JsonLocLocStoreActor>();
     }
 }

@@ -1,5 +1,5 @@
 ﻿using Akka.Actor;
-using Akka.DI.Core;
+using Akka.DependencyInjection;
 using Tauron.Localization.Actor;
 
 namespace Tauron.Localization.Extension
@@ -10,7 +10,7 @@ namespace Tauron.Localization.Extension
 
         internal LocExtension Init(ActorSystem system)
         {
-            LocCoordinator = system.ActorOf(system.DI().Props(typeof(LocCoordinator)));
+            LocCoordinator = system.ActorOf(system.GetExtension<ServiceProvider>().Props<LocCoordinator>());
             return this;
         }
     }

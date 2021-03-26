@@ -16,7 +16,7 @@ namespace Akka.MGIHelper.Core.ProcessManager
         public sealed record ProcessTrackerState(Timer ProcessTimer, ImmutableArray<string> Tracked);
 
         public static IPreparedFeature New()
-            => Feature.Create(() => new ProcessTrackerActor(), c => new ProcessTrackerState(new Timer(_ => c.Self.Tell(GatherProcess.Inst), null, 5000, 5000), ImmutableArray<string>.Empty));
+            => Feature.Create(() => new ProcessTrackerActor(), c => new ProcessTrackerState(new Timer(_ => c.Self.Tell(GatherProcess.Inst), null, 2000, 2000), ImmutableArray<string>.Empty));
 
         private ProcessTrackerActor()
         {

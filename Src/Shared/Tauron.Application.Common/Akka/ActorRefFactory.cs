@@ -1,11 +1,11 @@
 ﻿using Akka.Actor;
-using Akka.DI.Core;
+using Akka.DependencyInjection;
 using JetBrains.Annotations;
 
 namespace Tauron.Akka
 {
     [PublicAPI]
-    public sealed class ActorRefFactory<TActor>
+    public sealed class ActorRefFactory<TActor> where TActor : ActorBase
     {
         private readonly ActorSystem _system;
 
@@ -15,7 +15,7 @@ namespace Tauron.Akka
 
         public Props CreateProps(bool sync)
         {
-            var prop = _system.DI().Props(typeof(TActor));
+            var prop = _system.GetExtension<ServiceProvider>().Props<TActor>();
             if (sync)
                 prop = prop.WithDispatcher("synchronized-dispatcher");
 

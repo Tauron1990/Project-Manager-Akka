@@ -5,10 +5,11 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Akka.Actor;
+using Akka.Actor.Setup;
 using Akka.Configuration;
-using Akka.DI.AutoFac;
-using Akka.DI.Core;
+using Akka.DependencyInjection;
 using Autofac;
+using Autofac.Extensions.DependencyInjection;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
 using Serilog;
@@ -135,12 +136,19 @@ namespace Tauron.Host
                 config = BuildAppConfiguration(hostingEnwiroment, config, context);
                 context.Configuration = config;
                 var akkaConfig = CreateAkkaConfig(context);
-                var system = ActorSystem.Create(GetActorSystemName(context.Configuration, context.HostEnvironment),
-                    akkaConfig);
 
-                var continer = CreateServiceProvider(hostingEnwiroment, context, config, system);
+                var provider = new ActorSystemProvider();
+                var continer = CreateServiceProvider(hostingEnwiroment, context, config, provider.Get);
 
-                system.AddDependencyResolver(new AutoFacDependencyResolver(continer, system));
+                var system = ActorSystem.Create(GetActorSystemName(context.Configuration, context.HostEnvironment), 
+                    ActorSystemSetup.Create(
+                        BootstrapSetup.Create().WithConfig(akkaConfig),
+                        ServiceProviderSetup.Create(new AutofacServiceProvider(continer))));
+                system.RegisterExtension(new ServiceProviderExtension());
+
+
+                provider.System = system;
+
                 foreach (var action in _actorSystemConfig)
                     action(context, system);
 
@@ -208,17 +216,15 @@ namespace Tauron.Host
                 return _akkaConfig.Aggregate(Config.Empty, (current, func) => current.WithFallback(func(context)));
             }
 
-            private IContainer CreateServiceProvider(IHostEnvironment hostEnvironment,
-                HostBuilderContext hostBuilderContext, IConfiguration appConfiguration, ActorSystem actorSystem)
+            private IContainer CreateServiceProvider(IHostEnvironment hostEnvironment, HostBuilderContext hostBuilderContext, IConfiguration appConfiguration, Func<ActorSystem> actorSystem)
             {
                 var containerBuilder = new ContainerBuilder();
 
-                containerBuilder.RegisterInstance(actorSystem);
+                containerBuilder.Register(_ => actorSystem());
                 containerBuilder.RegisterInstance(hostEnvironment);
                 containerBuilder.RegisterInstance(hostBuilderContext);
                 containerBuilder.RegisterInstance(appConfiguration);
-                containerBuilder.RegisterType<ApplicationLifetime>()
-                    .As<IHostApplicationLifetime, IApplicationLifetime>().SingleInstance();
+                containerBuilder.RegisterType<ApplicationLifetime>().As<IHostApplicationLifetime, IApplicationLifetime>().SingleInstance();
                 containerBuilder.RegisterType<CommonLifetime>().As<IHostLifetime>().SingleInstance();
 
                 foreach (var action in _containerBuilder)
@@ -233,6 +239,19 @@ namespace Tauron.Host
                 return Path.IsPathRooted(contentRootPath)
                     ? contentRootPath
                     : Path.Combine(Path.GetFullPath(basePath), contentRootPath);
+            }
+
+            private sealed class ActorSystemProvider
+            {
+                public ActorSystem? System { get; set; }
+
+                public ActorSystem Get()
+                {
+                    if (System == null)
+                        throw new InvalidOperationException("No ActorSystem Configured");
+
+                    return System;
+                }
             }
         }
     }

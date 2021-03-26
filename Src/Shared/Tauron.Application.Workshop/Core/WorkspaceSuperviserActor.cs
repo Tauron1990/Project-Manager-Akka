@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Akka.Actor;
 using Akka.Actor.Internal;
-using Akka.DI.Core;
+using Akka.DependencyInjection;
 using Akka.Util;
 using JetBrains.Annotations;
 using Tauron.Akka;
@@ -121,11 +121,13 @@ namespace Tauron.Application.Workshop.Core
 
         internal sealed class SuperviseDiActor : SuperviseActorBase
         {
+
+
             private readonly Type _actorType;
 
             public SuperviseDiActor(Type actorType, string name) : base(name) => _actorType = actorType;
 
-            public override Func<IUntypedActorContext, Props> Props => c => c.System.DI().Props(_actorType);
+            public override Func<IUntypedActorContext, Props> Props => c => ServiceProvider.For(c.System).Props(_actorType);
         }
 
         internal sealed class CustomSuperviseActor : SuperviseActorBase

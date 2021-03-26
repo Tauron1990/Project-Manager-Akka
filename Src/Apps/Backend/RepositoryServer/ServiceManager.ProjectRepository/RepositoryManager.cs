@@ -21,8 +21,7 @@ namespace ServiceManager.ProjectRepository
 
         public bool IsOk => !_manager.IsNobody();
 
-        public static RepositoryManager CreateInstance(IActorRefFactory factory, string connectionString,
-            DataTransferManager tranferManager)
+        public static RepositoryManager CreateInstance(IActorRefFactory factory, string connectionString, DataTransferManager tranferManager)
             => new(factory.ActorOf(RepositoryManagerImpl.Create(new MongoClient(connectionString), tranferManager)));
 
         public static RepositoryManager InitRepositoryManager(ActorSystem actorSystem, string connectionString,

@@ -4,9 +4,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Akka.Actor;
 using Akka.Actor.Internal;
-using Akka.DI.Core;
+using Akka.DependencyInjection;
 using Akka.Event;
 using Akka.Util;
+using JetBrains.Annotations;
 using Tauron.Akka;
 using Tauron.Application.CommonUI.Model;
 
@@ -32,7 +33,7 @@ namespace Tauron.Application.CommonUI.Helper
 
         public static ViewModelSuperviser Get(ActorSystem system)
         {
-            return _superviser ??= new ViewModelSuperviser(system.ActorOf(system.DI().Props<ViewModelSuperviserActor>(),
+            return _superviser ??= new ViewModelSuperviser(system.ActorOf(ServiceProvider.For(system).Props<ViewModelSuperviserActor>(),
                 nameof(ViewModelSuperviser)));
         }
 
@@ -58,6 +59,7 @@ namespace Tauron.Application.CommonUI.Helper
         }
     }
 
+    [PublicAPI]
     public sealed class ViewModelSuperviserActor : ObservableActor
     {
         private int _count;
@@ -73,7 +75,7 @@ namespace Tauron.Application.CommonUI.Helper
 
             _count++;
 
-            var props = Context.System.DI().Props(obj.Model.ModelType);
+            var props = ServiceProvider.For(Context.System).Props(obj.Model.ModelType);
             var actor = Context.ActorOf(props, obj.Name ?? $"{obj.Model.ModelType.Name}--{_count}");
 
             obj.Model.Init(actor);

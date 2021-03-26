@@ -10,7 +10,8 @@ namespace ServiceManager.ProjectRepository.Data
 
         public string SourceUrl { get; set; } = string.Empty;
 
-        [BsonId] public long RepoId { get; set; }
+        [BsonId] 
+        public long RepoId { get; set; }
 
         public string LastUpdate { get; set; } = string.Empty;
 
