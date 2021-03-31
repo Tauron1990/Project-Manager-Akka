@@ -4,6 +4,7 @@ using Akka.Configuration;
 using Autofac;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 
 namespace Tauron.Host
@@ -16,6 +17,8 @@ namespace Tauron.Host
         IApplicationBuilder Configuration(Action<IConfigurationBuilder> config);
 
         IApplicationBuilder ConfigureAutoFac(Action<ContainerBuilder> config);
+
+        IApplicationBuilder ConfigureServices(Action<IServiceCollection> config)
 
         IApplicationBuilder ConfigureAppConfiguration(Action<HostBuilderContext, IConfigurationBuilder> config);
 

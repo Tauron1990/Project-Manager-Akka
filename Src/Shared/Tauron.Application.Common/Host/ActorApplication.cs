@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,6 +13,7 @@ using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 
 namespace Tauron.Host
@@ -83,11 +85,47 @@ namespace Tauron.Host
 
         private sealed class Builder : IApplicationBuilder
         {
+            private class ServiceCollection : IServiceCollection
+            {
+                private readonly List<ServiceDescriptor> _descriptors = new();
+                
+                public int Count => _descriptors.Count;
+                
+                public bool IsReadOnly => false;
+                
+                public ServiceDescriptor this[int index]
+                {
+                    get => _descriptors[index];
+                    set => _descriptors[index] = value;
+                }
+                
+                public void Clear() => _descriptors.Clear();
+                
+                public bool Contains(ServiceDescriptor item) => _descriptors.Contains(item);
+                
+                public void CopyTo(ServiceDescriptor[] array, int arrayIndex) => _descriptors.CopyTo(array, arrayIndex);
+                
+                public bool Remove(ServiceDescriptor item) => _descriptors.Remove(item);
+
+                public IEnumerator<ServiceDescriptor> GetEnumerator() => _descriptors.GetEnumerator();
+
+                void ICollection<ServiceDescriptor>.Add(ServiceDescriptor item) => _descriptors.Add(item);
+
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                
+                public int IndexOf(ServiceDescriptor item) => _descriptors.IndexOf(item);
+                
+                public void Insert(int index, ServiceDescriptor item) => _descriptors.Insert(index, item);
+                
+                public void RemoveAt(int index) => _descriptors.RemoveAt(index);
+            }
+
             private readonly List<Action<HostBuilderContext, ActorSystem>> _actorSystemConfig = new();
             private readonly List<Func<HostBuilderContext, Config>> _akkaConfig = new();
             private readonly List<Action<HostBuilderContext, IConfigurationBuilder>> _appConfigs = new();
             private readonly List<Action<IConfigurationBuilder>> _configurationBuilders = new();
             private readonly List<Action<ContainerBuilder>> _containerBuilder = new();
+            private readonly List<Action<IServiceCollection>> _servicesList = new();
             private readonly List<Action<HostBuilderContext, LoggerConfiguration>> _logger = new();
 
             public IApplicationBuilder ConfigureLogging(Action<HostBuilderContext, LoggerConfiguration> config)
@@ -105,6 +143,12 @@ namespace Tauron.Host
             public IApplicationBuilder ConfigureAutoFac(Action<ContainerBuilder> config)
             {
                 _containerBuilder.Add(config);
+                return this;
+            }
+
+            public IApplicationBuilder ConfigureServices(Action<IServiceCollection> config)
+            {
+                _servicesList.Add(config);
                 return this;
             }
 
@@ -226,6 +270,15 @@ namespace Tauron.Host
                 containerBuilder.RegisterInstance(appConfiguration);
                 containerBuilder.RegisterType<ApplicationLifetime>().As<IHostApplicationLifetime, IApplicationLifetime>().SingleInstance();
                 containerBuilder.RegisterType<CommonLifetime>().As<IHostLifetime>().SingleInstance();
+
+                if (_servicesList.Count > 0)
+                {
+                    var serviceCollection = new ServiceCollection();
+                    foreach (var action in _servicesList)
+                        action(serviceCollection);
+
+                    containerBuilder.Populate(serviceCollection);
+                }
 
                 foreach (var action in _containerBuilder)
                     action(containerBuilder);
