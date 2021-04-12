@@ -3,8 +3,11 @@ using System.Reactive.Linq;
 using JetBrains.Annotations;
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
+using SharpRepository.Repository;
+using SharpRepository.Repository.Configuration;
 using Tauron.Akka;
 using Tauron.Features;
+using YellowDrawer.Storage.Common;
 
 namespace Tauron.Application.AkkaNode.Services.CleanUp
 {
@@ -14,8 +17,7 @@ namespace Tauron.Application.AkkaNode.Services.CleanUp
         public static readonly InitCleanUp Initialization = new();
 
         [PublicAPI]
-        public static IPreparedFeature New(IMongoDatabase database, string cleanUpCollection,
-            IMongoCollection<ToDeleteRevision> revisions, GridFSBucket bucked)
+        public static IPreparedFeature New(ISharpRepositoryConfiguration repositoryConfiguration, IStorageProvider storageProvider)
             => Feature.Create(() => new CleanUpManager(),
                 _ => new CleanUpManagerState(database, cleanUpCollection, revisions, bucked, false));
 
@@ -55,8 +57,8 @@ namespace Tauron.Application.AkkaNode.Services.CleanUp
                 .ForwardToActor(props => Context.ActorOf(props)));
         }
 
-        public sealed record CleanUpManagerState(IMongoDatabase Database, string CleanUpCollection,
-            IMongoCollection<ToDeleteRevision> Revisions, GridFSBucket Bucket, bool IsRunning);
+        public sealed record CleanUpManagerState(ISharpRepositoryConfiguration Database, IRepository<CleanUpTime, string> CleabUpRepository, IRepository<ToDeleteRevision, string> Revisions, 
+            IStorageProvider Bucket, bool IsRunning);
 
         public sealed record InitCleanUp
         {

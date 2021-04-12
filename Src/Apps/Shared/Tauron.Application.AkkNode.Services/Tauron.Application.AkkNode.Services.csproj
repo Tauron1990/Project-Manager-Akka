@@ -45,11 +45,11 @@
 
   <ItemGroup>
     <PackageReference Include="Akka.Persistence.Query" Version="1.4.18" />
-    <PackageReference Include="MongoDB.Driver" Version="2.12.1" />
-    <PackageReference Include="MongoDB.Driver.GridFS" Version="2.12.1" />
+    <PackageReference Include="SharpRepository.Repository" Version="2.1.2" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Shared\External\YellowDrawer.Storage.Common\YellowDrawer.Storage.Common.csproj" />
     <ProjectReference Include="..\..\..\Shared\Tauron.Application.Workshop\Tauron.Application.Workshop.csproj" />
   </ItemGroup>
 

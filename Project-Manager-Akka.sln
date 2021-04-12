@@ -96,7 +96,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceManager.ProjectDeplo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AkkaTest", "Src\Test\AkkaTest\AkkaTest.csproj", "{CC483A64-17EE-4593-9B81-A95163D30CBA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tauron.Application.AkkaNode.Data", "Tauron.Application.AkkaNode.Data\Tauron.Application.AkkaNode.Data.csproj", "{0BB7D92C-15EA-4C6A-ADA3-2C52FCA2F71C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YellowDrawer.Storage.GridFS", "Src\Shared\External\YellowDrawer.Storage.GridFS\YellowDrawer.Storage.GridFS.csproj", "{1D3D819A-A365-44A6-A438-C98EFDAE5FA9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YellowDrawer.Storage.Common", "Src\Shared\External\YellowDrawer.Storage.Common\YellowDrawer.Storage.Common.csproj", "{7CD6F10B-900E-479D-89CF-93FF426864D9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -232,10 +234,14 @@ Global
 		{CC483A64-17EE-4593-9B81-A95163D30CBA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CC483A64-17EE-4593-9B81-A95163D30CBA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CC483A64-17EE-4593-9B81-A95163D30CBA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0BB7D92C-15EA-4C6A-ADA3-2C52FCA2F71C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0BB7D92C-15EA-4C6A-ADA3-2C52FCA2F71C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0BB7D92C-15EA-4C6A-ADA3-2C52FCA2F71C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0BB7D92C-15EA-4C6A-ADA3-2C52FCA2F71C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1D3D819A-A365-44A6-A438-C98EFDAE5FA9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1D3D819A-A365-44A6-A438-C98EFDAE5FA9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1D3D819A-A365-44A6-A438-C98EFDAE5FA9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1D3D819A-A365-44A6-A438-C98EFDAE5FA9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7CD6F10B-900E-479D-89CF-93FF426864D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7CD6F10B-900E-479D-89CF-93FF426864D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7CD6F10B-900E-479D-89CF-93FF426864D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7CD6F10B-900E-479D-89CF-93FF426864D9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -284,7 +290,8 @@ Global
 		{F85B5751-A045-4166-A102-8096DBE1A395} = {5240E794-95D4-4B50-8E87-22417D517216}
 		{1A3EAA0F-12B9-4D43-B97F-4585073A4339} = {F85B5751-A045-4166-A102-8096DBE1A395}
 		{CC483A64-17EE-4593-9B81-A95163D30CBA} = {06C2AE73-CFD3-4AF4-92F5-723E0C47D65B}
-		{0BB7D92C-15EA-4C6A-ADA3-2C52FCA2F71C} = {5BF63585-1BC8-4426-B759-1A8F11C84B84}
+		{1D3D819A-A365-44A6-A438-C98EFDAE5FA9} = {5DA10D28-1EE7-49F9-B271-1102C5094467}
+		{7CD6F10B-900E-479D-89CF-93FF426864D9} = {5DA10D28-1EE7-49F9-B271-1102C5094467}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F63AD2ED-4320-43AB-8761-A3FEBC507539}
