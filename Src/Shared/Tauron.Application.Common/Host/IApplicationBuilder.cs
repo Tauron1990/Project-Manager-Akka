@@ -18,7 +18,7 @@ namespace Tauron.Host
 
         IApplicationBuilder ConfigureAutoFac(Action<ContainerBuilder> config);
 
-        IApplicationBuilder ConfigureServices(Action<IServiceCollection> config)
+        IApplicationBuilder ConfigureServices(Action<IServiceCollection> config);
 
         IApplicationBuilder ConfigureAppConfiguration(Action<HostBuilderContext, IConfigurationBuilder> config);
 
