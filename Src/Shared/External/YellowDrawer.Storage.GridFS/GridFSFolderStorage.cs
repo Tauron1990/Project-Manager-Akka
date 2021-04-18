@@ -37,6 +37,11 @@ namespace YellowDrawer.Storage.GridFS
             return new GridFSFolderStorage(_bucket, fileResult);
         }
 
+        public void Delete()
+        {
+            
+        }
+
         public string GetPath() => _fileInfo.Filename;
 
         public long GetSize() => 0;

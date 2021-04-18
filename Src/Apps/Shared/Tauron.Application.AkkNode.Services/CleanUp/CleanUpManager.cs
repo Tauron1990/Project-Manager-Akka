@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Reactive.Linq;
 using JetBrains.Annotations;
-using MongoDB.Driver;
-using MongoDB.Driver.GridFS;
 using SharpRepository.Repository;
 using SharpRepository.Repository.Configuration;
-using Tauron.Akka;
 using Tauron.Features;
 using YellowDrawer.Storage.Common;
 
@@ -14,50 +11,32 @@ namespace Tauron.Application.AkkaNode.Services.CleanUp
     [PublicAPI]
     public sealed class CleanUpManager : ActorFeatureBase<CleanUpManager.CleanUpManagerState>
     {
+        public const string TimeKey = "Master";
+        public const string RepositoryKey = nameof(CleanUpManager);
+
         public static readonly InitCleanUp Initialization = new();
 
         [PublicAPI]
         public static IPreparedFeature New(ISharpRepositoryConfiguration repositoryConfiguration, IStorageProvider storageProvider)
             => Feature.Create(() => new CleanUpManager(),
-                _ => new CleanUpManagerState(database, cleanUpCollection, revisions, bucked, false));
+                _ => new CleanUpManagerState(repositoryConfiguration.GetInstance<CleanUpTime, string>(RepositoryKey), 
+                    repositoryConfiguration.GetInstance<ToDeleteRevision, string>(RepositoryKey), storageProvider, false));
 
         protected override void ConfigImpl()
         {
-            Receive<InitCleanUp>(obs => obs.Where(m => !m.State.IsRunning)
-                .Select(init =>
-                {
-                    var (database, cleanUpCollection, _, _, _) = init.State;
-
-                    if (!database.ListCollectionNames().Contains(s => s == cleanUpCollection))
-                        database.CreateCollection("CleanUp",
-                            new CreateCollectionOptions {Capped = true, MaxDocuments = 1, MaxSize = 1024});
-                    return init;
-                })
-                .Select(init => new
-                {
-                    Database = init.State.Database.GetCollection<CleanUpTime>(init.State.CleanUpCollection), init.Timers
-                })
-                .SelectMany(async data => new
-                    {Data = await data.Database.AsQueryable().FirstOrDefaultAsync(), data.Database, data.Timers})
-                .SelectMany(async data =>
-                {
-                    if (data.Data == null)
-                        await data.Database.InsertOneAsync(new CleanUpTime(default, TimeSpan.FromDays(7),
-                            DateTime.Now));
-
-                    return data.Timers;
-                })
-                .ObserveOnSelf()
-                .ToUnit(d => d.StartPeriodicTimer(Initialization, new StartCleanUp(), TimeSpan.FromHours(1))));
+            Receive<InitCleanUp>(obs => obs
+                                       .Where(m => !m.State.IsRunning)
+                                       .Select(data => new {Data = data.State.CleanUpRepository.Get(TimeKey), data.State.CleanUpRepository, data.Timers, data.State})
+                                       .ApplyWhen(d => d.Data == null, d => d.CleanUpRepository.Add(new CleanUpTime(TimeKey, TimeSpan.FromDays(7), DateTime.Now)))
+                                       .StartPeriodicTimer(d => d.Timers, Initialization, new StartCleanUp(), TimeSpan.FromSeconds(1), TimeSpan.FromHours(1))
+                                       .Select(d => d.State with {IsRunning = true}));
 
             Receive<StartCleanUp>(obs => obs.Where(m => m.State.IsRunning)
-                .Select(data => CleanUpOperator.New(
-                    data.State.Database.GetCollection<CleanUpTime>(data.State.CleanUpCollection),
-                    data.State.Revisions, data.State.Bucket))
-                .ForwardToActor(props => Context.ActorOf(props)));
+                                            .Select(data => (Props:CleanUpOperator.New(data.State.CleanUpRepository, data.State.Revisions, data.State.Bucket), data.Event))
+                                            .ForwardToActor(d => Context.ActorOf(d.Props), d => d.Event));
         }
 
-        public sealed record CleanUpManagerState(ISharpRepositoryConfiguration Database, IRepository<CleanUpTime, string> CleabUpRepository, IRepository<ToDeleteRevision, string> Revisions, 
+        public sealed record CleanUpManagerState(IRepository<CleanUpTime, string> CleanUpRepository, IRepository<ToDeleteRevision, string> Revisions,
             IStorageProvider Bucket, bool IsRunning);
 
         public sealed record InitCleanUp

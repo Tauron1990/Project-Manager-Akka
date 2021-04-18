@@ -10,9 +10,7 @@ using Tauron.Application.Localizer.DataModel.Serialization;
 namespace Tauron.Application.Localizer.DataModel
 {
     [PublicAPI]
-    public sealed partial record ProjectFile(ImmutableList<Project> Projects,
-        ImmutableList<ActiveLanguage> GlobalLanguages, string Source, IActorRef Operator,
-        BuildInfo BuildInfo) : IWriteable
+    public sealed partial record ProjectFile(ImmutableList<Project> Projects, ImmutableList<ActiveLanguage> GlobalLanguages, string Source, IActorRef Operator, BuildInfo BuildInfo) : IWriteable
     {
         public const int Version = 2;
 

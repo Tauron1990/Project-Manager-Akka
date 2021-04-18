@@ -31,6 +31,12 @@ namespace YellowDrawer.Storage.Common.FileSystem
             : throw new InvalidOperationException("Directory " + _directoryInfo.Name +
                                                   " does not have a parent directory");
 
+        public void Delete()
+        {
+            if(_directoryInfo.Exists)
+                _directoryInfo.Delete(true);
+        }
+
         #endregion
 
         private static long GetDirectorySize(DirectoryInfo directoryInfo)

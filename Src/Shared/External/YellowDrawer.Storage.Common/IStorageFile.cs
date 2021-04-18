@@ -20,5 +20,6 @@ namespace YellowDrawer.Storage.Common
 
         Stream OpenCryptoRead(IStorageEncryptionProvider encryptionProvider, byte[] iv);
         Stream OpenCryptoWrite(IStorageEncryptionProvider encryptionProvider, byte[] iv);
+        void Delete();
     }
 }

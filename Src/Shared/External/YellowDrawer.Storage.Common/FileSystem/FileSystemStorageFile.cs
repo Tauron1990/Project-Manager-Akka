@@ -35,6 +35,12 @@ namespace YellowDrawer.Storage.Common.FileSystem
         public Stream OpenCryptoRead(IStorageEncryptionProvider encryptionProvider, byte[] iv) => encryptionProvider.Decrypt(new FileStream(_fileInfo.FullName, FileMode.Open, FileAccess.Read), iv);
 
         public Stream OpenCryptoWrite(IStorageEncryptionProvider encryptionProvider, byte[] iv) => encryptionProvider.Encrypt(new FileStream(_fileInfo.FullName, FileMode.Open, FileAccess.ReadWrite), iv);
+        
+        public void Delete()
+        {
+            if(_fileInfo.Exists)
+                _fileInfo.Delete();
+        }
 
         #endregion
     }

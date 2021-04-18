@@ -44,5 +44,7 @@ namespace YellowDrawer.Storage.GridFS
         public Stream OpenCryptoRead(IStorageEncryptionProvider encryptionProvider, byte[] iv) => encryptionProvider.Decrypt(_bucket.OpenDownloadStream(_fileInfo.Id), iv);
 
         public Stream OpenCryptoWrite(IStorageEncryptionProvider encryptionProvider, byte[] iv) => encryptionProvider.Encrypt(_bucket.OpenUploadStream(_fileInfo.Filename), iv);
+
+        public void Delete() => _bucket.Delete(_fileInfo.Id);
     }
 }

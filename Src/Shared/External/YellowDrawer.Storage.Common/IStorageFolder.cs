@@ -11,5 +11,6 @@ namespace YellowDrawer.Storage.Common
         long GetSize();
         DateTime GetLastUpdated();
         IStorageFolder GetParent();
+        void Delete();
     }
 }

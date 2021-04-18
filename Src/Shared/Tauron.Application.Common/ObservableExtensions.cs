@@ -6,6 +6,7 @@ using Akka.Actor;
 using Akka.Actor.Internal;
 using JetBrains.Annotations;
 using Tauron.Akka;
+using Tauron.Features;
 
 namespace Tauron
 {
@@ -46,6 +47,122 @@ namespace Tauron
                 return Unit.Default;
             });
         }
+
+        public static IObservable<TData> ApplyWhen<TData>(this IObservable<TData> obs, Func<TData, bool> when, Action<TData> apply)
+            => obs.Select(d =>
+                          {
+                              if (when(d))
+                                  apply(d);
+                              return d;
+                          });
+
+
+        public static IObservable<ITimerScheduler> StartPeriodicTimer(this IObservable<ITimerScheduler> timer, object key, object msg, TimeSpan interval)
+            => timer.Select(t =>
+                            {
+                                t.StartPeriodicTimer(key, msg, interval);
+                                return t;
+                            });
+
+        public static IObservable<StatePair<TEvent, TState>> StartPeriodicTimer<TEvent, TState>(this IObservable<StatePair<TEvent, TState>> obs, object key, object msg, TimeSpan interval)
+            => obs.Select(p =>
+                          {
+                              p.Timers.StartPeriodicTimer(key, msg, interval);
+                              return p;
+                          });
+
+        public static IObservable<TData> StartPeriodicTimer<TData>(this IObservable<TData> obs, Func<TData, ITimerScheduler> selector, object key, object msg, TimeSpan interval)
+            => obs.Select(d =>
+                          {
+                              selector(d).StartPeriodicTimer(key, msg, interval);
+                              return d;
+                          });
+
+
+        public static IObservable<ITimerScheduler> StartPeriodicTimer(this IObservable<ITimerScheduler> timer, object key, object msg, TimeSpan initialDelay, TimeSpan interval)
+            => timer.Select(t =>
+                            {
+                                t.StartPeriodicTimer(key, msg, initialDelay, interval);
+                                return t;
+                            });
+
+        public static IObservable<StatePair<TEvent, TState>> StartPeriodicTimer<TEvent, TState>(this IObservable<StatePair<TEvent, TState>> obs, object key, object msg, TimeSpan initialDelay,
+            TimeSpan interval)
+            => obs.Select(t =>
+                          {
+                              t.Timers.StartPeriodicTimer(key, msg, initialDelay, interval);
+                              return t;
+                          });
+
+        public static IObservable<TData> StartPeriodicTimer<TData>(this IObservable<TData> obs, Func<TData, ITimerScheduler> selector, object key, object msg, TimeSpan initialDelay, TimeSpan interval)
+            => obs.Select(t =>
+                          {
+                              selector(t).StartPeriodicTimer(key, msg, initialDelay, interval);
+                              return t;
+                          });
+
+        public static IObservable<ITimerScheduler> StartSingleTimer(this IObservable<ITimerScheduler> timer, object key, object msg, TimeSpan timeout)
+            => timer.Select(t =>
+                            {
+                                t.StartSingleTimer(key, msg, timeout);
+                                return t;
+                            });
+
+        public static IObservable<StatePair<TEvent, TState>> StartSingleTimer<TEvent, TState>(this IObservable<StatePair<TEvent, TState>> obs, object key, object msg, TimeSpan timeout)
+            => obs.Select(t =>
+                          {
+                              t.Timers.StartSingleTimer(key, msg, timeout);
+                              return t;
+                          });
+
+        public static IObservable<TData> StartSingleTimer<TData>(this IObservable<TData> obs, Func<TData, ITimerScheduler> selector, object key, object msg, TimeSpan timeout)
+            => obs.Select(t =>
+                          {
+                              selector(t).StartSingleTimer(key, msg, timeout);
+                              return t;
+                          });
+
+        public static IObservable<ITimerScheduler> CancelTimer(this IObservable<ITimerScheduler> timer, object key)
+            => timer.Select(t =>
+                            {
+                                t.Cancel(key);
+                                return t;
+                            });
+
+        public static IObservable<StatePair<TEvent, TState>> CancelTimer<TEvent, TState>(this IObservable<StatePair<TEvent, TState>> obs, object key)
+            => obs.Select(t =>
+                          {
+                              t.Timers.Cancel(key);
+                              return t;
+                          });
+
+        public static IObservable<TData> CancelTimer<TData>(this IObservable<TData> obs, Func<TData, ITimerScheduler> selector, object key)
+            => obs.Select(t =>
+                          {
+                              selector(t).Cancel(key);
+                              return t;
+                          });
+
+        public static IObservable<ITimerScheduler> CancelAllTimers(this IObservable<ITimerScheduler> timer)
+            => timer.Select(t =>
+                            {
+                                t.CancelAll();
+                                return t;
+                            });
+
+        public static IObservable<StatePair<TEvent, TState>> CancelAllTimers<TEvent, TState>(this IObservable<StatePair<TEvent, TState>> obs)
+            => obs.Select(t =>
+                          {
+                              t.Timers.CancelAll();
+                              return t;
+                          });
+
+        public static IObservable<TData> CancelAllTimers<TData>(this IObservable<TData> obs, Func<TData, ITimerScheduler> selector)
+            => obs.Select(t =>
+                          {
+                              selector(t).CancelAll();
+                              return t;
+                          });
 
         #region Send To Actor
 

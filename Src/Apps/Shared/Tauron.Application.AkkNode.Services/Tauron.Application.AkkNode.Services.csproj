@@ -14,6 +14,7 @@
     <Compile Remove="Core\InternalSerializable.cs" />
     <Compile Remove="Core\InternalSerializableBase.cs" />
     <Compile Remove="Core\InternalSerializer.cs" />
+    <Compile Remove="MongoDb\BuckedSourceFactory.cs" />
     <Compile Remove="MongoDb\ClientPool.cs" />
     <Compile Remove="MongoDb\IClientPool.cs" />
     <Compile Remove="MongoDb\IMongoEntity.cs" />
@@ -23,6 +24,7 @@
     <Compile Remove="MongoDb\MongoDbExtensions.cs" />
     <Compile Remove="MongoDb\MongoDbSource.cs" />
     <Compile Remove="MongoDb\MongoQueryBase.cs" />
+    <Compile Remove="MongoExtensions.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -32,6 +34,7 @@
     <None Include="Core\InternalSerializable.cs" />
     <None Include="Core\InternalSerializableBase.cs" />
     <None Include="Core\InternalSerializer.cs" />
+    <None Include="MongoDb\BuckedSourceFactory.cs" />
     <None Include="MongoDb\ClientPool.cs" />
     <None Include="MongoDb\IClientPool.cs" />
     <None Include="MongoDb\IMongoEntity.cs" />
@@ -41,6 +44,7 @@
     <None Include="MongoDb\MongoDbExtensions.cs" />
     <None Include="MongoDb\MongoDbSource.cs" />
     <None Include="MongoDb\MongoQueryBase.cs" />
+    <None Include="MongoExtensions.cs" />
   </ItemGroup>
 
   <ItemGroup>

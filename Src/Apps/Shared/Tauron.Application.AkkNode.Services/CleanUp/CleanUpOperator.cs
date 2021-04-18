@@ -1,35 +1,38 @@
 ﻿using System;
 using System.Linq;
 using System.Reactive.Linq;
-using MongoDB.Bson;
-using MongoDB.Driver;
-using MongoDB.Driver.GridFS;
+using SharpRepository.Repository;
 using Tauron.Features;
+using YellowDrawer.Storage.Common;
 
 namespace Tauron.Application.AkkaNode.Services.CleanUp
 {
     public sealed class CleanUpOperator : ActorFeatureBase<CleanUpOperator.State>
     {
-        public static IPreparedFeature New(IMongoCollection<CleanUpTime> cleanUp,
-            IMongoCollection<ToDeleteRevision> revisions, GridFSBucket bucket)
+        public static IPreparedFeature New(IRepository<CleanUpTime, string> cleanUp, IRepository<ToDeleteRevision, string> revisions, IStorageProvider bucket)
             => Feature.Create(() => new CleanUpOperator(), _ => new State(cleanUp, revisions, bucket));
 
         protected override void ConfigImpl()
             => Receive<StartCleanUp>(obs => obs.Take(1)
-                .SelectMany(async s => new {s.State, Data = await s.State.CleanUp.AsQueryable().FirstAsync()})
-                .Where(d => d.Data.Last + d.Data.Interval < DateTime.Now)
-                .SelectMany(d => d.State.Revisions
-                    .AsQueryable().ToCursor().ToEnumerable()
-                    .Select(revision =>
-                    {
-                        var (_, buckedId) = revision;
-                        d.State.Bucked.Delete(ObjectId.Parse(buckedId));
-                        return Builders<ToDeleteRevision>.Filter.Eq(r => r.BuckedId == buckedId, true);
-                    }))
-                .Finally(() => Context.Stop(Self))
-                .Subscribe(_ => { }, ex => Log.Error(ex, "Error on Clean up Database")));
+                                               .Select(s => new {s.State, Data = s.State.CleanUp.Get(CleanUpManager.TimeKey)})
+                                               .Where(d => d.Data.Last + d.Data.Interval < DateTime.Now)
+                                               .Select(d => (Data: d.State.Revisions.AsQueryable().AsEnumerable()
+                                                                    .Select(revision =>
+                                                                            {
+                                                                                d.State.Bucked.GetFile(revision.FilePath).Delete();
+                                                                                return revision;
+                                                                            }),
+                                                             Repo: d.State.Revisions))
+                                               .ToUnit(enu =>
+                                                       {
+                                                           var (data, repo) = enu;
+                                                           using var batch = repo.BeginBatch();
+                                                           batch.Delete(data);
+                                                           batch.Commit();
+                                                       })
+                                               .Finally(() => Context.Stop(Self))
+                                               .Subscribe(_ => { }, ex => Log.Error(ex, "Error on Clean up Database")));
 
-        public sealed record State(IMongoCollection<CleanUpTime> CleanUp, IMongoCollection<ToDeleteRevision> Revisions,
-            GridFSBucket Bucked);
+        public sealed record State(IRepository<CleanUpTime, string> CleanUp, IRepository<ToDeleteRevision, string> Revisions, IStorageProvider Bucked);
     }
 }
