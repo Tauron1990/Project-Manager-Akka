@@ -44,10 +44,8 @@ namespace Tauron.Application.Files.Serialization.Core.Managment
 
         protected Type? MemberType { get; }
 
-        protected void SetValue(object target, object? value)
-        {
-            _setter?.Invoke(Argument.NotNull(target, nameof(target)), value);
-        }
+        protected void SetValue(object target, object? value) 
+            => _setter?.Invoke(Argument.NotNull(target, nameof(target)), value);
 
         protected object? GetValue(object target) => _accessor?.Invoke(Argument.NotNull(target, nameof(target)));
 

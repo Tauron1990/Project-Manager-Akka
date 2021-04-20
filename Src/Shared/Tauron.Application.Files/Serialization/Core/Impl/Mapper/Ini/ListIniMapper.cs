@@ -27,7 +27,7 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Mapper.Ini
         {
             Argument.NotNull(context, nameof(context));
 
-            var temp = context.File.GetSection(_section)?.GetListEntry(_key)?.Values;
+            var temp = context.File[_section]?.GetListEntry(_key)?.Values;
 
             if (temp == null) return;
 
@@ -40,7 +40,8 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Mapper.Ini
             Argument.NotNull(context, nameof(context));
 
             var value = GetValue(target);
-            context.File.GetSection(_section)?.GetOrAddListEntry(_key).Values.AddRange(_converter?.Convert(value) ?? Array.Empty<string>());
+
+            context.File = context.File.SetData(_section, _key, _converter?.Convert(value) ?? Array.Empty<string>());
         }
 
         public override Exception? VerifyError()

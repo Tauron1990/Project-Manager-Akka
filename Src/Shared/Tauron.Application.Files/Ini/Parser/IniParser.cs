@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using JetBrains.Annotations;
@@ -41,19 +42,18 @@ namespace Tauron.Application.Files.Ini.Parser
             if (currentSectionName != null)
                 entrys[currentSectionName] = currentSection;
 
-            var sections = new Dictionary<string, IniSection>(entrys.Count);
+            var sections = ImmutableDictionary<string, IniSection>.Empty;
 
             foreach (var (key, value) in entrys)
             {
-                var entries = new Dictionary<string, IniEntry>(value.Count);
+                var entries = ImmutableDictionary<string, IniEntry>.Empty;
 
-                foreach (var (entryKey, collection) in value)
-                    if (collection.Count < 1)
-                        entries[entryKey] = new ListIniEntry(entryKey, new List<string>(collection));
-                    else
-                        entries[entryKey] = new SingleIniEntry(entryKey, collection.ElementAt(0));
+                foreach (var (entryKey, collection) in value) 
+                    entries = collection.Count < 1 
+                        ? entries.Add(entryKey, new ListIniEntry(entryKey, ImmutableList<string>.Empty.AddRange(collection))) 
+                        : entries.Add(entryKey, new SingleIniEntry(entryKey, collection.ElementAt(0)));
 
-                sections[key] = new IniSection(entries, key);
+                sections = sections.Add(key, new IniSection(key, entries));
             }
 
             return new IniFile(sections);

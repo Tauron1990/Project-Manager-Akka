@@ -20,22 +20,20 @@ namespace Tauron.Application.Files.Ini.Parser
         {
             try
             {
-                foreach (var section in _file.Sections)
+                foreach (var section in _file)
                 {
                     _writer.WriteLine(string.Format(CultureInfo.InvariantCulture, "[{0}]", section.Name));
-                    foreach (var iniEntry in section.Entries)
-                        if (iniEntry is SingleIniEntry entry)
-                        {
-                            _writer.WriteLine(string.Format(CultureInfo.InvariantCulture, "{0}={1}", entry.Key,
-                                entry.Value));
-                        }
+                    foreach (var iniEntry in section)
+                    {
+                        if (iniEntry is SingleIniEntry(var key, var data))
+                            _writer.WriteLine(string.Format(CultureInfo.InvariantCulture, "{0}={1}", key, data));
                         else
                         {
-                            var entry2 = (ListIniEntry) iniEntry;
-                            var name = entry2.Key;
-                            foreach (var value in entry2.Values)
+                            var (name, values) = (ListIniEntry) iniEntry;
+                            foreach (var value in values)
                                 _writer.WriteLine(string.Format(CultureInfo.InvariantCulture, "{0}={1}", name, value));
                         }
+                    }
                 }
             }
             finally

@@ -44,10 +44,8 @@ namespace Tauron.Application.Files.HeaderedText
 
         public bool Remove(ContextEntry entry) => _context.ContextEnries.Remove(Argument.NotNull(entry, nameof(entry)));
 
-        public int RemoveAll(string key)
-        {
-            return _context.ContextEnries.RemoveAll(ent => ent.Key == key);
-        }
+        public int RemoveAll(string key) 
+            => _context.ContextEnries.RemoveAll(ent => ent.Key == key);
 
         public void Save(TextWriter writer)
         {

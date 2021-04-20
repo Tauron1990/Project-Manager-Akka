@@ -1,7 +1,6 @@
 ﻿using Akka.Actor;
 using Akka.Cluster.Tools.Singleton;
 using JetBrains.Annotations;
-using MongoDB.Driver;
 using ServiceManager.ProjectRepository.Actors;
 using Tauron.Application.AkkaNode.Services.CleanUp;
 using Tauron.Application.AkkaNode.Services.FileTransfer;
@@ -21,8 +20,8 @@ namespace ServiceManager.ProjectRepository
 
         public bool IsOk => !_manager.IsNobody();
 
-        public static RepositoryManager CreateInstance(IActorRefFactory factory, string connectionString, DataTransferManager tranferManager)
-            => new(factory.ActorOf(RepositoryManagerImpl.Create(new MongoClient(connectionString), tranferManager)));
+        public static RepositoryManager CreateInstance(IActorRefFactory factory, RepositoryManagerConfiguration configuration, DataTransferManager tranferManager)
+            => new(factory.ActorOf(RepositoryManagerImpl.Create(configuration, tranferManager)));
 
         public static RepositoryManager InitRepositoryManager(ActorSystem actorSystem, string connectionString,
             DataTransferManager tranferManager)

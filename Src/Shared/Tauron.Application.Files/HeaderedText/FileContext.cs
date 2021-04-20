@@ -22,16 +22,12 @@ namespace Tauron.Application.Files.HeaderedText
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        internal void Reset()
-        {
-            ContextEnries.Clear();
-        }
+        internal void Reset() 
+            => ContextEnries.Clear();
 
         internal bool IsKeyword([NotNull] string key) => Description.Contains(key);
 
-        internal void Add([NotNull] ContextEntry entry)
-        {
-            ContextEnries.Add(entry);
-        }
+        internal void Add([NotNull] ContextEntry entry) 
+            => ContextEnries.Add(entry);
     }
 }

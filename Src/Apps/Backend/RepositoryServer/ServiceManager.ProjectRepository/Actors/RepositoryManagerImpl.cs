@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Reactive.Linq;
 using Akka.Actor;
-using MongoDB.Driver;
-using MongoDB.Driver.GridFS;
 using ServiceManager.ProjectRepository.Data;
 using Tauron;
 using Tauron.Application.AkkaNode.Services.CleanUp;
@@ -15,17 +13,17 @@ namespace ServiceManager.ProjectRepository.Actors
 {
     internal sealed class RepositoryManagerImpl : ActorFeatureBase<RepositoryManagerImpl.RmIState>
     {
-        public static IPreparedFeature Create(IMongoClient client, DataTransferManager dataTransferManager)
+        public static IPreparedFeature Create(RepositoryManagerConfiguration configuration, DataTransferManager dataTransferManager)
         {
-            var database = client.GetDatabase("Repository");
+            //var database = configuration.GetDatabase("Repository");
 
-            IMongoCollection<RepositoryEntry> RepositoryData()
-                => database.GetCollection<RepositoryEntry>("Repositorys");
+            //IMongoCollection<RepositoryEntry> RepositoryData()
+            //    => database.GetCollection<RepositoryEntry>("Repositorys");
 
-            IMongoCollection<ToDeleteRevision> TrashBin() => database.GetCollection<ToDeleteRevision>("TrashBin");
+            //IMongoCollection<ToDeleteRevision> TrashBin() => database.GetCollection<ToDeleteRevision>("TrashBin");
 
-            GridFSBucket GridFsBucket() => new(database,
-                new GridFSBucketOptions {BucketName = "RepositoryData", ChunkSizeBytes = 1048576});
+            //GridFSBucket GridFsBucket() => new(database,
+            //    new GridFSBucketOptions {BucketName = "RepositoryData", ChunkSizeBytes = 1048576});
 
             return Feature.Create(() => new RepositoryManagerImpl(),
                 _ => new RmIState(database, TrashBin(), GridFsBucket(), dataTransferManager, RepositoryData()));

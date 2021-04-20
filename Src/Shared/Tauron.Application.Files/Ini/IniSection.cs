@@ -1,72 +1,41 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using JetBrains.Annotations;
 
 namespace Tauron.Application.Files.Ini
 {
     [PublicAPI]
     [Serializable]
-    public sealed class IniSection
+    public sealed record IniSection(string Name, ImmutableDictionary<string, IniEntry> Entries) : IEnumerable<IniEntry>
     {
-        private readonly Dictionary<string, IniEntry> _entries;
-
-        public IniSection(Dictionary<string, IniEntry> entries, string name)
-        {
-            Name = Argument.NotNull(name, nameof(name));
-            _entries = Argument.NotNull(entries, nameof(entries));
-        }
-
         public IniSection(string name)
-            : this(new Dictionary<string, IniEntry>(), name)
-        {
-        }
-
-        public ReadOnlyEnumerator<IniEntry> Entries => new(_entries.Values);
-
-        public string Name { get; private set; }
+            : this(name, ImmutableDictionary<string, IniEntry>.Empty)
+        { }
 
         public SingleIniEntry? GetSingleEntry(string name)
         {
-            if (_entries.TryGetValue(name, out var entry))
+            if (Entries.TryGetValue(name, out var entry))
                 return entry as SingleIniEntry;
             return null;
         }
 
-        public SingleIniEntry AddSingleKey(string name)
+        public IniSection AddSingleKey(string name)
         {
             var entry = new SingleIniEntry(name, null);
-            _entries[name] = entry;
-            return entry;
+            return this with{Entries = Entries.Add(name, entry)};
         }
 
         public ListIniEntry? GetListEntry(string name)
         {
-            if (!_entries.TryGetValue(name, out var value)) return null;
+            if (!Entries.TryGetValue(name, out var value)) return null;
 
-            if (value is ListIniEntry multi) return multi;
-
-            multi = new ListIniEntry((SingleIniEntry) value);
-            _entries[multi.Key] = multi;
-
-            return multi;
+            return value as ListIniEntry;
         }
 
-        public ListIniEntry GetOrAddListEntry(string name)
-        {
-            var entry = GetListEntry(name);
-            if (entry != null)
-                return entry;
+        public IEnumerator<IniEntry> GetEnumerator() => Entries.Values.GetEnumerator();
 
-            entry = new ListIniEntry(name, new List<string>());
-
-            return entry;
-        }
-
-        public SingleIniEntry GetData(string name)
-        {
-            var data = GetSingleEntry(name);
-
-            return data ?? AddSingleKey(name);
-        }
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

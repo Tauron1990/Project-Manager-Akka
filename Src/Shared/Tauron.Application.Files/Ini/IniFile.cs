@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using JetBrains.Annotations;
@@ -9,63 +11,47 @@ namespace Tauron.Application.Files.Ini
 {
     [PublicAPI]
     [Serializable]
-    public class IniFile
+    public record IniFile(ImmutableDictionary<string, IniSection> Sections) : IEnumerable<IniSection>
     {
-        private readonly Dictionary<string, IniSection> _sections;
+        public IniFile()
+            : this(ImmutableDictionary<string, IniSection>.Empty)
+        { }
 
-        public IniFile(Dictionary<string, IniSection> sections)
-            => _sections = Argument.NotNull(sections, nameof(sections));
+        public IniSection? this[string name] => Sections.TryGetValue(name, out var section) ? section : null;
 
-        public IniFile() => _sections = new Dictionary<string, IniSection>();
-
-        public ReadOnlyEnumerator<IniSection> Sections => new(_sections.Values);
-
-        public IniSection? this[string name] => _sections.TryGetValue(name, out var section) ? section : null;
-
-        public IniSection AddSection(string name)
+        public IniFile AddSection(string name)
         {
             var section = new IniSection(name);
-            _sections[name] = section;
-            return section;
+            return this with{Sections = Sections.Add(name, section)};
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Objekte verwerfen, bevor Bereich verloren geht")]
-        public void Save(string path)
-        {
-            new IniWriter(this, new StreamWriter(path)).Write();
-        }
+        public void Save(string path) => new IniWriter(this, new StreamWriter(path)).Write();
 
 
         public string GetData(string name, string sectionName, string defaultValue)
         {
-            var keyData = GetSection(sectionName)?.GetData(name);
+            var keyData = this[sectionName]?.GetSingleEntry(name);
             if (keyData == null) return string.Empty;
 
-            if (string.IsNullOrWhiteSpace(keyData.Value))
-                keyData.Value = defaultValue;
-
-            return keyData.Value;
+            return string.IsNullOrWhiteSpace(keyData.Value) ? defaultValue : keyData.Value;
         }
 
-
-        public IniSection? GetSection(string name)
+        public IniFile SetData(string sectionName, string name, string value)
         {
-            var data = this[name];
+            var section = this[sectionName];
+            if (section != null)
+                return this with {Sections = Sections.SetItem(sectionName, section with {Entries = section.Entries.SetItem(name, new SingleIniEntry(name, value))})};
 
-            if (data != null) return data;
-
-            AddSection(name);
-            data = this[name];
-
-            return data;
+            return this with {Sections = Sections.Add(sectionName, new IniSection(sectionName, ImmutableDictionary<string, IniEntry>.Empty.Add(name, new SingleIniEntry(name, value))))};
         }
 
-        public void SetData(string sectionName, string name, string value)
+        public IniFile SetData(string sectionName, string name, IEnumerable<string> value)
         {
-            var data = GetSection(sectionName)?.GetData(name);
-            if (data == null) return;
+            var section = this[sectionName];
+            if (section != null)
+                return this with { Sections = Sections.SetItem(sectionName, section with { Entries = section.Entries.SetItem(name, new ListIniEntry(name, value)) }) };
 
-            data.Value = value;
+            return this with { Sections = Sections.Add(sectionName, new IniSection(sectionName, ImmutableDictionary<string, IniEntry>.Empty.Add(name, new ListIniEntry(name, value)))) };
         }
 
         #region Content Load
@@ -73,19 +59,19 @@ namespace Tauron.Application.Files.Ini
         public static IniFile Parse(TextReader reader)
         {
             using (reader)
-            {
                 return new IniParser(reader).Parse();
-            }
         }
-
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Objekte verwerfen, bevor Bereich verloren geht")]
+        
         public static IniFile ParseContent(string content) => Parse(new StringReader(content));
-
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Objekte verwerfen, bevor Bereich verloren geht")]
+        
         public static IniFile ParseFile(string path) => Parse(new StreamReader(path));
 
         public static IniFile ParseStream(Stream stream) => Parse(new StreamReader(stream));
 
         #endregion
+
+        public IEnumerator<IniSection> GetEnumerator() => Sections.Values.GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

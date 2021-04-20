@@ -12,7 +12,7 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Mapper.Ini
                 ? IniFile.Parse(TextReader)
                 : new IniFile();
 
-        public IniFile File { get; }
+        public IniFile File { get; set; }
 
         protected override void Dispose(bool disposing)
         {

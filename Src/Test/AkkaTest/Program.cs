@@ -2,6 +2,7 @@
 using System.IO;
 using System.Threading.Tasks;
 using Akka.Actor;
+using AkkaTest.InMemoryStorage;
 using MongoDB.Driver;
 using SharpRepository.InMemoryRepository;
 using SharpRepository.MongoDbRepository;
@@ -30,7 +31,7 @@ namespace AkkaTest
         private static async Task Main()
         {
             //const string con = "mongodb://192.168.105.96:27017/TestDb?readPreference=primary&appname=MongoDB%20Compass%20Community&ssl=false";
-            const string con = "mongodb://localhost:27017/TestDb?readPreference=primary&appname=MongoDB%20Compass%20Community&ssl=false";
+            //const string con = "mongodb://localhost:27017/TestDb?readPreference=primary&appname=MongoDB%20Compass%20Community&ssl=false";
 
 
             using var system = ActorSystem.Create("Test");
@@ -40,7 +41,15 @@ namespace AkkaTest
             var storage = new FileSystemStorageProvider(tempPath);
             var config = new SharpRepositoryConfiguration();
 
-            config.AddRepository(new MongoDbRepositoryConfiguration(CleanUpManager.RepositoryKey, con){ Factory = typeof(MongoDbConfigRepositoryFactory) });
+            //config.AddRepository(new MongoDbRepositoryConfiguration(CleanUpManager.RepositoryKey, con){ Factory = typeof(MongoDbConfigRepositoryFactory) });
+            config.AddRepository(new InMemoryRepositoryConfiguration(CleanUpManager.RepositoryKey){ Factory = typeof(PersistentInMemorxConfigRepositoryFactory)});
+
+            const string testFileName = "Program.cs";
+
+            config.GetInstance<CleanUpTime, string>(CleanUpManager.RepositoryKey).Add(new CleanUpTime("Master", TimeSpan.FromDays(7), DateTime.Now - TimeSpan.FromDays(10)));
+            config.GetInstance<ToDeleteRevision, string>(CleanUpManager.RepositoryKey).Add(new ToDeleteRevision(testFileName, testFileName));
+
+            storage.CreateFile(testFileName, await File.ReadAllBytesAsync(testFileName));
 
             var manager = system.ActorOf(CleanUpManager.New(config, storage));
             manager.Tell(CleanUpManager.Initialization);

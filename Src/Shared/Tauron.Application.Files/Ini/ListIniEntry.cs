@@ -1,19 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace Tauron.Application.Files.Ini
 {
     [Serializable]
-    public sealed class ListIniEntry : IniEntry
+    public sealed record ListIniEntry(string Key, ImmutableList<string> Values) : IniEntry(Key)
     {
-        internal ListIniEntry(string key, List<string> values)
-            : base(key)
-            => Values = Argument.NotNull(values, nameof(values));
+        public ListIniEntry(SingleIniEntry entry)
+            : this(entry.Key, ImmutableList<string>.Empty.Add(entry.Value ?? string.Empty))
+        {}
 
-        internal ListIniEntry(SingleIniEntry entry)
-            : base(entry.Key)
-            => Values = new List<string>(1) {entry.Value};
-
-        public List<string> Values { get; }
+        public ListIniEntry(string key, IEnumerable<string> values) : this(key, ImmutableList<string>.Empty.AddRange(values))
+        { }
     }
 }

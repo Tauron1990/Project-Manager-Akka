@@ -25,14 +25,14 @@ namespace Tauron.Application.Files.Serialization.Core.Impl.Mapper.Ini
 
         protected override void Deserialize(object target, IniContext context)
         {
-            var value = _converter?.ConvertBack(context.File[_section]?.GetData(_key).Value ?? string.Empty);
+            var value = _converter?.ConvertBack(context.File[_section]?.GetSingleEntry(_key)?.Value ?? string.Empty);
             SetValue(target, value);
         }
 
         protected override void Serialize(object target, IniContext context)
         {
             var value = GetValue(target);
-            context.File.SetData(_section, _key, _converter?.Convert(value) ?? string.Empty);
+            context.File = context.File.SetData(_section, _key, _converter?.Convert(value) ?? string.Empty);
         }
 
         public override Exception? VerifyError()
