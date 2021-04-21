@@ -1,13 +1,18 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Akka.Actor;
 using AkkaTest.InMemoryStorage;
 using MongoDB.Driver;
+using MongoDB.Driver.GridFS;
 using SharpRepository.InMemoryRepository;
 using SharpRepository.MongoDbRepository;
 using SharpRepository.Repository.Configuration;
 using Tauron.Application.AkkaNode.Services.CleanUp;
+using Tauron.Application.Files.GridFS;
+using Tauron.Application.Files.VirtualFiles;
 using Tauron.Features;
 using Tauron.Temp;
 using YellowDrawer.Storage.Common.FileSystem;
@@ -31,8 +36,44 @@ namespace AkkaTest
         private static async Task Main()
         {
             //const string con = "mongodb://192.168.105.96:27017/TestDb?readPreference=primary&appname=MongoDB%20Compass%20Community&ssl=false";
-            //const string con = "mongodb://localhost:27017/TestDb?readPreference=primary&appname=MongoDB%20Compass%20Community&ssl=false";
+            ////const string con = "mongodb://localhost:27017/TestDb?readPreference=primary&appname=MongoDB%20Compass%20Community&ssl=false";
 
+            //var factory = new VirtualFileFactory();
+            //var client = new MongoClient(con);
+            //var systemBuilder = new Func<IVirtualFileSystem>(() => factory.CreateMongoDb(new GridFSBucket(client.GetDatabase("VirtualFileTest"))));
+
+            //const string testPath = "TestDic1/TestDic2/Programm.cs";
+
+            //void Test1()
+            //{
+            //    //using var system1 = systemBuilder();
+
+            //    //var file = system1.GetFile(testPath);
+            //    //using var entry = file.Create();
+            //    //using var source = File.Open("Program.cs", FileMode.Open);
+
+            //    //source.CopyTo(entry);
+            //}
+
+            //void Test2()
+            //{
+            //    using var system2 = systemBuilder();
+
+            //    var treeOne = system2.Directories.ToArray();
+            //    var treeTwo = treeOne.Single().Directories.ToArray();
+
+            //    var fileEntry = treeTwo.Single().Files.Single();
+            //    using var file = fileEntry.Open(FileAccess.Read);
+            //    using var newFile = File.Open("Program.txt", FileMode.Create);
+
+            //    file.CopyTo(newFile);
+
+            //    newFile.Close();
+            //    Process.Start("Program.txt");
+            //}
+
+            //Test1();
+            //Test2();
 
             using var system = ActorSystem.Create("Test");
             string tempPath = Path.GetFullPath("Temp");

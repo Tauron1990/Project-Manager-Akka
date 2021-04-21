@@ -6,10 +6,11 @@ using Tauron.Application.Files.VirtualFiles;
 
 namespace Tauron.Application.Files.GridFS
 {
+    [PublicAPI]
     public sealed class GridFSFile : GridFSSystemNode, IFile
     {
-        public GridFSFile(GridFSBucket bucket, GridFSFileInfo fileInfo, IDirectory? parentDirectory, string name) 
-            : base(bucket, fileInfo, parentDirectory, name)
+        public GridFSFile(GridFSBucket bucket, GridFSFileInfo? fileInfo, IDirectory? parentDirectory, string name, string path, Action? existsNow)
+            : base(bucket, fileInfo, parentDirectory, name, path, existsNow)
         {
         }
 
@@ -17,36 +18,49 @@ namespace Tauron.Application.Files.GridFS
 
         public string Extension
         {
-            get => Path.GetExtension(FileInfo.Filename);
-            set => Bucket.Rename(FileInfo.Id, Path.ChangeExtension(FileInfo.Filename, value));
+            get => Path.GetExtension(SafeFileInfo.Filename);
+            set => Bucket.Rename(SafeFileInfo.Id, PathHelper.ChangeExtension(SafeFileInfo.Filename, value));
         }
 
-        public long Size => FileInfo.Length;
+        public long Size => SafeFileInfo.Length;
 
         public Stream Open(FileAccess access)
         {
             switch (access)
             {
                 case FileAccess.Read:
-                    return Bucket.OpenDownloadStream(FileInfo.Id);
+                    return Bucket.OpenDownloadStream(SafeFileInfo.Id);
                 case FileAccess.Write:
-                    Bucket.Delete(FileInfo.Id);
-                    var stream = Bucket.OpenUploadStream(FileInfo.Filename);
-                    return stream;
-                case FileAccess.ReadWrite:
-                    break;
+                    return Create();
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(access), access, null);
+                    throw new NotSupportedException($"{access} is Not Suspportet");
             }
         }
 
-        public Stream Create() => throw new NotImplementedException();
+        public Stream Create()
+        {
+            if (FileInfo == null)
+                return new UpdateStream(this, Bucket.OpenUploadStream(OriginalPath));
 
-        public Stream CreateNew() => throw new NotImplementedException();
+            Bucket.Delete(SafeFileInfo.Id);
+            return new UpdateStream(this, Bucket.OpenUploadStream(SafeFileInfo.Filename));
+        }
 
-        public IFile MoveTo(string location) => throw new NotImplementedException();
+        public Stream CreateNew()
+        {
+            if (FileInfo != null)
+                throw new IOException($"{OriginalPath} - File already Exist");
+            return new UpdateStream(this, Bucket.OpenUploadStream(SafeFileInfo.Filename));
+        }
 
-        public sealed class UpdateStream : Stream
+        public IFile MoveTo(string location)
+        {
+            Bucket.Rename(SafeFileInfo.Id, location);
+            FindEntry(SafeFileInfo.Id);
+            return this;
+        }
+
+        private sealed class UpdateStream : Stream
         {
             private readonly GridFSFile _file;
             private readonly GridFSUploadStream _upload;
@@ -83,7 +97,10 @@ namespace Tauron.Application.Files.GridFS
 
             protected override void Dispose(bool disposing)
             {
+                var id = _upload.Id;
+                _upload.Close();
                 _upload.Dispose();
+                _file.FindEntry(id);
                 base.Dispose(disposing);
             }
         }

@@ -1,8 +1,6 @@
 ﻿using System.Xml.Linq;
 using JetBrains.Annotations;
-using Tauron.Application.Files.Serialization.Core.Fluent.Binary;
 using Tauron.Application.Files.Serialization.Core.Fluent.HeaderedFile;
-using Tauron.Application.Files.Serialization.Core.Fluent.Impl.Binary;
 using Tauron.Application.Files.Serialization.Core.Fluent.Impl.HeaderedFile;
 using Tauron.Application.Files.Serialization.Core.Fluent.Impl.Ini;
 using Tauron.Application.Files.Serialization.Core.Fluent.Ini;

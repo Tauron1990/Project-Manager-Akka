@@ -23,12 +23,12 @@ namespace Tauron.Application.SoftwareRepo
             => path.GetFile(SoftwareRepository.FileName).Exist;
 
         public SoftwareRepository Create(IActorRefFactory factory, string path)
-            => Create(factory, VirtualFileFactory.CrerateLocal(path));
+            => Create(factory, new VirtualFileFactory().CrerateLocal(path));
 
         public SoftwareRepository Read(IActorRefFactory factory, string path)
-            => Read(factory, VirtualFileFactory.CrerateLocal(path));
+            => Read(factory, new VirtualFileFactory().CrerateLocal(path));
 
         public bool IsValid(string path)
-            => IsValid(VirtualFileFactory.CrerateLocal(path));
+            => IsValid(new VirtualFileFactory().CrerateLocal(path));
     }
 }

@@ -53,7 +53,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Shared\External\YellowDrawer.Storage.Common\YellowDrawer.Storage.Common.csproj" />
+    <ProjectReference Include="..\..\..\Shared\Tauron.Application.Files\Tauron.Application.Files.csproj" />
     <ProjectReference Include="..\..\..\Shared\Tauron.Application.Workshop\Tauron.Application.Workshop.csproj" />
   </ItemGroup>
 
