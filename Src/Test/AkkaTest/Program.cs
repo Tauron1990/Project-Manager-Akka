@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Akka.Actor;
 using AkkaTest.InMemoryStorage;
+using Metrics;
 using MongoDB.Driver;
 using SharpRepository.InMemoryRepository;
 using SharpRepository.MongoDbRepository;
@@ -32,7 +33,6 @@ namespace AkkaTest
         {
             //const string con = "mongodb://192.168.105.96:27017/TestDb?readPreference=primary&appname=MongoDB%20Compass%20Community&ssl=false";
             //const string con = "mongodb://localhost:27017/TestDb?readPreference=primary&appname=MongoDB%20Compass%20Community&ssl=false";
-
 
             using var system = ActorSystem.Create("Test");
             string tempPath = Path.GetFullPath("Temp");
