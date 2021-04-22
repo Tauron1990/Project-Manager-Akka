@@ -23,8 +23,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Apps\Shared\Servicemnager.Networking\Servicemnager.Networking.csproj" />
     <ProjectReference Include="..\..\Apps\Shared\Tauron.Application.AkkNode.Services\Tauron.Application.AkkNode.Services.csproj" />
-    <ProjectReference Include="..\..\Shared\External\YellowDrawer.Storage.Common\YellowDrawer.Storage.Common.csproj" />
     <ProjectReference Include="..\..\Shared\Tauron.Application.Common\Tauron.Application.Common.csproj" />
+    <ProjectReference Include="..\..\Shared\Tauron.Application.Files.GridFS\Tauron.Application.Files.GridFS.csproj" />
   </ItemGroup>
 
   <ItemGroup>
