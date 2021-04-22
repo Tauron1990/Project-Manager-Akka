@@ -2,14 +2,14 @@
 using System.Linq;
 using System.Reactive.Linq;
 using SharpRepository.Repository;
+using Tauron.Application.Files.VirtualFiles;
 using Tauron.Features;
-using YellowDrawer.Storage.Common;
 
 namespace Tauron.Application.AkkaNode.Services.CleanUp
 {
     public sealed class CleanUpOperator : ActorFeatureBase<CleanUpOperator.State>
     {
-        public static IPreparedFeature New(IRepository<CleanUpTime, string> cleanUp, IRepository<ToDeleteRevision, string> revisions, IStorageProvider bucket)
+        public static IPreparedFeature New(IRepository<CleanUpTime, string> cleanUp, IRepository<ToDeleteRevision, string> revisions, IDirectory bucket)
             => Feature.Create(() => new CleanUpOperator(), _ => new State(cleanUp, revisions, bucket));
 
         protected override void ConfigImpl()
@@ -33,6 +33,6 @@ namespace Tauron.Application.AkkaNode.Services.CleanUp
                                                .Finally(() => Context.Stop(Self))
                                                .Subscribe(_ => { }, ex => Log.Error(ex, "Error on Clean up Database")));
 
-        public sealed record State(IRepository<CleanUpTime, string> CleanUp, IRepository<ToDeleteRevision, string> Revisions, IStorageProvider Bucked);
+        public sealed record State(IRepository<CleanUpTime, string> CleanUp, IRepository<ToDeleteRevision, string> Revisions, IDirectory Bucked);
     }
 }

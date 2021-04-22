@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
@@ -94,11 +95,13 @@ namespace Tauron.Application.AkkaNode.Services
             out Task<IOperationResult> onCompled)
             => CreateListner(factory, listner, timeout, null, out onCompled);
 
-        public void Listen(IActorRef actor)
+        public Reporter Listen(IActorRef actor)
         {
             if (_compledCalled.Value)
                 throw new InvalidOperationException("Reporter is Compled");
             _reporter.Tell(new ListeningActor(actor));
+
+            return this;
         }
 
         public void Send(string message)
@@ -167,5 +170,32 @@ namespace Tauron.Application.AkkaNode.Services
         private sealed record ListeningActor(IActorRef Actor);
 
         private sealed record TransferedMessage(string Message);
+    }
+
+    public static class ReporterExtensions
+    {
+        public static IObservable<ReporterEvent<TMessage, TState>> Report<TMessage, TState>(this IObservable<ReporterEvent<TMessage, TState>> input, string message)
+            where TMessage : IReporterMessage
+            => input.Select(i =>
+                            {
+                                i.Reporter.Send(message);
+                                return i;
+                            });
+
+        public static IObservable<ReporterEvent<TMessage, TState>> Report<TMessage, TState>(this IObservable<ReporterEvent<TMessage, TState>> input, Func<string> message)
+            where TMessage : IReporterMessage
+            => input.Select(i =>
+                            {
+                                i.Reporter.Send(message());
+                                return i;
+                            });
+
+        public static IObservable<ReporterEvent<TMessage, TState>> Report<TMessage, TState>(this IObservable<ReporterEvent<TMessage, TState>> input, Func<TMessage, string> message)
+            where TMessage : IReporterMessage
+            => input.Select(i =>
+                            {
+                                i.Reporter.Send(message(i.Event));
+                                return i;
+                            });
     }
 }

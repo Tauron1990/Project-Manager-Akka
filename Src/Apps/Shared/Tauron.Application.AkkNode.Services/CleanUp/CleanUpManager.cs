@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Reactive.Linq;
+using Akka.Actor;
 using JetBrains.Annotations;
 using SharpRepository.Repository;
 using SharpRepository.Repository.Configuration;
+using Tauron.Application.Files.VirtualFiles;
 using Tauron.Features;
-using YellowDrawer.Storage.Common;
 
 namespace Tauron.Application.AkkaNode.Services.CleanUp
 {
@@ -17,7 +18,7 @@ namespace Tauron.Application.AkkaNode.Services.CleanUp
         public static readonly InitCleanUp Initialization = new();
 
         [PublicAPI]
-        public static IPreparedFeature New(ISharpRepositoryConfiguration repositoryConfiguration, IStorageProvider storageProvider)
+        public static IPreparedFeature New(ISharpRepositoryConfiguration repositoryConfiguration, IDirectory storageProvider)
             => Feature.Create(() => new CleanUpManager(),
                 _ => new CleanUpManagerState(repositoryConfiguration.GetInstance<CleanUpTime, string>(RepositoryKey), 
                     repositoryConfiguration.GetInstance<ToDeleteRevision, string>(RepositoryKey), storageProvider, false));
@@ -34,10 +35,12 @@ namespace Tauron.Application.AkkaNode.Services.CleanUp
             Receive<StartCleanUp>(obs => obs.Where(m => m.State.IsRunning)
                                             .Select(data => (Props:CleanUpOperator.New(data.State.CleanUpRepository, data.State.Revisions, data.State.Bucket), data.Event))
                                             .ForwardToActor(d => Context.ActorOf(d.Props), d => d.Event));
+
+            SupervisorStrategy = SupervisorStrategy.StoppingStrategy;
         }
 
         public sealed record CleanUpManagerState(IRepository<CleanUpTime, string> CleanUpRepository, IRepository<ToDeleteRevision, string> Revisions,
-            IStorageProvider Bucket, bool IsRunning);
+            IDirectory Bucket, bool IsRunning);
 
         public sealed record InitCleanUp
         {

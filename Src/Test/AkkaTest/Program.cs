@@ -1,22 +1,13 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using Akka.Actor;
 using AkkaTest.InMemoryStorage;
-using Metrics;
-using MongoDB.Driver;
-using MongoDB.Driver.GridFS;
 using SharpRepository.InMemoryRepository;
-using SharpRepository.MongoDbRepository;
 using SharpRepository.Repository.Configuration;
 using Tauron.Application.AkkaNode.Services.CleanUp;
-using Tauron.Application.Files.GridFS;
-using Tauron.Application.Files.VirtualFiles;
 using Tauron.Features;
 using Tauron.Temp;
-using YellowDrawer.Storage.Common.FileSystem;
 
 namespace AkkaTest
 {
@@ -76,29 +67,29 @@ namespace AkkaTest
             //Test1();
             //Test2();
 
-            using var system = ActorSystem.Create("Test");
-            string tempPath = Path.GetFullPath("Temp");
-            using var tempStore = TempStorage.CleanAndCreate(tempPath);
+            //using var system = ActorSystem.Create("Test");
+            //string tempPath = Path.GetFullPath("Temp");
+            //using var tempStore = TempStorage.CleanAndCreate(tempPath);
 
-            var storage = new FileSystemStorageProvider(tempPath);
-            var config = new SharpRepositoryConfiguration();
+            //var storage = new FileSystemStorageProvider(tempPath);
+            //var config = new SharpRepositoryConfiguration();
 
-            //config.AddRepository(new MongoDbRepositoryConfiguration(CleanUpManager.RepositoryKey, con){ Factory = typeof(MongoDbConfigRepositoryFactory) });
-            config.AddRepository(new InMemoryRepositoryConfiguration(CleanUpManager.RepositoryKey){ Factory = typeof(PersistentInMemorxConfigRepositoryFactory)});
+            ////config.AddRepository(new MongoDbRepositoryConfiguration(CleanUpManager.RepositoryKey, con){ Factory = typeof(MongoDbConfigRepositoryFactory) });
+            //config.AddRepository(new InMemoryRepositoryConfiguration(CleanUpManager.RepositoryKey){ Factory = typeof(PersistentInMemorxConfigRepositoryFactory)});
 
-            const string testFileName = "Program.cs";
+            //const string testFileName = "Program.cs";
 
-            config.GetInstance<CleanUpTime, string>(CleanUpManager.RepositoryKey).Add(new CleanUpTime("Master", TimeSpan.FromDays(7), DateTime.Now - TimeSpan.FromDays(10)));
-            config.GetInstance<ToDeleteRevision, string>(CleanUpManager.RepositoryKey).Add(new ToDeleteRevision(testFileName, testFileName));
+            //config.GetInstance<CleanUpTime, string>(CleanUpManager.RepositoryKey).Add(new CleanUpTime("Master", TimeSpan.FromDays(7), DateTime.Now - TimeSpan.FromDays(10)));
+            //config.GetInstance<ToDeleteRevision, string>(CleanUpManager.RepositoryKey).Add(new ToDeleteRevision(testFileName, testFileName));
 
-            storage.CreateFile(testFileName, await File.ReadAllBytesAsync(testFileName));
+            //storage.CreateFile(testFileName, await File.ReadAllBytesAsync(testFileName));
 
-            var manager = system.ActorOf(CleanUpManager.New(config, storage));
-            manager.Tell(CleanUpManager.Initialization);
+            //var manager = system.ActorOf(CleanUpManager.New(config, storage));
+            //manager.Tell(CleanUpManager.Initialization);
 
-            Console.ReadKey();
+            //Console.ReadKey();
 
-            await system.Terminate();
+            //await system.Terminate();
         }
     }
 }

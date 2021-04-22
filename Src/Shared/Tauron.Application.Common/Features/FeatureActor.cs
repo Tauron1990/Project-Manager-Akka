@@ -96,8 +96,7 @@ namespace Tauron.Features
         public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler,
             Func<Exception, bool> errorHandler)
             => Receive<TEvent>(
-                obs => handler(obs.Select(evt => new StatePair<TEvent, TState>(evt, CurrentState.Value, Timers))),
-                errorHandler);
+                obs => handler(obs.Select(evt => new StatePair<TEvent, TState>(evt, CurrentState.Value, Timers))), errorHandler);
 
         public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IDisposable> handler)
             => Receive<TEvent>(obs

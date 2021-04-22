@@ -83,18 +83,13 @@ namespace Tauron.Akka
         public IObservable<TEvent> Receive<TEvent>() => GetSelector<TEvent>();
 
         public void Receive<TEvent>(Func<IObservable<TEvent>, IObservable<TEvent>> handler)
-            => AddResource(
-                new ObservableInvoker<TEvent, TEvent>(handler, ThrowError, GetSelector<TEvent>()).Construct());
+            => AddResource(new ObservableInvoker<TEvent, TEvent>(handler, ThrowError, GetSelector<TEvent>()).Construct());
 
-        public void Receive<TEvent>(Func<IObservable<TEvent>, IObservable<Unit>> handler,
-            Func<Exception, bool> errorHandler)
-            => AddResource(
-                new ObservableInvoker<TEvent, Unit>(handler, errorHandler, GetSelector<TEvent>()).Construct());
+        public void Receive<TEvent>(Func<IObservable<TEvent>, IObservable<Unit>> handler, Func<Exception, bool> errorHandler)
+            => AddResource(new ObservableInvoker<TEvent, Unit>(handler, errorHandler, GetSelector<TEvent>()).Construct());
 
-        public void Receive<TEvent>(Func<IObservable<TEvent>, IObservable<TEvent>> handler,
-            Func<Exception, bool> errorHandler)
-            => AddResource(
-                new ObservableInvoker<TEvent, TEvent>(handler, errorHandler, GetSelector<TEvent>()).Construct());
+        public void Receive<TEvent>(Func<IObservable<TEvent>, IObservable<TEvent>> handler, Func<Exception, bool> errorHandler)
+            => AddResource(new ObservableInvoker<TEvent, TEvent>(handler, errorHandler, GetSelector<TEvent>()).Construct());
 
 
         public void Receive<TEvent>(Func<IObservable<TEvent>, IDisposable> handler)
@@ -195,8 +190,7 @@ namespace Tauron.Akka
             private readonly IObservable<TEvent> _selector;
             private IDisposable? _subscription;
 
-            public ObservableInvoker(Func<IObservable<TEvent>, IObservable<TResult>> factory,
-                Func<Exception, bool> errorHandler, IObservable<TEvent> selector)
+            public ObservableInvoker(Func<IObservable<TEvent>, IObservable<TResult>> factory, Func<Exception, bool> errorHandler, IObservable<TEvent> selector)
             {
                 _factory = o => factory(o.AsObservable()).Subscribe(_ => { }, e =>
                 {

@@ -3,6 +3,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
+using Akka.Actor;
 using JetBrains.Annotations;
 using Tauron.Features;
 using Tauron.Operations;
@@ -60,108 +61,152 @@ namespace Tauron.Application.AkkaNode.Services
     {
         public static string GenralError = nameof(GenralError);
 
-        [PublicAPI]
-        protected void Receive<TMessage>(string name, Action<StatePair<TMessage, TState>, Reporter> process)
-            where TMessage : IReporterMessage
-            => Receive<TMessage>(obs => obs.SubscribeWithStatus(m => TryExecute(m, name, process)));
+        //[PublicAPI]
+        //protected void Receive<TMessage>(string name, Action<StatePair<TMessage, TState>, Reporter> process)
+        //    where TMessage : IReporterMessage
+        //    => Receive<TMessage>(obs => obs.SubscribeWithStatus(m => TryExecute(m, name, process)));
 
-        [PublicAPI]
-        protected void ReceiveContinue<TMessage>(string name, Action<StatePair<TMessage, TState>, Reporter> process)
-            where TMessage : IDelegatingMessage
-            => Receive<TMessage>(obs => obs.SubscribeWithStatus(m => TryContinue(m, name, process)));
+        //[PublicAPI]
+        //protected void ReceiveContinue<TMessage>(string name, Action<StatePair<TMessage, TState>, Reporter> process)
+        //    where TMessage : IDelegatingMessage
+        //    => Receive<TMessage>(obs => obs.SubscribeWithStatus(m => TryContinue(m, name, process)));
 
-        protected void Receive<TMessage>(string name,
-            Func<Reporter, IObservable<StatePair<TMessage, TState>>, IObservable<Unit>> process)
-            where TMessage : IReporterMessage
-            => Receive<TMessage>(obs => obs.SelectMany(m => TryExecute(m, name, process)));
+        //protected void Receive<TMessage>(string name,
+        //    Func<Reporter, IObservable<StatePair<TMessage, TState>>, IObservable<Unit>> process)
+        //    where TMessage : IReporterMessage
+        //    => Receive<TMessage>(obs => obs.SelectMany(m => TryExecute(m, name, process)));
 
-        [PublicAPI]
-        protected void ReceiveContinue<TMessage>(string name,
-            Func<Reporter, IObservable<StatePair<TMessage, TState>>, IObservable<Unit>> process)
-            where TMessage : IDelegatingMessage
-            => Receive<TMessage>(obs => obs.SelectMany(m => TryContinue(m, name, process)));
+        //[PublicAPI]
+        //protected void ReceiveContinue<TMessage>(string name,
+        //    Func<Reporter, IObservable<StatePair<TMessage, TState>>, IObservable<Unit>> process)
+        //    where TMessage : IDelegatingMessage
+        //    => Receive<TMessage>(obs => obs.SelectMany(m => TryContinue(m, name, process)));
 
-        protected Task<Unit> TryExecute<TMessage>(StatePair<TMessage, TState> msg, string name,
-            Func<Reporter, IObservable<StatePair<TMessage, TState>>, IObservable<Unit>> process)
-            where TMessage : IReporterMessage
+        //protected Task<Unit> TryExecute<TMessage>(StatePair<TMessage, TState> msg, string name,
+        //    Func<Reporter, IObservable<StatePair<TMessage, TState>>, IObservable<Unit>> process)
+        //    where TMessage : IReporterMessage
+        //{
+        //    Log.Info("Enter Process {Name}", name);
+        //    var reporter = Reporter.CreateReporter(Context);
+        //    reporter.Listen(msg.Event.Listner);
+
+        //    return process(reporter, Observable.Return(msg))
+        //        .ToTask().ContinueWith(t =>
+        //        {
+        //            if (t.IsCompletedSuccessfully)
+        //                return t.Result;
+
+        //            if (t.IsFaulted && !reporter.IsCompled)
+        //                reporter.Compled(
+        //                    OperationResult.Failure(new Error(t.Exception?.Unwrap()?.Message, GenralError)));
+
+        //            Log.Error((Exception?) t.Exception ?? new InvalidOperationException("Unkowen Error"),
+        //                "Process Operation {Name} Failed {Info}", name, msg.Event.Info);
+        //            return Unit.Default;
+        //        }, TaskContinuationOptions.ExecuteSynchronously);
+        //}
+
+        //protected void TryExecute<TMessage>(StatePair<TMessage, TState> msg, string name,
+        //    Action<StatePair<TMessage, TState>, Reporter> process)
+        //    where TMessage : IReporterMessage
+        //{
+        //    Log.Info("Enter Process {Name}", name);
+        //    var reporter = Reporter.CreateReporter(Context);
+        //    reporter.Listen(msg.Event.Listner);
+
+        //    try
+        //    {
+        //        process(msg, reporter);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        Log.Error(e, "Process Operation {Name} Failed {Info}", name, msg.Event.Info);
+        //        reporter.Compled(OperationResult.Failure(new Error(e.Unwrap()?.Message ?? "Unkowen", GenralError)));
+        //    }
+        //}
+
+        //protected Task<Unit> TryContinue<TMessage>(StatePair<TMessage, TState> msg, string name,
+        //    Func<Reporter, IObservable<StatePair<TMessage, TState>>, IObservable<Unit>> process)
+        //    where TMessage : IDelegatingMessage
+        //{
+        //    Log.Info("Enter Process {Name}", name);
+        //    var reporter = msg.Event.Reporter;
+
+        //    return process(reporter, Observable.Return(msg))
+        //        .ToTask().ContinueWith(t =>
+        //        {
+        //            if (t.IsCompletedSuccessfully)
+        //                return t.Result;
+
+        //            if (t.IsFaulted && !reporter.IsCompled)
+        //                reporter.Compled(
+        //                    OperationResult.Failure(new Error(t.Exception?.Unwrap()?.Message, GenralError)));
+
+        //            Log.Error((Exception?) t.Exception ?? new InvalidOperationException("Unkowen Error"),
+        //                "Continue Operation {Name} Failed {Info}", name, msg.Event.Info);
+        //            return Unit.Default;
+        //        }, TaskContinuationOptions.ExecuteSynchronously);
+        //}
+
+        //protected void TryContinue<TMessage>(StatePair<TMessage, TState> msg, string name,
+        //    Action<StatePair<TMessage, TState>, Reporter> process)
+        //    where TMessage : IDelegatingMessage
+        //{
+        //    Log.Info("Enter Process {Name}", name);
+        //    try
+        //    {
+        //        process(msg, msg.Event.Reporter);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        Log.Error(e, "Continue Operation {Name} Failed {Info}", name, msg.Event.Info);
+        //        msg.Event.Reporter.Compled(
+        //            OperationResult.Failure(new Error(e.Unwrap()?.Message ?? "Unkowen", GenralError)));
+        //    }
+        //}
+
+        //    Log.Info("Enter Process {Name}", name);
+        //    var reporter = Reporter.CreateReporter(Context);
+        //    reporter.Listen(msg.Event.Listner);
+
+        //    return process(reporter, Observable.Return(msg))
+        //        .ToTask().ContinueWith(t =>
+        //        {
+        //            if (t.IsCompletedSuccessfully)
+        //                return t.Result;
+
+        //            if (t.IsFaulted && !reporter.IsCompled)
+        //                reporter.Compled(
+        //                    OperationResult.Failure(new Error(t.Exception?.Unwrap()?.Message, GenralError)));
+
+        //            Log.Error((Exception?) t.Exception ?? new InvalidOperationException("Unkowen Error"),
+        //                "Process Operation {Name} Failed {Info}", name, msg.Event.Info);
+        //            return Unit.Default;
+        //        }, TaskContinuationOptions.ExecuteSynchronously);
+
+        private IObservable<TResult> Prepare<TMessage, TResult>(
+            string name,
+            IObservable<StatePair<TMessage, TState>> input, 
+            Func<IObservable<ReporterEvent<TMessage, TState>>, IObservable<TResult>> factory)
         {
-            Log.Info("Enter Process {Name}", name);
-            var reporter = Reporter.CreateReporter(Context);
-            reporter.Listen(msg.Event.Listner);
 
-            return process(reporter, Observable.Return(msg))
-                .ToTask().ContinueWith(t =>
-                {
-                    if (t.IsCompletedSuccessfully)
-                        return t.Result;
-
-                    if (t.IsFaulted && !reporter.IsCompled)
-                        reporter.Compled(
-                            OperationResult.Failure(new Error(t.Exception?.Unwrap()?.Message, GenralError)));
-
-                    Log.Error((Exception?) t.Exception ?? new InvalidOperationException("Unkowen Error"),
-                        "Process Operation {Name} Failed {Info}", name, msg.Event.Info);
-                    return Unit.Default;
-                }, TaskContinuationOptions.ExecuteSynchronously);
         }
 
-        protected void TryExecute<TMessage>(StatePair<TMessage, TState> msg, string name,
-            Action<StatePair<TMessage, TState>, Reporter> process)
+        public void TryReceive<TMessage>(string name, Func<IObservable<ReporterEvent<TMessage, TState>>, IObservable<TState>> factory)
             where TMessage : IReporterMessage
-        {
-            Log.Info("Enter Process {Name}", name);
-            var reporter = Reporter.CreateReporter(Context);
-            reporter.Listen(msg.Event.Listner);
+            => Receive<TMessage>(obs => Prepare(name, obs, factory));
 
-            try
-            {
-                process(msg, reporter);
-            }
-            catch (Exception e)
-            {
-                Log.Error(e, "Process Operation {Name} Failed {Info}", name, msg.Event.Info);
-                reporter.Compled(OperationResult.Failure(new Error(e.Unwrap()?.Message ?? "Unkowen", GenralError)));
-            }
-        }
+        public void TryReceive<TMessage>(string name, Func<IObservable<ReporterEvent<TMessage, TState>>, IObservable<Unit>> factory)
+            where TMessage : IReporterMessage
+            => Receive<TMessage>(obs => Prepare(name, obs, factory));
+    }
 
-        protected Task<Unit> TryContinue<TMessage>(StatePair<TMessage, TState> msg, string name,
-            Func<Reporter, IObservable<StatePair<TMessage, TState>>, IObservable<Unit>> process)
-            where TMessage : IDelegatingMessage
-        {
-            Log.Info("Enter Process {Name}", name);
-            var reporter = msg.Event.Reporter;
+    public sealed record ReporterEvent<TMessage, TState>(Reporter Reporter, TMessage Event, TState State, ITimerScheduler Timer)
+    {
+        public ReporterEvent<TNewMessage, TState> New<TNewMessage>(TNewMessage newMessage)
+            => new(Reporter, newMessage, State, Timer);
 
-            return process(reporter, Observable.Return(msg))
-                .ToTask().ContinueWith(t =>
-                {
-                    if (t.IsCompletedSuccessfully)
-                        return t.Result;
-
-                    if (t.IsFaulted && !reporter.IsCompled)
-                        reporter.Compled(
-                            OperationResult.Failure(new Error(t.Exception?.Unwrap()?.Message, GenralError)));
-
-                    Log.Error((Exception?) t.Exception ?? new InvalidOperationException("Unkowen Error"),
-                        "Continue Operation {Name} Failed {Info}", name, msg.Event.Info);
-                    return Unit.Default;
-                }, TaskContinuationOptions.ExecuteSynchronously);
-        }
-
-        protected void TryContinue<TMessage>(StatePair<TMessage, TState> msg, string name,
-            Action<StatePair<TMessage, TState>, Reporter> process)
-            where TMessage : IDelegatingMessage
-        {
-            Log.Info("Enter Process {Name}", name);
-            try
-            {
-                process(msg, msg.Event.Reporter);
-            }
-            catch (Exception e)
-            {
-                Log.Error(e, "Continue Operation {Name} Failed {Info}", name, msg.Event.Info);
-                msg.Event.Reporter.Compled(
-                    OperationResult.Failure(new Error(e.Unwrap()?.Message ?? "Unkowen", GenralError)));
-            }
-        }
+        public ReporterEvent<TNewMessage, TState> New<TNewMessage>(TNewMessage newMessage, TState state)
+            => new(Reporter, newMessage, state, Timer);
     }
 }
