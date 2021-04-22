@@ -202,8 +202,7 @@ namespace Tauron.Akka
                 Init();
             }
 
-            public ObservableInvoker(Func<IObservable<TEvent>, IDisposable> factory, IObservable<TEvent> selector,
-                bool isSafe)
+            public ObservableInvoker(Func<IObservable<TEvent>, IDisposable> factory, IObservable<TEvent> selector, bool isSafe)
             {
                 _factory = isSafe ? observable => factory(observable.Do(_ => { }, _ => Init())) : factory;
                 _selector = selector;

@@ -164,7 +164,7 @@ namespace Tauron
                               return t;
                           });
 
-        #region Send To Actor
+        #region Send To Actor Dispose
 
         public static IDisposable ToSelf<TMessage>(this IObservable<TMessage> obs)
             => ToActor(obs, ObservableActor.ExposedContext.Self);
@@ -224,6 +224,69 @@ namespace Tauron
 
         public static IDisposable ForwardToActor<TMessage>(this IObservable<TMessage> source, Func<TMessage, IActorRef> target, Func<TMessage, object> selector)
             => source.SubscribeWithStatus(m => target(m).Forward(selector(m)));
+
+        #endregion
+
+        #region Send To Actor Unit
+
+        public static IObservable<Unit> UToSelf<TMessage>(this IObservable<TMessage> obs)
+            => UToActor(obs, ObservableActor.ExposedContext.Self);
+
+        public static IObservable<Unit> UToParent<TMessage>(this IObservable<TMessage> source)
+            => UToParent(source, ObservableActor.ExposedContext);
+
+        public static IObservable<Unit> UToParent<TMessage>(this IObservable<TMessage> source, IActorContext context)
+            => source.ToUnit(m => context.Parent.Tell(m));
+
+        public static IObservable<Unit> UToSender<TMessage>(this IObservable<TMessage> source)
+            => UToSender(source, ObservableActor.ExposedContext);
+
+        public static IObservable<Unit> UToSender<TMessage>(this IObservable<TMessage> source, IActorContext context)
+            => source.ToUnit(m => context.Sender.Tell(m));
+
+        public static IObservable<Unit> UToActor<TMessage>(this IObservable<TMessage> source, IActorRef target)
+            => source.ToUnit(m => target.Tell(m));
+
+        public static IObservable<Unit> UToActor<TMessage>(this IObservable<TMessage> source, Func<IActorRef> target)
+            => source.ToUnit(m => target().Tell(m));
+
+        public static IObservable<Unit> UToActor<TMessage>(this IObservable<TMessage> source, Func<IActorContext, IActorRef> target)
+            => source.ToUnit(m => target(ObservableActor.ExposedContext).Tell(m));
+
+        public static IObservable<Unit> UToActor<TMessage>(this IObservable<TMessage> source, Func<TMessage, IActorRef> target)
+            => source.ToUnit(m => target(m).Tell(m));
+
+        public static IObservable<Unit> UToActor<TMessage>(this IObservable<TMessage> source, Func<TMessage, IActorRef> target, Func<TMessage, object> selector)
+            => source.ToUnit(m => target(m).Tell(selector(m)));
+
+
+
+        public static IObservable<Unit> UForwardToParent<TMessage>(this IObservable<TMessage> source)
+            => UForwardToParent(source, ObservableActor.ExposedContext);
+
+        public static IObservable<Unit> UForwardToParent<TMessage>(this IObservable<TMessage> source, IActorContext context)
+            => source.ToUnit(m => context.Parent.Forward(m));
+
+        public static IObservable<Unit> UForwardToSender<TMessage>(this IObservable<TMessage> source)
+            => UForwardToSender(source, ObservableActor.ExposedContext);
+
+        public static IObservable<Unit> UForwardToSender<TMessage>(this IObservable<TMessage> source, IActorContext context)
+            => source.ToUnit(m => context.Sender.Forward(m));
+
+        public static IObservable<Unit> UForwardToActor<TMessage>(this IObservable<TMessage> source, IActorRef target)
+            => source.ToUnit(m => target.Forward(m));
+
+        public static IObservable<Unit> UForwardToActor<TMessage>(this IObservable<TMessage> source, Func<IActorRef> target)
+            => source.ToUnit(m => target().Forward(m));
+
+        public static IObservable<Unit> UForwardToActor<TMessage>(this IObservable<TMessage> source, Func<IActorContext, IActorRef> target)
+            => source.ToUnit(m => target(ObservableActor.ExposedContext).Forward(m));
+
+        public static IObservable<Unit> UForwardToActor<TMessage>(this IObservable<TMessage> source, Func<TMessage, IActorRef> target)
+            => source.ToUnit(m => target(m).Forward(m));
+
+        public static IObservable<Unit> UForwardToActor<TMessage>(this IObservable<TMessage> source, Func<TMessage, IActorRef> target, Func<TMessage, object> selector)
+            => source.ToUnit(m => target(m).Forward(selector(m)));
 
         #endregion
 

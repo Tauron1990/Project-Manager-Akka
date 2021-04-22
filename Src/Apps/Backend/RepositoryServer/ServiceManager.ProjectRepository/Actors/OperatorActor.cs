@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Threading;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -10,11 +11,13 @@ using MongoDB.Driver.GridFS;
 using Octokit;
 using ServiceManager.ProjectRepository.Core;
 using ServiceManager.ProjectRepository.Data;
+using SharpRepository.Repository;
 using Tauron;
 using Tauron.Application.AkkaNode.Services;
 using Tauron.Application.AkkaNode.Services.CleanUp;
 using Tauron.Application.AkkaNode.Services.Commands;
 using Tauron.Application.AkkaNode.Services.FileTransfer;
+using Tauron.Application.Files.VirtualFiles;
 using Tauron.Application.Master.Commands.Deployment.Repository;
 using Tauron.Features;
 using Tauron.Operations;
@@ -24,10 +27,9 @@ namespace ServiceManager.ProjectRepository.Actors
 {
     public sealed class OperatorActor : ReportingActor<OperatorActor.OperatorState>
     {
-        private static readonly ReaderWriterLockSlim UpdateLock = new();
-        
-        public static IPreparedFeature New(IMongoCollection<RepositoryEntry> repos, GridFSBucket bucket,
-            IMongoCollection<ToDeleteRevision> revisions, DataTransferManager dataTransfer)
+        public static IPreparedFeature New(
+            IRepository<RepositoryEntry, string> repos, IVirtualFileSystem bucket,
+            IRepository<ToDeleteRevision, string> revisions, DataTransferManager dataTransfer)
             => Feature.Create(() => new OperatorActor(), c => new OperatorState(repos, bucket, revisions, dataTransfer,
                 new GitHubClient(new ProductHeaderValue(
                     c.System.Settings.Config.GetString("akka.appinfo.applicationName",
@@ -36,7 +38,24 @@ namespace ServiceManager.ProjectRepository.Actors
 
         protected override void ConfigImpl()
         {
-            Receive<RegisterRepository>("RegisterRepository", RegisterRepository);
+            TryReceive<RegisterRepository>("RegisterRepository",
+                obs => obs
+                      .Do(i => Log.Info("Incomming Registration Request for Repository {Name}", i.Event.RepoName))
+                      .Do(i => i.Reporter.Send(RepositoryMessages.GetRepo))
+                      .Select(i => (Data: i.State.Repos.Get(i.Event.RepoName), Evt: i))
+                      .SelectMany
+                       (
+                           d => Observable.If
+                           (
+                               () => d.Data != null,
+                               Observable.Return(d.Evt)
+                                         .Do(i => Log.Info("Repository {Name} is Registrated", i.Event.RepoName))
+                           )
+                       )
+
+                      .Select(d => d.New(OperationResult.Success()))
+                      .NotNull()
+                      .ToUnit(r => r.Reporter.Compled(r.Event)));
 
             Receive<TransferRepository>("RequestRepository", RequestRepository);
 
@@ -51,12 +70,9 @@ namespace ServiceManager.ProjectRepository.Actors
 
         private void RegisterRepository(StatePair<RegisterRepository, OperatorState> msg, Reporter reporter)
         {
-            var ((repoName, ignoreDuplicate), (repos, _, _, _, gitHubClient, _), _) = msg;
-
-            UpdateLock.EnterUpgradeableReadLock();
             try
             {
-                Log.Info("Incomming Registration Request for Repository {Name}", repoName);
+                
 
                 reporter.Send(RepositoryMessages.GetRepo);
                 var data = repos.AsQueryable().FirstOrDefault(e => e.RepoName == repoName);
@@ -255,8 +271,8 @@ namespace ServiceManager.ProjectRepository.Actors
             return false;
         }
 
-        public sealed record OperatorState(IMongoCollection<RepositoryEntry> Repos, GridFSBucket Bucket,
-            IMongoCollection<ToDeleteRevision> Revisions, DataTransferManager DataTransferManager,
+        public sealed record OperatorState(IRepository<RepositoryEntry, string> Repos, IVirtualFileSystem Bucket,
+            IRepository<ToDeleteRevision, string> Revisions, DataTransferManager DataTransferManager,
             GitHubClient GitHubClient, Dictionary<string, ITempFile> CurrentTransfers);
     }
 }

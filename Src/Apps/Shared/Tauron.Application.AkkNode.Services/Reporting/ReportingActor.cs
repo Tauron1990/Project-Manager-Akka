@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using Akka.Actor;
@@ -165,44 +167,91 @@ namespace Tauron.Application.AkkaNode.Services
         //    }
         //}
 
-        //    Log.Info("Enter Process {Name}", name);
-        //    var reporter = Reporter.CreateReporter(Context);
-        //    reporter.Listen(msg.Event.Listner);
-
-        //    return process(reporter, Observable.Return(msg))
-        //        .ToTask().ContinueWith(t =>
-        //        {
-        //            if (t.IsCompletedSuccessfully)
-        //                return t.Result;
-
-        //            if (t.IsFaulted && !reporter.IsCompled)
-        //                reporter.Compled(
-        //                    OperationResult.Failure(new Error(t.Exception?.Unwrap()?.Message, GenralError)));
-
-        //            Log.Error((Exception?) t.Exception ?? new InvalidOperationException("Unkowen Error"),
-        //                "Process Operation {Name} Failed {Info}", name, msg.Event.Info);
-        //            return Unit.Default;
-        //        }, TaskContinuationOptions.ExecuteSynchronously);
-
-        private IObservable<TResult> Prepare<TMessage, TResult>(
-            string name,
-            IObservable<StatePair<TMessage, TState>> input, 
-            Func<IObservable<ReporterEvent<TMessage, TState>>, IObservable<TResult>> factory)
-        {
-
-        }
-
-        public void TryReceive<TMessage>(string name, Func<IObservable<ReporterEvent<TMessage, TState>>, IObservable<TState>> factory)
-            where TMessage : IReporterMessage
-            => Receive<TMessage>(obs => Prepare(name, obs, factory));
 
         public void TryReceive<TMessage>(string name, Func<IObservable<ReporterEvent<TMessage, TState>>, IObservable<Unit>> factory)
             where TMessage : IReporterMessage
-            => Receive<TMessage>(obs => Prepare(name, obs, factory));
+        {
+            Receive<TMessage>(
+                obs => obs
+                      .Do(m => Log.Info("Enter Operation {Name} -- {Info}", name, m.Event.Info))
+                      .SelectMany(m =>
+                                  {
+                                      var reporter = Reporter.CreateReporter(Context);
+                                      reporter.Listen(m.Event.Listner);
+                                      var subject = Observable.Return(new ReporterEvent<TMessage, TState>(reporter, m));
+                                      var signal = new Subject<Unit>();
+
+                                      var disposable = new SingleAssignmentDisposable
+                                                       {
+                                                           Disposable = factory(subject).Subscribe(
+                                                               _ => { },
+                                                               e =>
+                                                               {
+                                                                   if(!reporter.IsCompled)
+                                                                       reporter.Compled(OperationResult.Failure(new Error(e.Unwrap()?.Message, GenralError)));
+
+                                                                   Log.Error(e, "Process Operation {Name} Failed {Info}", name, m.Event.Info);
+                                                               },
+                                                               () => signal.OnCompleted())
+                                                       };
+
+                                      return signal
+                                            .Finally(() => disposable.Dispose())
+                                            .Finally(() => Log.Info("Exit Operation {Name} -- {Info}", name, m.Event.Info));
+                                  }));
+        }
+
+        private IObservable<TResult> PrepareContinue<TMessage, TResult>(
+            string name,
+            IObservable<StatePair<TMessage, TState>> input, 
+            Func<IObservable<ReporterEvent<TMessage, TState>>, IObservable<TResult>> factory)
+            where TMessage : IDelegatingMessage
+        {
+            return input
+                  .Do(m => Log.Info("Enter Operation {Name} -- {Info}", name, m.Event.Info))
+                  .SelectMany(m =>
+                              {
+                                  var reporter = m.Event.Reporter;
+                                  var subject = Observable.Return(new ReporterEvent<TMessage, TState>(reporter, m));
+                                  var signal = new Subject<TResult>();
+
+                                  var disposable = new SingleAssignmentDisposable
+                                                   {
+                                                       Disposable = factory(subject).Subscribe(
+                                                           r => signal.OnNext(r),
+                                                           e =>
+                                                           {
+                                                               if (!reporter.IsCompled)
+                                                                   reporter.Compled(OperationResult.Failure(new Error(e.Unwrap()?.Message, GenralError)));
+
+                                                               Log.Error(e, "Process Operation {Name} Failed {Info}", name, m.Event.Info);
+                                                           },
+                                                           () => signal.OnCompleted())
+                                                   };
+
+                                  return signal
+                                        .Finally(() => disposable.Dispose())
+                                        .Finally(() => Log.Info("Exit Operation {Name} -- {Info}", name, m.Event.Info));
+                              });
+        }
+
+        public void TryContinue<TMessage>(string name, Func<IObservable<ReporterEvent<TMessage, TState>>, IObservable<TState>> factory)
+            where TMessage : IDelegatingMessage
+            => Receive<TMessage>(obs => PrepareContinue(name, obs, factory));
+
+        public void TryContinue<TMessage>(string name, Func<IObservable<ReporterEvent<TMessage, TState>>, IObservable<Unit>> factory)
+            where TMessage : IDelegatingMessage
+            => Receive<TMessage>(obs => PrepareContinue(name, obs, factory));
+
+
     }
 
     public sealed record ReporterEvent<TMessage, TState>(Reporter Reporter, TMessage Event, TState State, ITimerScheduler Timer)
     {
+        public ReporterEvent(Reporter reporter, StatePair<TMessage, TState> @event)
+            : this(reporter, @event.Event, @event.State, @event.Timers)
+        {        }
+
         public ReporterEvent<TNewMessage, TState> New<TNewMessage>(TNewMessage newMessage)
             => new(Reporter, newMessage, State, Timer);
 
