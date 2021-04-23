@@ -4,10 +4,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Threading;
-using MongoDB.Bson;
-using MongoDB.Driver;
-using MongoDB.Driver.GridFS;
 using Octokit;
 using ServiceManager.ProjectRepository.Core;
 using ServiceManager.ProjectRepository.Data;
@@ -50,10 +46,18 @@ namespace ServiceManager.ProjectRepository.Actors
                                () => d.Data != null,
                                Observable.Return(d.Evt)
                                          .Do(i => Log.Info("Repository {Name} is Registrated", i.Event.RepoName))
+                                         .SelectMany(
+                                              m => Observable.If(
+                                                  () => m.Event.IgnoreDuplicate,
+                                                  ObservableReturn(() => m.New(OperationResult.Success())),
+                                                  ObservableReturn(() => m.New(OperationResult.Failure(RepoErrorCodes.DuplicateRepository))))),
+                               Observable.Return(d)
+                                         .SelectMany(
+                                              m => Observable.If(
+                                                  () => !m.Data.RepoName.Contains('/'),
+                                                  ObservableReturn(() => m.Evt.New(OperationResult.Failure(RepoErrorCodes.InvalidRepoName)))))
                            )
                        )
-
-                      .Select(d => d.New(OperationResult.Success()))
                       .NotNull()
                       .ToUnit(r => r.Reporter.Compled(r.Event)));
 
@@ -72,24 +76,6 @@ namespace ServiceManager.ProjectRepository.Actors
         {
             try
             {
-                
-
-                reporter.Send(RepositoryMessages.GetRepo);
-                var data = repos.AsQueryable().FirstOrDefault(e => e.RepoName == repoName);
-
-                if (data != null)
-                {
-                    Log.Info("Repository {Name} is Registrated", repoName);
-                    if (ignoreDuplicate)
-                    {
-                        reporter.Compled(OperationResult.Success());
-                        return;
-                    }
-
-                    reporter.Compled(OperationResult.Failure(RepoErrorCodes.DuplicateRepository));
-                    return;
-                }
-
                 if (!repoName.Contains('/'))
                 {
                     Log.Info("Repository {Name} Name is Invalid", repoName);
@@ -270,6 +256,9 @@ namespace ServiceManager.ProjectRepository.Actors
 
             return false;
         }
+
+        private IObservable<TData> ObservableReturn<TData>(Func<TData> fac)
+            => Observable.Defer(() => Observable.Return(fac()));
 
         public sealed record OperatorState(IRepository<RepositoryEntry, string> Repos, IVirtualFileSystem Bucket,
             IRepository<ToDeleteRevision, string> Revisions, DataTransferManager DataTransferManager,
