@@ -39,7 +39,7 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer.Operator
                 }));
 
             Receive<DataTranfer>(obs => obs
-                .Where(m => m.Event is RequestAccept && m.Event is TransferMessages.RequestDeny)
+                .Where(m => m.Event is RequestAccept or RequestDeny)
                 .Do(m => Context.Child(m.Event.OperationId).Tell(m.Event))
                 .Select(m => m.State with {PendingTransfers = m.State.PendingTransfers.Remove(m.Event.OperationId)}));
 
@@ -80,8 +80,7 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer.Operator
                 {
                     newState = newState with
                     {
-                        PendingTransfers =
-                        newState.PendingTransfers.SetItem(incomingDataTransfer.OperationId, incomingDataTransfer)
+                        PendingTransfers = newState.PendingTransfers.SetItem(incomingDataTransfer.OperationId, incomingDataTransfer)
                     };
                 }
 
@@ -113,20 +112,17 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer.Operator
                 }
 
                 if (Timeout.InfiniteTimeSpan != awaitRequest.Timeout)
-                    timerScheduler.StartSingleTimer(awaitRequest.Id, new DeleteAwaiter(awaitRequest.Id),
-                        awaitRequest.Timeout);
+                    timerScheduler.StartSingleTimer(awaitRequest.Id, new DeleteAwaiter(awaitRequest.Id), awaitRequest.Timeout);
                 return state with
                 {
                     Awaiters = state.Awaiters.SetItem(awaitRequest.Id, new AwaitRequestInternal(Sender))
                 };
             }));
 
-            Receive<DeleteAwaiter>(
-                obs => obs.Select(m => m.State with {Awaiters = m.State.Awaiters.Remove(m.Event.Id)}));
+            Receive<DeleteAwaiter>(obs => obs.Select(m => m.State with {Awaiters = m.State.Awaiters.Remove(m.Event.Id)}));
         }
 
-        public sealed record State(ImmutableDictionary<string, IncomingDataTransfer> PendingTransfers,
-            ImmutableDictionary<string, AwaitRequestInternal> Awaiters);
+        public sealed record State(ImmutableDictionary<string, IncomingDataTransfer> PendingTransfers, ImmutableDictionary<string, AwaitRequestInternal> Awaiters);
 
         private class DeleteAwaiter
         {

@@ -20,10 +20,18 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer
 
         public string? Data { get; }
 
+        public object? IndividualMessage { get; set; }
+
         public bool SendCompletionBack { get; set; }
 
-        public static DataTransferRequest FromStream(Func<ITransferData> stream, DataTransferManager target,
-            string? data = null)
+        public DataTransferRequest Inform(object? specific = null, bool sendBack = false)
+        {
+            SendCompletionBack = sendBack;
+            IndividualMessage = specific;
+            return this;
+        }
+
+        public static DataTransferRequest FromStream(Func<ITransferData> stream, DataTransferManager target, string? data = null)
             => new StreamTransferRequest(Guid.NewGuid().ToString(), stream, target, data);
 
         public static DataTransferRequest FromFile(string file, DataTransferManager target, string? data = null)
@@ -32,31 +40,25 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer
         public static DataTransferRequest FromStream(Stream stream, DataTransferManager target, string? data = null)
             => new StreamTransferRequest(Guid.NewGuid().ToString(), stream, target, data);
 
-        public static DataTransferRequest FromStream(Func<Stream> stream, DataTransferManager target,
-            string? data = null)
+        public static DataTransferRequest FromStream(Func<Stream> stream, DataTransferManager target, string? data = null)
             => new StreamTransferRequest(Guid.NewGuid().ToString(), stream, target, data);
 
-        public static DataTransferRequest FromFile(string opsId, string file, DataTransferManager target,
-            string? data = null)
+        public static DataTransferRequest FromFile(string opsId, string file, DataTransferManager target, string? data = null)
             => new DataStreamTranferRequest(opsId, file, target, data);
 
-        public static DataTransferRequest FromStream(string opsId, Stream stream, DataTransferManager target,
-            string? data = null)
+        public static DataTransferRequest FromStream(string opsId, Stream stream, DataTransferManager target, string? data = null)
             => new StreamTransferRequest(opsId, stream, target, data);
 
-        public static DataTransferRequest FromStream(string opsId, Func<Stream> stream, DataTransferManager target,
-            string? data = null)
+        public static DataTransferRequest FromStream(string opsId, Func<Stream> stream, DataTransferManager target, string? data = null)
             => new StreamTransferRequest(opsId, stream, target, data);
 
         public sealed class StreamTransferRequest : DataTransferRequest
         {
-            public StreamTransferRequest(string operationId, Func<Stream> source, DataTransferManager target,
-                string? data)
+            public StreamTransferRequest(string operationId, Func<Stream> source, DataTransferManager target, string? data)
                 : base(operationId, target, data) =>
                 Source = () => new StreamData(source());
 
-            public StreamTransferRequest(string operationId, Func<ITransferData> source, DataTransferManager target,
-                string? data)
+            public StreamTransferRequest(string operationId, Func<ITransferData> source, DataTransferManager target, string? data)
                 : base(operationId, target, data) =>
                 Source = source;
 
