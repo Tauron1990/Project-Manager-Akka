@@ -3,7 +3,6 @@ using Akka.Cluster.Tools.Singleton;
 using JetBrains.Annotations;
 using ServiceManager.ProjectRepository.Actors;
 using Tauron.Application.AkkaNode.Services.CleanUp;
-using Tauron.Application.AkkaNode.Services.FileTransfer;
 using Tauron.Application.Master.Commands.Deployment.Repository;
 using Tauron.Features;
 
@@ -12,6 +11,8 @@ namespace ServiceManager.ProjectRepository
     [PublicAPI]
     public sealed class RepositoryManager
     {
+        public const string RepositoryManagerKey = "ReporitoryManager";
+
         public static readonly RepositoryManager Empty = new(ActorRefs.Nobody);
 
         private readonly IActorRef _manager;
@@ -20,24 +21,21 @@ namespace ServiceManager.ProjectRepository
 
         public bool IsOk => !_manager.IsNobody();
 
-        public static RepositoryManager CreateInstance(IActorRefFactory factory, RepositoryManagerConfiguration configuration, DataTransferManager tranferManager)
-            => new(factory.ActorOf(RepositoryManagerImpl.Create(configuration, tranferManager)));
+        public static RepositoryManager CreateInstance(IActorRefFactory factory, RepositoryManagerConfiguration configuration)
+            => new(factory.ActorOf(RepositoryManagerImpl.Create(configuration)));
 
-        public static RepositoryManager InitRepositoryManager(ActorSystem actorSystem, string connectionString,
-            DataTransferManager tranferManager)
-            => InitRepositoryManager(actorSystem, new MongoClient(connectionString), tranferManager);
 
-        public static RepositoryManager InitRepositoryManager(ActorSystem actorSystem, IMongoClient client,
-            DataTransferManager tranferManager)
+        public static RepositoryManager InitRepositoryManager(ActorSystem actorSystem, RepositoryManagerConfiguration configuration)
         {
             var repo = ClusterSingletonManager.Props(
-                Feature.Props(RepositoryManagerImpl.Create(client, tranferManager)),
+                Feature.Props(RepositoryManagerImpl.Create(configuration)),
                 ClusterSingletonManagerSettings.Create(actorSystem).WithRole("UpdateSystem"));
+            
             return new RepositoryManager(actorSystem.ActorOf(repo, RepositoryApi.RepositoryPath));
         }
 
-        public void CleanUp()
-            => _manager.Tell(new StartCleanUp());
+        public void Run(IRepositoryAction action)
+            => _manager.Tell(action);
 
         public void Stop()
             => _manager.Tell(PoisonPill.Instance);

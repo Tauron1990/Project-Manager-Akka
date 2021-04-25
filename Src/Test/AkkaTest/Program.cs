@@ -3,9 +3,12 @@ using System.IO;
 using System.Threading.Tasks;
 using Akka.Actor;
 using AkkaTest.InMemoryStorage;
+using ServiceManager.ProjectRepository;
 using SharpRepository.InMemoryRepository;
 using SharpRepository.Repository.Configuration;
 using Tauron.Application.AkkaNode.Services.CleanUp;
+using Tauron.Application.AkkaNode.Services.FileTransfer;
+using Tauron.Application.Files.VirtualFiles;
 using Tauron.Features;
 using Tauron.Temp;
 
@@ -22,6 +25,26 @@ namespace AkkaTest
     //        : this("", "") { }
     //}
 
+    public sealed record Start;
+
+    public sealed class TestActor : ReceiveActor
+    {
+        private readonly RepositoryManager _repositoryManager;
+        private readonly DataTransferManager _dataTransfer;
+
+        public TestActor(RepositoryManager repositoryManager, DataTransferManager dataTransfer)
+        {
+            _repositoryManager = repositoryManager;
+            _dataTransfer = dataTransfer;
+            Receive<Start>(Start);
+        }
+
+        private void Start(Start obj)
+        {
+            
+        }
+    }
+
     internal static class Program
     {
 
@@ -30,66 +53,28 @@ namespace AkkaTest
             //const string con = "mongodb://192.168.105.96:27017/TestDb?readPreference=primary&appname=MongoDB%20Compass%20Community&ssl=false";
             ////const string con = "mongodb://localhost:27017/TestDb?readPreference=primary&appname=MongoDB%20Compass%20Community&ssl=false";
 
-            //var factory = new VirtualFileFactory();
-            //var client = new MongoClient(con);
-            //var systemBuilder = new Func<IVirtualFileSystem>(() => factory.CreateMongoDb(new GridFSBucket(client.GetDatabase("VirtualFileTest"))));
+            var factory = new VirtualFileFactory();
+            var bucked = factory.CreateInMemory("Test");
 
-            //const string testPath = "TestDic1/TestDic2/Programm.cs";
 
-            //void Test1()
-            //{
-            //    //using var system1 = systemBuilder();
+            using var system = ActorSystem.Create("Test");
+            string tempPath = Path.GetFullPath("Temp");
+            using var tempStore = TempStorage.CleanAndCreate(tempPath);
+            var config = new SharpRepositoryConfiguration();
 
-            //    //var file = system1.GetFile(testPath);
-            //    //using var entry = file.Create();
-            //    //using var source = File.Open("Program.cs", FileMode.Open);
+            //config.AddRepository(new MongoDbRepositoryConfiguration(CleanUpManager.RepositoryKey, con){ Factory = typeof(MongoDbConfigRepositoryFactory) });
+            config.AddRepository(new InMemoryRepositoryConfiguration(RepositoryManager.RepositoryManagerKey) { Factory = typeof(PersistentInMemorxConfigRepositoryFactory) });
 
-            //    //source.CopyTo(entry);
-            //}
+            const string testFileName = "Program.cs";
 
-            //void Test2()
-            //{
-            //    using var system2 = systemBuilder();
+            var dataManager = DataTransferManager.New(system);
+            var manager = RepositoryManager.CreateInstance(system, new RepositoryManagerConfiguration(config, bucked, dataManager));
 
-            //    var treeOne = system2.Directories.ToArray();
-            //    var treeTwo = treeOne.Single().Directories.ToArray();
+            system.ActorOf(Props.Create(() => new TestActor(manager, dataManager))).Tell(new Start());
 
-            //    var fileEntry = treeTwo.Single().Files.Single();
-            //    using var file = fileEntry.Open(FileAccess.Read);
-            //    using var newFile = File.Open("Program.txt", FileMode.Create);
+            Console.ReadKey();
 
-            //    file.CopyTo(newFile);
-
-            //    newFile.Close();
-            //    Process.Start("Program.txt");
-            //}
-
-            //Test1();
-            //Test2();
-
-            //using var system = ActorSystem.Create("Test");
-            //string tempPath = Path.GetFullPath("Temp");
-            //using var tempStore = TempStorage.CleanAndCreate(tempPath);
-
-            //var storage = new FileSystemStorageProvider(tempPath);
-            //var config = new SharpRepositoryConfiguration();
-
-            ////config.AddRepository(new MongoDbRepositoryConfiguration(CleanUpManager.RepositoryKey, con){ Factory = typeof(MongoDbConfigRepositoryFactory) });
-            //config.AddRepository(new InMemoryRepositoryConfiguration(CleanUpManager.RepositoryKey){ Factory = typeof(PersistentInMemorxConfigRepositoryFactory)});
-
-            //const string testFileName = "Program.cs";
-
-            //config.GetInstance<CleanUpTime, string>(CleanUpManager.RepositoryKey).Add(new CleanUpTime("Master", TimeSpan.FromDays(7), DateTime.Now - TimeSpan.FromDays(10)));
-            //config.GetInstance<ToDeleteRevision, string>(CleanUpManager.RepositoryKey).Add(new ToDeleteRevision(testFileName, testFileName));
-
-            //storage.CreateFile(testFileName, await File.ReadAllBytesAsync(testFileName));
-
-            //var manager = system.ActorOf(CleanUpManager.New(config, storage));
-            //manager.Tell(CleanUpManager.Initialization);
-
-            //Console.ReadKey();
-
-            //await system.Terminate();
+            await system.Terminate();
         }
     }
 }
