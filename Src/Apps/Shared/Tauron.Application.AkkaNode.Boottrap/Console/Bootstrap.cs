@@ -38,7 +38,7 @@ namespace Tauron.Application.AkkaNode.Bootstrap
                 {
                     cb.RegisterType<ConsoleAppRoute>().Named<IAppRoute>("default");
                     cb.RegisterType<KillHelper>().As<IStartUpAction>();
-                    cb.RegisterInstance(ipc).As<IIpcConnection>();
+                    cb.RegisterInstance(ipc).As<IIpcConnection>().SingleInstance();
                 })
                 .ConfigurateNode()
                 .ConfigureLogging((context, configuration) =>
@@ -187,7 +187,8 @@ namespace Tauron.Application.AkkaNode.Bootstrap
         [UsedImplicitly]
         private sealed class KillHelper : IStartUpAction
         {
-            [UsedImplicitly] private static KillHelper? _keeper;
+            [UsedImplicitly] 
+            private static KillHelper? _keeper;
 
             private readonly string? _comHandle;
             private readonly IpcConnection _ipcConnection;

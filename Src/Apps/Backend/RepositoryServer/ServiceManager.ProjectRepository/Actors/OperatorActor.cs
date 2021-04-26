@@ -83,7 +83,7 @@ namespace ServiceManager.ProjectRepository.Actors
                 Func<IObservable<RegisterRepoEvent>, IObservable<RequestResult>> next)
                 => input.SelectMany(
                     m => Observable.If(
-                        () => !m.Data.RepoName.Contains('/'),
+                        () => !m.Evt.Event.RepoName.Contains('/'),
                         ObservableReturn(() => m.Evt.New(OperationResult.Failure(RepoErrorCodes.InvalidRepoName)))
                            .Do(_ => Log.Info("Repository {Name} Name is Invalid", m.Evt.Event.RepoName)),
                         next(Observable.Return(m.Evt))));

@@ -111,8 +111,14 @@ namespace Tauron.Temp
 
             Clear();
 
-            if (_deleteDic)
-                FullPath.DeleteDirectory(true);
+            try
+            {
+                if (_deleteDic)
+                    FullPath.ClearDirectory();
+            }
+            catch (IOException)
+            {
+            }
         }
     }
 }

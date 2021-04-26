@@ -59,14 +59,17 @@ namespace Tauron
         {
             if (dic == null) throw new ArgumentNullException(nameof(dic));
             if (!dic.Exists) return;
+            dic.Attributes = FileAttributes.Normal;
 
             foreach (var entry in dic.GetFileSystemInfos())
                 switch (entry)
                 {
                     case FileInfo file:
+                        file.Attributes = FileAttributes.Normal;
                         file.Delete();
                         break;
                     case DirectoryInfo dici:
+                        dic.Attributes = FileAttributes.Normal;
                         Clear(dici);
                         dici.Delete();
                         break;
@@ -175,8 +178,7 @@ namespace Tauron
 
         public static void DeleteDirectory(this string path, bool recursive)
         {
-            if (!string.IsNullOrWhiteSpace(path) && Directory.Exists(path))
-                Directory.Delete(path, recursive);
+            if (!string.IsNullOrWhiteSpace(path) && Directory.Exists(path)) new DirectoryInfo(path) {Attributes = FileAttributes.Normal}.Delete(true);
         }
 
         public static void DeleteDirectoryIfEmpty(this string path)

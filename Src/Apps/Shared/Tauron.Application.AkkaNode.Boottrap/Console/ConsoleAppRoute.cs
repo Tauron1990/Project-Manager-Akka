@@ -29,7 +29,9 @@ namespace Tauron.Application.AkkaNode.Bootstrap.Console
             Task.Run(() =>
             {
                 if (_actions != null)
+                {
                     foreach (var startUpAction in _actions.Value)
+                    {
                         try
                         {
                             startUpAction.Run();
@@ -38,6 +40,8 @@ namespace Tauron.Application.AkkaNode.Bootstrap.Console
                         {
                             Log.Logger.Error(e, "Error on Startup Action");
                         }
+                    }
+                }
 
                 _actions?.Dispose();
                 _actions = null;

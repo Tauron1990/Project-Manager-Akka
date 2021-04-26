@@ -14,8 +14,7 @@ namespace Tauron.Application.AkkaNode.Services.Reporting.Commands
 
     public static class SimpleCommandExtensions
     {
-        public static Task Send<TSender, TCommand>(this TSender sender, TCommand command, TimeSpan timeout,
-            Action<string> messages)
+        public static Task Send<TSender, TCommand>(this TSender sender, TCommand command, TimeSpan timeout, Action<string> messages)
             where TCommand : SimpleCommand<TSender, TCommand>, IReporterMessage
             where TSender : ISender
             => SendingHelper.Send<object, TCommand>(sender, command, messages, timeout, true);

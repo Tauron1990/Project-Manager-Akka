@@ -50,7 +50,7 @@ namespace Tauron.Host
             builder
                 .ConfigureAkka(_
                     => ConfigurationFactory.ParseString(
-                        " akka { loggers =[\"Akka.Logger.Serilog.SerilogLogger, Akka.Logger.Serilog\"] \n  scheduler { implementation = \"Tauron.Akka.TimerScheduler, Tauron.Application.Common\" } }"))
+                        " akka { loggers =[\"Akka.Logger.Serilog.SerilogLogger, Akka.Logger.Serilog\"]"))// \n  scheduler { implementation = \"Tauron.Akka.TimerScheduler, Tauron.Application.Common\" } }"))
                 .ConfigureAutoFac(cb => cb.RegisterModule<CommonModule>())
                 .Configuration(cb => { cb.AddEnvironmentVariables("DOTNET_"); })
                 .ConfigureAppConfiguration((hostingContext, config) =>
@@ -79,6 +79,7 @@ namespace Tauron.Host
                 ActorSystem.RegisterOnTermination(hostAppLifetime.NotifyStopped);
                 await lifeTime.ShutdownTask;
                 await Task.WhenAny(ActorSystem.WhenTerminated, Task.Delay(TimeSpan.FromSeconds(60)));
+                Continer.Dispose();
                 Log.CloseAndFlush();
             }
         }
@@ -264,7 +265,7 @@ namespace Tauron.Host
             {
                 var containerBuilder = new ContainerBuilder();
 
-                containerBuilder.Register(_ => actorSystem());
+                containerBuilder.Register(_ => actorSystem()).SingleInstance();
                 containerBuilder.RegisterInstance(hostEnvironment);
                 containerBuilder.RegisterInstance(hostBuilderContext);
                 containerBuilder.RegisterInstance(appConfiguration);

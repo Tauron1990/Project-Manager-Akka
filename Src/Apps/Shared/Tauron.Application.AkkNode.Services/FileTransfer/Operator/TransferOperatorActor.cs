@@ -223,7 +223,7 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer.Operator
                                 ArrayPool<byte>.Shared.Return(_outgoningBytes);
                             _outgoningBytes = null;
 
-                            var comp = new TransferCompled(state.StateData.OperationId, state.StateData.Metadata);
+                            var comp = new TransferSucess(state.StateData.OperationId, state.StateData.Metadata);
                             Parent.Tell(comp);
                             if (state.StateData.SendBack) 
                                 state.StateData.Sender.Tell(comp);
@@ -275,7 +275,7 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer.Operator
 
                                             data.TargetManager.Tell(new SendingCompled(state.StateData.OperationId));
 
-                                            var msg = new TransferCompled(state.StateData.OperationId,
+                                            var msg = new TransferSucess(state.StateData.OperationId,
                                                 state.StateData.Metadata);
                                             state.StateData.Completion?.SetResult(msg);
                                             Parent.Tell(msg);

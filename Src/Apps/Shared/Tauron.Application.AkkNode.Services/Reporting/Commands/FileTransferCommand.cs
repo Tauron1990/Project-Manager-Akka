@@ -29,9 +29,8 @@ namespace Tauron.Application.AkkaNode.Services.Commands
     [PublicAPI]
     public static class FileTransferCommandExtension
     {
-        public static Task<TransferMessages.TransferCompled> Send<TSender, TCommand>(this TSender sender,
-            TCommand command, TimeSpan timeout, DataTransferManager manager, Action<string> messages,
-            Func<Stream?> getdata)
+        public static Task<TransferMessages.TransferCompled> Send<TSender, TCommand>(this TSender sender, TCommand command, TimeSpan timeout,
+            DataTransferManager manager, Action<string> messages, Func<Stream?> getdata)
             where TSender : ISender
             where TCommand : FileTransferCommand<TSender, TCommand>
             => Send(sender, command, timeout, manager, messages, () =>
@@ -41,8 +40,7 @@ namespace Tauron.Application.AkkaNode.Services.Commands
             });
 
         public static async Task<TransferMessages.TransferCompled> Send<TSender, TCommand>(this TSender sender,
-            TCommand command, TimeSpan timeout, DataTransferManager manager, Action<string> messages,
-            Func<ITransferData?> getdata)
+            TCommand command, TimeSpan timeout, DataTransferManager manager, Action<string> messages, Func<ITransferData?> getdata)
             where TSender : ISender
             where TCommand : FileTransferCommand<TSender, TCommand>
         {

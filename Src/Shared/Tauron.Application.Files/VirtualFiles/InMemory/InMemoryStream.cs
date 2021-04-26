@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using Tauron.Application.Files.VirtualFiles.InMemory.Data;
 
 namespace Tauron.Application.Files.VirtualFiles.InMemory
@@ -9,8 +8,15 @@ namespace Tauron.Application.Files.VirtualFiles.InMemory
         private readonly DataFile _data;
 
         public InMemoryStream(DataFile data)
-            : base(data.Data ?? Array.Empty<byte>())
-            => _data = data;
+            : base(data.Data?.Length ?? 0)
+        {
+            _data = data;
+            if (_data.Data != null)
+            {
+                Write(_data.Data);
+                Seek(0, SeekOrigin.Begin);
+            }
+        }
 
         protected override void Dispose(bool disposing)
         {

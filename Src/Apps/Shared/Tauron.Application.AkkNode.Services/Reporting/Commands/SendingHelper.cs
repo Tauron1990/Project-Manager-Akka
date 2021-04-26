@@ -8,8 +8,7 @@ namespace Tauron.Application.AkkaNode.Services.Commands
 {
     public static class SendingHelper
     {
-        public static Task<TResult> Send<TResult, TCommand>(ISender sender, TCommand command, Action<string> messages,
-            TimeSpan timeout, bool isEmpty)
+        public static Task<TResult> Send<TResult, TCommand>(ISender sender, TCommand command, Action<string> messages, TimeSpan timeout, bool isEmpty)
             where TCommand : class, IReporterMessage
         {
             var task = new TaskCompletionSource<TResult>();

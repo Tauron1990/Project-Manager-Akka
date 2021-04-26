@@ -2,7 +2,6 @@
 using Akka.Cluster.Tools.Singleton;
 using JetBrains.Annotations;
 using Tauron.Application.AkkaNode.Services;
-using Tauron.Application.AkkaNode.Services.CleanUp;
 using Tauron.Application.AkkaNode.Services.Commands;
 
 namespace Tauron.Application.Master.Commands.Deployment.Repository
@@ -19,14 +18,14 @@ namespace Tauron.Application.Master.Commands.Deployment.Repository
 
         void ISender.SendCommand(IReporterMessage command) => _repository.Tell(command);
 
+        public static RepositoryApi CreateFromActor(IActorRef manager)
+            => new(manager);
+
         public static RepositoryApi CreateProxy(ActorSystem system, string name = "RepositoryProxy")
         {
             var proxy = ClusterSingletonProxy.Props($"/user/{RepositoryPath}",
                 ClusterSingletonProxySettings.Create(system).WithRole("UpdateSystem"));
             return new RepositoryApi(system.ActorOf(proxy, name));
         }
-
-        public void CleanUp()
-            => _repository.Tell(new StartCleanUp());
     }
 }

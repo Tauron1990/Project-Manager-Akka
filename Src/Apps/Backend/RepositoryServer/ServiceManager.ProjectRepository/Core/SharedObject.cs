@@ -63,6 +63,7 @@ namespace ServiceManager.ProjectRepository.Core
 
         protected virtual void InternalDispose()
         {
+            GC.SuppressFinalize(this);
         }
 
         ~SharedObject()

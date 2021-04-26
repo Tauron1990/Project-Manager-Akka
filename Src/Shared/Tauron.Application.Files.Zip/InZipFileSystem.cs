@@ -11,7 +11,7 @@ namespace Tauron.Application.Files.VirtualFiles.Zip
         private ZipFile? _file;
 
         public InZipFileSystem(ZipFile? file)
-            : base(null, "", InternalZipDirectory.ReadZipDirectory(file), file, string.Empty)
+            : base(null, "zip::", InternalZipDirectory.ReadZipDirectory(file), file, string.Empty)
         {
             _file = file;
             SaveAfterDispose = true;

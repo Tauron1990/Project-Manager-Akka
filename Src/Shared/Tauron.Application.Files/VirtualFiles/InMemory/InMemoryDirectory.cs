@@ -12,8 +12,8 @@ namespace Tauron.Application.Files.VirtualFiles.InMemory
         private readonly DataDirectory _dic;
         private readonly InMemoryDirectory? _parentDirectory;
 
-        public InMemoryDirectory(InMemoryDirectory? parentDirectory, string originalPath, string name,
-            DataDirectory dic) : base(() => parentDirectory, originalPath, name)
+        public InMemoryDirectory(InMemoryDirectory? parentDirectory, string originalPath, string name, DataDirectory dic) 
+            : base(() => parentDirectory, originalPath, name)
         {
             _parentDirectory = parentDirectory;
             _dic = dic;

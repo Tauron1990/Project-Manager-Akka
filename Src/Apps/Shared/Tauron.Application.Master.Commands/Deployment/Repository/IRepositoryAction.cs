@@ -1,6 +1,8 @@
-﻿namespace Tauron.Application.Master.Commands.Deployment.Repository
+﻿using Tauron.Application.AkkaNode.Services;
+
+namespace Tauron.Application.Master.Commands.Deployment.Repository
 {
-    public interface IRepositoryAction
+    public interface IRepositoryAction : IReporterMessage
     {
     }
 }

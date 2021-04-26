@@ -8,7 +8,7 @@ namespace Tauron.Application.Files.VirtualFiles
     public sealed class VirtualFileFactory
     {
         public IVirtualFileSystem CreateInMemory(string name, DataDirectory? directory = null)
-            => new InMemoryFileSystem(string.Empty, name, directory ?? new DataDirectory(name));
+            => new InMemoryFileSystem("memory::", name, directory ?? new DataDirectory(name));
 
         public IVirtualFileSystem CrerateLocal(string path)
             => new LocalFileSystem.LocalFileSystem(Argument.NotNull(path, nameof(path)));
