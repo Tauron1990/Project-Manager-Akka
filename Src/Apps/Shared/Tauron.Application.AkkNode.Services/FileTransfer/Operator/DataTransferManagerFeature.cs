@@ -55,8 +55,7 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer.Operator
                         fail => fail.Select(m => new
                             {
                                 Target = m.Message.Target.Actor,
-                                FailMessage = new TransferFailed(m.Message.OperationId, FailReason.DuplicateOperationId,
-                                    null)
+                                FailMessage = new TransferFailed(m.Message.OperationId, FailReason.DuplicateOperationId, null)
                             })
                             .ToUnit(m =>
                             {
@@ -87,7 +86,7 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer.Operator
                 return newState;
             }));
 
-            Receive<TransferMessages.TransferCompled>(obs => obs.ToUnit(m =>
+            Receive<TransferCompled>(obs => obs.ToUnit(m =>
             {
                 var (@event, _, _) = m;
                 Context.Stop(Context.Child(@event.OperationId));

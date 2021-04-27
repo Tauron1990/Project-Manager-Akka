@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -132,6 +133,7 @@ namespace Tauron.Features
         protected override SupervisorStrategy SupervisorStrategy()
             => ((IFeatureActor<TState>) this).SupervisorStrategy ?? base.SupervisorStrategy();
 
+        [DebuggerStepThrough]
         private sealed class ActorFactory : IIndirectActorProducer
         {
             private readonly Action<ActorBuilder<TState>> _builder;
@@ -196,6 +198,7 @@ namespace Tauron.Features
     }
 
     [PublicAPI]
+    [DebuggerStepThrough]
     public sealed class ActorBuilder<TState>
     {
         private readonly Action<IFeature<TState>> _registrar;

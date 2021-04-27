@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Linq;
 using Akka.Actor;
@@ -15,7 +16,7 @@ namespace Tauron.Features
 
         KeyValuePair<Type, object> InitialState(IUntypedActorContext context);
     }
-
+    [DebuggerStepThrough]
     public sealed record GenericState(ImmutableDictionary<Type, object> States)
     {
         public GenericState(IEnumerable<IPreparedFeature> features, IUntypedActorContext context)
@@ -25,6 +26,7 @@ namespace Tauron.Features
     }
 
     [PublicAPI]
+    [DebuggerStepThrough]
     public static class FeatureActorExtensions
     {
         public static IObservable<StatePair<TEvent, TState>> SyncState<TEvent, TState>(
@@ -40,7 +42,7 @@ namespace Tauron.Features
         public static IActorRef ActorOf(this IActorRefFactory factory, params IPreparedFeature[] features)
             => factory.ActorOf(GenericActor.Create(features));
 
-
+        [DebuggerStepThrough]
         internal sealed class GenericActor : FeatureActorBase<GenericActor, GenericState>
         {
             public static Props Create(IPreparedFeature[] features)
@@ -50,6 +52,7 @@ namespace Tauron.Features
     }
 
     [PublicAPI]
+    [DebuggerStepThrough]
     public static class Feature
     {
         public static Props Props(params IPreparedFeature[] features)
@@ -104,7 +107,7 @@ namespace Tauron.Features
             {
             }
         }
-
+        [DebuggerStepThrough]
         private sealed class PreparedFeature<TState> : IPreparedFeature
             where TState : notnull
         {
@@ -125,7 +128,7 @@ namespace Tauron.Features
             public KeyValuePair<Type, object> InitialState(IUntypedActorContext c)
                 => new(typeof(TState), _stateBuilder(c));
         }
-
+        [DebuggerStepThrough]
         private sealed class PreparedFeatureList<TState> : IPreparedFeature
             where TState : notnull
         {
