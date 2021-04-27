@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Akka.Actor;
+using Serilog;
 using Tauron.Akka;
 using Tauron.Host;
 
@@ -8,9 +9,14 @@ namespace Tauron.Application.AkkaNode.Services.Commands
 {
     public static class SendingHelper
     {
+        private static readonly ILogger _log = Log.ForContext(typeof(SendingHelper));
+
         public static Task<TResult> Send<TResult, TCommand>(ISender sender, TCommand command, Action<string> messages, TimeSpan timeout, bool isEmpty)
             where TCommand : class, IReporterMessage
         {
+            _log.Information("Sending Command {CommandType} -- {SenderType}", command.GetType(), sender.GetType());
+            command.ValidateApi(sender.GetType());
+
             var task = new TaskCompletionSource<TResult>();
             IActorRefFactory factory;
 

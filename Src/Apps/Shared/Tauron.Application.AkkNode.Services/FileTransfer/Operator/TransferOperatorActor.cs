@@ -26,7 +26,7 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer.Operator
         public static readonly Crc32 Crc32 = new();
 
         private OperatorData(string operationId, IActorRef targetManager, Func<ITransferData> data, string? metadata, InternalCrcStream transferStrem, TransferError? error,
-            TaskCompletionSource<TransferMessages.TransferCompled>? completion, bool sendBack, IActorRef sender, object? individualMessgae)
+            TaskCompletionSource<TransferCompled>? completion, bool sendBack, IActorRef sender, object? individualMessgae)
         {
             OperationId = operationId;
             TargetManager = targetManager;
@@ -102,6 +102,18 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer.Operator
     [UsedImplicitly(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature)]
     public sealed class TransferOperatorActor : FSM<OperatorState, OperatorData>
     {
+        #if DATADEBUG
+        private static readonly TimeSpan StartTimeout = TimeSpan.FromMinutes(30);
+        private static readonly TimeSpan InitTimeout = TimeSpan.FromMinutes(30);
+        private static readonly TimeSpan SendingTimeout = TimeSpan.FromMinutes(30);
+        private static readonly TimeSpan FailedTimeout = TimeSpan.FromMinutes(30);
+#else
+        private static readonly TimeSpan StartTimeout = TimeSpan.FromMinutes(5);
+        private static readonly TimeSpan InitTimeout = TimeSpan.FromMinutes(2);
+        private static readonly TimeSpan SendingTimeout = TimeSpan.FromSeconds(10);
+        private static readonly TimeSpan FailedTimeout = TimeSpan.FromSeconds(30);
+#endif
+
         private readonly ILoggingAdapter _log = Context.GetLogger();
         private NextChunk? _lastChunk;
 
@@ -119,8 +131,7 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer.Operator
                     {
                         case TransmitRequest transmit:
                             _log.Info("Incoming Recieve Request  {id} -- {Data}", GetId(state), transmit.Data);
-                            Parent.Tell(new IncomingDataTransfer(transmit.OperationId, new DataTransferManager(Parent),
-                                transmit.Data));
+                            Parent.Tell(new IncomingDataTransfer(transmit.OperationId, new DataTransferManager(Parent), transmit.Data));
                             return GoTo(OperatorState.InitReciving).Using(state.StateData.StartRecdiving(transmit));
                         case DataTransferRequest request:
                             _log.Info("Incoming Trensfer Request {id} -- {Data}", GetId(state), request.Data);
@@ -157,7 +168,7 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer.Operator
                         default:
                             return null;
                     }
-                }, TimeSpan.FromMinutes(5));
+                }, StartTimeout);
 
             When(OperatorState.InitReciving,
                 state =>
@@ -172,21 +183,19 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer.Operator
                             _log.Info("Request Accepted {Id}", GetId(state));
                             try
                             {
-                                var newState = GoTo(OperatorState.Reciving).Using(state.StateData
-                                    .SetData(accept.Target, accept.TaskCompletionSource).Open());
+                                var newState = GoTo(OperatorState.Reciving).Using(state.StateData.SetData(accept.Target, accept.TaskCompletionSource).Open());
                                 state.StateData.TargetManager.Tell(new BeginTransfering(state.StateData.OperationId));
                                 return newState;
                             }
                             catch (Exception e)
                             {
                                 _log.Error(e, "Open Reciving Stream Failed {Id}", GetId(state));
-                                return GoTo(OperatorState.Failed)
-                                    .Using(state.StateData.Failed(Parent, FailReason.StreamError, e.Message));
+                                return GoTo(OperatorState.Failed).Using(state.StateData.Failed(Parent, FailReason.StreamError, e.Message));
                             }
                         default:
                             return null;
                     }
-                }, TimeSpan.FromMinutes(2));
+                }, InitTimeout);
 
             When(OperatorState.Sending,
                 state =>
@@ -199,14 +208,12 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer.Operator
                             try
                             {
                                 _sendingAttempts = 0;
-                                var count = state.StateData.TransferStrem.Read(_outgoningBytes, 0,
-                                    _outgoningBytes.Length);
+                                var count = state.StateData.TransferStrem.Read(_outgoningBytes, 0, _outgoningBytes.Length);
                                 var last = count == 0;
                                 var crc = OperatorData.Crc32.ComputeChecksum(_outgoningBytes, count);
 
                                 state.StateData.TargetManager.Tell(
-                                    _lastChunk = new NextChunk(state.StateData.OperationId, _outgoningBytes, count,
-                                        last, crc, state.StateData.TransferStrem.ReadCrc),
+                                    _lastChunk = new NextChunk(state.StateData.OperationId, _outgoningBytes, count, last, crc, state.StateData.TransferStrem.ReadCrc),
                                     Parent);
 
                                 return Stay();
@@ -242,7 +249,7 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer.Operator
                         default:
                             return null;
                     }
-                }, TimeSpan.FromSeconds(10));
+                }, SendingTimeout);
 
             When(OperatorState.Reciving,
                 state =>
@@ -255,8 +262,7 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer.Operator
                                 var reciveCrc = OperatorData.Crc32.ComputeChecksum(chunk.Data, chunk.Count);
                                 if (reciveCrc != chunk.Crc)
                                 {
-                                    state.StateData.TargetManager.Tell(new RepeadChunk(state.StateData.OperationId),
-                                        Parent);
+                                    state.StateData.TargetManager.Tell(new RepeadChunk(state.StateData.OperationId), Parent);
                                 }
                                 else
                                 {
@@ -270,13 +276,11 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer.Operator
                                         {
                                             if (data.TransferStrem.WriteCrc != chunk.FinishCrc)
                                                 return GoTo(OperatorState.Failed)
-                                                    .Using(state.StateData.Failed(Parent, FailReason.ComunicationError,
-                                                        null));
+                                                    .Using(state.StateData.Failed(Parent, FailReason.ComunicationError, null));
 
                                             data.TargetManager.Tell(new SendingCompled(state.StateData.OperationId));
 
-                                            var msg = new TransferSucess(state.StateData.OperationId,
-                                                state.StateData.Metadata);
+                                            var msg = new TransferSucess(state.StateData.OperationId, state.StateData.Metadata);
                                             state.StateData.Completion?.SetResult(msg);
                                             Parent.Tell(msg);
 
@@ -304,14 +308,14 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer.Operator
                         default:
                             return null;
                     }
-                }, TimeSpan.FromSeconds(10));
+                }, SendingTimeout);
 
 
             When(OperatorState.Failed, state =>
             {
                 _log.Warning("Transfer Failed {Id}", GetId(state));
 
-                void Set(TransferMessages.TransferCompled failed)
+                void Set(TransferCompled failed)
                 {
                     state.StateData.Completion?.SetResult(failed);
                     if (state.StateData.SendBack)
@@ -345,7 +349,7 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer.Operator
                 }
 
                 return Stay();
-            }, TimeSpan.FromSeconds(30));
+            }, FailedTimeout);
 
             When(OperatorState.Compled, _ => null);
 
@@ -385,7 +389,7 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer.Operator
 
         private static IActorRef Parent => Context.Parent;
 
-        private string GetId(Event<OperatorData> message)
+        private static string GetId(Event<OperatorData> message)
         {
             var id = (message.FsmEvent as TransferMessage)?.OperationId ?? message.StateData.OperationId;
             if (string.IsNullOrWhiteSpace(id))

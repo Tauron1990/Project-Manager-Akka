@@ -1,4 +1,5 @@
-﻿using System.Reactive.Linq;
+﻿using System;
+using System.Reactive.Linq;
 using Akka.Actor;
 using ServiceManager.ProjectRepository.Data;
 using SharpRepository.Repository;
@@ -22,6 +23,7 @@ namespace ServiceManager.ProjectRepository.Actors
 
         protected override void ConfigImpl()
         {
+            Receive<Status>().Subscribe();
             Receive<IRepositoryAction>(obs => obs.Select(d => 
                                                          (
                                                              Actor: Context.ActorOf(OperatorActor.New(d.State.Repositorys, d.State.Bucket, d.State.DataTransferManager)),

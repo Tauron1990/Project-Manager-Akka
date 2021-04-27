@@ -1,4 +1,5 @@
-﻿using Akka.Actor;
+﻿using System;
+using Akka.Actor;
 
 namespace Tauron.Application.AkkaNode.Services
 {
@@ -9,5 +10,7 @@ namespace Tauron.Application.AkkaNode.Services
         string Info { get; }
 
         void SetListner(IActorRef listner);
+
+        void ValidateApi(Type apiType);
     }
 }

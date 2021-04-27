@@ -1,18 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reactive.Linq;
 using JetBrains.Annotations;
 
 namespace Tauron.ObservableExt
 {
-    [PublicAPI]
+    [PublicAPI, DebuggerStepThrough]
     public static class ConditionalSelectExtension
     {
         public static ConditionalSelectTypeConfig<TSource> ConditionalSelect<TSource>(
             this IObservable<TSource> observable) => new(observable);
     }
 
-    [PublicAPI]
+    [PublicAPI, DebuggerStepThrough]
     public sealed class ConditionalSelectTypeConfig<TSource>
     {
         private readonly IObservable<TSource> _observable;
@@ -31,7 +32,7 @@ namespace Tauron.ObservableExt
             => ToResult(builder);
     }
 
-    [PublicAPI]
+    [PublicAPI, DebuggerStepThrough]
     public sealed class ConditionalSelectBuilder<TSource, TResult>
     {
         private readonly List<(Func<TSource, bool>, Func<IObservable<TSource>, IObservable<TResult>>)> _registrations =

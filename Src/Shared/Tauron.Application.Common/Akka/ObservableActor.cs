@@ -46,6 +46,8 @@ namespace Tauron.Akka
 
         private bool _isReceived;
 
+        public bool CallSingleHandler { get; set; }
+
         public ObservableActor()
         {
             Self = base.Self;
@@ -157,7 +159,7 @@ namespace Tauron.Akka
             if (!_selectors.TryGetValue(typeof(TEvent), out var selector))
             {
                 selector = _receiver
-                    .Where(m => m is TEvent)
+                    .Where(m => m is TEvent && (!CallSingleHandler || !_isReceived))
                     .Select(m =>
                     {
                         _isReceived = true;

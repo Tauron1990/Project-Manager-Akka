@@ -26,6 +26,14 @@ namespace Tauron.Application.AkkaNode.Services.Commands
 
         string IReporterMessage.Info => Info;
 
+        public void ValidateApi(Type apiType)
+        {
+            if (apiType.IsAssignableTo(typeof(TSender)))
+                return;
+
+            throw new InvalidOperationException($"Incompatible Command Api Type: {apiType} Expeced: {typeof(TSender)}");
+        }
+
         public void SetListner(IActorRef listner) => Listner = listner;
     }
 }

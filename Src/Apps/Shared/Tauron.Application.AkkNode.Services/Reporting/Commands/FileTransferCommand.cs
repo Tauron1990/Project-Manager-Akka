@@ -24,6 +24,14 @@ namespace Tauron.Application.AkkaNode.Services.Commands
                 _manager = value;
             }
         }
+
+        public DataTransferManager GetTransferManager()
+        {
+            if (Manager == null)
+                throw new InvalidOperationException("Transfer manager not Set");
+
+            return Manager;
+        }
     }
 
     [PublicAPI]

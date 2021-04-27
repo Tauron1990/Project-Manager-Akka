@@ -1,25 +1,36 @@
-﻿using Akka.Actor;
+﻿using System;
+using Akka;
+using Akka.Actor;
 using Akka.Streams;
 using Akka.Streams.Dsl;
+using Tauron.Application.AkkaNode.Services;
 using Tauron.Application.Master.Commands.Deployment.Build.Data;
 using Tauron.Application.Master.Commands.Deployment.Build.Querys;
+using Tauron.Features;
 using Tauron.Operations;
 
 namespace ServiceManager.ProjectDeployment.Actors
 {
-    public sealed class ChangeTrackerActor : ReportingActor
+    public sealed class ChangeTrackerActor : ReportingActor<ChangeTrackerActor.ChangeTrackeState>
     {
+        public static IPreparedFeature New()
+            => Feature.Create(() => new ChangeTrackerActor(),
+                c =>
+                {
+                    var mat = c.Materializer();
+
+                    var (queue, source) = Source.Queue<AppInfo>(10, OverflowStrategy.DropHead).PreMaterialize(mat);
+
+                    var hub = source.ToMaterialized(BroadcastHub.Sink<AppInfo>(), Keep.Right);
+
+                    return new ChangeTrackeState(mat, queue, hub);
+                });
+
         private readonly ISourceQueueWithComplete<AppInfo> _appInfos;
 
         public ChangeTrackerActor()
         {
-            var mat = Context.Materializer();
 
-            var (queue, source) = Source.Queue<AppInfo>(10, OverflowStrategy.DropHead).PreMaterialize(mat);
-
-            _appInfos = queue;
-
-            var hub = source.ToMaterialized(BroadcastHub.Sink<AppInfo>(), Keep.Right);
 
 
             Receive<QueryChangeSource>("QueryChanedSource",
@@ -44,6 +55,13 @@ namespace ServiceManager.ProjectDeployment.Actors
         {
             _appInfos.Complete();
             base.PostStop();
+        }
+
+        public sealed record ChangeTrackeState(ActorMaterializer Materializer, ISourceQueueWithComplete<AppInfo> AppInfos, IRunnableGraph<Source<AppInfo, NotUsed>> Hub);
+
+        protected override void ConfigImpl()
+        {
+            Stop.Subscribe(_ => CurrentState.AppInfos.Complete());
         }
     }
 }

@@ -29,7 +29,9 @@ namespace Tauron
                             CompressionLevel.Optimal);
                         break;
                     case DirectoryInfo directory:
-                        destination.CreateEntry(directory.FullName.Replace(sourceDirectoryName, string.Empty));
+                        string name = directory.FullName.Replace(sourceDirectoryName, string.Empty, StringComparison.Ordinal);
+                        if(!string.IsNullOrWhiteSpace(name))
+                            destination.CreateEntry(name);
                         break;
                 }
         }

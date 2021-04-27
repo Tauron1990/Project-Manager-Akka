@@ -23,6 +23,11 @@ namespace Tauron.Features
         private IFeatureActor<TState> _actor = null!;
 
         public IActorContext Context { get; private set; } = null!;
+        public bool CallSingleHandler
+        {
+            get => _actor.CallSingleHandler;
+            set => _actor.CallSingleHandler = value;
+        }
 
         public virtual IEnumerable<string> Identify()
         {

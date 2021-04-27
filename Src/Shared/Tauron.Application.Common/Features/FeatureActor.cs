@@ -31,6 +31,8 @@ namespace Tauron.Features
 
         IUntypedActorContext Context { get; }
 
+        public bool CallSingleHandler { get; set; }
+
         SupervisorStrategy? SupervisorStrategy { get; set; }
 
         void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler);
@@ -42,7 +44,7 @@ namespace Tauron.Features
         IObservable<TEvent> Receive<TEvent>();
     }
 
-    [PublicAPI]
+    [PublicAPI, DebuggerStepThrough]
     public sealed record StatePair<TEvent, TState>(TEvent Event, TState State, ITimerScheduler Timers)
     {
         public StatePair<TEvent, TNew> Convert<TNew>(Func<TState, TNew> converter)
@@ -59,7 +61,7 @@ namespace Tauron.Features
             => new(evt, State, Timers);
     }
 
-    [PublicAPI]
+    [PublicAPI, DebuggerStepThrough]
     public abstract class FeatureActorBase<TFeatured, TState> : ObservableActor, IFeatureActor<TState>
         where TFeatured : FeatureActorBase<TFeatured, TState>, new()
     {
@@ -270,6 +272,12 @@ namespace Tauron.Features
 
             public IUntypedActorContext Context
                 => _original.Context;
+
+            bool IFeatureActor<TTarget>.CallSingleHandler
+            {
+                get => _original.CallSingleHandler;
+                set => _original.CallSingleHandler = value;
+            }
 
             public SupervisorStrategy? SupervisorStrategy
             {

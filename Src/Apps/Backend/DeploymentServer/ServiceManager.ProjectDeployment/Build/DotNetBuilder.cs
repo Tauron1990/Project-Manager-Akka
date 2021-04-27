@@ -60,7 +60,7 @@ namespace ServiceManager.ProjectDeployment.Build
             return process.ExitCode == 0 ? null : BuildErrorCodes.BuildDotNetFailed;
         }
 
-        private static string? DedectDotNet(FileInfo project)
+        private static string? DedectDotNet(FileSystemInfo project)
         {
             const string netcoreapp = "netcoreapp";
             const string netstandard = "netstandard";

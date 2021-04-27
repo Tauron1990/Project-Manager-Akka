@@ -35,7 +35,7 @@ namespace Tauron.Application.Localizer.UIModels
             IMainWindowCoordinator mainWindow, ProjectFileWorkspace workspace)
             : base(lifetimeScope, dispatcher)
         {
-            var proxy = ActorRefFactoryExtensions.ActorOf<ObservableActor>(Context, "Loading_Proxy");
+            var proxy = Context.ActorOf<ObservableActor>("Loading_Proxy");
 
             this.Receive<IncommingEvent>(e => e.Action());
 

@@ -24,7 +24,7 @@ namespace Tauron.Akka
         public static IActorRef ActorOf<TActor>(this IActorRefFactory fac, Expression<Func<TActor>> creator,
             string? name = null) where TActor : ActorBase => fac.ActorOf(Props.Create(creator), name);
 
-        public static IActorRef ActorOf<TActor>(this IActorRefFactory fac, string? name = null) where TActor : ActorBase
-            => fac.ActorOf(Props.Create<TActor>(), name);
+        //public static IActorRef ActorOf<TActor>(this IActorRefFactory fac, string? name = null) where TActor : ActorBase
+        //    => fac.ActorOf(Props.Create<TActor>(), name);
     }
 }

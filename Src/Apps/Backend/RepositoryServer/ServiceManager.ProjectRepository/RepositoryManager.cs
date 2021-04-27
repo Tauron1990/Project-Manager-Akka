@@ -21,7 +21,7 @@ namespace ServiceManager.ProjectRepository
         public bool IsOk => !Manager.IsNobody();
 
         public static RepositoryManager CreateInstance(IActorRefFactory factory, RepositoryManagerConfiguration configuration)
-            => new(factory.ActorOf(RepositoryManagerImpl.Create(configuration)));
+            => new(factory.ActorOf(RepositoryApi.RepositoryPath, RepositoryManagerImpl.Create(configuration)));
 
 
         public static RepositoryManager InitRepositoryManager(ActorSystem actorSystem, RepositoryManagerConfiguration configuration)

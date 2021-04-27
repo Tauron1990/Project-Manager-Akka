@@ -1,8 +1,9 @@
 ﻿using System;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Reactive.Linq;
+using Akka.Actor;
+using Ionic.Zip;
 using Octokit;
 using ServiceManager.ProjectRepository.Core;
 using ServiceManager.ProjectRepository.Data;
@@ -33,6 +34,8 @@ namespace ServiceManager.ProjectRepository.Actors
 
         protected override void ConfigImpl()
         {
+            Receive<Status>().Subscribe();
+
             TryReceive<RegisterRepository>("RegisterRepository",
                 obs => obs
                       .Do(i => Log.Info("Incomming Registration Request for Repository {Name}", i.Event.RepoName))
@@ -141,8 +144,7 @@ namespace ServiceManager.ProjectRepository.Actors
                              })
                         .Select(r =>
                                 {
-                                    var transferRequest = DataTransferRequest.FromStream(r.Request.Event.OperationId, r.RepoZip,
-                                        r.Request.Event.Manager ?? throw new ArgumentNullException(@"FileManager"), r.CommitInfo);
+                                    var transferRequest = DataTransferRequest.FromStream(r.RepoZip, r.Request.Event.GetTransferManager(), r.CommitInfo);
                                     r.Request.State.DataTransferManager.Request(transferRequest.Inform(r.TempFiles));
 
                                     return (r.Request, Transfer: transferRequest);
@@ -159,7 +161,7 @@ namespace ServiceManager.ProjectRepository.Actors
             var repoConfiguration = new RepositoryConfiguration(data.SourceUrl, reporter);
             using var repoPath = RepoEnv.TempFiles.CreateDic();
 
-            var (repoName, _) = repository;
+            var repoName = repository.RepoName;
             var data2 = repos.AsQueryable().FirstOrDefault(r => r.RepoName == repoName);
             if (data2 != null && commitInfo != data2.LastUpdate)
             {
@@ -182,12 +184,12 @@ namespace ServiceManager.ProjectRepository.Actors
                 if (downloadCompled)
                 {
                     Log.Info("Unpack Repository {Name}", repoName);
-
+                    
                     repozip.Seek(0, SeekOrigin.Begin);
-                    using var unpackZip = new ZipArchive(repozip);
+                    using var unpackZip = ZipFile.Read(repozip);
 
                     reporter.Send(RepositoryMessages.ExtractRepository);
-                    unpackZip.ExtractToDirectory(repoPath.FullPath);
+                    unpackZip.ExtractAll(repoPath.FullPath, ExtractExistingFileAction.OverwriteSilently);
                 }
 
                 Log.Info("Execute Git Pull for {Name}", repoName);
@@ -201,9 +203,10 @@ namespace ServiceManager.ProjectRepository.Actors
                 if (repozip.Length != 0)
                     repozip.SetLength(0);
 
-                using (var archive = new ZipArchive(repozip, ZipArchiveMode.Create, true))
+                using (var archive = new ZipFile())
                 {
-                    archive.AddFilesFromDictionary(repoPath.FullPath);
+                    archive.AddDirectory(repoPath.FullPath, "");
+                    archive.Save(repozip);
                 }
 
                 repozip.Seek(0, SeekOrigin.Begin);

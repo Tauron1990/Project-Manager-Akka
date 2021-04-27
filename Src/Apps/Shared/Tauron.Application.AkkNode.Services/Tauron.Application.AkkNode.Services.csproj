@@ -7,6 +7,10 @@
     <RootNamespace>Tauron.Application.AkkaNode.Services</RootNamespace>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Remove="Core\ActorBinaryWriter.cs" />
     <Compile Remove="Core\BinaryHelper.cs" />

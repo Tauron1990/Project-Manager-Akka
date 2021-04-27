@@ -11,11 +11,11 @@ namespace Tauron.Temp
         public static readonly ITempDic Null = new TempDic();
         private readonly bool _deleteDic;
 
-        private readonly Func<string> _nameGenerator;
+        private readonly Func<bool, string> _nameGenerator;
         private readonly ConcurrentDictionary<string, ITempDic> _tempDics = new();
         private readonly ConcurrentDictionary<string, ITempFile> _tempFiles = new();
 
-        protected TempDic(string fullPath, ITempDic? parent, Func<string> nameGenerator, bool deleteDic)
+        protected TempDic(string fullPath, ITempDic? parent, Func<bool, string> nameGenerator, bool deleteDic)
         {
             _nameGenerator = nameGenerator;
             _deleteDic = deleteDic;
@@ -30,7 +30,7 @@ namespace Tauron.Temp
             FullPath = string.Empty;
             KeepAlive = true;
             _deleteDic = false;
-            _nameGenerator = () => string.Empty;
+            _nameGenerator = _ => string.Empty;
         }
 
         public string FullPath { get; }
@@ -59,9 +59,9 @@ namespace Tauron.Temp
             });
         }
 
-        public ITempDic CreateDic() => CreateDic(_nameGenerator());
+        public ITempDic CreateDic() => CreateDic(_nameGenerator(false));
 
-        public ITempFile CreateFile() => CreateFile(_nameGenerator());
+        public ITempFile CreateFile() => CreateFile(_nameGenerator(true));
 
         public void Clear()
         {

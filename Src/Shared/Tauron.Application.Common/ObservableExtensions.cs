@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
@@ -10,7 +11,7 @@ using Tauron.Features;
 
 namespace Tauron
 {
-    [PublicAPI]
+    [PublicAPI, DebuggerStepThrough]
     public static class ObservableExtensions
     {
         public static IObservable<IActorRef> NotNobody(this IObservable<IActorRef> observable)

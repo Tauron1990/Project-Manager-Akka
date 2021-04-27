@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Immutable;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
@@ -18,7 +19,10 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer.Operator
 
         protected override void ConfigImpl()
         {
+            CallSingleHandler = true;
             SupervisorStrategy = new OneForOneStrategy(_ => Directive.Stop);
+
+            Receive<TransferCompled>().Subscribe(m => Context.Stop(Context.Child(m.OperationId)));
 
             Receive<TransmitRequest>(obs => obs
                 .Select(m => new {Child = Context.Child(m.Event.OperationId), Message = m.Event})
@@ -31,17 +35,17 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer.Operator
                     b.When(r => !r.Child.IsNobody(),
                         fail => fail.Select(d => new
                             {
-                                Message = new TransferFailed(d.Message.OperationId, FailReason.DuplicateOperationId,
-                                    null),
+                                Message = new TransferFailed(d.Message.OperationId, FailReason.DuplicateOperationId, null),
                                 Sender = d.Message.From
                             })
                             .ToUnit(i => i.Sender.Tell(i.Message)));
                 }));
 
-            Receive<DataTranfer>(obs => obs
-                .Where(m => m.Event is RequestAccept or RequestDeny)
-                .Do(m => Context.Child(m.Event.OperationId).Tell(m.Event))
-                .Select(m => m.State with {PendingTransfers = m.State.PendingTransfers.Remove(m.Event.OperationId)}));
+            Receive<DataTranfer>(
+                obs => obs
+                      .Do(m => Context.Child(m.Event.OperationId).Tell(m.Event))
+                      .Where(m => m.Event is RequestAccept or RequestDeny)
+                      .Select(m => m.State with {PendingTransfers = m.State.PendingTransfers.Remove(m.Event.OperationId)}));
 
             Receive<DataTransferRequest>(obs => obs
                 .Select(msg => new {Child = Context.Child(msg.Event.OperationId), Message = msg.Event})
@@ -86,19 +90,13 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer.Operator
                 return newState;
             }));
 
-            Receive<TransferCompled>(obs => obs.ToUnit(m =>
-            {
-                var (@event, _, _) = m;
-                Context.Stop(Context.Child(@event.OperationId));
-            }));
-
             Receive<TransferMessage>(obs => obs.ToUnit(m =>
-            {
-                var (transferMessage, _, _) = m;
-
-                Context.Child(transferMessage.OperationId)?.Tell(transferMessage);
-                TellSelf(new SendEvent(transferMessage, transferMessage.GetType()));
-            }));
+                                                       {
+                                                           var (transferMessage, _, _) = m;
+                
+                                                           Context.Child(transferMessage.OperationId)?.Tell(transferMessage);
+                                                           TellSelf(new SendEvent(transferMessage, transferMessage.GetType()));
+                                                       }));
 
             Receive<AwaitRequest>(obs => obs.Select(p =>
             {
