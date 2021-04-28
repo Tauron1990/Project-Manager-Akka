@@ -13,6 +13,8 @@ namespace Tauron.Application.AkkaNode.Services
     [PublicAPI]
     public sealed class Reporter
     {
+        public static readonly Reporter Empty = new(ActorRefs.Nobody);
+
         public const string TimeoutError = nameof(TimeoutError);
         private readonly AtomicBoolean _compledCalled = new();
 
@@ -23,9 +25,7 @@ namespace Tauron.Application.AkkaNode.Services
         public bool IsCompled => _compledCalled.Value;
 
         public static Reporter CreateReporter(IActorRefFactory factory, string? name = "Reporter")
-            => new(factory.ActorOf(
-                Props.Create(() => new ReporterActor()).WithSupervisorStrategy(SupervisorStrategy.StoppingStrategy),
-                name));
+            => new(factory.ActorOf(Props.Create(() => new ReporterActor()).WithSupervisorStrategy(SupervisorStrategy.StoppingStrategy), name));
 
         public static IActorRef CreateListner(IActorRefFactory factory, Action<string> listner,
             Action<IOperationResult> onCompled, TimeSpan timeout, string? name = "LogListner")
@@ -97,6 +97,8 @@ namespace Tauron.Application.AkkaNode.Services
 
         public Reporter Listen(IActorRef actor)
         {
+            if (_reporter.IsNobody()) return;
+
             if (_compledCalled.Value)
                 throw new InvalidOperationException("Reporter is Compled");
             _reporter.Tell(new ListeningActor(actor));
@@ -106,6 +108,8 @@ namespace Tauron.Application.AkkaNode.Services
 
         public void Send(string message)
         {
+            if (_reporter.IsNobody()) return;
+
             if (_compledCalled.Value)
                 throw new InvalidOperationException("Reporter is Compled");
             _reporter.Tell(new TransferedMessage(message));
@@ -113,6 +117,8 @@ namespace Tauron.Application.AkkaNode.Services
 
         public void Compled(IOperationResult result)
         {
+            if(_reporter.IsNobody()) return;
+
             if (_compledCalled.GetAndSet(true))
                 throw new InvalidOperationException("Reporter is Compled");
 

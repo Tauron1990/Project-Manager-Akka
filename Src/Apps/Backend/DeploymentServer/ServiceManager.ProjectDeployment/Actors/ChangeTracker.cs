@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Reactive.Linq;
 using Akka;
 using Akka.Actor;
 using Akka.Streams;
 using Akka.Streams.Dsl;
+using Tauron;
 using Tauron.Application.AkkaNode.Services;
 using Tauron.Application.Master.Commands.Deployment.Build.Data;
 using Tauron.Application.Master.Commands.Deployment.Build.Querys;
@@ -26,42 +28,30 @@ namespace ServiceManager.ProjectDeployment.Actors
                     return new ChangeTrackeState(mat, queue, hub);
                 });
 
-        private readonly ISourceQueueWithComplete<AppInfo> _appInfos;
-
-        public ChangeTrackerActor()
-        {
-
-
-
-            Receive<QueryChangeSource>("QueryChanedSource",
-                (changeSource, reporter)
-                    => reporter.Compled(OperationResult.Success(new AppChangedSource(hub.Run(mat)))));
-            Receive<AppInfo>(ai => _appInfos.OfferAsync(ai).PipeTo(Self));
-            Receive<IQueueOfferResult>(r =>
-            {
-                switch (r)
-                {
-                    case QueueOfferResult.Failure f:
-                        Log.Error(f.Cause, "Error In Change Tracker");
-                        break;
-                    case QueueOfferResult.QueueClosed _:
-                        Log.Warning("Unexpectem Tracker Queue Close.");
-                        break;
-                }
-            });
-        }
-
-        protected override void PostStop()
-        {
-            _appInfos.Complete();
-            base.PostStop();
-        }
-
         public sealed record ChangeTrackeState(ActorMaterializer Materializer, ISourceQueueWithComplete<AppInfo> AppInfos, IRunnableGraph<Source<AppInfo, NotUsed>> Hub);
 
         protected override void ConfigImpl()
         {
             Stop.Subscribe(_ => CurrentState.AppInfos.Complete());
+            TryReceive<QueryChangeSource>("QueryChanedSource",
+                obs => obs.ToUnit(m => m.Reporter.Compled(OperationResult.Success(new AppChangedSource(m.State.Hub.Run(m.State.Materializer))))));
+
+            Receive<AppInfo>(obs => obs.ToUnit(m => m.State.AppInfos.OfferAsync(m.Event).PipeTo(Self)));
+
+            Receive<IQueueOfferResult>(obs => obs
+                                             .Select(m => m.Event)
+                                             .SubscribeWithStatus(p =>
+                                                                  {
+                                                                      switch (p)
+                                                                      {
+                                                                          case QueueOfferResult.Failure f:
+                                                                              Log.Error(f.Cause, "Error In Change Tracker");
+                                                                              break;
+                                                                          case QueueOfferResult.QueueClosed _:
+                                                                              Log.Warning("Unexpectem Tracker Queue Close.");
+                                                                              break;
+                                                                      }
+                                                                  }));
         }
     }
 }
