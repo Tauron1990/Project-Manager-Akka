@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -97,73 +98,87 @@ namespace ServiceManager.ProjectDeployment.Actors
                                        var (commit, fileName) = ((string, ITempFile))m.Result.Outcome!;
                                        return Observable.Using(() => fileName,
                                            file =>
-                                           (
-                                               from info in Observable.Return((Commit: commit, File: file, Data: m))
-                                               let oldApp = info.Data.AppData ?? AppData.Empty
-                                               let newVersion = oldApp.Last + 1
-                                               let newId = $"{oldApp.Id}-{newVersion}.zip"
-                                               let newBinary = new AppFileInfo(newId, oldApp.Last + 1, DateTime.UtcNow, false, info.Commit)
-                                               let newData = oldApp with
-                                               {
-                                                   Last = newVersion,
-                                                   LastUpdate = DateTime.UtcNow,
-                                                   Versions = info.Data.AppData!.Versions.Add(newBinary)
-                                               }
-                                               select (info.Data.State, NewData: newData, NewBinary: newBinary,
-                                                       ToDelete: newData.Versions.OrderByDescending(i => i.CreationTime).Skip(5)
-                                                                       .Where(i => !i.Deleted))
-                                           )
-                                          .Select(i =>
-                                          {
+                                               (
+                                                   from info in Observable.Return((Commit: commit, File: file, Data: m))
+                                                   let oldApp = info.Data.AppData ?? AppData.Empty
+                                                   let newVersion = oldApp.Last + 1
+                                                   let newId = $"{oldApp.Id}-{newVersion}.zip"
+                                                   let newBinary = new AppFileInfo(newId, oldApp.Last + 1, DateTime.UtcNow, false, info.Commit)
+                                                   let newData = oldApp with
+                                                                 {
+                                                                     Last = newVersion,
+                                                                     LastUpdate = DateTime.UtcNow,
+                                                                     Versions = info.Data.AppData!.Versions.Add(newBinary)
+                                                                 }
+                                                   select (info.Data.State, NewData: newData, NewBinary: newBinary, info.File,
+                                                           ToDelete: newData.Versions.OrderByDescending(i => i.CreationTime).Skip(5)
+                                                                            .Where(i => !i.Deleted).ToArray())
+                                               )
+                                              .Select(i =>
+                                                      {
+                                                          using var stream = i.State.Files.GetFile(i.NewBinary.Id).Open(FileAccess.Write);
+                                                          using var fileStream = i.File.Stream;
 
-                                              return i;
-                                          })
-                                          .Select(i => new AppBinary(
-                                                      i.NewBinary.Version, i.NewData!.Id, i.NewBinary.CreationTime, false,
-                                                      i.NewBinary.Commit, i.NewData.Repository)));
+                                                          fileStream.CopyTo(stream);
+
+                                                          var newData = i.ToDelete
+                                                                         .Aggregate(i.NewData,
+                                                                              (current, appFileInfo) => current! with
+                                                                                                        {
+                                                                                                            Versions = current.Versions
+                                                                                                                              .Replace(appFileInfo, appFileInfo with
+                                                                                                                                                    {
+                                                                                                                                                        Deleted = true
+                                                                                                                                                    })
+                                                                                                        });
+
+                                                          i.State.Apps.Update(newData!);
+                                                          i.State.ToDelete.Add(i.ToDelete.Select(e => new ToDeleteRevision(e.Id)));
+                                                          return (Data:newData, i.NewBinary, i.State);
+                                                      })
+                                              .Do(i => i.State.ChangeTracker.Tell(i.Data!.ToInfo()))
+                                              .Select(i => new AppBinary(
+                                                          i.NewBinary.Version, i.Data!.Id, i.NewBinary.CreationTime, false,
+                                                          i.NewBinary.Commit, i.Data.Repository)));
                                    }
                                }));
 
+            DirectCommandPhase1<DeleteAppCommand>("DeleteApp",
+                obs => obs.Select(m => m.New((Command:m.Event, App:m.State.Apps.Get(m.Event.AppName))))
+                          .ConditionalSelect()
+                          .ToResult<Unit>(
+                               b =>
+                               {
+                                   b.When(m => m.Event.App == null, o => o.ToUnit(i => i.Reporter.Compled(OperationResult.Failure(BuildErrorCodes.CommandAppNotFound))));
 
-            //        var newId = files.UploadFromStream(data.Name + ".zip", targetStream.Stream);
+                                   b.When(m => m.Event.App != null,
+                                       o => o.ToUnit(i =>
+                                                     {
+                                                         i.State.Apps.Delete(i.Event.App);
+                                                         i.State.ToDelete.Add(i.Event.App.Versions.Select(d => new ToDeleteRevision(d.Id)));
 
-            //        var newBinary = new AppFileInfo(newId, data.Last + 1, DateTime.UtcNow, false, commit);
-            //        var newBinarys = data.Versions.Add(newBinary);
+                                                         i.Reporter.Compled(OperationResult.Success(i.Event.App.ToInfo().IsDeleted()));
+                                                     }));
+                               }));
 
-            //        var definition = Builders<AppData>.Update;
-            //        var updates = new List<UpdateDefinition<AppData>>
-            //                      {
-            //                          definition.Set(ad => ad.Last, newBinary.Version),
-            //                          definition.Set(ad => ad.Versions, newBinarys)
-            //                      };
-
-            //        var deleteUpdates = new List<ToDeleteRevision>();
-
-            //        if (data.Versions.Count(s => !s.Deleted) > 5)
-            //            foreach (var info in newBinarys.OrderByDescending(i => i.CreationTime).Skip(5))
-            //            {
-            //                if (info.Deleted) continue;
-            //                info.Deleted = true;
-            //                deleteUpdates.Add(new ToDeleteRevision(info.File.ToString()));
-            //            }
-
-            //        transaction.StartTransaction();
-
-            //        if (deleteUpdates.Count != 0)
-            //            toDelete.InsertMany(transaction, deleteUpdates);
-            //        if (!apps.UpdateOne(transaction, dataFilter, definition.Combine(updates)).IsAcknowledged)
-            //        {
-            //            transaction.AbortTransaction();
-            //            reporter.Compled(OperationResult.Failure(BuildErrorCodes.DatabaseError));
-            //            return null;
-            //        }
-
-            //        transaction.CommitTransaction();
-
-            //        changeTracker.Tell(_apps.AsQueryable().FirstOrDefault(ad => ad.Name == command.AppName));
-            //        return new AppBinary(command.AppName, newBinary.Version, newBinary.CreationTime, false,
-            //            newBinary.Commit, data.Repository);
-            //    });
+            //CommandPhase1<ForceBuildCommand>("ForceBuild", (command, reporter) =>
+            //                                               {
+            //                                                   var tempData = new AppData(command.AppName, -1,
+            //                                                       DateTime.Now, DateTime.MinValue, command.Repository,
+            //                                                       command.Repository,
+            //                                                       ImmutableList<AppFileInfo>.Empty);
+            //                                                   BuildRequest
+            //                                                      .SendWork(workDistributor, reporter, tempData,
+            //                                                           repository, BuildEnv.TempFiles.CreateFile())
+            //                                                      .PipeTo(Self,
+            //                                                           success: d => new ContinueForceBuild(
+            //                                                               OperationResult.Success(d.Item2),
+            //                                                               command, reporter),
+            //                                                           failure: e => new ContinueForceBuild(
+            //                                                               OperationResult.Failure(
+            //                                                                   e.Unwrap()?.Message ?? "Cancel"),
+            //                                                               command, reporter));
+            //                                               });
         }
 
         private void CommandPhase1<TCommand>(
@@ -286,54 +301,7 @@ namespace ServiceManager.ProjectDeployment.Actors
     {
         public AppCommandProcessorOld()
         {
-            //CommandPhase1<DeleteAppCommand>("DeleteApp", (command, reporter) =>
-            //                                             {
-            //                                                 var data = apps.AsQueryable()
-            //                                                                .FirstOrDefault(
-            //                                                                     d => d.Name == command.AppName);
-            //                                                 if (data == null)
-            //                                                 {
-            //                                                     reporter.Compled(
-            //                                                         OperationResult.Failure(BuildErrorCodes
-            //                                                            .CommandAppNotFound));
-            //                                                     return;
-            //                                                 }
-
-            //                                                 var transaction = apps.Database.Client.StartSession();
-            //                                                 transaction.StartTransaction();
-
-            //                                                 var arr = data.Versions.Where(f => f.Deleted).ToArray();
-            //                                                 if (arr.Length > 0)
-            //                                                     toDelete.InsertMany(transaction,
-            //                                                         arr.Select(
-            //                                                             f => new ToDeleteRevision(f.File.ToString())));
-            //                                                 apps.DeleteOne(transaction,
-            //                                                     Builders<AppData>.Filter.Eq(a => a.Name, data.Name));
-
-            //                                                 transaction.CommitTransaction();
-            //                                                 reporter.Compled(
-            //                                                     OperationResult.Success(data.ToInfo().IsDeleted()));
-            //                                             });
-
-            //CommandPhase1<ForceBuildCommand>("ForceBuild", (command, reporter) =>
-            //                                               {
-            //                                                   var tempData = new AppData(command.AppName, -1,
-            //                                                       DateTime.Now, DateTime.MinValue, command.Repository,
-            //                                                       command.Repository,
-            //                                                       ImmutableList<AppFileInfo>.Empty);
-            //                                                   BuildRequest
-            //                                                      .SendWork(workDistributor, reporter, tempData,
-            //                                                           repository, BuildEnv.TempFiles.CreateFile())
-            //                                                      .PipeTo(Self,
-            //                                                           success: d => new ContinueForceBuild(
-            //                                                               OperationResult.Success(d.Item2),
-            //                                                               command, reporter),
-            //                                                           failure: e => new ContinueForceBuild(
-            //                                                               OperationResult.Failure(
-            //                                                                   e.Unwrap()?.Message ?? "Cancel"),
-            //                                                               command, reporter));
-            //                                               });
-
+            
             //CommandPhase2<ContinueForceBuild, ForceBuildCommand, FileTransactionId>("ForceBuild2",
             //    (command, result, reporter, _) =>
             //    {
