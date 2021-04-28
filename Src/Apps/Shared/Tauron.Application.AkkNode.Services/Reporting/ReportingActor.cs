@@ -167,8 +167,7 @@ namespace Tauron.Application.AkkaNode.Services
         //    }
         //}
 
-
-        public void TryReceive<TMessage>(string name, Func<IObservable<ReporterEvent<TMessage, TState>>, IObservable<Unit>> factory)
+        private void PrepareReceive<TMessage, TResult>(string name, Func<IObservable<ReporterEvent<TMessage, TState>>, IObservable<TResult?>> factory, Action<TResult?, Reporter> handler)
             where TMessage : IReporterMessage
         {
             Receive<TMessage>(
@@ -184,10 +183,10 @@ namespace Tauron.Application.AkkaNode.Services
                                       var disposable = new SingleAssignmentDisposable
                                                        {
                                                            Disposable = factory(subject).Subscribe(
-                                                               _ => { },
+                                                               r => handler(r, reporter),
                                                                e =>
                                                                {
-                                                                   if(!reporter.IsCompled)
+                                                                   if (!reporter.IsCompled)
                                                                        reporter.Compled(OperationResult.Failure(new Error(e.Unwrap()?.Message, GenralError)));
 
                                                                    Log.Error(e, "Process Operation {Name} Failed {Info}", name, m.Event.Info);
@@ -200,6 +199,18 @@ namespace Tauron.Application.AkkaNode.Services
                                             .Finally(() => Log.Info("Exit Operation {Name} -- {Info}", name, m.Event.Info));
                                   }));
         }
+
+        public void TryReceive<TMessage>(string name, Func<IObservable<ReporterEvent<TMessage, TState>>, IObservable<IOperationResult?>> factory)
+            where TMessage : IReporterMessage
+            => PrepareReceive(name, factory, (result, reporter) =>
+                                             {
+                                                 if(!reporter.IsCompled && result != null)
+                                                     reporter.Compled(result);
+                                             });
+
+        public void TryReceive<TMessage>(string name, Func<IObservable<ReporterEvent<TMessage, TState>>, IObservable<Unit>> factory)
+            where TMessage : IReporterMessage
+            => PrepareReceive(name, factory, (_, _) => {});
 
         private IObservable<TResult> PrepareContinue<TMessage, TResult>(
             string name,
@@ -251,6 +262,12 @@ namespace Tauron.Application.AkkaNode.Services
         public ReporterEvent(Reporter reporter, StatePair<TMessage, TState> @event)
             : this(reporter, @event.Event, @event.State, @event.Timers)
         {        }
+
+        public ReporterEvent<TMessage, TState> CompledReporter(IOperationResult result)
+        {
+            Reporter.Compled(result);
+            return this;
+        }
 
         public ReporterEvent<TNewMessage, TState> New<TNewMessage>(TNewMessage newMessage)
             => new(Reporter, newMessage, State, Timer);

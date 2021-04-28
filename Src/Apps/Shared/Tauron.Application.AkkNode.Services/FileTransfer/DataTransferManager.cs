@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
 using JetBrains.Annotations;
+using Tauron.Application.AkkaNode.Services.Commands;
 using Tauron.Application.AkkaNode.Services.Core;
 using Tauron.Application.AkkaNode.Services.FileTransfer.Operator;
 using Tauron.Features;
@@ -23,7 +24,11 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer
             where TType : TransferMessages.TransferMessage
             => Actor.SubscribeToEvent<TType>();
 
-        public void Request(DataTransferRequest request) => Actor.Tell(request);
+        public FileTransactionId Request(DataTransferRequest request)
+        {
+            Actor.Tell(request);
+            return new FileTransactionId(request.OperationId);
+        }
 
         public Task<AwaitResponse> AskAwaitOperation(AwaitRequest request)
             => Actor.Ask<AwaitResponse>(request,

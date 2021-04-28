@@ -2,5 +2,5 @@
 
 namespace ServiceManager.ProjectDeployment.Data
 {
-    public sealed record AppFileInfo(string Id, string File, int Version, DateTime CreationTime, bool Deleted, string Commit);
+    public sealed record AppFileInfo(string Id, int Version, DateTime CreationTime, bool Deleted, string Commit);
 }
