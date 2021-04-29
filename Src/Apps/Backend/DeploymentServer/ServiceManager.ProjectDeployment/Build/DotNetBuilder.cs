@@ -33,7 +33,7 @@ namespace ServiceManager.ProjectDeployment.Build
                 StartInfo = new ProcessStartInfo(path, arguments.ToString())
                 {
                     UseShellExecute = false,
-                    CreateNoWindow = true
+                    CreateNoWindow = false
                 }
             };
 

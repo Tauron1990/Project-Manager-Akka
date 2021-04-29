@@ -78,7 +78,7 @@ namespace ServiceManager.ProjectDeployment.Actors
 
         public string Error { get; private set; } = string.Empty;
 
-        public string OperationId { get; private set; } = string.Empty;
+        //public string OperationId { get; private set; } = string.Empty;
 
         public BuildPaths Paths { get; private set; } = new();
 
@@ -90,7 +90,7 @@ namespace ServiceManager.ProjectDeployment.Actors
 
         public BuildData Set(BuildRequest request)
         {
-            OperationId = Guid.NewGuid().ToString("D");
+            //OperationId = Guid.NewGuid().ToString("D");
             Paths = new BuildPaths(BuildEnv.TempFiles.CreateDic());
             Reporter = request.Source;
             AppData = request.AppData;
@@ -174,14 +174,14 @@ namespace ServiceManager.ProjectDeployment.Actors
                         case TransferFailed fail:
                             _log.Warning("Repository Transfer Failed {Name}--{Reason}", evt.StateData.AppData.Id,
                                 fail.Reason);
-                            if (fail.OperationId != evt.StateData.OperationId)
-                                return Stay();
+                            //if (fail.OperationId != evt.StateData.OperationId)
+                            //    return Stay();
                             return GoTo(BuildState.Failing)
                                .Using(evt.StateData.SetError(fail.Reason.ToString()));
                         case TransferMessages.TransferCompled c:
                             _log.Info("Repository Transfer Compled {Name}", evt.StateData.AppData.Id);
-                            if (c.OperationId != evt.StateData.OperationId)
-                                return Stay();
+                            //if (c.OperationId != evt.StateData.OperationId)
+                            //    return Stay();
                             evt.StateData.Commit = c.Data ?? "Unkowen";
                             return GoTo(BuildState.Extracting)
                                .ReplyingSelf(Trigger.Inst);
@@ -243,8 +243,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                                 Action<string> log = evt.StateData.Reporter.Send;
 
                                 Task.Run(async ()
-                                             => await DotNetBuilder.BuildApplication(file,
-                                                 evt.StateData.Paths.BuildPath.FullPath, log))
+                                             => await DotNetBuilder.BuildApplication(file, evt.StateData.Paths.BuildPath.FullPath, log))
                                     .PipeTo(Self,
                                          success: s => string.IsNullOrWhiteSpace(s)
                                                       ? OperationResult.Success()
@@ -293,6 +292,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                 evt =>
                 {
                     evt.StateData.Target.Dispose();
+                    evt.StateData.CompletionSource?.SetException(new InvalidOperationException(evt.StateData.Error));
                     return GoTo(BuildState.Waiting)
                           .Using(evt.StateData.Clear(_log))
                           .ReplyingParent(BuildCompled.Inst);
@@ -325,17 +325,21 @@ namespace ServiceManager.ProjectDeployment.Actors
                          {
                              if (nextState == BuildState.Failing)
                              {
-                                 StateData.Reporter.Compled(
-                                     OperationResult.Failure(string.IsNullOrWhiteSpace(StateData.Error)
-                                         ? BuildErrorCodes.GernalBuildError
-                                         : StateData.Error));
+                                 if (!StateData.Reporter.IsCompled)
+                                 {
+                                     StateData.Reporter.Compled(
+                                         OperationResult.Failure(string.IsNullOrWhiteSpace(StateData.Error)
+                                             ? BuildErrorCodes.GernalBuildError
+                                             : StateData.Error));
+                                 }
+
                                  Self.Tell(Trigger.Inst);
                              }
                          });
 
             OnTermination(evt =>
                           {
-                              _log.Error("Unexpekted Termination {Cause} on {State}", evt.Reason.ToString(), evt.TerminatedState);
+                              _log.Error("Unexpected Termination {Cause} on {State}", evt.Reason.ToString(), evt.TerminatedState);
                               evt.StateData.Paths.Dispose();
 
                               evt.StateData.CompletionSource?.TrySetCanceled();

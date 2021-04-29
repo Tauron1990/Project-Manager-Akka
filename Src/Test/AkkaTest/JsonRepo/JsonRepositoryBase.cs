@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -36,12 +37,16 @@ namespace AkkaTest.JsonRepo
         {
             if (!File.Exists(_storagePath)) return;
 
-            using var stream = new FileStream(_storagePath, FileMode.Open);
-            using var reader = new StreamReader(stream);
-            Items = JsonConvert.DeserializeObject<Dictionary<TKey, T>>(reader.ReadToEnd()) ?? new Dictionary<TKey, T>();
+            Items = JsonDbFileStore.Get(_storagePath, () =>
+                                                      {
+                                                          using var stream = new FileStream(_storagePath, FileMode.Open);
+                                                          using var reader = new StreamReader(stream);
+                                                          return JsonConvert.DeserializeObject<ConcurrentDictionary<TKey, T>>(reader.ReadToEnd())
+                                                              ?? new ConcurrentDictionary<TKey, T>();
+                                                      });
         }
 
-        private Dictionary<TKey, T> Items { get; set; } = new();
+        private ConcurrentDictionary<TKey, T> Items { get; set; } = new();
 
         protected override IQueryable<T> BaseQuery(IFetchStrategy<T>? fetchStrategy = null)
         {
@@ -62,19 +67,21 @@ namespace AkkaTest.JsonRepo
                 SetPrimaryKey(entity, id);
             }
 
-            Items.Add(id, entity);
+            if (!Items.TryAdd(id, entity))
+                throw new InvalidOperationException("Entity Add Failed");
         }
 
         protected override void DeleteItem(T entity)
         {
             GetPrimaryKey(entity, out TKey pkValue);
 
-            Items.Remove(pkValue);
+            if (!Items.TryRemove(pkValue, out _))
+                throw new InvalidOperationException("Entity Remove Failed");
         }
 
         protected override void UpdateItem(T entity)
         {
-            GetPrimaryKey(entity, out TKey pkValue);
+            GetPrimaryKey(entity, out var pkValue);
 
             Items[pkValue] = entity;
         }
@@ -85,13 +92,7 @@ namespace AkkaTest.JsonRepo
             return GetPrimaryKey(item, out TKey value) && keyValue.Equals(value);
         }
 
-        protected override void SaveChanges()
-        {
-            var writer = new StreamWriter(_storagePath, false);
-            var serializer = new XmlSerializer(typeof(List<T>));
-            serializer.Serialize(writer, Items);
-            writer.Close();
-        }
+        protected override void SaveChanges() => JsonDbFileStore.Save(_storagePath, Items);
 
         public override void Dispose()
         {

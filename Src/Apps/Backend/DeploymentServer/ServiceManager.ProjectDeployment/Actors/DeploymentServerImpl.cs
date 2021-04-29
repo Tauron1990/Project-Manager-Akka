@@ -24,7 +24,7 @@ namespace ServiceManager.ProjectDeployment.Actors
         {
             var changeTracker = context.ActorOf("Change-Tracker", ChangeTrackerActor.New());
             
-            var trashBin = configuration.GetInstance<ToDeleteRevision, string>("TrashBin");
+            var trashBin = configuration.GetInstance<ToDeleteRevision, string>(CleanUpManager.RepositoryKey);
 
             var cleanUp = context.ActorOf("CleanUp-Manager", CleanUpManager.New(configuration, fileSystem));
             cleanUp.Tell(CleanUpManager.Initialization);

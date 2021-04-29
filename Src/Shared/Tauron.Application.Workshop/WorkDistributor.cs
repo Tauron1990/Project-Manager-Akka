@@ -18,13 +18,11 @@ namespace Tauron.Application.Workshop
     public sealed class WorkDistributorFeature<TInput, TFinishMessage> : ActorFeatureBase<WorkDistributorFeature<TInput, TFinishMessage>.WorkDistributorFeatureState>
     {
         [PublicAPI]
-        public static IWorkDistributor<TInput> Create(Props worker, string workerName, TimeSpan timeout,
-            string? name = null)
+        public static IWorkDistributor<TInput> Create(Props worker, string workerName, TimeSpan timeout, string? name = null)
             => Create(ObservableActor.ExposedContext, worker, workerName, timeout, name);
 
         [PublicAPI]
-        public static IWorkDistributor<TInput> Create(IActorRefFactory factory, Props worker, string workerName,
-            TimeSpan timeout, string? name = null)
+        public static IWorkDistributor<TInput> Create(IActorRefFactory factory, Props worker, string workerName, TimeSpan timeout, string? name = null)
         {
             var actor = factory.ActorOf(name,
                 Feature.Create(() => new WorkDistributorFeature<TInput, TFinishMessage>(),
@@ -48,8 +46,7 @@ namespace Tauron.Application.Workshop
                 }));
 
             Receive<CheckWorker>(obs => obs.Where(s => s.State.Worker.Count < s.State.Configuration.WorkerCount)
-                .SelectMany(s
-                    => Observable.Repeat(new SetupWorker(), s.State.Worker.Count - s.State.Configuration.WorkerCount))
+                .SelectMany(s => Observable.Repeat(new SetupWorker(), s.State.Configuration.WorkerCount - s.State.Worker.Count))
                 .SubscribeWithStatus(m => Self.Tell(m)));
 
             Receive<SetupWorker>(obs => obs.Select(s =>

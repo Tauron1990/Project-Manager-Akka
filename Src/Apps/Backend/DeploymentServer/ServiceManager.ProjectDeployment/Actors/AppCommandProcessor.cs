@@ -174,7 +174,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                           .ToResult<FileTransactionId?>(
                                b =>
                                {
-                                   b.When(m => m.Command.Manager == null || m.Result.Outcome is not ITempFile, o => o.Select(_ => default(FileTransactionId)));
+                                   b.When(m => m.Command.Manager == null || (m.Result.Ok && m.Result.Outcome is not ITempFile), o => o.Select(_ => default(FileTransactionId)));
                                    b.When(m => !m.Result.Ok, o => o.ApplyWhen(d => !d.Reporter.IsCompled, data => data.Reporter.Compled(data.Result))
                                                                    .Select(_ => default(FileTransactionId)));
 

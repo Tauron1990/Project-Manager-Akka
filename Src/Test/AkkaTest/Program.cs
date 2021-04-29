@@ -11,6 +11,7 @@ using AkkaTest.CommandTest;
 using AkkaTest.InMemoryStorage;
 using AkkaTest.JsonRepo;
 using Autofac;
+using Ionic.Zip;
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
 using Serilog;
@@ -32,6 +33,7 @@ using Tauron.Application.Files.GridFS;
 using Tauron.Application.Files.VirtualFiles;
 using Tauron.Application.Files.VirtualFiles.InMemory.Data;
 using Tauron.Application.Master.Commands.Deployment.Build;
+using Tauron.Application.Master.Commands.Deployment.Build.Commands;
 using Tauron.Application.Master.Commands.Deployment.Repository;
 using Tauron.Host;
 
@@ -45,11 +47,13 @@ namespace AkkaTest
         private readonly DataTransferManager _dataTransfer;
         private readonly DeploymentApi _deploymentApi;
         private readonly RepositoryApi _repositoryApi;
+        private readonly IVirtualFileSystem _bucked;
 
         private readonly ActorSystem _system;
 
         public TestActor(ISharpRepositoryConfiguration repositoryConfiguration, IVirtualFileSystem bucked)
         {
+            _bucked = bucked;
             _dataTransfer = DataTransferManager.New(Context, "Test_Transfer");
             
             _repositoryApi = RepositoryApi.CreateFromActor(
@@ -62,6 +66,7 @@ namespace AkkaTest
                                       new DeploymentConfiguration(repositoryConfiguration, bucked.GetDirectory("Deployment_Test"), DataTransferManager.New(Context, "Deployment_Tramsfer"), _repositoryApi))
                                  .Manager);
 
+            _system = Context.System;
             ReceiveAsync<Start>(Start);
         }
 
@@ -69,17 +74,27 @@ namespace AkkaTest
         {
             try
             {
+                var file = _bucked.GetFile("build.zip");
+                var dic = _bucked.GetDirectory("Build");
+
+                await _repositoryApi.Send(new RegisterRepository(TestRepo, true), TimeSpan.FromMinutes(20), Log.Information);
+
+                await _deploymentApi.Send(new ForceBuildCommand(TestRepo, TestProject), TimeSpan.FromMinutes(30), _dataTransfer, Log.Information, () => file.Create());
+
+                using var zip = ZipFile.Read(file.Open(FileAccess.Read));
+                zip.ExtractAll(dic.OriginalPath, ExtractExistingFileAction.OverwriteSilently);
+
+                Console.WriteLine("Test Compled");
             }
             catch (Exception e)
             {
                 Console.WriteLine("Test Fehlgeschlagen...");
                 Console.WriteLine(e);
-                throw;
             }
-            finally
-            {
-                await _system.Terminate();
-            }
+            //finally
+            //{
+            //    await _system.Terminate();
+            //}
         }
     }
 
@@ -106,8 +121,6 @@ namespace AkkaTest
             config.AddRepository(new JsonRepositoryConfiguration(RepositoryManager.RepositoryKey, dbPath));
             config.AddRepository(new JsonRepositoryConfiguration(CleanUpManager.RepositoryKey, dbPath));
             //config.AddRepository(new InMemoryRepositoryConfiguration(RepositoryManager.RepositoryKey) { Factory = typeof(PersistentInMemorxConfigRepositoryFactory) });
-
-            var dataManager = DataTransferManager.New(_system, "RepoDataTransfer");
 
             _system.ActorOf(Props.Create(() => new TestActor(config, bucked)), "Start_Helper").Tell(new Start());
         }
