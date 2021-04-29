@@ -10,7 +10,7 @@ namespace ServiceManager.ProjectDeployment
     [PublicAPI]
     public sealed class DeploymentManager
     {
-        public const string DeploymentManagerKey = "DeploymentManager";
+        public const string RepositoryKey = "DeploymentManager";
 
         public static readonly DeploymentManager Empty = new(ActorRefs.Nobody);
 

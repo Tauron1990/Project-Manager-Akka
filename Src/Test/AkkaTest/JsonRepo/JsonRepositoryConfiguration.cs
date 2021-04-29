@@ -13,7 +13,7 @@ namespace AkkaTest.JsonRepo
 
         public string Directory
         {
-            set { Attributes["directory"] = value; }
+            set => Attributes["directory"] = value;
         }
     }
 }

@@ -102,12 +102,12 @@ namespace AkkaTest
 
             var config = new SharpRepositoryConfiguration();
 
-            config.AddRepository(new InMemoryRepositoryConfiguration(DeploymentManager.DeploymentManagerKey) { Factory = typeof(PersistentInMemorxConfigRepositoryFactory)});
-            config.AddRepository(new JsonRepositoryConfiguration(RepositoryManager.RepositoryManagerKey, dbPath));
-            //config.AddRepository(new InMemoryRepositoryConfiguration(RepositoryManager.RepositoryManagerKey) { Factory = typeof(PersistentInMemorxConfigRepositoryFactory) });
+            config.AddRepository(new InMemoryRepositoryConfiguration(DeploymentManager.RepositoryKey) { Factory = typeof(PersistentInMemorxConfigRepositoryFactory)});
+            config.AddRepository(new JsonRepositoryConfiguration(RepositoryManager.RepositoryKey, dbPath));
+            config.AddRepository(new JsonRepositoryConfiguration(CleanUpManager.RepositoryKey, dbPath));
+            //config.AddRepository(new InMemoryRepositoryConfiguration(RepositoryManager.RepositoryKey) { Factory = typeof(PersistentInMemorxConfigRepositoryFactory) });
 
             var dataManager = DataTransferManager.New(_system, "RepoDataTransfer");
-            var manager = RepositoryManager.CreateInstance(_system, new RepositoryManagerConfiguration(config, bucked, dataManager));
 
             _system.ActorOf(Props.Create(() => new TestActor(config, bucked)), "Start_Helper").Tell(new Start());
         }

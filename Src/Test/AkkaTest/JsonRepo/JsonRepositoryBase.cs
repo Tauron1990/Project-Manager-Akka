@@ -7,7 +7,6 @@ using Newtonsoft.Json;
 using SharpRepository.Repository;
 using SharpRepository.Repository.Caching;
 using SharpRepository.Repository.FetchStrategies;
-using Tauron;
 
 namespace AkkaTest.JsonRepo
 {
@@ -22,10 +21,8 @@ namespace AkkaTest.JsonRepo
         /// </summary>
         /// <param name="storagePath">Path to the directory.  The XML filename is determined by the TypeName</param>
         /// <param name="cachingStrategy"></param>
-        internal JsonRepositoryBase(string storagePath, ICachingStrategy<T, TKey> cachingStrategy = null) : base(cachingStrategy) 
-        {
-            Initialize(storagePath);
-        }
+        internal JsonRepositoryBase(string storagePath, ICachingStrategy<T, TKey>? cachingStrategy = null) 
+            : base(cachingStrategy) => Initialize(storagePath);
 
         private void Initialize(string storagePath)
         {
@@ -46,47 +43,40 @@ namespace AkkaTest.JsonRepo
 
         private Dictionary<TKey, T> Items { get; set; } = new();
 
-        protected override IQueryable<T> BaseQuery(IFetchStrategy<T> fetchStrategy = null)
+        protected override IQueryable<T> BaseQuery(IFetchStrategy<T>? fetchStrategy = null)
         {
             return Items.Values.AsQueryable();
         }
 
         protected override T GetQuery(TKey key, IFetchStrategy<T> fetchStrategy)
         {
-            return BaseQuery(fetchStrategy).FirstOrDefault(x => MatchOnPrimaryKey(x, key));
+            return BaseQuery(fetchStrategy).FirstOrDefault(x => MatchOnPrimaryKey(x, key))!;
         }
 
         protected override void AddItem(T entity)
         {
-            if (GenerateKeyOnAdd && GetPrimaryKey(entity, out TKey id) && Equals(id, default(TKey)))
+            var isKeySet = GetPrimaryKey(entity, out var id);
+            if (GenerateKeyOnAdd && isKeySet  && Equals(id, default(TKey)))
             {
                 id = GeneratePrimaryKey();
                 SetPrimaryKey(entity, id);
             }
 
-            Items.Add(entity);
+            Items.Add(id, entity);
         }
 
         protected override void DeleteItem(T entity)
         {
             GetPrimaryKey(entity, out TKey pkValue);
 
-            var index = Items.FindIndex(x => MatchOnPrimaryKey(x, pkValue));
-            if (index >= 0)
-            {
-                Items.RemoveAt(index);
-            }
+            Items.Remove(pkValue);
         }
 
         protected override void UpdateItem(T entity)
         {
             GetPrimaryKey(entity, out TKey pkValue);
 
-            var index = Items.FindIndex(x => MatchOnPrimaryKey(x, pkValue));
-            if (index >= 0)
-            {
-                Items[index] = entity;
-            }
+            Items[pkValue] = entity;
         }
 
         // need to match on primary key instead of using Equals() since the objects are not the same
@@ -119,11 +109,11 @@ namespace AkkaTest.JsonRepo
                 return (TKey)Convert.ChangeType(Guid.NewGuid().ToString("N"), typeof(TKey));
             }
 
-            var last = Items.LastOrDefault() ?? new T();
+            var last = Items.Values.LastOrDefault() ?? new T();
 
-            if (typeof(TKey) == typeof(Int32))
+            if (typeof(TKey) == typeof(int))
             {
-                GetPrimaryKey(last, out TKey pkValue);
+                GetPrimaryKey(last, out var pkValue);
 
                 var nextInt = Convert.ToInt32(pkValue) + 1;
                 return (TKey)Convert.ChangeType(nextInt, typeof(TKey));

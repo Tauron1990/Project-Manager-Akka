@@ -17,7 +17,7 @@ namespace ServiceManager.ProjectRepository.Actors
         {
             return Feature.Create(
                 () => new RepositoryManagerImpl(), 
-                _ => new RmIState(configuration.RepositoryConfiguration.GetInstance<RepositoryEntry, string>(RepositoryManager.RepositoryManagerKey), configuration.FileSystem, configuration.DataTransferManager));
+                _ => new RmIState(configuration.RepositoryConfiguration.GetInstance<RepositoryEntry, string>(RepositoryManager.RepositoryKey), configuration.FileSystem, configuration.DataTransferManager));
         }
 
 
