@@ -22,10 +22,10 @@ namespace ServiceManager.ProjectDeployment.Actors
 {
     public sealed class AppQueryHandler : ReportingActor<AppQueryHandler.AppQueryHandlerState>
     {
-        public static IPreparedFeature New(IRepository<AppData, string> apps, IVirtualFileSystem files, DataTransferManager dataTransfer, IActorRef changeTracker)
+        public static IPreparedFeature New(IRepository<AppData, string> apps, IDirectory files, DataTransferManager dataTransfer, IActorRef changeTracker)
             => Feature.Create(() => new AppQueryHandler(), _ => new AppQueryHandlerState(apps, files, dataTransfer, changeTracker));
         
-        public sealed record AppQueryHandlerState(IRepository<AppData, string> Apps, IVirtualFileSystem Files, DataTransferManager DataTransfer, IActorRef ChangeTracker);
+        public sealed record AppQueryHandlerState(IRepository<AppData, string> Apps, IDirectory Files, DataTransferManager DataTransfer, IActorRef ChangeTracker);
 
         protected override void ConfigImpl()
         {

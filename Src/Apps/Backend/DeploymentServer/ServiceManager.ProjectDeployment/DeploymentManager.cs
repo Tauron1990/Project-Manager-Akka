@@ -14,11 +14,11 @@ namespace ServiceManager.ProjectDeployment
 
         public static readonly DeploymentManager Empty = new(ActorRefs.Nobody);
 
-        private readonly IActorRef _manager;
+        public IActorRef Manager { get; }
 
-        private DeploymentManager(IActorRef manager) => _manager = manager;
+        private DeploymentManager(IActorRef manager) => Manager = manager;
 
-        public bool IsOk => !_manager.IsNobody();
+        public bool IsOk => !Manager.IsNobody();
 
         public static DeploymentManager CreateInstance(IActorRefFactory factory, DeploymentConfiguration configuration)
             => new(factory.ActorOf(
@@ -34,6 +34,6 @@ namespace ServiceManager.ProjectDeployment
         }
 
         public void Stop()
-            => _manager.Tell(PoisonPill.Instance);
+            => Manager.Tell(PoisonPill.Instance);
     }
 }

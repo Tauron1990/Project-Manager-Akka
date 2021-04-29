@@ -19,7 +19,7 @@ namespace ServiceManager.ProjectDeployment.Actors
     {
         public sealed record DeploymentServerState(IActorRef Query, IActorRef Processor);
 
-        private static DeploymentServerState CreateState(IActorRefFactory context, ISharpRepositoryConfiguration configuration, IVirtualFileSystem fileSystem, DataTransferManager manager,
+        private static DeploymentServerState CreateState(IActorRefFactory context, ISharpRepositoryConfiguration configuration, IDirectory fileSystem, DataTransferManager manager,
             RepositoryApi repositoryApi)
         {
             var changeTracker = context.ActorOf("Change-Tracker", ChangeTrackerActor.New());
@@ -46,7 +46,7 @@ namespace ServiceManager.ProjectDeployment.Actors
             return new DeploymentServerState(query, processor);
         }
 
-        public static IPreparedFeature New(ISharpRepositoryConfiguration configuration, IVirtualFileSystem fileSystem, DataTransferManager manager, RepositoryApi repositoryApi)
+        public static IPreparedFeature New(ISharpRepositoryConfiguration configuration, IDirectory fileSystem, DataTransferManager manager, RepositoryApi repositoryApi)
             => Feature.Create(() => new DeploymentServerImpl(), c => CreateState(c, configuration, fileSystem, manager, repositoryApi));
 
         protected override void ConfigImpl()

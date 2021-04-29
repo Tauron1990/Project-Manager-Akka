@@ -17,6 +17,9 @@ namespace Tauron.Application.Master.Commands.Deployment.Build
 
         void ISender.SendCommand(IReporterMessage command) => _repository.Tell(command);
 
+        public static DeploymentApi CreateFromActor(IActorRef actor)
+            => new(actor);
+
         public static DeploymentApi CreateProxy(ActorSystem system, string name = "DeploymentProxy")
         {
             var proxy = ClusterSingletonProxy.Props($"/user/{DeploymentPath}",

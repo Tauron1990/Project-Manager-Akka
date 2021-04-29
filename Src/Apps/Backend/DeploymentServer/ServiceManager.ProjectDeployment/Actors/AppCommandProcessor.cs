@@ -29,7 +29,7 @@ namespace ServiceManager.ProjectDeployment.Actors
 {
     public sealed class AppCommandProcessor : ReportingActor<AppCommandProcessor.AppCommandProcessorState>
     {
-        public static IPreparedFeature New(IRepository<AppData, string> apps, IVirtualFileSystem files, RepositoryApi repository,
+        public static IPreparedFeature New(IRepository<AppData, string> apps, IDirectory files, RepositoryApi repository,
             DataTransferManager dataTransfer, IRepository<ToDeleteRevision, string> toDelete, IWorkDistributor<BuildRequest> workDistributor,
             IActorRef changeTracker)
             => Feature.Create(() => new AppCommandProcessor(),
@@ -254,7 +254,7 @@ namespace ServiceManager.ProjectDeployment.Actors
             => collection.Get(name)!;
 
         public sealed record AppCommandProcessorState(
-            IRepository<AppData, string> Apps, IVirtualFileSystem Files,
+            IRepository<AppData, string> Apps, IDirectory Files,
             RepositoryApi Repository, DataTransferManager DataTransfer,
             IRepository<ToDeleteRevision, string> ToDelete, IWorkDistributor<BuildRequest> WorkDistributor,
             IActorRef ChangeTracker);

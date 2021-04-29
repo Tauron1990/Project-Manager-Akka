@@ -4,5 +4,5 @@ using Tauron.Application.Files.VirtualFiles;
 
 namespace ServiceManager.ProjectRepository
 {
-    public record RepositoryManagerConfiguration(ISharpRepositoryConfiguration RepositoryConfiguration, IVirtualFileSystem FileSystem, DataTransferManager DataTransferManager);
+    public record RepositoryManagerConfiguration(ISharpRepositoryConfiguration RepositoryConfiguration, IDirectory FileSystem, DataTransferManager DataTransferManager);
 }

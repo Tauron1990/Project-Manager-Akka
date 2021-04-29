@@ -28,7 +28,7 @@ namespace ServiceManager.ProjectRepository.Actors
 {
     public sealed class OperatorActor : ReportingActor<OperatorActor.OperatorState>
     {
-        public static IPreparedFeature New(IRepository<RepositoryEntry, string> repos, IVirtualFileSystem bucket, DataTransferManager dataTransfer)
+        public static IPreparedFeature New(IRepository<RepositoryEntry, string> repos, IDirectory bucket, DataTransferManager dataTransfer)
             => Feature.Create(() => new OperatorActor(), c => new OperatorState(repos, bucket, dataTransfer,
                 new GitHubClient(new ProductHeaderValue(c.System.Settings.Config.GetString("akka.appinfo.applicationName", "Test Apps").Replace(' ', '_')))));
 
@@ -231,6 +231,6 @@ namespace ServiceManager.ProjectRepository.Actors
         private static IObservable<TData> ObservableReturn<TData>(Func<TData> fac)
             => Observable.Defer(() => Observable.Return(fac()));
 
-        public sealed record OperatorState(IRepository<RepositoryEntry, string> Repos, IVirtualFileSystem Bucket, DataTransferManager DataTransferManager, GitHubClient GitHubClient);
+        public sealed record OperatorState(IRepository<RepositoryEntry, string> Repos, IDirectory Bucket, DataTransferManager DataTransferManager, GitHubClient GitHubClient);
     }
 }

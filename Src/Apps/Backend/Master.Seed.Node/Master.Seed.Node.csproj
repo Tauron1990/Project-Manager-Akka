@@ -21,9 +21,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Akka.Cluster" Version="1.4.18" />
-    <PackageReference Include="Akka.Cluster.Sharding" Version="1.4.18" />
-    <PackageReference Include="Akka.Cluster.Tools" Version="1.4.18" />
+    <PackageReference Include="Akka.Cluster" Version="1.4.19" />
+    <PackageReference Include="Akka.Cluster.Sharding" Version="1.4.19" />
+    <PackageReference Include="Akka.Cluster.Tools" Version="1.4.19" />
     <PackageReference Include="Akka.Logger.Serilog" Version="1.4.17" />
     <PackageReference Include="Petabridge.Cmd.Cluster" Version="0.8.3" />
   </ItemGroup>

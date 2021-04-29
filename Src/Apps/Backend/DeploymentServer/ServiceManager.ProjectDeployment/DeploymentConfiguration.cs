@@ -5,5 +5,5 @@ using Tauron.Application.Master.Commands.Deployment.Repository;
 
 namespace ServiceManager.ProjectDeployment
 {
-    public sealed record DeploymentConfiguration(ISharpRepositoryConfiguration Configuration, IVirtualFileSystem FileSystem, DataTransferManager Manager, RepositoryApi RepositoryApi);
+    public sealed record DeploymentConfiguration(ISharpRepositoryConfiguration Configuration, IDirectory FileSystem, DataTransferManager Manager, RepositoryApi RepositoryApi);
 }

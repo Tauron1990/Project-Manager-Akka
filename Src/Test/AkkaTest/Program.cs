@@ -9,15 +9,18 @@ using Akka.Actor.Internal;
 using Akka.Util;
 using AkkaTest.CommandTest;
 using AkkaTest.InMemoryStorage;
+using AkkaTest.JsonRepo;
 using Autofac;
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
 using Serilog;
 using Serilog.Events;
+using ServiceManager.ProjectDeployment;
 using ServiceManager.ProjectRepository;
 using SharpRepository.InMemoryRepository;
 using SharpRepository.MongoDbRepository;
 using SharpRepository.Repository.Configuration;
+using Tauron;
 using Tauron.Akka;
 using Tauron.Application.AkkaNode.Bootstrap;
 using Tauron.Application.AkkaNode.Bootstrap.Console;
@@ -28,6 +31,7 @@ using Tauron.Application.AkkaNode.Services.Reporting.Commands;
 using Tauron.Application.Files.GridFS;
 using Tauron.Application.Files.VirtualFiles;
 using Tauron.Application.Files.VirtualFiles.InMemory.Data;
+using Tauron.Application.Master.Commands.Deployment.Build;
 using Tauron.Application.Master.Commands.Deployment.Repository;
 using Tauron.Host;
 
@@ -35,21 +39,29 @@ namespace AkkaTest
 {
     public sealed class TestActor : ReceiveActor
     {
-        private const string TestRepo = "Tauron1990/Radio-Streamer";
+        private const string TestRepo = "Tauron1990/Project-Manager-Akka";
+        private const string TestProject = "AkkaTest.csproj";
 
         private readonly DataTransferManager _dataTransfer;
-        private readonly DataDirectory _bucked;
+        private readonly DeploymentApi _deploymentApi;
         private readonly RepositoryApi _repositoryApi;
 
         private readonly ActorSystem _system;
 
-        public TestActor(RepositoryManager repositoryManager, DataDirectory bucked)
+        public TestActor(ISharpRepositoryConfiguration repositoryConfiguration, IVirtualFileSystem bucked)
         {
-            _dataTransfer = DataTransferManager.New(Context, "TargetDataTransfer");
-            _bucked = bucked;
-            _repositoryApi = RepositoryApi.CreateFromActor(repositoryManager.Manager);
+            _dataTransfer = DataTransferManager.New(Context, "Test_Transfer");
+            
+            _repositoryApi = RepositoryApi.CreateFromActor(
+                RepositoryManager.CreateInstance(Context, 
+                    new RepositoryManagerConfiguration(repositoryConfiguration, bucked.GetDirectory("Repository_Test"), DataTransferManager.New(Context, "Repository_Transfer")))
+                                 .Manager);
 
-            _system = Context.System;
+            _deploymentApi = DeploymentApi.CreateFromActor(
+                DeploymentManager.CreateInstance(Context,
+                                      new DeploymentConfiguration(repositoryConfiguration, bucked.GetDirectory("Deployment_Test"), DataTransferManager.New(Context, "Deployment_Tramsfer"), _repositoryApi))
+                                 .Manager);
+
             ReceiveAsync<Start>(Start);
         }
 
@@ -57,28 +69,6 @@ namespace AkkaTest
         {
             try
             {
-                var bucked = _bucked;
-                var data = PersistentInMemorxConfigRepositoryFactory.Repositorys;
-
-                Console.WriteLine("Test 1:");
-
-                await _repositoryApi.Send(new RegisterRepository(TestRepo, true), TimeSpan.FromMinutes(30), Log.Information);
-                Console.WriteLine("Test 1 Erfolgreich...");
-
-                Console.WriteLine("Test 2:");
-                var result = await _repositoryApi.Send(new TransferRepository(TestRepo), TimeSpan.FromMinutes(30), _dataTransfer, Log.Information, () => File.Create("Test.zip"));
-
-                switch (result)
-                {
-                    case TransferFailed f:
-                        Console.WriteLine("Test 2 Gescheitert...");
-                        Console.WriteLine(f.Reason);
-                        break;
-                    case TransferSucess:
-                        Console.WriteLine("Test 2 Erfolgreich...");
-                        Process.Start(new ProcessStartInfo(Path.GetFullPath("Test.zip")) { UseShellExecute = true });
-                        break;
-                }
             }
             catch (Exception e)
             {
@@ -104,22 +94,22 @@ namespace AkkaTest
 
         public void Run()
         {
-            var rootDic = new DataDirectory("Test");
+            var rootDic = Path.GetFullPath("Test");
             var factory = new VirtualFileFactory();
-            var bucked = factory.CreateMongoDb(new GridFSBucket(new MongoClient(MongoUrl.Create(Program.con)).GetDatabase("TestDb")));
+            var bucked = factory.CrerateLocal(Path.Combine(rootDic));
+            var dbPath = bucked.GetDirectory("DB").OriginalPath;
+            dbPath.CreateDirectoryIfNotExis();
 
             var config = new SharpRepositoryConfiguration();
 
-            config.AddRepository(new MongoDbRepositoryConfiguration(RepositoryManager.RepositoryManagerKey, Program.con)
-            {
-                Factory = typeof(MongoDbConfigRepositoryFactory)
-            });
+            config.AddRepository(new InMemoryRepositoryConfiguration(DeploymentManager.DeploymentManagerKey) { Factory = typeof(PersistentInMemorxConfigRepositoryFactory)});
+            config.AddRepository(new JsonRepositoryConfiguration(RepositoryManager.RepositoryManagerKey, dbPath));
             //config.AddRepository(new InMemoryRepositoryConfiguration(RepositoryManager.RepositoryManagerKey) { Factory = typeof(PersistentInMemorxConfigRepositoryFactory) });
 
             var dataManager = DataTransferManager.New(_system, "RepoDataTransfer");
             var manager = RepositoryManager.CreateInstance(_system, new RepositoryManagerConfiguration(config, bucked, dataManager));
 
-            _system.ActorOf(Props.Create(() => new TestActor(manager, rootDic)), "Start_Helper").Tell(new Start());
+            _system.ActorOf(Props.Create(() => new TestActor(config, bucked)), "Start_Helper").Tell(new Start());
         }
     }
 

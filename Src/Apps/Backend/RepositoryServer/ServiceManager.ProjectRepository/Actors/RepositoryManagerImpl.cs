@@ -34,7 +34,7 @@ namespace ServiceManager.ProjectRepository.Actors
             SupervisorStrategy = SupervisorStrategy.StoppingStrategy;
         }
 
-        public sealed record RmIState(IRepository<RepositoryEntry, string> Repositorys, IVirtualFileSystem Bucket, DataTransferManager DataTransferManager);
+        public sealed record RmIState(IRepository<RepositoryEntry, string> Repositorys, IDirectory Bucket, DataTransferManager DataTransferManager);
 
         private sealed record IndexRequest;
     }

@@ -7,10 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Akka.DependencyInjection" Version="1.4.18" />
+    <PackageReference Include="Akka.DependencyInjection" Version="1.4.19" />
     <PackageReference Include="Akka.Logger.Serilog" Version="1.4.17" />
-    <PackageReference Include="Akka.Remote" Version="1.4.18" />
-    <PackageReference Include="Akka.Streams" Version="1.4.18" />
+    <PackageReference Include="Akka.Remote" Version="1.4.19" />
+    <PackageReference Include="Akka.Streams" Version="1.4.19" />
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="7.1.0" />
     <PackageReference Include="Castle.Core" Version="4.4.1" />
     <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
@@ -27,10 +27,6 @@
     <ProjectReference Include="..\..\Apps\Shared\Tauron.Application.AkkNode.Services\Tauron.Application.AkkNode.Services.csproj" />
     <ProjectReference Include="..\..\Shared\Tauron.Application.Common\Tauron.Application.Common.csproj" />
     <ProjectReference Include="..\..\Shared\Tauron.Application.Files.GridFS\Tauron.Application.Files.GridFS.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="InMemoryStorage\" />
   </ItemGroup>
 
   <ItemGroup>

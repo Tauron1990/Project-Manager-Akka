@@ -53,8 +53,13 @@ namespace Tauron.Application.Files.VirtualFiles.LocalFileSystem
 
         protected override FileInfo GetInfo(string path) => new(path);
 
-        protected override Stream CreateStream(FileAccess access, InternalFileMode mode) => new FileStream(OriginalPath,
-            (FileMode) mode, access, access == FileAccess.Read ? FileShare.Read : FileShare.None);
+        protected override Stream CreateStream(FileAccess access, InternalFileMode mode)
+        {
+            if (mode is InternalFileMode.Create or InternalFileMode.CreateNew)
+                ParentDirectory?.OriginalPath.CreateDirectoryIfNotExis();
+
+            return new FileStream(OriginalPath, (FileMode) mode, access, access == FileAccess.Read ? FileShare.Read : FileShare.None);
+        }
 
         private static void MoveFile(FileInfo? old, string newLoc)
             => old?.MoveTo(newLoc);
