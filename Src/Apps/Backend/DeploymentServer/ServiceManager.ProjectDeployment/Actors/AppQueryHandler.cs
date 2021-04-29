@@ -73,7 +73,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                                                           o => o
                                                               .Select(evt => evt.New((
                                                                           Manager: evt.Event.Query.GetTransferManager(),
-                                                                          File: evt.State.Files.GetFile(evt.Event.File!.File),
+                                                                          File: evt.State.Files.GetFile(evt.Event.File!.Id),
                                                                           evt.Event.Query.AppName)))
                                                               .Select(evt => evt.New(DataTransferRequest.FromStream(
                                                                           () => evt.Event.File.Open(FileAccess.Read),

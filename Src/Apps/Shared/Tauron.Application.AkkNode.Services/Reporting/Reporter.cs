@@ -97,7 +97,7 @@ namespace Tauron.Application.AkkaNode.Services
 
         public Reporter Listen(IActorRef actor)
         {
-            if (_reporter.IsNobody()) return;
+            if (_reporter.IsNobody()) return this;
 
             if (_compledCalled.Value)
                 throw new InvalidOperationException("Reporter is Compled");

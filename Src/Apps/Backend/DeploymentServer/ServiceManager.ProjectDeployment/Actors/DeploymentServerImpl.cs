@@ -1,75 +1,58 @@
 ﻿using System;
 using Akka.Actor;
 using Akka.Routing;
-using MongoDB.Driver;
-using MongoDB.Driver.GridFS;
 using ServiceManager.ProjectDeployment.Build;
 using ServiceManager.ProjectDeployment.Data;
+using SharpRepository.Repository.Configuration;
+using Tauron;
 using Tauron.Application.AkkaNode.Services.CleanUp;
 using Tauron.Application.AkkaNode.Services.FileTransfer;
+using Tauron.Application.Files.VirtualFiles;
 using Tauron.Application.Master.Commands.Deployment.Build;
 using Tauron.Application.Master.Commands.Deployment.Repository;
+using Tauron.Application.Workshop;
+using Tauron.Features;
 
 namespace ServiceManager.ProjectDeployment.Actors
 {
-    public sealed class DeploymentServerImpl : ExposedReceiveActor
+    public sealed class DeploymentServerImpl : ActorFeatureBase<DeploymentServerImpl.DeploymentServerState>
     {
-        public const string AppsCollectionName = "Apps";
+        public sealed record DeploymentServerState(IActorRef Query, IActorRef Processor);
 
-        public DeploymentServerImpl(IMongoClient client, DataTransferManager dataTransfer,
-            RepositoryApi repositoryProxy)
+        private static DeploymentServerState CreateState(IActorRefFactory context, ISharpRepositoryConfiguration configuration, IVirtualFileSystem fileSystem, DataTransferManager manager,
+            RepositoryApi repositoryApi)
         {
-            var changeTracker = Context.ActorOf<ChangeTrackerActor>();
+            var changeTracker = context.ActorOf("Change-Tracker", ChangeTrackerActor.New());
+            
+            var trashBin = configuration.GetInstance<ToDeleteRevision, string>("TrashBin");
 
-            var database = client.GetDatabase("Deployment");
-            var trashBin = database.GetCollection<ToDeleteRevision>("TrashBin");
-            var files = new GridFSBucket(database, new GridFSBucketOptions {BucketName = "Apps"});
-
-            var cleanUp = Context.ActorOf(() => new CleanUpManager(database, "CleanUp", trashBin, files),
-                "CleanUp-Manager");
+            var cleanUp = context.ActorOf("CleanUp-Manager", CleanUpManager.New(configuration, fileSystem));
             cleanUp.Tell(CleanUpManager.Initialization);
 
             var router = new SmallestMailboxPool(Environment.ProcessorCount)
-                .WithSupervisorStrategy(SupervisorStrategy.DefaultStrategy);
+               .WithSupervisorStrategy(SupervisorStrategy.DefaultStrategy);
 
-            var queryProps = Props.Create(()
-                    => new AppQueryHandler(database.GetCollection<AppData>(AppsCollectionName, null), files,
-                        dataTransfer, changeTracker))
-                .WithRouter(router);
-            var query = Context.ActorOf(queryProps, "QueryRouter");
+            var queryProps = Feature.Props(AppQueryHandler.New(configuration.GetInstance<AppData, string>(), fileSystem, manager, changeTracker))
+                                  .WithRouter(router);
+            var query = context.ActorOf(queryProps, "QueryRouter");
 
-            Receive<IDeploymentQuery>(q => query.Forward(q));
+            var buildSystem = WorkDistributorFeature<BuildRequest, BuildCompled>
+               .Create(context, Props.Create(() => new BuildingActor(manager)), "Compiler", TimeSpan.FromHours(1), "CompilerSupervisor");
 
-            var buildSystem = WorkDistributor<BuildRequest, BuildCompled>.Create(Context,
-                Props.Create(() => new BuildingActor(dataTransfer)), "Compiler", TimeSpan.FromHours(1),
-                "CompilerSupervisor");
+            var processorProps = Feature.Props(AppCommandProcessor.New(configuration.GetInstance<AppData, string>(), fileSystem, repositoryApi, manager, trashBin, buildSystem, changeTracker))
+                                      .WithRouter(router);
+            var processor = context.ActorOf(processorProps, "ProcessorRouter");
 
-            var processorProps = Props.Create(()
-                    => new AppCommandProcessor(database.GetCollection<AppData>(AppsCollectionName, null), files,
-                        repositoryProxy, dataTransfer, trashBin, buildSystem, changeTracker))
-                .WithRouter(router);
-            var processor = Context.ActorOf(processorProps, "ProcessorRouter");
-
-            Receive<IDeploymentCommand>(a => processor.Forward(a));
-
-            Receive<string>(s =>
-            {
-                try
-                {
-                    database.GetCollection<AppData>(AppsCollectionName).Indexes.CreateOne(
-                        new CreateIndexModel<AppData>(Builders<AppData>.IndexKeys.Ascending(ad => ad.Name)));
-                }
-                catch (Exception e)
-                {
-                    Log.Error(e, "Error on Creating Index for Data");
-                }
-            });
+            return new DeploymentServerState(query, processor);
         }
 
-        protected override void PreStart()
+        public static IPreparedFeature New(ISharpRepositoryConfiguration configuration, IVirtualFileSystem fileSystem, DataTransferManager manager, RepositoryApi repositoryApi)
+            => Feature.Create(() => new DeploymentServerImpl(), c => CreateState(c, configuration, fileSystem, manager, repositoryApi));
+
+        protected override void ConfigImpl()
         {
-            base.PreStart();
-            Self.Tell("Start");
+            Receive<IDeploymentQuery>(obs => obs.ForwardToActor(i => i.State.Query, i => i.Event));
+            Receive<IDeploymentCommand>(obs => obs.ForwardToActor(i => i.State.Processor, i => i.Event));
         }
     }
 }

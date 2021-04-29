@@ -161,24 +161,31 @@ namespace ServiceManager.ProjectDeployment.Actors
                                                      }));
                                }));
 
-            //CommandPhase1<ForceBuildCommand>("ForceBuild", (command, reporter) =>
-            //                                               {
-            //                                                   var tempData = new AppData(command.AppName, -1,
-            //                                                       DateTime.Now, DateTime.MinValue, command.Repository,
-            //                                                       command.Repository,
-            //                                                       ImmutableList<AppFileInfo>.Empty);
-            //                                                   BuildRequest
-            //                                                      .SendWork(workDistributor, reporter, tempData,
-            //                                                           repository, BuildEnv.TempFiles.CreateFile())
-            //                                                      .PipeTo(Self,
-            //                                                           success: d => new ContinueForceBuild(
-            //                                                               OperationResult.Success(d.Item2),
-            //                                                               command, reporter),
-            //                                                           failure: e => new ContinueForceBuild(
-            //                                                               OperationResult.Failure(
-            //                                                                   e.Unwrap()?.Message ?? "Cancel"),
-            //                                                               command, reporter));
-            //                                               });
+            DirectCommandPhase1<ForceBuildCommand>("ForceBuild-Phase 1",
+                obs => obs.Select(i => i.New((Command:i.Event, App:new AppData(ImmutableList<AppFileInfo>.Empty, i.Event.AppName, -1, DateTime.UtcNow, DateTime.MinValue, 
+                                                  i.Event.Repository, i.Event.Project))))
+                          .ToUnit(i => BuildRequest.SendWork(i.State.WorkDistributor, i.Reporter, i.Event.App, i.State.Repository, BuildEnv.TempFiles.CreateFile())
+                                                   .PipeTo(Self,
+                                                        success:d => new ContinueForceBuild(OperationResult.Success(d.File), i.Event.Command, i.Reporter, i.Event.App),
+                                                        failure:e => new ContinueForceBuild(OperationResult.Failure(e), i.Event.Command, i.Reporter, i.Event.App))));
+
+            CommandPhase2<ContinueForceBuild, ForceBuildCommand, FileTransactionId>("ForceBuild-Phase 2",
+                obs => obs.ConditionalSelect()
+                          .ToResult<FileTransactionId?>(
+                               b =>
+                               {
+                                   b.When(m => m.Command.Manager == null || m.Result.Outcome is not ITempFile, o => o.Select(_ => default(FileTransactionId)));
+                                   b.When(m => !m.Result.Ok, o => o.ApplyWhen(d => !d.Reporter.IsCompled, data => data.Reporter.Compled(data.Result))
+                                                                   .Select(_ => default(FileTransactionId)));
+
+                                   b.When(m => m.Result.Ok && m.Result.Outcome is ITempFile && m.Command.Manager != null,
+                                       o => o.SelectMany(
+                                           continueData => Observable.Using(
+                                               () => (ITempFile) continueData.Result.Outcome!,
+                                               file => Observable.Return((File: file, Target: continueData.Command.GetTransferManager(), Manager: continueData.State.DataTransfer))
+                                                                 .Select(f => f.Manager.Request(DataTransferRequest.FromStream(f.File.Stream, f.Target))))));
+                               }),
+                r => r.Event.TempData);
         }
 
         private void CommandPhase1<TCommand>(
@@ -225,21 +232,25 @@ namespace ServiceManager.ProjectDeployment.Actors
             => TryReceive(name, executor);
 
 
-        private void CommandPhase2<TContinue, TCommand, TResult>(string name, Func<IObservable<ContinueData<TCommand>>, IObservable<TResult?>> executor)
+        private void CommandPhase2<TContinue, TCommand, TResult>(
+            string name, Func<IObservable<ContinueData<TCommand>>, IObservable<TResult?>> executor, 
+            Func<ReporterEvent<TContinue, AppCommandProcessorState>, AppData?>? queryApp = null)
             where TContinue : ContinueCommand<TCommand>
             where TCommand : ReporterCommandBase<DeploymentApi, TCommand>, IDeploymentCommand
             where TResult : class
         {
+            queryApp ??= evt => QueryApp(evt.State.Apps, evt.Event.Command.AppName);
+
             TryContinue<TContinue>(name,
                 obs => obs.SelectMany(
                     evt => executor(Observable.Return(
-                               new ContinueData<TCommand>(evt.Event.Command, evt.Event.Result, evt.Reporter, QueryApp(evt.State.Apps, evt.Event.Command.AppName), evt.State)))
+                               new ContinueData<TCommand>(evt.Event.Command, evt.Event.Result, evt.Reporter, queryApp(evt), evt.State)))
                           .Where(_ => !evt.Reporter.IsCompled)
                           .ToUnit(result => evt.Reporter.Compled(result == null ? OperationResult.Failure(BuildErrorCodes.GerneralCommandError) : OperationResult.Success(result)))));
         }
 
 
-        private static AppData? QueryApp(IRepository<AppData, string> collection, string name)
+        private static AppData? QueryApp(ICrudRepository<AppData, string> collection, string name)
             => collection.Get(name)!;
 
         public sealed record AppCommandProcessorState(
@@ -289,32 +300,14 @@ namespace ServiceManager.ProjectDeployment.Actors
 
         private sealed record ContinueForceBuild : ContinueCommand<ForceBuildCommand>
         {
+            public AppData TempData { get; }
+
             public ContinueForceBuild(
-                [NotNull] IOperationResult result, ForceBuildCommand command,
-                [NotNull] Reporter reporter) : base(result, command, reporter)
+                IOperationResult result, ForceBuildCommand command,
+                Reporter reporter, AppData tempData) : base(result, command, reporter)
             {
+                TempData = tempData;
             }
-        }
-    }
-
-    public sealed class AppCommandProcessorOld
-    {
-        public AppCommandProcessorOld()
-        {
-            
-            //CommandPhase2<ContinueForceBuild, ForceBuildCommand, FileTransactionId>("ForceBuild2",
-            //    (command, result, reporter, _) =>
-            //    {
-            //        if (!result.Ok || command.Manager == null)
-            //            return null;
-
-            //        if (!(result.Outcome is TempStream target)) return null;
-
-            //        var request = DataTransferRequest.FromStream(target, command.Manager);
-            //        dataTransfer.Request(request);
-
-            //        return new FileTransactionId(request.OperationId);
-            //    });
         }
     }
 }

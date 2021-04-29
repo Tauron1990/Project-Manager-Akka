@@ -68,6 +68,13 @@ namespace Tauron.Features
         private readonly HashSet<string> _featureIds = new();
         private BehaviorSubject<TState>? _currentState;
 
+        private IActorRef _self = ActorRefs.Nobody;
+        private IActorRef _parent = ActorRefs.Nobody;
+
+        IActorRef IFeatureActor<TState>.Self => _self;
+
+        IActorRef IFeatureActor<TState>.Parent => _parent;
+
         private BehaviorSubject<TState> CurrentState
         {
             get
@@ -122,7 +129,11 @@ namespace Tauron.Features
             => Create(_ => initialState, builder);
 
         private void InitialState(TState initial)
-            => _currentState = new BehaviorSubject<TState>(initial);
+        {
+            _self = Self;
+            _parent = Parent;
+            _currentState = new BehaviorSubject<TState>(initial);
+        }
 
         private void RegisterFeature(IFeature<TState> feature)
         {

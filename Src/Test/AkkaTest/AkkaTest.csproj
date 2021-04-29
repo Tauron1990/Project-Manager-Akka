@@ -20,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Apps\Backend\DeploymentServer\ServiceManager.ProjectDeployment\ServiceManager.ProjectDeployment.csproj" />
     <ProjectReference Include="..\..\Apps\Backend\RepositoryServer\ServiceManager.ProjectRepository\ServiceManager.ProjectRepository.csproj" />
     <ProjectReference Include="..\..\Apps\Shared\Servicemnager.Networking\Servicemnager.Networking.csproj" />
     <ProjectReference Include="..\..\Apps\Shared\Tauron.Application.AkkaNode.Boottrap\Tauron.Application.AkkaNode.Boottrap.csproj" />

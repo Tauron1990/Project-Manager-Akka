@@ -1,17 +1,17 @@
 ﻿using Akka.Actor;
 using Akka.Cluster.Tools.Singleton;
 using JetBrains.Annotations;
-using MongoDB.Driver;
 using ServiceManager.ProjectDeployment.Actors;
-using Tauron.Application.AkkaNode.Services.FileTransfer;
 using Tauron.Application.Master.Commands.Deployment.Build;
-using Tauron.Application.Master.Commands.Deployment.Repository;
+using Tauron.Features;
 
 namespace ServiceManager.ProjectDeployment
 {
     [PublicAPI]
     public sealed class DeploymentManager
     {
+        public const string DeploymentManagerKey = "DeploymentManager";
+
         public static readonly DeploymentManager Empty = new(ActorRefs.Nobody);
 
         private readonly IActorRef _manager;
@@ -20,20 +20,15 @@ namespace ServiceManager.ProjectDeployment
 
         public bool IsOk => !_manager.IsNobody();
 
-        public static DeploymentManager CreateInstance(IActorRefFactory factory, string connectionString,
-            DataTransferManager manager, RepositoryApi api)
+        public static DeploymentManager CreateInstance(IActorRefFactory factory, DeploymentConfiguration configuration)
             => new(factory.ActorOf(
-                Props.Create(() => new DeploymentServerImpl(new MongoClient(connectionString), manager, api)),
-                DeploymentApi.DeploymentPath));
-
-        public static DeploymentManager InitDeploymentManager(ActorSystem actorSystem, string connectionString,
-            DataTransferManager manager, RepositoryApi api)
-            => InitDeploymentManager(actorSystem, new MongoClient(connectionString), manager, api);
-
-        public static DeploymentManager InitDeploymentManager(ActorSystem actorSystem, IMongoClient client,
-            DataTransferManager manager, RepositoryApi api)
+                DeploymentApi.DeploymentPath, 
+                DeploymentServerImpl.New(configuration.Configuration, configuration.FileSystem, configuration.Manager, configuration.RepositoryApi)));
+        
+        public static DeploymentManager InitDeploymentManager(ActorSystem actorSystem, DeploymentConfiguration configuration)
         {
-            var repo = ClusterSingletonManager.Props(Props.Create(() => new DeploymentServerImpl(client, manager, api)),
+            var repo = ClusterSingletonManager.Props(
+                Feature.Props(DeploymentServerImpl.New(configuration.Configuration, configuration.FileSystem, configuration.Manager, configuration.RepositoryApi)),
                 ClusterSingletonManagerSettings.Create(actorSystem).WithRole("UpdateSystem"));
             return new DeploymentManager(actorSystem.ActorOf(repo, DeploymentApi.DeploymentPath));
         }
