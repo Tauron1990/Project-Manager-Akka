@@ -17,34 +17,37 @@ namespace Tauron.Features
         void IFeature<State>.Init(IFeatureActor<State> actor)
         {
             actor.Receive<Terminated>(obs => obs.ToUnit());
-            actor.Receive<KeyHint>(obs
-                => obs.Select(data => data.State.Update(data.Event.Key, refs => refs.Remove(data.Event.Target))));
+            actor.Receive<KeyHint>(obs => obs.Select(data => data.State.Update(data.Event.Key, refs => refs.Remove(data.Event.Target))));
 
-            actor.Receive<EventSubscribe>(obs => obs.Where(_ => !actor.Sender.IsNobody())
-                .Do(m => m.Event.Watch.WhenTrue(()
-                    => actor.Context.WatchWith(actor.Sender, new KeyHint(actor.Sender!, m.Event.Event))))
-                .Select(m =>
-                {
-                    var ((_, @event), state, _) = m;
+            actor.Receive<EventSubscribe>(
+                obs => obs.Where(_ => !actor.Sender.IsNobody())
+                          .Do(m => m.Event.Watch.WhenTrue(()
+                                                              => actor.Context.WatchWith(actor.Sender, new KeyHint(actor.Sender!, m.Event.Event))))
+                          .Select(m =>
+                                  {
+                                      var ((_, @event), state, _) = m;
 
-                    actor.TellSelf(new InternalEventSubscription(actor.Sender, @event));
-                    return state.Update(@event, refs => refs.Add(actor.Sender));
-                }));
-            actor.Receive<EventUnSubscribe>(obs => obs.Where(_ => !actor.Sender.IsNobody())
-                .Select(m =>
-                {
-                    actor.Context.Unwatch(actor.Sender!);
-                    var (eventUnSubscribe, state, _) = m;
-                    return state.Update(eventUnSubscribe.Event, refs => refs.Remove(actor.Sender));
-                }));
+                                      actor.TellSelf(new InternalEventSubscription(actor.Sender, @event));
+                                      return state.Update(@event, refs => refs.Add(actor.Sender));
+                                  }));
 
-            actor.Receive<SendEvent>(obs => obs.ToUnit(m =>
-            {
-                var ((@event, eventType), state, _) = m;
+            actor.Receive<EventUnSubscribe>(
+                obs => obs.Where(_ => !actor.Sender.IsNobody())
+                          .Select(m =>
+                                  {
+                                      actor.Context.Unwatch(actor.Sender!);
+                                      var (eventUnSubscribe, state, _) = m;
+                                      return state.Update(eventUnSubscribe.Event, refs => refs.Remove(actor.Sender));
+                                  }));
 
-                if (state.Subscriptions.TryGetValue(eventType, out var intrests))
-                    intrests.ForEach(r => r.Tell(@event));
-            }));
+            actor.Receive<SendEvent>(
+                obs => obs.ToUnit(m =>
+                                  {
+                                      var ((@event, eventType), state, _) = m;
+
+                                      if (state.Subscriptions.TryGetValue(eventType, out var intrests))
+                                          intrests.ForEach(r => r.Tell(@event));
+                                  }));
         }
 
         [PublicAPI]

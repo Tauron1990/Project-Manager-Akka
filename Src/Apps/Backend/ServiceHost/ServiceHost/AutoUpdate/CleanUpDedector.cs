@@ -1,5 +1,4 @@
-﻿using Akka.Actor;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Tauron.Application.AkkaNode.Bootstrap;
 
 namespace ServiceHost.AutoUpdate
@@ -21,7 +20,7 @@ namespace ServiceHost.AutoUpdate
         {
             if(!_switch) return;
 
-            _updater.Actor.Tell(new StartCleanUp(_id));
+            _updater.Tell(new StartCleanUp(_id));
         }
     }
 }

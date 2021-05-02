@@ -104,10 +104,14 @@ namespace Tauron.Akka
                 case TransmitAction act:
                     return act.Runner();
                 case Status.Failure failure:
+                    if (_selectors.ContainsKey(typeof(Status.Failure)))
+                        return base.AroundReceive(receive, message);
                     if (OnError(failure))
                         throw failure.Cause;
                     else
                         return true;
+                case Status.Success:
+                    return !_selectors.ContainsKey(typeof(Status.Success)) || base.AroundReceive(receive, message);
                 default:
                     return base.AroundReceive(receive, message);
             }

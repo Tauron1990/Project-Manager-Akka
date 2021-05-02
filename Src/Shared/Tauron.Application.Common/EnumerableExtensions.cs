@@ -18,66 +18,6 @@ namespace Tauron
     [PublicAPI]
     public static class EnumerableExtensions
     {
-        public static IObservable<TData> NotDefault<TData>(this IObservable<TData?> source)
-        {
-            return source.Where(d => !Equals(d, default(TData)))!;
-        }
-
-        public static IObservable<TData> NotNull<TData>(this IObservable<TData?> source)
-        {
-            return source.Where(d => d != null)!;
-        }
-
-        public static IObservable<string> NotEmpty(this IObservable<string?> source)
-        {
-            return source.Where(s => !string.IsNullOrWhiteSpace(s))!;
-        }
-
-        public static IObservable<CallResult<TResult>> SelectSafe<TEvent, TResult>(this IObservable<TEvent> observable,
-            Func<TEvent, TResult> selector)
-        {
-            return observable.Select<TEvent, CallResult<TResult>>(evt =>
-            {
-                try
-                {
-                    return new SucessCallResult<TResult>(selector(evt));
-                }
-                catch (Exception e)
-                {
-                    return new ErrorCallResult<TResult>(e);
-                }
-            });
-        }
-
-        public static IObservable<Exception> OnError<TResult>(this IObservable<CallResult<TResult>> observable)
-        {
-            return observable.Where(cr => cr is ErrorCallResult<TResult>).Cast<ErrorCallResult<TResult>>()
-                .Select(er => er.Error);
-        }
-
-        public static IObservable<TResult> OnResult<TResult>(this IObservable<CallResult<TResult>> observable)
-        {
-            return observable.Where(cr => cr is SucessCallResult<TResult>).Cast<SucessCallResult<TResult>>()
-                .Select(sr => sr.Result);
-        }
-
-        public static IObservable<TData> ConvertResult<TData, TResult>(this IObservable<CallResult<TResult>> result,
-            Func<TResult, TData> onSucess, Func<Exception, TData> error)
-        {
-            return result.Select(cr => cr.ConvertResult(onSucess, error));
-        }
-
-        public static TData ConvertResult<TData, TResult>(this CallResult<TResult> result,
-            Func<TResult, TData> onSucess, Func<Exception, TData> error)
-        {
-            return result switch
-            {
-                SucessCallResult<TResult> sucess => onSucess(sucess.Result),
-                ErrorCallResult<TResult> err => error(err.Error),
-                _ => throw new InvalidOperationException("Incompatiple Call Result")
-            };
-        }
-
         public static TType AddAnd<TType>(this ICollection<TType> collection, TType item)
         {
             collection.Add(item);

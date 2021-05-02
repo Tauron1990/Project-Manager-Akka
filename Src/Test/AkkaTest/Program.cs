@@ -6,6 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Actor.Internal;
+using Akka.Streams;
+using Akka.Streams.Dsl;
 using Akka.Util;
 using AkkaTest.CommandTest;
 using AkkaTest.InMemoryStorage;
@@ -14,9 +16,11 @@ using Autofac;
 using Ionic.Zip;
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
+using Octokit;
 using Serilog;
 using Serilog.Events;
 using ServiceManager.ProjectDeployment;
+using ServiceManager.ProjectDeployment.Data;
 using ServiceManager.ProjectRepository;
 using SharpRepository.InMemoryRepository;
 using SharpRepository.MongoDbRepository;
@@ -34,6 +38,8 @@ using Tauron.Application.Files.VirtualFiles;
 using Tauron.Application.Files.VirtualFiles.InMemory.Data;
 using Tauron.Application.Master.Commands.Deployment.Build;
 using Tauron.Application.Master.Commands.Deployment.Build.Commands;
+using Tauron.Application.Master.Commands.Deployment.Build.Data;
+using Tauron.Application.Master.Commands.Deployment.Build.Querys;
 using Tauron.Application.Master.Commands.Deployment.Repository;
 using Tauron.Host;
 
@@ -77,24 +83,31 @@ namespace AkkaTest
                 var file = _bucked.GetFile("build.zip");
                 var dic = _bucked.GetDirectory("Build");
 
-                await _repositoryApi.Send(new RegisterRepository(TestRepo, true), TimeSpan.FromMinutes(20), Log.Information);
+                var data = await _deploymentApi.Send(new QueryBinarys("TestApp1"), TimeSpan.FromMinutes(10), _dataTransfer, Log.Information, () => File.Create("Test.zip"));
 
-                await _deploymentApi.Send(new ForceBuildCommand(TestRepo, TestProject), TimeSpan.FromMinutes(30), _dataTransfer, Log.Information, () => file.Create());
+                switch (data)
+                {
+                    case TransferSucess:
+                        Process.Start(new ProcessStartInfo(Path.GetFullPath("Test.zip")) {UseShellExecute = true});
+                        Console.WriteLine($"Test Erfolgreich.");
+                        break;
+                    case TransferFailed f:
+                        Console.WriteLine("Test Failed");
+                        Console.WriteLine(f.Reason);
+                        break;
+                }
 
-                using var zip = ZipFile.Read(file.Open(FileAccess.Read));
-                zip.ExtractAll(dic.OriginalPath, ExtractExistingFileAction.OverwriteSilently);
 
-                Console.WriteLine("Test Compled");
             }
             catch (Exception e)
             {
                 Console.WriteLine("Test Fehlgeschlagen...");
                 Console.WriteLine(e);
             }
-            //finally
-            //{
-            //    await _system.Terminate();
-            //}
+            finally
+            {
+                await _system.Terminate();
+            }
         }
     }
 
@@ -117,7 +130,7 @@ namespace AkkaTest
 
             var config = new SharpRepositoryConfiguration();
 
-            config.AddRepository(new InMemoryRepositoryConfiguration(DeploymentManager.RepositoryKey) { Factory = typeof(PersistentInMemorxConfigRepositoryFactory)});
+            config.AddRepository(new JsonRepositoryConfiguration(DeploymentManager.RepositoryKey, dbPath));
             config.AddRepository(new JsonRepositoryConfiguration(RepositoryManager.RepositoryKey, dbPath));
             config.AddRepository(new JsonRepositoryConfiguration(CleanUpManager.RepositoryKey, dbPath));
             //config.AddRepository(new InMemoryRepositoryConfiguration(RepositoryManager.RepositoryKey) { Factory = typeof(PersistentInMemorxConfigRepositoryFactory) });

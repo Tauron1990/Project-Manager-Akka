@@ -14,8 +14,8 @@ using Newtonsoft.Json;
 using Serilog;
 using ServiceHost.Installer;
 using Tauron.Application.AkkaNode.Bootstrap;
+using Tauron.Application.AkkaNode.Bootstrap.Console;
 using Tauron.Application.Master.Commands;
-using Tauron.Host;
 
 namespace ServiceHost
 {
@@ -67,7 +67,7 @@ namespace ServiceHost
 
         private static async Task StartApp(string[] args)
         {
-            await Bootstrap.StartNode(args, KillRecpientType.Host)
+            await Bootstrap.StartNode(args, KillRecpientType.Host, IpcApplicationType.Server)
                .ConfigureAutoFac(cb =>
                 {
                     cb.RegisterType<CommandHandlerStartUp>().As<IStartUpAction>();

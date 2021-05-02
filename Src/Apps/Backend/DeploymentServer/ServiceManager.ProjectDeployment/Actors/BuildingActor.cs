@@ -1,9 +1,9 @@
 ﻿using System;
 using System.IO;
-using System.IO.Compression;
 using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Event;
+using Ionic.Zip;
 using JetBrains.Annotations;
 using ServiceManager.ProjectDeployment.Build;
 using ServiceManager.ProjectDeployment.Data;
@@ -203,14 +203,21 @@ namespace ServiceManager.ProjectDeployment.Actors
                                      {
                                          var stream = paths.RepoFile.Stream;
                                          stream.Seek(0, SeekOrigin.Begin);
-                                         using var archive = new ZipArchive(stream, ZipArchiveMode.Read);
-                                         archive.ExtractToDirectory(paths.RepoPath.FullPath, true);
-                                     }).PipeTo(Self, success: () => new Status.Success(null));
+                                         using var archive = ZipFile.Read(stream);
+                                         archive.ExtractAll(paths.RepoPath.FullPath, ExtractExistingFileAction.OverwriteSilently);
+                                     }).PipeTo(Self, 
+                                success: () => new Status.Success(null),
+                                failure: e => new Status.Failure(e));
                             return Stay();
                         case Status.Success:
                             _log.Info("Repository Extracted {Name}", evt.StateData.AppData.Id);
                             return GoTo(BuildState.Building)
                                .ReplyingSelf(Trigger.Inst);
+                        case Status.Failure f:
+                            _log.Warning(f.Cause, "Repository Extraction Failed {Name}", evt.StateData.AppData.Id);
+                            return GoTo(BuildState.Failing)
+                                  .Using(evt.StateData.SetError(f.Cause.Message))
+                                  .ReplyingSelf(Trigger.Inst);
                         default:
                             return null;
                     }
@@ -274,15 +281,23 @@ namespace ServiceManager.ProjectDeployment.Actors
                         case Trigger:
                             Task.Run(() =>
                                      {
-                                         using var zip = new ZipArchive(evt.StateData.Target.Stream, ZipArchiveMode.Create, true);
-                                         zip.AddFilesFromDictionary(evt.StateData.Paths.BuildPath.FullPath);
-                                     }).PipeTo(Self, success: () => new Status.Success(null));
+                                         using var zip = new ZipFile();
+                                         zip.AddDirectory(evt.StateData.Paths.BuildPath.FullPath);
+                                         zip.Save(evt.StateData.Target.NoDisposeStream);
+                                     }).PipeTo(Self, 
+                                success: () => new Status.Success(null),
+                                failure:e => new Status.Failure(e));
                             return Stay();
                         case Status.Success:
                             evt.StateData.CompletionSource?.SetResult((StateData.Commit, StateData.Target));
                             return GoTo(BuildState.Waiting)
                                   .Using(evt.StateData.Clear(_log))
                                   .ReplyingParent(BuildCompled.Inst);
+                        case Status.Failure f:
+                            _log.Warning(f.Cause, "Repository Extraction Failed {Name}", evt.StateData.AppData.Id);
+                            return GoTo(BuildState.Failing)
+                                  .Using(evt.StateData.SetError(f.Cause.Message))
+                                  .ReplyingSelf(Trigger.Inst);
                         default:
                             return null;
                     }
@@ -336,10 +351,12 @@ namespace ServiceManager.ProjectDeployment.Actors
                                  Self.Tell(Trigger.Inst);
                              }
                          });
-
+            
             OnTermination(evt =>
                           {
-                              _log.Error("Unexpected Termination {Cause} on {State}", evt.Reason.ToString(), evt.TerminatedState);
+                              if(evt.Reason != Shutdown.Instance) return;
+                                _log.Error("Unexpected Termination {Cause} on {State}", evt.Reason.ToString(), evt.TerminatedState);
+
                               evt.StateData.Paths.Dispose();
 
                               evt.StateData.CompletionSource?.TrySetCanceled();

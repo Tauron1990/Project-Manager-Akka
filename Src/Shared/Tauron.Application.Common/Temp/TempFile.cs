@@ -12,14 +12,17 @@ namespace Tauron.Temp
             FullPath = targetPath;
         }
 
-        internal Stream InternalStrem => _targetStream ??= new FileStream(FullPath, FileMode.OpenOrCreate,
-            FileAccess.ReadWrite, FileShare.Delete | FileShare.Read, 4096, FileOptions.DeleteOnClose);
+        internal Stream InternalStrem => _targetStream ??= new FileStream(
+            FullPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, 
+            FileShare.Delete | FileShare.Read, 4096, FileOptions.DeleteOnClose);
 
         public ITempDic Parent { get; }
 
         public bool NoStreamDispose { get; set; }
 
-        public Stream Stream => new TempStream(this);
+        public Stream Stream => new TempStream(this, false);
+
+        public Stream NoDisposeStream => new TempStream(this, true);
 
         public string FullPath { get; }
 

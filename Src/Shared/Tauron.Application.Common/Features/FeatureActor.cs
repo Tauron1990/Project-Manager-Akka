@@ -59,6 +59,9 @@ namespace Tauron.Features
 
         public StatePair<TNew, TState> NewEvent<TNew>(TNew evt)
             => new(evt, State, Timers);
+
+        public StatePair<TNew, TState> NewEvent<TNew>(TNew evt, TState state)
+            => new(evt, state, Timers);
     }
 
     [PublicAPI, DebuggerStepThrough]
@@ -176,8 +179,7 @@ namespace Tauron.Features
         [PublicAPI]
         public static class Make
         {
-            public static Action<ActorBuilder<TState>> Feature(Action<IFeatureActor<TState>> initializer,
-                params string[] ids)
+            public static Action<ActorBuilder<TState>> Feature(Action<IFeatureActor<TState>> initializer, params string[] ids)
                 => b => b.WithFeature(new DelegatingFeature(initializer, ids));
         }
 

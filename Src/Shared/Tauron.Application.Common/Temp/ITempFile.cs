@@ -9,5 +9,7 @@ namespace Tauron.Temp
         bool NoStreamDispose { get; set; }
 
         Stream Stream { get; }
+
+        Stream NoDisposeStream { get; }
     }
 }

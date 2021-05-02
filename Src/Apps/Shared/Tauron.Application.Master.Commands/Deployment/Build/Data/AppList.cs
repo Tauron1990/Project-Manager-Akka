@@ -9,5 +9,6 @@ namespace Tauron.Application.Master.Commands.Deployment.Build.Data
         public IEnumerator<AppInfo> GetEnumerator() => Apps.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable) Apps).GetEnumerator();
+        public static readonly AppList Empty = new(ImmutableList<AppInfo>.Empty);
     }
 }

@@ -116,9 +116,10 @@ namespace ServiceManager.ProjectDeployment.Actors
                                                )
                                               .Select(i =>
                                                       {
-                                                          using var stream = i.State.Files.GetFile(i.NewBinary.Id).Open(FileAccess.Write);
+                                                          using var stream = i.State.Files.GetFile(i.NewBinary.Id).Create();
                                                           using var fileStream = i.File.Stream;
 
+                                                          fileStream.Seek(0, SeekOrigin.Begin);
                                                           fileStream.CopyTo(stream);
 
                                                           var newData = i.ToDelete
@@ -179,11 +180,14 @@ namespace ServiceManager.ProjectDeployment.Actors
                                                                    .Select(_ => default(FileTransactionId)));
 
                                    b.When(m => m.Result.Ok && m.Result.Outcome is ITempFile && m.Command.Manager != null,
-                                       o => o.SelectMany(
-                                           continueData => Observable.Using(
-                                               () => (ITempFile) continueData.Result.Outcome!,
-                                               file => Observable.Return((File: file, Target: continueData.Command.GetTransferManager(), Manager: continueData.State.DataTransfer))
-                                                                 .Select(f => f.Manager.Request(DataTransferRequest.FromStream(f.File.Stream, f.Target))))));
+                                       o => o.Select(continueData =>
+                                                     {
+                                                         var man = continueData.Command.GetTransferManager();
+                                                         var file = (ITempFile) continueData.Result.Outcome!;
+                                                         var start = continueData.State.DataTransfer;
+
+                                                         return start.Request(DataTransferRequest.FromStream(() => new TempTransferInfo(file), man));
+                                                     }));
                                }),
                 r => r.Event.TempData);
         }
@@ -308,6 +312,29 @@ namespace ServiceManager.ProjectDeployment.Actors
             {
                 TempData = tempData;
             }
+        }
+
+        private sealed class TempTransferInfo : ITransferData
+        {
+            private readonly ITempFile _file;
+            private readonly Stream _stream;
+
+            public TempTransferInfo(ITempFile file)
+            {
+                _file = file;
+                _stream = _file.Stream;
+                _stream.Seek(0, SeekOrigin.Begin);
+            }
+
+            public void Dispose()
+            {
+                _stream.Dispose();
+                _file.Dispose();
+            }
+
+            public int Read(byte[] buffer, in int offset, in int count) => _stream.Read(buffer, offset, count);
+
+            public void Write(byte[] buffer, in int offset, in int count) => _stream.Write(buffer, offset, count);
         }
     }
 }

@@ -5,6 +5,7 @@ using ServiceHost.Installer;
 using ServiceHost.Services;
 using ServiceHost.SharedApi;
 using Tauron.Application.AkkaNode.Bootstrap;
+using Tauron.Features;
 
 namespace ServiceHost
 {
@@ -15,7 +16,7 @@ namespace ServiceHost
             builder.RegisterType<AppManager>().As<IAppManager>().SingleInstance();
             builder.RegisterType<AutoUpdater>().As<IAutoUpdater>().SingleInstance();
             builder.RegisterType<Installer.Installer>().As<IInstaller>().SingleInstance();
-            builder.RegisterType<AppRegistry>().As<IAppRegistry>().SingleInstance();
+            builder.RegisterFeature<AppRegistry, IAppRegistry>(AppRegistryActor.New()).SingleInstance();
 
             builder.RegisterType<ManualInstallationTrigger>().As<IStartUpAction>();
             builder.RegisterType<ServiceStartupTrigger>().As<IStartUpAction>();
