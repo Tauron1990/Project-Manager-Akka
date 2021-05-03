@@ -7,7 +7,7 @@ namespace ServiceHost.Installer.Impl.Source
     {
         Status ValidateInput(InstallerContext context);
 
-        Task<Status> PreperforCopy(InstallerContext context);
+        Task<Status> PrepareforCopy(InstallerContext context);
 
         Task<Status> CopyTo(InstallerContext context, string target);
 

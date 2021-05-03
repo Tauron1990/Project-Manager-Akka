@@ -1,8 +1,9 @@
 ﻿using Tauron.Akka;
+using Tauron.Features;
 
 namespace ServiceHost.Installer
 {
-    public interface IInstaller : IDefaultActorRef<InstallManagerActor>
+    public interface IInstaller : IFeatureActorRef<IInstaller>
     {
         
     }

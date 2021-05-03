@@ -18,7 +18,7 @@ namespace ServiceHost.Core.Database
         private static readonly char[] LineSplitter = { '\t' };
         private static readonly char[] MetaSplitter = { '=' };
 
-        private DatabaseArray<DatabaseEntry> _entrys = new DatabaseArray<DatabaseEntry>();
+        private DatabaseArray<DatabaseEntry> _entrys = new();
         public int DatabasElements => _entrys.Count;
         private HashSet<string> _databaseNames;
         private int _isDirty;
@@ -150,7 +150,7 @@ namespace ServiceHost.Core.Database
             {
                 public int IndexValue { get; set; }
                 public int Count { get; set; }
-                public char Char { get; set; }
+                public char Char { get; init; }
 
                 public int CompareTo(IndexEntry? other)
                 {
@@ -333,7 +333,7 @@ namespace ServiceHost.Core.Database
                     if (_handlers == null)
                     {
                         _handlers = new WeakCollection<IChangedHandler>();
-                        _handlers.CleanedEvent += (sender, e) => { lock (this) if (_handlers.Count == 0) _handlers = null; };
+                        _handlers.CleanedEvent += (_, _) => { lock (this) if (_handlers.Count == 0) _handlers = null; };
                     }
                     _handlers.Add(handler);
                 }
@@ -357,12 +357,12 @@ namespace ServiceHost.Core.Database
 
             protected override string CompareName => _key;
 
-            private string _key = string.Empty;
+            private readonly string _key = string.Empty;
 
             public string Key
             {
                 get => _key;
-                set
+                init
                 {
                     Changed(ChangeType.MetaKey, Interlocked.Exchange(ref _key, value), value);
                     Interlocked.Exchange(ref Database._isDirty, 1);
@@ -413,8 +413,8 @@ namespace ServiceHost.Core.Database
                 }
             }
 
-            private readonly DatabaseArray<Metadata> _metadata = new DatabaseArray<Metadata>();
-            private readonly HashSet<string> _metaNames = new HashSet<string>();
+            private readonly DatabaseArray<Metadata> _metadata = new();
+            private readonly HashSet<string> _metaNames = new();
 
 
             public DatabaseEntry(DatabaseHelper database)
@@ -424,7 +424,7 @@ namespace ServiceHost.Core.Database
 
             public IEnumerable<string> Keys => new ReadOnlyEnumerator<string>(_metaNames);
 
-            public Metadata? FindMetadata(string key)
+            public Metadata FindMetadata(string key)
                 => FindMeatadataNonBlock(key);
 
             private Metadata FindMeatadataNonBlock(string name)
@@ -477,18 +477,18 @@ namespace ServiceHost.Core.Database
         {
             private class EscapePart
             {
-                public char Escaped { get; set; }
-                public string Sequence { get; set; } = string.Empty;
+                public char Escaped { get; init; }
+                public string Sequence { get; init; } = string.Empty;
 
                 public override string ToString()
                     => Escaped + " " + Sequence;
             }
             private static readonly EscapePart[] Parts =
             {
-                new EscapePart {Escaped = '\r', Sequence = "001"},
-                new EscapePart {Escaped = '\t', Sequence = "002"},
-                new EscapePart {Escaped = '\n', Sequence = "003"},
-                new EscapePart {Escaped = ':', Sequence = "004"}
+                new() {Escaped = '\r', Sequence = "001"},
+                new() {Escaped = '\t', Sequence = "002"},
+                new() {Escaped = '\n', Sequence = "003"},
+                new() {Escaped = ':', Sequence = "004"}
             };
 
             private const string EscapeString = @"\\";

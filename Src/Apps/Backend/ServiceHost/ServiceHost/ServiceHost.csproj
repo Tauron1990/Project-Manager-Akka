@@ -25,6 +25,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="DotNetZip" Version="1.15.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\..\Shared\Tauron.Application.AkkaNode.Boottrap\Tauron.Application.AkkaNode.Boottrap.csproj" />
   </ItemGroup>
 

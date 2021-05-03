@@ -6,7 +6,7 @@ namespace ServiceHost.Installer.Impl.Source
 {
     public sealed class EmptySource : IInstallationSource
     {
-        public static EmptySource Instnace { get; } = new EmptySource(); 
+        public static EmptySource Instnace { get; } = new(); 
 
         private EmptySource()
         {
@@ -15,7 +15,7 @@ namespace ServiceHost.Installer.Impl.Source
 
         public Status ValidateInput(InstallerContext name) => new Status.Failure(new NotImplementedException());
 
-        public Task<Status> PreperforCopy(InstallerContext context) 
+        public Task<Status> PrepareforCopy(InstallerContext context) 
             => Task.FromResult<Status>(new Status.Failure(new NotImplementedException()));
         public Task<Status> CopyTo(InstallerContext context, string target) 
             => Task.FromResult<Status>(new Status.Failure(new NotImplementedException()));
@@ -25,7 +25,7 @@ namespace ServiceHost.Installer.Impl.Source
             
         }
 
-        public int Version { get; } = -1;
+        public int Version => -1;
         public string ToZipFile(InstallerContext context) => throw new NotImplementedException();
     }
 }

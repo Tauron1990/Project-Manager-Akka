@@ -106,7 +106,7 @@ namespace ServiceHost.Installer.Impl
                     }
 
                     context.InstallationPath = targetAppPath;
-                    context.Source.PreperforCopy(context)
+                    context.Source.PrepareforCopy(context)
                        .PipeTo(Self, success: () => new PreCopyCompled());
 
 

@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-
-namespace ServiceHost.Installer.Impl.Source
+﻿namespace ServiceHost.Installer.Impl.Source
 {
     public static class InstallationSourceSelector
     {

@@ -12,9 +12,9 @@ namespace ServiceHost.Installer.Impl
 {
     public sealed class InstallerContext : IWorkflowContext
     {
-        public Recovery Recovery { get; } = new Recovery();
+        public Recovery Recovery { get; } = new();
 
-        public Backup Backup { get; } = new Backup();
+        public Backup Backup { get; } = new();
 
         public InstallType Manual { get; }
 

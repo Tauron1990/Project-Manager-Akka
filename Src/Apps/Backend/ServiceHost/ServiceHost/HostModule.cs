@@ -14,8 +14,8 @@ namespace ServiceHost
         protected override void Load(ContainerBuilder builder)
         {
             builder.RegisterType<AppManager>().As<IAppManager>().SingleInstance();
-            builder.RegisterType<AutoUpdater>().As<IAutoUpdater>().SingleInstance();
-            builder.RegisterType<Installer.Installer>().As<IInstaller>().SingleInstance();
+            builder.RegisterFeature<AutoUpdater, IAutoUpdater>(AutoUpdateActor.New()).SingleInstance();
+            builder.RegisterFeature<Installer.Installer, IInstaller>(InstallManagerActor.New()).SingleInstance();
             builder.RegisterFeature<AppRegistry, IAppRegistry>(AppRegistryActor.New()).SingleInstance();
 
             builder.RegisterType<ManualInstallationTrigger>().As<IStartUpAction>();

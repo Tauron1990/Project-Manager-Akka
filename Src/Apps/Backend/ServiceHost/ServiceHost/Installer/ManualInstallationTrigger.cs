@@ -9,7 +9,7 @@ namespace ServiceHost.Installer
     public sealed class ManualInstallationTrigger : IStartUpAction
     {
         private readonly IInstaller _installer;
-        private readonly ManualInstallationConfiguration _trigger = new ManualInstallationConfiguration();
+        private readonly ManualInstallationConfiguration _trigger = new();
 
         public ManualInstallationTrigger(IConfiguration config, IInstaller installer)
         {

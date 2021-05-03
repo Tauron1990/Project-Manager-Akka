@@ -3,7 +3,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace ServiceHost.Installer
 {
-    public sealed class InstallChecker
+    public sealed record InstallChecker
     {
         public bool IsInstallationStart { get; }
 

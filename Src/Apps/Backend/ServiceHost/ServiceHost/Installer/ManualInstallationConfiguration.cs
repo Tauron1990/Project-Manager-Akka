@@ -1,8 +1,9 @@
-﻿using ServiceHost.ApplicationRegistry;
+﻿using JetBrains.Annotations;
 using Tauron.Application.Master.Commands.Administration.Host;
 
 namespace ServiceHost.Installer
 {
+    [UsedImplicitly(ImplicitUseTargetFlags.Members)]
     public sealed class ManualInstallationConfiguration
     {
         public InstallType Install { get; set; } = InstallType.Empty;
@@ -11,7 +12,7 @@ namespace ServiceHost.Installer
 
         public string AppName { get; set; } = string.Empty;
 
-        public bool Override { get; set; } = false;
+        public bool Override { get; set; }
 
         public string Exe { get; set; } = string.Empty;
 

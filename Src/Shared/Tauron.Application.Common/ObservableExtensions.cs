@@ -15,6 +15,18 @@ namespace Tauron
     [PublicAPI, DebuggerStepThrough]
     public static class ObservableExtensions
     {
+        public static IObservable<TOutput> CatchSafe<TInput, TOutput>(
+            this IObservable<TInput> input, 
+            Func<TInput, IObservable<TOutput>> process, 
+            Func<TInput, Exception, IObservable<TOutput>> catcher)
+        {
+            return input.SelectMany(i =>
+                                    {
+                                        return process(i)
+                                           .Catch<TOutput, Exception>(e => catcher(i, e));
+                                    });
+        }
+
         public static IObservable<TData?> Lookup<TKey, TData>(this IDictionary<TKey, TData> dic, TKey key) 
             => Observable.Return(dic.TryGetValue(key, out var data) ? data : default);
 

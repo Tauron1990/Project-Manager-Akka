@@ -1,10 +1,9 @@
-﻿using JetBrains.Annotations;
-using Tauron.Akka;
+﻿using Tauron.Features;
 
 namespace ServiceHost.Installer
 {
-    public sealed class Installer : DefaultActorRef<InstallManagerActor>, IInstaller
+    public sealed class Installer : FeatureActorRefBase<IInstaller>, IInstaller
     {
-        public Installer(ActorRefFactory<InstallManagerActor> actorBuilder) : base(actorBuilder) => Init("Installer");
+        public Installer() : base("Installer"){}
     }
 }
