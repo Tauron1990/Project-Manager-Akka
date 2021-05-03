@@ -1,7 +1,4 @@
 ﻿namespace ServiceHost.Installer.Impl
 {
-    public class UninstallRequest
-    {
-        
-    }
+    public abstract record UninstallRequest;
 }

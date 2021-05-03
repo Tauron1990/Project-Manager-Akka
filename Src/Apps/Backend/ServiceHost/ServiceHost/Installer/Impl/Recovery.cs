@@ -6,7 +6,7 @@ namespace ServiceHost.Installer.Impl
 {
     public sealed class Recovery
     {
-        private List<Action<ILoggingAdapter>> _entrys = new List<Action<ILoggingAdapter>>();
+        private readonly List<Action<ILoggingAdapter>> _entrys = new();
 
         public void Add(Action<ILoggingAdapter> recover)
             => _entrys.Add(recover);

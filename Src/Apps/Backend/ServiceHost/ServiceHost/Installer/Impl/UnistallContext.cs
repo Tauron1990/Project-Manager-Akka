@@ -5,17 +5,14 @@ namespace ServiceHost.Installer.Impl
 {
     public sealed class UnistallContext : IWorkflowContext
     {
-        public Backup Backup { get; } = new Backup();
+        public Backup Backup { get; } = new();
 
-        public Recovery Recovery { get; } = new Recovery();
+        public Recovery Recovery { get; } = new();
 
         public string Name { get; }
 
         public InstalledApp App { get; set; } = InstalledApp.Empty;
 
-        public UnistallContext(string name)
-        {
-            Name = name;
-        }
+        public UnistallContext(string name) => Name = name;
     }
 }

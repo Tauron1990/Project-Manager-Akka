@@ -13,7 +13,7 @@ namespace ServiceHost.Installer.Impl
         private string _backupFile = string.Empty;
         private string _backFrom = string.Empty;
 
-        public Unit Make(string from)
+        public void Make(string from)
         {
             BackupLocation.CreateDirectoryIfNotExis();
 
@@ -23,11 +23,9 @@ namespace ServiceHost.Installer.Impl
             using var zip = new ZipFile(_backupFile);
             zip.AddDirectory(from);
             zip.Save();
-
-            return Unit.Default;
         }
 
-        public Unit Recover(ILoggingAdapter log)
+        public void Recover(ILoggingAdapter log)
         {
             log.Info("Recover Old Application from Backup during Recover");
 
@@ -35,7 +33,6 @@ namespace ServiceHost.Installer.Impl
                 zip.ExtractAll(_backFrom, ExtractExistingFileAction.OverwriteSilently);
             
             _backupFile.DeleteFile();
-            return Unit.Default;
         }
 
         public void CleanUp() 
