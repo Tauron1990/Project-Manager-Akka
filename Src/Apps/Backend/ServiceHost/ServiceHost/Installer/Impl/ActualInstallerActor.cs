@@ -7,7 +7,6 @@ using ServiceHost.ApplicationRegistry;
 using ServiceHost.AutoUpdate;
 using ServiceHost.Installer.Impl.Source;
 using Tauron;
-using Tauron.Akka;
 using Tauron.Application.ActorWorkflow;
 using Tauron.Application.Master.Commands.Administration.Host;
 using Tauron.Application.Workflow;
@@ -17,12 +16,12 @@ namespace ServiceHost.Installer.Impl
     [UsedImplicitly]
     public sealed class ActualInstallerActor : LambdaWorkflowActor<InstallerContext>
     {
-        private static readonly StepId Preperation = new StepId(nameof(Preperation));
-        private static readonly StepId Validation = new StepId(nameof(Validation));
-        private static readonly StepId PreCopy = new StepId(nameof(PreCopy));
-        private static readonly StepId Copy = new StepId(nameof(Copy));
-        private static readonly StepId Registration = new StepId(nameof(Registration));
-        private static readonly StepId Finalization = new StepId(nameof(Finalization));
+        private static readonly StepId Preperation = new(nameof(Preperation));
+        private static readonly StepId Validation = new(nameof(Validation));
+        private static readonly StepId PreCopy = new(nameof(PreCopy));
+        private static readonly StepId Copy = new(nameof(Copy));
+        private static readonly StepId Registration = new(nameof(Registration));
+        private static readonly StepId Finalization = new(nameof(Finalization));
 
         public ActualInstallerActor(IAppRegistry registry, IConfiguration configuration, IAutoUpdater autoUpdater)
         {
@@ -30,26 +29,32 @@ namespace ServiceHost.Installer.Impl
 
             StartMessage<FileInstallationRequest>(HandleFileInstall);
 
-            WhenStep(StepId.Start, c => c.OnExecute(cc => Preperation));
+            WhenStep(StepId.Start, c => c.OnExecute(_ => Preperation));
 
             WhenStep(Preperation, config =>
             {
                 config.OnExecute((context, step) =>
                 {
                     Log.Info("Perpering Data for Installation: {Apps}", context.Name);
-                    return context.SetSource(InstallationSourceSelector.Select, step.SetError)
-                       .When(i => i != EmptySource.Instnace, () =>
-                                StepId.Waiting.DoAnd(_ =>
-                                    registry.Actor
-                                       .Ask<InstalledAppRespond>(new InstalledAppQuery(context.Name), TimeSpan.FromSeconds(5))
-                                       .PipeTo(Self))
-                          , StepId.Fail);
+                    switch (context.SetSource(InstallationSourceSelector.Select, step.SetError))
+                    {
+                        case EmptySource:
+                            return StepId.Fail;
+                        default:
+                            registry.Ask<InstalledAppRespond>(new InstalledAppQuery(context.Name), TimeSpan.FromSeconds(10))
+                                    .PipeTo(Self);
+                            return StepId.Waiting;
+                    }
                 });
 
                 Signal<InstalledAppRespond>((context, respond) =>
                 {
-                    if (!respond.Fault) 
-                        return Validation.DoAnd(_ => context.SetInstalledApp(respond.App));
+                    var (installedApp, fault) = respond;
+                    if (!fault)
+                    {
+                        context.SetInstalledApp(installedApp);
+                        return Validation;
+                    }
                     
                     SetError(ErrorCodes.QueryAppInfo);
                     return StepId.Fail;
@@ -122,7 +127,7 @@ namespace ServiceHost.Installer.Impl
                     return StepId.Waiting;
                 });
 
-                Signal<PreCopyCompled>((c, m) => Copy);
+                Signal<PreCopyCompled>((_, _) => Copy);
             });
 
             WhenStep(Copy, config =>
@@ -165,12 +170,12 @@ namespace ServiceHost.Installer.Impl
                     return StepId.Waiting;
                 });
 
-                Signal<CopyCompled>((context, compled) => Registration);
+                Signal<CopyCompled>((_, _) => Registration);
             });
 
             WhenStep(Registration, config =>
             {
-                config.OnExecute((context, step) =>
+                config.OnExecute((context, _) =>
                 {
                     Log.Info("Register Application for Host {Apps}", context.Name);
 
@@ -192,11 +197,12 @@ namespace ServiceHost.Installer.Impl
                     return StepId.Waiting;
                 });
                 
-                Signal<RegistrationResponse>((context, response) =>
+                Signal<RegistrationResponse>((_, response) =>
                 {
-                    if (response.Scceeded)
+                    var (scceeded, exception) = response;
+                    if (scceeded)
                         return Finalization;
-                    SetError(response.Error?.Message ?? "");
+                    SetError(exception?.Message ?? "");
                     return StepId.Fail;
                 });
             });
@@ -222,7 +228,7 @@ namespace ServiceHost.Installer.Impl
                 });
             });
 
-            Signal<Failure>((ctx, f) =>
+            Signal<Failure>((_, f) =>
             {
                 SetError(f.Exception.Message);
                 return StepId.Fail;
@@ -230,13 +236,14 @@ namespace ServiceHost.Installer.Impl
 
             OnFinish(wr =>
             {
-                if (!wr.Succesfully)
+                var (succesfully, error, installerContext) = wr;
+                if (!succesfully)
                 {
-                    Log.Warning("Installation Failed Recover {Apps}", wr.Context.Name);
-                    wr.Context.Recovery.Recover(Log);
+                    Log.Warning("Installation Failed Recover {Apps}", installerContext.Name);
+                    installerContext.Recovery.Recover(Log);
                 }
 
-                var finish = new InstallerationCompled(wr.Succesfully, wr.Error, wr.Context.AppType, wr.Context.Name, InstallationAction.Install);
+                var finish = new InstallerationCompled(succesfully, error, installerContext.AppType, installerContext.Name, InstallationAction.Install);
                 if (!Sender.Equals(Context.System.DeadLetters))
                     Sender.Tell(finish, ActorRefs.NoSender);
 

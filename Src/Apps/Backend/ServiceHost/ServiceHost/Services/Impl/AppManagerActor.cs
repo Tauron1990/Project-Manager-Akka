@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Akka;
@@ -10,10 +9,9 @@ using Akka.Event;
 using JetBrains.Annotations;
 using ServiceHost.ApplicationRegistry;
 using ServiceHost.Installer;
-using Tauron;
-using Tauron.Akka;
-using Tauron.Application.AkkNode.Services.Core;
+using Servicemnager.Networking.Transmitter;
 using Tauron.Application.Master.Commands.Administration.Host;
+using Tauron.Features;
 
 namespace ServiceHost.Services.Impl
 {

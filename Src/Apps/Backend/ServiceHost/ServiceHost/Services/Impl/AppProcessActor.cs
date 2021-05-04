@@ -2,162 +2,159 @@
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
+using System.Reactive;
+using System.Reactive.Linq;
 using System.Threading;
 using Akka.Actor;
 using JetBrains.Annotations;
 using ServiceHost.ApplicationRegistry;
+using Tauron;
 using Tauron.Akka;
+using Tauron.Application.AkkaNode.Bootstrap.Console;
+using Tauron.Application.AkkaNode.Bootstrap.Console.IpcMessages;
+using Tauron.Features;
+using Tauron.ObservableExt;
 
 namespace ServiceHost.Services.Impl
 {
-    [UsedImplicitly]
-    public sealed class AppProcessActor : ExposedReceiveActor, IWithTimers
+    public sealed class AppProcessActor : ActorFeatureBase<AppProcessActor.AppProcessorState>
     {
-        private readonly InstalledApp _app;
+        public sealed record AppProcessorState(InstalledApp App, string ServiceName, IIpcConnection ServiceCom, Process? Process, bool IsProcessRunning, string ServiceId);
 
-        private string _serviceComName = string.Empty;
-        private AnonymousPipeServerStream? _serviceCom;
-        private Process? _process;
-        private bool _isProcesRunning;
+        public IPreparedFeature New(InstalledApp app, IIpcConnection connection)
+            => Feature.Create(() => new AppProcessActor(), _ => new AppProcessorState(app, Guid.NewGuid().ToString("N"), connection, null, false, string.Empty));
 
-        public ITimerScheduler Timers { get; set; } = default!;
-
-        public AppProcessActor(InstalledApp app)
+        protected override void ConfigImpl()
         {
-            _app = app;
+            var dispo = CurrentState.ServiceCom.OnMessage<RegisterNewClient>()
+                                    .OnResult()
+                                    .Where(m => m.ServiceName == CurrentState.ServiceName)
+                                    .SubscribeWithStatus(TellSelf);
 
-            CallSafe(() =>
-            {
-                _serviceCom = new AnonymousPipeServerStream(PipeDirection.Out, HandleInheritability.Inheritable);
-                _serviceComName = _serviceCom.GetClientHandleAsString();
-            }, "Error while Initilizing Named pipe");
+            Receive<RegisterNewClient>(
+                obs => from client in obs 
+                       select client.State with{ServiceId = client.Event.Id});
 
-            Receive<CheckProcess>(_ =>
-            {
-                if(_process == null)
-                {
-                    if(_isProcesRunning)
-                        Self.Tell(new InternalStartApp());
-                    return;
-                }
+            Stop.SubscribeWithStatus(_ =>
+                                     {
+                                         dispo.Dispose();
+                                         CurrentState.Process?.Dispose();
+                                     });
 
-                if (!_process.HasExited || !_isProcesRunning) return;
+            Receive<CheckProcess>(
+                obs => obs
+                      .Select(m => m.State)
+                      .ConditionalSelect()
+                          .ToResult<AppProcessorState>(
+                               b =>
+                               {
+                                   b.When(m => m.Process == null && m.IsProcessRunning, o => o.Do(_ => Self.Tell(new InternalStartApp())));
 
-                _process.Dispose();
-                _process = null;
+                                   b.When(m => m.Process is {HasExited: false} && m.IsProcessRunning, o => o);
 
-                Log.Info("Process killed Restarting {Name}", _app.Name);
-                Self.Tell(new InternalStartApp());
+                                   b.When(m => m.Process is {HasExited: true} && m.IsProcessRunning,
+                                       o => o.Do(m => m.Process?.Dispose())
+                                             .Do(m => Log.Info("Process killed. Restarting {Name}", m.App.Name))
+                                             .Do(_ => Self.Tell(new InternalStartApp()))
+                                             .Select(m => m with {Process = null}));
+                               }));
 
-            });
+            Receive<GetName>(o => o.Select(m => new GetNameResponse(m.State.App.Name, m.State.IsProcessRunning)).ToSender());
 
-            Receive<InternalStartApp>(StartApp);
-            Receive<InternalStopApp>(StopApp);
-
-            Receive<GetName>(_ => Sender.Tell(new GetNameResponse(_app.Name, _isProcesRunning)));
+            Receive<InternalStopApp>(
+                o => o.CatchSafe(
+                    m => Observable.Return(m.State),
+                    (m, e) => Observable.Return(m.State)));
         }
 
-        private void StopApp(InternalStopApp obj)
-        {
-            CallSafe(
-                () =>
-                {
-                    Log.Info("Stop Apps {Name}", _app.Name);
-                    _isProcesRunning = false;
-                    if (_serviceCom == null)
-                    {
-                        Log.Warning("None Comunication Pipe Killing {Name}", _app.Name);
-                        _process?.Kill(true);
-                    }
-                    else
-                    {
-                        if(_process == null) return;
+        private sealed record CheckProcess;
 
-                        Log.Info("Sending KillCommand {Name}", _app.Name);
-                        var writer = new BinaryWriter(_serviceCom);
-                        writer.Write("Kill-Node");
-                        writer.Flush();
-                        
-                        Log.Info("Wait for exit {Name}", _app.Name);
-                        
-                        var watch = Stopwatch.StartNew();
+        public sealed record GetName;
 
-                        while (watch.Elapsed < TimeSpan.FromMinutes(1))
-                        {
-                            Thread.Sleep(1000);
-                            if(_process.HasExited) return;
-                        }
-
-                        if (_process.HasExited) return;
-                        
-                        Log.Warning("Process not Exited Killing {Name}", _app.Name);
-                        _process.Kill(true);
-                    }
-                },
-                "Error while Stopping Apps",
-                e =>
-                {
-                    _process?.Dispose();
-                    if(!Sender.Equals(Context.Parent))
-                        Sender.Tell(new StopResponse(_app.Name, e));
-                    Context.Parent.Tell(new StopResponse(_app.Name, e));
-                    Context.Stop(Self);
-                });
-        }
-
-        private void StartApp(InternalStartApp obj)
-        {
-            CallSafe(
-                () =>
-                {
-                    if(_isProcesRunning) return;
-                    Log.Info("Start Apps {Name}", _app.Name);
-                    _process = Process.Start(new ProcessStartInfo(Path.Combine(_app.Path, _app.Exe), $"--ComHandle {_serviceComName}")
-                                             {
-                                                 WorkingDirectory = _app.Path,
-                                                 CreateNoWindow = _app.SuressWindow
-                                             });
-                    _isProcesRunning = true;
-                }, "Error while Stratin Service");
-        }
-
-        protected override void PreStart()
-        {
-            Timers.StartPeriodicTimer(_serviceComName, new CheckProcess(), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(5));
-            base.PreStart();
-        }
-
-        protected override void PostStop()
-        {
-            CallSafe(
-                () =>
-                {
-                    _serviceCom?.Dispose();
-
-                    _process?.Dispose();
-                }, "Error ehile Disposing Named pipe");
-
-            base.PostStop();
-        }
-
-        private sealed class CheckProcess { }
-
-        public sealed class GetName
-        {
-            
-        }
-
-        public sealed class GetNameResponse
-        {
-            public string Name { get; }
-
-            public bool Running { get; }
-
-            public GetNameResponse(string name, bool running)
-            {
-                Name = name;
-                Running = running;
-            }
-        }
+        public sealed record GetNameResponse(string Name, bool Running);
     }
+    
+    //    private void StopApp(InternalStopApp obj)
+    //    {
+    //        CallSafe(
+    //            () =>
+    //            {
+    //                Log.Info("Stop Apps {Name}", _app.Name);
+    //                _isProcesRunning = false;
+    //                if (_serviceCom == null)
+    //                {
+    //                    Log.Warning("None Comunication Pipe Killing {Name}", _app.Name);
+    //                    _process?.Kill(true);
+    //                }
+    //                else
+    //                {
+    //                    if(_process == null) return;
+
+    //                    Log.Info("Sending KillCommand {Name}", _app.Name);
+    //                    var writer = new BinaryWriter(_serviceCom);
+    //                    writer.Write("Kill-Node");
+    //                    writer.Flush();
+
+    //                    Log.Info("Wait for exit {Name}", _app.Name);
+
+    //                    var watch = Stopwatch.StartNew();
+
+    //                    while (watch.Elapsed < TimeSpan.FromMinutes(1))
+    //                    {
+    //                        Thread.Sleep(1000);
+    //                        if(_process.HasExited) return;
+    //                    }
+
+    //                    if (_process.HasExited) return;
+
+    //                    Log.Warning("Process not Exited Killing {Name}", _app.Name);
+    //                    _process.Kill(true);
+    //                }
+    //            },
+    //            "Error while Stopping Apps",
+    //            e =>
+    //            {
+    //                _process?.Dispose();
+    //                if(!Sender.Equals(Context.Parent))
+    //                    Sender.Tell(new StopResponse(_app.Name, e));
+    //                Context.Parent.Tell(new StopResponse(_app.Name, e));
+    //                Context.Stop(Self);
+    //            });
+    //    }
+
+    //    private void StartApp(InternalStartApp obj)
+    //    {
+    //        CallSafe(
+    //            () =>
+    //            {
+    //                if(_isProcesRunning) return;
+    //                Log.Info("Start Apps {Name}", _app.Name);
+    //                _process = Process.Start(new ProcessStartInfo(Path.Combine(_app.Path, _app.Exe), $"--ComHandle {_serviceComName}")
+    //                                         {
+    //                                             WorkingDirectory = _app.Path,
+    //                                             CreateNoWindow = _app.SuressWindow
+    //                                         });
+    //                _isProcesRunning = true;
+    //            }, "Error while Stratin Service");
+    //    }
+
+    //    protected override void PreStart()
+    //    {
+    //        Timers.StartPeriodicTimer(_serviceComName, new CheckProcess(), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(5));
+    //        base.PreStart();
+    //    }
+
+    //    protected override void PostStop()
+    //    {
+    //        CallSafe(
+    //            () =>
+    //            {
+    //                _serviceCom?.Dispose();
+
+    //                _process?.Dispose();
+    //            }, "Error ehile Disposing Named pipe");
+
+    //        base.PostStop();
+    //    }
+    //}
 }

@@ -2,10 +2,8 @@
 using System.IO;
 using Akka.Actor;
 using JetBrains.Annotations;
-using Microsoft.Extensions.Configuration;
 using ServiceHost.ApplicationRegistry;
 using ServiceHost.Services;
-using Tauron.Akka;
 using Tauron.Application.ActorWorkflow;
 using Tauron.Application.Workflow;
 
@@ -14,9 +12,9 @@ namespace ServiceHost.Installer.Impl
     [UsedImplicitly]
     public sealed class ActualUninstallationActor : LambdaWorkflowActor<UnistallContext>
     {
-        private static readonly StepId Stopping = new StepId(nameof(Stopping));
-        private static readonly StepId Unistall = new StepId(nameof(Unistall));
-        private static readonly StepId Finalization = new StepId(nameof(Finalization));
+        private static readonly StepId Stopping = new(nameof(Stopping));
+        private static readonly StepId Unistall = new(nameof(Unistall));
+        private static readonly StepId Finalization = new(nameof(Finalization));
 
         public ActualUninstallationActor(IAppRegistry registry, IAppManager manager)
         {
@@ -33,14 +31,15 @@ namespace ServiceHost.Installer.Impl
 
                 Signal<InstalledAppRespond>((context, respond) =>
                 {
-                    if (respond.Fault || respond.App.IsEmpty())
+                    var (installedApp, fault) = respond;
+                    if (fault || installedApp.IsEmpty())
                     {
                         Log.Warning("Error on Query Application Info {Name}", context.Name);
                         SetError(ErrorCodes.QueryAppInfo);
                         return StepId.Fail;
                     }
 
-                    context.App = respond.App;
+                    context.App = installedApp;
                     return Stopping;
                 });
             });
@@ -56,7 +55,7 @@ namespace ServiceHost.Installer.Impl
                     return StepId.Waiting;
                 });
 
-                Signal<StopResponse>((context, response) => Unistall);
+                Signal<StopResponse>((_, _) => Unistall);
             });
 
             WhenStep(Unistall, config =>
@@ -91,7 +90,7 @@ namespace ServiceHost.Installer.Impl
                 });
             });
 
-            Signal<Failure>((ctx, f) =>
+            Signal<Failure>((_, f) =>
             {
                 SetError(f.Exception.Message);
                 return StepId.Fail;
@@ -99,13 +98,14 @@ namespace ServiceHost.Installer.Impl
 
             OnFinish(wr =>
             {
-                if (!wr.Succesfully)
+                var (succesfully, error, unistallContext) = wr;
+                if (!succesfully)
                 {
-                    Log.Warning("Installation Failed Recover {Apps}", wr.Context.Name);
-                    wr.Context.Recovery.Recover(Log);
+                    Log.Warning("Installation Failed Recover {Apps}", unistallContext.Name);
+                    unistallContext.Recovery.Recover(Log);
                 }
 
-                var finish = new InstallerationCompled(wr.Succesfully, wr.Error, wr.Context.App.AppType, wr.Context.Name, InstallationAction.Uninstall);
+                var finish = new InstallerationCompled(succesfully, error, unistallContext.App.AppType, unistallContext.Name, InstallationAction.Uninstall);
                 if (!Sender.Equals(Context.System.DeadLetters))
                     Sender.Tell(finish, ActorRefs.NoSender);
 

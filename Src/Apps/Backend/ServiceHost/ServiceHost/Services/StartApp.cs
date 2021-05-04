@@ -2,11 +2,5 @@
 
 namespace ServiceHost.Services
 {
-    public sealed class StartApp
-    {
-        public InstalledApp App { get; }
-
-        public StartApp(InstalledApp app) 
-            => App = app;
-    }
+    public sealed record StartApp(InstalledApp App);
 }

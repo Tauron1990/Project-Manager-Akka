@@ -2,10 +2,5 @@
 
 namespace ServiceHost.Services
 {
-    public sealed class QueryAppStaus
-    {
-        public Guid OperationId { get; }
-
-        public QueryAppStaus(Guid operationId) => OperationId = operationId;
-    }
+    public sealed record QueryAppStaus(Guid OperationId);
 }

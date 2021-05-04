@@ -1,7 +1,4 @@
 ﻿namespace ServiceHost.Services.Impl
 {
-    public sealed class InternalStartApp
-    {
-
-    }
+    public sealed record InternalStartApp;
 }

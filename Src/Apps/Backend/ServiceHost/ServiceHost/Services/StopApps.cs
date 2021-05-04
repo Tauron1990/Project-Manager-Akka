@@ -1,7 +1,4 @@
 ﻿namespace ServiceHost.Services
 {
-    public sealed class StopApps
-    {
-        
-    }
+    public sealed record StopApps;
 }

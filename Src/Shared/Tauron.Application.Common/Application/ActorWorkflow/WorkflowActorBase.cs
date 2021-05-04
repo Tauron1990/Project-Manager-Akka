@@ -155,7 +155,7 @@ namespace Tauron.Application.ActorWorkflow
                                 break;
                             case "Waiting":
                                 _waiting = true;
-                                if (rev.Step is IHasTimeout timeout && timeout.Timeout != null)
+                                if (rev.Step is IHasTimeout {Timeout: { }} timeout)
                                     Timers.StartSingleTimer(_timeout, new TimeoutMarker(), timeout.Timeout.Value);
                                 _lastCall = chain;
                                 return true;
@@ -257,21 +257,9 @@ namespace Tauron.Application.ActorWorkflow
             return new StepConfiguration<TStep, TContext>(rev);
         }
 
-        private sealed class TimeoutMarker
-        {
-        }
+        private sealed record TimeoutMarker;
 
-        private sealed class LoopElement
-        {
-            public LoopElement(StepRev<TStep, TContext> rev, ChainCall call)
-            {
-                Rev = rev;
-                Call = call;
-            }
-
-            public StepRev<TStep, TContext> Rev { get; }
-            public ChainCall Call { get; }
-        }
+        private sealed record LoopElement(StepRev<TStep, TContext> Rev, ChainCall Call);
 
         private sealed class ChainCall
         {

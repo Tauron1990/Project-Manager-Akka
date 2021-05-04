@@ -1,15 +1,12 @@
-﻿using JetBrains.Annotations;
-using ServiceHost.Services.Impl;
-using Tauron.Akka;
+﻿using Tauron.Features;
 
 namespace ServiceHost.Services
 {
-    public sealed class AppManager : DefaultActorRef<AppManagerActor>, IAppManager
+    public sealed class AppManager : FeatureActorRefBase<IAppManager>, IAppManager
     {
-        public AppManager(ActorRefFactory<AppManagerActor> actorBuilder) 
-            : base(actorBuilder)
+        public AppManager() 
+            : base("Service-Manager")
         {
-            Init("Service-Manager");
         }
     }
 }

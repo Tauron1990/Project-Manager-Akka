@@ -127,8 +127,7 @@ namespace Tauron.Application.AkkaNode.Bootstrap
                 string type = typeof(TType).AssemblyQualifiedName ??
                               throw new InvalidOperationException("Invalid Message Type");
 
-                return _messageHandler.Where(nm => nm.Type == type).SelectSafe(nm
-                    => JsonConvert.DeserializeObject<TType>(Encoding.UTF8.GetString(nm.Data)));
+                return _messageHandler.Where(nm => nm.Type == type).SelectSafe(nm => JsonConvert.DeserializeObject<TType>(Encoding.UTF8.GetString(nm.Data))!);
             }
 
             public bool SendMessage<TMessage>(string to, TMessage message)
