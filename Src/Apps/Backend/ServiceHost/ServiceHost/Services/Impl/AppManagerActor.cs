@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Akka;
 using Akka.Actor;
@@ -10,241 +12,90 @@ using JetBrains.Annotations;
 using ServiceHost.ApplicationRegistry;
 using ServiceHost.Installer;
 using Servicemnager.Networking.Transmitter;
+using Tauron;
 using Tauron.Application.Master.Commands.Administration.Host;
 using Tauron.Features;
+using Tauron.ObservableExt;
 
 namespace ServiceHost.Services.Impl
 {
-    [UsedImplicitly]
-    public sealed class AppManagerActor : ExposedReceiveActor, IWithTimers
+    public sealed class AppManagerActor : ActorFeatureBase<AppManagerActor.AppManagerState>
     {
-        private readonly IAppRegistry _appRegistry;
+        public sealed record AppManagerState(IAppRegistry AppRegistry, IInstaller Installer, InstallChecker InstallChecker);
 
-        public ITimerScheduler Timers { get; set; } = null!;
-
-        public AppManagerActor(IAppRegistry appRegistry, IInstaller installer, InstallChecker checker)
+        public static Func<IAppRegistry, IInstaller, InstallChecker, IEnumerable<IPreparedFeature>> New()
         {
-            _appRegistry = appRegistry;
-            var ability = new SubscribeAbility(this);
-
-            installer.Actor
-               .Tell(new EventSubscribe(typeof(InstallerationCompled)));
-
-            Receive<UpdateTitle>(_ => Console.Title = "Application Host");
-
-            Receive<InstallerationCompled>(ic =>
+            IEnumerable<IPreparedFeature> _(IAppRegistry appRegistry, IInstaller installer, InstallChecker installChecker)
             {
-                if (checker.IsInstallationStart) 
-                    Context.System.Terminate();
+                yield return SubscribeFeature.New();
+                yield return Feature.Create(() => new AppManagerActor(), new AppManagerState(appRegistry, installer, installChecker));
+            }
 
-                void PipeToSelf(string name)
+            return _;
+        }
+
+        protected override void ConfigImpl()
+        {
+            CurrentState.Installer.Tell(new EventSubscribe(true, typeof(InstallerationCompled)));
+
+            Receive<UpdateTitle>(o => o.ToUnit(() => Console.Title = "Application Host"));
+
+            Receive<InstallerationCompled>(
+                obs =>
                 {
-                    appRegistry.Actor
-                       .Ask<InstalledAppRespond>(new InstalledAppQuery(name), TimeSpan.FromSeconds(10))
-                       .PipeTo(Self, success: ar => new StartApp(ar.App));
-                }
-
-                if(ic.InstallAction != InstallationAction.Install || !ic.Succesfull) return;
-
-                // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
-                switch (ic.Type)
-                {
-                    case AppType.Cluster:
-                        Cluster.Get(Context.System).RegisterOnMemberUp(() => PipeToSelf(ic.Name));
-                        break;
-                    case AppType.StartUp:
-                        PipeToSelf(ic.Name);
-                        break;
-                }
-            });
-
-            Flow<StopApps>(b => b.Action(() => Context.GetChildren().Foreach(r => r.Tell(new InternalStopApp()))));
-
-            Flow<StopApp>(b =>
-                b.Action(s =>
-                {
-                    var child = Context.Child(s.Name);
-                    if (child.IsNobody())
-                        Sender.Tell(new StopResponse(s.Name, false));
-                    else
-                        child.Forward(new InternalStopApp());
-                }));
-
-            Flow<StopResponse>(b => b.Action(r => ability.Send(r)));
-
-            Flow<StartApps>(b =>
-            {
-                b.Action(sa =>
+                    void PipeToSelf(IAppRegistry appRegistry, string name)
+                    {
                         appRegistry.Actor
-                           .Ask<AllAppsResponse>(new AllAppsQuery())
-                           .PipeTo(Self, Sender, r => new InternalFilterApps(sa.AppType, r.Apps)))
-                   .Then<InternalFilterApps>(b1 => b1.Action(fa => fa.Names.Foreach(s => Self.Tell(new InternalFilterApp(fa.AppType, s)))))
-                   .Then<InternalFilterApp>(
-                        b1 => b1.Action(fa =>
-                            appRegistry.Actor
-                               .Ask<InstalledAppRespond>(new InstalledAppQuery(fa.Name))
-                               .ContinueWith(t =>
-                                {
-                                    if (!t.IsCompletedSuccessfully && t.Result.Fault && t.Result.App.IsEmpty())
-                                        return;
-
-                                    var data = t.Result.App;
-                                    if (data.AppType != fa.AppType)
-                                        return;
-
-                                    Self.Tell(new StartApp(data));
-                                })))
-                   .Then<StartApp>(b1 => b1.Action(sa =>
-                    {
-                        if (sa.App.IsEmpty()) return;
-                        if (!Context.Child(sa.App.Name).IsNobody())
-                            return;
-
-                        Context.ActorOf(Props.Create<AppProcessActor>(sa.App)).Tell(new InternalStartApp());
-                    }));
-            });
-
-            Receive<Status.Failure>(f => Log.Error(f.Cause, "Error while processing message"));
-
-            #region SharedApi
-
-            Receive<StopAllApps>(_ =>
-            {
-                Task.WhenAll(Context.GetChildren()
-                       .Select(ar => ar.Ask<StopResponse>(new InternalStopApp(), TimeSpan.FromMinutes(0.7))).ToArray())
-                   .ContinueWith(t => new OperationResponse(t.IsCompletedSuccessfully && t.Result.All(s => !s.Error)))
-                   .PipeTo(Sender, failure: e =>
-                    {
-                        Log.Warning(e, "Error on Shared Api Stop All Apps");
-                        return new OperationResponse(false);
-                    });
-            });
-
-            Flow<StartAllApps>(b => b.Func(_ =>
-            {
-                Self.Tell(new StartApps(AppType.Cluster));
-                return new OperationResponse(true);
-            }).ToSender());
-
-            Receive<QueryAppStaus>(s =>
-            {
-                var childs = Context.GetChildren().ToArray();
-
-                Task.Run(async () =>
-                {
-                    List<AppProcessActor.GetNameResponse> names = new List<AppProcessActor.GetNameResponse>();
-
-                    foreach (var actorRef in childs)
-                    {
-                        try
-                        {
-                            names.Add(await actorRef.Ask<AppProcessActor.GetNameResponse>(new AppProcessActor.GetName(), TimeSpan.FromSeconds(5)));
-                        }
-                        catch (Exception e)
-                        {
-                            Log.Error(e, "Error on Recive Prcess Apps Name");
-                        }
+                           .Ask<InstalledAppRespond>(new InstalledAppQuery(name), TimeSpan.FromSeconds(10))
+                           .PipeTo(Self, success: ar => new StartApp(ar.App));
                     }
 
-                    return names.ToArray();
-                }).PipeTo(Sender, 
-                    success:arr => new AppStatusResponse(s.OperationId, arr.ToImmutableDictionary(g => g.Name, g => g.Running)),
-                    failure:e =>
-                    {
-                        Log.Error(e, "Error getting Status");
-                        return new AppStatusResponse(s.OperationId);
-                    });
-            });
+                    return obs.ConditionalSelect()
+                              .ToResult<Unit>(
+                                   b =>
+                                   {
+                                       b.When(m => m.State.InstallChecker.IsInstallationStart, o => o.Do(_ => Context.System.Terminate()).ToUnit());
+                                       b.When(m => !m.State.InstallChecker.IsInstallationStart,
+                                           o => o.Where(m => m.Event.Succesfull && m.Event.InstallAction == InstallationAction.Install)
+                                                 .ToUnit(m =>
+                                                         {
+                                                             switch (m.Event.Type)
+                                                             {
+                                                                 case AppType.Cluster:
+                                                                     Cluster.Get(Context.System)
+                                                                            .RegisterOnMemberUp(() => PipeToSelf(m.State.AppRegistry, m.Event.Name));
+                                                                     break;
+                                                                 case AppType.StartUp:
+                                                                     PipeToSelf(m.State.AppRegistry, m.Event.Name);
+                                                                     break;
+                                                             }
+                                                         }));
+                                   });
+                });
 
-            Receive<StopHostApp>(sha =>
-            {
-                var pm = Context.Child(sha.AppName);
-                if (pm.IsNobody())
-                    Context.Sender.Tell(new OperationResponse(false));
-                pm.Ask<StopResponse>(new InternalStopApp(), TimeSpan.FromMinutes(1))
-                   .PipeTo(Sender,
-                        success:() => new OperationResponse(true),
-                        failure: e =>
-                        {
-                            Log.Warning(e, "Error on Shared Api Stop");
-                            return new OperationResponse(false);
-                        });
-            });
+            Receive<StopApps>(obs => obs.SelectMany(_ => Context.GetChildren())
+                                        .ToActor(a => a, _ => new InternalStopApp()));
 
-            Receive<StartHostApp>
-            (sha =>
-            {
-                if (string.IsNullOrWhiteSpace(sha.AppName))
-                    Sender.Tell(new OperationResponse(false));
-                var pm = Context.Child(sha.AppName);
-                if (pm.IsNobody())
-                {
-                    var self = Self;
-                    appRegistry.Actor.Ask<InstalledAppRespond>(new InstalledAppQuery(sha.AppName), TimeSpan.FromMinutes(1))
-                       .ContinueWith(t =>
-                        {
-                            if (t.Result.Fault)
-                                return new OperationResponse(false);
+            Receive<StopApp>(obs => (
+                                     from data in obs
+                                     select (Child: Context.Child(data.Event.Name), Sender, data.Event.Name)
+                                 ).ConditionalSelect()
+                                  .ToResult<Unit>(
+                                       b =>
+                                       {
+                                           b.When(m => m.Child.IsNobody(), o => o.ToUnit(a => a.Sender.Tell(new StopResponse(a.Name, false))));
+                                           b.When(m => !m.Child.IsNobody(), o => o.ToUnit(a => a.Child.Forward(new InternalStopApp())));
+                                       }));
 
-                            self.Tell(new StartApp(t.Result.App));
-                            return new OperationResponse(true);
-                        })
-                       .PipeTo(Sender,
-                            failure: e =>
-                            {
-                                Log.Warning(e, "Error on Shared Api Stop");
-                                return new OperationResponse(false);
-                            });
-                }
-                else
-                {
-                    pm.Tell(new InternalStartApp());
-                    Sender.Tell(new OperationResponse(true));
-                }
-            });
+            Receive<StopResponse>(obs => obs.ToUnit(m => TellSelf(SendEvent.Create(m.Event))));
 
-            #endregion
-
-            ability.MakeReceive();
+            Receive<StartApps>(obs => obs.SelectMany(m => m.NewEvent(m.State.AppRegistry.Ask<AllAppsResponse>(new AllAppsQuery(), TimeSpan.FromMinutes(1))))
+                               );
         }
 
-        protected override void PreStart()
-        {
-            Timers.StartPeriodicTimer(new object(), new UpdateTitle(), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
+        private sealed record InternalFilterApps(AppType AppType, string[] Names);
 
-            _appRegistry.Actor.Tell(new EventSubscribe(typeof(RegistrationResponse)));
-            CoordinatedShutdown
-               .Get(Context.System)
-               .AddTask(CoordinatedShutdown.PhaseBeforeServiceUnbind, "AppManagerShutdown", new ContextShutdown(Log, Context).HostShutdown);
-
-            base.PreStart();
-        }
-
-        private sealed class InternalFilterApps
-        {
-            public AppType AppType { get; }
-
-            public string[] Names { get; }
-
-            public InternalFilterApps(AppType appType, string[] names)
-            {
-                AppType = appType;
-                Names = names;
-            }
-        }
-
-        private sealed class InternalFilterApp
-        {
-            public AppType AppType { get; }
-
-            public string Name { get; }
-
-            public InternalFilterApp(AppType appType, string name)
-            {
-                AppType = appType;
-                Name = name;
-            }
-        }
+        private sealed record InternalFilterApp(AppType AppType, string Name);
 
         private sealed class ContextShutdown
         {
@@ -267,9 +118,157 @@ namespace ServiceHost.Services.Impl
             }
         }
 
-        private sealed class UpdateTitle
-        {
-            
-        }
+        private sealed record UpdateTitle;
     }
+    
+    //        Flow<StartApps>(b =>
+    //        {
+    //            b.Action(sa =>
+    //                    appRegistry.Actor
+    //                       .Ask<AllAppsResponse>(new AllAppsQuery())
+    //                       .PipeTo(Self, Sender, r => new InternalFilterApps(sa.AppType, r.Apps)))
+    //               .Then<InternalFilterApps>(b1 => b1.Action(fa => fa.Names.Foreach(s => Self.Tell(new InternalFilterApp(fa.AppType, s)))))
+    //               .Then<InternalFilterApp>(
+    //                    b1 => b1.Action(fa =>
+    //                        appRegistry.Actor
+    //                           .Ask<InstalledAppRespond>(new InstalledAppQuery(fa.Name))
+    //                           .ContinueWith(t =>
+    //                            {
+    //                                if (!t.IsCompletedSuccessfully && t.Result.Fault && t.Result.App.IsEmpty())
+    //                                    return;
+
+    //                                var data = t.Result.App;
+    //                                if (data.AppType != fa.AppType)
+    //                                    return;
+
+    //                                Self.Tell(new StartApp(data));
+    //                            })))
+    //               .Then<StartApp>(b1 => b1.Action(sa =>
+    //                {
+    //                    if (sa.App.IsEmpty()) return;
+    //                    if (!Context.Child(sa.App.Name).IsNobody())
+    //                        return;
+
+    //                    Context.ActorOf(Props.Create<AppProcessActor>(sa.App)).Tell(new InternalStartApp());
+    //                }));
+    //        });
+
+    //        Receive<Status.Failure>(f => Log.Error(f.Cause, "Error while processing message"));
+
+    //        #region SharedApi
+
+    //        Receive<StopAllApps>(_ =>
+    //        {
+    //            Task.WhenAll(Context.GetChildren()
+    //                   .Select(ar => ar.Ask<StopResponse>(new InternalStopApp(), TimeSpan.FromMinutes(0.7))).ToArray())
+    //               .ContinueWith(t => new OperationResponse(t.IsCompletedSuccessfully && t.Result.All(s => !s.Error)))
+    //               .PipeTo(Sender, failure: e =>
+    //                {
+    //                    Log.Warning(e, "Error on Shared Api Stop All Apps");
+    //                    return new OperationResponse(false);
+    //                });
+    //        });
+
+    //        Flow<StartAllApps>(b => b.Func(_ =>
+    //        {
+    //            Self.Tell(new StartApps(AppType.Cluster));
+    //            return new OperationResponse(true);
+    //        }).ToSender());
+
+    //        Receive<QueryAppStaus>(s =>
+    //        {
+    //            var childs = Context.GetChildren().ToArray();
+
+    //            Task.Run(async () =>
+    //            {
+    //                List<AppProcessActor.GetNameResponse> names = new List<AppProcessActor.GetNameResponse>();
+
+    //                foreach (var actorRef in childs)
+    //                {
+    //                    try
+    //                    {
+    //                        names.Add(await actorRef.Ask<AppProcessActor.GetNameResponse>(new AppProcessActor.GetName(), TimeSpan.FromSeconds(5)));
+    //                    }
+    //                    catch (Exception e)
+    //                    {
+    //                        Log.Error(e, "Error on Recive Prcess Apps Name");
+    //                    }
+    //                }
+
+    //                return names.ToArray();
+    //            }).PipeTo(Sender, 
+    //                success:arr => new AppStatusResponse(s.OperationId, arr.ToImmutableDictionary(g => g.Name, g => g.Running)),
+    //                failure:e =>
+    //                {
+    //                    Log.Error(e, "Error getting Status");
+    //                    return new AppStatusResponse(s.OperationId);
+    //                });
+    //        });
+
+    //        Receive<StopHostApp>(sha =>
+    //        {
+    //            var pm = Context.Child(sha.AppName);
+    //            if (pm.IsNobody())
+    //                Context.Sender.Tell(new OperationResponse(false));
+    //            pm.Ask<StopResponse>(new InternalStopApp(), TimeSpan.FromMinutes(1))
+    //               .PipeTo(Sender,
+    //                    success:() => new OperationResponse(true),
+    //                    failure: e =>
+    //                    {
+    //                        Log.Warning(e, "Error on Shared Api Stop");
+    //                        return new OperationResponse(false);
+    //                    });
+    //        });
+
+    //        Receive<StartHostApp>
+    //        (sha =>
+    //        {
+    //            if (string.IsNullOrWhiteSpace(sha.AppName))
+    //                Sender.Tell(new OperationResponse(false));
+    //            var pm = Context.Child(sha.AppName);
+    //            if (pm.IsNobody())
+    //            {
+    //                var self = Self;
+    //                appRegistry.Actor.Ask<InstalledAppRespond>(new InstalledAppQuery(sha.AppName), TimeSpan.FromMinutes(1))
+    //                   .ContinueWith(t =>
+    //                    {
+    //                        if (t.Result.Fault)
+    //                            return new OperationResponse(false);
+
+    //                        self.Tell(new StartApp(t.Result.App));
+    //                        return new OperationResponse(true);
+    //                    })
+    //                   .PipeTo(Sender,
+    //                        failure: e =>
+    //                        {
+    //                            Log.Warning(e, "Error on Shared Api Stop");
+    //                            return new OperationResponse(false);
+    //                        });
+    //            }
+    //            else
+    //            {
+    //                pm.Tell(new InternalStartApp());
+    //                Sender.Tell(new OperationResponse(true));
+    //            }
+    //        });
+
+    //        #endregion
+
+    //        ability.MakeReceive();
+    //    }
+
+    //    protected override void PreStart()
+    //    {
+    //        Timers.StartPeriodicTimer(new object(), new UpdateTitle(), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
+
+    //        _appRegistry.Actor.Tell(new EventSubscribe(typeof(RegistrationResponse)));
+    //        CoordinatedShutdown
+    //           .Get(Context.System)
+    //           .AddTask(CoordinatedShutdown.PhaseBeforeServiceUnbind, "AppManagerShutdown", new ContextShutdown(Log, Context).HostShutdown);
+
+    //        base.PreStart();
+    //    }
+
+
+    //}
 }

@@ -1,5 +1,7 @@
 ﻿using System.IO;
 using Akka.Configuration;
+using Autofac;
+using Autofac.Builder;
 using JetBrains.Annotations;
 using Serilog;
 using Serilog.Core;
@@ -41,6 +43,10 @@ namespace Tauron.Application.AkkaNode.Bootstrap
                         .Enrich.With<LogLevelWriter>();
                 });
         }
+
+        public static IRegistrationBuilder<TImpl, ConcreteReflectionActivatorData, SingleRegistrationStyle> RegisterStartUpAction<TImpl>(this ContainerBuilder builder)
+            where TImpl : IStartUpAction
+            => builder.RegisterType<TImpl>().As<IStartUpAction>();
 
         private static Config GetConfig()
         {

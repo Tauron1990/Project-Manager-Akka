@@ -68,7 +68,7 @@ namespace Tauron.Features
                                                    _ => throw new InvalidOperationException("Invalid Feature Construction Metod")
                                                });
                                        })
-                          .As<TIterfaceType>();
+                          .As<TIterfaceType>().SingleInstance();
         }
     }
 }
