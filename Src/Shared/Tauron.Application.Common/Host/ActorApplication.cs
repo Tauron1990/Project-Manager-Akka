@@ -14,7 +14,8 @@ using Autofac.Extensions.DependencyInjection;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Serilog;
+using NLog;
+using NLog.Config;
 
 namespace Tauron.Host
 {
@@ -80,7 +81,8 @@ namespace Tauron.Host
                 await lifeTime.ShutdownTask;
                 await Task.WhenAny(ActorSystem.WhenTerminated, Task.Delay(TimeSpan.FromSeconds(60)));
                 Continer.Dispose();
-                Log.CloseAndFlush();
+                LogManager.Flush(TimeSpan.FromMinutes(1));
+                LogManager.Shutdown();
             }
         }
 
@@ -127,9 +129,9 @@ namespace Tauron.Host
             private readonly List<Action<IConfigurationBuilder>> _configurationBuilders = new();
             private readonly List<Action<ContainerBuilder>> _containerBuilder = new();
             private readonly List<Action<IServiceCollection>> _servicesList = new();
-            private readonly List<Action<HostBuilderContext, LoggerConfiguration>> _logger = new();
+            private readonly List<Action<HostBuilderContext, ISetupBuilder>> _logger = new();
 
-            public IApplicationBuilder ConfigureLogging(Action<HostBuilderContext, LoggerConfiguration> config)
+            public IApplicationBuilder ConfigureLogging(Action<HostBuilderContext, ISetupBuilder> config)
             {
                 _logger.Add(config);
                 return this;
@@ -210,12 +212,12 @@ namespace Tauron.Host
 
             private void ConfigureLogging(HostBuilderContext context)
             {
-                var config = new LoggerConfiguration();
+                var config = LogManager.Setup();
 
                 foreach (var action in _logger)
                     action(context, config);
 
-                Log.Logger = config.CreateLogger();
+                LogManager.ReconfigExistingLoggers();
             }
 
             private IConfiguration CreateHostConfiguration()

@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Autofac;
+using NLog;
 using Tauron.Application.Localizer.UIModels;
 using Tauron.Application.Logging;
 using Tauron.Application.Wpf;
@@ -21,9 +22,9 @@ namespace Tauron.Application.Localizer
 
             builder
                 .ConfigureLogging((_, configuration)
-                    => configuration.ConfigDefaultLogging("Localizer").WriteTo.Sink<SeriLogViewerSink>())
+                    => configuration.ConfigDefaultLogging("Localizer").LoadConfiguration(c => c.Configuration.AddRuleForAllLevels(new LoggerViewerSink())))
                 .ConfigureAutoFac(cb => cb.RegisterModule<MainModule>().RegisterModule<UIModule>())
-                .ConfigurateAkkaSystem((context, system) => system.RegisterLocalization())
+                .ConfigurateAkkaSystem((_, system) => system.RegisterLocalization())
                 .UseWpf<MainWindow>(c => c.WithAppFactory(() => new WpfFramework.DelegateApplication(new App())));
 
             using var app = builder.Build();

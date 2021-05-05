@@ -25,11 +25,11 @@ namespace Tauron.Application.Wpf.SerilogViewer
 
             IsTargetConfigured = false;
 
-            if (SeriLogViewerSink.CurrentSink == null) return;
+            if (LoggerViewerSink.CurrentSink == null) return;
             IsTargetConfigured = true;
 
-            LogEntries.AddRange(SeriLogViewerSink.CurrentSink.Logs.Select(e => new LogEventViewModel(e)));
-            SeriLogViewerSink.CurrentSink.LogReceived += LogReceived;
+            LogEntries.AddRange(LoggerViewerSink.CurrentSink.Logs.Select(e => new LogEventViewModel(e)));
+            LoggerViewerSink.CurrentSink.LogReceived += LogReceived;
         }
 
         public ListView LogView => logView;

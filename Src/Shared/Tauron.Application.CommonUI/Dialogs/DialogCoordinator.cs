@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
-using Serilog;
+using NLog;
 
 namespace Tauron.Application.CommonUI.Dialogs
 {
     [PublicAPI]
     public sealed class DialogCoordinator : IDialogCoordinator, IDialogCoordinatorUIEvents
     {
-        private static readonly ILogger Log = Serilog.Log.ForContext<DialogCoordinator>();
+        private static readonly ILogger Log = LogManager.GetCurrentClassLogger();
         private readonly CommonUIFramework _framework;
 
         public DialogCoordinator(CommonUIFramework framework) => _framework = framework;
@@ -36,7 +36,7 @@ namespace Tauron.Application.CommonUI.Dialogs
 
         public void ShowDialog(object dialog)
         {
-            Log.Information("Show Dialog {Type}", dialog.GetType());
+            Log.Info("Show Dialog {Type}", dialog.GetType());
             ShowDialogEvent?.Invoke(dialog);
         }
 

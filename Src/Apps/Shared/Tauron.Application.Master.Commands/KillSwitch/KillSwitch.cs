@@ -5,7 +5,7 @@ using Akka.Actor;
 using Akka.Cluster;
 using Akka.Cluster.Utility;
 using JetBrains.Annotations;
-using Serilog;
+using NLog;
 using Tauron.Akka;
 using Tauron.Features;
 using static Akka.Cluster.Utility.ClusterActorDiscoveryMessage;
@@ -17,19 +17,19 @@ namespace Tauron.Application.Master.Commands
     {
         private const string KillSwitchName = "KillSwitch";
 
-        private static readonly ILogger Log = Serilog.Log.ForContext(typeof(KillSwitch));
+        private static readonly ILogger Log = LogManager.GetCurrentClassLogger();
 
         private static IActorRef _switch = ActorRefs.Nobody;
 
         public static void Setup(ActorSystem system)
         {
-            Log.Information("Setup Killswitch");
+            Log.Info("Setup Killswitch");
             _switch = system.ActorOf(KillSwitchName, KillSwitchFeature.Create());
         }
 
         public static void Subscribe(ActorSystem system, KillRecpientType type)
         {
-            Log.Information("SubscribeToEvent Killswitch");
+            Log.Info("SubscribeToEvent Killswitch");
             _switch = system.ActorOf(() => new KillWatcher(type), KillSwitchName);
         }
 

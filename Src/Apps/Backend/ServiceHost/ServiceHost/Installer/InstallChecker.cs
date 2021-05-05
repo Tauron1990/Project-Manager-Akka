@@ -10,7 +10,7 @@ namespace ServiceHost.Installer
         {
             try
             {
-                IsInstallationStart = configuration["Install"].ToLower() == "manual";
+                IsInstallationStart = configuration["Install"]?.ToLower() == "manual";
             }
             catch
             {

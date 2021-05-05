@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Akka.Actor;
 using Autofac.Features.OwnedInstances;
-using Serilog;
+using NLog;
 using Tauron.Host;
 
 namespace Tauron.Application.AkkaNode.Bootstrap.Console
@@ -38,7 +38,7 @@ namespace Tauron.Application.AkkaNode.Bootstrap.Console
                         }
                         catch (Exception e)
                         {
-                            Log.Logger.Error(e, "Error on Startup Action");
+                            LogManager.GetCurrentClassLogger().Error(e, "Error on Startup Action");
                         }
                     }
                 }

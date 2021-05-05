@@ -5,7 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using JetBrains.Annotations;
-using Serilog;
+using NLog;
 
 namespace BeaconLib
 {
@@ -19,7 +19,7 @@ namespace BeaconLib
     public sealed class Beacon : IDisposable
     {
         internal const int DiscoveryPort = 35891;
-        private static ILogger _log = Log.ForContext<Beacon>();
+        private static ILogger _log = LogManager.GetCurrentClassLogger();
         private readonly UdpClient _udp;
 
         public Beacon(string beaconType, ushort advertisedPort)
@@ -28,7 +28,7 @@ namespace BeaconLib
             AdvertisedPort = advertisedPort;
             BeaconData = "";
 
-            _log.Information("Bind UDP beacon to {Port}", DiscoveryPort);
+            _log.Info("Bind UDP beacon to {Port}", DiscoveryPort);
             _udp = new UdpClient();
             _udp.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             _udp.Client.Bind(new IPEndPoint(IPAddress.Any, DiscoveryPort));
@@ -61,7 +61,7 @@ namespace BeaconLib
 
         public void Start()
         {
-            _log.Information("Starting Beacon");
+            _log.Info("Starting Beacon");
             Stopped = false;
             _udp.BeginReceive(ProbeReceived, null);
         }
@@ -75,13 +75,13 @@ namespace BeaconLib
         {
             var remote = new IPEndPoint(IPAddress.Any, 0);
             var bytes = _udp.EndReceive(ar, ref remote);
-            _log.Information("Incoming Probe {Adress}", remote);
+            _log.Info("Incoming Probe {Adress}", remote);
 
             // Compare beacon type to probe type
             var typeBytes = Encode(BeaconType);
             if (HasPrefix(bytes, typeBytes))
             {
-                _log.Information("Responding Probe {Adress}", remote);
+                _log.Info("Responding Probe {Adress}", remote);
                 // If true, respond again with our type, port and payload
                 var responseData = Encode(BeaconType)
                     .Concat(BitConverter.GetBytes((ushort) IPAddress.HostToNetworkOrder((short) AdvertisedPort)))
@@ -90,7 +90,7 @@ namespace BeaconLib
             }
             else
             {
-                _log.Information("Incompatible Data");
+                _log.Info("Incompatible Data");
             }
 
             if (!Stopped) _udp.BeginReceive(ProbeReceived, null);

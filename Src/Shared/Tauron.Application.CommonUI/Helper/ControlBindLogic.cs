@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Linq;
 using JetBrains.Annotations;
-using Serilog;
+using NLog;
+using NLog.Fluent;
 
 namespace Tauron.Application.CommonUI.Helper
 {
@@ -110,15 +111,14 @@ namespace Tauron.Application.CommonUI.Helper
     {
         private readonly Dictionary<string, (IDisposable Disposer, IControlBindable Binder)> _binderList = new();
         private readonly object _dataContext;
-        private readonly ILogger _log;
+        private static readonly ILogger _log = LogManager.GetCurrentClassLogger();
 
         private readonly IUIObject _target;
 
-        public ControlBindLogic(IUIObject target, object dataContext, ILogger log)
+        public ControlBindLogic(IUIObject target, object dataContext)
         {
             _target = target;
             _dataContext = dataContext;
-            _log = log;
         }
 
         //public void NewDataContext(object? dataContext)
@@ -145,7 +145,7 @@ namespace Tauron.Application.CommonUI.Helper
 
         public void Register(string key, IControlBindable bindable, IUIObject affectedPart)
         {
-            Log.Debug("Register Bind Element {Name} -- {LinkElement} -- {Part}", key, bindable.GetType(),
+            _log.Debug("Register Bind Element {Name} -- {LinkElement} -- {Part}", key, bindable.GetType(),
                 affectedPart.GetType());
 
             if (_dataContext == null)
@@ -169,7 +169,7 @@ namespace Tauron.Application.CommonUI.Helper
 
         public void CleanUp(string key)
         {
-            Log.Debug("Clean Up Element {Name}", key);
+            _log.Debug("Clean Up Element {Name}", key);
 
             if (_binderList.TryGetValue(key, out var pair))
                 pair.Disposer.Dispose();
@@ -179,56 +179,56 @@ namespace Tauron.Application.CommonUI.Helper
 
         public static IBinderControllable? FindRoot(IUIObject? affected)
         {
-            Log.Debug("Try Find Root for {Element}", affected?.GetType());
+            _log.Debug("Try Find Root for {Element}", affected?.GetType());
 
             do
             {
                 // ReSharper disable once SuspiciousTypeConversion.Global
                 if (affected?.Object is IBinderControllable binder)
                 {
-                    Log.Debug("Root Found for {Element}", affected.GetType());
+                    _log.Debug("Root Found for {Element}", affected.GetType());
                     return binder;
                 }
 
                 affected = affected?.GetPerent();
             } while (affected != null);
 
-            Log.Debug("Root not Found for {Element}", affected?.GetType());
+            _log.Debug("Root not Found for {Element}", affected?.GetType());
             return null;
         }
 
         public static IView? FindParentView(IUIObject? affected)
         {
-            Log.Debug("Try Find View for {Element}", affected?.GetType());
+            _log.Debug("Try Find View for {Element}", affected?.GetType());
             do
             {
                 affected = affected?.GetPerent();
                 // ReSharper disable once SuspiciousTypeConversion.Global
                 if (affected?.Object is not IView binder) continue;
 
-                Log.Debug("View Found for {Element}", affected.GetType());
+                _log.Debug("View Found for {Element}", affected.GetType());
                 return binder;
             } while (affected != null);
 
-            Log.Debug("View Not Found for {Element}", affected?.GetType());
+            _log.Debug("View Not Found for {Element}", affected?.GetType());
             return null;
         }
 
         public static IViewModel? FindParentDatacontext(IUIObject? affected)
         {
-            Log.Debug("Try Find DataContext for {Element}", affected?.GetType());
+            _log.Debug("Try Find DataContext for {Element}", affected?.GetType());
             do
             {
                 affected = affected?.GetPerent();
                 switch (affected?.Object)
                 {
                     case IUIElement {DataContext: IViewModel model}:
-                        Log.Debug("DataContext Found for {Element}", affected.GetType());
+                        _log.Debug("DataContext Found for {Element}", affected.GetType());
                         return model;
                 }
             } while (affected != null);
 
-            Log.Debug("DataContext Not Found for {Element}", affected?.GetType());
+            _log.Debug("DataContext Not Found for {Element}", affected?.GetType());
             return null;
         }
 

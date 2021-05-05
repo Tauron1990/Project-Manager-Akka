@@ -1,7 +1,7 @@
 ﻿using System;
 using Akka.Util;
 using JetBrains.Annotations;
-using Serilog;
+using NLog;
 
 namespace Tauron
 {
@@ -49,7 +49,7 @@ namespace Tauron
             }
             catch (Exception e)
             {
-                Log.ForContext(GetType()).Warning(e, "Error on Execute Dispose Tracker");
+                LogManager.GetCurrentClassLogger(GetType()).Warn(e, "Error on Execute Dispose Tracker");
             }
             finally
             {

@@ -1,12 +1,10 @@
-﻿using System.Diagnostics;
-using Autofac;
+﻿using System.Collections.Generic;
 using JetBrains.Annotations;
-using Serilog;
-using Serilog.Configuration;
-using Serilog.Core;
-using Serilog.Events;
-using Serilog.Exceptions;
-using Serilog.Formatting.Compact;
+using NLog;
+using NLog.Config;
+using NLog.Layouts;
+using NLog.Targets;
+using NLog.Targets.Wrappers;
 using Tauron.Application.Logging.impl;
 
 namespace Tauron.Application.Logging
@@ -14,41 +12,55 @@ namespace Tauron.Application.Logging
     [PublicAPI]
     public static class LoggingExtensions
     {
-        public static LoggerConfiguration ConfigDefaultLogging(this LoggerConfiguration loggerConfiguration,
-            string applicationName, bool noFile = false)
+        public static ISetupBuilder ConfigDefaultLogging(this ISetupBuilder loggerConfiguration, string applicationName, bool noFile = false)
         {
-            if (!noFile)
-                loggerConfiguration.WriteTo.File(new CompactJsonFormatter(), "Logs\\Log.log",
-                    fileSizeLimitBytes: 5_242_880, retainedFileCountLimit: 5);
+            loggerConfiguration.SetupExtensions(e => e.RegisterLayoutRenderer("event-type", typeof(EventTypeLayoutRenderer)));
 
-            return loggerConfiguration
-                .MinimumLevel.Debug()
-                .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-                .MinimumLevel.Override("System", LogEventLevel.Warning)
-                .Enrich.With<LogLevelWriter>()
-                .Enrich.WithProperty("ApplicationName", applicationName)
-                .Enrich.FromLogContext()
-                .Enrich.WithExceptionDetails()
-                .Enrich.WithEventTypeEnricher();
+            if (noFile) return loggerConfiguration;
+
+            const string defaultFile = "default-file";
+            loggerConfiguration.LoadConfiguration(b =>
+                                                  {
+                                                      b.Configuration.AddTarget(new AsyncTargetWrapper(new FileTarget(defaultFile)
+                                                                                                       {
+                                                                                                           Layout = new JsonLayout
+                                                                                                                    {
+                                                                                                                        Attributes =
+                                                                                                                        {
+                                                                                                                            new JsonAttribute("time", "${longdate}"),
+                                                                                                                            new JsonAttribute("level", "$level:upperCase=true"),
+                                                                                                                            new JsonAttribute("application", applicationName),
+                                                                                                                            new JsonAttribute("eventType", "${event-type}"),
+                                                                                                                            new JsonAttribute("message", "${message}"),
+                                                                                                                            new JsonAttribute("Properties",
+                                                                                                                                new JsonLayout
+                                                                                                                                {
+                                                                                                                                    ExcludeEmptyProperties = true,
+                                                                                                                                    ExcludeProperties = new HashSet<string>
+                                                                                                                                                        {
+                                                                                                                                                            "time",
+                                                                                                                                                            "level",
+                                                                                                                                                            "eventType",
+                                                                                                                                                            "message"
+                                                                                                                                                        },
+                                                                                                                                    IncludeAllProperties = true
+                                                                                                                                })
+                                                                                                                        }
+                                                                                                                    },
+                                                                                                           ArchiveAboveSize = 5_242_880,
+                                                                                                           ConcurrentWrites = false,
+                                                                                                           MaxArchiveFiles = 5,
+                                                                                                           FileName = "Logs\\Log.log",
+                                                                                                           ArchiveFileName = "Logs\\Log.{###}.log",
+                                                                                                           ArchiveNumbering = ArchiveNumberingMode.Rolling,
+                                                                                                           EnableArchiveFileCompression = true
+                                                                                                       }));
+
+                                                      b.Configuration.AddRuleForAllLevels(defaultFile);
+                                                  });
+
+            return loggerConfiguration;
         }
 
-        public static LoggerConfiguration WithEventTypeEnricher(this LoggerEnrichmentConfiguration config)
-            => config.With<EventTypeEnricher>();
-
-        public static ContainerBuilder AddTauronLogging(this ContainerBuilder collection)
-        {
-            collection.RegisterGeneric(typeof(SeriLogger<>)).As(typeof(ISLogger<>));
-
-            return collection;
-        }
-    }
-
-    public class LogLevelWriter : ILogEventEnricher
-    {
-        [DebuggerHidden]
-        public void Enrich(LogEvent logEvent, ILogEventPropertyFactory propertyFactory)
-        {
-            logEvent.AddPropertyIfAbsent(new LogEventProperty("Level", new ScalarValue(logEvent.Level)));
-        }
     }
 }

@@ -6,7 +6,7 @@ using Akka.Actor;
 using Avalonia;
 using Avalonia.Controls;
 using JetBrains.Annotations;
-using Serilog;
+using NLog;
 using Tauron.Application.Avalonia.AppCore;
 using Tauron.Application.CommonUI;
 using Tauron.Application.CommonUI.Commands;
@@ -63,7 +63,7 @@ namespace Tauron.Application.Avalonia
 
         private sealed class EventLinker : ControlBindableBase
         {
-            private static readonly ILogger Log = Serilog.Log.ForContext<EventLinker>();
+            private static readonly ILogger Log = LogManager.GetCurrentClassLogger();
             private readonly List<InternalEventLinker> _linkers = new();
 
             public string? Commands { get; init; }
@@ -123,7 +123,7 @@ namespace Tauron.Application.Avalonia
                     .GetMethods(BindingFlags.Instance | BindingFlags.NonPublic)
                     .First(m => m.Name == "Handler");
 
-                private static readonly ILogger InternalLog = Log.ForContext<InternalEventLinker>();
+                private static readonly ILogger InternalLog = LogManager.GetCurrentClassLogger();
 
                 private readonly IViewModel _dataContext;
 

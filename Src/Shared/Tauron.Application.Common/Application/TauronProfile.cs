@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
-using Serilog;
+using NLog;
 
 namespace Tauron.Application
 {
@@ -14,7 +14,7 @@ namespace Tauron.Application
         private static readonly char[] ContentSplitter = {'='};
 
         private readonly string _defaultPath;
-        private readonly ILogger _logger = Log.ForContext<TauronProfile>();
+        private readonly ILogger _logger = LogManager.GetCurrentClassLogger();
 
         private readonly Dictionary<string, string> _settings = new();
 
@@ -56,7 +56,7 @@ namespace Tauron.Application
         {
             _settings.Clear();
 
-            _logger.Information($"{Application} -- Delete Profile infos... {Dictionary?.PathShorten(20)}");
+            _logger.Info($"{Application} -- Delete Profile infos... {Dictionary?.PathShorten(20)}");
 
             Dictionary?.DeleteDirectory();
         }
@@ -71,7 +71,7 @@ namespace Tauron.Application
             Dictionary.CreateDirectoryIfNotExis();
             FilePath = Dictionary.CombinePath("Settings.db");
 
-            _logger.Information($"{Application} -- Begin Load Profile infos... {FilePath.PathShorten(20)}");
+            _logger.Info($"{Application} -- Begin Load Profile infos... {FilePath.PathShorten(20)}");
 
             _settings.Clear();
             foreach (var vals in
@@ -79,7 +79,7 @@ namespace Tauron.Application
                     .Select(line => line.Split(ContentSplitter, 2))
                     .Where(vals => vals.Length == 2))
             {
-                _logger.Information("key: {0} | Value {1}", vals[0], vals[1]);
+                _logger.Info("key: {0} | Value {1}", vals[0], vals[1]);
 
                 _settings[vals[0]] = vals[1];
             }
@@ -87,7 +87,7 @@ namespace Tauron.Application
 
         public virtual void Save()
         {
-            _logger.Information($"{Application} -- Begin Save Profile infos...");
+            _logger.Info($"{Application} -- Begin Save Profile infos...");
 
             try
             {
@@ -99,7 +99,7 @@ namespace Tauron.Application
                 {
                     writer.WriteLine("{0}={1}", key, value);
 
-                    _logger.Information("key: {0} | Value {1}", key, value);
+                    _logger.Info("key: {0} | Value {1}", key, value);
                 }
             }
             catch (Exception e)

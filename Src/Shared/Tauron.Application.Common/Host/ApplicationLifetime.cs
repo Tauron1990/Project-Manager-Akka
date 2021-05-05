@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Threading;
-using Serilog;
+using NLog;
 
 namespace Tauron.Host
 {
     public class ApplicationLifetime : IHostApplicationLifetime, IApplicationLifetime, IDisposable
     {
-        private readonly ILogger _logger = Log.ForContext<ApplicationLifetime>();
+        private static readonly ILogger Logger = LogManager.GetCurrentClassLogger();
         private readonly CancellationTokenSource _startedSource = new();
 
         private readonly CancellationTokenSource _stoppedSource = new();
@@ -44,7 +44,7 @@ namespace Tauron.Host
                 }
                 catch (Exception exception)
                 {
-                    _logger.Error(exception, "An error occurred stopping the application");
+                    Logger.Error(exception, "An error occurred stopping the application");
                 }
             }
         }
@@ -57,7 +57,7 @@ namespace Tauron.Host
             }
             catch (Exception exception)
             {
-                _logger.Error(exception, "An error occurred starting the application");
+                Logger.Error(exception, "An error occurred starting the application");
             }
         }
 
@@ -69,7 +69,7 @@ namespace Tauron.Host
             }
             catch (Exception exception)
             {
-                _logger.Error(exception, "An error occurred stopping the application");
+                Logger.Error(exception, "An error occurred stopping the application");
             }
         }
 

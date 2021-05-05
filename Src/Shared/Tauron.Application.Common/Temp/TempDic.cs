@@ -2,7 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using Serilog;
+using NLog;
 
 namespace Tauron.Temp
 {
@@ -78,7 +78,7 @@ namespace Tauron.Temp
                     catch (Exception e)
                     {
                         if (KeepAlive)
-                            Log.ForContext(GetType()).Warning(e, "Error on Dispose Dic {Path}", entry.FullPath);
+                            LogManager.GetCurrentClassLogger().Warn(e, "Error on Dispose Dic {Path}", entry.FullPath);
                         else
                             throw;
                     }

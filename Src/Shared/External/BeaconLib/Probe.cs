@@ -6,7 +6,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
-using Serilog;
+using NLog;
 
 namespace BeaconLib
 {
@@ -19,7 +19,7 @@ namespace BeaconLib
     [PublicAPI]
     public sealed class Probe : IDisposable
     {
-        private static ILogger _log = Log.ForContext<Probe>();
+        private static ILogger _log = LogManager.GetCurrentClassLogger();
 
         /// <summary>
         ///     Remove beacons older than this
@@ -40,7 +40,7 @@ namespace BeaconLib
             BeaconType = beaconType;
             _thread = new Task(BackgroundLoop, TaskCreationOptions.LongRunning);
 
-            _log.Information("Bind Probe To Port 0");
+            _log.Info("Bind Probe To Port 0");
             _udp.Client.Bind(new IPEndPoint(IPAddress.Any, 0));
             try
             {
@@ -72,13 +72,13 @@ namespace BeaconLib
 
         public void Start()
         {
-            _log.Information("Starting Probe");
+            _log.Info("Starting Probe");
             _thread.Start();
         }
 
         private void ResponseReceived(IAsyncResult ar)
         {
-            _log.Information("Incomming Reponse");
+            _log.Info("Incomming Reponse");
             var remote = new IPEndPoint(IPAddress.Any, 0);
             var bytes = _udp.EndReceive(ar, ref remote);
 
@@ -86,7 +86,7 @@ namespace BeaconLib
             if (Beacon.HasPrefix(bytes, typeBytes))
                 try
                 {
-                    _log.Information("Processing Response");
+                    _log.Info("Processing Response");
                     var portBytes = bytes.Skip(typeBytes.Length).Take(2).ToArray();
                     var port = (ushort) IPAddress.NetworkToHostOrder((short) BitConverter.ToUInt16(portBytes, 0));
                     var payload = Beacon.Decode(bytes.Skip(typeBytes.Length + 2));
@@ -97,7 +97,7 @@ namespace BeaconLib
                     _log.Error(ex, "Error on Decode Recived Beacon");
                 }
             else
-                _log.Information("Incompatiple Data");
+                _log.Info("Incompatiple Data");
 
             _udp.BeginReceive(ResponseReceived, null);
         }
@@ -122,14 +122,14 @@ namespace BeaconLib
 
         private void BroadcastProbe()
         {
-            _log.Information("Sending Request");
+            _log.Info("Sending Request");
             var probe = Beacon.Encode(BeaconType).ToArray();
             _udp.Send(probe, probe.Length, new IPEndPoint(IPAddress.Broadcast, Beacon.DiscoveryPort));
         }
 
         private void PruneBeacons()
         {
-            _log.Information("Prune Beacons");
+            _log.Info("Prune Beacons");
             var cutOff = DateTime.Now - BeaconTimeout;
             var oldBeacons = _currentBeacons.ToList();
             var newBeacons = oldBeacons.Where(_ => _.LastAdvertised >= cutOff).ToList();
@@ -142,7 +142,7 @@ namespace BeaconLib
 
         private void NewBeacon(BeaconLocation newBeacon)
         {
-            _log.Information("Updating Beacons");
+            _log.Info("Updating Beacons");
             var newBeacons = _currentBeacons
                 .Where(_ => !_.Equals(newBeacon))
                 .Concat(new[] {newBeacon})
@@ -156,12 +156,12 @@ namespace BeaconLib
 
         private static bool EnumsEqual<T>(List<T> xs, List<T> ys)
         {
-            return xs.Zip(ys, (x, y) => x != null && x.Equals(y)).Count() == xs.Count();
+            return xs.Zip(ys, (x, y) => x != null && x.Equals(y)).Count() == xs.Count;
         }
 
         public void Stop()
         {
-            _log.Information("Stopping Probe");
+            _log.Info("Stopping Probe");
             _running = false;
             _waitHandle.Set();
             _thread.Wait();

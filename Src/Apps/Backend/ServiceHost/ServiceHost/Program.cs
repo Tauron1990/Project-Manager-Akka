@@ -2,16 +2,20 @@
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
 using System.IO.Pipes;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Akka.Cluster;
+using AnyConsole;
 using Autofac;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.CommandLine;
 using Newtonsoft.Json;
-using Serilog;
+using NLog;
+using NLog.Targets;
 using ServiceHost.Installer;
 using Servicemnager.Networking.Data;
 using Tauron.Application.AkkaNode.Bootstrap;
@@ -22,19 +26,63 @@ namespace ServiceHost
 {
     public static class Program
     {
+        private enum ConsoleStyle
+        {
+            Foreground,
+            Background,
+            HeaderBackground,
+            SubHeaderBackground,
+            SubHeaderForeground,
+            FooterBackground,
+            LogHistoryBackground,
+            Highlight
+        }
+
         private const string MonitorName = @"Global\Tauron.Application.ProjectManagerHost";
 
         static async Task Main(string[] args)
         {
+            var exitManager = new ExitManager();
             bool createdNew = false;
 
-            using var m = await Task.Factory.StartNew(() => new Mutex(true, MonitorName, out createdNew), CancellationToken.None, 
+            using var m = await Task.Factory.StartNew(() => new Mutex(true, MonitorName, out createdNew), CancellationToken.None,
                 TaskCreationOptions.HideScheduler | TaskCreationOptions.DenyChildAttach, MutexThread.Inst);
             try
             {
                 if (createdNew)
                 {
-                    await StartApp(args);
+                    
+                    var console = new ExtendedConsole();
+                    // create a data context. You can pass this to your own application and use it to pass data to custom components for display.
+                    var myDataContext = new ConsoleDataContext();
+                    console.Configure(config =>
+                                      {
+                                          // use a custom color palette for drawing
+                                          config.SetColorPalette(new Dictionary<Enum, Color>
+                                                                 {
+                                                                     {ConsoleStyle.Foreground, Color.White},
+                                                                     {ConsoleStyle.Background, Color.Black},
+                                                                     {ConsoleStyle.HeaderBackground, Color.DarkRed},
+                                                                     {ConsoleStyle.SubHeaderBackground, Color.FromArgb(30, 30, 30)},
+                                                                     {ConsoleStyle.SubHeaderForeground, Color.FromArgb(60, 60, 60)},
+                                                                     {ConsoleStyle.FooterBackground, Color.DarkBlue},
+                                                                     {ConsoleStyle.LogHistoryBackground, Color.FromArgb(100, 100, 100)},
+                                                                     {ConsoleStyle.Highlight, Color.Yellow},
+                                                                 });
+                                          config.SetStaticRow("Header", RowLocation.Top, ConsoleStyle.Foreground, ConsoleStyle.HeaderBackground);
+                                          config.SetLogHistoryContainer(RowLocation.Top, 2, ConsoleStyle.LogHistoryBackground);
+                                          config.SetDataContext(myDataContext);
+                                          config.SetUpdateInterval(TimeSpan.FromMilliseconds(100));
+                                          config.SetMaxHistoryLines(1000);
+                                          config.SetHelpScreen(ConsoleStyle.Foreground, ConsoleStyle.FooterBackground);
+                                      });
+                    console.WriteRow("Header", "Test Console", ColumnLocation.Left, ConsoleStyle.Highlight);
+                    console.WriteRow("Header", Component.DateTimeUtc, ColumnLocation.Right, "MMMM dd yyyy hh:mm tt");
+                    console.Start();
+
+                    await StartApp(args, exitManager);
+
+                    console.Dispose();
                 }
                 else
                 {
@@ -42,7 +90,7 @@ namespace ServiceHost
                     {
                         await using var client = new NamedPipeClientStream(".", MonitorName, PipeDirection.In, PipeOptions.Asynchronous);
                         await client.ConnectAsync(10000, CancellationToken.None);
-                        
+
                         byte[] data = Encoding.UTF8.GetBytes(new ExposedCommandLineProvider(args).Serialize());
                         var (message, lenght) = new NetworkMessageFormatter(MemoryPool<byte>.Shared)
                            .WriteMessage(NetworkMessage.Create("Args", data));
@@ -64,36 +112,53 @@ namespace ServiceHost
                     await Task.Factory.StartNew(() => m.ReleaseMutex(), CancellationToken.None, TaskCreationOptions.HideScheduler | TaskCreationOptions.DenyChildAttach, MutexThread.Inst);
                     MutexThread.Inst.Dispose();
                 }
+
                 IncomingCommandHandler.Handler?.Stop();
+            }
+
+            if (exitManager.NeedRestart)
+            {
+                using var process = Process.GetCurrentProcess();
+                if (process.MainModule?.FileName != null)
+                    Process.Start(process.MainModule.FileName).Dispose();
             }
         }
 
-        private static async Task StartApp(string[] args)
+        private static async Task StartApp(string[] args, ExitManager exitManager)
         {
             await Bootstrap.StartNode(args, KillRecpientType.Host, IpcApplicationType.Server)
-               .ConfigureAutoFac(cb =>
-                {
-                    cb.RegisterType<CommandHandlerStartUp>().As<IStartUpAction>();
-                    cb.RegisterModule<HostModule>();
-                })
-               .ConfigurateAkkaSystem((context, system) =>
-                {
-                    var cluster = Cluster.Get(system);
+                           .ConfigureLogging((_, configuration) => configuration.LoadConfiguration(c => c.Configuration.AddRuleForAllLevels(new ColoredConsoleTarget())))
+                           .ConfigureAutoFac(cb =>
+                                             {
+                                                 cb.RegisterType<CommandHandlerStartUp>().As<IStartUpAction>();
+                                                 cb.RegisterModule<HostModule>();
+                                             })
+                           .ConfigurateAkkaSystem((context, system) =>
+                                                  {
+                                                      system.RegisterOnTermination(exitManager.RegularExit);
+                                                      var cluster = Cluster.Get(system);
 
-                    #if TEST
-                    cluster.Join(cluster.SelfAddress);
-                    #endif
+                                                      #if TEST
+                                                      cluster.Join(cluster.SelfAddress);
+                                                      #endif
 
-                    cluster.RegisterOnMemberRemoved(() => system.Terminate());
-                    cluster.RegisterOnMemberUp(()
-                        => ServiceRegistry.GetRegistry(system).RegisterService(new RegisterService(context.HostEnvironment.ApplicationName, cluster.SelfUniqueAddress)));
-                })
-               .Build().Run();
+                                                      cluster.RegisterOnMemberRemoved(() =>
+                                                                                      {
+                                                                                          exitManager.MemberExit();
+                                                                                          system.Terminate();
+                                                                                      });
+                                                      cluster.RegisterOnMemberUp(
+                                                          () => ServiceRegistry.GetRegistry(system)
+                                                                               .RegisterService(new RegisterService(context.HostEnvironment.ApplicationName, cluster.SelfUniqueAddress)));
+                                                  })
+                           .Build().Run();
         }
 
         private sealed class ExposedCommandLineProvider : CommandLineConfigurationProvider
         {
-            public ExposedCommandLineProvider(IEnumerable<string> args) : base(args) { }
+            public ExposedCommandLineProvider(IEnumerable<string> args) : base(args)
+            {
+            }
 
             public string Serialize()
             {
@@ -106,20 +171,95 @@ namespace ServiceHost
         {
             private readonly Func<IConfiguration, ManualInstallationTrigger> _installTrigger;
 
-            public CommandHandlerStartUp(Func<IConfiguration, ManualInstallationTrigger> installTrigger) 
+            public CommandHandlerStartUp(Func<IConfiguration, ManualInstallationTrigger> installTrigger)
                 => _installTrigger = installTrigger;
 
-            public void Run() 
+            public void Run()
                 => IncomingCommandHandler.SetHandler(new IncomingCommandHandler(_installTrigger));
+        }
+
+        //private sealed class ExtendedConsoleSink : Target
+        //{
+        //    private readonly ExtendedConsole _console;
+            
+        //    //"[{Timestamp:HH:mm:ss} {Level: u3}]  Message: lj} {NewLine} {Exception}";
+
+        //    public ExtendedConsoleSink(ExtendedConsole console)
+        //    {
+        //        _console = console;
+        //    }
+
+        //    protected override void Write(LogEventInfo logEvent)
+        //    {
+        //    }
+
+        //    //public void Emit(LogEvent logEvent)
+        //    //{
+        //    //    string GetLevelText()
+        //    //        => logEvent.Level switch
+        //    //        {
+        //    //            LogEventLevel.Verbose => "VRB",
+        //    //            LogEventLevel.Debug => "DGB",
+        //    //            LogEventLevel.Information => "INF",
+        //    //            LogEventLevel.Warning => "WRN",
+        //    //            LogEventLevel.Error => "ERR",
+        //    //            LogEventLevel.Fatal => "FTL",
+        //    //            _ => throw new ArgumentOutOfRangeException()
+        //    //        };
+
+        //    //    Color GetLevelColor()
+        //    //        => logEvent.Level switch
+        //    //        {
+        //    //            LogEventLevel.Verbose => Color.White,
+        //    //            LogEventLevel.Debug => Color.Green,
+        //    //            LogEventLevel.Information => Color.White,
+        //    //            LogEventLevel.Warning => Color.Yellow,
+        //    //            LogEventLevel.Error => Color.Red,
+        //    //            LogEventLevel.Fatal => Color.DarkRed,
+        //    //            _ => throw new ArgumentOutOfRangeException()
+        //    //        };
+
+
+        //    //    _console.Write($"[{logEvent.Timestamp:HH:mm:ss} ");
+
+        //    //    _console.ForegroundColor = GetLevelColor();
+        //    //    _console.Write(GetLevelText());
+        //    //    _console.ForegroundColor = Color.White;
+                
+        //    //    _console.Write("] ");
+        //    //    _console.WriteLine(_formatter.Render(logEvent.Properties));
+
+        //    //    if (logEvent.Exception != null)
+        //    //        _console.WriteLine(logEvent.Exception.Unwrap()?.ToString());
+
+        //    //}
+        //}
+
+        private sealed class ExitManager
+        {
+            private bool _member;
+            private bool _regular;
+
+            public bool NeedRestart => _member;
+
+            public void MemberExit()
+            {
+                if (_regular)
+                    return;
+
+                _member = true;
+            }
+
+            public void RegularExit() => _regular = true;
         }
 
         public sealed class IncomingCommandHandler
         {
             private readonly Func<IConfiguration, ManualInstallationTrigger> _installTrigger;
-            
+
             private readonly NamedPipeServerStream _reader = new(MonitorName, PipeDirection.Out, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
             private readonly CancellationTokenSource _cancellationToken = new();
-            
+
             private readonly MessageBuffer _buffer = new(MemoryPool<byte>.Shared);
             private readonly List<IMemoryOwner<byte>> _incomming = new();
 
@@ -151,7 +291,7 @@ namespace ServiceHost
 
                             _incomming.Add(mem);
                             var msg = _buffer.AddBuffer(mem.Memory);
-                            if(msg == null) continue;
+                            if (msg == null) continue;
 
                             switch (msg.Type)
                             {
@@ -180,7 +320,7 @@ namespace ServiceHost
                 }
                 catch (Exception e)
                 {
-                    Log.Logger.Error(e, "Error on Read CommandLine from outer process");
+                    LogManager.GetCurrentClassLogger().Error(e, "Error on Read CommandLine from outer process");
                 }
 
                 await _reader.DisposeAsync();
@@ -213,12 +353,12 @@ namespace ServiceHost
                 _installTrigger(config).Run();
             }
 
-            public void Stop() 
+            public void Stop()
                 => _cancellationToken.Cancel();
 
             public static void SetHandler(IncomingCommandHandler handler)
             {
-                if(Handler != null)
+                if (Handler != null)
                     handler.Stop();
                 else
                     Handler = handler;
@@ -237,7 +377,7 @@ namespace ServiceHost
             {
                 Thread thread = new(() =>
                                     {
-                                        foreach (var task in _tasks.GetConsumingEnumerable()) 
+                                        foreach (var task in _tasks.GetConsumingEnumerable())
                                             TryExecuteTask(task);
 
                                         _tasks.Dispose();
@@ -256,6 +396,7 @@ namespace ServiceHost
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
+
                 thread.IsBackground = true;
 
                 thread.Start();
@@ -263,7 +404,7 @@ namespace ServiceHost
 
             protected override IEnumerable<Task> GetScheduledTasks() => _tasks;
 
-            protected override void QueueTask(Task task) 
+            protected override void QueueTask(Task task)
                 => _tasks.Add(task);
 
             protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)

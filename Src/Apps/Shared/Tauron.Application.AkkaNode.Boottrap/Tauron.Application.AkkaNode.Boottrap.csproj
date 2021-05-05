@@ -19,14 +19,12 @@
 
   <ItemGroup>
     <PackageReference Include="Akka.Cluster.Sharding" Version="1.4.19" />
-    <PackageReference Include="Serilog.Enrichers.EnrichedProperties" Version="1.0.63" />
-    <PackageReference Include="Serilog.Exceptions" Version="6.1.0" />
-    <PackageReference Include="Serilog.Formatting.Compact" Version="1.1.0" />
-    <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
-    <PackageReference Include="Serilog.Sinks.File" Version="4.1.0" />
+    <PackageReference Include="Akka.Logger.NLog" Version="1.4.10" />
+    <PackageReference Include="AnyConsole" Version="1.0.65" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Shared\Tauron.Application.Logging\Tauron.Application.Logging.csproj" />
     <ProjectReference Include="..\Servicemnager.Networking\Servicemnager.Networking.csproj" />
     <ProjectReference Include="..\Tauron.Application.Master.Commands\Tauron.Application.Master.Commands.csproj" />
   </ItemGroup>

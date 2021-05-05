@@ -7,8 +7,8 @@ using Autofac;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
-using Serilog;
-using Serilog.Sinks.SystemConsole.Themes;
+using NLog;
+using NLog.Targets;
 using Servicemnager.Networking;
 using Servicemnager.Networking.Data;
 using Servicemnager.Networking.IPC;
@@ -25,13 +25,13 @@ namespace Tauron.Application.AkkaNode.Bootstrap
         private const string IpcName = "Project_Manager_{{A9A782E5-4F9A-46E4-8A71-76BCF1ABA748}}";
 
         [PublicAPI]
-        public static IApplicationBuilder StartNode(string[] args, KillRecpientType type, IpcApplicationType ipcType)
+        public static IApplicationBuilder StartNode(string[] args, KillRecpientType type, IpcApplicationType ipcType, bool consoleLog = false)
         {
             var masterReady = false;
             if (ipcType != IpcApplicationType.NoIpc)
                 masterReady = SharmComunicator.MasterIpcReady(IpcName);
             var ipc = new IpcConnection(masterReady, ipcType,
-                (s, exception) => Log.ForContext(typeof(Bootstrap)).Error(exception, "Ipc Error: {Info}", s));
+                (s, exception) => LogManager.GetCurrentClassLogger().Error(exception, "Ipc Error: {Info}", s));
 
             return ActorApplication.Create(args)
                 .ConfigureAutoFac(cb =>
@@ -44,8 +44,8 @@ namespace Tauron.Application.AkkaNode.Bootstrap
                 .ConfigureLogging((context, configuration) =>
                 {
                     System.Console.Title = context.HostEnvironment.ApplicationName;
-
-                    configuration.WriteTo.Console(theme: AnsiConsoleTheme.Code);
+                    if(consoleLog)
+                        configuration.LoadConfiguration(c => c.Configuration.AddRuleForAllLevels(new ColoredConsoleTarget()));
                 })
                 .ConfigurateAkkaSystem((_, system) =>
                 {
@@ -169,8 +169,7 @@ namespace Tauron.Application.AkkaNode.Bootstrap
                     IsReady = false;
                     ErrorMessage = e.Message;
 
-                    Log.ForContext<IpcConnection>()
-                        .Error(e, "Error on Starting Ipc");
+                    LogManager.GetCurrentClassLogger().Error(e, "Error on Starting Ipc");
 
                     Dispose();
                 }
@@ -199,7 +198,7 @@ namespace Tauron.Application.AkkaNode.Bootstrap
 
             public KillHelper(IConfiguration configuration, ActorSystem system, IIpcConnection ipcConnection)
             {
-                _logger = Log.ForContext<KillHelper>();
+                _logger = LogManager.GetCurrentClassLogger();
                 _comHandle = configuration["ComHandle"];
                 _system = system;
                 _ipcConnection = (IpcConnection) ipcConnection;
@@ -230,7 +229,7 @@ namespace Tauron.Application.AkkaNode.Bootstrap
 
                 if (!string.IsNullOrWhiteSpace(errorToReport))
                 {
-                    _logger.Warning("Error on Start Kill Watch: {Error}", errorToReport);
+                    _logger.Warn("Error on Start Kill Watch: {Error}", errorToReport);
                     return;
                 }
 

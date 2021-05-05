@@ -8,13 +8,11 @@
 
   <ItemGroup>
     <PackageReference Include="Akka.DependencyInjection" Version="1.4.19" />
-    <PackageReference Include="Akka.Logger.Serilog" Version="1.4.17" />
     <PackageReference Include="Akka.Remote" Version="1.4.19" />
     <PackageReference Include="Akka.Streams" Version="1.4.19" />
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="7.1.0" />
     <PackageReference Include="Castle.Core" Version="4.4.1" />
-    <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
-    <PackageReference Include="Serilog.Sinks.File" Version="4.1.0" />
+    <PackageReference Include="NLog" Version="4.7.9" />
     <PackageReference Include="SharpRepository.InMemoryRepository" Version="2.0.3.1" />
     <PackageReference Include="SharpRepository.MongoDbRepository" Version="2.1.1" />
   </ItemGroup>

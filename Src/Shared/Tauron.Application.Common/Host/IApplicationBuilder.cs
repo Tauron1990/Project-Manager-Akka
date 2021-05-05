@@ -5,14 +5,14 @@ using Autofac;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Serilog;
+using NLog.Config;
 
 namespace Tauron.Host
 {
     [PublicAPI]
     public interface IApplicationBuilder
     {
-        IApplicationBuilder ConfigureLogging(Action<HostBuilderContext, LoggerConfiguration> config);
+        IApplicationBuilder ConfigureLogging(Action<HostBuilderContext, ISetupBuilder> config);
 
         IApplicationBuilder Configuration(Action<IConfigurationBuilder> config);
 

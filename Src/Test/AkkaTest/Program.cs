@@ -1,44 +1,23 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
-using Akka.Actor.Internal;
-using Akka.Streams;
-using Akka.Streams.Dsl;
-using Akka.Util;
-using AkkaTest.CommandTest;
-using AkkaTest.InMemoryStorage;
 using AkkaTest.JsonRepo;
 using Autofac;
-using Ionic.Zip;
-using MongoDB.Driver;
-using MongoDB.Driver.GridFS;
-using Octokit;
-using Serilog;
-using Serilog.Events;
+using NLog;
+using NLog.Config;
 using ServiceManager.ProjectDeployment;
-using ServiceManager.ProjectDeployment.Data;
 using ServiceManager.ProjectRepository;
-using SharpRepository.InMemoryRepository;
-using SharpRepository.MongoDbRepository;
 using SharpRepository.Repository.Configuration;
 using Tauron;
-using Tauron.Akka;
 using Tauron.Application.AkkaNode.Bootstrap;
 using Tauron.Application.AkkaNode.Bootstrap.Console;
 using Tauron.Application.AkkaNode.Services.CleanUp;
 using Tauron.Application.AkkaNode.Services.Commands;
 using Tauron.Application.AkkaNode.Services.FileTransfer;
-using Tauron.Application.AkkaNode.Services.Reporting.Commands;
-using Tauron.Application.Files.GridFS;
 using Tauron.Application.Files.VirtualFiles;
-using Tauron.Application.Files.VirtualFiles.InMemory.Data;
 using Tauron.Application.Master.Commands.Deployment.Build;
-using Tauron.Application.Master.Commands.Deployment.Build.Commands;
-using Tauron.Application.Master.Commands.Deployment.Build.Data;
 using Tauron.Application.Master.Commands.Deployment.Build.Querys;
 using Tauron.Application.Master.Commands.Deployment.Repository;
 using Tauron.Host;
@@ -83,7 +62,7 @@ namespace AkkaTest
                 var file = _bucked.GetFile("build.zip");
                 var dic = _bucked.GetDirectory("Build");
 
-                var data = await _deploymentApi.Send(new QueryBinarys("TestApp1"), TimeSpan.FromMinutes(10), _dataTransfer, Log.Information, () => File.Create("Test.zip"));
+                var data = await _deploymentApi.Send(new QueryBinarys("TestApp1"), TimeSpan.FromMinutes(10), _dataTransfer, Console.WriteLine, () => File.Create("Test.zip"));
 
                 switch (data)
                 {
@@ -235,9 +214,9 @@ namespace AkkaTest
 
             //const string con = "mongodb://192.168.105.96:27017/TestDb?readPreference=primary&appname=MongoDB%20Compass%20Community&ssl=false";
             ////const string con = "mongodb://localhost:27017/TestDb?readPreference=primary&appname=MongoDB%20Compass%20Community&ssl=false";
+            
 
             await ActorApplication.Create(args)
-                                  .ConfigureLogging((_, c) => c.WriteTo.Console())
                                   .ConfigureAutoFac(cb =>
                                                     {
                                                         cb.RegisterType<ConsoleAppRoute>().Named<IAppRoute>("default");

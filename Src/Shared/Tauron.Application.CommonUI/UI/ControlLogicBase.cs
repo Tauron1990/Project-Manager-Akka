@@ -1,6 +1,8 @@
 ﻿using System;
 using Akka.Actor;
 using JetBrains.Annotations;
+using NLog;
+using NLog.Fluent;
 using Serilog;
 using Tauron.Application.CommonUI.Helper;
 using Tauron.Application.CommonUI.ModelMessages;

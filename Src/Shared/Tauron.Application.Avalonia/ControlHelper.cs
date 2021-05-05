@@ -6,7 +6,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using JetBrains.Annotations;
-using Serilog;
+using NLog;
 using Tauron.Application.Avalonia.AppCore;
 using Tauron.Application.CommonUI;
 using Tauron.Application.CommonUI.Helper;
@@ -145,7 +145,7 @@ namespace Tauron.Application.Avalonia
                             priTarget = priTarget is StyledElement {Parent: StyledElement parent} ? parent : null;
 
                     if (priTarget == null)
-                        Log.Logger.Error($"ControlHelper: No Window Found: {DataContext.GetType()}|{realName}");
+                        LogManager.GetCurrentClassLogger().Error($"ControlHelper: No Window Found: {DataContext.GetType()}|{realName}");
                 }
                 else
                 {
@@ -156,7 +156,7 @@ namespace Tauron.Application.Avalonia
                             : null;
 
                     if (priTarget == null)
-                        Log.Logger.Error($"ControlHelper: No Window Named {windowName} Found");
+                        LogManager.GetCurrentClassLogger().Error($"ControlHelper: No Window Named {windowName} Found");
                 }
 
                 if (priTarget == null) return;

@@ -3,12 +3,8 @@ using Akka.Configuration;
 using Autofac;
 using Autofac.Builder;
 using JetBrains.Annotations;
-using Serilog;
-using Serilog.Core;
-using Serilog.Events;
-using Serilog.Exceptions;
-using Serilog.Formatting.Compact;
 using Tauron.Application.AkkaNode.Services.Configuration;
+using Tauron.Application.Logging;
 using Tauron.Host;
 
 namespace Tauron.Application.AkkaNode.Bootstrap
@@ -27,23 +23,10 @@ namespace Tauron.Application.AkkaNode.Bootstrap
                         ("akka.appinfo.actorsystem", "actorsystem"),
                         ("akka.appinfo.appslocation", "AppsLocation"))))
                 .ConfigureAkka(_ => config)
-                .ConfigureLogging((context, configuration) =>
-                {
-                    configuration.WriteTo.File(new CompactJsonFormatter(), "Logs\\Log.log",
-                        fileSizeLimitBytes: 5_242_880, retainedFileCountLimit: 2);
-
-                    configuration
-                        .MinimumLevel.Debug()
-                        .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-                        .MinimumLevel.Override("System", LogEventLevel.Warning)
-                        .Enrich.WithProperty("ApplicationName", context.HostEnvironment.ApplicationName)
-                        .Enrich.FromLogContext()
-                        .Enrich.WithExceptionDetails()
-                        .Enrich.With<EventTypeEnricher>()
-                        .Enrich.With<LogLevelWriter>();
-                });
+                .ConfigureLogging((context, configuration) => configuration.ConfigDefaultLogging(context.HostEnvironment.ApplicationName));
         }
 
+        [PublicAPI]
         public static IRegistrationBuilder<TImpl, ConcreteReflectionActivatorData, SingleRegistrationStyle> RegisterStartUpAction<TImpl>(this ContainerBuilder builder)
             where TImpl : IStartUpAction
             => builder.RegisterType<TImpl>().As<IStartUpAction>();
@@ -66,14 +49,6 @@ namespace Tauron.Application.AkkaNode.Bootstrap
                 config = ConfigurationFactory.ParseString(File.ReadAllText(seed)).WithFallback(config);
 
             return config;
-        }
-
-        private class LogLevelWriter : ILogEventEnricher
-        {
-            public void Enrich(LogEvent logEvent, ILogEventPropertyFactory propertyFactory)
-            {
-                logEvent.AddPropertyIfAbsent(new LogEventProperty("Level", new ScalarValue(logEvent.Level)));
-            }
         }
     }
 }

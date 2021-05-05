@@ -10,7 +10,7 @@ using Akka.Actor;
 using AvalonDock;
 using AvalonDock.Layout;
 using MaterialDesignThemes.Wpf;
-using Serilog;
+using NLog;
 using Tauron.Application.CommonUI;
 using Tauron.Application.CommonUI.AppCore;
 using Tauron.Application.CommonUI.Dialogs;
@@ -146,7 +146,7 @@ namespace Tauron.Application.Localizer
             }
             catch (Exception exception)
             {
-                Log.ForContext<MainWindow>().Error(exception, "Error on Load Dock State");
+                LogManager.GetCurrentClassLogger().Error(exception, "Error on Load Dock State");
                 DockReset(null, null);
             }
         }
