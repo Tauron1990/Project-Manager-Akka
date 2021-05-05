@@ -17,7 +17,7 @@ namespace ServiceHost.Services.Impl
     {
         public sealed record AppProcessorState(InstalledApp App, string ServiceName, IIpcConnection ServiceCom, Process? Process, bool IsProcessRunning, string ServiceId);
 
-        public IPreparedFeature New(InstalledApp app, IIpcConnection connection)
+        public static IPreparedFeature New(InstalledApp app, IIpcConnection connection)
             => Feature.Create(() => new AppProcessActor(), _ => new AppProcessorState(app, Guid.NewGuid().ToString("N"), connection, null, false, string.Empty));
 
         protected override void ConfigImpl()

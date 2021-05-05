@@ -20,8 +20,7 @@ namespace Servicemnager.Networking.Data
 
         public NetworkMessageFormatter(MemoryPool<byte> pool) => _pool = pool;
 
-        public (IMemoryOwner<byte> Message, int Lenght) WriteMessage(NetworkMessage msg,
-            Func<int, (IMemoryOwner<byte> Memory, int Start)>? allocate = null)
+        public (IMemoryOwner<byte> Message, int Lenght) WriteMessage(NetworkMessage msg, Func<int, (IMemoryOwner<byte> Memory, int Start)>? allocate = null)
         {
             var typeLenght = Encoding.UTF8.GetByteCount(msg.Type);
             var lenght = Head.Length + End.Length + msg.RealLength + typeLenght + 12;

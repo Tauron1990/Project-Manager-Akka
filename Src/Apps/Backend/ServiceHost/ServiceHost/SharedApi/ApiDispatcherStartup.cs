@@ -1,5 +1,5 @@
 ﻿using Akka.Actor;
-using Akka.DI.Core;
+using Akka.DependencyInjection;
 using Tauron.Application.AkkaNode.Bootstrap;
 
 namespace ServiceHost.SharedApi
@@ -11,7 +11,10 @@ namespace ServiceHost.SharedApi
         public ApiDispatcherStartup(ActorSystem system) 
             => _system = system;
 
-        public void Run() 
-            => _system.ActorOf(_system.DI().Props<ApiDispatcherActor>(), "Api-Dispatcher");
+        public void Run()
+        {
+            var props = ServiceProvider.For(_system).Props<ApiDispatcherActor>();
+            _system.ActorOf(props, "Api-Dispatcher");
+        }
     }
 }

@@ -186,8 +186,10 @@ namespace Tauron.Application.AkkaNode.Bootstrap
         [UsedImplicitly]
         private sealed class KillHelper : IStartUpAction
         {
-            [UsedImplicitly] 
+            [UsedImplicitly]
+            #pragma warning disable IDE0052 // Ungelesene private Member entfernen
             private static KillHelper? _keeper;
+            #pragma warning restore IDE0052 // Ungelesene private Member entfernen
 
             private readonly string? _comHandle;
             private readonly IpcConnection _ipcConnection;

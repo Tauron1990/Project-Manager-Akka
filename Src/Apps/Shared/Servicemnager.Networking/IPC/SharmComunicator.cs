@@ -26,6 +26,7 @@ namespace Servicemnager.Networking.IPC
             _errorHandler = errorHandler;
         }
         #if DEBUG
+        // ReSharper disable once MemberCanBePrivate.Global
         public static Func<ISharmIpc>? ConnectionFac { get; set; }
         #endif
 
@@ -71,18 +72,18 @@ namespace Servicemnager.Networking.IPC
                 _ => target
             };
 
-            var toSend = _formatter.WriteMessage(msg, i =>
-            {
-                var memory = MemoryPool<byte>.Shared.Rent(i + 64);
+            var (message, lenght) = _formatter.WriteMessage(msg, i =>
+                                                        {
+                                                            var memory = MemoryPool<byte>.Shared.Rent(i + 64);
 
-                Encoding.ASCII.GetBytes(target, memory.Memory.Span);
-                Encoding.ASCII.GetBytes(ProcessId, memory.Memory.Span[31..]);
+                                                            Encoding.ASCII.GetBytes(target, memory.Memory.Span);
+                                                            Encoding.ASCII.GetBytes(ProcessId, memory.Memory.Span[31..]);
 
-                return (memory, 63);
-            });
+                                                            return (memory, 63);
+                                                        });
 
-            using var data = toSend.Message;
-            return _sharmIpc.Send(data.Memory[..toSend.Lenght].ToArray());
+            using var data = message;
+            return _sharmIpc.Send(data.Memory[..lenght].ToArray());
         }
 
         #if DEBUG

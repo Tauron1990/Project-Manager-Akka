@@ -9,14 +9,16 @@ namespace AkkaTest.JsonRepo
     /// </summary>
     /// <typeparam name="T">The object type that is stored as XML.</typeparam>
     /// <typeparam name="TKey">The type of the primary key.</typeparam>
-    public class JsonRepository<T, TKey> : JsonRepositoryBase<T, TKey> where T : class, new()
+    public class JsonRepository<T, TKey> : JsonRepositoryBase<T, TKey> 
+        where T : class, new()
+        where TKey : notnull
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="JsonRepository&lt;T, TKey&gt;"/> class.
         /// </summary>
         /// <param name="storagePath">Path to the directory where the XML files are stored.  The XML filename is determined by the TypeName</param>
         /// <param name="cachingStrategy">The caching strategy.  Defaults to <see cref="NoCachingStrategy&lt;T, TKey&gt;" />.</param>
-        public JsonRepository(string storagePath, ICachingStrategy<T, TKey> cachingStrategy = null) : base(storagePath, cachingStrategy) 
+        public JsonRepository(string storagePath, ICachingStrategy<T, TKey>? cachingStrategy = null) : base(storagePath, cachingStrategy) 
         {
             if (string.IsNullOrEmpty(storagePath)) throw new ArgumentNullException(nameof(storagePath));
         }
@@ -33,7 +35,7 @@ namespace AkkaTest.JsonRepo
         /// </summary>
         /// <param name="storagePath">Path to the directory where the XML files are stored.  The XML filename is determined by the TypeName</param>
         /// <param name="cachingStrategy">The caching strategy.  Defaults to <see cref="NoCachingStrategy&lt;T&gt;" />.</param>
-        public XmlRepository(string storagePath, ICachingStrategy<T, int> cachingStrategy = null) : base(storagePath, cachingStrategy) 
+        public XmlRepository(string storagePath, ICachingStrategy<T, int>? cachingStrategy = null) : base(storagePath, cachingStrategy) 
         {
         }
     }

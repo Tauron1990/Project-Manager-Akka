@@ -45,10 +45,10 @@ namespace Tauron.Features
     }
 
     [PublicAPI, DebuggerStepThrough]
-    public sealed record StatePair<TEvent, TState>(TEvent Event, TState State, ITimerScheduler Timers)
+    public sealed record StatePair<TEvent, TState>(TEvent Event, TState State, ITimerScheduler Timers, IActorContext Context, IActorRef Sender, IActorRef Parent, IActorRef Self)
     {
         public StatePair<TEvent, TNew> Convert<TNew>(Func<TState, TNew> converter)
-            => new(Event, converter(State), Timers);
+            => new(Event, converter(State), Timers, Context, Sender, Parent, Self);
 
 
         public void Deconstruct(out TEvent evt, out TState state)
@@ -58,10 +58,17 @@ namespace Tauron.Features
         }
 
         public StatePair<TNew, TState> NewEvent<TNew>(TNew evt)
-            => new(evt, State, Timers);
+            => new(evt, State, Timers, Context, Sender, Parent, Self);
 
         public StatePair<TNew, TState> NewEvent<TNew>(TNew evt, TState state)
-            => new(evt, state, Timers);
+            => new(evt, state, Timers, Context, Sender, Parent, Self);
+
+        public void Deconstruct(out TEvent evt, out TState state, out ITimerScheduler scheduler)
+        {
+            evt = Event;
+            state = State;
+            scheduler = Timers;
+        }
     }
 
     [PublicAPI, DebuggerStepThrough]
@@ -95,12 +102,12 @@ namespace Tauron.Features
 
         public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler)
             => Receive<TEvent>(obs
-                => handler(obs.Select(evt => new StatePair<TEvent, TState>(evt, CurrentState.Value, Timers))));
+                => handler(obs.Select(evt => new StatePair<TEvent, TState>(evt, CurrentState.Value, Timers, Context, Sender, Parent, Self))));
 
         public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<TState>> handler)
         {
             IDisposable CreateHandler(IObservable<TEvent> observable)
-                => handler(observable.Select(evt => new StatePair<TEvent, TState>(evt, CurrentState.Value, Timers)))
+                => handler(observable.Select(evt => new StatePair<TEvent, TState>(evt, CurrentState.Value, Timers, Context, Sender, Parent, Self)))
                     .SubscribeWithStatus(CurrentState.OnNext);
 
             Receive<TEvent>(obs => CreateHandler(obs));
@@ -109,11 +116,11 @@ namespace Tauron.Features
         public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler,
             Func<Exception, bool> errorHandler)
             => Receive<TEvent>(
-                obs => handler(obs.Select(evt => new StatePair<TEvent, TState>(evt, CurrentState.Value, Timers))), errorHandler);
+                obs => handler(obs.Select(evt => new StatePair<TEvent, TState>(evt, CurrentState.Value, Timers, Context, Sender, Parent, Self))), errorHandler);
 
         public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IDisposable> handler)
             => Receive<TEvent>(obs
-                => handler(obs.Select(evt => new StatePair<TEvent, TState>(evt, CurrentState.Value, Timers))));
+                => handler(obs.Select(evt => new StatePair<TEvent, TState>(evt, CurrentState.Value, Timers, Context, Sender, Parent, Self))));
 
         IUntypedActorContext IFeatureActor<TState>.Context => Context;
         SupervisorStrategy? IFeatureActor<TState>.SupervisorStrategy { get; set; }

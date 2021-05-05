@@ -6,6 +6,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE;TEST</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <None Remove="akka.conf" />
     <None Remove="appsettings.json" />

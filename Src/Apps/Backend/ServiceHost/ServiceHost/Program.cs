@@ -13,13 +13,14 @@ using Microsoft.Extensions.Configuration.CommandLine;
 using Newtonsoft.Json;
 using Serilog;
 using ServiceHost.Installer;
+using Servicemnager.Networking.Data;
 using Tauron.Application.AkkaNode.Bootstrap;
 using Tauron.Application.AkkaNode.Bootstrap.Console;
 using Tauron.Application.Master.Commands;
 
 namespace ServiceHost
 {
-    class Program
+    public static class Program
     {
         private const string MonitorName = @"Global\Tauron.Application.ProjectManagerHost";
 
@@ -43,8 +44,11 @@ namespace ServiceHost
                         await client.ConnectAsync(10000, CancellationToken.None);
                         
                         byte[] data = Encoding.UTF8.GetBytes(new ExposedCommandLineProvider(args).Serialize());
-                        await client.WriteAsync(BitConverter.GetBytes(data.Length));
-                        await client.WriteAsync(data);
+                        var (message, lenght) = new NetworkMessageFormatter(MemoryPool<byte>.Shared)
+                           .WriteMessage(NetworkMessage.Create("Args", data));
+                        using var mem = message;
+
+                        await client.WriteAsync(mem.Memory[..lenght]);
                     }
                     catch (Exception e)
                     {
@@ -57,8 +61,7 @@ namespace ServiceHost
             {
                 if (createdNew)
                 {
-                    await Task.Factory.StartNew(() => m.ReleaseMutex(), CancellationToken.None,
-                        TaskCreationOptions.HideScheduler | TaskCreationOptions.DenyChildAttach, MutexThread.Inst);
+                    await Task.Factory.StartNew(() => m.ReleaseMutex(), CancellationToken.None, TaskCreationOptions.HideScheduler | TaskCreationOptions.DenyChildAttach, MutexThread.Inst);
                     MutexThread.Inst.Dispose();
                 }
                 IncomingCommandHandler.Handler?.Stop();
@@ -76,6 +79,12 @@ namespace ServiceHost
                .ConfigurateAkkaSystem((context, system) =>
                 {
                     var cluster = Cluster.Get(system);
+
+                    #if TEST
+                    cluster.Join(cluster.SelfAddress);
+                    #endif
+
+                    cluster.RegisterOnMemberRemoved(() => system.Terminate());
                     cluster.RegisterOnMemberUp(()
                         => ServiceRegistry.GetRegistry(system).RegisterService(new RegisterService(context.HostEnvironment.ApplicationName, cluster.SelfUniqueAddress)));
                 })
@@ -107,8 +116,12 @@ namespace ServiceHost
         public sealed class IncomingCommandHandler
         {
             private readonly Func<IConfiguration, ManualInstallationTrigger> _installTrigger;
-            private readonly NamedPipeServerStream _reader = new NamedPipeServerStream(MonitorName, PipeDirection.Out, 1, PipeTransmissionMode.Message, PipeOptions.Asynchronous);
-            private readonly CancellationTokenSource _cancellationToken = new CancellationTokenSource();
+            
+            private readonly NamedPipeServerStream _reader = new(MonitorName, PipeDirection.Out, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
+            private readonly CancellationTokenSource _cancellationToken = new();
+            
+            private readonly MessageBuffer _buffer = new(MemoryPool<byte>.Shared);
+            private readonly List<IMemoryOwner<byte>> _incomming = new();
 
             public IncomingCommandHandler(Func<IConfiguration, ManualInstallationTrigger> installTrigger)
             {
@@ -124,15 +137,42 @@ namespace ServiceHost
                     while (true)
                     {
                         await _reader.WaitForConnectionAsync(_cancellationToken.Token);
+                        var messageNotRead = true;
 
-                        using var buffer = MemoryPool<byte>.Shared.Rent(4);
-                        if (!await TryRead(buffer, 4, _cancellationToken.Token)) continue;
+                        while (messageNotRead)
+                        {
+                            var mem = MemoryPool<byte>.Shared.Rent();
+                            var amount = await _reader.ReadAsync(mem.Memory);
+                            if (amount == 0)
+                            {
+                                mem.Dispose();
+                                continue;
+                            }
 
-                        var count = BitConverter.ToInt32(buffer.Memory.Span);
-                        using var dataBuffer = MemoryPool<byte>.Shared.Rent(count);
+                            _incomming.Add(mem);
+                            var msg = _buffer.AddBuffer(mem.Memory);
+                            if(msg == null) continue;
 
-                        if (await TryRead(buffer, count, _cancellationToken.Token)) 
-                            ParseAndRunData(Encoding.UTF8.GetString(dataBuffer.Memory.Slice(0, count).Span));
+                            switch (msg.Type)
+                            {
+                                case "Args":
+                                    messageNotRead = false;
+                                    ParseAndRunData(Encoding.UTF8.GetString(msg.Data));
+                                    break;
+                            }
+                        }
+
+                        foreach (var owner in _incomming) owner.Dispose();
+                        _incomming.Clear();
+
+                        //using var buffer = MemoryPool<byte>.Shared.Rent(4);
+                        //if (!await TryRead(buffer, 4, _cancellationToken.Token)) continue;
+
+                        //var count = BitConverter.ToInt32(buffer.Memory.Span);
+                        //using var dataBuffer = MemoryPool<byte>.Shared.Rent(count);
+
+                        //if (await TryRead(buffer, count, _cancellationToken.Token)) 
+                        //    ParseAndRunData(Encoding.UTF8.GetString(dataBuffer.Memory[..count].Span));
                     }
                 }
                 catch (OperationCanceledException)
@@ -147,23 +187,23 @@ namespace ServiceHost
                 Handler = null;
             }
 
-            private async Task<bool> TryRead(IMemoryOwner<byte> buffer, int lenght, CancellationToken token)
-            {
-                var currentLenght = 0;
+            //private async Task<bool> TryRead(IMemoryOwner<byte> buffer, int lenght, CancellationToken token)
+            //{
+            //    var currentLenght = 0;
 
-                while (true)
-                {
-                    if (_reader.IsMessageComplete)
-                        return currentLenght == lenght;
-                    if (currentLenght > lenght)
-                        return false;
+            //    while (true)
+            //    {
+            //        if (_reader.IsMessageComplete)
+            //            return currentLenght == lenght;
+            //        if (currentLenght > lenght)
+            //            return false;
 
-                    currentLenght = await _reader.ReadAsync(buffer.Memory.Slice(currentLenght, lenght - currentLenght), token);
+            //        currentLenght = await _reader.ReadAsync(buffer.Memory.Slice(currentLenght, lenght - currentLenght), token);
 
-                    if (currentLenght == lenght)
-                        return _reader.IsMessageComplete;
-                }
-            }
+            //        if (currentLenght == lenght)
+            //            return _reader.IsMessageComplete;
+            //    }
+            //}
 
             private void ParseAndRunData(string rawdata)
             {
@@ -189,27 +229,39 @@ namespace ServiceHost
 
         public sealed class MutexThread : TaskScheduler, IDisposable
         {
-            public static readonly MutexThread Inst = new MutexThread();
+            public static readonly MutexThread Inst = new();
 
-            private readonly BlockingCollection<Task> _tasks = new BlockingCollection<Task>();
+            private readonly BlockingCollection<Task> _tasks = new();
 
             private MutexThread()
             {
-                Thread thread = new Thread(() =>
+                Thread thread = new(() =>
+                                    {
+                                        foreach (var task in _tasks.GetConsumingEnumerable()) 
+                                            TryExecuteTask(task);
+
+                                        _tasks.Dispose();
+                                    });
+
+                switch (Environment.OSVersion.Platform)
                 {
-                    foreach (var task in _tasks.GetConsumingEnumerable()) 
-                        TryExecuteTask(task);
-
-                    _tasks.Dispose();
-                });
-
-                thread.SetApartmentState(ApartmentState.STA);
+                    case PlatformID.Win32S:
+                    case PlatformID.Win32Windows:
+                    case PlatformID.Win32NT:
+                    case PlatformID.WinCE:
+                        #pragma warning disable CA1416 // Plattformkompatibilität überprüfen
+                        thread.SetApartmentState(ApartmentState.STA);
+                        #pragma warning restore CA1416 // Plattformkompatibilität überprüfen
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
                 thread.IsBackground = true;
 
                 thread.Start();
             }
 
-            protected override IEnumerable<Task>? GetScheduledTasks() => _tasks;
+            protected override IEnumerable<Task> GetScheduledTasks() => _tasks;
 
             protected override void QueueTask(Task task) 
                 => _tasks.Add(task);
