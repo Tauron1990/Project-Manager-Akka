@@ -1,9 +1,8 @@
-﻿using System;
-using ServiceManagerIpProbe.Phases;
+﻿using ServiceManager.HostInstaller.Phases;
 using Servicemnager.Networking;
 using Servicemnager.Networking.Server;
 
-namespace ServiceManagerIpProbe.Phase
+namespace ServiceManager.HostInstaller.Phase
 {
     public class SetConfigAndConnectPhase : Phase<OperationContext>
     {

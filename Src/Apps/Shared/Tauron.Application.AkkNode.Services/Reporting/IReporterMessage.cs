@@ -1,7 +1,7 @@
 ﻿using System;
 using Akka.Actor;
 
-namespace Tauron.Application.AkkaNode.Services
+namespace Tauron.Application.AkkaNode.Services.Reporting
 {
     public interface IReporterMessage
     {

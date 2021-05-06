@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Threading;
-using ServiceManagerIpProbe.Phases;
+using ServiceManager.HostInstaller.Phases;
 using Servicemnager.Networking;
+using Servicemnager.Networking.Data;
 using Servicemnager.Networking.Server;
 
-namespace ServiceManagerIpProbe
+namespace ServiceManager.HostInstaller
 {
     public sealed class OperationContext : IHasTimeout, IDisposable
     {
-        public CancellationTokenSource GlobalTimeout { get; } = new CancellationTokenSource(TimeSpan.FromMinutes(10));
+        public CancellationTokenSource GlobalTimeout { get; } = new(TimeSpan.FromMinutes(10));
 
-        public ManualResetEventSlim PhaseLock { get; } = new ManualResetEventSlim();
+        public ManualResetEventSlim PhaseLock { get; } = new();
 
         public DataClient DataClient { get; set; }
 

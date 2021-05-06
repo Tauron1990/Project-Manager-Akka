@@ -5,7 +5,7 @@ using System.Linq;
 using System.Windows;
 using Akka.Actor;
 using JetBrains.Annotations;
-using Serilog;
+using NLog;
 using Tauron.Application.CommonUI;
 using Tauron.Application.CommonUI.Helper;
 using Tauron.Application.CommonUI.ModelMessages;
@@ -138,7 +138,7 @@ namespace Tauron.Application.Wpf
                         priTarget = System.Windows.Window.GetWindow(priTarget);
 
                     if (priTarget == null)
-                        Log.Logger.Error($"ControlHelper: No Window Found: {DataContext.GetType()}|{realName}");
+                        LogManager.GetCurrentClassLogger().Error($"ControlHelper: No Window Found: {DataContext.GetType()}|{realName}");
                 }
                 else
                 {
@@ -147,7 +147,7 @@ namespace Tauron.Application.Wpf
                             .FirstOrDefault(win => win.Name == windowName);
 
                     if (priTarget == null)
-                        Log.Logger.Error($"ControlHelper: No Window Named {windowName} Found");
+                        LogManager.GetCurrentClassLogger().Error($"ControlHelper: No Window Named {windowName} Found");
                 }
 
                 if (priTarget == null) return;

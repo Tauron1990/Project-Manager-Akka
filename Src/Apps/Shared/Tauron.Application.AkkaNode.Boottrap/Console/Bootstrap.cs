@@ -15,6 +15,7 @@ using Servicemnager.Networking.IPC;
 using Tauron.Application.AkkaNode.Bootstrap.Console;
 using Tauron.Application.AkkaNode.Bootstrap.Console.IpcMessages;
 using Tauron.Application.Master.Commands;
+using Tauron.Application.Master.Commands.KillSwitch;
 using Tauron.Host;
 
 // ReSharper disable once CheckNamespace
@@ -45,7 +46,7 @@ namespace Tauron.Application.AkkaNode.Bootstrap
                 {
                     System.Console.Title = context.HostEnvironment.ApplicationName;
                     if(consoleLog)
-                        configuration.LoadConfiguration(c => c.Configuration.AddRuleForAllLevels(new ColoredConsoleTarget()));
+                        configuration.LoadConfiguration(c => c.Configuration.AddRuleForAllLevels(new ColoredConsoleTarget("Console")));
                 })
                 .ConfigurateAkkaSystem((_, system) =>
                 {

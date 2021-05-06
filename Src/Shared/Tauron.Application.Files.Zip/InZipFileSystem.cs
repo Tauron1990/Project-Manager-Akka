@@ -2,8 +2,9 @@
 using System.IO;
 using Ionic.Zip;
 using JetBrains.Annotations;
+using Tauron.Application.Files.VirtualFiles;
 
-namespace Tauron.Application.Files.VirtualFiles.Zip
+namespace Tauron.Application.Files.Zip
 {
     [PublicAPI]
     public class InZipFileSystem : InZipDirectory, IVirtualFileSystem

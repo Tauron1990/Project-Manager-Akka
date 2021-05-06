@@ -1,17 +1,17 @@
 ﻿using System;
-using Serilog.Events;
+using NLog;
 
 namespace Tauron.Application.Wpf.SerilogViewer
 {
-    public sealed class SerilogEvent : EventArgs
+    public sealed class LoggingEvent : EventArgs
     {
-        public LogEvent EventInfo;
+        public readonly LogEventInfo EventInfo;
 
-        public SerilogEvent(LogEvent logEventInfo) => EventInfo = logEventInfo;
+        public LoggingEvent(LogEventInfo logEventInfo) => EventInfo = logEventInfo;
 
 
-        public static implicit operator LogEvent(SerilogEvent e) => e.EventInfo;
+        public static implicit operator LogEventInfo(LoggingEvent e) => e.EventInfo;
 
-        public static implicit operator SerilogEvent(LogEvent e) => new(e);
+        public static implicit operator LoggingEvent(LogEventInfo e) => new(e);
     }
 }

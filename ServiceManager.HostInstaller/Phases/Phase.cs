@@ -1,4 +1,4 @@
-﻿namespace ServiceManagerIpProbe.Phases
+﻿namespace ServiceManager.HostInstaller.Phases
 {
     public abstract class Phase<TContext>
     {

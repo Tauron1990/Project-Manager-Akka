@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
 using JetBrains.Annotations;
-using Serilog;
+using NLog;
 using Tauron.Akka;
 using Tauron.Application.CommonUI.Helper;
 using Tauron.Application.CommonUI.ModelMessages;
@@ -13,7 +13,7 @@ namespace Tauron.Application.CommonUI.UI
     [PublicAPI]
     public abstract class ModelConnectorBase<TDrived>
     {
-        protected readonly ILogger Log = Serilog.Log.ForContext<TDrived>();
+        protected readonly ILogger Log = LogManager.GetCurrentClassLogger(typeof(TDrived));
 
         private IEventActor? _eventActor;
 

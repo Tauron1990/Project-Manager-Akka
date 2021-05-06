@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using Serilog;
+using NLog;
 
 namespace Tauron.Application.Wpf.Implementation
 {
@@ -38,7 +38,7 @@ namespace Tauron.Application.Wpf.Implementation
             }
             catch (Exception e)
             {
-                Log.ForContext<ImageHelper>().Warning(e, "Faild To CreateResult image");
+                LogManager.GetCurrentClassLogger().Warn(e, "Faild To CreateResult image");
 
                 return null;
             }

@@ -1,9 +1,10 @@
 ﻿using System;
 using System.IO;
 using Ionic.Zip;
+using Tauron.Application.Files.VirtualFiles;
 using Tauron.Application.Files.VirtualFiles.Core;
 
-namespace Tauron.Application.Files.VirtualFiles.Zip
+namespace Tauron.Application.Files.Zip
 {
     public sealed class InZipFile : FileBase<ZipEntry>
     {

@@ -1,4 +1,4 @@
-﻿namespace Tauron.Application.Localizer.DataModel.Processing
+﻿namespace Tauron.Application.Localizer.DataModel.Processing.Messages
 {
     public sealed record ForceSave(bool AndSeal, ProjectFile File)
     {

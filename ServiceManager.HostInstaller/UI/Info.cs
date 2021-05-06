@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace ServiceManagerIpProbe.UI
+namespace ServiceManager.HostInstaller.UI
 {
     public partial class Info : Form
     {

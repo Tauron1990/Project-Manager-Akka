@@ -1,4 +1,4 @@
-﻿namespace Tauron.Application.Master.Commands
+﻿namespace Tauron.Application.Master.Commands.KillSwitch
 {
     public enum KillRecpientType
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace Tauron.Application.AkkaNode.Services.Commands
+namespace Tauron.Application.AkkaNode.Services.Reporting.Commands
 {
     [Serializable]
     public class CommandFailedException : Exception

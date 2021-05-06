@@ -51,7 +51,7 @@ namespace Tauron.Host
             builder
                 .ConfigureAkka(_
                     => ConfigurationFactory.ParseString(
-                        " akka { loggers =[\"Akka.Logger.Serilog.SerilogLogger, Akka.Logger.Serilog\"]"))// \n  scheduler { implementation = \"Tauron.Akka.TimerScheduler, Tauron.Application.Common\" } }"))
+                        " akka { loggers =[\"Akka.Logger.NLog.NLogLogger, Akka.Logger.NLog\"]"))// \n  scheduler { implementation = \"Tauron.Akka.TimerScheduler, Tauron.Application.Common\" } }"))
                 .ConfigureAutoFac(cb => cb.RegisterModule<CommonModule>())
                 .Configuration(cb => { cb.AddEnvironmentVariables("DOTNET_"); })
                 .ConfigureAppConfiguration((hostingContext, config) =>

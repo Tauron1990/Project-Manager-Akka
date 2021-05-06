@@ -4,6 +4,8 @@ using Akka.Actor;
 using Petabridge.Cmd;
 using Petabridge.Cmd.Host;
 using Tauron.Application.Master.Commands;
+using Tauron.Application.Master.Commands.KillSwitch;
+using Tauron.Application.Master.Commands.ServiceRegistry;
 
 namespace Master.Seed.Node.Commands
 {

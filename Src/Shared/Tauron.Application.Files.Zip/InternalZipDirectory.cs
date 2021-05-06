@@ -4,7 +4,7 @@ using System.Linq;
 using Ionic.Zip;
 using JetBrains.Annotations;
 
-namespace Tauron.Application.Files.VirtualFiles.Zip
+namespace Tauron.Application.Files.Zip
 {
     public sealed class InternalZipDirectory
     {

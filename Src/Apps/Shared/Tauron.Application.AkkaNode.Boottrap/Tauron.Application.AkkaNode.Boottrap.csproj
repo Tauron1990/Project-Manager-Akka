@@ -20,7 +20,6 @@
   <ItemGroup>
     <PackageReference Include="Akka.Cluster.Sharding" Version="1.4.19" />
     <PackageReference Include="Akka.Logger.NLog" Version="1.4.10" />
-    <PackageReference Include="AnyConsole" Version="1.0.65" />
   </ItemGroup>
 
   <ItemGroup>

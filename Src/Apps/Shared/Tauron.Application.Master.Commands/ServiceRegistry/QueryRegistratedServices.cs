@@ -2,7 +2,7 @@
 using Akka.Cluster;
 using JetBrains.Annotations;
 
-namespace Tauron.Application.Master.Commands
+namespace Tauron.Application.Master.Commands.ServiceRegistry
 {
     public sealed record QueryRegistratedServices;
 

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using JetBrains.Annotations;
-using Serilog.Events;
+using NLog;
 using Tauron.Application.CommonUI;
 
 namespace Tauron.Application.Wpf.SerilogViewer
@@ -74,7 +74,7 @@ namespace Tauron.Application.Wpf.SerilogViewer
 
         public event EventHandler ItemAdded = delegate { };
 
-        protected void LogReceived(LogEvent log)
+        protected void LogReceived(LogEventInfo log)
         {
             LogEventViewModel vm = new(log);
 
@@ -84,7 +84,7 @@ namespace Tauron.Application.Wpf.SerilogViewer
                     LogEntries.RemoveAt(0);
                 LogEntries.Add(vm);
                 if (AutoScrollToLast) ScrollToLast();
-                ItemAdded(this, (SerilogEvent) log);
+                ItemAdded(this, (LoggingEvent) log);
             }));
         }
 

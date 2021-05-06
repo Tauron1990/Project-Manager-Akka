@@ -2,8 +2,6 @@
 using Akka.Actor;
 using JetBrains.Annotations;
 using NLog;
-using NLog.Fluent;
-using Serilog;
 using Tauron.Application.CommonUI.Helper;
 using Tauron.Application.CommonUI.ModelMessages;
 using Tauron.Host;
@@ -22,12 +20,12 @@ namespace Tauron.Application.CommonUI.UI
 
         protected ControlLogicBase(TControl userControl, IViewModel model)
         {
-            Logger = Log.ForContext(GetType());
+            Logger = LogManager.GetCurrentClassLogger();
 
             UserControl = userControl;
             UserControl.DataContext = model;
             Model = model;
-            BindLogic = new ControlBindLogic(userControl, model, Logger);
+            BindLogic = new ControlBindLogic(userControl, model);
 
             // ReSharper disable once VirtualMemberCallInConstructor
             WireUpLoaded();

@@ -3,9 +3,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
 using JetBrains.Annotations;
-using Tauron.Application.AkkaNode.Services.Commands;
 using Tauron.Application.AkkaNode.Services.Core;
 using Tauron.Application.AkkaNode.Services.FileTransfer.Operator;
+using Tauron.Application.AkkaNode.Services.Reporting.Commands;
 using Tauron.Features;
 
 namespace Tauron.Application.AkkaNode.Services.FileTransfer

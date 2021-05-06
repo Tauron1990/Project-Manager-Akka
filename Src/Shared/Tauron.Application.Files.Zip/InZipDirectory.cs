@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using Ionic.Zip;
 using JetBrains.Annotations;
+using Tauron.Application.Files.VirtualFiles;
 using Tauron.Application.Files.VirtualFiles.Core;
 
-namespace Tauron.Application.Files.VirtualFiles.Zip
+namespace Tauron.Application.Files.Zip
 {
     public class InZipDirectory : DirectoryBase<InternalZipDirectory>
     {

@@ -21,7 +21,7 @@ namespace Tauron.Application.Logging
             const string defaultFile = "default-file";
             loggerConfiguration.LoadConfiguration(b =>
                                                   {
-                                                      b.Configuration.AddTarget(new AsyncTargetWrapper(new FileTarget(defaultFile)
+                                                      b.Configuration.AddTarget(new AsyncTargetWrapper(new FileTarget("actual-" + defaultFile)
                                                                                                        {
                                                                                                            Layout = new JsonLayout
                                                                                                                     {
@@ -54,7 +54,10 @@ namespace Tauron.Application.Logging
                                                                                                            ArchiveFileName = "Logs\\Log.{###}.log",
                                                                                                            ArchiveNumbering = ArchiveNumberingMode.Rolling,
                                                                                                            EnableArchiveFileCompression = true
-                                                                                                       }));
+                                                                                                       })
+                                                                                {
+                                                                                    Name = defaultFile
+                                                                                });
 
                                                       b.Configuration.AddRuleForAllLevels(defaultFile);
                                                   });

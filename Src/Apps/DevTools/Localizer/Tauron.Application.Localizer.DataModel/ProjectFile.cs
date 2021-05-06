@@ -5,6 +5,7 @@ using Akka.Actor;
 using JetBrains.Annotations;
 using Tauron.Akka;
 using Tauron.Application.Localizer.DataModel.Processing;
+using Tauron.Application.Localizer.DataModel.Processing.Messages;
 using Tauron.Application.Localizer.DataModel.Serialization;
 
 namespace Tauron.Application.Localizer.DataModel

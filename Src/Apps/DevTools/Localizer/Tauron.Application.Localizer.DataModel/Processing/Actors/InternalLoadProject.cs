@@ -1,4 +1,5 @@
 ﻿using Akka.Actor;
+using Tauron.Application.Localizer.DataModel.Processing.Messages;
 
 namespace Tauron.Application.Localizer.DataModel.Processing.Actors
 {

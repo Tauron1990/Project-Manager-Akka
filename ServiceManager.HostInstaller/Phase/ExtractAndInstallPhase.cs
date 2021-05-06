@@ -4,10 +4,10 @@ using System.IO;
 using System.IO.Compression;
 using System.Windows.Forms;
 using IWshRuntimeLibrary;
-using ServiceManagerIpProbe.Phases;
+using ServiceManager.HostInstaller.Phases;
 using File = System.IO.File;
 
-namespace ServiceManagerIpProbe.Phase
+namespace ServiceManager.HostInstaller.Phase
 {
     public class ExtractAndInstallPhase : Phase<OperationContext>
     {
@@ -22,31 +22,29 @@ namespace ServiceManagerIpProbe.Phase
             using (var zip = ZipFile.OpenRead(context.TargetFile)) 
                 zip.ExtractToDirectory(appDic);
 
-            var seedBat = Path.Combine(appDic, "InstallSeed.dat");
-            var seedZip = Path.Combine(appDic, "Seed.zip");
+            var seedDat = Path.Combine(appDic, "InstallSeed.dat");
+            //var seedZip = Path.Combine(appDic, "Seed.zip");
 
-            if (File.Exists(seedBat))
+            if (File.Exists(seedDat))
             {
                 context.WriteLine("Installing Seed");
 
-                using (var process = Process.Start(new ProcessStartInfo(Path.Combine(appDic, "Host", "ServiceHost.exe"))
+                using var process = Process.Start(new ProcessStartInfo(Path.Combine(appDic, "Host", "ServiceHost.exe"))
+                                                  {
+                                                      Arguments = File.ReadAllText(seedDat),
+                                                      WorkingDirectory = Path.Combine(appDic, "Host")
+                                                  });
+                if (process == null)
+                    context.WriteLine("Seed Install Failed");
+                else
                 {
-                    Arguments = File.ReadAllText(seedBat),
-                    WorkingDirectory = Path.Combine(appDic, "Host")
-                }))
-                {
-                    if (process == null)
-                        context.WriteLine("Seed Install Failed");
-                    else
+                    while (!process.WaitForExit(5000))
                     {
-                        while (!process.WaitForExit(5000))
-                        {
-                            if (context.GlobalTimeout.IsCancellationRequested)
-                                return;
-                        }
-
-                        context.WriteLine("Seed Installation Ok");
+                        if (context.GlobalTimeout.IsCancellationRequested)
+                            return;
                     }
+
+                    context.WriteLine("Seed Installation Ok");
                 }
             }
 
@@ -65,7 +63,7 @@ namespace ServiceManagerIpProbe.Phase
                 try
                 {
                     var startFolder = Environment.GetFolderPath(Environment.SpecialFolder.Startup);
-                    IWshShell shellClass = new WshShellClass();
+                    IWshShell shellClass = new WshShell();
 
                     //Create Desktop Shortcut for Application Settings
                     var startLink = Path.Combine(startFolder, "AppHost.lnk");

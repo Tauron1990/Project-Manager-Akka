@@ -1,12 +1,12 @@
 ﻿using System;
 using System.IO;
 using System.Text;
-using ServiceManagerIpProbe.Phases;
+using ServiceManager.HostInstaller.Phases;
 using Servicemnager.Networking;
-using Servicemnager.Networking.Server;
+using Servicemnager.Networking.Data;
 using Servicemnager.Networking.Transmitter;
 
-namespace ServiceManagerIpProbe.Phase
+namespace ServiceManager.HostInstaller.Phase
 {
     public sealed class TryGetDataPhase : Phase<OperationContext>
     {
@@ -22,7 +22,7 @@ namespace ServiceManagerIpProbe.Phase
 
             try
             {
-                if (!context.ProcessAndWait(id, (sender, args) =>
+                if (!context.ProcessAndWait(id, (_, args) =>
                 {
                     switch (args.Message.Type)
                     {
@@ -40,6 +40,7 @@ namespace ServiceManagerIpProbe.Phase
                             context.PhaseLock.Set();
                             break;
                         default:
+                            // ReSharper disable once AccessToDisposedClosure
                             if (!reciver.ProcessMessage(args.Message))
                                 context.PhaseLock.Set();
                             break;

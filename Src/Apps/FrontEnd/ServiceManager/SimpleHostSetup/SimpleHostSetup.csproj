@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Tauron.Application.Logging\Tauron.Application.Logging.csproj" />
+    <ProjectReference Include="..\..\..\..\Shared\Tauron.Application.Logging\Tauron.Application.Logging.csproj" />
   </ItemGroup>
 
   <ItemGroup>

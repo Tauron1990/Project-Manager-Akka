@@ -2,6 +2,7 @@
 using System.IO;
 using Akka.Actor;
 using Tauron.Akka;
+using Tauron.Application.Localizer.DataModel.Processing.Messages;
 
 namespace Tauron.Application.Localizer.DataModel.Processing.Actors
 {

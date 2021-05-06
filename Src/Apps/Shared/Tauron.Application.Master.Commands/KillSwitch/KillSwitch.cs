@@ -10,7 +10,7 @@ using Tauron.Akka;
 using Tauron.Features;
 using static Akka.Cluster.Utility.ClusterActorDiscoveryMessage;
 
-namespace Tauron.Application.Master.Commands
+namespace Tauron.Application.Master.Commands.KillSwitch
 {
     [PublicAPI]
     public static class KillSwitch

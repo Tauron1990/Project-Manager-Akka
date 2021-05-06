@@ -1,4 +1,5 @@
 ﻿using Tauron.Application.AkkaNode.Services;
+using Tauron.Application.AkkaNode.Services.Reporting;
 
 namespace Tauron.Application.Master.Commands.Deployment.Repository
 {

@@ -8,7 +8,7 @@ using Akka.Util;
 using JetBrains.Annotations;
 using Tauron.Operations;
 
-namespace Tauron.Application.AkkaNode.Services
+namespace Tauron.Application.AkkaNode.Services.Reporting
 {
     [PublicAPI]
     public sealed class Reporter

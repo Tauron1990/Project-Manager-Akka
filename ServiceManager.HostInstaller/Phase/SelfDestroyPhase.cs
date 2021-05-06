@@ -1,10 +1,10 @@
 ﻿using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using ServiceManagerIpProbe.Phases;
+using ServiceManager.HostInstaller.Phases;
 using Servicemnager.Networking;
 
-namespace ServiceManagerIpProbe.Phase
+namespace ServiceManager.HostInstaller.Phase
 {
     public sealed class SelfDestroyPhase : Phase<OperationContext>
     {
@@ -13,7 +13,7 @@ namespace ServiceManagerIpProbe.Phase
             context.WriteLine("Configurate Self Destroy");
 
             var batchCommands = string.Empty;
-            var exeFileName = Assembly.GetExecutingAssembly().CodeBase?.Replace("file:///", string.Empty).Replace("/", "\\");
+            var exeFileName = Assembly.GetExecutingAssembly().Location.Replace("/", "\\");
 
             batchCommands += "@ECHO OFF\n"; // Do not show any output
 

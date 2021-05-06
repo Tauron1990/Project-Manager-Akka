@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 
-namespace ServiceManagerIpProbe.UI
+namespace ServiceManager.HostInstaller.UI
 {
     public static class UIStart
     {

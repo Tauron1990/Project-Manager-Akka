@@ -11,18 +11,19 @@ using SharpRepository.Repository;
 using Tauron;
 using Tauron.Akka;
 using Tauron.Application.AkkaNode.Services;
-using Tauron.Application.AkkaNode.Services.Commands;
 using Tauron.Application.AkkaNode.Services.FileTransfer;
+using Tauron.Application.AkkaNode.Services.Reporting;
+using Tauron.Application.AkkaNode.Services.Reporting.Commands;
 using Tauron.Application.Files.VirtualFiles;
 using Tauron.Application.Master.Commands.Deployment.Repository;
 using Tauron.Features;
 using Tauron.Operations;
 using Tauron.Temp;
 
-using RequestResult = Tauron.Application.AkkaNode.Services.ReporterEvent<Tauron.Operations.IOperationResult, ServiceManager.ProjectRepository.Actors.OperatorActor.OperatorState>;
-using RegisterRepoEvent = Tauron.Application.AkkaNode.Services.ReporterEvent<Tauron.Application.Master.Commands.Deployment.Repository.RegisterRepository, ServiceManager.ProjectRepository.Actors.OperatorActor.OperatorState>;
+using RequestResult = Tauron.Application.AkkaNode.Services.Reporting.ReporterEvent<Tauron.Operations.IOperationResult, ServiceManager.ProjectRepository.Actors.OperatorActor.OperatorState>;
+using RegisterRepoEvent = Tauron.Application.AkkaNode.Services.Reporting.ReporterEvent<Tauron.Application.Master.Commands.Deployment.Repository.RegisterRepository, ServiceManager.ProjectRepository.Actors.OperatorActor.OperatorState>;
 using Repository = Octokit.Repository;
-using TransferRepositoryRequest = Tauron.Application.AkkaNode.Services.ReporterEvent<Tauron.Application.Master.Commands.Deployment.Repository.TransferRepository, ServiceManager.ProjectRepository.Actors.OperatorActor.OperatorState>;
+using TransferRepositoryRequest = Tauron.Application.AkkaNode.Services.Reporting.ReporterEvent<Tauron.Application.Master.Commands.Deployment.Repository.TransferRepository, ServiceManager.ProjectRepository.Actors.OperatorActor.OperatorState>;
 
 namespace ServiceManager.ProjectRepository.Actors
 {

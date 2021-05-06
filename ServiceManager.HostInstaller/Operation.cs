@@ -1,15 +1,15 @@
-﻿using ServiceManagerIpProbe.Phase;
-using ServiceManagerIpProbe.Phases;
+﻿using ServiceManager.HostInstaller.Phase;
+using ServiceManager.HostInstaller.Phases;
 
-namespace ServiceManagerIpProbe
+namespace ServiceManager.HostInstaller
 {
     public static class Operation
     {
-        private static PhaseManager<OperationContext> CreateManager() 
-            => new PhaseManager<OperationContext>(
+        private static PhaseManager<OperationContext> CreateManager()
+            => new(
                 new SetConfigAndConnectPhase(),
                 new TryGetDataPhase(),
-                new ExtractAndInstallPhase(), 
+                new ExtractAndInstallPhase(),
                 new SelfDestroyPhase());
 
         public static void Start(OperationContext context) 

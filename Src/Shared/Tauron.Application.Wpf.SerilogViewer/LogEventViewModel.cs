@@ -1,53 +1,62 @@
 ﻿using System;
 using System.Globalization;
 using System.Windows.Media;
-using Serilog.Events;
+using NLog;
+using NLog.Targets;
 
 namespace Tauron.Application.Wpf.SerilogViewer
 {
     public class LogEventViewModel
     {
-        public LogEventViewModel(SerilogEvent info)
+        private class RenderHelper : TargetWithLayout
+        {
+            public string Render(LogEventInfo evt) => RenderLogEvent(Layout, evt);
+
+            public string GetLoggerName(LogEventInfo evt)
+                => evt.LoggerName ?? evt.CallerClassName;
+        }
+
+        private static readonly RenderHelper _renderHelper = new();
+
+        public LogEventViewModel(LoggingEvent info)
         {
             Info = info;
             var logEventInfo = info.EventInfo;
-
-            var msg = logEventInfo.RenderMessage();
+            
+            var msg = _renderHelper.Render(logEventInfo);
 
             ToolTip = msg;
             Level = logEventInfo.Level.ToString();
             FormattedMessage = msg;
             Exception = logEventInfo.Exception;
-            LoggerName = logEventInfo.Properties.TryGetValue("SourceContext", out var value)
-                ? value.ToString()
-                : "Unbekannt";
-            Time = logEventInfo.Timestamp.ToString(CultureInfo.InvariantCulture);
+            LoggerName = _renderHelper.GetLoggerName(logEventInfo);
+            Time = logEventInfo.TimeStamp.ToString(CultureInfo.InvariantCulture);
 
             SetupColors(logEventInfo);
         }
 
-        public SerilogEvent Info { get; }
+        public LoggingEvent Info { get; }
 
 
         public string Time { get; }
         public string LoggerName { get; }
         public string Level { get; }
         public string FormattedMessage { get; }
-        public Exception Exception { get; }
+        public Exception? Exception { get; }
         public string ToolTip { get; }
         public SolidColorBrush? Background { get; private set; }
         public SolidColorBrush? Foreground { get; private set; }
         public SolidColorBrush? BackgroundMouseOver { get; private set; }
         public SolidColorBrush? ForegroundMouseOver { get; private set; }
 
-        private void SetupColors(LogEvent logEventInfo)
+        private void SetupColors(LogEventInfo logEventInfo)
         {
-            if (logEventInfo.Level == LogEventLevel.Warning)
+            if (logEventInfo.Level == LogLevel.Warn)
             {
                 Background = Brushes.DarkOrange;
                 BackgroundMouseOver = Brushes.DarkGoldenrod;
             }
-            else if (logEventInfo.Level == LogEventLevel.Error || logEventInfo.Level == LogEventLevel.Fatal)
+            else if (logEventInfo.Level == LogLevel.Error || logEventInfo.Level == LogLevel.Fatal)
             {
                 Background = Brushes.DarkRed;
                 BackgroundMouseOver = Brushes.DarkRed;

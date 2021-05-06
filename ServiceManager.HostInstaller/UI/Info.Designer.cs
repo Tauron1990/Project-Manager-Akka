@@ -1,4 +1,4 @@
-﻿namespace ServiceManagerIpProbe.UI
+﻿namespace ServiceManager.HostInstaller.UI
 {
     partial class Info
     {

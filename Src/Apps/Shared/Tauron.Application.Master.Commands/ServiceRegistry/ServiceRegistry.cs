@@ -10,7 +10,7 @@ using Akka.Cluster.Utility;
 using Akka.Event;
 using JetBrains.Annotations;
 
-namespace Tauron.Application.Master.Commands
+namespace Tauron.Application.Master.Commands.ServiceRegistry
 {
     [PublicAPI]
     public sealed class ServiceRegistry

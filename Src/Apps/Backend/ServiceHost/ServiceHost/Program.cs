@@ -3,13 +3,11 @@ using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO.Pipes;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Akka.Cluster;
-using AnyConsole;
 using Autofac;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.CommandLine;
@@ -21,23 +19,13 @@ using Servicemnager.Networking.Data;
 using Tauron.Application.AkkaNode.Bootstrap;
 using Tauron.Application.AkkaNode.Bootstrap.Console;
 using Tauron.Application.Master.Commands;
+using Tauron.Application.Master.Commands.KillSwitch;
+using Tauron.Application.Master.Commands.ServiceRegistry;
 
 namespace ServiceHost
 {
     public static class Program
     {
-        private enum ConsoleStyle
-        {
-            Foreground,
-            Background,
-            HeaderBackground,
-            SubHeaderBackground,
-            SubHeaderForeground,
-            FooterBackground,
-            LogHistoryBackground,
-            Highlight
-        }
-
         private const string MonitorName = @"Global\Tauron.Application.ProjectManagerHost";
 
         static async Task Main(string[] args)
@@ -51,38 +39,7 @@ namespace ServiceHost
             {
                 if (createdNew)
                 {
-                    
-                    var console = new ExtendedConsole();
-                    // create a data context. You can pass this to your own application and use it to pass data to custom components for display.
-                    var myDataContext = new ConsoleDataContext();
-                    console.Configure(config =>
-                                      {
-                                          // use a custom color palette for drawing
-                                          config.SetColorPalette(new Dictionary<Enum, Color>
-                                                                 {
-                                                                     {ConsoleStyle.Foreground, Color.White},
-                                                                     {ConsoleStyle.Background, Color.Black},
-                                                                     {ConsoleStyle.HeaderBackground, Color.DarkRed},
-                                                                     {ConsoleStyle.SubHeaderBackground, Color.FromArgb(30, 30, 30)},
-                                                                     {ConsoleStyle.SubHeaderForeground, Color.FromArgb(60, 60, 60)},
-                                                                     {ConsoleStyle.FooterBackground, Color.DarkBlue},
-                                                                     {ConsoleStyle.LogHistoryBackground, Color.FromArgb(100, 100, 100)},
-                                                                     {ConsoleStyle.Highlight, Color.Yellow},
-                                                                 });
-                                          config.SetStaticRow("Header", RowLocation.Top, ConsoleStyle.Foreground, ConsoleStyle.HeaderBackground);
-                                          config.SetLogHistoryContainer(RowLocation.Top, 2, ConsoleStyle.LogHistoryBackground);
-                                          config.SetDataContext(myDataContext);
-                                          config.SetUpdateInterval(TimeSpan.FromMilliseconds(100));
-                                          config.SetMaxHistoryLines(1000);
-                                          config.SetHelpScreen(ConsoleStyle.Foreground, ConsoleStyle.FooterBackground);
-                                      });
-                    console.WriteRow("Header", "Test Console", ColumnLocation.Left, ConsoleStyle.Highlight);
-                    console.WriteRow("Header", Component.DateTimeUtc, ColumnLocation.Right, "MMMM dd yyyy hh:mm tt");
-                    console.Start();
-
                     await StartApp(args, exitManager);
-
-                    console.Dispose();
                 }
                 else
                 {
@@ -127,7 +84,7 @@ namespace ServiceHost
         private static async Task StartApp(string[] args, ExitManager exitManager)
         {
             await Bootstrap.StartNode(args, KillRecpientType.Host, IpcApplicationType.Server)
-                           .ConfigureLogging((_, configuration) => configuration.LoadConfiguration(c => c.Configuration.AddRuleForAllLevels(new ColoredConsoleTarget())))
+                           .ConfigureLogging((_, configuration) => configuration.LoadConfiguration(c => c.Configuration.AddRuleForAllLevels(new ColoredConsoleTarget("Console"))))
                            .ConfigureAutoFac(cb =>
                                              {
                                                  cb.RegisterType<CommandHandlerStartUp>().As<IStartUpAction>();

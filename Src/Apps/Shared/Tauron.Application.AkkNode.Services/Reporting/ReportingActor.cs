@@ -8,7 +8,7 @@ using JetBrains.Annotations;
 using Tauron.Features;
 using Tauron.Operations;
 
-namespace Tauron.Application.AkkaNode.Services
+namespace Tauron.Application.AkkaNode.Services.Reporting
 {
     //public abstract class ReportingActorOld : ObservableActor
     //{

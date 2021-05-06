@@ -1,4 +1,4 @@
-﻿using Tauron.Application.AkkaNode.Services.Commands;
+﻿using Tauron.Application.AkkaNode.Services.Reporting.Commands;
 
 namespace AkkaTest.CommandTest
 {

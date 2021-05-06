@@ -6,6 +6,7 @@ using Akka.Streams;
 using Akka.Streams.Dsl;
 using Tauron;
 using Tauron.Application.AkkaNode.Services;
+using Tauron.Application.AkkaNode.Services.Reporting;
 using Tauron.Application.Master.Commands.Deployment.Build.Data;
 using Tauron.Application.Master.Commands.Deployment.Build.Querys;
 using Tauron.Features;
