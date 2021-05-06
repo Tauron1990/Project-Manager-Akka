@@ -1,7 +1,6 @@
 ﻿using Akka.Actor;
 using Akka.Cluster.Tools.Singleton;
 using JetBrains.Annotations;
-using Tauron.Application.AkkaNode.Services;
 using Tauron.Application.AkkaNode.Services.Reporting;
 using Tauron.Application.AkkaNode.Services.Reporting.Commands;
 

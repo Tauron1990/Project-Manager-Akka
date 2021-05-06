@@ -3,6 +3,7 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Text;
 using Akka.Actor;
+using Akka.Cluster;
 using Autofac;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
@@ -49,12 +50,17 @@ namespace Tauron.Application.AkkaNode.Bootstrap
                         configuration.LoadConfiguration(c => c.Configuration.AddRuleForAllLevels(new ColoredConsoleTarget("Console")));
                 })
                 .ConfigurateAkkaSystem((_, system) =>
-                {
-                    if (type == KillRecpientType.Seed)
-                        KillSwitch.Setup(system);
-                    else
-                        KillSwitch.Subscribe(system, type);
-                });
+                                       {
+                                           switch (type)
+                                           {
+                                               case KillRecpientType.Seed:
+                                                   KillSwitch.Setup(system);
+                                                   break;
+                                               default:
+                                                   KillSwitch.Subscribe(system, type);
+                                                   break;
+                                           }
+                                       });
         }
 
         private sealed class IpcConnection : IIpcConnection, IDisposable

@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Src\Apps\Shared\Servicemnager.Networking\Servicemnager.Networking.csproj" />
+    <ProjectReference Include="..\..\..\Shared\Servicemnager.Networking\Servicemnager.Networking.csproj" />
   </ItemGroup>
 
   <ItemGroup>

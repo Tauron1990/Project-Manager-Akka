@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Shared\Tauron.Application.Master.Commands\Tauron.Application.Master.Commands.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="HostingSetup\" />
+    <Folder Include="Management\" />
+  </ItemGroup>
+
+</Project>

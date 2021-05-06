@@ -1,4 +1,7 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using Akka.Actor;
+using Akka.Cluster;
 using Akka.Configuration;
 using Autofac;
 using Autofac.Builder;
@@ -30,6 +33,24 @@ namespace Tauron.Application.AkkaNode.Bootstrap
         public static IRegistrationBuilder<TImpl, ConcreteReflectionActivatorData, SingleRegistrationStyle> RegisterStartUpAction<TImpl>(this ContainerBuilder builder)
             where TImpl : IStartUpAction
             => builder.RegisterType<TImpl>().As<IStartUpAction>();
+
+        public static IApplicationBuilder OnMemberUp(this IApplicationBuilder builder, Action<HostBuilderContext, ActorSystem, Cluster> up)
+        {
+            return builder.ConfigurateAkkaSystem((context, system) =>
+                                                 {
+                                                     var cluster = Cluster.Get(system);
+                                                     cluster.RegisterOnMemberUp(() => up(context, system, cluster));
+                                                 });
+        }
+
+        public static IApplicationBuilder OnMemberRemoved(this IApplicationBuilder builder, Action<HostBuilderContext, ActorSystem, Cluster> remove)
+        {
+            return builder.ConfigurateAkkaSystem((context, system) =>
+                                                 {
+                                                     var cluster = Cluster.Get(system);
+                                                     cluster.RegisterOnMemberRemoved(() => remove(context, system));
+                                                 });
+        }
 
         private static Config GetConfig()
         {
