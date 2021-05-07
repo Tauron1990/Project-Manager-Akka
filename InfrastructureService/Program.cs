@@ -69,7 +69,7 @@ namespace InfrastructureService
                                                               RepositoryApi.CreateProxy(system)));
 
                                                       url = ApplyMongoUrl(connectionstring, ServiceManagerDeamon.RepositoryKey, config);
-                                                      ServiceManagerDeamon.Start(system, config);
+                                                      ServiceManagerDeamon.Init(system, config);
                                                   })
                            .OnMemberRemoved((_, system, _) => system.Terminate())
                            .Build().Run();

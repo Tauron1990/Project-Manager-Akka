@@ -11,7 +11,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="ConfigurationServer\" />
+    <Folder Include="ConfigurationServer\Data\" />
+    <Folder Include="ConfigurationServer\Internal\" />
     <Folder Include="HostingSetup\" />
     <Folder Include="Management\" />
   </ItemGroup>
