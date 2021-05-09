@@ -48,7 +48,7 @@ namespace Tauron.Application.AkkaNode.Bootstrap
             return builder.ConfigurateAkkaSystem((context, system) =>
                                                  {
                                                      var cluster = Cluster.Get(system);
-                                                     cluster.RegisterOnMemberRemoved(() => remove(context, system));
+                                                     cluster.RegisterOnMemberRemoved(() => remove(context, system, cluster));
                                                  });
         }
 

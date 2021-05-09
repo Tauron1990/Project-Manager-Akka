@@ -14,6 +14,24 @@ namespace Tauron.Application.CommonUI.Model
     {
         private static IDialogCoordinator? _dialogCoordinator;
 
+        public static Task<TData> ShowDialogAsync<TDialog, TData, TViewData>(this UiActor actor, Func<TViewData> initalData, params Parameter[] parameters)
+            where TDialog : IBaseDialog<TData, TViewData>
+            => ShowDialog<TDialog, TData, TViewData>(actor, initalData, parameters)();
+
+        public static Task<TData> ShowDialogAsync<TDialog, TData>(this UiActor actor, Func<TData> initalData, params Parameter[] parameters)
+            where TDialog : IBaseDialog<TData, TData>
+            => ShowDialog<TDialog, TData>(actor, initalData, parameters)();
+
+        public static Task<TData> ShowDialogAsync<TDialog, TData>(this UiActor actor, params Parameter[] parameters)
+            where TDialog : IBaseDialog<TData, TData>
+            => ShowDialog<TDialog, TData>(actor, parameters)();
+
+        public static Func<Task<TData>> ShowDialog<TDialog, TData>(this UiActor actor, params Parameter[] parameters)
+            where TDialog : IBaseDialog<TData, TData>
+        {
+            return ShowDialog<TDialog, TData, TData>(actor, () => default!, parameters);
+        }
+
         public static Func<Task<TData>> ShowDialog<TDialog, TData>(this UiActor actor, params Parameter[] parameters)
             where TDialog : IBaseDialog<TData, TData>
         {

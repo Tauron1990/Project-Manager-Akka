@@ -1,9 +1,5 @@
-﻿using System;
-using System.Threading.Tasks;
-using Akka.Cluster;
-using Autofac.Core;
+﻿using System.Threading.Tasks;
 using MongoDB.Driver;
-using MongoDB.Driver.GridFS;
 using NLog;
 using ServiceManager.ProjectDeployment;
 using ServiceManager.ProjectRepository;
@@ -15,14 +11,13 @@ using Tauron.Application.AkkaNode.Bootstrap.Console;
 using Tauron.Application.AkkaNode.Services.FileTransfer;
 using Tauron.Application.Files.GridFS;
 using Tauron.Application.Files.VirtualFiles;
-using Tauron.Application.Master.Commands.Deployment.Build;
 using Tauron.Application.Master.Commands.Deployment.Repository;
 using Tauron.Application.Master.Commands.KillSwitch;
 using Tauron.Application.Master.Commands.ServiceRegistry;
 
 namespace InfrastructureService
 {
-    public class Program
+    public static class Program
     {
         public static async Task Main(string[] args)
         {
@@ -32,14 +27,14 @@ namespace InfrastructureService
                                                       string ApplyMongoUrl(string baseUrl, string repoKey, SharpRepositoryConfiguration configuration)
                                                       {
                                                           var builder = new MongoUrlBuilder(baseUrl) {DatabaseName = repoKey, ApplicationName = context.HostEnvironment.ApplicationName};
-                                                          var url = builder.ToString();
+                                                          var mongoUrl = builder.ToString();
 
-                                                          configuration.AddRepository(new MongoDbRepositoryConfiguration(repoKey, url)
+                                                          configuration.AddRepository(new MongoDbRepositoryConfiguration(repoKey, mongoUrl)
                                                                                       {
                                                                                           Factory = typeof(MongoDbConfigRepositoryFactory)
                                                                                       });
 
-                                                          return url;
+                                                          return mongoUrl;
                                                       }
 
                                                       ServiceRegistry.GetRegistry(system)
@@ -68,7 +63,7 @@ namespace InfrastructureService
                                                               DataTransferManager.New(system, "Deployment-DataTransfer"), 
                                                               RepositoryApi.CreateProxy(system)));
 
-                                                      url = ApplyMongoUrl(connectionstring, ServiceManagerDeamon.RepositoryKey, config);
+                                                      ApplyMongoUrl(connectionstring, ServiceManagerDeamon.RepositoryKey, config);
                                                       ServiceManagerDeamon.Init(system, config);
                                                   })
                            .OnMemberRemoved((_, system, _) => system.Terminate())
