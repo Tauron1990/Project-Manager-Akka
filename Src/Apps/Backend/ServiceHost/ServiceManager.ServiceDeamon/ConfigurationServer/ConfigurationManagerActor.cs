@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Reactive.Linq;
 using Akka.Actor;
+using ServiceHost.Client.Shared.ConfigurationServer;
 using ServiceHost.Client.Shared.ConfigurationServer.Data;
 using ServiceManager.ServiceDeamon.ConfigurationServer.Data;
 using ServiceManager.ServiceDeamon.ConfigurationServer.Internal;
 using SharpRepository.Repository;
 using SharpRepository.Repository.Configuration;
+using Tauron;
 using Tauron.Akka;
 using Tauron.Features;
 
@@ -31,8 +34,13 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
 
         protected override void ConfigImpl()
         {
-            var config = CurrentState.ServerConfiguration.Get(ServerConfigurationId)?.Configugration ?? new ServerConfigugration(true, false, true);
-            var querys = Context.ActorOf("Querys", Feature.Create())
+            var querys = Context.ActorOf("Querys", Feature.Create(() => new ConfigQueryFeature(), _ => CurrentState.Factory()));
+            var commands = Context.ActorOf("Commands", Feature.Create(() => new ConfigCommandFeature(), _ => CurrentState.Factory()));
+
+            Receive<IConfigQuery>(obs => obs.Select(o => o.Event)
+                                            .ToActor(querys));
+            Receive<IConfigCommand>(obs => obs.Select(c => c.Event)
+                                              .ToActor(commands));
         }
     }
 }
