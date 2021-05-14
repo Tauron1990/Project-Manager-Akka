@@ -3,7 +3,7 @@ using Tauron.Application.AkkaNode.Services.Reporting.Commands;
 
 namespace ServiceHost.Client.Shared.ConfigurationServer
 {
-    public sealed record UpdateServerConfigurationCommand : SimpleCommand<ConfigurationApi, UpdateServerConfigurationCommand>, IConfigCommand
+    public sealed record UpdateServerConfigurationCommand(ServerConfigugration ServerConfigugration) : SimpleCommand<ConfigurationApi, UpdateServerConfigurationCommand>, IConfigCommand
     {
         protected override string Info => "ServerConfiguration-Update";
     }

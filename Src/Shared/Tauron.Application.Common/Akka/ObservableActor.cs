@@ -10,8 +10,14 @@ using JetBrains.Annotations;
 
 namespace Tauron.Akka
 {
+    public interface IResourceHolder : IDisposable
+    {
+        void AddResource(IDisposable res);
+        void RemoveResources(IDisposable res);
+    }
+
     [PublicAPI]
-    public interface IObservableActor : IDisposable
+    public interface IObservableActor : IResourceHolder
     {
         IObservable<IActorContext> Start { get; }
 
@@ -21,8 +27,6 @@ namespace Tauron.Akka
         IActorRef Self { get; }
         IActorRef Parent { get; }
         IActorRef? Sender { get; }
-        void AddResource(IDisposable res);
-        void RemoveResources(IDisposable res);
         void Receive<TEvent>(Func<IObservable<TEvent>, IObservable<Unit>> handler);
         IObservable<TEvent> Receive<TEvent>();
         void Receive<TEvent>(Func<IObservable<TEvent>, IObservable<TEvent>> handler);

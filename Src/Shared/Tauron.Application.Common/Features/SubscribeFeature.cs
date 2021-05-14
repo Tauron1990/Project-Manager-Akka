@@ -76,6 +76,15 @@ namespace Tauron.Features
         private sealed record KeyHint(IActorRef Target, Type Key);
 
         public sealed record InternalEventSubscription(IActorRef Intrest, Type Type);
+
+        public void Dispose()
+        {
+            
+        }
+
+        public void AddResource(IDisposable res) => throw new NotSupportedException();
+
+        public void RemoveResources(IDisposable res) => throw new NotSupportedException();
     }
 
     [PublicAPI]

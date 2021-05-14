@@ -13,7 +13,7 @@ using Tauron.Akka;
 namespace Tauron.Features
 {
     [PublicAPI]
-    public interface IFeatureActor<TState> : IObservable<TState>, IWithTimers
+    public interface IFeatureActor<TState> : IResourceHolder, IObservable<TState>, IWithTimers
     {
         IObservable<IActorContext> Start { get; }
 
@@ -201,6 +201,7 @@ namespace Tauron.Features
         {
             private readonly IEnumerable<string> _ids;
             private readonly Action<IFeatureActor<TState>> _initializer;
+            private IFeatureActor<TState>? _actor;
 
             public DelegatingFeature(Action<IFeatureActor<TState>> initializer, IEnumerable<string> ids)
             {
@@ -210,7 +211,17 @@ namespace Tauron.Features
 
             public IEnumerable<string> Identify() => _ids;
 
-            public void Init(IFeatureActor<TState> actor) => _initializer(actor);
+            public void Init(IFeatureActor<TState> actor)
+            {
+                _actor = actor;
+                _initializer(actor);
+            }
+
+            void IDisposable.Dispose() => _actor?.Dispose();
+
+            void IResourceHolder.AddResource(IDisposable res) => _actor?.AddResource(res);
+
+            void IResourceHolder.RemoveResources(IDisposable res) => _actor?.RemoveResources(res);
         }
     }
 
@@ -262,6 +273,12 @@ namespace Tauron.Features
 
             public virtual void Init(IFeatureActor<TOriginal> actor)
                 => _feature.Init(new StateDelegator<TTarget, TOriginal>(actor, _convert, _convertBack));
+
+            public void Dispose() => _feature.Dispose();
+
+            public void AddResource(IDisposable res) => _feature.AddResource(res);
+
+            public void RemoveResources(IDisposable res) => _feature.RemoveResources(res);
         }
 
         private sealed class StateDelegator<TTarget, TOriginal> : IFeatureActor<TTarget>
@@ -336,6 +353,12 @@ namespace Tauron.Features
                 get => _original.Timers;
                 set => _original.Timers = value;
             }
+
+            public void Dispose() => _original.Dispose();
+
+            public void AddResource(IDisposable res) => _original.AddResource(res);
+
+            public void RemoveResources(IDisposable res) => _original.RemoveResources(res);
         }
     }
 }

@@ -206,6 +206,14 @@ namespace Tauron.Application.AkkaNode.Services.Reporting
                                                      reporter.Compled(result);
                                              });
 
+        public void TryReceive<TMessage>(string name, Func<IObservable<ReporterEvent<TMessage, TState>>, IObservable<ReporterEvent<IOperationResult, TState>>> factory)
+            where TMessage : IReporterMessage
+            => PrepareReceive(name, factory, (result, reporter) =>
+                                             {
+                                                 if (!reporter.IsCompled && result?.Event != null)
+                                                     reporter.Compled(result.Event);
+                                             });
+
         public void TryReceive<TMessage>(string name, Func<IObservable<ReporterEvent<TMessage, TState>>, IObservable<Unit>> factory)
             where TMessage : IReporterMessage
             => PrepareReceive(name, factory, (_, _) => {});

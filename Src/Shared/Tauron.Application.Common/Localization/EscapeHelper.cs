@@ -10,7 +10,7 @@ namespace Tauron.Localization
     {
         public static string Ecode(string input) => Coder.Encode(input);
 
-        public static string Decode(string input) => Coder.Decode(input);
+        public static string Decode(string? input) => Coder.Decode(input);
 
         private static class Coder
         {
@@ -51,8 +51,11 @@ namespace Tauron.Localization
                 return builder.ToString();
             }
 
-            public static string Decode(IEnumerable<char> toDecode)
+            public static string Decode(IEnumerable<char>? toDecode)
             {
+                if (toDecode == null)
+                    return string.Empty;
+
                 var builder = new StringBuilder();
 
                 var flag = false;

@@ -13,6 +13,7 @@
   <ItemGroup>
     <Compile Remove="ActorFlowBuilder - Backup.cs" />
     <Compile Remove="Async.cs" />
+    <Compile Remove="ObservableExt\Branch.cs" />
     <Compile Remove="SecurityHelper.cs" />
     <Compile Remove="SerializationExtensions.cs" />
   </ItemGroup>
@@ -23,11 +24,12 @@
     <None Include="SecurityHelper.cs" />
     <None Include="SerializationExtensions.cs" />
     <Compile Remove="ActorFlowBuilder.cs" />
+    <None Include="ObservableExt\Branch.cs" />
     <None Include="ActorFlowBuilder.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Akka.DependencyInjection" Version="1.4.19" />
+    <PackageReference Include="Akka.DependencyInjection" Version="1.4.20" />
     <PackageReference Include="Akka.Logger.NLog" Version="1.4.10" />
     <PackageReference Include="Autofac" Version="6.2.0" />
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="7.1.0" />

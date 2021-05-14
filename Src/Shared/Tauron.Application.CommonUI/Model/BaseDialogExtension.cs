@@ -32,11 +32,11 @@ namespace Tauron.Application.CommonUI.Model
             return ShowDialog<TDialog, TData, TData>(actor, () => default!, parameters);
         }
 
-        public static Func<Task<TData>> ShowDialog<TDialog, TData>(this UiActor actor, params Parameter[] parameters)
-            where TDialog : IBaseDialog<TData, TData>
-        {
-            return ShowDialog<TDialog, TData, TData>(actor, () => default!, parameters);
-        }
+        //public static Func<Task<TData>> ShowDialog<TDialog, TData>(this UiActor actor, params Parameter[] parameters)
+        //    where TDialog : IBaseDialog<TData, TData>
+        //{
+        //    return ShowDialog<TDialog, TData, TData>(actor, () => default!, parameters);
+        //}
 
         public static Func<Task<TData>> ShowDialog<TDialog, TData>(this UiActor actor, Func<TData> initalData,
             params Parameter[] parameters)

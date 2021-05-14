@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Actor.Internal;
@@ -131,6 +133,88 @@ namespace Tauron
                               return d;
                           });
 
+        #region AutoSubscribe
+
+        public interface ISubscriptionStrategy
+        {
+            IObservable<T> Prepare<T>(IObservable<T> observable);
+
+            bool ReSubscribe(Action subscription, Exception? cause);
+        }
+
+        private sealed class DefaultResubscriptionStrategy : ISubscriptionStrategy
+        {
+            public static readonly ISubscriptionStrategy Inst = new DefaultResubscriptionStrategy();
+
+            public IObservable<T> Prepare<T>(IObservable<T> observable) => observable;
+
+            public bool ReSubscribe(Action subscription, Exception? cause)
+            {
+                subscription();
+                return true;
+            }
+        }
+
+        private sealed class AutoSubscribeObserver<TData> : IDisposable, IObserver<TData>
+        {
+            private readonly IObservable<TData> _data;
+            private readonly Func<Exception, bool> _errorHandler;
+            private readonly ISubscriptionStrategy _strategy;
+            private readonly IObserver<TData> _target;
+
+            private IDisposable? _current;
+
+            public AutoSubscribeObserver(IObservable<TData> data, Func<Exception, bool> errorHandler, ISubscriptionStrategy strategy, IObserver<TData> target)
+            {
+                _data = strategy.Prepare(data);
+                _errorHandler = errorHandler;
+                _strategy = strategy;
+                _target = target;
+
+                _strategy.ReSubscribe(AddSubscription, null);
+            }
+
+            void AddSubscription() => _current = _data.Subscribe(this);
+
+            public void Dispose()
+            {
+                _current?.Dispose();
+                _current = null;
+            }
+
+            public void OnCompleted() => _target.OnCompleted();
+
+            public void OnError(Exception error)
+            {
+                if (_errorHandler(error) && _strategy.ReSubscribe(AddSubscription, error)) return;
+                
+                _target.OnError(error);
+                Dispose();
+            }
+
+            public void OnNext(TData value) => _target.OnNext(value);
+        }
+
+        public static IDisposable AutoSubscribe<TData>(this IObservable<TData> obs, IObserver<TData> target, Func<Exception, bool>? errorHandler = null, ISubscriptionStrategy? strategy = null)
+        {
+            errorHandler ??= _ => true;
+            strategy ??= DefaultResubscriptionStrategy.Inst;
+
+            return new AutoSubscribeObserver<TData>(obs, errorHandler, strategy, target);
+        }
+
+
+        public static IDisposable AutoSubscribe<TData>(this IObservable<TData> obs, Action<TData> onNext, Action? onCompled = null, Func<Exception, bool>? errorHandler = null, ISubscriptionStrategy? strategy = null)
+        {
+            errorHandler ??= _ => true;
+            strategy ??= DefaultResubscriptionStrategy.Inst;
+            onCompled ??= () => { };
+
+            return new AutoSubscribeObserver<TData>(obs, errorHandler, strategy, Observer.Create(onNext, _ => { }, onCompled));
+        }
+        #endregion
+
+        #region Timers
 
         public static IObservable<ITimerScheduler> StartPeriodicTimer(this IObservable<ITimerScheduler> timer, object key, object msg, TimeSpan interval)
             => timer.Select(t =>
@@ -238,6 +322,8 @@ namespace Tauron
                               selector(t).CancelAll();
                               return t;
                           });
+
+        #endregion
 
         #region Send To Actor Dispose
 

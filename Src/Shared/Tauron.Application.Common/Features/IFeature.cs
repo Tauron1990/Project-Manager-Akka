@@ -4,10 +4,11 @@ using System.Reactive;
 using Akka.Actor;
 using Akka.Event;
 using JetBrains.Annotations;
+using Tauron.Akka;
 
 namespace Tauron.Features
 {
-    public interface IFeature
+    public interface IFeature : IResourceHolder
     {
         IEnumerable<string> Identify();
     }
@@ -87,5 +88,11 @@ namespace Tauron.Features
         protected abstract void ConfigImpl();
 
         public ITimerScheduler Timers { get; set; } = null!;
+
+        void IDisposable.Dispose() => _actor.Dispose();
+
+        void IResourceHolder.AddResource(IDisposable res) => _actor.AddResource(res);
+
+        void IResourceHolder.RemoveResources(IDisposable res) => _actor.RemoveResources(res);
     }
 }

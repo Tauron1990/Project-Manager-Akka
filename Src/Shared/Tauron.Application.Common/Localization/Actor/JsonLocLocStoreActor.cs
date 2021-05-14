@@ -77,7 +77,7 @@ namespace Tauron.Localization.Actor
                 var name = GetName(file);
                 if (string.IsNullOrWhiteSpace(name)) return;
 
-                _files[name] = JsonConvert.DeserializeObject<Dictionary<string, JToken>>(text);
+                _files[name] = JsonConvert.DeserializeObject<Dictionary<string, JToken>>(text) ?? new Dictionary<string, JToken>();
             }
 
             _isInitialized = true;
