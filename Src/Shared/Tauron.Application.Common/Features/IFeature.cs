@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reactive;
+using System.Reactive.Linq;
 using Akka.Actor;
 using Akka.Event;
 using JetBrains.Annotations;
@@ -61,6 +62,8 @@ namespace Tauron.Features
         public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IDisposable> handler)
             => _actor.Receive(handler);
 
+        public void UpdateState(TState state) => _actor.UpdateState(state);
+
         public void TellSelf(object msg) => _actor.TellSelf(msg);
 
         public ILoggingAdapter Log => _actor.Log;
@@ -94,5 +97,29 @@ namespace Tauron.Features
         void IResourceHolder.AddResource(IDisposable res) => _actor.AddResource(res);
 
         void IResourceHolder.RemoveResources(IDisposable res) => _actor.RemoveResources(res);
+
+        protected IObservable<TType> SyncActor<TType>(TType element)
+            => Observable.Return(element, ActorScheduler.From(Self));
+
+        protected IObservable<TType> SyncActor<TType>(IObservable<TType> toSync)
+            => toSync.ObserveOn(ActorScheduler.From(Self));
+
+        protected IObservable<StatePair<TType, TState>> UpdateAndSyncActor<TType>(StatePair<TType, TState> element)
+            => from toUpdate in Observable.Return(element, ActorScheduler.From(Self))
+               select toUpdate with {State = CurrentState};
+
+        protected IObservable<StatePair<TType, TState>> UpdateAndSyncActor<TType>(IObservable<StatePair<TType, TState>> toSync)
+            => from toUpdate in toSync.ObserveOn(ActorScheduler.From(Self))
+               select toUpdate with {State = CurrentState};
+
+        protected IObservable<StatePair<TType, TState>> UpdateAndSyncActor<TType>(TType element)
+            => from syncElement in Observable.Return(element, ActorScheduler.From(Self))
+               let toUpdate = new StatePair<TType, TState>(syncElement, CurrentState, Timers, Context, Sender, Parent, Self)
+               select toUpdate with { State = CurrentState };
+
+        protected IObservable<StatePair<TType, TState>> UpdateAndSyncActor<TType>(IObservable<TType> toSync)
+            => from element in toSync.ObserveOn(ActorScheduler.From(Self))
+               let toUpdate = new StatePair<TType, TState>(element, CurrentState, Timers, Context, Sender, Parent, Self)
+               select toUpdate with { State = CurrentState };
     }
 }

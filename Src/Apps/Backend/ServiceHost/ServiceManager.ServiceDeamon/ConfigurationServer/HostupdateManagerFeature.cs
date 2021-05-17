@@ -1,5 +1,5 @@
-﻿using System.Reactive.Linq;
-using System.Reactive.Subjects;
+﻿using System;
+using System.Reactive.Linq;
 using Akka.Actor;
 using DynamicData;
 using ServiceHost.Client.Shared.ConfigurationServer.Data;
@@ -13,9 +13,9 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
 {
     public sealed class HostupdateManagerFeature : ActorFeatureBase<HostupdateManagerFeature.State>
     {
-        public sealed record State(ISubject<IConfigEvent> EventPublisher, SourceList<string> Hosts, ServerConfigugration ServerConfigugration);
+        public sealed record State(IObservable<IConfigEvent> EventPublisher, SourceList<string> Hosts, ServerConfigugration ServerConfigugration);
 
-        public static IPreparedFeature New(ISubject<IConfigEvent> publisher, ServerConfigugration serverConfigugration)
+        public static IPreparedFeature New(IObservable<IConfigEvent> publisher, ServerConfigugration serverConfigugration)
             => Feature.Create(() => new HostupdateManagerFeature(), new State(publisher, new SourceList<string>(), serverConfigugration));
 
         protected override void ConfigImpl()
@@ -28,12 +28,9 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
 
             (from evt in CurrentState.EventPublisher
              where evt is ServerConfigurationEvent
-             select ((ServerConfigurationEvent) evt).Configugration)
-               .ToSelf().DisposeWith(this);
-
-            Receive<ServerConfigugration>(
-                obs => from evt in obs 
-                       select evt.State with{ ServerConfigugration = evt.Event});
+             from state in UpdateAndSyncActor((ServerConfigurationEvent) evt)
+             select state.State with {ServerConfigugration = state.Event.Configugration})
+               .AutoSubscribe(UpdateState).DisposeWith(this);
 
             Receive<HostEntryChanged>(
                 obs => from entryChange in obs

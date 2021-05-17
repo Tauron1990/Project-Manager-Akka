@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Reactive;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Akka.Actor;
@@ -29,7 +31,9 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
                 => new(serverConfiguration.Get(ServerConfigurationId)?.Configugration ?? new ServerConfigugration(true, false),
                     repository.GetInstance<GlobalConfigEntity, string>(),
                     repository.GetInstance<SeedUrlEntity, string>(),
-                    repository.GetInstance<SpecificConfigEntity, string>(), publisher);
+                    repository.GetInstance<SpecificConfigEntity, string>(), 
+                    publisher.ObserveOn(Scheduler.Default),
+                    publisher.AsObserver().OnNext);
 
             return Feature.Props(Feature.Create(() => new ConfigurationManagerActor(), _ => new State(CreateState, serverConfiguration, publisher)));
         }
@@ -38,7 +42,7 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
         {
             var querys = Context.ActorOf("Querys", Feature.Create(() => new ConfigQueryFeature(), _ => CurrentState.Factory()));
             var commands = Context.ActorOf("Commands", Feature.Create(() => new ConfigCommandFeature(), _ => CurrentState.Factory()));
-            Context.ActorOf("HostUpdateManger", HostupdateManagerFeature.New(CurrentState.EventPublisher, CurrentState.Factory().Configugration));
+            Context.ActorOf("HostUpdateManger", HostupdateManagerFeature.New(CurrentState.EventPublisher.ObserveOn(Scheduler.Default), CurrentState.Factory().Configugration));
 
             Receive<IConfigQuery>(obs => obs.Select(o => o.Event)
                                             .ToActor(querys));

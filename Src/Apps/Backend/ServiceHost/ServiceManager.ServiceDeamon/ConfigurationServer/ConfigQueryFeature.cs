@@ -29,13 +29,9 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
 
             (from evt in CurrentState.EventPublisher
              where evt is ServerConfigurationEvent
-             select ((ServerConfigurationEvent) evt).Configugration)
-               .ToActor(Self).DisposeWith(this);
-
-            Receive<ServerConfigugration>(
-                obs => from newConfig in obs
-                       let state = newConfig.State
-                       select state with {Configugration = newConfig.Event});
+             from pair in UpdateAndSyncActor((ServerConfigurationEvent) evt)
+             select pair.State with {Configugration = pair.Event.Configugration}
+                ).AutoSubscribe(UpdateState).DisposeWith(this);
 
             TryReceive<QueryConfigEventSource>(nameof(QueryConfigEventSource),
                 obs => from _ in obs

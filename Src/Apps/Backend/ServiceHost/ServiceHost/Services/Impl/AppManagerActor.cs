@@ -123,21 +123,21 @@ namespace ServiceHost.Services.Impl
                                p => from request in Observable.Return(p)
                                     from response in Task.WhenAll(Context.GetChildren()
                                                                          .Select(c => c.Ask<StopResponse>(new InternalStopApp(), TimeSpan.FromMinutes(1))))
-                                    select request.NewEvent(new OperationResponse(response.All(r => !r.Error))),
-                               (r, e) => Observable.Return(r.NewEvent(new OperationResponse(false)))
+                                    select request.NewEvent(new StopAllAppsResponse(response.All(r => !r.Error))),
+                               (r, e) => Observable.Return(r.NewEvent(new StopAllAppsResponse(false)))
                                                    .Do(_ => Log.Warning(e, "Error on Shared Api Stop All Apps")))
                           .ToActor(a => a.Sender, m => m.Event));
 
             Receive<StartAllApps>(
                 obs => obs.Do(_ => Self.Tell(new StartApps(AppType.Cluster)))
-                          .Select(_ => new OperationResponse(true))
+                          .Select(_ => new StartAllAppsResponse(true))
                           .ToSender());
 
             Receive<QueryAppStaus>(
                 obs => obs.CatchSafe(
                     p => from request in Observable.Return(p)
                          from status in Task.WhenAll(request.Context.GetChildren()
-                                                            .Select(c => c.Ask<AppProcessActor.GetNameResponse>(new AppProcessActor.GetName(), TimeSpan.FromMilliseconds(10))
+                                                            .Select(c => c.Ask<AppProcessActor.GetNameResponse>(new AppProcessActor.GetName(), TimeSpan.FromSeconds(2))
                                                                           .ContinueWith(t =>
                                                                                         {
                                                                                             if (t.IsCompletedSuccessfully)
@@ -159,8 +159,8 @@ namespace ServiceHost.Services.Impl
                                     from response in child.IsNobody()
                                         ? Task.FromResult(default(StopResponse))
                                         : child.Ask<StopResponse?>(new InternalStopApp(), TimeSpan.FromMinutes(1))
-                                    select request.NewEvent(new OperationResponse(response != null && !response.Error)),
-                               (r, e) => Observable.Return(r.NewEvent(new OperationResponse(false)))
+                                    select request.NewEvent(new StopHostAppResponse(response != null && !response.Error)),
+                               (r, e) => Observable.Return(r.NewEvent(new StopHostAppResponse(false)))
                                                    .Do(_ => Log.Warning(e, "Error Shared Api Stop")))
                           .ToActor(a => a.Sender, m => m.Event));
 
@@ -168,11 +168,11 @@ namespace ServiceHost.Services.Impl
                 obs => (from request in obs
                         select request.NewEvent((request.Event, Child: request.Context.Child(request.Event.AppName)))
                     ).ConditionalSelect()
-                     .ToResult<StatePair<OperationResponse, AppManagerState>>(
+                     .ToResult<StatePair<StartHostAppResponse, AppManagerState>>(
                           b =>
                           {
                               b.When(p => !p.Event.Child.IsNobody(), o => o.Do(p => p.Event.Child.Tell(new InternalStartApp()))
-                                                                           .Select(p => p.NewEvent(new OperationResponse(true))));
+                                                                           .Select(p => p.NewEvent(new StartHostAppResponse(true))));
 
                               b.When(p => p.Event.Child.IsNobody(),
                                   o => o.CatchSafe(
@@ -180,8 +180,8 @@ namespace ServiceHost.Services.Impl
                                             from app in request.State.AppRegistry.Ask<InstalledAppRespond>(new InstalledAppQuery(request.Event.Event.AppName), TimeSpan.FromMinutes(1))
                                             select app
                                           ).ApplyWhen(m => !m.Fault, m => p.Self.Tell(new StartApp(m.App)))
-                                           .Select(m => p.NewEvent(new OperationResponse(!m.Fault))),
-                                      (p, e) => Observable.Return(p.NewEvent(new OperationResponse(false)))
+                                           .Select(m => p.NewEvent(new StartHostAppResponse(!m.Fault))),
+                                      (p, e) => Observable.Return(p.NewEvent(new StartHostAppResponse(false)))
                                                           .Do(_ => Log.Warning(e, "Error on Shared Api Start"))));
                           })
                      .ToActor(a => a.Sender, m => m.Event));

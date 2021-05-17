@@ -6,6 +6,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Akka.Actor;
+using Akka.Actor.Internal;
 using Akka.Event;
 using JetBrains.Annotations;
 using Tauron.Akka;
@@ -39,6 +40,8 @@ namespace Tauron.Features
         void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<TState>> handler);
         void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler, Func<Exception, bool> errorHandler);
         void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IDisposable> handler);
+
+        void UpdateState(TState state);
 
         void TellSelf(object msg);
         IObservable<TEvent> Receive<TEvent>();
@@ -108,7 +111,7 @@ namespace Tauron.Features
         {
             IDisposable CreateHandler(IObservable<TEvent> observable)
                 => handler(observable.Select(evt => new StatePair<TEvent, TState>(evt, CurrentState.Value, Timers, Context, Sender, Parent, Self)))
-                    .SubscribeWithStatus(CurrentState.OnNext);
+                    .SubscribeWithStatus(UpdateState);
 
             Receive<TEvent>(obs => CreateHandler(obs));
         }
@@ -121,6 +124,14 @@ namespace Tauron.Features
         public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IDisposable> handler)
             => Receive<TEvent>(obs
                 => handler(obs.Select(evt => new StatePair<TEvent, TState>(evt, CurrentState.Value, Timers, Context, Sender, Parent, Self))));
+
+        public void UpdateState(TState state)
+        {
+            if(InternalCurrentActorCellKeeper.Current == null)
+                throw new NotSupportedException("There is no active ActorContext, this is most likely due to use of async operations from within this actor.");
+
+            CurrentState.OnNext(state);
+        }
 
         IUntypedActorContext IFeatureActor<TState>.Context => Context;
         SupervisorStrategy? IFeatureActor<TState>.SupervisorStrategy { get; set; }
@@ -321,6 +332,9 @@ namespace Tauron.Features
                 get => _original.SupervisorStrategy;
                 set => _original.SupervisorStrategy = value;
             }
+
+            public void UpdateState(TTarget state) 
+                => _original.UpdateState(_convertBack(_original.CurrentState, state));
 
             public void TellSelf(object msg) => _original.TellSelf(msg);
 

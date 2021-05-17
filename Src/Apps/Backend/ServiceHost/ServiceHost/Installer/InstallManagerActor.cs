@@ -8,6 +8,7 @@ using ServiceHost.AutoUpdate;
 using ServiceHost.Installer.Impl;
 using ServiceHost.Services;
 using Tauron;
+using Tauron.Application.AkkaNode.Services.Core;
 using Tauron.Application.Master.Commands.Administration.Host;
 using Tauron.Features;
 
@@ -38,7 +39,7 @@ namespace ServiceHost.Installer
                                           Self.Forward(new EventUnSubscribe(typeof(InstallerationCompled)));
                                       else
                                         Self.Forward(new EventSubscribe(true, typeof(InstallerationCompled)));
-                                      Sender.Tell(new OperationResponse(true));
+                                      Sender.Tell(new SubscribeInstallationCompledResponse(new EventSubscribtion(typeof(InstallerationCompled), Self), true));
                                   }));
 
             Receive<InstallerationCompled>(obs => obs.ToUnit(m => TellSelf(SendEvent.Create(m.Event))));

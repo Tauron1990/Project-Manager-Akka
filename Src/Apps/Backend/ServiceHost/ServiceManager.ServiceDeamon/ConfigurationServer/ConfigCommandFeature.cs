@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Reactive;
-using Akka.Actor;
 using System.Reactive.Linq;
-using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using Akka.Util;
 using Be.Vlaanderen.Basisregisters.Generators.Guid;
@@ -25,10 +23,12 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
 
         protected override void ConfigImpl()
         {
-            (from evt in CurrentState.EventPublisher
-             where evt is ServerConfigurationEvent
-             select ((ServerConfigurationEvent) evt).Configugration)
-               .AutoSubscribe(s => Self.Tell(s)).DisposeWith(this);
+            (
+                from evt in CurrentState.EventPublisher
+                where evt is ServerConfigurationEvent
+                from pair in UpdateAndSyncActor((ServerConfigurationEvent) evt)
+                select pair.State with {Configugration = pair.Event.Configugration}
+            ).AutoSubscribe(UpdateState).DisposeWith(this);
 
             TryReceive<UpdateServerConfigurationCommand>(nameof(UpdateServerConfigurationCommand),
                 obs => obs
@@ -60,10 +60,10 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
                 return dataOption;
             }
 
-            static Option<Unit> SendEvent(ISubject<IConfigEvent> eventSink, Option<IConfigEvent> evtOption)
+            static Option<Unit> SendEvent(Action<IConfigEvent> eventSink, Option<IConfigEvent> evtOption)
                 => evtOption.Select(evt =>
                                     {
-                                        eventSink.OnNext(evt);
+                                        eventSink(evt);
                                         return Unit.Default;
                                     });
 
@@ -75,13 +75,13 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
                                               new SeedUrlEntity(
                                                   Deterministic.Create(Seednamespace, request.Event.SeedUrl.Url).ToString("N"),
                                                   request.Event.SeedUrl))) 
-                       let opt = SendEvent(request.State.EventPublisher, dataOption.Select<IConfigEvent>(data => new SeedDataEvent(data.Url, request.Event.Action)))
+                       let opt = SendEvent(request.State.EventSender, dataOption.Select<IConfigEvent>(data => new SeedDataEvent(data.Url, request.Event.Action)))
                        select opt.Select(_ => OperationResult.Success()));
 
             TryReceive<UpdateGlobalConfigCommand>(nameof(UpdateGlobalConfigCommand),
                 obs => from request in obs
                        from data in Task.Run(() => UpdateRepo(request.State.GlobalRepository, request.Event.Action, new GlobalConfigEntity(GlobalConfigEntity.EntityId, request.Event.Config))) 
-                       let opt = SendEvent(request.State.EventPublisher, data.Select<IConfigEvent>(d => new GlobalConfigEvent(d.Config, request.Event.Action)))
+                       let opt = SendEvent(request.State.EventSender, data.Select<IConfigEvent>(d => new GlobalConfigEvent(d.Config, request.Event.Action)))
                        select opt.Select(_ => OperationResult.Success()));
 
             TryReceive<UpdateSpecificConfigCommand>(nameof(UpdateSpecificConfigCommand),
@@ -92,7 +92,7 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
                                                  ? state.Apps.Get(request.Event.Id).OptionNotNull()
                                                  : SpecificConfigEntity.From(evt))
                        let newData = UpdateRepo(state.Apps, evt.Action, data)
-                       let opt = SendEvent(state.EventPublisher, newData.Select<IConfigEvent>(d => new SpecificConfigEvent(d.Config, evt.Action)))
+                       let opt = SendEvent(state.EventSender, newData.Select<IConfigEvent>(d => new SpecificConfigEvent(d.Config, evt.Action)))
                        select opt.Select(_ => OperationResult.Success(), () => OperationResult.Failure(ConfigError.SpecificConfigurationNotFound)));
 
             TryReceive<UpdateConditionCommand>(nameof(UpdateConditionCommand),
@@ -116,11 +116,11 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
                                                                    }
                                                       })
                        let updateData = UpdateRepo(state.Apps, ConfigDataAction.Update, newData)
-                       let result = SendEvent(state.EventPublisher, updateData.Select<IConfigEvent>(e => new ConditionUpdateEvent(evt.Condition, evt.Name, evt.Action)))
+                       let result = SendEvent(state.EventSender, updateData.Select<IConfigEvent>(e => new ConditionUpdateEvent(evt.Condition, evt.Name, evt.Action)))
                        select result.Select(_ => OperationResult.Success(), () => OperationResult.Failure(ConfigError.SpecificConfigurationNotFound)));
 
             TryReceive<ForceUpdateHostConfigCommand>(nameof(ForceUpdateHostConfigCommand),
-                obs => obs.Do(m => m.State.EventPublisher.OnNext(new ForceHostUpdate()))
+                obs => obs.Do(m => m.State.EventSender(new ForceHostUpdate()))
                           .Select(_ => OperationResult.Success()));
         }
     }

@@ -55,7 +55,7 @@ namespace Tauron.Application.Master.Commands.Administration.Host
                     return state with {Entries = state.Entries.SetItem(Context.Sender.Path, newEntry)};
                 }));
 
-            Receive<CommandBase>(obs => obs
+            Receive<IHostApiCommand>(obs => obs
                 .Select(m => new
                 {
                     Command = m.Event, Host = m.State.Entries.FirstOrDefault(e => e.Value.Name == m.Event.Target).Value
@@ -63,7 +63,7 @@ namespace Tauron.Application.Master.Commands.Administration.Host
                 .SubscribeWithStatus(m =>
                 {
                     if (m.Host == null)
-                        Context.Sender.Tell(new OperationResponse(false));
+                        Context.Sender.Tell(m.Command.CreateDefaultFailed());
                     else
                         m.Host.Actor.Forward(m.Command);
                 }));

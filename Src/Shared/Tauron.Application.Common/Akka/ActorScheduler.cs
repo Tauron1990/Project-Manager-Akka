@@ -18,16 +18,13 @@ namespace Tauron.Akka
         private ActorScheduler(IActorRef target) => _targetActor = target;
 
         private ActorScheduler()
-            : this(ObservableActor.ExposedContext.Self)
-        {
-        }
+            : this(ObservableActor.ExposedContext.Self) { }
 
         public static IScheduler CurrentSelf => new ActorScheduler();
 
         public static IScheduler From(IActorRef actor) => new ActorScheduler(actor);
 
-        public override IDisposable Schedule<TState>(TState state, TimeSpan dueTime,
-            Func<IScheduler, TState, IDisposable> action)
+        public override IDisposable Schedule<TState>(TState state, TimeSpan dueTime, Func<IScheduler, TState, IDisposable> action)
         {
             var target = Scheduler.Normalize(dueTime);
 
@@ -67,5 +64,8 @@ namespace Tauron.Akka
     {
         public static IObservable<TType> ObserveOnSelf<TType>(this IObservable<TType> observable)
             => observable.ObserveOn(ActorScheduler.CurrentSelf);
+
+        public static IObservable<TType> ObserveOn<TType>(this IObservable<TType> observable, IActorRef target)
+            => observable.ObserveOn(ActorScheduler.From(target));
     }
 }

@@ -11,7 +11,26 @@ namespace Tauron.Application.Master.Commands.Administration.Host
             Installer
         }
 
-        public abstract record CommandBase(string Target, [property: JsonIgnore] CommandType Type);
+        public interface IHostApiCommand
+        {
+            CommandType Type { get; }
+
+            string Target { get; }
+
+            object CreateDefaultFailed();
+        }
+
+        //public interface IMarkFailed<out TType>
+        //{
+        //    TType Failed();
+        //}
+
+        public abstract record CommandBase<TResult>(string Target, [property: JsonIgnore] CommandType Type) : IHostApiCommand
+            where TResult : OperationResponse, new()
+        {
+            object IHostApiCommand.CreateDefaultFailed() 
+                => new TResult();
+        }
 
         public sealed record GetHostName;
 

@@ -21,7 +21,7 @@ namespace ServiceHost.SharedApi
 
             Receive<GetHostName>(_ => Sender.Tell(new GetHostNameResult(hostName)));
 
-            Receive<CommandBase>(cb =>
+            Receive<IHostApiCommand>(cb =>
                                  {
                                      switch (cb.Type)
                                      {

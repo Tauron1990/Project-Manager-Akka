@@ -18,6 +18,8 @@ namespace Tauron.Features
 
         TInterface Tell(object msg);
 
+        TInterface Forward(object msg);
+
         Task<TResult> Ask<TResult>(object msg, TimeSpan? timeout = null);
     }
 
@@ -35,6 +37,12 @@ namespace Tauron.Features
         public TInterface Tell(object msg)
         {
             Actor.Tell(msg);
+            return (TInterface)(object)this;
+        }
+
+        public TInterface Forward(object msg)
+        {
+            Actor.Forward(msg);
             return (TInterface)(object)this;
         }
 

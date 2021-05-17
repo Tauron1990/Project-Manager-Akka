@@ -101,6 +101,12 @@ namespace Tauron.Akka
         public void Receive<TEvent>(Func<IObservable<TEvent>, IDisposable> handler)
             => AddResource(new ObservableInvoker<TEvent, TEvent>(handler, GetSelector<TEvent>(), true).Construct());
 
+        protected IObservable<TType> SyncActor<TType>(TType element)
+            => Observable.Return(element, ActorScheduler.From(Self));
+
+        protected IObservable<TType> SyncActor<TType>(IObservable<TType> toSync)
+            => toSync.ObserveOn(ActorScheduler.From(Self));
+
         protected override bool AroundReceive(Receive receive, object message)
         {
             switch (message)

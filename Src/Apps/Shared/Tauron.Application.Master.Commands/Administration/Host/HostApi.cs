@@ -28,8 +28,9 @@ namespace Tauron.Application.Master.Commands.Administration.Host
                 return _hostApi ??= new HostApi(actorRefFactory.ActorOf(HostApiManagerFeature.Create(), SubscribeFeature.New()));
         }
 
-        public Task<OperationResponse> ExecuteCommand(InternalHostMessages.CommandBase command)
-            => _actorRef.Ask<OperationResponse>(command, TimeSpan.FromMinutes(2));
+        public Task<TResult> ExecuteCommand<TResult>(InternalHostMessages.CommandBase<TResult> command) 
+            where TResult : OperationResponse , new()
+            => _actorRef.Ask<TResult>(command, TimeSpan.FromMinutes(2));
 
         public Task<ImmutableList<HostApp>> QueryApps(string name)
             => _actorRef

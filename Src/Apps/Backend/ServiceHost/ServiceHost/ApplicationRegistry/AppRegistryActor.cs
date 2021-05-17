@@ -53,6 +53,7 @@ namespace ServiceHost.ApplicationRegistry
                 obs =>
                 (
                     from i in obs
+                    let sender = i.State.OnGoingQuerys[i.Event.OpId]
                     let ongoing = i.State.OnGoingQuerys.Remove(i.Event.OpId)
                     let apps = i.State.Apps.Keys
                                 .Aggregate(
@@ -65,7 +66,7 @@ namespace ServiceHost.ApplicationRegistry
                                              if (app == null) return apps;
 
                                              return apps.Add(new HostApp(
-                                                 app.Name, app.Path, app.Version, app.AppType, app.Exe,
+                                                 app.SoftwareName, app.Name, app.Path, app.Version, app.AppType, app.Exe,
                                                  i.Event.Apps.GetValueOrDefault(appKey, false)));
                                          }
                                          catch (Exception e)
@@ -75,8 +76,8 @@ namespace ServiceHost.ApplicationRegistry
                                          }
                                      })
                     let newState = i.State with {OnGoingQuerys = ongoing}
-                    select i.NewEvent(new HostAppsResponse(apps), newState)
-                ).Do(i => Sender.Tell(i.Event))
+                    select (Event:new HostAppsResponse(apps, true), State:newState, Sender:sender)
+                ).Do(i => i.Sender.Tell(i.Event))
                  .Select(e => e.State));
 
             Receive<QueryHostApps>(
@@ -141,7 +142,7 @@ namespace ServiceHost.ApplicationRegistry
                                                                    from request in o.Select(e => e.Event)
                                                                    let fullPath = Path.GetFullPath(request.Path + AppFileExt)
                                                                    let data = JsonConvert.SerializeObject(
-                                                                       new InstalledApp(request.Name, request.Path, request.Version, request.AppType, request.ExeFile))
+                                                                       new InstalledApp(request.SoftwareName, request.Name, request.Path, request.Version, request.AppType, request.ExeFile))
                                                                    let newApps = i.State.Apps.Add(request.Name, fullPath)
                                                                    select (fullPath, data, newApps, request)
                                                                ).Do(m => File.WriteAllText(m.fullPath, m.data))
@@ -150,7 +151,7 @@ namespace ServiceHost.ApplicationRegistry
                                                                 .Select(m => i.NewEvent(new RegistrationResponse(true, null), i.State with {Apps = m.newApps}))
                                                                 .Catch<StatePair<RegistrationResponse, RegistryState>, Exception>(
                                                                      e => Observable.Return(i.NewEvent(new RegistrationResponse(false, e)))
-                                                                                    .Do(m => Log.Error(e, "Error while registration new Application {Apps}", i.Event.Name))));
+                                                                                    .Do(_ => Log.Error(e, "Error while registration new Application {Apps}", i.Event.Name))));
                                                    }))
                           .Do(m => Sender.Tell(m.Event))
                           .Do(m => Self.Tell(SendEvent.Create(m.Event)))
