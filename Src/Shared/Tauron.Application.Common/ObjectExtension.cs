@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Globalization;
+using Akka.Util;
 using JetBrains.Annotations;
 
 namespace Tauron
@@ -33,6 +34,13 @@ namespace Tauron
             }
         }
 
+        public static Option<TData> OptionNotNull<TData>(this TData? data)
+            where TData : class
+            => data ?? Option<TData>.None;
+
+        public static Option<TNew> Select<TOld, TNew>(this Option<TOld> old, Func<TOld, TNew> onValue, Func<TNew> defaultValue) 
+            => old.HasValue ? old.Select(onValue) : defaultValue();
+
         public static bool WhenTrue(this bool input, Action run)
         {
             if (input)
@@ -48,12 +56,12 @@ namespace Tauron
         ////    where TInput : class where TResult : class
         ////    => transformer(input);
 
-        //public static TType DoAnd<TType>(this TType item, params Action<TType>[] todo)
-        //{
-        //    foreach (var action in todo) 
-        //        action(item);
-        //    return item;
-        //}
+        public static TType DoAnd<TType>(this TType item, params Action<TType>[] todo)
+        {
+            foreach (var action in todo)
+                action(item);
+            return item;
+        }
 
         //public static void When<TType>(this TType target, Func<TType, bool> when, Action<TType> then)
         //{

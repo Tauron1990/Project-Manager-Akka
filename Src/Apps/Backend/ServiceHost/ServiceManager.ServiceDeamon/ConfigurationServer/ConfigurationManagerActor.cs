@@ -10,7 +10,6 @@ using ServiceManager.ServiceDeamon.ConfigurationServer.Internal;
 using SharpRepository.Repository;
 using SharpRepository.Repository.Configuration;
 using Tauron;
-using Tauron.Akka;
 using Tauron.Features;
 
 namespace ServiceManager.ServiceDeamon.ConfigurationServer
@@ -27,7 +26,7 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
             var publisher = new Subject<IConfigEvent>();
 
             ConfigFeatureConfiguration CreateState()
-                => new(serverConfiguration.Get(ServerConfigurationId)?.Configugration ?? new ServerConfigugration(true, false, true),
+                => new(serverConfiguration.Get(ServerConfigurationId)?.Configugration ?? new ServerConfigugration(true, false),
                     repository.GetInstance<GlobalConfigEntity, string>(),
                     repository.GetInstance<SeedUrlEntity, string>(),
                     repository.GetInstance<SpecificConfigEntity, string>(), publisher);
@@ -39,6 +38,7 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
         {
             var querys = Context.ActorOf("Querys", Feature.Create(() => new ConfigQueryFeature(), _ => CurrentState.Factory()));
             var commands = Context.ActorOf("Commands", Feature.Create(() => new ConfigCommandFeature(), _ => CurrentState.Factory()));
+            Context.ActorOf("HostUpdateManger", HostupdateManagerFeature.New(CurrentState.EventPublisher, CurrentState.Factory().Configugration));
 
             Receive<IConfigQuery>(obs => obs.Select(o => o.Event)
                                             .ToActor(querys));

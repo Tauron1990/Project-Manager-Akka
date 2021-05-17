@@ -33,4 +33,9 @@ namespace ServiceHost.Client.Shared.ConfigurationServer
     {
         protected override string Info => $"FinalConfigData-Query-{ApplicationName}-{SoftwareName}";
     }
+
+    public sealed record QuerySpecificConfigList : ResultCommand<ConfigurationApi, QuerySpecificConfigList, SpecificConfigList>, IConfigQuery
+    {
+        protected override string Info => "SpecificConfigList-Query";
+    }
 }

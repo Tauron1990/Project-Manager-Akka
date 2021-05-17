@@ -8,6 +8,7 @@ using ServiceHost.AutoUpdate;
 using ServiceHost.Installer.Impl;
 using ServiceHost.Services;
 using Tauron;
+using Tauron.Application.Master.Commands.Administration.Host;
 using Tauron.Features;
 
 namespace ServiceHost.Installer
@@ -30,7 +31,18 @@ namespace ServiceHost.Installer
 
         protected override void ConfigImpl()
         {
+            Receive<SubscribeInstallationCompled>(
+                obs => obs.ToUnit(r =>
+                                  {
+                                      if(r.Event.Unsubscribe)
+                                          Self.Forward(new EventUnSubscribe(typeof(InstallerationCompled)));
+                                      else
+                                        Self.Forward(new EventSubscribe(true, typeof(InstallerationCompled)));
+                                      Sender.Tell(new OperationResponse(true));
+                                  }));
+
             Receive<InstallerationCompled>(obs => obs.ToUnit(m => TellSelf(SendEvent.Create(m.Event))));
+
             Receive<InstallRequest>(obs => obs.ForwardToActor(
                                         p => Context.ActorOf(Props.Create<ActualInstallerActor>(p.State.Registry, p.State.Configuration, p.State.AutoUpdater)),
                                         p => p.Event));

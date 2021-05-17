@@ -5,6 +5,7 @@ using JetBrains.Annotations;
 using ServiceHost.ApplicationRegistry;
 using ServiceHost.Services;
 using Tauron.Application.ActorWorkflow;
+using Tauron.Application.Master.Commands.Administration.Host;
 using Tauron.Application.Workflow;
 
 namespace ServiceHost.Installer.Impl

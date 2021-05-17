@@ -22,7 +22,9 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
         protected override void ConfigImpl()
         {
             var mat = Context.Materializer();
-            var source = Source.FromObservable(CurrentState.EventPublisher);
+            var source = Source.FromObservable(from evt in CurrentState.EventPublisher 
+                                               where CurrentState.Configugration.MonitorChanges
+                                               select evt);
             var hubSource = source.ToMaterialized(BroadcastHub.Sink<IConfigEvent>(), Keep.Right).Run(mat);
 
             (from evt in CurrentState.EventPublisher
@@ -61,6 +63,13 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
                        select sc == null
                            ? OperationResult.Failure(ConfigError.SpecificConfigurationNotFound)
                            : OperationResult.Success(sc.Config));
+
+            TryReceive<QuerySpecificConfigList>(nameof(QuerySpecificConfigList),
+                obs => from r in obs
+                       from configs in Task.Run(() => r.State.Apps.GetAll()
+                                                       .Select(e => e.Config)
+                                                       .ToImmutableList())
+                       select OperationResult.Success(new SpecificConfigList(configs)));
 
             string MakeConfig(GlobalConfigEntity? root, ImmutableList<SpecificConfig> specific)
             {

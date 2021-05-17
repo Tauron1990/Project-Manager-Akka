@@ -25,10 +25,7 @@ namespace Tauron.Application.Master.Commands.Administration.Host
         public static HostApi CreateOrGet(ActorSystem actorRefFactory)
         {
             lock (Lock)
-            {
-                return _hostApi ??=
-                    new HostApi(actorRefFactory.ActorOf(HostApiManagerFeature.Create(), SubscribeFeature.New()));
-            }
+                return _hostApi ??= new HostApi(actorRefFactory.ActorOf(HostApiManagerFeature.Create(), SubscribeFeature.New()));
         }
 
         public Task<OperationResponse> ExecuteCommand(InternalHostMessages.CommandBase command)

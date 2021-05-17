@@ -212,6 +212,38 @@ namespace Tauron
 
             return new AutoSubscribeObserver<TData>(obs, errorHandler, strategy, Observer.Create(onNext, _ => { }, onCompled));
         }
+
+        public static IDisposable AutoSubscribe<TData>(this IObservable<TData> obs, Action<TData> onNext)
+            => AutoSubscribe(obs, onNext, errorHandler: _ => true);
+
+        public static IDisposable AutoSubscribe<TData>(this IObservable<TData> obs,  Action? onCompled = null, Func<Exception, bool>? errorHandler = null, ISubscriptionStrategy? strategy = null)
+        {
+            errorHandler ??= _ => true;
+            strategy ??= DefaultResubscriptionStrategy.Inst;
+            onCompled ??= () => { };
+
+            return new AutoSubscribeObserver<TData>(obs, errorHandler, strategy, Observer.Create<TData>(_ => { }, _ => { }, onCompled));
+        }
+
+        private static Func<Exception, bool>? CreateErrorHandler(Action<Exception>? handler)
+        {
+            if (handler == null) return null;
+            return e =>
+                   {
+                       handler(e);
+                       return true;
+                   };
+        }
+
+        public static IDisposable AutoSubscribe<TData>(this IObservable<TData> obs, IObserver<TData> target, Action<Exception>? errorHandler = null, ISubscriptionStrategy? strategy = null)
+            => AutoSubscribe(obs, target, CreateErrorHandler(errorHandler), strategy);
+
+        public static IDisposable AutoSubscribe<TData>(this IObservable<TData> obs, Action<TData> onNext, Action? onCompled = null, Action<Exception>? errorHandler = null, ISubscriptionStrategy? strategy = null)
+            => AutoSubscribe(obs, onNext, onCompled, CreateErrorHandler(errorHandler), strategy);
+
+        public static IDisposable AutoSubscribe<TData>(this IObservable<TData> obs, Action? onCompled = null, Action<Exception>? errorHandler = null, ISubscriptionStrategy? strategy = null)
+            => AutoSubscribe(obs, onCompled, CreateErrorHandler(errorHandler), strategy);
+
         #endregion
 
         #region Timers

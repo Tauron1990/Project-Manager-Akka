@@ -4,6 +4,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Akka.Actor;
+using Akka.Util;
 using JetBrains.Annotations;
 using Tauron.Features;
 using Tauron.Operations;
@@ -204,6 +205,14 @@ namespace Tauron.Application.AkkaNode.Services.Reporting
                                              {
                                                  if(!reporter.IsCompled && result != null)
                                                      reporter.Compled(result);
+                                             });
+
+        public void TryReceive<TMessage>(string name, Func<IObservable<ReporterEvent<TMessage, TState>>, IObservable<Option<IOperationResult>>> factory)
+            where TMessage : IReporterMessage
+            => PrepareReceive(name, factory, (result, reporter) =>
+                                             {
+                                                 if (!reporter.IsCompled && result.HasValue)
+                                                     reporter.Compled(result.Value);
                                              });
 
         public void TryReceive<TMessage>(string name, Func<IObservable<ReporterEvent<TMessage, TState>>, IObservable<ReporterEvent<IOperationResult, TState>>> factory)

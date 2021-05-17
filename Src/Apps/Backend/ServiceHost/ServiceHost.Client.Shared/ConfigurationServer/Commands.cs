@@ -8,24 +8,24 @@ namespace ServiceHost.Client.Shared.ConfigurationServer
         protected override string Info => "ServerConfiguration-Update";
     }
 
-    public sealed record UpdateSeedUrlCommand(ConfigDataAction Action, SeedUrl SeedUrl, bool NoHostUpdate) : SimpleCommand<ConfigurationApi, UpdateSeedUrlCommand>, IConfigCommand
+    public sealed record UpdateSeedUrlCommand(ConfigDataAction Action, SeedUrl SeedUrl) : SimpleCommand<ConfigurationApi, UpdateSeedUrlCommand>, IConfigCommand
     {
         protected override string Info => $"SeedUrl-Update-{Action}-{SeedUrl}";
     }
 
-    public sealed record UpdateGlobalConfigCommand(ConfigDataAction Action, GlobalConfig Config, bool NoHostUpdate) : SimpleCommand<ConfigurationApi, UpdateGlobalConfigCommand>, IConfigCommand
+    public sealed record UpdateGlobalConfigCommand(ConfigDataAction Action, GlobalConfig Config) : SimpleCommand<ConfigurationApi, UpdateGlobalConfigCommand>, IConfigCommand
     {
         protected override string Info => $"GlobalConfig-Update-{Action}";
     }
 
-    public sealed record UpdateSpecificConfigCommand(string Id, ConfigDataAction Action, SpecificConfig Config, bool NoHostUpdate) : SimpleCommand<ConfigurationApi, UpdateSpecificConfigCommand>, IConfigCommand
+    public sealed record UpdateSpecificConfigCommand(ConfigDataAction Action, string Id, string ConfigContent, string InfoData) : SimpleCommand<ConfigurationApi, UpdateSpecificConfigCommand>, IConfigCommand
     {
         protected override string Info => $"SpecificConfig-Update-{Id}-{Action}";
     }
 
-    public sealed record UpdateConditionCommand(string Id, ConfigDataAction Action, Condition Condition, bool NoHostUpdate) : SimpleCommand<ConfigurationApi, UpdateConditionCommand>, IConfigCommand
+    public sealed record UpdateConditionCommand(string Name, ConfigDataAction Action, Condition Condition) : SimpleCommand<ConfigurationApi, UpdateConditionCommand>, IConfigCommand
     {
-        protected override string Info => $"Condition-Update-{Id}-{Action}-{Condition.Name}";
+        protected override string Info => $"Condition-Update-{Name}-{Action}-{Condition.Name}";
     }
 
     public sealed record ForceUpdateHostConfigCommand : SimpleCommand<ConfigurationApi, ForceUpdateHostConfigCommand>, IConfigCommand
