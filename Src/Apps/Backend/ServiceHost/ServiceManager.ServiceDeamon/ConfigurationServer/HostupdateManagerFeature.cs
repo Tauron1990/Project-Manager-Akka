@@ -4,7 +4,9 @@ using Akka.Actor;
 using DynamicData;
 using ServiceHost.Client.Shared.ConfigurationServer.Data;
 using ServiceHost.Client.Shared.ConfigurationServer.Events;
+using ServiceManager.ServiceDeamon.ConfigurationServer.Data;
 using ServiceManager.ServiceDeamon.ConfigurationServer.Internal;
+using SharpRepository.Repository;
 using Tauron;
 using Tauron.Application.Master.Commands.Administration.Host;
 using Tauron.Features;
@@ -13,10 +15,10 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
 {
     public sealed class HostupdateManagerFeature : ActorFeatureBase<HostupdateManagerFeature.State>
     {
-        public sealed record State(IObservable<IConfigEvent> EventPublisher, SourceList<string> Hosts, ServerConfigugration ServerConfigugration);
+        public sealed record State(IObservable<IConfigEvent> EventPublisher, SourceList<string> Hosts, ServerConfigugration ServerConfigugration, IRepository<SeedUrlEntity, string> Seeds);
 
-        public static IPreparedFeature New(IObservable<IConfigEvent> publisher, ServerConfigugration serverConfigugration)
-            => Feature.Create(() => new HostupdateManagerFeature(), new State(publisher, new SourceList<string>(), serverConfigugration));
+        public static IPreparedFeature New(IObservable<IConfigEvent> publisher, ConfigFeatureConfiguration config)
+            => Feature.Create(() => new HostupdateManagerFeature(), new State(publisher, new SourceList<string>(), config.Configugration, config.Seeds));
 
         protected override void ConfigImpl()
         {
@@ -52,7 +54,7 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
             (from change in CurrentState.Hosts.Connect()
              from item in change.Flatten()
              where item.Reason == ListChangeReason.Add
-             select Context.ActorOf(item.Current, HostMonitor.New(item.Current, CurrentState.EventPublisher, CurrentState.ServerConfigugration))
+             select Context.ActorOf(item.Current, HostMonitor.New(item.Current, CurrentState.EventPublisher, CurrentState.ServerConfigugration, CurrentState.Seeds))
                 ).AutoSubscribe(errorHandler: e => Log.Error(e, "Error On Start Host Monitor"))
                  .DisposeWith(this);
 

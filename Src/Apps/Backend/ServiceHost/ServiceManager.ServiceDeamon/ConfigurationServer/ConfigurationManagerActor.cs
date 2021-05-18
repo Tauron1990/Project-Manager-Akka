@@ -4,6 +4,7 @@ using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Akka.Actor;
+using Akka.Cluster.Sharding;
 using ServiceHost.Client.Shared.ConfigurationServer;
 using ServiceHost.Client.Shared.ConfigurationServer.Data;
 using ServiceHost.Client.Shared.ConfigurationServer.Events;
@@ -42,7 +43,8 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
         {
             var querys = Context.ActorOf("Querys", Feature.Create(() => new ConfigQueryFeature(), _ => CurrentState.Factory()));
             var commands = Context.ActorOf("Commands", Feature.Create(() => new ConfigCommandFeature(), _ => CurrentState.Factory()));
-            Context.ActorOf("HostUpdateManger", HostupdateManagerFeature.New(CurrentState.EventPublisher.ObserveOn(Scheduler.Default), CurrentState.Factory().Configugration));
+            
+            Context.ActorOf("HostUpdateManger", HostupdateManagerFeature.New(CurrentState.EventPublisher.ObserveOn(Scheduler.Default), CurrentState.Factory()));
 
             Receive<IConfigQuery>(obs => obs.Select(o => o.Event)
                                             .ToActor(querys));

@@ -239,24 +239,35 @@ namespace ServiceHost.ApplicationRegistry
                 return Unit.Default;
             }
 
-            IObservable<Unit> PatchApps(StatePair<UpdateSeeds, RegistryState> input)
+            bool CheckFileExis(string file)
             {
-                (from request in obs.ObserveOn(Scheduler.Default)
-                 from appKey in CurrentState.Apps.Keys
-                 let appData = LoadApp(appKey, request.State)
-                 let seedPath = Path.Combine(appData.Path, "seed.conf")
-                 where File.Exists(seedPath)
-                 from configContent in File.ReadAllTextAsync(seedPath)
-                 let newConfig = AkkaConfigurationBuilder.PatchSeedUrls(configContent, request.Event.Urls)
-                 from _ in SaveConfig(newConfig, seedPath)
-                 select Unit.Default
-                    )
+                var result = File.Exists(file);
+
+                if(!result)
+                    Log.Warning("File Not Found {File}", file);
+
+                return result;
             }
+
+            IObservable<Unit> PatchApps(StatePair<UpdateSeeds, RegistryState> input)
+                => from request in Observable.Return(input)
+                   from appKey in CurrentState.Apps.Keys
+                   let appData = LoadApp(appKey, request.State)
+                   let seedPath = Path.Combine(appData.Path, "seed.conf")
+                   where CheckFileExis(seedPath)
+                   from configContent in File.ReadAllTextAsync(seedPath)
+                   let newConfig = AkkaConfigurationBuilder.PatchSeedUrls(configContent, request.Event.Urls)
+                   from u in SaveConfig(newConfig, seedPath)
+                   select u;
 
             IObservable<Unit> PatchSelf(StatePair<UpdateSeeds, RegistryState> input)
-            {
-
-            }
+                => from request in Observable.Return(input)
+                   let file = Path.GetFullPath("seed.conf")
+                   where CheckFileExis(file)
+                   from configContent in File.ReadAllTextAsync(file)
+                   let newConfig = AkkaConfigurationBuilder.PatchSeedUrls(configContent, request.Event.Urls)
+                   from u in SaveConfig(newConfig, file)
+                   select u;
 
             Receive<UpdateSeeds>(
                 obs =>
@@ -266,7 +277,6 @@ namespace ServiceHost.ApplicationRegistry
                     from u2 in PatchApps(request)
                     select Unit.Default
                 ).AutoSubscribe(errorHandler: e => Log.Error(e, "Error on Update Seed Urls")));
-
 
 
             Self.Tell(new LoadData());

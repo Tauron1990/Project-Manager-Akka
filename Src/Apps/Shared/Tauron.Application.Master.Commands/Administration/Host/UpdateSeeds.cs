@@ -6,5 +6,5 @@
             : this(false) { }
     }
 
-    public sealed record UpdateSeeds(string Target, string[] Urls, bool Restart) : InternalHostMessages.CommandBase<UpdateSeedsResponse>(Target, InternalHostMessages.CommandType.AppRegistry);
+    public sealed record UpdateSeeds(string Target, string[] Urls) : InternalHostMessages.CommandBase<UpdateSeedsResponse>(Target, InternalHostMessages.CommandType.AppRegistry);
 }
