@@ -34,10 +34,13 @@ namespace ServiceHost.Installer.Impl
 
         public string Exe { get; set; } = string.Empty;
 
-        public InstallerContext(InstallType manual, string name, string sourceLocation, bool @override, AppType appType)
+        public string SoftwareName { get; }
+
+        public InstallerContext(InstallType manual, string name, string softwareName, string sourceLocation, bool @override, AppType appType)
         {
             Manual = manual;
             Name = name;
+            SoftwareName = softwareName;
             SourceLocation = sourceLocation;
             Override = @override;
             AppType = appType;

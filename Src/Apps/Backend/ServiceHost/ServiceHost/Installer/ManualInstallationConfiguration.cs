@@ -12,6 +12,8 @@ namespace ServiceHost.Installer
 
         public string AppName { get; set; } = string.Empty;
 
+        public string SoftwareName { get; set; }
+
         public bool Override { get; set; }
 
         public string Exe { get; set; } = string.Empty;

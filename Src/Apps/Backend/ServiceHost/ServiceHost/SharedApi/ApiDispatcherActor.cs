@@ -26,13 +26,13 @@ namespace ServiceHost.SharedApi
                                      switch (cb.Type)
                                      {
                                          case CommandType.AppManager:
-                                             appManager.Value.Actor.Forward(cb);
+                                             appManager.Value.Forward(cb);
                                              break;
                                          case CommandType.AppRegistry:
-                                             appRegistry.Value.Actor.Forward(cb);
+                                             appRegistry.Value.Forward(cb);
                                              break;
                                          case CommandType.Installer:
-                                             installer.Value.Actor.Forward(cb);
+                                             installer.Value.Forward(cb);
                                              break;
                                          default:
                                              Context.GetLogger().Warning("Unkowen Shared Api Command Sended {Type}", cb.GetType());

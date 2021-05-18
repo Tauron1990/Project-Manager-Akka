@@ -24,7 +24,7 @@ namespace ServiceHost.Installer
             if (_trigger.AppType == AppType.Host)
                 _trigger.AppName = "Host Self Update";
 
-            _installer.Actor.Tell(new FileInstallationRequest(_trigger.AppName, Path.GetFullPath(_trigger.ZipFile), _trigger.Override, _trigger.AppType, _trigger.Exe));
+            _installer.Actor.Tell(new FileInstallationRequest(_trigger.SoftwareName, _trigger.AppName, Path.GetFullPath(_trigger.ZipFile), _trigger.Override, _trigger.AppType, _trigger.Exe));
         }
     }
 }

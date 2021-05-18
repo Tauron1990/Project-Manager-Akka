@@ -183,7 +183,7 @@ namespace ServiceHost.Installer.Impl
                     {
                         registry.Actor
                            .Ask<RegistrationResponse>(
-                                new NewRegistrationRequest(context.Name, context.InstallationPath, context.Source.Version, context.AppType, context.GetExe()), 
+                                new NewRegistrationRequest(context.SoftwareName, context.Name, context.InstallationPath, context.Source.Version, context.AppType, context.GetExe()), 
                                 TimeSpan.FromSeconds(15))
                            .PipeTo(Self);
                     }
@@ -253,7 +253,7 @@ namespace ServiceHost.Installer.Impl
         }
 
         private void HandleFileInstall(FileInstallationRequest request) 
-            => Start(new InstallerContext(InstallType.Manual, request.Name, request.Path,  request.Override, request.AppType) { Exe = request.Exe });
+            => Start(new InstallerContext(InstallType.Manual, request.Name, request.SoftwareName, request.Path,  request.Override, request.AppType) { Exe = request.Exe });
 
         private sealed class PreCopyCompled
         {

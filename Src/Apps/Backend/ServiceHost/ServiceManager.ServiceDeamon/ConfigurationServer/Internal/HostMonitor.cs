@@ -51,10 +51,12 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer.Internal
                        from syncApps in UpdateAndSyncActor(request.NewEvent(apps))
                        select syncApps.State with {Apps = syncApps.Event.Apps});
 
-            (from evt in root.OfType<ServerConfigurationEvent>()
-             select evt).ToSelf().DisposeWith(this);
-
-            Receive<ServerConfigurationEvent>(obs => obs.Select(r => r.State with {ServerConfigugration = r.Event.Configugration}));
+            (
+                from evt in root.OfType<ServerConfigurationEvent>()
+                from pair in UpdateAndSyncActor(evt.Configugration)
+                select pair.State with {ServerConfigugration = pair.Event}
+            ).AutoSubscribe(UpdateState).DisposeWith(this);
+            
 
 
 

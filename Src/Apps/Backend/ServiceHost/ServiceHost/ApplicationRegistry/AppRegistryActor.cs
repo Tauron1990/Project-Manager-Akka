@@ -3,8 +3,12 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Reactive;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using Akka.Actor;
+using Akka.Configuration;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using ServiceHost.Services;
@@ -226,6 +230,28 @@ namespace ServiceHost.ApplicationRegistry
                                               });
                                       }
                                   }));
+
+            async Task<Unit> SaveConfig(Config data, string path)
+            {
+                await File.WriteAllTextAsync(path, data.ToString(true));
+
+                return Unit.Default;
+            }
+
+            Receive<UpdateSeeds>(
+                obs => (from request in obs.ObserveOn(Scheduler.Default)
+                        from appKey in CurrentState.Apps.Keys
+                        let appData = LoadApp(appKey, request.State)
+                        let seedPath = Path.Combine(appData.Path, "seed.conf")
+                        where File.Exists(seedPath)
+                        from configContent in File.ReadAllTextAsync(seedPath)
+                        let baseConfig = ConfigurationFactory.ParseString(configContent)
+                        let newConfig = ConfigurationFactory.ParseString($"akka.cluster.seed-nodes = [{string.Join(',', request.Event.Urls.Select(s => $"\"{s}\""))}]")
+                                                            .WithFallback(baseConfig)
+                        from _ in SaveConfig(newConfig, seedPath)
+                        where request.Event.Restart
+                        select new RestartApp(appKey)
+                    ).AutoSubscribe(ra => CurrentState.Manager.Tell(ra), errorHandler: e => Log.Error(e, "Error on Update Seed Urls")));
 
             Self.Tell(new LoadData());
         }
