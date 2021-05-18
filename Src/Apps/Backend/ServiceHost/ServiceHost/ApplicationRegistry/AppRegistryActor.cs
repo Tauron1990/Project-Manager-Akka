@@ -13,6 +13,7 @@ using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using ServiceHost.Services;
 using Tauron;
+using Tauron.Application.Master.Commands.Administration.Configuration;
 using Tauron.Application.Master.Commands.Administration.Host;
 using Tauron.Features;
 using Tauron.ObservableExt;
@@ -231,27 +232,42 @@ namespace ServiceHost.ApplicationRegistry
                                       }
                                   }));
 
-            async Task<Unit> SaveConfig(Config data, string path)
+            static async Task<Unit> SaveConfig(string data, string path)
             {
-                await File.WriteAllTextAsync(path, data.ToString(true));
+                await File.WriteAllTextAsync(path, data);
 
                 return Unit.Default;
             }
 
+            IObservable<Unit> PatchApps(StatePair<UpdateSeeds, RegistryState> input)
+            {
+                (from request in obs.ObserveOn(Scheduler.Default)
+                 from appKey in CurrentState.Apps.Keys
+                 let appData = LoadApp(appKey, request.State)
+                 let seedPath = Path.Combine(appData.Path, "seed.conf")
+                 where File.Exists(seedPath)
+                 from configContent in File.ReadAllTextAsync(seedPath)
+                 let newConfig = AkkaConfigurationBuilder.PatchSeedUrls(configContent, request.Event.Urls)
+                 from _ in SaveConfig(newConfig, seedPath)
+                 select Unit.Default
+                    )
+            }
+
+            IObservable<Unit> PatchSelf(StatePair<UpdateSeeds, RegistryState> input)
+            {
+
+            }
+
             Receive<UpdateSeeds>(
-                obs => (from request in obs.ObserveOn(Scheduler.Default)
-                        from appKey in CurrentState.Apps.Keys
-                        let appData = LoadApp(appKey, request.State)
-                        let seedPath = Path.Combine(appData.Path, "seed.conf")
-                        where File.Exists(seedPath)
-                        from configContent in File.ReadAllTextAsync(seedPath)
-                        let baseConfig = ConfigurationFactory.ParseString(configContent)
-                        let newConfig = ConfigurationFactory.ParseString($"akka.cluster.seed-nodes = [{string.Join(',', request.Event.Urls.Select(s => $"\"{s}\""))}]")
-                                                            .WithFallback(baseConfig)
-                        from _ in SaveConfig(newConfig, seedPath)
-                        where request.Event.Restart
-                        select new RestartApp(appKey)
-                    ).AutoSubscribe(ra => CurrentState.Manager.Tell(ra), errorHandler: e => Log.Error(e, "Error on Update Seed Urls")));
+                obs =>
+                (
+                    from request in obs.ObserveOn(Scheduler.Default)
+                    from u1 in PatchSelf(request)
+                    from u2 in PatchApps(request)
+                    select Unit.Default
+                ).AutoSubscribe(errorHandler: e => Log.Error(e, "Error on Update Seed Urls")));
+
+
 
             Self.Tell(new LoadData());
         }
