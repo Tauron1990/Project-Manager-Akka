@@ -6,6 +6,10 @@ namespace Tauron.Application.Master.Commands.Administration.Configuration
 {
     public static class AkkaConfigurationBuilder
     {
+        public const string Base = "base.conf";
+        public const string Main = "akka.conf";
+        public const string Seed = "seed.conf";
+
         public static string PatchSeedUrls(string data, IEnumerable<string> urls)
         {
             var baseConfig = ConfigurationFactory.ParseString(data);

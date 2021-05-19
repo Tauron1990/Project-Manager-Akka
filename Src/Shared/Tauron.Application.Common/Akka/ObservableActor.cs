@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Reactive.Threading.Tasks;
+using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Event;
 using JetBrains.Annotations;
@@ -47,6 +50,7 @@ namespace Tauron.Akka
         private readonly Dictionary<Type, object> _selectors = new();
         private readonly BehaviorSubject<IActorContext?> _start = new(null);
         private readonly BehaviorSubject<IActorContext?> _stop = new(null);
+        private readonly List<ISignal> _currentWaiting = new();
 
         private bool _isReceived;
 
@@ -109,21 +113,39 @@ namespace Tauron.Akka
 
         protected override bool AroundReceive(Receive receive, object message)
         {
+            bool RunDefault()
+            {
+                var signaled = false;
+                foreach (var signal in _currentWaiting.Where(s => s.Match(message)))
+                {
+                    signal.Signal(message);
+                    signaled = true;
+                }
+                return signaled || base.AroundReceive(receive, message);
+            }
+
             switch (message)
             {
                 case TransmitAction act:
                     return act.Runner();
+                case Status.Failure when _selectors.ContainsKey(typeof(Status.Failure)) || _currentWaiting.Any(s => s.Match(message)):
+                        return RunDefault();
                 case Status.Failure failure:
-                    if (_selectors.ContainsKey(typeof(Status.Failure)))
-                        return base.AroundReceive(receive, message);
                     if (OnError(failure))
                         throw failure.Cause;
                     else
                         return true;
-                case Status.Success:
-                    return !_selectors.ContainsKey(typeof(Status.Success)) || base.AroundReceive(receive, message);
+                case Status.Success when _selectors.ContainsKey(typeof(Status.Success)) || _currentWaiting.Any(s => s.Match(message)):
+                    return RunDefault();
+                case AddSignal add:
+                    _currentWaiting.Add(add.Signal);
+                    return true;
+                case SignalTimeOut timeOut:
+                    timeOut.Signal.Cancel();
+                    _currentWaiting.Remove(timeOut.Signal);
+                    return true;
                 default:
-                    return base.AroundReceive(receive, message);
+                    return RunDefault();
             }
         }
 
@@ -168,6 +190,16 @@ namespace Tauron.Akka
 
         protected virtual bool OnError(Status.Failure failure) => ThrowError(failure.Cause);
 
+        public IObservable<TSignal> WaitForSignal<TSignal>(TimeSpan timeout, Predicate<TSignal> match)
+        {
+            var source = new TaskCompletionSource<TSignal>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var signal = new ConcrretSignal<TSignal>(source, match);
+            Self.Tell(new AddSignal(signal));
+            Task.Delay(timeout).PipeTo(Self, success: () => new SignalTimeOut(signal));
+
+            return source.Task.ToObservable();
+        }
+
         protected IObservable<TEvent> GetSelector<TEvent>()
         {
             if (!_selectors.TryGetValue(typeof(TEvent), out var selector))
@@ -198,6 +230,54 @@ namespace Tauron.Akka
         {
             Log.Error(e, "Error on Process Event");
             return false;
+        }
+
+        private interface ISignal
+        {
+            bool Match(object obj);
+
+            void Signal(object obj);
+
+            void Cancel();
+        }
+
+        private sealed class ConcrretSignal<TType> : ISignal
+        {
+            private readonly TaskCompletionSource<TType> _source;
+            private readonly Predicate<TType> _predicate;
+
+            public ConcrretSignal(TaskCompletionSource<TType> source, Predicate<TType> predicate)
+            {
+                _source = source;
+                _predicate = predicate;
+            }
+
+            public bool Match(object obj) => !_source.Task.IsCompleted && obj is TType signal && _predicate(signal);
+
+            public void Signal(object obj) => _source.TrySetResult((TType)obj);
+
+            public void Cancel() => _source.TrySetException(new TimeoutException());
+        }
+
+        //private sealed class RemoveSignal
+        //{
+        //    public ISignal Signal { get; }
+
+        //    public RemoveSignal(ISignal signal) => Signal = signal;
+        //}
+
+        private sealed class AddSignal
+        {
+            public AddSignal(ISignal signal) => Signal = signal;
+
+            public ISignal Signal { get; }
+        }
+
+        private sealed class SignalTimeOut
+        {
+            public ISignal Signal { get; }
+
+            public SignalTimeOut(ISignal signal) => Signal = signal;
         }
 
         private sealed class ObservableInvoker<TEvent, TResult> : IDisposable

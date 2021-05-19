@@ -36,6 +36,8 @@ namespace Tauron.Features
 
         SupervisorStrategy? SupervisorStrategy { get; set; }
 
+        IObservable<TSignal> WaitForSignal<TSignal>(TimeSpan timeout, Predicate<TSignal> match);
+
         void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler);
         void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<TState>> handler);
         void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler, Func<Exception, bool> errorHandler);
@@ -346,6 +348,8 @@ namespace Tauron.Features
             public IObservable<IActorContext> Start => _original.Start;
             public IObservable<IActorContext> Stop => _original.Stop;
             public TTarget CurrentState => _convert(_original.CurrentState);
+
+            public IObservable<TSignal> WaitForSignal<TSignal>(TimeSpan timeout, Predicate<TSignal> match) => _original.WaitForSignal(timeout, match);
 
             public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TTarget>>, IObservable<Unit>> handler)
                 => _original.Receive<TEvent>(obs => handler(obs.Select(d => d.Convert(_convert))));

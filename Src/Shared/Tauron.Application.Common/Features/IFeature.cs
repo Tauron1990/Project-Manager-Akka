@@ -50,6 +50,9 @@ namespace Tauron.Features
 
         public TState CurrentState => _actor.CurrentState;
 
+        public IObservable<TSignal> WaitForSignal<TSignal>(TimeSpan timeout, Predicate<TSignal> match) 
+            => _actor.WaitForSignal(timeout, match);
+
         public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler)
             => _actor.Receive(handler);
 

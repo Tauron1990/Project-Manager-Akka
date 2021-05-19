@@ -17,7 +17,7 @@ namespace Tauron.Application.Master.Commands.Administration.Host
 
             string Target { get; }
 
-            object CreateDefaultFailed();
+            OperationResponse CreateDefaultFailed();
         }
 
         //public interface IMarkFailed<out TType>
@@ -28,7 +28,7 @@ namespace Tauron.Application.Master.Commands.Administration.Host
         public abstract record CommandBase<TResult>(string Target, [property: JsonIgnore] CommandType Type) : IHostApiCommand
             where TResult : OperationResponse, new()
         {
-            object IHostApiCommand.CreateDefaultFailed() 
+            OperationResponse IHostApiCommand.CreateDefaultFailed() 
                 => new TResult();
         }
 

@@ -8,6 +8,7 @@ using Autofac.Builder;
 using JetBrains.Annotations;
 using Tauron.Application.AkkaNode.Services.Configuration;
 using Tauron.Application.Logging;
+using Tauron.Application.Master.Commands.Administration.Configuration;
 using Tauron.Host;
 
 namespace Tauron.Application.AkkaNode.Bootstrap
@@ -54,20 +55,18 @@ namespace Tauron.Application.AkkaNode.Bootstrap
 
         private static Config GetConfig()
         {
-            const string baseconf = "base.conf";
-            const string main = "akka.conf";
-            const string seed = "seed.conf";
+
 
             var config = Config.Empty;
 
-            if (File.Exists(baseconf))
-                config = ConfigurationFactory.ParseString(File.ReadAllText(baseconf)).WithFallback(config);
+            if (File.Exists(AkkaConfigurationBuilder.Base))
+                config = ConfigurationFactory.ParseString(File.ReadAllText(AkkaConfigurationBuilder.Base)).WithFallback(config);
 
-            if (File.Exists(main))
-                config = ConfigurationFactory.ParseString(File.ReadAllText(main)).WithFallback(config);
+            if (File.Exists(AkkaConfigurationBuilder.Main))
+                config = ConfigurationFactory.ParseString(File.ReadAllText(AkkaConfigurationBuilder.Main)).WithFallback(config);
 
-            if (File.Exists(seed))
-                config = ConfigurationFactory.ParseString(File.ReadAllText(seed)).WithFallback(config);
+            if (File.Exists(AkkaConfigurationBuilder.Seed))
+                config = ConfigurationFactory.ParseString(File.ReadAllText(AkkaConfigurationBuilder.Seed)).WithFallback(config);
 
             return config;
         }

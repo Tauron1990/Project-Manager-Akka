@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reactive.Linq;
+using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using Akka.Actor;
 using AkkaTest.JsonRepo;
@@ -28,21 +31,23 @@ namespace AkkaTest
 {
     public sealed class TestActor : ObservableActor
     {
+
         public TestActor()
         {
-            IObservable<TType> Sync<TType>(TType input)
-                => Observable.Return(input, ActorScheduler.From(Self));
-
             Receive<Start>(
-                obs => (from _ in obs
-                       from asyncTest in Task.Run(async () =>
-                                                  {
-                                                      await Task.Delay(1000);
-                                                      return "Hallo Welt";
-                                                  })
-                       from syncTest in Sync(asyncTest)
-                       select (Context.Self, syncTest)
-                       ).Subscribe(n => Console.WriteLine($"{n.syncTest} -- {n.Self.Path}"), e => Console.WriteLine(e)));
+                obs => (from start in obs.Do(_ => Console.WriteLine("Awaiting Signal"))
+                        from signal in WaitForSignal<SignalTest>(TimeSpan.FromSeconds(5), _ => true)
+                        select "Signaled").Subscribe(
+                    m =>
+                    {
+                        Console.WriteLine(m);
+                        ActorApplication.Application.ActorSystem.Terminate();
+                    },
+                    e =>
+                    {
+                        Console.WriteLine(e);
+                        ActorApplication.Application.ActorSystem.Terminate();
+                    }));
         }
     }
 
@@ -57,12 +62,17 @@ namespace AkkaTest
 
         public void Run()
         {
-            _system.ActorOf(Props.Create<TestActor>()).Tell(new Start());
+            var test = _system.ActorOf(Props.Create<TestActor>());
+            test.Tell(new Start());
+
+            Task.Delay(TimeSpan.FromSeconds(2))
+                .ContinueWith(_ => test.Tell(new SignalTest()));
         }
     }
 
     public record Start;
-    
+    public record SignalTest;
+
     internal static class Program
     {
         private static async Task Main(string[] args)

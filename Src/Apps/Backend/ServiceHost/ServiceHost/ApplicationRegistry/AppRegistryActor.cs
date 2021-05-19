@@ -249,38 +249,44 @@ namespace ServiceHost.ApplicationRegistry
                 return result;
             }
 
-            IObservable<Unit> PatchApps(StatePair<UpdateSeeds, RegistryState> input)
+            IObservable<Unit> PatchApps<TEvent>(StatePair<TEvent, RegistryState> input, string fileName, Func<string, TEvent, string> patcher)
                 => from request in Observable.Return(input)
                    from appKey in CurrentState.Apps.Keys
                    let appData = LoadApp(appKey, request.State)
-                   let seedPath = Path.Combine(appData.Path, "seed.conf")
-                   where CheckFileExis(seedPath)
-                   from configContent in File.ReadAllTextAsync(seedPath)
-                   let newConfig = AkkaConfigurationBuilder.PatchSeedUrls(configContent, request.Event.Urls)
-                   from u in SaveConfig(newConfig, seedPath)
-                   select u;
-
-            IObservable<Unit> PatchSelf(StatePair<UpdateSeeds, RegistryState> input)
-                => from request in Observable.Return(input)
-                   let file = Path.GetFullPath("seed.conf")
+                   let file = Path.Combine(appData.Path, fileName)
                    where CheckFileExis(file)
                    from configContent in File.ReadAllTextAsync(file)
-                   let newConfig = AkkaConfigurationBuilder.PatchSeedUrls(configContent, request.Event.Urls)
+                   let newConfig = patcher(configContent, request.Event)
                    from u in SaveConfig(newConfig, file)
                    select u;
 
-            Receive<UpdateSeeds>(
-                obs =>
-                (
-                    from request in obs.ObserveOn(Scheduler.Default)
-                    from u1 in PatchSelf(request)
-                    from u2 in PatchApps(request)
-                    select Unit.Default
-                ).AutoSubscribe(errorHandler: e => Log.Error(e, "Error on Update Seed Urls")));
+            IObservable<Unit> PatchSelf<TEvent>(StatePair<TEvent, RegistryState> input, string fileName, Func<string, TEvent, string> patcher)
+                => from request in Observable.Return(input)
+                   let file = Path.GetFullPath(fileName)
+                   where CheckFileExis(file)
+                   from configContent in File.ReadAllTextAsync(file)
+                   let newConfig = patcher(configContent, request.Event)
+                   from u in SaveConfig(newConfig, file)
+                   select u;
+
+            SharedApiCall<UpdateSeeds, UpdateSeedsResponse>(
+                obs => from request in obs.ObserveOn(Scheduler.Default)
+                       from u1 in PatchSelf(request.NewEvent(request.Event.Urls), AkkaConfigurationBuilder.Seed, AkkaConfigurationBuilder.PatchSeedUrls)
+                       from u2 in PatchApps(request.NewEvent(request.Event.Urls), AkkaConfigurationBuilder.Seed, AkkaConfigurationBuilder.PatchSeedUrls)
+                       select request.NewEvent(new UpdateSeedsResponse(true)));
 
 
             Self.Tell(new LoadData());
         }
+
+        private void SharedApiCall<TEvent, TResponse>(Func<IObservable<StatePair<TEvent, RegistryState>>, IObservable<StatePair<TResponse, RegistryState>>> processor)
+            where TEvent : InternalHostMessages.CommandBase<TResponse>, InternalHostMessages.IHostApiCommand
+            where TResponse : OperationResponse, new()
+            => Receive<TEvent>(
+                obs => obs.CatchSafe(
+                               i => processor(Observable.Return(i)),
+                               (r, _) => Observable.Return(r.NewEvent((TResponse)r.Event.CreateDefaultFailed())))
+                          .ToUnit(r => r.Sender.Tell(r.Event)));
 
         private InstalledApp? LoadApp(string name, RegistryState state)
         {

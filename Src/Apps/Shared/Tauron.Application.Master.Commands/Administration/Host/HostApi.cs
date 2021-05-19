@@ -30,7 +30,7 @@ namespace Tauron.Application.Master.Commands.Administration.Host
 
         public Task<TResult> ExecuteCommand<TResult>(InternalHostMessages.CommandBase<TResult> command) 
             where TResult : OperationResponse , new()
-            => _actorRef.Ask<TResult>(command, TimeSpan.FromMinutes(2));
+            => _actorRef.Ask<TResult>(command, TimeSpan.FromMinutes(1));
 
         public Task<ImmutableList<HostApp>> QueryApps(string name)
             => _actorRef
