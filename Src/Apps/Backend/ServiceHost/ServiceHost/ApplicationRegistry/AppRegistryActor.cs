@@ -249,7 +249,7 @@ namespace ServiceHost.ApplicationRegistry
                 return result;
             }
 
-            IObservable<Unit> PatchApps<TEvent>(StatePair<TEvent, RegistryState> input, string fileName, Func<string, TEvent, string> patcher)
+            IObservable<Unit> PatchApps<TEvent>(StatePair<TEvent, RegistryState> input, string fileName, Func<string, TEvent, string> patcher, bool read = true)
                 => from request in Observable.Return(input)
                    from appKey in CurrentState.Apps.Keys
                    let appData = LoadApp(appKey, request.State)
@@ -260,7 +260,7 @@ namespace ServiceHost.ApplicationRegistry
                    from u in SaveConfig(newConfig, file)
                    select u;
 
-            IObservable<Unit> PatchSelf<TEvent>(StatePair<TEvent, RegistryState> input, string fileName, Func<string, TEvent, string> patcher)
+            IObservable<Unit> PatchSelf<TEvent>(StatePair<TEvent, RegistryState> input, string fileName, Func<string, TEvent, string> patcher, bool read = true)
                 => from request in Observable.Return(input)
                    let file = Path.GetFullPath(fileName)
                    where CheckFileExis(file)
@@ -269,23 +269,30 @@ namespace ServiceHost.ApplicationRegistry
                    from u in SaveConfig(newConfig, file)
                    select u;
 
-            SharedApiCall<UpdateSeeds, UpdateSeedsResponse>(
+            SharedApiCall<UpdateSeeds, UpdateSeedsResponse>(e => Log.Error(e, "Error on Update Seeds"),
                 obs => from request in obs.ObserveOn(Scheduler.Default)
                        from u1 in PatchSelf(request.NewEvent(request.Event.Urls), AkkaConfigurationBuilder.Seed, AkkaConfigurationBuilder.PatchSeedUrls)
                        from u2 in PatchApps(request.NewEvent(request.Event.Urls), AkkaConfigurationBuilder.Seed, AkkaConfigurationBuilder.PatchSeedUrls)
                        select request.NewEvent(new UpdateSeedsResponse(true)));
 
+            SharedApiCall<UpdateEveryConfiguration, UpdateEveryConfigurationRespond>(e => Log.Error(e, "Error on Update Every Configuration"),
+                obs => from request in obs 
+                       );
 
             Self.Tell(new LoadData());
         }
 
-        private void SharedApiCall<TEvent, TResponse>(Func<IObservable<StatePair<TEvent, RegistryState>>, IObservable<StatePair<TResponse, RegistryState>>> processor)
+        private void SharedApiCall<TEvent, TResponse>(Action<Exception> error, Func<IObservable<StatePair<TEvent, RegistryState>>, IObservable<StatePair<TResponse, RegistryState>>> processor)
             where TEvent : InternalHostMessages.CommandBase<TResponse>, InternalHostMessages.IHostApiCommand
             where TResponse : OperationResponse, new()
             => Receive<TEvent>(
                 obs => obs.CatchSafe(
                                i => processor(Observable.Return(i)),
-                               (r, _) => Observable.Return(r.NewEvent((TResponse)r.Event.CreateDefaultFailed())))
+                               (r, e) =>
+                               {
+                                   error(e);
+                                   return Observable.Return(r.NewEvent((TResponse) r.Event.CreateDefaultFailed()));
+                               })
                           .ToUnit(r => r.Sender.Tell(r.Event)));
 
         private InstalledApp? LoadApp(string name, RegistryState state)
