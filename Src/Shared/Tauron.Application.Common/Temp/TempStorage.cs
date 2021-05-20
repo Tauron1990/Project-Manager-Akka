@@ -21,7 +21,7 @@ namespace Tauron.Temp
         }
 
         public TempStorage(Func<bool, string> nameProvider, string basePath, bool deleteBasePath)
-            : base(basePath, null, nameProvider, deleteBasePath)
+            : base(basePath, default, nameProvider, deleteBasePath)
         {
             WireUp();
         }

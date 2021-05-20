@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using Akka.Util;
 
 namespace Tauron.Temp
 {
@@ -6,7 +7,7 @@ namespace Tauron.Temp
     {
         private Stream? _targetStream;
 
-        public TempFile(string targetPath, ITempDic parent)
+        public TempFile(string targetPath, Option<ITempDic> parent)
         {
             Parent = parent;
             FullPath = targetPath;
@@ -16,7 +17,7 @@ namespace Tauron.Temp
             FullPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, 
             FileShare.Delete | FileShare.Read, 4096, FileOptions.DeleteOnClose);
 
-        public ITempDic Parent { get; }
+        public Option<ITempDic> Parent { get; }
 
         public bool NoStreamDispose { get; set; }
 
@@ -26,9 +27,6 @@ namespace Tauron.Temp
 
         public string FullPath { get; }
 
-        protected override void DisposeCore(bool disposing)
-        {
-            _targetStream?.Dispose();
-        }
+        protected override void DisposeCore(bool disposing) => _targetStream?.Dispose();
     }
 }

@@ -31,7 +31,7 @@ namespace Tauron
             }
         }
 
-        public static void Serialize([NotNull] this object graph, IFormatter formatter, string path)
+        public static void Serialize(this object graph, IFormatter formatter, string path)
         {
             Argument.NotNull(graph, nameof(graph));
             Argument.NotNull(formatter, nameof(formatter));

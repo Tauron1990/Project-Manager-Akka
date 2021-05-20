@@ -7,6 +7,7 @@ using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using Akka.Actor;
+using Akka.Util.Extensions;
 using AkkaTest.JsonRepo;
 using Autofac;
 using NLog;
@@ -26,6 +27,7 @@ using Tauron.Application.Master.Commands.Deployment.Build;
 using Tauron.Application.Master.Commands.Deployment.Build.Querys;
 using Tauron.Application.Master.Commands.Deployment.Repository;
 using Tauron.Host;
+using Tauron.ObservableExt;
 
 namespace AkkaTest
 {
@@ -78,7 +80,6 @@ namespace AkkaTest
         private static async Task Main(string[] args)
         {
             Console.Title = "Test Anwendung";
-            
 
             await ActorApplication.Create(args)
                                   .ConfigureAutoFac(cb =>

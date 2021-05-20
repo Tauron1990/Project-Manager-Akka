@@ -4,12 +4,16 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Reactive;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
+using Akka.Util;
 using JetBrains.Annotations;
 
 namespace Tauron.Application
 {
     [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-    public sealed class WeakCollection<TType> : IList<TType>
+    public sealed class WeakCollection<TType> : IList<Option<TType>>
         where TType : class
     {
         private readonly List<WeakReference<TType>> _internalCollection = new();
@@ -21,10 +25,10 @@ namespace Tauron.Application
 
         public int EffectiveCount => _internalCollection.Count(refer => refer.IsAlive());
 
-        public TType this[int index]
+        public Option<TType> this[int index]
         {
-            get => _internalCollection[index].TypedTarget()!;
-            set => _internalCollection[index] = new WeakReference<TType>(value);
+            get => _internalCollection[index].TypedTarget();
+            set => value.OnSuccess(value => _internalCollection[index] = new WeakReference<TType>(value));
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -33,54 +37,46 @@ namespace Tauron.Application
 
         public bool IsReadOnly => false;
 
-        public void Add(TType item)
-        {
-            if (item == null) return;
-            _internalCollection.Add(new WeakReference<TType>(item));
-        }
+        public void Add(Option<TType> item) 
+            => item.OnSuccess(i => _internalCollection.Add(new WeakReference<TType>(i)));
 
         /// <summary>The clear.</summary>
-        public void Clear()
-        {
-            _internalCollection.Clear();
-        }
+        public void Clear() => _internalCollection.Clear();
 
-        public bool Contains(TType item)
-        {
-            return item != null && _internalCollection.Any(it => it.TypedTarget() == item);
-        }
+        public bool Contains(Option<TType> item) 
+            => item.HasValue && _internalCollection.Any(it => it.TypedTarget() == item);
 
-        public void CopyTo(TType[] array, int arrayIndex)
+        public void CopyTo(Option<TType>[] array, int arrayIndex)
         {
             Argument.NotNull(array, nameof(array));
 
             var index = 0;
             for (var i = arrayIndex; i < array.Length; i++)
             {
-                TType? target = null;
-                while (target == null && index <= _internalCollection.Count)
+                Option<TType> target = Option<TType>.None;
+                while (target.IsEmpty && index <= _internalCollection.Count)
                 {
                     target = _internalCollection[index].TypedTarget();
                     index++;
                 }
 
-                if (target == null) break;
+                if (target.IsEmpty) break;
 
                 array[i] = target;
             }
         }
 
-        public IEnumerator<TType> GetEnumerator()
+        public IEnumerator<Option<TType>> GetEnumerator()
         {
             return
                 _internalCollection.Select(reference => reference.TypedTarget())
-                    .Where(target => target != null)
+                    .Where(target => target.HasValue)
                     .GetEnumerator()!;
         }
 
-        public int IndexOf(TType item)
+        public int IndexOf(Option<TType> item)
         {
-            if (item == null) return -1;
+            if (item.IsEmpty) return -1;
 
             int index;
             for (index = 0; index < _internalCollection.Count; index++)
@@ -92,15 +88,15 @@ namespace Tauron.Application
             return index == _internalCollection.Count ? -1 : index;
         }
 
-        public void Insert(int index, TType item)
+        public void Insert(int index, Option<TType> item)
         {
-            if (item == null) return;
-            _internalCollection.Insert(index, new WeakReference<TType>(item));
+            if (item.IsEmpty) return;
+            _internalCollection.Insert(index, new WeakReference<TType>(item.Value));
         }
 
-        public bool Remove(TType item)
+        public bool Remove(Option<TType> item)
         {
-            if (item == null) return false;
+            if (item.IsEmpty) return false;
             var index = IndexOf(item);
             if (index == -1) return false;
 
@@ -108,12 +104,10 @@ namespace Tauron.Application
             return true;
         }
 
-        public void RemoveAt(int index)
-        {
-            _internalCollection.RemoveAt(index);
-        }
+        public void RemoveAt(int index) => _internalCollection.RemoveAt(index);
 
-        public event EventHandler? CleanedEvent;
+        private readonly Subject<Unit> _cleaned = new();
+        public IObservable<Unit> WhenCleanedEvent => _cleaned.AsObservable();
 
         internal void CleanUp()
         {
@@ -123,10 +117,7 @@ namespace Tauron.Application
             OnCleaned();
         }
 
-        private void OnCleaned()
-        {
-            CleanedEvent?.Invoke(this, EventArgs.Empty);
-        }
+        private void OnCleaned() => _cleaned.OnNext(Unit.Default);
     }
 
     [DebuggerNonUserCode]

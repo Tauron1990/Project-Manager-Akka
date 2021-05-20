@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reactive;
 using System.Reactive.Linq;
-using System.Runtime.CompilerServices;
-using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Actor.Internal;
+using Akka.Util;
+using Akka.Util.Extensions;
 using JetBrains.Annotations;
 using Tauron.Akka;
 using Tauron.Features;
@@ -29,23 +29,17 @@ namespace Tauron
                                     });
         }
 
-        public static IObservable<TData?> Lookup<TKey, TData>(this IDictionary<TKey, TData> dic, TKey key) 
-            => Observable.Return(dic.TryGetValue(key, out var data) ? data : default);
+        public static IObservable<Option<TData>> Lookup<TKey, TData>(this IDictionary<TKey, TData> dic, TKey key) 
+            => Observable.Return(dic.TryGetValue(key, out var data) ? data.AsOption() : default);
 
-        public static IObservable<TData> NotDefault<TData>(this IObservable<TData?> source)
-        {
-            return source.Where(d => !Equals(d, default(TData)))!;
-        }
+        public static IObservable<TData> NotDefault<TData>(this IObservable<TData?> source) 
+            => source.Where(d => !Equals(d, default(TData)))!;
 
-        public static IObservable<TData> NotNull<TData>(this IObservable<TData?> source)
-        {
-            return source.Where(d => d != null)!;
-        }
+        public static IObservable<TData> NotNull<TData>(this IObservable<TData?> source) 
+            => source.Where(d => d != null)!;
 
-        public static IObservable<string> NotEmpty(this IObservable<string?> source)
-        {
-            return source.Where(s => !string.IsNullOrWhiteSpace(s))!;
-        }
+        public static IObservable<string> NotEmpty(this IObservable<string?> source) 
+            => source.Where(s => !string.IsNullOrWhiteSpace(s))!;
 
         public static IObservable<CallResult<TResult>> SelectSafe<TEvent, TResult>(this IObservable<TEvent> observable,
             Func<TEvent, TResult> selector)
@@ -64,21 +58,15 @@ namespace Tauron
         }
 
         public static IObservable<Exception> OnError<TResult>(this IObservable<CallResult<TResult>> observable)
-        {
-            return observable.Where(cr => cr is ErrorCallResult<TResult>).Cast<ErrorCallResult<TResult>>()
-                .Select(er => er.Error);
-        }
+            => observable.Where(cr => cr is ErrorCallResult<TResult>).Cast<ErrorCallResult<TResult>>()
+                         .Select(er => er.Error);
 
         public static IObservable<TResult> OnResult<TResult>(this IObservable<CallResult<TResult>> observable)
-        {
-            return observable.Where(cr => cr is SucessCallResult<TResult>).Cast<SucessCallResult<TResult>>()
-                .Select(sr => sr.Result);
-        }
+            => observable.Where(cr => cr is SucessCallResult<TResult>).Cast<SucessCallResult<TResult>>()
+                         .Select(sr => sr.Result);
 
-        public static IObservable<TData> ConvertResult<TData, TResult>(this IObservable<CallResult<TResult>> result, Func<TResult, TData> onSucess, Func<Exception, TData> error)
-        {
-            return result.Select(cr => cr.ConvertResult(onSucess, error));
-        }
+        public static IObservable<TData> ConvertResult<TData, TResult>(this IObservable<CallResult<TResult>> result, Func<TResult, TData> onSucess, Func<Exception, TData> error) 
+            => result.Select(cr => cr.ConvertResult(onSucess, error));
 
         public static TData ConvertResult<TData, TResult>(this CallResult<TResult> result, Func<TResult, TData> onSucess, Func<Exception, TData> error)
         {

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Runtime.Serialization;
 using JetBrains.Annotations;
 
@@ -7,9 +9,11 @@ namespace Tauron
 {
     public class ProgressEventArgs : EventArgs
     {
-        public ProgressEventArgs(ProgressStatistic progressStatistic) => ProgressStatistic = progressStatistic;
+        public ProgressEventArgs(ProgressStatistic progressStatistic) 
+            => ProgressStatistic = progressStatistic;
 
-        [PublicAPI] public ProgressStatistic ProgressStatistic { get; }
+        [PublicAPI] 
+        public ProgressStatistic ProgressStatistic { get; }
     }
 
     [Serializable]
@@ -290,35 +294,43 @@ namespace Tauron
 
         private readonly ProgressEventArgs _progressChangedArgs;
 
-        protected virtual void OnStarted()
-        {
-            Started?.Invoke(this, _progressChangedArgs);
-        }
+        protected virtual void OnStarted() => _started.OnNext(_progressChangedArgs);
 
-        protected virtual void OnProgressChanged()
-        {
-            ProgressChanged?.Invoke(this, _progressChangedArgs);
-        }
+        protected virtual void OnProgressChanged() => _progressChanged.OnNext(_progressChangedArgs);
 
         protected virtual void OnFinished()
         {
-            Finished?.Invoke(this, _progressChangedArgs);
+            _finisht.OnNext(_progressChangedArgs);
+
+            _started.OnCompleted();
+            _progressChanged.OnCompleted();
+            _finisht.OnCompleted();
+
+            _started.Dispose();
+            _progressChanged.Dispose();
+            _finisht.Dispose();
         }
 
         /// <summary>
         ///     Will be raised when the operation has started
         /// </summary>
-        public event EventHandler<ProgressEventArgs>? Started;
+        public IObservable<ProgressEventArgs> WhenStarted => _started.AsObservable();
+
+        private readonly Subject<ProgressEventArgs> _started = new();
 
         /// <summary>
         ///     Will be raised when the progress has changed
         /// </summary>
-        public event EventHandler<ProgressEventArgs>? ProgressChanged;
+        public IObservable<ProgressEventArgs> WhenProgressChanged => _progressChanged.AsObservable();
+
+        private readonly Subject<ProgressEventArgs> _progressChanged = new();
 
         /// <summary>
         ///     Will be raised when the operation has finished
         /// </summary>
-        public event EventHandler<ProgressEventArgs>? Finished;
+        public IObservable<ProgressEventArgs> WhenFinished => _finisht.AsObservable();
+
+        private readonly Subject<ProgressEventArgs> _finisht = new();
 
         #endregion
     }

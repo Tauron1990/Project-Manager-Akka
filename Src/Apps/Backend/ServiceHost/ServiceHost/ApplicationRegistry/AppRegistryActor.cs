@@ -101,14 +101,14 @@ namespace ServiceHost.ApplicationRegistry
                           .ToResult<StatePair<RegistrationResponse, RegistryState>>(
                                b =>
                                {
-                                   b.When(m => m.Event.App == null, o => o.Do(m => Log.Warning("No Registration Found {Apps}", m.Event.Request.Name))
+                                   b.When(m => m.Event.App.IsEmpty, o => o.Do(m => Log.Warning("No Registration Found {Apps}", m.Event.Request.Name))
                                                                           .Select(m => m.NewEvent(new RegistrationResponse(true, null))));
 
-                                   b.When(m => m.Event.App != null,
+                                   b.When(m => m.Event.App.HasValue,
                                        o =>
                                        (
                                            from i in o
-                                           let newData = JsonConvert.DeserializeObject<InstalledApp>(File.ReadAllText(i.Event.App))?.NewVersion()
+                                           let newData = JsonConvert.DeserializeObject<InstalledApp>(File.ReadAllText(i.Event.App.Value))?.NewVersion()
                                            let serializedData = JsonConvert.SerializeObject(newData)
                                            select (Data: serializedData, File: i.Event.App, State: i)
                                        ).SelectMany(d => Observable.Return(d)
@@ -116,7 +116,7 @@ namespace ServiceHost.ApplicationRegistry
                                                                                {
                                                                                    if (string.IsNullOrWhiteSpace(s.Data))
                                                                                        return new RegistrationResponse(false, new InvalidOperationException("No App Data Found"));
-                                                                                   File.WriteAllText(s.File!, s.Data);
+                                                                                   File.WriteAllText(s.File.Value, s.Data);
                                                                                    return new RegistrationResponse(true, null);
                                                                                })
                                                                    .ConvertResult(r => d.State.NewEvent(r), e => d.State.NewEvent(new RegistrationResponse(false, e)))));
@@ -275,9 +275,9 @@ namespace ServiceHost.ApplicationRegistry
                        from u2 in PatchApps(request.NewEvent(request.Event.Urls), AkkaConfigurationBuilder.Seed, AkkaConfigurationBuilder.PatchSeedUrls)
                        select request.NewEvent(new UpdateSeedsResponse(true)));
 
-            SharedApiCall<UpdateEveryConfiguration, UpdateEveryConfigurationRespond>(e => Log.Error(e, "Error on Update Every Configuration"),
-                obs => from request in obs 
-                       );
+            //SharedApiCall<UpdateEveryConfiguration, UpdateEveryConfigurationRespond>(e => Log.Error(e, "Error on Update Every Configuration"),
+            //    obs => from request in obs 
+            //           );
 
             Self.Tell(new LoadData());
         }

@@ -46,15 +46,9 @@ namespace Tauron.ObservableExt
 
         IDisposable IObservable<T>.Subscribe(IObserver<T> observer) => _subject.Subscribe(observer);
 
-        void IObserver<T>.OnCompleted()
-        {
-            _subject.OnCompleted();
-        }
+        void IObserver<T>.OnCompleted() => _subject.OnCompleted();
 
-        void IObserver<T>.OnError(Exception error)
-        {
-            _subject.OnError(error);
-        }
+        void IObserver<T>.OnError(Exception error) => _subject.OnError(error);
 
         void IObserver<T>.OnNext(T value)
         {

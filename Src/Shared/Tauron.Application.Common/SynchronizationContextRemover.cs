@@ -7,7 +7,7 @@ namespace Tauron
 {
     #pragma warning disable CA1822 // Member als statisch markieren
     [PublicAPI]
-    public class SynchronizationContextRemover : INotifyCompletion
+    public sealed record SynchronizationContextRemover : INotifyCompletion
     {
         public static SynchronizationContextRemover Run => new();
 
