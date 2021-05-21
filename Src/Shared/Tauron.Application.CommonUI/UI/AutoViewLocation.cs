@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Akka.Util;
 using Autofac;
 using JetBrains.Annotations;
 using Tauron.Host;
@@ -17,21 +18,18 @@ namespace Tauron.Application.CommonUI.UI
 
         public static AutoViewLocation Manager => ActorApplication.Application.Continer.Resolve<AutoViewLocation>();
 
-        public static void AddPair(Type view, Type model)
-        {
-            Views[model] = view;
-        }
+        public static void AddPair(Type view, Type model) 
+            => Views[model] = view;
 
-        public IView? ResolveView(object viewModel)
+        public Option<IView> ResolveView(object viewModel)
         {
             if (viewModel is not IViewModel model)
-                return null;
+                return Option<IView>.None;
 
             var type = model.ModelType;
             return Views.TryGetValue(type, out var view)
-                ? _provider.ResolveOptional(view,
-                    new TypedParameter(typeof(IViewModel<>).MakeGenericType(type), viewModel)) as IView
-                : null;
+                ? (_provider.ResolveOptional(view, new TypedParameter(typeof(IViewModel<>).MakeGenericType(type), viewModel)) as IView).OptionNotNull()
+                : Option<IView>.None;
         }
     }
 }

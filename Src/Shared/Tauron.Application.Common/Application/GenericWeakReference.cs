@@ -8,8 +8,7 @@ namespace Tauron.Application
     [DebuggerNonUserCode]
     [Serializable]
     [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-    public sealed class GenericWeakReference<TType> : WeakReference, IEquatable<GenericWeakReference<TType>>,
-        IWeakReference
+    public sealed class GenericWeakReference<TType> : WeakReference, IEquatable<GenericWeakReference<TType>>, IWeakReference
         where TType : class
     {
         public GenericWeakReference(TType target)

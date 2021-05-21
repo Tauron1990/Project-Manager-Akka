@@ -51,7 +51,7 @@ namespace Tauron.Application.Localizer.Views
             cmdIndex++;
             MenuItem ignoreAllMi = new()
             {
-                Header = ActorApplication.Application.ActorSystem.Loc().Request("CorrectSpellingError") as string,
+                Header = ActorApplication.Application.ActorSystem.Loc().Request("CorrectSpellingError").GetOrElse(string.Empty),
                 Command = EditingCommands.IgnoreSpellingError,
                 CommandTarget = myTextBox
             };

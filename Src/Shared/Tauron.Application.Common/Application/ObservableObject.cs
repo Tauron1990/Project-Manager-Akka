@@ -14,8 +14,7 @@ namespace Tauron.Application
     [PublicAPI]
     public static class ObservablePropertyChangedExtensions
     {
-        public static IObservable<TProp> WhenAny<TProp>(this IObservablePropertyChanged @this,
-            Expression<Func<TProp>> prop)
+        public static IObservable<TProp> WhenAny<TProp>(this IObservablePropertyChanged @this, Expression<Func<TProp>> prop)
         {
             var name = Reflex.PropertyName(prop);
             var func = prop.CompileFast();
@@ -40,10 +39,8 @@ namespace Tauron.Application
         public event PropertyChangedEventHandler? PropertyChanged;
 
         [NotifyPropertyChangedInvocator]
-        public virtual void OnPropertyChanged([CallerMemberName] string? eventArgs = null)
-        {
-            OnPropertyChanged(new PropertyChangedEventArgs(Argument.NotNull(eventArgs!, nameof(eventArgs))));
-        }
+        public virtual void OnPropertyChanged([CallerMemberName] string? eventArgs = null) 
+            => OnPropertyChanged(new PropertyChangedEventArgs(Argument.NotNull(eventArgs!, nameof(eventArgs))));
 
         public IObservable<string> PropertyChangedObservable => _propertyChnaged.AsObservable();
 
@@ -65,10 +62,8 @@ namespace Tauron.Application
             changed();
         }
 
-        public virtual void OnPropertyChanged(PropertyChangedEventArgs eventArgs)
-        {
-            OnPropertyChanged(this, Argument.NotNull(eventArgs, nameof(eventArgs)));
-        }
+        public virtual void OnPropertyChanged(PropertyChangedEventArgs eventArgs) 
+            => OnPropertyChanged(this, Argument.NotNull(eventArgs, nameof(eventArgs)));
 
         public virtual void OnPropertyChanged(object sender, PropertyChangedEventArgs eventArgs)
         {
@@ -79,16 +74,11 @@ namespace Tauron.Application
         }
 
 
-        public virtual void OnPropertyChanged<T>(Expression<Func<T>> eventArgs)
-        {
-            OnPropertyChanged(
-                new PropertyChangedEventArgs(Reflex.PropertyName(Argument.NotNull(eventArgs, nameof(eventArgs)))));
-        }
+        public virtual void OnPropertyChanged<T>(Expression<Func<T>> eventArgs) 
+            => OnPropertyChanged(new PropertyChangedEventArgs(Reflex.PropertyName(Argument.NotNull(eventArgs, nameof(eventArgs)))));
 
 
-        public virtual void OnPropertyChangedExplicit(string propertyName)
-        {
-            OnPropertyChanged(new PropertyChangedEventArgs(Argument.NotNull(propertyName, nameof(propertyName))));
-        }
+        public virtual void OnPropertyChangedExplicit(string propertyName) 
+            => OnPropertyChanged(new PropertyChangedEventArgs(Argument.NotNull(propertyName, nameof(propertyName))));
     }
 }

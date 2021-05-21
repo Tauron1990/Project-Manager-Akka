@@ -9,20 +9,14 @@ namespace Tauron.Application
     {
         private readonly WeakActionEvent<TPayload> _handlerList = new();
 
-        public virtual void Publish(TPayload content)
-        {
-            _handlerList.Invoke(content);
-        }
+        public virtual void Publish(TPayload content) 
+            => _handlerList.Invoke(content);
 
-        public void Subscribe(Action<TPayload> handler)
-        {
-            _handlerList.Add(Argument.NotNull(handler, nameof(handler)));
-        }
+        public void Subscribe(Action<TPayload> handler) 
+            => _handlerList.Add(Argument.NotNull(handler, nameof(handler)));
 
-        public void UnSubscribe(Action<TPayload> handler)
-        {
-            _handlerList.Remove(Argument.NotNull(handler, nameof(handler)));
-        }
+        public void UnSubscribe(Action<TPayload> handler) 
+            => _handlerList.Remove(Argument.NotNull(handler, nameof(handler)));
     }
 
     [PublicAPI]

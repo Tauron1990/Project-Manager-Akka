@@ -18,10 +18,8 @@ namespace Tauron.Application.CommonUI.UI
             _dispatcher = dispatcher;
         }
 
-        protected override void NoDataContextFound()
-        {
-            _updater($"No Data Context Found for {Name}");
-        }
+        protected override void NoDataContextFound() 
+            => _updater($"No Data Context Found for {Name}");
 
         protected override void ValidateCompled(ValidatingEvent obj)
         {
@@ -32,7 +30,7 @@ namespace Tauron.Application.CommonUI.UI
             if (View == null) return;
 
             var converter = new ViewModelConverter();
-            if (!(obj is {Value: IViewModel viewModel})) return;
+            if (obj is not {Value: IViewModel viewModel}) return;
 
             var viewTask = _dispatcher.InvokeAsync(() => converter.Convert(viewModel) as IView);
 

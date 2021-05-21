@@ -36,7 +36,7 @@ namespace Tauron.Application.Wpf.UI
 
                 ActorApplication.Application.ActorSystem.Loc().Request(EntryName, o =>
                 {
-                    var res = o ?? EntryName;
+                    var res = o.GetOrElse(EntryName);
                     lock (_cache)
                     {
                         _cache[EntryName] = res;

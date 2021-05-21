@@ -24,11 +24,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Src\Apps\Backend\DeploymentServer\ServiceManager.ProjectDeployment\ServiceManager.ProjectDeployment.csproj" />
-    <ProjectReference Include="..\Src\Apps\Backend\RepositoryServer\ServiceManager.ProjectRepository\ServiceManager.ProjectRepository.csproj" />
-    <ProjectReference Include="..\Src\Apps\Backend\ServiceHost\ServiceManager.ServiceDeamon\ServiceManager.ServiceDeamon.csproj" />
-    <ProjectReference Include="..\Src\Apps\Shared\Tauron.Application.AkkaNode.Boottrap\Tauron.Application.AkkaNode.Boottrap.csproj" />
-    <ProjectReference Include="..\Src\Shared\Tauron.Application.Files.GridFS\Tauron.Application.Files.GridFS.csproj" />
+    <ProjectReference Include="..\..\..\Shared\Tauron.Application.Files.GridFS\Tauron.Application.Files.GridFS.csproj" />
+    <ProjectReference Include="..\..\Shared\Tauron.Application.AkkaNode.Boottrap\Tauron.Application.AkkaNode.Boottrap.csproj" />
+    <ProjectReference Include="..\DeploymentServer\ServiceManager.ProjectDeployment\ServiceManager.ProjectDeployment.csproj" />
+    <ProjectReference Include="..\RepositoryServer\ServiceManager.ProjectRepository\ServiceManager.ProjectRepository.csproj" />
+    <ProjectReference Include="..\ServiceHost\ServiceManager.ServiceDeamon\ServiceManager.ServiceDeamon.csproj" />
   </ItemGroup>
 
   <ItemGroup>

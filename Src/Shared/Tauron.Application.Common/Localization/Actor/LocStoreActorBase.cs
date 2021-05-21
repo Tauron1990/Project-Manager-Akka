@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using Akka.Actor;
+using Akka.Util;
 
 namespace Tauron.Localization.Actor
 {
@@ -7,41 +8,16 @@ namespace Tauron.Localization.Actor
     {
         protected sealed override void OnReceive(object message)
         {
-            if (message is QueryRequest query)
-                Context.Sender.Tell(new QueryResponse(TryQuery(query.Key, query.CultureInfo), query.Id));
+            if (message is QueryRequest(var key, var id, var cultureInfo))
+                Context.Sender.Tell(new QueryResponse(TryQuery(key, cultureInfo), id));
             else
                 base.Unhandled(message);
         }
 
-        protected abstract object? TryQuery(string name, CultureInfo target);
+        protected abstract Option<object> TryQuery(string name, CultureInfo target);
 
-        public sealed class QueryRequest
-        {
-            public QueryRequest(string key, string id, CultureInfo cultureInfo)
-            {
-                Key = key;
-                Id = id;
-                CultureInfo = cultureInfo;
-            }
+        public sealed record QueryRequest(string Key, string Id, CultureInfo CultureInfo);
 
-            public string Key { get; }
-
-            public string Id { get; }
-
-            public CultureInfo CultureInfo { get; }
-        }
-
-        public sealed class QueryResponse
-        {
-            public QueryResponse(object? value, string id)
-            {
-                Value = value;
-                Id = id;
-            }
-
-            public object? Value { get; }
-
-            public string Id { get; }
-        }
+        public sealed record QueryResponse(Option<object> Value, string Id);
     }
 }

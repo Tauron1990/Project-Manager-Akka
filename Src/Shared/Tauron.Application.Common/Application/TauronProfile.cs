@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Akka.Util;
 using JetBrains.Annotations;
 using NLog;
 
@@ -39,11 +40,11 @@ namespace Tauron.Application
 
         public string Application { get; private set; }
 
-        public string? Name { get; private set; }
+        public Option<string> Name { get; private set; }
 
-        protected string? Dictionary { get; private set; }
+        protected Option<string> Dictionary { get; private set; }
 
-        protected string? FilePath { get; private set; }
+        protected Option<string> FilePath { get; private set; }
 
         public IEnumerator<string> GetEnumerator()
         {
@@ -56,9 +57,9 @@ namespace Tauron.Application
         {
             _settings.Clear();
 
-            _logger.Info($"{Application} -- Delete Profile infos... {Dictionary?.PathShorten(20)}");
+            _logger.Info($"{Application} -- Delete Profile infos... {Dictionary.GetOrElse(string.Empty).PathShorten(20)}");
 
-            Dictionary?.DeleteDirectory();
+            Dictionary.OnSuccess(s => s.DeleteDirectory());
         }
 
         public virtual void Load([NotNull] string name)
@@ -68,16 +69,15 @@ namespace Tauron.Application
 
             Name = name;
             Dictionary = _defaultPath.CombinePath(Application, name);
-            Dictionary.CreateDirectoryIfNotExis();
-            FilePath = Dictionary.CombinePath("Settings.db");
+            Dictionary.OnSuccess(s => s.CreateDirectoryIfNotExis());
+            FilePath = Dictionary.Select(s => s.CombinePath("Settings.db"));
 
-            _logger.Info($"{Application} -- Begin Load Profile infos... {FilePath.PathShorten(20)}");
+            _logger.Info($"{Application} -- Begin Load Profile infos... {FilePath.GetOrElse(string.Empty).PathShorten(20)}");
 
             _settings.Clear();
-            foreach (var vals in
-                FilePath.EnumerateTextLinesIfExis()
-                    .Select(line => line.Split(ContentSplitter, 2))
-                    .Where(vals => vals.Length == 2))
+            foreach (var vals in FilePath.Value.EnumerateTextLinesIfExis()
+                                         .Select(line => line.Split(ContentSplitter, 2))
+                                         .Where(vals => vals.Length == 2))
             {
                 _logger.Info("key: {0} | Value {1}", vals[0], vals[1]);
 
@@ -91,9 +91,11 @@ namespace Tauron.Application
 
             try
             {
-                using var writer = FilePath?.OpenTextWrite();
+                var writerOption = FilePath.Select(s => s.OpenTextWrite());
 
-                if (writer == null) return;
+                if (!writerOption.HasValue) return;
+
+                using var writer = writerOption.Value;
 
                 foreach (var (key, value) in _settings)
                 {

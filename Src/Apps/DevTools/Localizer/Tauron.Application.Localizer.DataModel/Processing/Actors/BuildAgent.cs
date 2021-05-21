@@ -124,6 +124,7 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
             file.WriteLine("using Akka.Actor;");
             file.WriteLine("using JetBrains.Annotations;");
             file.WriteLine("using Tauron.Localization;");
+            file.WriteLine("using Akka.Util;");
             file.WriteLine();
             file.WriteLine("namespace Tauron.Application.Localizer.Generated");
             file.WriteLine("{");
@@ -155,8 +156,8 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
             foreach (var @class in classes)
                 file.WriteLine("\t\tpublic " + @class + "Res " + @class + " { get; }");
 
-            file.WriteLine("\t\tprivate static Task<string> ToString(Task<object?> task)");
-            file.WriteLine("\t\t\t=> task.ContinueWith(t => t.Result as string ?? string.Empty);");
+            file.WriteLine("\t\tprivate static Task<string> ToString(Task<Option<object>> task)");
+            file.WriteLine("\t\t\t=> task.ContinueWith(t => t.Result.Select(o => o as string ?? string.Empty).GetOrElse(string.Empty));");
 
             file.WriteLine("\t}");
             file.WriteLine("}");

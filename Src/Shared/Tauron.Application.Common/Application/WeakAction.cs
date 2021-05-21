@@ -112,8 +112,6 @@ namespace Tauron.Application
         {
             lock (this)
             {
-                if (_delegates == null) return;
-
                 var dead = _delegates.Where(item => item.TargetObject?.IsAlive == false).ToList();
 
                 lock (this)
@@ -139,10 +137,8 @@ namespace Tauron.Application
 
             var parameterType = parameters[0].ParameterType;
 
-            lock (this)
-            {
+            lock (this) 
                 _delegates.Add(new WeakAction(handler.Target, handler.Method, parameterType));
-            }
 
             return this;
         }

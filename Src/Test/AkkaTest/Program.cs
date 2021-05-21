@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using Akka.Actor;
@@ -81,13 +82,25 @@ namespace AkkaTest
         {
             Console.Title = "Test Anwendung";
 
-            await ActorApplication.Create(args)
-                                  .ConfigureAutoFac(cb =>
-                                                    {
-                                                        cb.RegisterType<ConsoleAppRoute>().Named<IAppRoute>("default");
-                                                        cb.RegisterType<TestStart>().As<IStartUpAction>();
-                                                    })
-                                  .Build().Run();
+            var test = new Subject<int>();
+            var test2 = new Subject<int>();
+
+            var test3 = Observable.When(test.And(test2).Then((i, i1) => i + i1));
+            test3.Subscribe(Console.WriteLine);
+
+            test.OnNext(1);
+            test.OnNext(2);
+
+            test2.OnNext(1);
+            test2.OnNext(2);
+
+            //await ActorApplication.Create(args)
+            //                      .ConfigureAutoFac(cb =>
+            //                                        {
+            //                                            cb.RegisterType<ConsoleAppRoute>().Named<IAppRoute>("default");
+            //                                            cb.RegisterType<TestStart>().As<IStartUpAction>();
+            //                                        })
+            //                      .Build().Run();
         }
     }
 }

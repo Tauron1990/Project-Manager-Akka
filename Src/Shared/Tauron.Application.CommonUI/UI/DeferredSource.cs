@@ -72,9 +72,7 @@ namespace Tauron.Application.CommonUI.UI
         }
 
         [NotifyPropertyChangedInvocator]
-        private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+        private void OnPropertyChanged([CallerMemberName] string? propertyName = null) 
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }

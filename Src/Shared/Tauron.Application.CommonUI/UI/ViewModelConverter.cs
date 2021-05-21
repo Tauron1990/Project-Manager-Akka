@@ -13,7 +13,7 @@
 
             var manager = AutoViewLocation.Manager;
             var view = manager.ResolveView(model);
-            return view ?? value;
+            return view.HasValue ? view.Value : value;
 
             //root.ViewManager.ThenRegister(model, view, root);
         }

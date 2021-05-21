@@ -45,7 +45,7 @@ namespace Tauron.Application
             return left?.Equals(right) ?? rightNull;
         }
 
-        public static bool operator !=(WeakDelegate left, WeakDelegate right)
+        public static bool operator !=(WeakDelegate? left, WeakDelegate? right)
         {
             var rightNull = right is null;
 
@@ -96,10 +96,8 @@ namespace Tauron.Application
 
         public static void RegisterAction([NotNull] Action action)
         {
-            lock (Actions)
-            {
+            lock (Actions) 
                 Actions.Add(new WeakDelegate(Argument.NotNull(action, nameof(action))));
-            }
         }
 
         private static List<WeakDelegate> Initialize()
