@@ -9,8 +9,7 @@ namespace Tauron.Host
     [PublicAPI]
     public static class Extensions
     {
-        public static IRegistrationBuilder<TType, SimpleActivatorData, SingleRegistrationStyle> Configure<TType>(
-            this ContainerBuilder builder, string? name = null)
+        public static IRegistrationBuilder<TType, SimpleActivatorData, SingleRegistrationStyle> Configure<TType>(this ContainerBuilder builder, string? name = null)
             where TType : notnull, new()
         {
             return builder.Register(c =>
@@ -26,11 +25,10 @@ namespace Tauron.Host
             });
         }
 
-        public static IRegistrationBuilder<TType, SimpleActivatorData, SingleRegistrationStyle> Configure<TType>(
-            this ContainerBuilder builder, Action<TType> configAction)
+        public static IRegistrationBuilder<TType, SimpleActivatorData, SingleRegistrationStyle> Configure<TType>(this ContainerBuilder builder, Action<TType> configAction)
             where TType : notnull, new()
         {
-            return builder.Register(c =>
+            return builder.Register(_ =>
             {
                 var config = new TType();
                 configAction(config);

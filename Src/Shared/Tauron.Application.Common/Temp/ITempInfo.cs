@@ -1,4 +1,5 @@
 ﻿using System;
+using Akka.Util;
 using JetBrains.Annotations;
 
 namespace Tauron.Temp
@@ -7,6 +8,6 @@ namespace Tauron.Temp
     public interface ITempInfo : IDisposable
     {
         string FullPath { get; }
-        ITempDic? Parent { get; }
+        Option<ITempDic> Parent { get; }
     }
 }

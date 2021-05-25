@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Globalization;
 using Akka.Util;
+using Akka.Util.Extensions;
 using JetBrains.Annotations;
 
 namespace Tauron
@@ -90,14 +91,14 @@ namespace Tauron
         public static DateTime CutSecond(this DateTime source)
             => new(source.Year, source.Month, source.Day, source.Hour, source.Minute, 0);
 
-        public static T? GetService<T>(this IServiceProvider provider)
-            where T : class
-        {
-            if (provider == null) throw new ArgumentNullException(nameof(provider));
-            var temp = provider.GetService(typeof(T));
+        //public static T? GetService<T>(this IServiceProvider provider)
+        //    where T : class
+        //{
+        //    if (provider == null) throw new ArgumentNullException(nameof(provider));
+        //    var temp = provider.GetService(typeof(T));
 
-            return temp as T;
-        }
+        //    return temp as T;
+        //}
 
         public static bool IsAlive<TType>(this WeakReference<TType> reference) where TType : class
             => reference.TryGetTarget(out _);
@@ -137,7 +138,8 @@ namespace Tauron
         public static string SFormat(this string format, params object[] args)
             => string.Format(CultureInfo.InvariantCulture, format, args);
 
-        public static TType? TypedTarget<TType>(this WeakReference<TType> reference) where TType : class
-            => (reference.TryGetTarget(out var obj) ? obj : null)!;
+        public static Option<TType> TypedTarget<TType>(this WeakReference<TType> reference) 
+            where TType : class
+            => reference.TryGetTarget(out var obj) ? obj.AsOption() : default;
     }
 }

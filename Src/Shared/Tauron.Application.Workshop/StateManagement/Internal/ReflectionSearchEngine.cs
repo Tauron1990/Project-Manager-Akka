@@ -96,10 +96,11 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
 
             config.WithStateType(target);
 
-            var dispatcherAttr = target.GetCustomAttribute<DispatcherAttribute>();
+            var dispatcherAttrOption = target.GetCustomAttribute<DispatcherAttribute>();
 
-            if (dispatcherAttr != null)
+            if (dispatcherAttrOption.HasValue)
             {
+                var dispatcherAttr = dispatcherAttrOption.Value;
                 if (string.IsNullOrWhiteSpace(dispatcherAttr.Name))
                     config.WithDispatcher(dispatcherAttr.CreateConfig());
                 else

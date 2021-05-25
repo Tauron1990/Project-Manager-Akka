@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using Akka.Util;
 using NLog;
 
 namespace Tauron.Temp
@@ -15,7 +16,7 @@ namespace Tauron.Temp
         private readonly ConcurrentDictionary<string, ITempDic> _tempDics = new();
         private readonly ConcurrentDictionary<string, ITempFile> _tempFiles = new();
 
-        protected TempDic(string fullPath, ITempDic? parent, Func<bool, string> nameGenerator, bool deleteDic)
+        protected TempDic(string fullPath, Option<ITempDic> parent, Func<bool, string> nameGenerator, bool deleteDic)
         {
             _nameGenerator = nameGenerator;
             _deleteDic = deleteDic;
@@ -34,7 +35,7 @@ namespace Tauron.Temp
         }
 
         public string FullPath { get; }
-        public ITempDic? Parent { get; }
+        public Option<ITempDic> Parent { get; }
         public bool KeepAlive { get; set; }
 
         public ITempDic CreateDic(string name)

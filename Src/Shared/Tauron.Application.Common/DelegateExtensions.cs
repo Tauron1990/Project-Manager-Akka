@@ -14,17 +14,18 @@ namespace Tauron
             where TDel : Delegate
             => Delegate.Remove(del1, del2) as TDel;
 
-        public static Transform<TSource> From<TSource>(this Func<TSource> source) => new(source);
+        public static TransformFunc<TSource> Transform<TSource>(this Func<TSource> source) => new(source);
 
-        public sealed class Transform<TSource>
+        public struct TransformFunc<TSource>
         {
             private readonly Func<TSource> _source;
 
-            public Transform(Func<TSource> source) => _source = source;
+            public TransformFunc(Func<TSource> source) => _source = source;
 
             public Func<TNew> To<TNew>(Func<TSource, TNew> transform)
             {
-                TNew Func() => transform(_source());
+                var source = _source;
+                TNew Func() => transform(source());
 
                 return Func;
             }

@@ -4,13 +4,17 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Reactive;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
+using Akka.Util;
 using Akka.Util.Internal;
 using JetBrains.Annotations;
 
 namespace Tauron.Application.CommonUI.Helper
 {
     [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-    public sealed class WeakCollection<TType> : IList<TType>
+    public sealed class WeakCollection<TType> : IList<Option<TType>>
         where TType : class
     {
         private readonly List<WeakReference<TType>?> _internalCollection = new();
@@ -31,26 +35,22 @@ namespace Tauron.Application.CommonUI.Helper
             }
         }
 
-        public TType? this[int index]
+        public Option<TType> this[int index]
         {
-            #pragma warning disable CS8613 // Die NULL-Zulässigkeit von Verweistypen im Rückgabetyp entspricht nicht dem implizit implementierten Member.
-            #pragma warning disable CS8766 // Nullability of reference types in return type doesn't match implicitly implemented member (possibly because of nullability attributes).
             get
             {
                 lock (_internalCollection)
                 {
-                    return _internalCollection[index]?.TypedTarget();
+                    return _internalCollection[index]?.TypedTarget() ?? default;
                 }
             }
-            #pragma warning restore CS8766 // Nullability of reference types in return type doesn't match implicitly implemented member (possibly because of nullability attributes).
             set
             {
                 lock (_internalCollection)
                 {
-                    _internalCollection[index] = value == null ? null : new WeakReference<TType>(value);
+                    _internalCollection[index] = value.IsEmpty ? null : new WeakReference<TType>(value.Value);
                 }
             }
-            #pragma warning restore CS8613 // Die NULL-Zulässigkeit von Verweistypen im Rückgabetyp entspricht nicht dem implizit implementierten Member.
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -68,12 +68,12 @@ namespace Tauron.Application.CommonUI.Helper
 
         public bool IsReadOnly => false;
 
-        public void Add(TType item)
+        public void Add(Option<TType> item)
         {
-            if (item == null) return;
+            if (item.IsEmpty) return;
             lock (_internalCollection)
             {
-                _internalCollection.Add(new WeakReference<TType>(item));
+                _internalCollection.Add(new WeakReference<TType>(item.Value));
             }
         }
 
@@ -86,15 +86,15 @@ namespace Tauron.Application.CommonUI.Helper
             }
         }
 
-        public bool Contains(TType item)
+        public bool Contains(Option<TType> item)
         {
             lock (_internalCollection)
             {
-                return item != null && _internalCollection.Any(it => it?.TypedTarget() == item);
+                return item.HasValue && _internalCollection.Any(it => it?.TypedTarget() == item);
             }
         }
 
-        public void CopyTo(TType[] array, int arrayIndex)
+        public void CopyTo(Option<TType>[] array, int arrayIndex)
         {
             Argument.NotNull(array, nameof(array));
 
@@ -103,38 +103,38 @@ namespace Tauron.Application.CommonUI.Helper
                 var index = 0;
                 for (var i = arrayIndex; i < array.Length; i++)
                 {
-                    TType? target = null;
-                    while (target == null && index <= _internalCollection.Count)
+                    Option<TType> target = default;
+                    while (target.IsEmpty && index <= _internalCollection.Count)
                     {
-                        target = _internalCollection[index]?.TypedTarget();
+                        target = _internalCollection[index]?.TypedTarget() ?? default;
                         index++;
                     }
 
-                    if (target == null) break;
+                    if (target.IsEmpty) break;
 
                     array[i] = target;
                 }
             }
         }
 
-        public IEnumerator<TType> GetEnumerator()
+        public IEnumerator<Option<TType>> GetEnumerator()
         {
             lock (_internalCollection)
             {
                 return
                     _internalCollection
                         .ToArray()
-                        .Select(reference => reference?.TypedTarget())
-                        .Where(target => target != null)
+                        .Select(reference => reference?.TypedTarget() ?? default)
+                        .Where(target => target.HasValue)
                         .GetEnumerator()!;
             }
         }
 
-        public int IndexOf(TType item)
+        public int IndexOf(Option<TType> item)
         {
             lock (_internalCollection)
             {
-                if (item == null) return -1;
+                if (item.IsEmpty) return -1;
 
                 int index;
                 for (index = 0; index < _internalCollection.Count; index++)
@@ -147,18 +147,18 @@ namespace Tauron.Application.CommonUI.Helper
             }
         }
 
-        public void Insert(int index, TType item)
+        public void Insert(int index, Option<TType> item)
         {
-            if (item == null) return;
+            if (item.IsEmpty) return;
             lock (_internalCollection)
             {
-                _internalCollection.Insert(index, new WeakReference<TType>(item));
+                _internalCollection.Insert(index, new WeakReference<TType>(item.Value));
             }
         }
 
-        public bool Remove(TType item)
+        public bool Remove(Option<TType> item)
         {
-            if (item == null) return false;
+            if (item.IsEmpty) return false;
             var index = IndexOf(item);
             if (index == -1) return false;
 
@@ -178,7 +178,8 @@ namespace Tauron.Application.CommonUI.Helper
             }
         }
 
-        public event EventHandler? CleanedEvent;
+        private readonly Subject<Unit> _cleaned = new();
+        public IObservable<Unit> WhenCleanedEvent => _cleaned.AsObservable();
 
         internal void CleanUp()
         {
@@ -191,10 +192,7 @@ namespace Tauron.Application.CommonUI.Helper
             OnCleaned();
         }
 
-        private void OnCleaned()
-        {
-            CleanedEvent?.Invoke(this, EventArgs.Empty);
-        }
+        private void OnCleaned() => _cleaned.OnNext(Unit.Default);
     }
 
     [DebuggerNonUserCode]

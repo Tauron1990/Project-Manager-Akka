@@ -15,8 +15,7 @@ namespace Tauron.Application.CommonUI.Model
 
         private Delegate? _command;
 
-        internal CommandRegistrationBuilder(Func<string, Action<object?>, IObservable<bool>?, UIPropertyBase> register,
-            IObservableActor target)
+        internal CommandRegistrationBuilder(Func<string, Action<object?>, IObservable<bool>?, UIPropertyBase> register, IObservableActor target)
         {
             Target = target;
             _register = register;

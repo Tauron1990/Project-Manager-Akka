@@ -83,20 +83,14 @@ namespace Tauron.Application.CommonUI.UI
             }
         }
 
-        protected virtual void OnUnload()
-        {
-            Log.Debug("Unload ModelConnector {Type} -- {Name}", typeof(TDrived), Name);
-        }
+        protected virtual void OnUnload() 
+            => Log.Debug("Unload ModelConnector {Type} -- {Name}", typeof(TDrived), Name);
 
-        protected virtual void OnLoad()
-        {
-            Log.Debug("Load ModelConnector {Type} -- {Name}", typeof(TDrived), Name);
-        }
+        protected virtual void OnLoad() 
+            => Log.Debug("Load ModelConnector {Type} -- {Name}", typeof(TDrived), Name);
 
-        protected virtual void OnViewFound(IView view)
-        {
-            Log.Debug("View Found ModelConnector {Type} -- {Name}", typeof(TDrived), Name);
-        }
+        protected virtual void OnViewFound(IView view) 
+            => Log.Debug("View Found ModelConnector {Type} -- {Name}", typeof(TDrived), Name);
 
         public void ForceUnload()
         {

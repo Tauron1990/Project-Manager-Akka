@@ -11,6 +11,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Core\Database\ChangeType.cs" />
+    <Compile Remove="Core\Database\DatabaseHelper.cs" />
+    <Compile Remove="Core\Database\IChangedHandler.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="akka.conf" />
     <None Remove="appsettings.json" />
     <None Remove="seed.conf" />
@@ -26,6 +32,12 @@
     <Content Include="seed.conf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Core\Database\ChangeType.cs" />
+    <None Include="Core\Database\DatabaseHelper.cs" />
+    <None Include="Core\Database\IChangedHandler.cs" />
   </ItemGroup>
 
   <ItemGroup>

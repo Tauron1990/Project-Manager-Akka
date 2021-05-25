@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using Akka.Util;
 using Autofac;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
@@ -22,10 +23,10 @@ namespace Tauron.Localization.Actor
         public JsonLocLocStoreActor(ILifetimeScope scope)
             => _configuration = scope.ResolveOptional<JsonConfiguration>();
 
-        protected override object? TryQuery(string name, CultureInfo target)
+        protected override Option<object> TryQuery(string name, CultureInfo target)
         {
             if (_configuration == null)
-                return null;
+                return Option<object>.None;
 
             EnsureInitialized();
 
@@ -38,7 +39,7 @@ namespace Tauron.Localization.Actor
                 target = target.Parent;
             } while (!Equals(target, CultureInfo.InvariantCulture));
 
-            return LookUp(name, CultureInfo.GetCultureInfo(_configuration.Fallback));
+            return LookUp(name, CultureInfo.GetCultureInfo(_configuration.Fallback)).OptionNotNull();
         }
 
         private object? LookUp(string name, CultureInfo target)

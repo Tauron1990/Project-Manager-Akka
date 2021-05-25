@@ -26,15 +26,9 @@ namespace Tauron
                 throw new ObjectDisposedException(nameof(GetType));
         }
 
-        public void TrackDispose(Action action)
-        {
-            _tracker = _tracker.Combine(action);
-        }
+        public void TrackDispose(Action action) => _tracker = _tracker.Combine(action);
 
-        public void RemoveTrackDispose(Action action)
-        {
-            _tracker = _tracker.Remove(action);
-        }
+        public void RemoveTrackDispose(Action action) => _tracker = _tracker.Remove(action);
 
         protected void Dispose(bool disposing)
         {

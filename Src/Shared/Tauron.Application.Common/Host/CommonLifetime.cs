@@ -11,7 +11,7 @@ namespace Tauron.Host
     {
         private readonly string _appRoute;
         private readonly IComponentContext _factory;
-        private static readonly ILogger _logger = LogManager.GetCurrentClassLogger();
+        private static readonly ILogger Logger = LogManager.GetCurrentClassLogger();
 
         private IAppRoute? _route;
 
@@ -23,17 +23,17 @@ namespace Tauron.Host
 
         public async Task WaitForStartAsync(ActorSystem actorSystem)
         {
-            _logger.Info("Begin Start Application");
+            Logger.Info("Begin Start Application");
             try
             {
                 string name = !string.IsNullOrEmpty(_appRoute) ? _appRoute : "default";
-                _logger.Info("Try get Route for {RouteName}", name);
+                Logger.Info("Try get Route for {RouteName}", name);
 
                 _route = GetRoute(name);
             }
             catch (Exception e)
             {
-                _logger.Warn(e, "Error on get Route");
+                Logger.Warn(e, "Error on get Route");
                 _route = GetRoute(null);
             }
 

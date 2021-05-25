@@ -1,6 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Akka.Actor;
+using Akka.Util;
 using JetBrains.Annotations;
 using Tauron.Localization;
 
@@ -181,9 +182,7 @@ namespace Tauron.Application.Localizer.UIModels.lang
 
         public string ProjectViewLanguageBoxFirstLabel => _projectViewLanguageBoxFirstLabel.Result;
 
-        private static Task<string> ToString(Task<object?> task)
-        {
-            return task.ContinueWith(t => t.Result as string ?? string.Empty);
-        }
+        private static Task<string> ToString(Task<Option<object>> task) 
+            => task.ContinueWith(t => t.Result.Select(o => o as string ?? string.Empty).GetOrElse(string.Empty));
     }
 }

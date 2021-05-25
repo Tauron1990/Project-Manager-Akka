@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using System.Windows.Media;
+using Akka.Util;
 using JetBrains.Annotations;
 using Tauron.Application.CommonUI;
 using Tauron.Application.CommonUI.Helper;
@@ -19,9 +20,9 @@ namespace Tauron.Application.Wpf
     [PublicAPI]
     public sealed class FrameworkObject : IInternalWeakReference
     {
-        private readonly ElementReference<FrameworkContentElement>? _fce;
+        private readonly Option<ElementReference<FrameworkContentElement>> _fce;
 
-        private readonly ElementReference<FrameworkElement>? _fe;
+        private readonly Option<ElementReference<FrameworkElement>> _fe;
 
         private readonly bool _isFce;
 
@@ -35,11 +36,9 @@ namespace Tauron.Application.Wpf
             _isFe = fe != null;
             _isFce = fce != null;
             IsValid = _isFce || _isFe;
-
-            // ReSharper disable AssignNullToNotNullAttribute
+            
             if (fe != null) _fe = new ElementReference<FrameworkElement>(fe, isWeak);
             else if (fce != null) _fce = new ElementReference<FrameworkContentElement>(fce, isWeak);
-            // ReSharper restore AssignNullToNotNullAttribute
         }
 
         public object? DataContext
@@ -63,33 +62,33 @@ namespace Tauron.Application.Wpf
 
         public bool IsValid { get; }
 
-        public DependencyObject? Original
+        public Option<DependencyObject> Original
         {
             get
             {
-                if (_isFe) return _fe?.Target;
-                return _isFce ? _fce?.Target : null;
+                if (_isFe) return _fe.Value.Target.Value;
+                return _isFce ? _fce.Value.Target.Value : Option<DependencyObject>.None;
             }
         }
 
-        public DependencyObject? Parent
+        public Option<DependencyObject> Parent
         {
             get
             {
-                if (!IsValid) return null;
+                if (!IsValid) return Option<DependencyObject>.None;
 
-                if (TryGetFrameworkElement(out var fe)) return fe.Parent;
-                return TryGetFrameworkContentElement(out var fce) ? fce.Parent : null;
+                if (TryGetFrameworkElement(out var fe)) return fe.Parent.OptionNotNull();
+                return TryGetFrameworkContentElement(out var fce) ? fce.Parent.OptionNotNull() : Option<DependencyObject>.None;
             }
         }
 
-        public DependencyObject? VisualParent
+        public Option<DependencyObject> VisualParent
         {
             get
             {
-                if (!IsValid) return null;
+                if (!IsValid) return Option<DependencyObject>.None;
 
-                return TryGetFrameworkElement(out var fe) ? VisualTreeHelper.GetParent(fe) : null;
+                return TryGetFrameworkElement(out var fe) ? VisualTreeHelper.GetParent(fe).OptionNotNull() : Option<DependencyObject>.None;
             }
         }
 
@@ -97,9 +96,9 @@ namespace Tauron.Application.Wpf
         {
             get
             {
-                if (_isFe) return _fe?.IsAlive ?? false;
+                if (_isFe) return _fe.Value.IsAlive;
 
-                return _isFce && (_fce?.IsAlive ?? false);
+                return _isFce && _fce.Value.IsAlive;
             }
         }
 
@@ -150,14 +149,14 @@ namespace Tauron.Application.Wpf
 
         public bool TryGetFrameworkContentElement([NotNullWhen(true)] out FrameworkContentElement? contentElement)
         {
-            contentElement = _isFce ? _fce?.Target : null;
+            contentElement = _isFce ? _fce.Value.Target.Value : null;
 
             return contentElement != null;
         }
 
         public bool TryGetFrameworkElement([NotNullWhen(true)] out FrameworkElement? frameworkElement)
         {
-            var temp = _isFe ? _fe?.Target : null;
+            var temp = _isFe ? _fe.Value.Target.Value : null;
 
             if (temp == null)
             {
@@ -173,9 +172,9 @@ namespace Tauron.Application.Wpf
         private class ElementReference<TReference> : IInternalWeakReference
             where TReference : class
         {
-            private readonly TReference? _reference;
+            private readonly Option<TReference> _reference;
 
-            private readonly WeakReference<TReference>? _weakRef;
+            private readonly Option<WeakReference<TReference>> _weakRef;
 
             public ElementReference([JetBrains.Annotations.NotNull] TReference reference, bool isWeak)
             {
@@ -183,9 +182,9 @@ namespace Tauron.Application.Wpf
                 else _reference = reference;
             }
 
-            public TReference? Target => _weakRef != null ? _weakRef.TypedTarget() : _reference;
+            public Option<TReference> Target => _weakRef.HasValue ? _weakRef.Value.TypedTarget() : _reference;
 
-            public bool IsAlive => _weakRef == null || _weakRef.IsAlive();
+            public bool IsAlive => _weakRef.IsEmpty || _weakRef.Value.IsAlive();
         }
     }
 }

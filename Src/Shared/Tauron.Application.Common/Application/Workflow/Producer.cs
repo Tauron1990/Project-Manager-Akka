@@ -10,7 +10,7 @@ namespace Tauron.Application.Workflow
     [PublicAPI]
     public abstract class Producer<TState, TContext>
         where TState : IStep<TContext>
-
+        where TContext : notnull
     {
         private readonly Dictionary<StepId, StepRev<TState, TContext>> _states;
 
@@ -20,7 +20,7 @@ namespace Tauron.Application.Workflow
 
         protected Producer() => _states = new Dictionary<StepId, StepRev<TState, TContext>>();
 
-        public void Begin(StepId id, [NotNull] TContext context)
+        public void Begin(StepId id, TContext context)
         {
             Argument.NotNull(context, nameof(context));
 
@@ -37,7 +37,7 @@ namespace Tauron.Application.Workflow
             return _lastId.Name == StepId.Finish.Name || _lastId.Name == StepId.Fail.Name;
         }
 
-        protected virtual bool Process(StepId id, [NotNull] TContext context)
+        protected virtual bool Process(StepId id, TContext context)
         {
             Argument.NotNull(context, nameof(context));
 
@@ -90,7 +90,7 @@ namespace Tauron.Application.Workflow
             return result;
         }
 
-        private bool ProgressConditions([NotNull] StepRev<TState, TContext> rev, TContext context)
+        private bool ProgressConditions(StepRev<TState, TContext> rev, TContext context)
         {
             var std = (from con in rev.Conditions
                 let stateId = con.Select(rev.Step, context)
@@ -104,7 +104,6 @@ namespace Tauron.Application.Workflow
             return cid.Name != StepId.None.Name && Process(cid, context);
         }
 
-        [NotNull]
         public StepConfiguration<TState, TContext> SetStep(StepId id, TState stade)
         {
             Argument.NotNull(stade, nameof(stade));
@@ -115,7 +114,6 @@ namespace Tauron.Application.Workflow
             return new StepConfiguration<TState, TContext>(rev);
         }
 
-        [NotNull]
         public StepConfiguration<TState, TContext> GetStateConfiguration(StepId id) => new(_states[id]);
     }
 
@@ -126,8 +124,7 @@ namespace Tauron.Application.Workflow
 
         internal StepConfiguration([NotNull] StepRev<TState, TContext> context) => _context = context;
 
-        [NotNull]
-        public StepConfiguration<TState, TContext> WithCondition([NotNull] ICondition<TContext> condition)
+        public StepConfiguration<TState, TContext> WithCondition(ICondition<TContext> condition)
         {
             Argument.NotNull(condition, nameof(condition));
 
@@ -135,9 +132,7 @@ namespace Tauron.Application.Workflow
             return this;
         }
 
-        [NotNull]
-        public ConditionConfiguration<TState, TContext> WithCondition(
-            Func<TContext, IStep<TContext>, bool>? guard = null)
+        public ConditionConfiguration<TState, TContext> WithCondition(Func<TContext, IStep<TContext>, bool>? guard = null)
         {
             var con = new SimpleCondition<TContext> {Guard = guard};
             if (guard != null) return new ConditionConfiguration<TState, TContext>(WithCondition(con), con);

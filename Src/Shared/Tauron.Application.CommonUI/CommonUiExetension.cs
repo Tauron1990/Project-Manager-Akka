@@ -40,8 +40,7 @@ namespace Tauron.Application.CommonUI
             return ThenFlow(builder, () => trigger, flowBuilder);
         }
 
-        public static CommandRegistrationBuilder ThenFlow<TStart>(this CommandRegistrationBuilder builder,
-            Func<TStart> trigger, Func<IObservable<TStart>, IDisposable> flowBuilder)
+        public static CommandRegistrationBuilder ThenFlow<TStart>(this CommandRegistrationBuilder builder, Func<TStart> trigger, Func<IObservable<TStart>, IDisposable> flowBuilder)
         {
             var ob = new Subject<TStart>();
             var sub = flowBuilder(ob.AsObservable());

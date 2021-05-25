@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Reactive.Linq;
 using JetBrains.Annotations;
 
 namespace Tauron
@@ -24,7 +23,7 @@ namespace Tauron
             return item;
         }
 
-        public static void ShiftElements<T>([CanBeNull] this T[] array, int oldIndex, int newIndex)
+        public static void ShiftElements<T>(this T[]? array, int oldIndex, int newIndex)
         {
             if (array == null) return;
 
@@ -53,7 +52,7 @@ namespace Tauron
                 action(value);
         }
 
-        public static IEnumerable<T> SkipLast<T>([NotNull] this IEnumerable<T> source, int count)
+        public static IEnumerable<T> SkipLast<T>(this IEnumerable<T> source, int count)
         {
             var list = new List<T>(source);
 
@@ -63,7 +62,7 @@ namespace Tauron
                 yield return list[i];
         }
 
-        public static int FindIndex<T>([NotNull] this IEnumerable<T> items, Func<T, bool> predicate)
+        public static int FindIndex<T>(this IEnumerable<T> items, Func<T, bool> predicate)
         {
             var retVal = 0;
             foreach (var item in items)
@@ -75,7 +74,7 @@ namespace Tauron
             return -1;
         }
 
-        public static int IndexOf<T>([NotNull] this IEnumerable<T> items, T item)
+        public static int IndexOf<T>(this IEnumerable<T> items, T item)
         {
             return items.FindIndex(i => EqualityComparer<T>.Default.Equals(item, i));
         }
