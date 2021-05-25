@@ -11,7 +11,7 @@ using Tauron.Application.Wpf.UI;
 namespace Tauron.Application.Wpf
 {
     [PublicAPI]
-    public class Window : System.Windows.Window, IView, IUIElement, IWindowProvider, IWindow
+    public class Window : System.Windows.Window, IView, IWindowProvider, IWindow
     {
         private readonly WindowControlLogic _controlLogic;
         private readonly IWindow _element;

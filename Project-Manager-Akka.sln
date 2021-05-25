@@ -110,13 +110,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceManager.HostInstalle
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tauron.Application.ServiceManagerOld", "Src\Apps\FrontEnd\ServiceManager\Tauron.Application.ServiceManager.Old\Tauron.Application.ServiceManagerOld.csproj", "{A944843F-93A5-4D8C-AC23-4B6DC0702517}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tauron.Application.ServiceManager", "Src\Apps\FrontEnd\ServiceManager\Tauron.Application.ServiceManager\Tauron.Application.ServiceManager.csproj", "{1EBE795E-FFDB-48FA-A0E9-8551A39731D0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tauron.Application.ServiceManager", "Src\Apps\FrontEnd\ServiceManager\Tauron.Application.ServiceManager\Tauron.Application.ServiceManager.csproj", "{1EBE795E-FFDB-48FA-A0E9-8551A39731D0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceHost.Client.Shared", "Src\Apps\Backend\ServiceHost\ServiceHost.Client.Shared\ServiceHost.Client.Shared.csproj", "{9BAD5A45-2578-4C16-8482-264F5A7129B5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceManager.ServiceDeamon", "Src\Apps\Backend\ServiceHost\ServiceManager.ServiceDeamon\ServiceManager.ServiceDeamon.csproj", "{42BA00A3-06F1-4F8F-BD3E-C9E9A5F7CC6B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceManager.ServiceDeamon", "Src\Apps\Backend\ServiceHost\ServiceManager.ServiceDeamon\ServiceManager.ServiceDeamon.csproj", "{42BA00A3-06F1-4F8F-BD3E-C9E9A5F7CC6B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InfrastructureService", "InfrastructureService\InfrastructureService.csproj", "{ECDDE9F9-C425-419A-851F-47955947E0E7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InfrastructureService", "InfrastructureService\InfrastructureService.csproj", "{ECDDE9F9-C425-419A-851F-47955947E0E7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Mini", "Mini", "{D5CAA153-6FA3-45A2-9967-5C32E9201B07}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TimeTracker", "Src\Apps\Mini\TimeTracker\TimeTracker.csproj", "{994DE142-B380-44A9-89DE-54013CA6B295}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -288,13 +292,17 @@ Global
 		{ECDDE9F9-C425-419A-851F-47955947E0E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ECDDE9F9-C425-419A-851F-47955947E0E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ECDDE9F9-C425-419A-851F-47955947E0E7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{994DE142-B380-44A9-89DE-54013CA6B295}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{994DE142-B380-44A9-89DE-54013CA6B295}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{994DE142-B380-44A9-89DE-54013CA6B295}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{994DE142-B380-44A9-89DE-54013CA6B295}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{06C2AE73-CFD3-4AF4-92F5-723E0C47D65B} = {7D9CD1F7-DAA6-4A40-B7CB-CBE9563209FD}
-		{D5D1CDC3-00AB-4176-BD67-71B0E7474566} = {06C2AE73-CFD3-4AF4-92F5-723E0C47D65B}
+		{D5D1CDC3-00AB-4176-BD67-71B0E7474566} = {D5CAA153-6FA3-45A2-9967-5C32E9201B07}
 		{9F0D00CD-133F-412C-B87F-EE6051E28700} = {7D9CD1F7-DAA6-4A40-B7CB-CBE9563209FD}
 		{E7B330C5-1B07-494C-A530-0D8C28162992} = {9F0D00CD-133F-412C-B87F-EE6051E28700}
 		{C800A8A6-F3CD-477F-8ED9-B63AEB4E8981} = {9F0D00CD-133F-412C-B87F-EE6051E28700}
@@ -347,6 +355,8 @@ Global
 		{9BAD5A45-2578-4C16-8482-264F5A7129B5} = {6867B2DF-4E38-449C-9A87-6504A9DB4C28}
 		{42BA00A3-06F1-4F8F-BD3E-C9E9A5F7CC6B} = {6867B2DF-4E38-449C-9A87-6504A9DB4C28}
 		{ECDDE9F9-C425-419A-851F-47955947E0E7} = {5240E794-95D4-4B50-8E87-22417D517216}
+		{D5CAA153-6FA3-45A2-9967-5C32E9201B07} = {79F4F24B-7CCF-4905-8933-2D43F86AE096}
+		{994DE142-B380-44A9-89DE-54013CA6B295} = {D5CAA153-6FA3-45A2-9967-5C32E9201B07}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F63AD2ED-4320-43AB-8761-A3FEBC507539}
