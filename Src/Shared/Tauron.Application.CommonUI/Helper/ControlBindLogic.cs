@@ -74,7 +74,7 @@ namespace Tauron.Application.CommonUI.Helper
             void OnLoad()
             {
                 var root = ControlBindLogic.FindRoot(elementBase);
-                if (root is IView control && root is IUIElement {DataContext: IViewModel model})
+                if (root is IView control and IUIElement {DataContext: IViewModel model})
                 {
                     _modelAction?.Invoke(model, control);
 

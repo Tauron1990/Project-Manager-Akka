@@ -51,8 +51,7 @@ namespace Tauron.Application.Settings
         }
 
         [return: MaybeNull]
-        protected TValue GetValue<TValue>(Func<string, TValue> converter, TValue? defaultValue = default,
-            [CallerMemberName] string? name = null)
+        protected TValue GetValue<TValue>(Func<string, TValue> converter, TValue? defaultValue = default, [CallerMemberName] string? name = null)
         {
             try
             {

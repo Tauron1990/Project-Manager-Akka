@@ -27,8 +27,7 @@ namespace Tauron.Application
             set => _defaultPath = value;
         }
 
-        public string LocalApplicationData => Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)
-            .CombinePath(AppRepository);
+        public string LocalApplicationData => Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData).CombinePath(AppRepository);
 
         public string LocalApplicationTempFolder => LocalApplicationData.CombinePath("Temp");
 

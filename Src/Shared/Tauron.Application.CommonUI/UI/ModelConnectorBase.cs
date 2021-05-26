@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Reactive.Disposables;
+using System.Reactive.Threading.Tasks;
 using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
@@ -16,6 +18,7 @@ namespace Tauron.Application.CommonUI.UI
         protected readonly ILogger Log = LogManager.GetCurrentClassLogger(typeof(TDrived));
 
         private IEventActor? _eventActor;
+        private CompositeDisposable _disposable = new();
 
         private int _isInitializing = 1;
 
@@ -23,7 +26,11 @@ namespace Tauron.Application.CommonUI.UI
         {
             Name = name;
 
-            promise.OnUnload(OnUnload);
+            promise.OnUnload(() =>
+                             {
+                                 _disposable.Dispose();
+                                 OnUnload();
+                             });
 
             promise.OnNoContext(NoDataContextFound);
 
@@ -69,8 +76,10 @@ namespace Tauron.Application.CommonUI.UI
                 var eventActor = await Model.Actor.Ask<IEventActor>(new MakeEventHook(Name), TimeSpan.FromSeconds(15));
                 //Log.Information("Ask Compled For {Property}", _name);
 
-                eventActor.Register(HookEvent.Create<PropertyChangedEvent>(PropertyChangedHandler));
-                eventActor.Register(HookEvent.Create<ValidatingEvent>(ValidateCompled));
+                eventActor.Register(HookEvent.Create<PropertyChangedEvent>(PropertyChangedHandler))
+                          .ToObservable().Subscribe(d => _disposable.Add(d));
+                eventActor.Register(HookEvent.Create<ValidatingEvent>(ValidateCompled))
+                          .ToObservable().Subscribe(d => _disposable.Add(d));
 
                 Model.Actor.Tell(new TrackPropertyEvent(Name), eventActor.OriginalRef);
 

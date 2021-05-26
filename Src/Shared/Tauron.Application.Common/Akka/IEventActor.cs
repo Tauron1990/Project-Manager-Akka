@@ -1,4 +1,6 @@
-﻿using Akka.Actor;
+﻿using System;
+using System.Threading.Tasks;
+using Akka.Actor;
 using JetBrains.Annotations;
 
 namespace Tauron.Akka
@@ -8,7 +10,7 @@ namespace Tauron.Akka
     {
         IActorRef OriginalRef { get; }
 
-        void Register(HookEvent hookEvent);
+        Task<IDisposable> Register(HookEvent hookEvent);
 
         void Send(IActorRef actor, object send);
     }

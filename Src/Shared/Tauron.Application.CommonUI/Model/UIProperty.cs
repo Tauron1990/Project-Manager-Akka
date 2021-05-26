@@ -9,7 +9,7 @@ using Tauron.Operations;
 namespace Tauron.Application.CommonUI.Model
 {
     [PublicAPI]
-    public sealed class UIProperty<TData> : UIPropertyBase, IObservable<TData>, IDisposable
+    public sealed class UIProperty<TData> : UIPropertyBase, IObservable<TData>, IDisposable, IObserver<TData>
     {
         private sealed record DataContainer(TData Data, bool IsNil = false)
         {
@@ -95,6 +95,12 @@ namespace Tauron.Application.CommonUI.Model
         }
 
         public override string ToString() => Value?.ToString() ?? "null--" + typeof(TData);
+
+        void IObserver<TData>.OnCompleted() { }
+
+        void IObserver<TData>.OnError(Exception error) { }
+
+        void IObserver<TData>.OnNext(TData value) => Set(value);
     }
 
 //    [PublicAPI]

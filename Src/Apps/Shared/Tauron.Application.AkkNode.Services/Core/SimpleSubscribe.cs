@@ -9,16 +9,14 @@ namespace Tauron.Application.AkkaNode.Services.Core
     [PublicAPI]
     public static class SimpleSubscribe
     {
-        public static IEventActor SubscribeToEvent<TEvent>(this IActorRefFactory actor, IActorRef target,
-            bool killOnFirstResponse = false)
+        public static IEventActor SubscribeToEvent<TEvent>(this IActorRefFactory actor, IActorRef target, bool killOnFirstResponse = false)
         {
             var eventActor = EventActor.Create(actor, null, killOnFirstResponse);
             eventActor.Send(target, new EventSubscribe(true, typeof(TEvent)));
             return eventActor;
         }
 
-        public static IEventActor SubscribeToEvent<TEvent>(this IActorRefFactory actor, IActorRef target,
-            Action<TEvent> handler, bool killOnFirstResponse = false)
+        public static IEventActor SubscribeToEvent<TEvent>(this IActorRefFactory actor, IActorRef target, Action<TEvent> handler, bool killOnFirstResponse = false)
         {
             var eventActor = EventActor.Create(actor, handler, killOnFirstResponse);
             eventActor.Send(target, new EventSubscribe(true, typeof(TEvent)));
