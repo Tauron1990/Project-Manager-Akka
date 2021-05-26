@@ -8,8 +8,7 @@ namespace Tauron.Application.CommonUI.Model
     [PublicAPI]
     public static class UIActorExtensions
     {
-        public static UIModel<TModel> RegisterViewModel<TModel>(this UiActor actor, string name,
-            IViewModel<TModel>? model = null)
+        public static UIModel<TModel> RegisterViewModel<TModel>(this UiActor actor, string name, IViewModel<TModel>? model = null)
             where TModel : class
         {
             model ??= actor.LifetimeScope.Resolve<IViewModel<TModel>>();

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
+using Akka.Actor.Dsl;
 using Akka.Util;
 using Akka.Util.Extensions;
 using JetBrains.Annotations;
@@ -70,6 +71,32 @@ namespace Tauron.ObservableExt
                    let opt = optionSelector(sourceInst)
                    where opt.HasValue
                    select resultSelector(sourceInst, opt.Value);
+        }
+
+        public static void Run<TType>(this Option<TType> option, Action<TType> onSuccess, Action onEmpty)
+        {
+            if (option.HasValue)
+                onSuccess(option.Value);
+            else
+                onEmpty();
+        }
+
+        public static Caster<TType> Cast<TType>(this Option<TType> option)
+            => new(option);
+
+        public struct Caster<TType>
+        {
+            private readonly Option<TType> _option;
+
+            public Caster(Option<TType> option) => _option = option;
+
+            public Option<TResult> To<TResult>()
+                => _option.FlatSelect(v =>
+                                      {
+                                          if (v is TResult result)
+                                              return result.AsOption();
+                                          return Option<TResult>.None;
+                                      });
         }
     }
 }

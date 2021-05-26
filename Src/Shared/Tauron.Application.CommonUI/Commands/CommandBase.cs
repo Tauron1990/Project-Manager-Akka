@@ -23,9 +23,9 @@ namespace Tauron.Application.CommonUI.Commands
             }
         }
 
-        public virtual bool CanExecute(object? parameter) => true;
+        public virtual bool CanExecute(object? parameter = null) => true;
 
-        public abstract void Execute(object? parameter);
+        public abstract void Execute(object? parameter = null);
 
         public virtual void RaiseCanExecuteChanged()
         {

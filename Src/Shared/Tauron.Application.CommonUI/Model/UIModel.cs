@@ -19,9 +19,6 @@ namespace Tauron.Application.CommonUI.Model
 
         public bool IsInitialized => Model.IsInitialized;
 
-        public void AwaitInit(Action waiter)
-        {
-            Model.AwaitInit(waiter);
-        }
+        public void AwaitInit(Action waiter) => Model.AwaitInit(waiter);
     }
 }

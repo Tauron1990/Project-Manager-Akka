@@ -1,4 +1,5 @@
 ﻿using System;
+using Akka.Util.Extensions;
 using Avalonia;
 using Avalonia.Data;
 using JetBrains.Annotations;
@@ -24,7 +25,7 @@ namespace Tauron.Application.Avalonia.UI
                 if (!TryGetTargetItems(serviceProvider, out var target, out _))
                     return AvaloniaProperty.UnsetValue;
 
-                if (!ControlBindLogic.FindDataContext(ElementMapper.Create(target), out var model))
+                if (!ControlBindLogic.FindDataContext(ElementMapper.Create(target).AsOption(), out var model))
                     return AvaloniaProperty.UnsetValue;
 
                 var binding = new Binding();

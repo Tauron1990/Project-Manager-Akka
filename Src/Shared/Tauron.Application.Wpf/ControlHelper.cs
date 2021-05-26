@@ -4,12 +4,14 @@ using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using Akka.Actor;
+using Akka.Util.Extensions;
 using JetBrains.Annotations;
 using NLog;
 using Tauron.Application.CommonUI;
 using Tauron.Application.CommonUI.Helper;
 using Tauron.Application.CommonUI.ModelMessages;
 using Tauron.Application.Wpf.AppCore;
+using Tauron.ObservableExt;
 
 namespace Tauron.Application.Wpf
 {
@@ -62,16 +64,13 @@ namespace Tauron.Application.Wpf
             if (DesignerProperties.GetIsInDesignMode(obj)) return;
 
             var ele = ElementMapper.Create(obj);
-            var root = ControlBindLogic.FindRoot(ele);
-            if (root == null)
-            {
-                ControlBindLogic.MakeLazy((IUIElement) ele, newName, oldName,
-                    (name, old, controllable, dependencyObject)
-                        => SetLinker(old, name, controllable, dependencyObject, factory));
-                return;
-            }
+            var rootOption = ControlBindLogic.FindRoot(ele.AsOption());
 
-            SetLinker(newName, oldName, root, ele, factory);
+            rootOption.Run(
+                root => SetLinker(newName, oldName, root, ele, factory),
+                () =>
+                    ControlBindLogic.MakeLazy((IUIElement) ele, newName, oldName, (name, old, controllable, dependencyObject)
+                                                                                      => SetLinker(old, name, controllable, dependencyObject, factory)));
         }
 
         private static void SetLinker(string? newName, string? oldName, IBinderControllable root, IUIObject obj,

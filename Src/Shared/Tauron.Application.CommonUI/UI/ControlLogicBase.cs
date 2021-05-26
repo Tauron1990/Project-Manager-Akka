@@ -5,6 +5,7 @@ using NLog;
 using Tauron.Application.CommonUI.Helper;
 using Tauron.Application.CommonUI.ModelMessages;
 using Tauron.Host;
+using Tauron.ObservableExt;
 
 namespace Tauron.Application.CommonUI.UI
 {
@@ -68,12 +69,11 @@ namespace Tauron.Application.CommonUI.UI
 
             if (!Model.IsInitialized)
             {
-                var parent = ControlBindLogic.FindParentDatacontext(UserControl);
-                if (parent != null)
-                    parent.Actor.Tell(new InitParentViewModel(Model));
-                else
-                    ViewModelSuperviser.Get(ActorApplication.Application.ActorSystem)
-                        .Create(Model);
+                var parentOption = ControlBindLogic.FindParentDatacontext(UserControl);
+                parentOption.Run(
+                    parent => parent.Actor.Tell(new InitParentViewModel(Model)),
+                    () => ViewModelSuperviser.Get(ActorApplication.Application.ActorSystem)
+                                             .Create(Model));
             }
 
             Model.AwaitInit(() => Model.Actor.Tell(new InitEvent()));

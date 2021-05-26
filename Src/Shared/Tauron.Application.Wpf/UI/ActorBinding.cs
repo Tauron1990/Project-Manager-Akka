@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Data;
+using Akka.Util.Extensions;
 using JetBrains.Annotations;
 using Tauron.Application.CommonUI.Helper;
 using Tauron.Application.CommonUI.UI;
@@ -26,7 +27,7 @@ namespace Tauron.Application.Wpf.UI
                 if (DesignerProperties.GetIsInDesignMode(dependencyObject))
                     return DependencyProperty.UnsetValue;
 
-                if (!ControlBindLogic.FindDataContext(ElementMapper.Create(dependencyObject), out var model))
+                if (!ControlBindLogic.FindDataContext(ElementMapper.Create(dependencyObject).AsOption(), out var model))
                     return null;
 
                 Path = Path != null

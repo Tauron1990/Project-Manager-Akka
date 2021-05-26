@@ -15,10 +15,8 @@ namespace Tauron.Application.CommonUI.Helper
 {
     public static class ViewModelSuperviserExtensions
     {
-        public static void InitModel(this IViewModel model, IActorContext context, string? name = null)
-        {
-            ViewModelSuperviser.Get(context.System).Create(model, name);
-        }
+        public static void InitModel(this IViewModel model, IActorContext context, string? name = null) 
+            => ViewModelSuperviser.Get(context.System).Create(model, name);
     }
 
     public sealed class ViewModelSuperviser
@@ -33,8 +31,7 @@ namespace Tauron.Application.CommonUI.Helper
 
         public static ViewModelSuperviser Get(ActorSystem system)
         {
-            return _superviser ??= new ViewModelSuperviser(system.ActorOf(ServiceProvider.For(system).Props<ViewModelSuperviserActor>(),
-                nameof(ViewModelSuperviser)));
+            return _superviser ??= new ViewModelSuperviser(system.ActorOf(ServiceProvider.For(system).Props<ViewModelSuperviserActor>(), nameof(ViewModelSuperviser)));
         }
 
         public void Create(IViewModel model, string? name = null)
@@ -64,10 +61,8 @@ namespace Tauron.Application.CommonUI.Helper
     {
         private int _count;
 
-        public ViewModelSuperviserActor()
-        {
-            Receive<ViewModelSuperviser.CreateModel>(obs => obs.SubscribeWithStatus(NewModel));
-        }
+        public ViewModelSuperviserActor() 
+            => Receive<ViewModelSuperviser.CreateModel>(obs => obs.SubscribeWithStatus(NewModel));
 
         private void NewModel(ViewModelSuperviser.CreateModel obj)
         {
@@ -164,16 +159,12 @@ namespace Tauron.Application.CommonUI.Helper
                             return Directive.Restart;
                         }
                         else
-                        {
                             _restartAtempt++;
-                        }
 
                         _time.Restart();
 
                         if (_restartAtempt > 6)
-                        {
                             return Directive.Escalate;
-                        }
                         else
                         {
                             _currentState = InternalState.Closed;

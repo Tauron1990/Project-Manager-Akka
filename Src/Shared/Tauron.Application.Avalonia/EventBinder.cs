@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Akka.Actor;
+using Akka.Util.Extensions;
 using Avalonia;
 using Avalonia.Controls;
 using JetBrains.Annotations;
@@ -12,6 +13,7 @@ using Tauron.Application.CommonUI;
 using Tauron.Application.CommonUI.Commands;
 using Tauron.Application.CommonUI.Helper;
 using Tauron.Application.CommonUI.ModelMessages;
+using Tauron.ObservableExt;
 
 namespace Tauron.Application.Avalonia
 {
@@ -40,14 +42,11 @@ namespace Tauron.Application.Avalonia
         private static void OnEventsChanged(Control d, string newValue, string? oldValue)
         {
             var ele = ElementMapper.Create(d);
-            var root = ControlBindLogic.FindRoot(ele);
-            if (root == null)
-            {
-                ControlBindLogic.MakeLazy((IUIElement) ele, newValue, oldValue, BindInternal);
-                return;
-            }
+            var rootOption = ControlBindLogic.FindRoot(ele.AsOption());
+            rootOption.Run(
+                root => BindInternal(oldValue, newValue, root, ele),
+                () => ControlBindLogic.MakeLazy((IUIElement)ele, newValue, oldValue, BindInternal));
 
-            BindInternal(oldValue, newValue, root, ele);
         }
 
         private static void BindInternal(string? oldValue, string? newValue, IBinderControllable binder,

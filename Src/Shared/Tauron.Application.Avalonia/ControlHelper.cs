@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Linq;
 using Akka.Actor;
+using Akka.Util.Extensions;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -11,6 +12,7 @@ using Tauron.Application.Avalonia.AppCore;
 using Tauron.Application.CommonUI;
 using Tauron.Application.CommonUI.Helper;
 using Tauron.Application.CommonUI.ModelMessages;
+using Tauron.ObservableExt;
 
 namespace Tauron.Application.Avalonia
 {
@@ -68,16 +70,12 @@ namespace Tauron.Application.Avalonia
             Argument.NotNull(factory, nameof(factory));
 
             var ele = ElementMapper.Create(obj);
-            var root = ControlBindLogic.FindRoot(ele);
-            if (root == null)
-            {
-                ControlBindLogic.MakeLazy((IUIElement) ele, newName, oldName,
-                    (name, old, controllable, dependencyObject)
-                        => SetLinker(old, name, controllable, dependencyObject, factory));
-                return;
-            }
-
-            SetLinker(newName, oldName, root, ele, factory);
+            var rootOption = ControlBindLogic.FindRoot(ele.AsOption());
+            
+            rootOption.Run(
+                root => SetLinker(newName, oldName, root, ele, factory),
+                () => ControlBindLogic.MakeLazy((IUIElement)ele, newName, oldName, (name, old, controllable, dependencyObject)
+                                                                                       => SetLinker(old, name, controllable, dependencyObject, factory)));
         }
 
         private static void SetLinker(string? newName, string? oldName, IBinderControllable root, IUIObject obj,

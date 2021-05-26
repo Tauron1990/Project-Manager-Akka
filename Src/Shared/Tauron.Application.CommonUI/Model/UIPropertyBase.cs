@@ -9,7 +9,7 @@ namespace Tauron.Application.CommonUI.Model
     [PublicAPI]
     public abstract class UIPropertyBase
     {
-        public UIPropertyBase(string name) => Name = name;
+        protected UIPropertyBase(string name) => Name = name;
 
         public string Name { get; }
 

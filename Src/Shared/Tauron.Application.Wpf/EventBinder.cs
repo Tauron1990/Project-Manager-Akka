@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Windows;
 using Akka.Actor;
+using Akka.Util.Extensions;
 using JetBrains.Annotations;
 using NLog;
 using Tauron.Application.CommonUI;
@@ -12,6 +13,7 @@ using Tauron.Application.CommonUI.Commands;
 using Tauron.Application.CommonUI.Helper;
 using Tauron.Application.CommonUI.ModelMessages;
 using Tauron.Application.Wpf.AppCore;
+using Tauron.ObservableExt;
 
 namespace Tauron.Application.Wpf
 {
@@ -38,16 +40,15 @@ namespace Tauron.Application.Wpf
             if (DesignerProperties.GetIsInDesignMode(d)) return;
 
             var ele = ElementMapper.Create(d);
-            var root = ControlBindLogic.FindRoot(ele);
-            if (root == null)
-            {
-                if (d is FrameworkElement)
-                    ControlBindLogic.MakeLazy((IUIElement) ele, e.NewValue as string, e.OldValue as string,
-                        BindInternal);
-                return;
-            }
-
-            BindInternal(e.OldValue as string, e.NewValue as string, root, ele);
+            var rootOption = ControlBindLogic.FindRoot(ele.AsOption());
+            rootOption.Run(
+                root => BindInternal(e.OldValue as string, e.NewValue as string, root, ele),
+                () =>
+                {
+                    if (d is FrameworkElement)
+                        ControlBindLogic.MakeLazy((IUIElement)ele, e.NewValue as string, e.OldValue as string,
+                            BindInternal);
+                });
         }
 
         private static void BindInternal(string? oldValue, string? newValue, IBinderControllable binder,

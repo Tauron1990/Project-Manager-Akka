@@ -49,7 +49,7 @@ namespace Tauron.Application.Workshop.Core
                     _supervisorStrategies.Add(name, obj.SupervisorStrategy);
 
                 props = obj.Props(Context);
-                var newActor = Context.ActorOf(props, obj.Name);
+                var newActor = Context.ActorOf(props, name);
 
                 if (Sender.IsNobody()) return;
                 Sender.Tell(new NewActor(newActor));

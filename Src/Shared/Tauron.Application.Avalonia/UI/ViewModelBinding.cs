@@ -1,4 +1,5 @@
 ﻿using System;
+using Akka.Util.Extensions;
 using Avalonia;
 using Avalonia.Markup.Xaml;
 using JetBrains.Annotations;
@@ -19,9 +20,9 @@ namespace Tauron.Application.Avalonia.UI
         {
             if (serviceProvider.GetService(typeof(IProvideValueTarget)) is not IProvideValueTarget service)
                 return "Invalid IProvideValueTarget: " + _name;
-            if (!(service.TargetObject is AvaloniaObject target))
+            if (service.TargetObject is not AvaloniaObject target)
                 return "Invalid Target Object: " + _name;
-            if (!ControlBindLogic.FindDataContext(ElementMapper.Create(target), out var promise))
+            if (!ControlBindLogic.FindDataContext(ElementMapper.Create(target).AsOption(), out var promise))
                 return "No Data Context Found: " + _name;
             //if (!(ControlBindLogic.FindRoot(target) is IView view))
             //    return "No View as Root: " + _name;

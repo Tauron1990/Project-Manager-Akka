@@ -11,9 +11,7 @@ namespace Tauron.Application.CommonUI.Model
     [PublicAPI]
     public sealed class UIProperty<TData> : UIPropertyBase, IObservable<TData>, IDisposable
     {
-        private sealed record DataContainer(TData Data, bool IsNil = false)
-        {
-        }
+        private sealed record DataContainer(TData Data, bool IsNil = false);
 
         private readonly BehaviorSubject<Error?> _currentError = new(null);
         private readonly BehaviorSubject<DataContainer> _currentValue = new(new DataContainer(default!, true));

@@ -19,19 +19,14 @@ namespace Tauron.Application.CommonUI.Helper
     {
         private readonly List<WeakReference<TType>?> _internalCollection = new();
 
-        public WeakCollection()
-        {
-            WeakCleanUp.RegisterAction(CleanUp);
-        }
+        public WeakCollection() => WeakCleanUp.RegisterAction(CleanUp);
 
         public int EffectiveCount
         {
             get
             {
                 lock (_internalCollection)
-                {
                     return _internalCollection.Count(refer => refer?.IsAlive() ?? false);
-                }
             }
         }
 
@@ -40,16 +35,12 @@ namespace Tauron.Application.CommonUI.Helper
             get
             {
                 lock (_internalCollection)
-                {
                     return _internalCollection[index]?.TypedTarget() ?? default;
-                }
             }
             set
             {
                 lock (_internalCollection)
-                {
                     _internalCollection[index] = value.IsEmpty ? null : new WeakReference<TType>(value.Value);
-                }
             }
         }
 
@@ -60,9 +51,7 @@ namespace Tauron.Application.CommonUI.Helper
             get
             {
                 lock (_internalCollection)
-                {
                     return _internalCollection.Count;
-                }
             }
         }
 
@@ -71,27 +60,21 @@ namespace Tauron.Application.CommonUI.Helper
         public void Add(Option<TType> item)
         {
             if (item.IsEmpty) return;
-            lock (_internalCollection)
-            {
+            lock (_internalCollection) 
                 _internalCollection.Add(new WeakReference<TType>(item.Value));
-            }
         }
 
         /// <summary>The clear.</summary>
         public void Clear()
         {
-            lock (_internalCollection)
-            {
+            lock (_internalCollection) 
                 _internalCollection.Clear();
-            }
         }
 
         public bool Contains(Option<TType> item)
         {
             lock (_internalCollection)
-            {
                 return item.HasValue && _internalCollection.Any(it => it?.TypedTarget() == item);
-            }
         }
 
         public void CopyTo(Option<TType>[] array, int arrayIndex)
@@ -162,20 +145,16 @@ namespace Tauron.Application.CommonUI.Helper
             var index = IndexOf(item);
             if (index == -1) return false;
 
-            lock (_internalCollection)
-            {
+            lock (_internalCollection) 
                 _internalCollection.RemoveAt(index);
-            }
 
             return true;
         }
 
         public void RemoveAt(int index)
         {
-            lock (_internalCollection)
-            {
+            lock (_internalCollection) 
                 _internalCollection.RemoveAt(index);
-            }
         }
 
         private readonly Subject<Unit> _cleaned = new();
@@ -202,17 +181,12 @@ namespace Tauron.Application.CommonUI.Helper
     {
         private readonly object _gate = new();
 
-        public WeakReferenceCollection()
-        {
-            WeakCleanUp.RegisterAction(CleanUpMethod);
-        }
+        public WeakReferenceCollection() => WeakCleanUp.RegisterAction(CleanUpMethod);
 
         protected override void ClearItems()
         {
-            lock (_gate)
-            {
+            lock (_gate) 
                 base.ClearItems();
-            }
         }
 
         protected override void InsertItem(int index, TType item)
@@ -226,18 +200,14 @@ namespace Tauron.Application.CommonUI.Helper
 
         protected override void RemoveItem(int index)
         {
-            lock (_gate)
-            {
+            lock (_gate) 
                 base.RemoveItem(index);
-            }
         }
 
         protected override void SetItem(int index, TType item)
         {
-            lock (_gate)
-            {
+            lock (_gate) 
                 base.SetItem(index, item);
-            }
         }
 
         private void CleanUpMethod()

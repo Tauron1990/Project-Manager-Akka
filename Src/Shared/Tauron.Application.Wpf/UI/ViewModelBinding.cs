@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Windows;
 using System.Windows.Markup;
+using Akka.Util.Extensions;
 using JetBrains.Annotations;
 using Tauron.Application.CommonUI.Helper;
 using Tauron.Application.CommonUI.UI;
@@ -36,7 +37,7 @@ namespace Tauron.Application.Wpf.UI
                 return "Invalid IProvideValueTarget: " + _name;
             if (!(service.TargetObject is DependencyObject target))
                 return "Invalid Target Object: " + _name;
-            if (!ControlBindLogic.FindDataContext(ElementMapper.Create(target), out var promise))
+            if (!ControlBindLogic.FindDataContext(ElementMapper.Create(target).AsOption(), out var promise))
                 return "No Data Context Found: " + _name;
             //if (!(ControlBindLogic.FindRoot(target) is IView view))
             //    return "No View as Root: " + _name;

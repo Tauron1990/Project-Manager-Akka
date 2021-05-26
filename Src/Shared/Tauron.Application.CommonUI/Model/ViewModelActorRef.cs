@@ -22,7 +22,7 @@ namespace Tauron.Application.CommonUI.Model
         private IActorRef _actor = ActorRefs.Nobody;
         private bool _isInitialized;
 
-        private List<Action>? _waiter = new();
+        private List<Action> _waiter = new();
 
         public override IActorRef Actor => _actor;
 
@@ -37,7 +37,7 @@ namespace Tauron.Application.CommonUI.Model
                 if (IsInitialized)
                     waiter();
                 else
-                    _waiter!.Add(waiter);
+                    _waiter.Add(waiter);
             }
         }
 
@@ -51,7 +51,7 @@ namespace Tauron.Application.CommonUI.Model
                 foreach (var action in _waiter!)
                     action();
 
-                _waiter = null;
+                _waiter = null!;
             }
         }
     }

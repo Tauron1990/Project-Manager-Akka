@@ -207,12 +207,9 @@ namespace Tauron.Application.CommonUI.Model
                 _disposable.Dispose();
             }
 
-            public override void Execute(object? parameter)
-            {
-                _self.Tell(new CommandExecuteEvent(_name, parameter));
-            }
+            public override void Execute(object? parameter = null) => _self.Tell(new CommandExecuteEvent(_name, parameter));
 
-            public override bool CanExecute(object? parameter) => _canExecute.Value;
+            public override bool CanExecute(object? parameter = null) => _canExecute.Value;
 
             public void Deactivate()
             {
@@ -291,7 +288,7 @@ namespace Tauron.Application.CommonUI.Model
                     PropertyValueChanged(data);
 
                     _commandRegistrations.Add(key,
-                        new CommandRegistration(command, () => actorCommand.CanExecute(null)));
+                        new CommandRegistration(command, () => actorCommand.CanExecute()));
 
                     return data.PropertyBase;
                 }, this);
@@ -385,10 +382,7 @@ namespace Tauron.Application.CommonUI.Model
             }
         }
 
-        protected EventRegistrationBuilder RegisterEvent(string name)
-        {
-            return new(name, (s, del) => _eventRegistrations.Add(s, new InvokeHelper(del)));
-        }
+        protected EventRegistrationBuilder RegisterEvent(string name) => new(name, (s, del) => _eventRegistrations.Add(s, new InvokeHelper(del)));
 
         #endregion
 

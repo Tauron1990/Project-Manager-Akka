@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
+using Akka.Util;
 using JetBrains.Annotations;
 
 namespace Tauron.Application.CommonUI.Helper
@@ -46,7 +47,7 @@ namespace Tauron.Application.CommonUI.Helper
             return !leftnull ? left!.Equals(right!) : rightNull;
         }
 
-        public static bool operator !=(WeakDelegate left, WeakDelegate right)
+        public static bool operator !=(WeakDelegate? left, WeakDelegate? right)
         {
             var leftnull = ReferenceEquals(left, null);
             var rightNull = ReferenceEquals(right, null);
@@ -73,15 +74,15 @@ namespace Tauron.Application.CommonUI.Helper
             }
         }
 
-        public object? Invoke(params object[] parms)
+        public Option<object> Invoke(params object[] parms)
         {
             if (_method.IsStatic)
-                return _method.GetMethodInvoker(() => _method.GetParameterTypes()).Invoke(null, parms);
+                return _method.GetMethodInvoker(() => _method.GetParameterTypes()).Invoke(null, parms).OptionNotNull();
 
             var target = _reference?.Target;
             return target == null
-                ? null
-                : _method.GetMethodInvoker(() => _method.GetParameterTypes()).Invoke(target, parms);
+                ? Option<object>.None
+                : _method.GetMethodInvoker(() => _method.GetParameterTypes()).Invoke(target, parms).OptionNotNull();
         }
     }
 
@@ -96,10 +97,8 @@ namespace Tauron.Application.CommonUI.Helper
 
         public static void RegisterAction(Action action)
         {
-            lock (Actions)
-            {
+            lock (Actions) 
                 Actions.Add(new WeakDelegate(Argument.NotNull(action, nameof(action))));
-            }
         }
 
         private static List<WeakDelegate> Initialize()
