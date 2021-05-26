@@ -431,15 +431,21 @@ namespace Tauron.Application.CommonUI.Model
             Log.Info("Track Property {Name}", obj.Name);
 
             if (!_propertys.TryGetValue(obj.Name, out var prop)) return;
-            if(prop.Subscriptors.Contains(sender)) return;
+            try
+            {
+                if (prop.Subscriptors.Contains(sender)) return;
 
-            prop.Subscriptors.Add(sender);
-            Context.WatchWith(sender, new PropertyTermination(Context.Sender, obj.Name));
-
-            if (prop.PropertyBase.ObjectValue == null) return;
-
-            sender.Tell(new PropertyChangedEvent(obj.Name, prop.PropertyBase.ObjectValue));
-            sender.Tell(new ValidatingEvent(prop.Error, obj.Name));
+                prop.Subscriptors.Add(sender);
+                Context.WatchWith(sender, new PropertyTermination(Context.Sender, obj.Name));
+            }
+            finally
+            {
+                if (prop.PropertyBase.ObjectValue != null)
+                {
+                    sender.Tell(new PropertyChangedEvent(obj.Name, prop.PropertyBase.ObjectValue));
+                    sender.Tell(new ValidatingEvent(prop.Error, obj.Name));
+                }
+            }
         }
 
         private void PropertyTerminationHandler(PropertyTermination obj)

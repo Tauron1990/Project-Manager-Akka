@@ -76,10 +76,8 @@ namespace Tauron.Application.CommonUI.UI
                 var eventActor = await Model.Actor.Ask<IEventActor>(new MakeEventHook(Name), TimeSpan.FromSeconds(15));
                 //Log.Information("Ask Compled For {Property}", _name);
 
-                eventActor.Register(HookEvent.Create<PropertyChangedEvent>(PropertyChangedHandler))
-                          .ToObservable().Subscribe(d => _disposable.Add(d));
-                eventActor.Register(HookEvent.Create<ValidatingEvent>(ValidateCompled))
-                          .ToObservable().Subscribe(d => _disposable.Add(d));
+                _disposable.Add(await eventActor.Register(HookEvent.Create<PropertyChangedEvent>(PropertyChangedHandler)));
+                _disposable.Add(await eventActor.Register(HookEvent.Create<ValidatingEvent>(ValidateCompled)));
 
                 Model.Actor.Tell(new TrackPropertyEvent(Name), eventActor.OriginalRef);
 

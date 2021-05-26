@@ -53,6 +53,7 @@ namespace Tauron.Application.CommonUI.UI
             try
             {
                 Logger.Debug("Control Unloaded {Element}", UserControl.GetType());
+				ControlUnload?.Invoke();
                 BindLogic.CleanUp();
                 Model.Actor.Tell(new UnloadEvent());
             }
@@ -65,7 +66,6 @@ namespace Tauron.Application.CommonUI.UI
         protected virtual void UserControlOnLoaded()
         {
             Logger.Debug("Control Loaded {Element}", UserControl.GetType());
-            ControlUnload?.Invoke();
 
             if (!Model.IsInitialized)
             {

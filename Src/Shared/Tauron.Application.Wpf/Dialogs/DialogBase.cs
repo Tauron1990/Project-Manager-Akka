@@ -175,7 +175,7 @@ namespace Tauron.Application.Wpf.Dialogs
             if (ele.DataContext is IDisposable disposable)
                 ele.Unloaded += (_, _) => disposable.Dispose();
 
-            return subject.FirstAsync().ToTask();
+            return subject.Take(1).ToTask();
         }
     }
 }
