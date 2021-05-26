@@ -113,6 +113,15 @@ namespace Tauron
             });
         }
 
+        public static IObservable<Unit> ToUnit<TMessage>(this IObservable<TMessage> source, Func<TMessage, Task> action)
+        {
+            return source.SelectMany(async m =>
+                                     {
+                                         await action(m);
+                                         return Unit.Default;
+                                     });
+        }
+
         public static IObservable<TData> ApplyWhen<TData>(this IObservable<TData> obs, Func<TData, bool> when, Action<TData> apply)
             => obs.Select(d =>
                           {
@@ -180,10 +189,24 @@ namespace Tauron
                 Dispose();
             }
 
-            public void OnNext(TData value) => _target.OnNext(value);
+            public void OnNext(TData value)
+            {
+                try
+                {
+                    _target.OnNext(value);
+                }
+                catch (Exception e)
+                {
+                    if (!_errorHandler(e))
+                    {
+                        _target.OnError(e);
+                        Dispose();
+                    }
+                }
+            }
         }
 
-        public static IDisposable AutoSubscribe<TData>(this IObservable<TData> obs, IObserver<TData> target, Func<Exception, bool>? errorHandler = null, ISubscriptionStrategy? strategy = null)
+        public static IDisposable AutoSubscribe<TData>(this IObservable<TData> obs, IObserver<TData> target, Func<Exception, bool>? errorHandler, ISubscriptionStrategy? strategy = null)
         {
             errorHandler ??= _ => true;
             strategy ??= DefaultResubscriptionStrategy.Inst;
@@ -191,27 +214,25 @@ namespace Tauron
             return new AutoSubscribeObserver<TData>(obs, errorHandler, strategy, target);
         }
 
+        public static IDisposable AutoSubscribe<TData>(this IObservable<TData> obs, Action<TData> onNext, Action<Exception> onError, Action onCompled, Func<Exception, bool>? errorHandler = null, ISubscriptionStrategy? strategy = null)
+            => AutoSubscribe(obs, Observer.Create(onNext, onError, onCompled), errorHandler, strategy);
+        public static IDisposable AutoSubscribe<TData>(this IObservable<TData> obs, Func<Exception, bool>? errorHandler = null, ISubscriptionStrategy? strategy = null)
+            => AutoSubscribe(obs, Observer.Create<TData>(_ => {}), errorHandler, strategy);
+        public static IDisposable AutoSubscribe<TData>(this IObservable<TData> obs, Action<TData> onNext, Action onCompled, Func<Exception, bool>? errorHandler = null, ISubscriptionStrategy? strategy = null)
+            => AutoSubscribe(obs, Observer.Create(onNext, _ => {}, onCompled), errorHandler, strategy);
+        public static IDisposable AutoSubscribe<TData>(this IObservable<TData> obs, Action<TData> onNext, Func<Exception, bool>? errorHandler, ISubscriptionStrategy? strategy = null)
+            => AutoSubscribe(obs, Observer.Create(onNext), errorHandler, strategy);
 
-        public static IDisposable AutoSubscribe<TData>(this IObservable<TData> obs, Action<TData> onNext, Action? onCompled = null, Func<Exception, bool>? errorHandler = null, ISubscriptionStrategy? strategy = null)
-        {
-            errorHandler ??= _ => true;
-            strategy ??= DefaultResubscriptionStrategy.Inst;
-            onCompled ??= () => { };
-
-            return new AutoSubscribeObserver<TData>(obs, errorHandler, strategy, Observer.Create(onNext, _ => { }, onCompled));
-        }
-
-        public static IDisposable AutoSubscribe<TData>(this IObservable<TData> obs, Action<TData> onNext)
-            => AutoSubscribe(obs, onNext, errorHandler: _ => true);
-
-        public static IDisposable AutoSubscribe<TData>(this IObservable<TData> obs,  Action? onCompled = null, Func<Exception, bool>? errorHandler = null, ISubscriptionStrategy? strategy = null)
-        {
-            errorHandler ??= _ => true;
-            strategy ??= DefaultResubscriptionStrategy.Inst;
-            onCompled ??= () => { };
-
-            return new AutoSubscribeObserver<TData>(obs, errorHandler, strategy, Observer.Create<TData>(_ => { }, _ => { }, onCompled));
-        }
+        public static IDisposable AutoSubscribe<TData>(this IObservable<TData> obs, IObserver<TData> target, Action<Exception>? errorHandler = null, ISubscriptionStrategy? strategy = null)
+            => AutoSubscribe(obs, target, CreateErrorHandler(errorHandler), strategy);
+        public static IDisposable AutoSubscribe<TData>(this IObservable<TData> obs, Action<TData> onNext, Action<Exception> onError, Action onCompled, Action<Exception>? errorHandler = null, ISubscriptionStrategy? strategy = null)
+            => AutoSubscribe(obs, Observer.Create(onNext, onError, onCompled), CreateErrorHandler(errorHandler), strategy);
+        public static IDisposable AutoSubscribe<TData>(this IObservable<TData> obs, Action<Exception>? errorHandler = null, ISubscriptionStrategy? strategy = null)
+            => AutoSubscribe(obs, Observer.Create<TData>(_ => { }), CreateErrorHandler(errorHandler), strategy);
+        public static IDisposable AutoSubscribe<TData>(this IObservable<TData> obs, Action<TData> onNext, Action onCompled, Action<Exception>? errorHandler = null, ISubscriptionStrategy? strategy = null)
+            => AutoSubscribe(obs, Observer.Create(onNext, _ =>{}, onCompled), CreateErrorHandler(errorHandler), strategy);
+        public static IDisposable AutoSubscribe<TData>(this IObservable<TData> obs, Action<TData> onNext, Action<Exception>? errorHandler = null, ISubscriptionStrategy? strategy = null)
+            => AutoSubscribe(obs, Observer.Create(onNext), CreateErrorHandler(errorHandler), strategy);
 
         private static Func<Exception, bool>? CreateErrorHandler(Action<Exception>? handler)
         {
@@ -222,15 +243,6 @@ namespace Tauron
                        return true;
                    };
         }
-
-        public static IDisposable AutoSubscribe<TData>(this IObservable<TData> obs, IObserver<TData> target, Action<Exception>? errorHandler = null, ISubscriptionStrategy? strategy = null)
-            => AutoSubscribe(obs, target, CreateErrorHandler(errorHandler), strategy);
-
-        public static IDisposable AutoSubscribe<TData>(this IObservable<TData> obs, Action<TData> onNext, Action? onCompled = null, Action<Exception>? errorHandler = null, ISubscriptionStrategy? strategy = null)
-            => AutoSubscribe(obs, onNext, onCompled, CreateErrorHandler(errorHandler), strategy);
-
-        public static IDisposable AutoSubscribe<TData>(this IObservable<TData> obs, Action? onCompled = null, Action<Exception>? errorHandler = null, ISubscriptionStrategy? strategy = null)
-            => AutoSubscribe(obs, onCompled, CreateErrorHandler(errorHandler), strategy);
 
         #endregion
 

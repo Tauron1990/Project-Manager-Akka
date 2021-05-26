@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reactive.Disposables;
+using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Event;
 using JetBrains.Annotations;
@@ -12,7 +14,7 @@ namespace Tauron.Akka
         private readonly bool _killOnFirstRespond;
         private readonly ILoggingAdapter _log = Context.GetLogger();
 
-        private readonly Dictionary<Type, Delegate> _registrations = new();
+        private readonly Dictionary<Type, Delegate?> _registrations = new();
 
         public EventActor(bool killOnFirstRespond) => _killOnFirstRespond = killOnFirstRespond;
 
@@ -42,6 +44,15 @@ namespace Tauron.Akka
                         del = hookEvent.Invoker;
 
                     _registrations[hookEvent.Target] = del;
+
+                    Sender.Tell(Disposable.Create((Self, Del:del, hookEvent.Target), info => info.Self.Tell(new RemoveDel(info.Del, info.Target))));
+                    break;
+                case RemoveDel remove:
+                    if(!_registrations.TryGetValue(remove.Target, out var action)) return;
+                    if (action == remove.Delegate)
+                        _registrations.Remove(remove.Target);
+                    else
+                        _registrations[remove.Target] = action.Remove(remove.Delegate);
                     break;
                 default:
                     var msgType = message.GetType();
@@ -66,7 +77,10 @@ namespace Tauron.Akka
 
                     break;
             }
+
         }
+
+        private sealed record RemoveDel(Delegate Delegate, Type Target);
 
         private sealed class HookEventActor : IEventActor
         {
@@ -74,10 +88,7 @@ namespace Tauron.Akka
 
             public IActorRef OriginalRef { get; }
 
-            public void Register(HookEvent hookEvent)
-            {
-                OriginalRef.Tell(hookEvent);
-            }
+            public Task<IDisposable> Register(HookEvent hookEvent) => OriginalRef.Ask<IDisposable>(hookEvent);
 
             public void Send(IActorRef actor, object send)
             {

@@ -79,6 +79,15 @@ namespace Tauron.Application.CommonUI.Model
             return BindTo(sourceCollection.Connect());
         }
 
+        public UICollectionProperty<TData> BindToList(IEnumerable<TData> initial,  out SourceList<TData> sourceCollection)
+        {
+            BindToList(out sourceCollection);
+
+            sourceCollection.AddRange(initial);
+
+            return this;
+        }
+
         public static implicit operator UICollectionProperty<TData>(FluentCollectionPropertyRegistration<TData> config)
             => new(config.Property);
     }

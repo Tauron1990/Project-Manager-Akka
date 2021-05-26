@@ -431,6 +431,7 @@ namespace Tauron.Application.CommonUI.Model
             Log.Info("Track Property {Name}", obj.Name);
 
             if (!_propertys.TryGetValue(obj.Name, out var prop)) return;
+            if(prop.Subscriptors.Contains(sender)) return;
 
             prop.Subscriptors.Add(sender);
             Context.WatchWith(sender, new PropertyTermination(Context.Sender, obj.Name));
