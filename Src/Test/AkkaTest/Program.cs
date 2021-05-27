@@ -82,6 +82,8 @@ namespace AkkaTest
         {
             Console.Title = "Test Anwendung";
 
+            var dTest = Math.Round(1d, 0, MidpointRounding.ToPositiveInfinity);
+
             var test = new Subject<int>();
             var test2 = new Subject<int>();
 
