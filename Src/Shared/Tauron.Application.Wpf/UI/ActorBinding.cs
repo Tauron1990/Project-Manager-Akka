@@ -13,9 +13,17 @@ namespace Tauron.Application.Wpf.UI
     [PublicAPI]
     public class ActorBinding : BindingDecoratorBase
     {
-        private readonly string _name;
+        public string RootProperty { get; set; }
 
-        public ActorBinding(string name) => _name = name;
+        public int Delay
+        {
+            get => Binding.Delay;
+            set => Binding.Delay = value;
+        }
+
+        public ActorBinding(string name) => RootProperty = name;
+
+        public ActorBinding() => RootProperty = string.Empty;
 
         public override object? ProvideValue(IServiceProvider provider)
         {
@@ -33,8 +41,9 @@ namespace Tauron.Application.Wpf.UI
                 Path = Path != null
                     ? new PropertyPath("Value." + Path.Path, Path.PathParameters)
                     : new PropertyPath("Value");
-                Source = new DeferredSource(_name, model);
-                Binding.Delay = 200;
+                Source = new DeferredSource(RootProperty, model);
+                if(Binding.Delay < 200)
+                    Binding.Delay = 200;
                 UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
                 Binding.ValidatesOnNotifyDataErrors = true;
 

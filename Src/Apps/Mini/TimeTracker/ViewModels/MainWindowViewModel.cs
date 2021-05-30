@@ -32,7 +32,7 @@ namespace TimeTracker.ViewModels
 
         public UIProperty<int> HoursAll { get; }
 
-        public MainWindowViewModel(ILifetimeScope lifetimeScope, IUIDispatcher dispatcher, AppSettings settings, ITauronEnviroment enviroment) 
+        public MainWindowViewModel(ILifetimeScope lifetimeScope, IUIDispatcher dispatcher, AppSettings settings, ITauronEnviroment enviroment)
             : base(lifetimeScope, dispatcher)
         {
             SnackBarQueue = RegisterProperty<SnackbarMessageQueue?>(nameof(SnackBarQueue));
@@ -57,6 +57,8 @@ namespace TimeTracker.ViewModels
                .Throttle(TimeSpan.FromSeconds(10))
                .AutoSubscribe(s =>
                               {
+                                  if (string.IsNullOrWhiteSpace(s)) return;
+
                                   settings.AllProfiles = settings.AllProfiles.Add(s);
                                   list.Add(s);
                                   trigger.OnNext(s);
@@ -94,24 +96,56 @@ namespace TimeTracker.ViewModels
                .AutoSubscribe(ReportError)
                .DisposeWith(this);
 
-            #endregion
-
-            var processData = profileData.Where(pd => pd.IsProcessable);
-            processData.Select(pd => pd.AllHours).Subscribe(HoursAll).DisposeWith(this);
-            processData.Select(pd => pd.MinusShortTimeHours).Subscribe(HoursShort).DisposeWith(this);
-            processData.Select(pd => pd.MothHours).Subscribe(HoursMonth).DisposeWith(this);
-
-
             string GetFileName(string profile)
                 => Path.Combine(
                     enviroment.AppData(),
                     GuidFactories.Deterministic.Create(fileNameBase, profile) + "json");
 
-            void ReportError(Exception e) 
+            #endregion
+
+            #region Hours
+
+            var processData = profileData.Where(pd => pd.IsProcessable);
+            processData.Select(pd => pd.AllHours).DistinctUntilChanged().Subscribe(HoursAll).DisposeWith(this);
+            processData.Select(pd => pd.MinusShortTimeHours).DistinctUntilChanged().Subscribe(HoursShort).DisposeWith(this);
+            processData.Select(pd => pd.MonthHours).DistinctUntilChanged().Subscribe(HoursMonth).DisposeWith(this);
+
+            (from hour in HoursMonth.DistinctUntilChanged()
+             from data in profileData.Take(1)
+             where data.IsProcessable
+             select data with {MonthHours = hour})
+               .AutoSubscribe(profileData, ReportError)
+               .DisposeWith(this);
+
+            (from hour in HoursShort.DistinctUntilChanged()
+             from data in profileData.Take(1)
+             where data.IsProcessable
+             select data with {MinusShortTimeHours = hour})
+               .AutoSubscribe(profileData, ReportError)
+               .DisposeWith(this);
+
+            (from data in processData
+             where data.MonthHours > 10
+             where data.MinusShortTimeHours == 0
+             select data with {MinusShortTimeHours = CalculateShortTimeHours(data.MonthHours)})
+               .AutoSubscribe(profileData, ReportError)
+               .DisposeWith(this);
+
+            static int CalculateShortTimeHours(int mouthHours)
+            {
+                var multi = mouthHours / 100d;
+                var minus = 10 * multi;
+
+                return (int) Math.Round(minus, 0, MidpointRounding.ToPositiveInfinity);
+            }
+
+            #endregion
+
+            void ReportError(Exception e)
                 => dispatcher.InvokeAsync(() => SnackBarQueue.Value?.Enqueue($"Fehler: {e.GetType().Name}--{e.Message}"));
         }
 
-        public sealed record ProfileData(string FileName, int MothHours, int MinusShortTimeHours, int AllHours)
+        public sealed record ProfileData(string FileName, int MonthHours, int MinusShortTimeHours, int AllHours)
         {
             [JsonIgnore] 
             public bool IsProcessable => !string.IsNullOrWhiteSpace(FileName);

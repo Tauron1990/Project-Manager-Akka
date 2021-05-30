@@ -27,7 +27,10 @@ namespace TimeTracker.Controls
     {
         public override ValidationResult Validate(object value, CultureInfo cultureInfo)
         {
+            if (value is not string integer)
+                return new ValidationResult(false, "Value ist kein String");
 
+            return int.TryParse(integer, out _) ? ValidationResult.ValidResult : new ValidationResult(false, "Eingabe ist keine ganze Zahl");
         }
     }
 }
