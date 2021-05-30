@@ -102,7 +102,7 @@ namespace Tauron.Application.Wpf
                 var host = AffectedObject;
                 if (context is not IViewModel dataContext) return;
 
-                var hostType = host.GetType();
+                var hostType = host.Object.GetType();
 
                 foreach (var (@event, command) in events)
                 {
@@ -162,7 +162,15 @@ namespace Tauron.Application.Wpf
                 {
                     if (_command != null) return true;
 
-                    _command = d => _dataContext.Actor.Tell(new ExecuteEventEvent(d, _targetName));
+                    _command = d =>
+                               {
+                                   void Invoker() => _dataContext.Actor.Tell(new ExecuteEventEvent(d, _targetName));
+
+                                   if(_dataContext.IsInitialized)
+                                       Invoker();
+                                   else
+                                        _dataContext.AwaitInit(Invoker);
+                               };
 
 
                     return _command != null && !_isDirty;

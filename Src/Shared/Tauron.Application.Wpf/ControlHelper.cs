@@ -92,7 +92,7 @@ namespace Tauron.Application.Wpf
             protected override void Scan()
             {
                 if (DataContext is IViewModel model && AffectedObject is IUIElement element)
-                    model.Actor.Tell(new ControlSetEvent(Name, element));
+                    model.AwaitInit(() => model.Actor.Tell(new ControlSetEvent(Name, element)));
             }
         }
 
@@ -152,7 +152,7 @@ namespace Tauron.Application.Wpf
                 if (priTarget == null) return;
 
                 if (DataContext is IViewModel model && ElementMapper.Create(priTarget) is IUIElement element)
-                    model.Actor.Tell(new ControlSetEvent(Name, element));
+                    model.AwaitInit(() => model.Actor.Tell(new ControlSetEvent(Name, element)));
             }
         }
     }
