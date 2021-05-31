@@ -101,10 +101,7 @@ namespace Tauron.Application.CommonUI.Model
 
             public Action<object?> Action => ActionImpl;
 
-            private void ActionImpl(object? o)
-            {
-                _action();
-            }
+            private void ActionImpl(object? o) => _action();
         }
 
         //private sealed class FuncMapper

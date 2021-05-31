@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
-using Akka.Actor.Dsl;
 using Akka.Util;
 using Akka.Util.Extensions;
 using JetBrains.Annotations;
@@ -78,6 +77,12 @@ namespace Tauron.ObservableExt
             if (option.HasValue)
                 onSuccess(option.Value);
             else
+                onEmpty();
+        }
+
+        public static void OnEmpty<TType>(this Option<TType> option, Action onEmpty)
+        {
+            if (!option.HasValue)
                 onEmpty();
         }
 

@@ -1,15 +1,23 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Reactive;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using Akka.Event;
 using Autofac;
 using DynamicData;
+using DynamicData.Alias;
+using DynamicData.Kernel;
 using JetBrains.Annotations;
 using MaterialDesignThemes.Wpf;
 using Newtonsoft.Json;
 using Tauron;
 using Tauron.Application;
+using Tauron.Application.CommonUI;
 using Tauron.Application.CommonUI.AppCore;
 using Tauron.Application.CommonUI.Model;
 using Tauron.ObservableExt;
@@ -26,15 +34,26 @@ namespace TimeTracker.ViewModels
 
         public UICollectionProperty<string> AllProfiles { get; }
 
+        public UICollectionProperty<UiProfileEntry> ProfileEntries { get; }
+
         public UIProperty<int> HoursMonth { get; }
 
         public UIProperty<int> HoursShort { get; }
 
         public UIProperty<int> HoursAll { get; }
 
+        public UIPropertyBase? Come { get; }
+
+        public UIPropertyBase? Go { get; }
+
+        public UIPropertyBase? Correct { get; }
+
         public MainWindowViewModel(ILifetimeScope lifetimeScope, IUIDispatcher dispatcher, AppSettings settings, ITauronEnviroment enviroment)
             : base(lifetimeScope, dispatcher)
         {
+            var serializationSettings = new JsonSerializerSettings {Formatting = Formatting.Indented};
+            //serializationSettings.Converters.Add(new noda);
+
             SnackBarQueue = RegisterProperty<SnackbarMessageQueue?>(nameof(SnackBarQueue));
             dispatcher.InvokeAsync(() => new SnackbarMessageQueue(TimeSpan.FromSeconds(10)))
                       .Subscribe(SnackBarQueue);
@@ -49,7 +68,7 @@ namespace TimeTracker.ViewModels
             #region Profile Selection
 
             var trigger = new Subject<string>();
-            var profileData = new ProfileData(string.Empty, 0, 0, 0).ToRx();
+            var profileData = new ProfileData(string.Empty, 0, 0, 0, ImmutableList<ProfileEntry>.Empty, DateTime.MinValue).ToRx().DisposeWith(this);
 
             (from newProfile in CurrentProfile
              where !list.Items.Contains(newProfile)
@@ -77,14 +96,14 @@ namespace TimeTracker.ViewModels
 
             var fileNameBase = Guid.Parse("42CB06B0-B6F0-4F50-A1D9-294F47AA2AF6");
             (from toLoad in trigger
-             select new ProfileData(GetFileName(toLoad), 0, 0, 0))
+             select new ProfileData(GetFileName(toLoad), 0, 0, 0, ImmutableList<ProfileEntry>.Empty, DateTime.MinValue))
                .Subscribe(profileData)
                .DisposeWith(this);
 
             (from data in profileData.DistinctUntilChanged(pd => pd.FileName)
              where data.IsProcessable && File.Exists(data.FileName)
              from fileContent in File.ReadAllTextAsync(data.FileName)
-             let newData = JsonConvert.DeserializeObject<ProfileData>(fileContent)
+             let newData = JsonConvert.DeserializeObject<ProfileData>(fileContent, serializationSettings)
              where newData != null
              select newData)
                .AutoSubscribe(profileData!, ReportError);
@@ -92,7 +111,7 @@ namespace TimeTracker.ViewModels
             (from data in profileData
              where data.IsProcessable
              select data)
-               .ToUnit(pd => File.WriteAllTextAsync(pd.FileName, JsonConvert.SerializeObject(pd)))
+               .ToUnit(pd => File.WriteAllTextAsync(pd.FileName, JsonConvert.SerializeObject(pd, serializationSettings)))
                .AutoSubscribe(ReportError)
                .DisposeWith(this);
 
@@ -141,14 +160,136 @@ namespace TimeTracker.ViewModels
 
             #endregion
 
+            #region Entrys
+
+            var cache = new SourceCache<ProfileEntry, DateTime>(e => e.Date).DisposeWith(this);
+            var isHere = false.ToRx().DisposeWith(this);
+
+            (from data in profileData.DistinctUntilChanged(d => d.FileName).ObserveOn(Scheduler.Default)
+             where data.IsProcessable
+             select data.Entries)
+               .AutoSubscribe(e =>
+                              {
+                                  cache.Clear();
+                                  e.ForEach(cache.AddOrUpdate);
+
+                                  (from item in cache.Items
+                                   where item.Start != null && item.Finish == null
+                                   orderby item.Date
+                                   select item).FirstOrDefault()
+                                               .OptionNotNull()
+                                               .OnEmpty(() => isHere.Value = true);
+                              })
+               .DisposeWith(this);
+
+            ProfileEntries = this.RegisterUiCollection<UiProfileEntry>(nameof(ProfileEntries))
+                                 .BindTo(cache.Connect()
+                                              .Sort(Comparer<ProfileEntry>.Create((entry1, entry2) => entry1.Date.CompareTo(entry2.Date)))
+                                              .Select(entry => new UiProfileEntry(entry)));
+
+            Come = NewCommad
+                  .WithCanExecute(from data in profileData
+                                  select data.IsProcessable)
+                  .WithCanExecute(from here in isHere 
+                                  select !here)
+                  .WithExecute(() =>
+                               {
+                                   var date = SystemClock.NowDate;
+                                   var entry = cache.Lookup(date).ValueOr(() => new ProfileEntry(date, null, null));
+                                   
+                                   if(entry.Start == null)
+                                       cache.AddOrUpdate(entry with{Start = SystemClock.NowTime});
+                                   isHere.Value = true;
+                               })
+                  .ThenFlow(CheckNewMonth)
+                  .ThenRegister(nameof(Come));
+
+            Go = NewCommad
+                .WithCanExecute(from data in profileData 
+                                select data.IsProcessable)
+                .WithCanExecute(isHere)
+                .WithExecute(() =>
+                             {
+                                 var date = SystemClock.NowDate;
+                                 var entry = cache.Lookup(date).ValueOr(() => new ProfileEntry(date, null, null));
+
+                                 if(entry.Start != null)
+                                    cache.AddOrUpdate(entry with { Finish = SystemClock.NowTime });
+                                 isHere.Value = false;
+                             })
+               .ThenRegister(nameof(Go));
+
+            IDisposable CheckNewMonth(IObservable<Unit> obs)
+                => (from _ in obs.ObserveOn(Scheduler.Default)
+                    from data in profileData.Take(1)
+                    let month = SystemClock.NowDate
+                    where data.IsProcessable
+                    let current = data.CurrentMonth
+                    where current.Month != month.Month
+                    select (New:data with {CurrentMonth = month}, Old:data))
+                       .AutoSubscribe(MakeBackup, ReportError);
+
+            void MakeBackup((ProfileData New, ProfileData Old) obj)
+            {
+                var (newData, oldData) = obj;
+
+                var oldEntrys = oldData.Entries.FindAll(pe => pe.Date == oldData.CurrentMonth).ToImmutableList();
+                cache.RemoveKeys(oldEntrys.Select(oe => oe.Date));
+
+                profileData.Value = newData;
+
+                var originalFile = newData.FileName;
+                var originalName = Path.GetFileName(newData.FileName);
+
+                File.WriteAllText(
+                    originalFile.Replace(originalName, $"{originalName}-{oldData.CurrentMonth:d}"), 
+                    JsonConvert.SerializeObject(oldEntrys));
+            }
+
+            #endregion
+
+            #region Correction
+
+            Correct = NewCommad
+                     .WithCanExecute(from data in profileData
+                                     select data.IsProcessable)
+                     .ThenFlow(obs => (from _ in obs
+                                       select Unit.Default)
+                                  .AutoSubscribe(ReportError))
+               .ThenRegister(nameof(Correct));
+
+            #endregion
+
             void ReportError(Exception e)
                 => dispatcher.InvokeAsync(() => SnackBarQueue.Value?.Enqueue($"Fehler: {e.GetType().Name}--{e.Message}"));
         }
 
-        public sealed record ProfileData(string FileName, int MonthHours, int MinusShortTimeHours, int AllHours)
+        public sealed class UiProfileEntry : ObservableObject
         {
-            [JsonIgnore] 
-            public bool IsProcessable => !string.IsNullOrWhiteSpace(FileName);
-        };
+            public ProfileEntry Entry { get; }
+
+
+            public string? Date { get; set; }
+
+            public string? Start { get; set; }
+
+            public string? Finish { get; set; }
+
+            public string? Hour { get; set; }
+
+            public UiProfileEntry(ProfileEntry entry)
+            {
+                Entry = entry;
+                UpdateLabels();
+            }
+
+            private void UpdateLabels()
+            {
+                Date = Entry.Date.ToLocalTime().ToString("D");
+                Start = Entry.Start?.ToString(@"hh\:mm");
+                Finish = Entry.Finish?.ToString(@"hh\:mm");
+                Hour = (Entry.Finish - Entry.Start)?.ToString(@"hh\:mm");
+            }
+        }
     }
 }

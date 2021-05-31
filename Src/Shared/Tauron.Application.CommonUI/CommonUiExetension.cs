@@ -31,14 +31,12 @@ namespace Tauron.Application.CommonUI
 
         #region Command
 
-        public static CommandRegistrationBuilder ThenFlow(this CommandRegistrationBuilder builder,
-            Func<IObservable<Unit>, IDisposable> flowBuilder) => ThenFlow(builder, Unit.Default, flowBuilder);
+        public static CommandRegistrationBuilder ThenFlow(this CommandRegistrationBuilder builder, Func<IObservable<Unit>, IDisposable> flowBuilder) 
+            => ThenFlow(builder, Unit.Default, flowBuilder);
 
         public static CommandRegistrationBuilder ThenFlow<TStart>(this CommandRegistrationBuilder builder,
             TStart trigger, Func<IObservable<TStart>, IDisposable> flowBuilder)
-        {
-            return ThenFlow(builder, () => trigger, flowBuilder);
-        }
+            => ThenFlow(builder, () => trigger, flowBuilder);
 
         public static CommandRegistrationBuilder ThenFlow<TStart>(this CommandRegistrationBuilder builder, Func<TStart> trigger, Func<IObservable<TStart>, IDisposable> flowBuilder)
         {
