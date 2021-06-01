@@ -53,10 +53,14 @@
                 <Button Grid.Row="2" Grid.Column="0" Margin="5" Content="Kommen" Height="100" md:ButtonAssist.CornerRadius="50" Width="100" Command="{ui:ActorBinding Come}"/>
                 <Button Grid.Row="2" Grid.Column="2" Margin="5" Content="Gehen" Height="100" md:ButtonAssist.CornerRadius="50" Width="100" Command="{ui:ActorBinding Go}"/>
                 <Button Grid.Row="2" Grid.Column="1" Margin="5" Content="Korrigieren" Command="{ui:ActorBinding Correct}"/>
-                <ListView Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3" Margin="10">
+                <ListView Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3" Margin="10" controls:ListViewColumns.Stretch="True" controls:ListViewColumns.CustomStrech="True"
+                          ItemsSource="{Binding ProfileEntries}" SelectedItem="{Binding CurrentEntry}">
                     <ListView.View>
                         <GridView>
-
+                            <GridViewColumn Header="Datum" DisplayMemberBinding="{Binding Date}" controls:ListViewColumns.CustomWidth="200"/>
+                            <GridViewColumn Header="Start" DisplayMemberBinding="{Binding Start}" controls:ListViewColumns.CustomWidth="120"/>
+                            <GridViewColumn Header="Ende" DisplayMemberBinding="{Binding Finish}" controls:ListViewColumns.CustomWidth="120"/>
+                            <GridViewColumn Header="Alle Stunden" DisplayMemberBinding="{Binding Hour}"/>
                         </GridView>
                     </ListView.View>
                 </ListView>

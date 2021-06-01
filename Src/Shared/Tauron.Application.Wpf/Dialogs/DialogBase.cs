@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Reactive.Threading.Tasks;
@@ -98,12 +99,12 @@ namespace Tauron.Application.Wpf.Dialogs
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
             Dispatcher.BeginInvoke(new Action(() =>
-            {
-                if (TryFindResource("Storyboard.Dialogs.Show") is Storyboard res)
-                    res.Begin(this);
-                else
-                    Opacity = 1;
-            }));
+                                              {
+                                                  if (TryFindResource("Storyboard.Dialogs.Show") is Storyboard res)
+                                                      res.Begin(this);
+                                                  else
+                                                      Opacity = 1;
+                                              }));
         }
 
         private void ContentChanged(DependencyPropertyChangedEventArgs args)
@@ -154,8 +155,7 @@ namespace Tauron.Application.Wpf.Dialogs
 
     public static class DialogExtensions
     {
-        public static Task<TResult> MakeTask<TResult>(this FrameworkElement ele,
-            Func<TaskCompletionSource<TResult>, object> factory)
+        public static Task<TResult> MakeTask<TResult>(this FrameworkElement ele, Func<TaskCompletionSource<TResult>, object> factory)
         {
             var source = new TaskCompletionSource<TResult>();
 
@@ -166,16 +166,16 @@ namespace Tauron.Application.Wpf.Dialogs
             return source.Task;
         }
 
-        public static Task<TResult> MakeTask<TResult>(this FrameworkElement ele,
-            Func<IObserver<TResult>, object> factory)
+        public static Task<TResult> MakeObsTask<TResult>(this FrameworkElement ele, Func<IObserver<TResult>, object> factory)
         {
-            var subject = new Subject<TResult>();
-
-            ele.DataContext = factory(subject);
-            if (ele.DataContext is IDisposable disposable)
-                ele.Unloaded += (_, _) => disposable.Dispose();
-
-            return subject.Take(1).ToTask();
+            return Observable.Create<TResult>(o =>
+                                     {
+                                         var context = factory(o);
+                                         if (context is IDisposable disposable)
+                                             return disposable;
+                                         return Disposable.Empty;
+                                     })
+                             .Take(1).ToTask();
         }
     }
 }

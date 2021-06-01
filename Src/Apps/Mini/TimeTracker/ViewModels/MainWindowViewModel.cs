@@ -22,6 +22,7 @@ using Tauron.Application.CommonUI.AppCore;
 using Tauron.Application.CommonUI.Model;
 using Tauron.ObservableExt;
 using TimeTracker.Data;
+using TimeTracker.Views;
 
 namespace TimeTracker.ViewModels
 {
@@ -35,6 +36,8 @@ namespace TimeTracker.ViewModels
         public UICollectionProperty<string> AllProfiles { get; }
 
         public UICollectionProperty<UiProfileEntry> ProfileEntries { get; }
+
+        public UIProperty<UiProfileEntry?> CurrentEntry { get; }
 
         public UIProperty<int> HoursMonth { get; }
 
@@ -250,46 +253,72 @@ namespace TimeTracker.ViewModels
 
             #region Correction
 
+            CurrentEntry = RegisterProperty<UiProfileEntry?>(nameof(CurrentEntry));
+
             Correct = NewCommad
                      .WithCanExecute(from data in profileData
                                      select data.IsProcessable)
+                     .WithCanExecute(from entry in CurrentEntry
+                                     select entry != null)
                      .ThenFlow(obs => (from _ in obs
-                                       select Unit.Default)
-                                  .AutoSubscribe(ReportError))
-               .ThenRegister(nameof(Correct));
+                                       let oldEntry = CurrentEntry.Value
+                                       where oldEntry != null
+                                       from entry in this.ShowDialogAsync<CorrectionDialog, ProfileEntry?, ProfileEntry>(() => oldEntry.Entry)
+                                       where entry != null
+                                       select (New:entry, Old:oldEntry.Entry))
+                                  .AutoSubscribe(e =>
+                                                 {
+                                                     cache!.AddOrUpdate(e.New);
+                                                     var data = profileData.Value;
+                                                     profileData.Value = data with {Entries = data.Entries.Replace(e.Old, e.New!)};
+
+                                                 },ReportError))
+                     .ThenRegister(nameof(Correct));
+
+            #endregion
+
+            #region Calculation
+
+            
 
             #endregion
 
             void ReportError(Exception e)
                 => dispatcher.InvokeAsync(() => SnackBarQueue.Value?.Enqueue($"Fehler: {e.GetType().Name}--{e.Message}"));
         }
+    }
 
-        public sealed class UiProfileEntry : ObservableObject
+    public sealed class UiProfileEntry : ObservableObject
+    {
+        public ProfileEntry Entry { get; }
+
+
+        public string? Date { get; set; }
+
+        public string? Start { get; set; }
+
+        public string? Finish { get; set; }
+
+        public string? Hour { get; set; }
+
+        public UiProfileEntry(ProfileEntry entry)
         {
-            public ProfileEntry Entry { get; }
+            Entry = entry;
+            UpdateLabels();
+        }
 
+        //public UiProfileEntry()
+        //{
+        //    Entry = new ProfileEntry(DateTime.Now.Date, TimeSpan.FromHours(8), TimeSpan.FromHours(16));
+        //    UpdateLabels();
+        //}
 
-            public string? Date { get; set; }
-
-            public string? Start { get; set; }
-
-            public string? Finish { get; set; }
-
-            public string? Hour { get; set; }
-
-            public UiProfileEntry(ProfileEntry entry)
-            {
-                Entry = entry;
-                UpdateLabels();
-            }
-
-            private void UpdateLabels()
-            {
-                Date = Entry.Date.ToLocalTime().ToString("D");
-                Start = Entry.Start?.ToString(@"hh\:mm");
-                Finish = Entry.Finish?.ToString(@"hh\:mm");
-                Hour = (Entry.Finish - Entry.Start)?.ToString(@"hh\:mm");
-            }
+        private void UpdateLabels()
+        {
+            Date = Entry.Date.ToLocalTime().ToString("D");
+            Start = Entry.Start?.ToString(@"hh\:mm");
+            Finish = Entry.Finish?.ToString(@"hh\:mm");
+            Hour = (Entry.Finish - Entry.Start)?.ToString(@"hh\:mm");
         }
     }
 }

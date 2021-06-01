@@ -28,17 +28,11 @@ namespace Tauron.Application.CommonUI.Commands
         {
         }
 
-        public void Dispose()
-        {
-            _disposable.Dispose();
-        }
+        public void Dispose() => _disposable.Dispose();
 
         public IDisposable Subscribe(IObserver<Unit> observer) => _execute.Subscribe(observer);
 
-        public override void Execute(object? parameter)
-        {
-            _execute.OnNext(Unit.Default);
-        }
+        public override void Execute(object? parameter) => _execute.OnNext(Unit.Default);
 
         public override bool CanExecute(object? parameter) => _canExecute.Value;
 
