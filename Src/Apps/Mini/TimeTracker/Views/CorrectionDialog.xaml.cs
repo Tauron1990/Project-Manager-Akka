@@ -37,13 +37,13 @@ namespace TimeTracker.Views
         public string FinishTime
         {
             get => GetValue(string.Empty);
-            set => SetValue(string.Empty);
+            set => SetValue(value);
         }
 
         public string Date
         {
             get => GetValue(string.Empty);
-            set => SetValue(string.Empty);
+            set => SetValue(value);
         }
 
         public SimpleReactiveCommand Apply { get; }
@@ -53,28 +53,28 @@ namespace TimeTracker.Views
         public CorrectionDialogModel(IObserver<ProfileEntry?> observer, ProfileEntry initial)
         {
             Date = initial.Date.ToString("d");
-            FinishTime = (initial.Finish ?? TimeSpan.Zero).ToString(@"hh\:mm");
-            StartTime = (initial.Start ?? TimeSpan.Zero).ToString(@"hh\:mm");
+            FinishTime = initial.Finish?.ToString(@"hh\:mm") ?? string.Empty;
+            StartTime = initial.Start?.ToString(@"hh\:mm") ?? string.Empty;
 
             AddValidation(
                 () => StartTime,
                 sobs => from time in sobs
-                        let ty = Try<TimeSpan>.From(() => TimeSpan.Parse(time))
-                        select ty.IsSuccess ? null : ty.Failure.Value.Message);
+                        let ty = TimeSpan.TryParse(time, out _)
+                        select ty ? null : "Kann nicht in Zeitpunkt Umgewandelt werden");
             AddValidation(
                 () => FinishTime,
                 sobs => from time in sobs
-                        let ty = Try<TimeSpan>.From(() => TimeSpan.Parse(time))
-                        select ty.IsSuccess ? null : ty.Failure.Value.Message);
+                        let ty = TimeSpan.TryParse(time, out _)
+                        select ty ? null : "Kann nicht in Zeitpunkt Umgewandelt werden");
 
             AddValidation(
                 () => Date,
                 sobs => from time in sobs
-                        let ty = Try<DateTime>.From(() => DateTime.Parse(time))
-                        select ty.IsSuccess ? null : ty.Failure.Value.Message);
+                        let ty = DateTime.TryParse(time, out _)
+                        select ty ? null : "Kann nicht in Datum Umgewandelt werden");
 
-            Apply = new SimpleReactiveCommand(from _ in ErrorsChanged
-                                              select ErrorCount == 0)
+            Apply = new SimpleReactiveCommand((from _ in ErrorsChanged
+                                               select ErrorCount == 0).StartWith(ErrorCount == 0))
                    .Finish(o => o.Select(_ => new ProfileEntry(DateTime.Parse(Date).Date, TimeSpan.Parse(StartTime), TimeSpan.Parse(FinishTime)))
                                  .Subscribe(observer))
                    .DisposeWith(Disposer);

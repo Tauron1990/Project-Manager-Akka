@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 
 namespace TimeTracker.Data
 {
-    public sealed record ProfileData(string FileName, int MonthHours, int MinusShortTimeHours, int AllHours, ImmutableList<ProfileEntry> Entries, DateTime CurrentMonth)
+    public sealed record ProfileData(string FileName, int MonthHours, int MinusShortTimeHours, int AllHours, ImmutableDictionary<DateTime, ProfileEntry> Entries, DateTime CurrentMonth)
     {
         [JsonIgnore]
         public bool IsProcessable => !string.IsNullOrWhiteSpace(FileName);

@@ -32,7 +32,7 @@ namespace Akka.MGIHelper.UI.MgiStarter
                 Log.Info("Start Mgi Process");
 
                 var config = obj.Config;
-                Sender.Tell(new StartStatusUpdate(Context.Loc().RequestString("kernelstartstartlabel")));
+                Sender.Tell(new StartStatusUpdate(Context.Loc().RequestString("kernelstartstartlabel").Value));
                 obj.Kill();
 
                 Thread.Sleep(500);
@@ -63,7 +63,7 @@ namespace Akka.MGIHelper.UI.MgiStarter
 
                 Process.Start(config.Client);
 
-                Sender.Tell(new StartStatusUpdate(Context.Loc().RequestString("kernelstartcompledlabel")));
+                Sender.Tell(new StartStatusUpdate(Context.Loc().RequestString("kernelstartcompledlabel").Value));
             }
             catch (Exception e)
             {

@@ -7,13 +7,14 @@ using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using Akka.Event;
 using Autofac;
 using DynamicData;
+using DynamicData.Aggregation;
 using DynamicData.Alias;
 using DynamicData.Kernel;
 using JetBrains.Annotations;
 using MaterialDesignThemes.Wpf;
+using Microsoft.VisualBasic;
 using Newtonsoft.Json;
 using Tauron;
 using Tauron.Application;
@@ -45,11 +46,19 @@ namespace TimeTracker.ViewModels
 
         public UIProperty<int> HoursAll { get; }
 
+        public UIProperty<MonthState> CurrentState { get; }
+
         public UIPropertyBase? Come { get; }
 
         public UIPropertyBase? Go { get; }
 
         public UIPropertyBase? Correct { get; }
+
+        public UIPropertyBase AddEntry { get; }
+
+        public UIProperty<int> Remaining { get; }
+
+        public UIProperty<bool> IsProcessable { get; }
 
         public MainWindowViewModel(ILifetimeScope lifetimeScope, IUIDispatcher dispatcher, AppSettings settings, ITauronEnviroment enviroment)
             : base(lifetimeScope, dispatcher)
@@ -70,13 +79,15 @@ namespace TimeTracker.ViewModels
 
             #region Profile Selection
 
+            IsProcessable = RegisterProperty<bool>(nameof(IsProcessable));
+
             var trigger = new Subject<string>();
-            var profileData = new ProfileData(string.Empty, 0, 0, 0, ImmutableList<ProfileEntry>.Empty, DateTime.MinValue).ToRx().DisposeWith(this);
+            var profileData = new ProfileData(string.Empty, 0, 0, 0, ImmutableDictionary<DateTime, ProfileEntry>.Empty, DateTime.MinValue).ToRx().DisposeWith(this);
 
             (from newProfile in CurrentProfile
              where !list.Items.Contains(newProfile)
              select newProfile)
-               .Throttle(TimeSpan.FromSeconds(10))
+               .Throttle(TimeSpan.FromSeconds(5))
                .AutoSubscribe(s =>
                               {
                                   if (string.IsNullOrWhiteSpace(s)) return;
@@ -93,22 +104,31 @@ namespace TimeTracker.ViewModels
                .Subscribe(trigger)
                .DisposeWith(this);
 
+            profileData.Select(d => d.IsProcessable).Subscribe(IsProcessable).DisposeWith(this);
+
             #endregion
 
             #region FileHandling
 
             var fileNameBase = Guid.Parse("42CB06B0-B6F0-4F50-A1D9-294F47AA2AF6");
-            (from toLoad in trigger
-             select new ProfileData(GetFileName(toLoad), 0, 0, 0, ImmutableList<ProfileEntry>.Empty, DateTime.MinValue))
-               .Subscribe(profileData)
-               .DisposeWith(this);
+            //(from toLoad in trigger
+            // select new ProfileData(GetFileName(toLoad), 0, 0, 0, ImmutableList<ProfileEntry>.Empty, DateTime.MinValue))
+            //   .Subscribe(profileData)
+            //   .DisposeWith(this);
 
-            (from data in profileData.DistinctUntilChanged(pd => pd.FileName)
-             where data.IsProcessable && File.Exists(data.FileName)
-             from fileContent in File.ReadAllTextAsync(data.FileName)
+            (from toLoad in trigger
+             let fileName = GetFileName(toLoad)
+             where File.Exists(fileName)
+             from fileContent in File.ReadAllTextAsync(fileName)
              let newData = JsonConvert.DeserializeObject<ProfileData>(fileContent, serializationSettings)
              where newData != null
              select newData)
+               .AutoSubscribe(profileData!, ReportError);
+
+            (from toLoad in trigger
+             let fileName = GetFileName(toLoad)
+             where !File.Exists(fileName)
+             select new ProfileData(fileName, 0,0,0, ImmutableDictionary<DateTime, ProfileEntry>.Empty, DateTime.MinValue))
                .AutoSubscribe(profileData!, ReportError);
 
             (from data in profileData
@@ -174,20 +194,15 @@ namespace TimeTracker.ViewModels
                .AutoSubscribe(e =>
                               {
                                   cache.Clear();
-                                  e.ForEach(cache.AddOrUpdate);
+                                  e.Select(pair => pair.Value).OrderByDescending(v => v.Date).Foreach(cache.AddOrUpdate);
+                                  if(cache.Count == 0) return;
 
-                                  (from item in cache.Items
-                                   where item.Start != null && item.Finish == null
-                                   orderby item.Date
-                                   select item).FirstOrDefault()
-                                               .OptionNotNull()
-                                               .OnEmpty(() => isHere.Value = true);
+                                  CheckHere();
                               })
                .DisposeWith(this);
 
             ProfileEntries = this.RegisterUiCollection<UiProfileEntry>(nameof(ProfileEntries))
                                  .BindTo(cache.Connect()
-                                              .Sort(Comparer<ProfileEntry>.Create((entry1, entry2) => entry1.Date.CompareTo(entry2.Date)))
                                               .Select(entry => new UiProfileEntry(entry)));
 
             Come = NewCommad
@@ -199,10 +214,18 @@ namespace TimeTracker.ViewModels
                                {
                                    var date = SystemClock.NowDate;
                                    var entry = cache.Lookup(date).ValueOr(() => new ProfileEntry(date, null, null));
-                                   
-                                   if(entry.Start == null)
-                                       cache.AddOrUpdate(entry with{Start = SystemClock.NowTime});
-                                   isHere.Value = true;
+
+                                   if (entry.Start == null)
+                                   {
+                                       entry = entry with {Start = SystemClock.NowTime};
+                                       profileData.Value = profileData.Value with {Entries = profileData.Value.Entries.Add(entry.Date, entry)};
+                                       cache.AddOrUpdate(entry);
+                                       isHere.Value = true;
+                                   }
+                                   else
+                                       SnackBarQueue.Value?.Enqueue("Tag Schon eingetragen");
+
+                                   CheckHere();
                                })
                   .ThenFlow(CheckNewMonth)
                   .ThenRegister(nameof(Come));
@@ -216,9 +239,15 @@ namespace TimeTracker.ViewModels
                                  var date = SystemClock.NowDate;
                                  var entry = cache.Lookup(date).ValueOr(() => new ProfileEntry(date, null, null));
 
-                                 if(entry.Start != null)
-                                    cache.AddOrUpdate(entry with { Finish = SystemClock.NowTime });
-                                 isHere.Value = false;
+                                 if (entry.Start != null)
+                                 {
+                                     cache.AddOrUpdate(entry with {Finish = SystemClock.NowTime});
+                                     isHere.Value = false;
+                                 }
+                                 else
+                                    SnackBarQueue.Value?.Enqueue("Tag nicht gefunden");
+
+                                 CheckHere();
                              })
                .ThenRegister(nameof(Go));
 
@@ -226,9 +255,8 @@ namespace TimeTracker.ViewModels
                 => (from _ in obs.ObserveOn(Scheduler.Default)
                     from data in profileData.Take(1)
                     let month = SystemClock.NowDate
-                    where data.IsProcessable
                     let current = data.CurrentMonth
-                    where current.Month != month.Month
+                    where current.Month != month.Month || current.Year != month.Year
                     select (New:data with {CurrentMonth = month}, Old:data))
                        .AutoSubscribe(MakeBackup, ReportError);
 
@@ -236,7 +264,7 @@ namespace TimeTracker.ViewModels
             {
                 var (newData, oldData) = obj;
 
-                var oldEntrys = oldData.Entries.FindAll(pe => pe.Date == oldData.CurrentMonth).ToImmutableList();
+                var oldEntrys = oldData.Entries.Values.Where(pe => pe.Date == oldData.CurrentMonth).ToImmutableList();
                 cache.RemoveKeys(oldEntrys.Select(oe => oe.Date));
 
                 profileData.Value = newData;
@@ -244,9 +272,20 @@ namespace TimeTracker.ViewModels
                 var originalFile = newData.FileName;
                 var originalName = Path.GetFileName(newData.FileName);
 
+                if(oldEntrys.Count == 0) return;
                 File.WriteAllText(
                     originalFile.Replace(originalName, $"{originalName}-{oldData.CurrentMonth:d}"), 
                     JsonConvert.SerializeObject(oldEntrys));
+            }
+
+            void CheckHere()
+            {
+                (from item in cache.Items
+                 where item.Start != null && item.Finish == null
+                 orderby item.Date
+                 select item).FirstOrDefault()
+                             .OptionNotNull()
+                             .Run(_ => isHere.Value = true, () => isHere.Value = false);
             }
 
             #endregion
@@ -265,13 +304,14 @@ namespace TimeTracker.ViewModels
                                        where oldEntry != null
                                        from entry in this.ShowDialogAsync<CorrectionDialog, ProfileEntry?, ProfileEntry>(() => oldEntry.Entry)
                                        where entry != null
-                                       select (New:entry, Old:oldEntry.Entry))
+                                       select entry)
                                   .AutoSubscribe(e =>
                                                  {
-                                                     cache!.AddOrUpdate(e.New);
+                                                     cache!.AddOrUpdate(e!);
                                                      var data = profileData.Value;
-                                                     profileData.Value = data with {Entries = data.Entries.Replace(e.Old, e.New!)};
+                                                     profileData.Value = data with {Entries = data.Entries.SetItem(e!.Date, e)};
 
+                                                     CheckHere();
                                                  },ReportError))
                      .ThenRegister(nameof(Correct));
 
@@ -279,7 +319,44 @@ namespace TimeTracker.ViewModels
 
             #region Calculation
 
-            
+            Remaining = RegisterProperty<int>(nameof(Remaining));
+
+            CurrentState = RegisterProperty<MonthState>(nameof(CurrentState))
+               .WithDefaultValue(MonthState.Minus);
+
+            cache.Connect().ForAggregation().Sum(e =>
+                                                 {
+                                                     var (_, start, finish) = e;
+                                                     if (start == null && finish == null)
+                                                         return 8d;
+                                                     if (start == null || finish == null) return 0;
+
+                                                     var erg = finish - start;
+                                                     if (erg.Value.TotalHours > 0)
+                                                         return erg.Value.TotalHours;
+
+                                                     return 0;
+                                                 })
+                 .Select(TimeSpan.FromHours)
+                 .Select(ts => ts.Hours).Subscribe(HoursAll)
+                 .DisposeWith(this);
+
+            var calc = (from hours in HoursAll
+                        from hoursMonth in HoursMonth.Take(1)
+                        from data in profileData.Take(1)
+                        where data.IsProcessable && hours > 0 && hoursMonth > 0
+                        select CalculationResult.Calc(data.CurrentMonth, hours, hoursMonth, data.MinusShortTimeHours))
+                      .Publish().RefCount();
+
+            (from result in calc
+             select result.MonthState)
+               .Subscribe(CurrentState)
+               .DisposeWith(this);
+
+            (from result in calc
+             select result.Remaining)
+               .Subscribe(Remaining)
+               .DisposeWith(this);
 
             #endregion
 
@@ -288,10 +365,29 @@ namespace TimeTracker.ViewModels
         }
     }
 
+    public sealed record CalculationResult(MonthState MonthState, int Remaining)
+    {
+        public static CalculationResult Calc(DateTime currentMonth, int allHouers, int targetHours, int maxShort)
+        {
+            var targetDays = SystemClock.DaysInCurrentMonth(currentMonth);
+            var targetCurrent = targetHours / (targetDays - SystemClock.NowDay);
+            if (targetCurrent == double.PositiveInfinity)
+                targetCurrent = targetHours;
+
+            var remaining = allHouers - targetCurrent;
+            if (remaining > 0)
+                return new CalculationResult(MonthState.Ok, (int)remaining);
+            return maxShort > 0 && remaining > maxShort * -1 
+                ? new CalculationResult(MonthState.Short, (int) remaining) 
+                : new CalculationResult(MonthState.Minus, (int) remaining);
+        }
+    }
+
     public sealed class UiProfileEntry : ObservableObject
     {
         public ProfileEntry Entry { get; }
 
+        public DateTime Key { get; }
 
         public string? Date { get; set; }
 
@@ -304,6 +400,7 @@ namespace TimeTracker.ViewModels
         public UiProfileEntry(ProfileEntry entry)
         {
             Entry = entry;
+            Key = entry.Date;
             UpdateLabels();
         }
 

@@ -4,6 +4,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using JetBrains.Annotations;
+using NLog;
 using Tauron.Operations;
 
 namespace Tauron.Application.CommonUI.Model
@@ -96,7 +97,8 @@ namespace Tauron.Application.CommonUI.Model
 
         void IObserver<TData>.OnCompleted() { }
 
-        void IObserver<TData>.OnError(Exception error) { }
+        void IObserver<TData>.OnError(Exception error)
+            => LogManager.GetCurrentClassLogger(GetType()).Error(error, $"Property {Name} incomming Error {error.GetType()}");
 
         void IObserver<TData>.OnNext(TData value) => Set(value);
     }

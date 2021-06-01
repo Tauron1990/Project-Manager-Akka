@@ -73,8 +73,9 @@ namespace Akka.MGIHelper.UI.MgiStarter
 
             NewCommad
                .WithCanExecute(from client in Client
-                               from kernel in Kernel 
-                               select client != null || kernel != null)
+                               select client != null)
+               .WithCanExecute(from kernel in Kernel 
+                               select kernel != null)
                .WithExecute(() =>
                             {
                                 currentStart.Value?.Cancel();
@@ -130,9 +131,9 @@ namespace Akka.MGIHelper.UI.MgiStarter
                 }
 
                 if (Kernel != null && Client != null)
-                    Status += Context.Loc().RequestString("uistatusstartet");
+                    Status += Context.Loc().RequestString("uistatusstartet").Value;
                 if (Kernel!.Value == null && Client!.Value == null)
-                    Status += Context.Loc().RequestString("uistatusstopped");
+                    Status += Context.Loc().RequestString("uistatusstopped").Value;
             }
             catch (Exception e)
             {
@@ -182,9 +183,9 @@ namespace Akka.MGIHelper.UI.MgiStarter
             {
                 var loc = context.Loc();
 
-                Unkowen = loc.RequestString("genericunkowen");
-                GenericStart = loc.RequestString("genericstart");
-                GenericNotStart = loc.RequestString("genericnotstart");
+                Unkowen = loc.RequestString("genericunkowen").Value;
+                GenericStart = loc.RequestString("genericstart").Value;
+                GenericNotStart = loc.RequestString("genericnotstart").Value;
             }
 
             public string Unkowen { get; }

@@ -171,6 +171,7 @@ namespace Tauron.Application.Wpf.Dialogs
             return Observable.Create<TResult>(o =>
                                      {
                                          var context = factory(o);
+                                         ele.DataContext = context;
                                          if (context is IDisposable disposable)
                                              return disposable;
                                          return Disposable.Empty;

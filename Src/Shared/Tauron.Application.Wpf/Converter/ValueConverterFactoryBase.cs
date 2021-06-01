@@ -60,17 +60,17 @@ namespace Tauron.Application.Wpf.Converter
                 [NotNull] CultureInfo culture)
             {
                 //if (value is TDest && typeof(TSource) != typeof(TDest)) return value;
-                if (!(value is TSource)) return null;
+                if (value is not TSource source) return null;
 
-                return Convert((TSource) value);
+                return Convert(source);
             }
 
             public virtual object? ConvertBack(object value, [NotNull] Type targetType, object parameter,
                 [NotNull] CultureInfo culture)
             {
-                if (!CanConvertBack || !(value is TDest)) return null;
+                if (!CanConvertBack || value is not TDest dest) return null;
 
-                return ConvertBack((TDest) value);
+                return ConvertBack(dest);
             }
 
             protected abstract TDest Convert(TSource value);

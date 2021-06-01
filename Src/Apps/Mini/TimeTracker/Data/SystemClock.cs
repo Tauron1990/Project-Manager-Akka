@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.VisualBasic.Devices;
 
 namespace TimeTracker.Data
 {
@@ -10,9 +11,17 @@ namespace TimeTracker.Data
 
         public static TimeSpan NowTime => Inst.NowTimeImpl;
 
-        public abstract DateTime NowDateImpl { get; }
+        public static double NowDay => Inst.NewDayImpl;
 
-        public abstract TimeSpan NowTimeImpl { get; }
+        public static int DaysInCurrentMonth(DateTime month) => Inst.DaysInCurrentMonthImpl(month);
+
+        protected abstract double NewDayImpl { get; }
+
+        protected abstract DateTime NowDateImpl { get; }
+
+        protected abstract TimeSpan NowTimeImpl { get; }
+
+        protected abstract int DaysInCurrentMonthImpl(DateTime month);
 
         private sealed class Test : SystemClock
         {
@@ -34,14 +43,18 @@ namespace TimeTracker.Data
                 return _current.TimeOfDay * _multipler;
             }
 
-            public override DateTime NowDateImpl => Get().Date;
-            public override TimeSpan NowTimeImpl => GetTime();
+            protected override double NewDayImpl => _current.Day;
+            protected override DateTime NowDateImpl => Get().Date;
+            protected override TimeSpan NowTimeImpl => GetTime();
+            protected override int DaysInCurrentMonthImpl(DateTime month) => DateTime.DaysInMonth(month.Year, month.Month);
         }
 
         private sealed class Actual : SystemClock
         {
-            public override DateTime NowDateImpl => DateTime.UtcNow.Date;
-            public override TimeSpan NowTimeImpl => DateTime.UtcNow.TimeOfDay;
+            protected override double NewDayImpl => DateTime.UtcNow.Day;
+            protected override DateTime NowDateImpl => DateTime.UtcNow.Date;
+            protected override TimeSpan NowTimeImpl => DateTime.UtcNow.TimeOfDay;
+            protected override int DaysInCurrentMonthImpl(DateTime month) => DateTime.DaysInMonth(month.Year, month.Month);
         }
     }
 }
