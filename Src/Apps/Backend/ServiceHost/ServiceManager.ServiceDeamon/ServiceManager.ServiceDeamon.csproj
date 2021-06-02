@@ -18,8 +18,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Be.Vlaanderen.Basisregisters.Generators.Guid.Deterministic" Version="2.2.11" />
-    <PackageReference Include="DynamicData" Version="7.1.16" />
+    <PackageReference Include="Be.Vlaanderen.Basisregisters.Generators.Guid.Deterministic" Version="2.2.12" />
+    <PackageReference Include="DynamicData" Version="7.1.17" />
   </ItemGroup>
 
 </Project>

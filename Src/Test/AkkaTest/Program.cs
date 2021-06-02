@@ -1,34 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+using System.Collections.Immutable;
 using System.IO;
-using System.Linq;
+using System.Net.Http;
 using System.Reactive.Linq;
-using System.Reactive.Subjects;
-using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using Akka.Actor;
-using Akka.Util.Extensions;
-using AkkaTest.JsonRepo;
-using Autofac;
-using NLog;
-using NLog.Config;
-using ServiceManager.ProjectDeployment;
-using ServiceManager.ProjectRepository;
-using SharpRepository.Repository.Configuration;
-using Tauron;
+using AkkaTest.Feriertage;
+using Newtonsoft.Json;
 using Tauron.Akka;
 using Tauron.Application.AkkaNode.Bootstrap;
-using Tauron.Application.AkkaNode.Bootstrap.Console;
-using Tauron.Application.AkkaNode.Services.CleanUp;
-using Tauron.Application.AkkaNode.Services.FileTransfer;
-using Tauron.Application.AkkaNode.Services.Reporting.Commands;
-using Tauron.Application.Files.VirtualFiles;
-using Tauron.Application.Master.Commands.Deployment.Build;
-using Tauron.Application.Master.Commands.Deployment.Build.Querys;
-using Tauron.Application.Master.Commands.Deployment.Repository;
 using Tauron.Host;
-using Tauron.ObservableExt;
 
 namespace AkkaTest
 {
@@ -82,19 +63,14 @@ namespace AkkaTest
         {
             Console.Title = "Test Anwendung";
 
-            var dTest = Math.Round(1d, 0, MidpointRounding.ToPositiveInfinity);
-
-            var test = new Subject<int>();
-            var test2 = new Subject<int>();
-
-            var test3 = Observable.When(test.And(test2).Then((i, i1) => i + i1));
-            test3.Subscribe(Console.WriteLine);
-
-            test.OnNext(1);
-            test.OnNext(2);
-
-            test2.OnNext(1);
-            test2.OnNext(2);
+            using HttpClient client = new();
+            
+            //var serializer = new XmlSerializer(typeof(ArrayOfFeiertagDatum), new []{typeof(FeiertagDatum), typeof(Feiertag), typeof(Laender), typeof(Bundesland) });
+            using var result = await client.GetAsync("https://www.spiketime.de/feiertagapi/feiertage/BY/2021");
+            string resultString = await result.Content.ReadAsStringAsync();
+            await File.WriteAllTextAsync("Test.xml", resultString);
+            var data = JsonConvert.DeserializeObject<ImmutableList<Feiertage>>(resultString);
+            Console.WriteLine(resultString);
 
             //await ActorApplication.Create(args)
             //                      .ConfigureAutoFac(cb =>

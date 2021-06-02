@@ -11,9 +11,11 @@ namespace TimeTracker
     {
         protected override void Load(ContainerBuilder builder)
         {
+            builder.RegisterType<AddEntryDialog>().AsSelf();
             builder.RegisterType<CorrectionDialog>().AsSelf();
             builder.RegisterView<MainWindow, MainWindowViewModel>();
 
+            builder.RegisterType<HolidayManager>().AsSelf();
             builder.RegisterSettingsManager(c => c.WithProvider<AppSettingsConfiguration>());
 
             base.Load(builder);

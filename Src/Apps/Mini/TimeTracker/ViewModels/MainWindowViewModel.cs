@@ -54,11 +54,15 @@ namespace TimeTracker.ViewModels
 
         public UIPropertyBase? Correct { get; }
 
-        public UIPropertyBase AddEntry { get; }
+        public UIPropertyBase? AddEntry { get; }
 
         public UIProperty<int> Remaining { get; }
 
         public UIProperty<bool> IsProcessable { get; }
+
+        public UIProperty<double> WeekendMultiplicator { get; }
+
+        public UIProperty<double> HolidayMultiplicator { get; }
 
         public MainWindowViewModel(ILifetimeScope lifetimeScope, IUIDispatcher dispatcher, AppSettings settings, ITauronEnviroment enviroment)
             : base(lifetimeScope, dispatcher)
@@ -328,6 +332,25 @@ namespace TimeTracker.ViewModels
                                                      }
                                                  },ReportError))
                      .ThenRegister(nameof(Correct));
+
+            AddEntry = NewCommad
+                      .WithCanExecute(IsProcessable)
+                      .ThenFlow(obs => (from _ in obs 
+                                        from data in profileData.Take(1)
+                                        let parameter = new AddEntryParameter(data.Entries.Select(pe => pe.Value.Date.Day).ToHashSet(), data.CurrentMonth)
+                                        from result in this.ShowDialogAsync<AddEntryDialog, AddEntryResult, AddEntryParameter>(() => parameter)
+                                        select result)
+                                   .AutoSubscribe(res =>
+                                                  {
+                                                      if (res is not NewAddEntryResult result) return;
+                                                      
+                                                      var data = profileData.Value;
+                                                      profileData.Value = data with {Entries = data.Entries.Add(result.Entry.Date, result.Entry)};
+                                                      cache.AddOrUpdate(result.Entry);
+                                                      CheckHere();
+
+                                                  }, ReportError))
+                      .ThenRegister(nameof(AddEntry));
 
             void UpdateProfileEntry(ProfileEntry newEntry, ProfileEntry oldEntry)
             {

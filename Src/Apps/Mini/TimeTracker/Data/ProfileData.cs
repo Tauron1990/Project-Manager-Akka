@@ -4,13 +4,14 @@ using Newtonsoft.Json;
 
 namespace TimeTracker.Data
 {
-    public sealed record ProfileData(string FileName, int MonthHours, int MinusShortTimeHours, int AllHours, ImmutableDictionary<DateTime, ProfileEntry> Entries, DateTime CurrentMonth)
+    public sealed record ProfileData(string FileName, int MonthHours, int MinusShortTimeHours, int AllHours, ImmutableDictionary<DateTime, ProfileEntry> Entries, DateTime CurrentMonth, 
+        double WeekendMultiplikator = 0, double HoöidayMultiplicator = 0)
     {
         [JsonIgnore]
         public bool IsProcessable => !string.IsNullOrWhiteSpace(FileName);
     };
 
-    public sealed record ProfileEntry(DateTime Date, TimeSpan? Start, TimeSpan? Finish);
+    public sealed record ProfileEntry(DateTime Date, TimeSpan? Start, TimeSpan? Finish, bool IsHoliday = false);
 
     public sealed record ProfileBackup(DateTime Data, ImmutableList<ProfileEntry> Entrys);
 }
