@@ -17,6 +17,8 @@ namespace TimeTracker
         {
             InitializeComponent();
 
+            
+
             var evts = (IDialogCoordinatorUIEvents)dialogCoordinator;
 
             evts.HideDialogEvent += () => Dialogs.CurrentSession?.Close();

@@ -15,15 +15,15 @@ namespace TimeTracker.Views
     /// <summary>
     /// Interaktionslogik für CorrectionDialog.xaml
     /// </summary>
-    public partial class CorrectionDialog : IBaseDialog<ProfileEntry?, ProfileEntry>
+    public partial class CorrectionDialog : IBaseDialog<CorrectionResult, ProfileEntry>
     {
         public CorrectionDialog()
         {
             InitializeComponent();
         }
 
-        public Task<ProfileEntry?> Init(ProfileEntry initalData) 
-            => this.MakeObsTask<ProfileEntry?>(o => new CorrectionDialogModel(o, initalData));
+        public Task<CorrectionResult> Init(ProfileEntry initalData) 
+            => this.MakeObsTask<CorrectionResult>(o => new CorrectionDialogModel(o, initalData));
     }
 
     public sealed class CorrectionDialogModel : ObservableErrorObject
@@ -50,7 +50,9 @@ namespace TimeTracker.Views
 
         public SimpleReactiveCommand Cancel { get; }
 
-        public CorrectionDialogModel(IObserver<ProfileEntry?> observer, ProfileEntry initial)
+        public SimpleReactiveCommand Delete { get; }
+
+        public CorrectionDialogModel(IObserver<CorrectionResult> observer, ProfileEntry initial)
         {
             Date = initial.Date.ToString("d");
             FinishTime = initial.Finish?.ToString(@"hh\:mm") ?? string.Empty;
@@ -75,13 +77,25 @@ namespace TimeTracker.Views
 
             Apply = new SimpleReactiveCommand((from _ in ErrorsChanged
                                                select ErrorCount == 0).StartWith(ErrorCount == 0))
-                   .Finish(o => o.Select(_ => new ProfileEntry(DateTime.Parse(Date).Date, TimeSpan.Parse(StartTime), TimeSpan.Parse(FinishTime)))
+                   .Finish(o => o.Select(_ => new UpdateCorrectionResult(new ProfileEntry(DateTime.Parse(Date).Date, TimeSpan.Parse(StartTime), TimeSpan.Parse(FinishTime))))
                                  .Subscribe(observer))
                    .DisposeWith(Disposer);
 
             Cancel = new SimpleReactiveCommand()
-                    .Finish(o => o.Select(_ => default(ProfileEntry)).Subscribe(observer))
+                    .Finish(o => o.Select(_ => new CancelCorrectionResult()).Subscribe(observer))
+                    .DisposeWith(Disposer);
+
+            Delete = new SimpleReactiveCommand()
+                    .Finish(o => o.Select(_ => new DeleteCorrectionResult(initial.Date)).Subscribe(observer))
                     .DisposeWith(Disposer);
         }
     }
+
+    public abstract record CorrectionResult;
+
+    public sealed record CancelCorrectionResult : CorrectionResult;
+
+    public sealed record UpdateCorrectionResult(ProfileEntry Entry) : CorrectionResult;
+
+    public sealed record DeleteCorrectionResult(DateTime Key) : CorrectionResult;
 }

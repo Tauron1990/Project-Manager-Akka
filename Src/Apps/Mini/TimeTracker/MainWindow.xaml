@@ -13,7 +13,7 @@
                   mc:Ignorable="d" d:DataContext="{d:DesignInstance viewModels:MainWindowViewModel}"
                   Title="Zeit Erfassung" Height="900" Width="700">
     <DockPanel LastChildFill="True">
-        <md:Snackbar DockPanel.Dock="Bottom" MessageQueue="{ui:ActorBinding SnackBarQueue}"/>
+        <md:Snackbar DockPanel.Dock="Bottom" MessageQueue="{ui:ActorBinding SnackBarQueue}" Margin="10"/>
         <md:DialogHost Name="Dialogs">
             <Grid>
                 <Grid.RowDefinitions>
@@ -33,7 +33,7 @@
                 <!--<Button Grid.Row="0" Grid.Column="2" HorizontalAlignment="Center" Margin="5" Content="Anlegen" Command="{ui:ActorBinding CreateProfileCommand}"/>-->
                 <TextBox Grid.Row="1" Grid.Column="0" md:HintAssist.Hint="Stunden pro Monat" md:HintAssist.IsFloating="True" Width="170" Margin="5" IsEnabled="{ui:ActorBinding IsProcessable}">
                     <TextBox.Text>
-                        <ui:ActorBinding RootProperty="HoursMonth" Converter="{controls:IntConverter}" Delay="1000">
+                        <ui:ActorBinding RootProperty="HoursMonth" Converter="{controls:IntConverter}" Delay="500">
                             <ui:ActorBinding.ValidationRules>
                                 <controls:IntValidation/>
                             </ui:ActorBinding.ValidationRules>
@@ -58,13 +58,20 @@
                     <Button Margin="0,5,5,5" Content="Hinzufügen" Command="{ui:ActorBinding AddEntry}" md:ButtonAssist.CornerRadius="0 20 20 0"/>
                 </StackPanel>
                 <ListView Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3" Margin="10" controls:ListViewColumns.Stretch="True" controls:ListViewColumns.CustomStrech="True"
-                          ItemsSource="{ui:ActorBinding ProfileEntries}" SelectedItem="{ui:ActorBinding ProfileEntries}">
+                          ItemsSource="{ui:ActorBinding ProfileEntries}" SelectedItem="{ui:ActorBinding CurrentEntry}">
                     <ListView.View>
                         <GridView>
-                            <GridViewColumn Header="Datum" DisplayMemberBinding="{Binding Date}" controls:ListViewColumns.CustomWidth="200"/>
+                            <GridViewColumn Header="Datum" DisplayMemberBinding="{Binding Date}" controls:ListViewColumns.CustomWidth="170"/>
                             <GridViewColumn Header="Start" DisplayMemberBinding="{Binding Start}" controls:ListViewColumns.CustomWidth="120"/>
                             <GridViewColumn Header="Ende" DisplayMemberBinding="{Binding Finish}" controls:ListViewColumns.CustomWidth="120"/>
-                            <GridViewColumn Header="Alle Stunden" DisplayMemberBinding="{Binding Hour}"/>
+                            <GridViewColumn Header="Tag Stunden" DisplayMemberBinding="{Binding Hour}"/>
+                            <GridViewColumn Header="OK" controls:ListViewColumns.CustomWidth="100">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate DataType="viewModels:UiProfileEntry">
+                                        <Border Width="20" Height="20" CornerRadius="10" Background="{Binding IsValid, Converter={controls:IsValidEntryConverter}}"/>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
                         </GridView>
                     </ListView.View>
                 </ListView>

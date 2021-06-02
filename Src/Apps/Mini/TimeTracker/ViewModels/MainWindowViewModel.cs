@@ -7,6 +7,7 @@ using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Windows.Data;
 using Autofac;
 using DynamicData;
 using DynamicData.Aggregation;
@@ -14,7 +15,6 @@ using DynamicData.Alias;
 using DynamicData.Kernel;
 using JetBrains.Annotations;
 using MaterialDesignThemes.Wpf;
-using Microsoft.VisualBasic;
 using Newtonsoft.Json;
 using Tauron;
 using Tauron.Application;
@@ -205,6 +205,12 @@ namespace TimeTracker.ViewModels
                                  .BindTo(cache.Connect()
                                               .Select(entry => new UiProfileEntry(entry)));
 
+            dispatcher.InvokeAsync(() =>
+                                   {
+                                       var view = (ListCollectionView)CollectionViewSource.GetDefaultView(ProfileEntries.Property.Value);
+                                       view.CustomSort = Comparer<UiProfileEntry>.Default;
+                                   });
+
             Come = NewCommad
                   .WithCanExecute(from data in profileData
                                   select data.IsProcessable)
@@ -302,18 +308,55 @@ namespace TimeTracker.ViewModels
                      .ThenFlow(obs => (from _ in obs
                                        let oldEntry = CurrentEntry.Value
                                        where oldEntry != null
-                                       from entry in this.ShowDialogAsync<CorrectionDialog, ProfileEntry?, ProfileEntry>(() => oldEntry.Entry)
-                                       where entry != null
-                                       select entry)
-                                  .AutoSubscribe(e =>
+                                       from result in this.ShowDialogAsync<CorrectionDialog, CorrectionResult, ProfileEntry>(() => oldEntry.Entry)
+                                       select (New:result, Old:oldEntry.Entry))
+                                  .AutoSubscribe(pair =>
                                                  {
-                                                     cache!.AddOrUpdate(e!);
-                                                     var data = profileData.Value;
-                                                     profileData.Value = data with {Entries = data.Entries.SetItem(e!.Date, e)};
-
-                                                     CheckHere();
+                                                     var (correctionResult, old) = pair;
+                                                     switch (correctionResult)
+                                                     {
+                                                         case UpdateCorrectionResult update:
+                                                             UpdateProfileEntry(update.Entry, old);
+                                                             break;
+                                                         case DeleteCorrectionResult delete:
+                                                             profileData.Value = profileData.Value with {Entries = profileData.Value.Entries.Remove(delete.Key)};
+                                                             cache.RemoveKey(delete.Key);
+                                                             CheckHere();
+                                                             break;
+                                                         default:
+                                                             return;
+                                                     }
                                                  },ReportError))
                      .ThenRegister(nameof(Correct));
+
+            void UpdateProfileEntry(ProfileEntry newEntry, ProfileEntry oldEntry)
+            {
+                if (newEntry.Date.Month != profileData!.Value.CurrentMonth.Month)
+                {
+                    SnackBarQueue?.Value?.Enqueue($"Nicht der selbe Monat wurde Gewält: {profileData.Value.CurrentMonth.Date.Month}");
+                    return;
+                }
+
+                if (newEntry.Date.Year != profileData.Value.CurrentMonth.Year)
+                {
+                    SnackBarQueue?.Value?.Enqueue($"Nicht das selbe Jahr wurde Gewält: {profileData.Value.CurrentMonth.Date.Year}");
+                    return;
+                }
+
+                var (oldDate, _, _) = oldEntry;
+                var dic = profileData.Value.Entries;
+
+                if (newEntry.Date != oldDate)
+                {
+                    cache?.RemoveKey(oldDate);
+                    dic = dic.Remove(oldDate);
+                }
+                cache?.AddOrUpdate(newEntry!);
+                var data = profileData.Value;
+                profileData.Value = data with { Entries = dic.SetItem(newEntry.Date, newEntry) };
+
+                CheckHere();
+            }
 
             #endregion
 
@@ -371,36 +414,36 @@ namespace TimeTracker.ViewModels
         {
             var targetDays = SystemClock.DaysInCurrentMonth(currentMonth);
             var targetCurrent = targetHours / (targetDays - SystemClock.NowDay);
+            // ReSharper disable once CompareOfFloatsByEqualityOperator
             if (targetCurrent == double.PositiveInfinity)
                 targetCurrent = targetHours;
 
             var remaining = allHouers - targetCurrent;
             if (remaining > 0)
                 return new CalculationResult(MonthState.Ok, (int)remaining);
-            return maxShort > 0 && remaining > maxShort * -1 
-                ? new CalculationResult(MonthState.Short, (int) remaining) 
-                : new CalculationResult(MonthState.Minus, (int) remaining);
+            return maxShort > 0 && remaining > maxShort * -1
+                ? new CalculationResult(MonthState.Short, (int)remaining)
+                : new CalculationResult(MonthState.Minus, (int)remaining);
         }
     }
 
-    public sealed class UiProfileEntry : ObservableObject
+    public sealed class UiProfileEntry : ObservableObject, IComparable<UiProfileEntry>
     {
         public ProfileEntry Entry { get; }
 
-        public DateTime Key { get; }
+        public string? Date { get; private set; }
 
-        public string? Date { get; set; }
+        public string? Start { get; private set; }
 
-        public string? Start { get; set; }
+        public string? Finish { get; private set; }
 
-        public string? Finish { get; set; }
+        public string? Hour { get; private set; }
 
-        public string? Hour { get; set; }
+        public bool IsValid { get; private set; }
 
         public UiProfileEntry(ProfileEntry entry)
         {
             Entry = entry;
-            Key = entry.Date;
             UpdateLabels();
         }
 
@@ -416,6 +459,18 @@ namespace TimeTracker.ViewModels
             Start = Entry.Start?.ToString(@"hh\:mm");
             Finish = Entry.Finish?.ToString(@"hh\:mm");
             Hour = (Entry.Finish - Entry.Start)?.ToString(@"hh\:mm");
+
+            var start = Entry.Start;
+            var finish = Entry.Finish;
+            if (start != null && finish == null)
+                IsValid = false;
+            else if (start > finish)
+                IsValid = false;
+            else
+                IsValid = true;
         }
+
+        public int CompareTo(UiProfileEntry? other) 
+            => other == null ? 1 : Entry.Date.CompareTo(other.Entry.Date) * -1;
     }
 }

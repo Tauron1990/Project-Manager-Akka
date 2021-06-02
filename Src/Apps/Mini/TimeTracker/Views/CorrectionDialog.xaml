@@ -11,9 +11,10 @@
         <TextBox Margin="5" Width="250" Text="{Binding Date, Delay=200, UpdateSourceTrigger=PropertyChanged}" md:HintAssist.Hint="Tag" md:HintAssist.IsFloating="True"/>
         <TextBox Margin="5" Width="250" Text="{Binding StartTime, Delay=200, UpdateSourceTrigger=PropertyChanged}" md:HintAssist.Hint="Start Zeit" md:HintAssist.IsFloating="True"/>
         <TextBox Margin="5" Width="250" Text="{Binding FinishTime, Delay=200, UpdateSourceTrigger=PropertyChanged}" md:HintAssist.Hint="End Zeit" md:HintAssist.IsFloating="True"/>
-        <StackPanel Width="210" Orientation="Horizontal" Margin="5">
-            <Button Margin="2" Content="Abbrechen" Command="{Binding Cancel}"/>
-            <Button Margin="2" Content="Anwenden" Command="{Binding Apply}"/>
+        <StackPanel Width="285" Orientation="Horizontal" Margin="5">
+            <Button Content="Abbrechen" Command="{Binding Cancel}" md:ButtonAssist.CornerRadius="20 00 00 20"/>
+            <Button Content="Löschen" Command="{Binding Delete}"/>
+            <Button Content="Anwenden" Command="{Binding Apply}" md:ButtonAssist.CornerRadius="00 20 20 00"/>
         </StackPanel>
     </StackPanel>
 </UserControl>

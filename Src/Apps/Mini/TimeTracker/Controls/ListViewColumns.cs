@@ -85,7 +85,7 @@ namespace TimeTracker.Controls
                 if(listView.View is not GridView gridView) return;
 
                 var elements = ImmutableArray<GridViewColumn>.Empty;
-                var max = 0d;
+                var max = 30d;
 
                 foreach (var gridViewColumn in gridView.Columns)
                 {
@@ -102,7 +102,7 @@ namespace TimeTracker.Controls
                 var set = (listView.ActualWidth - max) / elements.Length;
                 if(set < 10) return;
 
-                foreach (var ele in elements) ele.Width = set - 30;
+                foreach (var ele in elements) ele.Width = set;
             }
         }
     }

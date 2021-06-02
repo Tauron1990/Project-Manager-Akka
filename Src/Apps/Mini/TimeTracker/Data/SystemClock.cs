@@ -5,7 +5,7 @@ namespace TimeTracker.Data
 {
     public abstract class SystemClock
     {
-        private static readonly SystemClock Inst = new Test();
+        private static readonly SystemClock Inst = new Actual();
 
         public static DateTime NowDate => Inst.NowDateImpl;
 
@@ -23,31 +23,31 @@ namespace TimeTracker.Data
 
         protected abstract int DaysInCurrentMonthImpl(DateTime month);
 
-        private sealed class Test : SystemClock
-        {
-            private DateTime _current = DateTime.UtcNow - TimeSpan.FromDays(1);
-            private int _multipler;
+        //private sealed class Test : SystemClock
+        //{
+        //    private DateTime _current = DateTime.UtcNow - TimeSpan.FromDays(1);
+        //    private int _multipler;
 
 
-            private DateTime Get()
-            {
-                _current = _current.AddDays(1);
-                _multipler = 0;
-                return _current;
-            }
+        //    private DateTime Get()
+        //    {
+        //        _current = _current.AddDays(1);
+        //        _multipler = 0;
+        //        return _current;
+        //    }
 
-            private TimeSpan GetTime()
-            {
-                _multipler++;
+        //    private TimeSpan GetTime()
+        //    {
+        //        _multipler++;
 
-                return _current.TimeOfDay * _multipler;
-            }
+        //        return _current.TimeOfDay * _multipler;
+        //    }
 
-            protected override double NewDayImpl => _current.Day;
-            protected override DateTime NowDateImpl => Get().Date;
-            protected override TimeSpan NowTimeImpl => GetTime();
-            protected override int DaysInCurrentMonthImpl(DateTime month) => DateTime.DaysInMonth(month.Year, month.Month);
-        }
+        //    protected override double NewDayImpl => _current.Day;
+        //    protected override DateTime NowDateImpl => Get().Date;
+        //    protected override TimeSpan NowTimeImpl => GetTime();
+        //    protected override int DaysInCurrentMonthImpl(DateTime month) => DateTime.DaysInMonth(month.Year, month.Month);
+        //}
 
         private sealed class Actual : SystemClock
         {
