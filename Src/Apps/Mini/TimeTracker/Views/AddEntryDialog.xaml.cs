@@ -1,18 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using Tauron;
 using Tauron.Application.CommonUI.Commands;
 using Tauron.Application.CommonUI.Dialogs;
@@ -27,13 +17,16 @@ namespace TimeTracker.Views
     /// </summary>
     public partial class AddEntryDialog : IBaseDialog<AddEntryResult, AddEntryParameter>
     {
-        public AddEntryDialog()
+        private readonly HolidayManager _manager;
+
+        public AddEntryDialog(HolidayManager manager)
         {
+            _manager = manager;
             InitializeComponent();
         }
 
         public Task<AddEntryResult> Init(AddEntryParameter initalData) 
-            => this.MakeObsTask<AddEntryResult>(o => new AddEntryDialogModel(o, initalData));
+            => this.MakeObsTask<AddEntryResult>(o => new AddEntryDialogModel(o, initalData, _manager));
     }
 
     public sealed class AddEntryDialogModel : ObservableErrorObject
@@ -64,7 +57,7 @@ namespace TimeTracker.Views
 
         public ICommand Ok { get; }
 
-        public AddEntryDialogModel(IObserver<AddEntryResult> resultObserver, AddEntryParameter parameter)
+        public AddEntryDialogModel(IObserver<AddEntryResult> resultObserver, AddEntryParameter parameter, HolidayManager manager)
         {
             MaxDay = SystemClock.DaysInCurrentMonth(parameter.CurrentMonth);
             CurrentMonth = parameter.CurrentMonth.ToString("d");
@@ -96,7 +89,9 @@ namespace TimeTracker.Views
             Ok = new SimpleReactiveCommand(from _ in ErrorsChanged
                                            select ErrorCount == 0)
                 .Finish(obs => (from _ in obs
-                                let data = new ProfileEntry(new DateTime(parameter.CurrentMonth.Year, parameter.CurrentMonth.Month, Day), TimeSpan.Parse(Start), TimeSpan.Parse(Finish))
+                                let date = new DateTime(parameter.CurrentMonth.Year, parameter.CurrentMonth.Month, Day)
+                                from isHoliday in manager.IsHoliday(date, Day)
+                                let data = new ProfileEntry(date, TimeSpan.Parse(Start), TimeSpan.Parse(Finish), isHoliday)
                                 select new NewAddEntryResult(data))
                            .Subscribe(resultObserver))
                 .DisposeWith(Disposer);

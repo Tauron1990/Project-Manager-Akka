@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Data;
 using Akka.Util.Extensions;
 using JetBrains.Annotations;
@@ -19,6 +20,11 @@ namespace Tauron.Application.Wpf.UI
         {
             get => Binding.Delay;
             set => Binding.Delay = value;
+        }
+
+        public ValidationRule ValidationRule
+        {
+            set => ValidationRules?.Add(value);
         }
 
         public ActorBinding(string name) => RootProperty = name;

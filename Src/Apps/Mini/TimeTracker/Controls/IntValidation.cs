@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Markup;
 using Tauron.Application.Wpf.Converter;
 
 namespace TimeTracker.Controls
@@ -23,7 +24,13 @@ namespace TimeTracker.Controls
         protected override IValueConverter Create() => new _();
     }
 
-    public sealed class IntValidation : ValidationRule
+
+    public sealed class IntValidation : MarkupExtension
+    {
+        public override object ProvideValue(IServiceProvider serviceProvider) => new IntValidationRule();
+    }
+
+    public sealed class IntValidationRule : ValidationRule
     {
         public override ValidationResult Validate(object value, CultureInfo cultureInfo)
         {

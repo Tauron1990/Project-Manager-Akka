@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using Akka.Util;
 using Tauron;
-using Tauron.Application;
 using Tauron.Application.CommonUI.Commands;
 using Tauron.Application.CommonUI.Dialogs;
 using Tauron.Application.CommonUI.Model;
@@ -17,13 +15,16 @@ namespace TimeTracker.Views
     /// </summary>
     public partial class CorrectionDialog : IBaseDialog<CorrectionResult, ProfileEntry>
     {
-        public CorrectionDialog()
+        private readonly HolidayManager _manager;
+
+        public CorrectionDialog(HolidayManager manager)
         {
+            _manager = manager;
             InitializeComponent();
         }
 
         public Task<CorrectionResult> Init(ProfileEntry initalData) 
-            => this.MakeObsTask<CorrectionResult>(o => new CorrectionDialogModel(o, initalData));
+            => this.MakeObsTask<CorrectionResult>(o => new CorrectionDialogModel(o, initalData, _manager));
     }
 
     public sealed class CorrectionDialogModel : ObservableErrorObject
@@ -52,7 +53,7 @@ namespace TimeTracker.Views
 
         public SimpleReactiveCommand Delete { get; }
 
-        public CorrectionDialogModel(IObserver<CorrectionResult> observer, ProfileEntry initial)
+        public CorrectionDialogModel(IObserver<CorrectionResult> observer, ProfileEntry initial, HolidayManager manager)
         {
             Date = initial.Date.ToString("d");
             FinishTime = initial.Finish?.ToString(@"hh\:mm") ?? string.Empty;
@@ -77,8 +78,13 @@ namespace TimeTracker.Views
 
             Apply = new SimpleReactiveCommand((from _ in ErrorsChanged
                                                select ErrorCount == 0).StartWith(ErrorCount == 0))
-                   .Finish(o => o.Select(_ => new UpdateCorrectionResult(new ProfileEntry(DateTime.Parse(Date).Date, TimeSpan.Parse(StartTime), TimeSpan.Parse(FinishTime))))
-                                 .Subscribe(observer))
+                   .Finish(obs => (from _ in obs
+                                   let date = DateTime.Parse(Date).Date
+                                   let start = TimeSpan.Parse(StartTime)
+                                   let end = TimeSpan.Parse(FinishTime)
+                                   from isHoliday in manager.IsHoliday(date, date.Day)
+                                   select new UpdateCorrectionResult(new ProfileEntry(date, start, end, isHoliday)))
+                              .Subscribe(observer))
                    .DisposeWith(Disposer);
 
             Cancel = new SimpleReactiveCommand()

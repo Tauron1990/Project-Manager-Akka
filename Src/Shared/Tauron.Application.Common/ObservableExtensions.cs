@@ -205,14 +205,22 @@ namespace Tauron
                 _current = null;
             }
 
-            public void OnCompleted() => _target.OnCompleted();
+            public void OnCompleted()
+            {
+                using (this)
+                {
+                    _target.OnCompleted();
+                }
+            }
 
             public void OnError(Exception error)
             {
-                if (_errorHandler(error) && _strategy.ReSubscribe(AddSubscription, error)) return;
-                
-                _target.OnError(error);
-                Dispose();
+                using (this)
+                {
+                    if (_errorHandler(error) && _strategy.ReSubscribe(AddSubscription, error)) return;
+
+                    _target.OnError(error);
+                }
             }
 
             public void OnNext(TData value)

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reactive.Linq;
+using Akka.Util;
 using DynamicData;
 using DynamicData.Binding;
 using JetBrains.Annotations;
@@ -36,10 +37,12 @@ namespace Tauron.Application.CommonUI.Model
             return this;
         }
 
-        public UICollectionProperty<TData> BindTo(IObservable<IChangeSet<TData>> source,
-            Func<IObservable<IChangeSet<TData>>, IDisposable>? subscriber = null)
+        public UICollectionProperty<TData> BindTo(IObservable<IChangeSet<TData>> source, Func<IObservable<IChangeSet<TData>>, IDisposable>? subscriber = null)
         {
             subscriber ??= set => set.Subscribe();
+
+            if (typeof(TData).Implements<IDisposable>())
+                source = source.DisposeMany();
 
             subscriber(source
                     .ObserveOn(DispatcherScheduler.From(_actor.Dispatcher))
@@ -49,22 +52,23 @@ namespace Tauron.Application.CommonUI.Model
             return this;
         }
 
-        public UICollectionProperty<TData> BindTo<TKey>(IObservable<IChangeSet<TData, TKey>> source,
-            Func<IObservable<IChangeSet<TData, TKey>>, IDisposable>? subscriber = null)
+        public UICollectionProperty<TData> BindTo<TKey>(IObservable<IChangeSet<TData, TKey>> source, Func<IObservable<IChangeSet<TData, TKey>>, IDisposable>? subscriber = null)
             where TKey : notnull
         {
             subscriber ??= set => set.Subscribe();
 
+            if (typeof(TData).Implements<IDisposable>())
+                source = source.DisposeMany();
+
             subscriber(source
-                    .ObserveOn(DispatcherScheduler.From(_actor.Dispatcher))
-                    .Bind(_collection))
+                      .ObserveOn(DispatcherScheduler.From(_actor.Dispatcher))
+                      .Bind(_collection))
                 .DisposeWith(_actor);
 
             return this;
         }
 
-        public UICollectionProperty<TData> BindToCache<TKey>(Func<TData, TKey> keySelector,
-            out SourceCache<TData, TKey> sourceCollection)
+        public UICollectionProperty<TData> BindToCache<TKey>(Func<TData, TKey> keySelector, out SourceCache<TData, TKey> sourceCollection)
             where TKey : notnull
         {
             sourceCollection = new SourceCache<TData, TKey>(keySelector);
