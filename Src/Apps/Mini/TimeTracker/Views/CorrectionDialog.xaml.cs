@@ -7,6 +7,7 @@ using Tauron.Application.CommonUI.Dialogs;
 using Tauron.Application.CommonUI.Model;
 using Tauron.Application.Wpf.Dialogs;
 using TimeTracker.Data;
+using TimeTracker.Managers;
 
 namespace TimeTracker.Views
 {

@@ -4,22 +4,33 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
-using Akka.Util;
 using Newtonsoft.Json;
 using Tauron.Application;
+using TimeTracker.Data;
 
-namespace TimeTracker.Data
+namespace TimeTracker.Managers
 {
     public sealed class HolidayManager : IDisposable
     {
         private const string FileNameBase = "Holidays-";
+
+        private readonly IDisposable _cleanUp;
         private readonly ITauronEnviroment _enviroment;
-        private readonly SemaphoreSlim _lock = new(0, 1);
+        private readonly SemaphoreSlim _lock = new(1);
         private readonly HttpClient _httpClient = new();
 
-        public HolidayManager(ITauronEnviroment enviroment) => _enviroment = enviroment;
+        public HolidayManager(ITauronEnviroment enviroment)
+        {
+            _enviroment = enviroment;
+            _cleanUp = Disposable.Create(() =>
+                                         {
+                                             _lock.Dispose();
+                                             _httpClient.Dispose();
+                                         });
+        }
 
         public async Task<IEnumerable<int>> RequestFor(DateTime mouth)
         {
@@ -72,7 +83,7 @@ namespace TimeTracker.Data
                 }
                 catch (IOException) { }
 
-                return ApplyCache(data); ;
+                return ApplyCache(data);
             }
             finally
             {
@@ -88,10 +99,6 @@ namespace TimeTracker.Data
             }
         }
 
-        public void Dispose()
-        {
-            _lock.Dispose();
-            _httpClient.Dispose();
-        }
+        void IDisposable.Dispose() => _cleanUp.Dispose();
     }
 }

@@ -23,6 +23,7 @@ using Tauron.Application.CommonUI.AppCore;
 using Tauron.Application.CommonUI.Model;
 using Tauron.ObservableExt;
 using TimeTracker.Data;
+using TimeTracker.Managers;
 using TimeTracker.Views;
 
 namespace TimeTracker.ViewModels
@@ -40,11 +41,11 @@ namespace TimeTracker.ViewModels
 
         public UIProperty<UiProfileEntry?> CurrentEntry { get; }
 
-        public UIProperty<int> HoursMonth { get; }
+        //public UIProperty<int> HoursMonth { get; }
 
-        public UIProperty<int> HoursShort { get; }
+        //public UIProperty<int> HoursShort { get; }
 
-        public UIProperty<int> HoursAll { get; }
+        //public UIProperty<int> HoursAll { get; }
 
         public UIProperty<MonthState> CurrentState { get; }
 
@@ -60,15 +61,15 @@ namespace TimeTracker.ViewModels
 
         public UIProperty<bool> IsProcessable { get; }
 
-        public UIProperty<double> WeekendMultiplicator { get; }
+        //public UIProperty<double> WeekendMultiplicator { get; }
 
-        public UIProperty<double> HolidayMultiplicator { get; }
+        //public UIProperty<double> HolidayMultiplicator { get; }
 
-        public MainWindowViewModel(ILifetimeScope lifetimeScope, IUIDispatcher dispatcher, AppSettings settings, ITauronEnviroment enviroment, HolidayManager holidayManager)
+        public MainWindowViewModel(ILifetimeScope lifetimeScope, IUIDispatcher dispatcher, AppSettings settings, ITauronEnviroment enviroment, 
+            ProfileManager profileManager, CalculationManager calculation)
             : base(lifetimeScope, dispatcher)
         {
-            var serializationSettings = new JsonSerializerSettings {Formatting = Formatting.Indented};
-            //serializationSettings.Converters.Add(new noda);
+
 
             SnackBarQueue = RegisterProperty<SnackbarMessageQueue?>(nameof(SnackBarQueue));
             dispatcher.InvokeAsync(() => new SnackbarMessageQueue(TimeSpan.FromSeconds(10)))
@@ -78,18 +79,14 @@ namespace TimeTracker.ViewModels
             AllProfiles = this.RegisterUiCollection<string>(nameof(AllProfiles))
                               .BindToList(settings.AllProfiles, out var list);
 
-            HoursMonth = RegisterProperty<int>(nameof(HoursMonth));
-            HoursShort = RegisterProperty<int>(nameof(HoursShort));
-            HoursAll = RegisterProperty<int>(nameof(HoursAll));
-            WeekendMultiplicator = RegisterProperty<double>(nameof(WeekendMultiplicator));
-            HolidayMultiplicator = RegisterProperty<double>(nameof(HolidayMultiplicator));
+            profileManager.Errors.Subscribe(ReportError, ReportError).DisposeWith(this);
 
             #region Profile Selection
 
             IsProcessable = RegisterProperty<bool>(nameof(IsProcessable));
+            profileManager.IsProcessabe.Subscribe(IsProcessable).DisposeWith(this);
 
-            var trigger = new Subject<string>();
-            var profileData = new ProfileData(string.Empty, 0, 0, 0, ImmutableDictionary<DateTime, ProfileEntry>.Empty, DateTime.MinValue).ToRx().DisposeWith(this);
+            var loadTrigger = new Subject<string>();
 
             (from newProfile in CurrentProfile
              where !list.Items.Contains(newProfile)
@@ -101,56 +98,20 @@ namespace TimeTracker.ViewModels
 
                                   settings.AllProfiles = settings.AllProfiles.Add(s);
                                   list.Add(s);
-                                  trigger.OnNext(s);
+                                  loadTrigger.OnNext(s);
                               }, ReportError)
                .DisposeWith(this);
 
             (from profile in CurrentProfile
              where list.Items.Contains(profile)
              select profile)
-               .Subscribe(trigger)
+               .Subscribe(loadTrigger)
                .DisposeWith(this);
-
-            profileData.Select(d => d.IsProcessable).Subscribe(IsProcessable).DisposeWith(this);
 
             #endregion
 
-            #region FileHandling
 
-            var fileNameBase = Guid.Parse("42CB06B0-B6F0-4F50-A1D9-294F47AA2AF6");
-            //(from toLoad in trigger
-            // select new ProfileData(GetFileName(toLoad), 0, 0, 0, ImmutableList<ProfileEntry>.Empty, DateTime.MinValue))
-            //   .Subscribe(profileData)
-            //   .DisposeWith(this);
-
-            (from toLoad in trigger
-             let fileName = GetFileName(toLoad)
-             where File.Exists(fileName)
-             from fileContent in File.ReadAllTextAsync(fileName)
-             let newData = JsonConvert.DeserializeObject<ProfileData>(fileContent, serializationSettings)
-             where newData != null
-             select newData)
-               .AutoSubscribe(profileData!, ReportError);
-
-            (from toLoad in trigger
-             let fileName = GetFileName(toLoad)
-             where !File.Exists(fileName)
-             select new ProfileData(fileName, 0,0,0, ImmutableDictionary<DateTime, ProfileEntry>.Empty, DateTime.MinValue))
-               .AutoSubscribe(profileData!, ReportError);
-
-            (from data in profileData
-             where data.IsProcessable
-             select data)
-               .ToUnit(pd => File.WriteAllTextAsync(pd.FileName, JsonConvert.SerializeObject(pd, serializationSettings)))
-               .AutoSubscribe(ReportError)
-               .DisposeWith(this);
-
-            string GetFileName(string profile)
-                => Path.Combine(
-                    enviroment.AppData(),
-                    GuidFactories.Deterministic.Create(fileNameBase, profile) + "json");
-
-            #endregion
+            profileManager.CreateFileLoadPipeline(loadTrigger).DisposeWith(this);
 
             #region Hours
 

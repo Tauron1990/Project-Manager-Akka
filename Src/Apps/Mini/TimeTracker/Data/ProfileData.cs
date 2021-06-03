@@ -1,17 +1,21 @@
 ﻿using System;
 using System.Collections.Immutable;
 using Newtonsoft.Json;
+using TimeTracker.Managers;
 
 namespace TimeTracker.Data
 {
     public sealed record ProfileData(string FileName, int MonthHours, int MinusShortTimeHours, int AllHours, ImmutableDictionary<DateTime, ProfileEntry> Entries, DateTime CurrentMonth, 
-        double WeekendMultiplikator = 0, double HoöidayMultiplicator = 0, bool HolidaysSet = false)
+        ImmutableList<HourMultiplicator> Multiplicators, bool HolidaysSet)
     {
         [JsonIgnore]
         public bool IsProcessable => !string.IsNullOrWhiteSpace(FileName);
+
+        public static ProfileData New(string fileName, SystemClock clock)
+            => new(fileName, 0, 0, 0, ImmutableDictionary<DateTime, ProfileEntry>.Empty, clock.NowDate, ImmutableList<HourMultiplicator>.Empty, false);
     };
 
-    public sealed record ProfileEntry(DateTime Date, TimeSpan? Start, TimeSpan? Finish, bool IsHoliday);
+    public sealed record ProfileEntry(DateTime Date, TimeSpan? Start, TimeSpan? Finish, DayType DayType);
 
-    public sealed record ProfileBackup(DateTime Data, ImmutableList<ProfileEntry> Entrys);
+    public sealed record ProfileBackup(DateTime Data, ImmutableList<ProfileEntry> Entrys, ProfileData CurrentConfiguration);
 }
