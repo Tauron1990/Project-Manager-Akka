@@ -10,9 +10,7 @@ using System.Reactive.Subjects;
 using System.Windows.Data;
 using Autofac;
 using DynamicData;
-using DynamicData.Aggregation;
 using DynamicData.Alias;
-using DynamicData.Kernel;
 using JetBrains.Annotations;
 using MaterialDesignThemes.Wpf;
 using Newtonsoft.Json;
@@ -45,7 +43,7 @@ namespace TimeTracker.ViewModels
 
         //public UIProperty<int> HoursShort { get; }
 
-        //public UIProperty<int> HoursAll { get; }
+        public UIProperty<int> HoursAll { get; }
 
         public UIProperty<MonthState> CurrentState { get; }
 
@@ -66,11 +64,9 @@ namespace TimeTracker.ViewModels
         //public UIProperty<double> HolidayMultiplicator { get; }
 
         public MainWindowViewModel(ILifetimeScope lifetimeScope, IUIDispatcher dispatcher, AppSettings settings, ITauronEnviroment enviroment, 
-            ProfileManager profileManager, CalculationManager calculation)
+            ProfileManager profileManager, CalculationManager calculation, SystemClock clock)
             : base(lifetimeScope, dispatcher)
         {
-
-
             SnackBarQueue = RegisterProperty<SnackbarMessageQueue?>(nameof(SnackBarQueue));
             dispatcher.InvokeAsync(() => new SnackbarMessageQueue(TimeSpan.FromSeconds(10)))
                       .Subscribe(SnackBarQueue);
@@ -84,7 +80,7 @@ namespace TimeTracker.ViewModels
             #region Profile Selection
 
             IsProcessable = RegisterProperty<bool>(nameof(IsProcessable));
-            profileManager.IsProcessabe.Subscribe(IsProcessable).DisposeWith(this);
+            profileManager.IsProcessable.Subscribe(IsProcessable).DisposeWith(this);
 
             var loadTrigger = new Subject<string>();
 
@@ -110,55 +106,18 @@ namespace TimeTracker.ViewModels
 
             #endregion
 
-
             profileManager.CreateFileLoadPipeline(loadTrigger).DisposeWith(this);
-
-            #region Hours
-
-            var processData = profileData.Where(pd => pd.IsProcessable);
-            processData.Select(pd => pd.AllHours).DistinctUntilChanged().Subscribe(HoursAll).DisposeWith(this);
-            processData.Select(pd => pd.MinusShortTimeHours).DistinctUntilChanged().Subscribe(HoursShort).DisposeWith(this);
-            processData.Select(pd => pd.MonthHours).DistinctUntilChanged().Subscribe(HoursMonth).DisposeWith(this);
-
-            (from hour in HoursMonth.DistinctUntilChanged()
-             from data in profileData.Take(1)
-             where data.IsProcessable
-             select data with {MonthHours = hour})
-               .AutoSubscribe(profileData, ReportError)
-               .DisposeWith(this);
-
-            (from hour in HoursShort.DistinctUntilChanged()
-             from data in profileData.Take(1)
-             where data.IsProcessable
-             select data with {MinusShortTimeHours = hour})
-               .AutoSubscribe(profileData, ReportError)
-               .DisposeWith(this);
-
-            (from data in processData
-             where data.MonthHours > 10
-             where data.MinusShortTimeHours == 0
-             select data with {MinusShortTimeHours = CalculateShortTimeHours(data.MonthHours)})
-               .AutoSubscribe(profileData, ReportError)
-               .DisposeWith(this);
-
-            static int CalculateShortTimeHours(int mouthHours)
-            {
-                var multi = mouthHours / 100d;
-                var minus = 10 * multi;
-
-                return (int) Math.Round(minus, 0, MidpointRounding.ToPositiveInfinity);
-            }
-
-            #endregion
+            
+            HoursAll = RegisterProperty<int>(nameof(HoursAll));
+            profileManager.ProcessableData.Select(pd => pd.AllHours).DistinctUntilChanged().Subscribe(HoursAll).DisposeWith(this);
 
             #region Entrys
-
-            var cache = new SourceCache<ProfileEntry, DateTime>(e => e.Date).DisposeWith(this);
+            
             var isHere = false.ToRx().DisposeWith(this);
 
             ProfileEntries = this.RegisterUiCollection<UiProfileEntry>(nameof(ProfileEntries))
-                                 .BindTo(cache.Connect()
-                                              .Select(entry => new UiProfileEntry(entry)));
+                                 .BindTo(profileManager.ConnectCache()
+                                                       .Select(entry => new UiProfileEntry(entry, calculation, profileManager.ProcessableData, ReportError)));
 
             dispatcher.InvokeAsync(() =>
                                    {
@@ -166,62 +125,26 @@ namespace TimeTracker.ViewModels
                                        view.CustomSort = Comparer<UiProfileEntry>.Default;
                                    });
 
-            (from data in profileData.DistinctUntilChanged(d => d.FileName).ObserveOn(Scheduler.Default)
-             where data.IsProcessable
-             select data.Entries)
-               .AutoSubscribe(e =>
-                              {
-                                  cache.Clear();
-                                  e.Select(pair => pair.Value).OrderByDescending(v => v.Date).Foreach(cache.AddOrUpdate);
-                                  if(cache.Count == 0) return;
-
-                                  CheckHere();
-                              })
+            (from data in profileManager.ProcessableData.DistinctUntilChanged(pd => pd.Entries)
+             where data.Entries.Count != 0
+             select Unit.Default)
+               .AutoSubscribe(_ => CheckHere(), ReportError)
                .DisposeWith(this);
 
-            (from ent in profileData.DistinctUntilChanged(pd => pd.HolidaysSet)
-             where ent.IsProcessable && !ent.HolidaysSet
-             from holidays in holidayManager.RequestFor(ent.CurrentMonth)
-             select holidays.Select(day => new DateTime(ent.CurrentMonth.Year, ent.CurrentMonth.Month, day))
-                            .ToArray())
-               .AutoSubscribe(d =>
-                              {
-                                  var dic = profileData.Value.Entries;
-                                  foreach (var free in d)
-                                  {
-                                      if (dic.TryGetValue(free, out var entry) && !entry.IsHoliday)
-                                          entry = entry with {IsHoliday = true};
-                                      else
-                                          entry = new ProfileEntry(free, null, null, true);
-                                      dic = dic.SetItem(free, entry);
-                                      cache.AddOrUpdate(entry);
-                                  }
-
-                              },ReportError)
-               .DisposeWith(this);
 
             Come = NewCommad
-                  .WithCanExecute(from data in profileData
-                                  select data.IsProcessable)
+                  .WithCanExecute(profileManager.IsProcessable)
                   .WithCanExecute(from here in isHere 
                                   select !here)
-                  .ThenFlow(() => SystemClock.NowDate,
-                       obs => (from date in obs
-                               from isHoliday in holidayManager.IsHoliday(date, date.Day)
-                               select new ProfileEntry(date, SystemClock.NowTime, null, isHoliday))
-                          .AutoSubscribe(ent =>
-                                         {
-                                             if(cache.Lookup(ent.Date).HasValue)
-                                                 SnackBarQueue.Value?.Enqueue("Tag Schon eingetragen");
-                                             else
-                                             {
-                                                 profileData.Value = profileData.Value with {Entries = profileData.Value.Entries.Add(ent.Date, ent)};
-                                                 cache.AddOrUpdate(ent);
-                                                 CheckHere();
-                                             }
-
-                                             CheckNewMonth(Observable.Return(Unit.Default));
-                                         }, ReportError))
+                  .ThenFlow(clock.NowDate,
+                       obs => profileManager.Come(obs)
+                                            .AutoSubscribe(b =>
+                                                           {
+                                                               if(b)
+                                                                   CheckHere();
+                                                               else
+                                                                   SnackBarQueue.Value?.Enqueue("Tag Schon eingetragen");
+                                                           }, ReportError))
                   .ThenRegister(nameof(Come));
 
             Go = NewCommad
@@ -245,39 +168,9 @@ namespace TimeTracker.ViewModels
                              })
                .ThenRegister(nameof(Go));
 
-            void CheckNewMonth(IObservable<Unit> obs)
-                => (from _ in obs.ObserveOn(Scheduler.Default)
-                    from data in profileData.Take(1)
-                    let month = SystemClock.NowDate
-                    let current = data.CurrentMonth
-                    where current.Month != month.Month || current.Year != month.Year
-                    select (New:data with
-                                {
-                                    CurrentMonth = month, 
-                                    HolidaysSet = false,
-                                    Entries = data.Entries.RemoveRange(from entry in data.Entries.Values 
-                                                                       where entry.Date.Month == data.CurrentMonth.Month
-                                                                       select entry.Date)
-                                }, Old:data))
-                       .Subscribe(MakeBackup, ReportError);
 
-            void MakeBackup((ProfileData New, ProfileData Old) obj)
-            {
-                var (newData, oldData) = obj;
 
-                var oldEntrys = oldData.Entries.Values.Where(pe => pe.Date == oldData.CurrentMonth).ToImmutableList();
-                cache!.RemoveKeys(oldEntrys.Select(oe => oe.Date));
 
-                profileData!.Value = newData;
-
-                var originalFile = newData.FileName;
-                var originalName = Path.GetFileName(newData.FileName);
-
-                if(oldEntrys.Count == 0) return;
-                File.WriteAllText(
-                    originalFile.Replace(originalName, $"{originalName}-{oldData.CurrentMonth:d}"), 
-                    JsonConvert.SerializeObject(oldEntrys));
-            }
 
             void CheckHere()
             {
@@ -443,49 +336,33 @@ namespace TimeTracker.ViewModels
 
     public sealed class UiProfileEntry : ObservableObject, IComparable<UiProfileEntry>, IDisposable
     {
-        private string? _date;
-        private string? _start;
-        private string? _finish;
+        private const string TimespanTemplate = @"hh\:mm";
+
         private string? _hour;
-        private bool _isValid;
         private readonly IDisposable _subscription;
 
         public ProfileEntry Entry { get; }
 
-        public string? Date
-        {
-            get => _date;
-            private set => _date = value;
-        }
+        public string? Date { get; private set; }
 
-        public string? Start
-        {
-            get => _start;
-            private set => _start = value;
-        }
+        public string? Start { get; private set; }
 
-        public string? Finish
-        {
-            get => _finish;
-            private set => _finish = value;
-        }
+        public string? Finish { get; private set; }
 
         public string? Hour
         {
             get => _hour;
-            private set => _hour = value;
+            private set => SetProperty(ref _hour, value);
         }
 
-        public bool IsValid
-        {
-            get => _isValid;
-            private set => _isValid = value;
-        }
+        public bool IsValid { get; private set; }
 
-        public UiProfileEntry(ProfileEntry entry)
+        public UiProfileEntry(ProfileEntry entry, CalculationManager calculation, IObservable<ProfileData> data, Action<Exception> error)
         {
             Entry = entry;
             UpdateLabels();
+            _subscription = calculation.GetEntryHourCalculator(entry.Start, entry.Finish, data)
+                                       .AutoSubscribe(ts => Hour = ts.ToString(TimespanTemplate), error);
         }
 
         //public UiProfileEntry()
@@ -497,9 +374,9 @@ namespace TimeTracker.ViewModels
         private void UpdateLabels()
         {
             Date = Entry.Date.ToLocalTime().ToString("D");
-            Start = Entry.Start?.ToString(@"hh\:mm");
-            Finish = Entry.Finish?.ToString(@"hh\:mm");
-            Hour = (Entry.Finish - Entry.Start)?.ToString(@"hh\:mm");
+            Start = Entry.Start?.ToString(TimespanTemplate);
+            Finish = Entry.Finish?.ToString(TimespanTemplate);
+            //Hour = (Entry.Finish - Entry.Start)?.ToString(TimespanTemplate);
 
             var start = Entry.Start;
             var finish = Entry.Finish;
