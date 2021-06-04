@@ -148,25 +148,18 @@ namespace TimeTracker.ViewModels
                   .ThenRegister(nameof(Come));
 
             Go = NewCommad
-                .WithCanExecute(from data in profileData 
-                                select data.IsProcessable)
+                .WithCanExecute(profileManager.IsProcessable)
                 .WithCanExecute(isHere)
-                .WithExecute(() =>
-                             {
-                                 var date = SystemClock.NowDate;
-                                 var entry = cache.Lookup(date).ValueOrDefault();
-
-                                 if (entry != null && entry.Start != null)
-                                 {
-                                     cache.AddOrUpdate(entry with {Finish = SystemClock.NowTime});
-                                     isHere.Value = false;
-                                 }
-                                 else
-                                    SnackBarQueue.Value?.Enqueue("Tag nicht gefunden");
-
-                                 CheckHere();
-                             })
-               .ThenRegister(nameof(Go));
+                .ThenFlow(() => clock.NowDate,
+                     obs => profileManager.Go(obs)
+                                          .AutoSubscribe(b =>
+                                                         {
+                                                             if(b)
+                                                                 CheckHere();
+                                                             else
+                                                                 SnackBarQueue.Value?.Enqueue("Tag nicht gefunden");
+                                                         }, ReportError))
+                .ThenRegister(nameof(Go));
 
 
 
@@ -174,7 +167,7 @@ namespace TimeTracker.ViewModels
 
             void CheckHere()
             {
-                (from item in cache!.Items
+                (from item in profileManager.Entries
                  where item.Start != null && item.Finish == null
                  orderby item.Date
                  select item).FirstOrDefault()
@@ -189,8 +182,7 @@ namespace TimeTracker.ViewModels
             CurrentEntry = RegisterProperty<UiProfileEntry?>(nameof(CurrentEntry));
 
             Correct = NewCommad
-                     .WithCanExecute(from data in profileData
-                                     select data.IsProcessable)
+                     .WithCanExecute(profileManager.IsProcessable)
                      .WithCanExecute(from entry in CurrentEntry
                                      select entry != null)
                      .ThenFlow(obs => (from _ in obs

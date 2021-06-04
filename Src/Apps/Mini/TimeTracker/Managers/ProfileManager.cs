@@ -41,6 +41,8 @@ namespace TimeTracker.Managers
 
         public IObservable<Exception> Errors => _errors.AsObservable();
 
+        public IEnumerable<ProfileEntry> Entries => _entryCache.Items
+
         public ConfigurationManager ConfigurationManager { get; }
 
         public ProfileManager(SystemClock clock, ITauronEnviroment enviroment, ConcurancyManager concurancy, HolidayManager holidayManager)
@@ -149,84 +151,127 @@ namespace TimeTracker.Managers
                     from isHoliday in _holidayManager.IsHoliday(date, date.Day)
                     from result in _entryCache.Lookup(date).HasValue
                         ? Observable.Return(false)
-                        : AddEntry(Observable.Return(date), isHoliday ? DayType.Holiday : DayType.Normal)
+                        : CreateEntry(Observable.Return(date), isHoliday ? DayType.Holiday : DayType.Normal)
                     select result);
 
-            IObservable<bool> AddEntry(IObservable<DateTime> dateObs, DayType type)
+            IObservable<bool> CreateEntry(IObservable<DateTime> returnDate, DayType type)
+                => from date in returnDate
+                   let entry = new ProfileEntry(date, _clock.NowTime, null, type)
+                   from _ in SetEntry(entry)
+                   from result in CheckNewMonth(date)
+                   select result;
+
+            IObservable<bool> CheckNewMonth(DateTime month)
+                => from data in _currentData.Take(1).SyncCall(_concurancy)
+                   let current = data.CurrentMonth
+                   let doBackup = current.Month != month.Month || current.Year != month.Year
+                   from result in doBackup
+                       ? StartBackUp(data, month)
+                       : Observable.Return(true)
+                   select result;
+
+
+            IObservable<bool> StartBackUp(ProfileData startData, DateTime month)
+                => (from data in Observable.Return(startData)
+                    select (New: data with
+                                 {
+                                     CurrentMonth = month,
+                                     HolidaysSet = false,
+                                     Entries = data.Entries.RemoveRange(from entry in data.Entries.Values
+                                                                        where entry.Date.Month == data.CurrentMonth.Month
+                                                                        select entry.Date)
+                                 }, Old: data))
+                  .Do(MakeBackup)
+                  .Select(_ => true);
+
+            void MakeBackup((ProfileData New, ProfileData Old) obj)
             {
-                return (from date in dateObs 
-                        let entry = new ProfileEntry(date, _clock.NowTime, null, type)
-                            )
+                try
+                {
+                    var (newData, oldData) = obj;
+
+                    var oldEntrys = oldData.Entries.Values.Where(pe => pe.Date == oldData.CurrentMonth).ToImmutableList();
+                    _entryCache.RemoveKeys(oldEntrys.Select(oe => oe.Date));
+
+                    _currentData.OnNext(newData!);
+
+                    var originalFile = newData.FileName;
+                    var originalName = Path.GetFileName(newData.FileName);
+
+                    if (oldEntrys.Count == 0) return;
+                    File.WriteAllTextAsync(
+                             originalFile.Replace(originalName, $"{originalName}-{oldData.CurrentMonth:d}"),
+                             JsonConvert.SerializeObject(oldEntrys)).ToObservable()
+                        .Subscribe(_ => { }, _errors.OnNext);
+                }
+                catch (Exception e)
+                {
+                    _errors.OnNext(e);
+                }
             }
-
-            //(from date in obs
-            // from isHoliday in holidayManager.IsHoliday(date, date.Day)
-            // select new ProfileEntry(date, SystemClock.NowTime, null, isHoliday))
-            //   .AutoSubscribe(ent =>
-            //                  {
-            //                      if (cache.Lookup(ent.Date).HasValue)
-
-            //                      else
-            //                      {
-            //                          profileData.Value = profileData.Value with { Entries = profileData.Value.Entries.Add(ent.Date, ent) };
-            //                          cache.AddOrUpdate(ent);
-            //                          CheckHere();
-            //                      }
-
-            //                      CheckNewMonth(Observable.Return(Unit.Default));
-            //                  }, ReportError)
         }
 
-        private IObservable<Unit> AddEntry(ProfileEntry entry)
-            => (from data in _currentData.SyncCall(_concurancy)
-                select data with {Entries = data.Entries.Add(entry.Date, entry)})
+        private IObservable<Unit> SetEntry(ProfileEntry entry)
+            => (from data in _currentData.SyncCall(_concurancy).Take(1)
+                select data with {Entries = data.Entries.SetItem(entry.Date, entry)})
               .Do(pd =>
                   {
                       _currentData.OnNext(pd);
                       _entryCache.AddOrUpdate(entry);
                   }).ToUnit();
 
-        private IObservable<bool> CheckNewMonth(IObservable<bool> obs, DateTime month)
-            => (from isOk in obs.SyncCall(_concurancy)
-
-                from data in _currentData.Take(1)
-                let current = data.CurrentMonth
-                where current.Month != month.Month || current.Year != month.Year
-                select (New: data with
-                             {
-                                 CurrentMonth = month,
-                                 HolidaysSet = false,
-                                 Entries = data.Entries.RemoveRange(from entry in data.Entries.Values
-                                                                    where entry.Date.Month == data.CurrentMonth.Month
-                                                                    select entry.Date)
-                             }, Old: data))
-               .Do(MakeBackup)
-              .Select(_ => true);
-
-        private void MakeBackup((ProfileData New, ProfileData Old) obj)
+        public IObservable<bool> Go(IObservable<DateTime> timeobs)
         {
-            try
-            {
-                var (newData, oldData) = obj;
+            return from date in timeobs
+                   let data = _entryCache.Lookup(date)
+                   from result in data.HasValue
+                       ? MakeUpdate(data.Value)
+                       : Observable.Return(false)
+                   select result;
 
-                var oldEntrys = oldData.Entries.Values.Where(pe => pe.Date == oldData.CurrentMonth).ToImmutableList();
-                _entryCache.RemoveKeys(oldEntrys.Select(oe => oe.Date));
+            IObservable<bool> MakeUpdate(ProfileEntry entry)
+                => from data in Observable.Return(entry)
+                   let newEntry = data with {Finish = _clock.NowTime}
+                   from _ in SetEntry(newEntry)
+                   select true;
+        }
 
-                _currentData.OnNext(newData!);
+        public IObservable<Unit> AddEntry(ProfileEntry entry) => SetEntry(entry);
 
-                var originalFile = newData.FileName;
-                var originalName = Path.GetFileName(newData.FileName);
+        public IObservable<string> UpdateEntry(ProfileEntry entry, ProfileEntry oldEntry)
+        {
+            IObservable<string> 
 
-                if (oldEntrys.Count == 0) return;
-                File.WriteAllTextAsync(
-                         originalFile.Replace(originalName, $"{originalName}-{oldData.CurrentMonth:d}"),
-                         JsonConvert.SerializeObject(oldEntrys)).ToObservable()
-                    .Subscribe(_ => {}, _errors.OnNext);
-            }
-            catch (Exception e)
-            {
-                _errors.OnNext(e);
-            }
+            //if (newEntry.Date.Month != profileData!.Value.CurrentMonth.Month)
+            //{
+            //    SnackBarQueue?.Value?.Enqueue($"Nicht der selbe Monat wurde Gewält: {profileData.Value.CurrentMonth.Date.Month}");
+            //    return;
+            //}
+
+            //if (newEntry.Date.Year != profileData.Value.CurrentMonth.Year)
+            //{
+            //    SnackBarQueue?.Value?.Enqueue($"Nicht das selbe Jahr wurde Gewält: {profileData.Value.CurrentMonth.Date.Year}");
+            //    return;
+            //}
+
+            //var (oldDate, _, _, _) = oldEntry;
+            //var dic = profileData.Value.Entries;
+
+            //if (newEntry.Date != oldDate)
+            //{
+            //    cache?.RemoveKey(oldDate);
+            //    dic = dic.Remove(oldDate);
+            //}
+            //cache?.AddOrUpdate(newEntry!);
+            //var data = profileData.Value;
+            //profileData.Value = data with { Entries = dic.SetItem(newEntry.Date, newEntry) };
+
+            //CheckHere();
+        }
+
+        public IObservable<string> DeleteEntry(ProfileEntry entry)
+        {
+
         }
 
         void IDisposable.Dispose() => _cleanUp.Dispose();
