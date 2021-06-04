@@ -200,7 +200,7 @@ namespace TimeTracker.Managers
                                                                     where entry.Date.Month == data.CurrentMonth.Month
                                                                     select entry.Date)
                              }, Old: data))
-               .Do(MakeBackup, _errors.OnNext)
+               .Do(MakeBackup)
               .Select(_ => true);
 
         private void MakeBackup((ProfileData New, ProfileData Old) obj)
