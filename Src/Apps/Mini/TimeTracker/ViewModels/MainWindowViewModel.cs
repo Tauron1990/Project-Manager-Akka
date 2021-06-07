@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
 using System.Reactive;
-using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Windows.Data;
@@ -13,7 +10,6 @@ using DynamicData;
 using DynamicData.Alias;
 using JetBrains.Annotations;
 using MaterialDesignThemes.Wpf;
-using Newtonsoft.Json;
 using Tauron;
 using Tauron.Application;
 using Tauron.Application.CommonUI;
@@ -39,10 +35,6 @@ namespace TimeTracker.ViewModels
 
         public UIProperty<UiProfileEntry?> CurrentEntry { get; }
 
-        //public UIProperty<int> HoursMonth { get; }
-
-        //public UIProperty<int> HoursShort { get; }
-
         public UIProperty<int> HoursAll { get; }
 
         public UIProperty<MonthState> CurrentState { get; }
@@ -59,12 +51,10 @@ namespace TimeTracker.ViewModels
 
         public UIProperty<bool> IsProcessable { get; }
 
-        //public UIProperty<double> WeekendMultiplicator { get; }
-
-        //public UIProperty<double> HolidayMultiplicator { get; }
+        public UIPropertyBase? Configurate { get; }
 
         public MainWindowViewModel(ILifetimeScope lifetimeScope, IUIDispatcher dispatcher, AppSettings settings, ITauronEnviroment enviroment, 
-            ProfileManager profileManager, CalculationManager calculation, SystemClock clock)
+            ProfileManager profileManager, CalculationManager calculation, SystemClock clock, IEventAggregator aggregator)
             : base(lifetimeScope, dispatcher)
         {
             SnackBarQueue = RegisterProperty<SnackbarMessageQueue?>(nameof(SnackBarQueue));
@@ -75,7 +65,7 @@ namespace TimeTracker.ViewModels
             AllProfiles = this.RegisterUiCollection<string>(nameof(AllProfiles))
                               .BindToList(settings.AllProfiles, out var list);
 
-            profileManager.Errors.Subscribe(ReportError, ReportError).DisposeWith(this);
+            aggregator.ConsumeErrors().Subscribe(ReportError).DisposeWith(this);
 
             #region Profile Selection
 
@@ -105,6 +95,8 @@ namespace TimeTracker.ViewModels
                .DisposeWith(this);
 
             #endregion
+
+
 
             profileManager.CreateFileLoadPipeline(loadTrigger).DisposeWith(this);
             
@@ -188,74 +180,37 @@ namespace TimeTracker.ViewModels
                      .ThenFlow(obs => (from _ in obs
                                        let oldEntry = CurrentEntry.Value
                                        where oldEntry != null
-                                       from result in this.ShowDialogAsync<CorrectionDialog, CorrectionResult, ProfileEntry>(() => oldEntry.Entry)
-                                       select (New:result, Old:oldEntry.Entry))
-                                  .AutoSubscribe(pair =>
+                                       from dialogResult in this.ShowDialogAsync<CorrectionDialog, CorrectionResult, ProfileEntry>(() => oldEntry.Entry)
+                                       from result in dialogResult switch
+                                       {
+                                           UpdateCorrectionResult update => profileManager.UpdateEntry(update.Entry, oldEntry.Entry.Date),
+                                           DeleteCorrectionResult delete => profileManager.DeleteEntry(delete.Key).Select(_ => string.Empty),
+                                           _ => Observable.Return(string.Empty)
+                                       }
+                                       select result)
+                                  .AutoSubscribe(s =>
                                                  {
-                                                     var (correctionResult, old) = pair;
-                                                     switch (correctionResult)
-                                                     {
-                                                         case UpdateCorrectionResult update:
-                                                             UpdateProfileEntry(update.Entry, old);
-                                                             break;
-                                                         case DeleteCorrectionResult delete:
-                                                             profileData.Value = profileData.Value with {Entries = profileData.Value.Entries.Remove(delete.Key)};
-                                                             cache.RemoveKey(delete.Key);
-                                                             CheckHere();
-                                                             break;
-                                                         default:
-                                                             return;
-                                                     }
-                                                 },ReportError))
+                                                     if(string.IsNullOrWhiteSpace(s))
+                                                         SnackBarQueue.Value?.Enqueue(s);
+                                                     else
+                                                        CheckHere();
+                                                 }, aggregator.ReportError))
                      .ThenRegister(nameof(Correct));
 
             AddEntry = NewCommad
                       .WithCanExecute(IsProcessable)
                       .ThenFlow(obs => (from _ in obs 
-                                        from data in profileData.Take(1)
+                                        from data in profileManager.ProcessableData.Take(1)
                                         let parameter = new AddEntryParameter(data.Entries.Select(pe => pe.Value.Date.Day).ToHashSet(), data.CurrentMonth)
                                         from result in this.ShowDialogAsync<AddEntryDialog, AddEntryResult, AddEntryParameter>(() => parameter)
-                                        select result)
-                                   .AutoSubscribe(res =>
-                                                  {
-                                                      if (res is not NewAddEntryResult result) return;
-                                                      
-                                                      var data = profileData.Value;
-                                                      profileData.Value = data with {Entries = data.Entries.Add(result.Entry.Date, result.Entry)};
-                                                      cache.AddOrUpdate(result.Entry);
-                                                      CheckHere();
-
-                                                  }, ReportError))
+                                        from u in result switch
+                                        {
+                                            NewAddEntryResult entry => profileManager.AddEntry(entry.Entry),
+                                            _ => Observable.Return(Unit.Default)
+                                        }
+                                        select u)
+                                   .AutoSubscribe(_ => CheckHere(), ReportError))
                       .ThenRegister(nameof(AddEntry));
-
-            void UpdateProfileEntry(ProfileEntry newEntry, ProfileEntry oldEntry)
-            {
-                if (newEntry.Date.Month != profileData!.Value.CurrentMonth.Month)
-                {
-                    SnackBarQueue?.Value?.Enqueue($"Nicht der selbe Monat wurde Gewält: {profileData.Value.CurrentMonth.Date.Month}");
-                    return;
-                }
-
-                if (newEntry.Date.Year != profileData.Value.CurrentMonth.Year)
-                {
-                    SnackBarQueue?.Value?.Enqueue($"Nicht das selbe Jahr wurde Gewält: {profileData.Value.CurrentMonth.Date.Year}");
-                    return;
-                }
-
-                var (oldDate, _, _, _) = oldEntry;
-                var dic = profileData.Value.Entries;
-
-                if (newEntry.Date != oldDate)
-                {
-                    cache?.RemoveKey(oldDate);
-                    dic = dic.Remove(oldDate);
-                }
-                cache?.AddOrUpdate(newEntry!);
-                var data = profileData.Value;
-                profileData.Value = data with { Entries = dic.SetItem(newEntry.Date, newEntry) };
-
-                CheckHere();
-            }
 
             #endregion
 
@@ -266,29 +221,10 @@ namespace TimeTracker.ViewModels
             CurrentState = RegisterProperty<MonthState>(nameof(CurrentState))
                .WithDefaultValue(MonthState.Minus);
 
-            cache.Connect().ForAggregation().Sum(e =>
-                                                 {
-                                                     var (_, start, finish, _) = e;
-                                                     if (start == null && finish == null)
-                                                         return 8d;
-                                                     if (start == null || finish == null) return 0;
+            calculation.AllHours.Select(ts => ts.Hours).Subscribe(HoursAll)
+                       .DisposeWith(this);
 
-                                                     var erg = finish - start;
-                                                     if (erg.Value.TotalHours > 0)
-                                                         return erg.Value.TotalHours;
-
-                                                     return 0;
-                                                 })
-                 .Select(TimeSpan.FromHours)
-                 .Select(ts => ts.Hours).Subscribe(HoursAll)
-                 .DisposeWith(this);
-
-            var calc = (from hours in HoursAll
-                        from hoursMonth in HoursMonth.Take(1)
-                        from data in profileData.Take(1)
-                        where data.IsProcessable && hours > 0 && hoursMonth > 0
-                        select CalculationResult.Calc(data.CurrentMonth, hours, hoursMonth, data.MinusShortTimeHours))
-                      .Publish().RefCount();
+            var calc = calculation.CalculationResult;
 
             (from result in calc
              select result.MonthState)
@@ -304,25 +240,6 @@ namespace TimeTracker.ViewModels
 
             void ReportError(Exception e)
                 => dispatcher.InvokeAsync(() => SnackBarQueue!.Value?.Enqueue($"Fehler: {e.GetType().Name}--{e.Message}"));
-        }
-    }
-
-    public sealed record CalculationResult(MonthState MonthState, int Remaining)
-    {
-        public static CalculationResult Calc(DateTime currentMonth, int allHouers, int targetHours, int maxShort)
-        {
-            var targetDays = SystemClock.DaysInCurrentMonth(currentMonth);
-            var targetCurrent = targetHours / (targetDays - SystemClock.NowDay);
-            // ReSharper disable once CompareOfFloatsByEqualityOperator
-            if (targetCurrent == double.PositiveInfinity)
-                targetCurrent = targetHours;
-
-            var remaining = allHouers - targetCurrent;
-            if (remaining > 0)
-                return new CalculationResult(MonthState.Ok, (int)remaining);
-            return maxShort > 0 && remaining > maxShort * -1
-                ? new CalculationResult(MonthState.Short, (int)remaining)
-                : new CalculationResult(MonthState.Minus, (int)remaining);
         }
     }
 
@@ -353,7 +270,7 @@ namespace TimeTracker.ViewModels
         {
             Entry = entry;
             UpdateLabels();
-            _subscription = calculation.GetEntryHourCalculator(entry.Start, entry.Finish, data)
+            _subscription = calculation.GetEntryHourCalculator(entry, data)
                                        .AutoSubscribe(ts => Hour = ts.ToString(TimespanTemplate), error);
         }
 
@@ -372,7 +289,9 @@ namespace TimeTracker.ViewModels
 
             var start = Entry.Start;
             var finish = Entry.Finish;
-            if (start != null && finish == null)
+            if (Entry.DayType != DayType.Normal)
+                IsValid = true;
+            else if (start != null && finish == null)
                 IsValid = false;
             else if (start > finish)
                 IsValid = false;

@@ -6,13 +6,13 @@ using TimeTracker.Managers;
 namespace TimeTracker.Data
 {
     public sealed record ProfileData(string FileName, int MonthHours, int MinusShortTimeHours, int AllHours, ImmutableDictionary<DateTime, ProfileEntry> Entries, DateTime CurrentMonth, 
-        ImmutableList<HourMultiplicator> Multiplicators, bool HolidaysSet)
+        ImmutableList<HourMultiplicator> Multiplicators, bool HolidaysSet, int DailyHours)
     {
         [JsonIgnore]
         public bool IsProcessable => !string.IsNullOrWhiteSpace(FileName);
 
         public static ProfileData New(string fileName, SystemClock clock)
-            => new(fileName, 0, 0, 0, ImmutableDictionary<DateTime, ProfileEntry>.Empty, clock.NowDate, ImmutableList<HourMultiplicator>.Empty, false);
+            => new(fileName, 0, 0, 0, ImmutableDictionary<DateTime, ProfileEntry>.Empty, clock.NowDate, ImmutableList<HourMultiplicator>.Empty, false, 0);
     };
 
     public sealed record ProfileEntry(DateTime Date, TimeSpan? Start, TimeSpan? Finish, DayType DayType);

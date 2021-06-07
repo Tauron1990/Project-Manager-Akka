@@ -10,11 +10,11 @@ namespace TimeTracker.Managers
 
         //public static TimeSpan NowTime => Inst.NowTime;
 
-        //public static double NowDay => Inst.NewDay;
+        //public static double NowDay => Inst.NowDay;
 
         //public static int DaysInCurrentMonth(DateTime month) => Inst.DaysInCurrentMonth(month);
 
-        public abstract double NewDay { get; }
+        public abstract int NowDay { get; }
 
         public abstract DateTime NowDate { get; }
 
@@ -42,7 +42,7 @@ namespace TimeTracker.Managers
         //        return _current.TimeOfDay * _multipler;
         //    }
 
-        //    protected override double NewDay => _current.Day;
+        //    protected override double NowDay => _current.Day;
         //    protected override DateTime NowDate => Get().Date;
         //    protected override TimeSpan NowTime => GetTime();
         //    protected override int DaysInCurrentMonth(DateTime month) => DateTime.DaysInMonth(month.Year, month.Month);
@@ -50,7 +50,7 @@ namespace TimeTracker.Managers
 
         private sealed class Actual : SystemClock
         {
-            public override double NewDay => DateTime.UtcNow.Day;
+            public override int NowDay => DateTime.UtcNow.Day;
             public override DateTime NowDate => DateTime.UtcNow.Date;
             public override TimeSpan NowTime => DateTime.UtcNow.TimeOfDay;
             public override int DaysInCurrentMonth(DateTime month) => DateTime.DaysInMonth(month.Year, month.Month);

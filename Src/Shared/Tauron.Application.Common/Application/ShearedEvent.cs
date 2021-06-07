@@ -1,22 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using JetBrains.Annotations;
 
 namespace Tauron.Application
 {
     [PublicAPI]
-    public abstract class SharedEvent<TPayload>
+    public abstract class SharedEvent<TPayload> : IDisposable
     {
-        private readonly WeakActionEvent<TPayload> _handlerList = new();
+        private readonly Subject<TPayload> _handlerList = new();
 
         public virtual void Publish(TPayload content) 
-            => _handlerList.Invoke(content);
+            => _handlerList.OnNext(content);
 
-        public void Subscribe(Action<TPayload> handler) 
-            => _handlerList.Add(Argument.NotNull(handler, nameof(handler)));
+        public IObservable<TPayload> Subscribe() 
+            => _handlerList.AsObservable();
 
-        public void UnSubscribe(Action<TPayload> handler) 
-            => _handlerList.Remove(Argument.NotNull(handler, nameof(handler)));
+        public void Dispose()
+        {
+            _handlerList.OnCompleted();
+            _handlerList.Dispose();
+        }
     }
 
     [PublicAPI]
@@ -26,9 +31,9 @@ namespace Tauron.Application
     }
 
     [PublicAPI]
-    public sealed class EventAggregator : IEventAggregator
+    public sealed class EventAggregator : IEventAggregator, IDisposable
     {
-        private readonly Dictionary<Type, object> _events = new();
+        private readonly Dictionary<Type, IDisposable> _events = new();
 
         public TEventType GetEvent<TEventType, TPayload>() where TEventType : SharedEvent<TPayload>, new()
         {
@@ -36,6 +41,12 @@ namespace Tauron.Application
             if (!_events.ContainsKey(t)) _events[t] = new TEventType();
 
             return (TEventType) _events[t];
+        }
+
+        public void Dispose()
+        {
+            _events.Values.Foreach(d => d.Dispose());
+            _events.Clear();
         }
     }
 }

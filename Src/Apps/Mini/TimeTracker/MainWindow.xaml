@@ -3,13 +3,10 @@
                   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-                  xmlns:local="clr-namespace:TimeTracker"
                   xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
-                  xmlns:mde="https://spiegelp.github.io/MaterialDesignExtensions/winfx/xaml"
                   xmlns:controls="clr-namespace:TimeTracker.Controls"
                   xmlns:viewModels="clr-namespace:TimeTracker.ViewModels"
                   xmlns:ui="http://schemas.TauronWpf.com"
-                  xmlns:componentModel="clr-namespace:System.ComponentModel;assembly=WindowsBase"
                   mc:Ignorable="d" d:DataContext="{d:DesignInstance viewModels:MainWindowViewModel}"
                   Title="Zeit Erfassung" Height="900" Width="700">
     <DockPanel LastChildFill="True">
@@ -31,16 +28,7 @@
                 </Grid.ColumnDefinitions>
                 <ComboBox Grid.Row="0" Grid.Column="1" Margin="10" IsEditable="True" md:HintAssist.Hint="Profile" IsTextSearchEnabled="True" IsTextSearchCaseSensitive="False"
                           StaysOpenOnEdit="True" Text="{ui:ActorBinding CurrentProfile, Mode=TwoWay}" ItemsSource="{ui:ActorBinding AllProfiles}"/>
-                <TextBox Grid.Row="1" Grid.Column="0" md:HintAssist.Hint="Stunden pro Monat" md:HintAssist.IsFloating="True" Width="170" Margin="5" 
-                         IsEnabled="{ui:ActorBinding IsProcessable}" Text="{ui:ActorBinding HoursMonth, Converter={controls:IntConverter}, ValidationRule={controls:IntValidation}}" />
-                <TextBox Grid.Row="1" Grid.Column="1" md:HintAssist.Hint="Minus Stunden für Kurzarbeit" md:HintAssist.IsFloating="True" Width="170" Margin="5" 
-                         IsEnabled="{ui:ActorBinding IsProcessable}" Text="{ui:ActorBinding HoursShort, Converter={controls:IntConverter}, ValidationRule={controls:IntValidation}}"/>
-                <TextBox Grid.Row="1" Grid.Column="2" Margin="5" VerticalAlignment="Center" md:HintAssist.Hint="Gesamt Stunden" md:HintAssist.IsFloating="True" IsReadOnly="True"
-                         Text="{ui:ActorBinding HoursAll}"  IsEnabled="{ui:ActorBinding IsProcessable}"/>
-                <TextBox Grid.Row="2" Grid.Column="0" Margin="5" md:HintAssist.IsFloating="True" md:HintAssist.Hint="Wochenend Multiplikator" Width="170" 
-                         IsEnabled="{ui:ActorBinding IsProcessable}" Text="{ui:ActorBinding WeekendMultiplicator, Converter={controls:DoubleConverter}, ValidationRule={controls:DoubleValidation}}"/>
-                <TextBox Grid.Row="2" Grid.Column="1" Margin="5" md:HintAssist.IsFloating="True" md:HintAssist.Hint="Feiertag Multiplikator" Width="170" 
-                         IsEnabled="{ui:ActorBinding IsProcessable}" Text="{ui:ActorBinding HolidayMultiplicator, Converter={controls:DoubleConverter}, ValidationRule={controls:DoubleValidation}}"/>
+                <Button Grid.Row="1" Grid.Column="1" Margin="5" Content="Konfigurieren" md:ButtonAssist.CornerRadius="20" Command="{ui:ActorBinding Configurate}"/>
                 <Button Grid.Row="3" Grid.Column="0" Margin="5" Content="Kommen" Height="50" md:ButtonAssist.CornerRadius="30" Width="100" Command="{ui:ActorBinding Come}"/>
                 <Button Grid.Row="3" Grid.Column="2" Margin="5" Content="Gehen" Height="50" md:ButtonAssist.CornerRadius="30" Width="100" Command="{ui:ActorBinding Go}"/>
                 <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
