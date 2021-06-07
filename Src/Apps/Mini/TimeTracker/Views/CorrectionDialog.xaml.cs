@@ -84,7 +84,7 @@ namespace TimeTracker.Views
                                    let start = TimeSpan.Parse(StartTime)
                                    let end = TimeSpan.Parse(FinishTime)
                                    from isHoliday in manager.IsHoliday(date, date.Day)
-                                   select new UpdateCorrectionResult(new ProfileEntry(date, start, end, isHoliday)))
+                                   select new UpdateCorrectionResult(new ProfileEntry(date, start, end, isHoliday ? DayType.Holiday : DayType.Normal)))
                               .Subscribe(observer))
                    .DisposeWith(Disposer);
 

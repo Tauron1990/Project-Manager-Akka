@@ -53,6 +53,8 @@ namespace TimeTracker.ViewModels
 
         public UIPropertyBase? Configurate { get; }
 
+        public UIProperty<string> ProfileState { get; }
+
         public MainWindowViewModel(ILifetimeScope lifetimeScope, IUIDispatcher dispatcher, AppSettings settings, ITauronEnviroment enviroment, 
             ProfileManager profileManager, CalculationManager calculation, SystemClock clock, IEventAggregator aggregator)
             : base(lifetimeScope, dispatcher)
@@ -71,6 +73,11 @@ namespace TimeTracker.ViewModels
 
             IsProcessable = RegisterProperty<bool>(nameof(IsProcessable));
             profileManager.IsProcessable.Subscribe(IsProcessable).DisposeWith(this);
+
+            ProfileState = RegisterProperty<string>(nameof(ProfileState));
+            profileManager.IsProcessable
+                          .Select(b => b ? "geldaen" : "nicht geladen")
+                          .AutoSubscribe(ProfileState, ReportError);
 
             var loadTrigger = new Subject<string>();
 
@@ -96,7 +103,12 @@ namespace TimeTracker.ViewModels
 
             #endregion
 
-
+            Configurate = NewCommad.WithCanExecute(profileManager.IsProcessable)
+                                   .ThenFlow(obs => (from _ in obs
+                                                     from res in this.ShowDialogAsync<ConfigurationDialog, Unit, ConfigurationManager>(() => profileManager.ConfigurationManager)
+                                                     select res)
+                                                .AutoSubscribe(ReportError))
+                                   .ThenRegister(nameof(Configurate));
 
             profileManager.CreateFileLoadPipeline(loadTrigger).DisposeWith(this);
             

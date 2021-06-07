@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Immutable;
 using System.Reactive.Linq;
+using DynamicData;
 using DynamicData.Aggregation;
 using DynamicData.Alias;
 using Tauron;
@@ -19,6 +21,7 @@ namespace TimeTracker.Managers
         {
             _clock = clock;
             AllHours = profileManager.ConnectCache()
+                                     .AutoRefreshOnObservable(_ => profileManager.ProcessableData.DistinctUntilChanged(ChangeToken.Get))
                                      .SelectMany(pe => profileManager.ProcessableData.Take(1).Select(pd => new EntryPair(pe, pd)).ToEnumerable(), ent => ent.Entry.Date)
                                      .ForAggregation()
                                      .Sum(e => CalculateEntryTime(e.Entry, e.Data).TotalHours)
@@ -77,6 +80,12 @@ namespace TimeTracker.Managers
         }
 
         private record EntryPair(ProfileEntry Entry, ProfileData Data);
+
+        private record ChangeToken(int One, int Two, int Three, object Four)
+        {
+            public static ChangeToken Get(ProfileData data)
+                => new(data.MonthHours, data.MinusShortTimeHours, data.DailyHours, data.Multiplicators);
+        }
     }
 
     public sealed record CalculationResult(MonthState MonthState, int Remaining);

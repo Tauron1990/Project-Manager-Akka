@@ -37,7 +37,11 @@ namespace TimeTracker.Controls
             if (value is not string integer)
                 return new ValidationResult(false, "Value ist kein String");
 
-            return int.TryParse(integer, out _) ? ValidationResult.ValidResult : new ValidationResult(false, "Eingabe ist keine ganze Zahl");
+            return int.TryParse(integer, out var intData)
+                ? intData > 0 
+                    ? ValidationResult.ValidResult 
+                    : new ValidationResult(false, "Zahl muss Positive sein") 
+                : new ValidationResult(false, "Eingabe ist keine ganze Zahl");
         }
     }
 }

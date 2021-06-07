@@ -39,6 +39,13 @@ namespace TimeTracker.Managers
             set => _multiplicators.Value = value;
         }
 
+        private readonly PropertyConnector<int> _dailyHours;
+        public int DailyHours
+        {
+            get => _dailyHours.Value;
+            set => _dailyHours.Value = value;
+        }
+
         public ConfigurationManager(ISubject<ProfileData> source, ConcurancyManager manager, Action<Exception> reportError)
         {
             _hoursAll = PropertyConnector<int>.Create(source, manager, this, reportError,
@@ -50,11 +57,15 @@ namespace TimeTracker.Managers
             _multiplicators = PropertyConnector<ImmutableList<HourMultiplicator>>.Create(source, manager, this, reportError,
                 () => Multiplicators, pd => pd.Multiplicators, (pd, value) => pd with {Multiplicators = value ?? ImmutableList<HourMultiplicator>.Empty});
 
+            _dailyHours = PropertyConnector<int>.Create(source, manager, this, reportError,
+                () => DailyHours, pd => pd.DailyHours, (pd, value) => pd with {DailyHours = value});
+
             _ceanup = Disposable.Create(() =>
                                         {
                                             _hoursAll.Dispose();
                                             _minusShortTimeHours.Dispose();
                                             _multiplicators.Dispose();
+                                            _dailyHours.Dispose();
                                         });
         }
 
@@ -111,7 +122,7 @@ namespace TimeTracker.Managers
                 }
 
                 IDisposable UpdateValue(Action<TPropertyType> action)
-                    => (from newData in data
+                    => (from newData in data.Skip(1)
                         let propertyValue = getter()
                         let newValue = read(newData)
                         where !equalityComparer.Equals(newValue, propertyValue)
@@ -127,5 +138,7 @@ namespace TimeTracker.Managers
 
             public void Dispose() => _cleanUp.Dispose();
         }
+
+        
     }
 }

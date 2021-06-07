@@ -6,12 +6,16 @@ using NLog.Layouts;
 using NLog.Targets;
 using NLog.Targets.Wrappers;
 using Tauron.Application.Logging.impl;
+using Tauron.Host;
 
 namespace Tauron.Application.Logging
 {
     [PublicAPI]
     public static class LoggingExtensions
     {
+        public static IApplicationBuilder ConfigDefaultLogging(this IApplicationBuilder loggerConfiguration, string applicationName, bool noFile = false)
+            => loggerConfiguration.ConfigureLogging((_, builder) => builder.ConfigDefaultLogging(applicationName, noFile));
+
         public static ISetupBuilder ConfigDefaultLogging(this ISetupBuilder loggerConfiguration, string applicationName, bool noFile = false)
         {
             loggerConfiguration.SetupExtensions(e => e.RegisterLayoutRenderer("event-type", typeof(EventTypeLayoutRenderer)));

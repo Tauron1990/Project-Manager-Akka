@@ -19,15 +19,17 @@ namespace TimeTracker.Views
     public partial class AddEntryDialog : IBaseDialog<AddEntryResult, AddEntryParameter>
     {
         private readonly HolidayManager _manager;
+        private readonly SystemClock _clock;
 
-        public AddEntryDialog(HolidayManager manager)
+        public AddEntryDialog(HolidayManager manager, SystemClock clock)
         {
             _manager = manager;
+            _clock = clock;
             InitializeComponent();
         }
 
         public Task<AddEntryResult> Init(AddEntryParameter initalData) 
-            => this.MakeObsTask<AddEntryResult>(o => new AddEntryDialogModel(o, initalData, _manager));
+            => this.MakeObsTask<AddEntryResult>(o => new AddEntryDialogModel(o, initalData, _manager, _clock));
     }
 
     public sealed class AddEntryDialogModel : ObservableErrorObject
@@ -58,11 +60,11 @@ namespace TimeTracker.Views
 
         public ICommand Ok { get; }
 
-        public AddEntryDialogModel(IObserver<AddEntryResult> resultObserver, AddEntryParameter parameter, HolidayManager manager)
+        public AddEntryDialogModel(IObserver<AddEntryResult> resultObserver, AddEntryParameter parameter, HolidayManager manager, SystemClock clock)
         {
-            MaxDay = SystemClock.DaysInCurrentMonth(parameter.CurrentMonth);
+            MaxDay = clock.DaysInCurrentMonth(parameter.CurrentMonth);
             CurrentMonth = parameter.CurrentMonth.ToString("d");
-            Day = SystemClock.NowDate.AddDays(1).Day;
+            Day = clock.NowDate.AddDays(1).Day;
             Start = string.Empty;
             Finish = string.Empty;
 
@@ -92,7 +94,7 @@ namespace TimeTracker.Views
                 .Finish(obs => (from _ in obs
                                 let date = new DateTime(parameter.CurrentMonth.Year, parameter.CurrentMonth.Month, Day)
                                 from isHoliday in manager.IsHoliday(date, Day)
-                                let data = new ProfileEntry(date, TimeSpan.Parse(Start), TimeSpan.Parse(Finish), isHoliday)
+                                let data = new ProfileEntry(date, TimeSpan.Parse(Start), TimeSpan.Parse(Finish), isHoliday ? DayType.Holiday : DayType.Normal)
                                 select new NewAddEntryResult(data))
                            .Subscribe(resultObserver))
                 .DisposeWith(Disposer);

@@ -99,8 +99,7 @@ namespace Tauron.Application.CommonUI.Helper
                 return decider.Decide(exception);
             }
 
-            public override void ProcessFailure(IActorContext context, bool restart, IActorRef child, Exception cause,
-                ChildRestartStats stats, IReadOnlyCollection<ChildRestartStats> children)
+            public override void ProcessFailure(IActorContext context, bool restart, IActorRef child, Exception cause, ChildRestartStats stats, IReadOnlyCollection<ChildRestartStats> children)
             {
                 if (restart)
                     RestartChild(child, cause, false);
@@ -108,8 +107,7 @@ namespace Tauron.Application.CommonUI.Helper
                     context.Stop(child);
             }
 
-            public override void HandleChildTerminated(IActorContext actorContext, IActorRef child,
-                IEnumerable<IInternalActorRef> children)
+            public override void HandleChildTerminated(IActorContext actorContext, IActorRef child, IEnumerable<IInternalActorRef> children)
             {
                 _deciders.TryRemove(child, out _);
             }

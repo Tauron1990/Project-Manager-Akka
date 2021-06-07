@@ -13,7 +13,7 @@ namespace TimeTracker.Managers
         private readonly IEventAggregator _aggregator;
         private readonly ConcurancyManager _concurancyManager;
         private readonly BehaviorSubject<ProfileData> _currentData = new(
-            new ProfileData(string.Empty, 0, 0, 0, ImmutableDictionary<DateTime, ProfileEntry>.Empty, DateTime.MinValue, ImmutableList<HourMultiplicator>.Empty, false));
+            new ProfileData(string.Empty, 0, 0, 0, ImmutableDictionary<DateTime, ProfileEntry>.Empty, DateTime.MinValue, ImmutableList<HourMultiplicator>.Empty, false, 0));
 
         public DataManager(IEventAggregator aggregator, ConcurancyManager concurancyManager)
         {
