@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reactive.Disposables;
@@ -21,7 +22,7 @@ using Tauron.Operations;
 
 namespace Tauron.Application.CommonUI.Model
 {
-    [PublicAPI]
+    [PublicAPI, DebuggerStepThrough]
     public abstract class UiActor : ObservableActor, IObservablePropertyChanged
     {
         private readonly Dictionary<string, CommandRegistration> _commandRegistrations = new();

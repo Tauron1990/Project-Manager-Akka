@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Linq;
 
 namespace TimeTracker.Managers
 {
@@ -21,6 +23,8 @@ namespace TimeTracker.Managers
         public abstract TimeSpan NowTime { get; }
 
         public abstract int DaysInCurrentMonth(DateTime month);
+
+        public abstract int NowDaysCurrentMonth(DateTime month);
 
         //private sealed class Test : SystemClock
         //{
@@ -53,7 +57,40 @@ namespace TimeTracker.Managers
             public override int NowDay => DateTime.UtcNow.Day;
             public override DateTime NowDate => DateTime.UtcNow.Date;
             public override TimeSpan NowTime => DateTime.UtcNow.TimeOfDay;
-            public override int DaysInCurrentMonth(DateTime month) => DateTime.DaysInMonth(month.Year, month.Month);
+
+            [DebuggerStepThrough]
+            public override int DaysInCurrentMonth(DateTime month)
+            {
+                var count = 0;
+                var target = DateTime.DaysInMonth(month.Year, month.Day);
+
+                for (int i = 1; i < target; i++)
+                {
+                    if (IsWeekDay(new DateTime(month.Year, month.Month, i)))
+                        count++;
+                }
+
+                return count;
+            }
+
+            [DebuggerStepThrough]
+            public override int NowDaysCurrentMonth(DateTime month)
+            {
+                var count = 0;
+                var target = NowDay;
+
+                for (int i = 1; i < target; i++)
+                {
+                    if (IsWeekDay(new DateTime(month.Year, month.Month, i)))
+                        count++;
+                }
+
+                return count;
+            }
+
+            [DebuggerStepThrough]
+            private static bool IsWeekDay(DateTime dateTime) 
+                => dateTime.DayOfWeek != DayOfWeek.Saturday && dateTime.DayOfWeek != DayOfWeek.Sunday;
         }
     }
 }

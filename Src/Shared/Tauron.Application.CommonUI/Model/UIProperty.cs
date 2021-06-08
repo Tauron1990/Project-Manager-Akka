@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -9,7 +10,7 @@ using Tauron.Operations;
 
 namespace Tauron.Application.CommonUI.Model
 {
-    [PublicAPI]
+    [PublicAPI, DebuggerStepThrough]
     public sealed class UIProperty<TData> : UIPropertyBase, IObservable<TData>, IDisposable, IObserver<TData>
     {
         private sealed record DataContainer(TData Data, bool IsNil = false);

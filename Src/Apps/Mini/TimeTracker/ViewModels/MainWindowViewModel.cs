@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Windows.Data;
@@ -35,7 +38,7 @@ namespace TimeTracker.ViewModels
 
         public UIProperty<UiProfileEntry?> CurrentEntry { get; }
 
-        public UIProperty<int> HoursAll { get; }
+        public UIProperty<string> HoursAll { get; }
 
         public UIProperty<MonthState> CurrentState { get; }
 
@@ -72,11 +75,15 @@ namespace TimeTracker.ViewModels
             #region Profile Selection
 
             IsProcessable = RegisterProperty<bool>(nameof(IsProcessable));
-            profileManager.IsProcessable.Subscribe(IsProcessable).DisposeWith(this);
+            profileManager.IsProcessable
+                          .Subscribe(IsProcessable)
+                          .DisposeWith(this);
 
             ProfileState = RegisterProperty<string>(nameof(ProfileState));
             profileManager.IsProcessable
-                          .Select(b => b ? "geldaen" : "nicht geladen")
+                          .Select(b => b
+                                      ? $"{CurrentProfile.Value} Geladen"
+                                      : "nicht Geladen")
                           .AutoSubscribe(ProfileState, ReportError);
 
             var loadTrigger = new Subject<string>();
@@ -111,17 +118,26 @@ namespace TimeTracker.ViewModels
                                    .ThenRegister(nameof(Configurate));
 
             profileManager.CreateFileLoadPipeline(loadTrigger).DisposeWith(this);
-            
-            HoursAll = RegisterProperty<int>(nameof(HoursAll));
-            profileManager.ProcessableData.Select(pd => pd.AllHours).DistinctUntilChanged().Subscribe(HoursAll).DisposeWith(this);
+
+            HoursAll = RegisterProperty<string>(nameof(HoursAll));
+            //profileManager.ProcessableData
+            //              .Select(pd => pd.AllHours)
+            //              .DistinctUntilChanged()
+            //              .Select(i => i.ToString())
+            //              .ObserveOn(Scheduler.Default)
+            //              .Subscribe(HoursAll).DisposeWith(this);
 
             #region Entrys
-            
+
             var isHere = false.ToRx().DisposeWith(this);
 
             ProfileEntries = this.RegisterUiCollection<UiProfileEntry>(nameof(ProfileEntries))
                                  .BindTo(profileManager.ConnectCache()
-                                                       .Select(entry => new UiProfileEntry(entry, calculation, profileManager.ProcessableData, ReportError)));
+                                                       .Select(entry => new UiProfileEntry(entry, profileManager.ProcessableData, ReportError)));
+
+            profileManager.ConnectCache()
+                          .AutoSubscribe(_ => CheckHere(), aggregator.ReportError)
+                          .DisposeWith(this);
 
             dispatcher.InvokeAsync(() =>
                                    {
@@ -138,13 +154,13 @@ namespace TimeTracker.ViewModels
 
             Come = NewCommad
                   .WithCanExecute(profileManager.IsProcessable)
-                  .WithCanExecute(from here in isHere 
+                  .WithCanExecute(from here in isHere
                                   select !here)
                   .ThenFlow(clock.NowDate,
                        obs => profileManager.Come(obs)
                                             .AutoSubscribe(b =>
                                                            {
-                                                               if(b)
+                                                               if (b)
                                                                    CheckHere();
                                                                else
                                                                    SnackBarQueue.Value?.Enqueue("Tag Schon eingetragen");
@@ -158,16 +174,12 @@ namespace TimeTracker.ViewModels
                      obs => profileManager.Go(obs)
                                           .AutoSubscribe(b =>
                                                          {
-                                                             if(b)
+                                                             if (b)
                                                                  CheckHere();
                                                              else
                                                                  SnackBarQueue.Value?.Enqueue("Tag nicht gefunden");
                                                          }, ReportError))
                 .ThenRegister(nameof(Go));
-
-
-
-
 
             void CheckHere()
             {
@@ -202,16 +214,16 @@ namespace TimeTracker.ViewModels
                                        select result)
                                   .AutoSubscribe(s =>
                                                  {
-                                                     if(string.IsNullOrWhiteSpace(s))
-                                                         SnackBarQueue.Value?.Enqueue(s);
+                                                     if (string.IsNullOrWhiteSpace(s))
+                                                         SnackBarQueue.Value?.Enqueue("Keine Korrekut Ausgeführt");
                                                      else
-                                                        CheckHere();
+                                                         CheckHere();
                                                  }, aggregator.ReportError))
                      .ThenRegister(nameof(Correct));
 
             AddEntry = NewCommad
                       .WithCanExecute(IsProcessable)
-                      .ThenFlow(obs => (from _ in obs 
+                      .ThenFlow(obs => (from _ in obs
                                         from data in profileManager.ProcessableData.Take(1)
                                         let parameter = new AddEntryParameter(data.Entries.Select(pe => pe.Value.Date.Day).ToHashSet(), data.CurrentMonth)
                                         from result in this.ShowDialogAsync<AddEntryDialog, AddEntryResult, AddEntryParameter>(() => parameter)
@@ -233,7 +245,19 @@ namespace TimeTracker.ViewModels
             CurrentState = RegisterProperty<MonthState>(nameof(CurrentState))
                .WithDefaultValue(MonthState.Minus);
 
-            calculation.AllHours.Select(ts => ts.Hours)
+            calculation.AllHours.Select(ts => ts.TotalHours)
+                       .Select(h =>
+                               {
+                                   return h switch
+                                   {
+                                       0 when InValidConfig() => "Konfiguration!",
+                                       0 => string.Empty,
+                                       _ => h.ToString("F0")
+                                   };
+
+                                   bool InValidConfig()
+                                       => profileManager.ConfigurationManager.DailyHours == 0 && profileManager.ConfigurationManager.MonthHours == 0;
+                               })
                        .Subscribe(HoursAll)
                        .DisposeWith(this);
 
@@ -279,12 +303,12 @@ namespace TimeTracker.ViewModels
 
         public bool IsValid { get; private set; }
 
-        public UiProfileEntry(ProfileEntry entry, CalculationManager calculation, IObservable<ProfileData> data, Action<Exception> error)
+        public UiProfileEntry(ProfileEntry entry, IObservable<ProfileData> data, Action<Exception> error)
         {
             Entry = entry;
             UpdateLabels();
-            _subscription = calculation.GetEntryHourCalculator(entry, data)
-                                       .AutoSubscribe(ts => Hour = ts.ToString(TimespanTemplate), error);
+            _subscription = CalculationManager.GetEntryHourCalculator(entry, data)
+                                              .AutoSubscribe(ts => Hour = ts.ToString(TimespanTemplate), error);
         }
 
         //public UiProfileEntry()

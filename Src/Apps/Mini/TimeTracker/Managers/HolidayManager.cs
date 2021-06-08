@@ -79,7 +79,7 @@ namespace TimeTracker.Managers
 
                 try
                 {
-                    await File.WriteAllTextAsync(FileNameBase, JsonConvert.SerializeObject(data));
+                    await File.WriteAllTextAsync(yearFileName, JsonConvert.SerializeObject(data));
                 }
                 catch (IOException) { }
 

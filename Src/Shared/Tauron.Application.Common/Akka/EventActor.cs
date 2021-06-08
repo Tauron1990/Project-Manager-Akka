@@ -60,7 +60,7 @@ namespace Tauron.Akka
                     {
                         try
                         {
-                            callDel.DynamicInvoke(message);
+                            callDel?.DynamicInvoke(message);
                         }
                         catch (Exception e)
                         {

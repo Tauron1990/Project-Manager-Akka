@@ -8,8 +8,11 @@ using Akka.Actor;
 using AkkaTest.Feriertage;
 using Newtonsoft.Json;
 using Tauron.Akka;
+using Tauron.Application;
 using Tauron.Application.AkkaNode.Bootstrap;
 using Tauron.Host;
+using TimeTracker.Data;
+using TimeTracker.Managers;
 
 namespace AkkaTest
 {
@@ -63,14 +66,22 @@ namespace AkkaTest
         {
             Console.Title = "Test Anwendung";
 
-            using HttpClient client = new();
-            
-            //var serializer = new XmlSerializer(typeof(ArrayOfFeiertagDatum), new []{typeof(FeiertagDatum), typeof(Feiertag), typeof(Laender), typeof(Bundesland) });
-            using var result = await client.GetAsync("https://www.spiketime.de/feiertagapi/feiertage/BY/2021");
-            string resultString = await result.Content.ReadAsStringAsync();
-            await File.WriteAllTextAsync("Test.xml", resultString);
-            var data = JsonConvert.DeserializeObject<ImmutableList<Feiertage>>(resultString);
-            Console.WriteLine(resultString);
+            //var dataTest = new DataManager(new ConcurancyManager(), new EventAggregator());
+            //var profileTest = new ProfileManager(dataTest);
+            //var calcTest = new CalculationManager(profileTest, SystemClock.Inst);
+
+            //(from res in calcTest.CalculationResult
+            // select res)
+            //   .Subscribe(Console.WriteLine);
+
+            //(from hour in calcTest.AllHours
+            // select hour.Hours).Subscribe(Console.WriteLine);
+
+            //dataTest.Mutate(pd => Observable.Return(new ProfileData("Test.json", 173, 18, 0,
+            //                    ImmutableDictionary<DateTime, ProfileEntry>.Empty,
+            //                    DateTime.Now.Date, ImmutableList<HourMultiplicator>.Empty, false, 8))).Subscribe();
+
+            //profileTest.AddEntry(new ProfileEntry(DateTime.Today, null, null, DayType.Holiday)).Subscribe(u => Console.WriteLine(u));
 
             //await ActorApplication.Create(args)
             //                      .ConfigureAutoFac(cb =>
@@ -79,6 +90,8 @@ namespace AkkaTest
             //                                            cb.RegisterType<TestStart>().As<IStartUpAction>();
             //                                        })
             //                      .Build().Run();
+
+            Console.ReadKey();
         }
     }
 }

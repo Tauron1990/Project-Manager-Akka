@@ -16,12 +16,12 @@ namespace TimeTracker
             builder.RegisterType<CorrectionDialog>().AsSelf();
             builder.RegisterView<MainWindow, MainWindowViewModel>();
 
-            builder.RegisterInstance(SystemClock.Inst).As<SystemClock>();
-            builder.RegisterType<DataManager>().AsSelf();
-            builder.RegisterType<HolidayManager>().AsSelf();
-            builder.RegisterType<ProfileManager>().AsSelf();
-            builder.RegisterType<CalculationManager>().AsSelf();
-            builder.RegisterType<ConcurancyManager>().AsSelf();
+            builder.RegisterInstance(SystemClock.Inst).As<SystemClock>().SingleInstance();
+            builder.RegisterType<DataManager>().AsSelf().SingleInstance();
+            builder.RegisterType<HolidayManager>().AsSelf().SingleInstance();
+            builder.RegisterType<ProfileManager>().AsSelf().SingleInstance();
+            builder.RegisterType<CalculationManager>().AsSelf().SingleInstance();
+            builder.RegisterType<ConcurancyManager>().AsSelf().SingleInstance();
 
             builder.RegisterSettingsManager(c => c.WithProvider<AppSettingsConfiguration>());
 

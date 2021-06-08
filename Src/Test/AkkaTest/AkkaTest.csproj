@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net5.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
@@ -20,6 +20,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Apps\Backend\DeploymentServer\ServiceManager.ProjectDeployment\ServiceManager.ProjectDeployment.csproj" />
     <ProjectReference Include="..\..\Apps\Backend\RepositoryServer\ServiceManager.ProjectRepository\ServiceManager.ProjectRepository.csproj" />
+    <ProjectReference Include="..\..\Apps\Mini\TimeTracker\TimeTracker.csproj" />
     <ProjectReference Include="..\..\Apps\Shared\Servicemnager.Networking\Servicemnager.Networking.csproj" />
     <ProjectReference Include="..\..\Apps\Shared\Tauron.Application.AkkaNode.Boottrap\Tauron.Application.AkkaNode.Boottrap.csproj" />
     <ProjectReference Include="..\..\Apps\Shared\Tauron.Application.AkkNode.Services\Tauron.Application.AkkNode.Services.csproj" />

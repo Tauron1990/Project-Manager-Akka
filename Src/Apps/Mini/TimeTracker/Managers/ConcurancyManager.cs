@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
-using System.Threading.Tasks;
-using Tauron;
 
 namespace TimeTracker.Managers
 {
@@ -16,6 +13,7 @@ namespace TimeTracker.Managers
             => input.SelectMany(async d =>
                                 {
                                     await _syncLock.WaitAsync();
+
                                     try
                                     {
                                         return await runSync(Observable.Return(d));
