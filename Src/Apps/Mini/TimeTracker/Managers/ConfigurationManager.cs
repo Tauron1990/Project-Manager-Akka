@@ -5,7 +5,6 @@ using System.ComponentModel;
 using System.Linq.Expressions;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Reactive.Subjects;
 using System.Runtime.CompilerServices;
 using FastExpressionCompiler;
 using JetBrains.Annotations;
@@ -46,18 +45,18 @@ namespace TimeTracker.Managers
             set => _dailyHours.Value = value;
         }
 
-        public ConfigurationManager(ISubject<ProfileData> source, ConcurancyManager manager, Action<Exception> reportError)
+        public ConfigurationManager(DataManager source, Action<Exception> reportError)
         {
-            _hoursAll = PropertyConnector<int>.Create(source, manager, this, reportError,
+            _hoursAll = PropertyConnector<int>.Create(source, this, reportError,
                 () => MonthHours, pd => pd.MonthHours, (pd, value) => pd with {MonthHours = value});
 
-            _minusShortTimeHours = PropertyConnector<int>.Create(source, manager, this, reportError,
+            _minusShortTimeHours = PropertyConnector<int>.Create(source, this, reportError,
                 () => MinusShortTimeHours, pd => pd.MinusShortTimeHours, (pd, value) => pd with {MinusShortTimeHours = value});
 
-            _multiplicators = PropertyConnector<ImmutableList<HourMultiplicator>>.Create(source, manager, this, reportError,
+            _multiplicators = PropertyConnector<ImmutableList<HourMultiplicator>>.Create(source, this, reportError,
                 () => Multiplicators, pd => pd.Multiplicators, (pd, value) => pd with {Multiplicators = value ?? ImmutableList<HourMultiplicator>.Empty});
 
-            _dailyHours = PropertyConnector<int>.Create(source, manager, this, reportError,
+            _dailyHours = PropertyConnector<int>.Create(source, this, reportError,
                 () => DailyHours, pd => pd.DailyHours, (pd, value) => pd with {DailyHours = value});
 
             _ceanup = Disposable.Create(() =>
@@ -100,29 +99,29 @@ namespace TimeTracker.Managers
                 _cleanUp = updateValue(value => _value = value);
             }
 
-            public static PropertyConnector<TPropertyType> Create(ISubject<ProfileData> data, ConcurancyManager manager, ConfigurationManager configuration, Action<Exception> reportError,
+            public static PropertyConnector<TPropertyType> Create(DataManager data, ConfigurationManager configuration, Action<Exception> reportError,
                 Expression<Func<TPropertyType>> property, Func<ProfileData, TPropertyType> read, Func<ProfileData, TPropertyType?, ProfileData> write)
             {
                 string name = Reflex.PropertyName(property);
                 var getter = property.CompileFast();
                 var equalityComparer = EqualityComparer<TPropertyType>.Default;
 
-                var readObs = data.Select(read);
+                var readObs = data.Stream.Select(read);
 
                 void WriteAction(TPropertyType? value)
                 {
                     if (value == null) return;
 
-                    (from profileData in data.Take(1).SyncCall(manager) 
-                     let newData = write(profileData, value) 
-                     select newData)
-                       .AutoSubscribe(data, reportError);
+                    data.Mutate(o => from profileData in o
+                                     let newData = write(profileData, value)
+                                     select newData)
+                        .AutoSubscribe(reportError);
 
                     configuration.OnPropertyChanged(name);
                 }
 
                 IDisposable UpdateValue(Action<TPropertyType> action)
-                    => (from newData in data.Skip(1)
+                    => (from newData in data.Stream.Skip(1)
                         let propertyValue = getter()
                         let newValue = read(newData)
                         where !equalityComparer.Equals(newValue, propertyValue)

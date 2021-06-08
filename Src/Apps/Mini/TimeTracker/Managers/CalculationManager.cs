@@ -20,19 +20,24 @@ namespace TimeTracker.Managers
         public CalculationManager(ProfileManager profileManager, SystemClock clock)
         {
             _clock = clock;
-            AllHours = profileManager.ConnectCache()
-                                     .AutoRefreshOnObservable(_ => profileManager.ProcessableData.DistinctUntilChanged(ChangeToken.Get))
-                                     .SelectMany(pe => profileManager.ProcessableData.Take(1).Select(pd => new EntryPair(pe, pd)).ToEnumerable(), ent => ent.Entry.Date)
-                                     .ForAggregation()
-                                     .Sum(e => CalculateEntryTime(e.Entry, e.Data).TotalHours)
-                                     .Select(TimeSpan.FromHours)
-                                     .Isonlate();
+            var datastart = profileManager.ProcessableData.DistinctUntilChanged(ChangeToken.Get)
+                                          .Isonlate();
+
+            AllHours = datastart
+                      .SelectMany(_ => profileManager.ConnectCache().TakeUntil(datastart))
+                       //AllHours = profileManager.ConnectCache()
+                       //                         .AutoRefreshOnObservable(_ => profileManager.ProcessableData.DistinctUntilChanged(ChangeToken.Get))
+                      .SelectMany(pe => profileManager.ProcessableData.Take(1).Select(pd => new EntryPair(pe, pd)).ToEnumerable(), ent => ent.Entry.Date)
+                      .ForAggregation()
+                      .Sum(e => CalculateEntryTime(e.Entry, e.Data).TotalHours)
+                      .Select(TimeSpan.FromHours)
+                      .Isonlate();
 
             CalculationResult = (from hours in AllHours
                                  from data in profileManager.ProcessableData.Take(1)
                                  where hours > TimeSpan.Zero && data.MonthHours > 0
                                  select Calc(data.CurrentMonth, hours.Hours, data.MonthHours, data.MinusShortTimeHours))
-                               .Publish().RefCount();
+                               .Isonlate();
         }
 
 
@@ -71,13 +76,13 @@ namespace TimeTracker.Managers
                 => entry.Start != null && entry.Finish != null && entry.Finish > entry.Start;
         }
 
-        public static int CalculateShortTimeHours(int mouthHours)
-        {
-            var multi = mouthHours / 100d;
-            var minus = 10 * multi;
+        //public static int CalculateShortTimeHours(int mouthHours)
+        //{
+        //    var multi = mouthHours / 100d;
+        //    var minus = 10 * multi;
 
-            return (int)Math.Round(minus, 0, MidpointRounding.ToPositiveInfinity);
-        }
+        //    return (int)Math.Round(minus, 0, MidpointRounding.ToPositiveInfinity);
+        //}
 
         private record EntryPair(ProfileEntry Entry, ProfileData Data);
 

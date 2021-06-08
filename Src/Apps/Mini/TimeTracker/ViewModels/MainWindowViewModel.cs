@@ -233,7 +233,8 @@ namespace TimeTracker.ViewModels
             CurrentState = RegisterProperty<MonthState>(nameof(CurrentState))
                .WithDefaultValue(MonthState.Minus);
 
-            calculation.AllHours.Select(ts => ts.Hours).Subscribe(HoursAll)
+            calculation.AllHours.Select(ts => ts.Hours)
+                       .Subscribe(HoursAll)
                        .DisposeWith(this);
 
             var calc = calculation.CalculationResult;

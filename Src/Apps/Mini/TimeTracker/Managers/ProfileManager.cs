@@ -7,7 +7,6 @@ using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Reactive.Subjects;
 using System.Reactive.Threading.Tasks;
 using DynamicData;
 using Newtonsoft.Json;
@@ -52,10 +51,10 @@ namespace TimeTracker.Managers
             _holidayManager = holidayManager;
             _dataManager = dataManager;
             _aggregator = aggregator;
-            ConfigurationManager = new ConfigurationManager(Subject.Create<ProfileData>(dataManager.Update, dataManager.Stream), _concurancy, _aggregator.ReportError);
+            ConfigurationManager = new ConfigurationManager(dataManager, _aggregator.ReportError);
 
             _cleanUp = new CompositeDisposable(
-                CreateFileSafePipeLine(), _entryCache, AutoUpdateShortTimeHours(), CreateCacheUpdater(), ConfigurationManager, AutoUpdateHoliDays());
+                CreateFileSafePipeLine(), _entryCache, CreateCacheUpdater(), ConfigurationManager, AutoUpdateHoliDays());
         }
 
         public IObservable<IChangeSet<ProfileEntry, DateTime>> ConnectCache()
@@ -65,11 +64,12 @@ namespace TimeTracker.Managers
         {
             return (from name in toLoadObservable
                     let fileName = GetFileName(name)
-                    from data in File.Exists(fileName)
-                        ? FromFile(fileName).SyncCall(_concurancy)
-                        : NewFile(fileName).SyncCall(_concurancy)
+                    from data in _dataManager.Mutate(_ => from data in File.Exists(fileName)
+                                                              ? FromFile(fileName)
+                                                              : NewFile(fileName)
+                                                          select data)
                     select data)
-               .AutoSubscribe(_dataManager.Update, _aggregator.ReportError);
+               .AutoSubscribe(_aggregator.ReportError);
         }
 
         private IObservable<ProfileData> FromFile(string input)
@@ -107,12 +107,12 @@ namespace TimeTracker.Managers
                                   e.Select(pair => pair.Value).OrderByDescending(v => v.Date).Foreach(_entryCache.AddOrUpdate);
                               }, _aggregator.ReportError);
 
-        private IDisposable AutoUpdateShortTimeHours()
-            => (from data in ProcessableData.SyncCall(_concurancy)
-                where data.MonthHours > 10
-                where data.MinusShortTimeHours == 0
-                select data with {MinusShortTimeHours = CalculationManager.CalculateShortTimeHours(data.MonthHours)})
-               .AutoSubscribe(_dataManager.Update, _aggregator.ReportError);
+        //private IDisposable AutoUpdateShortTimeHours()
+        //    => (from data in ProcessableData.SyncCall(_concurancy)
+        //        where data.MonthHours > 10
+        //        where data.MinusShortTimeHours == 0
+        //        select data with {MinusShortTimeHours = CalculationManager.CalculateShortTimeHours(data.MonthHours)})
+        //       .AutoSubscribe(_dataManager.Update, _aggregator.ReportError);
 
         private IDisposable AutoUpdateHoliDays()
         {
@@ -121,7 +121,7 @@ namespace TimeTracker.Managers
                     from holidays in _holidayManager.RequestFor(ent.CurrentMonth)
                     let days = holidays.Select(day => new DateTime(ent.CurrentMonth.Year, ent.CurrentMonth.Month, day))
                     from data in _dataManager.Mutate()
-                    select data with {Entries = UpdateEntries(data.Entries, days)})
+                    select data with {Entries = UpdateEntries(data.Entries, days), HolidaysSet = true})
                .AutoSubscribe(_dataManager.Update, _aggregator.ReportError);
 
 
