@@ -30,6 +30,7 @@
                 <ComboBox Grid.Row="0" Grid.Column="1" Margin="10" IsEditable="True" md:HintAssist.Hint="Profile" IsTextSearchEnabled="True" IsTextSearchCaseSensitive="False"
                           StaysOpenOnEdit="True" Text="{ui:ActorBinding CurrentProfile, Mode=TwoWay}" ItemsSource="{ui:ActorBinding AllProfiles}"/>
                 <Button Grid.Row="1" Grid.Column="1" Margin="5" Content="Konfigurieren" md:ButtonAssist.CornerRadius="20" Command="{ui:ActorBinding Configurate}"/>
+                <Button Grid.Row="1" Grid.Column="0" Margin="5" Content="Urlaub" md:ButtonAssist.CornerRadius="20" HorizontalAlignment="Center" Command="{ui:ActorBinding Vacation}" Cursor="Hand"/>
                 <Button Grid.Row="3" Grid.Column="0" Margin="5" Content="Kommen" Height="50" md:ButtonAssist.CornerRadius="30" Width="100" Command="{ui:ActorBinding Come}"/>
                 <Button Grid.Row="3" Grid.Column="2" Margin="5" Content="Gehen" Height="50" md:ButtonAssist.CornerRadius="30" Width="100" Command="{ui:ActorBinding Go}"/>
                 <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">

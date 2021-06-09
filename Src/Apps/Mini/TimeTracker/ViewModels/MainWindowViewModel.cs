@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Reactive;
-using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Windows.Data;
@@ -57,6 +54,8 @@ namespace TimeTracker.ViewModels
         public UIPropertyBase? Configurate { get; }
 
         public UIProperty<string> ProfileState { get; }
+
+        public UIPropertyBase? Vacation { get; }
 
         public MainWindowViewModel(ILifetimeScope lifetimeScope, IUIDispatcher dispatcher, AppSettings settings, ITauronEnviroment enviroment, 
             ProfileManager profileManager, CalculationManager calculation, SystemClock clock, IEventAggregator aggregator)
@@ -191,6 +190,11 @@ namespace TimeTracker.ViewModels
                              .Run(_ => isHere!.Value = true, () => isHere!.Value = false);
             }
 
+            Vacation = NewCommad
+                      .WithCanExecute(IsProcessable)
+                      
+               .ThenRegister(nameof(Vacation));
+
             #endregion
 
             #region Correction
@@ -214,8 +218,8 @@ namespace TimeTracker.ViewModels
                                        select result)
                                   .AutoSubscribe(s =>
                                                  {
-                                                     if (string.IsNullOrWhiteSpace(s))
-                                                         SnackBarQueue.Value?.Enqueue("Keine Korrekut Ausgeführt");
+                                                     if (!string.IsNullOrWhiteSpace(s))
+                                                         SnackBarQueue.Value?.Enqueue(s);
                                                      else
                                                          CheckHere();
                                                  }, aggregator.ReportError))

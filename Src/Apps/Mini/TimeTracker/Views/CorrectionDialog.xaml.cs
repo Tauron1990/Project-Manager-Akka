@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Tauron;
 using Tauron.Application.CommonUI.Commands;
@@ -68,7 +69,7 @@ namespace TimeTracker.Views
             AddValidation(
                 () => FinishTime,
                 sobs => from time in sobs
-                        let ty = TimeSpan.TryParse(time, out _)
+                        let ty = string.IsNullOrWhiteSpace(time) || TimeSpan.TryParse(time, out _)
                         select ty ? null : "Kann nicht in Zeitpunkt Umgewandelt werden");
 
             AddValidation(
@@ -82,9 +83,9 @@ namespace TimeTracker.Views
                    .Finish(obs => (from _ in obs
                                    let date = DateTime.Parse(Date).Date
                                    let start = TimeSpan.Parse(StartTime)
-                                   let end = TimeSpan.Parse(FinishTime)
+                                   let end = string.IsNullOrWhiteSpace(FinishTime) ? Timeout.InfiniteTimeSpan : TimeSpan.Parse(FinishTime)
                                    from isHoliday in manager.IsHoliday(date, date.Day)
-                                   select new UpdateCorrectionResult(new ProfileEntry(date, start, end, isHoliday ? DayType.Holiday : DayType.Normal)))
+                                   select new UpdateCorrectionResult(new ProfileEntry(date, start, end == Timeout.InfiniteTimeSpan ? null : end, isHoliday ? DayType.Holiday : DayType.Normal)))
                               .Subscribe(observer))
                    .DisposeWith(Disposer);
 

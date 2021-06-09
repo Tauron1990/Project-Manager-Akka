@@ -14,6 +14,7 @@ namespace TimeTracker
         {
             builder.RegisterType<AddEntryDialog>().AsSelf();
             builder.RegisterType<CorrectionDialog>().AsSelf();
+            builder.RegisterType<VacationDialog>().AsSelf();
             builder.RegisterView<MainWindow, MainWindowViewModel>();
 
             builder.RegisterInstance(SystemClock.Inst).As<SystemClock>().SingleInstance();

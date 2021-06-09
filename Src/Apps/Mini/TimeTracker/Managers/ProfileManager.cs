@@ -152,12 +152,12 @@ namespace TimeTracker.Managers
 
         public IObservable<bool> Come(IObservable<DateTime> dateObs)
         {
-            return (from date in dateObs
-                    from isHoliday in _holidayManager.IsHoliday(date, date.Day)
-                    from result in _entryCache.Lookup(date).HasValue
-                        ? Observable.Return(false)
-                        : CreateEntry(Observable.Return(date), isHoliday ? DayType.Holiday : DayType.Normal)
-                    select result);
+            return from date in dateObs
+                   from isHoliday in _holidayManager.IsHoliday(date, date.Day)
+                   from result in _entryCache.Lookup(date).HasValue
+                       ? Observable.Return(false)
+                       : CreateEntry(Observable.Return(date), isHoliday ? DayType.Holiday : DayType.Normal)
+                   select result;
 
             IObservable<bool> CreateEntry(IObservable<DateTime> returnDate, DayType type)
                 => from date in returnDate
@@ -218,10 +218,10 @@ namespace TimeTracker.Managers
             }
         }
 
-        private IObservable<Unit> SetEntry(ProfileEntry entry)
+        private IObservable<Unit> SetEntry(params ProfileEntry[] entrys)
             => _dataManager.Mutate(o => from data in o
-                                        select data with {Entries = data.Entries.SetItem(entry.Date, entry)})
-                           .ToUnit(() => _entryCache.AddOrUpdate(entry));
+                                        select data with {Entries = entrys.Aggregate(data.Entries, (entries, entry) => entries.SetItem(entry.Date, entry))})
+                           .ToUnit(() => _entryCache.AddOrUpdate(entrys));
 
         public IObservable<bool> Go(IObservable<DateTime> timeobs)
         {
@@ -286,6 +286,8 @@ namespace TimeTracker.Managers
             => _dataManager.Mutate(o => from data in o
                                         select data with {Entries = data.Entries.Remove(entry)})
                            .ToUnit(() => _entryCache.RemoveKey(entry));
+
+
 
         void IDisposable.Dispose() => _cleanUp.Dispose();
     }

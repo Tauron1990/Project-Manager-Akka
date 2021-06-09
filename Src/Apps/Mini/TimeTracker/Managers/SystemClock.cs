@@ -52,11 +52,15 @@ namespace TimeTracker.Managers
         //    protected override int DaysInCurrentMonth(DateTime month) => DateTime.DaysInMonth(month.Year, month.Month);
         //}
 
+        [DebuggerStepThrough]
+        public static bool IsWeekDay(DateTime dateTime)
+            => dateTime.DayOfWeek != DayOfWeek.Saturday && dateTime.DayOfWeek != DayOfWeek.Sunday;
+
         private sealed class Actual : SystemClock
         {
-            public override int NowDay => DateTime.UtcNow.Day;
-            public override DateTime NowDate => DateTime.UtcNow.Date;
-            public override TimeSpan NowTime => DateTime.UtcNow.TimeOfDay;
+            public override int NowDay => DateTime.Now.Day;
+            public override DateTime NowDate => DateTime.Now.Date;
+            public override TimeSpan NowTime => DateTime.Now.TimeOfDay;
 
             [DebuggerStepThrough]
             public override int DaysInCurrentMonth(DateTime month)
@@ -87,10 +91,6 @@ namespace TimeTracker.Managers
 
                 return count;
             }
-
-            [DebuggerStepThrough]
-            private static bool IsWeekDay(DateTime dateTime) 
-                => dateTime.DayOfWeek != DayOfWeek.Saturday && dateTime.DayOfWeek != DayOfWeek.Sunday;
         }
     }
 }

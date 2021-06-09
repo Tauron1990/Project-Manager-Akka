@@ -27,6 +27,7 @@ namespace TimeTracker.Managers
                                                      .Delay(TimeSpan.FromSeconds(1))
                                                      .TakeUntil(datastart)
                                                      .SelectMany(pe => profileManager.ProcessableData.Take(1).Select(pd => new EntryPair(pe, pd)).ToEnumerable(), ent => ent.Entry.Date)
+                                                     .Where(ep => ep.Data.CurrentMonth.Month == ep.Entry.Date.Month && ep.Data.CurrentMonth.Year == ep.Entry.Date.Year)
                                                      .ForAggregation()
                                                      .Sum(e => CalculateEntryTime(e.Entry, e.Data).TotalHours)
                                                      .Select(TimeSpan.FromHours))
