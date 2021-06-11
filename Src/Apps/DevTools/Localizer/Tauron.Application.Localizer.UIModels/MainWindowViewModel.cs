@@ -98,7 +98,7 @@ namespace Tauron.Application.Localizer.UIModels
             }
 
             NewCommad.WithCanExecute(last.Select(pf => pf != null && !pf.IsEmpty))
-                .ThenFlow(ob => ob.SelectMany(_ => SaveAsProject())
+                .WithFlow(ob => ob.SelectMany(_ => SaveAsProject())
                     .ToModel(CenterView))
                 .ThenRegister("SaveAs");
 
@@ -177,7 +177,7 @@ namespace Tauron.Application.Localizer.UIModels
             }
 
             NewCommad.WithCanExecute(loadingOperation.Select(oc => oc == null))
-                .ThenFlow(obs => NewProjectFile(obs.Dialog(this, TypedParameter.From(OpenFileMode.OpenExistingFile))
+                .WithFlow(obs => NewProjectFile(obs.Dialog(this, TypedParameter.From(OpenFileMode.OpenExistingFile))
                     .Of<IOpenFileDialog, string?>()
                     .Select(s => SourceSelected.From(s, OpenFileMode.OpenExistingFile))))
                 .ThenRegister("OpenFile");
@@ -209,7 +209,7 @@ namespace Tauron.Application.Localizer.UIModels
             }
 
             NewCommad.WithCanExecute(loadingOperation.Select(oc => oc == null))
-                .ThenFlow(obs => obs.Dialog(this, TypedParameter.From(OpenFileMode.OpenNewFile))
+                .WithFlow(obs => obs.Dialog(this, TypedParameter.From(OpenFileMode.OpenNewFile))
                     .Of<IOpenFileDialog, string?>()
                     .Select(s => SourceSelected.From(s, OpenFileMode.OpenNewFile))
                     .ToSelf())

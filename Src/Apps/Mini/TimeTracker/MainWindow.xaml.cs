@@ -1,8 +1,13 @@
 ﻿using System;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 using MaterialDesignThemes.Wpf;
 using Tauron.Application.CommonUI;
 using Tauron.Application.CommonUI.AppCore;
 using Tauron.Application.CommonUI.Dialogs;
+using TimeTracker.Data;
 using TimeTracker.ViewModels;
 
 namespace TimeTracker
@@ -28,5 +33,11 @@ namespace TimeTracker
         }
 
         public event EventHandler? Shutdown;
+
+        private void ModiferParameterClick(object sender, RoutedEventArgs e)
+        {
+            if (sender is ButtonBase button)
+                button.CommandParameter = new ModiferBox(Keyboard.Modifiers);
+        }
     }
 }

@@ -195,7 +195,7 @@ namespace Tauron.Application.Localizer.UIModels
                     select value && !reset.ProjectFile.IsEmpty && !string.IsNullOrWhiteSpace(reset.ProjectFile.Source))
                 .WithExecute(terminalMessages.Clear)
                 .WithExecute(() => canBuild.Value = false)
-                .ThenFlow(obs => obs
+                .WithFlow(obs => obs
                     .Select(_ => new BuildRequest(
                         manager.StartOperation(localizer.MainWindowodelBuildProjectOperation).Select(oc => oc.Id),
                         workspace.ProjectFile))

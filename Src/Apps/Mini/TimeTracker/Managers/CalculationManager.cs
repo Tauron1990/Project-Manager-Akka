@@ -19,17 +19,32 @@ namespace TimeTracker.Managers
         public CalculationManager(SystemClock clock, ProfileManager profileManager)
         {
             _clock = clock;
-            var datastart = profileManager.ProcessableData.DistinctUntilChanged(ChangeToken.Get, new ChangeTokenComparer()).Isonlate();
 
-            
+            var updateTrigger = Observable.Interval(TimeSpan.FromSeconds(30)).Select(_ => clock.NowDate)
+                                          .StartWith(clock.NowDate)
+                                          .Scan(new TimeContainer(clock.NowDate, clock.NowDate, true),
+                                               (container, time) => container with
+                                                                    {
+                                                                        Old = container.New,
+                                                                        New = time,
+                                                                        NeedUpdate = container.New < time
+                                                                    })
+                                          .Where(c => c.NeedUpdate);
+
+            var database = profileManager.ProcessableData.DistinctUntilChanged(ChangeToken.Get, new ChangeTokenComparer());
+
+            var datastart = database.InvalidateWhen(updateTrigger).Isonlate();
+
+
             AllHours = datastart
                       .SelectMany(_ => profileManager.ConnectCache()
                                                      .Delay(TimeSpan.FromSeconds(1))
                                                      .TakeUntil(datastart)
                                                      .SelectMany(pe => profileManager.ProcessableData.Take(1).Select(pd => new EntryPair(pe, pd)).ToEnumerable(), ent => ent.Entry.Date)
-                                                     .Where(ep => ep.Data.CurrentMonth.Month == ep.Entry.Date.Month && ep.Data.CurrentMonth.Year == ep.Entry.Date.Year)
-                                                     .ForAggregation()
-                                                     .Sum(e => CalculateEntryTime(e.Entry, e.Data).TotalHours)
+                                                     .Where(ep => ep.Data.CurrentMonth.Month == ep.Entry.Date.Month
+                                                               && ep.Data.CurrentMonth.Year == ep.Entry.Date.Year
+                                                               && ep.Entry.Date.Day <= clock.NowDay)
+                                                     .ForAggregation().Sum(e => CalculateEntryTime(e.Entry, e.Data).TotalHours)
                                                      .Select(TimeSpan.FromHours))
                       .Isonlate();
 
@@ -83,6 +98,8 @@ namespace TimeTracker.Managers
         //}
 
         private record EntryPair(ProfileEntry Entry, ProfileData Data);
+
+        private record TimeContainer(DateTime Old, DateTime New, bool NeedUpdate);
 
         private record ChangeToken(string File, int One, int Two, int Three, object Four)
         {

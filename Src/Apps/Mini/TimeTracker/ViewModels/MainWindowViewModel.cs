@@ -5,6 +5,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Windows.Data;
+using System.Windows.Input;
 using Autofac;
 using DynamicData;
 using DynamicData.Alias;
@@ -110,7 +111,7 @@ namespace TimeTracker.ViewModels
             #endregion
 
             Configurate = NewCommad.WithCanExecute(profileManager.IsProcessable)
-                                   .ThenFlow(obs => (from _ in obs
+                                   .WithFlow(obs => (from _ in obs
                                                      from res in this.ShowDialogAsync<ConfigurationDialog, Unit, ConfigurationManager>(() => profileManager.ConfigurationManager)
                                                      select res)
                                                 .AutoSubscribe(ReportError))
@@ -155,8 +156,9 @@ namespace TimeTracker.ViewModels
                   .WithCanExecute(profileManager.IsProcessable)
                   .WithCanExecute(from here in isHere
                                   select !here)
-                  .ThenFlow(clock.NowDate,
-                       obs => profileManager.Come(obs)
+                  .WithParameterFlow<ModiferBox>(
+                       obs => profileManager.Come(from box in obs
+                                                  select new ComeParameter(clock.NowDate, box != null && box.Keys.HasFlag(ModifierKeys.Control)))
                                             .AutoSubscribe(b =>
                                                            {
                                                                if (b)
@@ -169,7 +171,7 @@ namespace TimeTracker.ViewModels
             Go = NewCommad
                 .WithCanExecute(profileManager.IsProcessable)
                 .WithCanExecute(isHere)
-                .ThenFlow(() => clock.NowDate,
+                .WithFlow(() => clock.NowDate,
                      obs => profileManager.Go(obs)
                                           .AutoSubscribe(b =>
                                                          {
@@ -191,9 +193,15 @@ namespace TimeTracker.ViewModels
             }
 
             Vacation = NewCommad
+                      .WithFlow(obs => (from _ in obs 
+                                        from data in profileManager.ProcessableData.Take(1)
+                                        from result in this.ShowDialogAsync<VacationDialog, DateTime[]?, DateTime>(() => data.CurrentMonth)
+                                        where result != null
+                                        from res in profileManager.AddVacation(result) 
+                                        select res)
+                                   .AutoSubscribe(ReportError))
                       .WithCanExecute(IsProcessable)
-                      
-               .ThenRegister(nameof(Vacation));
+                      .ThenRegister(nameof(Vacation));
 
             #endregion
 
@@ -205,7 +213,7 @@ namespace TimeTracker.ViewModels
                      .WithCanExecute(profileManager.IsProcessable)
                      .WithCanExecute(from entry in CurrentEntry
                                      select entry != null)
-                     .ThenFlow(obs => (from _ in obs
+                     .WithFlow(obs => (from _ in obs
                                        let oldEntry = CurrentEntry.Value
                                        where oldEntry != null
                                        from dialogResult in this.ShowDialogAsync<CorrectionDialog, CorrectionResult, ProfileEntry>(() => oldEntry.Entry)
@@ -227,7 +235,7 @@ namespace TimeTracker.ViewModels
 
             AddEntry = NewCommad
                       .WithCanExecute(IsProcessable)
-                      .ThenFlow(obs => (from _ in obs
+                      .WithFlow(obs => (from _ in obs
                                         from data in profileManager.ProcessableData.Take(1)
                                         let parameter = new AddEntryParameter(data.Entries.Select(pe => pe.Value.Date.Day).ToHashSet(), data.CurrentMonth)
                                         from result in this.ShowDialogAsync<AddEntryDialog, AddEntryResult, AddEntryParameter>(() => parameter)
@@ -249,7 +257,8 @@ namespace TimeTracker.ViewModels
             CurrentState = RegisterProperty<MonthState>(nameof(CurrentState))
                .WithDefaultValue(MonthState.Minus);
 
-            calculation.AllHours.Select(ts => ts.TotalHours)
+            calculation.AllHours
+                       .Select(ts => ts.TotalHours)
                        .Select(h =>
                                {
                                    return h switch

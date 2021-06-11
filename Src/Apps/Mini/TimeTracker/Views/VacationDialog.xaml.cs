@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Controls;
-using DynamicData;
 using Tauron.Application;
 using Tauron.Application.CommonUI.Commands;
 using Tauron.Application.CommonUI.Dialogs;
@@ -16,15 +15,15 @@ namespace TimeTracker.Views
     /// <summary>
     /// Interaktionslogik für VacationDialog.xaml
     /// </summary>
-    public partial class VacationDialog : IBaseDialog<DateTime[], DateTime>
+    public partial class VacationDialog : IBaseDialog<DateTime[]?, DateTime>
     {
         public VacationDialog()
         {
             InitializeComponent();
         }
 
-        public Task<DateTime[]> Init(DateTime initalData) 
-            => this.MakeObsTask<DateTime[]>(o => new VacationDialogModel(o, initalData, Calendar.SelectedDates));
+        public Task<DateTime[]?> Init(DateTime initalData) 
+            => this.MakeObsTask<DateTime[]?>(o => new VacationDialogModel(o, initalData, Calendar.SelectedDates));
     }
 
     public sealed class VacationDialogModel : ObservableObject, IDisposable
@@ -45,7 +44,7 @@ namespace TimeTracker.Views
             Ok = new SimpleReactiveCommand(from _ in changes
                                            select datesCollection.Where(SystemClock.IsWeekDay).Any(d => d.Month >= currentMounth.Month))
                .Finish(o => (from _ in o
-                             select datesCollection.Where(SystemClock.IsWeekDay)
+                             select datesCollection//.Where(SystemClock.IsWeekDay)
                                                    .Where(d => d.Month >= currentMounth.Month)
                                                    .ToArray())
                           .Subscribe(finish));

@@ -13,7 +13,7 @@ namespace Tauron.Application.CommonUI
     {
         #region UIProperty
 
-        public static FluentPropertyRegistration<TData> ThenFlow<TData>(this FluentPropertyRegistration<TData> prop,
+        public static FluentPropertyRegistration<TData> WithFlow<TData>(this FluentPropertyRegistration<TData> prop,
             Func<IObservable<TData>, IDisposable> flowBuilder)
         {
             var aFlow = new Subject<TData>();
@@ -31,14 +31,20 @@ namespace Tauron.Application.CommonUI
 
         #region Command
 
-        public static CommandRegistrationBuilder ThenFlow(this CommandRegistrationBuilder builder, Func<IObservable<Unit>, IDisposable> flowBuilder) 
-            => ThenFlow(builder, Unit.Default, flowBuilder);
+        public static CommandRegistrationBuilder WithParameterFlow<TParameter>(this CommandRegistrationBuilder builder, Func<IObservable<TParameter?>, IDisposable> flowBuilder)
+            => WithFlow(builder, o => o switch { TParameter par => par, _ => default }, flowBuilder);
 
-        public static CommandRegistrationBuilder ThenFlow<TStart>(this CommandRegistrationBuilder builder,
+        public static CommandRegistrationBuilder WithFlow(this CommandRegistrationBuilder builder, Func<IObservable<Unit>, IDisposable> flowBuilder) 
+            => WithFlow(builder, Unit.Default, flowBuilder);
+
+        public static CommandRegistrationBuilder WithFlow<TStart>(this CommandRegistrationBuilder builder,
             TStart trigger, Func<IObservable<TStart>, IDisposable> flowBuilder)
-            => ThenFlow(builder, () => trigger, flowBuilder);
+            => WithFlow(builder, _ => trigger, flowBuilder);
 
-        public static CommandRegistrationBuilder ThenFlow<TStart>(this CommandRegistrationBuilder builder, Func<TStart> trigger, Func<IObservable<TStart>, IDisposable> flowBuilder)
+        public static CommandRegistrationBuilder WithFlow<TStart>(this CommandRegistrationBuilder builder, Func<TStart> trigger, Func<IObservable<TStart>, IDisposable> flowBuilder)
+            => WithFlow(builder, _ => trigger(), flowBuilder);
+
+        public static CommandRegistrationBuilder WithFlow<TStart>(this CommandRegistrationBuilder builder, Func<object?, TStart> trigger, Func<IObservable<TStart>, IDisposable> flowBuilder)
         {
             var ob = new Subject<TStart>();
             var sub = flowBuilder(ob.AsObservable());
@@ -46,7 +52,7 @@ namespace Tauron.Application.CommonUI
             builder.Target.AddResource(ob);
             builder.Target.AddResource(sub);
 
-            return builder.WithExecute(() => ob.OnNext(trigger()));
+            return builder.WithExecute(o => ob.OnNext(trigger(o)));
         }
 
         public static IDisposable ToModel<TRecieve>(this IObservable<TRecieve> selector, IViewModel model)

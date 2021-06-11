@@ -111,7 +111,7 @@ namespace Tauron.Application.Localizer.UIModels
                     TryRemoveEntry));
             }
 
-            NewCommad.ThenFlow(ob => ob.Select(_ => GetEntrys())
+            NewCommad.WithFlow(ob => ob.Select(_ => GetEntrys())
                     .Dialog(this).Of<INewEntryDialog, NewEntryDialogResult?>()
                     .NotNull()
                     .Mutate(workspace.Entrys).With(em => em.EntryAdd, em => res => em.NewEntry(_project, res.Name))
@@ -177,7 +177,7 @@ namespace Tauron.Application.Localizer.UIModels
 
             NewCommad.WithCanExecute(from trigger in loadTrigger
                     select GetImportableProjects().Any())
-                .ThenFlow(ob => ob.Select(_ => GetImportableProjects())
+                .WithFlow(ob => ob.Select(_ => GetImportableProjects())
                     .Dialog(this).Of<IImportProjectDialog, ImportProjectDialogResult?>()
                     .NotNull()
                     .Mutate(workspace.Projects).With(pm => pm.NewImport, pm => r => pm.AddImport(_project, r.Project))
@@ -194,7 +194,7 @@ namespace Tauron.Application.Localizer.UIModels
             }
 
             NewCommad.WithCanExecute(ImportSelectIndex.Select(i => i != -1))
-                .ThenFlow(ob => ob.Select(_ => new InitImportRemove(ImportetProjects[ImportSelectIndex]))
+                .WithFlow(ob => ob.Select(_ => new InitImportRemove(ImportetProjects[ImportSelectIndex]))
                     .Mutate(workspace.Projects).With(pm => pm.RemoveImport,
                         pm => ir => pm.TryRemoveImport(_project, ir.ToRemove))
                     .Subscribe(RemoveImport))
@@ -218,7 +218,7 @@ namespace Tauron.Application.Localizer.UIModels
             }
 
 
-            NewCommad.ThenFlow(ob => ob
+            NewCommad.WithFlow(ob => ob
                     .Select(_ => workspace.Get(_project).ActiveLanguages.Select(al => al.ToCulture()).ToArray())
                     .Dialog(this).Of<ILanguageSelectorDialog, AddLanguageDialogResult?>()
                     .NotNull()

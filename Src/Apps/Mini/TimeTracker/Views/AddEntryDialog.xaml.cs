@@ -82,7 +82,7 @@ namespace TimeTracker.Views
             AddValidation(
                 () => Finish,
                 sobs => from time in sobs
-                        let ty = TimeSpan.TryParse(time, out _)
+                        let ty = string.IsNullOrWhiteSpace(time) || TimeSpan.TryParse(time, out _)
                         select ty ? null : "Kann nicht in Zeitpunkt Umgewandelt werden");
 
             Cancel = new SimpleReactiveCommand()

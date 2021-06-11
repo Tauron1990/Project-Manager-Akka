@@ -138,7 +138,7 @@ namespace Tauron.Application.Localizer.UIModels
             NewCommad.WithCanExecute(from project in CurrentProject
                     from file in workspace
                     select project != null && !file.IsEmpty)
-                .ThenFlow(TryGetRemoveProjectName,
+                .WithFlow(TryGetRemoveProjectName,
                     obs => obs.NotNull()
                         .Mutate(workspace.Projects).With(pm => pm.RemovedProject, _ => RemoveDialog)
                         .Subscribe(rp => RemoveProject(rp.Project)))
@@ -249,7 +249,7 @@ namespace Tauron.Application.Localizer.UIModels
 
             NewCommad
                 .WithCanExecute(workspace.Select(pf => !pf.IsEmpty))
-                .ThenFlow(ob => ob.Select(_ => workspace.ProjectFile.Projects.Select(p => p.ProjectName))
+                .WithFlow(ob => ob.Select(_ => workspace.ProjectFile.Projects.Select(p => p.ProjectName))
                     .Dialog(this).Of<IProjectNameDialog, NewProjectDialogResult>()
                     .Mutate(workspace.Projects).With(pm => pm.NewProject, pm => result => pm.AddProject(result.Name))
                     .Select(p => p.Project)
@@ -263,7 +263,7 @@ namespace Tauron.Application.Localizer.UIModels
 
             NewCommad
                 .WithCanExecute(workspace.Select(pf => !pf.IsEmpty))
-                .ThenFlow(obs => obs
+                .WithFlow(obs => obs
                     .Select(_ => workspace.ProjectFile.GlobalLanguages.Select(al => al.ToCulture()))
                     .Dialog(this).Of<ILanguageSelectorDialog, AddLanguageDialogResult?>()
                     .NotNull()

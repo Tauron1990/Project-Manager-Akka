@@ -150,11 +150,12 @@ namespace TimeTracker.Managers
                                             });
         }
 
-        public IObservable<bool> Come(IObservable<DateTime> dateObs)
+        public IObservable<bool> Come(IObservable<ComeParameter> dateObs)
         {
-            return from date in dateObs
+            return from parameter in dateObs
+                   let date = parameter.Time
                    from isHoliday in _holidayManager.IsHoliday(date, date.Day)
-                   from result in _entryCache.Lookup(date).HasValue
+                   from result in !parameter.Override || _entryCache.Lookup(date).HasValue
                        ? Observable.Return(false)
                        : CreateEntry(Observable.Return(date), isHoliday ? DayType.Holiday : DayType.Normal)
                    select result;
@@ -287,7 +288,23 @@ namespace TimeTracker.Managers
                                         select data with {Entries = data.Entries.Remove(entry)})
                            .ToUnit(() => _entryCache.RemoveKey(entry));
 
+        public IObservable<Unit> AddVacation(IEnumerable<DateTime> dates)
+        {
+            return from date in Observable.Return(dates)
+                   from res in SetEntry(FilterOut(date)
+                                       .Select(dateTime => new ProfileEntry(dateTime, null, null, DayType.Vacation))
+                                       .ToArray())
+                   select res;
 
+            IEnumerable<DateTime> FilterOut(IEnumerable<DateTime> dateEnumerator)
+            {
+                return (from date in dateEnumerator.ToObservable()
+                        from isHoliday in _holidayManager.IsHoliday(date, date.Day)
+                        where !isHoliday && !SystemClock.IsWeekDay(date)
+                        select date)
+                   .ToEnumerable();
+            }
+        }
 
         void IDisposable.Dispose() => _cleanUp.Dispose();
     }
