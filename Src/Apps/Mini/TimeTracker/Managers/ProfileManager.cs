@@ -288,21 +288,26 @@ namespace TimeTracker.Managers
                                         select data with {Entries = data.Entries.Remove(entry)})
                            .ToUnit(() => _entryCache.RemoveKey(entry));
 
-        public IObservable<Unit> AddVacation(IEnumerable<DateTime> dates)
+        public IObservable<Unit> AddVacation(DateTime[] dates)
         {
-            return from date in Observable.Return(dates)
-                   from res in SetEntry(FilterOut(date)
+            return from result in FilterOut().ToObservable()
+                   from res in SetEntry(result
                                        .Select(dateTime => new ProfileEntry(dateTime, null, null, DayType.Vacation))
                                        .ToArray())
                    select res;
 
-            IEnumerable<DateTime> FilterOut(IEnumerable<DateTime> dateEnumerator)
+            async Task<ImmutableArray<DateTime>> FilterOut()
             {
-                return (from date in dateEnumerator.ToObservable()
-                        from isHoliday in _holidayManager.IsHoliday(date, date.Day)
-                        where !isHoliday && !SystemClock.IsWeekDay(date)
-                        select date)
-                   .ToEnumerable();
+                var result = ImmutableArray<DateTime>.Empty;
+
+                foreach (var date in dates)
+                {
+                    if(!SystemClock.IsWeekDay(date) || await  _holidayManager.IsHoliday(date, date.Day))
+                        continue;
+                    result = result.Add(date);
+                }
+
+                return result;
             }
         }
 

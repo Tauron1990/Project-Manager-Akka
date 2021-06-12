@@ -94,7 +94,7 @@ namespace TimeTracker.Views
                 .Finish(obs => (from _ in obs
                                 let date = new DateTime(parameter.CurrentMonth.Year, parameter.CurrentMonth.Month, Day)
                                 from isHoliday in manager.IsHoliday(date, Day)
-                                let data = new ProfileEntry(date, TimeSpan.Parse(Start), TimeSpan.Parse(Finish), isHoliday ? DayType.Holiday : DayType.Normal)
+                                let data = new ProfileEntry(date, TimeSpan.Parse(Start), string.IsNullOrWhiteSpace(Finish) ? null : TimeSpan.Parse(Finish), isHoliday ? DayType.Holiday : DayType.Normal)
                                 select new NewAddEntryResult(data))
                            .Subscribe(resultObserver))
                 .DisposeWith(Disposer);

@@ -65,6 +65,7 @@ namespace AkkaTest
         private static async Task Main(string[] args)
         {
             Console.Title = "Test Anwendung";
+            
 
             //var dataTest = new DataManager(new ConcurancyManager(), new EventAggregator());
             //var profileTest = new ProfileManager(dataTest);

@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="SharmIPC" Version="1.18.0" />
-    <PackageReference Include="Simple.Wpf.Terminal" Version="2.3.15" />
+    <PackageReference Include="Simple.Wpf.Terminal" Version="2.3.20" />
   </ItemGroup>
 
   <ItemGroup>

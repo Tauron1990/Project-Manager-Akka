@@ -335,6 +335,15 @@ namespace TimeTracker.ViewModels
             Date = Entry.Date.ToLocalTime().ToString("D");
             Start = Entry.Start?.ToString(TimespanTemplate);
             Finish = Entry.Finish?.ToString(TimespanTemplate);
+
+            if (Entry.Start == null)
+                Start = Entry.DayType switch
+                {
+                    DayType.Vacation => "Urlaub",
+                    DayType.Holiday => "Feiertag",
+                    _ => string.Empty
+                };
+
             //Hour = (Entry.Finish - Entry.Start)?.ToString(TimespanTemplate);
 
             var start = Entry.Start;
