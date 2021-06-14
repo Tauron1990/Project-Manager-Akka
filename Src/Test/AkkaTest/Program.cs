@@ -4,12 +4,14 @@ using System.IO;
 using System.Net.Http;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 using Akka.Actor;
 using AkkaTest.Feriertage;
 using Newtonsoft.Json;
 using Tauron.Akka;
 using Tauron.Application;
 using Tauron.Application.AkkaNode.Bootstrap;
+using Tauron.Application.Dataflow;
 using Tauron.Host;
 using TimeTracker.Data;
 using TimeTracker.Managers;
@@ -65,7 +67,8 @@ namespace AkkaTest
         private static async Task Main(string[] args)
         {
             Console.Title = "Test Anwendung";
-            
+
+            BufferBlock.Create<string>().LinkTo(ActionBlock.Create<string>(Console.WriteLine), s => true);
 
             //var dataTest = new DataManager(new ConcurancyManager(), new EventAggregator());
             //var profileTest = new ProfileManager(dataTest);

@@ -155,9 +155,9 @@ namespace TimeTracker.Managers
             return from parameter in dateObs
                    let date = parameter.Time
                    from isHoliday in _holidayManager.IsHoliday(date, date.Day)
-                   from result in !parameter.Override || _entryCache.Lookup(date).HasValue
-                       ? Observable.Return(false)
-                       : CreateEntry(Observable.Return(date), isHoliday ? DayType.Holiday : DayType.Normal)
+                   from result in parameter.CanCreate(_entryCache.Lookup)
+                       ? CreateEntry(Observable.Return(date), isHoliday ? DayType.Holiday : DayType.Normal)
+                       : Observable.Return(false)
                    select result;
 
             IObservable<bool> CreateEntry(IObservable<DateTime> returnDate, DayType type)
