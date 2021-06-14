@@ -13,8 +13,4 @@
     <ProjectReference Include="..\Tauron.Application.Common\Tauron.Application.Common.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Internal\" />
-  </ItemGroup>
-
 </Project>
