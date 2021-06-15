@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Net.Http;
 using System.Reactive.Linq;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Akka.Actor;
@@ -67,7 +68,7 @@ namespace AkkaTest
         private static async Task Main(string[] args)
         {
             Console.Title = "Test Anwendung";
-
+            
             BufferBlock.Create<string>().LinkTo(ActionBlock.Create<string>(Console.WriteLine), s => true);
 
             //var dataTest = new DataManager(new ConcurancyManager(), new EventAggregator());
@@ -96,6 +97,11 @@ namespace AkkaTest
             //                      .Build().Run();
 
             Console.ReadKey();
+        }
+
+        private static void Test(Channel<string> channel)
+        {
+            channel.Writer.WriteAsync("test");
         }
     }
 }
