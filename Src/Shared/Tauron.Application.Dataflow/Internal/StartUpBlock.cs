@@ -8,7 +8,6 @@ namespace Tauron.Application.Dataflow.Internal
     {
         private readonly BufferBlock<TData> _bufferBlock = new();
 
-
         public DataflowMessageStatus OfferMessage(DataflowMessageHeader messageHeader, TData messageValue, ISourceBlock<TData>? source, bool consumeToAccept) 
             => ((ITargetBlock<TData>)_bufferBlock).OfferMessage(messageHeader, messageValue, source, consumeToAccept);
 

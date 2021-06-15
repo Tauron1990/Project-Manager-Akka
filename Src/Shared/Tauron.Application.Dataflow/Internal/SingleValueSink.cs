@@ -24,7 +24,7 @@ namespace Tauron.Application.Dataflow.Internal
         private sealed class EvaluationBlock : IPropagatorBlock<TInput, TOutput>
         {
             private readonly Func<TInput, Option<TData>, TData> _transform;
-            private readonly WriteOnceBlock<TOutput> _outputBlock = new(output => output);
+            private readonly WriteOnceBlock<TOutput> _outputBlock = new(null);
 
             private readonly object _valueLock = new();
             private Option<TData> _currentOutput;
