@@ -68,9 +68,26 @@ namespace AkkaTest
         private static async Task Main(string[] args)
         {
             Console.Title = "Test Anwendung";
-            
-            BufferBlock.Create<string>().LinkTo(ActionBlock.Create<string>(Console.WriteLine), s => true);
 
+            var buffer = BufferBlock.Create<string>();
+
+            buffer.Post("Test 1");
+            buffer.Post("Test 2");
+
+            buffer.LinkTo(s => Console.WriteLine($"1: {s}"));
+
+            buffer.Post("Test 3");
+            buffer.Post("Test 4");
+
+            buffer.LinkTo(s => Console.WriteLine($"2: {s}"));
+
+            buffer.Post("Test 5");
+            buffer.Post("Test 6");
+
+            buffer.LinkTo(s => Console.WriteLine($"3: {s}"));
+
+            buffer.Complete();
+            await buffer.Completion;
             //var dataTest = new DataManager(new ConcurancyManager(), new EventAggregator());
             //var profileTest = new ProfileManager(dataTest);
             //var calcTest = new CalculationManager(profileTest, SystemClock.Inst);

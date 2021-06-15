@@ -26,7 +26,6 @@
     <ProjectReference Include="..\..\Apps\Shared\Tauron.Application.AkkaNode.Boottrap\Tauron.Application.AkkaNode.Boottrap.csproj" />
     <ProjectReference Include="..\..\Apps\Shared\Tauron.Application.AkkNode.Services\Tauron.Application.AkkNode.Services.csproj" />
     <ProjectReference Include="..\..\Shared\Tauron.Application.Common\Tauron.Application.Common.csproj" />
-    <ProjectReference Include="..\..\Shared\Tauron.Application.Dataflow\Tauron.Application.Dataflow.csproj" />
     <ProjectReference Include="..\..\Shared\Tauron.Application.Files.GridFS\Tauron.Application.Files.GridFS.csproj" />
   </ItemGroup>
 
