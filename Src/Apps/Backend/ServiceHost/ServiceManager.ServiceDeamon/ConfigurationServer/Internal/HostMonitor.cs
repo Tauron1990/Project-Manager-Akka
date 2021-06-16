@@ -79,7 +79,7 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer.Internal
              select result)
                .AutoSubscribe(
                     r => LogResponse(r, "Update Seed Urls"),
-                    errorHandler: e => LogError(e, "Update Seed Urls"))
+                    e => LogError(e, "Update Seed Urls"))
                .DisposeWith(this);
 
             (from evt in root.OfType<GlobalConfigEvent>()
@@ -89,7 +89,7 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer.Internal
              select result)
                .AutoSubscribe(
                     r => LogResponse(r, "Update Global Config"),
-                    errorHandler: e => LogError(e, "Update Global Config"))
+                    e => LogError(e, "Update Global Config"))
                .DisposeWith(this);
 
             Self.Tell(ReSheduleInstallEvent.Inst);
