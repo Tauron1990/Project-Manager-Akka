@@ -305,7 +305,7 @@ namespace ServiceHost.ApplicationRegistry
                 obs => from request in obs
                        from s in DownloadConfigForSelf()
                        from a in DownloadConfigForApps()
-                       let f = Finalize(request)
+                       let f = Finalize(request.Event)
                        select request.NewEvent(new UpdateEveryConfigurationRespond(true)));
 
             Self.Tell(new LoadData());
