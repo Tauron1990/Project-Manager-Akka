@@ -4,6 +4,7 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Akka.Actor;
+using Akka.Configuration;
 using Tauron.Akka;
 using Tauron.Application.AkkaNode.Bootstrap;
 using Tauron.Host;
@@ -59,7 +60,9 @@ namespace AkkaTest
         private static async Task Main(string[] args)
         {
             Console.Title = "Test Anwendung";
-            
+
+            var test = ConfigurationFactory.ParseString(string.Empty);
+
             //var dataTest = new DataManager(new ConcurancyManager(), new EventAggregator());
             //var profileTest = new ProfileManager(dataTest);
             //var calcTest = new CalculationManager(profileTest, SystemClock.Inst);

@@ -8,6 +8,7 @@ using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Akka.Actor;
+using Akka.Cluster;
 using Akka.Configuration;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
@@ -48,7 +49,9 @@ namespace ServiceHost.ApplicationRegistry
 
         protected override void ConfigImpl()
         {
-            Receive<AllAppsQuery>(obs => 
+            Receive<CompledRestart>(obs => obs.ToUnit(Cluster.Get(Context.System).LeaveAsync));
+
+            Receive<AllAppsQuery>(obs =>
                                   (
                                       from input in obs
                                       select new AllAppsResponse(input.State.Apps.Keys.ToArray())
@@ -56,34 +59,34 @@ namespace ServiceHost.ApplicationRegistry
 
             Receive<AppStatusResponse>(
                 obs =>
-                (
-                    from i in obs
-                    let sender = i.State.OnGoingQuerys[i.Event.OpId]
-                    let ongoing = i.State.OnGoingQuerys.Remove(i.Event.OpId)
-                    let apps = i.State.Apps.Keys
-                                .Aggregate(
-                                     ImmutableList<HostApp>.Empty,
-                                     (apps, appKey) =>
-                                     {
-                                         try
+                    (
+                        from i in obs
+                        let sender = i.State.OnGoingQuerys[i.Event.OpId]
+                        let ongoing = i.State.OnGoingQuerys.Remove(i.Event.OpId)
+                        let apps = i.State.Apps.Keys
+                                    .Aggregate(
+                                         ImmutableList<HostApp>.Empty,
+                                         (apps, appKey) =>
                                          {
-                                             var app = LoadApp(appKey, i.State);
-                                             if (app == null) return apps;
+                                             try
+                                             {
+                                                 var app = LoadApp(appKey, i.State);
+                                                 if (app == null) return apps;
 
-                                             return apps.Add(new HostApp(
-                                                 app.SoftwareName, app.Name, app.Path, app.Version, app.AppType, app.Exe,
-                                                 i.Event.Apps.GetValueOrDefault(appKey, false)));
-                                         }
-                                         catch (Exception e)
-                                         {
-                                             Log.Error(e, "Error on Load Installed Apps");
-                                             return apps;
-                                         }
-                                     })
-                    let newState = i.State with {OnGoingQuerys = ongoing}
-                    select (Event:new HostAppsResponse(apps, true), State:newState, Sender:sender)
-                ).Do(i => i.Sender.Tell(i.Event))
-                 .Select(e => e.State));
+                                                 return apps.Add(new HostApp(
+                                                     app.SoftwareName, app.Name, app.Path, app.Version, app.AppType, app.Exe,
+                                                     i.Event.Apps.GetValueOrDefault(appKey, false)));
+                                             }
+                                             catch (Exception e)
+                                             {
+                                                 Log.Error(e, "Error on Load Installed Apps");
+                                                 return apps;
+                                             }
+                                         })
+                        let newState = i.State with {OnGoingQuerys = ongoing}
+                        select (Event: new HostAppsResponse(apps, true), State: newState, Sender: sender)
+                    ).Do(i => i.Sender.Tell(i.Event))
+                     .Select(e => e.State));
 
             Receive<QueryHostApps>(
                 obs => from i in obs
@@ -194,43 +197,43 @@ namespace ServiceHost.ApplicationRegistry
 
             Receive<LoadData>(
                 obs => obs
-                      .Select(i =>
-                                  {
-                                      var (_, state) = i;
-                                      string file = Path.Combine(state.AppsDirectory, BaseFileName);
-                                      if (!File.Exists(file))
-                                          return state with{Apps = ImmutableDictionary<string, string>.Empty};
+                   .Select(i =>
+                           {
+                               var (_, state) = i;
+                               string file = Path.Combine(state.AppsDirectory, BaseFileName);
+                               if (!File.Exists(file))
+                                   return state with {Apps = ImmutableDictionary<string, string>.Empty};
 
-                                      try
-                                      {
-                                          return state with{ Apps = TryRead(file)};
-                                      }
-                                      catch (Exception e)
-                                      {
-                                          Log.Warning(e, "Error while Loading AppInfos");
+                               try
+                               {
+                                   return state with {Apps = TryRead(file)};
+                               }
+                               catch (Exception e)
+                               {
+                                   Log.Warning(e, "Error while Loading AppInfos");
 
-                                          try
-                                          {
-                                              return state with{Apps = TryRead(file + ".bak")};
-                                          }
-                                          catch (Exception exception)
-                                          {
-                                              Log.Error(exception, "Error while Loading AppInfos backup");
-                                              return state with {Apps = ImmutableDictionary<string, string>.Empty};
-                                          }
-                                      }
+                                   try
+                                   {
+                                       return state with {Apps = TryRead(file + ".bak")};
+                                   }
+                                   catch (Exception exception)
+                                   {
+                                       Log.Error(exception, "Error while Loading AppInfos backup");
+                                       return state with {Apps = ImmutableDictionary<string, string>.Empty};
+                                   }
+                               }
 
-                                      ImmutableDictionary<string, string> TryRead(string actualFile)
-                                      {
-                                          return File.ReadAllLines(actualFile).Aggregate(ImmutableDictionary<string, string>.Empty,
-                                              (apps, line) =>
-                                              {
-                                                  var split = line.Split(':', 2, StringSplitOptions.RemoveEmptyEntries);
+                               ImmutableDictionary<string, string> TryRead(string actualFile)
+                               {
+                                   return File.ReadAllLines(actualFile).Aggregate(ImmutableDictionary<string, string>.Empty,
+                                       (apps, line) =>
+                                       {
+                                           var split = line.Split(':', 2, StringSplitOptions.RemoveEmptyEntries);
 
-                                                  return apps.Add(split[0].Trim(), split[1].Trim());
-                                              });
-                                      }
-                                  }));
+                                           return apps.Add(split[0].Trim(), split[1].Trim());
+                                       });
+                               }
+                           }));
 
             static async Task<Unit> SaveConfig(string data, string path)
             {
@@ -243,29 +246,35 @@ namespace ServiceHost.ApplicationRegistry
             {
                 var result = File.Exists(file);
 
-                if(!result)
+                if (!result)
                     Log.Warning("File Not Found {File}", file);
 
                 return result;
             }
 
-            IObservable<Unit> PatchApps<TEvent>(StatePair<TEvent, RegistryState> input, string fileName, Func<string, TEvent, string> patcher, bool read = true)
+            IObservable<string> TryReadFile(string? fileName)
+                => string.IsNullOrWhiteSpace(fileName)
+                    ? Observable.Return(string.Empty)
+                    : from name in Observable.Return(fileName)
+                      where CheckFileExis(name)
+                      from content in File.ReadAllTextAsync(name)
+                      select content;
+
+            IObservable<Unit> PatchApps<TEvent>(StatePair<TEvent, RegistryState> input, string fileName, Func<string, TEvent, IObservable<string>> patcher, bool read = true)
                 => from request in Observable.Return(input)
                    from appKey in CurrentState.Apps.Keys
                    let appData = LoadApp(appKey, request.State)
-                   let file = Path.Combine(appData.Path, fileName)
-                   where CheckFileExis(file)
-                   from configContent in File.ReadAllTextAsync(file)
-                   let newConfig = patcher(configContent, request.Event)
+                   let file = read ? Path.Combine(appData.Path, fileName) : null
+                   from configContent in TryReadFile(file)
+                   from newConfig in patcher(configContent, request.Event)
                    from u in SaveConfig(newConfig, file)
                    select u;
 
-            IObservable<Unit> PatchSelf<TEvent>(StatePair<TEvent, RegistryState> input, string fileName, Func<string, TEvent, string> patcher, bool read = true)
+            IObservable<Unit> PatchSelf<TEvent>(StatePair<TEvent, RegistryState> input, string fileName, Func<string, TEvent, IObservable<string>> patcher, bool read = true)
                 => from request in Observable.Return(input)
-                   let file = Path.GetFullPath(fileName)
-                   where CheckFileExis(file)
-                   from configContent in File.ReadAllTextAsync(file)
-                   let newConfig = patcher(configContent, request.Event)
+                   let file = read ? Path.GetFullPath(fileName) : null
+                   from configContent in TryReadFile(file)
+                   from newConfig in patcher(configContent, request.Event)
                    from u in SaveConfig(newConfig, file)
                    select u;
 
@@ -275,9 +284,29 @@ namespace ServiceHost.ApplicationRegistry
                        from u2 in PatchApps(request.NewEvent(request.Event.Urls), AkkaConfigurationBuilder.Seed, AkkaConfigurationBuilder.PatchSeedUrls)
                        select request.NewEvent(new UpdateSeedsResponse(true)));
 
-            //SharedApiCall<UpdateEveryConfiguration, UpdateEveryConfigurationRespond>(e => Log.Error(e, "Error on Update Every Configuration"),
-            //    obs => from request in obs 
-            //           );
+            IObservable<Unit> DownloadConfigForApps()
+            {
+
+            }
+
+            IObservable<Unit> DownloadConfigForSelf()
+            {
+
+            }
+
+            Unit Finalize(UpdateEveryConfiguration request)
+            {
+                if(request.Restart)
+                    Task.Delay(5000).PipeTo(Self, success: () => new CompledRestart());
+                return Unit.Default;
+            }
+
+            SharedApiCall<UpdateEveryConfiguration, UpdateEveryConfigurationRespond>(e => Log.Error(e, "Error on Update Every Configuration"),
+                obs => from request in obs
+                       from s in DownloadConfigForSelf()
+                       from a in DownloadConfigForApps()
+                       let f = Finalize(request)
+                       select request.NewEvent(new UpdateEveryConfigurationRespond(true)));
 
             Self.Tell(new LoadData());
         }
@@ -311,5 +340,7 @@ namespace ServiceHost.ApplicationRegistry
         private sealed record LoadData;
 
         private sealed record SaveData;
+
+        private sealed record CompledRestart;
     }
 }
