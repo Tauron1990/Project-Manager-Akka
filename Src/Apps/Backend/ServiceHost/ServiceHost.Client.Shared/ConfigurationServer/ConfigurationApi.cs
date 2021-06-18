@@ -21,7 +21,7 @@ namespace ServiceHost.Client.Shared.ConfigurationServer
         public static ConfigurationApi CreateFromActor(IActorRef actor)
             => new(actor);
 
-        public static ConfigurationApi CreateProxy(ActorSystem system, string name = "DeploymentProxy")
+        public static ConfigurationApi CreateProxy(ActorSystem system, string name = "ConfigurationManagerProxy")
         {
             var proxy = ClusterSingletonProxy.Props($"/user/{ConfigurationPath}",
                 ClusterSingletonProxySettings.Create(system).WithRole("Service-Manager"));

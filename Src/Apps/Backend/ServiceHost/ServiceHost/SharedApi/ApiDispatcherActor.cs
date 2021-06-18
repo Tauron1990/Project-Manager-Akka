@@ -3,10 +3,10 @@ using Akka.Actor;
 using Akka.Cluster.Utility;
 using Akka.Event;
 using JetBrains.Annotations;
-using Microsoft.Extensions.Configuration;
 using ServiceHost.ApplicationRegistry;
 using ServiceHost.Installer;
 using ServiceHost.Services;
+using Tauron.Application.AkkaNode.Bootstrap;
 using Tauron.Application.Master.Commands.Administration.Host;
 using static Tauron.Application.Master.Commands.Administration.Host.InternalHostMessages;
 
@@ -15,11 +15,9 @@ namespace ServiceHost.SharedApi
     [UsedImplicitly]
     public sealed class ApiDispatcherActor : ReceiveActor
     {
-        public ApiDispatcherActor(IConfiguration configuration, Lazy<IAppManager> appManager, Lazy<IAppRegistry> appRegistry, Lazy<IInstaller> installer)
+        public ApiDispatcherActor(AppNodeInfo configuration, Lazy<IAppManager> appManager, Lazy<IAppRegistry> appRegistry, Lazy<IInstaller> installer)
         {
-            var hostName = configuration["applicationName"];
-
-            Receive<GetHostName>(_ => Sender.Tell(new GetHostNameResult(hostName)));
+            Receive<GetHostName>(_ => Sender.Tell(new GetHostNameResult(configuration.ApplicationName)));
 
             Receive<IHostApiCommand>(cb =>
                                  {

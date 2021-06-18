@@ -12,8 +12,10 @@ using Akka.Cluster;
 using Akka.Configuration;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
+using ServiceHost.Client.Shared.ConfigurationServer;
 using ServiceHost.Services;
 using Tauron;
+using Tauron.Application.AkkaNode.Bootstrap;
 using Tauron.Application.Master.Commands.Administration.Configuration;
 using Tauron.Application.Master.Commands.Administration.Host;
 using Tauron.Features;
@@ -28,16 +30,16 @@ namespace ServiceHost.ApplicationRegistry
 
         public sealed record RegistryState(ImmutableDictionary<string, string> Apps, string AppsDirectory, ImmutableDictionary<Guid, IActorRef> OnGoingQuerys, IAppManager Manager);
 
-        public static Func<IConfiguration, IAppManager, IEnumerable<IPreparedFeature>> New()
+        public static Func<AppNodeInfo, IAppManager, IEnumerable<IPreparedFeature>> New()
         {
-            static IEnumerable<IPreparedFeature> _(IConfiguration configuration, IAppManager manager)
+            static IEnumerable<IPreparedFeature> _(AppNodeInfo configuration, IAppManager manager)
             {
                 yield return SubscribeFeature.New();
                 yield return Feature.Create(
                     () => new AppRegistryActor(),
                     new RegistryState(
                         ImmutableDictionary<string, string>.Empty,
-                        Path.GetFullPath(configuration["AppsLocation"]),
+                        Path.GetFullPath(configuration.AppsLocation),
                         ImmutableDictionary<Guid, IActorRef>.Empty,
                         manager));
             }
@@ -261,14 +263,15 @@ namespace ServiceHost.ApplicationRegistry
                       select content;
 
             IObservable<Unit> PatchApps<TEvent>(StatePair<TEvent, RegistryState> input, string fileName, Func<string, TEvent, IObservable<string>> patcher, bool read = true)
-                => from request in Observable.Return(input)
-                   from appKey in CurrentState.Apps.Keys
-                   let appData = LoadApp(appKey, request.State)
-                   let file = read ? Path.Combine(appData.Path, fileName) : null
-                   from configContent in TryReadFile(file)
-                   from newConfig in patcher(configContent, request.Event)
-                   from u in SaveConfig(newConfig, file)
-                   select u;
+                => (from request in Observable.Return(input)
+                    from appKey in CurrentState.Apps.Keys
+                    let appData = LoadApp(appKey, request.State)
+                    let file = read ? Path.Combine(appData.Path, fileName) : null
+                    from configContent in TryReadFile(file)
+                    from newConfig in patcher(configContent, request.Event)
+                    from u in SaveConfig(newConfig, file)
+                    select u)
+                   .LastAsync();
 
             IObservable<Unit> PatchSelf<TEvent>(StatePair<TEvent, RegistryState> input, string fileName, Func<string, TEvent, IObservable<string>> patcher, bool read = true)
                 => from request in Observable.Return(input)
@@ -284,6 +287,8 @@ namespace ServiceHost.ApplicationRegistry
                        from u2 in PatchApps(request.NewEvent(request.Event.Urls), AkkaConfigurationBuilder.Seed, AkkaConfigurationBuilder.PatchSeedUrls)
                        select request.NewEvent(new UpdateSeedsResponse(true)));
 
+            var api = ConfigurationApi.CreateProxy(Context.System);
+
             IObservable<Unit> DownloadConfigForApps()
             {
 
@@ -291,10 +296,10 @@ namespace ServiceHost.ApplicationRegistry
 
             IObservable<Unit> DownloadConfigForSelf()
             {
-
+                
             }
 
-            Unit Finalize(UpdateEveryConfiguration request)
+            Unit FinalizeUpdate(UpdateEveryConfiguration request)
             {
                 if(request.Restart)
                     Task.Delay(5000).PipeTo(Self, success: () => new CompledRestart());
@@ -305,7 +310,7 @@ namespace ServiceHost.ApplicationRegistry
                 obs => from request in obs
                        from s in DownloadConfigForSelf()
                        from a in DownloadConfigForApps()
-                       let f = Finalize(request.Event)
+                       let f = FinalizeUpdate(request.Event)
                        select request.NewEvent(new UpdateEveryConfigurationRespond(true)));
 
             Self.Tell(new LoadData());

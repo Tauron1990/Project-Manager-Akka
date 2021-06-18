@@ -8,6 +8,7 @@ using ServiceHost.AutoUpdate;
 using ServiceHost.Installer.Impl;
 using ServiceHost.Services;
 using Tauron;
+using Tauron.Application.AkkaNode.Bootstrap;
 using Tauron.Application.AkkaNode.Services.Core;
 using Tauron.Application.Master.Commands.Administration.Host;
 using Tauron.Features;
@@ -17,11 +18,11 @@ namespace ServiceHost.Installer
     [UsedImplicitly]
     public sealed class InstallManagerActor : ActorFeatureBase<InstallManagerActor.InstallManagerState>
     {
-        public sealed record InstallManagerState(IAppRegistry Registry, IConfiguration Configuration, IAppManager AppManager, IAutoUpdater AutoUpdater);
+        public sealed record InstallManagerState(IAppRegistry Registry, AppNodeInfo Configuration, IAppManager AppManager, IAutoUpdater AutoUpdater);
 
-        public static Func<IAppRegistry, IConfiguration, IAppManager, IAutoUpdater, IEnumerable<IPreparedFeature>> New()
+        public static Func<IAppRegistry, AppNodeInfo, IAppManager, IAutoUpdater, IEnumerable<IPreparedFeature>> New()
         {
-            static IEnumerable<IPreparedFeature> _(IAppRegistry registry, IConfiguration configuration, IAppManager manager, IAutoUpdater updater)
+            static IEnumerable<IPreparedFeature> _(IAppRegistry registry, AppNodeInfo configuration, IAppManager manager, IAutoUpdater updater)
             {
                 yield return SubscribeFeature.New();
                 yield return Feature.Create(() => new InstallManagerActor(), new InstallManagerState(registry, configuration, manager, updater));

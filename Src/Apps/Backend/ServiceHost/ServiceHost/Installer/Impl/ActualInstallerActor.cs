@@ -2,12 +2,12 @@
 using System.IO;
 using Akka.Actor;
 using JetBrains.Annotations;
-using Microsoft.Extensions.Configuration;
 using ServiceHost.ApplicationRegistry;
 using ServiceHost.AutoUpdate;
 using ServiceHost.Installer.Impl.Source;
 using Tauron;
 using Tauron.Application.ActorWorkflow;
+using Tauron.Application.AkkaNode.Bootstrap;
 using Tauron.Application.Master.Commands.Administration.Host;
 using Tauron.Application.Workflow;
 
@@ -23,10 +23,8 @@ namespace ServiceHost.Installer.Impl
         private static readonly StepId Registration = new(nameof(Registration));
         private static readonly StepId Finalization = new(nameof(Finalization));
 
-        public ActualInstallerActor(IAppRegistry registry, IConfiguration configuration, IAutoUpdater autoUpdater)
+        public ActualInstallerActor(IAppRegistry registry, AppNodeInfo configuration, IAutoUpdater autoUpdater)
         {
-            string appBaseLocation = configuration["AppsLocation"];
-
             StartMessage<FileInstallationRequest>(HandleFileInstall);
 
             WhenStep(StepId.Start, c => c.OnExecute(_ => Preperation));
@@ -91,7 +89,7 @@ namespace ServiceHost.Installer.Impl
                 config.OnExecute((context, step) =>
                 {
                     Log.Info("Prepare for Copy Data {Apps}", context.Name);
-                    string targetAppPath = Path.GetFullPath(Path.Combine(appBaseLocation, context.Name));
+                    string targetAppPath = Path.GetFullPath(Path.Combine(configuration.AppsLocation, context.Name));
 
 
                     if (context.AppType != AppType.Host)

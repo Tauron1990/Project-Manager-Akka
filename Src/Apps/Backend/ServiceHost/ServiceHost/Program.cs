@@ -18,7 +18,6 @@ using ServiceHost.Installer;
 using Servicemnager.Networking.Data;
 using Tauron.Application.AkkaNode.Bootstrap;
 using Tauron.Application.AkkaNode.Bootstrap.Console;
-using Tauron.Application.Master.Commands;
 using Tauron.Application.Master.Commands.KillSwitch;
 using Tauron.Application.Master.Commands.ServiceRegistry;
 
@@ -350,8 +349,6 @@ namespace ServiceHost
                         thread.SetApartmentState(ApartmentState.STA);
                         #pragma warning restore CA1416 // Plattformkompatibilität überprüfen
                         break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
                 }
 
                 thread.IsBackground = true;

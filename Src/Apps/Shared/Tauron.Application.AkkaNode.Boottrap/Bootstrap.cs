@@ -6,6 +6,7 @@ using Akka.Configuration;
 using Autofac;
 using Autofac.Builder;
 using JetBrains.Annotations;
+using Microsoft.Extensions.Configuration;
 using Tauron.Application.AkkaNode.Services.Configuration;
 using Tauron.Application.Logging;
 using Tauron.Application.Master.Commands.Administration.Configuration;
@@ -21,13 +22,19 @@ namespace Tauron.Application.AkkaNode.Bootstrap
             var config = GetConfig();
 
             return builder
-                .ConfigureAppConfiguration((_, configurationBuilder) => configurationBuilder.Add(
-                    new HoconConfigurationSource(() => config,
-                        ("akka.appinfo.applicationName", "applicationName"),
-                        ("akka.appinfo.actorsystem", "actorsystem"),
-                        ("akka.appinfo.appslocation", "AppsLocation"))))
-                .ConfigureAkka(_ => config)
-                .ConfigureLogging((context, configuration) => configuration.ConfigDefaultLogging(context.HostEnvironment.ApplicationName));
+                  .ConfigureAutoFac(cb => cb.Register(context =>
+                                                      {
+                                                          var opt = new AppNodeInfo();
+                                                          context.Resolve<IConfiguration>().Bind(opt);
+                                                          return opt;
+                                                      }))
+                  .ConfigureAppConfiguration((_, configurationBuilder) => configurationBuilder.Add(
+                                                 new HoconConfigurationSource(() => config,
+                                                     ("akka.appinfo.applicationName", "ApplicationName"),
+                                                     ("akka.appinfo.actorsystem", "Actorsystem"),
+                                                     ("akka.appinfo.appslocation", "AppsLocation"))))
+                  .ConfigureAkka(_ => config)
+                  .ConfigureLogging((context, configuration) => configuration.ConfigDefaultLogging(context.HostEnvironment.ApplicationName));
         }
 
         [PublicAPI]
