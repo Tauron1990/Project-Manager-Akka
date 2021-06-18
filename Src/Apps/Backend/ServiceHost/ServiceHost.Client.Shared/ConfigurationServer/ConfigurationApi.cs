@@ -1,4 +1,6 @@
-﻿using Akka.Actor;
+﻿using System;
+using System.Threading.Tasks;
+using Akka.Actor;
 using Akka.Cluster.Tools.Singleton;
 using JetBrains.Annotations;
 using Tauron.Application.AkkaNode.Services.Reporting;
@@ -17,6 +19,13 @@ namespace ServiceHost.Client.Shared.ConfigurationServer
 
         void ISender.SendCommand(IReporterMessage command) => _api.Tell(command);
 
+        public Task<TResult> Query<TQuery, TResult>(TQuery query, TimeSpan timeout, Action<string>? mesgs = null)
+            where TQuery : ResultCommand<ConfigurationApi, TQuery, TResult>, IConfigQuery
+            => this.Send(query, timeout, default(TResult), mesgs ?? (_ => { }));
+
+        public Task Command<TCommand>(TCommand command, TimeSpan timeout, Action<string>? msgs = null)
+            where TCommand : SimpleCommand<ConfigurationApi, TCommand>, IConfigCommand
+            => this.Send(command, timeout, msgs ?? (_ => { }));
 
         public static ConfigurationApi CreateFromActor(IActorRef actor)
             => new(actor);

@@ -13,6 +13,7 @@ using Akka.Configuration;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using ServiceHost.Client.Shared.ConfigurationServer;
+using ServiceHost.Client.Shared.ConfigurationServer.Data;
 using ServiceHost.Services;
 using Tauron;
 using Tauron.Application.AkkaNode.Bootstrap;
@@ -28,11 +29,11 @@ namespace ServiceHost.ApplicationRegistry
         private const string BaseFileName = "apps.dat";
         private const string AppFileExt = ".app";
 
-        public sealed record RegistryState(ImmutableDictionary<string, string> Apps, string AppsDirectory, ImmutableDictionary<Guid, IActorRef> OnGoingQuerys, IAppManager Manager);
+        public sealed record RegistryState(ImmutableDictionary<string, string> Apps, string AppsDirectory, ImmutableDictionary<Guid, IActorRef> OnGoingQuerys, IAppManager Manager, AppNodeInfo Info);
 
-        public static Func<AppNodeInfo, IAppManager, IEnumerable<IPreparedFeature>> New()
+        public static Func<AppNodeInfo, IAppManager, AppNodeInfo, IEnumerable<IPreparedFeature>> New()
         {
-            static IEnumerable<IPreparedFeature> _(AppNodeInfo configuration, IAppManager manager)
+            static IEnumerable<IPreparedFeature> _(AppNodeInfo configuration, IAppManager manager, AppNodeInfo info)
             {
                 yield return SubscribeFeature.New();
                 yield return Feature.Create(
@@ -41,7 +42,7 @@ namespace ServiceHost.ApplicationRegistry
                         ImmutableDictionary<string, string>.Empty,
                         Path.GetFullPath(configuration.AppsLocation),
                         ImmutableDictionary<Guid, IActorRef>.Empty,
-                        manager));
+                        manager, info));
             }
             
             return _;
@@ -290,14 +291,14 @@ namespace ServiceHost.ApplicationRegistry
             var api = ConfigurationApi.CreateProxy(Context.System);
 
             IObservable<Unit> DownloadConfigForApps()
-            {
-
-            }
+                => (from u in Observable.Return(Unit.Default)
+                    select u
+                    ).LastAsync();
 
             IObservable<Unit> DownloadConfigForSelf()
-            {
-                
-            }
+                => from u in Observable.Return(Unit.Default)
+                   from result in api.Query<QueryFinalConfigData, FinalAppConfig>(new QueryFinalConfigData(CurrentState.Info.ApplicationName, "ServiceHost"), TimeSpan.FromMinutes(1))
+                   select u;
 
             Unit FinalizeUpdate(UpdateEveryConfiguration request)
             {
