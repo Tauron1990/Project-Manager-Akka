@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Reflection;
 using Akka.Actor;
 using Akka.Cluster;
 using Akka.Configuration;
@@ -17,7 +18,7 @@ namespace Tauron.Application.AkkaNode.Bootstrap
     public static partial class Bootstrap
     {
         [PublicAPI]
-        public static IApplicationBuilder ConfigurateNode(this IApplicationBuilder builder)
+        public static IActorApplicationBuilder ConfigurateNode(this IActorApplicationBuilder builder)
         {
             var config = GetConfig();
 
@@ -28,11 +29,11 @@ namespace Tauron.Application.AkkaNode.Bootstrap
                                                           context.Resolve<IConfiguration>().Bind(opt);
                                                           return opt;
                                                       }))
-                  .ConfigureAppConfiguration((_, configurationBuilder) => configurationBuilder.Add(
-                                                 new HoconConfigurationSource(() => config,
-                                                     ("akka.appinfo.applicationName", "ApplicationName"),
-                                                     ("akka.appinfo.actorsystem", "Actorsystem"),
-                                                     ("akka.appinfo.appslocation", "AppsLocation"))))
+                  .Configuration(configurationBuilder => configurationBuilder.Add(
+                                     new HoconConfigurationSource(() => config,
+                                         ("akka.appinfo.applicationName", "ApplicationName"),
+                                         ("akka.appinfo.actorsystem", "Actorsystem"),
+                                         ("akka.appinfo.appslocation", "AppsLocation"))))
                   .ConfigureAkka(_ => config)
                   .ConfigureLogging((context, configuration) => configuration.ConfigDefaultLogging(context.HostEnvironment.ApplicationName));
         }
@@ -42,7 +43,7 @@ namespace Tauron.Application.AkkaNode.Bootstrap
             where TImpl : IStartUpAction
             => builder.RegisterType<TImpl>().As<IStartUpAction>();
 
-        public static IApplicationBuilder OnMemberUp(this IApplicationBuilder builder, Action<HostBuilderContext, ActorSystem, Cluster> up)
+        public static IActorApplicationBuilder OnMemberUp(this IActorApplicationBuilder builder, Action<HostBuilderContext, ActorSystem, Cluster> up)
         {
             return builder.ConfigurateAkkaSystem((context, system) =>
                                                  {
@@ -51,7 +52,7 @@ namespace Tauron.Application.AkkaNode.Bootstrap
                                                  });
         }
 
-        public static IApplicationBuilder OnMemberRemoved(this IApplicationBuilder builder, Action<HostBuilderContext, ActorSystem, Cluster> remove)
+        public static IActorApplicationBuilder OnMemberRemoved(this IActorApplicationBuilder builder, Action<HostBuilderContext, ActorSystem, Cluster> remove)
         {
             return builder.ConfigurateAkkaSystem((context, system) =>
                                                  {
@@ -62,18 +63,20 @@ namespace Tauron.Application.AkkaNode.Bootstrap
 
         private static Config GetConfig()
         {
-
-
             var config = Config.Empty;
 
-            if (File.Exists(AkkaConfigurationBuilder.Base))
-                config = ConfigurationFactory.ParseString(File.ReadAllText(AkkaConfigurationBuilder.Base)).WithFallback(config);
+            var basePath = Assembly.GetEntryAssembly()?.Location ?? string.Empty;
+            if (!string.IsNullOrWhiteSpace(basePath))
+                basePath = Path.GetDirectoryName(basePath) ?? string.Empty;
 
-            if (File.Exists(AkkaConfigurationBuilder.Main))
-                config = ConfigurationFactory.ParseString(File.ReadAllText(AkkaConfigurationBuilder.Main)).WithFallback(config);
+            if (File.Exists(Path.Combine(basePath, AkkaConfigurationBuilder.Base)))
+                config = ConfigurationFactory.ParseString(File.ReadAllText(Path.Combine(basePath, AkkaConfigurationBuilder.Base))).WithFallback(config);
 
-            if (File.Exists(AkkaConfigurationBuilder.Seed))
-                config = ConfigurationFactory.ParseString(File.ReadAllText(AkkaConfigurationBuilder.Seed)).WithFallback(config);
+            if (File.Exists(Path.Combine(basePath, AkkaConfigurationBuilder.Main)))
+                config = ConfigurationFactory.ParseString(File.ReadAllText(Path.Combine(basePath, AkkaConfigurationBuilder.Main))).WithFallback(config);
+
+            if (File.Exists(Path.Combine(basePath, AkkaConfigurationBuilder.Seed)))
+                config = ConfigurationFactory.ParseString(File.ReadAllText(Path.Combine(basePath, AkkaConfigurationBuilder.Seed))).WithFallback(config);
 
             return config;
         }

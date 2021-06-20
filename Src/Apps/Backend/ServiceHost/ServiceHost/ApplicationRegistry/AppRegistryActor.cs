@@ -9,8 +9,6 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Cluster;
-using Akka.Configuration;
-using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using ServiceHost.Client.Shared.ConfigurationServer;
 using ServiceHost.Client.Shared.ConfigurationServer.Data;
@@ -238,6 +236,13 @@ namespace ServiceHost.ApplicationRegistry
                                }
                            }));
 
+            InitConfigApi();
+
+            Self.Tell(new LoadData());
+        }
+
+        private void InitConfigApi()
+        {
             static async Task<Unit> SaveConfig(string data, string path)
             {
                 await File.WriteAllTextAsync(path, data);
@@ -290,19 +295,30 @@ namespace ServiceHost.ApplicationRegistry
 
             var api = ConfigurationApi.CreateProxy(Context.System);
 
-            IObservable<Unit> DownloadConfigForApps()
-                => (from u in Observable.Return(Unit.Default)
+            IObservable<Unit> DownloadConfigForApps(IEnumerable<string> apps)
+                => (from _ in Observable.Return(Unit.Default)
+                    from appsKey in apps
+                    let appData = LoadApp(appsKey, CurrentState)
+                    let file = Path.Combine(appData.Path, AkkaConfigurationBuilder.Main)
+                    from result in api.Query<QueryFinalConfigData, FinalAppConfig>(new QueryFinalConfigData(appData.Name, appData.SoftwareName), TimeSpan.FromMinutes(1))
+                    from u in string.IsNullOrWhiteSpace(result.Data)
+                        ? Task.FromResult(Unit.Default)
+                        : SaveConfig(result.Data, file)
                     select u
                     ).LastAsync();
 
             IObservable<Unit> DownloadConfigForSelf()
-                => from u in Observable.Return(Unit.Default)
+                => from _ in Observable.Return(Unit.Default)
                    from result in api.Query<QueryFinalConfigData, FinalAppConfig>(new QueryFinalConfigData(CurrentState.Info.ApplicationName, "ServiceHost"), TimeSpan.FromMinutes(1))
+                   let file = Path.GetFullPath(AkkaConfigurationBuilder.Main)
+                   from u in string.IsNullOrWhiteSpace(result.Data)
+                       ? Task.FromResult(Unit.Default)
+                       : SaveConfig(result.Data, file)
                    select u;
 
             Unit FinalizeUpdate(UpdateEveryConfiguration request)
             {
-                if(request.Restart)
+                if (request.Restart)
                     Task.Delay(5000).PipeTo(Self, success: () => new CompledRestart());
                 return Unit.Default;
             }
@@ -310,11 +326,25 @@ namespace ServiceHost.ApplicationRegistry
             SharedApiCall<UpdateEveryConfiguration, UpdateEveryConfigurationRespond>(e => Log.Error(e, "Error on Update Every Configuration"),
                 obs => from request in obs
                        from s in DownloadConfigForSelf()
-                       from a in DownloadConfigForApps()
+                       from a in DownloadConfigForApps(request.State.Apps.Keys)
                        let f = FinalizeUpdate(request.Event)
                        select request.NewEvent(new UpdateEveryConfigurationRespond(true)));
 
-            Self.Tell(new LoadData());
+            SharedApiCall<UpdateHostConfigCommand, UpdateHostConfigResponse>(e => Log.Error(e, "Error on Update Host Configuration"),
+                obs => from request in obs
+                       from _ in DownloadConfigForSelf()
+                       select request.NewEvent(new UpdateHostConfigResponse(true)));
+
+            SharedApiCall<UpdateAppConfigCommand, UpdateAppConfigResponse>(e => Log.Error(e, "Error on Update App Configuration"),
+                obs => from request in obs
+                       from _ in DownloadConfigForApps(new [] { request.Event.App })
+                       from u in Observable.Return(Unit.Default)
+                                           .ToUnit(() =>
+                                                   {
+                                                       if (request.Event.Restart)
+                                                           CurrentState.Manager.Tell(new RestartApp(request.Event.App));
+                                                   })
+                       select request.NewEvent(new UpdateAppConfigResponse(true, request.Event.App)));
         }
 
         private void SharedApiCall<TEvent, TResponse>(Action<Exception> error, Func<IObservable<StatePair<TEvent, RegistryState>>, IObservable<StatePair<TResponse, RegistryState>>> processor)

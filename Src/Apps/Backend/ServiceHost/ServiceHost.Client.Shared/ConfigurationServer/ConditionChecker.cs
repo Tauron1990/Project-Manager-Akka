@@ -7,7 +7,7 @@ namespace ServiceHost.Client.Shared.ConfigurationServer
 {
     public static class ConditionChecker
     {
-        public static bool MeetCondition(QueryFinalConfigData request, SpecificConfig entity)
+        public static bool MeetCondition(string softwareName, string applicationName, SpecificConfig entity)
         {
             bool Apply(Condition condition, Func<bool> isMeet)
                 => condition.Excluding
@@ -19,8 +19,8 @@ namespace ServiceHost.Client.Shared.ConfigurationServer
                 bool Predicate(Condition c)
                     => c switch
                     {
-                        AppCondition app => Apply(c, () => request.SoftwareName == app.AppName),
-                        InstalledAppCondition installedApp => Apply(c, () => request.ApplicationName == installedApp.AppName),
+                        AppCondition app => Apply(c, () => softwareName == app.AppName),
+                        InstalledAppCondition installedApp => Apply(c, () => applicationName == installedApp.AppName),
                         AndCondition andCondition => Apply(c, () => CheckConditions(andCondition.Conditions, false)),
                         OrCondition orCondition => Apply(c, () => CheckConditions(orCondition.Conditions, true)),
                         _ => false

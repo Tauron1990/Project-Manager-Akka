@@ -141,7 +141,7 @@ namespace Tauron.Features
         public IDisposable Subscribe(IObserver<TState> observer)
             => CurrentState.DistinctUntilChanged().Subscribe(observer);
 
-        protected static Props Create(Func<IUntypedActorContext, TState> initialState,
+        protected internal static Props Create(Func<IUntypedActorContext, TState> initialState,
             Action<ActorBuilder<TState>> builder)
             => Props.Create(typeof(ActorFactory), builder, initialState);
 

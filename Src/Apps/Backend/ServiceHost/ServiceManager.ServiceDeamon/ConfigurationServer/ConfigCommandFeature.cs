@@ -116,7 +116,7 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
                                                                    }
                                                       })
                        let updateData = UpdateRepo(state.Apps, ConfigDataAction.Update, newData)
-                       let result = SendEvent(state.EventSender, updateData.Select<IConfigEvent>(e => new ConditionUpdateEvent(evt.Condition, evt.Name, evt.Action)))
+                       let result = SendEvent(state.EventSender, updateData.Select<IConfigEvent>(e => new ConditionUpdateEvent(e.Config, evt.Condition, evt.Name, evt.Action)))
                        select result.Select(_ => OperationResult.Success(), () => OperationResult.Failure(ConfigError.SpecificConfigurationNotFound)));
 
             TryReceive<ForceUpdateHostConfigCommand>(nameof(ForceUpdateHostConfigCommand),

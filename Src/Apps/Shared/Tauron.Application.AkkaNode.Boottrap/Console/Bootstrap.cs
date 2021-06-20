@@ -27,7 +27,11 @@ namespace Tauron.Application.AkkaNode.Bootstrap
         private const string IpcName = "Project_Manager_{{A9A782E5-4F9A-46E4-8A71-76BCF1ABA748}}";
 
         [PublicAPI]
-        public static IApplicationBuilder StartNode(string[] args, KillRecpientType type, IpcApplicationType ipcType, bool consoleLog = false)
+        public static IActorApplicationBuilder StartNode(string[] args, KillRecpientType type, IpcApplicationType ipcType, bool consoleLog = false)
+            => StartNode(ActorApplication.Create(args), type, ipcType, consoleLog);
+
+        [PublicAPI]
+        public static IActorApplicationBuilder StartNode(this IActorApplicationBuilder builder, KillRecpientType type, IpcApplicationType ipcType, bool consoleLog = false)
         {
             var masterReady = false;
             if (ipcType != IpcApplicationType.NoIpc)
@@ -35,7 +39,7 @@ namespace Tauron.Application.AkkaNode.Bootstrap
             var ipc = new IpcConnection(masterReady, ipcType,
                 (s, exception) => LogManager.GetCurrentClassLogger().Error(exception, "Ipc Error: {Info}", s));
 
-            return ActorApplication.Create(args)
+            return builder
                 .ConfigureAutoFac(cb =>
                 {
                     cb.RegisterType<ConsoleAppRoute>().Named<IAppRoute>("default");

@@ -62,7 +62,7 @@ namespace ServiceHost.Services.Impl
                 obs => obs
                       .Where(m => m.State.IsProcessRunning)
                       .CatchSafe(
-                           m => Observable.Return(m.State with {IsProcessRunning = false})
+                           m => Observable.Return(m.State with {IsProcessRunning = m.Event.Restart})
                                           .ConditionalSelect()
                                           .ToSame(
                                                b =>
@@ -80,26 +80,28 @@ namespace ServiceHost.Services.Impl
                                                              .Do(s => Log.Info("Wait for exit {Name}", s.App.Name))
                                                              .Select(s =>
                                                                      {
+                                                                         AppProcessorState NewState()
+                                                                             => s with {Process = null};
+
                                                                          var watch = Stopwatch.StartNew();
-                                                                         var prc = s.Process;
+                                                                         using var prc = s.Process;
                                                                          if (prc == null) return s;
 
                                                                          while (watch.Elapsed < TimeSpan.FromMinutes(1))
                                                                          {
                                                                              Thread.Sleep(1000);
-                                                                             if (prc.HasExited) return s;
+                                                                             if (prc.HasExited) return NewState();
                                                                          }
 
-                                                                         if (prc.HasExited) return s;
+                                                                         if (prc.HasExited) return NewState();
 
                                                                          Log.Warning("Process not Exited Killing {Name}", s.App.Name);
                                                                          prc.Kill(true);
 
-                                                                         return s;
+                                                                         return NewState();
                                                                      })
                                                              .Do(s => s.Process?.Kill(true))
-                                                             .Do(s => s.Process?.Dispose())
-                                                             .Select(s => s with {Process = null}));
+                                                             .Do(s => s.Process?.Dispose()));
                                                }),
                            (m, e) => Observable.Return(m.State)
                                                .Do(s => Log.Error(e, "Error while Stopping App {Name}", s.App.Name))
@@ -115,7 +117,7 @@ namespace ServiceHost.Services.Impl
                       .CatchSafe(
                            p => from state in Observable.Return(p.State)
                                                         .Do(s => Log.Info("Start App {Name}", s.App.Name))
-                                let process = Process.Start(new ProcessStartInfo(Path.Combine(state.App.Path, state.App.Exe), $"--ComHandle {state.ServiceName}")
+                                let process = Process.Start(new ProcessStartInfo(Path.Combine(state.App.Path, state.App.Exe), $"--ComHandle {state.ServiceId}")
                                                             {
                                                                 WorkingDirectory = state.App.Path
                                                             })

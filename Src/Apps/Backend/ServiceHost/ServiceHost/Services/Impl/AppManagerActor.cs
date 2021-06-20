@@ -186,6 +186,12 @@ namespace ServiceHost.Services.Impl
                           })
                      .ToActor(a => a.Sender, m => m.Event));
 
+            Receive<RestartApp>(obs => (from request in obs
+                                        let child = Context.Child(request.Event.Name)
+                                        where !child.IsNobody()
+                                        select (child, Event:new InternalStopApp(true)))
+                                   .ToUnit(evt => evt.child.Tell(evt.Event)));
+
             #endregion
 
             Timers.StartPeriodicTimer(new object(), new UpdateTitle(), TimeSpan.FromSeconds(10));

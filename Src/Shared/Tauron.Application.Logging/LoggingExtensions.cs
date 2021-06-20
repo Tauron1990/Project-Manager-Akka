@@ -13,7 +13,7 @@ namespace Tauron.Application.Logging
     [PublicAPI]
     public static class LoggingExtensions
     {
-        public static IApplicationBuilder ConfigDefaultLogging(this IApplicationBuilder loggerConfiguration, string applicationName, bool noFile = false)
+        public static IActorApplicationBuilder ConfigDefaultLogging(this IActorApplicationBuilder loggerConfiguration, string applicationName, bool noFile = false)
             => loggerConfiguration.ConfigureLogging((_, builder) => builder.ConfigDefaultLogging(applicationName, noFile));
 
         public static ISetupBuilder ConfigDefaultLogging(this ISetupBuilder loggerConfiguration, string applicationName, bool noFile = false)

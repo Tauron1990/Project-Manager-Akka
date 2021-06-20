@@ -6,28 +6,28 @@ namespace Tauron.Host
     [PublicAPI]
     public static class HostEnvironmentEnvExtensions
     {
-        public static bool IsDevelopment(this IHostEnvironment hostEnvironment)
+        public static bool IsDevelopment(this IActorHostEnvironment hostEnvironment)
         {
             if (hostEnvironment == null)
                 throw new ArgumentNullException(nameof(hostEnvironment));
             return hostEnvironment.IsEnvironment(Environments.Development);
         }
 
-        public static bool IsStaging(this IHostEnvironment hostEnvironment)
+        public static bool IsStaging(this IActorHostEnvironment hostEnvironment)
         {
             if (hostEnvironment == null)
                 throw new ArgumentNullException(nameof(hostEnvironment));
             return hostEnvironment.IsEnvironment(Environments.Staging);
         }
 
-        public static bool IsProduction(this IHostEnvironment hostEnvironment)
+        public static bool IsProduction(this IActorHostEnvironment hostEnvironment)
         {
             if (hostEnvironment == null)
                 throw new ArgumentNullException(nameof(hostEnvironment));
             return hostEnvironment.IsEnvironment(Environments.Production);
         }
 
-        public static bool IsEnvironment(this IHostEnvironment hostEnvironment, string environmentName)
+        public static bool IsEnvironment(this IActorHostEnvironment hostEnvironment, string environmentName)
         {
             if (hostEnvironment == null)
                 throw new ArgumentNullException(nameof(hostEnvironment));

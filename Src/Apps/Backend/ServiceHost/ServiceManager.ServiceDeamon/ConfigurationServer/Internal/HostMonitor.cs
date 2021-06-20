@@ -6,6 +6,7 @@ using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using Akka.Actor;
+using ServiceHost.Client.Shared.ConfigurationServer;
 using ServiceHost.Client.Shared.ConfigurationServer.Data;
 using ServiceHost.Client.Shared.ConfigurationServer.Events;
 using ServiceManager.ServiceDeamon.ConfigurationServer.Data;
@@ -28,7 +29,7 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer.Internal
 
         protected override void ConfigImpl()
         {
-            var root = CurrentState.Publisher.ObserveOnSelf();
+            var root = CurrentState.Publisher.ObserveOnSelf().Where(_ => CurrentState.ServerConfigugration.MonitorChanges);
             var api = CurrentState.Api;
 
             Unit MakeInstallationSubscription()
@@ -72,6 +73,12 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer.Internal
             void LogError(Exception e, string eventType)
                 => Log.Error(e, "Error on " + eventType + " for {HostName}", CurrentState.Name);
 
+            (from evt in CurrentState.Publisher.OfType<ServerConfigurationEvent>()
+             from state in UpdateAndSyncActor(evt)
+             select state.State with {ServerConfigugration = state.Event.Configugration})
+               .AutoSubscribe(UpdateState, e => Log.Error(e, "Error on Update ServerConfiguration"))
+               .DisposeWith(this);
+
             (from evt in root.OfType<SeedDataEvent>()
              where CurrentState.ServerConfigugration.MonitorChanges
              from urls in Task.Run(() => CurrentState.Seeds.GetAll().Select(e => e.Url.Url).ToArray())
@@ -82,7 +89,10 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer.Internal
                     e => LogError(e, "Update Seed Urls"))
                .DisposeWith(this);
 
-            (from evt in root.OfType<GlobalConfigEvent>()
+            (from evt in root.OfType<GlobalConfigEvent>().Select(_ => Unit.Default)
+                             .Merge(from d in root.OfType<HostUpdatedEvent>()
+                                    where d.Name == CurrentState.Name
+                                    select Unit.Default)
              let sConfig = CurrentState.ServerConfigugration
              where sConfig.MonitorChanges
              from result in CurrentState.Api.ExecuteCommand(new UpdateEveryConfiguration(CurrentState.Name, sConfig.RestartServices))
@@ -90,6 +100,28 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer.Internal
                .AutoSubscribe(
                     r => LogResponse(r, "Update Global Config"),
                     e => LogError(e, "Update Global Config"))
+               .DisposeWith(this);
+
+            var specificUpdate = root.OfType<SpecificConfigEvent>().Select(t => t.Config)
+                                     .Merge(root.OfType<ConditionUpdateEvent>().Select(t => t.Config));
+
+            (from evt in specificUpdate
+             where ConditionChecker.MeetCondition("ServiceHost", CurrentState.Name, evt)
+             from response in api.ExecuteCommand(new UpdateHostConfigCommand(CurrentState.Name))
+             select response)
+               .AutoSubscribe(
+                    r => LogResponse(r, "Update Specific Config"),
+                    e => LogError(e, "Update Specific Config"))
+               .DisposeWith(this);
+
+            (from evt in specificUpdate
+             let apps = CurrentState.Apps.Where(ha => ConditionChecker.MeetCondition(ha.SoftwareName, ha.Name, evt))
+             from responses in Task.WhenAll(apps.Select(ha => api.ExecuteCommand(new UpdateAppConfigCommand(CurrentState.Name, ha.Name, CurrentState.ServerConfigugration.RestartServices))))
+             from response in responses
+             select response)
+               .AutoSubscribe(
+                    r => LogResponse(r, $"Update Specific Config from {r.App}"),
+                    e => LogError(e, "Update Specific Config"))
                .DisposeWith(this);
 
             Self.Tell(ReSheduleInstallEvent.Inst);

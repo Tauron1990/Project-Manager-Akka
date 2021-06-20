@@ -7,13 +7,13 @@ using Microsoft.Extensions.Configuration;
 namespace Tauron.Host
 {
     [PublicAPI]
-    public static class HostExtensions
+    public static class ActorHostExtensions
     {
-        public static IApplicationBuilder AddModule<TModule>(this IApplicationBuilder builder)
+        public static IActorApplicationBuilder AddModule<TModule>(this IActorApplicationBuilder builder)
             where TModule : Module, new()
             => builder.ConfigureAutoFac(cb => cb.RegisterModule<TModule>());
 
-        public static IApplicationBuilder UseContentRoot(this IApplicationBuilder hostBuilder, string contentRoot)
+        public static IActorApplicationBuilder UseContentRoot(this IActorApplicationBuilder hostBuilder, string contentRoot)
             => hostBuilder.Configuration(configBuilder 
                                              => configBuilder
                                             .AddInMemoryCollection(new[]

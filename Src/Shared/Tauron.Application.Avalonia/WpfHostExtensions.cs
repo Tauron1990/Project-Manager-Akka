@@ -14,7 +14,7 @@ namespace Tauron.Host
     [PublicAPI]
     public static class WpfHostExtensions
     {
-        public static IApplicationBuilder UseAvalonia<TMainWindow>(this IApplicationBuilder hostBuilder,
+        public static IActorApplicationBuilder UseAvalonia<TMainWindow>(this IActorApplicationBuilder hostBuilder,
             Action<AvaloniaConfiguration>? config = null)
             where TMainWindow : class, IMainWindow
         {
@@ -31,7 +31,7 @@ namespace Tauron.Host
             return hostBuilder;
         }
 
-        public static IApplicationBuilder UseAvalonia<TMainWindow, TApp>(this IApplicationBuilder builder,
+        public static IActorApplicationBuilder UseAvalonia<TMainWindow, TApp>(this IActorApplicationBuilder builder,
             Func<AppBuilder, AppBuilder> config)
             where TMainWindow : class, IMainWindow
             where TApp : Avalonia.Application, new()

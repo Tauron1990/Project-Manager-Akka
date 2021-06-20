@@ -55,7 +55,7 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
              from item in change.Flatten()
              where item.Reason == ListChangeReason.Add
              select Context.ActorOf(item.Current, HostMonitor.New(item.Current, CurrentState.EventPublisher, CurrentState.ServerConfigugration, CurrentState.Seeds))
-                ).AutoSubscribe(errorHandler: e => Log.Error(e, "Error On Start Host Monitor"))
+                ).AutoSubscribe(e => Log.Error(e, "Error On Start Host Monitor"))
                  .DisposeWith(this);
 
             (from change in CurrentState.Hosts.Connect()
@@ -64,7 +64,7 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
              let child = Context.Child(item.Current)
              where !child.IsNobody()
              select child
-                ).AutoSubscribe(c => Context.Stop(c), errorHandler: e => Log.Error(e, "Error On Stop Host monitor"))
+                ).AutoSubscribe(c => Context.Stop(c), e => Log.Error(e, "Error On Stop Host monitor"))
                  .DisposeWith(this);
         }
     }

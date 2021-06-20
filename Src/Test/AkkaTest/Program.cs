@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Akka.Actor;
 using Akka.Configuration;
+using Microsoft.Extensions.Configuration;
 using Tauron.Akka;
 using Tauron.Application.AkkaNode.Bootstrap;
 using Tauron.Host;
@@ -61,7 +62,7 @@ namespace AkkaTest
         {
             Console.Title = "Test Anwendung";
 
-            var test = ConfigurationFactory.ParseString(string.Empty);
+            var test = new ConfigurationBuilder().Build().GetSection("test");
 
             //var dataTest = new DataManager(new ConcurancyManager(), new EventAggregator());
             //var profileTest = new ProfileManager(dataTest);

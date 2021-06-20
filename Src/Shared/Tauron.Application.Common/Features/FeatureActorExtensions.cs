@@ -16,6 +16,12 @@ namespace Tauron.Features
 
         KeyValuePair<Type, object> InitialState(IUntypedActorContext context);
     }
+
+    public interface ISimpleFeature
+    {
+        Props MakeProps();
+    }
+
     [DebuggerStepThrough]
     public sealed record GenericState(ImmutableDictionary<Type, object> States)
     {
@@ -46,8 +52,13 @@ namespace Tauron.Features
         internal sealed class GenericActor : FeatureActorBase<GenericActor, GenericState>
         {
             public static Props Create(IPreparedFeature[] features)
-                => Create(c => new GenericState(features, c),
+            {
+                if (features.Length == 1 && features[0] is ISimpleFeature simple)
+                    return simple.MakeProps();
+
+                return Create(c => new GenericState(features, c),
                     builder => builder.WithFeatures(features.SelectMany(f => f.Materialize())));
+            }
         }
     }
 
@@ -108,7 +119,7 @@ namespace Tauron.Features
             }
         }
         [DebuggerStepThrough]
-        private sealed class PreparedFeature<TState> : IPreparedFeature
+        private sealed class PreparedFeature<TState> : IPreparedFeature, ISimpleFeature
             where TState : notnull
         {
             private readonly Func<IFeature<TState>> _feature;
@@ -127,6 +138,15 @@ namespace Tauron.Features
 
             public KeyValuePair<Type, object> InitialState(IUntypedActorContext c)
                 => new(typeof(TState), _stateBuilder(c));
+
+            public Props MakeProps()
+                => SimpleFeatureActor.Create(_stateBuilder, builder => builder.WithFeature(_feature()));
+            
+
+            private sealed class SimpleFeatureActor : FeatureActorBase<SimpleFeatureActor, TState>
+            {
+                
+            }
         }
         [DebuggerStepThrough]
         private sealed class PreparedFeatureList<TState> : IPreparedFeature

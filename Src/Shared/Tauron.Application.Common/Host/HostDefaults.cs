@@ -2,10 +2,10 @@
 {
     public static class HostDefaults
     {
-        public const string ApplicationKey = "applicationName";
+        public const string ApplicationKey = "ApplicationName";
 
-        public const string EnvironmentKey = "environment";
+        public const string EnvironmentKey = "Environment";
 
-        public const string ContentRootKey = "contentRoot";
+        public const string ContentRootKey = "ContentRoot";
     }
 }

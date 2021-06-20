@@ -11,7 +11,7 @@ namespace ServiceHost.Client.Shared.ConfigurationServer.Events
 
     public sealed record SpecificConfigEvent(SpecificConfig Config, ConfigDataAction Action) : ConfigDataEvent(Action);
 
-    public sealed record ConditionUpdateEvent(Condition Condition, string Id, ConfigDataAction Action) : ConfigDataEvent(Action);
+    public sealed record ConditionUpdateEvent(SpecificConfig Config, Condition Condition, string Id, ConfigDataAction Action) : ConfigDataEvent(Action);
 
     public sealed record HostUpdatedEvent(string Name, ActorPath Target) : IConfigEvent;
 }

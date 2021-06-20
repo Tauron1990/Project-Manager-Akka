@@ -3,7 +3,7 @@
 namespace Tauron.Host
 {
     [PublicAPI]
-    public interface IHostEnvironment
+    public interface IActorHostEnvironment
     {
         string EnvironmentName { get; set; }
 

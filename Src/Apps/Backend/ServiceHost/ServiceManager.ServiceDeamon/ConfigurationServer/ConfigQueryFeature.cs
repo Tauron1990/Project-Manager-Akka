@@ -94,7 +94,7 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
                        from global in Task.Run(() => CurrentState.GlobalRepository.Get(GlobalConfigEntity.EntityId))
                        from spec in Task.Run(() => (
                                                  from entity in CurrentState.Apps.GetAll()
-                                                 where ConditionChecker.MeetCondition(request.Event, entity.Config)
+                                                 where ConditionChecker.MeetCondition(request.Event.SoftwareName, request.Event.ApplicationName, entity.Config)
                                                  select entity.Config).ToImmutableList())
                        select OperationResult.Success(new FinalAppConfig(MakeConfig(global, spec))));
         }

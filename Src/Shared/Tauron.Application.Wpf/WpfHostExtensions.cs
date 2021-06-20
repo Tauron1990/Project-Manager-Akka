@@ -14,7 +14,7 @@ namespace Tauron.Host
     [PublicAPI]
     public static class WpfHostExtensions
     {
-        public static IApplicationBuilder UseWpf<TMainWindow>(this IApplicationBuilder hostBuilder, Action<BaseAppConfiguration>? config = null)
+        public static IActorApplicationBuilder UseWpf<TMainWindow>(this IActorApplicationBuilder hostBuilder, Action<BaseAppConfiguration>? config = null)
             where TMainWindow : class, IMainWindow
         {
             hostBuilder.ConfigureAutoFac(sc =>
@@ -30,7 +30,7 @@ namespace Tauron.Host
             return hostBuilder;
         }
 
-        public static IApplicationBuilder UseWpf<TMainWindow, TApp>(this IApplicationBuilder builder)
+        public static IActorApplicationBuilder UseWpf<TMainWindow, TApp>(this IActorApplicationBuilder builder)
             where TApp : System.Windows.Application, new()
             where TMainWindow : class, IMainWindow
         {

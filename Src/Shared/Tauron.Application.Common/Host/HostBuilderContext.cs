@@ -9,14 +9,14 @@ namespace Tauron.Host
     public sealed class HostBuilderContext
     {
         public HostBuilderContext(IDictionary<object, object> properties, IConfiguration configuration,
-            IHostEnvironment hostEnvironment)
+            IActorHostEnvironment hostEnvironment)
         {
             HostEnvironment = hostEnvironment;
             Configuration = configuration;
             Properties = properties ?? throw new ArgumentNullException(nameof(properties));
         }
 
-        public IHostEnvironment HostEnvironment { get; set; }
+        public IActorHostEnvironment HostEnvironment { get; set; }
 
         public IConfiguration Configuration { get; set; }
 

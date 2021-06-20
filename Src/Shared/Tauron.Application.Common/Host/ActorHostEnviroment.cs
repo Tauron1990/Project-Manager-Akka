@@ -1,6 +1,6 @@
 ﻿namespace Tauron.Host
 {
-    public sealed class HostEnviroment : IHostEnvironment
+    public sealed class ActorHostEnviroment : IActorHostEnvironment
     {
         public string EnvironmentName { get; set; } = string.Empty;
         public string ApplicationName { get; set; } = string.Empty;

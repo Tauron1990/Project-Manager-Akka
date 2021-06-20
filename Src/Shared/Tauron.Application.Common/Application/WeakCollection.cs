@@ -67,12 +67,8 @@ namespace Tauron.Application
         }
 
         public IEnumerator<Option<TType>> GetEnumerator()
-        {
-            return
-                _internalCollection.Select(reference => reference.TypedTarget())
-                    .Where(target => target.HasValue)
-                    .GetEnumerator()!;
-        }
+            => _internalCollection.Select(reference => reference.TypedTarget())
+                                  .GetEnumerator();
 
         public int IndexOf(Option<TType> item)
         {

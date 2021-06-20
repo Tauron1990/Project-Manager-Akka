@@ -1,4 +1,11 @@
 ﻿namespace ServiceHost.Services.Impl
 {
-    public record InternalStopApp;
+    public record InternalStopApp(bool Restart)
+    {
+        public InternalStopApp()
+            : this(false)
+        {
+            
+        }
+    }
 }
