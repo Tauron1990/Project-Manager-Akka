@@ -1,6 +1,6 @@
 ﻿namespace Tauron.Application.ServiceManager.AppCore
 {
-    public interface IConnectionTracker
+    public interface IClusterConnectionTracker : IInternalObject
     {
         bool IsConnected { get; }
 

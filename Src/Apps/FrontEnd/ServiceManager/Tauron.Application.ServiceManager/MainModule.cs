@@ -8,8 +8,7 @@ namespace Tauron.Application.ServiceManager
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType<ConnectionTracker>().As<IConnectionTracker>();
-
+            builder.RegisterType<ClusterConnectionTracker>().As<IClusterConnectionTracker>();
 
             base.Load(builder);
         }

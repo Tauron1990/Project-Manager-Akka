@@ -4,6 +4,7 @@
     <TargetFramework>net5.0</TargetFramework>
     <AssemblyName>Tauron.Application.AspIntegration</AssemblyName>
     <RootNamespace>Tauron.Application.AspIntegration</RootNamespace>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

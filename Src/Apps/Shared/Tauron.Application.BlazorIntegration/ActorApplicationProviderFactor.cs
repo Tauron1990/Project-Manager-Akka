@@ -2,6 +2,7 @@
 using System.Linq;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
+using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
@@ -15,12 +16,22 @@ namespace Tauron.Application.AspIntegration
 {
     public sealed class ActorApplicationProviderFactory : IServiceProviderFactory<IActorApplicationBuilder>
     {
+        private readonly Action<IActorApplicationBuilder>? _configurate;
+
+        public ActorApplicationProviderFactory(Action<IActorApplicationBuilder>? configurate = null)
+        {
+            _configurate = configurate;
+        }
+
         public IActorApplicationBuilder CreateBuilder(IServiceCollection services)
         {
             services.Remove(services.Single(d => d.ImplementationType == typeof(EventLogLoggerProvider)));
             services.Remove(services.Single(d => d.ImplementationType == typeof(ConsoleLoggerProvider)));
 
-            return ActorApplication.Create(services.AddLogging(lb => lb.AddProvider(new NLogLoggerProvider())));
+            var builder = ActorApplication.Create(services.AddLogging(lb => lb.AddProvider(new NLogLoggerProvider())));
+            _configurate?.Invoke(builder);
+
+            return builder;
         }
 
         public IServiceProvider CreateServiceProvider(IActorApplicationBuilder containerBuilder)

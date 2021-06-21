@@ -1,4 +1,10 @@
-﻿<div class="top-row pl-4 navbar navbar-dark">
+﻿<MudDivider Class="mb-4"></MudDivider>
+<MudNavMenu>
+    
+    <MudNavLink Href="" Match="NavLinkMatch.All">Übersicht</MudNavLink>
+</MudNavMenu>
+
+@*<div class="top-row pl-4 navbar navbar-dark">
     <a class="navbar-brand" href="">Service Manager</a>
     <button class="navbar-toggler" @onclick="ToggleNavMenu">
         <span class="navbar-toggler-icon"></span>
@@ -13,7 +19,7 @@
             </NavLink>
         </li>
     </ul>
-</div>
+</div>*@
 
 @code {
     private bool _collapseNavMenu = true;

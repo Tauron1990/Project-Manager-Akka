@@ -1,17 +1,70 @@
-﻿@inherits LayoutComponentBase
+﻿@using Tauron.Application.ServiceManager.AppCore
+@using System.Reactive.Disposables
+@using Microsoft.Extensions.Hosting
+@inherits LayoutComponentBase
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu/>
-    </div>
+@inject IClusterConnectionTracker _cluster;
+@inject IHostApplicationLifetime _lifetime;
 
-    <div class="main">
-        <div class="top-row px-4">
-            <a href="/About">About</a>
-        </div>
+@implements IDisposable
 
-        <div class="content px-4">
-            @Body
-        </div>
-    </div>
-</div>
+<MudLayout>
+    <CascadingValue Value="@IsConnected" Name="IsConnected">
+        <CascadingValue Value="@IsSelf" Name="ISelf">
+            <MudAppBar Elevation="4" Dense="true">
+                <MudSpacer/>
+                @if (IsConnected && IsSelf)
+                {
+                    <MudChip Label="true" Color="Color.Warning">Kein Cluster</MudChip>
+                }
+                else if (IsConnected && !IsSelf)
+                {
+                    <MudChip Label="true" Color="Color.Success">Cluster Verbunden</MudChip>
+                }
+                else
+                {
+                    <MudChip Label="true" Color="Color.Error" OnClick="ShutDown">Cluster Nicht Verbunden. Neustart!</MudChip>
+                }
+                <MudSpacer/>
+                <MudButton Variant="Variant.Text" Link="/About" Color="Color.Secondary">About</MudButton>
+            </MudAppBar>
+            <MudDrawer Class="sidebar" Elevation="30" Open="true" ClipMode="DrawerClipMode.Docked">
+                <NavMenu/>
+            </MudDrawer>
+            <MudMainContent>
+                <MudContainer MaxWidth="MaxWidth.False" Class="mt-4">
+                    @Body
+                </MudContainer>
+            </MudMainContent>
+        </CascadingValue>
+    </CascadingValue>
+</MudLayout>
+
+@code
+{
+    private readonly CompositeDisposable _disposer = new();
+
+    private bool IsConnected { get; set; }
+
+    private bool IsSelf { get; set; }
+
+    protected override void OnInitialized()
+    {
+        _cluster.WhenAny(() => _cluster.IsConnected)
+                .Subscribe(b =>
+                           {
+                               IsConnected = b;
+                               InvokeAsync(StateHasChanged);
+                           })
+                .DisposeWith(_disposer);
+
+        IsSelf = _cluster.IsSelf;
+
+        base.OnInitialized();
+    }
+
+    public void Dispose()
+        => _disposer.Dispose();
+
+    private void ShutDown() => _lifetime.StopApplication();
+}

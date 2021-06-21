@@ -1,17 +1,29 @@
+using Autofac;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Tauron.Application.AspIntegration;
+using Tauron.Application.ServiceManager.AppCore;
+using Tauron.Application.ServiceManager.AppCore.Helper;
 
 namespace Tauron.Application.ServiceManager
 {
     public class Program
     {
-        public static void Main(string[] args) 
-            => CreateHostBuilder(args).Build().Run();
+        private static readonly RestartHelper _restartHelper = new();
+
+        public static void Main(string[] args)
+        {
+            CreateHostBuilder(args).Build().Run();
+
+            if (_restartHelper.Restart)
+            {
+
+            }
+        }
 
         private static IHostBuilder CreateHostBuilder(string[] args) =>
             Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder(args)
-                     .UseServiceProviderFactory(new ActorApplicationProviderFactory())
+                     .UseServiceProviderFactory(new ActorApplicationProviderFactory(b => b.ConfigureAutoFac(cb => cb.RegisterInstance(_restartHelper).As<IRestartHelper>())))
                      .ConfigureWebHostDefaults(webBuilder =>
                                                {
                                                    webBuilder.UseStartup<Startup>();
