@@ -1,4 +1,6 @@
 ﻿using Autofac;
+using Tauron.Application.ServiceManager.AppCore;
+using Tauron.Application.ServiceManager.AppCore.Helper;
 
 namespace Tauron.Application.ServiceManager
 {
@@ -6,6 +8,9 @@ namespace Tauron.Application.ServiceManager
     {
         protected override void Load(ContainerBuilder builder)
         {
+            builder.RegisterType<ConnectionTracker>().As<IConnectionTracker>();
+
+
             base.Load(builder);
         }
     }

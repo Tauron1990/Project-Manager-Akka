@@ -27,8 +27,4 @@
     <ProjectReference Include="..\..\..\Shared\Tauron.Application.Master.Commands\Tauron.Application.Master.Commands.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="App\Core\" />
-  </ItemGroup>
-
 </Project>
