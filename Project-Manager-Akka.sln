@@ -122,7 +122,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InfrastructureService", "Sr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tauron.Application.ServiceManager", "Src\Apps\FrontEnd\ServiceManager\Tauron.Application.ServiceManager\Tauron.Application.ServiceManager.csproj", "{00ABA22C-690D-4F62-A735-9EE3BB137E04}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tauron.Application.BlazorIntegration", "Src\Apps\Shared\Tauron.Application.BlazorIntegration\Tauron.Application.BlazorIntegration.csproj", "{3AD54128-0CEB-45FA-92F9-604C5092914B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tauron.Application.BlazorIntegration", "Src\Apps\Shared\Tauron.Application.BlazorIntegration\Tauron.Application.BlazorIntegration.csproj", "{3AD54128-0CEB-45FA-92F9-604C5092914B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

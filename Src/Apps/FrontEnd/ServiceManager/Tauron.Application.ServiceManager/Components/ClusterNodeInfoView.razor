@@ -1,0 +1,18 @@
+﻿@using Tauron.Application.ServiceManager.PageData
+<MudPaper Elevation="5">
+    <MudGrid>
+        <MudItem md="1" Class="d-flex">
+            <MudText></MudText>
+        </MudItem>
+        <MudItem md="1" Class="d-flex"></MudItem>
+        <MudItem md="2" Class="d-flex"></MudItem>
+        <MudItem md="2" Class="d-flex"></MudItem>
+        <MudItem md="3" Class="d-flex"></MudItem>
+        <MudItem md="3" Class="d-flex"></MudItem>
+    </MudGrid>
+</MudPaper>
+
+@code {
+    [Parameter]
+    public ClusterNodeInfo NodeInfo { get; set; }
+}

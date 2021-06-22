@@ -1,11 +1,28 @@
 ﻿@page "/"
+@using global::Akka.Actor
+@using global::Akka.Cluster
+@using Tauron.Akka
+
+@inject ActorSystem _actorSystem;
 
 <Title Value="Service Zusammenfassung" />
 
-<h1>Das Ist ein test</h1>
+<MudText Typo="Typo.h1" Class="m-1">Aktuelle Knoten:</MudText>
+
+<MudList>
+
+</MudList>
 
 @code
 {
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+    }
 
+    private void ClusterEventHandler(ClusterEvent.IClusterDomainEvent evt)
+    {
+
+    }
 }
 

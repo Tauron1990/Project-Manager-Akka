@@ -1,3 +1,6 @@
+using System.Diagnostics;
+using System.IO;
+using System.Reflection;
 using Autofac;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
@@ -15,10 +18,11 @@ namespace Tauron.Application.ServiceManager
         {
             CreateHostBuilder(args).Build().Run();
 
-            if (_restartHelper.Restart)
-            {
-
-            }
+            if (!_restartHelper.Restart) return;
+            
+            var file = Path.ChangeExtension(Assembly.GetEntryAssembly()?.Location, ".exe");
+            if (!string.IsNullOrWhiteSpace(file) && File.Exists(file))
+                Process.Start(file);
         }
 
         private static IHostBuilder CreateHostBuilder(string[] args) =>
