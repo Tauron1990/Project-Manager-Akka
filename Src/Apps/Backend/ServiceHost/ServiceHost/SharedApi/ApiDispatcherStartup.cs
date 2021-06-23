@@ -13,7 +13,7 @@ namespace ServiceHost.SharedApi
 
         public void Run()
         {
-            var props = ServiceProvider.For(_system).Props<ApiDispatcherActor>();
+            var props = DependencyResolver.For(_system).Props<ApiDispatcherActor>();
             _system.ActorOf(props, "Api-Dispatcher");
         }
     }

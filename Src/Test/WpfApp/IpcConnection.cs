@@ -86,7 +86,7 @@ namespace WpfApp
                           throw new InvalidOperationException("Invalid Message Type");
 
             return _messageHandler.Where(nm => nm.Type == type)
-                .SelectSafe(nm => JsonConvert.DeserializeObject<TType>(Encoding.UTF8.GetString(nm.Data))).Isonlate();
+                .SelectSafe(nm => JsonConvert.DeserializeObject<TType>(Encoding.UTF8.GetString(nm.Data))!).Isonlate();
         }
 
         public bool SendMessage<TMessage>(string to, TMessage message)

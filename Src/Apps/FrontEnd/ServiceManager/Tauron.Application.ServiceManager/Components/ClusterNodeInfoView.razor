@@ -2,36 +2,22 @@
 
 @inherits DisposingComponent
 
-<MudPaper Elevation="5">
-    <MudGrid>
-        <MudItem md="1" Class="d-flex">
-            <MudText>Name:</MudText>
-        </MudItem>
-        <MudItem md="1" Class="flex-grow-1">
-            <MudText>@NodeInfo.Name</MudText>
-        </MudItem>
-        <MudItem md="2" Class="d-flex">
-            <MudText>Url:</MudText>
-        </MudItem>
-        <MudItem md="2" Class="flex-grow-1">
-            <MudText>@NodeInfo.Url</MudText>
-        </MudItem>
-        <MudItem md="3" Class="d-flex">
-            <MudText>Type:</MudText>
-        </MudItem>
-        <MudItem md="3" Class="flex-grow-1">
-            <MudText>@NodeInfo.ServiceType</MudText>
-        </MudItem>
-        <MudItem md="3" Class="d-flex">
-            <MudText>Status</MudText>
-        </MudItem>
-        <MudItem md="3" Class="flex-grow-1">
-            <MudText>@NodeInfo.Status</MudText>
-        </MudItem>
-    </MudGrid>
+<MudPaper Elevation="5" Class="pa-2">
+    <MudText>Name: @NodeInfo.Name</MudText>
+    <MudText>Url: @NodeInfo.Url</MudText>
+    <MudText>Type: @NodeInfo.ServiceType</MudText>
+    <MudText>Status: @NodeInfo.Status</MudText>
 </MudPaper>
 
 @code {
+
     [Parameter]
     public ClusterNodeInfo NodeInfo { get; set; } = ClusterNodeInfo.Empty;
+
+    protected override void OnInitialized()
+    {
+        NodeInfo.PropertyChangedObservable.Subscribe(_ => InvokeAsync(StateHasChanged)).DisposeWith(this);
+        base.OnInitialized();
+    }
+
 }

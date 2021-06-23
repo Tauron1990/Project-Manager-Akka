@@ -15,18 +15,21 @@ namespace Tauron.Application.ServiceManager.AppCore.Helper
 
         public bool IsSelf { get; }
 
-        public ClusterConnectionTracker(ActorSystem system)
+        public AppIp Ip { get; }
+
+        public ClusterConnectionTracker(ActorSystem system, IAppIpManager manager)
         {
+            Ip = manager.Ip;
             var cluster = Cluster.Get(system);
 
             cluster.RegisterOnMemberUp(() => IsConnected = true);
             cluster.RegisterOnMemberRemoved(() => IsConnected = false);
 
-            if (cluster.Settings.SeedNodes.Count == 0)
-            {
-                IsSelf = true;
+            if (cluster.Settings.SeedNodes.Count != 0) return;
+            IsSelf = true;
+
+            if(manager.Ip.IsValid)
                 cluster.Join(cluster.SelfAddress);
-            }
         }
     }
 }

@@ -35,8 +35,7 @@ namespace Tauron.Application.ServiceManager
         {
             builder.OnMemberUp((context, system, cluster) =>
                                {
-                                   ServiceRegistry.Get(system)
-                                                  .RegisterService(new RegisterService(context.HostEnvironment.ApplicationName, cluster.SelfUniqueAddress, ServiceTypes.ServiceManager));
+                                   ServiceRegistry.Start(system, new RegisterService(context.HostEnvironment.ApplicationName, cluster.SelfUniqueAddress, ServiceTypes.ServiceManager));
                                })
                .AddModule<MainModule>()
                    .MapHostEnviroment(Environment)

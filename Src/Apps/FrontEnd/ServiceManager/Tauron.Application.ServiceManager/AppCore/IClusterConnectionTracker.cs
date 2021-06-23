@@ -5,5 +5,7 @@
         bool IsConnected { get; }
 
         bool IsSelf { get; }
+
+        AppIp Ip { get; }
     }
 }

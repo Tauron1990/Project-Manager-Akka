@@ -12,7 +12,7 @@ namespace Tauron.Application.ServiceManager
         {
             builder.RegisterType<ClusterConnectionTracker>().As<IClusterConnectionTracker>();
 
-            builder.RegisterFeature<ClusterHostManagerRef, IClusterHostManager>(ClusterHostManagerActor.New());
+            builder.RegisterFeature<ClusterNodeManagerRef, IClusterNodeManager>(ClusterHostManagerActor.New());
 
             base.Load(builder);
         }

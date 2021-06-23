@@ -30,7 +30,11 @@ namespace Tauron.Application.ServiceManager.PageData
 
         public string Url { get; }
 
-        public ClusterNodeInfo(string url) => Url = url;
+        public ClusterNodeInfo(string url, MemberData memberData)
+        {
+            Url = url;
+            Update(memberData);
+        }
 
         private ClusterNodeInfo() => Url = string.Empty;
 

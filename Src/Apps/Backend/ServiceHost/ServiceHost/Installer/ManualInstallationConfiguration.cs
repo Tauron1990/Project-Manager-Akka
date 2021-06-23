@@ -12,7 +12,7 @@ namespace ServiceHost.Installer
 
         public string AppName { get; set; } = string.Empty;
 
-        public string SoftwareName { get; set; }
+        public string SoftwareName { get; set; } = string.Empty;
 
         public bool Override { get; set; }
 

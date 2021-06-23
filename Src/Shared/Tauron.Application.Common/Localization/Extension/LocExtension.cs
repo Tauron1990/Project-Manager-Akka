@@ -10,7 +10,7 @@ namespace Tauron.Localization.Extension
 
         internal LocExtension Init(ActorSystem system)
         {
-            LocCoordinator = system.ActorOf(system.GetExtension<ServiceProvider>().Props<LocCoordinator>());
+            LocCoordinator = system.ActorOf(system.GetExtension<DependencyResolver>().Props<LocCoordinator>());
             return this;
         }
     }

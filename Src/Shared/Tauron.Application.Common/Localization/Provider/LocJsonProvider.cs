@@ -12,6 +12,6 @@ namespace Tauron.Localization.Provider
 
         public string Name => "Json";
 
-        public Props GetProps() => _actorSystem.GetExtension<ServiceProvider>().Props<JsonLocLocStoreActor>();
+        public Props GetProps() => _actorSystem.GetExtension<DependencyResolver>().Props<JsonLocLocStoreActor>();
     }
 }

@@ -15,6 +15,8 @@ namespace Tauron.Application.Master.Commands.ServiceRegistry
     [PublicAPI]
     public sealed class ServiceRegistry
     {
+        public static readonly ServiceRegistry Empty = new(ActorRefs.Nobody);
+
         private static readonly object Lock = new();
         private static ServiceRegistry? _registry;
         private readonly IActorRef _target;
@@ -204,13 +206,10 @@ namespace Tauron.Application.Master.Commands.ServiceRegistry
                         .ToImmutableList()));
                 });
 
-                Receive<QueryRegistratedService>(s =>
-                                                 {
-                                                     if (_services.TryGetValue(s.Address, out var entry)) 
-                                                         Sender.Tell(new QueryRegistratedServiceResponse(new MemberService(entry.Name, MemberAddress.From(s.Address), entry.ServiceType)));
-                                                     else
-                                                         Sender.Tell(new QueryRegistratedServiceResponse(null));
-                                                 });
+                Receive<QueryRegistratedService>(
+                    s => Sender.Tell(_services.TryGetValue(s.Address, out var entry) 
+                        ? new QueryRegistratedServiceResponse(new MemberService(entry.Name, MemberAddress.From(s.Address), entry.ServiceType)) 
+                        : new QueryRegistratedServiceResponse(null)));
 
                 Receive<ClusterActorDiscoveryMessage.ActorUp>(au =>
                 {

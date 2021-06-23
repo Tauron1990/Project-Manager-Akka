@@ -127,7 +127,7 @@ namespace Tauron.Application.Workshop.Core
 
             public SuperviseDiActor(Type actorType, string name) : base(name) => _actorType = actorType;
 
-            public override Func<IUntypedActorContext, Props> Props => c => ServiceProvider.For(c.System).Props(_actorType);
+            public override Func<IUntypedActorContext, Props> Props => c => DependencyResolver.For(c.System).Props(_actorType);
         }
 
         internal sealed class CustomSuperviseActor : SuperviseActorBase

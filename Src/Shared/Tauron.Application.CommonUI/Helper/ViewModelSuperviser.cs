@@ -31,7 +31,7 @@ namespace Tauron.Application.CommonUI.Helper
 
         public static ViewModelSuperviser Get(ActorSystem system)
         {
-            return _superviser ??= new ViewModelSuperviser(system.ActorOf(ServiceProvider.For(system).Props<ViewModelSuperviserActor>(), nameof(ViewModelSuperviser)));
+            return _superviser ??= new ViewModelSuperviser(system.ActorOf(DependencyResolver.For(system).Props<ViewModelSuperviserActor>(), nameof(ViewModelSuperviser)));
         }
 
         public void Create(IViewModel model, string? name = null)
@@ -70,7 +70,7 @@ namespace Tauron.Application.CommonUI.Helper
 
             _count++;
 
-            var props = ServiceProvider.For(Context.System).Props(obj.Model.ModelType);
+            var props = DependencyResolver.For(Context.System).Props(obj.Model.ModelType);
             var actor = Context.ActorOf(props, obj.Name ?? $"{obj.Model.ModelType.Name}--{_count}");
 
             obj.Model.Init(actor);

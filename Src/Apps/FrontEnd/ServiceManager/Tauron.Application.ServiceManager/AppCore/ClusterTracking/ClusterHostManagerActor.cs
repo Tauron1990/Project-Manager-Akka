@@ -10,12 +10,13 @@ namespace Tauron.Application.ServiceManager.AppCore.ClusterTracking
 {
     public sealed class ClusterHostManagerActor : ActorFeatureBase<ClusterHostManagerActor.ClusterState>
     {
-        public sealed record ClusterState(SourceCache<MemberData, MemberAddress> Entrys);
+        public sealed record ClusterState(SourceCache<MemberData, MemberAddress> Entrys, ServiceRegistry ServiceRegistry);
 
         public static Func<IPreparedFeature> New()
         {
             IPreparedFeature _()
-                => Feature.Create(() => new ClusterHostManagerActor(), _ => new ClusterState(new SourceCache<MemberData, MemberAddress>(md => MemberAddress.From(md.Member.UniqueAddress))));
+                => Feature.Create(() => new ClusterHostManagerActor(),
+                    _ => new ClusterState(new SourceCache<MemberData, MemberAddress>(md => MemberAddress.From(md.Member.UniqueAddress)), ServiceRegistry.Empty));
 
             return _;
         }
@@ -24,12 +25,20 @@ namespace Tauron.Application.ServiceManager.AppCore.ClusterTracking
         {
             var entrys = CurrentState.Entrys;
 
-            Cluster.Get(Context.System).Subscribe(Self, ClusterEvent.SubscriptionInitialStateMode.InitialStateAsEvents);
-            var registry = ServiceRegistry.Get(Context.System);
+            var cluster = Cluster.Get(Context.System);
+            cluster.RegisterOnMemberUp(() =>
+                                       {
+                                           Self.Tell(ServiceRegistry.Get(Context.System));
+                                           cluster.Subscribe(Self, ClusterEvent.SubscriptionInitialStateMode.InitialStateAsEvents, typeof(ClusterEvent.IClusterDomainEvent));
+                                       });
 
-            Receive<ClusterEvent.IClusterDomainEvent>(obs => obs.OfType<ClusterEvent.MemberStatusChange>()
-                                                                .ToUnit(c =>
+            Receive<ServiceRegistry>(obs => obs.Select(evt => evt.State with{ ServiceRegistry = evt.Event}));
+
+            Receive<ClusterEvent.IClusterDomainEvent>(obs => obs.ToUnit(evt =>
                                                                         {
+                                                                            if(evt.Event is not ClusterEvent.MemberStatusChange c)
+                                                                                return;
+
                                                                             // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
                                                                             switch (c.Member.Status)
                                                                             {
@@ -37,13 +46,15 @@ namespace Tauron.Application.ServiceManager.AppCore.ClusterTracking
                                                                                     entrys.AddOrUpdate(new MemberData(c.Member, string.Empty, ServiceType.Empty));
                                                                                     break;
                                                                                 case MemberStatus.Up:
-                                                                                    registry.QueryService(c.Member)
+                                                                                    CurrentState.ServiceRegistry.QueryService(c.Member)
                                                                                             .PipeTo(Context.Self, success: q => q,
                                                                                                  failure: e =>
                                                                                                           {
-                                                                                                              Log.Warning(e, "Eroor on Query Service Data for {Adress}", c.Member.UniqueAddress);
+                                                                                                              Log.Warning(e, "Error on Query Service Data for {Address}", c.Member.UniqueAddress);
                                                                                                               return new QueryRegistratedServiceResponse(null);
                                                                                                           });
+                                                                                    if(!entrys.Lookup(MemberAddress.From(c.Member.UniqueAddress)).HasValue)
+                                                                                        entrys.AddOrUpdate(new MemberData(c.Member, string.Empty, ServiceType.Empty));
                                                                                     break;
                                                                                 case MemberStatus.Removed:
                                                                                     entrys.RemoveKey(MemberAddress.From(c.Member.UniqueAddress));

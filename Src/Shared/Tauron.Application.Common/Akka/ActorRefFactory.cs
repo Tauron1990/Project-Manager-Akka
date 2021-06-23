@@ -15,7 +15,7 @@ namespace Tauron.Akka
 
         public Props CreateProps(bool sync)
         {
-            var prop = _system.GetExtension<ServiceProvider>().Props<TActor>();
+            var prop = _system.GetExtension<DependencyResolver>().Props<TActor>();
             if (sync)
                 prop = prop.WithDispatcher("synchronized-dispatcher");
 
