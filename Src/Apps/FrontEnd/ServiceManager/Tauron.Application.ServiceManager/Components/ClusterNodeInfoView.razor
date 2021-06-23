@@ -1,18 +1,37 @@
 ﻿@using Tauron.Application.ServiceManager.PageData
+
+@inherits DisposingComponent
+
 <MudPaper Elevation="5">
     <MudGrid>
         <MudItem md="1" Class="d-flex">
-            <MudText></MudText>
+            <MudText>Name:</MudText>
         </MudItem>
-        <MudItem md="1" Class="flex-grow-1"></MudItem>
-        <MudItem md="2" Class="d-flex"></MudItem>
-        <MudItem md="2" Class="flex-grow-1"></MudItem>
-        <MudItem md="3" Class="d-flex"></MudItem>
-        <MudItem md="3" Class="flex-grow-1"></MudItem>
+        <MudItem md="1" Class="flex-grow-1">
+            <MudText>@NodeInfo.Name</MudText>
+        </MudItem>
+        <MudItem md="2" Class="d-flex">
+            <MudText>Url:</MudText>
+        </MudItem>
+        <MudItem md="2" Class="flex-grow-1">
+            <MudText>@NodeInfo.Url</MudText>
+        </MudItem>
+        <MudItem md="3" Class="d-flex">
+            <MudText>Type:</MudText>
+        </MudItem>
+        <MudItem md="3" Class="flex-grow-1">
+            <MudText>@NodeInfo.ServiceType</MudText>
+        </MudItem>
+        <MudItem md="3" Class="d-flex">
+            <MudText>Status</MudText>
+        </MudItem>
+        <MudItem md="3" Class="flex-grow-1">
+            <MudText>@NodeInfo.Status</MudText>
+        </MudItem>
     </MudGrid>
 </MudPaper>
 
 @code {
     [Parameter]
-    public ClusterNodeInfo NodeInfo { get; set; }
+    public ClusterNodeInfo NodeInfo { get; set; } = ClusterNodeInfo.Empty;
 }

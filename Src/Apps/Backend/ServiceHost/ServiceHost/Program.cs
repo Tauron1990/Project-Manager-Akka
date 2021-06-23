@@ -14,6 +14,7 @@ using Microsoft.Extensions.Configuration.CommandLine;
 using Newtonsoft.Json;
 using NLog;
 using NLog.Targets;
+using ServiceHost.Client.Shared;
 using ServiceHost.Installer;
 using Servicemnager.Networking.Data;
 using Tauron.Application.AkkaNode.Bootstrap;
@@ -104,8 +105,11 @@ namespace ServiceHost
                                                                                           system.Terminate();
                                                                                       });
                                                       cluster.RegisterOnMemberUp(
-                                                          () => ServiceRegistry.GetRegistry(system)
-                                                                               .RegisterService(new RegisterService(context.HostEnvironment.ApplicationName, cluster.SelfUniqueAddress)));
+                                                          () => ServiceRegistry.Get(system)
+                                                                               .RegisterService(new RegisterService(
+                                                                                    context.HostEnvironment.ApplicationName, 
+                                                                                    cluster.SelfUniqueAddress,
+                                                                                    ServiceTypes.ServideHost)));
                                                   })
                            .Build().Run();
         }

@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using Tauron.Application.ServiceManager.AppCore;
+using Tauron.Application.ServiceManager.AppCore.ClusterTracking;
 using Tauron.Application.ServiceManager.AppCore.Helper;
 using Tauron.Features;
 

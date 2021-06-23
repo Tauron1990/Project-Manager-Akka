@@ -1,7 +1,6 @@
-﻿using JetBrains.Annotations;
-using Tauron.Features;
+﻿using Tauron.Features;
 
-namespace Tauron.Application.ServiceManager.AppCore.Helper
+namespace Tauron.Application.ServiceManager.AppCore.ClusterTracking
 {
     public sealed class ClusterHostManagerRef : FeatureActorRefBase<IClusterHostManager>, IClusterHostManager
     {

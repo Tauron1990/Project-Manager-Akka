@@ -24,8 +24,11 @@ namespace Tauron.Application.Master.Commands.ServiceRegistry
         public void RegisterService(RegisterService service)
             => _target.Tell(service);
 
-        public Task<QueryRegistratedServicesResponse> QueryService()
+        public Task<QueryRegistratedServicesResponse> QueryServices()
             => _target.Ask<QueryRegistratedServicesResponse>(new QueryRegistratedServices(), TimeSpan.FromMinutes(1));
+
+        public Task<QueryRegistratedServiceResponse> QueryService(Member member)
+            => _target.Ask<QueryRegistratedServiceResponse>(new QueryRegistratedService(member.UniqueAddress));
 
         public static void Start(ActorSystem system, RegisterService? self)
         {
@@ -36,13 +39,11 @@ namespace Tauron.Application.Master.Commands.ServiceRegistry
                 nameof(ServiceRegistry)));
         }
 
-        public static ServiceRegistry GetRegistry(ActorSystem refFactory)
+        public static ServiceRegistry Get(ActorSystem refFactory)
         {
             lock (Lock)
             {
-                return _registry ??=
-                    new ServiceRegistry(refFactory.ActorOf(Props.Create(() => new ServiceRegistryClientActor()),
-                        nameof(ServiceRegistry)));
+                return _registry ??= new ServiceRegistry(refFactory.ActorOf(Props.Create(() => new ServiceRegistryClientActor()), nameof(ServiceRegistry)));
             }
         }
 
@@ -97,7 +98,7 @@ namespace Tauron.Application.Master.Commands.ServiceRegistry
                     if (count == 0)
                         Become(Initializing);
                 });
-
+                
                 Receive<RegisterService>(s =>
                 {
                     Log.Info("Register New Service {Name} -- {Adress}", s.Name, s.Address);
@@ -106,7 +107,7 @@ namespace Tauron.Application.Master.Commands.ServiceRegistry
 
                 Receive<QueryRegistratedServices>(rs =>
                 {
-                    Log.Info("Try Query Service");
+                    Log.Info("Try Query Services");
                     var target = _serviceRegistrys.Next();
                     switch (target)
                     {
@@ -119,6 +120,22 @@ namespace Tauron.Application.Master.Commands.ServiceRegistry
                             break;
                     }
                 });
+
+                Receive<QueryRegistratedService>(r =>
+                                                 {
+                                                     Log.Info("Try Query Service");
+                                                     var target = _serviceRegistrys.Next();
+                                                     switch (target)
+                                                     {
+                                                         case null:
+                                                             Log.Warning("No Service Registry Registrated");
+                                                             Sender.Tell(new QueryRegistratedServicesResponse(ImmutableList<MemberService>.Empty));
+                                                             break;
+                                                         default:
+                                                             target.Forward(r);
+                                                             break;
+                                                     }
+                                                 });
             }
 
             protected override void PreStart()
@@ -162,18 +179,18 @@ namespace Tauron.Application.Master.Commands.ServiceRegistry
         {
             private readonly IActorRef _discovery;
 
-            private readonly Dictionary<UniqueAddress, string> _services = new();
+            private readonly Dictionary<UniqueAddress, ServiceEntry> _services = new();
 
             public ServiceRegistryServiceActor(IActorRef discovery, RegisterService? self)
             {
                 _discovery = discovery;
-                if (self != null) _services[self.Address] = self.Name;
+                if (self != null) _services[self.Address] = new ServiceEntry(self.Name, self.ServiceType);
 
                 Receive<RegisterService>(service =>
-                {
-                    Log.Info("Register Service {Name} -- {Adress}", service.Name, service.Address);
-                    _services[service.Address] = service.Name;
-                });
+                                         {
+                                             Log.Info("Register Service {Name} -- {Adress}", service.Name, service.Address);
+                                             _services[service.Address] = new ServiceEntry(service.Name, service.ServiceType);
+                                         });
 
                 Receive<QueryRegistratedServices>(_ =>
                 {
@@ -183,9 +200,17 @@ namespace Tauron.Application.Master.Commands.ServiceRegistry
                             service => service.Value);
 
                     Sender.Tell(new QueryRegistratedServicesResponse(temp
-                        .Select(e => new MemberService(e.Value, e.Key))
+                        .Select(e => new MemberService(e.Value.Name, e.Key, e.Value.ServiceType))
                         .ToImmutableList()));
                 });
+
+                Receive<QueryRegistratedService>(s =>
+                                                 {
+                                                     if (_services.TryGetValue(s.Address, out var entry)) 
+                                                         Sender.Tell(new QueryRegistratedServiceResponse(new MemberService(entry.Name, MemberAddress.From(s.Address), entry.ServiceType)));
+                                                     else
+                                                         Sender.Tell(new QueryRegistratedServiceResponse(null));
+                                                 });
 
                 Receive<ClusterActorDiscoveryMessage.ActorUp>(au =>
                 {
@@ -212,10 +237,12 @@ namespace Tauron.Application.Master.Commands.ServiceRegistry
                 base.PreStart();
             }
 
+            private sealed record ServiceEntry(string Name, ServiceType ServiceType);
+
             private sealed class SyncRegistry
             {
-                public SyncRegistry(Dictionary<UniqueAddress, string> sync) => ToSync = sync;
-                public Dictionary<UniqueAddress, string> ToSync { get; }
+                public SyncRegistry(Dictionary<UniqueAddress, ServiceEntry> sync) => ToSync = sync;
+                public Dictionary<UniqueAddress, ServiceEntry> ToSync { get; }
             }
         }
     }

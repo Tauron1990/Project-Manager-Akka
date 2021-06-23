@@ -4,10 +4,12 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MudBlazor.Services;
+using ServiceHost.Client.Shared;
 using Tauron.Application.AkkaNode.Bootstrap;
 using Tauron.Application.AkkaNode.Bootstrap.Console;
 using Tauron.Application.AspIntegration;
 using Tauron.Application.Master.Commands.KillSwitch;
+using Tauron.Application.Master.Commands.ServiceRegistry;
 using Tauron.Application.Workshop;
 using Tauron.Host;
 
@@ -31,7 +33,12 @@ namespace Tauron.Application.ServiceManager
         [UsedImplicitly]
         public void ConfigureContainer(IActorApplicationBuilder builder)
         {
-            builder.AddModule<MainModule>()
+            builder.OnMemberUp((context, system, cluster) =>
+                               {
+                                   ServiceRegistry.Get(system)
+                                                  .RegisterService(new RegisterService(context.HostEnvironment.ApplicationName, cluster.SelfUniqueAddress, ServiceTypes.ServiceManager));
+                               })
+               .AddModule<MainModule>()
                    .MapHostEnviroment(Environment)
                    .StartNode(KillRecpientType.Frontend, IpcApplicationType.NoIpc, true)
                    .AddStateManagment(typeof(Startup).Assembly);

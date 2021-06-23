@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using MongoDB.Driver;
 using NLog;
+using ServiceHost.Client.Shared;
 using ServiceManager.ProjectDeployment;
 using ServiceManager.ProjectRepository;
 using ServiceManager.ServiceDeamon.Management;
@@ -37,8 +38,11 @@ namespace InfrastructureService
                                                           return mongoUrl;
                                                       }
 
-                                                      ServiceRegistry.GetRegistry(system)
-                                                                     .RegisterService(new RegisterService(context.HostEnvironment.ApplicationName, cluster.SelfUniqueAddress));
+                                                      ServiceRegistry.Get(system)
+                                                                     .RegisterService(new RegisterService(
+                                                                          context.HostEnvironment.ApplicationName, 
+                                                                          cluster.SelfUniqueAddress,
+                                                                          ServiceTypes.Infrastructure));
 
                                                       var connectionstring = system.Settings.Config.GetString("akka.persistence.snapshot-store.mongodb.connection-string");
                                                       if (string.IsNullOrWhiteSpace(connectionstring))
