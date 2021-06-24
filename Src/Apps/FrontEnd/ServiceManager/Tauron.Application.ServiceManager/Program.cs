@@ -40,6 +40,8 @@ namespace Tauron.Application.ServiceManager
                                                     #if RELSEASE
                                                    if (AppIpManager.Ip.IsValid)
                                                        webBuilder.UseUrls("http://localhost:5000", $"http://{AppIpManager.Ip.Ip}:5000");
+                                                    else 
+                                                        webBuilder.UseUrls("http://localhost:5000");
                                                     #endif
                                                    webBuilder.UseStartup<Startup>();
                                                });

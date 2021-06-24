@@ -1,11 +1,14 @@
 ﻿@using Tauron.Application.ServiceManager.AppCore
 @using System.Reactive.Disposables
 @using Microsoft.Extensions.Hosting
+@using Tauron.Application.ServiceManager.AppCore.Configuration
+
 @inherits LayoutComponentBase
 
 @inject IClusterConnectionTracker _cluster
 @inject IHostApplicationLifetime _lifetime
 @inject IRestartHelper _restartHelper
+@inject IDatabaseConfig _databaseConfig
 
 @implements IDisposable
 
@@ -14,31 +17,33 @@
     {
         <CascadingValue Value="@IsConnected" Name="IsConnected">
             <CascadingValue Value="@IsSelf" Name="IsSelf">
-                <MudAppBar Elevation="4" Dense="true">
-                    <MudSpacer/>
-                    @if (IsConnected && IsSelf)
-                    {
-                        <MudAlert Severity="Severity.Warning" Variant="Variant.Filled">Kein Cluster (Ein Knoten)</MudAlert>
-                    }
-                    else if (IsConnected && !IsSelf)
-                    {
-                        <MudAlert Severity="Severity.Success" Variant="Variant.Filled">Cluster Verbunden</MudAlert>
-                    }
-                    else
-                    {
-                        <MudAlert Severity="Severity.Error" Variant="Variant.Filled" OnClick="ShutDown">Cluster Nicht Verbunden. Neustart!</MudAlert>
-                    }
-                    <MudSpacer/>
-                    <MudButton Variant="Variant.Text" Link="/About" Color="Color.Secondary">About</MudButton>
-                </MudAppBar>
-                <MudDrawer Class="sidebar" Elevation="30" Open="true" ClipMode="DrawerClipMode.Docked">
-                    <NavMenu/>
-                </MudDrawer>
-                <MudMainContent>
-                    <MudContainer MaxWidth="MaxWidth.False" Class="mt-4">
-                        @Body
-                    </MudContainer>
-                </MudMainContent>
+                <CascadingValue Value="@IsDatabaseReady" Name="IsDatabaseReady">
+                    <MudAppBar Elevation="4" Dense="true">
+                        <MudSpacer/>
+                        @if (IsConnected && IsSelf)
+                        {
+                            <MudAlert Severity="Severity.Warning" Variant="Variant.Filled">Kein Cluster (Ein Knoten)</MudAlert>
+                        }
+                        else if (IsConnected && !IsSelf)
+                        {
+                            <MudAlert Severity="Severity.Success" Variant="Variant.Filled">Cluster Verbunden</MudAlert>
+                        }
+                        else
+                        {
+                            <MudAlert Severity="Severity.Error" Variant="Variant.Filled" OnClick="ShutDown">Cluster Nicht Verbunden. Neustart!</MudAlert>
+                        }
+                        <MudSpacer/>
+                        <MudButton Variant="Variant.Text" Link="/About" Color="Color.Secondary">About</MudButton>
+                    </MudAppBar>
+                    <MudDrawer Elevation="30" Open="true" ClipMode="DrawerClipMode.Docked">
+                        <NavMenu/>
+                    </MudDrawer>
+                    <MudMainContent>
+                        <MudContainer MaxWidth="MaxWidth.False" Class="mt-4">
+                            @Body
+                        </MudContainer>
+                    </MudMainContent>
+                </CascadingValue>
             </CascadingValue>
         </CascadingValue>
     }
@@ -58,6 +63,8 @@
 
     private bool IsSelf { get; set; }
 
+    private bool IsDatabaseReady { get; set; }
+
     private AppIp AppIp { get; set; } = AppIp.Invalid;
 
     protected override void OnInitialized()
@@ -69,6 +76,14 @@
                                InvokeAsync(StateHasChanged);
                            })
                 .DisposeWith(_disposer);
+
+        _databaseConfig.WhenAny(() => _databaseConfig.IsReady)
+                       .Subscribe(b =>
+                                  {
+                                      IsDatabaseReady = b;
+                                      InvokeAsync(StateHasChanged);
+                                  })
+                       .DisposeWith(_disposer);
 
         IsSelf = _cluster.IsSelf;
         AppIp = _cluster.Ip;

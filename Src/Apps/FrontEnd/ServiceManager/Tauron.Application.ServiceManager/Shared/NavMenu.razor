@@ -1,27 +1,18 @@
-﻿<MudDivider Class="mb-4"></MudDivider>
+﻿
+@inherits ConnectionAwareComponent
+
+<MudDivider Class="mb-4"></MudDivider>
 <MudNavMenu>
-    
     <MudNavLink Href="" Match="NavLinkMatch.All">Übersicht</MudNavLink>
+    <MudBadge Icon="@_configError">
+        <MudNavLink Href="/AppConfiguration"></MudNavLink>
+    </MudBadge>
 </MudNavMenu>
 
-@*<div class="top-row pl-4 navbar navbar-dark">
-    <a class="navbar-brand" href="">Service Manager</a>
-    <button class="navbar-toggler" @onclick="ToggleNavMenu">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-</div>
-
-<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
-    <ul class="nav flex-column">
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="oi oi-home" aria-hidden="true"></span> Home
-            </NavLink>
-        </li>
-    </ul>
-</div>*@
-
 @code {
+
+    private string? _configError;
+    
     private bool _collapseNavMenu = true;
 
     private string? NavMenuCssClass => _collapseNavMenu ? "collapse" : null;
@@ -30,4 +21,8 @@
     {
         _collapseNavMenu = !_collapseNavMenu;
     }
+
+    protected override void OnParametersSet() 
+        => _configError = IsDatabaseReady ? null : Icons.Material.Filled.Warning;
+
 }

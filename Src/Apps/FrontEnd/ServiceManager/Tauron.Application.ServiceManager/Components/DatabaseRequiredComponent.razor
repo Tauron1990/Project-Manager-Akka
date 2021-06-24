@@ -1,0 +1,14 @@
+﻿
+@inherits ConnectionAwareComponent
+
+
+
+@code {
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public string ErrorMessage { get; set; } = "Mongo Datenbank ist für die Benutzung der funktion nötig";
+
+}
