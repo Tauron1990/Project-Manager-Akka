@@ -1,8 +1,11 @@
+using Autofac;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
+using Microsoft.JSInterop;
 using MudBlazor.Services;
 using ServiceHost.Client.Shared;
 using Tauron.Application.AkkaNode.Bootstrap;
@@ -37,7 +40,14 @@ namespace Tauron.Application.ServiceManager
                                {
                                    ServiceRegistry.Start(system, new RegisterService(context.HostEnvironment.ApplicationName, cluster.SelfUniqueAddress, ServiceTypes.ServiceManager));
                                })
-               .AddModule<MainModule>()
+                   .ConfigureAutoFac(cb =>
+                                     {
+                                         //Workaround Constructor Selection
+                                         cb.RegisterType<ResizeObserver>().As<IResizeObserver>()
+                                           .UsingConstructor(typeof(IJSRuntime), typeof(IOptions<ResizeObserverOptions>))
+                                           .InstancePerLifetimeScope();
+                                     })
+                   .AddModule<MainModule>()
                    .MapHostEnviroment(Environment)
                    .StartNode(KillRecpientType.Frontend, IpcApplicationType.NoIpc, true)
                    .AddStateManagment(typeof(Startup).Assembly);

@@ -1,0 +1,38 @@
+﻿
+<MudContainer MaxWidth="MaxWidth.Medium">
+    @if (!string.IsNullOrWhiteSpace(Title))
+    {
+        <MudText Typo="Typo.h3">@Title</MudText>
+    }
+    <MudText>@Content</MudText>
+    @if (CanCancel)
+    {
+        <MudButtonGroup>
+            <MudButton OnClick="@CancelClick">Abbrechen</MudButton>
+            <MudButton OnClick="@OkClick">Ok</MudButton>
+        </MudButtonGroup>
+    }
+    else
+    {
+        <MudButton OnClick="@OkClick">Ok</MudButton>
+    }
+</MudContainer>
+
+@code {
+
+    [Parameter]
+    public Action<bool?>? ResultAction { get; set; }
+
+    [Parameter]
+    public string? Title { get; set; }
+
+    [Parameter]
+    public string Content { get; set; } = string.Empty;
+
+    [Parameter]
+    public bool CanCancel { get; set; }
+
+    private void CancelClick() => ResultAction?.Invoke(false);
+
+    private void OkClick() => ResultAction?.Invoke(true);
+}

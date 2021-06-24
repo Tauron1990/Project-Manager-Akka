@@ -12,7 +12,7 @@ using Tauron.Application.CommonUI.AppCore;
 namespace Tauron.Host
 {
     [PublicAPI]
-    public static class WpfHostExtensions
+    public static class AvaloniaHostExtensions
     {
         public static IActorApplicationBuilder UseAvalonia<TMainWindow>(this IActorApplicationBuilder hostBuilder,
             Action<AvaloniaConfiguration>? config = null)

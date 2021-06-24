@@ -39,8 +39,8 @@ namespace Tauron.Application.Avalonia
             return new AvaloniaWindow(window);
         }
 
-        public override object CreateDefaultMessageContent(string title, string message, Action<bool?>? result,
-            bool canCnacel) => new MessageDialog(title, message, result, canCnacel);
+        public override object CreateDefaultMessageContent(string title, string message, Action<bool?>? result, bool canCnacel) 
+            => new MessageDialog(title, message, result, canCnacel);
 
         private sealed class AvaloniaDispatcher : IUIDispatcher
         {

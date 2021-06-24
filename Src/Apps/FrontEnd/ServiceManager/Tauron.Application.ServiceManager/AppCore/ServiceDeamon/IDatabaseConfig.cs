@@ -1,4 +1,4 @@
-﻿namespace Tauron.Application.ServiceManager.AppCore.Configuration
+﻿namespace Tauron.Application.ServiceManager.AppCore.ServiceDeamon
 {
     public interface IDatabaseConfig : IInternalObject
     {

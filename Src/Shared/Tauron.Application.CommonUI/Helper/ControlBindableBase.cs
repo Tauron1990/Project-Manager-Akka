@@ -17,11 +17,11 @@ namespace Tauron.Application.CommonUI.Helper
             return new CleanUpHelper(this);
         }
 
-        public IDisposable NewContext(object newContext)
-        {
-            Bind(newContext);
-            return new CleanUpHelper(this);
-        }
+        //public IDisposable NewContext(object newContext)
+        //{
+        //    Bind(newContext);
+        //    return new CleanUpHelper(this);
+        //}
 
         protected abstract void CleanUp();
 

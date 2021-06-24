@@ -1,8 +1,10 @@
 ﻿using Autofac;
 using Tauron.Application.ServiceManager.AppCore;
 using Tauron.Application.ServiceManager.AppCore.ClusterTracking;
-using Tauron.Application.ServiceManager.AppCore.Configuration;
 using Tauron.Application.ServiceManager.AppCore.Helper;
+using Tauron.Application.ServiceManager.AppCore.ServiceDeamon;
+using Tauron.Application.ServiceManager.AppCore.Settings;
+using Tauron.Application.Settings;
 using Tauron.Features;
 
 namespace Tauron.Application.ServiceManager
@@ -11,6 +13,9 @@ namespace Tauron.Application.ServiceManager
     {
         protected override void Load(ContainerBuilder builder)
         {
+            builder.RegisterSettingsManager(c => c.WithProvider<LocalConfigurationProvider>());
+            builder.RegisterType<LocalConfiguration>().As<ILocalConfiguration>().SingleInstance();
+
             builder.RegisterType<ClusterConnectionTracker>().As<IClusterConnectionTracker>();
             builder.RegisterType<DatabaseConfig>().As<IDatabaseConfig>();
 

@@ -1,14 +1,30 @@
 ﻿
 @inherits ConnectionAwareComponent
 
-
+@if (IsDatabaseReady)
+{
+    @DatabaseContent
+}
+else
+{
+    @if (NoDatabaseContent == null)
+    {
+        <MudText>@DefaultMessage</MudText>
+    }
+    else
+    {
+        @NoDatabaseContent
+    }
+}
 
 @code {
 
-    [Parameter]
-    public RenderFragment? ChildContent { get; set; }
+        private const string DefaultMessage = "Mongo Datenbank ist für die Benutzung der funktion nötig";
 
     [Parameter]
-    public string ErrorMessage { get; set; } = "Mongo Datenbank ist für die Benutzung der funktion nötig";
+    public RenderFragment? DatabaseContent { get; set; }
+
+    [Parameter]
+    public RenderFragment? NoDatabaseContent { get; set; }
 
 }
