@@ -37,6 +37,14 @@ namespace Tauron
 
             return memberExpression.Member.Name;
         }
+
+        public static string PropertyName<TIn, T>(Expression<Func<TIn, T>> propertyExpression)
+        {
+            Argument.NotNull(propertyExpression, nameof(propertyExpression));
+            var memberExpression = (MemberExpression)propertyExpression.Body;
+
+            return memberExpression.Member.Name;
+        }
     }
 
     [PublicAPI]

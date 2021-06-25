@@ -4,74 +4,112 @@
 @using System.Reactive.Disposables
 @using Autofac
 @using Tauron.Application.Blazor.UI
+@using System.Reactive
+@using System.Reactive.Linq
+@using System.Reactive.Subjects
 
 @typeparam TModel
 
-@implements IBinderControllable
-@implements Tauron.Akka.IResourceHolder
+@implements IActorComponent
 
-@inject ILifetimeScope _lifetimeScope;
+@inject ILifetimeScope _lifetimeScope
+
+<CascadingValue Value="Model">
+    @ChildContent
+</CascadingValue>
 
 @code {
 
     private readonly CompositeDisposable _disposable = new();
     private readonly Dictionary<string, Registration> _registrations = new();
+    private readonly Subject<Unit> _load = new();
+    private readonly Subject<Unit> _unload = new();
+
     private IViewModel<TModel>? _model;
+    private BindEngine<TModel>? _engine;
 
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
     [Parameter]
-    public EventCallback<IViewModel<TModel>> ModelLoaded { get; set; }
+    public BindEngine<TModel> Engine
+    {
+        get => _engine ??= new BindEngine<TModel>();
+        set => _engine = value;
+    }
 
     void IResourceHolder.AddResource(IDisposable res) => _disposable.Add(res);
     void IResourceHolder.RemoveResources(IDisposable res) => _disposable.Remove(res);
 
     public void Dispose() => _disposable.Dispose();
 
-    async void IBinderControllable.Register(string key, IControlBindable bindable, IUIObject affectedPart)
+    void IBinderControllable.Register(string key, IControlBindable bindable, IUIObject affectedPart)
     {
         if (_model == null)
             throw new InvalidOperationException("Mode is Not set");
 
-        try
-        {
-            var model = await GetModel();
+        var model = Model;
 
-            lock (_registrations)
-            {
-                var registration = new Registration(bindable.Bind(new ComponentUIObject(this, null), affectedPart, model), bindable);
-                _registrations[key] = registration;
-                _disposable.Add(registration.Binding);
-            }
-        }
-        catch (Exception e)
+        lock (_registrations)
         {
-  
+            var registration = new Registration(bindable.Bind(new ComponentUIObject(this, null, model), affectedPart, model), bindable);
+            _registrations[key] = registration;
+            _disposable.Add(registration.Binding);
         }
+    }
+
+    protected override void OnInitialized()
+    {
+        _load.OnNext(Unit.Default);
+        _load.OnCompleted();
+
+        _disposable.Add(_load);
+        _disposable.Add(Disposable.Create(() =>
+                                          {
+                                              _unload.OnNext(Unit.Default);
+                                              _unload.OnCompleted();
+                                              _unload.Dispose();
+                                          }));
+
+        base.OnInitialized();
+    }
+
+    protected override void OnParametersSet()
+    {
+        Engine.Initialize(this);
+        base.OnParametersSet();
     }
 
     void IBinderControllable.CleanUp(string key)
     {
         if (!_registrations.Remove(key, out var registration)) return;
-        
+
         _disposable.Remove(registration.Binding);
         registration.Binding.Dispose();
     }
 
-    private async Task<IViewModel<TModel>> GetModel()
+    private IViewModel<TModel> Model
     {
-        lock (_registrations)
+        get
         {
-            if (_model == null)
+            lock (_registrations)
             {
-                _model = _lifetimeScope.Resolve<IViewModel<TModel>>();
+                _model ??= _lifetimeScope.Resolve<IViewModel<TModel>>();
             }
+            
+            return _model;
         }
-
-        await ModelLoaded.InvokeAsync(_model);
-        return _model;
     }
+
+    IObservable<Unit> IActorComponent.Loaded => _load.AsObservable();
+
+    IObservable<Unit> IActorComponent.Unloaded => _unload.AsObservable();
+
+    Task IActorComponent.InvokeAsync(Action action)
+        => InvokeAsync(action);
+
+    void IActorComponent.StateHasChanged()
+        => StateHasChanged();
 
     private sealed record Registration(IDisposable Binding, IControlBindable Binder);
 
