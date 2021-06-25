@@ -43,16 +43,16 @@ namespace Tauron.Application.AspIntegration
                                               .SingleInstance();
                                         })
                       .Build(ConfigurationOptions.ResolveFromContainer).Run();
-            var lifeTime = ActorApplication.Application.Continer.Resolve<IAspLifetime>();
+            var lifeTime = ActorApplication.Application.Container.Resolve<IAspLifetime>();
 
             lifeTime.ApplicationStopping.Register(() =>
                                                   {
                                                       if(!task.IsCompleted)
-                                                          ActorApplication.Application.Continer.Resolve<IApplicationLifetime>().Shutdown(0);
+                                                          ActorApplication.Application.Container.Resolve<IApplicationLifetime>().Shutdown(0);
                                                   });
             task.ContinueWith(_ => lifeTime.StopApplication());
             
-            return new AutofacServiceProvider(ActorApplication.Application.Continer);
+            return new AutofacServiceProvider(ActorApplication.Application.Container);
         }
     }
 }

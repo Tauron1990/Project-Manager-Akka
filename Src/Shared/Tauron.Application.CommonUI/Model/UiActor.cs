@@ -291,7 +291,7 @@ namespace Tauron.Application.CommonUI.Model
                     _commandRegistrations.Add(key,
                         new CommandRegistration(command, () => actorCommand.CanExecute()));
 
-                    return data.PropertyBase;
+                    return prop;
                 }, this);
 
         #endregion

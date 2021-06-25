@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="5.0.7" />
+    <PackageReference Include="MongoDB.Driver" Version="2.12.4" />
     <PackageReference Include="MudBlazor" Version="5.0.14" />
   </ItemGroup>
 
@@ -21,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Src\Shared\Tauron.Application.CommonUI\Tauron.Application.CommonUI.csproj" />
+    <ProjectReference Include="..\Tauron.Application.CommonUI\Tauron.Application.CommonUI.csproj" />
   </ItemGroup>
 
 </Project>

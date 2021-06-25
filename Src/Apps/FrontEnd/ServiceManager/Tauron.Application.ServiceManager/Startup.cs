@@ -11,6 +11,7 @@ using ServiceHost.Client.Shared;
 using Tauron.Application.AkkaNode.Bootstrap;
 using Tauron.Application.AkkaNode.Bootstrap.Console;
 using Tauron.Application.AspIntegration;
+using Tauron.Application.Blazor;
 using Tauron.Application.Master.Commands.KillSwitch;
 using Tauron.Application.Master.Commands.ServiceRegistry;
 using Tauron.Application.Workshop;
@@ -20,6 +21,8 @@ namespace Tauron.Application.ServiceManager
 {
     public class Startup
     {
+        //https://docs.microsoft.com/en-us/answers/questions/243420/blazor-server-app-downlaod-files-from-server.html
+
         public Startup(IHostEnvironment environment) => Environment = environment;
 
         private IHostEnvironment Environment { get; }
@@ -36,7 +39,8 @@ namespace Tauron.Application.ServiceManager
         [UsedImplicitly]
         public void ConfigureContainer(IActorApplicationBuilder builder)
         {
-            builder.OnMemberUp((context, system, cluster) =>
+            builder.AddBlazorMVVM()
+                   .OnMemberUp((context, system, cluster) =>
                                {
                                    ServiceRegistry.Start(system, new RegisterService(context.HostEnvironment.ApplicationName, cluster.SelfUniqueAddress, ServiceTypes.ServiceManager));
                                })

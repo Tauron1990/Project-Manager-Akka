@@ -16,7 +16,7 @@ namespace Tauron.Application.CommonUI.UI
 
         public AutoViewLocation(ILifetimeScope provider) => _provider = provider;
 
-        public static AutoViewLocation Manager => ActorApplication.Application.Continer.Resolve<AutoViewLocation>();
+        public static AutoViewLocation Manager => ActorApplication.Application.Container.Resolve<AutoViewLocation>();
 
         public static void AddPair(Type view, Type model) 
             => Views[model] = view;

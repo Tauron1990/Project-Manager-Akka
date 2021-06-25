@@ -1,61 +1,31 @@
 ﻿@page "/"
-@using Tauron.Application.ServiceManager.AppCore.ClusterTracking
-@using DynamicData
-@using System.Reactive.Linq
+@using System.Collections.Immutable
 
-@inherits DisposingComponent
+@inherits ActorHostComponent<IndexViewModel>
 
-@inject IClusterNodeManager _nodeManager;
+<Title Value="Knoten"/>
 
-<Title Value="Knoten" />
+<ActorComponent Engine="BindEngine">
+    <MudText Typo="Typo.h4" Class="m-1">Aktuelle Knoten:</MudText>
 
-<MudText Typo="Typo.h4" Class="m-1">Aktuelle Knoten:</MudText>
-
-<MudList>
-    @foreach (var info in _nodeInfos)
-    {
-        <MudListItem>
-            <ClusterNodeInfoView @key=info.Key NodeInfo="@info.Value"/>
-        </MudListItem>
-    }
-</MudList>
+    <MudList>
+        @foreach (var info in _nodeInfos.Value)
+        {
+            <MudListItem>
+                <ClusterNodeInfoView @key=info.Key NodeInfo="@info.Value"/>
+            </MudListItem>
+        }
+    </MudList>
+</ActorComponent>
 
 @code
 {
-    private readonly Dictionary<string, ClusterNodeInfo> _nodeInfos = new();
+    private ActiveBinding<ImmutableDictionary<string, ClusterNodeInfo>> _nodeInfos = ActiveBinding<ImmutableDictionary<string, ClusterNodeInfo>>.Empty;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        var set = await _nodeManager.GetMemberChangeSet(new GetAllMemberChangeset());
-        set.Observable
-           .Synchronize(_nodeInfos)
-           .ForEachChange(c =>
-                          {
-                              string url = c.Current.Member.Address.ToString();
-                              ClusterNodeInfo targetInfo;
-
-                              switch (c)
-                              {
-                                  case {Reason: ChangeReason.Add}:
-                                      targetInfo = new ClusterNodeInfo(c.Current.Member.Address.ToString(), c.Current);
-                                      _nodeInfos[url] = targetInfo;
-                                      InvokeAsync(StateHasChanged);
-                                      return;
-                                  case {Reason: ChangeReason.Remove}:
-                                      if (_nodeInfos.Remove(url))
-                                          InvokeAsync(StateHasChanged);
-                                      return;
-                                  default:
-                                      if (_nodeInfos.TryGetValue(url, out targetInfo!))
-                                          break;
-                                      return;
-                              }
-
-                              targetInfo.Update(c.Current);
-                          })
-           .Subscribe()
-           .DisposeWith(this);
-
+        _nodeInfos = Bind(ImmutableDictionary<string, ClusterNodeInfo>.Empty, m => m.NodeInfos);
+        base.OnInitialized();
     }
 }
 

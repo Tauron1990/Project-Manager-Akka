@@ -28,7 +28,7 @@ namespace Tauron.Application.CommonUI
 
         [NotNull]
         protected IUIDispatcher InternalUISynchronize { get; } =
-            ActorApplication.Application.Continer.Resolve<IUIDispatcher>();
+            ActorApplication.Application.Container.Resolve<IUIDispatcher>();
 
         public void AddRange(IEnumerable<TType> enumerable)
         {

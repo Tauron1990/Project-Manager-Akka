@@ -1,0 +1,16 @@
+﻿@typeparam TModel
+
+@using Tauron.Application.CommonUI
+@inherits ActorComponentBase<TModel>
+
+@ChildContent
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [CascadingParameter]
+    public IViewModel<TModel> RootModel { get; set; }
+
+    protected override IViewModel<TModel> Model => RootModel;
+}

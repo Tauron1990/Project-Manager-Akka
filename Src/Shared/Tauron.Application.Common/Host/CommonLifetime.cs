@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reactive;
 using System.Threading.Tasks;
 using Akka.Actor;
 using Autofac;
@@ -37,13 +38,30 @@ namespace Tauron.Host
                 _route = GetRoute(null);
             }
 
+            _route ??= new SimpleRoute();
+
             await _route.WaitForStartAsync(actorSystem);
             ShutdownTask = _route.ShutdownTask;
         }
 
         public Task ShutdownTask { get; private set; } = Task.CompletedTask;
 
-        private IAppRoute GetRoute(string? name)
-            => name == null ? _factory.Resolve<IAppRoute>() : _factory.ResolveNamed<IAppRoute>(name);
+        private IAppRoute? GetRoute(string? name)
+            => name == null ? _factory.ResolveOptional<IAppRoute>() : _factory.ResolveOptionalNamed<IAppRoute>(name);
+
+        private sealed class SimpleRoute : IAppRoute
+        {
+            private TaskCompletionSource<Unit> _shutdown = new();
+
+            public Task ShutdownTask { get; }
+
+            public SimpleRoute() => ShutdownTask = _shutdown.Task;
+
+            public Task WaitForStartAsync(ActorSystem actorSystem)
+            {
+                actorSystem.RegisterOnTermination(() => _shutdown.SetResult(Unit.Default));
+                return Task.CompletedTask;
+            }
+        }
     }
 }

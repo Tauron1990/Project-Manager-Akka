@@ -9,8 +9,7 @@ using Tauron.Application.CommonUI.ModelMessages;
 
 namespace Tauron.Application.CommonUI.UI
 {
-    public sealed class DeferredSource : ModelConnectorBase<DeferredSource>, INotifyPropertyChanged,
-        INotifyDataErrorInfo
+    public sealed class DeferredSource : ModelConnectorBase<DeferredSource>, INotifyPropertyChanged, INotifyDataErrorInfo
     {
         private string? _error;
         private bool _hasErrors;

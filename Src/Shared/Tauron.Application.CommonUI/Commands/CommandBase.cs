@@ -7,6 +7,8 @@ namespace Tauron.Application.CommonUI.Commands
     [PublicAPI]
     public abstract class CommandBase : ICommand
     {
+        public static readonly ICommand Empty = new SimpleCommand(() => { }); 
+
         private readonly WeakReferenceCollection<WeakDelegate> _referenceCollection = new();
 
         public event EventHandler? CanExecuteChanged

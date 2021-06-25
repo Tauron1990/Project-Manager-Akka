@@ -1,0 +1,22 @@
+﻿
+@inherits ActorHostComponent<ConfigurationViewModel>
+
+<ChildActorComponent Engine="BindEngine">
+    <div style="max-width: 1000px">
+        <MudCard >
+            <MudCardContent>
+                <MudForm>
+                    <MudTextFieldString DebounceInterval="200" Required="true" RequiredError="Keine Mogodb Url Angegeben" @bind-Value="_databaseUrl.Value" />
+                </MudForm>
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton ButtonType="ButtonType.Reset">Zurücksetzen</MudButton>
+                <MudButton ButtonType="ButtonType.Submit">Speichern</MudButton>
+            </MudCardActions>
+        </MudCard>
+    </div>
+</ChildActorComponent>
+
+@code {
+    private ActiveBinding<string> _databaseUrl = ActiveBinding<string>.Empty;
+}

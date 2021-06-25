@@ -1,0 +1,19 @@
+﻿@using System.Windows.Input
+@using Tauron.Application.CommonUI.Commands
+@inherits ActorHostComponent<CounterViewModel>
+
+<ChildActorComponent Engine="@BindEngine">
+    <button class="btn btn-primary" @onclick="_increment.Value.Execute">Click me</button>
+</ChildActorComponent>
+
+@code {
+    private ActiveBinding<ICommand> _increment = ActiveBinding<ICommand>.Empty;
+
+    protected override void OnInitialized()
+    {
+        _increment = Bind(CommandBase.Empty, m => m.Command);
+
+        base.OnInitialized();
+    }
+
+}

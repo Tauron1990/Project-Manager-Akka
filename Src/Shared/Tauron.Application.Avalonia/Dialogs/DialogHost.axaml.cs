@@ -24,7 +24,7 @@ namespace Tauron.Application.Avalonia.Dialogs
             InitializeComponent();
 
             var coordinator =
-                (IDialogCoordinatorUIEvents) ActorApplication.Application.Continer.Resolve<IDialogCoordinator>();
+                (IDialogCoordinatorUIEvents) ActorApplication.Application.Container.Resolve<IDialogCoordinator>();
 
             coordinator.HideDialogEvent += () =>
             {

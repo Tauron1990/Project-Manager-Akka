@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Tauron.Application.Blazor;
 
 namespace Tauron.Application.ServiceManager.Components
 {
-    public abstract class ConnectionAwareComponent : DisposingComponent
+    public abstract class ConnectionAwareComponent : DispoableComponent
     {
         [CascadingParameter(Name = "IsSelf")]
         public bool IsSelf { get; set; }

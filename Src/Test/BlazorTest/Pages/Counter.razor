@@ -1,0 +1,20 @@
+﻿@page "/counter"
+
+@using System.Windows.Input
+@using JetBrains.Annotations
+@using Tauron.Application.CommonUI.Commands
+@inherits ActorHostComponent<CounterViewModel>
+
+<ActorComponent Engine="@BindEngine">
+    <h1>Counter</h1>
+
+    <CounterDisplay/>
+    <IncrementerDisplay/>
+
+</ActorComponent>
+
+@code {
+
+
+
+}

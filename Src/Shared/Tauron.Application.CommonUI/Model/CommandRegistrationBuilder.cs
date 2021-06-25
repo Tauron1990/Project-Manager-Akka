@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Windows.Input;
 using JetBrains.Annotations;
 using Tauron.Akka;
 
@@ -11,11 +12,11 @@ namespace Tauron.Application.CommonUI.Model
     public sealed class CommandRegistrationBuilder
     {
         private readonly List<IObservable<bool>> _canExecute = new();
-        private readonly Func<string, Action<object?>, IObservable<bool>?, UIPropertyBase> _register;
+        private readonly Func<string, Action<object?>, IObservable<bool>?, UIProperty<ICommand>> _register;
 
         private Delegate? _command;
 
-        internal CommandRegistrationBuilder(Func<string, Action<object?>, IObservable<bool>?, UIPropertyBase> register, IObservableActor target)
+        internal CommandRegistrationBuilder(Func<string, Action<object?>, IObservable<bool>?, UIProperty<ICommand>> register, IObservableActor target)
         {
             Target = target;
             _register = register;
@@ -79,7 +80,7 @@ namespace Tauron.Application.CommonUI.Model
             return this;
         }
 
-        public UIPropertyBase? ThenRegister(string name)
+        public UIProperty<ICommand>? ThenRegister(string name)
         {
             if (_command == null) return null;
 

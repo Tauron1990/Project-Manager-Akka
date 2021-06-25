@@ -2,10 +2,11 @@
 using System.Reactive;
 using System.Reactive.Linq;
 using Tauron.Application.CommonUI;
+using Tauron.Application.CommonUI.Helper;
 
 namespace Tauron.Application.Blazor.UI
 {
-    public sealed class ComponentUIObject : IUIElement
+    public sealed class ComponentUIObject : IView, IUIElement
     {
         private readonly IActorComponent _target;
         private readonly IUIObject? _parent;
@@ -15,6 +16,8 @@ namespace Tauron.Application.Blazor.UI
             _target = target;
             _parent = parent;
             DataContext = model;
+
+            _target.Unloaded.Subscribe(_ => ControlUnload?.Invoke());
         }
 
         public object Object => _target;
@@ -28,5 +31,11 @@ namespace Tauron.Application.Blazor.UI
         public IObservable<Unit> Loaded => _target.Loaded;
 
         public IObservable<Unit> Unloaded => _target.Unloaded;
+
+        public void Register(string key, IControlBindable bindable, IUIObject affectedPart) => _target.Register(key, bindable, affectedPart);
+
+        public void CleanUp(string key) => _target.CleanUp(key);
+
+        public event Action? ControlUnload;
     }
 }

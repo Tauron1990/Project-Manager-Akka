@@ -24,10 +24,10 @@ namespace Tauron.Host
     {
         private static ActorApplication? _actorApplication;
 
-        internal ActorApplication(IContainer continer, ActorSystem actorSystem)
+        internal ActorApplication(IContainer container, ActorSystem actorSystem)
         {
             _actorApplication = this;
-            Continer = continer;
+            Container = container;
             ActorSystem = actorSystem;
         }
 
@@ -35,12 +35,12 @@ namespace Tauron.Host
 
         public static ActorApplication Application => Argument.NotNull(_actorApplication, nameof(Application));
 
-        public IContainer Continer { get; }
+        public IContainer Container { get; }
         public ActorSystem ActorSystem { get; }
 
         public void Dispose()
         {
-            Continer.Dispose();
+            Container.Dispose();
             ActorSystem.Dispose();
         }
 
@@ -71,8 +71,8 @@ namespace Tauron.Host
 
         public async Task Run()
         {
-            var lifeTime = Continer.Resolve<IHostLifetime>();
-            var hostAppLifetime = (ApplicationLifetime) Continer.Resolve<IHostApplicationLifetime>();
+            var lifeTime = Container.Resolve<IHostLifetime>();
+            var hostAppLifetime = (ApplicationLifetime) Container.Resolve<IHostApplicationLifetime>();
             await using (hostAppLifetime.ApplicationStopping.Register(() => ActorSystem.Terminate()))
             {
                 await lifeTime.WaitForStartAsync(ActorSystem);
@@ -81,7 +81,7 @@ namespace Tauron.Host
                 ActorSystem.RegisterOnTermination(hostAppLifetime.NotifyStopped);
                 await lifeTime.ShutdownTask;
                 await Task.WhenAny(ActorSystem.WhenTerminated, Task.Delay(TimeSpan.FromSeconds(60)));
-                Continer.Dispose();
+                Container.Dispose();
                 LogManager.Flush(TimeSpan.FromMinutes(1));
                 LogManager.Shutdown();
             }
@@ -167,7 +167,7 @@ namespace Tauron.Host
             //            if (!CanGet)
             //                throw new InvalidOperationException();
 
-            //            return _configuration ??= Application.Continer.Resolve<IEnumerable<IConfiguration>>().First();
+            //            return _configuration ??= Application.Container.Resolve<IEnumerable<IConfiguration>>().First();
             //        }
             //    }
 

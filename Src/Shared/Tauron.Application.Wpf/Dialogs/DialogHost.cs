@@ -38,7 +38,7 @@ namespace Tauron.Application.Wpf.Dialogs
                 return;
 
             var coordinator =
-                (IDialogCoordinatorUIEvents) ActorApplication.Application.Continer.Resolve<IDialogCoordinator>();
+                (IDialogCoordinatorUIEvents) ActorApplication.Application.Container.Resolve<IDialogCoordinator>();
 
             coordinator.HideDialogEvent += () =>
             {

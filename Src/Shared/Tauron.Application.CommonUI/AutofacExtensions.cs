@@ -19,6 +19,12 @@ namespace Tauron.Application.CommonUI
             AutoViewLocation.AddPair(typeof(TView), typeof(TModel));
 
             builder.RegisterType<TView>().As<TView>().InstancePerDependency();
+            return RegisterModel<TModel>(builder);
+        }
+
+        public static IRegistrationBuilder<ViewModelActorRef<TModel>, ConcreteReflectionActivatorData, SingleRegistrationStyle> RegisterModel<TModel>(this ContainerBuilder builder)
+            where TModel : UiActor
+        {
             return builder.RegisterType<ViewModelActorRef<TModel>>().As<IViewModel<TModel>>()
                           .Keyed<IViewModel>(typeof(TModel)).InstancePerLifetimeScope()
                           .OnRelease(vm =>
