@@ -1,22 +1,30 @@
 ﻿
-<MudContainer MaxWidth="MaxWidth.Medium">
-    @if (!string.IsNullOrWhiteSpace(Title))
-    {
-        <MudText Typo="Typo.h3">@Title</MudText>
-    }
-    <MudText>@Content</MudText>
-    @if (CanCancel)
-    {
-        <MudPaper Class="pa-4 justify-center my-4 mud-text-align-center">
-            <MudButton OnClick="@CancelClick">Abbrechen</MudButton>
-            <MudButton OnClick="@OkClick">Ok</MudButton>
-        </MudPaper>
-    }
-    else
-    {
-        <MudButton OnClick="@OkClick">Ok</MudButton>
-    }
-</MudContainer>
+<MudDialog>
+    <MudContainer MaxWidth="MaxWidth.Medium">
+        @if (!string.IsNullOrWhiteSpace(Title))
+        {
+            <TitleContent>
+                <MudText Typo="Typo.h3">@Title</MudText>
+            </TitleContent>
+        }
+        <DialogContent>
+            <MudText>@Content</MudText>
+        </DialogContent>
+        @if (CanCancel)
+        {
+            <DialogActions>
+                <MudButton OnClick="@CancelClick">Abbrechen</MudButton>
+                <MudButton OnClick="@OkClick">Ok</MudButton>
+            </DialogActions>
+        }
+        else
+        {
+            <DialogActions>
+                <MudButton OnClick="@OkClick">Ok</MudButton>
+            </DialogActions>
+        }
+    </MudContainer>
+</MudDialog>
 
 @code {
 

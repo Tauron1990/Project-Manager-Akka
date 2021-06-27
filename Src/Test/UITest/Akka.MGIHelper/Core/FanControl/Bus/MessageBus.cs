@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive;
 using System.Threading.Tasks;
 using Tauron.Features;
 
@@ -10,7 +9,6 @@ namespace Akka.MGIHelper.Core.FanControl.Bus
     public sealed class MessageBus : IDisposable
     {
         private readonly Dictionary<Type, List<object>> _handlers = new();
-        private readonly object _lock = new();
 
         public void Dispose()
         {
@@ -30,10 +28,9 @@ namespace Akka.MGIHelper.Core.FanControl.Bus
                 _handlers.TryAdd(msgType, new List<object> {handler});
         }
 
-        public async Task<Unit> Publish<TMsg>(TMsg msg)
+        public async Task Publish<TMsg>(TMsg msg)
         {
             foreach (var handler in _handlers[typeof(TMsg)].OfType<IHandler<TMsg>>()) await handler.Handle(msg, this).ConfigureAwait(false);
-            return Unit.Default;
         }
 
         public async Task<TState> Publish<TState, TMsg>(StatePair<TMsg, TState> msg)

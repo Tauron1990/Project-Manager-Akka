@@ -14,7 +14,7 @@ namespace Akkatecture.Extensions
             var key = new CacheKey(name, data.GetType());
             return _propertys.GetOrAdd(key, c =>
             {
-                var fac = FastReflection.Shared.GetPropertyAccessor(c.Type.GetProperty(c.Name), Array.Empty<Type>);
+                var fac = FastReflection.Shared.GetPropertyAccessor(c.Type.GetProperty(c.Name) ?? throw new ArgumentNullException(nameof(name), "Property not Found"), Array.Empty<Type>);
 
                 if (fac == null)
                     throw new InvalidOperationException("no Factory Created");
@@ -28,7 +28,7 @@ namespace Akkatecture.Extensions
             var key = new CacheKey(name, data.GetType());
             return (TReturn) _propertys.GetOrAdd(key, c =>
             {
-                var fac = FastReflection.Shared.GetPropertyAccessor(c.Type.GetProperty(c.Name), Array.Empty<Type>);
+                var fac = FastReflection.Shared.GetPropertyAccessor(c.Type.GetProperty(c.Name) ?? throw new ArgumentNullException(nameof(name), "Property not Found"), Array.Empty<Type>);
 
                 if (fac == null)
                     throw new InvalidOperationException("no Factory Created");
@@ -51,7 +51,7 @@ namespace Akkatecture.Extensions
 
             public bool Equals(CacheKey? other)
             {
-                if (ReferenceEquals(null, other)) return false;
+                if (other is null) return false;
                 if (ReferenceEquals(this, other)) return true;
                 return Name == other.Name && Type == other.Type;
             }

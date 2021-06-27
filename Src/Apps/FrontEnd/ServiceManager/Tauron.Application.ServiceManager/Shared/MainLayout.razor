@@ -5,6 +5,8 @@
 
 @inherits LayoutComponentBase
 
+@inject IEventAggregator _aggregator
+@inject ISnackbar _snackbar
 @inject IClusterConnectionTracker _cluster
 @inject IHostApplicationLifetime _lifetime
 @inject IRestartHelper _restartHelper
@@ -13,6 +15,10 @@
 @implements IDisposable
 
 <MudLayout>
+    <MudThemeProvider/>
+    <ActorMudDialogProvider/>
+    <MudSnackbarProvider/>
+    
     @if (AppIp.IsValid)
     {
         <CascadingValue Value="@IsConnected" Name="IsConnected">
@@ -69,6 +75,10 @@
 
     protected override void OnInitialized()
     {
+        _aggregator.ConsumeMessages()
+                   .Subscribe(m => m.Apply(_snackbar))
+                   .DisposeWith(_disposer);
+
         _cluster.WhenAny(() => _cluster.IsConnected)
                 .Subscribe(b =>
                            {

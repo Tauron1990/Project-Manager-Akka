@@ -1,4 +1,5 @@
-﻿
+﻿@using System.Windows.Input
+@using Tauron.Application.CommonUI.Commands
 @inherits ActorHostComponent<ConfigurationViewModel>
 
 <ChildActorComponent Engine="BindEngine">
@@ -6,12 +7,13 @@
         <MudCard >
             <MudCardContent>
                 <MudForm>
-                    <MudTextFieldString DebounceInterval="200" Required="true" RequiredError="Keine Mogodb Url Angegeben" @bind-Value="_databaseUrl.Value" />
+                    <MudTextFieldString DebounceInterval="200" Required="true" RequiredError="Keine Mogodb Url Angegeben" @bind-Value="_databaseUrl.Value" 
+                                        Error="@_databaseUrl.HasErrors" ErrorText="@_databaseUrl.Error"/>
                 </MudForm>
             </MudCardContent>
             <MudCardActions>
-                <MudButton ButtonType="ButtonType.Reset">Zurücksetzen</MudButton>
-                <MudButton ButtonType="ButtonType.Submit">Speichern</MudButton>
+                <MudButton ButtonType="ButtonType.Reset" Command="@_resetCommad.Value">Zurücksetzen</MudButton>
+                <MudButton ButtonType="ButtonType.Submit" Command="@_submitCommand.Value">Speichern</MudButton>
             </MudCardActions>
         </MudCard>
     </div>
@@ -19,4 +21,18 @@
 
 @code {
     private ActiveBinding<string> _databaseUrl = ActiveBinding<string>.Empty;
+
+    private ActiveBinding<ICommand> _resetCommad = ActiveBinding<ICommand>.Empty;
+
+    private ActiveBinding<ICommand> _submitCommand = ActiveBinding<ICommand>.Empty;
+
+    protected override void OnInitialized()
+    {
+        _databaseUrl = Bind(string.Empty, m => m.MainDatabseUrl);
+        _resetCommad = Bind(CommandBase.Empty, m => m.ResetMainDatabaseUrl);
+        _submitCommand = Bind(CommandBase.Empty, m => m.UpdateMainDatabaseUrl);
+
+        base.OnInitialized();
+    }
+
 }

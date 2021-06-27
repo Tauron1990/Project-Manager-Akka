@@ -4,7 +4,7 @@ using JetBrains.Annotations;
 namespace Tauron.Host
 {
     [PublicAPI]
-    public interface IHostApplicationLifetime
+    public interface IActorApplicationLifetime
     {
         CancellationToken ApplicationStarted { get; }
 

@@ -7,7 +7,7 @@ using JetBrains.Annotations;
 namespace Tauron.Application
 {
     [PublicAPI]
-    public abstract class SharedEvent<TPayload> : IDisposable
+    public class SharedEvent<TPayload> : IDisposable
     {
         private readonly Subject<TPayload> _handlerList = new();
 

@@ -6,6 +6,6 @@
 
         public bool IsReady { get; }
 
-        void SetUrl(string url);
+        bool SetUrl(string url);
     }
 }

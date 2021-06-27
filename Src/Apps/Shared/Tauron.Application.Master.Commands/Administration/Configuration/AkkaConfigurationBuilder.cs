@@ -2,12 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Text;
 using Akka.Configuration;
+using NLog;
 
 namespace Tauron.Application.Master.Commands.Administration.Configuration
 {
     public static class AkkaConfigurationBuilder
     {
+        private static ILogger Log = LogManager.GetCurrentClassLogger();
+
         public const string Base = "base.conf";
         public const string Main = "akka.conf";
         public const string Seed = "seed.conf";
@@ -20,5 +24,42 @@ namespace Tauron.Application.Master.Commands.Administration.Configuration
 
             return Observable.Return(newConfig.ToString(true));
         }
+
+        public static string ApplyMongoUrl(string dat, string baseConfig, string url)
+        {
+            Log.Info("Update AppBase Configuration");
+
+            const string snapshot = "akka.persistence.snapshot-store.plugin = \"akka.persistence.snapshot-store.mongodb\"";
+            const string journal = "akka.persistence.journal.plugin = \"akka.persistence.journal.mongodb\"";
+
+            const string connectionSnapshot = "akka.persistence.snapshot-store.mongodb.connection-string = \"{0}\"";
+            const string connectionJournal = "akka.persistence.journal.mongodb.connection-string = \"{0}\"";
+
+            var currentConfiguration = ConfigurationFactory.ParseString(dat);
+
+            var hasBase = currentConfiguration.HasPath("akka.persistence.journal.mongodb.connection-string ")
+                       || currentConfiguration.HasPath("akka.persistence.snapshot-store.mongodb.connection-string");
+
+            if (!hasBase)
+            {
+                Log.Info("Apply Default Configuration");
+                currentConfiguration = ConfigurationFactory.ParseString(baseConfig).WithFallback(currentConfiguration);
+            }
+
+            var builder = new StringBuilder();
+
+            builder
+               .AppendLine(snapshot)
+               .AppendLine(journal)
+               .AppendFormat(connectionSnapshot, url).AppendLine()
+               .AppendFormat(connectionJournal, url).AppendLine();
+
+            currentConfiguration = ConfigurationFactory.ParseString(builder.ToString()).WithFallback(currentConfiguration);
+
+            Log.Info("AppBase Configuration Updated");
+
+            return currentConfiguration.ToString(true);
+        }
+        
     }
 }

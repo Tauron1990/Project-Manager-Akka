@@ -9,9 +9,9 @@ namespace Tauron.Application.Blazor
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType<DialogCoordinator>().As<IDialogCoordinator>();
+            builder.RegisterType<DialogCoordinator>().As<IDialogCoordinator>().InstancePerLifetimeScope();
             builder.RegisterInstance(BlazorFramework.Dispatcher).As<IUIDispatcher>();
-            builder.RegisterType<BlazorFramework>().As<CommonUIFramework>();
+            builder.RegisterType<BlazorFramework>().As<CommonUIFramework>().InstancePerLifetimeScope();
         }
     }
 }

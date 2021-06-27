@@ -18,7 +18,7 @@ namespace Tauron.Application.Blazor
         private readonly BehaviorSubject<bool> _load = new(false);
         private readonly BehaviorSubject<bool> _unload = new(false);
 
-        private ActorComponentLogic _logic;
+        private ActorComponentLogic? _logic;
         private BindEngine<TModel>? _engine;
 
         [Parameter]
@@ -28,24 +28,15 @@ namespace Tauron.Application.Blazor
             set => _engine = value;
         }
 
-        public ActorComponentBase()
+        protected ActorComponentBase()
         {
         }
 
         void IBinderControllable.Register(string key, IControlBindable bindable, IUIObject affectedPart)
         {
+            if (_logic == null)
+                throw new InvalidOperationException("ActorComponentLogic not Initialized");
             _logic.Register(key, bindable, affectedPart);
-            //lock (_registrations)
-            //{
-            //    var model = Model;
-
-            //    if (model == null)
-            //        throw new InvalidOperationException("Mode is Not set");
-
-            //    var registration = new Registration(bindable.Bind(new ComponentUIObject(this, null, model), affectedPart, model), bindable);
-            //    _registrations[key] = registration;
-            //    registration.Binding.DisposeWith(this);
-            //}
         }
 
         protected override void OnInitialized()
@@ -74,14 +65,9 @@ namespace Tauron.Application.Blazor
 
         void IBinderControllable.CleanUp(string key)
         {
+            if (_logic == null)
+                throw new InvalidOperationException("ActorComponentLogic not Initialized");
             _logic.CleanUp(key);
-            //lock (_registrations)
-            //{
-            //    if (!_registrations.Remove(key, out var registration)) return;
-
-            //    ((IResourceHolder)this).RemoveResources(registration.Binding);
-            //    registration.Binding.Dispose();
-            //}
         }
 
         protected virtual IViewModel<TModel> Model => throw new InvalidOperationException("Model Property was not Overriden");

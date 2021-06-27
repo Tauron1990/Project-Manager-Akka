@@ -18,6 +18,7 @@ namespace Tauron.Application.CommonUI.Model
         public abstract IObservable<Error?> Validator { get; }
 
         public abstract IObservable<Unit> PropertyValueChanged { get; }
+
         protected internal abstract object? ObjectValue { get; set; }
 
         protected internal abstract UIPropertyBase LockSet();

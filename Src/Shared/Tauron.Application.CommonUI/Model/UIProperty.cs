@@ -25,6 +25,8 @@ namespace Tauron.Application.CommonUI.Model
         {
             _disposable.Add(_currentError);
             _disposable.Add(_currentValue);
+
+
         }
 
         public override IObservable<Error?> Validator => _currentError;

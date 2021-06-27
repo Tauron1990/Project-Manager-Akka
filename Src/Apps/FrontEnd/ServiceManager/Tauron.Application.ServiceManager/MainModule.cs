@@ -5,6 +5,7 @@ using Tauron.Application.ServiceManager.AppCore.ClusterTracking;
 using Tauron.Application.ServiceManager.AppCore.Helper;
 using Tauron.Application.ServiceManager.AppCore.ServiceDeamon;
 using Tauron.Application.ServiceManager.AppCore.Settings;
+using Tauron.Application.ServiceManager.Components.Dialog;
 using Tauron.Application.ServiceManager.ViewModels;
 using Tauron.Application.Settings;
 using Tauron.Features;
@@ -15,10 +16,12 @@ namespace Tauron.Application.ServiceManager
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterModel<IndexViewModel>();
+            builder.RegisterModel<IndexViewModel>().InstancePerLifetimeScope();
+            builder.RegisterModel<ConfigurationViewModel>().InstancePerLifetimeScope();
+            builder.RegisterType<ConfirmRestartDialog>().AsSelf();
 
             builder.RegisterSettingsManager(c => c.WithProvider<LocalConfigurationProvider>());
-            builder.RegisterType<LocalConfiguration>().As<ILocalConfiguration>().SingleInstance();
+            builder.RegisterType<LocalConfiguration>().As<ILocalConfiguration>();
 
             builder.RegisterType<ClusterConnectionTracker>().As<IClusterConnectionTracker>();
             builder.RegisterType<DatabaseConfig>().As<IDatabaseConfig>();

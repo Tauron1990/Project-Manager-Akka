@@ -2,6 +2,7 @@
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Reactive.Disposables;
+using System.Threading.Tasks;
 using Tauron.Application.Blazor.UI;
 using Tauron.Application.CommonUI.UI;
 
@@ -15,15 +16,15 @@ namespace Tauron.Application.Blazor
 
         private readonly object _lock = new();
 
+        private TData? _lastData;
+        private string? _lastError;
+
         private DeferredSource? _source;
         private IDisposable? _disposer;
         private Action? _updateState;
         private IDisposable? _subscription;
 
-        internal ActiveBinding(TData defaultValue)
-        {
-            _defaultValue = defaultValue;
-        }
+        internal ActiveBinding(TData defaultValue) => _defaultValue = defaultValue;
 
         public TData Value
         {
@@ -42,7 +43,7 @@ namespace Tauron.Application.Blazor
 
         public bool HasErrors => _source?.HasErrors ?? false;
 
-
+        public string? Error => _source?.Error;
 
         void IInternalbinding.Update(DeferredSource source, Action updateState)
         {
@@ -51,13 +52,31 @@ namespace Tauron.Application.Blazor
             _source = source;
             _updateState = updateState;
 
-            source.PropertyChanged += SourceOnPropertyChanged;    
-            _disposer = Disposable.Create(() => source.PropertyChanged -= SourceOnPropertyChanged);
+            source.PropertyChanged += SourceOnPropertyChanged;
+            source.ErrorsChanged += ErrorSourceOnErrorsChanged;
+            _disposer = Disposable.Create(() =>
+                                          {
+                                              source.PropertyChanged -= SourceOnPropertyChanged;
+                                              source.ErrorsChanged -= ErrorSourceOnErrorsChanged;
+                                          });
             UpdateSubscription();
+        }
+
+        private void ErrorSourceOnErrorsChanged(object? sender, DataErrorsChangedEventArgs e)
+        {
+            if(string.Equals(_lastError, Error, StringComparison.Ordinal)) return;
+            
+            _lastError = Error;
+            _updateState?.Invoke();
         }
 
         private void SourceOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
+            if(e.PropertyName != "Value") return;
+
+            if(_lastData?.Equals(Value) == true) return;
+            _lastData = Value;
+
             UpdateSubscription();
             _updateState?.Invoke();
         }

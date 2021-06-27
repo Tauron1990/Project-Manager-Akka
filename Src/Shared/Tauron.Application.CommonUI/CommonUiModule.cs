@@ -11,7 +11,7 @@ namespace Tauron.Application.CommonUI
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType<AppLifetime>().Named<IAppRoute>("default");
+            builder.RegisterType<AppLifetime>().Named<IAppRoute>("default").SingleInstance();
             builder.RegisterType<DialogCoordinator>().As<IDialogCoordinator>().SingleInstance();
 
             base.Load(builder);

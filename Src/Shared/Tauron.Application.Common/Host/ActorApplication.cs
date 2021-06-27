@@ -69,10 +69,10 @@ namespace Tauron.Host
                                          })
               .Configuration(cb => cb.AddJsonFile("appsettings.json", true, true));
 
-        public async Task Run()
+        public async Task Run(bool shutdown = true)
         {
             var lifeTime = Container.Resolve<IHostLifetime>();
-            var hostAppLifetime = (ApplicationLifetime) Container.Resolve<IHostApplicationLifetime>();
+            var hostAppLifetime = (ApplicationLifetime) Container.Resolve<IActorApplicationLifetime>();
             await using (hostAppLifetime.ApplicationStopping.Register(() => ActorSystem.Terminate()))
             {
                 await lifeTime.WaitForStartAsync(ActorSystem);
@@ -81,9 +81,13 @@ namespace Tauron.Host
                 ActorSystem.RegisterOnTermination(hostAppLifetime.NotifyStopped);
                 await lifeTime.ShutdownTask;
                 await Task.WhenAny(ActorSystem.WhenTerminated, Task.Delay(TimeSpan.FromSeconds(60)));
-                Container.Dispose();
-                LogManager.Flush(TimeSpan.FromMinutes(1));
-                LogManager.Shutdown();
+
+                if (shutdown)
+                {
+                    Container.Dispose();
+                    LogManager.Flush(TimeSpan.FromMinutes(1));
+                    LogManager.Shutdown();
+                }
             }
         }
 
@@ -388,7 +392,7 @@ namespace Tauron.Host
                                                                              .AddConfiguration(configuration, true)
                                                                              .AddConfiguration(appConfiguration, true)
                                                                              .Build());
-                containerBuilder.RegisterType<ApplicationLifetime>().As<IHostApplicationLifetime, IApplicationLifetime>().SingleInstance();
+                containerBuilder.RegisterType<ApplicationLifetime>().As<IActorApplicationLifetime, IApplicationLifetime>().SingleInstance();
                 containerBuilder.RegisterType<CommonLifetime>().As<IHostLifetime>().SingleInstance();
 
                 foreach (var action in _containerBuilder)

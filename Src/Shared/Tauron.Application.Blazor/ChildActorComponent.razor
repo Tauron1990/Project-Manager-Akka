@@ -10,7 +10,7 @@
     public RenderFragment? ChildContent { get; set; }
 
     [CascadingParameter]
-    public IViewModel<TModel> RootModel { get; set; }
+    public IViewModel<TModel>? RootModel { get; set; }
 
-    protected override IViewModel<TModel> Model => RootModel;
+    protected override IViewModel<TModel> Model => RootModel ?? throw new InvalidOperationException("Rood Model not Found");
 }

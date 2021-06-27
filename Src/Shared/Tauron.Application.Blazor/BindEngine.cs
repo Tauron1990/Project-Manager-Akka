@@ -35,7 +35,7 @@ namespace Tauron.Application.Blazor
         public ActiveBinding<TData> Bind<TData>(TData defaultvValue, Expression<Func<TModel, TData>> property)
             => Bind(defaultvValue, Reflex.PropertyName(property));
 
-        public ActiveBinding<TData> Bind<TData>(TData defaultvValue, Expression<Func<TModel, UIProperty<TData>>> property)
+        public ActiveBinding<TData> Bind<TData>(TData defaultvValue, Expression<Func<TModel, UIProperty<TData>?>> property)
             => Bind(defaultvValue, Reflex.PropertyName(property));
 
         public ActiveBinding<TData> Bind<TData>(TData defaultvValue, string property)

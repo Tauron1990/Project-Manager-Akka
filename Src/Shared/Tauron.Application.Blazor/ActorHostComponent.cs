@@ -14,13 +14,13 @@ namespace Tauron.Application.Blazor
         //public ActiveBinding<TData> Bind<TData>(Expression<Func<TModel, TData>> property)
         //    => BindEngine.Bind(property);
 
-        public ActiveBinding<TData> Bind<TData>(TData defaultvValue, Expression<Func<TModel, UIProperty<TData>>> property)
+        public ActiveBinding<TData> Bind<TData>(TData defaultvValue, Expression<Func<TModel, UIProperty<TData>?>> property)
             => BindEngine.Bind(defaultvValue, property);
 
         public ActiveBinding<TData> Bind<TData>(TData defaultvValue, string property)
             => BindEngine.Bind(defaultvValue, property);
 
-        public ActiveBinding<IObservableCollection<TData>> Bind<TData>(Expression<Func<TModel, UICollectionProperty<TData>>> property)
+        public ActiveBinding<IObservableCollection<TData>> Bind<TData>(Expression<Func<TModel, UICollectionProperty<TData>?>> property)
             => BindEngine.Bind<IObservableCollection<TData>>(new ObservableCollectionExtended<TData>(), Reflex.PropertyName(property));
     }
 }

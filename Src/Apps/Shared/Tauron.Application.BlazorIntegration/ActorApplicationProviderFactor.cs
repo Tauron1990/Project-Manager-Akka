@@ -42,7 +42,7 @@ namespace Tauron.Application.AspIntegration
                                             cb.Register(c => new EventLogLoggerProvider(c.Resolve<IOptions<EventLogSettings>>())).As<ILoggerProvider>()
                                               .SingleInstance();
                                         })
-                      .Build(ConfigurationOptions.ResolveFromContainer).Run();
+                      .Build(ConfigurationOptions.ResolveFromContainer).Run(false);
             var lifeTime = ActorApplication.Application.Container.Resolve<IAspLifetime>();
 
             lifeTime.ApplicationStopping.Register(() =>

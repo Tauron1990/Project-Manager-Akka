@@ -9,11 +9,11 @@ using Tauron.Application.CommonUI.ModelMessages;
 
 namespace Tauron.Application.CommonUI.UI
 {
-    public sealed class DeferredSource : ModelConnectorBase<DeferredSource>, INotifyPropertyChanged, INotifyDataErrorInfo
+    public class DeferredSource : ModelConnectorBase<DeferredSource>, INotifyPropertyChanged, INotifyDataErrorInfo
     {
-        private string? _error;
         private bool _hasErrors;
         private object? _value;
+        private string? _error;
 
         public DeferredSource(string name, DataContextPromise promise)
             : base(name, promise)
@@ -33,6 +33,17 @@ namespace Tauron.Application.CommonUI.UI
 
         public event EventHandler<DataErrorsChangedEventArgs>? ErrorsChanged;
 
+        public string? Error
+        {
+            get => _error;
+            private set
+            {
+                if (value == _error) return;
+                _error = value;
+                OnPropertyChanged();
+            }
+        }
+
         public bool HasErrors
         {
             get => _hasErrors;
@@ -41,13 +52,12 @@ namespace Tauron.Application.CommonUI.UI
                 if (value == _hasErrors) return;
                 _hasErrors = value;
                 OnPropertyChanged();
-                ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(nameof(Value)));
             }
         }
 
         public IEnumerable GetErrors(string? propertyName)
         {
-            yield return _error;
+            yield return Error;
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -66,8 +76,10 @@ namespace Tauron.Application.CommonUI.UI
 
         protected override void ValidateCompled(ValidatingEvent msg)
         {
-            _error = msg.Reason?.Info;
+            Error = msg.Reason?.Info;
             HasErrors = msg.Error;
+
+            ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(nameof(Value)));
         }
 
         [NotifyPropertyChangedInvocator]

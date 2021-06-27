@@ -170,6 +170,8 @@ namespace Tauron.Application.CommonUI.Model
 
             public Error? Error { get; set; }
 
+            public object? LastValue { get; set; }
+
             public List<IActorRef> Subscriptors { get; } = new();
 
             public void SetValue(object value)
@@ -419,6 +421,9 @@ namespace Tauron.Application.CommonUI.Model
 
         private void PropertyValueChanged(PropertyData propertyData)
         {
+            if(propertyData.LastValue?.Equals(propertyData.PropertyBase.ObjectValue) == true) return;
+
+            propertyData.LastValue = propertyData.PropertyBase.ObjectValue;
             foreach (var actorRef in propertyData.Subscriptors)
             {
                 actorRef.Tell(new PropertyChangedEvent(propertyData.PropertyBase.Name,
@@ -461,6 +466,7 @@ namespace Tauron.Application.CommonUI.Model
             data.PropertyBase.PropertyValueChanged.Subscribe(_ => PropertyValueChanged(data)).DisposeWith(this);
             data.PropertyBase.Validator.Subscribe(err =>
             {
+                if(data.Error == err) return;
                 data.Error = err;
                 data.Subscriptors.ForEach(r => r.Tell(new ValidatingEvent(err, prop.Name)));
             }).DisposeWith(this);

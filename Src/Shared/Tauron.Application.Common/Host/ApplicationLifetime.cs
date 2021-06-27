@@ -4,7 +4,7 @@ using NLog;
 
 namespace Tauron.Host
 {
-    public class ApplicationLifetime : IHostApplicationLifetime, IApplicationLifetime, IDisposable
+    public class ApplicationLifetime : IActorApplicationLifetime, IApplicationLifetime, IDisposable
     {
         private static readonly ILogger Logger = LogManager.GetCurrentClassLogger();
         private readonly CancellationTokenSource _startedSource = new();

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Windows.Input;
 using JetBrains.Annotations;
 
 namespace Tauron.Application.CommonUI.Commands
@@ -7,8 +6,6 @@ namespace Tauron.Application.CommonUI.Commands
     [PublicAPI]
     public class SimpleCommand : CommandBase
     {
-        public static readonly ICommand Empty = new SimpleCommand(() => { });
-
         private readonly Func<object?, bool>? _canExecute;
 
         private readonly Action<object?> _execute;

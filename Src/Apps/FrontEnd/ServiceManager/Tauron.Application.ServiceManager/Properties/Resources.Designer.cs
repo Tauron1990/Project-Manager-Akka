@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Tauron.Application.ServiceManagerOld.Properties {
+namespace Tauron.Application.ServiceManager.Properties {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace Tauron.Application.ServiceManagerOld.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Tauron.Application.ServiceManagerOld.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Tauron.Application.ServiceManager.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

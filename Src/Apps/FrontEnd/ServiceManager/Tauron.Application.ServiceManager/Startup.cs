@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.JSInterop;
+using MudBlazor;
 using MudBlazor.Services;
 using ServiceHost.Client.Shared;
 using Tauron.Application.AkkaNode.Bootstrap;
@@ -14,7 +15,6 @@ using Tauron.Application.AspIntegration;
 using Tauron.Application.Blazor;
 using Tauron.Application.Master.Commands.KillSwitch;
 using Tauron.Application.Master.Commands.ServiceRegistry;
-using Tauron.Application.Workshop;
 using Tauron.Host;
 
 namespace Tauron.Application.ServiceManager
@@ -33,7 +33,7 @@ namespace Tauron.Application.ServiceManager
         {
             services.AddRazorPages();
             services.AddServerSideBlazor();
-            services.AddMudServices();
+            services.AddMudServices(c => c.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomCenter);
         }
 
         [UsedImplicitly]
@@ -53,8 +53,8 @@ namespace Tauron.Application.ServiceManager
                                      })
                    .AddModule<MainModule>()
                    .MapHostEnviroment(Environment)
-                   .StartNode(KillRecpientType.Frontend, IpcApplicationType.NoIpc, true)
-                   .AddStateManagment(typeof(Startup).Assembly);
+                   .StartNode(KillRecpientType.Frontend, IpcApplicationType.NoIpc, true);
+            //.AddStateManagment(typeof(Startup).Assembly);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

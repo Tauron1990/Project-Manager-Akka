@@ -22,11 +22,14 @@ namespace Tauron.Application.ServiceManager
             await CreateHostBuilder(args).Build().RunAsync();
 
             if (!RestartHelper.Restart) return;
-            
+
+            #if RELSEASE
             var file = Path.ChangeExtension(Assembly.GetEntryAssembly()?.Location, ".exe");
             if (!string.IsNullOrWhiteSpace(file) && File.Exists(file))
                 Process.Start(file);
-        }
+
+            #endif
+}
 
         private static IHostBuilder CreateHostBuilder(string[] args) =>
             Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder(args)
