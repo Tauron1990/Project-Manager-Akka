@@ -1,0 +1,29 @@
+﻿@page "/About"
+@using global::Akka.Actor
+@using global::Akka.Cluster
+
+@inject ActorSystem _actorSystem;
+
+<Title Value="Über Servie Manager"></Title>
+
+<MudText Typo="Typo.h3">Service Manager</MudText>
+
+<MudText>Project Manager Akka</MudText>
+
+<MudText>Aktuelle Url: @_url</MudText>
+
+@code {
+
+    private string _url = string.Empty;
+    
+    protected override void OnInitialized()
+    {
+        Cluster.Get(_actorSystem).RegisterOnMemberUp(() =>
+                                                     {
+                                                         _url = Cluster.Get(_actorSystem).SelfAddress.ToString();
+                                                         InvokeAsync(StateHasChanged);
+                                                     });
+        base.OnInitialized();
+    }
+
+}

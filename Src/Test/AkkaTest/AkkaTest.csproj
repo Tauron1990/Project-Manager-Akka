@@ -11,7 +11,10 @@
     <PackageReference Include="Akka.Remote" Version="1.4.21" />
     <PackageReference Include="Akka.Streams" Version="1.4.21" />
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="7.1.0" />
+    <PackageReference Include="AutoMapper" Version="10.1.1" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="8.1.1" />
     <PackageReference Include="Castle.Core" Version="4.4.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.1" />
     <PackageReference Include="NLog" Version="4.7.10" />
     <PackageReference Include="SharpRepository.InMemoryRepository" Version="2.0.3.1" />
     <PackageReference Include="SharpRepository.MongoDbRepository" Version="2.1.1" />

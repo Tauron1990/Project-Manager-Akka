@@ -5,7 +5,10 @@ using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Akka.Actor;
 using Akka.Configuration;
+using Autofac.Extensions.DependencyInjection;
+using AutoMapper;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Tauron.Akka;
 using Tauron.Application.AkkaNode.Bootstrap;
 using Tauron.Host;
@@ -56,13 +59,29 @@ namespace AkkaTest
     public record Start;
     public record SignalTest;
 
+    public record Test(string Value);
+
+    public record Test1(string Value);
+
+    public sealed class TestProfile : Profile
+    {
+        public TestProfile()
+        {
+            CreateMap<Test, Test1>();
+        }
+    }
+
     internal static class Program
     {
         private static void Main()
         {
             Console.Title = "Test Anwendung";
+            
+            var coll = new ServiceCollection();
+            coll.AddAutoMapper(c => c.AddProfile(new TestProfile()));
+            using var test = coll.BuildServiceProvider();
 
-            var test = new ConfigurationBuilder().Build().GetSection("test");
+            var result = test.GetRequiredService<IMapper>().Map<Test1>(new Test("Hallo Welt"));
 
             //var dataTest = new DataManager(new ConcurancyManager(), new EventAggregator());
             //var profileTest = new ProfileManager(dataTest);

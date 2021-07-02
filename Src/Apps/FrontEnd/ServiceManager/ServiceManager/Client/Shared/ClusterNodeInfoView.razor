@@ -1,0 +1,21 @@
+﻿@using ServiceManager.Client.PageData
+@inherits PropertyChangedComponent
+
+<MudPaper Elevation="5" Class="pa-2">
+    <MudText>Name: @NodeInfo.Name</MudText>
+    <MudText>Url: @NodeInfo.Url</MudText>
+    <MudText>Type: @NodeInfo.ServiceType</MudText>
+    <MudText>Status: @NodeInfo.Status</MudText>
+</MudPaper>
+
+@code {
+
+    [Parameter]
+    public ClusterNodeInfo NodeInfo { get; set; } = ClusterNodeInfo.Empty;
+
+    protected override void OnInitialized()
+    {
+        Track(NodeInfo);
+    }
+
+}

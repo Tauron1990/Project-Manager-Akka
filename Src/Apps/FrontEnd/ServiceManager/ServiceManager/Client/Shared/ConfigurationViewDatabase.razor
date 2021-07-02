@@ -1,0 +1,26 @@
+﻿@inherits PropertyChangedComponent
+@inject ConfigurationViewDatabseModel _model
+
+<div style="max-width: 1000px">
+    <MudCard >
+        <MudCardContent>
+            <MudForm>
+                <MudTextFieldString DebounceInterval="200" Required="true" RequiredError="Keine Mogodb Url Angegeben" @bind-Value="_model.DatabaseUrl" 
+                Validation="_model.ValidateUrl"/>
+            </MudForm>
+        </MudCardContent>
+        <MudCardActions>
+            <MudButton ButtonType="ButtonType.Reset" OnClick="_model.Reset">Zurücksetzen</MudButton>
+            <MudButton ButtonType="ButtonType.Submit" OnClick="_model.Submit">Speichern</MudButton>
+        </MudCardActions>
+    </MudCard>
+</div>
+
+@code {
+    protected override Task OnInitializedAsync()
+    {
+        Track(_model);
+        return _model.Init();
+    }
+
+}

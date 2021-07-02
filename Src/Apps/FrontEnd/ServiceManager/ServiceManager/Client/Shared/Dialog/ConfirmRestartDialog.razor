@@ -1,0 +1,23 @@
+﻿@using MudBlazor
+@inherits DialogBaseComponent
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h3">Neustart</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudText>Zum anwenden der Aktion ist ein neustart erforderlich</MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CancelCallback">Abbrechen</MudButton>
+        <MudButton OnClick="AcceptCallback">Neustart</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    
+    private void CancelCallback() => DialogInstance.Cancel();
+
+    private void AcceptCallback() => DialogInstance.Close(DialogResult.Ok(true));
+
+}

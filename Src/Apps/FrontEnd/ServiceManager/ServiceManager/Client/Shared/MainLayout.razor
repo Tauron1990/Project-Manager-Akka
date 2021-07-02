@@ -1,0 +1,109 @@
+﻿@using System.Reactive.Disposables
+@using ServiceManager.Shared
+@using ServiceManager.Shared.ClusterTracking
+@using ServiceManager.Shared.ServiceDeamon
+@using Tauron
+@using Tauron.Application
+
+@inherits LayoutComponentBase
+
+@inject IEventAggregator _aggregator
+@inject ISnackbar _snackbar
+@inject IClusterConnectionTracker _cluster
+@inject IServerInfo _lifetime
+@inject IDatabaseConfig _databaseConfig
+
+@implements IDisposable
+
+<MudLayout>
+    <MudThemeProvider/>
+    <MudDialogProvider/>
+    <MudSnackbarProvider/>
+    
+    @if (AppIp.IsValid)
+    {
+        <CascadingValue Value="@IsConnected" Name="IsConnected">
+            <CascadingValue Value="@IsSelf" Name="IsSelf">
+                <CascadingValue Value="@IsDatabaseReady" Name="IsDatabaseReady">
+                    <MudAppBar Elevation="4" Dense="true">
+                        <MudSpacer/>
+                        @if (IsConnected && IsSelf)
+                        {
+                            <MudAlert Severity="Severity.Warning" Variant="Variant.Filled">Kein Cluster (Ein Knoten)</MudAlert>
+                        }
+                        else if (IsConnected && !IsSelf)
+                        {
+                            <MudAlert Severity="Severity.Success" Variant="Variant.Filled">Cluster Verbunden</MudAlert>
+                        }
+                        else
+                        {
+                            <MudAlert Severity="Severity.Error" Variant="Variant.Filled" OnClick="ShutDown">Cluster Nicht Verbunden. Neustart!</MudAlert>
+                        }
+                        <MudSpacer/>
+                        <MudButton Variant="Variant.Text" Link="/About" Color="Color.Secondary">About</MudButton>
+                    </MudAppBar>
+                    <MudDrawer Elevation="30" Open="true" ClipMode="DrawerClipMode.Docked">
+                        <NavMenu/>
+                    </MudDrawer>
+                    <MudMainContent>
+                        <MudContainer MaxWidth="MaxWidth.False" Class="mt-4">
+                            @Body
+                        </MudContainer>
+                    </MudMainContent>
+                </CascadingValue>
+            </CascadingValue>
+        </CascadingValue>
+    }
+    else
+    {
+        <MudMainContent>
+            <NoIpFoundEditor Ip="@AppIp"/>
+        </MudMainContent>
+    }
+</MudLayout>
+
+@code
+{
+    private readonly CompositeDisposable _disposer = new();
+
+    private bool IsConnected { get; set; }
+
+    private bool IsSelf { get; set; }
+
+    private bool IsDatabaseReady { get; set; }
+
+    private AppIp AppIp { get; set; } = AppIp.Invalid;
+
+    protected override void OnInitialized()
+    {
+        _aggregator.ConsumeMessages()
+                   .Subscribe(m => m.Apply(_snackbar))
+                   .DisposeWith(_disposer);
+
+        _cluster.WhenAny(() => _cluster.IsConnected)
+                .Subscribe(b =>
+                           {
+                               IsConnected = b;
+                               InvokeAsync(StateHasChanged);
+                           })
+                .DisposeWith(_disposer);
+
+        _databaseConfig.WhenAny(() => _databaseConfig.IsReady)
+                       .Subscribe(b =>
+                                  {
+                                      IsDatabaseReady = b;
+                                      InvokeAsync(StateHasChanged);
+                                  })
+                       .DisposeWith(_disposer);
+
+        IsSelf = _cluster.IsSelf;
+        AppIp = _cluster.Ip;
+
+        base.OnInitialized();
+    }
+
+    public void Dispose()
+        => _disposer.Dispose();
+
+    private void ShutDown() => _lifetime.Restart();
+}
