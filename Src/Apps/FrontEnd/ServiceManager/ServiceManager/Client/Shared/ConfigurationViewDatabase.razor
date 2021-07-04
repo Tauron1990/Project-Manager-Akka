@@ -17,10 +17,6 @@
 </div>
 
 @code {
-    protected override Task OnInitializedAsync()
-    {
-        Track(_model);
-        return _model.Init();
-    }
+    protected override async Task OnInitializedAsync() => await Track(_model);
 
 }

@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,6 +18,7 @@
   <ItemGroup>
     <PackageReference Include="DynamicData" Version="7.2.1" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="5.0.7" />
+    <PackageReference Include="MongoDB.Driver" Version="2.12.4" />
   </ItemGroup>
 
   <ItemGroup>
@@ -26,11 +28,6 @@
     <ProjectReference Include="..\..\..\..\Shared\Tauron.Application.BlazorIntegration\Tauron.Application.BlazorIntegration.csproj" />
     <ProjectReference Include="..\Client\ServiceManager.Client.csproj" />
     <ProjectReference Include="..\Shared\ServiceManager.Shared.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Controllers\" />
-    <Folder Include="Hubs\" />
   </ItemGroup>
 
   <ItemGroup>

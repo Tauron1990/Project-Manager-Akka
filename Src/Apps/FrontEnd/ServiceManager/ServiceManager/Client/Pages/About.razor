@@ -1,8 +1,8 @@
 ﻿@page "/About"
-@using global::Akka.Actor
-@using global::Akka.Cluster
+@using ServiceManager.Shared.ClusterTracking
 
-@inject ActorSystem _actorSystem;
+@inherits PropertyChangedComponent
+@inject IClusterConnectionTracker _clusterUrl;
 
 <Title Value="Über Servie Manager"></Title>
 
@@ -10,20 +10,12 @@
 
 <MudText>Project Manager Akka</MudText>
 
-<MudText>Aktuelle Url: @_url</MudText>
+<MudText>Aktuelle Url: @_clusterUrl.Url</MudText>
 
 @code {
 
-    private string _url = string.Empty;
-    
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        Cluster.Get(_actorSystem).RegisterOnMemberUp(() =>
-                                                     {
-                                                         _url = Cluster.Get(_actorSystem).SelfAddress.ToString();
-                                                         InvokeAsync(StateHasChanged);
-                                                     });
-        base.OnInitialized();
+        await Track(_clusterUrl);
     }
-
 }

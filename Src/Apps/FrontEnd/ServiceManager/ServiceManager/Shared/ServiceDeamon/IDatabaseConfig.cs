@@ -1,4 +1,6 @@
-﻿namespace ServiceManager.Shared.ServiceDeamon
+﻿using System.Threading.Tasks;
+
+namespace ServiceManager.Shared.ServiceDeamon
 {
     public interface IDatabaseConfig : IInternalObject
     {
@@ -6,6 +8,6 @@
 
         public bool IsReady { get; }
 
-        bool SetUrl(string url);
+        Task<string> SetUrl(string url);
     }
 }

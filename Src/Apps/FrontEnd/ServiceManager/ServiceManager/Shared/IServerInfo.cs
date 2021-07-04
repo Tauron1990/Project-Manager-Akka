@@ -1,7 +1,9 @@
-﻿namespace ServiceManager.Shared
+﻿using System.Threading.Tasks;
+
+namespace ServiceManager.Shared
 {
     public interface IServerInfo
     {
-        void Restart();
+        Task Restart();
     }
 }

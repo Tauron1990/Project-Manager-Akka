@@ -5,15 +5,16 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Threading.Tasks;
 using Akka.Configuration;
+using ServiceManager.Shared;
 using ServiceManager.Shared.ClusterTracking;
 using Tauron.Application;
 using Tauron.Application.Master.Commands.Administration.Configuration;
 
 namespace ServiceManager.Server.AppCore.Helper
 {
-    public sealed class AppIpManager : IAppIpManager
+    public sealed class AppIpManager : ObservableObject, IAppIpManager
     {
-        private AppIp _appIp = new("Unbekannt", false);
+        private AppIp _appIpField = new("Unbekannt", false);
 
         public async Task Aquire()
         {
@@ -32,7 +33,7 @@ namespace ServiceManager.Server.AppCore.Helper
                         await File.WriteAllTextAsync(targetFile, potentialIp);
                     }
                     else if(!string.IsNullOrWhiteSpace(old))
-                        _appIp = new AppIp(old, true);
+                        Ip = new AppIp(old, true);
                 }
                 catch (IOException) { }
             }
@@ -44,7 +45,7 @@ namespace ServiceManager.Server.AppCore.Helper
 
             if (string.IsNullOrWhiteSpace(potentialIp))
             {
-                _appIp = new AppIp("Keine Ip Gefunden Bitte manuelle Eingabe!", false);
+                Ip = new AppIp("Keine Ip Gefunden Bitte manuelle Eingabe!", false);
                 return;
             }
 
@@ -59,11 +60,11 @@ namespace ServiceManager.Server.AppCore.Helper
 
                 await File.WriteAllTextAsync(seedPath, baseConfig.ToString(true));
 
-                _appIp = new AppIp(potentialIp, true);
+                Ip = new AppIp(potentialIp, true);
             }
             catch (Exception e)
             {
-                _appIp = new AppIp(e.Message, false);
+                Ip = new AppIp(e.Message, false);
             }
         }
 
@@ -85,17 +86,30 @@ namespace ServiceManager.Server.AppCore.Helper
             return localIp;
         }
 
-        public void WriteIp(string ip)
+        public async Task<string> WriteIp(string ip)
         {
-            var baseConfig = ConfigurationFactory.ParseString(File.ReadAllText("seed.conf"));
-            baseConfig = ConfigurationFactory.ParseString($"akka.remote.dot-netty.tcp.hostname = {ip}").WithFallback(baseConfig);
+            try
+            {
+                var baseConfig = ConfigurationFactory.ParseString(await File.ReadAllTextAsync("seed.conf"));
+                baseConfig = ConfigurationFactory.ParseString($"akka.remote.dot-netty.tcp.hostname = {ip}").WithFallback(baseConfig);
             
-            var targetFile = Path.Combine(TauronEnviroment.DefaultProfilePath, "servicemanager-ip.dat");
+                var targetFile = Path.Combine(TauronEnviroment.DefaultProfilePath, "servicemanager-ip.dat");
 
-            File.WriteAllText("seed.conf", baseConfig.ToString(true));
-            File.WriteAllText(targetFile, ip);
+                await File.WriteAllTextAsync("seed.conf", baseConfig.ToString(true));
+                await File.WriteAllTextAsync(targetFile, ip);
+
+                return string.Empty;
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
         }
 
-        public AppIp Ip => _appIp;
+        public AppIp Ip
+        {
+            get => _appIpField;
+            private set => SetProperty(ref _appIpField, value);
+        }
     }
 }

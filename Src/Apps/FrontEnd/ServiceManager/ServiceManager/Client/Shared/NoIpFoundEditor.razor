@@ -1,9 +1,13 @@
-﻿@using Tauron.Application.ServiceManager.AppCore
-@using Microsoft.Extensions.Hosting
+﻿@using ServiceManager.Shared
+@using ServiceManager.Shared.ClusterTracking
+@using Tauron.Application
+@using ServiceManager.Client.ViewModels.Models
+
+@inherits PropertyChangedComponent
 
 @inject IAppIpManager _appIpManager
-@inject IHostApplicationLifetime _applicationLifetime
-@inject IRestartHelper _restartHelper
+@inject IServerInfo _applicationLifetime
+@inject IEventAggregator _eventAggregator;
 
 <MudContainer MaxWidth="MaxWidth.Small">
     <MudText Typo="Typo.h4" Class="ma-4"> Ip Adresse Bebaeiten </MudText>
@@ -20,14 +24,22 @@
 
     protected override void OnInitialized()
     {
-        _ipContent = String.Empty;
+        _ipContent = string.Empty;
         base.OnInitialized();
     }
 
-    private void Restart()
+    protected override async Task OnInitializedAsync()
     {
-        _appIpManager.WriteIp(_ipContent);
-        _restartHelper.Restart = true;
-        _applicationLifetime.StopApplication();
+        await Track(_appIpManager);
+        await Init(_applicationLifetime);
+    }
+
+    private async Task Restart()
+    {
+        var result = await _appIpManager.WriteIp(_ipContent);
+        if(string.IsNullOrWhiteSpace(result))
+            await _applicationLifetime.Restart();
+        else
+            _eventAggregator.PublishMessage(new SnackbarErrorMessage(result));
     }
 }

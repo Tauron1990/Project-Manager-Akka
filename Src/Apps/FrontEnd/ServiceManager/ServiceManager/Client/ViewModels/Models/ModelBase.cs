@@ -2,38 +2,42 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Net.Http;
+using System.Reactive;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.SignalR.Client;
 using ServiceManager.Client.Components;
-using ServiceManager.Shared.Events;
+using ServiceManager.Client.ViewModels.Events;
+using ServiceManager.Shared.Api;
+using Tauron.Application;
 
-namespace ServiceManager.Client.Model
+namespace ServiceManager.Client.ViewModels.Models
 {
-    public class ModelBase : ObservableObject
+    public abstract class ModelBase : ObservableObject, IInitable, IDisposable
     {
-        private readonly HttpClient _client;
-        private readonly NavigationManager _manager;
-        private readonly HubConnection _hubConnection;
+        private readonly IDisposable _subscription;
+
+        protected HttpClient Client { get; }
+        protected HubConnection HubConnection { get; }
+
         private bool _isInit;
 
-        public ModelBase(HttpClient client, NavigationManager manager, HubConnection hubConnection)
+        protected ModelBase(HttpClient client, HubConnection hubConnection, IEventAggregator aggregator)
         {
-            _client = client;
-            _manager = manager;
-            _hubConnection = hubConnection;
+            Client = client;
+            HubConnection = hubConnection;
+            _subscription = aggregator.GetEvent<ReloadAllEvent, Unit>().Subscribe().Subscribe(_ => _isInit = false);
         }
 
         private async Task OnPropertyChanged<TType>(string type, string property, Action<TType> setter, Func<HttpClient, Task<TType>> query)
         {
-            setter(await query(_client));
+            setter(await query(Client));
 
-            _hubConnection.On<string, string>(HubEvents.PropertyChanged,
+            HubConnection.On<string, string>(HubEvents.PropertyChanged,
                 async (msgType, msgName) =>
                 {
                     if (msgType.Equals(type, StringComparison.Ordinal) && msgName.Equals(property, StringComparison.Ordinal))
                     {
-                        setter(await query(_client));
+                        setter(await query(Client));
                         OnPropertyChanged(property);
                     }
                 });
@@ -41,14 +45,16 @@ namespace ServiceManager.Client.Model
 
         private void OnMessage(string type, string name, Func<Task> runner)
         {
-            _hubConnection.On<string, string>(HubEvents.PropertyChanged,
+            HubConnection.On<string, string>(HubEvents.PropertyChanged,
                 async (msgType, msgName) =>
                 {
                     if (msgType.Equals(type, StringComparison.Ordinal) && msgName.Equals(name, StringComparison.Ordinal))
                         await runner();
                 });
         }
-        
+
+        public abstract Task Init();
+
         protected async Task Init(Action<Configuration> config)
         {
             if(_isInit) return;
@@ -57,7 +63,7 @@ namespace ServiceManager.Client.Model
             Func<Task> updateRunner = () => Task.CompletedTask;
 
             config(new Configuration(this, func => updateRunner = func));
-            await _hubConnection.StartAsync();
+            await HubConnection.StartAsync();
             await updateRunner();
         }
 
@@ -99,7 +105,7 @@ namespace ServiceManager.Client.Model
 
                 public void OnPropertyChanged<TType>(Expression<Func<TInterface, TType>> property, Action<TType> setter, Func<HttpClient, Task<TType>> query)
                     => _updater.Add(() => _self.OnPropertyChanged(
-                                        typeof(TInterface).AssemblyQualifiedName!,
+                                        typeof(TInterface).FullName!,
                                         ((MemberExpression) property.Body).Member.Name,
                                         setter, query));
 
@@ -107,5 +113,7 @@ namespace ServiceManager.Client.Model
                     => _self.OnMessage(typeof(TInterface).AssemblyQualifiedName!, name, runner);
             }
         }
+
+        public virtual void Dispose() => _subscription.Dispose();
     }
 }

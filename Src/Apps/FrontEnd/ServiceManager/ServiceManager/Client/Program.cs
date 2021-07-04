@@ -28,9 +28,9 @@ namespace ServiceManager.Client
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
             builder.RootComponents.Add<App>("#app");
             builder.Services.AddMudServices();
-            builder.Services.AddTransient(sp => new HubConnectionBuilder()
+            builder.Services.AddScoped(sp => new HubConnectionBuilder()
                                             .WithAutomaticReconnect(new RecconectionPolicy())
-                                            .WithUrl(sp.GetRequiredService<NavigationManager>().ToAbsoluteUri("/PropertyHub"))
+                                            .WithUrl(sp.GetRequiredService<NavigationManager>().ToAbsoluteUri("/ClusterInfoHub"))
                                             .Build());
             builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
             ServiceConfiguration.Run(builder.Services);

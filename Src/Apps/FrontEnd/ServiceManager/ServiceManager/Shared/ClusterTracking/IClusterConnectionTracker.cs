@@ -2,6 +2,8 @@
 {
     public interface IClusterConnectionTracker : IInternalObject
     {
+        string Url { get; }
+
         bool IsConnected { get; }
 
         bool IsSelf { get; }

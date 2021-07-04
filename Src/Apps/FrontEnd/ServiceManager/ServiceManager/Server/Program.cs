@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using ServiceManager.Server.AppCore;
 using ServiceManager.Server.AppCore.Helper;
+using ServiceManager.Shared;
 using Tauron.Application.AspIntegration;
 
 namespace ServiceManager.Server

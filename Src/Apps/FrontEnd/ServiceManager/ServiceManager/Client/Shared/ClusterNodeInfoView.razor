@@ -1,4 +1,4 @@
-﻿@using ServiceManager.Client.PageData
+﻿@using ServiceManager.Shared.ClusterTracking
 @inherits PropertyChangedComponent
 
 <MudPaper Elevation="5" Class="pa-2">
@@ -13,9 +13,7 @@
     [Parameter]
     public ClusterNodeInfo NodeInfo { get; set; } = ClusterNodeInfo.Empty;
 
-    protected override void OnInitialized()
-    {
-        Track(NodeInfo);
-    }
+    protected override async Task OnInitializedAsync() 
+        => await Track(NodeInfo);
 
 }

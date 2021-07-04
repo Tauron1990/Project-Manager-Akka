@@ -1,5 +1,5 @@
 {
-  "name": "ServiceManager",
+  "name": "Service Manager",
   "short_name": "ServiceManager",
   "start_url": "./",
   "display": "standalone",

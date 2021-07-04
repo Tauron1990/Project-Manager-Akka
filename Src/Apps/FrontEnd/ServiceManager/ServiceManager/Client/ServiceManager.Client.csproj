@@ -139,14 +139,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <UpToDateCheckInput Remove="Pages\_Host.cshtml" />
-  </ItemGroup>
-
-  <ItemGroup>
     <_ContentIncludedByDefault Remove="Pages\About.razor" />
     <_ContentIncludedByDefault Remove="Pages\AppConfiguration.razor" />
-    <_ContentIncludedByDefault Remove="Pages\Error.cshtml" />
-    <_ContentIncludedByDefault Remove="Pages\_Host.cshtml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -158,15 +152,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <UpToDateCheckInput Remove="Pages\Error.cshtml" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Include="wwwroot\_content\MudBlazor\MudBlazor.min.css" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="ViewModels\Models\" />
+    <Folder Include="ViewModels\Events\" />
   </ItemGroup>
 
 </Project>

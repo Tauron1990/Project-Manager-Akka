@@ -1,6 +1,6 @@
 ﻿using MudBlazor;
 
-namespace ServiceManager.Client.AppCore
+namespace ServiceManager.Client.ViewModels.Models
 {
     public abstract record SnackbarMessage
     {

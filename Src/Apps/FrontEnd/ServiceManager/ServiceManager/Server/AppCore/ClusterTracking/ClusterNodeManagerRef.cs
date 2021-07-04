@@ -11,5 +11,6 @@ namespace ServiceManager.Server.AppCore.ClusterTracking
         }
 
         public Task<MemberChangeSet> GetMemberChangeSet(GetMemberChangeset changeset) => Ask<MemberChangeSet>(changeset);
+        public Task<AllNodesResponse> QueryNodes() => Ask<AllNodesResponse>(new QueryAllNodes());
     }
 }

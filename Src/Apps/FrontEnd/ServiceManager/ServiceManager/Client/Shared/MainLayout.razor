@@ -4,6 +4,9 @@
 @using ServiceManager.Shared.ServiceDeamon
 @using Tauron
 @using Tauron.Application
+@using System.ComponentModel
+@using System.Reactive
+@using ServiceManager.Client.ViewModels.Events
 
 @inherits LayoutComponentBase
 
@@ -76,6 +79,10 @@
 
     protected override void OnInitialized()
     {
+        _aggregator.GetEvent<ReloadAllEvent, Unit>().Subscribe()
+                   .Subscribe(_ => Task.Delay(5000).ContinueWith(_ => InvokeAsync(StateHasChanged)))
+                   .DisposeWith(_disposer);
+
         _aggregator.ConsumeMessages()
                    .Subscribe(m => m.Apply(_snackbar))
                    .DisposeWith(_disposer);
@@ -101,6 +108,23 @@
 
         base.OnInitialized();
     }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await PropertyChangedComponent.Init(_lifetime);
+        await Track(_databaseConfig);
+        await Track(_cluster);
+        await base.OnInitializedAsync();
+    }
+
+    private async Task Track(INotifyPropertyChanged changed)
+    {
+        await PropertyChangedComponent.Init(changed);
+        changed.PropertyChanged += OnPropertyChanged;
+        _disposer.Add(Disposables.Create(() => changed.PropertyChanged -= OnPropertyChanged));
+    }
+
+    private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e) => InvokeAsync(StateHasChanged);
 
     public void Dispose()
         => _disposer.Dispose();

@@ -1,31 +1,23 @@
 ﻿@page "/"
-@using System.Collections.Immutable
 
-@inherits ActorHostComponent<IndexViewModel>
+@inject IndexViewModel _model
+@inherits PropertyChangedComponent
 
 <Title Value="Knoten"/>
 
-<ActorComponent Engine="BindEngine">
     <MudText Typo="Typo.h4" Class="m-1">Aktuelle Knoten:</MudText>
 
-    <MudList>
-        @foreach (var info in _nodeInfos.Value)
-        {
-            <MudListItem>
-                <ClusterNodeInfoView @key=info.Key NodeInfo="@info.Value"/>
-            </MudListItem>
-        }
-    </MudList>
-</ActorComponent>
+<MudList>
+    @foreach (var info in _model.NodeInfos)
+    {
+        <MudListItem>
+            <ClusterNodeInfoView @key=info.Key NodeInfo="@info.Value"/>
+        </MudListItem>
+    }
+</MudList>
 
 @code
 {
-    private ActiveBinding<ImmutableDictionary<string, ClusterNodeInfo>> _nodeInfos = ActiveBinding<ImmutableDictionary<string, ClusterNodeInfo>>.Empty;
-
-    protected override void OnInitialized()
-    {
-        _nodeInfos = Bind(ImmutableDictionary<string, ClusterNodeInfo>.Empty, m => m.NodeInfos);
-        base.OnInitialized();
-    }
+    protected override async Task OnInitializedAsync() => await Track(_model);
 }
 

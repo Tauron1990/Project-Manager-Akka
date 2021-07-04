@@ -1,4 +1,5 @@
 using System.Linq;
+using Akka.DependencyInjection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -6,8 +7,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.AspNetCore.SignalR;
 using ServiceHost.Client.Shared;
+using ServiceManager.Server.AppCore;
 using ServiceManager.Server.Hubs;
+using ServiceManager.Shared.Api;
 using Tauron.Application.AkkaNode.Bootstrap;
 using Tauron.Application.AkkaNode.Bootstrap.Console;
 using Tauron.Application.Master.Commands.KillSwitch;
@@ -18,12 +22,9 @@ namespace ServiceManager.Server
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
-        {
-            Configuration = configuration;
-        }
+        public Startup(IConfiguration configuration) => Configuration = configuration;
 
-        public IConfiguration Configuration { get; }
+        private IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
@@ -42,6 +43,22 @@ namespace ServiceManager.Server
         {
             builder.OnMemberUp((context, system, cluster) 
                                    => ServiceRegistry.Start(system, new RegisterService(context.HostEnvironment.ApplicationName, cluster.SelfUniqueAddress, ServiceTypes.ServiceManager)))
+                   .OnMemberRemoved((context, system, cluster) =>
+                                    {
+                                        var resolverScope = DependencyResolver.For(system).Resolver.CreateScope();
+                                        var resolver = resolverScope.Resolver;
+
+                                        resolver.GetService<IHubContext<ClusterInfoHub>>().Clients.All
+                                                .SendAsync(HubEvents.RestartServer)
+                                                .ContinueWith(_ =>
+                                                              {
+                                                                  using (resolverScope)
+                                                                  {
+                                                                      resolver.GetService<IRestartHelper>().Restart = true;
+                                                                      resolver.GetService<IHostApplicationLifetime>().StopApplication();
+                                                                  }
+                                                              });
+                                    })
                    .AddModule<MainModule>()
                    .StartNode(KillRecpientType.Frontend, IpcApplicationType.NoIpc, true);
             //.AddStateManagment(typeof(Startup).Assembly);
@@ -71,7 +88,7 @@ namespace ServiceManager.Server
             {
                 endpoints.MapRazorPages();
                 endpoints.MapControllers();
-                endpoints.MapHub<PropertyHub>("/PropertyHub");
+                endpoints.MapHub<ClusterInfoHub>("/ClusterInfoHub");
                 endpoints.MapFallbackToFile("index.html");
             });
         }

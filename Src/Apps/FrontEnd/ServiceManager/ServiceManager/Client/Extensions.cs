@@ -1,5 +1,5 @@
 ﻿using System;
-using ServiceManager.Client.AppCore;
+using ServiceManager.Client.ViewModels.Models;
 using Tauron.Application;
 
 namespace ServiceManager.Client

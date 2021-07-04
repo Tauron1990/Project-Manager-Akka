@@ -1,8 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reactive.Linq;
+using System.Reactive.Threading.Tasks;
 using Akka.Actor;
 using Akka.Cluster;
 using DynamicData;
+using Microsoft.AspNetCore.SignalR;
+using ServiceManager.Server.Hubs;
+using ServiceManager.Shared.Api;
 using ServiceManager.Shared.ClusterTracking;
 using Tauron;
 using Tauron.Application.Master.Commands.ServiceRegistry;
@@ -12,13 +18,13 @@ namespace ServiceManager.Server.AppCore.ClusterTracking
 {
     public sealed class ClusterHostManagerActor : ActorFeatureBase<ClusterHostManagerActor.ClusterState>
     {
-        public sealed record ClusterState(SourceCache<MemberData, MemberAddress> Entrys, ServiceRegistry ServiceRegistry);
+        public sealed record ClusterState(SourceCache<MemberData, MemberAddress> Entrys, ServiceRegistry ServiceRegistry, IHubContext<ClusterInfoHub> Hub);
 
-        public static Func<IPreparedFeature> New()
+        public static Func<IHubContext<ClusterInfoHub>, IPreparedFeature> New()
         {
-            IPreparedFeature _()
+            static IPreparedFeature _(IHubContext<ClusterInfoHub> hub)
                 => Feature.Create(() => new ClusterHostManagerActor(),
-                    _ => new ClusterState(new SourceCache<MemberData, MemberAddress>(md => MemberAddress.From(md.Member.UniqueAddress)), ServiceRegistry.Empty));
+                    _ => new ClusterState(new SourceCache<MemberData, MemberAddress>(md => MemberAddress.From(md.Member.UniqueAddress)), ServiceRegistry.Empty, hub));
 
             return _;
         }
@@ -74,10 +80,42 @@ namespace ServiceManager.Server.AppCore.ClusterTracking
                                                              where service != null
                                                              let data = entrys.Lookup(service.Address)
                                                              where data.HasValue
-                                                             select data.Value with {Name = service.Name, ServiceType = service.ServiceType})
+                                                             select data.Value with {Name = service!.Name, ServiceType = service!.ServiceType})
                                                         .Subscribe(entrys.AddOrUpdate));
 
             Receive<GetMemberChangeset>(obs => obs.Select(d => new MemberChangeSet(d.Event.Prepare(entrys.Connect()))).ToSender());
+
+            Receive<QueryAllNodes>(obs => (from r in obs
+                                           select new AllNodesResponse(r.State.Entrys.Items.Select(m => new ClusterNodeInfo(m.Member.Address.ToString(), m)).ToArray()))
+                                      .ToSender());
+
+            Receive<InitActor>(obs => obs.ToUnit(() =>
+                                                 {
+                                                     CurrentState.Entrys.Connect()
+                                                                 .Select(cs =>
+                                                                         {
+                                                                             var changes = new List<NodeChange>();
+                                                                             foreach (var change in cs)
+                                                                             {
+                                                                                 // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
+                                                                                 switch (change.Reason)
+                                                                                 {
+                                                                                     case ChangeReason.Remove:
+                                                                                         changes.Add(new NodeChange(change.Current, true));
+                                                                                         break;
+                                                                                     default:
+                                                                                         changes.Add(new NodeChange(change.Current, false));
+                                                                                         break;
+                                                                                 }
+                                                                             }
+
+                                                                             return changes;
+                                                                         })
+                                                                 .SelectMany(l => CurrentState.Hub.Clients.All.SendAsync(HubEvents.NodesChanged, l.ToArray()).ToObservable())
+                                                                 .AutoSubscribe(e => Log.Error(e, "Error on sending Nodes Changed"));
+                                                 }));
         }
+
+        public sealed record InitActor;
     }
 }

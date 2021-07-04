@@ -13,6 +13,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Events\" />
+    <Folder Include="Api\" />
   </ItemGroup>
 </Project>

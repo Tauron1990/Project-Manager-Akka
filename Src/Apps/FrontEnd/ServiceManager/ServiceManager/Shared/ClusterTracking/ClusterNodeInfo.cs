@@ -1,8 +1,8 @@
-﻿using ServiceManager.Client.Components;
-using ServiceManager.Shared.ClusterTracking;
+﻿using Akka.Cluster;
+using Newtonsoft.Json;
 using Tauron.Application;
 
-namespace ServiceManager.Client.PageData
+namespace ServiceManager.Shared.ClusterTracking
 {
     public sealed class ClusterNodeInfo : ObservableObject
     {
@@ -32,6 +32,16 @@ namespace ServiceManager.Client.PageData
 
         public string Url { get; }
 
+        [JsonConstructor]
+        [System.Text.Json.Serialization.JsonConstructor]
+        public ClusterNodeInfo(string url, string status, string serviceType, string name)
+        {
+            Name = name;
+            ServiceType = serviceType;
+            Status = status;
+            Url = url;
+        }
+
         public ClusterNodeInfo(string url, MemberData memberData)
         {
             Url = url;
@@ -40,7 +50,7 @@ namespace ServiceManager.Client.PageData
 
         private ClusterNodeInfo() => Url = string.Empty;
 
-        public void Update(MemberData data)
+        private void Update(MemberData data)
         {
             var (member, name, serviceType) = data;
 
@@ -49,5 +59,8 @@ namespace ServiceManager.Client.PageData
             ServiceType = serviceType.DisplayName;
             Status = member.Status.ToString();
         }
+
+        public static implicit operator ClusterNodeInfo(MemberData data)
+            => new(data.Member.Address.ToString(), data);
     }
 }
