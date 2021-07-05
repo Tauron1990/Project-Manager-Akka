@@ -30,21 +30,21 @@ namespace ServiceManager.Server
 }
 
         private static IHostBuilder CreateHostBuilder(string[] args) =>
-            Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder(args)
-                     .UseServiceProviderFactory(new ActorApplicationProviderFactory(b => b.ConfigureAutoFac(cb =>
-                                                                                                            {
-                                                                                                                cb.RegisterInstance(RestartHelper).As<IRestartHelper>();
-                                                                                                                cb.RegisterInstance(AppIpManager).As<IAppIpManager>();
-                                                                                                            })))
-                     .ConfigureWebHostDefaults(webBuilder =>
-                                               {
-                                                    #if RELSEASE
+            Host.CreateDefaultBuilder(args)
+                .UseServiceProviderFactory(new ActorApplicationProviderFactory(b => b.ConfigureAutoFac(cb =>
+                                                                                                       {
+                                                                                                           cb.RegisterInstance(RestartHelper).As<IRestartHelper>();
+                                                                                                           cb.RegisterInstance(AppIpManager).As<IAppIpManager>();
+                                                                                                       })))
+                .ConfigureWebHostDefaults(webBuilder =>
+                                          {
+                                              #if RELSEASE
                                                    if (AppIpManager.Ip.IsValid)
                                                        webBuilder.UseUrls("http://localhost:5000", $"http://{AppIpManager.Ip.Ip}:5000");
                                                     else 
                                                         webBuilder.UseUrls("http://localhost:5000");
-                                                    #endif
-                                                   webBuilder.UseStartup<Startup>();
-                                               });
+                                              #endif
+                                              webBuilder.UseStartup<Startup>();
+                                          });
     }
 }

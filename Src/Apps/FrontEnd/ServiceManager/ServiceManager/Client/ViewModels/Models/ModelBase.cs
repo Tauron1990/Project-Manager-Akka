@@ -63,7 +63,8 @@ namespace ServiceManager.Client.ViewModels.Models
             Func<Task> updateRunner = () => Task.CompletedTask;
 
             config(new Configuration(this, func => updateRunner = func));
-            await HubConnection.StartAsync();
+            if(HubConnection.State == HubConnectionState.Disconnected)
+                await HubConnection.StartAsync();
             await updateRunner();
         }
 
@@ -103,10 +104,16 @@ namespace ServiceManager.Client.ViewModels.Models
                         await func();
                 }
 
-                public void OnPropertyChanged<TType>(Expression<Func<TInterface, TType>> property, Action<TType> setter, Func<HttpClient, Task<TType>> query)
+                //public void OnPropertyChanged<TType>(Expression<Func<TInterface, TType>> property, Action<TType> setter, Func<HttpClient, Task<TType>> query)
+                //    => _updater.Add(() => _self.OnPropertyChanged(
+                //                        typeof(TInterface).FullName!,
+                //                        ((MemberExpression) property.Body).Member.Name,
+                //                        setter, query));
+
+                public void OnPropertyChanged<TType, TResponse>(Expression<Func<TInterface, TType>> property, Action<TResponse> setter, Func<HttpClient, Task<TResponse>> query)
                     => _updater.Add(() => _self.OnPropertyChanged(
                                         typeof(TInterface).FullName!,
-                                        ((MemberExpression) property.Body).Member.Name,
+                                        ((MemberExpression)property.Body).Member.Name,
                                         setter, query));
 
                 public void OnMessage(string name, Func<Task> runner) 

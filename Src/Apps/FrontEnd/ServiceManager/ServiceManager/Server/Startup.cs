@@ -43,7 +43,7 @@ namespace ServiceManager.Server
         {
             builder.OnMemberUp((context, system, cluster) 
                                    => ServiceRegistry.Start(system, new RegisterService(context.HostEnvironment.ApplicationName, cluster.SelfUniqueAddress, ServiceTypes.ServiceManager)))
-                   .OnMemberRemoved((context, system, cluster) =>
+                   .OnMemberRemoved((_, system, _) =>
                                     {
                                         var resolverScope = DependencyResolver.For(system).Resolver.CreateScope();
                                         var resolver = resolverScope.Resolver;

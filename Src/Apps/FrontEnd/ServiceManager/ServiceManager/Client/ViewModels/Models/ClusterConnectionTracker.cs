@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.SignalR.Client;
 using ServiceManager.Shared.Api;
 using ServiceManager.Shared.ClusterTracking;
 using Tauron.Application;
+using StringContent = ServiceManager.Shared.Api.StringContent;
 
 namespace ServiceManager.Client.ViewModels.Models
 {
@@ -54,18 +55,18 @@ namespace ServiceManager.Client.ViewModels.Models
 
                                                                          ic.OnPropertyChanged(
                                                                              t => t.IsConnected,
-                                                                             b => IsConnected = b,
-                                                                             c => c.GetFromJsonAsync<bool>(ClusterConnectionTrackerApi.IsConnected));
+                                                                             b => IsConnected = b?.Content ?? false,
+                                                                             c => c.GetFromJsonAsync<BoolContent>(ClusterConnectionTrackerApi.IsConnected));
 
                                                                          ic.OnPropertyChanged(
                                                                              t => t.IsSelf,
-                                                                             b => IsSelf = b,
-                                                                             c => c.GetFromJsonAsync<bool>(ClusterConnectionTrackerApi.IsSelf));
+                                                                             b => IsSelf = b?.Content ?? false,
+                                                                             c => c.GetFromJsonAsync<BoolContent>(ClusterConnectionTrackerApi.IsSelf));
 
                                                                          ic.OnPropertyChanged(
                                                                              t => t.Url,
-                                                                             s => Url = s ?? string.Empty,
-                                                                             c => c.GetFromJsonAsync<string>(ClusterConnectionTrackerApi.SelfUrl));
+                                                                             s => Url = s?.Content ?? string.Empty,
+                                                                             c => c.GetFromJsonAsync<StringContent>(ClusterConnectionTrackerApi.SelfUrl));
                                                                      }));
     }
 }

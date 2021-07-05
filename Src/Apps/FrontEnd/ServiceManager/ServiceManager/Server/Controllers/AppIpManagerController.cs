@@ -32,6 +32,11 @@ namespace ServiceManager.Server.Controllers
             }
         }
 
-        public async Task<IActionResult>
+        //[HttpGet]
+        //[Route(nameof(AppIpManagerApi.AppIpQuery))]
+        //public async Task<ActionResult<AppIp>> TryFindIp()
+        //{
+            
+        //}
     }
 }

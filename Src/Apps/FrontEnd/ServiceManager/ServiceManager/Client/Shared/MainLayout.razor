@@ -15,6 +15,7 @@
 @inject IClusterConnectionTracker _cluster
 @inject IServerInfo _lifetime
 @inject IDatabaseConfig _databaseConfig
+@inject IAppIpManager _appIpManager;
 
 @implements IDisposable
 
@@ -23,18 +24,18 @@
     <MudDialogProvider/>
     <MudSnackbarProvider/>
     
-    @if (AppIp.IsValid)
+    @if (_appIpManager.Ip.IsValid)
     {
-        <CascadingValue Value="@IsConnected" Name="IsConnected">
-            <CascadingValue Value="@IsSelf" Name="IsSelf">
-                <CascadingValue Value="@IsDatabaseReady" Name="IsDatabaseReady">
+        <CascadingValue Value="@_cluster.IsConnected" Name="IsConnected">
+            <CascadingValue Value="@_cluster.IsSelf" Name="IsSelf">
+                <CascadingValue Value="@_databaseConfig.IsReady" Name="IsDatabaseReady">
                     <MudAppBar Elevation="4" Dense="true">
                         <MudSpacer/>
-                        @if (IsConnected && IsSelf)
+                        @if (_cluster.IsConnected && _cluster.IsSelf)
                         {
                             <MudAlert Severity="Severity.Warning" Variant="Variant.Filled">Kein Cluster (Ein Knoten)</MudAlert>
                         }
-                        else if (IsConnected && !IsSelf)
+                        else if (_cluster.IsConnected && !_cluster.IsSelf)
                         {
                             <MudAlert Severity="Severity.Success" Variant="Variant.Filled">Cluster Verbunden</MudAlert>
                         }
@@ -60,7 +61,7 @@
     else
     {
         <MudMainContent>
-            <NoIpFoundEditor Ip="@AppIp"/>
+            <NoIpFoundEditor Ip="@_appIpManager.Ip"/>
         </MudMainContent>
     }
 </MudLayout>
@@ -69,52 +70,44 @@
 {
     private readonly CompositeDisposable _disposer = new();
 
-    private bool IsConnected { get; set; }
-
-    private bool IsSelf { get; set; }
-
-    private bool IsDatabaseReady { get; set; }
-
-    private AppIp AppIp { get; set; } = AppIp.Invalid;
+  
 
     protected override void OnInitialized()
     {
-        _aggregator.GetEvent<ReloadAllEvent, Unit>().Subscribe()
-                   .Subscribe(_ => Task.Delay(5000).ContinueWith(_ => InvokeAsync(StateHasChanged)))
-                   .DisposeWith(_disposer);
-
-        _aggregator.ConsumeMessages()
-                   .Subscribe(m => m.Apply(_snackbar))
-                   .DisposeWith(_disposer);
-
-        _cluster.WhenAny(() => _cluster.IsConnected)
-                .Subscribe(b =>
-                           {
-                               IsConnected = b;
-                               InvokeAsync(StateHasChanged);
-                           })
-                .DisposeWith(_disposer);
-
-        _databaseConfig.WhenAny(() => _databaseConfig.IsReady)
-                       .Subscribe(b =>
-                                  {
-                                      IsDatabaseReady = b;
-                                      InvokeAsync(StateHasChanged);
-                                  })
+        try
+        {
+            _aggregator.GetEvent<ReloadAllEvent, Unit>().Subscribe()
+                       .Subscribe(_ => Task.Delay(5000).ContinueWith(_ => InvokeAsync(StateHasChanged)))
                        .DisposeWith(_disposer);
 
-        IsSelf = _cluster.IsSelf;
-        AppIp = _cluster.Ip;
+            _aggregator.ConsumeMessages()
+                       .Subscribe(m => m.Apply(_snackbar))
+                       .DisposeWith(_disposer);
 
-        base.OnInitialized();
+            base.OnInitialized();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 
     protected override async Task OnInitializedAsync()
     {
-        await PropertyChangedComponent.Init(_lifetime);
-        await Track(_databaseConfig);
-        await Track(_cluster);
-        await base.OnInitializedAsync();
+        try
+        {
+            await PropertyChangedComponent.Init(_lifetime);
+            await Track(_databaseConfig);
+            await Track(_cluster);
+            await Track(_appIpManager);
+            await base.OnInitializedAsync();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 
     private async Task Track(INotifyPropertyChanged changed)

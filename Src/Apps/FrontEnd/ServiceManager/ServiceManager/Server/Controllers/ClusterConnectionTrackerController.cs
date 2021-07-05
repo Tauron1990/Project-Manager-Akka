@@ -18,12 +18,17 @@ namespace ServiceManager.Server.Controllers
 
         [HttpGet]
         [Route(nameof(ClusterConnectionTrackerApi.IsSelf))]
-        public IActionResult GetIsSelf()
-            => new JsonResult(_tracker.IsSelf);
+        public ActionResult<BoolContent> GetIsSelf()
+            => new BoolContent(_tracker.IsSelf);
 
         [HttpGet]
         [Route(nameof(ClusterConnectionTrackerApi.IsConnected))]
-        public IActionResult GetIsConnected()
-            => new JsonResult(_tracker.IsConnected);
+        public ActionResult<BoolContent> GetIsConnected()
+            => new BoolContent(_tracker.IsConnected);
+
+        [HttpGet]
+        [Route(nameof(ClusterConnectionTrackerApi.SelfUrl))]
+        public ActionResult<StringContent> GetSelfUrl()
+            => new StringContent(_tracker.Url);
     }
 }

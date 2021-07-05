@@ -9,6 +9,7 @@ using ServiceManager.Client.ViewModels.Events;
 using ServiceManager.Shared;
 using ServiceManager.Shared.Api;
 using Tauron.Application;
+using StringContent = System.Net.Http.StringContent;
 
 namespace ServiceManager.Client.ViewModels.Models
 {
@@ -40,7 +41,8 @@ namespace ServiceManager.Client.ViewModels.Models
             try
             {
                 _current = await _client.GetFromJsonAsync<Guid>(ServerInfoApi.ServerInfo);
-                await _connection.StartAsync();
+                if(_connection.State == HubConnectionState.Disconnected)
+                    await _connection.StartAsync();
                 _connection.On(HubEvents.RestartServer, () => _aggregator.GetEvent<ReloadAllEvent, Unit>().Publish(Unit.Default));
             }
             catch

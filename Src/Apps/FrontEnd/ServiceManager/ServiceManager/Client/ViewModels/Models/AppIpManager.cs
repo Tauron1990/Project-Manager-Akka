@@ -6,6 +6,7 @@ using ServiceManager.Shared;
 using ServiceManager.Shared.Api;
 using ServiceManager.Shared.ClusterTracking;
 using Tauron.Application;
+using StringContent = System.Net.Http.StringContent;
 
 namespace ServiceManager.Client.ViewModels.Models
 {

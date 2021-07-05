@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
+using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Cluster;
 using DynamicData;
@@ -36,7 +37,7 @@ namespace ServiceManager.Server.AppCore.ClusterTracking
             var cluster = Cluster.Get(Context.System);
             cluster.RegisterOnMemberUp(() =>
                                        {
-                                           Self.Tell(ServiceRegistry.Get(Context.System));
+                                           Task.Delay(1000).ContinueWith(_ => Self.Tell(ServiceRegistry.Get(Context.System)));
                                            cluster.Subscribe(Self, ClusterEvent.SubscriptionInitialStateMode.InitialStateAsEvents, typeof(ClusterEvent.IClusterDomainEvent));
                                        });
 

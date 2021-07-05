@@ -61,6 +61,8 @@ namespace ServiceManager.Server.AppCore.Helper
                 await File.WriteAllTextAsync(seedPath, baseConfig.ToString(true));
 
                 Ip = new AppIp(potentialIp, true);
+
+                await File.WriteAllTextAsync(targetFile, potentialIp);
             }
             catch (Exception e)
             {
