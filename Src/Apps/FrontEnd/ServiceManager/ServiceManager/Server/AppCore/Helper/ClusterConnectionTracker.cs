@@ -10,7 +10,7 @@ namespace ServiceManager.Server.AppCore.Helper
     {
         private readonly IPropertyChangedNotifer _notifer;
         private bool _isConnected;
-        private string _url;
+        private string _url = string.Empty;
 
         public string Url
         {

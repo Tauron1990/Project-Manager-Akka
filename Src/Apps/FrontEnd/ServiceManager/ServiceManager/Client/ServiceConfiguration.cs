@@ -12,12 +12,15 @@ namespace ServiceManager.Client
     {
         public static void Run(IServiceCollection collection)
         {
-            collection.AddScoped<IEventAggregator, EventAggregator>();
+            collection.AddScoped<IndexViewModel>();
             collection.AddScoped<ConfigurationViewDatabseModel>();
+
             collection.AddScoped<IClusterConnectionTracker, ClusterConnectionTracker>();
             collection.AddScoped<IDatabaseConfig, DatabaseConfig>();
             collection.AddScoped<IAppIpManager, AppIpManager>();
             collection.AddScoped<IServerInfo, Serverinfo>();
+
+            collection.AddScoped<IEventAggregator, EventAggregator>();
         }
     }
 }

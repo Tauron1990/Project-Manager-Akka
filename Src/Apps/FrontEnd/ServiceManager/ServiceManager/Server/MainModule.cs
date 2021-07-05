@@ -17,9 +17,9 @@ namespace ServiceManager.Server
         protected override void Load(ContainerBuilder builder)
         {
             builder.RegisterSettingsManager(c => c.WithProvider<LocalConfigurationProvider>());
-            builder.RegisterType<LocalConfiguration>().As<ILocalConfiguration>();
+            builder.RegisterType<LocalConfiguration>().As<ILocalConfiguration>().SingleInstance();
 
-            builder.RegisterType<ClusterConnectionTracker>().As<IClusterConnectionTracker>();
+            builder.RegisterType<ClusterConnectionTracker>().As<IClusterConnectionTracker>().SingleInstance();
             builder.RegisterType<DatabaseConfig>().As<IDatabaseConfig>();
             builder.RegisterType<PropertyChangedNotifer>().As<IPropertyChangedNotifer>();
 
