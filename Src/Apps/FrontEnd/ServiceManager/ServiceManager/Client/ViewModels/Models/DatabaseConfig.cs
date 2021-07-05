@@ -35,7 +35,7 @@ namespace ServiceManager.Client.ViewModels.Models
         public async Task<string> SetUrl(string url)
         {
             try
-            {
+            {m
                 using var response = await Client.PostAsJsonAsync(DatabaseConfigApi.DatabaseConfigApiBase, new StringContent(url));
                 response.EnsureSuccessStatusCode();
                 var result = await response.Content.ReadFromJsonAsync<StringContent>();
