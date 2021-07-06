@@ -76,7 +76,7 @@
     {
         try
         {
-            _aggregator.GetEvent<ReloadAllEvent, Unit>().Subscribe()
+            _aggregator.GetEvent<ReloadAllEvent, Unit>().Get()
                        .Subscribe(_ => Task.Delay(5000).ContinueWith(_ => InvokeAsync(StateHasChanged)))
                        .DisposeWith(_disposer);
 

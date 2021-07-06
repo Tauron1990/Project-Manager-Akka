@@ -25,7 +25,7 @@ namespace ServiceManager.Client.ViewModels.Models
         {
             Client = client;
             HubConnection = hubConnection;
-            _subscription = aggregator.GetEvent<ReloadAllEvent, Unit>().Subscribe().Subscribe(_ => _isInit = false);
+            _subscription = aggregator.GetEvent<ReloadAllEvent, Unit>().Get().Subscribe(_ => _isInit = false);
         }
 
         private async Task OnPropertyChanged<TType>(string type, string property, Action<TType> setter, Func<HttpClient, Task<TType>> query)

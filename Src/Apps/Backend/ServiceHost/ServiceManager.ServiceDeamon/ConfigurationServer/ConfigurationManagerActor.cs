@@ -4,7 +4,6 @@ using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Akka.Actor;
-using Akka.Cluster.Sharding;
 using ServiceHost.Client.Shared.ConfigurationServer;
 using ServiceHost.Client.Shared.ConfigurationServer.Data;
 using ServiceHost.Client.Shared.ConfigurationServer.Events;
@@ -13,6 +12,7 @@ using ServiceManager.ServiceDeamon.ConfigurationServer.Internal;
 using SharpRepository.Repository;
 using SharpRepository.Repository.Configuration;
 using Tauron;
+using Tauron.Application.AkkaNode.Services.Core;
 using Tauron.Features;
 
 namespace ServiceManager.ServiceDeamon.ConfigurationServer
@@ -29,14 +29,14 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
             var publisher = new Subject<IConfigEvent>();
 
             ConfigFeatureConfiguration CreateState()
-                => new(serverConfiguration.Get(ServerConfigurationId)?.Configugration ?? new ServerConfigugration(true, false),
+                => new(serverConfiguration.Get(ServerConfigurationId)?.Configugration ?? new ServerConfigugration(true, false, string.Empty),
                     repository.GetInstance<GlobalConfigEntity, string>(),
                     repository.GetInstance<SeedUrlEntity, string>(),
                     repository.GetInstance<SpecificConfigEntity, string>(), 
                     publisher.ObserveOn(Scheduler.Default),
                     publisher.AsObserver().OnNext);
 
-            return Feature.Props(Feature.Create(() => new ConfigurationManagerActor(), _ => new State(CreateState, serverConfiguration, publisher)));
+            return Feature.Props(Feature.Create(() => new ConfigurationManagerActor(), _ => new State(CreateState, serverConfiguration, publisher)), TellAliveFeature.New());
         }
 
         protected override void ConfigImpl()

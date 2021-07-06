@@ -14,6 +14,6 @@ namespace TimeTracker
             => aggregator.GetEvent<ErrorCarrier, Exception>().Publish(exception);
 
         public static IObservable<Exception> ConsumeErrors(this IEventAggregator aggregator)
-            => aggregator.GetEvent<ErrorCarrier, Exception>().Subscribe();
+            => aggregator.GetEvent<ErrorCarrier, Exception>().Get();
     }
 }

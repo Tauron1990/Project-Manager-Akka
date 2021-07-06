@@ -6,8 +6,11 @@ using System.Linq.Expressions;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
 using FastExpressionCompiler;
 using JetBrains.Annotations;
+using NLog;
 
 namespace Tauron.Application
 {
@@ -52,14 +55,29 @@ namespace Tauron.Application
             OnPropertyChangedExplicit(Argument.NotNull(name!, nameof(name)));
         }
 
-        public void SetProperty<TType>(ref TType property, TType value, Action changed,
-            [CallerMemberName] string? name = null)
+        public void SetProperty<TType>(ref TType property, TType value, Action changed, [CallerMemberName] string? name = null)
         {
             if (EqualityComparer<TType>.Default.Equals(property, value)) return;
 
             property = value;
             OnPropertyChangedExplicit(Argument.NotNull(name!, nameof(name)));
             changed();
+        }
+
+        public void SetProperty<TType>(ref TType property, TType value, Func<Task> changed, [CallerMemberName] string? name = null)
+        {
+            var context = ExecutionContext.Capture();
+
+            SetProperty(ref property, value, new Action(() => changed().ContinueWith(t =>
+                                                                                     {
+                                                                                         if(t.IsCompletedSuccessfully)
+                                                                                             return;
+                                                                                         if(t.IsCanceled)
+                                                                                             return;
+                                                                                         LogManager.GetCurrentClassLogger(GetType()).Error(t.Exception, "Error on Execute Async property Changed");
+                                                                                         if(context != null)
+                                                                                            ExecutionContext.Run(context, state => throw (Exception)state!, t.Exception);
+                                                                                     })), name);
         }
 
         public virtual void OnPropertyChanged(PropertyChangedEventArgs eventArgs) 

@@ -1,35 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Threading;
+using System.Reactive.Disposables;
 using Microsoft.AspNetCore.Components;
+using Tauron.Akka;
 
 namespace ServiceManager.Client.Components
 {
-    public abstract class DisposableComponent : ComponentBase, IDisposable
+    public abstract class DisposableComponent : ComponentBase, IResourceHolder
     {
-        private List<IDisposable>? _disposables = new();
+        private readonly CompositeDisposable _disposables = new();
 
-        public void AddResource(IDisposable disposable)
-        {
-            if(_disposables == null)
-                disposable.Dispose();
-            else
-                _disposables.Add(disposable);
-        }
+        public void AddResource(IDisposable disposable) => _disposables.Add(disposable);
 
-        public void RemoveResource(IDisposable disposable)
-        {
-            if (_disposables == null)
-                disposable.Dispose();
-            else
-                _disposables.Remove(disposable);
-        }
+        public void RemoveResources(IDisposable res) => _disposables.Remove(res);
 
-        public virtual void Dispose()
-        {
-            if(_disposables == null) return;
-            foreach (var disposable in Interlocked.Exchange(ref _disposables, null)) 
-                disposable.Dispose();
-        }
+        public virtual void Dispose() => _disposables.Dispose();
     }
 }

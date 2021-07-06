@@ -36,7 +36,7 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
                       .UForwardToParent()
                       .Select(_ => OperationResult.Success()));
 
-            Option<TData> UpdateRepo<TData>(IRepository<TData, string> repo, ConfigDataAction action, Option<TData> dataOption) 
+            static Option<TData> UpdateRepo<TData>(IRepositoryBase<TData> repo, ConfigDataAction action, Option<TData> dataOption) 
                 where TData : class
             {
                 dataOption.OnSuccess(data =>
@@ -122,6 +122,7 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
             TryReceive<ForceUpdateHostConfigCommand>(nameof(ForceUpdateHostConfigCommand),
                 obs => obs.Do(m => m.State.EventSender(new ForceHostUpdate()))
                           .Select(_ => OperationResult.Success()));
+
         }
     }
 }

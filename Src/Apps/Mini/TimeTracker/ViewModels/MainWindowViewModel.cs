@@ -125,7 +125,7 @@ namespace TimeTracker.ViewModels
             //              .DistinctUntilChanged()
             //              .Select(i => i.ToString())
             //              .ObserveOn(Scheduler.Default)
-            //              .Subscribe(HoursAll).DisposeWith(this);
+            //              .Get(HoursAll).DisposeWith(this);
 
             #region Entrys
 

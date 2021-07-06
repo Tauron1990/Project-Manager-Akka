@@ -13,6 +13,6 @@ namespace ServiceManager.Client
             => aggregator.GetEvent<SharedEvent<SnackbarMessage>, SnackbarMessage>().Publish(message);
 
         public static IObservable<SnackbarMessage> ConsumeMessages(this IEventAggregator aggregator)
-            => aggregator.GetEvent<SharedEvent<SnackbarMessage>, SnackbarMessage>().Subscribe();
+            => aggregator.GetEvent<SharedEvent<SnackbarMessage>, SnackbarMessage>().Get();
     }
 }

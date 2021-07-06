@@ -1,0 +1,86 @@
+﻿@using System.Threading
+@using ServiceManager.Shared
+@using Tauron
+@using Tauron.Application
+
+@inherits DialogBaseComponent
+@inject NavigationManager _manager
+@inject IEventAggregator _aggregator
+@inject IServerInfo _serverInfo
+
+<div class="loader align-center">Neustarten...</div>
+
+@if (_atempts > 5)
+{
+    <MudButton OnClick="Reload">Neuladen</MudButton>
+}
+
+@if (_trying)
+{
+    <MudText>Versuche Verbindung aufzubauen</MudText>
+}
+
+@if (_atempts > 0)
+{
+    <MudText Class="text-center">Versuch Nummer: @_atempts</MudText>
+}
+
+@if (_errors.Count > 0)
+{
+    @foreach (var err in _errors.AsEnumerable().Reverse())
+    {
+        <MudText>@err</MudText>
+    }
+}
+
+@code {
+    private int _atempts;
+
+    private bool _trying;
+
+    private Timer? _timer;
+
+    private readonly List<string> _errors = new();
+
+    private void Reload()
+    {
+        _timer?.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+        _manager.NavigateTo("", true);
+    }
+
+    protected override void OnInitialized()
+    {
+        _timer = new Timer(TryRestart, null, TimeSpan.FromSeconds(20), Timeout.InfiniteTimeSpan)
+            .DisposeWith(this);
+        base.OnInitialized();
+    }
+
+    private async void TryRestart(object? state)
+    {
+        try
+        {
+            _trying = true;
+            await InvokeAsync(StateHasChanged);
+            var result = await _serverInfo.TryReconnect();
+            if (string.IsNullOrWhiteSpace(result))
+            {
+                _manager.NavigateTo("");
+                return;
+            }
+
+            _atempts += 1;
+            _errors.Add(result);
+            await InvokeAsync(StateHasChanged);
+            if (_timer?.Change(TimeSpan.FromSeconds(20), Timeout.InfiniteTimeSpan) != true)
+                Reload();
+            
+        }
+        catch (Exception exception)
+        {
+            _errors.Add(exception.Message);
+            await InvokeAsync(StateHasChanged);
+            _aggregator.PublishError(exception);
+        }
+    }
+
+}

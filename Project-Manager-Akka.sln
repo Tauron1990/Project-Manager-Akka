@@ -120,11 +120,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tauron.Application.Blazor",
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Old", "Old", "{A930EF4C-9B40-4115-A7E5-B518BAD65D52}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceManager.Server", "Src\Apps\FrontEnd\ServiceManager\ServiceManager\Server\ServiceManager.Server.csproj", "{5081E739-2F3C-4BEF-9601-1650E1201997}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceManager.Server", "Src\Apps\FrontEnd\ServiceManager\ServiceManager\Server\ServiceManager.Server.csproj", "{5081E739-2F3C-4BEF-9601-1650E1201997}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceManager.Client", "Src\Apps\FrontEnd\ServiceManager\ServiceManager\Client\ServiceManager.Client.csproj", "{69E2C217-E490-429D-9744-F65D4834CC7C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceManager.Client", "Src\Apps\FrontEnd\ServiceManager\ServiceManager\Client\ServiceManager.Client.csproj", "{69E2C217-E490-429D-9744-F65D4834CC7C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceManager.Shared", "Src\Apps\FrontEnd\ServiceManager\ServiceManager\Shared\ServiceManager.Shared.csproj", "{39774329-718C-42DF-985A-3B68A845B58F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceManager.Shared", "Src\Apps\FrontEnd\ServiceManager\ServiceManager\Shared\ServiceManager.Shared.csproj", "{39774329-718C-42DF-985A-3B68A845B58F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tauron.Application.ServiceManager.Old2", "Src\Apps\FrontEnd\ServiceManager\Old\Tauron.Application.ServiceManager.Old2\Tauron.Application.ServiceManager.Old2.csproj", "{3505781A-961E-427E-B13F-80BDD2DD560C}"
 EndProject

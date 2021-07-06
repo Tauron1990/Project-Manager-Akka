@@ -14,13 +14,14 @@ namespace Tauron.Application
         public virtual void Publish(TPayload content) 
             => _handlerList.OnNext(content);
 
-        public IObservable<TPayload> Subscribe() 
+        public IObservable<TPayload> Get() 
             => _handlerList.AsObservable();
 
         public void Dispose()
         {
             _handlerList.OnCompleted();
             _handlerList.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 

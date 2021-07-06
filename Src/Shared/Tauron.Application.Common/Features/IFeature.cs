@@ -95,7 +95,11 @@ namespace Tauron.Features
 
         public ITimerScheduler Timers { get; set; } = null!;
 
-        void IDisposable.Dispose() => _actor.Dispose();
+        void IDisposable.Dispose()
+        {
+            _actor.Dispose();
+            GC.SuppressFinalize(this);
+        }
 
         void IResourceHolder.AddResource(IDisposable res) => _actor.AddResource(res);
 

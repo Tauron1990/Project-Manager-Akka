@@ -1,4 +1,4 @@
-﻿@inherits PropertyChangedComponent
+﻿@inherits ConnectionAwareComponent
 @inject ConfigurationViewDatabseModel _model
 
 <div style="max-width: 1000px">
@@ -10,6 +10,7 @@
             </MudForm>
         </MudCardContent>
         <MudCardActions>
+            <MudButton Disabled="CanFetch" OnClick="_model.TryFetchDatabseUrl"></MudButton>
             <MudButton ButtonType="ButtonType.Reset" OnClick="_model.Reset">Zurücksetzen</MudButton>
             <MudButton ButtonType="ButtonType.Submit" OnClick="_model.Submit">Speichern</MudButton>
         </MudCardActions>
@@ -17,6 +18,9 @@
 </div>
 
 @code {
+
+    private bool CanFetch => IsConnected && !IsSelf;
+
     protected override async Task OnInitializedAsync() => await Track(_model);
 
 }

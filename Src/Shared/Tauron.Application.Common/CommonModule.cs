@@ -17,8 +17,8 @@ namespace Tauron
             builder.RegisterGeneric(typeof(DefaultActorRef<>)).As(typeof(IDefaultActorRef<>));
             builder.RegisterGeneric(typeof(SyncActorRef<>)).As(typeof(ISyncActorRef<>));
 
-            builder.RegisterType<TauronEnviroment>().As<ITauronEnviroment>();
-			builder.RegisterType<EventAggregator>().As<IEventAggregator>();
+            builder.RegisterType<TauronEnviroment>().As<ITauronEnviroment>().SingleInstance();
+			builder.RegisterType<EventAggregator>().As<IEventAggregator>().SingleInstance();
         }
     }
 }

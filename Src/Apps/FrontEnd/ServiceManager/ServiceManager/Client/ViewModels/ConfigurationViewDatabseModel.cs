@@ -82,6 +82,18 @@ namespace ServiceManager.Client.ViewModels
                 await mb.Init();
         }
 
+        public async Task TryFetchDatabseUrl()
+        {
+            var urlResult = await _databaseConfig.FetchUrl();
+
+            if (urlResult == null)
+                _snackbar.Add("Unbekannter Fehler beim Abrufen der Url", Severity.Error);
+            else if (urlResult.Success)
+                DatabaseUrl = urlResult.Url;
+            else
+                _snackbar.Add($"Fehler beim Abrufen der Url: {urlResult.Url}", Severity.Error);
+        }
+
         private void SetUrl(string url)
         {
             DatabaseUrl = url;

@@ -4,6 +4,8 @@
     {
         public const string DatabaseConfigApiBase = "api/databaseconfig";
 
-        public const string IsReady = DatabaseConfigApiBase + "/IsReady";
+        public const string IsReady = DatabaseConfigApiBase + "/" + nameof(IsReady);
+
+        public const string FetchUrl = DatabaseConfigApiBase + "/" + nameof(FetchUrl);
     }
 }

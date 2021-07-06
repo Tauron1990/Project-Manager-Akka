@@ -10,6 +10,7 @@ using Autofac;
 using DynamicData;
 using Microsoft.AspNetCore.SignalR;
 using ServiceHost.Client.Shared;
+using ServiceManager.Server.AppCore.Helper;
 using ServiceManager.Server.Hubs;
 using ServiceManager.Shared.Api;
 using ServiceManager.Shared.ClusterTracking;
@@ -42,11 +43,7 @@ namespace ServiceManager.Server.AppCore.ClusterTracking
             ServiceRegistry serviceRegistry = ServiceRegistry.Start(Context.System, 
                 c => new RegisterService(ActorApplication.Application.Container.Resolve<IActorHostEnvironment>().ApplicationName, c.SelfUniqueAddress, ServiceTypes.ServiceManager));
 
-            cluster.RegisterOnMemberUp(() =>
-                                       {
-                                           Task.Delay(1000).ContinueWith(_ => Self.Tell(ServiceRegistry.Get(Context.System)));
-                                           cluster.Subscribe(Self, ClusterEvent.SubscriptionInitialStateMode.InitialStateAsEvents, typeof(ClusterEvent.IClusterDomainEvent));
-                                       });
+            cluster.RegisterOnMemberUp(() => cluster.Subscribe(Self, ClusterEvent.SubscriptionInitialStateMode.InitialStateAsEvents, typeof(ClusterEvent.IClusterDomainEvent)));
             
             Receive<ClusterEvent.IClusterDomainEvent>(obs => obs.ToUnit(evt =>
                                                                         {
@@ -121,7 +118,5 @@ namespace ServiceManager.Server.AppCore.ClusterTracking
                                                                  .AutoSubscribe(e => Log.Error(e, "Error on sending Nodes Changed"));
                                                  }));
         }
-
-        public sealed record InitActor;
     }
 }

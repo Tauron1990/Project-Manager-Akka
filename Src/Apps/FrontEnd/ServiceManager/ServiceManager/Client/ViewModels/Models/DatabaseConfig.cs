@@ -47,6 +47,8 @@ namespace ServiceManager.Client.ViewModels.Models
             }
         }
 
+        public Task<UrlResult?> FetchUrl() => Client.GetFromJsonAsync<UrlResult>(DatabaseConfigApi.FetchUrl);
+
         public override Task Init()
         {
             return Init(mc =>

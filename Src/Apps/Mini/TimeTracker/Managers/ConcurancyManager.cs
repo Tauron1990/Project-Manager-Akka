@@ -25,7 +25,7 @@ namespace TimeTracker.Managers
                                 });
 
         //public IObservable<TData> AsyncCall<TData>(IObservable<TData> input) 
-        //    => Observable.Create<TData>(o => input.Subscribe(new SyncObserver<TData>(o, _asyncLock)));
+        //    => Observable.Create<TData>(o => input.Get(new SyncObserver<TData>(o, _asyncLock)));
 
         ////public Task WaitAsyncCallWindow()
         ////    => _asyncLock.WaitAsync();

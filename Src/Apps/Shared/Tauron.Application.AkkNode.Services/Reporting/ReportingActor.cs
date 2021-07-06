@@ -17,11 +17,11 @@ namespace Tauron.Application.AkkaNode.Services.Reporting
 
     //    [PublicAPI]
     //    protected void Receive<TMessage>(string name, Action<TMessage, Reporter> process) 
-    //        where TMessage : IReporterMessage => Receive<TMessage>(obs => obs.Subscribe(m => TryExecute(m, name, process)));
+    //        where TMessage : IReporterMessage => Receive<TMessage>(obs => obs.Get(m => TryExecute(m, name, process)));
 
     //    [PublicAPI]
     //    protected void ReceiveContinue<TMessage>(string name, Action<TMessage, Reporter> process)
-    //        where TMessage : IDelegatingMessage => Receive<TMessage>(obs => obs.Subscribe(m => TryContinue(m, name, process)));
+    //        where TMessage : IDelegatingMessage => Receive<TMessage>(obs => obs.Get(m => TryContinue(m, name, process)));
 
     //    protected virtual void TryExecute<TMessage>(TMessage msg, string name, Action<TMessage, Reporter> process)
     //        where TMessage : IReporterMessage

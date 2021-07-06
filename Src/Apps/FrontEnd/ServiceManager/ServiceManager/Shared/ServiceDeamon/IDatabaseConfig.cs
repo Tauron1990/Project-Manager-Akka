@@ -9,5 +9,7 @@ namespace ServiceManager.Shared.ServiceDeamon
         public bool IsReady { get; }
 
         Task<string> SetUrl(string url);
+
+        Task<UrlResult?> FetchUrl();
     }
 }
