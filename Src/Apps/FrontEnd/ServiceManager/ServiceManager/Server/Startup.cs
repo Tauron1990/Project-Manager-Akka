@@ -41,9 +41,7 @@ namespace ServiceManager.Server
         [UsedImplicitly]
         public void ConfigureContainer(IActorApplicationBuilder builder)
         {
-            builder.OnMemberUp((context, system, cluster) 
-                                   => ServiceRegistry.Start(system, new RegisterService(context.HostEnvironment.ApplicationName, cluster.SelfUniqueAddress, ServiceTypes.ServiceManager)))
-                   .OnMemberRemoved((_, system, _) =>
+            builder.OnMemberRemoved((_, system, _) =>
                                     {
                                         var resolverScope = DependencyResolver.For(system).Resolver.CreateScope();
                                         var resolver = resolverScope.Resolver;

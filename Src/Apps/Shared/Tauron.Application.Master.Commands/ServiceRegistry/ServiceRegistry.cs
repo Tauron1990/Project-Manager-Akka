@@ -32,13 +32,20 @@ namespace Tauron.Application.Master.Commands.ServiceRegistry
         public Task<QueryRegistratedServiceResponse> QueryService(Member member)
             => _target.Ask<QueryRegistratedServiceResponse>(new QueryRegistratedService(member.UniqueAddress));
 
-        public static void Start(ActorSystem system, RegisterService? self)
+        public static ServiceRegistry Start(ActorSystem system, RegisterService? self)
         {
             if (_registry != null)
                 system.Stop(_registry._target);
-            _registry = new ServiceRegistry(system.ActorOf(
-                Props.Create(() => new ServiceRegistryServiceActor(ClusterActorDiscovery.Get(system).Discovery, self)),
-                nameof(ServiceRegistry)));
+            _registry = new ServiceRegistry(system.ActorOf(Props.Create(() => new ServiceRegistryServiceActor(ClusterActorDiscovery.Get(system).Discovery, self)), nameof(ServiceRegistry)));
+            return _registry;
+        }
+
+        public static ServiceRegistry Start(ActorSystem system, Func<Cluster, RegisterService?> self)
+        {
+            if (_registry != null)
+                system.Stop(_registry._target);
+            _registry = new ServiceRegistry(system.ActorOf(Props.Create(() => new ServiceRegistryServiceActor(self)), nameof(ServiceRegistry)));
+            return _registry;
         }
 
         public static ServiceRegistry Get(ActorSystem refFactory)
@@ -177,22 +184,54 @@ namespace Tauron.Application.Master.Commands.ServiceRegistry
             }
         }
 
-        private sealed class ServiceRegistryServiceActor : ReceiveActor
+        private sealed class ServiceRegistryServiceActor : ReceiveActor, IWithUnboundedStash
         {
-            private readonly IActorRef _discovery;
+            private IActorRef _discovery = ActorRefs.Nobody;
+            private RegisterService? _self;
 
             private readonly Dictionary<UniqueAddress, ServiceEntry> _services = new();
 
             public ServiceRegistryServiceActor(IActorRef discovery, RegisterService? self)
             {
                 _discovery = discovery;
-                if (self != null) _services[self.Address] = new ServiceEntry(self.Name, self.ServiceType);
+                _self = self;
+
+                Running();
+            }
+
+            public ServiceRegistryServiceActor(Func<Cluster, RegisterService?> selfCreation)
+            {
+                var cluster = Cluster.Get(Context.System);
+                var self = Self;
+
+                cluster.RegisterOnMemberUp(() =>
+                                           {
+                                               _self = selfCreation(cluster);
+                                               _discovery = ClusterActorDiscovery.Get(Context.System).Discovery;
+                                               _discovery.Tell(new ClusterActorDiscoveryMessage.RegisterActor(Self, nameof(ServiceRegistry)));
+                                               _discovery.Tell(new ClusterActorDiscoveryMessage.MonitorActor(nameof(ServiceRegistry)));
+
+                                               self.Tell(new Init());
+                                           });
+
+                Receive<Init>(_ =>
+                              {
+                                  Stash?.UnstashAll();
+                                  Stash = null;
+                                  Become(Running);
+                              });
+                ReceiveAny(_ => Stash?.Stash());
+            }
+
+            private void Running()
+            {
+                if (_self != null) _services[_self.Address] = new ServiceEntry(_self.Name, _self.ServiceType);
 
                 Receive<RegisterService>(service =>
-                                         {
-                                             Log.Info("Register Service {Name} -- {Adress}", service.Name, service.Address);
-                                             _services[service.Address] = new ServiceEntry(service.Name, service.ServiceType);
-                                         });
+                {
+                    Log.Info("Register Service {Name} -- {Adress}", service.Name, service.Address);
+                    _services[service.Address] = new ServiceEntry(service.Name, service.ServiceType);
+                });
 
                 Receive<QueryRegistratedServices>(_ =>
                 {
@@ -207,8 +246,8 @@ namespace Tauron.Application.Master.Commands.ServiceRegistry
                 });
 
                 Receive<QueryRegistratedService>(
-                    s => Sender.Tell(_services.TryGetValue(s.Address, out var entry) 
-                        ? new QueryRegistratedServiceResponse(new MemberService(entry.Name, MemberAddress.From(s.Address), entry.ServiceType)) 
+                    s => Sender.Tell(_services.TryGetValue(s.Address, out var entry)
+                        ? new QueryRegistratedServiceResponse(new MemberService(entry.Name, MemberAddress.From(s.Address), entry.ServiceType))
                         : new QueryRegistratedServiceResponse(null)));
 
                 Receive<ClusterActorDiscoveryMessage.ActorUp>(au =>
@@ -231,8 +270,12 @@ namespace Tauron.Application.Master.Commands.ServiceRegistry
 
             protected override void PreStart()
             {
-                _discovery.Tell(new ClusterActorDiscoveryMessage.RegisterActor(Self, nameof(ServiceRegistry)));
-                _discovery.Tell(new ClusterActorDiscoveryMessage.MonitorActor(nameof(ServiceRegistry)));
+                if (!_discovery.Equals(ActorRefs.Nobody))
+                {
+                    _discovery.Tell(new ClusterActorDiscoveryMessage.RegisterActor(Self, nameof(ServiceRegistry)));
+                    _discovery.Tell(new ClusterActorDiscoveryMessage.MonitorActor(nameof(ServiceRegistry)));
+                }
+
                 base.PreStart();
             }
 
@@ -243,6 +286,11 @@ namespace Tauron.Application.Master.Commands.ServiceRegistry
                 public SyncRegistry(Dictionary<UniqueAddress, ServiceEntry> sync) => ToSync = sync;
                 public Dictionary<UniqueAddress, ServiceEntry> ToSync { get; }
             }
+
+            [UsedImplicitly]
+            public IStash? Stash { get; set; }
+
+            private sealed record Init;
         }
     }
 }

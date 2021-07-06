@@ -6,26 +6,29 @@ using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Cluster;
+using Autofac;
 using DynamicData;
 using Microsoft.AspNetCore.SignalR;
+using ServiceHost.Client.Shared;
 using ServiceManager.Server.Hubs;
 using ServiceManager.Shared.Api;
 using ServiceManager.Shared.ClusterTracking;
 using Tauron;
 using Tauron.Application.Master.Commands.ServiceRegistry;
 using Tauron.Features;
+using Tauron.Host;
 
 namespace ServiceManager.Server.AppCore.ClusterTracking
 {
     public sealed class ClusterHostManagerActor : ActorFeatureBase<ClusterHostManagerActor.ClusterState>
     {
-        public sealed record ClusterState(SourceCache<MemberData, MemberAddress> Entrys, ServiceRegistry ServiceRegistry, IHubContext<ClusterInfoHub> Hub);
+        public sealed record ClusterState(SourceCache<MemberData, MemberAddress> Entrys, IHubContext<ClusterInfoHub> Hub);
 
         public static Func<IHubContext<ClusterInfoHub>, IPreparedFeature> New()
         {
             static IPreparedFeature _(IHubContext<ClusterInfoHub> hub)
                 => Feature.Create(() => new ClusterHostManagerActor(),
-                    _ => new ClusterState(new SourceCache<MemberData, MemberAddress>(md => MemberAddress.From(md.Member.UniqueAddress)), ServiceRegistry.Empty, hub));
+                    _ => new ClusterState(new SourceCache<MemberData, MemberAddress>(md => MemberAddress.From(md.Member.UniqueAddress)), hub));
 
             return _;
         }
@@ -35,14 +38,16 @@ namespace ServiceManager.Server.AppCore.ClusterTracking
             var entrys = CurrentState.Entrys;
 
             var cluster = Cluster.Get(Context.System);
+
+            ServiceRegistry serviceRegistry = ServiceRegistry.Start(Context.System, 
+                c => new RegisterService(ActorApplication.Application.Container.Resolve<IActorHostEnvironment>().ApplicationName, c.SelfUniqueAddress, ServiceTypes.ServiceManager));
+
             cluster.RegisterOnMemberUp(() =>
                                        {
                                            Task.Delay(1000).ContinueWith(_ => Self.Tell(ServiceRegistry.Get(Context.System)));
                                            cluster.Subscribe(Self, ClusterEvent.SubscriptionInitialStateMode.InitialStateAsEvents, typeof(ClusterEvent.IClusterDomainEvent));
                                        });
-
-            Receive<ServiceRegistry>(obs => obs.Select(evt => evt.State with{ ServiceRegistry = evt.Event}));
-
+            
             Receive<ClusterEvent.IClusterDomainEvent>(obs => obs.ToUnit(evt =>
                                                                         {
                                                                             if(evt.Event is not ClusterEvent.MemberStatusChange c)
@@ -55,13 +60,13 @@ namespace ServiceManager.Server.AppCore.ClusterTracking
                                                                                     entrys.AddOrUpdate(new MemberData(c.Member, string.Empty, ServiceType.Empty));
                                                                                     break;
                                                                                 case MemberStatus.Up:
-                                                                                    CurrentState.ServiceRegistry.QueryService(c.Member)
-                                                                                            .PipeTo(Context.Self, success: q => q,
-                                                                                                 failure: e =>
-                                                                                                          {
-                                                                                                              Log.Warning(e, "Error on Query Service Data for {Address}", c.Member.UniqueAddress);
-                                                                                                              return new QueryRegistratedServiceResponse(null);
-                                                                                                          });
+                                                                                    serviceRegistry.QueryService(c.Member)
+                                                                                                   .PipeTo(Context.Self, success: q => q,
+                                                                                                        failure: e =>
+                                                                                                                 {
+                                                                                                                     Log.Warning(e, "Error on Query Service Data for {Address}", c.Member.UniqueAddress);
+                                                                                                                     return new QueryRegistratedServiceResponse(null);
+                                                                                                                 });
                                                                                     if(!entrys.Lookup(MemberAddress.From(c.Member.UniqueAddress)).HasValue)
                                                                                         entrys.AddOrUpdate(new MemberData(c.Member, string.Empty, ServiceType.Empty));
                                                                                     break;
