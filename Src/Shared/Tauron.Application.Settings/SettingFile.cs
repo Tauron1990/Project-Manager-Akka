@@ -1,6 +1,8 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Immutable;
 using Akka.Actor;
 using Akka.Event;
+using NLog.Fluent;
 
 namespace Tauron.Application.Settings
 {
@@ -28,13 +30,21 @@ namespace Tauron.Application.Settings
 
         private void RequestAllValues(RequestAllValues obj)
         {
-            if (!_isLoaded)
+            try
             {
-                _log.Info("Load Settings Value");
-                _data = _provider.Load();
-                _isLoaded = true;
+                if (!_isLoaded)
+                {
+                    _log.Info("Load Settings Value");
+                    _data = _provider.Load();
+                }
+            }
+            catch (Exception e)
+            {
+                _log.Error(e, "Error on Load Configuration");
+                _data = ImmutableDictionary<string, string>.Empty;
             }
 
+            _isLoaded = true;
             Context.Sender.Tell(_data);
         }
     }

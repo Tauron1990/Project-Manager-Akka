@@ -25,13 +25,14 @@ namespace ServiceManager.Server
             builder.RegisterSettingsManager(c => c.WithProvider<LocalConfigurationProvider>());
             builder.RegisterType<LocalConfiguration>().As<ILocalConfiguration>().SingleInstance();
 
-            builder.Register(c => c.Resolve<IEventAggregator>().GetEvent<ConfigEventDispatcher, IConfigEvent>());
+            builder.Register(c => c.Resolve<IEventAggregator>().GetEvent<ConfigEventDispatcher, IConfigEvent>()).SingleInstance();
             builder.RegisterType<ClusterConnectionTracker>().As<IClusterConnectionTracker>().SingleInstance();
-            builder.RegisterType<DatabaseConfig>().As<IDatabaseConfig>();
-            builder.RegisterType<PropertyChangedNotifer>().As<IPropertyChangedNotifer>();
+            builder.RegisterType<DatabaseConfig>().As<IDatabaseConfig>().SingleInstance();
+            builder.RegisterType<PropertyChangedNotifer>().As<IPropertyChangedNotifer>().SingleInstance();
 
             builder.RegisterFeature<ClusterNodeManagerRef, IClusterNodeManager>(ClusterHostManagerActor.New());
             builder.RegisterFeature<ApiEventDispatcherRef, IApiEventDispatcher>(ApiEventDispatcherActor.New());
+            builder.RegisterFeature<ProcessServiceHostRef, IProcessServiceHost>(ProcessServiceHostActor.New());
 
             builder.Register(c => DeploymentApi.CreateProxy(c.Resolve<ActorSystem>())).SingleInstance();
             builder.Register(c => RepositoryApi.CreateProxy(c.Resolve<ActorSystem>())).SingleInstance();

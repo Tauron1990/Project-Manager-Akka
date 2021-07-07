@@ -9,5 +9,7 @@
         public const string IsConnected = ClusterConnectionTracker + "/" + nameof(IsConnected);
 
         public const string SelfUrl = ClusterConnectionTracker + "/" + nameof(SelfUrl);
+
+        public const string ConnectToCluster = ClusterConnectionTracker + "/" + nameof(ConnectToCluster);
     }
 }

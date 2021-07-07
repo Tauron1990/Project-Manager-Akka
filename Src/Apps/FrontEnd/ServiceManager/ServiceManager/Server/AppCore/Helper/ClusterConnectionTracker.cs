@@ -1,5 +1,6 @@
 ﻿using Akka.Actor;
 using Akka.Cluster;
+using NLog;
 using ServiceManager.Shared;
 using ServiceManager.Shared.ClusterTracking;
 using Tauron.Application;
@@ -45,7 +46,12 @@ namespace ServiceManager.Server.AppCore.Helper
             IsSelf = true;
 
             if(manager.Ip.IsValid)
-                cluster.Join(cluster.SelfAddress);
+                cluster.JoinAsync(cluster.SelfAddress)
+                       .ContinueWith(t =>
+                                     {
+                                         if(t.IsFaulted)
+                                            LogManager.GetCurrentClassLogger().Error(t.Exception, "Error on Join Self Cluster");
+                                     });
         }
     }
 }

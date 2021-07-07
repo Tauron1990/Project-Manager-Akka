@@ -19,11 +19,16 @@
     <PackageReference Include="DynamicData" Version="7.2.1" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="5.0.7" />
     <PackageReference Include="MongoDB.Driver" Version="2.12.4" />
+    <PackageReference Include="SharpRepository.MongoDbRepository" Version="2.1.1" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\Shared\Tauron.Application.Files.GridFS\Tauron.Application.Files.GridFS.csproj" />
     <ProjectReference Include="..\..\..\..\..\Shared\Tauron.Application.Settings\Tauron.Application.Settings.csproj" />
+    <ProjectReference Include="..\..\..\..\Backend\DeploymentServer\ServiceManager.ProjectDeployment\ServiceManager.ProjectDeployment.csproj" />
+    <ProjectReference Include="..\..\..\..\Backend\RepositoryServer\ServiceManager.ProjectRepository\ServiceManager.ProjectRepository.csproj" />
     <ProjectReference Include="..\..\..\..\Backend\ServiceHost\ServiceHost.Client.Shared\ServiceHost.Client.Shared.csproj" />
+    <ProjectReference Include="..\..\..\..\Backend\ServiceHost\ServiceManager.ServiceDeamon\ServiceManager.ServiceDeamon.csproj" />
     <ProjectReference Include="..\..\..\..\Shared\Tauron.Application.AkkaNode.Boottrap\Tauron.Application.AkkaNode.Boottrap.csproj" />
     <ProjectReference Include="..\..\..\..\Shared\Tauron.Application.BlazorIntegration\Tauron.Application.BlazorIntegration.csproj" />
     <ProjectReference Include="..\Client\ServiceManager.Client.csproj" />

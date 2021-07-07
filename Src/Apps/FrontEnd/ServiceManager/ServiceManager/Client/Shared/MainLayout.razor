@@ -15,7 +15,8 @@
 @inject IClusterConnectionTracker _cluster
 @inject IServerInfo _lifetime
 @inject IDatabaseConfig _databaseConfig
-@inject IAppIpManager _appIpManager;
+@inject IAppIpManager _appIpManager
+@inject NavigationManager _navigationManager
 
 @implements IDisposable
 
@@ -24,7 +25,16 @@
     <MudDialogProvider/>
     <MudSnackbarProvider/>
     
-    @if (_appIpManager.Ip.IsValid)
+    @if (_loading)
+    {
+        <MudProgressCircular Class="align-center" Size="Size.Large" Indeterminate="true" Color="Color.Primary"/>
+        <MudText Class="align-center">Daten werden Geladen</MudText>
+    }
+    else if (!string.IsNullOrWhiteSpace(_error))
+    {
+        <MudAlert>Fehler beim starte der Anwedung: @_error</MudAlert>
+    }
+    else if (_appIpManager.Ip.IsValid)
     {
         <CascadingValue Value="@_cluster.IsConnected" Name="IsConnected">
             <CascadingValue Value="@_cluster.IsSelf" Name="IsSelf">
@@ -33,7 +43,7 @@
                         <MudSpacer/>
                         @if (_cluster.IsConnected && _cluster.IsSelf)
                         {
-                            <MudAlert Severity="Severity.Warning" Variant="Variant.Filled">Kein Cluster (Ein Knoten)</MudAlert>
+                            <MudAlert Severity="Severity.Warning" Variant="Variant.Filled" OnClick="@(() => _navigationManager.NavigateTo("/ConnectToCluster"))">Kein Cluster (Ein Knoten)</MudAlert>
                         }
                         else if (_cluster.IsConnected && !_cluster.IsSelf)
                         {
@@ -70,7 +80,8 @@
 {
     private readonly CompositeDisposable _disposer = new();
 
-  
+    private bool _loading = true;
+    private string? _error;
 
     protected override void OnInitialized()
     {
@@ -89,7 +100,12 @@
         catch (Exception e)
         {
             Console.WriteLine(e);
-            throw;
+            _error = e.Message;
+        }
+        finally
+        {
+            _loading = false;
+            StateHasChanged();
         }
     }
 
@@ -97,11 +113,13 @@
     {
         try
         {
+            Console.WriteLine("Init Main Layout");
+            await Track(_appIpManager);
             await PropertyChangedComponent.Init(_lifetime);
             await Track(_databaseConfig);
             await Track(_cluster);
-            await Track(_appIpManager);
             await base.OnInitializedAsync();
+            Console.WriteLine("Init Main Compled");
         }
         catch (Exception e)
         {

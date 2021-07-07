@@ -50,8 +50,15 @@ namespace Tauron
         {
             return input.SelectMany(i =>
                                     {
-                                        return process(i)
-                                           .Catch<TOutput, Exception>(e => catcher(i, e));
+                                        try
+                                        {
+                                            return process(i)
+                                               .Catch<TOutput, Exception>(e => catcher(i, e));
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            return catcher(i, e);
+                                        }
                                     });
         }
 

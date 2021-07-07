@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.SignalR.Client;
 using ServiceManager.Shared.Api;
 using ServiceManager.Shared.ClusterTracking;
 using Tauron.Application;
-using StringContent = ServiceManager.Shared.Api.StringContent;
 
 namespace ServiceManager.Client.ViewModels.Models
 {
@@ -66,7 +65,7 @@ namespace ServiceManager.Client.ViewModels.Models
                                                                          ic.OnPropertyChanged(
                                                                              t => t.Url,
                                                                              s => Url = s?.Content ?? string.Empty,
-                                                                             c => c.GetFromJsonAsync<StringContent>(ClusterConnectionTrackerApi.SelfUrl));
+                                                                             c => c.GetFromJsonAsync<StringApiContent>(ClusterConnectionTrackerApi.SelfUrl));
                                                                      }));
     }
 }

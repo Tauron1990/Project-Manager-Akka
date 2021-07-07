@@ -14,15 +14,15 @@ namespace ServiceManager.Server.Controllers
         public DatabaseConfigController(IDatabaseConfig config) => _config = config;
 
         [HttpGet]
-        public ActionResult<StringContent> OnGetUrl() => new StringContent(_config.Url);
+        public ActionResult<StringApiContent> OnGetUrl() => new StringApiContent(_config.Url);
 
         [HttpGet]
         [Route(nameof(DatabaseConfigApi.IsReady))]
         public ActionResult<BoolContent> OnGetIsReady() => new BoolContent(_config.IsReady);
 
         [HttpPost]
-        public async Task<ActionResult<StringContent>> OnSetDb([FromBody] StringContent url) 
-            => new StringContent(await _config.SetUrl(url.Content));
+        public async Task<ActionResult<StringApiContent>> OnSetDb([FromBody] StringApiContent url) 
+            => new StringApiContent(await _config.SetUrl(url.Content));
 
         [HttpGet]
         [Route(nameof(DatabaseConfigApi.FetchUrl))]

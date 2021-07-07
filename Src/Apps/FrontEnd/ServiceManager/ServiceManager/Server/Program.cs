@@ -27,7 +27,7 @@ namespace ServiceManager.Server
                 Process.Start(file);
 
             #endif
-}
+        }
 
         private static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)

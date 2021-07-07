@@ -26,7 +26,7 @@ namespace ServiceManager.Client
         public static async Task Main(string[] args)
         {
             #if(DEBUG)
-            await Task.Delay(6000);
+            //await Task.Delay(6000);
             #endif
 
             var builder = WebAssemblyHostBuilder.CreateDefault(args);

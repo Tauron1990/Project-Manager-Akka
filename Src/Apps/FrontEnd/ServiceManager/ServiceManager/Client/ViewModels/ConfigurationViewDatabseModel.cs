@@ -14,9 +14,9 @@ namespace ServiceManager.Client.ViewModels
     public sealed class ConfigurationViewDatabseModel : ObservableObject, IDisposable, IInitable
     {
         private readonly IDatabaseConfig _databaseConfig;
-        private readonly ISnackbar _snackbar;
         private readonly IServerInfo _info;
         private readonly IDialogService _dialogService;
+        private readonly IEventAggregator _aggregator;
         private readonly IDisposable _disposable;
 
         private string _databaseUrl = string.Empty;
@@ -36,12 +36,12 @@ namespace ServiceManager.Client.ViewModels
 
         public Func<string, string?> ValidateUrl { get; } = Validate;
 
-        public ConfigurationViewDatabseModel(IDatabaseConfig databaseConfig, ISnackbar snackbar, IServerInfo info, IDialogService dialogService)
+        public ConfigurationViewDatabseModel(IDatabaseConfig databaseConfig, IServerInfo info, IDialogService dialogService, IEventAggregator aggregator)
         {
             _databaseConfig = databaseConfig;
-            _snackbar = snackbar;
             _info = info;
             _dialogService = dialogService;
+            _aggregator = aggregator;
             _disposable = databaseConfig.PropertyChangedObservable
                                         .Subscribe(s =>
                                                    {
@@ -56,22 +56,29 @@ namespace ServiceManager.Client.ViewModels
 
         public async Task Submit()
         {
-            var diag = await _dialogService.Show<ConfirmRestartDialog>().Result;
-
-            if (diag.Cancelled)
+            try
             {
-                _snackbar.Add("Vorgang Abgebrochen", Severity.Warning);
-                return;
-            }
+                var diag = await _dialogService.Show<ConfirmRestartDialog>().Result;
 
-            var result = await _databaseConfig.SetUrl(DatabaseUrl);
-            if (string.IsNullOrWhiteSpace(result))
+                if (diag.Cancelled)
+                {
+                    _aggregator.PublishWarnig("Vorgang Abgebrochen");
+                    return;
+                }
+
+                var result = await _databaseConfig.SetUrl(DatabaseUrl);
+                if (string.IsNullOrWhiteSpace(result))
+                {
+                    await _info.Restart();
+                    return;
+                }
+
+                _aggregator.PublishWarnig($"Fehler: {result}");
+            }
+            catch (Exception e)
             {
-                await _info.Restart();
-                return;
+                _aggregator.PublishError(e);
             }
-
-            _snackbar.Add($"Fehler: {result}", Severity.Warning);
         }
 
         public async Task Init()
@@ -84,14 +91,21 @@ namespace ServiceManager.Client.ViewModels
 
         public async Task TryFetchDatabseUrl()
         {
-            var urlResult = await _databaseConfig.FetchUrl();
+            try
+            {
+                var urlResult = await _databaseConfig.FetchUrl();
 
-            if (urlResult == null)
-                _snackbar.Add("Unbekannter Fehler beim Abrufen der Url", Severity.Error);
-            else if (urlResult.Success)
-                DatabaseUrl = urlResult.Url;
-            else
-                _snackbar.Add($"Fehler beim Abrufen der Url: {urlResult.Url}", Severity.Error);
+                if (urlResult == null)
+                    _aggregator.PublishError("Unbekannter Fehler beim Abrufen der Url");
+                else if (urlResult.Success)
+                    DatabaseUrl = urlResult.Url;
+                else
+                    _aggregator.PublishError($"Fehler beim Abrufen der Url: {urlResult.Url}");
+            }
+            catch (Exception e)
+            {
+                _aggregator.PublishError(e);
+            }
         }
 
         private void SetUrl(string url)
@@ -112,6 +126,9 @@ namespace ServiceManager.Client.ViewModels
                 @"^(?<scheme>mongodb|mongodb\+srv)://" +
                 @"((?<username>[^:@/]+)(:(?<password>[^:@/]*))?@)?" +
                 serversPattern + @"(/" + databasePattern + ")?/?" + optionsPattern + "$";
+
+            if (string.IsNullOrWhiteSpace(originalConnectionString))
+                return "Keine Mogodb Url Angegeben";
 
             if (originalConnectionString.Contains("%"))
             {
