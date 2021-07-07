@@ -5,12 +5,12 @@
     <MudCard >
         <MudCardContent>
             <MudForm>
-                <MudTextFieldString DebounceInterval="200" Required="true" RequiredError="Keine Mogodb Url Angegeben" @bind-Value="_model.DatabaseUrl" 
+                <MudTextFieldString DebounceInterval="200" @bind-Value="_model.DatabaseUrl" 
                 Validation="_model.ValidateUrl"/>
             </MudForm>
         </MudCardContent>
         <MudCardActions>
-            <MudButton Disabled="CanFetch" OnClick="_model.TryFetchDatabseUrl"></MudButton>
+            <MudButton Disabled="CanFetch" OnClick="_model.TryFetchDatabseUrl">Url Abrufen</MudButton>
             <MudButton ButtonType="ButtonType.Reset" OnClick="_model.Reset">Zurücksetzen</MudButton>
             <MudButton ButtonType="ButtonType.Submit" OnClick="_model.Submit">Speichern</MudButton>
         </MudCardActions>

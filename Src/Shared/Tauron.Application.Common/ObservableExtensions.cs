@@ -173,6 +173,7 @@ namespace Tauron
 
             public bool ReSubscribe(Action subscription, Exception? cause)
             {
+                if (cause is ObjectDisposedException) return false;
                 subscription();
                 return true;
             }
@@ -197,7 +198,17 @@ namespace Tauron
                 _strategy.ReSubscribe(AddSubscription, null);
             }
 
-            void AddSubscription() => _current = _data.Subscribe(this);
+            void AddSubscription()
+            {
+                try
+                {
+                    _current = _data.Subscribe(this);
+                }
+                catch
+                {
+                    Dispose();
+                }
+            }
 
             public void Dispose()
             {

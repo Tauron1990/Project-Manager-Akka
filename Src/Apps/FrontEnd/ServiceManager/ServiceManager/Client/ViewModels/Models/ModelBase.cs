@@ -30,17 +30,36 @@ namespace ServiceManager.Client.ViewModels.Models
 
         private async Task OnPropertyChanged<TType>(string type, string property, Action<TType> setter, Func<HttpClient, Task<TType>> query)
         {
-            setter(await query(Client));
+            try
+            {
+                Console.WriteLine($"OnPropertyChanged Init: {type} -- {property}");
+                setter(await query(Client));
+                Console.WriteLine($"OnPropertyChanged Init Compled: {type} -- {property}");
 
-            HubConnection.On<string, string>(HubEvents.PropertyChanged,
-                async (msgType, msgName) =>
-                {
-                    if (msgType.Equals(type, StringComparison.Ordinal) && msgName.Equals(property, StringComparison.Ordinal))
+                HubConnection.On<string, string>(HubEvents.PropertyChanged,
+                    async (msgType, msgName) =>
                     {
-                        setter(await query(Client));
-                        OnPropertyChanged(property);
-                    }
-                });
+                        try
+                        {
+                            Console.WriteLine($"OnPropertyChanged Update: {type} -- {property}");
+                            if (msgType.Equals(type, StringComparison.Ordinal) && msgName.Equals(property, StringComparison.Ordinal))
+                            {
+                                setter(await query(Client));
+                                OnPropertyChanged(property);
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e);
+                            throw;
+                        }
+                    });
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
         }
 
         private void OnMessage(string type, string name, Func<Task> runner)

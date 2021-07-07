@@ -113,6 +113,9 @@ namespace ServiceManager.Client.ViewModels
                 @"((?<username>[^:@/]+)(:(?<password>[^:@/]*))?@)?" +
                 serversPattern + @"(/" + databasePattern + ")?/?" + optionsPattern + "$";
 
+            if (string.IsNullOrWhiteSpace(originalConnectionString))
+                return "Keine Mogodb Url Angegeben";
+
             if (originalConnectionString.Contains("%"))
             {
                 const string invalidPercentPattern = @"%$|%.$|%[^0-9a-fA-F]|%[0-9a-fA-F][^0-9a-fA-F]";

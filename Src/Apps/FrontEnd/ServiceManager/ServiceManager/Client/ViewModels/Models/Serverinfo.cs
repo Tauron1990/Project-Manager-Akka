@@ -76,8 +76,9 @@ namespace ServiceManager.Client.ViewModels.Models
                                                                 });
                                                         });
             }
-            catch
+            catch(Exception e)
             {
+                Console.WriteLine(e);
                 _init = false;
                 throw;
             }

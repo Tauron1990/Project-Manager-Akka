@@ -30,6 +30,7 @@ namespace ServiceManager.Server
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors();
             services.AddSignalR();
             services.AddControllersWithViews();
             services.AddRazorPages();
@@ -77,6 +78,7 @@ namespace ServiceManager.Server
                 app.UseExceptionHandler("/Error");
             }
 
+            app.UseCors();
             app.UseBlazorFrameworkFiles();
             app.UseStaticFiles();
 

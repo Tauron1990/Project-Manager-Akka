@@ -20,7 +20,7 @@ namespace ServiceManager.Client
             collection.AddScoped<IAppIpManager, AppIpManager>();
             collection.AddScoped<IServerInfo, Serverinfo>();
 
-            collection.AddScoped<IEventAggregator, EventAggregator>();
+            collection.AddSingleton<IEventAggregator, EventAggregator>();
         }
     }
 }

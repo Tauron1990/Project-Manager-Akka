@@ -23,13 +23,21 @@ namespace ServiceManager.Client.ViewModels.Models
         public string Url
         {
             get => _url;
-            private set => SetProperty(ref _url, value);
+            private set
+            {
+                Console.WriteLine("Set Url");
+                SetProperty(ref _url, value);
+            }
         }
 
         public bool IsReady
         {
             get => _isReady;
-            private set => SetProperty(ref _isReady, value);
+            private set
+            {
+                Console.WriteLine("Set IsReady");
+                SetProperty(ref _isReady, value);
+            }
         }
 
         public async Task<string> SetUrl(string url)

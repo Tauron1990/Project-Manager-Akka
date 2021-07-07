@@ -16,6 +16,7 @@
 @inject IServerInfo _lifetime
 @inject IDatabaseConfig _databaseConfig
 @inject IAppIpManager _appIpManager;
+@inject NavigationManager _navigationManager;
 
 @implements IDisposable
 
@@ -37,7 +38,7 @@
                         }
                         else if (_cluster.IsConnected && !_cluster.IsSelf)
                         {
-                            <MudAlert Severity="Severity.Success" Variant="Variant.Filled">Cluster Verbunden</MudAlert>
+                            <MudAlert Severity="Severity.Success" Variant="Variant.Filled" OnClick="@(() => _navigationManager.NavigateTo("/ConnectToCluster"))">Cluster Verbunden</MudAlert>
                         }
                         else
                         {
@@ -97,11 +98,13 @@
     {
         try
         {
+            Console.WriteLine("Init Main Layout");
             await PropertyChangedComponent.Init(_lifetime);
             await Track(_databaseConfig);
             await Track(_cluster);
             await Track(_appIpManager);
             await base.OnInitializedAsync();
+            Console.WriteLine("Init Main Layout Compled");
         }
         catch (Exception e)
         {
@@ -117,7 +120,11 @@
         _disposer.Add(Disposables.Create(() => changed.PropertyChanged -= OnPropertyChanged));
     }
 
-    private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e) => InvokeAsync(StateHasChanged);
+    private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        Console.WriteLine("Update Main Layout");
+        StateHasChanged();
+    }
 
     public void Dispose()
         => _disposer.Dispose();
