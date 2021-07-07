@@ -1,4 +1,5 @@
-﻿using System.Net.Http;
+﻿using System;
+using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR.Client;
@@ -23,9 +24,16 @@ namespace ServiceManager.Client.ViewModels.Models
 
         public async Task<string> WriteIp(string ip)
         {
-            var response = await Client.PostAsync(AppIpManagerApi.AppIpManager, new StringContent(ip));
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadAsStringAsync();
+            try
+            {
+                var response = await Client.PostAsync(AppIpManagerApi.AppIpManager, new StringContent(ip));
+                response.EnsureSuccessStatusCode();
+                return await response.Content.ReadAsStringAsync();
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
         }
 
         public override Task Init()

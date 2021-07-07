@@ -13,7 +13,7 @@ namespace ServiceManager.ServiceDeamon.Management
 
         public sealed record ServiceManagerDeamonState(ISharpRepositoryConfiguration Repository);
 
-        public static void Init(ActorSystem system, ISharpRepositoryConfiguration repository) 
+        public static IActorRef Init(ActorSystem system, ISharpRepositoryConfiguration repository) 
             => system.ActorOf("ServiceDeamon", Feature.Create(() => new ServiceManagerDeamon(), _ => new ServiceManagerDeamonState(repository)));
 
 

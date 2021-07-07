@@ -12,6 +12,7 @@ namespace ServiceManager.Client
     {
         public static void Run(IServiceCollection collection)
         {
+            collection.AddScoped<ConnectToClusterViewModel>();
             collection.AddScoped<IndexViewModel>();
             collection.AddScoped<ConfigurationViewDatabseModel>();
 

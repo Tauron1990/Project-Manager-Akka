@@ -11,12 +11,7 @@ namespace AkkaTest
     {
         private static async Task Main()
         {
-            using var system = ActorSystem.Create("TestSystem");
-
-            var test = system.ActorOf(TellAliveFeature.New());
-
-            var testResult = await QueryIsAlive.Ask(system, test, Timeout.InfiniteTimeSpan);
-
+            var uri = new Uri("akka.tcp://Project-Manager@192.168.105.96:59169");
             Console.ReadKey();
         }
     }

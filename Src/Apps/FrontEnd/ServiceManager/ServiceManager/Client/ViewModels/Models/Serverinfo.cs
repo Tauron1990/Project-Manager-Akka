@@ -35,22 +35,36 @@ namespace ServiceManager.Client.ViewModels.Models
 
         public async Task Restart()
         {
-            var response = await _client.PostAsync(ServerInfoApi.ServerInfo, new StringContent(string.Empty));
-            response.EnsureSuccessStatusCode();
+            try
+            {
+                var response = await _client.PostAsync(ServerInfoApi.ServerInfo, new StringContent(string.Empty));
+                response.EnsureSuccessStatusCode();
+            }
+            catch (Exception e)
+            {
+                _aggregator.PublishError(e);
+            }
         }
 
         public async Task<string?> TryReconnect()
         {
-            using var cancel = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-            var newId = await _client.GetFromJsonAsync<Guid>(ServerInfoApi.ServerInfo, cancel.Token);
-            if (newId == _current)
-                return "Server nicht neu Gestartet";
+            try
+            {
+                using var cancel = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                var newId = await _client.GetFromJsonAsync<Guid>(ServerInfoApi.ServerInfo, cancel.Token);
+                if (newId == _current)
+                    return "Server nicht neu Gestartet";
 
-            if (_connection.State == HubConnectionState.Disconnected)
-                // ReSharper disable once MethodSupportsCancellation
-                await _connection.StartAsync();
+                if (_connection.State == HubConnectionState.Disconnected)
+                    // ReSharper disable once MethodSupportsCancellation
+                    await _connection.StartAsync();
 
-            return null;
+                return null;
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
         }
 
         public async Task Init()

@@ -4,23 +4,34 @@
 <div style="max-width: 1000px">
     <MudCard >
         <MudCardContent>
-            <MudForm>
+            <MudForm @bind-IsValid="_isValid">
                 <MudTextFieldString DebounceInterval="200" @bind-Value="_model.DatabaseUrl" 
-                Validation="_model.ValidateUrl"/>
+                Validation="_model.ValidateUrl" @ref=_databseFieldString/>
             </MudForm>
         </MudCardContent>
         <MudCardActions>
             <MudButton Disabled="CanFetch" OnClick="_model.TryFetchDatabseUrl">Url Abrufen</MudButton>
             <MudButton ButtonType="ButtonType.Reset" OnClick="_model.Reset">Zurücksetzen</MudButton>
-            <MudButton ButtonType="ButtonType.Submit" OnClick="_model.Submit">Speichern</MudButton>
+            <MudButton ButtonType="ButtonType.Submit" OnClick="_model.Submit" Disabled="@(!_isValid)">Speichern</MudButton>
         </MudCardActions>
     </MudCard>
 </div>
 
 @code {
 
+    private bool _isValid;
+
     private bool CanFetch => IsConnected && !IsSelf;
 
+    private MudTextFieldString? _databseFieldString;
+
     protected override async Task OnInitializedAsync() => await Track(_model);
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if(_databseFieldString != null)
+            await _databseFieldString.Validate();
+        await base.OnAfterRenderAsync(firstRender);
+    }
 
 }

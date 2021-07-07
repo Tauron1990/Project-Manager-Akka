@@ -28,7 +28,7 @@ namespace ServiceManager.Server.Controllers
 
         [HttpGet]
         [Route(nameof(ClusterConnectionTrackerApi.SelfUrl))]
-        public ActionResult<StringContent> GetSelfUrl()
-            => new StringContent(_tracker.Url);
+        public ActionResult<StringApiContent> GetSelfUrl()
+            => new StringApiContent(_tracker.Url);
     }
 }

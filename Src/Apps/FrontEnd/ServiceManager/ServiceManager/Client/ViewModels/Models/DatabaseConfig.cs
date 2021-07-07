@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.SignalR.Client;
 using ServiceManager.Shared.Api;
 using ServiceManager.Shared.ServiceDeamon;
 using Tauron.Application;
-using StringContent = ServiceManager.Shared.Api.StringContent;
 
 namespace ServiceManager.Client.ViewModels.Models
 {
@@ -44,9 +43,9 @@ namespace ServiceManager.Client.ViewModels.Models
         {
             try
             {
-                using var response = await Client.PostAsJsonAsync(DatabaseConfigApi.DatabaseConfigApiBase, new StringContent(url));
+                using var response = await Client.PostAsJsonAsync(DatabaseConfigApi.DatabaseConfigApiBase, new StringApiContent(url));
                 response.EnsureSuccessStatusCode();
-                var result = await response.Content.ReadFromJsonAsync<StringContent>();
+                var result = await response.Content.ReadFromJsonAsync<StringApiContent>();
                 return result?.Content ?? "Keine Antwort vom Server";
             }
             catch (Exception e)
@@ -55,7 +54,17 @@ namespace ServiceManager.Client.ViewModels.Models
             }
         }
 
-        public Task<UrlResult?> FetchUrl() => Client.GetFromJsonAsync<UrlResult>(DatabaseConfigApi.FetchUrl);
+        public async Task<UrlResult?> FetchUrl()
+        {
+            try
+            {
+                return await Client.GetFromJsonAsync<UrlResult>(DatabaseConfigApi.FetchUrl);
+            }
+            catch (Exception e)
+            {
+                return new UrlResult(e.Message, false);
+            }
+        }
 
         public override Task Init()
         {
@@ -71,7 +80,7 @@ namespace ServiceManager.Client.ViewModels.Models
                                                                  ic.OnPropertyChanged(
                                                                      dc => dc.Url, 
                                                                      u => Url = u?.Content ?? string.Empty,
-                                                                     c => c.GetFromJsonAsync<StringContent>(DatabaseConfigApi.DatabaseConfigApiBase));
+                                                                     c => c.GetFromJsonAsync<StringApiContent>(DatabaseConfigApi.DatabaseConfigApiBase));
                                                              });
                         });
         }

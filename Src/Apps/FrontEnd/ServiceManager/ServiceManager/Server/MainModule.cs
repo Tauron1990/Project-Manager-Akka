@@ -32,6 +32,7 @@ namespace ServiceManager.Server
 
             builder.RegisterFeature<ClusterNodeManagerRef, IClusterNodeManager>(ClusterHostManagerActor.New());
             builder.RegisterFeature<ApiEventDispatcherRef, IApiEventDispatcher>(ApiEventDispatcherActor.New());
+            builder.RegisterFeature<ProcessServiceHostRef, IProcessServiceHost>(ProcessServiceHostActor.New());
 
             builder.Register(c => DeploymentApi.CreateProxy(c.Resolve<ActorSystem>())).SingleInstance();
             builder.Register(c => RepositoryApi.CreateProxy(c.Resolve<ActorSystem>())).SingleInstance();
