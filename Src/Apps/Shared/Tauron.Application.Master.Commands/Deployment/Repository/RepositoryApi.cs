@@ -1,6 +1,9 @@
-﻿using Akka.Actor;
+﻿using System;
+using System.Threading.Tasks;
+using Akka.Actor;
 using Akka.Cluster.Tools.Singleton;
 using JetBrains.Annotations;
+using Tauron.Application.AkkaNode.Services.Core;
 using Tauron.Application.AkkaNode.Services.Reporting;
 using Tauron.Application.AkkaNode.Services.Reporting.Commands;
 
@@ -17,6 +20,9 @@ namespace Tauron.Application.Master.Commands.Deployment.Repository
         public static RepositoryApi Empty { get; } = new(ActorRefs.Nobody);
 
         void ISender.SendCommand(IReporterMessage command) => _repository.Tell(command);
+
+        public Task<IsAliveResponse> QueryIsAlive(ActorSystem system, TimeSpan timeout)
+            => Tauron.Application.AkkaNode.Services.Core.QueryIsAlive.Ask(system, _repository, timeout);
 
         public static RepositoryApi CreateFromActor(IActorRef manager)
             => new(manager);

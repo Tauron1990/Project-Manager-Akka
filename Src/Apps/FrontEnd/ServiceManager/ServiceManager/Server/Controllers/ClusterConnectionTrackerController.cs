@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using ServiceManager.Shared.Api;
 using ServiceManager.Shared.ClusterTracking;
 
@@ -30,5 +32,20 @@ namespace ServiceManager.Server.Controllers
         [Route(nameof(ClusterConnectionTrackerApi.SelfUrl))]
         public ActionResult<StringApiContent> GetSelfUrl()
             => new StringApiContent(_tracker.Url);
+
+        [HttpPost]
+        [Route(nameof(ClusterConnectionTrackerApi.ConnectToCluster))]
+        public async Task<ActionResult<StringApiContent>> ConnectToCluster([FromBody] StringApiContent url)
+        {
+            try
+            {
+                await _tracker.ConnectToCluster(url.Content);
+                return new StringApiContent(string.Empty);
+            }
+            catch (Exception e)
+            {
+                return new StringApiContent(e.Message);
+            }
+        }
     }
 }

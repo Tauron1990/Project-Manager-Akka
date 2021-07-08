@@ -1,3 +1,5 @@
+using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
 using Autofac;
 using Microsoft.AspNetCore.Hosting;
@@ -11,6 +13,8 @@ namespace ServiceManager.Server
 {
     public class Program
     {
+        public static readonly string ExeFolder = Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location) ?? string.Empty;
+
         private static readonly RestartHelper RestartHelper = new();
         private static readonly AppIpManager AppIpManager = new();
 

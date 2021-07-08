@@ -5,8 +5,8 @@
     <MudCard >
         <MudCardContent>
             <MudForm @bind-IsValid="_isValid">
-                <MudTextFieldString DebounceInterval="200" @bind-Value="_model.DatabaseUrl" 
-                Validation="_model.ValidateUrl" @ref=_databseFieldString/>
+                <MudTextFieldString DebounceInterval="200" @bind-Value="@_model.DatabaseUrl" 
+                Validation="_model.ValidateUrl" @ref="_databseFieldString"/>
             </MudForm>
         </MudCardContent>
         <MudCardActions>

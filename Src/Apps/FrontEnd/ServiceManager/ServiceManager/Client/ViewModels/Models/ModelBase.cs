@@ -18,6 +18,7 @@ namespace ServiceManager.Client.ViewModels.Models
 
         protected HttpClient Client { get; }
         protected HubConnection HubConnection { get; }
+        public IEventAggregator Aggregator { get; }
 
         private bool _isInit;
 
@@ -25,6 +26,7 @@ namespace ServiceManager.Client.ViewModels.Models
         {
             Client = client;
             HubConnection = hubConnection;
+            Aggregator = aggregator;
             _subscription = aggregator.GetEvent<ReloadAllEvent, Unit>().Get().Subscribe(_ => _isInit = false);
         }
 

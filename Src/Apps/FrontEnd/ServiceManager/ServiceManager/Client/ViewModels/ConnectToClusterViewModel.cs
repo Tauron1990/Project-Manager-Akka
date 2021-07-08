@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using ServiceManager.Client.Components;
 using ServiceManager.Shared;
 using ServiceManager.Shared.Api;
+using ServiceManager.Shared.ClusterTracking;
 using Tauron.Application;
 
 namespace ServiceManager.Client.ViewModels
@@ -14,6 +15,7 @@ namespace ServiceManager.Client.ViewModels
         private readonly IServerInfo _serverInfo;
         private readonly HttpClient _client;
         private readonly IEventAggregator _aggregator;
+        private readonly IClusterConnectionTracker _tracker;
 
         public Func<string, string?> ValidateUrl => s =>
                                                     {
@@ -32,11 +34,12 @@ namespace ServiceManager.Client.ViewModels
 
         public string ClusterUrl { get; set; } = string.Empty;
 
-        public ConnectToClusterViewModel(IServerInfo serverInfo, HttpClient client, IEventAggregator aggregator)
+        public ConnectToClusterViewModel(IServerInfo serverInfo, HttpClient client, IEventAggregator aggregator, IClusterConnectionTracker tracker)
         {
             _serverInfo = serverInfo;
             _client = client;
             _aggregator = aggregator;
+            _tracker = tracker;
         }
 
         public async Task ConnectToCluster()
@@ -45,21 +48,9 @@ namespace ServiceManager.Client.ViewModels
             {
                 if(ValidateUrl(ClusterUrl) != null) return;
 
-                using var response = await _client.PostAsJsonAsync(ClusterConnectionTrackerApi.ConnectToCluster, new StringApiContent(ClusterUrl));
-                response.EnsureSuccessStatusCode();
-                var result = await response.Content.ReadFromJsonAsync<StringApiContent>();
+                var result = await _tracker.ConnectToCluster(ClusterUrl);
 
-                if (result == null)
-                {
-                    _aggregator.PublishError($"Unbekanter Fehler beim verbinden mit Cluster: Statuscode: {response.StatusCode}");
-                    return;
-                }
-
-                if (!string.IsNullOrWhiteSpace(result.Content))
-                {
-                    _aggregator.PublishError($"Fehler bem verbinden mit Cluster: {result.Content}");
-                    return;
-                }
+                if(result != string.Empty) return;
 
                 await _serverInfo.Restart();
             }

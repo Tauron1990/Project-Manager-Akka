@@ -39,6 +39,27 @@ namespace ServiceManager.Client.ViewModels.Models
             private set => SetProperty(ref _ip, value);
         }
 
+        public async Task<string?> ConnectToCluster(string url)
+        {
+            using var response = await Client.PostAsJsonAsync(ClusterConnectionTrackerApi.ConnectToCluster, new StringApiContent(url));
+            response.EnsureSuccessStatusCode();
+            var result = await response.Content.ReadFromJsonAsync<StringApiContent>();
+
+            if (result == null)
+            {
+                Aggregator.PublishError($"Unbekanter Fehler beim verbinden mit Cluster: Statuscode: {response.StatusCode}");
+                return "err";
+            }
+
+            if (!string.IsNullOrWhiteSpace(result.Content))
+            {
+                Aggregator.PublishError($"Fehler bem verbinden mit Cluster: {result.Content}");
+                return "err";
+            }
+
+            return string.Empty;
+        }
+
         public ClusterConnectionTracker(HttpClient client, HubConnection hubConnection, IEventAggregator aggregator) 
             : base(client, hubConnection, aggregator)
         {

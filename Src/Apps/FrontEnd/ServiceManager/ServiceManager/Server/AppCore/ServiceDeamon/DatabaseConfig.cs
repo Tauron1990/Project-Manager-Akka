@@ -4,6 +4,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Akka.Actor;
 using MongoDB.Driver;
+using NLog;
 using ServiceHost.Client.Shared.ConfigurationServer;
 using ServiceHost.Client.Shared.ConfigurationServer.Data;
 using ServiceHost.Client.Shared.ConfigurationServer.Events;
@@ -25,6 +26,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
         private readonly ConfigurationApi _configurationApi;
         private readonly IClusterConnectionTracker _tracker;
         private readonly ActorSystem _system;
+        private readonly IProcessServiceHost _processServiceHost;
         private readonly IDisposable _subscription;
 
         private string _url = string.Empty;
@@ -38,7 +40,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
         public bool IsReady { get; }
 
         public DatabaseConfig(ILocalConfiguration configuration, IPropertyChangedNotifer notifer, ConfigurationApi configurationApi, IClusterConnectionTracker tracker, ActorSystem system,
-            ConfigEventDispatcher eventDispatcher)
+            ConfigEventDispatcher eventDispatcher, IProcessServiceHost processServiceHost)
         {
             _subscription = eventDispatcher.Get().OfType<ServerConfigurationEvent>().Select(evt => evt.Configugration)
                                            .Where(sc => !_url.Equals(sc.Database, StringComparison.Ordinal))
@@ -49,6 +51,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
             _configurationApi = configurationApi;
             _tracker = tracker;
             _system = system;
+            _processServiceHost = processServiceHost;
             Url = _configuration.DatabaseUrl;
             IsReady = !string.IsNullOrWhiteSpace(Url);
         }
@@ -61,10 +64,25 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
                 
                 var murl = new MongoUrl(url);
 
-                if (_tracker.IsConnected && !_tracker.IsSelf)
+                if (_tracker.IsConnected)
                 {
-                    var sc = await _configurationApi.Query<QueryServerConfiguration, ServerConfigugration>(TimeSpan.FromSeconds(10));
-                    await _configurationApi.Command(new UpdateServerConfigurationCommand(sc with {Database = murl.ToString()}), TimeSpan.FromSeconds(10));
+                    var canSend = false;
+
+                    try
+                    {
+                        var result = await _processServiceHost.TryStart(url);
+                        canSend = result.IsRunning;
+                    }
+                    catch (Exception e)
+                    {
+                        LogManager.GetCurrentClassLogger().Error(e, "Error on Try Start api");
+                    }
+
+                    if (canSend)
+                    {
+                        var sc = await _configurationApi.Query<QueryServerConfiguration, ServerConfigugration>(TimeSpan.FromSeconds(10));
+                        await _configurationApi.Command(new UpdateServerConfigurationCommand(sc with {Database = murl.ToString()}), TimeSpan.FromSeconds(10));
+                    }
                 }
 
                 Url = url;

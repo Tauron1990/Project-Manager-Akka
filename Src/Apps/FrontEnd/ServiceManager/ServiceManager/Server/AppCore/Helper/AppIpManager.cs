@@ -32,8 +32,13 @@ namespace ServiceManager.Server.AppCore.Helper
                         needPatch = true;
                         await File.WriteAllTextAsync(targetFile, potentialIp);
                     }
-                    else if(!string.IsNullOrWhiteSpace(old))
+                    else if (!string.IsNullOrWhiteSpace(old))
+                    {
+                        #if DEBUG
+                        needPatch = true;
+                        #endif
                         Ip = new AppIp(old, true);
+                    }
                 }
                 catch (IOException) { }
             }
@@ -52,7 +57,7 @@ namespace ServiceManager.Server.AppCore.Helper
 
             try
             {
-                string seedPath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location) ?? string.Empty, AkkaConfigurationBuilder.Seed);
+                string seedPath = Path.Combine(Program.ExeFolder, AkkaConfigurationBuilder.Seed);
 
                 var baseConfig = ConfigurationFactory.ParseString(await File.ReadAllTextAsync(seedPath));
 

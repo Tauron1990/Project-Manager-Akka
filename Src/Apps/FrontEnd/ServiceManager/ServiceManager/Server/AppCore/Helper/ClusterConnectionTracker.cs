@@ -1,9 +1,14 @@
-﻿using Akka.Actor;
+﻿using System;
+using System.IO;
+using System.Reactive.Linq;
+using System.Threading.Tasks;
+using Akka.Actor;
 using Akka.Cluster;
 using NLog;
 using ServiceManager.Shared;
 using ServiceManager.Shared.ClusterTracking;
 using Tauron.Application;
+using Tauron.Application.Master.Commands.Administration.Configuration;
 
 namespace ServiceManager.Server.AppCore.Helper
 {
@@ -52,6 +57,14 @@ namespace ServiceManager.Server.AppCore.Helper
                                          if(t.IsFaulted)
                                             LogManager.GetCurrentClassLogger().Error(t.Exception, "Error on Join Self Cluster");
                                      });
+        }
+
+        public async Task<string?> ConnectToCluster(string url)
+        {
+            string content = await File.ReadAllTextAsync(Path.Combine(Program.ExeFolder, AkkaConfigurationBuilder.Seed));
+            content = await AkkaConfigurationBuilder.PatchSeedUrls(content, new[] {url});
+            await File.WriteAllTextAsync(Path.Combine(Program.ExeFolder, AkkaConfigurationBuilder.Seed), content);
+            return string.Empty;
         }
     }
 }

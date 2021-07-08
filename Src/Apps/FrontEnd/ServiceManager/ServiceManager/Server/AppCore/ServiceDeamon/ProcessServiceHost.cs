@@ -3,6 +3,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Akka.Actor;
 using MongoDB.Driver;
+using ServiceHost.Client.Shared.ConfigurationServer;
 using ServiceManager.ProjectDeployment;
 using ServiceManager.ProjectRepository;
 using ServiceManager.ServiceDeamon.Management;
@@ -13,9 +14,11 @@ using Tauron;
 using Tauron.Application.AkkaNode.Services.FileTransfer;
 using Tauron.Application.Files.GridFS;
 using Tauron.Application.Files.VirtualFiles;
+using Tauron.Application.Master.Commands.Deployment.Build;
 using Tauron.Application.Master.Commands.Deployment.Repository;
 using Tauron.Features;
 using Tauron.Host;
+using Tauron.ObservableExt;
 
 namespace ServiceManager.Server.AppCore.ServiceDeamon
 {
@@ -40,23 +43,49 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
 
     public sealed class ProcessServiceHostActor : ActorFeatureBase<ProcessServiceHostActor._>
     {
-        public sealed record _(IDatabaseConfig DatabaseConfig, Services Operator, IActorHostEnvironment HostEnvironment);
+        public sealed record _(IDatabaseConfig DatabaseConfig, Services Operator, IActorHostEnvironment HostEnvironment, RepositoryApi RepositoryApi, DeploymentApi DeploymentApi, ConfigurationApi ConfigurationApi);
 
-        public static Func<IActorHostEnvironment, IDatabaseConfig, IPreparedFeature> New()
+        public static Func<IActorHostEnvironment, IDatabaseConfig, RepositoryApi, DeploymentApi, ConfigurationApi, IPreparedFeature> New()
         {
-            static IPreparedFeature _(IActorHostEnvironment hostEnvironment, IDatabaseConfig config)
-                => Feature.Create(() => new ProcessServiceHostActor(), _ => new _(config, new Services(), hostEnvironment));
+            static IPreparedFeature _(IActorHostEnvironment hostEnvironment, IDatabaseConfig config, RepositoryApi repositoryApi, DeploymentApi deploymentApi, ConfigurationApi configurationApi)
+                => Feature.Create(() => new ProcessServiceHostActor(), _ => new _(config, new Services(), hostEnvironment, repositoryApi, deploymentApi, configurationApi));
 
             return _;
         }
 
         protected override void ConfigImpl()
         {
-            Receive<TryStart>(obs => obs.CatchSafe(TryStart,
-                                             (pair, exception) =>
+            Receive<TryStart>(obs => obs.ConditionalSelect()
+                                        .ToResult<StatePair<TryStartResponse, _>>(
+                                             b =>
                                              {
-                                                 Log.Error(exception, "Error on start in Process ServiceManager Deamon");
-                                                 return Observable.Return(pair.NewEvent(new TryStartResponse(false, exception.Message)));
+                                                 b.When(p => !p.State.Operator.Running, o => from pair in o
+                                                                                             from result in TryStart(pair)
+                                                                                             select result);
+
+                                                 b.When(p => p.State.Operator.Running && p.State.Operator.CurrentUrl != p.Event.DatabaseUrl,
+                                                     o => from pair in o
+                                                          from result in TryStart(pair)
+                                                          select result);
+
+                                                 b.When(p => p.State.Operator.Running && p.State.Operator.CurrentUrl == p.Event.DatabaseUrl,
+                                                     o => o.CatchSafe(
+                                                         p => from pair in Observable.Return(p)
+                                                              let system = pair.Context.System
+                                                              let timeout = TimeSpan.FromSeconds(20)
+                                                              from repoResult in pair.State.RepositoryApi.QueryIsAlive(system, timeout)
+                                                              from deployResult in pair.State.DeploymentApi.QueryIsAlive(system, timeout)
+                                                              from configResult in pair.State.ConfigurationApi.QueryIsAlive(system, timeout)
+                                                              let isOk = repoResult.IsAlive && deployResult.IsAlive && configResult.IsAlive
+                                                              from response in isOk
+                                                                  ? Observable.Return(pair.NewEvent(new TryStartResponse(true, string.Empty)))
+                                                                  : TryStart(pair)
+                                                              select response,
+                                                         (pair, exception) =>
+                                                         {
+                                                             Log.Error(exception, "Error on start in Process ServiceManager Deamon");
+                                                             return Observable.Return(pair.NewEvent(new TryStartResponse(false, exception.Message)));
+                                                         }));
                                              })
                                         .ToUnit(p => p.Sender.Tell(p.Event)));
 
@@ -72,7 +101,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
             Receive<Terminated>(obs => obs.Select(_ => new Services()).ToSelf());
         }
 
-        public static IObservable<StatePair<TryStartResponse, _>> TryStart(StatePair<TryStart, _> o)
+        private static IObservable<StatePair<TryStartResponse, _>> TryStart(StatePair<TryStart, _> o)
         {
             if (o.State.Operator.Running)
                 return Observable.Return(o.NewEvent(new TryStartResponse(true, string.Empty)));
@@ -111,7 +140,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
                 }
             }
 
-            o.Self.Tell(new Services(repo, deploy, deamon, true));
+            o.Self.Tell(new Services(repo, deploy, deamon, true, databseUrl));
             return Observable.Return(o.NewEvent(new TryStartResponse(true, string.Empty)));
         }
 
@@ -154,10 +183,10 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
             deamonRef = ServiceManagerDeamon.Init(system, config);
         }
 
-        public sealed record Services(IActorRef Repo, IActorRef Deploy, IActorRef Deamon, bool Running) : IDisposable
+        public sealed record Services(IActorRef Repo, IActorRef Deploy, IActorRef Deamon, bool Running, string CurrentUrl) : IDisposable
         {
             public Services()
-                : this(ActorRefs.Nobody, ActorRefs.Nobody, ActorRefs.Nobody, false)
+                : this(ActorRefs.Nobody, ActorRefs.Nobody, ActorRefs.Nobody, false, string.Empty)
             {
                 
             }
