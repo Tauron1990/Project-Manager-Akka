@@ -1,0 +1,56 @@
+﻿@using System.Reactive.Disposables
+@using System.Reactive
+<CascadingValue Value="Manager">
+    @if (_runnigCount == 0)
+    {
+        @if (Content != null)
+        {
+            @Content
+        }
+    }
+    else
+    {
+        @if (RunningOperation != null)
+        {
+            @RunningOperation
+        }
+        else
+        {
+            <MudProgressCircular Class="align-center" Size="Size.Large" Indeterminate="true" Color="Color.Primary"/>
+        }
+    }
+</CascadingValue>
+
+@code {
+
+    [Parameter]
+    public IOperationManager Manager { get; set; } = new OperationManager();
+
+    [Parameter]
+    public RenderFragment? Content { get; set; }
+
+    [Parameter]
+    public RenderFragment? RunningOperation { get; set; }
+
+    private IDisposable _subscription = Disposable.Empty;
+
+    private int _runnigCount;
+
+    protected override void OnParametersSet()
+    {
+        _subscription.Dispose();
+        _subscription = Manager.Subscribe(Observer.Create<bool>(NewOperation));
+
+        base.OnParametersSet();
+    }
+
+    private void NewOperation(bool run)
+    {
+        if (run)
+            _runnigCount++;
+        else if (_runnigCount > 0)
+            _runnigCount--;
+
+        StateHasChanged();
+    }
+}
