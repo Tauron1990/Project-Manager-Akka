@@ -125,8 +125,4 @@
     <None Include="wwwroot\_content\MudBlazor\MudBlazor.min.css" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="ViewModels\Events\" />
-  </ItemGroup>
-
 </Project>

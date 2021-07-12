@@ -10,7 +10,7 @@
             </MudForm>
         </MudCardContent>
         <MudCardActions>
-            <MudButton Disabled="CanFetch" OnClick="_model.TryFetchDatabseUrl">Url Abrufen</MudButton>
+            <MudButton Disabled="@CanFecth" OnClick="_model.TryFetchDatabseUrl">Url Abrufen</MudButton>
             <MudButton ButtonType="ButtonType.Reset" OnClick="_model.Reset">Zurücksetzen</MudButton>
             <MudButton ButtonType="ButtonType.Submit" OnClick="_model.Submit" Disabled="@(!_isValid)">Speichern</MudButton>
         </MudCardActions>
@@ -21,9 +21,12 @@
 
     private bool _isValid;
 
-    private bool CanFetch => IsConnected && !IsSelf;
+    private bool CanFecth => !IsSelf;
 
     private MudTextFieldString? _databseFieldString;
+
+    [CascadingParameter]
+    public IOperationManager Manager { get; set; } = OperationManager.Empty;
 
     protected override async Task OnInitializedAsync() => await Track(_model);
 
@@ -32,6 +35,13 @@
         if(_databseFieldString != null)
             await _databseFieldString.Validate();
         await base.OnAfterRenderAsync(firstRender);
+    }
+
+    protected override void OnParametersSet()
+    {
+        Console.WriteLine($"Cluster IsSelf:{IsSelf}");
+        _model.Operation = Manager;
+        base.OnParametersSet();
     }
 
 }

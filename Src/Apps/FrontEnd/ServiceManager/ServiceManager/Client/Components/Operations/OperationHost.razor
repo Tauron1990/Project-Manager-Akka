@@ -3,9 +3,9 @@
 <CascadingValue Value="Manager">
     @if (_runnigCount == 0)
     {
-        @if (Content != null)
+        @if (ChildContent != null)
         {
-            @Content
+            @ChildContent
         }
     }
     else
@@ -16,7 +16,9 @@
         }
         else
         {
-            <MudProgressCircular Class="align-center" Size="Size.Large" Indeterminate="true" Color="Color.Primary"/>
+            <MudPaper MaxWidth="70px" Class="mx-auto pa-2">
+                <MudProgressCircular Class="align-center" Size="Size.Large" Indeterminate="true" Color="Color.Primary"/>
+            </MudPaper>
         }
     }
 </CascadingValue>
@@ -27,7 +29,7 @@
     public IOperationManager Manager { get; set; } = new OperationManager();
 
     [Parameter]
-    public RenderFragment? Content { get; set; }
+    public RenderFragment? ChildContent { get; set; }
 
     [Parameter]
     public RenderFragment? RunningOperation { get; set; }

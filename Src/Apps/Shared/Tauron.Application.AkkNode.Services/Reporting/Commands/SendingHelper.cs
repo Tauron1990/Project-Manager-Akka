@@ -18,16 +18,16 @@ namespace Tauron.Application.AkkaNode.Services.Reporting.Commands
             command.ValidateApi(sender.GetType());
 
             var task = new TaskCompletionSource<TResult>();
-            IActorRefFactory factory;
+            IActorRefFactory factory = ActorApplication.Application.ActorSystem;
 
-            try
-            {
-                factory = ObservableActor.ExposedContext;
-            }
-            catch (NotSupportedException)
-            {
-                factory = ActorApplication.Application.ActorSystem;
-            }
+            //try
+            //{
+            //    factory = ObservableActor.ExposedContext;
+            //}
+            //catch (NotSupportedException)
+            //{
+            //    factory = ActorApplication.Application.ActorSystem;
+            //}
 
             var listner = Reporter.CreateListner(factory, messages, result =>
             {

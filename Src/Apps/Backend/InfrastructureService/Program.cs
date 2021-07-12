@@ -9,6 +9,7 @@ using SharpRepository.MongoDbRepository;
 using SharpRepository.Repository.Configuration;
 using Tauron.Application.AkkaNode.Bootstrap;
 using Tauron.Application.AkkaNode.Bootstrap.Console;
+using Tauron.Application.AkkaNode.Services.CleanUp;
 using Tauron.Application.AkkaNode.Services.FileTransfer;
 using Tauron.Application.Files.GridFS;
 using Tauron.Application.Files.VirtualFiles;
@@ -54,6 +55,8 @@ namespace InfrastructureService
 
                                                       var config = new SharpRepositoryConfiguration();
                                                       var fileSystemBuilder = new VirtualFileFactory();
+
+                                                      ApplyMongoUrl(connectionstring, CleanUpManager.RepositoryKey, config);
 
                                                       var url = ApplyMongoUrl(connectionstring, RepositoryManager.RepositoryKey, config);
                                                       RepositoryManager.InitRepositoryManager(system,

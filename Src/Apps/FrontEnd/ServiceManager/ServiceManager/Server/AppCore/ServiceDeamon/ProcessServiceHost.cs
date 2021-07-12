@@ -11,6 +11,7 @@ using ServiceManager.Shared.ServiceDeamon;
 using SharpRepository.MongoDbRepository;
 using SharpRepository.Repository.Configuration;
 using Tauron;
+using Tauron.Application.AkkaNode.Services.CleanUp;
 using Tauron.Application.AkkaNode.Services.FileTransfer;
 using Tauron.Application.Files.GridFS;
 using Tauron.Application.Files.VirtualFiles;
@@ -163,6 +164,8 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
             var config = new SharpRepositoryConfiguration();
             var fileSystemBuilder = new VirtualFileFactory();
 
+            ApplyMongoUrl(connectionstring, CleanUpManager.RepositoryKey, config);
+
             var url = ApplyMongoUrl(connectionstring, RepositoryManager.RepositoryKey, config);
             repoRef =
                 RepositoryManager.InitRepositoryManager(system,
@@ -176,7 +179,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
                                       new DeploymentConfiguration(config,
                                           fileSystemBuilder.CreateMongoDb(url),
                                           DataTransferManager.New(system, "Deployment-DataTransfer"),
-                                          RepositoryApi.CreateProxy(system)))
+                                          RepositoryApi.CreateProxy(system, "Deployment-Repository-Proxy")))
                                  .Manager;
 
             ApplyMongoUrl(connectionstring, ServiceManagerDeamon.RepositoryKey, config);

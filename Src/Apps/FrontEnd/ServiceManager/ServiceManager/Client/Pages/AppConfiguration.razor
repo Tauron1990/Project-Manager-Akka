@@ -4,21 +4,23 @@
 
 <Title Value="App Konfiguration"></Title>
 
-<MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
-    <MudTabPanel Text="Datenbank">
-        <ConfigurationViewDatabase/>
-    </MudTabPanel>
-    <MudTabPanel Text="Global">
-        <DatabaseRequiredComponent>
-            <DatabaseContent>
-                <MudText>Datenbank</MudText>
-            </DatabaseContent>
-            <NoDatabaseContent>
-                <MudText>Keine DatenBank</MudText>
-            </NoDatabaseContent>
-        </DatabaseRequiredComponent>
-    </MudTabPanel>
-</MudTabs>
+<OperationHost>
+    <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+        <MudTabPanel Text="Datenbank">
+            <ConfigurationViewDatabase/>
+        </MudTabPanel>
+        <MudTabPanel Text="Global">
+            <DatabaseRequiredComponent>
+                <DatabaseContent>
+                    <MudText>Datenbank</MudText>
+                </DatabaseContent>
+                <NoDatabaseContent>
+                    <MudText>Keine DatenBank</MudText>
+                </NoDatabaseContent>
+            </DatabaseRequiredComponent>
+        </MudTabPanel>
+    </MudTabs>
+</OperationHost>
 
 @code {
 

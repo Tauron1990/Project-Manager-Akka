@@ -50,7 +50,8 @@ namespace ServiceManager.Client.ViewModels.Models
         {
             try
             {
-                using var cancel = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                using var cancel = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+                
                 var newId = await _client.GetFromJsonAsync<Guid>(ServerInfoApi.ServerInfo, cancel.Token);
                 if (newId == _current)
                     return "Server nicht neu Gestartet";
@@ -81,7 +82,7 @@ namespace ServiceManager.Client.ViewModels.Models
                                                             _init = false;
                                                             await _connection.StopAsync();
                                                             _aggregator.GetEvent<ReloadAllEvent, Unit>().Publish(Unit.Default);
-                                                            _dialogService.Show<AwaitRestartDialog>("Warte",
+                                                            _dialogService.Show<AwaitRestartDialog>(string.Empty,
                                                                 new DialogOptions
                                                                 {
                                                                     DisableBackdropClick = true,

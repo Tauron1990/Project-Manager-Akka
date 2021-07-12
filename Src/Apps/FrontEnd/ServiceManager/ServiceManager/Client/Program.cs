@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.SignalR.Client;
+using MudBlazor;
 using MudBlazor.Services;
 
 namespace ServiceManager.Client
@@ -31,7 +32,7 @@ namespace ServiceManager.Client
 
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
             builder.RootComponents.Add<App>("#app");
-            builder.Services.AddMudServices();
+            builder.Services.AddMudServices(o => o.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomCenter);
             builder.Services.AddScoped(sp => new HubConnectionBuilder()
                                             .WithAutomaticReconnect(new RecconectionPolicy())
                                             .WithUrl(sp.GetRequiredService<NavigationManager>().ToAbsoluteUri("/ClusterInfoHub"))

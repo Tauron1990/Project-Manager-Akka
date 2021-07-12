@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Akka.DependencyInjection;
 using Microsoft.AspNetCore.Builder;
@@ -44,19 +45,23 @@ namespace ServiceManager.Server
         {
             builder.OnMemberRemoved((_, system, _) =>
                                     {
-                                        var resolverScope = DependencyResolver.For(system).Resolver.CreateScope();
-                                        var resolver = resolverScope.Resolver;
+                                        try
+                                        {
+                                            var resolverScope = DependencyResolver.For(system).Resolver.CreateScope();
+                                            var resolver = resolverScope.Resolver;
 
-                                        resolver.GetService<IHubContext<ClusterInfoHub>>().Clients.All
-                                                .SendAsync(HubEvents.RestartServer)
-                                                .ContinueWith(_ =>
-                                                              {
-                                                                  using (resolverScope)
+                                            resolver.GetService<IHubContext<ClusterInfoHub>>().Clients.All
+                                                    .SendAsync(HubEvents.RestartServer)
+                                                    .ContinueWith(_ =>
                                                                   {
-                                                                      resolver.GetService<IRestartHelper>().Restart = true;
-                                                                      resolver.GetService<IHostApplicationLifetime>().StopApplication();
-                                                                  }
-                                                              });
+                                                                      using (resolverScope)
+                                                                      {
+                                                                          resolver.GetService<IRestartHelper>().Restart = true;
+                                                                          resolver.GetService<IHostApplicationLifetime>().StopApplication();
+                                                                      }
+                                                                  });
+                                        }
+                                        catch (ObjectDisposedException) { }
                                     })
                    .AddModule<MainModule>()
                    .StartNode(KillRecpientType.Frontend, IpcApplicationType.NoIpc, true);

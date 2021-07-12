@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Threading;
 using JetBrains.Annotations;
 
 namespace Tauron.Application
@@ -9,18 +10,19 @@ namespace Tauron.Application
     [PublicAPI]
     public class SharedEvent<TPayload> : IDisposable
     {
-        private readonly Subject<TPayload> _handlerList = new();
+        private Subject<TPayload>? _handlerList = new();
 
         public virtual void Publish(TPayload content) 
-            => _handlerList.OnNext(content);
+            => _handlerList?.OnNext(content);
 
         public IObservable<TPayload> Get() 
-            => _handlerList.AsObservable();
+            => _handlerList?.AsObservable() ?? Observable.Empty<TPayload>();
 
         public void Dispose()
         {
-            _handlerList.OnCompleted();
-            _handlerList.Dispose();
+            var list = Interlocked.Exchange(ref _handlerList, null);
+            list?.OnCompleted();
+            list?.Dispose();
             GC.SuppressFinalize(this);
         }
     }

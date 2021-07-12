@@ -24,33 +24,33 @@ namespace Tauron.Application.AkkaNode.Services.Reporting
 
         public bool IsCompled => _compledCalled.Value;
 
-        public static Reporter CreateReporter(IActorRefFactory factory, string? name = "Reporter")
+        public static Reporter CreateReporter(IActorRefFactory factory, string? name = null)
             => new(factory.ActorOf(Props.Create(() => new ReporterActor()).WithSupervisorStrategy(SupervisorStrategy.StoppingStrategy), name));
 
         public static IActorRef CreateListner(IActorRefFactory factory, Action<string> listner,
-            Action<IOperationResult> onCompled, TimeSpan timeout, string? name = "LogListner")
+            Action<IOperationResult> onCompled, TimeSpan timeout, string? name = null)
             => factory.ActorOf(
                 Props.Create(() => new Listner(listner, onCompled, timeout))
                     .WithSupervisorStrategy(SupervisorStrategy.StoppingStrategy), name);
 
         public static IActorRef CreateListner(IActorRefFactory factory, Action<string> listner,
-            Action<IOperationResult> onCompled, string? name = "LogListner")
+            Action<IOperationResult> onCompled, string? name = null)
             => CreateListner(factory, listner, onCompled, Timeout.InfiniteTimeSpan, name);
 
         public static IActorRef CreateListner(IActorRefFactory factory, Reporter reporter,
-            Action<IOperationResult> onCompled, TimeSpan timeout, string? name = "LogListner")
+            Action<IOperationResult> onCompled, TimeSpan timeout, string? name = null)
             => CreateListner(factory, reporter.Send, onCompled, timeout, name);
 
         public static IActorRef CreateListner(IActorRefFactory factory, Action<string> listner,
-            TaskCompletionSource<IOperationResult> onCompled, TimeSpan timeout, string? name = "LogListner")
+            TaskCompletionSource<IOperationResult> onCompled, TimeSpan timeout, string? name = null)
             => CreateListner(factory, listner, onCompled.SetResult, timeout, name);
 
         public static IActorRef CreateListner(IActorRefFactory factory, Action<string> listner,
-            TaskCompletionSource<IOperationResult> onCompled, string? name = "LogListner")
+            TaskCompletionSource<IOperationResult> onCompled, string? name = null)
             => CreateListner(factory, listner, onCompled, Timeout.InfiniteTimeSpan, name);
 
         public static IActorRef CreateListner(IActorRefFactory factory, Reporter reporter,
-            TaskCompletionSource<IOperationResult> onCompled, TimeSpan timeout, string? name = "LogListner")
+            TaskCompletionSource<IOperationResult> onCompled, TimeSpan timeout, string? name = null)
             => CreateListner(factory, reporter.Send, onCompled, timeout, name);
 
         public static IActorRef CreateListner(IActorRefFactory factory, Action<string> listner, TimeSpan timeout,
@@ -125,25 +125,27 @@ namespace Tauron.Application.AkkaNode.Services.Reporting
             _reporter.Tell(result);
         }
 
-        private sealed class Listner : ReceiveActor, IWithTimers
+        private sealed class Listner : ReceiveActor
         {
+            private bool _compled;
+
             public Listner(Action<string> listner, Action<IOperationResult> onCompled, TimeSpan timeSpan)
             {
                 Receive<IOperationResult>(c =>
-                {
-                    Context.Stop(Self);
-                    onCompled(c);
-                });
+                                          {
+                                              if (_compled) return;
+                                              _compled = true;
+                                              Context.Stop(Self);
+                                              onCompled(c);
+                                          });
                 Receive<TransferedMessage>(m => listner(m.Message));
 
                 if (timeSpan == Timeout.InfiniteTimeSpan)
                     return;
 
-                Timers.StartSingleTimer(timeSpan, OperationResult.Failure(new Error(TimeoutError, TimeoutError)),
-                    timeSpan);
+                Task.Delay(timeSpan).PipeTo(Self, success: () => OperationResult.Failure(new Error(TimeoutError, TimeoutError)));
+                //Timers.StartSingleTimer(timeSpan, OperationResult.Failure(new Error(TimeoutError, TimeoutError)), timeSpan);
             }
-
-            public ITimerScheduler Timers { get; set; } = null!;
         }
 
         private sealed class ReporterActor : ReceiveActor

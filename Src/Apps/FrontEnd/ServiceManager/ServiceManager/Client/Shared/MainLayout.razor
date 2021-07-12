@@ -6,6 +6,8 @@
 @using Tauron.Application
 @using System.ComponentModel
 @using System.Reactive
+@using System.Reactive.Linq
+@using System.Reactive.Threading.Tasks
 @using ServiceManager.Client.ViewModels.Events
 
 @inherits LayoutComponentBase
@@ -22,7 +24,7 @@
 
 <MudLayout>
     <MudThemeProvider/>
-    <MudDialogProvider/>
+    <MudDialogProvider DisableBackdropClick="true"/>
     <MudSnackbarProvider/>
     
     @if (_loading)
@@ -95,6 +97,10 @@
                        .Subscribe(m => m.Apply(_snackbar))
                        .DisposeWith(_disposer);
 
+            _aggregator.GetEvent<RestartClient, Unit>()
+                       .Get().SelectMany(_ => ReInit().ToObservable())
+                       .AutoSubscribe(e => _aggregator.PublishError(e));
+
             base.OnInitialized();
         }
         catch (Exception e)
@@ -107,6 +113,15 @@
             _loading = false;
             StateHasChanged();
         }
+    }
+
+    private async Task ReInit()
+    {
+        await PropertyChangedComponent.Init(_appIpManager);
+        await PropertyChangedComponent.Init(_lifetime);
+        await PropertyChangedComponent.Init(_databaseConfig);
+        await PropertyChangedComponent.Init(_cluster);
+        await InvokeAsync(StateHasChanged);
     }
 
     protected override async Task OnInitializedAsync()
@@ -126,6 +141,7 @@
             Console.WriteLine(e);
             throw;
         }
+        StateHasChanged();
     }
 
     private async Task Track(INotifyPropertyChanged changed)

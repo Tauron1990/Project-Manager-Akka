@@ -1,42 +1,46 @@
 ﻿@using System.Threading
+@using ServiceManager.Client.ViewModels.Events
 @using ServiceManager.Shared
 @using Tauron
 @using Tauron.Application
+@using System.Reactive
 
 @inherits DialogBaseComponent
 @inject NavigationManager _manager
 @inject IEventAggregator _aggregator
 @inject IServerInfo _serverInfo
 
-<div class="loader align-center">Neustarten...</div>
+<div class="mx-auto" style="width: 25%">
+    <div class="loader">Neustarten...</div>
 
-@if (_atempts > 5)
-{
-    <MudButton OnClick="Reload">Neuladen</MudButton>
-}
-
-@if (_trying)
-{
-    <MudText>Versuche Verbindung aufzubauen</MudText>
-}
-
-@if (_atempts > 0)
-{
-    <MudText Class="text-center">Versuch Nummer: @_atempts</MudText>
-}
-
-@if (_errors.Count > 0)
-{
-    @foreach (var err in _errors.AsEnumerable().Reverse())
+    @if (_trying)
     {
-        <MudText>@err</MudText>
+        <MudText Class="mt-10">Versuche Verbindung aufzubauen</MudText>
     }
-}
+    
+    @if (_atempts > 5)
+    {
+        <MudButton Class="mt-5" OnClick="Reload">Neuladen</MudButton>
+    }
+
+    @if (_atempts > 0)
+    {
+        <MudText>Versuch Nummer: @_atempts</MudText>
+    }
+
+    @if (_errors.Count > 0)
+    {
+        @foreach (var err in _errors.AsEnumerable().Reverse())
+        {
+            <MudText>@err</MudText>
+        }
+    }
+</div>
 
 @code {
     private int _atempts;
 
-    private bool _trying;
+    private bool _trying = true;
 
     private Timer? _timer;
 
@@ -44,8 +48,10 @@
 
     private void Reload()
     {
+        _trying = false;
         _timer?.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
         _manager.NavigateTo("", true);
+        _aggregator.GetEvent<ReloadAllEvent, Unit>().Publish(Unit.Default);
     }
 
     protected override void OnInitialized()
@@ -64,7 +70,7 @@
             var result = await _serverInfo.TryReconnect();
             if (string.IsNullOrWhiteSpace(result))
             {
-                _manager.NavigateTo("");
+                Reload();
                 return;
             }
 

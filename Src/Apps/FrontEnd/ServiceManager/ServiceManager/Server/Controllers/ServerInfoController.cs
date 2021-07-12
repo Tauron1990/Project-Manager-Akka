@@ -34,7 +34,9 @@ namespace ServiceManager.Server.Controllers
         {
             await _hub.Clients.All.SendAsync(HubEvents.RestartServer);
             _restart.Restart = true;
-            _lifetime.StopApplication();
+            #pragma warning disable 4014
+            Task.Delay(1000).ContinueWith(_ => _lifetime.StopApplication());
+            #pragma warning restore 4014
             return Ok();
         }
     }

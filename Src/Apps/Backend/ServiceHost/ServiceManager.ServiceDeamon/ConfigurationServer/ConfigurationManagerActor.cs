@@ -9,6 +9,7 @@ using ServiceHost.Client.Shared.ConfigurationServer.Data;
 using ServiceHost.Client.Shared.ConfigurationServer.Events;
 using ServiceManager.ServiceDeamon.ConfigurationServer.Data;
 using ServiceManager.ServiceDeamon.ConfigurationServer.Internal;
+using ServiceManager.ServiceDeamon.Management;
 using SharpRepository.Repository;
 using SharpRepository.Repository.Configuration;
 using Tauron;
@@ -25,14 +26,14 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
 
         public static Props New(ISharpRepositoryConfiguration repository)
         {
-            var serverConfiguration = repository.GetInstance<ServerConfigurationEntity, string>();
+            var serverConfiguration = repository.GetInstance<ServerConfigurationEntity, string>(ServiceManagerDeamon.RepositoryKey);
             var publisher = new Subject<IConfigEvent>();
 
             ConfigFeatureConfiguration CreateState()
                 => new(serverConfiguration.Get(ServerConfigurationId)?.Configugration ?? new ServerConfigugration(true, false, string.Empty),
-                    repository.GetInstance<GlobalConfigEntity, string>(),
-                    repository.GetInstance<SeedUrlEntity, string>(),
-                    repository.GetInstance<SpecificConfigEntity, string>(), 
+                    repository.GetInstance<GlobalConfigEntity, string>(ServiceManagerDeamon.RepositoryKey),
+                    repository.GetInstance<SeedUrlEntity, string>(ServiceManagerDeamon.RepositoryKey),
+                    repository.GetInstance<SpecificConfigEntity, string>(ServiceManagerDeamon.RepositoryKey), 
                     publisher.ObserveOn(Scheduler.Default),
                     publisher.AsObserver().OnNext);
 
@@ -53,9 +54,12 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
             Receive<ServerConfigugration>(
                 obs => obs.ToUnit(sp =>
                                   {
-                                      var (evt, state) = sp;
-                                      state.ServerConfiguration.Update(new ServerConfigurationEntity(ServerConfigurationId, evt));
-                                      state.EventPublisher.OnNext(new ServerConfigurationEvent(evt));
+                                      var (evt, (_, serverConfiguration, eventPublisher)) = sp;
+                                      if(!serverConfiguration.Exists(ServerConfigurationId))
+                                          serverConfiguration.Add(new ServerConfigurationEntity(ServerConfigurationId, evt));
+                                      else
+                                        serverConfiguration.Update(new ServerConfigurationEntity(ServerConfigurationId, evt));
+                                      eventPublisher.OnNext(new ServerConfigurationEvent(evt));
                                   }));
         }
     }

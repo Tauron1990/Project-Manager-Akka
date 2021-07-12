@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using ServiceManager.Client.Components;
+using ServiceManager.Client.Components.Operations;
 using ServiceManager.Shared;
 using ServiceManager.Shared.Api;
 using ServiceManager.Shared.ClusterTracking;
@@ -34,6 +35,8 @@ namespace ServiceManager.Client.ViewModels
 
         public string ClusterUrl { get; set; } = string.Empty;
 
+        public IOperationManager Operation { get; } = new OperationManager();
+
         public ConnectToClusterViewModel(IServerInfo serverInfo, HttpClient client, IEventAggregator aggregator, IClusterConnectionTracker tracker)
         {
             _serverInfo = serverInfo;
@@ -44,19 +47,22 @@ namespace ServiceManager.Client.ViewModels
 
         public async Task ConnectToCluster()
         {
-            try
+            using (Operation.Start())
             {
-                if(ValidateUrl(ClusterUrl) != null) return;
+                try
+                {
+                    if (ValidateUrl(ClusterUrl) != null) return;
 
-                var result = await _tracker.ConnectToCluster(ClusterUrl);
+                    var result = await _tracker.ConnectToCluster(ClusterUrl);
 
-                if(result != string.Empty) return;
+                    if (result != string.Empty) return;
 
-                await _serverInfo.Restart();
-            }
-            catch (Exception e)
-            {
-                _aggregator.PublishError(e);
+                    await _serverInfo.Restart();
+                }
+                catch (Exception e)
+                {
+                    _aggregator.PublishError(e);
+                }
             }
         }
 

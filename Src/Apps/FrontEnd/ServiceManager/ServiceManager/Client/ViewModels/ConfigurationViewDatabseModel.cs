@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using MudBlazor;
 using ServiceManager.Client.Components;
+using ServiceManager.Client.Components.Operations;
 using ServiceManager.Client.Shared.Dialog;
 using ServiceManager.Client.ViewModels.Models;
 using ServiceManager.Shared;
@@ -36,6 +37,8 @@ namespace ServiceManager.Client.ViewModels
 
         public Func<string, string?> ValidateUrl { get; } = Validate;
 
+        public IOperationManager Operation { get; set; } = OperationManager.Empty;
+
         public ConfigurationViewDatabseModel(IDatabaseConfig databaseConfig, IServerInfo info, IDialogService dialogService, IEventAggregator aggregator)
         {
             _databaseConfig = databaseConfig;
@@ -56,28 +59,32 @@ namespace ServiceManager.Client.ViewModels
 
         public async Task Submit()
         {
-            try
+            using (Operation.Start())
             {
-                var diag = await _dialogService.Show<ConfirmRestartDialog>().Result;
-
-                if (diag.Cancelled)
+                try
                 {
-                    _aggregator.PublishWarnig("Vorgang Abgebrochen");
-                    return;
-                }
+                    var diag = await _dialogService.Show<ConfirmRestartDialog>().Result;
 
-                var result = await _databaseConfig.SetUrl(DatabaseUrl);
-                if (string.IsNullOrWhiteSpace(result))
+                    if (diag.Cancelled)
+                    {
+                        _aggregator.PublishWarnig("Vorgang Abgebrochen");
+                        return;
+                    }
+
+                    var result = await _databaseConfig.SetUrl(DatabaseUrl);
+                    if (string.IsNullOrWhiteSpace(result))
+                    {
+                        await Task.Delay(1000);
+                        await _info.Restart();
+                        return;
+                    }
+
+                    _aggregator.PublishWarnig($"Fehler: {result}");
+                }
+                catch (Exception e)
                 {
-                    await _info.Restart();
-                    return;
+                    _aggregator.PublishError(e);
                 }
-
-                _aggregator.PublishWarnig($"Fehler: {result}");
-            }
-            catch (Exception e)
-            {
-                _aggregator.PublishError(e);
             }
         }
 

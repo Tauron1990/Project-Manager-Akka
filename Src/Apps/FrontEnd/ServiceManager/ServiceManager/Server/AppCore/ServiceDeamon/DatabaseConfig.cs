@@ -15,6 +15,7 @@ using ServiceManager.Shared.ClusterTracking;
 using ServiceManager.Shared.ServiceDeamon;
 using Tauron;
 using Tauron.Application;
+using Tauron.Application.AkkaNode.Services.Reporting;
 using Tauron.Application.Master.Commands.Administration.Configuration;
 
 namespace ServiceManager.Server.AppCore.ServiceDeamon
@@ -100,7 +101,11 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
             }
             catch (Exception e)
             {
-                return e.Message;
+                return e.Message switch
+                {
+                    Reporter.TimeoutError => "Die Operation hat zu lange dedauert",
+                    _ => e.Message
+                };
             }
         }
 
@@ -108,6 +113,9 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
         {
             try
             {
+                if (_tracker.IsSelf)
+                    return new UrlResult("Mit Keinem Cluster Verbunden", false);
+
                 var response = await _configurationApi.QueryIsAlive(_system, TimeSpan.FromSeconds(10));
                 if (!response.IsAlive) return new UrlResult("Die Api ist nicht ereichbar", false);
 
