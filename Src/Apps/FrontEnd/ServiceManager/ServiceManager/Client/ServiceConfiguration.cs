@@ -15,6 +15,7 @@ namespace ServiceManager.Client
             collection.AddScoped<ConnectToClusterViewModel>();
             collection.AddScoped<IndexViewModel>();
             collection.AddScoped<ConfigurationViewDatabseModel>();
+            collection.AddTransient<ConfigurationOptionsViewModel>();
 
             collection.AddScoped<IClusterConnectionTracker, ClusterConnectionTracker>();
             collection.AddScoped<IDatabaseConfig, DatabaseConfig>();

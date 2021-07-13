@@ -61,6 +61,120 @@ namespace ServiceManager.Server.Properties {
         }
         
         /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die ####################################
+        ///# Akka Actor Reference Config File #
+        ///####################################
+        ///
+        ///# This is the reference config file that contains all the default settings.
+        ///# Make your edits/overrides in your application.conf.
+        ///
+        ///akka {
+        ///  # Loggers are created and registered synchronously during ActorSystem
+        ///  # start-up, and since they are actors, this timeout is used to bound the
+        ///  # waiting time
+        ///  logger-startup-timeout = 5s
+        ///
+        ///  # You can enable asynchronous loggers creation by se [Rest der Zeichenfolge wurde abgeschnitten]&quot;; ähnelt.
+        /// </summary>
+        internal static string Akka {
+            get {
+                return ResourceManager.GetString("Akka", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die #####################################
+        ///# Akka Cluster Reference Config File #
+        ///######################################
+        ///
+        ///# This is the reference config file that contains all the default settings.
+        ///# Make your edits/overrides in your application.conf.
+        ///
+        ///akka {
+        ///
+        ///  cluster {
+        ///
+        ///    # How long to wait for one of the seed nodes to reply to initial join request.
+        ///    # When this is the first seed node and there is no positive reply from the other
+        ///    # seed nodes within this timeout it will join itself to bo [Rest der Zeichenfolge wurde abgeschnitten]&quot;; ähnelt.
+        /// </summary>
+        internal static string AkkaCluster {
+            get {
+                return ResourceManager.GetString("AkkaCluster", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die ###########################################################
+        ///# Akka Persistence Extension Reference Configuration File #
+        ///###########################################################
+        ///
+        ///# This is the reference config file that contains all the default settings.
+        ///# Make your edits in your application.conf in order to override these settings.
+        ///
+        ///# Directory of persistence journal and snapshot store plugins is available at the
+        ///# Akka.NET Community Projects page http://getakka.net/docs/Community%20Plugins
+        ///
+        ///#  [Rest der Zeichenfolge wurde abgeschnitten]&quot;; ähnelt.
+        /// </summary>
+        internal static string AkkaPersistence {
+            get {
+                return ResourceManager.GetString("AkkaPersistence", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die #####################################
+        ///# Akka Remote Reference Config File #
+        ///#####################################
+        ///
+        ///# This is the reference config file that contains all the default settings.
+        ///# Make your edits/overrides in your application.conf.
+        ///
+        ///# comments about akka.actor settings left out where they are already in akka-
+        ///# actor.jar, because otherwise they would be repeated in config rendering.
+        ///
+        ///akka {
+        ///
+        ///  actor {
+        ///
+        ///    deployment {
+        ///
+        ///      default {
+        ///
+        ///        # if this is set to a valid remo [Rest der Zeichenfolge wurde abgeschnitten]&quot;; ähnelt.
+        /// </summary>
+        internal static string AkkaRemote {
+            get {
+                return ResourceManager.GetString("AkkaRemote", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die #####################################
+        ///# Akka Stream Reference Config File #
+        ///#####################################
+        ///
+        ///akka {
+        ///  stream {
+        ///
+        ///    # Default flow materializer settings
+        ///    materializer {
+        ///
+        ///      # Initial size of buffers used in stream elements
+        ///	  # Note: If you change this value also change the fallback value in ActorMaterializerSettings
+        ///      initial-input-buffer-size = 4
+        ///
+        ///      # Maximum size of buffers used in stream elements
+        ///	  # Note: If you change this value also change the fallb [Rest der Zeichenfolge wurde abgeschnitten]&quot;; ähnelt.
+        /// </summary>
+        internal static string AkkaStreams {
+            get {
+                return ResourceManager.GetString("AkkaStreams", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die akka.persistence {
         ///	journal {
         ///		mongodb {

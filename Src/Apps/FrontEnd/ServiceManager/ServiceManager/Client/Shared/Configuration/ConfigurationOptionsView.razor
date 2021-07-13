@@ -1,0 +1,78 @@
+﻿@using ServiceManager.Shared.Api
+@inherits PropertyChangedComponent
+
+@inject ConfigurationOptionsViewModel _model
+
+<MudExpansionPanels>
+    <MudExpansionPanel Text="Akka" IsExpandedChanged="AkkaOpen">
+        <OperationHost Manager="_akkaManager">
+
+        </OperationHost>
+    </MudExpansionPanel>
+    <MudExpansionPanel Text="Akka Remote" IsExpandedChanged="RemoteOpen">
+        <OperationHost Manager="_remoteManager">
+
+        </OperationHost>
+    </MudExpansionPanel>
+    <MudExpansionPanel Text="Akka Cluster" IsExpandedChanged="ClusterOpen">
+        <OperationHost Manager="_clusterManager">
+
+        </OperationHost>
+    </MudExpansionPanel>
+    <MudExpansionPanel Text="Akka Persistence" IsExpandedChanged="PersistenceOpen">
+        <OperationHost Manager="_persistenceManager">
+
+        </OperationHost>
+    </MudExpansionPanel>
+    <MudExpansionPanel Text="Akka Streams" IsExpandedChanged="StreamsOpen">
+        <OperationHost Manager="_streamsManager">
+
+        </OperationHost>
+    </MudExpansionPanel>
+</MudExpansionPanels>
+
+@code {
+
+    private readonly IOperationManager _akkaManager = new OperationManager();
+    private readonly IOperationManager _remoteManager = new OperationManager();
+    private readonly IOperationManager _clusterManager = new OperationManager();
+    private readonly IOperationManager _persistenceManager = new OperationManager();
+    private readonly IOperationManager _streamsManager = new OperationManager();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Track(_model);
+        await base.OnInitializedAsync();
+    }
+
+    private async Task AkkaOpen(bool open)
+    {
+        if (open)
+            await _model.LoadAsyncFor(ConfigurationRestApi.ModuleName.Akka, _akkaManager);
+    }
+
+    private async Task RemoteOpen(bool open)
+    {
+        if (open)
+            await _model.LoadAsyncFor(ConfigurationRestApi.ModuleName.AkkaRemote, _remoteManager);
+    }
+
+    private async Task ClusterOpen(bool open)
+    {
+        if (open)
+            await _model.LoadAsyncFor(ConfigurationRestApi.ModuleName.AkkaCluster, _clusterManager);
+    }
+
+    private async Task PersistenceOpen(bool open)
+    {
+        if (open)
+            await _model.LoadAsyncFor(ConfigurationRestApi.ModuleName.AkkaPersistence, _persistenceManager);
+    }
+
+    private async Task StreamsOpen(bool open)
+    {
+        if (open)
+            await _model.LoadAsyncFor(ConfigurationRestApi.ModuleName.AkkaStreams, _streamsManager);
+    }
+
+}

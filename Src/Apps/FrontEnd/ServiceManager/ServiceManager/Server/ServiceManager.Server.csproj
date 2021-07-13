@@ -6,6 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="C:\Users\user\.nuget\packages\sharprepository.mongodbrepository\2.1.1\contentFiles\any\netstandard1.5\repository.mongoDb.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="akka.conf" />
   </ItemGroup>
 

@@ -75,7 +75,7 @@ namespace ServiceManager.Client.ViewModels.Models
                                                                  ic.OnPropertyChanged(
                                                                      dc => dc.IsReady,
                                                                      b => IsReady = b?.Content ?? false,
-                                                                     c => c.GetFromJsonAsync<BoolContent>(DatabaseConfigApi.IsReady));
+                                                                     c => c.GetFromJsonAsync<BoolApiContent>(DatabaseConfigApi.IsReady));
 
                                                                  ic.OnPropertyChanged(
                                                                      dc => dc.Url, 

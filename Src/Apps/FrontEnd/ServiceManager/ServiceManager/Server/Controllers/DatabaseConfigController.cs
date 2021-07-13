@@ -18,7 +18,7 @@ namespace ServiceManager.Server.Controllers
 
         [HttpGet]
         [Route(nameof(DatabaseConfigApi.IsReady))]
-        public ActionResult<BoolContent> OnGetIsReady() => new BoolContent(_config.IsReady);
+        public ActionResult<BoolApiContent> OnGetIsReady() => new BoolApiContent(_config.IsReady);
 
         [HttpPost]
         public async Task<ActionResult<StringApiContent>> OnSetDb([FromBody] StringApiContent url) 

@@ -10,7 +10,7 @@ namespace ServiceManager.Server
         {
             var basePath = Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location);
             if (string.IsNullOrWhiteSpace(basePath))
-                throw new InvalidOperationException("Konfigurations Datei nicht gefunden");
+                throw new InvalidOperationException("Programm Datei nicht gefunden");
 
             return Path.Combine(basePath, fileName);
         }

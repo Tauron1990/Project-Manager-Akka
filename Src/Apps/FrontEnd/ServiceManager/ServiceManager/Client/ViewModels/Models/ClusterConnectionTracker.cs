@@ -76,12 +76,12 @@ namespace ServiceManager.Client.ViewModels.Models
                                                                          ic.OnPropertyChanged(
                                                                              t => t.IsConnected,
                                                                              b => IsConnected = b?.Content ?? false,
-                                                                             c => c.GetFromJsonAsync<BoolContent>(ClusterConnectionTrackerApi.IsConnected));
+                                                                             c => c.GetFromJsonAsync<BoolApiContent>(ClusterConnectionTrackerApi.IsConnected));
 
                                                                          ic.OnPropertyChanged(
                                                                              t => t.IsSelf,
                                                                              b => IsSelf = b?.Content ?? false,
-                                                                             c => c.GetFromJsonAsync<BoolContent>(ClusterConnectionTrackerApi.IsSelf));
+                                                                             c => c.GetFromJsonAsync<BoolApiContent>(ClusterConnectionTrackerApi.IsSelf));
 
                                                                          ic.OnPropertyChanged(
                                                                              t => t.Url,

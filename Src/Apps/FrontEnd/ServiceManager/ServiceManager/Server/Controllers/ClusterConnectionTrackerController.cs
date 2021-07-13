@@ -20,13 +20,13 @@ namespace ServiceManager.Server.Controllers
 
         [HttpGet]
         [Route(nameof(ClusterConnectionTrackerApi.IsSelf))]
-        public ActionResult<BoolContent> GetIsSelf()
-            => new BoolContent(_tracker.IsSelf);
+        public ActionResult<BoolApiContent> GetIsSelf()
+            => new BoolApiContent(_tracker.IsSelf);
 
         [HttpGet]
         [Route(nameof(ClusterConnectionTrackerApi.IsConnected))]
-        public ActionResult<BoolContent> GetIsConnected()
-            => new BoolContent(_tracker.IsConnected);
+        public ActionResult<BoolApiContent> GetIsConnected()
+            => new BoolApiContent(_tracker.IsConnected);
 
         [HttpGet]
         [Route(nameof(ClusterConnectionTrackerApi.SelfUrl))]
