@@ -6,32 +6,34 @@
 <MudExpansionPanels>
     <MudExpansionPanel Text="Akka" IsExpandedChanged="AkkaOpen">
         <OperationHost Manager="_akkaManager">
-
+            <OptionElementRenderer OptionSelected="OptionSelectCallback" Element="_model.Akka"/>
         </OperationHost>
     </MudExpansionPanel>
     <MudExpansionPanel Text="Akka Remote" IsExpandedChanged="RemoteOpen">
         <OperationHost Manager="_remoteManager">
-
+            <OptionElementRenderer OptionSelected="OptionSelectCallback" Element="_model.AkkaRemote"/>
         </OperationHost>
     </MudExpansionPanel>
     <MudExpansionPanel Text="Akka Cluster" IsExpandedChanged="ClusterOpen">
         <OperationHost Manager="_clusterManager">
-
+            <OptionElementRenderer OptionSelected="OptionSelectCallback" Element="_model.AkkaCluster"/>
         </OperationHost>
     </MudExpansionPanel>
     <MudExpansionPanel Text="Akka Persistence" IsExpandedChanged="PersistenceOpen">
         <OperationHost Manager="_persistenceManager">
-
+            <OptionElementRenderer OptionSelected="OptionSelectCallback" Element="_model.AkkaPersistence"/>
         </OperationHost>
     </MudExpansionPanel>
     <MudExpansionPanel Text="Akka Streams" IsExpandedChanged="StreamsOpen">
         <OperationHost Manager="_streamsManager">
-
+            <OptionElementRenderer OptionSelected="OptionSelectCallback" Element="_model.AkkaStreams"/>
         </OperationHost>
     </MudExpansionPanel>
 </MudExpansionPanels>
 
 @code {
+    [Parameter] 
+    public EventCallback<OptionSelected> OptionSelectedEvent { get; set; }
 
     private readonly IOperationManager _akkaManager = new OperationManager();
     private readonly IOperationManager _remoteManager = new OperationManager();
@@ -44,6 +46,9 @@
         await Track(_model);
         await base.OnInitializedAsync();
     }
+
+    private async Task OptionSelectCallback(OptionSelected data)
+        => await OptionSelectedEvent.InvokeAsync(data);
 
     private async Task AkkaOpen(bool open)
     {

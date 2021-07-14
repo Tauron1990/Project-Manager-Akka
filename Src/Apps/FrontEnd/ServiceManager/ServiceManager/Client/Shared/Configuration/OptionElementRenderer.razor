@@ -1,0 +1,29 @@
+﻿@if (Element.Error)
+{
+    <MudAlert Severity="Severity.Error">@Element.Message</MudAlert>
+}
+else
+{
+    <MudGrid Class="d-flex justify-center">
+        @foreach (var option in Element.ConfigOptions)
+        {
+            <MudItem Class="flex-row">
+                <MudPaper Class="ma-1 d-flex flex-nowrap justify-center">
+                    <MudText>@option.Path</MudText>
+                    <MudTextFieldString @bind-Text="@option.DefaultValue"></MudTextFieldString>
+                </MudPaper>
+            </MudItem>
+        }
+    </MudGrid>
+}
+
+
+@code {
+
+    [Parameter]
+    public EventCallback<OptionSelected> OptionSelected { get; set; }
+
+    [Parameter]
+    public ConfigurationOptionsViewModel.OptionElement Element { get; set; } = ConfigurationOptionsViewModel.DefaultElement;
+
+}
