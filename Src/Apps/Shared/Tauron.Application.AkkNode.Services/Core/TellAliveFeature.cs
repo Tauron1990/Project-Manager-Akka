@@ -20,7 +20,7 @@ namespace Tauron.Application.AkkaNode.Services.Core
             return source.Task;
         }
 
-        private sealed class TempActor : ActorBase
+        private sealed class TempActor : ActorBase, IDisposable
         {
             private readonly CancellationTokenSource _cancellationTokenSource;
             private readonly TaskCompletionSource<IsAliveResponse> _source;
@@ -38,10 +38,11 @@ namespace Tauron.Application.AkkaNode.Services.Core
 
             protected override bool Receive(object message)
             {
-                _cancellationTokenSource.Dispose();
                 _source.TrySetResult(message is not IsAliveResponse response ? new IsAliveResponse(false) : response);
                 return true;
             }
+
+            public void Dispose() => _cancellationTokenSource.Dispose();
         }
     }
 

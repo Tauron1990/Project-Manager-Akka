@@ -7,10 +7,10 @@ else
     <MudGrid Class="d-flex justify-center">
         @foreach (var option in Element.ConfigOptions)
         {
-            <MudItem Class="flex-row">
+            <MudItem Class="flex-row" @key="@option.Path">
                 <MudPaper Class="ma-1 d-flex flex-nowrap justify-center">
                     <MudText>@option.Path</MudText>
-                    <MudTextFieldString @bind-Text="@option.DefaultValue"></MudTextFieldString>
+                    <MudTextFieldString @bind-Text="@option.CurrentValue"></MudTextFieldString>
                 </MudPaper>
             </MudItem>
         }

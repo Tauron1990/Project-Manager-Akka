@@ -26,8 +26,10 @@ namespace ServiceManager.Server
             builder.RegisterType<LocalConfiguration>().As<ILocalConfiguration>().SingleInstance();
 
             builder.Register(c => c.Resolve<IEventAggregator>().GetEvent<ConfigEventDispatcher, IConfigEvent>()).SingleInstance();
+
             builder.RegisterType<ClusterConnectionTracker>().As<IClusterConnectionTracker>().SingleInstance();
             builder.RegisterType<DatabaseConfig>().As<IDatabaseConfig>().SingleInstance();
+            builder.RegisterType<ServerConfigurationApi>().As<IServerConfigurationApi>().SingleInstance();
             builder.RegisterType<PropertyChangedNotifer>().As<IPropertyChangedNotifer>().SingleInstance();
 
             builder.RegisterFeature<ClusterNodeManagerRef, IClusterNodeManager>(ClusterHostManagerActor.New());

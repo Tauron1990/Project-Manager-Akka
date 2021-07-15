@@ -1,0 +1,33 @@
+﻿@using Tauron
+@inherits PropertyChangedComponent
+
+@inject ConfigurationViewGlobalConfigModel _model
+
+<MudGrid Class="d-flex">
+    <MudItem Class="flex-row justify-center">
+        <MudText Color="Color.Info" Typo="Typo.h3">Globale Konfiguration</MudText>
+    </MudItem>
+    <MudItem Class="flex-row">
+        <MudTextFieldString @bind-Text="@_model.ConfigInfo"/>
+    </MudItem>
+    <MudItem Class="flex-row" Style="max-height: 50%">
+        <InputTextArea @bind-Value="@_model.ConfigContent"/>
+    </MudItem>
+    <MudItem Class="flex-row">
+        <MudButton OnClick="_model.UpdateConfig">Speichern</MudButton>
+    </MudItem>
+    <MudItem Class="flex-row">
+        <ConfigurationOptionsView OptionSelectedEvent="_model.UpdateContent"/>
+    </MudItem>
+</MudGrid>
+
+@code {
+
+    protected override async Task OnInitializedAsync()
+    {
+        _model.DisposeWith(this);
+        await Track(_model);
+        await base.OnInitializedAsync();
+    }
+
+}

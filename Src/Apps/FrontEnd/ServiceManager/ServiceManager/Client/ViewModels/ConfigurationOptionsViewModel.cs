@@ -5,7 +5,9 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Akka.Util.Internal;
+using MudBlazor;
 using ServiceManager.Client.Components.Operations;
+using ServiceManager.Client.Shared.Dialog;
 using ServiceManager.Shared.Api;
 using Tauron.Application;
 
@@ -13,10 +15,11 @@ namespace ServiceManager.Client.ViewModels
 {
     public sealed class ConfigurationOptionsViewModel : ObservableObject
     {
-        public static readonly OptionElement DefaultElement = new OptionElement(true, "Daten nicht geladen", Array.Empty<MutableConfigOption>());
+        public static readonly OptionElement DefaultElement = new(true, "Daten nicht geladen", Array.Empty<MutableConfigOption>());
 
         private readonly IEventAggregator _eventAggregator;
         private readonly HttpClient _client;
+        private readonly IDialogService _dialogService;
         private readonly ConcurrentDictionary<string, OptionElement> _elements = new();
 
         public OptionElement Akka => _elements.GetOrElse(ConfigurationRestApi.ModuleName.Akka, DefaultElement);
@@ -29,10 +32,11 @@ namespace ServiceManager.Client.ViewModels
 
         public OptionElement AkkaStreams => _elements.GetOrElse(ConfigurationRestApi.ModuleName.AkkaStreams, DefaultElement);
 
-        public ConfigurationOptionsViewModel(IEventAggregator eventAggregator, HttpClient client)
+        public ConfigurationOptionsViewModel(IEventAggregator eventAggregator, HttpClient client, IDialogService dialogService)
         {
             _eventAggregator = eventAggregator;
             _client = client;
+            _dialogService = dialogService;
         }
 
         public async Task LoadAsyncFor(string name, IOperationManager manager)
@@ -65,15 +69,31 @@ namespace ServiceManager.Client.ViewModels
             }
         }
 
+        public async Task ShowConfigFile(string name)
+        {
+            try
+            {
+                var result = await _client.GetFromJsonAsync<StringApiContent>(ConfigurationRestApi.GetBaseConfig + "/" + name);
+                if(result == null)
+                    _eventAggregator.PublishError($"Unbkannter Fehler beim abrufen der Datei {name}");
+                else
+                    _dialogService.Show<ShowTextDataDialog>("Konfigurations Text", ShowTextDataDialog.GetParameters(result.Content), new DialogOptions {FullScreen = true, CloseButton = true});
+            }
+            catch (Exception e)
+            {
+                _eventAggregator.PublishError(e);
+            }
+        }
+
         public sealed record OptionElement(bool Error, string Message, MutableConfigOption[] ConfigOptions);
 
         public sealed record MutableConfigOption(string Path)
         {
-            public string DefaultValue { get; set; }
+            public string CurrentValue { get; set; } = string.Empty;
 
             public MutableConfigOption(ConfigOption option)
                 : this(option.Path)
-                => DefaultValue = option.DefaultValue;
+                => CurrentValue = option.DefaultValue;
         }
     }
 }

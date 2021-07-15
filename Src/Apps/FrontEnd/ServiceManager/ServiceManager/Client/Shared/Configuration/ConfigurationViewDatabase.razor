@@ -6,7 +6,7 @@
         <MudCardContent>
             <MudForm @bind-IsValid="_isValid">
                 <MudTextFieldString DebounceInterval="200" @bind-Value="@_model.DatabaseUrl" 
-                Validation="_model.ValidateUrl" @ref="_databseFieldString"/>
+                                    Validation="_model.ValidateUrl" @ref="_databseFieldString"/>
             </MudForm>
         </MudCardContent>
         <MudCardActions>
@@ -15,6 +15,12 @@
             <MudButton ButtonType="ButtonType.Submit" OnClick="_model.Submit" Disabled="@(!_isValid)">Speichern</MudButton>
         </MudCardActions>
     </MudCard>
+    <div class="d-flex">
+        <MudText Class="d-flex justify-center" Style="max-width: 25%">
+            Warnung: Änderungen an der Konfiguration führt zu partiellem oder oder Komplettem neustart des Clusters.
+            Fehler in der Konfiguration können zum ausfall des Clusters Führen.
+        </MudText>
+    </div>
 </div>
 
 @code {

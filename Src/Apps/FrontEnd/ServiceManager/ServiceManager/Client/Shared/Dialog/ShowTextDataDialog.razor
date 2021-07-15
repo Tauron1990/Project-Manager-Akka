@@ -1,0 +1,22 @@
+﻿<MudDialog>
+    <DialogContent>
+        <p style="white-space: pre-wrap">@Data</p>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Close">Schließen</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] 
+    public MudDialogInstance? MudDialog { get; set; }
+
+    [Parameter]
+    public string Data { get; set; } = string.Empty;
+
+    private void Close() => MudDialog?.Close();
+
+    public static DialogParameters GetParameters(string text)
+        => new() {{nameof(Data), text}};
+
+}
