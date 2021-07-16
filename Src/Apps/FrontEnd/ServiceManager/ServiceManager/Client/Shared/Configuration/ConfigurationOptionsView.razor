@@ -3,7 +3,7 @@
 
 @inject ConfigurationOptionsViewModel _model
 
-<MudExpansionPanels>
+<MudExpansionPanels Class="flex-grow-1 flex-shrink-0">
     <MudExpansionPanel Text="Akka" IsExpandedChanged="AkkaOpen">
         <MudButton OnClick="@(async () => await _model.ShowConfigFile(ConfigurationRestApi.ModuleName.Akka))">Standart Datei Anzeigen</MudButton>
         <OperationHost Manager="_akkaManager">

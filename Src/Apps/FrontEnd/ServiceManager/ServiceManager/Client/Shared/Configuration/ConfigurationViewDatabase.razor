@@ -15,12 +15,12 @@
             <MudButton ButtonType="ButtonType.Submit" OnClick="_model.Submit" Disabled="@(!_isValid)">Speichern</MudButton>
         </MudCardActions>
     </MudCard>
-    <div class="d-flex">
-        <MudText Class="d-flex justify-center" Style="max-width: 25%">
-            Warnung: Änderungen an der Konfiguration führt zu partiellem oder oder Komplettem neustart des Clusters.
+    <MudPaper Class="d-flex justify-center my-2">
+        <MudText Class="ma-2" Style="max-width: 50%">
+            Warnung: Änderungen an der Konfiguration führt zu partiellem oder komplettem neustart des Clusters.
             Fehler in der Konfiguration können zum ausfall des Clusters Führen.
         </MudText>
-    </div>
+    </MudPaper>
 </div>
 
 @code {

@@ -18,7 +18,7 @@ namespace ServiceManager.Client.ViewModels.Models
 
         protected HttpClient Client { get; }
         protected HubConnection HubConnection { get; }
-        public IEventAggregator Aggregator { get; }
+        protected IEventAggregator Aggregator { get; }
 
         private bool _isInit;
 
@@ -34,10 +34,6 @@ namespace ServiceManager.Client.ViewModels.Models
         {
             try
             {
-                Console.WriteLine($"OnPropertyChanged Init: {type} -- {property}");
-                setter(await query(Client));
-                Console.WriteLine($"OnPropertyChanged Init Compled: {type} -- {property}");
-
                 HubConnection.On<string, string>(HubEvents.PropertyChanged,
                     async (msgType, msgName) =>
                     {
@@ -52,15 +48,19 @@ namespace ServiceManager.Client.ViewModels.Models
                         }
                         catch (Exception e)
                         {
-                            Console.WriteLine(e);
-                            throw;
+                            Aggregator.PublishError(e);
+                            _isInit = false;
                         }
                     });
+
+                Console.WriteLine($"OnPropertyChanged Init: {type} -- {property}");
+                setter(await query(Client));
+                Console.WriteLine($"OnPropertyChanged Init Compled: {type} -- {property}");
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
-                throw;
+                Aggregator.PublishError(e);
+                _isInit = false;
             }
         }
 

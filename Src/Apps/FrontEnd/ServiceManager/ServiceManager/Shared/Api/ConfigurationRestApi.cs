@@ -2,11 +2,13 @@
 {
     public static class ConfigurationRestApi
     {
-        public const string BaseUrl = "api/configuration";
+        private const string BaseUrl = "api/configuration";
 
         public const string GetBaseConfig = BaseUrl + "/" + nameof(GetBaseConfig);
 
         public const string GetBaseConfigOptions = BaseUrl + "/" + nameof(GetBaseConfigOptions);
+
+        public const string GlobalConfig = BaseUrl + "/" + nameof(GlobalConfig);
 
         public static class ModuleName
         {

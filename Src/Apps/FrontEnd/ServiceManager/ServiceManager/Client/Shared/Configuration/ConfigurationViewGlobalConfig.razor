@@ -3,25 +3,30 @@
 
 @inject ConfigurationViewGlobalConfigModel _model
 
-<MudGrid Class="d-flex">
-    <MudItem Class="flex-row justify-center">
-        <MudText Color="Color.Info" Typo="Typo.h3">Globale Konfiguration</MudText>
-    </MudItem>
-    <MudItem Class="flex-row">
-        <MudTextFieldString @bind-Text="@_model.ConfigInfo"/>
-    </MudItem>
-    <MudItem Class="flex-row" Style="max-height: 50%">
-        <InputTextArea @bind-Value="@_model.ConfigContent"/>
-    </MudItem>
-    <MudItem Class="flex-row">
-        <MudButton OnClick="_model.UpdateConfig">Speichern</MudButton>
-    </MudItem>
-    <MudItem Class="flex-row">
-        <ConfigurationOptionsView OptionSelectedEvent="_model.UpdateContent"/>
-    </MudItem>
-</MudGrid>
+<div class="d-flex flex-row justify-center ma-1">
+    <MudText Typo="Typo.h3">Globale Konfiguration</MudText>
+</div>
+<div class="d-flex flex-row ma-1 align-start" style="height: 50px">
+    <MudText Class="d-inline-flex pa-8">Info:</MudText>
+    <MudTextFieldString Class="d-inline-flex flex-grow-1 flex-shrink-0" @bind-Value="@_model.ConfigInfo"/>
+</div>
+<div class="d-flex flex-row ma-1">
+    <EditForm Model="_model">
+        <InputTextArea class="ma-2 flex-grow-1 flex-shrink-0" style="height: 400px; width: 1000px" @bind-Value="@_model.ConfigContent" DisplayName="Konfigurations Text"/>
+    </EditForm>
+</div>
+<div class="d-flex flex-row ma-1">
+    <MudButton Class="d-inline-flex ma-1" OnClick="_model.Reset">Zurücksetzen</MudButton>
+    <MudButton Class="d-inline-flex ma-1" OnClick="@(() => _model.UpdateConfig(Manager))">Speichern</MudButton>
+</div>
+<div class="d-flex flex-row ma-1">
+    <ConfigurationOptionsView OptionSelectedEvent="_model.UpdateContent"/>
+</div>
 
 @code {
+
+    [CascadingParameter]
+    public IOperationManager Manager { get; set; } = OperationManager.Empty;
 
     protected override async Task OnInitializedAsync()
     {

@@ -12,6 +12,7 @@ using SharpRepository.MongoDbRepository;
 using SharpRepository.Repository.Configuration;
 using Tauron;
 using Tauron.Application.AkkaNode.Services.CleanUp;
+using Tauron.Application.AkkaNode.Services.Core;
 using Tauron.Application.AkkaNode.Services.FileTransfer;
 using Tauron.Application.Files.GridFS;
 using Tauron.Application.Files.VirtualFiles;
@@ -30,6 +31,8 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
     public interface IProcessServiceHost : IFeatureActorRef<IProcessServiceHost>
     {
         public Task<TryStartResponse> TryStart(string? databaseUrl);
+
+        public Task<string> ConfigAlive(ConfigurationApi api, ActorSystem system);
     }
 
     public sealed class ProcessServiceHostRef : FeatureActorRefBase<IProcessServiceHost>, IProcessServiceHost
@@ -40,6 +43,15 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
         }
 
         public Task<TryStartResponse> TryStart(string? databaseUrl) => Ask<TryStartResponse>(new TryStart(databaseUrl), TimeSpan.FromMinutes(1));
+
+        public async Task<string> ConfigAlive(ConfigurationApi api, ActorSystem system)
+        {
+            var startResponse = await TryStart(null);
+            if (!startResponse.IsRunning)
+                return startResponse.Message;
+            var isAlive = await api.QueryIsAlive(system, TimeSpan.FromSeconds(10));
+            return isAlive.IsAlive ? string.Empty : "Der Api Service ist nicht Verfügbar";
+        }
     }
 
     public sealed class ProcessServiceHostActor : ActorFeatureBase<ProcessServiceHostActor._>

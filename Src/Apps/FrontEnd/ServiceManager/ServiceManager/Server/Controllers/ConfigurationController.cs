@@ -2,11 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Akka.Configuration;
 using Akka.Configuration.Hocon;
 using Microsoft.AspNetCore.Mvc;
+using ServiceHost.Client.Shared.ConfigurationServer.Data;
 using ServiceManager.Server.Properties;
 using ServiceManager.Shared.Api;
+using ServiceManager.Shared.ServiceDeamon;
 
 namespace ServiceManager.Server.Controllers
 {
@@ -14,6 +17,29 @@ namespace ServiceManager.Server.Controllers
     [ApiController]
     public class ConfigurationController : ControllerBase
     {
+        private readonly IServerConfigurationApi _api;
+
+        public ConfigurationController(IServerConfigurationApi api) => _api = api;
+
+        [HttpGet]
+        [Route(nameof(ConfigurationRestApi.GlobalConfig))]
+        public async Task<ActionResult<GlobalConfig>> GetGlobalConfig()
+            => await _api.QueryConfig();
+
+        [HttpPut]
+        [Route(nameof(ConfigurationRestApi.GlobalConfig))]
+        public async Task<ActionResult<StringApiContent>> PostGlobalConfig([FromBody] GlobalConfig config)
+        {
+            try
+            {
+                return new StringApiContent(await _api.Update(config));
+            }
+            catch (Exception e)
+            {
+                return new StringApiContent(e.Message);
+            }
+        }
+
         [HttpGet]
         [Route(nameof(ConfigurationRestApi.GetBaseConfig))]
         public ActionResult<StringApiContent> GetBaseConfig(string name)

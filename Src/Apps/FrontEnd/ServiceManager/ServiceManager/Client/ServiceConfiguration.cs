@@ -23,6 +23,7 @@ namespace ServiceManager.Client
             collection.AddScoped<IDatabaseConfig, DatabaseConfig>();
             collection.AddScoped<IAppIpManager, AppIpManager>();
             collection.AddScoped<IServerInfo, Serverinfo>();
+            collection.AddScoped<IServerConfigurationApi, ConfigurationApiModel>();
 
             collection.AddSingleton<IEventAggregator, EventAggregator>();
         }
