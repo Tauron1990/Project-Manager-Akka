@@ -1,6 +1,9 @@
-﻿<MudDialog>
+﻿@using System.Web
+<MudDialog>
     <DialogContent>
-        <p style="white-space: pre-wrap">@Data</p>
+        <div style="overflow: scroll; height: 100vh;">
+            <p style="white-space: pre-wrap;">@Data</p>
+        </div>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Close">Schließen</MudButton>

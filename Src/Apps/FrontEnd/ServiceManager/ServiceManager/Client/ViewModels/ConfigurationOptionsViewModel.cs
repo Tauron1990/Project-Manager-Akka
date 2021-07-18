@@ -3,8 +3,10 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Akka.Util.Internal;
+using Microsoft.AspNetCore.SignalR.Client;
 using MudBlazor;
 using ServiceManager.Client.Components.Operations;
 using ServiceManager.Client.Shared.Dialog;
@@ -20,6 +22,7 @@ namespace ServiceManager.Client.ViewModels
         private readonly IEventAggregator _eventAggregator;
         private readonly HttpClient _client;
         private readonly IDialogService _dialogService;
+        private readonly HubConnection _connection;
         private readonly ConcurrentDictionary<string, OptionElement> _elements = new();
 
         public OptionElement Akka => _elements.GetOrElse(ConfigurationRestApi.ModuleName.Akka, DefaultElement);
@@ -32,15 +35,17 @@ namespace ServiceManager.Client.ViewModels
 
         public OptionElement AkkaStreams => _elements.GetOrElse(ConfigurationRestApi.ModuleName.AkkaStreams, DefaultElement);
 
-        public ConfigurationOptionsViewModel(IEventAggregator eventAggregator, HttpClient client, IDialogService dialogService)
+        public ConfigurationOptionsViewModel(IEventAggregator eventAggregator, HttpClient client, IDialogService dialogService, HubConnection connection)
         {
             _eventAggregator = eventAggregator;
             _client = client;
             _dialogService = dialogService;
+            _connection = connection;
         }
 
         public async Task LoadAsyncFor(string name, IOperationManager manager)
         {
+            OnPropertyChangedExplicit("All");
             try
             {
                 if (_elements.TryGetValue(name, out var element) && !element.Error)
@@ -48,7 +53,8 @@ namespace ServiceManager.Client.ViewModels
 
                 using (manager.Start())
                 {
-                    var response = await _client.GetFromJsonAsync<ConfigOptionList>(ConfigurationRestApi.GetBaseConfigOptions + "/" + name);
+                    var response = await _connection.InvokeAsync<ConfigOptionList>(nameof(ConfigurationRestApi.GetConfigFileOptions), name);
+
                     if (response == null)
                     {
                         _elements[name] = new OptionElement(true, "Fehler beim Laden der Daten", Array.Empty<MutableConfigOption>());
@@ -73,7 +79,7 @@ namespace ServiceManager.Client.ViewModels
         {
             try
             {
-                var result = await _client.GetFromJsonAsync<StringApiContent>(ConfigurationRestApi.GetBaseConfig + "/" + name);
+                var result = await _client.GetFromJsonAsync<StringApiContent>(ConfigurationRestApi.GetConfigFile + "/" + name);
                 if(result == null)
                     _eventAggregator.PublishError($"Unbkannter Fehler beim abrufen der Datei {name}");
                 else

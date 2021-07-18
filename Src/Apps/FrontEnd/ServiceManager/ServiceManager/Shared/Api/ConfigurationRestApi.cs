@@ -4,11 +4,15 @@
     {
         private const string BaseUrl = "api/configuration";
 
-        public const string GetBaseConfig = BaseUrl + "/" + nameof(GetBaseConfig);
+        public const string GetConfigFile = BaseUrl + "/" + nameof(GetConfigFile);
 
-        public const string GetBaseConfigOptions = BaseUrl + "/" + nameof(GetBaseConfigOptions);
+        public const string GetConfigFileOptions = BaseUrl + "/" + nameof(GetConfigFileOptions);
 
         public const string GlobalConfig = BaseUrl + "/" + nameof(GlobalConfig);
+
+        public const string GetBaseConfig = BaseUrl + "/" + nameof(GetBaseConfig);
+
+        public const string ServerConfiguration = BaseUrl + "/" + nameof(ServerConfiguration);
 
         public static class ModuleName
         {

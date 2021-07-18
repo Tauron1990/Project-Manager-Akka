@@ -7,8 +7,16 @@ namespace ServiceManager.Shared.ServiceDeamon
     {
         GlobalConfig GlobalConfig { get; set; }
 
+        ServerConfigugration ServerConfigugration { get; set; }
+
         Task<GlobalConfig> QueryConfig();
 
+        Task<ServerConfigugration> QueryServerConfig();
+
         Task<string> Update(GlobalConfig config);
+
+        Task<string> QueryBaseConfig();
+
+        Task<string> Update(ServerConfigugration serverConfigugration);
     }
 }

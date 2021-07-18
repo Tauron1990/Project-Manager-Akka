@@ -16,7 +16,6 @@ using ServiceManager.Shared.Api;
 using Tauron.Application.AkkaNode.Bootstrap;
 using Tauron.Application.AkkaNode.Bootstrap.Console;
 using Tauron.Application.Master.Commands.KillSwitch;
-using Tauron.Application.Master.Commands.ServiceRegistry;
 using Tauron.Host;
 
 namespace ServiceManager.Server

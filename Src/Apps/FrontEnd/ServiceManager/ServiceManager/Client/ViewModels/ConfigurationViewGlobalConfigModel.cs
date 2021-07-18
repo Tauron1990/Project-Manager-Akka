@@ -8,6 +8,7 @@ using ServiceManager.Client.Components.Operations;
 using ServiceManager.Client.Shared.Configuration;
 using ServiceManager.Shared.ServiceDeamon;
 using Tauron.Application;
+using Tauron.Application.Master.Commands.Administration.Configuration;
 
 namespace ServiceManager.Client.ViewModels
 {
@@ -15,6 +16,7 @@ namespace ServiceManager.Client.ViewModels
     {
         private readonly IServerConfigurationApi _api;
         private readonly IEventAggregator _aggregator;
+        private readonly IDatabaseConfig _databaseConfig;
         private readonly IDisposable _subscription;
 
         private string _configInfo = string.Empty;
@@ -32,10 +34,11 @@ namespace ServiceManager.Client.ViewModels
             set => SetProperty(ref _configContent, value);
         }
 
-        public ConfigurationViewGlobalConfigModel(IServerConfigurationApi api, IEventAggregator aggregator)
+        public ConfigurationViewGlobalConfigModel(IServerConfigurationApi api, IEventAggregator aggregator, IDatabaseConfig databaseConfig)
         {
             _api = api;
             _aggregator = aggregator;
+            _databaseConfig = databaseConfig;
 
             _subscription = api.PropertyChangedObservable.Where(s => s == nameof(api.GlobalConfig)).Select(_ => api.GlobalConfig)
                                .Subscribe(gc =>
@@ -50,6 +53,15 @@ namespace ServiceManager.Client.ViewModels
         }
 
         public Task Init() => PropertyChangedComponent.Init(_api);
+
+        public async Task GenerateDefaultConfig()
+        {
+            if(!_databaseConfig.IsReady) return;
+
+            var result = AkkaConfigurationBuilder.ApplyMongoUrl(ConfigContent, await _api.QueryBaseConfig(), _databaseConfig.Url);
+            ConfigContent = result;
+            ConfigInfo = "Generierte Konfiguration";
+        }
 
         public void UpdateContent(OptionSelected optionSelected)
         {

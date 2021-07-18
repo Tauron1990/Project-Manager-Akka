@@ -14,6 +14,7 @@ namespace ServiceManager.Client.ViewModels.Models
         public const string NoDataLabel = "Keine Daten";
 
         public GlobalConfig GlobalConfig { get; set; } = new(string.Empty, NoDataLabel);
+        public ServerConfigugration ServerConfigugration { get; set; } = new(false, false, string.Empty);
 
         public ConfigurationApiModel(HttpClient client, HubConnection hubConnection, IEventAggregator aggregator) 
             : base(client, hubConnection, aggregator)
@@ -23,24 +24,35 @@ namespace ServiceManager.Client.ViewModels.Models
 
         public Task<GlobalConfig> QueryConfig() => Task.FromResult(GlobalConfig);
 
-        public async Task<string> Update(GlobalConfig config)
-        {
-            var response = await Client.PostAsJsonAsync(ConfigurationRestApi.GlobalConfig, config);
-            response.EnsureSuccessStatusCode();
-            var result = await response.Content.ReadFromJsonAsync<StringApiContent>();
+        public Task<ServerConfigugration> QueryServerConfig() => Task.FromResult(ServerConfigugration);
 
-            return result == null
-                ? "Unbekannter Fehler beim Update"
-                : result.Content;
+        public async Task<string> Update(GlobalConfig config) 
+            => await Client.PostJsonDefaultError(ConfigurationRestApi.GlobalConfig, config);
+
+        public async Task<string> QueryBaseConfig()
+        {
+            var result = await Client.GetFromJsonAsync<StringApiContent>(ConfigurationRestApi.GetBaseConfig);
+            return result == null ? string.Empty : result.Content;
         }
+
+        public Task<string> Update(ServerConfigugration serverConfigugration)
+            => Client.PostJsonDefaultError(ConfigurationRestApi.ServerConfiguration, serverConfigugration);
 
         public override async Task Init()
         {
             await Init(c => c.ForInterface<IServerConfigurationApi>(
-                           ic => ic.OnPropertyChanged(
-                               sca => sca.GlobalConfig,
-                               d => GlobalConfig = d ?? new GlobalConfig(string.Empty, NoDataLabel),
-                               c => c.GetFromJsonAsync<GlobalConfig>(ConfigurationRestApi.GlobalConfig))));
+                           ic =>
+                           {
+                               ic.OnPropertyChanged(
+                                   sca => sca.GlobalConfig,
+                                   d => GlobalConfig = d ?? new GlobalConfig(string.Empty, NoDataLabel),
+                                   client => client.GetFromJsonAsync<GlobalConfig>(ConfigurationRestApi.GlobalConfig));
+
+                               ic.OnPropertyChanged(
+                                   sca => sca.ServerConfigugration,
+                                   d => ServerConfigugration = d ?? new(false, false, string.Empty),
+                                   client => client.GetFromJsonAsync<ServerConfigugration>(ConfigurationRestApi.ServerConfiguration));
+                           }));
         }
     }
 }

@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Akka.Configuration;
-using Akka.Configuration.Hocon;
 using Microsoft.AspNetCore.Mvc;
+using NLog;
 using ServiceHost.Client.Shared.ConfigurationServer.Data;
 using ServiceManager.Server.Properties;
 using ServiceManager.Shared.Api;
@@ -17,6 +13,7 @@ namespace ServiceManager.Server.Controllers
     [ApiController]
     public class ConfigurationController : ControllerBase
     {
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         private readonly IServerConfigurationApi _api;
 
         public ConfigurationController(IServerConfigurationApi api) => _api = api;
@@ -26,7 +23,7 @@ namespace ServiceManager.Server.Controllers
         public async Task<ActionResult<GlobalConfig>> GetGlobalConfig()
             => await _api.QueryConfig();
 
-        [HttpPut]
+        [HttpPost]
         [Route(nameof(ConfigurationRestApi.GlobalConfig))]
         public async Task<ActionResult<StringApiContent>> PostGlobalConfig([FromBody] GlobalConfig config)
         {
@@ -36,13 +33,14 @@ namespace ServiceManager.Server.Controllers
             }
             catch (Exception e)
             {
+                Log.Warn(e, "Error on Update Global Config");
                 return new StringApiContent(e.Message);
             }
         }
 
         [HttpGet]
-        [Route(nameof(ConfigurationRestApi.GetBaseConfig))]
-        public ActionResult<StringApiContent> GetBaseConfig(string name)
+        [Route(nameof(ConfigurationRestApi.GetConfigFile) + "/{name}")]
+        public ActionResult<StringApiContent> GetConfigFile(string name)
         {
             var value = GetConfigData(name);
 
@@ -52,56 +50,31 @@ namespace ServiceManager.Server.Controllers
         }
 
         [HttpGet]
-        [Route(nameof(ConfigurationRestApi.GetBaseConfigOptions))]
-        public ActionResult<ConfigOptionList> GetBaseConfigOptions(string name)
+        [Route(nameof(ConfigurationRestApi.GetBaseConfig))]
+        public async Task<ActionResult<StringApiContent>> GetBaseConfig() 
+            => new StringApiContent(await _api.QueryBaseConfig());
+
+        [HttpGet]
+        [Route(nameof(ConfigurationRestApi.ServerConfiguration))]
+        public Task<ServerConfigugration> GetServerConfiguration()
+            => _api.QueryServerConfig();
+
+        [HttpPost]
+        [Route(nameof(ConfigurationRestApi.ServerConfiguration))]
+        public async Task<StringApiContent> SetServerConfiguration([FromBody]ServerConfigugration serverConfigugration)
         {
             try
             {
-                var value = GetConfigData(name);
-
-                if (string.IsNullOrWhiteSpace(value)) return NotFound();
-
-                var hoconObject = ConfigurationFactory.ParseString(value).Root.GetObject();
-
-                return new ConfigOptionList(Extract(hoconObject).Select(s => new ConfigOption(s.Path, s.DefaultValue)).ToArray());
+                var result = await _api.Update(serverConfigugration);
+                return new StringApiContent(result);
             }
             catch (Exception e)
             {
-                return Problem(e.Message);
+                Log.Warn(e, "Error on Update Server Configuration");
+                return new StringApiContent(e.Message);
             }
-
-
-            static IEnumerable<(string Path, string DefaultValue)> Extract(HoconObject config)
-            {
-                foreach (var (key, hoconValue) in config.Items.Where(hv => !hv.Value.IsEmpty))
-                {
-                    var ele = key;
-                    if (hoconValue.IsString())
-                        yield return (ele, hoconValue.GetString() ?? string.Empty);
-
-                    else if (hoconValue.IsArray())
-                        yield return (ele, AggregateString(
-                            hoconValue.GetArray(),
-                            (builder, value) => builder.Length == 0
-                                ? builder.Append("[ ").Append(value.GetString())
-                                : builder.Append(", ").Append(value.GetString())) + " ]");
-
-                    else if (hoconValue.IsObject())
-                    {
-                        foreach (var result in Extract(hoconValue.GetObject()).Select(s => (ele + "." + s.Path, s.DefaultValue)))
-                            yield return result;
-                    }
-
-                    else
-                        yield return (ele, hoconValue.ToString());
-
-                }
-            }
-
-            static string AggregateString<TType>(IEnumerable<TType> enumerable, Func<StringBuilder, TType, StringBuilder> aggregator)
-                => enumerable.Aggregate(new StringBuilder(), aggregator).ToString();
         }
 
-        private static string? GetConfigData(string name) => string.IsNullOrWhiteSpace(name) ? null : Resources.ResourceManager.GetString(name);
+        public static string? GetConfigData(string name) => string.IsNullOrWhiteSpace(name) ? null : Resources.ResourceManager.GetString(name);
     }
 }

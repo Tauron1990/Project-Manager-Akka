@@ -27,6 +27,8 @@ namespace ServiceManager.Client.Components
                 await model.Init();
         }
 
-        private void OnPropertyChanged(object? sender, EventArgs e) => InvokeAsync(StateHasChanged);
+        private void OnPropertyChanged(object? sender, EventArgs e)
+            => StateHasChanged();
+        //=> InvokeAsync(StateHasChanged);
     }
 }

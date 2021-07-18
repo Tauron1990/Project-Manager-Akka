@@ -1,5 +1,9 @@
 ﻿using System;
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Threading.Tasks;
 using ServiceManager.Client.ViewModels.Models;
+using ServiceManager.Shared.Api;
 using Tauron.Application;
 
 namespace ServiceManager.Client
@@ -29,5 +33,23 @@ namespace ServiceManager.Client
 
         public static IObservable<SnackbarMessage> ConsumeMessages(this IEventAggregator aggregator)
             => aggregator.GetEvent<SharedEvent<SnackbarMessage>, SnackbarMessage>().Get();
+
+        public static async Task<TResult?> PostJson<TData, TResult>(this HttpClient client, string url, TData data)
+        {
+            var response = await client.PostAsJsonAsync(url, data);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<TResult>();
+        }
+
+        public static async Task<string> PostJsonDefaultError<TData>(this HttpClient client, string url, TData data)
+        {
+            var response = await client.PostAsJsonAsync(url, data);
+            response.EnsureSuccessStatusCode();
+            var result = await response.Content.ReadFromJsonAsync<StringApiContent>();
+
+            return result == null
+                ? "Unbekannter Fehler beim Update"
+                : result.Content;
+        }
     }
 }

@@ -22,15 +22,22 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
         private readonly IPropertyChangedNotifer _notifer;
         private readonly IProcessServiceHost _processService;
         private readonly IDisposable _subscriptions;
-        private readonly object _lock = new();
 
-        private bool _isInitialized;
+        private bool _isGlobalInitialized;
         private GlobalConfig _globalConfig = new(string.Empty, string.Empty);
+        private bool _isServiceConfigInitialized;
+        private ServerConfigugration _serverConfigugration = new(false, false, string.Empty);
 
         public GlobalConfig GlobalConfig
         {
             get => _globalConfig;
             set => SetProperty(ref _globalConfig, value, () => _notifer.SendPropertyChanged<IServerConfigurationApi>(nameof(GlobalConfig)));
+        }
+
+        public ServerConfigugration ServerConfigugration
+        {
+            get => _serverConfigugration;
+            set => SetProperty(ref _serverConfigugration, value, () => _notifer.SendPropertyChanged<IServerConfigurationApi>(nameof(ServerConfigugration)));
         }
 
         public ServerConfigurationApi(ConfigurationApi api, ActorSystem system, ConfigEventDispatcher dispatcher, IPropertyChangedNotifer notifer, IProcessServiceHost processService)
@@ -44,27 +51,27 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
                           .OfType<GlobalConfigEvent>()
                           .Subscribe(gce =>
                                      {
-                                         lock (_lock)
-                                             GlobalConfig = gce.Action == ConfigDataAction.Delete
-                                                 ? new GlobalConfig(string.Empty, string.Empty)
-                                                 : gce.Config;
-                                     }));
+                                         GlobalConfig = gce.Action == ConfigDataAction.Delete
+                                             ? new GlobalConfig(string.Empty, string.Empty)
+                                             : gce.Config;
+                                     }),
+                dispatcher.Get()
+                          .OfType<ServerConfigurationEvent>()
+                          .Subscribe(gce => ServerConfigugration = gce.Configugration));
         }
 
         public async Task<GlobalConfig> QueryConfig()
         {
-            if (_isInitialized)
+            if (_isGlobalInitialized)
                 return GlobalConfig;
 
             try
             {
-                var resonse = await _processService.ConfigAlive(_api, _system);
-                if (!string.IsNullOrWhiteSpace(resonse))
-                    throw new InvalidOperationException(resonse);
+                await EnsureConfigAlive();
 
                 GlobalConfig = await _api.Query<QueryGlobalConfig, GlobalConfig>(TimeSpan.FromSeconds(10));
 
-                _isInitialized = true;
+                _isGlobalInitialized = true;
                 return GlobalConfig;
             }
             catch (Exception e)
@@ -76,6 +83,34 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
             }
         }
 
+        public async Task<ServerConfigugration> QueryServerConfig()
+        {
+            if (_isServiceConfigInitialized)
+                return ServerConfigugration;
+
+            try
+            {
+                await EnsureConfigAlive();
+
+                ServerConfigugration = await _api.Query<QueryServerConfiguration, ServerConfigugration>(TimeSpan.FromSeconds(10));
+
+                _isServiceConfigInitialized = true;
+                return ServerConfigugration;
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Error on Query ServerConfiguration");
+                throw;
+            }
+        }
+
+        private async Task EnsureConfigAlive()
+        {
+            var resonse = await _processService.ConfigAlive(_api, _system);
+            if (!string.IsNullOrWhiteSpace(resonse))
+                throw new InvalidOperationException(resonse);
+        }
+
         public async Task<string> Update(GlobalConfig config)
         {
             if (config == GlobalConfig)
@@ -85,9 +120,29 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
             if (!string.IsNullOrWhiteSpace(resonse))
                 return "Der Service wurde nicht gestartet";
 
-            await _api.Command(new UpdateGlobalConfigCommand(ConfigDataAction.Update, config), TimeSpan.FromSeconds(20));
+            bool needUpdate;
+
+            try
+            {
+                await _api.Query<QueryGlobalConfig, GlobalConfig>(TimeSpan.FromSeconds(10));
+                needUpdate = true;
+            }
+            catch (Exception e)
+            {
+                if (e.Message == ConfigError.NoGlobalConfigFound)
+                    needUpdate = false;
+                else
+                    throw;
+            }
+            
+            await _api.Command(new UpdateGlobalConfigCommand(needUpdate ? ConfigDataAction.Update : ConfigDataAction.Create, config), TimeSpan.FromSeconds(20));
             return string.Empty;
         }
+
+        public Task<string> QueryBaseConfig()
+            => Task.FromResult(Properties.Resources.BaseConfig);
+
+        public Task<string> Update(ServerConfigugration serverConfigugration) => throw new NotImplementedException();
 
         public void Dispose() => _subscriptions.Dispose();
     }

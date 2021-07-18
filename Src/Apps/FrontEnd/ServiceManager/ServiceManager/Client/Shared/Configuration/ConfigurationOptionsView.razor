@@ -55,31 +55,31 @@
     private async Task OptionSelectCallback(OptionSelected data)
         => await OptionSelectedEvent.InvokeAsync(data);
 
-    private async Task AkkaOpen(bool open)
+    private async void AkkaOpen(bool open)
     {
         if (open)
             await _model.LoadAsyncFor(ConfigurationRestApi.ModuleName.Akka, _akkaManager);
     }
 
-    private async Task RemoteOpen(bool open)
+    private async void RemoteOpen(bool open)
     {
         if (open)
             await _model.LoadAsyncFor(ConfigurationRestApi.ModuleName.AkkaRemote, _remoteManager);
     }
 
-    private async Task ClusterOpen(bool open)
+    private async void ClusterOpen(bool open)
     {
         if (open)
             await _model.LoadAsyncFor(ConfigurationRestApi.ModuleName.AkkaCluster, _clusterManager);
     }
 
-    private async Task PersistenceOpen(bool open)
+    private async void PersistenceOpen(bool open)
     {
         if (open)
             await _model.LoadAsyncFor(ConfigurationRestApi.ModuleName.AkkaPersistence, _persistenceManager);
     }
 
-    private async Task StreamsOpen(bool open)
+    private async void StreamsOpen(bool open)
     {
         if (open)
             await _model.LoadAsyncFor(ConfigurationRestApi.ModuleName.AkkaStreams, _streamsManager);
