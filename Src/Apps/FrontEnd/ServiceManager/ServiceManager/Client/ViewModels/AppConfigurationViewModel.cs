@@ -14,6 +14,8 @@ namespace ServiceManager.Client.ViewModels
             _api = api;
         }
 
+
+
         public Task Init() => PropertyChangedComponent.Init(_api);
     }
 }

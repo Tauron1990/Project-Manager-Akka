@@ -50,7 +50,7 @@ namespace ServiceManager.Client.ViewModels.Models
 
                                ic.OnPropertyChanged(
                                    sca => sca.ServerConfigugration,
-                                   d => ServerConfigugration = d ?? new(false, false, string.Empty),
+                                   d => ServerConfigugration = d ?? new ServerConfigugration(false, false, string.Empty),
                                    client => client.GetFromJsonAsync<ServerConfigugration>(ConfigurationRestApi.ServerConfiguration));
                            }));
         }
