@@ -1,6 +1,10 @@
 ﻿@using ServiceManager.Client.Shared.Configuration
+@using ServiceManager.Shared.ServiceDeamon
 
 @page "/AppConfiguration"
+
+@inject IServerConfigurationApi _api
+@inject AppConfigurationViewModel _viewModel
 
 <Title Value="App Konfiguration"></Title>
 
@@ -25,5 +29,9 @@
 </OperationHost>
 
 @code {
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+    }
 
 }

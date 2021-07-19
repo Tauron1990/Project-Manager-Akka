@@ -18,6 +18,7 @@ namespace ServiceManager.Client
 
             collection.AddTransient<ConfigurationOptionsViewModel>();
             collection.AddTransient<ConfigurationViewGlobalConfigModel>();
+            collection.AddTransient<AppConfigurationViewModel>();
 
             collection.AddScoped<IClusterConnectionTracker, ClusterConnectionTracker>();
             collection.AddScoped<IDatabaseConfig, DatabaseConfig>();
