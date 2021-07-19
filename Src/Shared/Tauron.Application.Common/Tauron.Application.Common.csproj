@@ -13,6 +13,22 @@
   <ItemGroup>
     <Compile Remove="ActorFlowBuilder - Backup.cs" />
     <Compile Remove="Async.cs" />
+    <Compile Remove="Host\ActorApplication.cs" />
+    <Compile Remove="Host\ActorHostEnviroment.cs" />
+    <Compile Remove="Host\ActorHostExtensions.cs" />
+    <Compile Remove="Host\ApplicationLifetime.cs" />
+    <Compile Remove="Host\CommonLifetime.cs" />
+    <Compile Remove="Host\Environments.cs" />
+    <Compile Remove="Host\Extensions.cs" />
+    <Compile Remove="Host\HostBuilderContext.cs" />
+    <Compile Remove="Host\HostDefaults.cs" />
+    <Compile Remove="Host\HostEnvironmentEnvExtensions.cs" />
+    <Compile Remove="Host\IActorApplicationLifetime.cs" />
+    <Compile Remove="Host\IActorHostEnvironment.cs" />
+    <Compile Remove="Host\IApplicationLifetime.cs" />
+    <Compile Remove="Host\IAppRoute.cs" />
+    <Compile Remove="Host\IHostLifetime.cs" />
+    <Compile Remove="Host\StartupBase.cs" />
     <Compile Remove="ObservableExt\Branch.cs" />
     <Compile Remove="SecurityHelper.cs" />
     <Compile Remove="SerializationExtensions.cs" />
@@ -30,7 +46,6 @@
 
   <ItemGroup>
     <PackageReference Include="Akka.DependencyInjection" Version="1.4.21" />
-    <PackageReference Include="Akka.Logger.NLog" Version="1.4.10" />
     <PackageReference Include="Autofac" Version="6.2.0" />
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="7.1.0" />
     <PackageReference Include="FastExpressionCompiler" Version="3.2.0" />
@@ -40,7 +55,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />
-    <PackageReference Include="NLog" Version="4.7.10" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
     <PackageReference Include="System.Reactive" Version="5.0.0" />
   </ItemGroup>
 

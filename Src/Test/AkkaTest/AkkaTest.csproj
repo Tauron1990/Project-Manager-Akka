@@ -7,6 +7,24 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="InMemoryStorage\PersistentInMemorxConfigRepositoryFactory.cs" />
+    <Compile Remove="JsonRepo\JsonConfigRepositoryFactory.cs" />
+    <Compile Remove="JsonRepo\JsonDbFileStore.cs" />
+    <Compile Remove="JsonRepo\JsonRepository.cs" />
+    <Compile Remove="JsonRepo\JsonRepositoryBase.cs" />
+    <Compile Remove="JsonRepo\JsonRepositoryConfiguration.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="InMemoryStorage\PersistentInMemorxConfigRepositoryFactory.cs" />
+    <None Include="JsonRepo\JsonConfigRepositoryFactory.cs" />
+    <None Include="JsonRepo\JsonDbFileStore.cs" />
+    <None Include="JsonRepo\JsonRepository.cs" />
+    <None Include="JsonRepo\JsonRepositoryBase.cs" />
+    <None Include="JsonRepo\JsonRepositoryConfiguration.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Akka.DependencyInjection" Version="1.4.21" />
     <PackageReference Include="Akka.Remote" Version="1.4.21" />
     <PackageReference Include="Akka.Streams" Version="1.4.21" />
@@ -14,7 +32,8 @@
     <PackageReference Include="AutoMapper" Version="10.1.1" />
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="8.1.1" />
     <PackageReference Include="Castle.Core" Version="4.4.1" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
     <PackageReference Include="NLog" Version="4.7.10" />
     <PackageReference Include="SharpRepository.InMemoryRepository" Version="2.0.3.1" />
     <PackageReference Include="SharpRepository.MongoDbRepository" Version="2.1.1" />
@@ -22,24 +41,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Apps\Backend\DeploymentServer\ServiceManager.ProjectDeployment\ServiceManager.ProjectDeployment.csproj" />
-    <ProjectReference Include="..\..\Apps\Backend\RepositoryServer\ServiceManager.ProjectRepository\ServiceManager.ProjectRepository.csproj" />
-    <ProjectReference Include="..\..\Apps\Mini\TimeTracker\TimeTracker.csproj" />
-    <ProjectReference Include="..\..\Apps\Shared\Servicemnager.Networking\Servicemnager.Networking.csproj" />
-    <ProjectReference Include="..\..\Apps\Shared\Tauron.Application.AkkaNode.Boottrap\Tauron.Application.AkkaNode.Boottrap.csproj" />
-    <ProjectReference Include="..\..\Apps\Shared\Tauron.Application.AkkNode.Services\Tauron.Application.AkkNode.Services.csproj" />
-    <ProjectReference Include="..\..\Shared\Tauron.Application.Common\Tauron.Application.Common.csproj" />
-    <ProjectReference Include="..\..\Shared\Tauron.Application.Files.GridFS\Tauron.Application.Files.GridFS.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Update="Program.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Feriertage\" />
   </ItemGroup>
 
   <ItemGroup>

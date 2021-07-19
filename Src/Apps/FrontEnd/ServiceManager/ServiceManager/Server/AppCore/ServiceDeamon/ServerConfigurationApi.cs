@@ -142,7 +142,10 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
         public Task<string> QueryBaseConfig()
             => Task.FromResult(Properties.Resources.BaseConfig);
 
-        public Task<string> Update(ServerConfigugration serverConfigugration) => throw new NotImplementedException();
+        public Task<string> Update(ServerConfigugration serverConfigugration)
+        {
+
+        }
 
         public void Dispose() => _subscriptions.Dispose();
     }
