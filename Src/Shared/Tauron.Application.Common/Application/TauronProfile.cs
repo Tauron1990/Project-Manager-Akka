@@ -5,7 +5,8 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Akka.Util;
 using JetBrains.Annotations;
-using NLog;
+using Microsoft.Extensions.Logging;
+using Tauron.Host;
 
 namespace Tauron.Application
 {
@@ -15,7 +16,7 @@ namespace Tauron.Application
         private static readonly char[] ContentSplitter = {'='};
 
         private readonly string _defaultPath;
-        private readonly ILogger _logger = LogManager.GetCurrentClassLogger();
+        private readonly ILogger<TauronProfile> _logger = ActorApplication.GetLogger<TauronProfile>();
 
         private readonly Dictionary<string, string> _settings = new();
 
@@ -57,7 +58,7 @@ namespace Tauron.Application
         {
             _settings.Clear();
 
-            _logger.Info($"{Application} -- Delete Profile infos... {Dictionary.GetOrElse(string.Empty).PathShorten(20)}");
+            _logger.LogInformation($"{Application} -- Delete Profile infos... {Dictionary.GetOrElse(string.Empty).PathShorten(20)}");
 
             Dictionary.OnSuccess(s => s.DeleteDirectory());
         }
@@ -72,14 +73,14 @@ namespace Tauron.Application
             Dictionary.OnSuccess(s => s.CreateDirectoryIfNotExis());
             FilePath = Dictionary.Select(s => s.CombinePath("Settings.db"));
 
-            _logger.Info($"{Application} -- Begin Load Profile infos... {FilePath.GetOrElse(string.Empty).PathShorten(20)}");
+            _logger.LogInformation($"{Application} -- Begin Load Profile infos... {FilePath.GetOrElse(string.Empty).PathShorten(20)}");
 
             _settings.Clear();
             foreach (var vals in FilePath.Value.EnumerateTextLinesIfExis()
                                          .Select(line => line.Split(ContentSplitter, 2))
                                          .Where(vals => vals.Length == 2))
             {
-                _logger.Info("key: {0} | Value {1}", vals[0], vals[1]);
+                _logger.LogInformation("key: {0} | Value {1}", vals[0], vals[1]);
 
                 _settings[vals[0]] = vals[1];
             }
@@ -87,7 +88,7 @@ namespace Tauron.Application
 
         public virtual void Save()
         {
-            _logger.Info($"{Application} -- Begin Save Profile infos...");
+            _logger.LogInformation($"{Application} -- Begin Save Profile infos...");
 
             try
             {
@@ -101,12 +102,12 @@ namespace Tauron.Application
                 {
                     writer.WriteLine("{0}={1}", key, value);
 
-                    _logger.Info("key: {0} | Value {1}", key, value);
+                    _logger.LogInformation("key: {0} | Value {1}", key, value);
                 }
             }
             catch (Exception e)
             {
-                _logger.Error(e, "Error on Profile Save");
+                _logger.LogError(e, "Error on Profile Save");
             }
         }
 

@@ -4,13 +4,14 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Text;
 using Akka.Configuration;
-using NLog;
+using Microsoft.Extensions.Logging;
+using Tauron.Host;
 
 namespace Tauron.Application.Master.Commands.Administration.Configuration
 {
     public static class AkkaConfigurationBuilder
     {
-        private static ILogger Log = LogManager.GetCurrentClassLogger();
+        private readonly static ILogger Log = ActorApplication.GetLogger(typeof(AkkaConfigurationBuilder));
 
         public const string Base = "base.conf";
         public const string Main = "akka.conf";
@@ -27,7 +28,7 @@ namespace Tauron.Application.Master.Commands.Administration.Configuration
 
         public static string ApplyMongoUrl(string dat, string baseConfig, string url)
         {
-            Log.Info("Update AppBase Configuration");
+            Log.LogInformation("Update AppBase Configuration");
 
             const string snapshot = "akka.persistence.snapshot-store.plugin = \"akka.persistence.snapshot-store.mongodb\"";
             const string journal = "akka.persistence.journal.plugin = \"akka.persistence.journal.mongodb\"";
@@ -42,7 +43,7 @@ namespace Tauron.Application.Master.Commands.Administration.Configuration
 
             if (!hasBase)
             {
-                Log.Info("Apply Default Configuration");
+                Log.LogInformation("Apply Default Configuration");
                 currentConfiguration = ConfigurationFactory.ParseString(baseConfig).WithFallback(currentConfiguration);
             }
 
@@ -56,7 +57,7 @@ namespace Tauron.Application.Master.Commands.Administration.Configuration
 
             currentConfiguration = ConfigurationFactory.ParseString(builder.ToString()).WithFallback(currentConfiguration);
 
-            Log.Info("AppBase Configuration Updated");
+            Log.LogInformation("AppBase Configuration Updated");
 
             return currentConfiguration.ToString(true);
         }

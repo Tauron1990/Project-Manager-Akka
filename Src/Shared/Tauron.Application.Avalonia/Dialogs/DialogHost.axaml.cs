@@ -1,10 +1,10 @@
-﻿using Autofac;
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Markup.Xaml;
 using JetBrains.Annotations;
+using Microsoft.Extensions.DependencyInjection;
 using Tauron.Application.CommonUI.Dialogs;
 using Tauron.Host;
 
@@ -23,8 +23,7 @@ namespace Tauron.Application.Avalonia.Dialogs
         {
             InitializeComponent();
 
-            var coordinator =
-                (IDialogCoordinatorUIEvents) ActorApplication.Application.Container.Resolve<IDialogCoordinator>();
+            var coordinator = (IDialogCoordinatorUIEvents) ActorApplication.ServiceProvider.GetRequiredService<IDialogCoordinator>();
 
             coordinator.HideDialogEvent += () =>
             {

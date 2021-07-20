@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http.Headers;
 using Akka.Actor;
 using Akka.Actor.Setup;
 using Akka.Configuration;
@@ -12,6 +11,7 @@ using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Tauron.Host
 {
@@ -70,7 +70,7 @@ namespace Tauron.Host
                 return this;
             }
 
-            public IActorApplicationBuilder ConfigurateAkkaSystem(Action<HostBuilderContext, ActorSystem> system)
+            public IActorApplicationBuilder ConfigureAkkaSystem(Action<HostBuilderContext, ActorSystem> system)
             {
                 _systemConfig.Add(system);
                 return this;
@@ -106,7 +106,22 @@ namespace Tauron.Host
                 var setup = _akkaSetup.Aggregate(
                     ActorSystemSetup.Create(DependencyResolverSetup.Create(provider)),
                     (systemSetup, func) => systemSetup.And(func(_context)));
-                var system = ActorSystem.Create()
+                var system = ActorSystem.Create(GetActorSystemName(provider.GetRequiredService<IConfiguration>()), setup.WithSetup(BootstrapSetup.Create().WithConfig(config)));
+                system.RegisterExtension(new DependencyResolverExtension());
+                _holder.System = system;
+
+                foreach (var action in _systemConfig) 
+                    action(_context, system);
+
+                return system;
+            }
+
+            private string GetActorSystemName(IConfiguration config)
+            {
+                var name = config["actorsystem"];
+                return !string.IsNullOrWhiteSpace(name)
+                    ? name
+                    : _context.HostingEnvironment.ApplicationName.Replace('.', '-');
             }
 
             internal void Populate(IServiceCollection collection)
@@ -134,12 +149,22 @@ namespace Tauron.Host
 
                 var prov = _actorBuilder.CreateServiceProvider();
 
+                var system = _actorBuilder.CreateSystem(prov);
+                var lifetime = prov.GetRequiredService<IHostApplicationLifetime>();
+
+                ActorApplication.ActorSystem = system;
+                ActorApplication.LoggerFactory = prov.GetRequiredService<ILoggerFactory>();
+                ActorApplication.ServiceProvider = prov;
+
+                lifetime.ApplicationStopping.Register(() => system.Terminate());
+                system.RegisterOnTermination(() => lifetime.StopApplication());
+
                 return prov;
             }
         }
 
         [PublicAPI]
-        public static IHostBuilder ConfigurateAkkaApplication(this IHostBuilder hostBuilder, Action<IActorApplicationBuilder>? config = null)
+        public static IHostBuilder ConfigureAkkaApplication(this IHostBuilder hostBuilder, Action<IActorApplicationBuilder>? config = null)
             => hostBuilder.UseServiceProviderFactory(c =>
                                                      {
                                                          var builder = new ActorApplicationBluilder(c, hostBuilder);

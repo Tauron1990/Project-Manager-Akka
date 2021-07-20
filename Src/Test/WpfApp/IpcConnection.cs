@@ -5,12 +5,13 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Text;
 using System.Threading;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using NLog;
 using Servicemnager.Networking;
 using Servicemnager.Networking.Data;
 using Servicemnager.Networking.IPC;
 using Tauron;
+using Tauron.Host;
 
 namespace WpfApp
 {
@@ -121,8 +122,7 @@ namespace WpfApp
                 IsReady = false;
                 ErrorMessage = e.Message;
 
-                LogManager.GetCurrentClassLogger()
-                    .Error(e, "Error on Starting Ipc");
+                ActorApplication.GetLogger(GetType()).LogError(e, "Error on Starting Ipc");
 
                 Dispose();
             }

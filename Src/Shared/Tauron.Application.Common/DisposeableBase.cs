@@ -1,7 +1,8 @@
 ﻿using System;
 using Akka.Util;
 using JetBrains.Annotations;
-using NLog;
+using Microsoft.Extensions.Logging;
+using Tauron.Host;
 
 namespace Tauron
 {
@@ -43,7 +44,7 @@ namespace Tauron
             }
             catch (Exception e)
             {
-                LogManager.GetCurrentClassLogger(GetType()).Warn(e, "Error on Execute Dispose Tracker");
+                ActorApplication.GetLogger(GetType()).LogWarning(e, "Error on Execute Dispose Tracker");
             }
             finally
             {

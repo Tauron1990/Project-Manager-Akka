@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Autofac;
+using Microsoft.Extensions.Hosting;
 using NLog;
 using Tauron.Application.Logging;
 using Tauron.Application.Wpf.SerilogViewer;
@@ -12,16 +13,12 @@ namespace Akka.MGIHelper
     {
         public static async Task Main(string[] args)
         {
-            var builder = ActorApplication.Create(args);
-
-            builder
-                .ConfigureLogging((_, configuration) => configuration.ConfigDefaultLogging("MGI_Helper").LoadConfiguration(e => e.Configuration.AddRuleForAllLevels(new LoggerViewerSink())))
-                .ConfigureAutoFac(cb => cb.RegisterModule<MainModule>())
-                .ConfigurateAkkaSystem((_, system) => system.RegisterLocalization())
-               .UseWpf<MainWindow, App>();
-
-            using var app = builder.Build();
-            await app.Run();
+            await Host.CreateDefaultBuilder(args)
+                      .ConfigureLogging(lb => lb.AddNLog(sb => sb.ConfigDefaultLogging("MGI_Helper").LoadConfiguration(e => e.Configuration.AddRuleForAllLevels(new LoggerViewerSink()))))
+                      .ConfigureAkkaApplication(ab => ab.AddModule<MainModule>()
+                                                        .ConfigureAkkaSystem((_, s) => s.RegisterLocalization())
+                                                        .UseWpf<MainWindow, App>())
+                      .Build().RunAsync();
         }
     }
 }

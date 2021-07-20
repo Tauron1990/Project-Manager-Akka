@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Akka.Util;
 using Autofac;
 using JetBrains.Annotations;
+using Microsoft.Extensions.DependencyInjection;
 using Tauron.Host;
 
 namespace Tauron.Application.CommonUI.UI
@@ -16,7 +17,7 @@ namespace Tauron.Application.CommonUI.UI
 
         public AutoViewLocation(ILifetimeScope provider) => _provider = provider;
 
-        public static AutoViewLocation Manager => ActorApplication.Application.Container.Resolve<AutoViewLocation>();
+        public static AutoViewLocation Manager => ActorApplication.ServiceProvider.GetRequiredService<AutoViewLocation>();
 
         public static void AddPair(Type view, Type model) 
             => Views[model] = view;

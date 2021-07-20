@@ -19,7 +19,7 @@ namespace Tauron.Host
 
         IActorApplicationBuilder ConfigureAkka(Func<HostBuilderContext, Setup> config);
 
-        IActorApplicationBuilder ConfigurateAkkaSystem(Action<HostBuilderContext, ActorSystem> system);
+        IActorApplicationBuilder ConfigureAkkaSystem(Action<HostBuilderContext, ActorSystem> system);
 
         IActorApplicationBuilder ConfigureHostConfiguration(Action<IConfigurationBuilder> configureDelegate);
 

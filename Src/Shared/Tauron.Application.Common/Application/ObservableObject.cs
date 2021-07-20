@@ -10,7 +10,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastExpressionCompiler;
 using JetBrains.Annotations;
-using NLog;
+using Microsoft.Extensions.Logging;
+using Tauron.Host;
 
 namespace Tauron.Application
 {
@@ -74,7 +75,7 @@ namespace Tauron.Application
                                                                                              return;
                                                                                          if(t.IsCanceled)
                                                                                              return;
-                                                                                         LogManager.GetCurrentClassLogger(GetType()).Error(t.Exception, "Error on Execute Async property Changed");
+                                                                                         ActorApplication.GetLogger(GetType()).LogError(t.Exception, "Error on Execute Async property Changed");
                                                                                          if(context != null)
                                                                                             ExecutionContext.Run(context, state => throw (Exception)state!, t.Exception);
                                                                                      })), name);

@@ -13,16 +13,12 @@
   <ItemGroup>
     <Compile Remove="ActorFlowBuilder - Backup.cs" />
     <Compile Remove="Async.cs" />
-    <Compile Remove="Host\ActorApplication.cs" />
     <Compile Remove="Host\ActorHostEnviroment.cs" />
-    <Compile Remove="Host\ActorHostExtensions.cs" />
     <Compile Remove="Host\ApplicationLifetime.cs" />
     <Compile Remove="Host\CommonLifetime.cs" />
     <Compile Remove="Host\Environments.cs" />
-    <Compile Remove="Host\Extensions.cs" />
     <Compile Remove="Host\HostBuilderContext.cs" />
     <Compile Remove="Host\HostDefaults.cs" />
-    <Compile Remove="Host\HostEnvironmentEnvExtensions.cs" />
     <Compile Remove="Host\IActorApplicationLifetime.cs" />
     <Compile Remove="Host\IActorHostEnvironment.cs" />
     <Compile Remove="Host\IApplicationLifetime.cs" />

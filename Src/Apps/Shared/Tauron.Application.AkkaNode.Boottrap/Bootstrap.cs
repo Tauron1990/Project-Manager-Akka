@@ -8,6 +8,7 @@ using Autofac;
 using Autofac.Builder;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Tauron.Application.AkkaNode.Services.Configuration;
 using Tauron.Application.Logging;
 using Tauron.Application.Master.Commands.Administration.Configuration;
@@ -15,27 +16,33 @@ using Tauron.Host;
 
 namespace Tauron.Application.AkkaNode.Bootstrap
 {
+    [PublicAPI]
     public static partial class Bootstrap
     {
         [PublicAPI]
-        public static IActorApplicationBuilder ConfigurateNode(this IActorApplicationBuilder builder)
+        public static IHostBuilder ConfigurateNode(this IHostBuilder builder, Action<IActorApplicationBuilder>? appConfig = null)
         {
             var config = GetConfig();
 
             return builder
-                  .ConfigureAutoFac(cb => cb.Register(context =>
-                                                      {
-                                                          var opt = new AppNodeInfo();
-                                                          context.Resolve<IConfiguration>().Bind(opt);
-                                                          return opt;
-                                                      }))
-                  .Configuration(configurationBuilder => configurationBuilder.Add(
-                                     new HoconConfigurationSource(() => config,
-                                         ("akka.appinfo.applicationName", "ApplicationName"),
-                                         ("akka.appinfo.actorsystem", "Actorsystem"),
-                                         ("akka.appinfo.appslocation", "AppsLocation"))))
-                  .ConfigureAkka(_ => config)
-                  .ConfigureLogging((context, configuration) => configuration.ConfigDefaultLogging(context.HostEnvironment.ApplicationName));
+                  .ConfigureHostConfiguration(configurationBuilder => configurationBuilder.Add(
+                                                  new HoconConfigurationSource(() => config,
+                                                      ("akka.appinfo.applicationName", "ApplicationName"),
+                                                      ("akka.appinfo.actorsystem", "Actorsystem"),
+                                                      ("akka.appinfo.appslocation", "AppsLocation"))))
+                  .ConfigureAkkaApplication(ab =>
+                                            {
+                                                ab.ConfigureAutoFac(cb => cb.Register(context =>
+                                                                                      {
+                                                                                          var opt = new AppNodeInfo();
+                                                                                          context.Resolve<IConfiguration>().Bind(opt);
+                                                                                          return opt;
+                                                                                      }))
+                                                  .ConfigureAkka(_ => config);
+
+                                                appConfig?.Invoke(ab);
+                                            })
+                      .ConfigureLogging((context, configuration) => configuration.ConfigDefaultLogging(context.HostingEnvironment.ApplicationName));
         }
 
         [PublicAPI]
@@ -45,7 +52,7 @@ namespace Tauron.Application.AkkaNode.Bootstrap
 
         public static IActorApplicationBuilder OnMemberUp(this IActorApplicationBuilder builder, Action<HostBuilderContext, ActorSystem, Cluster> up)
         {
-            return builder.ConfigurateAkkaSystem((context, system) =>
+            return builder.ConfigureAkkaSystem((context, system) =>
                                                  {
                                                      var cluster = Cluster.Get(system);
                                                      cluster.RegisterOnMemberUp(() => up(context, system, cluster));
@@ -54,7 +61,7 @@ namespace Tauron.Application.AkkaNode.Bootstrap
 
         public static IActorApplicationBuilder OnMemberRemoved(this IActorApplicationBuilder builder, Action<HostBuilderContext, ActorSystem, Cluster> remove)
         {
-            return builder.ConfigurateAkkaSystem((context, system) =>
+            return builder.ConfigureAkkaSystem((context, system) =>
                                                  {
                                                      var cluster = Cluster.Get(system);
                                                      cluster.RegisterOnMemberRemoved(() => remove(context, system, cluster));

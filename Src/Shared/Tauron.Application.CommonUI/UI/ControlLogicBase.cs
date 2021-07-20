@@ -72,7 +72,7 @@ namespace Tauron.Application.CommonUI.UI
                 var parentOption = ControlBindLogic.FindParentDatacontext(UserControl);
                 parentOption.Run(
                     parent => parent.Actor.Tell(new InitParentViewModel(Model)),
-                    () => ViewModelSuperviser.Get(ActorApplication.Application.ActorSystem)
+                    () => ViewModelSuperviser.Get(ActorApplication.ActorSystem)
                                              .Create(Model));
             }
 

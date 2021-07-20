@@ -3,10 +3,13 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using Akka.Util;
-using NLog;
+using JetBrains.Annotations;
+using Microsoft.Extensions.Logging;
+using Tauron.Host;
 
 namespace Tauron.Temp
 {
+    [PublicAPI]
     public class TempDic : DisposeableBase, ITempDic
     {
         public static readonly ITempDic Null = new TempDic();
@@ -79,7 +82,7 @@ namespace Tauron.Temp
                     catch (Exception e)
                     {
                         if (KeepAlive)
-                            LogManager.GetCurrentClassLogger().Warn(e, "Error on Dispose Dic {Path}", entry.FullPath);
+                            ActorApplication.GetLogger(GetType()).LogWarning(e, "Error on Dispose Dic {Path}", entry.FullPath);
                         else
                             throw;
                     }

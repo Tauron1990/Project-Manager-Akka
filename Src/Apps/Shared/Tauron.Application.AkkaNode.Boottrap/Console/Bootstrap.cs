@@ -7,6 +7,8 @@ using Akka.Cluster;
 using Autofac;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using NLog;
 using NLog.Targets;
@@ -18,6 +20,7 @@ using Tauron.Application.AkkaNode.Bootstrap.Console.IpcMessages;
 using Tauron.Application.Master.Commands;
 using Tauron.Application.Master.Commands.KillSwitch;
 using Tauron.Host;
+using ILogger = NLog.ILogger;
 
 // ReSharper disable once CheckNamespace
 namespace Tauron.Application.AkkaNode.Bootstrap
@@ -27,11 +30,11 @@ namespace Tauron.Application.AkkaNode.Bootstrap
         private const string IpcName = "Project_Manager_{{A9A782E5-4F9A-46E4-8A71-76BCF1ABA748}}";
 
         [PublicAPI]
-        public static IActorApplicationBuilder StartNode(string[] args, KillRecpientType type, IpcApplicationType ipcType, bool consoleLog = false)
-            => StartNode(ActorApplication.Create(args), type, ipcType, consoleLog);
+        public static IHostBuilder StartNode(string[] args, KillRecpientType type, IpcApplicationType ipcType, bool consoleLog = false)
+            => StartNode(Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder(args), type, ipcType, consoleLog);
 
         [PublicAPI]
-        public static IActorApplicationBuilder StartNode(this IActorApplicationBuilder builder, KillRecpientType type, IpcApplicationType ipcType, bool consoleLog = false)
+        public static IHostBuilder StartNode(this IHostBuilder builder, KillRecpientType type, IpcApplicationType ipcType, bool consoleLog = false)
         {
             var masterReady = false;
             if (ipcType != IpcApplicationType.NoIpc)
@@ -39,32 +42,33 @@ namespace Tauron.Application.AkkaNode.Bootstrap
             var ipc = new IpcConnection(masterReady, ipcType,
                 (s, exception) => LogManager.GetCurrentClassLogger().Error(exception, "Ipc Error: {Info}", s));
 
-            return builder
-                .ConfigureAutoFac(cb =>
-                {
-                    cb.RegisterType<ConsoleAppRoute>().Named<IAppRoute>("default");
-                    cb.RegisterType<KillHelper>().As<IStartUpAction>();
-                    cb.RegisterInstance(ipc).As<IIpcConnection>().SingleInstance();
-                })
-                .ConfigurateNode()
-                .ConfigureLogging((context, configuration) =>
-                {
-                    System.Console.Title = context.HostEnvironment.ApplicationName;
-                    if(consoleLog)
-                        configuration.LoadConfiguration(c => c.Configuration.AddRuleForAllLevels(new ColoredConsoleTarget("Console")));
-                })
-                .ConfigurateAkkaSystem((_, system) =>
-                                       {
-                                           switch (type)
+            return builder.ConfigureLogging((context, configuration) =>
+                                            {
+                                                System.Console.Title = context.HostingEnvironment.ApplicationName;
+                                                if (consoleLog)
+                                                    configuration.AddConsole();
+                                            })
+                          .ConfigurateNode(ab =>
                                            {
-                                               case KillRecpientType.Seed:
-                                                   KillSwitch.Setup(system);
-                                                   break;
-                                               default:
-                                                   KillSwitch.Subscribe(system, type);
-                                                   break;
-                                           }
-                                       });
+                                               ab.ConfigureAutoFac(cb =>
+                                                                   {
+                                                                       cb.RegisterType<NodeAppService>().As<IHostedService>();
+                                                                       cb.RegisterType<KillHelper>().As<IStartUpAction>();
+                                                                       cb.RegisterInstance(ipc).As<IIpcConnection>();
+                                                                   })
+                                                 .ConfigureAkkaSystem((_, system) =>
+                                                                      {
+                                                                          switch (type)
+                                                                          {
+                                                                              case KillRecpientType.Seed:
+                                                                                  KillSwitch.Setup(system);
+                                                                                  break;
+                                                                              default:
+                                                                                  KillSwitch.Subscribe(system, type);
+                                                                                  break;
+                                                                          }
+                                                                      });
+                                           });
         }
 
         private sealed class IpcConnection : IIpcConnection, IDisposable

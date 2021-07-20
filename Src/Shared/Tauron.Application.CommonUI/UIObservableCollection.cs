@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
-using Autofac;
 using JetBrains.Annotations;
+using Microsoft.Extensions.DependencyInjection;
 using Tauron.Application.CommonUI.AppCore;
 using Tauron.Host;
 
@@ -28,7 +28,7 @@ namespace Tauron.Application.CommonUI
 
         [NotNull]
         protected IUIDispatcher InternalUISynchronize { get; } =
-            ActorApplication.Application.Container.Resolve<IUIDispatcher>();
+            ActorApplication.ServiceProvider.GetRequiredService<IUIDispatcher>();
 
         public void AddRange(IEnumerable<TType> enumerable)
         {

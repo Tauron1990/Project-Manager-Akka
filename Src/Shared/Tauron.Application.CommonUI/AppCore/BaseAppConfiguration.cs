@@ -1,7 +1,6 @@
 ﻿using System;
 using Autofac;
 using JetBrains.Annotations;
-using Tauron.Host;
 
 namespace Tauron.Application.CommonUI.AppCore
 {
@@ -19,11 +18,11 @@ namespace Tauron.Application.CommonUI.AppCore
             return this;
         }
 
-        public BaseAppConfiguration WithRoute<TRoute>(string name)
-            where TRoute : class, IAppRoute
-        {
-            ServiceCollection.RegisterType<TRoute>().Named<IAppRoute>(name);
-            return this;
-        }
+        //public BaseAppConfiguration WithRoute<TRoute>(string name)
+        //    where TRoute : class, IAppRoute
+        //{
+        //    ServiceCollection.RegisterType<TRoute>().Named<IAppRoute>(name);
+        //    return this;
+        //}
     }
 }

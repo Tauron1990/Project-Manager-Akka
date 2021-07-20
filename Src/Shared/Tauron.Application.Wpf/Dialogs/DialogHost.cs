@@ -2,8 +2,8 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Markup;
-using Autofac;
 using JetBrains.Annotations;
+using Microsoft.Extensions.DependencyInjection;
 using Tauron.Application.CommonUI.Dialogs;
 using Tauron.Host;
 
@@ -38,7 +38,7 @@ namespace Tauron.Application.Wpf.Dialogs
                 return;
 
             var coordinator =
-                (IDialogCoordinatorUIEvents) ActorApplication.Application.Container.Resolve<IDialogCoordinator>();
+                (IDialogCoordinatorUIEvents) ActorApplication.ServiceProvider.GetRequiredService<IDialogCoordinator>();
 
             coordinator.HideDialogEvent += () =>
             {

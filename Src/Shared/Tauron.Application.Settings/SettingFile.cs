@@ -2,7 +2,6 @@
 using System.Collections.Immutable;
 using Akka.Actor;
 using Akka.Event;
-using NLog.Fluent;
 
 namespace Tauron.Application.Settings
 {

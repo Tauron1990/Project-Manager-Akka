@@ -1,24 +1,23 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Akka.Actor;
-using NLog;
-using Tauron.Akka;
+using Microsoft.Extensions.Logging;
 using Tauron.Host;
 
 namespace Tauron.Application.AkkaNode.Services.Reporting.Commands
 {
     public static class SendingHelper
     {
-        private static readonly ILogger _log = LogManager.GetCurrentClassLogger();
+        private static readonly ILogger Log = ActorApplication.GetLogger(typeof(SendingHelper));
 
         public static Task<TResult> Send<TResult, TCommand>(ISender sender, TCommand command, Action<string> messages, TimeSpan timeout, bool isEmpty)
             where TCommand : class, IReporterMessage
         {
-            _log.Info("Sending Command {CommandType} -- {SenderType}", command.GetType(), sender.GetType());
+            Log.LogInformation("Sending Command {CommandType} -- {SenderType}", command.GetType(), sender.GetType());
             command.ValidateApi(sender.GetType());
 
             var task = new TaskCompletionSource<TResult>();
-            IActorRefFactory factory = ActorApplication.Application.ActorSystem;
+            IActorRefFactory factory = ActorApplication.ActorSystem;
 
             //try
             //{
