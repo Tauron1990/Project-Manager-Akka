@@ -152,6 +152,8 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
                 return "Der Service wurde nicht gestartet";
 
             await _api.Command(new UpdateServerConfigurationCommand(serverConfigugration), TimeSpan.FromSeconds(20));
+
+            return string.Empty;
         }
 
         public void Dispose() => _subscriptions.Dispose();

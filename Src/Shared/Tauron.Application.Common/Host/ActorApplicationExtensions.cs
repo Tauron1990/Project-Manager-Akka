@@ -6,12 +6,15 @@ using Akka.Actor.Setup;
 using Akka.Configuration;
 using Akka.DependencyInjection;
 using Autofac;
+using Autofac.Core;
 using Autofac.Extensions.DependencyInjection;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.EventLog;
+using Microsoft.Extensions.Options;
 
 namespace Tauron.AkkaHost
 {
@@ -48,6 +51,7 @@ namespace Tauron.AkkaHost
             {
                 _context = context;
                 _builder = builder;
+                
                 _containerBuilder.RegisterModule<CommonModule>();
                 _containerBuilder.RegisterInstance(_holder);
                 _containerBuilder.Register(c => c.Resolve<ActorSystemHolder>().System);
@@ -126,10 +130,28 @@ namespace Tauron.AkkaHost
             }
 
             internal void Populate(IServiceCollection collection)
-                => _containerBuilder.Populate(collection);
+            {
+                ApplyFixes(_containerBuilder, collection);
+                _containerBuilder.Populate(collection);
+            }
 
-            internal IServiceProvider CreateServiceProvider()
+            internal IServiceProvider CreateServiceProvider() 
                 => new AutofacServiceProvider(_containerBuilder.Build());
+
+            private static void ApplyFixes(ContainerBuilder builder, IServiceCollection serviceCollection)
+            {
+                if(TryRemove(serviceCollection, typeof(EventLogLoggerProvider)))
+                    builder.Register(c => new EventLogLoggerProvider(c.Resolve<IOptions<EventLogSettings>>())).As<ILoggerProvider>();
+            }
+
+            private static bool TryRemove(IServiceCollection collection, Type impl)
+            {
+                var sd = collection.FindIndex(e => e.ImplementationType == impl);
+                if (sd == -1) return false;
+
+                collection.RemoveAt(sd);
+                return true;
+            }
         }
 
         private sealed class ActorServiceProviderFactory : IServiceProviderFactory<IActorApplicationBuilder>

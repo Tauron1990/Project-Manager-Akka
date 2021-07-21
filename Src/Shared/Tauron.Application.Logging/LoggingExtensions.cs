@@ -44,7 +44,7 @@ namespace Tauron.Application.Logging
                                 Attributes =
                                                                                                                                 {
                                                                                                                                     new JsonAttribute("time", "${longdate}"),
-                                                                                                                                    new JsonAttribute("level", "$level:upperCase=true"),
+                                                                                                                                    new JsonAttribute("level", "${level:upperCase=true}"),
                                                                                                                                     new JsonAttribute("application", applicationName),
                                                                                                                                     new JsonAttribute("eventType", "${event-type}"),
                                                                                                                                     new JsonAttribute("message", "${message}"),

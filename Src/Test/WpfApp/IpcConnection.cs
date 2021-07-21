@@ -11,7 +11,7 @@ using Servicemnager.Networking;
 using Servicemnager.Networking.Data;
 using Servicemnager.Networking.IPC;
 using Tauron;
-using Tauron.Host;
+using Tauron.AkkaHost;
 
 namespace WpfApp
 {

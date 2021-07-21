@@ -2,9 +2,11 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
+using Autofac;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.EventLog;
 using Tauron.AkkaHost;
 
 namespace AkkaTest
@@ -53,9 +55,12 @@ namespace AkkaTest
         private static async Task Main(string[] args)
         {
             await Host.CreateDefaultBuilder(args)
-                      .ConfigureLogging(lb => lb.AddConsole())
                       .ConfigureAkkaApplication()
-                      .ConfigureServices(s => s.AddSingleton<IHostedService, TestConsoleApplication>())
+                      .ConfigureServices(s =>
+                                         {
+                                             s.AddOptions();
+                                             s.AddSingleton<IHostedService, TestConsoleApplication>();
+                                         })
                       .Build().RunAsync();
         }
 

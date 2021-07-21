@@ -2,8 +2,11 @@ using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using ServiceManager.Server.AppCore;
 using ServiceManager.Server.AppCore.Helper;
+using ServiceManager.Shared;
 using Tauron.Application.AkkaNode.Bootstrap;
 using Tauron.Application.AkkaNode.Bootstrap.Console;
 using Tauron.Application.Master.Commands.KillSwitch;
@@ -34,6 +37,7 @@ namespace ServiceManager.Server
 
         private static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
+                .ConfigureServices(sc => sc.AddSingleton<IRestartHelper>(RestartHelper).AddSingleton<IAppIpManager>(AppIpManager))
                 .StartNode(KillRecpientType.Frontend, IpcApplicationType.NoIpc, consoleLog:true)
                 .ConfigureWebHostDefaults(webBuilder =>
                                           {
