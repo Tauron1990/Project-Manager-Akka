@@ -5,7 +5,7 @@ using System.Reactive.Linq;
 using System.Text;
 using Akka.Configuration;
 using Microsoft.Extensions.Logging;
-using Tauron.Host;
+using Tauron.AkkaHost;
 
 namespace Tauron.Application.Master.Commands.Administration.Configuration
 {

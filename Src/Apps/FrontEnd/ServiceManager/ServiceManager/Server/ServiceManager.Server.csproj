@@ -34,7 +34,6 @@
     <ProjectReference Include="..\..\..\..\Backend\ServiceHost\ServiceHost.Client.Shared\ServiceHost.Client.Shared.csproj" />
     <ProjectReference Include="..\..\..\..\Backend\ServiceHost\ServiceManager.ServiceDeamon\ServiceManager.ServiceDeamon.csproj" />
     <ProjectReference Include="..\..\..\..\Shared\Tauron.Application.AkkaNode.Boottrap\Tauron.Application.AkkaNode.Boottrap.csproj" />
-    <ProjectReference Include="..\..\..\..\Shared\Tauron.Application.BlazorIntegration\Tauron.Application.BlazorIntegration.csproj" />
     <ProjectReference Include="..\Client\ServiceManager.Client.csproj" />
     <ProjectReference Include="..\Shared\ServiceManager.Shared.csproj" />
   </ItemGroup>

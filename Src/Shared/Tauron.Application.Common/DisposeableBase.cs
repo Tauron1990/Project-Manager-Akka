@@ -2,7 +2,7 @@
 using Akka.Util;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
-using Tauron.Host;
+using Tauron.AkkaHost;
 
 namespace Tauron
 {

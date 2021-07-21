@@ -9,14 +9,11 @@ using Microsoft.Extensions.Hosting;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.SignalR;
-using ServiceHost.Client.Shared;
 using ServiceManager.Server.AppCore;
 using ServiceManager.Server.Hubs;
 using ServiceManager.Shared.Api;
+using Tauron.AkkaHost;
 using Tauron.Application.AkkaNode.Bootstrap;
-using Tauron.Application.AkkaNode.Bootstrap.Console;
-using Tauron.Application.Master.Commands.KillSwitch;
-using Tauron.Host;
 
 namespace ServiceManager.Server
 {
@@ -30,6 +27,7 @@ namespace ServiceManager.Server
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            services.Configure<HostOptions>(o => o.ShutdownTimeout = TimeSpan.FromSeconds(30));
             services.AddCors();
             services.AddSignalR();
             services.AddControllersWithViews();
@@ -62,9 +60,7 @@ namespace ServiceManager.Server
                                         }
                                         catch (ObjectDisposedException) { }
                                     })
-                   .AddModule<MainModule>()
-                   .StartNode(KillRecpientType.Frontend, IpcApplicationType.NoIpc, true);
-            //.AddStateManagment(typeof(Startup).Assembly);
+                   .AddModule<MainModule>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

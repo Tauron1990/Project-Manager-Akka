@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Windows.Markup;
 using JetBrains.Annotations;
-using Tauron.Host;
+using Tauron.AkkaHost;
 using Tauron.Localization;
 
 namespace Tauron.Application.Wpf.UI

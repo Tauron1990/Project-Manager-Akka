@@ -9,7 +9,7 @@ using Tauron.Application.CommonUI;
 using Tauron.Application.CommonUI.AppCore;
 
 // ReSharper disable once CheckNamespace
-namespace Tauron.Host
+namespace Tauron.AkkaHost
 {
     [PublicAPI]
     public static class AvaloniaHostExtensions

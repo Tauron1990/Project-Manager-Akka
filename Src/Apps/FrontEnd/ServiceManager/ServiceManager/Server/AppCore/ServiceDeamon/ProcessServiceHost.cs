@@ -2,6 +2,7 @@
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Akka.Actor;
+using Microsoft.Extensions.Hosting;
 using MongoDB.Driver;
 using ServiceHost.Client.Shared.ConfigurationServer;
 using ServiceManager.ProjectDeployment;
@@ -12,14 +13,12 @@ using SharpRepository.MongoDbRepository;
 using SharpRepository.Repository.Configuration;
 using Tauron;
 using Tauron.Application.AkkaNode.Services.CleanUp;
-using Tauron.Application.AkkaNode.Services.Core;
 using Tauron.Application.AkkaNode.Services.FileTransfer;
 using Tauron.Application.Files.GridFS;
 using Tauron.Application.Files.VirtualFiles;
 using Tauron.Application.Master.Commands.Deployment.Build;
 using Tauron.Application.Master.Commands.Deployment.Repository;
 using Tauron.Features;
-using Tauron.Host;
 using Tauron.ObservableExt;
 
 namespace ServiceManager.Server.AppCore.ServiceDeamon
@@ -56,11 +55,11 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
 
     public sealed class ProcessServiceHostActor : ActorFeatureBase<ProcessServiceHostActor._>
     {
-        public sealed record _(IDatabaseConfig DatabaseConfig, Services Operator, IActorHostEnvironment HostEnvironment, RepositoryApi RepositoryApi, DeploymentApi DeploymentApi, ConfigurationApi ConfigurationApi);
+        public sealed record _(IDatabaseConfig DatabaseConfig, Services Operator, IHostEnvironment HostEnvironment, RepositoryApi RepositoryApi, DeploymentApi DeploymentApi, ConfigurationApi ConfigurationApi);
 
-        public static Func<IActorHostEnvironment, IDatabaseConfig, RepositoryApi, DeploymentApi, ConfigurationApi, IPreparedFeature> New()
+        public static Func<IHostEnvironment, IDatabaseConfig, RepositoryApi, DeploymentApi, ConfigurationApi, IPreparedFeature> New()
         {
-            static IPreparedFeature _(IActorHostEnvironment hostEnvironment, IDatabaseConfig config, RepositoryApi repositoryApi, DeploymentApi deploymentApi, ConfigurationApi configurationApi)
+            static IPreparedFeature _(IHostEnvironment hostEnvironment, IDatabaseConfig config, RepositoryApi repositoryApi, DeploymentApi deploymentApi, ConfigurationApi configurationApi)
                 => Feature.Create(() => new ProcessServiceHostActor(), _ => new _(config, new Services(), hostEnvironment, repositoryApi, deploymentApi, configurationApi));
 
             return _;
@@ -157,7 +156,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
             return Observable.Return(o.NewEvent(new TryStartResponse(true, string.Empty)));
         }
 
-        private static void StartServices(string connectionstring, IActorHostEnvironment hostEnvironment, ActorSystem system,
+        private static void StartServices(string connectionstring, IHostEnvironment hostEnvironment, ActorSystem system,
             out IActorRef repoRef, out IActorRef deployRef, out IActorRef deamonRef)
         {
             string ApplyMongoUrl(string baseUrl, string repoKey, SharpRepositoryConfiguration configuration)

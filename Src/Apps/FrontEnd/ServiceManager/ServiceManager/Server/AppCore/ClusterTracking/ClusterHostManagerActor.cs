@@ -3,21 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
-using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Cluster;
-using Autofac;
 using DynamicData;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using ServiceHost.Client.Shared;
 using ServiceManager.Server.AppCore.Helper;
 using ServiceManager.Server.Hubs;
 using ServiceManager.Shared.Api;
 using ServiceManager.Shared.ClusterTracking;
 using Tauron;
+using Tauron.AkkaHost;
 using Tauron.Application.Master.Commands.ServiceRegistry;
 using Tauron.Features;
-using Tauron.Host;
 
 namespace ServiceManager.Server.AppCore.ClusterTracking
 {
@@ -41,7 +41,7 @@ namespace ServiceManager.Server.AppCore.ClusterTracking
             var cluster = Cluster.Get(Context.System);
 
             ServiceRegistry serviceRegistry = ServiceRegistry.Start(Context.System, 
-                c => new RegisterService(ActorApplication.Application.Container.Resolve<IActorHostEnvironment>().ApplicationName, c.SelfUniqueAddress, ServiceTypes.ServiceManager));
+                c => new RegisterService(ActorApplication.ServiceProvider.GetRequiredService<IHostEnvironment>().ApplicationName, c.SelfUniqueAddress, ServiceTypes.ServiceManager));
 
             cluster.RegisterOnMemberUp(() => cluster.Subscribe(Self, ClusterEvent.SubscriptionInitialStateMode.InitialStateAsEvents, typeof(ClusterEvent.IClusterDomainEvent)));
             

@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Akka.Actor;
 using Microsoft.Extensions.Logging;
-using Tauron.Host;
+using Tauron.AkkaHost;
 
 namespace Tauron.Application.AkkaNode.Services.Reporting.Commands
 {

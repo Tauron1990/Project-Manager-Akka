@@ -4,7 +4,7 @@ using JetBrains.Annotations;
 using NLog;
 using Tauron.Application.CommonUI.Helper;
 using Tauron.Application.CommonUI.ModelMessages;
-using Tauron.Host;
+using Tauron.AkkaHost;
 using Tauron.ObservableExt;
 
 namespace Tauron.Application.CommonUI.UI

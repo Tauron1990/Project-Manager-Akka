@@ -5,7 +5,7 @@ using System.Windows.Markup;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using Tauron.Application.CommonUI.Dialogs;
-using Tauron.Host;
+using Tauron.AkkaHost;
 
 namespace Tauron.Application.Wpf.Dialogs
 {

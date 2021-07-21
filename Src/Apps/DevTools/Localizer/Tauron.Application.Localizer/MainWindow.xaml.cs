@@ -135,7 +135,7 @@ namespace Tauron.Application.Localizer
                 {
                     var seralizer = new XmlSerializer(typeof(LayoutRoot));
                     using var stream = store.OpenFile(LayoutFile, FileMode.Open);
-                    if (!(seralizer.Deserialize(stream) is LayoutRoot layout))
+                    if (seralizer.Deserialize(stream) is not LayoutRoot layout)
                         DockReset(null, null);
                     else
                         DockingManager.Layout = layout;

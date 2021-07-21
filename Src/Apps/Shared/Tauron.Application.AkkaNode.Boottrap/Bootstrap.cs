@@ -12,7 +12,7 @@ using Microsoft.Extensions.Hosting;
 using Tauron.Application.AkkaNode.Services.Configuration;
 using Tauron.Application.Logging;
 using Tauron.Application.Master.Commands.Administration.Configuration;
-using Tauron.Host;
+using Tauron.AkkaHost;
 
 namespace Tauron.Application.AkkaNode.Bootstrap
 {

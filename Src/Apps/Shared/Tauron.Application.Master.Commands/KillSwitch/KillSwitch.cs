@@ -8,7 +8,7 @@ using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 using Tauron.Akka;
 using Tauron.Features;
-using Tauron.Host;
+using Tauron.AkkaHost;
 using static Akka.Cluster.Utility.ClusterActorDiscoveryMessage;
 
 namespace Tauron.Application.Master.Commands.KillSwitch

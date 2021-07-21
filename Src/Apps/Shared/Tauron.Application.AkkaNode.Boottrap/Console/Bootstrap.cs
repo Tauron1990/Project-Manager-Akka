@@ -19,7 +19,7 @@ using Tauron.Application.AkkaNode.Bootstrap.Console;
 using Tauron.Application.AkkaNode.Bootstrap.Console.IpcMessages;
 using Tauron.Application.Master.Commands;
 using Tauron.Application.Master.Commands.KillSwitch;
-using Tauron.Host;
+using Tauron.AkkaHost;
 using ILogger = NLog.ILogger;
 
 // ReSharper disable once CheckNamespace
@@ -30,11 +30,11 @@ namespace Tauron.Application.AkkaNode.Bootstrap
         private const string IpcName = "Project_Manager_{{A9A782E5-4F9A-46E4-8A71-76BCF1ABA748}}";
 
         [PublicAPI]
-        public static IHostBuilder StartNode(string[] args, KillRecpientType type, IpcApplicationType ipcType, bool consoleLog = false)
-            => StartNode(Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder(args), type, ipcType, consoleLog);
+        public static IHostBuilder StartNode(string[] args, KillRecpientType type, IpcApplicationType ipcType, Action<IActorApplicationBuilder>? build = null, bool consoleLog = false)
+            => StartNode(Host.CreateDefaultBuilder(args), type, ipcType, build, consoleLog);
 
         [PublicAPI]
-        public static IHostBuilder StartNode(this IHostBuilder builder, KillRecpientType type, IpcApplicationType ipcType, bool consoleLog = false)
+        public static IHostBuilder StartNode(this IHostBuilder builder, KillRecpientType type, IpcApplicationType ipcType, Action<IActorApplicationBuilder>? build = null, bool consoleLog = false)
         {
             var masterReady = false;
             if (ipcType != IpcApplicationType.NoIpc)
@@ -68,6 +68,8 @@ namespace Tauron.Application.AkkaNode.Bootstrap
                                                                                   break;
                                                                           }
                                                                       });
+
+                                               build?.Invoke(ab);
                                            });
         }
 

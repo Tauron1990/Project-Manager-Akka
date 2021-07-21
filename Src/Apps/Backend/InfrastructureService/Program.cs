@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting;
 using MongoDB.Driver;
 using NLog;
 using ServiceHost.Client.Shared;
@@ -23,12 +24,14 @@ namespace InfrastructureService
     {
         public static async Task Main(string[] args)
         {
-            await Bootstrap.StartNode(args, KillRecpientType.Service, IpcApplicationType.Client, true)
-                           .OnMemberUp((context, system, cluster) =>
+            await Bootstrap.StartNode(args, KillRecpientType.Service, IpcApplicationType.Client,
+                                ab =>
+                                {
+                                    ab.OnMemberUp((context, system, cluster) =>
                                                   {
                                                       string ApplyMongoUrl(string baseUrl, string repoKey, SharpRepositoryConfiguration configuration)
                                                       {
-                                                          var builder = new MongoUrlBuilder(baseUrl) {DatabaseName = repoKey, ApplicationName = context.HostEnvironment.ApplicationName};
+                                                          var builder = new MongoUrlBuilder(baseUrl) {DatabaseName = repoKey, ApplicationName = context.HostingEnvironment.ApplicationName};
                                                           var mongoUrl = builder.ToString();
 
                                                           configuration.AddRepository(new MongoDbRepositoryConfiguration(repoKey, mongoUrl)
@@ -41,7 +44,7 @@ namespace InfrastructureService
 
                                                       ServiceRegistry.Get(system)
                                                                      .RegisterService(new RegisterService(
-                                                                          context.HostEnvironment.ApplicationName, 
+                                                                          context.HostingEnvironment.ApplicationName,
                                                                           cluster.SelfUniqueAddress,
                                                                           ServiceTypes.Infrastructure));
 
@@ -65,16 +68,17 @@ namespace InfrastructureService
 
                                                       url = ApplyMongoUrl(connectionstring, DeploymentManager.RepositoryKey, config);
                                                       DeploymentManager.InitDeploymentManager(system,
-                                                          new DeploymentConfiguration(config, 
+                                                          new DeploymentConfiguration(config,
                                                               fileSystemBuilder.CreateMongoDb(url),
-                                                              DataTransferManager.New(system, "Deployment-DataTransfer"), 
+                                                              DataTransferManager.New(system, "Deployment-DataTransfer"),
                                                               RepositoryApi.CreateProxy(system)));
 
                                                       ApplyMongoUrl(connectionstring, ServiceManagerDeamon.RepositoryKey, config);
                                                       ServiceManagerDeamon.Init(system, config);
                                                   })
-                           .OnMemberRemoved((_, system, _) => system.Terminate())
-                           .Build().Run();
+                                      .OnMemberRemoved((_, system, _) => system.Terminate());
+                                }, true)
+                           .Build().RunAsync();
         }
     }
 }

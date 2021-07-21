@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using JetBrains.Annotations;
 using Tauron.Application.Workshop.StateManagement;
-using Tauron.Host;
+using Tauron.AkkaHost;
 
 namespace Tauron.Application.Workshop
 {

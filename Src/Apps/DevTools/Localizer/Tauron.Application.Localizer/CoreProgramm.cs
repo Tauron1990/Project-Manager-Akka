@@ -1,11 +1,10 @@
 ﻿using System.Threading.Tasks;
-using Autofac;
+using Microsoft.Extensions.Hosting;
 using NLog;
+using Tauron.AkkaHost;
 using Tauron.Application.Localizer.UIModels;
 using Tauron.Application.Logging;
-using Tauron.Application.Wpf;
 using Tauron.Application.Wpf.SerilogViewer;
-using Tauron.Host;
 using Tauron.Localization;
 
 namespace Tauron.Application.Localizer
@@ -18,17 +17,13 @@ namespace Tauron.Application.Localizer
         {
             //SyncfusionLicenseProvider.RegisterLicense("MjY0ODk0QDMxMzgyZTMxMmUzMEx6Vkt0M1ZIRFVPRWFqMEcwbWVrK3dqUldkYzZiaXA3TGFlWDFORDFNSms9");
 
-            var builder = ActorApplication.Create(args);
-
-            builder
-                .ConfigureLogging((_, configuration)
-                    => configuration.ConfigDefaultLogging("Localizer").LoadConfiguration(c => c.Configuration.AddRuleForAllLevels(new LoggerViewerSink())))
-                .ConfigureAutoFac(cb => cb.RegisterModule<MainModule>().RegisterModule<UIModule>())
-                .ConfigurateAkkaSystem((_, system) => system.RegisterLocalization())
-                .UseWpf<MainWindow>(c => c.WithAppFactory(() => new WpfFramework.DelegateApplication(new App())));
-
-            using var app = builder.Build();
-            await app.Run();
+            await Host.CreateDefaultBuilder(args)
+                      .ConfigureLogging(lb => lb.AddNLog(sb => sb.ConfigDefaultLogging("Localizer").LoadConfiguration(c => c.Configuration.AddRuleForAllLevels(new LoggerViewerSink()))))
+                      .ConfigureAkkaApplication(ab => ab.AddModule<MainModule>()
+                                                        .AddModule<UIModule>()
+                                                        .ConfigureAkkaSystem((_, system) => system.RegisterLocalization())
+                                                        .UseWpf<MainWindow, App>())
+                      .Build().RunAsync();
         }
     }
 }

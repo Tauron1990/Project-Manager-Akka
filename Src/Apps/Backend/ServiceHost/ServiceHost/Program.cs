@@ -11,9 +11,9 @@ using Akka.Cluster;
 using Autofac;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.CommandLine;
+using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
 using NLog;
-using NLog.Targets;
 using ServiceHost.Client.Shared;
 using ServiceHost.Installer;
 using Servicemnager.Networking.Data;
@@ -83,35 +83,37 @@ namespace ServiceHost
 
         private static async Task StartApp(string[] args, ExitManager exitManager)
         {
-            await Bootstrap.StartNode(args, KillRecpientType.Host, IpcApplicationType.Server)
-                           .ConfigureLogging((_, configuration) => configuration.LoadConfiguration(c => c.Configuration.AddRuleForAllLevels(new ColoredConsoleTarget("Console"))))
-                           .ConfigureAutoFac(cb =>
-                                             {
-                                                 cb.RegisterType<CommandHandlerStartUp>().As<IStartUpAction>();
-                                                 cb.RegisterModule<HostModule>();
-                                             })
-                           .ConfigurateAkkaSystem((context, system) =>
-                                                  {
-                                                      system.RegisterOnTermination(exitManager.RegularExit);
-                                                      var cluster = Cluster.Get(system);
+            await Bootstrap.StartNode(args, KillRecpientType.Host, IpcApplicationType.Server,
+                                ab =>
+                                {
+                                    ab.ConfigureAutoFac(cb =>
+                                                        {
+                                                            cb.RegisterType<CommandHandlerStartUp>().As<IStartUpAction>();
+                                                            cb.RegisterModule<HostModule>();
+                                                        })
+                                      .ConfigureAkkaSystem((context, system) =>
+                                                           {
+                                                               system.RegisterOnTermination(exitManager.RegularExit);
+                                                               var cluster = Cluster.Get(system);
 
-                                                      #if TEST
-                                                      cluster.Join(cluster.SelfAddress);
-                                                      #endif
+                                                               #if TEST
+                                                               cluster.Join(cluster.SelfAddress);
+                                                               #endif
 
-                                                      cluster.RegisterOnMemberRemoved(() =>
-                                                                                      {
-                                                                                          exitManager.MemberExit();
-                                                                                          system.Terminate();
-                                                                                      });
-                                                      cluster.RegisterOnMemberUp(
-                                                          () => ServiceRegistry.Get(system)
-                                                                               .RegisterService(new RegisterService(
-                                                                                    context.HostEnvironment.ApplicationName, 
-                                                                                    cluster.SelfUniqueAddress,
-                                                                                    ServiceTypes.ServideHost)));
-                                                  })
-                           .Build().Run();
+                                                               cluster.RegisterOnMemberRemoved(() =>
+                                                                                               {
+                                                                                                   exitManager.MemberExit();
+                                                                                                   system.Terminate();
+                                                                                               });
+                                                               cluster.RegisterOnMemberUp(
+                                                                   () => ServiceRegistry.Get(system)
+                                                                                        .RegisterService(new RegisterService(
+                                                                                             context.HostingEnvironment.ApplicationName,
+                                                                                             cluster.SelfUniqueAddress,
+                                                                                             ServiceTypes.ServideHost)));
+                                                           });
+                                }, true)
+                           .Build().RunAsync();
         }
 
         private sealed class ExposedCommandLineProvider : CommandLineConfigurationProvider

@@ -1,30 +1,62 @@
 ﻿
-<MudDialog>
-    <MudContainer MaxWidth="MaxWidth.Medium">
-        @if (!string.IsNullOrWhiteSpace(Title))
-        {
-            <TitleContent>
-                <MudText Typo="Typo.h3">@Title</MudText>
-            </TitleContent>
-        }
-        <DialogContent>
-            <MudText>@Content</MudText>
-        </DialogContent>
-        @if (CanCancel)
-        {
+@if (CanCancel)
+{
+    @if (string.IsNullOrWhiteSpace(Title))
+    {
+        <MudDialog>
+            <DialogContent>
+                <MudText>@Content</MudText>
+            </DialogContent>
             <DialogActions>
                 <MudButton OnClick="@CancelClick">Abbrechen</MudButton>
                 <MudButton OnClick="@OkClick">Ok</MudButton>
             </DialogActions>
-        }
-        else
-        {
+        </MudDialog>
+    }
+    else
+    {
+        <MudDialog>
+            <TitleContent>
+                <MudText Typo="Typo.h3">@Title</MudText>
+            </TitleContent>
+            <DialogContent>
+                <MudText>@Content</MudText>
+            </DialogContent>
+            <DialogActions>
+                <MudButton OnClick="@CancelClick">Abbrechen</MudButton>
+                <MudButton OnClick="@OkClick">Ok</MudButton>
+            </DialogActions>
+        </MudDialog>
+    }
+}
+else
+{
+    @if (string.IsNullOrWhiteSpace(Title))
+    {
+        <MudDialog>
+            <DialogContent>
+                <MudText>@Content</MudText>
+            </DialogContent>
             <DialogActions>
                 <MudButton OnClick="@OkClick">Ok</MudButton>
             </DialogActions>
-        }
-    </MudContainer>
-</MudDialog>
+        </MudDialog>
+    }
+    else
+    {
+        <MudDialog>
+            <TitleContent>
+                <MudText Typo="Typo.h3">@Title</MudText>
+            </TitleContent>
+            <DialogContent>
+                <MudText>@Content</MudText>
+            </DialogContent>
+            <DialogActions>
+                <MudButton OnClick="@OkClick">Ok</MudButton>
+            </DialogActions>
+        </MudDialog>
+    }
+}
 
 @code {
 

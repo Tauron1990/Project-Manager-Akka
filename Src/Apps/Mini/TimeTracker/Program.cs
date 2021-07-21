@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Tauron.Application.Logging;
-using Tauron.Host;
+using Tauron.AkkaHost;
 
 namespace TimeTracker
 {

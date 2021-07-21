@@ -1,7 +1,7 @@
 ﻿using Autofac;
 using JetBrains.Annotations;
 
-namespace Tauron.Host
+namespace Tauron.AkkaHost
 {
     [PublicAPI]
     public static class ActorHostExtensions

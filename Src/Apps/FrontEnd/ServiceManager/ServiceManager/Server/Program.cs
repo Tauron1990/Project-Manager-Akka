@@ -1,17 +1,16 @@
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
-using Autofac;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
-using ServiceManager.Server.AppCore;
 using ServiceManager.Server.AppCore.Helper;
-using ServiceManager.Shared;
-using Tauron.Application.AspIntegration;
+using Tauron.Application.AkkaNode.Bootstrap;
+using Tauron.Application.AkkaNode.Bootstrap.Console;
+using Tauron.Application.Master.Commands.KillSwitch;
 
 namespace ServiceManager.Server
 {
-    public class Program
+    public static class Program
     {
         public static readonly string ExeFolder = Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location) ?? string.Empty;
 
@@ -35,11 +34,7 @@ namespace ServiceManager.Server
 
         private static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-                .UseServiceProviderFactory(new ActorApplicationProviderFactory(b => b.ConfigureAutoFac(cb =>
-                                                                                                       {
-                                                                                                           cb.RegisterInstance(RestartHelper).As<IRestartHelper>();
-                                                                                                           cb.RegisterInstance(AppIpManager).As<IAppIpManager>();
-                                                                                                       })))
+                .StartNode(KillRecpientType.Frontend, IpcApplicationType.NoIpc, consoleLog:true)
                 .ConfigureWebHostDefaults(webBuilder =>
                                           {
                                               #if RELSEASE

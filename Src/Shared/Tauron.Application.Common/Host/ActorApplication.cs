@@ -3,7 +3,7 @@ using Akka.Actor;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace Tauron.Host
+namespace Tauron.AkkaHost
 {
     public static class ActorApplication
     {

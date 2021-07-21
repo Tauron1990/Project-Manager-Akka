@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
-using Tauron.Host;
+using Tauron.AkkaHost;
 using Tauron.Localization;
 
 namespace Tauron.Application.Avalonia.UI

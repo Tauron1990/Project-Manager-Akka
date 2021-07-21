@@ -142,9 +142,16 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
         public Task<string> QueryBaseConfig()
             => Task.FromResult(Properties.Resources.BaseConfig);
 
-        public Task<string> Update(ServerConfigugration serverConfigugration)
+        public async Task<string> Update(ServerConfigugration serverConfigugration)
         {
+            if (ServerConfigugration == serverConfigugration)
+                return "Die Konfiguration ist gleich";
 
+            var resonse = await _processService.ConfigAlive(_api, _system);
+            if (!string.IsNullOrWhiteSpace(resonse))
+                return "Der Service wurde nicht gestartet";
+
+            await _api.Command(new UpdateServerConfigurationCommand(serverConfigugration), TimeSpan.FromSeconds(20));
         }
 
         public void Dispose() => _subscriptions.Dispose();

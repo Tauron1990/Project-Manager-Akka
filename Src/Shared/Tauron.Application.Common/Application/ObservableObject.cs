@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using FastExpressionCompiler;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
-using Tauron.Host;
+using Tauron.AkkaHost;
 
 namespace Tauron.Application
 {

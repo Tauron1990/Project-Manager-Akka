@@ -5,7 +5,7 @@ using Akka.Actor;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Tauron.Host;
+using Tauron.AkkaHost;
 
 namespace AkkaTest
 {

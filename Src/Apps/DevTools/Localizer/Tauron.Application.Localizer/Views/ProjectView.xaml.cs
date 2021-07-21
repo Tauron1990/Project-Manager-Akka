@@ -4,7 +4,7 @@ using System.Windows.Documents;
 using System.Windows.Media;
 using Tauron.Application.CommonUI;
 using Tauron.Application.Localizer.UIModels;
-using Tauron.Host;
+using Tauron.AkkaHost;
 using Tauron.Localization;
 
 namespace Tauron.Application.Localizer.Views
@@ -51,7 +51,7 @@ namespace Tauron.Application.Localizer.Views
             cmdIndex++;
             MenuItem ignoreAllMi = new()
             {
-                Header = ActorApplication.Application.ActorSystem.Loc().Request("CorrectSpellingError").GetOrElse(string.Empty),
+                Header = ActorApplication.ActorSystem.Loc().Request("CorrectSpellingError").GetOrElse(string.Empty),
                 Command = EditingCommands.IgnoreSpellingError,
                 CommandTarget = myTextBox
             };

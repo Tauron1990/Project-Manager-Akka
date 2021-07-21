@@ -9,7 +9,7 @@ using Tauron.Application.Wpf.AppCore;
 using Window = System.Windows.Window;
 
 // ReSharper disable once CheckNamespace
-namespace Tauron.Host
+namespace Tauron.AkkaHost
 {
     [PublicAPI]
     public static class WpfHostExtensions

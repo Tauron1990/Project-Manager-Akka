@@ -13,7 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace Tauron.Host
+namespace Tauron.AkkaHost
 {
     public static class ActorApplicationExtensions
     {
@@ -48,6 +48,7 @@ namespace Tauron.Host
             {
                 _context = context;
                 _builder = builder;
+                _containerBuilder.RegisterModule<CommonModule>();
                 _containerBuilder.RegisterInstance(_holder);
                 _containerBuilder.Register(c => c.Resolve<ActorSystemHolder>().System);
             }

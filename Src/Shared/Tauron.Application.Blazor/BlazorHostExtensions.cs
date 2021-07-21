@@ -1,5 +1,5 @@
 ﻿using JetBrains.Annotations;
-using Tauron.Host;
+using Tauron.AkkaHost;
 
 namespace Tauron.Application.Blazor
 {

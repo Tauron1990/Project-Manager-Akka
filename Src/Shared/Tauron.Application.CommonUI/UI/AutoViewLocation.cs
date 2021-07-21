@@ -4,7 +4,7 @@ using Akka.Util;
 using Autofac;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
-using Tauron.Host;
+using Tauron.AkkaHost;
 
 namespace Tauron.Application.CommonUI.UI
 {
