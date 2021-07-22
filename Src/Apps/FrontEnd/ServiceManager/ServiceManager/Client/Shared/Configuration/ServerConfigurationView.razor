@@ -6,7 +6,7 @@
 @inject AppConfigurationViewModel _viewModel
 
 <div class="d-flex justify-center">
-    <MudPaper Class="d-flex ma-3 pa-3>
+    <MudPaper Class="d-flex ma-3 pa-3">
         @if (!_loading)
         {
             <MudCheckBox Class="d-flex d-inline-flex ma-1" T="Boolean" Checked="_viewModel.MonitorChanges" CheckedChanged="_viewModel.SetMonitorChanges">Änderungen Übserwachen</MudCheckBox>
