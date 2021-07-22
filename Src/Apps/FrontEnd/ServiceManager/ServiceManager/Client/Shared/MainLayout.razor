@@ -30,8 +30,12 @@
     @if (_loading)
     {
         <div class="d-flex justify-center">
-            <MudProgressCircular Class="d-flex flex-row align-center" Size="Size.Large" Indeterminate="true" Color="Color.Primary"/>
-            <MudText Class="d-flex flex-row align-center">Daten werden Geladen</MudText>
+            <div>
+                <MudProgressCircular Class="align-center" Size="Size.Large" Indeterminate="true" Color="Color.Primary"/>
+            </div>
+            <div>
+                <MudText Class="align-center">Daten werden Geladen</MudText>
+            </div>
         </div>
     }
     else if (!string.IsNullOrWhiteSpace(_error))

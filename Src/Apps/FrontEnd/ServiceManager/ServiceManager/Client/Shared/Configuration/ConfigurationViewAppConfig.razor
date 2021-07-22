@@ -1,0 +1,27 @@
+﻿@using ServiceHost.Client.Shared.ConfigurationServer.Data
+@inherits PropertyChangedComponent
+
+@inject ConfigurationViewAppConfigModel _model
+
+<div class="d-flex flex-row justify-center ma-1">
+    <MudText Typo="Typo.h3">Anwendungen Konfiguration</MudText>
+</div>
+
+@if (_model.IsEditing)
+{
+
+}
+else
+{
+    
+}
+
+@code {
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await Track(_model);
+        await base.OnInitializedAsync();
+    }
+
+}
