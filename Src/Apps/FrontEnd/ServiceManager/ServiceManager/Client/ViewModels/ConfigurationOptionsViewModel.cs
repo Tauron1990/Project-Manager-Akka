@@ -3,12 +3,10 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Akka.Util.Internal;
 using Microsoft.AspNetCore.SignalR.Client;
 using MudBlazor;
-using ServiceManager.Client.Components.Operations;
 using ServiceManager.Client.Shared.Dialog;
 using ServiceManager.Shared.Api;
 using Tauron.Application;
@@ -43,16 +41,14 @@ namespace ServiceManager.Client.ViewModels
             _connection = connection;
         }
 
-        public async Task LoadAsyncFor(string name, IOperationManager manager)
+        public async Task LoadAsyncFor(string name)
         {
             OnPropertyChangedExplicit("All");
             try
             {
                 if (_elements.TryGetValue(name, out var element) && !element.Error)
                     return;
-
-                using (manager.Start())
-                {
+                
                     var response = await _connection.InvokeAsync<ConfigOptionList>(nameof(ConfigurationRestApi.GetConfigFileOptions), name);
 
                     if (response == null)
@@ -62,7 +58,6 @@ namespace ServiceManager.Client.ViewModels
                     }
 
                     _elements[name] = new OptionElement(false, string.Empty, response.Options.Select(co => new MutableConfigOption(co)).ToArray());
-                }
             }
             catch (Exception e)
             {

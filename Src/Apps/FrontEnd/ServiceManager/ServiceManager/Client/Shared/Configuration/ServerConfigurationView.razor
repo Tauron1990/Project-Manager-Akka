@@ -1,0 +1,34 @@
+﻿@using ServiceManager.Shared.ServiceDeamon
+@using Tauron
+@inherits PropertyChangedComponent
+
+@inject IServerConfigurationApi _api
+@inject AppConfigurationViewModel _viewModel
+
+<div class="d-flex justify-center">
+    <MudPaper Class="d-flex ma-3 pa-3>
+        @if (!_loading)
+        {
+            <MudCheckBox Class="d-flex d-inline-flex ma-1" T="Boolean" Checked="_viewModel.MonitorChanges" CheckedChanged="_viewModel.SetMonitorChanges">Änderungen Übserwachen</MudCheckBox>
+            <MudCheckBox Class="d-flex d-inline-flex ma-1" T="Boolean" Checked="_viewModel.RestartServices" CheckedChanged="_viewModel.SetRestartServices">Services Neustarten</MudCheckBox>
+        }
+        else
+        {
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
+        }
+    </MudPaper>
+</div>
+
+@code {
+
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _viewModel.DisposeWith(this);
+        await Track(_api);
+        await Track(_viewModel);
+        _loading = false;
+    }
+
+}

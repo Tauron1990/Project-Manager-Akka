@@ -53,8 +53,8 @@ namespace Tauron.AkkaHost
                 _builder = builder;
                 
                 _containerBuilder.RegisterModule<CommonModule>();
-                _containerBuilder.RegisterInstance(_holder);
-                _containerBuilder.Register(c => c.Resolve<ActorSystemHolder>().System);
+                _containerBuilder.RegisterInstance(_holder).SingleInstance();
+                _containerBuilder.Register(c => c.Resolve<ActorSystemHolder>().System).SingleInstance();
             }
 
             public IActorApplicationBuilder ConfigureAutoFac(Action<ContainerBuilder> config)

@@ -6,46 +6,30 @@
 <MudExpansionPanels Class="flex-grow-1 flex-shrink-0">
     <MudExpansionPanel Text="Akka" IsExpandedChanged="AkkaOpen">
         <MudButton OnClick="@(async () => await _model.ShowConfigFile(ConfigurationRestApi.ModuleName.Akka))">Standart Datei Anzeigen</MudButton>
-        <OperationHost Manager="_akkaManager">
-            <OptionElementRenderer OptionSelected="OptionSelectCallback" Element="_model.Akka"/>
-        </OperationHost>
+        <OptionElementRenderer OptionSelected="OptionSelectCallback" Element="_model.Akka"/>
     </MudExpansionPanel>
     <MudExpansionPanel Text="Akka Remote" IsExpandedChanged="RemoteOpen">
         <MudButton OnClick="@(async () => await _model.ShowConfigFile(ConfigurationRestApi.ModuleName.AkkaRemote))">Standart Datei Anzeigen</MudButton>
-        <OperationHost Manager="_remoteManager">
-            <OptionElementRenderer OptionSelected="OptionSelectCallback" Element="_model.AkkaRemote"/>
-        </OperationHost>
+        <OptionElementRenderer OptionSelected="OptionSelectCallback" Element="_model.AkkaRemote"/>
     </MudExpansionPanel>
     <MudExpansionPanel Text="Akka Cluster" IsExpandedChanged="ClusterOpen">
         <MudButton OnClick="@(async () => await _model.ShowConfigFile(ConfigurationRestApi.ModuleName.AkkaCluster))">Standart Datei Anzeigen</MudButton>
-        <OperationHost Manager="_clusterManager">
-            <OptionElementRenderer OptionSelected="OptionSelectCallback" Element="_model.AkkaCluster"/>
-        </OperationHost>
+        <OptionElementRenderer OptionSelected="OptionSelectCallback" Element="_model.AkkaCluster"/>
     </MudExpansionPanel>
     <MudExpansionPanel Text="Akka Persistence" IsExpandedChanged="PersistenceOpen">
         <MudButton OnClick="@(async () => await _model.ShowConfigFile(ConfigurationRestApi.ModuleName.AkkaPersistence))">Standart Datei Anzeigen</MudButton>
-        <OperationHost Manager="_persistenceManager">
-            <OptionElementRenderer OptionSelected="OptionSelectCallback" Element="_model.AkkaPersistence"/>
-        </OperationHost>
+        <OptionElementRenderer OptionSelected="OptionSelectCallback" Element="_model.AkkaPersistence"/>
     </MudExpansionPanel>
     <MudExpansionPanel Text="Akka Streams" IsExpandedChanged="StreamsOpen">
         <MudButton OnClick="@(async () => await _model.ShowConfigFile(ConfigurationRestApi.ModuleName.AkkaStreams))">Standart Datei Anzeigen</MudButton>
-        <OperationHost Manager="_streamsManager">
-            <OptionElementRenderer OptionSelected="OptionSelectCallback" Element="_model.AkkaStreams"/>
-        </OperationHost>
+        <OptionElementRenderer OptionSelected="OptionSelectCallback" Element="_model.AkkaStreams"/>
     </MudExpansionPanel>
 </MudExpansionPanels>
 
 @code {
     [Parameter] 
     public EventCallback<OptionSelected> OptionSelectedEvent { get; set; }
-
-    private readonly IOperationManager _akkaManager = new OperationManager();
-    private readonly IOperationManager _remoteManager = new OperationManager();
-    private readonly IOperationManager _clusterManager = new OperationManager();
-    private readonly IOperationManager _persistenceManager = new OperationManager();
-    private readonly IOperationManager _streamsManager = new OperationManager();
-
+    
     protected override async Task OnInitializedAsync()
     {
         await Track(_model);
@@ -58,31 +42,32 @@
     private async void AkkaOpen(bool open)
     {
         if (open)
-            await _model.LoadAsyncFor(ConfigurationRestApi.ModuleName.Akka, _akkaManager);
+        {
+            await _model.LoadAsyncFor(ConfigurationRestApi.ModuleName.Akka);
+        }
     }
 
     private async void RemoteOpen(bool open)
     {
         if (open)
-            await _model.LoadAsyncFor(ConfigurationRestApi.ModuleName.AkkaRemote, _remoteManager);
+            await _model.LoadAsyncFor(ConfigurationRestApi.ModuleName.AkkaRemote);
     }
 
     private async void ClusterOpen(bool open)
     {
         if (open)
-            await _model.LoadAsyncFor(ConfigurationRestApi.ModuleName.AkkaCluster, _clusterManager);
+            await _model.LoadAsyncFor(ConfigurationRestApi.ModuleName.AkkaCluster);
     }
 
     private async void PersistenceOpen(bool open)
     {
         if (open)
-            await _model.LoadAsyncFor(ConfigurationRestApi.ModuleName.AkkaPersistence, _persistenceManager);
+            await _model.LoadAsyncFor(ConfigurationRestApi.ModuleName.AkkaPersistence);
     }
 
     private async void StreamsOpen(bool open)
     {
         if (open)
-            await _model.LoadAsyncFor(ConfigurationRestApi.ModuleName.AkkaStreams, _streamsManager);
+            await _model.LoadAsyncFor(ConfigurationRestApi.ModuleName.AkkaStreams);
     }
-
 }

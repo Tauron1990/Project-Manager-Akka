@@ -29,8 +29,10 @@
     
     @if (_loading)
     {
-        <MudProgressCircular Class="align-center" Size="Size.Large" Indeterminate="true" Color="Color.Primary"/>
-        <MudText Class="align-center">Daten werden Geladen</MudText>
+        <div class="d-flex justify-center">
+            <MudProgressCircular Class="d-flex flex-row align-center" Size="Size.Large" Indeterminate="true" Color="Color.Primary"/>
+            <MudText Class="d-flex flex-row align-center">Daten werden Geladen</MudText>
+        </div>
     }
     else if (!string.IsNullOrWhiteSpace(_error))
     {
@@ -108,11 +110,6 @@
             Console.WriteLine(e);
             _error = e.Message;
         }
-        finally
-        {
-            _loading = false;
-            StateHasChanged();
-        }
     }
 
     private async Task ReInit()
@@ -121,7 +118,6 @@
         await PropertyChangedComponent.Init(_lifetime);
         await PropertyChangedComponent.Init(_databaseConfig);
         await PropertyChangedComponent.Init(_cluster);
-        await InvokeAsync(StateHasChanged);
     }
 
     protected override async Task OnInitializedAsync()
@@ -141,7 +137,9 @@
             Console.WriteLine(e);
             throw;
         }
-        StateHasChanged();
+
+        _loading = false;
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task Track(INotifyPropertyChanged changed)
