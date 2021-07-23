@@ -1,0 +1,24 @@
+﻿@using MudBlazor.Utilities
+<div style="@_style.Build()" class="@_class.Build()">
+
+</div>
+
+@code {
+    private CssBuilder _class = CssBuilder.Empty();
+
+    private StyleBuilder _style = StyleBuilder.Empty();
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    [Parameter]
+    public string? Style { get; set; }
+    
+    protected override void OnParametersSet()
+    {
+        _style = StyleBuilder.Empty().AddStyle(Style);
+        _class = CssBuilder.Empty().AddClass(Class);
+        base.OnParametersSet();
+    }
+
+}

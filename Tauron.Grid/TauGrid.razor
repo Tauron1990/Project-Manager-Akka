@@ -1,0 +1,79 @@
+﻿@using MudBlazor.Utilities
+@using Tauron.Grid.Internal
+@using System.Collections.Immutable
+
+<CascadingValue Value="this">
+    
+    @if (!_isSet)
+    {
+        @Rows
+        @Columns
+    }
+    else
+    {
+        <div style="@_style.Build()" class="@_class.Build()">
+            @ChildContent
+        </div>
+    }
+</CascadingValue>
+
+@code {
+    private CssBuilder _class = CssBuilder.Empty();
+
+    private StyleBuilder _style = StyleBuilder.Empty();
+
+    private ImmutableArray<DefinitionBase> _definitions = ImmutableArray<DefinitionBase>.Empty;
+
+    private bool _isSet;
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    [Parameter]
+    public string? Style { get; set; }
+
+    [Parameter]
+    public bool IsInline { get; set; }
+
+    [Parameter]
+    public RenderFragment Rows { get; set; } = _ => { };
+
+    [Parameter]
+    public RenderFragment Columns { get; set; } = _ => { };
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; } = _ => { };
+
+    protected override void OnParametersSet()
+    {
+        _isSet = false;
+        _definitions = ImmutableArray<DefinitionBase>.Empty;
+
+        _style = IsInline ? StyleBuilder.Default("display", "inline-grid") : StyleBuilder.Default("display", "grid");
+        _style = _style.AddStyle(Style);
+
+        _class = CssBuilder.Empty().AddClass(Class);
+
+        base.OnParametersSet();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if(_isSet) return;
+        _isSet = true;
+
+        _style = _definitions.GroupBy(d => d.PropertyName)
+            .Aggregate(_style,
+                (s, g) => s.AddStyle(g.Key, g.Aggregate(string.Empty, (ss, d) => $"{ss} {d.Render()}")));
+
+        StateHasChanged();
+        base.OnAfterRender(firstRender);
+    }
+
+    internal void RegisterDefinition(DefinitionBase definition)
+    {
+        if(_isSet) return;
+
+        _definitions = _definitions.Add(definition);
+    }
+}

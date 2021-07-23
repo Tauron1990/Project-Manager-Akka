@@ -1,0 +1,9 @@
+﻿@inherits Tauron.Grid.Internal.DefinitionBase
+
+@code {
+    [Parameter]
+    public int Height { get; set; } = 1;
+
+    protected internal override string PropertyName => "grid-template-rows";
+    protected override int Value => Height;
+}
