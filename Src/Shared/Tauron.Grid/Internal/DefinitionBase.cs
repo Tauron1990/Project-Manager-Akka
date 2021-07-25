@@ -5,23 +5,20 @@ namespace Tauron.Grid.Internal
     public abstract class DefinitionBase : ComponentBase
     {
         [Parameter]
-        public CSSUnit Unit { get; set; } = CSSUnit.Fraction;
-
-        [Parameter]
         public string? Name { get; set; }
 
         [Parameter]
         public string? Custom { get; set; }
 
         [Parameter]
-        public 
+        public bool IsAuto { get; set; }
 
         [CascadingParameter]
         public TauGrid? Grid { get; set; }
 
         protected internal abstract string PropertyName { get; }
 
-        protected abstract int Value { get; }
+        protected abstract Lenght Value { get; }
 
         protected override void OnParametersSet()
         {
@@ -30,10 +27,13 @@ namespace Tauron.Grid.Internal
         }
 
         internal string Render()
-            => string.IsNullOrWhiteSpace(Custom)
+        {
+            if (IsAuto) return "auto";
+            return string.IsNullOrWhiteSpace(Custom)
                 ? string.IsNullOrWhiteSpace(Name)
-                    ? Converter.ToCss(Value, Unit)
-                    : $"[{Name}] {Converter.ToCss(Value, Unit)}"
+                    ? Value.ToString()
+                    : $"[{Name}] {Value}"
                 : Custom;
+        }
     }
 }

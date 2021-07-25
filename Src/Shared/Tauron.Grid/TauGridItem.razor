@@ -1,0 +1,46 @@
+﻿@using MudBlazor.Utilities
+@using Tauron.Grid.Internal
+<div style="@_style.Build()" class="@_class.Build()">
+    @ChildContent
+</div>
+
+@code {
+    private CssBuilder _class = CssBuilder.Empty();
+
+    private StyleBuilder _style = StyleBuilder.Empty();
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    [Parameter]
+    public string? Style { get; set; }
+    
+    [Parameter]
+    public GridPosition Position { get; set; }
+
+    [Parameter]
+    public string? Area { get; set; }
+
+    [Parameter]
+    public GridAlign Justify { get; set; }
+
+    [Parameter]
+    public GridAlign Align { get; set; }
+
+    [Parameter]
+    public GridAlign Place { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        _style = Position.Build(StyleBuilder.Empty().AddStyle(Style))
+                         .AddStyle("grid-area", Area, !string.IsNullOrWhiteSpace(Area))
+                         .AddStyle("justify-self", Justify).AddStyle("align-self", Align).AddStyle("place-self", Place);
+
+        _class = CssBuilder.Empty().AddClass(Class);
+        base.OnParametersSet();
+    }
+
+}

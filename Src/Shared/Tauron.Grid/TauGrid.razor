@@ -1,0 +1,131 @@
+﻿@using MudBlazor.Utilities
+@using Tauron.Grid.Internal
+@using System.Collections.Immutable
+
+<CascadingValue Value="this">
+    
+    @if (!_isSet)
+    {
+        @Rows
+        @Columns
+        @GridTemplate
+    }
+    else
+    {
+        <div style="@_style.Build()" class="@_class.Build()">
+            @Items
+        </div>
+    }
+</CascadingValue>
+
+@code {
+    private CssBuilder _class = CssBuilder.Empty();
+
+    private StyleBuilder _style = StyleBuilder.Empty();
+
+    private ImmutableArray<DefinitionBase> _definitions = ImmutableArray<DefinitionBase>.Empty;
+    private ImmutableArray<GridTemplateRow> _templateRows = ImmutableArray<GridTemplateRow>.Empty;
+
+    private bool _isSet;
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    [Parameter]
+    public string? Style { get; set; }
+
+    [Parameter]
+    public bool IsInline { get; set; }
+
+    [Parameter]
+    public Lenght ColumnGap { get; set; }
+
+    [Parameter]
+    public Lenght RowGap { get; set; }
+
+    [Parameter]
+    public Lenght AutoColumns { get; set; }
+
+    [Parameter]
+    public Lenght AutoRows { get; set; }
+
+    [Parameter]
+    public GridAlign JustifyItems { get; set; }
+
+    [Parameter]
+    public GridAlign AlignItems { get; set; }
+
+    [Parameter]
+    public GridAlign PlaceItems { get; set; }
+
+    [Parameter]
+    public GridAlignExt JustifyContent { get; set; }
+
+    [Parameter]
+    public GridAlignExt AlignContent { get; set; }
+
+    [Parameter]
+    public GridAlignExt PlaceContent { get; set; }
+
+    [Parameter]
+    public AutoFlow AutoFlow { get; set; }
+
+    [Parameter]
+    public RenderFragment Rows { get; set; } = _ => { };
+
+    [Parameter]
+    public RenderFragment Columns { get; set; } = _ => { };
+
+    [Parameter]
+    public RenderFragment Items { get; set; } = _ => { };
+
+    [Parameter]
+    public RenderFragment GridTemplate { get; set; } = _ => { };
+
+    protected override void OnParametersSet()
+    {
+        _isSet = false;
+        _definitions = ImmutableArray<DefinitionBase>.Empty;
+        _templateRows = ImmutableArray<GridTemplateRow>.Empty;
+
+        _style = IsInline ? StyleBuilder.Default("display", "inline-grid") : StyleBuilder.Default("display", "grid");
+        _style = _style.AddStyle(Style)
+                       .AddStyle("row-gap", RowGap).AddStyle("column-gap", ColumnGap)
+                       .AddStyle("justify-items", JustifyItems).AddStyle("align-items", AlignItems).AddStyle("place-items", PlaceItems)
+                       .AddStyle("justify-content", JustifyContent).AddStyle("align-content", AlignContent).AddStyle("place-content", PlaceContent)
+                       .AddStyle("grid-auto-columns", AutoColumns).AddStyle("grid-auto-rows", AutoRows)
+                       .AddStyle("grid-auto-flow", AutoFlow);
+
+        _class = CssBuilder.Empty().AddClass(Class);
+
+        base.OnParametersSet();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if(_isSet) return;
+        _isSet = true;
+
+        _style = _definitions.GroupBy(d => d.PropertyName)
+            .Aggregate(_style,
+                (s, g) => s.AddStyle(g.Key, g.Aggregate(string.Empty, (ss, d) => $"{ss} {d.Render()}")))
+            .AddStyle("grid-template-areas", _templateRows.Aggregate(string.Empty, (s, row) => $"{s} \"{row.Def}\" \n"));
+
+
+        InvokeAsync(StateHasChanged);
+        base.OnAfterRender(firstRender);
+    }
+
+    internal void RegisterTemplate(GridTemplateRow row)
+    {
+        if(_isSet) return;
+        _templateRows = _templateRows.Add(row);
+    }
+
+    internal void RegisterDefinition(DefinitionBase definition)
+    {
+        if(_isSet) return;
+
+        _definitions = _definitions.Add(definition);
+    }
+}

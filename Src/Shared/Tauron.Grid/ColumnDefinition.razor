@@ -2,8 +2,8 @@
 
 @code {
     [Parameter]
-    public int Width { get; set; } = 1;
+    public Lenght Width { get; set; } = Lenght.FromFraction(1);
 
     protected internal override string PropertyName => "grid-template-columns";
-    protected override int Value => Width;
+    protected override Lenght Value => Width;
 }

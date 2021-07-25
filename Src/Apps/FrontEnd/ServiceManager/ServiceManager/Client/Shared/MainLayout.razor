@@ -29,13 +29,9 @@
     
     @if (_loading)
     {
-        <div class="d-flex justify-center">
-            <div>
-                <MudProgressCircular Class="align-center" Size="Size.Large" Indeterminate="true" Color="Color.Primary"/>
-            </div>
-            <div>
-                <MudText Class="align-center">Daten werden Geladen</MudText>
-            </div>
+        <div class="d-flex justify-center flex-row">
+            <MudProgressCircular Class="align-center" Size="Size.Large" Indeterminate="true" Color="Color.Primary"/>
+            <MudText Class="align-center">Daten werden Geladen</MudText>
         </div>
     }
     else if (!string.IsNullOrWhiteSpace(_error))
