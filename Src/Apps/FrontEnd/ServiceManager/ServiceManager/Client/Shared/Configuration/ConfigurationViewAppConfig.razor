@@ -3,23 +3,39 @@
 
 @inject ConfigurationViewAppConfigModel _model
 
-<div class="d-flex flex-row justify-center ma-1">
-    <MudText Typo="Typo.h3">Anwendungen Konfiguration</MudText>
-</div>
-
 @if (_model.IsEditing)
 {
 
 }
 else
 {
-    <MudTable Items="@_model.AppConfigs" Hover="true">
-
+    <MudTable Items="@_model.AppConfigs" Hover="true" Loading="_model.IsLoading" SelectedItem="_selected">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Anwendungen Konfiguration</MudText>
+            <MudSpacer/>
+            <MudButton Class="ma-2">Neu</MudButton>
+            <MudButton Class="ma-2">Löschen</MudButton>
+            <MudSpacer/>
+            <MudButton Class="ma-2">Beabeiten</MudButton>
+            <MudSpacer/>
+        </ToolBarContent>
+        <ColGroup>
+            <col style="width: 100px"/>
+            <col style="width: 100px"/>
+            <col style="width: 100px"/>
+            <col/>
+            <col style="width: 50px"/>
+        </ColGroup>
+        <HeaderContent>
+            <MudTh>Id</MudTh>
+        </HeaderContent>
     </MudTable>
 }
 
 @code {
-    
+
+    private AppConfigModel? _selected;
+
     protected override async Task OnInitializedAsync()
     {
         await Track(_model);

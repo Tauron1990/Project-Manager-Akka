@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
-using ServiceHost.Client.Shared.ConfigurationServer.Data;
 using ServiceManager.Client.Components;
 using ServiceManager.Shared.ServiceDeamon;
 using Tauron.Application;
@@ -12,7 +12,7 @@ namespace ServiceManager.Client.ViewModels
         private readonly IServerConfigurationApi _api;
         private bool _isEditing;
         private bool _isLoading;
-        private IEnumerable<SpecificConfig> _appConfigs;
+        private IEnumerable<AppConfigModel> _appConfigs;
 
         public bool IsEditing
         {
@@ -26,7 +26,7 @@ namespace ServiceManager.Client.ViewModels
             private set => SetProperty(ref _isLoading, value);
         }
 
-        public IEnumerable<SpecificConfig> AppConfigs
+        public IEnumerable<AppConfigModel> AppConfigs
         {
             get => _appConfigs;
             private set => SetProperty(ref _appConfigs, value);
@@ -35,6 +35,7 @@ namespace ServiceManager.Client.ViewModels
         public ConfigurationViewAppConfigModel(IServerConfigurationApi api)
         {
             _api = api;
+            _appConfigs = Enumerable.Empty<AppConfigModel>();
         }
 
         public Task Init() => PropertyChangedComponent.Init(_api);
