@@ -21,7 +21,7 @@ namespace ServiceManager.Server.AppCore
         TData Get();
     }
 
-    public class ResourceHoldingObject : ObservableObject, IDisposable, IResourceHolder
+    public abstract class ResourceHoldingObject : ObservableObject, IDisposable, IResourceHolder
     {
         private readonly SemaphoreSlim _resourceLock = new(1);
         private readonly CompositeDisposable _disposable = new();
@@ -49,7 +49,7 @@ namespace ServiceManager.Server.AppCore
             return new InternalResource<TData>(value, _resourceLock, setter);
         }
 
-        public void Dispose() => _disposable.Dispose();
+        public virtual void Dispose() => _disposable.Dispose();
 
         void IResourceHolder.AddResource(IDisposable res) => _disposable.Add(res);
 

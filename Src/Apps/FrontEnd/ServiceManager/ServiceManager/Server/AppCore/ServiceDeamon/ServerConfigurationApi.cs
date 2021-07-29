@@ -19,38 +19,28 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
     {
         private readonly ConfigurationApi _api;
         private readonly ActorSystem _system;
-        private readonly IPropertyChangedNotifer _notifer;
         private readonly IProcessServiceHost _processService;
         private readonly ILogger<ServerConfigurationApi> _log;
+        private readonly IResource<GlobalConfig> _globalConfig;
+        private readonly IResource<ServerConfigugration> _serverConfigugration;
 
-        private bool _isGlobalInitialized;
-        private IResource<GlobalConfig> _globalConfig;
-        private bool _isServiceConfigInitialized;
-        private IResource<ServerConfigugration> _serverConfigugration;
+        public GlobalConfig GlobalConfig => _globalConfig.Get();
 
-        public GlobalConfig GlobalConfig
-        {
-            get => _globalConfig.Get();
-        }
-
-        public ServerConfigugration ServerConfigugration
-        {
-            get => _serverConfigugration.Get();
-        }
+        public ServerConfigugration ServerConfigugration => _serverConfigugration.Get();
 
         public ServerConfigurationApi(ConfigurationApi api, ActorSystem system, ConfigEventDispatcher dispatcher, IPropertyChangedNotifer notifer, 
             IProcessServiceHost processService, ILogger<ServerConfigurationApi> log)
         {
             _api = api;
             _system = system;
-            _notifer = notifer;
+            IPropertyChangedNotifer notifer1 = notifer;
             _processService = processService;
             _log = log;
 
             _globalConfig = CreateResource(
                 new GlobalConfig(string.Empty, string.Empty), 
                 nameof(GlobalConfig), 
-                () => _notifer.SendPropertyChanged<IServerConfigurationApi>(nameof(GlobalConfig)));
+                () => notifer1.SendPropertyChanged<IServerConfigurationApi>(nameof(GlobalConfig)));
 
             (from evt in dispatcher.Get().OfType<GlobalConfigEvent>()
              from r in _globalConfig.Set(evt.Action == ConfigDataAction.Delete
@@ -63,57 +53,49 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
             _serverConfigugration = CreateResource(
                 new ServerConfigugration(false, false, string.Empty),
                 nameof(ServerConfigugration),
-                () => _notifer.SendPropertyChanged<IServerConfigurationApi>(nameof(ServerConfigugration)));
+                () => notifer1.SendPropertyChanged<IServerConfigurationApi>(nameof(ServerConfigugration)));
 
             (from evt in dispatcher.Get().OfType<ServerConfigurationEvent>()
-             from r in _serverConfigugration.Set(evt.Configugration) 
+             from r in _serverConfigugration.Set(evt.Configugration)
              select r)
                .AutoSubscribe(e => log.LogError(e, "Error on"))
+               .DisposeWith(this);
         }
 
-        public async Task<GlobalConfig> QueryConfig()
-        {
-            if (_isGlobalInitialized)
-                return GlobalConfig;
+        public Task<GlobalConfig> QueryConfig()
+            => _globalConfig.Init(async () =>
+                                  {
 
-            try
-            {
-                await EnsureConfigAlive();
+                                      try
+                                      {
+                                          await EnsureConfigAlive();
 
-                GlobalConfig = await _api.Query<QueryGlobalConfig, GlobalConfig>(TimeSpan.FromSeconds(10));
+                                          return await _api.Query<QueryGlobalConfig, GlobalConfig>(TimeSpan.FromSeconds(10));
+                                      }
+                                      catch (Exception e)
+                                      {
+                                          _log.LogError(e, "Error on Query Global Config");
+                                          if (e.Message == ConfigError.NoGlobalConfigFound)
+                                              return new GlobalConfig(string.Empty, null);
+                                          throw;
+                                      }
+                                  });
 
-                _isGlobalInitialized = true;
-                return GlobalConfig;
-            }
-            catch (Exception e)
-            {
-                _Log.Error(e, "Error on Query Global Config");
-                if (e.Message == ConfigError.NoGlobalConfigFound)
-                    return new GlobalConfig(string.Empty, null);
-                throw;
-            }
-        }
+        public Task<ServerConfigugration> QueryServerConfig()
+            => _serverConfigugration.Init(async () =>
+                                          {
+                                              try
+                                              {
+                                                  await EnsureConfigAlive();
 
-        public async Task<ServerConfigugration> QueryServerConfig()
-        {
-            if (_isServiceConfigInitialized)
-                return ServerConfigugration;
-
-            try
-            {
-                await EnsureConfigAlive();
-
-                ServerConfigugration = await _api.Query<QueryServerConfiguration, ServerConfigugration>(TimeSpan.FromSeconds(10));
-
-                _isServiceConfigInitialized = true;
-                return ServerConfigugration;
-            }
-            catch (Exception e)
-            {
-                Log.Error(e, "Error on Query ServerConfiguration");
-                throw;
-            }
-        }
+                                                  return await _api.Query<QueryServerConfiguration, ServerConfigugration>(TimeSpan.FromSeconds(10));
+                                              }
+                                              catch (Exception e)
+                                              {
+                                                  _log.LogError(e, "Error on Query ServerConfiguration");
+                                                  throw;
+                                              }
+                                          });
 
         private async Task EnsureConfigAlive()
         {
@@ -166,7 +148,5 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
 
             return string.Empty;
         }
-
-        public void Dispose() => _subscriptions.Dispose();
     }
 }
