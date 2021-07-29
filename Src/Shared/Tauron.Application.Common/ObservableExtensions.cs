@@ -265,7 +265,7 @@ namespace Tauron
 
         public static IDisposable AutoSubscribe<TData>(this IObservable<TData> obs, Action<TData> onNext, Action<Exception> onError, Action onCompled, Func<Exception, bool>? errorHandler = null, ISubscriptionStrategy? strategy = null)
             => AutoSubscribe(obs, Observer.Create(onNext, onError, onCompled), errorHandler, strategy);
-        public static IDisposable AutoSubscribe<TData>(this IObservable<TData> obs, Func<Exception, bool>? errorHandler = null, ISubscriptionStrategy? strategy = null)
+        public static IDisposable AutoSubscribe<TData>(this IObservable<TData> obs, Func<Exception, bool>? errorHandler, ISubscriptionStrategy? strategy = null)
             => AutoSubscribe(obs, Observer.Create<TData>(_ => {}), errorHandler, strategy);
         public static IDisposable AutoSubscribe<TData>(this IObservable<TData> obs, Action<TData> onNext, Action onCompled, Func<Exception, bool>? errorHandler = null, ISubscriptionStrategy? strategy = null)
             => AutoSubscribe(obs, Observer.Create(onNext, _ => {}, onCompled), errorHandler, strategy);

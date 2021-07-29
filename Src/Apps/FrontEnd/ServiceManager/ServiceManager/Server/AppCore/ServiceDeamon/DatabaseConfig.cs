@@ -14,13 +14,12 @@ using ServiceManager.Server.Properties;
 using ServiceManager.Shared.ClusterTracking;
 using ServiceManager.Shared.ServiceDeamon;
 using Tauron;
-using Tauron.Application;
 using Tauron.Application.AkkaNode.Services.Reporting;
 using Tauron.Application.Master.Commands.Administration.Configuration;
 
 namespace ServiceManager.Server.AppCore.ServiceDeamon
 {
-    public class DatabaseConfig : ObservableObject, IDatabaseConfig, IDisposable
+    public class DatabaseConfig : ResourceHoldingObject, IDatabaseConfig
     {
         private readonly ILocalConfiguration _configuration;
         private readonly IPropertyChangedNotifer _notifer;
@@ -28,24 +27,23 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
         private readonly IClusterConnectionTracker _tracker;
         private readonly ActorSystem _system;
         private readonly IProcessServiceHost _processServiceHost;
-        private readonly IDisposable _subscription;
+        private readonly IResource<string> _url;
 
-        private string _url = string.Empty;
-
-        public string Url
-        {
-            get => _url;
-            private set => SetProperty(ref _url, value);
-        }
+        public string Url => _url.Get();
 
         public bool IsReady { get; }
 
         public DatabaseConfig(ILocalConfiguration configuration, IPropertyChangedNotifer notifer, ConfigurationApi configurationApi, IClusterConnectionTracker tracker, ActorSystem system,
             ConfigEventDispatcher eventDispatcher, IProcessServiceHost processServiceHost)
         {
-            _subscription = eventDispatcher.Get().OfType<ServerConfigurationEvent>().Select(evt => evt.Configugration)
-                                           .Where(sc => !_url.Equals(sc.Database, StringComparison.Ordinal))
-                                           .AutoSubscribe(sc => Url = sc.Database);
+            _url = CreateResource(configuration.DatabaseUrl, nameof(Url));
+
+            (from evt in eventDispatcher.Get().OfType<ServerConfigurationEvent>()
+             let config = evt.Configugration
+             where !Url.Equals(config.Database, StringComparison.Ordinal)
+             from r in _url.Set(config.Database)
+             select r).AutoSubscribe()
+                      .DisposeWith(this);
 
             _configuration = configuration;
             _notifer = notifer;
@@ -53,7 +51,6 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
             _tracker = tracker;
             _system = system;
             _processServiceHost = processServiceHost;
-            Url = _configuration.DatabaseUrl;
             IsReady = !string.IsNullOrWhiteSpace(Url);
         }
 
@@ -86,7 +83,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
                     }
                 }
 
-                Url = url;
+                await _url.Set(url);
                 var targetFile = AkkaConfigurationBuilder.Main.FileInAppDirectory();
                 var config = targetFile.ReadTextIfExis();
 
@@ -127,7 +124,5 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
                 return new UrlResult(e.Message, false);
             }
         }
-
-        public void Dispose() => _subscription.Dispose();
     }
 }

@@ -103,7 +103,7 @@ namespace Tauron.Features
 
         void IResourceHolder.AddResource(IDisposable res) => _actor.AddResource(res);
 
-        void IResourceHolder.RemoveResources(IDisposable res) => _actor.RemoveResources(res);
+        void IResourceHolder.RemoveResource(IDisposable res) => _actor.RemoveResource(res);
 
         protected IObservable<TType> SyncActor<TType>(TType element)
             => Observable.Return(element, ActorScheduler.From(Self));

@@ -234,7 +234,7 @@ namespace Tauron.Features
 
             void IResourceHolder.AddResource(IDisposable res) => _actor?.AddResource(res);
 
-            void IResourceHolder.RemoveResources(IDisposable res) => _actor?.RemoveResources(res);
+            void IResourceHolder.RemoveResource(IDisposable res) => _actor?.RemoveResource(res);
         }
     }
 
@@ -291,7 +291,7 @@ namespace Tauron.Features
 
             public void AddResource(IDisposable res) => _feature.AddResource(res);
 
-            public void RemoveResources(IDisposable res) => _feature.RemoveResources(res);
+            public void RemoveResource(IDisposable res) => _feature.RemoveResource(res);
         }
 
         private sealed class StateDelegator<TTarget, TOriginal> : IFeatureActor<TTarget>
@@ -376,7 +376,7 @@ namespace Tauron.Features
 
             public void AddResource(IDisposable res) => _original.AddResource(res);
 
-            public void RemoveResources(IDisposable res) => _original.RemoveResources(res);
+            public void RemoveResource(IDisposable res) => _original.RemoveResource(res);
         }
     }
 }

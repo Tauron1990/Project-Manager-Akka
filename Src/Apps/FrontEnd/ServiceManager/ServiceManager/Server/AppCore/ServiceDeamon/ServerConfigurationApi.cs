@@ -3,61 +3,72 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Akka.Actor;
+using Microsoft.Extensions.Logging;
 using NLog;
 using ServiceHost.Client.Shared.ConfigurationServer;
 using ServiceHost.Client.Shared.ConfigurationServer.Data;
 using ServiceHost.Client.Shared.ConfigurationServer.Events;
 using ServiceManager.Server.AppCore.Helper;
 using ServiceManager.Shared.ServiceDeamon;
+using Tauron;
 using Tauron.Application;
 
 namespace ServiceManager.Server.AppCore.ServiceDeamon
 {
-    public sealed class ServerConfigurationApi : ObservableObject, IServerConfigurationApi, IDisposable
+    public sealed class ServerConfigurationApi : ResourceHoldingObject, IServerConfigurationApi
     {
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-
         private readonly ConfigurationApi _api;
         private readonly ActorSystem _system;
         private readonly IPropertyChangedNotifer _notifer;
         private readonly IProcessServiceHost _processService;
-        private readonly IDisposable _subscriptions;
+        private readonly ILogger<ServerConfigurationApi> _log;
 
         private bool _isGlobalInitialized;
-        private GlobalConfig _globalConfig = new(string.Empty, string.Empty);
+        private IResource<GlobalConfig> _globalConfig;
         private bool _isServiceConfigInitialized;
-        private ServerConfigugration _serverConfigugration = new(false, false, string.Empty);
+        private IResource<ServerConfigugration> _serverConfigugration;
 
         public GlobalConfig GlobalConfig
         {
-            get => _globalConfig;
-            set => SetProperty(ref _globalConfig, value, () => _notifer.SendPropertyChanged<IServerConfigurationApi>(nameof(GlobalConfig)));
+            get => _globalConfig.Get();
         }
 
         public ServerConfigugration ServerConfigugration
         {
-            get => _serverConfigugration;
-            set => SetProperty(ref _serverConfigugration, value, () => _notifer.SendPropertyChanged<IServerConfigurationApi>(nameof(ServerConfigugration)));
+            get => _serverConfigugration.Get();
         }
 
-        public ServerConfigurationApi(ConfigurationApi api, ActorSystem system, ConfigEventDispatcher dispatcher, IPropertyChangedNotifer notifer, IProcessServiceHost processService)
+        public ServerConfigurationApi(ConfigurationApi api, ActorSystem system, ConfigEventDispatcher dispatcher, IPropertyChangedNotifer notifer, 
+            IProcessServiceHost processService, ILogger<ServerConfigurationApi> log)
         {
             _api = api;
             _system = system;
             _notifer = notifer;
             _processService = processService;
-            _subscriptions = new CompositeDisposable(
-                dispatcher.Get()
-                          .OfType<GlobalConfigEvent>()
-                          .Subscribe(gce =>
-                                     {
-                                         GlobalConfig = gce.Action == ConfigDataAction.Delete
-                                             ? new GlobalConfig(string.Empty, string.Empty)
-                                             : gce.Config;
-                                     }),
-                dispatcher.Get()
-                          .OfType<ServerConfigurationEvent>()
-                          .Subscribe(gce => ServerConfigugration = gce.Configugration));
+            _log = log;
+
+            _globalConfig = CreateResource(
+                new GlobalConfig(string.Empty, string.Empty), 
+                nameof(GlobalConfig), 
+                () => _notifer.SendPropertyChanged<IServerConfigurationApi>(nameof(GlobalConfig)));
+
+            (from evt in dispatcher.Get().OfType<GlobalConfigEvent>()
+             from r in _globalConfig.Set(evt.Action == ConfigDataAction.Delete
+                 ? new GlobalConfig(string.Empty, string.Empty)
+                 : evt.Config)
+             select r).AutoSubscribe(e => log.LogError(e, "Error on Update Global Configuration"))
+                      .DisposeWith(this);
+
+
+            _serverConfigugration = CreateResource(
+                new ServerConfigugration(false, false, string.Empty),
+                nameof(ServerConfigugration),
+                () => _notifer.SendPropertyChanged<IServerConfigurationApi>(nameof(ServerConfigugration)));
+
+            (from evt in dispatcher.Get().OfType<ServerConfigurationEvent>()
+             from r in _serverConfigugration.Set(evt.Configugration) 
+             select r)
+               .AutoSubscribe(e => log.LogError(e, "Error on"))
         }
 
         public async Task<GlobalConfig> QueryConfig()
@@ -76,7 +87,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
             }
             catch (Exception e)
             {
-                Log.Error(e, "Error on Query Global Config");
+                _Log.Error(e, "Error on Query Global Config");
                 if (e.Message == ConfigError.NoGlobalConfigFound)
                     return new GlobalConfig(string.Empty, null);
                 throw;

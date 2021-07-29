@@ -15,6 +15,6 @@ namespace Tauron.Application.Blazor
 
         void IResourceHolder.AddResource(IDisposable res) => _disposer.Add(res);
 
-        void IResourceHolder.RemoveResources(IDisposable res) => _disposer.Remove(res);
+        void IResourceHolder.RemoveResource(IDisposable res) => _disposer.Remove(res);
     }
 }
