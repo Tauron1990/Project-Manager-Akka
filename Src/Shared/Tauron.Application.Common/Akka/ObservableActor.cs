@@ -16,7 +16,7 @@ namespace Tauron.Akka
     public interface IResourceHolder : IDisposable
     {
         void AddResource(IDisposable res);
-        void RemoveResources(IDisposable res);
+        void RemoveResource(IDisposable res);
     }
 
     [PublicAPI]
@@ -85,7 +85,7 @@ namespace Tauron.Akka
 
         public void AddResource(IDisposable res) => _resources.Add(res);
 
-        public void RemoveResources(IDisposable res) => _resources.Remove(res);
+        public void RemoveResource(IDisposable res) => _resources.Remove(res);
 
         public void Receive<TEvent>(Func<IObservable<TEvent>, IObservable<Unit>> handler)
             => AddResource(new ObservableInvoker<TEvent, Unit>(handler, ThrowError, GetSelector<TEvent>()).Construct());

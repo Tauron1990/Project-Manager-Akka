@@ -5,9 +5,9 @@ namespace ServiceManager.Shared.ServiceDeamon
 {
     public interface IServerConfigurationApi : IInternalObject
     {
-        GlobalConfig GlobalConfig { get; set; }
+        GlobalConfig GlobalConfig { get; }
 
-        ServerConfigugration ServerConfigugration { get; set; }
+        ServerConfigugration ServerConfigugration { get; }
 
         Task<GlobalConfig> QueryConfig();
 

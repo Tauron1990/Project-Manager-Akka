@@ -11,7 +11,7 @@ namespace ServiceManager.Client.Components
 
         public void AddResource(IDisposable disposable) => _disposables.Add(disposable);
 
-        public void RemoveResources(IDisposable res) => _disposables.Remove(res);
+        public void RemoveResource(IDisposable res) => _disposables.Remove(res);
 
         public virtual void Dispose() => _disposables.Dispose();
     }
