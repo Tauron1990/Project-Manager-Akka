@@ -1,4 +1,7 @@
 ﻿@using ServiceHost.Client.Shared.ConfigurationServer.Data
+@using System.Reflection
+@using Akka.Util.Internal
+@using Tauron
 @inherits PropertyChangedComponent
 
 @inject ConfigurationViewAppConfigModel _model
@@ -9,38 +12,70 @@
 }
 else
 {
-    <MudTable Items="@_model.AppConfigs" Hover="true" Loading="_model.IsLoading" SelectedItem="_selected">
+    <MudTable Items="@_model.AppConfigs" Hover="true" Loading="_model.IsLoading" @bind-SelectedItem="Selected">
         <ToolBarContent>
             <MudText Typo="Typo.h6">Anwendungen Konfiguration</MudText>
             <MudSpacer/>
             <MudButton Class="ma-2">Neu</MudButton>
-            <MudButton Class="ma-2">Löschen</MudButton>
-            <MudSpacer/>
-            <MudButton Class="ma-2">Beabeiten</MudButton>
+            <MudButton Class="ma-2" @ref="_delete">Löschen</MudButton>
+            <MudButton Class="ma-2" @ref="_edit">Beabeiten</MudButton>
             <MudSpacer/>
         </ToolBarContent>
         <ColGroup>
-            <col style="width: 100px"/>
             <col style="width: 100px"/>
             <col style="width: 100px"/>
             <col/>
             <col style="width: 50px"/>
         </ColGroup>
         <HeaderContent>
-            <MudTh>Id</MudTh>
-
+            <MudTh><MudTableSortLabel Enabled="true" SortBy="new Func<AppConfigModel, object>(SelectIdKey)">Id</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<AppConfigModel, object>(SelectInfoKey)">Info</MudTableSortLabel></MudTh>
+            <MudTh>Konfiguration</MudTh>
+            <MudTh>Bedingungen</MudTh>
         </HeaderContent>
+        
     </MudTable>
 }
 
 @code {
 
+    private static MethodInfo _updater = typeof(MudButton).GetMethod(nameof(StateHasChanged)) ?? throw new InvalidOperationException("State Changed Method not Found");
+
     private AppConfigModel? _selected;
+
+    private AppConfigModel? Selected
+    {
+        get => _selected;
+        set
+        {
+            _selected = value;
+            UpdateButtons();
+        }
+    }
+
+    private string Selection => Selected?.Config.Id ?? "Nichts Gewählt";
+
+    private MudButton? _delete;
+
+    private MudButton? _edit;
+
+    private object SelectIdKey(AppConfigModel model)
+        => model.Config.Id;
+
+    private object SelectInfoKey(AppConfigModel model)
+        => model.Config.Info ?? string.Empty;
+
+    private void UpdateButtons()
+    {
+        if(_delete != null)
+            _updater.Invoke(_delete, null);
+        if (_edit != null)
+            _updater.Invoke(_edit, null);
+    }
 
     protected override async Task OnInitializedAsync()
     {
         await Track(_model);
         await base.OnInitializedAsync();
     }
-
 }
