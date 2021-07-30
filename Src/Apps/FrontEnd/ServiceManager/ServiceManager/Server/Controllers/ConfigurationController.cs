@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using NLog;
@@ -18,6 +19,11 @@ namespace ServiceManager.Server.Controllers
 
         public ConfigurationController(IServerConfigurationApi api) => _api = api;
 
+        [HttpGet]
+        [Route(nameof(ConfigurationRestApi.GetAppConfigList))]
+        public async Task<ActionResult<SpecificConfigList>> GetSpecificConfigList()
+            => new SpecificConfigList(await _api.QueryAppConfig());
+        
         [HttpGet]
         [Route(nameof(ConfigurationRestApi.GlobalConfig))]
         public async Task<ActionResult<GlobalConfig>> GetGlobalConfig()

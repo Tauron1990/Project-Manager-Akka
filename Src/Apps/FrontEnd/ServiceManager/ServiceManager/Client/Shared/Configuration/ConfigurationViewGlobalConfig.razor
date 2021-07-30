@@ -1,27 +1,29 @@
 ﻿@using Tauron
+@using Autofac.Features.OwnedInstances
+@using Microsoft.AspNetCore.Components
 @inherits PropertyChangedComponent
 
-@inject ConfigurationViewGlobalConfigModel _model
+@inject Owned<ConfigurationViewGlobalConfigModel> _model
 
 <div class="d-flex flex-row justify-center ma-1">
     <MudText Typo="Typo.h3">Globale Konfiguration</MudText>
 </div>
 <div class="d-flex flex-row ma-1 align-start" style="height: 50px">
     <MudText Class="d-inline-flex pa-8">Info:</MudText>
-    <MudTextFieldString Class="d-inline-flex flex-grow-1 flex-shrink-0" @bind-Value="@_model.ConfigInfo"/>
+    <MudTextFieldString Class="d-inline-flex flex-grow-1 flex-shrink-0" @bind-Value="@_model.Value.ConfigInfo"/>
 </div>
 <div class="d-flex flex-row ma-1">
     <EditForm Model="_model">
-        <InputTextArea class="ma-2 flex-grow-1 flex-shrink-0" style="height: 400px; width: 1000px" @bind-Value="@_model.ConfigContent" DisplayName="Konfigurations Text"/>
+        <InputTextArea class="ma-2 flex-grow-1 flex-shrink-0" style="height: 400px; width: 1000px" @bind-Value="@_model.Value.ConfigContent" DisplayName="Konfigurations Text"/>
     </EditForm>
 </div>
 <div class="d-flex flex-row ma-1">
-    <MudButton Class="d-inline-flex ma-1" OnClick="_model.GenerateDefaultConfig">Standart Generieren</MudButton>
-    <MudButton Class="d-inline-flex ma-1" OnClick="_model.Reset">Zurücksetzen</MudButton>
-    <MudButton Class="d-inline-flex ma-1" OnClick="@(() => _model.UpdateConfig(Manager))">Speichern</MudButton>
+    <MudButton Class="d-inline-flex ma-1" OnClick="_model.Value.GenerateDefaultConfig">Standart Generieren</MudButton>
+    <MudButton Class="d-inline-flex ma-1" OnClick="_model.Value.Reset">Zurücksetzen</MudButton>
+    <MudButton Class="d-inline-flex ma-1" OnClick="@(() => _model.Value.UpdateConfig(Manager))">Speichern</MudButton>
 </div>
 <div class="d-flex flex-row ma-1">
-    <ConfigurationOptionsView OptionSelectedEvent="_model.UpdateContent"/>
+    <ConfigurationOptionsView OptionSelectedEvent="_model.Value.UpdateContent"/>
 </div>
 
 @code {
@@ -32,7 +34,7 @@
     protected override async Task OnInitializedAsync()
     {
         _model.DisposeWith(this);
-        await Track(_model);
+        await Track(_model.Value);
         await base.OnInitializedAsync();
     }
 

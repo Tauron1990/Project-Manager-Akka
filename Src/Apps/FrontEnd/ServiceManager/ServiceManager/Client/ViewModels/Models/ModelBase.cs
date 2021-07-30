@@ -136,6 +136,12 @@ namespace ServiceManager.Client.ViewModels.Models
                                         typeof(TInterface).FullName!,
                                         ((MemberExpression)property.Body).Member.Name,
                                         setter, query));
+                
+                public void OnPropertyChanged<TResponse>(string property, Action<TResponse> setter, Func<HttpClient, Task<TResponse>> query)
+                    => _updater.Add(() => _self.OnPropertyChanged(
+                                        typeof(TInterface).FullName!,
+                                        property,
+                                        setter, query));
 
                 public void OnMessage(string name, Func<Task> runner) 
                     => _self.OnMessage(typeof(TInterface).AssemblyQualifiedName!, name, runner);

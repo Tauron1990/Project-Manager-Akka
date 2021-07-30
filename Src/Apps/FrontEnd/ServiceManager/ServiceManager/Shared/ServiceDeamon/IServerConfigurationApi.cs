@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Immutable;
+using System.Threading.Tasks;
 using ServiceHost.Client.Shared.ConfigurationServer.Data;
 
 namespace ServiceManager.Shared.ServiceDeamon
@@ -8,6 +9,8 @@ namespace ServiceManager.Shared.ServiceDeamon
         GlobalConfig GlobalConfig { get; }
 
         ServerConfigugration ServerConfigugration { get; }
+
+        Task<ImmutableList<SpecificConfig>> QueryAppConfig();
 
         Task<GlobalConfig> QueryConfig();
 

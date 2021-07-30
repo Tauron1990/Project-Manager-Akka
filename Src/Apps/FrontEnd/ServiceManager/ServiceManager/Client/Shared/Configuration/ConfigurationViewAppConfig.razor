@@ -1,24 +1,25 @@
 ﻿@using ServiceHost.Client.Shared.ConfigurationServer.Data
 @using System.Reflection
 @using Akka.Util.Internal
+@using Autofac.Features.OwnedInstances
 @using Tauron
 @inherits PropertyChangedComponent
 
-@inject ConfigurationViewAppConfigModel _model
+@inject Owned<ConfigurationViewAppConfigModel> _model
 
-@if (_model.IsEditing)
+@if (_model.Value.ToEdit != null)
 {
 
 }
 else
 {
-    <MudTable Items="@_model.AppConfigs" Hover="true" Loading="_model.IsLoading" @bind-SelectedItem="Selected">
+    <MudTable Items="@_model.Value.AppConfigs" Hover="true" Loading="_model.Value.IsLoading" @bind-SelectedItem="Selected">
         <ToolBarContent>
             <MudText Typo="Typo.h6">Anwendungen Konfiguration</MudText>
             <MudSpacer/>
-            <MudButton Class="ma-2">Neu</MudButton>
-            <MudButton Class="ma-2" @ref="_delete">Löschen</MudButton>
-            <MudButton Class="ma-2" @ref="_edit">Beabeiten</MudButton>
+            <MudButton Class="ma-2" OnClick="_model.Value.NewConfig">Neu</MudButton>
+            <MudButton Class="ma-2" @ref="_delete" OnClick="async () => await _model.Value.DeleteConfig(_selected)">Löschen</MudButton>
+            <MudButton Class="ma-2" @ref="_edit" OnClick="async () => await _model.Value.EditConfig(_selected)">Beabeiten</MudButton>
             <MudSpacer/>
         </ToolBarContent>
         <ColGroup>
@@ -33,7 +34,12 @@ else
             <MudTh>Konfiguration</MudTh>
             <MudTh>Bedingungen</MudTh>
         </HeaderContent>
-        
+        <RowTemplate>
+            <MudTd DataLabel="Id">@context.Config.Id</MudTd>
+            <MudTd DataLabel="Info">@context.Config.Info</MudTd>
+            <MudTd DataLabel="Konfiguration">@context.Config.ConfigContent</MudTd>
+            <MudTd DataLabel="Bedingungen">@context.Config.Conditions.Count</MudTd>
+        </RowTemplate>
     </MudTable>
 }
 
@@ -75,7 +81,8 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        await Track(_model);
+        _model.DisposeWith(this);
+        await Track(_model.Value);
         await base.OnInitializedAsync();
     }
 }

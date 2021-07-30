@@ -14,6 +14,8 @@
 
         public const string ServerConfiguration = BaseUrl + "/" + nameof(ServerConfiguration);
 
+        public const string GetAppConfigList = BaseUrl + "/" + nameof(GetAppConfigList);
+        
         public static class ModuleName
         {
             public const string Akka = "Akka";

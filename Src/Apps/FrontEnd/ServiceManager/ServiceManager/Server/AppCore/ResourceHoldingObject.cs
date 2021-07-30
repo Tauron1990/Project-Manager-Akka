@@ -14,6 +14,8 @@ namespace ServiceManager.Server.AppCore
 
         Task<Unit> Set(Func<Task<TData>> data);
 
+        Task<Unit> Set(Func<TData, TData> data);
+        
         Task<Unit> Set(Func<TData> data);
 
         Task<Unit> Set(TData data);
@@ -137,6 +139,24 @@ namespace ServiceManager.Server.AppCore
                 }
 
                 return Unit.Default;
+            }
+
+            public async Task<Unit> Set(Func<TData, TData> data)
+            {
+                await _resourceLock.WaitAsync();
+                try
+                {
+                    _data  = data(_data);
+                    _isSet = true;
+                    if (_onChange != null)
+                        await _onChange();
+                    
+                    return Unit.Default;
+                }
+                finally
+                {
+                    _resourceLock.Release();
+                }
             }
 
             public Task<Unit> Set(Func<TData> data) => Set(data());
