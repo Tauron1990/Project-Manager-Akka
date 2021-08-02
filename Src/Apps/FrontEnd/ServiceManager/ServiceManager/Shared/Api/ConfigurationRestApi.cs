@@ -15,6 +15,10 @@
         public const string ServerConfiguration = BaseUrl + "/" + nameof(ServerConfiguration);
 
         public const string GetAppConfigList = BaseUrl + "/" + nameof(GetAppConfigList);
+
+        public const string DeleteSpecificConfig = BaseUrl + "/" + nameof(DeleteSpecificConfig);
+
+        public const string UpdateSpecificConfigiration = BaseUrl + "/" + nameof(UpdateSpecificConfigiration);
         
         public static class ModuleName
         {

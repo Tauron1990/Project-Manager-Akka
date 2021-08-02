@@ -21,5 +21,9 @@ namespace ServiceManager.Shared.ServiceDeamon
         Task<string> QueryBaseConfig();
 
         Task<string> Update(ServerConfigugration serverConfigugration);
+
+        Task<string> DeleteSpecificConfig(string name);
+
+        Task<string> Update(SpecificConfigData data);
     }
 }

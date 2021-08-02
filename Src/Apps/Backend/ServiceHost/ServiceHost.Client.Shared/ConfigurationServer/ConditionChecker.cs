@@ -17,12 +17,12 @@ namespace ServiceHost.Client.Shared.ConfigurationServer
             bool CheckConditions(IEnumerable<Condition> conditions, bool isOr)
             {
                 bool Predicate(Condition c)
-                    => c switch
+                    => c.Type switch
                     {
-                        AppCondition app => Apply(c, () => softwareName == app.AppName),
-                        InstalledAppCondition installedApp => Apply(c, () => applicationName == installedApp.AppName),
-                        AndCondition andCondition => Apply(c, () => CheckConditions(andCondition.Conditions, false)),
-                        OrCondition orCondition => Apply(c, () => CheckConditions(orCondition.Conditions, true)),
+                        ConditionType.DefinedApp => Apply(c, () => softwareName == c.AppName),
+                        ConditionType.InstalledApp => Apply(c, () => applicationName == c.AppName),
+                        ConditionType.And when c.Conditions != null => Apply(c, () => CheckConditions(c.Conditions, false)),
+                        ConditionType.Or when c.Conditions  != null => Apply(c, () => CheckConditions(c.Conditions, true)),
                         _ => false
                     };
 

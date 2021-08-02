@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using NLog;
@@ -19,6 +18,16 @@ namespace ServiceManager.Server.Controllers
 
         public ConfigurationController(IServerConfigurationApi api) => _api = api;
 
+        [HttpPost]
+        [Route(nameof(ConfigurationRestApi.UpdateSpecificConfigiration))]
+        public async Task<ActionResult<StringApiContent>> UpdateSpecificConfiguration([FromBody] SpecificConfigData data)
+            => new StringApiContent(await _api.Update(data));
+        
+        [HttpDelete]
+        [Route(nameof(ConfigurationRestApi.DeleteSpecificConfig) + "/{toDelete}")]
+        public async Task<ActionResult<StringApiContent>> DeleteSpecificConfig(string toDelete)
+            => new StringApiContent(await _api.DeleteSpecificConfig(toDelete));
+        
         [HttpGet]
         [Route(nameof(ConfigurationRestApi.GetAppConfigList))]
         public async Task<ActionResult<SpecificConfigList>> GetSpecificConfigList()

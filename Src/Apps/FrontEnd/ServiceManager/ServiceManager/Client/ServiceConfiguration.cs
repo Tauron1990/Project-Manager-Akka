@@ -16,10 +16,10 @@ namespace ServiceManager.Client
             collection.AddScoped<IndexViewModel>();
             collection.AddScoped<ConfigurationViewDatabseModel>();
 
-            collection.AddTransient<ConfigurationOptionsViewModel>();
-            collection.AddTransient<ConfigurationViewGlobalConfigModel>();
-            collection.AddTransient<AppConfigurationViewModel>();
-            collection.AddTransient<ConfigurationViewAppConfigModel>();
+            collection.AddScoped<ConfigurationOptionsViewModel>();
+            collection.AddScoped<ConfigurationViewGlobalConfigModel>();
+            collection.AddScoped<AppConfigurationViewModel>();
+            collection.AddScoped<ConfigurationViewAppConfigModel>();
 
             collection.AddScoped<IClusterConnectionTracker, ClusterConnectionTracker>();
             collection.AddScoped<IDatabaseConfig, DatabaseConfig>();

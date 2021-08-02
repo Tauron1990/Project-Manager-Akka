@@ -4,6 +4,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Akka.Util;
+using Autofac.Core.Resolving.Middleware;
 using Be.Vlaanderen.Basisregisters.Generators.Guid;
 using ServiceHost.Client.Shared.ConfigurationServer;
 using ServiceHost.Client.Shared.ConfigurationServer.Data;
@@ -107,9 +108,12 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
                                                                        Conditions = evt.Action switch
                                                                        {
                                                                            ConfigDataAction.Delete => e.Config.Conditions.Remove(evt.Condition),
-                                                                           ConfigDataAction.Update => e.Config.Conditions.Replace(
+                                                                           ConfigDataAction.Update =>
+                                                                          e.Config.Conditions.Any(c => c.Name == evt.Name)
+                                                                          ? e.Config.Conditions.Replace(
                                                                                e.Config.Conditions.First(c => c.Name == evt.Condition.Name),
-                                                                               evt.Condition),
+                                                                               evt.Condition)
+                                                                          : e.Config.Conditions.Add(evt.Condition),
                                                                            ConfigDataAction.Create => e.Config.Conditions.Add(evt.Condition),
                                                                            _ => e.Config.Conditions
                                                                        }

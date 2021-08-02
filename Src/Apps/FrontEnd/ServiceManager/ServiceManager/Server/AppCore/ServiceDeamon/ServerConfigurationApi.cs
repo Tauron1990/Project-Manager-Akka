@@ -101,6 +101,44 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
                     }
                 })).Values.ToImmutableList();
 
+        public async Task<string> DeleteSpecificConfig(string name)
+        {
+            try
+            {
+                await EnsureConfigAlive();
+                await _api.Command(new UpdateSpecificConfigCommand(ConfigDataAction.Delete, name, string.Empty, string.Empty), TimeSpan.FromSeconds(20));
+                
+                return string.Empty;
+            }
+            catch (Exception e)
+            {
+                _log.LogError(e, "Error on delete Specifiv Config {Name}", name);
+
+                return e.Message;
+            }
+        }
+
+        public async Task<string> Update(SpecificConfigData data)
+        {
+            try
+            {
+                await EnsureConfigAlive();
+
+                var mode = data.IsNew ? ConfigDataAction.Create : ConfigDataAction.Update;
+                await _api.Command(new UpdateSpecificConfigCommand(mode, data.Name, data.Content, data.Info), TimeSpan.FromSeconds(20));
+                foreach (var (name, configDataAction, condition) in data.Conditions)
+                    await _api.Command(new UpdateConditionCommand(name, configDataAction, condition), TimeSpan.FromSeconds(20));
+
+                return string.Empty;
+            }
+            catch (Exception e)
+            {
+                _log.LogError(e, "Error while Update Specific Config Data");
+
+                return e.Message;
+            }
+        }
+
         public Task<GlobalConfig> QueryConfig()
             => _globalConfig.Init(async () =>
                                   {

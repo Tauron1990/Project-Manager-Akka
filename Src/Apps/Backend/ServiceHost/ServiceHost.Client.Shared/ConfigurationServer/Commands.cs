@@ -18,7 +18,7 @@ namespace ServiceHost.Client.Shared.ConfigurationServer
         protected override string Info => $"GlobalConfig-Update-{Action}";
     }
 
-    public sealed record UpdateSpecificConfigCommand(ConfigDataAction Action, string Id, string ConfigContent, string InfoData) : SimpleCommand<ConfigurationApi, UpdateSpecificConfigCommand>, IConfigCommand
+    public sealed record UpdateSpecificConfigCommand(ConfigDataAction Action, string Id, string ConfigContent, string? InfoData) : SimpleCommand<ConfigurationApi, UpdateSpecificConfigCommand>, IConfigCommand
     {
         protected override string Info => $"SpecificConfig-Update-{Id}-{Action}";
     }

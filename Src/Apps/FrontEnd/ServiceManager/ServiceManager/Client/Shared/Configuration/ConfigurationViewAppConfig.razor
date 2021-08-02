@@ -5,21 +5,42 @@
 @using Tauron
 @inherits PropertyChangedComponent
 
-@inject Owned<ConfigurationViewAppConfigModel> _model
+@inject ConfigurationViewAppConfigModel _model
 
-@if (_model.Value.ToEdit != null)
+@if (_model.ToEdit != null)
 {
-
+    <MudToolBar>
+        <MudIconButton Icon="@Icons.Material.Outlined.Save" OnClick="async () => await _model.CommitConfig(_model.ToEdit)"/>
+        <MudIconButton Icon="@Icons.Material.Outlined.Cancel" OnClick="() => _model.EditConfig(null)"/>
+        <MudToolBarSpacer/>
+        <MudText>@_model.ToEdit.Config.Id</MudText>
+    </MudToolBar>
+    <MudTabs>
+        <MudTabPanel Text="Konfiguration">
+            <div class="d-flex" style="flex-direction: row">
+                <MudTextFieldString Class="flex-grow-0" @bind-Value="_model.ToEdit.InfoString" Label="Konfiguration Info"/>
+                <div class="flex-grow-1">
+                    <EditForm Model="_model">
+                        <InputTextArea @bind-Value="@_model.ToEdit.ConfigString" DisplayName="Konfigurations Text"/>
+                    </EditForm>
+                </div>
+                <ConfigurationOptionsView OptionSelectedEvent="_model.ToEdit.OptionSelected"/>
+            </div>
+        </MudTabPanel>
+        <MudTabPanel Text="Bedingungen">
+            
+        </MudTabPanel>
+    </MudTabs>
 }
 else
 {
-    <MudTable Items="@_model.Value.AppConfigs" Hover="true" Loading="_model.Value.IsLoading" @bind-SelectedItem="Selected">
+    <MudTable Items="@_model.AppConfigs" Hover="true" Loading="_model.IsLoading" @bind-SelectedItem="Selected">
         <ToolBarContent>
             <MudText Typo="Typo.h6">Anwendungen Konfiguration</MudText>
             <MudSpacer/>
-            <MudButton Class="ma-2" OnClick="_model.Value.NewConfig">Neu</MudButton>
-            <MudButton Class="ma-2" @ref="_delete" OnClick="async () => await _model.Value.DeleteConfig(_selected)">Löschen</MudButton>
-            <MudButton Class="ma-2" @ref="_edit" OnClick="async () => await _model.Value.EditConfig(_selected)">Beabeiten</MudButton>
+            <MudButton Class="ma-2" OnClick="_model.NewConfig">Neu</MudButton>
+            <MudButton Class="ma-2" @ref="_delete" OnClick="async () => await _model.DeleteConfig(Selected)">Löschen</MudButton>
+            <MudButton Class="ma-2" @ref="_edit" OnClick="() => _model.EditConfig(Selected)">Beabeiten</MudButton>
             <MudSpacer/>
         </ToolBarContent>
         <ColGroup>
@@ -44,20 +65,7 @@ else
 }
 
 @code {
-
-    private static MethodInfo _updater = typeof(MudButton).GetMethod(nameof(StateHasChanged)) ?? throw new InvalidOperationException("State Changed Method not Found");
-
-    private AppConfigModel? _selected;
-
-    private AppConfigModel? Selected
-    {
-        get => _selected;
-        set
-        {
-            _selected = value;
-            UpdateButtons();
-        }
-    }
+    private AppConfigModel? Selected { get; set; }
 
     private string Selection => Selected?.Config.Id ?? "Nichts Gewählt";
 
@@ -71,18 +79,10 @@ else
     private object SelectInfoKey(AppConfigModel model)
         => model.Config.Info ?? string.Empty;
 
-    private void UpdateButtons()
-    {
-        if(_delete != null)
-            _updater.Invoke(_delete, null);
-        if (_edit != null)
-            _updater.Invoke(_edit, null);
-    }
-
     protected override async Task OnInitializedAsync()
     {
         _model.DisposeWith(this);
-        await Track(_model.Value);
+        await Track(_model);
         await base.OnInitializedAsync();
     }
 }

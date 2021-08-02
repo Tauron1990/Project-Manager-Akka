@@ -31,6 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\Shared\Tauron.Grid\Tauron.Grid.csproj" />
     <ProjectReference Include="..\Shared\ServiceManager.Shared.csproj" />
   </ItemGroup>
 

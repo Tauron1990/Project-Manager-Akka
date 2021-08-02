@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Immutable;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
@@ -26,6 +27,29 @@ namespace ServiceManager.Client.ViewModels.Models
 
         public Task<ImmutableList<SpecificConfig>> QueryAppConfig()
             => Task.FromResult(AppConfigs.ConfigList);
+
+        public async Task<string> DeleteSpecificConfig(string name)
+        {
+            try
+            {
+                var response = await Client.DeleteAsync($"{ConfigurationRestApi.DeleteSpecificConfig}/{name}");
+                response.EnsureSuccessStatusCode();
+                var result = await response.Content.ReadFromJsonAsync<StringApiContent>();
+
+                return result == null ? "Unbekannter Fehler" : result.Content;
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
+        }
+
+        public async Task<string> Update(SpecificConfigData data)
+        {
+            var result = await Client.PostJson<SpecificConfigData, StringApiContent>(ConfigurationRestApi.UpdateSpecificConfigiration, data);
+
+            return result?.Content ?? "Unbekannter Fehler";
+        }
 
         public Task<GlobalConfig> QueryConfig() => Task.FromResult(GlobalConfig);
 

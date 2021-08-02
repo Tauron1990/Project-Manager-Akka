@@ -4,18 +4,18 @@
 @inherits PropertyChangedComponent
 
 @inject IServerConfigurationApi _api
-@inject Owned<AppConfigurationViewModel> _viewModel
+@inject AppConfigurationViewModel _viewModel
 
 <div class="d-flex justify-center">
     <MudPaper Class="d-flex ma-3 pa-3">
         @if (!_loading)
         {
             <MudCheckBox Class="d-flex d-inline-flex ma-1" T="Boolean" 
-                         Checked="_viewModel.Value.MonitorChanges" 
-                         CheckedChanged="_viewModel.Value.SetMonitorChanges">Änderungen Übserwachen</MudCheckBox>
+                         Checked="_viewModel.MonitorChanges" 
+                         CheckedChanged="_viewModel.SetMonitorChanges">Änderungen Übserwachen</MudCheckBox>
             <MudCheckBox Class="d-flex d-inline-flex ma-1" T="Boolean" 
-                         Checked="_viewModel.Value.RestartServices" 
-                         CheckedChanged="_viewModel.Value.SetRestartServices">Services Neustarten</MudCheckBox>
+                         Checked="_viewModel.RestartServices" 
+                         CheckedChanged="_viewModel.SetRestartServices">Services Neustarten</MudCheckBox>
         }
         else
         {
@@ -32,7 +32,7 @@
     {
         _viewModel.DisposeWith(this);
         await Track(_api);
-        await Track(_viewModel.Value);
+        await Track(_viewModel);
         _loading = false;
     }
 
