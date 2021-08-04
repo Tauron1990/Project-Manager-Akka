@@ -17,14 +17,16 @@
     </MudToolBar>
     <MudTabs>
         <MudTabPanel Text="Konfiguration">
-            <div class="d-flex" style="flex-direction: row">
-                <MudTextFieldString Class="flex-grow-0" @bind-Value="_model.ToEdit.InfoString" Label="Konfiguration Info"/>
-                <div class="flex-grow-1">
+            <div class="d-flex flex-row">
+                <MudTextFieldString Class="d-flex flex-grow-0 order-0" @bind-Value="_model.ToEdit.InfoString" Label="Konfiguration Info"/>
+                <div class="d-flex flex-grow-1 align-content-stretch order-1">
                     <EditForm Model="_model">
                         <InputTextArea @bind-Value="@_model.ToEdit.ConfigString" DisplayName="Konfigurations Text"/>
                     </EditForm>
                 </div>
-                <ConfigurationOptionsView OptionSelectedEvent="_model.ToEdit.OptionSelected"/>
+                <div class="d-flex flex-grow-0 order-2">
+                    <ConfigurationOptionsView OptionSelectedEvent="_model.ToEdit.OptionSelected"/>
+                </div>
             </div>
         </MudTabPanel>
         <MudTabPanel Text="Bedingungen">

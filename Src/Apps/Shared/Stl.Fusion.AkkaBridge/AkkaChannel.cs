@@ -8,23 +8,20 @@ using Microsoft.Extensions.Logging;
 
 namespace Stl.Fusion.AkkaBridge
 {
-    public sealed class AkkaChannel<TMessage> : Channel<TMessage>, IDisposable
+    public sealed class AkkaChannel<TMessage> : Channel<TMessage>
     {
-        private readonly CancellationTokenSource _cancellation = new();
-        private readonly IActorRef               _handler;
-        
-        public AkkaChannel(ActorSystem system, string channel, ILogger logger)
+        public AkkaChannel(ActorSystem system, string channel, ILogger logger, CancellationToken token)
         {
-            
+            var reader = Channel.CreateBounded<TMessage>(16);
+            var writer = Channel.CreateBounded<TMessage>(16);
+            system.ActorOf(Props.Create(() => new ChannelActor(writer, reader, channel, logger, token)));
+
+            Reader = reader;
+            Writer = writer;
+
+            token.Register(() => writer.Writer.TryComplete());
         }
-        
-        public void Dispose()
-        {
-            _handler.Tell(PoisonPill.Instance);
-            _cancellation.Cancel();
-            _cancellation.Dispose();
-        }
-        
+
         private sealed class ChannelActor : ReceiveActor
         {
             public ChannelActor(ChannelReader<TMessage> reader, ChannelWriter<TMessage> writer, string channel, ILogger logger, CancellationToken token)

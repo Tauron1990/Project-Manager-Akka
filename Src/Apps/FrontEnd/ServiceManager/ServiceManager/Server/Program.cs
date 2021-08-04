@@ -38,16 +38,15 @@ namespace ServiceManager.Server
         private static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
                 .ConfigureServices(sc => sc.AddSingleton<IRestartHelper>(RestartHelper).AddSingleton<IAppIpManager>(AppIpManager))
-                .StartNode(KillRecpientType.Frontend, IpcApplicationType.NoIpc, consoleLog:true)
-                .ConfigureWebHostDefaults(webBuilder =>
-                                          {
-                                              #if RELSEASE
-                                                   if (AppIpManager.Ip.IsValid)
-                                                       webBuilder.UseUrls("http://localhost:5000", $"http://{AppIpManager.Ip.Ip}:5000");
-                                                    else 
-                                                        webBuilder.UseUrls("http://localhost:5000");
-                                              #endif
-                                              webBuilder.UseStartup<Startup>();
-                                          });
+                .StartNode(KillRecpientType.Frontend, IpcApplicationType.NoIpc, consoleLog: true)
+                .ConfigureWebHostDefaults(
+                     webBuilder =>
+                     {
+                         if (AppIpManager.Ip.IsValid)
+                             webBuilder.UseUrls("http://localhost:83");//, $"http://{AppIpManager.Ip.Ip}:81");
+                         else
+                             webBuilder.UseUrls("http://localhost:83");
+                         webBuilder.UseStartup<Startup>();
+                     });
     }
 }

@@ -2,12 +2,17 @@
 
     <PropertyGroup>
         <TargetFramework>net5.0</TargetFramework>
+        <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <ItemGroup>
       <PackageReference Include="Akka" Version="1.4.21" />
       <PackageReference Include="Akka.Cluster.Tools" Version="1.4.21" />
       <PackageReference Include="Stl.Fusion" Version="1.5.20" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Tauron.Application.AkkNode.Services\Tauron.Application.AkkNode.Services.csproj" />
     </ItemGroup>
 
 </Project>

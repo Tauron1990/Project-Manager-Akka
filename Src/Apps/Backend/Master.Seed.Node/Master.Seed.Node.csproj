@@ -23,7 +23,7 @@
   <ItemGroup>
     <PackageReference Include="Akka.Cluster.Sharding" Version="1.4.21" />
     <PackageReference Include="Akka.Cluster.Tools" Version="1.4.21" />
-    <PackageReference Include="Petabridge.Cmd.Cluster" Version="0.8.5" />
+    <PackageReference Include="Petabridge.Cmd.Cluster" Version="1.0.1" />
   </ItemGroup>
 
   <ItemGroup>
