@@ -8,11 +8,13 @@ using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Cluster;
 using Akka.Configuration;
+using AkkaTest.FusionTest.Data;
 using Autofac;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.EventLog;
+using Stl.CommandR;
 using Stl.Fusion;
 using Stl.Fusion.Extensions;
 using Tauron.AkkaHost;
@@ -50,7 +52,7 @@ namespace AkkaTest
                                   s =>
                                   {
                                       s.AddFusion()
-                                       .AddFusionTime()
+                                         .AddFusionTime()
                                        .AddSandboxedKeyValueStore()
                                        .AddInMemoryKeyValueStore();
                                   })

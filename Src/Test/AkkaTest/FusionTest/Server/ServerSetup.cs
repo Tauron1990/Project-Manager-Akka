@@ -1,6 +1,9 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using AkkaTest.FusionTest.Data;
+using AkkaTest.FusionTest.Data.Impl;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Stl.CommandR;
 using Stl.Fusion;
 using Stl.Fusion.AkkaBridge;
 using Tauron.Application.AkkaNode.Bootstrap;
@@ -18,7 +21,9 @@ namespace AkkaTest.FusionTest.Server
                                {
                                    c.AddScoped<IStartUpAction, ServerStarter>();
                                    c.AddFusion()
-                                    .AddAkkaFusionServer();
+                                      .AddComputeService<IClaimManager, ClaimManager>()
+                                      .AddAkkaFusionServer();
+                                   c.AddCommander().AddHandlers<IClaimManager>();
                                })
                           .StartNode(KillRecpientType.Service, IpcApplicationType.NoIpc);
     }
