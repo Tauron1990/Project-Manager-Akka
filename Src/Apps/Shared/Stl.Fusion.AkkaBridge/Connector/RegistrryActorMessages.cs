@@ -7,7 +7,7 @@ namespace Stl.Fusion.AkkaBridge.Connector
 
     public sealed record RegisterServiceResponse(Exception? Error);
     
-    public sealed record UnregisterService(Type Interface);
+    public sealed record UnregisterService(IActorRef Host);
 
     public sealed record ResolveService(Type Interface);
 

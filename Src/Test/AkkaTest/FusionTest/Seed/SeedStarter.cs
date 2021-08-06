@@ -18,7 +18,7 @@ namespace AkkaTest.FusionTest.Seed
 
         public void Run()
         {
-            _system.ActorOf(Props.Create<MessageReciver>());
+            var act = _system.ActorOf(Props.Create<MessageReciver>());
             var cluster = Cluster.Get(_system);
             cluster.JoinAsync(cluster.SelfAddress)
                    .ContinueWith(
