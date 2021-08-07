@@ -22,7 +22,7 @@ using Tauron.Application.Master.Commands.KillSwitch;
 
 namespace AkkaTest
 {
-    internal interface ITestService
+    public interface ITestService
     {
         Task<string> Hello(string name);
 

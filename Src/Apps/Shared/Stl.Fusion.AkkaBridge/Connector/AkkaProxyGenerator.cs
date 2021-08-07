@@ -44,9 +44,9 @@ namespace Stl.Fusion.AkkaBridge.Connector
 
             public void Intercept(IInvocation invocation)
             {
-                var returnType = invocation.MethodInvocationTarget.ReturnType;
+                var returnType = invocation.Method.ReturnType;
 
-                if (returnType != typeof(Task) || !returnType.IsGenericType || returnType.GetGenericTypeDefinition() != typeof(Task<>))
+                if (!(returnType == typeof(Task) || (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(Task<>))))
                     throw new InvalidOperationException("Only Async Operation are Supported");
 
                 if (returnType == typeof(Task))
@@ -84,7 +84,7 @@ namespace Stl.Fusion.AkkaBridge.Connector
             }
             private async Task<IActorRef> GetService()
             {
-                var (actorRef, exception) = await _serviceRegistry.ResolveService(new ResolveService(_interfaceMethod), TimeSpan.FromSeconds(10));
+                var (actorRef, exception) = await _serviceRegistry.ResolveService(new ResolveService(_interfaceMethod), TimeSpan.FromHours(10));
 
                 if (!actorRef.IsNobody()) return actorRef;
 

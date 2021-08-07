@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Cluster;
 using Akka.DistributedData;
+using Stl.Fusion.Bridge;
 using Tauron;
 using Tauron.Features;
 
@@ -31,7 +32,7 @@ namespace Stl.Fusion.AkkaBridge.Connector
 
         protected override void ConfigImpl()
         {
-            (Func<State, State> Updater, T Response) CreateResponse<T>(T response, Func<State, State> updater)
+            static (Func<State, State> Updater, T Response) CreateResponse<T>(T response, Func<State, State> updater)
                 => (updater, response);
 
             Receive<RegisterService>(
@@ -116,9 +117,9 @@ namespace Stl.Fusion.AkkaBridge.Connector
             return selector.Task;
         }
 
-        private async Task<IImmutableSet<string>> GetServices(State currentState, Type keyInterface)
+        private static async Task<IImmutableSet<string>> GetServices(State currentState, Type keyInterface)
         {
-            var response   = await currentState.Data.GetAsync(currentState.RegistryKey);
+            var response   = await currentState.Data.GetAsync(currentState.RegistryKey, ReadLocal.Instance);
             var serviceKey = ExtractServiceKey(keyInterface);
 
             return response != null && response.TryGetValue(serviceKey, out var set)
@@ -130,8 +131,15 @@ namespace Stl.Fusion.AkkaBridge.Connector
             State                                                                                         currentState,
             Func<Cluster, ORMultiValueDictionary<string, string>, ORMultiValueDictionary<string, string>> updater)
         {
-            var response = await currentState.Data.GetAsync(currentState.RegistryKey) ?? ORMultiValueDictionary<string, string>.Empty;
-            await currentState.Data.UpdateAsync(currentState.RegistryKey, updater(currentState.Cluster, response));
+            var response = await currentState.Data.GetAsync(currentState.RegistryKey);
+            if (response == null)
+            {
+                await currentState.Data.UpdateAsync(currentState.RegistryKey, ORMultiValueDictionary<string, string>.EmptyWithValueDeltas, WriteLocal.Instance);
+                response = await currentState.Data.GetAsync(currentState.RegistryKey);
+            }
+
+            var newData = updater(currentState.Cluster, response);
+            await currentState.Data.UpdateAsync(currentState.RegistryKey, newData, WriteLocal.Instance);
             
             return Unit.Default;
         }

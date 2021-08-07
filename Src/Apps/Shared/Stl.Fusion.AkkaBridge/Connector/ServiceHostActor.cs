@@ -31,13 +31,15 @@ namespace Stl.Fusion.AkkaBridge.Connector
             {
                 for (int i = 0; i < _mapping.InterfaceMethods.Length; i++)
                 {
-                    if(_mapping.InterfaceMethods[i].Name != obj.Name) return;
+                    var (name, aguments) = obj;
+
+                    if(_mapping.InterfaceMethods[i].Name != name) return;
 
                     var m = _mapping.TargetMethods[i];
 
                     var caller = FastReflection.Shared.GetMethodInvoker(m, () => m.GetParameterTypes());
 
-                    switch (caller(_target, obj.Aguments))
+                    switch (caller(_target, aguments))
                     {
                         case Task genericTask when genericTask.GetType().IsGenericType:
                             AwaitWithResult(genericTask).PipeTo(Sender, Self);
@@ -70,7 +72,7 @@ namespace Stl.Fusion.AkkaBridge.Connector
             }
         }
 
-        private async Task<MethodResponse> AwaitWithResult(Task resultTask)
+        private static async Task<MethodResponse> AwaitWithResult(Task resultTask)
         {
             try
             {
