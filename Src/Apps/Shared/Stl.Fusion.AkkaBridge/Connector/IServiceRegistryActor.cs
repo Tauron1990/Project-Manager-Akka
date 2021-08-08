@@ -9,6 +9,8 @@ namespace Stl.Fusion.AkkaBridge.Connector
     {
         Task<RegisterServiceResponse> RegisterService(RegisterService service, TimeSpan timeout);
         Task<ResolveResponse> ResolveService(ResolveService service, TimeSpan timeout);
+
+        void UnRegisterService(UnregisterService service);
     }
     
     public sealed class ServiceRegisterActorRef : FeatureActorRefBase<IServiceRegistryActor>, IServiceRegistryActor
@@ -20,5 +22,8 @@ namespace Stl.Fusion.AkkaBridge.Connector
 
         public Task<ResolveResponse> ResolveService(ResolveService service, TimeSpan timeout)
             => Ask<ResolveResponse>(service, timeout);
+
+        public void UnRegisterService(UnregisterService service)
+            => Tell(service);
     }
 }

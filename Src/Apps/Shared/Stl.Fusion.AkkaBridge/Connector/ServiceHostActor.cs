@@ -8,22 +8,31 @@ namespace Stl.Fusion.AkkaBridge.Connector
 {
     public sealed class ServiceHostActor : ReceiveActor
     {
-        public static Props CreateHost(object service, Type serviceType)
+        public static IActorRef CreateHost(IActorRefFactory factory, object service, Type serviceType, string? name = null)
         {
             var map = service.GetType().GetInterfaceMap(serviceType);
             
-            return Props.Create(() => new ServiceHostActor(service, map));
+            var actor = factory.ActorOf(Props.Create<ServiceHostActor>(), name);
+            actor.Tell(new Init(service, map));
+
+            return actor;
         }
         
-        private readonly object _target;
-        private readonly InterfaceMapping _mapping;
+        private object _target;
+        private InterfaceMapping _mapping;
 
-        private ServiceHostActor(object target, InterfaceMapping mapping)
+        public ServiceHostActor()
         {
-            _target = target;
-            _mapping = mapping;
             Receive<TryMethodCall>(RunMethodCall);
+            Receive<Init>(
+                i =>
+                {
+                    _target = i.Servive;
+                    _mapping = i.Mapping;
+                });
+            _target = new object();
         }
+        
 
         private void RunMethodCall(TryMethodCall obj)
         {
@@ -33,7 +42,7 @@ namespace Stl.Fusion.AkkaBridge.Connector
                 {
                     var (name, aguments) = obj;
 
-                    if(_mapping.InterfaceMethods[i].Name != name) return;
+                    if(_mapping.InterfaceMethods[i].Name != name) continue;
 
                     var m = _mapping.TargetMethods[i];
 
@@ -86,5 +95,7 @@ namespace Stl.Fusion.AkkaBridge.Connector
                 return new MethodResponse(e, true);
             }
         }
+
+        private sealed record Init(object Servive, InterfaceMapping Mapping);
     }
 }

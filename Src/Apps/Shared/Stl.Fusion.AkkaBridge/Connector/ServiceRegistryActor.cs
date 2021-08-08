@@ -1,14 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Cluster;
-using Akka.DistributedData;
-using Stl.Fusion.Bridge;
+using Akka.Cluster.Utility;
+using Stl.Fusion.AkkaBridge.Connector.Data;
 using Tauron;
 using Tauron.Features;
 
@@ -18,21 +16,20 @@ namespace Stl.Fusion.AkkaBridge.Connector
     {
         private const string SharedId = "4D114988-9827-40A4-879C-E6C77734BD15";
         
-        public sealed record State(ImmutableDictionary<IActorRef, Type> CurrentlyHosted, DistributedData Data, Random Selector, Cluster Cluster, ORMultiValueDictionaryKey<string, string> RegistryKey);
+        public sealed record State(ClusterActorDiscovery Data, Cluster Cluster, ServiceRegistryState Registry);
 
         public static Func<IPreparedFeature> Factory()
         {
             IPreparedFeature _()
                 => Feature.Create(() => new ServiceRegistryActor(), 
-                    c => new State(ImmutableDictionary<IActorRef, Type>.Empty, DistributedData.Get(c.System),
-                        new Random(), Cluster.Get(c.System), new ORMultiValueDictionaryKey<string, string>(SharedId)));
+                    c => new State(ClusterActorDiscovery.Get(c.System), Cluster.Get(c.System), ServiceRegistryState.Create(Cluster.Get(c.System))));
 
             return _;
         }
 
         protected override void ConfigImpl()
         {
-            static (Func<State, State> Updater, T Response) CreateResponse<T>(T response, Func<State, State> updater)
+            static (State Updater, T Response) CreateResponse<T>(T response, State updater)
                 => (updater, response);
 
             Receive<RegisterService>(
@@ -40,28 +37,21 @@ namespace Stl.Fusion.AkkaBridge.Connector
                                              pair => from p in Observable.Return(pair)
                                                      let state = p.State
                                                      let evt = p.Event
-                                                     from registration in UpdateRegistry(
-                                                         state,
-                                                         (cluster, dictionary) => dictionary.AddItem(cluster, ExtractServiceKey(evt.Interface), evt.Host.Path.ToStringWithAddress(cluster.SelfAddress)))
+                                                     let registration = p.State.Registry.NewService(Context.Watch(p.Event.Host), p.Event.Interface)
                                                      select CreateResponse(
                                                          p.NewEvent(new RegisterServiceResponse(null)),
-                                                         s => s with { CurrentlyHosted = s.CurrentlyHosted.Add(Context.Watch(evt.Host), evt.Interface) }),
+                                                         state with { Registry = registration }),
 
-                                             (pair, e) => Observable.Return(CreateResponse(pair.NewEvent(new RegisterServiceResponse(e)), s => s))
+                                             (pair, e) => Observable.Return(CreateResponse(pair.NewEvent(new RegisterServiceResponse(e)), pair.State))
                                                                     .Do(p => Log.Error(p.Response.Event.Error, "Error on Register Service")))
                                         .Do(p => p.Response.Sender.Tell(p.Response.Event))
-
-                       from toUpdate in UpdateAndSyncActor(state)
-                       select state.Updater(toUpdate.State));
+                                        
+                       select state.Updater);
 
             IObservable<State> CreateUnregister(IObservable<StatePair<IActorRef, State>> obs)
                 => from pair in obs
-                   where pair.State.CurrentlyHosted.ContainsKey(pair.Event)
-                   let path = pair.Event.Path
-                   let entry = pair.State.CurrentlyHosted[pair.Event]
-                   from update in UpdateRegistry(pair.State, (cluster, dictionary) => dictionary.RemoveItem(cluster, ExtractServiceKey(entry), path.ToStringWithAddress(cluster.SelfAddress)))
-                   from newPair in UpdateAndSyncActor(pair)
-                   select newPair.State with { CurrentlyHosted = newPair.State.CurrentlyHosted.Remove(pair.Event) };
+                   where pair.State.Registry.CurrentlyHosted.ContainsKey(pair.Event)
+                   select pair.State with { Registry = pair.State.Registry.RemoveService(pair.Event)};
 
             Receive<Terminated>(obs => CreateUnregister(obs.Select(p => p.NewEvent(p.Event.ActorRef))));
             Receive<UnregisterService>(obs => CreateUnregister(obs.Select(p => p.NewEvent(p.Event.Host))));
@@ -69,15 +59,34 @@ namespace Stl.Fusion.AkkaBridge.Connector
             Receive<ResolveService>(
                 obs => obs.CatchSafe(
                                p => from pair in Observable.Return(p)
-                                    from actors in GetServices(pair.State, pair.Event.Interface)
+                                    let actors = pair.State.Registry.GetServices(pair.Event.Interface)
                                     from actor in TryResolve(pair.Context, actors)
                                     select pair.NewEvent(new ResolveResponse(actor, null)),
                                (p, err) => Observable.Return(p.NewEvent(new ResolveResponse(Nobody.Instance, err))))
                           .ToUnit(p => p.Sender.Tell(p.Event)));
+
+            ConfigRegistryOperations();
         }
 
-        private static string ExtractServiceKey(Type keyInterface)
-            => keyInterface.AssemblyQualifiedName ?? throw new InvalidOperationException("Service not found (Assembly Qualifind Name)");
+        private void ConfigRegistryOperations()
+        {
+            Receive<IRegistryOperation>(
+                obs => from pair in obs
+                       select pair.State with { Registry = pair.State.Registry.ApplyOperation(pair.Event) });
+
+            Receive<ClusterActorDiscoveryMessage.ActorDown>(
+                obs => from pair in obs
+                       where !pair.Event.Actor.Equals(Self)
+                       select pair.State with { Registry = pair.State.Registry.RemoveRemote(pair.Event.Actor) });
+
+            Receive<ClusterActorDiscoveryMessage.ActorUp>(
+                obs => from pair in obs
+                       where !pair.Event.Actor.Equals(Self)
+                       select pair.State with { Registry = pair.State.Registry.AddNewRemote(pair.Event.Actor) });
+
+            CurrentState.Data.MonitorActor(new ClusterActorDiscoveryMessage.MonitorActor(SharedId));
+            CurrentState.Data.RegisterActor(new ClusterActorDiscoveryMessage.RegisterActor(Self, SharedId));
+        }
 
         private Task<IActorRef> TryResolve(IActorRefFactory context, IImmutableSet<string> actors)
         {
@@ -106,7 +115,7 @@ namespace Stl.Fusion.AkkaBridge.Connector
                                                    }
                                                })))
                     .ContinueWith(
-                         t =>
+                         _ =>
                          {
                              if (selector.Task.IsCompleted) return;
 
@@ -117,31 +126,26 @@ namespace Stl.Fusion.AkkaBridge.Connector
             return selector.Task;
         }
 
-        private static async Task<IImmutableSet<string>> GetServices(State currentState, Type keyInterface)
-        {
-            var response   = await currentState.Data.GetAsync(currentState.RegistryKey, ReadLocal.Instance);
-            var serviceKey = ExtractServiceKey(keyInterface);
+        //private static async Task<IImmutableSet<string>> GetServices(State currentState, Type keyInterface)
+        //{
+        //    var response   = await currentState.Data.GetAsync(currentState.RegistryKey, ReadLocal.Instance);
+        //    var serviceKey = ExtractServiceKey(keyInterface);
 
-            return response != null && response.TryGetValue(serviceKey, out var set)
-                       ? set
-                       : ImmutableHashSet<string>.Empty;
-        }
+        //    return response != null
+        //               ? response.Where(se => se.ServiceType == serviceKey).Select(d => d.ActorPath).ToImmutableHashSet()
+        //               : ImmutableHashSet<string>.Empty;
+        //}
 
-        private async Task<Unit> UpdateRegistry(
-            State                                                                                         currentState,
-            Func<Cluster, ORMultiValueDictionary<string, string>, ORMultiValueDictionary<string, string>> updater)
-        {
-            var response = await currentState.Data.GetAsync(currentState.RegistryKey);
-            if (response == null)
-            {
-                await currentState.Data.UpdateAsync(currentState.RegistryKey, ORMultiValueDictionary<string, string>.EmptyWithValueDeltas, WriteLocal.Instance);
-                response = await currentState.Data.GetAsync(currentState.RegistryKey);
-            }
+        //private async Task<Unit> UpdateRegistry(
+        //    State currentState,
+        //    Func<Cluster, ORSet<ServiceEntry>, ORSet<ServiceEntry>> updater)
+        //{
+        //    var response = await currentState.Data.GetAsync(currentState.RegistryKey) ?? ORSet<ServiceEntry>.Empty;
 
-            var newData = updater(currentState.Cluster, response);
-            await currentState.Data.UpdateAsync(currentState.RegistryKey, newData, WriteLocal.Instance);
-            
-            return Unit.Default;
-        }
+        //    var newData = updater(currentState.Cluster, response);
+        //    await currentState.Data.UpdateAsync(currentState.RegistryKey, newData, WriteLocal.Instance);
+
+        //    return Unit.Default;
+        //}
     }
 }

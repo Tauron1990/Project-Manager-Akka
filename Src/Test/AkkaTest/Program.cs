@@ -5,6 +5,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Cluster;
@@ -57,16 +58,19 @@ namespace AkkaTest
             var cluster = Cluster.Get(_system);
             await cluster.JoinAsync(cluster.SelfAddress);
 
-            await RegisterTestService();
+            var finish = await RegisterTestService();
             await RunTestService();
+
+            finish();
         }
 
-        private async Task RegisterTestService()
+        private async Task<Action> RegisterTestService()
         {
             var serviceTarget = typeof(ITestService);
-            var host = _system.ActorOf(ServiceHostActor.CreateHost(new TestService(), serviceTarget));
+            var host = ServiceHostActor.CreateHost(_system, new TestService(), serviceTarget);
+            
             var response = await _registryActor.RegisterService(new RegisterService(serviceTarget, host), TimeSpan.FromHours(10));
-            if(response.Error == null) return;
+            if(response.Error == null) return () => _registryActor.UnRegisterService(new UnregisterService(host));
 
             throw response.Error;
         }
