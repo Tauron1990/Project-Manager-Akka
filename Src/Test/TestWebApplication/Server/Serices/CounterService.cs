@@ -6,7 +6,7 @@ using Stl.Async;
 using Stl.Fusion;
 using TestWebApplication.Shared.Counter;
 
-namespace TestWebApplication.Server.Serices
+namespace TestWebApplication.Server.Services
 {
     public class CounterService : ICounterService
     {
@@ -17,6 +17,8 @@ namespace TestWebApplication.Server.Serices
 
         public virtual async Task<int> GetCounter(string key, CancellationToken token = default)
         {
+            if (Computed.IsInvalidating()) return 0;
+
             var offset  = await _offset.Use(token);
             var counter = _data.GetValueOrDefault(key);
 

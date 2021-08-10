@@ -22,9 +22,10 @@ namespace AkkaTest.FusionTest.Server
                                    c.AddScoped<IStartUpAction, ServerStarter>();
                                    c.AddFusion()
                                       .AddComputeService<IClaimManager, ClaimManager>()
+                                    .AddServicePublischer(pc => pc.PublishService<IClaimManager>())
                                       .AddAkkaFusionServer();
-                                   c.AddCommander().AddHandlers<IClaimManager>();
                                })
-                          .StartNode(KillRecpientType.Service, IpcApplicationType.NoIpc);
+                          .StartNode(KillRecpientType.Service, IpcApplicationType.NoIpc,
+                               b => b.ConfigureAutoFac(c => c.AddAkkaBridge()));
     }
 }

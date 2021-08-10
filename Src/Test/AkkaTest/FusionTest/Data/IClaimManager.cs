@@ -16,10 +16,10 @@ namespace AkkaTest.FusionTest.Data
 
         [ComputeMethod]
         Task<Guid> GetId(string name);
-
+        
         [CommandHandler]
         Task<Guid> AddClaim(AddClaimCommand command, CancellationToken token = default);
-
+        
         [CommandHandler]
         Task RemoveClaim(RemoveClaimCommand command, CancellationToken token = default);
     }

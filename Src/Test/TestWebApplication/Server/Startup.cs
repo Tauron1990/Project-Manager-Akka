@@ -10,9 +10,11 @@ using System.Reflection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.OpenApi.Models;
 using Stl.Fusion;
+using Stl.Fusion.Bridge;
 using Stl.Fusion.Extensions;
 using Stl.Fusion.Server;
-using TestWebApplication.Server.Serices;
+using TestWebApplication.Server.Services;
+using TestWebApplication.Server.Test;
 using TestWebApplication.Shared.Counter;
 
 namespace TestWebApplication.Server
@@ -30,9 +32,13 @@ namespace TestWebApplication.Server
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton<IHostedService, TestSeriveExecutor>();
+            
             services.AddControllersWithViews();
             services.AddRazorPages();
 
+            services.AddSingleton(new Publisher.Options());
+            
             services.AddFusion()
                     .AddFusionTime().AddSandboxedKeyValueStore().AddInMemoryKeyValueStore()
                     .AddComputeService<ICounterService, CounterService>()
@@ -54,6 +60,8 @@ namespace TestWebApplication.Server
                                                               Version = "v1"
                                                           });
                                    });
+
+            services.AddCors();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -89,6 +97,8 @@ namespace TestWebApplication.Server
                                  c.SwaggerEndpoint("/swagger/v1/swagger.json", "API v1");
                              });
 
+
+            app.UseCors(b => b.AllowAnyHeader());
 
             app.UseEndpoints(endpoints =>
                              {

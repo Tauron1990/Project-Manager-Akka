@@ -1,4 +1,5 @@
-﻿using Autofac;
+﻿using System;
+using Autofac;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -21,16 +22,26 @@ namespace Stl.Fusion.AkkaBridge
         
         public static FusionBuilder AddAkkaFusionServer(this FusionBuilder builder)
         {
-            builder.Services.TryAddSingleton<IHostedService, AkkaFusionServiceHost>();
+            builder.Services.AddHostedService<AkkaFusionServiceHost>();
 
             return builder.AddPublisher();
         }
 
-        public static FusionBuilder AddAkkaFusionClient(this FusionBuilder builder)
+        public static FusionBuilder AddAkkaFusionClient(this FusionBuilder builder, Action<AkkaFusionBuilder> akkaBuilder)
         {
             builder.Services.AddSingleton<IChannelProvider, AkkaChannelProvider>();
 
+            akkaBuilder(new AkkaFusionBuilder(builder));
+
             return builder.AddReplicator();
+        }
+
+        public static FusionBuilder AddServicePublischer(this FusionBuilder builder, Action<PublisherBuilder> config)
+        {
+            builder.Services.AddHostedService<ServicePublisherHost>();
+            config(new PublisherBuilder(builder.Services));
+
+            return builder;
         }
     }
 }

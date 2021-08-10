@@ -5,39 +5,35 @@ using Akka.Actor;
 using Castle.Core;
 using Castle.DynamicProxy;
 using JetBrains.Annotations;
+using Stl.Fusion.Bridge.Internal;
 using Tauron;
 
 namespace Stl.Fusion.AkkaBridge.Connector
 {
     public class AkkaProxyGenerator
     {
-        private readonly ActorSystem    _system;
         private readonly IServiceRegistryActor _serviceRegistry;
         private readonly ProxyGenerator _proxyGenerator;
         
-        public AkkaProxyGenerator(ActorSystem system, IServiceRegistryActor serviceRegistry)
+        public AkkaProxyGenerator(IServiceRegistryActor serviceRegistry)
         {
-            _system         = system;
             _serviceRegistry = serviceRegistry;
             _proxyGenerator = new ProxyGenerator();
         }
 
         public object GenerateAkkaProxy(Type serviceType)
-            => _proxyGenerator.CreateInterfaceProxyWithoutTarget(serviceType, new AkkaInterceptor(_system, _serviceRegistry, serviceType));
+            => _proxyGenerator.CreateInterfaceProxyWithoutTarget(serviceType, new AkkaInterceptor(_serviceRegistry, serviceType));
         
         private sealed class AkkaInterceptor : IInterceptor
         {
-            private static readonly MethodInfo _callServiceMethod =
-                Reflex.MethodInfo<AkkaInterceptor>(t => t.CallService<string>(null!))
-                   .GetGenericMethodDefinition();
+            private static readonly MethodInfo CallServiceMethod = Reflex.MethodInfo<AkkaInterceptor>(t => t.CallService<string>(null!))
+                                                                          .GetGenericMethodDefinition();
             
-            private readonly ActorSystem _system;
             private readonly IServiceRegistryActor _serviceRegistry;
             private readonly Type _interfaceMethod;
 
-            public AkkaInterceptor(ActorSystem system, IServiceRegistryActor serviceRegistry, Type interfaceMethod)
+            public AkkaInterceptor(IServiceRegistryActor serviceRegistry, Type interfaceMethod)
             {
-                _system = system;
                 _serviceRegistry = serviceRegistry;
                 _interfaceMethod = interfaceMethod;
             }
@@ -53,7 +49,7 @@ namespace Stl.Fusion.AkkaBridge.Connector
                     invocation.ReturnValue = CallServiceNoReturn(invocation);
                 else
                 {
-                    var met = _callServiceMethod.MakeGenericMethod(returnType.GenericTypeArguments[0]);
+                    var met = CallServiceMethod.MakeGenericMethod(returnType.GenericTypeArguments[0]);
                     invocation.ReturnValue = FastReflection.Shared
                                                          .GetMethodInvoker(met, () => new[] { typeof(IInvocation) })(this, new object?[]{ invocation });
                     
@@ -73,7 +69,19 @@ namespace Stl.Fusion.AkkaBridge.Connector
 
             private async Task<MethodResponse> TryCall(IInvocation invocation)
             {
-                var response = await (await GetService()).Ask<MethodResponse>(new TryMethodCall(invocation.Method.Name, invocation.Arguments));
+                var service = await GetService();
+
+                var psiCapture = PublicationStateInfoCapture.Current;
+                MethodResponse response;
+
+                if (psiCapture != null)
+                {
+                    var (methodResponse, publicationStateInfo) = await service.Ask<PublicationResponse>(new RequestPublication(new TryMethodCall(invocation.Method.Name, invocation.Arguments)), TimeSpan.FromSeconds(10));
+                    response = methodResponse;
+                    psiCapture.Capture(publicationStateInfo);
+                }
+                else
+                    response = await service.Ask<MethodResponse>(new TryMethodCall(invocation.Method.Name, invocation.Arguments));
 
                 return response.Error switch
                 {
@@ -82,9 +90,10 @@ namespace Stl.Fusion.AkkaBridge.Connector
                     _ => response
                 };
             }
+
             private async Task<IActorRef> GetService()
             {
-                var (actorRef, exception) = await _serviceRegistry.ResolveService(new ResolveService(_interfaceMethod), TimeSpan.FromHours(10));
+                var (actorRef, exception) = await _serviceRegistry.ResolveService(new ResolveService(_interfaceMethod), TimeSpan.FromSeconds(10));
 
                 if (!actorRef.IsNobody()) return actorRef;
 
