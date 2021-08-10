@@ -20,11 +20,11 @@ namespace TestWebApplication.Server.Controllers
             => _counterService.GetCounter(key, token);
 
         [HttpPost]
-        public Task Increment(IncrementCommand command, CancellationToken token = default) 
+        public Task Increment([FromBody]IncrementCommand command, CancellationToken token = default) 
             => _counterService.Increment(command, token);
 
         [HttpPost]
-        public Task SetOffset(SetOffsetCommand command, CancellationToken token = default) 
+        public Task SetOffset([FromBody]SetOffsetCommand command, CancellationToken token = default) 
             => _counterService.SetOffset(command, token);
     }
 }

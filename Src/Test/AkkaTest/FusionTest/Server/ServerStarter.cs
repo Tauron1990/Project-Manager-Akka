@@ -1,6 +1,5 @@
 ﻿using Akka.Actor;
 using Akka.Cluster.Tools.PublishSubscribe;
-using AkkaTest.FusionTest.Data;
 using AkkaTest.FusionTest.Helper;
 using AkkaTest.FusionTest.Seed;
 using Microsoft.Extensions.Hosting;

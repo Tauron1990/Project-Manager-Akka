@@ -18,8 +18,8 @@ namespace AkkaTest.FusionTest.Data.Impl
         public virtual Task<Claim> Get(Guid id)
             => Task.FromResult(_claims.TryGetValue(id, out var claim) ? claim : Claim.Invalid);
 
-        public virtual Task<Claim[]> GetAll()
-            => Task.FromResult(_claims.Values.ToArray());
+        public virtual Task<Guid[]> GetAll()
+            => Task.FromResult(_claims.Values.Select(c => c.Id).ToArray());
 
         public virtual Task<Guid> GetId(string name)
             => Task.FromResult((_claims.Values.FirstOrDefault(c => c.Name == name) ?? Claim.Invalid).Id);
@@ -29,7 +29,7 @@ namespace AkkaTest.FusionTest.Data.Impl
             if (_claims.Any(c => c.Value.Name == command.Name))
                 return Task.FromResult(Claim.Invalid.Id);
 
-            Guid id    = Deterministic.Create(Namespace, command.Name);
+            var id    = Deterministic.Create(Namespace, command.Name);
             var    claim = new Claim(id, command.Name, command.Info, DateTime.Now);
 
             if (!_claims.TryAdd(id, claim)) 
@@ -58,6 +58,18 @@ namespace AkkaTest.FusionTest.Data.Impl
                 GetId(claim.Name).Ignore();
             }
             
+            return Task.CompletedTask;
+        }
+
+        public Task UpdateClaim(UpdateClaimCommand command, CancellationToken token = default)
+        {
+            if (!_claims.ContainsKey(command.Data.Id))
+                throw new InvalidOperationException("Claim does not Exist");
+            _claims[command.Data.Id] = command.Data;
+
+            using (Computed.Invalidate()) 
+                Get(command.Data.Id).Ignore();
+
             return Task.CompletedTask;
         }
     }
