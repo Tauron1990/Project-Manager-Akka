@@ -33,7 +33,7 @@ namespace Stl.Fusion.AkkaBridge.Connector
             _publisher = null!;
         }
 
-        public async Task<PublicationResponse> RunPublication(RequestPublication arg)
+        private async Task<PublicationResponse> RunPublication(RequestPublication arg)
         {
             try
             {
