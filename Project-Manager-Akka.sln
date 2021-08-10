@@ -79,6 +79,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Servicemnager.Networking", 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{52BB75FE-B68B-4CA9-A34A-4A8E26CF5AF1}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 		Info.txt = Info.txt
 	EndProjectSection
 EndProject
@@ -124,7 +125,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceManager.Shared", "Sr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tauron.Grid", "Src\Shared\Tauron.Grid\Tauron.Grid.csproj", "{87D90B7F-CA4D-4378-998C-7B2E50A7B8C8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stl.Fusion.AkkaBridge", "Src\Apps\Shared\Stl.Fusion.AkkaBridge\Stl.Fusion.AkkaBridge.csproj", "{26F0C667-6E8B-4694-8FC8-A862B8C30097}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stl.Fusion.AkkaBridge", "Src\Apps\Shared\Stl.Fusion.AkkaBridge\Stl.Fusion.AkkaBridge.csproj", "{26F0C667-6E8B-4694-8FC8-A862B8C30097}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
