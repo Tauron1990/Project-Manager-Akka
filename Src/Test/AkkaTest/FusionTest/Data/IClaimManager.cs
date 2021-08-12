@@ -9,16 +9,16 @@ namespace AkkaTest.FusionTest.Data
     public interface IClaimManager
     {
         [ComputeMethod]
-        Task<Claim> Get(Guid id);
+        Task<Claim> Get(ClaimId id);
 
         [ComputeMethod]
-        Task<Guid[]> GetAll();
+        Task<ClaimId[]> GetAll();
 
         [ComputeMethod]
-        Task<Guid> GetId(string name);
+        Task<ClaimId> GetId(string name);
         
         [CommandHandler]
-        Task<Guid> AddClaim(AddClaimCommand command, CancellationToken token = default);
+        Task<ClaimId> AddClaim(AddClaimCommand command, CancellationToken token = default);
         
         [CommandHandler]
         Task RemoveClaim(RemoveClaimCommand command, CancellationToken token = default);

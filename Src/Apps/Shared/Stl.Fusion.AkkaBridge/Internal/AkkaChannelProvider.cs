@@ -21,14 +21,14 @@ namespace Stl.Fusion.AkkaBridge.Internal
             _logger = logger;
         }
         
-        public Task<Channel<BridgeMessage>> CreateChannel(Symbol publisherId, CancellationToken cancellationToken)
+        public async Task<Channel<BridgeMessage>> CreateChannel(Symbol publisherId, CancellationToken cancellationToken)
         {
-            DistributedPubSub.Get(_system).Mediator.Tell(new Publish(AkkaFusionServiceHost.BaseChannel, publisherId));
+            var _ = await DistributedPubSub.Get(_system).Mediator.Ask<Status.Success>(new Publish(AkkaFusionServiceHost.BaseChannel, publisherId));
 
             var source = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             source.Token.Register(() => source.Dispose());
             
-            var server = new AkkaChannel<AkkaBridgeMessage>(_system, publisherId.Value, _logger, cancellationToken);
+            var server = new AkkaChannel<AkkaBridgeMessage>(_system, publisherId.Value, _logger, cancellationToken, false);
             var toReturn = Channel.CreateBounded<BridgeMessage>(16);
 
             AkkaFusionServiceHost.Convert(server, toReturn, source)
@@ -39,7 +39,7 @@ namespace Stl.Fusion.AkkaBridge.Internal
                                               _logger.LogError(t.Exception, "Error on Converting Brige Message");
                                       });
 
-            return Task.FromResult(toReturn);
+            return toReturn;
         }
     }
 }

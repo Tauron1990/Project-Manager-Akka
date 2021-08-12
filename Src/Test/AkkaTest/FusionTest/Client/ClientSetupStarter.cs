@@ -1,4 +1,5 @@
-﻿using Akka.Actor;
+﻿using System.Threading.Tasks;
+using Akka.Actor;
 using AkkaTest.FusionTest.Data;
 using AkkaTest.FusionTest.Helper;
 using Microsoft.Extensions.Hosting;

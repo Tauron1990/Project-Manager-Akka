@@ -10,11 +10,11 @@ namespace Stl.Fusion.AkkaBridge
 {
     public sealed class AkkaChannel<TMessage> : Channel<TMessage>
     {
-        public AkkaChannel(ActorSystem system, string channel, ILogger logger, CancellationToken token)
+        public AkkaChannel(ActorSystem system, string channel, ILogger logger, CancellationToken token, bool sendBack)
         {
             var reader = Channel.CreateBounded<TMessage>(16);
             var writer = Channel.CreateBounded<TMessage>(16);
-            system.ActorOf(Props.Create(() => new ChannelActor(writer, reader, channel, logger, token)));
+            system.ActorOf(Props.Create(() => new ChannelActor(writer, reader, channel, logger, token, sendBack)));
 
             Reader = reader;
             Writer = writer;
@@ -24,7 +24,7 @@ namespace Stl.Fusion.AkkaBridge
 
         private sealed class ChannelActor : ReceiveActor
         {
-            public ChannelActor(ChannelReader<TMessage> reader, ChannelWriter<TMessage> writer, string channel, ILogger logger, CancellationToken token)
+            public ChannelActor(ChannelReader<TMessage> reader, ChannelWriter<TMessage> writer, string channel, ILogger logger, CancellationToken token, bool sendBack)
             {
                 void Next()
                 {
@@ -51,11 +51,17 @@ namespace Stl.Fusion.AkkaBridge
                    .Ask<SubscribeAck>(new Subscribe(channel, Self), TimeSpan.FromSeconds(20), token)
                    .PipeTo(Self);
                 
-                Receive<SubscribeAck>(_ => {});
+                Receive<SubscribeAck>(
+                    _ =>
+                    {
+                        
+                    });
                 
                 Receive<TMessage>(m =>
                                   {
                                       while(!writer.TryWrite(m) && !token.IsCancellationRequested) {}
+
+                                      Task.Delay(1000).ContinueWith(_ => new Status.Success(null)).PipeTo(Sender);
                                   });
 
                 Next();

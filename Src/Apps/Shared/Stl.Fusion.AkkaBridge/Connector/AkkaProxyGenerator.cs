@@ -61,7 +61,7 @@ namespace Stl.Fusion.AkkaBridge.Connector
             {
                 var response = await TryCall(invocation);
 
-                return response is TType type ? type : default;
+                return response.Response is TType type ? type : default;
             }
 
             private async Task CallServiceNoReturn(IInvocation invocation)
@@ -76,7 +76,7 @@ namespace Stl.Fusion.AkkaBridge.Connector
 
                 if (psiCapture != null)
                 {
-                    var (methodResponse, publicationStateInfo) = await service.Ask<PublicationResponse>(new RequestPublication(new TryMethodCall(invocation.Method.Name, invocation.Arguments)), TimeSpan.FromSeconds(10));
+                    var (methodResponse, publicationStateInfo) = await service.Ask<PublicationResponse>(new RequestPublication(new TryMethodCall(invocation.Method.Name, invocation.Arguments)), TimeSpan.FromSeconds(30));
                     response = methodResponse;
                     psiCapture.Capture(publicationStateInfo);
                 }

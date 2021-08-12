@@ -8,6 +8,7 @@ using Stl.Fusion.Bridge.Interception;
 using Stl.Fusion.Interception;
 using Stl.Interception;
 using Stl.Reflection;
+using Tauron;
 
 namespace Stl.Fusion.AkkaBridge
 {
@@ -39,7 +40,8 @@ namespace Stl.Fusion.AkkaBridge
 
                 var client = c.GetRequiredService<AkkaProxyGenerator>().GenerateAkkaProxy(serviceType!);
 
-                return serviceAccessorType!.CreateInstance(client);
+                return FastReflection.Shared.GetCreator(serviceAccessorType, new[] { serviceType })?.Invoke(new[] { client })
+                    ?? throw new InvalidCastException("Client Accessor was not created"); //serviceAccessorType!.CreateInstance(client);
             }
 
             object ServiceFactory(IServiceProvider c)

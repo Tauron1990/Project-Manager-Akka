@@ -28,7 +28,7 @@ namespace Stl.Fusion.AkkaBridge.Internal
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var server = new AkkaChannel<Symbol>(_system, BaseChannel, _logger, stoppingToken);
+            var server = new AkkaChannel<Symbol>(_system, BaseChannel, _logger, stoppingToken, true);
 
             await foreach (var newCLient in server.Reader.ReadAllAsync(stoppingToken)) 
                 AttachNewClient(newCLient, stoppingToken);
@@ -40,7 +40,7 @@ namespace Stl.Fusion.AkkaBridge.Internal
             {
                 using var stopper = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
 
-                var client = new AkkaChannel<AkkaBridgeMessage>(_system, symbol.Value, _logger, stopper.Token);
+                var client = new AkkaChannel<AkkaBridgeMessage>(_system, symbol.Value, _logger, stopper.Token, false);
                 var toAttach = Channel.CreateBounded<BridgeMessage>(16);
                 if (!_publisher.ChannelHub.Attach(toAttach))
                     throw new InvalidOperationException("Channel Hub Attaching Failed");

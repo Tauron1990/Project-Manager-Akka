@@ -12,6 +12,7 @@ using Akka.Cluster;
 using Akka.Configuration;
 using Autofac;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Stl.Fusion;
 using Stl.Fusion.AkkaBridge;
 using Stl.Fusion.AkkaBridge.Connector;
@@ -33,8 +34,8 @@ namespace AkkaTest
             using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, 0))
             {
                 socket.Connect("8.8.8.8", 65530);
-                IPEndPoint endPoint = socket.LocalEndPoint as IPEndPoint;
-                localIP = endPoint.Address.ToString();
+                IPEndPoint? endPoint = socket.LocalEndPoint as IPEndPoint;
+                localIP = endPoint?.Address.ToString() ?? string.Empty;
             }
             
             string seedPath = Path.Combine(Program.ExeFolder, AkkaConfigurationBuilder.Main);
@@ -44,17 +45,18 @@ namespace AkkaTest
             baseConfig = ConfigurationFactory.ParseString($"akka.remote.dot-netty.tcp.hostname = {localIP}").WithFallback(baseConfig);
 
             await File.WriteAllTextAsync(seedPath, baseConfig.ToString(true));
-            
+
             await SetupRunner.Run(Host.CreateDefaultBuilder(args))
-                             .ConfigureServices(
-                                  s =>
-                                  {
-                                      s.AddFusion()
-                                         .AddFusionTime()
-                                       .AddSandboxedKeyValueStore()
-                                       .AddInMemoryKeyValueStore();
-                                  })
-                             .Build().RunAsync();
+               .ConfigureLogging(b => b.ClearProviders())
+               .ConfigureServices(
+                    s =>
+                    {
+                        s.AddFusion()
+                           .AddFusionTime()
+                           .AddSandboxedKeyValueStore()
+                           .AddInMemoryKeyValueStore();
+                    })
+               .Build().RunAsync();
         }
     }
 }

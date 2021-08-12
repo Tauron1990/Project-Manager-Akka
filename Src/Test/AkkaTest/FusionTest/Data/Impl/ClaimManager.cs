@@ -15,40 +15,39 @@ namespace AkkaTest.FusionTest.Data.Impl
         
         private readonly ConcurrentDictionary<Guid, Claim> _claims = new();
 
-        public virtual Task<Claim> Get(Guid id)
-            => Task.FromResult(_claims.TryGetValue(id, out var claim) ? claim : Claim.Invalid);
+        public virtual Task<Claim> Get(ClaimId id)
+            => Task.FromResult(_claims.TryGetValue(id.Data, out var claim) ? claim : Claim.Invalid);
 
-        public virtual Task<Guid[]> GetAll()
+        public virtual Task<ClaimId[]> GetAll()
             => Task.FromResult(_claims.Values.Select(c => c.Id).ToArray());
 
-        public virtual Task<Guid> GetId(string name)
+        public virtual Task<ClaimId> GetId(string name)
             => Task.FromResult((_claims.Values.FirstOrDefault(c => c.Name == name) ?? Claim.Invalid).Id);
 
-        public virtual Task<Guid> AddClaim(AddClaimCommand command, CancellationToken token = default)
+        public virtual Task<ClaimId> AddClaim(AddClaimCommand command, CancellationToken token = default)
         {
             if (_claims.Any(c => c.Value.Name == command.Name))
                 return Task.FromResult(Claim.Invalid.Id);
 
             var id    = Deterministic.Create(Namespace, command.Name);
-            var    claim = new Claim(id, command.Name, command.Info, DateTime.Now);
+            var    claim = new Claim(new ClaimId(id), command.Name, command.Info, DateTime.Now);
 
             if (!_claims.TryAdd(id, claim)) 
-                return Task.FromException<Guid>(new InvalidOperationException("Duplicate Id Found"));
+                return Task.FromException<ClaimId>(new InvalidOperationException("Duplicate Id Found"));
 
             using (Computed.Invalidate())
             {
-                Get(id).Ignore();
+                Get(new ClaimId(id)).Ignore();
                 GetAll().Ignore();
                 GetId(command.Name).Ignore();
             }
                 
-            return Task.FromResult(id);
-
+            return Task.FromResult(new ClaimId(id));
         }
 
         public virtual Task RemoveClaim(RemoveClaimCommand command, CancellationToken token = default)
         {
-            if(!_claims.TryRemove(command.Id, out var claim))
+            if(!_claims.TryRemove(command.Id.Data, out var claim))
                 return Task.CompletedTask;
 
             using (Computed.Invalidate())
@@ -61,14 +60,14 @@ namespace AkkaTest.FusionTest.Data.Impl
             return Task.CompletedTask;
         }
 
-        public Task UpdateClaim(UpdateClaimCommand command, CancellationToken token = default)
+        public virtual Task UpdateClaim(UpdateClaimCommand command, CancellationToken token = default)
         {
-            if (!_claims.ContainsKey(command.Data.Id))
+            if (!_claims.ContainsKey(command.Id.Data))
                 throw new InvalidOperationException("Claim does not Exist");
-            _claims[command.Data.Id] = command.Data;
+            _claims[command.Id.Data] = _claims[command.Id.Data] with{ Info = command.Info };
 
             using (Computed.Invalidate()) 
-                Get(command.Data.Id).Ignore();
+                Get(command.Id).Ignore();
 
             return Task.CompletedTask;
         }

@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Akka.Cluster.Sharding" Version="1.4.21" />
+    <PackageReference Include="Akka.Cluster.Sharding" Version="1.4.23" />
   </ItemGroup>
 
   <ItemGroup>

@@ -12,8 +12,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Akka.Cluster.Tools" Version="1.4.21" />
-    <PackageReference Include="Akka.DistributedData" Version="1.4.21" />
+    <PackageReference Include="Akka.Cluster.Tools" Version="1.4.23" />
+    <PackageReference Include="Akka.DistributedData" Version="1.4.23" />
   </ItemGroup>
 
   <ItemGroup>

@@ -14,15 +14,15 @@ namespace Stl.Fusion.AkkaBridge.Internal
     {
         private readonly IEnumerable<PublishService> _services;
         private readonly IServiceRegistryActor _registryActor;
-        private readonly IPublisher _publisher;
+        private readonly IServiceProvider _serviceProvider;
         private readonly ActorSystem _system;
         private readonly ILogger<ServicePublisherHost> _log;
 
-        public ServicePublisherHost(IEnumerable<PublishService> services, IServiceRegistryActor registryActor, IPublisher publisher, ActorSystem system, ILogger<ServicePublisherHost> log)
+        public ServicePublisherHost(IEnumerable<PublishService> services, IServiceRegistryActor registryActor, IServiceProvider serviceProvider, ActorSystem system, ILogger<ServicePublisherHost> log)
         {
             _services = services;
             _registryActor = registryActor;
-            _publisher = publisher;
+            _serviceProvider = serviceProvider;
             _system = system;
             _log = log;
         }
@@ -32,7 +32,7 @@ namespace Stl.Fusion.AkkaBridge.Internal
             foreach (var service in _services)
             {
                 var response = await _registryActor.RegisterService(
-                    new RegisterService(service.ServiceType, ServiceHostActor.CreateHost(_system, service.Resolver(), service.ServiceType, _publisher)),
+                    new RegisterService(service.ServiceType, ServiceHostActor.CreateHost(_system, service.Resolver(), service.ServiceType, _serviceProvider)),
                     TimeSpan.FromSeconds(10));
                 if(response.Error != null)
                     _log.LogError(response.Error, "Error on Register Service {Name}", service.ServiceType);

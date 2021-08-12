@@ -57,8 +57,9 @@ namespace AkkaTest.FusionTest.Client
                                               var table = CreateTable();
 
                                               foreach (var claim in manager.Claims.Values) 
-                                                  table.AddRow(claim.Name, claim.Info, claim.CreationTime.ToString("g"), claim.Id.ToString("D"));
+                                                  table.AddRow(claim.Name, claim.Info, claim.CreationTime.ToString("g"), claim.Id.Data.ToString("D"));
 
+                                              AnsiConsole.Clear();
                                               ctx.UpdateTarget(table);
                                           }
                                               
@@ -98,7 +99,7 @@ namespace AkkaTest.FusionTest.Client
         {
             private readonly IClaimManager _manager;
             private readonly CancellationToken _masterCancel;
-            private readonly ConcurrentDictionary<Guid, (ComputedObserver<Claim> Observer, Task Task, CancellationTokenSource Cancel)> _entrys = new();
+            private readonly ConcurrentDictionary<ClaimId, (ComputedObserver<Claim> Observer, Task Task, CancellationTokenSource Cancel)> _entrys = new();
             
             private readonly object _refrehLock = new();
             private Action _refresh = () => {};
@@ -109,7 +110,7 @@ namespace AkkaTest.FusionTest.Client
                 _masterCancel = masterCancel;
             }
 
-            public ConcurrentDictionary<Guid, Claim> Claims { get; } = new();
+            public ConcurrentDictionary<ClaimId, Claim> Claims { get; } = new();
 
             public async Task Run(Action refresh)
             {
@@ -120,7 +121,7 @@ namespace AkkaTest.FusionTest.Client
                 
                 while (!_masterCancel.IsCancellationRequested)
                 {
-                    await UpdateClaims(computed.ValueOrDefault ?? Array.Empty<Guid>());
+                    await UpdateClaims(computed.ValueOrDefault ?? Array.Empty<ClaimId>());
                     lock(_refrehLock)
                         _refresh();
                     await computed.WhenInvalidated(_masterCancel);
@@ -129,9 +130,9 @@ namespace AkkaTest.FusionTest.Client
                 }
             }
 
-            private async Task UpdateClaims(Guid[] ids)
+            private async Task UpdateClaims(ClaimId[] ids)
             {
-                var current = new List<Guid>(_entrys.Keys);
+                var current = new List<ClaimId>(_entrys.Keys);
 
                 foreach (var newId in ids)
                 {
