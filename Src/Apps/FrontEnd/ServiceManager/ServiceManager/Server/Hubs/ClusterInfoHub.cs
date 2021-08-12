@@ -25,14 +25,6 @@ namespace ServiceManager.Server.Hubs
         public Task SentPropertyChanged(string type, string name)
             => Clients.All.SendAsync(HubEvents.PropertyChanged, type, name);
 
-        [HubMethodName(HubEvents.QueryNodes)]
-        [UsedImplicitly]
-        public async Task<NodeChange[]> QueryAllNodes()
-        {
-            var response = await _manager.QueryNodes();
-            return response.Infos.Select(c => new NodeChange(c, false)).ToArray();
-        }
-
         [HubMethodName(nameof(ConfigurationRestApi.GetConfigFileOptions))]
         [UsedImplicitly]
         public ConfigOptionList GetBaseConfigOptions(string name)

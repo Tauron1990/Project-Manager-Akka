@@ -13,6 +13,8 @@ namespace AkkaTest.FusionTest.Client
 
         public EditActor(IClaimManager manager)
         {
+            Console.Title = "FusionTest Edit CLient";
+            
             _manager = manager;
             _self    = Self;
            

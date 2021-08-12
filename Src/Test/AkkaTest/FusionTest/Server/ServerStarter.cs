@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Cluster.Tools.PublishSubscribe;
 using AkkaTest.FusionTest.Helper;
@@ -25,6 +26,7 @@ namespace AkkaTest.FusionTest.Server
             if (await ConnectionHelper.Connect(_system, _lifetime))
             {
                 await Task.Delay(1000);
+                Console.Title = "Fusion Test Server";
                 AnsiConsole.Clear();
                 AnsiConsole.Render(new Rule("Server Gestartet"));
                 AnsiConsole.WriteLine();

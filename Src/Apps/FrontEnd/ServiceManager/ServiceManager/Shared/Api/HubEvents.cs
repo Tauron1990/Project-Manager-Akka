@@ -6,10 +6,6 @@
 
         public const string RestartServer = nameof(RestartServer);
 
-        public const string NodesChanged = nameof(NodesChanged);
-
-        public const string QueryNodes = nameof(QueryNodes);
-
         public const string AppsConfigChanged = nameof(AppsConfigChanged);
     }
 }

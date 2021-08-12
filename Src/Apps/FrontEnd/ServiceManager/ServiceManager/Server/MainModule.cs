@@ -4,6 +4,7 @@ using ServiceHost.Client.Shared.ConfigurationServer;
 using ServiceHost.Client.Shared.ConfigurationServer.Events;
 using ServiceManager.Server.AppCore;
 using ServiceManager.Server.AppCore.ClusterTracking;
+using ServiceManager.Server.AppCore.ClusterTracking.Data;
 using ServiceManager.Server.AppCore.Helper;
 using ServiceManager.Server.AppCore.ServiceDeamon;
 using ServiceManager.Server.AppCore.Settings;
@@ -27,6 +28,7 @@ namespace ServiceManager.Server
 
             builder.Register(c => c.Resolve<IEventAggregator>().GetEvent<ConfigEventDispatcher, IConfigEvent>()).SingleInstance();
 
+            builder.RegisterType<NodeRepository>().As<INodeRepository>().SingleInstance();
             builder.RegisterType<ClusterConnectionTracker>().As<IClusterConnectionTracker>().SingleInstance();
             builder.RegisterType<DatabaseConfig>().As<IDatabaseConfig>().SingleInstance();
             builder.RegisterType<ServerConfigurationApi>().As<IServerConfigurationApi>().SingleInstance();

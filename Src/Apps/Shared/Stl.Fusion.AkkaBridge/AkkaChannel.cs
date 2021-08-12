@@ -61,7 +61,8 @@ namespace Stl.Fusion.AkkaBridge
                                   {
                                       while(!writer.TryWrite(m) && !token.IsCancellationRequested) {}
 
-                                      Task.Delay(1000).ContinueWith(_ => new Status.Success(null)).PipeTo(Sender);
+                                      if (sendBack)
+                                          Task.Delay(1000).ContinueWith(_ => new Status.Success(null)).PipeTo(Sender);
                                   });
 
                 Next();

@@ -1,7 +1,6 @@
-﻿namespace Stl.Fusion.AkkaBridge.Connector.Data
+﻿using Stl.Text;
+
+namespace Stl.Fusion.AkkaBridge.Connector.Data
 {
-    public class SymbolData
-    {
-        
-    }
+    public sealed record SymbolData(Symbol Symbol);
 }

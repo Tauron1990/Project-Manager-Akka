@@ -7,12 +7,12 @@ using Stl.Fusion;
 
 namespace ServiceManager.Server.AppCore.ClusterTracking.Data
 {
-    public class CommandHandler : INodeUpdateHandler
+    public class NodeUpdateHandler : INodeUpdateHandler
     {
         private readonly INodeRepository _repository;
         private readonly IClusterNodeTracking _tracker;
 
-        public CommandHandler(INodeRepository repository, IClusterNodeTracking tracker)
+        public NodeUpdateHandler(INodeRepository repository, IClusterNodeTracking tracker)
         {
             _repository = repository;
             _tracker = tracker;
@@ -42,7 +42,7 @@ namespace ServiceManager.Server.AppCore.ClusterTracking.Data
 
         public virtual async Task<Unit> UpdateName(UpdateNameCommand command, CancellationToken token = default)
         {
-            await _repository.UpdateClusterNode(command.Url, info => info with { Name = command.Name });
+            await _repository.UpdateClusterNode(command.Url, info => info with { Name = command.Name, ServiceType = command.ServiceType});
             using (Computed.Invalidate()) 
                 _tracker.GetInfo(command.Url).Ignore();
 

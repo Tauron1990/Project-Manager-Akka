@@ -23,6 +23,12 @@ namespace Tauron.Application.Master.Commands.ServiceRegistry
             adress.ToString());
 
         public override string ToString() => UniqeAdress;
+        
+        public static bool operator ==(UniqueAddress address, MemberAddress memberAddress)
+            => address.ToString() == memberAddress.UniqeAdress;
+
+        public static bool operator !=(UniqueAddress address, MemberAddress memberAddress)
+            => !(address == memberAddress);
     }
 
     public sealed record MemberService(string Name, MemberAddress Address, ServiceType ServiceType);

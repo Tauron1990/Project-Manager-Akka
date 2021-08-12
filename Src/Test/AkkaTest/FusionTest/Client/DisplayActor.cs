@@ -17,6 +17,7 @@ namespace AkkaTest.FusionTest.Client
 
         public DisplayActor(IClaimManager manager)
         {
+            Console.Title = "FusionTest Display Client";
             _manager = manager;
             RunDisplay();
             }

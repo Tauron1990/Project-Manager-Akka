@@ -13,7 +13,7 @@ namespace AkkaTest.FusionTest.Helper
         {
             try
             {
-                Console.Title = "Fusion Test Server";
+                Console.Title = "Fusion Test Cluster Verbindung";
                 AnsiConsole.Clear();
                 AnsiConsole.Render(new Rule("Cluster Beitreten"));
                 AnsiConsole.WriteLine();

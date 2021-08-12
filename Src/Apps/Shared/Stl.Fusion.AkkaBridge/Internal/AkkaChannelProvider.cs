@@ -1,9 +1,11 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Cluster.Tools.PublishSubscribe;
 using Microsoft.Extensions.Logging;
+using Stl.Fusion.AkkaBridge.Connector.Data;
 using Stl.Fusion.Bridge;
 using Stl.Fusion.Bridge.Messages;
 using Stl.Text;
@@ -14,16 +16,20 @@ namespace Stl.Fusion.AkkaBridge.Internal
     {
         private readonly ActorSystem _system;
         private readonly ILogger<AkkaChannelProvider> _logger;
-
+        private readonly TimeSpan _delay;
+        
         public AkkaChannelProvider(ActorSystem system, ILogger<AkkaChannelProvider> logger)
         {
             _system = system;
             _logger = logger;
+            _delay = DistributedPubSubSettings.Create(system).GossipInterval * 2;
         }
         
         public async Task<Channel<BridgeMessage>> CreateChannel(Symbol publisherId, CancellationToken cancellationToken)
         {
-            var _ = await DistributedPubSub.Get(_system).Mediator.Ask<Status.Success>(new Publish(AkkaFusionServiceHost.BaseChannel, publisherId));
+            await Task.Delay(_delay, cancellationToken);
+            var mediator = DistributedPubSub.Get(_system).Mediator;
+            var _ = await mediator.Ask<Status.Success>(new Publish(AkkaFusionServiceHost.BaseChannel, new SymbolData(publisherId)));
 
             var source = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             source.Token.Register(() => source.Dispose());
