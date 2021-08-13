@@ -14,7 +14,7 @@ namespace ServiceManager.Client.ViewModels
 {
     public sealed class ConfigurationViewDatabseModel : ObservableObject, IDisposable, IInitable
     {
-        private readonly IDatabaseConfig _databaseConfig;
+        private readonly IDatabaseConfigOld _databaseConfig;
         private readonly IServerInfo _info;
         private readonly IDialogService _dialogService;
         private readonly IEventAggregator _aggregator;
@@ -39,7 +39,7 @@ namespace ServiceManager.Client.ViewModels
 
         public IOperationManager Operation { get; set; } = OperationManager.Empty;
 
-        public ConfigurationViewDatabseModel(IDatabaseConfig databaseConfig, IServerInfo info, IDialogService dialogService, IEventAggregator aggregator)
+        public ConfigurationViewDatabseModel(IDatabaseConfigOld databaseConfig, IServerInfo info, IDialogService dialogService, IEventAggregator aggregator)
         {
             _databaseConfig = databaseConfig;
             _info = info;

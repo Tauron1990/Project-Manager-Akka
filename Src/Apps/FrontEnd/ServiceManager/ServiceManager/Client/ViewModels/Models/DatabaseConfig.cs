@@ -9,7 +9,7 @@ using Tauron.Application;
 
 namespace ServiceManager.Client.ViewModels.Models
 {
-    public sealed class DatabaseConfig : ModelBase, IDatabaseConfig
+    public sealed class DatabaseConfig : ModelBase, IDatabaseConfigOld
     {
         private string _url = string.Empty;
         private bool _isReady;
@@ -70,7 +70,7 @@ namespace ServiceManager.Client.ViewModels.Models
         {
             return Init(mc =>
                         {
-                            mc.ForInterface<IDatabaseConfig>(ic =>
+                            mc.ForInterface<IDatabaseConfigOld>(ic =>
                                                              {
                                                                  ic.OnPropertyChanged(
                                                                      dc => dc.IsReady,

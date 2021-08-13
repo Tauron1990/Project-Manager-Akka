@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
 using Microsoft.Extensions.Hosting;
@@ -29,7 +30,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
 
     public interface IProcessServiceHost : IFeatureActorRef<IProcessServiceHost>
     {
-        public Task<TryStartResponse> TryStart(string? databaseUrl);
+        public Task<TryStartResponse> TryStart(string? databaseUrl, CancellationToken token = default);
 
         public Task<string> ConfigAlive(ConfigurationApi api, ActorSystem system);
     }
@@ -55,11 +56,11 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
 
     public sealed class ProcessServiceHostActor : ActorFeatureBase<ProcessServiceHostActor._>
     {
-        public sealed record _(IDatabaseConfig DatabaseConfig, Services Operator, IHostEnvironment HostEnvironment, RepositoryApi RepositoryApi, DeploymentApi DeploymentApi, ConfigurationApi ConfigurationApi);
+        public sealed record _(IDatabaseConfigOld DatabaseConfig, Services Operator, IHostEnvironment HostEnvironment, RepositoryApi RepositoryApi, DeploymentApi DeploymentApi, ConfigurationApi ConfigurationApi);
 
-        public static Func<IHostEnvironment, IDatabaseConfig, RepositoryApi, DeploymentApi, ConfigurationApi, IPreparedFeature> New()
+        public static Func<IHostEnvironment, IDatabaseConfigOld, RepositoryApi, DeploymentApi, ConfigurationApi, IPreparedFeature> New()
         {
-            static IPreparedFeature _(IHostEnvironment hostEnvironment, IDatabaseConfig config, RepositoryApi repositoryApi, DeploymentApi deploymentApi, ConfigurationApi configurationApi)
+            static IPreparedFeature _(IHostEnvironment hostEnvironment, IDatabaseConfigOld config, RepositoryApi repositoryApi, DeploymentApi deploymentApi, ConfigurationApi configurationApi)
                 => Feature.Create(() => new ProcessServiceHostActor(), _ => new _(config, new Services(), hostEnvironment, repositoryApi, deploymentApi, configurationApi));
 
             return _;

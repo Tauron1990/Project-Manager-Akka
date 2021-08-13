@@ -1,0 +1,36 @@
+﻿@using ServiceManager.Shared.ClusterTracking;
+@using ServiceManager.Shared
+
+@inject IAppIpManager _manager;
+
+@inherits ComputedStateComponent<AppIp>
+
+@{
+    var error = State.Error;
+    var ip = State.ValueOrDefault ?? AppIp.Invalid;
+}
+
+<MudMainContent>
+    @if (error != null)
+    {
+        <MudAlert Class="justify-space-around" Severity="Severity.Error" Variant="Variant.Filled">Fehler bem abrufen der Ip: @error.Message</MudAlert>
+    }
+    else if(!ip.IsValid)
+    {
+        <NoIpFoundEditor/>
+    }
+    else
+    {
+        @ChildContent
+    }
+</MudMainContent>
+
+@code {
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; } = _ => { };
+    
+    protected override Task<AppIp> ComputeState(CancellationToken cancellationToken) 
+        => _manager.GetIp();
+
+}

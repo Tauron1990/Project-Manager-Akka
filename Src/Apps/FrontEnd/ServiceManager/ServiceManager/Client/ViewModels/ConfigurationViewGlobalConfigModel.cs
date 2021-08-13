@@ -16,7 +16,7 @@ namespace ServiceManager.Client.ViewModels
     {
         private readonly IServerConfigurationApi _api;
         private readonly IEventAggregator _aggregator;
-        private readonly IDatabaseConfig _databaseConfig;
+        private readonly IDatabaseConfigOld _databaseConfig;
         private readonly IDisposable _subscription;
 
         private string _configInfo = string.Empty;
@@ -34,7 +34,7 @@ namespace ServiceManager.Client.ViewModels
             set => SetProperty(ref _configContent, value);
         }
 
-        public ConfigurationViewGlobalConfigModel(IServerConfigurationApi api, IEventAggregator aggregator, IDatabaseConfig databaseConfig)
+        public ConfigurationViewGlobalConfigModel(IServerConfigurationApi api, IEventAggregator aggregator, IDatabaseConfigOld databaseConfig)
         {
             _api = api;
             _aggregator = aggregator;

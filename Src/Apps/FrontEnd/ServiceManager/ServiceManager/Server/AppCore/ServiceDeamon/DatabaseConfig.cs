@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
 using MongoDB.Driver;
@@ -13,6 +14,8 @@ using ServiceManager.Server.AppCore.Settings;
 using ServiceManager.Server.Properties;
 using ServiceManager.Shared.ClusterTracking;
 using ServiceManager.Shared.ServiceDeamon;
+using Stl.Async;
+using Stl.Fusion;
 using Tauron;
 using Tauron.Application.AkkaNode.Services.Reporting;
 using Tauron.Application.Master.Commands.Administration.Configuration;
@@ -22,42 +25,55 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
     public class DatabaseConfig : ResourceHoldingObject, IDatabaseConfig
     {
         private readonly ILocalConfiguration _configuration;
-        private readonly IPropertyChangedNotifer _notifer;
         private readonly ConfigurationApi _configurationApi;
         private readonly IClusterConnectionTracker _tracker;
         private readonly ActorSystem _system;
         private readonly IProcessServiceHost _processServiceHost;
         private readonly IResource<string> _url;
-
-        public string Url => _url.Get();
-
-        public bool IsReady { get; }
-
-        public DatabaseConfig(ILocalConfiguration configuration, IPropertyChangedNotifer notifer, ConfigurationApi configurationApi, IClusterConnectionTracker tracker, ActorSystem system,
+        private readonly IResource<bool> _isReady;
+        
+        public DatabaseConfig(ILocalConfiguration configuration, ConfigurationApi configurationApi, IClusterConnectionTracker tracker, ActorSystem system,
             ConfigEventDispatcher eventDispatcher, IProcessServiceHost processServiceHost)
         {
-            _url = CreateResource(configuration.DatabaseUrl, nameof(Url));
+            _url = CreateResource(configuration.DatabaseUrl, onSet: () =>
+                                                                    {
+                                                                        using (Computed.Invalidate()) GetUrl().Ignore();
+
+                                                                        return Task.CompletedTask;
+                                                                    });
 
             (from evt in eventDispatcher.Get().OfType<ServerConfigurationEvent>()
              let config = evt.Configugration
-             where !Url.Equals(config.Database, StringComparison.Ordinal)
+             where !_url.Get().Equals(config.Database, StringComparison.Ordinal)
              from r in _url.Set(config.Database)
              select r).AutoSubscribe()
                       .DisposeWith(this);
 
             _configuration = configuration;
-            _notifer = notifer;
             _configurationApi = configurationApi;
             _tracker = tracker;
             _system = system;
             _processServiceHost = processServiceHost;
-            IsReady = !string.IsNullOrWhiteSpace(Url);
+            _isReady = CreateResource(!string.IsNullOrWhiteSpace(_url.Get()), onSet: () =>
+                                                                                     {
+                                                                                         using (Computed.Invalidate()) GetIsReady().Ignore();
+
+                                                                                         return Task.CompletedTask;
+                                                                                     });
         }
 
-        public async Task<string> SetUrl(string url)
+        public virtual Task<string> GetUrl()
+            => Task.FromResult(_url.Get());
+
+        public virtual Task<bool> GetIsReady()
+            => Task.FromResult(_isReady.Get());
+        
+        public virtual async Task<string> SetUrl(SetUrlCommand command, CancellationToken token = default)
         {
             try
             {
+                var (url) = command;
+                
                 if(url.Equals(_configuration.DatabaseUrl, StringComparison.Ordinal)) return "Datenbank ist gleich";
                 
                 var murl = new MongoUrl(url);
@@ -68,7 +84,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
 
                     try
                     {
-                        var result = await _processServiceHost.TryStart(url);
+                        var result = await _processServiceHost.TryStart(url, token);
                         canSend = result.IsRunning;
                     }
                     catch (Exception e)
@@ -92,8 +108,8 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
 
                 _configuration.DatabaseUrl = url;
 
-                await _notifer.SendPropertyChanged<IDatabaseConfig>(nameof(Url));
-
+                await _isReady.Set(true);
+                
                 return string.Empty;
             }
             catch (Exception e)

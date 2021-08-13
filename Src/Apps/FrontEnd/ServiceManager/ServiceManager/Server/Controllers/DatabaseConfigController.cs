@@ -9,9 +9,9 @@ namespace ServiceManager.Server.Controllers
     [ApiController]
     public class DatabaseConfigController : ControllerBase
     {
-        private readonly IDatabaseConfig _config;
+        private readonly IDatabaseConfigOld _config;
 
-        public DatabaseConfigController(IDatabaseConfig config) => _config = config;
+        public DatabaseConfigController(IDatabaseConfigOld config) => _config = config;
 
         [HttpGet]
         public ActionResult<StringApiContent> OnGetUrl() => new StringApiContent(_config.Url);
