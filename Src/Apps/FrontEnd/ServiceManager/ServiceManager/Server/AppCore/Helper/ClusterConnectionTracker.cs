@@ -1,70 +1,94 @@
 ﻿using System;
 using System.IO;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Cluster;
+using JetBrains.Annotations;
+using Microsoft.Extensions.Logging;
 using NLog;
 using ServiceManager.Shared;
 using ServiceManager.Shared.ClusterTracking;
-using Tauron.Application;
+using Stl.Async;
+using Stl.Fusion;
 using Tauron.Application.Master.Commands.Administration.Configuration;
 
 namespace ServiceManager.Server.AppCore.Helper
 {
-    public sealed class ClusterConnectionTracker : ObservableObject, IClusterConnectionTracker
+    [UsedImplicitly(ImplicitUseKindFlags.InstantiatedWithFixedConstructorSignature)]
+    public class ClusterConnectionTracker : IClusterConnectionTracker
     {
-        private readonly IPropertyChangedNotifer _notifer;
-        private bool _isConnected;
-        private string _url = string.Empty;
+        private readonly ILogger<ClusterConnectionTracker> _log;
+        private          bool                              _isConnected;
+        private          string                            _url = string.Empty;
+        private readonly bool                              _isSelf;
+        private readonly AppIp                             _ip;
+        
 
-        public string Url
+        public ClusterConnectionTracker(ActorSystem system, IAppIpManager manager, ILogger<ClusterConnectionTracker> log)
         {
-            get => _url;
-            private set => SetProperty(ref _url, value, () => _notifer.SendPropertyChanged<IClusterConnectionTracker>(nameof(Url)));
-        }
-
-        public bool IsConnected
-        {
-            get => _isConnected;
-            private set => SetProperty(ref _isConnected, value, () => _notifer.SendPropertyChanged<IClusterConnectionTracker>(nameof(IsConnected)));
-        }
-
-        public bool IsSelf { get; }
-
-        public AppIp Ip { get; }
-
-        public ClusterConnectionTracker(ActorSystem system, IAppIpManager manager, IPropertyChangedNotifer notifer)
-        {
-            _notifer = notifer;
-            Ip = manager.Ip;
+            _log = log;
+            _ip       = manager.Ip;
             var cluster = Cluster.Get(system);
 
             cluster.RegisterOnMemberUp(() =>
                                        {
-                                           IsConnected = true;
-                                           Url = cluster.SelfAddress.ToString();
+                                           _isConnected = true;
+                                           _url = cluster.SelfAddress.ToString();
+                                           using (Computed.Invalidate())
+                                           {
+                                               GetIsConnected().Ignore();
+                                               GetUrl().Ignore();
+                                           }
                                        });
-            cluster.RegisterOnMemberRemoved(() => IsConnected = false);
+            cluster.RegisterOnMemberRemoved(() =>
+                                            {
+                                                _isConnected = false;
+                                                using(Computed.Invalidate())
+                                                    GetIsConnected().Ignore();
+                                            });
 
             if (cluster.Settings.SeedNodes.Count != 0) return;
-            IsSelf = true;
+            _isSelf = true;
 
             if(manager.Ip.IsValid)
+            {
                 cluster.JoinAsync(cluster.SelfAddress)
                        .ContinueWith(t =>
                                      {
                                          if(t.IsFaulted)
-                                            LogManager.GetCurrentClassLogger().Error(t.Exception, "Error on Join Self Cluster");
+                                             LogManager.GetCurrentClassLogger().Error(t.Exception, "Error on Join Self Cluster");
                                      });
+            }
         }
 
-        public async Task<string?> ConnectToCluster(string url)
+        public virtual Task<string> GetUrl()
+            => Task.FromResult(_url);
+
+        public virtual Task<bool> GetIsConnected()
+            => Task.FromResult(_isConnected);
+
+        public virtual Task<bool> GetIsSelf()
+            => Task.FromResult(_isSelf);
+
+        public virtual Task<AppIp> Ip()
+            => Task.FromResult(_ip);
+
+        public virtual async Task<string?> ConnectToCluster(ConnectToClusterCommand command, CancellationToken token = default)
         {
-            string content = await File.ReadAllTextAsync(Path.Combine(Program.ExeFolder, AkkaConfigurationBuilder.Seed));
-            content = await AkkaConfigurationBuilder.PatchSeedUrls(content, new[] {url});
-            await File.WriteAllTextAsync(Path.Combine(Program.ExeFolder, AkkaConfigurationBuilder.Seed), content);
-            return string.Empty;
+            try
+            {
+                string content = await File.ReadAllTextAsync(Path.Combine(Program.ExeFolder, AkkaConfigurationBuilder.Seed));
+                content = await AkkaConfigurationBuilder.PatchSeedUrls(content, new[] { command.Url });
+                await File.WriteAllTextAsync(Path.Combine(Program.ExeFolder, AkkaConfigurationBuilder.Seed), content);
+                return string.Empty;
+            }
+            catch (Exception e)
+            {
+                _log.LogError(e, "Error on Connect to Cluster");
+                return e.Message;
+            }
         }
     }
 }

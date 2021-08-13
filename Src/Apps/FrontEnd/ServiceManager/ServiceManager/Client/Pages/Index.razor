@@ -1,23 +1,25 @@
 ﻿@page "/"
+@using ServiceManager.Shared.ClusterTracking
 
-@inject IndexViewModel _model
-@inherits PropertyChangedComponent
+@inject IClusterNodeTracking _service
+@inherits ComputedStateComponent<string[]>
 
 <Title Value="Knoten"/>
 
     <MudText Typo="Typo.h4" Class="m-1">Aktuelle Knoten:</MudText>
 
 <MudList>
-    @foreach (var info in _model.NodeInfos)
+    @foreach (var info in State.ValueOrDefault ?? Array.Empty<string>())
     {
         <MudListItem>
-            <ClusterNodeInfoView @key=info.Key NodeInfo="@info.Value"/>
+            <ClusterNodeInfoView @key=info NodeInfo="@info"/>
         </MudListItem>
     }
 </MudList>
 
 @code
 {
-    protected override async Task OnInitializedAsync() => await Track(_model);
+    protected override Task<string[]> ComputeState(CancellationToken cancellationToken) 
+        => _service.GetUrls();
 }
 

@@ -1,17 +1,28 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
+using Stl.CommandR;
+using Stl.CommandR.Configuration;
+using Stl.Fusion;
 
 namespace ServiceManager.Shared.ClusterTracking
 {
-    public interface IClusterConnectionTracker : IInternalObject
+    public sealed record ConnectToClusterCommand(string Url) : ICommand<string?>;
+    
+    public interface IClusterConnectionTracker
     {
-        string Url { get; }
+        [ComputeMethod]
+        Task<string> GetUrl();
 
-        bool IsConnected { get; }
+        [ComputeMethod]
+        Task<bool> GetIsConnected();
 
-        bool IsSelf { get; }
+        [ComputeMethod]
+        Task<bool> GetIsSelf();
 
-        AppIp Ip { get; }
+        [ComputeMethod]
+        Task<AppIp> Ip();
 
-        Task<string?> ConnectToCluster(string url);
+        [CommandHandler]
+        Task<string?> ConnectToCluster(ConnectToClusterCommand command, CancellationToken token = default);
     }
 }

@@ -29,7 +29,6 @@ namespace ServiceManager.Server
             builder.Register(c => c.Resolve<IEventAggregator>().GetEvent<ConfigEventDispatcher, IConfigEvent>()).SingleInstance();
 
             builder.RegisterType<NodeRepository>().As<INodeRepository>().SingleInstance();
-            builder.RegisterType<ClusterConnectionTracker>().As<IClusterConnectionTracker>().SingleInstance();
             builder.RegisterType<DatabaseConfig>().As<IDatabaseConfig>().SingleInstance();
             builder.RegisterType<ServerConfigurationApi>().As<IServerConfigurationApi>().SingleInstance();
             builder.RegisterType<PropertyChangedNotifer>().As<IPropertyChangedNotifer>().SingleInstance();

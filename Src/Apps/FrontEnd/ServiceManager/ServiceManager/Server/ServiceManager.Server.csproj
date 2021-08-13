@@ -24,7 +24,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="5.0.9" />
     <PackageReference Include="MongoDB.Driver" Version="2.13.1" />
     <PackageReference Include="SharpRepository.MongoDbRepository" Version="2.1.1" />
-    <PackageReference Include="Stl.Fusion.Server" Version="1.7.5" />
+    <PackageReference Include="Stl.Fusion.Server" Version="1.7.8" />
   </ItemGroup>
 
   <ItemGroup>

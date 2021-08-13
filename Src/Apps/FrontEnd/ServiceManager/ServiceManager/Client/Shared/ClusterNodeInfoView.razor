@@ -1,5 +1,8 @@
 ﻿@using ServiceManager.Shared.ClusterTracking
-@inherits PropertyChangedComponent
+
+@inherits ComputedStateComponent<ClusterNodeInfo>
+
+@inject IClusterNodeTracking _nodeTracking;
 
 <MudPaper Elevation="5" Class="pa-2">
     <table>
@@ -8,7 +11,7 @@
                 <MudText>Name:</MudText>
             </td>
             <td>
-                <MudText>@NodeInfo.Name</MudText>
+                <MudText>@State.ValueOrDefault?.Name</MudText>
             </td>
         </tr>
         <tr>
@@ -16,7 +19,7 @@
                 <MudText>Url:</MudText>
             </td>
             <td>
-                <MudText>@NodeInfo.Url</MudText>
+                <MudText>@State.ValueOrDefault?.Url</MudText>
             </td>
         </tr>
         <tr>
@@ -24,7 +27,7 @@
                 <MudText>Type:</MudText>
             </td>
             <td>
-                <MudText>@NodeInfo.ServiceType</MudText>
+                <MudText>@State.ValueOrDefault?.ServiceType</MudText>
             </td>
         </tr>
         <tr>
@@ -32,7 +35,7 @@
                 <MudText>Status:</MudText>
             </td>
             <td>
-                <MudText>@NodeInfo.Status</MudText>
+                <MudText>@State.ValueOrDefault?.Status</MudText>
             </td>
         </tr>
     </table>
@@ -41,9 +44,9 @@
 @code {
 
     [Parameter]
-    public ClusterNodeInfo NodeInfo { get; set; } = ClusterNodeInfo.Empty;
+    public string NodeInfo { get; set; } = string.Empty;
 
-    protected override async Task OnInitializedAsync() 
-        => await Track(NodeInfo);
+    protected override Task<ClusterNodeInfo> ComputeState(CancellationToken cancellationToken) 
+        => _nodeTracking.GetInfo(NodeInfo);
 
 }

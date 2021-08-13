@@ -62,7 +62,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
                 
                 var murl = new MongoUrl(url);
 
-                if (_tracker.IsConnected)
+                if (await _tracker.GetIsConnected())
                 {
                     var canSend = false;
 
@@ -110,7 +110,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
         {
             try
             {
-                if (_tracker.IsSelf)
+                if (await _tracker.GetIsSelf())
                     return new UrlResult("Mit Keinem Cluster Verbunden", false);
 
                 var response = await _configurationApi.QueryIsAlive(_system, TimeSpan.FromSeconds(10));

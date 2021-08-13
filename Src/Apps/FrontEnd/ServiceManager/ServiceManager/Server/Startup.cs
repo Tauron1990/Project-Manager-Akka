@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.SignalR;
 using ServiceManager.Server.AppCore;
 using ServiceManager.Server.AppCore.ClusterTracking;
 using ServiceManager.Server.AppCore.ClusterTracking.Data;
+using ServiceManager.Server.AppCore.Helper;
 using ServiceManager.Server.Hubs;
 using ServiceManager.Shared.Api;
 using ServiceManager.Shared.ClusterTracking;
@@ -38,7 +39,8 @@ namespace ServiceManager.Server
             
             var fusion = services.AddFusion();
             fusion.AddWebServer();
-            fusion.AddComputeService<IClusterNodeTracking, ClusterNodeTracking>();
+            fusion.AddComputeService<IClusterNodeTracking, ClusterNodeTracking>()
+                  .AddComputeService<IClusterConnectionTracker, ClusterConnectionTracker>();
             
             
             services.Configure<HostOptions>(o => o.ShutdownTimeout = TimeSpan.FromSeconds(30));
@@ -94,7 +96,7 @@ namespace ServiceManager.Server
                 app.UseExceptionHandler("/Error");
             }
 
-            app.UseCors();
+            app.UseCors(builder => builder.WithFusionHeaders());
             app.UseBlazorFrameworkFiles();
             app.UseStaticFiles();
 

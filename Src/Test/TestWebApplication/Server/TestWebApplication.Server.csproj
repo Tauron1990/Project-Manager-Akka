@@ -6,7 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="5.0.9" />
-    <PackageReference Include="Stl.Fusion.Server" Version="1.7.5" />
+    <PackageReference Include="Stl.Fusion.Server" Version="1.7.8" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.1.5" />
   </ItemGroup>
 

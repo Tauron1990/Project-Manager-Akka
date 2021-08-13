@@ -100,7 +100,7 @@ namespace ServiceManager.Server.AppCore.ClusterTracking
             Receive<QueryRegistratedServiceResponse>(obs => from response in obs
                                                             let service = response.Event.Service
                                                             where service != null
-                                                            from result in AddAndUpdate(response.State, response.State.Cluster.State.Members.First(m => m.UniqueAddress == response.Event.Service.Address), 
+                                                            from result in AddAndUpdate(response.State, response.State.Cluster.State.Members.First(m => m.UniqueAddress == service.Address), 
                                                                 com => com.Call(new UpdateNameCommand(service.Address.ToString(), service.Name, service.ServiceType.DisplayName)))
                                                             select result);
 

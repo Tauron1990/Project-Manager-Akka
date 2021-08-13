@@ -1,51 +1,39 @@
-﻿using System;
+﻿using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using ServiceManager.Shared.Api;
 using ServiceManager.Shared.ClusterTracking;
+using Stl.Fusion.Server;
 
 namespace ServiceManager.Server.Controllers
 {
-    [Route("api/[controller]")]
+    [Route(ControllerName.ClusterConnectionTracker + "/[action]")]
     [ApiController]
-    public class ClusterConnectionTrackerController : ControllerBase
+    public class ClusterConnectionTrackerController : ControllerBase, IClusterConnectionTracker
     {
         private readonly IClusterConnectionTracker _tracker;
 
-        public ClusterConnectionTrackerController(IClusterConnectionTracker tracker) => _tracker = tracker;
+        public ClusterConnectionTrackerController(IClusterConnectionTracker tracker)
+            => _tracker = tracker;
 
-        [HttpGet]
-        public ActionResult<AppIp> GetIp()
-            => _tracker.Ip;
+        [HttpGet, Publish]
+        public Task<string> GetUrl()
+            => _tracker.GetUrl();
 
-        [HttpGet]
-        [Route(nameof(ClusterConnectionTrackerApi.IsSelf))]
-        public ActionResult<BoolApiContent> GetIsSelf()
-            => new BoolApiContent(_tracker.IsSelf);
+        [HttpGet, Publish]
+        public Task<bool> GetIsConnected()
+            => _tracker.GetIsConnected();
 
-        [HttpGet]
-        [Route(nameof(ClusterConnectionTrackerApi.IsConnected))]
-        public ActionResult<BoolApiContent> GetIsConnected()
-            => new BoolApiContent(_tracker.IsConnected);
+        [HttpGet, Publish]
+        public Task<bool> GetIsSelf()
+            => _tracker.GetIsSelf();
 
-        [HttpGet]
-        [Route(nameof(ClusterConnectionTrackerApi.SelfUrl))]
-        public ActionResult<StringApiContent> GetSelfUrl()
-            => new StringApiContent(_tracker.Url);
+        [HttpGet, Publish]
+        public Task<AppIp> Ip()
+            => _tracker.Ip();
 
         [HttpPost]
-        [Route(nameof(ClusterConnectionTrackerApi.ConnectToCluster))]
-        public async Task<ActionResult<StringApiContent>> ConnectToCluster([FromBody] StringApiContent url)
-        {
-            try
-            {
-                await _tracker.ConnectToCluster(url.Content);
-                return new StringApiContent(string.Empty);
-            }
-            catch (Exception e)
-            {
-                return new StringApiContent(e.Message);
-            }
-        }
+        public Task<string?> ConnectToCluster(ConnectToClusterCommand command, CancellationToken token = default)
+            => _tracker.ConnectToCluster(command, token);
     }
 }

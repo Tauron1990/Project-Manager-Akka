@@ -16,7 +16,7 @@ namespace ServiceManager.Client.ViewModels
         private readonly IServerInfo _serverInfo;
         private readonly HttpClient _client;
         private readonly IEventAggregator _aggregator;
-        private readonly IClusterConnectionTracker _tracker;
+        private readonly IClusterConnectionTrackerOld _tracker;
 
         public Func<string, string?> ValidateUrl => s =>
                                                     {
@@ -37,7 +37,7 @@ namespace ServiceManager.Client.ViewModels
 
         public IOperationManager Operation { get; } = new OperationManager();
 
-        public ConnectToClusterViewModel(IServerInfo serverInfo, HttpClient client, IEventAggregator aggregator, IClusterConnectionTracker tracker)
+        public ConnectToClusterViewModel(IServerInfo serverInfo, HttpClient client, IEventAggregator aggregator, IClusterConnectionTrackerOld tracker)
         {
             _serverInfo = serverInfo;
             _client = client;

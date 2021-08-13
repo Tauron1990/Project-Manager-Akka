@@ -13,7 +13,6 @@ namespace ServiceManager.Client
         public static void Run(IServiceCollection collection)
         {
             collection.AddScoped<ConnectToClusterViewModel>();
-            collection.AddScoped<IndexViewModel>();
             collection.AddScoped<ConfigurationViewDatabseModel>();
 
             collection.AddScoped<ConfigurationOptionsViewModel>();
@@ -21,7 +20,7 @@ namespace ServiceManager.Client
             collection.AddScoped<AppConfigurationViewModel>();
             collection.AddScoped<ConfigurationViewAppConfigModel>();
 
-            collection.AddScoped<IClusterConnectionTracker, ClusterConnectionTracker>();
+            collection.AddScoped<IClusterConnectionTrackerOld, ClusterConnectionTrackerOld>();
             collection.AddScoped<IDatabaseConfig, DatabaseConfig>();
             collection.AddScoped<IAppIpManager, AppIpManager>();
             collection.AddScoped<IServerInfo, Serverinfo>();
