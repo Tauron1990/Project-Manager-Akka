@@ -37,7 +37,7 @@ namespace ServiceManager.Server
 
         private static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-                .ConfigureServices(sc => sc.AddSingleton<IRestartHelper>(RestartHelper).AddSingleton<IAppIpManager>(AppIpManager))
+                .ConfigureServices(sc => sc.AddSingleton<IRestartHelper>(RestartHelper).AddSingleton<IInternalAppIpManager>(AppIpManager))
                 .StartNode(KillRecpientType.Frontend, IpcApplicationType.NoIpc, consoleLog: true)
                 .ConfigureWebHostDefaults(
                      webBuilder =>

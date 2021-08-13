@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.SignalR.Client;
 using MudBlazor;
 using MudBlazor.Services;
 using ServiceManager.Client.ServiceDefs;
+using ServiceManager.Shared;
 using ServiceManager.Shared.ClusterTracking;
 using Stl.Fusion;
 using Stl.Fusion.Blazor;
@@ -58,7 +59,10 @@ namespace ServiceManager.Client
                       .AddBlazorUIServices()
                       .AddRestEaseClient()
                       .ConfigureHttpClientFactory((_, _, options) => options.HttpClientActions.Add(c => c.BaseAddress = baseAdress))
-                      .AddClientService<IClusterNodeTracking, IClusterNodeTrackingDef>();
+                      .AddClientService<IClusterNodeTracking, IClusterNodeTrackingDef>()
+                      .AddClientService<IClusterConnectionTracker, IClusterConnectionTrackerDef>()
+                      .AddClientService<IServerInfo, IServerInfoDef>()
+                      .AddClientService<IAppIpManager, IAppIpManagerDef>();
         }
     }
 }

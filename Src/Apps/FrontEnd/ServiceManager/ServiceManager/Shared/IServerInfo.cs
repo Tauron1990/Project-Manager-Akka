@@ -1,11 +1,20 @@
-﻿using System.Threading.Tasks;
+﻿using System.Reactive;
+using System.Threading;
+using System.Threading.Tasks;
+using Stl.CommandR;
+using Stl.CommandR.Configuration;
+using Stl.Fusion;
 
 namespace ServiceManager.Shared
 {
+    public sealed record RestartCommand : ICommand<Unit>;
+
     public interface IServerInfo
     {
-        Task Restart();
+        [ComputeMethod]
+        Task<string> GetCurrentId(CancellationToken token = default);
 
-        Task<string?> TryReconnect();
+        [CommandHandler]
+        Task Restart(RestartCommand command, CancellationToken token = default);
     }
 }

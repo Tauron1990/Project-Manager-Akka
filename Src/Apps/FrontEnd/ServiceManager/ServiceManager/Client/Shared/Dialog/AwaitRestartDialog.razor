@@ -1,14 +1,16 @@
-﻿@using System.Threading
-@using ServiceManager.Client.ViewModels.Events
+﻿@using ServiceManager.Client.ViewModels.Events
 @using ServiceManager.Shared
 @using Tauron
 @using Tauron.Application
 @using System.Reactive
+@using Microsoft.AspNetCore.SignalR.Client
 
-@inherits DialogBaseComponent
+@inherits DialogBaseComponent<string>
+
 @inject NavigationManager _manager
 @inject IEventAggregator _aggregator
 @inject IServerInfo _serverInfo
+@inject HubConnection _connection;
 
 <div class="mx-auto" style="width: 25%">
     <div class="loader">Neustarten...</div>
@@ -67,7 +69,7 @@
         {
             _trying = true;
             await InvokeAsync(StateHasChanged);
-            var result = await _serverInfo.TryReconnect();
+            var result = await TryReconnect();
             if (string.IsNullOrWhiteSpace(result))
             {
                 Reload();
@@ -79,7 +81,7 @@
             await InvokeAsync(StateHasChanged);
             if (_timer?.Change(TimeSpan.FromSeconds(20), Timeout.InfiniteTimeSpan) != true)
                 Reload();
-            
+
         }
         catch (Exception exception)
         {
@@ -88,5 +90,29 @@
             _aggregator.PublishError(exception);
         }
     }
+
+    private async Task<string?> TryReconnect()
+    {
+        try
+        {
+            using var cancel = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+
+            var newId = await _serverInfo.GetCurrentId(cancel.Token);
+            if (newId == State.LatestNonErrorValue)
+                return "Server nicht neu Gestartet";
+
+            if (_connection.State == HubConnectionState.Disconnected)
+    // ReSharper disable once MethodSupportsCancellation
+                await _connection.StartAsync();
+
+            return null;
+        }
+        catch (Exception e)
+        {
+            return e.Message;
+        }
+    }
+
+    protected override Task<string> ComputeState(CancellationToken cancellationToken) => _serverInfo.GetCurrentId(cancellationToken);
 
 }

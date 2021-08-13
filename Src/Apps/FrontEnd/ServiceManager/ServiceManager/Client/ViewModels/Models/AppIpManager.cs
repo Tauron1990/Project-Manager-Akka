@@ -11,7 +11,7 @@ using StringContent = System.Net.Http.StringContent;
 
 namespace ServiceManager.Client.ViewModels.Models
 {
-    public class AppIpManager : ModelBase, IAppIpManager
+    public class AppIpManager : ModelBase, IAppIpManagerOld
     {
         private AppIp _ip = AppIp.Invalid;
 
@@ -37,7 +37,7 @@ namespace ServiceManager.Client.ViewModels.Models
         }
 
         public override Task Init()
-            => Init(mc => mc.ForInterface<IAppIpManager>(ic => ic.OnPropertyChanged(
+            => Init(mc => mc.ForInterface<IAppIpManagerOld>(ic => ic.OnPropertyChanged(
                                                              m => m.Ip,
                                                              ip => Ip = ip ?? AppIp.Invalid,
                                                              c => c.GetFromJsonAsync<AppIp>(AppIpManagerApi.AppIpManager))));

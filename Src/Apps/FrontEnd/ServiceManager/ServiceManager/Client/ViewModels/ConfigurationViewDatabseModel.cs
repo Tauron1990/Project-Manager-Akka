@@ -75,7 +75,7 @@ namespace ServiceManager.Client.ViewModels
                     if (string.IsNullOrWhiteSpace(result))
                     {
                         await Task.Delay(1000);
-                        await _info.Restart();
+                        await _info.Restart(new RestartCommand());
                         return;
                     }
 
@@ -90,8 +90,6 @@ namespace ServiceManager.Client.ViewModels
 
         public async Task Init()
         {
-            if (_info is IInitable initable)
-                await initable.Init();
             if (_databaseConfig is ModelBase mb)
                 await mb.Init();
         }

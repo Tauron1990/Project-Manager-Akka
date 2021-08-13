@@ -1,6 +1,4 @@
-﻿@inherits ConnectionAwareComponent
-
-@if (IsDatabaseReady)
+﻿@if (IsDatabaseReady)
 {
     @DatabaseContent
 }
@@ -20,6 +18,9 @@ else
 
         private const string DefaultMessage = "Mongo Datenbank ist für die Benutzung der Funktion nötig";
 
+    [CascadingParameter(Name = BasicAppInfoComponent.IsDatabaseReady)]
+    public bool IsDatabaseReady { get; set; }
+    
     [Parameter]
     public RenderFragment? DatabaseContent { get; set; }
 

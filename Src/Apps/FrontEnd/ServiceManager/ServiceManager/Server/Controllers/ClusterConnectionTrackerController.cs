@@ -33,7 +33,7 @@ namespace ServiceManager.Server.Controllers
             => _tracker.Ip();
 
         [HttpPost]
-        public Task<string?> ConnectToCluster(ConnectToClusterCommand command, CancellationToken token = default)
+        public Task<string?> ConnectToCluster([FromBody]ConnectToClusterCommand command, CancellationToken token = default)
             => _tracker.ConnectToCluster(command, token);
     }
 }

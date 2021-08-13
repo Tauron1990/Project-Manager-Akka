@@ -1,24 +1,14 @@
 ﻿@using System.Reactive.Disposables
-@using ServiceManager.Shared
-@using ServiceManager.Shared.ClusterTracking
-@using ServiceManager.Shared.ServiceDeamon
 @using Tauron
 @using Tauron.Application
-@using System.ComponentModel
 @using System.Reactive
-@using System.Reactive.Linq
-@using System.Reactive.Threading.Tasks
 @using ServiceManager.Client.ViewModels.Events
+@using ServiceManager.Client.Shared.BaseComponents
 
 @inherits LayoutComponentBase
 
 @inject IEventAggregator _aggregator
 @inject ISnackbar _snackbar
-@inject IClusterConnectionTrackerOld _cluster
-@inject IServerInfo _lifetime
-@inject IDatabaseConfig _databaseConfig
-@inject IAppIpManager _appIpManager
-@inject NavigationManager _navigationManager
 
 @implements IDisposable
 
@@ -27,65 +17,29 @@
     <MudDialogProvider DisableBackdropClick="true"/>
     <MudSnackbarProvider/>
     
-    @if (_loading)
-    {
-        <div class="d-flex justify-center flex-row">
-            <MudProgressCircular Class="align-center" Size="Size.Large" Indeterminate="true" Color="Color.Primary"/>
-            <MudText Class="align-center">Daten werden Geladen</MudText>
-        </div>
-    }
-    else if (!string.IsNullOrWhiteSpace(_error))
-    {
-        <MudAlert>Fehler beim starte der Anwedung: @_error</MudAlert>
-    }
-    else if (_appIpManager.Ip.IsValid)
-    {
-        <CascadingValue Value="@_cluster.IsConnected" Name="IsConnected">
-            <CascadingValue Value="@_cluster.IsSelf" Name="IsSelf">
-                <CascadingValue Value="@_databaseConfig.IsReady" Name="IsDatabaseReady">
-                    <MudAppBar Elevation="4" Dense="true">
-                        <MudSpacer/>
-                        @if (_cluster.IsConnected && _cluster.IsSelf)
-                        {
-                            <MudAlert Severity="Severity.Warning" Variant="Variant.Filled" OnClick="@(() => _navigationManager.NavigateTo("/ConnectToCluster"))">Kein Cluster (Ein Knoten)</MudAlert>
-                        }
-                        else if (_cluster.IsConnected && !_cluster.IsSelf)
-                        {
-                            <MudAlert Severity="Severity.Success" Variant="Variant.Filled">Cluster Verbunden</MudAlert>
-                        }
-                        else
-                        {
-                            <MudAlert Severity="Severity.Error" Variant="Variant.Filled" OnClick="ShutDown">Cluster Nicht Verbunden. Neustart!</MudAlert>
-                        }
-                        <MudSpacer/>
-                        <MudButton Variant="Variant.Text" Link="/About" Color="Color.Secondary">About</MudButton>
-                    </MudAppBar>
-                    <MudDrawer Elevation="30" Open="true" ClipMode="DrawerClipMode.Docked">
-                        <NavMenu/>
-                    </MudDrawer>
-                    <MudMainContent>
-                        <MudContainer MaxWidth="MaxWidth.False" Class="mt-4">
-                            @Body
-                        </MudContainer>
-                    </MudMainContent>
-                </CascadingValue>
-            </CascadingValue>
-        </CascadingValue>
-    }
-    else
-    {
-        <MudMainContent>
-            <NoIpFoundEditor Ip="@_appIpManager.Ip"/>
-        </MudMainContent>
-    }
+    <IpOkComponent>
+        <BasicAppInfoComponent>
+            <MudAppBar Elevation="4" Dense="true">
+                <MudSpacer/>
+                <ClusterConnectionAlert/>
+                <MudSpacer/>
+                <MudButton Variant="Variant.Text" Link="/About" Color="Color.Secondary">About</MudButton>
+            </MudAppBar>
+            <MudDrawer Elevation="30" Open="true" ClipMode="DrawerClipMode.Docked">
+                <NavMenu/>
+            </MudDrawer>
+            <MudMainContent>
+                <MudContainer MaxWidth="MaxWidth.False" Class="mt-4">
+                    @Body
+                </MudContainer>
+            </MudMainContent>
+        </BasicAppInfoComponent>
+    </IpOkComponent>
 </MudLayout>
 
 @code
 {
     private readonly CompositeDisposable _disposer = new();
-
-    private bool _loading = true;
-    private string? _error;
 
     protected override void OnInitialized()
     {
@@ -100,59 +54,17 @@
                        .DisposeWith(_disposer);
 
             _aggregator.GetEvent<RestartClient, Unit>()
-                       .Get().SelectMany(_ => ReInit().ToObservable())
-                       .AutoSubscribe(e => _aggregator.PublishError(e));
+                       .Get().AutoSubscribe(e => _aggregator.PublishError(e));
 
             base.OnInitialized();
         }
         catch (Exception e)
         {
             Console.WriteLine(e);
-            _error = e.Message;
         }
     }
-
-    private async Task ReInit()
-    {
-        await PropertyChangedComponent.Init(_appIpManager);
-        await PropertyChangedComponent.Init(_lifetime);
-        await PropertyChangedComponent.Init(_databaseConfig);
-        await PropertyChangedComponent.Init(_cluster);
-    }
-
-    protected override async Task OnInitializedAsync()
-    {
-        try
-        {
-            Console.WriteLine("Init Main Layout");
-            await Track(_appIpManager);
-            await PropertyChangedComponent.Init(_lifetime);
-            await Track(_databaseConfig);
-            await Track(_cluster);
-            await base.OnInitializedAsync();
-            Console.WriteLine("Init Main Compled");
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            throw;
-        }
-
-        _loading = false;
-        await InvokeAsync(StateHasChanged);
-    }
-
-    private async Task Track(INotifyPropertyChanged changed)
-    {
-        await PropertyChangedComponent.Init(changed);
-        changed.PropertyChanged += OnPropertyChanged;
-        _disposer.Add(Disposables.Create(() => changed.PropertyChanged -= OnPropertyChanged));
-    }
-
-    private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e) => InvokeAsync(StateHasChanged);
 
     public void Dispose()
         => _disposer.Dispose();
 
-    private void ShutDown() => _lifetime.Restart();
 }

@@ -1,0 +1,40 @@
+﻿@using ServiceManager.Shared.ClusterTracking
+@using ServiceManager.Shared
+@inherits ComputedStateComponent<ConnectionState>
+
+@inject IServerInfo _serverInfo
+@inject NavigationManager _navigationManager
+@inject IClusterConnectionTracker _tracker
+
+@{
+    var error = State.Error;
+    var data = State.ValueOrDefault ?? new ConnectionState(false, false);
+}
+
+@if (error != null)
+{
+    <MudAlert Severity="Severity.Error" Variant="Variant.Filled">Fehler in Abfrage: @error.Message</MudAlert>   
+}
+else if (data.IsConnected && data.IsSelf)
+{
+    <MudAlert Severity="Severity.Warning" Variant="Variant.Filled" OnClick="@(() => _navigationManager.NavigateTo("/ConnectToCluster"))">Kein Cluster (Ein Knoten)</MudAlert>
+}
+else if (data.IsConnected && !data.IsSelf)
+{
+    <MudAlert Severity="Severity.Success" Variant="Variant.Filled">Cluster Verbunden</MudAlert>
+}
+else
+{
+    <MudAlert Severity="Severity.Error" Variant="Variant.Filled" OnClick="ShutDown">Cluster Nicht Verbunden. Neustart!</MudAlert>
+}
+
+@code {
+
+    public sealed record ConnectionState(bool IsConnected, bool IsSelf);
+
+    protected override async Task<ConnectionState> ComputeState(CancellationToken cancellationToken)
+        => new(await _tracker.GetIsConnected(), await _tracker.GetIsSelf());
+
+    private Task ShutDown() => _serverInfo.Restart(new RestartCommand());
+}
+

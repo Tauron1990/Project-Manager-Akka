@@ -14,6 +14,7 @@ using ServiceManager.Server.AppCore.ClusterTracking;
 using ServiceManager.Server.AppCore.ClusterTracking.Data;
 using ServiceManager.Server.AppCore.Helper;
 using ServiceManager.Server.Hubs;
+using ServiceManager.Shared;
 using ServiceManager.Shared.Api;
 using ServiceManager.Shared.ClusterTracking;
 using Stl.CommandR;
@@ -40,9 +41,11 @@ namespace ServiceManager.Server
             var fusion = services.AddFusion();
             fusion.AddWebServer();
             fusion.AddComputeService<IClusterNodeTracking, ClusterNodeTracking>()
-                  .AddComputeService<IClusterConnectionTracker, ClusterConnectionTracker>();
-            
-            
+                  .AddComputeService<IClusterConnectionTracker, ClusterConnectionTracker>()
+                  .AddComputeService<IServerInfo, ServerInfo>()
+                  .AddComputeService<IAppIpManager, AppIpService>();
+
+
             services.Configure<HostOptions>(o => o.ShutdownTimeout = TimeSpan.FromSeconds(30));
             services.AddCors();
             services.AddSignalR();

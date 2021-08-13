@@ -5,7 +5,7 @@
 
 @inherits PropertyChangedComponent
 
-@inject IAppIpManager _appIpManager
+@inject IAppIpManagerOld _appIpManager
 @inject IServerInfo _applicationLifetime
 @inject IEventAggregator _eventAggregator;
 
@@ -17,8 +17,8 @@
 
 @code {
 
-    [Parameter]
-    public AppIp Ip { get; set; } = AppIp.Invalid;
+@*    [Parameter]
+    public AppIp Ip { get; set; } = AppIp.Invalid;*@
 
     private string _ipContent = string.Empty;
 
@@ -31,14 +31,13 @@
     protected override async Task OnInitializedAsync()
     {
         await Track(_appIpManager);
-        await Init(_applicationLifetime);
     }
 
     private async Task Restart()
     {
         var result = await _appIpManager.WriteIp(_ipContent);
         if(string.IsNullOrWhiteSpace(result))
-            await _applicationLifetime.Restart();
+            await _applicationLifetime.Restart(new RestartCommand());
         else
             _eventAggregator.PublishMessage(new SnackbarErrorMessage(result));
     }

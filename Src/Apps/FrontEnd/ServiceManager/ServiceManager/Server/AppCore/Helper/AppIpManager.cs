@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Reactive.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Akka.Configuration;
@@ -12,9 +13,25 @@ using Tauron.Application.Master.Commands.Administration.Configuration;
 
 namespace ServiceManager.Server.AppCore.Helper
 {
-    public sealed class AppIpManager : ObservableObject, IAppIpManager
+    public interface IInternalAppIpManager
+    {
+        Task<string> WriteIp(string ip);
+
+        IObservable<AppIp> IpChanged { get; }
+
+        AppIp Ip { get; }
+    }
+
+    public sealed class AppIpManager : ObservableObject, IInternalAppIpManager
     {
         private AppIp _appIpField = new("Unbekannt", false);
+
+        public IObservable<AppIp> IpChanged { get; }
+
+        public AppIpManager()
+        {
+            IpChanged = PropertyChangedObservable.Where(c => c == nameof(AppIp)).Select(_ => Ip);
+        }
 
         public async Task Aquire()
         {

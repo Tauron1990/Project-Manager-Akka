@@ -19,17 +19,17 @@ namespace ServiceManager.Server.AppCore.Helper
     [UsedImplicitly(ImplicitUseKindFlags.InstantiatedWithFixedConstructorSignature)]
     public class ClusterConnectionTracker : IClusterConnectionTracker
     {
+        private readonly IAppIpManager _manager;
         private readonly ILogger<ClusterConnectionTracker> _log;
         private          bool                              _isConnected;
         private          string                            _url = string.Empty;
         private readonly bool                              _isSelf;
-        private readonly AppIp                             _ip;
         
 
         public ClusterConnectionTracker(ActorSystem system, IAppIpManager manager, ILogger<ClusterConnectionTracker> log)
         {
+            _manager = manager;
             _log = log;
-            _ip       = manager.Ip;
             var cluster = Cluster.Get(system);
 
             cluster.RegisterOnMemberUp(() =>
@@ -52,14 +52,22 @@ namespace ServiceManager.Server.AppCore.Helper
             if (cluster.Settings.SeedNodes.Count != 0) return;
             _isSelf = true;
 
-            if(manager.Ip.IsValid)
+            RunInit();
+            
+            async void RunInit()
             {
-                cluster.JoinAsync(cluster.SelfAddress)
-                       .ContinueWith(t =>
-                                     {
-                                         if(t.IsFaulted)
-                                             LogManager.GetCurrentClassLogger().Error(t.Exception, "Error on Join Self Cluster");
-                                     });
+                try
+                {
+                    var ip = await manager.GetIp();
+                    if(cluster.Settings.SeedNodes.Count != 0) return;
+                    if(!ip.IsValid) return;
+
+                    await cluster.JoinAsync(cluster.SelfAddress);
+                }
+                catch (Exception e)
+                {
+                    _log.LogError(e, "Error on Join Self Cluster");
+                }
             }
         }
 
@@ -73,7 +81,7 @@ namespace ServiceManager.Server.AppCore.Helper
             => Task.FromResult(_isSelf);
 
         public virtual Task<AppIp> Ip()
-            => Task.FromResult(_ip);
+            => _manager.GetIp();
 
         public virtual async Task<string?> ConnectToCluster(ConnectToClusterCommand command, CancellationToken token = default)
         {
