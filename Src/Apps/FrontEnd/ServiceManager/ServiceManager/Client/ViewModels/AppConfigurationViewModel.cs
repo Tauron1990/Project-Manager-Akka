@@ -9,7 +9,7 @@ namespace ServiceManager.Client.ViewModels
     public sealed class AppConfigurationViewModel : ObservableObject, IDisposable
     {
         private readonly IEventAggregator _aggregator;
-        private readonly IServerConfigurationApi _api;
+        private readonly IServerConfigurationApiOld _apiOld;
         private readonly IDisposable _subscription;
 
         private bool _monitorChanges;
@@ -27,17 +27,17 @@ namespace ServiceManager.Client.ViewModels
             set => SetProperty(ref _restartServices, value);
         }
 
-        public AppConfigurationViewModel(IServerConfigurationApi api, IEventAggregator aggregator)
+        public AppConfigurationViewModel(IServerConfigurationApiOld apiOld, IEventAggregator aggregator)
         {
             _aggregator = aggregator;
-            _api = api;
+            _apiOld = apiOld;
 
-            _subscription = api.PropertyChangedObservable
-                               .Where(s => s == nameof(api.ServerConfigugration))
+            _subscription = apiOld.PropertyChangedObservable
+                               .Where(s => s == nameof(apiOld.ServerConfigugration))
                                .Subscribe(_ =>
                                           {
-                                              MonitorChanges = api.ServerConfigugration.MonitorChanges;
-                                              RestartServices = api.ServerConfigugration.RestartServices;
+                                              MonitorChanges = apiOld.ServerConfigugration.MonitorChanges;
+                                              RestartServices = apiOld.ServerConfigugration.RestartServices;
                                           });
 
             Set();
@@ -47,7 +47,7 @@ namespace ServiceManager.Client.ViewModels
         {
             try
             {
-                var result = await _api.Update(_api.ServerConfigugration with {MonitorChanges = value});
+                var result = await _apiOld.Update(_apiOld.ServerConfigugration with {MonitorChanges = value});
                 if(string.IsNullOrWhiteSpace(result)) return;
 
                 _aggregator.PublishWarnig($"Fehler beim Setzen: {result}");
@@ -64,7 +64,7 @@ namespace ServiceManager.Client.ViewModels
         {
             try
             {
-                var result = await _api.Update(_api.ServerConfigugration with { RestartServices = value });
+                var result = await _apiOld.Update(_apiOld.ServerConfigugration with { RestartServices = value });
                 if (string.IsNullOrWhiteSpace(result)) return;
 
                 _aggregator.PublishWarnig($"Fehler beim Setzen: {result}");
@@ -79,8 +79,8 @@ namespace ServiceManager.Client.ViewModels
 
         private void Set()
         {
-            RestartServices = _api.ServerConfigugration.RestartServices;
-            MonitorChanges = _api.ServerConfigugration.MonitorChanges;
+            RestartServices = _apiOld.ServerConfigugration.RestartServices;
+            MonitorChanges = _apiOld.ServerConfigugration.MonitorChanges;
         }
 
         public void Dispose() => _subscription.Dispose();

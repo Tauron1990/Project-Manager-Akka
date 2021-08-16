@@ -9,19 +9,19 @@ namespace ServiceManager.Client.ServiceDefs
     [BasePath(ControllerName.ClusterConnectionTracker)]
     public interface IClusterConnectionTrackerDef
     {
-        [Get]
+        [Get(nameof(GetUrl))]
         Task<string> GetUrl();
 
-        [Get]
+        [Get(nameof(GetIsConnected))]
         Task<bool> GetIsConnected();
 
-        [Get]
+        [Get(nameof(GetIsSelf))]
         Task<bool> GetIsSelf();
 
-        [Get]
+        [Get(nameof(Ip))]
         Task<AppIp> Ip();
 
-        [Post]
+        [Post(nameof(ConnectToCluster))]
         Task<string?> ConnectToCluster([Body]ConnectToClusterCommand command, CancellationToken token = default);
     }
 }

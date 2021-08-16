@@ -9,10 +9,10 @@ namespace ServiceManager.Client.ServiceDefs
     [BasePath(ControllerName.ServerInfo)]
     public interface IServerInfoDef
     {
-        [Get]
+        [Get(nameof(GetCurrentId))]
         Task<string> GetCurrentId();
 
-        [Post]
+        [Post(nameof(Restart))]
         Task Restart([Body]RestartCommand command, CancellationToken token = default);
     }
 }

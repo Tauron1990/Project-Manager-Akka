@@ -1,37 +1,33 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using ServiceManager.Shared.Api;
 using ServiceManager.Shared.ServiceDeamon;
+using Stl.Fusion.Server;
 
 namespace ServiceManager.Server.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class DatabaseConfigController : ControllerBase
+    [Route(ControllerName.DatabaseConfigApiBase + "/[action]")]
+    [ApiController, JsonifyErrors]
+    public class DatabaseConfigController : ControllerBase, IDatabaseConfig
     {
-        private readonly IDatabaseConfigOld _config;
+        private readonly IDatabaseConfig _config;
 
-        public DatabaseConfigController(IDatabaseConfigOld config) => _config = config;
+        public DatabaseConfigController(IDatabaseConfig config) => _config = config;
 
+        [HttpGet, Publish]
+        public Task<string> GetUrl()
+            => _config.GetUrl();
+
+        [HttpGet, Publish]
+        public Task<bool> GetIsReady()
+            => _config.GetIsReady();
         [HttpGet]
-        public ActionResult<StringApiContent> OnGetUrl() => new StringApiContent(_config.Url);
-
-        [HttpGet]
-        [Route(nameof(DatabaseConfigApi.IsReady))]
-        public ActionResult<BoolApiContent> OnGetIsReady() => new BoolApiContent(_config.IsReady);
+        public Task<UrlResult?> FetchUrl(CancellationToken token = default)
+            => _config.FetchUrl(token);
 
         [HttpPost]
-        public async Task<ActionResult<StringApiContent>> OnSetDb([FromBody] StringApiContent url) 
-            => new StringApiContent(await _config.SetUrl(url.Content));
-
-        [HttpGet]
-        [Route(nameof(DatabaseConfigApi.FetchUrl))]
-        public async Task<ActionResult<UrlResult>> OnGetUrlFromCluster()
-        {
-            var result = await _config.FetchUrl();
-            if (result == null)
-                return NotFound();
-            return result;
-        }
+        public Task<string> SetUrl(SetUrlCommand command, CancellationToken token = default)
+            => _config.SetUrl(command, token);
     }
 }

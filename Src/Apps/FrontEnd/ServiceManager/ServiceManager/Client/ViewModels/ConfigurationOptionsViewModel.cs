@@ -13,7 +13,7 @@ using Tauron.Application;
 
 namespace ServiceManager.Client.ViewModels
 {
-    public sealed class ConfigurationOptionsViewModel : ObservableObject
+    public sealed class ConfigurationOptionsViewModel
     {
         public static readonly OptionElement DefaultElement = new(true, "Daten nicht geladen", Array.Empty<MutableConfigOption>());
 
@@ -43,30 +43,25 @@ namespace ServiceManager.Client.ViewModels
 
         public async Task LoadAsyncFor(string name)
         {
-            OnPropertyChangedExplicit("All");
             try
             {
                 if (_elements.TryGetValue(name, out var element) && !element.Error)
                     return;
                 
-                    var response = await _connection.InvokeAsync<ConfigOptionList>(nameof(ConfigurationRestApi.GetConfigFileOptions), name);
+                var response = await _connection.InvokeAsync<ConfigOptionList>(nameof(ConfigurationRestApi.GetConfigFileOptions), name);
 
-                    if (response == null)
-                    {
-                        _elements[name] = new OptionElement(true, "Fehler beim Laden der Daten", Array.Empty<MutableConfigOption>());
-                        return;
-                    }
+                if (response == null)
+                {
+                    _elements[name] = new OptionElement(true, "Fehler beim Laden der Daten", Array.Empty<MutableConfigOption>());
+                    return;
+                }
 
-                    _elements[name] = new OptionElement(false, string.Empty, response.Options.Select(co => new MutableConfigOption(co)).ToArray());
+                _elements[name] = new OptionElement(false, string.Empty, response.Options.Select(co => new MutableConfigOption(co)).ToArray());
             }
             catch (Exception e)
             {
                 _eventAggregator.PublishError(e);
                 _elements[name] = new OptionElement(true, e.Message, Array.Empty<MutableConfigOption>());
-            }
-            finally
-            {
-                OnPropertyChangedExplicit("All");
             }
         }
 

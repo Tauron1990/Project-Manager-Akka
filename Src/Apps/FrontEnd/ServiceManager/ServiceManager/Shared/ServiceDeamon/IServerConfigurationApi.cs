@@ -1,29 +1,45 @@
 ﻿using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
 using ServiceHost.Client.Shared.ConfigurationServer.Data;
+using Stl.CommandR;
+using Stl.CommandR.Configuration;
+using Stl.Fusion;
 
 namespace ServiceManager.Shared.ServiceDeamon
 {
-    public interface IServerConfigurationApi : IInternalObject
+    public sealed record UpdateGlobalConfigApiCommand(GlobalConfig Config) : ICommand<string>;
+
+    public sealed record UpdateServerConfiguration(ServerConfigugration ServerConfigugration) : ICommand<string>;
+
+    public sealed record DeleteSpecificConfigCommand(string Name) : ICommand<string>;
+
+    public sealed record UpdateSpecifConfigCommand(SpecificConfigData Data) : ICommand<string>;
+    
+    public interface IServerConfigurationApi
     {
-        GlobalConfig GlobalConfig { get; }
+        [ComputeMethod]
+        Task<GlobalConfig> GlobalConfig();
 
-        ServerConfigugration ServerConfigugration { get; }
+        [ComputeMethod]
+        Task<ServerConfigugration> ServerConfigugration();
 
+        [ComputeMethod]
         Task<ImmutableList<SpecificConfig>> QueryAppConfig();
 
-        Task<GlobalConfig> QueryConfig();
-
-        Task<ServerConfigugration> QueryServerConfig();
-
-        Task<string> Update(GlobalConfig config);
-
+        [ComputeMethod]
         Task<string> QueryBaseConfig();
+        
+        [CommandHandler]
+        Task<string> UpdateGlobalConfig(UpdateGlobalConfigApiCommand command, CancellationToken token = default);
+        
+        [CommandHandler]
+        Task<string> UpdateServerConfig(UpdateServerConfiguration command, CancellationToken token = default);
 
-        Task<string> Update(ServerConfigugration serverConfigugration);
+        [CommandHandler]
+        Task<string> DeleteSpecificConfig(DeleteSpecificConfigCommand command, CancellationToken token = default);
 
-        Task<string> DeleteSpecificConfig(string name);
-
-        Task<string> Update(SpecificConfigData data);
+        [CommandHandler]
+        Task<string> UpdateSpecificConfig(UpdateSpecifConfigCommand command, CancellationToken token = default);
     }
 }

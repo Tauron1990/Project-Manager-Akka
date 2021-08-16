@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Cluster.Tools.PublishSubscribe;
 using Microsoft.Extensions.Logging;
+using Stl.Async;
 using Stl.Fusion.AkkaBridge.Connector.Data;
 using Stl.Fusion.Bridge;
 using Stl.Fusion.Bridge.Messages;
@@ -36,14 +37,15 @@ namespace Stl.Fusion.AkkaBridge.Internal
             
             var server = new AkkaChannel<AkkaBridgeMessage>(_system, publisherId.Value, _logger, cancellationToken, false);
             var toReturn = Channel.CreateBounded<BridgeMessage>(16);
-
+            
             AkkaFusionServiceHost.Convert(server, toReturn, source)
                                  .ContinueWith(
                                       t =>
                                       {
                                           if(t.IsFaulted)
                                               _logger.LogError(t.Exception, "Error on Converting Brige Message");
-                                      });
+                                      })
+                                 .Ignore();
 
             return toReturn;
         }

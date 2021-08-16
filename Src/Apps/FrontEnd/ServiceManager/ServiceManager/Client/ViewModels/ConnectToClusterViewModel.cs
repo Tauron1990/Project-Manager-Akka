@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Net.Http;
 using System.Threading.Tasks;
 using ServiceManager.Client.Components;
 using ServiceManager.Client.Components.Operations;
@@ -9,7 +8,7 @@ using Tauron.Application;
 
 namespace ServiceManager.Client.ViewModels
 {
-    public sealed class ConnectToClusterViewModel : IInitable
+    public sealed class ConnectToClusterViewModel
     {
         private readonly IServerInfo _serverInfo;
         private readonly IEventAggregator _aggregator;
@@ -34,7 +33,7 @@ namespace ServiceManager.Client.ViewModels
 
         public IOperationManager Operation { get; } = new OperationManager();
 
-        public ConnectToClusterViewModel(IServerInfo serverInfo, HttpClient client, IEventAggregator aggregator, IClusterConnectionTracker tracker)
+        public ConnectToClusterViewModel(IServerInfo serverInfo, IEventAggregator aggregator, IClusterConnectionTracker tracker)
         {
             _serverInfo = serverInfo;
             _aggregator = aggregator;
@@ -61,8 +60,5 @@ namespace ServiceManager.Client.ViewModels
                 }
             }
         }
-
-        public Task Init() 
-            => PropertyChangedComponent.Init(_serverInfo);
     }
 }

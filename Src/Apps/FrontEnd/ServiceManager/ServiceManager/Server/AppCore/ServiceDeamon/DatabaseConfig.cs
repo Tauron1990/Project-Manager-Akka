@@ -72,7 +72,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
         {
             try
             {
-                var (url) = command;
+                command.Deconstruct(out var url);
                 
                 if(url.Equals(_configuration.DatabaseUrl, StringComparison.Ordinal)) return "Datenbank ist gleich";
                 
@@ -84,7 +84,9 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
 
                     try
                     {
-                        var result = await _processServiceHost.TryStart(url, token);
+                        var result = await _processServiceHost.TryStart(url);
+
+                        if (token.IsCancellationRequested) return string.Empty;
                         canSend = result.IsRunning;
                     }
                     catch (Exception e)
@@ -95,20 +97,23 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
                     if (canSend)
                     {
                         var sc = await _configurationApi.Query<QueryServerConfiguration, ServerConfigugration>(TimeSpan.FromSeconds(10));
+
+                        if (token.IsCancellationRequested) return string.Empty;
                         await _configurationApi.Command(new UpdateServerConfigurationCommand(sc with {Database = murl.ToString()}), TimeSpan.FromSeconds(10));
                     }
                 }
 
-                await _url.Set(url);
+                await _url.Set(url, token);
+                
                 var targetFile = AkkaConfigurationBuilder.Main.FileInAppDirectory();
                 var config = targetFile.ReadTextIfExis();
 
                 config = AkkaConfigurationBuilder.ApplyMongoUrl(config, Resources.BaseConfig, murl.ToString());
-                await File.WriteAllTextAsync(targetFile, config);
+                await File.WriteAllTextAsync(targetFile, config, token);
 
                 _configuration.DatabaseUrl = url;
 
-                await _isReady.Set(true);
+                await _isReady.Set(true, token);
                 
                 return string.Empty;
             }
@@ -122,17 +127,23 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
             }
         }
 
-        public async Task<UrlResult?> FetchUrl()
+        public virtual async Task<UrlResult?> FetchUrl(CancellationToken token)
         {
             try
             {
                 if (await _tracker.GetIsSelf())
                     return new UrlResult("Mit Keinem Cluster Verbunden", false);
 
+                if (token.IsCancellationRequested) return null;
+                
                 var response = await _configurationApi.QueryIsAlive(_system, TimeSpan.FromSeconds(10));
                 if (!response.IsAlive) return new UrlResult("Die Api ist nicht ereichbar", false);
 
+                if (token.IsCancellationRequested) return null;
+                
                 var (_, _, database) = await _configurationApi.Query<QueryServerConfiguration, ServerConfigugration>(TimeSpan.FromSeconds(10));
+
+                if (token.IsCancellationRequested) return null;
                 return string.IsNullOrWhiteSpace(database) ? new UrlResult("Keine Datenbank Hinterlegt", false) : new UrlResult(database, true);
             }
             catch (Exception e)

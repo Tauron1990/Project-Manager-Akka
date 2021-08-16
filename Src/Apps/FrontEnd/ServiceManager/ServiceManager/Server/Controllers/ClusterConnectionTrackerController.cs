@@ -1,6 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using ServiceManager.Shared.Api;
 using ServiceManager.Shared.ClusterTracking;
 using Stl.Fusion.Server;
@@ -8,7 +9,7 @@ using Stl.Fusion.Server;
 namespace ServiceManager.Server.Controllers
 {
     [Route(ControllerName.ClusterConnectionTracker + "/[action]")]
-    [ApiController]
+    [ApiController, JsonifyErrors]
     public class ClusterConnectionTrackerController : ControllerBase, IClusterConnectionTracker
     {
         private readonly IClusterConnectionTracker _tracker;

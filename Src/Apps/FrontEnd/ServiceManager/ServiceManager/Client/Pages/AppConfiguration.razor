@@ -1,16 +1,15 @@
 ﻿@using ServiceManager.Shared.ServiceDeamon
-@using Shared.BaseComponents
 
 @page "/AppConfiguration"
 
-@inherits PropertyChangedComponent
+@inherits ComputedStateComponent<bool>
 
-@inject IDatabaseConfigOld _databaseConfig
+@inject IDatabaseConfig _databaseConfig
 
 <Title Value="App Konfiguration"></Title>
 
 <OperationHost>
-    @if (_databaseConfig.IsReady)
+    @if (State.ValueOrDefault)
     {
         <ServerConfigurationView/>
     }
@@ -36,12 +35,8 @@
 </OperationHost>
 
 @code {
-    private int _currentPanel = 0;
-
-    protected override async Task OnInitializedAsync()
-    {
-        await Track(_databaseConfig);
-        await base.OnInitializedAsync();
-    }
-
+    private int _currentPanel;
+    
+    protected override Task<bool> ComputeState(CancellationToken cancellationToken)
+        => _databaseConfig.GetIsReady();
 }

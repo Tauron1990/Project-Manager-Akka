@@ -10,10 +10,10 @@ namespace ServiceManager.Client.ServiceDefs
     [BasePath(ControllerName.AppIpManager)]
     public interface IAppIpManagerDef
     {
-        [Post]
+        [Post(nameof(IAppIpManager.WriteIp))]
         Task<string> WriteIp([Body]WriteIpCommand command, CancellationToken token = default);
         
-        [Get]
+        [Get(nameof(IAppIpManager.GetIp))]
         Task<AppIp> GetIp();
     }
 }

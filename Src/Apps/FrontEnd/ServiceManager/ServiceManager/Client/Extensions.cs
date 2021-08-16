@@ -4,12 +4,19 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using ServiceManager.Client.ViewModels.Models;
 using ServiceManager.Shared.Api;
+using Stl.Fusion;
 using Tauron.Application;
 
 namespace ServiceManager.Client
 {
     public static class Extensions
     {
+        public static void ReplaceState<TData>(this IMutableState<TData> state, Func<TData, TData> update)
+            => state.Set(update(state.LatestNonErrorValue));
+        
+        public static async Task ReplaceState<TData>(this IMutableState<TData> state, Func<TData, Task<TData>> update)
+            => state.Set(await update(state.LatestNonErrorValue));
+        
         public static void PublishError(this IEventAggregator aggregator, Exception error)
             => PublishMessage(aggregator, new SnackbarErrorMessage($"{error.GetType().Name} -- {error.Message}"));
 

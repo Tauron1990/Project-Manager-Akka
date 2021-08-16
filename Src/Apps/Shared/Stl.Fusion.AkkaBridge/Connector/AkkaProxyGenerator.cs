@@ -2,7 +2,6 @@
 using System.Reflection;
 using System.Threading.Tasks;
 using Akka.Actor;
-using Castle.Core;
 using Castle.DynamicProxy;
 using JetBrains.Annotations;
 using Stl.Fusion.Bridge.Internal;
@@ -26,8 +25,10 @@ namespace Stl.Fusion.AkkaBridge.Connector
         
         private sealed class AkkaInterceptor : IInterceptor
         {
+                                                                          #pragma warning disable 4014
             private static readonly MethodInfo CallServiceMethod = Reflex.MethodInfo<AkkaInterceptor>(t => t.CallService<string>(null!))
-                                                                          .GetGenericMethodDefinition();
+                                                                          #pragma warning restore 4014
+                                                                         .GetGenericMethodDefinition();
             
             private readonly IServiceRegistryActor _serviceRegistry;
             private readonly Type _interfaceMethod;
@@ -78,7 +79,9 @@ namespace Stl.Fusion.AkkaBridge.Connector
                 {
                     var (methodResponse, publicationStateInfo) = await service.Ask<PublicationResponse>(new RequestPublication(new TryMethodCall(invocation.Method.Name, invocation.Arguments)), TimeSpan.FromSeconds(30));
                     response = methodResponse;
-                    psiCapture.Capture(publicationStateInfo);
+                    
+                    if(publicationStateInfo != null)
+                        psiCapture.Capture(publicationStateInfo);
                 }
                 else
                     response = await service.Ask<MethodResponse>(new TryMethodCall(invocation.Method.Name, invocation.Arguments));
@@ -102,7 +105,5 @@ namespace Stl.Fusion.AkkaBridge.Connector
                 throw new InvalidOperationException("Unkownen Error on Excution Remote Service");
             }
         }
-
-        private sealed record EmptyTaskMarker;
     }
 }

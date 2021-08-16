@@ -3,7 +3,7 @@
 @using Autofac.Features.OwnedInstances
 @inherits PropertyChangedComponent
 
-@inject IServerConfigurationApi _api
+@inject IServerConfigurationApiOld _apiOld
 @inject AppConfigurationViewModel _viewModel
 
 <div class="d-flex justify-center">
@@ -31,7 +31,7 @@
     protected override async Task OnInitializedAsync()
     {
         _viewModel.DisposeWith(this);
-        await Track(_api);
+        await Track(_apiOld);
         await Track(_viewModel);
         _loading = false;
     }

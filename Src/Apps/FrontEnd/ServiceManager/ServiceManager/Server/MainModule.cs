@@ -29,8 +29,6 @@ namespace ServiceManager.Server
             builder.Register(c => c.Resolve<IEventAggregator>().GetEvent<ConfigEventDispatcher, IConfigEvent>()).SingleInstance();
 
             builder.RegisterType<NodeRepository>().As<INodeRepository>().SingleInstance();
-            builder.RegisterType<DatabaseConfig>().As<IDatabaseConfigOld>().SingleInstance();
-            builder.RegisterType<ServerConfigurationApi>().As<IServerConfigurationApi>().SingleInstance();
             builder.RegisterType<PropertyChangedNotifer>().As<IPropertyChangedNotifer>().SingleInstance();
 
             builder.RegisterFeature<ClusterNodeManagerRef, IClusterNodeManager>(ClusterHostManagerActor.New());

@@ -8,7 +8,7 @@ using Stl.Fusion.Server;
 namespace ServiceManager.Server.Controllers
 {
     [Route(ControllerName.ServerInfo + "/[action]")]
-    [ApiController]
+    [ApiController, JsonifyErrors]
     public class ServerInfoController : ControllerBase, IServerInfo
     {
         private readonly IServerInfo _serverInfo;

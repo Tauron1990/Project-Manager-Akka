@@ -29,9 +29,6 @@ else
 }
 
 @code {
-
-    public sealed record ConnectionState(bool IsConnected, bool IsSelf);
-
     protected override async Task<ConnectionState> ComputeState(CancellationToken cancellationToken)
         => new(await _tracker.GetIsConnected(), await _tracker.GetIsSelf());
 

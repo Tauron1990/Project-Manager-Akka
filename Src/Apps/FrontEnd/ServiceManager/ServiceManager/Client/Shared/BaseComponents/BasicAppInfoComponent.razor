@@ -1,7 +1,7 @@
 ﻿@using ServiceManager.Shared.ServiceDeamon
 @using ServiceManager.Shared.ClusterTracking
 
-@inject IDatabaseConfigOld _databaseConfig;
+@inject IDatabaseConfig _databaseConfig;
 @inject IClusterConnectionTracker _tracker;
 
 @inherits ComputedStateComponent<AppData>;
@@ -13,7 +13,7 @@
 <CascadingValue Value="data.IsConnected" Name="@IsConnected">
     <CascadingValue Value="data.IsSelf" Name="@IsSelf">
         <CascadingValue Value="data.IsDatabaseReady" Name="@IsDatabaseReady">
-            @ChildContent;
+            @ChildContent
         </CascadingValue>
     </CascadingValue>
 </CascadingValue>
@@ -24,12 +24,10 @@
         public const string IsSelf = nameof(IsSelf);
         public const string IsDatabaseReady = nameof(IsDatabaseReady);
 
-    public sealed record AppData(bool IsConnected, bool IsSelf, bool IsDatabaseReady);
-
     [Parameter]
     public RenderFragment ChildContent { get; set; } = _ => { };
 
     protected override async Task<AppData> ComputeState(CancellationToken cancellationToken)
-        => new(await _tracker.GetIsConnected(), await _tracker.GetIsSelf(), _databaseConfig.IsReady);
+        => new(await _tracker.GetIsConnected(), await _tracker.GetIsSelf(), await _databaseConfig.GetIsReady());
 
 }

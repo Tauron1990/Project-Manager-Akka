@@ -25,6 +25,10 @@ namespace ServiceManager.Client.Components
 
         public void RemoveResource(IDisposable res) => _disposables.Remove(res);
 
-        public virtual void Dispose() => _disposables.Dispose();
+        public override void Dispose()
+        {
+            _disposables.Dispose();
+            base.Dispose();
+        }
     }
 }

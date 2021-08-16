@@ -1,95 +1,57 @@
-﻿using System;
+﻿using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using NLog;
 using ServiceHost.Client.Shared.ConfigurationServer.Data;
 using ServiceManager.Server.Properties;
 using ServiceManager.Shared.Api;
 using ServiceManager.Shared.ServiceDeamon;
+using Stl.Fusion.Server;
 
 namespace ServiceManager.Server.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class ConfigurationController : ControllerBase
+    [Route(ControllerName.AppConfiguration + "/[action]")]
+    [ApiController, JsonifyErrors]
+    public class ConfigurationController : ControllerBase, IServerConfigurationApi
     {
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        private readonly IServerConfigurationApi _api;
+        private readonly IServerConfigurationApi _apiOld;
 
-        public ConfigurationController(IServerConfigurationApi api) => _api = api;
+        public ConfigurationController(IServerConfigurationApi apiOld) => _apiOld = apiOld;
+
+
+
+        public static string?            GetConfigData(string name) => string.IsNullOrWhiteSpace(name) ? null : Resources.ResourceManager.GetString(name);
+        
+        [HttpGet, Publish]
+        public        Task<GlobalConfig> GlobalConfig()
+            => _apiOld.GlobalConfig();
+
+        [HttpGet, Publish]
+        public Task<ServerConfigugration> ServerConfigugration()
+            => _apiOld.ServerConfigugration();
+
+        [HttpGet, Publish]
+        public Task<ImmutableList<SpecificConfig>> QueryAppConfig()
+            => _apiOld.QueryAppConfig();
+
+        [HttpGet, Publish]
+        public Task<string> QueryBaseConfig()
+            => _apiOld.QueryBaseConfig();
 
         [HttpPost]
-        [Route(nameof(ConfigurationRestApi.UpdateSpecificConfigiration))]
-        public async Task<ActionResult<StringApiContent>> UpdateSpecificConfiguration([FromBody] SpecificConfigData data)
-            => new StringApiContent(await _api.Update(data));
-        
-        [HttpDelete]
-        [Route(nameof(ConfigurationRestApi.DeleteSpecificConfig) + "/{toDelete}")]
-        public async Task<ActionResult<StringApiContent>> DeleteSpecificConfig(string toDelete)
-            => new StringApiContent(await _api.DeleteSpecificConfig(toDelete));
-        
-        [HttpGet]
-        [Route(nameof(ConfigurationRestApi.GetAppConfigList))]
-        public async Task<ActionResult<SpecificConfigList>> GetSpecificConfigList()
-            => new SpecificConfigList(await _api.QueryAppConfig());
-        
-        [HttpGet]
-        [Route(nameof(ConfigurationRestApi.GlobalConfig))]
-        public async Task<ActionResult<GlobalConfig>> GetGlobalConfig()
-            => await _api.QueryConfig();
+        public Task<string> UpdateGlobalConfig([FromBody]UpdateGlobalConfigApiCommand command, CancellationToken token = default)
+            => _apiOld.UpdateGlobalConfig(command, token);
 
         [HttpPost]
-        [Route(nameof(ConfigurationRestApi.GlobalConfig))]
-        public async Task<ActionResult<StringApiContent>> PostGlobalConfig([FromBody] GlobalConfig config)
-        {
-            try
-            {
-                return new StringApiContent(await _api.Update(config));
-            }
-            catch (Exception e)
-            {
-                Log.Warn(e, "Error on Update Global Config");
-                return new StringApiContent(e.Message);
-            }
-        }
-
-        [HttpGet]
-        [Route(nameof(ConfigurationRestApi.GetConfigFile) + "/{name}")]
-        public ActionResult<StringApiContent> GetConfigFile(string name)
-        {
-            var value = GetConfigData(name);
-
-            if (string.IsNullOrWhiteSpace(value)) return NotFound();
-
-            return new StringApiContent(value);
-        }
-
-        [HttpGet]
-        [Route(nameof(ConfigurationRestApi.GetBaseConfig))]
-        public async Task<ActionResult<StringApiContent>> GetBaseConfig() 
-            => new StringApiContent(await _api.QueryBaseConfig());
-
-        [HttpGet]
-        [Route(nameof(ConfigurationRestApi.ServerConfiguration))]
-        public Task<ServerConfigugration> GetServerConfiguration()
-            => _api.QueryServerConfig();
+        public Task<string> UpdateServerConfig([FromBody] UpdateServerConfiguration command, CancellationToken token = default)
+            => _apiOld.UpdateServerConfig(command, token);
 
         [HttpPost]
-        [Route(nameof(ConfigurationRestApi.ServerConfiguration))]
-        public async Task<StringApiContent> SetServerConfiguration([FromBody]ServerConfigugration serverConfigugration)
-        {
-            try
-            {
-                var result = await _api.Update(serverConfigugration);
-                return new StringApiContent(result);
-            }
-            catch (Exception e)
-            {
-                Log.Warn(e, "Error on Update Server Configuration");
-                return new StringApiContent(e.Message);
-            }
-        }
+        public Task<string> DeleteSpecificConfig([FromBody] DeleteSpecificConfigCommand command, CancellationToken token = default)
+            => _apiOld.DeleteSpecificConfig(command, token);
 
-        public static string? GetConfigData(string name) => string.IsNullOrWhiteSpace(name) ? null : Resources.ResourceManager.GetString(name);
+        [HttpPost]
+        public Task<string> UpdateSpecificConfig([FromBody] UpdateSpecifConfigCommand command, CancellationToken token = default)
+            => _apiOld.UpdateSpecificConfig(command, token);
     }
 }

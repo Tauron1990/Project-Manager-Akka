@@ -1,7 +1,5 @@
 ﻿@page "/ConnectToCluster"
 
-@inherits PropertyChangedComponent
-
 @inject ConnectToClusterViewModel _model
 
 <OperationHost Manager="_model.Operation">
@@ -24,12 +22,6 @@
     private MudTextFieldString? _urlField;
 
     private bool _isValid;
-
-    protected override async Task OnInitializedAsync()
-    {
-        await Init(_model);
-        await base.OnInitializedAsync();
-    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

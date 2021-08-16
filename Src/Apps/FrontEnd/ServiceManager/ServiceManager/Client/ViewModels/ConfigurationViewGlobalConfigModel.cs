@@ -7,35 +7,25 @@ using ServiceManager.Client.Components;
 using ServiceManager.Client.Components.Operations;
 using ServiceManager.Client.Shared.Configuration;
 using ServiceManager.Shared.ServiceDeamon;
+using Stl.Fusion;
 using Tauron.Application;
 using Tauron.Application.Master.Commands.Administration.Configuration;
 
 namespace ServiceManager.Client.ViewModels
 {
-    public sealed class ConfigurationViewGlobalConfigModel : ObservableObject, IInitable, IDisposable
+    public sealed class ConfigurationViewGlobalConfigModel
     {
         private readonly IServerConfigurationApi _api;
         private readonly IEventAggregator _aggregator;
-        private readonly IDatabaseConfigOld _databaseConfig;
-        private readonly IDisposable _subscription;
+        private readonly IDatabaseConfig _databaseConfig;
 
-        private string _configInfo = string.Empty;
-        private string _configContent = string.Empty;
+        public string ConfigInfo { get; set; }
 
-        public string ConfigInfo
+        public string ConfigContent { get; set; }
+
+        public ConfigurationViewGlobalConfigModel(IServerConfigurationApiOld api, IEventAggregator aggregator, IDatabaseConfig databaseConfig)
         {
-            get => _configInfo;
-            set => SetProperty(ref _configInfo, value);
-        }
-
-        public string ConfigContent
-        {
-            get => _configContent;
-            set => SetProperty(ref _configContent, value);
-        }
-
-        public ConfigurationViewGlobalConfigModel(IServerConfigurationApi api, IEventAggregator aggregator, IDatabaseConfigOld databaseConfig)
-        {
+            
             _api = api;
             _aggregator = aggregator;
             _databaseConfig = databaseConfig;
@@ -52,13 +42,11 @@ namespace ServiceManager.Client.ViewModels
             ConfigContent = api.GlobalConfig.ConfigContent;
         }
 
-        public Task Init() => PropertyChangedComponent.Init(_api);
-
         public async Task GenerateDefaultConfig()
         {
-            if(!_databaseConfig.IsReady) return;
+            if(! await _databaseConfig.GetIsReady()) return;
 
-            var result = AkkaConfigurationBuilder.ApplyMongoUrl(ConfigContent, await _api.QueryBaseConfig(), _databaseConfig.Url);
+            var result = AkkaConfigurationBuilder.ApplyMongoUrl(ConfigContent, await _api.QueryBaseConfig(), await _databaseConfig.GetUrl());
             ConfigContent = result;
             ConfigInfo = "Generierte Konfiguration";
         }

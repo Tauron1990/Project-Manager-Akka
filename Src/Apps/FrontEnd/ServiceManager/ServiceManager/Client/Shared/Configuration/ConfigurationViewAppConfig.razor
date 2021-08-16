@@ -3,29 +3,42 @@
 @using Akka.Util.Internal
 @using Autofac.Features.OwnedInstances
 @using Tauron
-@inherits PropertyChangedComponent
+@using System.Collections.Immutable
+@using Microsoft.Extensions.DependencyInjection
+@using ServiceManager.Shared.ServiceDeamon
+@using Stl.Fusion
+@using Tauron.Application
 
-@inject ConfigurationViewAppConfigModel _model
+@inherits MixedStateComponent<ViewData, AppConfigData>
 
-@if (_model.ToEdit != null)
+@inject IEventAggregator _aggregator;
+@inject IServerConfigurationApi _api;
+
+@{
+    var (configs, (newModel, toEdit)) = State.LatestNonErrorValue;
+    if (newModel != null)
+        configs = configs.Add(newModel);
+}
+
+@if (toEdit != null)
 {
     <MudToolBar>
-        <MudIconButton Icon="@Icons.Material.Outlined.Save" OnClick="async () => await _model.CommitConfig(_model.ToEdit)"/>
+        <MudIconButton Icon="@Icons.Material.Outlined.Save" OnClick="async () => await _model.CommitConfig(toEdit)"/>
         <MudIconButton Icon="@Icons.Material.Outlined.Cancel" OnClick="() => _model.EditConfig(null)"/>
-        <MudToolBarSpacer/>
-        <MudText>@_model.ToEdit.Config.Id</MudText>
+        <MudSpacer/>
+        <MudText>@toEdit.Config.Id</MudText>
     </MudToolBar>
     <MudTabs>
         <MudTabPanel Text="Konfiguration">
             <div class="d-flex flex-row">
-                <MudTextFieldString Class="d-flex flex-grow-0 order-0" @bind-Value="_model.ToEdit.InfoString" Label="Konfiguration Info"/>
+                <MudTextFieldString Class="d-flex flex-grow-0 order-0" @bind-Value="toEdit.InfoString" Label="Konfiguration Info"/>
                 <div class="d-flex flex-grow-1 align-content-stretch order-1">
                     <EditForm Model="_model">
-                        <InputTextArea @bind-Value="@_model.ToEdit.ConfigString" DisplayName="Konfigurations Text"/>
+                        <InputTextArea @bind-Value="@toEdit.ConfigString" DisplayName="Konfigurations Text"/>
                     </EditForm>
                 </div>
                 <div class="d-flex flex-grow-0 order-2">
-                    <ConfigurationOptionsView OptionSelectedEvent="_model.ToEdit.OptionSelected"/>
+                    <ConfigurationOptionsView OptionSelectedEvent="toEdit.OptionSelected"/>
                 </div>
             </div>
         </MudTabPanel>
@@ -36,11 +49,11 @@
 }
 else
 {
-    <MudTable Items="@_model.AppConfigs" Hover="true" Loading="_model.IsLoading" @bind-SelectedItem="Selected">
+    <MudTable Items="@configs" Hover="true" Loading="!State.Computed.IsConsistent()" @bind-SelectedItem="Selected">
         <ToolBarContent>
             <MudText Typo="Typo.h6">Anwendungen Konfiguration</MudText>
             <MudSpacer/>
-            <MudButton Class="ma-2" OnClick="_model.NewConfig">Neu</MudButton>
+            <MudButton Class="ma-2" OnClick="async () => await _model.NewConfig(configs)">Neu</MudButton>
             <MudButton Class="ma-2" @ref="_delete" OnClick="async () => await _model.DeleteConfig(Selected)">Löschen</MudButton>
             <MudButton Class="ma-2" @ref="_edit" OnClick="() => _model.EditConfig(Selected)">Beabeiten</MudButton>
             <MudSpacer/>
@@ -67,6 +80,20 @@ else
 }
 
 @code {
+
+    protected override async Task<ViewData> ComputeState(CancellationToken cancellationToken) 
+        => new((await _api.QueryAppConfig()).Select(d => new AppConfigModel(d, _aggregator)).ToImmutableList(), MutableState.Value);
+
+    protected override void OnInitialized()
+    {
+        _model = ActivatorUtilities.CreateInstance<ConfigurationViewAppConfigModel>(Services, MutableState);
+        base.OnInitialized();
+    }
+
+    public sealed record ViewData(ImmutableList<AppConfigModel> ConfigModels, AppConfigData ViewState);
+
+    private ConfigurationViewAppConfigModel _model = null!;
+    
     private AppConfigModel? Selected { get; set; }
 
     private string Selection => Selected?.Config.Id ?? "Nichts Gewählt";
@@ -80,11 +107,4 @@ else
 
     private object SelectInfoKey(AppConfigModel model)
         => model.Config.Info ?? string.Empty;
-
-    protected override async Task OnInitializedAsync()
-    {
-        _model.DisposeWith(this);
-        await Track(_model);
-        await base.OnInitializedAsync();
-    }
 }

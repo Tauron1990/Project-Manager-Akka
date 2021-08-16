@@ -10,15 +10,15 @@ namespace ServiceManager.Server.AppCore
 {
     public interface IResource<TData>
     {
-        Task<TData> Init(Func<Task<TData>> init);
+        Task<TData> Init(Func<Task<TData>> init, CancellationToken token = default);
 
-        Task<Unit> Set(Func<Task<TData>> data);
+        Task<Unit> Set(Func<Task<TData>> data, CancellationToken token = default);
 
-        Task<Unit> Set(Func<TData, TData> data);
+        Task<Unit> Set(Func<TData, TData> data, CancellationToken token = default);
         
-        Task<Unit> Set(Func<TData> data);
+        Task<Unit> Set(Func<TData> data, CancellationToken token = default);
 
-        Task<Unit> Set(TData data);
+        Task<Unit> Set(TData data, CancellationToken token = default);
 
         TData Get();
     }
@@ -71,9 +71,9 @@ namespace ServiceManager.Server.AppCore
                 _onChange = onChange;
             }
 
-            public async Task<TData> Init(Func<Task<TData>> init)
+            public async Task<TData> Init(Func<Task<TData>> init, CancellationToken token = default)
             {
-                await _resourceLock.WaitAsync();
+                await _resourceLock.WaitAsync(token);
                 try
                 {
                     if (_isSet) return _data;
@@ -92,9 +92,9 @@ namespace ServiceManager.Server.AppCore
                 }
             }
 
-            public async Task<Unit> Set(TData data)
+            public async Task<Unit> Set(TData data, CancellationToken token = default)
             {
-                await _resourceLock.WaitAsync();
+                await _resourceLock.WaitAsync(token);
                 try
                 {
                     _data = data;
@@ -123,9 +123,9 @@ namespace ServiceManager.Server.AppCore
                 }
             }
 
-            public async Task<Unit> Set(Func<Task<TData>> data)
+            public async Task<Unit> Set(Func<Task<TData>> data, CancellationToken token = default)
             {
-                await _resourceLock.WaitAsync();
+                await _resourceLock.WaitAsync(token);
                 try
                 {
                     _data = await data();
@@ -141,9 +141,9 @@ namespace ServiceManager.Server.AppCore
                 return Unit.Default;
             }
 
-            public async Task<Unit> Set(Func<TData, TData> data)
+            public async Task<Unit> Set(Func<TData, TData> data, CancellationToken token = default)
             {
-                await _resourceLock.WaitAsync();
+                await _resourceLock.WaitAsync(token);
                 try
                 {
                     _data  = data(_data);
@@ -159,7 +159,7 @@ namespace ServiceManager.Server.AppCore
                 }
             }
 
-            public Task<Unit> Set(Func<TData> data) => Set(data());
+            public Task<Unit> Set(Func<TData> data, CancellationToken token = default) => Set(data());
         }
 
     }

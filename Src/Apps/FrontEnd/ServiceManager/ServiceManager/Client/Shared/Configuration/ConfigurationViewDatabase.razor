@@ -1,18 +1,23 @@
-﻿@inherits ConnectionAwareComponent
-@inject ConfigurationViewDatabseModel _model
+﻿@using ServiceManager.Shared.ServiceDeamon
+@using Stl.Fusion
+@using Microsoft.Extensions.DependencyInjection
+
+@inherits ComputedStateComponent<string>
+
+@inject IDatabaseConfig _databaseConfig
 
 <div style="max-width: 1000px">
     <MudCard >
         <MudCardContent>
-            <MudForm @bind-IsValid="_isValid">
-                <MudTextFieldString DebounceInterval="200" @bind-Value="@_model.DatabaseUrl" 
+            <MudForm IsValidChanged="IsValidChaned">
+                <MudTextFieldString DebounceInterval="500" Value="@_model.DatabaseUrl" ValueChanged="EnterUrl"
                                     Validation="_model.ValidateUrl" @ref="_databseFieldString"/>
             </MudForm>
         </MudCardContent>
         <MudCardActions>
-            <MudButton Disabled="@CanFecth" OnClick="_model.TryFetchDatabseUrl">Url Abrufen</MudButton>
-            <MudButton ButtonType="ButtonType.Reset" OnClick="_model.Reset">Zurücksetzen</MudButton>
-            <MudButton ButtonType="ButtonType.Submit" OnClick="_model.Submit" Disabled="@(!_isValid)">Speichern</MudButton>
+            <MudButton Disabled="@_model.CanFetch" OnClick="TryFetchDatabseUrl">Url Abrufen</MudButton>
+            <MudButton ButtonType="ButtonType.Reset" OnClick="Reset">Zurücksetzen</MudButton>
+            <MudButton ButtonType="ButtonType.Submit" OnClick="_model.Submit" Disabled="@(!_model.IsValid)">Speichern</MudButton>
         </MudCardActions>
     </MudCard>
     <MudPaper Class="d-flex justify-center my-2">
@@ -25,16 +30,51 @@
 
 @code {
 
-    private bool _isValid;
+    [CascadingParameter(Name = BasicAppInfoComponent.IsSelf)]
+    public bool IsSelf { get; set; }
+    
+    protected override async Task<string> ComputeState(CancellationToken cancellationToken)
+    {
+        var result = await _databaseConfig.GetUrl();
 
-    private bool CanFecth => !IsSelf;
+        _model = _model with{ DatabaseUrl = result, OriginalUrl = result};
+
+        return result;
+    }
+
+    private ConfigurationViewDatabseModel _model = null!;
+
+    protected override void OnInitialized()
+    {
+        _model = ActivatorUtilities.CreateInstance<ConfigurationViewDatabseModel>(Services);
+        base.OnInitialized();
+    }
+
+    private void EnterUrl(string url) 
+        => _model = _model with{ DatabaseUrl = url};
+
+    private async Task TryFetchDatabseUrl()
+    {
+        var (model, success) = await _model.TryFetchDatabseUrl();
+        if(!success) return;
+
+        _model = model;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void Reset()
+    {
+        _model = _model.Reset();
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void IsValidChaned(bool valid)
+    {
+        _model = _model with{ IsValid = valid};
+        InvokeAsync(StateHasChanged);
+    }
 
     private MudTextFieldString? _databseFieldString;
-
-    [CascadingParameter]
-    public IOperationManager Manager { get; set; } = OperationManager.Empty;
-
-    protected override async Task OnInitializedAsync() => await Track(_model);
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -42,12 +82,4 @@
             await _databseFieldString.Validate();
         await base.OnAfterRenderAsync(firstRender);
     }
-
-    protected override void OnParametersSet()
-    {
-        Console.WriteLine($"Cluster IsSelf:{IsSelf}");
-        _model.Operation = Manager;
-        base.OnParametersSet();
-    }
-
 }

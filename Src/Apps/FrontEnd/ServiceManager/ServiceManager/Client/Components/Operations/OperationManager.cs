@@ -20,7 +20,7 @@ namespace ServiceManager.Client.Components.Operations
                 return Disposable.Empty;
 
             _informer.OnNext(true);
-            return Disposables.Create(() => _informer.OnNext(false));
+            return Disposable.Create(() => _informer.OnNext(false));
         }
 
         public IDisposable Subscribe(IObserver<bool> action)

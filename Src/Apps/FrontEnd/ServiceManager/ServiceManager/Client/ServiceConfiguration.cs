@@ -16,10 +16,7 @@ namespace ServiceManager.Client
             collection.AddScoped<ConfigurationOptionsViewModel>();
             collection.AddScoped<ConfigurationViewGlobalConfigModel>();
             collection.AddScoped<AppConfigurationViewModel>();
-            collection.AddScoped<ConfigurationViewAppConfigModel>();
 
-            collection.AddScoped<IDatabaseConfigOld, DatabaseConfig>();
-            collection.AddScoped<IServerConfigurationApi, ConfigurationApiModel>();
 
             collection.AddSingleton<IEventAggregator, EventAggregator>();
         }

@@ -10,6 +10,7 @@ using MudBlazor.Services;
 using ServiceManager.Client.ServiceDefs;
 using ServiceManager.Shared;
 using ServiceManager.Shared.ClusterTracking;
+using ServiceManager.Shared.ServiceDeamon;
 using Stl.Fusion;
 using Stl.Fusion.Blazor;
 using Stl.Fusion.Client;
@@ -62,7 +63,9 @@ namespace ServiceManager.Client
                       .AddClientService<IClusterNodeTracking, IClusterNodeTrackingDef>()
                       .AddClientService<IClusterConnectionTracker, IClusterConnectionTrackerDef>()
                       .AddClientService<IServerInfo, IServerInfoDef>()
-                      .AddClientService<IAppIpManager, IAppIpManagerDef>();
+                      .AddClientService<IAppIpManager, IAppIpManagerDef>()
+                      .AddClientService<IDatabaseConfig, IDatabaseConfigDef>()
+                      .AddClientService<IServerConfigurationApi, IServerConfigurationApiDef>();
         }
     }
 }

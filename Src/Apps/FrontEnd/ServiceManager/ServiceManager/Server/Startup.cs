@@ -13,10 +13,12 @@ using ServiceManager.Server.AppCore;
 using ServiceManager.Server.AppCore.ClusterTracking;
 using ServiceManager.Server.AppCore.ClusterTracking.Data;
 using ServiceManager.Server.AppCore.Helper;
+using ServiceManager.Server.AppCore.ServiceDeamon;
 using ServiceManager.Server.Hubs;
 using ServiceManager.Shared;
 using ServiceManager.Shared.Api;
 using ServiceManager.Shared.ClusterTracking;
+using ServiceManager.Shared.ServiceDeamon;
 using Stl.CommandR;
 using Stl.Fusion;
 using Stl.Fusion.Server;
@@ -43,7 +45,9 @@ namespace ServiceManager.Server
             fusion.AddComputeService<IClusterNodeTracking, ClusterNodeTracking>()
                   .AddComputeService<IClusterConnectionTracker, ClusterConnectionTracker>()
                   .AddComputeService<IServerInfo, ServerInfo>()
-                  .AddComputeService<IAppIpManager, AppIpService>();
+                  .AddComputeService<IAppIpManager, AppIpService>()
+                  .AddComputeService<IDatabaseConfig, DatabaseConfig>()
+                  .AddComputeService<IServerConfigurationApi, ServerConfigurationApi>();
 
 
             services.Configure<HostOptions>(o => o.ShutdownTimeout = TimeSpan.FromSeconds(30));

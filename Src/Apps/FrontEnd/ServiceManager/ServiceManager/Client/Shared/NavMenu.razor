@@ -1,7 +1,4 @@
-﻿
-@inherits ConnectionAwareComponent
-
-<MudDivider Class="mb-4"></MudDivider>
+﻿<MudDivider Class="mb-4"></MudDivider>
 <MudNavMenu>
     <MudNavLink Href="" Match="NavLinkMatch.All" Class="ma-1">Übersicht</MudNavLink>
     <MudBadge Icon="@_configError" Overlap="true" Class="ma-1">
@@ -17,6 +14,9 @@
 
     private string? NavMenuCssClass => _collapseNavMenu ? "collapse" : null;
 
+    [CascadingParameter(Name = BasicAppInfoComponent.IsDatabaseReady)]
+    public bool IsDatabaseReady { get; set; }
+    
     private void ToggleNavMenu()
     {
         _collapseNavMenu = !_collapseNavMenu;
