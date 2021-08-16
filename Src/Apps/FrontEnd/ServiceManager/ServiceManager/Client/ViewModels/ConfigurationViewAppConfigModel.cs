@@ -100,6 +100,7 @@ namespace ServiceManager.Client.ViewModels
             catch (Exception e)
             {
                 _aggregator.PublishError(e);
+                Console.WriteLine(e);
             }
         }
 
@@ -126,6 +127,6 @@ namespace ServiceManager.Client.ViewModels
         }
 
         public void EditConfig(AppConfigModel? model)
-            => _viewState.Set(_viewState.Value with{ ToEdit = model, NewModel = null });
+            => _viewState.Set(_viewState.Value with { ToEdit = model, NewModel = null });
     }
 }

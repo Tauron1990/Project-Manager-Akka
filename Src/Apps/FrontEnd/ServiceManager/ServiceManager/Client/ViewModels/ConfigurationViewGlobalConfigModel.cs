@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Akka.Configuration;
 using ServiceHost.Client.Shared.ConfigurationServer.Data;
-using ServiceManager.Client.Components;
 using ServiceManager.Client.Components.Operations;
 using ServiceManager.Client.Shared.Configuration;
 using ServiceManager.Shared.ServiceDeamon;
-using Stl.Fusion;
 using Tauron.Application;
 using Tauron.Application.Master.Commands.Administration.Configuration;
 
@@ -19,27 +16,16 @@ namespace ServiceManager.Client.ViewModels
         private readonly IEventAggregator _aggregator;
         private readonly IDatabaseConfig _databaseConfig;
 
-        public string ConfigInfo { get; set; }
+        public string ConfigInfo { get; set; } = string.Empty;
 
-        public string ConfigContent { get; set; }
+        public string ConfigContent { get; set; } = string.Empty;
 
-        public ConfigurationViewGlobalConfigModel(IServerConfigurationApiOld api, IEventAggregator aggregator, IDatabaseConfig databaseConfig)
+        public ConfigurationViewGlobalConfigModel(IServerConfigurationApi api, IEventAggregator aggregator, IDatabaseConfig databaseConfig)
         {
             
             _api = api;
             _aggregator = aggregator;
             _databaseConfig = databaseConfig;
-
-            _subscription = api.PropertyChangedObservable.Where(s => s == nameof(api.GlobalConfig)).Select(_ => api.GlobalConfig)
-                               .Subscribe(gc =>
-                                          {
-                                              var (configContent, info) = gc;
-                                              ConfigInfo = info ?? string.Empty;
-                                              ConfigContent = configContent;
-                                          });
-
-            ConfigInfo = api.GlobalConfig.Info ?? string.Empty;
-            ConfigContent = api.GlobalConfig.ConfigContent;
         }
 
         public async Task GenerateDefaultConfig()
@@ -68,10 +54,10 @@ namespace ServiceManager.Client.ViewModels
             }
         }
 
-        public void Reset()
+        public void Reset(GlobalConfig config)
         {
-            ConfigInfo = _api.GlobalConfig.Info ?? string.Empty;
-            ConfigContent = _api.GlobalConfig.ConfigContent;
+            ConfigInfo = config.Info ?? string.Empty;
+            ConfigContent = config.ConfigContent;
         }
 
         public async Task UpdateConfig(IOperationManager manager)
@@ -80,7 +66,7 @@ namespace ServiceManager.Client.ViewModels
             {
                 using (manager.Start())
                 {
-                    var result = await _api.Update(new GlobalConfig(ConfigContent, ConfigInfo));
+                    var result = await _api.UpdateGlobalConfig(new UpdateGlobalConfigApiCommand(new GlobalConfig(ConfigContent, ConfigInfo)));
                     if(string.IsNullOrWhiteSpace(result)) return;
 
                     _aggregator.PublishWarnig(result);
@@ -91,7 +77,5 @@ namespace ServiceManager.Client.ViewModels
                 _aggregator.PublishError(e);
             }
         }
-
-        public void Dispose() => _subscription.Dispose();
     }
 }

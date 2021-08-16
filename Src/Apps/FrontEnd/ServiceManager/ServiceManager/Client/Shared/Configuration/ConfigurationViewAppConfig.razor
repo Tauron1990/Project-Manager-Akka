@@ -9,18 +9,23 @@
 @using Stl.Fusion
 @using Tauron.Application
 
-@inherits MixedStateComponent<ViewData, AppConfigData>
+@inherits MixedStateComponent<AppConfigViewData, AppConfigData>
 
+@inject IDialogService _service;
 @inject IEventAggregator _aggregator;
 @inject IServerConfigurationApi _api;
 
 @{
-    var (configs, (newModel, toEdit)) = State.LatestNonErrorValue;
+    var (configs, (newModel, toEdit)) = State.LatestNonErrorValue ?? new AppConfigViewData(ImmutableList<AppConfigModel>.Empty, new AppConfigData());
     if (newModel != null)
         configs = configs.Add(newModel);
 }
 
-@if (toEdit != null)
+@if (State.IsLoading())
+{
+    <MudProgressCircular Class="justify-center" Indeterminate="true" Color="Color.Primary"/>
+}
+else if (toEdit != null)
 {
     <MudToolBar>
         <MudIconButton Icon="@Icons.Material.Outlined.Save" OnClick="async () => await _model.CommitConfig(toEdit)"/>
@@ -29,21 +34,19 @@
         <MudText>@toEdit.Config.Id</MudText>
     </MudToolBar>
     <MudTabs>
-        <MudTabPanel Text="Konfiguration">
-            <div class="d-flex flex-row">
-                <MudTextFieldString Class="d-flex flex-grow-0 order-0" @bind-Value="toEdit.InfoString" Label="Konfiguration Info"/>
-                <div class="d-flex flex-grow-1 align-content-stretch order-1">
-                    <EditForm Model="_model">
-                        <InputTextArea @bind-Value="@toEdit.ConfigString" DisplayName="Konfigurations Text"/>
-                    </EditForm>
-                </div>
-                <div class="d-flex flex-grow-0 order-2">
-                    <ConfigurationOptionsView OptionSelectedEvent="toEdit.OptionSelected"/>
-                </div>
+        <MudTabPanel Text="Konfiguration" Class="d-flex" Style="flex-direction: row">
+            <MudTextFieldString Class="flex-row flex-grow-0 order-0 ma-3" @bind-Value="toEdit.InfoString" Label="Konfiguration Info"/>
+            <div class="flex-row flex-grow-1 align-content-stretch order-1 ma-3" style="height: 400px; width: 1000px">
+                <EditForm Model="_model">
+                    <InputTextArea @bind-Value="@toEdit.ConfigString" DisplayName="Konfigurations Text"/>
+                </EditForm>
+            </div>
+            <div class="flex-row flex-grow-0 order-2 ma-3">
+                <ConfigurationOptionsView OptionSelectedEvent="toEdit.OptionSelected"/>
             </div>
         </MudTabPanel>
         <MudTabPanel Text="Bedingungen">
-            
+            <ConfigurationViewAppConfigConditionEdit Model="_model" ToEdit="toEdit"/>
         </MudTabPanel>
     </MudTabs>
 }
@@ -81,16 +84,14 @@ else
 
 @code {
 
-    protected override async Task<ViewData> ComputeState(CancellationToken cancellationToken) 
+    protected override async Task<AppConfigViewData> ComputeState(CancellationToken cancellationToken) 
         => new((await _api.QueryAppConfig()).Select(d => new AppConfigModel(d, _aggregator)).ToImmutableList(), MutableState.Value);
 
     protected override void OnInitialized()
     {
-        _model = ActivatorUtilities.CreateInstance<ConfigurationViewAppConfigModel>(Services, MutableState);
         base.OnInitialized();
+        _model = new ConfigurationViewAppConfigModel(MutableState, _api, _service, _aggregator);
     }
-
-    public sealed record ViewData(ImmutableList<AppConfigModel> ConfigModels, AppConfigData ViewState);
 
     private ConfigurationViewAppConfigModel _model = null!;
     

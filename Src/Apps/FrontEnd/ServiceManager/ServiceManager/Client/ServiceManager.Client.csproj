@@ -34,7 +34,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\Shared\Tauron.Grid\Tauron.Grid.csproj" />
     <ProjectReference Include="..\Shared\ServiceManager.Shared.csproj" />
   </ItemGroup>
 
@@ -127,6 +126,12 @@
 
   <ItemGroup>
     <None Include="wwwroot\_content\MudBlazor\MudBlazor.min.css" />
+  </ItemGroup>
+
+
+
+  <ItemGroup>
+    <Folder Include="Shared\Configuration\ConditionEditor" />
   </ItemGroup>
 
 </Project>

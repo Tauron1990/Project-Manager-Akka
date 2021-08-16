@@ -1,9 +1,11 @@
 ﻿@using ServiceManager.Shared.ServiceDeamon
 @using Stl.Fusion
 @using Microsoft.Extensions.DependencyInjection
+@using ServiceManager.Shared.ClusterTracking
 
-@inherits ComputedStateComponent<string>
+@inherits ComputedStateComponent<(string Url, bool IsSelf)>
 
+@inject IClusterConnectionTracker _tracker;
 @inject IDatabaseConfig _databaseConfig
 
 <div style="max-width: 1000px">
@@ -30,16 +32,13 @@
 
 @code {
 
-    [CascadingParameter(Name = BasicAppInfoComponent.IsSelf)]
-    public bool IsSelf { get; set; }
-    
-    protected override async Task<string> ComputeState(CancellationToken cancellationToken)
+    protected override async Task<(string, bool)> ComputeState(CancellationToken cancellationToken)
     {
         var result = await _databaseConfig.GetUrl();
 
         _model = _model with{ DatabaseUrl = result, OriginalUrl = result};
 
-        return result;
+        return (result, await _tracker.GetIsSelf());
     }
 
     private ConfigurationViewDatabseModel _model = null!;

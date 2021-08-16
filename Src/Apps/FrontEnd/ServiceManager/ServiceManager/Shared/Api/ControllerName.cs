@@ -1,5 +1,14 @@
 ﻿namespace ServiceManager.Shared.Api
 {
+    public enum ConfigOpensElement
+    {
+        Akka,
+        AkkaRemote,
+        AkkaPersistence,
+        AkkaCluster,
+        AkkaStreams
+    }
+    
     public static class ControllerName
     {
         public const string AppConfiguration = "api/configuration";

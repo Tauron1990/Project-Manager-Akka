@@ -15,7 +15,7 @@
     <MudThemeProvider/>
     <MudDialogProvider DisableBackdropClick="true"/>
     <MudSnackbarProvider/>
-    
+
     <IpOkComponent>
         <BasicAppInfoComponent>
             <MudAppBar Elevation="4" Dense="true">
@@ -24,7 +24,7 @@
                 <MudSpacer/>
                 <MudButton Variant="Variant.Text" Link="/About" Color="Color.Secondary">About</MudButton>
             </MudAppBar>
-            <MudDrawer Elevation="30" Open="true" ClipMode="DrawerClipMode.Docked">
+            <MudDrawer Elevation="25" Open="true" ClipMode="DrawerClipMode.Docked">
                 <NavMenu/>
             </MudDrawer>
             <MudMainContent>
@@ -36,6 +36,7 @@
     </IpOkComponent>
 </MudLayout>
 
+    
 @code
 {
     private readonly CompositeDisposable _disposer = new();

@@ -11,28 +11,31 @@ namespace ServiceManager.Client.ServiceDefs
     [BasePath(ControllerName.AppConfiguration)]
     public interface IServerConfigurationApiDef
     {
-        [Get]
+        [Get(nameof(GlobalConfig))]
         Task<GlobalConfig> GlobalConfig();
 
-        [Get]
+        [Get(nameof(ServerConfigugration))]
         Task<ServerConfigugration> ServerConfigugration();
 
-        [Get]
+        [Get(nameof(QueryAppConfig))]
         Task<ImmutableList<SpecificConfig>> QueryAppConfig();
 
-        [Get]
+        [Get(nameof(QueryBaseConfig))]
         Task<string> QueryBaseConfig();
+
+        [Get(nameof(QueryDefaultFileContent))]
+        Task<string?> QueryDefaultFileContent([Query] ConfigOpensElement element);
         
-        [Post]
+        [Post(nameof(UpdateGlobalConfig))]
         Task<string> UpdateGlobalConfig([Body]UpdateGlobalConfigApiCommand command, CancellationToken token = default);
         
-        [Post]
+        [Post(nameof(UpdateServerConfig))]
         Task<string> UpdateServerConfig([Body] UpdateServerConfiguration command, CancellationToken token = default);
 
-        [Post]
+        [Post(nameof(DeleteSpecificConfig))]
         Task<string> DeleteSpecificConfig([Body] DeleteSpecificConfigCommand command, CancellationToken token = default);
 
-        [Post]
+        [Post(nameof(UpdateSpecificConfig))]
         Task<string> UpdateSpecificConfig([Body] UpdateSpecifConfigCommand command, CancellationToken token = default);
     }
 }

@@ -10,6 +10,7 @@ using ServiceHost.Client.Shared.ConfigurationServer;
 using ServiceHost.Client.Shared.ConfigurationServer.Data;
 using ServiceHost.Client.Shared.ConfigurationServer.Events;
 using ServiceManager.Server.AppCore.Helper;
+using ServiceManager.Server.Controllers;
 using ServiceManager.Shared.Api;
 using ServiceManager.Shared.ServiceDeamon;
 using Stl.Async;
@@ -129,7 +130,10 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
 
         public virtual Task<string> QueryBaseConfig()
             => Task.FromResult(Properties.Resources.BaseConfig);
-        
+
+        public virtual Task<string?> QueryDefaultFileContent(ConfigOpensElement element)
+            => Task.FromResult(ConfigurationController.GetConfigData(element));
+
         public virtual async Task<string> DeleteSpecificConfig(DeleteSpecificConfigCommand command, CancellationToken token = default)
         {
             try

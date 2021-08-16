@@ -1,7 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using ServiceManager.Client.Shared.BaseComponents;
 using ServiceManager.Client.ViewModels;
 using ServiceManager.Client.ViewModels.Models;
 using ServiceManager.Shared.ServiceDeamon;
+using Stl.Fusion.UI;
 using Tauron.Application;
 
 namespace ServiceManager.Client
@@ -16,8 +18,11 @@ namespace ServiceManager.Client
             collection.AddScoped<ConfigurationOptionsViewModel>();
             collection.AddScoped<ConfigurationViewGlobalConfigModel>();
             collection.AddScoped<AppConfigurationViewModel>();
-
-
+            
+            collection.AddSingleton<BasicAppInfoHelper>();
+            collection.AddSingleton<DatabaseRequiredComponentHelper>();
+            
+            collection.AddSingleton<IUICommandTracker, UICommandTracker>();
             collection.AddSingleton<IEventAggregator, EventAggregator>();
         }
     }

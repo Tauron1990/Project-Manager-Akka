@@ -13,6 +13,7 @@ using ServiceManager.Server.AppCore.Helper;
 using Stl.Async;
 using Stl.CommandR;
 using Tauron;
+using Tauron.Akka;
 using Tauron.AkkaHost;
 using Tauron.Application.Master.Commands.ServiceRegistry;
 using Tauron.Features;
@@ -95,14 +96,15 @@ namespace ServiceManager.Server.AppCore.ClusterTracking
                                                                                     return await AddAndUpdate(state, c.Member,
                                                                                         commander => commander.Call(new UpdateStatusCommand(c.Member.UniqueAddress.ToString(), ToString(c.Member.Status))));
                                                                             }
-                                                                        }));
+                                                                        }).ObserveOn(ActorScheduler.CurrentSelf));
 
-            Receive<QueryRegistratedServiceResponse>(obs => from response in obs
+            Receive<QueryRegistratedServiceResponse>(obs => (from response in obs
                                                             let service = response.Event.Service
                                                             where service != null
                                                             from result in AddAndUpdate(response.State, response.State.Cluster.State.Members.First(m => m.UniqueAddress == service.Address), 
                                                                 com => com.Call(new UpdateNameCommand(service.Address.ToString(), service.Name, service.ServiceType.DisplayName)))
-                                                            select result);
+                                                            select result)
+                                                        .ObserveOn(ActorScheduler.CurrentSelf));
 
             Receive<InitActor>(obs => obs.ToUnit());
         }

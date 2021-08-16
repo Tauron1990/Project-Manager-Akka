@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using ServiceHost.Client.Shared.ConfigurationServer.Data;
+using ServiceManager.Shared.Api;
 using Stl.CommandR;
 using Stl.CommandR.Configuration;
 using Stl.Fusion;
@@ -29,7 +30,10 @@ namespace ServiceManager.Shared.ServiceDeamon
 
         [ComputeMethod]
         Task<string> QueryBaseConfig();
-        
+
+        [ComputeMethod]
+        Task<string?> QueryDefaultFileContent(ConfigOpensElement element);
+
         [CommandHandler]
         Task<string> UpdateGlobalConfig(UpdateGlobalConfigApiCommand command, CancellationToken token = default);
         

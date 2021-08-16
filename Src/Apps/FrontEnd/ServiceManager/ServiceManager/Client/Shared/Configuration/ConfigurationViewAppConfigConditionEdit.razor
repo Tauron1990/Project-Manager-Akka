@@ -1,5 +1,18 @@
-﻿<h3>ConfigurationViewAppConfigConditionEdit</h3>
+﻿
+@if (Model == null || ToEdit == null)
+{
+    <MudAlert Class="justify-space-around" Variant="Variant.Filled" Severity="Severity.Error">Keine Daten Übergeben</MudAlert>
+}
+else
+{
+    
+}
 
 @code {
     
+    [Parameter]
+    public AppConfigurationViewModel? Model { get; set; }
+
+    [Parameter]
+    public AppConfigModel? ToEdit { get; set; }
 }

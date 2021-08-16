@@ -11,6 +11,9 @@ namespace ServiceManager.Client
 {
     public static class Extensions
     {
+        public static bool IsLoading<TData>(this IState<TData> state)
+            => state.Computed.ConsistencyState != ConsistencyState.Consistent;
+        
         public static void ReplaceState<TData>(this IMutableState<TData> state, Func<TData, TData> update)
             => state.Set(update(state.LatestNonErrorValue));
         

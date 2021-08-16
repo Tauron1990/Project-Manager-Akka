@@ -14,44 +14,48 @@ namespace ServiceManager.Server.Controllers
     [ApiController, JsonifyErrors]
     public class ConfigurationController : ControllerBase, IServerConfigurationApi
     {
-        private readonly IServerConfigurationApi _apiOld;
+        private readonly IServerConfigurationApi _api;
 
-        public ConfigurationController(IServerConfigurationApi apiOld) => _apiOld = apiOld;
+        public ConfigurationController(IServerConfigurationApi api) => _api = api;
 
 
 
-        public static string?            GetConfigData(string name) => string.IsNullOrWhiteSpace(name) ? null : Resources.ResourceManager.GetString(name);
+        public static string? GetConfigData(ConfigOpensElement name) => Resources.ResourceManager.GetString(name.ToString());
         
         [HttpGet, Publish]
         public        Task<GlobalConfig> GlobalConfig()
-            => _apiOld.GlobalConfig();
+            => _api.GlobalConfig();
 
         [HttpGet, Publish]
         public Task<ServerConfigugration> ServerConfigugration()
-            => _apiOld.ServerConfigugration();
+            => _api.ServerConfigugration();
 
         [HttpGet, Publish]
         public Task<ImmutableList<SpecificConfig>> QueryAppConfig()
-            => _apiOld.QueryAppConfig();
+            => _api.QueryAppConfig();
 
         [HttpGet, Publish]
         public Task<string> QueryBaseConfig()
-            => _apiOld.QueryBaseConfig();
+            => _api.QueryBaseConfig();
+
+        [HttpGet, Publish]
+        public Task<string?> QueryDefaultFileContent([FromQuery]ConfigOpensElement element)
+            => _api.QueryDefaultFileContent(element);
 
         [HttpPost]
         public Task<string> UpdateGlobalConfig([FromBody]UpdateGlobalConfigApiCommand command, CancellationToken token = default)
-            => _apiOld.UpdateGlobalConfig(command, token);
+            => _api.UpdateGlobalConfig(command, token);
 
         [HttpPost]
         public Task<string> UpdateServerConfig([FromBody] UpdateServerConfiguration command, CancellationToken token = default)
-            => _apiOld.UpdateServerConfig(command, token);
+            => _api.UpdateServerConfig(command, token);
 
         [HttpPost]
         public Task<string> DeleteSpecificConfig([FromBody] DeleteSpecificConfigCommand command, CancellationToken token = default)
-            => _apiOld.DeleteSpecificConfig(command, token);
+            => _api.DeleteSpecificConfig(command, token);
 
         [HttpPost]
         public Task<string> UpdateSpecificConfig([FromBody] UpdateSpecifConfigCommand command, CancellationToken token = default)
-            => _apiOld.UpdateSpecificConfig(command, token);
+            => _api.UpdateSpecificConfig(command, token);
     }
 }

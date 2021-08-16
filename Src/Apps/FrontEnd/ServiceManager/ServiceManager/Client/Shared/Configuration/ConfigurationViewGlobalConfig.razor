@@ -1,9 +1,18 @@
 ﻿@using Tauron
 @using Autofac.Features.OwnedInstances
 @using Microsoft.AspNetCore.Components
-@inherits MixedStateComponent<>
+@using ServiceHost.Client.Shared.ConfigurationServer.Data;
+@using ServiceManager.Shared.ServiceDeamon
+@using Stl.Fusion
+
+@inherits ComputedStateComponent<GlobalConfig>
 
 @inject ConfigurationViewGlobalConfigModel _model
+@inject IServerConfigurationApi _api;
+
+@{
+    var config = State.Value;
+}
 
 <div class="d-flex flex-row justify-center ma-1">
     <MudText Typo="Typo.h3">Globale Konfiguration</MudText>
@@ -19,7 +28,7 @@
 </div>
 <div class="d-flex flex-row ma-1">
     <MudButton Class="d-inline-flex ma-1" OnClick="_model.GenerateDefaultConfig">Standart Generieren</MudButton>
-    <MudButton Class="d-inline-flex ma-1" OnClick="_model.Reset">Zurücksetzen</MudButton>
+    <MudButton Class="d-inline-flex ma-1" OnClick="() => _model.Reset(config)">Zurücksetzen</MudButton>
     <MudButton Class="d-inline-flex ma-1" OnClick="@(() => _model.UpdateConfig(Manager))">Speichern</MudButton>
 </div>
 <div class="d-flex flex-row ma-1">
@@ -31,11 +40,17 @@
     [CascadingParameter]
     public IOperationManager Manager { get; set; } = OperationManager.Empty;
 
-    protected override async Task OnInitializedAsync()
-    {
-        _model.DisposeWith(this);
-        await Track(_model);
-        await base.OnInitializedAsync();
-    }
+    protected override Task<GlobalConfig> ComputeState(CancellationToken cancellationToken) 
+        => _api.GlobalConfig();
 
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        State.AddEventHandler(StateEventKind.Updated, (state, _) =>
+                                                  {
+                                                      if (state.HasValue && State.Value != null)
+                                                          _model.Reset(State.Value);
+
+                                                  });
+    }
 }
