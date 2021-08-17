@@ -24,6 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="blazor-dragdrop" Version="2.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.Web.Extensions" Version="5.0.0-preview9.20513.1" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="5.0.9" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="5.0.9" PrivateAssets="all" />
@@ -126,12 +127,6 @@
 
   <ItemGroup>
     <None Include="wwwroot\_content\MudBlazor\MudBlazor.min.css" />
-  </ItemGroup>
-
-
-
-  <ItemGroup>
-    <Folder Include="Shared\Configuration\ConditionEditor" />
   </ItemGroup>
 
 </Project>

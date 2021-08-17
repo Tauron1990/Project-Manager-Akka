@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Plk.Blazor.DragDrop;
 using ServiceManager.Client.Shared.BaseComponents;
 using ServiceManager.Client.ViewModels;
 using ServiceManager.Client.ViewModels.Models;
@@ -12,6 +13,8 @@ namespace ServiceManager.Client
     {
         public static void Run(IServiceCollection collection)
         {
+            collection.AddBlazorDragDrop();
+            
             collection.AddScoped<ConnectToClusterViewModel>();
             collection.AddScoped<ConfigurationViewDatabseModel>();
 

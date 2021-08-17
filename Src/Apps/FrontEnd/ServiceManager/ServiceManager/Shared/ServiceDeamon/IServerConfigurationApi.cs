@@ -33,7 +33,7 @@ namespace ServiceManager.Shared.ServiceDeamon
 
         [ComputeMethod]
         Task<string?> QueryDefaultFileContent(ConfigOpensElement element);
-
+        
         [CommandHandler]
         Task<string> UpdateGlobalConfig(UpdateGlobalConfigApiCommand command, CancellationToken token = default);
         
