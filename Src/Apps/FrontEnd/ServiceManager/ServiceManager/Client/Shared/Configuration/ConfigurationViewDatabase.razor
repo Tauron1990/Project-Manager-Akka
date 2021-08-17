@@ -8,27 +8,29 @@
 @inject IClusterConnectionTracker _tracker;
 @inject IDatabaseConfig _databaseConfig
 
-<div style="max-width: 1000px">
-    <MudCard >
-        <MudCardContent>
-            <MudForm IsValidChanged="IsValidChaned">
-                <MudTextFieldString DebounceInterval="500" Value="@_model.DatabaseUrl" ValueChanged="EnterUrl"
-                                    Validation="_model.ValidateUrl" @ref="_databseFieldString"/>
-            </MudForm>
-        </MudCardContent>
-        <MudCardActions>
-            <MudButton Disabled="@_model.CanFetch" OnClick="TryFetchDatabseUrl">Url Abrufen</MudButton>
-            <MudButton ButtonType="ButtonType.Reset" OnClick="Reset">Zurücksetzen</MudButton>
-            <MudButton ButtonType="ButtonType.Submit" OnClick="_model.Submit" Disabled="@(!_model.IsValid)">Speichern</MudButton>
-        </MudCardActions>
-    </MudCard>
-    <MudPaper Class="d-flex justify-center my-2">
-        <MudText Class="ma-2" Style="max-width: 50%">
-            Warnung: Änderungen an der Konfiguration führt zu partiellem oder komplettem neustart des Clusters.
-            Fehler in der Konfiguration können zum ausfall des Clusters Führen.
-        </MudText>
-    </MudPaper>
-</div>
+<MudContainer MaxWidth="MaxWidth.Large">
+    <div style="max-width: 1000px">
+        <MudCard >
+            <MudCardContent>
+                <MudForm IsValidChanged="IsValidChaned">
+                    <MudTextFieldString DebounceInterval="500" Value="@_model.DatabaseUrl" ValueChanged="EnterUrl"
+                                        Validation="_model.ValidateUrl" @ref="_databseFieldString"/>
+                </MudForm>
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton Disabled="@_model.CanFetch" OnClick="TryFetchDatabseUrl">Url Abrufen</MudButton>
+                <MudButton ButtonType="ButtonType.Reset" OnClick="Reset">Zurücksetzen</MudButton>
+                <MudButton ButtonType="ButtonType.Submit" OnClick="_model.Submit" Disabled="@(!_model.IsValid)">Speichern</MudButton>
+            </MudCardActions>
+        </MudCard>
+        <MudPaper Class="d-flex justify-center my-2">
+            <MudText Class="ma-2" Style="max-width: 50%">
+                Warnung: Änderungen an der Konfiguration führt zu partiellem oder komplettem neustart des Clusters.
+                Fehler in der Konfiguration können zum ausfall des Clusters Führen.
+            </MudText>
+        </MudPaper>
+    </div>
+</MudContainer>
 
 @code {
 

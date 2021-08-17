@@ -17,22 +17,22 @@
     <MudSnackbarProvider/>
 
     <IpOkComponent>
-        <BasicAppInfoComponent>
-            <MudAppBar Elevation="4" Dense="true">
-                <MudSpacer/>
-                <ClusterConnectionAlert/>
-                <MudSpacer/>
-                <MudButton Variant="Variant.Text" Link="/About" Color="Color.Secondary">About</MudButton>
-            </MudAppBar>
-            <MudDrawer Elevation="25" Open="true" ClipMode="DrawerClipMode.Docked">
-                <NavMenu/>
-            </MudDrawer>
-            <MudMainContent>
-                <MudContainer MaxWidth="MaxWidth.False" Class="mt-4">
-                    @Body
-                </MudContainer>
-            </MudMainContent>
-        </BasicAppInfoComponent>
+        <MudAppBar Elevation="4" Dense="true">
+            <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
+            <MudSpacer/>
+            <ClusterConnectionAlert/>
+            <MudSpacer/>
+            <MudButton Variant="Variant.Text" Link="/About" Color="Color.Secondary">About</MudButton>
+        </MudAppBar>
+        <MudDrawer Open="@_open" Elevation="4" Variant="DrawerVariant.Responsive" ClipMode="DrawerClipMode.Always">
+            <MudDrawerHeader>Service Manager</MudDrawerHeader>
+            <NavMenu Navigating="OnNavigating"/>
+        </MudDrawer>
+        <MudMainContent>
+            <MudContainer Fixed="true" Class="mt-2">
+                @Body
+            </MudContainer>
+        </MudMainContent>
     </IpOkComponent>
 </MudLayout>
 
@@ -40,6 +40,12 @@
 @code
 {
     private readonly CompositeDisposable _disposer = new();
+
+    bool _open = false;
+
+    void ToggleDrawer() => _open = !_open;
+
+    private void OnNavigating() => _open = false;
 
     protected override void OnInitialized()
     {
@@ -66,5 +72,4 @@
 
     public void Dispose()
         => _disposer.Dispose();
-
 }

@@ -1,18 +1,66 @@
-﻿
-@if (Model == null || ToEdit == null)
+﻿@using System.Collections.Immutable
+@using ServiceHost.Client.Shared.ConfigurationServer.Data
+@using ServiceManager.Client.Shared.Configuration.ConditionEditor
+
+@if (Model == null || ToEdit == null || State == null)
 {
     <MudAlert Class="justify-space-around" Variant="Variant.Filled" Severity="Severity.Error">Keine Daten Übergeben</MudAlert>
 }
 else
 {
-    
+    <div class="d-flex  flex-row">
+        <MudPaper Class="pa-1" Style="max-width: 30%">
+            <MudExpansionPanels MultiExpansion="true">
+                <MudExpansionPanel Text="Templates" IsInitiallyExpanded="true">
+                    <Dropzone Items="Templates" Accepts="(_, _) => false">
+                        <MudChip Label="true" Color="Color.Tertiary" Variant="Variant.Filled">@context.Name</MudChip>
+                    </Dropzone>
+                </MudExpansionPanel>
+                <MudExpansionPanel Text="Bekannte Bedinnungen">
+                    <Dropzone Class="flex-column flex-wrap" Items="KownenElements">
+                        <MudChip Label="true" Color="Color.Tertiary" Variant="Variant.Filled">@context.Name</MudChip>
+                    </Dropzone>
+                </MudExpansionPanel>
+            </MudExpansionPanels>
+        </MudPaper>
+        <MudPaper Style="flex-basis: 70%">
+            <EditorDropZone Items="ActualItems"/>
+        </MudPaper>
+    </div>
 }
 
 @code {
+
+    public static ElementItem[] Templates = {
+                                                new AndElement { Name = "Und Template"},
+                                                new OrElement { Name = "Oder Template"},
+                                                new DefinedAppElement { Name = "Definierte App Template" }, 
+                                                new InstalledAppElement { Name = "Installierte App Template" }
+                                            };
+
+    public ImmutableList<ElementItem> KownenElements { get; private set; } = ImmutableList<ElementItem>.Empty;
+
+    public List<ElementItem> ActualItems { get; set; }
     
     [Parameter]
-    public AppConfigurationViewModel? Model { get; set; }
+    public ConfigurationViewAppConfigModel? Model { get; set; }
 
     [Parameter]
     public AppConfigModel? ToEdit { get; set; }
+
+    [Parameter]
+    public EditorState? State { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        if (ToEdit != null)
+        {
+            UpdateKowenElements(ToEdit.Config.Conditions);
+            ActualItems = ToEdit.Config.Conditions.Select(ElementItem.CreateItem).ToList();
+        }
+        base.OnParametersSet();
+    }
+
+    private void UpdateKowenElements(IEnumerable<Condition> conditions) 
+        => KownenElements = conditions.Where(c => !c.Name.StartsWith(ElementItem.IdPrefix)).Select(ElementItem.CreateItem).ToImmutableList();
 }

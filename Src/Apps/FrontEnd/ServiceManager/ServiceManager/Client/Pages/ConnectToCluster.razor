@@ -2,21 +2,23 @@
 
 @inject ConnectToClusterViewModel _model
 
-<OperationHost Manager="_model.Operation">
-    <MudCard Class="mx-auto">
-        <MudCardHeader>
-            <MudText Typo="Typo.h3">Mit Bestehenden Cluster Verbinden</MudText>
-        </MudCardHeader>
-        <MudCardContent>
-            <MudForm @bind-IsValid="_isValid">
-                <MudTextFieldString Validation="_model.ValidateUrl" @ref="_urlField" Value="@_model.ClusterUrl"></MudTextFieldString>
-            </MudForm>
-        </MudCardContent>
-        <MudCardActions>
-            <MudButton Disabled="@(!_isValid)" OnClick="_model.ConnectToCluster">Verbinden</MudButton>
-        </MudCardActions>
-    </MudCard>
-</OperationHost>
+<MudContainer MaxWidth="MaxWidth.Medium">
+    <OperationHost Manager="_model.Operation">
+        <MudCard Class="mx-auto">
+            <MudCardHeader>
+                <MudText Typo="Typo.h3">Mit Bestehenden Cluster Verbinden</MudText>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudForm @bind-IsValid="_isValid">
+                    <MudTextFieldString Validation="_model.ValidateUrl" @ref="_urlField" Value="@_model.ClusterUrl"></MudTextFieldString>
+                </MudForm>
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton Disabled="@(!_isValid)" OnClick="_model.ConnectToCluster">Verbinden</MudButton>
+            </MudCardActions>
+        </MudCard>
+    </OperationHost>
+</MudContainer>
 
 @code {
     private MudTextFieldString? _urlField;

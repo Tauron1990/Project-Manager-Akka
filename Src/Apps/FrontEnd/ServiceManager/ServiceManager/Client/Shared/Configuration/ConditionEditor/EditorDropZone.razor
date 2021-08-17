@@ -1,5 +1,9 @@
-﻿<h3>EditorDropZone</h3>
+﻿<Dropzone Items="Items" Accepts="(d, _) => EditorTrampolie.CanEdit(d)" Class="flex-column flex-wrap" CopyItem="item => item.Clone()">
+    <EditorTrampolie Item="context"/>
+</Dropzone>
 
 @code {
     
+    [Parameter]
+    public List<ElementItem> Items { get; set; }
 }

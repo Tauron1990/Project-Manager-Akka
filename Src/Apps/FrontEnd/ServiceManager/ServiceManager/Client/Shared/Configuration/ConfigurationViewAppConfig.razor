@@ -5,6 +5,7 @@
 @using Tauron
 @using System.Collections.Immutable
 @using Microsoft.Extensions.DependencyInjection
+@using ServiceManager.Client.Shared.Configuration.ConditionEditor
 @using ServiceManager.Shared.ServiceDeamon
 @using Stl.Fusion
 @using Tauron.Application
@@ -21,38 +22,40 @@
         configs = configs.Add(newModel);
 }
 
-@if (State.IsLoading())
-{
-    <MudProgressCircular Class="justify-center" Indeterminate="true" Color="Color.Primary"/>
-}
-else if (toEdit != null)
+@if (toEdit != null)
 {
     <MudToolBar>
+        <MudSpacer/>
+        <MudSpacer/>
         <MudIconButton Icon="@Icons.Material.Outlined.Save" OnClick="async () => await _model.CommitConfig(toEdit)"/>
         <MudIconButton Icon="@Icons.Material.Outlined.Cancel" OnClick="() => _model.EditConfig(null)"/>
         <MudSpacer/>
         <MudText>@toEdit.Config.Id</MudText>
+        <MudSpacer/>
+                <MudSpacer/>
     </MudToolBar>
-    <MudTabs>
+    <MudTabs Centered="true">
         <MudTabPanel Text="Konfiguration" Class="d-flex" Style="flex-direction: row">
-            <MudTextFieldString Class="flex-row flex-grow-0 order-0 ma-3" @bind-Value="toEdit.InfoString" Label="Konfiguration Info"/>
-            <div class="flex-row flex-grow-1 align-content-stretch order-1 ma-3" style="height: 400px; width: 1000px">
-                <EditForm Model="_model">
-                    <InputTextArea @bind-Value="@toEdit.ConfigString" DisplayName="Konfigurations Text"/>
-                </EditForm>
-            </div>
-            <div class="flex-row flex-grow-0 order-2 ma-3">
-                <ConfigurationOptionsView OptionSelectedEvent="toEdit.OptionSelected"/>
-            </div>
+            <MudContainer MaxWidth="MaxWidth.Medium">
+                <MudTextFieldString Class="flex-row flex-grow-0 order-0 ma-3" @bind-Value="toEdit.InfoString" Label="Konfiguration Info"/>
+                <div class="flex-row flex-grow-1 align-content-stretch order-1 ma-3" style="height: 400px; width: 1000px">
+                    <EditForm Model="_model">
+                        <InputTextArea style="height: 400px; width: 1000px" @bind-Value="@toEdit.ConfigString" DisplayName="Konfigurations Text"/>
+                    </EditForm>
+                </div>
+                <div class="flex-row flex-grow-0 order-2 ma-3">
+                    <ConfigurationOptionsView OptionSelectedEvent="toEdit.OptionSelected"/>
+                </div>
+            </MudContainer>            
         </MudTabPanel>
         <MudTabPanel Text="Bedingungen">
-            <ConfigurationViewAppConfigConditionEdit Model="_model" ToEdit="toEdit"/>
+            <ConfigurationViewAppConfigConditionEdit Model="_model" ToEdit="toEdit" State="_editorState"/>
         </MudTabPanel>
     </MudTabs>
 }
 else
 {
-    <MudTable Items="@configs" Hover="true" Loading="!State.Computed.IsConsistent()" @bind-SelectedItem="Selected">
+    <MudTable Items="@configs" Hover="true" Loading="State.IsLoading()" @bind-SelectedItem="Selected">
         <ToolBarContent>
             <MudText Typo="Typo.h6">Anwendungen Konfiguration</MudText>
             <MudSpacer/>
@@ -94,6 +97,8 @@ else
     }
 
     private ConfigurationViewAppConfigModel _model = null!;
+
+    private EditorState _editorState = new();
     
     private AppConfigModel? Selected { get; set; }
 

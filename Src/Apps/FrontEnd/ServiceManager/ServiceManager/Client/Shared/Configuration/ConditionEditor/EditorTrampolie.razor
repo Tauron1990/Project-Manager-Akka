@@ -1,5 +1,12 @@
 ﻿<h3>EditorTrampolie</h3>
 
+
 @code {
+
+    [Parameter]
+    public ElementItem Item { get; set; }
     
+    public static bool CanEdit(ElementItem item)
+        => false;
+
 }

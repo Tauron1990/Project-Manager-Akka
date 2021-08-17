@@ -6,16 +6,18 @@
 
 <Title Value="Knoten"/>
 
+<MudContainer MaxWidth="MaxWidth.Medium">
     <MudText Typo="Typo.h4" Class="m-1">Aktuelle Knoten:</MudText>
 
-<MudList>
-    @foreach (var info in State.ValueOrDefault ?? Array.Empty<string>())
-    {
-        <MudListItem>
-            <ClusterNodeInfoView @key=info NodeInfo="@info"/>
-        </MudListItem>
-    }
-</MudList>
+    <MudList>
+        @foreach (var info in State.ValueOrDefault ?? Array.Empty<string>())
+        {
+            <MudListItem>
+                <ClusterNodeInfoView @key=info NodeInfo="@info"/>
+            </MudListItem>
+        }
+    </MudList>
+</MudContainer>
 
 @code
 {
