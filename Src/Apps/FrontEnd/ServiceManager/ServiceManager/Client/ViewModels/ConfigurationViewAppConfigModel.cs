@@ -8,6 +8,7 @@ using JetBrains.Annotations;
 using MudBlazor;
 using ServiceHost.Client.Shared.ConfigurationServer.Data;
 using ServiceManager.Client.Components;
+using ServiceManager.Client.Shared.Configuration.ConditionEditor;
 using ServiceManager.Client.Shared.Dialog;
 using ServiceManager.Shared.Api;
 using ServiceManager.Shared.ServiceDeamon;
@@ -31,19 +32,36 @@ namespace ServiceManager.Client.ViewModels
         private readonly IServerConfigurationApi      _api;
         private readonly IDialogService               _dialogService;
         private readonly IEventAggregator             _aggregator;
+        private readonly EditorState _editorState;
 
-        public ConfigurationViewAppConfigModel(IMutableState<AppConfigData> viewState, IServerConfigurationApi api, IDialogService dialogService, IEventAggregator aggregator)
+        public ConfigurationViewAppConfigModel(IMutableState<AppConfigData> viewState, IServerConfigurationApi api, IDialogService dialogService, IEventAggregator aggregator,
+                                               EditorState editorState)
         {
             _viewState = viewState;
             _api            = api;
             _dialogService  = dialogService;
             _aggregator     = aggregator;
+            _editorState = editorState;
         }
 
         public async Task CommitConfig(AppConfigModel model)
         {
             try
             {
+                if (_editorState.ChangesWhereMade)
+                {
+                    var saveCon = await _dialogService.ShowMessageBox("Bedingungen geändert", "Die Bedingungen wurden geändert. Speicher?", "Ja", "Nein");
+                    switch (saveCon)
+                    {
+                        case null:
+                            _aggregator.PublishWarnig("Vorgang Abbgebrochen");
+                            return;
+                        case true:
+                            _editorState.CommitChanges(model);
+                            break;
+                    }
+                }
+                
                 var data = model.CreateNew();
 
                 model.IsNew = false;
@@ -127,6 +145,9 @@ namespace ServiceManager.Client.ViewModels
         }
 
         public void EditConfig(AppConfigModel? model)
-            => _viewState.Set(_viewState.Value with { ToEdit = model, NewModel = null });
+        {
+            _editorState.Reset();
+            _viewState.Set(_viewState.Value with { ToEdit = model, NewModel = null });
+        }
     }
 }

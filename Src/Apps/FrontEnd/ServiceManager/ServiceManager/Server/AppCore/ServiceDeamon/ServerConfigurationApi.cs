@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
@@ -141,7 +142,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
                 await EnsureConfigAlive();
 
                 if (token.IsCancellationRequested) return OperationCanceled;
-                await _api.Command(new UpdateSpecificConfigCommand(ConfigDataAction.Delete, command.Name, string.Empty, string.Empty), TimeSpan.FromSeconds(20));
+                await _api.Command(new UpdateSpecificConfigCommand(ConfigDataAction.Delete, command.Name, string.Empty, string.Empty, null), TimeSpan.FromSeconds(20));
                 
                 return string.Empty;
             }
@@ -164,10 +165,12 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
                 var data = command.Data;
                 
                 var mode = data.IsNew ? ConfigDataAction.Create : ConfigDataAction.Update;
-                await _api.Command(new UpdateSpecificConfigCommand(mode, data.Name, data.Content, data.Info), TimeSpan.FromSeconds(20));
+                await _api.Command(
+                    new UpdateSpecificConfigCommand(mode, data.Name, data.Content, data.Info, 
+                        data.Conditions?.Where(i => i.Action != ConfigDataAction.Delete).Select(i => i.Condition).ToArray()), TimeSpan.FromSeconds(20));
 
-                foreach (var (name, configDataAction, condition) in data.Conditions) 
-                    await _api.Command(new UpdateConditionCommand(name, configDataAction, condition), TimeSpan.FromSeconds(20));
+                //foreach (var (name, configDataAction, condition) in data.Conditions) 
+                    //await _api.Command(new UpdateConditionCommand(name, configDataAction, condition), TimeSpan.FromSeconds(20));
 
                 return string.Empty;
             }

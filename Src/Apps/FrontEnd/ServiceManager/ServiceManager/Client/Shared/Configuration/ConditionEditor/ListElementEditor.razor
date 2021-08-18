@@ -1,5 +1,21 @@
-﻿<h3>ListElementEditor</h3>
+﻿
+@if (Item != null)
+{
+    <BasicPropertyEditor Item="Item"/>
+    <MudCard>
+        <MudCardContent>Elemente</MudCardContent>
+        <MudCardContent Class="mud-height-full mud-width-full">
+            <div style="min-height: 100px">
+                <EditorDropZone Items="Item.Items" ItemsChanged="@ItemsChanged"/>
+            </div>
+        </MudCardContent>
+    </MudCard>
+}
 
 @code {
+    [Parameter]
+    public BaseListElement? Item { get; set; }
     
+    [Parameter]
+    public EventCallback ItemsChanged { get; set; }
 }

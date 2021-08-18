@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Immutable;
+using System.Linq;
 using Akka.Configuration;
 using ServiceHost.Client.Shared.ConfigurationServer.Data;
 using ServiceManager.Client.Shared.Configuration;
@@ -20,6 +21,8 @@ namespace ServiceManager.Client.ViewModels
         public string InfoString { get; set; }
 
         public string ConfigString { get; set; }
+
+        public ImmutableList<Condition> Conditions { get; set; } = ImmutableList<Condition>.Empty;
         
         public AppConfigModel(SpecificConfig config, IEventAggregator aggregator)
         {
@@ -45,6 +48,9 @@ namespace ServiceManager.Client.ViewModels
         }
 
         public SpecificConfigData CreateNew()
-            => new SpecificConfigData(IsNew, Config.Id, InfoString, ConfigString, ImmutableList<ConfigurationInfo>.Empty);
+            => new(IsNew, Config.Id, InfoString, ConfigString,
+                UpdateCondiditions 
+                    ? Conditions.Select(c => new ConfigurationInfo(c.Name, ConfigDataAction.Update, c)).ToImmutableList()
+                    : null);
     }
 }

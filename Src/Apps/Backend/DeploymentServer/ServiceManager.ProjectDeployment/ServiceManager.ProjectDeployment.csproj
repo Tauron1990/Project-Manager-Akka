@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Akka.Cluster.Tools" Version="1.4.23" />
+    <PackageReference Include="Akka.Cluster.Tools" Version="1.4.24" />
     <PackageReference Include="DotNetZip" Version="1.15.0" />
   </ItemGroup>
 

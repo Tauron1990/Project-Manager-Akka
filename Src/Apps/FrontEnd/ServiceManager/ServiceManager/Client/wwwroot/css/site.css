@@ -49,7 +49,7 @@ a, .btn-link {
         right: 0.75rem;
         top: 0.5rem;
     }
-﻿/*add this to avoid flickering*/
+/*﻿/*add this to avoid flickering*/
 .plk-dd-inprogess > * {
     pointer-events: none;
 }

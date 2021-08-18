@@ -1,12 +1,121 @@
-﻿<h3>EditorTrampolie</h3>
+﻿@using System.Reactive.Disposables
+
+@implements IDisposable
+
+@inject AddHelper _addHelper
+
+@if (Item != null)
+{
+    <MudCard Class="d-flex flex-column ma-1 align-start" MinWidth="250px">
+            @if (Item is AndElement or OrElement)
+            {
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        @if (Item is AndElement)
+                        {
+                            <MudButton Variant="Variant.Text" Size="Size.Large" OnClick="ToggleSmall">Und Bedingung</MudButton>
+                        }
+                        else
+                        {
+                            <MudButton Variant="Variant.Text" Size="Size.Large" OnClick="ToggleSmall">Oder Bedingung</MudButton>
+                        }
+                    </CardHeaderContent>
+                    <CardHeaderActions>
+                        <MudIconButton Icon="@Icons.Sharp.Remove" OnClick="@(() => _addHelper.RemoveItem(Item))"/>
+                    </CardHeaderActions>
+                </MudCardHeader>
+            
+            <MudCardContent>
+                    @if (IsSmall)
+                    {
+                        <MudText Class="ma-2">@Item.Name</MudText>
+                    }
+                    else
+                    {
+                        <ListElementEditor Item="@((BaseListElement)Item)" ItemsChanged="ItemsChanged"/>
+                        @if (!string.IsNullOrWhiteSpace(_error))
+                        {
+                            <MudText Class="ma-2" Color="Color.Error" Typo="Typo.body2">@_error</MudText>
+                        }
+                    }
+                </MudCardContent>
+            }
+            else
+            {
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        @if (Item is DefinedAppElement)
+                        {
+                            <MudButton Variant="Variant.Text" Size="Size.Large" OnClick="ToggleSmall">Definierte Anwedung</MudButton>
+                        }
+                        else
+                        {
+                            <MudButton Variant="Variant.Text" Size="Size.Large" OnClick="ToggleSmall">Installierte Anwedung</MudButton>
+                        }
+                    </CardHeaderContent>
+                    <CardHeaderActions>
+                        <MudIconButton Icon="@Icons.Sharp.Remove" OnClick="@(() => _addHelper.RemoveItem(Item))"/>
+                    </CardHeaderActions>
+                </MudCardHeader>
+
+                <MudCardContent>
+                    @if (IsSmall)
+                    {
+                        <MudText Class="ma-2">@Item.Name</MudText>
+                    }
+                    else
+                    {
+                        <SingleElementEditor Item="@((BaseSingleElement)Item)"/>
+                        @if (!string.IsNullOrWhiteSpace(_error))
+                        {
+                            <MudText Class="ma-2" Color="Color.Error" Typo="Typo.body2">@_error</MudText>
+                        }
+                    }
+                </MudCardContent>
+            }
+    </MudCard>
+}
 
 
 @code {
 
     [Parameter]
-    public ElementItem Item { get; set; }
+    public ElementItem? Item { get; set; }
+
+    private IDisposable _subscription = Disposable.Empty;
     
+    private string? _error;
+    
+    private bool IsSmall { get; set; }
+
+    private void ToggleSmall() => IsSmall = !IsSmall;
+
+    protected override void OnParametersSet()
+    {
+        _subscription.Dispose();
+        _subscription = Item == null ? Disposable.Empty : Item.PropertyChangedObservable.Subscribe(_ => ItemsChanged());
+        ItemsChanged(true);
+        
+        base.OnParametersSet();
+    }
+
     public static bool CanEdit(ElementItem item)
-        => false;
+        => item is AndElement or OrElement or DefinedAppElement or InstalledAppElement;
+
+    private void ItemsChanged()
+        => ItemsChanged(false);
+    
+    private void ItemsChanged(bool skipStateChange)
+    {
+        var newError = Item?.Validate(true);
+        if(string.Equals(newError, _error, StringComparison.Ordinal)) return;
+
+        _error = newError;
+        if(skipStateChange) return;
+
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose() => _subscription.Dispose();
 
 }

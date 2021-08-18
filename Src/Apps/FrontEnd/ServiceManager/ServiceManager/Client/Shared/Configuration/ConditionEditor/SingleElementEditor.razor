@@ -1,5 +1,12 @@
-﻿<h3>SingleElementEditor</h3>
+﻿
+<BasicPropertyEditor Item="Item"/>
+<MudCard>
+    <MudCardContent>
+        <MudTextFieldString FullWidth="true" @bind-Value="Item.AppName" Label="Name Anweedung" DebounceInterval="500"/>
+    </MudCardContent>
+</MudCard>
 
 @code {
-    
+    [Parameter]
+    public BaseSingleElement Item { get; set; }    
 }

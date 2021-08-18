@@ -2,6 +2,6 @@
 {
     public interface IAddReciever
     {
-        
+        void Add(ElementItem item);
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using ServiceHost.Client.Shared.ConfigurationServer.Data;
+using Tauron.Application;
 
 namespace ServiceManager.Client.Shared.Configuration.ConditionEditor
 {
@@ -45,9 +46,20 @@ namespace ServiceManager.Client.Shared.Configuration.ConditionEditor
     public abstract class BaseSingleElement : ElementItem
     {
         private readonly ConditionType _conditionType;
+        private string _appName = string.Empty;
 
-        public string AppName { get; set; } = string.Empty;
-        
+        public string AppName
+        {
+            get => _appName;
+            set
+            {
+                if (value == _appName) return;
+
+                _appName = value;
+                OnPropertyChanged();
+            }
+        }
+
         protected BaseSingleElement(ConditionType conditionType)
         {
             _conditionType = conditionType;
@@ -75,7 +87,7 @@ namespace ServiceManager.Client.Shared.Configuration.ConditionEditor
             CopyTo(temp);
             temp.AppName = AppName;
 
-            return this;
+            return temp;
         }
 
         public override string? Validate(bool single)
@@ -124,7 +136,7 @@ namespace ServiceManager.Client.Shared.Configuration.ConditionEditor
             CopyTo(temp);
             temp.Items = Items.Select(i => i.Clone()).ToList();
 
-            return this;
+            return temp;
         }
         
         public override string? Validate(bool single)
@@ -145,17 +157,20 @@ namespace ServiceManager.Client.Shared.Configuration.ConditionEditor
             => "Kein Element Vorhanden";
 
         public override ElementItem Clone()
-            => this;
+            => new InvalidItem();
 
         public override Condition? Build()
             => null;
     }
 
-    public abstract class ElementItem
+    public abstract class ElementItem : ObservableObject
     {
         public const string IdPrefix = "ID-";
         
         public static readonly ElementItem Invalid = new InvalidItem();
+        private bool _excluding;
+        private int _order;
+        private string? _name;
 
         protected static void TransferBasic(ElementItem item, Condition condition)
         {
@@ -173,19 +188,50 @@ namespace ServiceManager.Client.Shared.Configuration.ConditionEditor
                 ConditionType.DefinedApp => BaseSingleElement.Make(new DefinedAppElement(), condition),
                 _ => Invalid
             };
-        
-        public bool Excluding { get; set; }
 
-        public int Order { get; set; }
+        public bool Excluding
+        {
+            get => _excluding;
+            set
+            {
+                if (value == _excluding) return;
 
-        public string? Name { get; set; }
-        
+                _excluding = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int Order
+        {
+            get => _order;
+            set
+            {
+                if (value == _order) return;
+
+                _order = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string? Name
+        {
+            get => _name;
+            set
+            {
+                if (value == _name) return;
+
+                _name = value;
+                OnPropertyChanged();
+            }
+        }
+
         public abstract string? Validate(bool single);
 
-        protected void CopyTo(ElementItem newItem)
+        protected void CopyTo(ElementItem newItem, bool icludeName = false)
         {
             newItem.Excluding = Excluding;
-            newItem.Name = Name;
+            if(icludeName)
+                newItem.Name = Name;
             newItem.Order = Order;
         }
 
