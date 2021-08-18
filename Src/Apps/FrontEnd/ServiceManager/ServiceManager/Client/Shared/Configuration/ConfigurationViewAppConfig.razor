@@ -37,7 +37,7 @@
     <MudTabs Centered="true">
         <MudTabPanel Text="Konfiguration" Class="d-flex" Style="flex-direction: row">
             <MudContainer MaxWidth="MaxWidth.Medium">
-                <MudTextFieldString Class="flex-row flex-grow-0 order-0 ma-3" @bind-Value="toEdit.InfoString" Label="Konfiguration Info"/>
+                <MudTextFieldString FullWidth="true" Class="flex-row flex-grow-0 order-0 ma-3" @bind-Value="toEdit.InfoString" Label="Konfiguration Info"/>
                 <div class="flex-row flex-grow-1 align-content-stretch order-1 ma-3" style="height: 400px; width: 1000px">
                     <EditForm Model="_model">
                         <InputTextArea style="height: 400px; width: 1000px" @bind-Value="@toEdit.ConfigString" DisplayName="Konfigurations Text"/>

@@ -1,0 +1,17 @@
+﻿
+@if (Item != null)
+{
+    <MudCard>
+        <MudCardHeader>Basis Info:</MudCardHeader>
+        <MudCardContent Class="d-flex flex-row">
+            <MudTextFieldString @bind-Value="Item.Name" Label="Name" Clearable="true"/>
+            <MudCheckBox @bind-Checked="Item.Excluding" Color="Color.Primary" Label="Invertiren"></MudCheckBox>
+            <MudTextField @bind-Value="Item.Order" Label="Reihenfolge"/>
+        </MudCardContent>
+    </MudCard>
+}
+
+@code {
+    [Parameter]
+    public ElementItem? Item { get; set; }
+}

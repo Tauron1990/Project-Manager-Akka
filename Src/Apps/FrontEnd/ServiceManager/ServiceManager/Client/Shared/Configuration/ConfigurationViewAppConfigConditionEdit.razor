@@ -31,16 +31,17 @@ else
 
 @code {
 
-    public static ElementItem[] Templates = {
-                                                new AndElement { Name = "Und Template"},
-                                                new OrElement { Name = "Oder Template"},
-                                                new DefinedAppElement { Name = "Definierte App Template" }, 
-                                                new InstalledAppElement { Name = "Installierte App Template" }
-                                            };
+    private static readonly IgnoreList Templates = new(new List<ElementItem>
+                                                      {
+                                                          new AndElement { Name = "Und Template" },
+                                                          new OrElement { Name = "Oder Template" },
+                                                          new DefinedAppElement { Name = "Definierte App Template" },
+                                                          new InstalledAppElement { Name = "Installierte App Template" }
+                                                      });
 
-    public ImmutableList<ElementItem> KownenElements { get; private set; } = ImmutableList<ElementItem>.Empty;
+    private ImmutableList<ElementItem> KownenElements { get; set; } = ImmutableList<ElementItem>.Empty;
 
-    public List<ElementItem> ActualItems { get; set; }
+    private IgnoreList ActualItems { get; set; } = new IgnoreList(new List<ElementItem>());
     
     [Parameter]
     public ConfigurationViewAppConfigModel? Model { get; set; }
@@ -56,7 +57,7 @@ else
         if (ToEdit != null)
         {
             UpdateKowenElements(ToEdit.Config.Conditions);
-            ActualItems = ToEdit.Config.Conditions.Select(ElementItem.CreateItem).ToList();
+            ActualItems = new IgnoreList(ToEdit.Config.Conditions.Select(ElementItem.CreateItem).ToList());
         }
         base.OnParametersSet();
     }

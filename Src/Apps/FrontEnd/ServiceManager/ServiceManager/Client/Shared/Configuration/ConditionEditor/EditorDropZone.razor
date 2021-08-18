@@ -1,9 +1,12 @@
-﻿<Dropzone Items="Items" Accepts="(d, _) => EditorTrampolie.CanEdit(d)" Class="flex-column flex-wrap" CopyItem="item => item.Clone()">
-    <EditorTrampolie Item="context"/>
-</Dropzone>
-
+﻿@if (Items != null)
+{
+    <Dropzone Items="Items" Accepts="(d, _) => EditorTrampolie.CanEdit(d)" Class="flex-column flex-wrap" CopyItem="item => item.Clone()">
+        <EditorTrampolie Item="context"/>
+    </Dropzone>
+}
+    
 @code {
     
     [Parameter]
-    public List<ElementItem> Items { get; set; }
+    public List<ElementItem>? Items { get; set; }
 }
