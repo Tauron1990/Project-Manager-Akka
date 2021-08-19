@@ -1,19 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using MudBlazor;
 using ServiceHost.Client.Shared.ConfigurationServer.Data;
-using ServiceManager.Client.Components;
 using ServiceManager.Client.Shared.Configuration.ConditionEditor;
 using ServiceManager.Client.Shared.Dialog;
-using ServiceManager.Shared.Api;
 using ServiceManager.Shared.ServiceDeamon;
 using Stl.Fusion;
-using Tauron;
 using Tauron.Application;
 
 namespace ServiceManager.Client.ViewModels
@@ -50,7 +45,7 @@ namespace ServiceManager.Client.ViewModels
             {
                 if (_editorState.ChangesWhereMade)
                 {
-                    var saveCon = await _dialogService.ShowMessageBox("Bedingungen geändert", "Die Bedingungen wurden geändert. Speicher?", "Ja", "Nein");
+                    var saveCon = await _dialogService.ShowMessageBox("Bedingungen geändert", "Die Bedingungen wurden geändert. Speicher?", "Ja", "Nein", "Abbrechen");
                     switch (saveCon)
                     {
                         case null:

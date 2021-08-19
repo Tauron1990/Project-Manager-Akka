@@ -48,7 +48,7 @@
                     </EditForm>
                 </div>
                 <div class="flex-row flex-grow-0 order-2 ma-3">
-                    <ConfigurationOptionsView OptionSelectedEvent="toEdit.OptionSelected"/>
+                    <ConfigurationOptionsView OptionSelectedEvent="o => toEdit.OptionSelected(o, StateHasChanged)"/>
                 </div>
             </MudContainer>            
         </MudTabPanel>

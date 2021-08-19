@@ -35,32 +35,30 @@
     private async void AkkaOpen(bool open)
     {
         if (open)
-        {
-            await _model.LoadAsyncFor(ConfigOpensElement.Akka);
-        }
+            await _model.LoadAsyncFor(ConfigOpensElement.Akka, StateHasChanged);
     }
 
     private async void RemoteOpen(bool open)
     {
         if (open)
-            await _model.LoadAsyncFor(ConfigOpensElement.AkkaRemote);
+            await _model.LoadAsyncFor(ConfigOpensElement.AkkaRemote, StateHasChanged);
     }
 
     private async void ClusterOpen(bool open)
     {
         if (open)
-            await _model.LoadAsyncFor(ConfigOpensElement.AkkaCluster);
+            await _model.LoadAsyncFor(ConfigOpensElement.AkkaCluster, StateHasChanged);
     }
 
     private async void PersistenceOpen(bool open)
     {
         if (open)
-            await _model.LoadAsyncFor(ConfigOpensElement.AkkaPersistence);
+            await _model.LoadAsyncFor(ConfigOpensElement.AkkaPersistence, StateHasChanged);
     }
 
     private async void StreamsOpen(bool open)
     {
         if (open)
-            await _model.LoadAsyncFor(ConfigOpensElement.AkkaStreams);
+            await _model.LoadAsyncFor(ConfigOpensElement.AkkaStreams, StateHasChanged);
     }
 }

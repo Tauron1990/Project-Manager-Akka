@@ -42,7 +42,7 @@ namespace ServiceManager.Client.ViewModels
             _api = api;
         }
 
-        public async Task LoadAsyncFor(ConfigOpensElement name)
+        public async Task LoadAsyncFor(ConfigOpensElement name, Action stateChange)
         {
             try
             {
@@ -51,12 +51,13 @@ namespace ServiceManager.Client.ViewModels
 
                 if (_connection.State == HubConnectionState.Disconnected)
                     await _connection.StartAsync();
-                
+
                 var response = await _connection.InvokeAsync<ConfigOptionList>("GetConfigFileOptions", name);
 
                 if (response == null)
                 {
                     _elements[name] = new OptionElement(true, "Fehler beim Laden der Daten", Array.Empty<MutableConfigOption>());
+
                     return;
                 }
 
@@ -66,6 +67,10 @@ namespace ServiceManager.Client.ViewModels
             {
                 _eventAggregator.PublishError(e);
                 _elements[name] = new OptionElement(true, e.Message, Array.Empty<MutableConfigOption>());
+            }
+            finally
+            {
+                stateChange();
             }
         }
 

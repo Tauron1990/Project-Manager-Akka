@@ -32,14 +32,15 @@ namespace ServiceManager.Client.ViewModels
             ConfigString     = config.ConfigContent;
         }
 
-        public void OptionSelected(OptionSelected selected)
+        public void OptionSelected(OptionSelected selected, Action stateHasChanged)
         {
             try
             {
-                var config   = ConfigurationFactory.ParseString(ConfigString);
+                var config   = string.IsNullOrWhiteSpace(ConfigString) ? Akka.Configuration.Config.Empty : ConfigurationFactory.ParseString(ConfigString);
                 var toUpdate = ConfigurationFactory.ParseString($"{selected.Path}: {selected.Value}");
 
                 ConfigString = toUpdate.WithFallback(config).ToString(true);
+                stateHasChanged();
             }
             catch (Exception e)
             {
