@@ -41,18 +41,20 @@ namespace ServiceManager.Client.ViewModels
 
         public async Task CommitConfig(AppConfigModel model)
         {
+            bool reset = false;
             try
             {
                 if (_editorState.ChangesWhereMade)
                 {
-                    var saveCon = await _dialogService.ShowMessageBox("Bedingungen geändert", "Die Bedingungen wurden geändert. Speicher?", "Ja", "Nein", "Abbrechen");
+                    var saveCon = await _dialogService.ShowMessageBox("Bedingungen geändert", "Die Bedingungen wurden geändert. Speichern?", "Ja", "Nein", "Abbrechen");
                     switch (saveCon)
                     {
                         case null:
                             _aggregator.PublishWarnig("Vorgang Abbgebrochen");
                             return;
                         case true:
-                            _editorState.CommitChanges(model);
+                            if (!_editorState.CommitChanges(model, _aggregator))
+                                return;
                             break;
                     }
                 }
@@ -60,8 +62,12 @@ namespace ServiceManager.Client.ViewModels
                 var data = model.CreateNew();
 
                 model.IsNew = false;
-                var result = await _api.UpdateSpecificConfig(new UpdateSpecifConfigCommand(data));
-                if(string.IsNullOrWhiteSpace(result)) return;
+                var result = await _api.UpdateSpecificConfig(new UpdateSpecifcConfigCommand(data));
+                if (string.IsNullOrWhiteSpace(result))
+                {
+                    reset = true;
+                    return;
+                }
                 
                 _aggregator.PublishWarnig(result);
             }
@@ -71,7 +77,8 @@ namespace ServiceManager.Client.ViewModels
             }
             finally
             {
-                _viewState.Set(_viewState.Value with{ ToEdit = null, NewModel = null });
+                if(reset)
+                    _viewState.Set(_viewState.Value with{ ToEdit = null, NewModel = null });
             }
         }
         

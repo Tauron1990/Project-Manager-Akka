@@ -55,7 +55,7 @@ namespace ServiceManager.Server.Controllers
             => _api.DeleteSpecificConfig(command, token);
 
         [HttpPost]
-        public Task<string> UpdateSpecificConfig([FromBody] UpdateSpecifConfigCommand command, CancellationToken token = default)
+        public Task<string> UpdateSpecificConfig([FromBody] UpdateSpecifcConfigCommand command, CancellationToken token = default)
             => _api.UpdateSpecificConfig(command, token);
     }
 }

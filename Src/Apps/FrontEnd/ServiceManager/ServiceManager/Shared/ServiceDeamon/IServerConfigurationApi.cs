@@ -15,7 +15,7 @@ namespace ServiceManager.Shared.ServiceDeamon
 
     public sealed record DeleteSpecificConfigCommand(string Name) : ICommand<string>;
 
-    public sealed record UpdateSpecifConfigCommand(SpecificConfigData Data) : ICommand<string>;
+    public sealed record UpdateSpecifcConfigCommand(SpecificConfigData Data) : ICommand<string>;
     
     public interface IServerConfigurationApi
     {
@@ -44,6 +44,6 @@ namespace ServiceManager.Shared.ServiceDeamon
         Task<string> DeleteSpecificConfig(DeleteSpecificConfigCommand command, CancellationToken token = default);
 
         [CommandHandler]
-        Task<string> UpdateSpecificConfig(UpdateSpecifConfigCommand command, CancellationToken token = default);
+        Task<string> UpdateSpecificConfig(UpdateSpecifcConfigCommand command, CancellationToken token = default);
     }
 }

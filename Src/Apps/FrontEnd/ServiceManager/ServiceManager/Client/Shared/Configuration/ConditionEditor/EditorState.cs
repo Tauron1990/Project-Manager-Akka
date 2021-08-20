@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using ServiceManager.Client.ViewModels;
+using Tauron.Application;
 
 namespace ServiceManager.Client.Shared.Configuration.ConditionEditor
 {
@@ -11,11 +13,24 @@ namespace ServiceManager.Client.Shared.Configuration.ConditionEditor
         
         public List<ElementItem> ActualItems { get; } = new();
 
-        public void CommitChanges(AppConfigModel toModel)
+        public bool CommitChanges(AppConfigModel toModel, IEventAggregator aggregator)
         {
-            ChangesWhereMade = false;
-            toModel.UpdateCondiditions = true;
-            toModel.Conditions = ActualItems.Select(i => i.Build()).Where(e => e != null).ToImmutableList()!;
+            var validationResult = ActualItems
+                                  .Select(e => e.Validate(false))
+                                  .FirstOrDefault(s => !string.IsNullOrWhiteSpace(s));
+
+            if (string.IsNullOrWhiteSpace(validationResult))
+            {
+                ChangesWhereMade = false;
+                toModel.UpdateCondiditions = true;
+                toModel.Conditions = ActualItems.Select(i => i.Build()).Where(e => e != null).ToImmutableList()!;
+
+                return true;
+            }
+
+            aggregator.PublishWarnig($"Fehler bei der Validireung der Bedinungen: {Environment.NewLine} {validationResult}");
+
+            return false;
         }
 
         public void Reset()

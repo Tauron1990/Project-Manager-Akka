@@ -36,6 +36,6 @@ namespace ServiceManager.Client.ServiceDefs
         Task<string> DeleteSpecificConfig([Body] DeleteSpecificConfigCommand command, CancellationToken token = default);
 
         [Post(nameof(UpdateSpecificConfig))]
-        Task<string> UpdateSpecificConfig([Body] UpdateSpecifConfigCommand command, CancellationToken token = default);
+        Task<string> UpdateSpecificConfig([Body] UpdateSpecifcConfigCommand command, CancellationToken token = default);
     }
 }

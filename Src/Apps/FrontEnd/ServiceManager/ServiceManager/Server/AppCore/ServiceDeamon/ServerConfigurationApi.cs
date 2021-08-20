@@ -154,7 +154,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
             }
         }
 
-        public virtual async Task<string> UpdateSpecificConfig(UpdateSpecifConfigCommand command, CancellationToken token = default)
+        public virtual async Task<string> UpdateSpecificConfig(UpdateSpecifcConfigCommand command, CancellationToken token = default)
         {
             try
             {
