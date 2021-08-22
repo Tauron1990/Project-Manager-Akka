@@ -58,6 +58,13 @@ namespace ServiceManager.Client.ViewModels
                             break;
                     }
                 }
+
+                var validResult = model.Validatebasic();
+                if (!string.IsNullOrWhiteSpace(validResult))
+                {
+                    _aggregator.PublishWarnig(validResult);
+                    return;
+                }
                 
                 var data = model.CreateNew();
 

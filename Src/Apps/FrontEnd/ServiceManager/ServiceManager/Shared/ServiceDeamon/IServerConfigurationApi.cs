@@ -34,16 +34,13 @@ namespace ServiceManager.Shared.ServiceDeamon
         [ComputeMethod]
         Task<string?> QueryDefaultFileContent(ConfigOpensElement element);
         
-        [CommandHandler]
         Task<string> UpdateGlobalConfig(UpdateGlobalConfigApiCommand command, CancellationToken token = default);
         
-        [CommandHandler]
         Task<string> UpdateServerConfig(UpdateServerConfiguration command, CancellationToken token = default);
-
-        [CommandHandler]
+        
         Task<string> DeleteSpecificConfig(DeleteSpecificConfigCommand command, CancellationToken token = default);
 
-        [CommandHandler]
+        //[CommandHandler]
         Task<string> UpdateSpecificConfig(UpdateSpecifcConfigCommand command, CancellationToken token = default);
     }
 }

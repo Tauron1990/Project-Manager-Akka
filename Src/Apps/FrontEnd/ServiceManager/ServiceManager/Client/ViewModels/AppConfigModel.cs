@@ -2,16 +2,19 @@
 using System.Collections.Immutable;
 using System.Linq;
 using Akka.Configuration;
+using Microsoft.AspNetCore.Components;
 using ServiceHost.Client.Shared.ConfigurationServer.Data;
+using ServiceManager.Client.Shared.BaseComponents;
 using ServiceManager.Client.Shared.Configuration;
 using ServiceManager.Shared.ServiceDeamon;
 using Tauron.Application;
 
 namespace ServiceManager.Client.ViewModels
 {
-    public sealed class AppConfigModel : ObservableObject
+    public sealed class AppConfigModel : ObservableObject, ISelectable
     {
         private readonly IEventAggregator _aggregator;
+        private bool _isSelected;
         public           SpecificConfig   Config { get; }
 
         public bool IsNew { get; set; }
@@ -48,10 +51,29 @@ namespace ServiceManager.Client.ViewModels
             }
         }
 
+        public string? Validatebasic()
+            => Conditions.Count == 0 
+                ? "Keine Bedingungen angegeben" 
+                : string.IsNullOrWhiteSpace(ConfigString) 
+                    ? "Keine Konfiguration Eingegeben" 
+                    : null;
+
         public SpecificConfigData CreateNew()
             => new(IsNew, Config.Id, InfoString, ConfigString,
                 UpdateCondiditions 
                     ? Conditions.Select(c => new ConfigurationInfo(c.Name, ConfigDataAction.Update, c)).ToImmutableList()
                     : null);
+
+        public EventCallback Callback { get; set; }
+
+        public bool IsSelected
+        {
+            get => _isSelected;
+            set
+            {
+                _isSelected = value;
+                Callback.InvokeAsync();
+            }
+        }
     }
 }

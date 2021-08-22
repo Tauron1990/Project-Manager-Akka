@@ -9,6 +9,7 @@ using Microsoft.Extensions.Hosting;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.SignalR;
+using ServiceHost.Client.Shared.ConfigurationServer.Data;
 using ServiceManager.Server.AppCore;
 using ServiceManager.Server.AppCore.ClusterTracking;
 using ServiceManager.Server.AppCore.ClusterTracking.Data;
@@ -24,6 +25,7 @@ using Stl.Fusion;
 using Stl.Fusion.Server;
 using Tauron.AkkaHost;
 using Tauron.Application.AkkaNode.Bootstrap;
+using Tauron.Application.MongoExtensions;
 
 namespace ServiceManager.Server
 {
@@ -37,6 +39,9 @@ namespace ServiceManager.Server
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            ImmutableListSerializer<Condition>.Register();
+            ImmutableListSerializer<SeedUrl>.Register();
+
             services.AddCommander()
                     .AddCommandService<INodeUpdateHandler, NodeUpdateHandler>();
             

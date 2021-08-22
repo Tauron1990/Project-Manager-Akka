@@ -69,18 +69,21 @@ else
             <MudSpacer/>
         </ToolBarContent>
         <ColGroup>
+            <col style="width: 30px"/>
             <col style="width: 100px"/>
             <col style="width: 100px"/>
             <col/>
             <col style="width: 50px"/>
         </ColGroup>
         <HeaderContent>
+            <MudTh></MudTh>
             <MudTh><MudTableSortLabel Enabled="true" SortBy="new Func<AppConfigModel, object>(SelectIdKey)">Id</MudTableSortLabel></MudTh>
             <MudTh><MudTableSortLabel SortBy="new Func<AppConfigModel, object>(SelectInfoKey)">Info</MudTableSortLabel></MudTh>
             <MudTh>Konfiguration</MudTh>
             <MudTh>Bedingungen</MudTh>
         </HeaderContent>
         <RowTemplate>
+            <MudTd><SelectionMarker Item="@context"/></MudTd>
             <MudTd DataLabel="Id">@context.Config.Id</MudTd>
             <MudTd DataLabel="Info">@context.Config.Info</MudTd>
             <MudTd DataLabel="Konfiguration">@context.Config.ConfigContent</MudTd>
@@ -103,14 +106,26 @@ else
     private ConfigurationViewAppConfigModel _model = null!;
 
     private EditorState _editorState = new();
-    
-    private AppConfigModel? Selected { get; set; }
+
+    private AppConfigModel? Selected
+    {
+        get => _selected;
+        set
+        {
+            if (_selected != null)
+                _selected.IsSelected = false;
+            _selected = value;
+            if (_selected != null)
+                _selected.IsSelected = true;
+        }
+    }
 
     private string Selection => Selected?.Config.Id ?? "Nichts Gewählt";
 
     private MudButton? _delete;
 
     private MudButton? _edit;
+    private AppConfigModel? _selected;
 
     private object SelectIdKey(AppConfigModel model)
         => model.Config.Id;

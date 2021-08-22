@@ -6,6 +6,7 @@ using ServiceHost.Client.Shared.ConfigurationServer.Data;
 using ServiceManager.Server.Properties;
 using ServiceManager.Shared.Api;
 using ServiceManager.Shared.ServiceDeamon;
+using Stl.CommandR;
 using Stl.Fusion.Server;
 
 namespace ServiceManager.Server.Controllers
@@ -15,9 +16,13 @@ namespace ServiceManager.Server.Controllers
     public class ConfigurationController : ControllerBase, IServerConfigurationApi
     {
         private readonly IServerConfigurationApi _api;
+        private readonly ICommander _commander;
 
-        public ConfigurationController(IServerConfigurationApi api) => _api = api;
-
+        public ConfigurationController(IServerConfigurationApi api, ICommander commander)
+        {
+            _api = api;
+            _commander = commander;
+        }
 
 
         public static string? GetConfigData(ConfigOpensElement name) => Resources.ResourceManager.GetString(name.ToString());

@@ -6,10 +6,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Akka" Version="1.4.23" />
-      <PackageReference Include="Akka.Cluster.Tools" Version="1.4.23" />
-      <PackageReference Include="Akka.DistributedData" Version="1.4.23" />
-      <PackageReference Include="Stl.Fusion" Version="1.7.8" />
+      <PackageReference Include="Akka" Version="1.4.24" />
+      <PackageReference Include="Akka.Cluster.Tools" Version="1.4.24" />
+      <PackageReference Include="Akka.DistributedData" Version="1.4.24" />
+      <PackageReference Include="Stl.Fusion" Version="1.8.16" />
     </ItemGroup>
 
     <ItemGroup>
