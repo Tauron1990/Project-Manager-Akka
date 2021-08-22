@@ -1,7 +1,6 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 using Stl.CommandR;
-using Stl.CommandR.Configuration;
 using Stl.Fusion;
 
 namespace ServiceManager.Shared.ServiceDeamon
@@ -18,7 +17,6 @@ namespace ServiceManager.Shared.ServiceDeamon
 
         Task<UrlResult?> FetchUrl(CancellationToken token = default);
         
-        [CommandHandler]
         Task<string> SetUrl(SetUrlCommand command, CancellationToken token = default);
     }
 }

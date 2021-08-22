@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
 using ServiceHost.Client.Shared.ConfigurationServer.Data;
 using ServiceManager.Shared.ServiceDeamon;

@@ -11,7 +11,6 @@ namespace ServiceManager.Shared
 
     public interface IAppIpManager
     {
-        [CommandHandler]
         Task<string> WriteIp(WriteIpCommand command, CancellationToken token = default);
 
         [ComputeMethod]

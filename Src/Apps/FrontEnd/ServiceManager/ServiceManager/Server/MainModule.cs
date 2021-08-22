@@ -1,5 +1,11 @@
-﻿using Akka.Actor;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading;
+using System.Threading.Tasks;
+using Akka.Actor;
 using Autofac;
+using Microsoft.AspNetCore.Identity;
 using ServiceHost.Client.Shared.ConfigurationServer;
 using ServiceHost.Client.Shared.ConfigurationServer.Events;
 using ServiceManager.Server.AppCore;

@@ -3,6 +3,7 @@ using Microsoft.Extensions.Hosting;
 using MongoDB.Driver;
 using NLog;
 using ServiceHost.Client.Shared;
+using ServiceHost.Client.Shared.ConfigurationServer.Data;
 using ServiceManager.ProjectDeployment;
 using ServiceManager.ProjectRepository;
 using ServiceManager.ServiceDeamon.Management;
@@ -17,6 +18,7 @@ using Tauron.Application.Files.VirtualFiles;
 using Tauron.Application.Master.Commands.Deployment.Repository;
 using Tauron.Application.Master.Commands.KillSwitch;
 using Tauron.Application.Master.Commands.ServiceRegistry;
+using Tauron.Application.MongoExtensions;
 
 namespace InfrastructureService
 {
@@ -24,6 +26,9 @@ namespace InfrastructureService
     {
         public static async Task Main(string[] args)
         {
+            ImmutableListSerializer<Condition>.Register();
+            ImmutableListSerializer<SeedUrl>.Register();
+
             await Bootstrap.StartNode(args, KillRecpientType.Service, IpcApplicationType.Client,
                                 ab =>
                                 {
