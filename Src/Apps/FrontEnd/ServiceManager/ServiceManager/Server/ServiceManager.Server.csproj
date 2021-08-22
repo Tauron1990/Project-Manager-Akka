@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <PackageReference Include="DynamicData" Version="7.3.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.9" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="5.0.9" />
     <PackageReference Include="MongoDB.Driver" Version="2.13.1" />
     <PackageReference Include="SharpRepository.MongoDbRepository" Version="2.1.1" />
@@ -59,6 +60,10 @@
     <None Update="seed.conf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="AppCore\Identity\" />
   </ItemGroup>
 
 

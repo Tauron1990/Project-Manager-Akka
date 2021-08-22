@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using JetBrains.Annotations;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.SignalR;
 using ServiceHost.Client.Shared.ConfigurationServer.Data;
@@ -14,6 +15,7 @@ using ServiceManager.Server.AppCore;
 using ServiceManager.Server.AppCore.ClusterTracking;
 using ServiceManager.Server.AppCore.ClusterTracking.Data;
 using ServiceManager.Server.AppCore.Helper;
+using ServiceManager.Server.AppCore.Identity;
 using ServiceManager.Server.AppCore.ServiceDeamon;
 using ServiceManager.Server.Hubs;
 using ServiceManager.Shared;
@@ -56,6 +58,12 @@ namespace ServiceManager.Server
 
 
             services.Configure<HostOptions>(o => o.ShutdownTimeout = TimeSpan.FromSeconds(30));
+
+            services.AddSingleton<IRoleStore<AdminClaim>, SingleRoleStore>();
+            services.AddSingleton<IUserStore<SimpleUser>, SimpleUserStore>();
+            services.AddAuthentication().AddCookie().AddJwtBearer();
+            services.AddAuthorization();
+
             services.AddCors();
             services.AddSignalR();
             services.AddControllersWithViews();
@@ -113,6 +121,9 @@ namespace ServiceManager.Server
             app.UseStaticFiles();
 
             app.UseRouting();
+
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             app.UseEndpoints(
                 endpoints =>
