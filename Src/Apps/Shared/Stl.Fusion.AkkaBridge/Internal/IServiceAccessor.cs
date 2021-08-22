@@ -12,7 +12,7 @@
 
     public sealed class ServiceAccessor<TType> : IServiceAccessor<TType>
     {
-        public object Service => TypedService;
+        public object Service => TypedService!;
         public TType TypedService { get; }
 
         public ServiceAccessor(TType typedService)

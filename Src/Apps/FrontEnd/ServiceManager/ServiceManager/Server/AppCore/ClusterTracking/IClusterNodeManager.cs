@@ -5,8 +5,6 @@ namespace ServiceManager.Server.AppCore.ClusterTracking
 {
     public interface IClusterNodeManager : IFeatureActorRef<IClusterNodeManager>
     {
-        Task<MemberChangeSet> GetMemberChangeSet(GetMemberChangeset changeset);
-
         Task<AllNodesResponse> QueryNodes();
     }
 }

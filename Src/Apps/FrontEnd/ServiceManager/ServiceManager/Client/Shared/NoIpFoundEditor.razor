@@ -3,8 +3,6 @@
 @using Tauron.Application
 @using ServiceManager.Client.ViewModels.Models
 
-@inherits PropertyChangedComponent
-
 @inject IAppIpManager _appIpManager
 @inject IServerInfo _applicationLifetime
 @inject IEventAggregator _eventAggregator;
@@ -16,29 +14,13 @@
 </MudContainer>
 
 @code {
-
-    [Parameter]
-    public AppIp Ip { get; set; } = AppIp.Invalid;
-
     private string _ipContent = string.Empty;
-
-    protected override void OnInitialized()
-    {
-        _ipContent = string.Empty;
-        base.OnInitialized();
-    }
-
-    protected override async Task OnInitializedAsync()
-    {
-        await Track(_appIpManager);
-        await Init(_applicationLifetime);
-    }
 
     private async Task Restart()
     {
-        var result = await _appIpManager.WriteIp(_ipContent);
+        var result = await _appIpManager.WriteIp(new WriteIpCommand(_ipContent));
         if(string.IsNullOrWhiteSpace(result))
-            await _applicationLifetime.Restart();
+            await _applicationLifetime.Restart(new RestartCommand());
         else
             _eventAggregator.PublishMessage(new SnackbarErrorMessage(result));
     }

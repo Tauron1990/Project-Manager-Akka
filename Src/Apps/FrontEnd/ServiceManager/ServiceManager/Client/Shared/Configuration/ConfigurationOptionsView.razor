@@ -1,27 +1,26 @@
 ﻿@using ServiceManager.Shared.Api
-@inherits PropertyChangedComponent
 
 @inject ConfigurationOptionsViewModel _model
 
 <MudExpansionPanels Class="flex-grow-1 flex-shrink-0">
     <MudExpansionPanel Text="Akka" IsExpandedChanged="AkkaOpen">
-        <MudButton OnClick="@(async () => await _model.ShowConfigFile(ConfigurationRestApi.ModuleName.Akka))">Standart Datei Anzeigen</MudButton>
+        <MudButton OnClick="@(async () => await _model.ShowConfigFile(ConfigOpensElement.Akka))">Standart Datei Anzeigen</MudButton>
         <OptionElementRenderer OptionSelected="OptionSelectCallback" Element="_model.Akka"/>
     </MudExpansionPanel>
     <MudExpansionPanel Text="Akka Remote" IsExpandedChanged="RemoteOpen">
-        <MudButton OnClick="@(async () => await _model.ShowConfigFile(ConfigurationRestApi.ModuleName.AkkaRemote))">Standart Datei Anzeigen</MudButton>
+        <MudButton OnClick="@(async () => await _model.ShowConfigFile(ConfigOpensElement.AkkaRemote))">Standart Datei Anzeigen</MudButton>
         <OptionElementRenderer OptionSelected="OptionSelectCallback" Element="_model.AkkaRemote"/>
     </MudExpansionPanel>
     <MudExpansionPanel Text="Akka Cluster" IsExpandedChanged="ClusterOpen">
-        <MudButton OnClick="@(async () => await _model.ShowConfigFile(ConfigurationRestApi.ModuleName.AkkaCluster))">Standart Datei Anzeigen</MudButton>
+        <MudButton OnClick="@(async () => await _model.ShowConfigFile(ConfigOpensElement.AkkaCluster))">Standart Datei Anzeigen</MudButton>
         <OptionElementRenderer OptionSelected="OptionSelectCallback" Element="_model.AkkaCluster"/>
     </MudExpansionPanel>
     <MudExpansionPanel Text="Akka Persistence" IsExpandedChanged="PersistenceOpen">
-        <MudButton OnClick="@(async () => await _model.ShowConfigFile(ConfigurationRestApi.ModuleName.AkkaPersistence))">Standart Datei Anzeigen</MudButton>
+        <MudButton OnClick="@(async () => await _model.ShowConfigFile(ConfigOpensElement.AkkaPersistence))">Standart Datei Anzeigen</MudButton>
         <OptionElementRenderer OptionSelected="OptionSelectCallback" Element="_model.AkkaPersistence"/>
     </MudExpansionPanel>
     <MudExpansionPanel Text="Akka Streams" IsExpandedChanged="StreamsOpen">
-        <MudButton OnClick="@(async () => await _model.ShowConfigFile(ConfigurationRestApi.ModuleName.AkkaStreams))">Standart Datei Anzeigen</MudButton>
+        <MudButton OnClick="@(async () => await _model.ShowConfigFile(ConfigOpensElement.AkkaStreams))">Standart Datei Anzeigen</MudButton>
         <OptionElementRenderer OptionSelected="OptionSelectCallback" Element="_model.AkkaStreams"/>
     </MudExpansionPanel>
 </MudExpansionPanels>
@@ -29,12 +28,6 @@
 @code {
     [Parameter] 
     public EventCallback<OptionSelected> OptionSelectedEvent { get; set; }
-    
-    protected override async Task OnInitializedAsync()
-    {
-        await Track(_model);
-        await base.OnInitializedAsync();
-    }
 
     private async Task OptionSelectCallback(OptionSelected data)
         => await OptionSelectedEvent.InvokeAsync(data);
@@ -42,32 +35,30 @@
     private async void AkkaOpen(bool open)
     {
         if (open)
-        {
-            await _model.LoadAsyncFor(ConfigurationRestApi.ModuleName.Akka);
-        }
+            await _model.LoadAsyncFor(ConfigOpensElement.Akka, StateHasChanged);
     }
 
     private async void RemoteOpen(bool open)
     {
         if (open)
-            await _model.LoadAsyncFor(ConfigurationRestApi.ModuleName.AkkaRemote);
+            await _model.LoadAsyncFor(ConfigOpensElement.AkkaRemote, StateHasChanged);
     }
 
     private async void ClusterOpen(bool open)
     {
         if (open)
-            await _model.LoadAsyncFor(ConfigurationRestApi.ModuleName.AkkaCluster);
+            await _model.LoadAsyncFor(ConfigOpensElement.AkkaCluster, StateHasChanged);
     }
 
     private async void PersistenceOpen(bool open)
     {
         if (open)
-            await _model.LoadAsyncFor(ConfigurationRestApi.ModuleName.AkkaPersistence);
+            await _model.LoadAsyncFor(ConfigOpensElement.AkkaPersistence, StateHasChanged);
     }
 
     private async void StreamsOpen(bool open)
     {
         if (open)
-            await _model.LoadAsyncFor(ConfigurationRestApi.ModuleName.AkkaStreams);
+            await _model.LoadAsyncFor(ConfigOpensElement.AkkaStreams, StateHasChanged);
     }
 }

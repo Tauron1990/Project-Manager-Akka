@@ -45,6 +45,16 @@ namespace Stl.Fusion.AkkaBridge.Connector
             _publisher     = null!;
         }
 
+        protected override void PreRestart(Exception reason, object message)
+        {
+            base.PreRestart(reason, message);
+        }
+
+        protected override void PostStop()
+        {
+            base.PostStop();
+        }
+
         private async Task<PublicationResponse> RunPublication(RequestPublication arg)
         {
             try

@@ -1,9 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using ServiceManager.Client.Shared.BaseComponents;
+using ServiceManager.Client.Shared.Configuration.ConditionEditor;
 using ServiceManager.Client.ViewModels;
-using ServiceManager.Client.ViewModels.Models;
-using ServiceManager.Shared;
-using ServiceManager.Shared.ClusterTracking;
-using ServiceManager.Shared.ServiceDeamon;
+using Stl.Fusion.UI;
 using Tauron.Application;
 
 namespace ServiceManager.Client
@@ -13,20 +12,17 @@ namespace ServiceManager.Client
         public static void Run(IServiceCollection collection)
         {
             collection.AddScoped<ConnectToClusterViewModel>();
-            collection.AddScoped<IndexViewModel>();
             collection.AddScoped<ConfigurationViewDatabseModel>();
 
             collection.AddScoped<ConfigurationOptionsViewModel>();
             collection.AddScoped<ConfigurationViewGlobalConfigModel>();
             collection.AddScoped<AppConfigurationViewModel>();
-            collection.AddScoped<ConfigurationViewAppConfigModel>();
 
-            collection.AddScoped<IClusterConnectionTracker, ClusterConnectionTracker>();
-            collection.AddScoped<IDatabaseConfig, DatabaseConfig>();
-            collection.AddScoped<IAppIpManager, AppIpManager>();
-            collection.AddScoped<IServerInfo, Serverinfo>();
-            collection.AddScoped<IServerConfigurationApi, ConfigurationApiModel>();
-
+            collection.AddSingleton<AddHelper>();
+            collection.AddSingleton<BasicAppInfoHelper>();
+            collection.AddSingleton<DatabaseRequiredComponentHelper>();
+            
+            collection.AddSingleton<IUICommandTracker, UICommandTracker>();
             collection.AddSingleton<IEventAggregator, EventAggregator>();
         }
     }

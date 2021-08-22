@@ -7,6 +7,13 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.SignalR.Client;
 using MudBlazor;
 using MudBlazor.Services;
+using ServiceManager.Client.ServiceDefs;
+using ServiceManager.Shared;
+using ServiceManager.Shared.ClusterTracking;
+using ServiceManager.Shared.ServiceDeamon;
+using Stl.Fusion;
+using Stl.Fusion.Blazor;
+using Stl.Fusion.Client;
 
 namespace ServiceManager.Client
 {
@@ -37,10 +44,28 @@ namespace ServiceManager.Client
                                             .WithAutomaticReconnect(new RecconectionPolicy())
                                             .WithUrl(sp.GetRequiredService<NavigationManager>().ToAbsoluteUri("/ClusterInfoHub"))
                                             .Build());
+
             builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+            
+            ConfigFusion(builder.Services, new Uri(builder.HostEnvironment.BaseAddress));
             ServiceConfiguration.Run(builder.Services);
 
             await builder.Build().RunAsync();
+        }
+
+        private static void ConfigFusion(IServiceCollection collection, Uri baseAdress)
+        {
+            collection.AddSingleton<BlazorModeHelper>();
+            collection.AddFusion()
+                      .AddBlazorUIServices()
+                      .AddRestEaseClient()
+                      .ConfigureHttpClientFactory((_, _, options) => options.HttpClientActions.Add(c => c.BaseAddress = baseAdress))
+                      .AddClientService<IClusterNodeTracking, IClusterNodeTrackingDef>()
+                      .AddClientService<IClusterConnectionTracker, IClusterConnectionTrackerDef>()
+                      .AddClientService<IServerInfo, IServerInfoDef>()
+                      .AddClientService<IAppIpManager, IAppIpManagerDef>()
+                      .AddClientService<IDatabaseConfig, IDatabaseConfigDef>()
+                      .AddClientService<IServerConfigurationApi, IServerConfigurationApiDef>();
         }
     }
 }

@@ -1,0 +1,63 @@
+﻿@using System.Reactive.Disposables
+
+@implements IDisposable
+@implements IAddReciever
+
+@inject AddHelper _addHelper;
+
+@if (Items != null)
+{
+    <MudCheckBox @bind-Checked="IsActive" Label="Elemente Einfügen" Class="mt-n3"/>
+    <div class="d-flex flex-row flex-wrap flex-fill mud-width-full mud-height-full ma-1" style="border: groove; min-height: 50px;">
+        @foreach(var item in Items.Where(EditorTrampolie.CanEdit))
+        {
+            <EditorTrampolie Item="item"/>
+        }
+    </div>
+}
+    
+@code {
+    
+    private IDisposable _subscription = Disposable.Empty;
+
+    protected override void OnInitialized()
+    {
+        _subscription = new CompositeDisposable(
+            _addHelper.Changed
+                      .Subscribe(_ => InvokeAsync(StateHasChanged)),
+            _addHelper.Remove.Subscribe(e =>
+                                        {
+                                            if (Items?.Remove(e) == true)
+                                                InvokeAsync(StateHasChanged);
+                                        }));
+        base.OnInitialized();
+    }
+
+    public bool IsActive
+    {
+        get => _addHelper.AddReciever == this;
+        set
+        {
+            if (value)
+                _addHelper.AddReciever = this;
+            else if (_addHelper.AddReciever == this)
+                _addHelper.AddReciever = null;
+        }
+    }
+
+    [Parameter]
+    public List<ElementItem>? Items { get; set; }
+
+    [Parameter]
+    public EventCallback ItemsChanged { get; set; }
+
+    public void Add(ElementItem item)
+    {
+        Items?.Add(item);
+        ItemsChanged.InvokeAsync();
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose() => _subscription.Dispose();
+
+}

@@ -1,20 +1,16 @@
 ﻿using System;
-using System.Net.Http;
-using System.Net.Http.Json;
 using System.Threading.Tasks;
 using ServiceManager.Client.Components;
 using ServiceManager.Client.Components.Operations;
 using ServiceManager.Shared;
-using ServiceManager.Shared.Api;
 using ServiceManager.Shared.ClusterTracking;
 using Tauron.Application;
 
 namespace ServiceManager.Client.ViewModels
 {
-    public sealed class ConnectToClusterViewModel : IInitable
+    public sealed class ConnectToClusterViewModel
     {
         private readonly IServerInfo _serverInfo;
-        private readonly HttpClient _client;
         private readonly IEventAggregator _aggregator;
         private readonly IClusterConnectionTracker _tracker;
 
@@ -37,10 +33,9 @@ namespace ServiceManager.Client.ViewModels
 
         public IOperationManager Operation { get; } = new OperationManager();
 
-        public ConnectToClusterViewModel(IServerInfo serverInfo, HttpClient client, IEventAggregator aggregator, IClusterConnectionTracker tracker)
+        public ConnectToClusterViewModel(IServerInfo serverInfo, IEventAggregator aggregator, IClusterConnectionTracker tracker)
         {
             _serverInfo = serverInfo;
-            _client = client;
             _aggregator = aggregator;
             _tracker = tracker;
         }
@@ -53,11 +48,11 @@ namespace ServiceManager.Client.ViewModels
                 {
                     if (ValidateUrl(ClusterUrl) != null) return;
 
-                    var result = await _tracker.ConnectToCluster(ClusterUrl);
+                    var result = await _tracker.ConnectToCluster(new ConnectToClusterCommand(ClusterUrl));
 
                     if (result != string.Empty) return;
 
-                    await _serverInfo.Restart();
+                    await _serverInfo.Restart(new RestartCommand());
                 }
                 catch (Exception e)
                 {
@@ -65,8 +60,5 @@ namespace ServiceManager.Client.ViewModels
                 }
             }
         }
-
-        public Task Init() 
-            => PropertyChangedComponent.Init(_serverInfo);
     }
 }

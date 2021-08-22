@@ -82,6 +82,57 @@ namespace Tauron.Application.Logging
             return loggerConfiguration;
         }
 
+        public static ISetupBuilder ConfigurateFile(this ISetupBuilder setupBuilder, string applicationName)
+        {
+            const string defaultFile = "default-file";
+            return setupBuilder.LoadConfiguration(
+                b =>
+                {
+                    b.Configuration.AddTarget(
+                        new AsyncTargetWrapper(
+                            new FileTarget("actual-" + defaultFile)
+                            {
+                                Layout = new JsonLayout
+                                         {
+                                             Attributes =
+                                             {
+                                                 new JsonAttribute("time", "${longdate}"),
+                                                 new JsonAttribute("level", "${level:upperCase=true}"),
+                                                 new JsonAttribute("application", applicationName),
+                                                 new JsonAttribute("eventType", "${event-type}"),
+                                                 new JsonAttribute("message", "${message}"),
+                                                 new JsonAttribute(
+                                                     "Properties",
+                                                     new JsonLayout
+                                                     {
+                                                         ExcludeEmptyProperties = true,
+                                                         ExcludeProperties = new HashSet<string>
+                                                                             {
+                                                                                 "time",
+                                                                                 "level",
+                                                                                 "eventType",
+                                                                                 "message"
+                                                                             },
+                                                         IncludeAllProperties = true
+                                                     })
+                                             }
+                                         },
+                                ArchiveAboveSize = 5_242_880,
+                                ConcurrentWrites = false,
+                                MaxArchiveFiles = 5,
+                                FileName = $"Logs\\{applicationName}.log",
+                                ArchiveFileName = $"Logs\\{applicationName}.{{###}}.log",
+                                ArchiveNumbering = ArchiveNumberingMode.Rolling,
+                                EnableArchiveFileCompression = true
+                            })
+                        {
+                            Name = defaultFile
+                        });
+
+                    b.Configuration.AddRuleForAllLevels(defaultFile);
+                });
+        }
+
         public static ILoggingBuilder AddNLog(this ILoggingBuilder builder, Func<ISetupBuilder, ISetupBuilder> config)
             => builder.AddNLog(_ => config(LogManager.Setup()).LogFactory);
     }

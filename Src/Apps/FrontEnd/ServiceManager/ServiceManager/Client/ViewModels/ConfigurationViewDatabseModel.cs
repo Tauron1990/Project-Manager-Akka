@@ -1,125 +1,80 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Hyperion.Internal;
+using Microsoft.Extensions.DependencyInjection;
 using MudBlazor;
-using ServiceManager.Client.Components;
-using ServiceManager.Client.Components.Operations;
 using ServiceManager.Client.Shared.Dialog;
-using ServiceManager.Client.ViewModels.Models;
 using ServiceManager.Shared;
 using ServiceManager.Shared.ServiceDeamon;
 using Tauron.Application;
 
 namespace ServiceManager.Client.ViewModels
 {
-    public sealed class ConfigurationViewDatabseModel : ObservableObject, IDisposable, IInitable
+    public sealed record ConfigurationViewDatabseModel(IServerInfo ServerInfo,  IDialogService DialogService, IEventAggregator Aggregator, 
+                                                       string         OriginalUrl,   IDatabaseConfig  DatabaseConfig, string DatabaseUrl,
+                                                       bool        CanFetch,    Func<string, string?> ValidateUrl, bool IsValid)
     {
-        private readonly IDatabaseConfig _databaseConfig;
-        private readonly IServerInfo _info;
-        private readonly IDialogService _dialogService;
-        private readonly IEventAggregator _aggregator;
-        private readonly IDisposable _disposable;
-
-        private string _databaseUrl = string.Empty;
-        private string _originalUrl = string.Empty;
-
-        public string DatabaseUrl
+        [ActivatorUtilitiesConstructor, UsedImplicitly]
+        public ConfigurationViewDatabseModel(IServerInfo serverInfo, IDialogService dialogService, IEventAggregator aggregator, IDatabaseConfig config)
+            : this(serverInfo, dialogService, aggregator, string.Empty, config, string.Empty, false, Validate, false)
         {
-            get => _databaseUrl;
-            set => SetProperty(ref _databaseUrl, value);
+            
         }
 
-        public string OriginalUrl
-        {
-            get => _originalUrl;
-            set => SetProperty(ref _originalUrl, value);
-        }
-
-        public Func<string, string?> ValidateUrl { get; } = Validate;
-
-        public IOperationManager Operation { get; set; } = OperationManager.Empty;
-
-        public ConfigurationViewDatabseModel(IDatabaseConfig databaseConfig, IServerInfo info, IDialogService dialogService, IEventAggregator aggregator)
-        {
-            _databaseConfig = databaseConfig;
-            _info = info;
-            _dialogService = dialogService;
-            _aggregator = aggregator;
-            _disposable = databaseConfig.PropertyChangedObservable
-                                        .Subscribe(s =>
-                                                   {
-                                                       if (s == nameof(databaseConfig.Url))
-                                                           SetUrl(databaseConfig.Url);
-                                                   });
-
-            SetUrl(databaseConfig.Url);
-        }
-
-        public void Reset() => DatabaseUrl = OriginalUrl;
+        public ConfigurationViewDatabseModel Reset() 
+            => this with{ DatabaseUrl = OriginalUrl };
 
         public async Task Submit()
         {
-            using (Operation.Start())
-            {
-                try
-                {
-                    var diag = await _dialogService.Show<ConfirmRestartDialog>().Result;
-
-                    if (diag.Cancelled)
-                    {
-                        _aggregator.PublishWarnig("Vorgang Abgebrochen");
-                        return;
-                    }
-
-                    var result = await _databaseConfig.SetUrl(DatabaseUrl);
-                    if (string.IsNullOrWhiteSpace(result))
-                    {
-                        await Task.Delay(1000);
-                        await _info.Restart();
-                        return;
-                    }
-
-                    _aggregator.PublishWarnig($"Fehler: {result}");
-                }
-                catch (Exception e)
-                {
-                    _aggregator.PublishError(e);
-                }
-            }
-        }
-
-        public async Task Init()
-        {
-            if (_info is IInitable initable)
-                await initable.Init();
-            if (_databaseConfig is ModelBase mb)
-                await mb.Init();
-        }
-
-        public async Task TryFetchDatabseUrl()
-        {
+            if(!IsValid) return; 
             try
             {
-                var urlResult = await _databaseConfig.FetchUrl();
+                var diag = await DialogService.Show<ConfirmRestartDialog>().Result;
 
-                if (urlResult == null)
-                    _aggregator.PublishError("Unbekannter Fehler beim Abrufen der Url");
-                else if (urlResult.Success)
-                    DatabaseUrl = urlResult.Url;
-                else
-                    _aggregator.PublishError($"Fehler beim Abrufen der Url: {urlResult.Url}");
+                if (diag.Cancelled)
+                {
+                    Aggregator.PublishWarnig("Vorgang Abgebrochen");
+
+                    return;
+                }
+
+                var result = await DatabaseConfig.SetUrl(new SetUrlCommand(DatabaseUrl));
+                if (string.IsNullOrWhiteSpace(result))
+                {
+                    await Task.Delay(1000);
+                    await ServerInfo.Restart(new RestartCommand());
+
+                    return;
+                }
+
+                Aggregator.PublishWarnig($"Fehler: {result}");
             }
             catch (Exception e)
             {
-                _aggregator.PublishError(e);
+                Aggregator.PublishError(e);
             }
         }
-
-        private void SetUrl(string url)
+        
+        public async Task<(ConfigurationViewDatabseModel Model, bool Success)> TryFetchDatabseUrl()
         {
-            DatabaseUrl = url;
-            if (string.IsNullOrWhiteSpace(_originalUrl))
-                OriginalUrl = url;
+            try
+            {
+                var urlResult = await DatabaseConfig.FetchUrl();
+
+                if (urlResult == null)
+                    Aggregator.PublishError("Unbekannter Fehler beim Abrufen der Url");
+                else if (urlResult.Success)
+                    return (this with{ DatabaseUrl = urlResult.Url }, true);
+                else
+                    Aggregator.PublishError($"Fehler beim Abrufen der Url: {urlResult.Url}");
+            }
+            catch (Exception e)
+            {
+                Aggregator.PublishError(e);
+            }
+
+            return (this, false);
         }
 
         private static string? Validate(string originalConnectionString)
@@ -162,7 +117,5 @@ namespace ServiceManager.Client.ViewModels
 
             return null;
         }
-
-        public void Dispose() => _disposable.Dispose();
     }
 }

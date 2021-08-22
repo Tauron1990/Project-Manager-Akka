@@ -52,7 +52,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Akka.Persistence.Query" Version="1.4.23" />
+    <PackageReference Include="Akka.Persistence.Query" Version="1.4.24" />
     <PackageReference Include="Microsoft.Win32.Primitives" Version="4.3.0" />
     <PackageReference Include="SharpRepository.Repository" Version="2.2.1" />
     <PackageReference Include="System.IO.FileSystem" Version="4.3.0" />

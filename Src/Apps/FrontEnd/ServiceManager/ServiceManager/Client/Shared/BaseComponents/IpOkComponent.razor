@@ -1,0 +1,52 @@
+﻿@using ServiceManager.Shared.ClusterTracking;
+@using ServiceManager.Shared
+@using Stl.Fusion
+@using Stl.Fusion.UI
+@using System.Reactive.Disposables
+
+@inject BasicAppInfoHelper _helper;
+
+@implements IDisposable
+
+@{
+    var state = _helper.Ip;
+    var error = state.Error;
+    var ip = state.ValueOrDefault ?? AppIp.Invalid;
+}
+
+<MudMainContent>
+    @if (state.IsLoading())
+    {
+        <MudProgressCircular Class="justify-center" Indeterminate="true"/>
+    }
+    else if (error != null)
+    {
+        <MudAlert Class="justify-space-around" Severity="Severity.Error" Variant="Variant.Filled">Fehler bem abrufen der Ip: @error.Message</MudAlert>
+    }
+    else if(!ip.IsValid)
+    {
+        <NoIpFoundEditor/>
+    }
+    else
+    {
+        @ChildContent
+    }
+</MudMainContent>
+
+@code {
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; } = _ => { };
+
+    protected override void OnInitialized()
+    {
+        _subscription = _helper.IpChanged.Subscribe(_ => InvokeAsync(StateHasChanged));
+        base.OnInitialized();
+    }
+
+    protected override Task OnInitializedAsync() => Task.Delay(1000);
+
+    private IDisposable _subscription = Disposable.Empty;
+
+    public void Dispose() => _subscription.Dispose();
+}

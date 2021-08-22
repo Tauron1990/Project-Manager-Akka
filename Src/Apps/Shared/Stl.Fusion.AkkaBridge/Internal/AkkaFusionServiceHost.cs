@@ -3,8 +3,10 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using Akka.Actor;
+using Akka.Cluster;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Stl.Fusion.AkkaBridge.Connector.Data;
 using Stl.Fusion.Bridge;
 using Stl.Fusion.Bridge.Messages;
 using Stl.Text;
@@ -15,6 +17,7 @@ namespace Stl.Fusion.AkkaBridge.Internal
     {
         public const string BaseChannel = "FusionAkkaServer";
 
+        private readonly ManualResetEventSlim _aktivator = new();
         private readonly ActorSystem _system;
         private readonly IPublisher _publisher;
         private readonly ILogger<AkkaFusionServiceHost> _logger;
@@ -28,10 +31,13 @@ namespace Stl.Fusion.AkkaBridge.Internal
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var server = new AkkaChannel<Symbol>(_system, BaseChannel, _logger, stoppingToken, true);
+            Cluster.Get(_system).RegisterOnMemberUp(() => _aktivator.Set());
+
+            _aktivator.Wait(stoppingToken);
+            var server = new AkkaChannel<SymbolData>(_system, BaseChannel, _logger, stoppingToken, true);
 
             await foreach (var newCLient in server.Reader.ReadAllAsync(stoppingToken)) 
-                AttachNewClient(newCLient, stoppingToken);
+                AttachNewClient(newCLient.Symbol, stoppingToken);
         }
 
         private async void AttachNewClient(Symbol symbol, CancellationToken stoppingToken)
@@ -82,6 +88,12 @@ namespace Stl.Fusion.AkkaBridge.Internal
                 }, stopper.Token);
             
             return Task.WhenAll(reader, writer);
+        }
+
+        public override void Dispose()
+        {
+            _aktivator.Dispose();
+            base.Dispose();
         }
     }
 }

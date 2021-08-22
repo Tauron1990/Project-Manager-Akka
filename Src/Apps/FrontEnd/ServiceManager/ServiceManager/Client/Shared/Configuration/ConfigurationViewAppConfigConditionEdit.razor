@@ -1,0 +1,127 @@
+﻿@using System.Collections.Immutable
+@using System.Reactive.Disposables
+@using ServiceHost.Client.Shared.ConfigurationServer.Data
+@using ServiceManager.Client.Shared.Configuration.ConditionEditor
+
+@implements IAddReciever
+@implements IDisposable
+
+@inject AddHelper _addHelper;
+
+@if (Model == null || ToEdit == null || State == null)
+{
+    <MudAlert Class="justify-space-around" Variant="Variant.Filled" Severity="Severity.Error">Keine Daten Übergeben</MudAlert>
+}
+else
+{
+    <div class="d-flex  flex-row">
+        <MudExpansionPanels MultiExpansion="true" Class="pa-1" Style="max-width: 30%">
+            <MudExpansionPanel Text="Templates" IsInitiallyExpanded="true">
+                <div class="d-flex flex-column">
+                    @foreach (var template in Templates)
+                    {
+                        <MudChip Label="true" Color="Color.Tertiary" Variant="Variant.Filled" OnClick="() => Callback(template)">@template.Name</MudChip>
+                    }
+                </div>
+            </MudExpansionPanel>
+            <MudExpansionPanel Text="Bekannte Bedinnungen">
+                <div class="d-flex flex-column">
+                    @foreach (var template in KnownenElements)
+                    {
+                        <MudChip Label="true" Color="Color.Tertiary" Variant="Variant.Filled" OnClick="() => Callback(template)">@template.Name</MudChip>
+                    }
+                </div>
+            </MudExpansionPanel>
+        </MudExpansionPanels>
+        <MudPaper Class="d-flex flex-row flex-wrap mud-width-full align-start">
+            @foreach (var item in State.ActualItems.Where(EditorTrampolie.CanEdit))
+            {
+                <EditorTrampolie Item="item"/>
+            }
+        </MudPaper>
+    </div>
+}
+
+@code {
+
+    private static readonly ElementItem[] Templates = {
+                                                          new AndElement { Name = "Und Template" },
+                                                          new OrElement { Name = "Oder Template" },
+                                                          new DefinedAppElement { Name = "Definierte App Template" },
+                                                          new InstalledAppElement { Name = "Installierte App Template" }
+                                                      };
+
+    private ImmutableList<ElementItem> KnownenElements { get; set; } = ImmutableList<ElementItem>.Empty;
+
+    private IDisposable _subscription = Disposable.Empty;
+    
+    [Parameter]
+    public ConfigurationViewAppConfigModel? Model { get; set; }
+
+    [Parameter]
+    public AppConfigModel? ToEdit { get; set; }
+
+    [Parameter]
+    public EditorState? State { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        if (ToEdit != null && State != null)
+        {
+            UpdateKowenElements(ToEdit.Config.Conditions);
+            State.ActualItems.AddRange(ToEdit.Config.Conditions.Select(ElementItem.CreateItem));
+        }
+        
+        base.OnParametersSet();
+    }
+
+    protected override void OnInitialized()
+    {
+        _subscription = _addHelper.Remove.Subscribe(e =>
+                                                    {
+                                                        if (State?.ActualItems.Remove(e) != true) return;
+
+                                                        _render = true;
+                                                        StateHasChanged();
+                                                    });
+        _addHelper.DefaultReciever = this;
+        base.OnInitialized();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        _addHelper.AddReciever = null;
+        base.OnAfterRender(firstRender);
+    }
+
+    private void UpdateKowenElements(IEnumerable<Condition> conditions) 
+        => KnownenElements = conditions.Where(c => !c.Name.StartsWith(ElementItem.IdPrefix)).Select(ElementItem.CreateItem).ToImmutableList();
+    
+    public void Add(ElementItem item)
+    {
+        State?.ActualItems.Add(item);
+        _render = true;
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+        => _subscription.Dispose();
+
+    private bool _render = true;
+
+    protected override bool ShouldRender()
+    {
+        var temp = _render;
+        _render = false;
+        return temp;
+    }
+
+    void Callback(ElementItem template)
+    {
+        if(State != null)
+            State.ChangesWhereMade = true;
+        var clone = template.Clone();
+        Task.Run(() => _addHelper.NewItem(clone));
+    }
+
+}

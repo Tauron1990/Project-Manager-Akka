@@ -4,7 +4,6 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Akka.Util;
-using Autofac.Core.Resolving.Middleware;
 using Be.Vlaanderen.Basisregisters.Generators.Guid;
 using ServiceHost.Client.Shared.ConfigurationServer;
 using ServiceHost.Client.Shared.ConfigurationServer.Data;
@@ -90,7 +89,7 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
                        let evt = request.Event
                        let state = request.State
                        from data in Task.Run(() => evt.Action == ConfigDataAction.Update
-                                                 ? state.Apps.Get(request.Event.Id).OptionNotNull()
+                                                 ? SpecificConfigEntity.Patch(state.Apps.Get(request.Event.Id).OptionNotNull(), evt)
                                                  : SpecificConfigEntity.From(evt))
                        let newData = UpdateRepo(state.Apps, evt.Action, data)
                        let opt = SendEvent(state.EventSender, newData.Select<IConfigEvent>(d => new SpecificConfigEvent(d.Config, evt.Action)))

@@ -10,8 +10,18 @@ using JetBrains.Annotations;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.SignalR;
 using ServiceManager.Server.AppCore;
+using ServiceManager.Server.AppCore.ClusterTracking;
+using ServiceManager.Server.AppCore.ClusterTracking.Data;
+using ServiceManager.Server.AppCore.Helper;
+using ServiceManager.Server.AppCore.ServiceDeamon;
 using ServiceManager.Server.Hubs;
+using ServiceManager.Shared;
 using ServiceManager.Shared.Api;
+using ServiceManager.Shared.ClusterTracking;
+using ServiceManager.Shared.ServiceDeamon;
+using Stl.CommandR;
+using Stl.Fusion;
+using Stl.Fusion.Server;
 using Tauron.AkkaHost;
 using Tauron.Application.AkkaNode.Bootstrap;
 
@@ -27,6 +37,19 @@ namespace ServiceManager.Server
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCommander()
+                    .AddCommandService<INodeUpdateHandler, NodeUpdateHandler>();
+            
+            var fusion = services.AddFusion();
+            fusion.AddWebServer();
+            fusion.AddComputeService<IClusterNodeTracking, ClusterNodeTracking>()
+                  .AddComputeService<IClusterConnectionTracker, ClusterConnectionTracker>()
+                  .AddComputeService<IServerInfo, ServerInfo>()
+                  .AddComputeService<IAppIpManager, AppIpService>()
+                  .AddComputeService<IDatabaseConfig, DatabaseConfig>()
+                  .AddComputeService<IServerConfigurationApi, ServerConfigurationApi>();
+
+
             services.Configure<HostOptions>(o => o.ShutdownTimeout = TimeSpan.FromSeconds(30));
             services.AddCors();
             services.AddSignalR();
@@ -40,26 +63,28 @@ namespace ServiceManager.Server
         [UsedImplicitly]
         public void ConfigureContainer(IActorApplicationBuilder builder)
         {
-            builder.OnMemberRemoved((_, system, _) =>
-                                    {
-                                        try
-                                        {
-                                            var resolverScope = DependencyResolver.For(system).Resolver.CreateScope();
-                                            var resolver = resolverScope.Resolver;
+            builder.OnMemberRemoved(
+                        (_, system, _) =>
+                        {
+                            try
+                            {
+                                var resolverScope = DependencyResolver.For(system).Resolver.CreateScope();
+                                var resolver = resolverScope.Resolver;
 
-                                            resolver.GetService<IHubContext<ClusterInfoHub>>().Clients.All
-                                                    .SendAsync(HubEvents.RestartServer)
-                                                    .ContinueWith(_ =>
-                                                                  {
-                                                                      using (resolverScope)
-                                                                      {
-                                                                          resolver.GetService<IRestartHelper>().Restart = true;
-                                                                          resolver.GetService<IHostApplicationLifetime>().StopApplication();
-                                                                      }
-                                                                  });
-                                        }
-                                        catch (ObjectDisposedException) { }
-                                    })
+                                resolver.GetService<IHubContext<ClusterInfoHub>>().Clients.All
+                                        .SendAsync(HubEvents.RestartServer)
+                                        .ContinueWith(
+                                             _ =>
+                                             {
+                                                 using (resolverScope)
+                                                 {
+                                                     resolver.GetService<IRestartHelper>().Restart = true;
+                                                     resolver.GetService<IHostApplicationLifetime>().StopApplication();
+                                                 }
+                                             });
+                            }
+                            catch (ObjectDisposedException) { }
+                        })
                    .AddModule<MainModule>();
         }
 
@@ -78,19 +103,21 @@ namespace ServiceManager.Server
                 app.UseExceptionHandler("/Error");
             }
 
-            app.UseCors();
+            app.UseCors(builder => builder.WithFusionHeaders());
             app.UseBlazorFrameworkFiles();
             app.UseStaticFiles();
 
             app.UseRouting();
 
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapRazorPages();
-                endpoints.MapControllers();
-                endpoints.MapHub<ClusterInfoHub>("/ClusterInfoHub");
-                endpoints.MapFallbackToFile("index.html");
-            });
+            app.UseEndpoints(
+                endpoints =>
+                {
+                    endpoints.MapFusionWebSocketServer();
+                    endpoints.MapRazorPages();
+                    endpoints.MapControllers();
+                    endpoints.MapHub<ClusterInfoHub>("/ClusterInfoHub");
+                    endpoints.MapFallbackToFile("index.html");
+                });
         }
     }
 }

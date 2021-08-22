@@ -9,4 +9,10 @@ namespace ServiceManager.Client.Shared.Dialog
         [CascadingParameter]
         protected MudDialogInstance DialogInstance { get; set; } = null!;
     }
+
+    public abstract class DialogBaseComponent<TState> : DisposableComponent<TState>
+    {
+        [CascadingParameter]
+        protected MudDialogInstance DialogInstance { get; set; } = null!;
+    }
 }

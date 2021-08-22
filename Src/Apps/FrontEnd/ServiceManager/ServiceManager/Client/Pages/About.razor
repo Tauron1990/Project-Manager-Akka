@@ -1,7 +1,7 @@
 ﻿@page "/About"
 @using ServiceManager.Shared.ClusterTracking
 
-@inherits PropertyChangedComponent
+@inherits ComputedStateComponent<string>
 @inject IClusterConnectionTracker _clusterUrl;
 
 <Title Value="Über Servie Manager"></Title>
@@ -10,12 +10,10 @@
 
 <MudText>Project Manager Akka</MudText>
 
-<MudText>Aktuelle Url: @_clusterUrl.Url</MudText>
+<MudText>Aktuelle Url: @State.LatestNonErrorValue</MudText>
 
 @code {
+    protected override Task<string> ComputeState(CancellationToken cancellationToken) 
+        => _clusterUrl.GetUrl();
 
-    protected override async Task OnInitializedAsync()
-    {
-        await Track(_clusterUrl);
-    }
 }

@@ -1,15 +1,24 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
+using Stl.CommandR;
+using Stl.CommandR.Configuration;
+using Stl.Fusion;
 
 namespace ServiceManager.Shared.ServiceDeamon
 {
-    public interface IDatabaseConfig : IInternalObject
+    public sealed record SetUrlCommand(string Url) : ICommand<string>;
+
+    public interface IDatabaseConfig
     {
-        public string Url { get; }
+        [ComputeMethod]
+        Task<string> GetUrl();
 
-        public bool IsReady { get; }
+        [ComputeMethod]
+        Task<bool> GetIsReady();
 
-        Task<string> SetUrl(string url);
-
-        Task<UrlResult?> FetchUrl();
+        Task<UrlResult?> FetchUrl(CancellationToken token = default);
+        
+        [CommandHandler]
+        Task<string> SetUrl(SetUrlCommand command, CancellationToken token = default);
     }
 }

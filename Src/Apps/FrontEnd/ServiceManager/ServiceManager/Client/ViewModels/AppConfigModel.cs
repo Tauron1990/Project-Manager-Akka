@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Immutable;
+using System.Linq;
 using Akka.Configuration;
 using ServiceHost.Client.Shared.ConfigurationServer.Data;
 using ServiceManager.Client.Shared.Configuration;
@@ -20,6 +21,8 @@ namespace ServiceManager.Client.ViewModels
         public string InfoString { get; set; }
 
         public string ConfigString { get; set; }
+
+        public ImmutableList<Condition> Conditions { get; set; } = ImmutableList<Condition>.Empty;
         
         public AppConfigModel(SpecificConfig config, IEventAggregator aggregator)
         {
@@ -29,14 +32,15 @@ namespace ServiceManager.Client.ViewModels
             ConfigString     = config.ConfigContent;
         }
 
-        public void OptionSelected(OptionSelected selected)
+        public void OptionSelected(OptionSelected selected, Action stateHasChanged)
         {
             try
             {
-                var config   = ConfigurationFactory.ParseString(ConfigString);
+                var config   = string.IsNullOrWhiteSpace(ConfigString) ? Akka.Configuration.Config.Empty : ConfigurationFactory.ParseString(ConfigString);
                 var toUpdate = ConfigurationFactory.ParseString($"{selected.Path}: {selected.Value}");
 
                 ConfigString = toUpdate.WithFallback(config).ToString(true);
+                stateHasChanged();
             }
             catch (Exception e)
             {
@@ -45,6 +49,9 @@ namespace ServiceManager.Client.ViewModels
         }
 
         public SpecificConfigData CreateNew()
-            => new SpecificConfigData(IsNew, Config.Id, InfoString, ConfigString, ImmutableList<ConfigurationInfo>.Empty);
+            => new(IsNew, Config.Id, InfoString, ConfigString,
+                UpdateCondiditions 
+                    ? Conditions.Select(c => new ConfigurationInfo(c.Name, ConfigDataAction.Update, c)).ToImmutableList()
+                    : null);
     }
 }

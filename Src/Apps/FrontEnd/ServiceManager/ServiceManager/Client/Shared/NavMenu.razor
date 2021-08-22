@@ -1,28 +1,28 @@
-﻿
-@inherits ConnectionAwareComponent
+﻿@using ServiceManager.Shared.ServiceDeamon
+@inherits ComputedStateComponent<bool>
+
+@inject IDatabaseConfig _database;
+@inject NavigationManager _navigationManager;
 
 <MudDivider Class="mb-4"></MudDivider>
 <MudNavMenu>
-    <MudNavLink Href="" Match="NavLinkMatch.All" Class="ma-1">Übersicht</MudNavLink>
-    <MudBadge Icon="@_configError" Overlap="true" Class="ma-1">
-        <MudNavLink Href="/AppConfiguration">Konfiguration</MudNavLink>
+    <MudNavLink Class="ma-1" OnClick="@(() => Callback(""))">Übersicht</MudNavLink>
+    <MudBadge Icon="@(State.ValueOrDefault ? null : Icons.Material.Outlined.Warning)" Overlap="true" Class="ma-1">
+        <MudNavLink OnClick="@(() => Callback("/AppConfiguration"))">Konfiguration</MudNavLink>
     </MudBadge>
 </MudNavMenu>
 
 @code {
 
-    private string? _configError;
-    
-    private bool _collapseNavMenu = true;
+    [Parameter]
+    public EventCallback Navigating { get; set; }
 
-    private string? NavMenuCssClass => _collapseNavMenu ? "collapse" : null;
+    protected override Task<bool> ComputeState(CancellationToken cancellationToken) => _database.GetIsReady();
 
-    private void ToggleNavMenu()
+    private async Task Callback(string target)
     {
-        _collapseNavMenu = !_collapseNavMenu;
+        await Navigating.InvokeAsync();
+        _navigationManager.NavigateTo(target);
     }
-
-    protected override void OnParametersSet() 
-        => _configError = IsDatabaseReady ? null : Icons.Material.Filled.Warning;
 
 }

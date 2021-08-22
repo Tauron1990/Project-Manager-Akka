@@ -1,20 +1,20 @@
 ﻿@using ServiceManager.Shared.ServiceDeamon
-@using Tauron
 
 @page "/AppConfiguration"
 
-@inherits PropertyChangedComponent
+@inherits ComputedStateComponent<bool>
 
 @inject IDatabaseConfig _databaseConfig
 
 <Title Value="App Konfiguration"></Title>
 
 <OperationHost>
-    @if (_databaseConfig.IsReady)
+    @if (State.ValueOrDefault)
     {
         <ServerConfigurationView/>
     }
-    <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6" @bind-ActivePanelIndex="_currentPanel">
+    <MudTabs Position="Position.Center" Style="width: 100%" Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6" @bind-ActivePanelIndex="_currentPanel"
+             Centered="true">
         <MudTabPanel Text="Datenbank">
             <ConfigurationViewDatabase/>
         </MudTabPanel>
@@ -25,7 +25,7 @@
                 </DatabaseContent>
             </DatabaseRequiredComponent>
         </MudTabPanel>
-        <MudTabPanel Text="Apps">
+        <MudTabPanel Text="Apps" Class="d-flex">
             <DatabaseRequiredComponent>
                 <DatabaseContent>
                     <ConfigurationViewAppConfig/>
@@ -36,12 +36,8 @@
 </OperationHost>
 
 @code {
-    private int _currentPanel = 0;
-
-    protected override async Task OnInitializedAsync()
-    {
-        await Track(_databaseConfig);
-        await base.OnInitializedAsync();
-    }
-
+    private int _currentPanel;
+    
+    protected override Task<bool> ComputeState(CancellationToken cancellationToken)
+        => _databaseConfig.GetIsReady();
 }

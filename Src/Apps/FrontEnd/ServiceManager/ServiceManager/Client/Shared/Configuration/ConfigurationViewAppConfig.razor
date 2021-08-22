@@ -3,44 +3,67 @@
 @using Akka.Util.Internal
 @using Autofac.Features.OwnedInstances
 @using Tauron
-@inherits PropertyChangedComponent
+@using System.Collections.Immutable
+@using Microsoft.Extensions.DependencyInjection
+@using ServiceManager.Client.Shared.Configuration.ConditionEditor
+@using ServiceManager.Shared.ServiceDeamon
+@using Stl.Fusion
+@using Tauron.Application
 
-@inject ConfigurationViewAppConfigModel _model
+@inherits MixedStateComponent<AppConfigViewData, AppConfigData>
 
-@if (_model.ToEdit != null)
+@inject IDialogService _service;
+@inject IEventAggregator _aggregator;
+@inject IServerConfigurationApi _api;
+
+@{
+    var (configs, (newModel, toEdit)) = State.LatestNonErrorValue ?? new AppConfigViewData(ImmutableList<AppConfigModel>.Empty, new AppConfigData());
+    if (newModel != null)
+        configs = configs.Add(newModel);
+}
+
+@if (toEdit != null)
 {
     <MudToolBar>
-        <MudIconButton Icon="@Icons.Material.Outlined.Save" OnClick="async () => await _model.CommitConfig(_model.ToEdit)"/>
+        <MudSpacer/>
+        <MudSpacer/>
+        <MudSpacer/>
+        <MudIconButton Icon="@Icons.Material.Outlined.Save" OnClick="async () => await _model.CommitConfig(toEdit)"/>
         <MudIconButton Icon="@Icons.Material.Outlined.Cancel" OnClick="() => _model.EditConfig(null)"/>
-        <MudToolBarSpacer/>
-        <MudText>@_model.ToEdit.Config.Id</MudText>
+        <MudSpacer/>
+        <MudButton EndIcon="@Icons.Material.Outlined.Assignment" OnClick="SaveConditions">Bedingungen Speichern</MudButton>
+        <MudSpacer/>
+        <MudText>@toEdit.Config.Id</MudText>
+        <MudSpacer/>
+        <MudSpacer/>
+        <MudSpacer/>
     </MudToolBar>
-    <MudTabs>
-        <MudTabPanel Text="Konfiguration">
-            <div class="d-flex flex-row">
-                <MudTextFieldString Class="d-flex flex-grow-0 order-0" @bind-Value="_model.ToEdit.InfoString" Label="Konfiguration Info"/>
-                <div class="d-flex flex-grow-1 align-content-stretch order-1">
+    <MudTabs Centered="true">
+        <MudTabPanel Text="Konfiguration" Class="d-flex" Style="flex-direction: row">
+            <MudContainer MaxWidth="MaxWidth.Medium">
+                <MudTextFieldString Class="flex-row mud-width-full ma-3" @bind-Value="toEdit.InfoString" Label="Konfiguration Info"/>
+                <div class="flex-row  order-1 ma-3 mud-width-full" style="height: 400px; width: 1000px">
                     <EditForm Model="_model">
-                        <InputTextArea @bind-Value="@_model.ToEdit.ConfigString" DisplayName="Konfigurations Text"/>
+                        <InputTextArea style="height: 400px;" class="mud-width-full" @bind-Value="@toEdit.ConfigString" DisplayName="Konfigurations Text"/>
                     </EditForm>
                 </div>
-                <div class="d-flex flex-grow-0 order-2">
-                    <ConfigurationOptionsView OptionSelectedEvent="_model.ToEdit.OptionSelected"/>
+                <div class="flex-row flex-grow-0 order-2 ma-3">
+                    <ConfigurationOptionsView OptionSelectedEvent="o => toEdit.OptionSelected(o, StateHasChanged)"/>
                 </div>
-            </div>
+            </MudContainer>            
         </MudTabPanel>
         <MudTabPanel Text="Bedingungen">
-            
+            <ConfigurationViewAppConfigConditionEdit Model="_model" ToEdit="toEdit" State="_editorState"/>
         </MudTabPanel>
     </MudTabs>
 }
 else
 {
-    <MudTable Items="@_model.AppConfigs" Hover="true" Loading="_model.IsLoading" @bind-SelectedItem="Selected">
+    <MudTable Items="@configs" Hover="true" Loading="State.IsLoading()" @bind-SelectedItem="Selected">
         <ToolBarContent>
             <MudText Typo="Typo.h6">Anwendungen Konfiguration</MudText>
             <MudSpacer/>
-            <MudButton Class="ma-2" OnClick="_model.NewConfig">Neu</MudButton>
+            <MudButton Class="ma-2" OnClick="async () => await _model.NewConfig(configs)">Neu</MudButton>
             <MudButton Class="ma-2" @ref="_delete" OnClick="async () => await _model.DeleteConfig(Selected)">Löschen</MudButton>
             <MudButton Class="ma-2" @ref="_edit" OnClick="() => _model.EditConfig(Selected)">Beabeiten</MudButton>
             <MudSpacer/>
@@ -67,6 +90,20 @@ else
 }
 
 @code {
+
+    protected override async Task<AppConfigViewData> ComputeState(CancellationToken cancellationToken) 
+        => new((await _api.QueryAppConfig()).Select(d => new AppConfigModel(d, _aggregator)).ToImmutableList(), MutableState.Value);
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        _model = new ConfigurationViewAppConfigModel(MutableState, _api, _service, _aggregator, _editorState);
+    }
+
+    private ConfigurationViewAppConfigModel _model = null!;
+
+    private EditorState _editorState = new();
+    
     private AppConfigModel? Selected { get; set; }
 
     private string Selection => Selected?.Config.Id ?? "Nichts Gewählt";
@@ -81,10 +118,11 @@ else
     private object SelectInfoKey(AppConfigModel model)
         => model.Config.Info ?? string.Empty;
 
-    protected override async Task OnInitializedAsync()
+    private void SaveConditions()
     {
-        _model.DisposeWith(this);
-        await Track(_model);
-        await base.OnInitializedAsync();
+        var model = State.LatestNonErrorValue?.ViewState.ToEdit;
+        if (model != null)
+            _editorState.CommitChanges(model, _aggregator);
     }
+
 }

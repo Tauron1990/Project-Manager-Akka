@@ -1,21 +1,28 @@
 ﻿@using ServiceManager.Shared.ServiceDeamon
 @using Tauron
-@using Autofac.Features.OwnedInstances
-@inherits PropertyChangedComponent
+@using ServiceHost.Client.Shared.ConfigurationServer.Data;
+@using Stl.Fusion
+
+@inherits ComputedStateComponent<ServerConfigugration>
 
 @inject IServerConfigurationApi _api
 @inject AppConfigurationViewModel _viewModel
 
+@{
+    bool loading = State.Computed.ConsistencyState != ConsistencyState.Consistent;
+    var config = State.Value;
+}
+
 <div class="d-flex justify-center">
     <MudPaper Class="d-flex ma-3 pa-3">
-        @if (!_loading)
+        @if (!loading)
         {
             <MudCheckBox Class="d-flex d-inline-flex ma-1" T="Boolean" 
-                         Checked="_viewModel.MonitorChanges" 
-                         CheckedChanged="_viewModel.SetMonitorChanges">Änderungen Übserwachen</MudCheckBox>
+                         Checked="config.MonitorChanges" 
+                         CheckedChanged="b => _viewModel.SetMonitorChanges(config, b)">Änderungen Übserwachen</MudCheckBox>
             <MudCheckBox Class="d-flex d-inline-flex ma-1" T="Boolean" 
-                         Checked="_viewModel.RestartServices" 
-                         CheckedChanged="_viewModel.SetRestartServices">Services Neustarten</MudCheckBox>
+                         Checked="config.RestartServices" 
+                         CheckedChanged="b => _viewModel.SetRestartServices(config, b)">Services Neustarten</MudCheckBox>
         }
         else
         {
@@ -26,14 +33,7 @@
 
 @code {
 
-    private bool _loading = true;
-
-    protected override async Task OnInitializedAsync()
-    {
-        _viewModel.DisposeWith(this);
-        await Track(_api);
-        await Track(_viewModel);
-        _loading = false;
-    }
+    protected override Task<ServerConfigugration> ComputeState(CancellationToken cancellationToken) 
+        => _api.ServerConfigugration();
 
 }

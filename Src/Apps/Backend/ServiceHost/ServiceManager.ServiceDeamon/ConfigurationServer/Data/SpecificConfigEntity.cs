@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using Akka.Util;
 using ServiceHost.Client.Shared.ConfigurationServer;
 using ServiceHost.Client.Shared.ConfigurationServer.Data;
 
@@ -12,7 +13,18 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer.Data
             
         }
 
+        public static Option<SpecificConfigEntity> Patch(Option<SpecificConfigEntity> entity, UpdateSpecificConfigCommand command)
+            => entity.Select(
+                e =>
+                {
+                    var newCon = command.Conditions == null
+                        ? e.Config.Conditions
+                        : command.Conditions.ToImmutableList();
+
+                    return e with { Config = e.Config with { Conditions = newCon, Info = command.InfoData, ConfigContent = command.ConfigContent } };
+                });
+
         public static SpecificConfigEntity From(UpdateSpecificConfigCommand command)
-            => new(command.Id, new SpecificConfig(command.Id, command.ConfigContent, command.InfoData, ImmutableList<Condition>.Empty));
+            => new(command.Id, new SpecificConfig(command.Id, command.ConfigContent, command.InfoData, command.Conditions?.ToImmutableList() ?? ImmutableList<Condition>.Empty));
     }
 }

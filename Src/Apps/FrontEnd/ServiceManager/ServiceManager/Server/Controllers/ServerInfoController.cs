@@ -1,43 +1,27 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using System;
+using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Hosting;
-using ServiceManager.Server.AppCore;
-using ServiceManager.Server.Hubs;
+using ServiceManager.Shared;
 using ServiceManager.Shared.Api;
+using Stl.Fusion.Server;
 
 namespace ServiceManager.Server.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class ServerInfoController : ControllerBase
+    [Route(ControllerName.ServerInfo + "/[action]")]
+    [ApiController, JsonifyErrors]
+    public class ServerInfoController : ControllerBase, IServerInfo
     {
-        private readonly IHostApplicationLifetime _lifetime;
-        private readonly IRestartHelper _restart;
-        private readonly IHubContext<ClusterInfoHub> _hub;
-        private static readonly Guid CurrentInstance = Guid.NewGuid();
+        private readonly IServerInfo _serverInfo;
 
-        public ServerInfoController(IHostApplicationLifetime lifetime, IRestartHelper restart, IHubContext<ClusterInfoHub> hub)
-        {
-            _lifetime = lifetime;
-            _restart = restart;
-            _hub = hub;
-        }
+        public ServerInfoController(IServerInfo serverInfo)
+            => _serverInfo = serverInfo;
 
-        [HttpGet]
-        public IActionResult GetId()
-            => new JsonResult(CurrentInstance);
+        [HttpGet, Publish]
+        public Task<string> GetCurrentId(CancellationToken token)
+            => _serverInfo.GetCurrentId(token);
 
         [HttpPost]
-        public async Task<IActionResult> OnRestart()
-        {
-            await _hub.Clients.All.SendAsync(HubEvents.RestartServer);
-            _restart.Restart = true;
-            #pragma warning disable 4014
-            Task.Delay(1000).ContinueWith(_ => _lifetime.StopApplication());
-            #pragma warning restore 4014
-            return Ok();
-        }
+        public Task Restart(RestartCommand command, CancellationToken token = default)
+            => _serverInfo.Restart(command, token);
     }
 }

@@ -1,97 +1,73 @@
 ﻿using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using MudBlazor;
 using ServiceHost.Client.Shared.ConfigurationServer.Data;
-using ServiceManager.Client.Components;
+using ServiceManager.Client.Shared.Configuration.ConditionEditor;
 using ServiceManager.Client.Shared.Dialog;
-using ServiceManager.Shared.Api;
 using ServiceManager.Shared.ServiceDeamon;
-using Tauron;
+using Stl.Fusion;
 using Tauron.Application;
 
 namespace ServiceManager.Client.ViewModels
 {
-    public sealed class ConfigurationViewAppConfigModel : ObservableObject, IInitable, IDisposable
+
+    public sealed record AppConfigData(AppConfigModel? NewModel, AppConfigModel? ToEdit)
     {
-        private readonly IServerConfigurationApi _api;
-        private readonly IDialogService          _dialogService;
-        private readonly IEventAggregator        _aggregator;
-        private readonly IDisposable             _subscription;
+        [UsedImplicitly]
+        public AppConfigData()
+            : this(null, null) { }
+    }
+    
+    public sealed class ConfigurationViewAppConfigModel
+    {
+        private readonly IMutableState<AppConfigData> _viewState;
+        private readonly IServerConfigurationApi      _api;
+        private readonly IDialogService               _dialogService;
+        private readonly IEventAggregator             _aggregator;
+        private readonly EditorState _editorState;
 
-        private AppConfigModel?               _toEdit;
-        private bool                          _isLoading = true;
-        private ImmutableList<AppConfigModel> _appConfigs;
-
-        public AppConfigModel? ToEdit
+        public ConfigurationViewAppConfigModel(IMutableState<AppConfigData> viewState, IServerConfigurationApi api, IDialogService dialogService, IEventAggregator aggregator,
+                                               EditorState editorState)
         {
-            get => _toEdit;
-            private set => SetProperty(ref _toEdit, value);
-        }
-
-        public bool IsLoading
-        {
-            get => _isLoading;
-            private set => SetProperty(ref _isLoading, value);
-        }
-
-        public ImmutableList<AppConfigModel> AppConfigs
-        {
-            get => _appConfigs;
-            private set
-            {
-                SetProperty(ref _appConfigs, value);
-                ToEdit = null;
-            }
-        }
-
-        public ConfigurationViewAppConfigModel(IServerConfigurationApi api, IDialogService dialogService, IEventAggregator aggregator)
-        {
-            _api           = api;
-            _dialogService = dialogService;
-            _aggregator    = aggregator;
-            _appConfigs    = ImmutableList<AppConfigModel>.Empty;
-
-            _subscription = (from prop in api.PropertyChangedObservable
-                             where prop == HubEvents.AppsConfigChanged
-                             from config in api.QueryAppConfig()
-                             select (from specificConfig in config
-                                     select new AppConfigModel(specificConfig, _aggregator))
-                                .ToImmutableList())
-               .AutoSubscribe(
-                    config =>
-                    {
-                        ToEdit     = null;
-                        AppConfigs = config;
-                    });
-        }
-
-        public async Task Init()
-        {
-            try
-            {
-                await PropertyChangedComponent.Init(_api);
-                AppConfigs = (await _api.QueryAppConfig())
-                   .Select(c => new AppConfigModel(c, _aggregator))
-                   .ToImmutableList();
-            }
-            finally
-            {
-                IsLoading = false;
-            }
+            _viewState = viewState;
+            _api            = api;
+            _dialogService  = dialogService;
+            _aggregator     = aggregator;
+            _editorState = editorState;
         }
 
         public async Task CommitConfig(AppConfigModel model)
         {
+            bool reset = false;
             try
             {
+                if (_editorState.ChangesWhereMade)
+                {
+                    var saveCon = await _dialogService.ShowMessageBox("Bedingungen geändert", "Die Bedingungen wurden geändert. Speichern?", "Ja", "Nein", "Abbrechen");
+                    switch (saveCon)
+                    {
+                        case null:
+                            _aggregator.PublishWarnig("Vorgang Abbgebrochen");
+                            return;
+                        case true:
+                            if (!_editorState.CommitChanges(model, _aggregator))
+                                return;
+                            break;
+                    }
+                }
+                
                 var data = model.CreateNew();
 
                 model.IsNew = false;
-                var result = await _api.Update(data);
-                if(string.IsNullOrWhiteSpace(result)) return;
+                var result = await _api.UpdateSpecificConfig(new UpdateSpecifcConfigCommand(data));
+                if (string.IsNullOrWhiteSpace(result))
+                {
+                    reset = true;
+                    return;
+                }
                 
                 _aggregator.PublishWarnig(result);
             }
@@ -101,11 +77,12 @@ namespace ServiceManager.Client.ViewModels
             }
             finally
             {
-                ToEdit = null;
+                if(reset)
+                    _viewState.Set(_viewState.Value with{ ToEdit = null, NewModel = null });
             }
         }
         
-        public async Task NewConfig()
+        public async Task NewConfig(ImmutableList<AppConfigModel> appConfigs)
         {
             try
             {
@@ -114,7 +91,7 @@ namespace ServiceManager.Client.ViewModels
                     new DialogParameters
                     {
                         {
-                            "Blocked", AppConfigs.Select(m => m.Config.Id)
+                            "Blocked", appConfigs.Select(m => m.Config.Id)
                                .ToImmutableHashSet()
                         }
                     });
@@ -126,14 +103,14 @@ namespace ServiceManager.Client.ViewModels
                 {
                     if (result.Data is string name
                      && !string.IsNullOrWhiteSpace(name)
-                     && _appConfigs.All(m => !m.Config.Id.Equals(name, StringComparison.Ordinal)))
+                     && appConfigs.All(m => !m.Config.Id.Equals(name, StringComparison.Ordinal)))
                     {
                         var model = new AppConfigModel(new SpecificConfig(name, string.Empty, string.Empty, ImmutableList<Condition>.Empty), _aggregator)
                                     {
                                         IsNew = true
                                     };
 
-                        AppConfigs = AppConfigs.Add(model);
+                        _viewState.Set(_viewState.Value with{ NewModel = model });
                         EditConfig(model);
                     }
                     else
@@ -143,6 +120,7 @@ namespace ServiceManager.Client.ViewModels
             catch (Exception e)
             {
                 _aggregator.PublishError(e);
+                Console.WriteLine(e);
             }
         }
 
@@ -152,7 +130,7 @@ namespace ServiceManager.Client.ViewModels
 
             try
             {
-                var result = await _api.DeleteSpecificConfig(model.Config.Id);
+                var result = await _api.DeleteSpecificConfig(new DeleteSpecificConfigCommand(model.Config.Id));
                 if (!string.IsNullOrWhiteSpace(result))
                 {
                     _aggregator.PublishWarnig(result);
@@ -160,8 +138,7 @@ namespace ServiceManager.Client.ViewModels
                     return;
                 }
 
-                ToEdit     = null;
-                AppConfigs = AppConfigs.Remove(model);
+                _viewState.Set(_viewState.Value with{ ToEdit = null, NewModel = null });
             }
             catch (Exception e)
             {
@@ -170,9 +147,9 @@ namespace ServiceManager.Client.ViewModels
         }
 
         public void EditConfig(AppConfigModel? model)
-            => ToEdit = model;
-
-        public void Dispose()
-            => _subscription.Dispose();
+        {
+            _editorState.Reset();
+            _viewState.Set(_viewState.Value with { ToEdit = model, NewModel = null });
+        }
     }
 }

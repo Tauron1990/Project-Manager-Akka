@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Linq;
-using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Akka.Util.Internal;
@@ -9,55 +8,60 @@ using Microsoft.AspNetCore.SignalR.Client;
 using MudBlazor;
 using ServiceManager.Client.Shared.Dialog;
 using ServiceManager.Shared.Api;
+using ServiceManager.Shared.ServiceDeamon;
 using Tauron.Application;
 
 namespace ServiceManager.Client.ViewModels
 {
-    public sealed class ConfigurationOptionsViewModel : ObservableObject
+    public sealed class ConfigurationOptionsViewModel
     {
         public static readonly OptionElement DefaultElement = new(true, "Daten nicht geladen", Array.Empty<MutableConfigOption>());
 
         private readonly IEventAggregator _eventAggregator;
-        private readonly HttpClient _client;
         private readonly IDialogService _dialogService;
         private readonly HubConnection _connection;
-        private readonly ConcurrentDictionary<string, OptionElement> _elements = new();
+        private readonly IServerConfigurationApi _api;
+        private readonly ConcurrentDictionary<ConfigOpensElement, OptionElement> _elements = new();
 
-        public OptionElement Akka => _elements.GetOrElse(ConfigurationRestApi.ModuleName.Akka, DefaultElement);
+        public OptionElement Akka => _elements.GetOrElse(ConfigOpensElement.Akka, DefaultElement);
 
-        public OptionElement AkkaRemote => _elements.GetOrElse(ConfigurationRestApi.ModuleName.AkkaRemote, DefaultElement);
+        public OptionElement AkkaRemote => _elements.GetOrElse(ConfigOpensElement.AkkaRemote, DefaultElement);
 
-        public OptionElement AkkaPersistence => _elements.GetOrElse(ConfigurationRestApi.ModuleName.AkkaPersistence, DefaultElement);
+        public OptionElement AkkaPersistence => _elements.GetOrElse(ConfigOpensElement.AkkaPersistence, DefaultElement);
 
-        public OptionElement AkkaCluster => _elements.GetOrElse(ConfigurationRestApi.ModuleName.AkkaCluster, DefaultElement);
+        public OptionElement AkkaCluster => _elements.GetOrElse(ConfigOpensElement.AkkaCluster, DefaultElement);
 
-        public OptionElement AkkaStreams => _elements.GetOrElse(ConfigurationRestApi.ModuleName.AkkaStreams, DefaultElement);
+        public OptionElement AkkaStreams => _elements.GetOrElse(ConfigOpensElement.AkkaStreams, DefaultElement);
 
-        public ConfigurationOptionsViewModel(IEventAggregator eventAggregator, HttpClient client, IDialogService dialogService, HubConnection connection)
+        public ConfigurationOptionsViewModel(IEventAggregator eventAggregator, IDialogService dialogService, HubConnection connection,
+                                             IServerConfigurationApi api)
         {
             _eventAggregator = eventAggregator;
-            _client = client;
             _dialogService = dialogService;
             _connection = connection;
+            _api = api;
         }
 
-        public async Task LoadAsyncFor(string name)
+        public async Task LoadAsyncFor(ConfigOpensElement name, Action stateChange)
         {
-            OnPropertyChangedExplicit("All");
             try
             {
                 if (_elements.TryGetValue(name, out var element) && !element.Error)
                     return;
-                
-                    var response = await _connection.InvokeAsync<ConfigOptionList>(nameof(ConfigurationRestApi.GetConfigFileOptions), name);
 
-                    if (response == null)
-                    {
-                        _elements[name] = new OptionElement(true, "Fehler beim Laden der Daten", Array.Empty<MutableConfigOption>());
-                        return;
-                    }
+                if (_connection.State == HubConnectionState.Disconnected)
+                    await _connection.StartAsync();
 
-                    _elements[name] = new OptionElement(false, string.Empty, response.Options.Select(co => new MutableConfigOption(co)).ToArray());
+                var response = await _connection.InvokeAsync<ConfigOptionList>("GetConfigFileOptions", name);
+
+                if (response == null)
+                {
+                    _elements[name] = new OptionElement(true, "Fehler beim Laden der Daten", Array.Empty<MutableConfigOption>());
+
+                    return;
+                }
+
+                _elements[name] = new OptionElement(false, string.Empty, response.Options.Select(co => new MutableConfigOption(co)).ToArray());
             }
             catch (Exception e)
             {
@@ -66,19 +70,19 @@ namespace ServiceManager.Client.ViewModels
             }
             finally
             {
-                OnPropertyChangedExplicit("All");
+                stateChange();
             }
         }
 
-        public async Task ShowConfigFile(string name)
+        public async Task ShowConfigFile(ConfigOpensElement name)
         {
             try
             {
-                var result = await _client.GetFromJsonAsync<StringApiContent>(ConfigurationRestApi.GetConfigFile + "/" + name);
+                var result = await _api.QueryDefaultFileContent(name);
                 if(result == null)
                     _eventAggregator.PublishError($"Unbkannter Fehler beim abrufen der Datei {name}");
                 else
-                    _dialogService.Show<ShowTextDataDialog>("Konfigurations Text", ShowTextDataDialog.GetParameters(result.Content), new DialogOptions {FullScreen = true, CloseButton = true});
+                    _dialogService.Show<ShowTextDataDialog>("Konfigurations Text", ShowTextDataDialog.GetParameters(result), new DialogOptions {FullScreen = true, CloseButton = true});
             }
             catch (Exception e)
             {

@@ -1,14 +1,20 @@
-﻿using System.Collections.Specialized;
-using System.ComponentModel;
+﻿using System.Threading;
 using System.Threading.Tasks;
 using ServiceManager.Shared.ClusterTracking;
+using Stl.CommandR;
+using Stl.CommandR.Configuration;
+using Stl.Fusion;
 
 namespace ServiceManager.Shared
 {
-    public interface IAppIpManager : INotifyPropertyChanged
-    {
-        Task<string> WriteIp(string ip);
+    public sealed record WriteIpCommand(string Ip) : ICommand<string>;
 
-        AppIp Ip { get; }
+    public interface IAppIpManager
+    {
+        [CommandHandler]
+        Task<string> WriteIp(WriteIpCommand command, CancellationToken token = default);
+
+        [ComputeMethod]
+        Task<AppIp> GetIp();
     }
 }

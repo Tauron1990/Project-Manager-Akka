@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
 using Microsoft.Extensions.Hosting;
@@ -67,7 +68,8 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
 
         protected override void ConfigImpl()
         {
-            Receive<TryStart>(obs => obs.ConditionalSelect()
+            Receive<TryStart>(obs => obs.Synchronize()
+                                    .ConditionalSelect()
                                         .ToResult<StatePair<TryStartResponse, _>>(
                                              b =>
                                              {
@@ -90,7 +92,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
                                                               from configResult in pair.State.ConfigurationApi.QueryIsAlive(system, timeout)
                                                               let isOk = repoResult.IsAlive && deployResult.IsAlive && configResult.IsAlive
                                                               from response in isOk
-                                                                  ? Observable.Return(pair.NewEvent(new TryStartResponse(true, string.Empty)))
+                                                                  ? Task.FromResult(pair.NewEvent(new TryStartResponse(true, string.Empty)))
                                                                   : TryStart(pair)
                                                               select response,
                                                          (pair, exception) =>
@@ -113,24 +115,35 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
             Receive<Terminated>(obs => obs.Select(_ => new Services()).ToSelf());
         }
 
-        private static IObservable<StatePair<TryStartResponse, _>> TryStart(StatePair<TryStart, _> o)
+        
+        private async Task<StatePair<TryStartResponse, _>> TryStart(StatePair<TryStart, _> o)
         {
-            if (o.State.Operator.Running)
-                return Observable.Return(o.NewEvent(new TryStartResponse(true, string.Empty)));
+            using var gate = await StartSyncronizer.Wait();
 
+            if (o.State.Operator.Running)
+                return o.NewEvent(new TryStartResponse(true, string.Empty));
+
+            if (gate.Success)
+            {
+                gate.SetSuccess(false);
+                return o.NewEvent(new TryStartResponse(true, string.Empty));
+            }
+                
+            gate.SetSuccess(false);
+                
             var isError = false;
             IActorRef repo = ActorRefs.Nobody;
             IActorRef deploy = ActorRefs.Nobody;
             IActorRef deamon = ActorRefs.Nobody;
 
-            string databseUrl = o.State.DatabaseConfig.Url;
+            string databseUrl = await o.State.DatabaseConfig.GetUrl();
 
             try
             {
                 if (string.IsNullOrWhiteSpace(o.Event.DatabaseUrl))
                 {
-                    if (!o.State.DatabaseConfig.IsReady)
-                        return Observable.Return(o.NewEvent(new TryStartResponse(false, "Keine Datenbaank Url Verfügbar")));
+                    if (!await o.State.DatabaseConfig.GetIsReady())
+                        return o.NewEvent(new TryStartResponse(false, "Keine Datenbaank Url Verfügbar"));
                 }
                 else
                     databseUrl = o.Event.DatabaseUrl;
@@ -140,6 +153,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
             catch
             {
                 isError = true;
+
                 throw;
             }
             finally
@@ -153,7 +167,9 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
             }
 
             o.Self.Tell(new Services(repo, deploy, deamon, true, databseUrl));
-            return Observable.Return(o.NewEvent(new TryStartResponse(true, string.Empty)));
+
+            gate.SetSuccess();
+            return o.NewEvent(new TryStartResponse(true, string.Empty));
         }
 
         private static void StartServices(string connectionstring, IHostEnvironment hostEnvironment, ActorSystem system,
@@ -216,6 +232,38 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
             {
                 Dispose();
                 return services;
+            }
+        }
+        
+        public static class StartSyncronizer
+        {
+            private static readonly SemaphoreSlim _mainGate = new(1);
+            private static bool _success = false;
+
+            public static async Task<SyncGate> Wait()
+            {
+                await _mainGate.WaitAsync();
+
+                return new SyncGate(_mainGate, _success);
+            }
+
+            public sealed class SyncGate : IDisposable
+            {
+                private readonly SemaphoreSlim _gate;
+
+                public bool Success { get; }
+                
+                public SyncGate(SemaphoreSlim gate, bool success)
+                {
+                    _gate = gate;
+                    Success = success;
+                }
+
+                public void SetSuccess(bool value = true)
+                    => _success = value;
+                
+                public void Dispose()
+                    => _gate.Release();
             }
         }
     }
