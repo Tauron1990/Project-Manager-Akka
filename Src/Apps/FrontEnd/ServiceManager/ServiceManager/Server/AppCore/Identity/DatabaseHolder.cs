@@ -1,6 +1,6 @@
 ﻿namespace ServiceManager.Server.AppCore.Identity
 {
-    public class PasswordStore
+    public class DatabaseHolder
     {
         
     }
