@@ -1,7 +1,9 @@
 ﻿@using ServiceManager.Client.ViewModels.Identity
 
+@inject IErrorMessageProvider _errorMessage
+
 <div class="d-flex flex-column justify-space-around">
-    @if (_userState == null)
+    @if (_authenticationState == null || _userState == null)
     {
         <MudText Class="justify-center">Unbekannter Fehler</MudText>
     }
@@ -12,7 +14,15 @@
     }
     else
     {
-
+        <p>
+            @foreach (var msg in _errorMessage.GetMessage(_authenticationState, Claims))
+            {
+                <MudText Class="justify-center">@msg</MudText>
+            }
+        </p>
+        <p>
+            <MudText Class="justify-center">Wende die an einen Administrator um zufriff auf die Resource zu erhalten</MudText>
+        </p>
     }
 </div>
 
@@ -22,13 +32,17 @@
     public string[] Claims { get; set; } = Array.Empty<string>();
 
     [CascadingParameter]
-    public Task<AuthenticationState> State { get; set; }
+    public Task<AuthenticationState>? State { get; set; }
 
     private UserState? _userState;
+    private AuthenticationState? _authenticationState;
 
     protected override async Task OnParametersSetAsync()
     {
-        _userState = (await State) as UserState;
+        if(State == null) return;
+
+        _authenticationState = await State;
+        _userState = _authenticationState as UserState;
         await base.OnParametersSetAsync();
     }
 

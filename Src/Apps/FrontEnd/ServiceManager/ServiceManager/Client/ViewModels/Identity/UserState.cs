@@ -10,7 +10,7 @@ namespace ServiceManager.Client.ViewModels.Identity
 
         public bool IsAnonymos => ActualUser.IsAnonymos; 
 
-        public UserState(UserData actualUser) : base(new ClaimsPrincipal(new ClaimsIdentity(actualUser.Claims.Select(p => new Claim(p.Key, p.Value)))))
+        public UserState(UserData actualUser) : base(new ClaimsPrincipal(new ClaimsIdentity(actualUser.Claims.Select(p => new Claim(p.Key, p.Value)), "Test")))
             => ActualUser = actualUser;
     }
 }

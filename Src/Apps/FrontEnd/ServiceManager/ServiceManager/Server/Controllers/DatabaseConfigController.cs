@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ServiceManager.Server.AppCore.Identity;
 using ServiceManager.Shared.Api;
 using ServiceManager.Shared.Identity;
 using ServiceManager.Shared.ServiceDeamon;
@@ -23,7 +22,7 @@ namespace ServiceManager.Server.Controllers
         public Task<string> GetUrl()
             => _config.GetUrl();
 
-        [HttpGet, Publish]
+        [HttpGet, Publish, AllowAnonymous]
         public Task<bool> GetIsReady()
             => _config.GetIsReady();
         [HttpGet]
