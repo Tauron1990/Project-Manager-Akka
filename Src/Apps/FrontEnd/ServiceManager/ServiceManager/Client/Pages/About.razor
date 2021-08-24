@@ -1,19 +1,6 @@
 ﻿@page "/About"
-@using ServiceManager.Shared.ClusterTracking
+@using ServiceManager.Shared.Identity
 
-@inherits ComputedStateComponent<string>
-@inject IClusterConnectionTracker _clusterUrl;
-
-<Title Value="Über Servie Manager"></Title>
-
-<MudText Typo="Typo.h3">Service Manager</MudText>
-
-<MudText>Project Manager Akka</MudText>
-
-<MudText>Aktuelle Url: @State.LatestNonErrorValue</MudText>
-
-@code {
-    protected override Task<string> ComputeState(CancellationToken cancellationToken) 
-        => _clusterUrl.GetUrl();
-
-}
+<GenericAuthorizeView Claims="new[] { Claims.ClusterConnectionClaim }">
+    <AboutView/>
+</GenericAuthorizeView>

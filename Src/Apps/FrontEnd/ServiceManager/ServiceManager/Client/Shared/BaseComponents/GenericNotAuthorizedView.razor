@@ -1,0 +1,35 @@
+﻿@using ServiceManager.Client.ViewModels.Identity
+
+<div class="d-flex flex-column justify-space-around">
+    @if (_userState == null)
+    {
+        <MudText Class="justify-center">Unbekannter Fehler</MudText>
+    }
+    else if(Claims.Length == 0 || _userState.IsAnonymos)
+    {
+        <MudText Class="justify-center">Bitte melde dich an um Zugriff zu erhalten!</MudText>
+        <MudLink Class="justify-center" Href="/User">Anmelden</MudLink>
+    }
+    else
+    {
+
+    }
+</div>
+
+@code {
+
+    [Parameter]
+    public string[] Claims { get; set; } = Array.Empty<string>();
+
+    [CascadingParameter]
+    public Task<AuthenticationState> State { get; set; }
+
+    private UserState? _userState;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _userState = (await State) as UserState;
+        await base.OnParametersSetAsync();
+    }
+
+}

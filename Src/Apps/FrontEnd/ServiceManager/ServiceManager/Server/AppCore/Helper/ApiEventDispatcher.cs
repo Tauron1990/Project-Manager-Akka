@@ -1,15 +1,12 @@
 ﻿using System;
-using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Streams;
-using Akka.Streams.Dsl;
 using ServiceHost.Client.Shared.ConfigurationServer;
 using ServiceHost.Client.Shared.ConfigurationServer.Events;
 using Tauron;
 using Tauron.Application;
-using Tauron.Application.AkkaNode.Services.Core;
 using Tauron.Features;
 
 namespace ServiceManager.Server.AppCore.Helper

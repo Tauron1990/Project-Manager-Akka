@@ -1,10 +1,13 @@
 ﻿using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ServiceHost.Client.Shared.ConfigurationServer.Data;
+using ServiceManager.Server.AppCore.Identity;
 using ServiceManager.Server.Properties;
 using ServiceManager.Shared.Api;
+using ServiceManager.Shared.Identity;
 using ServiceManager.Shared.ServiceDeamon;
 using Stl.CommandR;
 using Stl.Fusion.Server;
@@ -13,6 +16,7 @@ namespace ServiceManager.Server.Controllers
 {
     [Route(ControllerName.AppConfiguration + "/[action]")]
     [ApiController, JsonifyErrors]
+    [Authorize(Claims.ConfigurationClaim)]
     public class ConfigurationController : ControllerBase, IServerConfigurationApi
     {
         private readonly IServerConfigurationApi _api;

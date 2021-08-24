@@ -1,7 +1,10 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ServiceManager.Server.AppCore.Identity;
 using ServiceManager.Shared.Api;
+using ServiceManager.Shared.Identity;
 using ServiceManager.Shared.ServiceDeamon;
 using Stl.Fusion.Server;
 
@@ -9,6 +12,7 @@ namespace ServiceManager.Server.Controllers
 {
     [Route(ControllerName.DatabaseConfigApiBase + "/[action]")]
     [ApiController, JsonifyErrors]
+    [Authorize(Claims.DatabaseClaim)]
     public class DatabaseConfigController : ControllerBase, IDatabaseConfig
     {
         private readonly IDatabaseConfig _config;
