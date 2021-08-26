@@ -9,6 +9,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using JetBrains.Annotations;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.SignalR;
@@ -51,29 +53,19 @@ namespace ServiceManager.Server
             ImmutableListSerializer<Condition>.Register();
             ImmutableListSerializer<SeedUrl>.Register();
 
-            services.AddDbContext<UsersDatabase>(
-                options =>
+
+            services.AddDbContextFactory<UsersDatabase>(
+                builder =>
                 {
-                    var targetPath = Path.Combine(Program.ExeFolder, "_Database");
+                    var targetPath = Path.Combine(Program.ExeFolder, "_database");
                     targetPath.CreateDirectoryIfNotExis();
 
                     var source = new SqliteConnectionStringBuilder
-                    {
-                        DataSource = Path.Combine(targetPath, "data.db")
-                    }.ConnectionString;
+                                 {
+                                     DataSource = Path.Combine(targetPath, "data.db")
+                                 }.ConnectionString;
 
-                    options.UseSqlite(source);
-                });
-
-            services.AddAuthorization(
-                o =>
-                {
-                    o.AddPolicy(Claims.AppIpClaim, b => b.RequireClaim(ClaimTypes.Role, Claims.AppIpClaim));
-                    o.AddPolicy(Claims.ClusterConnectionClaim, b => b.RequireClaim(ClaimTypes.Role, Claims.ClusterConnectionClaim));
-                    o.AddPolicy(Claims.ClusterNodeClaim, b => b.RequireClaim(ClaimTypes.Role, Claims.ClusterNodeClaim));
-                    o.AddPolicy(Claims.ConfigurationClaim, b => b.RequireClaim(ClaimTypes.Role, Claims.ConfigurationClaim));
-                    o.AddPolicy(Claims.DatabaseClaim, b => b.RequireClaim(ClaimTypes.Role, Claims.DatabaseClaim));
-                    o.AddPolicy(Claims.ServerInfoClaim, b => b.RequireClaim(ClaimTypes.Role, Claims.ServerInfoClaim));
+                    builder.UseSqlite(source);
                 });
 
             services.AddCommander()
@@ -81,12 +73,20 @@ namespace ServiceManager.Server
 
             services.AddDbContextServices<UsersDatabase>(
                 o => o
-                    .AddFileBasedOperationLogChangeTracking("_changed")
+                    .AddFileBasedOperationLogChangeTracking(Path.Combine(Program.ExeFolder, "_changed"))
                     .AddOperations()
                     .AddAuthentication<SessionInfoEntity, UserEntity, long>());
 
             var fusion = services.AddFusion();
 
+            services.AddAuthentication(o => o.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme)
+                    .AddCookie(
+                         options =>
+                         {
+                             options.LoginPath = "/signIn";
+                             options.LogoutPath = "/signOut";
+                             options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+                         });
             fusion.AddAuthentication(
                 o => o.AddServer());
 
@@ -98,6 +98,17 @@ namespace ServiceManager.Server
                   .AddComputeService<IServerConfigurationApi, ServerConfigurationApi>();
 
 
+            services.AddAuthorization(
+                o =>
+                {
+                    o.AddPolicy(Claims.AppIpClaim, b => b.RequireClaim(ClaimTypes.Role, Claims.AppIpClaim));
+                    o.AddPolicy(Claims.ClusterConnectionClaim, b => b.RequireClaim(ClaimTypes.Role, Claims.ClusterConnectionClaim));
+                    o.AddPolicy(Claims.ClusterNodeClaim, b => b.RequireClaim(ClaimTypes.Role, Claims.ClusterNodeClaim));
+                    o.AddPolicy(Claims.ConfigurationClaim, b => b.RequireClaim(ClaimTypes.Role, Claims.ConfigurationClaim));
+                    o.AddPolicy(Claims.DatabaseClaim, b => b.RequireClaim(ClaimTypes.Role, Claims.DatabaseClaim));
+                    o.AddPolicy(Claims.ServerInfoClaim, b => b.RequireClaim(ClaimTypes.Role, Claims.ServerInfoClaim));
+                });
+            
             services.Configure<HostOptions>(o => o.ShutdownTimeout = TimeSpan.FromSeconds(30));
 
             services.Configure<IdentityOptions>(options =>
@@ -128,8 +139,6 @@ namespace ServiceManager.Server
                                                     options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
                                                     options.SlidingExpiration = true;
                                                 });
-
-
             services.AddCors();
             services.AddSignalR();
             services.AddControllersWithViews();
@@ -183,9 +192,13 @@ namespace ServiceManager.Server
             }
 
             app.UseCors(builder => builder.WithFusionHeaders());
+            app.UseCookiePolicy();
+            
             app.UseBlazorFrameworkFiles();
             app.UseStaticFiles();
 
+            app.UseWebSockets();
+            app.UseFusionSession();
             app.UseRouting();
 
             app.UseAuthentication();

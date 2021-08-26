@@ -14,6 +14,7 @@ using ServiceManager.Shared.ServiceDeamon;
 using Stl.Fusion;
 using Stl.Fusion.Blazor;
 using Stl.Fusion.Client;
+using Stl.Fusion.Extensions;
 
 namespace ServiceManager.Client
 {
@@ -33,6 +34,7 @@ namespace ServiceManager.Client
 
         public static async Task Main(string[] args)
         {
+            
             #if(DEBUG)
             //await Task.Delay(6000);
             #endif
@@ -57,6 +59,7 @@ namespace ServiceManager.Client
         {
             collection.AddSingleton<BlazorModeHelper>();
             collection.AddFusion()
+                      .AddFusionTime()
                       .AddBlazorUIServices()
                       .AddAuthentication(
                            o => o.AddRestEaseClient().AddBlazor())

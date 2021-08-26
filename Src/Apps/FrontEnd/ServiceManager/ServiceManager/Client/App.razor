@@ -1,7 +1,8 @@
-<CascadingAuthenticationState>
+@using Stl.Text
+<CascadingAuthState SessionId="@Symbol.Empty">
     <Router AppAssembly="@typeof(Program).Assembly" PreferExactMatches="@true">
         <Found Context="routeData">
-            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)"/>
+            <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)"/>
         </Found>
         <NotFound>
             <LayoutView Layout="@typeof(MainLayout)">
@@ -9,4 +10,4 @@
             </LayoutView>
         </NotFound>
     </Router>
-</CascadingAuthenticationState>
+</CascadingAuthState>

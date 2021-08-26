@@ -25,7 +25,7 @@ namespace ServiceManager.Server.Controllers
         public Task<string> WriteIp([FromBody]WriteIpCommand command, CancellationToken token = default)
             => _manager.WriteIp(command, token);
 
-        [HttpGet, Publish]
+        [HttpGet, Publish, AllowAnonymous]
         public Task<AppIp> GetIp()
             => _manager.GetIp();
     }

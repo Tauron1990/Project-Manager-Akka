@@ -24,15 +24,15 @@ namespace ServiceManager.Server.Controllers
         public Task<string> GetUrl()
             => _tracker.GetUrl();
 
-        [HttpGet, Publish]
+        [HttpGet, Publish, AllowAnonymous]
         public Task<bool> GetIsConnected()
             => _tracker.GetIsConnected();
 
-        [HttpGet, Publish]
+        [HttpGet, Publish, AllowAnonymous]
         public Task<bool> GetIsSelf()
             => _tracker.GetIsSelf();
 
-        [HttpGet, Publish]
+        [HttpGet, Publish, AllowAnonymous]
         public Task<AppIp> Ip()
             => _tracker.Ip();
 
