@@ -1,5 +1,4 @@
 ﻿using Blazored.LocalStorage;
-using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceManager.Client.Shared.BaseComponents;
 using ServiceManager.Client.Shared.Configuration.ConditionEditor;
@@ -16,9 +15,9 @@ namespace ServiceManager.Client
     {
         public static void Run(IServiceCollection collection)
         {
-            collection.AddScoped<AuthenticationStateProvider, CustomAuthenticationProvider>();
+            //collection.AddScoped<AuthenticationStateProvider, CustomAuthenticationProvider>();
+
             collection.AddScoped<IErrorMessageProvider, ErrorMessageProvider>();
-            collection.AddAuthorizationCore();
             collection.AddBlazoredLocalStorage();
 
             collection.AddScoped<IAccountService, ClientAccountService>();

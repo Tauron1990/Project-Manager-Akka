@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using Akka.DependencyInjection;
@@ -11,6 +12,8 @@ using JetBrains.Annotations;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
 using ServiceHost.Client.Shared.ConfigurationServer.Data;
 using ServiceManager.Server.AppCore;
 using ServiceManager.Server.AppCore.ClusterTracking;
@@ -22,10 +25,13 @@ using ServiceManager.Server.Hubs;
 using ServiceManager.Shared;
 using ServiceManager.Shared.Api;
 using ServiceManager.Shared.ClusterTracking;
+using ServiceManager.Shared.Identity;
 using ServiceManager.Shared.ServiceDeamon;
 using Stl.CommandR;
 using Stl.Fusion;
+using Stl.Fusion.EntityFramework;
 using Stl.Fusion.Server;
+using Tauron;
 using Tauron.AkkaHost;
 using Tauron.Application.AkkaNode.Bootstrap;
 using Tauron.Application.MongoExtensions;
@@ -45,11 +51,45 @@ namespace ServiceManager.Server
             ImmutableListSerializer<Condition>.Register();
             ImmutableListSerializer<SeedUrl>.Register();
 
+            services.AddDbContext<UsersDatabase>(
+                options =>
+                {
+                    var targetPath = Path.Combine(Program.ExeFolder, "_Database");
+                    targetPath.CreateDirectoryIfNotExis();
+
+                    var source = new SqliteConnectionStringBuilder
+                    {
+                        DataSource = Path.Combine(targetPath, "data.db")
+                    }.ConnectionString;
+
+                    options.UseSqlite(source);
+                });
+
+            services.AddAuthorization(
+                o =>
+                {
+                    o.AddPolicy(Claims.AppIpClaim, b => b.RequireClaim(ClaimTypes.Role, Claims.AppIpClaim));
+                    o.AddPolicy(Claims.ClusterConnectionClaim, b => b.RequireClaim(ClaimTypes.Role, Claims.ClusterConnectionClaim));
+                    o.AddPolicy(Claims.ClusterNodeClaim, b => b.RequireClaim(ClaimTypes.Role, Claims.ClusterNodeClaim));
+                    o.AddPolicy(Claims.ConfigurationClaim, b => b.RequireClaim(ClaimTypes.Role, Claims.ConfigurationClaim));
+                    o.AddPolicy(Claims.DatabaseClaim, b => b.RequireClaim(ClaimTypes.Role, Claims.DatabaseClaim));
+                    o.AddPolicy(Claims.ServerInfoClaim, b => b.RequireClaim(ClaimTypes.Role, Claims.ServerInfoClaim));
+                });
+
             services.AddCommander()
                     .AddCommandService<INodeUpdateHandler, NodeUpdateHandler>();
-            
+
+            services.AddDbContextServices<UsersDatabase>(
+                o => o
+                    .AddFileBasedOperationLogChangeTracking("_changed")
+                    .AddOperations()
+                    .AddAuthentication<SessionInfoEntity, UserEntity, long>());
+
             var fusion = services.AddFusion();
-            fusion.AddWebServer();
+
+            fusion.AddAuthentication(
+                o => o.AddServer());
+
             fusion.AddComputeService<IClusterNodeTracking, ClusterNodeTracking>()
                   .AddComputeService<IClusterConnectionTracker, ClusterConnectionTracker>()
                   .AddComputeService<IServerInfo, ServerInfo>()

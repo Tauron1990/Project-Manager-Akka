@@ -2,10 +2,12 @@ using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ServiceManager.Server.AppCore;
 using ServiceManager.Server.AppCore.Helper;
+using ServiceManager.Server.AppCore.Identity;
 using ServiceManager.Shared;
 using Tauron.Application.AkkaNode.Bootstrap;
 using Tauron.Application.AkkaNode.Bootstrap.Console;
@@ -23,7 +25,12 @@ namespace ServiceManager.Server
         public static async Task Main(string[] args)
         {
             await AppIpManager.Aquire();
-            await CreateHostBuilder(args).Build().RunAsync();
+            var host = CreateHostBuilder(args).Build();
+
+            await using (var context = host.Services.GetRequiredService<UsersDatabase>()) 
+                await context.Database.MigrateAsync();
+
+            await host.RunAsync();
 
             if (!RestartHelper.Restart) return;
 

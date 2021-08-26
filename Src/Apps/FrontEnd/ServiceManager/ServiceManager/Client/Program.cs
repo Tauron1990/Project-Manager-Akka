@@ -58,6 +58,8 @@ namespace ServiceManager.Client
             collection.AddSingleton<BlazorModeHelper>();
             collection.AddFusion()
                       .AddBlazorUIServices()
+                      .AddAuthentication(
+                           o => o.AddRestEaseClient().AddBlazor())
                       .AddRestEaseClient()
                       .ConfigureHttpClientFactory((_, _, options) => options.HttpClientActions.Add(c => c.BaseAddress = baseAdress))
                       .AddClientService<IClusterNodeTracking, IClusterNodeTrackingDef>()

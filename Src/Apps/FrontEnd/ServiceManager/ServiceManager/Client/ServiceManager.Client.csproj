@@ -15,7 +15,13 @@
     <EmbeddedResource Remove="wwwroot\css\open-iconic\**" />
     <None Remove="wwwroot\css\bootstrap\**" />
     <None Remove="wwwroot\css\open-iconic\**" />
+    <Compile Remove="ViewModels\Identity\CustomAuthenticationProvider .cs" />
+    <Compile Remove="ViewModels\Identity\UserData.cs" />
+    <Compile Remove="ViewModels\Identity\UserState.cs" />
     <Compile Remove="ViewModels\Models\ModelBase.cs" />
+    <None Include="ViewModels\Identity\CustomAuthenticationProvider .cs" />
+    <None Include="ViewModels\Identity\UserData.cs" />
+    <None Include="ViewModels\Identity\UserState.cs" />
     <None Include="ViewModels\Models\ModelBase.cs" />
   </ItemGroup>
 
