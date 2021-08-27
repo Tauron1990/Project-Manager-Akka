@@ -17,6 +17,8 @@ namespace ServiceManager.Server
 {
     public static class Program
     {
+        //<!--@(await Html.RenderComponentAsync<App>(RenderMode.WebAssemblyPrerendered, new { SessionId = sessionId }))-->
+        
         public static readonly string ExeFolder = Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location) ?? string.Empty;
 
         private static readonly RestartHelper RestartHelper = new();

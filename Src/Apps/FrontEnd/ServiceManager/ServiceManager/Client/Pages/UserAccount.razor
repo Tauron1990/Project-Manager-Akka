@@ -1,5 +1,20 @@
-﻿@page "/User"
+﻿@using ServiceManager.Client.Shared.UserAccount
+@using ServiceManager.Shared.Identity
+
+@page "/User"
+@inherits ComputedStateComponent<bool>
+@layout UserAccountLayout
+
+@inject IUserManagement _management; 
+
+<StateAwaiter State="State">
+    @if (context)
+    {
+        <UserAccountsSetupView/>
+    }
+</StateAwaiter>
 
 @code {
-
+    protected override Task<bool> ComputeState(CancellationToken cancellationToken) 
+        => _management.NeedSetup(cancellationToken);
 }

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Net.Http;
+using System.Reactive.PlatformServices;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.SignalR.Client;
@@ -10,6 +11,7 @@ using MudBlazor.Services;
 using ServiceManager.Client.ServiceDefs;
 using ServiceManager.Shared;
 using ServiceManager.Shared.ClusterTracking;
+using ServiceManager.Shared.Identity;
 using ServiceManager.Shared.ServiceDeamon;
 using Stl.Fusion;
 using Stl.Fusion.Blazor;
@@ -34,13 +36,8 @@ namespace ServiceManager.Client
 
         public static async Task Main(string[] args)
         {
-            
-            #if(DEBUG)
-            //await Task.Delay(6000);
-            #endif
-
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
-            builder.RootComponents.Add<App>("#app");
+            //builder.RootComponents.Add<App>("#app");
             builder.Services.AddMudServices(o => o.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomCenter);
             builder.Services.AddScoped(sp => new HubConnectionBuilder()
                                             .WithAutomaticReconnect(new RecconectionPolicy())
@@ -62,7 +59,7 @@ namespace ServiceManager.Client
                       .AddFusionTime()
                       .AddBlazorUIServices()
                       .AddAuthentication(
-                           o => o.AddRestEaseClient().AddBlazor())
+                           o => o.AddBlazor().AddRestEaseClient())
                       .AddRestEaseClient()
                       .ConfigureHttpClientFactory((_, _, options) => options.HttpClientActions.Add(c => c.BaseAddress = baseAdress))
                       .AddClientService<IClusterNodeTracking, IClusterNodeTrackingDef>()
@@ -70,7 +67,8 @@ namespace ServiceManager.Client
                       .AddClientService<IServerInfo, IServerInfoDef>()
                       .AddClientService<IAppIpManager, IAppIpManagerDef>()
                       .AddClientService<IDatabaseConfig, IDatabaseConfigDef>()
-                      .AddClientService<IServerConfigurationApi, IServerConfigurationApiDef>();
+                      .AddClientService<IServerConfigurationApi, IServerConfigurationApiDef>()
+                      .AddClientService<IUserManagement, IUserManagementDef>();
         }
     }
 }

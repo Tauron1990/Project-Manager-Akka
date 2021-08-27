@@ -13,5 +13,7 @@
         public const string DatabaseClaim = nameof(DatabaseClaim);
 
         public const string ServerInfoClaim = nameof(ServerInfoClaim);
+
+        public const string UserManagmaent = nameof(UserManagmaent);
     }
 }

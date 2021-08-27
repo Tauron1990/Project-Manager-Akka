@@ -16,4 +16,8 @@
   <ItemGroup>
     <PackageReference Include="Stl.Fusion" Version="1.8.16" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Include="html.old" />
+  </ItemGroup>
 </Project>

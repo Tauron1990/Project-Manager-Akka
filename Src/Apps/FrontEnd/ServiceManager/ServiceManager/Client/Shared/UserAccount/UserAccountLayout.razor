@@ -1,5 +1,47 @@
-﻿<h3>UserAccountLayout</h3>
+﻿@inherits LayoutComponentBase
+
+@inject NavigationManager _navigation;
+
+<MudLayout>
+    <MudThemeProvider/>
+    <MudDialogProvider DisableBackdropClick="true"/>
+    <MudSnackbarProvider/>
+
+    <MudAppBar Elevation="4" Dense="true">
+        <MudIconButton Edge="Edge.Start" Icon="@Icons.Material.Filled.ArrowLeft" OnClick="GoBackClick"/>
+        <MudSpacer/>
+        <MudText>@HeaderMessage</MudText>
+        <MudSpacer/>
+        <MudButton Variant="Variant.Text" Link="/About" Color="Color.Tertiary">About</MudButton>
+    </MudAppBar>
+    <MudMainContent>
+        <MudContainer Fixed="true" Class="mt-2">
+            @Body
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
 
 @code {
+
+    [CascadingParameter]
+    public Task<AuthState>? AuthState { get; set; } 
     
+    private string HeaderMessage = "Lade Daten";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (AuthState != null)
+        {
+            var result = await AuthState;
+            if (result.User.IsAuthenticated)
+                HeaderMessage = $"Hallo: {result.User.Name}";
+            else
+                HeaderMessage = "Hallo Gast";
+        }
+        await base.OnParametersSetAsync();
+    }
+
+    private void GoBackClick()
+        => _navigation.NavigateTo("/");
+
 }

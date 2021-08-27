@@ -67,6 +67,7 @@ namespace ServiceManager.Server
 
                     builder.UseSqlite(source);
                 });
+            services.AddScoped(sp => sp.GetRequiredService<IDbContextFactory<UsersDatabase>>().CreateDbContext());
 
             services.AddCommander()
                     .AddCommandService<INodeUpdateHandler, NodeUpdateHandler>();
@@ -75,9 +76,13 @@ namespace ServiceManager.Server
                 o => o
                     .AddFileBasedOperationLogChangeTracking(Path.Combine(Program.ExeFolder, "_changed"))
                     .AddOperations()
-                    .AddAuthentication<SessionInfoEntity, UserEntity, long>());
+                    .AddAuthentication<FusionSessionInfoEntity, FusionUserEntity, long>());
 
             var fusion = services.AddFusion();
+
+            services.AddIdentityCore<IdentityUser<string>>()
+                    .AddRoles<IdentityRole<string>>()
+                    .AddEntityFrameworkStores<UsersDatabase>();
 
             services.AddAuthentication(o => o.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme)
                     .AddCookie(
@@ -88,14 +93,15 @@ namespace ServiceManager.Server
                              options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
                          });
             fusion.AddAuthentication(
-                o => o.AddServer());
+                o => o.AddServer(signInControllerOptionsBuilder:(_, options) => options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme));
 
             fusion.AddComputeService<IClusterNodeTracking, ClusterNodeTracking>()
                   .AddComputeService<IClusterConnectionTracker, ClusterConnectionTracker>()
                   .AddComputeService<IServerInfo, ServerInfo>()
                   .AddComputeService<IAppIpManager, AppIpService>()
                   .AddComputeService<IDatabaseConfig, DatabaseConfig>()
-                  .AddComputeService<IServerConfigurationApi, ServerConfigurationApi>();
+                  .AddComputeService<IServerConfigurationApi, ServerConfigurationApi>()
+                  .AddComputeService<IUserManagement, UserManagment>();
 
 
             services.AddAuthorization(
@@ -211,7 +217,8 @@ namespace ServiceManager.Server
                     endpoints.MapRazorPages();
                     endpoints.MapControllers();
                     endpoints.MapHub<ClusterInfoHub>("/ClusterInfoHub");
-                    endpoints.MapFallbackToFile("index.html");
+                    endpoints.MapFallbackToPage("/_Host");
+                    //endpoints.MapFallbackToFile("index.html");
                 });
         }
     }

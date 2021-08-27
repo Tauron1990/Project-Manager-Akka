@@ -1,5 +1,31 @@
-﻿<h3>UserAccountsSetupView</h3>
+﻿
+<div class="d-flex flex-row justify-center">
+    <div class="d-flex flex-column justify-center">
+        <MudText Typo="Typo.h3">Setup Administrator</MudText>
+        <MudCard>
+            <MudCardContent>
+                @if (_position == SetupPosition.Start)
+                {
+                    <MudForm @bind-IsValid="_success">
+                        <MudTextFieldString Label="Administrator Name" @bind-Value="_adminName" Required="true" RequiredError="Administrator Name ist nodwendig"/>
+                        <MudTextFieldString Label="Administrator Passwort" ></MudTextFieldString>
+                    </MudForm>
+                }
+            </MudCardContent>
+            <MudCardActions>
+                
+            </MudCardActions>
+        </MudCard>
+    </div>
+</div>
 
 @code {
+
+    private SetupPosition _position = SetupPosition.Start;
     
+    private bool _success;
+    
+    private string _adminName = string.Empty;
+
+    private string _adminpassword = string.Empty;
 }

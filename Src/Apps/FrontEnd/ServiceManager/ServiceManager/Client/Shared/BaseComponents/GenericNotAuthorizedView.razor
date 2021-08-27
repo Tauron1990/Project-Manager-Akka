@@ -2,28 +2,30 @@
 
 @inject IErrorMessageProvider _errorMessage
 
-<div class="d-flex flex-column justify-space-around">
-    @if (_authenticationState == null || _userState == null)
-    {
-        <MudText Class="justify-center">Unbekannter Fehler</MudText>
-    }
-    else if(Claims.Length == 0 || _userState.User.IsAuthenticated)
-    {
-        <MudText Class="justify-center">Bitte melde dich an um Zugriff zu erhalten!</MudText>
-        <MudLink Class="justify-center" Href="/User">Anmelden</MudLink>
-    }
-    else
-    {
-        <p>
-            @foreach (var msg in _errorMessage.GetMessage(_authenticationState, Claims))
-            {
-                <MudText Class="justify-center">@msg</MudText>
-            }
-        </p>
-        <p>
-            <MudText Class="justify-center">Wende die an einen Administrator um zufriff auf die Resource zu erhalten</MudText>
-        </p>
-    }
+<div class="d-flex flex-row justify-center">
+    <div class="d-flex flex-column justify-center">
+        @if (_authenticationState == null || _userState == null)
+        {
+            <MudText Class="justify-center">Unbekannter Fehler</MudText>
+        }
+        else if(Claims.Length == 0 || !_userState.User.IsAuthenticated)
+        {
+            <MudText Class="justify-center">Bitte melde dich an um Zugriff zu erhalten!</MudText>
+            <MudLink Class="justify-center" Href="/User">Anmelden</MudLink>
+        }
+        else
+        {
+            <p class="justify-center">
+                @foreach (var msg in _errorMessage.GetMessage(_authenticationState, Claims))
+                {
+                    <MudText>@msg</MudText>
+                }
+            </p>
+            <p class="justify-center">
+                <MudText>Wende die an einen Administrator um zugriff auf die Resource zu erhalten</MudText>
+            </p>
+        }
+    </div>
 </div>
 
 @code {
@@ -43,6 +45,7 @@
 
         _authenticationState = await State;
         _userState = _authenticationState as AuthState;
+
         await base.OnParametersSetAsync();
     }
 

@@ -1,5 +1,86 @@
-﻿<h3>StateAwaiter</h3>
+﻿@using Stl.Fusion
+@using System.Reactive.Disposables
+
+@typeparam TValue
+@implements IDisposable
+
+@{
+    var error = State?.Error;
+    var isLoading = !State?.HasValue ?? true;
+    var value = State != null ? State.ValueOrDefault : default;
+}
+
+@if (error != null)
+{
+    @if (Error != null)
+    {
+        @Error(error)
+    }
+    else
+    {
+        <div class="d-flex flex-row justify-center">
+            <div class="d-flex flex-column justify-center">
+                <MudText>Ein fehler ist Aufgetreten:</MudText>
+                <MudText>@error.Message</MudText>
+            </div>
+        </div>
+    }
+}
+else if (isLoading)
+{
+    @if (Loading != null)
+    {
+        @Loading
+    }
+    else
+    {
+        <div class="d-flex flex-row justify-center">
+            <div class="d-flex flex-column justify-center">
+                <MudProgressCircular Indeterminate="true"/>
+                <MudText>Laden...</MudText>
+            </div>
+        </div>
+    }
+}
+else
+{
+    @ChildContent(value)
+}
 
 @code {
+
+    private IDisposable _subscription = Disposable.Empty;
+
+    [Parameter]
+    public IState<TValue>? State { get; set; }
     
+    [Parameter]
+    public RenderFragment<TValue?> ChildContent { get; set; } = _ =>  _ => { };
+
+    [Parameter]
+    public RenderFragment<Exception>? Error { get; set; }
+
+    [Parameter]
+    public RenderFragment? Loading { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        _subscription.Dispose();
+        
+        if(State == null)
+            _subscription = Disposable.Empty;
+        else
+        {
+            State.AddEventHandler(StateEventKind.All, Handler);
+            _subscription = Disposable.Create(State, state => state.RemoveEventHandler(StateEventKind.All, Handler));
+        }
+        base.OnParametersSet();
+    }
+
+    private void Handler(IState<TValue> arg1, StateEventKind arg2) 
+        => StateHasChanged();
+
+    public void Dispose()
+        => _subscription.Dispose();
+
 }

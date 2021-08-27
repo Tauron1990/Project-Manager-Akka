@@ -1,4 +1,5 @@
 ﻿using Hyperion.Internal;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Stl.Fusion.EntityFramework.Authentication;
@@ -7,17 +8,17 @@ using Stl.Fusion.EntityFramework.Operations;
 
 namespace ServiceManager.Server.AppCore.Identity
 {
-    public sealed class UserEntity: DbUser<long>
+    public sealed class FusionUserEntity: DbUser<long>
     {
 
     }
 
-    public class UserIdentityEntity : DbUserIdentity<long>
+    public class FusionUserIdentityEntity : DbUserIdentity<long>
     {
         
     }
 
-    public class SessionInfoEntity : DbSessionInfo<long>
+    public class FusionSessionInfoEntity : DbSessionInfo<long>
     {
 
     }
@@ -35,15 +36,15 @@ namespace ServiceManager.Server.AppCore.Identity
     }
 
     [UsedImplicitly]
-    public sealed class UsersDatabase : DbContext
+    public sealed class UsersDatabase : IdentityDbContext
     {
 
         // Stl.Fusion.EntityFramework tables
-        public DbSet<UserEntity> Users { get; protected set; } = null!;
-        public DbSet<UserIdentityEntity> UserIdentities { get; protected set; } = null!;
-        public DbSet<SessionInfoEntity> Sessions { get; protected set; } = null!;
-        public DbSet<DbKeyValue> KeyValues { get; protected set; } = null!;
-        public DbSet<DbOperation> Operations { get; protected set; } = null!;
+        public DbSet<FusionUserEntity> FusionUsers => Set<FusionUserEntity>();
+        public DbSet<FusionUserIdentityEntity> FusionUserIdentities => Set<FusionUserIdentityEntity>();
+        public DbSet<FusionSessionInfoEntity> FusionSessions => Set<FusionSessionInfoEntity>();
+        public DbSet<DbKeyValue> KeyValues => Set<DbKeyValue>();
+        public DbSet<DbOperation> Operations => Set<DbOperation>();
 
         public UsersDatabase(DbContextOptions<UsersDatabase> options)
             : base(options)

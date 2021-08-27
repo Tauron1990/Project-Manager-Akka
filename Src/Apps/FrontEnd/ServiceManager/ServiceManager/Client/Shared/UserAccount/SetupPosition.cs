@@ -1,7 +1,9 @@
 ﻿namespace ServiceManager.Client.Shared.UserAccount
 {
-    public class l
+    public enum SetupPosition
     {
-        
+        Start,
+        Run,
+        Compled
     }
 }

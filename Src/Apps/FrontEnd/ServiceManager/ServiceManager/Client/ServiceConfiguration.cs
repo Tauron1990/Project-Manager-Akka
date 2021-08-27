@@ -20,8 +20,6 @@ namespace ServiceManager.Client
             collection.AddScoped<IErrorMessageProvider, ErrorMessageProvider>();
             collection.AddBlazoredLocalStorage();
 
-            collection.AddScoped<IAccountService, ClientAccountService>();
-
             collection.AddScoped<ConnectToClusterViewModel>();
             collection.AddScoped<ConfigurationViewDatabseModel>();
             collection.AddScoped<ConfigurationOptionsViewModel>();

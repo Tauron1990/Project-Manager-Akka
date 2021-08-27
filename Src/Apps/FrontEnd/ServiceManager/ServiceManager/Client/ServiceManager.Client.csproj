@@ -19,13 +19,11 @@
     <Compile Remove="ViewModels\Identity\UserData.cs" />
     <Compile Remove="ViewModels\Identity\UserState.cs" />
     <Compile Remove="ViewModels\Models\ModelBase.cs" />
-    <None Include="ViewModels\Identity\CustomAuthenticationProvider .cs" />
-    <None Include="ViewModels\Identity\UserData.cs" />
-    <None Include="ViewModels\Identity\UserState.cs" />
     <None Include="ViewModels\Models\ModelBase.cs" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Remove="wwwroot\index.html" />
     <Content Remove="wwwroot\_content\MudBlazor\MudBlazor.min.css" />
   </ItemGroup>
 
@@ -37,6 +35,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="5.0.9" PrivateAssets="all" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="5.0.9" />
     <PackageReference Include="MudBlazor" Version="5.1.1" />
+    <PackageReference Include="Reactive.Wasm" Version="1.2.2" />
     <PackageReference Include="Stl.Fusion.Blazor" Version="1.8.16" />
     <PackageReference Include="System.Net.Http.Json" Version="5.0.0" />
   </ItemGroup>
