@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Stl.Fusion" Version="1.8.16" />
+    <PackageReference Include="Stl.Fusion" Version="1.8.25" />
   </ItemGroup>
 
   <ItemGroup>

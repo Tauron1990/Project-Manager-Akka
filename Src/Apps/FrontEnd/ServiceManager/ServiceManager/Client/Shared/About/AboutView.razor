@@ -5,11 +5,11 @@
 
 <Title Value="Über Servie Manager"></Title>
 
-<MudText Typo="Typo.h3">Service Manager</MudText>
-
-<MudText>Project Manager Akka</MudText>
-
-<MudText>Aktuelle Url: @State.LatestNonErrorValue</MudText>
+<CenterElement>
+    <MudText Typo="Typo.h3">Service Manager</MudText>
+    <MudText>Project Manager Akka</MudText>
+    <MudText>Aktuelle Url: @State.LatestNonErrorValue</MudText>
+</CenterElement>
 
 @code {
     protected override Task<string> ComputeState(CancellationToken cancellationToken) 

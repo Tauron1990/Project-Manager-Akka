@@ -8,17 +8,17 @@ using Stl.Fusion.EntityFramework.Operations;
 
 namespace ServiceManager.Server.AppCore.Identity
 {
-    public sealed class FusionUserEntity: DbUser<long>
+    public sealed class FusionUserEntity: DbUser<string>
     {
 
     }
 
-    public class FusionUserIdentityEntity : DbUserIdentity<long>
+    public class FusionUserIdentityEntity : DbUserIdentity<string>
     {
         
     }
 
-    public class FusionSessionInfoEntity : DbSessionInfo<long>
+    public class FusionSessionInfoEntity : DbSessionInfo<string>
     {
 
     }

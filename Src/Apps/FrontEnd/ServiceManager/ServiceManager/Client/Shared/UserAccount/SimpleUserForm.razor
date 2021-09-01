@@ -1,0 +1,36 @@
+﻿<MudCard>
+    <MudCardContent>
+        <MudForm @bind-IsValid="_success">
+            <MudTextFieldString Label="Administrator Name" Value="@Name" ValueChanged="@NameChanged" Required="true" RequiredError="Administrator Name ist nodwendig"
+                                DebounceInterval="200"/>
+            <MudTextFieldString Label="Administrator Passwort" Value="@Password" ValueChanged="@PasswordChanged" Required="true" RequiredError="Administrator Passwort ist notwendig"
+                                InputType="InputType.Password" DebounceInterval="200"/>
+        </MudForm>
+    </MudCardContent>
+    <MudCardActions>
+        <MudButton Disabled="@(!_success)" OnClick="Click">@ButtonLabel</MudButton>
+    </MudCardActions>
+</MudCard>
+
+@code {
+
+    private bool _success;
+
+    [Parameter]
+    public string Name { get; set; } = string.Empty;
+
+    [Parameter]
+    public EventCallback<string> NameChanged { get; set; }
+
+    [Parameter]
+    public string Password { get; set; } = string.Empty;
+
+    [Parameter]
+    public EventCallback<string> PasswordChanged { get; set; }
+
+    [Parameter]
+    public string ButtonLabel { get; set; } = string.Empty;
+
+    [Parameter]
+    public EventCallback Click { get; set; }
+}

@@ -1,23 +1,29 @@
-﻿
-<div class="d-flex flex-row justify-center">
-    <div class="d-flex flex-column justify-center">
-        <MudText Typo="Typo.h3">Setup Administrator</MudText>
-        <MudCard>
-            <MudCardContent>
-                @if (_position == SetupPosition.Start)
-                {
-                    <MudForm @bind-IsValid="_success">
-                        <MudTextFieldString Label="Administrator Name" @bind-Value="_adminName" Required="true" RequiredError="Administrator Name ist nodwendig"/>
-                        <MudTextFieldString Label="Administrator Passwort" ></MudTextFieldString>
-                    </MudForm>
-                }
-            </MudCardContent>
-            <MudCardActions>
-                
-            </MudCardActions>
-        </MudCard>
-    </div>
-</div>
+﻿@using ServiceManager.Shared.Identity
+@using Tauron.Application
+
+@inject IUserManagement _userManagement
+@inject IEventAggregator _aggregator
+@inject NavigationManager _navigation
+
+<CenterElement>
+    <MudText Typo="Typo.h3">Setup Administrator</MudText>
+    @switch (_position)
+    {
+        case SetupPosition.Start:
+            <SimpleUserForm @bind-Name="_adminName" @bind-Password="_adminpassword" ButtonLabel="Erstellen" Click="StartCallback"/>
+            break;
+        case SetupPosition.Run:
+            <MudProgressCircular Indeterminate="true"/>
+            <MudText>Setup wird Ausgefürt</MudText>
+            break;
+        case SetupPosition.Compled:
+            <p>
+                <MudText>Setup beendet.</MudText>
+                <MudButton Variant="Variant.Text" OnClick="CompledCallback">Zurück</MudButton>
+            </p>
+            break;
+    }
+</CenterElement>
 
 @code {
 
@@ -28,4 +34,18 @@
     private string _adminName = string.Empty;
 
     private string _adminpassword = string.Empty;
+
+    private async Task StartCallback()
+    {
+        _position = SetupPosition.Run;
+        await InvokeAsync(StateHasChanged);
+
+        await _aggregator.IsSuccess(() => _userManagement.RunSetup(new StartSetupCommand(_adminName, _adminpassword)));
+
+        _position = SetupPosition.Compled;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void CompledCallback() 
+        => _navigation.NavigateTo("/User", true);
 }

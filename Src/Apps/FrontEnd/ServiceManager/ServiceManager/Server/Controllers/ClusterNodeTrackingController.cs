@@ -1,7 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ServiceManager.Server.AppCore.Identity;
 using ServiceManager.Shared.Api;
 using ServiceManager.Shared.ClusterTracking;
 using ServiceManager.Shared.Identity;

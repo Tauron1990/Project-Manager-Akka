@@ -1,0 +1,11 @@
+﻿@using ServiceManager.Shared.Identity
+<GenericAuthorizeView Claims="new[] { Claims.UserManagmaent }">
+    <NotAuthorized>
+        <CenterElement>
+            <MudText>Du bist nocht Autorisiert Benutzer zu beabeiten</MudText>
+        </CenterElement>
+    </NotAuthorized>
+    <ChildContent>
+        <UserEditorComponent/>
+    </ChildContent>
+</GenericAuthorizeView>

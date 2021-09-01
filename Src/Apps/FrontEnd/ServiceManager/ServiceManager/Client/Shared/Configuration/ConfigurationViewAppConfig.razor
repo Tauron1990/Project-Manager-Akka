@@ -12,9 +12,9 @@
 
 @inherits MixedStateComponent<AppConfigViewData, AppConfigData>
 
-@inject IDialogService _service;
-@inject IEventAggregator _aggregator;
-@inject IServerConfigurationApi _api;
+@inject IDialogService _service
+@inject IEventAggregator _aggregator
+@inject IServerConfigurationApi _api
 
 @{
     var (configs, (newModel, toEdit)) = State.LatestNonErrorValue ?? new AppConfigViewData(ImmutableList<AppConfigModel>.Empty, new AppConfigData());

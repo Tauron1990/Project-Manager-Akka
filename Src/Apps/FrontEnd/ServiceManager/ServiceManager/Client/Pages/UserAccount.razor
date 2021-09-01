@@ -5,16 +5,48 @@
 @inherits ComputedStateComponent<bool>
 @layout UserAccountLayout
 
-@inject IUserManagement _management; 
+@inject IUserManagement _management
+
+@if (_authState == null)
+{
+    <Title Value="Service Manager - Benutzer"/>
+}
+else
+{
+    <Title Value="@($"Service Manager - {_authState.User.Name}")"/>
+}
 
 <StateAwaiter State="State">
     @if (context)
     {
         <UserAccountsSetupView/>
     }
+    else if(_authState == null || !_authState.User.IsAuthenticated)
+    {
+        <LoginRegisterView/>
+    }
+    else
+    {
+        <UserEditorView/>
+    }
 </StateAwaiter>
 
 @code {
+
+    [CascadingParameter]
+    public Task<AuthState>? AuthStateTask { get; set; }
+
+    private AuthState? _authState;
+
     protected override Task<bool> ComputeState(CancellationToken cancellationToken) 
         => _management.NeedSetup(cancellationToken);
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (AuthStateTask != null)
+            _authState = await AuthStateTask;
+
+        await base.OnParametersSetAsync();
+    }
+
 }

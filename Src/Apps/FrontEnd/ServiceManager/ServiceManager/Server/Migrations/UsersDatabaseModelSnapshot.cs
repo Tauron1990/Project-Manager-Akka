@@ -239,7 +239,12 @@ namespace ServiceManager.Server.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<long>("UserId")
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
@@ -257,9 +262,8 @@ namespace ServiceManager.Server.Migrations
 
             modelBuilder.Entity("ServiceManager.Server.AppCore.Identity.FusionUserEntity", b =>
                 {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                    b.Property<string>("Id")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("ClaimsJson")
                         .IsRequired()
@@ -269,6 +273,10 @@ namespace ServiceManager.Server.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<long>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Name");
@@ -276,21 +284,22 @@ namespace ServiceManager.Server.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("Stl.Fusion.EntityFramework.Authentication.DbUserIdentity<long>", b =>
+            modelBuilder.Entity("Stl.Fusion.EntityFramework.Authentication.DbUserIdentity<string>", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
 
-                    b.Property<long>("DbUserId")
-                        .HasColumnType("INTEGER")
+                    b.Property<string>("DbUserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
                         .HasColumnName("UserId");
 
                     b.Property<string>("Discriminator")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<long?>("FusionUserEntityId")
-                        .HasColumnType("INTEGER");
+                    b.Property<string>("FusionUserEntityId")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Secret")
                         .IsRequired()
@@ -304,7 +313,7 @@ namespace ServiceManager.Server.Migrations
 
                     b.ToTable("UserIdentities");
 
-                    b.HasDiscriminator<string>("Discriminator").HasValue("DbUserIdentity<long>");
+                    b.HasDiscriminator<string>("Discriminator").HasValue("DbUserIdentity<string>");
                 });
 
             modelBuilder.Entity("Stl.Fusion.EntityFramework.Extensions.DbKeyValue", b =>
@@ -360,7 +369,7 @@ namespace ServiceManager.Server.Migrations
 
             modelBuilder.Entity("ServiceManager.Server.AppCore.Identity.FusionUserIdentityEntity", b =>
                 {
-                    b.HasBaseType("Stl.Fusion.EntityFramework.Authentication.DbUserIdentity<long>");
+                    b.HasBaseType("Stl.Fusion.EntityFramework.Authentication.DbUserIdentity<string>");
 
                     b.ToTable("UserIdentities");
 
@@ -418,7 +427,7 @@ namespace ServiceManager.Server.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Stl.Fusion.EntityFramework.Authentication.DbUserIdentity<long>", b =>
+            modelBuilder.Entity("Stl.Fusion.EntityFramework.Authentication.DbUserIdentity<string>", b =>
                 {
                     b.HasOne("ServiceManager.Server.AppCore.Identity.FusionUserEntity", null)
                         .WithMany("Identities")

@@ -1,4 +1,12 @@
 @using Stl.Text
+@using Blazored.LocalStorage
+@using ServiceManager.Client.ViewModels.Identity
+@using ServiceManager.Shared.Identity
+@using ServiceManager.Client.ServiceDefs
+
+@inject ILocalStorageService _localStorage
+@inject ILogInManager _logInManager
+
 <CascadingAuthState SessionId="@SessionId">
     <Router AppAssembly="@typeof(Program).Assembly" PreferExactMatches="@true">
         <Found Context="routeData">
@@ -13,6 +21,50 @@
 </CascadingAuthState>
 
 @code {
+
+    private const string SessionData = "Session.Data";
+
+    private string _sessionId = Symbol.Empty;
+
     [Parameter]
-    public string SessionId { get; set; } = Symbol.Empty;
+    public string SessionId
+    {
+        get => _sessionId;
+        set
+        {
+            _sessionId = value;
+            GlobalSessionId = value;
+        }
+    }
+
+    public override async Task SetParametersAsync(ParameterView parameters)
+    {
+        await base.SetParametersAsync(parameters);
+
+        if (await _localStorage.ContainKeyAsync(SessionData))
+        {
+            var (sessionId, timeout, isLogedIn) = await _localStorage.GetItemAsync<SessionData>(SessionData);
+            if (timeout > DateTime.Now)
+            {
+                SessionId = await _logInManager.UpdateSession(sessionId);
+                if (!isLogedIn)
+                    await SaveItem(_localStorage, SessionId, true);
+            }
+            else
+            {
+                SessionId = await _logInManager.LogoutSession();
+                await SaveItem(_localStorage, SessionId, false);
+            }
+        }
+        else
+        {
+            SessionId = await _logInManager.LogoutSession();
+            await SaveItem(_localStorage, SessionId, false);
+        }
+    }
+
+    public static string GlobalSessionId { get; set; } = string.Empty;
+
+    public static async Task SaveItem(ILocalStorageService localStorage, string sessionId, bool isLogedIn) 
+        => await localStorage.SetItemAsync(SessionData, new SessionData(sessionId, DateTime.Now + (DefaultSessionConfig.Timeout - TimeSpan.FromDays(1)), isLogedIn));
 }

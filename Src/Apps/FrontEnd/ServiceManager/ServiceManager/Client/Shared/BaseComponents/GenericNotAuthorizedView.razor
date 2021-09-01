@@ -1,4 +1,7 @@
 ﻿@using ServiceManager.Client.ViewModels.Identity
+@using System.Security.Claims
+@using System.Text
+@using Stl.Fusion.Authentication
 
 @inject IErrorMessageProvider _errorMessage
 
@@ -46,7 +49,35 @@
         _authenticationState = await State;
         _userState = _authenticationState as AuthState;
 
+        if (_userState != null)
+        {
+            Console.WriteLine($"UserData 1: {ToString(_userState.User)}");
+            Console.WriteLine($"UserData 2: {ToString(_authenticationState.User)}");
+        }
+
         await base.OnParametersSetAsync();
     }
 
+    private static string ToString(User principal)
+    {
+        StringBuilder b = new();
+
+        b.AppendLine(principal.Name);
+        foreach (var principalClaim in principal.Claims)
+            b.AppendLine($"{principalClaim.Key}-{principalClaim.Value}");
+
+        return b.ToString();
+    }
+
+    private static string ToString(ClaimsPrincipal principal)
+    {
+        StringBuilder b = new();
+
+        b.AppendLine(principal.Identity?.Name);
+        b.AppendLine(principal.Identity?.AuthenticationType);
+        foreach (var principalClaim in principal.Claims)
+            b.AppendLine($"{principalClaim.Type}-{principalClaim.Value}");
+
+        return b.ToString();
+    }
 }

@@ -1,7 +1,9 @@
+using System;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -9,6 +11,7 @@ using ServiceManager.Server.AppCore;
 using ServiceManager.Server.AppCore.Helper;
 using ServiceManager.Server.AppCore.Identity;
 using ServiceManager.Shared;
+using ServiceManager.Shared.Identity;
 using Tauron.Application.AkkaNode.Bootstrap;
 using Tauron.Application.AkkaNode.Bootstrap.Console;
 using Tauron.Application.Master.Commands.KillSwitch;
@@ -29,8 +32,7 @@ namespace ServiceManager.Server
             await AppIpManager.Aquire();
             var host = CreateHostBuilder(args).Build();
 
-            await using (var context = host.Services.GetRequiredService<UsersDatabase>()) 
-                await context.Database.MigrateAsync();
+            await MigrateDatabase(host.Services);
 
             await host.RunAsync();
 
@@ -42,6 +44,22 @@ namespace ServiceManager.Server
                 Process.Start(file);
 
             #endif
+        }
+
+        private static async Task MigrateDatabase(IServiceProvider provider)
+        {
+            using var scope = provider.CreateScope();
+
+            await using var context = scope.ServiceProvider.GetRequiredService<UsersDatabase>();
+            await context.Database.MigrateAsync();
+
+            using var manager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            foreach (var claim in Claims.AllClaims)
+            {
+                if(await manager.RoleExistsAsync(claim)) continue;
+
+                await manager.CreateAsync(new IdentityRole(claim));
+            }
         }
 
         private static IHostBuilder CreateHostBuilder(string[] args) =>

@@ -2,7 +2,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using ServiceManager.Server.AppCore.Identity;
 using ServiceManager.Shared;
 using ServiceManager.Shared.Api;
 using ServiceManager.Shared.Identity;

@@ -1,7 +1,20 @@
-﻿namespace ServiceManager.Shared.Identity
+﻿using System.Collections.Generic;
+
+namespace ServiceManager.Shared.Identity
 {
     public static class Claims
     {
+        public static IEnumerable<string> AllClaims = new[]
+                                               {
+                                                   AppIpClaim,
+                                                   ClusterConnectionClaim,
+                                                   ClusterNodeClaim,
+                                                   ConfigurationClaim,
+                                                   DatabaseClaim,
+                                                   ServerInfoClaim,
+                                                   UserManagmaent
+                                               };
+
         public const string AppIpClaim = nameof(AppIpClaim);
 
         public const string ClusterConnectionClaim = nameof(ClusterConnectionClaim);

@@ -1,12 +1,19 @@
-﻿<AuthorizeView Roles="@(string.Join(',', Claims))">
+﻿<AuthorizeView Policy="@(string.Join(',', Claims))">
     <Authorized>
-        <AboutView/>
+        @ChildContent
     </Authorized>
     <Authorizing>
         <AuthorizingView/>
     </Authorizing>
     <NotAuthorized>
-        <GenericNotAuthorizedView Claims="Claims"/>
+        @if (NotAuthorized != null)
+        {
+            @NotAuthorized
+        }
+        else
+        {
+            <GenericNotAuthorizedView Claims="Claims"/>
+        }
     </NotAuthorized>
 </AuthorizeView>
 
@@ -17,4 +24,6 @@
     [Parameter]
     public RenderFragment ChildContent { get; set; } = _ => { };
 
+    [Parameter]
+    public RenderFragment? NotAuthorized { get; set; } 
 }

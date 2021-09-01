@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace ServiceManager.Server.Migrations
 {
-    public partial class InitialCreate : Migration
+    public partial class Initial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -41,12 +41,13 @@ namespace ServiceManager.Server.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "TEXT", maxLength: 32, nullable: false),
+                    Version = table.Column<long>(type: "INTEGER", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     LastSeenAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     IPAddress = table.Column<string>(type: "TEXT", nullable: false),
                     UserAgent = table.Column<string>(type: "TEXT", nullable: false),
                     AuthenticatedIdentity = table.Column<string>(type: "TEXT", nullable: false),
-                    UserId = table.Column<long>(type: "INTEGER", nullable: false),
+                    UserId = table.Column<string>(type: "TEXT", nullable: false),
                     IsSignOutForced = table.Column<bool>(type: "INTEGER", nullable: false),
                     OptionsJson = table.Column<string>(type: "TEXT", nullable: false)
                 },
@@ -98,8 +99,8 @@ namespace ServiceManager.Server.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
+                    Id = table.Column<string>(type: "TEXT", nullable: false),
+                    Version = table.Column<long>(type: "INTEGER", nullable: false),
                     Name = table.Column<string>(type: "TEXT", nullable: false),
                     ClaimsJson = table.Column<string>(type: "TEXT", nullable: false)
                 },
@@ -219,10 +220,10 @@ namespace ServiceManager.Server.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "TEXT", nullable: false),
-                    UserId = table.Column<long>(type: "INTEGER", nullable: false),
+                    UserId = table.Column<string>(type: "TEXT", nullable: false),
                     Secret = table.Column<string>(type: "TEXT", nullable: false),
                     Discriminator = table.Column<string>(type: "TEXT", nullable: false),
-                    FusionUserEntityId = table.Column<long>(type: "INTEGER", nullable: true)
+                    FusionUserEntityId = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {

@@ -1,7 +1,17 @@
 ﻿@page "/"
 @using ServiceManager.Shared.Identity
 
+<Title Value="Service Manager"/>
+
 <GenericAuthorizeView Claims="new []{ Claims.ClusterNodeClaim }">
     <IndexView/>
 </GenericAuthorizeView>
 
+@code
+{
+    protected override void OnInitialized()
+    {
+        Console.WriteLine("Index Initialized");
+        base.OnInitialized();
+    }
+}

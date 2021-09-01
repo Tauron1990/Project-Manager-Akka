@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Security.Claims;
 using Akka.DependencyInjection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -9,8 +8,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using JetBrains.Annotations;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.SignalR;
@@ -52,8 +49,7 @@ namespace ServiceManager.Server
         {
             ImmutableListSerializer<Condition>.Register();
             ImmutableListSerializer<SeedUrl>.Register();
-
-
+            
             services.AddDbContextFactory<UsersDatabase>(
                 builder =>
                 {
@@ -76,24 +72,21 @@ namespace ServiceManager.Server
                 o => o
                     .AddFileBasedOperationLogChangeTracking(Path.Combine(Program.ExeFolder, "_changed"))
                     .AddOperations()
-                    .AddAuthentication<FusionSessionInfoEntity, FusionUserEntity, long>());
+                    .AddAuthentication<FusionSessionInfoEntity, FusionUserEntity, string>());
 
             var fusion = services.AddFusion();
 
-            services.AddIdentityCore<IdentityUser<string>>()
-                    .AddRoles<IdentityRole<string>>()
+            services.AddIdentity<IdentityUser, IdentityRole>()
                     .AddEntityFrameworkStores<UsersDatabase>();
 
-            services.AddAuthentication(o => o.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme)
-                    .AddCookie(
-                         options =>
-                         {
-                             options.LoginPath = "/signIn";
-                             options.LogoutPath = "/signOut";
-                             options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-                         });
             fusion.AddAuthentication(
-                o => o.AddServer(signInControllerOptionsBuilder:(_, options) => options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme));
+                o => o.AddServer(
+                    (_, options) =>
+                    {
+                        options.Cookie.Name = DefaultSessionConfig.Name;
+                        options.Cookie.Expiration = DefaultSessionConfig.Timeout;
+                    },
+                    signInControllerOptionsBuilder: (_, options) => options.DefaultScheme = IdentityConstants.ApplicationScheme));
 
             fusion.AddComputeService<IClusterNodeTracking, ClusterNodeTracking>()
                   .AddComputeService<IClusterConnectionTracker, ClusterConnectionTracker>()
@@ -107,14 +100,13 @@ namespace ServiceManager.Server
             services.AddAuthorization(
                 o =>
                 {
-                    o.AddPolicy(Claims.AppIpClaim, b => b.RequireClaim(ClaimTypes.Role, Claims.AppIpClaim));
-                    o.AddPolicy(Claims.ClusterConnectionClaim, b => b.RequireClaim(ClaimTypes.Role, Claims.ClusterConnectionClaim));
-                    o.AddPolicy(Claims.ClusterNodeClaim, b => b.RequireClaim(ClaimTypes.Role, Claims.ClusterNodeClaim));
-                    o.AddPolicy(Claims.ConfigurationClaim, b => b.RequireClaim(ClaimTypes.Role, Claims.ConfigurationClaim));
-                    o.AddPolicy(Claims.DatabaseClaim, b => b.RequireClaim(ClaimTypes.Role, Claims.DatabaseClaim));
-                    o.AddPolicy(Claims.ServerInfoClaim, b => b.RequireClaim(ClaimTypes.Role, Claims.ServerInfoClaim));
+                    foreach (var claim in Claims.AllClaims) 
+                        o.AddPolicy(claim, b => b.RequireClaim(claim));
                 });
-            
+
+            services.AddHttpContextAccessor();
+            services.AddDataProtection();
+
             services.Configure<HostOptions>(o => o.ShutdownTimeout = TimeSpan.FromSeconds(30));
 
             services.Configure<IdentityOptions>(options =>
@@ -204,11 +196,12 @@ namespace ServiceManager.Server
             app.UseStaticFiles();
 
             app.UseWebSockets();
-            app.UseFusionSession();
             app.UseRouting();
+
 
             app.UseAuthentication();
             app.UseAuthorization();
+            app.UseFusionSession();
 
             app.UseEndpoints(
                 endpoints =>
