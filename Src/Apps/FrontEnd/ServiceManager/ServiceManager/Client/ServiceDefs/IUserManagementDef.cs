@@ -9,6 +9,9 @@ namespace ServiceManager.Client.ServiceDefs
     [BasePath(ControllerName.UserManagment)]
     public interface IUserManagementDef
     {
+        [Get(nameof(GetUserCount))]
+        Task<int> GetUserCount(CancellationToken token = default);
+
         [Get(nameof(NeedSetup))]
         Task<bool> NeedSetup(CancellationToken token = default);
 

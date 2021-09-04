@@ -33,6 +33,7 @@
 
   <ItemGroup>
     <PackageReference Include="DynamicData" Version="7.3.1" />
+    <PackageReference Include="GridMvcCore" Version="4.1.9" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.9" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="5.0.9" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="5.0.9" />
@@ -49,8 +50,8 @@
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="5.0.2" />
     <PackageReference Include="MongoDB.Driver" Version="2.13.1" />
     <PackageReference Include="SharpRepository.MongoDbRepository" Version="2.1.1" />
-    <PackageReference Include="Stl.Fusion.EntityFramework" Version="1.8.25" />
-    <PackageReference Include="Stl.Fusion.Server" Version="1.8.25" />
+    <PackageReference Include="Stl.Fusion.EntityFramework" Version="1.8.28" />
+    <PackageReference Include="Stl.Fusion.Server" Version="1.8.28" />
   </ItemGroup>
 
   <ItemGroup>

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
+using GridBlazor;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -43,7 +44,14 @@ namespace ServiceManager.Server.AppCore.Identity
             using var scope = Services.CreateScope();
             var repo = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
 
-            return await repo.Users.CountAsync(token) == 0;
+            return !await repo.Users.AnyAsync(token);
+        }
+
+        public virtual async Task<int> GetUserCount(CancellationToken token = default)
+        {
+            if (Computed.IsInvalidating()) return 0;
+
+            return await _userManager.Users.CountAsync(token);
         }
 
         public virtual async Task<string> RunSetup(StartSetupCommand command, CancellationToken token = default)
@@ -100,7 +108,10 @@ namespace ServiceManager.Server.AppCore.Identity
             }
 
             using (Computed.Invalidate())
+            {
+                GetUserCount(token).Ignore();
                 NeedSetup(token).Ignore();
+            }
 
             return string.Empty;
         }
@@ -129,12 +140,16 @@ namespace ServiceManager.Server.AppCore.Identity
 
                 await repo.AddClaimsAsync(newUser, new[] { new Claim(Claims.ClusterNodeClaim, string.Empty), new Claim(Claims.ClusterConnectionClaim, string.Empty) });
 
+                using (Computed.Invalidate())
+                    GetUserCount(token).Ignore();
+
                 return string.Empty;
             }
             catch (Exception e)
             {
                 return e.Message;
             }
+
         }
     }
 }

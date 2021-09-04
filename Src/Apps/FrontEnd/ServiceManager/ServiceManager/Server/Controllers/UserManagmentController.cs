@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
+using GridMvc.Server;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -16,7 +19,7 @@ namespace ServiceManager.Server.Controllers
 {
     [Route(ControllerName.UserManagment + "/[action]")]
     [ApiController, JsonifyErrors]
-    [Authorize(Claims.UserManagmaent)]
+    [Authorize(Claims.UserManagmaentClaim)]
     public class UserManagmentController : ControllerBase, IUserManagement
     {
         private readonly SignInManager<IdentityUser> _logInManager;
@@ -37,6 +40,31 @@ namespace ServiceManager.Server.Controllers
             _principalFactory = principalFactory;
             _provider = provider;
             _sessionFactory = sessionFactory;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetUsers()
+        {
+            var users = new List<UserData>();
+
+            foreach (var user in _userManager.Users)
+            {
+                var claimsCount = (await _userManager.GetClaimsAsync(user)).Count;
+                users.Add(new UserData(user.Id, user.UserName, claimsCount));
+            }
+
+            var server = new GridServer<UserData>(users, Request.Query, true, "UsersGrid");
+            return Ok(server.ItemsToDisplay);
+        }
+
+        [HttpGet("{userId}")]
+        public async Task<IActionResult> GetUserClaims(string userId)
+        {
+            var claims = await _userManager.GetClaimsAsync(await _userManager.FindByIdAsync(userId));
+
+            var server = new GridServer<UserClaim>(claims.Where(c => Claims.AllClaims.Contains(c.Type)).Select((c, i) => new UserClaim(i, userId, c.Type)), Request.Query, true, "UserClaimGrid");
+
+            return Ok(server.ItemsToDisplay);
         }
 
         [HttpGet, AllowAnonymous]
@@ -63,6 +91,10 @@ namespace ServiceManager.Server.Controllers
         [HttpGet, AllowAnonymous, Publish]
         public Task<bool> NeedSetup(CancellationToken token = default)
             => _userManagement.NeedSetup(token);
+
+        [HttpGet, Publish]
+        public Task<int> GetUserCount(CancellationToken token = default)
+            => _userManagement.GetUserCount(token);
 
         [HttpPost, AllowAnonymous]
         public Task<string> RunSetup([FromBody]StartSetupCommand command, CancellationToken token = default)

@@ -4,16 +4,16 @@ namespace ServiceManager.Shared.Identity
 {
     public static class Claims
     {
-        public static IEnumerable<string> AllClaims = new[]
-                                               {
-                                                   AppIpClaim,
-                                                   ClusterConnectionClaim,
-                                                   ClusterNodeClaim,
-                                                   ConfigurationClaim,
-                                                   DatabaseClaim,
-                                                   ServerInfoClaim,
-                                                   UserManagmaent
-                                               };
+        public static readonly string[] AllClaims =
+        {
+            AppIpClaim,
+            ClusterConnectionClaim,
+            ClusterNodeClaim,
+            ConfigurationClaim,
+            DatabaseClaim,
+            ServerInfoClaim,
+            UserManagmaentClaim
+        };
 
         public const string AppIpClaim = nameof(AppIpClaim);
 
@@ -27,6 +27,6 @@ namespace ServiceManager.Shared.Identity
 
         public const string ServerInfoClaim = nameof(ServerInfoClaim);
 
-        public const string UserManagmaent = nameof(UserManagmaent);
+        public const string UserManagmaentClaim = nameof(UserManagmaentClaim);
     }
 }

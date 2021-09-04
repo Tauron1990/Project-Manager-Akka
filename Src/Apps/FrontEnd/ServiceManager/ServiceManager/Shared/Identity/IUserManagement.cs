@@ -9,6 +9,9 @@ namespace ServiceManager.Shared.Identity
         [ComputeMethod]
         Task<bool> NeedSetup(CancellationToken token = default);
 
+        [ComputeMethod]
+        Task<int> GetUserCount(CancellationToken token = default);
+
         Task<string> RunSetup(StartSetupCommand command, CancellationToken token = default);
 
         Task<string> LogIn(TryLoginCommand command, CancellationToken token = default);

@@ -1,0 +1,9 @@
+﻿@using ServiceManager.Shared.Identity
+
+@implements GridShared.Columns.ICustomGridComponent<UserData>
+
+@code {
+
+    [Parameter]
+    public UserData Item { get; set; }
+}

@@ -137,6 +137,7 @@ namespace ServiceManager.Server
                                                     options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
                                                     options.SlidingExpiration = true;
                                                 });
+
             services.AddCors();
             services.AddSignalR();
             services.AddControllersWithViews();
@@ -211,7 +212,6 @@ namespace ServiceManager.Server
                     endpoints.MapControllers();
                     endpoints.MapHub<ClusterInfoHub>("/ClusterInfoHub");
                     endpoints.MapFallbackToPage("/_Host");
-                    //endpoints.MapFallbackToFile("index.html");
                 });
         }
     }

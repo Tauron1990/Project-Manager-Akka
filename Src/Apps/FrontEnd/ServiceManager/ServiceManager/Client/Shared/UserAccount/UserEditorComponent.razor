@@ -1,5 +1,97 @@
-﻿<h3>UserEditorComponent</h3>
+﻿@using ServiceManager.Shared.Identity
+@using Microsoft.Extensions.Primitives
+@using ServiceManager.Shared.Api
+@using Stl.Fusion
+@using Tauron.Application
 
-@code {
+@inject IEventAggregator _aggregator
+@inject HttpClient _client
+@inject IStateFactory _stateFactory
+@inject IUserManagement _userManagement
 
+@if (_task.IsCompleted && _grid != null)
+{
+    <MudContainer MaxWidth="MaxWidth.Medium">
+        <GridComponent @ref="_component" T="UserData" Grid="@_grid" OnRowClicked="OnRowClicked"/>
+    </MudContainer>
+}
+else
+{
+    <CenterElement>
+        <p>
+            <em>Aktualisiere Daten...</em>
+        </p>
+    </CenterElement>
+}
+
+@code
+{
+    private static readonly Action<IGridColumnCollection<UserData>> ColumnBuilder
+        = columns =>
+          {
+              columns.Add(d => d.Id).Titled("Id").Sortable(true).SetPrimaryKey(true).SetWidth(500);
+              columns.Add(d => d.Name).Titled("Name").Sortable(true).SetWidth(200);
+              columns.Add(d => d.Claims).Titled("Claims").Sortable(false).SetWidth(200);
+          };
+
+    private static readonly Action<IGridColumnCollection<UserClaim>> ClaimColumnBuilder
+        = columns =>
+          {
+              columns.Add(c => c.ClaimId).Titled("Id").SetPrimaryKey(true).SetWidth(50);
+              columns.Add(c => c.UserId).Titled("User").SetWidth(500);
+              columns.Add(c => c.Name).Titled("Claim Name").SetCellCssClassesContraint(_ => "ma-2");
+          };
+
+    private IState<int>? _userCount;
+    private CGrid<UserData>? _grid;
+    private Task _task = Task.CompletedTask;
+
+    private GridComponent<UserData>? _component;
+
+    protected override Task OnInitializedAsync()
+    {
+        _userCount = _stateFactory.NewComputed(new ComputedState<int>.Options(), (_, t) => _userManagement.GetUserCount(t));
+        _userCount.AddEventHandler(StateEventKind.Updated, Handler);
+
+        return base.OnInitializedAsync();
+    }
+
+    private void Handler(IState<int> _, StateEventKind a) 
+        => _task = _component?.UpdateGrid() ?? Task.CompletedTask;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var query = new QueryDictionary<StringValues>();
+
+        var client = new GridClient<UserData>(_client, ControllerName.UserManagment + "/GetUsers", query, false, "UsersGrid", ColumnBuilder)
+            .SetLanguage("de-de")
+            .WithPaging(20)
+            .Sortable()
+            .ExtSortable()
+            .Filterable()
+            .WithMultipleFilters()
+            .WithGridItemsCount()
+            .SubGrid(InitSubGrid, ("Id", "Id"));
+
+        _grid = client.Grid;
+        
+        _task = client.UpdateGrid();
+        await _task;
+    }
+
+    private async Task<ICGrid> InitSubGrid(object[] keys)
+    {
+        var query = new QueryDictionary<StringValues>();
+
+        var client = new GridClient<UserClaim>(_client, ControllerName.UserManagment + $"/GetUserClaims/{keys[0]}", query, false, "UserClaimGrid", ClaimColumnBuilder)
+            .WithPaging(20)
+            .SetLanguage("de-de");
+
+        await client.UpdateGrid();
+        return client.Grid;
+    }
+
+    private void OnRowClicked(object obj)
+    {
+    }
 }
