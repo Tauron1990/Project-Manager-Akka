@@ -18,12 +18,10 @@
     }
     else
     {
-        <div class="d-flex flex-row justify-center">
-            <div class="d-flex flex-column justify-center">
-                <MudText>Ein fehler ist Aufgetreten:</MudText>
-                <MudText>@error.Message</MudText>
-            </div>
-        </div>
+        <CenterElement>
+            <MudText>Ein fehler ist Aufgetreten:</MudText>
+            <MudText>@error.Message</MudText>
+        </CenterElement>
     }
 }
 else if (isLoading)
@@ -34,12 +32,10 @@ else if (isLoading)
     }
     else
     {
-        <div class="d-flex flex-row justify-center">
-            <div class="d-flex flex-column justify-center">
-                <MudProgressCircular Indeterminate="true"/>
-                <MudText>Laden...</MudText>
-            </div>
-        </div>
+        <CenterElement>
+            <MudProgressCircular Indeterminate="true"/>
+            <MudText>Laden...</MudText>
+        </CenterElement>
     }
 }
 else

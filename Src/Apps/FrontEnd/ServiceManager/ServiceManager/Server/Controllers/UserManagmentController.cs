@@ -96,6 +96,18 @@ namespace ServiceManager.Server.Controllers
         public Task<int> GetUserCount(CancellationToken token = default)
             => _userManagement.GetUserCount(token);
 
+        [HttpGet]
+        public Task<UserData?> GetUserData([FromQuery] string id, CancellationToken token = default)
+            => _userManagement.GetUserData(id, token);
+
+        [HttpGet, Publish]
+        public Task<UserClaim[]> GetUserClaims([FromQuery]string id, CancellationToken token = default)
+            => _userManagement.GetUserClaims(id, token);
+
+        [HttpPost]
+        public Task<string> SetClaims([FromBody]SetClaimsCommand command, CancellationToken token = default)
+            => _userManagement.SetClaims(command, token);
+
         [HttpPost, AllowAnonymous]
         public Task<string> RunSetup([FromBody]StartSetupCommand command, CancellationToken token = default)
             => _userManagement.RunSetup(command, token);

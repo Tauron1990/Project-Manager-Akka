@@ -15,6 +15,18 @@ namespace ServiceManager.Client.ServiceDefs
         [Get(nameof(NeedSetup))]
         Task<bool> NeedSetup(CancellationToken token = default);
 
+        [Get(nameof(GetUserData))]
+        Task<UserData> GetUserData([Query]string id, CancellationToken token = default); 
+        
+        [Get(nameof(GetUserClaims))]
+        Task<UserClaim[]> GetUserClaims([Query]string id, CancellationToken tokem = default);
+        
+        [Post(nameof(SetNewPassword))]
+        Task<string> SetNewPassword([Body]SetNewPasswordCommand command, CancellationToken token = default);
+        
+        [Post(nameof(SetClaims))]
+        Task<string> SetClaims([Body]SetClaimsCommand command, CancellationToken token = default);
+        
         [Post(nameof(RunSetup))]
         Task<string> RunSetup([Body]StartSetupCommand command, CancellationToken cancellation = default);
 

@@ -1,10 +1,68 @@
-﻿@page "/UserEditor/{UserId}"
+﻿@using ServiceManager.Shared.Identity
+@using ServiceManager.Client.ViewModels.Identity
+@using Tauron.Application
 
+@page "/UserEditor/{UserId}"
 
+@inject IUserManagement _management
+@inject IEventAggregator _aggregator
+
+@inherits ComputedStateComponent<UserEditorViewModel>
+
+<StateAwaiter State="@State">
+    @if (context?.User == null)
+    {
+        <CenterElement>
+            <MudText>Keine Daten gefunden</MudText>
+        </CenterElement>
+    }
+    else if (context.IsRunning)
+    {
+        <CenterElement>
+            <MudProgressCircular Indeterminate="true"/>
+            <MudText>Aktualisiere Daten</MudText>
+        </CenterElement>
+    }
+    else
+    {
+        <CenterElement>
+            <MudCard>
+                <MudCardHeader>
+                    <MudText Typo="Typo.h3">Benutzer Claims: @context.User.Name Beabeiten</MudText>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudText Class="ma-5">Claims zuweisen</MudText>
+                    @foreach (var element in context.EditorModels)
+                    {
+                        <MudCheckBox @bind-Checked="element.IsChecked" Label="@element.Name"/>
+                    }
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Class="align-end" OnClick="context.TryCommitClaims">Anwenden</MudButton>
+                </MudCardActions>
+            </MudCard>
+            <MudCard>
+                <MudCardHeader>
+                    <MudText>Benutzer Passwort: @context.User.Name Beabeiten</MudText>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudTextFieldString @bind-Value="context.OldPassword" Label="Altes Passwort" Class="ma-2"/>
+                    <MudTextFieldString @bind-Value="context.NewPassword"></MudTextFieldString>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Class="align-end" OnClick="context.TryUpdatePassword">Anwenden</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </CenterElement>
+    }
+</StateAwaiter>
 
 @code {
-
     [Parameter]
     public string UserId { get; set; } = string.Empty;
+
+    protected override async Task<UserEditorViewModel> ComputeState(CancellationToken cancellationToken) 
+        => new(_management, _aggregator, await _management.GetUserData(UserId, cancellationToken), 
+            await _management.GetUserClaims(UserId, cancellationToken), StateHasChanged);
 
 }
