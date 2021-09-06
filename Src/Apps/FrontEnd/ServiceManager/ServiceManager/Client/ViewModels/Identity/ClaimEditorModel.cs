@@ -18,7 +18,7 @@ namespace ServiceManager.Client.ViewModels.Identity
                   {Claims.UserManagmaentClaim, "Benutzer Verwaltung"}
               };
 
-        private static string GetClaimsDisplayName(string name)
+        public static string GetClaimsDisplayName(string name)
             => ClaimsDisplayNames.GetValueOrDefault(name, "Unbekannter Claim");
 
         public string OriginalName { get; set; }

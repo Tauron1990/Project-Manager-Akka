@@ -8,6 +8,7 @@ using JetBrains.Annotations;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using ServiceManager.Shared.Identity;
 using Stl.Async;
 using Stl.Fusion;
@@ -83,6 +84,26 @@ namespace ServiceManager.Server.AppCore.Identity
                     var claims = await userManager.GetClaimsAsync(usr);
 
                     return claims.Where(c => Claims.AllClaims.Contains(c.Type)).Select((c, i) => new UserClaim(i, id, c.Type)).ToArray();
+                });
+        }
+
+        public Task<string> GetUserIdByName(string name, CancellationToken token = default)
+        {
+            return UserFunc(
+                async (_, repo) =>
+                {
+                    try
+                    {
+                        var usr = await repo.FindByNameAsync(name);
+
+                        return usr == null ? string.Empty : usr.Id;
+                    }
+                    catch (Exception e)
+                    {
+                        Log.LogError(e, "Error on Processing User Find");
+
+                        return string.Empty;
+                    }
                 });
         }
 

@@ -1,5 +1,6 @@
 ﻿@using ServiceManager.Shared.Identity
 @using Microsoft.Extensions.Primitives
+@using ServiceManager.Client.ViewModels.Identity
 @using ServiceManager.Shared.Api
 @using Stl.Fusion
 @using Tauron.Application
@@ -40,7 +41,7 @@ else
           {
               columns.Add(c => c.ClaimId).Titled("Id").SetPrimaryKey(true).SetWidth(50);
               columns.Add(c => c.UserId).Titled("User").SetWidth(500);
-              columns.Add(c => c.Name).Titled("Claim Name").SetCellCssClassesContraint(_ => "ma-2");
+              columns.Add(c => c.Name).Titled("Claim Name").SetCellCssClassesContraint(_ => "ma-2").RenderValueAs(c => ClaimEditorModel.GetClaimsDisplayName(c.Name));
           };
 
     private IState<int>? _userCount;

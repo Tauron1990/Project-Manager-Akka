@@ -19,6 +19,9 @@ namespace ServiceManager.Shared.Identity
         [ComputeMethod]
         Task<UserClaim[]> GetUserClaims(string id, CancellationToken token = default);
 
+        [ComputeMethod]
+        Task<string> GetUserIdByName(string name, CancellationToken token = default);
+        
         Task<string> SetNewPassword(SetNewPasswordCommand command, CancellationToken token = default);
 
         Task<string> SetClaims(SetClaimsCommand command, CancellationToken token = default);

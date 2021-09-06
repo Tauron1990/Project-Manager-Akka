@@ -21,6 +21,9 @@ namespace ServiceManager.Client.ServiceDefs
         [Get(nameof(GetUserClaims))]
         Task<UserClaim[]> GetUserClaims([Query]string id, CancellationToken tokem = default);
         
+        [Get(nameof(GetUserClaims))]
+        Task<string> GetUserIdByName([Query]string name, CancellationToken token = default);
+        
         [Post(nameof(SetNewPassword))]
         Task<string> SetNewPassword([Body]SetNewPasswordCommand command, CancellationToken token = default);
         
