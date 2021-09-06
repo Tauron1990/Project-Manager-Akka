@@ -1,5 +1,50 @@
-﻿<h3>SingleUserEditorComponent</h3>
+﻿@using ServiceManager.Client.ViewModels.Identity
+
+@if (ViewModel is {User: { } })
+{
+    <CenterElement>
+        <MudCard Class="ma-2">
+            <MudCardHeader>
+                <MudText Typo="Typo.h3">Benutzer Claims: @ViewModel.User.Name Beabeiten</MudText>
+            </MudCardHeader>
+            <MudCardContent>
+                <div class="d-flex flex-column">
+                    <MudText Class="ma-5">Claims zuweisen</MudText>
+                    @foreach (var element in ViewModel.EditorModels)
+                    {
+                        <MudCheckBox @bind-Checked="element.IsChecked" Label="@element.Name"/>
+                    }
+                </div>
+            </MudCardContent>
+            @if (!ViewModel.HideButtons)
+            {
+                <MudCardActions>
+                    <MudButton Class="align-end" OnClick="ViewModel.TryCommitClaims">Anwenden</MudButton>
+                </MudCardActions>
+            }
+        </MudCard>
+        <MudCard Class="ma-2">
+            <MudCardHeader>
+                <MudText>Benutzer Passwort: @ViewModel.User.Name Beabeiten</MudText>
+            </MudCardHeader>
+            <MudCardContent>
+                @if (!ViewModel.HideOldPasswordBox)
+                {
+                    <MudTextFieldString @bind-Value="ViewModel.OldPassword" Label="Altes Passwort" Class="ma-2"/>
+                }
+                <MudTextFieldString @bind-Value="ViewModel.NewPassword"></MudTextFieldString>
+            </MudCardContent>
+            @if (!ViewModel.HideButtons)
+            {
+                <MudCardActions>
+                    <MudButton Class="align-end" OnClick="ViewModel.TryUpdatePassword">Anwenden</MudButton>
+                </MudCardActions>
+            }
+        </MudCard>
+    </CenterElement>
+}
 
 @code {
-    
+     [Parameter]
+    public UserEditorViewModel? ViewModel { get; set; }
 }

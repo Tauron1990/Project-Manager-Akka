@@ -1,6 +1,7 @@
 ﻿@using ServiceManager.Shared.Identity
 @using ServiceManager.Client.ViewModels.Identity
 @using Tauron.Application
+@using ServiceManager.Client.Shared.UserAccount
 
 @page "/UserEditor/{UserId}"
 
@@ -25,37 +26,7 @@
     }
     else
     {
-        <CenterElement>
-            <MudCard Class="ma-2">
-                <MudCardHeader>
-                    <MudText Typo="Typo.h3">Benutzer Claims: @context.User.Name Beabeiten</MudText>
-                </MudCardHeader>
-                <MudCardContent>
-                    <div class="d-flex flex-column">
-                        <MudText Class="ma-5">Claims zuweisen</MudText>
-                        @foreach (var element in context.EditorModels)
-                        {
-                            <MudCheckBox @bind-Checked="element.IsChecked" Label="@element.Name"/>
-                        }
-                    </div>
-                </MudCardContent>
-                <MudCardActions>
-                    <MudButton Class="align-end" OnClick="context.TryCommitClaims">Anwenden</MudButton>
-                </MudCardActions>
-            </MudCard>
-            <MudCard Class="ma-2">
-                <MudCardHeader>
-                    <MudText>Benutzer Passwort: @context.User.Name Beabeiten</MudText>
-                </MudCardHeader>
-                <MudCardContent>
-                    <MudTextFieldString @bind-Value="context.OldPassword" Label="Altes Passwort" Class="ma-2"/>
-                    <MudTextFieldString @bind-Value="context.NewPassword"></MudTextFieldString>
-                </MudCardContent>
-                <MudCardActions>
-                    <MudButton Class="align-end" OnClick="context.TryUpdatePassword">Anwenden</MudButton>
-                </MudCardActions>
-            </MudCard>
-        </CenterElement>
+        <SingleUserEditorComponent ViewModel="@context"/>
     }
 </StateAwaiter>
 

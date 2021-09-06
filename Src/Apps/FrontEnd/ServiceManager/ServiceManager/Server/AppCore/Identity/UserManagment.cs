@@ -273,6 +273,7 @@ namespace ServiceManager.Server.AppCore.Identity
                         {
                             GetUserData(newUser.Id, token).Ignore();
                             GetUserCount(token).Ignore();
+                            GetUserIdByName(command.UserName, token).Ignore();
                         }
 
                         return string.Empty;

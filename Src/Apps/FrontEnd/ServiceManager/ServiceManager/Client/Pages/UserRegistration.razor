@@ -1,5 +1,26 @@
-﻿<h3>UserRegistration</h3>
+﻿@page "/UserRegistration"
+@using ServiceManager.Client.ViewModels.Identity
+@using ServiceManager.Shared.Identity
+@using Tauron.Application
+
+@inject IUserManagement _userManagement
+@inject IEventAggregator _aggregator
+
 
 @code {
-    
+
+    private UserEditorViewModel _userEditor = null!;
+
+    protected override void OnInitialized()
+    {
+        _userEditor = new UserEditorViewModel(_userManagement, _aggregator,
+            new UserData(string.Empty, "Neuer Benutzer", 2), new[]
+                                                             {
+                                                                 new UserClaim(0, string.Empty, Claims.ClusterConnectionClaim),
+                                                                 new UserClaim(1, string.Empty, Claims.ClusterNodeClaim)
+                                                             },
+            StateHasChanged);
+        base.OnInitialized();
+    }
+
 }

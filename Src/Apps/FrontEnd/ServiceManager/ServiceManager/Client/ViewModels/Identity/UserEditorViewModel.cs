@@ -22,6 +22,10 @@ namespace ServiceManager.Client.ViewModels.Identity
         public string OldPassword { get; set; } = string.Empty;
 
         public string NewPassword { get; set; } = string.Empty;
+
+        public bool HideOldPasswordBox { get; set; }
+
+        public bool HideButtons { get; set; }
         
         public UserEditorViewModel(IUserManagement userManagement, IEventAggregator aggregator, UserData? user, UserClaim[] claims, Action stateChanged)
         {
@@ -62,7 +66,7 @@ namespace ServiceManager.Client.ViewModels.Identity
             }
         }
         
-        public async Task TryCommitClaims()
+        public async Task TryCommitClaims(string? id = null)
         {
             try
             {
@@ -76,7 +80,7 @@ namespace ServiceManager.Client.ViewModels.Identity
                 _stateChanged();
 
                 var claims = EditorModels.Aggregate(ImmutableArray<string>.Empty, (array, model) => model.SetClaim(array));
-                await _aggregator.IsSuccess(() => _userManagement.SetClaims(new SetClaimsCommand(User.Id, claims.ToImmutableList())));
+                await _aggregator.IsSuccess(() => _userManagement.SetClaims(new SetClaimsCommand(id ?? User.Id, claims.ToImmutableList())));
             }
             catch (Exception e)
             {
