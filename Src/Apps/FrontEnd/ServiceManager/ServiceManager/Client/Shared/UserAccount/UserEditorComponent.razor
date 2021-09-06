@@ -12,7 +12,7 @@
 @if (_task.IsCompleted && _grid != null)
 {
     <MudContainer MaxWidth="MaxWidth.Medium">
-        <GridComponent @ref="_component" T="UserData" Grid="@_grid" OnRowClicked="OnRowClicked"/>
+        <GridComponent @ref="_component" T="UserData" Grid="@_grid"/>
     </MudContainer>
 }
 else
@@ -90,9 +90,5 @@ else
 
         await client.UpdateGrid();
         return client.Grid;
-    }
-
-    private void OnRowClicked(object obj)
-    {
     }
 }

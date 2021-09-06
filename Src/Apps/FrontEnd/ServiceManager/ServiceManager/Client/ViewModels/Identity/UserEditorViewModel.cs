@@ -39,6 +39,12 @@ namespace ServiceManager.Client.ViewModels.Identity
         {
             try
             {
+                if (User == null)
+                {
+                    _aggregator.PublishError("Benutzer nicht gefunden");
+                    return;
+                }
+                
                 IsRunning = true;
                 var command = new SetNewPasswordCommand(User.Id, OldPassword, NewPassword);
                 _stateChanged();
@@ -60,6 +66,12 @@ namespace ServiceManager.Client.ViewModels.Identity
         {
             try
             {
+                if (User == null)
+                {
+                    _aggregator.PublishError("Benutzer nicht gefunden");
+                    return;
+                }
+                
                 IsRunning = true;
                 _stateChanged();
 

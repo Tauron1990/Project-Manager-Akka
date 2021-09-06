@@ -1,4 +1,27 @@
 ﻿@using ServiceManager.Shared.Identity
 <GenericAuthorizeView Claims="new[] { Claims.DatabaseClaim }">
-    <DatabaseRequiredComponentView/>
+    <DatabaseRequiredComponentView>
+        <DatabaseContent>
+            @DatabaseContent
+        </DatabaseContent>
+        <NoDatabaseContent>
+            @if (NoDatabaseContent == null)
+            {
+                <MudText>@DatabaseRequiredComponentView.DefaultMessage</MudText>
+            }
+            else
+            {
+                @NoDatabaseContent
+            }
+        </NoDatabaseContent>
+    </DatabaseRequiredComponentView>
 </GenericAuthorizeView>
+
+@code
+{
+    [Parameter]
+    public RenderFragment? DatabaseContent { get; set; }
+
+    [Parameter]
+    public RenderFragment? NoDatabaseContent { get; set; }
+}

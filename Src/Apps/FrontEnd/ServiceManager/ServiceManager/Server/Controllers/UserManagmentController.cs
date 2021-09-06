@@ -105,6 +105,10 @@ namespace ServiceManager.Server.Controllers
             => _userManagement.GetUserClaims(id, token);
 
         [HttpPost]
+        public Task<string> SetNewPassword([FromBody]SetNewPasswordCommand command, CancellationToken token = default)
+            => _userManagement.SetNewPassword(command, token);
+
+        [HttpPost]
         public Task<string> SetClaims([FromBody]SetClaimsCommand command, CancellationToken token = default)
             => _userManagement.SetClaims(command, token);
 
