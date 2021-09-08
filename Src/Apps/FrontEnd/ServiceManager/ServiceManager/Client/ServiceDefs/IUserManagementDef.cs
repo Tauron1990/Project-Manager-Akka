@@ -21,7 +21,7 @@ namespace ServiceManager.Client.ServiceDefs
         [Get(nameof(GetUserClaims))]
         Task<UserClaim[]> GetUserClaims([Query]string id, CancellationToken tokem = default);
         
-        [Get(nameof(GetUserClaims))]
+        [Get(nameof(GetUserIdByName))]
         Task<string> GetUserIdByName([Query]string name, CancellationToken token = default);
         
         [Post(nameof(SetNewPassword))]
@@ -38,5 +38,8 @@ namespace ServiceManager.Client.ServiceDefs
 
         [Post(nameof(Register))]
         Task<string> Register([Body]RegisterUserCommand command, CancellationToken token = default);
+        
+        [Post(nameof(DeleteUser))]
+        Task<string> DeleteUser([Body]DeleteUserCommand command, CancellationToken token = default);
     }
 }

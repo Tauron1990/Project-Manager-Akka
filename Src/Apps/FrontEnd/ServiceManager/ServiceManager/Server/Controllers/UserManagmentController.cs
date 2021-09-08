@@ -30,8 +30,9 @@ namespace ServiceManager.Server.Controllers
         private readonly ISessionProvider _provider;
         private readonly ISessionFactory _sessionFactory;
 
-        public UserManagmentController(SignInManager<IdentityUser> logInManager, IUserManagement userManagement, UserManager<IdentityUser> userManager, ServerAuthHelper helper,
-                                       IUserClaimsPrincipalFactory<IdentityUser> principalFactory, ISessionProvider provider, ISessionFactory sessionFactory)
+        public UserManagmentController(
+            SignInManager<IdentityUser> logInManager, IUserManagement userManagement, UserManager<IdentityUser> userManager, ServerAuthHelper helper,
+            IUserClaimsPrincipalFactory<IdentityUser> principalFactory, ISessionProvider provider, ISessionFactory sessionFactory)
         {
             _logInManager = logInManager;
             _userManagement = userManagement;
@@ -54,6 +55,7 @@ namespace ServiceManager.Server.Controllers
             }
 
             var server = new GridServer<UserData>(users, Request.Query, true, "UsersGrid");
+
             return Ok(server.ItemsToDisplay);
         }
 
@@ -101,32 +103,32 @@ namespace ServiceManager.Server.Controllers
             => _userManagement.GetUserData(id, token);
 
         [HttpGet, Publish]
-        public Task<UserClaim[]> GetUserClaims([FromQuery]string id, CancellationToken token = default)
+        public Task<UserClaim[]> GetUserClaims([FromQuery] string id, CancellationToken token = default)
             => _userManagement.GetUserClaims(id, token);
 
         [HttpGet, Publish]
-        public Task<string> GetUserIdByName([FromQuery]string name, CancellationToken token = default)
+        public Task<string> GetUserIdByName([FromQuery] string name, CancellationToken token = default)
             => _userManagement.GetUserIdByName(name, token);
 
         [HttpPost]
-        public Task<string> SetNewPassword([FromBody]SetNewPasswordCommand command, CancellationToken token = default)
+        public Task<string> SetNewPassword([FromBody] SetNewPasswordCommand command, CancellationToken token = default)
             => _userManagement.SetNewPassword(command, token);
 
         [HttpPost]
-        public Task<string> SetClaims([FromBody]SetClaimsCommand command, CancellationToken token = default)
+        public Task<string> SetClaims([FromBody] SetClaimsCommand command, CancellationToken token = default)
             => _userManagement.SetClaims(command, token);
 
         [HttpPost, AllowAnonymous]
-        public Task<string> RunSetup([FromBody]StartSetupCommand command, CancellationToken token = default)
+        public Task<string> RunSetup([FromBody] StartSetupCommand command, CancellationToken token = default)
             => _userManagement.RunSetup(command, token);
 
         [HttpPost, AllowAnonymous]
-        public async Task<string> LogIn([FromBody]TryLoginCommand command, CancellationToken token = default)
+        public async Task<string> LogIn([FromBody] TryLoginCommand command, CancellationToken token = default)
         {
             try
             {
                 var usr = await UserManagment.Create(command.UserName, _userManager);
-                
+
                 var result = await _logInManager.PasswordSignInAsync(command.UserName, command.Password, true, false);
 
                 if (result.Succeeded && HttpContext != null)
@@ -144,7 +146,11 @@ namespace ServiceManager.Server.Controllers
         }
 
         [HttpPost, AllowAnonymous]
-        public Task<string> Register([FromBody]RegisterUserCommand command, CancellationToken token = default)
+        public Task<string> Register([FromBody] RegisterUserCommand command, CancellationToken token = default)
             => _userManagement.Register(command, token);
+
+        [HttpPost]
+        public Task<string> DeleteUser([FromBody]DeleteUserCommand command, CancellationToken token = default)
+            => _userManagement.DeleteUser(command, token);
     }
 }

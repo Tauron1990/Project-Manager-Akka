@@ -13,6 +13,7 @@ using ServiceManager.Shared.Identity;
 using Stl.Async;
 using Stl.Fusion;
 using Stl.Fusion.Authentication;
+using Stl.Fusion.Authentication.Commands;
 using Stl.Fusion.EntityFramework.Authentication;
 using Stl.Text;
 
@@ -87,7 +88,7 @@ namespace ServiceManager.Server.AppCore.Identity
                 });
         }
 
-        public Task<string> GetUserIdByName(string name, CancellationToken token = default)
+        public virtual Task<string> GetUserIdByName(string name, CancellationToken token = default)
         {
             return UserFunc(
                 async (_, repo) =>
@@ -107,7 +108,7 @@ namespace ServiceManager.Server.AppCore.Identity
                 });
         }
 
-        public Task<string> SetNewPassword(SetNewPasswordCommand command, CancellationToken token = default)
+        public virtual Task<string> SetNewPassword(SetNewPasswordCommand command, CancellationToken token = default)
         {
             return UserFunc(
                 async (_, repo) =>
@@ -130,7 +131,7 @@ namespace ServiceManager.Server.AppCore.Identity
                 });
         }
 
-        public Task<string> SetClaims(SetClaimsCommand command, CancellationToken token = default)
+        public virtual Task<string> SetClaims(SetClaimsCommand command, CancellationToken token = default)
         {
             return UserFunc(
                 async (_, repo) =>
@@ -247,6 +248,25 @@ namespace ServiceManager.Server.AppCore.Identity
         public Task<string> LogIn(TryLoginCommand command, CancellationToken token = default)
             => throw new InvalidOperationException("Only Support with Controller");
 
+        public async Task<string> Logout(LogOutCommand command, CancellationToken token = default)
+        {
+            try
+            {
+                return await UserFunc(
+                    async (s, repo) =>
+                    {
+                        var login = s.GetRequiredService<SignInManager<IdentityUser>>();
+                        var authService = s.GetRequiredService<IServerSideAuthService>();
+
+                        await authService.SignOut(new SignOutCommand(command.Session, true), token);
+                    });
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
+        }
+
         public Task<string> Register(RegisterUserCommand command, CancellationToken token = default)
         {
             return UserFunc(
@@ -283,6 +303,29 @@ namespace ServiceManager.Server.AppCore.Identity
                         return e.Message;
                     }
                 });
+        }
+
+        public async Task<string> DeleteUser(DeleteUserCommand command, CancellationToken token = default)
+        {
+            try
+            {
+                return await UserFunc(
+                    async (_, repo) =>
+                    {
+                        var usr = await repo.FindByIdAsync(command.UserId);
+
+                        if (usr == null)
+                            return "Benutzer nicht gefunden";
+
+                        var result = await repo.DeleteAsync(usr);
+
+                        return result.Succeeded ? string.Empty : result.Errors.First().Description;
+                    });
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
         }
 
         private async Task<TReturn> UserFunc<TReturn>(Func<IServiceProvider, UserManager<IdentityUser>, Task<TReturn>> runner)

@@ -1,9 +1,11 @@
 ﻿@using ServiceManager.Client.ViewModels.Identity
 @using System.Security.Claims
 @using System.Text
+@using System.Web
 @using Stl.Fusion.Authentication
 
 @inject IErrorMessageProvider _errorMessage
+@inject NavigationManager _navigationManager
 
 <div class="d-flex flex-row justify-center">
     <div class="d-flex flex-column justify-center">
@@ -14,7 +16,7 @@
         else if(Claims.Length == 0 || !_userState.User.IsAuthenticated)
         {
             <MudText Class="justify-center">Bitte melde dich an um Zugriff zu erhalten!</MudText>
-            <MudLink Class="justify-center" Href="/User">Anmelden</MudLink>
+            <MudButton Class="justify-center" OnClick="NavigateToLogin" Variant="Variant.Text" Color="Color.Tertiary">Anmelden</MudButton>
         }
         else
         {
@@ -80,4 +82,7 @@
 
         return b.ToString();
     }
+
+    private void NavigateToLogin() => _navigationManager.NavigateTo($"/User?return={HttpUtility.UrlEncode(_navigationManager.Uri)}");
+
 }

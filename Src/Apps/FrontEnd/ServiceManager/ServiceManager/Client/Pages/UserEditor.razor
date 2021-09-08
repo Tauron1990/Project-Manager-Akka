@@ -7,7 +7,9 @@
 
 @inject IUserManagement _management
 @inject IEventAggregator _aggregator
+@inject NavigationManager _navigationManager
 
+@layout UserAccountLayout
 @inherits ComputedStateComponent<UserEditorViewModel>
 
 <StateAwaiter State="@State">
@@ -26,7 +28,7 @@
     }
     else
     {
-        <SingleUserEditorComponent ViewModel="@context"/>
+        <SingleUserEditorComponent ViewModel="@context" Cancel="@(() => _navigationManager.NavigateTo("/User"))"/>
     }
 </StateAwaiter>
 

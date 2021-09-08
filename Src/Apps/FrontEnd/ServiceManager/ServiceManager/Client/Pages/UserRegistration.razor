@@ -1,15 +1,58 @@
 ﻿@page "/UserRegistration"
+@layout UserAccountLayout
+
+@using ServiceManager.Client.Shared.UserAccount
 @using ServiceManager.Client.ViewModels.Identity
 @using ServiceManager.Shared.Identity
 @using Tauron.Application
 
 @inject IUserManagement _userManagement
 @inject IEventAggregator _aggregator
+@inject NavigationManager _navigationManager
+@inject IDialogService _dialogService
 
+<GenericAuthorizeView Claims="new []{Claims.UserManagmaentClaim}">
+    <CenterElement>
+        @if (_isSubmiting)
+        {
+            <MudProgressCircular Indeterminate="true"/>
+            <MudText>Benutzer wird registriert</MudText>
+        }
+        else
+        {
+            <MudCard Class="ma-2">
+                <MudCardContent>
+                    <MudTextFieldString @bind-Value="NewUserName" DebounceInterval="500" Label="Benutzer Name"/>
+                </MudCardContent>
+            </MudCard>
+            <SingleUserEditorComponent ViewModel="_userEditor"/>
+            <MudCard Class="ma-2">
+                <MudCardActions>
+                    <MudButton Class="align-end" Disabled="_isValid" OnClick="CreateNewUser">Benutzer Erstellen</MudButton>
+                </MudCardActions>
+            </MudCard>
+        }
+    </CenterElement>
+</GenericAuthorizeView>
 
 @code {
 
+    private bool _isSubmiting;
+    private bool _isValid;
+    
+    public string NewUserName
+    {
+        get => _newUserName;
+        set
+        {
+            _newUserName = value;
+            _isValid = string.IsNullOrWhiteSpace(value);
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
     private UserEditorViewModel _userEditor = null!;
+    private string _newUserName = string.Empty;
 
     protected override void OnInitialized()
     {
@@ -19,8 +62,43 @@
                                                                  new UserClaim(0, string.Empty, Claims.ClusterConnectionClaim),
                                                                  new UserClaim(1, string.Empty, Claims.ClusterNodeClaim)
                                                              },
-            StateHasChanged);
+            StateHasChanged)
+                      {
+                          HideButtons = true,
+                          HideOldPasswordBox = true
+                      };
         base.OnInitialized();
     }
 
+    private async Task CreateNewUser()
+    {
+        try
+        {
+            _isSubmiting = true;
+            await InvokeAsync(StateHasChanged);
+
+            if (!await _aggregator.IsSuccess(() => _userManagement.Register(new RegisterUserCommand(NewUserName, _userEditor.NewPassword))))
+                return;
+
+            var id = await _userManagement.GetUserIdByName(NewUserName);
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                _aggregator.PublishError("Benutzer Id Konnte nicht Abgreufen werden!");
+                return;
+            }
+
+            await _userEditor.TryCommitClaims(id);
+            _aggregator.PublishSuccess($"Benutzer {NewUserName} efolgreich erstellt");
+            _navigationManager.NavigateTo("/User");
+        }
+        catch (Exception e)
+        {
+            _aggregator.PublishError(e);
+        }
+        finally
+        {
+            _isSubmiting = false;
+            StateHasChanged();
+        }
+    }
 }

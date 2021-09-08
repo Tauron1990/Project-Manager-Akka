@@ -7,6 +7,7 @@
 @inject IUserManagement _management
 @inject ISessionProvider _provider
 @inject ILocalStorageService _localStorage
+@inject NavigationManager _navigationManager
 
 <MudContainer MaxWidth="MaxWidth.Medium">
     <MudTabs Elevation="4" Rounded="true" Centered="true" Color="@Color.Primary">
@@ -25,14 +26,20 @@
 
     private string _password = string.Empty;
 
-    private Task LogIn() 
-        => _aggregator.IsSuccess(async () =>
-                                 {
-                                     var result = await _management.LogIn(new TryLoginCommand(_name, _password, _provider.Session));
-                                     if(string.IsNullOrWhiteSpace(result))
-                                        await App.SaveItem(_localStorage, App.GlobalSessionId, true);
-                                     return result;
-                                 });
+    private async Task LogIn()
+    {
+        if (await _aggregator.IsSuccess(async () =>
+                                              {
+                                                  var result = await _management.LogIn(new TryLoginCommand(_name, _password, _provider.Session));
+                                                  if (string.IsNullOrWhiteSpace(result))
+                                                      await App.SaveItem(_localStorage, App.GlobalSessionId, true);
+                                                  return result;
+                                              }))
+        {
+            if (_navigationManager.TryGetQueryString("return", out string? url) && !string.IsNullOrWhiteSpace(url))
+                _navigationManager.NavigateTo(url);
+        }
+    }
 
     private Task Register()
         => _aggregator.IsSuccess(() => _management.Register(new RegisterUserCommand(_name, _password)));

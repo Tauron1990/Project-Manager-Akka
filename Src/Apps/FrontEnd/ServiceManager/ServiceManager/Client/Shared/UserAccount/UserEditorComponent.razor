@@ -9,11 +9,17 @@
 @inject HttpClient _client
 @inject IStateFactory _stateFactory
 @inject IUserManagement _userManagement
+@inject NavigationManager _navigationManager
 
 @if (_task.IsCompleted && _grid != null)
 {
     <MudContainer MaxWidth="MaxWidth.Medium">
-        <GridComponent @ref="_component" T="UserData" Grid="@_grid"/>
+        <div class="d-flex flex-column">
+            <MudButton Class="ma-1" OnClick="OnCreateNewUser">Neuer Benutzer</MudButton>
+            <div class="ma-1">
+                <GridComponent @ref="_component" T="UserData" Grid="@_grid"/>
+            </div>
+        </div>
     </MudContainer>
 }
 else
@@ -92,4 +98,6 @@ else
         await client.UpdateGrid();
         return client.Grid;
     }
+
+    private void OnCreateNewUser() => _navigationManager.NavigateTo("/UserRegistration");
 }

@@ -30,6 +30,10 @@ namespace ServiceManager.Shared.Identity
 
         Task<string> LogIn(TryLoginCommand command, CancellationToken token = default);
 
+        Task<string> Logout(LogOutCommand command, CancellationToken token = default);
+        
         Task<string> Register(RegisterUserCommand command, CancellationToken token = default);
+
+        Task<string> DeleteUser(DeleteUserCommand command, CancellationToken token = default);
     }
 }

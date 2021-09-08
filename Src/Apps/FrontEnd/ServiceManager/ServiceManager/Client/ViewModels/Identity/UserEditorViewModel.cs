@@ -39,6 +39,21 @@ namespace ServiceManager.Client.ViewModels.Identity
                            ).ToImmutableList();
         }
 
+        public async Task TryDeleteUser()
+        {
+            try
+            {
+                if (User == null)
+                    _aggregator.PublishError("Benutzer nicht angegeben");
+                else if (await _aggregator.IsSuccess(() => _userManagement.DeleteUser(new DeleteUserCommand(User.Id))))
+                    _aggregator.PublishSuccess($"Benutzer {User.Name} efolgreich gelöscht");
+            }
+            catch (Exception e)
+            {
+                _aggregator.PublishError(e);
+            }
+        }
+        
         public async Task TryUpdatePassword()
         {
             try
@@ -53,7 +68,8 @@ namespace ServiceManager.Client.ViewModels.Identity
                 var command = new SetNewPasswordCommand(User.Id, OldPassword, NewPassword);
                 _stateChanged();
 
-                await _aggregator.IsSuccess(() => _userManagement.SetNewPassword(command));
+                if(await _aggregator.IsSuccess(() => _userManagement.SetNewPassword(command)))
+                    _aggregator.PublishSuccess($"Passwort von {User.Name} efolgreich geändert");
             }
             catch (Exception e)
             {
@@ -65,12 +81,15 @@ namespace ServiceManager.Client.ViewModels.Identity
                 _stateChanged();
             }
         }
+
+        public Task TryCommitClaims()
+            => TryCommitClaims(null);
         
-        public async Task TryCommitClaims(string? id = null)
+        public async Task TryCommitClaims(string? id)
         {
             try
             {
-                if (User == null)
+                if (string.IsNullOrWhiteSpace(id) && User == null)
                 {
                     _aggregator.PublishError("Benutzer nicht gefunden");
                     return;
@@ -80,7 +99,10 @@ namespace ServiceManager.Client.ViewModels.Identity
                 _stateChanged();
 
                 var claims = EditorModels.Aggregate(ImmutableArray<string>.Empty, (array, model) => model.SetClaim(array));
-                await _aggregator.IsSuccess(() => _userManagement.SetClaims(new SetClaimsCommand(id ?? User.Id, claims.ToImmutableList())));
+                if (await _aggregator.IsSuccess(() => _userManagement.SetClaims(new SetClaimsCommand(id ?? User!.Id, claims.ToImmutableList()))))
+                {
+                    _aggregator.PublishSuccess($"Berechtigunen erfolgreich für {User?.Name} geändert");
+                }
             }
             catch (Exception e)
             {

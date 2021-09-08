@@ -1,5 +1,33 @@
-﻿<h3>LogoutButton</h3>
+﻿@using ServiceManager.Shared.Identity
+@using Stl.Fusion.Authentication
+@using Tauron.Application
+
+@inject IUserManagement _userManagement
+@inject IEventAggregator _aggregator
+@inject ISessionResolver _session
+@inject NavigationManager _navigationManager
+
+@if (State?.User.IsAuthenticated == true)
+{
+    <MudButton StartIcon="@Icons.Material.Filled.Logout" Color="Color.Tertiary" Variant="Variant.Filled" OnClick="Logout">Abmelden</MudButton>
+}
 
 @code {
+
+    [CascadingParameter]
+    public AuthState? State { get; set; }
     
+    private async Task Logout()
+    {
+        try
+        {
+            if (await _aggregator.IsSuccess(() => _userManagement.Logout(new LogOutCommand(_session.Session))))
+                _navigationManager.NavigateTo(_navigationManager.Uri, true);
+        }
+        catch (Exception e)
+        {
+            _aggregator.PublishError(e);
+        }
+    }
+
 }

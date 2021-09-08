@@ -66,10 +66,8 @@ namespace ServiceManager.Client.ViewModels
             {
                 using (manager.Start())
                 {
-                    var result = await _api.UpdateGlobalConfig(new UpdateGlobalConfigApiCommand(new GlobalConfig(ConfigContent, ConfigInfo)));
-                    if(string.IsNullOrWhiteSpace(result)) return;
-
-                    _aggregator.PublishWarnig(result);
+                    if (await _aggregator.IsSuccess(() => _api.UpdateGlobalConfig(new UpdateGlobalConfigApiCommand(new GlobalConfig(ConfigContent, ConfigInfo)))))
+                        _aggregator.PublishSuccess("Konfiguration gespeichert");
                 }
             }
             catch (Exception e)

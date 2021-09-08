@@ -63,8 +63,20 @@ namespace ServiceManager.Client
         {
             collection.AddAuthorizationCore(o =>
                                             {
+                                                void BuildSpecialPolicy(params string[] claims)
+                                                {
+                                                    o.AddPolicy(string.Join(',', claims),
+                                                        b =>
+                                                        {
+                                                            foreach (var claim in claims) b.RequireClaim(claim);
+                                                        });
+                                                }
+                                                
                                                 foreach (var claim in Claims.AllClaims)
                                                     o.AddPolicy(claim, b => b.RequireClaim(claim));
+                                                
+                                                BuildSpecialPolicy(Claims.ClusterConnectionClaim, Claims.ServerInfoClaim, Claims.DatabaseClaim);
+                                                BuildSpecialPolicy(Claims.ClusterConnectionClaim, Claims.ConfigurationClaim);
                                             });
             collection.AddScoped(
                 sp =>

@@ -69,14 +69,9 @@ namespace ServiceManager.Client.ViewModels
                 var data = model.CreateNew();
 
                 model.IsNew = false;
-                var result = await _api.UpdateSpecificConfig(new UpdateSpecifcConfigCommand(data));
-                if (string.IsNullOrWhiteSpace(result))
-                {
-                    reset = true;
-                    return;
-                }
-                
-                _aggregator.PublishWarnig(result);
+                reset = await _aggregator.IsSuccess(() => _api.UpdateSpecificConfig(new UpdateSpecifcConfigCommand(data)));
+                if(reset)
+                    _aggregator.PublishSuccess($"Änderungen angewended für {data.Name}");
             }
             catch (Exception e)
             {
@@ -137,15 +132,11 @@ namespace ServiceManager.Client.ViewModels
 
             try
             {
-                var result = await _api.DeleteSpecificConfig(new DeleteSpecificConfigCommand(model.Config.Id));
-                if (!string.IsNullOrWhiteSpace(result))
+                if (await _aggregator.IsSuccess(() => _api.DeleteSpecificConfig(new DeleteSpecificConfigCommand(model.Config.Id))))
                 {
-                    _aggregator.PublishWarnig(result);
-
-                    return;
+                    _aggregator.PublishSuccess($"Konfiguration {model.Config.Id} erfolgreich gelöscht");
+                    _viewState.Set(_viewState.Value with { ToEdit = null, NewModel = null });
                 }
-
-                _viewState.Set(_viewState.Value with{ ToEdit = null, NewModel = null });
             }
             catch (Exception e)
             {

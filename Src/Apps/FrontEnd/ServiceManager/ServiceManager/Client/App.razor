@@ -3,9 +3,18 @@
 @using ServiceManager.Client.ViewModels.Identity
 @using ServiceManager.Shared.Identity
 @using ServiceManager.Client.ServiceDefs
+@using ServiceManager.Client.ViewModels.Events
+@using Tauron
+@using Tauron.Application
+@using System.Reactive
+@using System.Reactive.Disposables
 
 @inject ILocalStorageService _localStorage
 @inject ILogInManager _logInManager
+@inject IEventAggregator _aggregator
+@inject ISnackbar _snackbar
+
+@implements IDisposable
 
 @if (_loading)
 {
@@ -31,6 +40,8 @@ else
 
 @code {
 
+    private CompositeDisposable _disposer = new();
+    
     private const string SessionData = "Session.Data";
 
     private string _sessionId = Symbol.Empty;
@@ -48,6 +59,30 @@ else
         }
     }
 
+    protected override void OnInitialized()
+    {
+        try
+        {
+            _aggregator.GetEvent<ReloadAllEvent, Unit>().Get()
+                       .Subscribe(_ => Task.Delay(5000).ContinueWith(_ => InvokeAsync(StateHasChanged)))
+                       .DisposeWith(_disposer);
+
+            _aggregator.ConsumeMessages()
+                       .Subscribe(m => m.Apply(_snackbar))
+                       .DisposeWith(_disposer);
+
+            _aggregator.GetEvent<RestartClient, Unit>()
+                       .Get().AutoSubscribe(e => _aggregator.PublishError(e));
+
+            base.OnInitialized();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
+    }
+
+    
     public override async Task SetParametersAsync(ParameterView parameters)
     {
         await base.SetParametersAsync(parameters);
@@ -81,4 +116,7 @@ else
 
     public static async Task SaveItem(ILocalStorageService localStorage, string sessionId, bool isLogedIn) 
         => await localStorage.SetItemAsync(SessionData, new SessionData(sessionId, DateTime.Now + (DefaultSessionConfig.Timeout - TimeSpan.FromDays(1)), isLogedIn));
+
+    public void Dispose() => _disposer.Dispose();
+
 }
