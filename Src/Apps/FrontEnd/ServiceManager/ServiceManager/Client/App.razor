@@ -1,10 +1,124 @@
-<Router AppAssembly="@typeof(Program).Assembly" PreferExactMatches="@true">
-    <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)"/>
-    </Found>
-    <NotFound>
-        <LayoutView Layout="@typeof(MainLayout)">
-            <p>Die Adresse wurde nicht gefunden</p>
-        </LayoutView>
-    </NotFound>
-</Router>
+@using Stl.Text
+@using Blazored.LocalStorage
+@using ServiceManager.Client.ViewModels.Identity
+@using ServiceManager.Shared.Identity
+@using ServiceManager.Client.ServiceDefs
+@using ServiceManager.Client.ViewModels.Events
+@using Tauron
+@using Tauron.Application
+@using System.Reactive
+@using System.Reactive.Disposables
+
+@inject ILocalStorageService _localStorage
+@inject ILogInManager _logInManager
+@inject IEventAggregator _aggregator
+@inject ISnackbar _snackbar
+
+@implements IDisposable
+
+@if (_loading)
+{
+    <CenterElement>
+        <MudProgressCircular Indeterminate="true"/>
+    </CenterElement>
+}
+else
+{
+    <CascadingAuthState SessionId="@SessionId">
+        <Router AppAssembly="@typeof(Program).Assembly" PreferExactMatches="@true">
+            <Found Context="routeData">
+                <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)"/>
+            </Found>
+            <NotFound>
+                <LayoutView Layout="@typeof(MainLayout)">
+                    <p>Die Adresse wurde nicht gefunden</p>
+                </LayoutView>
+            </NotFound>
+        </Router>
+    </CascadingAuthState>
+}
+
+@code {
+
+    private CompositeDisposable _disposer = new();
+    
+    private const string SessionData = "Session.Data";
+
+    private string _sessionId = Symbol.Empty;
+
+    private bool _loading = true;
+
+    [Parameter]
+    public string SessionId
+    {
+        get => _sessionId;
+        set
+        {
+            _sessionId = value;
+            GlobalSessionId = value;
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        try
+        {
+            _aggregator.GetEvent<ReloadAllEvent, Unit>().Get()
+                       .Subscribe(_ => Task.Delay(5000).ContinueWith(_ => InvokeAsync(StateHasChanged)))
+                       .DisposeWith(_disposer);
+
+            _aggregator.ConsumeMessages()
+                       .Subscribe(m => m.Apply(_snackbar))
+                       .DisposeWith(_disposer);
+
+            _aggregator.GetEvent<RestartClient, Unit>()
+                       .Get().AutoSubscribe(e => _aggregator.PublishError(e));
+
+            base.OnInitialized();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
+    }
+
+    
+    public override async Task SetParametersAsync(ParameterView parameters)
+    {
+        await base.SetParametersAsync(parameters);
+
+        if (await _localStorage.ContainKeyAsync(SessionData))
+        {
+            var (sessionId, timeout, isLogedIn) = await _localStorage.GetItemAsync<SessionData>(SessionData);
+            if (timeout > DateTime.Now)
+            {
+                var serverSessionId = await _logInManager.UpdateSession(sessionId);
+                if (string.IsNullOrWhiteSpace(serverSessionId))
+                    await _localStorage.RemoveItemAsync(SessionData);
+                else if (!isLogedIn)
+                    await SaveItem(_localStorage, SessionId, true);
+            }
+            else
+            {
+                SessionId = await _logInManager.LogoutSession();
+                await SaveItem(_localStorage, SessionId, false);
+            }
+        }
+        else
+        {
+            SessionId = await _logInManager.LogoutSession();
+            await SaveItem(_localStorage, SessionId, false);
+        }
+
+        _loading = false;
+        StateHasChanged();
+    }
+
+    public static string GlobalSessionId { get; set; } = string.Empty;
+
+    public static async Task SaveItem(ILocalStorageService localStorage, string sessionId, bool isLogedIn) 
+        => await localStorage.SetItemAsync(SessionData, new SessionData(sessionId, DateTime.Now + (DefaultSessionConfig.Timeout - TimeSpan.FromDays(1)), isLogedIn));
+
+    public void Dispose() => _disposer.Dispose();
+
+}

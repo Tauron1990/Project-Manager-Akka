@@ -1,0 +1,88 @@
+﻿@using ServiceManager.Client.ViewModels.Identity
+@using System.Security.Claims
+@using System.Text
+@using System.Web
+@using Stl.Fusion.Authentication
+
+@inject IErrorMessageProvider _errorMessage
+@inject NavigationManager _navigationManager
+
+<div class="d-flex flex-row justify-center">
+    <div class="d-flex flex-column justify-center">
+        @if (_authenticationState == null || _userState == null)
+        {
+            <MudText Class="justify-center">Unbekannter Fehler</MudText>
+        }
+        else if(Claims.Length == 0 || !_userState.User.IsAuthenticated)
+        {
+            <MudText Class="justify-center">Bitte melde dich an um Zugriff zu erhalten!</MudText>
+            <MudButton Class="justify-center" OnClick="NavigateToLogin" Variant="Variant.Text" Color="Color.Tertiary">Anmelden</MudButton>
+        }
+        else
+        {
+            <p class="justify-center">
+                @foreach (var msg in _errorMessage.GetMessage(_authenticationState, Claims))
+                {
+                    <MudText>@msg</MudText>
+                }
+            </p>
+            <p class="justify-center">
+                <MudText>Wende die an einen Administrator um zugriff auf die Resource zu erhalten</MudText>
+            </p>
+        }
+    </div>
+</div>
+
+@code {
+
+    [Parameter]
+    public string[] Claims { get; set; } = Array.Empty<string>();
+
+    [CascadingParameter]
+    public Task<AuthenticationState>? State { get; set; }
+
+    private AuthState? _userState;
+    private AuthenticationState? _authenticationState;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if(State == null) return;
+
+        _authenticationState = await State;
+        _userState = _authenticationState as AuthState;
+
+        if (_userState != null)
+        {
+            Console.WriteLine($"UserData 1: {ToString(_userState.User)}");
+            Console.WriteLine($"UserData 2: {ToString(_authenticationState.User)}");
+        }
+
+        await base.OnParametersSetAsync();
+    }
+
+    private static string ToString(User principal)
+    {
+        StringBuilder b = new();
+
+        b.AppendLine(principal.Name);
+        foreach (var principalClaim in principal.Claims)
+            b.AppendLine($"{principalClaim.Key}-{principalClaim.Value}");
+
+        return b.ToString();
+    }
+
+    private static string ToString(ClaimsPrincipal principal)
+    {
+        StringBuilder b = new();
+
+        b.AppendLine(principal.Identity?.Name);
+        b.AppendLine(principal.Identity?.AuthenticationType);
+        foreach (var principalClaim in principal.Claims)
+            b.AppendLine($"{principalClaim.Type}-{principalClaim.Value}");
+
+        return b.ToString();
+    }
+
+    private void NavigateToLogin() => _navigationManager.NavigateTo($"/User?return={HttpUtility.UrlEncode(_navigationManager.Uri)}");
+
+}

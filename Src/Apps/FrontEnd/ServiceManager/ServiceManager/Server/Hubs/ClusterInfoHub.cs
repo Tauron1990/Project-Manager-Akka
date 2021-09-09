@@ -6,12 +6,14 @@ using System.Threading.Tasks;
 using Akka.Configuration;
 using Akka.Configuration.Hocon;
 using JetBrains.Annotations;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using ServiceManager.Server.Controllers;
 using ServiceManager.Shared.Api;
 
 namespace ServiceManager.Server.Hubs
 { 
+    [Authorize]
     public sealed class ClusterInfoHub : Hub
     {
         public Task SentPropertyChanged(string type, string name)

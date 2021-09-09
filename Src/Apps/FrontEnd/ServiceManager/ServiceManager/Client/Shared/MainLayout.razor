@@ -22,7 +22,9 @@
             <MudSpacer/>
             <ClusterConnectionAlert/>
             <MudSpacer/>
-            <MudButton Variant="Variant.Text" Link="/About" Color="Color.Secondary">About</MudButton>
+            <MudButton Variant="Variant.Text" Link="/User" Color="Color.Tertiary">@UserName</MudButton>
+            <LogoutButton/>
+            <MudButton Variant="Variant.Text" Link="/About" Color="Color.Tertiary">About</MudButton>
         </MudAppBar>
         <MudDrawer Open="@_open" Elevation="4" Variant="DrawerVariant.Responsive" ClipMode="DrawerClipMode.Always">
             <MudDrawerHeader>Service Manager</MudDrawerHeader>
@@ -41,33 +43,27 @@
 {
     private readonly CompositeDisposable _disposer = new();
 
+    [CascadingParameter]
+    public Task<AuthState>? UserState { get; set; }
+
+    private string UserName = "Gast";
+    
     bool _open = false;
 
     void ToggleDrawer() => _open = !_open;
 
     private void OnNavigating() => _open = false;
-
-    protected override void OnInitialized()
+    
+    protected override async Task OnParametersSetAsync()
     {
-        try
+        if (UserState != null)
         {
-            _aggregator.GetEvent<ReloadAllEvent, Unit>().Get()
-                       .Subscribe(_ => Task.Delay(5000).ContinueWith(_ => InvokeAsync(StateHasChanged)))
-                       .DisposeWith(_disposer);
-
-            _aggregator.ConsumeMessages()
-                       .Subscribe(m => m.Apply(_snackbar))
-                       .DisposeWith(_disposer);
-
-            _aggregator.GetEvent<RestartClient, Unit>()
-                       .Get().AutoSubscribe(e => _aggregator.PublishError(e));
-
-            base.OnInitialized();
+            var result = await UserState;
+            if (!string.IsNullOrWhiteSpace(result.User.Name) && result.User.Name.ToUpper() !=  "GUEST")
+                UserName = result.User.Name;
         }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-        }
+        
+        await base.OnParametersSetAsync();
     }
 
     public void Dispose()

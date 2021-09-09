@@ -12,9 +12,9 @@
 
 @inherits MixedStateComponent<AppConfigViewData, AppConfigData>
 
-@inject IDialogService _service;
-@inject IEventAggregator _aggregator;
-@inject IServerConfigurationApi _api;
+@inject IDialogService _service
+@inject IEventAggregator _aggregator
+@inject IServerConfigurationApi _api
 
 @{
     var (configs, (newModel, toEdit)) = State.LatestNonErrorValue ?? new AppConfigViewData(ImmutableList<AppConfigModel>.Empty, new AppConfigData());
@@ -84,10 +84,10 @@ else
         </HeaderContent>
         <RowTemplate>
             <MudTd><SelectionMarker Item="@context"/></MudTd>
-            <MudTd DataLabel="Id">@context.Config.Id</MudTd>
-            <MudTd DataLabel="Info">@context.Config.Info</MudTd>
-            <MudTd DataLabel="Konfiguration">@context.Config.ConfigContent</MudTd>
-            <MudTd DataLabel="Bedingungen">@context.Config.Conditions.Count</MudTd>
+            <MudTd DataLabel="Id">@context!.Config.Id</MudTd>
+            <MudTd DataLabel="Info">@context!.Config.Info</MudTd>
+            <MudTd DataLabel="Konfiguration">@context!.Config.ConfigContent</MudTd>
+            <MudTd DataLabel="Bedingungen">@context!.Config.Conditions.Count</MudTd>
         </RowTemplate>
     </MudTable>
 }

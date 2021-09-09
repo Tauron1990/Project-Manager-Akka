@@ -1,0 +1,51 @@
+﻿@using System.Reactive.Disposables
+
+@implements IDisposable
+
+@inject DatabaseRequiredComponentHelper _database
+
+@{
+    var state = _database.IsReady;
+}
+
+@if (state.IsLoading())
+{
+    <MudProgressCircular Class="justify-center" Indeterminate="true" Color="Color.Primary"/>
+}
+else if (state.ValueOrDefault)
+{
+    @DatabaseContent
+}
+else
+{
+    @if (NoDatabaseContent == null)
+    {
+        <MudText>@DefaultMessage</MudText>
+    }
+    else
+    {
+        @NoDatabaseContent
+    }
+}
+
+@code {
+
+        public const string DefaultMessage = "Mongo Datenbank ist für die Benutzung der Funktion nötig";
+
+    [Parameter]
+    public RenderFragment? DatabaseContent { get; set; }
+
+    [Parameter]
+    public RenderFragment? NoDatabaseContent { get; set; }
+
+    private IDisposable _subscription = Disposable.Empty;
+
+    protected override void OnInitialized()
+    {
+        _subscription = _database.OnChanged.Subscribe(_ => InvokeAsync(StateHasChanged));
+        base.OnInitialized();
+    }
+
+    public void Dispose() => _subscription.Dispose();
+
+}

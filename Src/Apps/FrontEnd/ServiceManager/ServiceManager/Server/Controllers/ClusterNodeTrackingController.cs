@@ -1,7 +1,9 @@
 ﻿using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ServiceManager.Shared.Api;
 using ServiceManager.Shared.ClusterTracking;
+using ServiceManager.Shared.Identity;
 using Stl.Fusion.Server;
 
 namespace ServiceManager.Server.Controllers
@@ -9,6 +11,7 @@ namespace ServiceManager.Server.Controllers
     [ApiController]
     [Route(ControllerName.ClusterNoteTracking + "/[action]")]
     [JsonifyErrors]
+    [Authorize(Claims.ClusterNodeClaim)]
     public class ClusterNodeTrackingController : Controller, IClusterNodeTracking
     {
         private readonly IClusterNodeTracking _clusterNodeTracking;

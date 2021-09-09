@@ -1,12 +1,17 @@
+using System;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ServiceManager.Server.AppCore;
 using ServiceManager.Server.AppCore.Helper;
+using ServiceManager.Server.AppCore.Identity;
 using ServiceManager.Shared;
+using ServiceManager.Shared.Identity;
 using Tauron.Application.AkkaNode.Bootstrap;
 using Tauron.Application.AkkaNode.Bootstrap.Console;
 using Tauron.Application.Master.Commands.KillSwitch;
@@ -15,6 +20,8 @@ namespace ServiceManager.Server
 {
     public static class Program
     {
+        //<!--@(await Html.RenderComponentAsync<App>(RenderMode.WebAssemblyPrerendered, new { SessionId = sessionId }))-->
+        
         public static readonly string ExeFolder = Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location) ?? string.Empty;
 
         private static readonly RestartHelper RestartHelper = new();
@@ -23,7 +30,11 @@ namespace ServiceManager.Server
         public static async Task Main(string[] args)
         {
             await AppIpManager.Aquire();
-            await CreateHostBuilder(args).Build().RunAsync();
+            var host = CreateHostBuilder(args).Build();
+
+            await MigrateDatabase(host.Services);
+
+            await host.RunAsync();
 
             if (!RestartHelper.Restart) return;
 
@@ -33,6 +44,22 @@ namespace ServiceManager.Server
                 Process.Start(file);
 
             #endif
+        }
+
+        private static async Task MigrateDatabase(IServiceProvider provider)
+        {
+            using var scope = provider.CreateScope();
+
+            await using var context = scope.ServiceProvider.GetRequiredService<UsersDatabase>();
+            await context.Database.MigrateAsync();
+
+            using var manager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            foreach (var claim in Claims.AllClaims)
+            {
+                if(await manager.RoleExistsAsync(claim)) continue;
+
+                await manager.CreateAsync(new IdentityRole(claim));
+            }
         }
 
         private static IHostBuilder CreateHostBuilder(string[] args) =>

@@ -1,0 +1,14 @@
+﻿@using ServiceManager.Shared.Identity
+@using Stl.Fusion.Authentication
+@using Tauron.Application
+
+<GenericAuthorizeView Claims="new[] { Claims.UserManagmaentClaim }">
+    <NotAuthorized>
+        <CenterElement>
+            <MudText>Du bist nocht Autorisiert Benutzer zu beabeiten</MudText>
+        </CenterElement>
+    </NotAuthorized>
+    <ChildContent>
+        <UserEditorComponent/>
+    </ChildContent>
+</GenericAuthorizeView>

@@ -15,21 +15,31 @@
     <EmbeddedResource Remove="wwwroot\css\open-iconic\**" />
     <None Remove="wwwroot\css\bootstrap\**" />
     <None Remove="wwwroot\css\open-iconic\**" />
+    <Compile Remove="ViewModels\Identity\CustomAuthenticationProvider .cs" />
+    <Compile Remove="ViewModels\Identity\UserData.cs" />
+    <Compile Remove="ViewModels\Identity\UserState.cs" />
     <Compile Remove="ViewModels\Models\ModelBase.cs" />
     <None Include="ViewModels\Models\ModelBase.cs" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Remove="wwwroot\index.html" />
     <Content Remove="wwwroot\_content\MudBlazor\MudBlazor.min.css" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="BlazorCarrot.Cookies" Version="1.0.4" />
+    <PackageReference Include="Blazored.LocalStorage" Version="4.1.5" />
+    <PackageReference Include="GridBlazor" Version="2.1.18" />
     <PackageReference Include="Microsoft.AspNetCore.Components.Web.Extensions" Version="5.0.0-preview9.20513.1" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="5.0.9" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="5.0.9" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="5.0.9" PrivateAssets="all" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="5.0.9" />
-    <PackageReference Include="MudBlazor" Version="5.1.1" />
-    <PackageReference Include="Stl.Fusion.Blazor" Version="1.8.16" />
+    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
+    <PackageReference Include="MudBlazor" Version="5.1.2" />
+    <PackageReference Include="Reactive.Wasm" Version="1.2.2" />
+    <PackageReference Include="Stl.Fusion.Blazor" Version="1.8.28" />
     <PackageReference Include="System.Net.Http.Json" Version="5.0.0" />
   </ItemGroup>
 

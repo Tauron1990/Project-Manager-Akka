@@ -1,0 +1,43 @@
+﻿@using ServiceManager.Shared.Identity
+@using ServiceManager.Client.ViewModels.Identity
+@using Tauron.Application
+@using ServiceManager.Client.Shared.UserAccount
+
+@page "/UserEditor/{UserId}"
+
+@inject IUserManagement _management
+@inject IEventAggregator _aggregator
+@inject NavigationManager _navigationManager
+
+@layout UserAccountLayout
+@inherits ComputedStateComponent<UserEditorViewModel>
+
+<StateAwaiter State="@State">
+    @if (context?.User == null)
+    {
+        <CenterElement>
+            <MudText>Keine Daten gefunden</MudText>
+        </CenterElement>
+    }
+    else if (context.IsRunning)
+    {
+        <CenterElement>
+            <MudProgressCircular Indeterminate="true"/>
+            <MudText>Aktualisiere Daten</MudText>
+        </CenterElement>
+    }
+    else
+    {
+        <SingleUserEditorComponent ViewModel="@context" Cancel="@(() => _navigationManager.NavigateTo("/User"))"/>
+    }
+</StateAwaiter>
+
+@code {
+    [Parameter]
+    public string UserId { get; set; } = string.Empty;
+
+    protected override async Task<UserEditorViewModel> ComputeState(CancellationToken cancellationToken) 
+        => new(_management, _aggregator, await _management.GetUserData(UserId, cancellationToken), 
+            await _management.GetUserClaims(UserId, cancellationToken), StateHasChanged);
+
+}

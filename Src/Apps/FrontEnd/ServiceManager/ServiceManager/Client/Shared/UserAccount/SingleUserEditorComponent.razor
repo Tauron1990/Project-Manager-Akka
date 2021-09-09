@@ -1,0 +1,71 @@
+﻿@using ServiceManager.Client.ViewModels.Identity
+@using Color = MudBlazor.Color
+
+@if (ViewModel is {User: { } })
+{
+    <CenterElement>
+        @if (!ViewModel.HideButtons)
+        {
+            <MudCard Class="ma-2">
+                <MudCardActions>
+                    <MudButton OnClick="Cancel" StartIcon="@Icons.Material.Sharp.ArrowBack">Abbrechen</MudButton>
+                    <MudButton OnClick="DeleteRun" Variant="Variant.Filled" Color="Color.Error">Benutzer Löschen</MudButton>
+                </MudCardActions>
+            </MudCard>
+        }
+        <MudCard Class="ma-2">
+            <MudCardHeader>
+                <MudText Typo="Typo.h4">Benutzer Claims: @ViewModel.User.Name Beabeiten</MudText>
+            </MudCardHeader>
+            <MudCardContent>
+                <div class="d-flex flex-column">
+                    <MudText Class="ma-5">Claims zuweisen</MudText>
+                    @foreach (var element in ViewModel.EditorModels)
+                    {
+                        <MudCheckBox @bind-Checked="element.IsChecked" Label="@element.Name"/>
+                    }
+                </div>
+            </MudCardContent>
+            @if (!ViewModel.HideButtons)
+            {
+                <MudCardActions>
+                    <MudButton OnClick="ViewModel.TryCommitClaims" Color="Color.Primary">Anwenden</MudButton>
+                </MudCardActions>
+            }
+        </MudCard>
+        <MudCard Class="ma-2">
+            <MudCardHeader>
+                <MudText Typo="Typo.h4">Benutzer Passwort: @ViewModel.User.Name Beabeiten</MudText>
+            </MudCardHeader>
+            <MudCardContent>
+                @if (!ViewModel.HideOldPasswordBox)
+                {
+                    <MudTextFieldString @bind-Value="ViewModel.OldPassword" Label="Altes Passwort" Class="ma-2" InputType="InputType.Password"/>
+                }
+                <MudTextFieldString @bind-Value="ViewModel.NewPassword" Label="Passwort" Class="ma-2" InputType="InputType.Password"/>
+            </MudCardContent>
+            @if (!ViewModel.HideButtons)
+            {
+                <MudCardActions>
+                    <MudButton OnClick="ViewModel.TryUpdatePassword" Color="Color.Primary">Anwenden</MudButton>
+                </MudCardActions>
+            }
+        </MudCard>
+    </CenterElement>
+}
+
+@code {
+     [Parameter]
+    public UserEditorViewModel? ViewModel { get; set; }
+
+    [Parameter]
+    public EventCallback Cancel { get; set; }
+
+    private async Task DeleteRun()
+    {
+        if(ViewModel == null) return;
+        await ViewModel.TryDeleteUser();
+        await Cancel.InvokeAsync();
+    }
+
+}

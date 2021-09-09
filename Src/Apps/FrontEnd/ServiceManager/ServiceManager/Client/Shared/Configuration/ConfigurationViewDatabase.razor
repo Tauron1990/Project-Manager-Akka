@@ -2,11 +2,13 @@
 @using Stl.Fusion
 @using Microsoft.Extensions.DependencyInjection
 @using ServiceManager.Shared.ClusterTracking
+@using ServiceManager.Shared.Identity
 
 @inherits ComputedStateComponent<(string Url, bool IsSelf)>
 
 @inject IClusterConnectionTracker _tracker;
 @inject IDatabaseConfig _databaseConfig
+
 
 <MudContainer MaxWidth="MaxWidth.Large">
     <div style="max-width: 1000px">

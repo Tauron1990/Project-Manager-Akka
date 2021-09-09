@@ -17,11 +17,15 @@
 <MudMainContent>
     @if (state.IsLoading())
     {
-        <MudProgressCircular Class="justify-center" Indeterminate="true"/>
+        <div class="d-flex flex-row justify-center">
+            <MudProgressCircular Class="justify-center" Indeterminate="true"/>
+        </div>
     }
     else if (error != null)
     {
-        <MudAlert Class="justify-space-around" Severity="Severity.Error" Variant="Variant.Filled">Fehler bem abrufen der Ip: @error.Message</MudAlert>
+        <div class="d-flex flex-row justify-center">
+            <MudAlert Class="justify-space-around" Severity="Severity.Error" Variant="Variant.Filled">Fehler bem abrufen der Ip: @error.Message</MudAlert>
+        </div>
     }
     else if(!ip.IsValid)
     {

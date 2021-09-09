@@ -1,0 +1,20 @@
+﻿@using ServiceManager.Shared.Identity
+@implements GridShared.Columns.ICustomGridComponent<UserData>
+
+@inject NavigationManager _navigationManager
+
+<MudButton Class="ma-1" OnClick="EditClick" Variant="Variant.Filled" Color="Color.Info">Editieren</MudButton>
+
+@code {
+
+    [Parameter]
+    public UserData? Item { get; set; }
+
+    private void EditClick()
+    {
+        if(Item == null) return;
+        
+        _navigationManager.NavigateTo($"/UserEditor/{Item.Id}");
+    }
+
+}

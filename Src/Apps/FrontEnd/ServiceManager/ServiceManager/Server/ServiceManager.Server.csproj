@@ -6,6 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="AppCore\Identity\Data\ServiceManagerServerContext.cs" />
+    <Compile Remove="AppCore\Identity\Data\ServiceManagerServerUser.cs" />
+    <Compile Remove="AppCore\Identity\IdentityHostingStartup.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Remove="C:\Users\user\.nuget\packages\sharprepository.mongodbrepository\2.1.1\contentFiles\any\netstandard1.5\repository.mongoDb.json" />
   </ItemGroup>
 
@@ -20,11 +26,32 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="AppCore\Identity\Data\ServiceManagerServerContext.cs" />
+    <None Include="AppCore\Identity\Data\ServiceManagerServerUser.cs" />
+    <None Include="AppCore\Identity\IdentityHostingStartup.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="DynamicData" Version="7.3.1" />
+    <PackageReference Include="GridMvcCore" Version="4.1.9" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.9" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="5.0.9" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="5.0.9" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="5.0.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.9">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.9">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="5.0.2" />
     <PackageReference Include="MongoDB.Driver" Version="2.13.1" />
     <PackageReference Include="SharpRepository.MongoDbRepository" Version="2.1.1" />
-    <PackageReference Include="Stl.Fusion.Server" Version="1.8.16" />
+    <PackageReference Include="Stl.Fusion.EntityFramework" Version="1.8.28" />
+    <PackageReference Include="Stl.Fusion.Server" Version="1.8.28" />
   </ItemGroup>
 
   <ItemGroup>

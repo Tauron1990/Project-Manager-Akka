@@ -2,6 +2,8 @@
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.WebUtilities;
 using ServiceManager.Client.ViewModels.Models;
 using ServiceManager.Shared.Api;
 using Stl.Fusion;
@@ -13,7 +15,28 @@ namespace ServiceManager.Client
     {
         public static bool IsLoading<TData>(this IState<TData> state)
             => state.Computed.ConsistencyState != ConsistencyState.Consistent;
-        
+
+        public static async Task<bool> IsSuccess(this IEventAggregator aggregator, Func<Task<string>> runner)
+        {
+            try
+            {
+                var result = await runner();
+
+                if (string.IsNullOrWhiteSpace(result))
+                    return true;
+
+                aggregator.PublishWarnig(result);
+
+                return false;
+            }
+            catch (Exception e)
+            {
+                aggregator.PublishError(e);
+
+                return false;
+            }
+        }
+
         public static void ReplaceState<TData>(this IMutableState<TData> state, Func<TData, TData> update)
             => state.Set(update(state.LatestNonErrorValue));
         
@@ -21,7 +44,12 @@ namespace ServiceManager.Client
             => state.Set(await update(state.LatestNonErrorValue));
         
         public static void PublishError(this IEventAggregator aggregator, Exception error)
-            => PublishMessage(aggregator, new SnackbarErrorMessage($"{error.GetType().Name} -- {error.Message}"));
+        {
+            #if DEBUG
+            Console.WriteLine(error);
+            #endif
+            PublishMessage(aggregator, new SnackbarErrorMessage($"{error.GetType().Name} -- {error.Message}"));
+        }
 
         public static void PublishError(this IEventAggregator aggregator, string message)
             => PublishMessage(aggregator, new SnackbarErrorMessage(message));
@@ -60,6 +88,38 @@ namespace ServiceManager.Client
             return result == null
                 ? "Unbekannter Fehler beim Update"
                 : result.Content;
+        }
+    }
+    
+    public static class NavigationManagerExtensions
+    {
+        public static bool TryGetQueryString<T>(this NavigationManager navManager, string key, out T? value)
+        {
+            var uri = navManager.ToAbsoluteUri(navManager.Uri);
+
+            if (QueryHelpers.ParseQuery(uri.Query).TryGetValue(key, out var valueFromQueryString))
+            {
+                if (typeof(T) == typeof(int) && int.TryParse(valueFromQueryString, out var valueAsInt))
+                {
+                    value = (T)(object)valueAsInt;
+                    return true;
+                }
+
+                if (typeof(T) == typeof(string))
+                {
+                    value = (T)(object)valueFromQueryString.ToString();
+                    return true;
+                }
+
+                if (typeof(T) == typeof(decimal) && decimal.TryParse(valueFromQueryString, out var valueAsDecimal))
+                {
+                    value = (T)(object)valueAsDecimal;
+                    return true;
+                }
+            }
+
+            value = default;
+            return false;
         }
     }
 }
