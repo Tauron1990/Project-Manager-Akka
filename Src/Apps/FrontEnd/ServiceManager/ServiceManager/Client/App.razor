@@ -92,8 +92,10 @@ else
             var (sessionId, timeout, isLogedIn) = await _localStorage.GetItemAsync<SessionData>(SessionData);
             if (timeout > DateTime.Now)
             {
-                SessionId = await _logInManager.UpdateSession(sessionId);
-                if (!isLogedIn)
+                var serverSessionId = await _logInManager.UpdateSession(sessionId);
+                if (string.IsNullOrWhiteSpace(serverSessionId))
+                    await _localStorage.RemoveItemAsync(SessionData);
+                else if (!isLogedIn)
                     await SaveItem(_localStorage, SessionId, true);
             }
             else

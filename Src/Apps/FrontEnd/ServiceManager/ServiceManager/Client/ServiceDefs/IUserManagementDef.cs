@@ -36,6 +36,9 @@ namespace ServiceManager.Client.ServiceDefs
         [Post(nameof(LogIn))]
         Task<string> LogIn([Body]TryLoginCommand command, CancellationToken token = default);
 
+        [Post(nameof(Logout))]
+        Task<string> Logout([Body]LogOutCommand command, CancellationToken token = default);
+        
         [Post(nameof(Register))]
         Task<string> Register([Body]RegisterUserCommand command, CancellationToken token = default);
         

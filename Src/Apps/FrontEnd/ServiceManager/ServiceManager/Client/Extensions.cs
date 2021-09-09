@@ -44,7 +44,12 @@ namespace ServiceManager.Client
             => state.Set(await update(state.LatestNonErrorValue));
         
         public static void PublishError(this IEventAggregator aggregator, Exception error)
-            => PublishMessage(aggregator, new SnackbarErrorMessage($"{error.GetType().Name} -- {error.Message}"));
+        {
+            #if DEBUG
+            Console.WriteLine(error);
+            #endif
+            PublishMessage(aggregator, new SnackbarErrorMessage($"{error.GetType().Name} -- {error.Message}"));
+        }
 
         public static void PublishError(this IEventAggregator aggregator, string message)
             => PublishMessage(aggregator, new SnackbarErrorMessage(message));

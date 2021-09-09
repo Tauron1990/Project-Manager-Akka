@@ -5,6 +5,7 @@ using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -253,12 +254,23 @@ namespace ServiceManager.Server.AppCore.Identity
             try
             {
                 return await UserFunc(
-                    async (s, repo) =>
+                    async (s, _) =>
                     {
-                        var login = s.GetRequiredService<SignInManager<IdentityUser>>();
+                        var login       = s.GetRequiredService<SignInManager<IdentityUser>>();
                         var authService = s.GetRequiredService<IServerSideAuthService>();
+                        var contetxt    = s.GetRequiredService<IHttpContextAccessor>().HttpContext;
 
-                        await authService.SignOut(new SignOutCommand(command.Session, true), token);
+                        if (contetxt == null) return "Kein Request";
+
+                        if (login.IsSignedIn(contetxt.User))
+                        {
+                            await authService.SignOut(new SignOutCommand(command.Session, true), token);
+                            await login.SignOutAsync();
+
+                            return string.Empty;
+                        }
+
+                        return "Nicht eingeloggt";
                     });
             }
             catch (Exception e)

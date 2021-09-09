@@ -75,7 +75,7 @@ namespace ServiceManager.Server.Controllers
             _provider.Session = new Session(session);
             await _helper.UpdateAuthState(HttpContext, token);
 
-            return session;
+            return HttpContext.User.Identity?.IsAuthenticated == true ? session : string.Empty;
         }
 
         [HttpGet, AllowAnonymous]
@@ -144,6 +144,10 @@ namespace ServiceManager.Server.Controllers
                 return e.Message;
             }
         }
+
+        [HttpPost, AllowAnonymous]
+        public Task<string> Logout([FromBody]LogOutCommand command, CancellationToken token = default)
+            => _userManagement.Logout(command, token);
 
         [HttpPost, AllowAnonymous]
         public Task<string> Register([FromBody] RegisterUserCommand command, CancellationToken token = default)
