@@ -9,7 +9,7 @@ using ServiceManager.Shared;
 using ServiceManager.Shared.ServiceDeamon;
 using Tauron.Application;
 
-namespace ServiceManager.Client.ViewModels
+namespace ServiceManager.Client.ViewModels.Configuration
 {
     public sealed record ConfigurationViewDatabseModel(IServerInfo ServerInfo,  IDialogService DialogService, IEventAggregator Aggregator, 
                                                        string         OriginalUrl,   IDatabaseConfig  DatabaseConfig, string DatabaseUrl,

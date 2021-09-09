@@ -4,7 +4,7 @@ using ServiceHost.Client.Shared.ConfigurationServer.Data;
 using ServiceManager.Shared.ServiceDeamon;
 using Tauron.Application;
 
-namespace ServiceManager.Client.ViewModels
+namespace ServiceManager.Client.ViewModels.Configuration
 {
     public sealed class AppConfigurationViewModel
     {

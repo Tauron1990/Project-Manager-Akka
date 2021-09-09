@@ -10,6 +10,7 @@ using MudBlazor;
 using MudBlazor.Services;
 using ServiceManager.Client.ServiceDefs;
 using ServiceManager.Shared;
+using ServiceManager.Shared.Apps;
 using ServiceManager.Shared.ClusterTracking;
 using ServiceManager.Shared.Identity;
 using ServiceManager.Shared.ServiceDeamon;
@@ -77,6 +78,7 @@ namespace ServiceManager.Client
                                                 
                                                 BuildSpecialPolicy(Claims.ClusterConnectionClaim, Claims.ServerInfoClaim, Claims.DatabaseClaim);
                                                 BuildSpecialPolicy(Claims.ClusterConnectionClaim, Claims.ConfigurationClaim);
+                                                BuildSpecialPolicy(Claims.ClusterConnectionClaim, Claims.AppMenegmentClaim);
                                             });
             collection.AddScoped(
                 sp =>
@@ -100,7 +102,8 @@ namespace ServiceManager.Client
                       .AddClientService<IAppIpManager, IAppIpManagerDef>()
                       .AddClientService<IDatabaseConfig, IDatabaseConfigDef>()
                       .AddClientService<IServerConfigurationApi, IServerConfigurationApiDef>()
-                      .AddClientService<IUserManagement, IUserManagementDef>();
+                      .AddClientService<IUserManagement, IUserManagementDef>()
+                      .AddClientService<IAppManagment, IAppManagmentDef>();
         }
     }
 }

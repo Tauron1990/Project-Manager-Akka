@@ -15,6 +15,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using ServiceHost.Client.Shared.ConfigurationServer.Data;
 using ServiceManager.Server.AppCore;
+using ServiceManager.Server.AppCore.Apps;
 using ServiceManager.Server.AppCore.ClusterTracking;
 using ServiceManager.Server.AppCore.ClusterTracking.Data;
 using ServiceManager.Server.AppCore.Helper;
@@ -23,6 +24,7 @@ using ServiceManager.Server.AppCore.ServiceDeamon;
 using ServiceManager.Server.Hubs;
 using ServiceManager.Shared;
 using ServiceManager.Shared.Api;
+using ServiceManager.Shared.Apps;
 using ServiceManager.Shared.ClusterTracking;
 using ServiceManager.Shared.Identity;
 using ServiceManager.Shared.ServiceDeamon;
@@ -94,7 +96,8 @@ namespace ServiceManager.Server
                   .AddComputeService<IAppIpManager, AppIpService>()
                   .AddComputeService<IDatabaseConfig, DatabaseConfig>()
                   .AddComputeService<IServerConfigurationApi, ServerConfigurationApi>()
-                  .AddComputeService<IUserManagement, UserManagment>();
+                  .AddComputeService<IUserManagement, UserManagment>()
+                  .AddComputeService<IAppManagment, AppManagment>();
 
 
             services.AddAuthorization(

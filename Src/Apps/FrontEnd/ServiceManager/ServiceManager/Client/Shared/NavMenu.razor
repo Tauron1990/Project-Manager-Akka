@@ -1,25 +1,37 @@
 ﻿@using ServiceManager.Shared.ServiceDeamon
-@inherits ComputedStateComponent<bool>
+@using ServiceManager.Shared.Apps
+@using ServiceManager.Client.ViewModels.Apps
+@using Stl.Fusion
+
+@inherits ComputedStateComponent<NavMenuData>
 
 @inject IDatabaseConfig _database;
 @inject NavigationManager _navigationManager;
+@inject BasicAppsAlertModel _appAlertModel
 
-<MudDivider Class="mb-4"></MudDivider>
+@{
+    var menuData = State.ValueOrDefault ?? new NavMenuData(true, new NeedSetupData(null, false));
+}
+
+<MudDivider Class="mb-4"/>
 <MudNavMenu>
-    <MudNavLink Class="ma-1" OnClick="@(() => Callback(""))">Übersicht</MudNavLink>
-    <MudBadge Icon="@(State.ValueOrDefault ? null : Icons.Material.Outlined.Warning)" Overlap="true" Class="ma-1">
-        <MudNavLink OnClick="@(() => Callback("/AppConfiguration"))">Konfiguration</MudNavLink>
+    <MudNavLink Class="ma-1" OnClick="@(() => Navigate(""))">Übersicht</MudNavLink>
+    <MudBadge Icon="@(menuData.Database ? null : Icons.Material.Outlined.Warning)" Color="@(menuData.Database ? Color.Transparent : Color.Warning)" Overlap="true">
+        <MudNavLink OnClick="@(() => Navigate("/AppConfiguration"))">Konfiguration</MudNavLink>
+    </MudBadge>
+    <MudBadge Color="@(menuData.Apps.Need ? Color.Warning : Color.Transparent)" Overlap="true" Icon="@(menuData.Apps.Need ? Icons.Material.Outlined.Warning : null)">
+        <MudNavLink Class="ma-1" OnClick="@(() => Navigate("/Apps"))">Anwendungen</MudNavLink>
     </MudBadge>
 </MudNavMenu>
 
 @code {
-
     [Parameter]
     public EventCallback Navigating { get; set; }
 
-    protected override Task<bool> ComputeState(CancellationToken cancellationToken) => _database.GetIsReady();
+    protected override async Task<NavMenuData> ComputeState(CancellationToken cancellationToken) 
+        => new (await _database.GetIsReady(), await _appAlertModel.SetupState.Use(cancellationToken));
 
-    private async Task Callback(string target)
+    private async Task Navigate(string target)
     {
         await Navigating.InvokeAsync();
         _navigationManager.NavigateTo(target);

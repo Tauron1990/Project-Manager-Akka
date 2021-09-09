@@ -9,7 +9,7 @@ using ServiceManager.Client.Shared.Configuration;
 using ServiceManager.Shared.ServiceDeamon;
 using Tauron.Application;
 
-namespace ServiceManager.Client.ViewModels
+namespace ServiceManager.Client.ViewModels.Configuration
 {
     public sealed class AppConfigModel : ObservableObject, ISelectable
     {

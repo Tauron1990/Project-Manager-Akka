@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using ServiceHost.Client.Shared.ConfigurationServer;
 using ServiceHost.Client.Shared.ConfigurationServer.Events;
 using ServiceManager.Server.AppCore;
+using ServiceManager.Server.AppCore.Apps;
 using ServiceManager.Server.AppCore.ClusterTracking;
 using ServiceManager.Server.AppCore.ClusterTracking.Data;
 using ServiceManager.Server.AppCore.Helper;
@@ -19,6 +20,7 @@ using ServiceManager.Shared.ServiceDeamon;
 using Tauron.Application;
 using Tauron.Application.AkkaNode.Bootstrap;
 using Tauron.Application.Master.Commands.Deployment.Build;
+using Tauron.Application.Master.Commands.Deployment.Build.Data;
 using Tauron.Application.Master.Commands.Deployment.Repository;
 using Tauron.Application.Settings;
 using Tauron.Features;
@@ -32,13 +34,13 @@ namespace ServiceManager.Server
             builder.RegisterSettingsManager(c => c.WithProvider<LocalConfigurationProvider>());
             builder.RegisterType<LocalConfiguration>().As<ILocalConfiguration>().SingleInstance();
 
-            builder.Register(c => c.Resolve<IEventAggregator>().GetEvent<ConfigEventDispatcher, IConfigEvent>()).SingleInstance();
+            builder.RegisterEventDispatcher<IConfigEvent, ConfigEventDispatcher, ConfigApiEventDispatcherRef>(ConfigApiEventDispatcherActor.New());
+            builder.RegisterEventDispatcher<AppInfo, AppEventDispatcher, AppEventDispatcherRef>(AppEventDispatcherActor.New());
 
             builder.RegisterType<NodeRepository>().As<INodeRepository>().SingleInstance();
             builder.RegisterType<PropertyChangedNotifer>().As<IPropertyChangedNotifer>().SingleInstance();
 
             builder.RegisterFeature<ClusterNodeManagerRef, IClusterNodeManager>(ClusterHostManagerActor.New());
-            builder.RegisterFeature<ApiEventDispatcherRef, IApiEventDispatcher>(ApiEventDispatcherActor.New());
             builder.RegisterFeature<ProcessServiceHostRef, IProcessServiceHost>(ProcessServiceHostActor.New());
 
             builder.Register(c => DeploymentApi.CreateProxy(c.Resolve<ActorSystem>())).SingleInstance();

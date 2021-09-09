@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using ServiceManager.Client.ViewModels;
+using ServiceManager.Client.ViewModels.Configuration;
 using Tauron.Application;
 
 namespace ServiceManager.Client.Shared.Configuration.ConditionEditor

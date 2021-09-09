@@ -6,8 +6,13 @@
 
 @{
     var error = State?.Error;
-    var isLoading = !State?.HasValue ?? true;
     var value = State != null ? State.ValueOrDefault : default;
+    var isLoading = State?.Computed.ConsistencyState == ConsistencyState.Computing || (!State?.HasValue ?? true) || value == null;
+    
+    #if DEBUG
+    if(error != null)
+    Console.WriteLine(error.ToString());
+    #endif
 }
 
 @if (error != null)

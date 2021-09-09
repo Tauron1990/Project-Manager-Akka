@@ -34,7 +34,7 @@ namespace ServiceManager.ProjectDeployment.Actors
         protected override void ConfigImpl()
         {
             Stop.Subscribe(_ => CurrentState.AppInfos.Complete());
-            TryReceive<QueryChangeSource>("QueryChanedSource",
+            TryReceive<QueryAppChangeSource>("QueryChanedSource",
                 obs => obs.ToUnit(m => m.Reporter.Compled(OperationResult.Success(new AppChangedSource(m.State.Hub.Run(m.State.Materializer))))));
 
             Receive<AppInfo>(obs => obs.ToUnit(m => m.State.AppInfos.OfferAsync(m.Event).PipeTo(Self)));

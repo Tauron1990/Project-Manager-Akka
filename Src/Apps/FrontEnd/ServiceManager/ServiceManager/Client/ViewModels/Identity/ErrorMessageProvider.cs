@@ -19,6 +19,7 @@ namespace ServiceManager.Client.ViewModels.Identity
                    Claims.DatabaseClaim => "Keine Berechtigung für den zugriff auf die Cluster Datenbank",
                    Claims.ServerInfoClaim => "Keine Berechtingung zu Abrufen von Server Infos",
                    Claims.UserManagmaentClaim => "Keine Berechtigung zum User Management",
+                   Claims.AppMenegmentClaim => "Keine Berechtigung zur Anwendungs Verwaltung",
                    _ => $"Unbekante Verletzung \"{role}\""
                };
     }

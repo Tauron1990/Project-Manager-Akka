@@ -30,7 +30,7 @@ namespace ServiceManager.ProjectDeployment.Actors
 
         protected override void ConfigImpl()
         {
-            Receive<QueryChangeSource>(obs => obs.Select(e => e.Event).ForwardToActor(CurrentState.ChangeTracker));
+            Receive<QueryAppChangeSource>(obs => obs.Select(e => e.Event).ForwardToActor(CurrentState.ChangeTracker));
 
             MakeQueryCall<QueryApps, AppList>("QueryApps",
                 obs => obs.Select(evt => evt.New<AppList?>(new AppList(evt.State.Apps.GetAll().Select(d => d.ToInfo()).ToImmutableList()))));

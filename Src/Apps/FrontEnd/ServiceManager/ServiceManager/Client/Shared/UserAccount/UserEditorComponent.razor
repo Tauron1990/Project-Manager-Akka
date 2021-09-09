@@ -60,7 +60,7 @@ else
     {
         _userCount = _stateFactory.NewComputed(new ComputedState<int>.Options(), (_, t) => _userManagement.GetUserCount(t));
         _userCount.AddEventHandler(StateEventKind.Updated, Handler);
-
+            
         return base.OnInitializedAsync();
     }
 

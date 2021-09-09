@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using ServiceManager.Client.ViewModels;
+using ServiceManager.Client.ViewModels.Configuration;
 
 namespace ServiceManager.Client.Shared.Configuration
 {

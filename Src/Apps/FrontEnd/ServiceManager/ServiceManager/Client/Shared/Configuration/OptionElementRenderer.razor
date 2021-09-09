@@ -1,4 +1,5 @@
-﻿@if (Element.Error)
+﻿@using ServiceManager.Client.ViewModels.Configuration
+@if (Element.Error)
 {
     <MudAlert Severity="Severity.Error">@Element.Message</MudAlert>
 }

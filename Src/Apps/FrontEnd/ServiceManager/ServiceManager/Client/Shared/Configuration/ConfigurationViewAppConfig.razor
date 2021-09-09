@@ -6,11 +6,12 @@
 @using System.Collections.Immutable
 @using Microsoft.Extensions.DependencyInjection
 @using ServiceManager.Client.Shared.Configuration.ConditionEditor
+@using ServiceManager.Client.ViewModels.Configuration
 @using ServiceManager.Shared.ServiceDeamon
 @using Stl.Fusion
 @using Tauron.Application
 
-@inherits MixedStateComponent<AppConfigViewData, AppConfigData>
+@inherits MixedStateComponent<AppConfigViewData, ServiceManager.Client.ViewModels.Configuration.AppConfigData>
 
 @inject IDialogService _service
 @inject IEventAggregator _aggregator

@@ -7,6 +7,11 @@ using Tauron.Features;
 
 namespace Tauron.Application.AkkaNode.Services.Core
 {
+    public interface IQueryIsAliveSupport
+    {
+        Task<IsAliveResponse> QueryIsAlive(ActorSystem system, TimeSpan timeout);
+    }
+    
     public sealed record QueryIsAlive
     {
         public static Task<IsAliveResponse> Ask(ActorSystem system, IActorRef actor, TimeSpan timeout)

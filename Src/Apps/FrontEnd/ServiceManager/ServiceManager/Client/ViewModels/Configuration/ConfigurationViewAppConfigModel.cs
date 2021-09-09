@@ -11,7 +11,7 @@ using ServiceManager.Shared.ServiceDeamon;
 using Stl.Fusion;
 using Tauron.Application;
 
-namespace ServiceManager.Client.ViewModels
+namespace ServiceManager.Client.ViewModels.Configuration
 {
 
     public sealed record AppConfigData(AppConfigModel? NewModel, AppConfigModel? ToEdit)

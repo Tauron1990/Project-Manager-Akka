@@ -1,0 +1,10 @@
+﻿@page "/Apps"
+@using ServiceManager.Shared.Identity
+
+<GenericAuthorizeView Claims="new[] { Claims.ClusterConnectionClaim, Claims.AppMenegmentClaim }">
+    <AppManagmentComponent/>
+</GenericAuthorizeView>
+
+@code {
+    
+}

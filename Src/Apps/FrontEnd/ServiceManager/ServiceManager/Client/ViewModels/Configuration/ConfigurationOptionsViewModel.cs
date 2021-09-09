@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Linq;
-using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Akka.Util.Internal;
 using Microsoft.AspNetCore.SignalR.Client;
@@ -11,7 +10,7 @@ using ServiceManager.Shared.Api;
 using ServiceManager.Shared.ServiceDeamon;
 using Tauron.Application;
 
-namespace ServiceManager.Client.ViewModels
+namespace ServiceManager.Client.ViewModels.Configuration
 {
     public sealed class ConfigurationOptionsViewModel
     {

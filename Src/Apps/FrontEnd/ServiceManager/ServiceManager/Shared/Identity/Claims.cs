@@ -12,7 +12,8 @@ namespace ServiceManager.Shared.Identity
             ConfigurationClaim,
             DatabaseClaim,
             ServerInfoClaim,
-            UserManagmaentClaim
+            UserManagmaentClaim,
+            AppMenegmentClaim
         };
 
         public const string AppIpClaim = nameof(AppIpClaim);
@@ -28,5 +29,7 @@ namespace ServiceManager.Shared.Identity
         public const string ServerInfoClaim = nameof(ServerInfoClaim);
 
         public const string UserManagmaentClaim = nameof(UserManagmaentClaim);
+
+        public const string AppMenegmentClaim = nameof(AppMenegmentClaim);
     }
 }

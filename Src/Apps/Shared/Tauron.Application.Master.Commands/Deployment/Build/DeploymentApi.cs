@@ -10,7 +10,7 @@ using Tauron.Application.AkkaNode.Services.Reporting.Commands;
 namespace Tauron.Application.Master.Commands.Deployment.Build
 {
     [PublicAPI]
-    public sealed class DeploymentApi : ISender
+    public sealed class DeploymentApi : SenderBase<DeploymentApi, IDeploymentQuery, IDeploymentCommand>, IQueryIsAliveSupport
     {
         public const string DeploymentPath = @"DeploymentManager";
 
@@ -18,7 +18,8 @@ namespace Tauron.Application.Master.Commands.Deployment.Build
 
         private DeploymentApi(IActorRef repository) => _repository = repository;
 
-        void ISender.SendCommand(IReporterMessage command) => _repository.Tell(command);
+        protected override void SendCommandImpl(IReporterMessage command)
+            => _repository.Tell(command);
 
         public Task<IsAliveResponse> QueryIsAlive(ActorSystem system, TimeSpan timeout)
             => AkkaNode.Services.Core.QueryIsAlive.Ask(system, _repository, timeout);

@@ -16,6 +16,7 @@ using Stl.Fusion;
 using Stl.Fusion.Authentication;
 using Stl.Fusion.Authentication.Commands;
 using Stl.Fusion.EntityFramework.Authentication;
+using Stl.Fusion.Server.Authentication;
 using Stl.Text;
 
 namespace ServiceManager.Server.AppCore.Identity
@@ -135,7 +136,7 @@ namespace ServiceManager.Server.AppCore.Identity
         public virtual Task<string> SetClaims(SetClaimsCommand command, CancellationToken token = default)
         {
             return UserFunc(
-                async (_, repo) =>
+                async (s, repo) =>
                 {
                     try
                     {
@@ -169,7 +170,11 @@ namespace ServiceManager.Server.AppCore.Identity
 
                         foreach (var claim in toAdd)
                             await repo.AddClaimAsync(usr, claim);
-                        
+
+                        var acessor = s.GetRequiredService<IHttpContextAccessor>();
+                        if (acessor.HttpContext?.User.Identity?.IsAuthenticated == true && acessor.HttpContext.User.Identity?.Name == usr.UserName) 
+                            await s.GetRequiredService<ServerAuthHelper>().UpdateAuthState(acessor.HttpContext, token);
+
                         return string.Empty;
                     }
                     catch (Exception e)

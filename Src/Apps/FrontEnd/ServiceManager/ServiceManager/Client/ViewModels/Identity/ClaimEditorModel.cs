@@ -15,7 +15,8 @@ namespace ServiceManager.Client.ViewModels.Identity
                   {Claims.ClusterConnectionClaim, "Cluster Verbindung"},
                   {Claims.ClusterNodeClaim, "Cluster Status"},
                   {Claims.ServerInfoClaim, "Server Status"},
-                  {Claims.UserManagmaentClaim, "Benutzer Verwaltung"}
+                  {Claims.UserManagmaentClaim, "Benutzer Verwaltung"},
+                  {Claims.AppMenegmentClaim, "Anwendungs Verwaltung"}
               };
 
         public static string GetClaimsDisplayName(string name)

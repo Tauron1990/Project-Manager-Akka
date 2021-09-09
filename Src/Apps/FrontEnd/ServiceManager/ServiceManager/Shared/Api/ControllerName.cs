@@ -24,5 +24,7 @@
         public const string ServerInfo = "api/ServerInfo";
 
         public const string AppIpManager = "api/AppIpManager";
+
+        public const string AppManagment = "api/appmanagment";
     }
 }

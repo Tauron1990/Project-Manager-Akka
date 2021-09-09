@@ -8,7 +8,7 @@ using ServiceManager.Shared.ServiceDeamon;
 using Tauron.Application;
 using Tauron.Application.Master.Commands.Administration.Configuration;
 
-namespace ServiceManager.Client.ViewModels
+namespace ServiceManager.Client.ViewModels.Configuration
 {
     public sealed class ConfigurationViewGlobalConfigModel
     {

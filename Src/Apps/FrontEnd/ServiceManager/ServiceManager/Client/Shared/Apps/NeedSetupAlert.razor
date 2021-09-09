@@ -1,0 +1,40 @@
+﻿@using ServiceManager.Client.ViewModels.Apps
+
+@inject BasicAppsAlertModel _model
+
+<StateAwaiter State="_model.SetupState">
+    <Loading>
+        
+    </Loading>
+    <ChildContent>
+        @if (context == null)
+        {
+            <CenterElement>
+                <MudAlert Variant="Variant.Filled" Severity="Severity.Error">Unbekannter Fehler beim abrufen der Daten</MudAlert>
+            </CenterElement>
+        }
+        else if (!string.IsNullOrWhiteSpace(context.Error))
+        {
+            <CenterElement>
+                <MudAlert Severity="Severity.Error" Variant="Variant.Filled">
+                    Fehler beim Abrufen der Infromationen zum Anwendugen Status.
+                </MudAlert>
+            </CenterElement>
+        }
+        else if (context.Need)
+        {
+            <CenterElement>
+                <MudAlert Severity="Severity.Warning" Variant="Variant.Filled">
+                    Der Seervice Manager benötige gewisse Basis Anwedungn die nicht registriert sind.
+                    Ohne diese Anwedungen funktionieren bestimmte Funktionen nicht richtig.
+                    Möchten sie die anwendugne jetzt registrieren?
+                    <MudLink Href="/BasicAppSetup">Setup Starten</MudLink>
+                </MudAlert>
+            </CenterElement>
+        }
+    </ChildContent>
+</StateAwaiter>
+
+@code {
+    
+}
