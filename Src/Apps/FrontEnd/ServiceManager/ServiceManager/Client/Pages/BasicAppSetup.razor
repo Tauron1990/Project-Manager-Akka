@@ -1,6 +1,8 @@
 ﻿@page "/BasicAppSetup"
-<h3>BasicAppSetup</h3>
+@using ServiceManager.Shared.Identity
 
-@code {
-    
-}
+<GenericAuthorizeView Claims="new []{ Claims.AppMenegmentClaim }">
+    <MudContainer MaxWidth="MaxWidth.Small">
+        <BasicAppSetupComponent/>
+    </MudContainer>
+</GenericAuthorizeView>

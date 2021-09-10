@@ -1,0 +1,93 @@
+﻿@using ServiceManager.Client.ViewModels.Apps
+@using ServiceManager.Shared.Apps
+
+@inject BasicAppsAlertModel _model
+@inject IAppManagment _managment
+
+@if (_isRunning)
+{
+    <CenterElement>
+        <MudProgressCircular Indeterminate="true"/>
+        <MudText>Setup Läuft</MudText>
+        @foreach (var msg in _messages)
+        {
+            <MudText>@msg</MudText>
+        }
+    </CenterElement>
+}
+else if(string.IsNullOrWhiteSpace(_error))
+{
+    @foreach (var msg in _messages)
+    {
+        <MudText>@msg</MudText>
+    }
+    <MudAlert Severity="Severity.Success">Setup Abgeschlossen</MudAlert>
+}
+else
+{
+    @foreach (var msg in _messages)
+    {
+        <MudText>@msg</MudText>
+    }
+    <MudAlert Severity="Severity.Error" Variant="Variant.Filled">Fehler: @_error</MudAlert>
+}
+
+@code
+{
+    private bool _isRunning = true;
+    private string? _error;
+    private readonly List<string> _messages = new();
+
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender) Task.Run(SetupRunner);
+        base.OnAfterRender(firstRender);
+    }
+
+    private async Task SetupRunner()
+    {
+        try
+        {
+            var need = _model.SetupState.ValueOrDefault;
+            if (need == null)
+            {
+                _error = _model.SetupState.Error?.Message ?? "Daten konnten nicht abgrufen werden";
+                return;
+            }
+
+            if (!need.Need)
+            {
+                _error = string.IsNullOrWhiteSpace(need.Error) ? "Setup wird nicht benötigt" : need.Error;
+                return;
+            }
+
+            RunAppSetupResponse response;
+            RunAppSetupCommand command = RunAppSetupCommand.Initial();
+            do
+            {
+                response = await _managment.RunAppSetup(command);
+                if (!string.IsNullOrWhiteSpace(response.Error))
+                {
+                    _error = response.Error;
+                    break;
+                }
+
+                if (!response.IsCompled)
+                    command = response.CreateNextStep();
+                
+                _messages.Add(response.Message);
+                StateHasChanged();
+            } while (!response.IsCompled);
+        }
+        catch (Exception e)
+        {
+            _error = e.Message;
+        }
+        finally
+        {
+            _isRunning = false;
+            StateHasChanged();
+        }
+    }
+}

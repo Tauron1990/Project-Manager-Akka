@@ -20,14 +20,18 @@ namespace ServiceManager.Server.AppCore.Apps
     {
         private delegate Task<TResult> AppApiRunner<TResult>(IProcessServiceHost host, DeploymentApi api, IServiceProvider services);
 
-        private readonly IServiceScopeFactory _scopeFactory;
-        private readonly ActorSystem _system;
-        private readonly IDisposable _subscription;
+        private delegate Task<TResult> AppApiRunnerParam<TResult, TParam>(TParam command, IProcessServiceHost host, DeploymentApi api, IServiceProvider services);
+        
+        private readonly IServiceScopeFactory  _scopeFactory;
+        private readonly ActorSystem           _system;
+        private readonly ILogger<AppManagment> _log;
+        private readonly IDisposable           _subscription;
         
         public AppManagment(IServiceScopeFactory scopeFactory, ActorSystem system, AppEventDispatcher dispatcher, ILogger<AppManagment> log)
         {
             _scopeFactory = scopeFactory;
-            _system = system;
+            _system       = system;
+            _log     = log;
 
             _subscription = dispatcher.Get().AutoSubscribe(
                 _ =>
@@ -47,6 +51,17 @@ namespace ServiceManager.Server.AppCore.Apps
 
             return await runner(host, api, scope.ServiceProvider);
         }
+        
+        private async Task<TResult> Run<TResult, TParam>(TParam command, AppApiRunnerParam<TResult, TParam> runner)
+        {
+            if (Computed.IsInvalidating()) return default!;
+            
+            using var scope = _scopeFactory.CreateScope();
+            var       host  = scope.ServiceProvider.GetRequiredService<IProcessServiceHost>();
+            var       api   = scope.ServiceProvider.GetRequiredService<DeploymentApi>();
+
+            return await runner(command, host, api, scope.ServiceProvider);
+        }
 
         private async Task EnsureDeploymentApi(IProcessServiceHost host, DeploymentApi deploymentApi)
         {
@@ -62,6 +77,32 @@ namespace ServiceManager.Server.AppCore.Apps
         public virtual Task<NeedSetupData> NeedBasicApps(CancellationToken token = default)
             => Run(NeedBasicAppsImpl);
 
+        public Task<RunAppSetupResponse> RunAppSetup(RunAppSetupCommand command, CancellationToken token = default)
+            => Run(command, RunSetupImpl);
+
+        private async Task<RunAppSetupResponse> RunSetupImpl(RunAppSetupCommand command, IProcessServiceHost host, DeploymentApi api, IServiceProvider services)
+        {
+            try
+            {
+                switch (command.Step)
+                {
+                    case 0:
+                        break;
+                    case 1:
+                        break;
+                    case 2:
+                        break;
+                    default:
+                        return new RunAppSetupResponse(-1, "Step Daten Falsch", true, string.Empty);
+                }
+            }
+            catch (Exception e)
+            {
+                _log.LogError(e, "Error on Run app setup on {Step}", command.Step);
+                return new RunAppSetupResponse(-1, e.Message, true, "Schwerer Fehler");
+            }
+        }
+
         private async Task<NeedSetupData> NeedBasicAppsImpl(IProcessServiceHost host, DeploymentApi api, IServiceProvider services)
         {
             try
@@ -73,6 +114,7 @@ namespace ServiceManager.Server.AppCore.Apps
             }
             catch (Exception e)
             {
+                _log.LogError(e, "Error on Fetch App Infos");
                 return new NeedSetupData(e.Message, false);
             }
         }

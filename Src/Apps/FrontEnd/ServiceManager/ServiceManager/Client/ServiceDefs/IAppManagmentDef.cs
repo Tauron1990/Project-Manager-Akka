@@ -11,5 +11,8 @@ namespace ServiceManager.Client.ServiceDefs
     {
         [Get(nameof(NeedBasicApps))]
         Task<NeedSetupData> NeedBasicApps(CancellationToken token = default);
+        
+        [Post(nameof(RunAppSetup))]
+        Task<RunAppSetupResponse> RunAppSetup([Body]RunAppSetupCommand command, CancellationToken token);
     }
 }

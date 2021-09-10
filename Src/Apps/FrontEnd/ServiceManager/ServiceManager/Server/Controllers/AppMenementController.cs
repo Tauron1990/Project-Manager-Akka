@@ -22,5 +22,9 @@ namespace ServiceManager.Server.Controllers
         [HttpGet, Publish, AllowAnonymous]
         public Task<NeedSetupData> NeedBasicApps(CancellationToken token = default)
             => _appManagment.NeedBasicApps(token);
+
+        [HttpPost]
+        public Task<RunAppSetupResponse> RunAppSetup([FromBody]RunAppSetupCommand command, CancellationToken token = default)
+            => _appManagment.RunAppSetup(command, token);
     }
 }

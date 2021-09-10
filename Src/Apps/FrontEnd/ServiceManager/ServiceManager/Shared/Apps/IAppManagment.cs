@@ -8,5 +8,7 @@ namespace ServiceManager.Shared.Apps
     {
         [ComputeMethod]
         Task<NeedSetupData> NeedBasicApps(CancellationToken token = default);
+
+        Task<RunAppSetupResponse> RunAppSetup(RunAppSetupCommand command, CancellationToken token = default);
     }
 }
