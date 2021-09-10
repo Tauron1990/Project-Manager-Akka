@@ -26,7 +26,7 @@ namespace ServiceManager.ProjectDeployment.Build
 
             var path = DedectDotNet(project);
             if (string.IsNullOrWhiteSpace(path))
-                return BuildErrorCodes.BuildDotnetNotFound;
+                return DeploymentErrorCodes.BuildDotnetNotFound;
 
             using var process = new Process
             {
@@ -53,11 +53,11 @@ namespace ServiceManager.ProjectDeployment.Build
             {
                 log(DeploymentMessages.BuildKilling);
                 process.Kill();
-                return BuildErrorCodes.BuildDotNetFailed;
+                return DeploymentErrorCodes.BuildDotNetFailed;
             }
 
             log(DeploymentMessages.BuildCompled);
-            return process.ExitCode == 0 ? null : BuildErrorCodes.BuildDotNetFailed;
+            return process.ExitCode == 0 ? null : DeploymentErrorCodes.BuildDotNetFailed;
         }
 
         private static string? DedectDotNet(FileSystemInfo project)

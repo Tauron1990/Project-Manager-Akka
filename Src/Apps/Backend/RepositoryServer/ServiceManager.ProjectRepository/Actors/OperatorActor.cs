@@ -78,7 +78,7 @@ namespace ServiceManager.ProjectRepository.Actors
                                m => Observable.If(
                                    () => m.Event.IgnoreDuplicate,
                                    ObservableReturn(() => m.New(OperationResult.Success())),
-                                   ObservableReturn(() => m.New(OperationResult.Failure(RepoErrorCodes.DuplicateRepository))))),
+                                   ObservableReturn(() => m.New(OperationResult.Failure(RepositoryErrorCodes.DuplicateRepository))))),
                 ValidateName(Observable.Return(d), CreateRepo)
             );
 
@@ -88,7 +88,7 @@ namespace ServiceManager.ProjectRepository.Actors
                 => input.SelectMany(
                     m => Observable.If(
                         () => !m.Evt.Event.RepoName.Contains('/'),
-                        ObservableReturn(() => m.Evt.New(OperationResult.Failure(RepoErrorCodes.InvalidRepoName)))
+                        ObservableReturn(() => m.Evt.New(OperationResult.Failure(RepositoryErrorCodes.InvalidRepoName)))
                            .Do(_ => Log.Info("Repository {Name} Name is Invalid", m.Evt.Event.RepoName)),
                         next(Observable.Return(m.Evt))));
 
@@ -101,7 +101,7 @@ namespace ServiceManager.ProjectRepository.Actors
                            () => m.Repo == null,
                        Observable.Return(m.Evt)
                                  .Do(evt => Log.Info("Repository {Name} Name not found on Github", evt.Event.RepoName))
-                                 .Select(evt => evt.New(OperationResult.Failure(RepoErrorCodes.GithubNoRepoFound))),
+                                 .Select(evt => evt.New(OperationResult.Failure(RepositoryErrorCodes.GithubNoRepoFound))),
                            SaveRepo(Observable.Return(m))));
 
             static IObservable<RequestResult> SaveRepo(IObservable<(RegisterRepoEvent Request, Repository Repo)> input)
@@ -127,7 +127,7 @@ namespace ServiceManager.ProjectRepository.Actors
                 => Observable.If(
                     () => input.Data == null,
                     Observable.Return(input.Request)
-                              .Select(m => m.New(OperationResult.Failure(RepoErrorCodes.DatabaseNoRepoFound))),
+                              .Select(m => m.New(OperationResult.Failure(RepositoryErrorCodes.DatabaseNoRepoFound))),
                     GetData(Observable.Return(input)));
 
             IObservable<RequestResult> GetData(IObservable<(ITempFile TempFiles, TransferRepositoryRequest Request, RepositoryEntry Data)> input)

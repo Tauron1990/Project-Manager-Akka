@@ -1,13 +1,12 @@
 ﻿@using System.Reactive.Disposables
-@using Tauron
 @using Tauron.Application
-@using System.Reactive
-@using ServiceManager.Client.ViewModels.Events
+@using Microsoft.AspNetCore.SignalR.Client
 
 @inherits LayoutComponentBase
 
 @inject IEventAggregator _aggregator
 @inject ISnackbar _snackbar
+@inject HubConnection _hubConnection
 
 @implements IDisposable
 
@@ -53,7 +52,14 @@
     void ToggleDrawer() => _open = !_open;
 
     private void OnNavigating() => _open = false;
-    
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (_hubConnection.State == HubConnectionState.Disconnected)
+            await _hubConnection.StartAsync();
+        await base.OnInitializedAsync();
+    }
+
     protected override async Task OnParametersSetAsync()
     {
         if (UserState != null)

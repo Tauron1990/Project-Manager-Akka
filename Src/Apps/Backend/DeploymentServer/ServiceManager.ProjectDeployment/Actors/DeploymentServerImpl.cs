@@ -32,14 +32,14 @@ namespace ServiceManager.ProjectDeployment.Actors
             var router = new SmallestMailboxPool(Environment.ProcessorCount)
                .WithSupervisorStrategy(SupervisorStrategy.DefaultStrategy);
 
-            var queryProps = Feature.Props(AppQueryHandler.New(configuration.GetInstance<AppData, string>(), fileSystem, manager, changeTracker))
+            var queryProps = Feature.Props(AppQueryHandler.New(configuration.GetInstance<AppData, string>(DeploymentManager.RepositoryKey), fileSystem, manager, changeTracker))
                                   .WithRouter(router);
             var query = context.ActorOf(queryProps, "QueryRouter");
 
             var buildSystem = WorkDistributorFeature<BuildRequest, BuildCompled>
                .Create(context, Props.Create(() => new BuildingActor(manager)), "Compiler", TimeSpan.FromHours(1), "CompilerSupervisor");
 
-            var processorProps = Feature.Props(AppCommandProcessor.New(configuration.GetInstance<AppData, string>(), fileSystem, repositoryApi, manager, trashBin, buildSystem, changeTracker))
+            var processorProps = Feature.Props(AppCommandProcessor.New(configuration.GetInstance<AppData, string>(DeploymentManager.RepositoryKey), fileSystem, repositoryApi, manager, trashBin, buildSystem, changeTracker))
                                       .WithRouter(router);
             var processor = context.ActorOf(processorProps, "ProcessorRouter");
 

@@ -10,7 +10,6 @@ using ServiceManager.ProjectDeployment.Build;
 using ServiceManager.ProjectDeployment.Data;
 using SharpRepository.Repository;
 using Tauron;
-using Tauron.Application.AkkaNode.Services;
 using Tauron.Application.AkkaNode.Services.CleanUp;
 using Tauron.Application.AkkaNode.Services.FileTransfer;
 using Tauron.Application.AkkaNode.Services.Reporting;
@@ -50,10 +49,10 @@ namespace ServiceManager.ProjectDeployment.Actors
                                               {
                                                   b.When(m => !m.Result.Ok, o => o.ApplyWhen(m => !m.Reporter.IsCompled, 
                                                                                        data => data.Reporter.Compled(OperationResult.Failure(data.Result.Error ?? 
-                                                                                                                                             BuildErrorCodes.CommandErrorRegisterRepository)))
+                                                                                                                                             DeploymentErrorCodes.CommandErrorRegisterRepository)))
                                                                                   .Select(_ => default(AppInfo)));
 
-                                                  b.When(m => m.AppData != null, o => o.Do(m => m.Reporter.Compled(OperationResult.Failure(BuildErrorCodes.CommandDuplicateApp)))
+                                                  b.When(m => m.AppData != null, o => o.Do(m => m.Reporter.Compled(OperationResult.Failure(DeploymentErrorCodes.CommandDuplicateApp)))
                                                                                        .Select(_ => default(AppInfo)));
 
                                                   b.When(m => m.AppData == null,
@@ -75,7 +74,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                           .ToResult<Unit>(
                                b =>
                                {
-                                   b.When(m => m.App == null, o => o.ToUnit(d => d.Data.Reporter.Compled(OperationResult.Failure(BuildErrorCodes.CommandAppNotFound))));
+                                   b.When(m => m.App == null, o => o.ToUnit(d => d.Data.Reporter.Compled(OperationResult.Failure(DeploymentErrorCodes.CommandAppNotFound))));
 
                                    b.When(m => m.App != null,
                                        o => o.ToUnit(d => BuildRequest.SendWork(d.Data.State.WorkDistributor, d.Data.Reporter, d.App, d.Data.State.Repository, BuildEnv.TempFiles.CreateFile())
@@ -89,7 +88,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                           .ToResult<AppBinary?>(
                                b =>
                                {
-                                   b.When(m => m.AppData == null, o => o.Do(m => m.Reporter.Compled(OperationResult.Failure(BuildErrorCodes.CommandAppNotFound)))
+                                   b.When(m => m.AppData == null, o => o.Do(m => m.Reporter.Compled(OperationResult.Failure(DeploymentErrorCodes.CommandAppNotFound)))
                                                                         .Select(_ => default(AppBinary)));
 
                                    b.When(m => m.AppData != null, o => o.SelectMany(UpdateAppData));
@@ -151,7 +150,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                           .ToResult<Unit>(
                                b =>
                                {
-                                   b.When(m => m.Event.App == null, o => o.ToUnit(i => i.Reporter.Compled(OperationResult.Failure(BuildErrorCodes.CommandAppNotFound))));
+                                   b.When(m => m.Event.App == null, o => o.ToUnit(i => i.Reporter.Compled(OperationResult.Failure(DeploymentErrorCodes.CommandAppNotFound))));
 
                                    b.When(m => m.Event.App != null,
                                        o => o.ToUnit(i =>
@@ -211,7 +210,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                                      o => o.ToUnit(_ =>
                                                    {
                                                        if(reporterEvent.Reporter.IsCompled)
-                                                           reporterEvent.Reporter.Compled(OperationResult.Failure(BuildErrorCodes.GerneralCommandError));
+                                                           reporterEvent.Reporter.Compled(OperationResult.Failure(DeploymentErrorCodes.GerneralCommandError));
                                                        Log.Info("Command Phase 1 {Command} Failed", typeof(TCommand).Name);
                                                    }));
 
@@ -251,11 +250,11 @@ namespace ServiceManager.ProjectDeployment.Actors
                     evt => executor(Observable.Return(
                                new ContinueData<TCommand>(evt.Event.Command, evt.Event.Result, evt.Reporter, queryApp(evt), evt.State)))
                           .Where(_ => !evt.Reporter.IsCompled)
-                          .ToUnit(result => evt.Reporter.Compled(result == null ? OperationResult.Failure(BuildErrorCodes.GerneralCommandError) : OperationResult.Success(result)))));
+                          .ToUnit(result => evt.Reporter.Compled(result == null ? OperationResult.Failure(DeploymentErrorCodes.GerneralCommandError) : OperationResult.Success(result)))));
         }
 
 
-        private static AppData? QueryApp(ICrudRepository<AppData, string> collection, string name)
+        private static AppData QueryApp(ICrudRepository<AppData, string> collection, string name)
             => collection.Get(name)!;
 
         public sealed record AppCommandProcessorState(
@@ -295,11 +294,14 @@ namespace ServiceManager.ProjectDeployment.Actors
 
         private sealed record ContinuePushNewVersion : ContinueCommand<PushVersionCommand>
         {
+            private readonly Reporter _reporter;
+
             public ContinuePushNewVersion(
-                [NotNull] IOperationResult result, PushVersionCommand command,
-                [NotNull] Reporter reporter)
+                IOperationResult result, PushVersionCommand command,
+                Reporter reporter)
                 : base(result, command, reporter)
             {
+                _reporter = reporter;
             }
         }
 

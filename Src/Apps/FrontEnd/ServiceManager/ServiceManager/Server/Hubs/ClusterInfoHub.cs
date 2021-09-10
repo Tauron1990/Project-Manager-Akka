@@ -12,15 +12,14 @@ using ServiceManager.Server.Controllers;
 using ServiceManager.Shared.Api;
 
 namespace ServiceManager.Server.Hubs
-{ 
-    [Authorize]
+{
     public sealed class ClusterInfoHub : Hub
     {
         public Task SentPropertyChanged(string type, string name)
             => Clients.All.SendAsync(HubEvents.PropertyChanged, type, name);
 
         [HubMethodName("GetConfigFileOptions")]
-        [UsedImplicitly]
+        [UsedImplicitly, Authorize]
         public ConfigOptionList GetBaseConfigOptions(ConfigOpensElement name)
         {
             try

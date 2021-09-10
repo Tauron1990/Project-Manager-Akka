@@ -7,6 +7,7 @@ using ServiceManager.Client.ViewModels.Apps;
 using ServiceManager.Client.ViewModels.Configuration;
 using ServiceManager.Client.ViewModels.Identity;
 using ServiceManager.Client.ViewModels.Models;
+using ServiceManager.Shared.Api;
 using Stl.Fusion.UI;
 using Tauron.Application;
 
@@ -18,10 +19,12 @@ namespace ServiceManager.Client
         {
             //collection.AddScoped<AuthenticationStateProvider, CustomAuthenticationProvider>();
 
+            collection.AddTransient<IApiMessageTranslator, ApiMessageTranslator>();
             collection.AddScoped<IErrorMessageProvider, ErrorMessageProvider>();
             collection.AddBlazoredLocalStorage();
             collection.AddScoped<ICookieService, CookieService>();
 
+            collection.AddTransient<AppListViewModel>();
             collection.AddScoped<ConnectToClusterViewModel>();
             collection.AddScoped<ConfigurationViewDatabseModel>();
             collection.AddScoped<ConfigurationOptionsViewModel>();

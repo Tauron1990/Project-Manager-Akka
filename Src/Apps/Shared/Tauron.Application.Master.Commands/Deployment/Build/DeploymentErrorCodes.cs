@@ -1,6 +1,6 @@
 ﻿namespace Tauron.Application.Master.Commands.Deployment.Build
 {
-    public static class BuildErrorCodes
+    public static class DeploymentErrorCodes
     {
         public const string GeneralQueryFailed = nameof(GeneralQueryFailed);
 
@@ -24,6 +24,6 @@
 
         public const string BuildProjectNotFound = nameof(BuildProjectNotFound);
 
-        public const string DatabaseError = nameof(DatabaseError);
+        //public const string DatabaseError = nameof(DatabaseError);
     }
 }

@@ -17,6 +17,10 @@ namespace Tauron.Application.AkkaNode.Services.Reporting.Commands
         public Task Command<TCommand>(TCommand command, TimeSpan timeout, Action<string>? msgs = null)
             where TCommand : SimpleCommand<TThis, TCommand>, TCommandType
             => ((TThis)this).Send(command, timeout, msgs ?? (_ => { }));
+        
+        public Task<TResult> Command<TCommand, TResult>(TCommand command, TimeSpan timeout, Action<string>? mesgs = null)
+            where TCommand : ResultCommand<TThis, TCommand, TResult>, TCommandType
+            => ((TThis)this).Send(command, timeout, default(TResult), mesgs ?? (_ => { }));
 
         protected abstract void SendCommandImpl(IReporterMessage command);
 

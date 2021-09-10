@@ -243,7 +243,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                                     _log.Warning("Project {ProjectName} Not found for {Name}",
                                         evt.StateData.AppData.ProjectName, evt.StateData.AppData.Id);
                                     return GoTo(BuildState.Failing)
-                                       .Using(evt.StateData.SetError(BuildErrorCodes.BuildProjectNotFound));
+                                       .Using(evt.StateData.SetError(DeploymentErrorCodes.BuildProjectNotFound));
                                 }
 
                                 _log.Info("Start Building Task for {Name}", evt.StateData.AppData.Id);
@@ -345,7 +345,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                                  {
                                      StateData.Reporter.Compled(
                                          OperationResult.Failure(string.IsNullOrWhiteSpace(StateData.Error)
-                                             ? BuildErrorCodes.GernalBuildError
+                                             ? DeploymentErrorCodes.GernalBuildError
                                              : StateData.Error));
                                  }
 

@@ -42,7 +42,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                                b =>
                                {
                                    b.When(m => m.Event == null, o => o.Select(m => m.New(default(AppInfo))
-                                                                                    .CompledReporter(OperationResult.Failure(BuildErrorCodes.QueryAppNotFound))));
+                                                                                    .CompledReporter(OperationResult.Failure(DeploymentErrorCodes.QueryAppNotFound))));
                                    b.When(m => m.Event != null, o => o.Select(evt => evt.New<AppInfo?>(evt.Event.ToInfo())));
                                }));
 
@@ -55,7 +55,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                                    b.When(m => m.Event.Query.Manager == null, o => o.Select(evt => evt.New(default(FileTransactionId))));
                                    b.When(m => m.Event.App == null, o => o.Select(evt => evt
                                                                                         .New(default(FileTransactionId))
-                                                                                        .CompledReporter(OperationResult.Failure(BuildErrorCodes.QueryAppNotFound))));
+                                                                                        .CompledReporter(OperationResult.Failure(DeploymentErrorCodes.QueryAppNotFound))));
                                    b.When(d => d.Event.App != null, SelectVersion);
 
                                    static IObservable<ReporterEvent<FileTransactionId?, AppQueryHandlerState>> SelectVersion(
@@ -69,7 +69,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                                                       b.When(m => m.Event.File == null,
                                                           o => o.Select(evt => evt
                                                                               .New(default(FileTransactionId))
-                                                                              .CompledReporter(OperationResult.Failure(BuildErrorCodes.QueryFileNotFound))));
+                                                                              .CompledReporter(OperationResult.Failure(DeploymentErrorCodes.QueryFileNotFound))));
                                                       b.When(m => m.Event.File != null,
                                                           o => o
                                                               .Select(evt => evt.New((
@@ -92,7 +92,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                                {
                                    b.When(evt => evt.Event == null, o => o.Select(evt => evt
                                                                                         .New(default(BinaryList))
-                                                                                        .CompledReporter(OperationResult.Failure(BuildErrorCodes.QueryAppNotFound))));
+                                                                                        .CompledReporter(OperationResult.Failure(DeploymentErrorCodes.QueryAppNotFound))));
                                    b.When(evt => evt.Event != null,
                                        o => o.Select(d => d.New<BinaryList?>(
                                                          new BinaryList(d.Event.Versions
@@ -110,7 +110,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                            {
                                if(m.Reporter.IsCompled) return;
                                m.Reporter.Compled(m.Event == default
-                               ? OperationResult.Failure(BuildErrorCodes.GeneralQueryFailed)
+                               ? OperationResult.Failure(DeploymentErrorCodes.GeneralQueryFailed)
                                : OperationResult.Success(m.Event));
                            }));
     }

@@ -3,14 +3,18 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ServiceManager.Server.AppCore.ServiceDeamon;
+using ServiceManager.Server.Hubs;
 using ServiceManager.Shared.Apps;
 using Stl.Async;
 using Stl.Fusion;
 using Tauron;
+using Tauron.Application.AkkaNode.Services.Reporting.Commands;
 using Tauron.Application.Master.Commands.Deployment.Build;
+using Tauron.Application.Master.Commands.Deployment.Build.Commands;
 using Tauron.Application.Master.Commands.Deployment.Build.Data;
 using Tauron.Application.Master.Commands.Deployment.Build.Querys;
 
@@ -49,19 +53,18 @@ namespace ServiceManager.Server.AppCore.Apps
             var host = scope.ServiceProvider.GetRequiredService<IProcessServiceHost>();
             var api = scope.ServiceProvider.GetRequiredService<DeploymentApi>();
 
+            await EnsureDeploymentApi(host, api);
             return await runner(host, api, scope.ServiceProvider);
         }
         
         private async Task<TResult> Run<TResult, TParam>(TParam command, AppApiRunnerParam<TResult, TParam> runner)
         {
-            if (Computed.IsInvalidating()) return default!;
-            
-            using var scope = _scopeFactory.CreateScope();
-            var       host  = scope.ServiceProvider.GetRequiredService<IProcessServiceHost>();
-            var       api   = scope.ServiceProvider.GetRequiredService<DeploymentApi>();
+            Task<TResult> RunLocal(IProcessServiceHost host, DeploymentApi api, IServiceProvider services)
+                => runner(command, host, api, services);
 
-            return await runner(command, host, api, scope.ServiceProvider);
+            return await Run(RunLocal);
         }
+        
 
         private async Task EnsureDeploymentApi(IProcessServiceHost host, DeploymentApi deploymentApi)
         {
@@ -82,23 +85,42 @@ namespace ServiceManager.Server.AppCore.Apps
 
         private async Task<RunAppSetupResponse> RunSetupImpl(RunAppSetupCommand command, IProcessServiceHost host, DeploymentApi api, IServiceProvider services)
         {
+            string name = string.Empty;
+            var hub = services.GetRequiredService<IHubContext<ClusterInfoHub>>();
+            
+            async void MessageSender(string msg)
+            {
+                try
+                {
+                    await hub.Clients.All.SendAsync(command.OperationId, msg);
+                }
+                catch (Exception e)
+                {
+                    _log.LogError(e, "Error on Sending Message to Client");
+                }
+            }
+            
             try
             {
-                switch (command.Step)
-                {
-                    case 0:
-                        break;
-                    case 1:
-                        break;
-                    case 2:
-                        break;
-                    default:
-                        return new RunAppSetupResponse(-1, "Step Daten Falsch", true, string.Empty);
-                }
+                var appConfig = DefaultApps.Apps[command.Step];
+                name = appConfig.Name;
+
+                await api.Command<CreateAppCommand, AppInfo>(
+                    new CreateAppCommand(appConfig.Name, appConfig.Repository, appConfig.ProjectName), 
+                    TimeSpan.FromSeconds(20),
+                    MessageSender);
+
+                return DefaultApps.Apps.Length - 1 == command.Step
+                    ? new RunAppSetupResponse(-1, null, true, "Setup Fertig")
+                    : new RunAppSetupResponse(command.Step + 1, null, false, $"Anwednug {name} wurde erstellt");
             }
             catch (Exception e)
             {
+                if (e is CommandFailedException { Message: DeploymentErrorCodes.CommandDuplicateApp })
+                    return new RunAppSetupResponse(command.Step + 1, null, false, $"Anwendung {name} ist schon Erstellt");
+                
                 _log.LogError(e, "Error on Run app setup on {Step}", command.Step);
+
                 return new RunAppSetupResponse(-1, e.Message, true, "Schwerer Fehler");
             }
         }
@@ -107,7 +129,6 @@ namespace ServiceManager.Server.AppCore.Apps
         {
             try
             {
-                await EnsureDeploymentApi(host, api);
                 var apps = await api.Query<QueryApps, AppList>(TimeSpan.FromSeconds(20));
 
                 return new NeedSetupData(null, DefaultApps.Apps.Any(c => apps.Apps.All(i => i.Name != c.Name)));
