@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
 using Microsoft.AspNetCore.SignalR;
@@ -40,8 +39,11 @@ namespace ServiceManager.Server.AppCore.Apps
             _subscription = dispatcher.Get().AutoSubscribe(
                 _ =>
                 {
-                    using(Computed.Invalidate())
+                    using (Computed.Invalidate())
+                    {
                         NeedBasicApps().Ignore();
+                        QueryAllApps().Ignore();
+                    }
                 }, e => log.LogError(e, "Error on Process App Event"));
         }
 
@@ -77,10 +79,16 @@ namespace ServiceManager.Server.AppCore.Apps
             throw new InvalidOperationException(message);
         }
         
-        public virtual Task<NeedSetupData> NeedBasicApps(CancellationToken token = default)
+        public virtual Task<NeedSetupData> NeedBasicApps()
             => Run(NeedBasicAppsImpl);
 
-        public Task<RunAppSetupResponse> RunAppSetup(RunAppSetupCommand command, CancellationToken token = default)
+        public Task<AppList> QueryAllApps()
+            => Run(QueryAllAppsImpl);
+
+        private Task<AppList> QueryAllAppsImpl(IProcessServiceHost host, DeploymentApi api, IServiceProvider services)
+            => api.Query<QueryApps, AppList>(TimeSpan.FromSeconds(20));
+
+        public Task<RunAppSetupResponse> RunAppSetup(RunAppSetupCommand command)
             => Run(command, RunSetupImpl);
 
         private async Task<RunAppSetupResponse> RunSetupImpl(RunAppSetupCommand command, IProcessServiceHost host, DeploymentApi api, IServiceProvider services)
@@ -139,8 +147,7 @@ namespace ServiceManager.Server.AppCore.Apps
                 return new NeedSetupData(e.Message, false);
             }
         }
-
-
+        
         public void Dispose()
             => _subscription.Dispose();
     }

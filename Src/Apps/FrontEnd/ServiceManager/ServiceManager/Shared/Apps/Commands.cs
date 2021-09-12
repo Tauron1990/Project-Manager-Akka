@@ -21,4 +21,8 @@ namespace ServiceManager.Shared.Apps
                        : throw new InvalidOperationException(Error);
         }
     }
+
+    public sealed record CreateAppCommand(string Name, string ProjectName, string RepositoryName) : ICommand<string>;
+
+    public sealed record DeleteAppCommand(string Name) : ICommand<string>;
 }

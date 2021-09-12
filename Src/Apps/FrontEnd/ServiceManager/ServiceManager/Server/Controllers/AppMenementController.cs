@@ -1,5 +1,4 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using GridMvc.Server;
 using GridShared.Utility;
 using Microsoft.AspNetCore.Authorization;
@@ -24,24 +23,15 @@ namespace ServiceManager.Server.Controllers
             => _appManagment = appManagment;
 
         [HttpGet, Publish, AllowAnonymous]
-        public Task<NeedSetupData> NeedBasicApps(CancellationToken token = default)
-            => _appManagment.NeedBasicApps(token);
+        public Task<NeedSetupData> NeedBasicApps()
+            => _appManagment.NeedBasicApps();
 
-        [HttpGet(IAppManagment.GridItemsQuery)]
-        public async Task<IActionResult> GridQueryAllApps(CancellationToken token = default)
-        {
-            var apps = await _appManagment.QueryAllApps(token);
-            var server = new GridServer<AppInfo>(apps, QueryDictionary<StringValues>.Convert(HttpContext.Request.Query), true, "AppInfoGrid");
-
-            return Ok(server.ItemsToDisplay);
-        }
-        
         [HttpGet, Publish]
-        public Task<AppList> QueryAllApps(CancellationToken token = default)
-            => 
+        public Task<AppList> QueryAllApps()
+            => _appManagment.QueryAllApps();
 
         [HttpPost]
-        public Task<RunAppSetupResponse> RunAppSetup([FromBody]RunAppSetupCommand command, CancellationToken token = default)
-            => _appManagment.RunAppSetup(command, token);
+        public Task<RunAppSetupResponse> RunAppSetup([FromBody]RunAppSetupCommand command)
+            => _appManagment.RunAppSetup(command);
     }
 }
