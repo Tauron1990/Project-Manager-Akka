@@ -82,15 +82,41 @@ namespace ServiceManager.Server.AppCore.Apps
         public virtual Task<NeedSetupData> NeedBasicApps()
             => Run(NeedBasicAppsImpl);
 
-        public Task<AppList> QueryAllApps()
+        public virtual Task<AppList> QueryAllApps()
             => Run(QueryAllAppsImpl);
 
+        public virtual Task<AppInfo> QueryApp(string name)
+            => Run(name, QueryAppImpl);
+
+        public virtual Task<string> CreateNewApp(ApiCreateAppCommand command)
+            => Run(command, CreateNewAppImpl);
+
+        public virtual Task<string> DeleteAppCommand(ApiDeleteAppCommand command)
+            => run;
+        
+        public virtual Task<RunAppSetupResponse> RunAppSetup(RunAppSetupCommand command)
+            => Run(command, RunSetupImpl);
+
+        private async Task<string> CreateNewAppImpl(ApiCreateAppCommand command, IProcessServiceHost host, DeploymentApi api, IServiceProvider services)
+        {
+            try
+            {
+                await api.Command<CreateAppCommand, AppInfo>(new CreateAppCommand(command.Name, command.ProjectName, command.RepositoryName), TimeSpan.FromSeconds(20));
+
+                return string.Empty;
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
+        }
+        
         private Task<AppList> QueryAllAppsImpl(IProcessServiceHost host, DeploymentApi api, IServiceProvider services)
             => api.Query<QueryApps, AppList>(TimeSpan.FromSeconds(20));
 
-        public Task<RunAppSetupResponse> RunAppSetup(RunAppSetupCommand command)
-            => Run(command, RunSetupImpl);
-
+        private Task<AppInfo> QueryAppImpl(string command, IProcessServiceHost host, DeploymentApi api, IServiceProvider services)
+            => api.Query<QueryApp, AppInfo>(new QueryApp(command), TimeSpan.FromSeconds(20));
+        
         private async Task<RunAppSetupResponse> RunSetupImpl(RunAppSetupCommand command, IProcessServiceHost host, DeploymentApi api, IServiceProvider services)
         {
             string name = string.Empty;

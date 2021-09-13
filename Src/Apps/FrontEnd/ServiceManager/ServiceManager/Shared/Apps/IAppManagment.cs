@@ -18,9 +18,9 @@ namespace ServiceManager.Shared.Apps
         Task<AppInfo> QueryApp(string name);
 
 
-        Task<string> CreateNewApp(CreateAppCommand command);
+        Task<string> CreateNewApp(ApiCreateAppCommand command);
 
-        Task<string> DeleteAppCommand(DeleteAppCommand command);
+        Task<string> DeleteAppCommand(ApiDeleteAppCommand command);
 
         Task<RunAppSetupResponse> RunAppSetup(RunAppSetupCommand command);
     }

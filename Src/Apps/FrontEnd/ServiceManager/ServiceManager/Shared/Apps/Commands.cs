@@ -22,7 +22,7 @@ namespace ServiceManager.Shared.Apps
         }
     }
 
-    public sealed record CreateAppCommand(string Name, string ProjectName, string RepositoryName) : ICommand<string>;
+    public sealed record ApiCreateAppCommand(string Name, string ProjectName, string RepositoryName) : ICommand<string>;
 
-    public sealed record DeleteAppCommand(string Name) : ICommand<string>;
+    public sealed record ApiDeleteAppCommand(string Name) : ICommand<string>;
 }

@@ -58,7 +58,7 @@ namespace ServiceManager.Client.ViewModels.Apps
                 => Run(
                     async () =>
                     {
-                        var result = await _appManagment.CreateNewApp(new CreateAppCommand(item.Name, item.ProjectName, item.Repository));
+                        var result = await _appManagment.CreateNewApp(new ApiCreateAppCommand(item.Name, item.ProjectName, item.Repository));
 
                         if (string.IsNullOrWhiteSpace(result)) return Unit.Default;
 
@@ -72,7 +72,7 @@ namespace ServiceManager.Client.ViewModels.Apps
                 => Run(
                     async () =>
                     {
-                        var result = await _appManagment.DeleteAppCommand(new DeleteAppCommand((string)keys[0]));
+                        var result = await _appManagment.DeleteAppCommand(new ApiDeleteAppCommand((string)keys[0]));
 
                         if (string.IsNullOrWhiteSpace(result)) return Unit.Default;
 
