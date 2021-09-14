@@ -25,6 +25,7 @@ namespace ServiceManager.ProjectRepository.Core
 
         public (string Path, string Sha) RunUpdate(string source)
         {
+            #pragma warning disable MT1000
             lock (Lock)
             {
                 Init(source);
@@ -68,3 +69,4 @@ namespace ServiceManager.ProjectRepository.Core
         }
     }
 }
+#pragma warning restore MT1000

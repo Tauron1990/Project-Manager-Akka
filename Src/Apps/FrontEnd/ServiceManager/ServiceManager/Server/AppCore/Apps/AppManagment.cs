@@ -92,7 +92,7 @@ namespace ServiceManager.Server.AppCore.Apps
             => Run(command, CreateNewAppImpl);
 
         public virtual Task<string> DeleteAppCommand(ApiDeleteAppCommand command)
-            => run;
+            => throw new NotSupportedException("Not supportet");
         
         public virtual Task<RunAppSetupResponse> RunAppSetup(RunAppSetupCommand command)
             => Run(command, RunSetupImpl);

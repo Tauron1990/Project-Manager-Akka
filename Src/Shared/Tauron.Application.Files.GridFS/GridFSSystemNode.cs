@@ -11,7 +11,7 @@ namespace Tauron.Application.Files.GridFS
     {
         private readonly Action? _existsNow;
         private GridFSFileInfo? _fileInfo;
-        private object _setLock = new();
+        private readonly object _setLock = new();
 
         protected GridFSBucket Bucket { get; }
 

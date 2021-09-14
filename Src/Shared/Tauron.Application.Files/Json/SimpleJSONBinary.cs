@@ -75,7 +75,7 @@ namespace Tauron.Application.Files.Json
                 }
                 default:
                 {
-                    throw new Exception("Error deserializing JSON. Unknown tag: " + type);
+                    throw new InvalidOperationException("Error deserializing JSON. Unknown tag: " + type);
                 }
             }
         }

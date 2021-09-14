@@ -102,7 +102,8 @@ namespace Tauron.Application
     public class WeakActionEvent<T>
     {
         private readonly List<WeakAction> _delegates = new();
-
+        private readonly object _lock = new();
+        
         public WeakActionEvent()
         {
             WeakCleanUp.RegisterAction(CleanUp);
@@ -110,11 +111,11 @@ namespace Tauron.Application
 
         private void CleanUp()
         {
-            lock (this)
+            lock (_lock)
             {
                 var dead = _delegates.Where(item => item.TargetObject?.IsAlive == false).ToList();
 
-                lock (this)
+                lock (_lock)
                 {
                     dead.ForEach(ac => _delegates.Remove(ac));
                 }
@@ -127,7 +128,7 @@ namespace Tauron.Application
             Argument.NotNull(handler, nameof(handler));
             var parameters = handler.Method.GetParameters();
 
-            lock (this)
+            lock (_lock)
             {
                 if (_delegates.Where(del => del.MethodInfo == handler.Method)
                     .Select(weakAction => weakAction.TargetObject?.Target)
@@ -137,7 +138,7 @@ namespace Tauron.Application
 
             var parameterType = parameters[0].ParameterType;
 
-            lock (this) 
+            lock (_lock) 
                 _delegates.Add(new WeakAction(handler.Target, handler.Method, parameterType));
 
             return this;
@@ -145,7 +146,7 @@ namespace Tauron.Application
 
         public void Invoke(T arg)
         {
-            lock (this)
+            lock (_lock)
             {
                 foreach (var action in _delegates)
                 {
@@ -160,7 +161,7 @@ namespace Tauron.Application
         public WeakActionEvent<T> Remove([NotNull] Action<T> handler)
         {
             Argument.NotNull(handler, nameof(handler));
-            lock (this)
+            lock (_lock)
             {
                 foreach (var del in _delegates.Where(del
                     => del.TargetObject != null && del.TargetObject.Target == handler.Target))

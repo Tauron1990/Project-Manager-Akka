@@ -41,7 +41,7 @@ namespace Akka.MGIHelper.Core.FanControl.Components
                     _timer.Change(-1, -1);
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new InvalidCastException("Invalid Clockstate Provided");
             }
 
             return Task.CompletedTask;

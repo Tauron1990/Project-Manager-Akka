@@ -79,7 +79,7 @@ namespace Tauron.Application.Avalonia
                         global::Avalonia.Controls.ShutdownMode.OnLastWindowClose => ShutdownMode.OnLastWindowClose,
                         global::Avalonia.Controls.ShutdownMode.OnMainWindowClose => ShutdownMode.OnMainWindowClose,
                         global::Avalonia.Controls.ShutdownMode.OnExplicitShutdown => ShutdownMode.OnExplicitShutdown,
-                        _ => throw new ArgumentOutOfRangeException()
+                        _ => throw new InvalidCastException("Shutdown mode")
                     };
                 }
                 set
@@ -89,7 +89,7 @@ namespace Tauron.Application.Avalonia
                         ShutdownMode.OnLastWindowClose => global::Avalonia.Controls.ShutdownMode.OnLastWindowClose,
                         ShutdownMode.OnMainWindowClose => global::Avalonia.Controls.ShutdownMode.OnMainWindowClose,
                         ShutdownMode.OnExplicitShutdown => global::Avalonia.Controls.ShutdownMode.OnExplicitShutdown,
-                        _ => throw new ArgumentOutOfRangeException(nameof(value), value, null)
+                        _ => throw new InvalidCastException("Shutdown mode")
                     };
                 }
             }
@@ -133,7 +133,7 @@ namespace Tauron.Application.Avalonia
                         global::Avalonia.Controls.ShutdownMode.OnLastWindowClose => ShutdownMode.OnLastWindowClose,
                         global::Avalonia.Controls.ShutdownMode.OnMainWindowClose => ShutdownMode.OnMainWindowClose,
                         global::Avalonia.Controls.ShutdownMode.OnExplicitShutdown => ShutdownMode.OnExplicitShutdown,
-                        _ => throw new ArgumentOutOfRangeException()
+                        _ => throw new InvalidCastException("Shutdown mode")
                     };
                 }
                 set
@@ -143,7 +143,7 @@ namespace Tauron.Application.Avalonia
                         ShutdownMode.OnLastWindowClose => global::Avalonia.Controls.ShutdownMode.OnLastWindowClose,
                         ShutdownMode.OnMainWindowClose => global::Avalonia.Controls.ShutdownMode.OnMainWindowClose,
                         ShutdownMode.OnExplicitShutdown => global::Avalonia.Controls.ShutdownMode.OnExplicitShutdown,
-                        _ => throw new ArgumentOutOfRangeException(nameof(value), value, null)
+                        _ => throw new InvalidCastException("Shutdown mode")
                     };
                 }
             }

@@ -129,7 +129,7 @@ namespace Tauron
                 {
                     var temp = Path.GetDirectoryName(path);
 
-                    return CreateDirectoryIfNotExis(new DirectoryInfo(temp ?? throw new InvalidOperationException()));
+                    return CreateDirectoryIfNotExis(new DirectoryInfo(temp ?? throw new InvalidOperationException("No Valid File Path Parameter")));
                 }
 
                 return CreateDirectoryIfNotExis(new DirectoryInfo(path));

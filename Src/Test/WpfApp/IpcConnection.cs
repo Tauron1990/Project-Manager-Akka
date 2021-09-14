@@ -164,7 +164,9 @@ namespace WpfApp
         {
             if (_mutex != null)
             {
+                #pragma warning disable MT1013
                 _mutex.ReleaseMutex();
+                #pragma warning restore MT1013
                 _mutex.Dispose();
 
                 _master = null;

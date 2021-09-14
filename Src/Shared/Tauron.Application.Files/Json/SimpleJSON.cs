@@ -151,7 +151,7 @@ namespace Tauron.Application.Files.Json
                         }
 
                         if (stack.Count == 0)
-                            throw new Exception("JSON Parse: Too many closing brackets");
+                            throw new InvalidOperationException("JSON Parse: Too many closing brackets");
 
                         stack.Pop();
                         if (token.Length > 0 || tokenIsQuoted)
@@ -253,7 +253,7 @@ namespace Tauron.Application.Files.Json
                 ++i;
             }
 
-            if (quoteMode) throw new Exception("JSON Parse: Quotation marks seems to be messed up.");
+            if (quoteMode) throw new InvalidOperationException("JSON Parse: Quotation marks seems to be messed up.");
             return ctx ?? ParseElement(token.ToString(), tokenIsQuoted);
         }
 
@@ -608,8 +608,8 @@ namespace Tauron.Application.Files.Json
 
         public override string Value
         {
-            get => throw new NotSupportedException();
-            set => throw new NotSupportedException();
+            get => throw new NotSupportedException("Value not Supported");
+            set => throw new NotSupportedException("Value not Supported");
         }
 
         public override int Count => _list.Count;
@@ -704,8 +704,8 @@ namespace Tauron.Application.Files.Json
 
         public override string Value
         {
-            get => throw new NotSupportedException();
-            set => throw new NotSupportedException();
+            get => throw new NotSupportedException("Value not Supported");
+            set => throw new NotSupportedException("Value not Supported");
         }
 
         public override JsonNode? this[int aIndex]
@@ -824,21 +824,23 @@ namespace Tauron.Application.Files.Json
 
         public override JsonNode? this[int aIndex]
         {
-            get => throw new NotSupportedException();
-            set => throw new NotSupportedException();
+            get => throw new NotSupportedException("Index not Supported");
+            set => throw new NotSupportedException("Index not Supported");
         }
 
         public override JsonNode? this[string aKey]
         {
-            get => throw new NotSupportedException();
-            set => throw new NotSupportedException();
+            get => throw new NotSupportedException("key not Supported");
+            set => throw new NotSupportedException("keys not Supported");
         }
 
         public override bool IsString => true;
 
         public override bool Inline
         {
+            #pragma warning disable EX002
             get => throw new NotSupportedException();
+            
             set => throw new NotSupportedException();
         }
 
@@ -1042,14 +1044,14 @@ namespace Tauron.Application.Files.Json
 
         public override JsonNode? this[int aIndex]
         {
-            get => throw new NotSupportedException();
-            set => throw new NotSupportedException();
+            get => throw new NotSupportedException("Node has not Index");
+            set => throw new NotSupportedException("Node has not Index");
         }
 
         public override JsonNode? this[string aKey]
         {
-            get => throw new NotSupportedException();
-            set => throw new NotSupportedException();
+            get => throw new NotSupportedException("Node has not Keys");
+            set => throw new NotSupportedException("Node has not Keys");
         }
 
         public override bool IsNull => true;
@@ -1126,7 +1128,7 @@ namespace Tauron.Application.Files.Json
         public override string Value
         {
             get => string.Empty;
-            set => throw new NotSupportedException();
+            set => throw new NotSupportedException("String Value not Supported");
         }
 
         public override int AsInt
@@ -1194,8 +1196,8 @@ namespace Tauron.Application.Files.Json
 
         public override bool Inline
         {
-            get => throw new NotSupportedException();
-            set => throw new NotSupportedException();
+            get => throw new NotSupportedException("In line not Supported");
+            set => throw new NotSupportedException("In line not Supported");
         }
 
         public override Enumerator GetEnumerator() => new();
@@ -1241,3 +1243,4 @@ namespace Tauron.Application.Files.Json
         public static JsonNode Parse(string aJson) => JsonNode.Parse(aJson);
     }
 }
+#pragma warning restore EX002

@@ -7,7 +7,8 @@ namespace Tauron.Application.Workshop.Core
     public abstract class DeferredActor
     {
         private ImmutableList<object>? _stash;
-
+        private readonly object _lock = new();
+        
         protected DeferredActor(Task<IActorRef> actor)
         {
             actor.ContinueWith(OnCompleded);
@@ -18,7 +19,7 @@ namespace Tauron.Application.Workshop.Core
 
         private void OnCompleded(Task<IActorRef> obj)
         {
-            lock (this)
+            lock (_lock)
             {
                 Actor = obj.Result;
                 foreach (var message in _stash ?? ImmutableList<object>.Empty)
@@ -33,7 +34,7 @@ namespace Tauron.Application.Workshop.Core
             if (!Actor.IsNobody())
                 Actor.Tell(msg);
             else
-                lock (this)
+                lock (_lock)
                 {
                     if (!Actor.IsNobody())
                     {

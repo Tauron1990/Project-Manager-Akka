@@ -26,6 +26,7 @@ namespace ServiceHost.Installer.Impl.Source
         }
 
         public int Version => -1;
-        public string ToZipFile(InstallerContext context) => throw new NotImplementedException();
+        public string ToZipFile(InstallerContext context) 
+            => throw new NotSupportedException("Empty Source can not converted to zip file");
     }
 }

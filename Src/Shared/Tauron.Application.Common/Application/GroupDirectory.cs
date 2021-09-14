@@ -57,7 +57,7 @@ namespace Tauron.Application
 
         private object CreateList()
         {
-            if (!typeof(ICollection<TValue>).IsAssignableFrom(_listType)) throw new InvalidOperationException();
+            if (!typeof(ICollection<TValue>).IsAssignableFrom(_listType)) throw new InvalidOperationException("List Type not Compatible With GroupDicitioonary Value Type");
 
             if (_genericTemp != null)
                 return Activator.CreateInstance(_genericTemp) ??
@@ -65,22 +65,21 @@ namespace Tauron.Application
 
             if (_listType.ContainsGenericParameters)
             {
-                if (_listType.GetGenericArguments().Length != 1) throw new InvalidOperationException();
+                if (_listType.GetGenericArguments().Length != 1) throw new InvalidOperationException("More then one Genric Type Parameter in Provided List Type");
 
                 _genericTemp = _listType.MakeGenericType(typeof(TValue));
             }
             else
             {
                 var generic = _listType.GetGenericArguments();
-                if (generic.Length > 1) throw new InvalidOperationException();
 
                 if (generic.Length == 0) _genericTemp = _listType;
 
-                if (_genericTemp == null && generic[0] == typeof(TValue)) _genericTemp = _listType;
+                if (_genericTemp is null && generic[0] == typeof(TValue)) _genericTemp = _listType;
                 else _genericTemp = _listType.GetGenericTypeDefinition().MakeGenericType(typeof(TValue));
             }
 
-            if (_genericTemp == null) throw new InvalidOperationException();
+            if (_genericTemp is null) throw new InvalidOperationException("List Type for Group Dicitionay not Successful Created");
 
             return Activator.CreateInstance(_genericTemp) ??
                    throw new InvalidOperationException("List Creation Failed");
@@ -140,7 +139,7 @@ namespace Tauron.Application
                 {
                     var coll = vals.Current as ICollection<TValue> ?? Array.Empty<TValue>();
                     if (keys.Current is not TKey currkey)
-                        throw new InvalidCastException();
+                        throw new InvalidCastException("Provided Key is not Right Type");
 
                     ok |= RemoveList(coll, val);
 
@@ -196,14 +195,10 @@ namespace Tauron.Application
             public bool IsReadOnly => true;
 
             public void Add(TValue item)
-            {
-                throw new NotSupportedException();
-            }
+                => throw new NotSupportedException("Item Adding ist not Supported");
 
             public void Clear()
-            {
-                throw new NotSupportedException();
-            }
+                => throw new NotSupportedException("All Values Collection can not Cleared");
 
             public bool Contains(TValue item) => GetAll.Contains(item);
 
@@ -214,7 +209,7 @@ namespace Tauron.Application
 
             public IEnumerator<TValue> GetEnumerator() => GetAll.GetEnumerator();
 
-            public bool Remove(TValue item) => throw new NotSupportedException();
+            public bool Remove(TValue item) => throw new NotSupportedException("Item Removing is not Supported");
         }
     }
 }

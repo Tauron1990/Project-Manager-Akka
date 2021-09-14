@@ -39,7 +39,9 @@ namespace Servicemnager.Networking.IPC
                 using var mt = new Mutex(true, id + "SharmNet_MasterMutex", out var created);
                 if (!created) return true;
 
+                #pragma warning disable MT1013
                 mt.ReleaseMutex();
+                #pragma warning restore MT1013
                 return false;
             }
             catch (AbandonedMutexException)

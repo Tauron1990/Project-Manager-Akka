@@ -49,7 +49,7 @@ namespace Tauron.Application.Files.VirtualFiles.InMemory
 
         public override IFile GetFile(string name) => new InMemoryFile(this, Path.Combine(OriginalPath, name), name);
 
-        public override IDirectory MoveTo(string location) => throw new NotSupportedException();
+        public override IDirectory MoveTo(string location) => throw new NotSupportedException("In Memory does not Support Moving");
 
         internal DataFile GetOrAddFile(string name)
         {

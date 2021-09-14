@@ -40,13 +40,14 @@ namespace Tauron
             Argument.NotNull(source, nameof(source));
             Argument.NotNull(arguments, nameof(arguments));
             // ReSharper disable NotResolvedInText
-            Argument.Check(arguments.BufferSize < 128, () => throw new ArgumentOutOfRangeException(
-                "arguments.BufferSize",
-                arguments.BufferSize, "BufferSize has to be greater or equal than 128."));
+            #pragma warning disable EX005
+            Argument.Check(arguments.BufferSize < 128, () => throw new ArgumentOutOfRangeException("arguments.BufferSize",
+                                                           arguments.BufferSize, "BufferSize has to be greater or equal than 128."));
             Argument.Check(arguments.ProgressChangeCallbackInterval.TotalSeconds < 0, ()
                 => throw new ArgumentOutOfRangeException("arguments.ProgressChangeCallbackInterval",
                     arguments.ProgressChangeCallbackInterval,
                     "ProgressChangeCallbackInterval has to be greater or equal than 0."));
+            #pragma warning restore EX005
             // ReSharper restore NotResolvedInText
 
             long length = 0;

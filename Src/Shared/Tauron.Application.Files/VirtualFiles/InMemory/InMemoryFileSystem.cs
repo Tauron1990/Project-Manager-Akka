@@ -19,14 +19,12 @@ namespace Tauron.Application.Files.VirtualFiles.InMemory
         public bool SaveAfterDispose
         {
             get => false;
-            set => throw new NotSupportedException();
+            set => throw new NotSupportedException("In Memory does not Support Saving ");
         }
 
         public string Source => Name;
 
         public void Reload(string source)
-        {
-            throw new NotSupportedException();
-        }
+            => throw new NotSupportedException("In Memory does not Reloading");
     }
 }

@@ -16,7 +16,7 @@ namespace Tauron
 
         public static TransformFunc<TSource> Transform<TSource>(this Func<TSource> source) => new(source);
 
-        public struct TransformFunc<TSource>
+        public readonly struct TransformFunc<TSource>
         {
             private readonly Func<TSource> _source;
 

@@ -16,7 +16,7 @@ namespace LoadingIndicators.WPF.Styles
 
             _resourceKeys = inputResourceKeys.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
 
-            if (_resourceKeys.Length == 0) throw new ArgumentException();
+            if (_resourceKeys.Length == 0) throw new ArgumentException("No resource Keys Provided", nameof(inputResourceKeys));
         }
 
 
@@ -30,12 +30,11 @@ namespace LoadingIndicators.WPF.Styles
                 if (resourceKey == ".")
                 {
                     var service = (IProvideValueTarget) serviceProvider.GetService(typeof(IProvideValueTarget));
-                    key = service.TargetObject.GetType();
+                    key = service?.TargetObject.GetType();
                 }
 
-                var currentStyle = new StaticResourceExtension(key).ProvideValue(serviceProvider) as Style;
-
-                if (currentStyle == null) throw new ArgumentException();
+                if (key is null || new StaticResourceExtension(key).ProvideValue(serviceProvider) is not Style currentStyle) 
+                    throw new InvalidOperationException("No Style Found");
 
                 resultStyle.Merge(currentStyle);
             }

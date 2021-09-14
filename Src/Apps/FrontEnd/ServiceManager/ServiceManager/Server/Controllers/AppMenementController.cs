@@ -30,6 +30,18 @@ namespace ServiceManager.Server.Controllers
         public Task<AppList> QueryAllApps()
             => _appManagment.QueryAllApps();
 
+        [HttpGet, Publish]
+        public Task<AppInfo> QueryApp([FromQuery]string name)
+            => _appManagment.QueryApp(name);
+
+        [HttpPost]
+        public Task<string> CreateNewApp([FromBody]ApiCreateAppCommand command)
+            => _appManagment.CreateNewApp(command);
+
+        [HttpPost]
+        public Task<string> DeleteAppCommand([FromBody]ApiDeleteAppCommand command)
+            => _appManagment.DeleteAppCommand(command);
+
         [HttpPost]
         public Task<RunAppSetupResponse> RunAppSetup([FromBody]RunAppSetupCommand command)
             => _appManagment.RunAppSetup(command);

@@ -22,24 +22,29 @@ namespace BeaconLib
         private static ILogger _log = LogManager.GetCurrentClassLogger();
         private readonly UdpClient _udp;
 
-        public Beacon(string beaconType, ushort advertisedPort)
+        public Beacon(string type, ushort advertisedPort)
         {
-            BeaconType = beaconType;
+            Type = type;
             AdvertisedPort = advertisedPort;
-            BeaconData = "";
+            Data = "";
 
             _log.Info("Bind UDP beacon to {Port}", DiscoveryPort);
             _udp = new UdpClient();
-            _udp.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            Init();
+        }
+
+        private void Init()
+        {
+            _udp.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, optionValue: true);
             _udp.Client.Bind(new IPEndPoint(IPAddress.Any, DiscoveryPort));
 
             try
             {
-                _udp.AllowNatTraversal(true);
+                _udp.AllowNatTraversal(allowed: true);
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
-                _log.Error(ex, "Error switching on NAT traversal");
+                _log.Error(exception, "Error switching on NAT traversal");
             }
         }
 
@@ -48,44 +53,43 @@ namespace BeaconLib
         /// </summary>
         public static string HostName => Dns.GetHostName();
 
-        public string BeaconType { get; private set; }
+        public string Type { get; private set; }
         public ushort AdvertisedPort { get; private set; }
         public bool Stopped { get; private set; }
 
-        public string BeaconData { get; set; }
+        public string Data { get; set; }
 
         public void Dispose()
-        {
-            Stop();
-        }
+            => Stop();
 
         public void Start()
         {
             _log.Info("Starting Beacon");
             Stopped = false;
+            // ReSharper disable once ArgumentsStyleLiteral
             _udp.BeginReceive(ProbeReceived, null);
         }
 
         public void Stop()
-        {
-            Stopped = true;
-        }
+            => Stopped = true;
 
+        #pragma warning disable AV1500
         private void ProbeReceived(IAsyncResult ar)
+            #pragma warning restore AV1500
         {
             var remote = new IPEndPoint(IPAddress.Any, 0);
             var bytes = _udp.EndReceive(ar, ref remote);
             _log.Info("Incoming Probe {Adress}", remote);
 
             // Compare beacon type to probe type
-            var typeBytes = Encode(BeaconType);
+            var typeBytes = Encode(Type);
             if (HasPrefix(bytes, typeBytes))
             {
                 _log.Info("Responding Probe {Adress}", remote);
                 // If true, respond again with our type, port and payload
-                var responseData = Encode(BeaconType)
+                var responseData = Encode(Type)
                     .Concat(BitConverter.GetBytes((ushort) IPAddress.HostToNetworkOrder((short) AdvertisedPort)))
-                    .Concat(Encode(BeaconData)).ToArray();
+                    .Concat(Encode(Data)).ToArray();
                 _udp.Send(responseData, responseData.Length, remote);
             }
             else
@@ -120,10 +124,10 @@ namespace BeaconLib
         {
             var listData = data as IList<byte> ?? data.ToList();
 
-            var len = IPAddress.NetworkToHostOrder(BitConverter.ToInt16(listData.Take(2).ToArray(), 0));
-            if (listData.Count < 2 + len) throw new ArgumentException("Too few bytes in packet");
+            var packetLenght = IPAddress.NetworkToHostOrder(BitConverter.ToInt16(listData.Take(2).ToArray(), 0));
+            if (listData.Count < 2 + packetLenght) throw new ArgumentException("Too few bytes in packet");
 
-            return Encoding.UTF8.GetString(listData.Skip(2).Take(len).ToArray());
+            return Encoding.UTF8.GetString(listData.Skip(2).Take(packetLenght).ToArray());
         }
     }
 }

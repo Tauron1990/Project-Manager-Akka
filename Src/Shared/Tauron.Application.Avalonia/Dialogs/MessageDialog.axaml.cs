@@ -11,7 +11,7 @@ namespace Tauron.Application.Avalonia.Dialogs
         private readonly bool _canCnacel;
         private readonly Action<bool?>? _result;
 
-        public MessageDialog() => throw new NotSupportedException(); // Compiler Enforcement
+        public MessageDialog() => throw new NotSupportedException("Complier enforces empty Constructor"); // Compiler Enforcement
 
         //InitializeComponent();
         public MessageDialog(string title, string content, Action<bool?>? result, bool canCnacel)

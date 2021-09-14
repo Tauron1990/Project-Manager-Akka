@@ -18,6 +18,7 @@ using Stl.Fusion.Authentication.Commands;
 using Stl.Fusion.EntityFramework.Authentication;
 using Stl.Fusion.Server.Authentication;
 using Stl.Text;
+using Tauron;
 
 namespace ServiceManager.Server.AppCore.Identity
 {

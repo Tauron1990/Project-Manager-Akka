@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using ServiceManager.Shared.ClusterTracking;
 using Stl.Async;
 using Stl.Fusion;
+using Tauron;
 
 namespace ServiceManager.Server.AppCore.ClusterTracking.Data
 {

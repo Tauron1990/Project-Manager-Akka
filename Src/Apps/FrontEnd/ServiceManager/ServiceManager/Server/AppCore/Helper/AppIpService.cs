@@ -5,6 +5,7 @@ using ServiceManager.Shared;
 using ServiceManager.Shared.ClusterTracking;
 using Stl.Async;
 using Stl.Fusion;
+using Tauron;
 
 namespace ServiceManager.Server.AppCore.Helper
 {

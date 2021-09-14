@@ -30,12 +30,13 @@ namespace Tauron.Application.Files.Zip
         public override string Extension
         {
             get => InfoObject?.FileName.GetExtension() ?? string.Empty;
-            set => throw new NotSupportedException();
+            set => throw new NotSupportedException("Zip Extension can not be set");
         }
 
         public override long Size => InfoObject?.UncompressedSize ?? 0;
 
-        public override IFile MoveTo(string location) => throw new NotSupportedException();
+        public override IFile MoveTo(string location) 
+            => throw new NotSupportedException("Zip File Moving not Supported");
 
         protected override void DeleteImpl()
         {

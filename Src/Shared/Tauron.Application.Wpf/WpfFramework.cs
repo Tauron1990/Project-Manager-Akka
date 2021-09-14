@@ -85,7 +85,7 @@ namespace Tauron.Application.Wpf
                     System.Windows.ShutdownMode.OnLastWindowClose => ShutdownMode.OnLastWindowClose,
                     System.Windows.ShutdownMode.OnMainWindowClose => ShutdownMode.OnMainWindowClose,
                     System.Windows.ShutdownMode.OnExplicitShutdown => ShutdownMode.OnExplicitShutdown,
-                    _ => throw new ArgumentOutOfRangeException()
+                    _ => throw new InvalidCastException("Shutdown mode not Convertible")
                 };
                 set
                 {

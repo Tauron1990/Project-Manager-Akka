@@ -94,10 +94,10 @@ namespace Tauron.Application
 
         public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
         {
-            var currver = _version;
+            var currentVersion = _version;
             foreach (var t in _entrys.TakeWhile(t => t != null))
             {
-                if (currver != _version) throw new InvalidOperationException();
+                if (currentVersion != _version) throw new InvalidOperationException("Collection Changed while Enumerating");
 
                 yield return Entry.Construct(t);
             }
@@ -286,12 +286,18 @@ namespace Tauron.Application
         {
             public void Dispose()
             {
+                #pragma warning disable MT1013
                 Monitor.Exit(this);
+                #pragma warning restore MT1013
             }
 
             public void Enter()
             {
+                #pragma warning disable MT1012
+                #pragma warning disable MT1001
                 Monitor.Enter(this);
+                #pragma warning restore MT1001
+                #pragma warning restore MT1012
             }
         }
 
@@ -344,14 +350,10 @@ namespace Tauron.Application
             public bool IsReadOnly => true;
 
             public void Add(TTarget item)
-            {
-                throw new NotSupportedException();
-            }
+                => throw new NotSupportedException("Adding is not SUported");
 
             public void Clear()
-            {
-                throw new NotSupportedException();
-            }
+                => throw new NotSupportedException("Clearing is not Supported");
 
             public bool Contains(TTarget item)
             {
@@ -381,12 +383,13 @@ namespace Tauron.Application
                     if (count > Dictionary.Count) break;
 
                     yield return Select(entry);
-                    if (ver != Dictionary._version) throw new InvalidOperationException();
+                    if (ver != Dictionary._version) throw new InvalidOperationException("Collection changed while enumerating");
                 }
             }
 
-            public bool Remove(TTarget item) => throw new NotSupportedException();
+            public bool Remove(TTarget item) => throw new NotSupportedException("Removing not Supported");
 
+            [field: NonSerialized]
             public event NotifyCollectionChangedEventHandler? CollectionChanged;
 
             public void OnCollectionAdd(TTarget target, int index)

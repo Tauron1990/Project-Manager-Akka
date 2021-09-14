@@ -18,6 +18,6 @@ namespace ServiceManager.ProjectDeployment.Data
         public AppInfo ToInfo()
             => new(Id, Last, LastUpdate, CreationTime, Repository,
                 Versions.Select(fi => new AppBinary(fi.Version, Id, fi.CreationTime, fi.Deleted, fi.Commit, Repository))
-                        .ToImmutableList(), false);
+                        .ToImmutableList(), false, ProjectName);
     }
 }

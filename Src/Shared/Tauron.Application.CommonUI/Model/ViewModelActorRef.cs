@@ -21,6 +21,7 @@ namespace Tauron.Application.CommonUI.Model
     {
         private IActorRef _actor = ActorRefs.Nobody;
         private bool _isInitialized;
+        private readonly object _lock = new();
 
         private List<Action> _waiter = new();
 
@@ -32,7 +33,7 @@ namespace Tauron.Application.CommonUI.Model
 
         public override void AwaitInit(Action waiter)
         {
-            lock (this)
+            lock (_lock)
             {
                 if (IsInitialized)
                     waiter();
@@ -45,7 +46,7 @@ namespace Tauron.Application.CommonUI.Model
         {
             Interlocked.Exchange(ref _actor, actor);
 
-            lock (this)
+            lock (_lock)
             {
                 _isInitialized = true;
                 foreach (var action in _waiter!)

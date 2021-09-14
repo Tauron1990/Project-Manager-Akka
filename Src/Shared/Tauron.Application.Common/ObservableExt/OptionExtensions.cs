@@ -89,7 +89,7 @@ namespace Tauron.ObservableExt
         public static Caster<TType> Cast<TType>(this Option<TType> option)
             => new(option);
 
-        public struct Caster<TType>
+        public readonly struct Caster<TType>
         {
             private readonly Option<TType> _option;
 

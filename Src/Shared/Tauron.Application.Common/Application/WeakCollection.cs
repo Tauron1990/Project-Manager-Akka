@@ -121,6 +121,8 @@ namespace Tauron.Application
     public class WeakReferenceCollection<TType> : Collection<TType>
         where TType : IWeakReference
     {
+        private readonly object _lock = new();
+        
         public WeakReferenceCollection()
         {
             WeakCleanUp.RegisterAction(CleanUpMethod);
@@ -128,15 +130,12 @@ namespace Tauron.Application
 
         protected override void ClearItems()
         {
-            lock (this)
-            {
-                base.ClearItems();
-            }
+            lock (_lock) base.ClearItems();
         }
 
         protected override void InsertItem(int index, TType item)
         {
-            lock (this)
+            lock (_lock)
             {
                 if (index > Count) index = Count;
                 base.InsertItem(index, item);
@@ -145,23 +144,17 @@ namespace Tauron.Application
 
         protected override void RemoveItem(int index)
         {
-            lock (this)
-            {
-                base.RemoveItem(index);
-            }
+            lock (_lock) base.RemoveItem(index);
         }
 
         protected override void SetItem(int index, TType item)
         {
-            lock (this)
-            {
-                base.SetItem(index, item);
-            }
+            lock (_lock) base.SetItem(index, item);
         }
 
         private void CleanUpMethod()
         {
-            lock (this)
+            lock (_lock)
             {
                 Items.ToArray()
                     .Where(it => !it.IsAlive)

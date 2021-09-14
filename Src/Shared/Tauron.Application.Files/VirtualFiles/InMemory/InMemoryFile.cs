@@ -38,7 +38,7 @@ namespace Tauron.Application.Files.VirtualFiles.InMemory
 
         protected override DataFile? GetInfo(string path) => _parentDirectory.GetOrAddFile(Name);
 
-        public override IFile MoveTo(string location) => throw new NotSupportedException();
+        public override IFile MoveTo(string location) => throw new NotSupportedException("In Memory Files does not Support Moving");
 
         protected override Stream CreateStream(FileAccess access, InternalFileMode mode)
         {

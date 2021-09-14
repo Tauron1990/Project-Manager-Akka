@@ -45,7 +45,7 @@ namespace Tauron.Application.Wpf.Implementation
             var info = System.Windows.Application.GetResourceStream(GetUri(pack, assembly, true));
             if (info != null) return info.Stream;
 
-            throw new InvalidOperationException();
+            throw new InvalidOperationException("Stream loading Failed");
         }
     }
 }

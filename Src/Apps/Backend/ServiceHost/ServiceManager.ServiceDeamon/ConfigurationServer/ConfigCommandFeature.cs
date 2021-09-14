@@ -53,7 +53,7 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
                                                  repo.Add(data);
                                                  break;
                                              default:
-                                                 throw new ArgumentOutOfRangeException(nameof(action), action, null);
+                                                 throw new InvalidCastException("Provided Action is invalid ");
                                          }
                                      });
 

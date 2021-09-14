@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using Ionic.Zip;
@@ -33,7 +34,8 @@ namespace Tauron.Application.Files.Zip
         public override IEnumerable<IFile> Files => _dic.Files.Select(ent
             => new InZipFile(this, OriginalPath.CombinePath(InternalZipDirectory.GetFileName(ent)), _file, _dic, ent));
 
-        public override IDirectory GetDirectory(string name) => throw new NotSupportedException();
+        public override IDirectory GetDirectory(string name) 
+            => throw new NotSupportedException("Zip Directory Resolution not SUpported");
 
         protected override void DeleteImpl()
         {
@@ -83,10 +85,11 @@ namespace Tauron.Application.Files.Zip
                 inZipParent = new InZipDirectory(inZipParent, originalPath.ToString(), dic, _file, name);
             }
 
-            throw new InvalidOperationException();
+            throw new FileNotFoundException("File in zip Directory not Found");
         }
 
-        public override IDirectory MoveTo(string location) => throw new NotSupportedException();
+        public override IDirectory MoveTo(string location) 
+            => throw new NotSupportedException("Zip Directory Moving not Supported");
 
         protected void ResetDirectory([NotNull] ZipFile file, [NotNull] InternalZipDirectory directory)
         {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 namespace ServiceManager.ProjectRepository.Core
 {
+    #pragma warning disable MT1000
     public abstract class SharedObject<TObject, TConfiguration> : IDisposable
         where TObject : SharedObject<TObject, TConfiguration>, new()
         where TConfiguration : class, IReporterProvider, new()
@@ -85,3 +86,4 @@ namespace ServiceManager.ProjectRepository.Core
         }
     }
 }
+#pragma warning restore MT1000

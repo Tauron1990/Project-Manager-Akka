@@ -4,7 +4,7 @@ using JetBrains.Annotations;
 namespace Tauron.Application.Workflow
 {
     [PublicAPI]
-    public struct StepId
+    public readonly struct StepId
     {
         //public static readonly StepId Null = new StepId();
 

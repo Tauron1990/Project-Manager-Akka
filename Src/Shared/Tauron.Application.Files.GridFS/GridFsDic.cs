@@ -14,7 +14,7 @@ namespace Tauron.Application.Files.GridFS
     {
         protected const string DicId = "GridFsDic-A7515C4C-2901-4186-A77B-DB4A983DB464";
 
-        private object _createLock = new();
+        private readonly object _createLock = new();
 
         public GridFsDic(GridFSBucket bucket, GridFSFileInfo? fileInfo, IDirectory? parentDirectory, string name, string path, Action? existsNow) 
             : base(bucket, fileInfo, parentDirectory, name, path, existsNow)

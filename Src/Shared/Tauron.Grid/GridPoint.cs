@@ -46,7 +46,7 @@ namespace Tauron.Grid
                 GridPositionMode.Auto => "auto",
                 GridPositionMode.Span => $"span {GetValue()}",
                 GridPositionMode.NoSpan => GetValue(),
-                _ => throw new ArgumentOutOfRangeException()
+                _ => throw new InvalidCastException("Invalid Grid Position Mode")
             };
 
         private string GetValue()

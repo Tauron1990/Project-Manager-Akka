@@ -82,9 +82,9 @@ namespace Tauron.Features
             
         }
 
-        public void AddResource(IDisposable res) => throw new NotSupportedException();
+        public void AddResource(IDisposable res) => throw new NotSupportedException("ResourceHolding not Supported");
 
-        public void RemoveResource(IDisposable res) => throw new NotSupportedException();
+        public void RemoveResource(IDisposable res) => throw new NotSupportedException("ResourceHolding not Supported");
     }
 
     [PublicAPI]
