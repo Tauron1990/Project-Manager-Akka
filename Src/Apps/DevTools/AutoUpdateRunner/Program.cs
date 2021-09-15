@@ -5,7 +5,7 @@ using Serilog.Sinks.SystemConsole.Themes;
 
 namespace AutoUpdateRunner
 {
-    internal class Program
+    internal static class Program
     {
         private static void Main(string[] args)
         {

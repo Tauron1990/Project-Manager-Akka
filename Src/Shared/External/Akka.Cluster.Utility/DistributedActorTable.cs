@@ -37,8 +37,9 @@ namespace Akka.Cluster.Utility
         {
         }
 
+        #pragma warning disable AV1561
         public DistributedActorTable(string name, IActorRef clusterActorDiscovery,
-            Type idGeneratorType, object[] idGeneratorInitializeArgs)
+                                     Type idGeneratorType, object[] idGeneratorInitializeArgs)
         {
             _name = name;
             _clusterActorDiscovery = clusterActorDiscovery;
@@ -48,11 +49,11 @@ namespace Akka.Cluster.Utility
                 try
                 {
                     _idGenerator = (IIdGenerator<TKey>) Activator.CreateInstance(idGeneratorType);
-                    _idGenerator.Initialize(idGeneratorInitializeArgs);
+                    _idGenerator?.Initialize(idGeneratorInitializeArgs);
                 }
-                catch (Exception e)
+                catch (Exception exception)
                 {
-                    _log.Error(e, $"Exception in initializing ${idGeneratorType.FullName}");
+                    _log.Error(exception, $"Exception in initializing ${idGeneratorType.FullName}");
                     _idGenerator = null;
                 }
 
@@ -85,7 +86,8 @@ namespace Akka.Cluster.Utility
             // Test environment doesn't use cluster so we need to watch container actors by itself.
             Receive<Terminated>(Handle);
         }
-
+        #pragma warning restore AV1561
+        
         protected override void PreStart()
         {
             _log.Info($"DistributedActorTable({_name}) Start");
@@ -97,19 +99,20 @@ namespace Akka.Cluster.Utility
                 TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10), Self, new CreateTimeoutMessage(), Self);
         }
 
-        private void Handle(ClusterActorDiscoveryMessage.ActorUp m)
+        private void Handle(ClusterActorDiscoveryMessage.ActorUp member)
         {
-            _log.Info($"Container.ActorUp (Actor={m.Actor.Path})");
+            var (actorRef, _) = member;
+            _log.Info($"Container.ActorUp (Actor={actorRef.Path})");
 
             if (_stopping)
             {
-                _log.Info($"Ignore ActorUp while stopping. (Actor={m.Actor.Path})");
+                _log.Info($"Ignore ActorUp while stopping. (Actor={actorRef.Path})");
                 return;
             }
 
-            if (_containerMap.ContainsKey(m.Actor))
+            if (_containerMap.ContainsKey(actorRef))
             {
-                _log.Error($"I already have that container. (Actor={m.Actor.Path})");
+                _log.Error($"I already have that container. (Actor={actorRef.Path})");
                 return;
             }
 
@@ -118,36 +121,37 @@ namespace Akka.Cluster.Utility
                 //LinkTime = DateTime.UtcNow,
                 ActorMap = new Dictionary<TKey, IActorRef>()
             };
-            _containerMap.Add(m.Actor, container);
+            _containerMap.Add(actorRef, container);
             RebuildContainerWorkQueue();
 
             if (_queuedCreatingExists)
             {
                 foreach (var (key, creating) in _creatingMap.Where(item => item.Value.WorkingContainer == null))
                 {
-                    creating.WorkingContainer = m.Actor;
+                    creating.WorkingContainer = actorRef;
                     container.ActorMap.Add(key, null);
-                    m.Actor.Tell(new DistributedActorTableMessage<TKey>.Internal.Create(key, creating.Arguments));
+                    actorRef.Tell(new DistributedActorTableMessage<TKey>.Internal.Create(key, creating.Arguments));
                 }
 
                 _queuedCreatingExists = false;
             }
 
             if (_underTestEnvironment)
-                Context.Watch(m.Actor);
+                Context.Watch(actorRef);
         }
 
-        private void Handle(ClusterActorDiscoveryMessage.ActorDown m)
+        private void Handle(ClusterActorDiscoveryMessage.ActorDown member)
         {
-            _log.Info($"Container.ActorDown (Actor={m.Actor.Path})");
+            var (actor, _) = member;
+            _log.Info($"Container.ActorDown (Actor={actor.Path})");
 
-            if (_containerMap.TryGetValue(m.Actor, out var container) == false)
+            if (_containerMap.TryGetValue(actor, out var container) == false)
             {
-                _log.Error($"I don't have that container. (Actor={m.Actor.Path})");
+                _log.Error($"I don't have that container. (Actor={actor.Path})");
                 return;
             }
 
-            _containerMap.Remove(m.Actor);
+            _containerMap.Remove(actor);
             RebuildContainerWorkQueue();
 
             // Remove all actors owned by this container
@@ -163,8 +167,8 @@ namespace Akka.Cluster.Utility
 
                 _creatingMap.Remove(key);
 
-                foreach (var r in creating.Requesters)
-                    r.Item1.Tell(CreateReplyMessage(r.Item2, key, null, false));
+                foreach (var (targetActor, type) in creating.Requesters)
+                    targetActor.Tell(CreateReplyMessage(type, key, null, created: false));
             }
 
             // When stopping done, ingest poison pill
@@ -173,11 +177,11 @@ namespace Akka.Cluster.Utility
                 Context.Stop(Self);
         }
 
-        private void Handle(Terminated m)
+        private void Handle(Terminated member)
         {
             // This function should be used under test environment only.
 
-            Handle(new ClusterActorDiscoveryMessage.ActorDown(m.ActorRef, null));
+            Handle(new ClusterActorDiscoveryMessage.ActorDown(member.ActorRef, null));
         }
 
         private IActorRef DecideWorkingContainer()
@@ -229,7 +233,9 @@ namespace Akka.Cluster.Utility
             }
         }
 
-        private object CreateReplyMessage(RequestType requestType, TKey id, IActorRef actor, bool created)
+        #pragma warning disable AV1561
+        private static object CreateReplyMessage(RequestType requestType, TKey id, IActorRef actor, bool created)
+            #pragma warning restore AV1561
         {
             return requestType switch
             {
@@ -242,18 +248,18 @@ namespace Akka.Cluster.Utility
 
         private void PutOnCreateWaitingList(RequestType requestType, TKey id, IActorRef requester)
         {
-            var (_, creating) = _creatingMap.FirstOrDefault(i => i.Key.Equals(id));
+            var (_, creating) = _creatingMap.FirstOrDefault(map => map.Key.Equals(id));
             if (creating == null)
             {
                 _log.Error($"Cannot find creatingMap. (Id=${id} RequestType={requestType})");
-                Sender.Tell(CreateReplyMessage(requestType, id, null, false));
+                Sender.Tell(CreateReplyMessage(requestType, id, null, created: false));
                 return;
             }
 
             creating.Requesters.Add(Tuple.Create(requester, requestType));
         }
 
-        private void Handle(DistributedActorTableMessage<TKey>.Create m)
+        private void Handle(DistributedActorTableMessage<TKey>.Create tableMsg)
         {
             if (_stopping)
                 return;
@@ -261,22 +267,22 @@ namespace Akka.Cluster.Utility
             // decide ID (if provided, use it, otherwise generate new one)
 
             TKey id;
-            if (m.Id.Equals(default(TKey)) == false)
+            if (tableMsg.Id.Equals(default(TKey)) == false)
             {
-                if (_actorMap.ContainsKey(m.Id))
+                if (_actorMap.ContainsKey(tableMsg.Id))
                 {
-                    Sender.Tell(new DistributedActorTableMessage<TKey>.CreateReply(m.Id, null));
+                    Sender.Tell(new DistributedActorTableMessage<TKey>.CreateReply(tableMsg.Id, null));
                     return;
                 }
 
-                id = m.Id;
+                id = tableMsg.Id;
             }
             else
             {
                 if (_idGenerator == null)
                 {
                     _log.Error("I don't have ID Generator.");
-                    Sender.Tell(new DistributedActorTableMessage<TKey>.CreateReply(m.Id, null));
+                    Sender.Tell(new DistributedActorTableMessage<TKey>.CreateReply(tableMsg.Id, null));
                     return;
                 }
 
@@ -284,20 +290,20 @@ namespace Akka.Cluster.Utility
                 if (_actorMap.ContainsKey(id))
                 {
                     _log.Error($"ID generated by generator is duplicated. ID={id}, Actor={_actorMap[id]}");
-                    Sender.Tell(new DistributedActorTableMessage<TKey>.CreateReply(m.Id, null));
+                    Sender.Tell(new DistributedActorTableMessage<TKey>.CreateReply(tableMsg.Id, null));
                     return;
                 }
             }
 
-            CreateActor(RequestType.Create, id, m.Args);
+            CreateActor(RequestType.Create, id, tableMsg.Args);
         }
 
-        private void Handle(DistributedActorTableMessage<TKey>.GetOrCreate m)
+        private void Handle(DistributedActorTableMessage<TKey>.GetOrCreate tableMsg)
         {
             if (_stopping)
                 return;
 
-            var id = m.Id;
+            var id = tableMsg.Id;
 
             // try to get actor
 
@@ -305,7 +311,7 @@ namespace Akka.Cluster.Utility
             {
                 if (actor != null)
                 {
-                    Sender.Tell(new DistributedActorTableMessage<TKey>.GetOrCreateReply(m.Id, actor, false));
+                    Sender.Tell(new DistributedActorTableMessage<TKey>.GetOrCreateReply(tableMsg.Id, actor, false));
                     return;
                 }
 
@@ -313,7 +319,7 @@ namespace Akka.Cluster.Utility
                 return;
             }
 
-            CreateActor(RequestType.GetOrCreate, id, m.Args);
+            CreateActor(RequestType.GetOrCreate, id, tableMsg.Args);
         }
 
         private void Handle(DistributedActorTableMessage<TKey>.Get m)

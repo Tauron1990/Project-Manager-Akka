@@ -6,6 +6,14 @@
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <NoWarn>1701;1702;AV1562;AV1210;AV1500;AV1532;AV1535</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <NoWarn>1701;1702;AV1562;AV1210;AV1500;AV1532;AV1535</NoWarn>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="CSharpGuidelinesAnalyzer" Version="3.7.0">
       <PrivateAssets>all</PrivateAssets>

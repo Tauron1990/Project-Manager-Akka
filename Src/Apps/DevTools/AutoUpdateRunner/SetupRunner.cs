@@ -39,9 +39,9 @@ namespace AutoUpdateRunner
                 newVersion.Dispose();
                 File.Delete(_info.DownloadFile);
             }
-            catch (Exception e)
+            catch (Exception exception)
             {
-                _logger.Error(e, "Error Running Copy");
+                _logger.Error(exception, "Error Running Copy");
                 failed = true;
             }
             finally
@@ -53,7 +53,7 @@ namespace AutoUpdateRunner
                 }
 
                 if (Directory.Exists(backup))
-                    Directory.Delete(backup, true);
+                    Directory.Delete(backup, recursive: true);
                 StartHost();
             }
         }
@@ -67,14 +67,14 @@ namespace AutoUpdateRunner
 
             MoveDic(_info.Target, backup);
         }
-
+        
         private bool ValidateData(out ZipArchive newVersion)
         {
             _logger.Information("Validating Data");
             newVersion = ZipFile.Open(_info.DownloadFile, ZipArchiveMode.Read);
             // ReSharper disable once InvertIf
             if (Validate(_info.StartFile, nameof(_info.StartFile), Path.HasExtension)
-                && Validate(_info.RunningProcess, nameof(_info.RunningProcess), i => i > 0)
+                && Validate(_info.RunningProcess, nameof(_info.RunningProcess), porcess => porcess > 0)
                 && Validate(_info.Target, nameof(_info.Target), Directory.Exists))
                 return false;
 
@@ -97,16 +97,16 @@ namespace AutoUpdateRunner
 
                     if (time >= 0) continue;
 
-                    process.Kill(true);
+                    process.Kill(entireProcessTree: true);
                     break;
                 }
             }
             catch (ArgumentException)
             {
             }
-            catch (Exception e)
+            catch (Exception exception)
             {
-                _logger.Error(e, "Error on Getting Process");
+                _logger.Error(exception, "Error on Getting Process");
             }
         }
 
@@ -118,9 +118,9 @@ namespace AutoUpdateRunner
                 Process.Start(Path.Combine(_info.Target, _info.StartFile),
                     $"--cleanup true --id {Process.GetCurrentProcess().Id}");
             }
-            catch (Exception e)
+            catch (Exception exception)
             {
-                _logger.Error(e, "Error on Starting Host {Path}", _info.StartFile);
+                _logger.Error(exception, "Error on Starting Host {Path}", _info.StartFile);
             }
         }
 
@@ -141,6 +141,7 @@ namespace AutoUpdateRunner
             {
                 var currentTarget = elements.Dequeue();
                 foreach (var info in currentTarget.Dic.EnumerateFileSystemInfos())
+                {
                     switch (info)
                     {
                         case FileInfo file:
@@ -152,13 +153,14 @@ namespace AutoUpdateRunner
                             elements.Enqueue((dic, dic.FullName, newPath));
                             break;
                     }
+                }
             }
         }
 
         private static void ClearDictionary(string target)
         {
             if (Directory.Exists(target))
-                Directory.Delete(target, true);
+                Directory.Delete(target, recursive: true);
             Directory.CreateDirectory(target);
         }
     }

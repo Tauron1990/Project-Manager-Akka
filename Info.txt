@@ -1,2 +1,4 @@
 dotnet publish -r <rid> --self-contained=false /p:PublishSingleFile=true
 https://github.com/skbkontur/Metrics.NET
+
+default supress: ;AV1562;AV1210;AV1500;AV1532;AV1535;AV1008

@@ -10,6 +10,7 @@ using Stl.Fusion.AkkaBridge.Connector.Data;
 using Stl.Fusion.Bridge;
 using Stl.Fusion.Bridge.Messages;
 using Stl.Text;
+using Tauron;
 
 namespace Stl.Fusion.AkkaBridge.Internal
 {

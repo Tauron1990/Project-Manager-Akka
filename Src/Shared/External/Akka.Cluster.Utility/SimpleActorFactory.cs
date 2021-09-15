@@ -4,7 +4,7 @@ using JetBrains.Annotations;
 namespace Akka.Cluster.Utility
 {
     [PublicAPI]
-    public class CommonActorFactory<TActor> : IActorFactory
+    public sealed class SimpleActorFactory<TActor> : IActorFactory
         where TActor : ActorBase
     {
         public void Initialize(object[] args)

@@ -8,32 +8,12 @@ namespace Akka.Cluster.Utility
     public static class ClusterActorDiscoveryMessage
     {
         // Notify other ClusterActorDiscoveries that I'm up
-        public class RegisterCluster
-        {
-            public RegisterCluster(UniqueAddress clusterAddress, List<ClusterActorUp> actorUpList = null)
-            {
-                ClusterAddress = clusterAddress;
-                ActorUpList = actorUpList;
-            }
-
-            public UniqueAddress ClusterAddress { get; }
-            public List<ClusterActorUp> ActorUpList { get; }
-        }
+        public sealed record RegisterCluster(UniqueAddress ClusterAddress, List<ClusterActorUp> ActorUpList);
 
         // Notify other ClusterActorDiscoveries that I'm up again
-        public class ResyncCluster
-        {
-            public ResyncCluster(UniqueAddress clusterAddress, List<ClusterActorUp> actorUpList, bool request)
-            {
-                ClusterAddress = clusterAddress;
-                ActorUpList = actorUpList;
-                Request = request;
-            }
-
-            public UniqueAddress ClusterAddress { get; }
-            public List<ClusterActorUp> ActorUpList { get; }
-            public bool Request { get; }
-        }
+        #pragma warning disable AV1564
+        public sealed record ResyncCluster(UniqueAddress ClusterAddress, List<ClusterActorUp> ActorUpList, bool Request);
+        #pragma warning restore AV1564
 
         //// Notify other ClusterNodeActors that I'm down
         //public class UnregisterCluster
@@ -47,87 +27,27 @@ namespace Akka.Cluster.Utility
         //}
 
         // Notify other ClusterNodeActors that Actor in my cluster node is up
-        public class ClusterActorUp
-        {
-            public ClusterActorUp(IActorRef actor, string tag)
-            {
-                Actor = actor;
-                Tag = tag;
-            }
-
-            public IActorRef Actor { get; }
-            public string Tag { get; }
-        }
+        public sealed record ClusterActorUp(IActorRef Actor, string Tag);
 
         // Notify other ClusterNodeActors that Actor in my cluster node is down
-        public class ClusterActorDown
-        {
-            public ClusterActorDown(IActorRef actor) => Actor = actor;
-
-            public IActorRef Actor { get; }
-        }
+        public sealed record ClusterActorDown(IActorRef Actor);
 
         // Notify watcher that actor monitored is up
-        public class ActorUp
-        {
-            public ActorUp(IActorRef actor, string tag)
-            {
-                Actor = actor;
-                Tag = tag;
-            }
-
-            public IActorRef Actor { get; }
-            public string Tag { get; }
-        }
+        public sealed record ActorUp(IActorRef Actor, string Tag);
 
         // Notify watcher that actor monitored is down
-        public class ActorDown
-        {
-            public ActorDown(IActorRef actor, string tag)
-            {
-                Actor = actor;
-                Tag = tag;
-            }
-
-            public IActorRef Actor { get; }
-            public string Tag { get; }
-        }
+        public sealed record ActorDown(IActorRef Actor, string Tag);
 
         // Notify discovery actor that actor is up
-        public class RegisterActor
-        {
-            public RegisterActor(IActorRef actor, string tag)
-            {
-                Actor = actor;
-                Tag = tag;
-            }
-
-            public IActorRef Actor { get; }
-            public string Tag { get; }
-        }
+        public sealed record RegisterActor(IActorRef Actor, string Tag);
 
         // Notify discovery actor that actor is down
-        public class UnregisterActor
-        {
-            public UnregisterActor(IActorRef actor) => Actor = actor;
-
-            public IActorRef Actor { get; }
-        }
+        public sealed record UnregisterActor(IActorRef Actor);
 
         // Monitors actors with specific tag up or down.
-        public class MonitorActor
-        {
-            public MonitorActor(string tag) => Tag = tag;
-
-            public string Tag { get; }
-        }
+        public sealed record MonitorActor(string Tag);
 
         // Stops monitoring actors with specific tag up or down.
-        public class UnmonitorActor
-        {
-            public UnmonitorActor(string tag) => Tag = tag;
-
-            public string Tag { get; }
-        }
+        public sealed record UnmonitorActor(string Tag);
     }
 }

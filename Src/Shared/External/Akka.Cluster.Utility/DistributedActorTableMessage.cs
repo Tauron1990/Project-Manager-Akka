@@ -4,170 +4,52 @@ namespace Akka.Cluster.Utility
 {
     public static class DistributedActorTableMessage<TKey>
     {
-        public class Create
+        public sealed record Create(TKey? Id, object[] Args)
         {
-            public Create(object[] args) => Args = args;
-
-            public Create(TKey id, object[] args)
-            {
-                Id = id;
-                Args = args;
-            }
-
-            public TKey Id { get; }
-            public object[] Args { get; }
+            public Create(object[] args)
+                : this(default, args){}
         }
 
-        public class CreateReply
-        {
-            public CreateReply(TKey id, IActorRef actor)
-            {
-                Id = id;
-                Actor = actor;
-            }
+        public sealed record CreateReply(TKey Id, IActorRef Actor);
 
-            public TKey Id { get; }
-            public IActorRef Actor { get; }
-        }
+        public sealed record GetOrCreate(TKey Id, object[] Args);
 
-        public class GetOrCreate
-        {
-            public GetOrCreate(TKey id, object[] args)
-            {
-                Id = id;
-                Args = args;
-            }
+        #pragma warning disable AV1564
+        public sealed record GetOrCreateReply(TKey Id, IActorRef Actor, bool Created);
+        #pragma warning restore AV1564
 
-            public TKey Id { get; }
-            public object[] Args { get; }
-        }
+        public sealed record Get(TKey Id);
 
-        public class GetOrCreateReply
-        {
-            public GetOrCreateReply(TKey id, IActorRef actor, bool created)
-            {
-                Id = id;
-                Actor = actor;
-                Created = created;
-            }
+        public sealed record GetReply(TKey Id, IActorRef Actor);
 
-            public TKey Id { get; }
-            public IActorRef Actor { get; }
-            public bool Created { get; }
-        }
+        public sealed record GetIds;
 
-        public class Get
-        {
-            public Get(TKey id) => Id = id;
-
-            public TKey Id { get; }
-        }
-
-        public class GetReply
-        {
-            public GetReply(TKey id, IActorRef actor)
-            {
-                Id = id;
-                Actor = actor;
-            }
-
-            public TKey Id { get; }
-            public IActorRef Actor { get; }
-        }
-
-        public class GetIds
-        {
-        }
-
-        public class GetIdsReply
-        {
-            public TKey[] Ids;
-
-            public GetIdsReply(TKey[] ids) => Ids = ids;
-        }
+        public sealed record GetIdsReply(TKey[] Ids);
 
         // Request to a table to stop all table & actors contained gracefully
-        public class GracefulStop
-        {
-            public GracefulStop(object stopMessage) => StopMessage = stopMessage;
-
-            public object StopMessage { get; }
-        }
+        public sealed record GracefulStop(object StopMessage);
 
         // Ask for a local container to add actor to table. (not for table directly)
-        public class Add
-        {
-            public Add(TKey id, IActorRef actor)
-            {
-                Id = id;
-                Actor = actor;
-            }
+        public sealed record Add(TKey Id, IActorRef Actor);
 
-            public TKey Id { get; }
-            public IActorRef Actor { get; }
-        }
-
-        public class AddReply
-        {
-            public AddReply(TKey id, IActorRef actor, bool added)
-            {
-                Id = id;
-                Actor = actor;
-                Added = added;
-            }
-
-            public TKey Id { get; }
-            public IActorRef Actor { get; }
-            public bool Added { get; }
-        }
+        #pragma warning disable AV1564
+        // ReSharper disable once ClassNeverInstantiated.Global
+        public sealed record AddReply(TKey Id, IActorRef Actorm, bool Added);
+        #pragma warning restore AV1564
 
         // Ask for a local container to remove actor to table. (not for table directly)
-        public class Remove
-        {
-            public Remove(TKey id) => Id = id;
-
-            public TKey Id { get; }
-        }
+        public sealed record Remove(TKey Id);
 
         internal static class Internal
         {
-            public class Create
-            {
-                public Create(TKey id, object[] args)
-                {
-                    Id = id;
-                    Args = args;
-                }
+            // ReSharper disable MemberHidesStaticFromOuterClass
+            internal sealed record Create(TKey Id, object[] Args);
 
-                public TKey Id { get; }
-                public object[] Args { get; }
-            }
+            internal sealed record CreateReply(TKey Id, IActorRef Actor);
 
-            public class CreateReply
-            {
-                public CreateReply(TKey id, IActorRef actor)
-                {
-                    Id = id;
-                    Actor = actor;
-                }
+            internal sealed record Add(TKey Id, IActorRef Actor);
 
-                public TKey Id { get; }
-                public IActorRef Actor { get; }
-            }
-
-            public class Add
-            {
-                public Add(TKey id, IActorRef actor)
-                {
-                    Id = id;
-                    Actor = actor;
-                }
-
-                public TKey Id { get; }
-                public IActorRef Actor { get; }
-            }
-
-            public class AddReply
+            internal class AddReply
             {
                 public AddReply(TKey id, IActorRef actor, bool added)
                 {
@@ -181,19 +63,20 @@ namespace Akka.Cluster.Utility
                 public bool Added { get; }
             }
 
-            public class Remove
+            internal class Remove
             {
                 public Remove(TKey id) => Id = id;
 
                 public TKey Id { get; }
             }
 
-            public class GracefulStop
+            internal class GracefulStop
             {
                 public GracefulStop(object stopMessage) => StopMessage = stopMessage;
 
                 public object StopMessage { get; }
             }
+            // ReSharper restore MemberHidesStaticFromOuterClass
         }
     }
 }
