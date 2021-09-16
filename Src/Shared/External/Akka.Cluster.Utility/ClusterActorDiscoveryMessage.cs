@@ -36,7 +36,7 @@ namespace Akka.Cluster.Utility
         public sealed record ActorUp(IActorRef Actor, string Tag);
 
         // Notify watcher that actor monitored is down
-        public sealed record ActorDown(IActorRef Actor, string Tag);
+        public sealed record ActorDown(IActorRef Actor, string? Tag);
 
         // Notify discovery actor that actor is up
         public sealed record RegisterActor(IActorRef Actor, string Tag);

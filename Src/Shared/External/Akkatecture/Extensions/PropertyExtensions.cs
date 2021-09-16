@@ -6,17 +6,18 @@ namespace Akkatecture.Extensions
 {
     public static class PropertyExtensions
     {
-        private static readonly ConcurrentDictionary<CacheKey, Func<object?, object[], object?>> _propertys = new();
+        private static readonly ConcurrentDictionary<CacheKey, Func<object?, object[], object?>> Propertys = new();
 
 
         public static object? GetPropertyValue(this object data, string name)
         {
             var key = new CacheKey(name, data.GetType());
-            return _propertys.GetOrAdd(key, c =>
+            return Propertys.GetOrAdd(key, cacheKey =>
             {
-                var fac = FastReflection.Shared.GetPropertyAccessor(c.Type.GetProperty(c.Name) ?? throw new ArgumentNullException(nameof(name), "Property not Found"), Array.Empty<Type>);
+                var fac = FastReflection.Shared.GetPropertyAccessor(cacheKey.Type.GetProperty(cacheKey.Name) 
+                                                                 ?? throw new ArgumentNullException(nameof(name), "Property not Found"), Array.Empty<Type>);
 
-                if (fac == null)
+                if (fac is null)
                     throw new InvalidOperationException("no Factory Created");
 
                 return fac;
@@ -26,11 +27,12 @@ namespace Akkatecture.Extensions
         public static TReturn GetPropertyValue<TReturn>(this object data, string name)
         {
             var key = new CacheKey(name, data.GetType());
-            return (TReturn) _propertys.GetOrAdd(key, c =>
+            return (TReturn) Propertys.GetOrAdd(key, cacheKey =>
             {
-                var fac = FastReflection.Shared.GetPropertyAccessor(c.Type.GetProperty(c.Name) ?? throw new ArgumentNullException(nameof(name), "Property not Found"), Array.Empty<Type>);
+                var fac = FastReflection.Shared.GetPropertyAccessor(cacheKey.Type.GetProperty(cacheKey.Name) 
+                                                                 ?? throw new ArgumentNullException(nameof(name), "Property not Found"), Array.Empty<Type>);
 
-                if (fac == null)
+                if (fac is null)
                     throw new InvalidOperationException("no Factory Created");
 
                 return fac;
@@ -39,15 +41,15 @@ namespace Akkatecture.Extensions
 
         private sealed class CacheKey : IEquatable<CacheKey>
         {
-            public CacheKey(string name, Type type)
+            internal CacheKey(string name, Type type)
             {
                 Name = name;
                 Type = type;
             }
 
-            public string Name { get; }
+            internal string Name { get; }
 
-            public Type Type { get; }
+            internal Type Type { get; }
 
             public bool Equals(CacheKey? other)
             {

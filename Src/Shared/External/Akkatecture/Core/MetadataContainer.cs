@@ -56,9 +56,7 @@ namespace Akkatecture.Core
         }
 
         public void AddRange(params KeyValuePair<string, string>[] keyValuePairs)
-        {
-            AddRange((IEnumerable<KeyValuePair<string, string>>) keyValuePairs);
-        }
+            => AddRange((IEnumerable<KeyValuePair<string, string>>) keyValuePairs);
 
         public void AddRange(IEnumerable<KeyValuePair<string, string>> keyValuePairs)
         {
@@ -66,16 +64,12 @@ namespace Akkatecture.Core
         }
 
         public override string ToString()
-        {
-            return string.Join(Environment.NewLine, this.Select(kv => $"{kv.Key}: {kv.Value}"));
-        }
+            => string.Join(Environment.NewLine, this.Select(kv => $"{kv.Key}: {kv.Value}"));
 
         public string GetMetadataValue(string key)
-        {
-            return GetMetadataValue(key, s => s);
-        }
+            => GetMetadataValue(key, value => value);
 
-        public T GetMetadataValue<T>(string key, Func<string, T> converter)
+        public virtual T GetMetadataValue<T>(string key, Func<string, T> converter)
         {
             if (!TryGetValue(key, out var value)) throw new MetadataKeyNotFoundException(key);
 
@@ -83,9 +77,9 @@ namespace Akkatecture.Core
             {
                 return converter(value);
             }
-            catch (Exception e)
+            catch (Exception exception)
             {
-                throw new MetadataParseException(key, value, e);
+                throw new MetadataParseException(key, value, exception);
             }
         }
     }

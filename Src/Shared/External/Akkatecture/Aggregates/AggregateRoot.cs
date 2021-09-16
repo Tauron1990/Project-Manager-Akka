@@ -68,14 +68,17 @@ namespace Akkatecture.Aggregates
         {
             Settings = new AggregateRootSettings(Context.System.Settings.Config);
 
-            if (id == null)
+            if (id is null)
                 throw new ArgumentNullException(nameof(id));
 
-            if (!(this is TAggregate))
+            if (this is not TAggregate)
+            {
                 throw new InvalidOperationException(
                     $"Aggregate {Name} specifies Type={typeof(TAggregate).PrettyPrint()} as generic argument, it should be its own type.");
+            }
 
-            if (State == null)
+            if (State is null)
+            {
                 try
                 {
                     State = (TAggregateState?) FastReflection.Shared.FastCreateInstance(typeof(TAggregateState));
@@ -86,6 +89,7 @@ namespace Akkatecture.Aggregates
                         "Unable to activate AggregateState of Type={0} for AggregateRoot of Name={1}.",
                         typeof(TAggregateState).PrettyPrint(), Name);
                 }
+            }
 
             PinnedCommand = null!;
             _eventDefinitionService = new EventDefinitionService(Context.GetLogger());
@@ -124,17 +128,13 @@ namespace Akkatecture.Aggregates
         public bool IsNew => Version <= 0;
 
         public bool HasSourceId(ISourceId sourceId)
-        {
-            return !sourceId.IsNone() && _previousSourceIds.Any(s => s.Value == sourceId.Value);
-        }
+            => !sourceId.IsNone() && _previousSourceIds.Any(id => id.Value == sourceId.Value);
 
         public IIdentity GetIdentity() => Id;
 
 
         protected void SetSourceIdHistory(int count)
-        {
-            _previousSourceIds = new CircularBuffer<ISourceId>(count);
-        }
+            => _previousSourceIds = new CircularBuffer<ISourceId>(count);
 
         public virtual void Emit<TAggregateEvent>(TAggregateEvent aggregateEvent, IMetadata? metadata = null)
             where TAggregateEvent : class, IAggregateEvent<TAggregate, TIdentity>
@@ -290,8 +290,8 @@ namespace Akkatecture.Aggregates
             {
                 var method = GetType()
                     .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                    .Where(m => m.IsFamily || m.IsPublic)
-                    .Single(m => m.Name.Equals("ApplyCommittedEvent"));
+                    .Where(methodInfo => methodInfo.IsFamily || methodInfo.IsPublic)
+                    .Single(methodInfo => methodInfo.Name.Equals("ApplyCommittedEvent"));
 
                 var genericMethod = method.MakeGenericMethod(committedEvent.GetType().GenericTypeArguments[2]);
 
@@ -357,8 +357,12 @@ namespace Akkatecture.Aggregates
             var eventType = aggregateEvent.GetType();
 
             if (!ApplyMethodsFromState.TryGetValue(eventType, out var applyMethod))
+            {
+                #pragma warning disable GU0090
                 throw new NotImplementedException(
                     $"AggregateState of Type={State?.GetType().PrettyPrint()} does not have an 'Apply' method that takes in an aggregate event of Type={eventType.PrettyPrint()} as an argument.");
+                #pragma warning restore GU0090
+            }
 
             var aggregateApplyMethod = applyMethod!.Bind(State);
 
@@ -372,8 +376,12 @@ namespace Akkatecture.Aggregates
             var snapshotType = aggregateEvent.GetType();
 
             if (!HydrateMethodsFromState.TryGetValue(snapshotType, out var hydrateMethod))
+            {
+                #pragma warning disable GU0090
                 throw new NotImplementedException(
                     $"AggregateState of Type={State?.GetType().PrettyPrint()} does not have a 'Hydrate' method that takes in an aggregate snapshot of Type={snapshotType.PrettyPrint()} as an argument.");
+                #pragma warning restore GU0090
+            }
 
 
             var snapshotHydrateMethod = hydrateMethod!.Bind(State);
@@ -497,9 +505,12 @@ namespace Akkatecture.Aggregates
         {
             try
             {
-                var handler = (TCommandHandler) (FastReflection.Shared.FastCreateInstance(typeof(TCommandHandler)) ??
-                                                 throw new InvalidOperationException("Command Handler Not Created"));
-                Command(x => handler.HandleCommand((TAggregate) this, Context, x), shouldHandle);
+                var handler =  FastReflection.Shared.FastCreateInstance(typeof(TCommandHandler)) as TCommandHandler;
+                
+                if(handler is null)
+                    Log.Error("Unable to resolve CommandHandler of Type={0} for Aggregate of Type={1}.");
+                else
+                    Command(command => handler.HandleCommand((TAggregate) this, Context, command), shouldHandle);
             }
             catch (Exception exception)
             {

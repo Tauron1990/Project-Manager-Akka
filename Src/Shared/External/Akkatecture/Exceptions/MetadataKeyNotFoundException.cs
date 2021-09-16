@@ -29,6 +29,7 @@ using System;
 
 namespace Akkatecture.Exceptions
 {
+    [Serializable]
     public class MetadataKeyNotFoundException : ArgumentOutOfRangeException
     {
         public MetadataKeyNotFoundException(string key)

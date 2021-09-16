@@ -41,7 +41,7 @@ namespace Akkatecture.Core
 
         public CircularBuffer(int capacity)
         {
-            if (capacity <= 0) throw new ArgumentException(nameof(capacity));
+            if (capacity <= 0) throw new ArgumentException("Capacity must be Larger then 0", nameof(capacity));
 
             _buffer = new T[capacity + 1];
             _start = 0;
@@ -62,11 +62,11 @@ namespace Akkatecture.Core
 
         public IEnumerator<T> GetEnumerator()
         {
-            var i = _start;
-            while (i != _end)
+            var start = _start;
+            while (start != _end)
             {
-                yield return _buffer[i];
-                i = (i + 1) % _buffer.Length;
+                yield return _buffer[start];
+                start = (start + 1) % _buffer.Length;
             }
         }
 

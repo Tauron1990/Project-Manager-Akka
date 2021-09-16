@@ -30,6 +30,7 @@ namespace Akkatecture.Aggregates.Snapshot
     {
     }
 
+    // ReSharper disable once UnusedTypeParameter
     public interface IAggregateSnapshot<TAggregate, TIdentity> : IAggregateSnapshot
         where TAggregate : IAggregateRoot<TIdentity>
         where TIdentity : IIdentity

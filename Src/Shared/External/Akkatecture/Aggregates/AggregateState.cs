@@ -49,9 +49,11 @@ namespace Akkatecture.Aggregates
     {
         protected AggregateState()
         {
-            if (!(this is TMessageApplier))
+            if (this is not TMessageApplier)
+            {
                 throw new InvalidOperationException(
                     $"MessageApplier of Type={GetType().PrettyPrint()} has a wrong generic argument Type={typeof(TMessageApplier).PrettyPrint()}.");
+            }
         }
     }
 }

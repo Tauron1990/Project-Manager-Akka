@@ -44,7 +44,6 @@ namespace Akkatecture.Aggregates.Snapshot.Strategies
 
         public static SnapshotEveryFewVersionsStrategy With(
             int snapshotAfterVersions = DefautSnapshotAfterVersions)
-            => new(
-                snapshotAfterVersions);
+            => new(snapshotAfterVersions);
     }
 }

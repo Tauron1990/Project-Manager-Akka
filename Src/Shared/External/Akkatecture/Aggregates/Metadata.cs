@@ -69,7 +69,7 @@ namespace Akkatecture.Aggregates
 
         public ISourceId SourceId
         {
-            get { return GetMetadataValue(MetadataKeys.SourceId, v => new SourceId(v)); }
+            get { return GetMetadataValue(MetadataKeys.SourceId, value => new SourceId(value)); }
             set => Add(MetadataKeys.SourceId, value.Value);
         }
 

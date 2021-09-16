@@ -1,12 +1,12 @@
 ﻿namespace Akka.Cluster.Utility
 {
-    public class IncrementalIntegerIdGenerator : IIdGenerator<long>
+    public sealed class IncrementalIntegerIdGenerator : IIdGenerator<long>
     {
         private long _lastId;
 
-        public void Initialize(object[] args)
+        public void Initialize(object[]? args)
         {
-            if (args != null && args.Length == 1)
+            if (args is { Length: 1 })
                 _lastId = (long) args[0];
         }
 

@@ -29,6 +29,7 @@ using System;
 
 namespace Akkatecture.Exceptions
 {
+    [Serializable]
     public class MetadataParseException : Exception
     {
         public MetadataParseException(string key, string value, Exception innerException)

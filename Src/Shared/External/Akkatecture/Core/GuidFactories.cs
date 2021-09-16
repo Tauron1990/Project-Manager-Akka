@@ -149,11 +149,7 @@ namespace Akkatecture.Core
             }
 
             private static void SwapBytes(byte[] guid, int left, int right)
-            {
-                var temp = guid[left];
-                guid[left] = guid[right];
-                guid[right] = temp;
-            }
+                => (guid[left], guid[right]) = (guid[right], guid[left]);
 
             [PublicAPI]
             public static class Namespaces

@@ -20,7 +20,9 @@ namespace Akka.Cluster.Utility
 
         public DistributedActorTableRef<TKey> WithTimeout(TimeSpan? timeout) => new(Target, timeout);
 
+        #pragma warning disable AV1551
         public Task<DistributedActorTableMessage<TKey>.CreateReply> Create(object[] args)
+            #pragma warning restore AV1551
             => Target.Ask<DistributedActorTableMessage<TKey>.CreateReply>(
                 new DistributedActorTableMessage<TKey>.Create(args), Timeout);
 

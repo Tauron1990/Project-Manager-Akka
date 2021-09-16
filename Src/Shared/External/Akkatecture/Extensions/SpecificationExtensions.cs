@@ -30,9 +30,11 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using Akkatecture.Specifications;
 using Akkatecture.Specifications.Provided;
+using JetBrains.Annotations;
 
 namespace Akkatecture.Extensions
 {
+    [PublicAPI]
     public static class SpecificationExtensions
     {
         public static ISpecification<T> All<T>(

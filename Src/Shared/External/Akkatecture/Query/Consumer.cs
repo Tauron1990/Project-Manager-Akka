@@ -36,7 +36,9 @@ namespace Akkatecture.Query
 
         public static Consumer Create(string name, Config config) => new(name, config);
 
+        #pragma warning disable AV1551
         public static Consumer Create(ActorSystem actorSystem) => new(actorSystem.Name, actorSystem);
+        #pragma warning restore AV1551
 
         public Consumer<TJournal> Using<TJournal>(
             string readJournalPluginId)

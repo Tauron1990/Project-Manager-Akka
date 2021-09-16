@@ -34,6 +34,7 @@ namespace Akkatecture.Aggregates
     {
     }
 
+    // ReSharper disable once UnusedTypeParameter
     public interface IAggregateEvent<TAggregate, TIdentity> : IAggregateEvent
         where TAggregate : IAggregateRoot<TIdentity>
         where TIdentity : IIdentity

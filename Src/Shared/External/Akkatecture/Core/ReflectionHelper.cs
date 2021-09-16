@@ -37,7 +37,9 @@ using JetBrains.Annotations;
 namespace Akkatecture.Core
 {
     [PublicAPI]
+    #pragma warning disable AV1708
     public static class ReflectionHelper
+        #pragma warning restore AV1708
     {
         public static TResult CompileMethodInvocation<TResult>(Type type, string methodName,
             params Type[] methodSignature) where TResult : class
@@ -45,12 +47,12 @@ namespace Akkatecture.Core
             var typeInfo = type.GetTypeInfo();
             var methods = typeInfo
                 .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                .Where(m => m.Name == methodName);
+                .Where(info => info.Name == methodName);
 
             var methodInfo = !methodSignature.Any()
                 ? methods.SingleOrDefault()
-                : methods.SingleOrDefault(m
-                    => m.GetParameters().Select(mp => mp.ParameterType).SequenceEqual(methodSignature));
+                : methods.SingleOrDefault(info
+                    => info.GetParameters().Select(mp => mp.ParameterType).SequenceEqual(methodSignature));
 
             if (methodInfo == null)
                 throw new ArgumentException($"Type '{type.PrettyPrint()}' doesn't have a method called '{methodName}'");
@@ -58,10 +60,12 @@ namespace Akkatecture.Core
             return CompileMethodInvocation<TResult>(methodInfo);
         }
 
+        #pragma warning disable AV1551
         public static TResult CompileMethodInvocation<TResult>(MethodInfo methodInfo) where TResult : class
+        #pragma warning restore AV1551
         {
             var genericArguments = typeof(TResult).GetTypeInfo().GetGenericArguments();
-            var methodArgumentList = methodInfo.GetParameters().Select(p => p.ParameterType).ToList();
+            var methodArgumentList = methodInfo.GetParameters().Select(parameterInfo => parameterInfo.ParameterType).ToList();
             var funcArgumentList = genericArguments.Skip(1).Take(methodArgumentList.Count).ToList();
 
             if (funcArgumentList.Count != methodArgumentList.Count)
@@ -69,9 +73,9 @@ namespace Akkatecture.Core
 
             var instanceArgument = Expression.Parameter(genericArguments[0]);
 
-            var argumentPairs = funcArgumentList.Zip(methodArgumentList, (s, d) => new {Source = s, Destination = d})
+            var argumentPairs = funcArgumentList.Zip(methodArgumentList, (source, destination) => (Source: source, Destination: destination))
                 .ToList();
-            if (argumentPairs.All(a => a.Source == a.Destination))
+            if (argumentPairs.All(pair => pair.Source == pair.Destination))
             {
                 // No need to do anything fancy, the types are the same
                 var parameters = funcArgumentList.Select(Expression.Parameter).ToList();
@@ -96,25 +100,27 @@ namespace Akkatecture.Core
             };
             var callArguments = new List<ParameterExpression>();
 
-            foreach (var a in argumentPairs)
-                if (a.Source == a.Destination)
+            foreach (var (source, destination) in argumentPairs)
+            {
+                if (source == destination)
                 {
-                    var sourceParameter = Expression.Parameter(a.Source);
+                    var sourceParameter = Expression.Parameter(source);
                     lambdaArgument.Add(sourceParameter);
                     callArguments.Add(sourceParameter);
                 }
                 else
                 {
-                    var sourceParameter = Expression.Parameter(a.Source);
-                    var destinationVariable = Expression.Variable(a.Destination);
+                    var sourceParameter     = Expression.Parameter(source);
+                    var destinationVariable = Expression.Variable(destination);
                     var assignToDestination = Expression.Assign(destinationVariable,
-                        Expression.Convert(sourceParameter, a.Destination));
+                        Expression.Convert(sourceParameter, destination));
 
                     lambdaArgument.Add(sourceParameter);
                     callArguments.Add(destinationVariable);
                     blockVariables.Add(destinationVariable);
                     blockExpressions.Add(assignToDestination);
                 }
+            }
 
             var callExpression = Expression.Call(instanceVariable, methodInfo, callArguments);
             blockExpressions.Add(callExpression);

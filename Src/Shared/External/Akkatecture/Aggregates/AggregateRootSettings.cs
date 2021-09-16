@@ -29,15 +29,15 @@ namespace Akkatecture.Aggregates
 {
     public class AggregateRootSettings
     {
-        private static readonly string _section = "akkatecture.aggregate-root";
+        private const   string   Section = "akkatecture.aggregate-root";
         public readonly TimeSpan SetReceiveTimeout;
-        public readonly bool UseDefaultEventRecover;
-        public readonly bool UseDefaultSnapshotRecover;
+        public readonly bool     UseDefaultEventRecover;
+        public readonly bool     UseDefaultSnapshotRecover;
 
         public AggregateRootSettings(Config config)
         {
             var aggregateRootConfig = config.WithFallback(AkkatectureDefaultSettings.DefaultConfig());
-            aggregateRootConfig = aggregateRootConfig.GetConfig(_section);
+            aggregateRootConfig = aggregateRootConfig.GetConfig(Section);
 
             UseDefaultEventRecover = aggregateRootConfig.GetBoolean("use-default-event-recover");
             UseDefaultSnapshotRecover = aggregateRootConfig.GetBoolean("use-default-snapshot-recover");

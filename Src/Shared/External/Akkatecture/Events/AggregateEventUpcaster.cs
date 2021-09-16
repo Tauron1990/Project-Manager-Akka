@@ -29,10 +29,12 @@ using Akka.Persistence.Journal;
 using Akkatecture.Aggregates;
 using Akkatecture.Core;
 using Akkatecture.Extensions;
+using JetBrains.Annotations;
 using Tauron;
 
 namespace Akkatecture.Events
 {
+    [PublicAPI]
     public abstract class
         AggregateEventUpcaster<TAggregate, TIdentity> : AggregateEventUpcaster<TAggregate, TIdentity,
             IEventUpcaster<TAggregate, TIdentity>>
@@ -57,12 +59,14 @@ namespace Akkatecture.Events
         protected AggregateEventUpcaster()
         {
             var upcastTypes = GetType().GetAggregateEventUpcastTypes();
-            var dictionary = upcastTypes.ToDictionary(x => x, x => true);
+            var dictionary = upcastTypes.ToDictionary(type => type, _ => true);
             _decisionCache = new ConcurrentDictionary<Type, bool>(dictionary);
 
-            if (!(this is TEventUpcaster))
+            if (this is not TEventUpcaster)
+            {
                 throw new InvalidOperationException(
                     $"Event applier of type '{GetType().PrettyPrint()}' has a wrong generic argument '{typeof(TEventUpcaster).PrettyPrint()}'");
+            }
 
             _upcastFunctions = GetType().GetAggregateEventUpcastMethods<TAggregate, TIdentity, TEventUpcaster>();
         }
@@ -83,26 +87,24 @@ namespace Akkatecture.Events
 
         public IEventSequence FromJournal(object evt, string manifest)
         {
-            if (ShouldUpcast(evt))
-            {
-                var upcastedEvent =
-                    Upcast(evt.GetPropertyValue<IAggregateEvent<TAggregate, TIdentity>>("AggregateEvent")) ??
-                    throw new InvalidOperationException($"Error on Upcasting Event {evt}");
+            if (!ShouldUpcast(evt)) return EventSequence.Single(evt);
 
-                Type genericType = typeof(CommittedEvent<,,>)
-                    .MakeGenericType(typeof(TAggregate), typeof(TIdentity), upcastedEvent.GetType());
+            var upcastedEvent =
+                Upcast(evt.GetPropertyValue<IAggregateEvent<TAggregate, TIdentity>>("AggregateEvent")) ??
+                throw new InvalidOperationException($"Error on Upcasting Event {evt}");
 
-                var upcastedCommittedEvent = FastReflection.Shared.FastCreateInstance(genericType,
-                    evt.GetPropertyValue("AggregateIdentity")!,
-                    upcastedEvent,
-                    evt.GetPropertyValue("Metadata")!,
-                    evt.GetPropertyValue("Timestamp")!,
-                    evt.GetPropertyValue("AggregateSequenceNumber")!);
+            Type genericType = typeof(CommittedEvent<,,>)
+               .MakeGenericType(typeof(TAggregate), typeof(TIdentity), upcastedEvent.GetType());
 
-                return EventSequence.Single(upcastedCommittedEvent);
-            }
+            var upcastedCommittedEvent = FastReflection.Shared.FastCreateInstance(genericType,
+                evt.GetPropertyValue("AggregateIdentity")!,
+                upcastedEvent,
+                evt.GetPropertyValue("Metadata")!,
+                evt.GetPropertyValue("Timestamp")!,
+                evt.GetPropertyValue("AggregateSequenceNumber")!);
 
-            return EventSequence.Single(evt);
+            return EventSequence.Single(upcastedCommittedEvent);
+
         }
 
         private bool ShouldUpcast(object potentialUpcast)

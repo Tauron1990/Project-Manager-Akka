@@ -28,17 +28,19 @@ namespace Akkatecture.Aggregates
 {
     public class AggregateManagerSettings
     {
-        private static readonly string _section = "akkatecture.aggregate-manager";
-        public readonly bool AutoDispatchOnReceive;
-        public readonly bool HandleDeadLetters;
+        private const   string Section = "akkatecture.aggregate-manager";
+        public readonly bool   AutoDispatchOnReceive;
+        public readonly bool   HandleDeadLetters;
 
         public AggregateManagerSettings(Config config)
         {
             var aggregateManagerConfig = config.WithFallback(AkkatectureDefaultSettings.DefaultConfig());
-            aggregateManagerConfig = aggregateManagerConfig.GetConfig(_section);
+            aggregateManagerConfig = aggregateManagerConfig.GetConfig(Section);
 
+            #pragma warning disable GU0009
             HandleDeadLetters = aggregateManagerConfig.GetBoolean("handle-deadletters", true);
             AutoDispatchOnReceive = aggregateManagerConfig.GetBoolean("auto-dispatch-on-receive", true);
+            #pragma warning restore GU0009
         }
     }
 }

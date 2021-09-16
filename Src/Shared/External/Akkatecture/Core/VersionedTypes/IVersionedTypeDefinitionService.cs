@@ -33,6 +33,7 @@ using JetBrains.Annotations;
 namespace Akkatecture.Core.VersionedTypes
 {
     [PublicAPI]
+    // ReSharper disable once UnusedTypeParameter
     public interface IVersionedTypeDefinitionService<TAttribute, TDefinition>
         where TAttribute : VersionedTypeAttribute
         where TDefinition : VersionedTypeDefinition

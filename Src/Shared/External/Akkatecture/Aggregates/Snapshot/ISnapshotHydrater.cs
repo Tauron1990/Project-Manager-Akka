@@ -25,6 +25,7 @@ using Akkatecture.Core;
 
 namespace Akkatecture.Aggregates.Snapshot
 {
+    // ReSharper disable once UnusedTypeParameter
     public interface ISnapshotHydrater<TAggregate, TIdentity>
         where TAggregate : IAggregateRoot<TIdentity>
         where TIdentity : IIdentity

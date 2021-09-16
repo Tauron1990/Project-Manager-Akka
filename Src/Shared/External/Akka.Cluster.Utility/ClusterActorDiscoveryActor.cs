@@ -73,20 +73,18 @@ namespace Akka.Cluster.Utility
 
         protected override void PreStart()
         {
-            _cluster?.Subscribe(Self, ClusterEvent.SubscriptionInitialStateMode.InitialStateAsEvents,
+            _cluster.Subscribe(Self, ClusterEvent.SubscriptionInitialStateMode.InitialStateAsEvents,
                 typeof(ClusterEvent.MemberUp), typeof(ClusterEvent.ReachableMember),
                 typeof(ClusterEvent.UnreachableMember), typeof(ClusterEvent.MemberRemoved));
         }
 
         protected override void PostStop()
         {
-            _cluster?.Unsubscribe(Self);
+            _cluster.Unsubscribe(Self);
         }
 
         private void Handle(ClusterEvent.MemberUp member)
         {
-            if (_cluster == null) return;
-
             if (_cluster.SelfUniqueAddress == member.Member.UniqueAddress)
             {
                 var roles = string.Join(", ", _cluster.SelfRoles);
@@ -105,8 +103,6 @@ namespace Akka.Cluster.Utility
 
         private void Handle(ClusterEvent.ReachableMember member)
         {
-            if (_cluster == null) return;
-
             if (_cluster.SelfUniqueAddress == member.Member.UniqueAddress)
             {
                 var roles = string.Join(", ", _cluster.SelfRoles);
@@ -131,8 +127,7 @@ namespace Akka.Cluster.Utility
             _log.Info($"Cluster.Unreachable: {member.Member.Address} Role={string.Join(",", member.Member.Roles)}");
 
             var (key, _) = _nodeMap.FirstOrDefault(node => node.Value.ClusterAddress == member.Member.UniqueAddress);
-            if (key != null)
-                RemoveNode(key);
+            RemoveNode(key);
         }
 
         private void Handle(ClusterEvent.MemberRemoved member)
@@ -140,8 +135,7 @@ namespace Akka.Cluster.Utility
             _log.Info($"Cluster.MemberRemoved: {member.Member.Address} Role={string.Join(",", member.Member.Roles)}");
 
             var (key, _) = _nodeMap.FirstOrDefault(node => node.Value.ClusterAddress == member.Member.UniqueAddress);
-            if (key != null)
-                RemoveNode(key);
+            RemoveNode(key);
         }
 
         private void Handle(ClusterActorDiscoveryMessage.RegisterCluster member)
@@ -150,22 +144,18 @@ namespace Akka.Cluster.Utility
 
             // Register node
 
-            var item = _nodeMap.FirstOrDefault(node => node.Value.ClusterAddress == member.ClusterAddress);
-            if (item.Key != null)
-            {
-                _log.Error($"Already registered node. {member.ClusterAddress}");
-                return;
-            }
+            // var item = _nodeMap.FirstOrDefault(node => node.Value.ClusterAddress == member.ClusterAddress);
+            //  if (item.Key != null)
+            //  {
+            //      _log.Error($"Already registered node. {member.ClusterAddress}");
+            //      return;
+            //  }
 
-            _nodeMap.Add(Sender, new NodeItem
-            {
-                ClusterAddress = member.ClusterAddress,
-                ActorItems = new List<ActorItem>()
-            });
+            _nodeMap.Add(Sender, new NodeItem(new List<ActorItem>(), member.ClusterAddress));
 
             // Process attached actorUp messages
 
-            if (member.ActorUpList is null) return;
+            //if (member.ActorUpList is null) return;
 
             foreach (var actorUp in member.ActorUpList)
                 Handle(actorUp);
@@ -178,30 +168,28 @@ namespace Akka.Cluster.Utility
             // Reregister node
 
             var (key, _) = _nodeMap.FirstOrDefault(node => node.Value.ClusterAddress == member.ClusterAddress);
-            if (key != null)
-                RemoveNode(key);
+            //if (key != null)
+            RemoveNode(key);
 
-            _nodeMap.Add(Sender, new NodeItem
-            {
-                ClusterAddress = member.ClusterAddress,
-                ActorItems = new List<ActorItem>()
-            });
+            _nodeMap.Add(Sender, new NodeItem(new List<ActorItem>(), member.ClusterAddress));
 
             // Process attached actorUp messages
 
-            if (member.ActorUpList != null)
-                foreach (var actorUp in member.ActorUpList)
-                    Handle(actorUp);
+            //if (member.ActorUpList != null)
+            foreach (var actorUp in member.ActorUpList)
+                Handle(actorUp);
 
             // Response
 
             if (member.Request)
+            {
                 Sender.Tell(
                     new ClusterActorDiscoveryMessage.ResyncCluster(
                         _cluster.SelfUniqueAddress,
                         _actorItems.Select(item => new ClusterActorDiscoveryMessage.ClusterActorUp(item.Actor, item.Tag))
-                            .ToList(),
+                                   .ToList(),
                         Request: false));
+            }
         }
 
         //private void Handle(ClusterActorDiscoveryMessage.UnregisterCluster m)
@@ -234,7 +222,7 @@ namespace Akka.Cluster.Utility
                 return;
             }
 
-            node.ActorItems.Add(new ActorItem {Actor = member.Actor, Tag = member.Tag});
+            node.ActorItems.Add(new ActorItem (member.Actor, member.Tag));
 
             NotifyActorUpToMonitor(member.Actor, member.Tag);
         }
@@ -277,7 +265,7 @@ namespace Akka.Cluster.Utility
                 return;
             }
 
-            _actorItems.Add(new ActorItem {Actor = member.Actor, Tag = member.Tag});
+            _actorItems.Add(new ActorItem(member.Actor, member.Tag));
             WatchActor(member.Actor, 0);
 
             // tell monitors & other discovery actors that local actor up
@@ -312,7 +300,7 @@ namespace Akka.Cluster.Utility
         {
             _log.Debug($"MonitorActor: Monitor={Sender.Path} Tag={member.Tag}");
 
-            _monitorItems.Add(new MonitorItem {Actor = Sender, Tag = member.Tag});
+            _monitorItems.Add(new MonitorItem(Sender, member.Tag));
             WatchActor(Sender, 1);
 
             // Send actor up message to just registered monitor
@@ -406,26 +394,14 @@ namespace Akka.Cluster.Utility
 
         // Per cluster-node data
 
-        private class NodeItem
-        {
-            internal List<ActorItem> ActorItems;
-            internal UniqueAddress ClusterAddress;
-        }
+        private sealed record NodeItem(List<ActorItem> ActorItems, UniqueAddress ClusterAddress);
 
         // Actors in cluster
 
-        private class ActorItem
-        {
-            internal IActorRef Actor;
-            internal string Tag;
-        }
+        private sealed record ActorItem(IActorRef Actor, string Tag);
 
         // Monitor items registered in this discovery actor
 
-        private class MonitorItem
-        {
-            internal IActorRef Actor;
-            internal string Tag;
-        }
+        private sealed record MonitorItem(IActorRef Actor, string Tag);
     }
 }

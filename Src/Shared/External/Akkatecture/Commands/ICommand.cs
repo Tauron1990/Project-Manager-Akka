@@ -39,6 +39,7 @@ namespace Akkatecture.Commands
     }
 
     [PublicAPI]
+    // ReSharper disable once UnusedTypeParameter
     public interface ICommand<in TAggregate, out TIdentity, out TSourceIdentity> : ICommand
         where TAggregate : IAggregateRoot<TIdentity>
         where TIdentity : IIdentity

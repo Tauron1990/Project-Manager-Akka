@@ -34,8 +34,7 @@ namespace Akkatecture.Aggregates.ExecutionResults
     [PublicAPI]
     public class FailedExecutionResult : ExecutionResult
     {
-        public FailedExecutionResult(
-            IEnumerable<string> errors)
+        public FailedExecutionResult(IEnumerable<string>? errors)
             => Errors = (errors ?? Enumerable.Empty<string>()).ToList();
 
         public IReadOnlyCollection<string> Errors { get; }

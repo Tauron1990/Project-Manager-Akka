@@ -39,7 +39,7 @@ namespace Akkatecture.Entities
     {
         protected Entity(TIdentity id)
         {
-            if (id == null)
+            if (id is null)
                 throw new ArgumentNullException(nameof(id));
 
             Id = id;

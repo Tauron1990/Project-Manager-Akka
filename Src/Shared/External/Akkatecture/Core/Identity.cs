@@ -77,9 +77,9 @@ namespace Akkatecture.Core
                 return (T) (FastReflection.Shared.FastCreateInstance(typeof(T)) ??
                             throw new InvalidOperationException($"No Instantance of {typeof(T)} Created"));
             }
-            catch (TargetInvocationException e)
+            catch (TargetInvocationException exception)
             {
-                if (e.InnerException != null) throw e.InnerException;
+                if (exception.InnerException != null) throw exception.InnerException;
                 throw;
             }
         }
@@ -101,13 +101,18 @@ namespace Akkatecture.Core
             }
 
             if (!string.Equals(value.Trim(), value, StringComparison.OrdinalIgnoreCase))
+            {
                 yield return
                     $"Identity '{value}' of type '{typeof(T).PrettyPrint()}' contains leading and/or traling spaces";
+            }
+
             if (!value.StartsWith(Name))
                 yield return $"Identity '{value}' of type '{typeof(T).PrettyPrint()}' does not start with '{Name}'";
             if (!ValueValidation.IsMatch(value))
+            {
                 yield return
                     $"Identity '{value}' of type '{typeof(T).PrettyPrint()}' does not follow the syntax '[NAME]-[GUID]' in lower case";
+            }
         }
 
         protected Identity(string value)

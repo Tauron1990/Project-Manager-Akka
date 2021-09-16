@@ -35,7 +35,7 @@ namespace Akkatecture.Events
         {
             var eventType = evt.GetType();
 
-            if (!(evt is ICommittedEvent) || eventType.GenericTypeArguments.Length != 3) return evt;
+            if (evt is not ICommittedEvent || eventType.GenericTypeArguments.Length != 3) return evt;
 
             var genericType = typeof(DomainEvent<,,>)
                 .MakeGenericType(eventType.GetGenericArguments()[0], eventType.GetGenericArguments()[1],

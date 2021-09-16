@@ -60,15 +60,17 @@ namespace Akkatecture.Extensions
         {
             return PrettyPrintCache.GetOrAdd(
                 type,
-                t =>
+                newType =>
                 {
                     try
                     {
-                        return PrettyPrintRecursive(t, 0);
+                        return PrettyPrintRecursive(newType, 0);
                     }
                     catch (Exception)
                     {
-                        return t.Name;
+                        #pragma warning disable ERP022
+                        return newType.Name;
+                        #pragma warning restore ERP022
                     }
                 });
         }
@@ -83,7 +85,7 @@ namespace Akkatecture.Extensions
             var genericArguments = type.GetTypeInfo().GetGenericArguments();
             return !type.IsConstructedGenericType
                 ? $"{nameParts[0]}<{new string(',', genericArguments.Length - 1)}>"
-                : $"{nameParts[0]}<{string.Join(",", genericArguments.Select(t => PrettyPrintRecursive(t, depth + 1)))}>";
+                : $"{nameParts[0]}<{string.Join(",", genericArguments.Select(selectType => PrettyPrintRecursive(selectType, depth + 1)))}>";
         }
 
         public static AggregateName GetAggregateName(
@@ -91,14 +93,14 @@ namespace Akkatecture.Extensions
         {
             return AggregateNames.GetOrAdd(
                 aggregateType,
-                t =>
+                type =>
                 {
                     if (!typeof(IAggregateRoot).GetTypeInfo().IsAssignableFrom(aggregateType))
                         throw new ArgumentException($"Type '{aggregateType.PrettyPrint()}' is not an aggregate root");
 
                     return new AggregateName(
-                        t.GetTypeInfo().GetCustomAttributes<AggregateNameAttribute>().SingleOrDefault()?.Name ??
-                        t.Name);
+                        type.GetTypeInfo().GetCustomAttributes<AggregateNameAttribute>().SingleOrDefault()?.Name ??
+                        type.Name);
                 });
         }
 
@@ -107,14 +109,14 @@ namespace Akkatecture.Extensions
         {
             return SagaNames.GetOrAdd(
                 sagaType,
-                t =>
+                type =>
                 {
                     if (!typeof(IAggregateRoot).GetTypeInfo().IsAssignableFrom(sagaType))
                         throw new ArgumentException($"Type '{sagaType.PrettyPrint()}' is not a saga.");
 
                     return new AggregateName(
-                        t.GetTypeInfo().GetCustomAttributes<SagaNameAttribute>().SingleOrDefault()?.Name ??
-                        t.Name);
+                        type.GetTypeInfo().GetCustomAttributes<SagaNameAttribute>().SingleOrDefault()?.Name ??
+                        type.Name);
                 });
         }
 
@@ -123,14 +125,14 @@ namespace Akkatecture.Extensions
         {
             return JobNames.GetOrAdd(
                 jobType,
-                t =>
+                type =>
                 {
                     if (!typeof(IJob).GetTypeInfo().IsAssignableFrom(jobType))
                         throw new ArgumentException($"Type '{jobType.PrettyPrint()}' is not a job");
 
                     return new JobName(
-                        t.GetTypeInfo().GetCustomAttributes<JobNameAttribute>().SingleOrDefault()?.Name ??
-                        t.Name);
+                        type.GetTypeInfo().GetCustomAttributes<JobNameAttribute>().SingleOrDefault()?.Name ??
+                        type.Name);
                 });
         }
 
@@ -213,12 +215,12 @@ namespace Akkatecture.Extensions
             var interfaces = type
                 .GetTypeInfo()
                 .GetInterfaces()
-                .Select(i => i.GetTypeInfo())
+                .Select(selectType => selectType.GetTypeInfo())
                 .ToList();
             var domainEventTypes = interfaces
-                .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISubscribeToAsync<,,>))
-                .Select(i => typeof(IDomainEvent<,,>).MakeGenericType(i.GetGenericArguments()[0],
-                    i.GetGenericArguments()[1], i.GetGenericArguments()[2]))
+                .Where(typeInfo => typeInfo.IsGenericType && typeInfo.GetGenericTypeDefinition() == typeof(ISubscribeToAsync<,,>))
+                .Select(typeInfo => typeof(IDomainEvent<,,>).MakeGenericType(typeInfo.GetGenericArguments()[0],
+                    typeInfo.GetGenericArguments()[1], typeInfo.GetGenericArguments()[2]))
                 .ToList();
 
 
@@ -393,12 +395,12 @@ namespace Akkatecture.Extensions
             var interfaces = type
                 .GetTypeInfo()
                 .GetInterfaces()
-                .Select(i => i.GetTypeInfo())
+                .Select(selectType => selectType.GetTypeInfo())
                 .ToList();
 
             var sagaTimeoutSubscriptionTypes = interfaces
-                .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISagaHandlesTimeout<>))
-                .Select(t => t.GetGenericArguments()[0])
+                .Where(typeInfo => typeInfo.IsGenericType && typeInfo.GetGenericTypeDefinition() == typeof(ISagaHandlesTimeout<>))
+                .Select(typeInfo => typeInfo.GetGenericArguments()[0])
                 .ToList();
 
             return sagaTimeoutSubscriptionTypes;
@@ -435,12 +437,12 @@ namespace Akkatecture.Extensions
             var interfaces = type
                 .GetTypeInfo()
                 .GetInterfaces()
-                .Select(i => i.GetTypeInfo())
+                .Select(selectType => selectType.GetTypeInfo())
                 .ToList();
 
             var upcastableEventTypes = interfaces
-                .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IUpcast<,>))
-                .Select(i => i.GetGenericArguments()[0])
+                .Where(typeInfo => typeInfo.IsGenericType && typeInfo.GetGenericTypeDefinition() == typeof(IUpcast<,>))
+                .Select(typeInfo => typeInfo.GetGenericArguments()[0])
                 .ToList();
 
             return upcastableEventTypes;

@@ -88,12 +88,10 @@ namespace Akkatecture.Aggregates
 
         protected bool Handle(DeadLetter deadLetter)
         {
-            if (!(deadLetter.Message is TCommand) ||
-                deadLetter.Message.GetPropertyValue("AggregateId")?.GetType() != typeof(TIdentity)) return true;
-
-            ReDispatch((TCommand) deadLetter.Message);
-
-            return true;
+            if (deadLetter.Message is not TCommand command ||
+                command.GetPropertyValue("AggregateId")?.GetType() != typeof(TIdentity)) return true;
+            
+            return ReDispatch(command);
         }
 
         protected virtual bool Terminate(Terminated message)
@@ -126,10 +124,10 @@ namespace Akkatecture.Aggregates
             return new OneForOneStrategy(
                 3,
                 3000,
-                x =>
+                exception =>
                 {
                     logger.Warning("AggregateManager of Type={0}; will supervise Exception={1} to be decided as {2}.",
-                        Name, x.ToString(), Directive.Restart);
+                        Name, exception.ToString(), Directive.Restart);
                     return Directive.Restart;
                 });
         }
