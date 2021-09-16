@@ -28,17 +28,19 @@ namespace Akkatecture.Subscribers
 {
     public class DomainEventSubscriberSettings
     {
-        private static readonly string _section = "akkatecture.domain-event-subscriber";
+        private const string Section = "akkatecture.domain-event-subscriber";
         public readonly bool AutoReceive;
         public readonly bool AutoSubscribe;
 
         public DomainEventSubscriberSettings(Config config)
         {
             var domainEventSubscriberConfig = config.WithFallback(AkkatectureDefaultSettings.DefaultConfig());
-            domainEventSubscriberConfig = domainEventSubscriberConfig.GetConfig(_section);
+            domainEventSubscriberConfig = domainEventSubscriberConfig.GetConfig(Section);
 
+            #pragma warning disable GU0009
             AutoSubscribe = domainEventSubscriberConfig.GetBoolean("auto-subscribe", true);
             AutoReceive = domainEventSubscriberConfig.GetBoolean("auto-receive", true);
+            #pragma warning restore GU0009
         }
     }
 }

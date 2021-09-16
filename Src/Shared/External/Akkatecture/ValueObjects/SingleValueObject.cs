@@ -65,6 +65,6 @@ namespace Akkatecture.ValueObjects
             yield return Value;
         }
 
-        public override string ToString() => Value?.ToString() ?? string.Empty;
+        public override string ToString() => Value.ToString() ?? string.Empty;
     }
 }

@@ -30,9 +30,11 @@ using Akka.Persistence;
 using Akkatecture.Aggregates;
 using Akkatecture.Extensions;
 using Akkatecture.Messages;
+using JetBrains.Annotations;
 
 namespace Akkatecture.Sagas.AggregateSaga
 {
+    [PublicAPI]
     public abstract class AggregateSagaManager<TAggregateSaga, TIdentity, TSagaLocator> : ReceiveActor,
         IAggregateSagaManager<TAggregateSaga, TIdentity, TSagaLocator>
         where TAggregateSaga : ReceivePersistentActor, IAggregateSaga<TIdentity>
@@ -43,7 +45,7 @@ namespace Akkatecture.Sagas.AggregateSaga
         {
             Logger = Context.GetLogger();
 
-            _subscriptionTypes = new List<Type>();
+            SubscriptionTypes = new List<Type>();
 
             SagaLocator = new TSagaLocator();
             SagaFactory = sagaFactory;
@@ -66,9 +68,9 @@ namespace Akkatecture.Sagas.AggregateSaga
                 subscriptionTypes.AddRange(sagaEventSubscriptionTypes);
                 subscriptionTypes.AddRange(asyncSagaEventSubscriptionTypes);
 
-                _subscriptionTypes = subscriptionTypes.AsReadOnly();
+                SubscriptionTypes = subscriptionTypes.AsReadOnly();
 
-                foreach (var type in _subscriptionTypes) Context.System.EventStream.Subscribe(Self, type);
+                foreach (var type in SubscriptionTypes) Context.System.EventStream.Subscribe(Self, type);
             }
 
             if (Settings.AutoSpawnOnReceive) Receive<IDomainEvent>(Handle);
@@ -77,7 +79,7 @@ namespace Akkatecture.Sagas.AggregateSaga
             Receive<Terminated>(Terminate);
         }
 
-        private IReadOnlyList<Type> _subscriptionTypes { get; }
+        private IReadOnlyList<Type> SubscriptionTypes { get; }
         protected ILoggingAdapter Logger { get; }
         protected TSagaLocator SagaLocator { get; }
         public AggregateSagaManagerSettings Settings { get; }
@@ -93,7 +95,7 @@ namespace Akkatecture.Sagas.AggregateSaga
 
         protected void UnsubscribeFromAllTopics()
         {
-            foreach (var type in _subscriptionTypes) Context.System.EventStream.Unsubscribe(Self, type);
+            foreach (var type in SubscriptionTypes) Context.System.EventStream.Unsubscribe(Self, type);
         }
 
         protected virtual bool Handle(IDomainEvent domainEvent)
@@ -117,10 +119,10 @@ namespace Akkatecture.Sagas.AggregateSaga
             return new OneForOneStrategy(
                 3,
                 3000,
-                x =>
+                exception =>
                 {
                     Logger.Warning("{0} will supervise Exception={1} to be decided as {2}.",
-                        GetType().PrettyPrint(), x.ToString(), Directive.Restart);
+                        GetType().PrettyPrint(), exception.ToString(), Directive.Restart);
                     return Directive.Restart;
                 });
         }

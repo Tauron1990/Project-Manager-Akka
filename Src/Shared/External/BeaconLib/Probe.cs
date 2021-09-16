@@ -28,14 +28,16 @@ namespace BeaconLib
 
         private readonly Task _thread;
         private readonly UdpClient _udp = new UdpClient();
-        private readonly EventWaitHandle _waitHandle = new EventWaitHandle(false, EventResetMode.AutoReset);
+        private readonly EventWaitHandle _waitHandle = new EventWaitHandle(initialState: false, EventResetMode.AutoReset);
         private IEnumerable<BeaconLocation> _currentBeacons = Enumerable.Empty<BeaconLocation>();
 
         private bool _running = true;
 
+        #pragma warning disable AV1500
         public Probe(string beaconType)
+            #pragma warning restore AV1500
         {
-            _udp.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            _udp.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, optionValue: true);
 
             BeaconType = beaconType;
             _thread = new Task(BackgroundLoop, TaskCreationOptions.LongRunning);
@@ -44,9 +46,11 @@ namespace BeaconLib
             _udp.Client.Bind(new IPEndPoint(IPAddress.Any, 0));
             try
             {
-                _udp.AllowNatTraversal(true);
+                _udp.AllowNatTraversal(allowed: true);
             }
+            #pragma warning disable AV1706
             catch (Exception ex)
+                #pragma warning restore AV1706
             {
                 _log.Error(ex, "Error switching on NAT traversal");
             }
@@ -62,9 +66,9 @@ namespace BeaconLib
             {
                 Stop();
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
-                _log.Error(ex, "Error On Dispose Probe");
+                _log.Error(exception, "Error On Dispose Probe");
             }
         }
 
@@ -76,7 +80,9 @@ namespace BeaconLib
             _thread.Start();
         }
 
+        #pragma warning disable AV1500
         private void ResponseReceived(IAsyncResult ar)
+            #pragma warning restore AV1500
         {
             _log.Info("Incomming Reponse");
             var remote = new IPEndPoint(IPAddress.Any, 0);
@@ -84,22 +90,29 @@ namespace BeaconLib
 
             var typeBytes = Beacon.Encode(BeaconType);
             if (Beacon.HasPrefix(bytes, typeBytes))
-                try
-                {
-                    _log.Info("Processing Response");
-                    var portBytes = bytes.Skip(typeBytes.Length).Take(2).ToArray();
-                    var port = (ushort) IPAddress.NetworkToHostOrder((short) BitConverter.ToUInt16(portBytes, 0));
-                    var payload = Beacon.Decode(bytes.Skip(typeBytes.Length + 2));
-                    NewBeacon(new BeaconLocation(new IPEndPoint(remote.Address, port), payload, DateTime.Now));
-                }
-                catch (Exception ex)
-                {
-                    _log.Error(ex, "Error on Decode Recived Beacon");
-                }
+            {
+                ProcessResponse(bytes, typeBytes, remote);
+            }
             else
                 _log.Info("Incompatiple Data");
 
             _udp.BeginReceive(ResponseReceived, null);
+        }
+
+        private void ProcessResponse(byte[] bytes, byte[] typeBytes, IPEndPoint remote)
+        {
+            try
+            {
+                _log.Info("Processing Response");
+                var portBytes = bytes.Skip(typeBytes.Length).Take(2).ToArray();
+                var port = (ushort)IPAddress.NetworkToHostOrder((short)BitConverter.ToUInt16(portBytes, 0));
+                var payload = Beacon.Decode(bytes.Skip(typeBytes.Length + 2));
+                NewBeacon(new BeaconLocation(new IPEndPoint(remote.Address, port), payload, DateTime.Now));
+            }
+            catch (Exception exception)
+            {
+                _log.Error(exception, "Error on Decode Recived Beacon");
+            }
         }
 
         private void BackgroundLoop()
@@ -110,9 +123,9 @@ namespace BeaconLib
                 {
                     BroadcastProbe();
                 }
-                catch (Exception ex)
+                catch (Exception exception)
                 {
-                    _log.Error(ex, "Error on Sending");
+                    _log.Error(exception, "Error on Sending");
                 }
 
                 _waitHandle.WaitOne(2000);
@@ -120,7 +133,9 @@ namespace BeaconLib
             }
         }
 
+        #pragma warning disable AV1710
         private void BroadcastProbe()
+            #pragma warning restore AV1710
         {
             _log.Info("Sending Request");
             var probe = Beacon.Encode(BeaconType).ToArray();
@@ -132,11 +147,16 @@ namespace BeaconLib
             _log.Info("Prune Beacons");
             var cutOff = DateTime.Now - BeaconTimeout;
             var oldBeacons = _currentBeacons.ToList();
-            var newBeacons = oldBeacons.Where(_ => _.LastAdvertised >= cutOff).ToList();
+            var newBeacons = oldBeacons.Where(location => location.LastAdvertised >= cutOff).ToList();
             if (EnumsEqual(oldBeacons, newBeacons)) return;
 
-            var u = BeaconsUpdated;
-            u?.Invoke(newBeacons);
+            CallBeaconsUpdated(newBeacons);
+        }
+
+        private void CallBeaconsUpdated(List<BeaconLocation> newBeacons)
+        {
+            var onBeaconsUpdated = BeaconsUpdated;
+            onBeaconsUpdated?.Invoke(newBeacons);
             _currentBeacons = newBeacons;
         }
 
@@ -144,19 +164,21 @@ namespace BeaconLib
         {
             _log.Info("Updating Beacons");
             var newBeacons = _currentBeacons
-                .Where(_ => !_.Equals(newBeacon))
+                .Where(location => !location.Equals(newBeacon))
                 .Concat(new[] {newBeacon})
-                .OrderBy(_ => _.Data)
-                .ThenBy(_ => _.Address, IpEndPointComparer.Instance)
+                .OrderBy(location => location.Data)
+                .ThenBy(location => location.Address, IpEndPointComparer.Instance)
                 .ToList();
-            var u = BeaconsUpdated;
-            u?.Invoke(newBeacons);
+            var onBeaconsUpdated = BeaconsUpdated;
+            onBeaconsUpdated?.Invoke(newBeacons);
             _currentBeacons = newBeacons;
         }
 
         private static bool EnumsEqual<T>(List<T> xs, List<T> ys)
         {
+            #pragma warning disable AV1706
             return xs.Zip(ys, (x, y) => x != null && x.Equals(y)).Count() == xs.Count;
+            #pragma warning restore AV1706
         }
 
         public void Stop()

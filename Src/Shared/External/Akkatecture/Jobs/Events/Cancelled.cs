@@ -22,9 +22,11 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
+using JetBrains.Annotations;
 
 namespace Akkatecture.Jobs.Events
 {
+    [PublicAPI]
     public class Cancelled<TJob, TIdentity> : SchedulerEvent<TJob, TIdentity>
         where TJob : IJob
         where TIdentity : IJobId

@@ -27,9 +27,11 @@ using Akka.Actor;
 using Akka.Event;
 using Akka.Pattern;
 using Akkatecture.Extensions;
+using JetBrains.Annotations;
 
 namespace Akkatecture.Jobs
 {
+    [PublicAPI]
     public class JobManager<TJobScheduler, TJobRunner, TJob, TIdentity> : ReceiveActor, IJobManager<TJob, TIdentity>
         where TJobScheduler : JobScheduler<TJobScheduler, TJob, TIdentity>
         where TJobRunner : JobRunner<TJob, TIdentity>

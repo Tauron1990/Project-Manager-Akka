@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using System.Windows.Controls;
 using LoadingIndicators.WPF.Utilities;
 
@@ -11,7 +12,7 @@ namespace LoadingIndicators.WPF
     [TemplatePart(Name = TemplateBorderName, Type = typeof(Border))]
     public class LoadingIndicator : Control
     {
-        internal const string TemplateBorderName = "PART_Border";
+        private const string TemplateBorderName = "PART_Border";
 
         /// <summary>
         ///     Identifies the <see cref="LoadingIndicators.WPF.LoadingIndicator.SpeedRatio" /> dependency property.
@@ -32,7 +33,7 @@ namespace LoadingIndicators.WPF
             new PropertyMetadata(default(LoadingIndicatorMode)));
 
         // ReSharper disable once InconsistentNaming
-        protected Border PART_Border;
+        private Border? PART_Border;
 
         static LoadingIndicator()
         {
@@ -64,41 +65,42 @@ namespace LoadingIndicators.WPF
             set => SetValue(IsActiveProperty, value);
         }
 
-        private static void OnSpeedRatioChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
+        private static void OnSpeedRatioChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs eventArgs)
         {
-            var li = (LoadingIndicator) o;
+            var indicator = (LoadingIndicator) dependencyObject;
 
-            if (li.PART_Border == null || li.IsActive == false) return;
+            if (indicator.PART_Border == null || indicator.IsActive == false) return;
 
-            SetStoryBoardSpeedRatio(li.PART_Border, (double) e.NewValue);
+            SetStoryBoardSpeedRatio(indicator.PART_Border, (double) eventArgs.NewValue);
         }
 
-        private static void OnIsActiveChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
+        private static void OnIsActiveChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs eventArgs)
         {
-            var li = (LoadingIndicator) o;
+            var indicator = (LoadingIndicator) dependencyObject;
 
-            if (li.PART_Border == null) return;
+            if (indicator.PART_Border is null) return;
 
-            if ((bool) e.NewValue == false)
+            if ((bool) eventArgs.NewValue == false)
             {
-                VisualStateManager.GoToElementState(li.PART_Border, IndicatorVisualStateNames.InactiveState.Name,
-                    false);
-                li.PART_Border.SetCurrentValue(VisibilityProperty, Visibility.Collapsed);
+                VisualStateManager.GoToElementState(indicator.PART_Border, IndicatorVisualStateNames.InactiveState.Name,
+                    useTransitions: false);
+                indicator.PART_Border.SetCurrentValue(VisibilityProperty, Visibility.Collapsed);
             }
             else
             {
-                VisualStateManager.GoToElementState(li.PART_Border, IndicatorVisualStateNames.ActiveState.Name, false);
+                VisualStateManager.GoToElementState(indicator.PART_Border, IndicatorVisualStateNames.ActiveState.Name, 
+                    useTransitions: false);
 
-                li.PART_Border.SetCurrentValue(VisibilityProperty, Visibility.Visible);
+                indicator.PART_Border.SetCurrentValue(VisibilityProperty, Visibility.Visible);
 
-                SetStoryBoardSpeedRatio(li.PART_Border, li.SpeedRatio);
+                SetStoryBoardSpeedRatio(indicator.PART_Border, indicator.SpeedRatio);
             }
         }
 
         private static void SetStoryBoardSpeedRatio(FrameworkElement element, double speedRatio)
         {
             var activeStates = element.GetActiveVisualStates();
-            foreach (var activeState in activeStates) activeState.Storyboard.SetSpeedRatio(element, speedRatio);
+            foreach (var activeState in activeStates ?? ArraySegment<VisualState>.Empty) activeState.Storyboard.SetSpeedRatio(element, speedRatio);
         }
 
         /// <inheritdoc />
@@ -110,14 +112,14 @@ namespace LoadingIndicators.WPF
         {
             base.OnApplyTemplate();
 
-            PART_Border = (Border) GetTemplateChild(TemplateBorderName);
+            PART_Border = GetTemplateChild(TemplateBorderName) as Border;
 
-            if (PART_Border == null) return;
+            if (PART_Border is null) return;
 
             VisualStateManager.GoToElementState(PART_Border,
                 IsActive
                     ? IndicatorVisualStateNames.ActiveState.Name
-                    : IndicatorVisualStateNames.InactiveState.Name, false);
+                    : IndicatorVisualStateNames.InactiveState.Name, useTransitions: false);
 
             SetStoryBoardSpeedRatio(PART_Border, SpeedRatio);
 

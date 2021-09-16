@@ -66,7 +66,9 @@ namespace Akkatecture.Specifications.Provided
             }
             catch
             {
+                #pragma warning disable ERP022
                 return typeof(ExpressionSpecification<T>).PrettyPrint();
+                #pragma warning restore ERP022
             }
         }
     }

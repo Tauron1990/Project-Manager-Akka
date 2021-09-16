@@ -26,16 +26,16 @@ using System.Linq;
 using System.Reflection;
 using Akka.Actor;
 using Akkatecture.Extensions;
+using JetBrains.Annotations;
 using Tauron;
 
 namespace Akkatecture.Jobs
 {
+    [PublicAPI]
     public abstract class JobRunner : ReceiveActor
     {
-        public JobRunner()
-        {
-            InitReceives();
-        }
+        protected JobRunner()
+            => InitReceives();
 
         public void InitReceives()
         {
@@ -87,6 +87,7 @@ namespace Akkatecture.Jobs
         }
     }
 
+    // ReSharper disable UnusedTypeParameter
     public abstract class JobRunner<TJob, TIdentity> : JobRunner
         where TJob : IJob
         where TIdentity : IJobId

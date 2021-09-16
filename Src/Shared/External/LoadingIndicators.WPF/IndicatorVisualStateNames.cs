@@ -5,8 +5,8 @@ namespace LoadingIndicators.WPF
 {
     internal class IndicatorVisualStateNames : MarkupExtension
     {
-        private static IndicatorVisualStateNames _activeState;
-        private static IndicatorVisualStateNames _inactiveState;
+        private static IndicatorVisualStateNames? _activeState;
+        private static IndicatorVisualStateNames? _inactiveState;
 
         private IndicatorVisualStateNames(string name)
         {
@@ -15,13 +15,13 @@ namespace LoadingIndicators.WPF
             Name = name;
         }
 
-        public static IndicatorVisualStateNames ActiveState =>
+        internal static IndicatorVisualStateNames ActiveState =>
             _activeState ??= new IndicatorVisualStateNames("Active");
 
-        public static IndicatorVisualStateNames InactiveState =>
+        internal static IndicatorVisualStateNames InactiveState =>
             _inactiveState ??= new IndicatorVisualStateNames("Inactive");
 
-        public string Name { get; }
+        internal string Name { get; }
 
         public override object ProvideValue(IServiceProvider serviceProvider) => Name;
     }

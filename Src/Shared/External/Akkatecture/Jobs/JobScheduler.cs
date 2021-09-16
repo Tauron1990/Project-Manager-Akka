@@ -32,9 +32,11 @@ using Akka.Persistence;
 using Akkatecture.Extensions;
 using Akkatecture.Jobs.Commands;
 using Akkatecture.Jobs.Events;
+using JetBrains.Annotations;
 
 namespace Akkatecture.Jobs
 {
+    [PublicAPI]
     public class JobScheduler<TJobScheduler, TJob, TIdentity> : ReceivePersistentActor, IJobScheduler<TIdentity>
         where TJobScheduler : JobScheduler<TJobScheduler, TJob, TIdentity>
         where TJob : IJob
@@ -44,9 +46,9 @@ namespace Akkatecture.Jobs
         private readonly IJobDefinitionService _jobDefinitionService;
         private readonly ICancelable _tickerTask;
 
-        public JobScheduler()
+        protected JobScheduler()
         {
-            if (this as TJobScheduler == null)
+            if (this is not TJobScheduler)
                 throw new InvalidOperationException(
                     $"JobScheduler for Job of Name={Name} specifies Type={typeof(TJobScheduler).PrettyPrint()} as generic argument, it should be its own type.");
 
@@ -91,7 +93,7 @@ namespace Akkatecture.Jobs
         {
             var now = Context.System.Scheduler.Now.UtcDateTime;
 
-            foreach (var schedule in State.Entries.Values.Where(e => ShouldTriggerSchedule(e, now)))
+            foreach (var schedule in State.Entries.Values.Where(schedule => ShouldTriggerSchedule(schedule, now)))
             {
                 _jobDefinitionService.Load(schedule.Job.GetType());
                 var jobDefinition = _jobDefinitionService.GetDefinition(schedule.Job.GetType());
@@ -118,15 +120,15 @@ namespace Akkatecture.Jobs
             var jobDefinition = _jobDefinitionService.GetDefinition(command.Job.GetType());
             try
             {
-                Emit(new Scheduled<TJob, TIdentity>(command.WithOutAcks()), e =>
+                Emit(new Scheduled<TJob, TIdentity>(command.WithOutAcks()), schedulerEvent =>
                 {
-                    ApplySchedulerEvent(e);
+                    ApplySchedulerEvent(schedulerEvent);
 
                     if (!sender.IsNobody() && command.Ack != null) sender.Tell(command.Ack);
 
                     Log.Info(
                         "JobScheduler for Job of Name={0}, Definition={1}, and Id={2}; has been successfully scheduled to run at TriggerDate={3}.",
-                        Name, jobDefinition, e.Entry.JobId, e.Entry.TriggerDate);
+                        Name, jobDefinition, schedulerEvent.Entry.JobId, schedulerEvent.Entry.TriggerDate);
                 });
             }
             catch (Exception error)
@@ -148,12 +150,12 @@ namespace Akkatecture.Jobs
             var now = Context.System.Scheduler.Now.UtcDateTime;
             try
             {
-                Emit(new Cancelled<TJob, TIdentity>(command.JobId, now), e =>
+                Emit(new Cancelled<TJob, TIdentity>(command.JobId, now), schedulerEvent =>
                 {
-                    ApplySchedulerEvent(e);
+                    ApplySchedulerEvent(schedulerEvent);
                     if (!sender.IsNobody() && command.Ack != null) sender.Tell(command.Ack);
                     Log.Info("JobScheduler for Job of Name={0}, and Id={1}; has been successfully cancelled.", Name,
-                        e.JobId);
+                        schedulerEvent.JobId);
                 });
             }
             catch (Exception error)

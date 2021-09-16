@@ -22,10 +22,11 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
+using JetBrains.Annotations;
 
 namespace Akkatecture.Jobs
 {
-    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
+    [AttributeUsage(AttributeTargets.Class, Inherited = false), PublicAPI]
     public class JobNameAttribute : Attribute
     {
         public JobNameAttribute(string name)

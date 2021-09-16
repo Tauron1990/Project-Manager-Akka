@@ -38,7 +38,7 @@ namespace Akkatecture.Specifications.Provided
         public AllSpecifications(
             IEnumerable<ISpecification<T>> specifications)
         {
-            var specificationList = (specifications ?? Enumerable.Empty<ISpecification<T>>()).ToList();
+            var specificationList = specifications.ToList();
 
             if (!specificationList.Any())
                 throw new ArgumentException("Please provide some specifications", nameof(specifications));
@@ -47,8 +47,6 @@ namespace Akkatecture.Specifications.Provided
         }
 
         protected override IEnumerable<string> IsNotSatisfiedBecause(T aggregate)
-        {
-            return _specifications.SelectMany(s => s.WhyIsNotSatisfiedBy(aggregate));
-        }
+            => _specifications.SelectMany(specification => specification.WhyIsNotSatisfiedBy(aggregate));
     }
 }

@@ -22,16 +22,19 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 
 namespace Akkatecture.Sagas.SagaTimeouts
 {
-    public interface ISagaHandlesTimeout<TTimeout> : ISaga
+    [PublicAPI]
+    public interface ISagaHandlesTimeout<in TTimeout> : ISaga
         where TTimeout : class, ISagaTimeoutJob
     {
         bool HandleTimeout(TTimeout timeout);
     }
 
-    public interface ISagaHandlesTimeoutAsync<TTimeout> : ISaga
+    [PublicAPI]
+    public interface ISagaHandlesTimeoutAsync<in TTimeout> : ISaga
         where TTimeout : class, ISagaTimeoutJob
     {
         Task HandleTimeoutAsync(TTimeout timeout);

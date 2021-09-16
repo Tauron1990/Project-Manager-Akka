@@ -22,9 +22,11 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using Akka.Configuration;
+using Hyperion.Internal;
 
 namespace Akkatecture.Cluster.Configuration
 {
+    [PublicAPI]
     public class AkkatectureClusteringDefaultSettings
     {
         public static Config DefaultConfig()

@@ -30,9 +30,11 @@ using Akkatecture.Cluster.Extentions;
 using Akkatecture.Extensions;
 using Akkatecture.Sagas;
 using Akkatecture.Sagas.AggregateSaga;
+using JetBrains.Annotations;
 
 namespace Akkatecture.Cluster.Dispatchers
 {
+    [PublicAPI]
     public class
         ShardedAggregateSagaDispatcher<TAggregateSagaManager, TAggregateSaga, TIdentity, TSagaLocator> : ReceiveActor
         where TAggregateSagaManager : ReceiveActor, IAggregateSagaManager<TAggregateSaga, TIdentity, TSagaLocator>

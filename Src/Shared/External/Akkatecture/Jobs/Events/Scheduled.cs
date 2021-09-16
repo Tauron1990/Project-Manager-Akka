@@ -23,16 +23,18 @@
 
 using System;
 using Akkatecture.Jobs.Commands;
+using JetBrains.Annotations;
 
 namespace Akkatecture.Jobs.Events
 {
+    [PublicAPI]
     public class Scheduled<TJob, TIdentity> : SchedulerEvent<TJob, TIdentity>
         where TJob : IJob
         where TIdentity : IJobId
     {
         public Scheduled(
             Schedule<TJob, TIdentity> entry)
-            => Entry = entry ?? throw new ArgumentException(nameof(entry));
+            => Entry = entry ?? throw new ArgumentNullException(nameof(entry));
 
         public Schedule<TJob, TIdentity> Entry { get; }
     }

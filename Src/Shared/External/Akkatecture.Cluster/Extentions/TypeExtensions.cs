@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using Akkatecture.Aggregates;
@@ -36,24 +37,28 @@ namespace Akkatecture.Cluster.Extentions
         internal static IReadOnlyList<Type> GetSagaEventSubscriptionTypes(this Type type)
         {
             var interfaces = type
-                .GetTypeInfo()
-                .GetInterfaces()
-                .Select(i => i.GetTypeInfo())
-                .ToList();
+                            .GetTypeInfo()
+                            .GetInterfaces()
+                            .Select(selectorType => selectorType.GetTypeInfo())
+                            .ToImmutableList();
 
             var handleAsyncEventTypes = interfaces
-                .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISagaHandlesAsync<,,>))
-                .Select(t => typeof(IDomainEvent<,,>).MakeGenericType(t.GetGenericArguments()[0],
-                    t.GetGenericArguments()[1], t.GetGenericArguments()[2]))
-                .ToList();
+                                       .Where(typeInfo => typeInfo.IsGenericType && typeInfo.GetGenericTypeDefinition() == typeof(ISagaHandlesAsync<,,>))
+                                       .Select(
+                                            typeInfo => typeof(IDomainEvent<,,>).MakeGenericType(
+                                                typeInfo.GetGenericArguments()[0],
+                                                typeInfo.GetGenericArguments()[1],
+                                                typeInfo.GetGenericArguments()[2]));
 
             var handleEventTypes = interfaces
-                .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISagaHandles<,,>))
-                .Select(t => typeof(IDomainEvent<,,>).MakeGenericType(t.GetGenericArguments()[0],
-                    t.GetGenericArguments()[1], t.GetGenericArguments()[2]))
-                .ToList();
-
-            handleEventTypes.AddRange(handleAsyncEventTypes);
+                                  .Where(typeInfo => typeInfo.IsGenericType && typeInfo.GetGenericTypeDefinition() == typeof(ISagaHandles<,,>))
+                                  .Select(
+                                       typeInfo => typeof(IDomainEvent<,,>).MakeGenericType(
+                                           typeInfo.GetGenericArguments()[0],
+                                           typeInfo.GetGenericArguments()[1],
+                                           typeInfo.GetGenericArguments()[2]))
+                                  .Concat(handleAsyncEventTypes)
+                                  .ToImmutableList();
 
             return handleEventTypes;
         }
@@ -61,25 +66,31 @@ namespace Akkatecture.Cluster.Extentions
         internal static IReadOnlyList<Type> GetDomainEventSubscriptionTypes(this Type type)
         {
             var interfaces = type
-                .GetTypeInfo()
-                .GetInterfaces()
-                .Select(i => i.GetTypeInfo())
-                .ToList();
+                            .GetTypeInfo()
+                            .GetInterfaces()
+                            .Select(selectorType => selectorType.GetTypeInfo())
+                            .ToImmutableList();
+            
             var asyncDomainEventTypes = interfaces
-                .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISubscribeToAsync<,,>))
-                .Select(i => typeof(IDomainEvent<,,>).MakeGenericType(i.GetGenericArguments()[0],
-                    i.GetGenericArguments()[1], i.GetGenericArguments()[2]))
-                .ToList();
+                                       .Where(info => info.IsGenericType && info.GetGenericTypeDefinition() == typeof(ISubscribeToAsync<,,>))
+                                       .Select(
+                                            info => typeof(IDomainEvent<,,>).MakeGenericType(
+                                                info.GetGenericArguments()[0],
+                                                info.GetGenericArguments()[1],
+                                                info.GetGenericArguments()[2]));
 
             var domainEventTypes = interfaces
-                .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISubscribeTo<,,>))
-                .Select(i => typeof(IDomainEvent<,,>).MakeGenericType(i.GetGenericArguments()[0],
-                    i.GetGenericArguments()[1], i.GetGenericArguments()[2]))
-                .ToList();
+                                  .Where(info => info.IsGenericType && info.GetGenericTypeDefinition() == typeof(ISubscribeTo<,,>))
+                                  .Select(
+                                       info => typeof(IDomainEvent<,,>).MakeGenericType(
+                                           info.GetGenericArguments()[0],
+                                           info.GetGenericArguments()[1],
+                                           info.GetGenericArguments()[2]))
+                                  .Concat(asyncDomainEventTypes)
+                                  .ToImmutableList();
 
-            asyncDomainEventTypes.AddRange(domainEventTypes);
 
-            return asyncDomainEventTypes;
+            return domainEventTypes;
         }
     }
 }

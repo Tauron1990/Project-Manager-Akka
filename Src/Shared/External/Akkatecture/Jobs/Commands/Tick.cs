@@ -31,6 +31,6 @@ namespace Akkatecture.Jobs.Commands
         {
         }
 
-        public static Tick<TJob, TIdentity> Instance { get; } = new();
+        internal static Tick<TJob, TIdentity> Instance { get; } = new();
     }
 }

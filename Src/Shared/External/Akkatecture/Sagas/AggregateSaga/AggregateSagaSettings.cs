@@ -28,7 +28,7 @@ namespace Akkatecture.Sagas.AggregateSaga
 {
     public class AggregateSagaSettings
     {
-        private static readonly string _section = "akkatecture.aggregate-saga";
+        private const string Section = "akkatecture.aggregate-saga";
         public readonly bool AutoReceive;
         public readonly bool UseDefaultEventRecover;
         public readonly bool UseDefaultSnapshotRecover;
@@ -36,11 +36,13 @@ namespace Akkatecture.Sagas.AggregateSaga
         public AggregateSagaSettings(Config config)
         {
             var aggregateSagaConfig = config.WithFallback(AkkatectureDefaultSettings.DefaultConfig());
-            aggregateSagaConfig = aggregateSagaConfig.GetConfig(_section);
+            aggregateSagaConfig = aggregateSagaConfig.GetConfig(Section);
 
+            #pragma warning disable GU0009
             AutoReceive = aggregateSagaConfig.GetBoolean("auto-receive", true);
             UseDefaultEventRecover = aggregateSagaConfig.GetBoolean("use-default-event-recover", true);
             UseDefaultSnapshotRecover = aggregateSagaConfig.GetBoolean("use-default-snapshot-recover", true);
+            #pragma warning restore GU0009
         }
     }
 }

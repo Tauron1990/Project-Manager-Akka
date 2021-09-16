@@ -55,8 +55,7 @@ namespace Akkatecture.Subscribers
                         .GetAsyncDomainEventSubscriberSubscriptionTypes();
 
                 var domainEventsubscriptionTypes =
-                    type
-                        .GetDomainEventSubscriberSubscriptionTypes();
+                    type.GetDomainEventSubscriberSubscriptionTypes();
 
                 var subscriptionTypes = new List<Type>();
 

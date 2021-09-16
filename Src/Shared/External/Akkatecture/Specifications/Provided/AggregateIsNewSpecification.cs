@@ -27,9 +27,11 @@
 
 using System.Collections.Generic;
 using Akkatecture.Aggregates;
+using JetBrains.Annotations;
 
 namespace Akkatecture.Specifications.Provided
 {
+    [PublicAPI]
     public class AggregateIsNewSpecification : Specification<IAggregateRoot>
     {
         public static readonly AggregateIsNewSpecification Instance = new();

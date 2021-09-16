@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using Akkatecture.Aggregates;
@@ -95,8 +96,8 @@ namespace Akkatecture.Extensions
                 aggregateType,
                 type =>
                 {
-                    if (!typeof(IAggregateRoot).GetTypeInfo().IsAssignableFrom(aggregateType))
-                        throw new ArgumentException($"Type '{aggregateType.PrettyPrint()}' is not an aggregate root");
+                    if (!typeof(IAggregateRoot).GetTypeInfo().IsAssignableFrom(type))
+                        throw new ArgumentException($"Type '{type.PrettyPrint()}' is not an aggregate root");
 
                     return new AggregateName(
                         type.GetTypeInfo().GetCustomAttributes<AggregateNameAttribute>().SingleOrDefault()?.Name ??
@@ -111,8 +112,8 @@ namespace Akkatecture.Extensions
                 sagaType,
                 type =>
                 {
-                    if (!typeof(IAggregateRoot).GetTypeInfo().IsAssignableFrom(sagaType))
-                        throw new ArgumentException($"Type '{sagaType.PrettyPrint()}' is not a saga.");
+                    if (!typeof(IAggregateRoot).GetTypeInfo().IsAssignableFrom(type))
+                        throw new ArgumentException($"Type '{type.PrettyPrint()}' is not a saga.");
 
                     return new AggregateName(
                         type.GetTypeInfo().GetCustomAttributes<SagaNameAttribute>().SingleOrDefault()?.Name ??
@@ -127,8 +128,8 @@ namespace Akkatecture.Extensions
                 jobType,
                 type =>
                 {
-                    if (!typeof(IJob).GetTypeInfo().IsAssignableFrom(jobType))
-                        throw new ArgumentException($"Type '{jobType.PrettyPrint()}' is not a job");
+                    if (!typeof(IJob).GetTypeInfo().IsAssignableFrom(type))
+                        throw new ArgumentException($"Type '{type.PrettyPrint()}' is not a job");
 
                     return new JobName(
                         type.GetTypeInfo().GetCustomAttributes<JobNameAttribute>().SingleOrDefault()?.Name ??
@@ -154,7 +155,7 @@ namespace Akkatecture.Extensions
                         parameters.Length == 1 &&
                         aggregateEventType.GetTypeInfo().IsAssignableFrom(parameters[0].ParameterType);
                 })
-                .ToDictionary(
+                .ToImmutableDictionary(
                     mi => mi.GetParameters()[0].ParameterType,
                     mi => ReflectionHelper.CompileMethodInvocation<Action<T, IAggregateEvent>>(type, "Apply",
                         mi.GetParameters()[0].ParameterType));
@@ -179,7 +180,7 @@ namespace Akkatecture.Extensions
                         parameters.Length == 1 &&
                         aggregateSnapshot.GetTypeInfo().IsAssignableFrom(parameters[0].ParameterType);
                 })
-                .ToDictionary(
+                .ToImmutableDictionary(
                     mi => mi.GetParameters()[0].ParameterType,
                     mi => ReflectionHelper.CompileMethodInvocation<Action<T?, IAggregateSnapshot?>>(type, "Hydrate",
                         mi.GetParameters()[0].ParameterType));
@@ -204,7 +205,7 @@ namespace Akkatecture.Extensions
                         parameters.Length == 1 &&
                         aggregateEventType.GetTypeInfo().IsAssignableFrom(parameters[0].ParameterType);
                 })
-                .ToDictionary(
+                .ToImmutableDictionary(
                     mi => mi.GetParameters()[0].ParameterType,
                     mi => ReflectionHelper.CompileMethodInvocation<Action<TAggregateState?, IAggregateEvent?>>(type,
                         "Apply", mi.GetParameters()[0].ParameterType));
@@ -215,13 +216,13 @@ namespace Akkatecture.Extensions
             var interfaces = type
                 .GetTypeInfo()
                 .GetInterfaces()
-                .Select(selectType => selectType.GetTypeInfo())
-                .ToList();
+                .Select(selectType => selectType.GetTypeInfo());
+            
             var domainEventTypes = interfaces
                 .Where(typeInfo => typeInfo.IsGenericType && typeInfo.GetGenericTypeDefinition() == typeof(ISubscribeToAsync<,,>))
                 .Select(typeInfo => typeof(IDomainEvent<,,>).MakeGenericType(typeInfo.GetGenericArguments()[0],
                     typeInfo.GetGenericArguments()[1], typeInfo.GetGenericArguments()[2]))
-                .ToList();
+                .ToImmutableList();
 
 
             return domainEventTypes;
@@ -232,12 +233,12 @@ namespace Akkatecture.Extensions
             var interfaces = type
                 .GetTypeInfo()
                 .GetInterfaces()
-                .Select(i => i.GetTypeInfo())
-                .ToList();
+                .Select(selectType => selectType.GetTypeInfo());
+            
             var domainEventTypes = interfaces
-                .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IExecute<>))
-                .Select(i => i.GetGenericArguments()[0])
-                .ToList();
+                .Where(typeInfo => typeInfo.IsGenericType && typeInfo.GetGenericTypeDefinition() == typeof(IExecute<>))
+                .Select(typeInfo => typeInfo.GetGenericArguments()[0])
+                .ToImmutableList();
 
 
             return domainEventTypes;
@@ -246,15 +247,15 @@ namespace Akkatecture.Extensions
         internal static IReadOnlyList<Type> GetDomainEventSubscriberSubscriptionTypes(this Type type)
         {
             var interfaces = type
-                .GetTypeInfo()
-                .GetInterfaces()
-                .Select(i => i.GetTypeInfo())
-                .ToList();
+                            .GetTypeInfo()
+                            .GetInterfaces()
+                            .Select(selectType => selectType.GetTypeInfo());
+            
             var domainEventTypes = interfaces
-                .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISubscribeTo<,,>))
-                .Select(i => typeof(IDomainEvent<,,>).MakeGenericType(i.GetGenericArguments()[0],
-                    i.GetGenericArguments()[1], i.GetGenericArguments()[2]))
-                .ToList();
+                .Where(typeInfo => typeInfo.IsGenericType && typeInfo.GetGenericTypeDefinition() == typeof(ISubscribeTo<,,>))
+                .Select(typeInfo => typeof(IDomainEvent<,,>).MakeGenericType(typeInfo.GetGenericArguments()[0],
+                    typeInfo.GetGenericArguments()[1], typeInfo.GetGenericArguments()[2]))
+                .ToImmutableList();
 
 
             return domainEventTypes;
@@ -264,23 +265,25 @@ namespace Akkatecture.Extensions
         {
             return AggregateNameCache.GetOrAdd(
                 type,
-                t =>
+                creatorType =>
                 {
-                    var interfaces = type
-                        .GetTypeInfo()
-                        .GetInterfaces()
-                        .Select(i => i.GetTypeInfo())
-                        .ToList();
+                    var interfaces = creatorType
+                                    .GetTypeInfo()
+                                    .GetInterfaces()
+                                    .Select(selectorType => selectorType.GetTypeInfo())
+                                    .ToList();
 
                     var aggregateType = interfaces
-                        .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ICommittedEvent<,>))
-                        .Select(i => i.GetGenericArguments()[0]).SingleOrDefault();
+                        .Where(typeInfo => typeInfo.IsGenericType && typeInfo.GetGenericTypeDefinition() == typeof(ICommittedEvent<,>))
+                        .Select(typeInfo => typeInfo.GetGenericArguments()[0]).SingleOrDefault();
 
 
                     if (aggregateType != null)
                         return aggregateType.GetAggregateName();
 
+                    #pragma warning disable CA2208
                     throw new ArgumentException(nameof(type));
+                    #pragma warning restore CA2208
                 });
         }
 
@@ -288,37 +291,38 @@ namespace Akkatecture.Extensions
         {
             return AggregateEventTypeCache.GetOrAdd(
                 type,
-                t =>
+                newType =>
                 {
-                    var interfaces = type
-                        .GetTypeInfo()
-                        .GetInterfaces()
-                        .Select(i => i.GetTypeInfo())
-                        .ToList();
+                    var interfaces = newType
+                                    .GetTypeInfo()
+                                    .GetInterfaces()
+                                    .Select(selectorType => selectorType.GetTypeInfo());
 
                     var aggregateEvent = interfaces
-                        .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ICommittedEvent<,,>))
-                        .Select(i => i.GetGenericArguments()[2]).SingleOrDefault();
+                        .Where(typeInfo => typeInfo.IsGenericType && typeInfo.GetGenericTypeDefinition() == typeof(ICommittedEvent<,,>))
+                        .Select(typeInfo => typeInfo.GetGenericArguments()[2]).SingleOrDefault();
 
 
                     if (aggregateEvent != null)
                         return aggregateEvent;
 
+                    #pragma warning disable CA2208
                     throw new ArgumentException(nameof(type));
+                    #pragma warning restore CA2208
                 });
         }
 
         internal static IReadOnlyList<Type> GetJobRunTypes(this Type type)
         {
             var interfaces = type
-                .GetTypeInfo()
-                .GetInterfaces()
-                .Select(i => i.GetTypeInfo())
-                .ToList();
+                            .GetTypeInfo()
+                            .GetInterfaces()
+                            .Select(selectorType => selectorType.GetTypeInfo());
+                
             var jobRunTypes = interfaces
-                .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IRun<>))
-                .Select(i => i.GetGenericArguments()[0])
-                .ToList();
+                .Where(typeInfo => typeInfo.IsGenericType && typeInfo.GetGenericTypeDefinition() == typeof(IRun<>))
+                .Select(typeInfo => typeInfo.GetGenericArguments()[0])
+                .ToImmutableList();
 
 
             return jobRunTypes;
@@ -327,24 +331,25 @@ namespace Akkatecture.Extensions
         internal static IReadOnlyList<Type> GetAsyncSagaEventSubscriptionTypes(this Type type)
         {
             var interfaces = type
-                .GetTypeInfo()
-                .GetInterfaces()
-                .Select(i => i.GetTypeInfo())
-                .ToList();
+                            .GetTypeInfo()
+                            .GetInterfaces()
+                            .Select(selectorType => selectorType.GetTypeInfo())
+                            .ToImmutableList();
 
             var handleEventTypes = interfaces
-                .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISagaHandlesAsync<,,>))
-                .Select(t => typeof(IDomainEvent<,,>).MakeGenericType(t.GetGenericArguments()[0],
-                    t.GetGenericArguments()[1], t.GetGenericArguments()[2]))
-                .ToList();
+                .Where(typeInfo => typeInfo.IsGenericType && typeInfo.GetGenericTypeDefinition() == typeof(ISagaHandlesAsync<,,>))
+                .Select(typeInfo => typeof(IDomainEvent<,,>).MakeGenericType(typeInfo.GetGenericArguments()[0],
+                    typeInfo.GetGenericArguments()[1], typeInfo.GetGenericArguments()[2]));
 
             var startedByEventTypes = interfaces
-                .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISagaIsStartedByAsync<,,>))
-                .Select(t => typeof(IDomainEvent<,,>).MakeGenericType(t.GetGenericArguments()[0],
-                    t.GetGenericArguments()[1], t.GetGenericArguments()[2]))
-                .ToList();
-
-            startedByEventTypes.AddRange(handleEventTypes);
+                                     .Where(typeInfo => typeInfo.IsGenericType && typeInfo.GetGenericTypeDefinition() == typeof(ISagaIsStartedByAsync<,,>))
+                                     .Select(
+                                          typeInfo => typeof(IDomainEvent<,,>).MakeGenericType(
+                                              typeInfo.GetGenericArguments()[0],
+                                              typeInfo.GetGenericArguments()[1],
+                                              typeInfo.GetGenericArguments()[2]))
+                                     .Concat(handleEventTypes)
+                                     .ToImmutableList();
 
             return startedByEventTypes;
         }
@@ -354,22 +359,23 @@ namespace Akkatecture.Extensions
             var interfaces = type
                 .GetTypeInfo()
                 .GetInterfaces()
-                .Select(i => i.GetTypeInfo())
-                .ToList();
+                .Select(selectorType => selectorType.GetTypeInfo())
+                .ToImmutableList();
 
             var handleEventTypes = interfaces
-                .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISagaHandles<,,>))
-                .Select(t => typeof(IDomainEvent<,,>).MakeGenericType(t.GetGenericArguments()[0],
-                    t.GetGenericArguments()[1], t.GetGenericArguments()[2]))
-                .ToList();
+                .Where(typeInfo => typeInfo.IsGenericType && typeInfo.GetGenericTypeDefinition() == typeof(ISagaHandles<,,>))
+                .Select(typeInfo => typeof(IDomainEvent<,,>).MakeGenericType(typeInfo.GetGenericArguments()[0],
+                    typeInfo.GetGenericArguments()[1], typeInfo.GetGenericArguments()[2]));
 
             var startedByEventTypes = interfaces
-                .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISagaIsStartedBy<,,>))
-                .Select(t => typeof(IDomainEvent<,,>).MakeGenericType(t.GetGenericArguments()[0],
-                    t.GetGenericArguments()[1], t.GetGenericArguments()[2]))
-                .ToList();
-
-            startedByEventTypes.AddRange(handleEventTypes);
+                                     .Where(typeInfo => typeInfo.IsGenericType && typeInfo.GetGenericTypeDefinition() == typeof(ISagaIsStartedBy<,,>))
+                                     .Select(
+                                          typeInfo => typeof(IDomainEvent<,,>).MakeGenericType(
+                                              typeInfo.GetGenericArguments()[0],
+                                              typeInfo.GetGenericArguments()[1],
+                                              typeInfo.GetGenericArguments()[2]))
+                                     .Concat(handleEventTypes)
+                                     .ToImmutableList();
 
             return startedByEventTypes;
         }
@@ -379,13 +385,12 @@ namespace Akkatecture.Extensions
             var interfaces = type
                 .GetTypeInfo()
                 .GetInterfaces()
-                .Select(i => i.GetTypeInfo())
-                .ToList();
+                .Select(selectorType => selectorType.GetTypeInfo());
 
             var sagaTimeoutSubscriptionTypes = interfaces
-                .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISagaHandlesTimeoutAsync<>))
-                .Select(t => t.GetGenericArguments()[0])
-                .ToList();
+                .Where(typeInfo => typeInfo.IsGenericType && typeInfo.GetGenericTypeDefinition() == typeof(ISagaHandlesTimeoutAsync<>))
+                .Select(typeInfo => typeInfo.GetGenericArguments()[0])
+                .ToImmutableList();
 
             return sagaTimeoutSubscriptionTypes;
         }
@@ -395,13 +400,12 @@ namespace Akkatecture.Extensions
             var interfaces = type
                 .GetTypeInfo()
                 .GetInterfaces()
-                .Select(selectType => selectType.GetTypeInfo())
-                .ToList();
+                .Select(selectType => selectType.GetTypeInfo());
 
             var sagaTimeoutSubscriptionTypes = interfaces
                 .Where(typeInfo => typeInfo.IsGenericType && typeInfo.GetGenericTypeDefinition() == typeof(ISagaHandlesTimeout<>))
                 .Select(typeInfo => typeInfo.GetGenericArguments()[0])
-                .ToList();
+                .ToImmutableList();
 
             return sagaTimeoutSubscriptionTypes;
         }
@@ -425,7 +429,7 @@ namespace Akkatecture.Extensions
                         parameters.Length == 1 &&
                         aggregateEventType.GetTypeInfo().IsAssignableFrom(parameters[0].ParameterType);
                 })
-                .ToDictionary(
+                .ToImmutableDictionary(
                     //problem might be here
                     mi => mi.GetParameters()[0].ParameterType,
                     mi => ReflectionHelper.CompileMethodInvocation<Func<T, IAggregateEvent, IAggregateEvent>>(type,
@@ -437,13 +441,12 @@ namespace Akkatecture.Extensions
             var interfaces = type
                 .GetTypeInfo()
                 .GetInterfaces()
-                .Select(selectType => selectType.GetTypeInfo())
-                .ToList();
+                .Select(selectType => selectType.GetTypeInfo());
 
             var upcastableEventTypes = interfaces
                 .Where(typeInfo => typeInfo.IsGenericType && typeInfo.GetGenericTypeDefinition() == typeof(IUpcast<,>))
                 .Select(typeInfo => typeInfo.GetGenericArguments()[0])
-                .ToList();
+                .ToImmutableList();
 
             return upcastableEventTypes;
         }

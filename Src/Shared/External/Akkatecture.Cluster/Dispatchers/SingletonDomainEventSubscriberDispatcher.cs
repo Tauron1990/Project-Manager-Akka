@@ -27,9 +27,11 @@ using Akkatecture.Aggregates;
 using Akkatecture.Cluster.Extentions;
 using Akkatecture.Extensions;
 using Akkatecture.Subscribers;
+using JetBrains.Annotations;
 
 namespace Akkatecture.Cluster.Dispatchers
 {
+    [PublicAPI]
     public class SingletonDomainEventSubscriberDispatcher<TDomainEventSubscriber> : ReceiveActor
         where TDomainEventSubscriber : DomainEventSubscriber
     {

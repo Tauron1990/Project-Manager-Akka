@@ -11,15 +11,14 @@ namespace Tauron.Akka
 
         public ActorRefFactory(ActorSystem system) => _system = system;
 
-        public IActorRef Create(bool sync, string? name = null) => _system.ActorOf(CreateProps(sync), name);
+        public IActorRef Create(string? name = null) => _system.ActorOf(CreateProps(), name);
 
-        public Props CreateProps(bool sync)
-        {
-            var prop = _system.GetExtension<DependencyResolver>().Props<TActor>();
-            if (sync)
-                prop = prop.WithDispatcher("synchronized-dispatcher");
+        public IActorRef CreateSync(string? name = null) => _system.ActorOf(CreateSyncProps(), name);
 
-            return prop;
-        }
+        public Props CreateProps()
+            => _system.GetExtension<DependencyResolver>().Props<TActor>();
+
+        public Props CreateSyncProps()
+            => CreateProps().WithDispatcher("synchronized-dispatcher");
     }
 }

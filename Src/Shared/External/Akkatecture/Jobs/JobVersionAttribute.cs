@@ -23,10 +23,11 @@
 
 using System;
 using Akkatecture.Core.VersionedTypes;
+using JetBrains.Annotations;
 
 namespace Akkatecture.Jobs
 {
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Class), PublicAPI]
     public class JobVersionAttribute : VersionedTypeAttribute
     {
         public JobVersionAttribute(

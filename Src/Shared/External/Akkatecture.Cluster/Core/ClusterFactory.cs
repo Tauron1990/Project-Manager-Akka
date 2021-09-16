@@ -31,14 +31,17 @@ using Akkatecture.Cluster.Dispatchers;
 using Akkatecture.Core;
 using Akkatecture.Sagas;
 using Akkatecture.Sagas.AggregateSaga;
+using JetBrains.Annotations;
 
 namespace Akkatecture.Cluster.Core
 {
+    [PublicAPI]
     public static class ClusterFactory<TAggregateManager, TAggregate, TIdentity>
         where TAggregateManager : ReceiveActor, IAggregateManager<TAggregate, TIdentity>
         where TAggregate : ReceivePersistentActor, IAggregateRoot<TIdentity>
         where TIdentity : IIdentity
     {
+        #pragma warning disable AV1551
         public static IActorRef StartClusteredAggregate(
             ActorSystem actorSystem,
             int numberOfShards = 12)
@@ -112,6 +115,7 @@ namespace Akkatecture.Cluster.Core
             var clusterSharding = ClusterSharding.Get(actorSystem);
             var clusterShardingSettings = clusterSharding.Settings;
 
+            // ReSharper disable once PossiblyMistakenUseOfParamsMethod
             var aggregateSagaManagerProps = Props.Create<TAggregateSagaManager>(sagaFactory);
 
             var shardRef = clusterSharding.Start(
@@ -146,3 +150,4 @@ namespace Akkatecture.Cluster.Core
         }
     }
 }
+#pragma warning restore AV1551

@@ -54,7 +54,7 @@ namespace Akkatecture.Jobs.Commands
         public override Schedule<TJob, TIdentity>? WithNextTriggerDate(DateTime utcDate)
         {
             var next = _expression.GetNextOccurrence(utcDate);
-            return next.HasValue ? new ScheduleCron<TJob, TIdentity>(JobId, Job, CronExpression, next.Value) : null;
+            return next is { } ? new ScheduleCron<TJob, TIdentity>(JobId, Job, CronExpression, next.Value) : null;
         }
 
         public override Schedule<TJob, TIdentity> WithAck(object? ack)

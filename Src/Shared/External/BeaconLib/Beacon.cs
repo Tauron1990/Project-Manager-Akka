@@ -83,7 +83,7 @@ namespace BeaconLib
 
             // Compare beacon type to probe type
             var typeBytes = Encode(Type);
-            if (HasPrefix(bytes, typeBytes))
+            if (HasPrefix(bytes, typeBytes.ToArray()))
             {
                 _log.Info("Responding Probe {Adress}", remote);
                 // If true, respond again with our type, port and payload
@@ -103,18 +103,21 @@ namespace BeaconLib
         internal static bool HasPrefix<T>(T[] haystack, T[] prefix)
         {
             return haystack.Length >= prefix.Length &&
-                   haystack.Zip(prefix, (a, b) => a != null && a.Equals(b)).All(_ => _);
+                   #pragma warning disable AV1706
+                   haystack.Zip(prefix, (a, b) => a != null && a.Equals(b)).Any();
+            #pragma warning restore AV1706
         }
 
         /// <summary>
         ///     Convert a string to network bytes
         /// </summary>
+        #pragma warning disable AV1130
         internal static byte[] Encode(string data)
         {
             var bytes = Encoding.UTF8.GetBytes(data);
-            var len = IPAddress.HostToNetworkOrder((short) bytes.Length);
+            var networkOrder = IPAddress.HostToNetworkOrder((short) bytes.Length);
 
-            return BitConverter.GetBytes(len).Concat(bytes).ToArray();
+            return BitConverter.GetBytes(networkOrder).Concat(bytes).ToArray();
         }
 
         /// <summary>

@@ -30,6 +30,6 @@ namespace BeaconLib
             return obj.GetType() == GetType() && Equals((BeaconLocation) obj);
         }
 
-        public override int GetHashCode() => Address != null ? Address.GetHashCode() : 0;
+        public override int GetHashCode() => Address.GetHashCode();
     }
 }

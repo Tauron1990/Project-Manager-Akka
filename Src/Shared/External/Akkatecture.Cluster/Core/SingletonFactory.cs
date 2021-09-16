@@ -27,9 +27,11 @@ using Akka.Actor;
 using Akka.Cluster.Tools.Singleton;
 using Akkatecture.Cluster.Dispatchers;
 using Akkatecture.Subscribers;
+using JetBrains.Annotations;
 
 namespace Akkatecture.Cluster.Core
 {
+    [PublicAPI]
     public static class SingletonFactory<TDomainEventSubscriber>
         where TDomainEventSubscriber : DomainEventSubscriber
     {

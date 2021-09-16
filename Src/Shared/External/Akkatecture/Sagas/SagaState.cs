@@ -38,9 +38,7 @@ namespace Akkatecture.Sagas
     {
         protected SagaState()
         {
-            var me = this as TMessageApplier;
-
-            if (me == null)
+            if (this is not TMessageApplier)
                 throw new InvalidOperationException(
                     $"MessageApplier of Type={GetType().PrettyPrint()} has a wrong generic argument Type={typeof(TMessageApplier).PrettyPrint()}.");
         }

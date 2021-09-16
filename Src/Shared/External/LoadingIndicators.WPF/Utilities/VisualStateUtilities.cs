@@ -1,40 +1,45 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Windows;
 
 namespace LoadingIndicators.WPF.Utilities
 {
+    #pragma warning disable AV1708
     internal static class VisualStateUtilities
+        #pragma warning restore AV1708
     {
-        public static IEnumerable<VisualStateGroup> GetActiveVisualStateGroups(this FrameworkElement element)
+        private static IEnumerable<VisualStateGroup>? GetActiveVisualStateGroups(this FrameworkElement element)
             => element.GetVisualStateGroupsByName(IndicatorVisualStateGroupNames.ActiveStates.Name);
 
-        public static IEnumerable<VisualState> GetActiveVisualStates(this FrameworkElement element) => element
-            .GetActiveVisualStateGroups().GetAllVisualStatesByName(IndicatorVisualStateNames.ActiveState.Name);
+        internal static IEnumerable<VisualState>? GetActiveVisualStates(this FrameworkElement element) 
+            => element.GetActiveVisualStateGroups()?.GetAllVisualStatesByName(IndicatorVisualStateNames.ActiveState.Name);
 
-        public static IEnumerable<VisualState> GetAllVisualStatesByName(
+        private static IEnumerable<VisualState> GetAllVisualStatesByName(
             this IEnumerable<VisualStateGroup> visualStateGroups, string name)
-        {
-            return visualStateGroups.SelectMany(vsg => vsg.GetVisualStatesByName(name));
-        }
+            => visualStateGroups.SelectMany(vsg => vsg.GetVisualStatesByName(name) ?? ImmutableArray<VisualState>.Empty);
 
-        public static IEnumerable<VisualState> GetVisualStatesByName(this VisualStateGroup visualStateGroup,
-            string name)
+        private static IEnumerable<VisualState>? GetVisualStatesByName(this VisualStateGroup? visualStateGroup,
+                                                                      string name)
         {
+            #pragma warning disable AV1135
             if (visualStateGroup is null) return null;
+            #pragma warning restore AV1135
 
             var visualStates = visualStateGroup.GetVisualStates();
 
             return string.IsNullOrWhiteSpace(name) ? visualStates : visualStates?.Where(vs => vs.Name == name);
         }
 
-        public static IEnumerable<VisualStateGroup> GetVisualStateGroupsByName(this FrameworkElement element,
-            string name)
+        private static IEnumerable<VisualStateGroup>? GetVisualStateGroupsByName(this FrameworkElement element,
+                                                                                 string name)
         {
             var groups = VisualStateManager.GetVisualStateGroups(element);
 
+            #pragma warning disable AV1135
             if (groups is null) return null;
+
 
             IEnumerable<VisualStateGroup> castedVisualStateGroups;
 
@@ -51,11 +56,15 @@ namespace LoadingIndicators.WPF.Utilities
             return string.IsNullOrWhiteSpace(name)
                 ? castedVisualStateGroups
                 : castedVisualStateGroups.Where(vsg => vsg.Name == name);
+            
+            #pragma warning restore AV1135
         }
 
-        public static IEnumerable<VisualState> GetVisualStates(this VisualStateGroup visualStateGroup)
+        private static IEnumerable<VisualState>? GetVisualStates(this VisualStateGroup? visualStateGroup)
         {
+            #pragma warning disable AV1135
             if (visualStateGroup is null) return null;
+            #pragma warning restore AV1135
 
             return visualStateGroup.States.Count == 0 ? null : visualStateGroup.States.Cast<VisualState>();
         }

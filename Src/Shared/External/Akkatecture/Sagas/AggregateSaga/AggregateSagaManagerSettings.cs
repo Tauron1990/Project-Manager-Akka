@@ -28,14 +28,14 @@ namespace Akkatecture.Sagas.AggregateSaga
 {
     public class AggregateSagaManagerSettings
     {
-        private static readonly string _section = "akkatecture.aggregate-saga-manager";
+        private const string Section = "akkatecture.aggregate-saga-manager";
         public readonly bool AutoSpawnOnReceive;
         public readonly bool AutoSubscribe;
 
         public AggregateSagaManagerSettings(Config config)
         {
             var aggregateSagaManagerConfig = config.WithFallback(AkkatectureDefaultSettings.DefaultConfig());
-            aggregateSagaManagerConfig = aggregateSagaManagerConfig.GetConfig(_section);
+            aggregateSagaManagerConfig = aggregateSagaManagerConfig.GetConfig(Section);
 
             AutoSpawnOnReceive = aggregateSagaManagerConfig.GetBoolean("auto-spawn-on-receive");
             AutoSubscribe = aggregateSagaManagerConfig.GetBoolean("auto-subscribe");

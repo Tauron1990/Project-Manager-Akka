@@ -26,10 +26,11 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
+using JetBrains.Annotations;
 
 namespace Akkatecture.Sagas
 {
-    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
+    [AttributeUsage(AttributeTargets.Class, Inherited = false), PublicAPI]
     public class SagaNameAttribute : Attribute
     {
         public SagaNameAttribute(string name)

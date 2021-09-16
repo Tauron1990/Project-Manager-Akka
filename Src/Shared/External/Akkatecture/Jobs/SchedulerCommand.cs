@@ -23,6 +23,8 @@
 
 using System;
 using Akkatecture.ValueObjects;
+using JetBrains.Annotations;
+// ReSharper disable UnusedTypeParameter
 
 namespace Akkatecture.Jobs
 {
@@ -32,11 +34,13 @@ namespace Akkatecture.Jobs
     {
     }
 
+    #pragma warning disable AV1507
     public abstract class SchedulerCommand<TJob, TIdentity> : SchedulerMessage<TJob, TIdentity>
+        #pragma warning restore AV1507
         where TJob : IJob
         where TIdentity : IJobId
     {
-        public SchedulerCommand(
+        protected SchedulerCommand(
             TIdentity jobId,
             object? ack = null,
             object? nack = null)

@@ -50,9 +50,9 @@ namespace Akkatecture.ValueObjects
         {
             var parameterType = ConstructorArgumenTypes.GetOrAdd(
                 objectType,
-                t =>
+                type =>
                 {
-                    var constructorInfo = objectType.GetTypeInfo()
+                    var constructorInfo = type.GetTypeInfo()
                         .GetConstructors(BindingFlags.Public | BindingFlags.Instance).Single();
                     var parameterInfo = constructorInfo.GetParameters().Single();
                     return parameterInfo.ParameterType;

@@ -35,7 +35,9 @@ using JetBrains.Annotations;
 namespace Akkatecture.ValueObjects
 {
     [PublicAPI]
+    #pragma warning disable GU0025
     public abstract class ValueObject
+        #pragma warning restore GU0025
     {
         private static readonly ConcurrentDictionary<Type, IReadOnlyCollection<PropertyInfo>> TypeProperties = new();
 
@@ -61,23 +63,19 @@ namespace Akkatecture.ValueObjects
         public static bool operator !=(ValueObject? left, ValueObject? right) => !Equals(left, right);
 
         public override string ToString()
-        {
-            return $"{{{string.Join(", ", GetProperties().Select(f => $"{f.Name}: {f.GetValue(this)}"))}}}";
-        }
+            => $"{{{string.Join(", ", GetProperties().Select(propertyInfo => $"{propertyInfo.Name}: {propertyInfo.GetValue(this)}"))}}}";
 
         protected virtual IEnumerable<object?> GetEqualityComponents()
-        {
-            return GetProperties().Select(x => x.GetValue(this));
-        }
+            => GetProperties().Select(propertyInfo => propertyInfo.GetValue(this));
 
         protected virtual IEnumerable<PropertyInfo> GetProperties()
         {
             return TypeProperties.GetOrAdd(
                 GetType(),
-                t => t
+                type => type
                     .GetTypeInfo()
                     .GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                    .OrderBy(p => p.Name)
+                    .OrderBy(info => info.Name)
                     .ToList());
         }
     }

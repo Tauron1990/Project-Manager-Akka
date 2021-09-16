@@ -32,6 +32,7 @@ using Akkatecture.Sagas.AggregateSaga;
 namespace Akkatecture.Cluster.Core
 {
     public class
+        // ReSharper disable once UnusedTypeParameter
         MessageExtractor<TAggregateSagaManager, TAggregateSaga, TIdentity, TSagaLocator> : HashCodeMessageExtractor
         where TAggregateSagaManager : IAggregateSagaManager<TAggregateSaga, TIdentity, TSagaLocator>
         where TAggregateSaga : IAggregateSaga<TIdentity>

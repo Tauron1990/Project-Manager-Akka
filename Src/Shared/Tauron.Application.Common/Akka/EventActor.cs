@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using Akka.Actor;
@@ -11,24 +12,38 @@ namespace Tauron.Akka
     [PublicAPI]
     public sealed class EventActor : UntypedActor
     {
-        private readonly bool _killOnFirstRespond;
+        private bool _killOnFirstRespond;
         private readonly ILoggingAdapter _log = Context.GetLogger();
 
         private readonly Dictionary<Type, Delegate?> _registrations = new();
 
-        public EventActor(bool killOnFirstRespond) => _killOnFirstRespond = killOnFirstRespond;
+        private EventActor(bool killOnFirstRespond) => _killOnFirstRespond = killOnFirstRespond;
 
         public static IEventActor From(IActorRef actorRef) => new HookEventActor(actorRef);
 
-        public static IEventActor Create(IActorRefFactory system, string? name, bool killOnFirstResponse = false)
+        public static IEventActor Create(IActorRefFactory system, string? name)
+            => Create<Unit>(system, null, name, killOnFirstResponse: falgse);
+        
+        public static IEventActor SelfKillingCreate(IActorRefFactory system, string? name)
         {
-            return new HookEventActor(system.ActorOf(Props.Create(() => new EventActor(killOnFirstResponse)), name));
+            return new HookEventActor(system.ActorOf(Props.Create(() => new EventActor(false)), name));
+        }
+        
+        public static IEventActor Create<TPayload>(IActorRefFactory system, Action<TPayload>? handler, string? name)
+        {
+            return new HookEventActor(system.ActorOf(Props.Create(() => new EventActor(false)), name));
+        }
+        
+        public static IEventActor SelfKillingCreate<TPayload>(IActorRefFactory system, Action<TPayload>? handler, string? name)
+        {
+            return new HookEventActor(system.ActorOf(Props.Create(() => new EventActor(false)), name));
         }
 
-        public static IEventActor Create<TPayload>(IActorRefFactory system, Action<TPayload> handler, bool killOnFirstResponse = false)
+        private static IEventActor Create<TPayload>(IActorRefFactory system, Action<TPayload>? handler, string? name, bool killOnFirstResponse)
         {
-            var temp = Create(system, null, killOnFirstResponse);
-            temp.Register(HookEvent.Create(handler));
+            var temp = new HookEventActor(system.ActorOf(Props.Create(() => new EventActor(false)), name));
+            if(handler is not null)
+                temp.Register(HookEvent.Create(handler)).Ignore();
             return temp;
         }
 

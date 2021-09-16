@@ -29,7 +29,7 @@ namespace LoadingIndicators.WPF.Styles
                 var key = (object) resourceKey;
                 if (resourceKey == ".")
                 {
-                    var service = (IProvideValueTarget) serviceProvider.GetService(typeof(IProvideValueTarget));
+                    var service = serviceProvider.GetService(typeof(IProvideValueTarget)) as IProvideValueTarget;
                     key = service?.TargetObject.GetType();
                 }
 
@@ -45,24 +45,24 @@ namespace LoadingIndicators.WPF.Styles
 
     internal static class StyleExtensions
     {
-        public static void Merge(this Style style1, Style style2)
+        internal static void Merge(this Style mergeIn, Style toMerge)
         {
-            if (style1 == null) throw new ArgumentNullException(nameof(style1));
+            if (mergeIn is null) throw new ArgumentNullException(nameof(mergeIn));
 
-            if (style2 == null) throw new ArgumentNullException(nameof(style2));
+            if (toMerge is null) throw new ArgumentNullException(nameof(toMerge));
 
-            if (style1.TargetType.IsAssignableFrom(style2.TargetType)) style1.TargetType = style2.TargetType;
+            if (mergeIn.TargetType.IsAssignableFrom(toMerge.TargetType)) mergeIn.TargetType = toMerge.TargetType;
 
-            if (style2.BasedOn != null) Merge(style1, style2.BasedOn);
+            if (toMerge.BasedOn != null) Merge(mergeIn, toMerge.BasedOn);
 
-            foreach (var currentSetter in style2.Setters)
-                style1.Setters.Add(currentSetter);
-            foreach (var currentTrigger in style2.Triggers)
-                style1.Triggers.Add(currentTrigger);
+            foreach (var currentSetter in toMerge.Setters)
+                mergeIn.Setters.Add(currentSetter);
+            foreach (var currentTrigger in toMerge.Triggers)
+                mergeIn.Triggers.Add(currentTrigger);
 
             // This code is only needed when using DynamicResources.
-            foreach (var key in style2.Resources.Keys)
-                style1.Resources[key] = style2.Resources[key];
+            foreach (var key in toMerge.Resources.Keys)
+                mergeIn.Resources[key] = toMerge.Resources[key];
         }
     }
 }

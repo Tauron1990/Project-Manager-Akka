@@ -92,7 +92,9 @@ namespace Akkatecture.Sagas.AggregateSaga
                 try
                 {
                     State = (TSagaState) (FastReflection.Shared.FastCreateInstance(typeof(TSagaState)) ??
+                                          #pragma warning disable EX006
                                           throw new InvalidOperationException("Saga State Creation Failed"));
+                    #pragma warning restore EX006
                 }
                 catch (Exception exception)
                 {
@@ -142,7 +144,7 @@ namespace Akkatecture.Sagas.AggregateSaga
 
         public bool HasSourceId(ISourceId sourceId)
         {
-            return !sourceId.IsNone() && _previousSourceIds.Any(s => s.Value == sourceId.Value);
+            return !sourceId.IsNone() && _previousSourceIds.Any(id => id.Value == sourceId.Value);
         }
 
         public IIdentity GetIdentity() => Id;
@@ -411,8 +413,8 @@ namespace Akkatecture.Sagas.AggregateSaga
             {
                 var method = GetType()
                     .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                    .Where(m => m.IsFamily || m.IsPublic)
-                    .Single(m => m.Name.Equals("ApplyCommittedEvent"));
+                    .Where(info => info.IsFamily || info.IsPublic)
+                    .Single(info => info.Name.Equals("ApplyCommittedEvent"));
 
                 var genericMethod = method.MakeGenericMethod(committedEvent.GetType().GenericTypeArguments[2]);
 
@@ -466,7 +468,7 @@ namespace Akkatecture.Sagas.AggregateSaga
             return null;
         }
 
-        public void RequestTimeout<TTimeout>(TTimeout timeoutMessage, TimeSpan timeSpan)
+        public virtual void RequestTimeout<TTimeout>(TTimeout timeoutMessage, TimeSpan timeSpan)
             where TTimeout : class, ISagaTimeoutJob
         {
             var timeoutMessageType = timeoutMessage.GetType();
@@ -479,7 +481,9 @@ namespace Akkatecture.Sagas.AggregateSaga
             manager.Tell(scheduledMessage);
         }
 
+        #pragma warning disable AV1551
         public void RequestTimeout<TTimeout>(TimeSpan timeSpan) where TTimeout : class, ISagaTimeoutJob, new()
+        #pragma warning restore AV1551
         {
             RequestTimeout(new TTimeout(), timeSpan);
         }
@@ -540,8 +544,10 @@ namespace Akkatecture.Sagas.AggregateSaga
             var eventType = aggregateEvent.GetType();
 
             if (!ApplyMethodsFromState.TryGetValue(eventType, out var applyMethod))
+                #pragma warning disable GU0090
                 throw new NotImplementedException(
                     $"SagaState of Type={State?.GetType().PrettyPrint()} does not have an 'Apply' method that takes in an aggregate event of Type={eventType.PrettyPrint()} as an argument.");
+            #pragma warning restore GU0090
 
             var aggregateApplyMethod = applyMethod.Bind(State);
 
@@ -620,8 +626,10 @@ namespace Akkatecture.Sagas.AggregateSaga
             var snapshotType = aggregateEvent.GetType();
 
             if (!HydrateMethodsFromState.TryGetValue(snapshotType, out var hydrateMethod))
+                #pragma warning disable GU0090
                 throw new NotImplementedException(
                     $"SagaState of Type={State?.GetType().PrettyPrint()} does not have a 'Hydrate' method that takes in an aggregate snapshot of Type={snapshotType.PrettyPrint()} as an argument.");
+            #pragma warning restore GU0090
 
             var snapshotHydrateMethod = hydrateMethod.Bind(State);
 

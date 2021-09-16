@@ -41,7 +41,7 @@ namespace Akkatecture.Specifications.Provided
             int requiredSpecifications,
             IEnumerable<ISpecification<T>> specifications)
         {
-            var specificationList = (specifications ?? Enumerable.Empty<ISpecification<T>>()).ToList();
+            var specificationList = specifications.ToList();
 
             if (requiredSpecifications <= 0)
                 throw new ArgumentOutOfRangeException(nameof(requiredSpecifications));
@@ -58,13 +58,13 @@ namespace Akkatecture.Specifications.Provided
         protected override IEnumerable<string> IsNotSatisfiedBecause(T aggregate)
         {
             var notStatisfiedReasons = _specifications
-                .Select(s => new
-                {
-                    Specification = s,
-                    WhyIsNotStatisfied = s.WhyIsNotSatisfiedBy(aggregate).ToList()
-                })
-                .Where(a => a.WhyIsNotStatisfied.Any())
-                .Select(a => $"{a.Specification.GetType().PrettyPrint()}: {string.Join(", ", a.WhyIsNotStatisfied)}")
+                .Select(specification => 
+                (
+                    Specification: specification,
+                    WhyIsNotStatisfied: specification.WhyIsNotSatisfiedBy(aggregate).ToList()
+                ))
+                .Where(pair => pair.WhyIsNotStatisfied.Any())
+                .Select(pair => $"{pair.Specification.GetType().PrettyPrint()}: {string.Join(", ", pair.WhyIsNotStatisfied)}")
                 .ToList();
 
             return _specifications.Count - notStatisfiedReasons.Count >= _requiredSpecifications

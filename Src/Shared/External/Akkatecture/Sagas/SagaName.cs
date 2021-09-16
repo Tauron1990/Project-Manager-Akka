@@ -26,9 +26,11 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using Akkatecture.ValueObjects;
+using JetBrains.Annotations;
 
 namespace Akkatecture.Sagas
 {
+    [PublicAPI]
     public class SagaName : SingleValueObject<string>, ISagaName
     {
         public SagaName(string value)

@@ -23,9 +23,11 @@
 
 using System.Collections.Immutable;
 using Akkatecture.Jobs.Commands;
+using JetBrains.Annotations;
 
 namespace Akkatecture.Jobs
 {
+    [PublicAPI]
     public class SchedulerState<TJob, TIdentity>
         where TJob : IJob
         where TIdentity : IJobId

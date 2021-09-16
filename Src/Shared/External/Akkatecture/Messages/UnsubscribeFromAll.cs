@@ -1,7 +1,7 @@
 namespace Akkatecture.Messages
 {
-    public class UnsubscribeFromAll
+    public sealed class UnsubscribeFromAll
     {
-        public static UnsubscribeFromAll Instance = new();
+        public static readonly UnsubscribeFromAll Instance = new();
     }
 }

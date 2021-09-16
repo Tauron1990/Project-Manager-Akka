@@ -73,10 +73,10 @@ namespace Akkatecture.Query
 
             return Journal
                 .EventsByTag(aggregateName.Value, offset)
-                .Select(x =>
+                .Select(envelope =>
                 {
-                    var domainEvent = mapper.FromJournal(x.Event, string.Empty).Events.Single();
-                    return new EventEnvelope(x.Offset, x.PersistenceId, x.SequenceNr, domainEvent, x.Timestamp);
+                    var domainEvent = mapper.FromJournal(envelope.Event, string.Empty).Events.Single();
+                    return new EventEnvelope(envelope.Offset, envelope.PersistenceId, envelope.SequenceNr, domainEvent, envelope.Timestamp);
                 });
         }
 
@@ -88,10 +88,10 @@ namespace Akkatecture.Query
 
             return Journal
                 .EventsByTag(aggregateName.Value, offset)
-                .Select(x =>
+                .Select(envelope =>
                 {
-                    var domainEvent = mapper.FromJournal(x.Event, string.Empty).Events.Single();
-                    return new EventEnvelope(x.Offset, x.PersistenceId, x.SequenceNr, domainEvent, x.Timestamp);
+                    var domainEvent = mapper.FromJournal(envelope.Event, string.Empty).Events.Single();
+                    return new EventEnvelope(envelope.Offset, envelope.PersistenceId, envelope.SequenceNr, domainEvent, envelope.Timestamp);
                 });
         }
     }

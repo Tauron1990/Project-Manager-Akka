@@ -33,20 +33,22 @@ namespace Tauron.Akka
 
         public int CompareTo(object? obj) => Actor.CompareTo(obj);
 
+        #pragma warning disable AV1551
         public virtual void Init(string? name = null)
+            #pragma warning restore AV1551
         {
             CheckIsInit();
-            Actor = _builder.Create(IsSync, name);
+            Actor = IsSync ? _builder.CreateSync(name) : _builder.Create(name);
             IsInitialized = true;
-            Initialized?.Invoke();
+            OnInitialized();
         }
 
         public virtual void Init(IActorRefFactory factory, string? name = null)
         {
             CheckIsInit();
-            Actor = factory.ActorOf(_builder.CreateProps(IsSync), name);
+            Actor = factory.ActorOf(IsSync ? _builder.CreateSyncProps() : _builder.CreateProps(), name);
             IsInitialized = true;
-            Initialized?.Invoke();
+            OnInitialized();
         }
 
         protected void ResetInternal()
@@ -61,5 +63,8 @@ namespace Tauron.Akka
             if (IsInitialized)
                 throw new InvalidOperationException("ActorRef is Init");
         }
+
+        protected virtual void OnInitialized()
+            => Initialized?.Invoke();
     }
 }

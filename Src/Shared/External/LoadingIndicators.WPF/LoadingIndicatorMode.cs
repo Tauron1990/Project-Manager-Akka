@@ -1,6 +1,4 @@
 ﻿using System.ComponentModel;
-using System.Linq;
-using System.Reflection;
 
 namespace LoadingIndicators.WPF
 {
@@ -32,13 +30,13 @@ namespace LoadingIndicators.WPF
     }
 
 
-    internal static class LoadingIndicatorModeUtility
-    {
-        public static string GetDescription(this LoadingIndicatorMode value) => value
-            .GetType()
-            .GetMember(value.ToString())
-            .FirstOrDefault()
-            ?.GetCustomAttribute<DescriptionAttribute>()
-            ?.Description;
-    }
+    // internal static class LoadingIndicatorModeUtility
+    // {
+    //     public static string GetDescription(this LoadingIndicatorMode value) => value
+    //         .GetType()
+    //         .GetMember(value.ToString())
+    //         .FirstOrDefault()
+    //         ?.GetCustomAttribute<DescriptionAttribute>()
+    //         ?.Description;
+    // }
 }
