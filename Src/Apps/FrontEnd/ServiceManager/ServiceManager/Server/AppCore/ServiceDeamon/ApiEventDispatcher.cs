@@ -14,7 +14,7 @@ using Tauron.Features;
 
 namespace ServiceManager.Server.AppCore.ServiceDeamon
 {
-    public sealed class ConfigEventDispatcher : SharedEvent<IConfigEvent> { }
+    public sealed class ConfigEventDispatcher : AggregateEvent<IConfigEvent> { }
 
     public sealed class ConfigApiEventDispatcherRef : EventDispatcherRef
     {

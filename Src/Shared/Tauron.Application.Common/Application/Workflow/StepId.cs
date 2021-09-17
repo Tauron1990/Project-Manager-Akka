@@ -21,26 +21,18 @@ namespace Tauron.Application.Workflow
         [DebuggerStepThrough]
         public override int GetHashCode() => Name.GetHashCode();
 
-        public StepId([NotNull] string name) : this()
-        {
-            Argument.NotNull(name, nameof(name));
-            Name = name;
-        }
+        public StepId(string name) : this()
+            => Name = name;
 
-        [NotNull] public string Name { get; }
+        public string Name { get; }
 
         [DebuggerStepThrough]
         public override bool Equals(object? obj)
-        {
-            if (obj is null) return false;
-            if (!(obj is StepId)) return false;
+            => obj is StepId stepId && stepId.Name == Name;
 
-            return ((StepId) obj).Name == Name;
-        }
+        public static bool operator ==(StepId idLeft, StepId idRight) => idLeft.Name == idRight.Name;
 
-        public static bool operator ==(StepId id1, StepId id2) => id1.Name == id2.Name;
-
-        public static bool operator !=(StepId id1, StepId id2) => id1.Name != id2.Name;
+        public static bool operator !=(StepId idLeft, StepId idRight) => idLeft.Name != idRight.Name;
 
         [DebuggerStepThrough]
         public override string ToString() => Name;

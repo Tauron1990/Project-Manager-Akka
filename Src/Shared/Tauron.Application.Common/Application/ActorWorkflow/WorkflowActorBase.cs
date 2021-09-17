@@ -12,7 +12,7 @@ namespace Tauron.Application.ActorWorkflow
     public abstract class LambdaWorkflowActor<TContext> : WorkflowActorBase<LambdaStep<TContext>, TContext>
         where TContext : IWorkflowContext
     {
-        protected void WhenStep(StepId id, Action<LambdaStepConfiguration<TContext>> config,
+        protected virtual void WhenStep(StepId id, Action<LambdaStepConfiguration<TContext>> config,
             Action<StepConfiguration<LambdaStep<TContext>, TContext>>? con = null)
         {
             var stepConfig = new LambdaStepConfiguration<TContext>();
@@ -64,7 +64,7 @@ namespace Tauron.Application.ActorWorkflow
                 if (msg is TimeoutMarker)
                 {
                     _errorMessage = "Timeout";
-                    Finish(false);
+                    Finish(isok: false);
                     return true;
                 }
 
@@ -123,7 +123,7 @@ namespace Tauron.Application.ActorWorkflow
                         var id = chain.Id;
                         if (id == StepId.Fail)
                         {
-                            Finish(false);
+                            Finish(isok: false);
                             return true;
                         }
 
@@ -131,7 +131,7 @@ namespace Tauron.Application.ActorWorkflow
                         {
                             Log.Warning("No Step Found {Id}", id.Name);
                             _errorMessage = id.Name;
-                            Finish(false);
+                            Finish(isok: false);
                             return true;
                         }
 
@@ -141,17 +141,17 @@ namespace Tauron.Application.ActorWorkflow
                         {
                             case "Fail":
                                 _errorMessage = rev.Step.ErrorMessage;
-                                Finish(false);
+                                Finish(isok: false);
                                 break;
                             case "None":
-                                ProgressConditions(rev, true, chain);
+                                ProgressConditions(rev, finish: true, chain);
                                 return true;
                             case "Loop":
                                 Self.Forward(new LoopElement(rev, chain));
                                 return true;
                             case "Finish":
                             case "Skip":
-                                Finish(true, rev);
+                                Finish(isok: true, rev);
                                 break;
                             case "Waiting":
                                 _waiting = true;
@@ -169,33 +169,33 @@ namespace Tauron.Application.ActorWorkflow
 
                         return true;
                     }
-                    case LoopElement loop:
+                    case LoopElement(var stepRev, var chainCall):
                     {
-                        var loopId = loop.Rev.Step.NextElement(RunContext);
+                        var loopId = stepRev.Step.NextElement(RunContext);
                         if (loopId != StepId.LoopEnd)
-                            Self.Forward(new LoopElement(loop.Rev, loop.Call));
+                            Self.Forward(new LoopElement(stepRev, chainCall));
 
                         if (loopId == StepId.LoopContinue)
                             return true;
 
                         if (loopId.Name == StepId.Fail.Name)
                         {
-                            Finish(false);
+                            Finish(isok: false);
                             return true;
                         }
 
-                        ProgressConditions(loop.Rev, baseCall: loop.Call);
+                        ProgressConditions(stepRev, baseCall: chainCall);
                         return true;
                     }
                     default:
                         return false;
                 }
             }
-            catch (Exception e)
+            catch (Exception exception)
             {
-                Log.Error(e, "Exception While Processing Workflow");
-                _errorMessage = e.Message;
-                Finish(false);
+                Log.Error(exception, "Exception While Processing Workflow");
+                _errorMessage = exception.Message;
+                Finish(isok: false);
                 return true;
             }
         }
@@ -213,10 +213,10 @@ namespace Tauron.Application.ActorWorkflow
                 return;
             }
 
-            if (rev.GenericCondition == null)
+            if (rev.GenericCondition is null)
             {
                 if (finish)
-                    Finish(false);
+                    Finish(isok: false);
             }
             else
             {
@@ -270,14 +270,14 @@ namespace Tauron.Application.ActorWorkflow
                 Position = position;
             }
 
-            public ChainCall(StepId id, ChainCall? baseCall = null)
+            internal ChainCall(StepId id, ChainCall? baseCall = null)
             {
                 BaseCall = baseCall;
                 StepIds = new[] {id};
                 Position = 0;
             }
 
-            public ChainCall(StepId[] ids)
+            internal ChainCall(StepId[] ids)
             {
                 StepIds = ids;
                 Position = 0;
@@ -289,16 +289,16 @@ namespace Tauron.Application.ActorWorkflow
 
             private int Position { get; }
 
-            public StepId Id => Position >= StepIds.Length ? BaseCall?.Id ?? StepId.Fail : StepIds[Position];
+            internal StepId Id => Position >= StepIds.Length ? BaseCall?.Id ?? StepId.Fail : StepIds[Position];
 
-            public ChainCall Next()
+            internal ChainCall Next()
             {
                 var newPos = Position + 1;
                 if (newPos == StepIds.Length && BaseCall != null) return BaseCall.Next();
                 return new ChainCall(StepIds, newPos);
             }
 
-            public ChainCall WithBase(ChainCall? call)
+            internal ChainCall WithBase(ChainCall? call)
             {
                 if (call == null) return this;
 

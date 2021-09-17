@@ -13,21 +13,25 @@ namespace Tauron.Application
         private static readonly Dictionary<Assembly, ResourceManager> Resources = new();
 
         public static void Register(ResourceManager manager, Assembly key) 
-            => Resources[Argument.NotNull(key, nameof(key))] = Argument.NotNull(manager, nameof(manager));
+            => Resources[key] = manager;
 
         public static void Remove(Assembly key) 
             => Resources.Remove(key);
 
-        public static Option<string> FindResource(string name, Assembly? key, bool searchEverywere = true)
-        {
-            Argument.NotNull(name, nameof(name));
+        public static Option<string> FindResource(string name, Assembly? key)
+            => FindResourceImpl(name, key, key is null);
 
+        public static Option<string> FindResource(string name)
+            => FindResource(name, null);
+        
+        private static Option<string> FindResourceImpl(string name, Assembly? key, bool searchEverywere = true)
+        {
             if (key != null && Resources.TryGetValue(key, out var rm))
                 return rm.GetString(name).OptionNotNull();
 
             return searchEverywere
                 ? Resources.Select(rm2 => rm2.Value.GetString(name))
-                    .FirstOrDefault(str => !string.IsNullOrWhiteSpace(str)).OptionNotNull()
+                    .FirstOrDefault(value => !string.IsNullOrWhiteSpace(value)).OptionNotNull()
                 : Option<string>.None;
         }
     }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using JetBrains.Annotations;
@@ -15,8 +16,6 @@ namespace Tauron.Application
 
         public WeakDelegate(Delegate @delegate)
         {
-            Argument.NotNull(@delegate, nameof(@delegate));
-
             _method = @delegate.Method;
 
             if (!_method.IsStatic) _reference = new WeakReference(@delegate.Target);
@@ -24,8 +23,8 @@ namespace Tauron.Application
 
         public WeakDelegate(MethodInfo methodInfo, object target)
         {
-            _method = Argument.NotNull(methodInfo, nameof(methodInfo));
-            _reference = new WeakReference(Argument.NotNull(target, nameof(target)));
+            _method = methodInfo;
+            _reference = new WeakReference(target);
         }
 
         public bool Equals(WeakDelegate? other)
@@ -86,21 +85,21 @@ namespace Tauron.Application
     [PublicAPI]
     public static class WeakCleanUp
     {
-        public const string WeakCleanUpExceptionPolicy = "WeakCleanUpExceptionPolicy";
+        public const string ExceptionPolicy = "WeakCleanUpExceptionPolicy";
 
-        private static readonly List<WeakDelegate> Actions = Initialize();
+        private static readonly IList<WeakDelegate> Actions = Initialize();
 
         #pragma warning disable IDE0052 // Ungelesene private Member entfernen
         private static Timer? _timer;
         #pragma warning restore IDE0052 // Ungelesene private Member entfernen
 
-        public static void RegisterAction([NotNull] Action action)
+        public static void RegisterAction(Action action)
         {
             lock (Actions) 
-                Actions.Add(new WeakDelegate(Argument.NotNull(action, nameof(action))));
+                Actions.Add(new WeakDelegate(action));
         }
 
-        private static List<WeakDelegate> Initialize()
+        private static IList<WeakDelegate> Initialize()
         {
             _timer = new Timer(InvokeCleanUp, null, TimeSpan.Zero, TimeSpan.FromMinutes(15));
             return new List<WeakDelegate>();
@@ -112,16 +111,22 @@ namespace Tauron.Application
             {
                 var dead = new List<WeakDelegate>();
                 foreach (var weakDelegate in Actions.ToArray())
+                {
                     if (weakDelegate.IsAlive)
+                    {
                         try
                         {
+                            #pragma warning disable GU0011
                             weakDelegate.Invoke();
+                            #pragma warning restore GU0011
                         }
                         catch (ApplicationException)
                         {
                         }
+                    }
                     else
                         dead.Add(weakDelegate);
+                }
 
                 dead.ForEach(del => Actions.Remove(del));
             }

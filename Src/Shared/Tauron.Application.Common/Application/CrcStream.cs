@@ -15,16 +15,18 @@ namespace Tauron.Application
         {
             const uint poly = 0xedb88320;
             _table = new uint[256];
-            for (uint i = 0; i < _table.Length; ++i)
+            for (uint tableIndex = 0; tableIndex < _table.Length; ++tableIndex)
             {
-                var temp = i;
-                for (var j = 8; j > 0; --j)
+                var temp = tableIndex;
+                for (var calc = 8; calc > 0; --calc)
+                {
                     if ((temp & 1) == 1)
                         temp = (temp >> 1) ^ poly;
                     else
                         temp >>= 1;
+                }
 
-                _table[i] = temp;
+                _table[tableIndex] = temp;
             }
         }
 
@@ -32,16 +34,18 @@ namespace Tauron.Application
         public uint ComputeChecksum(byte[] bytes, int count)
         {
             var crc = 0xffffffff;
-            foreach (var t in bytes.Take(count))
+            foreach (var deta in bytes.Take(count))
             {
-                var index = (byte) ((crc & 0xff) ^ t);
+                var index = (byte) ((crc & 0xff) ^ deta);
                 crc = (crc >> 8) ^ _table[index];
             }
 
             return ~crc;
         }
 
+        #pragma warning disable AV1130
         public byte[] ComputeChecksumBytes(byte[] bytes, int count)
+            #pragma warning restore AV1130
             => BitConverter.GetBytes(ComputeChecksum(bytes, count));
     }
 
@@ -51,7 +55,7 @@ namespace Tauron.Application
     [PublicAPI]
     public class CrcStream : Stream
     {
-        private static readonly uint[] _table = GenerateTable();
+        private static readonly uint[] Table = GenerateTable();
 
         private uint _readCrc = 0xFFFFFFFF;
 
@@ -123,30 +127,36 @@ namespace Tauron.Application
         {
             unchecked
             {
-                for (int i = offset, end = offset + count; i < end; i++)
-                    crc = (crc >> 8) ^ _table[(crc ^ buffer[i]) & 0xFF];
+                #pragma warning disable AV1522
+                for (int index = offset, end = offset + count; index < end; index++)
+                    #pragma warning restore AV1522
+                    crc = (crc >> 8) ^ Table[(crc ^ buffer[index]) & 0xFF];
             }
 
             return crc;
         }
 
+        #pragma warning disable AV1130
         private static uint[] GenerateTable()
+            #pragma warning restore AV1130
         {
             unchecked
             {
                 uint[] table = new uint[256];
 
                 const uint poly = 0xEDB88320;
-                for (uint i = 0; i < table.Length; i++)
+                for (uint tableIndex = 0; tableIndex < table.Length; tableIndex++)
                 {
-                    var crc = i;
-                    for (var j = 8; j > 0; j--)
+                    var crc = tableIndex;
+                    for (var calc = 8; calc > 0; calc--)
+                    {
                         if ((crc & 1) == 1)
                             crc = (crc >> 1) ^ poly;
                         else
                             crc >>= 1;
+                    }
 
-                    table[i] = crc;
+                    table[tableIndex] = crc;
                 }
 
                 return table;

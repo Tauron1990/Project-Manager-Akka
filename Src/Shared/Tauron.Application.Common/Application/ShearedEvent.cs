@@ -8,7 +8,7 @@ using JetBrains.Annotations;
 namespace Tauron.Application
 {
     [PublicAPI]
-    public class SharedEvent<TPayload> : IDisposable
+    public class AggregateEvent<TPayload> : IDisposable
     {
         private Subject<TPayload>? _handlerList = new();
 
@@ -30,7 +30,7 @@ namespace Tauron.Application
     [PublicAPI]
     public interface IEventAggregator
     {
-        TEventType GetEvent<TEventType, TPayload>() where TEventType : SharedEvent<TPayload>, new();
+        TEventType GetEvent<TEventType, TPayload>() where TEventType : AggregateEvent<TPayload>, new();
     }
 
     [PublicAPI]
@@ -38,17 +38,17 @@ namespace Tauron.Application
     {
         private readonly Dictionary<Type, IDisposable> _events = new();
 
-        public TEventType GetEvent<TEventType, TPayload>() where TEventType : SharedEvent<TPayload>, new()
+        public TEventType GetEvent<TEventType, TPayload>() where TEventType : AggregateEvent<TPayload>, new()
         {
-            var t = typeof(TEventType);
-            if (!_events.ContainsKey(t)) _events[t] = new TEventType();
+            var eventType = typeof(TEventType);
+            if (!_events.ContainsKey(eventType)) _events[eventType] = new TEventType();
 
-            return (TEventType) _events[t];
+            return (TEventType) _events[eventType];
         }
 
         public void Dispose()
         {
-            _events.Values.Foreach(d => d.Dispose());
+            _events.Values.Foreach(disposable => disposable.Dispose());
             _events.Clear();
         }
     }

@@ -67,10 +67,10 @@ namespace ServiceManager.Client
             => PublishMessage(aggregator, new SnackbarNormalMessage(message));
 
         public static void PublishMessage(this IEventAggregator aggregator, SnackbarMessage message)
-            => aggregator.GetEvent<SharedEvent<SnackbarMessage>, SnackbarMessage>().Publish(message);
+            => aggregator.GetEvent<AggregateEvent<SnackbarMessage>, SnackbarMessage>().Publish(message);
 
         public static IObservable<SnackbarMessage> ConsumeMessages(this IEventAggregator aggregator)
-            => aggregator.GetEvent<SharedEvent<SnackbarMessage>, SnackbarMessage>().Get();
+            => aggregator.GetEvent<AggregateEvent<SnackbarMessage>, SnackbarMessage>().Get();
 
         public static async Task<TResult?> PostJson<TData, TResult>(this HttpClient client, string url, TData data)
         {

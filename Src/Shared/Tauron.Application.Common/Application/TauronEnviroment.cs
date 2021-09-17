@@ -27,13 +27,11 @@ namespace Tauron.Application
         public string LocalApplicationTempFolder { get; }
 
         public IEnumerable<string> GetProfiles(string application)
-        {
-            return TauronEnviroment.DefaultProfilePath.CombinePath(application)
-                                   .EnumerateDirectorys()
-                                   .Select(ent => ent.Split('\\').Last());
-        }
+            => TauronEnviroment.DefaultProfilePath.CombinePath(application)
+                               .EnumerateDirectorys()
+                               .Select(ent => ent.Split('\\').Last());
 
-        public TauronEnviromentImpl()
+        internal TauronEnviromentImpl()
         {
             LocalApplicationData = TauronEnviroment.LocalApplicationData;
             LocalApplicationTempFolder = TauronEnviroment.LocalApplicationTempFolder;
@@ -48,7 +46,9 @@ namespace Tauron.Application
         internal static Lazy<string> DefaultPath = new(() =>
                                                       {
                                                           var defaultPath = LocalApplicationData;
+                                                          #pragma warning disable GU0011
                                                           defaultPath.CreateDirectoryIfNotExis();
+                                                          #pragma warning restore GU0011
                                                           return defaultPath;
                                                       }, LazyThreadSafetyMode.ExecutionAndPublication);
 

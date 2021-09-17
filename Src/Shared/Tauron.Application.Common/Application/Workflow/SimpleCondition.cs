@@ -14,11 +14,11 @@ namespace Tauron.Application.Workflow
 
         public StepId Select(IStep<TContext> lastStep, TContext context)
         {
-            if (Guard == null || Guard(context, lastStep)) return Target;
+            if (Guard is null || Guard(context, lastStep)) return Target;
 
             return StepId.None;
         }
 
-        public override string ToString() => "Target: " + Target;
+        public override string ToString() => $"Target: {Target}";
     }
 }

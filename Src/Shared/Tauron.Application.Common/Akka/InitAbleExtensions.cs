@@ -12,13 +12,9 @@ namespace Tauron.Akka
             => model.Actor.Ask<TResult>(message, timeout);
 
         public static void Tell(this IInitableActorRef model, object msg)
-        {
-            model.Actor.Tell(msg, ActorRefs.NoSender);
-        }
+            => Tell(model, msg, ActorRefs.NoSender);
 
         public static void Tell(this IInitableActorRef model, object msg, IActorRef sender)
-        {
-            model.Actor.Tell(msg, sender);
-        }
+            => model.Actor.Tell(msg, sender);
     }
 }

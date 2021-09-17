@@ -16,7 +16,7 @@ namespace Tauron.Application
             if (target != null)
                 TargetObject = new WeakReference(target);
 
-            MethodInfo = Argument.NotNull(method, nameof(method));
+            MethodInfo = method;
             _parames = new[] {parameterType};
 
             //_delegateType = parameterType == null
@@ -28,7 +28,7 @@ namespace Tauron.Application
 
         public WeakAction(object? target, MethodInfo method)
         {
-            MethodInfo = Argument.NotNull(method, nameof(method));
+            MethodInfo = method;
             if (target != null)
                 TargetObject = new WeakReference(target);
 
@@ -59,7 +59,7 @@ namespace Tauron.Application
             {
                 var value = TargetObject?.Target?.GetHashCode();
 
-                return ((MethodInfo != null ? MethodInfo.GetHashCode() : 0) * 397) ^ (value == null ? 0 : value.Value);
+                return (MethodInfo.GetHashCode() * 397) ^ (value is null ? 0 : value.Value);
             }
         }
 
@@ -122,10 +122,8 @@ namespace Tauron.Application
             }
         }
 
-        [NotNull]
-        public WeakActionEvent<T> Add([NotNull] Action<T> handler)
+        public WeakActionEvent<T> Add(Action<T> handler)
         {
-            Argument.NotNull(handler, nameof(handler));
             var parameters = handler.Method.GetParameters();
 
             lock (_lock)
@@ -157,10 +155,8 @@ namespace Tauron.Application
             }
         }
 
-        [NotNull]
-        public WeakActionEvent<T> Remove([NotNull] Action<T> handler)
+        public WeakActionEvent<T> Remove(Action<T> handler)
         {
-            Argument.NotNull(handler, nameof(handler));
             lock (_lock)
             {
                 foreach (var del in _delegates.Where(del

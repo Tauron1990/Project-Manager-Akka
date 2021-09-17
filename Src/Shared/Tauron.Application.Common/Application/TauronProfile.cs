@@ -22,11 +22,11 @@ namespace Tauron.Application
 
         protected TauronProfile(string application, string defaultPath)
         {
-            Application = Argument.NotNull(application, nameof(application));
-            _defaultPath = Argument.NotNull(defaultPath, nameof(defaultPath));
+            Application = application;
+            _defaultPath = defaultPath;
         }
 
-        public virtual string this[[NotNull] string key]
+        public virtual string this[string key]
         {
             get => _settings[key];
 
@@ -48,9 +48,7 @@ namespace Tauron.Application
         protected Option<string> FilePath { get; private set; }
 
         public IEnumerator<string> GetEnumerator()
-        {
-            return _settings.Select(k => k.Key).GetEnumerator();
-        }
+            => _settings.Select(pair => pair.Key).GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
@@ -58,29 +56,28 @@ namespace Tauron.Application
         {
             _settings.Clear();
 
-            _logger.LogInformation($"{Application} -- Delete Profile infos... {Dictionary.GetOrElse(string.Empty).PathShorten(20)}");
+            _logger.LogInformation("{Application} -- Delete Profile infos... {Path}", Application, Dictionary.GetOrElse(string.Empty).PathShorten(20));
 
-            Dictionary.OnSuccess(s => s.DeleteDirectory());
+            Dictionary.OnSuccess(dic => dic.DeleteDirectory());
         }
 
-        public virtual void Load([NotNull] string name)
+        public virtual void Load(string name)
         {
-            Argument.NotNull<object>(name, nameof(name));
             IlligalCharCheck(name);
 
             Name = name;
             Dictionary = _defaultPath.CombinePath(Application, name);
-            Dictionary.OnSuccess(s => s.CreateDirectoryIfNotExis());
-            FilePath = Dictionary.Select(s => s.CombinePath("Settings.db"));
+            Dictionary.OnSuccess(dic => dic.CreateDirectoryIfNotExis());
+            FilePath = Dictionary.Select(dic => dic.CombinePath("Settings.db"));
 
-            _logger.LogInformation($"{Application} -- Begin Load Profile infos... {FilePath.GetOrElse(string.Empty).PathShorten(20)}");
+            _logger.LogInformation("{Application} -- Begin Load Profile infos... {Path}", Application, FilePath.GetOrElse(string.Empty).PathShorten(20));
 
             _settings.Clear();
             foreach (var vals in FilePath.Value.EnumerateTextLinesIfExis()
                                          .Select(line => line.Split(ContentSplitter, 2))
                                          .Where(vals => vals.Length == 2))
             {
-                _logger.LogInformation("key: {0} | Value {1}", vals[0], vals[1]);
+                _logger.LogInformation("key: {Key} | Value {Value}", vals[0], vals[1]);
 
                 _settings[vals[0]] = vals[1];
             }
@@ -88,11 +85,11 @@ namespace Tauron.Application
 
         public virtual void Save()
         {
-            _logger.LogInformation($"{Application} -- Begin Save Profile infos...");
+            _logger.LogInformation("{Application} -- Begin Save Profile infos...", Application);
 
             try
             {
-                var writerOption = FilePath.Select(s => s.OpenTextWrite());
+                var writerOption = FilePath.Select(path => path.OpenTextWrite());
 
                 if (!writerOption.HasValue) return;
 
@@ -102,49 +99,49 @@ namespace Tauron.Application
                 {
                     writer.WriteLine("{0}={1}", key, value);
 
-                    _logger.LogInformation("key: {0} | Value {1}", key, value);
+                    _logger.LogInformation("key: {Key} | Value {Value}", key, value);
                 }
             }
-            catch (Exception e)
+            catch (Exception exception)
             {
-                _logger.LogError(e, "Error on Profile Save");
+                _logger.LogError(exception, "Error on Profile Save");
             }
         }
 
         public virtual string? GetValue(string? defaultValue, [CallerMemberName] string? key = null)
         {
-            var cKey = Argument.NotNull(key, nameof(key));
+            if (string.IsNullOrWhiteSpace(key)) return string.Empty;
+            
+            IlligalCharCheck(key);
 
-            IlligalCharCheck(cKey);
-
-            return !_settings.ContainsKey(cKey) ? defaultValue : _settings[cKey];
+            return !_settings.ContainsKey(key) ? defaultValue : _settings[key];
         }
 
         public virtual int GetValue(int defaultValue, [CallerMemberName] string? key = null)
             => int.TryParse(GetValue(null, key), out var result) ? result : defaultValue;
 
+        #pragma warning disable AV1564
         public virtual bool GetValue(bool defaultValue, [CallerMemberName] string? key = null)
+            #pragma warning restore AV1564
             => bool.TryParse(GetValue(null, key), out var result) ? result : defaultValue;
 
         public virtual void SetVaue(object value, [CallerMemberName] string? key = null)
         {
-            var cKey = Argument.NotNull(key, nameof(key));
-            Argument.NotNull(value, nameof(value));
-            IlligalCharCheck(cKey);
+            if(string.IsNullOrWhiteSpace(key)) return;
+            
+            IlligalCharCheck(key);
 
-            _settings[cKey] = value.ToString() ?? string.Empty;
-            OnPropertyChangedExplicit(cKey);
+            _settings[key] = value.ToString() ?? string.Empty;
+            OnPropertyChangedExplicit(key);
         }
 
         private static void IlligalCharCheck(string key)
         {
-            Argument.Check(key.Contains('='),
-                () => new ArgumentException($"The Key ({key}) Contains an Illigal Char: ="));
+            if (key.Contains('='))
+                throw new ArgumentException($"The Key ({key}) Contains an Illigal Char: =");
         }
 
         public void Clear()
-        {
-            _settings.Clear();
-        }
+            => _settings.Clear();
     }
 }

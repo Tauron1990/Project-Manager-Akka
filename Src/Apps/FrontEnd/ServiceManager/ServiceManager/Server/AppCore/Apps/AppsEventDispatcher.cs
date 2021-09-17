@@ -11,7 +11,7 @@ using Tauron.Features;
 
 namespace ServiceManager.Server.AppCore.Apps
 {
-    public sealed class AppEventDispatcher : SharedEvent<AppInfo> { }
+    public sealed class AppEventDispatcher : AggregateEvent<AppInfo> { }
 
     public sealed class AppEventDispatcherRef : EventDispatcherRef
     {

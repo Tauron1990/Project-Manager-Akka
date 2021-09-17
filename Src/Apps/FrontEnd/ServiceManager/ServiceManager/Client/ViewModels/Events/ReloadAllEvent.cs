@@ -3,7 +3,7 @@ using Tauron.Application;
 
 namespace ServiceManager.Client.ViewModels.Events
 {
-    public class ReloadAllEvent : SharedEvent<Unit>
+    public class ReloadAllEvent : AggregateEvent<Unit>
     {
         
     }

@@ -22,24 +22,18 @@ namespace Tauron.Akka
         public static IEventActor From(IActorRef actorRef) => new HookEventActor(actorRef);
 
         public static IEventActor Create(IActorRefFactory system, string? name)
-            => Create<Unit>(system, null, name, killOnFirstResponse: falgse);
-        
-        public static IEventActor SelfKillingCreate(IActorRefFactory system, string? name)
-        {
-            return new HookEventActor(system.ActorOf(Props.Create(() => new EventActor(false)), name));
-        }
-        
-        public static IEventActor Create<TPayload>(IActorRefFactory system, Action<TPayload>? handler, string? name)
-        {
-            return new HookEventActor(system.ActorOf(Props.Create(() => new EventActor(false)), name));
-        }
-        
-        public static IEventActor SelfKillingCreate<TPayload>(IActorRefFactory system, Action<TPayload>? handler, string? name)
-        {
-            return new HookEventActor(system.ActorOf(Props.Create(() => new EventActor(false)), name));
-        }
+            => Create<Unit>(system, name, null, killOnFirstResponse: false);
 
-        private static IEventActor Create<TPayload>(IActorRefFactory system, Action<TPayload>? handler, string? name, bool killOnFirstResponse)
+        public static IEventActor CreateSelfKilling(IActorRefFactory system, string? name)
+            => CreateSelfKilling<Unit>(system, name, null);
+
+        public static IEventActor Create<TPayload>(IActorRefFactory system, string? name, Action<TPayload>? handler)
+            => Create(system, name, handler, killOnFirstResponse: false);
+
+        public static IEventActor CreateSelfKilling<TPayload>(IActorRefFactory system, string? name, Action<TPayload>? handler)
+            => Create(system, name, handler, killOnFirstResponse: true);
+
+        private static IEventActor Create<TPayload>(IActorRefFactory system, string? name, Action<TPayload>? handler, bool killOnFirstResponse)
         {
             var temp = new HookEventActor(system.ActorOf(Props.Create(() => new EventActor(false)), name));
             if(handler is not null)
@@ -76,9 +70,9 @@ namespace Tauron.Akka
                         {
                             callDel?.DynamicInvoke(message);
                         }
-                        catch (Exception e)
+                        catch (Exception exception)
                         {
-                            _log.Error(e, "Error On Event Hook Execution");
+                            _log.Error(exception, "Error On Event Hook Execution");
                         }
 
                         if (_killOnFirstRespond)
@@ -98,7 +92,7 @@ namespace Tauron.Akka
 
         private sealed class HookEventActor : IEventActor
         {
-            public HookEventActor(IActorRef actorRef) => OriginalRef = actorRef;
+            internal HookEventActor(IActorRef actorRef) => OriginalRef = actorRef;
 
             public IActorRef OriginalRef { get; }
 

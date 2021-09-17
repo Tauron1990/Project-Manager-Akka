@@ -12,7 +12,7 @@ namespace ServiceManager.Server
     {
         public static void RegisterEventDispatcher<TEventType, TDispatcher, TDispatcherRef>(this ContainerBuilder builder, Delegate del) 
             where TDispatcherRef : IEventDispatcher 
-            where TDispatcher : SharedEvent<TEventType>, new()
+            where TDispatcher : AggregateEvent<TEventType>, new()
         {
             builder.Register(c => c.Resolve<IEventAggregator>().GetEvent<TDispatcher, TEventType>()).SingleInstance();
             builder.RegisterFeature<TDispatcherRef, IEventDispatcher>(del);

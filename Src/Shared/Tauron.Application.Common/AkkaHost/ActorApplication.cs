@@ -15,7 +15,7 @@ namespace Tauron.AkkaHost
         {
             get
             {
-                if (_serviceProvider == null)
+                if (_serviceProvider is null)
                     throw new InvalidOperationException("An ServiceProvider was not set");
                 return _serviceProvider;
             }
@@ -26,7 +26,7 @@ namespace Tauron.AkkaHost
         {
             get
             {
-                if (_actorSystem == null)
+                if (_actorSystem is null)
                     throw new InvalidOperationException("An Actorsystem was not set");
                 return _actorSystem;
             }

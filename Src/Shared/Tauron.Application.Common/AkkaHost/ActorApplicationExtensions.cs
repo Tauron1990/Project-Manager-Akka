@@ -6,7 +6,6 @@ using Akka.Actor.Setup;
 using Akka.Configuration;
 using Akka.DependencyInjection;
 using Autofac;
-using Autofac.Core;
 using Autofac.Extensions.DependencyInjection;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
@@ -26,7 +25,7 @@ namespace Tauron.AkkaHost
             {
                 private ActorSystem? _system;
 
-                public ActorSystem System
+                internal ActorSystem System
                 {
                     get
                     {
@@ -47,14 +46,14 @@ namespace Tauron.AkkaHost
             private readonly List<Func<HostBuilderContext, Setup>> _akkaSetup = new();
             private readonly List<Action<HostBuilderContext, ActorSystem>> _systemConfig = new();
 
-            public ActorApplicationBluilder(HostBuilderContext context, IHostBuilder builder)
+            internal ActorApplicationBluilder(HostBuilderContext context, IHostBuilder builder)
             {
                 _context = context;
                 _builder = builder;
                 
                 _containerBuilder.RegisterModule<CommonModule>();
                 _containerBuilder.RegisterInstance(_holder).SingleInstance();
-                _containerBuilder.Register(c => c.Resolve<ActorSystemHolder>().System).SingleInstance();
+                _containerBuilder.Register(componentContext => componentContext.Resolve<ActorSystemHolder>().System).SingleInstance();
             }
 
             public IActorApplicationBuilder ConfigureAutoFac(Action<ContainerBuilder> config)
@@ -141,12 +140,12 @@ namespace Tauron.AkkaHost
             private static void ApplyFixes(ContainerBuilder builder, IServiceCollection serviceCollection)
             {
                 if(TryRemove(serviceCollection, typeof(EventLogLoggerProvider)))
-                    builder.Register(c => new EventLogLoggerProvider(c.Resolve<IOptions<EventLogSettings>>())).As<ILoggerProvider>();
+                    builder.Register(componentContext => new EventLogLoggerProvider(componentContext.Resolve<IOptions<EventLogSettings>>())).As<ILoggerProvider>();
             }
 
             private static bool TryRemove(IServiceCollection collection, Type impl)
             {
-                var sd = collection.FindIndex(e => e.ImplementationType == impl);
+                var sd = collection.FindIndex(serviceDescriptor => serviceDescriptor.ImplementationType == impl);
                 if (sd == -1) return false;
 
                 collection.RemoveAt(sd);
@@ -158,7 +157,7 @@ namespace Tauron.AkkaHost
         {
             private readonly ActorApplicationBluilder _actorBuilder;
 
-            public ActorServiceProviderFactory(ActorApplicationBluilder actorBuilder) => _actorBuilder = actorBuilder;
+            internal ActorServiceProviderFactory(ActorApplicationBluilder actorBuilder) => _actorBuilder = actorBuilder;
 
             public IActorApplicationBuilder CreateBuilder(IServiceCollection services)
             {
@@ -188,9 +187,9 @@ namespace Tauron.AkkaHost
 
         [PublicAPI]
         public static IHostBuilder ConfigureAkkaApplication(this IHostBuilder hostBuilder, Action<IActorApplicationBuilder>? config = null)
-            => hostBuilder.UseServiceProviderFactory(c =>
+            => hostBuilder.UseServiceProviderFactory(builderContext =>
                                                      {
-                                                         var builder = new ActorApplicationBluilder(c, hostBuilder);
+                                                         var builder = new ActorApplicationBluilder(builderContext, hostBuilder);
                                                          config?.Invoke(builder);
                                                          return new ActorServiceProviderFactory(builder);
                                                      });

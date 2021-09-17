@@ -23,7 +23,7 @@ namespace Tauron.Localization.Extension
 
         public void Request(string name, Action<Option<object>> valueResponse, CultureInfo? info = null)
         {
-            var hook = EventActor.Create(_system, null, true);
+            var hook = EventActor.CreateSelfKilling(_system, null);
             hook.Register(HookEvent.Create<LocCoordinator.ResponseLocValue>(res => valueResponse(res.Result)));
             hook.Send(_extension.LocCoordinator,
                 new LocCoordinator.RequestLocValue(name, info ?? CultureInfo.CurrentUICulture));

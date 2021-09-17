@@ -31,18 +31,18 @@ namespace Tauron.Akka
         public static void SendEvent<TType>(this IObservableActor actor, TType evt)
             => ObservableActor.ExposedContext.System.EventStream.Publish(evt);
 
-        private sealed class EventHolder<TEvent>
+        private readonly struct EventHolder<TEvent>
         {
             private readonly IObservableActor _actor;
             private readonly Func<IObservable<TEvent>, IDisposable> _handler;
 
-            public EventHolder(IObservableActor actor, Func<IObservable<TEvent>, IDisposable> handler)
+            internal EventHolder(IObservableActor actor, Func<IObservable<TEvent>, IDisposable> handler)
             {
                 _handler = handler;
                 _actor = actor;
             }
 
-            public void Register()
+            internal void Register()
             {
                 _actor.Receive(_handler);
 

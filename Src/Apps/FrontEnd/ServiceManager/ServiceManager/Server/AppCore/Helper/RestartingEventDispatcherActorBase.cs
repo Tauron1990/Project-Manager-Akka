@@ -29,7 +29,7 @@ namespace ServiceManager.Server.AppCore.Helper
     public abstract class RestartingEventDispatcherActorBase<TEventType, TEventSource> :ActorFeatureBase<RestartingEventDispatcherActorBase<TEventType, TEventSource>.State>
         where TEventSource : IQueryIsAliveSupport
     {
-        public sealed record State(TEventSource EventSource, Func<TEventSource, Task<Source<TEventType, NotUsed>>> GetEventSource, SharedEvent<TEventType> Dispatcher);
+        public sealed record State(TEventSource EventSource, Func<TEventSource, Task<Source<TEventType, NotUsed>>> GetEventSource, AggregateEvent<TEventType> Dispatcher);
         
         protected override void ConfigImpl()
         {

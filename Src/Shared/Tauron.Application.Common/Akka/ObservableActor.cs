@@ -67,15 +67,18 @@ namespace Tauron.Akka
         }
 
         public static IActorContext ExposedContext => ActorBase.Context;
+        #pragma warning disable AV1010
         public new static IUntypedActorContext Context => (IUntypedActorContext) ActorBase.Context;
+        
+        public new IActorRef Self   { get; }
+        public     IActorRef Parent { get; }
+        public new IActorRef Sender => Context.Sender;
+        
+        #pragma warning restore AV1010
 
         public IObservable<IActorContext> Start => _start.NotNull();
         public IObservable<IActorContext> Stop => _stop.NotNull();
         public ILoggingAdapter Log { get; } = ActorBase.Context.GetLogger();
-
-        public new IActorRef Self { get; }
-        public IActorRef Parent { get; }
-        public new IActorRef Sender => Context.Sender;
 
         public virtual void Dispose()
         {
@@ -103,7 +106,7 @@ namespace Tauron.Akka
 
 
         public void Receive<TEvent>(Func<IObservable<TEvent>, IDisposable> handler)
-            => AddResource(new ObservableInvoker<TEvent, TEvent>(handler, GetSelector<TEvent>(), true).Construct());
+            => AddResource(new ObservableInvoker<TEvent, TEvent>(handler, GetSelector<TEvent>(), isSafe: true).Construct());
 
         protected IObservable<TType> SyncActor<TType>(TType element)
             => Observable.Return(element, ActorScheduler.From(Self));
@@ -116,7 +119,7 @@ namespace Tauron.Akka
             bool RunDefault()
             {
                 var signaled = false;
-                foreach (var signal in _currentWaiting.Where(s => s.Match(message)))
+                foreach (var signal in _currentWaiting.Where(signal => signal.Match(message)))
                 {
                     signal.Signal(message);
                     signaled = true;
@@ -128,14 +131,14 @@ namespace Tauron.Akka
             {
                 case TransmitAction act:
                     return act.Runner();
-                case Status.Failure when _selectors.ContainsKey(typeof(Status.Failure)) || _currentWaiting.Any(s => s.Match(message)):
+                case Status.Failure when _selectors.ContainsKey(typeof(Status.Failure)) || _currentWaiting.Any(signal => signal.Match(message)):
                         return RunDefault();
                 case Status.Failure failure:
                     if (OnError(failure))
                         throw failure.Cause;
                     else
                         return true;
-                case Status.Success when _selectors.ContainsKey(typeof(Status.Success)) || _currentWaiting.Any(s => s.Match(message)):
+                case Status.Success when _selectors.ContainsKey(typeof(Status.Success)) || _currentWaiting.Any(signal => signal.Match(message)):
                     return RunDefault();
                 case AddSignal add:
                     _currentWaiting.Add(add.Signal);
@@ -202,33 +205,32 @@ namespace Tauron.Akka
 
         protected IObservable<TEvent> GetSelector<TEvent>()
         {
-            if (!_selectors.TryGetValue(typeof(TEvent), out var selector))
-            {
-                selector = _receiver
-                    .Where(m => m is TEvent && (!CallSingleHandler || !_isReceived))
-                    .Select(m =>
-                    {
-                        _isReceived = true;
-                        return (TEvent) m;
-                    })
-                    .Isonlate();
+            if (_selectors.TryGetValue(typeof(TEvent), out var selector)) return (IObservable<TEvent>)selector;
 
-                _selectors[typeof(TEvent)] = selector;
-            }
+            selector = _receiver
+                      .Where(msg => msg is TEvent && (!CallSingleHandler || !_isReceived))
+                      .Select(msg =>
+                              {
+                                  _isReceived = true;
+                                  return (TEvent) msg;
+                              })
+                      .Isonlate();
+
+            _selectors[typeof(TEvent)] = selector;
 
             return (IObservable<TEvent>) selector;
         }
 
-        public bool ThrowError(Exception e)
+        public bool ThrowError(Exception exception)
         {
-            Log.Error(e, "Error on Process Event");
-            Self.Tell(new Status.Failure(e));
+            Log.Error(exception, "Error on Process Event");
+            Self.Tell(new Status.Failure(exception));
             return true;
         }
 
-        public bool DefaultError(Exception e)
+        public bool DefaultError(Exception exception)
         {
-            Log.Error(e, "Error on Process Event");
+            Log.Error(exception, "Error on Process Event");
             return false;
         }
 
@@ -246,7 +248,7 @@ namespace Tauron.Akka
             private readonly TaskCompletionSource<TType> _source;
             private readonly Predicate<TType> _predicate;
 
-            public ConcrretSignal(TaskCompletionSource<TType> source, Predicate<TType> predicate)
+            internal ConcrretSignal(TaskCompletionSource<TType> source, Predicate<TType> predicate)
             {
                 _source = source;
                 _predicate = predicate;
@@ -268,16 +270,16 @@ namespace Tauron.Akka
 
         private sealed class AddSignal
         {
-            public AddSignal(ISignal signal) => Signal = signal;
+            internal AddSignal(ISignal signal) => Signal = signal;
 
-            public ISignal Signal { get; }
+            internal ISignal Signal { get; }
         }
 
         private sealed class SignalTimeOut
         {
-            public ISignal Signal { get; }
+            internal ISignal Signal { get; }
 
-            public SignalTimeOut(ISignal signal) => Signal = signal;
+            internal SignalTimeOut(ISignal signal) => Signal = signal;
         }
 
         private sealed class ObservableInvoker<TEvent, TResult> : IDisposable
@@ -286,19 +288,21 @@ namespace Tauron.Akka
             private readonly IObservable<TEvent> _selector;
             private IDisposable? _subscription;
 
-            public ObservableInvoker(Func<IObservable<TEvent>, IObservable<TResult>> factory, Func<Exception, bool> errorHandler, IObservable<TEvent> selector)
+            internal ObservableInvoker(Func<IObservable<TEvent>, IObservable<TResult>> factory, Func<Exception, bool> errorHandler, IObservable<TEvent> selector)
             {
-                _factory = o => factory(o.AsObservable()).Subscribe(_ => { }, e =>
-                {
-                    if (errorHandler(e))
-                        Init();
-                });
+                _factory = observable => factory(observable.AsObservable()).Subscribe(
+                               _ => { },
+                               exception =>
+                               {
+                                   if (errorHandler(exception))
+                                       Init();
+                               });
                 _selector = selector;
 
                 Init();
             }
 
-            public ObservableInvoker(Func<IObservable<TEvent>, IDisposable> factory, IObservable<TEvent> selector, bool isSafe)
+            internal ObservableInvoker(Func<IObservable<TEvent>, IDisposable> factory, IObservable<TEvent> selector, bool isSafe)
             {
                 _factory = isSafe ? observable => factory(observable.Do(_ => { }, _ => Init())) : factory;
                 _selector = selector;
@@ -308,7 +312,7 @@ namespace Tauron.Akka
 
             void IDisposable.Dispose() => _subscription?.Dispose();
 
-            public IDisposable Construct() => this;
+            internal IDisposable Construct() => this;
 
             private void Init() => _subscription = _factory(_selector);
         }

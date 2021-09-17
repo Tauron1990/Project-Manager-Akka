@@ -22,9 +22,8 @@ namespace Tauron.Application.Workflow
 
         public void Begin(StepId id, TContext context)
         {
-            Argument.NotNull(context, nameof(context));
-
-            Process(id, context);
+            if (!Process(id, context))
+                throw new InvalidOperationException("Procession not Successful");
 
             if (_lastId.Name == StepId.Fail.Name)
                 throw new InvalidOperationException(_errorMessage);
@@ -39,8 +38,6 @@ namespace Tauron.Application.Workflow
 
         protected virtual bool Process(StepId id, TContext context)
         {
-            Argument.NotNull(context, nameof(context));
-
             if (SetLastId(id)) return true;
 
             if (!_states.TryGetValue(id, out var rev))
@@ -72,7 +69,9 @@ namespace Tauron.Application.Workflow
                         if (loopId.Name == StepId.Fail.Name)
                             return SetLastId(StepId.Fail);
 
+                        #pragma warning disable GU0011
                         ProgressConditions(rev, context);
+                        #pragma warning restore GU0011
                     } while (ok);
 
                     break;
@@ -106,8 +105,6 @@ namespace Tauron.Application.Workflow
 
         public StepConfiguration<TState, TContext> SetStep(StepId id, TState stade)
         {
-            Argument.NotNull(stade, nameof(stade));
-
             var rev = new StepRev<TState, TContext>(stade);
             _states[id] = rev;
 
@@ -122,12 +119,10 @@ namespace Tauron.Application.Workflow
     {
         private readonly StepRev<TState, TContext> _context;
 
-        internal StepConfiguration([NotNull] StepRev<TState, TContext> context) => _context = context;
+        internal StepConfiguration(StepRev<TState, TContext> context) => _context = context;
 
         public StepConfiguration<TState, TContext> WithCondition(ICondition<TContext> condition)
         {
-            Argument.NotNull(condition, nameof(condition));
-
             _context.Conditions.Add(condition);
             return this;
         }
@@ -148,17 +143,14 @@ namespace Tauron.Application.Workflow
         private readonly SimpleCondition<TContext> _condition;
         private readonly StepConfiguration<TState, TContext> _config;
 
-        public ConditionConfiguration([NotNull] StepConfiguration<TState, TContext> config,
-            [NotNull] SimpleCondition<TContext> condition)
+        public ConditionConfiguration(
+            StepConfiguration<TState, TContext> config,
+            SimpleCondition<TContext>           condition)
         {
-            Argument.NotNull(config, nameof(config));
-            Argument.NotNull(condition, nameof(condition));
-
             _config = config;
             _condition = condition;
         }
 
-        [NotNull]
         public StepConfiguration<TState, TContext> GoesTo(StepId id)
         {
             _condition.Target = id;
@@ -167,30 +159,30 @@ namespace Tauron.Application.Workflow
         }
     }
 
-    internal class StepRev<TState, TContext>
+    internal sealed class StepRev<TState, TContext>
     {
-        public StepRev(TState step)
+        internal StepRev(TState step)
         {
             Step = step;
             Conditions = new List<ICondition<TContext>>();
         }
 
-        public TState Step { get; }
+        internal TState Step { get; }
 
-        [NotNull] public List<ICondition<TContext>> Conditions { get; }
+        internal List<ICondition<TContext>> Conditions { get; }
 
-        public ICondition<TContext>? GenericCondition { get; set; }
+        internal ICondition<TContext>? GenericCondition { get; set; }
 
         public override string ToString()
         {
-            var b = new StringBuilder();
-            b.Append(Step);
+            var stringBuilder = new StringBuilder();
+            stringBuilder.Append(Step);
 
-            foreach (var condition in Conditions) b.AppendLine("->" + condition + ";");
+            foreach (var condition in Conditions) stringBuilder.AppendLine($"->{condition};");
 
-            if (GenericCondition != null) b.Append("Generic->" + GenericCondition + ";");
+            if (GenericCondition != null) stringBuilder.AppendFormat("Generic->{0};", GenericCondition);
 
-            return b.ToString();
+            return stringBuilder.ToString();
         }
     }
 }

@@ -3,7 +3,7 @@ using Tauron.Application;
 
 namespace TimeTracker.Data
 {
-    public sealed class ErrorCarrier : SharedEvent<Exception>
+    public sealed class ErrorCarrier : AggregateEvent<Exception>
     {
         
     }

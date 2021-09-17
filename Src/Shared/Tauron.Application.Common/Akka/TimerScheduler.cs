@@ -26,18 +26,20 @@ namespace Tauron.Akka
             Task.Factory.StartNew(() =>
             {
                 foreach (var action in _toRun.GetConsumingEnumerable())
+                {
                     try
                     {
                         action.Item1();
                     }
-                    catch (Exception e)
+                    catch (Exception exception)
                     {
-                        Log.Error(e, "Error On Shedule Task");
+                        Log.Error(exception, "Error On Shedule Task");
                         action.Item2.Dispose();
                     }
+                }
 
                 _toRun.Dispose();
-            }, TaskCreationOptions.LongRunning);
+            }, TaskCreationOptions.LongRunning).Ignore();
         }
 
         protected override DateTimeOffset TimeNow => DateTimeOffset.Now;
@@ -55,39 +57,27 @@ namespace Tauron.Akka
             _toRun.CompleteAdding();
         }
 
-        protected override void InternalScheduleTellOnce(TimeSpan delay, ICanTell receiver, object message,
-            IActorRef sender, ICancelable cancelable)
-        {
-            AddGeneric(() => receiver.Tell(message, sender), delay, Timeout.InfiniteTimeSpan, cancelable);
-        }
+        protected override void InternalScheduleTellOnce(TimeSpan delay,  ICanTell    receiver, object message,
+            IActorRef                                             sender, ICancelable cancelable)
+            => AddGeneric(() => receiver.Tell(message, sender), delay, Timeout.InfiniteTimeSpan, cancelable);
 
         protected override void InternalScheduleTellRepeatedly(TimeSpan initialDelay, TimeSpan interval,
-            ICanTell receiver, object message, IActorRef sender, ICancelable cancelable)
-        {
-            AddGeneric(() => receiver.Tell(message, sender), initialDelay, interval, cancelable);
-        }
+                                                               ICanTell receiver,     object   message, IActorRef sender, ICancelable cancelable)
+            => AddGeneric(() => receiver.Tell(message, sender), initialDelay, interval, cancelable);
 
         protected override void InternalScheduleOnce(TimeSpan delay, Action action, ICancelable cancelable)
-        {
-            AddGeneric(action, delay, Timeout.InfiniteTimeSpan, cancelable);
-        }
+            => AddGeneric(action, delay, Timeout.InfiniteTimeSpan, cancelable);
 
         protected override void InternalScheduleOnce(TimeSpan delay, IRunnable action, ICancelable cancelable)
-        {
-            AddGeneric(action.Run, delay, Timeout.InfiniteTimeSpan, cancelable);
-        }
+            => AddGeneric(action.Run, delay, Timeout.InfiniteTimeSpan, cancelable);
 
-        protected override void InternalScheduleRepeatedly(TimeSpan initialDelay, TimeSpan interval, Action action,
-            ICancelable cancelable)
-        {
-            AddGeneric(action, initialDelay, interval, cancelable);
-        }
+        protected override void InternalScheduleRepeatedly(TimeSpan    initialDelay, TimeSpan interval, Action action,
+                                                           ICancelable cancelable)
+            => AddGeneric(action, initialDelay, interval, cancelable);
 
-        protected override void InternalScheduleRepeatedly(TimeSpan initialDelay, TimeSpan interval, IRunnable action,
-            ICancelable cancelable)
-        {
-            AddGeneric(action.Run, initialDelay, interval, cancelable);
-        }
+        protected override void InternalScheduleRepeatedly(TimeSpan    initialDelay, TimeSpan interval, IRunnable action,
+                                                           ICancelable cancelable)
+            => AddGeneric(action.Run, initialDelay, interval, cancelable);
 
         private void AddGeneric(Action runner, TimeSpan delay, TimeSpan interval, ICancelable? cancelable)
         {
@@ -120,14 +110,10 @@ namespace Tauron.Akka
             private IDisposable? _disposable;
 
             public void Dispose()
-            {
-                _disposable?.Dispose();
-            }
+                => _disposable?.Dispose();
 
-            public void Set(IDisposable disposable)
-            {
-                _disposable = disposable;
-            }
+            internal void Set(IDisposable disposable)
+                => _disposable = disposable;
         }
 
         private class Registration : IDisposable
@@ -138,7 +124,7 @@ namespace Tauron.Akka
             private readonly Action _runner;
             private readonly Timer _timer;
 
-            public Registration(Action runner, TimeSpan delay, TimeSpan interval, ICancelable? cancelable, string id,
+            internal Registration(Action runner, TimeSpan delay, TimeSpan interval, ICancelable? cancelable, string id,
                 Action<string> remove)
             {
                 _runner = runner;
