@@ -3,6 +3,7 @@ using System.IO;
 using Ionic.Zip;
 using JetBrains.Annotations;
 using Tauron.Application.Files.VirtualFiles;
+using Tauron.Application.VirtualFiles;
 
 namespace Tauron.Application.Files.Zip
 {

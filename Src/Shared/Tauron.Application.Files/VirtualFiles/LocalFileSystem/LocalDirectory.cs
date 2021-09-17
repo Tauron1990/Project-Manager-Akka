@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Tauron.Application.Files.VirtualFiles.Core;
+using Tauron.Application.VirtualFiles;
 
 namespace Tauron.Application.Files.VirtualFiles.LocalFileSystem
 {

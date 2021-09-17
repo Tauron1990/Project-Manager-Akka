@@ -3,6 +3,7 @@ using System.IO;
 using JetBrains.Annotations;
 using MongoDB.Driver.GridFS;
 using Tauron.Application.Files.VirtualFiles;
+using Tauron.Application.VirtualFiles;
 
 namespace Tauron.Application.Files.GridFS
 {

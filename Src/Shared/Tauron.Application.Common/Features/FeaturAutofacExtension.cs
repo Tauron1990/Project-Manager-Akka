@@ -61,14 +61,14 @@ namespace Tauron.Features
             where TIterfaceType : IFeatureActorRef<TIterfaceType>
             where TImpl : TIterfaceType
         {
-            var param = del.Method.GetParameters().Select(p => p.ParameterType).ToArray();
+            var param = del.Method.GetParameters().Select(info => info.ParameterType).ToArray();
 
             return builder.RegisterType<TImpl>()
-                          .OnActivated(e =>
+                          .OnActivated(eventArgs =>
                                        {
-                                           var system = e.Context.Resolve<ActorSystem>();
-                                           e.Instance.Init(system,
-                                               () => del.DynamicInvoke(param.Select(e.Context.Resolve).ToArray()) switch
+                                           var system = eventArgs.Context.Resolve<ActorSystem>();
+                                           eventArgs.Instance.Init(system,
+                                               () => del.DynamicInvoke(param.Select(eventArgs.Context.Resolve).ToArray()) switch
                                                {
                                                    IPreparedFeature feature => Feature.Props(feature),
                                                    IPreparedFeature[] features => Feature.Props(features),

@@ -1,7 +1,7 @@
 ﻿using System;
 using JetBrains.Annotations;
 
-namespace Tauron.Application.Files.VirtualFiles
+namespace Tauron.Application.VirtualFiles
 {
     [PublicAPI]
     public interface IFileSystemNode

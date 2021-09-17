@@ -5,6 +5,7 @@ using JetBrains.Annotations;
 using SharpRepository.Repository;
 using SharpRepository.Repository.Configuration;
 using Tauron.Application.Files.VirtualFiles;
+using Tauron.Application.VirtualFiles;
 using Tauron.Features;
 
 namespace Tauron.Application.AkkaNode.Services.CleanUp

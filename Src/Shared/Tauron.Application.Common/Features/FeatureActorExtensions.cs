@@ -26,7 +26,7 @@ namespace Tauron.Features
     public sealed record GenericState(ImmutableDictionary<Type, object> States)
     {
         public GenericState(IEnumerable<IPreparedFeature> features, IUntypedActorContext context)
-            : this(ImmutableDictionary<Type, object>.Empty.AddRange(features.Select(f => f.InitialState(context))))
+            : this(ImmutableDictionary<Type, object>.Empty.AddRange(features.Select(feature => feature.InitialState(context))))
         {
         }
     }
@@ -46,18 +46,18 @@ namespace Tauron.Features
             => factory.ActorOf(GenericActor.Create(features), name);
 
         public static IActorRef ActorOf(this IActorRefFactory factory, params IPreparedFeature[] features)
-            => factory.ActorOf(GenericActor.Create(features));
+            => ActorOf(factory, null, features);
 
         [DebuggerStepThrough]
         internal sealed class GenericActor : FeatureActorBase<GenericActor, GenericState>
         {
-            public static Props Create(IPreparedFeature[] features)
+            internal static Props Create(IPreparedFeature[] features)
             {
                 if (features.Length == 1 && features[0] is ISimpleFeature simple)
                     return simple.MakeProps();
 
-                return Create(c => new GenericState(features, c),
-                    builder => builder.WithFeatures(features.SelectMany(f => f.Materialize())));
+                return Create(context => new GenericState(features, context),
+                    builder => builder.WithFeatures(features.SelectMany(feature => feature.Materialize())));
             }
         }
     }
@@ -112,7 +112,7 @@ namespace Tauron.Features
         private sealed class FeatureImpl<TState> : ActorBuilder<TState>.ConvertingFeature<TState, GenericState>
             where TState : notnull
         {
-            public FeatureImpl(IFeature<TState> target)
+            internal FeatureImpl(IFeature<TState> target)
                 : base(target, state => (TState) state.States[typeof(TState)],
                     (original, state) => original with {States = original.States.SetItem(typeof(TState), state)})
             {
@@ -125,7 +125,7 @@ namespace Tauron.Features
             private readonly Func<IFeature<TState>> _feature;
             private readonly Func<IUntypedActorContext, TState> _stateBuilder;
 
-            public PreparedFeature(Func<IFeature<TState>> feature, Func<IUntypedActorContext, TState> stateBuilder)
+            internal PreparedFeature(Func<IFeature<TState>> feature, Func<IUntypedActorContext, TState> stateBuilder)
             {
                 _feature = feature;
                 _stateBuilder = stateBuilder;
@@ -155,7 +155,7 @@ namespace Tauron.Features
             private readonly Func<IUntypedActorContext, TState> _builder;
             private readonly IPreparedFeature[] _target;
 
-            public PreparedFeatureList(IEnumerable<IPreparedFeature> target, Func<IUntypedActorContext, TState> builder)
+            internal PreparedFeatureList(IEnumerable<IPreparedFeature> target, Func<IUntypedActorContext, TState> builder)
             {
                 _target = target.ToArray();
                 _builder = builder;

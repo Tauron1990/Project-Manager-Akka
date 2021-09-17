@@ -24,24 +24,29 @@ namespace Tauron.Localization.Extension
         public void Request(string name, Action<Option<object>> valueResponse, CultureInfo? info = null)
         {
             var hook = EventActor.CreateSelfKilling(_system, null);
-            hook.Register(HookEvent.Create<LocCoordinator.ResponseLocValue>(res => valueResponse(res.Result)));
+            hook.Register(HookEvent.Create<LocCoordinator.ResponseLocValue>(res => valueResponse(res.Result))).Ignore();
             hook.Send(_extension.LocCoordinator,
                 new LocCoordinator.RequestLocValue(name, info ?? CultureInfo.CurrentUICulture));
         }
 
+        #pragma warning disable AV1551
         public Option<object> Request(string name, CultureInfo? info = null) 
+            #pragma warning restore AV1551
             => _extension.LocCoordinator
                          .Ask<LocCoordinator.ResponseLocValue>(new LocCoordinator.RequestLocValue(name, info ?? CultureInfo.CurrentUICulture))
                          .Result.Result;
 
-        public Task<Option<object>> RequestTask(string name, CultureInfo? info = null)
-            => _extension.LocCoordinator.Ask<LocCoordinator.ResponseLocValue>(new LocCoordinator.RequestLocValue(name, info ?? CultureInfo.CurrentUICulture))
-                         .ContinueWith(t => t.Result.Result);
+        #pragma warning disable AV1755
+        public async Task<Option<object>> RequestTask(string name, CultureInfo? info = null)
+            #pragma warning restore AV1755
+            => (await _extension.LocCoordinator.Ask<LocCoordinator.ResponseLocValue>(new LocCoordinator.RequestLocValue(name, info ?? CultureInfo.CurrentUICulture))).Result;
 
+        #pragma warning disable AV1551
         public Option<string> RequestString(string name, CultureInfo? info = null)
-            => Request(name, info).Select(s => s.ToString() ?? string.Empty);
+            #pragma warning restore AV1551
+            => Request(name, info).Select(value => value.ToString() ?? string.Empty);
 
         public void RequestString(string name, Action<Option<string>> valueResponse, CultureInfo? info = null) 
-            => Request(name, o => valueResponse(o.Select(oo => oo.ToString() ?? string.Empty)), info);
+            => Request(name, option => valueResponse(option.Select(oo => oo.ToString() ?? string.Empty)), info);
     }
 }

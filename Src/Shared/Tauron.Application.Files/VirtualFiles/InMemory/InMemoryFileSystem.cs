@@ -1,5 +1,6 @@
 ﻿using System;
 using Tauron.Application.Files.VirtualFiles.InMemory.Data;
+using Tauron.Application.VirtualFiles;
 
 namespace Tauron.Application.Files.VirtualFiles.InMemory
 {
