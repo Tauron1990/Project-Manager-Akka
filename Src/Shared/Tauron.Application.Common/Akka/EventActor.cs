@@ -24,7 +24,7 @@ namespace Tauron.Akka
         public static IEventActor Create(IActorRefFactory system, string? name)
             => Create<Unit>(system, null, name, killOnFirstResponse: falgse);
         
-        public static IEventActor SelfKillingCreate(IActorRefFactory system, string? name)
+        public static IEventActor CreateSelfKilling(IActorRefFactory system, string? name)
         {
             return new HookEventActor(system.ActorOf(Props.Create(() => new EventActor(false)), name));
         }
@@ -34,7 +34,7 @@ namespace Tauron.Akka
             return new HookEventActor(system.ActorOf(Props.Create(() => new EventActor(false)), name));
         }
         
-        public static IEventActor SelfKillingCreate<TPayload>(IActorRefFactory system, Action<TPayload>? handler, string? name)
+        public static IEventActor CreateSelfKilling<TPayload>(IActorRefFactory system, Action<TPayload>? handler, string? name)
         {
             return new HookEventActor(system.ActorOf(Props.Create(() => new EventActor(false)), name));
         }

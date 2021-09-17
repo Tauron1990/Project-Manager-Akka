@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using Tauron.Application.Files.VirtualFiles;
 using Tauron.Application.SoftwareRepo.Data;
 using Tauron.Application.SoftwareRepo.Mutation;
+using Tauron.Application.VirtualFiles;
 using Tauron.Application.Workshop;
 using Tauron.Application.Workshop.Mutating;
 using Tauron.Application.Workshop.Mutation;

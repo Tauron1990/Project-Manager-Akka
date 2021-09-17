@@ -19,6 +19,7 @@ using Tauron.Application.Master.Commands.Deployment.Build;
 using Tauron.Application.Master.Commands.Deployment.Build.Commands;
 using Tauron.Application.Master.Commands.Deployment.Build.Data;
 using Tauron.Application.Master.Commands.Deployment.Repository;
+using Tauron.Application.VirtualFiles;
 using Tauron.Application.Workshop;
 using Tauron.Features;
 using Tauron.ObservableExt;

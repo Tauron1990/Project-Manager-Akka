@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using SharpRepository.Repository;
 using Tauron.Application.Files.VirtualFiles;
+using Tauron.Application.VirtualFiles;
 using Tauron.Features;
 
 namespace Tauron.Application.AkkaNode.Services.CleanUp

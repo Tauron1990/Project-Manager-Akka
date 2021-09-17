@@ -2,6 +2,7 @@
 using System.IO;
 using Tauron.Application.Files.VirtualFiles.Core;
 using Tauron.Application.Files.VirtualFiles.InMemory.Data;
+using Tauron.Application.VirtualFiles;
 
 namespace Tauron.Application.Files.VirtualFiles.InMemory
 {

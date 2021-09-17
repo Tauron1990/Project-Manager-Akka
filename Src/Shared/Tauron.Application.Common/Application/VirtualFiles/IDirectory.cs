@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using JetBrains.Annotations;
 
-namespace Tauron.Application.Files.VirtualFiles
+namespace Tauron.Application.VirtualFiles
 {
     [PublicAPI]
     public interface IDirectory : IFileSystemNode

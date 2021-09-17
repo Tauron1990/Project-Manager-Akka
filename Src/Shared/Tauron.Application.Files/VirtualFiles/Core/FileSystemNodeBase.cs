@@ -1,5 +1,6 @@
 ﻿using System;
 using JetBrains.Annotations;
+using Tauron.Application.VirtualFiles;
 
 namespace Tauron.Application.Files.VirtualFiles.Core
 {

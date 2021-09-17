@@ -21,11 +21,11 @@ namespace Tauron.Features
 
             actor.Receive<EventSubscribe>(
                 obs => obs.Where(_ => !actor.Sender.IsNobody())
-                          .Do(m => m.Event.Watch.WhenTrue(()
-                                                              => actor.Context.WatchWith(actor.Sender, new KeyHint(actor.Sender!, m.Event.Event))))
-                          .Select(m =>
+                          .Do(statePair => statePair.Event.Watch.WhenTrue(()
+                                                              => actor.Context.WatchWith(actor.Sender, new KeyHint(actor.Sender, statePair.Event.Event))))
+                          .Select(statePair =>
                                   {
-                                      var ((_, @event), state, _) = m;
+                                      var ((_, @event), state, _) = statePair;
 
                                       actor.TellSelf(new InternalEventSubscription(actor.Sender, @event));
                                       return state.Update(@event, refs => refs.Add(actor.Sender));
@@ -33,20 +33,20 @@ namespace Tauron.Features
 
             actor.Receive<EventUnSubscribe>(
                 obs => obs.Where(_ => !actor.Sender.IsNobody())
-                          .Select(m =>
+                          .Select(statePair =>
                                   {
-                                      actor.Context.Unwatch(actor.Sender!);
-                                      var (eventUnSubscribe, state, _) = m;
+                                      actor.Context.Unwatch(actor.Sender);
+                                      var (eventUnSubscribe, state, _) = statePair;
                                       return state.Update(eventUnSubscribe.Event, refs => refs.Remove(actor.Sender));
                                   }));
 
             actor.Receive<SendEvent>(
-                obs => obs.ToUnit(m =>
+                obs => obs.ToUnit(statePair =>
                                   {
-                                      var ((@event, eventType), state, _) = m;
+                                      var ((@event, eventType), state, _) = statePair;
 
                                       if (state.Subscriptions.TryGetValue(eventType, out var intrests))
-                                          intrests.ForEach(r => r.Tell(@event));
+                                          intrests.ForEach(actorRef => actorRef.Tell(@event));
                                   }));
         }
 
@@ -91,7 +91,9 @@ namespace Tauron.Features
     public sealed record EventUnSubscribe(Type Event);
 
     [PublicAPI]
+    #pragma warning disable AV1564
     public sealed record EventSubscribe(bool Watch, Type Event);
+    #pragma warning restore AV1564
 
     public sealed record SendEvent(object Event, Type EventType)
     {

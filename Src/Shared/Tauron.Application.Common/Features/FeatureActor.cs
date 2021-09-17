@@ -56,14 +56,16 @@ namespace Tauron.Features
             => new(Event, converter(State), Timers, Context, Sender, Parent, Self);
 
 
+        #pragma warning disable AV1551
         public void Deconstruct(out TEvent evt, out TState state)
+            #pragma warning restore AV1551
         {
             evt = Event;
             state = State;
         }
 
         public StatePair<TNew, TState> NewEvent<TNew>(TNew evt)
-            => new(evt, State, Timers, Context, Sender, Parent, Self);
+            => NewEvent(evt, State);
 
         public StatePair<TNew, TState> NewEvent<TNew>(TNew evt, TState state)
             => new(evt, state, Timers, Context, Sender, Parent, Self);
@@ -146,7 +148,7 @@ namespace Tauron.Features
             => Props.Create(typeof(ActorFactory), builder, initialState);
 
         protected static Props Create(TState initialState, Func<IEnumerable<Action<ActorBuilder<TState>>>> builder)
-            => Create(_ => initialState, actorBuilder => builder().Foreach(f => f(actorBuilder)));
+            => Create(_ => initialState, actorBuilder => builder().Foreach(action => action(actorBuilder)));
 
         protected static Props Create(TState initialState, Action<ActorBuilder<TState>> builder)
             => Create(_ => initialState, builder);
@@ -175,7 +177,7 @@ namespace Tauron.Features
             private readonly Action<ActorBuilder<TState>> _builder;
             private readonly Func<IUntypedActorContext, TState> _initialState;
 
-            public ActorFactory(Action<ActorBuilder<TState>> builder, Func<IUntypedActorContext, TState> initialState)
+            internal ActorFactory(Action<ActorBuilder<TState>> builder, Func<IUntypedActorContext, TState> initialState)
             {
                 _builder = builder;
                 _initialState = initialState;
@@ -200,7 +202,7 @@ namespace Tauron.Features
         public static class Make
         {
             public static Action<ActorBuilder<TState>> Feature(Action<IFeatureActor<TState>> initializer, params string[] ids)
-                => b => b.WithFeature(new DelegatingFeature(initializer, ids));
+                => actorBuilder => actorBuilder.WithFeature(new DelegatingFeature(initializer, ids));
         }
 
         [PublicAPI]
@@ -216,7 +218,7 @@ namespace Tauron.Features
             private readonly Action<IFeatureActor<TState>> _initializer;
             private IFeatureActor<TState>? _actor;
 
-            public DelegatingFeature(Action<IFeatureActor<TState>> initializer, IEnumerable<string> ids)
+            internal DelegatingFeature(Action<IFeatureActor<TState>> initializer, IEnumerable<string> ids)
             {
                 _initializer = initializer;
                 _ids = ids;
@@ -251,7 +253,9 @@ namespace Tauron.Features
 
         public ActorBuilder(Action<IFeature<TState>> registrar) => _registrar = registrar;
 
+        #pragma warning disable AV1551
         public ActorBuilder<TState> WithFeature(IFeature<TState> feature)
+            #pragma warning restore AV1551
         {
             _registrar(feature);
             return this;
@@ -274,7 +278,7 @@ namespace Tauron.Features
             private readonly Func<TOriginal, TTarget, TOriginal> _convertBack;
             private readonly IFeature<TTarget> _feature;
 
-            public ConvertingFeature(IFeature<TTarget> feature, Func<TOriginal, TTarget> convert,
+            internal ConvertingFeature(IFeature<TTarget> feature, Func<TOriginal, TTarget> convert,
                 Func<TOriginal, TTarget, TOriginal> convertBack)
             {
                 _feature = feature;
@@ -300,7 +304,7 @@ namespace Tauron.Features
             private readonly Func<TOriginal, TTarget, TOriginal> _convertBack;
             private readonly IFeatureActor<TOriginal> _original;
 
-            public StateDelegator(IFeatureActor<TOriginal> original, Func<TOriginal, TTarget> convert,
+            internal StateDelegator(IFeatureActor<TOriginal> original, Func<TOriginal, TTarget> convert,
                 Func<TOriginal, TTarget, TOriginal> convertBack)
             {
                 _original = original;
@@ -308,7 +312,9 @@ namespace Tauron.Features
                 _convertBack = convertBack;
             }
 
+            #pragma warning disable AV1551
             public IObservable<TEvent> Receive<TEvent>()
+                #pragma warning restore AV1551
                 => _original.Receive<TEvent>();
 
             public IActorRef Self
@@ -351,21 +357,23 @@ namespace Tauron.Features
 
             public IObservable<TSignal> WaitForSignal<TSignal>(TimeSpan timeout, Predicate<TSignal> match) => _original.WaitForSignal(timeout, match);
 
+            #pragma warning disable AV1551
             public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TTarget>>, IObservable<Unit>> handler)
-                => _original.Receive<TEvent>(obs => handler(obs.Select(d => d.Convert(_convert))));
+                => _original.Receive<TEvent>(obs => handler(obs.Select(statePair => statePair.Convert(_convert))));
 
             public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TTarget>>, IObservable<TTarget>> handler)
                 => _original.Receive<TEvent>(obs
-                    => handler(obs.Select(d => d.Convert(_convert)))
-                        .Select(s => _convertBack(_original.CurrentState, s)));
+                    => handler(obs.Select(statePair => statePair.Convert(_convert)))
+                        .Select(state => _convertBack(_original.CurrentState, state)));
 
             public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TTarget>>, IObservable<Unit>> handler,
                 Func<Exception, bool> errorHandler)
-                => _original.Receive<TEvent>(obs => handler(obs.Select(d => d.Convert(_convert))), errorHandler);
+                => _original.Receive<TEvent>(obs => handler(obs.Select(statePair => statePair.Convert(_convert))), errorHandler);
 
             public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TTarget>>, IDisposable> handler)
-                => _original.Receive<TEvent>(obs => handler(obs.Select(d => d.Convert(_convert))));
-
+                => _original.Receive<TEvent>(obs => handler(obs.Select(statePair => statePair.Convert(_convert))));
+            #pragma warning restore AV1551
+            
             public ITimerScheduler Timers
             {
                 get => _original.Timers;

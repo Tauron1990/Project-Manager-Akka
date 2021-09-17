@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using Tauron.Application.VirtualFiles;
 
 namespace Tauron.Application.Files.VirtualFiles.Core
 {

@@ -1,7 +1,7 @@
 ﻿using System;
 using JetBrains.Annotations;
 
-namespace Tauron.Application.Files.VirtualFiles
+namespace Tauron.Application.VirtualFiles
 {
     [PublicAPI]
     public interface IVirtualFileSystem : IDirectory, IDisposable
@@ -11,6 +11,6 @@ namespace Tauron.Application.Files.VirtualFiles
 
         string Source { get; }
 
-        void Reload([NotNull] string source);
+        void Reload(string source);
     }
 }

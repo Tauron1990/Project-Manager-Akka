@@ -16,6 +16,7 @@ using Tauron.Application.AkkaNode.Services.Reporting;
 using Tauron.Application.AkkaNode.Services.Reporting.Commands;
 using Tauron.Application.Files.VirtualFiles;
 using Tauron.Application.Master.Commands.Deployment.Repository;
+using Tauron.Application.VirtualFiles;
 using Tauron.Features;
 using Tauron.Operations;
 using Tauron.Temp;
