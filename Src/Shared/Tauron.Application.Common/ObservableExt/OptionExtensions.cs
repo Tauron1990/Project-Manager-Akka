@@ -13,15 +13,15 @@ namespace Tauron.ObservableExt
     {
         public static Option<TSource> Where<TSource>(this Option<TSource> source, Func<TSource, bool> predicate)
         {
-            if (predicate == null)
+            if (predicate is null)
                 throw new ArgumentNullException(nameof(predicate));
 
-            return source.FlatSelect(s => predicate(s) ? s.AsOption() : Option<TSource>.None);
+            return source.FlatSelect(sourceValue => predicate(sourceValue) ? sourceValue.AsOption() : Option<TSource>.None);
         }
 
         public static Option<TResult> Select<TSource, TResult>(this Option<TSource> source, Func<TSource, TResult> selector)
         {
-            if (selector == null)
+            if (selector is null)
                 throw new ArgumentNullException(nameof(selector));
 
             return source.Select(selector);
@@ -30,13 +30,13 @@ namespace Tauron.ObservableExt
         public static Option<TResult> SelectMany<TSource, TCollection, TResult>(
             this Option<TSource> source, Func<TSource, Option<TCollection>> optionSelector, Func<TSource, TCollection, TResult> resultSelector)
         {
-            if (optionSelector == null)
+            if (optionSelector is null)
                 throw new ArgumentNullException(nameof(optionSelector));
 
-            if (resultSelector == null)
+            if (resultSelector is null)
                 throw new ArgumentNullException(nameof(resultSelector));
 
-            return source.FlatSelect(s => optionSelector(s).Select(c => resultSelector(s, c)));
+            return source.FlatSelect(sourceValue => optionSelector(sourceValue).Select(collection => resultSelector(sourceValue, collection)));
         }
 
         public static IObservable<TResult> SelectMany<TSource, TCollection, TResult>(
@@ -60,13 +60,15 @@ namespace Tauron.ObservableExt
         public static IEnumerable<TResult> SelectMany<TSource, TCollection, TResult>(
             this IEnumerable<TSource> source, Func<TSource, Option<TCollection>> optionSelector, Func<TSource, TCollection, TResult> resultSelector)
         {
-            if (optionSelector == null)
+            if (optionSelector is null)
                 throw new ArgumentNullException(nameof(optionSelector));
 
-            if (resultSelector == null)
+            if (resultSelector is null)
                 throw new ArgumentNullException(nameof(resultSelector));
 
+            #pragma warning disable AV1250
             return from sourceInst in source
+                   #pragma warning restore AV1250
                    let opt = optionSelector(sourceInst)
                    where opt.HasValue
                    select resultSelector(sourceInst, opt.Value);
@@ -96,9 +98,9 @@ namespace Tauron.ObservableExt
             public Caster(Option<TType> option) => _option = option;
 
             public Option<TResult> To<TResult>()
-                => _option.FlatSelect(v =>
+                => _option.FlatSelect(type =>
                                       {
-                                          if (v is TResult result)
+                                          if (type is TResult result)
                                               return result.AsOption();
                                           return Option<TResult>.None;
                                       });

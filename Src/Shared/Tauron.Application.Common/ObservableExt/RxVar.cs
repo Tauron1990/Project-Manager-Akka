@@ -77,7 +77,7 @@ namespace Tauron.ObservableExt
             };
         }
 
-        public static implicit operator T(RxVar<T> v) => v._subject.Value;
+        public static implicit operator T(RxVar<T> rxVar) => rxVar._subject.Value;
 
         public static bool operator ==(RxVar<T> left, T? right) => Equals(left, right);
 
@@ -143,7 +143,7 @@ namespace Tauron.ObservableExt
             };
         }
 
-        public static implicit operator T?(RxVal<T> v) => v._subject.Value;
+        public static implicit operator T?(RxVal<T> rxVal) => rxVal._subject.Value;
 
         public static bool operator ==(RxVal<T> left, T? right) => Equals(left, right);
 
@@ -159,7 +159,9 @@ namespace Tauron.ObservableExt
 
         public override string ToString() => Value?.ToString() ?? "<null>";
 
+        #pragma warning disable AV2407
         #region IConvertible
+        #pragma warning restore AV2407
 
         public TypeCode GetTypeCode() => TypeCode.Object;
 

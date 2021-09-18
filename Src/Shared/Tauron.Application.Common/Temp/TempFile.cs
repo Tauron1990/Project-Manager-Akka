@@ -21,9 +21,9 @@ namespace Tauron.Temp
 
         public bool NoStreamDispose { get; set; }
 
-        public Stream Stream => new TempStream(this, false);
+        public Stream Stream => new TempStream(this, noDispose: false);
 
-        public Stream NoDisposeStream => new TempStream(this, true);
+        public Stream NoDisposeStream => new TempStream(this, noDispose: true);
 
         public string FullPath { get; }
 

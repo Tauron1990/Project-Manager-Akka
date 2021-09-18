@@ -12,7 +12,7 @@ namespace Tauron.ObservableExt
     }
 
     [PublicAPI]
-    public sealed class TypeSwitchTypeConfig<TSource>
+    public readonly struct TypeSwitchTypeConfig<TSource>
     {
         private readonly ConditionalSelectTypeConfig<TSource> _observable;
 
@@ -20,9 +20,9 @@ namespace Tauron.ObservableExt
 
         public IObservable<TResult> ToResult<TResult>(Action<TypeSwitchSelectBuilder<TSource, TResult>> builder)
         {
-            return _observable.ToResult<TResult>(b =>
+            return _observable.ToResult<TResult>(selectBuilder =>
             {
-                var setup = new TypeSwitchSelectBuilder<TSource, TResult>(b);
+                var setup = new TypeSwitchSelectBuilder<TSource, TResult>(selectBuilder);
                 builder(setup);
             });
         }
@@ -32,7 +32,7 @@ namespace Tauron.ObservableExt
     }
 
     [PublicAPI]
-    public sealed class TypeSwitchSelectBuilder<TSource, TResult>
+    public readonly struct TypeSwitchSelectBuilder<TSource, TResult>
     {
         private readonly ConditionalSelectBuilder<TSource, TResult> _registrations;
 
@@ -43,7 +43,7 @@ namespace Tauron.ObservableExt
             Func<IObservable<TType>, IObservable<TResult>> then)
             where TType : TSource
         {
-            _registrations.Add(s => s is TType, o => then(o.Select(obj => (TType) obj!)));
+            _registrations.Add(source => source is TType, observable => then(observable.Select(obj => (TType) obj!)));
             return this;
         }
     }

@@ -19,14 +19,18 @@ namespace Tauron.Temp
         private readonly ConcurrentDictionary<string, ITempDic> _tempDics = new();
         private readonly ConcurrentDictionary<string, ITempFile> _tempFiles = new();
 
+        #pragma warning disable AV1564
         protected TempDic(string fullPath, Option<ITempDic> parent, Func<bool, string> nameGenerator, bool deleteDic)
+            #pragma warning restore AV1564
         {
             _nameGenerator = nameGenerator;
             _deleteDic = deleteDic;
             FullPath = fullPath;
             Parent = parent;
 
+            #pragma warning disable GU0011
             fullPath.CreateDirectoryIfNotExis();
+            #pragma warning restore GU0011
         }
 
         private TempDic()
@@ -41,26 +45,28 @@ namespace Tauron.Temp
         public Option<ITempDic> Parent { get; }
         public bool KeepAlive { get; set; }
 
-        public ITempDic CreateDic(string name)
+        public virtual ITempDic CreateDic(string name)
         {
             CheckNull();
-            return _tempDics.GetOrAdd(name, s =>
-            {
-                var dic = new TempDic(Path.Combine(FullPath, s), this, _nameGenerator, true);
-                dic.TrackDispose(() => _tempDics.TryRemove(s, out _));
-                return dic;
-            });
+            // ReSharper disable once HeapView.CanAvoidClosure
+            return _tempDics.GetOrAdd(name, key =>
+                                            {
+                                                var dic = new TempDic(Path.Combine(FullPath, key), this, _nameGenerator, deleteDic: true);
+                                                dic.TrackDispose(() => _tempDics.TryRemove(key, out _));
+                                                return dic;
+                                            });
         }
 
-        public ITempFile CreateFile(string name)
+        public virtual ITempFile CreateFile(string name)
         {
             CheckNull();
-            return _tempFiles.GetOrAdd(name, s =>
-            {
-                var file = new TempFile(Path.Combine(FullPath, s), this);
-                file.TrackDispose(() => _tempFiles.TryRemove(s, out _));
-                return file;
-            });
+            // ReSharper disable once HeapView.CanAvoidClosure
+            return _tempFiles.GetOrAdd(name, key =>
+                                             {
+                                                 var file = new TempFile(Path.Combine(FullPath, key), this);
+                                                 file.TrackDispose(() => _tempFiles.TryRemove(key, out _));
+                                                 return file;
+                                             });
         }
 
         public ITempDic CreateDic() => CreateDic(_nameGenerator(false));
@@ -75,23 +81,25 @@ namespace Tauron.Temp
             void TryDispose(IEnumerable<ITempInfo> toDispose)
             {
                 foreach (var entry in toDispose)
+                {
                     try
                     {
                         entry.Dispose();
                     }
-                    catch (Exception e)
+                    catch (Exception exception)
                     {
                         if (KeepAlive)
-                            ActorApplication.GetLogger(GetType()).LogWarning(e, "Error on Dispose Dic {Path}", entry.FullPath);
+                            ActorApplication.GetLogger(GetType()).LogWarning(exception, "Error on Dispose Dic {Path}", entry.FullPath);
                         else
                             throw;
                     }
+                }
             }
 
             try
             {
                 var dics = _tempDics.Values;
-                dics.Foreach(t => t.KeepAlive = KeepAlive);
+                dics.Foreach(tempDic => tempDic.KeepAlive = KeepAlive);
 
                 TryDispose(dics);
                 TryDispose(_tempFiles.Values);

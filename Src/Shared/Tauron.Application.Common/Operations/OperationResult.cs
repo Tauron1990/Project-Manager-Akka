@@ -22,27 +22,29 @@ namespace Tauron.Operations
     }
 
     [PublicAPI]
+    #pragma warning disable AV1564
     public sealed record OperationResult(bool Ok, Error[]? Errors, object? Outcome) : IOperationResult
+        #pragma warning restore AV1564
     {
         [JsonIgnore]
-        public string? Error => Errors == null ? null : string.Join(", ", Errors.Select(e => e.Info ?? e.Code));
+        public string? Error => Errors == null ? null : string.Join(", ", Errors.Select(error => error.Info ?? error.Code));
 
-        public static IOperationResult Success(object? result = null) => new OperationResult(true, null, result);
+        public static IOperationResult Success(object? result = null) => new OperationResult(Ok: true, Errors: null, Outcome: result);
 
         public static IOperationResult Failure(Error error, object? outcome = null)
         {
-            return new OperationResult(false, new[] {error}, outcome);
+            return new OperationResult(Ok: false, new[] {error}, Outcome: outcome);
         }
 
         public static IOperationResult Failure(IEnumerable<Error> errors, object? outcome = null)
-            => new OperationResult(false, errors.ToArray(), outcome);
+            => new OperationResult(Ok: false, errors.ToArray(), outcome);
 
-        public static IOperationResult Failure(params Error[] errors) => new OperationResult(false, errors, null);
+        public static IOperationResult Failure(params Error[] errors) => new OperationResult(Ok: false, errors, Outcome: null);
 
         public static IOperationResult Failure(Exception error)
         {
             var unwarped = error.Unwrap() ?? error;
-            return new OperationResult(false, new[] {new Error(unwarped.Message, unwarped.HResult.ToString())}, null);
+            return new OperationResult(Ok: false, new[] {new Error(unwarped.Message, unwarped.HResult.ToString())}, null);
         }
     }
 }

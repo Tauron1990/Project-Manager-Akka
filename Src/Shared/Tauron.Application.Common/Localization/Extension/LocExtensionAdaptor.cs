@@ -18,7 +18,7 @@ namespace Tauron.Localization.Extension
         public LocExtensionAdaptor(LocExtension extension, ActorSystem system)
         {
             _system = system;
-            _extension = Argument.NotNull(extension, nameof(extension));
+            _extension = extension;
         }
 
         public void Request(string name, Action<Option<object>> valueResponse, CultureInfo? info = null)

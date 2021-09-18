@@ -38,7 +38,7 @@ namespace Tauron.Application
         public bool IsReadOnly => false;
 
         public void Add(Option<TType> item) 
-            => item.OnSuccess(i => _internalCollection.Add(new WeakReference<TType>(i)));
+            => item.OnSuccess(target => _internalCollection.Add(new WeakReference<TType>(target)));
 
         /// <summary>The clear.</summary>
         public void Clear() => _internalCollection.Clear();
@@ -48,12 +48,10 @@ namespace Tauron.Application
 
         public void CopyTo(Option<TType>[] array, int arrayIndex)
         {
-            Argument.NotNull(array, nameof(array));
-
             var index = 0;
-            for (var i = arrayIndex; i < array.Length; i++)
+            for (var targetIndex = arrayIndex; targetIndex < array.Length; targetIndex++)
             {
-                Option<TType> target = Option<TType>.None;
+                var target = Option<TType>.None;
                 while (target.IsEmpty && index <= _internalCollection.Count)
                 {
                     target = _internalCollection[index].TypedTarget();
@@ -62,7 +60,7 @@ namespace Tauron.Application
 
                 if (target.IsEmpty) break;
 
-                array[i] = target;
+                array[targetIndex] = target;
             }
         }
 
@@ -162,6 +160,7 @@ namespace Tauron.Application
                     .Foreach(
                         it =>
                         {
+                            // ReSharper disable once SuspiciousTypeConversion.Global
                             if (it is IDisposable dis) dis.Dispose();
 
                             Items.Remove(it);

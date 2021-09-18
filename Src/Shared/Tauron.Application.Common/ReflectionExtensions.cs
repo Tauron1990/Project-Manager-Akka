@@ -32,7 +32,6 @@ namespace Tauron
 
         public static string PropertyName<T>(Expression<Func<T>> propertyExpression)
         {
-            Argument.NotNull(propertyExpression, nameof(propertyExpression));
             var memberExpression = (MemberExpression) propertyExpression.Body;
 
             return memberExpression.Member.Name;
@@ -40,7 +39,6 @@ namespace Tauron
 
         public static string PropertyName<TIn, T>(Expression<Func<TIn, T>> propertyExpression)
         {
-            Argument.NotNull(propertyExpression, nameof(propertyExpression));
             var memberExpression = (MemberExpression)propertyExpression.Body;
 
             return memberExpression.Member.Name;
@@ -245,8 +243,7 @@ namespace Tauron
                 var argsParam = Expression.Parameter(typeof(object[]));
                 var convert = info.IsStatic
                     ? null
-                    : Expression.Convert(instParam,
-                        Argument.CheckResult(info.DeclaringType, nameof(info.DeclaringType)));
+                    : Expression.Convert(instParam, info.DeclaringType ?? throw new InvalidOperationException($"No Declating Type for {info} Returned"));
 
                 Expression targetExpression = args.Length == 0
                     ? Expression.Call(convert, info)
@@ -502,11 +499,7 @@ namespace Tauron
         }
 
         public static void InvokeFast(this MethodInfo method, object? instance, params object?[] args)
-        {
-            Argument.NotNull(method, nameof(method));
-
-            FastReflection.Shared.GetMethodInvoker(method, method.GetParameterTypes)(instance, args);
-        }
+            => FastReflection.Shared.GetMethodInvoker(method, method.GetParameterTypes)(instance, args);
 
         public static TEnum ParseEnum<TEnum>(this string value)
         {
@@ -569,23 +562,19 @@ namespace Tauron
         }
 
         public static void SetFieldFast(this FieldInfo field, object target, object? value)
-        {
-            FastReflection.Shared.GetFieldSetter(Argument.NotNull(field, nameof(field)))(target, value);
-        }
+            => FastReflection.Shared.GetFieldSetter(field)(target, value);
 
         public static void SetValueFast(this PropertyInfo info, object target, object? value, params object[] index)
-        {
-            FastReflection.Shared.GetPropertySetter(Argument.NotNull(info, nameof(info)))(target, index, value);
-        }
+            => FastReflection.Shared.GetPropertySetter(info)(target, index, value);
 
         public static object FastCreate(this ConstructorInfo info, params object[] parms)
-            => FastReflection.Shared.GetCreator(Argument.NotNull(info, nameof(info)))(parms);
+            => FastReflection.Shared.GetCreator(info)(parms);
 
         public static object? GetValueFast(this PropertyInfo info, object? instance, params object[] index)
-            => FastReflection.Shared.GetPropertyAccessor(Argument.NotNull(info, nameof(info)),
+            => FastReflection.Shared.GetPropertyAccessor(info,
                 () => info.GetIndexParameters().Select(pi => pi.ParameterType)).Invoke(instance, index);
 
         public static object? GetValueFast(this FieldInfo info, object? instance)
-            => FastReflection.Shared.GetFieldAccessor(Argument.NotNull(info, nameof(info)))(instance);
+            => FastReflection.Shared.GetFieldAccessor(info)(instance);
     }
 }
