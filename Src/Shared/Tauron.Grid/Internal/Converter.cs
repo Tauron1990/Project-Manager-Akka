@@ -2,9 +2,9 @@
 
 namespace Tauron.Grid.Internal
 {
-    static class Converter
+    internal static class Converter
     {
-        public static string ToCss(int value, CSSUnit unit)
+        internal static string ToCss(int value, CSSUnit unit)
             => unit switch
             {
                 CSSUnit.Pixel => $"{value}px",
@@ -16,7 +16,7 @@ namespace Tauron.Grid.Internal
                 _ => $"{value}fr"
             };
 
-        public static string ToCss(GridAlignExt ext)
+        internal static string ToCss(GridAlignExt ext)
             => ext switch
             {
                 GridAlignExt.None => "none",
@@ -30,7 +30,7 @@ namespace Tauron.Grid.Internal
                 _ => throw new ArgumentOutOfRangeException(nameof(ext), ext, null)
             };
 
-        public static string ToCss(AutoFlow flow)
+        internal static string ToCss(AutoFlow flow)
             => flow switch
             {
                 AutoFlow.None => "row",

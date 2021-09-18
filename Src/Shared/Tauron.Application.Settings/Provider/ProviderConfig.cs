@@ -10,7 +10,7 @@ namespace Tauron.Application.Settings.Provider
         {
             private readonly string _fileName;
 
-            public JsonProviderConfig(string fileName, string scope)
+            internal JsonProviderConfig(string fileName, string scope)
             {
                 _fileName = fileName;
                 Scope = scope;

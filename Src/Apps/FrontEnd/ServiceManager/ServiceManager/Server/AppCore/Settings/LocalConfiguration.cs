@@ -1,11 +1,13 @@
-﻿using Tauron.Akka;
+﻿using Microsoft.Extensions.Logging;
+using Tauron.Akka;
 using Tauron.Application.Settings;
 
 namespace ServiceManager.Server.AppCore.Settings
 {
     public sealed class LocalConfiguration : ConfigurationBase, ILocalConfiguration
     {
-        public LocalConfiguration(IDefaultActorRef<SettingsManager> actor) : base(actor, LocalConfigurationProvider.LocalScope)
+        public LocalConfiguration(IDefaultActorRef<SettingsManager> actor, ILogger<LocalConfiguration> logger) 
+            : base(actor, LocalConfigurationProvider.LocalScope, logger)
         {
         }
 

@@ -9,6 +9,7 @@ using SimpleTcp;
 
 namespace Servicemnager.Networking.Server
 {
+    
     public sealed class MessageFromClientEventArgs : EventArgs
     {
         public MessageFromClientEventArgs(NetworkMessage message, string client)
@@ -32,7 +33,7 @@ namespace Servicemnager.Networking.Server
 
         public DataServer(string host, int port = 0)
         {
-            _server = new SimpleTcpServer(host, port, false, null, null)
+            _server = new SimpleTcpServer(host, port, ssl: false, pfxCertFilename: null, pfxPassword: null)
             {
                 Keepalive = {EnableTcpKeepAlives = true}
             };
@@ -54,7 +55,7 @@ namespace Servicemnager.Networking.Server
             // ReSharper disable once ConstantNullCoalescingCondition
             => (_endPoint ??=
                 ((TcpListener) _server.GetType().GetField("_Listener", BindingFlags.Instance | BindingFlags.NonPublic)
-                    ?.GetValue(_server)!).LocalEndpoint!)!;
+                    ?.GetValue(_server)!).LocalEndpoint);
 
         public event EventHandler<ClientConnectedArgs>? ClientConnected;
         public event EventHandler<ClientDisconnectedArgs>? ClientDisconnected;

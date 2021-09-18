@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using Ionic.Zip;
-using Tauron.Application.Files.VirtualFiles;
 using Tauron.Application.Files.VirtualFiles.Core;
 using Tauron.Application.VirtualFiles;
 
@@ -61,7 +60,7 @@ namespace Tauron.Application.Files.Zip
                     using (var stream = new MemoryStream())
                     {
                         if (!Exist || mode == InternalFileMode.Create || mode == InternalFileMode.CreateNew)
-                            return new ZipWriteHelper(OriginalPath, _file, new byte[0], ZipEntryUpdated);
+                            return new ZipWriteHelper(OriginalPath, _file, Array.Empty<byte>(), ZipEntryUpdated);
 
                         InfoObject.Extract(stream);
                         return new ZipWriteHelper(InfoObject.FileName, _file, stream.GetBuffer(), ZipEntryUpdated);
@@ -86,7 +85,7 @@ namespace Tauron.Application.Files.Zip
             private readonly ZipFile _file;
             private readonly Action<ZipEntry> _updateAction;
 
-            public ZipWriteHelper(string entry, ZipFile file, byte[] buffer, Action<ZipEntry> updateAction)
+            internal ZipWriteHelper(string entry, ZipFile file, byte[] buffer, Action<ZipEntry> updateAction)
                 : base(buffer)
             {
                 _entry = entry;

@@ -515,15 +515,15 @@ namespace Tauron.Application.Files.Json
 
         public static implicit operator JsonNode(double n) => new JsonNumber(n);
 
-        public static implicit operator double(JsonNode d) => d == null ? 0 : d.AsDouble;
+        public static implicit operator double(JsonNode? d) => d?.AsDouble ?? 0;
 
         public static implicit operator JsonNode(float n) => new JsonNumber(n);
 
-        public static implicit operator float(JsonNode d) => d == null ? 0 : d.AsFloat;
+        public static implicit operator float(JsonNode? d) => d?.AsFloat ?? 0;
 
         public static implicit operator JsonNode(int n) => new JsonNumber(n);
 
-        public static implicit operator int(JsonNode d) => d == null ? 0 : d.AsInt;
+        public static implicit operator int(JsonNode? d) => d?.AsInt ?? 0;
 
         public static implicit operator JsonNode(long n)
         {
@@ -532,11 +532,11 @@ namespace Tauron.Application.Files.Json
             return new JsonNumber(n);
         }
 
-        public static implicit operator long(JsonNode d) => d == null ? 0L : d.AsLong;
+        public static implicit operator long(JsonNode? d) => d?.AsLong ?? 0L;
 
         public static implicit operator JsonNode(bool b) => new JsonBool(b);
 
-        public static implicit operator bool(JsonNode d) => d != null && d.AsBool;
+        public static implicit operator bool(JsonNode? d) => d != null && d.AsBool;
 
         public static implicit operator JsonNode(KeyValuePair<string, JsonNode> aKeyValue) => aKeyValue.Value;
 
@@ -544,8 +544,8 @@ namespace Tauron.Application.Files.Json
         {
             if (ReferenceEquals(a, b))
                 return true;
-            var aIsNull = a is JsonNull || a is null || a is JsonLazyCreator;
-            var bIsNull = b is JsonNull || b is null || b is JsonLazyCreator;
+            var aIsNull = a is JsonNull or null or JsonLazyCreator;
+            var bIsNull = b is JsonNull or null or JsonLazyCreator;
             if (aIsNull && bIsNull)
                 return true;
             return !aIsNull && a!.Equals(b!);
@@ -772,16 +772,12 @@ namespace Tauron.Application.Files.Json
 
         public override JsonNode? Remove(JsonNode aNode)
         {
-            try
-            {
-                var item = _dict.First(k => k.Value == aNode);
+                var item = _dict.FirstOrDefault(k => k.Value == aNode);
+
+                if (item is { Key: null }) return null;
+                
                 _dict.Remove(item.Key);
                 return aNode;
-            }
-            catch
-            {
-                return null;
-            }
         }
 
         internal override void WriteToStringBuilder(StringBuilder aSb, int aIndent, int aIndentInc, JsonTextMode aMode)
@@ -1099,13 +1095,13 @@ namespace Tauron.Application.Files.Json
         private readonly string? _key;
         private JsonNode? _node;
 
-        public JsonLazyCreator(JsonNode aNode)
+        internal JsonLazyCreator(JsonNode aNode)
         {
             _node = aNode;
             _key = null;
         }
 
-        public JsonLazyCreator(JsonNode aNode, string aKey)
+        internal JsonLazyCreator(JsonNode aNode, string aKey)
         {
             _node = aNode;
             _key = aKey;
@@ -1184,7 +1180,7 @@ namespace Tauron.Application.Files.Json
         {
             get
             {
-                Set(new JsonBool(false));
+                Set(new JsonBool(aData: false));
                 return false;
             }
             set => Set(new JsonBool(value));
@@ -1204,7 +1200,7 @@ namespace Tauron.Application.Files.Json
 
         private T Set<T>(T aVal) where T : JsonNode
         {
-            if (_key == null)
+            if (_key is null)
                 _node?.Add(aVal);
             else
                 _node?.Add(_key, aVal);
@@ -1213,20 +1209,16 @@ namespace Tauron.Application.Files.Json
         }
 
         public override void Add(JsonNode? aItem)
-        {
-            Set(new JsonArray()).Add(aItem);
-        }
+            => Set(new JsonArray()).Add(aItem);
 
         public override void Add(string aKey, JsonNode? aItem)
-        {
-            Set(new JsonObject()).Add(aKey, aItem);
-        }
+            => Set(new JsonObject()).Add(aKey, aItem);
 
-        public static bool operator ==(JsonLazyCreator a, object? b) => b == null || ReferenceEquals(a, b);
+        public static bool operator ==(JsonLazyCreator a, object? b) => b is null || ReferenceEquals(a, b);
 
         public static bool operator !=(JsonLazyCreator a, object? b) => !(a == b);
 
-        public override bool Equals(object? obj) => obj == null || ReferenceEquals(this, obj);
+        public override bool Equals(object? obj) => obj is null || ReferenceEquals(this, obj);
 
         public override int GetHashCode() => 0;
 

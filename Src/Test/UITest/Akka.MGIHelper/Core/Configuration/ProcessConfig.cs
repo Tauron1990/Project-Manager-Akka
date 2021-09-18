@@ -1,4 +1,4 @@
-﻿using Akka.MGIHelper.Settings;
+﻿using Microsoft.Extensions.Logging;
 using Tauron.Akka;
 using Tauron.Application.Settings;
 
@@ -6,8 +6,8 @@ namespace Akka.MGIHelper.Core.Configuration
 {
     public class ProcessConfig : ConfigurationBase
     {
-        public ProcessConfig(IDefaultActorRef<SettingsManager> actor, string scope)
-            : base(actor, scope)
+        public ProcessConfig(IDefaultActorRef<SettingsManager> actor, string scope, ILogger<ProcessConfig> logger)
+            : base(actor, scope, logger)
         {
         }
 

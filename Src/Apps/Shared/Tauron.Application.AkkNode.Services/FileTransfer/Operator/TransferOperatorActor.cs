@@ -43,7 +43,7 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer.Operator
 
         public OperatorData()
             : this(string.Empty, ActorRefs.Nobody, () => new StreamData(Stream.Null), null,
-                new InternalCrcStream(StreamData.Null), null, null, false, ActorRefs.Nobody, null)
+                new InternalCrcStream(StreamData.Null), null, null, sendBack: false, ActorRefs.Nobody, individualMessgae: null)
         {
         }
 
@@ -59,7 +59,7 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer.Operator
 
         public TransferError? Error { get; }
 
-        public TaskCompletionSource<TransferMessages.TransferCompled>? Completion { get; }
+        public TaskCompletionSource<TransferCompled>? Completion { get; }
 
         public bool SendBack { get; }
 
@@ -68,20 +68,20 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer.Operator
         public object? IndividualMessage { get; }
 
         private OperatorData Copy(string? id = null, IActorRef? target = null, Func<ITransferData>? data = null, string? metadata = null, InternalCrcStream? stream = null, 
-            TransferError? failed = null, TaskCompletionSource<TransferMessages.TransferCompled>? completion = null, bool? sendBack = false, IActorRef? sender = null, 
-            object? IndividualMessage = null)
+            TransferError? failed = null, TaskCompletionSource<TransferCompled>? completion = null, bool? sendBack = false, IActorRef? sender = null, 
+            object? individualMessage = null)
             => new(id ?? OperationId, target ?? TargetManager, data ?? Data, metadata ?? Metadata,
                 stream ?? TransferStrem, failed ?? Error, completion ?? Completion,
-                sendBack ?? SendBack, sender ?? Sender, IndividualMessage ?? IndividualMessage);
+                sendBack ?? SendBack, sender ?? Sender, individualMessage ?? individualMessage);
 
         public OperatorData StartSending(DataTransferRequest id, IActorRef sender)
-            => Copy(id.OperationId, id.Target.Actor, id.Source, id.Data, sendBack: id.SendCompletionBack, sender: sender, IndividualMessage:id.IndividualMessage);
+            => Copy(id.OperationId, id.Target.Actor, id.Source, id.Data, sendBack: id.SendCompletionBack, sender: sender, individualMessage:id.IndividualMessage);
 
         public OperatorData StartRecdiving(TransmitRequest id)
             => Copy(id.OperationId, id.From, metadata: id.Data);
 
         public OperatorData SetData(Func<ITransferData> data,
-            TaskCompletionSource<TransferMessages.TransferCompled> completion)
+            TaskCompletionSource<TransferCompled> completion)
             => Copy(data: data, completion: completion);
 
         public OperatorData Open() => Copy(stream: new InternalCrcStream(Data()));

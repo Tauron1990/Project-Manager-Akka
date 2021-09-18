@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Disposables;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using Microsoft.Extensions.Logging;
 using Tauron.Akka;
 
 namespace Tauron.Application.Settings
@@ -14,6 +13,7 @@ namespace Tauron.Application.Settings
     public abstract class ConfigurationBase : ObservableObject
     {
         private readonly IDefaultActorRef<SettingsManager> _actor;
+        private readonly ILogger _logger;
         private readonly Task _loader;
         private readonly string _scope;
 
@@ -21,9 +21,10 @@ namespace Tauron.Application.Settings
 
         private bool _isBlocked;
 
-        protected ConfigurationBase(IDefaultActorRef<SettingsManager> actor, string scope)
+        protected ConfigurationBase(IDefaultActorRef<SettingsManager> actor, string scope, ILogger logger)
         {
             _actor = actor;
+            _logger = logger;
 
             if (actor is EmptyActor<SettingsManager>)
             {
@@ -40,18 +41,13 @@ namespace Tauron.Application.Settings
         public IDisposable BlockSet()
         {
             _isBlocked = true;
-            return Disposable.Create(() => _isBlocked = false);
+            return Disposable.Create(this, self => self._isBlocked = false);
         }
 
         private async Task LoadValues()
-        {
-            var result = await _actor.Ask<ImmutableDictionary<string, string>>(new RequestAllValues(_scope));
+            => _dic = await _actor.Ask<ImmutableDictionary<string, string>>(new RequestAllValues(_scope));
 
-            Interlocked.Exchange(ref _dic, result);
-        }
-
-        [return: MaybeNull]
-        protected TValue GetValue<TValue>(Func<string, TValue> converter, TValue? defaultValue = default, [CallerMemberName] string? name = null)
+        protected TValue? GetValue<TValue>(Func<string, TValue> converter, TValue? defaultValue = default, [CallerMemberName] string? name = null)
         {
             try
             {
@@ -60,8 +56,9 @@ namespace Tauron.Application.Settings
 
                 return _dic.TryGetValue(name, out var value) ? converter(value) : defaultValue;
             }
-            catch
+            catch(Exception e)
             {
+                _logger.LogError(e, "Error on  Load Configuration Data");
                 return defaultValue;
             }
         }

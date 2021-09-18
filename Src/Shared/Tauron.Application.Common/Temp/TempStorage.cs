@@ -16,7 +16,7 @@ namespace Tauron.Temp
         }
 
         public TempStorage()
-            : this(DefaultNameProvider, Path.GetTempPath(), false)
+            : this(DefaultNameProvider, Path.GetTempPath(), deleteBasePath: false)
         {
         }
 
@@ -31,7 +31,7 @@ namespace Tauron.Temp
         public static TempStorage CleanAndCreate(string path)
         {
             path.ClearDirectory();
-            return new TempStorage(DefaultNameProvider, path, true);
+            return new TempStorage(DefaultNameProvider, path, deleteBasePath: true);
         }
 
         private void WireUp()
@@ -45,10 +45,12 @@ namespace Tauron.Temp
             {
                 Dispose();
             }
+            #pragma warning disable ERP022
             catch
             {
                 //Ignored Due to Process Exit
             }
+            #pragma warning restore ERP022
         }
 
         protected override void DisposeCore(bool disposing)

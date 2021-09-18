@@ -31,7 +31,7 @@ namespace Servicemnager.Networking
 
     public interface IDataClient
     {
-        void Connect();
+        bool Connect();
         event EventHandler<ClientConnectedArgs>? Connected;
         event EventHandler<ClientDisconnectedArgs>? Disconnected;
         event EventHandler<MessageFromServerEventArgs>? OnMessageReceived;

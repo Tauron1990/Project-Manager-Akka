@@ -119,7 +119,7 @@ namespace Tauron.Application.AkkaNode.Services.Reporting
         {
             if(_reporter.IsNobody()) return;
 
-            if (_compledCalled.GetAndSet(true))
+            if (_compledCalled.GetAndSet(newValue: true))
                 throw new InvalidOperationException("Reporter is Compled");
 
             _reporter.Tell(result);
@@ -129,7 +129,7 @@ namespace Tauron.Application.AkkaNode.Services.Reporting
         {
             private bool _compled;
 
-            public Listner(Action<string> listner, Action<IOperationResult> onCompled, TimeSpan timeSpan)
+            internal Listner(Action<string> listner, Action<IOperationResult> onCompled, TimeSpan timeSpan)
             {
                 Receive<IOperationResult>(c =>
                                           {
@@ -152,7 +152,7 @@ namespace Tauron.Application.AkkaNode.Services.Reporting
         {
             private readonly List<IActorRef> _listner = new();
 
-            public ReporterActor()
+            internal ReporterActor()
             {
                 Receive<TransferedMessage>(msg =>
                 {

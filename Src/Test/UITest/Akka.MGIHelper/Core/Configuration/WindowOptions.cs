@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using Microsoft.Extensions.Logging;
 using Tauron.Akka;
 using Tauron.Application.Settings;
 
@@ -6,8 +7,8 @@ namespace Akka.MGIHelper.Core.Configuration
 {
     public sealed class WindowOptions : ConfigurationBase
     {
-        public WindowOptions(IDefaultActorRef<SettingsManager> actor, string scope)
-            : base(actor, scope)
+        public WindowOptions(IDefaultActorRef<SettingsManager> actor, string scope, ILogger<WindowOptions> logger)
+            : base(actor, scope, logger)
         {
         }
 

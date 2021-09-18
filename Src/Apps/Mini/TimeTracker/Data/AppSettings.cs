@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.IO;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Tauron.Akka;
 using Tauron.Application;
@@ -22,8 +23,8 @@ namespace TimeTracker.Data
 
     public sealed class AppSettings : ConfigurationBase
     {
-        public AppSettings(IDefaultActorRef<SettingsManager> actor) 
-            : base(actor, "App") { }
+        public AppSettings(IDefaultActorRef<SettingsManager> actor, ILogger<AppSettings> logger) 
+            : base(actor, "App", logger) { }
 
         public ImmutableList<string> AllProfiles
         {

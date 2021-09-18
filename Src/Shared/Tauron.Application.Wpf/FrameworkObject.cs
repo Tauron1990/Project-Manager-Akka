@@ -13,6 +13,8 @@ using Tauron.Application.Wpf.AppCore;
 
 #endregion
 
+#pragma warning disable EPS06
+
 namespace Tauron.Application.Wpf
 {
     /// <summary>The framework object.</summary>
@@ -158,7 +160,7 @@ namespace Tauron.Application.Wpf
         {
             var temp = _isFe ? _fe.Value.Target.Value : null;
 
-            if (temp == null)
+            if (temp is null)
             {
                 frameworkElement = null;
                 return false;
@@ -176,13 +178,13 @@ namespace Tauron.Application.Wpf
 
             private readonly Option<WeakReference<TReference>> _weakRef;
 
-            public ElementReference([JetBrains.Annotations.NotNull] TReference reference, bool isWeak)
+            internal ElementReference(TReference reference, bool isWeak)
             {
-                if (isWeak) _weakRef = new WeakReference<TReference>(Argument.NotNull(reference, nameof(reference)));
+                if (isWeak) _weakRef = new WeakReference<TReference>(reference);
                 else _reference = reference;
             }
-
-            public Option<TReference> Target => _weakRef.HasValue ? _weakRef.Value.TypedTarget() : _reference;
+            
+            internal Option<TReference> Target => _weakRef.Select(v => v.TypedTarget()).GetOrElse(_reference);
 
             public bool IsAlive => _weakRef.IsEmpty || _weakRef.Value.IsAlive();
         }

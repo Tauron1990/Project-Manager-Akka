@@ -16,9 +16,9 @@ using Tauron;
 using Tauron.Application.AkkaNode.Services.CleanUp;
 using Tauron.Application.AkkaNode.Services.FileTransfer;
 using Tauron.Application.Files.GridFS;
-using Tauron.Application.Files.VirtualFiles;
 using Tauron.Application.Master.Commands.Deployment.Build;
 using Tauron.Application.Master.Commands.Deployment.Repository;
+using Tauron.Application.VirtualFiles;
 using Tauron.Features;
 using Tauron.ObservableExt;
 
@@ -54,14 +54,14 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
         }
     }
 
-    public sealed class ProcessServiceHostActor : ActorFeatureBase<ProcessServiceHostActor._>
+    public sealed class ProcessServiceHostActor : ActorFeatureBase<ProcessServiceHostActor.State>
     {
-        public sealed record _(IDatabaseConfig DatabaseConfig, Services Operator, IHostEnvironment HostEnvironment, RepositoryApi RepositoryApi, DeploymentApi DeploymentApi, ConfigurationApi ConfigurationApi);
+        public sealed record State(IDatabaseConfig DatabaseConfig, Services Operator, IHostEnvironment HostEnvironment, RepositoryApi RepositoryApi, DeploymentApi DeploymentApi, ConfigurationApi ConfigurationApi);
 
         public static Func<IHostEnvironment, IDatabaseConfig, RepositoryApi, DeploymentApi, ConfigurationApi, IPreparedFeature> New()
         {
             static IPreparedFeature _(IHostEnvironment hostEnvironment, IDatabaseConfig config, RepositoryApi repositoryApi, DeploymentApi deploymentApi, ConfigurationApi configurationApi)
-                => Feature.Create(() => new ProcessServiceHostActor(), _ => new _(config, new Services(), hostEnvironment, repositoryApi, deploymentApi, configurationApi));
+                => Feature.Create(() => new ProcessServiceHostActor(), _ => new State(config, new Services(), hostEnvironment, repositoryApi, deploymentApi, configurationApi));
 
             return _;
         }
@@ -70,7 +70,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
         {
             Receive<TryStart>(obs => obs.Synchronize()
                                     .ConditionalSelect()
-                                        .ToResult<StatePair<TryStartResponse, _>>(
+                                        .ToResult<StatePair<TryStartResponse, State>>(
                                              b =>
                                              {
                                                  b.When(p => !p.State.Operator.Running, o => from pair in o
@@ -92,44 +92,46 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
                                                               from configResult in pair.State.ConfigurationApi.QueryIsAlive(system, timeout)
                                                               let isOk = repoResult.IsAlive && deployResult.IsAlive && configResult.IsAlive
                                                               from response in isOk
-                                                                  ? Task.FromResult(pair.NewEvent(new TryStartResponse(true, string.Empty)))
+                                                                  ? Task.FromResult(pair.NewEvent(new TryStartResponse(IsRunning: true, string.Empty)))
                                                                   : TryStart(pair)
                                                               select response,
                                                          (pair, exception) =>
                                                          {
                                                              Log.Error(exception, "Error on start in Process ServiceManager Deamon");
-                                                             return Observable.Return(pair.NewEvent(new TryStartResponse(false, exception.Message)));
+                                                             return Observable.Return(pair.NewEvent(new TryStartResponse(IsRunning: false, Message: exception.Message)));
                                                          }));
                                              })
                                         .ToUnit(p => p.Sender.Tell(p.Event)));
 
             Receive<Services>(obs => obs.Do(p =>
                                             {
-                                                if(!p.Event.Running) return;
+                                                var (evt, _) = p;
 
-                                                Context.Watch(p.Event.Deploy);
-                                                Context.Watch(p.Event.Deamon);
-                                                Context.Watch(p.Event.Repo);
+                                                if(!evt.Running) return;
+
+                                                Context.Watch(evt.Deploy);
+                                                Context.Watch(evt.Deamon);
+                                                Context.Watch(evt.Repo);
                                             }).Select(p => p.State with {Operator = p.State.Operator.MakeNew(p.Event)}));
 
             Receive<Terminated>(obs => obs.Select(_ => new Services()).ToSelf());
         }
 
         
-        private async Task<StatePair<TryStartResponse, _>> TryStart(StatePair<TryStart, _> o)
+        private async Task<StatePair<TryStartResponse, State>> TryStart(StatePair<TryStart, State> o)
         {
             using var gate = await StartSyncronizer.Wait();
 
             if (o.State.Operator.Running)
-                return o.NewEvent(new TryStartResponse(true, string.Empty));
+                return o.NewEvent(new TryStartResponse(IsRunning: true, string.Empty));
 
             if (gate.Success)
             {
-                gate.SetSuccess(false);
-                return o.NewEvent(new TryStartResponse(true, string.Empty));
+                gate.SetSuccess(value: false);
+                return o.NewEvent(new TryStartResponse(IsRunning: true, string.Empty));
             }
                 
-            gate.SetSuccess(false);
+            gate.SetSuccess(value: false);
                 
             var isError = false;
             IActorRef repo = ActorRefs.Nobody;
@@ -143,7 +145,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
                 if (string.IsNullOrWhiteSpace(o.Event.DatabaseUrl))
                 {
                     if (!await o.State.DatabaseConfig.GetIsReady())
-                        return o.NewEvent(new TryStartResponse(false, "Keine Datenbaank Url Verfügbar"));
+                        return o.NewEvent(new TryStartResponse(IsRunning: false, "Keine Datenbaank Url Verfügbar"));
                 }
                 else
                     databseUrl = o.Event.DatabaseUrl;
@@ -166,10 +168,9 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
                 }
             }
 
-            o.Self.Tell(new Services(repo, deploy, deamon, true, databseUrl));
-
+            o.Self.Tell(new Services(repo, deploy, deamon, Running: true, databseUrl));
             gate.SetSuccess();
-            return o.NewEvent(new TryStartResponse(true, string.Empty));
+            return o.NewEvent(new TryStartResponse(IsRunning: true, string.Empty));
         }
 
         private static void StartServices(string connectionstring, IHostEnvironment hostEnvironment, ActorSystem system,
@@ -216,7 +217,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
         public sealed record Services(IActorRef Repo, IActorRef Deploy, IActorRef Deamon, bool Running, string CurrentUrl) : IDisposable
         {
             public Services()
-                : this(ActorRefs.Nobody, ActorRefs.Nobody, ActorRefs.Nobody, false, string.Empty)
+                : this(ActorRefs.Nobody, ActorRefs.Nobody, ActorRefs.Nobody, Running: false, string.Empty)
             {
                 
             }
@@ -237,14 +238,14 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
         
         public static class StartSyncronizer
         {
-            private static readonly SemaphoreSlim _mainGate = new(1);
-            private static bool _success = false;
+            private static readonly SemaphoreSlim MainGate = new(1);
+            private static bool _success;
 
             public static async Task<SyncGate> Wait()
             {
-                await _mainGate.WaitAsync();
+                await MainGate.WaitAsync();
 
-                return new SyncGate(_mainGate, _success);
+                return new SyncGate(MainGate, _success);
             }
 
             public sealed class SyncGate : IDisposable

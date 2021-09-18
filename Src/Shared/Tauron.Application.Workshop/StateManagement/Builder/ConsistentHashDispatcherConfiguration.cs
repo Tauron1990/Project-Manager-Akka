@@ -28,7 +28,7 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
             private readonly SupervisorStrategy _supervisorStrategy;
             private readonly int? _vNotes;
 
-            public ActualDispatcher(int instances, Resizer? resizer, SupervisorStrategy supervisorStrategy,
+            internal ActualDispatcher(int instances, Resizer? resizer, SupervisorStrategy supervisorStrategy,
                 string? dispatcher, int? vNotes, Func<Props, Props>? custom)
             {
                 _instances = instances;

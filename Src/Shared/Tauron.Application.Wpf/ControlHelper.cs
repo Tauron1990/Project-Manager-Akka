@@ -29,38 +29,28 @@ namespace Tauron.Application.Wpf
                 new UIPropertyMetadata(null, MarkWindowChanged));
 
         public static string GetMarkControl(DependencyObject obj)
-            => (string) Argument.NotNull(obj, nameof(obj)).GetValue(MarkControlProperty);
+            => (string) obj.GetValue(MarkControlProperty);
 
         public static string GetMarkWindow(DependencyObject obj)
-            => (string) Argument.NotNull(obj, nameof(obj)).GetValue(MarkWindowProperty);
+            => (string) obj.GetValue(MarkWindowProperty);
 
         public static void SetMarkControl(DependencyObject obj, string value)
-        {
-            Argument.NotNull(obj, nameof(obj)).SetValue(MarkControlProperty, Argument.NotNull(value, nameof(value)));
-        }
+            => obj.SetValue(MarkControlProperty, value);
 
         public static void SetMarkWindow(DependencyObject obj, string value)
-        {
-            Argument.NotNull(obj, nameof(obj)).SetValue(MarkWindowProperty, Argument.NotNull(value, nameof(value)));
-        }
+            => obj.SetValue(MarkWindowProperty, value);
 
         private static void MarkControl(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            SetLinker(d, e.OldValue as string, e.NewValue as string, () => new ControlLinker());
-        }
+            => SetLinker(d, e.OldValue as string, e.NewValue as string, () => new ControlLinker());
 
         private static void MarkWindowChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            SetLinker(d, e.OldValue as string, e.NewValue as string, () => new WindowLinker());
-        }
+            => SetLinker(d, e.OldValue as string, e.NewValue as string, () => new WindowLinker());
 
         private static void SetLinker(DependencyObject obj, string? oldName, string? newName, Func<LinkerBase> factory)
         {
             if (string.IsNullOrWhiteSpace(newName))
                 return;
 
-            Argument.NotNull(obj, nameof(obj));
-            Argument.NotNull(factory, nameof(factory));
             if (DesignerProperties.GetIsInDesignMode(obj)) return;
 
             var ele = ElementMapper.Create(obj);
@@ -76,10 +66,10 @@ namespace Tauron.Application.Wpf
         private static void SetLinker(string? newName, string? oldName, IBinderControllable root, IUIObject obj,
             Func<LinkerBase> factory)
         {
-            if (oldName != null)
+            if (oldName is not null)
                 root.CleanUp(ControlHelperPrefix + oldName);
 
-            if (newName == null) return;
+            if (newName is null) return;
 
             var linker = factory();
             linker.Name = newName;
@@ -98,7 +88,7 @@ namespace Tauron.Application.Wpf
 
         private abstract class LinkerBase : ControlBindableBase
         {
-            public string Name { get; set; } = string.Empty;
+            internal string Name { get; set; } = string.Empty;
 
             protected object DataContext { get; private set; } = new();
 
@@ -131,9 +121,9 @@ namespace Tauron.Application.Wpf
 
                 var priTarget = ((WpfObject) AffectedObject).DependencyObject;
 
-                if (windowName == null)
+                if (windowName is null)
                 {
-                    if (!(priTarget is System.Windows.Window))
+                    if (priTarget is not System.Windows.Window)
                         priTarget = System.Windows.Window.GetWindow(priTarget);
 
                     if (priTarget == null)
@@ -145,11 +135,11 @@ namespace Tauron.Application.Wpf
                         System.Windows.Application.Current.Windows.Cast<System.Windows.Window>()
                             .FirstOrDefault(win => win.Name == windowName);
 
-                    if (priTarget == null)
+                    if (priTarget is null)
                         LogManager.GetCurrentClassLogger().Error($"ControlHelper: No Window Named {windowName} Found");
                 }
 
-                if (priTarget == null) return;
+                if (priTarget is null) return;
 
                 if (DataContext is IViewModel model && ElementMapper.Create(priTarget) is IUIElement element)
                     model.AwaitInit(() => model.Actor.Tell(new ControlSetEvent(Name, element)));

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
 using Akka.Util;
@@ -14,19 +15,17 @@ namespace Tauron.Application.CommonUI.Helper
 
         private readonly WeakReference? _reference;
 
-        public WeakDelegate([NotNull] Delegate @delegate)
+        public WeakDelegate(Delegate @delegate)
         {
-            Argument.NotNull(@delegate, nameof(@delegate));
-
             _method = @delegate.Method;
 
             if (!_method.IsStatic) _reference = new WeakReference(@delegate.Target);
         }
 
-        public WeakDelegate([NotNull] MethodInfo methodInfo, [NotNull] object target)
+        public WeakDelegate(MethodInfo methodInfo, object target)
         {
-            _method = Argument.NotNull(methodInfo, nameof(methodInfo));
-            _reference = new WeakReference(Argument.NotNull(target, nameof(target)));
+            _method = methodInfo;
+            _reference = new WeakReference(target);
         }
 
         public bool Equals(WeakDelegate? other)
@@ -89,7 +88,7 @@ namespace Tauron.Application.CommonUI.Helper
     [PublicAPI]
     public static class WeakCleanUp
     {
-        public const string WeakCleanUpExceptionPolicy = "WeakCleanUpExceptionPolicy";
+        //public const string WeakCleanUpExceptionPolicy = "WeakCleanUpExceptionPolicy";
 
         private static readonly List<WeakDelegate> Actions = Initialize();
 
@@ -98,7 +97,7 @@ namespace Tauron.Application.CommonUI.Helper
         public static void RegisterAction(Action action)
         {
             lock (Actions) 
-                Actions.Add(new WeakDelegate(Argument.NotNull(action, nameof(action))));
+                Actions.Add(new WeakDelegate(action));
         }
 
         private static List<WeakDelegate> Initialize()
@@ -113,17 +112,23 @@ namespace Tauron.Application.CommonUI.Helper
             {
                 var dead = new List<WeakDelegate>();
                 foreach (var weakDelegate in Actions.ToArray())
-                    if (weakDelegate.IsAlive)
-                        try
-                        {
-                            weakDelegate.Invoke();
-                        }
-                        catch
-                        {
-                            // ignored
-                        }
-                    else
-                        dead.Add(weakDelegate);
+                    switch (weakDelegate.IsAlive)
+                    {
+                        case true:
+                            try
+                            {
+                                weakDelegate.Invoke();
+                            }
+                            catch(Exception e)
+                            {
+                                if (e.IsCriticalException()) throw;
+                            }
+                            break;
+                        default:
+                            dead.Add(weakDelegate);
+
+                            break;
+                    }
 
                 dead.ForEach(del => Actions.Remove(del));
             }

@@ -9,23 +9,37 @@ namespace Tauron.Application.AkkaNode.Services.Core
     [PublicAPI]
     public static class SimpleSubscribe
     {
-        public static IEventActor SubscribeToEvent<TEvent>(this IActorRefFactory actor, IActorRef target, bool killOnFirstResponse = false)
+        public static IEventActor SubscribeToSelfKillingEvent<TEvent>(this IActorRefFactory actor, IActorRef target)
         {
-            var eventActor = EventActor.Create(actor, null, killOnFirstResponse);
-            eventActor.Send(target, new EventSubscribe(true, typeof(TEvent)));
+            var eventActor = EventActor.CreateSelfKilling(actor, null);
+            eventActor.Send(target, new EventSubscribe(Watch: true, typeof(TEvent)));
+            return eventActor;
+        }
+
+        public static IEventActor SubscribeToSelfKillingEvent<TEvent>(this IActorRefFactory actor, IActorRef target, Action<TEvent> handler)
+        {
+            var eventActor = EventActor.CreateSelfKilling(actor, null, handler);
+            eventActor.Send(target, new EventSubscribe(Watch: true, typeof(TEvent)));
+            return eventActor;
+        }
+        
+        public static IEventActor SubscribeToEvent<TEvent>(this IActorRefFactory actor, IActorRef target)
+        {
+            var eventActor = EventActor.Create(actor, null);
+            eventActor.Send(target, new EventSubscribe(Watch: true, typeof(TEvent)));
             return eventActor;
         }
 
         public static IEventActor SubscribeToEvent<TEvent>(this IActorRefFactory actor, IActorRef target, Action<TEvent> handler, bool killOnFirstResponse = false)
         {
-            var eventActor = EventActor.Create(actor, handler, killOnFirstResponse);
-            eventActor.Send(target, new EventSubscribe(true, typeof(TEvent)));
+            var eventActor = EventActor.Create(actor, null, handler);
+            eventActor.Send(target, new EventSubscribe(Watch: true, typeof(TEvent)));
             return eventActor;
         }
 
         public static EventSubscribtion SubscribeToEvent<TEvent>(this IActorRef eventSource)
         {
-            eventSource.Tell(new EventSubscribe(true, typeof(TEvent)));
+            eventSource.Tell(new EventSubscribe(Watch: true, typeof(TEvent)));
             return new EventSubscribtion(typeof(TEvent), eventSource);
         }
     }

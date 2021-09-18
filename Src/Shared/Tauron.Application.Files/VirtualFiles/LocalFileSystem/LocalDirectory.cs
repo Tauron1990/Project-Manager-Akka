@@ -9,7 +9,7 @@ namespace Tauron.Application.Files.VirtualFiles.LocalFileSystem
 {
     public class LocalDirectory : DirectoryBase<DirectoryInfo>
     {
-        public LocalDirectory(string fullPath, Func<IDirectory?> parentDirectory)
+        protected LocalDirectory(string fullPath, Func<IDirectory?> parentDirectory)
             : base(parentDirectory, fullPath, fullPath.GetFileName())
         {
         }
@@ -45,9 +45,7 @@ namespace Tauron.Application.Files.VirtualFiles.LocalFileSystem
         }
 
         protected override void DeleteImpl()
-        {
-            InfoObject?.Delete(true);
-        }
+            => InfoObject?.Delete(recursive: true);
 
         protected override DirectoryInfo GetInfo(string path) => new(path);
 

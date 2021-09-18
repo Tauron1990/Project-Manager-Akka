@@ -44,6 +44,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
 
         public void InitState<TData>(ExtendedMutatingEngine<MutatingContext<TData>> engine)
         {
+            // ReSharper disable once SuspiciousTypeConversion.Global
             if(State is IInitState<TData> init)
                 init.Init(engine);
         }
@@ -59,6 +60,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
             if(_initCalled) return;
             _initCalled = true;
 
+            // ReSharper disable once SuspiciousTypeConversion.Global
             if(State is IPostInit postInit)
                 postInit.Init(actionInvoker);
         }
@@ -106,7 +108,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
         {
             private readonly ExtendedMutatingEngine<MutatingContext<TData>> _engine;
 
-            public InitMessage(ExtendedMutatingEngine<MutatingContext<TData>> engine) => _engine = engine;
+            internal InitMessage(ExtendedMutatingEngine<MutatingContext<TData>> engine) => _engine = engine;
             public override void Apply(object @this)
             {
                 if(@this is IInitState<TData> state)
@@ -119,7 +121,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
         {
             private readonly IExtendedDataSource<MutatingContext<TData>> _dataSource;
 
-            public QueryMessage(IExtendedDataSource<MutatingContext<TData>> dataSource) => _dataSource = dataSource;
+            internal QueryMessage(IExtendedDataSource<MutatingContext<TData>> dataSource) => _dataSource = dataSource;
             public override void Apply(object @this)
             {
                 if(@this is ICanQuery<TData> query)
@@ -131,7 +133,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
         {
             private readonly IActionInvoker _invoker;
 
-            public PostInit(IActionInvoker invoker) => _invoker = invoker;
+            internal PostInit(IActionInvoker invoker) => _invoker = invoker;
 
             public override void Apply(object @this)
             {
@@ -199,10 +201,10 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
                                             .ConditionalSelect()
                                             .ToSame(b =>
                                             {
-                                                b.When(r => !r.IsOk || r.Data == null,
+                                                b.When(r => !r.IsOk || r.Data is null,
                                                         o => o.Do(_ => cancel.OnNext(Unit.Default)))
                                                     .When(r => r.IsOk && r.Data != null,
-                                                        o => reducerBuilder(o.Select(d => d.Data!)));
+                                                        o => reducerBuilder(o.Select(result => result.Data!)));
                                             });
                                     })).Switch().Publish().RefCount();
 
@@ -220,8 +222,6 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
         }
 
         public override void Dispose()
-        {
-            _toDispose.Dispose();
-        }
+            => _toDispose.Dispose();
     }
 }

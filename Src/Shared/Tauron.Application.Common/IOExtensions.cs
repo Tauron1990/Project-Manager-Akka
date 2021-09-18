@@ -12,7 +12,7 @@ namespace Tauron
 {
     [DebuggerStepThrough]
     [PublicAPI]
-    public static class IOExtensions
+    public static class IoExtensions
     {
         public static void AddFilesFromDictionary(this ZipArchive destination, string sourceDirectoryName)
         {
@@ -110,14 +110,13 @@ namespace Tauron
         public static string CombinePath(this string? path, string path1)
             => string.IsNullOrWhiteSpace(path) ? path1 : Path.Combine(path, path1);
 
-        [JetBrains.Annotations.NotNull]
         public static string CombinePath(this FileSystemInfo path, string path1) => CombinePath(path.FullName, path1);
 
         public static void CopyFileTo(this string source, string destination)
         {
             if (!source.ExisFile()) return;
 
-            File.Copy(source, destination, true);
+            File.Copy(source, destination, overwrite: true);
         }
 
         public static bool CreateDirectoryIfNotExis(this string path)
@@ -153,14 +152,14 @@ namespace Tauron
             if (info.Exists) info.Delete();
         }
 
-        public static void DeleteDirectory([JetBrains.Annotations.NotNull] this string path)
+        public static void DeleteDirectory(this string path)
         {
             if (Path.HasExtension(path))
                 path = Path.GetDirectoryName(path) ?? path;
 
             try
             {
-                if (Directory.Exists(path)) Directory.Delete(path, true);
+                if (Directory.Exists(path)) Directory.Delete(path, recursive: true);
             }
             catch (UnauthorizedAccessException)
             {
@@ -180,7 +179,7 @@ namespace Tauron
 
         public static void DeleteDirectory(this string path, bool recursive)
         {
-            if (!string.IsNullOrWhiteSpace(path) && Directory.Exists(path)) new DirectoryInfo(path) {Attributes = FileAttributes.Normal}.Delete(true);
+            if (!string.IsNullOrWhiteSpace(path) && Directory.Exists(path)) new DirectoryInfo(path) {Attributes = FileAttributes.Normal}.Delete(recursive: true);
         }
 
         public static void DeleteDirectoryIfEmpty(this string path)
@@ -391,19 +390,21 @@ namespace Tauron
             }
         }
 
-        public static bool TryCreateUriWithoutScheme(this string str, [MaybeNullWhen(false)] out Uri? uri,
-            params string[] scheme)
+        public static bool TryCreateUriWithoutScheme(this string str, [NotNullWhen(true)]out Uri? uri, params string[] scheme)
         {
-            var flag = Uri.TryCreate(str, UriKind.RelativeOrAbsolute, out var target);
+            var creationOk = Uri.TryCreate(str, UriKind.RelativeOrAbsolute, out var target);
 
             // ReSharper disable once AccessToModifiedClosure
-            if (flag)
-                foreach (var s in scheme.Where(s => flag))
-                    flag = target!.Scheme != s;
+            if (creationOk)
+            {
+                foreach (var s in scheme.Where(_ => creationOk))
+                    creationOk = target!.Scheme != s;
+                
+            }
 
-            uri = flag ? target : null;
+            uri = creationOk ? target : null;
 
-            return flag;
+            return creationOk;
         }
 
         public static void WriteTextContentTo(this string content, string path)

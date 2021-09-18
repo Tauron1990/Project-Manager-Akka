@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -48,7 +47,7 @@ namespace Tauron
     [PublicAPI]
     public sealed class FastReflection
     {
-        private static readonly Lazy<FastReflection> SharedLazy = new(() => new FastReflection(), true);
+        private static readonly Lazy<FastReflection> SharedLazy = new(() => new FastReflection(), isThreadSafe: true);
 
         private readonly Dictionary<ConstructorInfo, Func<object?[]?, object>> _creatorCache = new();
         private readonly Dictionary<FieldInfo, Func<object?, object?>> _fieldAccessorCache = new();
@@ -137,8 +136,7 @@ namespace Tauron
                 Expression acess;
                 var convert = info.GetGetMethod()?.IsStatic == true
                     ? null
-                    : Expression.Convert(instParam,
-                        Argument.CheckResult(info.DeclaringType, nameof(info.DeclaringType)));
+                    : Expression.Convert(instParam, info.DeclaringType ?? throw new InvalidOperationException($"No Declaring Type return for {info}"));
 
                 if (!arg.Any())
                     acess = Expression.Property(convert, info);
@@ -164,11 +162,12 @@ namespace Tauron
                 var param = Expression.Parameter(typeof(object));
 
                 var del = Expression.Lambda<Func<object?, object?>>(
-                    Expression.Convert(Expression.Field(
+                    Expression.Convert(
+                        Expression.Field(
                             field.IsStatic
                                 ? null
-                                : Expression.Convert(param,
-                                    Argument.CheckResult(field.DeclaringType, nameof(field.DeclaringType))), field),
+                                : Expression.Convert(param, field.DeclaringType ?? throw new InvalidOperationException($"No declaring Type returned for {field}")),
+                            field),
                         typeof(object)),
                     param).CompileFast();
 
@@ -190,8 +189,7 @@ namespace Tauron
 
                 var indexes = info.GetIndexParameters();
 
-                var convertInst = Expression.Convert(instParam,
-                    Argument.CheckResult(info.DeclaringType, nameof(info.DeclaringType)));
+                var convertInst = Expression.Convert(instParam, info.DeclaringType ?? throw new InvalidOperationException($"No Declared Type returned for {info}"));
                 var convertValue = Expression.Convert(valueParm, info.PropertyType);
 
                 Expression exp = indexes.Length == 0
@@ -220,8 +218,8 @@ namespace Tauron
 
                 var exp = Expression.Assign(
                     Expression.Field(
-                        Expression.Convert(instParam,
-                            Argument.CheckResult(info.DeclaringType, nameof(info.DeclaringType))), info),
+                        Expression.Convert(instParam, info.DeclaringType ?? throw new InvalidOperationException($"no Declared Type return for {info}")),
+                        info),
                     Expression.Convert(valueParam, info.FieldType));
 
                 setter = Expression.Lambda<Action<object?, object?>>(exp, instParam, valueParam).CompileFast();
@@ -337,37 +335,22 @@ namespace Tauron
 
         public static IEnumerable<(MemberInfo Member, TAttribute Attribute)> FindMemberAttributes<TAttribute>(this Type type,
             bool nonPublic) where TAttribute : Attribute
-        {
-            if (type == null) throw new ArgumentNullException(nameof(type));
-            return FindMemberAttributes<TAttribute>(type, nonPublic, BindingFlags.Instance | BindingFlags.FlattenHierarchy);
-        }
+            => FindMemberAttributes<TAttribute>(type, nonPublic, BindingFlags.Instance | BindingFlags.FlattenHierarchy);
 
         public static T[] GetAllCustomAttributes<T>(this ICustomAttributeProvider member) where T : Attribute
-        {
-            if (member == null) throw new ArgumentNullException(nameof(member));
-            return (T[]) member.GetCustomAttributes(typeof(T), true);
-        }
+            => (T[]) member.GetCustomAttributes(typeof(T), inherit: true);
 
 
         public static object[] GetAllCustomAttributes(this ICustomAttributeProvider member, Type type)
-        {
-            if (member == null) throw new ArgumentNullException(nameof(member));
-            if (type == null) throw new ArgumentNullException(nameof(type));
-            return member.GetCustomAttributes(type, true);
-        }
+            => member.GetCustomAttributes(type, inherit: true);
 
         public static Option<TAttribute> GetCustomAttribute<TAttribute>(this ICustomAttributeProvider provider)
             where TAttribute : Attribute
-        {
-            if (provider == null) throw new ArgumentNullException(nameof(provider));
-            return GetCustomAttribute<TAttribute>(provider, true);
-        }
+            => GetCustomAttribute<TAttribute>(provider, inherit: true);
 
         public static Option<TAttribute> GetCustomAttribute<TAttribute>(this ICustomAttributeProvider provider, bool inherit)
             where TAttribute : Attribute
         {
-            if (provider == null) throw new ArgumentNullException(nameof(provider));
-
             var temp = provider.GetCustomAttributes(typeof(TAttribute), inherit).FirstOrDefault();
 
             return (temp as TAttribute).OptionNotNull();
@@ -378,7 +361,7 @@ namespace Tauron
             if (provider == null) throw new ArgumentNullException(nameof(provider));
 
             return from attributeType in attributeTypes
-                   from attribute in provider.GetCustomAttributes(attributeType, false)
+                   from attribute in provider.GetCustomAttributes(attributeType, inherit: false)
                    select attribute;
         }
         
@@ -462,14 +445,14 @@ namespace Tauron
         public static bool HasAttribute<T>(this ICustomAttributeProvider member) where T : Attribute
         {
             if (member == null) throw new ArgumentNullException(nameof(member));
-            return member.IsDefined(typeof(T), true);
+            return member.IsDefined(typeof(T), inherit: true);
         }
 
         public static bool HasAttribute(this ICustomAttributeProvider member, Type type)
         {
             if (member == null) throw new ArgumentNullException(nameof(member));
             if (type == null) throw new ArgumentNullException(nameof(type));
-            return member.IsDefined(type, true);
+            return member.IsDefined(type, inherit: true);
         }
 
         public static bool HasMatchingAttribute<T>(this ICustomAttributeProvider member, T attributeToMatch)

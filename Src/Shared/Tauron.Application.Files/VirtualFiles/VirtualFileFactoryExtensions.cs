@@ -12,6 +12,6 @@ namespace Tauron.Application.Files.VirtualFiles
             => new InMemoryFileSystem("memory::", name, directory ?? new DataDirectory(name));
 
         public static IVirtualFileSystem CrerateLocal(this VirtualFileFactory unused, string path)
-            => new LocalFileSystem.LocalFileSystem(Argument.NotNull(path, nameof(path)));
+            => new LocalFileSystem.LocalFileSystem(path);
     }
 }

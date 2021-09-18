@@ -60,7 +60,7 @@ namespace Tauron.Application.Files.Zip
                 }
         }
 
-        public static string GetFileName(ZipEntry entry) => Argument.NotNull(entry, nameof(entry)).FileName
+        public static string GetFileName(ZipEntry entry) => entry.FileName
             .Split(PathSplit, StringSplitOptions.RemoveEmptyEntries).Last();
 
         internal InternalZipDirectory GetOrAdd(string name)
@@ -72,9 +72,7 @@ namespace Tauron.Application.Files.Zip
             return dic;
         }
 
-        private void AddFile([NotNull] ZipEntry entry)
-        {
-            Files.Add(entry);
-        }
+        private void AddFile(ZipEntry entry)
+            => Files.Add(entry);
     }
 }

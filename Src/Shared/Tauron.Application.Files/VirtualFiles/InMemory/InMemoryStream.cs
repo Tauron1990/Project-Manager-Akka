@@ -11,11 +11,11 @@ namespace Tauron.Application.Files.VirtualFiles.InMemory
             : base(data.Data?.Length ?? 0)
         {
             _data = data;
-            if (_data.Data != null)
-            {
-                Write(_data.Data);
-                Seek(0, SeekOrigin.Begin);
-            }
+
+            if (data.Data == null) return;
+
+            Write(data.Data);
+            Seek(0, SeekOrigin.Begin);
         }
 
         protected override void Dispose(bool disposing)

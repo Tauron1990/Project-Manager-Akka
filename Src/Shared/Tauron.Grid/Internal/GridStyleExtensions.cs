@@ -16,7 +16,7 @@ namespace Tauron.Grid.Internal
         public static StyleBuilder AddStyle(this StyleBuilder styleBuilder, string name, AutoFlow autoFlow)
             => styleBuilder.AddStyle(name, Converter.ToCss(autoFlow), autoFlow != AutoFlow.None);
 
-        public static StyleBuilder AddStyle(this StyleBuilder styleBuilder, string name, GridPoint point)
+        public static StyleBuilder AddStyle(this StyleBuilder styleBuilder, string name, in GridPoint point)
             => styleBuilder.AddStyle(name, point.ToString, point.Mode != GridPositionMode.None);
     }
 }

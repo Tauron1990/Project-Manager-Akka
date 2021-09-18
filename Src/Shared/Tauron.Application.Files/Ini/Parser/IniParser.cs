@@ -14,7 +14,7 @@ namespace Tauron.Application.Files.Ini.Parser
 
         private readonly TextReader _reader;
 
-        public IniParser(TextReader reader) => _reader = Argument.NotNull(reader, nameof(reader));
+        public IniParser(TextReader reader) => _reader = reader;
 
         public IniFile Parse()
         {

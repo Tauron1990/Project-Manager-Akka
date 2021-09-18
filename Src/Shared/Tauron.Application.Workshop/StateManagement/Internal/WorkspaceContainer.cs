@@ -39,7 +39,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
             private readonly IObserver<IReducerResult> _result;
             private readonly Func<IDataMutation> _run;
 
-            public WorkspaceMutation(Func<IDataMutation> run, IObserver<IReducerResult> result, IObserver<Unit> compled, object hashKey, string actionName)
+            internal WorkspaceMutation(Func<IDataMutation> run, IObserver<IReducerResult> result, IObserver<Unit> compled, object hashKey, string actionName)
             {
                 _run = run;
                 _result = result;
@@ -67,7 +67,9 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
                             mut.Run().Wait(TimeSpan.FromMinutes(1));
                             break;
                         default:
+                            #pragma warning disable EX006
                             throw new InvalidOperationException("Unkowen Data Mutation Type");
+                            #pragma warning restore EX006
                     }
                 }
                 catch (Exception e)

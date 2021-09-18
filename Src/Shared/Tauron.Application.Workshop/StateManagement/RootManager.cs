@@ -144,7 +144,7 @@ namespace Tauron.Application.Workshop.StateManagement
             private IObserver<IReducerResult>? _result;
             private IObserver<Unit>? _workCompled;
 
-            public ResultInvoker(EffectInvoker effectInvoker, MutatingEngine mutatingEngine, IActorRef sender,
+            internal ResultInvoker(EffectInvoker effectInvoker, MutatingEngine mutatingEngine, IActorRef sender,
                 bool sendBack, IStateAction action)
             {
                 _effectInvoker = effectInvoker;
@@ -180,13 +180,13 @@ namespace Tauron.Application.Workshop.StateManagement
                         : OperationResult.Success(_action), ActorRefs.NoSender);
             }
 
-            public void PushWork() 
+            internal void PushWork() 
                 => Interlocked.Increment(ref _pending);
 
-            public IObserver<IReducerResult> AddResult() 
+            internal IObserver<IReducerResult> AddResult() 
                 => _result ??= new AnonymousObserver<IReducerResult>(n => _results.Add(n), _ => { });
 
-            public IObserver<Unit> WorkCompled()
+            internal IObserver<Unit> WorkCompled()
             {
                 void Compled()
                 {
@@ -212,7 +212,7 @@ namespace Tauron.Application.Workshop.StateManagement
             private readonly IEnumerable<IEffect> _effects;
             private readonly IActionInvoker _invoker;
 
-            public EffectInvoker(IEnumerable<IEffect> effects, IStateAction action, IActionInvoker invoker)
+            internal EffectInvoker(IEnumerable<IEffect> effects, IStateAction action, IActionInvoker invoker)
             {
                 _effects = effects;
                 _action = action;

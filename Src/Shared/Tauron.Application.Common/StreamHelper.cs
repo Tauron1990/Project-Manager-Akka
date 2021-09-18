@@ -6,8 +6,7 @@ using JetBrains.Annotations;
 namespace Tauron
 {
     [PublicAPI]
-    public sealed record CopyFromArguments(long TotalLength = -1, int BufferSize = 4096,
-        ProgressChange? ProgressChangeCallback = null, WaitHandle? StopEvent = null)
+    public sealed record CopyFromArguments(long TotalLength = -1, int BufferSize = 4096, ProgressChange? ProgressChangeCallback = null, WaitHandle? StopEvent = null)
     {
         public TimeSpan ProgressChangeCallbackInterval { get; init; } = TimeSpan.FromSeconds(0.2);
     }
@@ -36,20 +35,22 @@ namespace Tauron
         /// </exception>
         public static long CopyFrom(this Stream target, Stream source, CopyFromArguments arguments)
         {
-            Argument.NotNull(target, nameof(target));
-            Argument.NotNull(source, nameof(source));
-            Argument.NotNull(arguments, nameof(arguments));
             // ReSharper disable NotResolvedInText
             #pragma warning disable EX005
-            Argument.Check(arguments.BufferSize < 128, () => throw new ArgumentOutOfRangeException("arguments.BufferSize",
-                                                           arguments.BufferSize, "BufferSize has to be greater or equal than 128."));
-            Argument.Check(arguments.ProgressChangeCallbackInterval.TotalSeconds < 0, ()
-                => throw new ArgumentOutOfRangeException("arguments.ProgressChangeCallbackInterval",
+            if (arguments.BufferSize < 128)
+                throw new ArgumentOutOfRangeException(
+                    "arguments.BufferSize",
+                    arguments.BufferSize,
+                    "BufferSize has to be greater or equal than 128.");
+
+            if (arguments.ProgressChangeCallbackInterval.TotalSeconds < 0)
+                throw new ArgumentOutOfRangeException(
+                    "arguments.ProgressChangeCallbackInterval",
                     arguments.ProgressChangeCallbackInterval,
-                    "ProgressChangeCallbackInterval has to be greater or equal than 0."));
+                    "ProgressChangeCallbackInterval has to be greater or equal than 0.");
+            
             #pragma warning restore EX005
             // ReSharper restore NotResolvedInText
-
             long length = 0;
 
             var runningFlag = true;

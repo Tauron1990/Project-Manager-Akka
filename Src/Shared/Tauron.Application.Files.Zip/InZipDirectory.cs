@@ -4,8 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Ionic.Zip;
-using JetBrains.Annotations;
-using Tauron.Application.Files.VirtualFiles;
 using Tauron.Application.Files.VirtualFiles.Core;
 using Tauron.Application.VirtualFiles;
 
@@ -16,12 +14,12 @@ namespace Tauron.Application.Files.Zip
         private InternalZipDirectory _dic;
         private ZipFile _file;
 
-        public InZipDirectory(IDirectory? parentDirectory, string originalPath, InternalZipDirectory dic, ZipFile? file,
-            string name)
+        protected InZipDirectory(IDirectory? parentDirectory, string originalPath, InternalZipDirectory dic, ZipFile file,
+                                 string name)
             : base(() => parentDirectory, originalPath, name)
         {
-            _dic = Argument.NotNull(dic, nameof(dic));
-            _file = Argument.NotNull(file, nameof(file));
+            _dic = dic;
+            _file = file;
         }
 
         public override DateTime LastModified => _dic.ZipEntry?.ModifiedTime ?? DateTime.MinValue;
@@ -43,11 +41,8 @@ namespace Tauron.Application.Files.Zip
             DeleteDic(_dic, _file);
         }
 
-        private static void DeleteDic([NotNull] InternalZipDirectory dic, [NotNull] ZipFile file)
+        private static void DeleteDic(InternalZipDirectory dic, ZipFile file)
         {
-            Argument.NotNull(dic, nameof(dic));
-            Argument.NotNull(file, nameof(file));
-
             if (dic.ZipEntry != null)
                 file.RemoveEntry(dic.ZipEntry);
 
@@ -92,10 +87,10 @@ namespace Tauron.Application.Files.Zip
         public override IDirectory MoveTo(string location) 
             => throw new NotSupportedException("Zip Directory Moving not Supported");
 
-        protected void ResetDirectory([NotNull] ZipFile file, [NotNull] InternalZipDirectory directory)
+        protected void ResetDirectory(ZipFile file, InternalZipDirectory directory)
         {
-            _file = Argument.NotNull(file, nameof(file));
-            _dic = Argument.NotNull(directory, nameof(directory));
+            _file = file;
+            _dic = directory;
         }
     }
 }

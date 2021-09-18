@@ -6,15 +6,15 @@ namespace Tauron.Application.CommonUI.Commands
 {
     public sealed class EventData
     {
-        public EventData([NotNull] object sender, [NotNull] object eventArgs)
+        public EventData(object sender, object eventArgs)
         {
-            Sender = Argument.NotNull(sender, nameof(sender));
-            EventArgs = Argument.NotNull(eventArgs, nameof(eventArgs));
+            Sender = sender;
+            EventArgs = eventArgs;
         }
 
-        [NotNull] public object EventArgs { get; }
+        public object EventArgs { get; }
 
-        [NotNull] public object Sender { get; }
+        public object Sender { get; }
     }
 
     [PublicAPI]
@@ -25,17 +25,17 @@ namespace Tauron.Application.CommonUI.Commands
 
         public MethodCommand(MethodInfo method, object context)
         {
-            _method = Argument.NotNull(method, nameof(method));
-            Context = Argument.NotNull(context, nameof(context));
+            _method = method;
+            Context = context;
 
             _methodType = (MethodType) method.GetParameters().Length;
             if (_methodType != MethodType.One) return;
-            if (_method.GetParameters()[0].ParameterType != typeof(EventData)) _methodType = MethodType.EventArgs;
+            if (method.GetParameters()[0].ParameterType != typeof(EventData)) _methodType = MethodType.EventArgs;
         }
 
         private object? Context { get; }
 
-        public override void Execute(object? parameter)
+        public override void Execute(object? parameter = null)
         {
             var temp = parameter as EventData;
             var args = _methodType switch

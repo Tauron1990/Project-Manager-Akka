@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Immutable;
+using Microsoft.Extensions.Logging;
 using Tauron.Akka;
 using Tauron.Application.Settings;
 
@@ -9,8 +10,8 @@ namespace Tauron.Application.Localizer.UIModels
     {
         private ImmutableList<string>? _renctFiles;
 
-        public AppConfig(IDefaultActorRef<SettingsManager> actor, string scope)
-            : base(actor, scope)
+        public AppConfig(IDefaultActorRef<SettingsManager> actor, string scope, ILogger<AppConfig> logger)
+            : base(actor, scope, logger)
         {
         }
 

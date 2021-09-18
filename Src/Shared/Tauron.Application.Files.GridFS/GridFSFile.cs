@@ -2,7 +2,6 @@
 using System.IO;
 using JetBrains.Annotations;
 using MongoDB.Driver.GridFS;
-using Tauron.Application.Files.VirtualFiles;
 using Tauron.Application.VirtualFiles;
 
 namespace Tauron.Application.Files.GridFS
@@ -66,7 +65,7 @@ namespace Tauron.Application.Files.GridFS
             private readonly GridFSFile _file;
             private readonly GridFSUploadStream _upload;
 
-            public UpdateStream(GridFSFile file, GridFSUploadStream upload)
+            internal UpdateStream(GridFSFile file, GridFSUploadStream upload)
             {
                 _file = file;
                 _upload = upload;

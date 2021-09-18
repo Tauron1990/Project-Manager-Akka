@@ -19,7 +19,7 @@ namespace Servicemnager.Networking.Server
 
         public DataClient(string host, int port = 0)
         {
-            _client = new SimpleTcpClient(host, port, false, null, null)
+            _client = new SimpleTcpClient(host, port, ssl: false, pfxCertFilename: null, pfxPassword: null)
             {
                 Keepalive = {EnableTcpKeepAlives = true}
             };
@@ -36,7 +36,12 @@ namespace Servicemnager.Networking.Server
             };
         }
 
-        public void Connect() => _client.Connect();
+        public bool Connect()
+        {
+            _client.Connect();
+
+            return true;
+        }
 
         public event EventHandler<ClientConnectedArgs>? Connected;
 

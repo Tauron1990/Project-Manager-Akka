@@ -32,22 +32,22 @@ namespace Tauron.Application.Avalonia
         }
 
         public static string GetMarkControl(Control obj)
-            => Argument.NotNull(obj, nameof(obj)).GetValue(MarkControlProperty);
+            => obj.GetValue(MarkControlProperty);
 
         public static string GetMarkWindow(Control obj)
-            => Argument.NotNull(obj, nameof(obj)).GetValue(MarkWindowProperty);
+            => obj.GetValue(MarkWindowProperty);
 
         public static void SetMarkControl(Control obj, string value)
         {
             var old = GetMarkControl(obj);
-            Argument.NotNull(obj, nameof(obj)).SetValue(MarkControlProperty, Argument.NotNull(value, nameof(value)));
+            obj.SetValue(MarkControlProperty, value);
             MarkControl(obj, value, old);
         }
 
         public static void SetMarkWindow(Control obj, string value)
         {
             var old = GetMarkWindow(obj);
-            Argument.NotNull(obj, nameof(obj)).SetValue(MarkWindowProperty, Argument.NotNull(value, nameof(value)));
+            obj.SetValue(MarkWindowProperty, value);
             MarkWindowChanged(obj, value, old);
         }
 
@@ -66,9 +66,6 @@ namespace Tauron.Application.Avalonia
             if (string.IsNullOrWhiteSpace(newName))
                 return;
 
-            Argument.NotNull(obj, nameof(obj));
-            Argument.NotNull(factory, nameof(factory));
-
             var ele = ElementMapper.Create(obj);
             var rootOption = ControlBindLogic.FindRoot(ele.AsOption());
             
@@ -81,14 +78,14 @@ namespace Tauron.Application.Avalonia
         private static void SetLinker(string? newName, string? oldName, IBinderControllable root, IUIObject obj,
             Func<LinkerBase> factory)
         {
-            if (oldName != null)
-                root.CleanUp(ControlHelperPrefix + oldName);
+            if (oldName is not null)
+                root.CleanUp($"{ControlHelperPrefix}{oldName}");
 
-            if (newName == null) return;
+            if (newName is null) return;
 
             var linker = factory();
             linker.Name = newName;
-            root.Register(ControlHelperPrefix + newName, linker, obj);
+            root.Register($"{ControlHelperPrefix}{newName}", linker, obj);
         }
 
         [DebuggerNonUserCode]
@@ -103,7 +100,7 @@ namespace Tauron.Application.Avalonia
 
         private abstract class LinkerBase : ControlBindableBase
         {
-            public string Name { get; set; } = string.Empty;
+            internal string Name { get; set; } = string.Empty;
 
             protected object DataContext { get; private set; } = new();
 

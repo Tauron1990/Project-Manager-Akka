@@ -18,7 +18,7 @@ namespace Tauron.Application.Files.HeaderedText
         internal HeaderedFileWriter(HeaderedFile file)
         {
             _file = file;
-            _file.CurrentWriter = this;
+            file.CurrentWriter = this;
             _context = file.Context;
             _description = _context.Description;
         }
@@ -29,7 +29,7 @@ namespace Tauron.Application.Files.HeaderedText
             set => _file.Content = value;
         }
 
-        [NotNull] public IEnumerable<ContextEntry> Enries => _context;
+        public IEnumerable<ContextEntry> Enries => _context;
 
         public IEnumerable<ContextEntry> this[string key] => _context[key];
 
@@ -42,14 +42,13 @@ namespace Tauron.Application.Files.HeaderedText
             _context.Add(new ContextEntry(key, value));
         }
 
-        public bool Remove(ContextEntry entry) => _context.ContextEnries.Remove(Argument.NotNull(entry, nameof(entry)));
+        public bool Remove(ContextEntry entry) => _context.ContextEnries.Remove(entry);
 
         public int RemoveAll(string key) 
             => _context.ContextEnries.RemoveAll(ent => ent.Key == key);
 
         public void Save(TextWriter writer)
         {
-            Argument.NotNull(writer, nameof(writer));
             if (_isWriten) throw new InvalidOperationException("The Content is Writen");
 
             _context.ContextEnries.Sort((one, two) => string.Compare(one.Key, two.Key, StringComparison.Ordinal));

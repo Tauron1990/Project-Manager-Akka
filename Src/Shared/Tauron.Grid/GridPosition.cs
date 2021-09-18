@@ -23,16 +23,16 @@ namespace Tauron.Grid
 
         public static GridPosition Empty => new();
 
-        public GridPosition Row(GridPoint start, GridPoint end)
+        public GridPosition Row(in GridPoint start, in GridPoint end)
             => new(ColumnStart, ColumnEnd, start, end);
 
-        public GridPosition Column(GridPoint start, GridPoint end)
+        public GridPosition Column(in GridPoint start, in GridPoint end)
             => new(start, end, RowStart, RowEnd);
 
-        public GridPosition Row(GridPoint start)
+        public GridPosition Row(in GridPoint start)
             => new(ColumnStart, ColumnEnd, start, RowEnd);
 
-        public GridPosition Column(GridPoint start)
+        public GridPosition Column(in GridPoint start)
             => new(start, ColumnEnd, RowStart, RowEnd);
 
         public StyleBuilder Build(StyleBuilder styleBuilder)

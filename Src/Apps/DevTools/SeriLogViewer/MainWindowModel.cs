@@ -48,7 +48,9 @@ namespace SeriLogViewer
             var diag = new VistaOpenFileDialog();
             if (diag.ShowDialog(Application.Current.MainWindow) != true) return;
 
+            #pragma warning disable EPC13
             Task.Run(() => Load(diag.FileName));
+            #pragma warning restore EPC13
         }
 
         private void Load(string file)
@@ -104,7 +106,9 @@ namespace SeriLogViewer
             catch
             {
                 // ignored
+                #pragma warning disable ERP022
             }
+            #pragma warning restore ERP022
         }
 
         private static IEnumerable<string> FindComponent(string msg)

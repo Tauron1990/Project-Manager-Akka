@@ -44,7 +44,7 @@ namespace Tauron.Application.AkkaNode.Services.Reporting.Commands
             => Send(sender, command, timeout, manager, messages, () =>
             {
                 var str = getdata();
-                return str == null ? null : new StreamData(str);
+                return str is null ? null : new StreamData(str);
             });
 
         public static async Task<TransferMessages.TransferCompled> Send<TSender, TCommand>(this TSender sender,
@@ -53,7 +53,7 @@ namespace Tauron.Application.AkkaNode.Services.Reporting.Commands
             where TCommand : FileTransferCommand<TSender, TCommand>
         {
             command.Manager = manager;
-            var id = await SendingHelper.Send<FileTransactionId, TCommand>(sender, command, messages, timeout, false);
+            var id = await SendingHelper.Send<FileTransactionId, TCommand>(sender, command, messages, timeout, isEmpty: false);
 
             var tranfer = await command.Manager.AskAwaitOperation(new AwaitRequest(timeout, id.Id));
 

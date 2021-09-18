@@ -26,6 +26,7 @@ namespace Servicemnager.Networking.Transmitter
                 switch (msg.Type)
                 {
                     case NetworkOperation.Deny:
+                        #pragma warning disable EX006
                         throw new InvalidOperationException("Operation Cancelled from Server");
                     case NetworkOperation.DataAccept:
                         _stream = _target();
@@ -34,8 +35,9 @@ namespace Servicemnager.Networking.Transmitter
                     case NetworkOperation.DataCompled:
                         return false;
                     case NetworkOperation.DataChunk:
-                        if (_stream == null)
+                        if (_stream is null)
                             throw new InvalidOperationException("Write Stream is null");
+                        #pragma warning restore EX006
                         _stream.Write(msg.Data, 0, msg.RealLength);
                         _client.Send(NetworkMessage.Create(NetworkOperation.DataNext));
                         return true;

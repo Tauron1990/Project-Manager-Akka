@@ -2,9 +2,9 @@
 {
     internal static class PathHelper
     {
-        public const char Seperator = '/';
+        internal const char Seperator = '/';
 
-        public static string ChangeExtension(string path, string newExtension)
+        internal static string ChangeExtension(string path, string newExtension)
         {
             if (string.IsNullOrWhiteSpace(path)) return path;
 
@@ -46,7 +46,7 @@
         //    return true;
         //}
 
-        public static string Combine(string first, string secund)
+        internal static string Combine(string first, string secund)
         {
             if (first.EndsWith(Seperator))
             {

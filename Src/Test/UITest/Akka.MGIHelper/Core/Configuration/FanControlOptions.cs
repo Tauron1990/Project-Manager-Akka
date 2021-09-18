@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using Akka.MGIHelper.Settings;
+using Microsoft.Extensions.Logging;
 using Tauron.Akka;
 using Tauron.Application.Settings;
 
@@ -7,7 +8,8 @@ namespace Akka.MGIHelper.Core.Configuration
 {
     public sealed class FanControlOptions : ConfigurationBase
     {
-        public FanControlOptions(IDefaultActorRef<SettingsManager> actor, string scope) : base(actor, scope)
+        public FanControlOptions(IDefaultActorRef<SettingsManager> actor, string scope, ILogger<FanControlOptions> logger) 
+            : base(actor, scope, logger)
         {
         }
 

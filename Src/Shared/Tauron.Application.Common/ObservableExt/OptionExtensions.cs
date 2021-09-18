@@ -66,15 +66,14 @@ namespace Tauron.ObservableExt
             if (resultSelector is null)
                 throw new ArgumentNullException(nameof(resultSelector));
 
-            #pragma warning disable AV1250
             return from sourceInst in source
                    #pragma warning restore AV1250
                    let opt = optionSelector(sourceInst)
                    where opt.HasValue
                    select resultSelector(sourceInst, opt.Value);
         }
-
-        public static void Run<TType>(this Option<TType> option, Action<TType> onSuccess, Action onEmpty)
+        
+        public static void Run<TType>(this ref Option<TType> option, Action<TType> onSuccess, Action onEmpty)
         {
             if (option.HasValue)
                 onSuccess(option.Value);

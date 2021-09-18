@@ -143,7 +143,8 @@ namespace TimeTracker.ViewModels
                                    {
                                        var view = (ListCollectionView)CollectionViewSource.GetDefaultView(ProfileEntries.Property.Value);
                                        view.CustomSort = Comparer<UiProfileEntry>.Default;
-                                   });
+                                   })
+                      .Ignore();
 
             (from data in profileManager.ProcessableData.DistinctUntilChanged(pd => pd.Entries)
              where data.Entries.Count != 0
@@ -184,12 +185,13 @@ namespace TimeTracker.ViewModels
 
             void CheckHere()
             {
-                (from item in profileManager.Entries
-                 where item.Start != null && item.Finish == null
-                 orderby item.Date
-                 select item).FirstOrDefault()
-                             .OptionNotNull()
-                             .Run(_ => isHere!.Value = true, () => isHere!.Value = false);
+                var entryItem =
+                    (from item in profileManager.Entries
+                     where item.Start != null && item.Finish == null
+                     orderby item.Date
+                     select item).FirstOrDefault().OptionNotNull();
+
+                entryItem.Run(_ => isHere.Value = true, () => isHere.Value = false);
             }
 
             Vacation = NewCommad
@@ -289,7 +291,7 @@ namespace TimeTracker.ViewModels
             #endregion
 
             void ReportError(Exception e)
-                => dispatcher.InvokeAsync(() => SnackBarQueue!.Value?.Enqueue($"Fehler: {e.GetType().Name}--{e.Message}"));
+                => dispatcher.InvokeAsync(() => SnackBarQueue.Value?.Enqueue($"Fehler: {e.GetType().Name}--{e.Message}"));
         }
     }
 

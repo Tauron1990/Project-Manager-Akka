@@ -23,8 +23,8 @@
 
     private StyleBuilder _style = StyleBuilder.Empty();
 
-    private ImmutableArray<DefinitionBase> _definitions = ImmutableArray<DefinitionBase>.Empty;
-    private ImmutableArray<GridTemplateRow> _templateRows = ImmutableArray<GridTemplateRow>.Empty;
+    private ImmutableList<DefinitionBase> _definitions = ImmutableList<DefinitionBase>.Empty;
+    private ImmutableList<GridTemplateRow> _templateRows = ImmutableList<GridTemplateRow>.Empty;
 
     private bool _isSet;
 
@@ -85,8 +85,8 @@
     protected override void OnParametersSet()
     {
         _isSet = false;
-        _definitions = ImmutableArray<DefinitionBase>.Empty;
-        _templateRows = ImmutableArray<GridTemplateRow>.Empty;
+        _definitions = ImmutableList<DefinitionBase>.Empty;
+        _templateRows = ImmutableList<GridTemplateRow>.Empty;
 
         _style = IsInline ? StyleBuilder.Default("display", "inline-grid") : StyleBuilder.Default("display", "grid");
         _style = _style.AddStyle(Style)

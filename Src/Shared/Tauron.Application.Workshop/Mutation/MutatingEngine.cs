@@ -98,7 +98,7 @@ namespace Tauron.Application.Workshop.Mutation
             _mutator = mutator;
             _dataSource = dataSource;
             _superviser = superviser;
-            _responder = new ResponderList(_dataSource.SetData, dataSource.OnCompled);
+            _responder = new ResponderList(dataSource.SetData, dataSource.OnCompled);
         }
 
         public IEventSource<TRespond> EventSource<TRespond>(Func<TData, TRespond> transformer,
@@ -133,7 +133,7 @@ namespace Tauron.Application.Workshop.Mutation
             private readonly Subject<TData> _handler = new();
             private readonly Func<IQuery, TData, Task> _root;
 
-            public ResponderList(Func<IQuery, TData, Task> root, Func<IQuery, Task> completer)
+            internal ResponderList(Func<IQuery, TData, Task> root, Func<IQuery, Task> completer)
             {
                 _root = root;
                 _completer = completer;
@@ -141,7 +141,7 @@ namespace Tauron.Application.Workshop.Mutation
 
             public IDisposable Subscribe(IObserver<TData> observer) => _handler.Subscribe(observer);
 
-            public void Push(IQuery query, IObservable<TData> dataFunc, IObserver<Unit>? onCompled)
+            internal void Push(IQuery query, IObservable<TData> dataFunc, IObserver<Unit>? onCompled)
             {
                 var handler = dataFunc
                     .SelectMany(async data =>

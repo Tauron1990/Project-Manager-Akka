@@ -56,7 +56,7 @@ namespace Tauron.Application.Workshop
                         $"{state.Configuration.WorkerName}-{state.WorkerId}");
                     Context.Watch(worker);
 
-                    return new {Worker = worker, State = state};
+                    return (Worker: worker, State: state);
                 })
                 .Select(s => s.State with
                 {
@@ -74,15 +74,17 @@ namespace Tauron.Application.Workshop
                     var (_, state, timerScheduler) = m;
 
                     if (state.PendingWorkload.IsEmpty)
+                    {
                         return state with
-                        {
-                            Running = state.Running.Remove(Context.Sender),
-                            Ready = state.Ready.Enqueue(Context.Sender)
-                        };
+                               {
+                                   Running = state.Running.Remove(Context.Sender),
+                                   Ready = state.Ready.Enqueue(Context.Sender)
+                               };
+                    }
 
                     var newQueue = state.PendingWorkload.Dequeue(out var work);
 
-                    RunWork(work.Item1, Context.Sender, work.Item2, timerScheduler, state.Configuration.Timeout);
+                    RunWork(work.Workload, Context.Sender, work.Sender, timerScheduler, state.Configuration.Timeout);
 
                     return state with {PendingWorkload = newQueue};
                 }));
@@ -107,8 +109,7 @@ namespace Tauron.Application.Workshop
             Self.Tell(new CheckWorker());
         }
 
-        private static void RunWork(TInput input, IActorRef worker, IActorRef sender, ITimerScheduler timers,
-            TimeSpan timeout)
+        private static void RunWork(TInput input, IActorRef worker, IActorRef sender, ITimerScheduler timers, TimeSpan timeout)
         {
             worker.Tell(input, sender);
             timers.StartSingleTimer(worker, new WorkerTimeout(worker), timeout);
@@ -117,7 +118,7 @@ namespace Tauron.Application.Workshop
         public sealed record DistributorConfig(Props Worker, string WorkerName, TimeSpan Timeout, int WorkerCount);
 
         public sealed record WorkDistributorFeatureState(DistributorConfig Configuration,
-            ImmutableQueue<(TInput, IActorRef)> PendingWorkload, ImmutableList<IActorRef> Worker,
+            ImmutableQueue<(TInput Workload, IActorRef Sender)> PendingWorkload, ImmutableList<IActorRef> Worker,
             ImmutableQueue<IActorRef> Ready, ImmutableList<IActorRef> Running, int WorkerId)
         {
             public WorkDistributorFeatureState(DistributorConfig config)
@@ -131,7 +132,7 @@ namespace Tauron.Application.Workshop
         {
             private readonly IActorRef _actor;
 
-            public WorkSender(IActorRef actor) => _actor = actor;
+            internal WorkSender(IActorRef actor) => _actor = actor;
 
             public void PushWork(TInput workLoad) => _actor.Forward(workLoad);
         }

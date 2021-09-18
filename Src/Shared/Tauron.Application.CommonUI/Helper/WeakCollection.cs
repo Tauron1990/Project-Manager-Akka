@@ -79,8 +79,6 @@ namespace Tauron.Application.CommonUI.Helper
 
         public void CopyTo(Option<TType>[] array, int arrayIndex)
         {
-            Argument.NotNull(array, nameof(array));
-
             lock (_internalCollection)
             {
                 var index = 0;

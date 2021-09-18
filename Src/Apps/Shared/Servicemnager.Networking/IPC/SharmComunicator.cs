@@ -27,6 +27,7 @@ namespace Servicemnager.Networking.IPC
         }
         #if DEBUG
         // ReSharper disable once MemberCanBePrivate.Global
+        // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public static Func<ISharmIpc>? ConnectionFac { get; set; }
         #endif
 
@@ -36,7 +37,7 @@ namespace Servicemnager.Networking.IPC
         {
             try
             {
-                using var mt = new Mutex(true, id + "SharmNet_MasterMutex", out var created);
+                using var mt = new Mutex(initiallyOwned: true, $"{id}SharmNet_MasterMutex", out var created);
                 if (!created) return true;
 
                 #pragma warning disable MT1013
@@ -120,7 +121,7 @@ namespace Servicemnager.Networking.IPC
             private readonly NetworkMessageFormatter _messageFormatter = NetworkMessageFormatter.Shared;
             private readonly SharmIpc _sharmIpc;
 
-            public Connection(string globalId, Action<string, Exception> errorHandler)
+            internal Connection(string globalId, Action<string, Exception> errorHandler)
                 => _sharmIpc = new SharmIpc(globalId, Handle, ExternalExceptionHandler: errorHandler,
                     protocolVersion: SharmIpc.eProtocolVersion.V2);
 
@@ -191,10 +192,10 @@ namespace Servicemnager.Networking.IPC
             _comunicator.OnMessage += ComunicatorOnOnMessage;
         }
 
-        public void Connect()
+        public bool Connect()
         {
             _comunicator.Connect();
-            Send(NetworkMessage.Create(SharmComunicatorMessages.RegisterClient));
+            return Send(NetworkMessage.Create(SharmComunicatorMessages.RegisterClient));
         }
 
         public event EventHandler<ClientConnectedArgs>? Connected;

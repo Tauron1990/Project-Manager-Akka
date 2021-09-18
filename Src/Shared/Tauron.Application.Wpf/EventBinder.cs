@@ -23,17 +23,17 @@ namespace Tauron.Application.Wpf
         private const string EventBinderPrefix = "EventBinder.";
 
         public static readonly DependencyProperty EventsProperty =
-            DependencyProperty.RegisterAttached("Events", typeof(string), typeof(EventBinder),
+            DependencyProperty.RegisterAttached(
+                "Events",
+                typeof(string),
+                typeof(EventBinder),
                 new UIPropertyMetadata(null, OnEventsChanged));
 
-        [NotNull]
         public static string GetEvents(DependencyObject obj)
-            => (string) Argument.NotNull(obj, nameof(obj)).GetValue(EventsProperty);
+            => (string)obj.GetValue(EventsProperty);
 
         public static void SetEvents(DependencyObject obj, string value)
-        {
-            Argument.NotNull(obj, nameof(obj)).SetValue(EventsProperty, Argument.NotNull(value, nameof(value)));
-        }
+            => obj.SetValue(EventsProperty, value);
 
         private static void OnEventsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
@@ -46,12 +46,16 @@ namespace Tauron.Application.Wpf
                 () =>
                 {
                     if (d is FrameworkElement)
-                        ControlBindLogic.MakeLazy((IUIElement)ele, e.NewValue as string, e.OldValue as string,
+                        ControlBindLogic.MakeLazy(
+                            (IUIElement)ele,
+                            e.NewValue as string,
+                            e.OldValue as string,
                             BindInternal);
                 });
         }
 
-        private static void BindInternal(string? oldValue, string? newValue, IBinderControllable binder,
+        private static void BindInternal(
+            string? oldValue, string? newValue, IBinderControllable binder,
             IUIObject affectedPart)
         {
             if (oldValue != null)
@@ -59,7 +63,7 @@ namespace Tauron.Application.Wpf
 
             if (newValue == null) return;
 
-            binder.Register(EventBinderPrefix + newValue, new EventLinker {Commands = newValue}, affectedPart);
+            binder.Register(EventBinderPrefix + newValue, new EventLinker { Commands = newValue }, affectedPart);
         }
 
         private sealed class EventLinker : ControlBindableBase
@@ -67,7 +71,7 @@ namespace Tauron.Application.Wpf
             private static readonly ILogger Log = LogManager.GetCurrentClassLogger();
             private readonly List<InternalEventLinker> _linkers = new();
 
-            public string? Commands { get; init; }
+            internal string? Commands { get; init; }
 
             protected override void CleanUp()
             {
@@ -78,7 +82,7 @@ namespace Tauron.Application.Wpf
 
             protected override void Bind(object context)
             {
-                if (Commands == null)
+                if (Commands is null)
                 {
                     Log.Error("EventBinder: No Command Setted: {Context}", context);
 
@@ -100,6 +104,7 @@ namespace Tauron.Application.Wpf
                 }
 
                 var host = AffectedObject;
+
                 if (context is not IViewModel dataContext) return;
 
                 var hostType = host.Object.GetType();
@@ -107,9 +112,10 @@ namespace Tauron.Application.Wpf
                 foreach (var (@event, command) in events)
                 {
                     var info = hostType.GetEvent(@event);
-                    if (info == null)
+                    if (info is null)
                     {
                         Log.Error("EventBinder: No event Found: {HostType}|{Key}", hostType, @event);
+
                         return;
                     }
 
@@ -121,8 +127,8 @@ namespace Tauron.Application.Wpf
             private class InternalEventLinker : IDisposable
             {
                 private static readonly MethodInfo Method = typeof(InternalEventLinker)
-                    .GetMethods(BindingFlags.Instance | BindingFlags.NonPublic)
-                    .First(m => m.Name == "Handler");
+                                                           .GetMethods(BindingFlags.Instance | BindingFlags.NonPublic)
+                                                           .First(m => m.Name == "Handler");
 
                 private static readonly ILogger InternalLog = LogManager.GetCurrentClassLogger();
 
@@ -135,10 +141,11 @@ namespace Tauron.Application.Wpf
                 private Delegate? _delegate;
                 private bool _isDirty;
 
-                public InternalEventLinker(EventInfo? @event, IViewModel dataContext, string targetName,
+                internal InternalEventLinker(
+                    EventInfo? @event, IViewModel dataContext, string targetName,
                     IUIObject? host)
                 {
-                    _isDirty = @event == null;
+                    _isDirty = @event is null;
 
                     _host = (host as WpfObject)?.DependencyObject;
                     _event = @event;
@@ -166,10 +173,10 @@ namespace Tauron.Application.Wpf
                                {
                                    void Invoker() => _dataContext.Actor.Tell(new ExecuteEventEvent(d, _targetName));
 
-                                   if(_dataContext.IsInitialized)
+                                   if (_dataContext.IsInitialized)
                                        Invoker();
                                    else
-                                        _dataContext.AwaitInit(Invoker);
+                                       _dataContext.AwaitInit(Invoker);
                                };
 
 
@@ -183,6 +190,7 @@ namespace Tauron.Application.Wpf
                     if (!_isDirty && !EnsureCommandStade())
                     {
                         Dispose();
+
                         return;
                     }
 
@@ -203,6 +211,7 @@ namespace Tauron.Application.Wpf
                     if (_isDirty || _event == null) return;
 
                     var eventTyp = _event?.EventHandlerType;
+
                     if (_host == null || eventTyp == null) return;
 
                     _delegate = Delegate.CreateDelegate(eventTyp, this, Method);

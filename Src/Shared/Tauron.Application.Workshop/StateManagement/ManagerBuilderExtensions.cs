@@ -155,10 +155,10 @@ namespace Tauron.Application.Workshop.StateManagement
 
         private sealed class Buildhelper
         {
-            public static readonly ParameterInfo[] Parameters =
+            internal static readonly ParameterInfo[] Parameters =
                 typeof(Buildhelper).GetConstructors().First().GetParameters();
 
-            public Buildhelper(WorkspaceSuperviser superviser, Action<ManagerBuilder, IComponentContext> action)
+            internal Buildhelper(WorkspaceSuperviser superviser, Action<ManagerBuilder, IComponentContext> action)
             {
                 Superviser = superviser;
                 Action = action;
@@ -167,7 +167,7 @@ namespace Tauron.Application.Workshop.StateManagement
             private WorkspaceSuperviser Superviser { get; }
             private Action<ManagerBuilder, IComponentContext> Action { get; }
 
-            public static object GetParam(ParameterInfo info, IComponentContext context, Func<object> alternative,
+            internal static object GetParam(ParameterInfo info, IComponentContext context, Func<object> alternative,
                 IEnumerable<Parameter> param)
             {
                 Func<object?>? factory = null;
@@ -181,7 +181,7 @@ namespace Tauron.Application.Workshop.StateManagement
                 return factory() ?? alternative();
             }
 
-            public RootManager Create(IComponentContext context, AutofacOptions autofacOptions)
+            internal RootManager Create(IComponentContext context, AutofacOptions autofacOptions)
             {
                 var config = new ManagerBuilder(Superviser)
                              {

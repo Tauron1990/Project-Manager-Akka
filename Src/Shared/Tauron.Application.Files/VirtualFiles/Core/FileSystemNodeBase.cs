@@ -15,8 +15,8 @@ namespace Tauron.Application.Files.VirtualFiles.Core
         protected FileSystemNodeBase(Func<IDirectory?> parentDirectory, string originalPath, string name)
         {
             _parentDirectory = parentDirectory;
-            OriginalPath = Argument.NotNull(originalPath, nameof(originalPath));
-            Name = Argument.NotNull(name, nameof(name));
+            OriginalPath = originalPath;
+            Name = name;
             _infoObject = new Lazy<TInfo?>(() => GetInfo(OriginalPath));
         }
 
@@ -57,7 +57,7 @@ namespace Tauron.Application.Files.VirtualFiles.Core
         protected virtual void Reset(string path, IDirectory? parent)
         {
             _parentDirectory = () => parent;
-            OriginalPath = Argument.NotNull(path, nameof(path));
+            OriginalPath = path;
             _infoObject = new Lazy<TInfo?>(() => GetInfo(OriginalPath));
         }
     }

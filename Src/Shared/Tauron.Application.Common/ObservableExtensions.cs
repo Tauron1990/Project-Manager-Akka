@@ -75,19 +75,19 @@ namespace Tauron
             => source.Where(s => !string.IsNullOrWhiteSpace(s))!;
 
         public static IObservable<CallResult<TResult>> SelectSafe<TEvent, TResult>(this IObservable<TEvent> observable,
-            Func<TEvent, TResult> selector)
+                                                                                   Func<TEvent, TResult> selector)
         {
             return observable.Select<TEvent, CallResult<TResult>>(evt =>
-            {
-                try
-                {
-                    return new SucessCallResult<TResult>(selector(evt));
-                }
-                catch (Exception e)
-                {
-                    return new ErrorCallResult<TResult>(e);
-                }
-            });
+                                                                  {
+                                                                      try
+                                                                      {
+                                                                          return new SucessCallResult<TResult>(selector(evt));
+                                                                      }
+                                                                      catch (Exception e)
+                                                                      {
+                                                                          return new ErrorCallResult<TResult>(e);
+                                                                      }
+                                                                  });
         }
 
         public static IObservable<Exception> OnError<TResult>(this IObservable<CallResult<TResult>> observable)
@@ -174,7 +174,7 @@ namespace Tauron
 
         private sealed class DefaultResubscriptionStrategy : ISubscriptionStrategy
         {
-            public static readonly ISubscriptionStrategy Inst = new DefaultResubscriptionStrategy();
+            internal static readonly ISubscriptionStrategy Inst = new DefaultResubscriptionStrategy();
 
             public IObservable<T> Prepare<T>(IObservable<T> observable) => observable;
 
@@ -195,14 +195,14 @@ namespace Tauron
 
             private IDisposable? _current;
 
-            public AutoSubscribeObserver(IObservable<TData> data, Func<Exception, bool> errorHandler, ISubscriptionStrategy strategy, IObserver<TData> target)
+            internal AutoSubscribeObserver(IObservable<TData> data, Func<Exception, bool> errorHandler, ISubscriptionStrategy strategy, IObserver<TData> target)
             {
                 _data = strategy.Prepare(data);
                 _errorHandler = errorHandler;
                 _strategy = strategy;
                 _target = target;
 
-                _strategy.ReSubscribe(AddSubscription, null);
+                strategy.ReSubscribe(AddSubscription, null);
             }
 
             void AddSubscription()
@@ -214,6 +214,8 @@ namespace Tauron
                 catch
                 {
                     Dispose();
+
+                    throw;
                 }
             }
 
@@ -232,10 +234,8 @@ namespace Tauron
             public void OnError(Exception error)
             {
                 if (_errorHandler(error) && _strategy.ReSubscribe(AddSubscription, error)) return;
-                using (this)
-                {
+                using (this) 
                     _target.OnError(error);
-                }
             }
 
             public void OnNext(TData value)

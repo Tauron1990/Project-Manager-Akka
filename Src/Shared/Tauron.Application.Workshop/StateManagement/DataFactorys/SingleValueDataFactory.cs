@@ -43,7 +43,7 @@ namespace Tauron.Application.Workshop.StateManagement.DataFactorys
             private readonly SemaphoreSlim _semaphore = new(0, 1);
             private Task<TData> _value;
 
-            public SingleValueSource(Task<TData> value) => _value = value;
+            internal SingleValueSource(Task<TData> value) => _value = value;
 
             public void Dispose()
             {

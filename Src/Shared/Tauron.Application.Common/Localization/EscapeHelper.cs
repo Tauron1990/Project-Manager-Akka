@@ -25,10 +25,9 @@ namespace Tauron.Localization
                     {"004", ':'}
                 };
 
+            // ReSharper disable once ReturnTypeCanBeNotNullable
             private static string? GetPartforChar(char @char)
-            {
-                return Parts.FirstOrDefault(ep => ep.Value == @char).Key;
-            }
+                => Parts.FirstOrDefault(ep => ep.Value == @char).Key;
 
             private static char? GetPartforSequence(string @char)
             {
@@ -38,7 +37,7 @@ namespace Tauron.Localization
                 return null;
             }
 
-            public static string Encode(IEnumerable<char> toEncode)
+            internal static string Encode(IEnumerable<char> toEncode)
             {
                 var builder = new StringBuilder();
                 foreach (var @char in toEncode)
@@ -51,9 +50,9 @@ namespace Tauron.Localization
                 return builder.ToString();
             }
 
-            public static string Decode(IEnumerable<char>? toDecode)
+            internal static string Decode(IEnumerable<char>? toDecode)
             {
-                if (toDecode == null)
+                if (toDecode is null)
                     return string.Empty;
 
                 var builder = new StringBuilder();

@@ -29,13 +29,12 @@ namespace Tauron.Application.Avalonia
         {
         }
 
-        [NotNull]
-        public static string GetEvents(Control obj) => Argument.NotNull(obj, nameof(obj)).GetValue(EventsProperty);
+        public static string GetEvents(Control obj) => obj.GetValue(EventsProperty);
 
         public static void SetEvents(Control obj, string value)
         {
             var old = GetEvents(obj);
-            Argument.NotNull(obj, nameof(obj)).SetValue(EventsProperty, Argument.NotNull(value, nameof(value)));
+            obj.SetValue(EventsProperty, value);
             OnEventsChanged(obj, value, old);
         }
 
@@ -52,10 +51,10 @@ namespace Tauron.Application.Avalonia
         private static void BindInternal(string? oldValue, string? newValue, IBinderControllable binder,
             IUIObject affectedPart)
         {
-            if (oldValue != null)
+            if (oldValue is not null)
                 binder.CleanUp(EventBinderPrefix + oldValue);
 
-            if (newValue == null) return;
+            if (newValue is null) return;
 
             binder.Register(EventBinderPrefix + newValue, new EventLinker {Commands = newValue}, affectedPart);
         }
@@ -65,7 +64,7 @@ namespace Tauron.Application.Avalonia
             private static readonly ILogger Log = LogManager.GetCurrentClassLogger();
             private readonly List<InternalEventLinker> _linkers = new();
 
-            public string? Commands { get; init; }
+            internal string? Commands { get; init; }
 
             protected override void CleanUp()
             {
@@ -133,7 +132,7 @@ namespace Tauron.Application.Avalonia
                 private Delegate? _delegate;
                 private bool _isDirty;
 
-                public InternalEventLinker(EventInfo? @event, IViewModel dataContext, string targetName,
+                internal InternalEventLinker(EventInfo? @event, IViewModel dataContext, string targetName,
                     IUIObject? host)
                 {
                     _isDirty = @event == null;
