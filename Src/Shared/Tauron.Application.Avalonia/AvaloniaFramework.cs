@@ -30,7 +30,7 @@ namespace Tauron.Application.Avalonia
         public override IWindow CreateMessageDialog(string title, string message)
         {
             var window = new global::Avalonia.Controls.Window();
-            window.Content = new MessageDialog(title, message, b => window.Close(b), true) {Margin = new Thickness(10)};
+            window.Content = new MessageDialog(title, message, b => window.Close(b), canCnacel: true) {Margin = new Thickness(10)};
             window.SizeToContent = SizeToContent.WidthAndHeight;
             //window.Owner = ((IClassicDesktopStyleApplicationLifetime) global::Avalonia.Application.Current.ApplicationLifetime).MainWindow;
             window.WindowStartupLocation = WindowStartupLocation.CenterOwner;
@@ -62,7 +62,9 @@ namespace Tauron.Application.Avalonia
 
         private sealed class AvalonApp : global::Avalonia.Application, IUIApplication
         {
-            public AvalonApp() => Dispatcher = new AvaloniaDispatcher();
+            #pragma warning disable GU0073
+            public AvalonApp() => AppDispatcher = new AvaloniaDispatcher();
+            #pragma warning restore GU0073
 
             private ClassicDesktopStyleApplicationLifetime AppLifetime
                 => (ClassicDesktopStyleApplicationLifetime) ApplicationLifetime;
@@ -94,11 +96,11 @@ namespace Tauron.Application.Avalonia
                 }
             }
 
-            public IUIDispatcher Dispatcher { get; }
+            public IUIDispatcher AppDispatcher { get; }
 
             public void Shutdown(int returnValue)
             {
-                Dispatcher.Post(() => { AppLifetime.Shutdown(returnValue); });
+                AppDispatcher.Post(() => { AppLifetime.Shutdown(returnValue); });
             }
 
             public int Run()
@@ -115,7 +117,7 @@ namespace Tauron.Application.Avalonia
             public DelegateAvalonApp(global::Avalonia.Application application)
             {
                 _application = application;
-                Dispatcher = new AvaloniaDispatcher();
+                AppDispatcher = new AvaloniaDispatcher();
             }
 
             private ClassicDesktopStyleApplicationLifetime AppLifetime
@@ -148,11 +150,11 @@ namespace Tauron.Application.Avalonia
                 }
             }
 
-            public IUIDispatcher Dispatcher { get; }
+            public IUIDispatcher AppDispatcher { get; }
 
             public void Shutdown(int returnValue)
             {
-                Dispatcher.Post(() => { AppLifetime.Shutdown(returnValue); });
+                AppDispatcher.Post(() => { AppLifetime.Shutdown(returnValue); });
             }
 
             public int Run()

@@ -11,7 +11,7 @@ namespace Tauron.Application.Master.Commands.Administration.Configuration
 {
     public static class AkkaConfigurationBuilder
     {
-        private readonly static ILogger Log = ActorApplication.GetLogger(typeof(AkkaConfigurationBuilder));
+        private static readonly ILogger Log = ActorApplication.GetLogger(typeof(AkkaConfigurationBuilder));
 
         public const string Base = "base.conf";
         public const string Main = "akka.conf";
@@ -23,7 +23,7 @@ namespace Tauron.Application.Master.Commands.Administration.Configuration
             var newConfig = ConfigurationFactory.ParseString($"akka.cluster.seed-nodes = [{string.Join(',', urls.Select(s => $"\"{s}\""))}]")
                                                 .WithFallback(baseConfig);
 
-            return Observable.Return(newConfig.ToString(true));
+            return Observable.Return(newConfig.ToString(includeFallback: true));
         }
 
         public static string ApplyMongoUrl(string dat, string baseConfig, string url)
@@ -59,7 +59,7 @@ namespace Tauron.Application.Master.Commands.Administration.Configuration
 
             Log.LogInformation("AppBase Configuration Updated");
 
-            return currentConfiguration.ToString(true);
+            return currentConfiguration.ToString(includeFallback: true);
         }
         
     }

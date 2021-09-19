@@ -34,15 +34,17 @@ namespace Tauron.Application.Localizer.DataModel.Workspace.Mutating
 
             NewLanguage.RespondOn(null, newLang =>
             {
-                if (workspace.ProjectFile.GlobalLanguages.Contains(newLang.ActiveLanguage)) return;
+                var (activeLanguage, _) = newLang;
 
-                if (!Projects.All(p => p.ActiveLanguages.Contains(newLang.ActiveLanguage))) return;
+                if (workspace.ProjectFile.GlobalLanguages.Contains(activeLanguage)) return;
 
-                _engine.Mutate(nameof(AddLanguage) + "Global-Single",
-                    obs => obs.Select(context => context.Update(new GlobalLanguageChange(newLang.ActiveLanguage),
+                if (!Projects.All(p => p.ActiveLanguages.Contains(activeLanguage))) return;
+
+                engine.Mutate(nameof(AddLanguage) + "Global-Single",
+                    obs => obs.Select(context => context.Update(new GlobalLanguageChange(activeLanguage),
                         context.Data with
                         {
-                            GlobalLanguages = context.Data.GlobalLanguages.Add(newLang.ActiveLanguage)
+                            GlobalLanguages = context.Data.GlobalLanguages.Add(activeLanguage)
                         })));
             });
         }

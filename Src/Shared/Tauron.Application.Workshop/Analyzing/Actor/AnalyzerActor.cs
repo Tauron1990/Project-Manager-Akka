@@ -36,9 +36,9 @@ namespace Tauron.Application.Workshop.Analyzing.Actor
 
         private sealed class HandlerTerminated
         {
-            public HandlerTerminated(Action remover) => Remover = remover;
+            internal HandlerTerminated(Action remover) => Remover = remover;
 
-            public Action Remover { get; }
+            internal Action Remover { get; }
         }
     }
 }

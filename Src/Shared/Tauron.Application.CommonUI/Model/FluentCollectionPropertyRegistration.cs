@@ -85,7 +85,9 @@ namespace Tauron.Application.CommonUI.Model
 
         public UICollectionProperty<TData> BindToList(IEnumerable<TData> initial,  out SourceList<TData> sourceCollection)
         {
+            #pragma warning disable GU0011
             BindToList(out sourceCollection);
+            #pragma warning restore GU0011
 
             sourceCollection.AddRange(initial);
 

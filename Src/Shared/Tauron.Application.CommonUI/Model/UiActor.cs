@@ -100,28 +100,28 @@ namespace Tauron.Application.CommonUI.Model
 
         private sealed class PropertyTermination
         {
-            public PropertyTermination(IActorRef actorRef, string name)
+            internal PropertyTermination(IActorRef actorRef, string name)
             {
                 ActorRef = actorRef;
                 Name = name;
             }
 
-            public IActorRef ActorRef { get; }
+            internal IActorRef ActorRef { get; }
 
-            public string Name { get; }
+            internal string Name { get; }
         }
 
         private sealed class CommandRegistration
         {
-            public CommandRegistration(Action<object?> command, Func<bool> canExecute)
+            internal CommandRegistration(Action<object?> command, Func<bool> canExecute)
             {
                 Command = command;
                 CanExecute = canExecute;
             }
 
-            public Action<object?> Command { get; }
+            internal Action<object?> Command { get; }
 
-            public Func<bool> CanExecute { get; }
+            internal Func<bool> CanExecute { get; }
         }
 
         private sealed class InvokeHelper
@@ -129,7 +129,7 @@ namespace Tauron.Application.CommonUI.Model
             private readonly Delegate _method;
             private readonly MethodType _methodType;
 
-            public InvokeHelper(Delegate del)
+            internal InvokeHelper(Delegate del)
             {
                 _method = del;
                 var method = del.Method;
@@ -139,7 +139,7 @@ namespace Tauron.Application.CommonUI.Model
                 if (method.GetParameters()[0].ParameterType != typeof(EventData)) _methodType = MethodType.EventArgs;
             }
 
-            public void Execute(EventData? parameter)
+            internal void Execute(EventData? parameter)
             {
                 var args = _methodType switch
                 {
@@ -164,17 +164,17 @@ namespace Tauron.Application.CommonUI.Model
 
         private sealed class PropertyData
         {
-            public PropertyData(UIPropertyBase propertyBase) => PropertyBase = propertyBase;
+            internal PropertyData(UIPropertyBase propertyBase) => PropertyBase = propertyBase;
 
-            public UIPropertyBase PropertyBase { get; }
+            internal UIPropertyBase PropertyBase { get; }
 
-            public Error? Error { get; set; }
+            internal Error? Error { get; set; }
 
-            public object? LastValue { get; set; }
+            internal object? LastValue { get; set; }
 
-            public List<IActorRef> Subscriptors { get; } = new();
+            internal List<IActorRef> Subscriptors { get; } = new();
 
-            public void SetValue(object value)
+            internal void SetValue(object value)
             {
                 PropertyBase.ObjectValue = value;
             }
@@ -189,19 +189,21 @@ namespace Tauron.Application.CommonUI.Model
             private readonly string _name;
             private readonly IActorRef _self;
 
-            public ActorCommand(string name, IActorRef self, IObservable<bool>? canExecute, IUIDispatcher dispatcher)
+            internal ActorCommand(string name, IActorRef self, IObservable<bool>? canExecute, IUIDispatcher dispatcher)
             {
                 _name = name;
                 _self = self;
                 _dispatcher = dispatcher;
-                if (canExecute == null)
+                if (canExecute is null)
                     _canExecute.OnNext(true);
                 else
+                {
                     _disposable.Disposable = canExecute.Subscribe(b =>
-                    {
-                        _canExecute.OnNext(b);
-                        _dispatcher.Post(RaiseCanExecuteChanged);
-                    });
+                                                                  {
+                                                                      _canExecute.OnNext(b);
+                                                                      dispatcher.Post(RaiseCanExecuteChanged);
+                                                                  });
+                }
             }
 
             public void Dispose()
@@ -214,9 +216,9 @@ namespace Tauron.Application.CommonUI.Model
 
             public override bool CanExecute(object? parameter = null) => _canExecute.Value;
 
-            public void Deactivate()
+            internal void Deactivate()
             {
-                _deactivated.GetAndSet(true);
+                _deactivated.GetAndSet(newValue: true);
                 _canExecute.OnNext(false);
                 _canExecute.OnCompleted();
                 _dispatcher.Post(RaiseCanExecuteChanged);
@@ -225,9 +227,9 @@ namespace Tauron.Application.CommonUI.Model
 
         private sealed class ReviveActor
         {
-            public ReviveActor(KeyValuePair<string, PropertyData>[] data) => Data = data;
+            internal ReviveActor(KeyValuePair<string, PropertyData>[] data) => Data = data;
 
-            public KeyValuePair<string, PropertyData>[] Data { get; }
+            internal KeyValuePair<string, PropertyData>[] Data { get; }
         }
 
         #region Dispatcher
@@ -310,11 +312,13 @@ namespace Tauron.Application.CommonUI.Model
         protected override void PreRestart(Exception reason, object message)
         {
             foreach (var registration in _commandRegistrations)
+            {
                 _propertys[registration.Key]
-                    .PropertyBase
-                    .ObjectValue
-                    .AsInstanceOf<ActorCommand>()
-                    .Deactivate();
+                   .PropertyBase
+                   .ObjectValue
+                   .AsInstanceOf<ActorCommand>()
+                   .Deactivate();
+            }
 
             Self.Tell(new ReviveActor(_propertys.ToArray()));
 

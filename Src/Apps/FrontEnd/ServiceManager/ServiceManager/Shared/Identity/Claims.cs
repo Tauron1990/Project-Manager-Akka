@@ -1,21 +1,7 @@
-﻿using System.Collections.Generic;
-
-namespace ServiceManager.Shared.Identity
+﻿namespace ServiceManager.Shared.Identity
 {
     public static class Claims
     {
-        public static readonly string[] AllClaims =
-        {
-            AppIpClaim,
-            ClusterConnectionClaim,
-            ClusterNodeClaim,
-            ConfigurationClaim,
-            DatabaseClaim,
-            ServerInfoClaim,
-            UserManagmaentClaim,
-            AppMenegmentClaim
-        };
-
         public const string AppIpClaim = nameof(AppIpClaim);
 
         public const string ClusterConnectionClaim = nameof(ClusterConnectionClaim);
@@ -31,5 +17,17 @@ namespace ServiceManager.Shared.Identity
         public const string UserManagmaentClaim = nameof(UserManagmaentClaim);
 
         public const string AppMenegmentClaim = nameof(AppMenegmentClaim);
+        
+        public static readonly string[] AllClaims =
+        {
+            AppIpClaim,
+            ClusterConnectionClaim,
+            ClusterNodeClaim,
+            ConfigurationClaim,
+            DatabaseClaim,
+            ServerInfoClaim,
+            UserManagmaentClaim,
+            AppMenegmentClaim
+        };
     }
 }

@@ -26,7 +26,6 @@ namespace Tauron.Application.CommonUI
         {
         }
 
-        [NotNull]
         protected IUIDispatcher InternalUISynchronize { get; } =
             ActorApplication.ServiceProvider.GetRequiredService<IUIDispatcher>();
 
@@ -57,10 +56,10 @@ namespace Tauron.Application.CommonUI
         {
             private readonly UIObservableCollection<TType> _collection;
 
-            public DispoableBlocker(UIObservableCollection<TType> collection)
+            internal DispoableBlocker(UIObservableCollection<TType> collection)
             {
                 _collection = collection;
-                _collection._isBlocked = true;
+                collection._isBlocked = true;
             }
 
             public void Dispose()

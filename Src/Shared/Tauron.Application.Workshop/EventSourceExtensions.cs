@@ -34,14 +34,16 @@ namespace Tauron.Application.Workshop
                 _selector = selector;
             }
 
-            public IObservable<TNext> With<TNext>(Func<TMutator, IEventSource<TNext>> eventSource,
-                Func<TMutator, Action<TRecieve>> run)
+            public IObservable<TNext> With<TNext>(Func<TMutator, IEventSource<TNext>> eventSource, Func<TMutator, Action<TRecieve>> run)
             {
+                #pragma warning disable GU0011
                 With(run);
+                #pragma warning restore GU0011
                 return eventSource(_mutator);
             }
 
-            public IDisposable With(Func<TMutator, Action<TRecieve>> run) => _selector.Subscribe(run(_mutator));
+            public IDisposable With(Func<TMutator, Action<TRecieve>> run) 
+                => _selector.Subscribe(run(_mutator));
         }
 
         #endregion

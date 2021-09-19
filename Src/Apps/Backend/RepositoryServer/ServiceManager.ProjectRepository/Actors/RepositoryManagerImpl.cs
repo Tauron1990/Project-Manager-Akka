@@ -5,7 +5,6 @@ using ServiceManager.ProjectRepository.Data;
 using SharpRepository.Repository;
 using Tauron;
 using Tauron.Application.AkkaNode.Services.FileTransfer;
-using Tauron.Application.Files.VirtualFiles;
 using Tauron.Application.Master.Commands.Deployment.Repository;
 using Tauron.Application.VirtualFiles;
 using Tauron.Features;
@@ -14,7 +13,7 @@ namespace ServiceManager.ProjectRepository.Actors
 {
     internal sealed class RepositoryManagerImpl : ActorFeatureBase<RepositoryManagerImpl.RmIState>
     {
-        public static IPreparedFeature Create(RepositoryManagerConfiguration configuration)
+        internal static IPreparedFeature Create(RepositoryManagerConfiguration configuration)
         {
             return Feature.Create(
                 () => new RepositoryManagerImpl(), 
@@ -36,7 +35,5 @@ namespace ServiceManager.ProjectRepository.Actors
         }
 
         public sealed record RmIState(IRepository<RepositoryEntry, string> Repositorys, IDirectory Bucket, DataTransferManager DataTransferManager);
-
-        private sealed record IndexRequest;
     }
 }

@@ -74,15 +74,15 @@ namespace ServiceManager.ProjectRepository.Core
 
         private sealed class ObjectEntry
         {
-            public ObjectEntry(TObject sharedObject)
+            internal ObjectEntry(TObject sharedObject)
             {
                 SharedObject = sharedObject;
                 Count = 1;
             }
 
-            public int Count { get; set; }
+            internal int Count { get; set; }
 
-            public TObject SharedObject { get; }
+            internal TObject SharedObject { get; }
         }
     }
 }

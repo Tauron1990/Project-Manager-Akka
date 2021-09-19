@@ -11,11 +11,11 @@ namespace Tauron.Application.Wpf.UI
     [PublicAPI]
     public sealed class Loc : UpdatableMarkupExtension
     {
-        private static readonly Dictionary<string, object?> _cache = new();
+        private static readonly Dictionary<string, object?> Cache = new();
 
         public Loc(string entryName) => EntryName = entryName;
 
-        public string EntryName { get; set; }
+        public string? EntryName { get; set; }
 
         protected override object DesignTime()
         {
@@ -28,18 +28,20 @@ namespace Tauron.Application.Wpf.UI
         {
             try
             {
-                lock (_cache)
+                lock (Cache)
                 {
-                    if (_cache.TryGetValue(EntryName, out var result))
+                    if (!string.IsNullOrWhiteSpace(EntryName) && Cache.TryGetValue(EntryName, out var result))
                         return result!;
                 }
 
+                if (string.IsNullOrWhiteSpace(EntryName)) return "Kein antrag angegeben";
+                
                 ActorApplication.ActorSystem.Loc().Request(EntryName, o =>
                 {
                     var res = o.GetOrElse(EntryName);
-                    lock (_cache)
+                    lock (Cache)
                     {
-                        _cache[EntryName] = res;
+                        Cache[EntryName] = res;
                     }
 
                     UpdateValue(res);
@@ -47,9 +49,9 @@ namespace Tauron.Application.Wpf.UI
 
                 return "Loading";
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                return "Error...";
+                return $"Error... {e}";
             }
         }
     }

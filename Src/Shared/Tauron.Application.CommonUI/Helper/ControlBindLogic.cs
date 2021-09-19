@@ -260,7 +260,7 @@ namespace Tauron.Application.CommonUI.Helper
             private readonly Action<string?, string?, IBinderControllable, IUIObject> _runner;
             private readonly IUIElement _target;
 
-            public LazyHelper(IUIElement target, string? newValue, string? oldValue,
+            internal LazyHelper(IUIElement target, string? newValue, string? oldValue,
                 Action<string?, string?, IBinderControllable, IUIObject> runner)
             {
                 _target = target;
@@ -269,7 +269,7 @@ namespace Tauron.Application.CommonUI.Helper
                 _runner = runner;
             }
 
-            public void ElementOnLoaded()
+            internal void ElementOnLoaded()
             {
                 var root = FindRoot(_target.AsOption<IUIObject>());
                 if (!root.HasValue) return;

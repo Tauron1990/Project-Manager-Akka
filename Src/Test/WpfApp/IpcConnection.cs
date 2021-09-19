@@ -21,7 +21,7 @@ namespace WpfApp
         private IDataClient? _dataClient;
         private IDataServer? _dataServer;
 
-        public IpcConnection(bool masterExists, IpcApplicationType type, Action<string, Exception> errorHandler)
+        internal IpcConnection(bool masterExists, IpcApplicationType type, Action<string, Exception> errorHandler)
         {
             try
             {
@@ -31,7 +31,7 @@ namespace WpfApp
                         if (masterExists)
                         {
                             IsReady = false;
-                            ErrorMessage = "Duplicate Server Start";
+
                             return;
                         }
 
@@ -42,7 +42,7 @@ namespace WpfApp
                         if (!masterExists)
                         {
                             IsReady = false;
-                            ErrorMessage = "No Server Found";
+
                             return;
                         }
 
@@ -51,22 +51,23 @@ namespace WpfApp
                         break;
                     case IpcApplicationType.NoIpc:
                         IsReady = false;
-                        ErrorMessage = "Ipc Disabled";
+
                         break;
                     default:
+                        #pragma warning disable EX006
                         throw new ArgumentOutOfRangeException(nameof(type), type, null);
+                    #pragma warning restore EX006
                 }
             }
-            catch (Exception e)
+            catch
             {
-                ErrorMessage = e.Message;
                 IsReady = false;
+                #pragma warning disable ERP022
             }
+            #pragma warning restore ERP022
         }
 
-        public string ErrorMessage { get; private set; } = string.Empty;
-
-        public bool IsReady { get; private set; } = true;
+        private bool IsReady { get; set; } = true;
 
         public void Dispose()
         {
@@ -78,7 +79,7 @@ namespace WpfApp
             _dataServer = null;
         }
 
-        public IObservable<CallResult<TType>> OnMessage<TType>()
+        internal IObservable<CallResult<TType>> OnMessage<TType>()
         {
             if (!IsReady)
                 return Observable.Empty<CallResult<TType>>();
@@ -90,7 +91,7 @@ namespace WpfApp
                 .SelectSafe(nm => JsonConvert.DeserializeObject<TType>(Encoding.UTF8.GetString(nm.Data))!).Isonlate();
         }
 
-        public bool SendMessage<TMessage>(string to, TMessage message)
+        private bool SendMessage<TMessage>(string to, TMessage message)
         {
             if (!IsReady)
                 return false;
@@ -105,9 +106,9 @@ namespace WpfApp
             return _dataServer != null && _dataServer.Send(to, nm);
         }
 
-        public bool SendMessage<TMessage>(TMessage message) => SendMessage("All", message);
+        internal bool SendMessage<TMessage>(TMessage message) => SendMessage("All", message);
 
-        public void Start()
+        internal void Start()
         {
             try
             {
@@ -120,7 +121,6 @@ namespace WpfApp
             catch (Exception e)
             {
                 IsReady = false;
-                ErrorMessage = e.Message;
 
                 ActorApplication.GetLogger(GetType()).LogError(e, "Error on Starting Ipc");
 
@@ -128,7 +128,7 @@ namespace WpfApp
             }
         }
 
-        public void Disconnect()
+        internal void Disconnect()
         {
             if (_dataClient is SharmClient client)
                 client.Disconnect();
@@ -141,22 +141,22 @@ namespace WpfApp
     {
         private static readonly NetworkMessageFormatter MessageFormatter = new(MemoryPool<byte>.Shared);
         private static DebugConnection? _master;
-        private static readonly List<DebugConnection> _clients = new();
+        private static readonly List<DebugConnection> Clients = new();
 
         private readonly Mutex? _mutex;
         private ulong _msgId = 1;
 
-        public DebugConnection(string id)
+        internal DebugConnection(string id)
         {
             if (_master == null)
             {
-                _mutex = new Mutex(true, id + "SharmNet_MasterMutex");
+                _mutex = new Mutex(initiallyOwned: true, id + "SharmNet_MasterMutex");
                 _mutex.WaitOne();
                 _master = this;
             }
             else
             {
-                _clients.Add(this);
+                Clients.Add(this);
             }
         }
 
@@ -173,7 +173,7 @@ namespace WpfApp
             }
             else
             {
-                _clients.Remove(this);
+                Clients.Remove(this);
             }
         }
 
@@ -181,18 +181,20 @@ namespace WpfApp
 
         public bool Send(byte[] arg2)
         {
-            string id = Encoding.ASCII.GetString(arg2, 0, 32).Trim();
+            //string id = Encoding.ASCII.GetString(arg2, 0, 32).Trim();
             string from = Encoding.ASCII.GetString(arg2, 31, 32).Trim();
-            string processid = SharmComunicator.ProcessId;
-            var test = processid == from;
+            //string processid = SharmComunicator.ProcessId;
+            //var test = processid == from;
 
             var msg = MessageFormatter.ReadMessage(arg2.AsMemory()[63..]);
 
-            if (_mutex == null)
+            if (_mutex is null)
                 _master?.OnMessage?.Invoke(msg, _msgId, from);
             else
-                foreach (var client in _clients)
+            {
+                foreach (var client in Clients)
                     client.OnMessage?.Invoke(msg, _msgId, @from);
+            }
 
             _msgId++;
             return true;

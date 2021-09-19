@@ -17,7 +17,7 @@ namespace Tauron.Application.Blazor.UI
             _parent = parent;
             DataContext = model;
 
-            _target.Unloaded.Subscribe(_ => ControlUnload?.Invoke());
+            target.Unloaded.Subscribe(_ => ControlUnload?.Invoke());
         }
 
         public object Object => _target;

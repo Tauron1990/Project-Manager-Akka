@@ -2,7 +2,6 @@
 using System.IO;
 using Ionic.Zip;
 using JetBrains.Annotations;
-using Tauron.Application.Files.VirtualFiles;
 using Tauron.Application.VirtualFiles;
 
 namespace Tauron.Application.Files.Zip
@@ -10,9 +9,9 @@ namespace Tauron.Application.Files.Zip
     [PublicAPI]
     public class InZipFileSystem : InZipDirectory, IVirtualFileSystem
     {
-        private ZipFile? _file;
+        private ZipFile _file;
 
-        public InZipFileSystem(ZipFile? file)
+        public InZipFileSystem(ZipFile file)
             : base(null, "zip::", InternalZipDirectory.ReadZipDirectory(file), file, string.Empty)
         {
             _file = file;
@@ -20,30 +19,31 @@ namespace Tauron.Application.Files.Zip
         }
 
         public InZipFileSystem()
-            : this(null)
+            : this(new ZipFile())
         {
         }
 
         public void Dispose()
         {
-            if (SaveAfterDispose)
-                _file?.Save();
-            _file?.Dispose();
+            if (SaveAfterDispose && !string.IsNullOrWhiteSpace(_file.Name)) 
+                _file.Save();
+
+            _file.Dispose();
         }
 
         public bool IsRealTime => false;
         public bool SaveAfterDispose { get; set; }
 
         public override DateTime LastModified
-            => _file?.Name.ExisFile() == true ? File.GetLastWriteTime(_file.Name) : base.LastModified;
+            => _file.Name.ExisFile() ? File.GetLastWriteTime(_file.Name) : base.LastModified;
 
-        public string Source => _file?.Name ?? string.Empty;
+        public string Source => _file.Name ?? string.Empty;
 
         public void Reload(string source)
         {
-            if (SaveAfterDispose)
-                _file?.Save();
-            _file?.Dispose();
+            if (SaveAfterDispose && !string.IsNullOrWhiteSpace(_file.Name)) 
+                _file.Save();
+            _file.Dispose();
 
             if (!ZipFile.IsZipFile(source)) return;
 
@@ -56,7 +56,7 @@ namespace Tauron.Application.Files.Zip
 
         protected override void DeleteImpl()
         {
-            if (string.IsNullOrWhiteSpace(_file?.Name)) return;
+            if (string.IsNullOrWhiteSpace(_file.Name)) return;
 
             _file.Dispose();
             File.Delete(_file.Name);

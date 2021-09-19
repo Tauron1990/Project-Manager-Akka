@@ -112,7 +112,7 @@
             .AddStyle("grid-template-areas", _templateRows.Aggregate(string.Empty, (s, row) => $"{s} \"{row.Def}\" \n"));
 
 
-        InvokeAsync(StateHasChanged);
+        StateHasChanged();
         base.OnAfterRender(firstRender);
     }
 

@@ -39,8 +39,10 @@ namespace Tauron.Akkatecture.Projections
     {
         public event EventHandler<EventReaderException>? OnReadError;
 
+        #pragma warning disable EPS05
         public abstract IDisposable CreateSubscription(long? lastProcessedCheckpoint, Subscriber subscriber,
-            string subscriptionId);
+                                                       #pragma warning restore EPS05
+                                                       string subscriptionId);
 
         protected virtual void ReadError(EventReaderException e)
         {
@@ -76,7 +78,7 @@ namespace Tauron.Akkatecture.Projections
             throw new ArgumentException($"Invalid Subscription Id Format: {subscriptionId}", nameof(subscriptionId));
         }
 
-        private IDisposable MakeAggregateSubscription(long? lastProcessedCheckpoint, Subscriber subscriber,
+        private IDisposable MakeAggregateSubscription(in long? lastProcessedCheckpoint, Subscriber subscriber,
             Type aggregate)
         {
             var genericType = typeof(SubscriptionBuilder<>).MakeGenericType(aggregate);
@@ -88,7 +90,7 @@ namespace Tauron.Akkatecture.Projections
                 (tag, exception) => ReadError(new EventReaderException(tag, exception)));
         }
 
-        private IDisposable MakeTagAggregateSubscription(long? lastProcessedCheckpoint, Subscriber subscriber,
+        private IDisposable MakeTagAggregateSubscription(in long? lastProcessedCheckpoint, Subscriber subscriber,
             string tag)
         {
             return new TagBasedSubscriptionBuilder(_system, _journalId, _actorMaterializer, subscriber, tag)
@@ -117,12 +119,12 @@ namespace Tauron.Akkatecture.Projections
 
             public void Dispose()
             {
-                _isCancel.GetAndSet(true);
+                _isCancel.GetAndSet(newValue: true);
                 _cancelable?.Shutdown();
                 _runner?.Wait(TimeSpan.FromSeconds(20));
             }
 
-            public IDisposable CreateSubscription(long? lastProcessedCheckpoint, Action<string, Exception> errorHandler)
+            internal IDisposable CreateSubscription(in long? lastProcessedCheckpoint, Action<string, Exception> errorHandler)
             {
                 _errorHandler = errorHandler;
 
@@ -160,10 +162,10 @@ namespace Tauron.Akkatecture.Projections
                     .Batch(5, t => ImmutableList<Transaction>.Empty.Add(t),
                         (list, transaction) => list.Add(transaction))
                     .AlsoTo(Sink.OnComplete<ImmutableList<Transaction>>(
-                        () => _isCancel.GetAndSet(true),
+                        () => _isCancel.GetAndSet(newValue: true),
                         e =>
                         {
-                            _isCancel.GetAndSet(true);
+                            _isCancel.GetAndSet(newValue: true);
                             errorHandler(_exceptionInfo, e);
                         }))
                     .ViaMaterialized(KillSwitches.Single<ImmutableList<Transaction>>(), (_, kill) => kill)
@@ -182,16 +184,19 @@ namespace Tauron.Akkatecture.Projections
             private async Task Run(ISinkQueue<ImmutableList<Transaction>> queue)
             {
                 while (!_isCancel.Value)
+                {
                     try
                     {
                         var data = await queue.PullAsync();
 
                         if (data.HasValue)
+                        {
                             await _subscriber.HandleTransactions(data.Value, new SubscriptionInfo
-                            {
-                                Id = data.Value.Last().StreamId,
-                                Subscription = this
-                            });
+                                                                             {
+                                                                                 Id           = data.Value.Last().StreamId,
+                                                                                 Subscription = this
+                                                                             });
+                        }
                         else
                             Thread.Sleep(1);
                     }
@@ -199,6 +204,7 @@ namespace Tauron.Akkatecture.Projections
                     {
                         _errorHandler?.Invoke(_exceptionInfo, e);
                     }
+                }
             }
 
             protected abstract Source<EventEnvelope, NotUsed> CreateSource(Offset offset);
@@ -213,7 +219,7 @@ namespace Tauron.Akkatecture.Projections
             private readonly ActorSystem _system;
             private readonly string _tag;
 
-            public TagBasedSubscriptionBuilder(ActorSystem system, string journalId, ActorMaterializer materializer,
+            internal TagBasedSubscriptionBuilder(ActorSystem system, string journalId, ActorMaterializer materializer,
                 Subscriber subscriber, string tag)
                 : base(materializer, subscriber, tag)
             {
@@ -240,7 +246,7 @@ namespace Tauron.Akkatecture.Projections
             private readonly string _journalId;
             private readonly ActorSystem _system;
 
-            public SubscriptionBuilder(ActorMaterializer materializer, ActorSystem system, string journalId,
+            internal SubscriptionBuilder(ActorMaterializer materializer, ActorSystem system, string journalId,
                 Subscriber subscriber)
                 : base(materializer, subscriber, typeof(TAggregate).AssemblyQualifiedName ?? "Unkowne Type")
             {

@@ -24,7 +24,7 @@ namespace Tauron.Application.CommonUI.UI
             Logger = LogManager.GetCurrentClassLogger();
 
             UserControl = userControl;
-            UserControl.DataContext = model;
+            userControl.DataContext = model;
             Model = model;
             BindLogic = new ControlBindLogic(userControl, model);
 

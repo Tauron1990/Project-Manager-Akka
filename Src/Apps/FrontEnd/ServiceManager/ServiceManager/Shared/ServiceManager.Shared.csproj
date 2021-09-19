@@ -28,7 +28,7 @@
     </PackageReference>
     <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
     <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
-    <PackageReference Include="Stl.Fusion" Version="1.9.8" />
+    <PackageReference Include="Stl.Fusion" Version="1.10.6" />
   </ItemGroup>
 
   <ItemGroup>

@@ -53,7 +53,7 @@
     <PackageReference Include="Reactive.Wasm" Version="1.2.2" />
     <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
     <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
-    <PackageReference Include="Stl.Fusion.Blazor" Version="1.9.8" />
+    <PackageReference Include="Stl.Fusion.Blazor" Version="1.10.6" />
     <PackageReference Include="System.Net.Http.Json" Version="5.0.0" />
   </ItemGroup>
 

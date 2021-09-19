@@ -21,6 +21,7 @@ namespace Tauron
                 .Foreach(e => stack.Push(e));
 
             while (stack.Count != 0)
+            {
                 switch (stack.Pop())
                 {
                     case FileInfo file:
@@ -34,6 +35,7 @@ namespace Tauron
                             destination.CreateEntry(name);
                         break;
                 }
+            }
         }
 
         public static string PathShorten(this string path, int length)
@@ -64,6 +66,7 @@ namespace Tauron
             dic.Attributes = FileAttributes.Normal;
 
             foreach (var entry in dic.GetFileSystemInfos())
+            {
                 switch (entry)
                 {
                     case FileInfo file:
@@ -76,6 +79,7 @@ namespace Tauron
                         dici.Delete();
                         break;
                 }
+            }
         }
 
         public static void ClearDirectory(this string dic)
@@ -333,6 +337,7 @@ namespace Tauron
         public static Stream OpenRead(this string path, FileShare share)
         {
             path = path.GetFullPath();
+            #pragma warning disable GU0011
             path.CreateDirectoryIfNotExis();
             return new FileStream(path, FileMode.OpenOrCreate, FileAccess.Read, share);
         }
@@ -362,6 +367,7 @@ namespace Tauron
 
             path = path.GetFullPath();
             path.CreateDirectoryIfNotExis();
+            #pragma warning restore GU0011
             return new FileStream(path, FileMode.OpenOrCreate, FileAccess.Write, share);
         }
 

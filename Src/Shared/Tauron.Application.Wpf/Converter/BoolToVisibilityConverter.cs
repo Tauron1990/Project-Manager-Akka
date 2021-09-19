@@ -52,7 +52,7 @@ namespace Tauron.Application.Wpf.Converter
 
             private readonly bool _reverse;
 
-            public Converter(bool isHidden, bool reverse)
+            internal Converter(bool isHidden, bool reverse)
             {
                 _isHidden = isHidden;
                 _reverse = reverse;

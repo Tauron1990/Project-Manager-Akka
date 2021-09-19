@@ -59,15 +59,15 @@ namespace Tauron.Application.Workshop.Analyzing
 
         private class SourceFabricator<TWorkspace, TData> where TWorkspace : WorkspaceBase<TData> where TData : class
         {
-            public AnalyzerEventSource<TWorkspace, TData>? EventSource { get; private set; }
+            internal AnalyzerEventSource<TWorkspace, TData>? EventSource { get; private set; }
 
 
-            public void Init(Task<IActorRef> actor, WorkspaceSuperviser superviser)
+            internal void Init(Task<IActorRef> actor, WorkspaceSuperviser superviser)
             {
                 EventSource = new AnalyzerEventSource<TWorkspace, TData>(actor, superviser);
             }
 
-            public IObserver<RuleIssuesChanged<TWorkspace, TData>> Send()
+            internal IObserver<RuleIssuesChanged<TWorkspace, TData>> Send()
             {
                 if (EventSource == null)
                     throw new InvalidOperationException("Analýzer is not Initialized");

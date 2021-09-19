@@ -12,6 +12,6 @@
     public sealed record StopHostAppResponse(bool Success) : OperationResponse(Success)
     {
         public StopHostAppResponse()
-            : this(false){ }
+            : this(Success: false){ }
     }
 }

@@ -20,7 +20,7 @@ namespace Tauron.Application.CommonUI.AppCore
     {
         ShutdownMode ShutdownMode { get; set; }
 
-        IUIDispatcher Dispatcher { get; }
+        IUIDispatcher AppDispatcher { get; }
         event EventHandler? Startup;
 
         void Shutdown(int returnValue);

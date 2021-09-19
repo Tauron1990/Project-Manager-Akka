@@ -5,7 +5,6 @@ using Akka.Actor;
 using Akka.Actor.Internal;
 using Akka.DependencyInjection;
 using Akka.Util;
-using JetBrains.Annotations;
 using Tauron.Akka;
 using Tauron.Application.Workshop.Mutation;
 
@@ -76,7 +75,7 @@ namespace Tauron.Application.Workshop.Core
             private readonly SupervisorStrategy _def;
             private readonly Dictionary<string, SupervisorStrategy> _custom;
 
-            public WorkspaceSupervisorStrategy(SupervisorStrategy def, Dictionary<string, SupervisorStrategy> custom)
+            internal WorkspaceSupervisorStrategy(SupervisorStrategy def, Dictionary<string, SupervisorStrategy> custom)
             {
                 _def = def;
                 _custom = custom;
@@ -101,22 +100,22 @@ namespace Tauron.Application.Workshop.Core
         {
             protected SuperviseActorBase(string name) => Name = name;
 
-            public virtual SupervisorStrategy? SupervisorStrategy { get; } = null;
+            internal virtual SupervisorStrategy? SupervisorStrategy { get; } = null;
 
-            public abstract Func<IUntypedActorContext, Props> Props { get; }
+            internal abstract Func<IUntypedActorContext, Props> Props { get; }
 
-            public string Name { get; }
+            internal string Name { get; }
         }
 
         internal sealed class SupervisePropsActor : SuperviseActorBase
         {
-            public SupervisePropsActor(Props props, string name)
+            internal SupervisePropsActor(Props props, string name)
                 : base(name)
             {
                 Props = _ => props;
             }
 
-            public override Func<IUntypedActorContext, Props> Props { get; }
+            internal override Func<IUntypedActorContext, Props> Props { get; }
         }
 
         internal sealed class SuperviseDiActor : SuperviseActorBase
@@ -125,29 +124,29 @@ namespace Tauron.Application.Workshop.Core
 
             private readonly Type _actorType;
 
-            public SuperviseDiActor(Type actorType, string name) : base(name) => _actorType = actorType;
+            internal SuperviseDiActor(Type actorType, string name) : base(name) => _actorType = actorType;
 
-            public override Func<IUntypedActorContext, Props> Props => c => DependencyResolver.For(c.System).Props(_actorType);
+            internal override Func<IUntypedActorContext, Props> Props => c => DependencyResolver.For(c.System).Props(_actorType);
         }
 
         internal sealed class CustomSuperviseActor : SuperviseActorBase
         {
-            public CustomSuperviseActor([NotNull] string name, Func<IUntypedActorContext, Props> props, SupervisorStrategy? supervisorStrategy) : base(name)
+            internal CustomSuperviseActor(string name, Func<IUntypedActorContext, Props> props, SupervisorStrategy? supervisorStrategy) : base(name)
             {
                 Props = props;
                 SupervisorStrategy = supervisorStrategy;
             }
 
-            public override SupervisorStrategy? SupervisorStrategy { get; }
+            internal override SupervisorStrategy? SupervisorStrategy { get; }
 
-            public override Func<IUntypedActorContext, Props> Props { get; }
+            internal override Func<IUntypedActorContext, Props> Props { get; }
         }
 
         internal sealed class NewActor
         {
-            public NewActor(IActorRef actorRef) => ActorRef = actorRef;
+            internal NewActor(IActorRef actorRef) => ActorRef = actorRef;
 
-            public IActorRef ActorRef { get; }
+            internal IActorRef ActorRef { get; }
         }
     }
 }

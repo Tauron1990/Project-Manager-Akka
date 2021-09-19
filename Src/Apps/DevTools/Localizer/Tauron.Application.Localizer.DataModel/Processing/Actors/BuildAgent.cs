@@ -34,11 +34,11 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
 
                 Context.Sender.Tell(BuildMessage.AgentCompled(build.Operation, agentName));
 
-                return new AgentCompled(false, null, build.Operation);
+                return new AgentCompled(Failed: false, null, build.Operation);
             }
             catch (Exception e)
             {
-                return new AgentCompled(true, e, build.Operation);
+                return new AgentCompled(Failed: true, e, build.Operation);
             }
         }
 
@@ -54,7 +54,7 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
             imports.AddRange(build.TargetProject.Imports
                 .Select(pn => build.ProjectFile.Projects.Find(p => p.ProjectName == pn))
                 .Where(p => p != null)
-                .Select(p => build.BuildInfo.IntigrateProjects ? (string.Empty, p!) : (p!.ProjectName, p!)));
+                .Select(p => build.BuildInfo.IntigrateProjects ? (string.Empty, p!) : (p!.ProjectName, p)));
 
             foreach (var (fileName, project) in imports)
             {
@@ -87,8 +87,10 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
                 writer.WriteLine("{");
 
                 foreach (var (id, content) in entrys)
+                {
                     if (tester.Add(id))
                         writer.WriteLine($"  \"{id}\": \"{EscapeHelper.Ecode(content)}\",");
+                }
 
                 writer.WriteLine("}");
                 writer.Flush();
@@ -170,8 +172,10 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
             Action<Action<string>>? constructorCallback = null)
         {
             foreach (var (fieldName, _) in entryValue)
+            {
                 writer.WriteLine(
                     $"{new string('\t', tabs)}private readonly Task<string> {ToRealFieldName(fieldName)};");
+            }
 
             writer.WriteLine($"{new string('\t', tabs)}public {className}(ActorSystem system)");
             writer.WriteLine(new string('\t', tabs) + "{");
@@ -182,15 +186,19 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
             constructorCallback?.Invoke(s => writer.WriteLine($"{new string('\t', tabs)} {s}"));
 
             foreach (var (fieldName, original) in entryValue)
+            {
                 writer.WriteLine(
                     $"{new string('\t', tabs)}{ToRealFieldName(fieldName)} = LocLocalizer.ToString(loc.RequestTask(\"{original}\"));");
+            }
 
             tabs--;
             writer.WriteLine(new string('\t', tabs) + "}");
 
             foreach (var (fieldName, _) in entryValue)
+            {
                 writer.WriteLine(
                     $"{new string('\t', tabs)}public string {fieldName} => {ToRealFieldName(fieldName)}.Result;");
+            }
         }
 
         private static string ToRealFieldName(string name) => "__" + name;

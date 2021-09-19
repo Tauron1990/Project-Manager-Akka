@@ -70,7 +70,7 @@ namespace Tauron.Application.Settings
 
             if (string.IsNullOrEmpty(name)) return;
 
-            ImmutableInterlocked.AddOrUpdate(ref _dic, name, value, (_, _) => value);
+            _dic = _dic.Add(value, name);
 
             _actor.Tell(new SetSettingValue(_scope, name, value));
 

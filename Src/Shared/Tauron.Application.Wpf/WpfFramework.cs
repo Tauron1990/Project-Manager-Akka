@@ -22,7 +22,7 @@ namespace Tauron.Application.Wpf
         public override IWindow CreateMessageDialog(string title, string message)
         {
             var window = new System.Windows.Window();
-            window.Content = new MessageDialog(title, message, b => window.DialogResult = b, true)
+            window.Content = new MessageDialog(title, message, b => window.DialogResult = b, canCnacel: true)
                 {Margin = new Thickness(10)};
 
             window.SizeToContent = SizeToContent.WidthAndHeight;
@@ -42,7 +42,7 @@ namespace Tauron.Application.Wpf
         {
             private readonly Dispatcher _dispatcher;
 
-            public InternalDispatcher(Dispatcher dispatcher) => _dispatcher = dispatcher;
+            internal InternalDispatcher(Dispatcher dispatcher) => _dispatcher = dispatcher;
 
             public void Post(Action action)
             {
@@ -71,8 +71,8 @@ namespace Tauron.Application.Wpf
             public DelegateApplication(System.Windows.Application application)
             {
                 _application = application;
-                Dispatcher = new InternalDispatcher(_application.Dispatcher);
-                _application.Startup += (_, _) => OnStartup();
+                AppDispatcher = new InternalDispatcher(application.Dispatcher);
+                application.Startup += (_, _) => OnStartup();
             }
 
 
@@ -99,7 +99,7 @@ namespace Tauron.Application.Wpf
                 }
             }
 
-            public IUIDispatcher Dispatcher { get; }
+            public IUIDispatcher AppDispatcher { get; }
 
             public void Shutdown(int returnValue)
             {
@@ -109,9 +109,7 @@ namespace Tauron.Application.Wpf
             public int Run() => _application.Run();
 
             private void OnStartup()
-            {
-                Startup?.Invoke(this, EventArgs.Empty);
-            }
+                => Startup?.Invoke(this, EventArgs.Empty);
         }
     }
 }

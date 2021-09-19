@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
 using Akka.Util;
@@ -112,12 +111,15 @@ namespace Tauron.Application.CommonUI.Helper
             {
                 var dead = new List<WeakDelegate>();
                 foreach (var weakDelegate in Actions.ToArray())
+                {
                     switch (weakDelegate.IsAlive)
                     {
                         case true:
                             try
                             {
+                                #pragma warning disable GU0011
                                 weakDelegate.Invoke();
+                                #pragma warning restore GU0011
                             }
                             catch(Exception e)
                             {
@@ -129,6 +131,7 @@ namespace Tauron.Application.CommonUI.Helper
 
                             break;
                     }
+                }
 
                 dead.ForEach(del => Actions.Remove(del));
             }

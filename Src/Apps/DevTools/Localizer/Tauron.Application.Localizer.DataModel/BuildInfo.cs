@@ -8,7 +8,7 @@ namespace Tauron.Application.Localizer.DataModel
         (bool IntigrateProjects, ImmutableDictionary<string, string> ProjectPaths) : IWriteable
     {
         public BuildInfo()
-            : this(true, ImmutableDictionary<string, string>.Empty)
+            : this(IntigrateProjects: true, ImmutableDictionary<string, string>.Empty)
         {
         }
 

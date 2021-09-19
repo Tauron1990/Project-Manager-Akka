@@ -3,7 +3,6 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Text;
 using Akka.Actor;
-using Akka.Cluster;
 using Autofac;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
@@ -11,13 +10,11 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using NLog;
-using NLog.Targets;
 using Servicemnager.Networking;
 using Servicemnager.Networking.Data;
 using Servicemnager.Networking.IPC;
 using Tauron.Application.AkkaNode.Bootstrap.Console;
 using Tauron.Application.AkkaNode.Bootstrap.Console.IpcMessages;
-using Tauron.Application.Master.Commands;
 using Tauron.Application.Master.Commands.KillSwitch;
 using Tauron.AkkaHost;
 using ILogger = NLog.ILogger;
@@ -79,7 +76,7 @@ namespace Tauron.Application.AkkaNode.Bootstrap
             private IDataClient? _dataClient;
             private IDataServer? _dataServer;
 
-            public IpcConnection(bool masterExists, IpcApplicationType type, Action<string, Exception> errorHandler)
+            internal IpcConnection(bool masterExists, IpcApplicationType type, Action<string, Exception> errorHandler)
             {
                 try
                 {
@@ -112,17 +109,20 @@ namespace Tauron.Application.AkkaNode.Bootstrap
                             ErrorMessage = "Ipc Disabled";
                             break;
                         default:
+                            #pragma warning disable EX006
                             throw new ArgumentOutOfRangeException(nameof(type), type, null);
+                        #pragma warning restore EX006
                     }
                 }
                 catch (Exception e)
                 {
+                    errorHandler("Global", e);
                     ErrorMessage = e.Message;
                     IsReady = false;
                 }
             }
 
-            public string ErrorMessage { get; private set; } = string.Empty;
+            internal string ErrorMessage { get; private set; } = string.Empty;
 
             public void Dispose()
             {
@@ -164,13 +164,13 @@ namespace Tauron.Application.AkkaNode.Bootstrap
 
             public bool SendMessage<TMessage>(TMessage message) => SendMessage("All", message);
 
-            public void Start(string serviceName)
+            internal void Start(string serviceName)
             {
                 try
                 {
                     _dataServer?.Start();
 
-                    if (_dataClient == null) return;
+                    if (_dataClient is null) return;
 
                     _dataClient.Connect();
                     if (SendMessage(new RegisterNewClient(SharmComunicator.ProcessId, serviceName)))
@@ -192,7 +192,7 @@ namespace Tauron.Application.AkkaNode.Bootstrap
                 }
             }
 
-            public void Disconnect()
+            internal void Disconnect()
             {
                 if (_dataClient is SharmClient client)
                     client.Disconnect();
@@ -213,7 +213,7 @@ namespace Tauron.Application.AkkaNode.Bootstrap
 
             private readonly ActorSystem _system;
 
-            public KillHelper(IConfiguration configuration, ActorSystem system, IIpcConnection ipcConnection)
+            internal KillHelper(IConfiguration configuration, ActorSystem system, IIpcConnection ipcConnection)
             {
                 _logger = LogManager.GetCurrentClassLogger();
                 _comHandle = configuration["ComHandle"];
@@ -221,7 +221,7 @@ namespace Tauron.Application.AkkaNode.Bootstrap
                 _ipcConnection = (IpcConnection) ipcConnection;
 
                 _keeper = this;
-                _system.RegisterOnTermination(() =>
+                system.RegisterOnTermination(() =>
                 {
                     _ipcConnection.Disconnect();
                     _keeper = null;

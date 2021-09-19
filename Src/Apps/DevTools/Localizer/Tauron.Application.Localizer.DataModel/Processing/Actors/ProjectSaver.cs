@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Akka.Actor;
+using Akka.Event;
 using Tauron.Application.Localizer.DataModel.Processing.Messages;
 
 namespace Tauron.Application.Localizer.DataModel.Processing.Actors
@@ -18,10 +19,10 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
             Receive<InitSave>(StartNormalSave);
             Receive<ForceSave>(TryForceSave);
 
-            Timers.StartSingleTimer(nameof(InitSave), new InitSave(), TimeSpan.FromSeconds(1));
+            Timers!.StartSingleTimer(nameof(InitSave), new InitSave(), TimeSpan.FromSeconds(1));
         }
 
-        public ITimerScheduler Timers { get; set; } = null!;
+        public ITimerScheduler Timers { get; set; }
 
         private void TryForceSave(ForceSave obj)
         {
@@ -29,7 +30,10 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
             StartNormalSave(null);
 
             var (andSeal, projectFile) = obj;
-            TrySave(projectFile);
+            var saveExcetion = TrySave(projectFile);
+            if(saveExcetion != null)
+                Context.GetLogger().Error(saveExcetion, "Error on force Saving Project");
+
             if (!andSeal) return;
 
             _sealed = true;
@@ -39,14 +43,16 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
         private void StartNormalSave(InitSave? obj)
         {
             if (_toSave.Count > 1)
+            {
                 foreach (var (toSave, sender) in _toSave.Take(_toSave.Count - 1))
-                    sender.Tell(new SavedProject(toSave.OperationId, true, null));
+                    sender.Tell(new SavedProject(toSave.OperationId, Ok: true, Exception: null));
+            }
 
             if (_toSave.Count > 0)
             {
                 var ((operationId, projectFile), send) = _toSave[^1];
                 var result = TrySave(projectFile);
-                send.Tell(new SavedProject(operationId, result == null, result));
+                send.Tell(new SavedProject(operationId, result is null, result));
             }
 
             Timers.Cancel(nameof(InitSave));
@@ -65,7 +71,7 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
             try
             {
                 if (file.Source.ExisFile())
-                    File.Copy(file.Source, file.Source + ".bak", true);
+                    File.Copy(file.Source, file.Source + ".bak", overwrite: true);
                 using var stream = File.Open(file.Source, FileMode.Create);
                 using var writer = new BinaryWriter(stream);
                 file.Write(writer);
@@ -74,7 +80,9 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
             }
             catch (Exception e)
             {
+                #pragma warning disable ERP022
                 return e;
+                #pragma warning restore ERP022
             }
         }
 

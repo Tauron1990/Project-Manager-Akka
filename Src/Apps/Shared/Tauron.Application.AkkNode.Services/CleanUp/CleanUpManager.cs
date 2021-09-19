@@ -4,7 +4,6 @@ using Akka.Actor;
 using JetBrains.Annotations;
 using SharpRepository.Repository;
 using SharpRepository.Repository.Configuration;
-using Tauron.Application.Files.VirtualFiles;
 using Tauron.Application.VirtualFiles;
 using Tauron.Features;
 
@@ -22,7 +21,7 @@ namespace Tauron.Application.AkkaNode.Services.CleanUp
         public static IPreparedFeature New(ISharpRepositoryConfiguration repositoryConfiguration, IDirectory storageProvider)
             => Feature.Create(() => new CleanUpManager(),
                 _ => new CleanUpManagerState(repositoryConfiguration.GetInstance<CleanUpTime, string>(RepositoryKey), 
-                    repositoryConfiguration.GetInstance<ToDeleteRevision, string>(RepositoryKey), storageProvider, false));
+                    repositoryConfiguration.GetInstance<ToDeleteRevision, string>(RepositoryKey), storageProvider, IsRunning: false));
 
         protected override void ConfigImpl()
         {

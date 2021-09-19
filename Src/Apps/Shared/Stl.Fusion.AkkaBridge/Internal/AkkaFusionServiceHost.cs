@@ -49,7 +49,11 @@ namespace Stl.Fusion.AkkaBridge.Internal
                 var client = new AkkaChannel<AkkaBridgeMessage>(_system, symbol.Value, _logger, stopper.Token, false);
                 var toAttach = Channel.CreateBounded<BridgeMessage>(16);
                 if (!_publisher.ChannelHub.Attach(toAttach))
+                {
+                    #pragma warning disable EX006
                     throw new InvalidOperationException("Channel Hub Attaching Failed");
+                    #pragma warning restore EX006
+                }
 
                 await Convert(client, toAttach, stopper);
                 stopper.Cancel();

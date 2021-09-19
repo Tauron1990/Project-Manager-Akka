@@ -1,16 +1,15 @@
 ﻿using System;
-using System.ComponentModel.Design;
 using System.Reflection;
 using System.Threading.Tasks;
 using Akka.Actor;
 using Microsoft.Extensions.DependencyInjection;
-using Stl.DependencyInjection;
 using Stl.Fusion.Bridge;
 using Stl.Fusion.Interception;
 using Tauron;
 
 namespace Stl.Fusion.AkkaBridge.Connector
 {
+    // ReSharper disable once ClassNeverInstantiated.Global
     public sealed class ServiceHostActor : ReceiveActor
     {
         public static IActorRef CreateHost(IActorRefFactory factory, object service, Type serviceType, IServiceProvider serviceProvider, string? name = null)
@@ -45,16 +44,6 @@ namespace Stl.Fusion.AkkaBridge.Connector
             _publisher     = null!;
         }
 
-        protected override void PreRestart(Exception reason, object message)
-        {
-            base.PreRestart(reason, message);
-        }
-
-        protected override void PostStop()
-        {
-            base.PostStop();
-        }
-
         private async Task<PublicationResponse> RunPublication(RequestPublication arg)
         {
             try
@@ -65,9 +54,11 @@ namespace Stl.Fusion.AkkaBridge.Connector
 
 
                 using (publication.Use())
+                {
                     return new PublicationResponse(
                         publication.State.Computed.Value,
                         new PublicationStateInfo(publication.Ref, publication.State.Computed.Version, publication.State.Computed.IsConsistent()));
+                }
             }
             catch (Exception e)
             {
@@ -76,17 +67,17 @@ namespace Stl.Fusion.AkkaBridge.Connector
         }
 
         private sealed record Init(object Servive, InterfaceMapping Mapping, IServiceProvider ServiceProvider);
-        
-        public interface IMethodInvoker
+
+        private interface IMethodInvoker
         {
             [ComputeMethod]
             Task<MethodResponse> TryInvoke(TryMethodCall call);
         }
-        
-        public class MethodInvoker : IMethodInvoker
+
+        private sealed class MethodInvoker : IMethodInvoker
         {
-            private object           _target;
-            private InterfaceMapping _mapping;
+            private readonly object           _target;
+            private readonly InterfaceMapping _mapping;
 
             public MethodInvoker(object target, InterfaceMapping mapping)
             {
@@ -94,7 +85,7 @@ namespace Stl.Fusion.AkkaBridge.Connector
                 _mapping = mapping;
             }
 
-            public virtual async Task<MethodResponse> TryInvoke(TryMethodCall call)
+            public async Task<MethodResponse> TryInvoke(TryMethodCall call)
             {
                 try
                 {
@@ -122,7 +113,9 @@ namespace Stl.Fusion.AkkaBridge.Connector
                         }
                     }
 
+                    #pragma warning disable EX006
                     throw new MissingMethodException(_target.GetType().Name, call.Name);
+                    #pragma warning restore EX006
                 }
                 catch (Exception e)
                 {

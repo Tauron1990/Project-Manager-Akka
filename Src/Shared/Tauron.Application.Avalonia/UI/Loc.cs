@@ -9,7 +9,7 @@ namespace Tauron.Application.Avalonia.UI
     [PublicAPI]
     public sealed class Loc : UpdatableMarkupExtension
     {
-        private static readonly Dictionary<string, object?> _cache = new();
+        private static readonly Dictionary<string, object?> Cache = new();
 
         public Loc(string entryName) => EntryName = entryName;
 
@@ -19,18 +19,18 @@ namespace Tauron.Application.Avalonia.UI
         {
             try
             {
-                lock (_cache)
+                lock (Cache)
                 {
-                    if (_cache.TryGetValue(EntryName, out var result))
+                    if (Cache.TryGetValue(EntryName, out var result))
                         return result!;
                 }
 
                 ActorApplication.ActorSystem.Loc().Request(EntryName, o =>
                 {
                     var res = o.GetOrElse(EntryName);
-                    lock (_cache)
+                    lock (Cache)
                     {
-                        _cache[EntryName] = res;
+                        Cache[EntryName] = res;
                     }
 
                     UpdateValue(res);
@@ -38,9 +38,9 @@ namespace Tauron.Application.Avalonia.UI
 
                 return "Loading";
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                return "Error...";
+                return $"Error... {e}";
             }
         }
     }

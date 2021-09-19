@@ -50,11 +50,15 @@ namespace Tauron.Application.Blazor
                     case Task<DialogResult> dialogTask:
                         var dr = await dialogTask;
                         if (dr.Cancelled)
+                            #pragma warning disable EX006
                             throw new TaskCanceledException(dialogTask);
+                        #pragma warning restore EX006
                         _completionSource.SetCanceled();
                         break;
                     default:
+                        #pragma warning disable EX006
                         throw new InvalidOperationException("Task Casting Failed");
+                    #pragma warning restore EX006
                 }
             }
             catch (Exception e)

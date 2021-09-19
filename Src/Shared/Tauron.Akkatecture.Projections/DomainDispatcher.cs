@@ -44,7 +44,7 @@ namespace Tauron.Akkatecture.Projections
             var options = new SubscriptionOptions {Id = "Type@" + typeof(TAggregate).AssemblyQualifiedName};
 
             return Dispatcher.Subscribe(Repo.GetLastCheckpoint<TProjection, TIdentity>(),
-                (list, info) => Projector.Projector.Handle(list), options);
+                (list, _) => Projector.Projector.Handle(list), options);
         }
 
         public IDisposable Subscribe(string tag)
@@ -52,7 +52,7 @@ namespace Tauron.Akkatecture.Projections
             var options = new SubscriptionOptions {Id = "Tag@" + tag};
 
             return Dispatcher.Subscribe(Repo.GetLastCheckpoint<TProjection, TIdentity>(),
-                (list, info) => Projector.Projector.Handle(list), options);
+                (list, _) => Projector.Projector.Handle(list), options);
         }
     }
 }

@@ -127,7 +127,9 @@ namespace Tauron.Application.CommonUI.Model
             public void ToAction(Action<TEvent> action)
             {
                 _eventSource.RespondOn(_actor.Self);
+                #pragma warning disable GU0011
                 _actor.Receive(action);
+                #pragma warning restore GU0011
             }
 
             public void ToObservable(Action<IObservable<TEvent>> observableAction)

@@ -44,15 +44,15 @@ namespace Tauron.Application.CommonUI.Helper
 
         internal sealed class CreateModel
         {
-            public CreateModel(ViewModelActorRef model, string? name)
+            internal CreateModel(ViewModelActorRef model, string? name)
             {
                 Model = model;
                 Name = name;
             }
 
-            public ViewModelActorRef Model { get; }
+            internal ViewModelActorRef Model { get; }
 
-            public string? Name { get; }
+            internal string? Name { get; }
         }
     }
 
@@ -86,7 +86,7 @@ namespace Tauron.Application.CommonUI.Helper
 
             private CircuitBreakerStrategy(Func<IDecider> decider) => _decider = decider;
 
-            public CircuitBreakerStrategy(ILoggingAdapter log)
+            internal CircuitBreakerStrategy(ILoggingAdapter log)
                 : this(() => new CircuitBreakerDecider(log))
             {
             }
@@ -95,6 +95,7 @@ namespace Tauron.Application.CommonUI.Helper
 
             protected override Directive Handle(IActorRef child, Exception exception)
             {
+                // ReSharper disable once HeapView.CanAvoidClosure
                 var decider = _deciders.GetOrAdd(child, _ => _decider());
                 return decider.Decide(exception);
             }
@@ -102,7 +103,7 @@ namespace Tauron.Application.CommonUI.Helper
             public override void ProcessFailure(IActorContext context, bool restart, IActorRef child, Exception cause, ChildRestartStats stats, IReadOnlyCollection<ChildRestartStats> children)
             {
                 if (restart)
-                    RestartChild(child, cause, false);
+                    RestartChild(child, cause, suspendFirst: false);
                 else
                     context.Stop(child);
             }
@@ -125,7 +126,7 @@ namespace Tauron.Application.CommonUI.Helper
 
             private int _restartAtempt;
 
-            public CircuitBreakerDecider(ILoggingAdapter log) => _log = log;
+            internal CircuitBreakerDecider(ILoggingAdapter log) => _log = log;
 
             public Directive Decide(Exception cause)
             {

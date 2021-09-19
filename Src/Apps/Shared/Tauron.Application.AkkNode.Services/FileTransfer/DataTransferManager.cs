@@ -24,7 +24,10 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer
             where TType : TransferMessages.TransferMessage
             => Actor.SubscribeToEvent<TType>();
 
-        public FileTransactionId Request(DataTransferRequest request)
+        public void Request(DataTransferRequest request)
+            => Actor.Tell(request);
+
+        public FileTransactionId RequestWithTransaction(DataTransferRequest request)
         {
             Actor.Tell(request);
             return new FileTransactionId(request.OperationId);

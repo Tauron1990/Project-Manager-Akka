@@ -17,9 +17,9 @@ namespace Tauron.Application.CommonUI.Model
     [PublicAPI]
     public abstract class ObservableErrorObject : INotifyDataErrorInfo, IObservablePropertyChanged, INotifyPropertyChanged, IDisposable
     {
-        private readonly SourceCache<ValidationError, string> _errors = new(ve => ve.Property);
-        private readonly SourceCache<InternalData, string> _propertys = new(d => d.Name);
-
+        private readonly SourceCache<ValidationError, string> _errors    = new(ve => ve.Property);
+        private readonly SourceCache<InternalData, string>    _propertys = new(d => d.Name);
+        
         protected CompositeDisposable Disposer { get; } = new();
 
         public int ErrorCount => _errors.Count;
@@ -40,7 +40,9 @@ namespace Tauron.Application.CommonUI.Model
             => _propertys.AddOrUpdate(new InternalData(value, name!));
 
         protected TData GetValue<TData>(TData defaultData, [CallerMemberName] string? name = null)
+            #pragma warning disable EPS06
             => _propertys.Lookup(name!).ConvertOr(id => id?.Data is TData data ? data : defaultData, () => defaultData)!;
+        #pragma warning restore EPS06
 
         public string InternalError
         {
@@ -90,7 +92,8 @@ namespace Tauron.Application.CommonUI.Model
                                           _ => CreateEmpty()
                                       };
                                   })
-                      .AutoSubscribe(a => a(), ErrorEncountered);
+                      .AutoSubscribe(a => a(), ErrorEncountered)
+                      .DisposeWith(Disposer);
         }
 
         public virtual void ErrorEncountered(Exception exception)

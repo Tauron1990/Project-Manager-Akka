@@ -10,11 +10,9 @@ using ServiceManager.ProjectRepository.Data;
 using SharpRepository.Repository;
 using Tauron;
 using Tauron.Akka;
-using Tauron.Application.AkkaNode.Services;
 using Tauron.Application.AkkaNode.Services.FileTransfer;
 using Tauron.Application.AkkaNode.Services.Reporting;
 using Tauron.Application.AkkaNode.Services.Reporting.Commands;
-using Tauron.Application.Files.VirtualFiles;
 using Tauron.Application.Master.Commands.Deployment.Repository;
 using Tauron.Application.VirtualFiles;
 using Tauron.Features;
@@ -68,11 +66,11 @@ namespace ServiceManager.ProjectRepository.Actors
                                            }));
         }
 
-        private IObservable<RequestResult> ProcessRegisterRepository((RepositoryEntry Data, RegisterRepoEvent Evt) d)
+        private IObservable<RequestResult> ProcessRegisterRepository((RepositoryEntry? Data, RegisterRepoEvent Evt) d)
         {
             return Observable.If
             (
-                () => d.Data != null,
+                () => d.Data is null,
                 Observable.Return(d.Evt)
                           .Do(i => Log.Info("Repository {Name} is Registrated", i.Event.RepoName))
                           .SelectMany(
@@ -80,7 +78,7 @@ namespace ServiceManager.ProjectRepository.Actors
                                    () => m.Event.IgnoreDuplicate,
                                    ObservableReturn(() => m.New(OperationResult.Success())),
                                    ObservableReturn(() => m.New(OperationResult.Failure(RepositoryErrorCodes.DuplicateRepository))))),
-                ValidateName(Observable.Return(d), CreateRepo)
+                ValidateName(Observable.Return(d)!, CreateRepo)
             );
 
             IObservable<RequestResult> ValidateName(
@@ -106,7 +104,7 @@ namespace ServiceManager.ProjectRepository.Actors
                            SaveRepo(Observable.Return(m))));
 
             static IObservable<RequestResult> SaveRepo(IObservable<(RegisterRepoEvent Request, Repository Repo)> input)
-                => input.Select(m => (m.Request, Data: new RepositoryEntry(m.Request.Event.RepoName, string.Empty, m.Repo.CloneUrl, m.Request.Event.RepoName, string.Empty, false, m.Repo.Id)))
+                => input.Select(m => (m.Request, Data: new RepositoryEntry(m.Request.Event.RepoName, string.Empty, m.Repo.CloneUrl, m.Request.Event.RepoName, string.Empty, IsUploaded: false, RepoId: m.Repo.Id)))
                         .Select(m =>
                                 {
                                     var (request, data) = m;
@@ -124,12 +122,12 @@ namespace ServiceManager.ProjectRepository.Actors
                              .Select(m => (m.TempFiles, m.Request, Data: m.Request.State.Repos.Get(m.Request.Event.RepoName)))
                              .SelectMany(CheckData);
 
-            IObservable<RequestResult> CheckData((ITempFile TempFiles, TransferRepositoryRequest Request, RepositoryEntry Data) input)
+            IObservable<RequestResult> CheckData((ITempFile TempFiles, TransferRepositoryRequest Request, RepositoryEntry? Data) input)
                 => Observable.If(
-                    () => input.Data == null,
+                    () => input.Data is null,
                     Observable.Return(input.Request)
                               .Select(m => m.New(OperationResult.Failure(RepositoryErrorCodes.DatabaseNoRepoFound))),
-                    GetData(Observable.Return(input)));
+                    GetData(Observable.Return(input)!));
 
             IObservable<RequestResult> GetData(IObservable<(ITempFile TempFiles, TransferRepositoryRequest Request, RepositoryEntry Data)> input)
                 => input.SelectMany(async m => (m.Request, m.Data, m.TempFiles,
@@ -165,69 +163,70 @@ namespace ServiceManager.ProjectRepository.Actors
 
             var repoName = repository.RepoName;
             var data2 = repos.AsQueryable().FirstOrDefault(r => r.RepoName == repoName);
-            if (data2 != null && commitInfo != data2.LastUpdate)
+
+            if (data2 is null || commitInfo == data2.LastUpdate) return false;
+
+            if (!string.IsNullOrWhiteSpace(data.FileName))
             {
-                if (!string.IsNullOrWhiteSpace(data.FileName))
-                    try
-                    {
-                        Log.Info("Downloading Repository {Name} From Server", repoName);
+                try
+                {
+                    Log.Info("Downloading Repository {Name} From Server", repoName);
 
-                        reporter.Send(RepositoryMessages.GetRepositoryFromDatabase);
-                        using var file = bucket.GetFile(data.FileName).Open(FileAccess.Read);
-                        file.CopyTo(repozip);
+                    reporter.Send(RepositoryMessages.GetRepositoryFromDatabase);
+                    using var file = bucket.GetFile(data.FileName).Open(FileAccess.Read);
+                    file.CopyTo(repozip);
                         
-                        downloadCompled = true;
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Error(e, "Error on Download Repo File {Name}", data.FileName);
-                    }
-
-                if (downloadCompled)
-                {
-                    Log.Info("Unpack Repository {Name}", repoName);
-                    
-                    repozip.Seek(0, SeekOrigin.Begin);
-                    using var unpackZip = ZipFile.Read(repozip);
-
-                    reporter.Send(RepositoryMessages.ExtractRepository);
-                    unpackZip.ExtractAll(repoPath.FullPath, ExtractExistingFileAction.OverwriteSilently);
+                    downloadCompled = true;
                 }
-
-                Log.Info("Execute Git Pull for {Name}", repoName);
-                using var updater = GitUpdater.GetOrNew(repoConfiguration);
-                var result = updater.RunUpdate(repoPath.FullPath);
-                var dataUpdate = data with{ LastUpdate = result.Sha};
-
-                Log.Info("Compress Repository {Name}", repoName);
-                reporter.Send(RepositoryMessages.CompressRepository);
-
-                if (repozip.Length != 0)
-                    repozip.SetLength(0);
-
-                using (var archive = new ZipFile())
+                catch (Exception e)
                 {
-                    archive.AddDirectory(repoPath.FullPath, "");
-                    archive.Save(repozip);
+                    Log.Error(e, "Error on Download Repo File {Name}", data.FileName);
                 }
-
-                repozip.Seek(0, SeekOrigin.Begin);
-
-                Log.Info("Upload and Update Repository {Name}", repoName);
-                reporter.Send(RepositoryMessages.UploadRepositoryToDatabase);
-                var id = repoName.Replace('/', '_') + ".zip";
-                using var newFile = bucket.GetFile(id).Create();
-                repozip.CopyTo(newFile);
-
-                dataUpdate = dataUpdate with{FileName = id};
-
-                repos.Update(dataUpdate);
-                repozip.Seek(0, SeekOrigin.Begin);
-
-                return true;
             }
 
-            return false;
+            if (downloadCompled)
+            {
+                Log.Info("Unpack Repository {Name}", repoName);
+                    
+                repozip.Seek(0, SeekOrigin.Begin);
+                using var unpackZip = ZipFile.Read(repozip);
+
+                reporter.Send(RepositoryMessages.ExtractRepository);
+                unpackZip.ExtractAll(repoPath.FullPath, ExtractExistingFileAction.OverwriteSilently);
+            }
+
+            Log.Info("Execute Git Pull for {Name}", repoName);
+            using var updater    = GitUpdater.GetOrNew(repoConfiguration);
+            var       result     = updater.RunUpdate(repoPath.FullPath);
+            var       dataUpdate = data with{ LastUpdate = result.Sha};
+
+            Log.Info("Compress Repository {Name}", repoName);
+            reporter.Send(RepositoryMessages.CompressRepository);
+
+            if (repozip.Length != 0)
+                repozip.SetLength(0);
+
+            using (var archive = new ZipFile())
+            {
+                archive.AddDirectory(repoPath.FullPath, "");
+                archive.Save(repozip);
+            }
+
+            repozip.Seek(0, SeekOrigin.Begin);
+
+            Log.Info("Upload and Update Repository {Name}", repoName);
+            reporter.Send(RepositoryMessages.UploadRepositoryToDatabase);
+            var       id      = repoName.Replace('/', '_') + ".zip";
+            using var newFile = bucket.GetFile(id).Create();
+            repozip.CopyTo(newFile);
+
+            dataUpdate = dataUpdate with{FileName = id};
+
+            repos.Update(dataUpdate);
+            repozip.Seek(0, SeekOrigin.Begin);
+
+            return true;
+
         }
 
         private static IObservable<TData> ObservableReturn<TData>(Func<TData> fac)

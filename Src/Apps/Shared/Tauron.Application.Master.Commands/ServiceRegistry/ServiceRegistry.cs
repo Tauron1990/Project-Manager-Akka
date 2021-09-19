@@ -62,7 +62,7 @@ namespace Tauron.Application.Master.Commands.ServiceRegistry
 
             private readonly CircularBuffer<IActorRef> _serviceRegistrys = new();
 
-            public ServiceRegistryClientActor()
+            internal ServiceRegistryClientActor()
             {
                 _discovery = ClusterActorDiscovery.Get(Context.System).Discovery;
                 Initializing();
@@ -85,7 +85,9 @@ namespace Tauron.Application.Master.Commands.ServiceRegistry
                 Receive<ClusterActorDiscoveryMessage.ActorDown>(ad =>
                 {
                     Log.Info("Remove Service Registry {Name}", ad.Actor.Path);
+                    #pragma warning disable GU0011
                     _serviceRegistrys.Remove(ad.Actor);
+                    #pragma warning restore GU0011
                 });
 
                 ReceiveAny(_ => Stash.Stash());
@@ -162,16 +164,16 @@ namespace Tauron.Application.Master.Commands.ServiceRegistry
 
                 IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable) _data).GetEnumerator();
 
-                public void Add(T data)
+                internal void Add(T data)
                     => _data.Add(data);
 
-                public int Remove(T data)
+                internal int Remove(T data)
                 {
                     _data.Remove(data);
                     return _data.Count;
                 }
 
-                public T Next()
+                internal T Next()
                 {
                     if (_data.Count == 0)
                         return default!;
@@ -191,7 +193,7 @@ namespace Tauron.Application.Master.Commands.ServiceRegistry
 
             private readonly Dictionary<UniqueAddress, ServiceEntry> _services = new();
 
-            public ServiceRegistryServiceActor(IActorRef discovery, RegisterService? self)
+            internal ServiceRegistryServiceActor(IActorRef discovery, RegisterService? self)
             {
                 _discovery = discovery;
                 _self = self;
@@ -199,7 +201,7 @@ namespace Tauron.Application.Master.Commands.ServiceRegistry
                 Running();
             }
 
-            public ServiceRegistryServiceActor(Func<Cluster, RegisterService?> selfCreation)
+            internal ServiceRegistryServiceActor(Func<Cluster, RegisterService?> selfCreation)
             {
                 var cluster = Cluster.Get(Context.System);
                 var self = Self;
@@ -283,8 +285,8 @@ namespace Tauron.Application.Master.Commands.ServiceRegistry
 
             private sealed class SyncRegistry
             {
-                public SyncRegistry(Dictionary<UniqueAddress, ServiceEntry> sync) => ToSync = sync;
-                public Dictionary<UniqueAddress, ServiceEntry> ToSync { get; }
+                internal SyncRegistry(Dictionary<UniqueAddress, ServiceEntry> sync) => ToSync = sync;
+                internal Dictionary<UniqueAddress, ServiceEntry> ToSync { get; }
             }
 
             [UsedImplicitly]

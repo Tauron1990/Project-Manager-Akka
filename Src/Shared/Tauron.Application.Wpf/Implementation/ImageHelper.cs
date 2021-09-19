@@ -51,17 +51,17 @@ namespace Tauron.Application.Wpf.Implementation
         {
             private readonly WeakReference _source;
 
-            public KeyedImage(Uri key, ImageSource source)
+            internal KeyedImage(Uri key, ImageSource source)
             {
                 Key = key;
                 _source = new WeakReference(source);
             }
 
-            public Uri Key { get; }
+            internal Uri Key { get; }
 
             public bool IsAlive => _source.IsAlive;
 
-            public ImageSource? GetImage() => _source.Target as ImageSource;
+            internal ImageSource? GetImage() => _source.Target as ImageSource;
         }
     }
 }

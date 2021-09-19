@@ -20,14 +20,14 @@ namespace Tauron.Application.Master.Commands.Administration.Host
             Receive<SubscribeFeature.InternalEventSubscription>(obs => obs
                 .SelectMany(m => m.State.Entries.Select(entry => (entry, m.Event.Intrest)))
                 .SubscribeWithStatus(p
-                    => p.Intrest.Tell(new HostEntryChanged(p.entry.Value.Name, p.entry.Key, false))));
+                    => p.Intrest.Tell(new HostEntryChanged(p.entry.Value.Name, p.entry.Key, Removed: false))));
 
             Receive<ActorDown>(obs => obs.Where(p => p.State.Entries.ContainsKey(p.Event.Actor.Path))
                 .Select(m =>
                 {
                     var (actorDown, state, _) = m;
                     var (name, actor) = state.Entries[actorDown.Actor.Path];
-                    TellSelf(SendEvent.Create(new HostEntryChanged(name, actor.Path, true)));
+                    TellSelf(SendEvent.Create(new HostEntryChanged(name, actor.Path, Removed: true)));
 
                     return state with {Entries = state.Entries.Remove(actorDown.Actor.Path)};
                 }));
@@ -36,7 +36,7 @@ namespace Tauron.Application.Master.Commands.Administration.Host
             {
                 var (message, state, _) = m;
                 message.Actor.Tell(new GetHostName());
-                TellSelf(SendEvent.Create(new HostEntryChanged(string.Empty, message.Actor.Path, false)));
+                TellSelf(SendEvent.Create(new HostEntryChanged(string.Empty, message.Actor.Path, Removed: false)));
 
                 return state with
                 {
@@ -50,7 +50,7 @@ namespace Tauron.Application.Master.Commands.Administration.Host
                     var (message, state, _) = m;
 
                     var newEntry = state.Entries[Context.Sender.Path] with {Name = message.Name};
-                    TellSelf(SendEvent.Create(new HostEntryChanged(newEntry.Name, newEntry.Actor.Path, false)));
+                    TellSelf(SendEvent.Create(new HostEntryChanged(newEntry.Name, newEntry.Actor.Path, Removed: false)));
 
                     return state with {Entries = state.Entries.SetItem(Context.Sender.Path, newEntry)};
                 }));
@@ -62,14 +62,15 @@ namespace Tauron.Application.Master.Commands.Administration.Host
                 })
                 .SubscribeWithStatus(m =>
                 {
-                    if (m.Host == null)
+                    // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+                    if (m.Host is null)
                         Context.Sender.Tell(m.Command.CreateDefaultFailed());
                     else
                         m.Host.Actor.Forward(m.Command);
                 }));
 
-            Start.SubscribeWithStatus(c
-                => ClusterActorDiscovery.Get(c.System).Discovery.Tell(new MonitorActor(HostApi.ApiKey)));
+            Start.SubscribeWithStatus(c => ClusterActorDiscovery.Get(c.System).Discovery.Tell(new MonitorActor(HostApi.ApiKey)))
+                 .DisposeWith(this);
         }
 
         public sealed record ApiState(ImmutableDictionary<ActorPath, HostEntry> Entries);

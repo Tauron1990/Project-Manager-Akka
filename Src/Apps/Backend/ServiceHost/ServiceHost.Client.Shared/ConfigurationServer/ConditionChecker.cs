@@ -21,8 +21,8 @@ namespace ServiceHost.Client.Shared.ConfigurationServer
                     {
                         ConditionType.DefinedApp => Apply(c, () => softwareName == c.AppName),
                         ConditionType.InstalledApp => Apply(c, () => applicationName == c.AppName),
-                        ConditionType.And when c.Conditions != null => Apply(c, () => CheckConditions(c.Conditions, false)),
-                        ConditionType.Or when c.Conditions  != null => Apply(c, () => CheckConditions(c.Conditions, true)),
+                        ConditionType.And when c.Conditions != null => Apply(c, () => CheckConditions(c.Conditions, isOr: false)),
+                        ConditionType.Or when c.Conditions  != null => Apply(c, () => CheckConditions(c.Conditions, isOr: true)),
                         _ => false
                     };
 
@@ -32,7 +32,7 @@ namespace ServiceHost.Client.Shared.ConfigurationServer
             }
 
             return entity.Conditions.IsEmpty
-                || CheckConditions(entity.Conditions, false);
+                || CheckConditions(entity.Conditions, isOr: false);
         }
     }
 }

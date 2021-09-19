@@ -18,7 +18,7 @@ namespace Tauron.Application.AkkaNode.Services.Core
         {
             var source = new TaskCompletionSource<IsAliveResponse>();
             var cancellationTokenSource = new CancellationTokenSource(timeout);
-            cancellationTokenSource.Token.Register(() => source.TrySetResult(new IsAliveResponse(false)));
+            cancellationTokenSource.Token.Register(() => source.TrySetResult(new IsAliveResponse(IsAlive: false)));
 
             system.ActorOf(Props.Create(() => new TempActor(source, cancellationTokenSource, actor)));
 
@@ -30,7 +30,7 @@ namespace Tauron.Application.AkkaNode.Services.Core
             private readonly CancellationTokenSource _cancellationTokenSource;
             private readonly TaskCompletionSource<IsAliveResponse> _source;
 
-            public TempActor(TaskCompletionSource<IsAliveResponse> source, CancellationTokenSource cancellation, ICanTell target)
+            internal TempActor(TaskCompletionSource<IsAliveResponse> source, CancellationTokenSource cancellation, ICanTell target)
             {
                 _cancellationTokenSource = cancellation;
                 _source = source;
@@ -43,7 +43,7 @@ namespace Tauron.Application.AkkaNode.Services.Core
 
             protected override bool Receive(object message)
             {
-                _source.TrySetResult(message is not IsAliveResponse response ? new IsAliveResponse(false) : response);
+                _source.TrySetResult(message is not IsAliveResponse response ? new IsAliveResponse(IsAlive: false) : response);
                 return true;
             }
 
@@ -62,7 +62,7 @@ namespace Tauron.Application.AkkaNode.Services.Core
         {
             Receive<QueryIsAlive>(obs => (from ob in obs
                                           from ident in ob.Sender.Ask<ActorIdentity>(new Identify(null), TimeSpan.FromSeconds(10))
-                                          select (ob.Sender, Response: new IsAliveResponse(true)))
+                                          select (ob.Sender, Response: new IsAliveResponse(IsAlive: true)))
                                      .AutoSubscribe(d => d.Sender.Tell(d.Response)));
         }
     }

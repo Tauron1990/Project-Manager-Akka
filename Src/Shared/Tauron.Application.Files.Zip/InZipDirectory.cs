@@ -15,7 +15,7 @@ namespace Tauron.Application.Files.Zip
         private ZipFile _file;
 
         protected InZipDirectory(IDirectory? parentDirectory, string originalPath, InternalZipDirectory dic, ZipFile file,
-                                 string name)
+                                 string      name)
             : base(() => parentDirectory, originalPath, name)
         {
             _dic = dic;

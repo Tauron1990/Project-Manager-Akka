@@ -98,9 +98,9 @@ namespace Tauron.Application.CommonUI.Model
         {
             private readonly Action _action;
 
-            public ActionMapper(Action action) => _action = action;
+            internal ActionMapper(Action action) => _action = action;
 
-            public Action<object?> Action => ActionImpl;
+            internal Action<object?> Action => ActionImpl;
 
             private void ActionImpl(object? o) => _action();
         }

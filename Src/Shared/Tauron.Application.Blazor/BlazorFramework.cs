@@ -29,7 +29,7 @@ namespace Tauron.Application.Blazor
                 set => throw new NotSupportedException("No explicit App Support in Blazor");
             }
 
-            public IUIDispatcher Dispatcher => BlazorFramework.Dispatcher;
+            public IUIDispatcher AppDispatcher => BlazorFramework.Dispatcher;
 
             public event EventHandler? Startup
             {

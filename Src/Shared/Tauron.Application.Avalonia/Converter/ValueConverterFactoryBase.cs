@@ -13,7 +13,6 @@ namespace Tauron.Application.Avalonia.Converter
     {
         public IServiceProvider? ServiceProvider { get; set; }
 
-        [NotNull]
         protected abstract IValueConverter Create();
 
         protected static IValueConverter CreateStringConverter<TType>(Func<TType, string> converter)
@@ -33,7 +32,7 @@ namespace Tauron.Application.Avalonia.Converter
         {
             private readonly Func<TSource, TDest> _func;
 
-            public FuncCommonConverter(Func<TSource, TDest> func) => _func = func;
+            internal FuncCommonConverter(Func<TSource, TDest> func) => _func = func;
 
             protected override TDest Convert(TSource value) => _func(value);
         }
@@ -42,7 +41,7 @@ namespace Tauron.Application.Avalonia.Converter
         {
             private readonly Func<TType, string> _converter;
 
-            public FuncStringConverter(Func<TType, string> converter) => _converter = converter;
+            internal FuncStringConverter(Func<TType, string> converter) => _converter = converter;
 
             protected override string Convert(TType value) => _converter(value);
         }
@@ -55,21 +54,19 @@ namespace Tauron.Application.Avalonia.Converter
         {
             protected virtual bool CanConvertBack => false;
 
-            public virtual object? Convert(object value, [NotNull] Type targetType, object parameter,
-                [NotNull] CultureInfo culture)
+            public virtual object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
             {
                 //if (value is TDest && typeof(TSource) != typeof(TDest)) return value;
-                if (!(value is TSource)) return null;
+                if (value is not TSource source) return null;
 
-                return Convert((TSource) value);
+                return Convert(source);
             }
 
-            public virtual object? ConvertBack(object value, [NotNull] Type targetType, object parameter,
-                [NotNull] CultureInfo culture)
+            public virtual object? ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
             {
-                if (!CanConvertBack || !(value is TDest)) return null;
+                if (!CanConvertBack || value is not TDest dest) return null;
 
-                return ConvertBack((TDest) value);
+                return ConvertBack(dest);
             }
 
             protected abstract TDest Convert(TSource value);

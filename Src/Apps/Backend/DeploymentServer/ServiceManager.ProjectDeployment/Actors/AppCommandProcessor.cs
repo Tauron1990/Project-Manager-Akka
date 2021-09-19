@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using Akka.Actor;
-using JetBrains.Annotations;
 using ServiceManager.ProjectDeployment.Build;
 using ServiceManager.ProjectDeployment.Data;
 using SharpRepository.Repository;
@@ -14,7 +13,6 @@ using Tauron.Application.AkkaNode.Services.CleanUp;
 using Tauron.Application.AkkaNode.Services.FileTransfer;
 using Tauron.Application.AkkaNode.Services.Reporting;
 using Tauron.Application.AkkaNode.Services.Reporting.Commands;
-using Tauron.Application.Files.VirtualFiles;
 using Tauron.Application.Master.Commands.Deployment.Build;
 using Tauron.Application.Master.Commands.Deployment.Build.Commands;
 using Tauron.Application.Master.Commands.Deployment.Build.Data;
@@ -41,7 +39,7 @@ namespace ServiceManager.ProjectDeployment.Actors
         {
             CommandPhase1<CreateAppCommand>("CreateApp-Phase 1",
                 obs => obs.Do(m => m.Reporter.Send(DeploymentMessages.RegisterRepository))
-                          .Select(m => Msg.New(new RegisterRepository(m.Event.TargetRepo, true), m)),
+                          .Select(m => Msg.New(new RegisterRepository(m.Event.TargetRepo, IgnoreDuplicate: true), m)),
                 (command, reporter, op) => new ContinueCreateApp(op, command, reporter));
             
             CommandPhase2<ContinueCreateApp, CreateAppCommand, AppInfo>("CreateApp-Phase 2",
@@ -104,7 +102,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                                                    let oldApp = info.Data.AppData ?? AppData.Empty
                                                    let newVersion = oldApp.Last + 1
                                                    let newId = $"{oldApp.Id}-{newVersion}.zip"
-                                                   let newBinary = new AppFileInfo(newId, oldApp.Last + 1, DateTime.UtcNow, false, info.Commit)
+                                                   let newBinary = new AppFileInfo(newId, oldApp.Last + 1, DateTime.UtcNow, Deleted: false, info.Commit)
                                                    let newData = oldApp with
                                                                  {
                                                                      Last = newVersion,
@@ -140,8 +138,8 @@ namespace ServiceManager.ProjectDeployment.Actors
                                                       })
                                               .Do(i => i.State.ChangeTracker.Tell(i.Data!.ToInfo()))
                                               .Select(i => new AppBinary(
-                                                          i.NewBinary.Version, i.Data!.Id, i.NewBinary.CreationTime, false,
-                                                          i.NewBinary.Commit, i.Data.Repository)));
+                                                          i.NewBinary.Version, i.Data!.Id, i.NewBinary.CreationTime, Deleted: false,
+                                                          Commit: i.NewBinary.Commit, Repository: i.Data.Repository)));
                                    }
                                }));
 
@@ -187,7 +185,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                                                          var file = (ITempFile) continueData.Result.Outcome!;
                                                          var start = continueData.State.DataTransfer;
 
-                                                         return start.Request(DataTransferRequest.FromStream(() => new TempTransferInfo(file), man));
+                                                         return start.RequestWithTransaction(DataTransferRequest.FromStream(() => new TempTransferInfo(file), man));
                                                      }));
                                }),
                 r => r.Event.TempData);
@@ -266,7 +264,7 @@ namespace ServiceManager.ProjectDeployment.Actors
 
         private static class Msg
         {
-            public static NewMessage<TCommand> New<TCommand>(
+            internal static NewMessage<TCommand> New<TCommand>(
                 IReporterMessage? message,
                 ReporterEvent<TCommand, AppCommandProcessorState> pair)
                 => new(message, pair.Event, pair.State);
@@ -287,7 +285,7 @@ namespace ServiceManager.ProjectDeployment.Actors
 
         private sealed record ContinueCreateApp : ContinueCommand<CreateAppCommand>
         {
-            public ContinueCreateApp(IOperationResult result, CreateAppCommand command, Reporter reporter)
+            internal ContinueCreateApp(IOperationResult result, CreateAppCommand command, Reporter reporter)
                 : base(result, command, reporter)
             {
             }
@@ -295,9 +293,10 @@ namespace ServiceManager.ProjectDeployment.Actors
 
         private sealed record ContinuePushNewVersion : ContinueCommand<PushVersionCommand>
         {
+            // ReSharper disable once NotAccessedField.Local
             private readonly Reporter _reporter;
 
-            public ContinuePushNewVersion(
+            internal ContinuePushNewVersion(
                 IOperationResult result, PushVersionCommand command,
                 Reporter reporter)
                 : base(result, command, reporter)
@@ -308,9 +307,9 @@ namespace ServiceManager.ProjectDeployment.Actors
 
         private sealed record ContinueForceBuild : ContinueCommand<ForceBuildCommand>
         {
-            public AppData TempData { get; }
+            internal AppData TempData { get; }
 
-            public ContinueForceBuild(
+            internal ContinueForceBuild(
                 IOperationResult result, ForceBuildCommand command,
                 Reporter reporter, AppData tempData) : base(result, command, reporter)
             {
@@ -323,10 +322,10 @@ namespace ServiceManager.ProjectDeployment.Actors
             private readonly ITempFile _file;
             private readonly Stream _stream;
 
-            public TempTransferInfo(ITempFile file)
+            internal TempTransferInfo(ITempFile file)
             {
                 _file = file;
-                _stream = _file.Stream;
+                _stream = file.Stream;
                 _stream.Seek(0, SeekOrigin.Begin);
             }
 

@@ -48,7 +48,10 @@ namespace Tauron.Application.Avalonia.UI
                     if (obj?.CheckAccess() == true)
                         UpdateAction();
                     else if (obj != null)
-                        Dispatcher.UIThread.InvokeAsync(UpdateAction, DispatcherPriority.Background);
+                    {
+                        Dispatcher.UIThread.InvokeAsync(UpdateAction, DispatcherPriority.Background)
+                                  .Ignore();
+                    }
                 }
                 else // _targetProperty is PropertyInfo
                 {

@@ -123,8 +123,8 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer.Operator
 
         private class DeleteAwaiter
         {
-            public DeleteAwaiter(string id) => Id = id;
-            public string Id { get; }
+            internal DeleteAwaiter(string id) => Id = id;
+            internal string Id { get; }
         }
 
         public class AwaitRequestInternal

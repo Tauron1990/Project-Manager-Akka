@@ -30,7 +30,7 @@ namespace Tauron.Application.Workshop.Analyzing.Rules
 
         private sealed class InternalRuleActor : ObservableActor
         {
-            public InternalRuleActor(Action<IObservableActor> constructor) => constructor(this);
+            internal InternalRuleActor(Action<IObservableActor> constructor) => constructor(this);
         }
     }
 }

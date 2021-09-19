@@ -9,7 +9,6 @@ using ServiceManager.ProjectDeployment.Build;
 using ServiceManager.ProjectDeployment.Data;
 using Tauron;
 using Tauron.Akka;
-using Tauron.Application.AkkaNode.Services;
 using Tauron.Application.AkkaNode.Services.FileTransfer;
 using Tauron.Application.AkkaNode.Services.Reporting;
 using Tauron.Application.AkkaNode.Services.Reporting.Commands;
@@ -157,7 +156,8 @@ namespace ServiceManager.ProjectDeployment.Actors
                             _log.Info("Incomming Build Request {Apps}", request.AppData.Id);
                             var newData = evt.StateData.Set(request);
                             newData.Api.Send(new TransferRepository(newData.AppData.Repository), TimeSpan.FromMinutes(5), fileHandler, newData.Reporter.Send, () => newData.Paths.RepoFile.Stream)
-                                   .PipeTo(Self);
+                                   .PipeTo(Self)
+                                   .Ignore();
 
                             return GoTo(BuildState.Repository)
                                .Using(newData.SetListner(ActorRefs.Nobody));
@@ -255,7 +255,8 @@ namespace ServiceManager.ProjectDeployment.Actors
                                     .PipeTo(Self,
                                          success: s => string.IsNullOrWhiteSpace(s)
                                                       ? OperationResult.Success()
-                                                      : OperationResult.Failure(s));
+                                                      : OperationResult.Failure(s))
+                                    .Ignore();
 
                                 return Stay();
                             }
@@ -377,7 +378,7 @@ namespace ServiceManager.ProjectDeployment.Actors
 
         private sealed class Trigger
         {
-            public static readonly Trigger Inst = new();
+            internal static readonly Trigger Inst = new();
         }
     }
 }

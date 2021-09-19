@@ -15,18 +15,19 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
 
         private void LoadProjectFile(InternalLoadProject obj)
         {
+            var (loadProjectFile, originalSender) = obj;
             try
             {
-                using var stream = File.OpenRead(obj.ProjectFile.Source);
+                using var stream = File.OpenRead(loadProjectFile.Source);
                 using var reader = new BinaryReader(stream);
-                var projectFile = ProjectFile.ReadFile(reader, obj.ProjectFile.Source, Sender);
+                var projectFile = ProjectFile.ReadFile(reader, loadProjectFile.Source, Sender);
 
-                obj.OriginalSender.Tell(new LoadedProjectFile(obj.ProjectFile.OperationId, projectFile, null, true));
+                originalSender.Tell(new LoadedProjectFile(loadProjectFile.OperationId, projectFile, null, Ok: true));
             }
             catch (Exception e)
             {
-                obj.OriginalSender.Tell(new LoadedProjectFile(obj.ProjectFile.OperationId,
-                    ProjectFile.FromSource(obj.ProjectFile.Source, Sender), e, false));
+                originalSender.Tell(new LoadedProjectFile(loadProjectFile.OperationId,
+                    ProjectFile.FromSource(loadProjectFile.Source, Sender), e, Ok: false));
             }
             finally
             {
