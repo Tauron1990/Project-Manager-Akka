@@ -14,7 +14,7 @@ namespace ServiceManager.Client.ViewModels.Configuration
 {
     public sealed class ConfigurationOptionsViewModel
     {
-        public static readonly OptionElement DefaultElement = new(true, "Daten nicht geladen", Array.Empty<MutableConfigOption>());
+        public static readonly OptionElement DefaultElement = new(Error: true, "Daten nicht geladen", Array.Empty<MutableConfigOption>());
 
         private readonly IEventAggregator _eventAggregator;
         private readonly IDialogService _dialogService;
@@ -55,17 +55,17 @@ namespace ServiceManager.Client.ViewModels.Configuration
 
                 if (response == null)
                 {
-                    _elements[name] = new OptionElement(true, "Fehler beim Laden der Daten", Array.Empty<MutableConfigOption>());
+                    _elements[name] = new OptionElement(Error: true, "Fehler beim Laden der Daten", Array.Empty<MutableConfigOption>());
 
                     return;
                 }
 
-                _elements[name] = new OptionElement(false, string.Empty, response.Options.Select(co => new MutableConfigOption(co)).ToArray());
+                _elements[name] = new OptionElement(Error: false, string.Empty, response.Options.Select(co => new MutableConfigOption(co)).ToArray());
             }
             catch (Exception e)
             {
                 _eventAggregator.PublishError(e);
-                _elements[name] = new OptionElement(true, e.Message, Array.Empty<MutableConfigOption>());
+                _elements[name] = new OptionElement(Error: true, e.Message, Array.Empty<MutableConfigOption>());
             }
             finally
             {

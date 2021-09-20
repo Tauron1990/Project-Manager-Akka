@@ -9,7 +9,9 @@ namespace Akka.MGIHelper.Core.ProcessManager
         public RegisterProcessList(IActorRef intrest, ImmutableArray<string> files)
         {
             Intrest = intrest;
+            #pragma warning disable EPS06
             Files = files.Select(e => e.Trim()).ToImmutableArray();
+            #pragma warning restore EPS06
         }
 
         public IActorRef Intrest { get; }

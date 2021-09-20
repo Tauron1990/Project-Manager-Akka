@@ -32,11 +32,8 @@ namespace TimeTracker.Managers
         }
 
         private readonly PropertyConnector<ImmutableList<HourMultiplicator>> _multiplicators;
-        public ImmutableList<HourMultiplicator> Multiplicators
-        {
-            get => _multiplicators.Value ?? ImmutableList<HourMultiplicator>.Empty;
-            set => _multiplicators.Value = value;
-        }
+
+        private ImmutableList<HourMultiplicator> Multiplicators => _multiplicators.Value ?? ImmutableList<HourMultiplicator>.Empty;
 
         private readonly PropertyConnector<int> _dailyHours;
         public int DailyHours
@@ -59,13 +56,16 @@ namespace TimeTracker.Managers
             _dailyHours = PropertyConnector<int>.Create(source, this, reportError,
                 () => DailyHours, pd => pd.DailyHours, (pd, value) => pd with {DailyHours = value});
 
-            _ceanup = Disposable.Create(() =>
-                                        {
-                                            _hoursAll.Dispose();
-                                            _minusShortTimeHours.Dispose();
-                                            _multiplicators.Dispose();
-                                            _dailyHours.Dispose();
-                                        });
+            _ceanup = Disposable.Create(
+                (_hoursAll, _minusShortTimeHours, _multiplicators, _dailyHours),
+                s =>
+                {
+                    var (hoursAll, minusShortTimeHours, multiplicators, dailyHours) = s;
+                    hoursAll.Dispose();
+                    minusShortTimeHours.Dispose();
+                    multiplicators.Dispose();
+                    dailyHours.Dispose();
+                });
         }
 
         void IDisposable.Dispose() => _ceanup.Dispose();
@@ -81,7 +81,7 @@ namespace TimeTracker.Managers
             private readonly Action<TPropertyType?> _write;
             private TPropertyType? _value;
 
-            public TPropertyType? Value
+            internal TPropertyType? Value
             {
                 get => _value;
                 set
@@ -99,7 +99,7 @@ namespace TimeTracker.Managers
                 _cleanUp = updateValue(value => _value = value);
             }
 
-            public static PropertyConnector<TPropertyType> Create(DataManager data, ConfigurationManager configuration, Action<Exception> reportError,
+            internal static PropertyConnector<TPropertyType> Create(DataManager data, ConfigurationManager configuration, Action<Exception> reportError,
                 Expression<Func<TPropertyType>> property, Func<ProfileData, TPropertyType> read, Func<ProfileData, TPropertyType?, ProfileData> write)
             {
                 string name = Reflex.PropertyName(property);

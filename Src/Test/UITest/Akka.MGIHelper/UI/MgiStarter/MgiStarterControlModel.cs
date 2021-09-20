@@ -9,6 +9,7 @@ using Akka.Actor;
 using Akka.MGIHelper.Core.Configuration;
 using Akka.MGIHelper.Core.ProcessManager;
 using Autofac;
+using JetBrains.Annotations;
 using Tauron;
 using Tauron.Application.CommonUI.AppCore;
 using Tauron.Application.CommonUI.Model;
@@ -19,6 +20,7 @@ using Tauron.Localization;
 
 namespace Akka.MGIHelper.UI.MgiStarter
 {
+    [UsedImplicitly]
     public sealed class MgiStarterControlModel : UiActor
     {
         private readonly ProcessConfig _config;
@@ -63,11 +65,11 @@ namespace Akka.MGIHelper.UI.MgiStarter
                                 InternalStart += true;
                                 currentStart.OnNext(new CancellationTokenSource());
 
-                                mgiStarting.Tell(new MgiStartingActor.TryStart(_config, currentStart.Value!.Token,
+                                mgiStarting.Tell(new MgiStartingActor.TryStart(config, currentStart.Value!.Token,
                                     () =>
                                     {
-                                        Client.Value?.Kill(true);
-                                        Kernel.Value?.Kill(true);
+                                        Client.Value?.Kill(entireProcessTree: true);
+                                        Kernel.Value?.Kill(entireProcessTree: true);
                                     }));
                             }).ThenRegister("TryStart");
 
@@ -79,8 +81,8 @@ namespace Akka.MGIHelper.UI.MgiStarter
                .WithExecute(() =>
                             {
                                 currentStart.Value?.Cancel();
-                                Client.Value?.Kill(true);
-                                Kernel.Value?.Kill(true);
+                                Client.Value?.Kill(entireProcessTree: true);
+                                Kernel.Value?.Kill(entireProcessTree: true);
                             }).ThenRegister("TryStop");
 
             InternalStart += false;
@@ -127,17 +129,23 @@ namespace Akka.MGIHelper.UI.MgiStarter
                             Client += null!;
                         break;
                     default:
+                        #pragma warning disable EX006
                         throw new InvalidOperationException("Invalid ProcessChange Enum");
+                    #pragma warning restore EX006
                 }
 
+                // ReSharper disable ConditionIsAlwaysTrueOrFalse
                 if (Kernel != null && Client != null)
+                    // ReSharper restore ConditionIsAlwaysTrueOrFalse
                     Status += Context.Loc().RequestString("uistatusstartet").Value;
-                if (Kernel!.Value == null && Client!.Value == null)
+                if (Kernel!.Value is null && Client!.Value is null)
                     Status += Context.Loc().RequestString("uistatusstopped").Value;
             }
             catch (Exception e)
             {
+                #pragma warning disable EPC12
                 Status += "Fehler: " + e.Message;
+                #pragma warning restore EPC12
             }
         }
 
@@ -159,8 +167,10 @@ namespace Akka.MGIHelper.UI.MgiStarter
             var builder = new StringBuilder();
             
             var status = Status;
+            // ReSharper disable ConditionIsAlwaysTrueOrFalse
             var kernel = Kernel != null;
             var client = Client != null;
+            // ReSharper restore ConditionIsAlwaysTrueOrFalse
             if (!string.IsNullOrWhiteSpace(status) && status.Value?.StartsWith("Fehler:") == true)
             {
                 StatusLabel = status;
@@ -179,7 +189,7 @@ namespace Akka.MGIHelper.UI.MgiStarter
 
         private class LocalHelper
         {
-            public LocalHelper(IActorContext context)
+            internal LocalHelper(IActorContext context)
             {
                 var loc = context.Loc();
 
@@ -188,11 +198,11 @@ namespace Akka.MGIHelper.UI.MgiStarter
                 GenericNotStart = loc.RequestString("genericnotstart").Value;
             }
 
-            public string Unkowen { get; }
+            internal string Unkowen { get; }
 
-            public string GenericStart { get; }
+            internal string GenericStart { get; }
 
-            public string GenericNotStart { get; }
+            internal string GenericNotStart { get; }
         }
     }
 }

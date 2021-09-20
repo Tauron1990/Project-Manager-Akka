@@ -144,7 +144,8 @@ namespace ServiceManager.ProjectDeployment.Actors
         {
             StartWith(BuildState.Waiting, new BuildData());
 
-            When(BuildState.Waiting,
+            When(
+                BuildState.Waiting,
                 evt =>
                 {
                     switch (evt.FsmEvent)
@@ -155,9 +156,19 @@ namespace ServiceManager.ProjectDeployment.Actors
                         {
                             _log.Info("Incomming Build Request {Apps}", request.AppData.Id);
                             var newData = evt.StateData.Set(request);
-                            newData.Api.Send(new TransferRepository(newData.AppData.Repository), TimeSpan.FromMinutes(5), fileHandler, newData.Reporter.Send, () => newData.Paths.RepoFile.Stream)
-                                   .PipeTo(Self)
-                                   .Ignore();
+
+                            var sendData = newData.Api.NewFileTransfer(
+                                                   new TransferRepository(newData.AppData.Repository),
+                                                   TimeSpan.FromMinutes(3),
+                                                   fileHandler,
+                                                   () => newData.Paths.RepoFile.Stream) with
+                                               {
+                                                   Messages = newData.Reporter.Send
+                                               };
+
+                            sendData.Send()
+                                    .PipeTo(Self, success: e => e.Fold<object>(tc => tc, error => new Status.Failure(new InvalidOperationException(error.Info ?? error.Code))))
+                                    .Ignore();
 
                             return GoTo(BuildState.Repository)
                                .Using(newData.SetListner(ActorRefs.Nobody));

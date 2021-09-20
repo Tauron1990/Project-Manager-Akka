@@ -4,6 +4,7 @@
 @using ServiceManager.Client.ViewModels.Configuration
 @using ServiceManager.Shared.ClusterTracking
 @using ServiceManager.Shared.Identity
+@using Tauron
 
 @inherits ComputedStateComponent<(string Url, bool IsSelf)>
 
@@ -69,13 +70,13 @@
     private void Reset()
     {
         _model = _model.Reset();
-        InvokeAsync(StateHasChanged);
+        InvokeAsync(StateHasChanged).Ignore();
     }
 
     private void IsValidChaned(bool valid)
     {
         _model = _model with{ IsValid = valid};
-        InvokeAsync(StateHasChanged);
+        InvokeAsync(StateHasChanged).Ignore();
     }
 
     private MudTextFieldString? _databseFieldString;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -37,15 +38,28 @@ namespace Tauron.Application.Localizer.Views
 
         private void Search_OnClick(object sender, RoutedEventArgs e)
         {
-            var result = _dialogFactory.ShowOpenFileDialog(null, _filemode == OpenFileMode.OpenExistingFile, "transp",
-                    true, _localizer.OpenFileDialogViewDialogFilter, false,
-                    _localizer.OpenFileDialogViewDialogTitle,
-                    true, true)
-                .NotNull()
-                .Select(s => s.FirstOrDefault())
-                .NotNull()
-                .ObserveOnDispatcher()
-                .Subscribe(s => PART_Path.Text = s);
+            var dis = Disposable.Empty;
+            
+            dis = _dialogFactory.ShowOpenFileDialog(
+                               null,
+                               _filemode == OpenFileMode.OpenExistingFile,
+                               "transp",
+                               dereferenceLinks: true,
+                               _localizer.OpenFileDialogViewDialogFilter,
+                               multiSelect: false,
+                               _localizer.OpenFileDialogViewDialogTitle,
+                               validateNames: true,
+                               checkPathExists: true)
+                          .NotNull()
+                          .Select(s => s.FirstOrDefault())
+                          .NotNull()
+                          .ObserveOnDispatcher()
+                          .Subscribe(s =>
+                                     {
+                                         PART_Path.Text = s;
+                                         // ReSharper disable once AccessToModifiedClosure
+                                         dis.Dispose();
+                                     });
         }
 
         private void Ready_OnClick(object sender, RoutedEventArgs e)

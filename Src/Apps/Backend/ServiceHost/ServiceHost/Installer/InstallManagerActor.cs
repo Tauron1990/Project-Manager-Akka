@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using Akka.Actor;
 using JetBrains.Annotations;
-using Microsoft.Extensions.Configuration;
 using ServiceHost.ApplicationRegistry;
 using ServiceHost.AutoUpdate;
 using ServiceHost.Installer.Impl;
@@ -39,8 +38,8 @@ namespace ServiceHost.Installer
                                       if(r.Event.Unsubscribe)
                                           Self.Forward(new EventUnSubscribe(typeof(InstallerationCompled)));
                                       else
-                                        Self.Forward(new EventSubscribe(true, typeof(InstallerationCompled)));
-                                      Sender.Tell(new SubscribeInstallationCompledResponse(new EventSubscribtion(typeof(InstallerationCompled), Self), true));
+                                        Self.Forward(new EventSubscribe(Watch: true, typeof(InstallerationCompled)));
+                                      Sender.Tell(new SubscribeInstallationCompledResponse(new EventSubscribtion(typeof(InstallerationCompled), Self), Success: true));
                                   }));
 
             Receive<InstallerationCompled>(obs => obs.ToUnit(m => TellSelf(SendEvent.Create(m.Event))));

@@ -84,7 +84,9 @@ namespace TimeTracker.Views
                               catch
                               {
                                   // ignored
+                                  #pragma warning disable ERP022
                               }
+                              #pragma warning restore ERP022
                           })
                .DisposeWith(_disposer);
         }

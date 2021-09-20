@@ -17,6 +17,7 @@ using NLog;
 using ServiceHost.Client.Shared;
 using ServiceHost.Installer;
 using Servicemnager.Networking.Data;
+using Tauron;
 using Tauron.Application.AkkaNode.Bootstrap;
 using Tauron.Application.AkkaNode.Bootstrap.Console;
 using Tauron.Application.Master.Commands.KillSwitch;
@@ -33,7 +34,7 @@ namespace ServiceHost
             var exitManager = new ExitManager();
             bool createdNew = false;
 
-            using var m = await Task.Factory.StartNew(() => new Mutex(true, MonitorName, out createdNew), CancellationToken.None,
+            using var m = await Task.Factory.StartNew(() => new Mutex(initiallyOwned: true, MonitorName, out createdNew), CancellationToken.None,
                 TaskCreationOptions.HideScheduler | TaskCreationOptions.DenyChildAttach, MutexThread.Inst);
             try
             {
@@ -103,7 +104,8 @@ namespace ServiceHost
                                                                cluster.RegisterOnMemberRemoved(() =>
                                                                                                {
                                                                                                    exitManager.MemberExit();
-                                                                                                   system.Terminate();
+                                                                                                   system.Terminate()
+                                                                                                         .Ignore();
                                                                                                });
                                                                cluster.RegisterOnMemberUp(
                                                                    () => ServiceRegistry.Get(system)
@@ -112,17 +114,17 @@ namespace ServiceHost
                                                                                              cluster.SelfUniqueAddress,
                                                                                              ServiceTypes.ServideHost)));
                                                            });
-                                }, true)
+                                }, consoleLog: true)
                            .Build().RunAsync();
         }
 
         private sealed class ExposedCommandLineProvider : CommandLineConfigurationProvider
         {
-            public ExposedCommandLineProvider(IEnumerable<string> args) : base(args)
+            internal ExposedCommandLineProvider(IEnumerable<string> args) : base(args)
             {
             }
 
-            public string Serialize()
+            internal string Serialize()
             {
                 Load();
                 return JsonConvert.SerializeObject(Data);
@@ -133,7 +135,7 @@ namespace ServiceHost
         {
             private readonly Func<IConfiguration, ManualInstallationTrigger> _installTrigger;
 
-            public CommandHandlerStartUp(Func<IConfiguration, ManualInstallationTrigger> installTrigger)
+            internal CommandHandlerStartUp(Func<IConfiguration, ManualInstallationTrigger> installTrigger)
                 => _installTrigger = installTrigger;
 
             public void Run()
@@ -202,9 +204,9 @@ namespace ServiceHost
             private bool _member;
             private bool _regular;
 
-            public bool NeedRestart => _member;
+            internal bool NeedRestart => _member;
 
-            public void MemberExit()
+            internal void MemberExit()
             {
                 if (_regular)
                     return;
@@ -212,7 +214,7 @@ namespace ServiceHost
                 _member = true;
             }
 
-            public void RegularExit() => _regular = true;
+            internal void RegularExit() => _regular = true;
         }
 
         public sealed class IncomingCommandHandler
@@ -228,7 +230,8 @@ namespace ServiceHost
             public IncomingCommandHandler(Func<IConfiguration, ManualInstallationTrigger> installTrigger)
             {
                 _installTrigger = installTrigger;
-                Task.Factory.StartNew(async () => await Reader(), TaskCreationOptions.LongRunning);
+                Task.Factory.StartNew(async () => await Reader(), TaskCreationOptions.LongRunning)
+                    .Ignore();
             }
 
             private async Task Reader()

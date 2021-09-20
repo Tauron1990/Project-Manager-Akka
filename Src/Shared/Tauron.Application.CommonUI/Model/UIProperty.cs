@@ -13,10 +13,10 @@ namespace Tauron.Application.CommonUI.Model
     [PublicAPI, DebuggerStepThrough]
     public sealed class UIProperty<TData> : UIPropertyBase, IObservable<TData>, IDisposable, IObserver<TData>
     {
-        private sealed record DataContainer(TData Data, bool IsNil = false);
+        private sealed record DataContainer(TData Data, bool IsNull = false);
 
         private readonly BehaviorSubject<Error?> _currentError = new(null);
-        private readonly BehaviorSubject<DataContainer> _currentValue = new(new DataContainer(default!, true));
+        private readonly BehaviorSubject<DataContainer> _currentValue = new(new DataContainer(default!, IsNull: true));
         private readonly CompositeDisposable _disposable = new();
 
         private bool _isLocked;
@@ -49,7 +49,7 @@ namespace Tauron.Application.CommonUI.Model
 
         public void Dispose() => _disposable.Dispose();
 
-        public IDisposable Subscribe(IObserver<TData> observer) => _currentValue.Where(c => !c.IsNil).Select(c => c.Data).Subscribe(observer);
+        public IDisposable Subscribe(IObserver<TData> observer) => _currentValue.Where(c => !c.IsNull).Select(c => c.Data).Subscribe(observer);
 
         public void SetValidator(Func<IObservable<TData>, IObservable<Error?>> validator) => _disposable.Add(validator(PropertyValueChangedData).Subscribe(_currentError));
 

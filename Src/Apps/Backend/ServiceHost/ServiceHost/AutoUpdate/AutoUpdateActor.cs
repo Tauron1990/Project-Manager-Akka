@@ -30,7 +30,7 @@ namespace ServiceHost.AutoUpdate
                         from request in Observable.Return(i.Event)
                                                   .Do(_ => Log.Info("Try Start Auto Update"))
                                                   .Do(_ => UpdatePath.CreateDirectoryIfNotExis())
-                                                  .Do(r => File.Move(r.OriginalZip, UpdateZip, true))
+                                                  .Do(r => File.Move(r.OriginalZip, UpdateZip, overwrite: true))
                         let hostPath = new Uri(Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location) ?? string.Empty).LocalPath
                         let autoUpdateExe = Path.Combine(UpdatePath, UpdaterExe)
                         let info = new SetupInfo(UpdateZip, "ServiceHost.exe", hostPath, Environment.ProcessId, 5000)
@@ -43,7 +43,7 @@ namespace ServiceHost.AutoUpdate
                                                                              .ToUnit());
 
                               b.When(m => m.exis, 
-                                  o => o.Do(m => File.Copy(Path.Combine(m.hostPath, UpdaterExe), m.autoUpdateExe, true))
+                                  o => o.Do(m => File.Copy(Path.Combine(m.hostPath, UpdaterExe), m.autoUpdateExe, overwrite: true))
                                         .Do(m => Process.Start(new ProcessStartInfo(m.autoUpdateExe, m.info.ToCommandLine()) { WorkingDirectory = UpdatePath}))
                                         .Do(_ => Context.System.Terminate())
                                         .ToUnit());
@@ -57,7 +57,7 @@ namespace ServiceHost.AutoUpdate
                                    .Do(_ => Log.Info("Cleanup after Auto Update"))
                                    .Do(_ => KillProcess(p.Event.Id))
                                    .Do(_ => UpdateZip.DeleteFile())
-                                   .Do(_ => UpdatePath.DeleteDirectory(true)),
+                                   .Do(_ => UpdatePath.DeleteDirectory(recursive: true)),
                     (_, e) => Observable.Return(Unit.Default)
                                         .Do(_ => Log.Error(e, "Error on Cleanup Auto Update Files"))));
         }
@@ -77,7 +77,7 @@ namespace ServiceHost.AutoUpdate
 
                     if (time >= 0) continue;
 
-                    process.Kill(true);
+                    process.Kill(entireProcessTree: true);
                     break;
                 }
             }

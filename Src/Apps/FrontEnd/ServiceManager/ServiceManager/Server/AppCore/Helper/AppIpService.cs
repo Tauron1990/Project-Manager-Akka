@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using ServiceManager.Shared;
 using ServiceManager.Shared.ClusterTracking;
-using Stl.Async;
 using Stl.Fusion;
 using Tauron;
 
 namespace ServiceManager.Server.AppCore.Helper
 {
+    [UsedImplicitly]
     public class AppIpService : IAppIpManager, IDisposable
     {
         private readonly IInternalAppIpManager _appIpManager;
@@ -17,7 +18,7 @@ namespace ServiceManager.Server.AppCore.Helper
         public AppIpService(IInternalAppIpManager appIpManager)
         {
             _appIpManager = appIpManager;
-            _subscription = _appIpManager.IpChanged.Subscribe(
+            _subscription = appIpManager.IpChanged.Subscribe(
                 _ => { using (Computed.Invalidate()) GetIp().Ignore(); });
         }
 

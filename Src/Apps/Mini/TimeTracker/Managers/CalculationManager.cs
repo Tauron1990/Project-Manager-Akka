@@ -22,7 +22,7 @@ namespace TimeTracker.Managers
 
             var updateTrigger = Observable.Interval(TimeSpan.FromSeconds(30)).Select(_ => clock.NowDate)
                                           .StartWith(clock.NowDate)
-                                          .Scan(new TimeContainer(clock.NowDate, clock.NowDate, true),
+                                          .Scan(new TimeContainer(clock.NowDate, clock.NowDate, NeedUpdate: true),
                                                (container, time) => container with
                                                                     {
                                                                         Old = container.New,
@@ -103,7 +103,7 @@ namespace TimeTracker.Managers
 
         private record ChangeToken(string File, int One, int Two, int Three, object Four)
         {
-            public static ChangeToken Get(ProfileData data)
+            internal static ChangeToken Get(ProfileData data)
                 => new(data.FileName, data.MonthHours, data.MinusShortTimeHours, data.DailyHours, data.Multiplicators);
         }
 

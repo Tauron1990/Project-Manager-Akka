@@ -4,6 +4,7 @@ using Akka.Actor;
 using JetBrains.Annotations;
 using ServiceHost.ApplicationRegistry;
 using ServiceHost.Services;
+using Tauron;
 using Tauron.Application.ActorWorkflow;
 using Tauron.Application.Master.Commands.Administration.Host;
 using Tauron.Application.Workflow;
@@ -25,7 +26,7 @@ namespace ServiceHost.Installer.Impl
                 {
                     Log.Info("Start Unistall Apps {Name}", context.Name);
                     registry.Ask<InstalledAppRespond>(new InstalledAppQuery(context.Name), TimeSpan.FromSeconds(15))
-                       .PipeTo(Self);
+                       .PipeTo(Self).Ignore();
 
                     return StepId.Waiting;
                 });
@@ -52,7 +53,7 @@ namespace ServiceHost.Installer.Impl
                     Log.Info("Stoping Appliocation {Name}", context.Name);
                     manager.Actor
                        .Ask<StopResponse>(new StopApp(context.Name), TimeSpan.FromMinutes(1))
-                       .PipeTo(Self);
+                       .PipeTo(Self).Ignore();
                     return StepId.Waiting;
                 });
 
@@ -80,7 +81,7 @@ namespace ServiceHost.Installer.Impl
                     try
                     {
                         Log.Info("Delete Application Directory {Name}", context.Name);
-                        Directory.Delete(context.App.Path, true);
+                        Directory.Delete(context.App.Path, recursive: true);
                     }
                     catch (Exception e)
                     {
@@ -91,9 +92,9 @@ namespace ServiceHost.Installer.Impl
                 });
             });
 
-            Signal<Failure>((_, f) =>
+            Signal<Status.Failure>((_, f) =>
             {
-                SetError(f.Exception.Message);
+                SetError(f.Cause.Message);
                 return StepId.Fail;
             });
 

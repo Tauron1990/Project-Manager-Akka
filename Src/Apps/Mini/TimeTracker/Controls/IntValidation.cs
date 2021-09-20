@@ -9,7 +9,7 @@ namespace TimeTracker.Controls
 {
     public sealed class IntConverter : ValueConverterFactoryBase
     {
-        private sealed class _ : StringConverterBase<int>
+        private sealed class Con : StringConverterBase<int>
         {
             protected override string Convert(int value) 
                 => value.ToString();
@@ -21,7 +21,7 @@ namespace TimeTracker.Controls
                 => int.Parse(value);
         }
 
-        protected override IValueConverter Create() => new _();
+        protected override IValueConverter Create() => new Con();
     }
 
 
@@ -35,13 +35,13 @@ namespace TimeTracker.Controls
         public override ValidationResult Validate(object value, CultureInfo cultureInfo)
         {
             if (value is not string integer)
-                return new ValidationResult(false, "Value ist kein String");
+                return new ValidationResult(isValid: false, "Value ist kein String");
 
             return int.TryParse(integer, out var intData)
                 ? intData > 0 
                     ? ValidationResult.ValidResult 
-                    : new ValidationResult(false, "Zahl muss Positive sein") 
-                : new ValidationResult(false, "Eingabe ist keine ganze Zahl");
+                    : new ValidationResult(isValid: false, "Zahl muss Positive sein") 
+                : new ValidationResult(isValid: false, "Eingabe ist keine ganze Zahl");
         }
     }
 }

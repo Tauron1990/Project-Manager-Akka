@@ -65,6 +65,8 @@ namespace InfrastructureService
                                                       var config = new SharpRepositoryConfiguration();
                                                       var fileSystemBuilder = new VirtualFileFactory();
 
+                                                      #pragma warning disable GU0011
+                                                      
                                                       ApplyMongoUrl(connectionstring, CleanUpManager.RepositoryKey, config);
 
                                                       var url = ApplyMongoUrl(connectionstring, RepositoryManager.RepositoryKey, config);
@@ -81,6 +83,7 @@ namespace InfrastructureService
 
                                                       ApplyMongoUrl(connectionstring, ServiceManagerDeamon.RepositoryKey, config);
                                                       ServiceManagerDeamon.Init(system, config);
+                                                      #pragma warning restore GU0011
                                                   })
                                       .OnMemberRemoved((_, system, _) => system.Terminate());
                                 }, consoleLog: true)

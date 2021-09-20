@@ -70,8 +70,8 @@ namespace Tauron.Application.Localizer.UIModels
 
                 languages.Edit(l =>
                 {
-                    l.Add(new ProjectViewLanguageModel(localizer.ProjectViewLanguageBoxFirstLabel, true));
-                    l.AddRange(obj.Project.ActiveLanguages.Select(al => new ProjectViewLanguageModel(al.Name, false)));
+                    l.Add(new ProjectViewLanguageModel(localizer.ProjectViewLanguageBoxFirstLabel, IsEnabled: true));
+                    l.AddRange(obj.Project.ActiveLanguages.Select(al => new ProjectViewLanguageModel(al.Name, IsEnabled: false)));
                 });
                 SelectedIndex += 0;
 
@@ -90,7 +90,7 @@ namespace Tauron.Application.Localizer.UIModels
 
             IEnumerable<NewEntryInfoBase> GetEntrys()
             {
-                var list = ImportetProjects!.ToList();
+                var list = ImportetProjects.ToList();
                 list.Add(_project);
 
                 var allEntrys = list.SelectMany(pro => workspace.Get(pro).Entries.Select(e => e.Key)).ToArray();
@@ -127,10 +127,10 @@ namespace Tauron.Application.Localizer.UIModels
             {
                 if (_project != entry.Entry.Project) return;
 
-                var index = ProjectEntrys!.FindIndex(em => em.EntryName == entry.Entry.Key);
+                var index = ProjectEntrys.FindIndex(em => em.EntryName == entry.Entry.Key);
                 if (index == -1) return;
 
-                projectEntrys!.RemoveAt(index);
+                projectEntrys.RemoveAt(index);
             }
 
             Receive<RemoveRequest>(obs => obs.Mutate(workspace.Entrys)
@@ -146,7 +146,7 @@ namespace Tauron.Application.Localizer.UIModels
             {
                 if (_project != obj.Entry.Project) return;
 
-                var model = ProjectEntrys!.FirstOrDefault(m => m.EntryName == obj.Entry.Key);
+                var model = ProjectEntrys.FirstOrDefault(m => m.EntryName == obj.Entry.Key);
                 model?.Update(obj.Entry);
             }
 
@@ -163,7 +163,7 @@ namespace Tauron.Application.Localizer.UIModels
             {
                 var (projectName, import) = obj;
                 if (projectName != _project) return;
-                importprojects!.Add(import);
+                importprojects.Add(import);
             }
 
             IEnumerable<string> GetImportableProjects()
@@ -190,7 +190,7 @@ namespace Tauron.Application.Localizer.UIModels
                 var (targetProject, toRemove) = import;
                 if (_project != targetProject) return;
 
-                importprojects!.Remove(toRemove);
+                importprojects.Remove(toRemove);
             }
 
             NewCommad.WithCanExecute(ImportSelectIndex.Select(i => i != -1))
@@ -211,7 +211,7 @@ namespace Tauron.Application.Localizer.UIModels
             {
                 if (language.ProjectName != _project) return;
 
-                languages.Add(new ProjectViewLanguageModel(language.ActiveLanguage.Name, false));
+                languages.Add(new ProjectViewLanguageModel(language.ActiveLanguage.Name, IsEnabled: false));
 
                 foreach (var model in ProjectEntrys)
                     model.AddLanguage(language.ActiveLanguage);

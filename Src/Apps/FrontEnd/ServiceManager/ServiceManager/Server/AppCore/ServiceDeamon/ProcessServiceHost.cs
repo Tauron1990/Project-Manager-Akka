@@ -3,6 +3,7 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
+using JetBrains.Annotations;
 using Microsoft.Extensions.Hosting;
 using MongoDB.Driver;
 using ServiceHost.Client.Shared.ConfigurationServer;
@@ -35,6 +36,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
         public Task<string> ConfigAlive(ConfigurationApi api, ActorSystem system);
     }
 
+    [UsedImplicitly]
     public sealed class ProcessServiceHostRef : FeatureActorRefBase<IProcessServiceHost>, IProcessServiceHost
     {
         public ProcessServiceHostRef() 
@@ -192,6 +194,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
             var config = new SharpRepositoryConfiguration();
             var fileSystemBuilder = new VirtualFileFactory();
 
+            #pragma warning disable GU0011
             ApplyMongoUrl(connectionstring, CleanUpManager.RepositoryKey, config);
 
             var url = ApplyMongoUrl(connectionstring, RepositoryManager.RepositoryKey, config);
@@ -212,6 +215,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
 
             ApplyMongoUrl(connectionstring, ServiceManagerDeamon.RepositoryKey, config);
             deamonRef = ServiceManagerDeamon.Init(system, config);
+            #pragma warning disable GU0011
         }
 
         public sealed record Services(IActorRef Repo, IActorRef Deploy, IActorRef Deamon, bool Running, string CurrentUrl) : IDisposable

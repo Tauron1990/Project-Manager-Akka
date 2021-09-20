@@ -15,7 +15,6 @@ using Tauron.Application.CommonUI.Dialogs;
 using Tauron.Application.CommonUI.Helper;
 using Tauron.Application.CommonUI.Model;
 using Tauron.Application.Localizer.DataModel;
-using Tauron.Application.Localizer.DataModel.Processing;
 using Tauron.Application.Localizer.DataModel.Processing.Messages;
 using Tauron.Application.Localizer.DataModel.Workspace;
 using Tauron.Application.Localizer.UIModels.lang;
@@ -24,7 +23,6 @@ using Tauron.Application.Localizer.UIModels.Services;
 using Tauron.Application.Localizer.UIModels.Views;
 using Tauron.Application.Workshop;
 using Tauron.Application.Workshop.Mutation;
-using ActorRefFactoryExtensions = Tauron.Akka.ActorRefFactoryExtensions;
 
 namespace Tauron.Application.Localizer.UIModels
 {
@@ -122,8 +120,8 @@ namespace Tauron.Application.Localizer.UIModels
                         {
                             if (result == true)
                                 workspace.Projects.RemoveProject(project.Name);
-                        });
-                });
+                        }).Ignore();
+                }).Ignore();
             }
 
             void RemoveProject(Project project)
@@ -161,7 +159,7 @@ namespace Tauron.Application.Localizer.UIModels
 
                 var target = Observable.Return(obj);
 
-                if (Views!.Count != 0)
+                if (Views.Count != 0)
                     target = target
                         .ObserveOn(ActorScheduler.From(proxy))
                         .SelectMany(pr => Task.WhenAll(Views.Select(c
@@ -188,7 +186,7 @@ namespace Tauron.Application.Localizer.UIModels
                                 }
                                 finally
                                 {
-                                    viewList!.Clear();
+                                    viewList.Clear();
                                 }
 
                                 return pr;
@@ -234,7 +232,7 @@ namespace Tauron.Application.Localizer.UIModels
                 if (!ActorPath.IsValidPathElement(name))
                 {
                     UICall(_ => dialogCoordinator.ShowMessage(localizer.CommonError,
-                        localizer.CenterViewNewProjectInvalidNameMessage));
+                        localizer.CenterViewNewProjectInvalidNameMessage)).Ignore();
                     return;
                 }
 
@@ -244,7 +242,7 @@ namespace Tauron.Application.Localizer.UIModels
                 view.AwaitInit(() => view.Actor.Tell(new InitProjectViewModel(project), Self));
                 viewList.Add(new ProjectViewContainer(project, view));
 
-                UICall(() => CurrentProject += Views.Count - 1);
+                UICall(() => CurrentProject += Views.Count - 1).Ignore();
             }
 
             NewCommad

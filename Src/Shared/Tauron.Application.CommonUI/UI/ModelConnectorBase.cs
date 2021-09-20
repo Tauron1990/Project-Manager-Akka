@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Reactive.Disposables;
-using System.Reactive.Threading.Tasks;
 using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
@@ -42,13 +41,15 @@ namespace Tauron.Application.CommonUI.UI
 
                     if (model.IsInitialized)
                     {
-                        Task.Run(async () => await InitAsync());
+                        Task.Run(async () => await InitAsync())
+                            .Ignore();
                     }
                     else
                     {
                         void OnModelOnInitialized()
                         {
-                            Task.Run(async () => await InitAsync());
+                            Task.Run(async () => await InitAsync())
+                                .Ignore();
                         }
 
                         model.AwaitInit(OnModelOnInitialized);

@@ -3,7 +3,7 @@ using System.Runtime.Serialization;
 
 namespace Tauron.Application.AkkaNode.Services.Reporting.Commands
 {
-    [Serializable]
+    /*[Serializable]
     public class CommandFailedException : Exception
     {
         //
@@ -13,22 +13,14 @@ namespace Tauron.Application.AkkaNode.Services.Reporting.Commands
         //    http://msdn.microsoft.com/library/default.asp?url=/library/en-us/dncscol/html/csharp07192001.asp
         //
 
-        public CommandFailedException()
-        {
-        }
+        public CommandFailedException() { }
 
-        public CommandFailedException(string message) : base(message)
-        {
-        }
+        public CommandFailedException(string message) : base(message) { }
 
-        public CommandFailedException(string message, Exception inner) : base(message, inner)
-        {
-        }
+        public CommandFailedException(string message, Exception inner) : base(message, inner) { }
 
         protected CommandFailedException(
             SerializationInfo info,
-            StreamingContext context) : base(info, context)
-        {
-        }
-    }
+            StreamingContext context) : base(info, context) { }
+    }*/
 }

@@ -40,7 +40,7 @@ namespace ServiceHost.Installer.Impl
                             return StepId.Fail;
                         default:
                             registry.Ask<InstalledAppRespond>(new InstalledAppQuery(context.Name), TimeSpan.FromSeconds(10))
-                                    .PipeTo(Self);
+                                    .PipeTo(Self).Ignore();
                             return StepId.Waiting;
                     }
                 });
@@ -183,13 +183,13 @@ namespace ServiceHost.Installer.Impl
                            .Ask<RegistrationResponse>(
                                 new NewRegistrationRequest(context.SoftwareName, context.Name, context.InstallationPath, context.Source.Version, context.AppType, context.GetExe()), 
                                 TimeSpan.FromSeconds(15))
-                           .PipeTo(Self);
+                           .PipeTo(Self).Ignore();
                     }
                     else
                     {
                         registry.Actor
                            .Ask<RegistrationResponse>(new UpdateRegistrationRequest(context.Name), TimeSpan.FromSeconds(15))
-                           .PipeTo(Self);
+                           .PipeTo(Self).Ignore();
                     }
 
                     return StepId.Waiting;
@@ -226,9 +226,9 @@ namespace ServiceHost.Installer.Impl
                 });
             });
 
-            Signal<Failure>((_, f) =>
+            Signal<Status.Failure>((_, f) =>
             {
-                SetError(f.Exception.Message);
+                SetError(f.Cause.Message);
                 return StepId.Fail;
             });
 

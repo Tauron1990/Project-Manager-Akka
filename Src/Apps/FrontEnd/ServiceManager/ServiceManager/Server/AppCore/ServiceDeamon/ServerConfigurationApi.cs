@@ -6,20 +6,20 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
+using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 using ServiceHost.Client.Shared.ConfigurationServer;
 using ServiceHost.Client.Shared.ConfigurationServer.Data;
 using ServiceHost.Client.Shared.ConfigurationServer.Events;
-using ServiceManager.Server.AppCore.Helper;
 using ServiceManager.Server.Controllers;
 using ServiceManager.Shared.Api;
 using ServiceManager.Shared.ServiceDeamon;
-using Stl.Async;
 using Stl.Fusion;
 using Tauron;
 
 namespace ServiceManager.Server.AppCore.ServiceDeamon
 {
+    [UsedImplicitly]
     public class ServerConfigurationApi : IServerConfigurationApi, IDisposable
     {
         private const string OperationCanceled = "Vorgang Abgebrochen";
@@ -49,7 +49,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
                                using(Computed.Invalidate())
                                    QueryAppConfig().Ignore();
                            })
-                      .AutoSubscribe(e => _log.LogError(e, "Error on Process ConfigEvent"))
+                      .AutoSubscribe(e => log.LogError(e, "Error on Process ConfigEvent"))
                       .DisposeWith(_disposable);
 
 

@@ -34,7 +34,7 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer.Internal
 
             Unit MakeInstallationSubscription()
             {
-                CurrentState.Api.ExecuteCommand(new SubscribeInstallationCompled(CurrentState.Name, false))
+                CurrentState.Api.ExecuteCommand(new SubscribeInstallationCompled(CurrentState.Name, Unsubscribe: false))
                             .ToObservable()
                             .Subscribe(
                                  r =>
@@ -129,7 +129,7 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer.Internal
 
         private sealed record ReSheduleInstallEvent
         {
-            public static readonly ReSheduleInstallEvent Inst = new();
+            internal static readonly ReSheduleInstallEvent Inst = new();
         }
     }
 }

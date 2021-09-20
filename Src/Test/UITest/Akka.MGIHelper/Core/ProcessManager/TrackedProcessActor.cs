@@ -37,12 +37,12 @@ namespace Akka.MGIHelper.Core.ProcessManager
 
         private sealed record InternalProcessExit
         {
-            public static readonly InternalProcessExit Inst = new();
+            internal static readonly InternalProcessExit Inst = new();
         }
 
         private sealed record InternalCheckProcess
         {
-            public static readonly InternalCheckProcess Inst = new();
+            internal static readonly InternalCheckProcess Inst = new();
         }
     }
 }

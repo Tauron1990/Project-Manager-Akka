@@ -16,7 +16,6 @@ using Tauron.Application.CommonUI.Dialogs;
 using Tauron.Application.CommonUI.Helper;
 using Tauron.Application.CommonUI.Model;
 using Tauron.Application.Localizer.DataModel;
-using Tauron.Application.Localizer.DataModel.Processing;
 using Tauron.Application.Localizer.DataModel.Processing.Messages;
 using Tauron.Application.Localizer.DataModel.Workspace;
 using Tauron.Application.Localizer.DataModel.Workspace.Analyzing;
@@ -52,11 +51,7 @@ namespace Tauron.Application.Localizer.UIModels
 
             #region Restarting
 
-            Start.Subscribe(_ =>
-            {
-                if (last != null)
-                    Self.Tell(last);
-            });
+            Start.Subscribe(_ => Self.Tell(last));
             this.Receive<ProjectFile>(workspace.Reset);
 
             #endregion
@@ -78,8 +73,8 @@ namespace Tauron.Application.Localizer.UIModels
 
             IObservable<UpdateSource> SaveAsProject()
             {
-                var targetFile = dialogFactory.ShowSaveFileDialog(null, true, false, true, "transp", true,
-                    localizer.OpenFileDialogViewDialogFilter, true, true, localizer.MainWindowMainMenuFileSaveAs,
+                var targetFile = dialogFactory.ShowSaveFileDialog(null, addExtension: true, checkFileExists: false, checkPathExists: true, "transp", dereferenceLinks: true,
+                    localizer.OpenFileDialogViewDialogFilter, createPrompt: true, overwritePrompt: true, localizer.MainWindowMainMenuFileSaveAs,
                     Directory.GetCurrentDirectory());
 
                 return targetFile.NotEmpty()
@@ -93,11 +88,11 @@ namespace Tauron.Application.Localizer.UIModels
                 if (!string.IsNullOrWhiteSpace(source)) return (true, source);
                 await UICall(()
                     => dialogCoordinator.ShowMessage(localizer.CommonError,
-                        localizer.MainWindowModelLoadProjectSourceEmpty!));
+                        localizer.MainWindowModelLoadProjectSourceEmpty));
                 return (false, source);
             }
 
-            NewCommad.WithCanExecute(last.Select(pf => pf != null && !pf.IsEmpty))
+            NewCommad.WithCanExecute(last.Select(pf => pf is { IsEmpty: false }))
                 .WithFlow(ob => ob.SelectMany(_ => SaveAsProject())
                     .ToModel(CenterView))
                 .ThenRegister("SaveAs");
@@ -111,7 +106,7 @@ namespace Tauron.Application.Localizer.UIModels
                 .NotNull()
                 .ObserveOnSelf()
                 .Select(ProjectLoaded)
-                .ToModel(CenterView!);
+                .ToModel(CenterView);
 
 
             this.Receive<InternlRenctFile>(o => OpentFileSource(o.File));
@@ -133,7 +128,7 @@ namespace Tauron.Application.Localizer.UIModels
                     .SelectMany(source => operationManager
                         .StartOperation(string.Format(localizer.MainWindowModelLoadProjectOperation,
                             Path.GetFileName(source)))
-                        .Do(op => loadingOperation!.Value = op)
+                        .Do(op => loadingOperation.Value = op)
                         .Select(operationController => (operationController, source)))
                     .Do(_ =>
                     {
@@ -150,7 +145,7 @@ namespace Tauron.Application.Localizer.UIModels
             {
                 try
                 {
-                    if (loadingOperation!.Value != null)
+                    if (loadingOperation.Value != null)
                     {
                         if (obj.Ok)
                         {
@@ -164,9 +159,9 @@ namespace Tauron.Application.Localizer.UIModels
                     }
 
                     loadingOperation.Value = null;
-                    if (obj.Ok) RenctFiles!.Value.AddNewFile(obj.ProjectFile.Source);
+                    if (obj.Ok) RenctFiles.Value.AddNewFile(obj.ProjectFile.Source);
 
-                    last!.Value = obj.ProjectFile;
+                    last.Value = obj.ProjectFile;
 
                     return new SupplyNewProjectFile(obj.ProjectFile);
                 }
@@ -183,7 +178,7 @@ namespace Tauron.Application.Localizer.UIModels
                 .ThenRegister("OpenFile");
 
             NewProjectFile(Receive<SourceSelected>()).DisposeWith(this);
-            Receive<LoadedProjectFile>(ob => ob.Select(ProjectLoaded).ToModel(CenterView!));
+            Receive<LoadedProjectFile>(ob => ob.Select(ProjectLoaded).ToModel(CenterView));
 
             #endregion
 
@@ -193,13 +188,13 @@ namespace Tauron.Application.Localizer.UIModels
             {
                 source ??= string.Empty;
                 var data = new LoadedProjectFile(string.Empty,
-                    ProjectFile.NewProjectFile(Context, source, "Project_Operator"), null, true);
+                    ProjectFile.NewProjectFile(Context, source, "Project_Operator"), null, Ok: true);
 
                 if (File.Exists(source))
                 {
                     //TODO NewFile Filog Message
                     var result = UICall(async ()
-                        => await dialogCoordinator.ShowMessage(localizer.CommonError!, "", null));
+                        => await dialogCoordinator.ShowMessage(localizer.CommonError, "", null));
 
                     return result.Where(b => b == true).Do(_ => mainWindowCoordinator.IsBusy = true).Select(_ => data);
                 }
@@ -264,14 +259,14 @@ namespace Tauron.Application.Localizer.UIModels
             private readonly AppConfig _config;
             private readonly Action<string> _loader;
 
-            public RenctFilesCollection(AppConfig config, Action<string> loader)
+            internal RenctFilesCollection(AppConfig config, Action<string> loader)
                 : base(config.RenctFiles.Select(s => new RenctFile(s.Trim(), loader)))
             {
                 _config = config;
                 _loader = loader;
             }
 
-            public void AddNewFile(string file)
+            internal void AddNewFile(string file)
             {
                 file = file.Trim();
 
@@ -289,18 +284,18 @@ namespace Tauron.Application.Localizer.UIModels
 
         private sealed class InternlRenctFile
         {
-            public InternlRenctFile(string file) => File = file;
+            internal InternlRenctFile(string file) => File = file;
 
-            public string File { get; }
+            internal string File { get; }
         }
 
         private sealed class AnalyzerEntryBuilder
         {
             private readonly LocLocalizer _localizer;
 
-            public AnalyzerEntryBuilder(LocLocalizer localizer) => _localizer = localizer;
+            internal AnalyzerEntryBuilder(LocLocalizer localizer) => _localizer = localizer;
 
-            public AnalyzerEntry Get(Issue issue)
+            internal AnalyzerEntry Get(Issue issue)
             {
                 var builder = new AnalyzerEntry.Builder(issue.RuleName, issue.Project);
 

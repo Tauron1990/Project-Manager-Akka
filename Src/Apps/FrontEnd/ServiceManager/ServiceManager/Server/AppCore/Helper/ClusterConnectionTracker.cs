@@ -7,10 +7,8 @@ using Akka.Actor;
 using Akka.Cluster;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
-using NLog;
 using ServiceManager.Shared;
 using ServiceManager.Shared.ClusterTracking;
-using Stl.Async;
 using Stl.Fusion;
 using Tauron;
 using Tauron.Application.Master.Commands.Administration.Configuration;
@@ -67,7 +65,7 @@ namespace ServiceManager.Server.AppCore.Helper
                 }
                 catch (Exception e)
                 {
-                    _log.LogError(e, "Error on Join Self Cluster");
+                    log.LogError(e, "Error on Join Self Cluster");
                 }
             }
         }
@@ -88,9 +86,9 @@ namespace ServiceManager.Server.AppCore.Helper
         {
             try
             {
-                string content = await File.ReadAllTextAsync(Path.Combine(Program.ExeFolder, AkkaConfigurationBuilder.Seed));
+                string content = await File.ReadAllTextAsync(Path.Combine(Program.ExeFolder, AkkaConfigurationBuilder.Seed), token);
                 content = await AkkaConfigurationBuilder.PatchSeedUrls(content, new[] { command.Url });
-                await File.WriteAllTextAsync(Path.Combine(Program.ExeFolder, AkkaConfigurationBuilder.Seed), content);
+                await File.WriteAllTextAsync(Path.Combine(Program.ExeFolder, AkkaConfigurationBuilder.Seed), content, token);
                 return string.Empty;
             }
             catch (Exception e)

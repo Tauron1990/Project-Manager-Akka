@@ -3,10 +3,8 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Reactive.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using Akka.Configuration;
-using ServiceManager.Shared;
 using ServiceManager.Shared.ClusterTracking;
 using Tauron.Application;
 using Tauron.Application.Master.Commands.Administration.Configuration;
@@ -24,7 +22,7 @@ namespace ServiceManager.Server.AppCore.Helper
 
     public sealed class AppIpManager : ObservableObject, IInternalAppIpManager
     {
-        private AppIp _appIpField = new("Unbekannt", false);
+        private AppIp _appIpField = new("Unbekannt", IsValid: false);
 
         public IObservable<AppIp> IpChanged { get; }
 
@@ -54,7 +52,7 @@ namespace ServiceManager.Server.AppCore.Helper
                         #if DEBUG
                         needPatch = true;
                         #endif
-                        Ip = new AppIp(old, true);
+                        Ip = new AppIp(old, IsValid: true);
                     }
                 }
                 catch (IOException) { }
@@ -67,7 +65,7 @@ namespace ServiceManager.Server.AppCore.Helper
 
             if (string.IsNullOrWhiteSpace(potentialIp))
             {
-                Ip = new AppIp("Keine Ip Gefunden Bitte manuelle Eingabe!", false);
+                Ip = new AppIp("Keine Ip Gefunden Bitte manuelle Eingabe!", IsValid: false);
                 return;
             }
 
@@ -80,15 +78,17 @@ namespace ServiceManager.Server.AppCore.Helper
 
                 baseConfig = ConfigurationFactory.ParseString($"akka.remote.dot-netty.tcp.hostname = {potentialIp}").WithFallback(baseConfig);
 
-                await File.WriteAllTextAsync(seedPath, baseConfig.ToString(true));
+                await File.WriteAllTextAsync(seedPath, baseConfig.ToString(includeFallback: true));
 
-                Ip = new AppIp(potentialIp, true);
+                Ip = new AppIp(potentialIp, IsValid: true);
 
                 await File.WriteAllTextAsync(targetFile, potentialIp);
             }
             catch (Exception e)
             {
-                Ip = new AppIp(e.Message, false);
+                #pragma warning disable EPC12
+                Ip = new AppIp(e.Message, IsValid: false);
+                #pragma warning restore EPC12
             }
         }
 
@@ -119,14 +119,16 @@ namespace ServiceManager.Server.AppCore.Helper
             
                 var targetFile = Path.Combine(TauronEnviroment.DefaultProfilePath, "servicemanager-ip.dat");
 
-                await File.WriteAllTextAsync("seed.conf", baseConfig.ToString(true));
+                await File.WriteAllTextAsync("seed.conf", baseConfig.ToString(includeFallback: true));
                 await File.WriteAllTextAsync(targetFile, ip);
 
                 return string.Empty;
             }
             catch (Exception e)
             {
+                #pragma warning disable EPC12
                 return e.Message;
+                #pragma warning restore EPC12
             }
         }
 

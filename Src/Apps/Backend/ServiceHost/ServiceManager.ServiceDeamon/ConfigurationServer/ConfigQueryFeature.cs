@@ -77,10 +77,10 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
                 if (root != null && !specific.IsEmpty)
                 {
                     return MergeSpecific().WithFallback(ConfigurationFactory.ParseString(root.Config.ConfigContent))
-                                          .ToString(true);}
+                                          .ToString(includeFallback: true);}
 
                 if (root == null && !specific.IsEmpty)
-                    return MergeSpecific().ToString(true);
+                    return MergeSpecific().ToString(includeFallback: true);
 
                 if (root != null && specific.IsEmpty)
                     return root.Config.ConfigContent;

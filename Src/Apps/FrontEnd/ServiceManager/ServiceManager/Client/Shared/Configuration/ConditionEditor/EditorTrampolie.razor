@@ -1,4 +1,5 @@
 ﻿@using System.Reactive.Disposables
+@using Tauron
 
 @implements IDisposable
 
@@ -113,7 +114,7 @@
         _error = newError;
         if(skipStateChange) return;
 
-        InvokeAsync(StateHasChanged);
+        InvokeAsync(StateHasChanged).Ignore();
     }
 
     public void Dispose() => _subscription.Dispose();

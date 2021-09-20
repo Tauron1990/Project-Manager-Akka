@@ -44,7 +44,7 @@ namespace ServiceManager.Client.ViewModels.Configuration
                 var toUpdate = ConfigurationFactory.ParseString($"{optionSelected.Path}: {optionSelected.Value}");
                 var config = ConfigurationFactory.ParseString(ConfigContent);
 
-                var newData = toUpdate.WithFallback(config).ToString(true);
+                var newData = toUpdate.WithFallback(config).ToString(includeFallback: true);
 
                 ConfigContent = newData;
             }

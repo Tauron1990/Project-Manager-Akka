@@ -92,7 +92,7 @@ namespace Tauron.Application.Localizer.Views
         public string Error
         {
             get => _error;
-            set
+            private set
             {
                 if (value == _error) return;
                 _error = value;
@@ -124,12 +124,10 @@ namespace Tauron.Application.Localizer.Views
         {
             private readonly List<string> _infos;
 
-            public StaticSuggestion(List<string> infos) => _infos = infos;
+            internal StaticSuggestion(List<string> infos) => _infos = infos;
 
             public override IEnumerable<string> Search(string searchTerm)
-            {
-                return _infos.Where(s => s.Contains(searchTerm));
-            }
+                => _infos.Where(s => s.Contains(searchTerm));
         }
     }
 }

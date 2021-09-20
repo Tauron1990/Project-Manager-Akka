@@ -11,7 +11,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ServiceManager.Shared.Identity;
-using Stl.Async;
 using Stl.Fusion;
 using Stl.Fusion.Authentication;
 using Stl.Fusion.Authentication.Commands;
@@ -129,6 +128,7 @@ namespace ServiceManager.Server.AppCore.Identity
                     }
                     catch (Exception e)
                     {
+                        Log.LogError(e, "Error on Set new Password for User: {User}", command.UserId);
                         return e.Message;
                     }
                 });
@@ -180,6 +180,7 @@ namespace ServiceManager.Server.AppCore.Identity
                     }
                     catch (Exception e)
                     {
+                        Log.LogError(e, "Error on Set Claims for User: {User}", command.UserId);
                         return e.Message;
                     }
                 });
@@ -194,7 +195,7 @@ namespace ServiceManager.Server.AppCore.Identity
 
                     try
                     {
-                        await using var db = CreateDbContext(true);
+                        await using var db = CreateDbContext(readWrite: true);
 
                         if (await AsyncEnumerable.CountAsync(db.Users, token) != 0)
                             return "Es sind schon User Registriert. Kein Setup erforderlich";
@@ -217,7 +218,9 @@ namespace ServiceManager.Server.AppCore.Identity
                             var claimresult = await repo.AddClaimsAsync(newUser, Claims.AllClaims.Select(s => new Claim(s, string.Empty)));
 
                             if (!claimresult.Succeeded)
+                                #pragma warning disable EX006
                                 throw new InvalidOperationException(string.Join(',', claimresult.Errors.Select(ie => ie.Description)));
+                            #pragma warning restore EX006
 
                             var user = await Create(command.AdminName, repo);
                             await _authService.Create(db, user.FusionUser, token);
@@ -230,6 +233,7 @@ namespace ServiceManager.Server.AppCore.Identity
                             }
                             catch (Exception exception)
                             {
+                                Log.LogError(exception, "Error on Delete Setup User while Setup Error");
                                 return exception.Message;
                             }
 
@@ -238,6 +242,7 @@ namespace ServiceManager.Server.AppCore.Identity
                     }
                     catch (Exception e)
                     {
+                        Log.LogError(e, "Error on Run Setup");
                         return e.Message;
                     }
 
@@ -270,7 +275,7 @@ namespace ServiceManager.Server.AppCore.Identity
 
                         if (login.IsSignedIn(contetxt.User))
                         {
-                            await authService.SignOut(new SignOutCommand(command.Session, true), token);
+                            await authService.SignOut(new SignOutCommand(command.Session, Force: true), token);
                             await login.SignOutAsync();
 
                             return string.Empty;
@@ -281,6 +286,7 @@ namespace ServiceManager.Server.AppCore.Identity
             }
             catch (Exception e)
             {
+                Log.LogError(e, "Error on Logout User");
                 return e.Message;
             }
         }
@@ -318,6 +324,7 @@ namespace ServiceManager.Server.AppCore.Identity
                     }
                     catch (Exception e)
                     {
+                        Log.LogError(e, "Error on Register User: {User}", command.UserName);
                         return e.Message;
                     }
                 });
@@ -342,6 +349,7 @@ namespace ServiceManager.Server.AppCore.Identity
             }
             catch (Exception e)
             {
+                Log.LogError(e, "Error on Delete User: {User}", command.UserId);
                 return e.Message;
             }
         }

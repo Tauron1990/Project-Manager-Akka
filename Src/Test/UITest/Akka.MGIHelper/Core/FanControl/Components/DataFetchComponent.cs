@@ -52,15 +52,17 @@ namespace Akka.MGIHelper.Core.FanControl.Components
             }
             catch (Exception e)
             {
-                await messageBus.Publish(new TrackingEvent(true, e.Message));
+                #pragma warning disable EPC12
+                await messageBus.Publish(new TrackingEvent(Error: true, e.Message));
+                #pragma warning restore EPC12
             }
         }
 
         private class ValuePair
         {
-            public string Name { get; init; } = string.Empty;
+            internal string Name { get; init; } = string.Empty;
 
-            public string Value { get; init; } = string.Empty;
+            internal string Value { get; init; } = string.Empty;
 
             public override string ToString() => $"{Name}={Value}";
         }

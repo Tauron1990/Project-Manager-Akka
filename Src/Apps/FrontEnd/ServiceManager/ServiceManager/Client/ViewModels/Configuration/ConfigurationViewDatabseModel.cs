@@ -17,7 +17,7 @@ namespace ServiceManager.Client.ViewModels.Configuration
     {
         [ActivatorUtilitiesConstructor, UsedImplicitly]
         public ConfigurationViewDatabseModel(IServerInfo serverInfo, IDialogService dialogService, IEventAggregator aggregator, IDatabaseConfig config)
-            : this(serverInfo, dialogService, aggregator, string.Empty, config, string.Empty, false, Validate, false)
+            : this(serverInfo, dialogService, aggregator, string.Empty, config, string.Empty, CanFetch: false, Validate, IsValid: false)
         {
             
         }

@@ -1,27 +1,61 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
+using Akka.Util;
+using JetBrains.Annotations;
+using Tauron.Operations;
 
 namespace Tauron.Application.AkkaNode.Services.Reporting.Commands
 {
+    public sealed record ApiParameter(TimeSpan Timeout, CancellationToken CancellationToken, Action<string> Messages)
+    {
+        public ApiParameter(TimeSpan timeout)
+            : this(timeout, CancellationToken.None, _ => {})
+        {
+            
+        }
+        
+        public ApiParameter(TimeSpan timeout, Action<string> messages)
+            : this(timeout, CancellationToken.None, messages)
+        {
+            
+        }
+        
+        public ApiParameter(TimeSpan timeout, CancellationToken token)
+            : this(timeout, token, s => {})
+        {
+            
+        }
+    }
+    
+    [PublicAPI]
     public abstract class SenderBase<TThis, TQueryType, TCommandType> : ISender
         where TThis : SenderBase<TThis, TQueryType, TCommandType>, ISender
     {
-        public Task<TResult> Query<TQuery, TResult>(TQuery query, TimeSpan timeout, Action<string>? mesgs = null)
+        public Task<Either<TResult, Error>> Query<TQuery, TResult>(TQuery query, ApiParameter parameter)
             where TQuery : ResultCommand<TThis, TQuery, TResult>, TQueryType
-            => ((TThis)this).Send(query, timeout, default(TResult), mesgs ?? (_ => { }));
+            => ((TThis)this).Send(query, parameter.Timeout, default(TResult), parameter.Messages, parameter.CancellationToken);
 
-        public Task<TResult> Query<TQuery, TResult>(TimeSpan timeout, Action<string>? mesgs = null)
+        public Task<Either<TResult, Error>> Query<TQuery, TResult>(ApiParameter parameter)
             where TQuery : ResultCommand<TThis, TQuery, TResult>, TQueryType, new()
-            => Query<TQuery, TResult>(new TQuery(), timeout, mesgs);
-
-        public Task Command<TCommand>(TCommand command, TimeSpan timeout, Action<string>? msgs = null)
-            where TCommand : SimpleCommand<TThis, TCommand>, TCommandType
-            => ((TThis)this).Send(command, timeout, msgs ?? (_ => { }));
+            => Query<TQuery, TResult>(new TQuery(), parameter);
         
-        public Task<TResult> Command<TCommand, TResult>(TCommand command, TimeSpan timeout, Action<string>? mesgs = null)
-            where TCommand : ResultCommand<TThis, TCommand, TResult>, TCommandType
-            => ((TThis)this).Send(command, timeout, default(TResult), mesgs ?? (_ => { }));
+        public Task<Either<TResult, Error>> Query<TQuery, TResult>(TQuery query, TResult witness, ApiParameter parameter)
+            where TQuery : ResultCommand<TThis, TQuery, TResult>, TQueryType
+            => Query<TQuery, TResult>(query, parameter);
 
+        public Task<Option<Error>> Command<TCommand>(TCommand command, ApiParameter parameter)
+            where TCommand : SimpleCommand<TThis, TCommand>, TCommandType
+            => ((TThis)this).Send(command, parameter.Timeout, parameter.Messages, parameter.CancellationToken);
+        
+        public Task<Either<TResult, Error>> Command<TCommand, TResult>(TCommand command, ApiParameter parameter)
+            where TCommand : ResultCommand<TThis, TCommand, TResult>, TCommandType
+            => ((TThis)this).Send(command, parameter.Timeout, default(TResult), parameter.Messages, parameter.CancellationToken);
+
+        public Task<Either<TResult, Error>> Command<TCommand, TResult>(TCommand command, TResult witness, ApiParameter parameter)
+            where TCommand : ResultCommand<TThis, TCommand, TResult>, TCommandType
+            => Command<TCommand, TResult>(command, parameter);
+        
         protected abstract void SendCommandImpl(IReporterMessage command);
 
         void ISender.SendCommand(IReporterMessage command)

@@ -4,6 +4,7 @@ using System.IO;
 using System.Reactive.Linq;
 using System.Threading;
 using Akka.Actor;
+using Akka.Event;
 using Akka.MGIHelper.Core.Configuration;
 using IniParser;
 using Tauron;
@@ -41,7 +42,7 @@ namespace Akka.MGIHelper.UI.MgiStarter
                     //CurrentState.ShowMessageBox(null, Context.Loc().RequestString("kernelstarterror"), "Error", MsgBoxButton.Ok, MsgBoxImage.Error);
                     try
                     {
-                        target.Kill(true);
+                        target.Kill(entireProcessTree: true);
                         target.Dispose();
                     }
                     catch (Exception e)
@@ -53,11 +54,13 @@ namespace Akka.MGIHelper.UI.MgiStarter
                 }
 
                 Thread.Sleep(500);
+                #pragma warning disable EX006
                 Directory.SetCurrentDirectory(Path.GetDirectoryName(config.Client.Trim()) ?? throw new InvalidOperationException("Current Directory Set Fail"));
+                #pragma warning restore EX006
 
                 if (obj.Cancel.IsCancellationRequested)
                 {
-                    target.Kill(true);
+                    target.Kill(entireProcessTree: true);
                     return;
                 }
 
@@ -112,8 +115,9 @@ namespace Akka.MGIHelper.UI.MgiStarter
                             return false;
                     }
                 }
-                catch
+                catch(Exception e)
                 {
+                    Context.GetLogger().Error(e, "Error on Check Kernel Running");
                     Thread.Sleep(500);
                 }
             }

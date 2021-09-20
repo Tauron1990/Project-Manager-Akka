@@ -14,7 +14,6 @@ using NLog;
 using Tauron.Application.CommonUI;
 using Tauron.Application.CommonUI.AppCore;
 using Tauron.Application.CommonUI.Dialogs;
-using Tauron.Application.Localizer.DataModel.Processing;
 using Tauron.Application.Localizer.DataModel.Processing.Messages;
 using Tauron.Application.Localizer.DataModel.Workspace;
 using Tauron.Application.Localizer.UIModels;
@@ -30,7 +29,6 @@ namespace Tauron.Application.Localizer
     public partial class MainWindow : IMainWindow
     {
         private const string LayoutFile = "Layout.xml";
-        private readonly IDialogCoordinator _coordinator;
         private readonly CommonUIFramework _framework;
         private readonly LocLocalizer _localizer;
         private readonly IMainWindowCoordinator _mainWindowCoordinator;
@@ -46,13 +44,12 @@ namespace Tauron.Application.Localizer
         {
             _localizer = localizer;
             _mainWindowCoordinator = mainWindowCoordinator;
-            _coordinator = coordinator;
             _workspace = workspace;
             _framework = framework;
 
             InitializeComponent();
 
-            var diag = (IDialogCoordinatorUIEvents) _coordinator;
+            var diag = (IDialogCoordinatorUIEvents) coordinator;
 
             diag.ShowDialogEvent += o => this.ShowDialog(o);
             diag.HideDialogEvent += () => Dialogs.CurrentSession?.Close();
@@ -62,14 +59,15 @@ namespace Tauron.Application.Localizer
             _mainWindowCoordinator.IsBusyChanged += IsBusyChanged;
 
             Closing += OnClosing;
+            // ReSharper disable once AsyncVoidLambda
             Closed += async (_, _) =>
-            {
-                SaveLayout();
-                Shutdown?.Invoke(this, EventArgs.Empty);
+                      {
+                          SaveLayout();
+                          Shutdown?.Invoke(this, EventArgs.Empty);
 
-                await Task.Delay(TimeSpan.FromSeconds(60));
-                Process.GetCurrentProcess().Kill(false);
-            };
+                          await Task.Delay(TimeSpan.FromSeconds(60));
+                          Process.GetCurrentProcess().Kill(entireProcessTree: false);
+                      };
 
             operationManager.OperationFailed
                 .ObserveOnDispatcher()
@@ -99,7 +97,7 @@ namespace Tauron.Application.Localizer
 
             Dialogs.ShowDialog(_framework.CreateDefaultMessageContent(_localizer.CommonWarnig,
                     _localizer.MainWindowCloseWarning,
-                    res => Dialogs.CurrentSession.Close(res == true), true))
+                    res => Dialogs.CurrentSession.Close(res == true), canCnacel: true))
                 .ContinueWith(t =>
                 {
                     if (!t.IsCompletedSuccessfully || t.Result is not bool result) return;

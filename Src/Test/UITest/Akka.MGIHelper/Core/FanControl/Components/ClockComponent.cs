@@ -58,7 +58,9 @@ namespace Akka.MGIHelper.Core.FanControl.Components
                 catch
                 {
                     // ignored
+                    #pragma warning disable ERP022
                 }
+                #pragma warning restore ERP022
                 finally
                 {
                     if (_clockState == ClockState.Start) 

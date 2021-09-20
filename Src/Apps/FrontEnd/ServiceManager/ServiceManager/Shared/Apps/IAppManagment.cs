@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 using Stl.Fusion;
 using Tauron.Application.Master.Commands.Deployment.Build.Data;
 
@@ -9,19 +10,19 @@ namespace ServiceManager.Shared.Apps
         //public const string GridItemsQuery = nameof(GridItemsQuery);
         
         [ComputeMethod]
-        Task<NeedSetupData> NeedBasicApps();
+        Task<NeedSetupData> NeedBasicApps(CancellationToken token);
 
         [ComputeMethod]
-        Task<AppList> QueryAllApps();
+        Task<AppList> QueryAllApps(CancellationToken token);
 
         [ComputeMethod]
-        Task<AppInfo> QueryApp(string name);
+        Task<AppInfo> QueryApp(string name, CancellationToken token);
 
 
-        Task<string> CreateNewApp(ApiCreateAppCommand command);
+        Task<string> CreateNewApp(ApiCreateAppCommand command, CancellationToken token);
 
-        Task<string> DeleteAppCommand(ApiDeleteAppCommand command);
+        Task<string> DeleteAppCommand(ApiDeleteAppCommand command, CancellationToken token);
 
-        Task<RunAppSetupResponse> RunAppSetup(RunAppSetupCommand command);
+        Task<RunAppSetupResponse> RunAppSetup(RunAppSetupCommand command, CancellationToken token);
     }
 }

@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
+using Akka.Util;
 using JetBrains.Annotations;
+using Tauron.Operations;
 
 namespace Tauron.Application.AkkaNode.Services.Reporting.Commands
 {
@@ -11,9 +14,14 @@ namespace Tauron.Application.AkkaNode.Services.Reporting.Commands
 
     public static class SimpleCommandExtensions
     {
-        public static Task Send<TSender, TCommand>(this TSender sender, TCommand command, TimeSpan timeout, Action<string> messages)
+        public static async Task<Option<Error>> Send<TSender, TCommand>(
+            this TSender sender, TCommand command, TimeSpan timeout, Action<string> messages, CancellationToken token = default)
             where TCommand : SimpleCommand<TSender, TCommand>, IReporterMessage
             where TSender : ISender
-            => SendingHelper.Send<object, TCommand>(sender, command, messages, timeout, isEmpty: true);
+        {
+            var result = await SendingHelper.Send<object, TCommand>(sender, command, messages, timeout, isEmpty: true, token);
+
+            return result.Fold(_ => Option<Error>.None, e => e);
+        }
     }
 }

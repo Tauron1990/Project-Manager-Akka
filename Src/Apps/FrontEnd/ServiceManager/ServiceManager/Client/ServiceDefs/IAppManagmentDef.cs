@@ -18,13 +18,13 @@ namespace ServiceManager.Client.ServiceDefs
         
         
         [Get(nameof(QueryApp))]
-        Task<AppInfo> QueryApp([Query]string name);
+        Task<AppInfo> QueryApp([Query]string name, CancellationToken token);
         
         [Post]
-        Task<string> CreateNewApp([Body]ApiCreateAppCommand command);
+        Task<string> CreateNewApp([Body]ApiCreateAppCommand command, CancellationToken token);
 
         [Post]
-        Task<string> DeleteAppCommand([Body]ApiDeleteAppCommand command);
+        Task<string> DeleteAppCommand([Body]ApiDeleteAppCommand command, CancellationToken token);
         
         [Post(nameof(RunAppSetup))]
         Task<RunAppSetupResponse> RunAppSetup([Body]RunAppSetupCommand command, CancellationToken token);

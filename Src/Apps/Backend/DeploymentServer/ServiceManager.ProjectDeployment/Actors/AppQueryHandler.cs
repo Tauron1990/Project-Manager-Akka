@@ -7,11 +7,9 @@ using Akka.Actor;
 using ServiceManager.ProjectDeployment.Data;
 using SharpRepository.Repository;
 using Tauron;
-using Tauron.Application.AkkaNode.Services;
 using Tauron.Application.AkkaNode.Services.FileTransfer;
 using Tauron.Application.AkkaNode.Services.Reporting;
 using Tauron.Application.AkkaNode.Services.Reporting.Commands;
-using Tauron.Application.Files.VirtualFiles;
 using Tauron.Application.Master.Commands.Deployment.Build;
 using Tauron.Application.Master.Commands.Deployment.Build.Data;
 using Tauron.Application.Master.Commands.Deployment.Build.Querys;
@@ -81,7 +79,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                                                                           () => evt.Event.File.Open(FileAccess.Read),
                                                                           evt.Event.Manager,
                                                                           evt.Event.AppName)))
-                                                              .Select(evt => evt.New<FileTransactionId?>(evt.State.DataTransfer.Request(evt.Event))));
+                                                              .Select(evt => evt.New<FileTransactionId?>(evt.State.DataTransfer.RequestWithTransaction(evt.Event))));
                                                   });
                                }));
 

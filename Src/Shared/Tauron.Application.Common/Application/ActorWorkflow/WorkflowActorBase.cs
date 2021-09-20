@@ -300,7 +300,7 @@ namespace Tauron.Application.ActorWorkflow
 
             internal ChainCall WithBase(ChainCall? call)
             {
-                if (call == null) return this;
+                if (call is null) return this;
 
                 call = call.Next();
                 return new ChainCall(call.StepIds, call.Position, this);

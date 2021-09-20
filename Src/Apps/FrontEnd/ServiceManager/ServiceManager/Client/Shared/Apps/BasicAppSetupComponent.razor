@@ -3,9 +3,11 @@
 @using Microsoft.AspNetCore.SignalR.Client
 @using System.Reactive.Disposables
 @using ServiceManager.Shared.Api
+@using Tauron
 
 @implements IDisposable
 
+@inject ILogger<BasicAppSetupComponent> _log
 @inject BasicAppsAlertModel _model
 @inject IAppManagment _managment
 @inject HubConnection _hubConnection
@@ -63,7 +65,7 @@ else
 
     protected override void OnAfterRender(bool firstRender)
     {
-        if (firstRender) Task.Run(SetupRunner);
+        if (firstRender) Task.Run(SetupRunner).Ignore();
         base.OnAfterRender(firstRender);
     }
 
@@ -104,6 +106,7 @@ else
         }
         catch (Exception e)
         {
+            _log.LogError(e, "Error on run Setup");
             _error = e.Message;
         }
         finally

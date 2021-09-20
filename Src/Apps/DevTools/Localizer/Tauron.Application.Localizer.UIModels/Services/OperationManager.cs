@@ -54,7 +54,7 @@ namespace Tauron.Application.Localizer.UIModels.Services
 
         public IObservable<bool> ShouldClear()
         {
-            return _operations.WhenPropertyChanged(l => l.RunningOperations, false)
+            return _operations.WhenPropertyChanged(l => l.RunningOperations, notifyOnInitialValue: false)
                 .Select(v => v.Sender.Count != v.Value);
         }
 
@@ -64,7 +64,7 @@ namespace Tauron.Application.Localizer.UIModels.Services
             {
                 foreach (var operation in _operations.Where(op => op.Operation == OperationStatus.Success).ToArray())
                     _operations.Remove(operation);
-            });
+            }).Ignore();
         }
 
         public IObservable<bool> ShouldCompledClear()
@@ -78,7 +78,7 @@ namespace Tauron.Application.Localizer.UIModels.Services
             {
                 foreach (var operation in _operations.Where(op => op.Operation != OperationStatus.Running).ToArray())
                     _operations.Remove(operation);
-            });
+            }).Ignore();
         }
 
 
@@ -88,13 +88,11 @@ namespace Tauron.Application.Localizer.UIModels.Services
         }
 
         private void OperationChanged()
-        {
-            _dispatcher.InvokeAsync(_operations.OperationStatusCchanged);
-        }
+            => _dispatcher.InvokeAsync(_operations.OperationStatusCchanged).Ignore();
 
         private sealed class OperationList : ObservableCollection<RunningOperation>
         {
-            public int RunningOperations => this.Sum(ro => ro.Operation == OperationStatus.Running ? 1 : 0);
+            internal int RunningOperations => this.Sum(ro => ro.Operation == OperationStatus.Running ? 1 : 0);
 
             protected override void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
             {
@@ -102,7 +100,7 @@ namespace Tauron.Application.Localizer.UIModels.Services
                 OnPropertyChanged(new PropertyChangedEventArgs(nameof(RunningOperations)));
             }
 
-            public void OperationStatusCchanged()
+            internal void OperationStatusCchanged()
             {
                 OnPropertyChanged(new PropertyChangedEventArgs(nameof(RunningOperations)));
             }

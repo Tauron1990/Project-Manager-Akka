@@ -8,6 +8,12 @@ namespace Tauron.Operations
 {
     public sealed record Error(string? Info, string Code)
     {
+        public Error(Exception ex)
+            : this(ex.Message, ex.HResult.ToString())
+        {
+            
+        }
+        
         public static implicit operator Error(string code)
             => new(null, code);
     }
@@ -33,7 +39,7 @@ namespace Tauron.Operations
 
         public static IOperationResult Failure(Error error, object? outcome = null)
         {
-            return new OperationResult(Ok: false, new[] {error}, Outcome: outcome);
+            return new OperationResult(Ok: false, new[] {error}, outcome);
         }
 
         public static IOperationResult Failure(IEnumerable<Error> errors, object? outcome = null)
@@ -44,7 +50,7 @@ namespace Tauron.Operations
         public static IOperationResult Failure(Exception error)
         {
             var unwarped = error.Unwrap() ?? error;
-            return new OperationResult(Ok: false, new[] {new Error(unwarped.Message, unwarped.HResult.ToString())}, null);
+            return new OperationResult(Ok: false, new[] {new Error(error)}, null);
         }
     }
 }

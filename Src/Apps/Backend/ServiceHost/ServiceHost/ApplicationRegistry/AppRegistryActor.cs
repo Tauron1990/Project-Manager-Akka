@@ -85,7 +85,7 @@ namespace ServiceHost.ApplicationRegistry
                                              }
                                          })
                         let newState = i.State with {OnGoingQuerys = ongoing}
-                        select (Event: new HostAppsResponse(apps, true), State: newState, Sender: sender)
+                        select (Event: new HostAppsResponse(apps, Success: true), State: newState, Sender: sender)
                     ).Do(i => i.Sender.Tell(i.Event))
                      .Select(e => e.State));
 
@@ -106,7 +106,7 @@ namespace ServiceHost.ApplicationRegistry
                                b =>
                                {
                                    b.When(m => m.Event.App.IsEmpty, o => o.Do(m => Log.Warning("No Registration Found {Apps}", m.Event.Request.Name))
-                                                                          .Select(m => m.NewEvent(new RegistrationResponse(true, null))));
+                                                                          .Select(m => m.NewEvent(new RegistrationResponse(Scceeded: true, null))));
 
                                    b.When(m => m.Event.App.HasValue,
                                        o =>
@@ -119,11 +119,11 @@ namespace ServiceHost.ApplicationRegistry
                                                                    .SelectSafe(s =>
                                                                                {
                                                                                    if (string.IsNullOrWhiteSpace(s.Data))
-                                                                                       return new RegistrationResponse(false, new InvalidOperationException("No App Data Found"));
+                                                                                       return new RegistrationResponse(Scceeded: false, new InvalidOperationException("No App Data Found"));
                                                                                    File.WriteAllText(s.File.Value, s.Data);
-                                                                                   return new RegistrationResponse(true, null);
+                                                                                   return new RegistrationResponse(Scceeded: true, null);
                                                                                })
-                                                                   .ConvertResult(r => d.State.NewEvent(r), e => d.State.NewEvent(new RegistrationResponse(false, e)))));
+                                                                   .ConvertResult(r => d.State.NewEvent(r), e => d.State.NewEvent(new RegistrationResponse(Scceeded: false, e)))));
                                })
                           .Do(m =>
                               {
@@ -143,7 +143,7 @@ namespace ServiceHost.ApplicationRegistry
                                                    {
                                                        b.When(m => m.State.Apps.ContainsKey(m.Event.Name),
                                                            o => o.Do(m => Log.Warning("Attempt to Register Duplicate Application {Apps}", m.Event.Name))
-                                                                 .Select(m => m.NewEvent(new RegistrationResponse(false, new InvalidOperationException("Duplicate")))));
+                                                                 .Select(m => m.NewEvent(new RegistrationResponse(Scceeded: false, new InvalidOperationException("Duplicate")))));
 
                                                        b.When(m => !m.State.Apps.ContainsKey(m.Event.Name),
                                                            o =>
@@ -157,9 +157,9 @@ namespace ServiceHost.ApplicationRegistry
                                                                ).Do(m => File.WriteAllText(m.fullPath, m.data))
                                                                 .Do(_ => Self.Tell(new SaveData()))
                                                                 .Do(m => Log.Info("Registration Compled for {Apps}", m.request.Name))
-                                                                .Select(m => i.NewEvent(new RegistrationResponse(true, null), i.State with {Apps = m.newApps}))
+                                                                .Select(m => i.NewEvent(new RegistrationResponse(Scceeded: true, null), i.State with {Apps = m.newApps}))
                                                                 .Catch<StatePair<RegistrationResponse, RegistryState>, Exception>(
-                                                                     e => Observable.Return(i.NewEvent(new RegistrationResponse(false, e)))
+                                                                     e => Observable.Return(i.NewEvent(new RegistrationResponse(Scceeded: false, e)))
                                                                                     .Do(_ => Log.Error(e, "Error while registration new Application {Apps}", i.Event.Name))));
                                                    }))
                           .Do(m => Sender.Tell(m.Event))
@@ -168,11 +168,11 @@ namespace ServiceHost.ApplicationRegistry
 
             Receive<InstalledAppQuery>(
                 obs => obs.Do(m => Log.Info("Query Apps {Apps}", m.Event.Name))
-                          .SelectSafe(m => new InstalledAppRespond(LoadApp(m.Event.Name, m.State) ?? InstalledApp.Empty, false))
+                          .SelectSafe(m => new InstalledAppRespond(LoadApp(m.Event.Name, m.State) ?? InstalledApp.Empty, Fault: false))
                           .ConvertResult(r => r, e =>
                                                  {
                                                      Log.Error(e, "Error While Querining Apps Data");
-                                                     return new InstalledAppRespond(InstalledApp.Empty, true);
+                                                     return new InstalledAppRespond(InstalledApp.Empty, Fault: true);
                                                  })
                           .ToSender());
 
@@ -188,7 +188,7 @@ namespace ServiceHost.ApplicationRegistry
                                                                fileStream.WriteLine($"{name}:{path}");
                                                        }
 
-                                                       File.Copy(file, file + ".bak", true);
+                                                       File.Copy(file, file + ".bak", overwrite: true);
                                                    }
                                                    catch (Exception e)
                                                    {
@@ -291,7 +291,7 @@ namespace ServiceHost.ApplicationRegistry
                 obs => from request in obs.ObserveOn(Scheduler.Default)
                        from u1 in PatchSelf(request.NewEvent(request.Event.Urls), AkkaConfigurationBuilder.Seed, AkkaConfigurationBuilder.PatchSeedUrls)
                        from u2 in PatchApps(request.NewEvent(request.Event.Urls), AkkaConfigurationBuilder.Seed, AkkaConfigurationBuilder.PatchSeedUrls)
-                       select request.NewEvent(new UpdateSeedsResponse(true)));
+                       select request.NewEvent(new UpdateSeedsResponse(Success: true)));
 
             var api = ConfigurationApi.CreateProxy(Context.System);
 
@@ -328,12 +328,12 @@ namespace ServiceHost.ApplicationRegistry
                        from s in DownloadConfigForSelf()
                        from a in DownloadConfigForApps(request.State.Apps.Keys)
                        let f = FinalizeUpdate(request.Event)
-                       select request.NewEvent(new UpdateEveryConfigurationRespond(true)));
+                       select request.NewEvent(new UpdateEveryConfigurationRespond(Success: true)));
 
             SharedApiCall<UpdateHostConfigCommand, UpdateHostConfigResponse>(e => Log.Error(e, "Error on Update Host Configuration"),
                 obs => from request in obs
                        from _ in DownloadConfigForSelf()
-                       select request.NewEvent(new UpdateHostConfigResponse(true)));
+                       select request.NewEvent(new UpdateHostConfigResponse(Success: true)));
 
             SharedApiCall<UpdateAppConfigCommand, UpdateAppConfigResponse>(e => Log.Error(e, "Error on Update App Configuration"),
                 obs => from request in obs
@@ -344,7 +344,7 @@ namespace ServiceHost.ApplicationRegistry
                                                        if (request.Event.Restart)
                                                            CurrentState.Manager.Tell(new RestartApp(request.Event.App));
                                                    })
-                       select request.NewEvent(new UpdateAppConfigResponse(true, request.Event.App)));
+                       select request.NewEvent(new UpdateAppConfigResponse(Success: true, request.Event.App)));
         }
 
         private void SharedApiCall<TEvent, TResponse>(Action<Exception> error, Func<IObservable<StatePair<TEvent, RegistryState>>, IObservable<StatePair<TResponse, RegistryState>>> processor)

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using ServiceManager.Client.ViewModels;
 using ServiceManager.Client.ViewModels.Configuration;
 using Tauron.Application;
 
@@ -17,7 +16,7 @@ namespace ServiceManager.Client.Shared.Configuration.ConditionEditor
         public bool CommitChanges(AppConfigModel toModel, IEventAggregator aggregator)
         {
             var validationResult = ActualItems
-                                  .Select(e => e.Validate(false))
+                                  .Select(e => e.Validate(single: false))
                                   .FirstOrDefault(s => !string.IsNullOrWhiteSpace(s));
 
             if (string.IsNullOrWhiteSpace(validationResult))

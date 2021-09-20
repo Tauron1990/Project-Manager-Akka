@@ -52,7 +52,7 @@ namespace TimeTracker.Managers
             _holidayManager = holidayManager;
             _dataManager = dataManager;
             _aggregator = aggregator;
-            ConfigurationManager = new ConfigurationManager(dataManager, _aggregator.ReportError);
+            ConfigurationManager = new ConfigurationManager(dataManager, aggregator.ReportError);
 
             _cleanUp = new CompositeDisposable(
                 CreateFileSafePipeLine(), _entryCache, CreateCacheUpdater(), ConfigurationManager, AutoUpdateHoliDays());
@@ -94,7 +94,8 @@ namespace TimeTracker.Managers
                                    _aggregator.ReportError(e);
                                    return NewFile(s);
                                })
-                          .SelectMany(pd => pd == null ? NewFile(input) : Observable.Return(pd));
+                           // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+                          .SelectMany(pd => pd is null ? NewFile(input) : Observable.Return(pd));
 
         private IObservable<ProfileData> NewFile(string file)
             => Observable.Return(ProfileData.New(file, _clock));
@@ -292,7 +293,9 @@ namespace TimeTracker.Managers
         {
             return from result in FilterOut().ToObservable()
                    from res in SetEntry(result
+                                        #pragma warning disable EPS06
                                        .Select(dateTime => new ProfileEntry(dateTime, null, null, DayType.Vacation))
+                                        #pragma warning restore EPS06
                                        .ToArray())
                    select res;
 

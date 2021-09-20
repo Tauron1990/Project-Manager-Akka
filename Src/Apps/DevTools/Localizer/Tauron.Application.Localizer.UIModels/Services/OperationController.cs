@@ -17,7 +17,7 @@ namespace Tauron.Application.Localizer.UIModels.Services
             _operation = operation;
             _localizer = localizer;
             _failing = failing;
-            if (_operation.Operation == OperationStatus.Running)
+            if (operation.Operation == OperationStatus.Running)
                 _statusChanged = statusChanged;
         }
 

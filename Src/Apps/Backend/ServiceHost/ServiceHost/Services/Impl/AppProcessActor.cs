@@ -18,7 +18,7 @@ namespace ServiceHost.Services.Impl
         public sealed record AppProcessorState(InstalledApp App, string ServiceName, IIpcConnection ServiceCom, Process? Process, bool IsProcessRunning, string ServiceId);
 
         public static IPreparedFeature New(InstalledApp app, IIpcConnection connection)
-            => Feature.Create(() => new AppProcessActor(), _ => new AppProcessorState(app, Guid.NewGuid().ToString("N"), connection, null, false, string.Empty));
+            => Feature.Create(() => new AppProcessActor(), _ => new AppProcessorState(app, Guid.NewGuid().ToString("N"), connection, null, IsProcessRunning: false, string.Empty));
 
         protected override void ConfigImpl()
         {
@@ -68,11 +68,11 @@ namespace ServiceHost.Services.Impl
                                                b =>
                                                {
                                                    b.When(s => string.IsNullOrWhiteSpace(s.ServiceId), o => o.Do(s => Log.Warning("None Comunication Client Registrated {Name}", s.App.Name))
-                                                                                                             .Do(s => s.Process?.Kill(true))
+                                                                                                             .Do(s => s.Process?.Kill(entireProcessTree: true))
                                                                                                              .Do(s => s.Process?.Dispose())
                                                                                                              .Select(s => s with {Process = null}));
 
-                                                   b.When(s => !string.IsNullOrWhiteSpace(s.ServiceId) && s.Process == null, o => o);
+                                                   b.When(s => !string.IsNullOrWhiteSpace(s.ServiceId) && s is { Process: null }, o => o);
 
                                                    b.When(s => !string.IsNullOrWhiteSpace(s.ServiceId) && s.Process != null,
                                                        o => o.Do(s => Log.Info("Sending Kill Command to App {Name}", s.App.Name))
@@ -96,18 +96,18 @@ namespace ServiceHost.Services.Impl
                                                                          if (prc.HasExited) return NewState();
 
                                                                          Log.Warning("Process not Exited Killing {Name}", s.App.Name);
-                                                                         prc.Kill(true);
+                                                                         prc.Kill(entireProcessTree: true);
 
                                                                          return NewState();
                                                                      })
-                                                             .Do(s => s.Process?.Kill(true))
+                                                             .Do(s => s.Process?.Kill(entireProcessTree: true))
                                                              .Do(s => s.Process?.Dispose()));
                                                }),
                            (m, e) => Observable.Return(m.State)
                                                .Do(s => Log.Error(e, "Error while Stopping App {Name}", s.App.Name))
                                                .Do(s => s.Process?.Dispose())
-                                               .ApplyWhen(_ => !Sender.Equals(Parent), s => Sender.Tell(new StopResponse(s.App.Name, true)))
-                                               .Do(s => Parent.Tell(new StopResponse(s.App.Name, true)))
+                                               .ApplyWhen(_ => !Sender.Equals(Parent), s => Sender.Tell(new StopResponse(s.App.Name, Error: true)))
+                                               .Do(s => Parent.Tell(new StopResponse(s.App.Name, Error: true)))
                                                .Do(_ => Context.Stop(Self))
                                                .Select(s => s with {Process = null})));
 

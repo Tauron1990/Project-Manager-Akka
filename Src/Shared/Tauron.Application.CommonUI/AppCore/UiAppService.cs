@@ -16,7 +16,7 @@ namespace Tauron.Application.CommonUI.AppCore
         private readonly CommonUIFramework _framework;
         private readonly ActorSystem _system;
         private readonly TaskCompletionSource<int> _shutdownWaiter = new();
-        private readonly AtomicBoolean _shutdown = new(false);
+        private readonly AtomicBoolean _shutdown = new();
 
         private IUIApplication? _internalApplication;
 
@@ -31,16 +31,20 @@ namespace Tauron.Application.CommonUI.AppCore
         {
             void ShutdownApp()
             {
-                if(_shutdown.GetAndSet(true)) return;
+                if(_shutdown.GetAndSet(newValue: true)) return;
 
                 // ReSharper disable MethodSupportsCancellation
+                #pragma warning disable CA2016
                 Task.Run(async () =>
+                             #pragma warning restore CA2016
                          {
                              await Task.Delay(TimeSpan.FromSeconds(60));
-                             Process.GetCurrentProcess().Kill(false);
-                         });
+                             Process.GetCurrentProcess().Kill(entireProcessTree: false);
+                         })
+                    .Ignore();
                 // ReSharper restore MethodSupportsCancellation
-                _system.Terminate();
+                _system.Terminate()
+                       .Ignore();
             }
 
             void Runner()
@@ -52,6 +56,7 @@ namespace Tauron.Application.CommonUI.AppCore
 
                 _internalApplication.Startup += (_, _) =>
                                                 {
+                                                    // ReSharper disable once AccessToDisposedClosure
                                                     DispatcherScheduler.CurrentDispatcher = DispatcherScheduler.From(scope.Resolve<IUIDispatcher>());
 
                                                     // ReSharper disable AccessToDisposedClosure

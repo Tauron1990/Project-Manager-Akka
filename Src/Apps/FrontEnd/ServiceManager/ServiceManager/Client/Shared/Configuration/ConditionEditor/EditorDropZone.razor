@@ -1,4 +1,5 @@
 ﻿@using System.Reactive.Disposables
+@using Tauron
 
 @implements IDisposable
 @implements IAddReciever
@@ -24,16 +25,16 @@
     {
         _subscription = new CompositeDisposable(
             _addHelper.Changed
-                      .Subscribe(_ => InvokeAsync(StateHasChanged)),
+                      .Subscribe(_ => InvokeAsync(StateHasChanged).Ignore()),
             _addHelper.Remove.Subscribe(e =>
                                         {
                                             if (Items?.Remove(e) == true)
-                                                InvokeAsync(StateHasChanged);
+                                                InvokeAsync(StateHasChanged).Ignore();
                                         }));
         base.OnInitialized();
     }
 
-    public bool IsActive
+    private bool IsActive
     {
         get => _addHelper.AddReciever == this;
         set
@@ -54,8 +55,8 @@
     public void Add(ElementItem item)
     {
         Items?.Add(item);
-        ItemsChanged.InvokeAsync();
-        InvokeAsync(StateHasChanged);
+        ItemsChanged.InvokeAsync().Ignore();
+        InvokeAsync(StateHasChanged).Ignore();
     }
 
     public void Dispose() => _subscription.Dispose();

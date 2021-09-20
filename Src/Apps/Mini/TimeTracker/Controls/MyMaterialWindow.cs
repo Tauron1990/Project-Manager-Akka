@@ -7,7 +7,6 @@ using Tauron.Application.CommonUI;
 using Tauron.Application.CommonUI.AppCore;
 using Tauron.Application.CommonUI.Helper;
 using Tauron.Application.CommonUI.UI;
-using Tauron.Application.Wpf;
 using Tauron.Application.Wpf.AppCore;
 
 namespace TimeTracker.Controls
@@ -48,7 +47,7 @@ namespace TimeTracker.Controls
 
         private sealed class MaterialWindowControlLogic : ControlLogicBase<MyMaterialWindow>
         {
-            public MaterialWindowControlLogic(MyMaterialWindow userControl, IViewModel model) : base(userControl, model)
+            internal MaterialWindowControlLogic(MyMaterialWindow userControl, IViewModel model) : base(userControl, model)
             {
                 userControl.SizeToContent = SizeToContent.Manual;
                 userControl.ShowInTaskbar = true;

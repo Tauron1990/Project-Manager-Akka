@@ -9,7 +9,7 @@ namespace TimeTracker.Controls
 {
     public sealed class DoubleConverter : ValueConverterFactoryBase
     {
-        private sealed class _ : StringConverterBase<double>
+        private sealed class Con : StringConverterBase<double>
         {
             protected override string Convert(double value)
                 => value.ToString(CultureInfo.CurrentCulture);
@@ -21,7 +21,7 @@ namespace TimeTracker.Controls
                 => double.Parse(value);
         }
 
-        protected override IValueConverter Create() => new _();
+        protected override IValueConverter Create() => new Con();
     }
 
     public sealed class DoubleValidation : MarkupExtension
@@ -34,9 +34,9 @@ namespace TimeTracker.Controls
         public override ValidationResult Validate(object value, CultureInfo cultureInfo)
         {
             if (value is not string integer)
-                return new ValidationResult(false, "Value ist kein String");
+                return new ValidationResult(isValid: false, "Value ist kein String");
 
-            return double.TryParse(integer, out _) ? ValidationResult.ValidResult : new ValidationResult(false, "Eingabe ist keine komma Zahl");
+            return double.TryParse(integer, out _) ? ValidationResult.ValidResult : new ValidationResult(isValid: false, "Eingabe ist keine komma Zahl");
         }
     }
 }

@@ -7,6 +7,7 @@
 
 @inherits DialogBaseComponent<string>
 
+@inject ILogger<AwaitRestartDialog> _log
 @inject NavigationManager _manager
 @inject IEventAggregator _aggregator
 @inject IServerInfo _serverInfo
@@ -109,6 +110,7 @@
         }
         catch (Exception e)
         {
+            _log.LogError(e, "Error on Reconnect Server");
             return e.Message;
         }
     }

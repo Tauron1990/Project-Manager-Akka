@@ -3,6 +3,7 @@
 @using ServiceHost.Client.Shared.ConfigurationServer.Data
 @using ServiceManager.Client.Shared.Configuration.ConditionEditor
 @using ServiceManager.Client.ViewModels.Configuration
+@using Tauron
 
 @implements IAddReciever
 @implements IDisposable
@@ -102,7 +103,7 @@ else
     {
         State?.ActualItems.Add(item);
         _render = true;
-        InvokeAsync(StateHasChanged);
+        InvokeAsync(StateHasChanged).Ignore();
     }
 
     public void Dispose()
@@ -122,7 +123,7 @@ else
         if(State != null)
             State.ChangesWhereMade = true;
         var clone = template.Clone();
-        Task.Run(() => _addHelper.NewItem(clone));
+        Task.Run(() => _addHelper.NewItem(clone)).Ignore();
     }
 
 }

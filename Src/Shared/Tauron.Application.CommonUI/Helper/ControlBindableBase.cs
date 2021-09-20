@@ -1,10 +1,12 @@
 ﻿using System;
+using JetBrains.Annotations;
 
 namespace Tauron.Application.CommonUI.Helper
 {
     public abstract class ControlBindableBase : IControlBindable
     {
-        protected IUIObject Root { get; private set; } = new Dummy();
+        // ReSharper disable once MemberCanBePrivate.Global
+        protected IUIObject Root { [UsedImplicitly] get; private set; } = new Dummy();
 
         protected IUIObject AffectedObject { get; private set; } = new Dummy();
 
@@ -32,7 +34,7 @@ namespace Tauron.Application.CommonUI.Helper
             private readonly ControlBindableBase _control;
             private bool _isDisposed;
 
-            public CleanUpHelper(ControlBindableBase control) => _control = control;
+            internal CleanUpHelper(ControlBindableBase control) => _control = control;
 
             public void Dispose()
             {

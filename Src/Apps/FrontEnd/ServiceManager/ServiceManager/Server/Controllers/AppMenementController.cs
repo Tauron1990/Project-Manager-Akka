@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 using GridMvc.Server;
 using GridShared.Utility;
 using Microsoft.AspNetCore.Authorization;
@@ -23,20 +24,20 @@ namespace ServiceManager.Server.Controllers
             => _appManagment = appManagment;
 
         [HttpGet, Publish, AllowAnonymous]
-        public Task<NeedSetupData> NeedBasicApps()
-            => _appManagment.NeedBasicApps();
+        public Task<NeedSetupData> NeedBasicApps(CancellationToken token)
+            => _appManagment.NeedBasicApps(token);
 
         [HttpGet, Publish]
-        public Task<AppList> QueryAllApps()
-            => _appManagment.QueryAllApps();
+        public Task<AppList> QueryAllApps(CancellationToken token)
+            => _appManagment.QueryAllApps(token);
 
         [HttpGet, Publish]
-        public Task<AppInfo> QueryApp([FromQuery]string name)
-            => _appManagment.QueryApp(name);
+        public Task<AppInfo> QueryApp([FromQuery] string name, CancellationToken token)
+            => _appManagment.QueryApp(name, token);
 
         [HttpPost]
-        public Task<string> CreateNewApp([FromBody]ApiCreateAppCommand command)
-            => _appManagment.CreateNewApp(command);
+        public Task<string> CreateNewApp([FromBody] ApiCreateAppCommand command, CancellationToken token)
+            => _appManagment.CreateNewApp(command, token);
 
         [HttpPost]
         public Task<string> DeleteAppCommand([FromBody]ApiDeleteAppCommand command)

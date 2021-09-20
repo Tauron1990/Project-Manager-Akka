@@ -1,4 +1,6 @@
-﻿using Blazored.LocalStorage;
+﻿#pragma warning disable GU0011
+
+using Blazored.LocalStorage;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceManager.Client.Shared.BaseComponents;
 using ServiceManager.Client.Shared.Configuration.ConditionEditor;

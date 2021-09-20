@@ -4,6 +4,7 @@
 @using ServiceManager.Client.Shared.UserAccount
 @using ServiceManager.Client.ViewModels.Identity
 @using ServiceManager.Shared.Identity
+@using Tauron
 @using Tauron.Application
 
 @inject IUserManagement _userManagement
@@ -47,7 +48,7 @@
         {
             _newUserName = value;
             _isValid = string.IsNullOrWhiteSpace(value);
-            InvokeAsync(StateHasChanged);
+            InvokeAsync(StateHasChanged).Ignore();
         }
     }
 

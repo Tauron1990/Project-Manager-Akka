@@ -157,7 +157,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                                                          i.State.Apps.Delete(i.Event.App);
                                                          i.State.ToDelete.Add(i.Event.App.Versions.Select(d => new ToDeleteRevision(d.Id)));
 
-                                                         i.Reporter.Compled(OperationResult.Success(i.Event.App.ToInfo().IsDeleted()));
+                                                         i.Reporter.Compled(OperationResult.Success(i.Event.App.ToInfo().MarkDeleted()));
                                                      }));
                                }));
 

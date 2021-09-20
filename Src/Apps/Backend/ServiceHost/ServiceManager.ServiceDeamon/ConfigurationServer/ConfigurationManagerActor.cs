@@ -30,7 +30,7 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
             var publisher = new Subject<IConfigEvent>();
 
             ConfigFeatureConfiguration CreateState()
-                => new(serverConfiguration.Get(ServerConfigurationId)?.Configugration ?? new ServerConfigugration(true, false, string.Empty),
+                => new(serverConfiguration.Get(ServerConfigurationId)?.Configugration ?? new ServerConfigugration(MonitorChanges: true, RestartServices: false, string.Empty),
                     repository.GetInstance<GlobalConfigEntity, string>(ServiceManagerDeamon.RepositoryKey),
                     repository.GetInstance<SeedUrlEntity, string>(ServiceManagerDeamon.RepositoryKey),
                     repository.GetInstance<SpecificConfigEntity, string>(ServiceManagerDeamon.RepositoryKey), 

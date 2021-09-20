@@ -10,9 +10,9 @@ namespace Tauron.Application.Wpf.SerilogViewer
     {
         private class RenderHelper : TargetWithLayout
         {
-            public string Render(LogEventInfo evt) => RenderLogEvent(Layout, evt);
+            internal string Render(LogEventInfo evt) => RenderLogEvent(Layout, evt);
 
-            public string GetLoggerName(LogEventInfo evt)
+            internal string GetLoggerName(LogEventInfo evt)
                 => evt.LoggerName ?? evt.CallerClassName;
         }
 

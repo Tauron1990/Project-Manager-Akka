@@ -7,6 +7,7 @@ using ServiceHost.Client.Shared.ConfigurationServer.Data;
 using ServiceManager.Client.Shared.BaseComponents;
 using ServiceManager.Client.Shared.Configuration;
 using ServiceManager.Shared.ServiceDeamon;
+using Tauron;
 using Tauron.Application;
 
 namespace ServiceManager.Client.ViewModels.Configuration
@@ -42,7 +43,7 @@ namespace ServiceManager.Client.ViewModels.Configuration
                 var config   = string.IsNullOrWhiteSpace(ConfigString) ? Akka.Configuration.Config.Empty : ConfigurationFactory.ParseString(ConfigString);
                 var toUpdate = ConfigurationFactory.ParseString($"{selected.Path}: {selected.Value}");
 
-                ConfigString = toUpdate.WithFallback(config).ToString(true);
+                ConfigString = toUpdate.WithFallback(config).ToString(includeFallback: true);
                 stateHasChanged();
             }
             catch (Exception e)
@@ -72,7 +73,7 @@ namespace ServiceManager.Client.ViewModels.Configuration
             set
             {
                 _isSelected = value;
-                Callback.InvokeAsync();
+                Callback.InvokeAsync().Ignore();
             }
         }
     }

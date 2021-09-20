@@ -8,6 +8,7 @@ using GridMvc.Server;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using ServiceManager.Server.AppCore.Identity;
 using ServiceManager.Shared.Api;
 using ServiceManager.Shared.Identity;
@@ -29,10 +30,11 @@ namespace ServiceManager.Server.Controllers
         private readonly IUserClaimsPrincipalFactory<IdentityUser> _principalFactory;
         private readonly ISessionProvider _provider;
         private readonly ISessionFactory _sessionFactory;
+        private readonly ILogger<UserManagmentController> _log;
 
         public UserManagmentController(
             SignInManager<IdentityUser> logInManager, IUserManagement userManagement, UserManager<IdentityUser> userManager, ServerAuthHelper helper,
-            IUserClaimsPrincipalFactory<IdentityUser> principalFactory, ISessionProvider provider, ISessionFactory sessionFactory)
+            IUserClaimsPrincipalFactory<IdentityUser> principalFactory, ISessionProvider provider, ISessionFactory sessionFactory, ILogger<UserManagmentController> log)
         {
             _logInManager = logInManager;
             _userManagement = userManagement;
@@ -41,6 +43,7 @@ namespace ServiceManager.Server.Controllers
             _principalFactory = principalFactory;
             _provider = provider;
             _sessionFactory = sessionFactory;
+            _log = log;
         }
 
         [HttpGet]
@@ -54,7 +57,7 @@ namespace ServiceManager.Server.Controllers
                 users.Add(new UserData(user.Id, user.UserName, claimsCount));
             }
 
-            var server = new GridServer<UserData>(users, Request.Query, true, "UsersGrid");
+            var server = new GridServer<UserData>(users, Request.Query, renderOnlyRows: true, "UsersGrid");
 
             return Ok(server.ItemsToDisplay);
         }
@@ -64,7 +67,9 @@ namespace ServiceManager.Server.Controllers
         {
             var claims = await _userManager.GetClaimsAsync(await _userManager.FindByIdAsync(userId));
 
-            var server = new GridServer<UserClaim>(claims.Where(c => Claims.AllClaims.Contains(c.Type)).Select((c, i) => new UserClaim(i, userId, c.Type)), Request.Query, true, "UserClaimGrid");
+            var server = new GridServer<UserClaim>(claims
+                                                  .Where(c => Claims.AllClaims.Contains(c.Type))
+                                                  .Select((c, i) => new UserClaim(i, userId, c.Type)), Request.Query, renderOnlyRows: true, "UserClaimGrid");
 
             return Ok(server.ItemsToDisplay);
         }
@@ -103,7 +108,7 @@ namespace ServiceManager.Server.Controllers
             => _userManagement.GetUserData(id, token);
 
         [HttpGet, Publish]
-        public Task<UserClaim[]> GetUserClaims([FromQuery] string id, CancellationToken token = default)
+        public Task<UserClaim[]> GetUserClaims([FromQuery] string id, CancellationToken token)
             => _userManagement.GetUserClaims(id, token);
 
         [HttpGet, Publish]
@@ -127,20 +132,20 @@ namespace ServiceManager.Server.Controllers
         {
             try
             {
-                var usr = await UserManagment.Create(command.UserName, _userManager);
+                var (_, identityUser) = await UserManagment.Create(command.UserName, _userManager);
 
-                var result = await _logInManager.PasswordSignInAsync(command.UserName, command.Password, true, false);
+                var result = await _logInManager.PasswordSignInAsync(command.UserName, command.Password, isPersistent: true, lockoutOnFailure: false);
 
-                if (result.Succeeded && HttpContext != null)
-                {
-                    HttpContext.User = await _principalFactory.CreateAsync(usr.IdentityUser);
-                    await _helper.UpdateAuthState(HttpContext, token);
-                }
+                if (!result.Succeeded || HttpContext == null) return result.Succeeded ? string.Empty : "Login nicht erfolgreich";
+
+                HttpContext.User = await _principalFactory.CreateAsync(identityUser);
+                await _helper.UpdateAuthState(HttpContext, token);
 
                 return result.Succeeded ? string.Empty : "Login nicht erfolgreich";
             }
             catch (Exception e)
             {
+                _log.LogError(e, "Error on Log in User");
                 return e.Message;
             }
         }

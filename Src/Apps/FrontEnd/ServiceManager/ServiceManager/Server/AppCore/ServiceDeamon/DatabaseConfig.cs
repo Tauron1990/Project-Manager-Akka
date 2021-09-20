@@ -4,17 +4,17 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
+using JetBrains.Annotations;
+using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using NLog;
 using ServiceHost.Client.Shared.ConfigurationServer;
 using ServiceHost.Client.Shared.ConfigurationServer.Data;
 using ServiceHost.Client.Shared.ConfigurationServer.Events;
-using ServiceManager.Server.AppCore.Helper;
 using ServiceManager.Server.AppCore.Settings;
 using ServiceManager.Server.Properties;
 using ServiceManager.Shared.ClusterTracking;
 using ServiceManager.Shared.ServiceDeamon;
-using Stl.Async;
 using Stl.Fusion;
 using Tauron;
 using Tauron.Application.AkkaNode.Services.Reporting;
@@ -22,6 +22,7 @@ using Tauron.Application.Master.Commands.Administration.Configuration;
 
 namespace ServiceManager.Server.AppCore.ServiceDeamon
 {
+    [UsedImplicitly]
     public class DatabaseConfig : ResourceHoldingObject, IDatabaseConfig
     {
         private readonly ILocalConfiguration _configuration;
@@ -29,11 +30,12 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
         private readonly IClusterConnectionTracker _tracker;
         private readonly ActorSystem _system;
         private readonly IProcessServiceHost _processServiceHost;
+        private readonly ILogger<DatabaseConfig> _log;
         private readonly IResource<string> _url;
         private readonly IResource<bool> _isReady;
         
         public DatabaseConfig(ILocalConfiguration configuration, ConfigurationApi configurationApi, IClusterConnectionTracker tracker, ActorSystem system,
-            ConfigEventDispatcher eventDispatcher, IProcessServiceHost processServiceHost)
+            ConfigEventDispatcher eventDispatcher, IProcessServiceHost processServiceHost, ILogger<DatabaseConfig> log)
         {
             _url = CreateResource(configuration.DatabaseUrl, onSet: () =>
                                                                     {
@@ -54,6 +56,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
             _tracker = tracker;
             _system = system;
             _processServiceHost = processServiceHost;
+            _log = log;
             _isReady = CreateResource(!string.IsNullOrWhiteSpace(_url.Get()), onSet: () =>
                                                                                      {
                                                                                          using (Computed.Invalidate()) GetIsReady().Ignore();
@@ -132,23 +135,24 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
             try
             {
                 if (await _tracker.GetIsSelf())
-                    return new UrlResult("Mit Keinem Cluster Verbunden", false);
+                    return new UrlResult("Mit Keinem Cluster Verbunden", Success: false);
 
                 if (token.IsCancellationRequested) return null;
                 
                 var response = await _configurationApi.QueryIsAlive(_system, TimeSpan.FromSeconds(10));
-                if (!response.IsAlive) return new UrlResult("Die Api ist nicht ereichbar", false);
+                if (!response.IsAlive) return new UrlResult("Die Api ist nicht ereichbar", Success: false);
 
                 if (token.IsCancellationRequested) return null;
                 
                 var (_, _, database) = await _configurationApi.Query<QueryServerConfiguration, ServerConfigugration>(TimeSpan.FromSeconds(10));
 
                 if (token.IsCancellationRequested) return null;
-                return string.IsNullOrWhiteSpace(database) ? new UrlResult("Keine Datenbank Hinterlegt", false) : new UrlResult(database, true);
+                return string.IsNullOrWhiteSpace(database) ? new UrlResult("Keine Datenbank Hinterlegt", Success: false) : new UrlResult(database, Success: true);
             }
             catch (Exception e)
             {
-                return new UrlResult(e.Message, false);
+                _log.LogError(e, "Error on Fetch Url");
+                return new UrlResult(e.Message, Success: false);
             }
         }
     }

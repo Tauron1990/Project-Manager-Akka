@@ -14,7 +14,6 @@ using Tauron.Application.CommonUI.AppCore;
 using Tauron.Application.CommonUI.Commands;
 using Tauron.Application.CommonUI.Model;
 using Tauron.Application.Localizer.DataModel;
-using Tauron.Application.Localizer.DataModel.Processing;
 using Tauron.Application.Localizer.DataModel.Processing.Messages;
 using Tauron.Application.Localizer.DataModel.Workspace;
 using Tauron.Application.Localizer.UIModels.lang;
@@ -76,7 +75,7 @@ namespace Tauron.Application.Localizer.UIModels
         {
             var path = _dialogFactory.ShowOpenFolderDialog(null,
                     _localizer.MainWindowBuildProjectFolderBrowserDescription, _source,
-                    true, false)
+                    showNewFolderButton: true, useDescriptionForTitle: false)
                 .NotEmpty()
                 .Select(s => s.CombinePath("lang"))
                 .Select(s => BuildViewModel.MakeRelativePath(s, _source));
@@ -216,7 +215,7 @@ namespace Tauron.Application.Localizer.UIModels
                         else
                             op.Compled();
 
-                        canBuild!.Value = true;
+                        canBuild.Value = true;
                     });
             }
 
@@ -261,9 +260,9 @@ namespace Tauron.Application.Localizer.UIModels
         {
             private readonly LocLocalizer _localizer;
 
-            public BuildMessageLocalizer(LocLocalizer localizer) => _localizer = localizer;
+            internal BuildMessageLocalizer(LocLocalizer localizer) => _localizer = localizer;
 
-            public string Get(BuildMessage msg)
+            internal string Get(BuildMessage msg)
             {
                 return msg.Message switch
                 {

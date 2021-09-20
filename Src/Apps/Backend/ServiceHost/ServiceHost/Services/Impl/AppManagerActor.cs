@@ -36,7 +36,7 @@ namespace ServiceHost.Services.Impl
 
         protected override void ConfigImpl()
         {
-            CurrentState.Installer.Tell(new EventSubscribe(true, typeof(InstallerationCompled)));
+            CurrentState.Installer.Tell(new EventSubscribe(Watch: true, typeof(InstallerationCompled)));
 
             Receive<UpdateTitle>(o => o.ToUnit(() => Console.Title = "Application Host"));
 
@@ -47,7 +47,7 @@ namespace ServiceHost.Services.Impl
                     {
                         appRegistry.Actor
                            .Ask<InstalledAppRespond>(new InstalledAppQuery(name), TimeSpan.FromSeconds(10))
-                           .PipeTo(Self, success: ar => new StartApp(ar.App));
+                           .PipeTo(Self, success: ar => new StartApp(ar.App)).Ignore();
                     }
 
                     return obs.ConditionalSelect()
@@ -59,6 +59,7 @@ namespace ServiceHost.Services.Impl
                                            o => o.Where(m => m.Event.Succesfull && m.Event.InstallAction == InstallationAction.Install)
                                                  .ToUnit(m =>
                                                          {
+                                                             // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
                                                              switch (m.Event.Type)
                                                              {
                                                                  case AppType.Cluster:
@@ -83,7 +84,7 @@ namespace ServiceHost.Services.Impl
                                   .ToResult<Unit>(
                                        b =>
                                        {
-                                           b.When(m => m.Child.IsNobody(), o => o.ToUnit(a => a.Sender.Tell(new StopResponse(a.Name, false))));
+                                           b.When(m => m.Child.IsNobody(), o => o.ToUnit(a => a.Sender.Tell(new StopResponse(a.Name, Error: false))));
                                            b.When(m => !m.Child.IsNobody(), o => o.ToUnit(a => a.Child.Forward(new InternalStopApp())));
                                        }));
 
@@ -124,13 +125,13 @@ namespace ServiceHost.Services.Impl
                                     from response in Task.WhenAll(Context.GetChildren()
                                                                          .Select(c => c.Ask<StopResponse>(new InternalStopApp(), TimeSpan.FromMinutes(1))))
                                     select request.NewEvent(new StopAllAppsResponse(response.All(r => !r.Error))),
-                               (r, e) => Observable.Return(r.NewEvent(new StopAllAppsResponse(false)))
+                               (r, e) => Observable.Return(r.NewEvent(new StopAllAppsResponse(Success: false)))
                                                    .Do(_ => Log.Warning(e, "Error on Shared Api Stop All Apps")))
                           .ToActor(a => a.Sender, m => m.Event));
 
             Receive<StartAllApps>(
                 obs => obs.Do(_ => Self.Tell(new StartApps(AppType.Cluster)))
-                          .Select(_ => new StartAllAppsResponse(true))
+                          .Select(_ => new StartAllAppsResponse(Success: true))
                           .ToSender());
 
             Receive<QueryAppStaus>(
@@ -159,8 +160,8 @@ namespace ServiceHost.Services.Impl
                                     from response in child.IsNobody()
                                         ? Task.FromResult(default(StopResponse))
                                         : child.Ask<StopResponse?>(new InternalStopApp(), TimeSpan.FromMinutes(1))
-                                    select request.NewEvent(new StopHostAppResponse(response != null && !response.Error)),
-                               (r, e) => Observable.Return(r.NewEvent(new StopHostAppResponse(false)))
+                                    select request.NewEvent(new StopHostAppResponse(response is { Error: false })),
+                               (r, e) => Observable.Return(r.NewEvent(new StopHostAppResponse(Success: false)))
                                                    .Do(_ => Log.Warning(e, "Error Shared Api Stop")))
                           .ToActor(a => a.Sender, m => m.Event));
 
@@ -172,7 +173,7 @@ namespace ServiceHost.Services.Impl
                           b =>
                           {
                               b.When(p => !p.Event.Child.IsNobody(), o => o.Do(p => p.Event.Child.Tell(new InternalStartApp()))
-                                                                           .Select(p => p.NewEvent(new StartHostAppResponse(true))));
+                                                                           .Select(p => p.NewEvent(new StartHostAppResponse(Success: true))));
 
                               b.When(p => p.Event.Child.IsNobody(),
                                   o => o.CatchSafe(
@@ -181,7 +182,7 @@ namespace ServiceHost.Services.Impl
                                             select app
                                           ).ApplyWhen(m => !m.Fault, m => p.Self.Tell(new StartApp(m.App)))
                                            .Select(m => p.NewEvent(new StartHostAppResponse(!m.Fault))),
-                                      (p, e) => Observable.Return(p.NewEvent(new StartHostAppResponse(false)))
+                                      (p, e) => Observable.Return(p.NewEvent(new StartHostAppResponse(Success: false)))
                                                           .Do(_ => Log.Warning(e, "Error on Shared Api Start"))));
                           })
                      .ToActor(a => a.Sender, m => m.Event));
@@ -189,13 +190,13 @@ namespace ServiceHost.Services.Impl
             Receive<RestartApp>(obs => (from request in obs
                                         let child = Context.Child(request.Event.Name)
                                         where !child.IsNobody()
-                                        select (child, Event:new InternalStopApp(true)))
+                                        select (child, Event:new InternalStopApp(Restart: true)))
                                    .ToUnit(evt => evt.child.Tell(evt.Event)));
 
             #endregion
 
             Timers.StartPeriodicTimer(new object(), new UpdateTitle(), TimeSpan.FromSeconds(10));
-            CurrentState.AppRegistry.Tell(new EventSubscribe(true, typeof(RegistrationResponse)));
+            CurrentState.AppRegistry.Tell(new EventSubscribe(Watch: true, typeof(RegistrationResponse)));
 
             CoordinatedShutdown.Get(Context.System)
                                .AddTask(CoordinatedShutdown.PhaseBeforeServiceUnbind, "AppManagerShutdown", new ContextShutdown(Log, Context).HostShutdown);
@@ -208,13 +209,13 @@ namespace ServiceHost.Services.Impl
             private readonly ILoggingAdapter _log;
             private readonly IActorContext _context;
 
-            public ContextShutdown(ILoggingAdapter log, IActorContext context)
+            internal ContextShutdown(ILoggingAdapter log, IActorContext context)
             {
                 _log = log;
                 _context = context;
             }
 
-            public Task<Done> HostShutdown()
+            internal Task<Done> HostShutdown()
             {
                 _log.Info("Shutdown All Host Apps");
                 return Task.WhenAll(_context
