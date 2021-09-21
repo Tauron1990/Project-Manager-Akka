@@ -1,7 +1,6 @@
-﻿@using System.Collections.Immutable
+﻿@inject ISnackbar _snackbar
 
-@inject ISnackbar _snackbar
-
+@using System.Collections.Immutable
 @inherits DialogBaseComponent
 
 <MudDialog Class="align-stretch">
@@ -9,7 +8,7 @@
         <MudText Typo="Typo.h5">Neue App Konfiguration</MudText>
     </TitleContent>
     <DialogContent>
-        <MudTextFieldString @bind-Value="@_name" DebounceInterval="200"  Validation="@_validateNameFunc" Label="Name der App Konfiguration"/>
+        <MudTextFieldString @bind-Value="@_name" DebounceInterval="200" Validation="@_validateNameFunc" Label="Name der App Konfiguration"/>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="CancelCallback">Abbrechen</MudButton>
@@ -19,24 +18,24 @@
 
 @code {
 
-    public NewAppConfigDialog() 
+    public NewAppConfigDialog()
         => _validateNameFunc = ValidateName;
 
     [Parameter]
     public ImmutableHashSet<string> Blocked { get; set; } = ImmutableHashSet<string>.Empty;
-    
+
     private string? _name;
 
     private readonly Func<string?, string?> _validateNameFunc;
-    
+
     private string? ValidateName(string? s)
         => string.IsNullOrWhiteSpace(s)
-               ? "Kein Name angegeben"
-               : Blocked.Contains(s)
-                     ? "Der Name wird schon Benutzt"
-                     : null;
+            ? "Kein Name angegeben"
+            : Blocked.Contains(s)
+                ? "Der Name wird schon Benutzt"
+                : null;
 
-    private void CancelCallback() 
+    private void CancelCallback()
         => DialogInstance.Close(DialogResult.Cancel());
 
     private void CreateCallback()
@@ -52,7 +51,7 @@
             _snackbar.Add("Der Name wird schon benutzt", Severity.Warning);
             return;
         }
-        
+
         DialogInstance.Close(DialogResult.Ok(_name));
     }
 

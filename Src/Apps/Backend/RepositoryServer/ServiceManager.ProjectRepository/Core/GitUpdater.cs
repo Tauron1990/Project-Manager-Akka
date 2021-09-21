@@ -33,10 +33,12 @@ namespace ServiceManager.ProjectRepository.Core
                 if (_repository == null)
                 {
                     SendMessage(RepositoryMessages.DownloadRepository);
+
                     return Download(source);
                 }
 
                 SendMessage(RepositoryMessages.UpdateRepository);
+
                 return Update();
             }
         }
@@ -46,8 +48,11 @@ namespace ServiceManager.ProjectRepository.Core
             if (_repository == null)
                 throw new InvalidOperationException("Not Repository Set");
 
-            Commands.Pull(_repository, new Signature("ServiceManager", "Service@Manager.com", DateTimeOffset.Now),
+            Commands.Pull(
+                _repository,
+                new Signature("ServiceManager", "Service@Manager.com", DateTimeOffset.Now),
                 new PullOptions());
+
             return (_repository.Info.WorkingDirectory, _repository.Head.Tip.Sha);
         }
 
@@ -55,6 +60,7 @@ namespace ServiceManager.ProjectRepository.Core
         {
             source.CreateDirectoryIfNotExis();
             _repository = new Repository(Repository.Clone(Configuration.CloneUrl, source));
+
             return (_repository.Info.WorkingDirectory, _repository.Head.Tip.Sha);
         }
 

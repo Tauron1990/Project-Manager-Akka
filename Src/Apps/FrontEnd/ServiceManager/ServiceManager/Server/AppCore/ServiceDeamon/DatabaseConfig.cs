@@ -29,29 +29,35 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
     {
         private readonly ILocalConfiguration _configuration;
         private readonly ConfigurationApi _configurationApi;
-        private readonly IClusterConnectionTracker _tracker;
-        private readonly ActorSystem _system;
-        private readonly IProcessServiceHost _processServiceHost;
-        private readonly ILogger<DatabaseConfig> _log;
-        private readonly IResource<string> _url;
         private readonly IResource<bool> _isReady;
-        
-        public DatabaseConfig(ILocalConfiguration configuration, ConfigurationApi configurationApi, IClusterConnectionTracker tracker, ActorSystem system,
+        private readonly ILogger<DatabaseConfig> _log;
+        private readonly IProcessServiceHost _processServiceHost;
+        private readonly ActorSystem _system;
+        private readonly IClusterConnectionTracker _tracker;
+        private readonly IResource<string> _url;
+
+        public DatabaseConfig(
+            ILocalConfiguration configuration, ConfigurationApi configurationApi, IClusterConnectionTracker tracker, ActorSystem system,
             ConfigEventDispatcher eventDispatcher, IProcessServiceHost processServiceHost, ILogger<DatabaseConfig> log)
         {
-            _url = CreateResource(configuration.DatabaseUrl, onSet: () =>
-                                                                    {
-                                                                        using (Computed.Invalidate()) GetUrl().Ignore();
+            _url = CreateResource(
+                configuration.DatabaseUrl,
+                onSet: () =>
+                       {
+                           using (Computed.Invalidate())
+                           {
+                               GetUrl().Ignore();
+                           }
 
-                                                                        return Task.CompletedTask;
-                                                                    });
+                           return Task.CompletedTask;
+                       });
 
             (from evt in eventDispatcher.Get().OfType<ServerConfigurationEvent>()
              let config = evt.Configugration
              where !_url.Get().Equals(config.Database, StringComparison.Ordinal)
              from r in _url.Set(config.Database)
              select r).AutoSubscribe()
-                      .DisposeWith(this);
+               .DisposeWith(this);
 
             _configuration = configuration;
             _configurationApi = configurationApi;
@@ -59,12 +65,17 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
             _system = system;
             _processServiceHost = processServiceHost;
             _log = log;
-            _isReady = CreateResource(!string.IsNullOrWhiteSpace(_url.Get()), onSet: () =>
-                                                                                     {
-                                                                                         using (Computed.Invalidate()) GetIsReady().Ignore();
+            _isReady = CreateResource(
+                !string.IsNullOrWhiteSpace(_url.Get()),
+                onSet: () =>
+                       {
+                           using (Computed.Invalidate())
+                           {
+                               GetIsReady().Ignore();
+                           }
 
-                                                                                         return Task.CompletedTask;
-                                                                                     });
+                           return Task.CompletedTask;
+                       });
         }
 
         public virtual Task<string> GetUrl()
@@ -72,15 +83,15 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
 
         public virtual Task<bool> GetIsReady()
             => Task.FromResult(_isReady.Get());
-        
+
         public virtual async Task<string> SetUrl(SetUrlCommand command, CancellationToken token = default)
         {
             try
             {
                 command.Deconstruct(out var url);
-                
-                if(url.Equals(_configuration.DatabaseUrl, StringComparison.Ordinal)) return "Datenbank ist gleich";
-                
+
+                if (url.Equals(_configuration.DatabaseUrl, StringComparison.Ordinal)) return "Datenbank ist gleich";
+
                 var murl = new MongoUrl(url);
 
                 if (await _tracker.GetIsConnected())
@@ -92,6 +103,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
                         var result = await _processServiceHost.TryStart(url);
 
                         if (token.IsCancellationRequested) return string.Empty;
+
                         canSend = result.IsRunning;
                     }
                     catch (Exception e)
@@ -109,13 +121,13 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
                         var opt = await _configurationApi.Command(
                             new UpdateServerConfigurationCommand(sc with { Database = murl.ToString() }),
                             new ApiParameter(TimeSpan.FromSeconds(10)));
-                        
+
                         opt.ThrowOnFail();
                     }
                 }
 
                 await _url.Set(url, token);
-                
+
                 var targetFile = AkkaConfigurationBuilder.Main.FileInAppDirectory();
                 var config = targetFile.ReadTextIfExis();
 
@@ -125,7 +137,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
                 _configuration.DatabaseUrl = url;
 
                 await _isReady.Set(true, token);
-                
+
                 return string.Empty;
             }
             catch (Exception e)
@@ -146,22 +158,25 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
                     return new UrlResult("Mit Keinem Cluster Verbunden", Success: false);
 
                 if (token.IsCancellationRequested) return null;
-                
+
                 var response = await _configurationApi.QueryIsAlive(_system, TimeSpan.FromSeconds(10));
+
                 if (!response.IsAlive) return new UrlResult("Die Api ist nicht ereichbar", Success: false);
 
                 if (token.IsCancellationRequested) return null;
-                
+
                 var (_, _, database) =
                     (await _configurationApi.Query<QueryServerConfiguration, ServerConfigugration>(new ApiParameter(TimeSpan.FromSeconds(10))))
                    .GetOrThrow();
 
                 if (token.IsCancellationRequested) return null;
+
                 return string.IsNullOrWhiteSpace(database) ? new UrlResult("Keine Datenbank Hinterlegt", Success: false) : new UrlResult(database, Success: true);
             }
             catch (Exception e)
             {
                 _log.LogError(e, "Error on Fetch Url");
+
                 return new UrlResult(e.Message, Success: false);
             }
         }

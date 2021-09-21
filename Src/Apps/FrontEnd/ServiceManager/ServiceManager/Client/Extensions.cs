@@ -39,10 +39,10 @@ namespace ServiceManager.Client
 
         public static void ReplaceState<TData>(this IMutableState<TData> state, Func<TData, TData> update)
             => state.Set(update(state.LatestNonErrorValue));
-        
+
         public static async Task ReplaceState<TData>(this IMutableState<TData> state, Func<TData, Task<TData>> update)
             => state.Set(await update(state.LatestNonErrorValue));
-        
+
         public static void PublishError(this IEventAggregator aggregator, Exception error)
         {
             #if DEBUG
@@ -76,6 +76,7 @@ namespace ServiceManager.Client
         {
             var response = await client.PostAsJsonAsync(url, data);
             response.EnsureSuccessStatusCode();
+
             return await response.Content.ReadFromJsonAsync<TResult>();
         }
 
@@ -90,7 +91,7 @@ namespace ServiceManager.Client
                 : result.Content;
         }
     }
-    
+
     public static class NavigationManagerExtensions
     {
         public static bool TryGetQueryString<T>(this NavigationManager navManager, string key, out T? value)
@@ -102,23 +103,27 @@ namespace ServiceManager.Client
                 if (typeof(T) == typeof(int) && int.TryParse(valueFromQueryString, out var valueAsInt))
                 {
                     value = (T)(object)valueAsInt;
+
                     return true;
                 }
 
                 if (typeof(T) == typeof(string))
                 {
                     value = (T)(object)valueFromQueryString.ToString();
+
                     return true;
                 }
 
                 if (typeof(T) == typeof(decimal) && decimal.TryParse(valueFromQueryString, out var valueAsDecimal))
                 {
                     value = (T)(object)valueAsDecimal;
+
                     return true;
                 }
             }
 
             value = default;
+
             return false;
         }
     }

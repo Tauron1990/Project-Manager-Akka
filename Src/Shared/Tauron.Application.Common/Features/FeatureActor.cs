@@ -49,7 +49,8 @@ namespace Tauron.Features
         IObservable<TEvent> Receive<TEvent>();
     }
 
-    [PublicAPI, DebuggerStepThrough]
+    [PublicAPI]
+    [DebuggerStepThrough]
     public sealed record StatePair<TEvent, TState>(TEvent Event, TState State, ITimerScheduler Timers, IActorContext Context, IActorRef Sender, IActorRef Parent, IActorRef Self)
     {
         public StatePair<TEvent, TNew> Convert<TNew>(Func<TState, TNew> converter)
@@ -78,19 +79,16 @@ namespace Tauron.Features
         }
     }
 
-    [PublicAPI, DebuggerStepThrough]
+    [PublicAPI]
+    [DebuggerStepThrough]
     public abstract class FeatureActorBase<TFeatured, TState> : ObservableActor, IFeatureActor<TState>
         where TFeatured : FeatureActorBase<TFeatured, TState>, new()
     {
         private readonly HashSet<string> _featureIds = new();
         private BehaviorSubject<TState>? _currentState;
-
-        private IActorRef _self = ActorRefs.Nobody;
         private IActorRef _parent = ActorRefs.Nobody;
 
-        IActorRef IFeatureActor<TState>.Self => _self;
-
-        IActorRef IFeatureActor<TState>.Parent => _parent;
+        private IActorRef _self = ActorRefs.Nobody;
 
         private BehaviorSubject<TState> CurrentState
         {
@@ -103,35 +101,43 @@ namespace Tauron.Features
             }
         }
 
+        IActorRef IFeatureActor<TState>.Self => _self;
+
+        IActorRef IFeatureActor<TState>.Parent => _parent;
+
         public ITimerScheduler Timers { get; set; } = null!;
 
         TState IFeatureActor<TState>.CurrentState => CurrentState.Value;
 
         public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler)
-            => Receive<TEvent>(obs
-                => handler(obs.Select(evt => new StatePair<TEvent, TState>(evt, CurrentState.Value, Timers, Context, Sender, Parent, Self))));
+            => Receive<TEvent>(
+                obs
+                    => handler(obs.Select(evt => new StatePair<TEvent, TState>(evt, CurrentState.Value, Timers, Context, Sender, Parent, Self))));
 
         public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<TState>> handler)
         {
             IDisposable CreateHandler(IObservable<TEvent> observable)
                 => handler(observable.Select(evt => new StatePair<TEvent, TState>(evt, CurrentState.Value, Timers, Context, Sender, Parent, Self)))
-                    .SubscribeWithStatus(UpdateState);
+                   .SubscribeWithStatus(UpdateState);
 
             Receive<TEvent>(obs => CreateHandler(obs));
         }
 
-        public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler,
+        public void Receive<TEvent>(
+            Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler,
             Func<Exception, bool> errorHandler)
             => Receive<TEvent>(
-                obs => handler(obs.Select(evt => new StatePair<TEvent, TState>(evt, CurrentState.Value, Timers, Context, Sender, Parent, Self))), errorHandler);
+                obs => handler(obs.Select(evt => new StatePair<TEvent, TState>(evt, CurrentState.Value, Timers, Context, Sender, Parent, Self))),
+                errorHandler);
 
         public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IDisposable> handler)
-            => Receive<TEvent>(obs
-                => handler(obs.Select(evt => new StatePair<TEvent, TState>(evt, CurrentState.Value, Timers, Context, Sender, Parent, Self))));
+            => Receive<TEvent>(
+                obs
+                    => handler(obs.Select(evt => new StatePair<TEvent, TState>(evt, CurrentState.Value, Timers, Context, Sender, Parent, Self))));
 
         public void UpdateState(TState state)
         {
-            if(InternalCurrentActorCellKeeper.Current == null)
+            if (InternalCurrentActorCellKeeper.Current == null)
                 throw new NotSupportedException("There is no active ActorContext, this is most likely due to use of async operations from within this actor.");
 
             CurrentState.OnNext(state);
@@ -143,7 +149,8 @@ namespace Tauron.Features
         public IDisposable Subscribe(IObserver<TState> observer)
             => CurrentState.DistinctUntilChanged().Subscribe(observer);
 
-        protected internal static Props Create(Func<IUntypedActorContext, TState> initialState,
+        protected internal static Props Create(
+            Func<IUntypedActorContext, TState> initialState,
             Action<ActorBuilder<TState>> builder)
             => Props.Create(typeof(ActorFactory), builder, initialState);
 
@@ -169,7 +176,7 @@ namespace Tauron.Features
         }
 
         protected override SupervisorStrategy SupervisorStrategy()
-            => ((IFeatureActor<TState>) this).SupervisorStrategy ?? base.SupervisorStrategy();
+            => ((IFeatureActor<TState>)this).SupervisorStrategy ?? base.SupervisorStrategy();
 
         [DebuggerStepThrough]
         private sealed class ActorFactory : IIndirectActorProducer
@@ -188,12 +195,11 @@ namespace Tauron.Features
                 var fut = new TFeatured();
                 fut.InitialState(_initialState(Context));
                 _builder(new ActorBuilder<TState>(fut.RegisterFeature));
+
                 return fut;
             }
 
-            public void Release(ActorBase actor)
-            {
-            }
+            public void Release(ActorBase actor) { }
 
             public Type ActorType { get; } = typeof(TFeatured);
         }
@@ -258,6 +264,7 @@ namespace Tauron.Features
             #pragma warning restore AV1551
         {
             _registrar(feature);
+
             return this;
         }
 
@@ -265,10 +272,12 @@ namespace Tauron.Features
         {
             foreach (var feature in features)
                 _registrar(feature);
+
             return this;
         }
 
-        public ActorBuilder<TState> WithFeature<TNewState>(IFeature<TNewState> feature, Func<TState, TNewState> convert,
+        public ActorBuilder<TState> WithFeature<TNewState>(
+            IFeature<TNewState> feature, Func<TState, TNewState> convert,
             Func<TState, TNewState, TState> convertBack)
             => WithFeature(new ConvertingFeature<TNewState, TState>(feature, convert, convertBack));
 
@@ -278,7 +287,8 @@ namespace Tauron.Features
             private readonly Func<TOriginal, TTarget, TOriginal> _convertBack;
             private readonly IFeature<TTarget> _feature;
 
-            internal ConvertingFeature(IFeature<TTarget> feature, Func<TOriginal, TTarget> convert,
+            internal ConvertingFeature(
+                IFeature<TTarget> feature, Func<TOriginal, TTarget> convert,
                 Func<TOriginal, TTarget, TOriginal> convertBack)
             {
                 _feature = feature;
@@ -304,7 +314,8 @@ namespace Tauron.Features
             private readonly Func<TOriginal, TTarget, TOriginal> _convertBack;
             private readonly IFeatureActor<TOriginal> _original;
 
-            internal StateDelegator(IFeatureActor<TOriginal> original, Func<TOriginal, TTarget> convert,
+            internal StateDelegator(
+                IFeatureActor<TOriginal> original, Func<TOriginal, TTarget> convert,
                 Func<TOriginal, TTarget, TOriginal> convertBack)
             {
                 _original = original;
@@ -341,7 +352,7 @@ namespace Tauron.Features
                 set => _original.SupervisorStrategy = value;
             }
 
-            public void UpdateState(TTarget state) 
+            public void UpdateState(TTarget state)
                 => _original.UpdateState(_convertBack(_original.CurrentState, state));
 
             public void TellSelf(object msg) => _original.TellSelf(msg);
@@ -357,23 +368,6 @@ namespace Tauron.Features
 
             public IObservable<TSignal> WaitForSignal<TSignal>(TimeSpan timeout, Predicate<TSignal> match) => _original.WaitForSignal(timeout, match);
 
-            #pragma warning disable AV1551
-            public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TTarget>>, IObservable<Unit>> handler)
-                => _original.Receive<TEvent>(obs => handler(obs.Select(statePair => statePair.Convert(_convert))));
-
-            public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TTarget>>, IObservable<TTarget>> handler)
-                => _original.Receive<TEvent>(obs
-                    => handler(obs.Select(statePair => statePair.Convert(_convert)))
-                        .Select(state => _convertBack(_original.CurrentState, state)));
-
-            public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TTarget>>, IObservable<Unit>> handler,
-                Func<Exception, bool> errorHandler)
-                => _original.Receive<TEvent>(obs => handler(obs.Select(statePair => statePair.Convert(_convert))), errorHandler);
-
-            public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TTarget>>, IDisposable> handler)
-                => _original.Receive<TEvent>(obs => handler(obs.Select(statePair => statePair.Convert(_convert))));
-            #pragma warning restore AV1551
-            
             public ITimerScheduler Timers
             {
                 get => _original.Timers;
@@ -385,6 +379,25 @@ namespace Tauron.Features
             public void AddResource(IDisposable res) => _original.AddResource(res);
 
             public void RemoveResource(IDisposable res) => _original.RemoveResource(res);
+
+            #pragma warning disable AV1551
+            public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TTarget>>, IObservable<Unit>> handler)
+                => _original.Receive<TEvent>(obs => handler(obs.Select(statePair => statePair.Convert(_convert))));
+
+            public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TTarget>>, IObservable<TTarget>> handler)
+                => _original.Receive<TEvent>(
+                    obs
+                        => handler(obs.Select(statePair => statePair.Convert(_convert)))
+                           .Select(state => _convertBack(_original.CurrentState, state)));
+
+            public void Receive<TEvent>(
+                Func<IObservable<StatePair<TEvent, TTarget>>, IObservable<Unit>> handler,
+                Func<Exception, bool> errorHandler)
+                => _original.Receive<TEvent>(obs => handler(obs.Select(statePair => statePair.Convert(_convert))), errorHandler);
+
+            public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TTarget>>, IDisposable> handler)
+                => _original.Receive<TEvent>(obs => handler(obs.Select(statePair => statePair.Convert(_convert))));
+            #pragma warning restore AV1551
         }
     }
 }

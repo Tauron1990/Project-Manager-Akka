@@ -52,7 +52,8 @@ namespace Tauron.Application.Wpf.UI
         /// <param name="target">The binding target of the binding.</param>
         /// <param name="dp">The target property of the binding.</param>
         /// <returns>True if the provider supports all that's needed.</returns>
-        protected virtual bool TryGetTargetItems(IServiceProvider? provider,
+        protected virtual bool TryGetTargetItems(
+            IServiceProvider? provider,
             [NotNullWhen(true)] out DependencyObject? target, [NotNullWhen(true)] out DependencyProperty? dp)
         {
             target = null;
@@ -64,6 +65,7 @@ namespace Tauron.Application.Wpf.UI
             //we need dependency objects / properties
             target = service.TargetObject as DependencyObject;
             dp = service.TargetProperty as DependencyProperty;
+
             return target != null && dp != null;
         }
 
@@ -226,8 +228,7 @@ namespace Tauron.Application.Wpf.UI
             set => Binding.XPath = value;
         }
 
-        [DefaultValue(null)] 
-        public Collection<ValidationRule>? ValidationRules => Binding.ValidationRules;
+        [DefaultValue(null)] public Collection<ValidationRule>? ValidationRules => Binding.ValidationRules;
 
         [DefaultValue(null)]
         public string? StringFormat

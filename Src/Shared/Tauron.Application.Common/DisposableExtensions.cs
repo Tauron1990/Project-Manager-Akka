@@ -12,6 +12,7 @@ namespace Tauron
             where TValue : IDisposable
         {
             cd.Add(value);
+
             return value;
         }
 
@@ -19,6 +20,7 @@ namespace Tauron
             where TValue : IDisposable
         {
             cd.AddResource(value);
+
             return value;
         }
     }

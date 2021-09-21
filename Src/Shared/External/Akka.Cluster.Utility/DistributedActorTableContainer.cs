@@ -15,37 +15,33 @@ namespace Akka.Cluster.Utility
         private readonly Dictionary<TKey, IActorRef> _actorMap = new();
 
         private readonly Dictionary<TKey, IActorRef> _addingMap = new();
-        private readonly IActorRef                   _clusterActorDiscovery;
-        private readonly object?                     _downMessage;
-        private readonly ILoggingAdapter             _log;
+        private readonly IActorRef _clusterActorDiscovery;
+        private readonly object? _downMessage;
+        private readonly ILoggingAdapter _log;
 
         private readonly string _name;
 
         private bool _stopping;
 
         private IActorRef? _table;
-        private int        _watchingActorCount;
+        private int _watchingActorCount;
 
 
         public DistributedActorTableContainer(string name, ActorSystem system, Type actorType)
-            : this(name, ClusterActorDiscovery.Get(system).Discovery, actorType)
-        {
-        }
+            : this(name, ClusterActorDiscovery.Get(system).Discovery, actorType) { }
 
         public DistributedActorTableContainer(string name, IActorRef clusterActorDiscovery, Type actorType)
-            : this(name, clusterActorDiscovery, typeof(SimpleActorFactory), new object[] {actorType})
-        {
-        }
+            : this(name, clusterActorDiscovery, typeof(SimpleActorFactory), new object[] { actorType }) { }
 
         public DistributedActorTableContainer(
-            string  name,             IActorRef clusterActorDiscovery,
-            Type    actorFactoryType, object[]  actorFactoryInitalizeArgs,
+            string name, IActorRef clusterActorDiscovery,
+            Type actorFactoryType, object[] actorFactoryInitalizeArgs,
             object? downMessage = null)
         {
-            _name                  = name;
+            _name = name;
             _clusterActorDiscovery = clusterActorDiscovery;
-            _downMessage           = downMessage;
-            _log                   = Context.GetLogger();
+            _downMessage = downMessage;
+            _log = Context.GetLogger();
 
             _actorFactory = (IActorFactory)Activator.CreateInstance(actorFactoryType)!;
             _actorFactory.Initialize(actorFactoryInitalizeArgs);
@@ -79,6 +75,7 @@ namespace Akka.Cluster.Utility
             if (_table != null)
             {
                 _log.Error($"But I already have table. (Actor={_table.Path})");
+
                 return;
             }
 
@@ -93,6 +90,7 @@ namespace Akka.Cluster.Utility
             if (_table != null && _table.Equals(actorRef) == false)
             {
                 _log.Error($"But I have a different table. (Actor={_table.Path})");
+
                 return;
             }
 
@@ -110,21 +108,24 @@ namespace Akka.Cluster.Utility
             var (id, actor) = add;
             if (_table is null || _stopping)
             {
-                Sender.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, Added: false));
+                Sender.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, false));
+
                 return;
             }
 
             if (actor is null)
             {
                 _log.Error($"Invalid null actor. (ID={id})");
-                Sender.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, Added: false));
+                Sender.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, false));
+
                 return;
             }
 
             if (_actorMap.ContainsKey(id))
             {
                 _log.Error($"Duplicate ID in local container. (ID={id})");
-                Sender.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, Added: false));
+                Sender.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, false));
+
                 return;
             }
 
@@ -142,6 +143,7 @@ namespace Akka.Cluster.Utility
             if (_actorMap.TryGetValue(remove.Id, out var actor) == false)
             {
                 _log.Error($"Cannot remove an actor that doesn't exist. (Id={remove.Id} Sender={Sender})");
+
                 return;
             }
 
@@ -175,6 +177,7 @@ namespace Akka.Cluster.Utility
             {
                 _log.Error(exception, $"Exception in creating actor (Id={id})");
                 Sender.Tell(new DistributedActorTableMessage<TKey>.Internal.CreateReply(id, null));
+
                 return;
             }
 
@@ -198,17 +201,17 @@ namespace Akka.Cluster.Utility
 
             if (added)
             {
-                requester.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, Added: true));
+                requester.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, true));
             }
             else
             {
                 _actorMap.Remove(id);
-                if(actor is not null)
+                if (actor is not null)
                     _actorInverseMap.Remove(actor);
                 Context.Unwatch(actor);
                 _watchingActorCount -= 1;
 
-                requester.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, Added: false));
+                requester.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, false));
             }
         }
 
@@ -221,7 +224,7 @@ namespace Akka.Cluster.Utility
                 Context.Unwatch(actor);
                 _watchingActorCount -= 1;
 
-                actor.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, Added: false));
+                actor.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, false));
             }
 
             _addingMap.Clear();
@@ -237,10 +240,8 @@ namespace Akka.Cluster.Utility
             CancelAllPendingAddRequests();
 
             if (_actorMap.Count > 0)
-            {
                 foreach (var (_, actor) in _actorMap)
                     actor.Tell(gracefulStop.StopMessage ?? PoisonPill.Instance);
-            }
             else
                 Context.Stop(Self);
         }
@@ -271,7 +272,7 @@ namespace Akka.Cluster.Utility
 
             public void Initialize(object[]? args)
             {
-                if(args != null)
+                if (args != null)
                     _actor = args[0];
             }
 

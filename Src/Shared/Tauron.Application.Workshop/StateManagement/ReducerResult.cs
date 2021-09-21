@@ -21,7 +21,7 @@ namespace Tauron.Application.Workshop.StateManagement
 
         public static ReducerResult<TData> Fail<TData>(string error)
         {
-            return Fail<TData>(new[] {error});
+            return Fail<TData>(new[] { error });
         }
     }
 
@@ -29,7 +29,7 @@ namespace Tauron.Application.Workshop.StateManagement
     {
         public ErrorResult(Exception e)
         {
-            Errors = new[] {e.Message};
+            Errors = new[] { e.Message };
         }
 
         public bool IsOk => false;

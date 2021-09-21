@@ -18,19 +18,20 @@ namespace Tauron.Application.CommonUI.Dialogs
         public Task<bool?> ShowMessage(string title, string message, Action<bool?>? result)
         {
             var resultTask = new TaskCompletionSource<bool?>();
-            result = result.Combine(b =>
-            {
-                HideDialog();
-                resultTask.SetResult(b);
-            });
+            result = result.Combine(
+                b =>
+                {
+                    HideDialog();
+                    resultTask.SetResult(b);
+                });
 
-            ShowDialog(_framework.CreateDefaultMessageContent(title, message, result, canCnacel: true));
+            ShowDialog(_framework.CreateDefaultMessageContent(title, message, result, true));
 
             return resultTask.Task;
         }
 
         public void ShowMessage(string title, string message)
-            => ShowDialog(_framework.CreateDefaultMessageContent(title, message, _ => HideDialog(), canCnacel: false));
+            => ShowDialog(_framework.CreateDefaultMessageContent(title, message, _ => HideDialog(), false));
 
         public void ShowDialog(object dialog)
         {

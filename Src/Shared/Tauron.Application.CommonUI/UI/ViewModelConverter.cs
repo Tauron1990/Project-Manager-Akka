@@ -13,11 +13,12 @@
 
             var manager = AutoViewLocation.Manager;
             var view = manager.ResolveView(model);
+
             return view.HasValue ? view.Value : value;
 
             //root.ViewManager.ThenRegister(model, view, root);
         }
 
-        public object? ConvertBack(object value) => ((dynamic) value).DataContext;
+        public object? ConvertBack(object value) => ((dynamic)value).DataContext;
     }
 }

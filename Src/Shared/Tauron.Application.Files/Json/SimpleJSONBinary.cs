@@ -28,12 +28,13 @@ namespace Tauron.Application.Files.Json
             using var stream = new MemoryStream();
             SaveToBinaryStream(stream);
             stream.Position = 0;
+
             return Convert.ToBase64String(stream.ToArray());
         }
 
         public static JsonNode DeserializeBinary(BinaryReader aReader)
         {
-            var type = (JsonNodeType) aReader.ReadByte();
+            var type = (JsonNodeType)aReader.ReadByte();
             switch (type)
             {
                 case JsonNodeType.Array:
@@ -83,19 +84,22 @@ namespace Tauron.Application.Files.Json
         public static JsonNode LoadFromBinaryStream(Stream aData)
         {
             using var binaryReader = new BinaryReader(aData);
+
             return DeserializeBinary(binaryReader);
         }
 
         public static JsonNode LoadFromBinaryFile(string aFileName)
         {
             using var fileStream = File.OpenRead(aFileName);
+
             return LoadFromBinaryStream(fileStream);
         }
 
         public static JsonNode LoadFromBinaryBase64(string aBase64)
         {
             var tmp = Convert.FromBase64String(aBase64);
-            var stream = new MemoryStream(tmp) {Position = 0};
+            var stream = new MemoryStream(tmp) { Position = 0 };
+
             return LoadFromBinaryStream(stream);
         }
     }
@@ -104,7 +108,7 @@ namespace Tauron.Application.Files.Json
     {
         public override void SerializeBinary(BinaryWriter aWriter)
         {
-            aWriter.Write((byte) JsonNodeType.Array);
+            aWriter.Write((byte)JsonNodeType.Array);
             aWriter.Write(_list.Count);
             foreach (var jsonNode in _list)
                 jsonNode.SerializeBinary(aWriter);
@@ -115,7 +119,7 @@ namespace Tauron.Application.Files.Json
     {
         public override void SerializeBinary(BinaryWriter aWriter)
         {
-            aWriter.Write((byte) JsonNodeType.Object);
+            aWriter.Write((byte)JsonNodeType.Object);
             aWriter.Write(_dict.Count);
             foreach (var key in _dict.Keys)
             {
@@ -129,7 +133,7 @@ namespace Tauron.Application.Files.Json
     {
         public override void SerializeBinary(BinaryWriter aWriter)
         {
-            aWriter.Write((byte) JsonNodeType.String);
+            aWriter.Write((byte)JsonNodeType.String);
             aWriter.Write(_data);
         }
     }
@@ -138,7 +142,7 @@ namespace Tauron.Application.Files.Json
     {
         public override void SerializeBinary(BinaryWriter aWriter)
         {
-            aWriter.Write((byte) JsonNodeType.Number);
+            aWriter.Write((byte)JsonNodeType.Number);
             aWriter.Write(_data);
         }
     }
@@ -147,7 +151,7 @@ namespace Tauron.Application.Files.Json
     {
         public override void SerializeBinary(BinaryWriter aWriter)
         {
-            aWriter.Write((byte) JsonNodeType.Boolean);
+            aWriter.Write((byte)JsonNodeType.Boolean);
             aWriter.Write(_data);
         }
     }
@@ -156,14 +160,12 @@ namespace Tauron.Application.Files.Json
     {
         public override void SerializeBinary(BinaryWriter aWriter)
         {
-            aWriter.Write((byte) JsonNodeType.NullValue);
+            aWriter.Write((byte)JsonNodeType.NullValue);
         }
     }
 
     internal partial class JsonLazyCreator
     {
-        public override void SerializeBinary(BinaryWriter aWriter)
-        {
-        }
+        public override void SerializeBinary(BinaryWriter aWriter) { }
     }
 }

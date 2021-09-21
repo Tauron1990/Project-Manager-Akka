@@ -87,8 +87,11 @@ namespace Akkatecture.Jobs
         {
             Log.Info(
                 "JobManager for Job of Name={0} is forwarding job command of Type={1} to JobRunner at ActorPath={2}",
-                Name, typeof(TJob).PrettyPrint(), JobRunner.Path);
+                Name,
+                typeof(TJob).PrettyPrint(),
+                JobRunner.Path);
             JobRunner.Forward(command);
+
             return true;
         }
 
@@ -96,8 +99,11 @@ namespace Akkatecture.Jobs
         {
             Log.Info(
                 "JobManager for Job of Name={0} is forwarding job command of Type={1} to JobScheduler at ActorPath={2}",
-                Name, typeof(TJob).PrettyPrint(), JobScheduler.Path);
+                Name,
+                typeof(TJob).PrettyPrint(),
+                JobScheduler.Path);
             JobScheduler.Forward(command);
+
             return true;
         }
     }

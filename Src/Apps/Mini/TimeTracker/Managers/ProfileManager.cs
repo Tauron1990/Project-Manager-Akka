@@ -21,15 +21,34 @@ namespace TimeTracker.Managers
     {
         private static readonly JsonSerializerSettings SerializationSettings = new() { Formatting = Formatting.Indented };
         private static readonly Guid FileNamespace = Guid.Parse("42CB06B0-B6F0-4F50-A1D9-294F47AA2AF6");
+        private readonly IEventAggregator _aggregator;
 
         private readonly IDisposable _cleanUp;
 
         private readonly SystemClock _clock;
+        private readonly DataManager _dataManager;
+        private readonly SourceCache<ProfileEntry, DateTime> _entryCache = new(pe => pe.Date);
         private readonly ITauronEnviroment _enviroment;
         private readonly HolidayManager _holidayManager;
-        private readonly DataManager _dataManager;
-        private readonly IEventAggregator _aggregator;
-        private readonly SourceCache<ProfileEntry, DateTime> _entryCache = new(pe => pe.Date);
+
+        public ProfileManager(
+            SystemClock clock, ITauronEnviroment enviroment, HolidayManager holidayManager, DataManager dataManager,
+            IEventAggregator aggregator)
+        {
+            _clock = clock;
+            _enviroment = enviroment;
+            _holidayManager = holidayManager;
+            _dataManager = dataManager;
+            _aggregator = aggregator;
+            ConfigurationManager = new ConfigurationManager(dataManager, aggregator.ReportError);
+
+            _cleanUp = new CompositeDisposable(
+                CreateFileSafePipeLine(),
+                _entryCache,
+                CreateCacheUpdater(),
+                ConfigurationManager,
+                AutoUpdateHoliDays());
+        }
 
         public IObservable<bool> IsProcessable
             => (from data in _dataManager.Stream
@@ -44,20 +63,8 @@ namespace TimeTracker.Managers
 
         public ConfigurationManager ConfigurationManager { get; }
 
-        public ProfileManager(SystemClock clock, ITauronEnviroment enviroment, HolidayManager holidayManager, DataManager dataManager, 
-            IEventAggregator aggregator)
-        {
-            _clock = clock;
-            _enviroment = enviroment;
-            _holidayManager = holidayManager;
-            _dataManager = dataManager;
-            _aggregator = aggregator;
-            ConfigurationManager = new ConfigurationManager(dataManager, aggregator.ReportError);
+        void IDisposable.Dispose() => _cleanUp.Dispose();
 
-            _cleanUp = new CompositeDisposable(
-                CreateFileSafePipeLine(), _entryCache, CreateCacheUpdater(), ConfigurationManager, AutoUpdateHoliDays());
-        }
-        
 
         //public ProfileManager(DataManager dataManager)
         //{
@@ -75,35 +82,38 @@ namespace TimeTracker.Managers
         {
             return (from name in toLoadObservable
                     let fileName = GetFileName(name)
-                    from data in _dataManager.Mutate(_ => from data in File.Exists(fileName)
-                                                              ? FromFile(fileName)
-                                                              : NewFile(fileName)
-                                                          select data)
+                    from data in _dataManager.Mutate(
+                        _ => from data in File.Exists(fileName)
+                                 ? FromFile(fileName)
+                                 : NewFile(fileName)
+                             select data)
                     select data)
                .AutoSubscribe(_aggregator.ReportError);
         }
 
         private IObservable<ProfileData> FromFile(string input)
-            =>  Observable.Return(input)
-                          .CatchSafe(file => from targetFile in Observable.Return(file)
-                                             from text in File.ReadAllTextAsync(targetFile)
-                                             let data = JsonConvert.DeserializeObject<ProfileData>(text, SerializationSettings)
-                                             select data,
-                               (s, e) =>
-                               {
-                                   _aggregator.ReportError(e);
-                                   return NewFile(s);
-                               })
-                           // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-                          .SelectMany(pd => pd is null ? NewFile(input) : Observable.Return(pd));
+            => Observable.Return(input)
+               .CatchSafe(
+                    file => from targetFile in Observable.Return(file)
+                            from text in File.ReadAllTextAsync(targetFile)
+                            let data = JsonConvert.DeserializeObject<ProfileData>(text, SerializationSettings)
+                            select data,
+                    (s, e) =>
+                    {
+                        _aggregator.ReportError(e);
+
+                        return NewFile(s);
+                    })
+                // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+               .SelectMany(pd => pd is null ? NewFile(input) : Observable.Return(pd));
 
         private IObservable<ProfileData> NewFile(string file)
             => Observable.Return(ProfileData.New(file, _clock));
 
         private IDisposable CreateFileSafePipeLine()
             => ProcessableData
-              .ToUnit(pd => File.WriteAllTextAsync(pd.FileName, JsonConvert.SerializeObject(pd, SerializationSettings)))
-              .AutoSubscribe(_aggregator.ReportError);
+               .ToUnit(pd => File.WriteAllTextAsync(pd.FileName, JsonConvert.SerializeObject(pd, SerializationSettings)))
+               .AutoSubscribe(_aggregator.ReportError);
 
         private string GetFileName(string profile)
             => Path.Combine(
@@ -113,11 +123,13 @@ namespace TimeTracker.Managers
         private IDisposable CreateCacheUpdater()
             => (from data in ProcessableData.DistinctUntilChanged(d => d.FileName).ObserveOn(Scheduler.Default)
                 select data.Entries)
-               .AutoSubscribe(e =>
-                              {
-                                  _entryCache.Clear();
-                                  Task.Delay(1000).ContinueWith(_ => e.Select(pair => pair.Value).OrderByDescending(v => v.Date).Foreach(_entryCache.AddOrUpdate));
-                              }, _aggregator.ReportError);
+               .AutoSubscribe(
+                    e =>
+                    {
+                        _entryCache.Clear();
+                        Task.Delay(1000).ContinueWith(_ => e.Select(pair => pair.Value).OrderByDescending(v => v.Date).Foreach(_entryCache.AddOrUpdate));
+                    },
+                    _aggregator.ReportError);
 
         //private IDisposable AutoUpdateShortTimeHours()
         //    => (from data in ProcessableData.SyncCall(_concurancy)
@@ -132,23 +144,27 @@ namespace TimeTracker.Managers
                     where !ent.HolidaysSet
                     from holidays in _holidayManager.RequestFor(ent.CurrentMonth)
                     let days = holidays.Select(day => new DateTime(ent.CurrentMonth.Year, ent.CurrentMonth.Month, day))
-                    from data in _dataManager.Mutate(o => from data in o
-                                                          select data with {Entries = UpdateEntries(data.Entries, days), HolidaysSet = true})
+                    from data in _dataManager.Mutate(
+                        o => from data in o
+                             select data with { Entries = UpdateEntries(data.Entries, days), HolidaysSet = true })
                     select data)
                .AutoSubscribe(_aggregator.ReportError);
 
 
             ImmutableDictionary<DateTime, ProfileEntry> UpdateEntries(ImmutableDictionary<DateTime, ProfileEntry> original, IEnumerable<DateTime> days)
-                => days.Aggregate(original, (dic, free) =>
-                                            {
-                                                if (dic.TryGetValue(free, out var entry) && entry.DayType == DayType.Normal)
-                                                    entry = entry with {DayType = DayType.Holiday};
-                                                else
-                                                    entry = new ProfileEntry(free, null, null, DayType.Holiday);
-                                                dic = dic.SetItem(free, entry);
-                                                _entryCache.AddOrUpdate(entry);
-                                                return dic;
-                                            });
+                => days.Aggregate(
+                    original,
+                    (dic, free) =>
+                    {
+                        if (dic.TryGetValue(free, out var entry) && entry.DayType == DayType.Normal)
+                            entry = entry with { DayType = DayType.Holiday };
+                        else
+                            entry = new ProfileEntry(free, null, null, DayType.Holiday);
+                        dic = dic.SetItem(free, entry);
+                        _entryCache.AddOrUpdate(entry);
+
+                        return dic;
+                    });
         }
 
         public IObservable<bool> Come(IObservable<ComeParameter> dateObs)
@@ -179,17 +195,19 @@ namespace TimeTracker.Managers
 
 
             IObservable<bool> StartBackUp(DateTime month)
-                => _dataManager.Mutate(o => (from data in o
-                                             select (New: data with
-                                                          {
-                                                              CurrentMonth = month,
-                                                              HolidaysSet = false,
-                                                              Entries = data.Entries.RemoveRange(from entry in data.Entries.Values
-                                                                                                 where entry.Date.Month == data.CurrentMonth.Month
-                                                                                                 select entry.Date)
-                                                          }, Old: data))
-                                          .SelectMany(MakeBackup))
-                               .Select(_ => true);
+                => _dataManager.Mutate(
+                        o => (from data in o
+                              select (New: data with
+                                           {
+                                               CurrentMonth = month,
+                                               HolidaysSet = false,
+                                               Entries = data.Entries.RemoveRange(
+                                                   from entry in data.Entries.Values
+                                                   where entry.Date.Month == data.CurrentMonth.Month
+                                                   select entry.Date)
+                                           }, Old: data))
+                           .SelectMany(MakeBackup))
+                   .Select(_ => true);
 
             IObservable<ProfileData> MakeBackup((ProfileData New, ProfileData Old) obj)
             {
@@ -204,12 +222,10 @@ namespace TimeTracker.Managers
                     var originalName = Path.GetFileName(newData.FileName);
 
                     if (oldEntrys.Count != 0)
-                    {
                         File.WriteAllTextAsync(
-                                 originalFile.Replace(originalName, $"{originalName}-{oldData.CurrentMonth:d}"),
-                                 JsonConvert.SerializeObject(oldEntrys)).ToObservable()
-                            .Subscribe(_ => { }, _aggregator.ReportError);
-                    }
+                                originalFile.Replace(originalName, $"{originalName}-{oldData.CurrentMonth:d}"),
+                                JsonConvert.SerializeObject(oldEntrys)).ToObservable()
+                           .Subscribe(_ => { }, _aggregator.ReportError);
                 }
                 catch (Exception e)
                 {
@@ -221,9 +237,10 @@ namespace TimeTracker.Managers
         }
 
         private IObservable<Unit> SetEntry(params ProfileEntry[] entrys)
-            => _dataManager.Mutate(o => from data in o
-                                        select data with {Entries = entrys.Aggregate(data.Entries, (entries, entry) => entries.SetItem(entry.Date, entry))})
-                           .ToUnit(() => _entryCache.AddOrUpdate(entrys));
+            => _dataManager.Mutate(
+                    o => from data in o
+                         select data with { Entries = entrys.Aggregate(data.Entries, (entries, entry) => entries.SetItem(entry.Date, entry)) })
+               .ToUnit(() => _entryCache.AddOrUpdate(entrys));
 
         public IObservable<bool> Go(IObservable<DateTime> timeobs)
         {
@@ -236,7 +253,7 @@ namespace TimeTracker.Managers
 
             IObservable<bool> MakeUpdate(ProfileEntry entry)
                 => from data in Observable.Return(entry)
-                   let newEntry = data with {Finish = _clock.NowTime}
+                   let newEntry = data with { Finish = _clock.NowTime }
                    from _ in SetEntry(newEntry)
                    select true;
         }
@@ -278,25 +295,28 @@ namespace TimeTracker.Managers
                 _entryCache.RemoveKey(oldDate);
                 _entryCache.AddOrUpdate(entry);
 
-                return _dataManager.Mutate(o => from data in o
-                                                select data with{Entries = data.Entries.Remove(oldDate).SetItem(entry.Date, entry)})
-                                   .Select(_ => string.Empty);
+                return _dataManager.Mutate(
+                        o => from data in o
+                             select data with { Entries = data.Entries.Remove(oldDate).SetItem(entry.Date, entry) })
+                   .Select(_ => string.Empty);
             }
         }
 
         public IObservable<Unit> DeleteEntry(DateTime entry)
-            => _dataManager.Mutate(o => from data in o
-                                        select data with {Entries = data.Entries.Remove(entry)})
-                           .ToUnit(() => _entryCache.RemoveKey(entry));
+            => _dataManager.Mutate(
+                    o => from data in o
+                         select data with { Entries = data.Entries.Remove(entry) })
+               .ToUnit(() => _entryCache.RemoveKey(entry));
 
         public IObservable<Unit> AddVacation(DateTime[] dates)
         {
             return from result in FilterOut().ToObservable()
-                   from res in SetEntry(result
-                                        #pragma warning disable EPS06
-                                       .Select(dateTime => new ProfileEntry(dateTime, null, null, DayType.Vacation))
-                                        #pragma warning restore EPS06
-                                       .ToArray())
+                   from res in SetEntry(
+                       result
+                           #pragma warning disable EPS06
+                          .Select(dateTime => new ProfileEntry(dateTime, null, null, DayType.Vacation))
+                           #pragma warning restore EPS06
+                          .ToArray())
                    select res;
 
             async Task<ImmutableArray<DateTime>> FilterOut()
@@ -305,15 +325,14 @@ namespace TimeTracker.Managers
 
                 foreach (var date in dates)
                 {
-                    if(!SystemClock.IsWeekDay(date) || await  _holidayManager.IsHoliday(date, date.Day))
+                    if (!SystemClock.IsWeekDay(date) || await _holidayManager.IsHoliday(date, date.Day))
                         continue;
+
                     result = result.Add(date);
                 }
 
                 return result;
             }
         }
-
-        void IDisposable.Dispose() => _cleanUp.Dispose();
     }
 }

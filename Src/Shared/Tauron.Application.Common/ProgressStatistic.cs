@@ -9,26 +9,21 @@ namespace Tauron
 {
     public class ProgressEventArgs : EventArgs
     {
-        public ProgressEventArgs(ProgressStatistic progressStatistic) 
+        public ProgressEventArgs(ProgressStatistic progressStatistic)
             => ProgressStatistic = progressStatistic;
 
-        [PublicAPI] 
-        public ProgressStatistic ProgressStatistic { get; }
+        [PublicAPI] public ProgressStatistic ProgressStatistic { get; }
     }
 
     [Serializable]
     public class OperationAlreadyStartedException : Exception
     {
-        public OperationAlreadyStartedException()
-        {
-        }
+        public OperationAlreadyStartedException() { }
 
         protected OperationAlreadyStartedException(
             SerializationInfo info,
             StreamingContext context)
-            : base(info, context)
-        {
-        }
+            : base(info, context) { }
     }
 
     /// <summary>
@@ -75,7 +70,7 @@ namespace Tauron
         ///     Gets the progress in percent between 0 and 1.
         ///     If the amount of total bytes to read is unknown, -1 is returned.
         /// </summary>
-        public double Progress => TotalBytesToRead == -1 ? -1 : BytesRead / (double) TotalBytesToRead;
+        public double Progress => TotalBytesToRead == -1 ? -1 : BytesRead / (double)TotalBytesToRead;
 
         /// <summary>
         ///     Gets the average bytes per second.
@@ -150,6 +145,7 @@ namespace Tauron
                     return TimeSpan.Zero;
                 if (!HasFinished)
                     return DateTime.Now - StartingTime;
+
                 return FinishingTime - StartingTime;
             }
         }
@@ -197,8 +193,10 @@ namespace Tauron
                 };
 
                 var seconds = (TotalBytesToRead - BytesRead) / bytesPerSecond;
+
                 if (seconds > 60 * 60 * 24 * 200) //over 200 Days -> infinite
                     return TimeSpan.MaxValue;
+
                 return Duration + TimeSpan.FromSeconds(seconds);
             }
         }
@@ -237,6 +235,7 @@ namespace Tauron
             {
                 if (HasStarted)
                     throw new InvalidOperationException("Task has already started!");
+
                 _currentBytesCalculationInterval = value;
             }
         }
@@ -256,6 +255,7 @@ namespace Tauron
             {
                 if (HasStarted)
                     throw new InvalidOperationException("Task has already started!");
+
                 if (value != _currentBytesSamples.Length)
                     _currentBytesSamples = new KeyValuePair<DateTime, long>[value];
             }

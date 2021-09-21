@@ -11,7 +11,7 @@ namespace Tauron.Application.Workshop.Mutation
 
         public static IncommingEvent From<TData>(TData data, Action<TData> dataAction)
         {
-            return new(() => dataAction(data));
+            return new IncommingEvent(() => dataAction(data));
         }
     }
 

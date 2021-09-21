@@ -6,7 +6,6 @@ using Stl.Fusion.AkkaBridge.Connector;
 using Stl.Fusion.AkkaBridge.Internal;
 using Stl.Fusion.Bridge.Interception;
 using Stl.Fusion.Interception;
-using Stl.Interception;
 using Stl.Reflection;
 using Tauron;
 
@@ -34,11 +33,11 @@ namespace Stl.Fusion.AkkaBridge
             object ServiceAccessorFactory(IServiceProvider c)
             {
                 var replicaMethodInterceptor = c.GetRequiredService<ReplicaMethodInterceptor>();
-                replicaMethodInterceptor.ValidateType(serviceType!);
+                replicaMethodInterceptor.ValidateType(serviceType);
                 var commandMethodInterceptor = c.GetRequiredService<ComputeMethodInterceptor>();
-                commandMethodInterceptor.ValidateType(serviceType!);
+                commandMethodInterceptor.ValidateType(serviceType);
 
-                var client = c.GetRequiredService<AkkaProxyGenerator>().GenerateAkkaProxy(serviceType!);
+                var client = c.GetRequiredService<AkkaProxyGenerator>().GenerateAkkaProxy(serviceType);
 
                 return FastReflection.Shared.GetCreator(serviceAccessorType, new[] { serviceType })?.Invoke(new[] { client })
                     ?? throw new InvalidCastException("Client Accessor was not created"); //serviceAccessorType!.CreateInstance(client);
@@ -46,12 +45,12 @@ namespace Stl.Fusion.AkkaBridge
 
             object ServiceFactory(IServiceProvider c)
             {
-                var clientAccessor = (IServiceAccessor)c.GetRequiredService(serviceAccessorType!);
+                var clientAccessor = (IServiceAccessor)c.GetRequiredService(serviceAccessorType);
                 var client = clientAccessor.Service;
 
                 // 4. Create Replica Client
                 var replicaProxyGenerator = c.GetRequiredService<IReplicaServiceProxyGenerator>();
-                var replicaProxyType = replicaProxyGenerator.GetProxyType(serviceType!, isCommandService);
+                var replicaProxyType = replicaProxyGenerator.GetProxyType(serviceType, isCommandService);
                 var replicaInterceptors = c.GetRequiredService<ReplicaServiceInterceptor[]>();
                 client = replicaProxyType.CreateInstance(replicaInterceptors, client);
 

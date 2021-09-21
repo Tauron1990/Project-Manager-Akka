@@ -63,7 +63,9 @@ namespace Akkatecture.Aggregates
 
         protected virtual bool Dispatch(TCommand command)
         {
-            Logger.Info("AggregateManager of Type={0}; has received a command of Type={1}", Name,
+            Logger.Info(
+                "AggregateManager of Type={0}; has received a command of Type={1}",
+                Name,
                 command.GetType().PrettyPrint());
 
             var aggregateRef = FindOrCreate(command.AggregateId);
@@ -76,7 +78,9 @@ namespace Akkatecture.Aggregates
 
         protected virtual bool ReDispatch(TCommand command)
         {
-            Logger.Info("AggregateManager of Type={0}; is ReDispatching deadletter of Type={1}", Name,
+            Logger.Info(
+                "AggregateManager of Type={0}; is ReDispatching deadletter of Type={1}",
+                Name,
                 command.GetType().PrettyPrint());
 
             var aggregateRef = FindOrCreate(command.AggregateId);
@@ -90,15 +94,18 @@ namespace Akkatecture.Aggregates
         {
             if (deadLetter.Message is not TCommand command ||
                 command.GetPropertyValue("AggregateId")?.GetType() != typeof(TIdentity)) return true;
-            
+
             return ReDispatch(command);
         }
 
         protected virtual bool Terminate(Terminated message)
         {
-            Logger.Warning("Aggregate of Type={0}, and Id={1}; has terminated.", typeof(TAggregate).PrettyPrint(),
+            Logger.Warning(
+                "Aggregate of Type={0}, and Id={1}; has terminated.",
+                typeof(TAggregate).PrettyPrint(),
                 message.ActorRef.Path.Name);
             Context.Unwatch(message.ActorRef);
+
             return true;
         }
 
@@ -115,19 +122,25 @@ namespace Akkatecture.Aggregates
         {
             var aggregateRef = Context.ActorOf(Props.Create<TAggregate>(args: aggregateId), aggregateId.Value);
             Context.Watch(aggregateRef);
+
             return aggregateRef;
         }
 
         protected override SupervisorStrategy SupervisorStrategy()
         {
             var logger = Logger;
+
             return new OneForOneStrategy(
                 3,
                 3000,
                 exception =>
                 {
-                    logger.Warning("AggregateManager of Type={0}; will supervise Exception={1} to be decided as {2}.",
-                        Name, exception.ToString(), Directive.Restart);
+                    logger.Warning(
+                        "AggregateManager of Type={0}; will supervise Exception={1} to be decided as {2}.",
+                        Name,
+                        exception.ToString(),
+                        Directive.Restart);
+
                     return Directive.Restart;
                 });
         }

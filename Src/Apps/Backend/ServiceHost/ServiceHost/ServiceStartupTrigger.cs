@@ -9,9 +9,9 @@ namespace ServiceHost
 {
     public sealed class ServiceStartupTrigger : IStartUpAction
     {
+        private readonly InstallChecker _checker;
         private readonly IAppManager _manager;
         private readonly ActorSystem _system;
-        private readonly InstallChecker _checker;
 
         public ServiceStartupTrigger(IAppManager manager, ActorSystem system, InstallChecker checker)
         {
@@ -22,7 +22,7 @@ namespace ServiceHost
 
         public void Run()
         {
-            if(_checker.IsInstallationStart)
+            if (_checker.IsInstallationStart)
                 return;
 
             _manager.Tell(new StartApps(AppType.StartUp));

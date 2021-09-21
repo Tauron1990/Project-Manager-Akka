@@ -16,8 +16,8 @@ namespace Tauron.Grid
             Unit = unit;
             Set = true;
         }
-        
-        public static Lenght FromFraction(int value) 
+
+        public static Lenght FromFraction(int value)
             => new(value, CSSUnit.Fraction);
 
         public static Lenght FromPercentage(int value)

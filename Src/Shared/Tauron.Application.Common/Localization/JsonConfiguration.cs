@@ -13,6 +13,7 @@ namespace Tauron.Localization
     }
 
     [PublicAPI]
-    public sealed record JsonConfiguration(string RootDic = "lang", JsonFileNameMode NameMode = JsonFileNameMode.Name,
+    public sealed record JsonConfiguration(
+        string RootDic = "lang", JsonFileNameMode NameMode = JsonFileNameMode.Name,
         string Fallback = "en");
 }

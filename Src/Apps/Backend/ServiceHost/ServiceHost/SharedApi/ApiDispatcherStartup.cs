@@ -8,7 +8,7 @@ namespace ServiceHost.SharedApi
     {
         private readonly ActorSystem _system;
 
-        public ApiDispatcherStartup(ActorSystem system) 
+        public ApiDispatcherStartup(ActorSystem system)
             => _system = system;
 
         public void Run()

@@ -20,12 +20,16 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer.Internal
 {
     public sealed class HostMonitor : ActorFeatureBase<HostMonitor.State>
     {
-        public record State(string Name, IObservable<IConfigEvent> Publisher, ServerConfigugration ServerConfigugration, ImmutableList<HostApp> Apps, HostApi Api,
-            IRepository<SeedUrlEntity, string> Seeds);
-
         public static IPreparedFeature New(string name, IObservable<IConfigEvent> publisher, ServerConfigugration serverConfigugration, IRepository<SeedUrlEntity, string> seeds)
-            => Feature.Create(() => new HostMonitor(), c =>  new State(name, publisher, serverConfigugration, ImmutableList<HostApp>.Empty, 
-                                                           HostApi.CreateOrGet(c.System), seeds));
+            => Feature.Create(
+                () => new HostMonitor(),
+                c => new State(
+                    name,
+                    publisher,
+                    serverConfigugration,
+                    ImmutableList<HostApp>.Empty,
+                    HostApi.CreateOrGet(c.System),
+                    seeds));
 
         protected override void ConfigImpl()
         {
@@ -35,18 +39,19 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer.Internal
             Unit MakeInstallationSubscription()
             {
                 CurrentState.Api.ExecuteCommand(new SubscribeInstallationCompled(CurrentState.Name, Unsubscribe: false))
-                            .ToObservable()
-                            .Subscribe(
-                                 r =>
-                                 {
-                                     r.Subscription.DisposeWith(this);
-                                     Log.Info("Installation Subscription Compled");
-                                 },
-                                 e =>
-                                 {
-                                     Log.Warning(e, "Installation Subscrion Failed {Name}", CurrentState.Name);
-                                     Timers.StartSingleTimer(ReSheduleInstallEvent.Inst, ReSheduleInstallEvent.Inst, TimeSpan.FromMinutes(1));
-                                 });
+                   .ToObservable()
+                   .Subscribe(
+                        r =>
+                        {
+                            r.Subscription.DisposeWith(this);
+                            Log.Info("Installation Subscription Compled");
+                        },
+                        e =>
+                        {
+                            Log.Warning(e, "Installation Subscrion Failed {Name}", CurrentState.Name);
+                            Timers.StartSingleTimer(ReSheduleInstallEvent.Inst, ReSheduleInstallEvent.Inst, TimeSpan.FromMinutes(1));
+                        });
+
                 return Unit.Default;
             }
 
@@ -55,11 +60,11 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer.Internal
                        from apps in api.ExecuteCommand(new QueryHostApps(CurrentState.Name))
                        let _ = MakeInstallationSubscription()
                        from syncApps in UpdateAndSyncActor(request.NewEvent(apps))
-                       select syncApps.State with {Apps = syncApps.Event.Apps});
+                       select syncApps.State with { Apps = syncApps.Event.Apps });
 
             (from evt in root.OfType<ServerConfigurationEvent>()
              from pair in UpdateAndSyncActor(evt.Configugration)
-             select pair.State with {ServerConfigugration = pair.Event}
+             select pair.State with { ServerConfigugration = pair.Event }
                 ).AutoSubscribe(UpdateState).DisposeWith(this);
 
             void LogResponse(OperationResponse response, string eventType)
@@ -75,7 +80,7 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer.Internal
 
             (from evt in CurrentState.Publisher.OfType<ServerConfigurationEvent>()
              from state in UpdateAndSyncActor(evt)
-             select state.State with {ServerConfigugration = state.Event.Configugration})
+             select state.State with { ServerConfigugration = state.Event.Configugration })
                .AutoSubscribe(UpdateState, e => Log.Error(e, "Error on Update ServerConfiguration"))
                .DisposeWith(this);
 
@@ -90,9 +95,10 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer.Internal
                .DisposeWith(this);
 
             (from evt in root.OfType<GlobalConfigEvent>().Select(_ => Unit.Default)
-                             .Merge(from d in root.OfType<HostUpdatedEvent>()
-                                    where d.Name == CurrentState.Name
-                                    select Unit.Default)
+                .Merge(
+                     from d in root.OfType<HostUpdatedEvent>()
+                     where d.Name == CurrentState.Name
+                     select Unit.Default)
              let sConfig = CurrentState.ServerConfigugration
              where sConfig.MonitorChanges
              from result in CurrentState.Api.ExecuteCommand(new UpdateEveryConfiguration(CurrentState.Name, sConfig.RestartServices))
@@ -103,7 +109,7 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer.Internal
                .DisposeWith(this);
 
             var specificUpdate = root.OfType<SpecificConfigEvent>().Select(t => t.Config)
-                                     .Merge(root.OfType<ConditionUpdateEvent>().Select(t => t.Config));
+               .Merge(root.OfType<ConditionUpdateEvent>().Select(t => t.Config));
 
             (from evt in specificUpdate
              where ConditionChecker.MeetCondition("ServiceHost", CurrentState.Name, evt)
@@ -126,6 +132,10 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer.Internal
 
             Self.Tell(ReSheduleInstallEvent.Inst);
         }
+
+        public record State(
+            string Name, IObservable<IConfigEvent> Publisher, ServerConfigugration ServerConfigugration, ImmutableList<HostApp> Apps, HostApi Api,
+            IRepository<SeedUrlEntity, string> Seeds);
 
         private sealed record ReSheduleInstallEvent
         {

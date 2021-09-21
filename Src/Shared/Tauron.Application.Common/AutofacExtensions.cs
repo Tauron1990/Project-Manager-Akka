@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Reflection;
-using Akka.Actor;
-using Akka.DependencyInjection;
 using Autofac;
 using JetBrains.Annotations;
 

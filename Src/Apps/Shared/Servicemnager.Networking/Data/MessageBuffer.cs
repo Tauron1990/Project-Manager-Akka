@@ -21,6 +21,7 @@ namespace Servicemnager.Networking.Data
         {
             if (_incomming.Count == 0 && !_messageFormatter.HasHeader(buffer))
                 throw new InvalidOperationException("Incomming Message has no header");
+
             if (_incomming.Count != 0 && buffer.Length < NetworkMessageFormatter.End.Length)
             {
                 _incomming.Add(buffer);
@@ -32,6 +33,7 @@ namespace Servicemnager.Networking.Data
                     return _messageFormatter.ReadMessage(merge.Memory);
 
                 _incomming.Add(merge.Memory[..temp.Lenght].ToArray());
+
                 return null;
             }
 
@@ -54,6 +56,7 @@ namespace Servicemnager.Networking.Data
             }
 
             _incomming.Add(buffer);
+
             return null;
         }
 
@@ -73,11 +76,13 @@ namespace Servicemnager.Networking.Data
                 }
 
                 _incomming.Clear();
+
                 return (data, minLenght);
             }
             catch
             {
                 data.Dispose();
+
                 throw;
             }
         }

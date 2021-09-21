@@ -29,21 +29,21 @@ namespace ServiceHost
     {
         private const string MonitorName = @"Global\Tauron.Application.ProjectManagerHost";
 
-        static async Task Main(string[] args)
+        private static async Task Main(string[] args)
         {
             var exitManager = new ExitManager();
-            bool createdNew = false;
+            var createdNew = false;
 
-            using var m = await Task.Factory.StartNew(() => new Mutex(initiallyOwned: true, MonitorName, out createdNew), CancellationToken.None,
-                TaskCreationOptions.HideScheduler | TaskCreationOptions.DenyChildAttach, MutexThread.Inst);
+            using var m = await Task.Factory.StartNew(
+                () => new Mutex(initiallyOwned: true, MonitorName, out createdNew),
+                CancellationToken.None,
+                TaskCreationOptions.HideScheduler | TaskCreationOptions.DenyChildAttach,
+                MutexThread.Inst);
             try
             {
                 if (createdNew)
-                {
                     await StartApp(args, exitManager);
-                }
                 else
-                {
                     try
                     {
                         await using var client = new NamedPipeClientStream(".", MonitorName, PipeDirection.In, PipeOptions.Asynchronous);
@@ -61,7 +61,6 @@ namespace ServiceHost
                         Console.WriteLine(e);
                         Console.ReadKey();
                     }
-                }
             }
             finally
             {
@@ -84,49 +83,56 @@ namespace ServiceHost
 
         private static async Task StartApp(string[] args, ExitManager exitManager)
         {
-            await Bootstrap.StartNode(args, KillRecpientType.Host, IpcApplicationType.Server,
-                                ab =>
+            await Bootstrap.StartNode(
+                    args,
+                    KillRecpientType.Host,
+                    IpcApplicationType.Server,
+                    ab =>
+                    {
+                        ab.ConfigureAutoFac(
+                                cb =>
                                 {
-                                    ab.ConfigureAutoFac(cb =>
-                                                        {
-                                                            cb.RegisterType<CommandHandlerStartUp>().As<IStartUpAction>();
-                                                            cb.RegisterModule<HostModule>();
-                                                        })
-                                      .ConfigureAkkaSystem((context, system) =>
-                                                           {
-                                                               system.RegisterOnTermination(exitManager.RegularExit);
-                                                               var cluster = Cluster.Get(system);
+                                    cb.RegisterType<CommandHandlerStartUp>().As<IStartUpAction>();
+                                    cb.RegisterModule<HostModule>();
+                                })
+                           .ConfigureAkkaSystem(
+                                (context, system) =>
+                                {
+                                    system.RegisterOnTermination(exitManager.RegularExit);
+                                    var cluster = Cluster.Get(system);
 
-                                                               #if TEST
-                                                               cluster.Join(cluster.SelfAddress);
-                                                               #endif
+                                    #if TEST
+                                    cluster.Join(cluster.SelfAddress);
+                                    #endif
 
-                                                               cluster.RegisterOnMemberRemoved(() =>
-                                                                                               {
-                                                                                                   exitManager.MemberExit();
-                                                                                                   system.Terminate()
-                                                                                                         .Ignore();
-                                                                                               });
-                                                               cluster.RegisterOnMemberUp(
-                                                                   () => ServiceRegistry.Get(system)
-                                                                                        .RegisterService(new RegisterService(
-                                                                                             context.HostingEnvironment.ApplicationName,
-                                                                                             cluster.SelfUniqueAddress,
-                                                                                             ServiceTypes.ServideHost)));
-                                                           });
-                                }, consoleLog: true)
-                           .Build().RunAsync();
+                                    cluster.RegisterOnMemberRemoved(
+                                        () =>
+                                        {
+                                            exitManager.MemberExit();
+                                            system.Terminate()
+                                               .Ignore();
+                                        });
+                                    cluster.RegisterOnMemberUp(
+                                        () => ServiceRegistry.Get(system)
+                                           .RegisterService(
+                                                new RegisterService(
+                                                    context.HostingEnvironment.ApplicationName,
+                                                    cluster.SelfUniqueAddress,
+                                                    ServiceTypes.ServideHost)));
+                                });
+                    },
+                    consoleLog: true)
+               .Build().RunAsync();
         }
 
         private sealed class ExposedCommandLineProvider : CommandLineConfigurationProvider
         {
-            internal ExposedCommandLineProvider(IEnumerable<string> args) : base(args)
-            {
-            }
+            internal ExposedCommandLineProvider(IEnumerable<string> args) : base(args) { }
 
             internal string Serialize()
             {
                 Load();
+
                 return JsonConvert.SerializeObject(Data);
             }
         }
@@ -145,7 +151,7 @@ namespace ServiceHost
         //private sealed class ExtendedConsoleSink : Target
         //{
         //    private readonly ExtendedConsole _console;
-            
+
         //    //"[{Timestamp:HH:mm:ss} {Level: u3}]  Message: lj} {NewLine} {Exception}";
 
         //    public ExtendedConsoleSink(ExtendedConsole console)
@@ -189,7 +195,7 @@ namespace ServiceHost
         //    //    _console.ForegroundColor = GetLevelColor();
         //    //    _console.Write(GetLevelText());
         //    //    _console.ForegroundColor = Color.White;
-                
+
         //    //    _console.Write("] ");
         //    //    _console.WriteLine(_formatter.Render(logEvent.Properties));
 
@@ -201,17 +207,16 @@ namespace ServiceHost
 
         private sealed class ExitManager
         {
-            private bool _member;
             private bool _regular;
 
-            internal bool NeedRestart => _member;
+            internal bool NeedRestart { get; private set; }
 
             internal void MemberExit()
             {
                 if (_regular)
                     return;
 
-                _member = true;
+                NeedRestart = true;
             }
 
             internal void RegularExit() => _regular = true;
@@ -219,24 +224,24 @@ namespace ServiceHost
 
         public sealed class IncomingCommandHandler
         {
+            private readonly MessageBuffer _buffer = new(MemoryPool<byte>.Shared);
+            private readonly CancellationTokenSource _cancellationToken = new();
+            private readonly List<IMemoryOwner<byte>> _incomming = new();
             private readonly Func<IConfiguration, ManualInstallationTrigger> _installTrigger;
 
             private readonly NamedPipeServerStream _reader = new(MonitorName, PipeDirection.Out, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
-            private readonly CancellationTokenSource _cancellationToken = new();
-
-            private readonly MessageBuffer _buffer = new(MemoryPool<byte>.Shared);
-            private readonly List<IMemoryOwner<byte>> _incomming = new();
 
             public IncomingCommandHandler(Func<IConfiguration, ManualInstallationTrigger> installTrigger)
             {
                 _installTrigger = installTrigger;
                 Task.Factory.StartNew(async () => await Reader(), TaskCreationOptions.LongRunning)
-                    .Ignore();
+                   .Ignore();
             }
+
+            public static IncomingCommandHandler? Handler { get; private set; }
 
             private async Task Reader()
             {
-
                 try
                 {
                     while (true)
@@ -251,11 +256,13 @@ namespace ServiceHost
                             if (amount == 0)
                             {
                                 mem.Dispose();
+
                                 continue;
                             }
 
                             _incomming.Add(mem);
                             var msg = _buffer.AddBuffer(mem.Memory);
+
                             if (msg == null) continue;
 
                             switch (msg.Type)
@@ -263,6 +270,7 @@ namespace ServiceHost
                                 case "Args":
                                     messageNotRead = false;
                                     ParseAndRunData(Encoding.UTF8.GetString(msg.Data));
+
                                     break;
                             }
                         }
@@ -280,9 +288,7 @@ namespace ServiceHost
                         //    ParseAndRunData(Encoding.UTF8.GetString(dataBuffer.Memory[..count].Span));
                     }
                 }
-                catch (OperationCanceledException)
-                {
-                }
+                catch (OperationCanceledException) { }
                 catch (Exception e)
                 {
                     LogManager.GetCurrentClassLogger().Error(e, "Error on Read CommandLine from outer process");
@@ -328,8 +334,6 @@ namespace ServiceHost
                 else
                     Handler = handler;
             }
-
-            public static IncomingCommandHandler? Handler { get; private set; }
         }
 
         public sealed class MutexThread : TaskScheduler, IDisposable
@@ -340,13 +344,14 @@ namespace ServiceHost
 
             private MutexThread()
             {
-                Thread thread = new(() =>
-                                    {
-                                        foreach (var task in _tasks.GetConsumingEnumerable())
-                                            TryExecuteTask(task);
+                Thread thread = new(
+                    () =>
+                    {
+                        foreach (var task in _tasks.GetConsumingEnumerable())
+                            TryExecuteTask(task);
 
-                                        _tasks.Dispose();
-                                    });
+                        _tasks.Dispose();
+                    });
 
                 switch (Environment.OSVersion.Platform)
                 {
@@ -365,6 +370,11 @@ namespace ServiceHost
                 thread.Start();
             }
 
+            public void Dispose()
+            {
+                _tasks.CompleteAdding();
+            }
+
             protected override IEnumerable<Task> GetScheduledTasks() => _tasks;
 
             protected override void QueueTask(Task task)
@@ -378,11 +388,6 @@ namespace ServiceHost
                 _tasks.Add(task);
 
                 return false;
-            }
-
-            public void Dispose()
-            {
-                _tasks.CompleteAdding();
             }
         }
     }

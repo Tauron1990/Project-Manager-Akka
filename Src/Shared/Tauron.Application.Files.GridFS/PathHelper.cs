@@ -12,11 +12,12 @@
 
             for (var i = path.Length - 1; i >= 0; i--)
             {
-                if(path[i] == Seperator) return path + newExtension;
+                if (path[i] == Seperator) return path + newExtension;
 
-                if(path[i] != '.') continue;
+                if (path[i] != '.') continue;
 
                 point = i;
+
                 break;
             }
 
@@ -52,6 +53,7 @@
             {
                 if (secund.StartsWith(Seperator))
                     return first + secund[1..];
+
                 return first + secund;
             }
 

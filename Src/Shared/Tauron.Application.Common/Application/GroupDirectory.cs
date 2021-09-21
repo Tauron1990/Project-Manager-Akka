@@ -53,6 +53,7 @@ namespace Tauron.Application
             get
             {
                 if (!ContainsKey(key)) Add(key);
+
                 return base[key];
             }
 
@@ -64,10 +65,8 @@ namespace Tauron.Application
             if (!typeof(ICollection<TValue>).IsAssignableFrom(_listType)) throw new InvalidOperationException("List Type not Compatible With GroupDicitioonary Value Type");
 
             if (_genericTemp != null)
-            {
                 return Activator.CreateInstance(_genericTemp) ??
                        throw new InvalidOperationException("List Creation Failed");
-            }
 
             if (_listType.ContainsGenericParameters)
             {
@@ -91,48 +90,19 @@ namespace Tauron.Application
                    throw new InvalidOperationException("List Creation Failed");
         }
 
-        #pragma warning disable AV1551
-        public void Add(TKey key)
-        {
-            if (!ContainsKey(key)) base[key] = (ICollection<TValue>) CreateList();
-        }
-
-        public void Add(TKey key, TValue value)
-        {
-            if (!ContainsKey(key)) Add(key);
-
-            var list = base[key];
-            list.Add(value);
-        }
-        #pragma warning restore AV1551
-        
         public void AddRange(TKey key, IEnumerable<TValue> value)
         {
-
             if (!ContainsKey(key)) Add(key);
 
             var values = base[key];
-            
+
             // ReSharper disable once PossibleMultipleEnumeration
             foreach (var item in value.Where(item => item != null)) values.Add(item);
         }
 
 
-        public bool RemoveValue(TValue value) => RemoveImpl(default!, value, removeEmpty: false, removeAll: true);
+        public bool RemoveValue(TValue value) => RemoveImpl(default!, value, false, true);
 
-        #pragma warning disable AV1564
-        #pragma warning disable AV1551
-        public bool Remove(TValue value, bool removeEmptyLists) => RemoveImpl(default!, value, removeEmptyLists, removeAll: true);
-        #pragma warning restore AV1564
-
-        public bool Remove(TKey key, TValue value) => RemoveImpl(key, value, removeEmpty: false, removeAll: false);
-
-        #pragma warning disable AV1564
-        public bool Remove(TKey key, TValue value, bool removeListIfEmpty)
-            #pragma warning restore AV1564
-            => RemoveImpl(key, value, removeListIfEmpty, removeAll: false);
-        #pragma warning restore AV1551
-        
         private bool RemoveImpl(TKey key, TValue val, bool removeEmpty, bool removeAll)
         {
             var ok = false;
@@ -144,6 +114,7 @@ namespace Tauron.Application
                 while (keys.MoveNext() && vals.MoveNext())
                 {
                     var coll = vals.Current as ICollection<TValue> ?? Array.Empty<TValue>();
+
                     if (keys.Current is not TKey currkey)
                         throw new InvalidCastException("Provided Key is not Right Type");
 
@@ -157,11 +128,15 @@ namespace Tauron.Application
             else
             {
                 ok = ContainsKey(key);
+
                 if (!ok) return false;
+
                 var col = base[key];
 
                 ok |= RemoveList(col, val);
+
                 if (!removeEmpty) return true;
+
                 if (col.Count == 0) ok |= Remove(key);
             }
 
@@ -215,5 +190,33 @@ namespace Tauron.Application
 
             public bool Remove(TValue item) => throw new NotSupportedException("Item Removing is not Supported");
         }
+
+        #pragma warning disable AV1551
+        public void Add(TKey key)
+        {
+            if (!ContainsKey(key)) base[key] = (ICollection<TValue>)CreateList();
+        }
+
+        public void Add(TKey key, TValue value)
+        {
+            if (!ContainsKey(key)) Add(key);
+
+            var list = base[key];
+            list.Add(value);
+        }
+        #pragma warning restore AV1551
+
+        #pragma warning disable AV1564
+        #pragma warning disable AV1551
+        public bool Remove(TValue value, bool removeEmptyLists) => RemoveImpl(default!, value, removeEmptyLists, true);
+        #pragma warning restore AV1564
+
+        public bool Remove(TKey key, TValue value) => RemoveImpl(key, value, false, false);
+
+        #pragma warning disable AV1564
+        public bool Remove(TKey key, TValue value, bool removeListIfEmpty)
+            #pragma warning restore AV1564
+            => RemoveImpl(key, value, removeListIfEmpty, false);
+        #pragma warning restore AV1551
     }
 }

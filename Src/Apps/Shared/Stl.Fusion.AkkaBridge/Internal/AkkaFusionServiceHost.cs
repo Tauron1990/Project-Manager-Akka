@@ -18,9 +18,9 @@ namespace Stl.Fusion.AkkaBridge.Internal
         public const string BaseChannel = "FusionAkkaServer";
 
         private readonly ManualResetEventSlim _aktivator = new();
-        private readonly ActorSystem _system;
-        private readonly IPublisher _publisher;
         private readonly ILogger<AkkaFusionServiceHost> _logger;
+        private readonly IPublisher _publisher;
+        private readonly ActorSystem _system;
 
         public AkkaFusionServiceHost(ActorSystem system, IPublisher publisher, ILogger<AkkaFusionServiceHost> logger)
         {
@@ -36,7 +36,7 @@ namespace Stl.Fusion.AkkaBridge.Internal
             _aktivator.Wait(stoppingToken);
             var server = new AkkaChannel<SymbolData>(_system, BaseChannel, _logger, stoppingToken, true);
 
-            await foreach (var newCLient in server.Reader.ReadAllAsync(stoppingToken)) 
+            await foreach (var newCLient in server.Reader.ReadAllAsync(stoppingToken))
                 AttachNewClient(newCLient.Symbol, stoppingToken);
         }
 
@@ -58,7 +58,7 @@ namespace Stl.Fusion.AkkaBridge.Internal
                 await Convert(client, toAttach, stopper);
                 stopper.Cancel();
             }
-            catch(OperationCanceledException) {}
+            catch (OperationCanceledException) { }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error on Akka Fusion Client Handler");
@@ -78,19 +78,21 @@ namespace Stl.Fusion.AkkaBridge.Internal
 
                             continue;
                         }
-                            
+
                         await fusion.Writer.WriteAsync(bridgeMessage, stopper.Token);
                     }
-                }, stopper.Token);
-                
+                },
+                stopper.Token);
+
             var writer = Task.Run(
                 async () =>
                 {
                     await foreach (var msg in fusion.Reader.ReadAllAsync(stopper.Token))
                         await akka.Writer.WriteAsync(new AkkaBridgeMessage(false, msg), stopper.Token);
                     await akka.Writer.WriteAsync(new AkkaBridgeMessage(true, null), stopper.Token);
-                }, stopper.Token);
-            
+                },
+                stopper.Token);
+
             return Task.WhenAll(reader, writer);
         }
 

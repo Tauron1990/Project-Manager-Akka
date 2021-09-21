@@ -16,10 +16,10 @@ namespace Akka.MGIHelper.UI.MgiStarter
 {
     public sealed class MgiStartingActor : ActorFeatureBase<IDialogFactory>
     {
+        private MgiStartingActor() { }
+
         public static IPreparedFeature New(IDialogFactory dialogFactory)
             => Feature.Create(() => new MgiStartingActor(), dialogFactory);
-
-        private MgiStartingActor(){}
 
         protected override void ConfigImpl()
         {
@@ -61,6 +61,7 @@ namespace Akka.MGIHelper.UI.MgiStarter
                 if (obj.Cancel.IsCancellationRequested)
                 {
                     target.Kill(entireProcessTree: true);
+
                     return;
                 }
 
@@ -97,7 +98,6 @@ namespace Akka.MGIHelper.UI.MgiStarter
             Thread.Sleep(5000);
 
             for (var i = 0; i < iterationCount; i++)
-            {
                 try
                 {
                     if (token.IsCancellationRequested) return false;
@@ -115,12 +115,11 @@ namespace Akka.MGIHelper.UI.MgiStarter
                             return false;
                     }
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     Context.GetLogger().Error(e, "Error on Check Kernel Running");
                     Thread.Sleep(500);
                 }
-            }
 
             return false;
         }

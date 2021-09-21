@@ -5,9 +5,9 @@ namespace ServiceHost.AutoUpdate
 {
     public sealed class CleanUpDedector : IStartUpAction
     {
-        private readonly IAutoUpdater _updater;
-        private readonly bool _switch;
         private readonly int _id;
+        private readonly bool _switch;
+        private readonly IAutoUpdater _updater;
 
         public CleanUpDedector(IConfiguration configuration, IAutoUpdater updater)
         {
@@ -18,7 +18,7 @@ namespace ServiceHost.AutoUpdate
 
         public void Run()
         {
-            if(!_switch) return;
+            if (!_switch) return;
 
             _updater.Tell(new StartCleanUp(_id));
         }

@@ -11,19 +11,22 @@ namespace ServiceManager.ServiceDeamon.Management
         public const string RepositoryKey = "ServiceDeamon";
         public const string RoleName = "Service-Manager";
 
-        public sealed record ServiceManagerDeamonState(ISharpRepositoryConfiguration Repository);
-
-        public static IActorRef Init(ActorSystem system, ISharpRepositoryConfiguration repository) 
+        public static IActorRef Init(ActorSystem system, ISharpRepositoryConfiguration repository)
             => system.ActorOf("ServiceDeamon", Feature.Create(() => new ServiceManagerDeamon(), _ => new ServiceManagerDeamonState(repository)));
 
 
         protected override void ConfigImpl()
         {
-            Context.ActorOf(ClusterSingletonManager.Props(ConfigurationManagerActor.New(CurrentState.Repository),
-                ClusterSingletonManagerSettings.Create(Context.System)
-                                               .WithRole(RoleName)), "ConfigurationManager");
+            Context.ActorOf(
+                ClusterSingletonManager.Props(
+                    ConfigurationManagerActor.New(CurrentState.Repository),
+                    ClusterSingletonManagerSettings.Create(Context.System)
+                       .WithRole(RoleName)),
+                "ConfigurationManager");
 
             SupervisorStrategy = SupervisorStrategy.DefaultStrategy;
         }
+
+        public sealed record ServiceManagerDeamonState(ISharpRepositoryConfiguration Repository);
     }
 }

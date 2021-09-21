@@ -17,8 +17,6 @@ namespace ServiceHost.Installer
     [UsedImplicitly]
     public sealed class InstallManagerActor : ActorFeatureBase<InstallManagerActor.InstallManagerState>
     {
-        public sealed record InstallManagerState(IAppRegistry Registry, AppNodeInfo Configuration, IAppManager AppManager, IAutoUpdater AutoUpdater);
-
         public static Func<IAppRegistry, AppNodeInfo, IAppManager, IAutoUpdater, IEnumerable<IPreparedFeature>> New()
         {
             static IEnumerable<IPreparedFeature> _(IAppRegistry registry, AppNodeInfo configuration, IAppManager manager, IAutoUpdater updater)
@@ -33,23 +31,28 @@ namespace ServiceHost.Installer
         protected override void ConfigImpl()
         {
             Receive<SubscribeInstallationCompled>(
-                obs => obs.ToUnit(r =>
-                                  {
-                                      if(r.Event.Unsubscribe)
-                                          Self.Forward(new EventUnSubscribe(typeof(InstallerationCompled)));
-                                      else
-                                        Self.Forward(new EventSubscribe(Watch: true, typeof(InstallerationCompled)));
-                                      Sender.Tell(new SubscribeInstallationCompledResponse(new EventSubscribtion(typeof(InstallerationCompled), Self), Success: true));
-                                  }));
+                obs => obs.ToUnit(
+                    r =>
+                    {
+                        if (r.Event.Unsubscribe)
+                            Self.Forward(new EventUnSubscribe(typeof(InstallerationCompled)));
+                        else
+                            Self.Forward(new EventSubscribe(Watch: true, typeof(InstallerationCompled)));
+                        Sender.Tell(new SubscribeInstallationCompledResponse(new EventSubscribtion(typeof(InstallerationCompled), Self), Success: true));
+                    }));
 
             Receive<InstallerationCompled>(obs => obs.ToUnit(m => TellSelf(SendEvent.Create(m.Event))));
 
-            Receive<InstallRequest>(obs => obs.ForwardToActor(
-                                        p => Context.ActorOf(Props.Create<ActualInstallerActor>(p.State.Registry, p.State.Configuration, p.State.AutoUpdater)),
-                                        p => p.Event));
-            Receive<UninstallRequest>(obs => obs.ForwardToActor(
-                                          p => Context.ActorOf(Props.Create<ActualUninstallationActor>(p.State.Registry, p.State.AppManager)),
-                                          p => p.Event));
+            Receive<InstallRequest>(
+                obs => obs.ForwardToActor(
+                    p => Context.ActorOf(Props.Create<ActualInstallerActor>(p.State.Registry, p.State.Configuration, p.State.AutoUpdater)),
+                    p => p.Event));
+            Receive<UninstallRequest>(
+                obs => obs.ForwardToActor(
+                    p => Context.ActorOf(Props.Create<ActualUninstallationActor>(p.State.Registry, p.State.AppManager)),
+                    p => p.Event));
         }
+
+        public sealed record InstallManagerState(IAppRegistry Registry, AppNodeInfo Configuration, IAppManager AppManager, IAutoUpdater AutoUpdater);
     }
 }

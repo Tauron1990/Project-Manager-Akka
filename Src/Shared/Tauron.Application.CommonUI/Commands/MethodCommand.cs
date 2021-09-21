@@ -28,8 +28,10 @@ namespace Tauron.Application.CommonUI.Commands
             _method = method;
             Context = context;
 
-            _methodType = (MethodType) method.GetParameters().Length;
+            _methodType = (MethodType)method.GetParameters().Length;
+
             if (_methodType != MethodType.One) return;
+
             if (method.GetParameters()[0].ParameterType != typeof(EventData)) _methodType = MethodType.EventArgs;
         }
 
@@ -41,9 +43,9 @@ namespace Tauron.Application.CommonUI.Commands
             var args = _methodType switch
             {
                 MethodType.Zero => Array.Empty<object>(),
-                MethodType.One => new object?[] {temp},
-                MethodType.Two => new[] {temp?.Sender, temp?.EventArgs},
-                MethodType.EventArgs => new[] {temp?.EventArgs},
+                MethodType.One => new object?[] { temp },
+                MethodType.Two => new[] { temp?.Sender, temp?.EventArgs },
+                MethodType.EventArgs => new[] { temp?.EventArgs },
                 _ => Array.Empty<object>()
             };
 

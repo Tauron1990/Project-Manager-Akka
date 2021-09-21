@@ -26,9 +26,7 @@ namespace Tauron.Features
     public sealed record GenericState(ImmutableDictionary<Type, object> States)
     {
         public GenericState(IEnumerable<IPreparedFeature> features, IUntypedActorContext context)
-            : this(ImmutableDictionary<Type, object>.Empty.AddRange(features.Select(feature => feature.InitialState(context))))
-        {
-        }
+            : this(ImmutableDictionary<Type, object>.Empty.AddRange(features.Select(feature => feature.InitialState(context)))) { }
     }
 
     [PublicAPI]
@@ -39,7 +37,7 @@ namespace Tauron.Features
             this IObservable<StatePair<TEvent, TState>> observable, IFeatureActor<TState> actor)
         {
             return observable.ObserveOn(ActorScheduler.From(actor.Self))
-                             .Select(evt => evt with {State = actor.CurrentState});
+               .Select(evt => evt with { State = actor.CurrentState });
         }
 
         public static IActorRef ActorOf(this IActorRefFactory factory, string? name, params IPreparedFeature[] features)
@@ -56,7 +54,8 @@ namespace Tauron.Features
                 if (features.Length == 1 && features[0] is ISimpleFeature simple)
                     return simple.MakeProps();
 
-                return Create(context => new GenericState(features, context),
+                return Create(
+                    context => new GenericState(features, context),
                     builder => builder.WithFeatures(features.SelectMany(feature => feature.Materialize())));
             }
         }
@@ -69,7 +68,8 @@ namespace Tauron.Features
         public static Props Props(params IPreparedFeature[] features)
             => FeatureActorExtensions.GenericActor.Create(features);
 
-        public static IPreparedFeature Create<TState>(Func<IFeature<TState>> feature,
+        public static IPreparedFeature Create<TState>(
+            Func<IFeature<TState>> feature,
             Func<IUntypedActorContext, TState> stateFunc)
             where TState : notnull
             => new PreparedFeature<TState>(feature, stateFunc);
@@ -85,12 +85,14 @@ namespace Tauron.Features
             where TState : notnull
             => Create(feature, _ => state);
 
-        public static IPreparedFeature Create<TState>(IEnumerable<Func<IFeature<TState>>> features,
+        public static IPreparedFeature Create<TState>(
+            IEnumerable<Func<IFeature<TState>>> features,
             Func<IUntypedActorContext, TState> stateFunc)
             where TState : notnull
             => new PreparedFeatureList<TState>(features.Select(feature => Create(feature, stateFunc)), stateFunc);
 
-        public static IPreparedFeature Create<TState>(Func<IUntypedActorContext, TState> stateFunc,
+        public static IPreparedFeature Create<TState>(
+            Func<IUntypedActorContext, TState> stateFunc,
             params Func<IFeature<TState>>[] features)
             where TState : notnull
             => new PreparedFeatureList<TState>(features.Select(feature => Create(feature, stateFunc)), stateFunc);
@@ -113,11 +115,12 @@ namespace Tauron.Features
             where TState : notnull
         {
             internal FeatureImpl(IFeature<TState> target)
-                : base(target, state => (TState) state.States[typeof(TState)],
-                    (original, state) => original with {States = original.States.SetItem(typeof(TState), state)})
-            {
-            }
+                : base(
+                    target,
+                    state => (TState)state.States[typeof(TState)],
+                    (original, state) => original with { States = original.States.SetItem(typeof(TState), state) }) { }
         }
+
         [DebuggerStepThrough]
         private sealed class PreparedFeature<TState> : IPreparedFeature, ISimpleFeature
             where TState : notnull
@@ -141,13 +144,11 @@ namespace Tauron.Features
 
             public Props MakeProps()
                 => SimpleFeatureActor.Create(_stateBuilder, builder => builder.WithFeature(_feature()));
-            
 
-            private sealed class SimpleFeatureActor : FeatureActorBase<SimpleFeatureActor, TState>
-            {
-                
-            }
+
+            private sealed class SimpleFeatureActor : FeatureActorBase<SimpleFeatureActor, TState> { }
         }
+
         [DebuggerStepThrough]
         private sealed class PreparedFeatureList<TState> : IPreparedFeature
             where TState : notnull

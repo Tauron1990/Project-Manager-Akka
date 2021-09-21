@@ -14,6 +14,5 @@ namespace Tauron.Application.MongoExtensions
 
         protected override ImmutableList<TValue> FinalizeResult(object accumulator) =>
             ((ImmutableList<TValue>.Builder)accumulator).ToImmutable();
-
     }
 }

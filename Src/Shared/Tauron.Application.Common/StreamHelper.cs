@@ -48,7 +48,7 @@ namespace Tauron
                     "arguments.ProgressChangeCallbackInterval",
                     arguments.ProgressChangeCallbackInterval,
                     "ProgressChangeCallbackInterval has to be greater or equal than 0.");
-            
+
             #pragma warning restore EX005
             // ReSharper restore NotResolvedInText
             long length = 0;
@@ -56,21 +56,21 @@ namespace Tauron
             var runningFlag = true;
 
             Action<Stream, Stream, int> copyMemory = (targetParm, sourceParm, bufferSize) =>
-                //Raw copy-operation, "length" and "runningFlag" are enclosed as closure
-            {
-                int count;
-                byte[] buffer = new byte[bufferSize];
+                                                         //Raw copy-operation, "length" and "runningFlag" are enclosed as closure
+                                                     {
+                                                         int count;
+                                                         byte[] buffer = new byte[bufferSize];
 
-                // ReSharper disable AccessToModifiedClosure
-                while ((count = sourceParm.Read(buffer, 0, bufferSize)) != 0 && runningFlag)
-                {
-                    targetParm.Write(buffer, 0, count);
-                    var newLength = length + count;
-                    //"length" can be read as this is the only thread which writes to "length"
-                    Interlocked.Exchange(ref length, newLength);
-                }
-                // ReSharper restore AccessToModifiedClosure
-            };
+                                                         // ReSharper disable AccessToModifiedClosure
+                                                         while ((count = sourceParm.Read(buffer, 0, bufferSize)) != 0 && runningFlag)
+                                                         {
+                                                             targetParm.Write(buffer, 0, count);
+                                                             var newLength = length + count;
+                                                             //"length" can be read as this is the only thread which writes to "length"
+                                                             Interlocked.Exchange(ref length, newLength);
+                                                         }
+                                                         // ReSharper restore AccessToModifiedClosure
+                                                     };
 
             IAsyncResult asyncResult = copyMemory.BeginInvoke(target, source, arguments.BufferSize, null, null);
 
@@ -85,7 +85,7 @@ namespace Tauron
                 if (arguments.StopEvent != null && arguments.StopEvent.WaitOne(0))
                     runningFlag = false; //to indicate that the copy-operation has to abort
 
-                Thread.Sleep((int) (arguments.ProgressChangeCallbackInterval.TotalMilliseconds / 10));
+                Thread.Sleep((int)(arguments.ProgressChangeCallbackInterval.TotalMilliseconds / 10));
 
                 if (arguments.ProgressChangeCallback == null ||
                     DateTime.Now - lastCallback <= arguments.ProgressChangeCallbackInterval) continue;

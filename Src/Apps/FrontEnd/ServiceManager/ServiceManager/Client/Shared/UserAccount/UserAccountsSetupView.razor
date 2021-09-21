@@ -1,6 +1,5 @@
 ﻿@using ServiceManager.Shared.Identity
 @using Tauron.Application
-
 @inject IUserManagement _userManagement
 @inject IEventAggregator _aggregator
 @inject NavigationManager _navigation
@@ -28,7 +27,7 @@
 @code {
 
     private SetupPosition _position = SetupPosition.Start;
-    
+
     private string _adminName = string.Empty;
 
     private string _adminpassword = string.Empty;
@@ -44,6 +43,7 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private void CompledCallback() 
+    private void CompledCallback()
         => _navigation.NavigateTo("/User", true);
+
 }

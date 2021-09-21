@@ -15,7 +15,33 @@ namespace Tauron.Application.AkkaNode.Bootstrap.Console
         private Owned<IEnumerable<IStartUpAction>>? _actions;
 
         public NodeAppService(Owned<IEnumerable<IStartUpAction>> startUpActions) => _actions = startUpActions;
-        
+
+        public Task StartAsync(CancellationToken cancellationToken)
+        {
+            Maximize();
+
+            return Task.Run(
+                () =>
+                {
+                    if (_actions != null)
+                        foreach (var startUpAction in _actions.Value)
+                            try
+                            {
+                                startUpAction.Run();
+                            }
+                            catch (Exception e)
+                            {
+                                LogManager.GetCurrentClassLogger().Error(e, "Error on Startup Action");
+                            }
+
+                    _actions?.Dispose();
+                    _actions = null;
+                },
+                cancellationToken);
+        }
+
+        public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+
         [DllImport("user32.dll")]
         private static extern bool ShowWindow(IntPtr hWnd, int cmdShow);
 
@@ -24,32 +50,5 @@ namespace Tauron.Application.AkkaNode.Bootstrap.Console
             Process p = Process.GetCurrentProcess();
             ShowWindow(p.MainWindowHandle, 3); //SW_MAXIMIZE = 3
         }
-
-        public Task StartAsync(CancellationToken cancellationToken)
-        {
-            Maximize();
-            return Task.Run(() =>
-                            {
-                                if (_actions != null)
-                                {
-                                    foreach (var startUpAction in _actions.Value)
-                                    {
-                                        try
-                                        {
-                                            startUpAction.Run();
-                                        }
-                                        catch (Exception e)
-                                        {
-                                            LogManager.GetCurrentClassLogger().Error(e, "Error on Startup Action");
-                                        }
-                                    }
-                                }
-
-                                _actions?.Dispose();
-                                _actions = null;
-                            }, cancellationToken);
-        }
-
-        public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
     }
 }

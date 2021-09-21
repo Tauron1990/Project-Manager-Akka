@@ -7,9 +7,7 @@ namespace Akka.Cluster.Utility
     public sealed class SimpleActorFactory<TActor> : IActorFactory
         where TActor : ActorBase
     {
-        public void Initialize(object[]? args)
-        {
-        }
+        public void Initialize(object[]? args) { }
 
         public IActorRef CreateActor(IActorRefFactory actorRefFactory, object id, object[]? args)
             => actorRefFactory.ActorOf(Props.Create<TActor>(args), id.ToString());

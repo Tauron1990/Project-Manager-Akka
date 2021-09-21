@@ -40,11 +40,10 @@ namespace Tauron.Application
     {
         private readonly Subject<string> _propertyChnaged = new();
 
-        [field: NonSerialized]
-        public event PropertyChangedEventHandler? PropertyChanged;
+        [field: NonSerialized] public event PropertyChangedEventHandler? PropertyChanged;
 
         [NotifyPropertyChangedInvocator]
-        public virtual void OnPropertyChanged([CallerMemberName] string? eventArgs = null) 
+        public virtual void OnPropertyChanged([CallerMemberName] string? eventArgs = null)
             => OnPropertyChanged(new PropertyChangedEventArgs(eventArgs ?? string.Empty));
 
         public IObservable<string> PropertyChangedObservable => _propertyChnaged.AsObservable();
@@ -69,7 +68,7 @@ namespace Tauron.Application
         public void SetProperty<TType>(ref TType property, TType value, Func<Task> changed, [CallerMemberName] string? name = null)
         {
             var context = ExecutionContext.Capture();
-            
+
             async Task RunChangedAsync()
             {
                 try
@@ -79,13 +78,16 @@ namespace Tauron.Application
                 catch (Exception exception)
                 {
                     ActorApplication.GetLogger(GetType()).LogError(exception, "Error on Execute Async property Changed");
-                    if(context != null)
+                    if (context != null)
                         ExecutionContext.Run(context, state => throw (Exception)state!, exception);
                 }
             }
 
             SetProperty(ref property, value, () => RunChangedAsync().Ignore(), name);
         }
+
+        public virtual void OnPropertyChangedExplicit(string propertyName)
+            => OnPropertyChanged(new PropertyChangedEventArgs(propertyName));
 
         #pragma warning disable AV1551
         public virtual void OnPropertyChanged(PropertyChangedEventArgs eventArgs)
@@ -99,11 +101,8 @@ namespace Tauron.Application
         }
 
 
-        public virtual void OnPropertyChanged<T>(Expression<Func<T>> eventArgs) 
+        public virtual void OnPropertyChanged<T>(Expression<Func<T>> eventArgs)
             => OnPropertyChanged(new PropertyChangedEventArgs(Reflex.PropertyName(eventArgs)));
         #pragma warning restore AV1551
-
-        public virtual void OnPropertyChangedExplicit(string propertyName) 
-            => OnPropertyChanged(new PropertyChangedEventArgs(propertyName));
     }
 }

@@ -2,15 +2,11 @@
 {
     public sealed record StartAllApps : InternalHostMessages.CommandBase<StartAllAppsResponse>
     {
-        public StartAllApps(string target) : base(target, InternalHostMessages.CommandType.AppManager)
-        {
-        }
+        public StartAllApps(string target) : base(target, InternalHostMessages.CommandType.AppManager) { }
     }
 
     public sealed record StartAllAppsResponse(bool Success) : OperationResponse(Success)
     {
-        public StartAllAppsResponse() : this(Success: false)
-        {
-        }
+        public StartAllAppsResponse() : this(false) { }
     }
 }

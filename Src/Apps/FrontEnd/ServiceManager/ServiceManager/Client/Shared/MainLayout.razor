@@ -1,13 +1,12 @@
-﻿@using System.Reactive.Disposables
-@using Tauron.Application
-@using Microsoft.AspNetCore.SignalR.Client
-
-@inherits LayoutComponentBase
+﻿@inherits LayoutComponentBase
 
 @inject IEventAggregator _aggregator
 @inject ISnackbar _snackbar
 @inject HubConnection _hubConnection
 
+@using Tauron.Application
+@using Microsoft.AspNetCore.SignalR.Client
+@using System.Reactive.Disposables
 @implements IDisposable
 
 <MudLayout>
@@ -17,11 +16,11 @@
 
     <IpOkComponent>
         <MudAppBar Elevation="4" Dense="true">
-            <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
+            <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer"/>
             <MudSpacer/>
             <ClusterConnectionAlert/>
             <MudSpacer/>
-            <MudButton Variant="Variant.Text" Link="/User" Color="Color.Tertiary">@UserName</MudButton>
+            <MudButton Variant="Variant.Text" Link="/User" Color="Color.Tertiary">@_userName</MudButton>
             <LogoutButton/>
             <MudButton Variant="Variant.Text" Link="/About" Color="Color.Tertiary">About</MudButton>
         </MudAppBar>
@@ -37,7 +36,7 @@
     </IpOkComponent>
 </MudLayout>
 
-    
+
 @code
 {
     private readonly CompositeDisposable _disposer = new();
@@ -45,9 +44,9 @@
     [CascadingParameter]
     public Task<AuthState>? UserState { get; set; }
 
-    private string UserName = "Gast";
-    
-    bool _open = false;
+    private string _userName = "Gast";
+
+    bool _open;
 
     void ToggleDrawer() => _open = !_open;
 
@@ -65,10 +64,10 @@
         if (UserState != null)
         {
             var result = await UserState;
-            if (!string.IsNullOrWhiteSpace(result.User.Name) && result.User.Name.ToUpper() !=  "GUEST")
-                UserName = result.User.Name;
+            if (!string.IsNullOrWhiteSpace(result.User.Name) && result.User.Name.ToUpper() != "GUEST")
+                _userName = result.User.Name;
         }
-        
+
         await base.OnParametersSetAsync();
     }
 

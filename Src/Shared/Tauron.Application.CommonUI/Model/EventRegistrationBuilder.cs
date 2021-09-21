@@ -19,24 +19,28 @@ namespace Tauron.Application.CommonUI.Model
         public EventRegistrationBuilder WithEventHandler(Action handler)
         {
             _register(_name, handler);
+
             return this;
         }
 
         public EventRegistrationBuilder WithEventHandler(string name, Action<EventData> handler)
         {
             _register(_name, handler);
+
             return this;
         }
 
         public EventRegistrationBuilder WithEventHandler(string name, Action<object, EventArgs> handler)
         {
             _register(_name, handler);
+
             return this;
         }
 
         public EventRegistrationBuilder WithEventHandler(string name, Action<EventArgs> handler)
         {
             _register(_name, handler);
+
             return this;
         }
     }

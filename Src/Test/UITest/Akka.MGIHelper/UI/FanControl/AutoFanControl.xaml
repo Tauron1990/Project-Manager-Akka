@@ -74,7 +74,8 @@
                            Fill="{tau:ActorBinding FanRunning, Converter={StaticResource ColorConverter}}" Margin="3"
                            RadiusX="20" RadiusY="50" />
 
-                <TextBlock Grid.Row="9" Grid.ColumnSpan="3" Text="{tau:ActorBinding Reason}" Margin="3" FontSize="20"
+                <TextBlock Grid.Row="9" Grid.ColumnSpan="3" Grid.Column="0" Text="{tau:ActorBinding Reason}" Margin="3"
+                           FontSize="20"
                            TextAlignment="Center" TextWrapping="WrapWithOverflow" />
             </Grid>
         </TabItem>

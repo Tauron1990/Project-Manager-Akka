@@ -22,15 +22,17 @@ namespace Tauron.Application.Master.Commands.Deployment.Repository
         void ISender.SendCommand(IReporterMessage command) => _repository.Tell(command);
 
         public Task<IsAliveResponse> QueryIsAlive(ActorSystem system, TimeSpan timeout)
-            => Tauron.Application.AkkaNode.Services.Core.QueryIsAlive.Ask(system, _repository, timeout);
+            => AkkaNode.Services.Core.QueryIsAlive.Ask(system, _repository, timeout);
 
         public static RepositoryApi CreateFromActor(IActorRef manager)
             => new(manager);
 
         public static RepositoryApi CreateProxy(ActorSystem system, string name = "RepositoryProxy")
         {
-            var proxy = ClusterSingletonProxy.Props($"/user/{RepositoryPath}",
+            var proxy = ClusterSingletonProxy.Props(
+                $"/user/{RepositoryPath}",
                 ClusterSingletonProxySettings.Create(system).WithRole("UpdateSystem"));
+
             return new RepositoryApi(system.ActorOf(proxy, name));
         }
     }

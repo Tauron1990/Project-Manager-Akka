@@ -26,7 +26,7 @@ namespace Tauron.ObservableExt
 
             return source.Select(selector);
         }
-        
+
         public static Option<TResult> SelectMany<TSource, TCollection, TResult>(
             this Option<TSource> source, Func<TSource, Option<TCollection>> optionSelector, Func<TSource, TCollection, TResult> resultSelector)
         {
@@ -54,7 +54,7 @@ namespace Tauron.ObservableExt
                    select resultSelector(sourceInst, opt.Value);
         }
 
-        public static IObservable<TType> ToObservable<TType>(this Option<TType> option) 
+        public static IObservable<TType> ToObservable<TType>(this Option<TType> option)
             => option.HasValue ? Observable.Return(option.Value) : Observable.Empty<TType>();
 
         public static IEnumerable<TResult> SelectMany<TSource, TCollection, TResult>(
@@ -72,7 +72,7 @@ namespace Tauron.ObservableExt
                    where opt.HasValue
                    select resultSelector(sourceInst, opt.Value);
         }
-        
+
         public static void Run<TType>(this ref Option<TType> option, Action<TType> onSuccess, Action onEmpty)
         {
             if (option.HasValue)
@@ -97,12 +97,14 @@ namespace Tauron.ObservableExt
             public Caster(Option<TType> option) => _option = option;
 
             public Option<TResult> To<TResult>()
-                => _option.FlatSelect(type =>
-                                      {
-                                          if (type is TResult result)
-                                              return result.AsOption();
-                                          return Option<TResult>.None;
-                                      });
+                => _option.FlatSelect(
+                    type =>
+                    {
+                        if (type is TResult result)
+                            return result.AsOption();
+
+                        return Option<TResult>.None;
+                    });
         }
     }
 }

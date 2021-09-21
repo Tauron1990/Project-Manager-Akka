@@ -18,7 +18,8 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
             private readonly Resizer? _resizer;
             private readonly SupervisorStrategy _supervisorStrategy;
 
-            internal ActualDispatcher(int instances, Resizer? resizer, SupervisorStrategy supervisorStrategy,
+            internal ActualDispatcher(
+                int instances, Resizer? resizer, SupervisorStrategy supervisorStrategy,
                 string? dispatcher, Func<Props, Props>? custom)
             {
                 _instances = instances;
@@ -31,7 +32,7 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
             public Props Configurate(Props mutator)
             {
                 var route = new SmallestMailboxPool(_instances)
-                    .WithSupervisorStrategy(_supervisorStrategy);
+                   .WithSupervisorStrategy(_supervisorStrategy);
 
                 if (_resizer == null)
                     route = route.WithResizer(_resizer);
@@ -39,6 +40,7 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
                     route = route.WithDispatcher(_dispatcher);
 
                 mutator = mutator.WithRouter(route);
+
                 return _custom != null ? _custom(mutator) : mutator;
             }
         }

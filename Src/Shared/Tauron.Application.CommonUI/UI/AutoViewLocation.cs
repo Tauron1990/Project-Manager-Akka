@@ -19,7 +19,7 @@ namespace Tauron.Application.CommonUI.UI
 
         public static AutoViewLocation Manager => ActorApplication.ServiceProvider.GetRequiredService<AutoViewLocation>();
 
-        public static void AddPair(Type view, Type model) 
+        public static void AddPair(Type view, Type model)
             => Views[model] = view;
 
         public Option<IView> ResolveView(object viewModel)
@@ -28,6 +28,7 @@ namespace Tauron.Application.CommonUI.UI
                 return Option<IView>.None;
 
             var type = model.ModelType;
+
             return Views.TryGetValue(type, out var view)
                 ? (_provider.ResolveOptional(view, new TypedParameter(typeof(IViewModel<>).MakeGenericType(type), viewModel)) as IView).OptionNotNull()
                 : Option<IView>.None;

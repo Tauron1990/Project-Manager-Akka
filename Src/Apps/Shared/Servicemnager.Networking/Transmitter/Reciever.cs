@@ -31,6 +31,7 @@ namespace Servicemnager.Networking.Transmitter
                     case NetworkOperation.DataAccept:
                         _stream = _target();
                         _client.Send(NetworkMessage.Create(NetworkOperation.DataNext));
+
                         return true;
                     case NetworkOperation.DataCompled:
                         return false;
@@ -40,6 +41,7 @@ namespace Servicemnager.Networking.Transmitter
                         #pragma warning restore EX006
                         _stream.Write(msg.Data, 0, msg.RealLength);
                         _client.Send(NetworkMessage.Create(NetworkOperation.DataNext));
+
                         return true;
                 }
 
@@ -48,6 +50,7 @@ namespace Servicemnager.Networking.Transmitter
             catch (Exception)
             {
                 _client.Send(NetworkMessage.Create(NetworkOperation.Deny));
+
                 throw;
             }
         }

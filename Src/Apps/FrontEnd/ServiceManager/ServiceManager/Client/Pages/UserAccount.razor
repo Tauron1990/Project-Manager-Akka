@@ -1,20 +1,21 @@
-﻿@using ServiceManager.Client.Shared.UserAccount
+﻿@page "/User"
+
+
 @using ServiceManager.Shared.Identity
-
-@page "/User"
-
-
+@using ServiceManager.Client.Shared.UserAccount
 @inherits ComputedStateComponent<bool>
 @layout UserAccountLayout
 
 @inject IUserManagement _management
 
+@* ReSharper disable once Html.TagShouldNotBeSelfClosed *@
 @if (_authState == null)
 {
     <Title Value="Service Manager - Benutzer"/>
 }
 else
 {
+    @* ReSharper disable once Html.TagShouldNotBeSelfClosed *@
     <Title Value="@($"Service Manager - {_authState.User.Name}")"/>
 }
 
@@ -23,7 +24,7 @@ else
     {
         <UserAccountsSetupView/>
     }
-    else if(_authState == null || !_authState.User.IsAuthenticated)
+    else if (_authState == null || !_authState.User.IsAuthenticated)
     {
         <LoginRegisterView/>
     }
@@ -40,7 +41,7 @@ else
 
     private AuthState? _authState;
 
-    protected override Task<bool> ComputeState(CancellationToken cancellationToken) 
+    protected override Task<bool> ComputeState(CancellationToken cancellationToken)
         => _management.NeedSetup(cancellationToken);
 
     protected override async Task OnParametersSetAsync()

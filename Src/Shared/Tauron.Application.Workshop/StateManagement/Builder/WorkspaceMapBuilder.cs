@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Autofac;
 using Tauron.Application.Workshop.Mutation;
 using Tauron.Application.Workshop.StateManagement.Internal;
 
@@ -18,12 +17,14 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
         public IWorkspaceMapBuilder<TData> MapAction<TAction>(Func<WorkspaceBase<TData>, IDataMutation> to)
         {
             _map[typeof(TAction)] = (work, _) => to(work);
+
             return this;
         }
 
         public IWorkspaceMapBuilder<TData> MapAction<TAction>(Func<WorkspaceBase<TData>, TAction, IDataMutation> to)
         {
-            _map[typeof(TAction)] = (work, action) => to(work, (TAction) action);
+            _map[typeof(TAction)] = (work, action) => to(work, (TAction)action);
+
             return this;
         }
 

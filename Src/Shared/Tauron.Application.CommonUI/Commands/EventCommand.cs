@@ -20,6 +20,7 @@ namespace Tauron.Application.CommonUI.Commands
         protected virtual bool OnCanExecute(object? parameter)
         {
             var handler = CanExecuteEvent;
+
             return handler == null || handler(parameter);
         }
 

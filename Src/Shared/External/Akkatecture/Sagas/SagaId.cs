@@ -33,8 +33,6 @@ namespace Akkatecture.Sagas
         where T : SagaId<T>
     {
         protected SagaId(string value)
-            : base(value)
-        {
-        }
+            : base(value) { }
     }
 }

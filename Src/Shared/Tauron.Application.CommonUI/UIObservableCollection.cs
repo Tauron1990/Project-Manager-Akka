@@ -5,8 +5,8 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
-using Tauron.Application.CommonUI.AppCore;
 using Tauron.AkkaHost;
+using Tauron.Application.CommonUI.AppCore;
 
 namespace Tauron.Application.CommonUI
 {
@@ -17,14 +17,10 @@ namespace Tauron.Application.CommonUI
     {
         private bool _isBlocked;
 
-        public UIObservableCollection()
-        {
-        }
+        public UIObservableCollection() { }
 
         public UIObservableCollection(IEnumerable<TType> enumerable)
-            : base(enumerable)
-        {
-        }
+            : base(enumerable) { }
 
         protected IUIDispatcher InternalUISynchronize { get; } =
             ActorApplication.ServiceProvider.GetRequiredService<IUIDispatcher>();
@@ -32,6 +28,7 @@ namespace Tauron.Application.CommonUI
         public void AddRange(IEnumerable<TType> enumerable)
         {
             if (enumerable == null) throw new ArgumentNullException(nameof(enumerable));
+
             foreach (var item in enumerable) Add(item);
         }
 
@@ -40,6 +37,7 @@ namespace Tauron.Application.CommonUI
         protected override void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
         {
             if (_isBlocked) return;
+
             if (InternalUISynchronize.CheckAccess())
                 base.OnCollectionChanged(e);
             InternalUISynchronize.Post(() => base.OnCollectionChanged(e));
@@ -48,6 +46,7 @@ namespace Tauron.Application.CommonUI
         protected override void OnPropertyChanged(PropertyChangedEventArgs e)
         {
             if (_isBlocked) return;
+
             if (InternalUISynchronize.CheckAccess()) base.OnPropertyChanged(e);
             else InternalUISynchronize.Post(() => base.OnPropertyChanged(e));
         }

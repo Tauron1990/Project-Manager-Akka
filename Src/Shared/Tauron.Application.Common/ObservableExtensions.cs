@@ -14,17 +14,18 @@ using Tauron.Features;
 
 namespace Tauron
 {
-    [PublicAPI, DebuggerStepThrough]
+    [PublicAPI]
+    [DebuggerStepThrough]
     public static class ObservableExtensions
     {
         /// <summary>
-        /// Group observable sequence into buffers separated by periods of calm
+        ///     Group observable sequence into buffers separated by periods of calm
         /// </summary>
         /// <param name="source">Observable to buffer</param>
         /// <param name="calmDuration">Duration of calm after which to close buffer</param>
         /// <param name="maxCount">Max size to buffer before returning</param>
         /// <param name="maxDuration">Max duration to buffer before returning</param>
-        public static IObservable<IList<T>> BufferUntilCalm<T>(this IObservable<T> source, TimeSpan calmDuration, Int32? maxCount = null, TimeSpan? maxDuration = null)
+        public static IObservable<IList<T>> BufferUntilCalm<T>(this IObservable<T> source, TimeSpan calmDuration, int? maxCount = null, TimeSpan? maxDuration = null)
         {
             if (source == null)
                 throw new ArgumentNullException(nameof(source));
@@ -35,70 +36,75 @@ namespace Tauron
                 var overflows = source.Where((_, index) => index + 1 >= maxCount);
                 closes = closes.Amb(overflows);
             }
+
             if (maxDuration != null)
             {
                 var ages = source.Delay(maxDuration.Value);
                 closes = closes.Amb(ages);
             }
+
             return source.Window(() => closes).SelectMany(window => window.ToList());
         }
 
         public static IObservable<TOutput> CatchSafe<TInput, TOutput>(
-            this IObservable<TInput> input, 
-            Func<TInput, IObservable<TOutput>> process, 
+            this IObservable<TInput> input,
+            Func<TInput, IObservable<TOutput>> process,
             Func<TInput, Exception, IObservable<TOutput>> catcher)
         {
-            return input.SelectMany(i =>
-                                    {
-                                        try
-                                        {
-                                            return process(i)
-                                               .Catch<TOutput, Exception>(e => catcher(i, e));
-                                        }
-                                        catch (Exception e)
-                                        {
-                                            return catcher(i, e);
-                                        }
-                                    });
+            return input.SelectMany(
+                i =>
+                {
+                    try
+                    {
+                        return process(i)
+                           .Catch<TOutput, Exception>(e => catcher(i, e));
+                    }
+                    catch (Exception e)
+                    {
+                        return catcher(i, e);
+                    }
+                });
         }
 
-        public static IObservable<Option<TData>> Lookup<TKey, TData>(this IDictionary<TKey, TData> dic, TKey key) 
+        public static IObservable<Option<TData>> Lookup<TKey, TData>(this IDictionary<TKey, TData> dic, TKey key)
             => Observable.Return(dic.TryGetValue(key, out var data) ? data.AsOption() : default);
 
-        public static IObservable<TData> NotDefault<TData>(this IObservable<TData?> source) 
+        public static IObservable<TData> NotDefault<TData>(this IObservable<TData?> source)
             => source.Where(d => !Equals(d, default(TData)))!;
 
-        public static IObservable<TData> NotNull<TData>(this IObservable<TData?> source) 
+        public static IObservable<TData> NotNull<TData>(this IObservable<TData?> source)
             => source.Where(d => d != null)!;
 
-        public static IObservable<string> NotEmpty(this IObservable<string?> source) 
+        public static IObservable<string> NotEmpty(this IObservable<string?> source)
             => source.Where(s => !string.IsNullOrWhiteSpace(s))!;
 
-        public static IObservable<CallResult<TResult>> SelectSafe<TEvent, TResult>(this IObservable<TEvent> observable,
-                                                                                   Func<TEvent, TResult> selector)
+        public static IObservable<CallResult<TResult>> SelectSafe<TEvent, TResult>(
+            this IObservable<TEvent> observable,
+            Func<TEvent, TResult> selector)
         {
-            return observable.Select<TEvent, CallResult<TResult>>(evt =>
-                                                                  {
-                                                                      try
-                                                                      {
-                                                                          return new SucessCallResult<TResult>(selector(evt));
-                                                                      }
-                                                                      catch (Exception e)
-                                                                      {
-                                                                          return new ErrorCallResult<TResult>(e);
-                                                                      }
-                                                                  });
+            return observable.Select<TEvent, CallResult<TResult>>(
+                evt =>
+                {
+                    try
+                    {
+                        return new SucessCallResult<TResult>(selector(evt));
+                    }
+                    catch (Exception e)
+                    {
+                        return new ErrorCallResult<TResult>(e);
+                    }
+                });
         }
 
         public static IObservable<Exception> OnError<TResult>(this IObservable<CallResult<TResult>> observable)
             => observable.Where(cr => cr is ErrorCallResult<TResult>).Cast<ErrorCallResult<TResult>>()
-                         .Select(er => er.Error);
+               .Select(er => er.Error);
 
         public static IObservable<TResult> OnResult<TResult>(this IObservable<CallResult<TResult>> observable)
             => observable.Where(cr => cr is SucessCallResult<TResult>).Cast<SucessCallResult<TResult>>()
-                         .Select(sr => sr.Result);
+               .Select(sr => sr.Result);
 
-        public static IObservable<TData> ConvertResult<TData, TResult>(this IObservable<CallResult<TResult>> result, Func<TResult, TData> onSucess, Func<Exception, TData> error) 
+        public static IObservable<TData> ConvertResult<TData, TResult>(this IObservable<CallResult<TResult>> result, Func<TResult, TData> onSucess, Func<Exception, TData> error)
             => result.Select(cr => cr.ConvertResult(onSucess, error));
 
         public static TData ConvertResult<TData, TResult>(this CallResult<TResult> result, Func<TResult, TData> onSucess, Func<Exception, TData> error)
@@ -121,47 +127,57 @@ namespace Tauron
 
         public static IObservable<Unit> ToUnit<TMessage>(this IObservable<TMessage> source, Action<TMessage> action)
         {
-            return source.Select(m =>
-            {
-                action(m);
-                return Unit.Default;
-            });
+            return source.Select(
+                m =>
+                {
+                    action(m);
+
+                    return Unit.Default;
+                });
         }
 
         public static IObservable<Unit> ToUnit<TMessage>(this IObservable<TMessage> source, Action action)
         {
-            return source.Select(_ =>
-            {
-                action();
-                return Unit.Default;
-            });
+            return source.Select(
+                _ =>
+                {
+                    action();
+
+                    return Unit.Default;
+                });
         }
 
         public static IObservable<Unit> ToUnit<TMessage>(this IObservable<TMessage> source, Func<Task> action)
         {
-            return source.SelectMany(async _ =>
-            {
-                await action();
-                return Unit.Default;
-            });
+            return source.SelectMany(
+                async _ =>
+                {
+                    await action();
+
+                    return Unit.Default;
+                });
         }
 
         public static IObservable<Unit> ToUnit<TMessage>(this IObservable<TMessage> source, Func<TMessage, Task> action)
         {
-            return source.SelectMany(async m =>
-                                     {
-                                         await action(m);
-                                         return Unit.Default;
-                                     });
+            return source.SelectMany(
+                async m =>
+                {
+                    await action(m);
+
+                    return Unit.Default;
+                });
         }
 
         public static IObservable<TData> ApplyWhen<TData>(this IObservable<TData> obs, Func<TData, bool> when, Action<TData> apply)
-            => obs.Select(d =>
-                          {
-                              if (when(d))
-                                  apply(d);
-                              return d;
-                          });
+            => obs.Select(
+                d =>
+                {
+                    if (when(d))
+                        apply(d);
+
+                    return d;
+                });
 
         #region AutoSubscribe
 
@@ -181,7 +197,9 @@ namespace Tauron
             public bool ReSubscribe(Action subscription, Exception? cause)
             {
                 if (cause is ObjectDisposedException) return false;
+
                 subscription();
+
                 return true;
             }
         }
@@ -205,20 +223,6 @@ namespace Tauron
                 strategy.ReSubscribe(AddSubscription, null);
             }
 
-            void AddSubscription()
-            {
-                try
-                {
-                    _current = _data.Subscribe(this);
-                }
-                catch
-                {
-                    Dispose();
-
-                    throw;
-                }
-            }
-
             public void Dispose()
             {
                 _current?.Dispose();
@@ -227,15 +231,20 @@ namespace Tauron
 
             public void OnCompleted()
             {
-                using (this) 
+                using (this)
+                {
                     _target.OnCompleted();
+                }
             }
 
             public void OnError(Exception error)
             {
                 if (_errorHandler(error) && _strategy.ReSubscribe(AddSubscription, error)) return;
-                using (this) 
+
+                using (this)
+                {
                     _target.OnError(error);
+                }
             }
 
             public void OnNext(TData value)
@@ -253,6 +262,20 @@ namespace Tauron
                     }
                 }
             }
+
+            private void AddSubscription()
+            {
+                try
+                {
+                    _current = _data.Subscribe(this);
+                }
+                catch
+                {
+                    Dispose();
+
+                    throw;
+                }
+            }
         }
 
         public static IDisposable AutoSubscribe<TData>(this IObservable<TData> obs, IObserver<TData> target, Func<Exception, bool>? errorHandler, ISubscriptionStrategy? strategy = null)
@@ -265,30 +288,39 @@ namespace Tauron
 
         public static IDisposable AutoSubscribe<TData>(this IObservable<TData> obs, Action<TData> onNext, Action<Exception> onError, Action onCompled, Func<Exception, bool>? errorHandler = null, ISubscriptionStrategy? strategy = null)
             => AutoSubscribe(obs, Observer.Create(onNext, onError, onCompled), errorHandler, strategy);
+
         public static IDisposable AutoSubscribe<TData>(this IObservable<TData> obs, Func<Exception, bool>? errorHandler, ISubscriptionStrategy? strategy = null)
-            => AutoSubscribe(obs, Observer.Create<TData>(_ => {}), errorHandler, strategy);
+            => AutoSubscribe(obs, Observer.Create<TData>(_ => { }), errorHandler, strategy);
+
         public static IDisposable AutoSubscribe<TData>(this IObservable<TData> obs, Action<TData> onNext, Action onCompled, Func<Exception, bool>? errorHandler = null, ISubscriptionStrategy? strategy = null)
-            => AutoSubscribe(obs, Observer.Create(onNext, _ => {}, onCompled), errorHandler, strategy);
+            => AutoSubscribe(obs, Observer.Create(onNext, _ => { }, onCompled), errorHandler, strategy);
+
         public static IDisposable AutoSubscribe<TData>(this IObservable<TData> obs, Action<TData> onNext, Func<Exception, bool>? errorHandler, ISubscriptionStrategy? strategy = null)
             => AutoSubscribe(obs, Observer.Create(onNext), errorHandler, strategy);
 
         public static IDisposable AutoSubscribe<TData>(this IObservable<TData> obs, IObserver<TData> target, Action<Exception>? errorHandler = null, ISubscriptionStrategy? strategy = null)
             => AutoSubscribe(obs, target, CreateErrorHandler(errorHandler), strategy);
+
         public static IDisposable AutoSubscribe<TData>(this IObservable<TData> obs, Action<TData> onNext, Action<Exception> onError, Action onCompled, Action<Exception>? errorHandler = null, ISubscriptionStrategy? strategy = null)
             => AutoSubscribe(obs, Observer.Create(onNext, onError, onCompled), CreateErrorHandler(errorHandler), strategy);
+
         public static IDisposable AutoSubscribe<TData>(this IObservable<TData> obs, Action<Exception>? errorHandler = null, ISubscriptionStrategy? strategy = null)
             => AutoSubscribe(obs, Observer.Create<TData>(_ => { }), CreateErrorHandler(errorHandler), strategy);
+
         public static IDisposable AutoSubscribe<TData>(this IObservable<TData> obs, Action<TData> onNext, Action onCompled, Action<Exception>? errorHandler = null, ISubscriptionStrategy? strategy = null)
-            => AutoSubscribe(obs, Observer.Create(onNext, _ =>{}, onCompled), CreateErrorHandler(errorHandler), strategy);
+            => AutoSubscribe(obs, Observer.Create(onNext, _ => { }, onCompled), CreateErrorHandler(errorHandler), strategy);
+
         public static IDisposable AutoSubscribe<TData>(this IObservable<TData> obs, Action<TData> onNext, Action<Exception>? errorHandler = null, ISubscriptionStrategy? strategy = null)
             => AutoSubscribe(obs, Observer.Create(onNext), CreateErrorHandler(errorHandler), strategy);
 
         private static Func<Exception, bool>? CreateErrorHandler(Action<Exception>? handler)
         {
             if (handler == null) return null;
+
             return e =>
                    {
                        handler(e);
+
                        return true;
                    };
         }
@@ -298,111 +330,142 @@ namespace Tauron
         #region Timers
 
         public static IObservable<ITimerScheduler> StartPeriodicTimer(this IObservable<ITimerScheduler> timer, object key, object msg, TimeSpan interval)
-            => timer.Select(t =>
-                            {
-                                t.StartPeriodicTimer(key, msg, interval);
-                                return t;
-                            });
+            => timer.Select(
+                t =>
+                {
+                    t.StartPeriodicTimer(key, msg, interval);
+
+                    return t;
+                });
 
         public static IObservable<StatePair<TEvent, TState>> StartPeriodicTimer<TEvent, TState>(this IObservable<StatePair<TEvent, TState>> obs, object key, object msg, TimeSpan interval)
-            => obs.Select(p =>
-                          {
-                              p.Timers.StartPeriodicTimer(key, msg, interval);
-                              return p;
-                          });
+            => obs.Select(
+                p =>
+                {
+                    p.Timers.StartPeriodicTimer(key, msg, interval);
+
+                    return p;
+                });
 
         public static IObservable<TData> StartPeriodicTimer<TData>(this IObservable<TData> obs, Func<TData, ITimerScheduler> selector, object key, object msg, TimeSpan interval)
-            => obs.Select(d =>
-                          {
-                              selector(d).StartPeriodicTimer(key, msg, interval);
-                              return d;
-                          });
+            => obs.Select(
+                d =>
+                {
+                    selector(d).StartPeriodicTimer(key, msg, interval);
+
+                    return d;
+                });
 
 
         public static IObservable<ITimerScheduler> StartPeriodicTimer(this IObservable<ITimerScheduler> timer, object key, object msg, TimeSpan initialDelay, TimeSpan interval)
-            => timer.Select(t =>
-                            {
-                                t.StartPeriodicTimer(key, msg, initialDelay, interval);
-                                return t;
-                            });
+            => timer.Select(
+                t =>
+                {
+                    t.StartPeriodicTimer(key, msg, initialDelay, interval);
 
-        public static IObservable<StatePair<TEvent, TState>> StartPeriodicTimer<TEvent, TState>(this IObservable<StatePair<TEvent, TState>> obs, object key, object msg, TimeSpan initialDelay,
+                    return t;
+                });
+
+        public static IObservable<StatePair<TEvent, TState>> StartPeriodicTimer<TEvent, TState>(
+            this IObservable<StatePair<TEvent, TState>> obs, object key, object msg, TimeSpan initialDelay,
             TimeSpan interval)
-            => obs.Select(t =>
-                          {
-                              t.Timers.StartPeriodicTimer(key, msg, initialDelay, interval);
-                              return t;
-                          });
+            => obs.Select(
+                t =>
+                {
+                    t.Timers.StartPeriodicTimer(key, msg, initialDelay, interval);
+
+                    return t;
+                });
 
         public static IObservable<TData> StartPeriodicTimer<TData>(this IObservable<TData> obs, Func<TData, ITimerScheduler> selector, object key, object msg, TimeSpan initialDelay, TimeSpan interval)
-            => obs.Select(t =>
-                          {
-                              selector(t).StartPeriodicTimer(key, msg, initialDelay, interval);
-                              return t;
-                          });
+            => obs.Select(
+                t =>
+                {
+                    selector(t).StartPeriodicTimer(key, msg, initialDelay, interval);
+
+                    return t;
+                });
 
         public static IObservable<ITimerScheduler> StartSingleTimer(this IObservable<ITimerScheduler> timer, object key, object msg, TimeSpan timeout)
-            => timer.Select(t =>
-                            {
-                                t.StartSingleTimer(key, msg, timeout);
-                                return t;
-                            });
+            => timer.Select(
+                t =>
+                {
+                    t.StartSingleTimer(key, msg, timeout);
+
+                    return t;
+                });
 
         public static IObservable<StatePair<TEvent, TState>> StartSingleTimer<TEvent, TState>(this IObservable<StatePair<TEvent, TState>> obs, object key, object msg, TimeSpan timeout)
-            => obs.Select(t =>
-                          {
-                              t.Timers.StartSingleTimer(key, msg, timeout);
-                              return t;
-                          });
+            => obs.Select(
+                t =>
+                {
+                    t.Timers.StartSingleTimer(key, msg, timeout);
+
+                    return t;
+                });
 
         public static IObservable<TData> StartSingleTimer<TData>(this IObservable<TData> obs, Func<TData, ITimerScheduler> selector, object key, object msg, TimeSpan timeout)
-            => obs.Select(t =>
-                          {
-                              selector(t).StartSingleTimer(key, msg, timeout);
-                              return t;
-                          });
+            => obs.Select(
+                t =>
+                {
+                    selector(t).StartSingleTimer(key, msg, timeout);
+
+                    return t;
+                });
 
         public static IObservable<ITimerScheduler> CancelTimer(this IObservable<ITimerScheduler> timer, object key)
-            => timer.Select(t =>
-                            {
-                                t.Cancel(key);
-                                return t;
-                            });
+            => timer.Select(
+                t =>
+                {
+                    t.Cancel(key);
+
+                    return t;
+                });
 
         public static IObservable<StatePair<TEvent, TState>> CancelTimer<TEvent, TState>(this IObservable<StatePair<TEvent, TState>> obs, object key)
-            => obs.Select(t =>
-                          {
-                              t.Timers.Cancel(key);
-                              return t;
-                          });
+            => obs.Select(
+                t =>
+                {
+                    t.Timers.Cancel(key);
+
+                    return t;
+                });
 
         public static IObservable<TData> CancelTimer<TData>(this IObservable<TData> obs, Func<TData, ITimerScheduler> selector, object key)
-            => obs.Select(t =>
-                          {
-                              selector(t).Cancel(key);
-                              return t;
-                          });
+            => obs.Select(
+                t =>
+                {
+                    selector(t).Cancel(key);
+
+                    return t;
+                });
 
         public static IObservable<ITimerScheduler> CancelAllTimers(this IObservable<ITimerScheduler> timer)
-            => timer.Select(t =>
-                            {
-                                t.CancelAll();
-                                return t;
-                            });
+            => timer.Select(
+                t =>
+                {
+                    t.CancelAll();
+
+                    return t;
+                });
 
         public static IObservable<StatePair<TEvent, TState>> CancelAllTimers<TEvent, TState>(this IObservable<StatePair<TEvent, TState>> obs)
-            => obs.Select(t =>
-                          {
-                              t.Timers.CancelAll();
-                              return t;
-                          });
+            => obs.Select(
+                t =>
+                {
+                    t.Timers.CancelAll();
+
+                    return t;
+                });
 
         public static IObservable<TData> CancelAllTimers<TData>(this IObservable<TData> obs, Func<TData, ITimerScheduler> selector)
-            => obs.Select(t =>
-                          {
-                              selector(t).CancelAll();
-                              return t;
-                          });
+            => obs.Select(
+                t =>
+                {
+                    selector(t).CancelAll();
+
+                    return t;
+                });
 
         #endregion
 
@@ -439,7 +502,6 @@ namespace Tauron
             => source.SubscribeWithStatus(m => target(m).Tell(selector(m)));
 
 
-
         public static IDisposable ForwardToParent<TMessage>(this IObservable<TMessage> source)
             => ForwardToParent(source, ObservableActor.ExposedContext);
 
@@ -458,7 +520,7 @@ namespace Tauron
         public static IDisposable ForwardToActor<TMessage>(this IObservable<TMessage> source, Func<IActorRef> target)
             => source.SubscribeWithStatus(m => target().Forward(m));
 
-        public static IDisposable ForwardToActor<TMessage>(this IObservable<TMessage> source,            Func<IActorContext, IActorRef> target)
+        public static IDisposable ForwardToActor<TMessage>(this IObservable<TMessage> source, Func<IActorContext, IActorRef> target)
             => source.SubscribeWithStatus(m => target(ObservableActor.ExposedContext).Forward(m));
 
         public static IDisposable ForwardToActor<TMessage>(this IObservable<TMessage> source, Func<TMessage, IActorRef> target)
@@ -502,7 +564,6 @@ namespace Tauron
             => source.ToUnit(m => target(m).Tell(selector(m)));
 
 
-
         public static IObservable<Unit> UForwardToParent<TMessage>(this IObservable<TMessage> source)
             => UForwardToParent(source, ObservableActor.ExposedContext);
 
@@ -540,8 +601,11 @@ namespace Tauron
 
             if (cell == null)
                 return source.Subscribe(onNext);
+
             var self = cell.Self;
-            return source.Subscribe(onNext, 
+
+            return source.Subscribe(
+                onNext,
                 exception => self.Tell(new Status.Failure(exception)),
                 () => self.Tell(new Status.Success(sucessMessage)));
         }
@@ -550,7 +614,7 @@ namespace Tauron
             => SubscribeWithStatus(source, null, onNext);
 
         public static IDisposable SubscribeWithStatus<TMessage>(this IObservable<TMessage> source)
-            => SubscribeWithStatus(source, null, _ => {});
+            => SubscribeWithStatus(source, null, _ => { });
 
         #endregion
     }

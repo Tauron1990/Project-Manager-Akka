@@ -15,6 +15,7 @@ namespace Tauron.Application.Settings
             where TType : ISettingProviderConfiguration
         {
             _builder.RegisterType<TType>().As<ISettingProviderConfiguration>();
+
             return this;
         }
 
@@ -22,6 +23,7 @@ namespace Tauron.Application.Settings
             where TType : ISettingProviderConfiguration
         {
             _builder.Register(_ => setting()).As<ISettingProviderConfiguration>();
+
             return this;
         }
     }

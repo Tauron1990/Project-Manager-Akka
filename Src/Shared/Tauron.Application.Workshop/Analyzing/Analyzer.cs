@@ -23,7 +23,8 @@ namespace Tauron.Application.Workshop.Analyzing
 
         internal Analyzer()
             : base(Task.FromResult<IActorRef>(ActorRefs.Nobody))
-            => Issues = new AnalyzerEventSource<TWorkspace, TData>(Task.FromResult<IActorRef>(ActorRefs.Nobody),
+            => Issues = new AnalyzerEventSource<TWorkspace, TData>(
+                Task.FromResult<IActorRef>(ActorRefs.Nobody),
                 new WorkspaceSuperviser());
 
         public void RegisterRule(IRule<TWorkspace, TData> rule)
@@ -43,17 +44,20 @@ namespace Tauron.Application.Workshop.Analyzing
     [PublicAPI]
     public static class Analyzer
     {
-        public static IAnalyzer<TWorkspace, TData> From<TWorkspace, TData>(TWorkspace workspace,
+        public static IAnalyzer<TWorkspace, TData> From<TWorkspace, TData>(
+            TWorkspace workspace,
             WorkspaceSuperviser superviser)
             where TWorkspace : WorkspaceBase<TData> where TData : class
         {
             var evtSource = new SourceFabricator<TWorkspace, TData>();
 
             var actor = superviser.Create(
-                Props.Create(() => new AnalyzerActor<TWorkspace, TData>(workspace, evtSource.Send)), "AnalyzerActor");
+                Props.Create(() => new AnalyzerActor<TWorkspace, TData>(workspace, evtSource.Send)),
+                "AnalyzerActor");
             evtSource.Init(actor, superviser);
 
-            return new Analyzer<TWorkspace, TData>(actor,
+            return new Analyzer<TWorkspace, TData>(
+                actor,
                 evtSource.EventSource ?? throw new InvalidOperationException("Create Analyzer"));
         }
 
@@ -71,6 +75,7 @@ namespace Tauron.Application.Workshop.Analyzing
             {
                 if (EventSource == null)
                     throw new InvalidOperationException("Analýzer is not Initialized");
+
                 return EventSource.SendEvent();
             }
         }

@@ -7,7 +7,6 @@ using SharpRepository.Repository.Configuration;
 using Tauron;
 using Tauron.Application.AkkaNode.Services.CleanUp;
 using Tauron.Application.AkkaNode.Services.FileTransfer;
-using Tauron.Application.Files.VirtualFiles;
 using Tauron.Application.Master.Commands.Deployment.Build;
 using Tauron.Application.Master.Commands.Deployment.Repository;
 using Tauron.Application.VirtualFiles;
@@ -18,13 +17,12 @@ namespace ServiceManager.ProjectDeployment.Actors
 {
     public sealed class DeploymentServerImpl : ActorFeatureBase<DeploymentServerImpl.DeploymentServerState>
     {
-        public sealed record DeploymentServerState(IActorRef Query, IActorRef Processor);
-
-        private static DeploymentServerState CreateState(IActorRefFactory context, ISharpRepositoryConfiguration configuration, IDirectory fileSystem, DataTransferManager manager,
+        private static DeploymentServerState CreateState(
+            IActorRefFactory context, ISharpRepositoryConfiguration configuration, IDirectory fileSystem, DataTransferManager manager,
             RepositoryApi repositoryApi)
         {
             var changeTracker = context.ActorOf("Change-Tracker", ChangeTrackerActor.New());
-            
+
             var trashBin = configuration.GetInstance<ToDeleteRevision, string>(CleanUpManager.RepositoryKey);
 
             var cleanUp = context.ActorOf("CleanUp-Manager", CleanUpManager.New(configuration, fileSystem));
@@ -34,14 +32,14 @@ namespace ServiceManager.ProjectDeployment.Actors
                .WithSupervisorStrategy(SupervisorStrategy.DefaultStrategy);
 
             var queryProps = Feature.Props(AppQueryHandler.New(configuration.GetInstance<AppData, string>(DeploymentManager.RepositoryKey), fileSystem, manager, changeTracker))
-                                  .WithRouter(router);
+               .WithRouter(router);
             var query = context.ActorOf(queryProps, "QueryRouter");
 
             var buildSystem = WorkDistributorFeature<BuildRequest, BuildCompled>
                .Create(context, Props.Create(() => new BuildingActor(manager)), "Compiler", TimeSpan.FromHours(1), "CompilerSupervisor");
 
             var processorProps = Feature.Props(AppCommandProcessor.New(configuration.GetInstance<AppData, string>(DeploymentManager.RepositoryKey), fileSystem, repositoryApi, manager, trashBin, buildSystem, changeTracker))
-                                      .WithRouter(router);
+               .WithRouter(router);
             var processor = context.ActorOf(processorProps, "ProcessorRouter");
 
             return new DeploymentServerState(query, processor);
@@ -55,5 +53,7 @@ namespace ServiceManager.ProjectDeployment.Actors
             Receive<IDeploymentQuery>(obs => obs.ForwardToActor(i => i.State.Query, i => i.Event));
             Receive<IDeploymentCommand>(obs => obs.ForwardToActor(i => i.State.Processor, i => i.Event));
         }
+
+        public sealed record DeploymentServerState(IActorRef Query, IActorRef Processor);
     }
 }

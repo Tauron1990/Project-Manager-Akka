@@ -13,8 +13,8 @@ namespace Tauron.Application.Settings
     public abstract class ConfigurationBase : ObservableObject
     {
         private readonly IDefaultActorRef<SettingsManager> _actor;
-        private readonly ILogger _logger;
         private readonly Task _loader;
+        private readonly ILogger _logger;
         private readonly string _scope;
 
         private ImmutableDictionary<string, string> _dic = ImmutableDictionary<string, string>.Empty;
@@ -41,6 +41,7 @@ namespace Tauron.Application.Settings
         public IDisposable BlockSet()
         {
             _isBlocked = true;
+
             return Disposable.Create(this, self => self._isBlocked = false);
         }
 
@@ -52,13 +53,15 @@ namespace Tauron.Application.Settings
             try
             {
                 _loader.Wait();
+
                 if (string.IsNullOrEmpty(name)) return default!;
 
                 return _dic.TryGetValue(name, out var value) ? converter(value) : defaultValue;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 _logger.LogError(e, "Error on  Load Configuration Data");
+
                 return defaultValue;
             }
         }

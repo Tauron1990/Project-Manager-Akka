@@ -3,9 +3,10 @@
 
 @inject ConnectToClusterViewModel _model
 
+@* ReSharper disable once Html.TagShouldNotBeSelfClosed *@
 <Title Value="Service Manager - Mit Cluster Verbinden"/>
 
-<GenericAuthorizeView Claims="new []{Claims.ServerInfoClaim, Claims.ClusterConnectionClaim}">
+<GenericAuthorizeView Claims="new[] { Claims.ServerInfoClaim, Claims.ClusterConnectionClaim }">
     <MudContainer MaxWidth="MaxWidth.Medium">
         <OperationHost Manager="_model.Operation">
             <MudCard Class="mx-auto">
@@ -32,8 +33,9 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if(_urlField != null)
+        if (_urlField != null)
             await _urlField.Validate();
         await base.OnAfterRenderAsync(firstRender);
     }
+
 }

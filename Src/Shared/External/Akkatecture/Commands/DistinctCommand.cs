@@ -62,6 +62,7 @@ namespace Akkatecture.Commands
         private CommandId CalculateSourceId()
         {
             var bytes = GetSourceIdComponents().SelectMany(data => data).ToArray();
+
             return CommandId.NewDeterministic(
                 GuidFactories.Deterministic.Namespaces.Commands,
                 bytes);

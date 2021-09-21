@@ -1,5 +1,4 @@
-﻿@using MudBlazor
-@inherits DialogBaseComponent
+﻿@inherits DialogBaseComponent
 
 <MudDialog>
     <TitleContent>
@@ -15,7 +14,7 @@
 </MudDialog>
 
 @code {
-    
+
     private void CancelCallback() => DialogInstance.Cancel();
 
     private void AcceptCallback() => DialogInstance.Close(DialogResult.Ok(true));

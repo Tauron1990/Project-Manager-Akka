@@ -18,18 +18,30 @@ namespace LoadingIndicators.WPF
         ///     Identifies the <see cref="LoadingIndicators.WPF.LoadingIndicator.SpeedRatio" /> dependency property.
         /// </summary>
         public static readonly DependencyProperty SpeedRatioProperty =
-            DependencyProperty.Register("SpeedRatio", typeof(double), typeof(LoadingIndicator), new PropertyMetadata(1d,
-                OnSpeedRatioChanged));
+            DependencyProperty.Register(
+                "SpeedRatio",
+                typeof(double),
+                typeof(LoadingIndicator),
+                new PropertyMetadata(
+                    1d,
+                    OnSpeedRatioChanged));
 
         /// <summary>
         ///     Identifies the <see cref="LoadingIndicators.WPF.LoadingIndicator.IsActive" /> dependency property.
         /// </summary>
         public static readonly DependencyProperty IsActiveProperty =
-            DependencyProperty.Register("IsActive", typeof(bool), typeof(LoadingIndicator), new PropertyMetadata(true,
-                OnIsActiveChanged));
+            DependencyProperty.Register(
+                "IsActive",
+                typeof(bool),
+                typeof(LoadingIndicator),
+                new PropertyMetadata(
+                    true,
+                    OnIsActiveChanged));
 
         public static readonly DependencyProperty ModeProperty = DependencyProperty.Register(
-            "Mode", typeof(LoadingIndicatorMode), typeof(LoadingIndicator),
+            "Mode",
+            typeof(LoadingIndicatorMode),
+            typeof(LoadingIndicator),
             new PropertyMetadata(default(LoadingIndicatorMode)));
 
         // ReSharper disable once InconsistentNaming
@@ -37,13 +49,14 @@ namespace LoadingIndicators.WPF
 
         static LoadingIndicator()
         {
-            DefaultStyleKeyProperty.OverrideMetadata(typeof(LoadingIndicator),
+            DefaultStyleKeyProperty.OverrideMetadata(
+                typeof(LoadingIndicator),
                 new FrameworkPropertyMetadata(typeof(LoadingIndicator)));
         }
 
         public LoadingIndicatorMode Mode
         {
-            get => (LoadingIndicatorMode) GetValue(ModeProperty);
+            get => (LoadingIndicatorMode)GetValue(ModeProperty);
             set => SetValue(ModeProperty, value);
         }
 
@@ -52,7 +65,7 @@ namespace LoadingIndicators.WPF
         /// </summary>
         public double SpeedRatio
         {
-            get => (double) GetValue(SpeedRatioProperty);
+            get => (double)GetValue(SpeedRatioProperty);
             set => SetValue(SpeedRatioProperty, value);
         }
 
@@ -61,35 +74,39 @@ namespace LoadingIndicators.WPF
         /// </summary>
         public bool IsActive
         {
-            get => (bool) GetValue(IsActiveProperty);
+            get => (bool)GetValue(IsActiveProperty);
             set => SetValue(IsActiveProperty, value);
         }
 
         private static void OnSpeedRatioChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs eventArgs)
         {
-            var indicator = (LoadingIndicator) dependencyObject;
+            var indicator = (LoadingIndicator)dependencyObject;
 
             if (indicator.PART_Border == null || indicator.IsActive == false) return;
 
-            SetStoryBoardSpeedRatio(indicator.PART_Border, (double) eventArgs.NewValue);
+            SetStoryBoardSpeedRatio(indicator.PART_Border, (double)eventArgs.NewValue);
         }
 
         private static void OnIsActiveChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs eventArgs)
         {
-            var indicator = (LoadingIndicator) dependencyObject;
+            var indicator = (LoadingIndicator)dependencyObject;
 
             if (indicator.PART_Border is null) return;
 
-            if ((bool) eventArgs.NewValue == false)
+            if ((bool)eventArgs.NewValue == false)
             {
-                VisualStateManager.GoToElementState(indicator.PART_Border, IndicatorVisualStateNames.InactiveState.Name,
-                    useTransitions: false);
+                VisualStateManager.GoToElementState(
+                    indicator.PART_Border,
+                    IndicatorVisualStateNames.InactiveState.Name,
+                    false);
                 indicator.PART_Border.SetCurrentValue(VisibilityProperty, Visibility.Collapsed);
             }
             else
             {
-                VisualStateManager.GoToElementState(indicator.PART_Border, IndicatorVisualStateNames.ActiveState.Name, 
-                    useTransitions: false);
+                VisualStateManager.GoToElementState(
+                    indicator.PART_Border,
+                    IndicatorVisualStateNames.ActiveState.Name,
+                    false);
 
                 indicator.PART_Border.SetCurrentValue(VisibilityProperty, Visibility.Visible);
 
@@ -116,10 +133,12 @@ namespace LoadingIndicators.WPF
 
             if (PART_Border is null) return;
 
-            VisualStateManager.GoToElementState(PART_Border,
+            VisualStateManager.GoToElementState(
+                PART_Border,
                 IsActive
                     ? IndicatorVisualStateNames.ActiveState.Name
-                    : IndicatorVisualStateNames.InactiveState.Name, useTransitions: false);
+                    : IndicatorVisualStateNames.InactiveState.Name,
+                false);
 
             SetStoryBoardSpeedRatio(PART_Border, SpeedRatio);
 

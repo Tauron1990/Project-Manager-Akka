@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using Ionic.Zip;
-using JetBrains.Annotations;
 
 namespace Tauron.Application.Files.Zip
 {
     public sealed class InternalZipDirectory
     {
-        public static readonly char[] PathSplit = {'/'};
+        public static readonly char[] PathSplit = { '/' };
 
         private InternalZipDirectory(string name)
         {
@@ -28,6 +27,7 @@ namespace Tauron.Application.Files.Zip
         public static InternalZipDirectory ReadZipDirectory(ZipFile? file)
         {
             var directory = new InternalZipDirectory(string.Empty);
+
             if (file == null) return directory;
 
             foreach (var entry in file) Add(directory, entry);
@@ -61,14 +61,17 @@ namespace Tauron.Application.Files.Zip
         }
 
         public static string GetFileName(ZipEntry entry) => entry.FileName
-            .Split(PathSplit, StringSplitOptions.RemoveEmptyEntries).Last();
+           .Split(PathSplit, StringSplitOptions.RemoveEmptyEntries).Last();
 
         internal InternalZipDirectory GetOrAdd(string name)
         {
             var dic = Directorys.FirstOrDefault(d => d.Name == name);
+
             if (dic != null) return dic;
+
             dic = new InternalZipDirectory(name);
             Directorys.Add(dic);
+
             return dic;
         }
 

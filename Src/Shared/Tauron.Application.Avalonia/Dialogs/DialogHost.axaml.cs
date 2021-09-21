@@ -5,8 +5,8 @@ using Avalonia.Data;
 using Avalonia.Markup.Xaml;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
-using Tauron.Application.CommonUI.Dialogs;
 using Tauron.AkkaHost;
+using Tauron.Application.CommonUI.Dialogs;
 
 namespace Tauron.Application.Avalonia.Dialogs
 {
@@ -23,27 +23,27 @@ namespace Tauron.Application.Avalonia.Dialogs
         {
             InitializeComponent();
 
-            var coordinator = (IDialogCoordinatorUIEvents) ActorApplication.ServiceProvider.GetRequiredService<IDialogCoordinator>();
+            var coordinator = (IDialogCoordinatorUIEvents)ActorApplication.ServiceProvider.GetRequiredService<IDialogCoordinator>();
 
             coordinator.HideDialogEvent += () =>
-            {
-                MainContent.IsEnabled = true;
-                MainContent.IsVisible = true;
+                                           {
+                                               MainContent.IsEnabled = true;
+                                               MainContent.IsVisible = true;
 
-                DialogContent.Content = null;
-                DialogContent.IsEnabled = false;
-                DialogContent.IsVisible = false;
-            };
+                                               DialogContent.Content = null;
+                                               DialogContent.IsEnabled = false;
+                                               DialogContent.IsVisible = false;
+                                           };
 
             coordinator.ShowDialogEvent += o =>
-            {
-                MainContent.IsEnabled = false;
-                MainContent.IsVisible = false;
+                                           {
+                                               MainContent.IsEnabled = false;
+                                               MainContent.IsVisible = false;
 
-                DialogContent.Content = o;
-                DialogContent.IsEnabled = true;
-                DialogContent.IsVisible = true;
-            };
+                                               DialogContent.Content = o;
+                                               DialogContent.IsEnabled = true;
+                                               DialogContent.IsVisible = true;
+                                           };
         }
 
 

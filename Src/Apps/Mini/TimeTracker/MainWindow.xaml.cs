@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using MaterialDesignThemes.Wpf;
@@ -13,7 +12,7 @@ using TimeTracker.ViewModels;
 namespace TimeTracker
 {
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    ///     Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : IMainWindow
     {
@@ -22,7 +21,6 @@ namespace TimeTracker
         {
             InitializeComponent();
 
-            
 
             var evts = (IDialogCoordinatorUIEvents)dialogCoordinator;
 

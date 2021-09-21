@@ -10,18 +10,11 @@ namespace Tauron.Application.Blazor
 {
     public abstract class GenericDialogBase<TResult, TInput> : ComponentBase, IBaseDialog<TResult, TInput>
     {
-        [CascadingParameter] 
-        protected MudDialogInstance? MudDialog { get; set; }
+        [CascadingParameter] protected MudDialogInstance? MudDialog { get; set; }
 
-        [Parameter]
-        public TInput? InitialData { get; set; }
+        [Parameter] public TInput? InitialData { get; set; }
 
-        public GenericDialogBase()
-        {
-            
-        }
-
-        public Task<TResult> Init(TInput initalData) 
+        public Task<TResult> Init(TInput initalData)
             => Show().Do(_ => { }, _ => MudDialog?.Cancel(), () => MudDialog?.Close()).ToTask();
 
         protected abstract IObservable<TResult> Show();

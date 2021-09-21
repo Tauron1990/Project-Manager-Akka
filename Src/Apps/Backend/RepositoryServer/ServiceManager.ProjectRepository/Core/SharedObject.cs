@@ -25,6 +25,7 @@ namespace ServiceManager.ProjectRepository.Core
         public void Dispose()
         {
             if (_disposed) return;
+
             lock (Lock)
             {
                 var target = SharedObjects[Configuration];
@@ -46,6 +47,7 @@ namespace ServiceManager.ProjectRepository.Core
                 if (SharedObjects.TryGetValue(configuration, out var obj))
                 {
                     obj.Count++;
+
                     return obj.SharedObject;
                 }
 

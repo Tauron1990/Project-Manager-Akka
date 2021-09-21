@@ -40,7 +40,7 @@ namespace Akkatecture.Core.VersionedTypes
     {
         void Load(IReadOnlyCollection<Type>? types);
         IEnumerable<TDefinition> GetDefinitions(string name);
-        bool TryGetDefinition(string name, int version, [NotNullWhen(true)]out TDefinition? definition);
+        bool TryGetDefinition(string name, int version, [NotNullWhen(true)] out TDefinition? definition);
         IEnumerable<TDefinition> GetAllDefinitions();
         TDefinition GetDefinition(string name, int version);
         TDefinition GetDefinition(Type type);

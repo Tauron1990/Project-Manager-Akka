@@ -20,6 +20,7 @@ namespace Tauron.Application.AkkaNode.Services.Reporting.Commands
             {
                 if (!Listner.IsNobody())
                     throw new InvalidOperationException("Only One Listner Can be Set");
+
                 _listner = value;
             }
         }

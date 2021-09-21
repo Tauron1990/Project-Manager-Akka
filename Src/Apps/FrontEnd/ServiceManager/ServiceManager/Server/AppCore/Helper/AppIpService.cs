@@ -19,7 +19,13 @@ namespace ServiceManager.Server.AppCore.Helper
         {
             _appIpManager = appIpManager;
             _subscription = appIpManager.IpChanged.Subscribe(
-                _ => { using (Computed.Invalidate()) GetIp().Ignore(); });
+                _ =>
+                {
+                    using (Computed.Invalidate())
+                    {
+                        GetIp().Ignore();
+                    }
+                });
         }
 
         public virtual Task<string> WriteIp(WriteIpCommand command, CancellationToken token)

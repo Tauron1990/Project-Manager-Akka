@@ -1,11 +1,7 @@
-﻿@using ServiceManager.Shared.ClusterTracking;
-@using ServiceManager.Shared
-@using Stl.Fusion
-@using Stl.Fusion.UI
+﻿@inject BasicAppInfoHelper _helper;
+
 @using System.Reactive.Disposables
-
-@inject BasicAppInfoHelper _helper;
-
+@using ServiceManager.Shared.ClusterTracking
 @implements IDisposable
 
 @{
@@ -27,7 +23,7 @@
             <MudAlert Class="justify-space-around" Severity="Severity.Error" Variant="Variant.Filled">Fehler bem abrufen der Ip: @error.Message</MudAlert>
         </div>
     }
-    else if(!ip.IsValid)
+    else if (!ip.IsValid)
     {
         <NoIpFoundEditor/>
     }

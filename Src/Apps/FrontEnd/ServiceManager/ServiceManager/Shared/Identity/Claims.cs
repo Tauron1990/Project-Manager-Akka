@@ -17,7 +17,7 @@
         public const string UserManagmaentClaim = nameof(UserManagmaentClaim);
 
         public const string AppMenegmentClaim = nameof(AppMenegmentClaim);
-        
+
         public static readonly string[] AllClaims =
         {
             AppIpClaim,

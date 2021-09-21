@@ -43,7 +43,7 @@ namespace Akkatecture.Cluster.Dispatchers
 
             var subscriptionTypes =
                 subscriberType
-                    .GetDomainEventSubscriptionTypes();
+                   .GetDomainEventSubscriptionTypes();
 
             foreach (var type in subscriptionTypes) Context.System.EventStream.Subscribe(Self, type);
 
@@ -57,8 +57,12 @@ namespace Akkatecture.Cluster.Dispatchers
         {
             DomainEventProxy.Tell(domainEvent);
 
-            Logger.Debug("{0} just dispatched {1} to {2}", GetType().PrettyPrint(), domainEvent.GetType().PrettyPrint(),
+            Logger.Debug(
+                "{0} just dispatched {1} to {2}",
+                GetType().PrettyPrint(),
+                domainEvent.GetType().PrettyPrint(),
                 DomainEventProxy.Path.Name);
+
             return true;
         }
     }

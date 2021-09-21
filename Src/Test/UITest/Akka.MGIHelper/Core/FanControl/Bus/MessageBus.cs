@@ -25,7 +25,7 @@ namespace Akka.MGIHelper.Core.FanControl.Bus
             if (_handlers.TryGetValue(msgType, out var list))
                 list.Add(handler);
             else
-                _handlers.TryAdd(msgType, new List<object> {handler});
+                _handlers.TryAdd(msgType, new List<object> { handler });
         }
 
         public async Task Publish<TMsg>(TMsg msg)
@@ -36,6 +36,7 @@ namespace Akka.MGIHelper.Core.FanControl.Bus
         public async Task<TState> Publish<TState, TMsg>(StatePair<TMsg, TState> msg)
         {
             foreach (var handler in _handlers[typeof(TMsg)].OfType<IHandler<TMsg>>()) await handler.Handle(msg.Event, this).ConfigureAwait(false);
+
             return msg.State;
         }
 

@@ -2,11 +2,9 @@
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Akka;
-using Akka.Streams;
 using Akka.Actor;
+using Akka.Streams;
 using Akka.Streams.Dsl;
-using ServiceHost.Client.Shared.ConfigurationServer;
-using ServiceHost.Client.Shared.ConfigurationServer.Events;
 using Tauron;
 using Tauron.Application;
 using Tauron.Application.AkkaNode.Services.Core;
@@ -18,19 +16,17 @@ namespace ServiceManager.Server.AppCore.Helper
     {
         void Init();
     }
-    
+
     public abstract class EventDispatcherRef : FeatureActorRefBase<IEventDispatcher>, IEventDispatcher
     {
         protected EventDispatcherRef(string? name) : base(name) { }
-        
+
         public void Init() => Tell(new InitActor());
     }
-    
-    public abstract class RestartingEventDispatcherActorBase<TEventType, TEventSource> :ActorFeatureBase<RestartingEventDispatcherActorBase<TEventType, TEventSource>.State>
+
+    public abstract class RestartingEventDispatcherActorBase<TEventType, TEventSource> : ActorFeatureBase<RestartingEventDispatcherActorBase<TEventType, TEventSource>.State>
         where TEventSource : IQueryIsAliveSupport
     {
-        public sealed record State(TEventSource EventSource, Func<TEventSource, Task<Source<TEventType, NotUsed>>> GetEventSource, AggregateEvent<TEventType> Dispatcher);
-        
         protected override void ConfigImpl()
         {
             var materializer = Context.Materializer();
@@ -40,26 +36,23 @@ namespace ServiceManager.Server.AppCore.Helper
             Receive<TryQueryEventSource>(
                 obs => (from r in obs
                         let system = r.Context.System
-
                         let source = r.State.EventSource
                         let getSource = r.State.GetEventSource
-
                         from cr in source.QueryIsAlive(system, TimeSpan.FromSeconds(10))
                         from cs in cr.IsAlive
                             ? getSource(source)
                             : Task.FromException<Source<TEventType, NotUsed>>(new InvalidOperationException("Service not Alive"))
-
                         select cs)
                    .AutoSubscribe(
                         s => s.RunForeach(evt => CurrentState.Dispatcher.Publish(evt), materializer)
-                              .ContinueWith(
-                                   t =>
-                                   {
-                                       if (t.IsFaulted)
-                                           Log.Warning(t.Exception, "Event Stream Failed");
+                           .ContinueWith(
+                                t =>
+                                {
+                                    if (t.IsFaulted)
+                                        Log.Warning(t.Exception, "Event Stream Failed");
 
-                                       Self.Tell(new TryQueryEventSource());
-                                   }),
+                                    Self.Tell(new TryQueryEventSource());
+                                }),
                         e =>
                         {
                             if (e is not TaskCanceledException)
@@ -68,7 +61,8 @@ namespace ServiceManager.Server.AppCore.Helper
                         }));
         }
 
+        public sealed record State(TEventSource EventSource, Func<TEventSource, Task<Source<TEventType, NotUsed>>> GetEventSource, AggregateEvent<TEventType> Dispatcher);
+
         private sealed record TryQueryEventSource;
-        
     }
 }

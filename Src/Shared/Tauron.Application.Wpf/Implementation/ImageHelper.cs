@@ -18,6 +18,7 @@ namespace Tauron.Application.Wpf.Implementation
         {
             var source = _cache.FirstOrDefault(img => img.Key == target);
             var temp = source?.GetImage();
+
             if (temp != null) return temp;
 
             var flag = target.IsAbsoluteUri && target.Scheme == Uri.UriSchemeFile && target.OriginalString.ExisFile();
@@ -29,6 +30,7 @@ namespace Tauron.Application.Wpf.Implementation
             {
                 ImageSource imgSource = BitmapFrame.Create(target);
                 _cache.Add(new KeyedImage(target, imgSource));
+
                 return imgSource;
             }
 

@@ -1,10 +1,6 @@
-﻿using Tauron.Akka;
-using Tauron.Features;
+﻿using Tauron.Features;
 
 namespace ServiceHost.AutoUpdate
 {
-    public interface IAutoUpdater : IFeatureActorRef<IAutoUpdater>
-    {
-        
-    }
+    public interface IAutoUpdater : IFeatureActorRef<IAutoUpdater> { }
 }

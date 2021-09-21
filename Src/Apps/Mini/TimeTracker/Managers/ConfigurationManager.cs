@@ -17,44 +17,47 @@ namespace TimeTracker.Managers
     {
         private readonly IDisposable _ceanup;
 
+        private readonly PropertyConnector<int> _dailyHours;
+
         private readonly PropertyConnector<int> _hoursAll;
-        public int MonthHours
-        {
-            get => _hoursAll.Value;
-            set => _hoursAll.Value = value;
-        }
 
         private readonly PropertyConnector<int> _minusShortTimeHours;
-        public int MinusShortTimeHours
-        {
-            get => _minusShortTimeHours.Value;
-            set => _minusShortTimeHours.Value = value;
-        }
 
         private readonly PropertyConnector<ImmutableList<HourMultiplicator>> _multiplicators;
 
-        private ImmutableList<HourMultiplicator> Multiplicators => _multiplicators.Value ?? ImmutableList<HourMultiplicator>.Empty;
-
-        private readonly PropertyConnector<int> _dailyHours;
-        public int DailyHours
-        {
-            get => _dailyHours.Value;
-            set => _dailyHours.Value = value;
-        }
-
         public ConfigurationManager(DataManager source, Action<Exception> reportError)
         {
-            _hoursAll = PropertyConnector<int>.Create(source, this, reportError,
-                () => MonthHours, pd => pd.MonthHours, (pd, value) => pd with {MonthHours = value});
+            _hoursAll = PropertyConnector<int>.Create(
+                source,
+                this,
+                reportError,
+                () => MonthHours,
+                pd => pd.MonthHours,
+                (pd, value) => pd with { MonthHours = value });
 
-            _minusShortTimeHours = PropertyConnector<int>.Create(source, this, reportError,
-                () => MinusShortTimeHours, pd => pd.MinusShortTimeHours, (pd, value) => pd with {MinusShortTimeHours = value});
+            _minusShortTimeHours = PropertyConnector<int>.Create(
+                source,
+                this,
+                reportError,
+                () => MinusShortTimeHours,
+                pd => pd.MinusShortTimeHours,
+                (pd, value) => pd with { MinusShortTimeHours = value });
 
-            _multiplicators = PropertyConnector<ImmutableList<HourMultiplicator>>.Create(source, this, reportError,
-                () => Multiplicators, pd => pd.Multiplicators, (pd, value) => pd with {Multiplicators = value ?? ImmutableList<HourMultiplicator>.Empty});
+            _multiplicators = PropertyConnector<ImmutableList<HourMultiplicator>>.Create(
+                source,
+                this,
+                reportError,
+                () => Multiplicators,
+                pd => pd.Multiplicators,
+                (pd, value) => pd with { Multiplicators = value ?? ImmutableList<HourMultiplicator>.Empty });
 
-            _dailyHours = PropertyConnector<int>.Create(source, this, reportError,
-                () => DailyHours, pd => pd.DailyHours, (pd, value) => pd with {DailyHours = value});
+            _dailyHours = PropertyConnector<int>.Create(
+                source,
+                this,
+                reportError,
+                () => DailyHours,
+                pd => pd.DailyHours,
+                (pd, value) => pd with { DailyHours = value });
 
             _ceanup = Disposable.Create(
                 (_hoursAll, _minusShortTimeHours, _multiplicators, _dailyHours),
@@ -66,6 +69,26 @@ namespace TimeTracker.Managers
                     multiplicators.Dispose();
                     dailyHours.Dispose();
                 });
+        }
+
+        public int MonthHours
+        {
+            get => _hoursAll.Value;
+            set => _hoursAll.Value = value;
+        }
+
+        public int MinusShortTimeHours
+        {
+            get => _minusShortTimeHours.Value;
+            set => _minusShortTimeHours.Value = value;
+        }
+
+        private ImmutableList<HourMultiplicator> Multiplicators => _multiplicators.Value ?? ImmutableList<HourMultiplicator>.Empty;
+
+        public int DailyHours
+        {
+            get => _dailyHours.Value;
+            set => _dailyHours.Value = value;
         }
 
         void IDisposable.Dispose() => _ceanup.Dispose();
@@ -81,6 +104,14 @@ namespace TimeTracker.Managers
             private readonly Action<TPropertyType?> _write;
             private TPropertyType? _value;
 
+            private PropertyConnector(IObservable<TPropertyType> read, Action<TPropertyType?> write, Func<Action<TPropertyType>, IDisposable> updateValue)
+            {
+                _write = write;
+
+                read.FirstOrDefaultAsync().Subscribe(v => _value = v);
+                _cleanUp = updateValue(value => _value = value);
+            }
+
             internal TPropertyType? Value
             {
                 get => _value;
@@ -91,15 +122,10 @@ namespace TimeTracker.Managers
                 }
             }
 
-            private PropertyConnector(IObservable<TPropertyType> read, Action<TPropertyType?> write, Func<Action<TPropertyType>, IDisposable> updateValue)
-            {
-                _write = write;
+            public void Dispose() => _cleanUp.Dispose();
 
-                read.FirstOrDefaultAsync().Subscribe(v => _value = v);
-                _cleanUp = updateValue(value => _value = value);
-            }
-
-            internal static PropertyConnector<TPropertyType> Create(DataManager data, ConfigurationManager configuration, Action<Exception> reportError,
+            internal static PropertyConnector<TPropertyType> Create(
+                DataManager data, ConfigurationManager configuration, Action<Exception> reportError,
                 Expression<Func<TPropertyType>> property, Func<ProfileData, TPropertyType> read, Func<ProfileData, TPropertyType?, ProfileData> write)
             {
                 string name = Reflex.PropertyName(property);
@@ -112,10 +138,11 @@ namespace TimeTracker.Managers
                 {
                     if (value == null) return;
 
-                    data.Mutate(o => from profileData in o
-                                     let newData = write(profileData, value)
-                                     select newData)
-                        .AutoSubscribe(reportError);
+                    data.Mutate(
+                            o => from profileData in o
+                                 let newData = write(profileData, value)
+                                 select newData)
+                       .AutoSubscribe(reportError);
 
                     configuration.OnPropertyChanged(name);
                 }
@@ -126,18 +153,16 @@ namespace TimeTracker.Managers
                         let newValue = read(newData)
                         where !equalityComparer.Equals(newValue, propertyValue)
                         select newValue)
-                       .AutoSubscribe(v =>
-                                      {
-                                          action(v);
-                                          configuration.OnPropertyChanged(name);
-                                      }, reportError);
+                       .AutoSubscribe(
+                            v =>
+                            {
+                                action(v);
+                                configuration.OnPropertyChanged(name);
+                            },
+                            reportError);
 
                 return new PropertyConnector<TPropertyType>(readObs, WriteAction, UpdateValue);
             }
-
-            public void Dispose() => _cleanUp.Dispose();
         }
-
-        
     }
 }

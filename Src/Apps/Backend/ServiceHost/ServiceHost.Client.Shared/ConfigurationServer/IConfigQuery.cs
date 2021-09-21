@@ -1,7 +1,4 @@
 ﻿namespace ServiceHost.Client.Shared.ConfigurationServer
 {
-    public interface IConfigQuery
-    {
-        
-    }
+    public interface IConfigQuery { }
 }

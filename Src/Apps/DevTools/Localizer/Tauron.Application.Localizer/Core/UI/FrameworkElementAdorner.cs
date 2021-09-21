@@ -41,7 +41,8 @@ namespace Tauron.Application.Localizer.Core.UI
             AddVisualChild(adornerChildElement);
         }
 
-        public FrameworkElementAdorner(FrameworkElement adornerChildElement, FrameworkElement adornedElement,
+        public FrameworkElementAdorner(
+            FrameworkElement adornerChildElement, FrameworkElement adornedElement,
             AdornerPlacement horizontalAdornerPlacement, AdornerPlacement verticalAdornerPlacement,
             double offsetX, double offsetY)
             : base(adornedElement)
@@ -71,7 +72,8 @@ namespace Tauron.Application.Localizer.Core.UI
         {
             get
             {
-                ArrayList list = new() {_child};
+                ArrayList list = new() { _child };
+
                 return list.GetEnumerator();
             }
         }
@@ -79,7 +81,7 @@ namespace Tauron.Application.Localizer.Core.UI
         /// <summary>
         ///     Override AdornedElement from base class for less type-checking.
         /// </summary>
-        public new FrameworkElement AdornedElement => (FrameworkElement) base.AdornedElement;
+        public new FrameworkElement AdornedElement => (FrameworkElement)base.AdornedElement;
 
         /// <summary>
         ///     Event raised when the adorned control's size has changed.
@@ -92,6 +94,7 @@ namespace Tauron.Application.Localizer.Core.UI
         protected override Size MeasureOverride(Size constraint)
         {
             _child.Measure(constraint);
+
             return _child.DesiredSize;
         }
 
@@ -114,6 +117,7 @@ namespace Tauron.Application.Localizer.Core.UI
                     if (_horizontalAdornerPlacement == AdornerPlacement.Outside)
                     {
                         var adornedWidth = AdornedElement.ActualWidth;
+
                         return adornedWidth + _offsetX;
                     }
                     else
@@ -121,6 +125,7 @@ namespace Tauron.Application.Localizer.Core.UI
                         var adornerWidth = _child.DesiredSize.Width;
                         var adornedWidth = AdornedElement.ActualWidth;
                         var x = adornedWidth - adornerWidth;
+
                         return x + _offsetX;
                     }
                 }
@@ -129,6 +134,7 @@ namespace Tauron.Application.Localizer.Core.UI
                     var adornerWidth = _child.DesiredSize.Width;
                     var adornedWidth = AdornedElement.ActualWidth;
                     var x = adornedWidth / 2 - adornerWidth / 2;
+
                     return x + _offsetX;
                 }
                 case HorizontalAlignment.Stretch:
@@ -149,6 +155,7 @@ namespace Tauron.Application.Localizer.Core.UI
                 {
                     if (_verticalAdornerPlacement == AdornerPlacement.Outside)
                         return -_child.DesiredSize.Height + _offsetY;
+
                     return _offsetY;
                 }
                 case VerticalAlignment.Bottom:
@@ -156,6 +163,7 @@ namespace Tauron.Application.Localizer.Core.UI
                     if (_verticalAdornerPlacement == AdornerPlacement.Outside)
                     {
                         var adornedHeight = AdornedElement.ActualHeight;
+
                         return adornedHeight + _offsetY;
                     }
                     else
@@ -163,6 +171,7 @@ namespace Tauron.Application.Localizer.Core.UI
                         var adornerHeight = _child.DesiredSize.Height;
                         var adornedHeight = AdornedElement.ActualHeight;
                         var x = adornedHeight - adornerHeight;
+
                         return x + _offsetY;
                     }
                 }
@@ -171,6 +180,7 @@ namespace Tauron.Application.Localizer.Core.UI
                     var adornerHeight = _child.DesiredSize.Height;
                     var adornedHeight = AdornedElement.ActualHeight;
                     var x = adornedHeight / 2 - adornerHeight / 2;
+
                     return x + _offsetY;
                 }
                 case VerticalAlignment.Stretch:
@@ -225,6 +235,7 @@ namespace Tauron.Application.Localizer.Core.UI
             var adornerWidth = DetermineWidth();
             var adornerHeight = DetermineHeight();
             _child.Arrange(new Rect(x, y, adornerWidth, adornerHeight));
+
             return finalSize;
         }
 

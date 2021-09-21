@@ -24,7 +24,8 @@ namespace Tauron.Application.CommonUI.Model
 
         public IObservableActor Target { get; }
 
-        public CommandRegistrationBuilder WithExecute(Action<object?> execute,
+        public CommandRegistrationBuilder WithExecute(
+            Action<object?> execute,
             IEnumerable<IObservable<bool>>? canExecute)
         {
             _command = Delegate.Combine(_command, execute);
@@ -63,6 +64,7 @@ namespace Tauron.Application.CommonUI.Model
         public CommandRegistrationBuilder WithExecute(Action execute)
         {
             _command = Delegate.Combine(_command, new ActionMapper(execute).Action);
+
             return this;
         }
 
@@ -91,7 +93,7 @@ namespace Tauron.Application.CommonUI.Model
                 _ => _canExecute.Select(obs => obs.StartWith(false)).CombineLatest(list => list.All(b => b))
             };
 
-            return _register(name, (Action<object?>) _command, canExec);
+            return _register(name, (Action<object?>)_command, canExec);
         }
 
         private sealed class ActionMapper

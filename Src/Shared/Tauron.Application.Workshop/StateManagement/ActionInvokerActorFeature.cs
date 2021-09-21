@@ -32,18 +32,17 @@ namespace Tauron.Application.Workshop.StateManagement
             if (_compledActions.TryGetValue(actionType, out var action))
             {
                 action(result);
+
                 return;
             }
 
             OnOperationCompled(result);
         }
 
-        protected virtual void OnOperationCompled(IOperationResult result)
-        {
-        }
+        protected virtual void OnOperationCompled(IOperationResult result) { }
 
         public TState GetState<TState>(string key = "") where TState : class => ActionInvoker.GetState<TState>(key) ??
-            throw new InvalidOperationException("No such State Found");
+                                                                                throw new InvalidOperationException("No such State Found");
 
         public void ConfigurateState<TState>(Action<TState> toConfig)
             where TState : class
@@ -64,8 +63,10 @@ namespace Tauron.Application.Workshop.StateManagement
 
         public StateConfig<TState> WhenStateChanges<TState>(string? name = null)
             where TState : class
-            => new(ActionInvoker.GetState<TState>(name ?? string.Empty) ??
-                   throw new ArgumentException("No such State Found"), this);
+            => new(
+                ActionInvoker.GetState<TState>(name ?? string.Empty) ??
+                throw new ArgumentException("No such State Found"),
+                this);
 
         public void DispatchAction(IStateAction action, bool? sendBack = true) => ActionInvoker.Run(action, sendBack);
 
@@ -87,8 +88,9 @@ namespace Tauron.Application.Workshop.StateManagement
             public void Receive<TEvent>(Func<IObservable<Group<TEvent, TState>>, IObservable<TClassState>> handler)
                 => _actor.Receive<TEvent>(obs => handler(obs.Select(p => new Group<TEvent, TState>(p, _state))));
 
-            public void Receive<TEvent>(Func<IObservable<Group<TEvent, TState>>, IObservable<Unit>> handler,
-                Func<Exception, bool> errorHandler) 
+            public void Receive<TEvent>(
+                Func<IObservable<Group<TEvent, TState>>, IObservable<Unit>> handler,
+                Func<Exception, bool> errorHandler)
                 => _actor.Receive<TEvent>(obs => handler(obs.Select(p => new Group<TEvent, TState>(p, _state))), errorHandler);
 
             public void Receive<TEvent>(Func<IObservable<Group<TEvent, TState>>, IDisposable> handler)
@@ -99,8 +101,7 @@ namespace Tauron.Application.Workshop.StateManagement
         public sealed record Group<TEvent, TState>(TEvent Event, TState State, TClassState ClassState, ITimerScheduler Timers)
         {
             public Group(StatePair<TEvent, TClassState> pair, TState state)
-                : this(pair.Event, state, pair.State, pair.Timers) {
-            }
+                : this(pair.Event, state, pair.State, pair.Timers) { }
 
             public void Deconstruct(out TEvent evt, out TState state)
             {

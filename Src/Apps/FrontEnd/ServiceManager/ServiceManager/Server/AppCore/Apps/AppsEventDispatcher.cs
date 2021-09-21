@@ -18,9 +18,7 @@ namespace ServiceManager.Server.AppCore.Apps
     [UsedImplicitly]
     public sealed class AppEventDispatcherRef : EventDispatcherRef
     {
-        public AppEventDispatcherRef() : base(nameof(AppEventDispatcherRef))
-        {
-        }
+        public AppEventDispatcherRef() : base(nameof(AppEventDispatcherRef)) { }
     }
 
     public sealed class AppEventDispatcherActor : RestartingEventDispatcherActorBase<AppInfo, DeploymentApi>

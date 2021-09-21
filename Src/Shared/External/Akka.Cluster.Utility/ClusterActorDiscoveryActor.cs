@@ -18,11 +18,13 @@ namespace Akka.Cluster.Utility
 
         public void MonitorActor(ClusterActorDiscoveryMessage.MonitorActor actor)
             => Discovery.Tell(actor);
+
         public void UnMonitorActor(ClusterActorDiscoveryMessage.UnmonitorActor actor)
             => Discovery.Tell(actor);
 
         public void RegisterActor(ClusterActorDiscoveryMessage.RegisterActor actor)
             => Discovery.Tell(actor);
+
         public void UnRegisterActor(ClusterActorDiscoveryMessage.UnmonitorActor actor)
             => Discovery.Tell(actor);
     }
@@ -73,9 +75,13 @@ namespace Akka.Cluster.Utility
 
         protected override void PreStart()
         {
-            _cluster.Subscribe(Self, ClusterEvent.SubscriptionInitialStateMode.InitialStateAsEvents,
-                typeof(ClusterEvent.MemberUp), typeof(ClusterEvent.ReachableMember),
-                typeof(ClusterEvent.UnreachableMember), typeof(ClusterEvent.MemberRemoved));
+            _cluster.Subscribe(
+                Self,
+                ClusterEvent.SubscriptionInitialStateMode.InitialStateAsEvents,
+                typeof(ClusterEvent.MemberUp),
+                typeof(ClusterEvent.ReachableMember),
+                typeof(ClusterEvent.UnreachableMember),
+                typeof(ClusterEvent.MemberRemoved));
         }
 
         protected override void PostStop()
@@ -97,7 +103,7 @@ namespace Akka.Cluster.Utility
                     new ClusterActorDiscoveryMessage.RegisterCluster(
                         _cluster.SelfUniqueAddress,
                         _actorItems.Select(item => new ClusterActorDiscoveryMessage.ClusterActorUp(item.Actor, item.Tag))
-                            .ToList()));
+                           .ToList()));
             }
         }
 
@@ -117,8 +123,8 @@ namespace Akka.Cluster.Utility
                     new ClusterActorDiscoveryMessage.ResyncCluster(
                         _cluster.SelfUniqueAddress,
                         _actorItems.Select(item => new ClusterActorDiscoveryMessage.ClusterActorUp(item.Actor, item.Tag))
-                            .ToList(),
-                        Request: true));
+                           .ToList(),
+                        true));
             }
         }
 
@@ -182,14 +188,12 @@ namespace Akka.Cluster.Utility
             // Response
 
             if (member.Request)
-            {
                 Sender.Tell(
                     new ClusterActorDiscoveryMessage.ResyncCluster(
                         _cluster.SelfUniqueAddress,
                         _actorItems.Select(item => new ClusterActorDiscoveryMessage.ClusterActorUp(item.Actor, item.Tag))
-                                   .ToList(),
-                        Request: false));
-            }
+                           .ToList(),
+                        false));
         }
 
         //private void Handle(ClusterActorDiscoveryMessage.UnregisterCluster m)
@@ -219,10 +223,11 @@ namespace Akka.Cluster.Utility
             if (_nodeMap.TryGetValue(Sender, out var node) == false)
             {
                 _log.Error($"Cannot find node: Discovery={Sender.Path}");
+
                 return;
             }
 
-            node.ActorItems.Add(new ActorItem (member.Actor, member.Tag));
+            node.ActorItems.Add(new ActorItem(member.Actor, member.Tag));
 
             NotifyActorUpToMonitor(member.Actor, member.Tag);
         }
@@ -234,6 +239,7 @@ namespace Akka.Cluster.Utility
             if (_nodeMap.TryGetValue(Sender, out var node) == false)
             {
                 _log.Error($"Cannot find node: Discovery={Sender.Path}");
+
                 return;
             }
 
@@ -243,6 +249,7 @@ namespace Akka.Cluster.Utility
             if (index == -1)
             {
                 _log.Error($"Cannot find actor: Discovery={Sender.Path} Actor={member.Actor.Path}");
+
                 return;
             }
 
@@ -262,6 +269,7 @@ namespace Akka.Cluster.Utility
             if (index != -1)
             {
                 _log.Error($"Already registered actor: Actor={member.Actor.Path} Tag={member.Tag}");
+
                 return;
             }
 
@@ -282,6 +290,7 @@ namespace Akka.Cluster.Utility
             // remove actor from _actorItems
 
             var index = _actorItems.FindIndex(item => item.Actor.Equals(member.Actor));
+
             if (index == -1)
                 return;
 
@@ -337,6 +346,7 @@ namespace Akka.Cluster.Utility
             if (counts[0] <= 0) return;
 
             var index = _actorItems.FindIndex(item => item.Actor.Equals(member.ActorRef));
+
             if (index == -1) return;
 
             var tag = _actorItems[index].Tag;
@@ -370,6 +380,7 @@ namespace Akka.Cluster.Utility
             if (_actorWatchCountMap.TryGetValue(actor, out var counts))
             {
                 counts[channel] += 1;
+
                 return;
             }
 
@@ -385,6 +396,7 @@ namespace Akka.Cluster.Utility
                 return;
 
             counts[channel] -= 1;
+
             if (counts.Sum() > 0)
                 return;
 

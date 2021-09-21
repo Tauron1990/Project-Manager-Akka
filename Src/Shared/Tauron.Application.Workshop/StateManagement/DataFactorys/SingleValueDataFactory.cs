@@ -19,20 +19,20 @@ namespace Tauron.Application.Workshop.StateManagement.DataFactorys
         {
             return () =>
                    {
-                       if (_source != null) return (IExtendedDataSource<TRealData>) (object) _source;
-                       
+                       if (_source != null) return (IExtendedDataSource<TRealData>)(object)_source;
+
                        lock (_lock)
                        {
                            switch (_source)
                            {
                                case null:
                                    _source = new SingleValueSource(CreateValue(metadata));
-                                   return (IExtendedDataSource<TRealData>) (object) _source;
+
+                                   return (IExtendedDataSource<TRealData>)(object)_source;
                                default:
-                                   return (IExtendedDataSource<TRealData>) (object) _source;
+                                   return (IExtendedDataSource<TRealData>)(object)_source;
                            }
                        }
-
                    };
         }
 
@@ -53,18 +53,21 @@ namespace Tauron.Application.Workshop.StateManagement.DataFactorys
             public async Task<TData> GetData(IQuery query)
             {
                 await _semaphore.WaitAsync();
+
                 return await _value;
             }
 
             public Task SetData(IQuery query, TData data)
             {
                 _value = Task.FromResult(data);
+
                 return Task.CompletedTask;
             }
 
             public Task OnCompled(IQuery query)
             {
                 _semaphore.Release();
+
                 return Task.CompletedTask;
             }
         }

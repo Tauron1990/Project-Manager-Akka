@@ -18,19 +18,21 @@ namespace Tauron.Application.Master.Commands.Deployment.Build
 
         private DeploymentApi(IActorRef repository) => _repository = repository;
 
-        protected override void SendCommandImpl(IReporterMessage command)
-            => _repository.Tell(command);
-
         public Task<IsAliveResponse> QueryIsAlive(ActorSystem system, TimeSpan timeout)
             => AkkaNode.Services.Core.QueryIsAlive.Ask(system, _repository, timeout);
+
+        protected override void SendCommandImpl(IReporterMessage command)
+            => _repository.Tell(command);
 
         public static DeploymentApi CreateFromActor(IActorRef actor)
             => new(actor);
 
         public static DeploymentApi CreateProxy(ActorSystem system, string name = "DeploymentProxy")
         {
-            var proxy = ClusterSingletonProxy.Props($"/user/{DeploymentPath}",
+            var proxy = ClusterSingletonProxy.Props(
+                $"/user/{DeploymentPath}",
                 ClusterSingletonProxySettings.Create(system).WithRole("UpdateSystem"));
+
             return new DeploymentApi(system.ActorOf(proxy, name));
         }
     }

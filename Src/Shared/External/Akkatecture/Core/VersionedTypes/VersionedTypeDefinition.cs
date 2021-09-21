@@ -25,6 +25,7 @@ namespace Akkatecture.Core.VersionedTypes
         public override string ToString()
         {
             var assemblyName = Type.GetTypeInfo().Assembly.GetName();
+
             return $"{Name} v{Version} ({assemblyName.Name} - {Type.PrettyPrint()})";
         }
 

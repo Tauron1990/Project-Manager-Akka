@@ -11,10 +11,10 @@ namespace ServiceManager.Server.AppCore.Helper
 {
     public class ServerInfo : IServerInfo
     {
+        private static readonly Guid CurrentInstance = Guid.NewGuid();
+        private readonly IHubContext<ClusterInfoHub> _hub;
         private readonly IHostApplicationLifetime _lifetime;
         private readonly IRestartHelper _restart;
-        private readonly IHubContext<ClusterInfoHub> _hub;
-        private static readonly Guid CurrentInstance = Guid.NewGuid();
 
         public ServerInfo(IHostApplicationLifetime lifetime, IRestartHelper restart, IHubContext<ClusterInfoHub> hub)
         {
@@ -28,7 +28,7 @@ namespace ServiceManager.Server.AppCore.Helper
 
         public virtual async Task Restart(RestartCommand command, CancellationToken token = default)
         {
-            await _hub.Clients.All.SendAsync(HubEvents.RestartServer, cancellationToken: token);
+            await _hub.Clients.All.SendAsync(HubEvents.RestartServer, token);
             _restart.Restart = true;
             #pragma warning disable 4014
             // ReSharper disable MethodSupportsCancellation

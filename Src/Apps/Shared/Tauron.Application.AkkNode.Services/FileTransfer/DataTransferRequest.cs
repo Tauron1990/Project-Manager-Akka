@@ -28,6 +28,7 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer
         {
             SendCompletionBack = sendBack;
             IndividualMessage = specific;
+
             return this;
         }
 
@@ -63,9 +64,7 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer
                 Source = source;
 
             public StreamTransferRequest(string operationId, Stream source, DataTransferManager target, string? data)
-                : this(operationId, () => source, target, data)
-            {
-            }
+                : this(operationId, () => source, target, data) { }
 
             public override Func<ITransferData> Source { get; }
         }

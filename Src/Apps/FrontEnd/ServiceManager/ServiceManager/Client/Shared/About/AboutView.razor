@@ -1,5 +1,4 @@
 ﻿@using ServiceManager.Shared.ClusterTracking
-
 @inherits ComputedStateComponent<string>
 @inject IClusterConnectionTracker _clusterUrl;
 
@@ -12,7 +11,8 @@
 </CenterElement>
 
 @code {
-    protected override Task<string> ComputeState(CancellationToken cancellationToken) 
+
+    protected override Task<string> ComputeState(CancellationToken cancellationToken)
         => _clusterUrl.GetUrl();
 
 }

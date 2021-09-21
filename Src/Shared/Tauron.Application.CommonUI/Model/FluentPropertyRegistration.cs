@@ -23,42 +23,49 @@ namespace Tauron.Application.CommonUI.Model
         public FluentPropertyRegistration<TData> WithValidator(Func<IObservable<TData>, IObservable<Error?>> validator)
         {
             Property.SetValidator(validator);
+
             return this;
         }
 
         public FluentPropertyRegistration<TData> WithDefaultValue(TData data)
         {
             Property.Set(data);
+
             return this;
         }
 
         public FluentPropertyRegistration<TData> OnChange(Action changed)
         {
             Property.Subscribe(_ => changed()).DisposeWith(Actor);
+
             return this;
         }
 
         public FluentPropertyRegistration<TData> OnChange(Action<TData> changed)
         {
             Property.Subscribe(changed).DisposeWith(Actor);
+
             return this;
         }
 
         public FluentPropertyRegistration<TData> OnChange(Action<IObservable<Unit>> changed)
         {
             changed(Property.Select(_ => Unit.Default));
+
             return this;
         }
 
         public FluentPropertyRegistration<TData> OnChange(Action<IObservable<TData>> changed)
         {
             changed(Property);
+
             return this;
         }
 
         public FluentPropertyRegistration<TData> ThenSubscribe(Func<IObservable<TData>, IDisposable> subscribe)
         {
             Actor.AddResource(subscribe(Property));
+
             return this;
         }
 

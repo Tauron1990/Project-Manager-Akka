@@ -1,12 +1,12 @@
-﻿@using ServiceManager.Shared.ServiceDeamon
+﻿@page "/AppConfiguration"
+
+@using ServiceManager.Shared.ServiceDeamon
 @using ServiceManager.Shared.Identity
-
-@page "/AppConfiguration"
-
 @inherits ComputedStateComponent<bool>
 
 @inject IDatabaseConfig _databaseConfig
 
+@* ReSharper disable once Html.TagShouldNotBeSelfClosed *@
 <Title Value="Service Manager - App Konfiguration"/>
 
 <OperationHost>
@@ -17,12 +17,12 @@
     <MudTabs Position="Position.Center" Style="width: 100%" Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6" @bind-ActivePanelIndex="_currentPanel"
              Centered="true">
         <MudTabPanel Text="Datenbank">
-            <GenericAuthorizeView Claims="new []{Claims.ClusterConnectionClaim, Claims.ServerInfoClaim, Claims.DatabaseClaim}">
+            <GenericAuthorizeView Claims="new[] { Claims.ClusterConnectionClaim, Claims.ServerInfoClaim, Claims.DatabaseClaim }">
                 <ConfigurationViewDatabase/>
             </GenericAuthorizeView>
         </MudTabPanel>
         <MudTabPanel Text="Global">
-            <GenericAuthorizeView Claims="new []{Claims.ClusterConnectionClaim, Claims.ConfigurationClaim}">
+            <GenericAuthorizeView Claims="new[] { Claims.ClusterConnectionClaim, Claims.ConfigurationClaim }">
                 <DatabaseRequiredComponent>
                     <DatabaseContent>
                         <ConfigurationViewGlobalConfig/>
@@ -31,7 +31,7 @@
             </GenericAuthorizeView>
         </MudTabPanel>
         <MudTabPanel Text="Apps" Class="d-flex">
-            <GenericAuthorizeView Claims="new []{Claims.ClusterConnectionClaim, Claims.ConfigurationClaim}">
+            <GenericAuthorizeView Claims="new[] { Claims.ClusterConnectionClaim, Claims.ConfigurationClaim }">
                 <DatabaseRequiredComponent>
                     <DatabaseContent>
                         <ConfigurationViewAppConfig/>
@@ -44,7 +44,8 @@
 
 @code {
     private int _currentPanel;
-    
+
     protected override Task<bool> ComputeState(CancellationToken cancellationToken)
         => _databaseConfig.GetIsReady();
+
 }

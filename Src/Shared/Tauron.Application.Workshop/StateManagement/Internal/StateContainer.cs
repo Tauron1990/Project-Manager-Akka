@@ -29,8 +29,10 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
     public interface IStateInstance
     {
         void InitState<TData>(ExtendedMutatingEngine<MutatingContext<TData>> engine);
+
         void ApplyQuery<TData>(IExtendedDataSource<MutatingContext<TData>> engine)
             where TData : class, IStateEntity;
+
         void PostInit(IActionInvoker actionInvoker);
     }
 
@@ -38,40 +40,39 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
     {
         private bool _initCalled;
 
-        public IState State { get; }
-
         public PhysicalInstance(IState state) => State = state;
+
+        public IState State { get; }
 
         public void InitState<TData>(ExtendedMutatingEngine<MutatingContext<TData>> engine)
         {
             // ReSharper disable once SuspiciousTypeConversion.Global
-            if(State is IInitState<TData> init)
+            if (State is IInitState<TData> init)
                 init.Init(engine);
         }
 
         public void ApplyQuery<TData>(IExtendedDataSource<MutatingContext<TData>> engine) where TData : class, IStateEntity
         {
-            if(State is IGetSource<TData> canQuery)
+            if (State is IGetSource<TData> canQuery)
                 canQuery.DataSource(engine);
         }
 
         public void PostInit(IActionInvoker actionInvoker)
         {
-            if(_initCalled) return;
+            if (_initCalled) return;
+
             _initCalled = true;
 
             // ReSharper disable once SuspiciousTypeConversion.Global
-            if(State is IPostInit postInit)
+            if (State is IPostInit postInit)
                 postInit.Init(actionInvoker);
         }
     }
 
     public sealed class ActorRefInstance : IStateInstance
     {
-        private bool _initCalled;
-
-        public Task<IActorRef> ActorRef { get; }
         private readonly Type _targetType;
+        private bool _initCalled;
 
         public ActorRefInstance(Task<IActorRef> actorRef, Type targetType)
         {
@@ -79,22 +80,25 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
             _targetType = targetType;
         }
 
+        public Task<IActorRef> ActorRef { get; }
+
 
         public void InitState<TData>(ExtendedMutatingEngine<MutatingContext<TData>> engine)
         {
-            if(_targetType.Implements<IInitState<TData>>())
+            if (_targetType.Implements<IInitState<TData>>())
                 ActorRef.ToObservable().Subscribe(a => a.Tell(StateActorMessage.Create(engine)));
         }
 
         public void ApplyQuery<TData>(IExtendedDataSource<MutatingContext<TData>> engine) where TData : class, IStateEntity
         {
-            if(_targetType.Implements<IGetSource<TData>>())
+            if (_targetType.Implements<IGetSource<TData>>())
                 ActorRef.ToObservable().Subscribe(m => m.Tell(StateActorMessage.Create(engine)));
         }
 
         public void PostInit(IActionInvoker actionInvoker)
         {
             if (_initCalled) return;
+
             _initCalled = true;
 
             if (_targetType.Implements<IPostInit>())
@@ -104,27 +108,40 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
 
     public abstract class StateActorMessage
     {
+        public static StateActorMessage Create<TData>(IExtendedDataSource<MutatingContext<TData>> source)
+            where TData : class, IStateEntity => new QueryMessage<TData>(source);
+
+        public static StateActorMessage Create<TData>(ExtendedMutatingEngine<MutatingContext<TData>> engine)
+            => new InitMessage<TData>(engine);
+
+        public static StateActorMessage Create(IActionInvoker actionInvoker)
+            => new PostInit(actionInvoker);
+
+        public abstract void Apply(object @this);
+
         private sealed class InitMessage<TData> : StateActorMessage
         {
             private readonly ExtendedMutatingEngine<MutatingContext<TData>> _engine;
 
             internal InitMessage(ExtendedMutatingEngine<MutatingContext<TData>> engine) => _engine = engine;
+
             public override void Apply(object @this)
             {
-                if(@this is IInitState<TData> state)
+                if (@this is IInitState<TData> state)
                     state.Init(_engine);
             }
         }
 
-        private sealed class QueryMessage<TData> : StateActorMessage 
+        private sealed class QueryMessage<TData> : StateActorMessage
             where TData : class, IStateEntity
         {
             private readonly IExtendedDataSource<MutatingContext<TData>> _dataSource;
 
             internal QueryMessage(IExtendedDataSource<MutatingContext<TData>> dataSource) => _dataSource = dataSource;
+
             public override void Apply(object @this)
             {
-                if(@this is ICanQuery<TData> query)
+                if (@this is ICanQuery<TData> query)
                     query.DataSource(_dataSource);
             }
         }
@@ -137,21 +154,10 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
 
             public override void Apply(object @this)
             {
-                if(@this is IPostInit postInit)
+                if (@this is IPostInit postInit)
                     postInit.Init(_invoker);
             }
         }
-
-        public static StateActorMessage Create<TData>(IExtendedDataSource<MutatingContext<TData>> source) 
-            where TData : class, IStateEntity => new QueryMessage<TData>(source);
-
-        public static StateActorMessage Create<TData>(ExtendedMutatingEngine<MutatingContext<TData>> engine)
-            => new InitMessage<TData>(engine);
-
-        public static StateActorMessage Create(IActionInvoker actionInvoker)
-            => new PostInit(actionInvoker);
-
-        public abstract void Apply(object @this);
     }
 
     public sealed class StateContainer<TData> : StateContainer
@@ -173,11 +179,14 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
         public override IDataMutation? TryDipatch(IStateAction action, IObserver<IReducerResult> sendResult, IObserver<Unit> onCompled)
         {
             var reducers = Reducers.Where(r => r.ShouldReduceStateForAction(action)).ToList();
+
             if (reducers.Count == 0)
                 return null;
 
             return MutatingEngine
-                .CreateMutate(action.ActionName, action.Query,
+               .CreateMutate(
+                    action.ActionName,
+                    action.Query,
                     data =>
                     {
                         try
@@ -188,25 +197,29 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
 
                             var reducer =
                                 (from reducerFactory in reducers.ToObservable()
-                                    where reducerFactory.ShouldReduceStateForAction(action)
-                                    select reducerFactory.Reduce(action)).TakeUntil(cancel);
+                                 where reducerFactory.ShouldReduceStateForAction(action)
+                                 select reducerFactory.Reduce(action)).TakeUntil(cancel);
 
-                            var processor = data.SelectMany(d =>
-                                reducer.Aggregate(
-                                    Observable.Return(d).Select(dd => ReducerResult.Sucess(dd) with {StartLine = true})
-                                        .SingleAsync(),
-                                    (observable, reducerBuilder) =>
-                                    {
-                                        return observable
-                                            .ConditionalSelect()
-                                            .ToSame(b =>
-                                            {
-                                                b.When(r => !r.IsOk || r.Data is null,
-                                                        o => o.Do(_ => cancel.OnNext(Unit.Default)))
-                                                    .When(r => r.IsOk && r.Data != null,
-                                                        o => reducerBuilder(o.Select(result => result.Data!)));
-                                            });
-                                    })).Switch().Publish().RefCount();
+                            var processor = data.SelectMany(
+                                d =>
+                                    reducer.Aggregate(
+                                        Observable.Return(d).Select(dd => ReducerResult.Sucess(dd) with { StartLine = true })
+                                           .SingleAsync(),
+                                        (observable, reducerBuilder) =>
+                                        {
+                                            return observable
+                                               .ConditionalSelect()
+                                               .ToSame(
+                                                    b =>
+                                                    {
+                                                        b.When(
+                                                                r => !r.IsOk || r.Data is null,
+                                                                o => o.Do(_ => cancel.OnNext(Unit.Default)))
+                                                           .When(
+                                                                r => r.IsOk && r.Data != null,
+                                                                o => reducerBuilder(o.Select(result => result.Data!)));
+                                                    });
+                                        })).Switch().Publish().RefCount();
 
                             subs.Add(processor.Cast<IReducerResult>().Subscribe(sendResult));
                             subs.Add(processor.Subscribe(_ => { }, () => subs.Dispose()));
@@ -216,9 +229,11 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
                         catch
                         {
                             onCompled.OnCompleted();
+
                             throw;
                         }
-                    }, onCompled);
+                    },
+                    onCompled);
         }
 
         public override void Dispose()

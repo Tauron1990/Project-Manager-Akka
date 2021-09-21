@@ -16,7 +16,7 @@ namespace ServiceManager.Shared.ServiceDeamon
         Task<bool> GetIsReady();
 
         Task<UrlResult?> FetchUrl(CancellationToken token = default);
-        
+
         Task<string> SetUrl(SetUrlCommand command, CancellationToken token = default);
     }
 }

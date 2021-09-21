@@ -2,9 +2,9 @@
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
+using Tauron.AkkaHost;
 using Tauron.Application.CommonUI;
 using Tauron.Application.Localizer.UIModels;
-using Tauron.AkkaHost;
 using Tauron.Localization;
 
 namespace Tauron.Application.Localizer.Views
@@ -23,25 +23,26 @@ namespace Tauron.Application.Localizer.Views
 
         private void TextElement_OnContextMenuOpening(object sender, ContextMenuEventArgs e)
         {
-            var myTextBox = (TextBox) sender;
-            myTextBox.ContextMenu = new ContextMenu {Background = Brushes.DimGray};
+            var myTextBox = (TextBox)sender;
+            myTextBox.ContextMenu = new ContextMenu { Background = Brushes.DimGray };
 
             var caretIndex = myTextBox.CaretIndex;
 
             var cmdIndex = 0;
             var spellingError = myTextBox.GetSpellingError(caretIndex);
+
             if (spellingError == null) return;
 
             foreach (string str in spellingError.Suggestions)
             {
                 MenuItem mi = new()
-                {
-                    Header = str,
-                    FontWeight = FontWeights.Bold,
-                    Command = EditingCommands.CorrectSpellingError,
-                    CommandParameter = str,
-                    CommandTarget = myTextBox
-                };
+                              {
+                                  Header = str,
+                                  FontWeight = FontWeights.Bold,
+                                  Command = EditingCommands.CorrectSpellingError,
+                                  CommandParameter = str,
+                                  CommandTarget = myTextBox
+                              };
                 myTextBox.ContextMenu.Items.Insert(cmdIndex, mi);
                 cmdIndex++;
             }
@@ -50,11 +51,11 @@ namespace Tauron.Application.Localizer.Views
             myTextBox.ContextMenu.Items.Insert(cmdIndex, separatorMenuItem1);
             cmdIndex++;
             MenuItem ignoreAllMi = new()
-            {
-                Header = ActorApplication.ActorSystem.Loc().Request("CorrectSpellingError").GetOrElse(string.Empty),
-                Command = EditingCommands.IgnoreSpellingError,
-                CommandTarget = myTextBox
-            };
+                                   {
+                                       Header = ActorApplication.ActorSystem.Loc().Request("CorrectSpellingError").GetOrElse(string.Empty),
+                                       Command = EditingCommands.IgnoreSpellingError,
+                                       CommandTarget = myTextBox
+                                   };
             myTextBox.ContextMenu.Items.Insert(cmdIndex, ignoreAllMi);
             cmdIndex++;
             Separator separatorMenuItem2 = new();

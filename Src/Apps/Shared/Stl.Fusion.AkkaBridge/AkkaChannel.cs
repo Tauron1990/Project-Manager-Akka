@@ -28,42 +28,43 @@ namespace Stl.Fusion.AkkaBridge
             {
                 void Next()
                 {
-                    if(token.IsCancellationRequested) return;
+                    if (token.IsCancellationRequested) return;
+
                     reader.ReadAsync(token)
-                       .AsTask().PipeTo(Self, success:m => new Status.Success(m));
+                       .AsTask().PipeTo(Self, success: m => new Status.Success(m));
                 }
 
                 var distributedPubSub = DistributedPubSub.Get(Context.System);
-                
-                Receive<Status.Failure>(s =>
-                                        {
-                                            logger.LogError(s.Cause, "Error on Process Message");
-                                            Next();
-                                        });
-                
-                Receive<Status.Success>(m =>
-                                  {
-                                      distributedPubSub.Mediator.Tell(new Publish(channel, m.Status));
-                                      Next();
-                                  });
-                
+
+                Receive<Status.Failure>(
+                    s =>
+                    {
+                        logger.LogError(s.Cause, "Error on Process Message");
+                        Next();
+                    });
+
+                Receive<Status.Success>(
+                    m =>
+                    {
+                        distributedPubSub.Mediator.Tell(new Publish(channel, m.Status));
+                        Next();
+                    });
+
                 distributedPubSub.Mediator
                    .Ask<SubscribeAck>(new Subscribe(channel, Self), TimeSpan.FromSeconds(20), token)
                    .PipeTo(Self);
-                
-                Receive<SubscribeAck>(
-                    _ =>
-                    {
-                        
-                    });
-                
-                Receive<TMessage>(m =>
-                                  {
-                                      while(!writer.TryWrite(m) && !token.IsCancellationRequested) {}
 
-                                      if (sendBack)
-                                          Task.Delay(1000).ContinueWith(_ => new Status.Success(null)).PipeTo(Sender);
-                                  });
+                Receive<SubscribeAck>(
+                    _ => { });
+
+                Receive<TMessage>(
+                    m =>
+                    {
+                        while (!writer.TryWrite(m) && !token.IsCancellationRequested) { }
+
+                        if (sendBack)
+                            Task.Delay(1000).ContinueWith(_ => new Status.Success(null)).PipeTo(Sender);
+                    });
 
                 Next();
             }

@@ -43,38 +43,42 @@ namespace Akkatecture.Jobs
 
             var subscriptionTypes =
                 type
-                    .GetJobRunTypes();
+                   .GetJobRunTypes();
 
             var methods = type
-                .GetTypeInfo()
-                .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-                .Where(mi =>
-                {
-                    if (mi.Name != "Run")
-                        return false;
+               .GetTypeInfo()
+               .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+               .Where(
+                    mi =>
+                    {
+                        if (mi.Name != "Run")
+                            return false;
 
-                    var parameters = mi.GetParameters();
+                        var parameters = mi.GetParameters();
 
-                    return
-                        parameters.Length == 1;
-                })
-                .ToDictionary(
+                        return
+                            parameters.Length == 1;
+                    })
+               .ToDictionary(
                     mi => mi.GetParameters()[0].ParameterType,
                     mi => mi);
 
 
             var method = type
-                .GetBaseType("ReceiveActor")
-                .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-                .Where(mi =>
-                {
-                    if (mi.Name != "Receive") return false;
-                    var parameters = mi.GetParameters();
-                    return
-                        parameters.Length == 1
-                        && parameters[0].ParameterType.Name.Contains("Func");
-                })
-                .First();
+               .GetBaseType("ReceiveActor")
+               .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+               .Where(
+                    mi =>
+                    {
+                        if (mi.Name != "Receive") return false;
+
+                        var parameters = mi.GetParameters();
+
+                        return
+                            parameters.Length == 1
+                         && parameters[0].ParameterType.Name.Contains("Func");
+                    })
+               .First();
 
             foreach (var subscriptionType in subscriptionTypes)
             {
@@ -90,7 +94,5 @@ namespace Akkatecture.Jobs
     // ReSharper disable UnusedTypeParameter
     public abstract class JobRunner<TJob, TIdentity> : JobRunner
         where TJob : IJob
-        where TIdentity : IJobId
-    {
-    }
+        where TIdentity : IJobId { }
 }

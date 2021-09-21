@@ -20,17 +20,17 @@ namespace Tauron.Application.Avalonia
         public static IUIDispatcher UIDispatcher
             => new AvaloniaDispatcher();
 
-        public override IUIApplication CreateDefault() => (IUIApplication) AppBuilder
-            .Configure<AvalonApp>()
-            .UsePlatformDetect()
-            .LogToTrace()
-            .SetupWithLifetime(new ClassicDesktopStyleApplicationLifetime())
-            .Instance;
+        public override IUIApplication CreateDefault() => (IUIApplication)AppBuilder
+           .Configure<AvalonApp>()
+           .UsePlatformDetect()
+           .LogToTrace()
+           .SetupWithLifetime(new ClassicDesktopStyleApplicationLifetime())
+           .Instance;
 
         public override IWindow CreateMessageDialog(string title, string message)
         {
             var window = new global::Avalonia.Controls.Window();
-            window.Content = new MessageDialog(title, message, b => window.Close(b), canCnacel: true) {Margin = new Thickness(10)};
+            window.Content = new MessageDialog(title, message, b => window.Close(b), true) { Margin = new Thickness(10) };
             window.SizeToContent = SizeToContent.WidthAndHeight;
             //window.Owner = ((IClassicDesktopStyleApplicationLifetime) global::Avalonia.Application.Current.ApplicationLifetime).MainWindow;
             window.WindowStartupLocation = WindowStartupLocation.CenterOwner;
@@ -39,7 +39,7 @@ namespace Tauron.Application.Avalonia
             return new AvaloniaWindow(window);
         }
 
-        public override object CreateDefaultMessageContent(string title, string message, Action<bool?>? result, bool canCnacel) 
+        public override object CreateDefaultMessageContent(string title, string message, Action<bool?>? result, bool canCnacel)
             => new MessageDialog(title, message, result, canCnacel);
 
         private sealed class AvaloniaDispatcher : IUIDispatcher
@@ -67,7 +67,7 @@ namespace Tauron.Application.Avalonia
             #pragma warning restore GU0073
 
             private ClassicDesktopStyleApplicationLifetime AppLifetime
-                => (ClassicDesktopStyleApplicationLifetime) ApplicationLifetime;
+                => (ClassicDesktopStyleApplicationLifetime)ApplicationLifetime;
 
 
             public event EventHandler? Startup;
@@ -106,6 +106,7 @@ namespace Tauron.Application.Avalonia
             public int Run()
             {
                 AppLifetime.Startup += (_, args) => Startup?.Invoke(this, args);
+
                 return AppLifetime.Start(Environment.GetCommandLineArgs());
             }
         }
@@ -121,7 +122,7 @@ namespace Tauron.Application.Avalonia
             }
 
             private ClassicDesktopStyleApplicationLifetime AppLifetime
-                => (ClassicDesktopStyleApplicationLifetime) _application.ApplicationLifetime;
+                => (ClassicDesktopStyleApplicationLifetime)_application.ApplicationLifetime;
 
 
             public event EventHandler? Startup;
@@ -160,6 +161,7 @@ namespace Tauron.Application.Avalonia
             public int Run()
             {
                 AppLifetime.Startup += (_, args) => Startup?.Invoke(this, args);
+
                 return AppLifetime.Start(Environment.GetCommandLineArgs());
             }
         }

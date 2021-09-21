@@ -22,16 +22,6 @@ namespace TimeTracker.Controls
             _controlLogic = new MaterialWindowControlLogic(this, viewModel);
         }
 
-        IUIObject? IUIObject.GetPerent() => _element.GetPerent();
-
-        public object Object => this;
-
-        IObservable<object> IUIElement.DataContextChanged => _element.DataContextChanged;
-
-        IObservable<Unit> IUIElement.Loaded => _element.Loaded;
-
-        IObservable<Unit> IUIElement.Unloaded => _element.Unloaded;
-
         public void Register(string key, IControlBindable bindable, IUIObject affectedPart) => _controlLogic.Register(key, bindable, affectedPart);
 
         public void CleanUp(string key) => _controlLogic.CleanUp(key);
@@ -42,8 +32,18 @@ namespace TimeTracker.Controls
             remove => _controlLogic.ControlUnload -= value;
         }
 
-        IWindow IWindowProvider.Window => _element;
+        IUIObject? IUIObject.GetPerent() => _element.GetPerent();
+
+        public object Object => this;
+
+        IObservable<object> IUIElement.DataContextChanged => _element.DataContextChanged;
+
+        IObservable<Unit> IUIElement.Loaded => _element.Loaded;
+
+        IObservable<Unit> IUIElement.Unloaded => _element.Unloaded;
         Task<bool?> IWindow.ShowDialog() => _element.ShowDialog();
+
+        IWindow IWindowProvider.Window => _element;
 
         private sealed class MaterialWindowControlLogic : ControlLogicBase<MyMaterialWindow>
         {

@@ -13,15 +13,16 @@ namespace LoadingIndicators.WPF.Utilities
         private static IEnumerable<VisualStateGroup>? GetActiveVisualStateGroups(this FrameworkElement element)
             => element.GetVisualStateGroupsByName(IndicatorVisualStateGroupNames.ActiveStates.Name);
 
-        internal static IEnumerable<VisualState>? GetActiveVisualStates(this FrameworkElement element) 
+        internal static IEnumerable<VisualState>? GetActiveVisualStates(this FrameworkElement element)
             => element.GetActiveVisualStateGroups()?.GetAllVisualStatesByName(IndicatorVisualStateNames.ActiveState.Name);
 
         private static IEnumerable<VisualState> GetAllVisualStatesByName(
             this IEnumerable<VisualStateGroup> visualStateGroups, string name)
             => visualStateGroups.SelectMany(vsg => vsg.GetVisualStatesByName(name) ?? ImmutableArray<VisualState>.Empty);
 
-        private static IEnumerable<VisualState>? GetVisualStatesByName(this VisualStateGroup? visualStateGroup,
-                                                                      string name)
+        private static IEnumerable<VisualState>? GetVisualStatesByName(
+            this VisualStateGroup? visualStateGroup,
+            string name)
         {
             #pragma warning disable AV1135
             if (visualStateGroup is null) return null;
@@ -32,8 +33,9 @@ namespace LoadingIndicators.WPF.Utilities
             return string.IsNullOrWhiteSpace(name) ? visualStates : visualStates?.Where(vs => vs.Name == name);
         }
 
-        private static IEnumerable<VisualStateGroup>? GetVisualStateGroupsByName(this FrameworkElement element,
-                                                                                 string name)
+        private static IEnumerable<VisualStateGroup>? GetVisualStateGroupsByName(
+            this FrameworkElement element,
+            string name)
         {
             var groups = VisualStateManager.GetVisualStateGroups(element);
 
@@ -46,6 +48,7 @@ namespace LoadingIndicators.WPF.Utilities
             try
             {
                 castedVisualStateGroups = groups.Cast<VisualStateGroup>().ToArray();
+
                 if (!castedVisualStateGroups.Any()) return null;
             }
             catch (InvalidCastException)
@@ -56,7 +59,7 @@ namespace LoadingIndicators.WPF.Utilities
             return string.IsNullOrWhiteSpace(name)
                 ? castedVisualStateGroups
                 : castedVisualStateGroups.Where(vsg => vsg.Name == name);
-            
+
             #pragma warning restore AV1135
         }
 

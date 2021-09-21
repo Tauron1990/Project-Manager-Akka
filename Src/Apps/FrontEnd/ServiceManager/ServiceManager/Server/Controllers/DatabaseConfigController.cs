@@ -10,7 +10,8 @@ using Stl.Fusion.Server;
 namespace ServiceManager.Server.Controllers
 {
     [Route(ControllerName.DatabaseConfigApiBase + "/[action]")]
-    [ApiController, JsonifyErrors]
+    [ApiController]
+    [JsonifyErrors]
     [Authorize(Claims.DatabaseClaim)]
     public class DatabaseConfigController : ControllerBase, IDatabaseConfig
     {
@@ -18,13 +19,17 @@ namespace ServiceManager.Server.Controllers
 
         public DatabaseConfigController(IDatabaseConfig config) => _config = config;
 
-        [HttpGet, Publish]
+        [HttpGet]
+        [Publish]
         public Task<string> GetUrl()
             => _config.GetUrl();
 
-        [HttpGet, Publish, AllowAnonymous]
+        [HttpGet]
+        [Publish]
+        [AllowAnonymous]
         public Task<bool> GetIsReady()
             => _config.GetIsReady();
+
         [HttpGet]
         public Task<UrlResult?> FetchUrl(CancellationToken token = default)
             => _config.FetchUrl(token);

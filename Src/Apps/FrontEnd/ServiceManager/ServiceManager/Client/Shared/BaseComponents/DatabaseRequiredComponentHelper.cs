@@ -11,15 +11,15 @@ namespace ServiceManager.Client.Shared.BaseComponents
     {
         private readonly Subject<Unit> _changed = new();
 
-        public IObservable<Unit> OnChanged => _changed.AsObservable();
-        
-        public IState<bool> IsReady { get; }
-
         public DatabaseRequiredComponentHelper(IDatabaseConfig config, IStateFactory stateFactory)
         {
             IsReady = stateFactory.NewComputed(new ComputedState<bool>.Options(), (_, _) => config.GetIsReady());
             IsReady.AddEventHandler(StateEventKind.All, (_, _) => _changed.OnNext(Unit.Default));
         }
+
+        public IObservable<Unit> OnChanged => _changed.AsObservable();
+
+        public IState<bool> IsReady { get; }
 
         public void Dispose()
             => _changed.Dispose();

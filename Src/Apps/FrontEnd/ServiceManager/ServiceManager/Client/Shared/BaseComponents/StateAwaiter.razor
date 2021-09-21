@@ -1,17 +1,15 @@
-﻿@using Stl.Fusion
+﻿@typeparam TValue
 @using System.Reactive.Disposables
-
-@typeparam TValue
 @implements IDisposable
 
 @{
     var error = State?.Error;
     var value = State != null ? State.ValueOrDefault : default;
     var isLoading = State?.Computed.ConsistencyState == ConsistencyState.Computing || (!State?.HasValue ?? true) || value == null;
-    
+
     #if DEBUG
-    if(error != null)
-    Console.WriteLine(error.ToString());
+    if (error != null)
+        Console.WriteLine(error.ToString());
     #endif
 }
 
@@ -54,9 +52,9 @@ else
 
     [Parameter]
     public IState<TValue>? State { get; set; }
-    
+
     [Parameter]
-    public RenderFragment<TValue?> ChildContent { get; set; } = _ =>  _ => { };
+    public RenderFragment<TValue?> ChildContent { get; set; } = _ => _ => { };
 
     [Parameter]
     public RenderFragment<Exception>? Error { get; set; }
@@ -67,8 +65,8 @@ else
     protected override void OnParametersSet()
     {
         _subscription.Dispose();
-        
-        if(State == null)
+
+        if (State == null)
             _subscription = Disposable.Empty;
         else
         {
@@ -78,7 +76,7 @@ else
         base.OnParametersSet();
     }
 
-    private void Handler(IState<TValue> arg1, StateEventKind arg2) 
+    private void Handler(IState<TValue> arg1, StateEventKind arg2)
         => StateHasChanged();
 
     public void Dispose()

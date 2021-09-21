@@ -19,6 +19,7 @@ namespace Tauron.Application.CommonUI
             AutoViewLocation.AddPair(typeof(TView), typeof(TModel));
 
             builder.RegisterType<TView>().As<TView>().InstancePerDependency();
+
             return RegisterModel<TModel>(builder);
         }
 
@@ -26,12 +27,13 @@ namespace Tauron.Application.CommonUI
             where TModel : UiActor
         {
             return builder.RegisterType<ViewModelActorRef<TModel>>().As<IViewModel<TModel>>()
-                          .Keyed<IViewModel>(typeof(TModel)).InstancePerLifetimeScope()
-                          .OnRelease(vm =>
-                                     {
-                                         if (vm.IsInitialized)
-                                             vm.Actor.Tell(PoisonPill.Instance);
-                                     });
+               .Keyed<IViewModel>(typeof(TModel)).InstancePerLifetimeScope()
+               .OnRelease(
+                    vm =>
+                    {
+                        if (vm.IsInitialized)
+                            vm.Actor.Tell(PoisonPill.Instance);
+                    });
         }
 
         public static IRegistrationBuilder<DefaultActorRef<TActor>, ConcreteReflectionActivatorData, SingleRegistrationStyle>
@@ -50,12 +52,14 @@ namespace Tauron.Application.CommonUI
             => builder.RegisterType<SyncActorRef<TActor>>().As<ISyncActorRef<TActor>>();
 
         public static IRegistrationBuilder<DefaultActorRef<TActor>, SimpleActivatorData, SingleRegistrationStyle>
-            RegisterDefaultActor<TActor>(this ContainerBuilder builder,
+            RegisterDefaultActor<TActor>(
+                this ContainerBuilder builder,
                 Func<IComponentContext, DefaultActorRef<TActor>> fac) where TActor : ActorBase
             => builder.Register(fac).As<IDefaultActorRef<TActor>>();
 
         public static IRegistrationBuilder<SyncActorRef<TActor>, SimpleActivatorData, SingleRegistrationStyle>
-            RegisterSyncActor<TActor>(this ContainerBuilder builder,
+            RegisterSyncActor<TActor>(
+                this ContainerBuilder builder,
                 Func<IComponentContext, SyncActorRef<TActor>> fac) where TActor : ActorBase
             => builder.Register(fac).As<ISyncActorRef<TActor>>();
     }

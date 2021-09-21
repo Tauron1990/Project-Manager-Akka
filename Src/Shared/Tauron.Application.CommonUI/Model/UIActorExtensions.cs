@@ -20,10 +20,12 @@ namespace Tauron.Application.CommonUI.Model
                 actor.RegisterProperty<IViewModel<TModel>>(name).WithDefaultValue(model).Property);
         }
 
-        public static FluentCollectionPropertyRegistration<TData> RegisterUiCollection<TData>(this UiActor actor,
+        public static FluentCollectionPropertyRegistration<TData> RegisterUiCollection<TData>(
+            this UiActor actor,
             string name)
         {
             actor.ThrowIsSeald();
+
             return new FluentCollectionPropertyRegistration<TData>(name, actor);
         }
     }

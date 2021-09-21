@@ -8,10 +8,7 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer.Data
     public sealed record SpecificConfigEntity(string Id, SpecificConfig Config)
     {
         public SpecificConfigEntity()
-            : this(string.Empty, new SpecificConfig(string.Empty, string.Empty, string.Empty, ImmutableList<Condition>.Empty))
-        {
-            
-        }
+            : this(string.Empty, new SpecificConfig(string.Empty, string.Empty, string.Empty, ImmutableList<Condition>.Empty)) { }
 
         public static Option<SpecificConfigEntity> Patch(Option<SpecificConfigEntity> entity, UpdateSpecificConfigCommand command)
             => entity.Select(

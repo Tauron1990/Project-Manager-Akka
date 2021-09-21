@@ -5,7 +5,6 @@ using JetBrains.Annotations;
 using Tauron.Application.Workshop.Mutating;
 using Tauron.Application.Workshop.Mutation;
 using Tauron.Application.Workshop.StateManagement.Internal;
-using Tauron.Application.Workshop.StateManagement.StatePooling;
 using Tauron.Features;
 
 namespace Tauron.Application.Workshop.StateManagement
@@ -51,6 +50,7 @@ namespace Tauron.Application.Workshop.StateManagement
             if (message is StateActorMessage msg)
             {
                 msg.Apply(this);
+
                 return true;
             }
 

@@ -35,16 +35,12 @@ namespace Akkatecture.Sagas
             TAggregateEvent>
         where TAggregateEvent : class, IAggregateEvent<TAggregate, TIdentity>
         where TAggregate : IAggregateRoot<TIdentity>
-        where TIdentity : IIdentity
-    {
-    }
+        where TIdentity : IIdentity { }
 
     public interface
         ISagaIsStartedBy<TAggregate, in TIdentity, in TAggregateEvent> : ISagaHandles<TAggregate, TIdentity,
             TAggregateEvent>
         where TAggregateEvent : class, IAggregateEvent<TAggregate, TIdentity>
         where TAggregate : IAggregateRoot<TIdentity>
-        where TIdentity : IIdentity
-    {
-    }
+        where TIdentity : IIdentity { }
 }

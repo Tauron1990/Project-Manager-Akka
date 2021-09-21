@@ -11,7 +11,8 @@ namespace Tauron.Application.CommonUI
 
         public abstract IWindow CreateMessageDialog(string title, string message);
 
-        public abstract object CreateDefaultMessageContent(string title, string message, Action<bool?>? result,
+        public abstract object CreateDefaultMessageContent(
+            string title, string message, Action<bool?>? result,
             bool canCnacel);
     }
 }

@@ -11,23 +11,23 @@ using Tauron.Application;
 
 namespace ServiceManager.Client.ViewModels.Configuration
 {
-    public sealed record ConfigurationViewDatabseModel(IServerInfo ServerInfo,  IDialogService DialogService, IEventAggregator Aggregator, 
-                                                       string         OriginalUrl,   IDatabaseConfig  DatabaseConfig, string DatabaseUrl,
-                                                       bool        CanFetch,    Func<string, string?> ValidateUrl, bool IsValid)
+    public sealed record ConfigurationViewDatabseModel(
+        IServerInfo ServerInfo, IDialogService DialogService, IEventAggregator Aggregator,
+        string OriginalUrl, IDatabaseConfig DatabaseConfig, string DatabaseUrl,
+        bool CanFetch, Func<string, string?> ValidateUrl, bool IsValid)
     {
-        [ActivatorUtilitiesConstructor, UsedImplicitly]
+        [ActivatorUtilitiesConstructor]
+        [UsedImplicitly]
         public ConfigurationViewDatabseModel(IServerInfo serverInfo, IDialogService dialogService, IEventAggregator aggregator, IDatabaseConfig config)
-            : this(serverInfo, dialogService, aggregator, string.Empty, config, string.Empty, CanFetch: false, Validate, IsValid: false)
-        {
-            
-        }
+            : this(serverInfo, dialogService, aggregator, string.Empty, config, string.Empty, CanFetch: false, Validate, IsValid: false) { }
 
-        public ConfigurationViewDatabseModel Reset() 
-            => this with{ DatabaseUrl = OriginalUrl };
+        public ConfigurationViewDatabseModel Reset()
+            => this with { DatabaseUrl = OriginalUrl };
 
         public async Task Submit()
         {
-            if(!IsValid) return; 
+            if (!IsValid) return;
+
             try
             {
                 var diag = await DialogService.Show<ConfirmRestartDialog>().Result;
@@ -55,7 +55,7 @@ namespace ServiceManager.Client.ViewModels.Configuration
                 Aggregator.PublishError(e);
             }
         }
-        
+
         public async Task<(ConfigurationViewDatabseModel Model, bool Success)> TryFetchDatabseUrl()
         {
             try
@@ -65,7 +65,7 @@ namespace ServiceManager.Client.ViewModels.Configuration
                 if (urlResult == null)
                     Aggregator.PublishError("Unbekannter Fehler beim Abrufen der Url");
                 else if (urlResult.Success)
-                    return (this with{ DatabaseUrl = urlResult.Url }, true);
+                    return (this with { DatabaseUrl = urlResult.Url }, true);
                 else
                     Aggregator.PublishError($"Fehler beim Abrufen der Url: {urlResult.Url}");
             }
@@ -98,6 +98,7 @@ namespace ServiceManager.Client.ViewModels.Configuration
                 if (Regex.IsMatch(originalConnectionString, invalidPercentPattern))
                 {
                     var protectedConnectionString = ProtectConnectionString(originalConnectionString);
+
                     return $"Der Connection string '{protectedConnectionString}' enthält eine invalide '%' Escape Sequenz.";
                 }
             }
@@ -106,12 +107,14 @@ namespace ServiceManager.Client.ViewModels.Configuration
             if (!match.Success)
             {
                 var protectedConnectionString = ProtectConnectionString(originalConnectionString);
+
                 return $"Der Connection string '{protectedConnectionString}' ist nicht gültig.";
             }
 
             string ProtectConnectionString(string connectionString)
             {
                 var protectedString = Regex.Replace(connectionString, @"(?<=://)[^/]*(?=@)", "<hidden>");
+
                 return protectedString;
             }
 

@@ -66,6 +66,7 @@ namespace Akkatecture.Core
             while (start != _end)
             {
                 yield return _buffer[start];
+
                 start = (start + 1) % _buffer.Length;
             }
         }

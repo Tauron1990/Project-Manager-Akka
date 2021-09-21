@@ -25,16 +25,16 @@ namespace Tauron.Application.Avalonia.AppCore
             _window.Hide();
         }
 
-        public Task<bool?> ShowDialog() => _window.ShowDialog<bool?>((Window) _window.Owner);
+        public Task<bool?> ShowDialog() => _window.ShowDialog<bool?>((Window)_window.Owner);
 
         public override IObservable<Unit> Loaded
             => _window.GetObservable(Visual.IsVisibleProperty)
-                .Where(b => b)
-                .ToUnit();
+               .Where(b => b)
+               .ToUnit();
 
         public override IObservable<Unit> Unloaded
             => _window.GetObservable(Visual.IsVisibleProperty)
-                .Where(b => !b)
-                .ToUnit();
+               .Where(b => !b)
+               .ToUnit();
     }
 }

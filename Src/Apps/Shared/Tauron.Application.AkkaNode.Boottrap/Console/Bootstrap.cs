@@ -13,10 +13,10 @@ using NLog;
 using Servicemnager.Networking;
 using Servicemnager.Networking.Data;
 using Servicemnager.Networking.IPC;
+using Tauron.AkkaHost;
 using Tauron.Application.AkkaNode.Bootstrap.Console;
 using Tauron.Application.AkkaNode.Bootstrap.Console.IpcMessages;
 using Tauron.Application.Master.Commands.KillSwitch;
-using Tauron.AkkaHost;
 using ILogger = NLog.ILogger;
 
 // ReSharper disable once CheckNamespace
@@ -36,38 +36,46 @@ namespace Tauron.Application.AkkaNode.Bootstrap
             var masterReady = false;
             if (ipcType != IpcApplicationType.NoIpc)
                 masterReady = SharmComunicator.MasterIpcReady(IpcName);
-            var ipc = new IpcConnection(masterReady, ipcType,
+            var ipc = new IpcConnection(
+                masterReady,
+                ipcType,
                 (s, exception) => LogManager.GetCurrentClassLogger().Error(exception, "Ipc Error: {Info}", s));
 
-            return builder.ConfigureLogging((context, configuration) =>
-                                            {
-                                                System.Console.Title = context.HostingEnvironment.ApplicationName;
-                                                if (consoleLog)
-                                                    configuration.AddConsole();
-                                            })
-                          .ConfigurateNode(ab =>
-                                           {
-                                               ab.ConfigureAutoFac(cb =>
-                                                                   {
-                                                                       cb.RegisterType<NodeAppService>().As<IHostedService>();
-                                                                       cb.RegisterType<KillHelper>().As<IStartUpAction>();
-                                                                       cb.RegisterInstance(ipc).As<IIpcConnection>();
-                                                                   })
-                                                 .ConfigureAkkaSystem((_, system) =>
-                                                                      {
-                                                                          switch (type)
-                                                                          {
-                                                                              case KillRecpientType.Seed:
-                                                                                  KillSwitch.Setup(system);
-                                                                                  break;
-                                                                              default:
-                                                                                  KillSwitch.Subscribe(system, type);
-                                                                                  break;
-                                                                          }
-                                                                      });
+            return builder.ConfigureLogging(
+                    (context, configuration) =>
+                    {
+                        System.Console.Title = context.HostingEnvironment.ApplicationName;
+                        if (consoleLog)
+                            configuration.AddConsole();
+                    })
+               .ConfigurateNode(
+                    ab =>
+                    {
+                        ab.ConfigureAutoFac(
+                                cb =>
+                                {
+                                    cb.RegisterType<NodeAppService>().As<IHostedService>();
+                                    cb.RegisterType<KillHelper>().As<IStartUpAction>();
+                                    cb.RegisterInstance(ipc).As<IIpcConnection>();
+                                })
+                           .ConfigureAkkaSystem(
+                                (_, system) =>
+                                {
+                                    switch (type)
+                                    {
+                                        case KillRecpientType.Seed:
+                                            KillSwitch.Setup(system);
 
-                                               build?.Invoke(ab);
-                                           });
+                                            break;
+                                        default:
+                                            KillSwitch.Subscribe(system, type);
+
+                                            break;
+                                    }
+                                });
+
+                        build?.Invoke(ab);
+                    });
         }
 
         private sealed class IpcConnection : IIpcConnection, IDisposable
@@ -87,26 +95,31 @@ namespace Tauron.Application.AkkaNode.Bootstrap
                             {
                                 IsReady = false;
                                 ErrorMessage = "Duplicate Server Start";
+
                                 return;
                             }
 
                             _dataServer = new SharmServer(IpcName, errorHandler);
                             _dataServer.OnMessageReceived += (_, args) => _messageHandler.OnNext(args.Message);
+
                             break;
                         case IpcApplicationType.Client:
                             if (!masterExists)
                             {
                                 IsReady = false;
                                 ErrorMessage = "No Server Found";
+
                                 return;
                             }
 
                             _dataClient = new SharmClient(IpcName, errorHandler);
                             _dataClient.OnMessageReceived += (_, args) => _messageHandler.OnNext(args.Message);
+
                             break;
                         case IpcApplicationType.NoIpc:
                             IsReady = false;
                             ErrorMessage = "Ipc Disabled";
+
                             break;
                         default:
                             #pragma warning disable EX006
@@ -157,8 +170,10 @@ namespace Tauron.Application.AkkaNode.Bootstrap
                 var data = JsonConvert.SerializeObject(message);
 
                 var nm = NetworkMessage.Create(name, Encoding.UTF8.GetBytes(data));
+
                 if (_dataClient != null)
                     return _dataClient.Send(nm);
+
                 return _dataServer != null && _dataServer.Send(to, nm);
             }
 
@@ -173,6 +188,7 @@ namespace Tauron.Application.AkkaNode.Bootstrap
                     if (_dataClient is null) return;
 
                     _dataClient.Connect();
+
                     if (SendMessage(new RegisterNewClient(SharmComunicator.ProcessId, serviceName)))
                         return;
 
@@ -218,14 +234,15 @@ namespace Tauron.Application.AkkaNode.Bootstrap
                 _logger = LogManager.GetCurrentClassLogger();
                 _comHandle = configuration["ComHandle"];
                 _system = system;
-                _ipcConnection = (IpcConnection) ipcConnection;
+                _ipcConnection = (IpcConnection)ipcConnection;
 
                 _keeper = this;
-                system.RegisterOnTermination(() =>
-                {
-                    _ipcConnection.Disconnect();
-                    _keeper = null;
-                });
+                system.RegisterOnTermination(
+                    () =>
+                    {
+                        _ipcConnection.Disconnect();
+                        _keeper = null;
+                    });
             }
 
             public void Run()
@@ -247,11 +264,13 @@ namespace Tauron.Application.AkkaNode.Bootstrap
                 if (!string.IsNullOrWhiteSpace(errorToReport))
                 {
                     _logger.Warn("Error on Start Kill Watch: {Error}", errorToReport);
+
                     return;
                 }
 
                 _ipcConnection.OnMessage<KillNode>()
-                    .Subscribe(_ => _system.Terminate(),
+                   .Subscribe(
+                        _ => _system.Terminate(),
                         exception => _logger.Error(exception, "Error On Killwatch Message Recieve"));
             }
         }

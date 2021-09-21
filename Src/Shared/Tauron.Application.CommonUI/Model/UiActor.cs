@@ -22,7 +22,8 @@ using Tauron.Operations;
 
 namespace Tauron.Application.CommonUI.Model
 {
-    [PublicAPI, DebuggerStepThrough]
+    [PublicAPI]
+    [DebuggerStepThrough]
     public abstract class UiActor : ObservableActor, IObservablePropertyChanged
     {
         private readonly Dictionary<string, CommandRegistration> _commandRegistrations = new();
@@ -69,6 +70,7 @@ namespace Tauron.Application.CommonUI.Model
             static bool Run<TMsg>(TMsg msg, Action<TMsg> handler)
             {
                 handler(msg);
+
                 return true;
             }
 
@@ -76,7 +78,8 @@ namespace Tauron.Application.CommonUI.Model
             {
                 CommandExecuteEvent commandExecuteEvent => Run(commandExecuteEvent, CommandExecute),
                 ControlSetEvent controlSetEvent => Run(controlSetEvent, msg => SetControl(msg.Name, msg.Element)),
-                MakeEventHook makeEventHook => Run(makeEventHook,
+                MakeEventHook makeEventHook => Run(
+                    makeEventHook,
                     msg => Context.Sender.Tell(Context.GetOrCreateEventActor(msg.Name + "-EventActor"))),
                 ExecuteEventEvent executeEventEvent => Run(executeEventEvent, ExecuteEvent),
                 GetValueRequest getValueRequest => Run(getValueRequest, GetPropertyValue),
@@ -92,9 +95,7 @@ namespace Tauron.Application.CommonUI.Model
 
         #region ControlEvents
 
-        protected virtual void SetControl(string name, IUIElement element)
-        {
-        }
+        protected virtual void SetControl(string name, IUIElement element) { }
 
         #endregion
 
@@ -134,8 +135,10 @@ namespace Tauron.Application.CommonUI.Model
                 _method = del;
                 var method = del.Method;
 
-                _methodType = (MethodType) method.GetParameters().Length;
+                _methodType = (MethodType)method.GetParameters().Length;
+
                 if (_methodType != MethodType.One) return;
+
                 if (method.GetParameters()[0].ParameterType != typeof(EventData)) _methodType = MethodType.EventArgs;
             }
 
@@ -144,9 +147,9 @@ namespace Tauron.Application.CommonUI.Model
                 var args = _methodType switch
                 {
                     MethodType.Zero => Array.Empty<object>(),
-                    MethodType.One => new object[] {parameter!},
-                    MethodType.Two => new[] {parameter?.Sender, parameter?.EventArgs},
-                    MethodType.EventArgs => new[] {parameter?.EventArgs},
+                    MethodType.One => new object[] { parameter! },
+                    MethodType.Two => new[] { parameter?.Sender, parameter?.EventArgs },
+                    MethodType.EventArgs => new[] { parameter?.EventArgs },
                     _ => Array.Empty<object>()
                 };
 
@@ -197,13 +200,12 @@ namespace Tauron.Application.CommonUI.Model
                 if (canExecute is null)
                     _canExecute.OnNext(true);
                 else
-                {
-                    _disposable.Disposable = canExecute.Subscribe(b =>
-                                                                  {
-                                                                      _canExecute.OnNext(b);
-                                                                      dispatcher.Post(RaiseCanExecuteChanged);
-                                                                  });
-                }
+                    _disposable.Disposable = canExecute.Subscribe(
+                        b =>
+                        {
+                            _canExecute.OnNext(b);
+                            dispatcher.Post(RaiseCanExecuteChanged);
+                        });
             }
 
             public void Dispose()
@@ -218,7 +220,7 @@ namespace Tauron.Application.CommonUI.Model
 
             internal void Deactivate()
             {
-                _deactivated.GetAndSet(newValue: true);
+                _deactivated.GetAndSet(true);
                 _canExecute.OnNext(false);
                 _canExecute.OnCompleted();
                 _dispatcher.Post(RaiseCanExecuteChanged);
@@ -239,6 +241,7 @@ namespace Tauron.Application.CommonUI.Model
         protected Task UICall(Action<IUntypedActorContext> executor)
         {
             var context = Context;
+
             return Dispatcher.InvokeAsync(() => executor(context));
         }
 
@@ -249,6 +252,7 @@ namespace Tauron.Application.CommonUI.Model
         protected IObservable<T> UICall<T>(Func<IUntypedActorContext, Task<T>> executor)
         {
             var context = Context;
+
             return Dispatcher.InvokeAsync(() => executor(context));
         }
 
@@ -292,11 +296,13 @@ namespace Tauron.Application.CommonUI.Model
 
                     PropertyValueChanged(data);
 
-                    _commandRegistrations.Add(key,
+                    _commandRegistrations.Add(
+                        key,
                         new CommandRegistration(command, () => actorCommand.CanExecute()));
 
                     return prop;
-                }, this);
+                },
+                this);
 
         #endregion
 
@@ -305,20 +311,18 @@ namespace Tauron.Application.CommonUI.Model
         private void RestartActor(ReviveActor actor)
         {
             foreach (var (name, data) in actor.Data)
-            foreach (var actorRef in data.Subscriptors)
-                TrackProperty(new TrackPropertyEvent(name), actorRef);
+                foreach (var actorRef in data.Subscriptors)
+                    TrackProperty(new TrackPropertyEvent(name), actorRef);
         }
 
         protected override void PreRestart(Exception reason, object message)
         {
             foreach (var registration in _commandRegistrations)
-            {
                 _propertys[registration.Key]
                    .PropertyBase
                    .ObjectValue
                    .AsInstanceOf<ActorCommand>()
                    .Deactivate();
-            }
 
             Self.Tell(new ReviveActor(_propertys.ToArray()));
 
@@ -351,24 +355,21 @@ namespace Tauron.Application.CommonUI.Model
             Dispatcher.Post(() => LifetimeScope.Resolve<TWindow>().Show());
         }
 
-        protected virtual void Initialize(InitEvent evt)
-        {
-        }
+        protected virtual void Initialize(InitEvent evt) { }
 
         protected virtual Task InitializeAsync(InitEvent evt)
         {
             Initialize(evt);
+
             return Task.CompletedTask;
         }
 
-        protected virtual void ControlUnload(UnloadEvent obj)
-        {
-        }
+        protected virtual void ControlUnload(UnloadEvent obj) { }
 
         protected virtual void InitParentViewModel(InitParentViewModel obj)
         {
             ViewModelSuperviser.Get(Context.System)
-                .Create(obj.Model);
+               .Create(obj.Model);
         }
 
         #endregion
@@ -398,6 +399,7 @@ namespace Tauron.Application.CommonUI.Model
         protected internal FluentPropertyRegistration<TData> RegisterProperty<TData>(string name)
         {
             ThrowIsSeald();
+
             if (_propertys.ContainsKey(name))
                 throw new InvalidOperationException("Property is Regitrated");
 
@@ -406,9 +408,10 @@ namespace Tauron.Application.CommonUI.Model
 
         private void GetPropertyValue(GetValueRequest obj)
         {
-            Context.Sender.Tell(_propertys.TryGetValue(obj.Name, out var propertyData)
-                ? new GetValueResponse(obj.Name, propertyData.PropertyBase.ObjectValue)
-                : new GetValueResponse(obj.Name, null));
+            Context.Sender.Tell(
+                _propertys.TryGetValue(obj.Name, out var propertyData)
+                    ? new GetValueResponse(obj.Name, propertyData.PropertyBase.ObjectValue)
+                    : new GetValueResponse(obj.Name, null));
         }
 
         private void SetPropertyValue(SetValue obj)
@@ -425,13 +428,15 @@ namespace Tauron.Application.CommonUI.Model
 
         private void PropertyValueChanged(PropertyData propertyData)
         {
-            if(propertyData.LastValue?.Equals(propertyData.PropertyBase.ObjectValue) == true) return;
+            if (propertyData.LastValue?.Equals(propertyData.PropertyBase.ObjectValue) == true) return;
 
             propertyData.LastValue = propertyData.PropertyBase.ObjectValue;
             foreach (var actorRef in propertyData.Subscriptors)
             {
-                actorRef.Tell(new PropertyChangedEvent(propertyData.PropertyBase.Name,
-                    propertyData.PropertyBase.ObjectValue));
+                actorRef.Tell(
+                    new PropertyChangedEvent(
+                        propertyData.PropertyBase.Name,
+                        propertyData.PropertyBase.ObjectValue));
                 _onPropertyChanged.OnNext(propertyData.PropertyBase.Name);
             }
         }
@@ -441,6 +446,7 @@ namespace Tauron.Application.CommonUI.Model
             Log.Info("Track Property {Name}", obj.Name);
 
             if (!_propertys.TryGetValue(obj.Name, out var prop)) return;
+
             try
             {
                 if (prop.Subscriptors.Contains(sender)) return;
@@ -461,6 +467,7 @@ namespace Tauron.Application.CommonUI.Model
         private void PropertyTerminationHandler(PropertyTermination obj)
         {
             if (!_propertys.TryGetValue(obj.Name, out var prop)) return;
+
             prop.Subscriptors.Remove(obj.ActorRef);
         }
 
@@ -468,18 +475,20 @@ namespace Tauron.Application.CommonUI.Model
         {
             var data = new PropertyData(prop);
             data.PropertyBase.PropertyValueChanged.Subscribe(_ => PropertyValueChanged(data)).DisposeWith(this);
-            data.PropertyBase.Validator.Subscribe(err =>
-            {
-                if(data.Error == err) return;
-                data.Error = err;
-                data.Subscriptors.ForEach(r => r.Tell(new ValidatingEvent(err, prop.Name)));
-            }).DisposeWith(this);
+            data.PropertyBase.Validator.Subscribe(
+                err =>
+                {
+                    if (data.Error == err) return;
+
+                    data.Error = err;
+                    data.Subscriptors.ForEach(r => r.Tell(new ValidatingEvent(err, prop.Name)));
+                }).DisposeWith(this);
 
             _propertys.Add(prop.Name, data);
         }
 
         public UIProperty<TData> Property<TData>(Expression<Func<UIProperty<TData>>> propName)
-            => (UIProperty<TData>) _propertys[Reflex.PropertyName(propName)].PropertyBase;
+            => (UIProperty<TData>)_propertys[Reflex.PropertyName(propName)].PropertyBase;
 
         #endregion
     }

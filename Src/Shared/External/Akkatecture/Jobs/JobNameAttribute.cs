@@ -26,7 +26,8 @@ using JetBrains.Annotations;
 
 namespace Akkatecture.Jobs
 {
-    [AttributeUsage(AttributeTargets.Class, Inherited = false), PublicAPI]
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
+    [PublicAPI]
     public class JobNameAttribute : Attribute
     {
         public JobNameAttribute(string name)

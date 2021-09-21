@@ -12,14 +12,10 @@ namespace Tauron.Application
         where TType : class
     {
         public GenericWeakReference(TType target)
-            : base(target)
-        {
-        }
+            : base(target) { }
 
         private GenericWeakReference(SerializationInfo info, StreamingContext context)
-            : base(info, context)
-        {
-        }
+            : base(info, context) { }
 
         public TType? TypedTarget
         {
@@ -44,6 +40,7 @@ namespace Tauron.Application
                 if (temp != null)
                 {
                     obj = temp;
+
                     continue;
                 }
 
@@ -54,6 +51,7 @@ namespace Tauron.Application
         public override int GetHashCode()
         {
             var target = Target;
+
             return target == null ? 0 : target.GetHashCode();
         }
 

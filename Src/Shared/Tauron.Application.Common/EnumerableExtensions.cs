@@ -9,9 +9,9 @@ namespace Tauron
 {
     public abstract record CallResult<TResult>(bool IsOk);
 
-    public sealed record ErrorCallResult<TResult>(Exception Error) : CallResult<TResult>(IsOk: false);
+    public sealed record ErrorCallResult<TResult>(Exception Error) : CallResult<TResult>(false);
 
-    public sealed record SucessCallResult<TResult>(TResult Result) : CallResult<TResult>(IsOk: true);
+    public sealed record SucessCallResult<TResult>(TResult Result) : CallResult<TResult>(true);
 
     [DebuggerNonUserCode]
     [PublicAPI]
@@ -20,6 +20,7 @@ namespace Tauron
         public static TType AddAnd<TType>(this ICollection<TType> collection, TType item)
         {
             collection.Add(item);
+
             return item;
         }
 
@@ -34,6 +35,7 @@ namespace Tauron
             if (newIndex <= array.Length) oldIndex = array.Length - 1;
 
             if (oldIndex == newIndex) return; // No-op
+
             var tmp = array[oldIndex];
             if (newIndex < oldIndex)
                 Array.Copy(array, newIndex, array, newIndex + 1, oldIndex - newIndex);
@@ -68,6 +70,7 @@ namespace Tauron
             foreach (var item in items)
             {
                 if (predicate(item)) return retVal;
+
                 retVal++;
             }
 
@@ -81,13 +84,13 @@ namespace Tauron
 
         public static IEnumerable<IEnumerable<T>> Split<T>(this T[] array, int size)
         {
-            for (var i = 0; i < (float) array.Length / size; i++)
+            for (var i = 0; i < (float)array.Length / size; i++)
                 yield return array.Skip(i * size).Take(size);
         }
 
         public static IEnumerable<IEnumerable<T>> Split<T>(this List<T> array, int size)
         {
-            for (var i = 0; i < (float) array.Count / size; i++)
+            for (var i = 0; i < (float)array.Count / size; i++)
                 yield return array.Skip(i * size).Take(size);
         }
 
@@ -98,11 +101,12 @@ namespace Tauron
 
             var c = 0;
             var e = source.GetEnumerator();
-            e.DynamicUsing(() =>
-            {
-                while (e.MoveNext())
-                    c++;
-            });
+            e.DynamicUsing(
+                () =>
+                {
+                    while (e.MoveNext())
+                        c++;
+                });
 
             return c;
         }

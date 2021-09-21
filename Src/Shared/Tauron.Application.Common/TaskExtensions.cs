@@ -11,18 +11,22 @@ namespace Tauron
     {
         public static void LogTaskError(this Task task, string errorMessage, ILoggingAdapter logger)
             => LogTaskError(task, exception => logger.Error(exception, errorMessage));
-        
+
         public static void LogTaskError(this Task task, string errorMessage, ILogger logger)
             // ReSharper disable once TemplateIsNotCompileTimeConstantProblem
             => LogTaskError(task, exception => logger.LogError(exception, errorMessage));
-        
+
         public static void LogTaskError(this Task task, Action<Exception> onError)
             #pragma warning disable AV2235
             => task.ContinueWith(
                 compled =>
                 {
-                    if(compled.IsCompletedSuccessfully) return;
-                    else if (compled.IsCanceled) onError(new TaskCanceledException(compled));
+                    if (compled.IsCompletedSuccessfully) return;
+
+                    if (compled.IsCanceled)
+                    {
+                        onError(new TaskCanceledException(compled));
+                    }
                     else if (compled.IsFaulted)
                     {
                         var err = compled.Exception.Unwrap();
@@ -30,7 +34,7 @@ namespace Tauron
                             onError(err);
                     }
                 });
-            #pragma warning restore AV2235
+        #pragma warning restore AV2235
 
         public static void Ignore(this Task _) { }
 

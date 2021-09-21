@@ -9,7 +9,8 @@ namespace Tauron.Application.Workshop.Mutation
     [PublicAPI]
     public sealed class EventSource<TRespond, TData> : EventSourceBase<TRespond>
     {
-        public EventSource(WorkspaceSuperviser superviser, Task<IActorRef> mutator, Func<TData, TRespond> transform,
+        public EventSource(
+            WorkspaceSuperviser superviser, Task<IActorRef> mutator, Func<TData, TRespond> transform,
             Func<TData, bool>? where, IObservable<TData> handler)
             : base(mutator, superviser)
         {

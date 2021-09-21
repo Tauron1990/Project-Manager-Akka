@@ -33,21 +33,6 @@ namespace BeaconLib
             Init();
         }
 
-        private void Init()
-        {
-            _udp.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, optionValue: true);
-            _udp.Client.Bind(new IPEndPoint(IPAddress.Any, DiscoveryPort));
-
-            try
-            {
-                _udp.AllowNatTraversal(allowed: true);
-            }
-            catch (Exception exception)
-            {
-                _log.Error(exception, "Error switching on NAT traversal");
-            }
-        }
-
         /// <summary>
         ///     Return the machine's hostname (usually nice to mention in the beacon text)
         /// </summary>
@@ -61,6 +46,21 @@ namespace BeaconLib
 
         public void Dispose()
             => Stop();
+
+        private void Init()
+        {
+            _udp.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            _udp.Client.Bind(new IPEndPoint(IPAddress.Any, DiscoveryPort));
+
+            try
+            {
+                _udp.AllowNatTraversal(true);
+            }
+            catch (Exception exception)
+            {
+                _log.Error(exception, "Error switching on NAT traversal");
+            }
+        }
 
         public void Start()
         {
@@ -88,8 +88,8 @@ namespace BeaconLib
                 _log.Info("Responding Probe {Adress}", remote);
                 // If true, respond again with our type, port and payload
                 var responseData = Encode(Type)
-                    .Concat(BitConverter.GetBytes((ushort) IPAddress.HostToNetworkOrder((short) AdvertisedPort)))
-                    .Concat(Encode(Data)).ToArray();
+                   .Concat(BitConverter.GetBytes((ushort)IPAddress.HostToNetworkOrder((short)AdvertisedPort)))
+                   .Concat(Encode(Data)).ToArray();
                 _udp.Send(responseData, responseData.Length, remote);
             }
             else
@@ -115,7 +115,7 @@ namespace BeaconLib
         internal static byte[] Encode(string data)
         {
             var bytes = Encoding.UTF8.GetBytes(data);
-            var networkOrder = IPAddress.HostToNetworkOrder((short) bytes.Length);
+            var networkOrder = IPAddress.HostToNetworkOrder((short)bytes.Length);
 
             return BitConverter.GetBytes(networkOrder).Concat(bytes).ToArray();
         }
@@ -128,6 +128,7 @@ namespace BeaconLib
             var listData = data as IList<byte> ?? data.ToList();
 
             var packetLenght = IPAddress.NetworkToHostOrder(BitConverter.ToInt16(listData.Take(2).ToArray(), 0));
+
             if (listData.Count < 2 + packetLenght) throw new ArgumentException("Too few bytes in packet");
 
             return Encoding.UTF8.GetString(listData.Skip(2).Take(packetLenght).ToArray());

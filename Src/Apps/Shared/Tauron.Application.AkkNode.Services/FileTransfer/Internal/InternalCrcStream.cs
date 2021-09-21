@@ -44,6 +44,7 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer.Internal
         {
             count = Stream.Read(buffer, offset, count);
             _readCrc = CalculateCrc(_readCrc, buffer, offset, count);
+
             return count;
         }
 

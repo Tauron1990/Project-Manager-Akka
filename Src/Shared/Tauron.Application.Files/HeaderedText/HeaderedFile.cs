@@ -28,11 +28,12 @@ namespace Tauron.Application.Files.HeaderedText
                 if (compled)
                 {
                     builder.AppendLine(textLine);
+
                     continue;
                 }
 
                 var textLineTemp = textLine.Trim();
-                var temp = textLineTemp.Split(new[] {' '}, 2);
+                var temp = textLineTemp.Split(new[] { ' ' }, 2);
                 if (Context.IsKeyword(temp[0]))
                 {
                     var key = temp[0];

@@ -11,6 +11,7 @@ namespace Tauron.Application.Localizer.Core.Converter
         {
             if (arg == 0)
                 return null;
+
             return arg;
         }
     }

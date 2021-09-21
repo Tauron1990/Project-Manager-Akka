@@ -18,9 +18,6 @@ namespace ServiceHost.Client.Shared.ConfigurationServer
 
         private ConfigurationApi(IActorRef api) => _api = api;
 
-        protected override void SendCommandImpl(IReporterMessage command)
-            => _api.Tell(command);
-
         //void ISender.SendCommand(IReporterMessage command) => _api.Tell(command);
 
         // public Task<TResult> Query<TQuery, TResult>(TQuery query, TimeSpan timeout, Action<string>? mesgs = null)
@@ -38,13 +35,18 @@ namespace ServiceHost.Client.Shared.ConfigurationServer
         public Task<IsAliveResponse> QueryIsAlive(ActorSystem system, TimeSpan timeout)
             => Tauron.Application.AkkaNode.Services.Core.QueryIsAlive.Ask(system, _api, timeout);
 
+        protected override void SendCommandImpl(IReporterMessage command)
+            => _api.Tell(command);
+
         public static ConfigurationApi CreateFromActor(IActorRef actor)
             => new(actor);
 
         public static ConfigurationApi CreateProxy(ActorSystem system, string name = "ConfigurationManagerProxy")
         {
-            var proxy = ClusterSingletonProxy.Props($"/user/{ConfigurationPath}",
+            var proxy = ClusterSingletonProxy.Props(
+                $"/user/{ConfigurationPath}",
                 ClusterSingletonProxySettings.Create(system).WithRole("Service-Manager"));
+
             return new ConfigurationApi(system.ActorOf(proxy, name));
         }
     }

@@ -19,6 +19,7 @@ namespace Tauron.Application.Avalonia.Converter
                 {
                     if (ConverterImpl.ConvertFrom(value) is Brush brush)
                         return brush;
+
                     return Brushes.Black;
                 }
                 catch (FormatException)

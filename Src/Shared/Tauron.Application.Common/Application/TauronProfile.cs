@@ -13,7 +13,7 @@ namespace Tauron.Application
     [PublicAPI]
     public abstract class TauronProfile : ObservableObject, IEnumerable<string>
     {
-        private static readonly char[] ContentSplitter = {'='};
+        private static readonly char[] ContentSplitter = { '=' };
 
         private readonly string _defaultPath;
         private readonly ILogger<TauronProfile> _logger = ActorApplication.GetLogger<TauronProfile>();
@@ -74,8 +74,8 @@ namespace Tauron.Application
 
             _settings.Clear();
             foreach (var vals in FilePath.Value.EnumerateTextLinesIfExis()
-                                         .Select(line => line.Split(ContentSplitter, 2))
-                                         .Where(vals => vals.Length == 2))
+               .Select(line => line.Split(ContentSplitter, 2))
+               .Where(vals => vals.Length == 2))
             {
                 _logger.LogInformation("key: {Key} | Value {Value}", vals[0], vals[1]);
 
@@ -111,7 +111,7 @@ namespace Tauron.Application
         public virtual string? GetValue(string? defaultValue, [CallerMemberName] string? key = null)
         {
             if (string.IsNullOrWhiteSpace(key)) return string.Empty;
-            
+
             IlligalCharCheck(key);
 
             return !_settings.ContainsKey(key) ? defaultValue : _settings[key];
@@ -127,8 +127,8 @@ namespace Tauron.Application
 
         public virtual void SetVaue(object value, [CallerMemberName] string? key = null)
         {
-            if(string.IsNullOrWhiteSpace(key)) return;
-            
+            if (string.IsNullOrWhiteSpace(key)) return;
+
             IlligalCharCheck(key);
 
             _settings[key] = value.ToString() ?? string.Empty;

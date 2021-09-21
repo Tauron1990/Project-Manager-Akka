@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using ServiceManager.Shared.ClusterTracking;
 using Stl.CommandR;
-using Stl.CommandR.Configuration;
 using Stl.Fusion;
 
 namespace ServiceManager.Shared

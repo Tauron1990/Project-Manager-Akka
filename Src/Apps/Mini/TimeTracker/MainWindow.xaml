@@ -1,64 +1,83 @@
 ﻿<controls:MyMaterialWindow x:Class="TimeTracker.MainWindow"
-                  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-                  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-                  xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
-                  xmlns:controls="clr-namespace:TimeTracker.Controls"
-                  xmlns:viewModels="clr-namespace:TimeTracker.ViewModels"
-                  xmlns:ui="http://schemas.TauronWpf.com"
-                  mc:Ignorable="d" d:DataContext="{d:DesignInstance viewModels:MainWindowViewModel}"
-                  Title="Zeit Erfassung" Height="900" Width="700">
+                           xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                           xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                           xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                           xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                           xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
+                           xmlns:controls="clr-namespace:TimeTracker.Controls"
+                           xmlns:viewModels="clr-namespace:TimeTracker.ViewModels"
+                           xmlns:ui="http://schemas.TauronWpf.com"
+                           mc:Ignorable="d" d:DataContext="{d:DesignInstance viewModels:MainWindowViewModel}"
+                           Title="Zeit Erfassung" Height="900" Width="700">
     <DockPanel LastChildFill="True">
-        <md:Snackbar DockPanel.Dock="Bottom" MessageQueue="{ui:ActorBinding SnackBarQueue}" Margin="10"/>
+        <md:Snackbar DockPanel.Dock="Bottom" MessageQueue="{ui:ActorBinding SnackBarQueue}" Margin="10" />
         <md:DialogHost Name="Dialogs">
             <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition/>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition />
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                    <ColumnDefinition />
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Row="0" Grid.Column="2" Margin="5" VerticalAlignment="Center" HorizontalAlignment="Center" Text="{ui:ActorBinding ProfileState}"/>
-                <ComboBox Grid.Row="0" Grid.Column="1" Margin="10" IsEditable="True" md:HintAssist.Hint="Profile" IsTextSearchEnabled="True" IsTextSearchCaseSensitive="False"
-                          StaysOpenOnEdit="True" Text="{ui:ActorBinding CurrentProfile, Mode=TwoWay}" ItemsSource="{ui:ActorBinding AllProfiles}"/>
-                <Button Grid.Row="1" Grid.Column="1" Margin="5" Content="Konfigurieren" md:ButtonAssist.CornerRadius="20" Command="{ui:ActorBinding Configurate}"/>
-                <Button Grid.Row="1" Grid.Column="0" Margin="5" Content="Urlaub" md:ButtonAssist.CornerRadius="20" HorizontalAlignment="Center" Command="{ui:ActorBinding Vacation}" Cursor="Hand"/>
-                <Button Grid.Row="3" Grid.Column="0" Margin="5" Content="Kommen" Height="50" md:ButtonAssist.CornerRadius="30" Width="100" Command="{ui:ActorBinding Come}" Click="ModiferParameterClick"/>
-                <Button Grid.Row="3" Grid.Column="2" Margin="5" Content="Gehen" Height="50" md:ButtonAssist.CornerRadius="30" Width="100" Command="{ui:ActorBinding Go}"/>
-                <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <Button  Margin="5, 5, 0, 5" Content="Korrigieren" Command="{ui:ActorBinding Correct}" md:ButtonAssist.CornerRadius="20 0 0 20" />
-                    <Button Margin="0,5,5,5" Content="Hinzufügen" Command="{ui:ActorBinding AddEntry}" md:ButtonAssist.CornerRadius="0 20 20 0"/>
+                <TextBlock Grid.Row="0" Grid.Column="2" Margin="5" VerticalAlignment="Center"
+                           HorizontalAlignment="Center" Text="{ui:ActorBinding ProfileState}" />
+                <ComboBox Grid.Row="0" Grid.Column="1" Margin="10" IsEditable="True" md:HintAssist.Hint="Profile"
+                          IsTextSearchEnabled="True" IsTextSearchCaseSensitive="False"
+                          StaysOpenOnEdit="True" Text="{ui:ActorBinding CurrentProfile, Mode=TwoWay}"
+                          ItemsSource="{ui:ActorBinding AllProfiles}" />
+                <Button Grid.Row="1" Grid.Column="1" Margin="5" Content="Konfigurieren"
+                        md:ButtonAssist.CornerRadius="20" Command="{ui:ActorBinding Configurate}" />
+                <Button Grid.Row="1" Grid.Column="0" Margin="5" Content="Urlaub" md:ButtonAssist.CornerRadius="20"
+                        HorizontalAlignment="Center" Command="{ui:ActorBinding Vacation}" Cursor="Hand" />
+                <Button Grid.Row="3" Grid.Column="0" Margin="5" Content="Kommen" Height="50"
+                        md:ButtonAssist.CornerRadius="30" Width="100" Command="{ui:ActorBinding Come}"
+                        Click="ModiferParameterClick" />
+                <Button Grid.Row="3" Grid.Column="2" Margin="5" Content="Gehen" Height="50"
+                        md:ButtonAssist.CornerRadius="30" Width="100" Command="{ui:ActorBinding Go}" />
+                <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center"
+                            VerticalAlignment="Center">
+                    <Button Margin="5, 5, 0, 5" Content="Korrigieren" Command="{ui:ActorBinding Correct}"
+                            md:ButtonAssist.CornerRadius="20 0 0 20" />
+                    <Button Margin="0,5,5,5" Content="Hinzufügen" Command="{ui:ActorBinding AddEntry}"
+                            md:ButtonAssist.CornerRadius="0 20 20 0" />
                 </StackPanel>
-                <ListView Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="3" Margin="10" controls:ListViewColumns.Stretch="True" controls:ListViewColumns.CustomStrech="True"
+                <ListView Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="3" Margin="10"
+                          controls:ListViewColumns.Stretch="True" controls:ListViewColumns.CustomStrech="True"
                           ItemsSource="{ui:ActorBinding ProfileEntries}" SelectedItem="{ui:ActorBinding CurrentEntry}">
                     <ListView.View>
                         <GridView>
-                            <GridViewColumn Header="Datum" DisplayMemberBinding="{Binding Date}" controls:ListViewColumns.CustomWidth="170"/>
-                            <GridViewColumn Header="Start" DisplayMemberBinding="{Binding Start}" controls:ListViewColumns.CustomWidth="120"/>
-                            <GridViewColumn Header="Ende" DisplayMemberBinding="{Binding Finish}" controls:ListViewColumns.CustomWidth="120"/>
-                            <GridViewColumn Header="Tag Stunden" DisplayMemberBinding="{Binding Hour}"/>
+                            <GridViewColumn Header="Datum" DisplayMemberBinding="{Binding Date}"
+                                            controls:ListViewColumns.CustomWidth="170" />
+                            <GridViewColumn Header="Start" DisplayMemberBinding="{Binding Start}"
+                                            controls:ListViewColumns.CustomWidth="120" />
+                            <GridViewColumn Header="Ende" DisplayMemberBinding="{Binding Finish}"
+                                            controls:ListViewColumns.CustomWidth="120" />
+                            <GridViewColumn Header="Tag Stunden" DisplayMemberBinding="{Binding Hour}" />
                             <GridViewColumn Header="OK" controls:ListViewColumns.CustomWidth="100">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate DataType="viewModels:UiProfileEntry">
-                                        <Border Width="20" Height="20" CornerRadius="10" Background="{Binding IsValid, Converter={controls:IsValidEntryConverter}}"/>
+                                        <Border Width="20" Height="20" CornerRadius="10"
+                                                Background="{Binding IsValid, Converter={controls:IsValidEntryConverter}}" />
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
                         </GridView>
                     </ListView.View>
                 </ListView>
-                <TextBlock Grid.Row="4" Grid.Column="0" Text="Aktuelle Stunden:" HorizontalAlignment="Center" Margin="10"/>
-                <TextBlock Grid.Row="4" Grid.Column="1" Text="{ui:ActorBinding HoursAll}" HorizontalAlignment="Center" Margin="10"/>
-                <StackPanel Grid.Row="4" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal" >
-                    <TextBlock Text="{ui:ActorBinding Remaining}" Margin="20,0" VerticalAlignment="Center"/>
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="Aktuelle Stunden:" HorizontalAlignment="Center"
+                           Margin="10" />
+                <TextBlock Grid.Row="4" Grid.Column="1" Text="{ui:ActorBinding HoursAll}" HorizontalAlignment="Center"
+                           Margin="10" />
+                <StackPanel Grid.Row="4" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center"
+                            Orientation="Horizontal">
+                    <TextBlock Text="{ui:ActorBinding Remaining}" Margin="20,0" VerticalAlignment="Center" />
                     <Border Width="30" Height="30" Margin="3" CornerRadius="20"
                             Background="{ui:ActorBinding CurrentState,  Converter={controls:MonthStateToBrushConverter}}" />
                 </StackPanel>

@@ -6,14 +6,16 @@ using JetBrains.Annotations;
 
 namespace Tauron.ObservableExt
 {
-    [PublicAPI, DebuggerStepThrough]
+    [PublicAPI]
+    [DebuggerStepThrough]
     public static class ConditionalSelectExtension
     {
-        public static ConditionalSelectTypeConfig<TSource> ConditionalSelect<TSource>(this IObservable<TSource> observable) 
+        public static ConditionalSelectTypeConfig<TSource> ConditionalSelect<TSource>(this IObservable<TSource> observable)
             => new(observable);
     }
 
-    [PublicAPI, DebuggerStepThrough]
+    [PublicAPI]
+    [DebuggerStepThrough]
     public sealed class ConditionalSelectTypeConfig<TSource>
     {
         private readonly IObservable<TSource> _observable;
@@ -32,7 +34,8 @@ namespace Tauron.ObservableExt
             => ToResult(builder);
     }
 
-    [PublicAPI, DebuggerStepThrough]
+    [PublicAPI]
+    [DebuggerStepThrough]
     public sealed class ConditionalSelectBuilder<TSource, TResult>
     {
         private readonly List<(Func<TSource, bool>, Func<IObservable<TSource>, IObservable<TResult>>)> _registrations =
@@ -43,10 +46,12 @@ namespace Tauron.ObservableExt
             _registrations.Add((when, then));
         }
 
-        public ConditionalSelectBuilder<TSource, TResult> When(Func<TSource, bool> when,
+        public ConditionalSelectBuilder<TSource, TResult> When(
+            Func<TSource, bool> when,
             Func<IObservable<TSource>, IObservable<TResult>> then)
         {
             _registrations.Add((when, then));
+
             return this;
         }
 

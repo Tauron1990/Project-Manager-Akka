@@ -11,9 +11,7 @@ namespace ServiceManager.Server.AppCore.ClusterTracking
         private readonly INodeRepository _repository;
 
         public ClusterNodeTracking(INodeRepository repository)
-        {
-            _repository = repository;
-        }
+            => _repository = repository;
 
         public virtual async Task<ClusterNodeInfo> GetInfo(string url)
         {

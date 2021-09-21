@@ -15,7 +15,7 @@ using TimeTracker.Managers;
 namespace TimeTracker.Views
 {
     /// <summary>
-    /// Interaktionslogik für VacationDialog.xaml
+    ///     Interaktionslogik für VacationDialog.xaml
     /// </summary>
     public partial class VacationDialog : IBaseDialog<DateTime[]?, DateTime>
     {
@@ -24,39 +24,42 @@ namespace TimeTracker.Views
             InitializeComponent();
         }
 
-        public Task<DateTime[]?> Init(DateTime initalData) 
+        public Task<DateTime[]?> Init(DateTime initalData)
             => this.MakeObsTask<DateTime[]?>(o => new VacationDialogModel(o, initalData, Calendar.SelectedDates));
     }
 
     public sealed class VacationDialogModel : ObservableObject, IDisposable
     {
-
-        public SimpleReactiveCommand Ok { get; }
-
-        public SimpleReactiveCommand Cancel { get; }
-
         public VacationDialogModel(IObserver<DateTime[]?> finish, DateTime currentMounth, SelectedDatesCollection datesCollection)
         {
             Cancel = new SimpleReactiveCommand().Finish(o => o.Select(_ => default(DateTime[])).Subscribe(finish));
 
-            var changes = Observable.Create<Unit>(o =>
-                                            {
-                                                void Next(object? sender, NotifyCollectionChangedEventArgs notifyCollectionChangedEventArgs) 
-                                                    => o.OnNext(Unit.Default);
+            var changes = Observable.Create<Unit>(
+                o =>
+                {
+                    void Next(object? sender, NotifyCollectionChangedEventArgs notifyCollectionChangedEventArgs)
+                        => o.OnNext(Unit.Default);
 
 
-                                                NotifyCollectionChangedEventHandler eventHandler = Next;
-                                                datesCollection.CollectionChanged += eventHandler;
-                                                return Disposable.Create((eventHandler, datesCollection), h => h.datesCollection.CollectionChanged -= h.eventHandler);
-                                            });
+                    NotifyCollectionChangedEventHandler eventHandler = Next;
+                    datesCollection.CollectionChanged += eventHandler;
 
-            Ok = new SimpleReactiveCommand(from _ in changes
-                                           select datesCollection.Where(SystemClock.IsWeekDay).Any(d => d.Month >= currentMounth.Month))
-               .Finish(o => (from _ in o
-                             select datesCollection.Where(d => d.Month >= currentMounth.Month)
-                                                   .ToArray())
-                          .Subscribe(finish));
+                    return Disposable.Create((eventHandler, datesCollection), h => h.datesCollection.CollectionChanged -= h.eventHandler);
+                });
+
+            Ok = new SimpleReactiveCommand(
+                    from _ in changes
+                    select datesCollection.Where(SystemClock.IsWeekDay).Any(d => d.Month >= currentMounth.Month))
+               .Finish(
+                    o => (from _ in o
+                          select datesCollection.Where(d => d.Month >= currentMounth.Month)
+                             .ToArray())
+                       .Subscribe(finish));
         }
+
+        public SimpleReactiveCommand Ok { get; }
+
+        public SimpleReactiveCommand Cancel { get; }
 
         public void Dispose()
         {

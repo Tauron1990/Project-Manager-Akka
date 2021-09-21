@@ -39,27 +39,28 @@ namespace Tauron.Application.Localizer.Views
         private void Search_OnClick(object sender, RoutedEventArgs e)
         {
             var dis = Disposable.Empty;
-            
+
             dis = _dialogFactory.ShowOpenFileDialog(
-                               null,
-                               _filemode == OpenFileMode.OpenExistingFile,
-                               "transp",
-                               dereferenceLinks: true,
-                               _localizer.OpenFileDialogViewDialogFilter,
-                               multiSelect: false,
-                               _localizer.OpenFileDialogViewDialogTitle,
-                               validateNames: true,
-                               checkPathExists: true)
-                          .NotNull()
-                          .Select(s => s.FirstOrDefault())
-                          .NotNull()
-                          .ObserveOnDispatcher()
-                          .Subscribe(s =>
-                                     {
-                                         PART_Path.Text = s;
-                                         // ReSharper disable once AccessToModifiedClosure
-                                         dis.Dispose();
-                                     });
+                    null,
+                    _filemode == OpenFileMode.OpenExistingFile,
+                    "transp",
+                    dereferenceLinks: true,
+                    _localizer.OpenFileDialogViewDialogFilter,
+                    multiSelect: false,
+                    _localizer.OpenFileDialogViewDialogTitle,
+                    validateNames: true,
+                    checkPathExists: true)
+               .NotNull()
+               .Select(s => s.FirstOrDefault())
+               .NotNull()
+               .ObserveOnDispatcher()
+               .Subscribe(
+                    s =>
+                    {
+                        PART_Path.Text = s;
+                        // ReSharper disable once AccessToModifiedClosure
+                        dis.Dispose();
+                    });
         }
 
         private void Ready_OnClick(object sender, RoutedEventArgs e)

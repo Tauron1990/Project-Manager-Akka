@@ -10,21 +10,17 @@ namespace Tauron.Application.Files.VirtualFiles.LocalFileSystem
     public class LocalDirectory : DirectoryBase<DirectoryInfo>
     {
         protected LocalDirectory(string fullPath, Func<IDirectory?> parentDirectory)
-            : base(parentDirectory, fullPath, fullPath.GetFileName())
-        {
-        }
+            : base(parentDirectory, fullPath, fullPath.GetFileName()) { }
 
         public LocalDirectory(string fullPath)
-            : base(() => GetParentDirectory(fullPath), fullPath, fullPath.GetFileName())
-        {
-        }
+            : base(() => GetParentDirectory(fullPath), fullPath, fullPath.GetFileName()) { }
 
         public override DateTime LastModified => InfoObject?.LastWriteTime ?? DateTime.MinValue;
 
         public override bool Exist => InfoObject?.Exists ?? false;
 
         public override IEnumerable<IDirectory> Directories => Directory.EnumerateDirectories(OriginalPath)
-            .Select(str => new LocalDirectory(str, () => this));
+           .Select(str => new LocalDirectory(str, () => this));
 
         public override IEnumerable<IFile> Files
             => Directory.EnumerateFiles(OriginalPath).Select(str => new LocalFile(str, this));
@@ -40,12 +36,13 @@ namespace Tauron.Application.Files.VirtualFiles.LocalFileSystem
 
         private static IDirectory? GetParentDirectory(string fullpath)
         {
-            string? name = Path.GetDirectoryName(fullpath);
+            var name = Path.GetDirectoryName(fullpath);
+
             return string.IsNullOrEmpty(name) ? null : new LocalDirectory(fullpath);
         }
 
         protected override void DeleteImpl()
-            => InfoObject?.Delete(recursive: true);
+            => InfoObject?.Delete(true);
 
         protected override DirectoryInfo GetInfo(string path) => new(path);
 

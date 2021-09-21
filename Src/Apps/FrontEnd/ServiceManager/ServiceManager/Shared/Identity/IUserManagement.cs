@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 using Stl.Fusion;
 
@@ -21,7 +20,7 @@ namespace ServiceManager.Shared.Identity
 
         [ComputeMethod]
         Task<string> GetUserIdByName(string name, CancellationToken token = default);
-        
+
         Task<string> SetNewPassword(SetNewPasswordCommand command, CancellationToken token = default);
 
         Task<string> SetClaims(SetClaimsCommand command, CancellationToken token = default);
@@ -31,7 +30,7 @@ namespace ServiceManager.Shared.Identity
         Task<string> LogIn(TryLoginCommand command, CancellationToken token = default);
 
         Task<string> Logout(LogOutCommand command, CancellationToken token = default);
-        
+
         Task<string> Register(RegisterUserCommand command, CancellationToken token = default);
 
         Task<string> DeleteUser(DeleteUserCommand command, CancellationToken token = default);

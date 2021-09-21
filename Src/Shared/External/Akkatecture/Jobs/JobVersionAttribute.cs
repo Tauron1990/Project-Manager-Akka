@@ -27,14 +27,13 @@ using JetBrains.Annotations;
 
 namespace Akkatecture.Jobs
 {
-    [AttributeUsage(AttributeTargets.Class), PublicAPI]
+    [AttributeUsage(AttributeTargets.Class)]
+    [PublicAPI]
     public class JobVersionAttribute : VersionedTypeAttribute
     {
         public JobVersionAttribute(
             string name,
             int version)
-            : base(name, version)
-        {
-        }
+            : base(name, version) { }
     }
 }

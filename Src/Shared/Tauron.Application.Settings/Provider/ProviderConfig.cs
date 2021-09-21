@@ -6,6 +6,9 @@ namespace Tauron.Application.Settings.Provider
     [PublicAPI]
     public static class ProviderConfig
     {
+        public static Func<ISettingProviderConfiguration> Json(string scope, string fileName)
+            => () => new JsonProviderConfig(fileName, scope);
+
         private sealed class JsonProviderConfig : ISettingProviderConfiguration
         {
             private readonly string _fileName;
@@ -19,8 +22,5 @@ namespace Tauron.Application.Settings.Provider
             public string Scope { get; }
             public ISettingProvider Provider => new JsonProvider(_fileName);
         }
-
-        public static Func<ISettingProviderConfiguration> Json(string scope, string fileName)
-            => () => new JsonProviderConfig(fileName, scope);
     }
 }

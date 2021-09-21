@@ -1,16 +1,15 @@
-﻿@using ServiceManager.Shared.Identity
-@using ServiceManager.Client.ViewModels.Identity
-@using Tauron.Application
-@using ServiceManager.Client.Shared.UserAccount
-
-@page "/UserEditor/{UserId}"
+﻿@page "/UserEditor/{UserId}"
 
 @inject IUserManagement _management
 @inject IEventAggregator _aggregator
 @inject NavigationManager _navigationManager
 
 @layout UserAccountLayout
-@inherits ComputedStateComponent<UserEditorViewModel>
+@using ServiceManager.Shared.Identity
+@using Tauron.Application
+@using ServiceManager.Client.ViewModels.Identity
+@using ServiceManager.Client.Shared.UserAccount
+@inherits ComputedStateComponent<ServiceManager.Client.ViewModels.Identity.UserEditorViewModel>
 
 <StateAwaiter State="@State">
     @if (context?.User == null)
@@ -33,11 +32,12 @@
 </StateAwaiter>
 
 @code {
+
     [Parameter]
     public string UserId { get; set; } = string.Empty;
 
-    protected override async Task<UserEditorViewModel> ComputeState(CancellationToken cancellationToken) 
-        => new(_management, _aggregator, await _management.GetUserData(UserId, cancellationToken), 
+    protected override async Task<UserEditorViewModel> ComputeState(CancellationToken cancellationToken)
+        => new(_management, _aggregator, await _management.GetUserData(UserId, cancellationToken),
             await _management.GetUserClaims(UserId, cancellationToken), StateHasChanged);
 
 }

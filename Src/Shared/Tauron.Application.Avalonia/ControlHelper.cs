@@ -27,9 +27,7 @@ namespace Tauron.Application.Avalonia
         public static readonly AttachedProperty<string> MarkWindowProperty =
             AvaloniaProperty.RegisterAttached<ControlHelper, Control, string>("MarkWindow", string.Empty);
 
-        private ControlHelper()
-        {
-        }
+        private ControlHelper() { }
 
         public static string GetMarkControl(Control obj)
             => obj.GetValue(MarkControlProperty);
@@ -68,14 +66,19 @@ namespace Tauron.Application.Avalonia
 
             var ele = ElementMapper.Create(obj);
             var rootOption = ControlBindLogic.FindRoot(ele.AsOption());
-            
+
             rootOption.Run(
                 root => SetLinker(newName, oldName, root, ele, factory),
-                () => ControlBindLogic.MakeLazy((IUIElement)ele, newName, oldName, (name, old, controllable, dependencyObject)
-                                                                                       => SetLinker(old, name, controllable, dependencyObject, factory)));
+                () => ControlBindLogic.MakeLazy(
+                    (IUIElement)ele,
+                    newName,
+                    oldName,
+                    (name, old, controllable, dependencyObject)
+                        => SetLinker(old, name, controllable, dependencyObject, factory)));
         }
 
-        private static void SetLinker(string? newName, string? oldName, IBinderControllable root, IUIObject obj,
+        private static void SetLinker(
+            string? newName, string? oldName, IBinderControllable root, IUIObject obj,
             Func<LinkerBase> factory)
         {
             if (oldName is not null)
@@ -106,9 +109,7 @@ namespace Tauron.Application.Avalonia
 
             protected abstract void Scan();
 
-            protected override void CleanUp()
-            {
-            }
+            protected override void CleanUp() { }
 
             protected override void Bind(object context)
             {
@@ -126,18 +127,18 @@ namespace Tauron.Application.Avalonia
 
                 if (realName.Contains(":"))
                 {
-                    var nameSplit = realName.Split(new[] {':'}, 2);
+                    var nameSplit = realName.Split(new[] { ':' }, 2);
                     realName = nameSplit[0];
                     windowName = nameSplit[1];
                 }
 
-                var priTarget = ((AvaObject) AffectedObject).Obj;
+                var priTarget = ((AvaObject)AffectedObject).Obj;
 
                 if (windowName == null)
                 {
                     if (!(priTarget is Window))
                         while (priTarget != null)
-                            priTarget = priTarget is StyledElement {Parent: StyledElement parent} ? parent : null;
+                            priTarget = priTarget is StyledElement { Parent: StyledElement parent } ? parent : null;
 
                     if (priTarget == null)
                         LogManager.GetCurrentClassLogger().Error($"ControlHelper: No Window Found: {DataContext.GetType()}|{realName}");

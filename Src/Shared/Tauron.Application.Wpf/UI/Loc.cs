@@ -21,6 +21,7 @@ namespace Tauron.Application.Wpf.UI
         {
             if (EntryName?.Length > 25)
                 return EntryName.Substring(EntryName.Length - 25, 10);
+
             return EntryName ?? nameof(DesignTime);
         }
 
@@ -35,17 +36,19 @@ namespace Tauron.Application.Wpf.UI
                 }
 
                 if (string.IsNullOrWhiteSpace(EntryName)) return "Kein antrag angegeben";
-                
-                ActorApplication.ActorSystem.Loc().Request(EntryName, o =>
-                {
-                    var res = o.GetOrElse(EntryName);
-                    lock (Cache)
-                    {
-                        Cache[EntryName] = res;
-                    }
 
-                    UpdateValue(res);
-                });
+                ActorApplication.ActorSystem.Loc().Request(
+                    EntryName,
+                    o =>
+                    {
+                        var res = o.GetOrElse(EntryName);
+                        lock (Cache)
+                        {
+                            Cache[EntryName] = res;
+                        }
+
+                        UpdateValue(res);
+                    });
 
                 return "Loading";
             }

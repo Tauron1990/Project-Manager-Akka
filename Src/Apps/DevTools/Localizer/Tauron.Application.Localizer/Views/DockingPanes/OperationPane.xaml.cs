@@ -1,11 +1,9 @@
-﻿using System.Windows.Controls;
-
-namespace Tauron.Application.Localizer.Views.DockingPanes
+﻿namespace Tauron.Application.Localizer.Views.DockingPanes
 {
     /// <summary>
     ///     Interaktionslogik für OperationPane.xaml
     /// </summary>
-    public partial class OperationPane : UserControl
+    public partial class OperationPane
     {
         public OperationPane()
         {

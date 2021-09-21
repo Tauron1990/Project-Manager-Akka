@@ -6,23 +6,8 @@ namespace TimeTracker.Managers
 {
     public sealed class ConcurancyManager : IDisposable
     {
-        private readonly SemaphoreSlim _syncLock = new(1);
         private readonly SemaphoreSlim _asyncLock = new(Environment.ProcessorCount * 2);
-
-        public IObservable<TData> SyncCall<TData>(IObservable<TData> input, Func<IObservable<TData>, IObservable<TData>> runSync)
-            => input.SelectMany(async d =>
-                                {
-                                    await _syncLock.WaitAsync();
-
-                                    try
-                                    {
-                                        return await runSync(Observable.Return(d));
-                                    }
-                                    finally
-                                    {
-                                        _syncLock.Release();
-                                    }
-                                });
+        private readonly SemaphoreSlim _syncLock = new(1);
 
         //public IObservable<TData> AsyncCall<TData>(IObservable<TData> input) 
         //    => Observable.Create<TData>(o => input.Get(new SyncObserver<TData>(o, _asyncLock)));
@@ -85,6 +70,22 @@ namespace TimeTracker.Managers
             _syncLock.Dispose();
             _asyncLock.Dispose();
         }
+
+        public IObservable<TData> SyncCall<TData>(IObservable<TData> input, Func<IObservable<TData>, IObservable<TData>> runSync)
+            => input.SelectMany(
+                async d =>
+                {
+                    await _syncLock.WaitAsync();
+
+                    try
+                    {
+                        return await runSync(Observable.Return(d));
+                    }
+                    finally
+                    {
+                        _syncLock.Release();
+                    }
+                });
     }
 
     //[PublicAPI]

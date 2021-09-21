@@ -25,14 +25,14 @@ namespace Tauron.Application.Avalonia.AppCore
 
         public virtual IObservable<Unit> Loaded
             => _element
-                .GetObservable(StyledElement.ParentProperty)
-                .NotDefault()
-                .ToUnit();
+               .GetObservable(StyledElement.ParentProperty)
+               .NotDefault()
+               .ToUnit();
 
         public virtual IObservable<Unit> Unloaded
             => _element
-                .GetObservable(StyledElement.ParentProperty)
-                .Where(se => se == null)
-                .ToUnit();
+               .GetObservable(StyledElement.ParentProperty)
+               .Where(se => se == null)
+               .ToUnit();
     }
 }

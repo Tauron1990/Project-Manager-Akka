@@ -1,6 +1,4 @@
-﻿using System.Globalization;
-using Akka.MGIHelper.Settings;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Tauron.Akka;
 using Tauron.Application.Settings;
 
@@ -8,45 +6,20 @@ namespace Akka.MGIHelper.Core.Configuration
 {
     public sealed class FanControlOptions : ConfigurationBase
     {
-        public FanControlOptions(IDefaultActorRef<SettingsManager> actor, string scope, ILogger<FanControlOptions> logger) 
-            : base(actor, scope, logger)
-        {
-        }
+        public FanControlOptions(IDefaultActorRef<SettingsManager> actor, string scope, ILogger<FanControlOptions> logger)
+            : base(actor, scope, logger) { }
 
-        public int ClockTimeMs
-        {
-            get => GetValue(int.Parse, 1000)!;
-            set => SetValue(value.ToString(CultureInfo.InvariantCulture));
-        }
+        public int ClockTimeMs => GetValue(int.Parse, 1000);
 
-        public string Ip
-        {
-            get => GetValue(s => s, "192.168.187.48")!;
-            set => SetValue(value);
-        }
+        //set => SetValue(value.ToString(CultureInfo.InvariantCulture));
+        public string Ip => GetValue(s => s, "192.168.187.48")!;
 
-        public int GoStandbyTime
-        {
-            get => GetValue(int.Parse, 25)!;
-            set => SetValue(value.ToString(CultureInfo.InvariantCulture));
-        }
+        public int GoStandbyTime => GetValue(int.Parse, 25);
 
-        public int MaxStartupTemp
-        {
-            get => GetValue(int.Parse, 70)!;
-            set => SetValue(value.ToString(CultureInfo.InvariantCulture));
-        }
+        public int MaxStartupTemp => GetValue(int.Parse, 70);
 
-        public int MaxStandbyTemp
-        {
-            get => GetValue(int.Parse, 115)!;
-            set => SetValue(value.ToString(CultureInfo.InvariantCulture));
-        }
+        public int MaxStandbyTemp => GetValue(int.Parse, 115);
 
-        public double FanControlMultipler
-        {
-            get => GetValue(double.Parse, 1.3d)!;
-            set => SetValue(value.ToString(CultureInfo.InvariantCulture));
-        }
+        public double FanControlMultipler => GetValue(double.Parse, 1.3d);
     }
 }

@@ -5,7 +5,6 @@ using System.Reactive.Linq;
 using Akka.Actor;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
-using Tauron.Application.Files.VirtualFiles;
 using Tauron.Application.SoftwareRepo.Data;
 using Tauron.Application.SoftwareRepo.Mutation;
 using Tauron.Application.VirtualFiles;
@@ -24,7 +23,8 @@ namespace Tauron.Application.SoftwareRepo
             : base(new WorkspaceSuperviser(factory, "Software-Repository"))
         {
             Path = path;
-            Changed = Engine.EventSource(mc => mc.GetChange<CommonChange>().ApplicationList,
+            Changed = Engine.EventSource(
+                mc => mc.GetChange<CommonChange>().ApplicationList,
                 context => context.Change is CommonChange);
             Changed.RespondOn(null, Save);
         }
@@ -67,63 +67,76 @@ namespace Tauron.Application.SoftwareRepo
         }
 
         public void ChangeName(string? name = null, string? description = null)
-            => Engine.Mutate(nameof(ChangeName),
-                mco => mco.Select(mc =>
-                {
-                    ApplicationList? newData = null;
-                    if (!string.IsNullOrWhiteSpace(name))
-                        newData = mc.Data with {Name = name};
-                    if (!string.IsNullOrWhiteSpace(description))
-                        newData = newData ?? mc.Data with {Description = description};
+            => Engine.Mutate(
+                nameof(ChangeName),
+                mco => mco.Select(
+                    mc =>
+                    {
+                        ApplicationList? newData = null;
+                        if (!string.IsNullOrWhiteSpace(name))
+                            newData = mc.Data with { Name = name };
+                        if (!string.IsNullOrWhiteSpace(description))
+                            newData = newData ?? mc.Data with { Description = description };
 
-                    return newData == null ? mc : mc.Update(new CommonChange(newData), newData);
-                }));
+                        return newData == null ? mc : mc.Update(new CommonChange(newData), newData);
+                    }));
 
         public long Get(string name) => ApplicationList.ApplicationEntries.Find(ae => ae.Name == name)?.Id ?? -1;
 
-        public void AddApplication(string name, long id, string url, Version version, string originalRepository,
+        public void AddApplication(
+            string name, long id, string url, Version version, string originalRepository,
             string brnachName)
         {
             if (Get(name) != -1)
                 return;
 
-            Engine.Mutate(nameof(AddApplication),
-                mco => mco.Select(mc =>
-                {
-                    var newData = mc.Data with
+            Engine.Mutate(
+                nameof(AddApplication),
+                mco => mco.Select(
+                    mc =>
                     {
-                        ApplicationEntries =
-                        mc.Data.ApplicationEntries.Add(
-                            new ApplicationEntry(name, version, id,
-                                ImmutableList<DownloadEntry>.Empty.Add(new DownloadEntry(version, url)),
-                                originalRepository, brnachName))
-                    };
+                        var newData = mc.Data with
+                                      {
+                                          ApplicationEntries =
+                                          mc.Data.ApplicationEntries.Add(
+                                              new ApplicationEntry(
+                                                  name,
+                                                  version,
+                                                  id,
+                                                  ImmutableList<DownloadEntry>.Empty.Add(new DownloadEntry(version, url)),
+                                                  originalRepository,
+                                                  brnachName))
+                                      };
 
-                    return mc.Update(new CommonChange(newData), newData);
-                }));
+                        return mc.Update(new CommonChange(newData), newData);
+                    }));
         }
 
         public void UpdateApplication(long id, Version version, string url)
-            => Engine.Mutate(nameof(UpdateApplication),
-                mco => mco.Select(mc =>
-                {
-                    var entry = ApplicationList.ApplicationEntries.Find(ae => ae.Id == id);
-                    if (entry == null)
-                        return mc;
-
-                    var newData = mc.Data with
+            => Engine.Mutate(
+                nameof(UpdateApplication),
+                mco => mco.Select(
+                    mc =>
                     {
-                        ApplicationEntries =
-                        mc.Data.ApplicationEntries.Replace(entry,
-                            entry with
-                            {
-                                Last = version,
-                                Downloads = entry.Downloads.Add(new DownloadEntry(version, url))
-                            })
-                    };
+                        var entry = ApplicationList.ApplicationEntries.Find(ae => ae.Id == id);
 
-                    return mc.Update(new CommonChange(newData), newData);
-                }));
+                        if (entry == null)
+                            return mc;
+
+                        var newData = mc.Data with
+                                      {
+                                          ApplicationEntries =
+                                          mc.Data.ApplicationEntries.Replace(
+                                              entry,
+                                              entry with
+                                              {
+                                                  Last = version,
+                                                  Downloads = entry.Downloads.Add(new DownloadEntry(version, url))
+                                              })
+                                      };
+
+                        return mc.Update(new CommonChange(newData), newData);
+                    }));
 
         public void Save() => Save(ApplicationList);
 

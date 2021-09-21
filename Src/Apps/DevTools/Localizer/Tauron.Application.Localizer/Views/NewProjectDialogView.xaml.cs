@@ -17,22 +17,25 @@ namespace Tauron.Application.Localizer.Views
         private string _content = string.Empty;
         private string? _error;
 
-        public NewProjectDialogViewModel(IEnumerable<string> blocked, Action<NewProjectDialogResult> target,
+        public NewProjectDialogViewModel(
+            IEnumerable<string> blocked, Action<NewProjectDialogResult> target,
             LocLocalizer localizer)
         {
             _localizer = localizer;
             _blocked = blocked.ToArray();
 
-            Return = new SimpleCommand(execute: _ => target(new NewProjectDialogResult(Content)),
-                canExecute: o => string.IsNullOrWhiteSpace(Error));
+            Return = new SimpleCommand(
+                execute: _ => target(new NewProjectDialogResult(Content)),
+                canExecute: _ => string.IsNullOrWhiteSpace(Error));
         }
 
         public string? Error
         {
             get => _error;
-            set
+            private set
             {
                 if (value == _error) return;
+
                 _error = value;
                 OnPropertyChanged();
             }
@@ -44,6 +47,7 @@ namespace Tauron.Application.Localizer.Views
             set
             {
                 if (value == _content) return;
+
                 _content = value;
                 Error = _blocked.Contains(value) ? _localizer.NewProjectDialogViewErrorDuplicate : null;
                 OnPropertyChanged();
@@ -70,6 +74,7 @@ namespace Tauron.Application.Localizer.Views
         {
             var task = new TaskCompletionSource<NewProjectDialogResult>();
             DataContext = new NewProjectDialogViewModel(initalData, result => task.SetResult(result), _localizer);
+
             return task.Task;
         }
 

@@ -34,18 +34,17 @@ namespace Tauron.Application.CommonUI.Model
             if (_compledActions.TryGetValue(actionType, out var action))
             {
                 action(result);
+
                 return;
             }
 
             OnOperationCompled(result);
         }
 
-        protected virtual void OnOperationCompled(IOperationResult result)
-        {
-        }
+        protected virtual void OnOperationCompled(IOperationResult result) { }
 
         public TState GetState<TState>(string key = "") where TState : class => ActionInvoker.GetState<TState>(key) ??
-            throw new InvalidOperationException("No such State Found");
+                                                                                throw new InvalidOperationException("No such State Found");
 
         public void ConfigurateState<TState>(Action<TState> toConfig)
             where TState : class
@@ -70,7 +69,8 @@ namespace Tauron.Application.CommonUI.Model
             where TState : class
             => new(
                 ActionInvoker.GetState<TState>(name ?? string.Empty) ??
-                throw new ArgumentException("No such State Found"), this);
+                throw new ArgumentException("No such State Found"),
+                this);
 
         public void DispatchAction(IStateAction action, bool? sendBack = true) => ActionInvoker.Run(action, sendBack);
 
@@ -86,11 +86,13 @@ namespace Tauron.Application.CommonUI.Model
                 _actor = actor;
             }
 
-            public UIStateEventConfiguration<TEvent> FromEvent<TEvent>(Func<TState, IEventSource<TEvent>> source,
+            public UIStateEventConfiguration<TEvent> FromEvent<TEvent>(
+                Func<TState, IEventSource<TEvent>> source,
                 Action<UIStateEventConfiguration<TEvent>>? configAction = null)
             {
                 var config = new UIStateEventConfiguration<TEvent>(source(_state), _actor);
                 configAction?.Invoke(config);
+
                 return config;
             }
         }
@@ -107,19 +109,22 @@ namespace Tauron.Application.CommonUI.Model
                 _actor = actor;
             }
 
-            public FluentPropertyRegistration<TData> ToProperty<TData>(string name, Func<TEvent, TData> transform,
+            public FluentPropertyRegistration<TData> ToProperty<TData>(
+                string name, Func<TEvent, TData> transform,
                 Func<TEvent, bool>? condition = null)
             {
                 var propertyConfig = _actor.RegisterProperty<TData>(name);
                 var property = propertyConfig.Property;
 
-                _eventSource.RespondOn(_actor.Self, evt =>
-                {
-                    if (condition != null && !condition(evt))
-                        return;
+                _eventSource.RespondOn(
+                    _actor.Self,
+                    evt =>
+                    {
+                        if (condition != null && !condition(evt))
+                            return;
 
-                    property.Set(transform(evt));
-                });
+                        property.Set(transform(evt));
+                    });
 
                 return propertyConfig;
             }
@@ -148,36 +153,43 @@ namespace Tauron.Application.CommonUI.Model
             return ToStateAction(builder, _ => new TStateAction());
         }
 
-        public static CommandRegistrationBuilder ToStateAction(this CommandRegistrationBuilder builder,
+        public static CommandRegistrationBuilder ToStateAction(
+            this CommandRegistrationBuilder builder,
             Func<IStateAction?> action)
         {
             return ToStateAction(builder, _ => action());
         }
 
-        public static CommandRegistrationBuilder ToStateAction<TParameter>(this CommandRegistrationBuilder builder,
+        public static CommandRegistrationBuilder ToStateAction<TParameter>(
+            this CommandRegistrationBuilder builder,
             Func<TParameter, IStateAction?> action)
         {
-            return ToStateAction(builder, o =>
-            {
-                if (o is TParameter parameter)
-                    return action(parameter);
+            return ToStateAction(
+                builder,
+                o =>
+                {
+                    if (o is TParameter parameter)
+                        return action(parameter);
 
-                return action(default!);
-            });
+                    return action(default!);
+                });
         }
 
-        public static CommandRegistrationBuilder ToStateAction(this CommandRegistrationBuilder builder,
+        public static CommandRegistrationBuilder ToStateAction(
+            this CommandRegistrationBuilder builder,
             Func<object?, IStateAction?> action)
         {
             var invoker = TryCast(builder);
 
-            return builder.WithExecute(o =>
-            {
-                var stateAction = action(o);
-                if (stateAction == null) return;
+            return builder.WithExecute(
+                o =>
+                {
+                    var stateAction = action(o);
 
-                invoker.DispatchAction(stateAction);
-            });
+                    if (stateAction == null) return;
+
+                    invoker.DispatchAction(stateAction);
+                });
         }
 
         private static StateUIActor TryCast(CommandRegistrationBuilder builder)

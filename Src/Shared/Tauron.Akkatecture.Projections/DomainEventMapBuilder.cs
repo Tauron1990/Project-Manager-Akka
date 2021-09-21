@@ -28,6 +28,7 @@ namespace Tauron.Akkatecture.Projections
             Func<object, ProjectionContext, Task<bool>> predicate)
         {
             _builder.Where(predicate);
+
             return this;
         }
 
@@ -37,6 +38,7 @@ namespace Tauron.Akkatecture.Projections
             where TEvent : class, IAggregateEvent<TAggregate, TIdentity>
         {
             builder(_builder.Map<IDomainEvent<TAggregate, TIdentity, TEvent>>());
+
             return this;
         }
     }

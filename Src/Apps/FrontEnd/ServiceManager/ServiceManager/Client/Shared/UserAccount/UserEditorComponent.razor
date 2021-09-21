@@ -1,10 +1,8 @@
-﻿@using ServiceManager.Shared.Identity
-@using Microsoft.Extensions.Primitives
+﻿@using Tauron.Application
+@using ServiceManager.Shared.Identity
 @using ServiceManager.Client.ViewModels.Identity
 @using ServiceManager.Shared.Api
-@using Stl.Fusion
-@using Tauron.Application
-
+@using Microsoft.Extensions.Primitives
 @inject IEventAggregator _aggregator
 @inject HttpClient _client
 @inject IStateFactory _stateFactory
@@ -60,11 +58,11 @@ else
     {
         _userCount = _stateFactory.NewComputed(new ComputedState<int>.Options(), (_, t) => _userManagement.GetUserCount(t));
         _userCount.AddEventHandler(StateEventKind.Updated, Handler);
-            
+
         return base.OnInitializedAsync();
     }
 
-    private void Handler(IState<int> _, StateEventKind a) 
+    private void Handler(IState<int> _, StateEventKind a)
         => _task = _component?.UpdateGrid() ?? Task.CompletedTask;
 
     protected override async Task OnParametersSetAsync()
@@ -82,7 +80,7 @@ else
             .SubGrid(InitSubGrid, ("Id", "Id"));
 
         _grid = client.Grid;
-        
+
         _task = client.UpdateGrid();
         await _task;
     }

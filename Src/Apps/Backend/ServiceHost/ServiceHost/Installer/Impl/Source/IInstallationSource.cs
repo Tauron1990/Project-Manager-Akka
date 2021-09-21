@@ -5,6 +5,7 @@ namespace ServiceHost.Installer.Impl.Source
 {
     public interface IInstallationSource
     {
+        int Version { get; }
         Status ValidateInput(InstallerContext context);
 
         Task<Status> PrepareforCopy(InstallerContext context);
@@ -12,8 +13,6 @@ namespace ServiceHost.Installer.Impl.Source
         Task<Status> CopyTo(InstallerContext context, string target);
 
         void CleanUp(InstallerContext context);
-
-        int Version { get; }
 
         string ToZipFile(InstallerContext context);
     }

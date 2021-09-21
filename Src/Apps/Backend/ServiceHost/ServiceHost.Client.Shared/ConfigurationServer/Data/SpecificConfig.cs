@@ -8,7 +8,8 @@ namespace ServiceHost.Client.Shared.ConfigurationServer.Data
 
     public enum ConditionType
     {
-        And, Or,
+        And,
+        Or,
         InstalledApp,
         DefinedApp
     }

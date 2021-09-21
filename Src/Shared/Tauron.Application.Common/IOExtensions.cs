@@ -18,24 +18,25 @@ namespace Tauron
         {
             var stack = new Stack<FileSystemInfo>();
             new DirectoryInfo(sourceDirectoryName).EnumerateFileSystemInfos("*.*", SearchOption.AllDirectories)
-                .Foreach(e => stack.Push(e));
+               .Foreach(e => stack.Push(e));
 
             while (stack.Count != 0)
-            {
                 switch (stack.Pop())
                 {
                     case FileInfo file:
-                        destination.CreateEntryFromFile(file.FullName,
+                        destination.CreateEntryFromFile(
+                            file.FullName,
                             file.FullName.Replace(sourceDirectoryName, string.Empty, StringComparison.Ordinal),
                             CompressionLevel.Optimal);
+
                         break;
                     case DirectoryInfo directory:
                         string name = directory.FullName.Replace(sourceDirectoryName, string.Empty, StringComparison.Ordinal);
-                        if(!string.IsNullOrWhiteSpace(name))
+                        if (!string.IsNullOrWhiteSpace(name))
                             destination.CreateEntry(name);
+
                         break;
                 }
-            }
         }
 
         public static string PathShorten(this string path, int length)
@@ -51,7 +52,9 @@ namespace Tauron
             for (var i = 0; i < pathParts.Length - 1; i++)
             {
                 pathBuild.Append(pathParts[i] + @"\");
+
                 if ((pathBuild + @"...\" + lastPart).Length >= length) return prevPath;
+
                 prevPath = pathBuild + @"...\" + lastPart;
             }
 
@@ -62,29 +65,32 @@ namespace Tauron
         public static void Clear(this DirectoryInfo dic)
         {
             if (dic == null) throw new ArgumentNullException(nameof(dic));
+
             if (!dic.Exists) return;
+
             dic.Attributes = FileAttributes.Normal;
 
             foreach (var entry in dic.GetFileSystemInfos())
-            {
                 switch (entry)
                 {
                     case FileInfo file:
                         file.Attributes = FileAttributes.Normal;
                         file.Delete();
+
                         break;
                     case DirectoryInfo dici:
                         dic.Attributes = FileAttributes.Normal;
                         Clear(dici);
                         dici.Delete();
+
                         break;
                 }
-            }
         }
 
         public static void ClearDirectory(this string dic)
         {
             if (dic == null) throw new ArgumentNullException(nameof(dic));
+
             Clear(new DirectoryInfo(dic));
         }
 
@@ -120,7 +126,7 @@ namespace Tauron
         {
             if (!source.ExisFile()) return;
 
-            File.Copy(source, destination, overwrite: true);
+            File.Copy(source, destination, true);
         }
 
         public static bool CreateDirectoryIfNotExis(this string path)
@@ -146,6 +152,7 @@ namespace Tauron
         public static bool CreateDirectoryIfNotExis(this DirectoryInfo dic)
         {
             if (dic.Exists) return false;
+
             dic.Create();
 
             return true;
@@ -163,11 +170,9 @@ namespace Tauron
 
             try
             {
-                if (Directory.Exists(path)) Directory.Delete(path, recursive: true);
+                if (Directory.Exists(path)) Directory.Delete(path, true);
             }
-            catch (UnauthorizedAccessException)
-            {
-            }
+            catch (UnauthorizedAccessException) { }
         }
 
         public static void DeleteDirectory(this string path, object sub)
@@ -183,12 +188,13 @@ namespace Tauron
 
         public static void DeleteDirectory(this string path, bool recursive)
         {
-            if (!string.IsNullOrWhiteSpace(path) && Directory.Exists(path)) new DirectoryInfo(path) {Attributes = FileAttributes.Normal}.Delete(recursive: true);
+            if (!string.IsNullOrWhiteSpace(path) && Directory.Exists(path)) new DirectoryInfo(path) { Attributes = FileAttributes.Normal }.Delete(true);
         }
 
         public static void DeleteDirectoryIfEmpty(this string path)
         {
             if (!Directory.Exists(path)) return;
+
             if (!Directory.EnumerateFileSystemEntries(path).Any()) Directory.Delete(path);
         }
 
@@ -202,6 +208,7 @@ namespace Tauron
         public static bool DirectoryConainsInvalidChars(this string path)
         {
             var invalid = Path.GetInvalidPathChars();
+
             return path.Any(invalid.Contains);
         }
 
@@ -236,6 +243,7 @@ namespace Tauron
             while (true)
             {
                 var line = reader.ReadLine();
+
                 if (line == null) yield break;
 
                 yield return line;
@@ -247,6 +255,7 @@ namespace Tauron
             while (true)
             {
                 var line = reader.ReadLine();
+
                 if (line == null) yield break;
 
                 yield return line;
@@ -334,43 +343,6 @@ namespace Tauron
             File.Move(realSource, realDest);
         }
 
-        public static Stream OpenRead(this string path, FileShare share)
-        {
-            path = path.GetFullPath();
-            #pragma warning disable GU0011
-            path.CreateDirectoryIfNotExis();
-            return new FileStream(path, FileMode.OpenOrCreate, FileAccess.Read, share);
-        }
-
-        public static Stream OpenRead(this string path) => OpenRead(path, FileShare.None);
-
-        public static StreamWriter OpenTextAppend(this string path)
-        {
-            path.CreateDirectoryIfNotExis();
-            return new StreamWriter(new FileStream(path, FileMode.Append, FileAccess.Write, FileShare.None));
-        }
-
-        public static StreamReader OpenTextRead(this string path) => File.OpenText(path);
-
-        public static StreamWriter OpenTextWrite(this string path)
-        {
-            path.CreateDirectoryIfNotExis();
-            return new StreamWriter(path);
-        }
-
-        public static Stream OpenWrite(this string path, bool delete = true) => OpenWrite(path, FileShare.None, delete);
-
-        public static Stream OpenWrite(this string path, FileShare share, bool delete = true)
-        {
-            if (delete)
-                path.DeleteFile();
-
-            path = path.GetFullPath();
-            path.CreateDirectoryIfNotExis();
-            #pragma warning restore GU0011
-            return new FileStream(path, FileMode.OpenOrCreate, FileAccess.Write, share);
-        }
-
         public static byte[] ReadAllBytesIfExis(this string path)
             => !File.Exists(path) ? Array.Empty<byte>() : File.ReadAllBytes(path);
 
@@ -390,23 +362,21 @@ namespace Tauron
             while (true)
             {
                 var line = reader.ReadLine();
+
                 if (line == null) break;
 
                 yield return line;
             }
         }
 
-        public static bool TryCreateUriWithoutScheme(this string str, [NotNullWhen(true)]out Uri? uri, params string[] scheme)
+        public static bool TryCreateUriWithoutScheme(this string str, [NotNullWhen(true)] out Uri? uri, params string[] scheme)
         {
             var creationOk = Uri.TryCreate(str, UriKind.RelativeOrAbsolute, out var target);
 
             // ReSharper disable once AccessToModifiedClosure
             if (creationOk)
-            {
                 foreach (var s in scheme.Where(_ => creationOk))
                     creationOk = target!.Scheme != s;
-                
-            }
 
             uri = creationOk ? target : null;
 
@@ -422,6 +392,46 @@ namespace Tauron
         public static void WriteTextContentTo(this string content, string workingDirectory, string path)
         {
             WriteTextContentTo(content, CombinePath(workingDirectory, path));
+        }
+
+        public static Stream OpenRead(this string path, FileShare share)
+        {
+            path = path.GetFullPath();
+            #pragma warning disable GU0011
+            path.CreateDirectoryIfNotExis();
+
+            return new FileStream(path, FileMode.OpenOrCreate, FileAccess.Read, share);
+        }
+
+        public static Stream OpenRead(this string path) => OpenRead(path, FileShare.None);
+
+        public static StreamWriter OpenTextAppend(this string path)
+        {
+            path.CreateDirectoryIfNotExis();
+
+            return new StreamWriter(new FileStream(path, FileMode.Append, FileAccess.Write, FileShare.None));
+        }
+
+        public static StreamReader OpenTextRead(this string path) => File.OpenText(path);
+
+        public static StreamWriter OpenTextWrite(this string path)
+        {
+            path.CreateDirectoryIfNotExis();
+
+            return new StreamWriter(path);
+        }
+
+        public static Stream OpenWrite(this string path, bool delete = true) => OpenWrite(path, FileShare.None, delete);
+
+        public static Stream OpenWrite(this string path, FileShare share, bool delete = true)
+        {
+            if (delete)
+                path.DeleteFile();
+
+            path = path.GetFullPath();
+            path.CreateDirectoryIfNotExis();
+            #pragma warning restore GU0011
+            return new FileStream(path, FileMode.OpenOrCreate, FileAccess.Write, share);
         }
     }
 }

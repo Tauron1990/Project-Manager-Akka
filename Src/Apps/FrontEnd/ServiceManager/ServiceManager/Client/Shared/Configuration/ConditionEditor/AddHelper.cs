@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 
@@ -27,23 +26,25 @@ namespace ServiceManager.Client.Shared.Configuration.ConditionEditor
             }
         }
 
-        public void NewItem(ElementItem data)
-        {
-            if (AddReciever != null)
-            {
-                AddReciever.Add(data);
-                return;
-            }
-            DefaultReciever?.Add(data);
-        }
-
-        public void RemoveItem(ElementItem item)
-            => _remove.OnNext(item);
-
         public void Dispose()
         {
             _changed.Dispose();
             _remove.Dispose();
         }
+
+        public void NewItem(ElementItem data)
+        {
+            if (AddReciever != null)
+            {
+                AddReciever.Add(data);
+
+                return;
+            }
+
+            DefaultReciever?.Add(data);
+        }
+
+        public void RemoveItem(ElementItem item)
+            => _remove.OnNext(item);
     }
 }

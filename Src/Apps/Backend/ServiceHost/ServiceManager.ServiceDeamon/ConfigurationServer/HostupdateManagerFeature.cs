@@ -15,8 +15,6 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
 {
     public sealed class HostupdateManagerFeature : ActorFeatureBase<HostupdateManagerFeature.State>
     {
-        public sealed record State(IObservable<IConfigEvent> EventPublisher, SourceList<string> Hosts, ServerConfigugration ServerConfigugration, IRepository<SeedUrlEntity, string> Seeds);
-
         public static IPreparedFeature New(IObservable<IConfigEvent> publisher, ConfigFeatureConfiguration config)
             => Feature.Create(() => new HostupdateManagerFeature(), new State(publisher, new SourceList<string>(), config.Configugration, config.Seeds));
 
@@ -25,13 +23,13 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
             CurrentState.Hosts.DisposeWith(this);
 
             HostApi.CreateOrGet(Context.System)
-                   .Event<HostEntryChanged>()
-                   .DisposeWith(this);
+               .Event<HostEntryChanged>()
+               .DisposeWith(this);
 
             (from evt in CurrentState.EventPublisher
              where evt is ServerConfigurationEvent
-             from state in UpdateAndSyncActor((ServerConfigurationEvent) evt)
-             select state.State with {ServerConfigugration = state.Event.Configugration})
+             from state in UpdateAndSyncActor((ServerConfigurationEvent)evt)
+             select state.State with { ServerConfigugration = state.Event.Configugration })
                .AutoSubscribe(UpdateState).DisposeWith(this);
 
             Receive<HostEntryChanged>(
@@ -42,13 +40,14 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
                        let state = entryChange.State
                        select state with
                               {
-                                  Hosts = state.Hosts.DoAnd(l =>
-                                                            {
-                                                                if (remove)
-                                                                    l.Remove(name);
-                                                                else
-                                                                    l.Add(name);
-                                                            })
+                                  Hosts = state.Hosts.DoAnd(
+                                      l =>
+                                      {
+                                          if (remove)
+                                              l.Remove(name);
+                                          else
+                                              l.Add(name);
+                                      })
                               });
 
             (from change in CurrentState.Hosts.Connect()
@@ -56,7 +55,7 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
              where item.Reason == ListChangeReason.Add
              select Context.ActorOf(item.Current, HostMonitor.New(item.Current, CurrentState.EventPublisher, CurrentState.ServerConfigugration, CurrentState.Seeds))
                 ).AutoSubscribe(e => Log.Error(e, "Error On Start Host Monitor"))
-                 .DisposeWith(this);
+               .DisposeWith(this);
 
             (from change in CurrentState.Hosts.Connect()
              from item in change.Flatten()
@@ -65,7 +64,9 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
              where !child.IsNobody()
              select child
                 ).AutoSubscribe(c => Context.Stop(c), e => Log.Error(e, "Error On Stop Host monitor"))
-                 .DisposeWith(this);
+               .DisposeWith(this);
         }
+
+        public sealed record State(IObservable<IConfigEvent> EventPublisher, SourceList<string> Hosts, ServerConfigugration ServerConfigugration, IRepository<SeedUrlEntity, string> Seeds);
     }
 }

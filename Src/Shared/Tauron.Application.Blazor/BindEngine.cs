@@ -16,15 +16,26 @@ namespace Tauron.Application.Blazor
         private IActorComponent? _component;
         private ComponentUIObject? _uiObject;
 
-        internal BindEngine()
+        internal BindEngine() { }
+
+        public void Dispose()
         {
+            lock (_lock)
+            {
+                foreach (var binding in _bindings) binding.Binding.Dispose();
+
+                _bindings = null!;
+                _component = null;
+                _uiObject = null;
+            }
         }
 
         internal void Initialize(ActorComponentBase<TModel> component, IViewModel<TModel> model)
         {
             lock (_lock)
             {
-                if(ReferenceEquals(_component, component)) return;
+                if (ReferenceEquals(_component, component)) return;
+
                 _component = component;
                 _uiObject = new ComponentUIObject(component, null, model);
 
@@ -65,20 +76,5 @@ namespace Tauron.Application.Blazor
         }
 
         private record BindingRegistration(string PropertyName, IInternalbinding Binding);
-
-        public void Dispose()
-        {
-            lock (_lock)
-            {
-                foreach (var binding in _bindings)
-                {
-                    binding.Binding.Dispose();
-                }
-
-                _bindings = null!;
-                _component = null;
-                _uiObject = null;
-            }
-        }
     }
 }

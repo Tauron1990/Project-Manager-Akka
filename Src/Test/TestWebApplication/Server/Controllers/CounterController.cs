@@ -7,24 +7,26 @@ using TestWebApplication.Shared.Counter;
 namespace TestWebApplication.Server.Controllers
 {
     [Route("api/[controller]/[action]")]
-    [ApiController, JsonifyErrors]
+    [ApiController]
+    [JsonifyErrors]
     public class CounterController : Controller, ICounterService
     {
         private readonly ICounterService _counterService;
 
-        public CounterController(ICounterService counterService) 
+        public CounterController(ICounterService counterService)
             => _counterService = counterService;
 
-        [HttpGet, Publish]
-        public Task<int> GetCounter(string key, CancellationToken token = default) 
+        [HttpGet]
+        [Publish]
+        public Task<int> GetCounter(string key, CancellationToken token = default)
             => _counterService.GetCounter(key, token);
 
         [HttpPost]
-        public Task Increment([FromBody]IncrementCommand command, CancellationToken token = default) 
+        public Task Increment([FromBody] IncrementCommand command, CancellationToken token = default)
             => _counterService.Increment(command, token);
 
         [HttpPost]
-        public Task SetOffset([FromBody]SetOffsetCommand command, CancellationToken token = default) 
+        public Task SetOffset([FromBody] SetOffsetCommand command, CancellationToken token = default)
             => _counterService.SetOffset(command, token);
     }
 }

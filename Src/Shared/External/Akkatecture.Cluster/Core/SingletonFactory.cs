@@ -44,7 +44,8 @@ namespace Akkatecture.Cluster.Core
 
             var domainEventSubscriberProps = Props.Create(domainEventSubscriberFactory);
 
-            actorSystem.ActorOf(ClusterSingletonManager.Props(
+            actorSystem.ActorOf(
+                ClusterSingletonManager.Props(
                     Props.Create(() => new ClusterParentProxy(domainEventSubscriberProps, true)),
                     PoisonPill.Instance,
                     ClusterSingletonManagerSettings.Create(actorSystem).WithRole(roleName).WithSingletonName(name)),
@@ -52,8 +53,10 @@ namespace Akkatecture.Cluster.Core
 
             var proxy = StartSingletonSubscriberProxy(actorSystem, roleName);
 
-            actorSystem.ActorOf(Props.Create(() =>
-                    new SingletonDomainEventSubscriberDispatcher<TDomainEventSubscriber>(proxy)),
+            actorSystem.ActorOf(
+                Props.Create(
+                    () =>
+                        new SingletonDomainEventSubscriberDispatcher<TDomainEventSubscriber>(proxy)),
                 $"{typeof(TDomainEventSubscriber).Name}Dispatcher");
 
             return proxy;
@@ -63,7 +66,8 @@ namespace Akkatecture.Cluster.Core
         {
             var name = typeof(TDomainEventSubscriber).Name;
 
-            var proxy = actorSystem.ActorOf(ClusterSingletonProxy.Props(
+            var proxy = actorSystem.ActorOf(
+                ClusterSingletonProxy.Props(
                     $"/user/{name}",
                     ClusterSingletonProxySettings.Create(actorSystem).WithRole(roleName).WithSingletonName(name)),
                 $"{name}Proxy");

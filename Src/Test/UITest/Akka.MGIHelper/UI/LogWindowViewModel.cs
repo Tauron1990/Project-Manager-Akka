@@ -18,17 +18,19 @@ namespace Akka.MGIHelper.UI
             UnhandledMessages = this.RegisterUiCollection<string>(nameof(UnhandledMessages)).BindToList(out var list);
             list.Add("Start");
 
-            this.SubscribeToEvent<UnhandledMessage>(obs =>
-                                                        obs
-                                                           .SubscribeWithStatus(obj =>
-                                                                                {
-                                                                                    var builder = new StringBuilder($"Name: {obj.GetType().Name}");
+            this.SubscribeToEvent<UnhandledMessage>(
+                obs =>
+                    obs
+                       .SubscribeWithStatus(
+                            obj =>
+                            {
+                                var builder = new StringBuilder($"Name: {obj.GetType().Name}");
 
-                                                                                    foreach (var propertyInfo in obj.Message.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
-                                                                                        builder.Append($" - {propertyInfo.GetValue(obj.Message)}");
+                                foreach (var propertyInfo in obj.Message.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
+                                    builder.Append($" - {propertyInfo.GetValue(obj.Message)}");
 
-                                                                                    list.Add(builder.ToString());
-                                                                                }));
+                                list.Add(builder.ToString());
+                            }));
         }
 
         private UICollectionProperty<string> UnhandledMessages { get; }

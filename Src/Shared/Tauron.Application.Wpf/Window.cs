@@ -18,19 +18,9 @@ namespace Tauron.Application.Wpf
 
         protected Window(IViewModel viewModel)
         {
-            _element = (IWindow) ElementMapper.Create(this);
+            _element = (IWindow)ElementMapper.Create(this);
             _controlLogic = new WindowControlLogic(this, viewModel);
         }
-
-        IUIObject? IUIObject.GetPerent() => _element.GetPerent();
-
-        public object Object => this;
-
-        IObservable<object> IUIElement.DataContextChanged => _element.DataContextChanged;
-
-        IObservable<Unit> IUIElement.Loaded => _element.Loaded;
-
-        IObservable<Unit> IUIElement.Unloaded => _element.Unloaded;
 
         public void Register(string key, IControlBindable bindable, IUIObject affectedPart)
         {
@@ -48,7 +38,17 @@ namespace Tauron.Application.Wpf
             remove => _controlLogic.ControlUnload -= value;
         }
 
-        IWindow IWindowProvider.Window => _element;
+        IUIObject? IUIObject.GetPerent() => _element.GetPerent();
+
+        public object Object => this;
+
+        IObservable<object> IUIElement.DataContextChanged => _element.DataContextChanged;
+
+        IObservable<Unit> IUIElement.Loaded => _element.Loaded;
+
+        IObservable<Unit> IUIElement.Unloaded => _element.Unloaded;
         Task<bool?> IWindow.ShowDialog() => _element.ShowDialog();
+
+        IWindow IWindowProvider.Window => _element;
     }
 }

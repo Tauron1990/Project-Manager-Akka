@@ -2,8 +2,5 @@
 
 namespace ServiceHost.Services
 {
-    public interface IAppManager : IFeatureActorRef<IAppManager>
-    {
-
-    }
+    public interface IAppManager : IFeatureActorRef<IAppManager> { }
 }

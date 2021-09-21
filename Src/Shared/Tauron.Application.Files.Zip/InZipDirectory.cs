@@ -14,8 +14,9 @@ namespace Tauron.Application.Files.Zip
         private InternalZipDirectory _dic;
         private ZipFile _file;
 
-        protected InZipDirectory(IDirectory? parentDirectory, string originalPath, InternalZipDirectory dic, ZipFile file,
-                                 string      name)
+        protected InZipDirectory(
+            IDirectory? parentDirectory, string originalPath, InternalZipDirectory dic, ZipFile file,
+            string name)
             : base(() => parentDirectory, originalPath, name)
         {
             _dic = dic;
@@ -26,14 +27,20 @@ namespace Tauron.Application.Files.Zip
 
         public override bool Exist => _dic.ZipEntry != null || _dic.Files.Count + _dic.Directorys.Count > 0;
 
-        public override IEnumerable<IDirectory> Directories => _dic.Directorys.Select(internalZipDirectory
-            => new InZipDirectory(this, OriginalPath.CombinePath(internalZipDirectory.Name), internalZipDirectory,
-                _file, internalZipDirectory.Name));
+        public override IEnumerable<IDirectory> Directories => _dic.Directorys.Select(
+            internalZipDirectory
+                => new InZipDirectory(
+                    this,
+                    OriginalPath.CombinePath(internalZipDirectory.Name),
+                    internalZipDirectory,
+                    _file,
+                    internalZipDirectory.Name));
 
-        public override IEnumerable<IFile> Files => _dic.Files.Select(ent
-            => new InZipFile(this, OriginalPath.CombinePath(InternalZipDirectory.GetFileName(ent)), _file, _dic, ent));
+        public override IEnumerable<IFile> Files => _dic.Files.Select(
+            ent
+                => new InZipFile(this, OriginalPath.CombinePath(InternalZipDirectory.GetFileName(ent)), _file, _dic, ent));
 
-        public override IDirectory GetDirectory(string name) 
+        public override IDirectory GetDirectory(string name)
             => throw new NotSupportedException("Zip Directory Resolution not SUpported");
 
         protected override void DeleteImpl()
@@ -62,6 +69,7 @@ namespace Tauron.Application.Files.Zip
             if (parts.Length <= 1)
             {
                 var compledetPath = OriginalPath.CombinePath(name);
+
                 return new InZipFile(this, compledetPath, _file, _dic, _file[compledetPath]);
             }
 
@@ -73,7 +81,11 @@ namespace Tauron.Application.Files.Zip
             for (var i = 0; i < parts.Length; i++)
             {
                 if (i == parts.Length - 1)
-                    return new InZipFile(inZipParent, originalPath.Append('\\').Append(parts[i]).ToString(), _file, dic,
+                    return new InZipFile(
+                        inZipParent,
+                        originalPath.Append('\\').Append(parts[i]).ToString(),
+                        _file,
+                        dic,
                         _file[originalPath.ToString()]);
 
                 dic = dic.GetOrAdd(parts[i]);
@@ -84,7 +96,7 @@ namespace Tauron.Application.Files.Zip
             throw new FileNotFoundException("File in zip Directory not Found");
         }
 
-        public override IDirectory MoveTo(string location) 
+        public override IDirectory MoveTo(string location)
             => throw new NotSupportedException("Zip Directory Moving not Supported");
 
         protected void ResetDirectory(ZipFile file, InternalZipDirectory directory)

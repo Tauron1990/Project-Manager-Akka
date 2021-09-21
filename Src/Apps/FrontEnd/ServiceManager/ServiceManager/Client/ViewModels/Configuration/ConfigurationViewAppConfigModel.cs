@@ -13,35 +13,35 @@ using Tauron.Application;
 
 namespace ServiceManager.Client.ViewModels.Configuration
 {
-
     public sealed record AppConfigData(AppConfigModel? NewModel, AppConfigModel? ToEdit)
     {
         [UsedImplicitly]
         public AppConfigData()
             : this(null, null) { }
     }
-    
+
     public sealed class ConfigurationViewAppConfigModel
     {
-        private readonly IMutableState<AppConfigData> _viewState;
-        private readonly IServerConfigurationApi      _api;
-        private readonly IDialogService               _dialogService;
-        private readonly IEventAggregator             _aggregator;
+        private readonly IEventAggregator _aggregator;
+        private readonly IServerConfigurationApi _api;
+        private readonly IDialogService _dialogService;
         private readonly EditorState _editorState;
+        private readonly IMutableState<AppConfigData> _viewState;
 
-        public ConfigurationViewAppConfigModel(IMutableState<AppConfigData> viewState, IServerConfigurationApi api, IDialogService dialogService, IEventAggregator aggregator,
-                                               EditorState editorState)
+        public ConfigurationViewAppConfigModel(
+            IMutableState<AppConfigData> viewState, IServerConfigurationApi api, IDialogService dialogService, IEventAggregator aggregator,
+            EditorState editorState)
         {
             _viewState = viewState;
-            _api            = api;
-            _dialogService  = dialogService;
-            _aggregator     = aggregator;
+            _api = api;
+            _dialogService = dialogService;
+            _aggregator = aggregator;
             _editorState = editorState;
         }
 
         public async Task CommitConfig(AppConfigModel model)
         {
-            bool reset = false;
+            var reset = false;
             try
             {
                 if (_editorState.ChangesWhereMade)
@@ -51,10 +51,12 @@ namespace ServiceManager.Client.ViewModels.Configuration
                     {
                         case null:
                             _aggregator.PublishWarnig("Vorgang Abbgebrochen");
+
                             return;
                         case true:
                             if (!_editorState.CommitChanges(model, _aggregator))
                                 return;
+
                             break;
                     }
                 }
@@ -63,14 +65,15 @@ namespace ServiceManager.Client.ViewModels.Configuration
                 if (!string.IsNullOrWhiteSpace(validResult))
                 {
                     _aggregator.PublishWarnig(validResult);
+
                     return;
                 }
-                
+
                 var data = model.CreateNew();
 
                 model.IsNew = false;
                 reset = await _aggregator.IsSuccess(() => _api.UpdateSpecificConfig(new UpdateSpecifcConfigCommand(data)));
-                if(reset)
+                if (reset)
                     _aggregator.PublishSuccess($"Änderungen angewended für {data.Name}");
             }
             catch (Exception e)
@@ -79,17 +82,17 @@ namespace ServiceManager.Client.ViewModels.Configuration
             }
             finally
             {
-                if(reset)
-                    _viewState.Set(_viewState.Value with{ ToEdit = null, NewModel = null });
+                if (reset)
+                    _viewState.Set(_viewState.Value with { ToEdit = null, NewModel = null });
             }
         }
-        
+
         public async Task NewConfig(ImmutableList<AppConfigModel> appConfigs)
         {
             try
             {
                 var dialog = _dialogService.Show<NewAppConfigDialog>(
-                    String.Empty,
+                    string.Empty,
                     new DialogParameters
                     {
                         {
@@ -100,7 +103,9 @@ namespace ServiceManager.Client.ViewModels.Configuration
 
                 var result = await dialog.Result;
                 if (result.Cancelled)
+                {
                     _aggregator.PublishWarnig("Der Vorgang wurde Abgebrochen");
+                }
                 else
                 {
                     if (result.Data is string name
@@ -112,11 +117,13 @@ namespace ServiceManager.Client.ViewModels.Configuration
                                         IsNew = true
                                     };
 
-                        _viewState.Set(_viewState.Value with{ NewModel = model });
+                        _viewState.Set(_viewState.Value with { NewModel = model });
                         EditConfig(model);
                     }
                     else
+                    {
                         _aggregator.PublishWarnig("Der name nicht Valid");
+                    }
                 }
             }
             catch (Exception e)

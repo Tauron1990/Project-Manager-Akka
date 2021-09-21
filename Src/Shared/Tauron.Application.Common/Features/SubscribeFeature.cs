@@ -21,38 +21,52 @@ namespace Tauron.Features
 
             actor.Receive<EventSubscribe>(
                 obs => obs.Where(_ => !actor.Sender.IsNobody())
-                          .Do(statePair => statePair.Event.Watch.WhenTrue(()
-                                                              => actor.Context.WatchWith(actor.Sender, new KeyHint(actor.Sender, statePair.Event.Event))))
-                          .Select(statePair =>
-                                  {
-                                      var ((_, @event), state, _) = statePair;
+                   .Do(
+                        statePair => statePair.Event.Watch.WhenTrue(
+                            ()
+                                => actor.Context.WatchWith(actor.Sender, new KeyHint(actor.Sender, statePair.Event.Event))))
+                   .Select(
+                        statePair =>
+                        {
+                            var ((_, @event), state, _) = statePair;
 
-                                      actor.TellSelf(new InternalEventSubscription(actor.Sender, @event));
-                                      return state.Update(@event, refs => refs.Add(actor.Sender));
-                                  }));
+                            actor.TellSelf(new InternalEventSubscription(actor.Sender, @event));
+
+                            return state.Update(@event, refs => refs.Add(actor.Sender));
+                        }));
 
             actor.Receive<EventUnSubscribe>(
                 obs => obs.Where(_ => !actor.Sender.IsNobody())
-                          .Select(statePair =>
-                                  {
-                                      actor.Context.Unwatch(actor.Sender);
-                                      var (eventUnSubscribe, state, _) = statePair;
-                                      return state.Update(eventUnSubscribe.Event, refs => refs.Remove(actor.Sender));
-                                  }));
+                   .Select(
+                        statePair =>
+                        {
+                            actor.Context.Unwatch(actor.Sender);
+                            var (eventUnSubscribe, state, _) = statePair;
+
+                            return state.Update(eventUnSubscribe.Event, refs => refs.Remove(actor.Sender));
+                        }));
 
             actor.Receive<SendEvent>(
-                obs => obs.ToUnit(statePair =>
-                                  {
-                                      var ((@event, eventType), state, _) = statePair;
+                obs => obs.ToUnit(
+                    statePair =>
+                    {
+                        var ((@event, eventType), state, _) = statePair;
 
-                                      if (state.Subscriptions.TryGetValue(eventType, out var intrests))
-                                          intrests.ForEach(actorRef => actorRef.Tell(@event));
-                                  }));
+                        if (state.Subscriptions.TryGetValue(eventType, out var intrests))
+                            intrests.ForEach(actorRef => actorRef.Tell(@event));
+                    }));
         }
+
+        public void Dispose() { }
+
+        public void AddResource(IDisposable res) => throw new NotSupportedException("ResourceHolding not Supported");
+
+        public void RemoveResource(IDisposable res) => throw new NotSupportedException("ResourceHolding not Supported");
 
         [PublicAPI]
         public static IPreparedFeature New()
-            => Feature.Create(() => new SubscribeFeature(),
+            => Feature.Create(
+                () => new SubscribeFeature(),
                 new State(ImmutableDictionary<Type, ImmutableList<IActorRef>>.Empty));
 
         public sealed record State(ImmutableDictionary<Type, ImmutableList<IActorRef>> Subscriptions)
@@ -61,30 +75,22 @@ namespace Tauron.Features
             {
                 if (!Subscriptions.TryGetValue(type, out var list))
                     return this with
-                    {
-                        Subscriptions = Subscriptions.SetItem(type, listUpdate(ImmutableList<IActorRef>.Empty))
-                    };
+                           {
+                               Subscriptions = Subscriptions.SetItem(type, listUpdate(ImmutableList<IActorRef>.Empty))
+                           };
 
                 list = listUpdate(list);
-                if (list.IsEmpty)
-                    return this with {Subscriptions = Subscriptions.Remove(type)};
 
-                return this with {Subscriptions = Subscriptions.SetItem(type, list)};
+                if (list.IsEmpty)
+                    return this with { Subscriptions = Subscriptions.Remove(type) };
+
+                return this with { Subscriptions = Subscriptions.SetItem(type, list) };
             }
         }
 
         private sealed record KeyHint(IActorRef Target, Type Key);
 
         public sealed record InternalEventSubscription(IActorRef Intrest, Type Type);
-
-        public void Dispose()
-        {
-            
-        }
-
-        public void AddResource(IDisposable res) => throw new NotSupportedException("ResourceHolding not Supported");
-
-        public void RemoveResource(IDisposable res) => throw new NotSupportedException("ResourceHolding not Supported");
     }
 
     [PublicAPI]

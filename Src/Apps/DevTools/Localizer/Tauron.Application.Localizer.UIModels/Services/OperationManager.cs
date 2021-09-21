@@ -31,40 +31,45 @@ namespace Tauron.Application.Localizer.UIModels.Services
 
         public IObservable<OperationController> StartOperation(string name)
         {
-            return _dispatcher.InvokeAsync(() =>
-            {
-                var op = new RunningOperation(Guid.NewGuid().ToString(), name)
-                    {Status = _localizer.OperationControllerRunning};
-                if (_operations.Count > 15)
-                    Clear();
+            return _dispatcher.InvokeAsync(
+                () =>
+                {
+                    var op = new RunningOperation(Guid.NewGuid().ToString(), name)
+                             { Status = _localizer.OperationControllerRunning };
+                    if (_operations.Count > 15)
+                        Clear();
 
-                _operations.Add(op);
-                return new OperationController(op, _localizer, OperationChanged, _fail);
-            });
+                    _operations.Add(op);
+
+                    return new OperationController(op, _localizer, OperationChanged, _fail);
+                });
         }
 
         public IObservable<OperationController?> Find(string id)
         {
-            return _dispatcher.InvokeAsync(() =>
-            {
-                var op = _operations.FirstOrDefault(ro => ro.Key == id);
-                return op == null ? null : new OperationController(op, _localizer, OperationChanged, _fail);
-            });
+            return _dispatcher.InvokeAsync(
+                () =>
+                {
+                    var op = _operations.FirstOrDefault(ro => ro.Key == id);
+
+                    return op == null ? null : new OperationController(op, _localizer, OperationChanged, _fail);
+                });
         }
 
         public IObservable<bool> ShouldClear()
         {
             return _operations.WhenPropertyChanged(l => l.RunningOperations, notifyOnInitialValue: false)
-                .Select(v => v.Sender.Count != v.Value);
+               .Select(v => v.Sender.Count != v.Value);
         }
 
         public void Clear()
         {
-            _dispatcher.InvokeAsync(() =>
-            {
-                foreach (var operation in _operations.Where(op => op.Operation == OperationStatus.Success).ToArray())
-                    _operations.Remove(operation);
-            }).Ignore();
+            _dispatcher.InvokeAsync(
+                () =>
+                {
+                    foreach (var operation in _operations.Where(op => op.Operation == OperationStatus.Success).ToArray())
+                        _operations.Remove(operation);
+                }).Ignore();
         }
 
         public IObservable<bool> ShouldCompledClear()
@@ -74,11 +79,12 @@ namespace Tauron.Application.Localizer.UIModels.Services
 
         public void CompledClear()
         {
-            _dispatcher.InvokeAsync(() =>
-            {
-                foreach (var operation in _operations.Where(op => op.Operation != OperationStatus.Running).ToArray())
-                    _operations.Remove(operation);
-            }).Ignore();
+            _dispatcher.InvokeAsync(
+                () =>
+                {
+                    foreach (var operation in _operations.Where(op => op.Operation != OperationStatus.Running).ToArray())
+                        _operations.Remove(operation);
+                }).Ignore();
         }
 
 

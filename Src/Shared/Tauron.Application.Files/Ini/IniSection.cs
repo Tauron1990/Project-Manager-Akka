@@ -11,20 +11,25 @@ namespace Tauron.Application.Files.Ini
     public sealed record IniSection(string Name, ImmutableDictionary<string, IniEntry> Entries) : IEnumerable<IniEntry>
     {
         public IniSection(string name)
-            : this(name, ImmutableDictionary<string, IniEntry>.Empty)
-        { }
+            : this(name, ImmutableDictionary<string, IniEntry>.Empty) { }
+
+        public IEnumerator<IniEntry> GetEnumerator() => Entries.Values.GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         public SingleIniEntry? GetSingleEntry(string name)
         {
             if (Entries.TryGetValue(name, out var entry))
                 return entry as SingleIniEntry;
+
             return null;
         }
 
         public IniSection AddSingleKey(string name)
         {
             var entry = new SingleIniEntry(name, null);
-            return this with{Entries = Entries.Add(name, entry)};
+
+            return this with { Entries = Entries.Add(name, entry) };
         }
 
         public ListIniEntry? GetListEntry(string name)
@@ -33,9 +38,5 @@ namespace Tauron.Application.Files.Ini
 
             return value as ListIniEntry;
         }
-
-        public IEnumerator<IniEntry> GetEnumerator() => Entries.Values.GetEnumerator();
-
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

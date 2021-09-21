@@ -32,6 +32,7 @@ else
     [Parameter]
     public ConfigurationOptionsViewModel.OptionElement Element { get; set; } = ConfigurationOptionsViewModel.DefaultElement;
 
-    private async Task SendOption(ConfigurationOptionsViewModel.MutableConfigOption option) 
+    private async Task SendOption(ConfigurationOptionsViewModel.MutableConfigOption option)
         => await OptionSelected.InvokeAsync(new OptionSelected(option.Path, option.CurrentValue));
+
 }

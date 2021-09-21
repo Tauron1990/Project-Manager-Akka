@@ -19,7 +19,7 @@ namespace ServiceHost.Installer
 
         public void Run()
         {
-            if(_trigger.Install != InstallType.Manual) return;
+            if (_trigger.Install != InstallType.Manual) return;
 
             if (_trigger.AppType == AppType.Host)
                 _trigger.AppName = "Host Self Update";

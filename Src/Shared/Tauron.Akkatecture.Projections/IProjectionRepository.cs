@@ -13,7 +13,8 @@ namespace Tauron.Akkatecture.Projections
             where TProjection : class, IProjectorData<TIdentity>
             where TIdentity : IIdentity;
 
-        Task<TProjection> Create<TProjection, TIdentity>(ProjectionContext context, TIdentity identity,
+        Task<TProjection> Create<TProjection, TIdentity>(
+            ProjectionContext context, TIdentity identity,
             Func<TProjection, bool> shouldoverwite)
             where TProjection : class, IProjectorData<TIdentity>
             where TIdentity : IIdentity;

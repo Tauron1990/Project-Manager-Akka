@@ -38,7 +38,7 @@ namespace Tauron.Application.Wpf
             _isFe = fe != null;
             _isFce = fce != null;
             IsValid = _isFce || _isFe;
-            
+
             if (fe != null) _fe = new ElementReference<FrameworkElement>(fe, isWeak);
             else if (fce != null) _fce = new ElementReference<FrameworkContentElement>(fce, isWeak);
         }
@@ -50,6 +50,7 @@ namespace Tauron.Application.Wpf
                 if (!IsValid) return null;
 
                 if (TryGetFrameworkElement(out var fe)) return fe.DataContext;
+
                 return TryGetFrameworkContentElement(out var fce) ? fce.DataContext : null;
             }
 
@@ -69,6 +70,7 @@ namespace Tauron.Application.Wpf
             get
             {
                 if (_isFe) return _fe.Value.Target.Value;
+
                 return _isFce ? _fce.Value.Target.Value : Option<DependencyObject>.None;
             }
         }
@@ -80,6 +82,7 @@ namespace Tauron.Application.Wpf
                 if (!IsValid) return Option<DependencyObject>.None;
 
                 if (TryGetFrameworkElement(out var fe)) return fe.Parent.OptionNotNull();
+
                 return TryGetFrameworkContentElement(out var fce) ? fce.Parent.OptionNotNull() : Option<DependencyObject>.None;
             }
         }
@@ -108,6 +111,7 @@ namespace Tauron.Application.Wpf
         {
             if (TryGetFrameworkElement(out var el))
                 return ElementMapper.Create(el);
+
             return TryGetFrameworkContentElement(out var ce) ? ElementMapper.Create(ce) : null;
         }
 
@@ -163,10 +167,12 @@ namespace Tauron.Application.Wpf
             if (temp is null)
             {
                 frameworkElement = null;
+
                 return false;
             }
 
             frameworkElement = temp;
+
             return true;
         }
 
@@ -183,7 +189,7 @@ namespace Tauron.Application.Wpf
                 if (isWeak) _weakRef = new WeakReference<TReference>(reference);
                 else _reference = reference;
             }
-            
+
             internal Option<TReference> Target => _weakRef.Select(v => v.TypedTarget()).GetOrElse(_reference);
 
             public bool IsAlive => _weakRef.IsEmpty || _weakRef.Value.IsAlive();

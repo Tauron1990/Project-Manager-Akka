@@ -10,12 +10,19 @@ namespace Tauron.Application
     {
         private string? _defaultPath;
 
+        internal TauronEnviromentImpl()
+        {
+            LocalApplicationData = TauronEnviroment.LocalApplicationData;
+            LocalApplicationTempFolder = TauronEnviroment.LocalApplicationTempFolder;
+        }
+
         string ITauronEnviroment.DefaultProfilePath
         {
             get
             {
                 if (string.IsNullOrWhiteSpace(_defaultPath))
                     _defaultPath = TauronEnviroment.DefaultPath.Value;
+
                 return _defaultPath;
             }
 
@@ -28,14 +35,8 @@ namespace Tauron.Application
 
         public IEnumerable<string> GetProfiles(string application)
             => TauronEnviroment.DefaultProfilePath.CombinePath(application)
-                               .EnumerateDirectorys()
-                               .Select(ent => ent.Split('\\').Last());
-
-        internal TauronEnviromentImpl()
-        {
-            LocalApplicationData = TauronEnviroment.LocalApplicationData;
-            LocalApplicationTempFolder = TauronEnviroment.LocalApplicationTempFolder;
-        }
+               .EnumerateDirectorys()
+               .Select(ent => ent.Split('\\').Last());
     }
 
     [PublicAPI]
@@ -43,14 +44,16 @@ namespace Tauron.Application
     {
         public static string AppRepository = "Tauron";
 
-        internal static Lazy<string> DefaultPath = new(() =>
-                                                      {
-                                                          var defaultPath = LocalApplicationData;
-                                                          #pragma warning disable GU0011
-                                                          defaultPath.CreateDirectoryIfNotExis();
-                                                          #pragma warning restore GU0011
-                                                          return defaultPath;
-                                                      }, LazyThreadSafetyMode.ExecutionAndPublication);
+        internal static Lazy<string> DefaultPath = new(
+            () =>
+            {
+                var defaultPath = LocalApplicationData;
+                #pragma warning disable GU0011
+                defaultPath.CreateDirectoryIfNotExis();
+                #pragma warning restore GU0011
+                return defaultPath;
+            },
+            LazyThreadSafetyMode.ExecutionAndPublication);
 
         public static string DefaultProfilePath => DefaultPath.Value;
 

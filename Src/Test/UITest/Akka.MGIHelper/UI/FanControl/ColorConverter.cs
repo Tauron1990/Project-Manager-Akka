@@ -12,13 +12,12 @@ namespace Akka.MGIHelper.UI.FanControl
         {
             if (value == null) return Brushes.Black;
 
-            if ((bool) value) return Brushes.Green;
+            if ((bool)value) return Brushes.Green;
+
             return Brushes.Red;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            return false;
-        }
+            => false;
     }
 }

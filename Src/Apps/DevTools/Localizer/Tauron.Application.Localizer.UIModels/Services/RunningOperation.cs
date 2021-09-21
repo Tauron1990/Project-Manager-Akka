@@ -32,6 +32,7 @@ namespace Tauron.Application.Localizer.UIModels.Services
             set
             {
                 if (value == _status) return;
+
                 _status = value;
                 OnPropertyChanged();
             }
@@ -43,6 +44,7 @@ namespace Tauron.Application.Localizer.UIModels.Services
             set
             {
                 if (value == _operation) return;
+
                 _operation = value;
                 OnPropertyChanged();
             }

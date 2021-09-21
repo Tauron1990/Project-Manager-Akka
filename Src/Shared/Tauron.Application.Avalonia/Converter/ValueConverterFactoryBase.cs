@@ -46,9 +46,7 @@ namespace Tauron.Application.Avalonia.Converter
             protected override string Convert(TType value) => _converter(value);
         }
 
-        protected abstract class StringConverterBase<TSource> : ValueConverterBase<TSource, string>
-        {
-        }
+        protected abstract class StringConverterBase<TSource> : ValueConverterBase<TSource, string> { }
 
         protected abstract class ValueConverterBase<TSource, TDest> : IValueConverter
         {

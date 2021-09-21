@@ -14,6 +14,7 @@ using ServiceManager.Shared.Identity;
 using Stl.Fusion;
 using Stl.Fusion.Authentication;
 using Stl.Fusion.Authentication.Commands;
+using Stl.Fusion.EntityFramework;
 using Stl.Fusion.EntityFramework.Authentication;
 using Stl.Fusion.Server.Authentication;
 using Stl.Text;
@@ -22,31 +23,20 @@ using Tauron;
 namespace ServiceManager.Server.AppCore.Identity
 {
     [UsedImplicitly]
-    public class UserManagment : Stl.Fusion.EntityFramework.DbServiceBase<UsersDatabase>, IUserManagement
+    public class UserManagment : DbServiceBase<UsersDatabase>, IUserManagement
     {
-        public static async Task<(User FusionUser, IdentityUser IdentityUser)> Create(string name, UserManager<IdentityUser> manager)
-        {
-            var user = await manager.FindByNameAsync(name);
-            var usr = new User(new Symbol(user.Id), user.UserName)
-               .WithIdentity(new UserIdentity(IdentityConstants.ApplicationScheme, user.Id));
-
-            return ((await manager.GetClaimsAsync(user)).Aggregate(usr, (current, claim) => current.WithClaim(claim.Type, claim.Value)), user);
-        }
-
         private readonly IDbUserRepo<UsersDatabase, FusionUserEntity, string> _authService;
 
         public UserManagment(IServiceProvider services, IDbUserRepo<UsersDatabase, FusionUserEntity, string> authService)
             : base(services)
-        {
-            _authService = authService;
-        }
+            => _authService = authService;
 
         public virtual async Task<bool> NeedSetup(CancellationToken token = default)
         {
             if (Computed.IsInvalidating()) return false;
 
             using var scope = Services.CreateScope();
-            var       repo  = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+            var repo = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
 
             return !await repo.Users.AnyAsync(token);
         }
@@ -129,6 +119,7 @@ namespace ServiceManager.Server.AppCore.Identity
                     catch (Exception e)
                     {
                         Log.LogError(e, "Error on Set new Password for User: {User}", command.UserId);
+
                         return e.Message;
                     }
                 });
@@ -145,35 +136,34 @@ namespace ServiceManager.Server.AppCore.Identity
 
                         if (usr == null) return "Benutzer nicht gefunden";
                         if (token.IsCancellationRequested) return "Abgebrochen";
-                        
+
                         List<Claim> toRemove = new();
-                        List<Claim> toAdd    = new();
+                        List<Claim> toAdd = new();
 
                         var claims = await repo.GetClaimsAsync(usr);
+
                         if (token.IsCancellationRequested) return "Abgebrochen";
 
                         foreach (var claim in Claims.AllClaims)
-                        {
                             if (claims.Any(c => c.Type == claim))
                             {
-                                if(!command.Claims.Contains(claim))
+                                if (!command.Claims.Contains(claim))
                                     toRemove.Add(new Claim(claim, string.Empty));
                             }
                             else
                             {
-                                if(command.Claims.Contains(claim))
+                                if (command.Claims.Contains(claim))
                                     toAdd.Add(new Claim(claim, string.Empty));
                             }
-                        }
 
-                        foreach (var claim in toRemove) 
+                        foreach (var claim in toRemove)
                             await repo.RemoveClaimAsync(usr, claim);
 
                         foreach (var claim in toAdd)
                             await repo.AddClaimAsync(usr, claim);
 
                         var acessor = s.GetRequiredService<IHttpContextAccessor>();
-                        if (acessor.HttpContext?.User.Identity?.IsAuthenticated == true && acessor.HttpContext.User.Identity?.Name == usr.UserName) 
+                        if (acessor.HttpContext?.User.Identity?.IsAuthenticated == true && acessor.HttpContext.User.Identity?.Name == usr.UserName)
                             await s.GetRequiredService<ServerAuthHelper>().UpdateAuthState(acessor.HttpContext, token);
 
                         return string.Empty;
@@ -181,6 +171,7 @@ namespace ServiceManager.Server.AppCore.Identity
                     catch (Exception e)
                     {
                         Log.LogError(e, "Error on Set Claims for User: {User}", command.UserId);
+
                         return e.Message;
                     }
                 });
@@ -212,7 +203,6 @@ namespace ServiceManager.Server.AppCore.Identity
 
                         try
                         {
-
                             token.ThrowIfCancellationRequested();
 
                             var claimresult = await repo.AddClaimsAsync(newUser, Claims.AllClaims.Select(s => new Claim(s, string.Empty)));
@@ -234,6 +224,7 @@ namespace ServiceManager.Server.AppCore.Identity
                             catch (Exception exception)
                             {
                                 Log.LogError(exception, "Error on Delete Setup User while Setup Error");
+
                                 return exception.Message;
                             }
 
@@ -243,6 +234,7 @@ namespace ServiceManager.Server.AppCore.Identity
                     catch (Exception e)
                     {
                         Log.LogError(e, "Error on Run Setup");
+
                         return e.Message;
                     }
 
@@ -267,9 +259,9 @@ namespace ServiceManager.Server.AppCore.Identity
                 return await UserFunc(
                     async (s, _) =>
                     {
-                        var login       = s.GetRequiredService<SignInManager<IdentityUser>>();
+                        var login = s.GetRequiredService<SignInManager<IdentityUser>>();
                         var authService = s.GetRequiredService<IServerSideAuthService>();
-                        var contetxt    = s.GetRequiredService<IHttpContextAccessor>().HttpContext;
+                        var contetxt = s.GetRequiredService<IHttpContextAccessor>().HttpContext;
 
                         if (contetxt == null) return "Kein Request";
 
@@ -287,6 +279,7 @@ namespace ServiceManager.Server.AppCore.Identity
             catch (Exception e)
             {
                 Log.LogError(e, "Error on Logout User");
+
                 return e.Message;
             }
         }
@@ -306,7 +299,7 @@ namespace ServiceManager.Server.AppCore.Identity
                         token.ThrowIfCancellationRequested();
 
                         var newUser = new IdentityUser(command.UserName);
-                        var result  = await repo.CreateAsync(newUser, command.Password);
+                        var result = await repo.CreateAsync(newUser, command.Password);
 
                         if (!result.Succeeded)
                             return string.Join(",", result.Errors.Select(ie => ie.Description));
@@ -325,6 +318,7 @@ namespace ServiceManager.Server.AppCore.Identity
                     catch (Exception e)
                     {
                         Log.LogError(e, "Error on Register User: {User}", command.UserName);
+
                         return e.Message;
                     }
                 });
@@ -350,14 +344,24 @@ namespace ServiceManager.Server.AppCore.Identity
             catch (Exception e)
             {
                 Log.LogError(e, "Error on Delete User: {User}", command.UserId);
+
                 return e.Message;
             }
         }
 
+        public static async Task<(User FusionUser, IdentityUser IdentityUser)> Create(string name, UserManager<IdentityUser> manager)
+        {
+            var user = await manager.FindByNameAsync(name);
+            var usr = new User(new Symbol(user.Id), user.UserName)
+               .WithIdentity(new UserIdentity(IdentityConstants.ApplicationScheme, user.Id));
+
+            return ((await manager.GetClaimsAsync(user)).Aggregate(usr, (current, claim) => current.WithClaim(claim.Type, claim.Value)), user);
+        }
+
         private async Task<TReturn> UserFunc<TReturn>(Func<IServiceProvider, UserManager<IdentityUser>, Task<TReturn>> runner)
         {
-            using var scope   = Services.CreateScope();
-            var       manager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+            using var scope = Services.CreateScope();
+            var manager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
 
             return await runner(scope.ServiceProvider, manager);
         }

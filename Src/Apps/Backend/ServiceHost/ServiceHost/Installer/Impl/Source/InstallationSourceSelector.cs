@@ -4,7 +4,7 @@
     {
         public static IInstallationSource Select(InstallerContext context)
         {
-            if(context.SourceLocation is string)
+            if (context.SourceLocation is string)
                 return new LocalSource();
 
             return EmptySource.Instnace;

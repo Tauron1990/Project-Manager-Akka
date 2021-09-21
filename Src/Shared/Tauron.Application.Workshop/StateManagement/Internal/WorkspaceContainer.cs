@@ -20,18 +20,18 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
             _source = source;
         }
 
-        public override IDataMutation? TryDipatch(IStateAction action, IObserver<IReducerResult> sendResult,
+        public override IDataMutation? TryDipatch(
+            IStateAction action, IObserver<IReducerResult> sendResult,
             IObserver<Unit> onCompled)
         {
             var type = action.GetType();
+
             return !_map.TryGetValue(type, out var runner)
                 ? null
                 : new WorkspaceMutation(() => runner(_source, action), sendResult, onCompled, action.ActionName, action.ActionName);
         }
 
-        public override void Dispose()
-        {
-        }
+        public override void Dispose() { }
 
         private sealed class WorkspaceMutation : ISyncMutation
         {
@@ -62,19 +62,22 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
                     {
                         case ISyncMutation mut:
                             mut.Run();
+
                             break;
                         case IAsyncMutation mut:
                             mut.Run().Wait(TimeSpan.FromMinutes(1));
+
                             break;
                         default:
                             #pragma warning disable EX006
                             throw new InvalidOperationException("Unkowen Data Mutation Type");
-                            #pragma warning restore EX006
+                        #pragma warning restore EX006
                     }
                 }
                 catch (Exception e)
                 {
                     _result.OnNext(new ErrorResult(e));
+
                     throw;
                 }
                 finally

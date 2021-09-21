@@ -1,21 +1,23 @@
 ﻿<UserControl x:Class="TimeTracker.Views.VacationDialog"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:TimeTracker.Views"
-        mc:Ignorable="d" d:DataContext="{d:DesignInstance local:VacationDialogModel}">
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:local="clr-namespace:TimeTracker.Views"
+             mc:Ignorable="d" d:DataContext="{d:DesignInstance local:VacationDialogModel}">
     <Grid Margin="20">
-       <Grid.RowDefinitions>
-           <RowDefinition Height="Auto"/>
-           <RowDefinition Height="Auto"/>
-       </Grid.RowDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <Calendar Name="Calendar" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Width="350" DisplayMode="Month" SelectionMode="MultipleRange"/>
-        <Button Grid.Row="1" Grid.Column="0" HorizontalAlignment="Center" Content="Abbrechen" Command="{Binding Cancel}"/>
-        <Button Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" Content="Einfügen" Command="{Binding Ok}"/>
+        <Calendar Name="Calendar" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Width="350" DisplayMode="Month"
+                  SelectionMode="MultipleRange" />
+        <Button Grid.Row="1" Grid.Column="0" HorizontalAlignment="Center" Content="Abbrechen"
+                Command="{Binding Cancel}" />
+        <Button Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" Content="Einfügen" Command="{Binding Ok}" />
     </Grid>
 </UserControl>

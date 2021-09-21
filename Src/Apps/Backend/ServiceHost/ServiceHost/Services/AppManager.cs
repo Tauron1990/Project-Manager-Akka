@@ -4,9 +4,7 @@ namespace ServiceHost.Services
 {
     public sealed class AppManager : FeatureActorRefBase<IAppManager>, IAppManager
     {
-        public AppManager() 
-            : base("App-Manager")
-        {
-        }
+        public AppManager()
+            : base("App-Manager") { }
     }
 }

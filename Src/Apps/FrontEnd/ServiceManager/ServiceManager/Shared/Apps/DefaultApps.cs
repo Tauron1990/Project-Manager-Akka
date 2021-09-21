@@ -10,6 +10,5 @@
             new("Master Seed Node", "Tauron1990/Project-Manager-Akka", "Master.Seed.Node.csproj"),
             new("Infrastruktur Service", "Tauron1990/Project-Manager-Akka", "InfrastructureService.csproj")
         };
-
     }
 }

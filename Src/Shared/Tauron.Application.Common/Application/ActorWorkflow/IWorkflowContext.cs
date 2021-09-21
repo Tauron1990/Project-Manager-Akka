@@ -1,6 +1,4 @@
 ﻿namespace Tauron.Application.ActorWorkflow
 {
-    public interface IWorkflowContext
-    {
-    }
+    public interface IWorkflowContext { }
 }

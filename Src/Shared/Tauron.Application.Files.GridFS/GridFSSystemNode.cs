@@ -3,7 +3,6 @@ using System.IO;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
-using Tauron.Application.Files.VirtualFiles;
 using Tauron.Application.VirtualFiles;
 
 namespace Tauron.Application.Files.GridFS
@@ -11,8 +10,18 @@ namespace Tauron.Application.Files.GridFS
     public abstract class GridFSSystemNode : IFileSystemNode
     {
         private readonly Action? _existsNow;
-        private GridFSFileInfo? _fileInfo;
         private readonly object _setLock = new();
+        private GridFSFileInfo? _fileInfo;
+
+        protected GridFSSystemNode(GridFSBucket bucket, GridFSFileInfo? fileInfo, IDirectory? parentDirectory, string name, string path, Action? existsNow)
+        {
+            _existsNow = existsNow;
+            Bucket = bucket;
+            _fileInfo = fileInfo;
+            ParentDirectory = parentDirectory;
+            Name = name;
+            OriginalPath = path;
+        }
 
         protected GridFSBucket Bucket { get; }
 
@@ -57,16 +66,6 @@ namespace Tauron.Application.Files.GridFS
         public bool Exist => FileInfo != null;
 
         public string Name { get; }
-
-        protected GridFSSystemNode(GridFSBucket bucket, GridFSFileInfo? fileInfo, IDirectory? parentDirectory, string name, string path, Action? existsNow)
-        {
-            _existsNow = existsNow;
-            Bucket = bucket;
-            _fileInfo = fileInfo;
-            ParentDirectory = parentDirectory;
-            Name = name;
-            OriginalPath = path;
-        }
 
         public virtual void Delete() => Bucket.Delete(SafeFileInfo.Id);
 

@@ -9,11 +9,11 @@ namespace Stl.Fusion.AkkaBridge
 
         public PublisherBuilder(IServiceCollection service)
             => _service = service;
-        
+
         public PublisherBuilder PublishService<TService>()
             where TService : class
         {
-            _service.AddTransient(sp => new PublishService(typeof(TService), () => sp.GetRequiredService<TService>()!));
+            _service.AddTransient(sp => new PublishService(typeof(TService), () => sp.GetRequiredService<TService>()));
 
             return this;
         }

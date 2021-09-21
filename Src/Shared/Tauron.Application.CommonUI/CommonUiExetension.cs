@@ -13,7 +13,8 @@ namespace Tauron.Application.CommonUI
     {
         #region UIProperty
 
-        public static FluentPropertyRegistration<TData> WithFlow<TData>(this FluentPropertyRegistration<TData> prop,
+        public static FluentPropertyRegistration<TData> WithFlow<TData>(
+            this FluentPropertyRegistration<TData> prop,
             Func<IObservable<TData>, IDisposable> flowBuilder)
         {
             var aFlow = new Subject<TData>();
@@ -34,10 +35,11 @@ namespace Tauron.Application.CommonUI
         public static CommandRegistrationBuilder WithParameterFlow<TParameter>(this CommandRegistrationBuilder builder, Func<IObservable<TParameter?>, IDisposable> flowBuilder)
             => WithFlow(builder, o => o switch { TParameter par => par, _ => default }, flowBuilder);
 
-        public static CommandRegistrationBuilder WithFlow(this CommandRegistrationBuilder builder, Func<IObservable<Unit>, IDisposable> flowBuilder) 
+        public static CommandRegistrationBuilder WithFlow(this CommandRegistrationBuilder builder, Func<IObservable<Unit>, IDisposable> flowBuilder)
             => WithFlow(builder, Unit.Default, flowBuilder);
 
-        public static CommandRegistrationBuilder WithFlow<TStart>(this CommandRegistrationBuilder builder,
+        public static CommandRegistrationBuilder WithFlow<TStart>(
+            this CommandRegistrationBuilder builder,
             TStart trigger, Func<IObservable<TStart>, IDisposable> flowBuilder)
             => WithFlow(builder, _ => trigger, flowBuilder);
 

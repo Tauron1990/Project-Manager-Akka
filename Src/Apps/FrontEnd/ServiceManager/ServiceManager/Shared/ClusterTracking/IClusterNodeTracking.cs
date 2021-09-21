@@ -7,7 +7,7 @@ namespace ServiceManager.Shared.ClusterTracking
     {
         [ComputeMethod]
         Task<ClusterNodeInfo> GetInfo(string url);
-        
+
         [ComputeMethod]
         Task<string[]> GetUrls();
     }

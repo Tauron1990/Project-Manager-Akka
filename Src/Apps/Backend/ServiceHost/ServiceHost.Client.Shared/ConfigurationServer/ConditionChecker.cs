@@ -22,12 +22,12 @@ namespace ServiceHost.Client.Shared.ConfigurationServer
                         ConditionType.DefinedApp => Apply(c, () => softwareName == c.AppName),
                         ConditionType.InstalledApp => Apply(c, () => applicationName == c.AppName),
                         ConditionType.And when c.Conditions != null => Apply(c, () => CheckConditions(c.Conditions, isOr: false)),
-                        ConditionType.Or when c.Conditions  != null => Apply(c, () => CheckConditions(c.Conditions, isOr: true)),
+                        ConditionType.Or when c.Conditions != null => Apply(c, () => CheckConditions(c.Conditions, isOr: true)),
                         _ => false
                     };
 
-                return isOr 
-                    ? conditions.OrderBy(c => c.Order).Any(Predicate) 
+                return isOr
+                    ? conditions.OrderBy(c => c.Order).Any(Predicate)
                     : conditions.OrderBy(c => c.Order).All(Predicate);
             }
 

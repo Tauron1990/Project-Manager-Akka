@@ -11,7 +11,7 @@ namespace AutoUpdateRunner
         {
             Console.Title = "Host Updater";
             Log.Logger = new LoggerConfiguration().WriteTo.Console(theme: AnsiConsoleTheme.Literate).Enrich
-                .FromLogContext().CreateLogger();
+               .FromLogContext().CreateLogger();
 
             var config = new ConfigurationBuilder().AddCommandLine(args).Build();
             var setup = new SetupInfo();

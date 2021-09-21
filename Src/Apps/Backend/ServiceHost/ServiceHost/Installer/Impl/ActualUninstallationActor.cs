@@ -20,100 +20,117 @@ namespace ServiceHost.Installer.Impl
 
         public ActualUninstallationActor(IAppRegistry registry, IAppManager manager)
         {
-            WhenStep(StepId.Start, config =>
-            {
-                config.OnExecute(context =>
+            WhenStep(
+                StepId.Start,
+                config =>
                 {
-                    Log.Info("Start Unistall Apps {Name}", context.Name);
-                    registry.Ask<InstalledAppRespond>(new InstalledAppQuery(context.Name), TimeSpan.FromSeconds(15))
-                       .PipeTo(Self).Ignore();
+                    config.OnExecute(
+                        context =>
+                        {
+                            Log.Info("Start Unistall Apps {Name}", context.Name);
+                            registry.Ask<InstalledAppRespond>(new InstalledAppQuery(context.Name), TimeSpan.FromSeconds(15))
+                               .PipeTo(Self).Ignore();
 
-                    return StepId.Waiting;
+                            return StepId.Waiting;
+                        });
+
+                    Signal<InstalledAppRespond>(
+                        (context, respond) =>
+                        {
+                            var (installedApp, fault) = respond;
+                            if (fault || installedApp.IsEmpty())
+                            {
+                                Log.Warning("Error on Query Application Info {Name}", context.Name);
+                                SetError(ErrorCodes.QueryAppInfo);
+
+                                return StepId.Fail;
+                            }
+
+                            context.App = installedApp;
+
+                            return Stopping;
+                        });
                 });
 
-                Signal<InstalledAppRespond>((context, respond) =>
+            WhenStep(
+                Stopping,
+                config =>
                 {
-                    var (installedApp, fault) = respond;
-                    if (fault || installedApp.IsEmpty())
-                    {
-                        Log.Warning("Error on Query Application Info {Name}", context.Name);
-                        SetError(ErrorCodes.QueryAppInfo);
-                        return StepId.Fail;
-                    }
+                    config.OnExecute(
+                        context =>
+                        {
+                            Log.Info("Stoping Appliocation {Name}", context.Name);
+                            manager.Actor
+                               .Ask<StopResponse>(new StopApp(context.Name), TimeSpan.FromMinutes(1))
+                               .PipeTo(Self).Ignore();
 
-                    context.App = installedApp;
-                    return Stopping;
-                });
-            });
+                            return StepId.Waiting;
+                        });
 
-            WhenStep(Stopping, config =>
-            {
-                config.OnExecute(context =>
-                {
-                    Log.Info("Stoping Appliocation {Name}", context.Name);
-                    manager.Actor
-                       .Ask<StopResponse>(new StopApp(context.Name), TimeSpan.FromMinutes(1))
-                       .PipeTo(Self).Ignore();
-                    return StepId.Waiting;
+                    Signal<StopResponse>((_, _) => Unistall);
                 });
 
-                Signal<StopResponse>((_, _) => Unistall);
-            });
-
-            WhenStep(Unistall, config =>
-            {
-                config.OnExecute((context, step) =>
+            WhenStep(
+                Unistall,
+                config =>
                 {
-                    try
-                    {
-                        Log.Info("Backup Application {Name}", context.Name);
-                        context.Backup.Make(context.App.Path);
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Error(e, "Error while making Backup");
-                        step.ErrorMessage = e.Message;
-                        return StepId.Fail;
-                    }
+                    config.OnExecute(
+                        (context, step) =>
+                        {
+                            try
+                            {
+                                Log.Info("Backup Application {Name}", context.Name);
+                                context.Backup.Make(context.App.Path);
+                            }
+                            catch (Exception e)
+                            {
+                                Log.Error(e, "Error while making Backup");
+                                step.ErrorMessage = e.Message;
 
-                    context.Recovery.Add(context.Backup.Recover);
+                                return StepId.Fail;
+                            }
 
-                    try
-                    {
-                        Log.Info("Delete Application Directory {Name}", context.Name);
-                        Directory.Delete(context.App.Path, recursive: true);
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Warning(e, "Error while Deleting Apps Directory");
-                    }
+                            context.Recovery.Add(context.Backup.Recover);
 
-                    return Finalization;
+                            try
+                            {
+                                Log.Info("Delete Application Directory {Name}", context.Name);
+                                Directory.Delete(context.App.Path, recursive: true);
+                            }
+                            catch (Exception e)
+                            {
+                                Log.Warning(e, "Error while Deleting Apps Directory");
+                            }
+
+                            return Finalization;
+                        });
                 });
-            });
 
-            Signal<Status.Failure>((_, f) =>
-            {
-                SetError(f.Cause.Message);
-                return StepId.Fail;
-            });
-
-            OnFinish(wr =>
-            {
-                var (succesfully, error, unistallContext) = wr;
-                if (!succesfully)
+            Signal<Status.Failure>(
+                (_, f) =>
                 {
-                    Log.Warning("Installation Failed Recover {Apps}", unistallContext.Name);
-                    unistallContext.Recovery.Recover(Log);
-                }
+                    SetError(f.Cause.Message);
 
-                var finish = new InstallerationCompled(succesfully, error, unistallContext.App.AppType, unistallContext.Name, InstallationAction.Uninstall);
-                if (!Sender.Equals(Context.System.DeadLetters))
-                    Sender.Tell(finish, ActorRefs.NoSender);
+                    return StepId.Fail;
+                });
 
-                Context.Parent.Tell(finish);
-                Context.Stop(Self);
-            });
+            OnFinish(
+                wr =>
+                {
+                    var (succesfully, error, unistallContext) = wr;
+                    if (!succesfully)
+                    {
+                        Log.Warning("Installation Failed Recover {Apps}", unistallContext.Name);
+                        unistallContext.Recovery.Recover(Log);
+                    }
+
+                    var finish = new InstallerationCompled(succesfully, error, unistallContext.App.AppType, unistallContext.Name, InstallationAction.Uninstall);
+                    if (!Sender.Equals(Context.System.DeadLetters))
+                        Sender.Tell(finish, ActorRefs.NoSender);
+
+                    Context.Parent.Tell(finish);
+                    Context.Stop(Self);
+                });
         }
     }
 }

@@ -1,10 +1,9 @@
-﻿@using ServiceManager.Client.ViewModels.Events
-@using ServiceManager.Shared
-@using Tauron
+﻿@using Tauron
 @using Tauron.Application
-@using System.Reactive
+@using ServiceManager.Shared
 @using Microsoft.AspNetCore.SignalR.Client
-
+@using ServiceManager.Client.ViewModels.Events
+@using System.Reactive
 @inherits DialogBaseComponent<string>
 
 @inject ILogger<AwaitRestartDialog> _log
@@ -20,7 +19,7 @@
     {
         <MudText Class="mt-10">Versuche Verbindung aufzubauen</MudText>
     }
-    
+
     @if (_atempts > 5)
     {
         <MudButton Class="mt-5" OnClick="Reload">Neuladen</MudButton>
@@ -82,7 +81,6 @@
             await InvokeAsync(StateHasChanged);
             if (_timer?.Change(TimeSpan.FromSeconds(20), Timeout.InfiniteTimeSpan) != true)
                 Reload();
-
         }
         catch (Exception exception)
         {

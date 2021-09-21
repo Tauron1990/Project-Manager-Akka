@@ -1,5 +1,5 @@
-﻿@using ServiceManager.Shared.ClusterTracking
-@using ServiceManager.Shared
+﻿@using ServiceManager.Shared
+@using ServiceManager.Shared.ClusterTracking
 @inherits ComputedStateComponent<ConnectionState>
 
 @inject IServerInfo _serverInfo
@@ -13,7 +13,7 @@
 
 @if (error != null)
 {
-    <MudAlert Class="d-flex flex-column ma-1" Severity="Severity.Error" Variant="Variant.Filled">Fehler in Abfrage: @error.Message</MudAlert>   
+    <MudAlert Class="d-flex flex-column ma-1" Severity="Severity.Error" Variant="Variant.Filled">Fehler in Abfrage: @error.Message</MudAlert>
 }
 else if (data.IsConnected && data.IsSelf)
 {
@@ -29,9 +29,9 @@ else
 }
 
 @code {
+
     protected override async Task<ConnectionState> ComputeState(CancellationToken cancellationToken)
         => new(await _tracker.GetIsConnected(), await _tracker.GetIsSelf());
 
     private Task ShutDown() => _serverInfo.Restart(new RestartCommand());
 }
-

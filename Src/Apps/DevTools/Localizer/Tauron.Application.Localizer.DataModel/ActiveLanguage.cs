@@ -23,10 +23,11 @@ namespace Tauron.Application.Localizer.DataModel
         public static ActiveLanguage ReadFrom(BinaryReader reader)
         {
             var lang = new
-            {
-                Shortcut = reader.ReadString(),
-                Name = reader.ReadString()
-            };
+                       {
+                           Shortcut = reader.ReadString(),
+                           Name = reader.ReadString()
+                       };
+
             return new ActiveLanguage(lang.Shortcut, lang.Name);
         }
     }

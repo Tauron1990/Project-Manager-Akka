@@ -18,6 +18,7 @@ namespace Tauron.Application.Workshop.Analyzing.Rules
         public IActorRef Init(IActorRefFactory superviser, TWorkspace workspace)
         {
             Workspace = workspace;
+
             return superviser.ActorOf(() => new InternalRuleActor(ActorConstruct), Name);
         }
 

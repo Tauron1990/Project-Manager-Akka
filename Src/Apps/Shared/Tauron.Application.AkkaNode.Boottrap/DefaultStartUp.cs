@@ -20,10 +20,10 @@ namespace Tauron.Application.AkkaNode.Bootstrap
             Run();
         }
 
-        public virtual void MemberUp(){}
+        public virtual void MemberUp() { }
 
-        public virtual void MemberRemoved(){}
+        public virtual void MemberRemoved() { }
 
-        public virtual void Run() {}
+        public virtual void Run() { }
     }
 }

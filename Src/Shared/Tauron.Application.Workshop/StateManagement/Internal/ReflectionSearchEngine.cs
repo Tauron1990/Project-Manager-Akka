@@ -16,9 +16,10 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
     public class ReflectionSearchEngine
     {
         private static readonly MethodInfo ConfigurateStateMethod =
-            typeof(ReflectionSearchEngine).GetMethod(nameof(ConfigurateState),
+            typeof(ReflectionSearchEngine).GetMethod(
+                nameof(ConfigurateState),
                 BindingFlags.Static | BindingFlags.NonPublic)
-            ?? throw new InvalidOperationException("Method not Found");
+         ?? throw new InvalidOperationException("Method not Found");
 
         private readonly IEnumerable<Type> _types;
 
@@ -31,8 +32,9 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
             Func<TType> CreateFactory<TType>(Type target)
             {
                 if (builder.ComponentContext != null)
-                    return () => (TType) (builder.ComponentContext.ResolveOptional(target) ?? Activator.CreateInstance(target))!;
-                return () => (TType) Activator.CreateInstance(target)!;
+                    return () => (TType)(builder.ComponentContext.ResolveOptional(target) ?? Activator.CreateInstance(target))!;
+
+                return () => (TType)Activator.CreateInstance(target)!;
             }
 
             var states = new List<(Type TargetState, string? Key, Type[] DataTypes)>();
@@ -41,43 +43,48 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
             var processors = new List<Type>();
 
             foreach (var type in _types)
-            foreach (var customAttribute in type.GetCustomAttributes(inherit: false))
-            {
-                switch (customAttribute)
-                {
-                    case StateAttribute state:
-                        states.Add((type, state.Key, state.Types));
-                        break;
-                    case EffectAttribute:
-                        builder.WithEffect(CreateFactory<IEffect>(type));
-                        break;
-                    case MiddlewareAttribute:
-                        builder.WithMiddleware(CreateFactory<IMiddleware>(type));
-                        break;
-                    case BelogsToStateAttribute belogsTo:
-                        reducers.Add(belogsTo.StateType, type);
-                        break;
-                    case DataSourceAttribute:
-                        factorys.Add((AdvancedDataSourceFactory) (builder.ComponentContext?.ResolveOptional(type)
-                                                               ?? Activator.CreateInstance(type)
-                                                               ?? throw new InvalidOperationException("Data Source Creation Failed")));
-                        break;
-                    case ProcessorAttribute:
-                        processors.Add(type);
-                        break;
-                }
-            }
+                foreach (var customAttribute in type.GetCustomAttributes(false))
+                    switch (customAttribute)
+                    {
+                        case StateAttribute state:
+                            states.Add((type, state.Key, state.Types));
+
+                            break;
+                        case EffectAttribute:
+                            builder.WithEffect(CreateFactory<IEffect>(type));
+
+                            break;
+                        case MiddlewareAttribute:
+                            builder.WithMiddleware(CreateFactory<IMiddleware>(type));
+
+                            break;
+                        case BelogsToStateAttribute belogsTo:
+                            reducers.Add(belogsTo.StateType, type);
+
+                            break;
+                        case DataSourceAttribute:
+                            factorys.Add(
+                                (AdvancedDataSourceFactory)(builder.ComponentContext?.ResolveOptional(type)
+                                                         ?? Activator.CreateInstance(type)
+                                                         ?? throw new InvalidOperationException("Data Source Creation Failed")));
+
+                            break;
+                        case ProcessorAttribute:
+                            processors.Add(type);
+
+                            break;
+                    }
 
             if (factorys.Count != 0)
             {
-                factorys.Add((AdvancedDataSourceFactory) factory);
+                factorys.Add((AdvancedDataSourceFactory)factory);
                 factory = MergeFactory.Merge(factorys.ToArray());
             }
 
             foreach (var (type, key, dataType) in states.SelectMany(i => i.DataTypes.Select(e => (i.TargetState, i.Key, e))))
             {
                 var actualMethod = ConfigurateStateMethod.MakeGenericMethod(dataType);
-                actualMethod.Invoke(null, new object?[] {type, builder, factory, reducers, key, metadata});
+                actualMethod.Invoke(null, new object?[] { type, builder, factory, reducers, key, metadata });
             }
 
             foreach (var processor in processors)
@@ -87,7 +94,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
         private static void ConfigurateState<TData>(Type target, ManagerBuilder builder, IDataSourceFactory factory, GroupDictionary<Type, Type> reducerMap, string? key, CreationMetadata? metadata)
             where TData : class, IStateEntity
         {
-            if(builder.StateRegistrated<TData>(target))
+            if (builder.StateRegistrated<TData>(target))
                 return;
 
             var config = builder.WithDataSource(factory.Create<TData>(metadata));
@@ -121,6 +128,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
                         continue;
 
                     var parms = method.GetParameters();
+
                     if (parms.Length != 2)
                         continue;
 
@@ -133,6 +141,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
                         continue;
 
                     var potenialValidator = property.PropertyType;
+
                     if (!potenialValidator.IsAssignableTo<IValidator>())
                         continue;
 
@@ -140,9 +149,12 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
                     if (validatorType == null && potenialValidator.IsGenericType &&
                         potenialValidator.GetGenericTypeDefinition() == typeof(IValidator<>))
                         validatorType = potenialValidator;
+
                     if (validatorType == null)
                         continue;
+
                     var validator = property.GetValue(null);
+
                     if (validator == null)
                         continue;
 
@@ -153,6 +165,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
             foreach (var (actionType, reducer) in methods)
             {
                 var reducerBuilder = ReducerBuilder.Create<TData>(reducer, actionType);
+
                 if (reducerBuilder == null) continue;
 
                 object? validator = null;
@@ -163,7 +176,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
                 var reducerInstance = Activator.CreateInstance(constructedReducer, reducerBuilder, validator) ??
                                       throw new InvalidOperationException("Reducer Creation Failed");
 
-                config.WithReducer(() => (IReducer<TData>) reducerInstance);
+                config.WithReducer(() => (IReducer<TData>)reducerInstance);
             }
         }
 
@@ -172,13 +185,14 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
             private static readonly MethodInfo GenericBuilder = Reflex.MethodInfo(() => Create<string, string>(null!)).GetGenericMethodDefinition();
 
             internal static ReducerBuilderBase? Create<TData>(MethodInfo info, Type actionType)
-                => GenericBuilder.MakeGenericMethod(typeof(TData), actionType).Invoke(null, new object[] {info}) as ReducerBuilderBase;
+                => GenericBuilder.MakeGenericMethod(typeof(TData), actionType).Invoke(null, new object[] { info }) as ReducerBuilderBase;
 
             [UsedImplicitly]
             private static ReducerBuilderBase? Create<TData, TAction>(MethodInfo info)
             {
                 var returnType = info.ReturnType;
                 var parms = info.GetParameterTypes().ToArray();
+
                 if (parms.Length != 2 && parms[1] != typeof(TAction))
                     return null;
 
@@ -238,7 +252,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
         {
             protected static TDelegate CreateDelegate<TDelegate>(MethodInfo method)
                 where TDelegate : Delegate
-                => (TDelegate) Delegate.CreateDelegate(typeof(TDelegate), method);
+                => (TDelegate)Delegate.CreateDelegate(typeof(TDelegate), method);
 
             protected delegate IObservable<ReducerResult<TData>> ReducerDel<TData, in TAction>(
                 IObservable<MutatingContext<TData>> state, TAction action);
@@ -256,6 +270,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
             internal IObservable<ReducerResult<TData>> Reduce(IObservable<MutatingContext<TData>> state, TAction action)
             {
                 _reducer ??= Build(_info);
+
                 return _reducer(state, action);
             }
 
@@ -270,7 +285,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
 
             internal sealed class ContextToContextMap : ReducerBuilder<TData, TAction>
             {
-                internal ContextToContextMap(MethodInfo info) 
+                internal ContextToContextMap(MethodInfo info)
                     : base(info) { }
 
                 protected override ReducerDel<TData, TAction> Build(MethodInfo info)
@@ -285,7 +300,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
 
             internal sealed class ContextToDataMap : ReducerBuilder<TData, TAction>
             {
-                internal ContextToDataMap(MethodInfo info) 
+                internal ContextToDataMap(MethodInfo info)
                     : base(info) { }
 
                 protected override ReducerDel<TData, TAction> Build(MethodInfo info)
@@ -294,15 +309,13 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
                         CreateDelegate<Func<IObservable<MutatingContext<TData>>, TAction, IObservable<TData>>>(info);
 
                     return (state, action)
-                        => del(state, action).Select(d => ReducerResult.Sucess(MutatingContext<TData>.New(d)));
+                               => del(state, action).Select(d => ReducerResult.Sucess(MutatingContext<TData>.New(d)));
                 }
             }
 
             internal sealed class DataToContextMap : ReducerBuilder<TData, TAction>
             {
-                internal DataToContextMap(MethodInfo info) : base(info)
-                {
-                }
+                internal DataToContextMap(MethodInfo info) : base(info) { }
 
                 protected override ReducerDel<TData, TAction> Build(MethodInfo info)
                 {
@@ -315,9 +328,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
 
             internal sealed class DataToResultMap : ReducerBuilder<TData, TAction>
             {
-                internal DataToResultMap(MethodInfo info) : base(info)
-                {
-                }
+                internal DataToResultMap(MethodInfo info) : base(info) { }
 
                 protected override ReducerDel<TData, TAction> Build(MethodInfo info)
                 {
@@ -330,24 +341,20 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
 
             internal sealed class DataToDataMap : ReducerBuilder<TData, TAction>
             {
-                internal DataToDataMap(MethodInfo info) : base(info)
-                {
-                }
+                internal DataToDataMap(MethodInfo info) : base(info) { }
 
                 protected override ReducerDel<TData, TAction> Build(MethodInfo info)
                 {
                     var del = CreateDelegate<Func<IObservable<TData>, TAction, IObservable<TData>>>(info);
 
                     return (state, action) => del(state.Select(c => c.Data), action)
-                        .Select(d => ReducerResult.Sucess(MutatingContext<TData>.New(d)));
+                              .Select(d => ReducerResult.Sucess(MutatingContext<TData>.New(d)));
                 }
             }
 
             internal sealed class DirectDataToContextMap : ReducerBuilder<TData, TAction>
             {
-                internal DirectDataToContextMap(MethodInfo info) : base(info)
-                {
-                }
+                internal DirectDataToContextMap(MethodInfo info) : base(info) { }
 
                 protected override ReducerDel<TData, TAction> Build(MethodInfo info)
                 {
@@ -359,9 +366,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
 
             internal sealed class DirectDataToResultMap : ReducerBuilder<TData, TAction>
             {
-                internal DirectDataToResultMap(MethodInfo info) : base(info)
-                {
-                }
+                internal DirectDataToResultMap(MethodInfo info) : base(info) { }
 
                 protected override ReducerDel<TData, TAction> Build(MethodInfo info)
                 {
@@ -373,25 +378,21 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
 
             internal sealed class DirectDataToDataMap : ReducerBuilder<TData, TAction>
             {
-                internal DirectDataToDataMap(MethodInfo info) : base(info)
-                {
-                }
+                internal DirectDataToDataMap(MethodInfo info) : base(info) { }
 
                 protected override ReducerDel<TData, TAction> Build(MethodInfo info)
                 {
                     var del = CreateDelegate<Func<TData, TAction, TData>>(info);
 
                     return (state, action) => state.Select(d => del(d.Data, action))
-                        .Select(d => ReducerResult.Sucess(MutatingContext<TData>.New(d)));
+                              .Select(d => ReducerResult.Sucess(MutatingContext<TData>.New(d)));
                 }
             }
 
             internal sealed class DirectContextToResultMap : ReducerBuilder<TData, TAction>
             {
                 internal DirectContextToResultMap(MethodInfo info)
-                    : base(info)
-                {
-                }
+                    : base(info) { }
 
                 protected override ReducerDel<TData, TAction> Build(MethodInfo info)
                 {
@@ -403,9 +404,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
 
             internal sealed class DirectContextToContextMap : ReducerBuilder<TData, TAction>
             {
-                internal DirectContextToContextMap(MethodInfo info) : base(info)
-                {
-                }
+                internal DirectContextToContextMap(MethodInfo info) : base(info) { }
 
                 protected override ReducerDel<TData, TAction> Build(MethodInfo info)
                 {
@@ -417,24 +416,20 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
 
             internal sealed class DirectContextToDataMap : ReducerBuilder<TData, TAction>
             {
-                internal DirectContextToDataMap(MethodInfo info) : base(info)
-                {
-                }
+                internal DirectContextToDataMap(MethodInfo info) : base(info) { }
 
                 protected override ReducerDel<TData, TAction> Build(MethodInfo info)
                 {
                     var del = CreateDelegate<Func<MutatingContext<TData>, TAction, TData>>(info);
 
                     return (state, action) => state.Select(d => del(d, action))
-                        .Select(d => ReducerResult.Sucess(MutatingContext<TData>.New(d)));
+                              .Select(d => ReducerResult.Sucess(MutatingContext<TData>.New(d)));
                 }
             }
 
             internal sealed class AsyncDataToContextMap : ReducerBuilder<TData, TAction>
             {
-                internal AsyncDataToContextMap(MethodInfo info) : base(info)
-                {
-                }
+                internal AsyncDataToContextMap(MethodInfo info) : base(info) { }
 
                 protected override ReducerDel<TData, TAction> Build(MethodInfo info)
                 {
@@ -446,9 +441,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
 
             internal sealed class AsyncDataToResultMap : ReducerBuilder<TData, TAction>
             {
-                internal AsyncDataToResultMap(MethodInfo info) : base(info)
-                {
-                }
+                internal AsyncDataToResultMap(MethodInfo info) : base(info) { }
 
                 protected override ReducerDel<TData, TAction> Build(MethodInfo info)
                 {
@@ -460,25 +453,21 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
 
             internal sealed class AsyncDataToDataMap : ReducerBuilder<TData, TAction>
             {
-                internal AsyncDataToDataMap(MethodInfo info) : base(info)
-                {
-                }
+                internal AsyncDataToDataMap(MethodInfo info) : base(info) { }
 
                 protected override ReducerDel<TData, TAction> Build(MethodInfo info)
                 {
                     var del = CreateDelegate<Func<TData, TAction, Task<TData>>>(info);
 
                     return (state, action) => state.SelectMany(d => del(d.Data, action))
-                        .Select(d => ReducerResult.Sucess(MutatingContext<TData>.New(d)));
+                              .Select(d => ReducerResult.Sucess(MutatingContext<TData>.New(d)));
                 }
             }
 
             internal sealed class AsyncContextToResultMap : ReducerBuilder<TData, TAction>
             {
                 internal AsyncContextToResultMap(MethodInfo info)
-                    : base(info)
-                {
-                }
+                    : base(info) { }
 
                 protected override ReducerDel<TData, TAction> Build(MethodInfo info)
                 {
@@ -490,9 +479,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
 
             internal sealed class AsyncContextToContextMap : ReducerBuilder<TData, TAction>
             {
-                internal AsyncContextToContextMap(MethodInfo info) : base(info)
-                {
-                }
+                internal AsyncContextToContextMap(MethodInfo info) : base(info) { }
 
                 protected override ReducerDel<TData, TAction> Build(MethodInfo info)
                 {
@@ -504,16 +491,14 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
 
             internal sealed class AsyncContextToDataMap : ReducerBuilder<TData, TAction>
             {
-                internal AsyncContextToDataMap(MethodInfo info) : base(info)
-                {
-                }
+                internal AsyncContextToDataMap(MethodInfo info) : base(info) { }
 
                 protected override ReducerDel<TData, TAction> Build(MethodInfo info)
                 {
                     var del = CreateDelegate<Func<MutatingContext<TData>, TAction, Task<TData>>>(info);
 
                     return (state, action) => state.SelectMany(d => del(d, action))
-                        .Select(d => ReducerResult.Sucess(MutatingContext<TData>.New(d)));
+                              .Select(d => ReducerResult.Sucess(MutatingContext<TData>.New(d)));
                 }
             }
         }
@@ -534,7 +519,8 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
 
             public override IValidator<TAction>? Validator { get; }
 
-            protected override IObservable<ReducerResult<TData>> Reduce(IObservable<MutatingContext<TData>> state,
+            protected override IObservable<ReducerResult<TData>> Reduce(
+                IObservable<MutatingContext<TData>> state,
                 TAction action) => _builder.Reduce(state, action);
         }
     }

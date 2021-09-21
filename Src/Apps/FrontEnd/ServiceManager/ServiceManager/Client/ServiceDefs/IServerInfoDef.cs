@@ -13,6 +13,6 @@ namespace ServiceManager.Client.ServiceDefs
         Task<string> GetCurrentId();
 
         [Post(nameof(Restart))]
-        Task Restart([Body]RestartCommand command, CancellationToken token = default);
+        Task Restart([Body] RestartCommand command, CancellationToken token = default);
     }
 }

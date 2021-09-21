@@ -13,7 +13,8 @@ namespace Tauron.Application.Files.Zip
 
         private readonly ZipFile _file;
 
-        public InZipFile(IDirectory parentDirectory, string originalPath, ZipFile file, InternalZipDirectory directory,
+        public InZipFile(
+            IDirectory parentDirectory, string originalPath, ZipFile file, InternalZipDirectory directory,
             ZipEntry? entry)
             : base(() => parentDirectory, originalPath, Path.GetFileName(entry?.FileName ?? string.Empty))
         {
@@ -35,7 +36,7 @@ namespace Tauron.Application.Files.Zip
 
         public override long Size => InfoObject?.UncompressedSize ?? 0;
 
-        public override IFile MoveTo(string location) 
+        public override IFile MoveTo(string location)
             => throw new NotSupportedException("Zip File Moving not Supported");
 
         protected override void DeleteImpl()
@@ -63,6 +64,7 @@ namespace Tauron.Application.Files.Zip
                             return new ZipWriteHelper(OriginalPath, _file, Array.Empty<byte>(), ZipEntryUpdated);
 
                         InfoObject.Extract(stream);
+
                         return new ZipWriteHelper(InfoObject.FileName, _file, stream.GetBuffer(), ZipEntryUpdated);
                     }
                 default:

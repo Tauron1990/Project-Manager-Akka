@@ -1,11 +1,12 @@
 ﻿@using Tauron.Application.Master.Commands.Deployment.Build.Data
-
 @if (AppInfo.UpdateDate != DateTime.MinValue)
 {
     <MudText>@AppInfo.UpdateDate.Date.ToString("f")</MudText>
 }
 
 @code {
+
     [Parameter]
     public AppInfo AppInfo { get; set; } = AppInfo.Empty;
+
 }

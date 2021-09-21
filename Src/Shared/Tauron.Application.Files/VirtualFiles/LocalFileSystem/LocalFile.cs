@@ -8,14 +8,10 @@ namespace Tauron.Application.Files.VirtualFiles.LocalFileSystem
     public class LocalFile : FileBase<FileInfo>
     {
         public LocalFile(string fullPath, IDirectory path)
-            : base(() => path, fullPath, fullPath.GetFileName())
-        {
-        }
+            : base(() => path, fullPath, fullPath.GetFileName()) { }
 
         private LocalFile(string fullPath)
-            : base(() => new LocalDirectory(fullPath.GetDirectoryName() ?? throw new InvalidOperationException("Directory Name not Found")), fullPath, fullPath.GetFileName())
-        {
-        }
+            : base(() => new LocalDirectory(fullPath.GetDirectoryName() ?? throw new InvalidOperationException("Directory Name not Found")), fullPath, fullPath.GetFileName()) { }
 
         public override DateTime LastModified => InfoObject?.LastWriteTime ?? DateTime.MinValue;
 
@@ -49,7 +45,7 @@ namespace Tauron.Application.Files.VirtualFiles.LocalFileSystem
             return new LocalFile(location);
         }
 
-        protected override void DeleteImpl() 
+        protected override void DeleteImpl()
             => InfoObject?.Delete();
 
         protected override FileInfo GetInfo(string path) => new(path);
@@ -59,7 +55,7 @@ namespace Tauron.Application.Files.VirtualFiles.LocalFileSystem
             if (mode is InternalFileMode.Create or InternalFileMode.CreateNew)
                 ParentDirectory?.OriginalPath.CreateDirectoryIfNotExis();
 
-            return new FileStream(OriginalPath, (FileMode) mode, access, access == FileAccess.Read ? FileShare.Read : FileShare.None);
+            return new FileStream(OriginalPath, (FileMode)mode, access, access == FileAccess.Read ? FileShare.Read : FileShare.None);
         }
 
         private static void MoveFile(FileInfo? old, string newLoc)

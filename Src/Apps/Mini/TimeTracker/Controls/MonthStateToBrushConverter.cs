@@ -7,12 +7,13 @@ namespace TimeTracker.Controls
 {
     public sealed class MonthStateToBrushConverter : ValueConverterFactoryBase
     {
-        protected override IValueConverter Create() => CreateCommonConverter<MonthState, Brush>(s => s switch
-        {
-            MonthState.Ok => Brushes.Green,
-            MonthState.Short => Brushes.DarkOrange,
-            MonthState.Minus => Brushes.Red,
-            _ => Brushes.Gray
-        });
+        protected override IValueConverter Create() => CreateCommonConverter<MonthState, Brush>(
+            s => s switch
+            {
+                MonthState.Ok => Brushes.Green,
+                MonthState.Short => Brushes.DarkOrange,
+                MonthState.Minus => Brushes.Red,
+                _ => Brushes.Gray
+            });
     }
 }

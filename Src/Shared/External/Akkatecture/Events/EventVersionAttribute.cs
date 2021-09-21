@@ -39,8 +39,6 @@ namespace Akkatecture.Events
         public EventVersionAttribute(
             string name,
             int version)
-            : base(name, version)
-        {
-        }
+            : base(name, version) { }
     }
 }

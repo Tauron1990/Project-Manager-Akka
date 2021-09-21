@@ -1,5 +1,5 @@
 ﻿@using ServiceManager.Shared.Identity
-@implements GridShared.Columns.ICustomGridComponent<UserData>
+@implements GridShared.Columns.ICustomGridComponent<ServiceManager.Shared.Identity.UserData>
 
 @inject NavigationManager _navigationManager
 
@@ -8,13 +8,9 @@
 @code {
 
     [Parameter]
-    public UserData? Item { get; set; }
+    public UserData Item { get; set; } = null!;
 
     private void EditClick()
-    {
-        if(Item == null) return;
-        
-        _navigationManager.NavigateTo($"/UserEditor/{Item.Id}");
-    }
+        => _navigationManager.NavigateTo($"/UserEditor/{Item.Id}");
 
 }

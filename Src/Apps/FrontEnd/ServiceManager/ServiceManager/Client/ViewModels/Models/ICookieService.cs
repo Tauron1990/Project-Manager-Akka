@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using Microsoft.JSInterop;
 
 namespace ServiceManager.Client.ViewModels.Models
 {

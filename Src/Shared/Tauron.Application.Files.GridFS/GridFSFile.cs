@@ -10,9 +10,7 @@ namespace Tauron.Application.Files.GridFS
     public sealed class GridFSFile : GridFSSystemNode, IFile
     {
         public GridFSFile(GridFSBucket bucket, GridFSFileInfo? fileInfo, IDirectory? parentDirectory, string name, string path, Action? existsNow)
-            : base(bucket, fileInfo, parentDirectory, name, path, existsNow)
-        {
-        }
+            : base(bucket, fileInfo, parentDirectory, name, path, existsNow) { }
 
         public override bool IsDirectory => false;
 
@@ -43,6 +41,7 @@ namespace Tauron.Application.Files.GridFS
                 return new UpdateStream(this, Bucket.OpenUploadStream(OriginalPath));
 
             Bucket.Delete(SafeFileInfo.Id);
+
             return new UpdateStream(this, Bucket.OpenUploadStream(SafeFileInfo.Filename));
         }
 
@@ -50,6 +49,7 @@ namespace Tauron.Application.Files.GridFS
         {
             if (FileInfo != null)
                 throw new IOException($"{OriginalPath} - File already Exist");
+
             return new UpdateStream(this, Bucket.OpenUploadStream(SafeFileInfo.Filename));
         }
 
@@ -57,6 +57,7 @@ namespace Tauron.Application.Files.GridFS
         {
             Bucket.Rename(SafeFileInfo.Id, location);
             FindEntry(SafeFileInfo.Id);
+
             return this;
         }
 
@@ -71,16 +72,6 @@ namespace Tauron.Application.Files.GridFS
                 _upload = upload;
             }
 
-            public override void Flush() => _upload.Flush();
-
-            public override int Read(byte[] buffer, int offset, int count) => _upload.Read(buffer, offset, count);
-
-            public override long Seek(long offset, SeekOrigin origin) => _upload.Seek(offset, origin);
-
-            public override void SetLength(long value) => _upload.SetLength(value);
-
-            public override void Write(byte[] buffer, int offset, int count) => _upload.Write(buffer, offset, count);
-
             public override bool CanRead => _upload.CanRead;
 
             public override bool CanSeek => _upload.CanSeek;
@@ -94,6 +85,16 @@ namespace Tauron.Application.Files.GridFS
                 get => _upload.Position;
                 set => _upload.Position = value;
             }
+
+            public override void Flush() => _upload.Flush();
+
+            public override int Read(byte[] buffer, int offset, int count) => _upload.Read(buffer, offset, count);
+
+            public override long Seek(long offset, SeekOrigin origin) => _upload.Seek(offset, origin);
+
+            public override void SetLength(long value) => _upload.SetLength(value);
+
+            public override void Write(byte[] buffer, int offset, int count) => _upload.Write(buffer, offset, count);
 
             protected override void Dispose(bool disposing)
             {

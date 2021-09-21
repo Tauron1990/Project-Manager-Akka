@@ -18,7 +18,7 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer
             Manager = manager;
             Data = data;
 
-            _denyTimer = new Timer(s => Deny(), null, TimeSpan.FromMinutes(1), Timeout.InfiniteTimeSpan);
+            _denyTimer = new Timer(_ => Deny(), null, TimeSpan.FromMinutes(1), Timeout.InfiniteTimeSpan);
         }
 
         public DataTransferManager Manager { get; }
@@ -41,6 +41,7 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer
             _denyTimer.Dispose();
             var source = new TaskCompletionSource<TransferMessages.TransferCompled>();
             Manager.Actor.Tell(new TransferMessages.RequestAccept(OperationId, to, source));
+
             return source.Task;
         }
     }

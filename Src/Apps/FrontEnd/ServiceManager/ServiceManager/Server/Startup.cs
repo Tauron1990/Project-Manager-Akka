@@ -2,16 +2,16 @@ using System;
 using System.IO;
 using System.Linq;
 using Akka.DependencyInjection;
+using JetBrains.Annotations;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using JetBrains.Annotations;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using ServiceHost.Client.Shared.ConfigurationServer.Data;
 using ServiceManager.Server.AppCore;
 using ServiceManager.Server.AppCore.Apps;
@@ -48,7 +48,7 @@ namespace ServiceManager.Server
         {
             ImmutableListSerializer<Condition>.Register();
             ImmutableListSerializer<SeedUrl>.Register();
-            
+
             services.AddDbContextFactory<UsersDatabase>(
                 builder =>
                 {
@@ -65,18 +65,18 @@ namespace ServiceManager.Server
             services.AddScoped(sp => sp.GetRequiredService<IDbContextFactory<UsersDatabase>>().CreateDbContext());
 
             services.AddCommander()
-                    .AddCommandService<INodeUpdateHandler, NodeUpdateHandler>();
+               .AddCommandService<INodeUpdateHandler, NodeUpdateHandler>();
 
             services.AddDbContextServices<UsersDatabase>(
                 o => o
-                    .AddFileBasedOperationLogChangeTracking(Path.Combine(Program.ExeFolder, "_changed"))
-                    .AddOperations()
-                    .AddAuthentication<FusionSessionInfoEntity, FusionUserEntity, string>());
+                   .AddFileBasedOperationLogChangeTracking(Path.Combine(Program.ExeFolder, "_changed"))
+                   .AddOperations()
+                   .AddAuthentication<FusionSessionInfoEntity, FusionUserEntity, string>());
 
             var fusion = services.AddFusion();
 
             services.AddIdentity<IdentityUser, IdentityRole>()
-                    .AddEntityFrameworkStores<UsersDatabase>();
+               .AddEntityFrameworkStores<UsersDatabase>();
 
             fusion.AddAuthentication(
                 o => o.AddServer(
@@ -88,19 +88,19 @@ namespace ServiceManager.Server
                     signInControllerOptionsBuilder: (_, options) => options.DefaultScheme = IdentityConstants.ApplicationScheme));
 
             fusion.AddComputeService<IClusterNodeTracking, ClusterNodeTracking>()
-                  .AddComputeService<IClusterConnectionTracker, ClusterConnectionTracker>()
-                  .AddComputeService<IServerInfo, ServerInfo>()
-                  .AddComputeService<IAppIpManager, AppIpService>()
-                  .AddComputeService<IDatabaseConfig, DatabaseConfig>()
-                  .AddComputeService<IServerConfigurationApi, ServerConfigurationApi>()
-                  .AddComputeService<IUserManagement, UserManagment>()
-                  .AddComputeService<IAppManagment, AppManagment>();
+               .AddComputeService<IClusterConnectionTracker, ClusterConnectionTracker>()
+               .AddComputeService<IServerInfo, ServerInfo>()
+               .AddComputeService<IAppIpManager, AppIpService>()
+               .AddComputeService<IDatabaseConfig, DatabaseConfig>()
+               .AddComputeService<IServerConfigurationApi, ServerConfigurationApi>()
+               .AddComputeService<IUserManagement, UserManagment>()
+               .AddComputeService<IAppManagment, AppManagment>();
 
 
             services.AddAuthorization(
                 o =>
                 {
-                    foreach (var claim in Claims.AllClaims) 
+                    foreach (var claim in Claims.AllClaims)
                         o.AddPolicy(claim, b => b.RequireClaim(claim));
                 });
 
@@ -109,34 +109,36 @@ namespace ServiceManager.Server
 
             services.Configure<HostOptions>(o => o.ShutdownTimeout = TimeSpan.FromSeconds(30));
 
-            services.Configure<IdentityOptions>(options =>
-                                                {
-                                                    // Password settings.
-                                                    options.Password.RequireDigit = false;
-                                                    options.Password.RequireLowercase = false;
-                                                    options.Password.RequireNonAlphanumeric = false;
-                                                    options.Password.RequireUppercase = false;
-                                                    options.Password.RequiredLength = 3;
-                                                    options.Password.RequiredUniqueChars = 0;
+            services.Configure<IdentityOptions>(
+                options =>
+                {
+                    // Password settings.
+                    options.Password.RequireDigit = false;
+                    options.Password.RequireLowercase = false;
+                    options.Password.RequireNonAlphanumeric = false;
+                    options.Password.RequireUppercase = false;
+                    options.Password.RequiredLength = 3;
+                    options.Password.RequiredUniqueChars = 0;
 
-                                                    // Lockout settings.
-                                                    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
-                                                    options.Lockout.MaxFailedAccessAttempts = 5;
-                                                    options.Lockout.AllowedForNewUsers = true;
+                    // Lockout settings.
+                    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+                    options.Lockout.MaxFailedAccessAttempts = 5;
+                    options.Lockout.AllowedForNewUsers = true;
 
-                                                    // User settings.
-                                                    options.User.AllowedUserNameCharacters =
-                                                        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
-                                                    options.User.RequireUniqueEmail = false;
-                                                });
+                    // User settings.
+                    options.User.AllowedUserNameCharacters =
+                        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+                    options.User.RequireUniqueEmail = false;
+                });
 
-            services.ConfigureApplicationCookie(options =>
-                                                {
-                                                    // Cookie settings
-                                                    options.Cookie.HttpOnly = true;
-                                                    options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
-                                                    options.SlidingExpiration = true;
-                                                });
+            services.ConfigureApplicationCookie(
+                options =>
+                {
+                    // Cookie settings
+                    options.Cookie.HttpOnly = true;
+                    options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
+                    options.SlidingExpiration = true;
+                });
 
             services.AddCors();
             services.AddSignalR();
@@ -151,28 +153,28 @@ namespace ServiceManager.Server
         public void ConfigureContainer(IActorApplicationBuilder builder)
         {
             builder.OnMemberRemoved(
-                        (_, system, _) =>
+                    (_, system, _) =>
+                    {
+                        try
                         {
-                            try
-                            {
-                                var resolverScope = DependencyResolver.For(system).Resolver.CreateScope();
-                                var resolver = resolverScope.Resolver;
+                            var resolverScope = DependencyResolver.For(system).Resolver.CreateScope();
+                            var resolver = resolverScope.Resolver;
 
-                                resolver.GetService<IHubContext<ClusterInfoHub>>().Clients.All
-                                        .SendAsync(HubEvents.RestartServer)
-                                        .ContinueWith(
-                                             _ =>
-                                             {
-                                                 using (resolverScope)
-                                                 {
-                                                     resolver.GetService<IRestartHelper>().Restart = true;
-                                                     resolver.GetService<IHostApplicationLifetime>().StopApplication();
-                                                 }
-                                             });
-                            }
-                            catch (ObjectDisposedException) { }
-                        })
-                   .AddModule<MainModule>();
+                            resolver.GetService<IHubContext<ClusterInfoHub>>().Clients.All
+                               .SendAsync(HubEvents.RestartServer)
+                               .ContinueWith(
+                                    _ =>
+                                    {
+                                        using (resolverScope)
+                                        {
+                                            resolver.GetService<IRestartHelper>().Restart = true;
+                                            resolver.GetService<IHostApplicationLifetime>().StopApplication();
+                                        }
+                                    });
+                        }
+                        catch (ObjectDisposedException) { }
+                    })
+               .AddModule<MainModule>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -192,7 +194,7 @@ namespace ServiceManager.Server
 
             app.UseCors(builder => builder.WithFusionHeaders());
             app.UseCookiePolicy();
-            
+
             app.UseBlazorFrameworkFiles();
             app.UseStaticFiles();
 

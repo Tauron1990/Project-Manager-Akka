@@ -16,7 +16,8 @@ namespace Servicemnager.Networking.Transmitter
 
         private bool _isRunnging;
 
-        public Sender(Stream toSend, string client, IDataServer server, Func<byte[]> getArray,
+        public Sender(
+            Stream toSend, string client, IDataServer server, Func<byte[]> getArray,
             Action<byte[]> returnArray, Action<Exception> errorHandler)
         {
             _toSend = toSend;
@@ -37,6 +38,7 @@ namespace Servicemnager.Networking.Transmitter
                 {
                     _server.Send(_client, NetworkMessage.Create(NetworkOperation.DataAccept));
                     _isRunnging = true;
+
                     return true;
                 }
 
@@ -46,6 +48,7 @@ namespace Servicemnager.Networking.Transmitter
                         _isRunnging = false;
                         _toSend.Dispose();
                         _errorHandler(new InvalidOperationException("Operation Cancelled from Client"));
+
                         return false;
                     case NetworkOperation.DataNext:
                         var chunk = _getArray();
@@ -57,10 +60,12 @@ namespace Servicemnager.Networking.Transmitter
                                 _toSend.Dispose();
                                 _server.Send(_client, NetworkMessage.Create(NetworkOperation.DataCompled));
                                 Thread.Sleep(2000);
+
                                 return false;
                             }
 
                             _server.Send(_client, NetworkMessage.Create(NetworkOperation.DataChunk, chunk, count));
+
                             return true;
                         }
                         finally
@@ -69,6 +74,7 @@ namespace Servicemnager.Networking.Transmitter
                         }
                     default:
                         _toSend.Dispose();
+
                         return false;
                 }
             }
@@ -77,6 +83,7 @@ namespace Servicemnager.Networking.Transmitter
                 _toSend.Dispose();
                 _errorHandler(e);
                 _server.Send(_client, NetworkMessage.Create(NetworkOperation.Deny));
+
                 return false;
             }
         }

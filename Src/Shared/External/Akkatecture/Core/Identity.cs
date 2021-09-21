@@ -55,18 +55,21 @@ namespace Akkatecture.Core
         public static T NewDeterministic(Guid namespaceId, string name)
         {
             var guid = GuidFactories.Deterministic.Create(namespaceId, name);
+
             return With(guid);
         }
 
         public static T NewDeterministic(Guid namespaceId, byte[] nameBytes)
         {
             var guid = GuidFactories.Deterministic.Create(namespaceId, nameBytes);
+
             return With(guid);
         }
 
         public static T NewComb()
         {
             var guid = GuidFactories.Comb.Create();
+
             return With(guid);
         }
 
@@ -74,12 +77,13 @@ namespace Akkatecture.Core
         {
             try
             {
-                return (T) (FastReflection.Shared.FastCreateInstance(typeof(T)) ??
-                            throw new InvalidOperationException($"No Instantance of {typeof(T)} Created"));
+                return (T)(FastReflection.Shared.FastCreateInstance(typeof(T)) ??
+                           throw new InvalidOperationException($"No Instantance of {typeof(T)} Created"));
             }
             catch (TargetInvocationException exception)
             {
                 if (exception.InnerException != null) throw exception.InnerException;
+
                 throw;
             }
         }
@@ -87,6 +91,7 @@ namespace Akkatecture.Core
         public static T With(Guid guid)
         {
             var value = $"{Name}-{guid:D}";
+
             return With(value);
         }
 
@@ -97,28 +102,26 @@ namespace Akkatecture.Core
             if (string.IsNullOrEmpty(value))
             {
                 yield return $"Identity of type '{typeof(T).PrettyPrint()}' is null or empty";
+
                 yield break;
             }
 
             if (!string.Equals(value.Trim(), value, StringComparison.OrdinalIgnoreCase))
-            {
                 yield return
                     $"Identity '{value}' of type '{typeof(T).PrettyPrint()}' contains leading and/or traling spaces";
-            }
 
             if (!value.StartsWith(Name))
                 yield return $"Identity '{value}' of type '{typeof(T).PrettyPrint()}' does not start with '{Name}'";
             if (!ValueValidation.IsMatch(value))
-            {
                 yield return
                     $"Identity '{value}' of type '{typeof(T).PrettyPrint()}' does not follow the syntax '[NAME]-[GUID]' in lower case";
-            }
         }
 
         protected Identity(string value)
             : base(value)
         {
             var validationErrors = Validate(value).ToList();
+
             if (validationErrors.Any())
                 throw new ArgumentException($"Identity is invalid: {string.Join(", ", validationErrors)}");
 

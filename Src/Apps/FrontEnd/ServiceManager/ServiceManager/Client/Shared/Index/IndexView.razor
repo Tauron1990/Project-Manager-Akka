@@ -1,8 +1,8 @@
-﻿@using ServiceManager.Shared.ClusterTracking
-
-@inject IClusterNodeTracking _service
+﻿@inject IClusterNodeTracking _service
+@using ServiceManager.Shared.ClusterTracking
 @inherits ComputedStateComponent<string[]>
 
+@* ReSharper disable once Html.TagShouldNotBeSelfClosed *@
 <Title Value="Knoten"/>
 
 <MudContainer MaxWidth="MaxWidth.Medium">
@@ -20,6 +20,6 @@
 
 @code
 {
-    protected override Task<string[]> ComputeState(CancellationToken cancellationToken) 
+    protected override Task<string[]> ComputeState(CancellationToken cancellationToken)
         => _service.GetUrls();
 }

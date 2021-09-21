@@ -5,9 +5,7 @@ namespace Tauron.Application.Files.VirtualFiles.InMemory.Data
 {
     public sealed class DataDirectory : DataElement
     {
-        public DataDirectory(string name) : base(name)
-        {
-        }
+        public DataDirectory(string name) : base(name) { }
 
         public List<DataFile> Files { get; set; } = new();
 

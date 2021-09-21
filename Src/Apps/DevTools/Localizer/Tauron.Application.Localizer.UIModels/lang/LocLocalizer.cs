@@ -182,7 +182,7 @@ namespace Tauron.Application.Localizer.UIModels.lang
 
         public string ProjectViewLanguageBoxFirstLabel => _projectViewLanguageBoxFirstLabel.Result;
 
-        private static Task<string> ToString(Task<Option<object>> task) 
+        private static Task<string> ToString(Task<Option<object>> task)
             => task.ContinueWith(t => t.Result.Select(o => o as string ?? string.Empty).GetOrElse(string.Empty));
     }
 }

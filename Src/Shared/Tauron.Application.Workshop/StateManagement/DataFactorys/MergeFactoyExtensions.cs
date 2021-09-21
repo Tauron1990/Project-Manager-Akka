@@ -8,7 +8,7 @@
             MergeFactory factory;
 
             if (foundFac != -1)
-                factory = (MergeFactory) factories[foundFac];
+                factory = (MergeFactory)factories[foundFac];
             else
                 factory = new MergeFactory();
 

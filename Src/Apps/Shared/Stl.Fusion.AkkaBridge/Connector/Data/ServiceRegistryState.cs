@@ -11,10 +11,11 @@ namespace Stl.Fusion.AkkaBridge.Connector.Data
         ImmutableList<IRegistryOperation> ToApply, ImmutableList<IActorRef> Others, Cluster Cluster)
     {
         public static ServiceRegistryState Create(Cluster cluster) => new(
-            ImmutableDictionary<IActorRef, Type>.Empty, 
-            ImmutableDictionary<string, ImmutableHashSet<string>>.Empty, 
+            ImmutableDictionary<IActorRef, Type>.Empty,
+            ImmutableDictionary<string, ImmutableHashSet<string>>.Empty,
             ImmutableList<IRegistryOperation>.Empty,
-            ImmutableList<IActorRef>.Empty, cluster);
+            ImmutableList<IActorRef>.Empty,
+            cluster);
 
         public ServiceRegistryState NewService(IActorRef actor, Type serviceType)
         {

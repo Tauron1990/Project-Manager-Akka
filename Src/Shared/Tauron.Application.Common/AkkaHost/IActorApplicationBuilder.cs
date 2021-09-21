@@ -14,7 +14,7 @@ namespace Tauron.AkkaHost
     public interface IActorApplicationBuilder
     {
         IActorApplicationBuilder ConfigureAutoFac(Action<ContainerBuilder> config);
-        
+
         IActorApplicationBuilder ConfigureAkka(Func<HostBuilderContext, Config> config);
 
         IActorApplicationBuilder ConfigureAkka(Func<HostBuilderContext, Setup> config);

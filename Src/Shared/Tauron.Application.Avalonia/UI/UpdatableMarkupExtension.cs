@@ -48,10 +48,8 @@ namespace Tauron.Application.Avalonia.UI
                     if (obj?.CheckAccess() == true)
                         UpdateAction();
                     else if (obj != null)
-                    {
                         Dispatcher.UIThread.InvokeAsync(UpdateAction, DispatcherPriority.Background)
-                                  .Ignore();
-                    }
+                           .Ignore();
                 }
                 else // _targetProperty is PropertyInfo
                 {
@@ -61,7 +59,8 @@ namespace Tauron.Application.Avalonia.UI
             }
         }
 
-        protected virtual bool TryGetTargetItems(IServiceProvider? provider,
+        protected virtual bool TryGetTargetItems(
+            IServiceProvider? provider,
             [NotNullWhen(true)] out AvaloniaObject? target, [NotNullWhen(true)] out AvaloniaProperty? dp)
         {
             target = null;
@@ -73,6 +72,7 @@ namespace Tauron.Application.Avalonia.UI
             //we need dependency objects / properties
             target = service.TargetObject as AvaloniaObject;
             dp = service.TargetProperty as AvaloniaProperty;
+
             return target != null && dp != null;
         }
 

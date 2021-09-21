@@ -19,11 +19,11 @@ namespace Tauron.Application
     {
         private Entry?[] _entrys;
 
-        [NonSerialized] private BlockSupport _support;
-
         [NonSerialized] private IEqualityComparer<TKey> _keyEquals;
 
         [NonSerialized] private KeyCollection _keys;
+
+        [NonSerialized] private BlockSupport _support;
 
         [NonSerialized] private ValueCollection _values;
 
@@ -46,6 +46,7 @@ namespace Tauron.Application
             get
             {
                 var ent = FindEntry(key, out _);
+
                 if (ent is null || ent.Value is null) throw new KeyNotFoundException(key?.ToString());
 
                 return ent.Value;
@@ -106,6 +107,7 @@ namespace Tauron.Application
         public bool Remove(TKey key)
         {
             var entry = FindEntry(key, out var index);
+
             if (entry is null) return false;
 
             Array.Copy(_entrys, index + 1, _entrys, index, Count - index);
@@ -116,16 +118,18 @@ namespace Tauron.Application
             return true;
         }
 
-        public bool TryGetValue(TKey key, [NotNullWhen(true)]out TValue? value)
+        public bool TryGetValue(TKey key, [NotNullWhen(true)] out TValue? value)
         {
             var ent = FindEntry(key, out _);
             if (ent is null || ent.Value is null)
             {
                 value = default;
+
                 return false;
             }
 
             value = ent.Value;
+
             return true;
         }
 
@@ -138,7 +142,7 @@ namespace Tauron.Application
         bool ICollection<KeyValuePair<TKey, TValue>>.Contains(KeyValuePair<TKey, TValue> item)
         {
             var (key, value) = item;
-            var ent         = FindEntry(key, out _);
+            var ent = FindEntry(key, out _);
 
             return ent != null && EqualityComparer<TValue>.Default.Equals(ent.Value, value);
         }
@@ -154,6 +158,7 @@ namespace Tauron.Application
                 array[internalIndex] = Entry.Construct(_entrys[index]);
 
                 index++;
+
                 if (index == Count) break;
             }
         }
@@ -162,8 +167,7 @@ namespace Tauron.Application
 
         bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> item) => Remove(item.Key);
 
-        [field: NonSerialized]
-        public event NotifyCollectionChangedEventHandler? CollectionChanged;
+        [field: NonSerialized] public event NotifyCollectionChangedEventHandler? CollectionChanged;
 
         private void AddCore(TKey key, TValue value)
         {
@@ -171,13 +175,14 @@ namespace Tauron.Application
             Count++;
             EnsureCapatcity(Count);
 
-            _entrys[index] = new Entry {Key = key, Value = value};
+            _entrys[index] = new Entry { Key = key, Value = value };
             OnCollectionAdd(Entry.Construct(key, value), index);
         }
 
         private IDisposable BlockCollection()
         {
             _support.Enter();
+
             return _support;
         }
 
@@ -200,12 +205,16 @@ namespace Tauron.Application
             for (var internalIndex = 0; internalIndex < Count; internalIndex++)
             {
                 var ent = _entrys[internalIndex];
+
                 if (!_keyEquals.Equals(ent!.Key, key)) continue;
+
                 index = internalIndex;
+
                 return ent;
             }
 
             index = -1;
+
             return null;
         }
 
@@ -229,7 +238,9 @@ namespace Tauron.Application
             using (BlockCollection())
             {
                 OnCollectionChanged(
-                    new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, changed,
+                    new NotifyCollectionChangedEventArgs(
+                        NotifyCollectionChangedAction.Add,
+                        changed,
                         index));
                 _keys.OnCollectionAdd(changed.Key, index);
                 _values.OnCollectionAdd(changed.Value, index);
@@ -242,22 +253,28 @@ namespace Tauron.Application
             using (BlockCollection())
             {
                 OnCollectionChanged(
-                    new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove,
-                        changed, index));
+                    new NotifyCollectionChangedEventArgs(
+                        NotifyCollectionChangedAction.Remove,
+                        changed,
+                        index));
                 _keys.OnCollectionRemove(changed.Key, index);
                 _values.OnCollectionRemove(changed.Value, index);
                 InvokePropertyChanged();
             }
         }
 
-        private void OnCollectionReplace(KeyValuePair<TKey, TValue> newItem, KeyValuePair<TKey, TValue> oldItem,
+        private void OnCollectionReplace(
+            KeyValuePair<TKey, TValue> newItem, KeyValuePair<TKey, TValue> oldItem,
             int index)
         {
             using (BlockCollection())
             {
                 OnCollectionChanged(
-                    new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace,
-                        newItem, oldItem, index));
+                    new NotifyCollectionChangedEventArgs(
+                        NotifyCollectionChangedAction.Replace,
+                        newItem,
+                        oldItem,
+                        index));
                 _values.OnCollectionReplace(newItem.Value, oldItem.Value, index);
                 InvokePropertyChanged();
             }
@@ -318,6 +335,7 @@ namespace Tauron.Application
             {
                 if (entry is null || entry.Key is null || entry.Value is null)
                     throw new InvalidOperationException("Key or value was null");
+
                 return Construct(entry.Key, entry.Value);
             }
         }
@@ -327,9 +345,7 @@ namespace Tauron.Application
         private class KeyCollection : NotifyCollectionChangedBase<TKey>
         {
             internal KeyCollection(ObservableDictionary<TKey, TValue> collection)
-                : base(collection)
-            {
-            }
+                : base(collection) { }
 
             protected override bool Contains(Entry? entry, TKey target)
                 => entry != null && Dictionary._keyEquals.Equals(entry.Key, target);
@@ -390,20 +406,21 @@ namespace Tauron.Application
                 foreach (var entry in Dictionary._entrys)
                 {
                     count++;
+
                     if (count > Dictionary.Count) break;
 
                     if (entry is null)
                         throw new InvalidOperationException("Array not in Consitent State");
-                    
+
                     yield return Select(entry);
+
                     if (ver != Dictionary._version) throw new InvalidOperationException("Collection changed while enumerating");
                 }
             }
 
             public bool Remove(TTarget item) => throw new NotSupportedException("Removing not Supported");
 
-            [field: NonSerialized]
-            public event NotifyCollectionChangedEventHandler? CollectionChanged;
+            [field: NonSerialized] public event NotifyCollectionChangedEventHandler? CollectionChanged;
 
             internal void OnCollectionAdd(TTarget target, int index)
                 => OnCollectionChanged(
@@ -414,8 +431,12 @@ namespace Tauron.Application
                     new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, target, index));
 
             internal void OnCollectionReplace(TTarget newItem, TTarget oldItem, int index)
-                => OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace,
-                    newItem, oldItem, index));
+                => OnCollectionChanged(
+                    new NotifyCollectionChangedEventArgs(
+                        NotifyCollectionChangedAction.Replace,
+                        newItem,
+                        oldItem,
+                        index));
 
             internal void OnCollectionReset()
                 => OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
@@ -444,9 +465,7 @@ namespace Tauron.Application
         private class ValueCollection : NotifyCollectionChangedBase<TValue>
         {
             internal ValueCollection(ObservableDictionary<TKey, TValue> collection)
-                : base(collection)
-            {
-            }
+                : base(collection) { }
 
             protected override bool Contains(Entry entry, TValue target)
                 => EqualityComparer<TValue>.Default.Equals(entry.Value, target);

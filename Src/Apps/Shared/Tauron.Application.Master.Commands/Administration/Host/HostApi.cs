@@ -25,17 +25,19 @@ namespace Tauron.Application.Master.Commands.Administration.Host
         public static HostApi CreateOrGet(ActorSystem actorRefFactory)
         {
             lock (Lock)
+            {
                 return _hostApi ??= new HostApi(actorRefFactory.ActorOf(HostApiManagerFeature.Create(), SubscribeFeature.New()));
+            }
         }
 
-        public Task<TResult> ExecuteCommand<TResult>(InternalHostMessages.CommandBase<TResult> command) 
-            where TResult : OperationResponse , new()
+        public Task<TResult> ExecuteCommand<TResult>(InternalHostMessages.CommandBase<TResult> command)
+            where TResult : OperationResponse, new()
             => _actorRef.Ask<TResult>(command, TimeSpan.FromMinutes(1));
 
         public Task<ImmutableList<HostApp>> QueryApps(string name)
             => _actorRef
-                .Ask<HostAppsResponse>(new QueryHostApps(name), TimeSpan.FromSeconds(30))
-                .ContinueWith(t => t.Result.Apps);
+               .Ask<HostAppsResponse>(new QueryHostApps(name), TimeSpan.FromSeconds(30))
+               .ContinueWith(t => t.Result.Apps);
 
         public EventSubscribtion Event<T>() => _actorRef.SubscribeToEvent<T>();
     }

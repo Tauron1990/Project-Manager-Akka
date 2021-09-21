@@ -10,14 +10,18 @@ namespace ServiceManager.ProjectDeployment.Data
         public static readonly AppData Empty = new();
 
         public AppData()
-            : this(ImmutableList<AppFileInfo>.Empty, string.Empty, -1, DateTime.MinValue, DateTime.MinValue, string.Empty, string.Empty)
-        {
-            
-        }
+            : this(ImmutableList<AppFileInfo>.Empty, string.Empty, -1, DateTime.MinValue, DateTime.MinValue, string.Empty, string.Empty) { }
 
         public AppInfo ToInfo()
-            => new(Id, Last, LastUpdate, CreationTime, Repository,
+            => new(
+                Id,
+                Last,
+                LastUpdate,
+                CreationTime,
+                Repository,
                 Versions.Select(fi => new AppBinary(fi.Version, Id, fi.CreationTime, fi.Deleted, fi.Commit, Repository))
-                        .ToImmutableList(), Deleted: false, ProjectName);
+                   .ToImmutableList(),
+                Deleted: false,
+                ProjectName);
     }
 }

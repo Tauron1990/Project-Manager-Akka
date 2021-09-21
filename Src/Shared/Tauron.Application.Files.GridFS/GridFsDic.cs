@@ -5,7 +5,6 @@ using System.Linq;
 using JetBrains.Annotations;
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
-using Tauron.Application.Files.VirtualFiles;
 using Tauron.Application.VirtualFiles;
 
 namespace Tauron.Application.Files.GridFS
@@ -17,10 +16,8 @@ namespace Tauron.Application.Files.GridFS
 
         private readonly object _createLock = new();
 
-        public GridFsDic(GridFSBucket bucket, GridFSFileInfo? fileInfo, IDirectory? parentDirectory, string name, string path, Action? existsNow) 
-            : base(bucket, fileInfo, parentDirectory, name, path, existsNow)
-        {
-        }
+        public GridFsDic(GridFSBucket bucket, GridFSFileInfo? fileInfo, IDirectory? parentDirectory, string name, string path, Action? existsNow)
+            : base(bucket, fileInfo, parentDirectory, name, path, existsNow) { }
 
         public override bool IsDirectory => true;
 
@@ -29,7 +26,9 @@ namespace Tauron.Application.Files.GridFS
                let subPath = entry.Filename.Remove(0, OriginalPath.Length + 1)
                where subPath.EndsWith(DicId) && subPath.IsSingle(c => c == PathHelper.Seperator)
                select new GridFsDic(
-                   Bucket, entry, this,
+                   Bucket,
+                   entry,
+                   this,
                    subPath.Split(PathHelper.Seperator, 2)[0],
                    entry.Filename.Replace(PathHelper.Seperator + DicId, string.Empty),
                    NotifyExist);
@@ -51,10 +50,12 @@ namespace Tauron.Application.Files.GridFS
                 string fullDicPath = PathHelper.Combine(OriginalPath, dicName);
 
                 var tempDic = new GridFsDic(Bucket, FindEntry(PathHelper.Combine(fullDicPath, DicId)), this, dicName, fullDicPath, NotifyExist);
+
                 return tempDic.GetFile(fileName);
             }
 
             string fullPath = PathHelper.Combine(OriginalPath, name);
+
             return new GridFSFile(Bucket, FindEntry(fullPath), this, name, fullPath, NotifyExist);
         }
 
@@ -68,14 +69,23 @@ namespace Tauron.Application.Files.GridFS
                 string fullDicPath = PathHelper.Combine(OriginalPath, dicName);
 
                 var tempDic = new GridFsDic(Bucket, FindEntry(PathHelper.Combine(fullDicPath, DicId)), this, dicName, fullDicPath, NotifyExist);
+
                 return tempDic.GetDirectory(dicPath);
             }
 
             string fullPath = PathHelper.Combine(OriginalPath, name);
+
             return new GridFsDic(Bucket, FindEntry(PathHelper.Combine(fullPath, DicId)), this, name, fullPath, NotifyExist);
         }
 
         public IDirectory MoveTo(string location) => throw new NotSupportedException("Directory Movement Not Supported For MongoDb");
+
+        public override void Delete()
+        {
+            foreach (var entry in FindRelevantEntries().ToArray()) Bucket.Delete(entry.Id);
+
+            base.Delete();
+        }
 
         private IEnumerable<GridFSFileInfo> FindRelevantEntries()
         {
@@ -83,14 +93,8 @@ namespace Tauron.Application.Files.GridFS
                 throw new FileNotFoundException(OriginalPath + " Not Found");
 
             string start = OriginalPath;
+
             return Bucket.Find(Builders<GridFSFileInfo>.Filter.Where(f => f.Filename.StartsWith(start))).ToEnumerable();
-        }
-
-        public override void Delete()
-        {
-            foreach (var entry in FindRelevantEntries().ToArray()) Bucket.Delete(entry.Id);
-
-            base.Delete();
         }
 
         private void NotifyExist()

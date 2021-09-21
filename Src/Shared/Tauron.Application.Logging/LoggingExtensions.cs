@@ -22,7 +22,7 @@ namespace Tauron.Application.Logging
         public static ILoggingBuilder ConfigDefaultLogging(this ILoggingBuilder loggingBuilder, string applicationName, bool noFile = false)
         {
             var loggerConfiguration = LogManager.Setup().ConfigDefaultLogging(applicationName, noFile);
-            
+
             return loggingBuilder.AddNLog(_ => loggerConfiguration.LogFactory);
         }
 
@@ -32,51 +32,54 @@ namespace Tauron.Application.Logging
 
             if (!noFile)
             {
-
                 const string defaultFile = "default-file";
                 loggerConfiguration =
-                    loggerConfiguration.LoadConfiguration(b =>
-                    {
-                        b.Configuration.AddTarget(new AsyncTargetWrapper(new FileTarget("actual-" + defaultFile)
+                    loggerConfiguration.LoadConfiguration(
+                        b =>
                         {
-                            Layout = new JsonLayout
-                            {
-                                Attributes =
-                                                                                                                                {
-                                                                                                                                    new JsonAttribute("time", "${longdate}"),
-                                                                                                                                    new JsonAttribute("level", "${level:upperCase=true}"),
-                                                                                                                                    new JsonAttribute("application", applicationName),
-                                                                                                                                    new JsonAttribute("eventType", "${event-type}"),
-                                                                                                                                    new JsonAttribute("message", "${message}"),
-                                                                                                                                    new JsonAttribute("Properties",
-                                                                                                                                        new JsonLayout
-                                                                                                                                        {
-                                                                                                                                            ExcludeEmptyProperties = true,
-                                                                                                                                            ExcludeProperties = new HashSet<string>
-                                                                                                                                                                {
-                                                                                                                                                                    "time",
-                                                                                                                                                                    "level",
-                                                                                                                                                                    "eventType",
-                                                                                                                                                                    "message"
-                                                                                                                                                                },
-                                                                                                                                            IncludeAllProperties = true
-                                                                                                                                        })
-                                                                                                                                }
-                            },
-                            ArchiveAboveSize = 5_242_880,
-                            ConcurrentWrites = false,
-                            MaxArchiveFiles = 5,
-                            FileName = "Logs\\Log.log",
-                            ArchiveFileName = "Logs\\Log.{###}.log",
-                            ArchiveNumbering = ArchiveNumberingMode.Rolling,
-                            EnableArchiveFileCompression = true
-                        })
-                        {
-                            Name = defaultFile
-                        });
+                            b.Configuration.AddTarget(
+                                new AsyncTargetWrapper(
+                                    new FileTarget("actual-" + defaultFile)
+                                    {
+                                        Layout = new JsonLayout
+                                                 {
+                                                     Attributes =
+                                                     {
+                                                         new JsonAttribute("time", "${longdate}"),
+                                                         new JsonAttribute("level", "${level:upperCase=true}"),
+                                                         new JsonAttribute("application", applicationName),
+                                                         new JsonAttribute("eventType", "${event-type}"),
+                                                         new JsonAttribute("message", "${message}"),
+                                                         new JsonAttribute(
+                                                             "Properties",
+                                                             new JsonLayout
+                                                             {
+                                                                 ExcludeEmptyProperties = true,
+                                                                 ExcludeProperties = new HashSet<string>
+                                                                                     {
+                                                                                         "time",
+                                                                                         "level",
+                                                                                         "eventType",
+                                                                                         "message"
+                                                                                     },
+                                                                 IncludeAllProperties = true
+                                                             })
+                                                     }
+                                                 },
+                                        ArchiveAboveSize = 5_242_880,
+                                        ConcurrentWrites = false,
+                                        MaxArchiveFiles = 5,
+                                        FileName = "Logs\\Log.log",
+                                        ArchiveFileName = "Logs\\Log.{###}.log",
+                                        ArchiveNumbering = ArchiveNumberingMode.Rolling,
+                                        EnableArchiveFileCompression = true
+                                    })
+                                {
+                                    Name = defaultFile
+                                });
 
-                        b.Configuration.AddRuleForAllLevels(defaultFile);
-                    });
+                            b.Configuration.AddRuleForAllLevels(defaultFile);
+                        });
             }
 
             return loggerConfiguration;
@@ -85,6 +88,7 @@ namespace Tauron.Application.Logging
         public static ISetupBuilder ConfigurateFile(this ISetupBuilder setupBuilder, string applicationName)
         {
             const string defaultFile = "default-file";
+
             return setupBuilder.LoadConfiguration(
                 b =>
                 {

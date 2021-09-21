@@ -48,42 +48,51 @@ namespace Akka.MGIHelper.UI.MgiStarter
              where !state
              select start
                 ).SubscribeWithStatus(s => s?.Dispose())
-                 .DisposeWith(this);
+               .DisposeWith(this);
 
             Receive<ProcessStateChange>(obs => obs.SubscribeWithStatus(ProcessStateChangeHandler));
-            Receive<MgiStartingActor.TryStartResponse>(obs => obs.SubscribeWithStatus(_ =>
-                                                                                      {
-                                                                                          currentStart.OnNext(null);
-                                                                                          InternalStart += false;
-                                                                                      }));
+            Receive<MgiStartingActor.TryStartResponse>(
+                obs => obs.SubscribeWithStatus(
+                    _ =>
+                    {
+                        currentStart.OnNext(null);
+                        InternalStart += false;
+                    }));
             Receive<MgiStartingActor.StartStatusUpdate>(obs => obs.SubscribeWithStatus(s => Status += s.Status));
 
             NewCommad
                .WithCanExecute(InternalStart.Select(b => !b))
-               .WithExecute(() =>
-                            {
-                                InternalStart += true;
-                                currentStart.OnNext(new CancellationTokenSource());
+               .WithExecute(
+                    () =>
+                    {
+                        InternalStart += true;
+                        currentStart.OnNext(new CancellationTokenSource());
 
-                                mgiStarting.Tell(new MgiStartingActor.TryStart(config, currentStart.Value!.Token,
-                                    () =>
-                                    {
-                                        Client.Value?.Kill(entireProcessTree: true);
-                                        Kernel.Value?.Kill(entireProcessTree: true);
-                                    }));
-                            }).ThenRegister("TryStart");
+                        mgiStarting.Tell(
+                            new MgiStartingActor.TryStart(
+                                config,
+                                currentStart.Value!.Token,
+                                () =>
+                                {
+                                    Client.Value?.Kill(entireProcessTree: true);
+                                    Kernel.Value?.Kill(entireProcessTree: true);
+                                }));
+                    }).ThenRegister("TryStart");
 
             NewCommad
-               .WithCanExecute(from client in Client
-                               select client != null)
-               .WithCanExecute(from kernel in Kernel 
-                               select kernel != null)
-               .WithExecute(() =>
-                            {
-                                currentStart.Value?.Cancel();
-                                Client.Value?.Kill(entireProcessTree: true);
-                                Kernel.Value?.Kill(entireProcessTree: true);
-                            }).ThenRegister("TryStop");
+               .WithCanExecute(
+                    from client in Client
+                    select client != null)
+               .WithCanExecute(
+                    from kernel in Kernel
+                    select kernel != null)
+               .WithExecute(
+                    () =>
+                    {
+                        currentStart.Value?.Cancel();
+                        Client.Value?.Kill(true);
+                        Kernel.Value?.Kill(true);
+                    }).ThenRegister("TryStop");
 
             InternalStart += false;
             UpdateLabel();
@@ -127,6 +136,7 @@ namespace Akka.MGIHelper.UI.MgiStarter
                             Kernel += null!;
                         if (_config.Client.Contains(name))
                             Client += null!;
+
                         break;
                     default:
                         #pragma warning disable EX006
@@ -165,7 +175,7 @@ namespace Akka.MGIHelper.UI.MgiStarter
         private void UpdateLabel()
         {
             var builder = new StringBuilder();
-            
+
             var status = Status;
             // ReSharper disable ConditionIsAlwaysTrueOrFalse
             var kernel = Kernel != null;
@@ -174,6 +184,7 @@ namespace Akka.MGIHelper.UI.MgiStarter
             if (!string.IsNullOrWhiteSpace(status) && status.Value?.StartsWith("Fehler:") == true)
             {
                 StatusLabel = status;
+
                 return;
             }
 

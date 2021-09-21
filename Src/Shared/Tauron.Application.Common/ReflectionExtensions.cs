@@ -31,7 +31,7 @@ namespace Tauron
 
         public static string PropertyName<T>(Expression<Func<T>> propertyExpression)
         {
-            var memberExpression = (MemberExpression) propertyExpression.Body;
+            var memberExpression = (MemberExpression)propertyExpression.Body;
 
             return memberExpression.Member.Name;
         }
@@ -47,7 +47,7 @@ namespace Tauron
     [PublicAPI]
     public sealed class FastReflection
     {
-        private static readonly Lazy<FastReflection> SharedLazy = new(() => new FastReflection(), isThreadSafe: true);
+        private static readonly Lazy<FastReflection> SharedLazy = new(() => new FastReflection(), true);
 
         private readonly Dictionary<ConstructorInfo, Func<object?[]?, object>> _creatorCache = new();
         private readonly Dictionary<FieldInfo, Func<object?, object?>> _fieldAccessorCache = new();
@@ -96,7 +96,7 @@ namespace Tauron
                     var lambda = Expression.Lambda(typeof(Func<object[], object>), newExpression, param);
 
                     // Compile it
-                    var compiled = (Func<object?[]?, object>) lambda.CompileFast();
+                    var compiled = (Func<object?[]?, object>)lambda.CompileFast();
 
                     _creatorCache[constructor] = compiled;
 
@@ -112,7 +112,7 @@ namespace Tauron
                     var lambda = Expression.Lambda(typeof(Func<object[], object>), newExpression, param);
 
                     // Compile it
-                    var compiled = (Func<object?[]?, object>) lambda.CompileFast();
+                    var compiled = (Func<object?[]?, object>)lambda.CompileFast();
 
                     _creatorCache[constructor] = compiled;
 
@@ -141,7 +141,9 @@ namespace Tauron
                 if (!arg.Any())
                     acess = Expression.Property(convert, info);
                 else
-                    acess = Expression.Property(convert, info,
+                    acess = Expression.Property(
+                        convert,
+                        info,
                         CreateArgumentExpressions(info.GetIndexParameters(), argParam));
 
 
@@ -149,6 +151,7 @@ namespace Tauron
                 var del = Expression.Lambda<Func<object?, object[], object>>(delExp, instParam, argParam).CompileFast();
 
                 _propertyAccessorCache[info] = del;
+
                 return del;
             }
         }
@@ -195,11 +198,14 @@ namespace Tauron
                 Expression exp = indexes.Length == 0
                     ? Expression.Assign(Expression.Property(convertInst, info), convertValue)
                     : Expression.Assign(
-                        Expression.Property(convertInst, info,
-                            CreateArgumentExpressions(info.GetIndexParameters(), argsParam)), convertValue);
+                        Expression.Property(
+                            convertInst,
+                            info,
+                            CreateArgumentExpressions(info.GetIndexParameters(), argsParam)),
+                        convertValue);
 
                 setter = Expression.Lambda<Action<object, object?[]?, object?>>(exp, instParam, argsParam, valueParm)
-                    .CompileFast();
+                   .CompileFast();
 
                 _propertySetterCache[info] = setter ?? throw new InvalidOperationException("Lambda Compilation Failed");
 
@@ -264,7 +270,7 @@ namespace Tauron
                 }
 
                 accessor = Expression.Lambda<Func<object?, object?[]?, object>>(targetExpression, instParam, argsParam)
-                    .CompileFast();
+                   .CompileFast();
                 _methodCache[info] = accessor;
 
                 return accessor;
@@ -302,6 +308,7 @@ namespace Tauron
             BindingFlags bindingflags) where TAttribute : Attribute
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
+
             bindingflags |= BindingFlags.Public;
             if (nonPublic) bindingflags |= BindingFlags.NonPublic;
 
@@ -312,14 +319,15 @@ namespace Tauron
                     where attr != null
                     select (mem, attr))!;
 
-            return 
+            return
                 from mem in type.GetHieratichialMembers(bindingflags)
                 let attr = mem.GetCustomAttribute<TAttribute>()
                 where attr.HasValue
                 select (mem, attr.Value);
         }
 
-        public static Func<object?, object?[]?, object?> GetMethodInvoker(this MethodInfo info,
+        public static Func<object?, object?[]?, object?> GetMethodInvoker(
+            this MethodInfo info,
             Func<IEnumerable<Type?>> arguments) => FastReflection.Shared.GetMethodInvoker(info, arguments);
 
         public static IEnumerable<MemberInfo> GetHieratichialMembers(this Type? type, BindingFlags flags)
@@ -333,20 +341,21 @@ namespace Tauron
             }
         }
 
-        public static IEnumerable<(MemberInfo Member, TAttribute Attribute)> FindMemberAttributes<TAttribute>(this Type type,
+        public static IEnumerable<(MemberInfo Member, TAttribute Attribute)> FindMemberAttributes<TAttribute>(
+            this Type type,
             bool nonPublic) where TAttribute : Attribute
             => FindMemberAttributes<TAttribute>(type, nonPublic, BindingFlags.Instance | BindingFlags.FlattenHierarchy);
 
         public static T[] GetAllCustomAttributes<T>(this ICustomAttributeProvider member) where T : Attribute
-            => (T[]) member.GetCustomAttributes(typeof(T), inherit: true);
+            => (T[])member.GetCustomAttributes(typeof(T), true);
 
 
         public static object[] GetAllCustomAttributes(this ICustomAttributeProvider member, Type type)
-            => member.GetCustomAttributes(type, inherit: true);
+            => member.GetCustomAttributes(type, true);
 
         public static Option<TAttribute> GetCustomAttribute<TAttribute>(this ICustomAttributeProvider provider)
             where TAttribute : Attribute
-            => GetCustomAttribute<TAttribute>(provider, inherit: true);
+            => GetCustomAttribute<TAttribute>(provider, true);
 
         public static Option<TAttribute> GetCustomAttribute<TAttribute>(this ICustomAttributeProvider provider, bool inherit)
             where TAttribute : Attribute
@@ -361,10 +370,10 @@ namespace Tauron
             if (provider == null) throw new ArgumentNullException(nameof(provider));
 
             return from attributeType in attributeTypes
-                   from attribute in provider.GetCustomAttributes(attributeType, inherit: false)
+                   from attribute in provider.GetCustomAttributes(attributeType, false)
                    select attribute;
         }
-        
+
         public static Option<TType> GetInvokeMember<TType>(this MemberInfo info, object instance, params object[]? parameter)
         {
             if (info == null) throw new ArgumentNullException(nameof(info));
@@ -374,13 +383,14 @@ namespace Tauron
             return info switch
             {
                 PropertyInfo property => FastReflection.Shared
-                    .GetPropertyAccessor(property, () => property.GetIndexParameters().Select(pi => pi.ParameterType)).Invoke(instance, parameter) is TType pType
+                   .GetPropertyAccessor(property, () => property.GetIndexParameters().Select(pi => pi.ParameterType)).Invoke(instance, parameter) is TType pType
                     ? pType.AsOption()
                     : default,
                 FieldInfo field => FastReflection.Shared.GetFieldAccessor(field)(instance) is TType type
                     ? type.AsOption()
                     : default,
-                MethodInfo methodInfo => FastReflection.Shared.GetMethodInvoker(methodInfo,
+                MethodInfo methodInfo => FastReflection.Shared.GetMethodInvoker(
+                    methodInfo,
                     methodInfo.GetParameterTypes)(instance, parameter) is TType mType
                     ? mType.AsOption()
                     : default,
@@ -393,6 +403,7 @@ namespace Tauron
         public static RuntimeMethodHandle GetMethodHandle(this MethodBase method)
         {
             if (method == null) throw new ArgumentNullException(nameof(method));
+
             var mi = method as MethodInfo;
 
             if (mi != null && mi.IsGenericMethod) return mi.GetGenericMethodDefinition().MethodHandle;
@@ -403,6 +414,7 @@ namespace Tauron
         public static IEnumerable<Type> GetParameterTypes(this MethodBase method)
         {
             if (method == null) throw new ArgumentNullException(nameof(method));
+
             return method.GetParameters().Select(p => p.ParameterType);
         }
 
@@ -410,6 +422,7 @@ namespace Tauron
         {
             if (method == null) throw new ArgumentNullException(nameof(method));
             if (implementingType == null) throw new ArgumentNullException(nameof(implementingType));
+
             if (!method.IsSpecialName || method.Name.Length < 4) return default;
 
             var isGetMethod = method.Name.Substring(0, 4) == "get_";
@@ -419,12 +432,13 @@ namespace Tauron
                 : method.GetParameterTypes().SkipLast(1);
 
             return implementingType.GetProperty(method.Name[4..], DefaultBindingFlags, null, returnType, indexerTypes.ToArray(), null)
-                                   .OptionNotNull();
+               .OptionNotNull();
         }
 
         public static Option<PropertyInfo> GetPropertyFromMethod(this MethodBase method)
         {
             if (method == null) throw new ArgumentNullException(nameof(method));
+
             return !method.IsSpecialName
                 ? default
                 : (method.DeclaringType?.GetProperty(method.Name[4..], DefaultBindingFlags)).OptionNotNull();
@@ -433,6 +447,7 @@ namespace Tauron
         public static Type GetSetInvokeType(this MemberInfo info)
         {
             if (info == null) throw new ArgumentNullException(nameof(info));
+
             return info switch
             {
                 FieldInfo field => field.FieldType,
@@ -445,14 +460,16 @@ namespace Tauron
         public static bool HasAttribute<T>(this ICustomAttributeProvider member) where T : Attribute
         {
             if (member == null) throw new ArgumentNullException(nameof(member));
-            return member.IsDefined(typeof(T), inherit: true);
+
+            return member.IsDefined(typeof(T), true);
         }
 
         public static bool HasAttribute(this ICustomAttributeProvider member, Type type)
         {
             if (member == null) throw new ArgumentNullException(nameof(member));
             if (type == null) throw new ArgumentNullException(nameof(type));
-            return member.IsDefined(type, inherit: true);
+
+            return member.IsDefined(type, true);
         }
 
         public static bool HasMatchingAttribute<T>(this ICustomAttributeProvider member, T attributeToMatch)
@@ -460,17 +477,20 @@ namespace Tauron
         {
             if (member == null) throw new ArgumentNullException(nameof(member));
             if (attributeToMatch == null) throw new ArgumentNullException(nameof(attributeToMatch));
+
             var attributes = member.GetAllCustomAttributes<T>();
 
             return attributes.Length != 0 && attributes.Any(attribute => attribute.Match(attributeToMatch));
         }
-        
+
         public static Option<TType> InvokeFast<TType>(this MethodBase method, object? instance, params object?[] args)
         {
             if (method == null) throw new ArgumentNullException(nameof(method));
+
             return method switch
             {
-                MethodInfo methodInfo => FastReflection.Shared.GetMethodInvoker(methodInfo,
+                MethodInfo methodInfo => FastReflection.Shared.GetMethodInvoker(
+                    methodInfo,
                     methodInfo.GetParameterTypes)(instance, args) is TType mR
                     ? mR.AsOption()
                     : default,
@@ -487,7 +507,8 @@ namespace Tauron
         public static TEnum ParseEnum<TEnum>(this string value)
         {
             if (value == null) throw new ArgumentNullException(nameof(value));
-            return (TEnum) Enum.Parse(typeof(TEnum), value);
+
+            return (TEnum)Enum.Parse(typeof(TEnum), value);
         }
 
         public static TEnum TryParseEnum<TEnum>(this string value, TEnum defaultValue)
@@ -508,6 +529,7 @@ namespace Tauron
         public static void SetInvokeMember(this MemberInfo info, object instance, params object?[]? parameter)
         {
             if (info == null) throw new ArgumentNullException(nameof(info));
+
             switch (info)
             {
                 case PropertyInfo property:
@@ -522,6 +544,7 @@ namespace Tauron
                     }
 
                     FastReflection.Shared.GetPropertySetter(property)(instance, indexes, value);
+
                     break;
                 }
                 case FieldInfo field:
@@ -530,10 +553,12 @@ namespace Tauron
                     if (parameter != null) value = parameter.FirstOrDefault();
 
                     FastReflection.Shared.GetFieldSetter(field)(instance, value);
+
                     break;
                 }
                 case MethodInfo method:
                     method.InvokeFast(instance, parameter ?? Array.Empty<object>());
+
                     break;
             }
         }
@@ -541,6 +566,7 @@ namespace Tauron
         public static bool TryParseEnum<TEnum>(this string value, out TEnum eEnum) where TEnum : struct
         {
             if (value == null) throw new ArgumentNullException(nameof(value));
+
             return Enum.TryParse(value, out eEnum);
         }
 
@@ -554,7 +580,8 @@ namespace Tauron
             => FastReflection.Shared.GetCreator(info)(parms);
 
         public static object? GetValueFast(this PropertyInfo info, object? instance, params object[] index)
-            => FastReflection.Shared.GetPropertyAccessor(info,
+            => FastReflection.Shared.GetPropertyAccessor(
+                info,
                 () => info.GetIndexParameters().Select(pi => pi.ParameterType)).Invoke(instance, index);
 
         public static object? GetValueFast(this FieldInfo info, object? instance)

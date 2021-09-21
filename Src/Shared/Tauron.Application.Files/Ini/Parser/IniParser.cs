@@ -10,7 +10,7 @@ namespace Tauron.Application.Files.Ini.Parser
     [PublicAPI]
     public sealed class IniParser
     {
-        private static readonly char[] KeyValueChar = {'='};
+        private static readonly char[] KeyValueChar = { '=' };
 
         private readonly TextReader _reader;
 
@@ -30,12 +30,15 @@ namespace Tauron.Application.Files.Ini.Parser
 
                     currentSectionName = line.Trim().Trim('[', ']');
                     currentSection = new GroupDictionary<string, string>();
+
                     continue;
                 }
 
                 var content = line.Split(KeyValueChar, 2, StringSplitOptions.RemoveEmptyEntries);
+
                 if (content.Length <= 1)
                     continue;
+
                 currentSection[content[0]].Add(content[1]);
             }
 
@@ -48,9 +51,9 @@ namespace Tauron.Application.Files.Ini.Parser
             {
                 var entries = ImmutableDictionary<string, IniEntry>.Empty;
 
-                foreach (var (entryKey, collection) in value) 
-                    entries = collection.Count < 1 
-                        ? entries.Add(entryKey, new ListIniEntry(entryKey, ImmutableList<string>.Empty.AddRange(collection))) 
+                foreach (var (entryKey, collection) in value)
+                    entries = collection.Count < 1
+                        ? entries.Add(entryKey, new ListIniEntry(entryKey, ImmutableList<string>.Empty.AddRange(collection)))
                         : entries.Add(entryKey, new SingleIniEntry(entryKey, collection.ElementAt(0)));
 
                 sections = sections.Add(key, new IniSection(key, entries));

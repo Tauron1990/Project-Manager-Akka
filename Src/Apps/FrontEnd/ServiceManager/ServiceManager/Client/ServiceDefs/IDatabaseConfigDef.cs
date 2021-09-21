@@ -17,8 +17,8 @@ namespace ServiceManager.Client.ServiceDefs
 
         [Get(nameof(FetchUrl))]
         Task<UrlResult?> FetchUrl(CancellationToken token = default);
-        
+
         [Post(nameof(SetUrl))]
-        Task<string> SetUrl([Body]SetUrlCommand command, CancellationToken token = default);
+        Task<string> SetUrl([Body] SetUrlCommand command, CancellationToken token = default);
     }
 }

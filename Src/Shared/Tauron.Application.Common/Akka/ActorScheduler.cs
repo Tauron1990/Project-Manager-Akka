@@ -33,6 +33,7 @@ namespace Tauron.Akka
             void TryRun()
             {
                 if (disposable.IsDisposed) return;
+
                 disposable.Disposable = action(this, state);
             }
 
@@ -47,11 +48,15 @@ namespace Tauron.Akka
             else
             {
                 var timerDispose = new SingleAssignmentDisposable();
-                Timer timer = new(timerState =>
-                {
-                    _targetActor.Tell(new ObservableActor.TransmitAction(TryRun));
-                    ((IDisposable) timerState!).Dispose();
-                }, timerDispose, dueTime, Timeout.InfiniteTimeSpan);
+                Timer timer = new(
+                    timerState =>
+                    {
+                        _targetActor.Tell(new ObservableActor.TransmitAction(TryRun));
+                        ((IDisposable)timerState!).Dispose();
+                    },
+                    timerDispose,
+                    dueTime,
+                    Timeout.InfiniteTimeSpan);
 
                 timerDispose.Disposable = timer;
             }

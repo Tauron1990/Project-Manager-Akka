@@ -21,7 +21,7 @@ namespace Tauron.Application.Workshop.StateManagement.DataFactorys
         public override Func<IExtendedDataSource<TData>> Create<TData>(CreationMetadata? metadata)
         {
             if (Map.TryGetValue(typeof(TData), out var fac))
-                return () => (IExtendedDataSource<TData>) fac(metadata);
+                return () => (IExtendedDataSource<TData>)fac(metadata);
 
             throw new InvalidOperationException("Not Supported Data Type Mapping");
         }

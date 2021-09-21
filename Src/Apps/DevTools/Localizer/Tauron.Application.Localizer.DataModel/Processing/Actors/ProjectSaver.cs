@@ -31,7 +31,7 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
 
             var (andSeal, projectFile) = obj;
             var saveExcetion = TrySave(projectFile);
-            if(saveExcetion != null)
+            if (saveExcetion != null)
                 Context.GetLogger().Error(saveExcetion, "Error on force Saving Project");
 
             if (!andSeal) return;
@@ -43,10 +43,8 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
         private void StartNormalSave(InitSave? obj)
         {
             if (_toSave.Count > 1)
-            {
                 foreach (var (toSave, sender) in _toSave.Take(_toSave.Count - 1))
-                    sender.Tell(new SavedProject(toSave.OperationId, Ok: true, Exception: null));
-            }
+                    sender.Tell(new SavedProject(toSave.OperationId, Ok: true, null));
 
             if (_toSave.Count > 0)
             {
@@ -86,8 +84,6 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
             }
         }
 
-        private sealed class InitSave
-        {
-        }
+        private sealed class InitSave { }
     }
 }

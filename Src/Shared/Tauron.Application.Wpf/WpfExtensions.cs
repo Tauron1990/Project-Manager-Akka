@@ -13,6 +13,7 @@ namespace Tauron.Application.Wpf
             this FluentCollectionPropertyRegistration<TData> collection, Action<ICollectionView> view)
         {
             view(CollectionViewSource.GetDefaultView(collection.Property.Value));
+
             return collection;
         }
     }

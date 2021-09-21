@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ServiceManager.Server.AppCore.Identity;
 using ServiceManager.Shared.Api;
 using ServiceManager.Shared.ClusterTracking;
 using ServiceManager.Shared.Identity;
@@ -11,7 +10,8 @@ using Stl.Fusion.Server;
 namespace ServiceManager.Server.Controllers
 {
     [Route(ControllerName.ClusterConnectionTracker + "/[action]")]
-    [ApiController, JsonifyErrors]
+    [ApiController]
+    [JsonifyErrors]
     [Authorize(Claims.ClusterConnectionClaim)]
     public class ClusterConnectionTrackerController : ControllerBase, IClusterConnectionTracker
     {
@@ -20,24 +20,31 @@ namespace ServiceManager.Server.Controllers
         public ClusterConnectionTrackerController(IClusterConnectionTracker tracker)
             => _tracker = tracker;
 
-        [HttpGet, Publish]
+        [HttpGet]
+        [Publish]
         public Task<string> GetUrl()
             => _tracker.GetUrl();
 
-        [HttpGet, Publish, AllowAnonymous]
+        [HttpGet]
+        [Publish]
+        [AllowAnonymous]
         public Task<bool> GetIsConnected()
             => _tracker.GetIsConnected();
 
-        [HttpGet, Publish, AllowAnonymous]
+        [HttpGet]
+        [Publish]
+        [AllowAnonymous]
         public Task<bool> GetIsSelf()
             => _tracker.GetIsSelf();
 
-        [HttpGet, Publish, AllowAnonymous]
+        [HttpGet]
+        [Publish]
+        [AllowAnonymous]
         public Task<AppIp> Ip()
             => _tracker.Ip();
 
         [HttpPost]
-        public Task<string?> ConnectToCluster([FromBody]ConnectToClusterCommand command, CancellationToken token = default)
+        public Task<string?> ConnectToCluster([FromBody] ConnectToClusterCommand command, CancellationToken token = default)
             => _tracker.ConnectToCluster(command, token);
     }
 }

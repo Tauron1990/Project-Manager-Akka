@@ -63,9 +63,7 @@ namespace Akkatecture.Cluster.Core
         where TIdentity : IIdentity
     {
         public MessageExtractor(int maxNumberOfShards)
-            : base(maxNumberOfShards)
-        {
-        }
+            : base(maxNumberOfShards) { }
 
         public override string EntityId(object message)
         {

@@ -12,26 +12,30 @@ namespace Tauron.Application.Workshop.Core
 {
     public sealed class WorkspaceSuperviserActor : ObservableActor
     {
-        private ImmutableDictionary<IActorRef, Action> _intrest = ImmutableDictionary<IActorRef, Action>.Empty;
         private readonly Random _random = new();
         private readonly Dictionary<string, SupervisorStrategy> _supervisorStrategies = new();
+        private ImmutableDictionary<IActorRef, Action> _intrest = ImmutableDictionary<IActorRef, Action>.Empty;
 
         public WorkspaceSuperviserActor()
         {
             Receive<SuperviseActorBase>(obs => obs.SubscribeWithStatus(CreateActor));
 
-            Receive<WatchIntrest>(obs => obs.SubscribeWithStatus(wi =>
-            {
-                ImmutableInterlocked.AddOrUpdate(ref _intrest, wi.Target, _ => wi.OnRemove, (_, action) => action.Combine(wi.OnRemove) ?? wi.OnRemove);
-                Context.Watch(wi.Target);
-            }));
-            Receive<Terminated>(obs => obs.SubscribeWithStatus(t =>
-            {
-                if (!_intrest.TryGetValue(t.ActorRef, out var action)) return;
+            Receive<WatchIntrest>(
+                obs => obs.SubscribeWithStatus(
+                    wi =>
+                    {
+                        ImmutableInterlocked.AddOrUpdate(ref _intrest, wi.Target, _ => wi.OnRemove, (_, action) => action.Combine(wi.OnRemove) ?? wi.OnRemove);
+                        Context.Watch(wi.Target);
+                    }));
+            Receive<Terminated>(
+                obs => obs.SubscribeWithStatus(
+                    t =>
+                    {
+                        if (!_intrest.TryGetValue(t.ActorRef, out var action)) return;
 
-                action();
-                _intrest = _intrest.Remove(t.ActorRef);
-            }));
+                        action();
+                        _intrest = _intrest.Remove(t.ActorRef);
+                    }));
         }
 
         private void CreateActor(SuperviseActorBase obj)
@@ -41,16 +45,17 @@ namespace Tauron.Application.Workshop.Core
             try
             {
                 string name = obj.Name;
-                while (!Context.Child(name).Equals(ActorRefs.Nobody)) 
+                while (!Context.Child(name).Equals(ActorRefs.Nobody))
                     name = obj.Name + "-" + _random.Next();
 
-                if(obj.SupervisorStrategy != null)
+                if (obj.SupervisorStrategy != null)
                     _supervisorStrategies.Add(name, obj.SupervisorStrategy);
 
                 props = obj.Props(Context);
                 var newActor = Context.ActorOf(props, name);
 
                 if (Sender.IsNobody()) return;
+
                 Sender.Tell(new NewActor(newActor));
             }
             catch (Exception e)
@@ -58,6 +63,7 @@ namespace Tauron.Application.Workshop.Core
                 Log.Error(e, "Error on Create an new Actor {TypeName}", props?.TypeName ?? "Unkowen");
 
                 if (Sender.IsNobody()) return;
+
                 Sender.Tell(new NewActor(ActorRefs.Nobody));
             }
         }
@@ -65,15 +71,17 @@ namespace Tauron.Application.Workshop.Core
         protected override SupervisorStrategy SupervisorStrategy()
             => new WorkspaceSupervisorStrategy(
                 new OneForOneStrategy(
-                    Decider.From(Directive.Restart,
+                    Decider.From(
+                        Directive.Restart,
                         Directive.Stop.When<ActorInitializationException>(),
                         Directive.Stop.When<ActorKilledException>(),
-                        Directive.Stop.When<DeathPactException>())), _supervisorStrategies);
+                        Directive.Stop.When<DeathPactException>())),
+                _supervisorStrategies);
 
         private sealed class WorkspaceSupervisorStrategy : SupervisorStrategy
         {
-            private readonly SupervisorStrategy _def;
             private readonly Dictionary<string, SupervisorStrategy> _custom;
+            private readonly SupervisorStrategy _def;
 
             internal WorkspaceSupervisorStrategy(SupervisorStrategy def, Dictionary<string, SupervisorStrategy> custom)
             {
@@ -81,17 +89,17 @@ namespace Tauron.Application.Workshop.Core
                 _custom = custom;
             }
 
+            public override IDecider Decider => _def.Decider;
+
             protected override Directive Handle(IActorRef child, Exception exception) => Get(child).Decider.Decide(exception);
 
-            public override void ProcessFailure(IActorContext context, bool restart, IActorRef child, Exception cause, ChildRestartStats stats, IReadOnlyCollection<ChildRestartStats> children) 
+            public override void ProcessFailure(IActorContext context, bool restart, IActorRef child, Exception cause, ChildRestartStats stats, IReadOnlyCollection<ChildRestartStats> children)
                 => Get(child).ProcessFailure(context, restart, child, cause, stats, children);
 
-            public override void HandleChildTerminated(IActorContext actorContext, IActorRef child, IEnumerable<IInternalActorRef> children) 
+            public override void HandleChildTerminated(IActorContext actorContext, IActorRef child, IEnumerable<IInternalActorRef> children)
                 => Get(child).HandleChildTerminated(actorContext, child, children);
 
             public override ISurrogate ToSurrogate(ActorSystem system) => throw new NotSupportedException(nameof(WorkspaceSupervisorStrategy));
-
-            public override IDecider Decider => _def.Decider;
 
             private SupervisorStrategy Get(IActorRef child) => _custom.TryGetValue(child.Path.Name, out var sup) ? sup : _def;
         }
@@ -120,8 +128,6 @@ namespace Tauron.Application.Workshop.Core
 
         internal sealed class SuperviseDiActor : SuperviseActorBase
         {
-
-
             private readonly Type _actorType;
 
             internal SuperviseDiActor(Type actorType, string name) : base(name) => _actorType = actorType;

@@ -23,20 +23,17 @@ namespace ServiceManager.Server.AppCore.Apps
     [UsedImplicitly]
     public class AppManagment : IAppManagment, IDisposable
     {
-        private delegate Task<TResult> AppApiRunner<TResult>(IProcessServiceHost host, DeploymentApi api, IServiceProvider services, CancellationToken token);
-
-        private delegate Task<TResult> AppApiRunnerParam<TResult, in TParam>(TParam command, IProcessServiceHost host, DeploymentApi api, IServiceProvider services, CancellationToken token);
-        
-        private readonly IServiceScopeFactory  _scopeFactory;
-        private readonly ActorSystem           _system;
         private readonly ILogger<AppManagment> _log;
-        private readonly IDisposable           _subscription;
-        
+
+        private readonly IServiceScopeFactory _scopeFactory;
+        private readonly IDisposable _subscription;
+        private readonly ActorSystem _system;
+
         public AppManagment(IServiceScopeFactory scopeFactory, ActorSystem system, AppEventDispatcher dispatcher, ILogger<AppManagment> log)
         {
             _scopeFactory = scopeFactory;
-            _system       = system;
-            _log     = log;
+            _system = system;
+            _log = log;
 
             _subscription = dispatcher.Get().AutoSubscribe(
                 _ =>
@@ -46,41 +43,10 @@ namespace ServiceManager.Server.AppCore.Apps
                         NeedBasicApps(CancellationToken.None).Ignore();
                         QueryAllApps(CancellationToken.None).Ignore();
                     }
-                }, e => log.LogError(e, "Error on Process App Event"));
+                },
+                e => log.LogError(e, "Error on Process App Event"));
         }
 
-        private async Task<TResult> Run<TResult>(AppApiRunner<TResult> runner, CancellationToken token)
-        {
-            if (Computed.IsInvalidating()) return default!;
-            
-            using var scope = _scopeFactory.CreateScope();
-            var host = scope.ServiceProvider.GetRequiredService<IProcessServiceHost>();
-            var api = scope.ServiceProvider.GetRequiredService<DeploymentApi>();
-
-            await EnsureDeploymentApi(host, api);
-            return await runner(host, api, scope.ServiceProvider, token);
-        }
-        
-        private async Task<TResult> Run<TResult, TParam>(TParam command, AppApiRunnerParam<TResult, TParam> runner, CancellationToken token)
-        {
-            Task<TResult> RunLocal(IProcessServiceHost host, DeploymentApi api, IServiceProvider services, CancellationToken innerToken)
-                => runner(command, host, api, services, innerToken);
-
-            return await Run(RunLocal, token);
-        }
-        
-
-        private async Task EnsureDeploymentApi(IProcessServiceHost host, DeploymentApi deploymentApi)
-        {
-            var response = await deploymentApi.QueryIsAlive(_system, TimeSpan.FromSeconds(20));
-            if(response.IsAlive) return;
-
-            var (isRunning, message) = await host.TryStart(null);
-            if(isRunning) return;
-            
-            throw new InvalidOperationException(message);
-        }
-        
         public virtual Task<NeedSetupData> NeedBasicApps(CancellationToken token)
             => Run(NeedBasicAppsImpl, token);
 
@@ -95,15 +61,54 @@ namespace ServiceManager.Server.AppCore.Apps
 
         public virtual Task<string> DeleteAppCommand(ApiDeleteAppCommand command, CancellationToken token)
             => throw new NotSupportedException("Not supportet");
-        
+
         public virtual Task<RunAppSetupResponse> RunAppSetup(RunAppSetupCommand command, CancellationToken token)
             => Run(command, RunSetupImpl, token);
+
+        public void Dispose()
+            => _subscription.Dispose();
+
+        private async Task<TResult> Run<TResult>(AppApiRunner<TResult> runner, CancellationToken token)
+        {
+            if (Computed.IsInvalidating()) return default!;
+
+            using var scope = _scopeFactory.CreateScope();
+            var host = scope.ServiceProvider.GetRequiredService<IProcessServiceHost>();
+            var api = scope.ServiceProvider.GetRequiredService<DeploymentApi>();
+
+            await EnsureDeploymentApi(host, api);
+
+            return await runner(host, api, scope.ServiceProvider, token);
+        }
+
+        private async Task<TResult> Run<TResult, TParam>(TParam command, AppApiRunnerParam<TResult, TParam> runner, CancellationToken token)
+        {
+            Task<TResult> RunLocal(IProcessServiceHost host, DeploymentApi api, IServiceProvider services, CancellationToken innerToken)
+                => runner(command, host, api, services, innerToken);
+
+            return await Run(RunLocal, token);
+        }
+
+
+        private async Task EnsureDeploymentApi(IProcessServiceHost host, DeploymentApi deploymentApi)
+        {
+            var response = await deploymentApi.QueryIsAlive(_system, TimeSpan.FromSeconds(20));
+
+            if (response.IsAlive) return;
+
+            var (isRunning, message) = await host.TryStart(null);
+
+            if (isRunning) return;
+
+            throw new InvalidOperationException(message);
+        }
 
         private async Task<string> CreateNewAppImpl(ApiCreateAppCommand command, IProcessServiceHost host, DeploymentApi api, IServiceProvider services, CancellationToken token)
         {
             try
             {
-                var result = await api.Command<CreateAppCommand, AppInfo>(new CreateAppCommand(command.Name, command.ProjectName, command.RepositoryName), 
+                var result = await api.Command<CreateAppCommand, AppInfo>(
+                    new CreateAppCommand(command.Name, command.ProjectName, command.RepositoryName),
                     new ApiParameter(TimeSpan.FromSeconds(20), token));
 
                 return result.Fold(_ => string.Empty, err => err.Info ?? err.Code);
@@ -111,10 +116,11 @@ namespace ServiceManager.Server.AppCore.Apps
             catch (Exception e)
             {
                 _log.LogError(e, "Error on Create new App");
+
                 return e.Message;
             }
         }
-        
+
         private async Task<AppList> QueryAllAppsImpl(IProcessServiceHost host, DeploymentApi api, IServiceProvider services, CancellationToken token)
         {
             var queryResult = await api.Query<QueryApps, AppList>(new ApiParameter(TimeSpan.FromSeconds(20), token));
@@ -126,17 +132,19 @@ namespace ServiceManager.Server.AppCore.Apps
         {
             var queryResult = await api.Query<QueryApp, AppInfo>(new QueryApp(command), new ApiParameter(TimeSpan.FromSeconds(20), token));
 
-            return queryResult.Fold(ai => ai, err => AppInfo.Empty with
-                                                     {
-                                                         Deleted = true,
-                                                         Name = err.Info ?? err.Code
-                                                     });
+            return queryResult.Fold(
+                ai => ai,
+                err => AppInfo.Empty with
+                       {
+                           Deleted = true,
+                           Name = err.Info ?? err.Code
+                       });
         }
 
         private async Task<RunAppSetupResponse> RunSetupImpl(RunAppSetupCommand command, IProcessServiceHost host, DeploymentApi api, IServiceProvider services, CancellationToken token)
         {
             var hub = services.GetRequiredService<IHubContext<ClusterInfoHub>>();
-            
+
             async void MessageSender(string msg)
             {
                 try
@@ -148,15 +156,15 @@ namespace ServiceManager.Server.AppCore.Apps
                     _log.LogError(e, "Error on Sending Message to Client");
                 }
             }
-            
+
             try
             {
                 var (name, repository, projectName) = DefaultApps.Apps[command.Step];
 
                 var result =
                     await api.Command<CreateAppCommand, AppInfo>(
-                    new CreateAppCommand(name, repository, projectName),
-                    new ApiParameter(TimeSpan.FromSeconds(20), token, MessageSender));
+                        new CreateAppCommand(name, repository, projectName),
+                        new ApiParameter(TimeSpan.FromSeconds(20), token, MessageSender));
 
                 return result.Fold(
                     _ => DefaultApps.Apps.Length - 1 == command.Step
@@ -187,11 +195,13 @@ namespace ServiceManager.Server.AppCore.Apps
             catch (Exception e)
             {
                 _log.LogError(e, "Error on Fetch App Infos");
+
                 return new NeedSetupData(e.Message, Need: false);
             }
         }
-        
-        public void Dispose()
-            => _subscription.Dispose();
+
+        private delegate Task<TResult> AppApiRunner<TResult>(IProcessServiceHost host, DeploymentApi api, IServiceProvider services, CancellationToken token);
+
+        private delegate Task<TResult> AppApiRunnerParam<TResult, in TParam>(TParam command, IProcessServiceHost host, DeploymentApi api, IServiceProvider services, CancellationToken token);
     }
 }

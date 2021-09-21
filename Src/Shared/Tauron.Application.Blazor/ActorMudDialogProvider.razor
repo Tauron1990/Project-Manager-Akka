@@ -1,7 +1,7 @@
 ﻿@using Tauron.Application.CommonUI.Dialogs
 @inject IDialogCoordinator _coordinator
 
- <MudDialogProvider @ref="DialogProvider"/>
+<MudDialogProvider @ref="DialogProvider"/>
 
 @code {
     public MudDialogProvider? DialogProvider { get; set; }
@@ -9,16 +9,16 @@
 
     protected override void OnInitialized()
     {
-        ((IDialogCoordinatorUIEvents) _coordinator).ShowDialogEvent += o =>
-                                                                       {
-                                                                           if (o is GenericDialogContainerBase diag)
-                                                                               diag.Show(async f =>
-                                                                                               {
-                                                                                                   IDialogReference value = null!;
-                                                                                                   await InvokeAsync(() => value = f());
-                                                                                                   return value;
-                                                                                               });
-                                                                       };
+        ((IDialogCoordinatorUIEvents)_coordinator).ShowDialogEvent += o =>
+                                                                      {
+                                                                          if (o is GenericDialogContainerBase diag)
+                                                                              diag.Show(async f =>
+                                                                                              {
+                                                                                                  IDialogReference value = null!;
+                                                                                                  await InvokeAsync(() => value = f());
+                                                                                                  return value;
+                                                                                              });
+                                                                      };
 
         base.OnInitialized();
     }

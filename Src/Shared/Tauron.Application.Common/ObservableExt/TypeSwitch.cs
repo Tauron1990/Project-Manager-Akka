@@ -20,11 +20,12 @@ namespace Tauron.ObservableExt
 
         public IObservable<TResult> ToResult<TResult>(Action<TypeSwitchSelectBuilder<TSource, TResult>> builder)
         {
-            return _observable.ToResult<TResult>(selectBuilder =>
-            {
-                var setup = new TypeSwitchSelectBuilder<TSource, TResult>(selectBuilder);
-                builder(setup);
-            });
+            return _observable.ToResult<TResult>(
+                selectBuilder =>
+                {
+                    var setup = new TypeSwitchSelectBuilder<TSource, TResult>(selectBuilder);
+                    builder(setup);
+                });
         }
 
         public IObservable<TSource> ToSame(Action<TypeSwitchSelectBuilder<TSource, TSource>> builder)
@@ -43,7 +44,8 @@ namespace Tauron.ObservableExt
             Func<IObservable<TType>, IObservable<TResult>> then)
             where TType : TSource
         {
-            _registrations.Add(source => source is TType, observable => then(observable.Select(obj => (TType) obj!)));
+            _registrations.Add(source => source is TType, observable => then(observable.Select(obj => (TType)obj!)));
+
             return this;
         }
     }

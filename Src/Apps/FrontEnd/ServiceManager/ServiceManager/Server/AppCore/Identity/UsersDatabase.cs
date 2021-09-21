@@ -8,20 +8,11 @@ using Stl.Fusion.EntityFramework.Operations;
 
 namespace ServiceManager.Server.AppCore.Identity
 {
-    public sealed class FusionUserEntity: DbUser<string>
-    {
+    public sealed class FusionUserEntity : DbUser<string> { }
 
-    }
+    public class FusionUserIdentityEntity : DbUserIdentity<string> { }
 
-    public class FusionUserIdentityEntity : DbUserIdentity<string>
-    {
-        
-    }
-
-    public class FusionSessionInfoEntity : DbSessionInfo<string>
-    {
-
-    }
+    public class FusionSessionInfoEntity : DbSessionInfo<string> { }
 
     [UsedImplicitly]
     public sealed class UsersDatabseContextBuilder : IDesignTimeDbContextFactory<UsersDatabase>
@@ -38,6 +29,8 @@ namespace ServiceManager.Server.AppCore.Identity
     [UsedImplicitly]
     public sealed class UsersDatabase : IdentityDbContext
     {
+        public UsersDatabase(DbContextOptions<UsersDatabase> options)
+            : base(options) { }
 
         // Stl.Fusion.EntityFramework tables
         public DbSet<FusionUserEntity> FusionUsers => Set<FusionUserEntity>();
@@ -45,11 +38,5 @@ namespace ServiceManager.Server.AppCore.Identity
         public DbSet<FusionSessionInfoEntity> FusionSessions => Set<FusionSessionInfoEntity>();
         public DbSet<DbKeyValue> KeyValues => Set<DbKeyValue>();
         public DbSet<DbOperation> Operations => Set<DbOperation>();
-
-        public UsersDatabase(DbContextOptions<UsersDatabase> options)
-            : base(options)
-        {
-            
-        }
     }
 }

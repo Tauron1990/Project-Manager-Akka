@@ -5,10 +5,10 @@ using Murmur;
 using NLog;
 using NLog.LayoutRenderers;
 
-
 namespace Tauron.Application.Logging.impl
 {
-    [DebuggerStepThrough, LayoutRenderer("event-type")]
+    [DebuggerStepThrough]
+    [LayoutRenderer("event-type")]
     public sealed class EventTypeLayoutRenderer : LayoutRenderer
     {
         protected override void Append(StringBuilder builder, LogEventInfo logEvent)

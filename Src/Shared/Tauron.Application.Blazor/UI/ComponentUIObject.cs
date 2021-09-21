@@ -8,8 +8,8 @@ namespace Tauron.Application.Blazor.UI
 {
     public sealed class ComponentUIObject : IView, IUIElement
     {
-        private readonly IActorComponent _target;
         private readonly IUIObject? _parent;
+        private readonly IActorComponent _target;
 
         public ComponentUIObject(IActorComponent target, IUIObject? parent, IViewModel model)
         {

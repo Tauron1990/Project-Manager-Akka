@@ -21,7 +21,9 @@ namespace Tauron.Application.Workshop.StateManagement
             => RegisterStateManager(builder, new AutofacOptions(), configAction);
 
         public static ContainerBuilder RegisterStateManager(this ContainerBuilder builder, bool registerWorkspaceSuperviser, Action<ManagerBuilder, IComponentContext> configAction)
-            => RegisterStateManager(builder, new AutofacOptions {RegisterSuperviser = registerWorkspaceSuperviser},
+            => RegisterStateManager(
+                builder,
+                new AutofacOptions { RegisterSuperviser = registerWorkspaceSuperviser },
                 configAction);
 
         public static ContainerBuilder RegisterStateManager(this ContainerBuilder builder, AutofacOptions options, Action<ManagerBuilder, IComponentContext> configAction)
@@ -29,43 +31,47 @@ namespace Tauron.Application.Workshop.StateManagement
             static bool ImplementInterface(Type target, Type interfac) => target.GetInterface(interfac.Name) != null;
 
             if (options.AutoRegisterInContainer)
-                builder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource(
-                    t => t.IsAssignableTo<IState>() || t.IsAssignableTo<IEffect>() ||
-                         t.IsAssignableTo<IMiddleware>() || ImplementInterface(t, typeof(IReducer<>))));
+                builder.RegisterSource(
+                    new AnyConcreteTypeNotAlreadyRegisteredSource(
+                        t => t.IsAssignableTo<IState>() || t.IsAssignableTo<IEffect>() ||
+                             t.IsAssignableTo<IMiddleware>() || ImplementInterface(t, typeof(IReducer<>))));
 
             if (options.RegisterSuperviser)
                 builder.Register(c => new WorkspaceSuperviser(c.Resolve<ActorSystem>(), "State_Manager_Superviser"))
-                    .AsSelf().SingleInstance();
+                   .AsSelf().SingleInstance();
 
-            builder.Register((context, parameters) =>
-            {
-                var supplyedParameters = parameters.ToArray();
-                object[] param = new object[2];
-                param[0] = Buildhelper.GetParam(Buildhelper.Parameters[0], context, () => context.Resolve(typeof(WorkspaceSuperviser)), supplyedParameters);
-                param[1] = Buildhelper.GetParam(Buildhelper.Parameters[1], context, () => configAction, supplyedParameters);
+            builder.Register(
+                (context, parameters) =>
+                {
+                    var supplyedParameters = parameters.ToArray();
+                    object[] param = new object[2];
+                    param[0] = Buildhelper.GetParam(Buildhelper.Parameters[0], context, () => context.Resolve(typeof(WorkspaceSuperviser)), supplyedParameters);
+                    param[1] = Buildhelper.GetParam(Buildhelper.Parameters[1], context, () => configAction, supplyedParameters);
 
-                return (Activator.CreateInstance(typeof(Buildhelper), param) as Buildhelper)
-                    ?.Create(context, options) ?? throw new InvalidOperationException("Build helper Creation Failed");
-            }).As<IActionInvoker>().SingleInstance();
+                    return (Activator.CreateInstance(typeof(Buildhelper), param) as Buildhelper)
+                      ?.Create(context, options) ?? throw new InvalidOperationException("Build helper Creation Failed");
+                }).As<IActionInvoker>().SingleInstance();
 
             return builder;
         }
 
-        public static ManagerBuilder AddFromAssembly<TType>(this ManagerBuilder builder, IDataSourceFactory factory) 
+        public static ManagerBuilder AddFromAssembly<TType>(this ManagerBuilder builder, IDataSourceFactory factory)
             => AddFromAssembly(builder, typeof(TType).Assembly, factory);
 
         public static ManagerBuilder AddFromAssembly(this ManagerBuilder builder, Assembly assembly, IDataSourceFactory factory, CreationMetadata? metadata = null)
         {
             new ReflectionSearchEngine(Enumerable.Repeat(assembly, 1)).Add(builder, factory, metadata);
+
             return builder;
         }
 
         public static ManagerBuilder AddFromAssembly(this ManagerBuilder builder, IDataSourceFactory factory, CreationMetadata? metadata, IEnumerable<Assembly> assembly)
         {
             new ReflectionSearchEngine(assembly).Add(builder, factory, metadata);
+
             return builder;
         }
-        
+
 
         public static ManagerBuilder AddFromAssembly(this ManagerBuilder builder, IDataSourceFactory factory, CreationMetadata? metadata, params Assembly[] assembly)
             => AddFromAssembly(builder, factory, metadata, assembly.AsEnumerable());
@@ -84,13 +90,17 @@ namespace Tauron.Application.Workshop.StateManagement
 
 
         public static ManagerBuilder AddFromAssembly(this ManagerBuilder builder, Assembly assembly, IComponentContext context)
-            => AddFromAssembly(builder, assembly,
-                MergeFactory.Merge(context.Resolve<IEnumerable<IDataSourceFactory>>().Cast<AdvancedDataSourceFactory>()
-                    .ToArray()));
+            => AddFromAssembly(
+                builder,
+                assembly,
+                MergeFactory.Merge(
+                    context.Resolve<IEnumerable<IDataSourceFactory>>().Cast<AdvancedDataSourceFactory>()
+                       .ToArray()));
 
         public static ManagerBuilder AddTypes(this ManagerBuilder builder, IDataSourceFactory factory, CreationMetadata? metadata, IEnumerable<Type> types)
         {
             new ReflectionSearchEngine(types).Add(builder, factory, metadata);
+
             return builder;
         }
 
@@ -100,7 +110,7 @@ namespace Tauron.Application.Workshop.StateManagement
         public static ManagerBuilder AddTypes(this ManagerBuilder builder, IDataSourceFactory factory, params Type[] types)
             => AddTypes(builder, factory, null, types);
 
-        public static IConcurrentDispatcherConfugiration WithConcurentDispatcher<TReturn>(this IDispatcherConfigurable<TReturn> builder) 
+        public static IConcurrentDispatcherConfugiration WithConcurentDispatcher<TReturn>(this IDispatcherConfigurable<TReturn> builder)
             where TReturn : IDispatcherConfigurable<TReturn>
         {
             var config = new ConcurrentDispatcherConfugiration();
@@ -167,7 +177,8 @@ namespace Tauron.Application.Workshop.StateManagement
             private WorkspaceSuperviser Superviser { get; }
             private Action<ManagerBuilder, IComponentContext> Action { get; }
 
-            internal static object GetParam(ParameterInfo info, IComponentContext context, Func<object> alternative,
+            internal static object GetParam(
+                ParameterInfo info, IComponentContext context, Func<object> alternative,
                 IEnumerable<Parameter> param)
             {
                 Func<object?>? factory = null;

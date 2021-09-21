@@ -22,9 +22,7 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer
 
         public abstract class DataTranfer : TransferMessage
         {
-            protected DataTranfer(string operationId) : base(operationId)
-            {
-            }
+            protected DataTranfer(string operationId) : base(operationId) { }
         }
 
         [PublicAPI]
@@ -70,41 +68,31 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer
 
         public sealed class SendNextChunk : DataTranfer
         {
-            public SendNextChunk(string operationId) : base(operationId)
-            {
-            }
+            public SendNextChunk(string operationId) : base(operationId) { }
         }
 
         public sealed class SendingCompled : DataTranfer
         {
             public SendingCompled(string operationId)
-                : base(operationId)
-            {
-            }
+                : base(operationId) { }
         }
 
         public sealed class RepeadChunk : DataTranfer
         {
             public RepeadChunk(string operationId)
-                : base(operationId)
-            {
-            }
+                : base(operationId) { }
         }
 
         public sealed class StartTrensfering : DataTranfer
         {
             public StartTrensfering(string operationId)
-                : base(operationId)
-            {
-            }
+                : base(operationId) { }
         }
 
         public sealed class BeginTransfering : DataTranfer
         {
             public BeginTransfering(string operationId)
-                : base(operationId)
-            {
-            }
+                : base(operationId) { }
         }
 
         public sealed class TransmitRequest : DataTranfer
@@ -122,7 +110,8 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer
 
         public sealed class RequestAccept : DataTranfer
         {
-            public RequestAccept(string operationId, Func<ITransferData> target,
+            public RequestAccept(
+                string operationId, Func<ITransferData> target,
                 TaskCompletionSource<TransferCompled> taskCompletionSource)
                 : base(operationId)
             {
@@ -136,9 +125,7 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer
 
         public sealed class RequestDeny : DataTranfer
         {
-            public RequestDeny(string operationId) : base(operationId)
-            {
-            }
+            public RequestDeny(string operationId) : base(operationId) { }
         }
     }
 }

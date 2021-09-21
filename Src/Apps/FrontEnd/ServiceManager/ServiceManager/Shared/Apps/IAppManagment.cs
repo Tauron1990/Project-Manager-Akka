@@ -8,7 +8,7 @@ namespace ServiceManager.Shared.Apps
     public interface IAppManagment
     {
         //public const string GridItemsQuery = nameof(GridItemsQuery);
-        
+
         [ComputeMethod]
         Task<NeedSetupData> NeedBasicApps(CancellationToken token);
 

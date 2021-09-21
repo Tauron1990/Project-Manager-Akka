@@ -42,7 +42,7 @@ namespace Tauron.Application.Workshop
                 return eventSource(_mutator);
             }
 
-            public IDisposable With(Func<TMutator, Action<TRecieve>> run) 
+            public IDisposable With(Func<TMutator, Action<TRecieve>> run)
                 => _selector.Subscribe(run(_mutator));
         }
 

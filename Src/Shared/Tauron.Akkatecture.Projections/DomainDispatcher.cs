@@ -21,10 +21,10 @@ namespace Tauron.Akkatecture.Projections
             Repo = repo;
 
             Dispatcher = new Dispatcher(reader.CreateSubscription)
-            {
-                ExceptionHandler = ExceptionHandler,
-                SuccessHandler = SuccessHandler
-            };
+                         {
+                             ExceptionHandler = ExceptionHandler,
+                             SuccessHandler = SuccessHandler
+                         };
         }
 
         public AggregateEventReader Reader { get; }
@@ -41,18 +41,22 @@ namespace Tauron.Akkatecture.Projections
 
         public IDisposable Subscribe<TAggregate>()
         {
-            var options = new SubscriptionOptions {Id = "Type@" + typeof(TAggregate).AssemblyQualifiedName};
+            var options = new SubscriptionOptions { Id = "Type@" + typeof(TAggregate).AssemblyQualifiedName };
 
-            return Dispatcher.Subscribe(Repo.GetLastCheckpoint<TProjection, TIdentity>(),
-                (list, _) => Projector.Projector.Handle(list), options);
+            return Dispatcher.Subscribe(
+                Repo.GetLastCheckpoint<TProjection, TIdentity>(),
+                (list, _) => Projector.Projector.Handle(list),
+                options);
         }
 
         public IDisposable Subscribe(string tag)
         {
-            var options = new SubscriptionOptions {Id = "Tag@" + tag};
+            var options = new SubscriptionOptions { Id = "Tag@" + tag };
 
-            return Dispatcher.Subscribe(Repo.GetLastCheckpoint<TProjection, TIdentity>(),
-                (list, _) => Projector.Projector.Handle(list), options);
+            return Dispatcher.Subscribe(
+                Repo.GetLastCheckpoint<TProjection, TIdentity>(),
+                (list, _) => Projector.Projector.Handle(list),
+                options);
         }
     }
 }

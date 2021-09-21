@@ -46,6 +46,7 @@ namespace Akkatecture.ValueObjects
             if (ReferenceEquals(this, obj)) return true;
             if (obj is null) return false;
             if (GetType() != obj.GetType()) return false;
+
             return obj is ValueObject other && GetEqualityComponents().SequenceEqual(other.GetEqualityComponents());
         }
 
@@ -54,7 +55,7 @@ namespace Akkatecture.ValueObjects
             unchecked
             {
                 return GetEqualityComponents()
-                    .Aggregate(17, (current, obj) => current * 23 + (obj?.GetHashCode() ?? 0));
+                   .Aggregate(17, (current, obj) => current * 23 + (obj?.GetHashCode() ?? 0));
             }
         }
 
@@ -73,10 +74,10 @@ namespace Akkatecture.ValueObjects
             return TypeProperties.GetOrAdd(
                 GetType(),
                 type => type
-                    .GetTypeInfo()
-                    .GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                    .OrderBy(info => info.Name)
-                    .ToList());
+                   .GetTypeInfo()
+                   .GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                   .OrderBy(info => info.Name)
+                   .ToList());
         }
     }
 }

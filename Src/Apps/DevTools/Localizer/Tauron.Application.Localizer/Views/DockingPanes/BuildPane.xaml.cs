@@ -1,15 +1,11 @@
-﻿using System.Windows.Controls;
-
-namespace Tauron.Application.Localizer.Views.DockingPanes
+﻿namespace Tauron.Application.Localizer.Views.DockingPanes
 {
     /// <summary>
     ///     Interaktionslogik für BuildPane.xaml
     /// </summary>
-    public partial class BuildPane : UserControl
+    public partial class BuildPane
     {
         public BuildPane()
-        {
-            InitializeComponent();
-        }
+            => InitializeComponent();
     }
 }

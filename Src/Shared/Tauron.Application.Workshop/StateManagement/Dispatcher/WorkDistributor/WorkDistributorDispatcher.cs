@@ -9,6 +9,23 @@ namespace Tauron.Application.Workshop.StateManagement.Dispatcher.WorkDistributor
 {
     public sealed class WorkDistributorDispatcher : ActorBase
     {
+        private readonly IWorkDistributor<IDataMutation> _mutator;
+
+        public WorkDistributorDispatcher(TimeSpan timeout)
+            => _mutator = WorkDistributorFeature<IDataMutation, MutationCompled>.Create(Context, Props.Create<DistMutationActor>(), "Worker", timeout);
+
+        protected override bool Receive(object message)
+        {
+            if (message is IDataMutation mutation)
+            {
+                _mutator.PushWork(mutation);
+
+                return true;
+            }
+
+            return false;
+        }
+
         public sealed record MutationCompled
         {
             public static readonly MutationCompled Inst = new();
@@ -60,21 +77,6 @@ namespace Tauron.Application.Workshop.StateManagement.Dispatcher.WorkDistributor
                     Context.Parent.Tell(MutationCompled.Inst);
                 }
             }
-        }
-
-        private readonly IWorkDistributor<IDataMutation> _mutator;
-
-        public WorkDistributorDispatcher(TimeSpan timeout) 
-            => _mutator = WorkDistributorFeature<IDataMutation, MutationCompled>.Create(Context, Props.Create<DistMutationActor>(), "Worker", timeout);
-
-        protected override bool Receive(object message)
-        {
-            if (message is IDataMutation mutation)
-            {
-                _mutator.PushWork(mutation);
-                return true;
-            }
-            return false;
         }
     }
 }

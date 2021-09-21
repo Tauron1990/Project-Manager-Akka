@@ -39,6 +39,7 @@ namespace Tauron.Application.CommonUI.Helper
                 if (_element.DataContext is IViewModel model)
                 {
                     modelAction(model, view);
+
                     return;
                 }
 
@@ -75,7 +76,7 @@ namespace Tauron.Application.CommonUI.Helper
             void OnLoad()
             {
                 var root = ControlBindLogic.FindRoot(elementBase.AsOption<IUIObject>());
-                if (root.HasValue && root.Value is IView control and IUIElement {DataContext: IViewModel model})
+                if (root.HasValue && root.Value is IView control and IUIElement { DataContext: IViewModel model })
                 {
                     _modelAction?.Invoke(model, control);
 
@@ -83,7 +84,9 @@ namespace Tauron.Application.CommonUI.Helper
                         control.ControlUnload += _unload;
                 }
                 else
+                {
                     _noContext?.Invoke();
+                }
             }
 
             elementBase.Loaded.Take(1).Subscribe(_ => OnLoad());
@@ -99,9 +102,9 @@ namespace Tauron.Application.CommonUI.Helper
     [PublicAPI]
     public sealed class ControlBindLogic
     {
+        private static readonly ILogger Log = LogManager.GetCurrentClassLogger();
         private readonly Dictionary<string, (IDisposable Disposer, IControlBindable Binder)> _binderList = new();
         private readonly object? _dataContext;
-        private static readonly ILogger Log = LogManager.GetCurrentClassLogger();
 
         private readonly IUIObject _target;
 
@@ -135,7 +138,10 @@ namespace Tauron.Application.CommonUI.Helper
 
         public void Register(string key, IControlBindable bindable, IUIObject affectedPart)
         {
-            Log.Debug("Register Bind Element {Name} -- {LinkElement} -- {Part}", key, bindable.GetType(),
+            Log.Debug(
+                "Register Bind Element {Name} -- {LinkElement} -- {Part}",
+                key,
+                bindable.GetType(),
                 affectedPart.GetType());
 
             if (_dataContext == null)
@@ -169,70 +175,80 @@ namespace Tauron.Application.CommonUI.Helper
 
         public static Option<IBinderControllable> FindRoot(Option<IUIObject> affectedOption)
             => affectedOption
-               .FlatSelect(root =>
-                           {
-                               Log.Debug("Try Find Root for {Element}", root.GetType());
+               .FlatSelect(
+                    root =>
+                    {
+                        Log.Debug("Try Find Root for {Element}", root.GetType());
 
-                               var affected = root;
+                        var affected = root;
 
-                               do
-                               {
-                                   // ReSharper disable once SuspiciousTypeConversion.Global
-                                   if (affected?.Object is IBinderControllable binder)
-                                   {
-                                       Log.Debug("Root Found for {Element}", affected.GetType());
-                                       return binder.OptionNotNull();
-                                   }
+                        do
+                        {
+                            // ReSharper disable once SuspiciousTypeConversion.Global
+                            if (affected?.Object is IBinderControllable binder)
+                            {
+                                Log.Debug("Root Found for {Element}", affected.GetType());
 
-                                   affected = affected?.GetPerent();
-                               } while (affected != null);
+                                return binder.OptionNotNull();
+                            }
 
-                               Log.Debug("Root not Found for {Element}", affected?.GetType());
-                               return Option<IBinderControllable>.None;
-                           });
+                            affected = affected?.GetPerent();
+                        } while (affected != null);
+
+                        Log.Debug("Root not Found for {Element}", affected?.GetType());
+
+                        return Option<IBinderControllable>.None;
+                    });
 
         public static Option<IView> FindParentView(Option<IUIObject> affectedOption)
             => affectedOption
-               .FlatSelect(root =>
-                           {
-                               Log.Debug("Try Find View for {Element}", root.GetType());
-                               var affected = root;
-                               
-                               do
-                               {
-                                   affected = affected?.GetPerent();
-                                   // ReSharper disable once SuspiciousTypeConversion.Global
-                                   if (affected?.Object is not IView binder) continue;
+               .FlatSelect(
+                    root =>
+                    {
+                        Log.Debug("Try Find View for {Element}", root.GetType());
+                        var affected = root;
 
-                                   Log.Debug("View Found for {Element}", affected.GetType());
-                                   return binder.AsOption();
-                               } while (affected != null);
+                        do
+                        {
+                            affected = affected?.GetPerent();
 
-                               Log.Debug("View Not Found for {Element}", affected?.GetType());
-                               return Option<IView>.None;
-                           });
+                            // ReSharper disable once SuspiciousTypeConversion.Global
+                            if (affected?.Object is not IView binder) continue;
+
+                            Log.Debug("View Found for {Element}", affected.GetType());
+
+                            return binder.AsOption();
+                        } while (affected != null);
+
+                        Log.Debug("View Not Found for {Element}", affected?.GetType());
+
+                        return Option<IView>.None;
+                    });
 
         public static Option<IViewModel> FindParentDatacontext(Option<IUIObject> affectedOption)
             => affectedOption
-               .FlatSelect(root =>
-                           {
-                               Log.Debug("Try Find DataContext for {Element}", root.GetType());
-                               var affected = root;
-                               
-                               do
-                               {
-                                   affected = affected?.GetPerent();
-                                   switch (affected?.Object)
-                                   {
-                                       case IUIElement {DataContext: IViewModel model}:
-                                           Log.Debug("DataContext Found for {Element}", affected.GetType());
-                                           return model.AsOption();
-                                   }
-                               } while (affected != null);
+               .FlatSelect(
+                    root =>
+                    {
+                        Log.Debug("Try Find DataContext for {Element}", root.GetType());
+                        var affected = root;
 
-                               Log.Debug("DataContext Not Found for {Element}", affected?.GetType());
-                               return Option<IViewModel>.None;
-                           });
+                        do
+                        {
+                            affected = affected?.GetPerent();
+                            switch (affected?.Object)
+                            {
+                                case IUIElement { DataContext: IViewModel model }:
+                                    Log.Debug("DataContext Found for {Element}", affected.GetType());
+
+                                    return model.AsOption();
+                            }
+                        } while (affected != null);
+
+                        Log.Debug("DataContext Not Found for {Element}", affected?.GetType());
+
+                        return Option<IViewModel>.None;
+                    });
 
         public static bool FindDataContext(Option<IUIObject> affected, [NotNullWhen(true)] out DataContextPromise? promise)
         {
@@ -260,7 +276,8 @@ namespace Tauron.Application.CommonUI.Helper
             private readonly Action<string?, string?, IBinderControllable, IUIObject> _runner;
             private readonly IUIElement _target;
 
-            internal LazyHelper(IUIElement target, string? newValue, string? oldValue,
+            internal LazyHelper(
+                IUIElement target, string? newValue, string? oldValue,
                 Action<string?, string?, IBinderControllable, IUIObject> runner)
             {
                 _target = target;
@@ -272,6 +289,7 @@ namespace Tauron.Application.CommonUI.Helper
             internal void ElementOnLoaded()
             {
                 var root = FindRoot(_target.AsOption<IUIObject>());
+
                 if (!root.HasValue) return;
 
                 _runner(_oldValue, _newValue, root.Value, _target);

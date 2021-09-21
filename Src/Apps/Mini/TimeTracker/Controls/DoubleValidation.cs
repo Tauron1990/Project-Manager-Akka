@@ -9,19 +9,19 @@ namespace TimeTracker.Controls
 {
     public sealed class DoubleConverter : ValueConverterFactoryBase
     {
+        protected override IValueConverter Create() => new Con();
+
         private sealed class Con : StringConverterBase<double>
         {
-            protected override string Convert(double value)
-                => value.ToString(CultureInfo.CurrentCulture);
-
             protected override bool CanConvertBack
                 => true;
+
+            protected override string Convert(double value)
+                => value.ToString(CultureInfo.CurrentCulture);
 
             protected override double ConvertBack(string value)
                 => double.Parse(value);
         }
-
-        protected override IValueConverter Create() => new Con();
     }
 
     public sealed class DoubleValidation : MarkupExtension

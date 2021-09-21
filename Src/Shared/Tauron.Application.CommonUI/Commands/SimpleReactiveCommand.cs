@@ -24,9 +24,7 @@ namespace Tauron.Application.CommonUI.Commands
         }
 
         public SimpleReactiveCommand()
-            : this(Observable.Return(true))
-        {
-        }
+            : this(Observable.Return(true)) { }
 
         public void Dispose() => _disposable.Dispose();
 
@@ -39,6 +37,7 @@ namespace Tauron.Application.CommonUI.Commands
         public SimpleReactiveCommand Finish(Func<IObservable<Unit>, IDisposable> config)
         {
             _disposable.Add(config(_execute));
+
             return this;
         }
     }

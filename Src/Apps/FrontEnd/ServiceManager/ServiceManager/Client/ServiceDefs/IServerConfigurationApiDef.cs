@@ -25,10 +25,10 @@ namespace ServiceManager.Client.ServiceDefs
 
         [Get(nameof(QueryDefaultFileContent))]
         Task<string?> QueryDefaultFileContent([Query] ConfigOpensElement element);
-        
+
         [Post(nameof(UpdateGlobalConfig))]
-        Task<string> UpdateGlobalConfig([Body]UpdateGlobalConfigApiCommand command, CancellationToken token = default);
-        
+        Task<string> UpdateGlobalConfig([Body] UpdateGlobalConfigApiCommand command, CancellationToken token = default);
+
         [Post(nameof(UpdateServerConfig))]
         Task<string> UpdateServerConfig([Body] UpdateServerConfiguration command, CancellationToken token = default);
 

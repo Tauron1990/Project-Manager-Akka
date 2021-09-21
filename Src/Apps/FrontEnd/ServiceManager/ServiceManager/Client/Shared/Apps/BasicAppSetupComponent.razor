@@ -1,10 +1,9 @@
-﻿@using ServiceManager.Client.ViewModels.Apps
-@using ServiceManager.Shared.Apps
-@using Microsoft.AspNetCore.SignalR.Client
-@using System.Reactive.Disposables
-@using ServiceManager.Shared.Api
+﻿@using Microsoft.AspNetCore.SignalR.Client
 @using Tauron
-
+@using ServiceManager.Client.ViewModels.Apps
+@using ServiceManager.Shared.Api
+@using ServiceManager.Shared.Apps
+@using System.Reactive.Disposables
 @implements IDisposable
 
 @inject ILogger<BasicAppSetupComponent> _log
@@ -24,7 +23,7 @@
         }
     </CenterElement>
 }
-else if(string.IsNullOrWhiteSpace(_error))
+else if (string.IsNullOrWhiteSpace(_error))
 {
     @foreach (var msg in _messages.Select(_messageTranslator.Translate))
     {
@@ -44,7 +43,7 @@ else
 @code
 {
     private readonly string _operationId = Guid.NewGuid().ToString("N");
-    
+
     private bool _isRunning = true;
     private string? _error;
     private readonly List<string> _messages = new();
@@ -58,7 +57,8 @@ else
 
     private void MessageIncomming(string msg)
     {
-        if(!_isRunning) return; 
+        if (!_isRunning) return;
+
         _messages.Add(msg);
         StateHasChanged();
     }
@@ -99,7 +99,7 @@ else
 
                 if (!response.IsCompled)
                     command = response.CreateNextStep(_operationId);
-                
+
                 _messages.Add(response.Message);
                 StateHasChanged();
             } while (!response.IsCompled);

@@ -25,16 +25,18 @@ namespace Tauron.Application.Avalonia.UI
                         return result!;
                 }
 
-                ActorApplication.ActorSystem.Loc().Request(EntryName, o =>
-                {
-                    var res = o.GetOrElse(EntryName);
-                    lock (Cache)
+                ActorApplication.ActorSystem.Loc().Request(
+                    EntryName,
+                    o =>
                     {
-                        Cache[EntryName] = res;
-                    }
+                        var res = o.GetOrElse(EntryName);
+                        lock (Cache)
+                        {
+                            Cache[EntryName] = res;
+                        }
 
-                    UpdateValue(res);
-                });
+                        UpdateValue(res);
+                    });
 
                 return "Loading";
             }

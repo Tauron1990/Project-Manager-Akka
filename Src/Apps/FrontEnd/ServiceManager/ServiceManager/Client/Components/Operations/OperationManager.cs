@@ -14,26 +14,25 @@ namespace ServiceManager.Client.Components.Operations
 
         public OperationManager() => _informer = new Subject<bool>();
 
-        public IDisposable Start()
-        {
-            if(_informer == null)
-                return Disposable.Empty;
-
-            _informer.OnNext(true);
-            return Disposable.Create(() => _informer.OnNext(false));
-        }
-
-        public IDisposable Subscribe(IObserver<bool> action)
-        {
-            return _informer == null ? Disposable.Empty : _informer.Subscribe(action);
-        }
-
         public void Dispose()
         {
-            if(_informer == null) return;
+            if (_informer == null) return;
 
             _informer.OnCompleted();
             _informer.Dispose();
         }
+
+        public IDisposable Start()
+        {
+            if (_informer == null)
+                return Disposable.Empty;
+
+            _informer.OnNext(true);
+
+            return Disposable.Create(() => _informer.OnNext(false));
+        }
+
+        public IDisposable Subscribe(IObserver<bool> action)
+            => _informer == null ? Disposable.Empty : _informer.Subscribe(action);
     }
 }

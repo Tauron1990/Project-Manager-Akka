@@ -12,7 +12,8 @@ namespace Tauron.Application.ActorWorkflow
         private readonly Func<TContext, LambdaStep<TContext>, StepId>? _onNextElement;
 
 
-        public LambdaStep(Func<TContext,
+        public LambdaStep(
+            Func<TContext,
                 LambdaStep<TContext>, StepId>? onExecute = null,
             Func<TContext, LambdaStep<TContext>, StepId>? onNextElement = null,
             Action<TContext>? onFinish = null, TimeSpan? timeout = null)
@@ -27,10 +28,10 @@ namespace Tauron.Application.ActorWorkflow
 
         public string ErrorMessage { get; set; } = string.Empty;
 
-        public StepId OnExecute(TContext context) 
+        public StepId OnExecute(TContext context)
             => _onExecute?.Invoke(context, this) ?? StepId.None;
 
-        public StepId NextElement(TContext context) 
+        public StepId NextElement(TContext context)
             => _onNextElement?.Invoke(context, this) ?? StepId.None;
 
         public void OnExecuteFinish(TContext context)

@@ -1,16 +1,13 @@
 ﻿@using ServiceManager.Shared.ServiceDeamon
-@using Tauron
-@using ServiceHost.Client.Shared.ConfigurationServer.Data;
 @using ServiceManager.Client.ViewModels.Configuration
-@using Stl.Fusion
-
-@inherits ComputedStateComponent<ServerConfigugration>
+@using ServiceHost.Client.Shared.ConfigurationServer.Data
+@inherits ComputedStateComponent<ServiceHost.Client.Shared.ConfigurationServer.Data.ServerConfigugration>
 
 @inject IServerConfigurationApi _api
 @inject AppConfigurationViewModel _viewModel
 
 @{
-    bool loading = State.Computed.ConsistencyState != ConsistencyState.Consistent;
+    var loading = State.Computed.ConsistencyState != ConsistencyState.Consistent;
     var config = State.Value;
 }
 
@@ -18,12 +15,16 @@
     <MudPaper Class="d-flex ma-3 pa-3">
         @if (!loading)
         {
-            <MudCheckBox Class="d-flex d-inline-flex ma-1" T="Boolean" 
-                         Checked="config.MonitorChanges" 
-                         CheckedChanged="b => _viewModel.SetMonitorChanges(config, b)">Änderungen Übserwachen</MudCheckBox>
-            <MudCheckBox Class="d-flex d-inline-flex ma-1" T="Boolean" 
-                         Checked="config.RestartServices" 
-                         CheckedChanged="b => _viewModel.SetRestartServices(config, b)">Services Neustarten</MudCheckBox>
+            <MudCheckBox Class="d-flex d-inline-flex ma-1" T="Boolean"
+                         Checked="config.MonitorChanges"
+                         CheckedChanged="b => _viewModel.SetMonitorChanges(config, b)">
+                Änderungen Übserwachen
+            </MudCheckBox>
+            <MudCheckBox Class="d-flex d-inline-flex ma-1" T="Boolean"
+                         Checked="config.RestartServices"
+                         CheckedChanged="b => _viewModel.SetRestartServices(config, b)">
+                Services Neustarten
+            </MudCheckBox>
         }
         else
         {
@@ -34,7 +35,7 @@
 
 @code {
 
-    protected override Task<ServerConfigugration> ComputeState(CancellationToken cancellationToken) 
+    protected override Task<ServerConfigugration> ComputeState(CancellationToken cancellationToken)
         => _api.ServerConfigugration();
 
 }

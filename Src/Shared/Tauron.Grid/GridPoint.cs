@@ -37,8 +37,8 @@ namespace Tauron.Grid
         public static GridPoint ToPosition(int position, bool withSpan)
             => new(ToMode(withSpan), null, position);
 
-        public static implicit operator GridPoint(int pos) => ToPosition(pos, withSpan: false);
-        public static implicit operator GridPoint(string name) => ToName(name, withSpan: false);
+        public static implicit operator GridPoint(int pos) => ToPosition(pos, false);
+        public static implicit operator GridPoint(string name) => ToName(name, false);
 
         public override string ToString()
             => Mode switch

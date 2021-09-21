@@ -26,9 +26,7 @@ using JetBrains.Annotations;
 
 namespace Akkatecture.Aggregates
 {
-    public interface IExecute
-    {
-    }
+    public interface IExecute { }
 
     [PublicAPI]
     public interface IExecute<in TCommand> : IExecute

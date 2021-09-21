@@ -67,18 +67,20 @@ namespace AutoUpdateRunner
 
             MoveDic(_info.Target, backup);
         }
-        
+
         private bool ValidateData(out ZipArchive newVersion)
         {
             _logger.Information("Validating Data");
             newVersion = ZipFile.Open(_info.DownloadFile, ZipArchiveMode.Read);
+
             // ReSharper disable once InvertIf
             if (Validate(_info.StartFile, nameof(_info.StartFile), Path.HasExtension)
-                && Validate(_info.RunningProcess, nameof(_info.RunningProcess), porcess => porcess > 0)
-                && Validate(_info.Target, nameof(_info.Target), Directory.Exists))
+             && Validate(_info.RunningProcess, nameof(_info.RunningProcess), porcess => porcess > 0)
+             && Validate(_info.Target, nameof(_info.Target), Directory.Exists))
                 return false;
 
             _logger.Warning("Validating Data Failed");
+
             return true;
         }
 
@@ -98,12 +100,11 @@ namespace AutoUpdateRunner
                     if (time >= 0) continue;
 
                     process.Kill(entireProcessTree: true);
+
                     break;
                 }
             }
-            catch (ArgumentException)
-            {
-            }
+            catch (ArgumentException) { }
             catch (Exception exception)
             {
                 _logger.Error(exception, "Error on Getting Process");
@@ -115,7 +116,8 @@ namespace AutoUpdateRunner
             try
             {
                 Directory.SetCurrentDirectory(_info.Target);
-                Process.Start(Path.Combine(_info.Target, _info.StartFile),
+                Process.Start(
+                    Path.Combine(_info.Target, _info.StartFile),
                     $"--cleanup true --id {Process.GetCurrentProcess().Id}");
             }
             catch (Exception exception)
@@ -127,6 +129,7 @@ namespace AutoUpdateRunner
         private bool Validate<TValue>(TValue value, string name, Func<TValue, bool> validator)
         {
             _logger.Information("Validating {Name}:{Value}", name, value);
+
             return validator(value);
         }
 
@@ -141,19 +144,19 @@ namespace AutoUpdateRunner
             {
                 var currentTarget = elements.Dequeue();
                 foreach (var info in currentTarget.Dic.EnumerateFileSystemInfos())
-                {
                     switch (info)
                     {
                         case FileInfo file:
                             file.CopyTo(file.FullName.Replace(currentTarget.Base, currentTarget.Target));
+
                             break;
                         case DirectoryInfo dic:
                             var newPath = dic.FullName.Replace(currentTarget.Base, currentTarget.Target);
                             Directory.CreateDirectory(newPath);
                             elements.Enqueue((dic, dic.FullName, newPath));
+
                             break;
                     }
-                }
             }
         }
 

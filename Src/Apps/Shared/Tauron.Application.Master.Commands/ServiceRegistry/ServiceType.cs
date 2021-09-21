@@ -4,7 +4,7 @@ namespace Tauron.Application.Master.Commands.ServiceRegistry
 {
     public sealed class ServiceType : IEquatable<ServiceType>
     {
-        public static readonly ServiceType Empty = new(string.Empty, string.Empty); 
+        public static readonly ServiceType Empty = new(string.Empty, string.Empty);
 
         public ServiceType(string id, string displayName)
         {
@@ -15,17 +15,18 @@ namespace Tauron.Application.Master.Commands.ServiceRegistry
         public string Id { get; }
         public string DisplayName { get; }
 
-        public void Deconstruct(out string Id, out string DisplayName)
-        {
-            Id = this.Id;
-            DisplayName = this.DisplayName;
-        }
-
         public bool Equals(ServiceType? other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
+
             return Id == other.Id;
+        }
+
+        public void Deconstruct(out string Id, out string DisplayName)
+        {
+            Id = this.Id;
+            DisplayName = this.DisplayName;
         }
 
         public override bool Equals(object? obj) => ReferenceEquals(this, obj) || obj is ServiceType other && Equals(other);

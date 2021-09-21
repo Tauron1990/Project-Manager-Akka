@@ -28,7 +28,7 @@ namespace BeaconLib
 
         private readonly Task _thread;
         private readonly UdpClient _udp = new UdpClient();
-        private readonly EventWaitHandle _waitHandle = new EventWaitHandle(initialState: false, EventResetMode.AutoReset);
+        private readonly EventWaitHandle _waitHandle = new EventWaitHandle(false, EventResetMode.AutoReset);
         private IEnumerable<BeaconLocation> _currentBeacons = Enumerable.Empty<BeaconLocation>();
 
         private bool _running = true;
@@ -37,7 +37,7 @@ namespace BeaconLib
         public Probe(string beaconType)
             #pragma warning restore AV1500
         {
-            _udp.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, optionValue: true);
+            _udp.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
 
             BeaconType = beaconType;
             _thread = new Task(BackgroundLoop, TaskCreationOptions.LongRunning);
@@ -46,7 +46,7 @@ namespace BeaconLib
             _udp.Client.Bind(new IPEndPoint(IPAddress.Any, 0));
             try
             {
-                _udp.AllowNatTraversal(allowed: true);
+                _udp.AllowNatTraversal(true);
             }
             #pragma warning disable AV1706
             catch (Exception ex)
@@ -90,9 +90,7 @@ namespace BeaconLib
 
             var typeBytes = Beacon.Encode(BeaconType);
             if (Beacon.HasPrefix(bytes, typeBytes))
-            {
                 ProcessResponse(bytes, typeBytes, remote);
-            }
             else
                 _log.Info("Incompatiple Data");
 
@@ -148,6 +146,7 @@ namespace BeaconLib
             var cutOff = DateTime.Now - BeaconTimeout;
             var oldBeacons = _currentBeacons.ToList();
             var newBeacons = oldBeacons.Where(location => location.LastAdvertised >= cutOff).ToList();
+
             if (EnumsEqual(oldBeacons, newBeacons)) return;
 
             CallBeaconsUpdated(newBeacons);
@@ -164,11 +163,11 @@ namespace BeaconLib
         {
             _log.Info("Updating Beacons");
             var newBeacons = _currentBeacons
-                .Where(location => !location.Equals(newBeacon))
-                .Concat(new[] {newBeacon})
-                .OrderBy(location => location.Data)
-                .ThenBy(location => location.Address, IpEndPointComparer.Instance)
-                .ToList();
+               .Where(location => !location.Equals(newBeacon))
+               .Concat(new[] { newBeacon })
+               .OrderBy(location => location.Data)
+               .ThenBy(location => location.Address, IpEndPointComparer.Instance)
+               .ToList();
             var onBeaconsUpdated = BeaconsUpdated;
             onBeaconsUpdated?.Invoke(newBeacons);
             _currentBeacons = newBeacons;

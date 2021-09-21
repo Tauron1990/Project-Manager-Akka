@@ -2,9 +2,9 @@
 using Akka.Actor;
 using JetBrains.Annotations;
 using NLog;
+using Tauron.AkkaHost;
 using Tauron.Application.CommonUI.Helper;
 using Tauron.Application.CommonUI.ModelMessages;
-using Tauron.AkkaHost;
 using Tauron.ObservableExt;
 
 namespace Tauron.Application.CommonUI.UI
@@ -34,18 +34,18 @@ namespace Tauron.Application.CommonUI.UI
             WireUpUnloaded();
         }
 
-        public void Register(string key, IControlBindable bindable, IUIObject affectedPart) 
+        public void Register(string key, IControlBindable bindable, IUIObject affectedPart)
             => BindLogic.Register(key, bindable, affectedPart);
 
-        public void CleanUp(string key) 
+        public void CleanUp(string key)
             => BindLogic.CleanUp(key);
 
         public event Action? ControlUnload;
 
-        protected virtual void WireUpLoaded() 
+        protected virtual void WireUpLoaded()
             => UserControl.Loaded.Subscribe(_ => UserControlOnLoaded());
 
-        protected virtual void WireUpUnloaded() 
+        protected virtual void WireUpUnloaded()
             => UserControl.Unloaded.Subscribe(_ => UserControlOnUnloaded());
 
         protected virtual void UserControlOnUnloaded()
@@ -53,7 +53,7 @@ namespace Tauron.Application.CommonUI.UI
             try
             {
                 Logger.Debug("Control Unloaded {Element}", UserControl.GetType());
-				ControlUnload?.Invoke();
+                ControlUnload?.Invoke();
                 BindLogic.CleanUp();
                 Model.Actor.Tell(new UnloadEvent());
             }
@@ -73,7 +73,7 @@ namespace Tauron.Application.CommonUI.UI
                 parentOption.Run(
                     parent => parent.Actor.Tell(new InitParentViewModel(Model)),
                     () => ViewModelSuperviser.Get(ActorApplication.ActorSystem)
-                                             .Create(Model));
+                       .Create(Model));
             }
 
             Model.AwaitInit(() => Model.Actor.Tell(new InitEvent()));

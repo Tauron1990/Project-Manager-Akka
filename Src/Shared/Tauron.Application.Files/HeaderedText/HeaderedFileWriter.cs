@@ -36,15 +36,18 @@ namespace Tauron.Application.Files.HeaderedText
         public void Add(string key, string value)
         {
             if (!_description.Contains(key))
-                throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture,
-                    "The key {0} is Invalid", key));
+                throw new InvalidOperationException(
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        "The key {0} is Invalid",
+                        key));
 
             _context.Add(new ContextEntry(key, value));
         }
 
         public bool Remove(ContextEntry entry) => _context.ContextEnries.Remove(entry);
 
-        public int RemoveAll(string key) 
+        public int RemoveAll(string key)
             => _context.ContextEnries.RemoveAll(ent => ent.Key == key);
 
         public void Save(TextWriter writer)

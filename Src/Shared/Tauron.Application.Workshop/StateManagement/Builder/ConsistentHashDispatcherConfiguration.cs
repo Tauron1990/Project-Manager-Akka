@@ -13,6 +13,7 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
         public IConsistentHashDispatcherPoolConfiguration WithVirtualNodesFactor(int vnodes)
         {
             _vNotes = vnodes;
+
             return this;
         }
 
@@ -28,7 +29,8 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
             private readonly SupervisorStrategy _supervisorStrategy;
             private readonly int? _vNotes;
 
-            internal ActualDispatcher(int instances, Resizer? resizer, SupervisorStrategy supervisorStrategy,
+            internal ActualDispatcher(
+                int instances, Resizer? resizer, SupervisorStrategy supervisorStrategy,
                 string? dispatcher, int? vNotes, Func<Props, Props>? custom)
             {
                 _instances = instances;
@@ -42,7 +44,7 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
             public Props Configurate(Props mutator)
             {
                 var router = new ConsistentHashingPool(_instances)
-                    .WithSupervisorStrategy(_supervisorStrategy);
+                   .WithSupervisorStrategy(_supervisorStrategy);
 
                 if (_resizer != null)
                     router = router.WithResizer(_resizer);
@@ -52,6 +54,7 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
                     router = router.WithVirtualNodesFactor(_vNotes.Value);
 
                 mutator = mutator.WithRouter(router);
+
                 return _custom != null ? _custom(mutator) : mutator;
             }
         }

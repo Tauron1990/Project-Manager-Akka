@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using System.Reactive;
 using Akka.Event;
 using Ionic.Zip;
 using Tauron;
@@ -9,9 +8,9 @@ namespace ServiceHost.Installer.Impl
     public sealed class Backup
     {
         private static readonly string BackupLocation = Path.GetFullPath("Backup");
+        private string _backFrom = string.Empty;
 
         private string _backupFile = string.Empty;
-        private string _backFrom = string.Empty;
 
         public void Make(string from)
         {
@@ -30,12 +29,14 @@ namespace ServiceHost.Installer.Impl
             log.Info("Recover Old Application from Backup during Recover");
 
             using (var zip = ZipFile.Read(_backupFile))
+            {
                 zip.ExtractAll(_backFrom, ExtractExistingFileAction.OverwriteSilently);
-            
+            }
+
             _backupFile.DeleteFile();
         }
 
-        public void CleanUp() 
+        public void CleanUp()
             => _backupFile.DeleteFile();
     }
 }

@@ -29,10 +29,10 @@ namespace Akkatecture.Aggregates
 {
     public class AggregateRootSettings
     {
-        private const   string   Section = "akkatecture.aggregate-root";
+        private const string Section = "akkatecture.aggregate-root";
         public readonly TimeSpan SetReceiveTimeout;
-        public readonly bool     UseDefaultEventRecover;
-        public readonly bool     UseDefaultSnapshotRecover;
+        public readonly bool UseDefaultEventRecover;
+        public readonly bool UseDefaultSnapshotRecover;
 
         public AggregateRootSettings(Config config)
         {

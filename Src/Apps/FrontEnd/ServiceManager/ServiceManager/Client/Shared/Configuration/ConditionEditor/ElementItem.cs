@@ -15,7 +15,7 @@ namespace ServiceManager.Client.Shared.Configuration.ConditionEditor
         protected override BaseSingleElement CreateThis()
             => new InstalledAppElement();
     }
-    
+
     public sealed class DefinedAppElement : BaseSingleElement
     {
         public DefinedAppElement()
@@ -28,7 +28,7 @@ namespace ServiceManager.Client.Shared.Configuration.ConditionEditor
     public sealed class OrElement : BaseListElement
     {
         public OrElement()
-            : base(ConditionType.Or, "Zu wenig Elemenete für Oder Bedingung" ) { }
+            : base(ConditionType.Or, "Zu wenig Elemenete für Oder Bedingung") { }
 
         protected override BaseListElement CreateThis()
             => new OrElement();
@@ -48,6 +48,9 @@ namespace ServiceManager.Client.Shared.Configuration.ConditionEditor
         private readonly ConditionType _conditionType;
         private string _appName = string.Empty;
 
+        protected BaseSingleElement(ConditionType conditionType)
+            => _conditionType = conditionType;
+
         public string AppName
         {
             get => _appName;
@@ -58,11 +61,6 @@ namespace ServiceManager.Client.Shared.Configuration.ConditionEditor
                 _appName = value;
                 OnPropertyChanged();
             }
-        }
-
-        protected BaseSingleElement(ConditionType conditionType)
-        {
-            _conditionType = conditionType;
         }
 
         public static TResult Make<TResult>(TResult newly, Condition condition)
@@ -95,10 +93,10 @@ namespace ServiceManager.Client.Shared.Configuration.ConditionEditor
                 ? "Kein Name einer Anwendung gewählt"
                 : null;
 
-        public override Condition? Build()
+        public override Condition Build()
             => new(GetName(), Excluding, AppName, _conditionType, null, Order);
     }
-    
+
     public abstract class BaseListElement : ElementItem
     {
         private readonly ConditionType _conditionType;
@@ -109,7 +107,9 @@ namespace ServiceManager.Client.Shared.Configuration.ConditionEditor
             _conditionType = conditionType;
             _errorMessage = errorMessage;
         }
-        
+
+        public List<ElementItem> Items { get; private set; } = new();
+
         public static TResult Make<TResult>(TResult newly, Condition condition)
             where TResult : BaseListElement
         {
@@ -118,15 +118,14 @@ namespace ServiceManager.Client.Shared.Configuration.ConditionEditor
             return newly;
         }
 
-        protected static void TransferList(BaseListElement item, Condition condition)
+        private static void TransferList(BaseListElement item, Condition condition)
         {
             TransferBasic(item, condition);
-            if(condition.Conditions == null) return;
+
+            if (condition.Conditions == null) return;
 
             item.Items = condition.Conditions.Select(CreateItem).ToList();
         }
-        
-        public List<ElementItem> Items { get; set; } = new();
 
         protected abstract BaseListElement CreateThis();
 
@@ -138,22 +137,21 @@ namespace ServiceManager.Client.Shared.Configuration.ConditionEditor
 
             return temp;
         }
-        
+
         public override string? Validate(bool single)
-            => Items.Count < 2 
-                ? _errorMessage 
-                : single 
-                    ? null 
+            => Items.Count < 2
+                ? _errorMessage
+                : single
+                    ? null
                     : Items.Select(e => e.Validate(single)).FirstOrDefault(s => !string.IsNullOrWhiteSpace(s));
 
-        public override Condition? Build()
+        public override Condition Build()
             => new(GetName(), Excluding, null, _conditionType, Items.Select(c => c.Build()).ToImmutableList()!, Order);
     }
-    
+
     public sealed class InvalidItem : ElementItem
     {
-       
-        public override string? Validate(bool single)
+        public override string Validate(bool single)
             => "Kein Element Vorhanden";
 
         public override ElementItem Clone()
@@ -166,28 +164,11 @@ namespace ServiceManager.Client.Shared.Configuration.ConditionEditor
     public abstract class ElementItem : ObservableObject
     {
         public const string IdPrefix = "ID-";
-        
-        public static readonly ElementItem Invalid = new InvalidItem();
+
+        private static readonly ElementItem Invalid = new InvalidItem();
         private bool _excluding;
-        private int _order;
         private string? _name;
-
-        protected static void TransferBasic(ElementItem item, Condition condition)
-        {
-            item.Name = condition.Name;
-            item.Excluding = condition.Excluding;
-            item.Order = condition.Order;
-        }
-
-        public static ElementItem CreateItem(Condition condition)
-            => condition.Type switch
-            {
-                ConditionType.And => BaseListElement.Make(new AndElement(), condition),
-                ConditionType.Or => BaseListElement.Make(new OrElement(), condition),
-                ConditionType.InstalledApp => BaseSingleElement.Make(new InstalledAppElement(), condition),
-                ConditionType.DefinedApp => BaseSingleElement.Make(new DefinedAppElement(), condition),
-                _ => Invalid
-            };
+        private int _order;
 
         public bool Excluding
         {
@@ -225,23 +206,40 @@ namespace ServiceManager.Client.Shared.Configuration.ConditionEditor
             }
         }
 
+        protected static void TransferBasic(ElementItem item, Condition condition)
+        {
+            item.Name = condition.Name;
+            item.Excluding = condition.Excluding;
+            item.Order = condition.Order;
+        }
+
+        public static ElementItem CreateItem(Condition condition)
+            => condition.Type switch
+            {
+                ConditionType.And => BaseListElement.Make(new AndElement(), condition),
+                ConditionType.Or => BaseListElement.Make(new OrElement(), condition),
+                ConditionType.InstalledApp => BaseSingleElement.Make(new InstalledAppElement(), condition),
+                ConditionType.DefinedApp => BaseSingleElement.Make(new DefinedAppElement(), condition),
+                _ => Invalid
+            };
+
         public abstract string? Validate(bool single);
 
         protected void CopyTo(ElementItem newItem, bool icludeName = false)
         {
             newItem.Excluding = Excluding;
-            if(icludeName)
+            if (icludeName)
                 newItem.Name = Name;
             newItem.Order = Order;
         }
 
         public abstract ElementItem Clone();
-        
+
         public abstract Condition? Build();
 
         protected string GetName()
             => string.IsNullOrWhiteSpace(Name)
-                   ? $"{IdPrefix}{Guid.NewGuid():D}"
-                   : Name;
+                ? $"{IdPrefix}{Guid.NewGuid():D}"
+                : Name;
     }
 }

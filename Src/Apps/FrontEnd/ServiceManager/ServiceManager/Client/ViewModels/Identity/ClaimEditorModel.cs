@@ -9,31 +9,31 @@ namespace ServiceManager.Client.ViewModels.Identity
         private static readonly Dictionary<string, string> ClaimsDisplayNames
             = new()
               {
-                  {Claims.ConfigurationClaim, "App Konfiguration"},
-                  {Claims.DatabaseClaim, "Datenbank Konfiguration"},
-                  {Claims.AppIpClaim, "Ip Konfiguration"},
-                  {Claims.ClusterConnectionClaim, "Cluster Verbindung"},
-                  {Claims.ClusterNodeClaim, "Cluster Status"},
-                  {Claims.ServerInfoClaim, "Server Status"},
-                  {Claims.UserManagmaentClaim, "Benutzer Verwaltung"},
-                  {Claims.AppMenegmentClaim, "Anwendungs Verwaltung"}
+                  { Claims.ConfigurationClaim, "App Konfiguration" },
+                  { Claims.DatabaseClaim, "Datenbank Konfiguration" },
+                  { Claims.AppIpClaim, "Ip Konfiguration" },
+                  { Claims.ClusterConnectionClaim, "Cluster Verbindung" },
+                  { Claims.ClusterNodeClaim, "Cluster Status" },
+                  { Claims.ServerInfoClaim, "Server Status" },
+                  { Claims.UserManagmaentClaim, "Benutzer Verwaltung" },
+                  { Claims.AppMenegmentClaim, "Anwendungs Verwaltung" }
               };
-
-        public static string GetClaimsDisplayName(string name)
-            => ClaimsDisplayNames.GetValueOrDefault(name, "Unbekannter Claim");
-
-        public string OriginalName { get; set; }
-        
-        public string Name { get; }
-
-        public bool IsChecked { get; set; }
 
         public ClaimEditorModel(string name, bool isChecked)
         {
             OriginalName = name;
-            Name         = GetClaimsDisplayName(name);
-            IsChecked    = isChecked;
+            Name = GetClaimsDisplayName(name);
+            IsChecked = isChecked;
         }
+
+        public string OriginalName { get; set; }
+
+        public string Name { get; }
+
+        public bool IsChecked { get; set; }
+
+        public static string GetClaimsDisplayName(string name)
+            => ClaimsDisplayNames.GetValueOrDefault(name, "Unbekannter Claim");
 
         public ImmutableArray<string> SetClaim(ImmutableArray<string> array)
             => IsChecked ? array.Add(OriginalName) : array;

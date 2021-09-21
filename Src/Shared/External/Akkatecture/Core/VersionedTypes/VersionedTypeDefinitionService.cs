@@ -62,7 +62,7 @@ namespace Akkatecture.Core.VersionedTypes
 
         public void Load(params Type[] types)
         {
-            Load((IReadOnlyCollection<Type>) types);
+            Load((IReadOnlyCollection<Type>)types);
         }
 
         public void Load(IReadOnlyCollection<Type>? types)
@@ -70,28 +70,28 @@ namespace Akkatecture.Core.VersionedTypes
             if (types == null) return;
 
             var invalidTypes = types
-                .Where(type => !typeof(TTypeCheck).GetTypeInfo().IsAssignableFrom(type))
-                .ToList();
+               .Where(type => !typeof(TTypeCheck).GetTypeInfo().IsAssignableFrom(type))
+               .ToList();
+
             if (invalidTypes.Any())
-            {
                 throw new ArgumentException(
                     $"The following types are not of type '{typeof(TTypeCheck).PrettyPrint()}': {string.Join(", ", invalidTypes.Select(type => type.PrettyPrint()))}");
-            }
 
             lock (_syncRoot)
             {
                 var definitions = types
-                    .Distinct()
-                    .Where(type => !_definitionsByType.ContainsKey(type))
-                    .SelectMany(CreateDefinitions)
-                    .ToList();
+                   .Distinct()
+                   .Where(type => !_definitionsByType.ContainsKey(type))
+                   .SelectMany(CreateDefinitions)
+                   .ToList();
+
                 if (!definitions.Any()) return;
 
                 var assemblies = definitions
-                    .Select(definition => definition.Type.GetTypeInfo().Assembly.GetName().Name)
-                    .Distinct()
-                    .OrderBy(name => name)
-                    .ToList();
+                   .Select(definition => definition.Type.GetTypeInfo().Assembly.GetName().Name)
+                   .Distinct()
+                   .OrderBy(name => name)
+                   .ToList();
 
                 var logs =
                     $"Added {definitions.Count} versioned types to '{GetType().PrettyPrint()}' from these assemblies: {string.Join(", ", assemblies)}";
@@ -117,6 +117,7 @@ namespace Akkatecture.Core.VersionedTypes
                             "Already loaded versioned type '{0}' v{1}, skipping it",
                             definition.Name,
                             definition.Version);
+
                         continue;
                     }
 
@@ -127,8 +128,8 @@ namespace Akkatecture.Core.VersionedTypes
 
         public IEnumerable<TDefinition> GetDefinitions(string name)
             => _definitionByNameAndVersion.TryGetValue(name, out var versions)
-                   ? versions.Values.OrderBy(definition => definition.Version)
-                   : Enumerable.Empty<TDefinition>();
+                ? versions.Values.OrderBy(definition => definition.Version)
+                : Enumerable.Empty<TDefinition>();
 
         public IEnumerable<TDefinition> GetAllDefinitions()
             => _definitionByNameAndVersion.SelectMany(kv => kv.Value.Values);
@@ -150,10 +151,8 @@ namespace Akkatecture.Core.VersionedTypes
             #pragma warning restore AV1551
         {
             if (!TryGetDefinition(name, version, out var definition))
-            {
                 throw new ArgumentException(
                     $"No versioned type definition for '{name}' with version {version} in '{GetType().PrettyPrint()}'");
-            }
 
             return definition;
         }
@@ -171,10 +170,8 @@ namespace Akkatecture.Core.VersionedTypes
         public IReadOnlyCollection<TDefinition> GetDefinitions(Type type)
         {
             if (!TryGetDefinitions(type, out var definitions))
-            {
                 throw new ArgumentException(
                     $"No definition for type '{type.PrettyPrint()}', have you remembered to load it during Akkatecture initialization");
-            }
 
             return definitions;
         }
@@ -186,16 +183,16 @@ namespace Akkatecture.Core.VersionedTypes
             if (!TryGetDefinitions(type, out var definitions))
             {
                 definition = default;
+
                 return false;
             }
 
             if (definitions.Count > 1)
-            {
                 throw new InvalidOperationException(
                     $"Type '{type.PrettyPrint()}' has multiple definitions: {string.Join(", ", definitions.Select(typeDefinition => typeDefinition.ToString()))}");
-            }
 
             definition = definitions.Single();
+
             return true;
         }
 
@@ -206,10 +203,12 @@ namespace Akkatecture.Core.VersionedTypes
             if (!_definitionsByType.TryGetValue(type, out var list))
             {
                 definitions = default!;
+
                 return false;
             }
 
             definitions = list;
+
             return true;
         }
 
@@ -221,6 +220,7 @@ namespace Akkatecture.Core.VersionedTypes
             foreach (var definitionFromAttribute in CreateDefinitionFromAttribute(versionedType))
             {
                 hasAttributeDefinition = true;
+
                 yield return definitionFromAttribute;
             }
 
@@ -232,6 +232,7 @@ namespace Akkatecture.Core.VersionedTypes
         private TDefinition CreateDefinitionFromName(Type versionedType)
         {
             var match = NameRegex.Match(versionedType.Name);
+
             if (!match.Success)
                 throw new ArgumentException($"Versioned type name '{versionedType.Name}' is not a valid name");
 
@@ -240,6 +241,7 @@ namespace Akkatecture.Core.VersionedTypes
             if (groups.Success) version = int.Parse(groups.Value);
 
             var name = match.Groups["name"].Value;
+
             return CreateDefinition(
                 version,
                 versionedType,
@@ -249,10 +251,10 @@ namespace Akkatecture.Core.VersionedTypes
         private IEnumerable<TDefinition> CreateDefinitionFromAttribute(Type versionedType)
         {
             return versionedType
-                .GetTypeInfo()
-                .GetCustomAttributes()
-                .OfType<TAttribute>()
-                .Select(attribute => CreateDefinition(attribute.Version, versionedType, attribute.Name));
+               .GetTypeInfo()
+               .GetCustomAttributes()
+               .OfType<TAttribute>()
+               .Select(attribute => CreateDefinition(attribute.Version, versionedType, attribute.Name));
         }
     }
 }

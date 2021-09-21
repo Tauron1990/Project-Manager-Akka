@@ -26,6 +26,7 @@ namespace Tauron.Application.Wpf.SerilogViewer
             IsTargetConfigured = false;
 
             if (LoggerViewerSink.CurrentSink == null) return;
+
             IsTargetConfigured = true;
 
             LogEntries.AddRange(LoggerViewerSink.CurrentSink.Logs.Select(e => new LogEventViewModel(e)));
@@ -78,14 +79,16 @@ namespace Tauron.Application.Wpf.SerilogViewer
         {
             LogEventViewModel vm = new(log);
 
-            Dispatcher.BeginInvoke(new Action(() =>
-            {
-                if (MaxRowCount > 0 && LogEntries.Count >= MaxRowCount)
-                    LogEntries.RemoveAt(0);
-                LogEntries.Add(vm);
-                if (AutoScrollToLast) ScrollToLast();
-                ItemAdded(this, (LoggingEvent) log);
-            }));
+            Dispatcher.BeginInvoke(
+                new Action(
+                    () =>
+                    {
+                        if (MaxRowCount > 0 && LogEntries.Count >= MaxRowCount)
+                            LogEntries.RemoveAt(0);
+                        LogEntries.Add(vm);
+                        if (AutoScrollToLast) ScrollToLast();
+                        ItemAdded(this, (LoggingEvent)log);
+                    }));
         }
 
         public void Clear()
@@ -96,6 +99,7 @@ namespace Tauron.Application.Wpf.SerilogViewer
         public void ScrollToFirst()
         {
             if (LogView.Items.Count <= 0) return;
+
             LogView.SelectedIndex = 0;
             ScrollToItem(LogView.SelectedItem);
         }
@@ -103,6 +107,7 @@ namespace Tauron.Application.Wpf.SerilogViewer
         public void ScrollToLast()
         {
             if (LogView.Items.Count <= 0) return;
+
             LogView.SelectedIndex = LogView.Items.Count - 1;
             ScrollToItem(LogView.SelectedItem);
         }

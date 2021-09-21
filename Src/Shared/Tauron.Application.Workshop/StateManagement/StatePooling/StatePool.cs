@@ -14,9 +14,12 @@ namespace Tauron.Application.Workshop.StateManagement.StatePooling
                 return inst;
 
             inst = factory();
+
             if (inst == null)
                 return null;
+
             _pooled.Add(key, inst);
+
             return inst;
         }
     }

@@ -27,7 +27,8 @@ namespace BeaconLib
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            return obj.GetType() == GetType() && Equals((BeaconLocation) obj);
+
+            return obj.GetType() == GetType() && Equals((BeaconLocation)obj);
         }
 
         public override int GetHashCode() => Address.GetHashCode();

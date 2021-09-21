@@ -7,9 +7,7 @@ namespace Tauron.Application.Files.VirtualFiles.Core
     public abstract class FileBase<TInfo> : FileSystemNodeBase<TInfo>, IFile where TInfo : class
     {
         protected FileBase(Func<IDirectory> parentDirectory, string originalPath, string name)
-            : base(parentDirectory, originalPath, name)
-        {
-        }
+            : base(parentDirectory, originalPath, name) { }
 
         public abstract string Extension { get; set; }
 

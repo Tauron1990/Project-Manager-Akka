@@ -1,7 +1,6 @@
 ﻿@page "/counter"
-
-@using System.Threading
 @using Stl.Fusion.UI
+@using System.Threading
 @inherits ComputedStateComponent<int>
 
 @inject ICounterService _counterService
@@ -10,7 +9,7 @@
 
 <h1>Counter</h1>
 
-@if (@State.HasError)
+@if (State.HasError)
 {
     <p>@State.Error?.ToString()</p>
 }
@@ -36,4 +35,5 @@ else
         var key = await _keyProvider.Use(cancellationToken);
         return await _counterService.GetCounter(key, cancellationToken);
     }
+
 }

@@ -39,9 +39,7 @@ namespace Akkatecture.Events
         AggregateEventUpcaster<TAggregate, TIdentity> : AggregateEventUpcaster<TAggregate, TIdentity,
             IEventUpcaster<TAggregate, TIdentity>>
         where TAggregate : IAggregateRoot<TIdentity>
-        where TIdentity : IIdentity
-    {
-    }
+        where TIdentity : IIdentity { }
 
     public abstract class AggregateEventUpcaster<TAggregate, TIdentity, TEventUpcaster> : IReadEventAdapter,
         IEventUpcaster<TAggregate, TIdentity>
@@ -63,10 +61,8 @@ namespace Akkatecture.Events
             _decisionCache = new ConcurrentDictionary<Type, bool>(dictionary);
 
             if (this is not TEventUpcaster)
-            {
                 throw new InvalidOperationException(
                     $"Event applier of type '{GetType().PrettyPrint()}' has a wrong generic argument '{typeof(TEventUpcaster).PrettyPrint()}'");
-            }
 
             _upcastFunctions = GetType().GetAggregateEventUpcastMethods<TAggregate, TIdentity, TEventUpcaster>();
         }
@@ -80,7 +76,7 @@ namespace Akkatecture.Events
                 throw new ArgumentException(nameof(aggregateEventType));
 
             var evt =
-                upcaster((TEventUpcaster) (object) this, aggregateEvent) as IAggregateEvent<TAggregate, TIdentity>;
+                upcaster((TEventUpcaster)(object)this, aggregateEvent) as IAggregateEvent<TAggregate, TIdentity>;
 
             return evt;
         }
@@ -96,7 +92,8 @@ namespace Akkatecture.Events
             Type genericType = typeof(CommittedEvent<,,>)
                .MakeGenericType(typeof(TAggregate), typeof(TIdentity), upcastedEvent.GetType());
 
-            var upcastedCommittedEvent = FastReflection.Shared.FastCreateInstance(genericType,
+            var upcastedCommittedEvent = FastReflection.Shared.FastCreateInstance(
+                genericType,
                 evt.GetPropertyValue("AggregateIdentity")!,
                 upcastedEvent,
                 evt.GetPropertyValue("Metadata")!,
@@ -104,7 +101,6 @@ namespace Akkatecture.Events
                 evt.GetPropertyValue("AggregateSequenceNumber")!);
 
             return EventSequence.Single(upcastedCommittedEvent);
-
         }
 
         private bool ShouldUpcast(object potentialUpcast)
@@ -112,6 +108,7 @@ namespace Akkatecture.Events
             var type = potentialUpcast.GetType();
 
             if (!(potentialUpcast is ICommittedEvent<TAggregate, TIdentity>)) return false;
+
             var eventType = type.GenericTypeArguments[2];
 
             return _decisionCache.ContainsKey(eventType);

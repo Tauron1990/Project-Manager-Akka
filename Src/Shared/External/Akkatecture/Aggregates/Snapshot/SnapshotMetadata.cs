@@ -33,24 +33,16 @@ namespace Akkatecture.Aggregates.Snapshot
     [PublicAPI]
     public class SnapshotMetadata : MetadataContainer, ISnapshotMetadata
     {
-        public SnapshotMetadata()
-        {
-        }
+        public SnapshotMetadata() { }
 
         public SnapshotMetadata(IDictionary<string, string> keyValuePairs)
-            : base(keyValuePairs)
-        {
-        }
+            : base(keyValuePairs) { }
 
         public SnapshotMetadata(IEnumerable<KeyValuePair<string, string>> keyValuePairs)
-            : base(keyValuePairs.ToDictionary(kv => kv.Key, kv => kv.Value))
-        {
-        }
+            : base(keyValuePairs.ToDictionary(kv => kv.Key, kv => kv.Value)) { }
 
         public SnapshotMetadata(params KeyValuePair<string, string>[] keyValuePairs)
-            : this((IEnumerable<KeyValuePair<string, string>>) keyValuePairs)
-        {
-        }
+            : this((IEnumerable<KeyValuePair<string, string>>)keyValuePairs) { }
 
         [JsonIgnore]
         public string AggregateId

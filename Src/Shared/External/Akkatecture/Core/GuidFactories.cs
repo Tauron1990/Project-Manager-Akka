@@ -48,7 +48,7 @@ namespace Akkatecture.Core
                 var span = new TimeSpan(now.Ticks - time.Ticks);
                 var timeOfDay = now.TimeOfDay;
                 var bytes = BitConverter.GetBytes(span.Days);
-                var array = BitConverter.GetBytes((long) (timeOfDay.TotalMilliseconds / 3.333333));
+                var array = BitConverter.GetBytes((long)(timeOfDay.TotalMilliseconds / 3.333333));
 
                 Array.Reverse(bytes);
                 Array.Reverse(array);
@@ -129,14 +129,15 @@ namespace Akkatecture.Core
 
                 // Set the four most significant bits (bits 12 through 15) of the time_hi_and_version
                 // field to the appropriate 4-bit version number from Section 4.1.3 (step 8)
-                newGuid[6] = (byte) ((newGuid[6] & 0x0F) | (version << 4));
+                newGuid[6] = (byte)((newGuid[6] & 0x0F) | (version << 4));
 
                 // Set the two most significant bits (bits 6 and 7) of the clock_seq_hi_and_reserved
                 // to zero and one, respectively (step 10)
-                newGuid[8] = (byte) ((newGuid[8] & 0x3F) | 0x80);
+                newGuid[8] = (byte)((newGuid[8] & 0x3F) | 0x80);
 
                 // Convert the resulting UUID to local byte order (step 13)
                 SwapByteOrder(newGuid);
+
                 return new Guid(newGuid);
             }
 

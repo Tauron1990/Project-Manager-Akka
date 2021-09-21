@@ -39,10 +39,12 @@ namespace Tauron.Application.AkkaNode.Services.Reporting.Commands
                             task.SetResult(Either.Right(new Error(new InvalidCastException(result.Outcome?.GetType().Name ?? "null-source"))));
                     }
                     else
+                    {
                         task.SetResult(Either.Right(result.Errors?.FirstOrDefault() ?? new Error("Unkowen", "Unkowen")));
+                    }
                 },
                 timeout);
-            
+
             command.SetListner(listner);
             sender.SendCommand(command);
 

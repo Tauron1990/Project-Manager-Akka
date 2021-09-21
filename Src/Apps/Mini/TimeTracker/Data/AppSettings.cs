@@ -13,7 +13,7 @@ namespace TimeTracker.Data
     {
         private readonly ITauronEnviroment _enviroment;
 
-        public AppSettingsConfiguration(ITauronEnviroment enviroment) 
+        public AppSettingsConfiguration(ITauronEnviroment enviroment)
             => _enviroment = enviroment;
 
         public string Scope => "App";
@@ -23,7 +23,7 @@ namespace TimeTracker.Data
 
     public sealed class AppSettings : ConfigurationBase
     {
-        public AppSettings(IDefaultActorRef<SettingsManager> actor, ILogger<AppSettings> logger) 
+        public AppSettings(IDefaultActorRef<SettingsManager> actor, ILogger<AppSettings> logger)
             : base(actor, "App", logger) { }
 
         public ImmutableList<string> AllProfiles

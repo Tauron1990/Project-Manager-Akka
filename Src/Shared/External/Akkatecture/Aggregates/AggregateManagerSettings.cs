@@ -28,9 +28,9 @@ namespace Akkatecture.Aggregates
 {
     public class AggregateManagerSettings
     {
-        private const   string Section = "akkatecture.aggregate-manager";
-        public readonly bool   AutoDispatchOnReceive;
-        public readonly bool   HandleDeadLetters;
+        private const string Section = "akkatecture.aggregate-manager";
+        public readonly bool AutoDispatchOnReceive;
+        public readonly bool HandleDeadLetters;
 
         public AggregateManagerSettings(Config config)
         {

@@ -7,8 +7,8 @@ using Akka.Cluster.Utility;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 using Tauron.Akka;
-using Tauron.Features;
 using Tauron.AkkaHost;
+using Tauron.Features;
 using static Akka.Cluster.Utility.ClusterActorDiscoveryMessage;
 
 namespace Tauron.Application.Master.Commands.KillSwitch
@@ -41,15 +41,18 @@ namespace Tauron.Application.Master.Commands.KillSwitch
         {
             public KillWatcher(KillRecpientType type)
             {
-                Receive<ActorUp>(obs => obs.Do(au => Log.Info("Send ActorUp Back {Name}", au.Actor.Path))
-                    .SubscribeWithStatus(au => au.Actor.Tell(new ActorUp(Self, nameof(KillWatcher)))));
+                Receive<ActorUp>(
+                    obs => obs.Do(au => Log.Info("Send ActorUp Back {Name}", au.Actor.Path))
+                       .SubscribeWithStatus(au => au.Actor.Tell(new ActorUp(Self, nameof(KillWatcher)))));
 
-                Receive<RequestRegistration>(obs => obs.Do(_ => Log.Info($"Sending Respond {type}"))
-                    .Select(_ => new RespondRegistration(type))
-                    .ToSender());
+                Receive<RequestRegistration>(
+                    obs => obs.Do(_ => Log.Info($"Sending Respond {type}"))
+                       .Select(_ => new RespondRegistration(type))
+                       .ToSender());
 
-                Receive<KillNode>(obs => obs.Do(_ => Log.Info("Leaving Cluster"))
-                    .ToUnit(() => Cluster.Get(Context.System).LeaveAsync()));
+                Receive<KillNode>(
+                    obs => obs.Do(_ => Log.Info("Leaving Cluster"))
+                       .ToUnit(() => Cluster.Get(Context.System).LeaveAsync()));
             }
 
             protected override void PreStart()
@@ -72,64 +75,79 @@ namespace Tauron.Application.Master.Commands.KillSwitch
 
             protected override void ConfigImpl()
             {
-                Receive<ActorDown>(obs => obs.Do(ad => Log.Info($"Remove KillSwitch Actor {ad.Event.Actor.Path}"))
-                    .Select(m =>
-                    {
-                        var (actorDown, state, _) = m;
-                        var entry = state.Actors.Find(e => e.Target.Equals(actorDown.Actor));
+                Receive<ActorDown>(
+                    obs => obs.Do(ad => Log.Info($"Remove KillSwitch Actor {ad.Event.Actor.Path}"))
+                       .Select(
+                            m =>
+                            {
+                                var (actorDown, state, _) = m;
+                                var entry = state.Actors.Find(e => e.Target.Equals(actorDown.Actor));
 
-                        if (entry == null)
-                            return state;
-                        return state with {Actors = state.Actors.Remove(entry)};
-                    }));
+                                if (entry == null)
+                                    return state;
 
-                Receive<ActorUp>(obs => obs.Do(au => Log.Info($"New killswitch Actor {au.Event.Actor.Path}"))
-                    .Select(m =>
-                    {
-                        var (actorUp, state, _) = m;
-                        actorUp.Actor.Tell(new RequestRegistration());
-                        return state with {Actors = state.Actors.Add(ActorElement.New(actorUp.Actor))};
-                    }));
+                                return state with { Actors = state.Actors.Remove(entry) };
+                            }));
 
-                Receive<RespondRegistration>(obs => obs
-                    .Do(r => Log.Info($"Set Killswitch Actor Type {r.Event.RecpientType} {Sender.Path}"))
-                    .Select(r =>
-                    {
-                        var (respondRegistration, state, _) = r;
-                        var ele = state.Actors.Find(e => e.Target.Equals(Sender));
-                        if (ele == null)
-                            return state;
+                Receive<ActorUp>(
+                    obs => obs.Do(au => Log.Info($"New killswitch Actor {au.Event.Actor.Path}"))
+                       .Select(
+                            m =>
+                            {
+                                var (actorUp, state, _) = m;
+                                actorUp.Actor.Tell(new RequestRegistration());
 
-                        return state with
-                        {
-                            Actors = state.Actors.Replace(ele,
-                                ele with {RecpientType = respondRegistration.RecpientType})
-                        };
-                    }));
+                                return state with { Actors = state.Actors.Add(ActorElement.New(actorUp.Actor)) };
+                            }));
 
-                Receive<RequestRegistration>(obs => obs.Select(_ => new RespondRegistration(KillRecpientType.Seed))
-                    .ToSender());
+                Receive<RespondRegistration>(
+                    obs => obs
+                       .Do(r => Log.Info($"Set Killswitch Actor Type {r.Event.RecpientType} {Sender.Path}"))
+                       .Select(
+                            r =>
+                            {
+                                var (respondRegistration, state, _) = r;
+                                var ele = state.Actors.Find(e => e.Target.Equals(Sender));
+
+                                if (ele == null)
+                                    return state;
+
+                                return state with
+                                       {
+                                           Actors = state.Actors.Replace(
+                                               ele,
+                                               ele with { RecpientType = respondRegistration.RecpientType })
+                                       };
+                            }));
+
+                Receive<RequestRegistration>(
+                    obs => obs.Select(_ => new RespondRegistration(KillRecpientType.Seed))
+                       .ToSender());
 
                 Receive<KillClusterMsg>(obs => obs.SubscribeWithStatus(_ => RunKillCluster()));
 
-                Receive<KillNode>(obs => obs.Do(_ => Log.Info("Leaving Cluster"))
-                    .SubscribeWithStatus(_ => Cluster.Get(Context.System).LeaveAsync()));
+                Receive<KillNode>(
+                    obs => obs.Do(_ => Log.Info("Leaving Cluster"))
+                       .SubscribeWithStatus(_ => Cluster.Get(Context.System).LeaveAsync()));
 
-                Receive<ActorUp>(obs => obs.Where(m => m.Event.Tag == nameof(KillWatcher))
-                    .Do(up => Log.Info($"Incomming Kill Watcher {up.Event.Actor.Path}"))
-                    .Select(m => m.Event.Actor)
-                    .SubscribeWithStatus(actor => Context.Watch(actor)));
+                Receive<ActorUp>(
+                    obs => obs.Where(m => m.Event.Tag == nameof(KillWatcher))
+                       .Do(up => Log.Info($"Incomming Kill Watcher {up.Event.Actor.Path}"))
+                       .Select(m => m.Event.Actor)
+                       .SubscribeWithStatus(actor => Context.Watch(actor)));
 
-                Receive<Terminated>(obs => obs.Select(t => new ActorDown(t.Event.ActorRef, nameof(KillWatcher)))
-                    .ToSelf());
+                Receive<Terminated>(
+                    obs => obs.Select(t => new ActorDown(t.Event.ActorRef, nameof(KillWatcher)))
+                       .ToSelf());
 
-                Start.Subscribe(_ =>
-                {
-                    var actorDiscovery = ClusterActorDiscovery.Get(ObservableActor.Context.System).Discovery;
+                Start.Subscribe(
+                    _ =>
+                    {
+                        var actorDiscovery = ClusterActorDiscovery.Get(ObservableActor.Context.System).Discovery;
 
-                    actorDiscovery.Tell(new RegisterActor(Self, KillSwitchName));
-                    actorDiscovery.Tell(new MonitorActor(nameof(KillSwitchName)));
-                });
+                        actorDiscovery.Tell(new RegisterActor(Self, KillSwitchName));
+                        actorDiscovery.Tell(new MonitorActor(nameof(KillSwitchName)));
+                    });
             }
 
             private void RunKillCluster()
@@ -137,13 +155,13 @@ namespace Tauron.Application.Master.Commands.KillSwitch
                 Log.Info("Begin Cluster Shutdown");
 
                 var dic = new GroupDictionary<KillRecpientType, IActorRef>
-                {
-                    KillRecpientType.Unkowen,
-                    KillRecpientType.Frontend,
-                    KillRecpientType.Host,
-                    KillRecpientType.Seed,
-                    KillRecpientType.Service
-                };
+                          {
+                              KillRecpientType.Unkowen,
+                              KillRecpientType.Frontend,
+                              KillRecpientType.Host,
+                              KillRecpientType.Seed,
+                              KillRecpientType.Service
+                          };
 
                 foreach (var (target, recpientType) in CurrentState.Actors)
                     dic.Add(recpientType, target);
@@ -160,7 +178,8 @@ namespace Tauron.Application.Master.Commands.KillSwitch
             public sealed record KillState(ImmutableList<ActorElement> Actors);
 
 
-            public sealed record ActorElement(IActorRef Target,
+            public sealed record ActorElement(
+                IActorRef Target,
                 KillRecpientType RecpientType = KillRecpientType.Unkowen)
             {
                 public static ActorElement New(IActorRef r)

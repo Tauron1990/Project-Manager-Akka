@@ -3,7 +3,5 @@
 namespace Tauron.Application.VirtualFiles
 {
     [PublicAPI]
-    public sealed class VirtualFileFactory
-    {
-    }
+    public sealed class VirtualFileFactory { }
 }

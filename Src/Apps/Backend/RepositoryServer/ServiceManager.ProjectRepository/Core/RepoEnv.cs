@@ -10,7 +10,8 @@ namespace ServiceManager.ProjectRepository.Core
         private static TempStorage? _storage;
 
         public static string DataPath { get; } =
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "Tauron\\ReporitoryManager");
 
         public static TempStorage TempFiles => _storage ??= TempStorage.CleanAndCreate(DataPath.CombinePath("Temp"));

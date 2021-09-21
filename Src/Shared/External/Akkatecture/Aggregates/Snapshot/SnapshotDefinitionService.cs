@@ -30,9 +30,7 @@ namespace Akkatecture.Aggregates.Snapshot
     public class SnapshotDefinitionService : VersionedTypeDefinitionService<IAggregateSnapshot, SnapshotVersionAttribute, SnapshotDefinition>, ISnapshotDefinitionService
     {
         public SnapshotDefinitionService(ILoggingAdapter logger)
-            : base(logger)
-        {
-        }
+            : base(logger) { }
 
         protected override SnapshotDefinition CreateDefinition(int version, Type type, string name)
             => new(version, type, name);

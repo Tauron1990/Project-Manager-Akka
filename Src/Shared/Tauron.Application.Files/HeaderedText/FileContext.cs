@@ -9,7 +9,7 @@ namespace Tauron.Application.Files.HeaderedText
     public sealed class FileContext : IEnumerable<ContextEntry>
     {
         internal FileContext([NotNull] FileDescription description)
-            => Description = (FileDescription) description.Clone();
+            => Description = (FileDescription)description.Clone();
 
         internal FileDescription Description { get; }
 
@@ -22,12 +22,12 @@ namespace Tauron.Application.Files.HeaderedText
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        internal void Reset() 
+        internal void Reset()
             => ContextEnries.Clear();
 
         internal bool IsKeyword([NotNull] string key) => Description.Contains(key);
 
-        internal void Add([NotNull] ContextEntry entry) 
+        internal void Add([NotNull] ContextEntry entry)
             => ContextEnries.Add(entry);
     }
 }

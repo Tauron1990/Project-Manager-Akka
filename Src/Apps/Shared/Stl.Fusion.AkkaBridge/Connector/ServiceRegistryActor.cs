@@ -15,13 +15,12 @@ namespace Stl.Fusion.AkkaBridge.Connector
     public sealed class ServiceRegistryActor : ActorFeatureBase<ServiceRegistryActor.State>
     {
         private const string SharedId = "4D114988-9827-40A4-879C-E6C77734BD15";
-        
-        public sealed record State(ClusterActorDiscovery Data, Cluster Cluster, ServiceRegistryState Registry);
 
         public static Func<IPreparedFeature> Factory()
         {
             IPreparedFeature _()
-                => Feature.Create(() => new ServiceRegistryActor(), 
+                => Feature.Create(
+                    () => new ServiceRegistryActor(),
                     c => new State(ClusterActorDiscovery.Get(c.System), Cluster.Get(c.System), ServiceRegistryState.Create(Cluster.Get(c.System))));
 
             return _;
@@ -34,36 +33,34 @@ namespace Stl.Fusion.AkkaBridge.Connector
 
             Receive<RegisterService>(
                 obs => from state in obs.CatchSafe(
-                                             pair => from p in Observable.Return(pair)
-                                                     let state = p.State
-                                                     let evt = p.Event
-                                                     let registration = p.State.Registry.NewService(Context.Watch(p.Event.Host), p.Event.Interface)
-                                                     select CreateResponse(
-                                                         p.NewEvent(new RegisterServiceResponse(null)),
-                                                         state with { Registry = registration }),
-
-                                             (pair, e) => Observable.Return(CreateResponse(pair.NewEvent(new RegisterServiceResponse(e)), pair.State))
-                                                                    .Do(p => Log.Error(p.Response.Event.Error, "Error on Register Service")))
-                                        .Do(p => p.Response.Sender.Tell(p.Response.Event))
-                                        
+                               pair => from p in Observable.Return(pair)
+                                       let state = p.State
+                                       let evt = p.Event
+                                       let registration = p.State.Registry.NewService(Context.Watch(p.Event.Host), p.Event.Interface)
+                                       select CreateResponse(
+                                           p.NewEvent(new RegisterServiceResponse(null)),
+                                           state with { Registry = registration }),
+                               (pair, e) => Observable.Return(CreateResponse(pair.NewEvent(new RegisterServiceResponse(e)), pair.State))
+                                  .Do(p => Log.Error(p.Response.Event.Error, "Error on Register Service")))
+                          .Do(p => p.Response.Sender.Tell(p.Response.Event))
                        select state.Updater);
 
             IObservable<State> CreateUnregister(IObservable<StatePair<IActorRef, State>> obs)
                 => from pair in obs
                    where pair.State.Registry.CurrentlyHosted.ContainsKey(pair.Event)
-                   select pair.State with { Registry = pair.State.Registry.RemoveService(pair.Event)};
+                   select pair.State with { Registry = pair.State.Registry.RemoveService(pair.Event) };
 
             Receive<Terminated>(obs => CreateUnregister(obs.Select(p => p.NewEvent(p.Event.ActorRef))));
             Receive<UnregisterService>(obs => CreateUnregister(obs.Select(p => p.NewEvent(p.Event.Host))));
 
             Receive<ResolveService>(
                 obs => obs.CatchSafe(
-                               p => from pair in Observable.Return(p)
-                                    let actors = pair.State.Registry.GetServices(pair.Event.Interface)
-                                    from actor in TryResolve(pair.Context, actors)
-                                    select pair.NewEvent(new ResolveResponse(actor, null)),
-                               (p, err) => Observable.Return(p.NewEvent(new ResolveResponse(Nobody.Instance, err))))
-                          .ToUnit(p => p.Sender.Tell(p.Event)));
+                        p => from pair in Observable.Return(p)
+                             let actors = pair.State.Registry.GetServices(pair.Event.Interface)
+                             from actor in TryResolve(pair.Context, actors)
+                             select pair.NewEvent(new ResolveResponse(actor, null)),
+                        (p, err) => Observable.Return(p.NewEvent(new ResolveResponse(Nobody.Instance, err))))
+                   .ToUnit(p => p.Sender.Tell(p.Event)));
 
             ConfigRegistryOperations();
         }
@@ -95,36 +92,38 @@ namespace Stl.Fusion.AkkaBridge.Connector
             if (actors.Count == 0)
                 selector.SetException(new InvalidOperationException("No Actors Found in Shared Data"));
             else
-            {
                 Task.WhenAll(
-                         actors.Select(context.ActorSelection)
-                               .Select(
-                                    s => s.ResolveOne(TimeSpan.FromSeconds(5))
-                                          .ContinueWith(
-                                               t =>
-                                               {
-                                                   if (t.IsCompletedSuccessfully)
-                                                       selector.TrySetResult(t.Result);
-                                                   else if (t.IsFaulted)
-                                                   {
-                                                       var err = t.Exception.Unwrap();
+                        actors.Select(context.ActorSelection)
+                           .Select(
+                                s => s.ResolveOne(TimeSpan.FromSeconds(5))
+                                   .ContinueWith(
+                                        t =>
+                                        {
+                                            if (t.IsCompletedSuccessfully)
+                                            {
+                                                selector.TrySetResult(t.Result);
+                                            }
+                                            else if (t.IsFaulted)
+                                            {
+                                                var err = t.Exception.Unwrap();
 
-                                                       if (err is ActorNotFoundException) return;
+                                                if (err is ActorNotFoundException) return;
 
-                                                       Log.Error(err, "Error on Resolving Service Host");
-                                                   }
-                                               })))
-                    .ContinueWith(
-                         _ =>
-                         {
-                             if (selector.Task.IsCompleted) return;
+                                                Log.Error(err, "Error on Resolving Service Host");
+                                            }
+                                        })))
+                   .ContinueWith(
+                        _ =>
+                        {
+                            if (selector.Task.IsCompleted) return;
 
-                             selector.TrySetException(new InvalidOperationException("No Service Chould be Resolved"));
-                         });
-            }
+                            selector.TrySetException(new InvalidOperationException("No Service Chould be Resolved"));
+                        });
 
             return selector.Task;
         }
+
+        public sealed record State(ClusterActorDiscovery Data, Cluster Cluster, ServiceRegistryState Registry);
 
         //private static async Task<IImmutableSet<string>> GetServices(State currentState, Type keyInterface)
         //{

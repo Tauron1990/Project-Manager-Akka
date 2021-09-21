@@ -26,14 +26,14 @@ namespace Servicemnager.Networking.Data
             var lenght = Head.Length + End.Length + msg.RealLength + typeLenght + 12;
             var msgStart = 0;
 
-            IMemoryOwner<byte> memoryOwner = null!;
+            IMemoryOwner<byte>? memoryOwner = null;
 
             try
             {
                 Memory<byte> message;
                 Span<byte> data;
 
-                if (allocate == null)
+                if (allocate is null)
                 {
                     memoryOwner = _pool.Rent(lenght + 4);
                     message = memoryOwner.Memory;
@@ -73,6 +73,7 @@ namespace Servicemnager.Networking.Data
             catch
             {
                 memoryOwner?.Dispose();
+
                 throw;
             }
         }
@@ -80,6 +81,7 @@ namespace Servicemnager.Networking.Data
         public bool HasHeader(Memory<byte> buffer)
         {
             var pos = 0;
+
             return CheckPresence(buffer.Span, Head, ref pos);
         }
 
@@ -89,6 +91,7 @@ namespace Servicemnager.Networking.Data
                 return false;
 
             var pos = buffer.Length - End.Length;
+
             return CheckPresence(buffer.Span, End, ref pos);
         }
 

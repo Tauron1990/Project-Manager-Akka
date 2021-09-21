@@ -16,7 +16,7 @@ namespace ServiceManager.ProjectRepository.Actors
         internal static IPreparedFeature Create(RepositoryManagerConfiguration configuration)
         {
             return Feature.Create(
-                () => new RepositoryManagerImpl(), 
+                () => new RepositoryManagerImpl(),
                 _ => new RmIState(configuration.RepositoryConfiguration.GetInstance<RepositoryEntry, string>(RepositoryManager.RepositoryKey), configuration.FileSystem, configuration.DataTransferManager));
         }
 
@@ -24,12 +24,14 @@ namespace ServiceManager.ProjectRepository.Actors
         protected override void ConfigImpl()
         {
             Receive<Status>().Subscribe();
-            Receive<IRepositoryAction>(obs => obs.Select(d => 
-                                                         (
-                                                             Actor: Context.ActorOf(OperatorActor.New(d.State.Repositorys, d.State.Bucket, d.State.DataTransferManager)),
-                                                             d.Event
-                                                         ))
-                                                 .ToUnit(evt => evt.Actor.Forward(evt.Event)));
+            Receive<IRepositoryAction>(
+                obs => obs.Select(
+                        d =>
+                        (
+                            Actor: Context.ActorOf(OperatorActor.New(d.State.Repositorys, d.State.Bucket, d.State.DataTransferManager)),
+                            d.Event
+                        ))
+                   .ToUnit(evt => evt.Actor.Forward(evt.Event)));
 
             SupervisorStrategy = SupervisorStrategy.StoppingStrategy;
         }

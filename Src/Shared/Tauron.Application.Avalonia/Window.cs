@@ -18,7 +18,7 @@ namespace Tauron.Application.Avalonia
 
         protected Window(IViewModel viewModel)
         {
-            _element = (IWindow) ElementMapper.Create(this);
+            _element = (IWindow)ElementMapper.Create(this);
             _controlLogic = new WindowControlLogic(this, viewModel);
         }
 

@@ -62,6 +62,7 @@ namespace Akkatecture.Sagas.AggregateSaga
                 typeof(TSagaState).GetAggregateSnapshotHydrateMethods<TAggregateSaga, TIdentity, TSagaState>();
 
         private static readonly IAggregateName SagaName = typeof(TAggregateSaga).GetSagaName();
+
         // ReSharper disable once StaticMemberInGenericType
         private static readonly List<Type> SagaTimeoutTypes = new();
         private CircularBuffer<ISourceId> _previousSourceIds = new(100);
@@ -77,8 +78,8 @@ namespace Akkatecture.Sagas.AggregateSaga
             Settings = new AggregateSagaSettings(Context.System.Settings.Config);
             var idValue = Context.Self.Path.Name;
             PersistenceId = idValue;
-            Id = (TIdentity) (FastReflection.Shared.FastCreateInstance(typeof(TIdentity), idValue) ??
-                              throw new InvalidOperationException("Identity Creation Failed"));
+            Id = (TIdentity)(FastReflection.Shared.FastCreateInstance(typeof(TIdentity), idValue) ??
+                             throw new InvalidOperationException("Identity Creation Failed"));
 
             if (Id == null)
                 throw new InvalidOperationException(
@@ -91,15 +92,17 @@ namespace Akkatecture.Sagas.AggregateSaga
             if (State == null)
                 try
                 {
-                    State = (TSagaState) (FastReflection.Shared.FastCreateInstance(typeof(TSagaState)) ??
-                                          #pragma warning disable EX006
-                                          throw new InvalidOperationException("Saga State Creation Failed"));
+                    State = (TSagaState)(FastReflection.Shared.FastCreateInstance(typeof(TSagaState)) ??
+                                         #pragma warning disable EX006
+                                         throw new InvalidOperationException("Saga State Creation Failed"));
                     #pragma warning restore EX006
                 }
                 catch (Exception exception)
                 {
-                    Context.GetLogger().Error(exception,
-                        "AggregateSaga of Name={1}; was unable to activate SagaState of Type={0}.", Name,
+                    Context.GetLogger().Error(
+                        exception,
+                        "AggregateSaga of Name={1}; was unable to activate SagaState of Type={0}.",
+                        Name,
                         typeof(TSagaState).PrettyPrint());
                 }
 
@@ -156,7 +159,8 @@ namespace Akkatecture.Sagas.AggregateSaga
             foreach (var sagaTimeoutType in SagaTimeoutTypes)
             {
                 var sagaTimeoutManagerType = typeof(SagaTimeoutManager<>).MakeGenericType(sagaTimeoutType);
-                var sagaTimeoutManager = Context.ActorOf(Props.Create(() => Activator.CreateInstance(sagaTimeoutManagerType) as ActorBase),
+                var sagaTimeoutManager = Context.ActorOf(
+                    Props.Create(() => Activator.CreateInstance(sagaTimeoutManagerType) as ActorBase),
                     $"{sagaTimeoutType.Name}-timeoutmanager");
                 SagaTimeoutManagers.Add(sagaTimeoutType, sagaTimeoutManager);
             }
@@ -166,34 +170,41 @@ namespace Akkatecture.Sagas.AggregateSaga
         {
             var type = GetType();
             var timeoutSubscriptionTypes = type.GetSagaTimeoutSubscriptionTypes();
+
             if (timeoutSubscriptionTypes.Count == 0) return;
 
             var methods = type
-                .GetTypeInfo()
-                .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-                .Where(mi =>
-                {
-                    if (mi.Name != "HandleTimeout")
-                        return false;
-                    var parameters = mi.GetParameters();
-                    return
-                        parameters.Length == 1;
-                }).ToDictionary(
+               .GetTypeInfo()
+               .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+               .Where(
+                    mi =>
+                    {
+                        if (mi.Name != "HandleTimeout")
+                            return false;
+
+                        var parameters = mi.GetParameters();
+
+                        return
+                            parameters.Length == 1;
+                    }).ToDictionary(
                     mi => mi.GetParameters()[0].ParameterType,
                     mi => mi);
 
             var method = type
-                .GetBaseType("ReceivePersistentActor")
-                .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-                .Where(mi =>
-                {
-                    if (mi.Name != "Command") return false;
-                    var parameters = mi.GetParameters();
-                    return
-                        parameters.Length == 1
-                        && parameters[0].ParameterType.Name.Contains("Func");
-                })
-                .First();
+               .GetBaseType("ReceivePersistentActor")
+               .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+               .Where(
+                    mi =>
+                    {
+                        if (mi.Name != "Command") return false;
+
+                        var parameters = mi.GetParameters();
+
+                        return
+                            parameters.Length == 1
+                         && parameters[0].ParameterType.Name.Contains("Func");
+                    })
+               .First();
 
             foreach (var timeoutSubscriptionType in timeoutSubscriptionTypes)
             {
@@ -209,34 +220,41 @@ namespace Akkatecture.Sagas.AggregateSaga
         {
             var type = GetType();
             var timeoutSubscriptionTypes = type.GetAsyncSagaTimeoutSubscriptionTypes();
+
             if (timeoutSubscriptionTypes.Count == 0) return;
 
             var methods = type
-                .GetTypeInfo()
-                .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-                .Where(mi =>
-                {
-                    if (mi.Name != "HandleTimeoutAsync")
-                        return false;
-                    var parameters = mi.GetParameters();
-                    return
-                        parameters.Length == 1;
-                }).ToDictionary(
+               .GetTypeInfo()
+               .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+               .Where(
+                    mi =>
+                    {
+                        if (mi.Name != "HandleTimeoutAsync")
+                            return false;
+
+                        var parameters = mi.GetParameters();
+
+                        return
+                            parameters.Length == 1;
+                    }).ToDictionary(
                     mi => mi.GetParameters()[0].ParameterType,
                     mi => mi);
 
             var method = type
-                .GetBaseType("ReceivePersistentActor")
-                .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-                .Where(mi =>
-                {
-                    if (mi.Name != "CommandAsync") return false;
-                    var parameters = mi.GetParameters();
-                    return
-                        parameters.Length == 2
-                        && parameters[0].ParameterType.Name.Contains("Func");
-                })
-                .First();
+               .GetBaseType("ReceivePersistentActor")
+               .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+               .Where(
+                    mi =>
+                    {
+                        if (mi.Name != "CommandAsync") return false;
+
+                        var parameters = mi.GetParameters();
+
+                        return
+                            parameters.Length == 2
+                         && parameters[0].ParameterType.Name.Contains("Func");
+                    })
+               .First();
 
             foreach (var timeoutSubscriptionType in timeoutSubscriptionTypes)
             {
@@ -255,37 +273,41 @@ namespace Akkatecture.Sagas.AggregateSaga
 
             var subscriptionTypes =
                 type
-                    .GetSagaEventSubscriptionTypes();
+                   .GetSagaEventSubscriptionTypes();
 
             var methods = type
-                .GetTypeInfo()
-                .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-                .Where(mi =>
-                {
-                    if (mi.Name != "Handle" && mi.Name != "HandleTimeout")
-                        return false;
+               .GetTypeInfo()
+               .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+               .Where(
+                    mi =>
+                    {
+                        if (mi.Name != "Handle" && mi.Name != "HandleTimeout")
+                            return false;
 
-                    var parameters = mi.GetParameters();
+                        var parameters = mi.GetParameters();
 
-                    return
-                        parameters.Length == 1;
-                })
-                .ToDictionary(
+                        return
+                            parameters.Length == 1;
+                    })
+               .ToDictionary(
                     mi => mi.GetParameters()[0].ParameterType,
                     mi => mi);
 
             var method = type
-                .GetBaseType("ReceivePersistentActor")
-                .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-                .Where(mi =>
-                {
-                    if (mi.Name != "Command") return false;
-                    var parameters = mi.GetParameters();
-                    return
-                        parameters.Length == 1
-                        && parameters[0].ParameterType.Name.Contains("Func");
-                })
-                .First();
+               .GetBaseType("ReceivePersistentActor")
+               .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+               .Where(
+                    mi =>
+                    {
+                        if (mi.Name != "Command") return false;
+
+                        var parameters = mi.GetParameters();
+
+                        return
+                            parameters.Length == 1
+                         && parameters[0].ParameterType.Name.Contains("Func");
+                    })
+               .First();
 
             foreach (var subscriptionType in subscriptionTypes)
             {
@@ -303,37 +325,41 @@ namespace Akkatecture.Sagas.AggregateSaga
 
             var subscriptionTypes =
                 type
-                    .GetAsyncSagaEventSubscriptionTypes();
+                   .GetAsyncSagaEventSubscriptionTypes();
 
             var methods = type
-                .GetTypeInfo()
-                .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-                .Where(mi =>
-                {
-                    if (mi.Name != "HandleAsync" && mi.Name != "HandleTimeoutAsync")
-                        return false;
+               .GetTypeInfo()
+               .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+               .Where(
+                    mi =>
+                    {
+                        if (mi.Name != "HandleAsync" && mi.Name != "HandleTimeoutAsync")
+                            return false;
 
-                    var parameters = mi.GetParameters();
+                        var parameters = mi.GetParameters();
 
-                    return
-                        parameters.Length == 1;
-                })
-                .ToDictionary(
+                        return
+                            parameters.Length == 1;
+                    })
+               .ToDictionary(
                     mi => mi.GetParameters()[0].ParameterType,
                     mi => mi);
 
             var method = type
-                .GetBaseType("ReceivePersistentActor")
-                .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-                .Where(mi =>
-                {
-                    if (mi.Name != "CommandAsync") return false;
-                    var parameters = mi.GetParameters();
-                    return
-                        parameters.Length == 2
-                        && parameters[0].ParameterType.Name.Contains("Func");
-                })
-                .First();
+               .GetBaseType("ReceivePersistentActor")
+               .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+               .Where(
+                    mi =>
+                    {
+                        if (mi.Name != "CommandAsync") return false;
+
+                        var parameters = mi.GetParameters();
+
+                        return
+                            parameters.Length == 2
+                         && parameters[0].ParameterType.Name.Contains("Func");
+                    })
+               .First();
 
             foreach (var subscriptionType in subscriptionTypes)
             {
@@ -379,22 +405,23 @@ namespace Akkatecture.Sagas.AggregateSaga
                     $"{Id.Value}-v{aggregateSequenceNumber}");
                 var now = DateTimeOffset.UtcNow;
                 var eventMetadata = new Metadata
-                {
-                    Timestamp = now,
-                    AggregateSequenceNumber = aggregateSequenceNumber,
-                    AggregateName = Name.Value,
-                    AggregateId = Id.Value,
-                    EventId = eventId,
-                    EventName = eventDefinition.Name,
-                    EventVersion = eventDefinition.Version
-                };
+                                    {
+                                        Timestamp = now,
+                                        AggregateSequenceNumber = aggregateSequenceNumber,
+                                        AggregateName = Name.Value,
+                                        AggregateId = Id.Value,
+                                        EventId = eventId,
+                                        EventName = eventDefinition.Name,
+                                        EventVersion = eventDefinition.Version
+                                    };
                 eventMetadata.Add(MetadataKeys.TimestampEpoch, now.ToUnixTime().ToString());
                 if (metadata != null) eventMetadata.AddRange(metadata);
                 var genericType = typeof(CommittedEvent<,,>)
-                    .MakeGenericType(typeof(TAggregateSaga), typeof(TIdentity), aggregateEvent.GetType());
+                   .MakeGenericType(typeof(TAggregateSaga), typeof(TIdentity), aggregateEvent.GetType());
 
 
-                var committedEvent = FastReflection.Shared.FastCreateInstance(genericType,
+                var committedEvent = FastReflection.Shared.FastCreateInstance(
+                    genericType,
                     Id,
                     aggregateEvent,
                     eventMetadata,
@@ -412,9 +439,9 @@ namespace Akkatecture.Sagas.AggregateSaga
             try
             {
                 var method = GetType()
-                    .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                    .Where(info => info.IsFamily || info.IsPublic)
-                    .Single(info => info.Name.Equals("ApplyCommittedEvent"));
+                   .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                   .Where(info => info.IsFamily || info.IsPublic)
+                   .Single(info => info.Name.Equals("ApplyCommittedEvent"));
 
                 var genericMethod = method.MakeGenericMethod(committedEvent.GetType().GenericTypeArguments[2]);
 
@@ -422,9 +449,13 @@ namespace Akkatecture.Sagas.AggregateSaga
             }
             catch (Exception exception)
             {
-                Log.Error(exception,
-                    "Aggregate of Name={0}, and Id={1}; tried to invoke Method={2} with object Type={3} .", Name, Id,
-                    nameof(ApplyCommittedEvent), committedEvent.GetType().PrettyPrint());
+                Log.Error(
+                    exception,
+                    "Aggregate of Name={0}, and Id={1}; tried to invoke Method={2} with object Type={3} .",
+                    Name,
+                    Id,
+                    nameof(ApplyCommittedEvent),
+                    committedEvent.GetType().PrettyPrint());
             }
         }
 
@@ -434,6 +465,7 @@ namespace Akkatecture.Sagas.AggregateSaga
             where TAggregateEvent : class, IAggregateEvent<TAggregateSaga, TIdentity>
         {
             if (aggregateEvent == null) throw new ArgumentNullException(nameof(aggregateEvent));
+
             EventDefinitionService.Load(aggregateEvent.GetType());
             var eventDefinition = EventDefinitionService.GetDefinition(aggregateEvent.GetType());
             var aggregateSequenceNumber = version + 1;
@@ -442,21 +474,26 @@ namespace Akkatecture.Sagas.AggregateSaga
                 $"{Id.Value}-v{aggregateSequenceNumber}");
             var now = DateTimeOffset.UtcNow;
             var eventMetadata = new Metadata
-            {
-                Timestamp = now,
-                AggregateSequenceNumber = aggregateSequenceNumber,
-                AggregateName = Name.Value,
-                AggregateId = Id.Value,
-                EventId = eventId,
-                EventName = eventDefinition.Name,
-                EventVersion = eventDefinition.Version
-            };
+                                {
+                                    Timestamp = now,
+                                    AggregateSequenceNumber = aggregateSequenceNumber,
+                                    AggregateName = Name.Value,
+                                    AggregateId = Id.Value,
+                                    EventId = eventId,
+                                    EventName = eventDefinition.Name,
+                                    EventVersion = eventDefinition.Version
+                                };
             eventMetadata.Add(MetadataKeys.TimestampEpoch, now.ToUnixTime().ToString());
             if (metadata != null) eventMetadata.AddRange(metadata);
 
             var committedEvent =
-                new CommittedEvent<TAggregateSaga, TIdentity, TAggregateEvent>(Id, aggregateEvent, eventMetadata, now,
+                new CommittedEvent<TAggregateSaga, TIdentity, TAggregateEvent>(
+                    Id,
+                    aggregateEvent,
+                    eventMetadata,
+                    now,
                     aggregateSequenceNumber);
+
             return committedEvent;
         }
 
@@ -464,7 +501,10 @@ namespace Akkatecture.Sagas.AggregateSaga
         {
             Log.Info(
                 "AggregateSaga of Name={0}, and Id={2}; attempted to create a snapshot, override the {2}() method to get snapshotting to function.",
-                Name, Id, nameof(CreateSnapshot));
+                Name,
+                Id,
+                nameof(CreateSnapshot));
+
             return null;
         }
 
@@ -495,17 +535,25 @@ namespace Akkatecture.Sagas.AggregateSaga
             var applyMethods = GetEventApplyMethods(committedEvent.AggregateEvent);
             applyMethods(committedEvent.AggregateEvent);
 
-            Log.Info("AggregateSaga of Name={0}, and Id={1}; committed and applied an AggregateEvent of Type={2}", Name,
-                Id, typeof(TAggregateEvent).PrettyPrint());
+            Log.Info(
+                "AggregateSaga of Name={0}, and Id={1}; committed and applied an AggregateEvent of Type={2}",
+                Name,
+                Id,
+                typeof(TAggregateEvent).PrettyPrint());
 
             Version++;
 
-            var domainEvent = new DomainEvent<TAggregateSaga, TIdentity, TAggregateEvent>(Id,
-                committedEvent.AggregateEvent, committedEvent.Metadata, committedEvent.Timestamp, Version);
+            var domainEvent = new DomainEvent<TAggregateSaga, TIdentity, TAggregateEvent>(
+                Id,
+                committedEvent.AggregateEvent,
+                committedEvent.Metadata,
+                committedEvent.Timestamp,
+                Version);
 
             Publish(domainEvent);
 
             if (!SnapshotStrategy.ShouldCreateSnapshot(this)) return;
+
             var aggregateSnapshot = CreateSnapshot();
 
             if (aggregateSnapshot == null) return;
@@ -513,20 +561,21 @@ namespace Akkatecture.Sagas.AggregateSaga
             SnapshotDefinitionService.Load(aggregateSnapshot.GetType());
             var snapshotDefinition = SnapshotDefinitionService.GetDefinition(aggregateSnapshot.GetType());
             var snapshotMetadata = new SnapshotMetadata
-            {
-                AggregateId = Id.Value,
-                AggregateName = Name.Value,
-                AggregateSequenceNumber = Version,
-                SnapshotName = snapshotDefinition.Name,
-                SnapshotVersion = snapshotDefinition.Version
-            };
+                                   {
+                                       AggregateId = Id.Value,
+                                       AggregateName = Name.Value,
+                                       AggregateSequenceNumber = Version,
+                                       SnapshotName = snapshotDefinition.Name,
+                                       SnapshotVersion = snapshotDefinition.Version
+                                   };
 
             var committedSnapshot =
                 new CommittedSnapshot<TAggregateSaga, TIdentity, IAggregateSnapshot<TAggregateSaga, TIdentity>>(
                     Id,
                     aggregateSnapshot,
                     snapshotMetadata,
-                    committedEvent.Timestamp, Version);
+                    committedEvent.Timestamp,
+                    Version);
 
             SaveSnapshot(committedSnapshot);
         }
@@ -534,7 +583,10 @@ namespace Akkatecture.Sagas.AggregateSaga
         protected virtual void Publish<TEvent>(TEvent aggregateEvent)
         {
             Context.System.EventStream.Publish(aggregateEvent);
-            Log.Info("Aggregate of Name={0}, and Id={1}; published DomainEvent of Type={2}.", Name, Id,
+            Log.Info(
+                "Aggregate of Name={0}, and Id={1}; published DomainEvent of Type={2}.",
+                Name,
+                Id,
                 typeof(TEvent).PrettyPrint());
         }
 
@@ -570,14 +622,21 @@ namespace Akkatecture.Sagas.AggregateSaga
             {
                 Log.Debug(
                     "AggregateSaga of Name={0}, Id={1}, and Version={2}, is recovering with CommittedEvent of Type={3}.",
-                    Name, Id, Version, committedEvent.GetType().PrettyPrint());
+                    Name,
+                    Id,
+                    Version,
+                    committedEvent.GetType().PrettyPrint());
                 ApplyEvent(committedEvent.AggregateEvent);
             }
             catch (Exception exception)
             {
-                Log.Error(exception,
-                    "Aggregate of Name={0}, Id={1}; while recovering with event of Type={2} caused an exception.", Name,
-                    Id, committedEvent.GetType().PrettyPrint());
+                Log.Error(
+                    exception,
+                    "Aggregate of Name={0}, Id={1}; while recovering with event of Type={2} caused an exception.",
+                    Name,
+                    Id,
+                    committedEvent.GetType().PrettyPrint());
+
                 return false;
             }
 
@@ -588,7 +647,10 @@ namespace Akkatecture.Sagas.AggregateSaga
         {
             try
             {
-                Log.Debug("AggregateSaga of Name={0}, and Id={1}; has received a SnapshotOffer of Type={2}.", Name, Id,
+                Log.Debug(
+                    "AggregateSaga of Name={0}, and Id={1}; has received a SnapshotOffer of Type={2}.",
+                    Name,
+                    Id,
                     aggregateSnapshotOffer.Snapshot.GetType().PrettyPrint());
                 var comittedSnapshot =
                     aggregateSnapshotOffer.Snapshot as CommittedSnapshot<TAggregateSaga, TIdentity,
@@ -597,9 +659,12 @@ namespace Akkatecture.Sagas.AggregateSaga
             }
             catch (Exception exception)
             {
-                Log.Error(exception,
+                Log.Error(
+                    exception,
                     "AggregateSaga of Name={0}, Id={1}; recovering with snapshot of Type={2} caused an exception.",
-                    Name, Id, aggregateSnapshotOffer.Snapshot.GetType().PrettyPrint());
+                    Name,
+                    Id,
+                    aggregateSnapshotOffer.Snapshot.GetType().PrettyPrint());
 
                 return false;
             }
@@ -607,7 +672,8 @@ namespace Akkatecture.Sagas.AggregateSaga
             return true;
         }
 
-        protected virtual void HydrateSnapshot(IAggregateSnapshot<TAggregateSaga, TIdentity>? aggregateSnapshot,
+        protected virtual void HydrateSnapshot(
+            IAggregateSnapshot<TAggregateSaga, TIdentity>? aggregateSnapshot,
             long version)
         {
             if (aggregateSnapshot == null) return;
@@ -643,23 +709,31 @@ namespace Akkatecture.Sagas.AggregateSaga
 
         protected virtual void SetSnapshotStrategy(ISnapshotStrategy? snapshotStrategy)
         {
-            if (snapshotStrategy != null) 
+            if (snapshotStrategy != null)
                 SnapshotStrategy = snapshotStrategy;
         }
 
         protected virtual bool SnapshotStatus(SaveSnapshotSuccess snapshotSuccess)
         {
-            Log.Debug("Aggregate of Name={0}, and Id={1}; saved a snapshot at Version={2}.", Name, Id,
+            Log.Debug(
+                "Aggregate of Name={0}, and Id={1}; saved a snapshot at Version={2}.",
+                Name,
+                Id,
                 snapshotSuccess.Metadata.SequenceNr);
             DeleteSnapshots(new SnapshotSelectionCriteria(snapshotSuccess.Metadata.SequenceNr - 1));
+
             return true;
         }
 
         protected virtual bool SnapshotStatus(SaveSnapshotFailure snapshotFailure)
         {
-            Log.Error(snapshotFailure.Cause,
-                "Aggregate of Name={0}, and Id={1}; failed to save snapshot at Version={2}.", Name, Id,
+            Log.Error(
+                snapshotFailure.Cause,
+                "Aggregate of Name={0}, and Id={1}; failed to save snapshot at Version={2}.",
+                Name,
+                Id,
                 snapshotFailure.Metadata.SequenceNr);
+
             return true;
         }
 
@@ -667,7 +741,10 @@ namespace Akkatecture.Sagas.AggregateSaga
         {
             Log.Debug(
                 "Aggregate of Name={0}, and Id={1}; has completed recovering from it's event journal at Version={2}.",
-                Name, Id, Version);
+                Name,
+                Id,
+                Version);
+
             return true;
         }
     }

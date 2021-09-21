@@ -30,11 +30,13 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer
         public FileTransactionId RequestWithTransaction(DataTransferRequest request)
         {
             Actor.Tell(request);
+
             return new FileTransactionId(request.OperationId);
         }
 
         public Task<AwaitResponse> AskAwaitOperation(AwaitRequest request)
-            => Actor.Ask<AwaitResponse>(request,
+            => Actor.Ask<AwaitResponse>(
+                request,
                 request.Timeout == Timeout.InfiniteTimeSpan
                     ? request.Timeout
                     : request.Timeout + TimeSpan.FromSeconds(2));

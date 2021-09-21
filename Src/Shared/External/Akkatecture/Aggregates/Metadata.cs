@@ -44,19 +44,13 @@ namespace Akkatecture.Aggregates
         }
 
         public Metadata(IDictionary<string, string> keyValuePairs)
-            : base(keyValuePairs)
-        {
-        }
+            : base(keyValuePairs) { }
 
         public Metadata(IEnumerable<KeyValuePair<string, string>> keyValuePairs)
-            : base(keyValuePairs.ToDictionary(kv => kv.Key, kv => kv.Value))
-        {
-        }
+            : base(keyValuePairs.ToDictionary(kv => kv.Key, kv => kv.Value)) { }
 
         public Metadata(params KeyValuePair<string, string>[] keyValuePairs)
-            : this((IEnumerable<KeyValuePair<string, string>>) keyValuePairs)
-        {
-        }
+            : this((IEnumerable<KeyValuePair<string, string>>)keyValuePairs) { }
 
         public static IMetadata Empty { get; } = new Metadata();
 
@@ -136,7 +130,7 @@ namespace Akkatecture.Aggregates
         }
 
         public IMetadata CloneWith(params KeyValuePair<string, string>[] keyValuePairs)
-            => CloneWith((IEnumerable<KeyValuePair<string, string>>) keyValuePairs);
+            => CloneWith((IEnumerable<KeyValuePair<string, string>>)keyValuePairs);
 
         public IMetadata CloneWith(IEnumerable<KeyValuePair<string, string>> keyValuePairs)
         {
@@ -144,6 +138,7 @@ namespace Akkatecture.Aggregates
             foreach (var kv in keyValuePairs)
             {
                 if (metadata.ContainsKey(kv.Key)) throw new ArgumentException($"Key '{kv.Key}' is already present!");
+
                 metadata[kv.Key] = kv.Value;
             }
 

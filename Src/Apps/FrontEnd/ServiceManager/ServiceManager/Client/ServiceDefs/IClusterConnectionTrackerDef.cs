@@ -22,6 +22,6 @@ namespace ServiceManager.Client.ServiceDefs
         Task<AppIp> Ip();
 
         [Post(nameof(ConnectToCluster))]
-        Task<string?> ConnectToCluster([Body]ConnectToClusterCommand command, CancellationToken token = default);
+        Task<string?> ConnectToCluster([Body] ConnectToClusterCommand command, CancellationToken token = default);
     }
 }

@@ -29,7 +29,8 @@ namespace Tauron.Application.Localizer.Views
             var result = new TaskCompletionSource<NewEntryDialogResult?>();
 
             DataContext = new NewEntryDialogViewModel(
-                s => result.SetResult(string.IsNullOrWhiteSpace(s) ? null : new NewEntryDialogResult(s)), initalData,
+                s => result.SetResult(string.IsNullOrWhiteSpace(s) ? null : new NewEntryDialogResult(s)),
+                initalData,
                 _localizer);
 
             return result.Task;
@@ -50,7 +51,8 @@ namespace Tauron.Application.Localizer.Views
         private string _content = string.Empty;
         private string _error = string.Empty;
 
-        public NewEntryDialogViewModel(Action<string?> selector, IEnumerable<NewEntryInfoBase> infos,
+        public NewEntryDialogViewModel(
+            Action<string?> selector, IEnumerable<NewEntryInfoBase> infos,
             LocLocalizer localizer)
         {
             _localizer = localizer;
@@ -63,9 +65,11 @@ namespace Tauron.Application.Localizer.Views
                 {
                     case NewEntryInfo entry:
                         entrys.Add(entry.Name);
+
                         break;
                     case NewEntrySuggestInfo suggest:
                         suggests.Add(suggest.Name);
+
                         break;
                 }
 
@@ -83,6 +87,7 @@ namespace Tauron.Application.Localizer.Views
             set
             {
                 if (value == _content) return;
+
                 _content = value;
                 OnPropertyChanged();
                 Error = _entrys.Contains(value) ? _localizer.NewEntryDialogViewDuplicateError : ValidateValue(value);
@@ -95,6 +100,7 @@ namespace Tauron.Application.Localizer.Views
             private set
             {
                 if (value == _error) return;
+
                 _error = value;
                 OnPropertyChanged();
             }
@@ -112,6 +118,7 @@ namespace Tauron.Application.Localizer.Views
             for (var index = 0; index < value.Length; index++)
             {
                 var c = value[index];
+
                 if (char.IsLetter(c) || char.IsDigit(c) || c == '_' || c == '-') continue;
 
                 return string.Format(_localizer.NewEntryDialogViewCharError, index + 1);

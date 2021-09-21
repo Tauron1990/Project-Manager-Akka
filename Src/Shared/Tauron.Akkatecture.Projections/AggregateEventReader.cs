@@ -40,9 +40,10 @@ namespace Tauron.Akkatecture.Projections
         public event EventHandler<EventReaderException>? OnReadError;
 
         #pragma warning disable EPS05
-        public abstract IDisposable CreateSubscription(long? lastProcessedCheckpoint, Subscriber subscriber,
-                                                       #pragma warning restore EPS05
-                                                       string subscriptionId);
+        public abstract IDisposable CreateSubscription(
+            long? lastProcessedCheckpoint, Subscriber subscriber,
+            #pragma warning restore EPS05
+            string subscriptionId);
 
         protected virtual void ReadError(EventReaderException e)
         {
@@ -65,7 +66,8 @@ namespace Tauron.Akkatecture.Projections
             _actorMaterializer = system.Materializer();
         }
 
-        public override IDisposable CreateSubscription(long? lastProcessedCheckpoint, Subscriber subscriber,
+        public override IDisposable CreateSubscription(
+            long? lastProcessedCheckpoint, Subscriber subscriber,
             string subscriptionId)
         {
             string ExtractInfo() => subscriptionId[(subscriptionId.IndexOf('@') + 1)..];
@@ -78,23 +80,31 @@ namespace Tauron.Akkatecture.Projections
             throw new ArgumentException($"Invalid Subscription Id Format: {subscriptionId}", nameof(subscriptionId));
         }
 
-        private IDisposable MakeAggregateSubscription(in long? lastProcessedCheckpoint, Subscriber subscriber,
+        private IDisposable MakeAggregateSubscription(
+            in long? lastProcessedCheckpoint, Subscriber subscriber,
             Type aggregate)
         {
             var genericType = typeof(SubscriptionBuilder<>).MakeGenericType(aggregate);
             var subscriberInst =
-                (SubscriptionBuilder) FastReflection.Shared.FastCreateInstance(genericType, _actorMaterializer, _system,
-                    _journalId, subscriber)!;
+                (SubscriptionBuilder)FastReflection.Shared.FastCreateInstance(
+                    genericType,
+                    _actorMaterializer,
+                    _system,
+                    _journalId,
+                    subscriber)!;
 
-            return subscriberInst.CreateSubscription(lastProcessedCheckpoint,
+            return subscriberInst.CreateSubscription(
+                lastProcessedCheckpoint,
                 (tag, exception) => ReadError(new EventReaderException(tag, exception)));
         }
 
-        private IDisposable MakeTagAggregateSubscription(in long? lastProcessedCheckpoint, Subscriber subscriber,
+        private IDisposable MakeTagAggregateSubscription(
+            in long? lastProcessedCheckpoint, Subscriber subscriber,
             string tag)
         {
             return new TagBasedSubscriptionBuilder(_system, _journalId, _actorMaterializer, subscriber, tag)
-                .CreateSubscription(lastProcessedCheckpoint,
+               .CreateSubscription(
+                    lastProcessedCheckpoint,
                     (s, exception) => ReadError(new EventReaderException(s, exception)));
         }
 
@@ -119,7 +129,7 @@ namespace Tauron.Akkatecture.Projections
 
             public void Dispose()
             {
-                _isCancel.GetAndSet(newValue: true);
+                _isCancel.GetAndSet(true);
                 _cancelable?.Shutdown();
                 _runner?.Wait(TimeSpan.FromSeconds(20));
             }
@@ -129,52 +139,62 @@ namespace Tauron.Akkatecture.Projections
                 _errorHandler = errorHandler;
 
                 var source = CreateSource(Offset.Sequence(lastProcessedCheckpoint ?? 0))
-                    .Select(ee => (ee.Event as IDomainEvent, ee.Offset))
-                    .Where(de => de.Item1 != null)
-                    .Batch(20, de => ImmutableList<(IDomainEvent, Offset)>.Empty.Add(de!),
+                   .Select(ee => (ee.Event as IDomainEvent, ee.Offset))
+                   .Where(de => de.Item1 != null)
+                   .Batch(
+                        20,
+                        de => ImmutableList<(IDomainEvent, Offset)>.Empty.Add(de!),
                         (list, evt) => list.Add(evt!))
-                    .Select(de =>
-                    {
-                        var (domainEvent, offset) = de.Last();
+                   .Select(
+                        de =>
+                        {
+                            var (domainEvent, offset) = de.Last();
 
-                        return new Transaction
-                        {
-                            Checkpoint = ((Sequence) offset).Value,
-                            Id = EventId.New.Value,
-                            StreamId = domainEvent.GetIdentity().Value,
-                            TimeStampUtc = domainEvent.Timestamp.DateTime,
-                            Events = new List<LiquidProjections.EventEnvelope>(
-                                de
-                                    .Select(pair =>
-                                    {
-                                        var (evt, _) = pair;
-                                        return new LiquidProjections.EventEnvelope
-                                        {
-                                            Body = evt,
-                                            Headers = evt
-                                                .Metadata
-                                                .Select(p => Tuple.Create<string, object>(p.Key, p.Value))
-                                                .ToDictionary(t => t.Item1, t => t.Item2)
-                                        };
-                                    }))
-                        };
-                    })
-                    .Batch(5, t => ImmutableList<Transaction>.Empty.Add(t),
+                            return new Transaction
+                                   {
+                                       Checkpoint = ((Sequence)offset).Value,
+                                       Id = EventId.New.Value,
+                                       StreamId = domainEvent.GetIdentity().Value,
+                                       TimeStampUtc = domainEvent.Timestamp.DateTime,
+                                       Events = new List<LiquidProjections.EventEnvelope>(
+                                           de
+                                              .Select(
+                                                   pair =>
+                                                   {
+                                                       var (evt, _) = pair;
+
+                                                       return new LiquidProjections.EventEnvelope
+                                                              {
+                                                                  Body = evt,
+                                                                  Headers = evt
+                                                                     .Metadata
+                                                                     .Select(p => Tuple.Create<string, object>(p.Key, p.Value))
+                                                                     .ToDictionary(t => t.Item1, t => t.Item2)
+                                                              };
+                                                   }))
+                                   };
+                        })
+                   .Batch(
+                        5,
+                        t => ImmutableList<Transaction>.Empty.Add(t),
                         (list, transaction) => list.Add(transaction))
-                    .AlsoTo(Sink.OnComplete<ImmutableList<Transaction>>(
-                        () => _isCancel.GetAndSet(newValue: true),
-                        e =>
-                        {
-                            _isCancel.GetAndSet(newValue: true);
-                            errorHandler(_exceptionInfo, e);
-                        }))
-                    .ViaMaterialized(KillSwitches.Single<ImmutableList<Transaction>>(), (_, kill) => kill)
-                    .PreMaterialize(_materializer);
+                   .AlsoTo(
+                        Sink.OnComplete<ImmutableList<Transaction>>(
+                            () => _isCancel.GetAndSet(true),
+                            e =>
+                            {
+                                _isCancel.GetAndSet(true);
+                                errorHandler(_exceptionInfo, e);
+                            }))
+                   .ViaMaterialized(KillSwitches.Single<ImmutableList<Transaction>>(), (_, kill) => kill)
+                   .PreMaterialize(_materializer);
 
                 _cancelable = source.Item1;
 
-                var sinkQueue = source.Item2.RunWith(Sink.Queue<ImmutableList<Transaction>>()
-                    .WithAttributes(new Attributes(new Attributes.InputBuffer(2, 2))), _materializer);
+                var sinkQueue = source.Item2.RunWith(
+                    Sink.Queue<ImmutableList<Transaction>>()
+                       .WithAttributes(new Attributes(new Attributes.InputBuffer(2, 2))),
+                    _materializer);
 
                 _runner = Run(sinkQueue);
 
@@ -184,19 +204,18 @@ namespace Tauron.Akkatecture.Projections
             private async Task Run(ISinkQueue<ImmutableList<Transaction>> queue)
             {
                 while (!_isCancel.Value)
-                {
                     try
                     {
                         var data = await queue.PullAsync();
 
                         if (data.HasValue)
-                        {
-                            await _subscriber.HandleTransactions(data.Value, new SubscriptionInfo
-                                                                             {
-                                                                                 Id           = data.Value.Last().StreamId,
-                                                                                 Subscription = this
-                                                                             });
-                        }
+                            await _subscriber.HandleTransactions(
+                                data.Value,
+                                new SubscriptionInfo
+                                {
+                                    Id = data.Value.Last().StreamId,
+                                    Subscription = this
+                                });
                         else
                             Thread.Sleep(1);
                     }
@@ -204,7 +223,6 @@ namespace Tauron.Akkatecture.Projections
                     {
                         _errorHandler?.Invoke(_exceptionInfo, e);
                     }
-                }
             }
 
             protected abstract Source<EventEnvelope, NotUsed> CreateSource(Offset offset);
@@ -219,7 +237,8 @@ namespace Tauron.Akkatecture.Projections
             private readonly ActorSystem _system;
             private readonly string _tag;
 
-            internal TagBasedSubscriptionBuilder(ActorSystem system, string journalId, ActorMaterializer materializer,
+            internal TagBasedSubscriptionBuilder(
+                ActorSystem system, string journalId, ActorMaterializer materializer,
                 Subscriber subscriber, string tag)
                 : base(materializer, subscriber, tag)
             {
@@ -231,12 +250,14 @@ namespace Tauron.Akkatecture.Projections
             protected override Source<EventEnvelope, NotUsed> CreateSource(Offset offset)
             {
                 return PersistenceQuery.Get(_system).ReadJournalFor<TJournal>(_journalId)
-                    .EventsByTag(_tag, offset)
-                    .Select(x =>
-                    {
-                        var domainEvent = Mapper.FromJournal(x.Event, string.Empty).Events.Single();
-                        return new EventEnvelope(x.Offset, x.PersistenceId, x.SequenceNr, domainEvent, x.Timestamp);
-                    });
+                   .EventsByTag(_tag, offset)
+                   .Select(
+                        x =>
+                        {
+                            var domainEvent = Mapper.FromJournal(x.Event, string.Empty).Events.Single();
+
+                            return new EventEnvelope(x.Offset, x.PersistenceId, x.SequenceNr, domainEvent, x.Timestamp);
+                        });
             }
         }
 
@@ -246,7 +267,8 @@ namespace Tauron.Akkatecture.Projections
             private readonly string _journalId;
             private readonly ActorSystem _system;
 
-            internal SubscriptionBuilder(ActorMaterializer materializer, ActorSystem system, string journalId,
+            internal SubscriptionBuilder(
+                ActorMaterializer materializer, ActorSystem system, string journalId,
                 Subscriber subscriber)
                 : base(materializer, subscriber, typeof(TAggregate).AssemblyQualifiedName ?? "Unkowne Type")
             {
@@ -255,8 +277,8 @@ namespace Tauron.Akkatecture.Projections
             }
 
             protected override Source<EventEnvelope, NotUsed> CreateSource(Offset offset) => Consumer.Create(_system)
-                .Using<TJournal>(_journalId)
-                .EventsFromAggregate<TAggregate>(offset);
+               .Using<TJournal>(_journalId)
+               .EventsFromAggregate<TAggregate>(offset);
         }
     }
 }

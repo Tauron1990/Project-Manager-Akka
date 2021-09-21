@@ -10,8 +10,8 @@ namespace TimeTracker.Managers
 {
     public sealed class DataManager : IDisposable
     {
-        private readonly ConcurancyManager _concurancyManager;
         private readonly IEventAggregator _aggregator;
+        private readonly ConcurancyManager _concurancyManager;
 
         private readonly BehaviorSubject<ProfileData> _currentData = new(
             new ProfileData(string.Empty, 0, 0, 0, ImmutableDictionary<DateTime, ProfileEntry>.Empty, DateTime.MinValue, ImmutableList<HourMultiplicator>.Empty, HolidaysSet: false, 0));
@@ -24,12 +24,6 @@ namespace TimeTracker.Managers
             Stream = _currentData.ObserveOn(Scheduler.Default);
         }
 
-        public IObservable<ProfileData> Mutate(Func<IObservable<ProfileData>, IObservable<ProfileData>> change)
-            => _concurancyManager.SyncCall(
-                                      _currentData.AsObservable().Take(1),
-                                      observable => change(observable).Do(d => _currentData.OnNext(d), _aggregator.ReportError))
-                                 .ObserveOn(Scheduler.Default);
-
         public IObservable<ProfileData> Stream { get; }
 
         public void Dispose()
@@ -37,5 +31,11 @@ namespace TimeTracker.Managers
             _currentData.OnCompleted();
             _currentData.Dispose();
         }
+
+        public IObservable<ProfileData> Mutate(Func<IObservable<ProfileData>, IObservable<ProfileData>> change)
+            => _concurancyManager.SyncCall(
+                    _currentData.AsObservable().Take(1),
+                    observable => change(observable).Do(d => _currentData.OnNext(d), _aggregator.ReportError))
+               .ObserveOn(Scheduler.Default);
     }
 }

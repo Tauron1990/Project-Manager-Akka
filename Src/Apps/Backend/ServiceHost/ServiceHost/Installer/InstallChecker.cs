@@ -4,8 +4,6 @@ namespace ServiceHost.Installer
 {
     public sealed record InstallChecker
     {
-        public bool IsInstallationStart { get; }
-
         public InstallChecker(IConfiguration configuration)
         {
             try
@@ -19,5 +17,7 @@ namespace ServiceHost.Installer
             }
             #pragma warning restore ERP022
         }
+
+        public bool IsInstallationStart { get; }
     }
 }

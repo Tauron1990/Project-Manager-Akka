@@ -16,10 +16,12 @@ namespace Tauron.Application.Localizer.DataModel
         public const int Version = 2;
 
         public ProjectFile()
-            : this(ImmutableList<Project>.Empty, ImmutableList<ActiveLanguage>.Empty, string.Empty, ActorRefs.Nobody,
-                new BuildInfo())
-        {
-        }
+            : this(
+                ImmutableList<Project>.Empty,
+                ImmutableList<ActiveLanguage>.Empty,
+                string.Empty,
+                ActorRefs.Nobody,
+                new BuildInfo()) { }
 
         private ProjectFile(string source, IActorRef op)
             : this()
@@ -47,11 +49,11 @@ namespace Tauron.Application.Localizer.DataModel
             var vers = reader.ReadInt32();
 
             return file with
-            {
-                Projects = BinaryHelper.Read(reader, Project.ReadFrom),
-                GlobalLanguages = BinaryHelper.Read(reader, ActiveLanguage.ReadFrom),
-                BuildInfo = vers == 1 ? new BuildInfo() : BuildInfo.ReadFrom(reader)
-            };
+                   {
+                       Projects = BinaryHelper.Read(reader, Project.ReadFrom),
+                       GlobalLanguages = BinaryHelper.Read(reader, ActiveLanguage.ReadFrom),
+                       BuildInfo = vers == 1 ? new BuildInfo() : BuildInfo.ReadFrom(reader)
+                   };
         }
 
         public static void BeginLoad(IActorContext factory, string operationId, string source, string actorName)

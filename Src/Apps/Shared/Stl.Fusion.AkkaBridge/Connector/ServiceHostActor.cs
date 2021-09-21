@@ -12,19 +12,10 @@ namespace Stl.Fusion.AkkaBridge.Connector
     // ReSharper disable once ClassNeverInstantiated.Global
     public sealed class ServiceHostActor : ReceiveActor
     {
-        public static IActorRef CreateHost(IActorRefFactory factory, object service, Type serviceType, IServiceProvider serviceProvider, string? name = null)
-        {
-            var map = service.GetType().GetInterfaceMap(serviceType);
-            
-            var actor = factory.ActorOf(Props.Create<ServiceHostActor>(), name);
-            actor.Tell(new Init(service, map, serviceProvider));
-
-            return actor;
-        }
-        
-        private IPublisher     _publisher;
         private IMethodInvoker _methodInvoker;
-        
+
+        private IPublisher _publisher;
+
         public ServiceHostActor()
         {
             Receive<RequestPublication>(p => RunPublication(p).PipeTo(Sender));
@@ -33,15 +24,25 @@ namespace Stl.Fusion.AkkaBridge.Connector
                 i =>
                 {
                     var (target, mapping, serviceProvider) = i;
-                    _publisher                             = serviceProvider.GetRequiredService<IPublisher>();
+                    _publisher = serviceProvider.GetRequiredService<IPublisher>();
                     var proxyGenerator = serviceProvider.GetRequiredService<IComputeServiceProxyGenerator>();
-                    var proxyType      = proxyGenerator.GetProxyType(typeof(MethodInvoker));
+                    var proxyType = proxyGenerator.GetProxyType(typeof(MethodInvoker));
 
                     _methodInvoker = (IMethodInvoker)ActivatorUtilities.CreateInstance(serviceProvider, proxyType, target, mapping);
                 });
 
             _methodInvoker = null!;
-            _publisher     = null!;
+            _publisher = null!;
+        }
+
+        public static IActorRef CreateHost(IActorRefFactory factory, object service, Type serviceType, IServiceProvider serviceProvider, string? name = null)
+        {
+            var map = service.GetType().GetInterfaceMap(serviceType);
+
+            var actor = factory.ActorOf(Props.Create<ServiceHostActor>(), name);
+            actor.Tell(new Init(service, map, serviceProvider));
+
+            return actor;
         }
 
         private async Task<PublicationResponse> RunPublication(RequestPublication arg)
@@ -49,8 +50,8 @@ namespace Stl.Fusion.AkkaBridge.Connector
             try
             {
                 var publication = await _publisher
-                                       .Publish(_ => _methodInvoker.TryInvoke(arg.Call))
-                                       .ConfigureAwait(false);
+                   .Publish(_ => _methodInvoker.TryInvoke(arg.Call))
+                   .ConfigureAwait(false);
 
 
                 using (publication.Use())
@@ -76,12 +77,12 @@ namespace Stl.Fusion.AkkaBridge.Connector
 
         private sealed class MethodInvoker : IMethodInvoker
         {
-            private readonly object           _target;
             private readonly InterfaceMapping _mapping;
+            private readonly object _target;
 
             public MethodInvoker(object target, InterfaceMapping mapping)
             {
-                _target  = target;
+                _target = target;
                 _mapping = mapping;
             }
 
@@ -105,6 +106,7 @@ namespace Stl.Fusion.AkkaBridge.Connector
                                 return await AwaitWithResult(genericTask);
                             case Task task:
                                 await task;
+
                                 return new MethodResponse(null, false);
                             case { } result:
                                 return new MethodResponse(result, false);
@@ -122,7 +124,7 @@ namespace Stl.Fusion.AkkaBridge.Connector
                     return new MethodResponse(e, true);
                 }
             }
-            
+
             private static async Task<MethodResponse> AwaitWithResult(Task resultTask)
             {
                 try

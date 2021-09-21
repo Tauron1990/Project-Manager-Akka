@@ -8,21 +8,13 @@ namespace Tauron.Application.Wpf.SerilogViewer
 {
     public class LogEventViewModel
     {
-        private class RenderHelper : TargetWithLayout
-        {
-            internal string Render(LogEventInfo evt) => RenderLogEvent(Layout, evt);
-
-            internal string GetLoggerName(LogEventInfo evt)
-                => evt.LoggerName ?? evt.CallerClassName;
-        }
-
         private static readonly RenderHelper _renderHelper = new();
 
         public LogEventViewModel(LoggingEvent info)
         {
             Info = info;
             var logEventInfo = info.EventInfo;
-            
+
             var msg = _renderHelper.Render(logEventInfo);
 
             ToolTip = msg;
@@ -69,6 +61,14 @@ namespace Tauron.Application.Wpf.SerilogViewer
 
             Foreground = Brushes.White;
             ForegroundMouseOver = Brushes.White;
+        }
+
+        private class RenderHelper : TargetWithLayout
+        {
+            internal string Render(LogEventInfo evt) => RenderLogEvent(Layout, evt);
+
+            internal string GetLoggerName(LogEventInfo evt)
+                => evt.LoggerName ?? evt.CallerClassName;
         }
     }
 }

@@ -19,30 +19,35 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
         public TConfig NrOfInstances(int number)
         {
             Instances = number;
+
             return (this as TConfig)!;
         }
 
         public TConfig WithSupervisorStrategy(SupervisorStrategy strategy)
         {
             SupervisorStrategy = strategy;
+
             return (this as TConfig)!;
         }
 
         public TConfig WithResizer(Resizer resizer)
         {
             Resizer = resizer;
+
             return (this as TConfig)!;
         }
 
         public TConfig WithAkkaDispatcher(string name)
         {
             Dispatcher = name;
+
             return (this as TConfig)!;
         }
 
         public TConfig WithCustomization(Func<Props, Props> custom)
         {
             Custom = Custom.Combine(custom);
+
             return (this as TConfig)!;
         }
 

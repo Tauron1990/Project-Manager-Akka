@@ -11,7 +11,7 @@ namespace Tauron.Application.AkkaNode.Services.Core
     {
         Task<IsAliveResponse> QueryIsAlive(ActorSystem system, TimeSpan timeout);
     }
-    
+
     public sealed record QueryIsAlive
     {
         public static Task<IsAliveResponse> Ask(ActorSystem system, IActorRef actor, TimeSpan timeout)
@@ -41,13 +41,14 @@ namespace Tauron.Application.AkkaNode.Services.Core
                 target.Tell(new QueryIsAlive(), Self);
             }
 
+            public void Dispose() => _cancellationTokenSource.Dispose();
+
             protected override bool Receive(object message)
             {
                 _source.TrySetResult(message is not IsAliveResponse response ? new IsAliveResponse(IsAlive: false) : response);
+
                 return true;
             }
-
-            public void Dispose() => _cancellationTokenSource.Dispose();
         }
     }
 
@@ -60,10 +61,11 @@ namespace Tauron.Application.AkkaNode.Services.Core
 
         protected override void ConfigImpl()
         {
-            Receive<QueryIsAlive>(obs => (from ob in obs
-                                          from ident in ob.Sender.Ask<ActorIdentity>(new Identify(null), TimeSpan.FromSeconds(10))
-                                          select (ob.Sender, Response: new IsAliveResponse(IsAlive: true)))
-                                     .AutoSubscribe(d => d.Sender.Tell(d.Response)));
+            Receive<QueryIsAlive>(
+                obs => (from ob in obs
+                        from ident in ob.Sender.Ask<ActorIdentity>(new Identify(null), TimeSpan.FromSeconds(10))
+                        select (ob.Sender, Response: new IsAliveResponse(IsAlive: true)))
+                   .AutoSubscribe(d => d.Sender.Tell(d.Response)));
         }
     }
 }

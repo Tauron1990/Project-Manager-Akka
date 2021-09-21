@@ -30,8 +30,6 @@ namespace Akkatecture.Sagas.SagaTimeouts
     [PublicAPI]
     public class SagaTimeoutId : Identity<SagaTimeoutId>, IJobId
     {
-        public SagaTimeoutId(string value) : base(value)
-        {
-        }
+        public SagaTimeoutId(string value) : base(value) { }
     }
 }

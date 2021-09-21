@@ -1,5 +1,4 @@
-﻿using System;
-using Tauron.Application.Master.Commands.Administration.Host;
+﻿using Tauron.Application.Master.Commands.Administration.Host;
 
 namespace ServiceHost.ApplicationRegistry
 {
@@ -8,6 +7,6 @@ namespace ServiceHost.ApplicationRegistry
         public static readonly InstalledApp Empty = new(string.Empty, string.Empty, string.Empty, 0, AppType.Cluster, string.Empty);
 
         public InstalledApp NewVersion()
-            => this with {Version = Version + 1};
+            => this with { Version = Version + 1 };
     }
 }

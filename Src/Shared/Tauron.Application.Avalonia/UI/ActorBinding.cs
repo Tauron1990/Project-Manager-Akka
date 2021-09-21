@@ -35,6 +35,7 @@ namespace Tauron.Application.Avalonia.UI
                     binding.Path = "Value." + Path;
 
                 binding.Source = new DeferredSource(_name, model);
+
                 return binding;
             }
             catch (NullReferenceException)

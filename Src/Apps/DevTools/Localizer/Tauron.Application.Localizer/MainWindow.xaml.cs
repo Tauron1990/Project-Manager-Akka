@@ -36,7 +36,8 @@ namespace Tauron.Application.Localizer
 
         private bool _forceClose;
 
-        public MainWindow(IViewModel<MainWindowViewModel> model, LocLocalizer localizer,
+        public MainWindow(
+            IViewModel<MainWindowViewModel> model, LocLocalizer localizer,
             IMainWindowCoordinator mainWindowCoordinator, IDialogCoordinator coordinator,
             ProjectFileWorkspace workspace,
             CommonUIFramework framework, IOperationManager operationManager)
@@ -49,7 +50,7 @@ namespace Tauron.Application.Localizer
 
             InitializeComponent();
 
-            var diag = (IDialogCoordinatorUIEvents) coordinator;
+            var diag = (IDialogCoordinatorUIEvents)coordinator;
 
             diag.ShowDialogEvent += o => this.ShowDialog(o);
             diag.HideDialogEvent += () => Dialogs.CurrentSession?.Close();
@@ -70,12 +71,13 @@ namespace Tauron.Application.Localizer
                       };
 
             operationManager.OperationFailed
-                .ObserveOnDispatcher()
-                .Subscribe(f =>
-                {
-                    Snackbar.MessageQueue ??= new SnackbarMessageQueue(TimeSpan.FromSeconds(5));
-                    Snackbar.MessageQueue.Enqueue($"{f.Status ?? " / "}");
-                });
+               .ObserveOnDispatcher()
+               .Subscribe(
+                    f =>
+                    {
+                        Snackbar.MessageQueue ??= new SnackbarMessageQueue(TimeSpan.FromSeconds(5));
+                        Snackbar.MessageQueue.Enqueue($"{f.Status ?? " / "}");
+                    });
         }
 
         public event EventHandler? Shutdown;
@@ -95,21 +97,26 @@ namespace Tauron.Application.Localizer
             if (Dialogs.IsOpen)
                 Dialogs.IsOpen = false;
 
-            Dialogs.ShowDialog(_framework.CreateDefaultMessageContent(_localizer.CommonWarnig,
-                    _localizer.MainWindowCloseWarning,
-                    res => Dialogs.CurrentSession.Close(res == true), canCnacel: true))
-                .ContinueWith(t =>
-                {
-                    if (!t.IsCompletedSuccessfully || t.Result is not bool result) return;
-                    if (!result) return;
+            Dialogs.ShowDialog(
+                    _framework.CreateDefaultMessageContent(
+                        _localizer.CommonWarnig,
+                        _localizer.MainWindowCloseWarning,
+                        res => Dialogs.CurrentSession.Close(res == true),
+                        canCnacel: true))
+               .ContinueWith(
+                    t =>
+                    {
+                        if (!t.IsCompletedSuccessfully || t.Result is not bool result) return;
+                        if (!result) return;
 
-                    if (!_workspace.ProjectFile.IsEmpty)
-                        _workspace.ProjectFile.Operator.Tell(ForceSave.Seal(_workspace.ProjectFile),
-                            ActorRefs.NoSender);
+                        if (!_workspace.ProjectFile.IsEmpty)
+                            _workspace.ProjectFile.Operator.Tell(
+                                ForceSave.Seal(_workspace.ProjectFile),
+                                ActorRefs.NoSender);
 
-                    _forceClose = true;
-                    Dispatcher.InvokeAsync(Close);
-                });
+                        _forceClose = true;
+                        Dispatcher.InvokeAsync(Close);
+                    });
         }
 
         private void MainWindowCoordinatorOnTitleChanged()
@@ -152,13 +159,13 @@ namespace Tauron.Application.Localizer
 
         private void DockingManager_OnLayoutChanging(object? sender, EventArgs e)
         {
-            var layout = ((DockingManager) sender!).Layout;
+            var layout = ((DockingManager)sender!).Layout;
             LayoutBuilder.ProcessLayout(layout);
         }
 
         private void DockReset(object? sender, RoutedEventArgs? e)
         {
-            DockingManager.Layout = (LayoutRoot) FindResource("LayoutRoot");
+            DockingManager.Layout = (LayoutRoot)FindResource("LayoutRoot");
             DockingManager.UpdateLayout();
         }
     }

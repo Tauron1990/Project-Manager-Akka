@@ -20,9 +20,10 @@ namespace Akka.MGIHelper
             builder.RegisterView<AutoFanControl, AutoFanControlModel>();
             builder.RegisterView<LogWindow, LogWindowViewModel>();
 
-            builder.RegisterSettingsManager(c => c.WithProvider<XmlProvider>()
-                                                  .WithProvider(ProviderConfig.Json(SettingTypes.FanControlOptions, "fancontrol.json"))
-                                                  .WithProvider(ProviderConfig.Json(SettingTypes.WindowOptions, "window.json")));
+            builder.RegisterSettingsManager(
+                c => c.WithProvider<XmlProvider>()
+                   .WithProvider(ProviderConfig.Json(SettingTypes.FanControlOptions, "fancontrol.json"))
+                   .WithProvider(ProviderConfig.Json(SettingTypes.WindowOptions, "window.json")));
 
             builder.RegisterType<WindowOptions>().AsSelf().InstancePerLifetimeScope().WithParameter("scope", SettingTypes.WindowOptions);
             builder.RegisterType<FanControlOptions>().AsSelf().InstancePerLifetimeScope().WithParameter("scope", SettingTypes.FanControlOptions);

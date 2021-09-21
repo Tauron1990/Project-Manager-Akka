@@ -24,7 +24,9 @@ namespace Servicemnager.Networking
         {
             using var stream = File.OpenText(DefaultFileName);
 
-            return new HostConfiguration(stream.ReadLine() ?? string.Empty, stream.ReadLine() ?? string.Empty,
+            return new HostConfiguration(
+                stream.ReadLine() ?? string.Empty,
+                stream.ReadLine() ?? string.Empty,
                 bool.Parse(stream.ReadLine() ?? "false"));
         }
 

@@ -19,12 +19,10 @@ namespace Tauron.Application
             {
                 var temp = tableIndex;
                 for (var calc = 8; calc > 0; --calc)
-                {
                     if ((temp & 1) == 1)
                         temp = (temp >> 1) ^ poly;
                     else
                         temp >>= 1;
-                }
 
                 _table[tableIndex] = temp;
             }
@@ -36,7 +34,7 @@ namespace Tauron.Application
             var crc = 0xffffffff;
             foreach (var deta in bytes.Take(count))
             {
-                var index = (byte) ((crc & 0xff) ^ deta);
+                var index = (byte)((crc & 0xff) ^ deta);
                 crc = (crc >> 8) ^ _table[index];
             }
 
@@ -112,6 +110,7 @@ namespace Tauron.Application
         {
             count = Stream.Read(buffer, offset, count);
             _readCrc = CalculateCrc(_readCrc, buffer, offset, count);
+
             return count;
         }
 
@@ -149,12 +148,10 @@ namespace Tauron.Application
                 {
                     var crc = tableIndex;
                     for (var calc = 8; calc > 0; calc--)
-                    {
                         if ((crc & 1) == 1)
                             crc = (crc >> 1) ^ poly;
                         else
                             crc >>= 1;
-                    }
 
                     table[tableIndex] = crc;
                 }

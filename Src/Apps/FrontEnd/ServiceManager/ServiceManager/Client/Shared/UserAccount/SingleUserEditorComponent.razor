@@ -1,6 +1,4 @@
 ﻿@using ServiceManager.Client.ViewModels.Identity
-@using Color = MudBlazor.Color
-
 @if (ViewModel is {User: { } })
 {
     <CenterElement>
@@ -55,7 +53,8 @@
 }
 
 @code {
-     [Parameter]
+
+    [Parameter]
     public UserEditorViewModel? ViewModel { get; set; }
 
     [Parameter]
@@ -63,7 +62,8 @@
 
     private async Task DeleteRun()
     {
-        if(ViewModel == null) return;
+        if (ViewModel == null) return;
+
         await ViewModel.TryDeleteUser();
         await Cancel.InvokeAsync();
     }

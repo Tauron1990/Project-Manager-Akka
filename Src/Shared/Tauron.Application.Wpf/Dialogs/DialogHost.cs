@@ -4,8 +4,8 @@ using System.Windows.Controls;
 using System.Windows.Markup;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
-using Tauron.Application.CommonUI.Dialogs;
 using Tauron.AkkaHost;
+using Tauron.Application.CommonUI.Dialogs;
 
 namespace Tauron.Application.Wpf.Dialogs
 {
@@ -17,18 +17,25 @@ namespace Tauron.Application.Wpf.Dialogs
     public class DialogHost : Control
     {
         public static readonly DependencyProperty DialogProperty = DependencyProperty.Register(
-            "Dialog", typeof(object), typeof(DialogHost),
-            new PropertyMetadata(default,
-                (o, args) => ((DialogHost) o).DialogContent?.SetValue(ContentControl.ContentProperty, args.NewValue)));
+            "Dialog",
+            typeof(object),
+            typeof(DialogHost),
+            new PropertyMetadata(
+                default,
+                (o, args) => ((DialogHost)o).DialogContent?.SetValue(ContentControl.ContentProperty, args.NewValue)));
 
         public static readonly DependencyProperty MainProperty = DependencyProperty.Register(
-            "Main", typeof(object), typeof(DialogHost),
-            new PropertyMetadata(default,
-                (o, args) => ((DialogHost) o).MainContent?.SetValue(ContentControl.ContentProperty, args.NewValue)));
+            "Main",
+            typeof(object),
+            typeof(DialogHost),
+            new PropertyMetadata(
+                default,
+                (o, args) => ((DialogHost)o).MainContent?.SetValue(ContentControl.ContentProperty, args.NewValue)));
 
         static DialogHost()
         {
-            DefaultStyleKeyProperty.OverrideMetadata(typeof(DialogHost),
+            DefaultStyleKeyProperty.OverrideMetadata(
+                typeof(DialogHost),
                 new FrameworkPropertyMetadata(typeof(DialogHost)));
         }
 
@@ -38,35 +45,37 @@ namespace Tauron.Application.Wpf.Dialogs
                 return;
 
             var coordinator =
-                (IDialogCoordinatorUIEvents) ActorApplication.ServiceProvider.GetRequiredService<IDialogCoordinator>();
+                (IDialogCoordinatorUIEvents)ActorApplication.ServiceProvider.GetRequiredService<IDialogCoordinator>();
 
             coordinator.HideDialogEvent += () =>
-            {
-                if (MainContent != null)
-                {
-                    MainContent.IsEnabled = true;
-                    MainContent.Visibility = Visibility.Visible;
-                }
+                                           {
+                                               if (MainContent != null)
+                                               {
+                                                   MainContent.IsEnabled = true;
+                                                   MainContent.Visibility = Visibility.Visible;
+                                               }
 
-                if (DialogContent == null) return;
-                DialogContent.Content = null;
-                DialogContent.IsEnabled = false;
-                DialogContent.Visibility = Visibility.Collapsed;
-            };
+                                               if (DialogContent == null) return;
+
+                                               DialogContent.Content = null;
+                                               DialogContent.IsEnabled = false;
+                                               DialogContent.Visibility = Visibility.Collapsed;
+                                           };
 
             coordinator.ShowDialogEvent += o =>
-            {
-                if (MainContent != null)
-                {
-                    MainContent.IsEnabled = false;
-                    MainContent.Visibility = Visibility.Collapsed;
-                }
+                                           {
+                                               if (MainContent != null)
+                                               {
+                                                   MainContent.IsEnabled = false;
+                                                   MainContent.Visibility = Visibility.Collapsed;
+                                               }
 
-                if (DialogContent == null) return;
-                DialogContent.Content = o;
-                DialogContent.IsEnabled = true;
-                DialogContent.Visibility = Visibility.Visible;
-            };
+                                               if (DialogContent == null) return;
+
+                                               DialogContent.Content = o;
+                                               DialogContent.IsEnabled = true;
+                                               DialogContent.Visibility = Visibility.Visible;
+                                           };
         }
 
         public object Dialog

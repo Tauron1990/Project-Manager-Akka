@@ -1,12 +1,7 @@
-﻿@using Tauron
-@using Autofac.Features.OwnedInstances
-@using Microsoft.AspNetCore.Components
-@using ServiceHost.Client.Shared.ConfigurationServer.Data;
-@using ServiceManager.Client.ViewModels.Configuration
+﻿@using ServiceManager.Client.ViewModels.Configuration
 @using ServiceManager.Shared.ServiceDeamon
-@using Stl.Fusion
-
-@inherits ComputedStateComponent<GlobalConfig>
+@using ServiceHost.Client.Shared.ConfigurationServer.Data
+@inherits ComputedStateComponent<ServiceHost.Client.Shared.ConfigurationServer.Data.GlobalConfig>
 
 @inject ConfigurationViewGlobalConfigModel _model
 @inject IServerConfigurationApi _api;
@@ -43,17 +38,18 @@
     [CascadingParameter]
     public IOperationManager Manager { get; set; } = OperationManager.Empty;
 
-    protected override Task<GlobalConfig> ComputeState(CancellationToken cancellationToken) 
+    protected override Task<GlobalConfig> ComputeState(CancellationToken cancellationToken)
         => _api.GlobalConfig();
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
         State.AddEventHandler(StateEventKind.Updated, (state, _) =>
-                                                  {
-                                                      if (state.HasValue && State.Value != null)
-                                                          _model.Reset(State.Value);
-
-                                                  });
+                                                      {
+    // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+                                                          if (state.HasValue && State.Value != null)
+                                                              _model.Reset(State.Value);
+                                                      });
     }
+
 }

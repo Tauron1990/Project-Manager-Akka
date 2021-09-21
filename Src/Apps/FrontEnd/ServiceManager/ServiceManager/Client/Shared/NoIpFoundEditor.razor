@@ -1,8 +1,6 @@
 ﻿@using ServiceManager.Shared
-@using ServiceManager.Shared.ClusterTracking
 @using Tauron.Application
 @using ServiceManager.Client.ViewModels.Models
-
 @inject IAppIpManager _appIpManager
 @inject IServerInfo _applicationLifetime
 @inject IEventAggregator _eventAggregator;
@@ -19,9 +17,10 @@
     private async Task Restart()
     {
         var result = await _appIpManager.WriteIp(new WriteIpCommand(_ipContent));
-        if(string.IsNullOrWhiteSpace(result))
+        if (string.IsNullOrWhiteSpace(result))
             await _applicationLifetime.Restart(new RestartCommand());
         else
             _eventAggregator.PublishMessage(new SnackbarErrorMessage(result));
     }
+
 }

@@ -2,7 +2,6 @@
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Reactive.Disposables;
-using System.Threading.Tasks;
 using Tauron.Application.Blazor.UI;
 using Tauron.Application.CommonUI.UI;
 
@@ -12,19 +11,19 @@ namespace Tauron.Application.Blazor
     {
         private readonly TData _defaultValue;
 
-        public static ActiveBinding<TData> Empty => new(default!);
-
         private readonly object _lock = new();
+        private IDisposable? _disposer;
 
         private TData? _lastData;
         private string? _lastError;
 
         private DeferredSource? _source;
-        private IDisposable? _disposer;
-        private Action? _updateState;
         private IDisposable? _subscription;
+        private Action? _updateState;
 
         internal ActiveBinding(TData defaultValue) => _defaultValue = defaultValue;
+
+        public static ActiveBinding<TData> Empty => new(default!);
 
         public TData Value
         {
@@ -32,11 +31,12 @@ namespace Tauron.Application.Blazor
             {
                 if (_source?.Value is TData data)
                     return data;
+
                 return _defaultValue;
             }
             set
             {
-                if(_source != null)
+                if (_source != null)
                     _source.Value = value;
             }
         }
@@ -54,27 +54,37 @@ namespace Tauron.Application.Blazor
 
             source.PropertyChanged += SourceOnPropertyChanged;
             source.ErrorsChanged += ErrorSourceOnErrorsChanged;
-            _disposer = Disposable.Create(() =>
-                                          {
-                                              source.PropertyChanged -= SourceOnPropertyChanged;
-                                              source.ErrorsChanged -= ErrorSourceOnErrorsChanged;
-                                          });
+            _disposer = Disposable.Create(
+                () =>
+                {
+                    source.PropertyChanged -= SourceOnPropertyChanged;
+                    source.ErrorsChanged -= ErrorSourceOnErrorsChanged;
+                });
             UpdateSubscription();
+        }
+
+        public void Dispose()
+        {
+            _disposer?.Dispose();
+            _subscription?.Dispose();
+            _source = null;
+            _updateState = null!;
         }
 
         private void ErrorSourceOnErrorsChanged(object? sender, DataErrorsChangedEventArgs e)
         {
-            if(string.Equals(_lastError, Error, StringComparison.Ordinal)) return;
-            
+            if (string.Equals(_lastError, Error, StringComparison.Ordinal)) return;
+
             _lastError = Error;
             _updateState?.Invoke();
         }
 
         private void SourceOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if(e.PropertyName != "Value") return;
+            if (e.PropertyName != "Value") return;
 
-            if(_lastData?.Equals(Value) == true) return;
+            if (_lastData?.Equals(Value) == true) return;
+
             _lastData = Value;
 
             UpdateSubscription();
@@ -93,10 +103,12 @@ namespace Tauron.Application.Blazor
                     case INotifyCollectionChanged collectionChanged:
                         collectionChanged.CollectionChanged += ValueOnCollectionChanged;
                         _subscription = Disposable.Create(() => collectionChanged.CollectionChanged -= ValueOnCollectionChanged);
+
                         break;
                     case INotifyPropertyChanged changed:
                         changed.PropertyChanged += ValueOnPropertyChanged;
                         _subscription = Disposable.Create(() => changed.PropertyChanged -= ValueOnPropertyChanged);
+
                         break;
                 }
             }
@@ -105,13 +117,5 @@ namespace Tauron.Application.Blazor
         private void ValueOnPropertyChanged(object? sender, PropertyChangedEventArgs e) => _updateState?.Invoke();
 
         private void ValueOnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) => _updateState?.Invoke();
-
-        public void Dispose()
-        {
-            _disposer?.Dispose();
-            _subscription?.Dispose();
-            _source = null;
-            _updateState = null!;
-        }
     }
 }

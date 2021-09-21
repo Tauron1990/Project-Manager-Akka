@@ -14,7 +14,8 @@ namespace Tauron.Application.CommonUI.AppCore
         public BaseAppConfiguration WithAppFactory(Func<IUIApplication> factory)
         {
             ServiceCollection.Register(_ => new DelegateAppFactory(factory)).As<IAppFactory>()
-                .IfNotRegistered(typeof(IAppFactory));
+               .IfNotRegistered(typeof(IAppFactory));
+
             return this;
         }
 

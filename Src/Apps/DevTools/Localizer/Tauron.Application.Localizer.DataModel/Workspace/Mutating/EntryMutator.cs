@@ -17,11 +17,14 @@ namespace Tauron.Application.Localizer.DataModel.Workspace.Mutating
         {
             _engine = engine;
 
-            EntryRemove = engine.EventSource(context => new EntryRemove(context.GetChange<RemoveEntryChange>().Entry),
+            EntryRemove = engine.EventSource(
+                context => new EntryRemove(context.GetChange<RemoveEntryChange>().Entry),
                 context => context.Change is RemoveEntryChange);
-            EntryUpdate = engine.EventSource(context => new EntryUpdate(context.GetChange<EntryChange>().Entry),
+            EntryUpdate = engine.EventSource(
+                context => new EntryUpdate(context.GetChange<EntryChange>().Entry),
                 context => context.Change is EntryChange);
-            EntryAdd = engine.EventSource(context => context.GetChange<NewEntryChange>().ToData(),
+            EntryAdd = engine.EventSource(
+                context => context.GetChange<NewEntryChange>().ToData(),
                 context => context.Change is NewEntryChange);
         }
 
@@ -33,50 +36,60 @@ namespace Tauron.Application.Localizer.DataModel.Workspace.Mutating
 
         public void RemoveEntry(string project, string name)
         {
-            _engine.Mutate(nameof(RemoveEntry),
-                obs => obs.Select(context =>
-                {
-                    var entry = context.Data.Projects.FirstOrDefault(p => p.ProjectName == project)?.Entries
-                        .Find(le => le.Key == name);
-                    return entry == null
-                        ? context
-                        : context.Update(new RemoveEntryChange(entry), context.Data.ReplaceEntry(entry, null));
-                }));
+            _engine.Mutate(
+                nameof(RemoveEntry),
+                obs => obs.Select(
+                    context =>
+                    {
+                        var entry = context.Data.Projects.FirstOrDefault(p => p.ProjectName == project)?.Entries
+                           .Find(le => le.Key == name);
+
+                        return entry == null
+                            ? context
+                            : context.Update(new RemoveEntryChange(entry), context.Data.ReplaceEntry(entry, null));
+                    }));
         }
 
         public void UpdateEntry(string project, ActiveLanguage lang, string name, string content)
         {
-            _engine.Mutate(nameof(UpdateEntry),
-                obs => obs.Select(context =>
-                {
-                    var entry = context.Data.Projects.FirstOrDefault(p => p.ProjectName == project)?.Entries
-                        .Find(le => le.Key == name);
-
-                    if (entry == null) return context;
-                    var oldContent = entry.Values.GetValueOrDefault(lang);
-                    var newEntry = entry with
+            _engine.Mutate(
+                nameof(UpdateEntry),
+                obs => obs.Select(
+                    context =>
                     {
-                        Values = oldContent == null
-                            ? entry.Values.Add(lang, content)
-                            : entry.Values.SetItem(lang, content)
-                    };
+                        var entry = context.Data.Projects.FirstOrDefault(p => p.ProjectName == project)?.Entries
+                           .Find(le => le.Key == name);
 
-                    return context.Update(new EntryChange(newEntry), context.Data.ReplaceEntry(entry, newEntry));
-                }));
+                        if (entry == null) return context;
+
+                        var oldContent = entry.Values.GetValueOrDefault(lang);
+                        var newEntry = entry with
+                                       {
+                                           Values = oldContent == null
+                                               ? entry.Values.Add(lang, content)
+                                               : entry.Values.SetItem(lang, content)
+                                       };
+
+                        return context.Update(new EntryChange(newEntry), context.Data.ReplaceEntry(entry, newEntry));
+                    }));
         }
 
         public void NewEntry(string project, string name)
         {
-            _engine.Mutate(nameof(NewEntry),
-                obs => obs.Select(context =>
-                {
-                    var proj = context.Data.Projects.Find(p => p.ProjectName == project);
-                    if (proj == null || proj.Entries.Any(l => l.Key == name)) return context;
+            _engine.Mutate(
+                nameof(NewEntry),
+                obs => obs.Select(
+                    context =>
+                    {
+                        var proj = context.Data.Projects.Find(p => p.ProjectName == project);
 
-                    var newEntry = new LocEntry(project, name);
-                    var newData = context.Data.ReplaceEntry(null, newEntry);
-                    return context.Update(new NewEntryChange(newEntry), newData);
-                }));
+                        if (proj == null || proj.Entries.Any(l => l.Key == name)) return context;
+
+                        var newEntry = new LocEntry(project, name);
+                        var newData = context.Data.ReplaceEntry(null, newEntry);
+
+                        return context.Update(new NewEntryChange(newEntry), newData);
+                    }));
         }
     }
 }

@@ -33,6 +33,7 @@ namespace Tauron.Application.Workflow
         protected bool SetLastId(StepId id)
         {
             _lastId = id;
+
             return _lastId.Name == StepId.Finish.Name || _lastId.Name == StepId.Fail.Name;
         }
 
@@ -50,9 +51,11 @@ namespace Tauron.Application.Workflow
             {
                 case "Fail":
                     _errorMessage = rev.Step.ErrorMessage;
+
                     return SetLastId(sId);
                 case "None":
                     result = ProgressConditions(rev, context);
+
                     break;
                 case "Loop":
                     var ok = true;
@@ -63,6 +66,7 @@ namespace Tauron.Application.Workflow
                         if (loopId.Name == StepId.LoopEnd.Name)
                         {
                             ok = false;
+
                             continue;
                         }
 
@@ -78,6 +82,7 @@ namespace Tauron.Application.Workflow
                 case "Finish":
                 case "Skip":
                     result = true;
+
                     break;
                 default:
                     return SetLastId(StepId.Fail);
@@ -92,14 +97,16 @@ namespace Tauron.Application.Workflow
         private bool ProgressConditions(StepRev<TState, TContext> rev, TContext context)
         {
             var std = (from con in rev.Conditions
-                let stateId = con.Select(rev.Step, context)
-                where stateId.Name != StepId.None.Name
-                select stateId).ToArray();
+                       let stateId = con.Select(rev.Step, context)
+                       where stateId.Name != StepId.None.Name
+                       select stateId).ToArray();
 
             if (std.Length != 0) return std.Any(id => Process(id, context));
 
             if (rev.GenericCondition == null) return false;
+
             var cid = rev.GenericCondition.Select(rev.Step, context);
+
             return cid.Name != StepId.None.Name && Process(cid, context);
         }
 
@@ -124,15 +131,18 @@ namespace Tauron.Application.Workflow
         public StepConfiguration<TState, TContext> WithCondition(ICondition<TContext> condition)
         {
             _context.Conditions.Add(condition);
+
             return this;
         }
 
         public ConditionConfiguration<TState, TContext> WithCondition(Func<TContext, IStep<TContext>, bool>? guard = null)
         {
-            var con = new SimpleCondition<TContext> {Guard = guard};
+            var con = new SimpleCondition<TContext> { Guard = guard };
+
             if (guard != null) return new ConditionConfiguration<TState, TContext>(WithCondition(con), con);
 
             _context.GenericCondition = con;
+
             return new ConditionConfiguration<TState, TContext>(this, con);
         }
     }
@@ -145,7 +155,7 @@ namespace Tauron.Application.Workflow
 
         public ConditionConfiguration(
             StepConfiguration<TState, TContext> config,
-            SimpleCondition<TContext>           condition)
+            SimpleCondition<TContext> condition)
         {
             _config = config;
             _condition = condition;

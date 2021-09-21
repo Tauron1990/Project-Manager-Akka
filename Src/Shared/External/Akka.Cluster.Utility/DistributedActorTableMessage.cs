@@ -7,7 +7,7 @@ namespace Akka.Cluster.Utility
         public sealed record Create(TKey? Id, object[] Args)
         {
             public Create(object[] args)
-                : this(default, args){}
+                : this(default, args) { }
         }
 
         public sealed record CreateReply(TKey? Id, IActorRef? Actor);

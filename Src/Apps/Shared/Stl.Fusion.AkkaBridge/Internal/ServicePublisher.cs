@@ -6,17 +6,16 @@ using Akka.Actor;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Stl.Fusion.AkkaBridge.Connector;
-using Stl.Fusion.Bridge;
 
 namespace Stl.Fusion.AkkaBridge.Internal
 {
     public sealed class ServicePublisherHost : BackgroundService
     {
-        private readonly IEnumerable<PublishService> _services;
+        private readonly ILogger<ServicePublisherHost> _log;
         private readonly IServiceRegistryActor _registryActor;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IEnumerable<PublishService> _services;
         private readonly ActorSystem _system;
-        private readonly ILogger<ServicePublisherHost> _log;
 
         public ServicePublisherHost(IEnumerable<PublishService> services, IServiceRegistryActor registryActor, IServiceProvider serviceProvider, ActorSystem system, ILogger<ServicePublisherHost> log)
         {
@@ -34,7 +33,7 @@ namespace Stl.Fusion.AkkaBridge.Internal
                 var response = await _registryActor.RegisterService(
                     new RegisterService(service.ServiceType, ServiceHostActor.CreateHost(_system, service.Resolver(), service.ServiceType, _serviceProvider)),
                     TimeSpan.FromSeconds(10));
-                if(response.Error != null)
+                if (response.Error != null)
                     _log.LogError(response.Error, "Error on Register Service {Name}", service.ServiceType);
             }
         }

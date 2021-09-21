@@ -19,11 +19,13 @@ namespace ServiceManager.Server.Controllers
         public ClusterNodeTrackingController(IClusterNodeTracking clusterNodeTracking)
             => _clusterNodeTracking = clusterNodeTracking;
 
-        [HttpGet, Publish]
+        [HttpGet]
+        [Publish]
         public Task<ClusterNodeInfo> GetInfo(string url)
             => _clusterNodeTracking.GetInfo(url);
 
-        [HttpGet, Publish]
+        [HttpGet]
+        [Publish]
         public Task<string[]> GetUrls()
             => _clusterNodeTracking.GetUrls();
     }

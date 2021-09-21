@@ -32,12 +32,12 @@ namespace ServiceManager.Client
             collection.AddScoped<ConfigurationOptionsViewModel>();
             collection.AddScoped<ConfigurationViewGlobalConfigModel>();
             collection.AddScoped<AppConfigurationViewModel>();
-            
+
             collection.AddSingleton<AddHelper>();
             collection.AddSingleton<BasicAppInfoHelper>();
             collection.AddSingleton<DatabaseRequiredComponentHelper>();
             collection.AddSingleton<BasicAppsAlertModel>();
-            
+
             collection.AddSingleton<IUICommandTracker, UICommandTracker>();
             collection.AddSingleton<IEventAggregator, EventAggregator>();
         }

@@ -20,6 +20,7 @@
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
+        <!-- ReSharper disable Xaml.BindingWithContextNotResolved -->
         <Button Content="{tau:Loc ProjectView_NewEntry_Label}" Margin="5" Command="{tau:ActorBinding NewEntry}" />
         <Button Content="{tau:Loc ProjectView_Button_AddLanguage_Label}" Margin="5" Grid.Column="1" Grid.Row="0"
                 Command="{tau:ActorBinding AddLanguage}" />

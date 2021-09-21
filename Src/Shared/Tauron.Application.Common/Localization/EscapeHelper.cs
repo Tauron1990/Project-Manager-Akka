@@ -18,12 +18,12 @@ namespace Tauron.Localization
 
             private static readonly Dictionary<string, char> Parts
                 = new()
-                {
-                    {"001", '\r'},
-                    {"002", '\t'},
-                    {"003", '\n'},
-                    {"004", ':'}
-                };
+                  {
+                      { "001", '\r' },
+                      { "002", '\t' },
+                      { "003", '\n' },
+                      { "004", ':' }
+                  };
 
             // ReSharper disable once ReturnTypeCanBeNotNullable
             private static string? GetPartforChar(char @char)

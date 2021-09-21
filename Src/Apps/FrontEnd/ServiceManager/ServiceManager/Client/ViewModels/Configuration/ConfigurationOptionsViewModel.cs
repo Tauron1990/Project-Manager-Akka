@@ -15,12 +15,22 @@ namespace ServiceManager.Client.ViewModels.Configuration
     public sealed class ConfigurationOptionsViewModel
     {
         public static readonly OptionElement DefaultElement = new(Error: true, "Daten nicht geladen", Array.Empty<MutableConfigOption>());
+        private readonly IServerConfigurationApi _api;
+        private readonly HubConnection _connection;
+        private readonly IDialogService _dialogService;
+        private readonly ConcurrentDictionary<ConfigOpensElement, OptionElement> _elements = new();
 
         private readonly IEventAggregator _eventAggregator;
-        private readonly IDialogService _dialogService;
-        private readonly HubConnection _connection;
-        private readonly IServerConfigurationApi _api;
-        private readonly ConcurrentDictionary<ConfigOpensElement, OptionElement> _elements = new();
+
+        public ConfigurationOptionsViewModel(
+            IEventAggregator eventAggregator, IDialogService dialogService, HubConnection connection,
+            IServerConfigurationApi api)
+        {
+            _eventAggregator = eventAggregator;
+            _dialogService = dialogService;
+            _connection = connection;
+            _api = api;
+        }
 
         public OptionElement Akka => _elements.GetOrElse(ConfigOpensElement.Akka, DefaultElement);
 
@@ -31,15 +41,6 @@ namespace ServiceManager.Client.ViewModels.Configuration
         public OptionElement AkkaCluster => _elements.GetOrElse(ConfigOpensElement.AkkaCluster, DefaultElement);
 
         public OptionElement AkkaStreams => _elements.GetOrElse(ConfigOpensElement.AkkaStreams, DefaultElement);
-
-        public ConfigurationOptionsViewModel(IEventAggregator eventAggregator, IDialogService dialogService, HubConnection connection,
-                                             IServerConfigurationApi api)
-        {
-            _eventAggregator = eventAggregator;
-            _dialogService = dialogService;
-            _connection = connection;
-            _api = api;
-        }
 
         public async Task LoadAsyncFor(ConfigOpensElement name, Action stateChange)
         {
@@ -78,10 +79,10 @@ namespace ServiceManager.Client.ViewModels.Configuration
             try
             {
                 var result = await _api.QueryDefaultFileContent(name);
-                if(result == null)
+                if (result == null)
                     _eventAggregator.PublishError($"Unbkannter Fehler beim abrufen der Datei {name}");
                 else
-                    _dialogService.Show<ShowTextDataDialog>("Konfigurations Text", ShowTextDataDialog.GetParameters(result), new DialogOptions {FullScreen = true, CloseButton = true});
+                    _dialogService.Show<ShowTextDataDialog>("Konfigurations Text", ShowTextDataDialog.GetParameters(result), new DialogOptions { FullScreen = true, CloseButton = true });
             }
             catch (Exception e)
             {
@@ -93,11 +94,11 @@ namespace ServiceManager.Client.ViewModels.Configuration
 
         public sealed record MutableConfigOption(string Path)
         {
-            public string CurrentValue { get; set; } = string.Empty;
-
             public MutableConfigOption(ConfigOption option)
                 : this(option.Path)
                 => CurrentValue = option.DefaultValue;
+
+            public string CurrentValue { get; set; } = string.Empty;
         }
     }
 }

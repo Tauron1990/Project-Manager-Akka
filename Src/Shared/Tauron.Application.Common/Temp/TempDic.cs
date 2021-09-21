@@ -48,25 +48,33 @@ namespace Tauron.Temp
         public virtual ITempDic CreateDic(string name)
         {
             CheckNull();
+
             // ReSharper disable once HeapView.CanAvoidClosure
-            return _tempDics.GetOrAdd(name, key =>
-                                            {
-                                                var dic = new TempDic(Path.Combine(FullPath, key), this, _nameGenerator, deleteDic: true);
-                                                dic.TrackDispose(() => _tempDics.TryRemove(key, out _));
-                                                return dic;
-                                            });
+            return _tempDics.GetOrAdd(
+                name,
+                key =>
+                {
+                    var dic = new TempDic(Path.Combine(FullPath, key), this, _nameGenerator, true);
+                    dic.TrackDispose(() => _tempDics.TryRemove(key, out _));
+
+                    return dic;
+                });
         }
 
         public virtual ITempFile CreateFile(string name)
         {
             CheckNull();
+
             // ReSharper disable once HeapView.CanAvoidClosure
-            return _tempFiles.GetOrAdd(name, key =>
-                                             {
-                                                 var file = new TempFile(Path.Combine(FullPath, key), this);
-                                                 file.TrackDispose(() => _tempFiles.TryRemove(key, out _));
-                                                 return file;
-                                             });
+            return _tempFiles.GetOrAdd(
+                name,
+                key =>
+                {
+                    var file = new TempFile(Path.Combine(FullPath, key), this);
+                    file.TrackDispose(() => _tempFiles.TryRemove(key, out _));
+
+                    return file;
+                });
         }
 
         public ITempDic CreateDic() => CreateDic(_nameGenerator(false));
@@ -81,7 +89,6 @@ namespace Tauron.Temp
             void TryDispose(IEnumerable<ITempInfo> toDispose)
             {
                 foreach (var entry in toDispose)
-                {
                     try
                     {
                         entry.Dispose();
@@ -93,7 +100,6 @@ namespace Tauron.Temp
                         else
                             throw;
                     }
-                }
             }
 
             try
@@ -128,9 +134,7 @@ namespace Tauron.Temp
                 if (_deleteDic)
                     FullPath.ClearDirectory();
             }
-            catch (IOException)
-            {
-            }
+            catch (IOException) { }
         }
     }
 }

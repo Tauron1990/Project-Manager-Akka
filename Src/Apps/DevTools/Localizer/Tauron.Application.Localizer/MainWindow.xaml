@@ -15,21 +15,24 @@
             TextOptions.TextFormattingMode="Ideal"
             TextOptions.TextRenderingMode="Auto">
     <Window.Resources>
+        <!-- ReSharper disable once Xaml.RedundantResource -->
         <LayoutRoot x:Key="LayoutRoot">
             <LayoutRoot.BottomSide>
                 <LayoutAnchorSide>
                     <LayoutAnchorGroup>
                         <LayoutAnchorable ContentId="Operation" CanClose="False" AutoHideMinHeight="400"
-                                          Title="{tau:Loc MainWindow_Operation_Tabs_Label_Ops}"/>
-                        <LayoutAnchorable ContentId="Logger" Title="{tau:Loc MainWindow_Operation_Tabs_Label_Logs}" CanDockAsTabbedDocument="True" AutoHideMinHeight="400" CanClose="False"/>
+                                          Title="{tau:Loc MainWindow_Operation_Tabs_Label_Ops}" />
+                        <LayoutAnchorable ContentId="Logger" Title="{tau:Loc MainWindow_Operation_Tabs_Label_Logs}"
+                                          CanDockAsTabbedDocument="True" AutoHideMinHeight="400" CanClose="False" />
                     </LayoutAnchorGroup>
                 </LayoutAnchorSide>
             </LayoutRoot.BottomSide>
             <LayoutPanel>
                 <LayoutDocumentPane>
-                    <LayoutDocument ContentId="Projects" Title="{tau:Loc MainWindow_ProjectContainer_Header}" CanClose="False" />
-                    <LayoutDocument ContentId="BuildControl" Title="{tau:Loc MainWindow_Build_Meader}" CanClose="False"/>
-                    <LayoutDocument ContentId="Analyzer" CanClose="False" Title="{tau:Loc MainWindow_Analyzer_Header}"/>
+                    <LayoutDocument ContentId="Projects" Title="{tau:Loc MainWindow_ProjectContainer_Header}"
+                                    CanClose="False" />
+                    <LayoutDocument ContentId="BuildControl" Title="{tau:Loc MainWindow_Build_Meader}" CanClose="False" />
+                    <LayoutDocument ContentId="Analyzer" CanClose="False" Title="{tau:Loc MainWindow_Analyzer_Header}" />
                 </LayoutDocumentPane>
             </LayoutPanel>
         </LayoutRoot>

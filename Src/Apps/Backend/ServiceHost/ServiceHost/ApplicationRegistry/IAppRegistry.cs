@@ -2,8 +2,5 @@
 
 namespace ServiceHost.ApplicationRegistry
 {
-    public interface IAppRegistry : IFeatureActorRef<IAppRegistry>
-    {
-        
-    }
+    public interface IAppRegistry : IFeatureActorRef<IAppRegistry> { }
 }

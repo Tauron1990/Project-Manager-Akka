@@ -10,6 +10,7 @@ namespace Tauron.Application.SoftwareRepo
         {
             var temp = new SoftwareRepository(factory, path);
             temp.InitNew();
+
             return temp;
         }
 
@@ -17,6 +18,7 @@ namespace Tauron.Application.SoftwareRepo
         {
             var temp = new SoftwareRepository(factory, path);
             temp.Init();
+
             return temp;
         }
 

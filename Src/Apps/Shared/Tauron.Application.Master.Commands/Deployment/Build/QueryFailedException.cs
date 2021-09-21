@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Tauron.Application.Master.Commands.Deployment.Build
+﻿namespace Tauron.Application.Master.Commands.Deployment.Build
 {
     /*public sealed class QueryFailedException : Exception
     {

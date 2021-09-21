@@ -7,7 +7,9 @@ namespace ServiceManager.ProjectDeployment
     public static class BuildEnv
     {
         private static readonly string ApplicationPath =
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Tauron",
+            Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "Tauron",
                 "DeploymentServer");
 
         private static TempStorage? _storage;

@@ -34,7 +34,8 @@ namespace Tauron.Application.Localizer.UIModels
     [UsedImplicitly]
     public sealed class MainWindowViewModel : UiActor
     {
-        public MainWindowViewModel(ILifetimeScope lifetimeScope, IUIDispatcher dispatcher,
+        public MainWindowViewModel(
+            ILifetimeScope lifetimeScope, IUIDispatcher dispatcher,
             IOperationManager operationManager, LocLocalizer localizer, IDialogCoordinator dialogCoordinator,
             AppConfig config, IDialogFactory dialogFactory, IViewModel<CenterViewModel> model,
             IMainWindowCoordinator mainWindowCoordinator, ProjectFileWorkspace workspace)
@@ -59,13 +60,13 @@ namespace Tauron.Application.Localizer.UIModels
             #region Operation Manager
 
             RunningOperations = RegisterProperty<IEnumerable<RunningOperation>>(nameof(RunningOperations))
-                .WithDefaultValue(operationManager.RunningOperations);
+               .WithDefaultValue(operationManager.RunningOperations);
             RenctFiles = RegisterProperty<RenctFilesCollection>(nameof(RenctFiles))
-                .WithDefaultValue(new RenctFilesCollection(config, s => self.Tell(new InternlRenctFile(s))));
+               .WithDefaultValue(new RenctFilesCollection(config, s => self.Tell(new InternlRenctFile(s))));
 
             NewCommad.WithExecute(operationManager.Clear, operationManager.ShouldClear()).ThenRegister("ClearOp");
             NewCommad.WithExecute(operationManager.CompledClear, operationManager.ShouldCompledClear())
-                .ThenRegister("ClearAllOp");
+               .ThenRegister("ClearAllOp");
 
             #endregion
 
@@ -73,40 +74,54 @@ namespace Tauron.Application.Localizer.UIModels
 
             IObservable<UpdateSource> SaveAsProject()
             {
-                var targetFile = dialogFactory.ShowSaveFileDialog(null, addExtension: true, checkFileExists: false, checkPathExists: true, "transp", dereferenceLinks: true,
-                    localizer.OpenFileDialogViewDialogFilter, createPrompt: true, overwritePrompt: true, localizer.MainWindowMainMenuFileSaveAs,
+                var targetFile = dialogFactory.ShowSaveFileDialog(
+                    null,
+                    addExtension: true,
+                    checkFileExists: false,
+                    checkPathExists: true,
+                    "transp",
+                    dereferenceLinks: true,
+                    localizer.OpenFileDialogViewDialogFilter,
+                    createPrompt: true,
+                    overwritePrompt: true,
+                    localizer.MainWindowMainMenuFileSaveAs,
                     Directory.GetCurrentDirectory());
 
                 return targetFile.NotEmpty()
-                    .SelectMany(CheckSourceOk)
-                    .Where(d => d.Item1)
-                    .Select(r => new UpdateSource(r.Item2));
+                   .SelectMany(CheckSourceOk)
+                   .Where(d => d.Item1)
+                   .Select(r => new UpdateSource(r.Item2));
             }
 
             async Task<(bool, string)> CheckSourceOk(string source)
             {
                 if (!string.IsNullOrWhiteSpace(source)) return (true, source);
-                await UICall(()
-                    => dialogCoordinator.ShowMessage(localizer.CommonError,
-                        localizer.MainWindowModelLoadProjectSourceEmpty));
+
+                await UICall(
+                    ()
+                        => dialogCoordinator.ShowMessage(
+                            localizer.CommonError,
+                            localizer.MainWindowModelLoadProjectSourceEmpty));
+
                 return (false, source);
             }
 
             NewCommad.WithCanExecute(last.Select(pf => pf is { IsEmpty: false }))
-                .WithFlow(ob => ob.SelectMany(_ => SaveAsProject())
-                    .ToModel(CenterView))
-                .ThenRegister("SaveAs");
+               .WithFlow(
+                    ob => ob.SelectMany(_ => SaveAsProject())
+                       .ToModel(CenterView))
+               .ThenRegister("SaveAs");
 
             #endregion
 
             #region Open File
 
             IDisposable NewProjectFile(IObservable<SourceSelected> source) => source
-                .SelectMany(SourceSelectedFunc)
-                .NotNull()
-                .ObserveOnSelf()
-                .Select(ProjectLoaded)
-                .ToModel(CenterView);
+               .SelectMany(SourceSelectedFunc)
+               .NotNull()
+               .ObserveOnSelf()
+               .Select(ProjectLoaded)
+               .ToModel(CenterView);
 
 
             this.Receive<InternlRenctFile>(o => OpentFileSource(o.File));
@@ -114,31 +129,41 @@ namespace Tauron.Application.Localizer.UIModels
             IObservable<LoadedProjectFile?> SourceSelectedFunc(SourceSelected s)
             {
                 if (s.Mode != OpenFileMode.OpenExistingFile) return NewFileSource(s.Source);
+
                 OpentFileSource(s.Source);
+
                 return Observable.Return<LoadedProjectFile?>(null);
             }
 
             void OpentFileSource(string? rawSource)
             {
                 Observable.Return(rawSource)
-                    .NotEmpty()
-                    .SelectMany(CheckSourceOk)
-                    .Select(p => p.Item2)
-                    .Do(_ => mainWindowCoordinator.IsBusy = true)
-                    .SelectMany(source => operationManager
-                        .StartOperation(string.Format(localizer.MainWindowModelLoadProjectOperation,
-                            Path.GetFileName(source)))
-                        .Do(op => loadingOperation.Value = op)
-                        .Select(operationController => (operationController, source)))
-                    .Do(_ =>
-                    {
-                        if (!workspace.ProjectFile.IsEmpty)
-                            workspace.ProjectFile.Operator.Tell(ForceSave.Force(workspace.ProjectFile));
-                    })
-                    .ObserveOnSelf()
-                    .Subscribe(pair
-                        => ProjectFile.BeginLoad(Context, pair.operationController.Id, pair.source,
-                            "Project_Operator"));
+                   .NotEmpty()
+                   .SelectMany(CheckSourceOk)
+                   .Select(p => p.Item2)
+                   .Do(_ => mainWindowCoordinator.IsBusy = true)
+                   .SelectMany(
+                        source => operationManager
+                           .StartOperation(
+                                string.Format(
+                                    localizer.MainWindowModelLoadProjectOperation,
+                                    Path.GetFileName(source)))
+                           .Do(op => loadingOperation.Value = op)
+                           .Select(operationController => (operationController, source)))
+                   .Do(
+                        _ =>
+                        {
+                            if (!workspace.ProjectFile.IsEmpty)
+                                workspace.ProjectFile.Operator.Tell(ForceSave.Force(workspace.ProjectFile));
+                        })
+                   .ObserveOnSelf()
+                   .Subscribe(
+                        pair
+                            => ProjectFile.BeginLoad(
+                                Context,
+                                pair.operationController.Id,
+                                pair.source,
+                                "Project_Operator"));
             }
 
             SupplyNewProjectFile? ProjectLoaded(LoadedProjectFile obj)
@@ -154,6 +179,7 @@ namespace Tauron.Application.Localizer.UIModels
                         else
                         {
                             loadingOperation.Value.Failed(obj.ErrorReason?.Message ?? localizer.CommonError);
+
                             return null;
                         }
                     }
@@ -172,10 +198,12 @@ namespace Tauron.Application.Localizer.UIModels
             }
 
             NewCommad.WithCanExecute(loadingOperation.Select(oc => oc == null))
-                .WithFlow(obs => NewProjectFile(obs.Dialog(this, TypedParameter.From(OpenFileMode.OpenExistingFile))
-                    .Of<IOpenFileDialog, string?>()
-                    .Select(s => SourceSelected.From(s, OpenFileMode.OpenExistingFile))))
-                .ThenRegister("OpenFile");
+               .WithFlow(
+                    obs => NewProjectFile(
+                        obs.Dialog(this, TypedParameter.From(OpenFileMode.OpenExistingFile))
+                           .Of<IOpenFileDialog, string?>()
+                           .Select(s => SourceSelected.From(s, OpenFileMode.OpenExistingFile))))
+               .ThenRegister("OpenFile");
 
             NewProjectFile(Receive<SourceSelected>()).DisposeWith(this);
             Receive<LoadedProjectFile>(ob => ob.Select(ProjectLoaded).ToModel(CenterView));
@@ -187,46 +215,53 @@ namespace Tauron.Application.Localizer.UIModels
             IObservable<LoadedProjectFile?> NewFileSource(string? source)
             {
                 source ??= string.Empty;
-                var data = new LoadedProjectFile(string.Empty,
-                    ProjectFile.NewProjectFile(Context, source, "Project_Operator"), null, Ok: true);
+                var data = new LoadedProjectFile(
+                    string.Empty,
+                    ProjectFile.NewProjectFile(Context, source, "Project_Operator"),
+                    ErrorReason: null,
+                    Ok: true);
 
                 if (File.Exists(source))
                 {
                     //TODO NewFile Filog Message
-                    var result = UICall(async ()
-                        => await dialogCoordinator.ShowMessage(localizer.CommonError, "", null));
+                    var result = UICall(
+                        async ()
+                            => await dialogCoordinator.ShowMessage(localizer.CommonError, "", null));
 
                     return result.Where(b => b == true).Do(_ => mainWindowCoordinator.IsBusy = true).Select(_ => data);
                 }
 
                 mainWindowCoordinator.IsBusy = true;
+
                 return Observable.Return(data);
             }
 
             NewCommad.WithCanExecute(loadingOperation.Select(oc => oc == null))
-                .WithFlow(obs => obs.Dialog(this, TypedParameter.From(OpenFileMode.OpenNewFile))
-                    .Of<IOpenFileDialog, string?>()
-                    .Select(s => SourceSelected.From(s, OpenFileMode.OpenNewFile))
-                    .ToSelf())
-                .ThenRegister("NewFile");
+               .WithFlow(
+                    obs => obs.Dialog(this, TypedParameter.From(OpenFileMode.OpenNewFile))
+                       .Of<IOpenFileDialog, string?>()
+                       .Select(s => SourceSelected.From(s, OpenFileMode.OpenNewFile))
+                       .ToSelf())
+               .ThenRegister("NewFile");
 
             #endregion
 
             #region Analyzing
 
             AnalyzerEntries = this.RegisterUiCollection<AnalyzerEntry>(nameof(AnalyzerEntries))
-                .BindToList(out var analyterList);
+               .BindToList(out var analyterList);
 
             var builder = new AnalyzerEntryBuilder(localizer);
 
             void IssuesChanged(IssuesEvent obj)
             {
-                analyterList.Edit(l =>
-                {
-                    var (ruleName, issues) = obj;
-                    l.Remove(AnalyzerEntries.Where(e => e.RuleName == ruleName));
-                    l.AddRange(issues.Select(builder.Get));
-                });
+                analyterList.Edit(
+                    l =>
+                    {
+                        var (ruleName, issues) = obj;
+                        l.Remove(AnalyzerEntries.Where(e => e.RuleName == ruleName));
+                        l.AddRange(issues.Select(builder.Get));
+                    });
             }
 
             this.RespondOnEventSource(workspace.Analyzer.Issues, IssuesChanged);
@@ -301,10 +336,14 @@ namespace Tauron.Application.Localizer.UIModels
 
                 return issue.IssueType switch
                 {
-                    Issues.EmptySource => builder.Entry(_localizer.MainWindowAnalyerRuleSourceName,
+                    Issues.EmptySource => builder.Entry(
+                        _localizer.MainWindowAnalyerRuleSourceName,
                         _localizer.MainWindowAnalyerRuleSource),
-                    _ => new AnalyzerEntry(_localizer.CommonUnkowen, issue.Project,
-                        issue.Data?.ToString() ?? string.Empty, _localizer.CommonUnkowen)
+                    _ => new AnalyzerEntry(
+                        _localizer.CommonUnkowen,
+                        issue.Project,
+                        issue.Data?.ToString() ?? string.Empty,
+                        _localizer.CommonUnkowen)
                 };
             }
         }

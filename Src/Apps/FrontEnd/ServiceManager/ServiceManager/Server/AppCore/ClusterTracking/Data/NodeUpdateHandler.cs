@@ -2,7 +2,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using ServiceManager.Shared.ClusterTracking;
-using Stl.Async;
 using Stl.Fusion;
 using Tauron;
 
@@ -27,6 +26,7 @@ namespace ServiceManager.Server.AppCore.ClusterTracking.Data
                 _tracker.GetInfo(command.Url).Ignore();
                 _tracker.GetUrls().Ignore();
             }
+
             return Unit.Default;
         }
 
@@ -38,14 +38,17 @@ namespace ServiceManager.Server.AppCore.ClusterTracking.Data
                 _tracker.GetInfo(command.Url).Ignore();
                 _tracker.GetUrls().Ignore();
             }
+
             return Unit.Default;
         }
 
         public virtual async Task<Unit> UpdateName(UpdateNameCommand command, CancellationToken token = default)
         {
-            await _repository.UpdateClusterNode(command.Url, info => info with { Name = command.Name, ServiceType = command.ServiceType});
-            using (Computed.Invalidate()) 
+            await _repository.UpdateClusterNode(command.Url, info => info with { Name = command.Name, ServiceType = command.ServiceType });
+            using (Computed.Invalidate())
+            {
                 _tracker.GetInfo(command.Url).Ignore();
+            }
 
             return Unit.Default;
         }
@@ -54,8 +57,10 @@ namespace ServiceManager.Server.AppCore.ClusterTracking.Data
         {
             await _repository.UpdateClusterNode(command.Url, c => c with { Status = command.Status });
             using (Computed.Invalidate())
+            {
                 _tracker.GetInfo(command.Url).Ignore();
-            
+            }
+
             return Unit.Default;
         }
     }

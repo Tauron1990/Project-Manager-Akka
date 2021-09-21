@@ -22,8 +22,8 @@ namespace Tauron.Application.Wpf
         public override IWindow CreateMessageDialog(string title, string message)
         {
             var window = new System.Windows.Window();
-            window.Content = new MessageDialog(title, message, b => window.DialogResult = b, canCnacel: true)
-                {Margin = new Thickness(10)};
+            window.Content = new MessageDialog(title, message, b => window.DialogResult = b, true)
+                             { Margin = new Thickness(10) };
 
             window.SizeToContent = SizeToContent.WidthAndHeight;
             window.ResizeMode = ResizeMode.NoResize;
@@ -35,7 +35,8 @@ namespace Tauron.Application.Wpf
             return new WpfWindow(window);
         }
 
-        public override object CreateDefaultMessageContent(string title, string message, Action<bool?>? result,
+        public override object CreateDefaultMessageContent(
+            string title, string message, Action<bool?>? result,
             bool canCnacel) => new MessageDialog(title, message, result, canCnacel);
 
         private sealed class InternalDispatcher : IUIDispatcher

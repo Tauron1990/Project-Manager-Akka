@@ -15,6 +15,7 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer
                 return new TransferFailed(string.Empty, FailReason.Deny, "NoData");
 
             var data = getdata();
+
             if (data == null)
                 return new TransferFailed(_request.OperationId, FailReason.Deny, _request.Data);
 

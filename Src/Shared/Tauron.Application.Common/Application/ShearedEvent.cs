@@ -12,12 +12,6 @@ namespace Tauron.Application
     {
         private Subject<TPayload>? _handlerList = new();
 
-        public virtual void Publish(TPayload content) 
-            => _handlerList?.OnNext(content);
-
-        public IObservable<TPayload> Get() 
-            => _handlerList?.AsObservable() ?? Observable.Empty<TPayload>();
-
         public void Dispose()
         {
             var list = Interlocked.Exchange(ref _handlerList, null);
@@ -25,6 +19,12 @@ namespace Tauron.Application
             list?.Dispose();
             GC.SuppressFinalize(this);
         }
+
+        public virtual void Publish(TPayload content)
+            => _handlerList?.OnNext(content);
+
+        public IObservable<TPayload> Get()
+            => _handlerList?.AsObservable() ?? Observable.Empty<TPayload>();
     }
 
     [PublicAPI]
@@ -38,18 +38,18 @@ namespace Tauron.Application
     {
         private readonly Dictionary<Type, IDisposable> _events = new();
 
+        public void Dispose()
+        {
+            _events.Values.Foreach(disposable => disposable.Dispose());
+            _events.Clear();
+        }
+
         public TEventType GetEvent<TEventType, TPayload>() where TEventType : AggregateEvent<TPayload>, new()
         {
             var eventType = typeof(TEventType);
             if (!_events.ContainsKey(eventType)) _events[eventType] = new TEventType();
 
-            return (TEventType) _events[eventType];
-        }
-
-        public void Dispose()
-        {
-            _events.Values.Foreach(disposable => disposable.Dispose());
-            _events.Clear();
+            return (TEventType)_events[eventType];
         }
     }
 }

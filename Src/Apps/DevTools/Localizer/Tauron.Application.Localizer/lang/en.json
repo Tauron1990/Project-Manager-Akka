@@ -1,17 +1,14 @@
 {
   "CorrectSpellingError": "Ingore All",
-
   "Common_Error": "Error",
   "Common_Warnig": "Warning",
   "Common_Unkowen": "Unkowen",
   "Common_Cancel": "Cancel",
   "Common_OK": "OK",
-  "Common_Copy":  "Copy",
-
+  "Common_Copy": "Copy",
   "MainWindow_Title": "Localizing App",
   "MainWindow_Close_Warning": "Project not saved. Quit anyway!",
   "MainWindow_ProjectContainer_Header": "Projeckts",
-
   "MainWindow_MainMenu_File": "File",
   "MainWindow_MainMenu_File_Open": "Open",
   "MainWindow_MainMenu_File_New": "New",
@@ -19,22 +16,18 @@
   "MainWindow_MainMwnu_RenctFile": "Renct Files",
   "MainWindow_MainMenu_View": "View",
   "MainWindow_MainMenu_Reset": "Reset Views",
-
   "MainWindow_Operations_Label": "Operations",
   "MainWindow_Operation_Tabs_Label_Logs": "Logs",
   "MainWindow_Operation_Tabs_Label_Ops": "Operations",
   "MainWindow_Operation_Delete": "Delete",
   "MainWindow_Operation_Delete_All": "Delete All",
-
   "MainWindow_Analyzer_Header": "Analyzer",
   "MainWindow_Analyzer_RuleName": "Rule",
   "MainWindow_Analyzer_Issue": "Issue Type",
   "MainWindow_Analyzer_Project": "Project Name",
   "MainWindow_Analyzer_IssueDescription": "Issues Description",
-
   "MainWindow_Analyer_Rule_Source": "The Source File doesn't exist",
   "MainWindow_Analyer_Rule_Source_Name": "File Error",
-
   "MainWindow_Build_Meader": "Export",
   "MainWindow_Build_ImportIntigration_Label": "Importing Imported Projects,",
   "MainWindow_Build_Project_GroupBox": "Projects",
@@ -43,17 +36,14 @@
   "MainWindow_BuildProject_FolderBrowser_Description": "Output Folder",
   "MainWindow_BuildProject_Search_Label": "Search",
   "MainWindow_Build_Start_Label": "Export",
-
   "MainWindowodel_BuildProject_Operation": "Export Projects",
   "MainWindow_BuildProject_GatherData": "Gathering Data",
   "MainWindow_Buildproject_NoData": "No Data Found",
   "MainWindow_BuildProject_GenerateLangFile": "Json is generated",
   "MainWindow_BuildProject_GenerateCsFile": "Genrate C# Code",
   "MainWindow_BuildProject_AgentCompled": "Compled",
-
   "MainWindowModel_LoadProject_Operation": "Load Project {0}",
   "MainWindowModel_LoadProject_SourceEmpty": "No Project File Entered",
-
   "CenterView_SaveProject_Operation": "Saved Project: {0}",
   "CenterView_NewProject": "New Project",
   "CenterView_RemoveProject": "Remove Project",
@@ -61,16 +51,13 @@
   "CenterView_RemoveProjectDialog_Message": "Do you want to remove the project",
   "CenterView_NewProject_InvalidName_Message": "The project name contains incorrect characters.",
   "CenterView_AddGlobalLanguage_Label": "Add Language To All",
-
   "NewProjectDialogView_Header": "New Project",
   "NewProjectDialogView_Name_Lable": "Name: ",
   "NewprojectDialogView_Create_Button": "Create",
   "NewProjectDialogView_Error_Duplicate": "Duplicate Name",
-
   "OperationController_Success": "Success",
   "OperationController_Failed": "Failed",
   "OperationController_Running": "Running",
-
   "OpenFileDialogView_Header": "Select Project File",
   "OpenFileDialogView_Header_NewPrefix": " (New)",
   "OpenFileDialogView_Selector_Label": "Path:",
@@ -78,21 +65,17 @@
   "OpenFileDialogView_OkButton_Label": "Ok",
   "OpenFileDialogView_Dialog_Filter": "All|*.*|Trans Project|*.transp",
   "OpenFileDialogView_Dialog_Title": "Select project",
-
   "LanguageSelectorDialogView_Title": "Select Language",
   "LanguageSelectorDialogView_Select_Button": "Select",
-
   "ProjectView_LanguageBox_FirstLabel": "Languages",
   "ProjectView_Button_AddLanguage_Label": "Add Language",
   "ProjectView_Button_AddImport_Label": "Add Project",
   "ProjectView_Button_RemoveImport_Label": "Remove Project",
   "ProjectView_Import_Label": "Import Projects",
   "ProjectView_NewEntry_Label": "New Entry",
-
   "ImportProjectDialogView_Button_Add": "Add",
   "ImportProjectDialogView_Title": "Import Project",
   "ImportProjectDialogView_Button_Cancel": "Cancel",
-
   "NewEntryDialogView_Title_Label": "New Entry:",
   "NewEntryDialogView_Name_Label": "Name:",
   "NewEntryDialogView_Create_Button": "Create",

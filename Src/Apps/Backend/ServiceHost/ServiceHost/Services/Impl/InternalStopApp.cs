@@ -3,9 +3,6 @@
     public record InternalStopApp(bool Restart)
     {
         public InternalStopApp()
-            : this(Restart: false)
-        {
-            
-        }
+            : this(Restart: false) { }
     }
 }

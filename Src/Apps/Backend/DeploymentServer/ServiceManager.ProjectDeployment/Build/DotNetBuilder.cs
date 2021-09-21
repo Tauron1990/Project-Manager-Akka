@@ -17,25 +17,26 @@ namespace ServiceManager.ProjectDeployment.Build
         private static async Task<string?> BuildApplicationAsync(FileInfo project, string output, Action<string> log)
         {
             var arguments = new StringBuilder()
-                .Append(" publish ")
-                .Append($"\"{project.FullName}\"")
-                .Append($" -o \"{output}\"")
-                .Append(" -c Release")
-                .Append(" -v m")
-                .Append(" --no-self-contained");
+               .Append(" publish ")
+               .Append($"\"{project.FullName}\"")
+               .Append($" -o \"{output}\"")
+               .Append(" -c Release")
+               .Append(" -v m")
+               .Append(" --no-self-contained");
 
             var path = DedectDotNet(project);
+
             if (string.IsNullOrWhiteSpace(path))
                 return DeploymentErrorCodes.BuildDotnetNotFound;
 
             using var process = new Process
-            {
-                StartInfo = new ProcessStartInfo(path, arguments.ToString())
-                {
-                    UseShellExecute = false,
-                    CreateNoWindow = false
-                }
-            };
+                                {
+                                    StartInfo = new ProcessStartInfo(path, arguments.ToString())
+                                                {
+                                                    UseShellExecute = false,
+                                                    CreateNoWindow = false
+                                                }
+                                };
 
 
             log(DeploymentMessages.BuildStart);
@@ -46,6 +47,7 @@ namespace ServiceManager.ProjectDeployment.Build
             for (var i = 0; i < 60; i++)
             {
                 await Task.Delay(2000);
+
                 if (process.HasExited) break;
             }
 
@@ -53,10 +55,12 @@ namespace ServiceManager.ProjectDeployment.Build
             {
                 log(DeploymentMessages.BuildKilling);
                 process.Kill();
+
                 return DeploymentErrorCodes.BuildDotNetFailed;
             }
 
             log(DeploymentMessages.BuildCompled);
+
             return process.ExitCode == 0 ? null : DeploymentErrorCodes.BuildDotNetFailed;
         }
 
@@ -68,10 +72,10 @@ namespace ServiceManager.ProjectDeployment.Build
 
             var data = XElement.Load(project.FullName);
             var frameWork = data
-                .Elements("PropertyGroup")
-                .SelectMany(e => e.Elements())
-                .FirstOrDefault(e => e.Name == "TargetFramework")
-                ?.Value;
+               .Elements("PropertyGroup")
+               .SelectMany(e => e.Elements())
+               .FirstOrDefault(e => e.Name == "TargetFramework")
+              ?.Value;
 
             if (frameWork == null) return null;
 
@@ -84,17 +88,19 @@ namespace ServiceManager.ProjectDeployment.Build
             searchTerm = searchTerm.Substring(0, 3);
 
             var enviromentPaths = Environment.GetEnvironmentVariable("Path")
-                ?.Split(new[] {';'}, StringSplitOptions.RemoveEmptyEntries);
+              ?.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
 
             var dotnetPaths = enviromentPaths?.Where(Directory.Exists).SelectMany(Directory.EnumerateFiles)
-                .Where(f => f.EndsWith("dotnet.exe")).ToArray();
+               .Where(f => f.EndsWith("dotnet.exe")).ToArray();
 
-            return dotnetPaths?.FirstOrDefault(p =>
-            {
-                var sdkPath = Path.Combine(Path.GetDirectoryName(p) ?? string.Empty, "sdk");
-                return Directory.Exists(sdkPath) && Directory.EnumerateDirectories(sdkPath)
-                    .Any(e => new DirectoryInfo(e).Name.StartsWith(searchTerm));
-            });
+            return dotnetPaths?.FirstOrDefault(
+                p =>
+                {
+                    var sdkPath = Path.Combine(Path.GetDirectoryName(p) ?? string.Empty, "sdk");
+
+                    return Directory.Exists(sdkPath) && Directory.EnumerateDirectories(sdkPath)
+                       .Any(e => new DirectoryInfo(e).Name.StartsWith(searchTerm));
+                });
         }
     }
 }

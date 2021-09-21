@@ -57,11 +57,11 @@ namespace Akkatecture.Sagas.AggregateSaga
             {
                 var sagaEventSubscriptionTypes =
                     sagaType
-                        .GetSagaEventSubscriptionTypes();
+                       .GetSagaEventSubscriptionTypes();
 
                 var asyncSagaEventSubscriptionTypes =
                     sagaType
-                        .GetAsyncSagaEventSubscriptionTypes();
+                       .GetAsyncSagaEventSubscriptionTypes();
 
                 var subscriptionTypes = new List<Type>();
 
@@ -103,14 +103,18 @@ namespace Akkatecture.Sagas.AggregateSaga
             var sagaId = SagaLocator.LocateSaga(domainEvent);
             var saga = FindOrSpawn(sagaId);
             saga.Tell(domainEvent, Sender);
+
             return true;
         }
 
         protected virtual bool Terminate(Terminated message)
         {
-            Logger.Warning("AggregateSaga of Type={0}, and Id={1}; has terminated.",
-                typeof(TAggregateSaga).PrettyPrint(), message.ActorRef.Path.Name);
+            Logger.Warning(
+                "AggregateSaga of Type={0}, and Id={1}; has terminated.",
+                typeof(TAggregateSaga).PrettyPrint(),
+                message.ActorRef.Path.Name);
             Context.Unwatch(message.ActorRef);
+
             return true;
         }
 
@@ -121,8 +125,12 @@ namespace Akkatecture.Sagas.AggregateSaga
                 3000,
                 exception =>
                 {
-                    Logger.Warning("{0} will supervise Exception={1} to be decided as {2}.",
-                        GetType().PrettyPrint(), exception.ToString(), Directive.Restart);
+                    Logger.Warning(
+                        "{0} will supervise Exception={1} to be decided as {2}.",
+                        GetType().PrettyPrint(),
+                        exception.ToString(),
+                        Directive.Restart);
+
                     return Directive.Restart;
                 });
         }
@@ -130,7 +138,9 @@ namespace Akkatecture.Sagas.AggregateSaga
         protected IActorRef FindOrSpawn(TIdentity sagaId)
         {
             var saga = Context.Child(sagaId);
+
             if (saga.IsNobody()) return Spawn(sagaId);
+
             return saga;
         }
 
@@ -138,6 +148,7 @@ namespace Akkatecture.Sagas.AggregateSaga
         {
             var saga = Context.ActorOf(Props.Create(SagaFactory), sagaId.Value);
             Context.Watch(saga);
+
             return saga;
         }
     }

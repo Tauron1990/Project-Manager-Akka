@@ -19,24 +19,29 @@ namespace ServiceHost.SharedApi
         {
             Receive<GetHostName>(_ => Sender.Tell(new GetHostNameResult(configuration.ApplicationName)));
 
-            Receive<IHostApiCommand>(cb =>
-                                 {
-                                     switch (cb.Type)
-                                     {
-                                         case CommandType.AppManager:
-                                             appManager.Value.Forward(cb);
-                                             break;
-                                         case CommandType.AppRegistry:
-                                             appRegistry.Value.Forward(cb);
-                                             break;
-                                         case CommandType.Installer:
-                                             installer.Value.Forward(cb);
-                                             break;
-                                         default:
-                                             Context.GetLogger().Warning("Unkowen Shared Api Command Sended {Type}", cb.GetType());
-                                             break;
-                                     }
-                                 });
+            Receive<IHostApiCommand>(
+                cb =>
+                {
+                    switch (cb.Type)
+                    {
+                        case CommandType.AppManager:
+                            appManager.Value.Forward(cb);
+
+                            break;
+                        case CommandType.AppRegistry:
+                            appRegistry.Value.Forward(cb);
+
+                            break;
+                        case CommandType.Installer:
+                            installer.Value.Forward(cb);
+
+                            break;
+                        default:
+                            Context.GetLogger().Warning("Unkowen Shared Api Command Sended {Type}", cb.GetType());
+
+                            break;
+                    }
+                });
         }
 
         protected override void PreStart()

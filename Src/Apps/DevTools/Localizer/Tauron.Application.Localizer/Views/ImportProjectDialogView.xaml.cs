@@ -22,7 +22,8 @@ namespace Tauron.Application.Localizer.Views
             var result = new TaskCompletionSource<ImportProjectDialogResult?>();
 
             DataContext =
-                new ImportProjectViewModel(s => result.SetResult(s == null ? null : new ImportProjectDialogResult(s)),
+                new ImportProjectViewModel(
+                    s => result.SetResult(s is null ? null : new ImportProjectDialogResult(s)),
                     initalData);
 
             return result.Task;
@@ -38,8 +39,9 @@ namespace Tauron.Application.Localizer.Views
             Projects = projects;
 
             CancelCommand = new SimpleCommand(() => selector(null));
-            SelectCommand = new SimpleCommand(o => !string.IsNullOrWhiteSpace(CurretElement),
-                o => selector(CurretElement));
+            SelectCommand = new SimpleCommand(
+                _ => !string.IsNullOrWhiteSpace(CurretElement),
+                _ => selector(CurretElement));
         }
 
         public IEnumerable<string> Projects { get; }
@@ -50,6 +52,7 @@ namespace Tauron.Application.Localizer.Views
             set
             {
                 if (value == _curretElement) return;
+
                 _curretElement = value;
                 OnPropertyChanged();
                 SelectCommand.RaiseCanExecuteChanged();

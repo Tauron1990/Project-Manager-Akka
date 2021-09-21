@@ -7,9 +7,8 @@ namespace Tauron.Application.Blazor
 {
     public abstract class ActorHostComponent<TModel> : DispoableComponent
     {
-        public BindEngine<TModel> BindEngine { get; }
-
         protected ActorHostComponent() => BindEngine = new BindEngine<TModel>();
+        public BindEngine<TModel> BindEngine { get; }
 
         //public ActiveBinding<TData> Bind<TData>(Expression<Func<TModel, TData>> property)
         //    => BindEngine.Bind(property);

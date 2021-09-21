@@ -9,8 +9,8 @@ namespace Tauron.Temp
     public sealed class TempStream : Stream
     {
         private readonly TempFile _file;
-        private readonly Stream _wrappedStream;
         private readonly bool _noDispose;
+        private readonly Stream _wrappedStream;
 
         public TempStream(TempFile file, bool noDispose)
         {
@@ -66,6 +66,7 @@ namespace Tauron.Temp
         protected override void Dispose(bool disposing)
         {
             if (_file.NoStreamDispose || _noDispose) return;
+
             _file.Dispose();
         }
 

@@ -11,8 +11,6 @@ namespace Tauron.Application.AkkaNode.Services.Reporting.Commands
         where TSender : ISender
         where TThis : ResultCommand<TSender, TThis, TResult>;
 
-    
-    
 
     public static class ResultCommandExtensions
     {
@@ -21,6 +19,6 @@ namespace Tauron.Application.AkkaNode.Services.Reporting.Commands
             this TSender sender, TCommand command, TimeSpan timeout, TResult? resultInfo, Action<string> messages, CancellationToken token = default)
             where TSender : ISender
             where TCommand : ResultCommand<TSender, TCommand, TResult>
-            => SendingHelper.Send<TResult, TCommand>(sender, command, messages, timeout, isEmpty: false, token);
+            => SendingHelper.Send<TResult, TCommand>(sender, command, messages, timeout, isEmpty: false, token: token);
     }
 }

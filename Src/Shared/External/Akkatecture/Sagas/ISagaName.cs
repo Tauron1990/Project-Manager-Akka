@@ -29,7 +29,5 @@ using Akkatecture.Core;
 
 namespace Akkatecture.Sagas
 {
-    public interface ISagaName : IIdentity
-    {
-    }
+    public interface ISagaName : IIdentity { }
 }

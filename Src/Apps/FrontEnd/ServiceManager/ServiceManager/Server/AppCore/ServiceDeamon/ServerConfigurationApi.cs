@@ -12,10 +12,13 @@ using ServiceHost.Client.Shared.ConfigurationServer;
 using ServiceHost.Client.Shared.ConfigurationServer.Data;
 using ServiceHost.Client.Shared.ConfigurationServer.Events;
 using ServiceManager.Server.Controllers;
+using ServiceManager.Server.Properties;
 using ServiceManager.Shared.Api;
 using ServiceManager.Shared.ServiceDeamon;
 using Stl.Fusion;
 using Tauron;
+using Tauron.Application.AkkaNode.Services.Reporting.Commands;
+using Tauron.Operations;
 
 namespace ServiceManager.Server.AppCore.ServiceDeamon
 {
@@ -23,73 +26,84 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
     public class ServerConfigurationApi : IServerConfigurationApi, IDisposable
     {
         private const string OperationCanceled = "Vorgang Abgebrochen";
-        
-        private readonly ConfigurationApi                _api;
-        private readonly ActorSystem                     _system;
-        private readonly IProcessServiceHost             _processService;
+
+        private readonly ConfigurationApi _api;
+        private readonly CompositeDisposable _disposable = new();
         private readonly ILogger<ServerConfigurationApi> _log;
-        private readonly CompositeDisposable             _disposable = new();
-        
+        private readonly IProcessServiceHost _processService;
+        private readonly ActorSystem _system;
+
         public ServerConfigurationApi(
-            ConfigurationApi                api,
-            ActorSystem                     system,
-            ConfigEventDispatcher           dispatcher,
-            IProcessServiceHost             processService,
+            ConfigurationApi api,
+            ActorSystem system,
+            ConfigEventDispatcher dispatcher,
+            IProcessServiceHost processService,
             ILogger<ServerConfigurationApi> log)
         {
-            _api            = api;
-            _system         = system;
+            _api = api;
+            _system = system;
             _processService = processService;
-            _log            = log;
+            _log = log;
 
             dispatcher.Get().OfType<SpecificConfigEvent>()
-                      .ToUnit(
-                           () =>
-                           {
-                               using(Computed.Invalidate())
-                                   QueryAppConfig().Ignore();
-                           })
-                      .AutoSubscribe(e => log.LogError(e, "Error on Process ConfigEvent"))
-                      .DisposeWith(_disposable);
+               .ToUnit(
+                    () =>
+                    {
+                        using (Computed.Invalidate())
+                        {
+                            QueryAppConfig().Ignore();
+                        }
+                    })
+               .AutoSubscribe(e => log.LogError(e, "Error on Process ConfigEvent"))
+               .DisposeWith(_disposable);
 
 
             dispatcher.Get().OfType<GlobalConfigEvent>()
-                      .ToUnit(
-                           () =>
-                           {
-                               using(Computed.Invalidate())
-                                   GlobalConfig().Ignore();
-                           })
-                      .AutoSubscribe(e => log.LogError(e, "Error on Process ConfigEvent"))
-                      .DisposeWith(_disposable);
+               .ToUnit(
+                    () =>
+                    {
+                        using (Computed.Invalidate())
+                        {
+                            GlobalConfig().Ignore();
+                        }
+                    })
+               .AutoSubscribe(e => log.LogError(e, "Error on Process ConfigEvent"))
+               .DisposeWith(_disposable);
 
 
             dispatcher.Get().OfType<ServerConfigurationEvent>()
-                      .ToUnit(
-                           () =>
-                           {
-                               using (Computed.Invalidate())   
-                                   ServerConfigugration().Ignore();
-                           })
+               .ToUnit(
+                    () =>
+                    {
+                        using (Computed.Invalidate())
+                        {
+                            ServerConfigugration().Ignore();
+                        }
+                    })
                .AutoSubscribe(e => log.LogError(e, "Error on Process ConfigEvent"))
                .DisposeWith(_disposable);
         }
 
+        public void Dispose()
+            => _disposable.Dispose();
+
         public virtual async Task<GlobalConfig> GlobalConfig()
         {
             if (Computed.IsInvalidating()) return default!;
-            
+
             try
             {
                 await EnsureConfigAlive();
 
-                return await _api.Query<QueryGlobalConfig, GlobalConfig>(TimeSpan.FromSeconds(10));
+                return (await _api.Query<QueryGlobalConfig, GlobalConfig>(new ApiParameter(TimeSpan.FromSeconds(10)))).GetOrThrow();
             }
             catch (Exception e)
             {
                 _log.LogError(e, "Error on Query Global Config");
+
                 if (e.Message == ConfigError.NoGlobalConfigFound)
                     return new GlobalConfig(string.Empty, null);
+
                 throw;
             }
         }
@@ -97,16 +111,17 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
         public virtual async Task<ServerConfigugration> ServerConfigugration()
         {
             if (Computed.IsInvalidating()) return default!;
-            
+
             try
             {
                 await EnsureConfigAlive();
 
-                return await _api.Query<QueryServerConfiguration, ServerConfigugration>(TimeSpan.FromSeconds(10));
+                return (await _api.Query<QueryServerConfiguration, ServerConfigugration>(new ApiParameter(TimeSpan.FromSeconds(10)))).GetOrThrow();
             }
             catch (Exception e)
             {
                 _log.LogError(e, "Error on Query ServerConfiguration");
+
                 throw;
             }
         }
@@ -114,12 +129,13 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
         public virtual async Task<ImmutableList<SpecificConfig>> QueryAppConfig()
         {
             if (Computed.IsInvalidating()) return default!;
-            
+
             try
             {
                 await EnsureConfigAlive();
 
-                return (await _api.Query<QuerySpecificConfigList, SpecificConfigList>(TimeSpan.FromSeconds(10))).ConfigList;
+                return (await _api.Query<QuerySpecificConfigList, SpecificConfigList>(new ApiParameter(TimeSpan.FromSeconds(10))))
+                   .GetOrThrow().ConfigList;
             }
             catch (Exception e)
             {
@@ -130,7 +146,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
         }
 
         public virtual Task<string> QueryBaseConfig()
-            => Task.FromResult(Properties.Resources.BaseConfig);
+            => Task.FromResult(Resources.BaseConfig);
 
         public virtual Task<string?> QueryDefaultFileContent(ConfigOpensElement element)
             => Task.FromResult(ConfigurationController.GetConfigData(element));
@@ -142,9 +158,10 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
                 await EnsureConfigAlive();
 
                 if (token.IsCancellationRequested) return OperationCanceled;
-                await _api.Command(new UpdateSpecificConfigCommand(ConfigDataAction.Delete, command.Name, string.Empty, string.Empty, null), TimeSpan.FromSeconds(20));
-                
-                return string.Empty;
+
+                var result = await _api.Command(new UpdateSpecificConfigCommand(ConfigDataAction.Delete, command.Name, string.Empty, string.Empty, null), new ApiParameter(TimeSpan.FromSeconds(20)));
+
+                return result.ErrorToString();
             }
             catch (Exception e)
             {
@@ -163,16 +180,22 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
                 if (token.IsCancellationRequested) return OperationCanceled;
 
                 var data = command.Data;
-                
+
                 var mode = data.IsNew ? ConfigDataAction.Create : ConfigDataAction.Update;
-                await _api.Command(
-                    new UpdateSpecificConfigCommand(mode, data.Name, data.Content, data.Info, 
-                        data.Conditions?.Where(i => i.Action != ConfigDataAction.Delete).Select(i => i.Condition).ToArray()), TimeSpan.FromSeconds(20));
+
+                var result = await _api.Command(
+                    new UpdateSpecificConfigCommand(
+                        mode,
+                        data.Name,
+                        data.Content,
+                        data.Info,
+                        data.Conditions?.Where(i => i.Action != ConfigDataAction.Delete).Select(i => i.Condition).ToArray()),
+                    new ApiParameter(TimeSpan.FromSeconds(20)));
 
                 //foreach (var (name, configDataAction, condition) in data.Conditions) 
-                    //await _api.Command(new UpdateConditionCommand(name, configDataAction, condition), TimeSpan.FromSeconds(20));
+                //await _api.Command(new UpdateConditionCommand(name, configDataAction, condition), TimeSpan.FromSeconds(20));
 
-                return string.Empty;
+                return result.ErrorToString();
             }
             catch (Exception e)
             {
@@ -182,33 +205,27 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
             }
         }
 
-        private async Task EnsureConfigAlive()
-        {
-            var resonse = await _processService.ConfigAlive(_api, _system);
-            if (!string.IsNullOrWhiteSpace(resonse))
-                throw new InvalidOperationException(resonse);
-        }
-
         public virtual async Task<string> UpdateGlobalConfig(UpdateGlobalConfigApiCommand command, CancellationToken token = default)
         {
             var config = command.Config;
-            
+
             if (config == await GlobalConfig())
                 return "Die Konfiguration ist gleich";
 
             if (token.IsCancellationRequested) return OperationCanceled;
-            
+
             var resonse = await _processService.ConfigAlive(_api, _system);
+
             if (!string.IsNullOrWhiteSpace(resonse))
                 return "Der Service wurde nicht gestartet";
 
             if (token.IsCancellationRequested) return OperationCanceled;
-            
+
             bool needUpdate;
 
             try
             {
-                await _api.Query<QueryGlobalConfig, GlobalConfig>(TimeSpan.FromSeconds(10));
+                (await _api.Query<QueryGlobalConfig, GlobalConfig>(new ApiParameter(TimeSpan.FromSeconds(10)))).GetOrThrow();
                 needUpdate = true;
             }
             catch (Exception e)
@@ -218,32 +235,39 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
                 else
                     throw;
             }
-            
-            await _api.Command(new UpdateGlobalConfigCommand(needUpdate ? ConfigDataAction.Update : ConfigDataAction.Create, config), TimeSpan.FromSeconds(20));
-            return string.Empty;
+
+            var res = await _api.Command(new UpdateGlobalConfigCommand(needUpdate ? ConfigDataAction.Update : ConfigDataAction.Create, config), new ApiParameter(TimeSpan.FromSeconds(20)));
+
+            return res.ErrorToString();
         }
 
         public virtual async Task<string> UpdateServerConfig(UpdateServerConfiguration command, CancellationToken token = default)
         {
             var serverConfigugration = command.ServerConfigugration;
-            
+
             if (serverConfigugration == await ServerConfigugration())
                 return "Die Konfiguration ist gleich";
 
             if (token.IsCancellationRequested) return OperationCanceled;
-            
+
             var resonse = await _processService.ConfigAlive(_api, _system);
+
             if (!string.IsNullOrWhiteSpace(resonse))
                 return "Der Service wurde nicht gestartet";
 
             if (token.IsCancellationRequested) return OperationCanceled;
-            
-            await _api.Command(new UpdateServerConfigurationCommand(serverConfigugration), TimeSpan.FromSeconds(20));
 
-            return string.Empty;
+            var res = await _api.Command(new UpdateServerConfigurationCommand(serverConfigugration), new ApiParameter(TimeSpan.FromSeconds(20)));
+
+            return res.ErrorToString();
         }
 
-        public void Dispose()
-            => _disposable.Dispose();
+        private async Task EnsureConfigAlive()
+        {
+            var resonse = await _processService.ConfigAlive(_api, _system);
+
+            if (!string.IsNullOrWhiteSpace(resonse))
+                throw new InvalidOperationException(resonse);
+        }
     }
 }

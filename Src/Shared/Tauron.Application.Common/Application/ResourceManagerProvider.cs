@@ -12,10 +12,10 @@ namespace Tauron.Application
     {
         private static readonly Dictionary<Assembly, ResourceManager> Resources = new();
 
-        public static void Register(ResourceManager manager, Assembly key) 
+        public static void Register(ResourceManager manager, Assembly key)
             => Resources[key] = manager;
 
-        public static void Remove(Assembly key) 
+        public static void Remove(Assembly key)
             => Resources.Remove(key);
 
         public static Option<string> FindResource(string name, Assembly? key)
@@ -23,7 +23,7 @@ namespace Tauron.Application
 
         public static Option<string> FindResource(string name)
             => FindResource(name, null);
-        
+
         private static Option<string> FindResourceImpl(string name, Assembly? key, bool searchEverywere = true)
         {
             if (key != null && Resources.TryGetValue(key, out var rm))
@@ -31,7 +31,7 @@ namespace Tauron.Application
 
             return searchEverywere
                 ? Resources.Select(rm2 => rm2.Value.GetString(name))
-                    .FirstOrDefault(value => !string.IsNullOrWhiteSpace(value)).OptionNotNull()
+                   .FirstOrDefault(value => !string.IsNullOrWhiteSpace(value)).OptionNotNull()
                 : Option<string>.None;
         }
     }

@@ -31,7 +31,5 @@ using Akkatecture.Aggregates;
 namespace Akkatecture.Sagas.AggregateSaga
 {
     public interface IAggregateSaga<out TIdentity> : IAggregateRoot<TIdentity>
-        where TIdentity : ISagaId
-    {
-    }
+        where TIdentity : ISagaId { }
 }

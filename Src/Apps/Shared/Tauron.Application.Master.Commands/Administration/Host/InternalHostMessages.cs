@@ -28,7 +28,7 @@ namespace Tauron.Application.Master.Commands.Administration.Host
         public abstract record CommandBase<TResult>(string Target, [property: JsonIgnore] CommandType Type) : IHostApiCommand
             where TResult : OperationResponse, new()
         {
-            OperationResponse IHostApiCommand.CreateDefaultFailed() 
+            OperationResponse IHostApiCommand.CreateDefaultFailed()
                 => new TResult();
         }
 

@@ -18,12 +18,12 @@ namespace ServiceManager.Server.AppCore.Helper
     [UsedImplicitly(ImplicitUseKindFlags.InstantiatedWithFixedConstructorSignature)]
     public class ClusterConnectionTracker : IClusterConnectionTracker
     {
-        private readonly IAppIpManager _manager;
+        private readonly bool _isSelf;
         private readonly ILogger<ClusterConnectionTracker> _log;
-        private          bool                              _isConnected;
-        private          string                            _url = string.Empty;
-        private readonly bool                              _isSelf;
-        
+        private readonly IAppIpManager _manager;
+        private bool _isConnected;
+        private string _url = string.Empty;
+
 
         public ClusterConnectionTracker(ActorSystem system, IAppIpManager manager, ILogger<ClusterConnectionTracker> log)
         {
@@ -31,35 +31,41 @@ namespace ServiceManager.Server.AppCore.Helper
             _log = log;
             var cluster = Cluster.Get(system);
 
-            cluster.RegisterOnMemberUp(() =>
-                                       {
-                                           _isConnected = true;
-                                           _url = cluster.SelfAddress.ToString();
-                                           using (Computed.Invalidate())
-                                           {
-                                               GetIsConnected().Ignore();
-                                               GetUrl().Ignore();
-                                           }
-                                       });
-            cluster.RegisterOnMemberRemoved(() =>
-                                            {
-                                                _isConnected = false;
-                                                using(Computed.Invalidate())
-                                                    GetIsConnected().Ignore();
-                                            });
+            cluster.RegisterOnMemberUp(
+                () =>
+                {
+                    _isConnected = true;
+                    _url = cluster.SelfAddress.ToString();
+                    using (Computed.Invalidate())
+                    {
+                        GetIsConnected().Ignore();
+                        GetUrl().Ignore();
+                    }
+                });
+            cluster.RegisterOnMemberRemoved(
+                () =>
+                {
+                    _isConnected = false;
+                    using (Computed.Invalidate())
+                    {
+                        GetIsConnected().Ignore();
+                    }
+                });
 
             if (cluster.Settings.SeedNodes.Count != 0) return;
+
             _isSelf = true;
 
             RunInit();
-            
+
             async void RunInit()
             {
                 try
                 {
                     var ip = await manager.GetIp();
-                    if(cluster.Settings.SeedNodes.Count != 0) return;
-                    if(!ip.IsValid) return;
+
+                    if (cluster.Settings.SeedNodes.Count != 0) return;
+                    if (!ip.IsValid) return;
 
                     await cluster.JoinAsync(cluster.SelfAddress);
                 }
@@ -89,11 +95,13 @@ namespace ServiceManager.Server.AppCore.Helper
                 string content = await File.ReadAllTextAsync(Path.Combine(Program.ExeFolder, AkkaConfigurationBuilder.Seed), token);
                 content = await AkkaConfigurationBuilder.PatchSeedUrls(content, new[] { command.Url });
                 await File.WriteAllTextAsync(Path.Combine(Program.ExeFolder, AkkaConfigurationBuilder.Seed), content, token);
+
                 return string.Empty;
             }
             catch (Exception e)
             {
                 _log.LogError(e, "Error on Connect to Cluster");
+
                 return e.Message;
             }
         }

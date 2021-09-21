@@ -25,7 +25,8 @@ namespace ServiceManager.Server.Hubs
             => Clients.All.SendAsync(HubEvents.PropertyChanged, type, name);
 
         [HubMethodName("GetConfigFileOptions")]
-        [UsedImplicitly, Authorize]
+        [UsedImplicitly]
+        [Authorize]
         public ConfigOptionList GetBaseConfigOptions(ConfigOpensElement name)
         {
             try
@@ -41,6 +42,7 @@ namespace ServiceManager.Server.Hubs
             catch (Exception e)
             {
                 _log.LogError(e, "Error on Get Base Config Options");
+
                 return new ConfigOptionList(Error: true, e.Message, Array.Empty<ConfigOption>());
             }
 
@@ -50,25 +52,23 @@ namespace ServiceManager.Server.Hubs
                 foreach (var (key, hoconValue) in config.Items.Where(hv => !hv.Value.IsEmpty))
                 {
                     var ele = key;
+
                     if (hoconValue.IsString())
                         yield return (ele, hoconValue.GetString() ?? string.Empty);
 
                     else if (hoconValue.IsArray())
                         yield return (ele, AggregateString(
-                            hoconValue.GetArray(),
-                            (builder, value) => builder.Length == 0
-                                ? builder.Append("[ ").Append(value.GetString())
-                                : builder.Append(", ").Append(value.GetString())) + " ]");
+                                          hoconValue.GetArray(),
+                                          (builder, value) => builder.Length == 0
+                                              ? builder.Append("[ ").Append(value.GetString())
+                                              : builder.Append(", ").Append(value.GetString())) + " ]");
 
                     else if (hoconValue.IsObject())
-                    {
                         foreach (var result in Extract(hoconValue.GetObject()).Select(s => (ele + "." + s.Path, s.DefaultValue)))
                             yield return result;
-                    }
 
                     else
                         yield return (ele, hoconValue.ToString());
-
                 }
             }
 

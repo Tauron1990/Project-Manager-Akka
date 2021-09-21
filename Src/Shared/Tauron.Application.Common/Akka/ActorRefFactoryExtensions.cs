@@ -15,10 +15,12 @@ namespace Tauron.Akka
         public static IActorRef GetOrAdd(this IActorContext context, string? name, Props props)
         {
             var child = context.Child(name);
+
             return child.Equals(ActorRefs.Nobody) ? context.ActorOf(props, name) : child;
         }
 
-        public static IActorRef ActorOf<TActor>(this IActorRefFactory fac, Expression<Func<TActor>> creator,
+        public static IActorRef ActorOf<TActor>(
+            this IActorRefFactory fac, Expression<Func<TActor>> creator,
             string? name = null) where TActor : ActorBase => fac.ActorOf(Props.Create(creator), name);
 
         //public static IActorRef ActorOf<TActor>(this IActorRefFactory fac, string? name = null) where TActor : ActorBase

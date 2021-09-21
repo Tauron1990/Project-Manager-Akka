@@ -18,25 +18,31 @@ namespace Master.Seed.Node
         {
             //Beacon? beacon = null;
 
-            await Bootstrap.StartNode(args, KillRecpientType.Seed, IpcApplicationType.Client,
-                                ab => ab.ConfigureAkkaSystem((context, system) =>
-                                                             {
-                                                                 var cluster = Cluster.Get(system);
-                                                                 cluster.RegisterOnMemberUp(() =>
-                                                                                            {
-                                                                                                ServiceRegistry.Start(system,
-                                                                                                    new RegisterService(
-                                                                                                        context.HostingEnvironment.ApplicationName,
-                                                                                                        cluster.SelfUniqueAddress,
-                                                                                                        ServiceTypes.SeedNode));
-                                                                                            });
+            await Bootstrap.StartNode(
+                    args,
+                    KillRecpientType.Seed,
+                    IpcApplicationType.Client,
+                    ab => ab.ConfigureAkkaSystem(
+                        (context, system) =>
+                        {
+                            var cluster = Cluster.Get(system);
+                            cluster.RegisterOnMemberUp(
+                                () =>
+                                {
+                                    ServiceRegistry.Start(
+                                        system,
+                                        new RegisterService(
+                                            context.HostingEnvironment.ApplicationName,
+                                            cluster.SelfUniqueAddress,
+                                            ServiceTypes.SeedNode));
+                                });
 
-                                                                 var cmd = PetabridgeCmd.Get(system);
-                                                                 cmd.RegisterCommandPalette(ClusterCommands.Instance);
-                                                                 cmd.RegisterCommandPalette(MasterCommand.New);
-                                                                 cmd.Start();
-                                                             }))
-                           .Build().RunAsync();
+                            var cmd = PetabridgeCmd.Get(system);
+                            cmd.RegisterCommandPalette(ClusterCommands.Instance);
+                            cmd.RegisterCommandPalette(MasterCommand.New);
+                            cmd.Start();
+                        }))
+               .Build().RunAsync();
         }
     }
 }

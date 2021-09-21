@@ -127,8 +127,8 @@ namespace Tauron.Application.Wpf
             private class InternalEventLinker : IDisposable
             {
                 private static readonly MethodInfo Method = typeof(InternalEventLinker)
-                                                           .GetMethods(BindingFlags.Instance | BindingFlags.NonPublic)
-                                                           .First(m => m.Name == "Handler");
+                   .GetMethods(BindingFlags.Instance | BindingFlags.NonPublic)
+                   .First(m => m.Name == "Handler");
 
                 private static readonly ILogger InternalLog = LogManager.GetCurrentClassLogger();
 

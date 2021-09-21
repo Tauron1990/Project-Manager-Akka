@@ -16,7 +16,8 @@ namespace ServiceManager.ProjectDeployment.Actors
     public sealed class ChangeTrackerActor : ReportingActor<ChangeTrackerActor.ChangeTrackeState>
     {
         public static IPreparedFeature New()
-            => Feature.Create(() => new ChangeTrackerActor(),
+            => Feature.Create(
+                () => new ChangeTrackerActor(),
                 c =>
                 {
                     var mat = c.Materializer();
@@ -28,30 +29,35 @@ namespace ServiceManager.ProjectDeployment.Actors
                     return new ChangeTrackeState(mat, queue, hub);
                 });
 
-        public sealed record ChangeTrackeState(ActorMaterializer Materializer, ISourceQueueWithComplete<AppInfo> AppInfos, IRunnableGraph<Source<AppInfo, NotUsed>> Hub);
-
         protected override void ConfigImpl()
         {
             Stop.Subscribe(_ => CurrentState.AppInfos.Complete());
-            TryReceive<QueryAppChangeSource>("QueryChanedSource",
+            TryReceive<QueryAppChangeSource>(
+                "QueryChanedSource",
                 obs => obs.ToUnit(m => m.Reporter.Compled(OperationResult.Success(new AppChangedSource(m.State.Hub.Run(m.State.Materializer))))));
 
             Receive<AppInfo>(obs => obs.ToUnit(m => m.State.AppInfos.OfferAsync(m.Event).PipeTo(Self)));
 
-            Receive<IQueueOfferResult>(obs => obs
-                                             .Select(m => m.Event)
-                                             .SubscribeWithStatus(p =>
-                                                                  {
-                                                                      switch (p)
-                                                                      {
-                                                                          case QueueOfferResult.Failure f:
-                                                                              Log.Error(f.Cause, "Error In Change Tracker");
-                                                                              break;
-                                                                          case QueueOfferResult.QueueClosed _:
-                                                                              Log.Warning("Unexpectem Tracker Queue Close.");
-                                                                              break;
-                                                                      }
-                                                                  }));
+            Receive<IQueueOfferResult>(
+                obs => obs
+                   .Select(m => m.Event)
+                   .SubscribeWithStatus(
+                        p =>
+                        {
+                            switch (p)
+                            {
+                                case QueueOfferResult.Failure f:
+                                    Log.Error(f.Cause, "Error In Change Tracker");
+
+                                    break;
+                                case QueueOfferResult.QueueClosed _:
+                                    Log.Warning("Unexpectem Tracker Queue Close.");
+
+                                    break;
+                            }
+                        }));
         }
+
+        public sealed record ChangeTrackeState(ActorMaterializer Materializer, ISourceQueueWithComplete<AppInfo> AppInfos, IRunnableGraph<Source<AppInfo, NotUsed>> Hub);
     }
 }

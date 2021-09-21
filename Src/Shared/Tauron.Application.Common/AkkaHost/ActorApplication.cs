@@ -17,6 +17,7 @@ namespace Tauron.AkkaHost
             {
                 if (_serviceProvider is null)
                     throw new InvalidOperationException("An ServiceProvider was not set");
+
                 return _serviceProvider;
             }
             internal set => _serviceProvider = value;
@@ -28,6 +29,7 @@ namespace Tauron.AkkaHost
             {
                 if (_actorSystem is null)
                     throw new InvalidOperationException("An Actorsystem was not set");
+
                 return _actorSystem;
             }
             internal set => _actorSystem = value;
@@ -37,8 +39,10 @@ namespace Tauron.AkkaHost
 
         public static ILogger GetLogger(Type log)
             => LoggerFactory.CreateLogger(log);
-        public static ILogger<TClass> GetLogger<TClass>(TClass marker) 
+
+        public static ILogger<TClass> GetLogger<TClass>(TClass marker)
             => LoggerFactory.CreateLogger<TClass>();
+
         public static ILogger<TClass> GetLogger<TClass>()
             => LoggerFactory.CreateLogger<TClass>();
     }

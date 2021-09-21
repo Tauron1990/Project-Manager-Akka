@@ -24,16 +24,16 @@ namespace Tauron.Application.Files.Ini.Parser
                 {
                     _writer.WriteLine(string.Format(CultureInfo.InvariantCulture, "[{0}]", section.Name));
                     foreach (var iniEntry in section)
-                    {
                         if (iniEntry is SingleIniEntry(var key, var data))
+                        {
                             _writer.WriteLine(string.Format(CultureInfo.InvariantCulture, "{0}={1}", key, data));
+                        }
                         else
                         {
-                            var (name, values) = (ListIniEntry) iniEntry;
+                            var (name, values) = (ListIniEntry)iniEntry;
                             foreach (var value in values)
                                 _writer.WriteLine(string.Format(CultureInfo.InvariantCulture, "{0}={1}", name, value));
                         }
-                    }
                 }
             }
             finally

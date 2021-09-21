@@ -11,13 +11,13 @@
     {
         if (Item != null)
             Item.Callback = default;
-        
+
         return base.SetParametersAsync(parameters);
     }
 
     protected override void OnParametersSet()
     {
-        if(Item != null)
+        if (Item != null)
             Item.Callback = new EventCallback(this, new Action(StateHasChanged));
         base.OnParametersSet();
     }
@@ -27,4 +27,5 @@
         if (Item != null)
             Item.Callback = default;
     }
+
 }

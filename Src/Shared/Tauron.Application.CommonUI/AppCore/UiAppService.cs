@@ -14,9 +14,9 @@ namespace Tauron.Application.CommonUI.AppCore
     {
         private readonly ILifetimeScope _factory;
         private readonly CommonUIFramework _framework;
-        private readonly ActorSystem _system;
-        private readonly TaskCompletionSource<int> _shutdownWaiter = new();
         private readonly AtomicBoolean _shutdown = new();
+        private readonly TaskCompletionSource<int> _shutdownWaiter = new();
+        private readonly ActorSystem _system;
 
         private IUIApplication? _internalApplication;
 
@@ -31,20 +31,21 @@ namespace Tauron.Application.CommonUI.AppCore
         {
             void ShutdownApp()
             {
-                if(_shutdown.GetAndSet(newValue: true)) return;
+                if (_shutdown.GetAndSet(true)) return;
 
                 // ReSharper disable MethodSupportsCancellation
                 #pragma warning disable CA2016
-                Task.Run(async () =>
-                             #pragma warning restore CA2016
-                         {
-                             await Task.Delay(TimeSpan.FromSeconds(60));
-                             Process.GetCurrentProcess().Kill(entireProcessTree: false);
-                         })
-                    .Ignore();
+                Task.Run(
+                        async () =>
+                            #pragma warning restore CA2016
+                        {
+                            await Task.Delay(TimeSpan.FromSeconds(60));
+                            Process.GetCurrentProcess().Kill(false);
+                        })
+                   .Ignore();
                 // ReSharper restore MethodSupportsCancellation
                 _system.Terminate()
-                       .Ignore();
+                   .Ignore();
             }
 
             void Runner()
@@ -72,7 +73,7 @@ namespace Tauron.Application.CommonUI.AppCore
                                                 };
 
                 _system.RegisterOnTermination(() => _internalApplication.AppDispatcher.Post(() => _internalApplication.Shutdown(0)));
-                
+
                 _shutdownWaiter.SetResult(_internalApplication.Run());
             }
 

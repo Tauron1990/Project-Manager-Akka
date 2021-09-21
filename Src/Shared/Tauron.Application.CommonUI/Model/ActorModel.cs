@@ -43,9 +43,10 @@ namespace Tauron.Application.CommonUI.Model
             where TState : class
             => new(
                 ActionInvoker.GetState<TState>(name ?? string.Empty) ??
-                throw new ArgumentException("No such State Found"), this);
+                throw new ArgumentException("No such State Found"),
+                this);
 
-        public void DispatchAction(IStateAction action, bool? sendBack = true) 
+        public void DispatchAction(IStateAction action, bool? sendBack = true)
             => ActionInvoker.Run(action, sendBack);
 
         [PublicAPI]
@@ -60,11 +61,13 @@ namespace Tauron.Application.CommonUI.Model
                 _actor = actor;
             }
 
-            public UIStateEventConfiguration<TEvent> FromEvent<TEvent>(Func<TState, IEventSource<TEvent>> source,
+            public UIStateEventConfiguration<TEvent> FromEvent<TEvent>(
+                Func<TState, IEventSource<TEvent>> source,
                 Action<UIStateEventConfiguration<TEvent>>? configAction = null)
             {
                 var config = new UIStateEventConfiguration<TEvent>(source(_state), _actor);
                 configAction?.Invoke(config);
+
                 return config;
             }
         }

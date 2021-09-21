@@ -21,8 +21,9 @@ namespace ServiceManager.Client.ViewModels.Configuration
         {
             try
             {
-                var result = await _api.UpdateServerConfig(new UpdateServerConfiguration(serverConfigugration with {MonitorChanges = value}));
-                if(string.IsNullOrWhiteSpace(result)) return;
+                var result = await _api.UpdateServerConfig(new UpdateServerConfiguration(serverConfigugration with { MonitorChanges = value }));
+
+                if (string.IsNullOrWhiteSpace(result)) return;
 
                 _aggregator.PublishWarnig($"Fehler beim Setzen: {result}");
             }
@@ -37,6 +38,7 @@ namespace ServiceManager.Client.ViewModels.Configuration
             try
             {
                 var result = await _api.UpdateServerConfig(new UpdateServerConfiguration(serverConfigugration with { RestartServices = value }));
+
                 if (string.IsNullOrWhiteSpace(result)) return;
 
                 _aggregator.PublishWarnig($"Fehler beim Setzen: {result}");

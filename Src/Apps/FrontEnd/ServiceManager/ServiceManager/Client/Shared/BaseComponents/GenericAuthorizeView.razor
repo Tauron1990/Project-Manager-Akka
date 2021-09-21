@@ -18,6 +18,7 @@
 </AuthorizeView>
 
 @code {
+
     [Parameter]
     public string[] Claims { get; set; } = Array.Empty<string>();
 
@@ -25,5 +26,6 @@
     public RenderFragment ChildContent { get; set; } = _ => { };
 
     [Parameter]
-    public RenderFragment? NotAuthorized { get; set; } 
+    public RenderFragment? NotAuthorized { get; set; }
+
 }

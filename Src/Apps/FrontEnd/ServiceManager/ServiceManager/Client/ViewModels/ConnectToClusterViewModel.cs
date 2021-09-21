@@ -9,9 +9,16 @@ namespace ServiceManager.Client.ViewModels
 {
     public sealed class ConnectToClusterViewModel
     {
-        private readonly IServerInfo _serverInfo;
         private readonly IEventAggregator _aggregator;
+        private readonly IServerInfo _serverInfo;
         private readonly IClusterConnectionTracker _tracker;
+
+        public ConnectToClusterViewModel(IServerInfo serverInfo, IEventAggregator aggregator, IClusterConnectionTracker tracker)
+        {
+            _serverInfo = serverInfo;
+            _aggregator = aggregator;
+            _tracker = tracker;
+        }
 
         public Func<string, string?> ValidateUrl => s =>
                                                     {
@@ -31,13 +38,6 @@ namespace ServiceManager.Client.ViewModels
         public string ClusterUrl { get; set; } = string.Empty;
 
         public IOperationManager Operation { get; } = new OperationManager();
-
-        public ConnectToClusterViewModel(IServerInfo serverInfo, IEventAggregator aggregator, IClusterConnectionTracker tracker)
-        {
-            _serverInfo = serverInfo;
-            _aggregator = aggregator;
-            _tracker = tracker;
-        }
 
         public async Task ConnectToCluster()
         {

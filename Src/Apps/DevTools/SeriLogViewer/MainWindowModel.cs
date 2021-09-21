@@ -36,6 +36,7 @@ namespace SeriLogViewer
             set
             {
                 if (Equals(value, _entrys)) return;
+
                 _entrys = value;
                 OnPropertyChanged();
             }
@@ -46,6 +47,7 @@ namespace SeriLogViewer
         private void TryLoad()
         {
             var diag = new VistaOpenFileDialog();
+
             if (diag.ShowDialog(Application.Current.MainWindow) != true) return;
 
             #pragma warning disable EPC13
@@ -73,13 +75,14 @@ namespace SeriLogViewer
                     entrys.Add(target);
                 }
 
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    foreach (dynamic entry in entrys) Entrys.Add(entry);
+                Application.Current.Dispatcher.Invoke(
+                    () =>
+                    {
+                        foreach (dynamic entry in entrys) Entrys.Add(entry);
 
-                    _grid.GridColumnSizer.ResetAutoCalculationforAllColumns();
-                    _grid.GridColumnSizer.Refresh();
-                });
+                        _grid.GridColumnSizer.ResetAutoCalculationforAllColumns();
+                        _grid.GridColumnSizer.Refresh();
+                    });
             }
             catch (Exception e)
             {
@@ -121,6 +124,7 @@ namespace SeriLogViewer
                 if (isIn && target[i] == '}')
                 {
                     isIn = false;
+
                     yield return target[start..(i + 1)];
                 }
                 else if (!isIn && msg[i] == '{')

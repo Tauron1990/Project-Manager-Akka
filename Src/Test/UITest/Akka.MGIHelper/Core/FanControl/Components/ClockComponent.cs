@@ -36,9 +36,11 @@ namespace Akka.MGIHelper.Core.FanControl.Components
             {
                 case ClockState.Start:
                     _timer.Change(_options.ClockTimeMs, -1);
+
                     break;
                 case ClockState.Stop:
                     _timer.Change(-1, -1);
+
                     break;
                 default:
                     throw new InvalidCastException("Invalid Clockstate Provided");
@@ -63,7 +65,7 @@ namespace Akka.MGIHelper.Core.FanControl.Components
                 #pragma warning restore ERP022
                 finally
                 {
-                    if (_clockState == ClockState.Start) 
+                    if (_clockState == ClockState.Start)
                         _timer.Change(_options.ClockTimeMs, -1);
                 }
             }

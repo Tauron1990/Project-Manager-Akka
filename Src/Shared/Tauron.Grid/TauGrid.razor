@@ -1,9 +1,8 @@
-﻿@using MudBlazor.Utilities
-@using Tauron.Grid.Internal
+﻿@using Tauron.Grid.Internal
+@using MudBlazor.Utilities
 @using System.Collections.Immutable
-
 <CascadingValue Value="this">
-    
+
     @if (!_isSet)
     {
         @Rows
@@ -90,11 +89,11 @@
 
         _style = IsInline ? StyleBuilder.Default("display", "inline-grid") : StyleBuilder.Default("display", "grid");
         _style = _style.AddStyle(Style)
-                       .AddStyle("row-gap", RowGap).AddStyle("column-gap", ColumnGap)
-                       .AddStyle("justify-items", JustifyItems).AddStyle("align-items", AlignItems).AddStyle("place-items", PlaceItems)
-                       .AddStyle("justify-content", JustifyContent).AddStyle("align-content", AlignContent).AddStyle("place-content", PlaceContent)
-                       .AddStyle("grid-auto-columns", AutoColumns).AddStyle("grid-auto-rows", AutoRows)
-                       .AddStyle("grid-auto-flow", AutoFlow);
+            .AddStyle("row-gap", RowGap).AddStyle("column-gap", ColumnGap)
+            .AddStyle("justify-items", JustifyItems).AddStyle("align-items", AlignItems).AddStyle("place-items", PlaceItems)
+            .AddStyle("justify-content", JustifyContent).AddStyle("align-content", AlignContent).AddStyle("place-content", PlaceContent)
+            .AddStyle("grid-auto-columns", AutoColumns).AddStyle("grid-auto-rows", AutoRows)
+            .AddStyle("grid-auto-flow", AutoFlow);
 
         _class = CssBuilder.Empty().AddClass(Class);
 
@@ -103,7 +102,8 @@
 
     protected override void OnAfterRender(bool firstRender)
     {
-        if(_isSet) return;
+        if (_isSet) return;
+
         _isSet = true;
 
         _style = _definitions.GroupBy(d => d.PropertyName)
@@ -118,14 +118,16 @@
 
     internal void RegisterTemplate(GridTemplateRow row)
     {
-        if(_isSet) return;
+        if (_isSet) return;
+
         _templateRows = _templateRows.Add(row);
     }
 
     internal void RegisterDefinition(DefinitionBase definition)
     {
-        if(_isSet) return;
+        if (_isSet) return;
 
         _definitions = _definitions.Add(definition);
     }
+
 }

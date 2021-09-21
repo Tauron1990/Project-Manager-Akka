@@ -8,10 +8,8 @@ namespace Tauron.Application.Files.Ini
     public sealed record ListIniEntry(string Key, ImmutableList<string> Values) : IniEntry(Key)
     {
         public ListIniEntry(SingleIniEntry entry)
-            : this(entry.Key, ImmutableList<string>.Empty.Add(entry.Value ?? string.Empty))
-        {}
+            : this(entry.Key, ImmutableList<string>.Empty.Add(entry.Value ?? string.Empty)) { }
 
-        public ListIniEntry(string key, IEnumerable<string> values) : this(key, ImmutableList<string>.Empty.AddRange(values))
-        { }
+        public ListIniEntry(string key, IEnumerable<string> values) : this(key, ImmutableList<string>.Empty.AddRange(values)) { }
     }
 }

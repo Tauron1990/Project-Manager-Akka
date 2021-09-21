@@ -25,16 +25,17 @@ namespace Tauron.Localization.Extension
         {
             var hook = EventActor.CreateSelfKilling(_system, null);
             hook.Register(HookEvent.Create<LocCoordinator.ResponseLocValue>(res => valueResponse(res.Result))).Ignore();
-            hook.Send(_extension.LocCoordinator,
+            hook.Send(
+                _extension.LocCoordinator,
                 new LocCoordinator.RequestLocValue(name, info ?? CultureInfo.CurrentUICulture));
         }
 
         #pragma warning disable AV1551
-        public Option<object> Request(string name, CultureInfo? info = null) 
+        public Option<object> Request(string name, CultureInfo? info = null)
             #pragma warning restore AV1551
             => _extension.LocCoordinator
-                         .Ask<LocCoordinator.ResponseLocValue>(new LocCoordinator.RequestLocValue(name, info ?? CultureInfo.CurrentUICulture))
-                         .Result.Result;
+               .Ask<LocCoordinator.ResponseLocValue>(new LocCoordinator.RequestLocValue(name, info ?? CultureInfo.CurrentUICulture))
+               .Result.Result;
 
         #pragma warning disable AV1755
         public async Task<Option<object>> RequestTask(string name, CultureInfo? info = null)
@@ -46,7 +47,7 @@ namespace Tauron.Localization.Extension
             #pragma warning restore AV1551
             => Request(name, info).Select(value => value.ToString() ?? string.Empty);
 
-        public void RequestString(string name, Action<Option<string>> valueResponse, CultureInfo? info = null) 
+        public void RequestString(string name, Action<Option<string>> valueResponse, CultureInfo? info = null)
             => Request(name, option => valueResponse(option.Select(oo => oo.ToString() ?? string.Empty)), info);
     }
 }

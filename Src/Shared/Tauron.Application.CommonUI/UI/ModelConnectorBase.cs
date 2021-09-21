@@ -15,9 +15,9 @@ namespace Tauron.Application.CommonUI.UI
     public abstract class ModelConnectorBase<TDrived>
     {
         protected readonly ILogger Log = LogManager.GetCurrentClassLogger(typeof(TDrived));
+        private CompositeDisposable _disposable = new();
 
         private IEventActor? _eventActor;
-        private CompositeDisposable _disposable = new();
 
         private int _isInitializing = 1;
 
@@ -25,36 +25,38 @@ namespace Tauron.Application.CommonUI.UI
         {
             Name = name;
 
-            promise.OnUnload(() =>
-                             {
-                                 _disposable.Dispose();
-                                 OnUnload();
-                             });
+            promise.OnUnload(
+                () =>
+                {
+                    _disposable.Dispose();
+                    OnUnload();
+                });
 
             promise.OnNoContext(NoDataContextFound);
 
             promise
-                .OnContext((model, view) =>
-                {
-                    View = view;
-                    Model = model;
+               .OnContext(
+                    (model, view) =>
+                    {
+                        View = view;
+                        Model = model;
 
-                    if (model.IsInitialized)
-                    {
-                        Task.Run(async () => await InitAsync())
-                            .Ignore();
-                    }
-                    else
-                    {
-                        void OnModelOnInitialized()
+                        if (model.IsInitialized)
                         {
                             Task.Run(async () => await InitAsync())
-                                .Ignore();
+                               .Ignore();
                         }
+                        else
+                        {
+                            void OnModelOnInitialized()
+                            {
+                                Task.Run(async () => await InitAsync())
+                                   .Ignore();
+                            }
 
-                        model.AwaitInit(OnModelOnInitialized);
-                    }
-                });
+                            model.AwaitInit(OnModelOnInitialized);
+                        }
+                    });
         }
 
         protected string Name { get; }
@@ -71,6 +73,7 @@ namespace Tauron.Application.CommonUI.UI
                 Log.Debug("Init ModelConnector {Type} -- {Name}", typeof(TDrived), Name);
 
                 if (Model == null) return;
+
                 OnLoad();
 
                 //Log.Information("Ask For {Property}", _name);
@@ -91,13 +94,13 @@ namespace Tauron.Application.CommonUI.UI
             }
         }
 
-        protected virtual void OnUnload() 
+        protected virtual void OnUnload()
             => Log.Debug("Unload ModelConnector {Type} -- {Name}", typeof(TDrived), Name);
 
-        protected virtual void OnLoad() 
+        protected virtual void OnLoad()
             => Log.Debug("Load ModelConnector {Type} -- {Name}", typeof(TDrived), Name);
 
-        protected virtual void OnViewFound(IView view) 
+        protected virtual void OnViewFound(IView view)
             => Log.Debug("View Found ModelConnector {Type} -- {Name}", typeof(TDrived), Name);
 
         public void ForceUnload()

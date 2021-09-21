@@ -13,7 +13,7 @@ namespace Tauron.Application.Files.VirtualFiles.InMemory
         private readonly DataDirectory _dic;
         private readonly InMemoryDirectory? _parentDirectory;
 
-        public InMemoryDirectory(InMemoryDirectory? parentDirectory, string originalPath, string name, DataDirectory dic) 
+        public InMemoryDirectory(InMemoryDirectory? parentDirectory, string originalPath, string name, DataDirectory dic)
             : base(() => parentDirectory, originalPath, name)
         {
             _parentDirectory = parentDirectory;
@@ -67,6 +67,7 @@ namespace Tauron.Application.Files.VirtualFiles.InMemory
         internal void Remove(DataFile? file)
         {
             if (file == null) return;
+
             _dic.Files.Remove(file);
         }
 

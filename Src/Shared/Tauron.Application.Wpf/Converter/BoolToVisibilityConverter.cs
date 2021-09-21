@@ -77,12 +77,15 @@ namespace Tauron.Application.Wpf.Converter
                     case Visibility.Collapsed:
                     case Visibility.Hidden:
                         result = false;
+
                         break;
                     case Visibility.Visible:
                         result = true;
+
                         break;
                     default:
                         result = false;
+
                         break;
                 }
 

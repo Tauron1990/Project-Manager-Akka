@@ -8,7 +8,5 @@ namespace Tauron.Application.Workshop.StateManagement.Attributes
     [MeansImplicitUse]
     [BaseTypeRequired(typeof(AdvancedDataSourceFactory))]
     [AttributeUsage(AttributeTargets.Class)]
-    public sealed class DataSourceAttribute : Attribute
-    {
-    }
+    public sealed class DataSourceAttribute : Attribute { }
 }

@@ -12,31 +12,41 @@ namespace Akkatecture.Extensions
         public static object? GetPropertyValue(this object data, string name)
         {
             var key = new CacheKey(name, data.GetType());
-            return Propertys.GetOrAdd(key, cacheKey =>
-            {
-                var fac = FastReflection.Shared.GetPropertyAccessor(cacheKey.Type.GetProperty(cacheKey.Name) 
-                                                                 ?? throw new ArgumentNullException(nameof(name), "Property not Found"), Array.Empty<Type>);
 
-                if (fac is null)
-                    throw new InvalidOperationException("no Factory Created");
+            return Propertys.GetOrAdd(
+                key,
+                cacheKey =>
+                {
+                    var fac = FastReflection.Shared.GetPropertyAccessor(
+                        cacheKey.Type.GetProperty(cacheKey.Name)
+                     ?? throw new ArgumentNullException(nameof(name), "Property not Found"),
+                        Array.Empty<Type>);
 
-                return fac;
-            })(data, Array.Empty<object>());
+                    if (fac is null)
+                        throw new InvalidOperationException("no Factory Created");
+
+                    return fac;
+                })(data, Array.Empty<object>());
         }
 
         public static TReturn GetPropertyValue<TReturn>(this object data, string name)
         {
             var key = new CacheKey(name, data.GetType());
-            return (TReturn) Propertys.GetOrAdd(key, cacheKey =>
-            {
-                var fac = FastReflection.Shared.GetPropertyAccessor(cacheKey.Type.GetProperty(cacheKey.Name) 
-                                                                 ?? throw new ArgumentNullException(nameof(name), "Property not Found"), Array.Empty<Type>);
 
-                if (fac is null)
-                    throw new InvalidOperationException("no Factory Created");
+            return (TReturn)Propertys.GetOrAdd(
+                key,
+                cacheKey =>
+                {
+                    var fac = FastReflection.Shared.GetPropertyAccessor(
+                        cacheKey.Type.GetProperty(cacheKey.Name)
+                     ?? throw new ArgumentNullException(nameof(name), "Property not Found"),
+                        Array.Empty<Type>);
 
-                return fac;
-            })(data, Array.Empty<object>())!;
+                    if (fac is null)
+                        throw new InvalidOperationException("no Factory Created");
+
+                    return fac;
+                })(data, Array.Empty<object>())!;
         }
 
         private sealed class CacheKey : IEquatable<CacheKey>
@@ -55,6 +65,7 @@ namespace Akkatecture.Extensions
             {
                 if (other is null) return false;
                 if (ReferenceEquals(this, other)) return true;
+
                 return Name == other.Name && Type == other.Type;
             }
 

@@ -11,18 +11,18 @@ namespace Akka.MGIHelper.Core.FanControl.Components
 {
     public sealed class DataFetchComponent : IHandler<TickEvent>, IDisposable
     {
-        private static readonly Dictionary<string, State> StatesMapping = new Dictionary<string, State>
-        {
-            {"Idle".ToLower(), State.Idle},
-            {"Ready".ToLower(), State.Ready},
-            {"Ignition".ToLower(), State.Ignition},
-            {"Start_up".ToLower(), State.StartUp},
-            {"Stand_by".ToLower(), State.StandBy},
-            {"Power".ToLower(), State.Power},
-            {"Cool_down".ToLower(), State.Cooldown},
-            {"Test_run".ToLower(), State.TestRun},
-            {"Error".ToLower(), State.Error}
-        };
+        private static readonly Dictionary<string, State> StatesMapping = new()
+                                                                          {
+                                                                              { "Idle".ToLower(), State.Idle },
+                                                                              { "Ready".ToLower(), State.Ready },
+                                                                              { "Ignition".ToLower(), State.Ignition },
+                                                                              { "Start_up".ToLower(), State.StartUp },
+                                                                              { "Stand_by".ToLower(), State.StandBy },
+                                                                              { "Power".ToLower(), State.Power },
+                                                                              { "Cool_down".ToLower(), State.Cooldown },
+                                                                              { "Test_run".ToLower(), State.TestRun },
+                                                                              { "Error".ToLower(), State.Error }
+                                                                          };
 
         private readonly FanControlOptions _options;
 
@@ -40,7 +40,7 @@ namespace Akka.MGIHelper.Core.FanControl.Components
 
                 var elements = trackingString.Split("&");
 
-                var pairs = elements.Select(s => s.Split("=")).Select(ele => new ValuePair {Name = ele[0], Value = ele[1]}).ToArray();
+                var pairs = elements.Select(s => s.Split("=")).Select(ele => new ValuePair { Name = ele[0], Value = ele[1] }).ToArray();
 
                 var power = int.Parse(pairs.First(p => p.Name.ToLower() == "power").Value);
                 var state = StatesMapping[pairs.First(p => p.Name.ToLower() == "sysstate").Value.ToLower()];

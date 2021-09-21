@@ -10,7 +10,8 @@ using Tauron.Application.Master.Commands.Deployment.Build.Data;
 
 namespace ServiceManager.Server.Controllers
 {
-    [ApiController, JsonifyErrors]
+    [ApiController]
+    [JsonifyErrors]
     [Authorize(Claims.AppMenegmentClaim)]
     [Route(ControllerName.AppManagment + "/[action]")]
     public class AppMenementController : Controller, IAppManagment
@@ -20,15 +21,19 @@ namespace ServiceManager.Server.Controllers
         public AppMenementController(IAppManagment appManagment)
             => _appManagment = appManagment;
 
-        [HttpGet, Publish, AllowAnonymous]
+        [HttpGet]
+        [Publish]
+        [AllowAnonymous]
         public Task<NeedSetupData> NeedBasicApps(CancellationToken token)
             => _appManagment.NeedBasicApps(token);
 
-        [HttpGet, Publish]
+        [HttpGet]
+        [Publish]
         public Task<AppList> QueryAllApps(CancellationToken token)
             => _appManagment.QueryAllApps(token);
 
-        [HttpGet, Publish]
+        [HttpGet]
+        [Publish]
         public Task<AppInfo> QueryApp([FromQuery] string name, CancellationToken token)
             => _appManagment.QueryApp(name, token);
 
@@ -37,11 +42,11 @@ namespace ServiceManager.Server.Controllers
             => _appManagment.CreateNewApp(command, token);
 
         [HttpPost]
-        public Task<string> DeleteAppCommand([FromBody]ApiDeleteAppCommand command, CancellationToken token)
+        public Task<string> DeleteAppCommand([FromBody] ApiDeleteAppCommand command, CancellationToken token)
             => _appManagment.DeleteAppCommand(command, token);
 
         [HttpPost]
-        public Task<RunAppSetupResponse> RunAppSetup([FromBody]RunAppSetupCommand command, CancellationToken token)
+        public Task<RunAppSetupResponse> RunAppSetup([FromBody] RunAppSetupCommand command, CancellationToken token)
             => _appManagment.RunAppSetup(command, token);
     }
 }

@@ -1,6 +1,4 @@
-﻿using System.Collections.Immutable;
-
-namespace ServiceManager.Shared.Identity
+﻿namespace ServiceManager.Shared.Identity
 {
     public sealed record UserData(string Id, string Name, int Claims);
 

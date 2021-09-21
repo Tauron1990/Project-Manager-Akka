@@ -1,17 +1,14 @@
 {
   "CorrectSpellingError": "Alle Ignorieren",
-
   "Common_Error": "Fehler",
   "Common_Warnig": "Warnung",
   "Common_Unkowen": "Unbekannt",
   "Common_Cancel": "Abbrechen",
   "Common_OK": "OK",
   "Common_Copy": "Kopieren",
-
   "MainWindow_Title": "Lokalisierungs App",
   "MainWindow_Close_Warning": "Projekt nicht gespeichert. Trotzdem beenden!",
   "MainWindow_ProjectContainer_Header": "Projekte",
-
   "MainWindow_MainMenu_File": "Datei",
   "MainWindow_MainMenu_File_Open": "Öffnen",
   "MainWindow_MainMenu_File_New": "Neu",
@@ -19,22 +16,18 @@
   "MainWindow_MainMwnu_RenctFile": "Zuletzt Geöffnet",
   "MainWindow_MainMenu_View": "Ansicht",
   "MainWindow_MainMenu_Reset": "Ansicht Reset",
-
   "MainWindow_Operations_Label": "Aufgaben",
   "MainWindow_Operation_Tabs_Label_Logs": "Log Einträge",
   "MainWindow_Operation_Tabs_Label_Ops": "Aufgaben",
   "MainWindow_Operation_Delete": "Löschen",
   "MainWindow_Operation_Delete_All": "Alles Löschen",
-
   "MainWindow_Analyzer_Header": "Analyse",
   "MainWindow_Analyzer_RuleName": "Regel",
   "MainWindow_Analyzer_Issue": "Warnung Type",
   "MainWindow_Analyzer_Project": "Projekt Name",
   "MainWindow_Analyzer_IssueDescription": "Fehler Beschreibung",
-
   "MainWindow_Analyer_Rule_Source": "Die Quell Datei existiert nicht",
   "MainWindow_Analyer_Rule_Source_Name": "Datei Fehler",
-
   "MainWindow_Build_Meader": "Exportieren",
   "MainWindow_Build_ImportIntigration_Label": "Importierte Projekte Exportieren",
   "MainWindow_Build_Project_GroupBox": "Projekte",
@@ -43,17 +36,14 @@
   "MainWindow_BuildProject_FolderBrowser_Description": "Ausgabe Pfad",
   "MainWindow_BuildProject_Search_Label": "Suche",
   "MainWindow_Build_Start_Label": "Exportieren",
-
   "MainWindowodel_BuildProject_Operation": "Eportiere Projekte",
   "MainWindow_BuildProject_GatherData": "Daten werden Gesammelt",
   "MainWindow_Buildproject_NoData": "Keine Daten Gefunden",
   "MainWindow_BuildProject_GenerateLangFile": "Json wird Generiert",
   "MainWindow_BuildProject_GenerateCsFile": "Generire C# Code",
   "MainWindow_BuildProject_AgentCompled": "Fertig",
-
   "MainWindowModel_LoadProject_Operation": "Lade Projekt {0}",
   "MainWindowModel_LoadProject_SourceEmpty": "Keine Projekt Datei Eingegeben",
-
   "CenterView_SaveProject_Operation": "Projekt Gespeichert: {0}",
   "CenterView_NewProject": "Neues Projekt",
   "CenterView_RemoveProject": "Projekt Entfernen",
@@ -61,16 +51,13 @@
   "CenterView_RemoveProjectDialog_Message": "Möchten sie das Projekt entfernen",
   "CenterView_NewProject_InvalidName_Message": "Der Name des Projekt enthält falsche Zeichen.",
   "CenterView_AddGlobalLanguage_Label": "Sprache zu Alle",
-
   "NewProjectDialogView_Header": "Neues Projekt",
   "NewProjectDialogView_Name_Lable": "Name: ",
   "NewprojectDialogView_Create_Button": "Erstellen",
   "NewProjectDialogView_Error_Duplicate": "Name Doppelt vorhanden",
-
   "OperationController_Success": "Erfolgreich",
   "OperationController_Failed": "Unbekannter Fehler",
   "OperationController_Running": "Laufend",
-
   "OpenFileDialogView_Header": "Projekt Datei Wählen",
   "OpenFileDialogView_Header_NewPrefix": " (Neu)",
   "OpenFileDialogView_Selector_Label": "Pfad:",
@@ -78,21 +65,17 @@
   "OpenFileDialogView_OkButton_Label": "Öffnen",
   "OpenFileDialogView_Dialog_Filter": "Alles|*.*|Trans Prjekt|*.transp",
   "OpenFileDialogView_Dialog_Title": "Projekt Wählen",
-
   "LanguageSelectorDialogView_Title": "Sprache Wählen",
   "LanguageSelectorDialogView_Select_Button": "Auswählen",
-
   "ProjectView_LanguageBox_FirstLabel": "Sprachen",
   "ProjectView_Button_AddLanguage_Label": "Neue Sprache",
   "ProjectView_Button_AddImport_Label": "Hinzufügen",
   "ProjectView_Button_RemoveImport_Label": "Entfernen",
   "ProjectView_Import_Label": "Importierte Projekte:",
   "ProjectView_NewEntry_Label": "Neuer Eintrag",
-
   "ImportProjectDialogView_Button_Add": "Hinzufügen",
   "ImportProjectDialogView_Title": "Projekt Importieren",
   "ImportProjectDialogView_Button_Cancel": "Abbrechen",
-
   "NewEntryDialogView_Title_Label": "Neuer Eintrag:",
   "NewEntryDialogView_Name_Label": "Name:",
   "NewEntryDialogView_Create_Button": "Erstellen",

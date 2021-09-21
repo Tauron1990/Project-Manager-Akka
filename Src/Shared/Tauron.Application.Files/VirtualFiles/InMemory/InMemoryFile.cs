@@ -23,7 +23,9 @@ namespace Tauron.Application.Files.VirtualFiles.InMemory
             set
             {
                 var data = InfoObject;
+
                 if (data == null) return;
+
                 data.Name = Path.ChangeExtension(data.Name, value);
 
                 Name = data.Name;
@@ -44,6 +46,7 @@ namespace Tauron.Application.Files.VirtualFiles.InMemory
         protected override Stream CreateStream(FileAccess access, InternalFileMode mode)
         {
             var data = InfoObject;
+
             if (data == null)
                 throw new InvalidOperationException("");
 

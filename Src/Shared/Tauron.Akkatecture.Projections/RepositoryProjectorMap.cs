@@ -20,17 +20,18 @@ namespace Tauron.Akkatecture.Projections
         {
             _repository = repository;
             ProjectorMap = new ProjectorMap<TProjection, TIdentity, ProjectionContext>
-            {
-                Create = Create,
-                Delete = Delete,
-                Update = Update,
-                Custom = Custom
-            };
+                           {
+                               Create = Create,
+                               Delete = Delete,
+                               Update = Update,
+                               Custom = Custom
+                           };
         }
 
         protected virtual Task Custom(ProjectionContext context, Func<Task> projector) => projector();
 
-        protected virtual async Task Update(TIdentity key, ProjectionContext context, Func<TProjection, Task> projector,
+        protected virtual async Task Update(
+            TIdentity key, ProjectionContext context, Func<TProjection, Task> projector,
             Func<bool> createifmissing)
         {
             var data = await _repository.Get<TProjection, TIdentity>(context, key);
@@ -49,7 +50,8 @@ namespace Tauron.Akkatecture.Projections
         protected virtual Task<bool> Delete(TIdentity key, ProjectionContext context)
             => _repository.Delete(context, key);
 
-        protected virtual async Task Create(TIdentity key, ProjectionContext context, Func<TProjection, Task> projector,
+        protected virtual async Task Create(
+            TIdentity key, ProjectionContext context, Func<TProjection, Task> projector,
             Func<TProjection, bool> shouldoverwite)
         {
             await projector(await _repository.Create(context, key, shouldoverwite));

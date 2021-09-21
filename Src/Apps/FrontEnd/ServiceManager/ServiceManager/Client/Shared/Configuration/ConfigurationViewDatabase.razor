@@ -1,11 +1,8 @@
-﻿@using ServiceManager.Shared.ServiceDeamon
-@using Stl.Fusion
-@using Microsoft.Extensions.DependencyInjection
-@using ServiceManager.Client.ViewModels.Configuration
+﻿@using Tauron
 @using ServiceManager.Shared.ClusterTracking
-@using ServiceManager.Shared.Identity
-@using Tauron
-
+@using ServiceManager.Shared.ServiceDeamon
+@using ServiceManager.Client.ViewModels.Configuration
+@using Microsoft.Extensions.DependencyInjection
 @inherits ComputedStateComponent<(string Url, bool IsSelf)>
 
 @inject IClusterConnectionTracker _tracker;
@@ -55,13 +52,13 @@
         base.OnInitialized();
     }
 
-    private void EnterUrl(string url) 
+    private void EnterUrl(string url)
         => _model = _model with{ DatabaseUrl = url};
 
     private async Task TryFetchDatabseUrl()
     {
         var (model, success) = await _model.TryFetchDatabseUrl();
-        if(!success) return;
+        if (!success) return;
 
         _model = model;
         await InvokeAsync(StateHasChanged);
@@ -83,8 +80,9 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if(_databseFieldString != null)
+        if (_databseFieldString != null)
             await _databseFieldString.Validate();
         await base.OnAfterRenderAsync(firstRender);
     }
+
 }

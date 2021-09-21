@@ -1,16 +1,8 @@
-﻿@using ServiceHost.Client.Shared.ConfigurationServer.Data
-@using System.Reflection
-@using Akka.Util.Internal
-@using Autofac.Features.OwnedInstances
-@using Tauron
-@using System.Collections.Immutable
-@using Microsoft.Extensions.DependencyInjection
-@using ServiceManager.Client.Shared.Configuration.ConditionEditor
-@using ServiceManager.Client.ViewModels.Configuration
-@using ServiceManager.Shared.ServiceDeamon
-@using Stl.Fusion
+﻿@using System.Collections.Immutable
 @using Tauron.Application
-
+@using ServiceManager.Shared.ServiceDeamon
+@using ServiceManager.Client.ViewModels.Configuration
+@using ServiceManager.Client.Shared.Configuration.ConditionEditor
 @inherits MixedStateComponent<AppConfigViewData, ServiceManager.Client.ViewModels.Configuration.AppConfigData>
 
 @inject IDialogService _service
@@ -18,6 +10,7 @@
 @inject IServerConfigurationApi _api
 
 @{
+    // ReSharper disable once ConstantNullCoalescingCondition
     var (configs, (newModel, toEdit)) = State.LatestNonErrorValue ?? new AppConfigViewData(ImmutableList<AppConfigModel>.Empty, new AppConfigData());
     if (newModel != null)
         configs = configs.Add(newModel);
@@ -51,7 +44,7 @@
                 <div class="flex-row flex-grow-0 order-2 ma-3">
                     <ConfigurationOptionsView OptionSelectedEvent="o => toEdit.OptionSelected(o, StateHasChanged)"/>
                 </div>
-            </MudContainer>            
+            </MudContainer>
         </MudTabPanel>
         <MudTabPanel Text="Bedingungen">
             <ConfigurationViewAppConfigConditionEdit Model="_model" ToEdit="toEdit" State="_editorState"/>
@@ -78,24 +71,30 @@ else
         </ColGroup>
         <HeaderContent>
             <MudTh></MudTh>
-            <MudTh><MudTableSortLabel Enabled="true" SortBy="new Func<AppConfigModel, object>(SelectIdKey)">Id</MudTableSortLabel></MudTh>
-            <MudTh><MudTableSortLabel SortBy="new Func<AppConfigModel, object>(SelectInfoKey)">Info</MudTableSortLabel></MudTh>
+            <MudTh>
+                <MudTableSortLabel Enabled="true" SortBy="new Func<AppConfigModel, object>(SelectIdKey)">Id</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<AppConfigModel, object>(SelectInfoKey)">Info</MudTableSortLabel>
+            </MudTh>
             <MudTh>Konfiguration</MudTh>
             <MudTh>Bedingungen</MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd><SelectionMarker Item="@context"/></MudTd>
-            <MudTd DataLabel="Id">@context!.Config.Id</MudTd>
-            <MudTd DataLabel="Info">@context!.Config.Info</MudTd>
-            <MudTd DataLabel="Konfiguration">@context!.Config.ConfigContent</MudTd>
-            <MudTd DataLabel="Bedingungen">@context!.Config.Conditions.Count</MudTd>
+            <MudTd>
+                <SelectionMarker Item="@context"/>
+            </MudTd>
+            <MudTd DataLabel="Id">@context.Config.Id</MudTd>
+            <MudTd DataLabel="Info">@context.Config.Info</MudTd>
+            <MudTd DataLabel="Konfiguration">@context.Config.ConfigContent</MudTd>
+            <MudTd DataLabel="Bedingungen">@context.Config.Conditions.Count</MudTd>
         </RowTemplate>
     </MudTable>
 }
 
 @code {
 
-    protected override async Task<AppConfigViewData> ComputeState(CancellationToken cancellationToken) 
+    protected override async Task<AppConfigViewData> ComputeState(CancellationToken cancellationToken)
         => new((await _api.QueryAppConfig()).Select(d => new AppConfigModel(d, _aggregator)).ToImmutableList(), MutableState.Value);
 
     protected override void OnInitialized()
@@ -136,6 +135,7 @@ else
 
     private void SaveConditions()
     {
+    // ReSharper disable once ConstantConditionalAccessQualifier
         var model = State.LatestNonErrorValue?.ViewState.ToEdit;
         if (model != null)
             _editorState.CommitChanges(model, _aggregator);

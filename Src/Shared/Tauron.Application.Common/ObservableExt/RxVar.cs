@@ -30,7 +30,7 @@ namespace Tauron.ObservableExt
         public T Value
         {
             get => _subject.Value;
-            set => ((IObserver<T>) this).OnNext(value);
+            set => ((IObserver<T>)this).OnNext(value);
         }
 
         public int CompareTo(T? other) => _comparer.Compare(Value, other);
@@ -63,6 +63,7 @@ namespace Tauron.ObservableExt
         public override int GetHashCode()
         {
             var val = Value;
+
             return val == null ? 0 : _equalityComparer.GetHashCode(val);
         }
 
@@ -129,6 +130,7 @@ namespace Tauron.ObservableExt
         public override int GetHashCode()
         {
             var val = Value;
+
             return val == null ? 0 : _equalityComparer.GetHashCode(val);
         }
 
@@ -160,7 +162,9 @@ namespace Tauron.ObservableExt
         public override string ToString() => Value?.ToString() ?? "<null>";
 
         #pragma warning disable AV2407
+
         #region IConvertible
+
         #pragma warning restore AV2407
 
         public TypeCode GetTypeCode() => TypeCode.Object;

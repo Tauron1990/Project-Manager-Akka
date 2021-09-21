@@ -25,9 +25,7 @@ namespace Tauron.Application.Avalonia
         public static readonly AttachedProperty<string> EventsProperty =
             AvaloniaProperty.RegisterAttached<EventBinder, Control, string>("Events");
 
-        private EventBinder()
-        {
-        }
+        private EventBinder() { }
 
         public static string GetEvents(Control obj) => obj.GetValue(EventsProperty);
 
@@ -45,10 +43,10 @@ namespace Tauron.Application.Avalonia
             rootOption.Run(
                 root => BindInternal(oldValue, newValue, root, ele),
                 () => ControlBindLogic.MakeLazy((IUIElement)ele, newValue, oldValue, BindInternal));
-
         }
 
-        private static void BindInternal(string? oldValue, string? newValue, IBinderControllable binder,
+        private static void BindInternal(
+            string? oldValue, string? newValue, IBinderControllable binder,
             IUIObject affectedPart)
         {
             if (oldValue is not null)
@@ -56,7 +54,7 @@ namespace Tauron.Application.Avalonia
 
             if (newValue is null) return;
 
-            binder.Register(EventBinderPrefix + newValue, new EventLinker {Commands = newValue}, affectedPart);
+            binder.Register(EventBinderPrefix + newValue, new EventLinker { Commands = newValue }, affectedPart);
         }
 
         private sealed class EventLinker : ControlBindableBase
@@ -97,6 +95,7 @@ namespace Tauron.Application.Avalonia
                 }
 
                 var host = AffectedObject;
+
                 if (context is not IViewModel dataContext) return;
 
                 var hostType = host.GetType();
@@ -107,6 +106,7 @@ namespace Tauron.Application.Avalonia
                     if (info == null)
                     {
                         Log.Error("EventBinder: No event Found: {HostType}|{Key}", hostType, @event);
+
                         return;
                     }
 
@@ -118,8 +118,8 @@ namespace Tauron.Application.Avalonia
             private class InternalEventLinker : IDisposable
             {
                 private static readonly MethodInfo Method = typeof(InternalEventLinker)
-                    .GetMethods(BindingFlags.Instance | BindingFlags.NonPublic)
-                    .First(m => m.Name == "Handler");
+                   .GetMethods(BindingFlags.Instance | BindingFlags.NonPublic)
+                   .First(m => m.Name == "Handler");
 
                 private static readonly ILogger InternalLog = LogManager.GetCurrentClassLogger();
 
@@ -132,7 +132,8 @@ namespace Tauron.Application.Avalonia
                 private Delegate? _delegate;
                 private bool _isDirty;
 
-                internal InternalEventLinker(EventInfo? @event, IViewModel dataContext, string targetName,
+                internal InternalEventLinker(
+                    EventInfo? @event, IViewModel dataContext, string targetName,
                     IUIObject? host)
                 {
                     _isDirty = @event == null;
@@ -172,6 +173,7 @@ namespace Tauron.Application.Avalonia
                     if (!_isDirty && !EnsureCommandStade())
                     {
                         Dispose();
+
                         return;
                     }
 
@@ -192,6 +194,7 @@ namespace Tauron.Application.Avalonia
                     if (_isDirty || _event == null) return;
 
                     var eventTyp = _event?.EventHandlerType;
+
                     if (_host == null || eventTyp == null) return;
 
                     _delegate = Delegate.CreateDelegate(eventTyp, this, Method);

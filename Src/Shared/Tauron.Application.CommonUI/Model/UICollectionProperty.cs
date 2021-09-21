@@ -72,7 +72,7 @@ namespace Tauron.Application.CommonUI.Model
         public int Count => _collection?.Count ?? -1;
 
         public IEnumerator<TData> GetEnumerator()
-            => _collection?.GetEnumerator() ?? (IEnumerator<TData>) Array.Empty<TData>().GetEnumerator();
+            => _collection?.GetEnumerator() ?? (IEnumerator<TData>)Array.Empty<TData>().GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 

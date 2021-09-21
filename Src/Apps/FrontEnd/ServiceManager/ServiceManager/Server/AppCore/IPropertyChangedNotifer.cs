@@ -16,12 +16,12 @@ namespace ServiceManager.Server.AppCore
 
     public sealed class PropertyChangedNotifer : IPropertyChangedNotifer
     {
-        private readonly IHubContext<ClusterInfoHub>     _hubContext;
+        private readonly IHubContext<ClusterInfoHub> _hubContext;
         private readonly ILogger<PropertyChangedNotifer> _logger;
 
         public PropertyChangedNotifer(IHubContext<ClusterInfoHub> hubContext, ILogger<PropertyChangedNotifer> logger)
         {
-            _hubContext  = hubContext;
+            _hubContext = hubContext;
             _logger = logger;
         }
 

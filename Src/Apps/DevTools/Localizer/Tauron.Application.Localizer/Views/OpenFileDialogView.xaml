@@ -23,6 +23,7 @@
                    Margin="20" FontSize="15" Name="Title" />
         <TextBlock Grid.Row="1" Grid.Column="0" Text="{ui:Loc OpenFileDialogView_Selector_Label}" Margin="5"
                    VerticalAlignment="Center" />
+        <!-- ReSharper disable once InconsistentNaming -->
         <TextBox Name="PART_Path" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Margin="5" />
         <Button Grid.Row="1" Grid.Column="3" Content="{ui:Loc OpenFileDialogView_SearchButton_Label}" Margin="5"
                 Click="Search_OnClick" Cursor="Hand" />

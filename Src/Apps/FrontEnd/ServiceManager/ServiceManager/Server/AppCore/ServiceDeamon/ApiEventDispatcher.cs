@@ -17,9 +17,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
     [UsedImplicitly]
     public sealed class ConfigApiEventDispatcherRef : EventDispatcherRef
     {
-        public ConfigApiEventDispatcherRef() : base(nameof(ConfigApiEventDispatcherActor))
-        {
-        }
+        public ConfigApiEventDispatcherRef() : base(nameof(ConfigApiEventDispatcherActor)) { }
     }
 
     public sealed class ConfigApiEventDispatcherActor : RestartingEventDispatcherActorBase<IConfigEvent, ConfigurationApi>

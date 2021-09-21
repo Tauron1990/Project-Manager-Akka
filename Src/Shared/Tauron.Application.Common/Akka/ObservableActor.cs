@@ -35,7 +35,8 @@ namespace Tauron.Akka
         void Receive<TEvent>(Func<IObservable<TEvent>, IObservable<TEvent>> handler);
         void Receive<TEvent>(Func<IObservable<TEvent>, IObservable<Unit>> handler, Func<Exception, bool> errorHandler);
 
-        void Receive<TEvent>(Func<IObservable<TEvent>, IObservable<TEvent>> handler,
+        void Receive<TEvent>(
+            Func<IObservable<TEvent>, IObservable<TEvent>> handler,
             Func<Exception, bool> errorHandler);
 
         void Receive<TEvent>(Func<IObservable<TEvent>, IDisposable> handler);
@@ -44,17 +45,15 @@ namespace Tauron.Akka
     [PublicAPI]
     public class ObservableActor : ActorBase, IObservableActor
     {
+        private readonly List<ISignal> _currentWaiting = new();
         private readonly Subject<object> _receiver = new();
         private readonly CompositeDisposable _resources = new();
 
         private readonly Dictionary<Type, object> _selectors = new();
         private readonly BehaviorSubject<IActorContext?> _start = new(null);
         private readonly BehaviorSubject<IActorContext?> _stop = new(null);
-        private readonly List<ISignal> _currentWaiting = new();
 
         private bool _isReceived;
-
-        public bool CallSingleHandler { get; set; }
 
         public ObservableActor()
         {
@@ -66,15 +65,9 @@ namespace Tauron.Akka
             _resources.Add(_stop);
         }
 
+        public bool CallSingleHandler { get; set; }
+
         public static IActorContext ExposedContext => ActorBase.Context;
-        #pragma warning disable AV1010
-        public new static IUntypedActorContext Context => (IUntypedActorContext) ActorBase.Context;
-        
-        public new IActorRef Self   { get; }
-        public     IActorRef Parent { get; }
-        public new IActorRef Sender => Context.Sender;
-        
-        #pragma warning restore AV1010
 
         public IObservable<IActorContext> Start => _start.NotNull();
         public IObservable<IActorContext> Stop => _stop.NotNull();
@@ -106,7 +99,7 @@ namespace Tauron.Akka
 
 
         public void Receive<TEvent>(Func<IObservable<TEvent>, IDisposable> handler)
-            => AddResource(new ObservableInvoker<TEvent, TEvent>(handler, GetSelector<TEvent>(), isSafe: true).Construct());
+            => AddResource(new ObservableInvoker<TEvent, TEvent>(handler, GetSelector<TEvent>(), true).Construct());
 
         protected IObservable<TType> SyncActor<TType>(TType element)
             => Observable.Return(element, ActorScheduler.From(Self));
@@ -124,6 +117,7 @@ namespace Tauron.Akka
                     signal.Signal(message);
                     signaled = true;
                 }
+
                 return signaled || base.AroundReceive(receive, message);
             }
 
@@ -132,7 +126,7 @@ namespace Tauron.Akka
                 case TransmitAction act:
                     return act.Runner();
                 case Status.Failure when _selectors.ContainsKey(typeof(Status.Failure)) || _currentWaiting.Any(signal => signal.Match(message)):
-                        return RunDefault();
+                    return RunDefault();
                 case Status.Failure failure:
                     if (OnError(failure))
                         throw failure.Cause;
@@ -142,10 +136,12 @@ namespace Tauron.Akka
                     return RunDefault();
                 case AddSignal add:
                     _currentWaiting.Add(add.Signal);
+
                     return true;
                 case SignalTimeOut timeOut:
                     timeOut.Signal.Cancel();
                     _currentWaiting.Remove(timeOut.Signal);
+
                     return true;
                 default:
                     return RunDefault();
@@ -208,29 +204,33 @@ namespace Tauron.Akka
             if (_selectors.TryGetValue(typeof(TEvent), out var selector)) return (IObservable<TEvent>)selector;
 
             selector = _receiver
-                      .Where(msg => msg is TEvent && (!CallSingleHandler || !_isReceived))
-                      .Select(msg =>
-                              {
-                                  _isReceived = true;
-                                  return (TEvent) msg;
-                              })
-                      .Isonlate();
+               .Where(msg => msg is TEvent && (!CallSingleHandler || !_isReceived))
+               .Select(
+                    msg =>
+                    {
+                        _isReceived = true;
+
+                        return (TEvent)msg;
+                    })
+               .Isonlate();
 
             _selectors[typeof(TEvent)] = selector;
 
-            return (IObservable<TEvent>) selector;
+            return (IObservable<TEvent>)selector;
         }
 
         public bool ThrowError(Exception exception)
         {
             Log.Error(exception, "Error on Process Event");
             Self.Tell(new Status.Failure(exception));
+
             return true;
         }
 
         public bool DefaultError(Exception exception)
         {
             Log.Error(exception, "Error on Process Event");
+
             return false;
         }
 
@@ -245,8 +245,8 @@ namespace Tauron.Akka
 
         private sealed class ConcrretSignal<TType> : ISignal
         {
-            private readonly TaskCompletionSource<TType> _source;
             private readonly Predicate<TType> _predicate;
+            private readonly TaskCompletionSource<TType> _source;
 
             internal ConcrretSignal(TaskCompletionSource<TType> source, Predicate<TType> predicate)
             {
@@ -277,9 +277,8 @@ namespace Tauron.Akka
 
         private sealed class SignalTimeOut
         {
-            internal ISignal Signal { get; }
-
             internal SignalTimeOut(ISignal signal) => Signal = signal;
+            internal ISignal Signal { get; }
         }
 
         private sealed class ObservableInvoker<TEvent, TResult> : IDisposable
@@ -320,13 +319,21 @@ namespace Tauron.Akka
         public record TransmitAction(Func<bool> Runner)
         {
             public TransmitAction(Action action)
-                : this(() =>
-                {
-                    action();
-                    return true;
-                })
-            {
-            }
+                : this(
+                    () =>
+                    {
+                        action();
+
+                        return true;
+                    }) { }
         }
+        #pragma warning disable AV1010
+        public new static IUntypedActorContext Context => (IUntypedActorContext)ActorBase.Context;
+
+        public new IActorRef Self { get; }
+        public IActorRef Parent { get; }
+        public new IActorRef Sender => Context.Sender;
+
+        #pragma warning restore AV1010
     }
 }

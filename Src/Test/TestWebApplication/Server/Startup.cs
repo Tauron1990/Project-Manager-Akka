@@ -1,13 +1,11 @@
 using System;
+using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System.Linq;
-using System.Reflection;
-using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.OpenApi.Models;
 using Stl.Fusion;
 using Stl.Fusion.Bridge;
@@ -22,9 +20,7 @@ namespace TestWebApplication.Server
     public class Startup
     {
         public Startup(IConfiguration configuration)
-        {
-            Configuration = configuration;
-        }
+            => Configuration = configuration;
 
         public IConfiguration Configuration { get; }
 
@@ -33,33 +29,39 @@ namespace TestWebApplication.Server
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<IHostedService, TestSeriveExecutor>();
-            
+
             services.AddControllersWithViews();
             services.AddRazorPages();
 
             services.AddSingleton(new Publisher.Options());
-            
+
             services.AddFusion()
-                    .AddFusionTime().AddSandboxedKeyValueStore().AddInMemoryKeyValueStore()
-                    .AddComputeService<ICounterService, CounterService>()
-                    .AddWebServer();
-            services.Configure<ForwardedHeadersOptions>(options => {
-                                                            options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-                                                            options.KnownNetworks.Clear();
-                                                            options.KnownProxies.Clear();
-                                                        });
+               .AddFusionTime().AddSandboxedKeyValueStore().AddInMemoryKeyValueStore()
+               .AddComputeService<ICounterService, CounterService>()
+               .AddWebServer();
+            services.Configure<ForwardedHeadersOptions>(
+                options =>
+                {
+                    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+                    options.KnownNetworks.Clear();
+                    options.KnownProxies.Clear();
+                });
 
             services.AddRouting();
             services.AddMvc().AddApplicationPart(Assembly.GetEntryAssembly());
 
             // Swagger & debug tools
-            services.AddSwaggerGen(c => {
-                                       c.SwaggerDoc("v1", new OpenApiInfo
-                                                          {
-                                                              Title = "Samples.Blazor.Server API",
-                                                              Version = "v1"
-                                                          });
-                                   });
+            services.AddSwaggerGen(
+                c =>
+                {
+                    c.SwaggerDoc(
+                        "v1",
+                        new OpenApiInfo
+                        {
+                            Title = "Samples.Blazor.Server API",
+                            Version = "v1"
+                        });
+                });
 
             services.AddCors();
         }
@@ -77,15 +79,17 @@ namespace TestWebApplication.Server
                 app.UseExceptionHandler("/Error");
             }
 
-            app.UseForwardedHeaders(new ForwardedHeadersOptions
-                                    {
-                                        ForwardedHeaders = ForwardedHeaders.XForwardedProto
-                                    });
+            app.UseForwardedHeaders(
+                new ForwardedHeadersOptions
+                {
+                    ForwardedHeaders = ForwardedHeaders.XForwardedProto
+                });
 
-            app.UseWebSockets(new WebSocketOptions()
-                              {
-                                  KeepAliveInterval = TimeSpan.FromSeconds(30),
-                              });
+            app.UseWebSockets(
+                new WebSocketOptions
+                {
+                    KeepAliveInterval = TimeSpan.FromSeconds(30)
+                });
 
             app.UseBlazorFrameworkFiles();
             app.UseStaticFiles();
@@ -93,20 +97,19 @@ namespace TestWebApplication.Server
             app.UseRouting();
 
             app.UseSwagger();
-            app.UseSwaggerUI(c => {
-                                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "API v1");
-                             });
+            app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "API v1"); });
 
 
             app.UseCors(b => b.AllowAnyHeader());
 
-            app.UseEndpoints(endpoints =>
-                             {
-                                 endpoints.MapFusionWebSocketServer();
-                                 endpoints.MapRazorPages();
-                                 endpoints.MapControllers();
-                                 endpoints.MapFallbackToFile("index.html");
-                             });
+            app.UseEndpoints(
+                endpoints =>
+                {
+                    endpoints.MapFusionWebSocketServer();
+                    endpoints.MapRazorPages();
+                    endpoints.MapControllers();
+                    endpoints.MapFallbackToFile("index.html");
+                });
         }
     }
 }

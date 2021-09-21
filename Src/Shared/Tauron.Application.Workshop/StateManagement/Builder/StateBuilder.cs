@@ -15,7 +15,8 @@ using Tauron.Features;
 
 namespace Tauron.Application.Workshop.StateManagement.Builder
 {
-    public sealed record StateBuilderParameter(MutatingEngine Engine, IComponentContext? ComponentContext, IActionInvoker Invoker, StatePool StatePool, DispatcherPool DispatcherPool, 
+    public sealed record StateBuilderParameter(
+        MutatingEngine Engine, IComponentContext? ComponentContext, IActionInvoker Invoker, StatePool StatePool, DispatcherPool DispatcherPool,
         WorkspaceSuperviser Superviser);
 
     public abstract class StateBuilderBase
@@ -32,32 +33,52 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
         private Func<IStateDispatcherConfigurator>? _dispatcher;
         private string? _dispatcherKey;
         private string? _key;
-        internal Type? State { get; private set; }
 
         public StateBuilder(Func<IExtendedDataSource<TData>> source) => _source = source;
+        internal Type? State { get; private set; }
 
         public IStateBuilder<TData> WithStateType<TState>()
             where TState : IState
         {
             State = typeof(TState);
+
             return this;
         }
 
         public IStateBuilder<TData> WithStateType(Type type)
         {
             State = type;
+
             return this;
         }
 
         public IStateBuilder<TData> WithReducer(Func<IReducer<TData>> reducer)
         {
             _reducers.Add(reducer);
+
             return this;
         }
 
         public IStateBuilder<TData> WithKey(string key)
         {
             _key = key;
+
+            return this;
+        }
+
+        public IStateBuilder<TData> WithDispatcher(Func<IStateDispatcherConfigurator>? factory)
+        {
+            _dispatcher = factory;
+            _dispatcherKey = null;
+
+            return this;
+        }
+
+        public IStateBuilder<TData> WithDispatcher(string name, Func<IStateDispatcherConfigurator>? factory)
+        {
+            _dispatcherKey = name;
+            _dispatcher = factory;
+
             return this;
         }
 
@@ -81,11 +102,9 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
 
             ExtendedMutatingEngine<MutatingContext<TData>> dataEngine;
             if (string.IsNullOrWhiteSpace(_dispatcherKey) || _dispatcher == null)
-            {
                 dataEngine = _dispatcher == null
                     ? MutatingEngine.From(dataSource, engine)
                     : MutatingEngine.From(dataSource, engine.Superviser, _dispatcher().Configurate);
-            }
             else
                 dataEngine = MutatingEngine.From(dataSource, dispatcherPool.Get(_dispatcherKey, engine.Superviser, _dispatcher().Configurate));
 
@@ -95,14 +114,19 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
 
                 if (State.Implements<IFeature>())
                 {
-                    var factory = State.GetMethod("Create", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy, null, CallingConventions.Standard,
-                        Type.EmptyTypes, null);
+                    var factory = State.GetMethod(
+                        "Create",
+                        BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy,
+                        null,
+                        CallingConventions.Standard,
+                        Type.EmptyTypes,
+                        null);
 
                     if (factory == null)
                         return null;
 
-                    return FastReflection.Shared.GetMethodInvoker(factory, () => Type.EmptyTypes)(null, null) is not IPreparedFeature feature 
-                        ? null 
+                    return FastReflection.Shared.GetMethodInvoker(factory, () => Type.EmptyTypes)(null, null) is not IPreparedFeature feature
+                        ? null
                         : new ActorRefInstance(superviser.CreateCustom(MakeName(), _ => Feature.Props(feature)), State);
                 }
 
@@ -121,18 +145,18 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
                     {
                         0 => FastReflection.Shared.FastCreateInstance(State) as IState,
                         1 => param[0].ParameterType.IsAssignableTo<IActionInvoker>()
-                            ? FastReflection.Shared.GetCreator(constructorInfo)(new object?[]{ invoker }) as IState
+                            ? FastReflection.Shared.GetCreator(constructorInfo)(new object?[] { invoker }) as IState
                             : FastReflection.Shared.GetCreator(constructorInfo)(new object?[] { dataEngine }) as IState,
                         2 => FastReflection.Shared.GetCreator(constructorInfo)
                         (
                             param[0].ParameterType.IsAssignableTo<IActionInvoker>()
-                            ? new object?[] { invoker, dataEngine }
-                            : new object?[] { dataEngine, invoker }
+                                ? new object?[] { invoker, dataEngine }
+                                : new object?[] { dataEngine, invoker }
                         ) as IState,
                         _ => instance
                     };
 
-                    if(instance != null)
+                    if (instance != null)
                         break;
                 }
 
@@ -157,20 +181,6 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
             var container = new StateContainer<TData>(targetState, _reducers.Select(r => r()).ToImmutableList(), dataEngine, dataSource);
 
             return (container, _key ?? string.Empty);
-        }
-
-        public IStateBuilder<TData> WithDispatcher(Func<IStateDispatcherConfigurator>? factory)
-        {
-            _dispatcher = factory;
-            _dispatcherKey = null;
-            return this;
-        }
-
-        public IStateBuilder<TData> WithDispatcher(string name, Func<IStateDispatcherConfigurator>? factory)
-        {
-            _dispatcherKey = name;
-            _dispatcher = factory;
-            return this;
         }
     }
 }

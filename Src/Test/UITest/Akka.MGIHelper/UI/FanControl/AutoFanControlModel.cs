@@ -1,12 +1,9 @@
-﻿using System.Reactive.Linq;
-using System.Windows.Threading;
-using Akka.Actor;
+﻿using Akka.Actor;
 using Akka.MGIHelper.Core.Configuration;
 using Akka.MGIHelper.Core.FanControl;
 using Akka.MGIHelper.Core.FanControl.Events;
 using Autofac;
 using Tauron;
-using Tauron.Akka;
 using Tauron.Application.CommonUI.AppCore;
 using Tauron.Application.CommonUI.Model;
 using Tauron.Application.CommonUI.ModelMessages;
@@ -31,16 +28,18 @@ namespace Akka.MGIHelper.UI.FanControl
 
             Context.ActorOf("Fan-Control", Core.FanControl.FanControl.New(options));
 
-            Receive<TrackingEvent>(obs => obs.SubscribeWithStatus(evt =>
-                                                                  {
-                                                                      Error += evt.Error;
-                                                                      Reason += evt.Reason;
-                                                                      Power += evt.Power;
-                                                                      State += evt.State;
-                                                                      Pidout += evt.Pidout;
-                                                                      PidSetValue += evt.PidSetValue;
-                                                                      Pt1000 += evt.Pt1000;
-                                                                  }));
+            Receive<TrackingEvent>(
+                obs => obs.SubscribeWithStatus(
+                    evt =>
+                    {
+                        Error += evt.Error;
+                        Reason += evt.Reason;
+                        Power += evt.Power;
+                        State += evt.State;
+                        Pidout += evt.Pidout;
+                        PidSetValue += evt.PidSetValue;
+                        Pt1000 += evt.Pt1000;
+                    }));
             Receive<FanStatusChange>(obs => obs.SubscribeWithStatus(evt => FanRunning += evt.Running));
         }
 
@@ -62,7 +61,7 @@ namespace Akka.MGIHelper.UI.FanControl
 
         private UIProperty<FanControlOptions> Options { get; }
 
-        protected override void Initialize(InitEvent evt) 
+        protected override void Initialize(InitEvent evt)
             => Context.Child("Fan-Control").Tell(new ClockEvent(ClockState.Start));
     }
 }

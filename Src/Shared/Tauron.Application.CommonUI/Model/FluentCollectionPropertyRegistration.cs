@@ -27,7 +27,7 @@ namespace Tauron.Application.CommonUI.Model
         public UIProperty<IObservableCollection<TData>> Property { get; }
 
         public FluentCollectionPropertyRegistration<TData> AndInitialElements(params TData[] elements)
-            => AndInitialElements((IEnumerable<TData>) elements);
+            => AndInitialElements((IEnumerable<TData>)elements);
 
         public FluentCollectionPropertyRegistration<TData> AndInitialElements(IEnumerable<TData> elements)
         {
@@ -44,10 +44,11 @@ namespace Tauron.Application.CommonUI.Model
             if (typeof(TData).Implements<IDisposable>())
                 source = source.DisposeMany();
 
-            subscriber(source
-                    .ObserveOn(DispatcherScheduler.From(_actor.Dispatcher))
-                    .Bind(_collection))
-                .DisposeWith(_actor);
+            subscriber(
+                    source
+                       .ObserveOn(DispatcherScheduler.From(_actor.Dispatcher))
+                       .Bind(_collection))
+               .DisposeWith(_actor);
 
             return this;
         }
@@ -60,10 +61,11 @@ namespace Tauron.Application.CommonUI.Model
             if (typeof(TData).Implements<IDisposable>())
                 source = source.DisposeMany();
 
-            subscriber(source
-                      .ObserveOn(DispatcherScheduler.From(_actor.Dispatcher))
-                      .Bind(_collection))
-                .DisposeWith(_actor);
+            subscriber(
+                    source
+                       .ObserveOn(DispatcherScheduler.From(_actor.Dispatcher))
+                       .Bind(_collection))
+               .DisposeWith(_actor);
 
             return this;
         }
@@ -83,7 +85,7 @@ namespace Tauron.Application.CommonUI.Model
             return BindTo(sourceCollection.Connect());
         }
 
-        public UICollectionProperty<TData> BindToList(IEnumerable<TData> initial,  out SourceList<TData> sourceCollection)
+        public UICollectionProperty<TData> BindToList(IEnumerable<TData> initial, out SourceList<TData> sourceCollection)
         {
             #pragma warning disable GU0011
             BindToList(out sourceCollection);

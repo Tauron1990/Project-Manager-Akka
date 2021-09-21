@@ -14,7 +14,7 @@ namespace Tauron.Localization.Actor
     [UsedImplicitly]
     public sealed class JsonLocLocStoreActor : LocStoreActorBase
     {
-        private static readonly char[] Sep = {'.'};
+        private static readonly char[] Sep = { '.' };
 
         private readonly JsonConfiguration? _configuration;
         private readonly Dictionary<string, Dictionary<string, JToken>> _files = new();
@@ -33,6 +33,7 @@ namespace Tauron.Localization.Actor
             do
             {
                 var obj = LookUp(name, target);
+
                 if (obj != null)
                     return obj;
 
@@ -67,6 +68,7 @@ namespace Tauron.Localization.Actor
         {
             if (_isInitialized) return;
             if (_configuration == null) return;
+
             _files.Clear();
 
 
@@ -76,6 +78,7 @@ namespace Tauron.Localization.Actor
                 using var stream = new FileStream(file, FileMode.Open);
                 var text = new StreamReader(stream, Encoding.UTF8).ReadToEnd();
                 var name = GetName(file);
+
                 if (string.IsNullOrWhiteSpace(name)) return;
 
                 _files[name] = JsonConvert.DeserializeObject<Dictionary<string, JToken>>(text);
@@ -87,6 +90,7 @@ namespace Tauron.Localization.Actor
         private static string? GetName(string fileName)
         {
             var data = Path.GetFileNameWithoutExtension(fileName).Split(Sep, StringSplitOptions.RemoveEmptyEntries);
+
             return data.Length switch
             {
                 2 => data[1],

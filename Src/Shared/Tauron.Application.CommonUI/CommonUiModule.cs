@@ -3,7 +3,6 @@ using JetBrains.Annotations;
 using Microsoft.Extensions.Hosting;
 using Tauron.Application.CommonUI.AppCore;
 using Tauron.Application.CommonUI.Dialogs;
-using Tauron.AkkaHost;
 
 namespace Tauron.Application.CommonUI
 {

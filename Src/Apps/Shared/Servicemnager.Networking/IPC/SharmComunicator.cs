@@ -38,6 +38,7 @@ namespace Servicemnager.Networking.IPC
             try
             {
                 using var mt = new Mutex(initiallyOwned: true, $"{id}SharmNet_MasterMutex", out var created);
+
                 if (!created) return true;
 
                 #pragma warning disable MT1013
@@ -63,7 +64,7 @@ namespace Servicemnager.Networking.IPC
             _sharmIpc = new Connection(_globalId, _errorHandler);
             #endif
             _sharmIpc.OnMessage += (message, messageId, processsId)
-                => OnMessage?.Invoke(message, messageId, processsId);
+                                       => OnMessage?.Invoke(message, messageId, processsId);
         }
 
         public bool Send(NetworkMessage msg, string target)
@@ -75,17 +76,20 @@ namespace Servicemnager.Networking.IPC
                 _ => target
             };
 
-            var (message, lenght) = _formatter.WriteMessage(msg, i =>
-                                                        {
-                                                            var memory = MemoryPool<byte>.Shared.Rent(i + 64);
+            var (message, lenght) = _formatter.WriteMessage(
+                msg,
+                i =>
+                {
+                    var memory = MemoryPool<byte>.Shared.Rent(i + 64);
 
-                                                            Encoding.ASCII.GetBytes(target, memory.Memory.Span);
-                                                            Encoding.ASCII.GetBytes(ProcessId, memory.Memory.Span[31..]);
+                    Encoding.ASCII.GetBytes(target, memory.Memory.Span);
+                    Encoding.ASCII.GetBytes(ProcessId, memory.Memory.Span[31..]);
 
-                                                            return (memory, 63);
-                                                        });
+                    return (memory, 63);
+                });
 
             using var data = message;
+
             return _sharmIpc.Send(data.Memory[..lenght].ToArray());
         }
 
@@ -103,9 +107,7 @@ namespace Servicemnager.Networking.IPC
 
         private sealed class Dummy : ISharmIpc
         {
-            public void Dispose()
-            {
-            }
+            public void Dispose() { }
 
             public event SharmMessageHandler OnMessage
             {
@@ -122,7 +124,10 @@ namespace Servicemnager.Networking.IPC
             private readonly SharmIpc _sharmIpc;
 
             internal Connection(string globalId, Action<string, Exception> errorHandler)
-                => _sharmIpc = new SharmIpc(globalId, Handle, ExternalExceptionHandler: errorHandler,
+                => _sharmIpc = new SharmIpc(
+                    globalId,
+                    Handle,
+                    ExternalExceptionHandler: errorHandler,
                     protocolVersion: SharmIpc.eProtocolVersion.V2);
 
             public void Dispose() => _sharmIpc.Dispose();
@@ -170,13 +175,16 @@ namespace Servicemnager.Networking.IPC
                 case SharmComunicatorMessages.RegisterClient:
                     _comunicator.Send(message, processId);
                     ClientConnected?.Invoke(this, new ClientConnectedArgs(processId));
+
                     break;
                 case SharmComunicatorMessages.UnRegisterClient:
                     _comunicator.Send(message, processId);
                     ClientDisconnected?.Invoke(this, new ClientDisconnectedArgs(processId, DisconnectReason.Normal));
+
                     break;
                 default:
                     OnMessageReceived?.Invoke(this, new MessageFromClientEventArgs(message, processId));
+
                     break;
             }
         }
@@ -195,6 +203,7 @@ namespace Servicemnager.Networking.IPC
         public bool Connect()
         {
             _comunicator.Connect();
+
             return Send(NetworkMessage.Create(SharmComunicatorMessages.RegisterClient));
         }
 
@@ -213,13 +222,16 @@ namespace Servicemnager.Networking.IPC
             {
                 case SharmComunicatorMessages.RegisterClient:
                     Connected?.Invoke(this, new ClientConnectedArgs(processsid));
+
                     break;
                 case SharmComunicatorMessages.UnRegisterClient:
                     Disconnected?.Invoke(this, new ClientDisconnectedArgs(processsid, DisconnectReason.Normal));
                     Dispose();
+
                     break;
                 default:
                     OnMessageReceived?.Invoke(this, new MessageFromServerEventArgs(message));
+
                     break;
             }
         }

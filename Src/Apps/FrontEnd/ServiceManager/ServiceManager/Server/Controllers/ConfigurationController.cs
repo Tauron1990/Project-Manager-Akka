@@ -4,55 +4,52 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ServiceHost.Client.Shared.ConfigurationServer.Data;
-using ServiceManager.Server.AppCore.Identity;
 using ServiceManager.Server.Properties;
 using ServiceManager.Shared.Api;
 using ServiceManager.Shared.Identity;
 using ServiceManager.Shared.ServiceDeamon;
-using Stl.CommandR;
 using Stl.Fusion.Server;
 
 namespace ServiceManager.Server.Controllers
 {
     [Route(ControllerName.AppConfiguration + "/[action]")]
-    [ApiController, JsonifyErrors]
+    [ApiController]
+    [JsonifyErrors]
     [Authorize(Claims.ConfigurationClaim)]
     public class ConfigurationController : ControllerBase, IServerConfigurationApi
     {
         private readonly IServerConfigurationApi _api;
-        private readonly ICommander _commander;
 
-        public ConfigurationController(IServerConfigurationApi api, ICommander commander)
-        {
-            _api = api;
-            _commander = commander;
-        }
+        public ConfigurationController(IServerConfigurationApi api)
+            => _api = api;
 
-
-        public static string? GetConfigData(ConfigOpensElement name) => Resources.ResourceManager.GetString(name.ToString());
-        
-        [HttpGet, Publish]
-        public        Task<GlobalConfig> GlobalConfig()
+        [HttpGet]
+        [Publish]
+        public Task<GlobalConfig> GlobalConfig()
             => _api.GlobalConfig();
 
-        [HttpGet, Publish]
+        [HttpGet]
+        [Publish]
         public Task<ServerConfigugration> ServerConfigugration()
             => _api.ServerConfigugration();
 
-        [HttpGet, Publish]
+        [HttpGet]
+        [Publish]
         public Task<ImmutableList<SpecificConfig>> QueryAppConfig()
             => _api.QueryAppConfig();
 
-        [HttpGet, Publish]
+        [HttpGet]
+        [Publish]
         public Task<string> QueryBaseConfig()
             => _api.QueryBaseConfig();
 
-        [HttpGet, Publish]
-        public Task<string?> QueryDefaultFileContent([FromQuery]ConfigOpensElement element)
+        [HttpGet]
+        [Publish]
+        public Task<string?> QueryDefaultFileContent([FromQuery] ConfigOpensElement element)
             => _api.QueryDefaultFileContent(element);
 
         [HttpPost]
-        public Task<string> UpdateGlobalConfig([FromBody]UpdateGlobalConfigApiCommand command, CancellationToken token = default)
+        public Task<string> UpdateGlobalConfig([FromBody] UpdateGlobalConfigApiCommand command, CancellationToken token = default)
             => _api.UpdateGlobalConfig(command, token);
 
         [HttpPost]
@@ -66,5 +63,8 @@ namespace ServiceManager.Server.Controllers
         [HttpPost]
         public Task<string> UpdateSpecificConfig([FromBody] UpdateSpecifcConfigCommand command, CancellationToken token = default)
             => _api.UpdateSpecificConfig(command, token);
+
+
+        public static string? GetConfigData(ConfigOpensElement name) => Resources.ResourceManager.GetString(name.ToString());
     }
 }

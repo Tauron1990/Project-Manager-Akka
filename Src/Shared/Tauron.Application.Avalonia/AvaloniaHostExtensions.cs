@@ -14,24 +14,27 @@ namespace Tauron.AkkaHost
     [PublicAPI]
     public static class AvaloniaHostExtensions
     {
-        public static IActorApplicationBuilder UseAvalonia<TMainWindow>(this IActorApplicationBuilder hostBuilder,
+        public static IActorApplicationBuilder UseAvalonia<TMainWindow>(
+            this IActorApplicationBuilder hostBuilder,
             Action<AvaloniaConfiguration>? config = null)
             where TMainWindow : class, IMainWindow
         {
-            hostBuilder.ConfigureAutoFac(sc =>
-            {
-                sc.RegisterModule<AvaloniaModule>();
+            hostBuilder.ConfigureAutoFac(
+                sc =>
+                {
+                    sc.RegisterModule<AvaloniaModule>();
 
-                sc.RegisterType<TMainWindow>().As<IMainWindow>().SingleInstance();
+                    sc.RegisterType<TMainWindow>().As<IMainWindow>().SingleInstance();
 
-                var avaloniaConfiguration = new AvaloniaConfiguration(sc);
-                config?.Invoke(avaloniaConfiguration);
-            });
+                    var avaloniaConfiguration = new AvaloniaConfiguration(sc);
+                    config?.Invoke(avaloniaConfiguration);
+                });
 
             return hostBuilder;
         }
 
-        public static IActorApplicationBuilder UseAvalonia<TMainWindow, TApp>(this IActorApplicationBuilder builder,
+        public static IActorApplicationBuilder UseAvalonia<TMainWindow, TApp>(
+            this IActorApplicationBuilder builder,
             Func<AppBuilder, AppBuilder> config)
             where TMainWindow : class, IMainWindow
             where TApp : Avalonia.Application, new()

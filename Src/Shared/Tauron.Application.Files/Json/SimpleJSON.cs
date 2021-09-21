@@ -44,24 +44,31 @@ namespace Tauron.Application.Files.Json
                 {
                     case '\\':
                         sb.Append("\\\\");
+
                         break;
                     case '\"':
                         sb.Append("\\\"");
+
                         break;
                     case '\n':
                         sb.Append("\\n");
+
                         break;
                     case '\r':
                         sb.Append("\\r");
+
                         break;
                     case '\t':
                         sb.Append("\\t");
+
                         break;
                     case '\b':
                         sb.Append("\\b");
+
                         break;
                     case '\f':
                         sb.Append("\\f");
+
                         break;
                     default:
                         if (c < ' ' || ForceAscii && c > 127)
@@ -79,6 +86,7 @@ namespace Tauron.Application.Files.Json
 
             var result = sb.ToString();
             sb.Length = 0;
+
             return result;
         }
 
@@ -86,6 +94,7 @@ namespace Tauron.Application.Files.Json
         {
             if (quoted)
                 return token;
+
             var tmp = token.ToLower();
             switch (tmp)
             {
@@ -98,6 +107,7 @@ namespace Tauron.Application.Files.Json
 
             if (double.TryParse(token, NumberStyles.Float, CultureInfo.InvariantCulture, out var val))
                 return val;
+
             return token;
         }
 
@@ -118,6 +128,7 @@ namespace Tauron.Application.Files.Json
                         if (quoteMode)
                         {
                             token.Append(aJson[i]);
+
                             break;
                         }
 
@@ -126,12 +137,14 @@ namespace Tauron.Application.Files.Json
                         tokenName = "";
                         token.Length = 0;
                         ctx = stack.Peek();
+
                         break;
 
                     case '[':
                         if (quoteMode)
                         {
                             token.Append(aJson[i]);
+
                             break;
                         }
 
@@ -140,6 +153,7 @@ namespace Tauron.Application.Files.Json
                         tokenName = "";
                         token.Length = 0;
                         ctx = stack.Peek();
+
                         break;
 
                     case '}':
@@ -147,6 +161,7 @@ namespace Tauron.Application.Files.Json
                         if (quoteMode)
                         {
                             token.Append(aJson[i]);
+
                             break;
                         }
 
@@ -162,29 +177,34 @@ namespace Tauron.Application.Files.Json
                         token.Length = 0;
                         if (stack.Count > 0)
                             ctx = stack.Peek();
+
                         break;
 
                     case ':':
                         if (quoteMode)
                         {
                             token.Append(aJson[i]);
+
                             break;
                         }
 
                         tokenName = token.ToString();
                         token.Length = 0;
                         tokenIsQuoted = false;
+
                         break;
 
                     case '"':
                         quoteMode ^= true;
                         tokenIsQuoted |= quoteMode;
+
                         break;
 
                     case ',':
                         if (quoteMode)
                         {
                             token.Append(aJson[i]);
+
                             break;
                         }
 
@@ -194,6 +214,7 @@ namespace Tauron.Application.Files.Json
                         tokenName = "";
                         token.Length = 0;
                         tokenIsQuoted = false;
+
                         break;
 
                     case '\r':
@@ -204,6 +225,7 @@ namespace Tauron.Application.Files.Json
                     case '\t':
                         if (quoteMode)
                             token.Append(aJson[i]);
+
                         break;
 
                     case '\\':
@@ -215,30 +237,38 @@ namespace Tauron.Application.Files.Json
                             {
                                 case 't':
                                     token.Append('\t');
+
                                     break;
                                 case 'r':
                                     token.Append('\r');
+
                                     break;
                                 case 'n':
                                     token.Append('\n');
+
                                     break;
                                 case 'b':
                                     token.Append('\b');
+
                                     break;
                                 case 'f':
                                     token.Append('\f');
+
                                     break;
                                 case 'u':
                                 {
                                     var s = aJson.Substring(i + 1, 4);
-                                    token.Append((char) int.Parse(
-                                        s,
-                                        NumberStyles.AllowHexSpecifier));
+                                    token.Append(
+                                        (char)int.Parse(
+                                            s,
+                                            NumberStyles.AllowHexSpecifier));
                                     i += 4;
+
                                     break;
                                 }
                                 default:
                                     token.Append(c);
+
                                     break;
                             }
                         }
@@ -247,6 +277,7 @@ namespace Tauron.Application.Files.Json
 
                     default:
                         token.Append(aJson[i]);
+
                         break;
                 }
 
@@ -254,6 +285,7 @@ namespace Tauron.Application.Files.Json
             }
 
             if (quoteMode) throw new InvalidOperationException("JSON Parse: Quotation marks seems to be messed up.");
+
             return ctx ?? ParseElement(token.ToString(), tokenIsQuoted);
         }
 
@@ -317,13 +349,9 @@ namespace Tauron.Application.Files.Json
         {
             private Enumerator _enumerator;
 
-            public ValueEnumerator(List<JsonNode>.Enumerator aArrayEnum) : this(new Enumerator(aArrayEnum))
-            {
-            }
+            public ValueEnumerator(List<JsonNode>.Enumerator aArrayEnum) : this(new Enumerator(aArrayEnum)) { }
 
-            public ValueEnumerator(Dictionary<string, JsonNode>.Enumerator aDictEnum) : this(new Enumerator(aDictEnum))
-            {
-            }
+            public ValueEnumerator(Dictionary<string, JsonNode>.Enumerator aDictEnum) : this(new Enumerator(aDictEnum)) { }
 
             public ValueEnumerator(Enumerator aEnumerator) => _enumerator = aEnumerator;
 
@@ -339,13 +367,9 @@ namespace Tauron.Application.Files.Json
         {
             private Enumerator _enumerator;
 
-            public KeyEnumerator(List<JsonNode>.Enumerator aArrayEnum) : this(new Enumerator(aArrayEnum))
-            {
-            }
+            public KeyEnumerator(List<JsonNode>.Enumerator aArrayEnum) : this(new Enumerator(aArrayEnum)) { }
 
-            public KeyEnumerator(Dictionary<string, JsonNode>.Enumerator aDictEnum) : this(new Enumerator(aDictEnum))
-            {
-            }
+            public KeyEnumerator(Dictionary<string, JsonNode>.Enumerator aDictEnum) : this(new Enumerator(aDictEnum)) { }
 
             public KeyEnumerator(Enumerator aEnumerator) => _enumerator = aEnumerator;
 
@@ -419,9 +443,7 @@ namespace Tauron.Application.Files.Json
 
         public abstract bool Inline { get; set; }
 
-        public virtual void Add(string aKey, JsonNode? aItem)
-        {
-        }
+        public virtual void Add(string aKey, JsonNode? aItem) { }
 
         public virtual void Add(JsonNode? aItem)
         {
@@ -445,6 +467,7 @@ namespace Tauron.Application.Files.Json
         {
             var sb = new StringBuilder();
             WriteToStringBuilder(sb, 0, 0, JsonTextMode.Compact);
+
             return sb.ToString();
         }
 
@@ -452,6 +475,7 @@ namespace Tauron.Application.Files.Json
         {
             var sb = new StringBuilder();
             WriteToStringBuilder(sb, 0, aIndent, JsonTextMode.Indent);
+
             return sb.ToString();
         }
 
@@ -474,13 +498,13 @@ namespace Tauron.Application.Files.Json
 
         public virtual int AsInt
         {
-            get => (int) AsDouble;
+            get => (int)AsDouble;
             set => AsDouble = value;
         }
 
         public virtual float AsFloat
         {
-            get => (float) AsDouble;
+            get => (float)AsDouble;
             set => AsDouble = value;
         }
 
@@ -490,6 +514,7 @@ namespace Tauron.Application.Files.Json
             {
                 if (bool.TryParse(Value, out var v))
                     return v;
+
                 return !string.IsNullOrEmpty(Value);
             }
             set => Value = value ? "true" : "false";
@@ -529,6 +554,7 @@ namespace Tauron.Application.Files.Json
         {
             if (LongAsString)
                 return new JsonString(n.ToString());
+
             return new JsonNumber(n);
         }
 
@@ -544,10 +570,13 @@ namespace Tauron.Application.Files.Json
         {
             if (ReferenceEquals(a, b))
                 return true;
+
             var aIsNull = a is JsonNull or null or JsonLazyCreator;
             var bIsNull = b is JsonNull or null or JsonLazyCreator;
+
             if (aIsNull && bIsNull)
                 return true;
+
             return !aIsNull && a!.Equals(b!);
         }
 
@@ -582,6 +611,7 @@ namespace Tauron.Application.Files.Json
             {
                 if (aIndex < 0 || aIndex >= _list.Count)
                     return new JsonLazyCreator(this);
+
                 return _list[aIndex];
             }
             set
@@ -636,14 +666,17 @@ namespace Tauron.Application.Files.Json
         {
             if (aIndex < 0 || aIndex >= _list.Count)
                 return null;
+
             var tmp = _list[aIndex];
             _list.RemoveAt(aIndex);
+
             return tmp;
         }
 
         public override JsonNode Remove(JsonNode aNode)
         {
             _list.Remove(aNode);
+
             return aNode;
         }
 
@@ -714,14 +747,17 @@ namespace Tauron.Application.Files.Json
             {
                 if (aIndex < 0 || aIndex >= _dict.Count)
                     return null;
+
                 return _dict.ElementAt(aIndex).Value;
             }
             set
             {
                 if (value == null)
                     value = JsonNull.CreateOrGet();
+
                 if (aIndex < 0 || aIndex >= _dict.Count)
                     return;
+
                 var key = _dict.ElementAt(aIndex).Key;
                 _dict[key] = value;
             }
@@ -756,8 +792,10 @@ namespace Tauron.Application.Files.Json
         {
             if (!_dict.ContainsKey(aKey))
                 return null;
+
             var tmp = _dict[aKey];
             _dict.Remove(aKey);
+
             return tmp;
         }
 
@@ -765,19 +803,22 @@ namespace Tauron.Application.Files.Json
         {
             if (aIndex < 0 || aIndex >= _dict.Count)
                 return null;
+
             var item = _dict.ElementAt(aIndex);
             _dict.Remove(item.Key);
+
             return item.Value;
         }
 
         public override JsonNode? Remove(JsonNode aNode)
         {
-                var item = _dict.FirstOrDefault(k => k.Value == aNode);
+            var item = _dict.FirstOrDefault(k => k.Value == aNode);
 
-                if (item is { Key: null }) return null;
-                
-                _dict.Remove(item.Key);
-                return aNode;
+            if (item is { Key: null }) return null;
+
+            _dict.Remove(item.Key);
+
+            return aNode;
         }
 
         internal override void WriteToStringBuilder(StringBuilder aSb, int aIndent, int aIndentInc, JsonTextMode aMode)
@@ -836,7 +877,7 @@ namespace Tauron.Application.Files.Json
         {
             #pragma warning disable EX002
             get => throw new NotSupportedException();
-            
+
             set => throw new NotSupportedException();
         }
 
@@ -860,9 +901,12 @@ namespace Tauron.Application.Files.Json
                 return true;
             if (obj is string s)
                 return _data == s;
+
             var s2 = obj as JsonString;
+
             if (s2 != null)
                 return _data == s2._data;
+
             return false;
         }
 
@@ -920,7 +964,7 @@ namespace Tauron.Application.Files.Json
 
         public override long AsLong
         {
-            get => (long) _data;
+            get => (long)_data;
             set => _data = value;
         }
 
@@ -944,11 +988,14 @@ namespace Tauron.Application.Files.Json
                 return false;
             if (base.Equals(obj))
                 return true;
+
             var s2 = obj as JsonNumber;
+
             if (s2 != null)
                 return Math.Abs(_data - s2._data) < 0;
             if (IsNumeric(obj))
                 return Math.Abs(Convert.ToDouble(obj) - _data) < 0;
+
             return false;
         }
 
@@ -1030,11 +1077,10 @@ namespace Tauron.Application.Files.Json
     public partial class JsonNull : JsonNode
     {
         private static readonly JsonNull StaticInstance = new();
-        public static bool ReuseSameInstance { get; set; } = true;
 
-        private JsonNull()
-        {
-        }
+        private JsonNull() { }
+
+        public static bool ReuseSameInstance { get; set; } = true;
 
         public override JsonNodeType Tag => JsonNodeType.NullValue;
 
@@ -1078,6 +1124,7 @@ namespace Tauron.Application.Files.Json
         {
             if (ReferenceEquals(this, obj))
                 return true;
+
             return obj is JsonNull;
         }
 
@@ -1132,6 +1179,7 @@ namespace Tauron.Application.Files.Json
             get
             {
                 Set(new JsonNumber(0));
+
                 return 0;
             }
             set => Set(new JsonNumber(value));
@@ -1142,6 +1190,7 @@ namespace Tauron.Application.Files.Json
             get
             {
                 Set(new JsonNumber(0.0f));
+
                 return 0.0f;
             }
             set => Set(new JsonNumber(value));
@@ -1152,6 +1201,7 @@ namespace Tauron.Application.Files.Json
             get
             {
                 Set(new JsonNumber(0.0));
+
                 return 0.0;
             }
             set => Set(new JsonNumber(value));
@@ -1165,6 +1215,7 @@ namespace Tauron.Application.Files.Json
                     Set(new JsonString("0"));
                 else
                     Set(new JsonNumber(0.0));
+
                 return 0L;
             }
             set
@@ -1180,7 +1231,8 @@ namespace Tauron.Application.Files.Json
         {
             get
             {
-                Set(new JsonBool(aData: false));
+                Set(new JsonBool(false));
+
                 return false;
             }
             set => Set(new JsonBool(value));
@@ -1205,6 +1257,7 @@ namespace Tauron.Application.Files.Json
             else
                 _node?.Add(_key, aVal);
             _node = null; // Be GC friendly.
+
             return aVal;
         }
 

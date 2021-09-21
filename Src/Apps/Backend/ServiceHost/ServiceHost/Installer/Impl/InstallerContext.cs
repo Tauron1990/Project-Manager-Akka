@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
 using ServiceHost.ApplicationRegistry;
 using ServiceHost.Installer.Impl.Source;
 using Tauron;
@@ -12,6 +11,16 @@ namespace ServiceHost.Installer.Impl
 {
     public sealed class InstallerContext : IWorkflowContext
     {
+        public InstallerContext(InstallType manual, string name, string softwareName, string sourceLocation, bool @override, AppType appType)
+        {
+            Manual = manual;
+            Name = name;
+            SoftwareName = softwareName;
+            SourceLocation = sourceLocation;
+            Override = @override;
+            AppType = appType;
+        }
+
         public Recovery Recovery { get; } = new();
 
         public Backup Backup { get; } = new();
@@ -36,28 +45,19 @@ namespace ServiceHost.Installer.Impl
 
         public string SoftwareName { get; }
 
-        public InstallerContext(InstallType manual, string name, string softwareName, string sourceLocation, bool @override, AppType appType)
-        {
-            Manual = manual;
-            Name = name;
-            SoftwareName = softwareName;
-            SourceLocation = sourceLocation;
-            Override = @override;
-            AppType = appType;
-        }
-
         public IInstallationSource SetSource(Func<InstallerContext, IInstallationSource> source, Action<string> setError)
         {
             Source = source(this);
             if (Source == EmptySource.Instnace)
                 setError(ErrorCodes.NoSourceFound);
+
             return Source;
         }
 
         public void SetInstalledApp(InstalledApp app)
             => InstalledApp = app;
 
-        public string GetExe() 
+        public string GetExe()
             => !string.IsNullOrWhiteSpace(Exe) ? Exe : Path.GetFileName(InstallationPath.EnumerateFiles().First(s => s.Trim().EndsWith(".exe")));
     }
 }

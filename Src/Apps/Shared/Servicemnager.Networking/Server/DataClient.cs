@@ -20,20 +20,20 @@ namespace Servicemnager.Networking.Server
         public DataClient(string host, int port = 0)
         {
             _client = new SimpleTcpClient(host, port, ssl: false, pfxCertFilename: null, pfxPassword: null)
-            {
-                Keepalive = {EnableTcpKeepAlives = true}
-            };
+                      {
+                          Keepalive = { EnableTcpKeepAlives = true }
+                      };
 
             _client.Events.Connected += (_, args) => Connected?.Invoke(this, new ClientConnectedArgs(args.IpPort));
             _client.Events.Disconnected += (_, args)
-                => Disconnected?.Invoke(this, new ClientDisconnectedArgs(args.IpPort, args.Reason));
+                                               => Disconnected?.Invoke(this, new ClientDisconnectedArgs(args.IpPort, args.Reason));
 
             _client.Events.DataReceived += (_, args) =>
-            {
-                var msg = _messageBuffer.AddBuffer(args.Data);
-                if (msg != null)
-                    OnMessageReceived?.Invoke(this, new MessageFromServerEventArgs(msg));
-            };
+                                           {
+                                               var msg = _messageBuffer.AddBuffer(args.Data);
+                                               if (msg != null)
+                                                   OnMessageReceived?.Invoke(this, new MessageFromServerEventArgs(msg));
+                                           };
         }
 
         public bool Connect()
@@ -55,6 +55,7 @@ namespace Servicemnager.Networking.Server
             using var memory = data.Message;
 
             _client.Send(memory.Memory[..data.Lenght].ToArray());
+
             return true;
         }
     }

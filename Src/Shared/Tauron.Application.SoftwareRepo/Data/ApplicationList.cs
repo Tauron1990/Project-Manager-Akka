@@ -2,6 +2,7 @@
 
 namespace Tauron.Application.SoftwareRepo.Data
 {
-    public sealed record ApplicationList(string Name, string Description,
+    public sealed record ApplicationList(
+        string Name, string Description,
         ImmutableList<ApplicationEntry> ApplicationEntries);
 }

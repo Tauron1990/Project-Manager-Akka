@@ -30,7 +30,8 @@ using JetBrains.Annotations;
 
 namespace Akkatecture.Sagas
 {
-    [AttributeUsage(AttributeTargets.Class, Inherited = false), PublicAPI]
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
+    [PublicAPI]
     public class SagaNameAttribute : Attribute
     {
         public SagaNameAttribute(string name)

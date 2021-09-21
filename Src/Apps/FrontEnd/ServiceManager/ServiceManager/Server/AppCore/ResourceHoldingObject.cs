@@ -15,7 +15,7 @@ namespace ServiceManager.Server.AppCore
         Task<Unit> Set(Func<Task<TData>> data, CancellationToken token = default);
 
         Task<Unit> Set(Func<TData, TData> data, CancellationToken token = default);
-        
+
         Task<Unit> Set(Func<TData> data, CancellationToken token = default);
 
         Task<Unit> Set(TData data, CancellationToken token = default);
@@ -25,10 +25,16 @@ namespace ServiceManager.Server.AppCore
 
     public abstract class ResourceHoldingObject : ObservableObject, IResourceHolder
     {
-        private readonly SemaphoreSlim _resourceLock = new(1);
         private readonly CompositeDisposable _disposable = new();
+        private readonly SemaphoreSlim _resourceLock = new(1);
 
         protected ResourceHoldingObject() => _disposable.Add(_resourceLock);
+
+        public virtual void Dispose() => _disposable.Dispose();
+
+        void IResourceHolder.AddResource(IDisposable res) => _disposable.Add(res);
+
+        void IResourceHolder.RemoveResource(IDisposable res) => _disposable.Remove(res);
 
         protected IResource<TData> CreateResource<TData>(TData value, string? name = default, Func<Task>? onSet = default)
         {
@@ -43,6 +49,7 @@ namespace ServiceManager.Server.AppCore
                 false when onSet == null => () =>
                                             {
                                                 OnPropertyChangedExplicit(name!);
+
                                                 return Task.CompletedTask;
                                             },
                 _ => null
@@ -51,18 +58,12 @@ namespace ServiceManager.Server.AppCore
             return new InternalResource<TData>(value, _resourceLock, setter);
         }
 
-        public virtual void Dispose() => _disposable.Dispose();
-
-        void IResourceHolder.AddResource(IDisposable res) => _disposable.Add(res);
-
-        void IResourceHolder.RemoveResource(IDisposable res) => _disposable.Remove(res);
-
         private sealed class InternalResource<TData> : IResource<TData>
         {
-            private readonly SemaphoreSlim _resourceLock;
             private readonly Func<Task>? _onChange;
-            private bool _isSet;
+            private readonly SemaphoreSlim _resourceLock;
             private TData _data;
+            private bool _isSet;
 
             internal InternalResource(TData value, SemaphoreSlim resourceLock, Func<Task>? onChange)
             {
@@ -81,7 +82,7 @@ namespace ServiceManager.Server.AppCore
                     var result = await init();
                     _data = result;
                     _isSet = true;
-                    if(_onChange != null)
+                    if (_onChange != null)
                         await _onChange.Invoke();
 
                     return result;
@@ -130,7 +131,7 @@ namespace ServiceManager.Server.AppCore
                 {
                     _data = await data();
                     _isSet = true;
-                    if(_onChange != null)
+                    if (_onChange != null)
                         await _onChange.Invoke();
                 }
                 finally
@@ -146,11 +147,11 @@ namespace ServiceManager.Server.AppCore
                 await _resourceLock.WaitAsync(token);
                 try
                 {
-                    _data  = data(_data);
+                    _data = data(_data);
                     _isSet = true;
                     if (_onChange != null)
                         await _onChange();
-                    
+
                     return Unit.Default;
                 }
                 finally
@@ -161,6 +162,5 @@ namespace ServiceManager.Server.AppCore
 
             public Task<Unit> Set(Func<TData> data, CancellationToken token = default) => Set(data(), token);
         }
-
     }
 }

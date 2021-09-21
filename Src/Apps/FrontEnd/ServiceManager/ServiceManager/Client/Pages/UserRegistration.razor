@@ -1,18 +1,17 @@
 ﻿@page "/UserRegistration"
-@layout UserAccountLayout
-
-@using ServiceManager.Client.Shared.UserAccount
-@using ServiceManager.Client.ViewModels.Identity
-@using ServiceManager.Shared.Identity
 @using Tauron
 @using Tauron.Application
+@using ServiceManager.Shared.Identity
+@using ServiceManager.Client.ViewModels.Identity
+@using ServiceManager.Client.Shared.UserAccount
+@layout UserAccountLayout
 
 @inject IUserManagement _userManagement
 @inject IEventAggregator _aggregator
 @inject NavigationManager _navigationManager
 @inject IDialogService _dialogService
 
-<GenericAuthorizeView Claims="new []{Claims.UserManagmaentClaim}">
+<GenericAuthorizeView Claims="new[] { Claims.UserManagmaentClaim }">
     <CenterElement>
         @if (_isSubmiting)
         {
@@ -40,7 +39,7 @@
 
     private bool _isSubmiting;
     private bool _isValid;
-    
+
     public string NewUserName
     {
         get => _newUserName;
@@ -102,4 +101,5 @@
             StateHasChanged();
         }
     }
+
 }

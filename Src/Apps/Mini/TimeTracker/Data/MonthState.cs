@@ -4,6 +4,6 @@
     {
         Minus,
         Short,
-        Ok,
+        Ok
     }
 }

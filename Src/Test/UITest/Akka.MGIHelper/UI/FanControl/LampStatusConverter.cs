@@ -11,26 +11,25 @@ namespace Akka.MGIHelper.UI.FanControl
     {
         private static readonly Dictionary<State, string> StadesLabels = new()
                                                                          {
-                                                                                   {State.Cooldown, "Abkühlen"},
-                                                                                   {State.Error, "Fehler"},
-                                                                                   {State.Idle, "Aus"},
-                                                                                   {State.Ignition, "Zünden"},
-                                                                                   {State.Ready, "Bereit"},
-                                                                                   {State.Power, "Betrieb"},
-                                                                                   {State.StandBy, "Bereitschaft"},
-                                                                                   {State.StartUp, "Starten"},
-                                                                                   {State.TestRun, "Test"}
-                                                                               };
+                                                                             { State.Cooldown, "Abkühlen" },
+                                                                             { State.Error, "Fehler" },
+                                                                             { State.Idle, "Aus" },
+                                                                             { State.Ignition, "Zünden" },
+                                                                             { State.Ready, "Bereit" },
+                                                                             { State.Power, "Betrieb" },
+                                                                             { State.StandBy, "Bereitschaft" },
+                                                                             { State.StartUp, "Starten" },
+                                                                             { State.TestRun, "Test" }
+                                                                         };
 
         public object Convert(object? value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value == null) return "Keine Daten";
-            return StadesLabels[(State) value];
+
+            return StadesLabels[(State)value];
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            return State.Idle;
-        }
+            => State.Idle;
     }
 }

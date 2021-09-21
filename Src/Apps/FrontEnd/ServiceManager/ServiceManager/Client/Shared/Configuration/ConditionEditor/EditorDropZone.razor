@@ -1,7 +1,6 @@
-﻿@using System.Reactive.Disposables
+﻿@implements IDisposable
 @using Tauron
-
-@implements IDisposable
+@using System.Reactive.Disposables
 @implements IAddReciever
 
 @inject AddHelper _addHelper;
@@ -10,22 +9,22 @@
 {
     <MudCheckBox @bind-Checked="IsActive" Label="Elemente Einfügen" Class="mt-n3"/>
     <div class="d-flex flex-row flex-wrap flex-fill mud-width-full mud-height-full ma-1" style="border: groove; min-height: 50px;">
-        @foreach(var item in Items.Where(EditorTrampolie.CanEdit))
+        @foreach (var item in Items.Where(EditorTrampolie.CanEdit))
         {
             <EditorTrampolie Item="item"/>
         }
     </div>
 }
-    
+
 @code {
-    
+
     private IDisposable _subscription = Disposable.Empty;
 
     protected override void OnInitialized()
     {
         _subscription = new CompositeDisposable(
             _addHelper.Changed
-                      .Subscribe(_ => InvokeAsync(StateHasChanged).Ignore()),
+                .Subscribe(_ => InvokeAsync(StateHasChanged).Ignore()),
             _addHelper.Remove.Subscribe(e =>
                                         {
                                             if (Items?.Remove(e) == true)

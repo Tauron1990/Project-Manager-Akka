@@ -13,6 +13,7 @@ namespace Tauron.Application.AkkaNode.Services.Core
         {
             var eventActor = EventActor.CreateSelfKilling(actor, null);
             eventActor.Send(target, new EventSubscribe(Watch: true, typeof(TEvent)));
+
             return eventActor;
         }
 
@@ -20,13 +21,15 @@ namespace Tauron.Application.AkkaNode.Services.Core
         {
             var eventActor = EventActor.CreateSelfKilling(actor, null, handler);
             eventActor.Send(target, new EventSubscribe(Watch: true, typeof(TEvent)));
+
             return eventActor;
         }
-        
+
         public static IEventActor SubscribeToEvent<TEvent>(this IActorRefFactory actor, IActorRef target)
         {
             var eventActor = EventActor.Create(actor, null);
             eventActor.Send(target, new EventSubscribe(Watch: true, typeof(TEvent)));
+
             return eventActor;
         }
 
@@ -34,12 +37,14 @@ namespace Tauron.Application.AkkaNode.Services.Core
         {
             var eventActor = EventActor.Create(actor, null, handler);
             eventActor.Send(target, new EventSubscribe(Watch: true, typeof(TEvent)));
+
             return eventActor;
         }
 
         public static EventSubscribtion SubscribeToEvent<TEvent>(this IActorRef eventSource)
         {
             eventSource.Tell(new EventSubscribe(Watch: true, typeof(TEvent)));
+
             return new EventSubscribtion(typeof(TEvent), eventSource);
         }
     }
@@ -61,6 +66,7 @@ namespace Tauron.Application.AkkaNode.Services.Core
         public void Dispose()
         {
             if (_eventSource.IsNobody()) return;
+
             _eventSource.Tell(new EventUnSubscribe(_event));
         }
     }

@@ -3,8 +3,6 @@
     public sealed record QueryHostApps : InternalHostMessages.CommandBase<HostAppsResponse>
     {
         public QueryHostApps(string target)
-            : base(target, InternalHostMessages.CommandType.AppRegistry)
-        {
-        }
+            : base(target, InternalHostMessages.CommandType.AppRegistry) { }
     }
 }

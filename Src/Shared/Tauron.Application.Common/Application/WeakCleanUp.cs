@@ -49,6 +49,7 @@ namespace Tauron.Application
             var rightNull = right is null;
 
             if (left is not null) return !left.Equals(right);
+
             return !rightNull;
         }
 
@@ -65,8 +66,9 @@ namespace Tauron.Application
             unchecked
             {
                 object? target;
+
                 return (((target = _reference?.Target) != null ? target.GetHashCode() : 0) * 397)
-                       ^ _method.GetHashCode();
+                     ^ _method.GetHashCode();
             }
         }
 
@@ -76,6 +78,7 @@ namespace Tauron.Application
                 return _method.GetMethodInvoker(() => _method.GetParameterTypes()).Invoke(null, parms);
 
             var target = _reference?.Target;
+
             return target == null
                 ? null
                 : _method.GetMethodInvoker(() => _method.GetParameterTypes()).Invoke(target, parms);
@@ -95,13 +98,16 @@ namespace Tauron.Application
 
         public static void RegisterAction(Action action)
         {
-            lock (Actions) 
+            lock (Actions)
+            {
                 Actions.Add(new WeakDelegate(action));
+            }
         }
 
         private static IList<WeakDelegate> Initialize()
         {
             _timer = new Timer(InvokeCleanUp, null, TimeSpan.Zero, TimeSpan.FromMinutes(15));
+
             return new List<WeakDelegate>();
         }
 
@@ -111,22 +117,16 @@ namespace Tauron.Application
             {
                 var dead = new List<WeakDelegate>();
                 foreach (var weakDelegate in Actions.ToArray())
-                {
                     if (weakDelegate.IsAlive)
-                    {
                         try
                         {
                             #pragma warning disable GU0011
                             weakDelegate.Invoke();
                             #pragma warning restore GU0011
                         }
-                        catch (ApplicationException)
-                        {
-                        }
-                    }
+                        catch (ApplicationException) { }
                     else
                         dead.Add(weakDelegate);
-                }
 
                 dead.ForEach(del => Actions.Remove(del));
             }

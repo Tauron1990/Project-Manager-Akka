@@ -1,11 +1,10 @@
-﻿@using System.Collections.Immutable
-@using System.Reactive.Disposables
-@using ServiceHost.Client.Shared.ConfigurationServer.Data
+﻿@implements ServiceManager.Client.Shared.Configuration.ConditionEditor.IAddReciever
+@using System.Collections.Immutable
+@using Tauron
 @using ServiceManager.Client.Shared.Configuration.ConditionEditor
 @using ServiceManager.Client.ViewModels.Configuration
-@using Tauron
-
-@implements IAddReciever
+@using System.Reactive.Disposables
+@using ServiceHost.Client.Shared.ConfigurationServer.Data
 @implements IDisposable
 
 @inject AddHelper _addHelper;
@@ -46,17 +45,18 @@ else
 
 @code {
 
-    private static readonly ElementItem[] Templates = {
-                                                          new AndElement { Name = "Und Template" },
-                                                          new OrElement { Name = "Oder Template" },
-                                                          new DefinedAppElement { Name = "Definierte App Template" },
-                                                          new InstalledAppElement { Name = "Installierte App Template" }
-                                                      };
+    private static readonly ElementItem[] Templates =
+    {
+        new AndElement { Name = "Und Template" },
+        new OrElement { Name = "Oder Template" },
+        new DefinedAppElement { Name = "Definierte App Template" },
+        new InstalledAppElement { Name = "Installierte App Template" }
+    };
 
     private ImmutableList<ElementItem> KnownenElements { get; set; } = ImmutableList<ElementItem>.Empty;
 
     private IDisposable _subscription = Disposable.Empty;
-    
+
     [Parameter]
     public ConfigurationViewAppConfigModel? Model { get; set; }
 
@@ -73,7 +73,7 @@ else
             UpdateKowenElements(ToEdit.Config.Conditions);
             State.ActualItems.AddRange(ToEdit.Config.Conditions.Select(ElementItem.CreateItem));
         }
-        
+
         base.OnParametersSet();
     }
 
@@ -96,9 +96,9 @@ else
         base.OnAfterRender(firstRender);
     }
 
-    private void UpdateKowenElements(IEnumerable<Condition> conditions) 
+    private void UpdateKowenElements(IEnumerable<Condition> conditions)
         => KnownenElements = conditions.Where(c => !c.Name.StartsWith(ElementItem.IdPrefix)).Select(ElementItem.CreateItem).ToImmutableList();
-    
+
     public void Add(ElementItem item)
     {
         State?.ActualItems.Add(item);
@@ -120,7 +120,7 @@ else
 
     void Callback(ElementItem template)
     {
-        if(State != null)
+        if (State != null)
             State.ChangesWhereMade = true;
         var clone = template.Clone();
         Task.Run(() => _addHelper.NewItem(clone)).Ignore();

@@ -39,7 +39,7 @@ namespace Tauron
             where TData : class
             => data ?? Option<TData>.None;
 
-        public static Option<TNew> Select<TOld, TNew>(this Option<TOld> old, Func<TOld, TNew> onValue, Func<TNew> defaultValue) 
+        public static Option<TNew> Select<TOld, TNew>(this Option<TOld> old, Func<TOld, TNew> onValue, Func<TNew> defaultValue)
             => old.HasValue ? old.Select(onValue) : defaultValue();
 
         public static bool WhenTrue(this bool input, Action run)
@@ -61,6 +61,7 @@ namespace Tauron
         {
             foreach (var action in todo)
                 action(item);
+
             return item;
         }
 
@@ -106,11 +107,11 @@ namespace Tauron
         public static DateTime Round(this DateTime source, RoundType type)
         {
             if (!Enum.IsDefined(typeof(RoundType), type))
-                throw new InvalidEnumArgumentException(nameof(type), (int) type, typeof(RoundType));
+                throw new InvalidEnumArgumentException(nameof(type), (int)type, typeof(RoundType));
             if (type == RoundType.None)
                 throw new ArgumentNullException(nameof(type));
 
-            return Round(source, (double) type);
+            return Round(source, (double)type);
         }
 
         public static DateTime Round(this DateTime source, double type)
@@ -123,7 +124,7 @@ namespace Tauron
 
             var minutes = type;
 
-            Math.DivRem(source.Minute, (int) minutes, out var modulo);
+            Math.DivRem(source.Minute, (int)minutes, out var modulo);
 
             if (modulo <= 0) return result;
 
@@ -138,23 +139,25 @@ namespace Tauron
         public static string SFormat(this string format, params object[] args)
             => string.Format(CultureInfo.InvariantCulture, format, args);
 
-        public static Option<TType> TypedTarget<TType>(this WeakReference<TType> reference) 
+        public static Option<TType> TypedTarget<TType>(this WeakReference<TType> reference)
             where TType : class
             => reference.TryGetTarget(out var obj) ? obj.AsOption() : default;
 
         public static TimeSpan LocalTimeSpanToUTC(this TimeSpan ts)
         {
-            DateTime dt = DateTime.Now.Date.Add(ts);
-            DateTime dtUtc = dt.ToUniversalTime();
-            TimeSpan tsUtc = dtUtc.TimeOfDay;
+            var dt = DateTime.Now.Date.Add(ts);
+            var dtUtc = dt.ToUniversalTime();
+            var tsUtc = dtUtc.TimeOfDay;
+
             return tsUtc;
         }
 
         public static TimeSpan UTCTimeSpanToLocal(this TimeSpan tsUtc)
         {
-            DateTime dtUtc = DateTime.UtcNow.Date.Add(tsUtc);
-            DateTime dt = dtUtc.ToLocalTime();
-            TimeSpan ts = dt.TimeOfDay;
+            var dtUtc = DateTime.UtcNow.Date.Add(tsUtc);
+            var dt = dtUtc.ToLocalTime();
+            var ts = dt.TimeOfDay;
+
             return ts;
         }
     }

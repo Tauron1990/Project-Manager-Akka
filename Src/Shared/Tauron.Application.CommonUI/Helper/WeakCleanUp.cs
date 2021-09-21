@@ -51,6 +51,7 @@ namespace Tauron.Application.CommonUI.Helper
             var rightNull = ReferenceEquals(right, null);
 
             if (!leftnull) return !left!.Equals(right!);
+
             return !rightNull;
         }
 
@@ -67,8 +68,9 @@ namespace Tauron.Application.CommonUI.Helper
             unchecked
             {
                 var target = _reference?.Target;
+
                 return ((target != null ? target.GetHashCode() : 0) * 397)
-                       ^ _method.GetHashCode();
+                     ^ _method.GetHashCode();
             }
         }
 
@@ -78,6 +80,7 @@ namespace Tauron.Application.CommonUI.Helper
                 return _method.GetMethodInvoker(() => _method.GetParameterTypes()).Invoke(null, parms).OptionNotNull();
 
             var target = _reference?.Target;
+
             return target == null
                 ? Option<object>.None
                 : _method.GetMethodInvoker(() => _method.GetParameterTypes()).Invoke(target, parms).OptionNotNull();
@@ -95,13 +98,16 @@ namespace Tauron.Application.CommonUI.Helper
 
         public static void RegisterAction(Action action)
         {
-            lock (Actions) 
+            lock (Actions)
+            {
                 Actions.Add(new WeakDelegate(action));
+            }
         }
 
         private static List<WeakDelegate> Initialize()
         {
             _timer = new Timer(InvokeCleanUp, null, TimeSpan.Zero, TimeSpan.FromMinutes(15));
+
             return new List<WeakDelegate>();
         }
 
@@ -111,7 +117,6 @@ namespace Tauron.Application.CommonUI.Helper
             {
                 var dead = new List<WeakDelegate>();
                 foreach (var weakDelegate in Actions.ToArray())
-                {
                     switch (weakDelegate.IsAlive)
                     {
                         case true:
@@ -121,17 +126,17 @@ namespace Tauron.Application.CommonUI.Helper
                                 weakDelegate.Invoke();
                                 #pragma warning restore GU0011
                             }
-                            catch(Exception e)
+                            catch (Exception e)
                             {
                                 if (e.IsCriticalException()) throw;
                             }
+
                             break;
                         default:
                             dead.Add(weakDelegate);
 
                             break;
                     }
-                }
 
                 dead.ForEach(del => Actions.Remove(del));
             }

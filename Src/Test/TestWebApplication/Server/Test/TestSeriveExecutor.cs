@@ -1,5 +1,4 @@
-﻿using System.Globalization;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Stl;
@@ -19,7 +18,7 @@ namespace TestWebApplication.Server.Test
             _publisher = publisher;
             _service = service;
         }
-        
+
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
             => Task.Run(
                 async () =>

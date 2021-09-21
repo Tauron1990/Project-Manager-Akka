@@ -2,8 +2,6 @@
 using Autofac;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Hosting;
 using Stl.Fusion.AkkaBridge.Connector;
 using Stl.Fusion.AkkaBridge.Internal;
 using Stl.Fusion.Bridge;
@@ -19,7 +17,7 @@ namespace Stl.Fusion.AkkaBridge
             builder.RegisterFeature<ServiceRegisterActorRef, IServiceRegistryActor>(ServiceRegistryActor.Factory());
             builder.RegisterType<AkkaProxyGenerator>().AsSelf();
         }
-        
+
         public static FusionBuilder AddAkkaFusionServer(this FusionBuilder builder)
         {
             builder.Services.AddHostedService<AkkaFusionServiceHost>();

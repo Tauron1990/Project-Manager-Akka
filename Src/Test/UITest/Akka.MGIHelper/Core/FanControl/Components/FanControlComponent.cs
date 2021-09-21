@@ -31,7 +31,7 @@ namespace Akka.MGIHelper.Core.FanControl.Components
 
             await _statusChange(true);
 
-            var time = (int) (_options.ClockTimeMs * _options.FanControlMultipler);
+            var time = (int)(_options.ClockTimeMs * _options.FanControlMultipler);
 
             _timer.Change(time, -1);
         }

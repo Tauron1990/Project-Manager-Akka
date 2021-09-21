@@ -29,6 +29,7 @@ namespace Tauron.Application.Localizer.UIModels
             set
             {
                 if (value == _content) return;
+
                 _content = value;
                 OnPropertyChanged();
                 _changed(value, Language);

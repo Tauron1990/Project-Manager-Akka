@@ -1,8 +1,6 @@
-﻿@using Microsoft.AspNetCore.Components
-@using Tauron.Application.CommonUI
+﻿@inherits ActorComponentBase<TModel>
 @using Autofac
-
-@inherits ActorComponentBase<TModel>
+@using Tauron.Application.CommonUI
 @typeparam TModel
 @inject ILifetimeScope _lifetimeScope
 

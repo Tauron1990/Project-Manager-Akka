@@ -22,7 +22,7 @@ namespace Tauron.Application.Localizer.Views
         {
             InitializeComponent();
 
-            Loaded += (_, _) => ((LanguageSelectorDialogViewModel) DataContext).OnLoad();
+            Loaded += (_, _) => ((LanguageSelectorDialogViewModel)DataContext).OnLoad();
         }
 
 
@@ -31,7 +31,8 @@ namespace Tauron.Application.Localizer.Views
             var result = new TaskCompletionSource<AddLanguageDialogResult?>();
 
             DataContext = new LanguageSelectorDialogViewModel(
-                c => result.SetResult(c == null ? null : new AddLanguageDialogResult(c)), initalData.Contains!,
+                c => result.SetResult(c is null ? null : new AddLanguageDialogResult(c)),
+                initalData.Contains,
                 Dispatcher);
 
             return result.Task;
@@ -51,6 +52,7 @@ namespace Tauron.Application.Localizer.Views
             set
             {
                 if (value == _isSelected) return;
+
                 _isSelected = value;
                 OnPropertyChanged();
                 _isSelectedAction(this);
@@ -80,7 +82,7 @@ namespace Tauron.Application.Localizer.Views
 
         public override CultureInfo Info { get; }
 
-        public bool IsFiltered { get; set; }
+        public bool IsFiltered { get; init; }
 
         public bool IsNotFiltered => !IsFiltered;
 
@@ -100,7 +102,8 @@ namespace Tauron.Application.Localizer.Views
 
         private int _position;
 
-        public LanguageSelectorDialogViewModel(Action<CultureInfo?> selector, Predicate<CultureInfo> filter,
+        public LanguageSelectorDialogViewModel(
+            Action<CultureInfo?> selector, Predicate<CultureInfo> filter,
             Dispatcher dispatcher)
         {
             _filter = filter;
@@ -115,7 +118,7 @@ namespace Tauron.Application.Localizer.Views
             }
 
             RejectCommand = new SimpleCommand(() => selector(null));
-            AddCommand = new SimpleCommand(o => IsSomethingSelected, o => selector(_current?.Info));
+            AddCommand = new SimpleCommand(_ => IsSomethingSelected, _ => selector(_current?.Info));
 
             _view = CollectionViewSource.GetDefaultView(LanguageGroups);
             _view.Filter += FilterLang;
@@ -131,6 +134,7 @@ namespace Tauron.Application.Localizer.Views
             set
             {
                 if (value == _filterContent) return;
+
                 _filterContent = value;
                 OnPropertyChanged();
                 _view.Refresh();
@@ -143,6 +147,7 @@ namespace Tauron.Application.Localizer.Views
             set
             {
                 if (value == _isLoading) return;
+
                 _isLoading = value;
                 OnPropertyChanged();
             }
@@ -159,9 +164,11 @@ namespace Tauron.Application.Localizer.Views
             if (obj is LanguageGroup group)
             {
                 var lang = group.Info;
+
                 if (lang.Name.Contains(FilterContent) || lang.DisplayName.Contains(FilterContent) ||
                     lang.EnglishName.Contains(FilterContent))
                     return true;
+
                 return false;
             }
 
@@ -175,13 +182,16 @@ namespace Tauron.Application.Localizer.Views
                 if (_position == _cultures.Count)
                 {
                     IsLoading = false;
+
                     return;
                 }
 
                 var (key, value) = _cultures.ElementAt(_position);
 
-                var group = new LanguageGroup(SelectionChanged, key);
-                group.IsFiltered = _filter(key);
+                var group = new LanguageGroup(SelectionChanged, key)
+                            {
+                                IsFiltered = _filter(key)
+                            };
 
                 foreach (var info in value.Where(c => !_filter(c)))
                     group.List.Add(new SubLanguage(info, SelectionChanged));
@@ -202,6 +212,7 @@ namespace Tauron.Application.Localizer.Views
             {
                 if (!_current.IsSelected)
                     _current = null;
+
                 return;
             }
 

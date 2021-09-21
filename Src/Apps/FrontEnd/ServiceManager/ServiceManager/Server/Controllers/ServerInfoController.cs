@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ServiceManager.Shared;
 using ServiceManager.Shared.Api;
 using ServiceManager.Shared.Identity;
@@ -10,7 +10,8 @@ using Stl.Fusion.Server;
 namespace ServiceManager.Server.Controllers
 {
     [Route(ControllerName.ServerInfo + "/[action]")]
-    [ApiController, JsonifyErrors]
+    [ApiController]
+    [JsonifyErrors]
     [Authorize(Claims.ServerInfoClaim)]
     public class ServerInfoController : ControllerBase, IServerInfo
     {
@@ -19,7 +20,8 @@ namespace ServiceManager.Server.Controllers
         public ServerInfoController(IServerInfo serverInfo)
             => _serverInfo = serverInfo;
 
-        [HttpGet, Publish]
+        [HttpGet]
+        [Publish]
         public Task<string> GetCurrentId(CancellationToken token)
             => _serverInfo.GetCurrentId(token);
 

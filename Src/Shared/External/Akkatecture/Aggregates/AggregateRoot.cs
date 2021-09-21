@@ -53,11 +53,11 @@ namespace Akkatecture.Aggregates
     {
         private static readonly IReadOnlyDictionary<Type, Action<TAggregateState, IAggregateEvent>>
             ApplyMethodsFromState = typeof(TAggregateState)
-                .GetAggregateStateEventApplyMethods<TAggregate, TIdentity, TAggregateState>()!;
+               .GetAggregateStateEventApplyMethods<TAggregate, TIdentity, TAggregateState>()!;
 
         private static readonly IReadOnlyDictionary<Type, Action<TAggregateState, IAggregateSnapshot>>
             HydrateMethodsFromState = typeof(TAggregateState)
-                .GetAggregateSnapshotHydrateMethods<TAggregate, TIdentity, TAggregateState>()!;
+               .GetAggregateSnapshotHydrateMethods<TAggregate, TIdentity, TAggregateState>()!;
 
         private static readonly IAggregateName AggregateName = typeof(TAggregate).GetAggregateName();
         private readonly IEventDefinitionService _eventDefinitionService;
@@ -72,24 +72,22 @@ namespace Akkatecture.Aggregates
                 throw new ArgumentNullException(nameof(id));
 
             if (this is not TAggregate)
-            {
                 throw new InvalidOperationException(
                     $"Aggregate {Name} specifies Type={typeof(TAggregate).PrettyPrint()} as generic argument, it should be its own type.");
-            }
 
             if (State is null)
-            {
                 try
                 {
-                    State = (TAggregateState?) FastReflection.Shared.FastCreateInstance(typeof(TAggregateState));
+                    State = (TAggregateState?)FastReflection.Shared.FastCreateInstance(typeof(TAggregateState));
                 }
                 catch (Exception exception)
                 {
-                    Context.GetLogger().Error(exception,
+                    Context.GetLogger().Error(
+                        exception,
                         "Unable to activate AggregateState of Type={0} for AggregateRoot of Name={1}.",
-                        typeof(TAggregateState).PrettyPrint(), Name);
+                        typeof(TAggregateState).PrettyPrint(),
+                        Name);
                 }
-            }
 
             PinnedCommand = null!;
             _eventDefinitionService = new EventDefinitionService(Context.GetLogger());
@@ -172,22 +170,23 @@ namespace Akkatecture.Aggregates
                     $"{Id.Value}-v{aggregateSequenceNumber}");
                 var now = DateTimeOffset.UtcNow;
                 var eventMetadata = new Metadata
-                {
-                    Timestamp = now,
-                    AggregateSequenceNumber = aggregateSequenceNumber,
-                    AggregateName = Name.Value,
-                    AggregateId = Id.Value,
-                    SourceId = PinnedCommand.SourceId,
-                    EventId = eventId,
-                    EventName = eventDefinition.Name,
-                    EventVersion = eventDefinition.Version
-                };
+                                    {
+                                        Timestamp = now,
+                                        AggregateSequenceNumber = aggregateSequenceNumber,
+                                        AggregateName = Name.Value,
+                                        AggregateId = Id.Value,
+                                        SourceId = PinnedCommand.SourceId,
+                                        EventId = eventId,
+                                        EventName = eventDefinition.Name,
+                                        EventVersion = eventDefinition.Version
+                                    };
                 eventMetadata.Add(MetadataKeys.TimestampEpoch, now.ToUnixTime().ToString());
                 if (metadata != null) eventMetadata.AddRange(metadata);
                 var genericType = typeof(CommittedEvent<,,>)
-                    .MakeGenericType(typeof(TAggregate), typeof(TIdentity), aggregateEvent.GetType());
+                   .MakeGenericType(typeof(TAggregate), typeof(TIdentity), aggregateEvent.GetType());
 
-                var committedEvent = FastReflection.Shared.FastCreateInstance(genericType,
+                var committedEvent = FastReflection.Shared.FastCreateInstance(
+                    genericType,
                     Id,
                     aggregateEvent,
                     eventMetadata,
@@ -207,6 +206,7 @@ namespace Akkatecture.Aggregates
             where TAggregateEvent : class, IAggregateEvent<TAggregate, TIdentity>
         {
             if (aggregateEvent == null) throw new ArgumentNullException(nameof(aggregateEvent));
+
             _eventDefinitionService.Load(aggregateEvent.GetType());
             var eventDefinition = _eventDefinitionService.GetDefinition(aggregateEvent.GetType());
             var aggregateSequenceNumber = version + 1;
@@ -215,21 +215,26 @@ namespace Akkatecture.Aggregates
                 $"{Id.Value}-v{aggregateSequenceNumber}");
             var now = DateTimeOffset.UtcNow;
             var eventMetadata = new Metadata
-            {
-                Timestamp = now,
-                AggregateSequenceNumber = aggregateSequenceNumber,
-                AggregateName = Name.Value,
-                AggregateId = Id.Value,
-                SourceId = PinnedCommand.SourceId,
-                EventId = eventId,
-                EventName = eventDefinition.Name,
-                EventVersion = eventDefinition.Version
-            };
+                                {
+                                    Timestamp = now,
+                                    AggregateSequenceNumber = aggregateSequenceNumber,
+                                    AggregateName = Name.Value,
+                                    AggregateId = Id.Value,
+                                    SourceId = PinnedCommand.SourceId,
+                                    EventId = eventId,
+                                    EventName = eventDefinition.Name,
+                                    EventVersion = eventDefinition.Version
+                                };
             eventMetadata.Add(MetadataKeys.TimestampEpoch, now.ToUnixTime().ToString());
             if (metadata != null) eventMetadata.AddRange(metadata);
 
-            var committedEvent = new CommittedEvent<TAggregate, TIdentity, TAggregateEvent>(Id, aggregateEvent,
-                eventMetadata, now, aggregateSequenceNumber);
+            var committedEvent = new CommittedEvent<TAggregate, TIdentity, TAggregateEvent>(
+                Id,
+                aggregateEvent,
+                eventMetadata,
+                now,
+                aggregateSequenceNumber);
+
             return committedEvent;
         }
 
@@ -237,7 +242,10 @@ namespace Akkatecture.Aggregates
         {
             Log.Warning(
                 "Aggregate of Name={0}, and Id={1}; attempted to create a snapshot, override the {2}() method to get snapshotting to function.",
-                Name, Id, nameof(CreateSnapshot));
+                Name,
+                Id,
+                nameof(CreateSnapshot));
+
             return null;
         }
 
@@ -248,38 +256,48 @@ namespace Akkatecture.Aggregates
             var applyMethods = GetEventApplyMethods(committedEvent.AggregateEvent);
             applyMethods(committedEvent.AggregateEvent);
 
-            Log.Info("Aggregate of Name={0}, and Id={1}; committed and applied an AggregateEvent of Type={2}.", Name,
-                Id, typeof(TAggregateEvent).PrettyPrint());
+            Log.Info(
+                "Aggregate of Name={0}, and Id={1}; committed and applied an AggregateEvent of Type={2}.",
+                Name,
+                Id,
+                typeof(TAggregateEvent).PrettyPrint());
 
             Version++;
 
-            var domainEvent = new DomainEvent<TAggregate, TIdentity, TAggregateEvent>(Id, committedEvent.AggregateEvent,
-                committedEvent.Metadata, committedEvent.Timestamp, Version);
+            var domainEvent = new DomainEvent<TAggregate, TIdentity, TAggregateEvent>(
+                Id,
+                committedEvent.AggregateEvent,
+                committedEvent.Metadata,
+                committedEvent.Timestamp,
+                Version);
 
             Publish(domainEvent);
             ReplyIfAvailable();
 
             if (!SnapshotStrategy.ShouldCreateSnapshot(this)) return;
+
             var aggregateSnapshot = CreateSnapshot();
 
             if (aggregateSnapshot == null) return;
+
             _snapshotDefinitionService.Load(aggregateSnapshot.GetType());
             var snapshotDefinition = _snapshotDefinitionService.GetDefinition(aggregateSnapshot.GetType());
             var snapshotMetadata = new SnapshotMetadata
-            {
-                AggregateId = Id.Value,
-                AggregateName = Name.Value,
-                AggregateSequenceNumber = Version,
-                SnapshotName = snapshotDefinition.Name,
-                SnapshotVersion = snapshotDefinition.Version
-            };
+                                   {
+                                       AggregateId = Id.Value,
+                                       AggregateName = Name.Value,
+                                       AggregateSequenceNumber = Version,
+                                       SnapshotName = snapshotDefinition.Name,
+                                       SnapshotVersion = snapshotDefinition.Version
+                                   };
 
             var committedSnapshot =
                 new CommittedSnapshot<TAggregate, TIdentity, IAggregateSnapshot<TAggregate, TIdentity>>(
                     Id,
                     aggregateSnapshot,
                     snapshotMetadata,
-                    committedEvent.Timestamp, Version);
+                    committedEvent.Timestamp,
+                    Version);
 
             SaveSnapshot(committedSnapshot);
         }
@@ -289,9 +307,9 @@ namespace Akkatecture.Aggregates
             try
             {
                 var method = GetType()
-                    .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                    .Where(methodInfo => methodInfo.IsFamily || methodInfo.IsPublic)
-                    .Single(methodInfo => methodInfo.Name.Equals("ApplyCommittedEvent"));
+                   .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                   .Where(methodInfo => methodInfo.IsFamily || methodInfo.IsPublic)
+                   .Single(methodInfo => methodInfo.Name.Equals("ApplyCommittedEvent"));
 
                 var genericMethod = method.MakeGenericMethod(committedEvent.GetType().GenericTypeArguments[2]);
 
@@ -299,16 +317,23 @@ namespace Akkatecture.Aggregates
             }
             catch (Exception exception)
             {
-                Log.Error(exception,
-                    "Aggregate of Name={0}, and Id={1}; tried to invoke Method={2} with object Type={3}.", Name, Id,
-                    nameof(ApplyCommittedEvent), committedEvent.GetType().PrettyPrint());
+                Log.Error(
+                    exception,
+                    "Aggregate of Name={0}, and Id={1}; tried to invoke Method={2} with object Type={3}.",
+                    Name,
+                    Id,
+                    nameof(ApplyCommittedEvent),
+                    committedEvent.GetType().PrettyPrint());
             }
         }
 
         protected virtual void Publish<TEvent>(TEvent aggregateEvent)
         {
             Context.System.EventStream.Publish(aggregateEvent);
-            Log.Info("Aggregate of Name={0}, and Id={1}; published DomainEvent of Type={2}.", Name, Id,
+            Log.Info(
+                "Aggregate of Name={0}, and Id={1}; published DomainEvent of Type={2}.",
+                Name,
+                Id,
                 typeof(TEvent).PrettyPrint());
         }
 
@@ -343,7 +368,10 @@ namespace Akkatecture.Aggregates
 
         protected override void Unhandled(object message)
         {
-            Log.Warning("Aggregate of Name={0}, and Id={1}; has received an unhandled message of Type={2}.", Name, Id,
+            Log.Warning(
+                "Aggregate of Name={0}, and Id={1}; has received an unhandled message of Type={2}.",
+                Name,
+                Id,
                 message.GetType().PrettyPrint());
             base.Unhandled(message);
         }
@@ -398,7 +426,8 @@ namespace Akkatecture.Aggregates
             Version++;
         }
 
-        protected virtual void HydrateSnapshot(IAggregateSnapshot<TAggregate, TIdentity> aggregateSnapshot,
+        protected virtual void HydrateSnapshot(
+            IAggregateSnapshot<TAggregate, TIdentity> aggregateSnapshot,
             long version)
         {
             var snapshotHydrater = GetSnapshotHydrateMethods(aggregateSnapshot);
@@ -415,14 +444,21 @@ namespace Akkatecture.Aggregates
             {
                 Log.Debug(
                     "Aggregate of Name={0}, Id={1}, and Version={2}, is recovering with CommittedEvent of Type={3}.",
-                    Name, Id, Version, committedEvent.GetType().PrettyPrint());
+                    Name,
+                    Id,
+                    Version,
+                    committedEvent.GetType().PrettyPrint());
                 ApplyEvent(committedEvent.AggregateEvent);
             }
             catch (Exception exception)
             {
-                Log.Error(exception,
-                    "Aggregate of Name={0}, Id={1}; while recovering with event of Type={2} caused an exception.", Name,
-                    Id, committedEvent.GetType().PrettyPrint());
+                Log.Error(
+                    exception,
+                    "Aggregate of Name={0}, Id={1}; while recovering with event of Type={2} caused an exception.",
+                    Name,
+                    Id,
+                    committedEvent.GetType().PrettyPrint());
+
                 return false;
             }
 
@@ -433,7 +469,10 @@ namespace Akkatecture.Aggregates
         {
             try
             {
-                Log.Debug("Aggregate of Name={0}, and Id={1}; has received a SnapshotOffer of Type={2}.", Name, Id,
+                Log.Debug(
+                    "Aggregate of Name={0}, and Id={1}; has received a SnapshotOffer of Type={2}.",
+                    Name,
+                    Id,
                     aggregateSnapshotOffer.Snapshot.GetType().PrettyPrint());
                 var comittedSnapshot =
                     (CommittedSnapshot<TAggregate, TIdentity, IAggregateSnapshot<TAggregate, TIdentity>>)
@@ -442,9 +481,12 @@ namespace Akkatecture.Aggregates
             }
             catch (Exception exception)
             {
-                Log.Error(exception,
-                    "Aggregate of Name={0}, Id={1}; recovering with snapshot of Type={2} caused an exception.", Name,
-                    Id, aggregateSnapshotOffer.Snapshot.GetType().PrettyPrint());
+                Log.Error(
+                    exception,
+                    "Aggregate of Name={0}, Id={1}; recovering with snapshot of Type={2} caused an exception.",
+                    Name,
+                    Id,
+                    aggregateSnapshotOffer.Snapshot.GetType().PrettyPrint());
 
                 return false;
             }
@@ -459,17 +501,25 @@ namespace Akkatecture.Aggregates
 
         protected virtual bool SnapshotStatus(SaveSnapshotSuccess snapshotSuccess)
         {
-            Log.Debug("Aggregate of Name={0}, and Id={1}; saved a snapshot at Version={2}.", Name, Id,
+            Log.Debug(
+                "Aggregate of Name={0}, and Id={1}; saved a snapshot at Version={2}.",
+                Name,
+                Id,
                 snapshotSuccess.Metadata.SequenceNr);
             DeleteSnapshots(new SnapshotSelectionCriteria(snapshotSuccess.Metadata.SequenceNr - 1));
+
             return true;
         }
 
         protected virtual bool SnapshotStatus(SaveSnapshotFailure snapshotFailure)
         {
-            Log.Error(snapshotFailure.Cause,
-                "Aggregate of Name={0}, and Id={1}; failed to save snapshot at Version={2}.", Name, Id,
+            Log.Error(
+                snapshotFailure.Cause,
+                "Aggregate of Name={0}, and Id={1}; failed to save snapshot at Version={2}.",
+                Name,
+                Id,
                 snapshotFailure.Metadata.SequenceNr);
+
             return true;
         }
 
@@ -478,7 +528,10 @@ namespace Akkatecture.Aggregates
         {
             Log.Debug(
                 "Aggregate of Name={0}, and Id={1}; has completed recovering from it's event journal at Version={2}.",
-                Name, Id, Version);
+                Name,
+                Id,
+                Version);
+
             return true;
         }
 
@@ -488,12 +541,16 @@ namespace Akkatecture.Aggregates
         {
             Log.Debug("Aggregate of Name={0}, and Id={1}; has received a timeout message and will stop.", Name, Id);
             Context.Stop(Self);
+
             return true;
         }
 
         public override void AroundPreRestart(Exception cause, object message)
         {
-            Log.Error(cause, "Aggregate of Name={0}, and Id={1}; has experienced an error and will now restart", Name,
+            Log.Error(
+                cause,
+                "Aggregate of Name={0}, and Id={1}; has experienced an error and will now restart",
+                Name,
                 Id);
             base.AroundPreRestart(cause, message);
         }
@@ -505,17 +562,20 @@ namespace Akkatecture.Aggregates
         {
             try
             {
-                var handler =  FastReflection.Shared.FastCreateInstance(typeof(TCommandHandler)) as TCommandHandler;
-                
-                if(handler is null)
+                var handler = FastReflection.Shared.FastCreateInstance(typeof(TCommandHandler)) as TCommandHandler;
+
+                if (handler is null)
                     Log.Error("Unable to resolve CommandHandler of Type={0} for Aggregate of Type={1}.");
                 else
-                    Command(command => handler.HandleCommand((TAggregate) this, Context, command), shouldHandle);
+                    Command(command => handler.HandleCommand((TAggregate)this, Context, command), shouldHandle);
             }
             catch (Exception exception)
             {
-                Log.Error(exception, "Unable to activate CommandHandler of Type={0} for Aggregate of Type={1}.",
-                    typeof(TCommandHandler).PrettyPrint(), typeof(TAggregate).PrettyPrint());
+                Log.Error(
+                    exception,
+                    "Unable to activate CommandHandler of Type={0} for Aggregate of Type={1}.",
+                    typeof(TCommandHandler).PrettyPrint(),
+                    typeof(TAggregate).PrettyPrint());
             }
         }
 
@@ -525,34 +585,40 @@ namespace Akkatecture.Aggregates
 
             var subscriptionTypes =
                 type
-                    .GetAggregateExecuteTypes();
+                   .GetAggregateExecuteTypes();
 
             var methods = type
-                .GetTypeInfo()
-                .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-                .Where(mi =>
-                {
-                    if (mi.Name != "Execute") return false;
-                    var parameters = mi.GetParameters();
-                    return
-                        parameters.Length == 1;
-                })
-                .ToDictionary(
+               .GetTypeInfo()
+               .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+               .Where(
+                    mi =>
+                    {
+                        if (mi.Name != "Execute") return false;
+
+                        var parameters = mi.GetParameters();
+
+                        return
+                            parameters.Length == 1;
+                    })
+               .ToDictionary(
                     mi => mi.GetParameters()[0].ParameterType,
                     mi => mi);
 
             var method = type
-                .GetBaseType("ReceivePersistentActor")
-                .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-                .Where(mi =>
-                {
-                    if (mi.Name != "Command") return false;
-                    var parameters = mi.GetParameters();
-                    return
-                        parameters.Length == 1
-                        && parameters[0].ParameterType.Name.Contains("Func");
-                })
-                .First();
+               .GetBaseType("ReceivePersistentActor")
+               .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+               .Where(
+                    mi =>
+                    {
+                        if (mi.Name != "Command") return false;
+
+                        var parameters = mi.GetParameters();
+
+                        return
+                            parameters.Length == 1
+                         && parameters[0].ParameterType.Name.Contains("Func");
+                    })
+               .First();
 
             foreach (var subscriptionType in subscriptionTypes)
             {

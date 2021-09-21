@@ -18,18 +18,28 @@ namespace Tauron.Application.Workshop.StateManagement
 
         private Func<IStateDispatcherConfigurator> _dispatcherFunc = () => new DefaultStateDispatcher();
 
-        public IComponentContext? ComponentContext { get; set; }
-
         private bool _sendBackSetting;
 
         internal ManagerBuilder(WorkspaceSuperviser superviser) => Superviser = superviser;
 
+        public IComponentContext? ComponentContext { get; set; }
+
         public WorkspaceSuperviser Superviser { get; }
+
+        public ManagerBuilder WithDispatcher(Func<IStateDispatcherConfigurator>? factory)
+        {
+            _dispatcherFunc = factory ?? (() => new DefaultStateDispatcher());
+
+            return this;
+        }
+
+        public ManagerBuilder WithDispatcher(string name, Func<IStateDispatcherConfigurator>? factory) => throw new NotSupportedException("Polled Dispatcher not Supported");
 
         public static RootManager CreateManager(WorkspaceSuperviser superviser, Action<ManagerBuilder> builder)
         {
             var managerBuilder = new ManagerBuilder(superviser);
             builder(managerBuilder);
+
             return managerBuilder.Build(null);
         }
 
@@ -38,10 +48,11 @@ namespace Tauron.Application.Workshop.StateManagement
         {
             var builder = new WorkspaceMapBuilder<TData>(source);
             _states.Add(builder);
+
             return builder;
         }
 
-        public bool StateRegistrated<TData>(Type state) where TData : class, IStateEntity 
+        public bool StateRegistrated<TData>(Type state) where TData : class, IStateEntity
             => _states.OfType<StateBuilder<TData>>().Any(b => b.State == state);
 
         public IStateBuilder<TData> WithDataSource<TData>(Func<IExtendedDataSource<TData>> source)
@@ -49,34 +60,30 @@ namespace Tauron.Application.Workshop.StateManagement
         {
             var builder = new StateBuilder<TData>(source);
             _states.Add(builder);
+
             return builder;
         }
 
         public ManagerBuilder WithDefaultSendback(bool flag)
         {
             _sendBackSetting = flag;
+
             return this;
         }
 
         public ManagerBuilder WithMiddleware(Func<IMiddleware> middleware)
         {
             _middlewares.Add(middleware);
+
             return this;
         }
 
         public ManagerBuilder WithEffect(Func<IEffect> effect)
         {
             _effects.Add(effect);
+
             return this;
         }
-
-        public ManagerBuilder WithDispatcher(Func<IStateDispatcherConfigurator>? factory)
-        {
-            _dispatcherFunc = factory ?? (() => new DefaultStateDispatcher());
-            return this;
-        }
-
-        public ManagerBuilder WithDispatcher(string name, Func<IStateDispatcherConfigurator>? factory) => throw new NotSupportedException("Polled Dispatcher not Supported");
 
 
         internal RootManager Build(AutofacOptions? autofacOptions)
@@ -94,8 +101,14 @@ namespace Tauron.Application.Workshop.StateManagement
                     additionalMiddlewares.AddRange(ComponentContext.Resolve<IEnumerable<IMiddleware>>());
             }
 
-            var man = new RootManager(Superviser, _dispatcherFunc(), _states, _effects.Select(e => e()).Concat(additionalEffects), _middlewares.Select(m => m()).Concat(additionalMiddlewares),
-                _sendBackSetting, ComponentContext);
+            var man = new RootManager(
+                Superviser,
+                _dispatcherFunc(),
+                _states,
+                _effects.Select(e => e()).Concat(additionalEffects),
+                _middlewares.Select(m => m()).Concat(additionalMiddlewares),
+                _sendBackSetting,
+                ComponentContext);
 
             man.PostInit();
 

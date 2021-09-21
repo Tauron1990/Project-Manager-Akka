@@ -12,32 +12,33 @@ namespace Tauron.Akka
     [PublicAPI]
     public sealed class EventActor : UntypedActor
     {
-        private bool _killOnFirstRespond;
         private readonly ILoggingAdapter _log = Context.GetLogger();
 
         private readonly Dictionary<Type, Delegate?> _registrations = new();
+        private bool _killOnFirstRespond;
 
         private EventActor(bool killOnFirstRespond) => _killOnFirstRespond = killOnFirstRespond;
 
         public static IEventActor From(IActorRef actorRef) => new HookEventActor(actorRef);
 
         public static IEventActor Create(IActorRefFactory system, string? name)
-            => Create<Unit>(system, name, null, killOnFirstResponse: false);
+            => Create<Unit>(system, name, null, false);
 
         public static IEventActor CreateSelfKilling(IActorRefFactory system, string? name)
             => CreateSelfKilling<Unit>(system, name, null);
 
         public static IEventActor Create<TPayload>(IActorRefFactory system, string? name, Action<TPayload>? handler)
-            => Create(system, name, handler, killOnFirstResponse: false);
+            => Create(system, name, handler, false);
 
         public static IEventActor CreateSelfKilling<TPayload>(IActorRefFactory system, string? name, Action<TPayload>? handler)
-            => Create(system, name, handler, killOnFirstResponse: true);
+            => Create(system, name, handler, true);
 
         private static IEventActor Create<TPayload>(IActorRefFactory system, string? name, Action<TPayload>? handler, bool killOnFirstResponse)
         {
             var temp = new HookEventActor(system.ActorOf(Props.Create(() => new EventActor(false)), name));
-            if(handler is not null)
+            if (handler is not null)
                 temp.Register(HookEvent.Create(handler)).Ignore();
+
             return temp;
         }
 
@@ -53,14 +54,17 @@ namespace Tauron.Akka
 
                     _registrations[hookEvent.Target] = del;
 
-                    Sender.Tell(Disposable.Create((Self, Del:del, hookEvent.Target), info => info.Self.Tell(new RemoveDel(info.Del, info.Target))));
+                    Sender.Tell(Disposable.Create((Self, Del: del, hookEvent.Target), info => info.Self.Tell(new RemoveDel(info.Del, info.Target))));
+
                     break;
                 case RemoveDel remove:
-                    if(!_registrations.TryGetValue(remove.Target, out var action)) return;
+                    if (!_registrations.TryGetValue(remove.Target, out var action)) return;
+
                     if (action == remove.Delegate)
                         _registrations.Remove(remove.Target);
                     else
                         _registrations[remove.Target] = action.Remove(remove.Delegate);
+
                     break;
                 default:
                     var msgType = message.GetType();
@@ -85,7 +89,6 @@ namespace Tauron.Akka
 
                     break;
             }
-
         }
 
         private sealed record RemoveDel(Delegate Delegate, Type Target);

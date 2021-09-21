@@ -15,7 +15,7 @@ namespace Tauron.Application.CommonUI.Helper
 {
     public static class ViewModelSuperviserExtensions
     {
-        public static void InitModel(this IViewModel model, IActorContext context, string? name = null) 
+        public static void InitModel(this IViewModel model, IActorContext context, string? name = null)
             => ViewModelSuperviser.Get(context.System).Create(model, name);
     }
 
@@ -61,7 +61,7 @@ namespace Tauron.Application.CommonUI.Helper
     {
         private int _count;
 
-        public ViewModelSuperviserActor() 
+        public ViewModelSuperviserActor()
             => Receive<ViewModelSuperviser.CreateModel>(obs => obs.SubscribeWithStatus(NewModel));
 
         private void NewModel(ViewModelSuperviser.CreateModel obj)
@@ -87,9 +87,7 @@ namespace Tauron.Application.CommonUI.Helper
             private CircuitBreakerStrategy(Func<IDecider> decider) => _decider = decider;
 
             internal CircuitBreakerStrategy(ILoggingAdapter log)
-                : this(() => new CircuitBreakerDecider(log))
-            {
-            }
+                : this(() => new CircuitBreakerDecider(log)) { }
 
             public override IDecider Decider => throw new NotSupportedException("Single Decider not Supportet");
 
@@ -97,13 +95,14 @@ namespace Tauron.Application.CommonUI.Helper
             {
                 // ReSharper disable once HeapView.CanAvoidClosure
                 var decider = _deciders.GetOrAdd(child, _ => _decider());
+
                 return decider.Decide(exception);
             }
 
             public override void ProcessFailure(IActorContext context, bool restart, IActorRef child, Exception cause, ChildRestartStats stats, IReadOnlyCollection<ChildRestartStats> children)
             {
                 if (restart)
-                    RestartChild(child, cause, suspendFirst: false);
+                    RestartChild(child, cause, false);
                 else
                     context.Stop(child);
             }
@@ -133,11 +132,15 @@ namespace Tauron.Application.CommonUI.Helper
                 switch (cause)
                 {
                     case ActorInitializationException m:
-                        _log.Error(m.InnerException ?? m, "Initialization Error from Model: {Actor}",
+                        _log.Error(
+                            m.InnerException ?? m,
+                            "Initialization Error from Model: {Actor}",
                             m.Actor?.Path.Name ?? "Unkowen");
+
                         return Directive.Escalate;
                     case DeathPactException d:
                         _log.Error(d, "DeathPactException In Model");
+
                         return Directive.Escalate;
                     case ActorKilledException:
                         return Directive.Stop;
@@ -150,23 +153,30 @@ namespace Tauron.Application.CommonUI.Helper
                     case InternalState.Closed:
                         _time.Restart();
                         _restartAtempt = 1;
+
                         return Directive.Restart;
                     case InternalState.HalfOpen:
                         if (_time.Elapsed > TimeSpan.FromMinutes(2))
                         {
                             _currentState = InternalState.Closed;
+
                             return Directive.Restart;
                         }
                         else
+                        {
                             _restartAtempt++;
+                        }
 
                         _time.Restart();
 
                         if (_restartAtempt > 6)
+                        {
                             return Directive.Escalate;
+                        }
                         else
                         {
                             _currentState = InternalState.Closed;
+
                             return Directive.Restart;
                         }
                     default:

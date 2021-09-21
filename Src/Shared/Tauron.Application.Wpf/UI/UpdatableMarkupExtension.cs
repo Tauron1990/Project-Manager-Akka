@@ -62,7 +62,8 @@ namespace Tauron.Application.Wpf.UI
             }
         }
 
-        protected virtual bool TryGetTargetItems(IServiceProvider? provider,
+        protected virtual bool TryGetTargetItems(
+            IServiceProvider? provider,
             [NotNullWhen(true)] out DependencyObject? target, [NotNullWhen(true)] out DependencyProperty? dp)
         {
             target = null;
@@ -74,6 +75,7 @@ namespace Tauron.Application.Wpf.UI
             //we need dependency objects / properties
             target = service.TargetObject as DependencyObject;
             dp = service.TargetProperty as DependencyProperty;
+
             return target != null && dp != null;
         }
 

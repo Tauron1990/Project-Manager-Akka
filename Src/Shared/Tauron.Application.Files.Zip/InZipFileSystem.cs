@@ -19,13 +19,11 @@ namespace Tauron.Application.Files.Zip
         }
 
         public InZipFileSystem()
-            : this(new ZipFile())
-        {
-        }
+            : this(new ZipFile()) { }
 
         public void Dispose()
         {
-            if (SaveAfterDispose && !string.IsNullOrWhiteSpace(_file.Name)) 
+            if (SaveAfterDispose && !string.IsNullOrWhiteSpace(_file.Name))
                 _file.Save();
 
             _file.Dispose();
@@ -41,7 +39,7 @@ namespace Tauron.Application.Files.Zip
 
         public void Reload(string source)
         {
-            if (SaveAfterDispose && !string.IsNullOrWhiteSpace(_file.Name)) 
+            if (SaveAfterDispose && !string.IsNullOrWhiteSpace(_file.Name))
                 _file.Save();
             _file.Dispose();
 

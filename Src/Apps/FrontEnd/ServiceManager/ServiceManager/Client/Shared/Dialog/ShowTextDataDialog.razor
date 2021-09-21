@@ -1,5 +1,4 @@
-﻿@using System.Web
-<MudDialog>
+﻿<MudDialog>
     <DialogContent>
         <div style="overflow: scroll; height: 100vh;">
             <p style="white-space: pre-wrap;">@Data</p>
@@ -11,7 +10,8 @@
 </MudDialog>
 
 @code {
-    [CascadingParameter] 
+
+    [CascadingParameter]
     public MudDialogInstance? MudDialog { get; set; }
 
     [Parameter]
@@ -20,6 +20,6 @@
     private void Close() => MudDialog?.Close();
 
     public static DialogParameters GetParameters(string text)
-        => new() {{nameof(Data), text}};
+        => new() { { nameof(Data), text } };
 
 }

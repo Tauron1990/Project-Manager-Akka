@@ -11,16 +11,14 @@ namespace Tauron.Application.Localizer.UIModels
         private ImmutableList<string>? _renctFiles;
 
         public AppConfig(IDefaultActorRef<SettingsManager> actor, string scope, ILogger<AppConfig> logger)
-            : base(actor, scope, logger)
-        {
-        }
+            : base(actor, scope, logger) { }
 
         public ImmutableList<string> RenctFiles
         {
             get
             {
                 return _renctFiles ??= ImmutableList<string>.Empty.AddRange(
-                    GetValue(s => s.Split(new[] {';'}, StringSplitOptions.RemoveEmptyEntries), Array.Empty<string>())!);
+                    GetValue(s => s.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries), Array.Empty<string>())!);
             }
             set
             {

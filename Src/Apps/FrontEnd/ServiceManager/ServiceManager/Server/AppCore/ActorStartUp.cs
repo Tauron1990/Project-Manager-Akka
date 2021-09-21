@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using ServiceManager.Server.AppCore.ClusterTracking;
 using ServiceManager.Server.AppCore.Helper;
-using ServiceManager.Server.AppCore.ServiceDeamon;
 using Tauron;
 using Tauron.Application.AkkaNode.Bootstrap;
 
@@ -9,8 +8,8 @@ namespace ServiceManager.Server.AppCore
 {
     public sealed class ActorStartUp : IStartUpAction
     {
-        private readonly IClusterNodeManager _manager;
         private readonly IEnumerable<IEventDispatcher> _dispatcher;
+        private readonly IClusterNodeManager _manager;
 
         public ActorStartUp(IClusterNodeManager manager, IEnumerable<IEventDispatcher> dispatcher)
         {

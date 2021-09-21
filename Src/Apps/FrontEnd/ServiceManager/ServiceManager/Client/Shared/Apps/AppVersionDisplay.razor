@@ -1,5 +1,4 @@
 ﻿@using Tauron.Application.Master.Commands.Deployment.Build.Data
-
 @if (Item.LastVersion == -1)
 {
     <MudText>Keine Version Verfügbar</MudText>
@@ -10,6 +9,8 @@ else
 }
 
 @code {
+
     [Parameter]
     public AppInfo Item { get; set; } = AppInfo.Empty;
+
 }

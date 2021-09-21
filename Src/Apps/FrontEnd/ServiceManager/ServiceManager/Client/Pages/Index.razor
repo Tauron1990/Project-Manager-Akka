@@ -1,9 +1,10 @@
 ﻿@page "/"
 @using ServiceManager.Shared.Identity
 
+@* ReSharper disable once Html.TagShouldNotBeSelfClosed *@
 <Title Value="Service Manager"/>
 
-<GenericAuthorizeView Claims="new []{ Claims.ClusterNodeClaim }">
+<GenericAuthorizeView Claims="new[] { Claims.ClusterNodeClaim }">
     <IndexView/>
 </GenericAuthorizeView>
 

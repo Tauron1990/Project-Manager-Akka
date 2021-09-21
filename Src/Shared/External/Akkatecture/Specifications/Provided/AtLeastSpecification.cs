@@ -58,14 +58,15 @@ namespace Akkatecture.Specifications.Provided
         protected override IEnumerable<string> IsNotSatisfiedBecause(T aggregate)
         {
             var notStatisfiedReasons = _specifications
-                .Select(specification => 
-                (
-                    Specification: specification,
-                    WhyIsNotStatisfied: specification.WhyIsNotSatisfiedBy(aggregate).ToList()
-                ))
-                .Where(pair => pair.WhyIsNotStatisfied.Any())
-                .Select(pair => $"{pair.Specification.GetType().PrettyPrint()}: {string.Join(", ", pair.WhyIsNotStatisfied)}")
-                .ToList();
+               .Select(
+                    specification =>
+                    (
+                        Specification: specification,
+                        WhyIsNotStatisfied: specification.WhyIsNotSatisfiedBy(aggregate).ToList()
+                    ))
+               .Where(pair => pair.WhyIsNotStatisfied.Any())
+               .Select(pair => $"{pair.Specification.GetType().PrettyPrint()}: {string.Join(", ", pair.WhyIsNotStatisfied)}")
+               .ToList();
 
             return _specifications.Count - notStatisfiedReasons.Count >= _requiredSpecifications
                 ? Enumerable.Empty<string>()

@@ -13,22 +13,49 @@ namespace ServiceManager.Server.AppCore.Helper
 {
     public interface IInternalAppIpManager
     {
-        Task<string> WriteIp(string ip);
-
         IObservable<AppIp> IpChanged { get; }
 
         AppIp Ip { get; }
+        Task<string> WriteIp(string ip);
     }
 
     public sealed class AppIpManager : ObservableObject, IInternalAppIpManager
     {
         private AppIp _appIpField = new("Unbekannt", IsValid: false);
 
-        public IObservable<AppIp> IpChanged { get; }
-
         public AppIpManager()
         {
             IpChanged = PropertyChangedObservable.Where(c => c == nameof(AppIp)).Select(_ => Ip);
+        }
+
+        public IObservable<AppIp> IpChanged { get; }
+
+        public async Task<string> WriteIp(string ip)
+        {
+            try
+            {
+                var baseConfig = ConfigurationFactory.ParseString(await File.ReadAllTextAsync("seed.conf"));
+                baseConfig = ConfigurationFactory.ParseString($"akka.remote.dot-netty.tcp.hostname = {ip}").WithFallback(baseConfig);
+
+                var targetFile = Path.Combine(TauronEnviroment.DefaultProfilePath, "servicemanager-ip.dat");
+
+                await File.WriteAllTextAsync("seed.conf", baseConfig.ToString(includeFallback: true));
+                await File.WriteAllTextAsync(targetFile, ip);
+
+                return string.Empty;
+            }
+            catch (Exception e)
+            {
+                #pragma warning disable EPC12
+                return e.Message;
+                #pragma warning restore EPC12
+            }
+        }
+
+        public AppIp Ip
+        {
+            get => _appIpField;
+            private set => SetProperty(ref _appIpField, value);
         }
 
         public async Task Aquire()
@@ -38,7 +65,6 @@ namespace ServiceManager.Server.AppCore.Helper
             var needPatch = false;
 
             if (File.Exists(targetFile))
-            {
                 try
                 {
                     var old = await File.ReadAllTextAsync(targetFile);
@@ -56,16 +82,16 @@ namespace ServiceManager.Server.AppCore.Helper
                     }
                 }
                 catch (IOException) { }
-            }
             else
                 needPatch = true;
 
-            if(!needPatch)
+            if (!needPatch)
                 return;
 
             if (string.IsNullOrWhiteSpace(potentialIp))
             {
                 Ip = new AppIp("Keine Ip Gefunden Bitte manuelle Eingabe!", IsValid: false);
+
                 return;
             }
 
@@ -108,34 +134,6 @@ namespace ServiceManager.Server.AppCore.Helper
             }
 
             return localIp;
-        }
-
-        public async Task<string> WriteIp(string ip)
-        {
-            try
-            {
-                var baseConfig = ConfigurationFactory.ParseString(await File.ReadAllTextAsync("seed.conf"));
-                baseConfig = ConfigurationFactory.ParseString($"akka.remote.dot-netty.tcp.hostname = {ip}").WithFallback(baseConfig);
-            
-                var targetFile = Path.Combine(TauronEnviroment.DefaultProfilePath, "servicemanager-ip.dat");
-
-                await File.WriteAllTextAsync("seed.conf", baseConfig.ToString(includeFallback: true));
-                await File.WriteAllTextAsync(targetFile, ip);
-
-                return string.Empty;
-            }
-            catch (Exception e)
-            {
-                #pragma warning disable EPC12
-                return e.Message;
-                #pragma warning restore EPC12
-            }
-        }
-
-        public AppIp Ip
-        {
-            get => _appIpField;
-            private set => SetProperty(ref _appIpField, value);
         }
     }
 }

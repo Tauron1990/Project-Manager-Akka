@@ -11,9 +11,9 @@ namespace Stl.Fusion.AkkaBridge.Connector
 {
     public class AkkaProxyGenerator
     {
-        private readonly IServiceRegistryActor _serviceRegistry;
         private readonly ProxyGenerator _proxyGenerator;
-        
+        private readonly IServiceRegistryActor _serviceRegistry;
+
         public AkkaProxyGenerator(IServiceRegistryActor serviceRegistry)
         {
             _serviceRegistry = serviceRegistry;
@@ -22,16 +22,17 @@ namespace Stl.Fusion.AkkaBridge.Connector
 
         public object GenerateAkkaProxy(Type serviceType)
             => _proxyGenerator.CreateInterfaceProxyWithoutTarget(serviceType, new AkkaInterceptor(_serviceRegistry, serviceType));
-        
+
         private sealed class AkkaInterceptor : IInterceptor
         {
-                                                                          #pragma warning disable 4014
+            #pragma warning disable 4014
             private static readonly MethodInfo CallServiceMethod = Reflex.MethodInfo<AkkaInterceptor>(t => t.CallService<string>(null!))
-                                                                          #pragma warning restore 4014
-                                                                         .GetGenericMethodDefinition();
-            
-            private readonly IServiceRegistryActor _serviceRegistry;
+                #pragma warning restore 4014
+               .GetGenericMethodDefinition();
+
             private readonly Type _interfaceMethod;
+
+            private readonly IServiceRegistryActor _serviceRegistry;
 
             public AkkaInterceptor(IServiceRegistryActor serviceRegistry, Type interfaceMethod)
             {
@@ -43,17 +44,18 @@ namespace Stl.Fusion.AkkaBridge.Connector
             {
                 var returnType = invocation.Method.ReturnType;
 
-                if (!(returnType == typeof(Task) || (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(Task<>))))
+                if (!(returnType == typeof(Task) || returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(Task<>)))
                     throw new InvalidOperationException("Only Async Operation are Supported");
 
                 if (returnType == typeof(Task))
+                {
                     invocation.ReturnValue = CallServiceNoReturn(invocation);
+                }
                 else
                 {
                     var met = CallServiceMethod.MakeGenericMethod(returnType.GenericTypeArguments[0]);
                     invocation.ReturnValue = FastReflection.Shared
-                                                         .GetMethodInvoker(met, () => new[] { typeof(IInvocation) })(this, new object?[]{ invocation });
-                    
+                       .GetMethodInvoker(met, () => new[] { typeof(IInvocation) })(this, new object?[] { invocation });
                 }
             }
 
@@ -79,12 +81,14 @@ namespace Stl.Fusion.AkkaBridge.Connector
                 {
                     var (methodResponse, publicationStateInfo) = await service.Ask<PublicationResponse>(new RequestPublication(new TryMethodCall(invocation.Method.Name, invocation.Arguments)), TimeSpan.FromSeconds(30));
                     response = methodResponse;
-                    
-                    if(publicationStateInfo != null)
+
+                    if (publicationStateInfo != null)
                         psiCapture.Capture(publicationStateInfo);
                 }
                 else
+                {
                     response = await service.Ask<MethodResponse>(new TryMethodCall(invocation.Method.Name, invocation.Arguments));
+                }
 
                 return response.Error switch
                 {
@@ -102,6 +106,7 @@ namespace Stl.Fusion.AkkaBridge.Connector
 
                 if (exception != null)
                     throw exception;
+
                 throw new InvalidOperationException("Unkownen Error on Excution Remote Service");
             }
         }

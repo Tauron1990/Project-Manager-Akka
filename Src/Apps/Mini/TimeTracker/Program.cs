@@ -1,8 +1,7 @@
-﻿using System.Globalization;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
-using Tauron.Application.Logging;
 using Tauron.AkkaHost;
+using Tauron.Application.Logging;
 
 namespace TimeTracker
 {
@@ -11,10 +10,11 @@ namespace TimeTracker
         public static async Task Main(string[] args)
         {
             await Host.CreateDefaultBuilder(args)
-                      .ConfigDefaultLogging("Time-Tracker")
-                      .ConfigureAkkaApplication(ab => ab.AddModule<MainModule>()
-                                                        .UseWpf<MainWindow, App>())
-                      .Build().RunAsync();
+               .ConfigDefaultLogging("Time-Tracker")
+               .ConfigureAkkaApplication(
+                    ab => ab.AddModule<MainModule>()
+                       .UseWpf<MainWindow, App>())
+               .Build().RunAsync();
         }
     }
 }

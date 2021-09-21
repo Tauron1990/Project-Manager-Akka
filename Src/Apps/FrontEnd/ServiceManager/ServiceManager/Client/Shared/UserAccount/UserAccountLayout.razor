@@ -10,7 +10,7 @@
     <MudAppBar Elevation="4" Dense="true">
         <MudIconButton Edge="Edge.Start" Icon="@Icons.Material.Filled.ArrowLeft" OnClick="GoBackClick"/>
         <MudSpacer/>
-        <MudText>@HeaderMessage</MudText>
+        <MudText>@_headerMessage</MudText>
         <MudSpacer/>
         <LogoutButton/>
         <MudButton Variant="Variant.Text" Link="/About" Color="Color.Tertiary">About</MudButton>
@@ -25,19 +25,16 @@
 @code {
 
     [CascadingParameter]
-    public Task<AuthState>? AuthState { get; set; } 
-    
-    private string HeaderMessage = "Lade Daten";
+    public Task<AuthState>? AuthState { get; set; }
+
+    private string _headerMessage = "Lade Daten";
 
     protected override async Task OnParametersSetAsync()
     {
         if (AuthState != null)
         {
             var result = await AuthState;
-            if (result.User.IsAuthenticated)
-                HeaderMessage = $"Hallo: {result.User.Name}";
-            else
-                HeaderMessage = "Hallo Gast";
+            _headerMessage = result.User.IsAuthenticated ? $"Hallo: {result.User.Name}" : "Hallo Gast";
         }
         await base.OnParametersSetAsync();
     }

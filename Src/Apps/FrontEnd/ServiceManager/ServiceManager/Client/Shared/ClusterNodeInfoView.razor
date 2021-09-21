@@ -1,6 +1,5 @@
 ﻿@using ServiceManager.Shared.ClusterTracking
-
-@inherits ComputedStateComponent<ClusterNodeInfo>
+@inherits ComputedStateComponent<ServiceManager.Shared.ClusterTracking.ClusterNodeInfo>
 
 @inject IClusterNodeTracking _nodeTracking;
 
@@ -46,7 +45,7 @@
     [Parameter]
     public string NodeInfo { get; set; } = string.Empty;
 
-    protected override Task<ClusterNodeInfo> ComputeState(CancellationToken cancellationToken) 
+    protected override Task<ClusterNodeInfo> ComputeState(CancellationToken cancellationToken)
         => _nodeTracking.GetInfo(NodeInfo);
 
 }

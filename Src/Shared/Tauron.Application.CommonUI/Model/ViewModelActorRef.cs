@@ -19,9 +19,9 @@ namespace Tauron.Application.CommonUI.Model
     public sealed class ViewModelActorRef<TModel> : ViewModelActorRef, IViewModel<TModel>
         where TModel : UiActor
     {
+        private readonly object _lock = new();
         private IActorRef _actor = ActorRefs.Nobody;
         private bool _isInitialized;
-        private readonly object _lock = new();
 
         private List<Action> _waiter = new();
 

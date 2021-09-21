@@ -9,7 +9,6 @@ using SimpleTcp;
 
 namespace Servicemnager.Networking.Server
 {
-    
     public sealed class MessageFromClientEventArgs : EventArgs
     {
         public MessageFromClientEventArgs(NetworkMessage message, string client)
@@ -34,28 +33,28 @@ namespace Servicemnager.Networking.Server
         public DataServer(string host, int port = 0)
         {
             _server = new SimpleTcpServer(host, port, ssl: false, pfxCertFilename: null, pfxPassword: null)
-            {
-                Keepalive = {EnableTcpKeepAlives = true}
-            };
+                      {
+                          Keepalive = { EnableTcpKeepAlives = true }
+                      };
 
             _server.Events.ClientConnected += (_, args) =>
-            {
-                _clients.TryAdd(args.IpPort, new MessageBuffer(MemoryPool<byte>.Shared));
-                ClientConnected?.Invoke(this, new ClientConnectedArgs(args.IpPort));
-            };
+                                              {
+                                                  _clients.TryAdd(args.IpPort, new MessageBuffer(MemoryPool<byte>.Shared));
+                                                  ClientConnected?.Invoke(this, new ClientConnectedArgs(args.IpPort));
+                                              };
             _server.Events.ClientDisconnected += (sender, args) =>
-            {
-                _clients.TryRemove(args.IpPort, out _);
-                ClientDisconnected?.Invoke(this, new ClientDisconnectedArgs(args.IpPort, args.Reason));
-            };
+                                                 {
+                                                     _clients.TryRemove(args.IpPort, out _);
+                                                     ClientDisconnected?.Invoke(this, new ClientDisconnectedArgs(args.IpPort, args.Reason));
+                                                 };
             _server.Events.DataReceived += EventsOnDataReceived;
         }
 
         public EndPoint EndPoint
             // ReSharper disable once ConstantNullCoalescingCondition
-            => (_endPoint ??=
-                ((TcpListener) _server.GetType().GetField("_Listener", BindingFlags.Instance | BindingFlags.NonPublic)
-                    ?.GetValue(_server)!).LocalEndpoint);
+            => _endPoint ??=
+                ((TcpListener)_server.GetType().GetField("_Listener", BindingFlags.Instance | BindingFlags.NonPublic)
+                  ?.GetValue(_server)!).LocalEndpoint;
 
         public event EventHandler<ClientConnectedArgs>? ClientConnected;
         public event EventHandler<ClientDisconnectedArgs>? ClientDisconnected;
@@ -69,6 +68,7 @@ namespace Servicemnager.Networking.Server
             using var memory = data.Message;
 
             _server.Send(client, memory.Memory[..data.Lenght].ToArray());
+
             return true;
         }
 

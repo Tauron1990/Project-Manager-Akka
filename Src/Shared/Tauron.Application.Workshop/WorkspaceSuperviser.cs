@@ -21,18 +21,21 @@ namespace Tauron.Application.Workshop
         {
             var result =
                 await Superviser.Ask<WorkspaceSuperviserActor.NewActor>(new WorkspaceSuperviserActor.SupervisePropsActor(props, name));
+
             return result.ActorRef;
         }
 
         public async Task<IActorRef> Create(Type actor, string name)
         {
             var result = await Superviser.Ask<WorkspaceSuperviserActor.NewActor>(new WorkspaceSuperviserActor.SuperviseDiActor(actor, name));
+
             return result.ActorRef;
         }
 
         public async Task<IActorRef> CreateCustom(string name, SupervisorStrategy? strategy, Func<IUntypedActorContext, Props> factory)
         {
             var result = await Superviser.Ask<WorkspaceSuperviserActor.NewActor>(new WorkspaceSuperviserActor.CustomSuperviseActor(name, factory, strategy));
+
             return result.ActorRef;
         }
 

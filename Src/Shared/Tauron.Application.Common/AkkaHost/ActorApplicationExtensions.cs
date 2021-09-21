@@ -19,38 +19,34 @@ namespace Tauron.AkkaHost
 {
     public static class ActorApplicationExtensions
     {
+        [PublicAPI]
+        public static IHostBuilder ConfigureAkkaApplication(this IHostBuilder hostBuilder, Action<IActorApplicationBuilder>? config = null)
+            => hostBuilder.UseServiceProviderFactory(
+                builderContext =>
+                {
+                    var builder = new ActorApplicationBluilder(builderContext, hostBuilder);
+                    config?.Invoke(builder);
+
+                    return new ActorServiceProviderFactory(builder);
+                });
+
         private sealed class ActorApplicationBluilder : IActorApplicationBuilder
         {
-            private sealed class ActorSystemHolder
-            {
-                private ActorSystem? _system;
-
-                internal ActorSystem System
-                {
-                    get
-                    {
-                        if (_system == null)
-                            throw new InvalidOperationException("ActorSystem not Created");
-                        return _system;
-                    }
-                    set => _system = value;
-                }
-            }
-
-            private readonly ContainerBuilder _containerBuilder = new();
-            private readonly ActorSystemHolder _holder = new();
-
-            private readonly HostBuilderContext _context;
-            private readonly IHostBuilder _builder;
             private readonly List<Func<HostBuilderContext, Config>> _akkaConfig = new();
             private readonly List<Func<HostBuilderContext, Setup>> _akkaSetup = new();
+            private readonly IHostBuilder _builder;
+
+            private readonly ContainerBuilder _containerBuilder = new();
+
+            private readonly HostBuilderContext _context;
+            private readonly ActorSystemHolder _holder = new();
             private readonly List<Action<HostBuilderContext, ActorSystem>> _systemConfig = new();
 
             internal ActorApplicationBluilder(HostBuilderContext context, IHostBuilder builder)
             {
                 _context = context;
                 _builder = builder;
-                
+
                 _containerBuilder.RegisterModule<CommonModule>();
                 _containerBuilder.RegisterInstance(_holder).SingleInstance();
                 _containerBuilder.Register(componentContext => componentContext.Resolve<ActorSystemHolder>().System).SingleInstance();
@@ -59,48 +55,56 @@ namespace Tauron.AkkaHost
             public IActorApplicationBuilder ConfigureAutoFac(Action<ContainerBuilder> config)
             {
                 config(_containerBuilder);
+
                 return this;
             }
 
             public IActorApplicationBuilder ConfigureAkka(Func<HostBuilderContext, Config> config)
             {
                 _akkaConfig.Add(config);
+
                 return this;
             }
 
             public IActorApplicationBuilder ConfigureAkka(Func<HostBuilderContext, Setup> config)
             {
                 _akkaSetup.Add(config);
+
                 return this;
             }
 
             public IActorApplicationBuilder ConfigureAkkaSystem(Action<HostBuilderContext, ActorSystem> system)
             {
                 _systemConfig.Add(system);
+
                 return this;
             }
 
             public IActorApplicationBuilder ConfigureHostConfiguration(Action<IConfigurationBuilder> configureDelegate)
             {
                 _builder.ConfigureHostConfiguration(configureDelegate);
+
                 return this;
             }
 
             public IActorApplicationBuilder ConfigureAppConfiguration(Action<HostBuilderContext, IConfigurationBuilder> configureDelegate)
             {
                 _builder.ConfigureAppConfiguration(configureDelegate);
+
                 return this;
             }
 
             public IActorApplicationBuilder ConfigureServices(Action<HostBuilderContext, IServiceCollection> configureDelegate)
             {
                 _builder.ConfigureServices(configureDelegate);
+
                 return this;
             }
 
             public IActorApplicationBuilder ConfigureContainer<TContainerBuilder>(Action<HostBuilderContext, TContainerBuilder> configureDelegate)
             {
                 _builder.ConfigureContainer(configureDelegate);
+
                 return this;
             }
 
@@ -114,7 +118,7 @@ namespace Tauron.AkkaHost
                 system.RegisterExtension(new DependencyResolverExtension());
                 _holder.System = system;
 
-                foreach (var action in _systemConfig) 
+                foreach (var action in _systemConfig)
                     action(_context, system);
 
                 return system;
@@ -123,6 +127,7 @@ namespace Tauron.AkkaHost
             private string GetActorSystemName(IConfiguration config)
             {
                 var name = config["actorsystem"];
+
                 return !string.IsNullOrWhiteSpace(name)
                     ? name
                     : _context.HostingEnvironment.ApplicationName.Replace('.', '-');
@@ -134,22 +139,41 @@ namespace Tauron.AkkaHost
                 _containerBuilder.Populate(collection);
             }
 
-            internal IServiceProvider CreateServiceProvider() 
+            internal IServiceProvider CreateServiceProvider()
                 => new AutofacServiceProvider(_containerBuilder.Build());
 
             private static void ApplyFixes(ContainerBuilder builder, IServiceCollection serviceCollection)
             {
-                if(TryRemove(serviceCollection, typeof(EventLogLoggerProvider)))
+                if (TryRemove(serviceCollection, typeof(EventLogLoggerProvider)))
                     builder.Register(componentContext => new EventLogLoggerProvider(componentContext.Resolve<IOptions<EventLogSettings>>())).As<ILoggerProvider>();
             }
 
             private static bool TryRemove(IServiceCollection collection, Type impl)
             {
                 var sd = collection.FindIndex(serviceDescriptor => serviceDescriptor.ImplementationType == impl);
+
                 if (sd == -1) return false;
 
                 collection.RemoveAt(sd);
+
                 return true;
+            }
+
+            private sealed class ActorSystemHolder
+            {
+                private ActorSystem? _system;
+
+                internal ActorSystem System
+                {
+                    get
+                    {
+                        if (_system == null)
+                            throw new InvalidOperationException("ActorSystem not Created");
+
+                        return _system;
+                    }
+                    set => _system = value;
+                }
             }
         }
 
@@ -162,6 +186,7 @@ namespace Tauron.AkkaHost
             public IActorApplicationBuilder CreateBuilder(IServiceCollection services)
             {
                 _actorBuilder.Populate(services);
+
                 return _actorBuilder;
             }
 
@@ -184,14 +209,5 @@ namespace Tauron.AkkaHost
                 return prov;
             }
         }
-
-        [PublicAPI]
-        public static IHostBuilder ConfigureAkkaApplication(this IHostBuilder hostBuilder, Action<IActorApplicationBuilder>? config = null)
-            => hostBuilder.UseServiceProviderFactory(builderContext =>
-                                                     {
-                                                         var builder = new ActorApplicationBluilder(builderContext, hostBuilder);
-                                                         config?.Invoke(builder);
-                                                         return new ActorServiceProviderFactory(builder);
-                                                     });
     }
 }

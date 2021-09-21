@@ -22,32 +22,37 @@ namespace Tauron.Application.Workshop.StateManagement
         {
             static IObservable<ReducerResult<TData>> ErrorHandler(Exception e)
             {
-                return Observable.Return(new ReducerResult<TData>(null, new[] {e.Message}));
+                return Observable.Return(new ReducerResult<TData>(null, new[] { e.Message }));
             }
 
             return state =>
-            {
-                var typedAction = (TAction) action;
-                var validation = Validator?.Validate(typedAction);
+                   {
+                       var typedAction = (TAction)action;
+                       var validation = Validator?.Validate(typedAction);
 
-                return
-                    state.ConditionalSelect()
-                        .ToResult<ReducerResult<TData>>(b =>
-                        {
-                            b.When(_ => validation != null && !validation.IsValid,
-                                context => context.Select(c
-                                    => ReducerResult.Fail<TData>(validation!.Errors.Select(f => f.ErrorMessage))));
-                            b.When(_ => validation == null || validation.IsValid,
-                                context =>
-                                    Reduce(context.Where(_ => validation == null || validation.IsValid), typedAction)
-                                        .Catch<ReducerResult<TData>, Exception>(ErrorHandler));
-                        });
-            };
+                       return
+                           state.ConditionalSelect()
+                              .ToResult<ReducerResult<TData>>(
+                                   b =>
+                                   {
+                                       b.When(
+                                           _ => validation != null && !validation.IsValid,
+                                           context => context.Select(
+                                               c
+                                                   => ReducerResult.Fail<TData>(validation!.Errors.Select(f => f.ErrorMessage))));
+                                       b.When(
+                                           _ => validation == null || validation.IsValid,
+                                           context =>
+                                               Reduce(context.Where(_ => validation == null || validation.IsValid), typedAction)
+                                                  .Catch<ReducerResult<TData>, Exception>(ErrorHandler));
+                                   });
+                   };
         }
 
         public virtual bool ShouldReduceStateForAction(IStateAction action) => action is TAction;
 
-        protected abstract IObservable<ReducerResult<TData>> Reduce(IObservable<MutatingContext<TData>> state,
+        protected abstract IObservable<ReducerResult<TData>> Reduce(
+            IObservable<MutatingContext<TData>> state,
             TAction action);
 
         protected ReducerResult<TData> Sucess(MutatingContext<TData> data) => ReducerResult.Sucess(data);

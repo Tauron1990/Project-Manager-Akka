@@ -36,37 +36,42 @@ namespace Tauron.Application.CommonUI.Model
         //    return ShowDialog<TDialog, TData, TData>(actor, () => default!, parameters);
         //}
 
-        public static Func<Task<TData>> ShowDialog<TDialog, TData>(this UiActor actor, Func<TData> initalData,
+        public static Func<Task<TData>> ShowDialog<TDialog, TData>(
+            this UiActor actor, Func<TData> initalData,
             params Parameter[] parameters)
             where TDialog : IBaseDialog<TData, TData>
             => ShowDialog<TDialog, TData, TData>(actor, initalData, parameters);
 
-        public static Func<Task<TData>> ShowDialog<TDialog, TData, TViewData>(this UiActor actor,
+        public static Func<Task<TData>> ShowDialog<TDialog, TData, TViewData>(
+            this UiActor actor,
             Func<TViewData> initalData, params Parameter[] parameters)
             where TDialog : IBaseDialog<TData, TViewData>
         {
             _dialogCoordinator ??= actor.LifetimeScope.Resolve<IDialogCoordinator>();
 
             return async () =>
-            {
-                var result = await actor
-                    .Dispatcher
-                    .InvokeAsync(() =>
-                    {
-                        var dialog = actor.LifetimeScope.Resolve<TDialog>(parameters);
-                        var task = dialog.Init(initalData());
+                   {
+                       var result = await actor
+                          .Dispatcher
+                          .InvokeAsync(
+                               () =>
+                               {
+                                   var dialog = actor.LifetimeScope.Resolve<TDialog>(parameters);
+                                   var task = dialog.Init(initalData());
 
-                        _dialogCoordinator.ShowDialog(dialog);
-                        return task;
-                    });
+                                   _dialogCoordinator.ShowDialog(dialog);
 
-                actor.Dispatcher.Post(() => _dialogCoordinator.HideDialog());
+                                   return task;
+                               });
 
-                return result;
-            };
+                       actor.Dispatcher.Post(() => _dialogCoordinator.HideDialog());
+
+                       return result;
+                   };
         }
 
-        public static DialogBuilder<TViewData> Dialog<TViewData>(this IObservable<TViewData> input, UiActor actor,
+        public static DialogBuilder<TViewData> Dialog<TViewData>(
+            this IObservable<TViewData> input, UiActor actor,
             params Parameter[] parameters) => new(input, parameters, actor);
 
         [PublicAPI]
@@ -85,9 +90,10 @@ namespace Tauron.Application.CommonUI.Model
 
             public IObservable<TResult> Of<TDialog, TResult>() where TDialog : IBaseDialog<TResult, TInitialData>
             {
-                return _data.SelectMany(data
-                        => ShowDialog<TDialog, TResult, TInitialData>(_actor, () => data, _parameters)())
-                    .ObserveOnSelf();
+                return _data.SelectMany(
+                        data
+                            => ShowDialog<TDialog, TResult, TInitialData>(_actor, () => data, _parameters)())
+                   .ObserveOnSelf();
             }
 
             public IObservable<TInitialData> Of<TDialog>()

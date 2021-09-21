@@ -66,15 +66,11 @@ namespace Akkatecture.Commands
     {
         protected Command(
             TIdentity aggregateId)
-            : this(aggregateId, CommandId.New)
-        {
-        }
+            : this(aggregateId, CommandId.New) { }
 
         protected Command(
             TIdentity aggregateId,
             CommandId sourceId)
-            : base(aggregateId, sourceId)
-        {
-        }
+            : base(aggregateId, sourceId) { }
     }
 }

@@ -12,25 +12,24 @@ namespace ServiceManager.Client.ViewModels.Configuration
 {
     public sealed class ConfigurationViewGlobalConfigModel
     {
-        private readonly IServerConfigurationApi _api;
         private readonly IEventAggregator _aggregator;
+        private readonly IServerConfigurationApi _api;
         private readonly IDatabaseConfig _databaseConfig;
-
-        public string ConfigInfo { get; set; } = string.Empty;
-
-        public string ConfigContent { get; set; } = string.Empty;
 
         public ConfigurationViewGlobalConfigModel(IServerConfigurationApi api, IEventAggregator aggregator, IDatabaseConfig databaseConfig)
         {
-            
             _api = api;
             _aggregator = aggregator;
             _databaseConfig = databaseConfig;
         }
 
+        public string ConfigInfo { get; set; } = string.Empty;
+
+        public string ConfigContent { get; set; } = string.Empty;
+
         public async Task GenerateDefaultConfig()
         {
-            if(! await _databaseConfig.GetIsReady()) return;
+            if (!await _databaseConfig.GetIsReady()) return;
 
             var result = AkkaConfigurationBuilder.ApplyMongoUrl(ConfigContent, await _api.QueryBaseConfig(), await _databaseConfig.GetUrl());
             ConfigContent = result;

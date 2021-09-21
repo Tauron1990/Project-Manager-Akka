@@ -15,9 +15,9 @@ namespace ServiceManager.ProjectRepository
 
         public static readonly RepositoryManager Empty = new(ActorRefs.Nobody);
 
-        public IActorRef Manager { get; }
-
         private RepositoryManager(IActorRef manager) => Manager = manager;
+
+        public IActorRef Manager { get; }
 
         public bool IsOk => !Manager.IsNobody();
 
@@ -30,7 +30,7 @@ namespace ServiceManager.ProjectRepository
             var repo = ClusterSingletonManager.Props(
                 Feature.Props(RepositoryManagerImpl.Create(configuration), TellAliveFeature.New()),
                 ClusterSingletonManagerSettings.Create(actorSystem).WithRole("UpdateSystem"));
-            
+
             return new RepositoryManager(actorSystem.ActorOf(repo, RepositoryApi.RepositoryPath));
         }
 

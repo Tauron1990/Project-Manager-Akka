@@ -1,7 +1,6 @@
 ﻿@using ServiceManager.Shared.Identity
 @using Stl.Fusion.Authentication
 @using Tauron.Application
-
 @inject IUserManagement _userManagement
 @inject IEventAggregator _aggregator
 @inject ISessionResolver _session
@@ -18,7 +17,7 @@
     public Task<AuthState>? StateTask { get; set; }
 
     private AuthState? _state;
-    
+
     private async Task Logout()
     {
         try
@@ -34,7 +33,7 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        if(StateTask != null)
+        if (StateTask != null)
             _state = await StateTask;
         await base.OnParametersSetAsync();
     }

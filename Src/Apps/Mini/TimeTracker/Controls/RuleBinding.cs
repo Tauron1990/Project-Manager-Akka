@@ -2,7 +2,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using Akka.IO;
 using Tauron.Application.Wpf.UI;
 
 namespace TimeTracker.Controls
@@ -20,6 +19,7 @@ namespace TimeTracker.Controls
         {
             Binding.Delay = 200;
             Binding.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+
             return base.ProvideValue(provider);
         }
     }

@@ -1,5 +1,4 @@
-﻿
-@if (Item != null)
+﻿@if (Item != null)
 {
     <MudCard>
         <MudCardHeader>Basis Info:</MudCardHeader>
@@ -12,6 +11,7 @@
 }
 
 @code {
+
     [Parameter]
     public ElementItem? Item { get; set; }
 
@@ -21,11 +21,12 @@
         {
             if (Item == null)
                 return string.Empty;
+
             return string.IsNullOrWhiteSpace(Item.Name) || Item.Name.StartsWith(ElementItem.IdPrefix) ? string.Empty : Item.Name;
         }
         set
         {
-            if(Item != null)
+            if (Item != null)
                 Item.Name = value;
         }
     }

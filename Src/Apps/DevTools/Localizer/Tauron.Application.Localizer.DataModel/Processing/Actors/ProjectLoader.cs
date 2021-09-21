@@ -26,8 +26,12 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
             }
             catch (Exception e)
             {
-                originalSender.Tell(new LoadedProjectFile(loadProjectFile.OperationId,
-                    ProjectFile.FromSource(loadProjectFile.Source, Sender), e, Ok: false));
+                originalSender.Tell(
+                    new LoadedProjectFile(
+                        loadProjectFile.OperationId,
+                        ProjectFile.FromSource(loadProjectFile.Source, Sender),
+                        e,
+                        Ok: false));
             }
             finally
             {

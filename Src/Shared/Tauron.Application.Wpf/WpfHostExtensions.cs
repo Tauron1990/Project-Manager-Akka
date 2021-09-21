@@ -17,15 +17,16 @@ namespace Tauron.AkkaHost
         public static IActorApplicationBuilder UseWpf<TMainWindow>(this IActorApplicationBuilder hostBuilder, Action<BaseAppConfiguration>? config = null)
             where TMainWindow : class, IMainWindow
         {
-            hostBuilder.ConfigureAutoFac(sc =>
-            {
-                sc.RegisterModule<WpfModule>();
+            hostBuilder.ConfigureAutoFac(
+                sc =>
+                {
+                    sc.RegisterModule<WpfModule>();
 
-                sc.RegisterType<TMainWindow>().As<IMainWindow>().SingleInstance();
+                    sc.RegisterType<TMainWindow>().As<IMainWindow>().SingleInstance();
 
-                var wpf = new BaseAppConfiguration(sc);
-                config?.Invoke(wpf);
-            });
+                    var wpf = new BaseAppConfiguration(sc);
+                    config?.Invoke(wpf);
+                });
 
             return hostBuilder;
         }
@@ -34,7 +35,8 @@ namespace Tauron.AkkaHost
             where TApp : System.Windows.Application, new()
             where TMainWindow : class, IMainWindow
         {
-            return UseWpf<TMainWindow>(builder,
+            return UseWpf<TMainWindow>(
+                builder,
                 c => c.WithAppFactory(() => new WpfFramework.DelegateApplication(new TApp())));
         }
 

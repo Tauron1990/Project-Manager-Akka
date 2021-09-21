@@ -19,21 +19,17 @@ namespace SeriLogViewer
         }
 
         public SimpleCommand(Action<object?> execute)
-            : this(null, execute)
-        {
-        }
+            : this(null, execute) { }
 
         public SimpleCommand(Func<bool>? canExecute, Action execute)
         {
-            _execute = o => execute();
+            _execute = _ => execute();
             if (canExecute != null)
-                _canExecute = o => canExecute();
+                _canExecute = _ => canExecute();
         }
 
         public SimpleCommand(Action execute)
-            : this(null, execute)
-        {
-        }
+            : this(null, execute) { }
 
         public override bool CanExecute(object? parameter)
         {

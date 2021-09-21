@@ -25,11 +25,6 @@ namespace Tauron.Features
         private IFeatureActor<TState> _actor = null!;
 
         public IActorContext Context { get; private set; } = null!;
-        public bool CallSingleHandler
-        {
-            get => _actor.CallSingleHandler;
-            set => _actor.CallSingleHandler = value;
-        }
 
         public virtual IEnumerable<string> Identify()
         {
@@ -44,13 +39,29 @@ namespace Tauron.Features
             Config();
         }
 
+        void IDisposable.Dispose()
+        {
+            _actor.Dispose();
+            GC.SuppressFinalize(this);
+        }
+
+        void IResourceHolder.AddResource(IDisposable res) => _actor.AddResource(res);
+
+        void IResourceHolder.RemoveResource(IDisposable res) => _actor.RemoveResource(res);
+
+        public bool CallSingleHandler
+        {
+            get => _actor.CallSingleHandler;
+            set => _actor.CallSingleHandler = value;
+        }
+
         public IObservable<IActorContext> Start => _actor.Start;
 
         public IObservable<IActorContext> Stop => _actor.Stop;
 
         public TState CurrentState => _actor.CurrentState;
 
-        public IObservable<TSignal> WaitForSignal<TSignal>(TimeSpan timeout, Predicate<TSignal> match) 
+        public IObservable<TSignal> WaitForSignal<TSignal>(TimeSpan timeout, Predicate<TSignal> match)
             => _actor.WaitForSignal(timeout, match);
 
         public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler)
@@ -59,7 +70,8 @@ namespace Tauron.Features
         public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<TState>> handler)
             => _actor.Receive(handler);
 
-        public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler,
+        public void Receive<TEvent>(
+            Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler,
             Func<Exception, bool> errorHandler) => _actor.Receive(handler, errorHandler);
 
         public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IDisposable> handler)
@@ -89,21 +101,11 @@ namespace Tauron.Features
 
         public IDisposable Subscribe(IObserver<TState> observer) => _actor.Subscribe(observer);
 
+        public ITimerScheduler Timers { get; set; } = null!;
+
         protected virtual void Config() => ConfigImpl();
 
         protected abstract void ConfigImpl();
-
-        public ITimerScheduler Timers { get; set; } = null!;
-
-        void IDisposable.Dispose()
-        {
-            _actor.Dispose();
-            GC.SuppressFinalize(this);
-        }
-
-        void IResourceHolder.AddResource(IDisposable res) => _actor.AddResource(res);
-
-        void IResourceHolder.RemoveResource(IDisposable res) => _actor.RemoveResource(res);
 
         protected IObservable<TType> SyncActor<TType>(TType element)
             => Observable.Return(element, ActorScheduler.From(Self));
@@ -113,11 +115,11 @@ namespace Tauron.Features
 
         protected IObservable<StatePair<TType, TState>> UpdateAndSyncActor<TType>(StatePair<TType, TState> element)
             => from toUpdate in Observable.Return(element, ActorScheduler.From(Self))
-               select toUpdate with {State = CurrentState};
+               select toUpdate with { State = CurrentState };
 
         protected IObservable<StatePair<TType, TState>> UpdateAndSyncActor<TType>(IObservable<StatePair<TType, TState>> toSync)
             => from toUpdate in toSync.ObserveOn(ActorScheduler.From(Self))
-               select toUpdate with {State = CurrentState};
+               select toUpdate with { State = CurrentState };
 
         protected IObservable<StatePair<TType, TState>> UpdateAndSyncActor<TType>(TType element)
             => from syncElement in Observable.Return(element, ActorScheduler.From(Self))

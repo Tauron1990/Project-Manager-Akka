@@ -9,13 +9,11 @@ namespace Tauron.Application.Workshop.StateManagement.Attributes
     [PublicAPI]
     public sealed class StateAttribute : Attribute
     {
+        public StateAttribute(params Type[] types)
+            => Types = types;
+
         public string? Key { get; set; }
 
         public Type[] Types { get; }
-
-        public StateAttribute(params Type[] types)
-        {
-            Types = types;
-        }
     }
 }

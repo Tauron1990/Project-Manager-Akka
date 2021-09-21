@@ -10,7 +10,6 @@ namespace Tauron.Application.Files.GridFS
             var found = false;
 
             foreach (var data in enumerable)
-            {
                 if (evaluator(data))
                 {
                     if (found)
@@ -18,7 +17,6 @@ namespace Tauron.Application.Files.GridFS
 
                     found = true;
                 }
-            }
 
             return found;
         }

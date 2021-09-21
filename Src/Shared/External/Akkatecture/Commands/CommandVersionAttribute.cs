@@ -38,8 +38,6 @@ namespace Akkatecture.Commands
         public CommandVersionAttribute(
             string name,
             int version)
-            : base(name, version)
-        {
-        }
+            : base(name, version) { }
     }
 }

@@ -24,8 +24,8 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
         public async Task SetData(IQuery query, MutatingContext<TData> data)
         {
             var (_, entity) = data;
-            
-            if (entity is IChangeTrackable {IsChanged: false}) return;
+
+            if (entity is IChangeTrackable { IsChanged: false }) return;
 
             await _original.SetData(query, entity);
         }

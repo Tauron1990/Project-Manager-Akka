@@ -11,8 +11,8 @@ namespace ServiceManager.Client.ServiceDefs
     public interface IAppIpManagerDef
     {
         [Post(nameof(IAppIpManager.WriteIp))]
-        Task<string> WriteIp([Body]WriteIpCommand command, CancellationToken token = default);
-        
+        Task<string> WriteIp([Body] WriteIpCommand command, CancellationToken token = default);
+
         [Get(nameof(IAppIpManager.GetIp))]
         Task<AppIp> GetIp();
     }

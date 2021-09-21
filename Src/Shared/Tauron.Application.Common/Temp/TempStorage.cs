@@ -9,16 +9,8 @@ namespace Tauron.Temp
     {
         private static TempStorage? _default;
 
-        public static string DefaultNameProvider(bool file)
-        {
-            string name = Path.GetRandomFileName();
-            return file ? name : name.Replace('.', '_');
-        }
-
         public TempStorage()
-            : this(DefaultNameProvider, Path.GetTempPath(), deleteBasePath: false)
-        {
-        }
+            : this(DefaultNameProvider, Path.GetTempPath(), false) { }
 
         public TempStorage(Func<bool, string> nameProvider, string basePath, bool deleteBasePath)
             : base(basePath, default, nameProvider, deleteBasePath)
@@ -28,10 +20,18 @@ namespace Tauron.Temp
 
         public static TempStorage Default => _default ??= new TempStorage();
 
+        public static string DefaultNameProvider(bool file)
+        {
+            string name = Path.GetRandomFileName();
+
+            return file ? name : name.Replace('.', '_');
+        }
+
         public static TempStorage CleanAndCreate(string path)
         {
             path.ClearDirectory();
-            return new TempStorage(DefaultNameProvider, path, deleteBasePath: true);
+
+            return new TempStorage(DefaultNameProvider, path, true);
         }
 
         private void WireUp()

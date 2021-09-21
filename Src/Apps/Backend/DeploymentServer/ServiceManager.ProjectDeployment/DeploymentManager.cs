@@ -15,18 +15,19 @@ namespace ServiceManager.ProjectDeployment
 
         public static readonly DeploymentManager Empty = new(ActorRefs.Nobody);
 
-        public IActorRef Manager { get; }
-
         private DeploymentManager(IActorRef manager) => Manager = manager;
+
+        public IActorRef Manager { get; }
 
         public bool IsOk => !Manager.IsNobody();
 
         public static DeploymentManager CreateInstance(IActorRefFactory factory, DeploymentConfiguration configuration)
-            => new(factory.ActorOf(
-                DeploymentApi.DeploymentPath, 
-                DeploymentServerImpl.New(configuration.Configuration, configuration.FileSystem, configuration.Manager, configuration.RepositoryApi),
-                TellAliveFeature.New()));
-        
+            => new(
+                factory.ActorOf(
+                    DeploymentApi.DeploymentPath,
+                    DeploymentServerImpl.New(configuration.Configuration, configuration.FileSystem, configuration.Manager, configuration.RepositoryApi),
+                    TellAliveFeature.New()));
+
         public static DeploymentManager InitDeploymentManager(ActorSystem actorSystem, DeploymentConfiguration configuration)
         {
             var repo = ClusterSingletonManager.Props(
@@ -34,6 +35,7 @@ namespace ServiceManager.ProjectDeployment
                     DeploymentServerImpl.New(configuration.Configuration, configuration.FileSystem, configuration.Manager, configuration.RepositoryApi),
                     TellAliveFeature.New()),
                 ClusterSingletonManagerSettings.Create(actorSystem).WithRole("UpdateSystem"));
+
             return new DeploymentManager(actorSystem.ActorOf(repo, DeploymentApi.DeploymentPath));
         }
 

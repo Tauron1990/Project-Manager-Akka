@@ -49,7 +49,8 @@ namespace Tauron.Application.CommonUI.AppCore
 
         public static IScheduler From(IUIDispatcher dispatcher) => new DispatcherScheduler(dispatcher);
 
-        public override IDisposable Schedule<TState>(TState state, TimeSpan dueTime,
+        public override IDisposable Schedule<TState>(
+            TState state, TimeSpan dueTime,
             Func<IScheduler, TState, IDisposable> action)
         {
             var target = Scheduler.Normalize(dueTime);
@@ -59,6 +60,7 @@ namespace Tauron.Application.CommonUI.AppCore
             void TryRun()
             {
                 if (disposable.IsDisposed) return;
+
                 disposable.Disposable = action(this, state);
             }
 
@@ -69,11 +71,15 @@ namespace Tauron.Application.CommonUI.AppCore
             else
             {
                 var timerDispose = new SingleAssignmentDisposable();
-                Timer timer = new(o =>
-                {
-                    _dispatcher.Post(TryRun);
-                    ((IDisposable) o!).Dispose();
-                }, timerDispose, dueTime, Timeout.InfiniteTimeSpan);
+                Timer timer = new(
+                    o =>
+                    {
+                        _dispatcher.Post(TryRun);
+                        ((IDisposable)o!).Dispose();
+                    },
+                    timerDispose,
+                    dueTime,
+                    Timeout.InfiniteTimeSpan);
 
                 timerDispose.Disposable = timer;
             }

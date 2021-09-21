@@ -11,13 +11,12 @@ namespace Akka.MGIHelper.UI.FanControl
         {
             if (value == null) return "Keine Daten";
 
-            if ((bool) value) return "Externer Lüfter Läuft";
+            if ((bool)value) return "Externer Lüfter Läuft";
+
             return "Externer Lüfter Steht";
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            return false;
-        }
+            => false;
     }
 }

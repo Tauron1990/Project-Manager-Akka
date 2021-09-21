@@ -1,82 +1,82 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0-windows</TargetFramework>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net5.0-windows</TargetFramework>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <Compile Remove="InMemoryStorage\PersistentInMemorxConfigRepositoryFactory.cs" />
-    <Compile Remove="JsonRepo\JsonConfigRepositoryFactory.cs" />
-    <Compile Remove="JsonRepo\JsonDbFileStore.cs" />
-    <Compile Remove="JsonRepo\JsonRepository.cs" />
-    <Compile Remove="JsonRepo\JsonRepositoryBase.cs" />
-    <Compile Remove="JsonRepo\JsonRepositoryConfiguration.cs" />
-  </ItemGroup>
+    <ItemGroup>
+        <Compile Remove="InMemoryStorage\PersistentInMemorxConfigRepositoryFactory.cs"/>
+        <Compile Remove="JsonRepo\JsonConfigRepositoryFactory.cs"/>
+        <Compile Remove="JsonRepo\JsonDbFileStore.cs"/>
+        <Compile Remove="JsonRepo\JsonRepository.cs"/>
+        <Compile Remove="JsonRepo\JsonRepositoryBase.cs"/>
+        <Compile Remove="JsonRepo\JsonRepositoryConfiguration.cs"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <None Include="Old\InMemoryStorage\PersistentInMemorxConfigRepositoryFactory.cs" />
-    <None Include="Old\JsonRepo\JsonConfigRepositoryFactory.cs" />
-    <None Include="Old\JsonRepo\JsonDbFileStore.cs" />
-    <None Include="Old\JsonRepo\JsonRepository.cs" />
-    <None Include="Old\JsonRepo\JsonRepositoryBase.cs" />
-    <None Include="Old\JsonRepo\JsonRepositoryConfiguration.cs" />
-    <None Update="Old\akka.conf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Old\akka.cluster.conf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Old\akka.persistence.conf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Old\akka.remote.conf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Old\akka.streams.conf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
+    <ItemGroup>
+        <None Include="Old\InMemoryStorage\PersistentInMemorxConfigRepositoryFactory.cs"/>
+        <None Include="Old\JsonRepo\JsonConfigRepositoryFactory.cs"/>
+        <None Include="Old\JsonRepo\JsonDbFileStore.cs"/>
+        <None Include="Old\JsonRepo\JsonRepository.cs"/>
+        <None Include="Old\JsonRepo\JsonRepositoryBase.cs"/>
+        <None Include="Old\JsonRepo\JsonRepositoryConfiguration.cs"/>
+        <None Update="Old\akka.conf">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Old\akka.cluster.conf">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Old\akka.persistence.conf">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Old\akka.remote.conf">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Old\akka.streams.conf">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Akka.DependencyInjection" Version="1.4.23" />
-    <PackageReference Include="Akka.Remote" Version="1.4.23" />
-    <PackageReference Include="Akka.Streams" Version="1.4.23" />
-    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="7.1.0" />
-    <PackageReference Include="Be.Vlaanderen.Basisregisters.Generators.Guid.Deterministic" Version="2.2.12" />
-    <PackageReference Include="Castle.Core" Version="4.4.1" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.2" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
-    <PackageReference Include="NLog" Version="4.7.10" />
-    <PackageReference Include="SharpRepository.InMemoryRepository" Version="2.0.3.1" />
-    <PackageReference Include="SharpRepository.MongoDbRepository" Version="2.1.1" />
-    <PackageReference Include="Spectre.Console" Version="0.41.0" />
-    <PackageReference Include="System.Threading.Channels" Version="5.0.0" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Akka.DependencyInjection" Version="1.4.23"/>
+        <PackageReference Include="Akka.Remote" Version="1.4.23"/>
+        <PackageReference Include="Akka.Streams" Version="1.4.23"/>
+        <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="7.1.0"/>
+        <PackageReference Include="Be.Vlaanderen.Basisregisters.Generators.Guid.Deterministic" Version="2.2.12"/>
+        <PackageReference Include="Castle.Core" Version="4.4.1"/>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.2"/>
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0"/>
+        <PackageReference Include="NLog" Version="4.7.10"/>
+        <PackageReference Include="SharpRepository.InMemoryRepository" Version="2.0.3.1"/>
+        <PackageReference Include="SharpRepository.MongoDbRepository" Version="2.1.1"/>
+        <PackageReference Include="Spectre.Console" Version="0.41.0"/>
+        <PackageReference Include="System.Threading.Channels" Version="5.0.0"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\Apps\Shared\Stl.Fusion.AkkaBridge\Stl.Fusion.AkkaBridge.csproj" />
-    <ProjectReference Include="..\..\Apps\Shared\Tauron.Application.AkkaNode.Boottrap\Tauron.Application.AkkaNode.Boottrap.csproj" />
-    <ProjectReference Include="..\..\Shared\Tauron.Application.Common\Tauron.Application.Common.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\..\Apps\Shared\Stl.Fusion.AkkaBridge\Stl.Fusion.AkkaBridge.csproj"/>
+        <ProjectReference Include="..\..\Apps\Shared\Tauron.Application.AkkaNode.Boottrap\Tauron.Application.AkkaNode.Boottrap.csproj"/>
+        <ProjectReference Include="..\..\Shared\Tauron.Application.Common\Tauron.Application.Common.csproj"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <Compile Update="Program.cs">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Compile>
-  </ItemGroup>
+    <ItemGroup>
+        <Compile Update="Program.cs">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Compile>
+    </ItemGroup>
 
-  <ItemGroup>
-    <Content Include="..\..\..\..\..\..\.nuget\packages\sharprepository.inmemoryrepository\2.0.3.1\contentFiles\any\netstandard2.0\repository.inMemory.json">
-      <Link>Old\repository.inMemory.json</Link>
-    </Content>
-    <Content Include="..\..\..\..\..\..\.nuget\packages\sharprepository.mongodbrepository\2.1.1\contentFiles\any\netstandard1.5\repository.mongoDb.json">
-      <Link>Old\repository.mongoDb.json</Link>
-    </Content>
-    <Content Include="akka.conf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
+    <ItemGroup>
+        <Content Include="..\..\..\..\..\..\.nuget\packages\sharprepository.inmemoryrepository\2.0.3.1\contentFiles\any\netstandard2.0\repository.inMemory.json">
+            <Link>Old\repository.inMemory.json</Link>
+        </Content>
+        <Content Include="..\..\..\..\..\..\.nuget\packages\sharprepository.mongodbrepository\2.1.1\contentFiles\any\netstandard1.5\repository.mongoDb.json">
+            <Link>Old\repository.mongoDb.json</Link>
+        </Content>
+        <Content Include="akka.conf">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
 
 </Project>

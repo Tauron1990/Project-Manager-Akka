@@ -36,8 +36,9 @@ namespace Tauron.Application.CommonUI
             where TData : notnull
         {
             var target = actor.LifetimeScope.Resolve<TData>();
-            return (UIProperty<TData>) actor.RegisterProperty<TData>(propertyName).WithDefaultValue(target).Property
-                .LockSet();
+
+            return (UIProperty<TData>)actor.RegisterProperty<TData>(propertyName).WithDefaultValue(target).Property
+               .LockSet();
         }
     }
 }

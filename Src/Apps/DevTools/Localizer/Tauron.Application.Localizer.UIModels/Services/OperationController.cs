@@ -11,7 +11,8 @@ namespace Tauron.Application.Localizer.UIModels.Services
 
         private Action? _statusChanged;
 
-        public OperationController(RunningOperation operation, LocLocalizer localizer, Action statusChanged,
+        public OperationController(
+            RunningOperation operation, LocLocalizer localizer, Action statusChanged,
             IObserver<RunningOperation> failing)
         {
             _operation = operation;

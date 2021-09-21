@@ -12,9 +12,9 @@ namespace TestWebApplication.Client.Services
         Task<int> GetCounter(string key, CancellationToken token = default);
 
         [Post(nameof(Increment))]
-        Task Increment([Body]IncrementCommand command, CancellationToken token = default);
+        Task Increment([Body] IncrementCommand command, CancellationToken token = default);
 
         [Post(nameof(SetOffset))]
-        Task SetOffset([Body]SetOffsetCommand command, CancellationToken token = default);
+        Task SetOffset([Body] SetOffsetCommand command, CancellationToken token = default);
     }
 }

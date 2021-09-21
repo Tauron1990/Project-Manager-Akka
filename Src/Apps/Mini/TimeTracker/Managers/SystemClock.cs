@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Linq;
 
 namespace TimeTracker.Managers
 {
@@ -68,11 +67,9 @@ namespace TimeTracker.Managers
                 var count = 0;
                 var target = DateTime.DaysInMonth(month.Year, month.Day);
 
-                for (int i = 1; i < target; i++)
-                {
+                for (var i = 1; i < target; i++)
                     if (IsWeekDay(new DateTime(month.Year, month.Month, i)))
                         count++;
-                }
 
                 return count;
             }
@@ -83,11 +80,9 @@ namespace TimeTracker.Managers
                 var count = 0;
                 var target = NowDay;
 
-                for (int i = 1; i < target; i++)
-                {
+                for (var i = 1; i < target; i++)
                     if (IsWeekDay(new DateTime(month.Year, month.Month, i)))
                         count++;
-                }
 
                 return count;
             }

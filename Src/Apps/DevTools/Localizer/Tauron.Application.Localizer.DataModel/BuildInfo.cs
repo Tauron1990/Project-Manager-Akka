@@ -8,9 +8,7 @@ namespace Tauron.Application.Localizer.DataModel
         (bool IntigrateProjects, ImmutableDictionary<string, string> ProjectPaths) : IWriteable
     {
         public BuildInfo()
-            : this(IntigrateProjects: true, ImmutableDictionary<string, string>.Empty)
-        {
-        }
+            : this(IntigrateProjects: true, ImmutableDictionary<string, string>.Empty) { }
 
         public void Write(BinaryWriter writer)
         {
@@ -21,10 +19,10 @@ namespace Tauron.Application.Localizer.DataModel
         public static BuildInfo ReadFrom(BinaryReader reader)
         {
             var builder = new
-            {
-                IntigrateProjects = reader.ReadBoolean(),
-                ProjectPaths = BinaryHelper.Read(reader, r => r.ReadString(), r => r.ReadString())
-            };
+                          {
+                              IntigrateProjects = reader.ReadBoolean(),
+                              ProjectPaths = BinaryHelper.Read(reader, r => r.ReadString(), r => r.ReadString())
+                          };
 
             return new BuildInfo(builder.IntigrateProjects, builder.ProjectPaths);
         }

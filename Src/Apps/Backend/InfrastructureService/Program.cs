@@ -30,64 +30,77 @@ namespace InfrastructureService
             ImmutableListSerializer<Condition>.Register();
             ImmutableListSerializer<SeedUrl>.Register();
 
-            await Bootstrap.StartNode(args, KillRecpientType.Service, IpcApplicationType.Client,
-                                ab =>
+            await Bootstrap.StartNode(
+                    args,
+                    KillRecpientType.Service,
+                    IpcApplicationType.Client,
+                    ab =>
+                    {
+                        ab.OnMemberUp(
+                                (context, system, cluster) =>
                                 {
-                                    ab.OnMemberUp((context, system, cluster) =>
-                                                  {
-                                                      string ApplyMongoUrl(string baseUrl, string repoKey, SharpRepositoryConfiguration configuration)
-                                                      {
-                                                          var builder = new MongoUrlBuilder(baseUrl) {DatabaseName = repoKey, ApplicationName = context.HostingEnvironment.ApplicationName};
-                                                          var mongoUrl = builder.ToString();
+                                    string ApplyMongoUrl(string baseUrl, string repoKey, SharpRepositoryConfiguration configuration)
+                                    {
+                                        var builder = new MongoUrlBuilder(baseUrl) { DatabaseName = repoKey, ApplicationName = context.HostingEnvironment.ApplicationName };
+                                        var mongoUrl = builder.ToString();
 
-                                                          configuration.AddRepository(new MongoDbRepositoryConfiguration(repoKey, mongoUrl)
-                                                                                      {
-                                                                                          Factory = typeof(MongoDbConfigRepositoryFactory)
-                                                                                      });
+                                        configuration.AddRepository(
+                                            new MongoDbRepositoryConfiguration(repoKey, mongoUrl)
+                                            {
+                                                Factory = typeof(MongoDbConfigRepositoryFactory)
+                                            });
 
-                                                          return mongoUrl;
-                                                      }
+                                        return mongoUrl;
+                                    }
 
-                                                      ServiceRegistry.Get(system)
-                                                                     .RegisterService(new RegisterService(
-                                                                          context.HostingEnvironment.ApplicationName,
-                                                                          cluster.SelfUniqueAddress,
-                                                                          ServiceTypes.Infrastructure));
+                                    ServiceRegistry.Get(system)
+                                       .RegisterService(
+                                            new RegisterService(
+                                                context.HostingEnvironment.ApplicationName,
+                                                cluster.SelfUniqueAddress,
+                                                ServiceTypes.Infrastructure));
 
-                                                      var connectionstring = system.Settings.Config.GetString("akka.persistence.snapshot-store.mongodb.connection-string");
-                                                      if (string.IsNullOrWhiteSpace(connectionstring))
-                                                      {
-                                                          LogManager.GetCurrentClassLogger().Error("No Mongo DB Connection provided: Shutdown");
-                                                          system.Terminate().Ignore();
-                                                          return;
-                                                      }
+                                    var connectionstring = system.Settings.Config.GetString("akka.persistence.snapshot-store.mongodb.connection-string");
+                                    if (string.IsNullOrWhiteSpace(connectionstring))
+                                    {
+                                        LogManager.GetCurrentClassLogger().Error("No Mongo DB Connection provided: Shutdown");
+                                        system.Terminate().Ignore();
 
-                                                      var config = new SharpRepositoryConfiguration();
-                                                      var fileSystemBuilder = new VirtualFileFactory();
+                                        return;
+                                    }
 
-                                                      #pragma warning disable GU0011
-                                                      
-                                                      ApplyMongoUrl(connectionstring, CleanUpManager.RepositoryKey, config);
+                                    var config = new SharpRepositoryConfiguration();
+                                    var fileSystemBuilder = new VirtualFileFactory();
 
-                                                      var url = ApplyMongoUrl(connectionstring, RepositoryManager.RepositoryKey, config);
-                                                      RepositoryManager.InitRepositoryManager(system,
-                                                          new RepositoryManagerConfiguration(config, fileSystemBuilder.CreateMongoDb(url),
-                                                              DataTransferManager.New(system, "Repository-DataTransfer")));
+                                    #pragma warning disable GU0011
 
-                                                      url = ApplyMongoUrl(connectionstring, DeploymentManager.RepositoryKey, config);
-                                                      DeploymentManager.InitDeploymentManager(system,
-                                                          new DeploymentConfiguration(config,
-                                                              fileSystemBuilder.CreateMongoDb(url),
-                                                              DataTransferManager.New(system, "Deployment-DataTransfer"),
-                                                              RepositoryApi.CreateProxy(system)));
+                                    ApplyMongoUrl(connectionstring, CleanUpManager.RepositoryKey, config);
 
-                                                      ApplyMongoUrl(connectionstring, ServiceManagerDeamon.RepositoryKey, config);
-                                                      ServiceManagerDeamon.Init(system, config);
-                                                      #pragma warning restore GU0011
-                                                  })
-                                      .OnMemberRemoved((_, system, _) => system.Terminate());
-                                }, consoleLog: true)
-                           .Build().RunAsync();
+                                    var url = ApplyMongoUrl(connectionstring, RepositoryManager.RepositoryKey, config);
+                                    RepositoryManager.InitRepositoryManager(
+                                        system,
+                                        new RepositoryManagerConfiguration(
+                                            config,
+                                            fileSystemBuilder.CreateMongoDb(url),
+                                            DataTransferManager.New(system, "Repository-DataTransfer")));
+
+                                    url = ApplyMongoUrl(connectionstring, DeploymentManager.RepositoryKey, config);
+                                    DeploymentManager.InitDeploymentManager(
+                                        system,
+                                        new DeploymentConfiguration(
+                                            config,
+                                            fileSystemBuilder.CreateMongoDb(url),
+                                            DataTransferManager.New(system, "Deployment-DataTransfer"),
+                                            RepositoryApi.CreateProxy(system)));
+
+                                    ApplyMongoUrl(connectionstring, ServiceManagerDeamon.RepositoryKey, config);
+                                    ServiceManagerDeamon.Init(system, config);
+                                    #pragma warning restore GU0011
+                                })
+                           .OnMemberRemoved((_, system, _) => system.Terminate());
+                    },
+                    consoleLog: true)
+               .Build().RunAsync();
         }
     }
 }

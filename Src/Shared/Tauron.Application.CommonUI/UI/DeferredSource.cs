@@ -11,14 +11,12 @@ namespace Tauron.Application.CommonUI.UI
 {
     public class DeferredSource : ModelConnectorBase<DeferredSource>, INotifyPropertyChanged, INotifyDataErrorInfo
     {
+        private string? _error;
         private bool _hasErrors;
         private object? _value;
-        private string? _error;
 
         public DeferredSource(string name, DataContextPromise promise)
-            : base(name, promise)
-        {
-        }
+            : base(name, promise) { }
 
         public object? Value
         {
@@ -26,12 +24,11 @@ namespace Tauron.Application.CommonUI.UI
             set
             {
                 if (Equals(_value, value)) return;
+
                 _value = value;
                 Model?.Actor.Tell(new SetValue(Name, value));
             }
         }
-
-        public event EventHandler<DataErrorsChangedEventArgs>? ErrorsChanged;
 
         public string? Error
         {
@@ -39,10 +36,13 @@ namespace Tauron.Application.CommonUI.UI
             private set
             {
                 if (value == _error) return;
+
                 _error = value;
                 OnPropertyChanged();
             }
         }
+
+        public event EventHandler<DataErrorsChangedEventArgs>? ErrorsChanged;
 
         public bool HasErrors
         {
@@ -50,6 +50,7 @@ namespace Tauron.Application.CommonUI.UI
             private set
             {
                 if (value == _hasErrors) return;
+
                 _hasErrors = value;
                 OnPropertyChanged();
             }
@@ -65,6 +66,7 @@ namespace Tauron.Application.CommonUI.UI
         protected override void PropertyChangedHandler(PropertyChangedEvent msg)
         {
             if (Equals(_value, msg.Value)) return;
+
             _value = msg.Value;
             OnPropertyChanged(nameof(Value));
         }
@@ -83,7 +85,7 @@ namespace Tauron.Application.CommonUI.UI
         }
 
         [NotifyPropertyChangedInvocator]
-        private void OnPropertyChanged([CallerMemberName] string? propertyName = null) 
+        private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }

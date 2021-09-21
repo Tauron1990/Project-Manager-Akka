@@ -16,9 +16,9 @@ namespace ServiceManager.Shared.Apps
             if (IsCompled)
                 throw new InvalidOperationException("No next Steps");
 
-            return string.IsNullOrWhiteSpace(Error) 
-                       ?new RunAppSetupCommand(NextStep, id)
-                       : throw new InvalidOperationException(Error);
+            return string.IsNullOrWhiteSpace(Error)
+                ? new RunAppSetupCommand(NextStep, id)
+                : throw new InvalidOperationException(Error);
         }
     }
 

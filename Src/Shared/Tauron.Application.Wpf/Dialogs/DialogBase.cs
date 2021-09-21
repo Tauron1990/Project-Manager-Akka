@@ -2,7 +2,6 @@
 using System.ComponentModel;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Reactive.Subjects;
 using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using System.Windows;
@@ -23,27 +22,49 @@ namespace Tauron.Application.Wpf.Dialogs
     public abstract class DialogBase : Control
     {
         public static readonly DependencyProperty DialogTitleFontSizeProperty = DependencyProperty.Register(
-            "DialogTitleFontSize", typeof(double), typeof(DialogBase), new PropertyMetadata((double) 30));
+            "DialogTitleFontSize",
+            typeof(double),
+            typeof(DialogBase),
+            new PropertyMetadata((double)30));
 
         public static readonly DependencyProperty ContentProperty = DependencyProperty.Register(
-            "Content", typeof(object), typeof(DialogBase), new PropertyMetadata(default,
-                (o, args) => ((DialogBase) o).ContentChanged(args)));
+            "Content",
+            typeof(object),
+            typeof(DialogBase),
+            new PropertyMetadata(
+                default,
+                (o, args) => ((DialogBase)o).ContentChanged(args)));
 
         public static readonly DependencyProperty TitleProperty = DependencyProperty.Register(
-            "Title", typeof(string), typeof(DialogBase), new PropertyMetadata(default(string),
-                (o, args) => ((DialogBase) o).TitleChanged(args)));
+            "Title",
+            typeof(string),
+            typeof(DialogBase),
+            new PropertyMetadata(
+                default(string),
+                (o, args) => ((DialogBase)o).TitleChanged(args)));
 
         public static readonly DependencyProperty TopProperty = DependencyProperty.Register(
-            "Top", typeof(object), typeof(DialogBase), new PropertyMetadata(default,
-                (o, args) => ((DialogBase) o).TopChanged(args)));
+            "Top",
+            typeof(object),
+            typeof(DialogBase),
+            new PropertyMetadata(
+                default,
+                (o, args) => ((DialogBase)o).TopChanged(args)));
 
 
         public static readonly DependencyProperty BottomProperty = DependencyProperty.Register(
-            "Bottom", typeof(object), typeof(DialogBase), new PropertyMetadata(default,
-                (o, args) => ((DialogBase) o).ButtomChaned(args)));
+            "Bottom",
+            typeof(object),
+            typeof(DialogBase),
+            new PropertyMetadata(
+                default,
+                (o, args) => ((DialogBase)o).ButtomChaned(args)));
 
         public static readonly DependencyProperty ContentTemplateProperty = DependencyProperty.Register(
-            "ContentTemplate", typeof(DataTemplate), typeof(DialogBase), new PropertyMetadata(default(DataTemplate)));
+            "ContentTemplate",
+            typeof(DataTemplate),
+            typeof(DialogBase),
+            new PropertyMetadata(default(DataTemplate)));
 
         private ContentPresenter? _bottom;
         private ContentPresenter? _content;
@@ -54,7 +75,8 @@ namespace Tauron.Application.Wpf.Dialogs
 
         static DialogBase()
         {
-            DefaultStyleKeyProperty.OverrideMetadata(typeof(DialogBase),
+            DefaultStyleKeyProperty.OverrideMetadata(
+                typeof(DialogBase),
                 new FrameworkPropertyMetadata(typeof(DialogBase)));
         }
 
@@ -62,7 +84,7 @@ namespace Tauron.Application.Wpf.Dialogs
 
         public double DialogTitleFontSize
         {
-            get => (double) GetValue(DialogTitleFontSizeProperty);
+            get => (double)GetValue(DialogTitleFontSizeProperty);
             set => SetValue(DialogTitleFontSizeProperty, value);
         }
 
@@ -74,7 +96,7 @@ namespace Tauron.Application.Wpf.Dialogs
 
         public string Title
         {
-            get => (string) GetValue(TitleProperty);
+            get => (string)GetValue(TitleProperty);
             set => SetValue(TitleProperty, value);
         }
 
@@ -92,60 +114,66 @@ namespace Tauron.Application.Wpf.Dialogs
 
         public DataTemplate ContentTemplate
         {
-            get => (DataTemplate) GetValue(ContentTemplateProperty);
+            get => (DataTemplate)GetValue(ContentTemplateProperty);
             set => SetValue(ContentTemplateProperty, value);
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
-            Dispatcher.BeginInvoke(new Action(() =>
-                                              {
-                                                  if (TryFindResource("Storyboard.Dialogs.Show") is Storyboard res)
-                                                      res.Begin(this);
-                                                  else
-                                                      Opacity = 1;
-                                              }));
+            Dispatcher.BeginInvoke(
+                new Action(
+                    () =>
+                    {
+                        if (TryFindResource("Storyboard.Dialogs.Show") is Storyboard res)
+                            res.Begin(this);
+                        else
+                            Opacity = 1;
+                    }));
         }
 
         private void ContentChanged(DependencyPropertyChangedEventArgs args)
         {
             if (_content == null) return;
+
             _content.Content = args.NewValue;
         }
 
         private void TitleChanged(DependencyPropertyChangedEventArgs args)
         {
             if (_title == null) return;
+
             _title.Text = args.NewValue as string;
         }
 
         private void TopChanged(DependencyPropertyChangedEventArgs args)
         {
             if (_top == null) return;
+
             _top.Content = args.NewValue;
         }
 
         private void ButtomChaned(DependencyPropertyChangedEventArgs args)
         {
             if (_bottom == null) return;
+
             _bottom.Content = args.NewValue;
         }
 
         public override void OnApplyTemplate()
         {
-            _content = (ContentPresenter?) GetTemplateChild("PART_Content");
+            _content = (ContentPresenter?)GetTemplateChild("PART_Content");
             if (_content != null)
                 _content.Content = Content;
 
-            _top = (ContentPresenter?) GetTemplateChild("PART_Top");
+            _top = (ContentPresenter?)GetTemplateChild("PART_Top");
             if (_top != null)
                 _top.Content = Top;
 
-            _title = (TextBlock?) GetTemplateChild("PART_Title");
+            _title = (TextBlock?)GetTemplateChild("PART_Title");
             if (_title != null)
                 _title.Text = Title;
 
-            _bottom = (ContentPresenter?) GetTemplateChild("PART_Bottom");
+            _bottom = (ContentPresenter?)GetTemplateChild("PART_Bottom");
             if (_bottom != null)
                 _bottom.Content = Bottom;
 
@@ -168,15 +196,18 @@ namespace Tauron.Application.Wpf.Dialogs
 
         public static Task<TResult> MakeObsTask<TResult>(this FrameworkElement ele, Func<IObserver<TResult>, object> factory)
         {
-            return Observable.Create<TResult>(o =>
-                                     {
-                                         var context = factory(o);
-                                         ele.DataContext = context;
-                                         if (context is IDisposable disposable)
-                                             return disposable;
-                                         return Disposable.Empty;
-                                     })
-                             .Take(1).ToTask();
+            return Observable.Create<TResult>(
+                    o =>
+                    {
+                        var context = factory(o);
+                        ele.DataContext = context;
+
+                        if (context is IDisposable disposable)
+                            return disposable;
+
+                        return Disposable.Empty;
+                    })
+               .Take(1).ToTask();
         }
     }
 }

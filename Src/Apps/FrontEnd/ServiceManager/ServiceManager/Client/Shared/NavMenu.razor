@@ -1,8 +1,6 @@
 ﻿@using ServiceManager.Shared.ServiceDeamon
-@using ServiceManager.Shared.Apps
 @using ServiceManager.Client.ViewModels.Apps
-@using Stl.Fusion
-
+@using ServiceManager.Shared.Apps
 @inherits ComputedStateComponent<NavMenuData>
 
 @inject IDatabaseConfig _database;
@@ -25,11 +23,12 @@
 </MudNavMenu>
 
 @code {
+
     [Parameter]
     public EventCallback Navigating { get; set; }
 
-    protected override async Task<NavMenuData> ComputeState(CancellationToken cancellationToken) 
-        => new (await _database.GetIsReady(), await _appAlertModel.SetupState.Use(cancellationToken));
+    protected override async Task<NavMenuData> ComputeState(CancellationToken cancellationToken)
+        => new(await _database.GetIsReady(), await _appAlertModel.SetupState.Use(cancellationToken));
 
     private async Task Navigate(string target)
     {

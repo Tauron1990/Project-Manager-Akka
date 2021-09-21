@@ -21,7 +21,7 @@ namespace Tauron.Application.Workshop.Analyzing.Actor
 
         public IssuesEvent ToEvent()
         {
-            return new(Rule.Name, Issues.Select(i => i.Build(Rule.Name)));
+            return new IssuesEvent(Rule.Name, Issues.Select(i => i.Build(Rule.Name)));
         }
     }
 }

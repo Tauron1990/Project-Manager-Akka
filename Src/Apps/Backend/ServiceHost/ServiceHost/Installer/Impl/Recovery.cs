@@ -14,7 +14,6 @@ namespace ServiceHost.Installer.Impl
         public void Recover(ILoggingAdapter logger)
         {
             foreach (var action in _entrys)
-            {
                 try
                 {
                     action(logger);
@@ -23,7 +22,6 @@ namespace ServiceHost.Installer.Impl
                 {
                     logger.Error(e, "Error On Recover Action");
                 }
-            }
         }
     }
 }

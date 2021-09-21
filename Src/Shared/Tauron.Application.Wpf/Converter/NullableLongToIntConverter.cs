@@ -14,7 +14,7 @@ namespace Tauron.Application.Wpf.Converter
 
             protected override long? Convert(int value) => value;
 
-            protected override int ConvertBack(long? value) => value == null ? 0 : (int) value.Value;
+            protected override int ConvertBack(long? value) => value == null ? 0 : (int)value.Value;
         }
     }
 }

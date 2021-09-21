@@ -17,7 +17,7 @@ namespace Tauron.Application.Avalonia
 
         protected UserControl(IViewModel viewModel)
         {
-            _element = (IUIElement) ElementMapper.Create(this);
+            _element = (IUIElement)ElementMapper.Create(this);
             _controlLogic = new UserControlLogic(this, viewModel);
         }
 

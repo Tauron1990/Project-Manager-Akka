@@ -1,6 +1,4 @@
-﻿using ServiceManager.Shared;
-
-namespace ServiceManager.Server.AppCore.Settings
+﻿namespace ServiceManager.Server.AppCore.Settings
 {
     public interface ILocalConfiguration
     {

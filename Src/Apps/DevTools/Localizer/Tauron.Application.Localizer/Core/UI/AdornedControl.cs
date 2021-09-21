@@ -11,19 +11,31 @@ namespace Tauron.Application.Localizer.Core.UI
         ///     Dependency properties.
         /// </summary>
         public static readonly DependencyProperty IsAdornerVisibleProperty =
-            DependencyProperty.Register("IsAdornerVisible", typeof(bool), typeof(AdornedControl),
+            DependencyProperty.Register(
+                "IsAdornerVisible",
+                typeof(bool),
+                typeof(AdornedControl),
                 new FrameworkPropertyMetadata(IsAdornerVisible_PropertyChanged));
 
         public static readonly DependencyProperty AdornerContentProperty =
-            DependencyProperty.Register("AdornerContent", typeof(FrameworkElement), typeof(AdornedControl),
+            DependencyProperty.Register(
+                "AdornerContent",
+                typeof(FrameworkElement),
+                typeof(AdornedControl),
                 new FrameworkPropertyMetadata(AdornerContent_PropertyChanged));
 
         public static readonly DependencyProperty HorizontalAdornerPlacementProperty =
-            DependencyProperty.Register("HorizontalAdornerPlacement", typeof(AdornerPlacement), typeof(AdornedControl),
+            DependencyProperty.Register(
+                "HorizontalAdornerPlacement",
+                typeof(AdornerPlacement),
+                typeof(AdornedControl),
                 new FrameworkPropertyMetadata(AdornerPlacement.Inside));
 
         public static readonly DependencyProperty VerticalAdornerPlacementProperty =
-            DependencyProperty.Register("VerticalAdornerPlacement", typeof(AdornerPlacement), typeof(AdornedControl),
+            DependencyProperty.Register(
+                "VerticalAdornerPlacement",
+                typeof(AdornerPlacement),
+                typeof(AdornedControl),
                 new FrameworkPropertyMetadata(AdornerPlacement.Inside));
 
         public static readonly DependencyProperty AdornerOffsetXProperty =
@@ -47,7 +59,7 @@ namespace Tauron.Application.Localizer.Core.UI
         /// </summary>
         public bool IsAdornerVisible
         {
-            get => (bool) GetValue(IsAdornerVisibleProperty);
+            get => (bool)GetValue(IsAdornerVisibleProperty);
             set => SetValue(IsAdornerVisibleProperty, value);
         }
 
@@ -56,7 +68,7 @@ namespace Tauron.Application.Localizer.Core.UI
         /// </summary>
         public FrameworkElement? AdornerContent
         {
-            get => (FrameworkElement) GetValue(AdornerContentProperty);
+            get => (FrameworkElement)GetValue(AdornerContentProperty);
             set => SetValue(AdornerContentProperty, value);
         }
 
@@ -65,7 +77,7 @@ namespace Tauron.Application.Localizer.Core.UI
         /// </summary>
         public AdornerPlacement HorizontalAdornerPlacement
         {
-            get => (AdornerPlacement) GetValue(HorizontalAdornerPlacementProperty);
+            get => (AdornerPlacement)GetValue(HorizontalAdornerPlacementProperty);
             set => SetValue(HorizontalAdornerPlacementProperty, value);
         }
 
@@ -74,7 +86,7 @@ namespace Tauron.Application.Localizer.Core.UI
         /// </summary>
         public AdornerPlacement VerticalAdornerPlacement
         {
-            get => (AdornerPlacement) GetValue(VerticalAdornerPlacementProperty);
+            get => (AdornerPlacement)GetValue(VerticalAdornerPlacementProperty);
             set => SetValue(VerticalAdornerPlacementProperty, value);
         }
 
@@ -83,7 +95,7 @@ namespace Tauron.Application.Localizer.Core.UI
         /// </summary>
         public double AdornerOffsetX
         {
-            get => (double) GetValue(AdornerOffsetXProperty);
+            get => (double)GetValue(AdornerOffsetXProperty);
             set => SetValue(AdornerOffsetXProperty, value);
         }
 
@@ -92,7 +104,7 @@ namespace Tauron.Application.Localizer.Core.UI
         /// </summary>
         public double AdornerOffsetY
         {
-            get => (double) GetValue(AdornerOffsetYProperty);
+            get => (double)GetValue(AdornerOffsetYProperty);
             set => SetValue(AdornerOffsetYProperty, value);
         }
 
@@ -168,7 +180,7 @@ namespace Tauron.Application.Localizer.Core.UI
         /// </summary>
         private static void ShowAdornerCommand_Executed(object target, ExecutedRoutedEventArgs e)
         {
-            AdornedControl c = (AdornedControl) target;
+            AdornedControl c = (AdornedControl)target;
             c.ShowAdorner();
         }
 
@@ -177,7 +189,7 @@ namespace Tauron.Application.Localizer.Core.UI
         /// </summary>
         private static void HideAdornerCommand_Executed(object target, ExecutedRoutedEventArgs e)
         {
-            AdornedControl c = (AdornedControl) target;
+            AdornedControl c = (AdornedControl)target;
             c.HideAdorner();
         }
 
@@ -186,7 +198,7 @@ namespace Tauron.Application.Localizer.Core.UI
         /// </summary>
         private static void IsAdornerVisible_PropertyChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
         {
-            AdornedControl c = (AdornedControl) o;
+            AdornedControl c = (AdornedControl)o;
             c.ShowOrHideAdornerInternal();
         }
 
@@ -195,7 +207,7 @@ namespace Tauron.Application.Localizer.Core.UI
         /// </summary>
         private static void AdornerContent_PropertyChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
         {
-            AdornedControl c = (AdornedControl) o;
+            AdornedControl c = (AdornedControl)o;
             c.ShowOrHideAdornerInternal();
         }
 
@@ -220,12 +232,18 @@ namespace Tauron.Application.Localizer.Core.UI
                 return;
 
             if (AdornerContent == null) return;
+
             _adornerLayer ??= AdornerLayer.GetAdornerLayer(this);
 
             if (_adornerLayer == null) return;
-            _adorner = new FrameworkElementAdorner(AdornerContent, this, HorizontalAdornerPlacement,
+
+            _adorner = new FrameworkElementAdorner(
+                AdornerContent,
+                this,
+                HorizontalAdornerPlacement,
                 VerticalAdornerPlacement,
-                AdornerOffsetX, AdornerOffsetY);
+                AdornerOffsetX,
+                AdornerOffsetY);
 
             _adornerLayer.Add(_adorner);
 
