@@ -11,7 +11,7 @@ namespace ServiceManager.Client.ViewModels.Apps
         {
             SetupState = factory.NewComputed(
                 new ComputedState<NeedSetupData>.Options(),
-                (_, t) => appManagment.NeedBasicApps(TODO));
+                (_, t) => appManagment.NeedBasicApps(t));
         }
     }
 }

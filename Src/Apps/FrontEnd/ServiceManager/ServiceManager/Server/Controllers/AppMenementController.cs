@@ -1,10 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
-using GridMvc.Server;
-using GridShared.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Primitives;
 using ServiceManager.Shared.Api;
 using ServiceManager.Shared.Apps;
 using ServiceManager.Shared.Identity;
@@ -40,11 +37,11 @@ namespace ServiceManager.Server.Controllers
             => _appManagment.CreateNewApp(command, token);
 
         [HttpPost]
-        public Task<string> DeleteAppCommand([FromBody]ApiDeleteAppCommand command)
-            => _appManagment.DeleteAppCommand(command);
+        public Task<string> DeleteAppCommand([FromBody]ApiDeleteAppCommand command, CancellationToken token)
+            => _appManagment.DeleteAppCommand(command, token);
 
         [HttpPost]
-        public Task<RunAppSetupResponse> RunAppSetup([FromBody]RunAppSetupCommand command)
-            => _appManagment.RunAppSetup(command);
+        public Task<RunAppSetupResponse> RunAppSetup([FromBody]RunAppSetupCommand command, CancellationToken token)
+            => _appManagment.RunAppSetup(command, token);
     }
 }

@@ -18,7 +18,9 @@ using ServiceManager.Shared.ServiceDeamon;
 using Stl.Fusion;
 using Tauron;
 using Tauron.Application.AkkaNode.Services.Reporting;
+using Tauron.Application.AkkaNode.Services.Reporting.Commands;
 using Tauron.Application.Master.Commands.Administration.Configuration;
+using Tauron.Operations;
 
 namespace ServiceManager.Server.AppCore.ServiceDeamon
 {
@@ -99,10 +101,16 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
 
                     if (canSend)
                     {
-                        var sc = await _configurationApi.Query<QueryServerConfiguration, ServerConfigugration>(TimeSpan.FromSeconds(10));
+                        var scResult = await _configurationApi.Query<QueryServerConfiguration, ServerConfigugration>(new ApiParameter(TimeSpan.FromSeconds(10)));
+                        var sc = scResult.GetOrThrow();
 
                         if (token.IsCancellationRequested) return string.Empty;
-                        await _configurationApi.Command(new UpdateServerConfigurationCommand(sc with {Database = murl.ToString()}), TimeSpan.FromSeconds(10));
+
+                        var opt = await _configurationApi.Command(
+                            new UpdateServerConfigurationCommand(sc with { Database = murl.ToString() }),
+                            new ApiParameter(TimeSpan.FromSeconds(10)));
+                        
+                        opt.ThrowOnFail();
                     }
                 }
 
@@ -144,7 +152,9 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
 
                 if (token.IsCancellationRequested) return null;
                 
-                var (_, _, database) = await _configurationApi.Query<QueryServerConfiguration, ServerConfigugration>(TimeSpan.FromSeconds(10));
+                var (_, _, database) =
+                    (await _configurationApi.Query<QueryServerConfiguration, ServerConfigugration>(new ApiParameter(TimeSpan.FromSeconds(10))))
+                   .GetOrThrow();
 
                 if (token.IsCancellationRequested) return null;
                 return string.IsNullOrWhiteSpace(database) ? new UrlResult("Keine Datenbank Hinterlegt", Success: false) : new UrlResult(database, Success: true);

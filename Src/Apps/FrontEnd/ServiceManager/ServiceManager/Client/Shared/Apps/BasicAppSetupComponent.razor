@@ -90,7 +90,7 @@ else
             RunAppSetupCommand command = RunAppSetupCommand.Initial(_operationId);
             do
             {
-                response = await _managment.RunAppSetup(command);
+                response = await _managment.RunAppSetup(command, CancellationToken.None);
                 if (!string.IsNullOrWhiteSpace(response.Error))
                 {
                     _error = response.Error;

@@ -16,6 +16,9 @@ namespace Tauron.Operations
         
         public static implicit operator Error(string code)
             => new(null, code);
+
+        public Exception CreateException()
+            => new InvalidOperationException(Info ?? Code);
     }
 
     [PublicAPI]
