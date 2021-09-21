@@ -98,7 +98,7 @@ namespace LoadingIndicators.WPF
                 VisualStateManager.GoToElementState(
                     indicator.PART_Border,
                     IndicatorVisualStateNames.InactiveState.Name,
-                    false);
+                    useTransitions: false);
                 indicator.PART_Border.SetCurrentValue(VisibilityProperty, Visibility.Collapsed);
             }
             else
@@ -106,7 +106,7 @@ namespace LoadingIndicators.WPF
                 VisualStateManager.GoToElementState(
                     indicator.PART_Border,
                     IndicatorVisualStateNames.ActiveState.Name,
-                    false);
+                    useTransitions: false);
 
                 indicator.PART_Border.SetCurrentValue(VisibilityProperty, Visibility.Visible);
 
@@ -138,7 +138,7 @@ namespace LoadingIndicators.WPF
                 IsActive
                     ? IndicatorVisualStateNames.ActiveState.Name
                     : IndicatorVisualStateNames.InactiveState.Name,
-                false);
+                useTransitions: false);
 
             SetStoryBoardSpeedRatio(PART_Border, SpeedRatio);
 

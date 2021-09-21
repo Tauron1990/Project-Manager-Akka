@@ -7,6 +7,6 @@
 
     public sealed record StartAllAppsResponse(bool Success) : OperationResponse(Success)
     {
-        public StartAllAppsResponse() : this(false) { }
+        public StartAllAppsResponse() : this(Success: false) { }
     }
 }

@@ -13,7 +13,7 @@ namespace Tauron.Application.Avalonia.Converter
         {
             private static readonly BrushConverter ConverterImpl = new();
 
-            protected override IBrush Convert([NotNull] string value)
+            protected override IBrush Convert(string value)
             {
                 try
                 {

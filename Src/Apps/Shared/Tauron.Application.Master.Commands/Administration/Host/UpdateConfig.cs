@@ -3,13 +3,13 @@
     public sealed record UpdateHostConfigResponse(bool Success) : OperationResponse(Success)
     {
         public UpdateHostConfigResponse()
-            : this(false) { }
+            : this(Success: false) { }
     }
 
     public sealed record UpdateAppConfigResponse(bool Success, string App) : OperationResponse(Success)
     {
         public UpdateAppConfigResponse()
-            : this(false, "NoAppOnError") { }
+            : this(Success: false, "NoAppOnError") { }
     }
 
     public sealed record UpdateHostConfigCommand(string Target) : InternalHostMessages.CommandBase<UpdateHostConfigResponse>(Target, InternalHostMessages.CommandType.AppRegistry);

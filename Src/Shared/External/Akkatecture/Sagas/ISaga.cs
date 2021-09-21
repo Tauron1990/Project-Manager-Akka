@@ -26,10 +26,14 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
+using JetBrains.Annotations;
+
 namespace Akkatecture.Sagas
 {
     public interface ISaga { }
 
+    // ReSharper disable once UnusedTypeParameter
+    [PublicAPI]
     public interface ISaga<TSagaId> : ISaga
         where TSagaId : ISagaId { }
 }

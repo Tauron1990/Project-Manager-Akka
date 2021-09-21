@@ -38,7 +38,7 @@ namespace Tauron.Akkatecture.Projections
             if (data == null)
             {
                 if (createifmissing())
-                    data = await _repository.Create<TProjection, TIdentity>(context, key, p => true);
+                    data = await _repository.Create<TProjection, TIdentity>(context, key, _ => true);
                 else
                     throw new KeyNotFoundException($"The key {key} is not in The Repository");
             }

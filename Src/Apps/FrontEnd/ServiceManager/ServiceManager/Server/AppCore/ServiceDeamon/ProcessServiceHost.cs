@@ -155,7 +155,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
                 if (string.IsNullOrWhiteSpace(o.Event.DatabaseUrl))
                 {
                     if (!await o.State.DatabaseConfig.GetIsReady())
-                        return o.NewEvent(new TryStartResponse(false, "Keine Datenbaank Url Verfügbar"));
+                        return o.NewEvent(new TryStartResponse(IsRunning: false, "Keine Datenbaank Url Verfügbar"));
                 }
                 else
                 {
@@ -180,10 +180,10 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
                 }
             }
 
-            o.Self.Tell(new Services(repo, deploy, deamon, true, databseUrl));
+            o.Self.Tell(new Services(repo, deploy, deamon, Running: true, databseUrl));
             gate.SetSuccess();
 
-            return o.NewEvent(new TryStartResponse(true, string.Empty));
+            return o.NewEvent(new TryStartResponse(IsRunning: true, string.Empty));
         }
 
         private static void StartServices(
@@ -241,7 +241,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
         public sealed record Services(IActorRef Repo, IActorRef Deploy, IActorRef Deamon, bool Running, string CurrentUrl) : IDisposable
         {
             public Services()
-                : this(ActorRefs.Nobody, ActorRefs.Nobody, ActorRefs.Nobody, false, string.Empty) { }
+                : this(ActorRefs.Nobody, ActorRefs.Nobody, ActorRefs.Nobody, Running: false, string.Empty) { }
 
             public void Dispose()
             {

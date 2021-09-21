@@ -90,8 +90,8 @@ namespace Akka.MGIHelper.UI.MgiStarter
                     () =>
                     {
                         currentStart.Value?.Cancel();
-                        Client.Value?.Kill(true);
-                        Kernel.Value?.Kill(true);
+                        Client.Value?.Kill(entireProcessTree: true);
+                        Kernel.Value?.Kill(entireProcessTree: true);
                     }).ThenRegister("TryStop");
 
             InternalStart += false;

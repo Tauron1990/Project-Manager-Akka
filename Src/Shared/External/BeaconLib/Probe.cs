@@ -28,7 +28,7 @@ namespace BeaconLib
 
         private readonly Task _thread;
         private readonly UdpClient _udp = new UdpClient();
-        private readonly EventWaitHandle _waitHandle = new EventWaitHandle(false, EventResetMode.AutoReset);
+        private readonly EventWaitHandle _waitHandle = new EventWaitHandle(initialState: false, EventResetMode.AutoReset);
         private IEnumerable<BeaconLocation> _currentBeacons = Enumerable.Empty<BeaconLocation>();
 
         private bool _running = true;
@@ -37,7 +37,7 @@ namespace BeaconLib
         public Probe(string beaconType)
             #pragma warning restore AV1500
         {
-            _udp.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            _udp.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, optionValue: true);
 
             BeaconType = beaconType;
             _thread = new Task(BackgroundLoop, TaskCreationOptions.LongRunning);
@@ -46,7 +46,7 @@ namespace BeaconLib
             _udp.Client.Bind(new IPEndPoint(IPAddress.Any, 0));
             try
             {
-                _udp.AllowNatTraversal(true);
+                _udp.AllowNatTraversal(allowed: true);
             }
             #pragma warning disable AV1706
             catch (Exception ex)

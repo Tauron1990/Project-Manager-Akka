@@ -25,6 +25,7 @@ namespace Akkatecture.Jobs
 {
     public interface IJobScheduler { }
 
+    // ReSharper disable once UnusedTypeParameter
     public interface IJobScheduler<out TIdentity>
         where TIdentity : IJobId { }
 }

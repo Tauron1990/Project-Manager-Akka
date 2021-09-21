@@ -118,7 +118,7 @@ namespace Akka.Cluster.Utility
                 _creatingMap.Remove(key);
 
                 foreach (var (targetActor, type) in creating.Requesters)
-                    targetActor.Tell(CreateReplyMessage(type, key, null, false));
+                    targetActor.Tell(CreateReplyMessage(type, key, null, created: false));
             }
 
             // When stopping done, ingest poison pill
@@ -201,7 +201,7 @@ namespace Akka.Cluster.Utility
             if (creating == null)
             {
                 _log.Error($"Cannot find creatingMap. (Id=${id} RequestType={requestType})");
-                Sender.Tell(CreateReplyMessage(requestType, id, null, false));
+                Sender.Tell(CreateReplyMessage(requestType, id, null, created: false));
 
                 return;
             }
@@ -265,7 +265,7 @@ namespace Akka.Cluster.Utility
             {
                 if (actor != null)
                 {
-                    Sender.Tell(new DistributedActorTableMessage<TKey>.GetOrCreateReply(tableMsg.Id, actor, false));
+                    Sender.Tell(new DistributedActorTableMessage<TKey>.GetOrCreateReply(tableMsg.Id, actor, Created: false));
 
                     return;
                 }
@@ -370,7 +370,7 @@ namespace Akka.Cluster.Utility
             if (actor is null)
             {
                 _log.Error($"Invalid null actor for adding. (Id={id})");
-                Sender.Tell(new DistributedActorTableMessage<TKey>.Internal.AddReply(id, actor, false));
+                Sender.Tell(new DistributedActorTableMessage<TKey>.Internal.AddReply(id, actor, Added: false));
 
                 return;
             }
@@ -389,12 +389,12 @@ namespace Akka.Cluster.Utility
             }
             catch (Exception)
             {
-                Sender.Tell(new DistributedActorTableMessage<TKey>.Internal.AddReply(id, actor, false));
+                Sender.Tell(new DistributedActorTableMessage<TKey>.Internal.AddReply(id, actor, Added: false));
                 #pragma warning disable ERP022
             }
             #pragma warning restore ERP022
 
-            Sender.Tell(new DistributedActorTableMessage<TKey>.Internal.AddReply(id, actor, true));
+            Sender.Tell(new DistributedActorTableMessage<TKey>.Internal.AddReply(id, actor, Added: true));
         }
 
         private void Handle(DistributedActorTableMessage<TKey>.Internal.Remove remove)

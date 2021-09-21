@@ -124,7 +124,7 @@ namespace Akka.Cluster.Utility
                         _cluster.SelfUniqueAddress,
                         _actorItems.Select(item => new ClusterActorDiscoveryMessage.ClusterActorUp(item.Actor, item.Tag))
                            .ToList(),
-                        true));
+                        Request: true));
             }
         }
 
@@ -193,7 +193,7 @@ namespace Akka.Cluster.Utility
                         _cluster.SelfUniqueAddress,
                         _actorItems.Select(item => new ClusterActorDiscoveryMessage.ClusterActorUp(item.Actor, item.Tag))
                            .ToList(),
-                        false));
+                        Request: false));
         }
 
         //private void Handle(ClusterActorDiscoveryMessage.UnregisterCluster m)

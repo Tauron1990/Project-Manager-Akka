@@ -108,7 +108,7 @@ namespace Akka.Cluster.Utility
             var (id, actor) = add;
             if (_table is null || _stopping)
             {
-                Sender.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, false));
+                Sender.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, Added: false));
 
                 return;
             }
@@ -116,7 +116,7 @@ namespace Akka.Cluster.Utility
             if (actor is null)
             {
                 _log.Error($"Invalid null actor. (ID={id})");
-                Sender.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, false));
+                Sender.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, Added: false));
 
                 return;
             }
@@ -124,7 +124,7 @@ namespace Akka.Cluster.Utility
             if (_actorMap.ContainsKey(id))
             {
                 _log.Error($"Duplicate ID in local container. (ID={id})");
-                Sender.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, false));
+                Sender.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, Added: false));
 
                 return;
             }
@@ -201,7 +201,7 @@ namespace Akka.Cluster.Utility
 
             if (added)
             {
-                requester.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, true));
+                requester.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, Added: true));
             }
             else
             {

@@ -27,6 +27,7 @@ namespace Akkatecture.Jobs
 {
     public interface ISchedulerEvent : IVersionedType { }
 
+    // ReSharper disable UnusedTypeParameter
     public interface ISchedulerEvent<TJob, TIdentity> : ISchedulerEvent
         where TJob : IJob
         where TIdentity : IJobId { }

@@ -129,7 +129,7 @@ namespace Tauron.Akkatecture.Projections
 
             public void Dispose()
             {
-                _isCancel.GetAndSet(true);
+                _isCancel.GetAndSet(newValue: true);
                 _cancelable?.Shutdown();
                 _runner?.Wait(TimeSpan.FromSeconds(20));
             }
@@ -180,10 +180,10 @@ namespace Tauron.Akkatecture.Projections
                         (list, transaction) => list.Add(transaction))
                    .AlsoTo(
                         Sink.OnComplete<ImmutableList<Transaction>>(
-                            () => _isCancel.GetAndSet(true),
+                            () => _isCancel.GetAndSet(newValue: true),
                             e =>
                             {
-                                _isCancel.GetAndSet(true);
+                                _isCancel.GetAndSet(newValue: true);
                                 errorHandler(_exceptionInfo, e);
                             }))
                    .ViaMaterialized(KillSwitches.Single<ImmutableList<Transaction>>(), (_, kill) => kill)

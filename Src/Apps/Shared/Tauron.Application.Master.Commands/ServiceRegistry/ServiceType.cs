@@ -23,10 +23,10 @@ namespace Tauron.Application.Master.Commands.ServiceRegistry
             return Id == other.Id;
         }
 
-        public void Deconstruct(out string Id, out string DisplayName)
+        public void Deconstruct(out string id, out string displayName)
         {
-            Id = this.Id;
-            DisplayName = this.DisplayName;
+            id = Id;
+            displayName = DisplayName;
         }
 
         public override bool Equals(object? obj) => ReferenceEquals(this, obj) || obj is ServiceType other && Equals(other);

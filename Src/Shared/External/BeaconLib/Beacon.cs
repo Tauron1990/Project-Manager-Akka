@@ -49,12 +49,12 @@ namespace BeaconLib
 
         private void Init()
         {
-            _udp.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            _udp.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, optionValue: true);
             _udp.Client.Bind(new IPEndPoint(IPAddress.Any, DiscoveryPort));
 
             try
             {
-                _udp.AllowNatTraversal(true);
+                _udp.AllowNatTraversal(allowed: true);
             }
             catch (Exception exception)
             {
