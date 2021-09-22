@@ -1,6 +1,6 @@
-﻿@typeparam TModel
+﻿@typeparam TModelType
 @using Tauron.Application.CommonUI
-@inherits ActorComponentBase<TModel>
+@inherits ActorComponentBase<TModelType>
 
 @ChildContent
 
@@ -10,7 +10,7 @@
     public RenderFragment? ChildContent { get; set; }
 
     [CascadingParameter]
-    public IViewModel<TModel>? RootModel { get; set; }
+    public IViewModel<TModelType>? RootModel { get; set; }
 
-    protected override IViewModel<TModel> Model => RootModel ?? throw new InvalidOperationException("Rood Model not Found");
+    protected override IViewModel<TModelType> Model => RootModel ?? throw new InvalidOperationException("Rood Model not Found");
 }

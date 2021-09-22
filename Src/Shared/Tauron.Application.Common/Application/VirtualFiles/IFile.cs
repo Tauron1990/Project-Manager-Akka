@@ -16,6 +16,6 @@ namespace Tauron.Application.VirtualFiles
 
         Stream CreateNew();
 
-        IFile MoveTo([NotNull] string location);
+        IFile MoveTo(string location);
     }
 }

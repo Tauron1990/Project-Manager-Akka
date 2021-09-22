@@ -25,13 +25,13 @@ namespace Tauron.Application.CommonUI.Dialogs
                     resultTask.SetResult(b);
                 });
 
-            ShowDialog(_framework.CreateDefaultMessageContent(title, message, result, true));
+            ShowDialog(_framework.CreateDefaultMessageContent(title, message, result, canCnacel: true));
 
             return resultTask.Task;
         }
 
         public void ShowMessage(string title, string message)
-            => ShowDialog(_framework.CreateDefaultMessageContent(title, message, _ => HideDialog(), false));
+            => ShowDialog(_framework.CreateDefaultMessageContent(title, message, _ => HideDialog(), canCnacel: false));
 
         public void ShowDialog(object dialog)
         {

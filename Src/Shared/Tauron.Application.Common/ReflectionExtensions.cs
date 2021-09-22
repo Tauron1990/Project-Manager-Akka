@@ -47,7 +47,7 @@ namespace Tauron
     [PublicAPI]
     public sealed class FastReflection
     {
-        private static readonly Lazy<FastReflection> SharedLazy = new(() => new FastReflection(), true);
+        private static readonly Lazy<FastReflection> SharedLazy = new(() => new FastReflection(), isThreadSafe: true);
 
         private readonly Dictionary<ConstructorInfo, Func<object?[]?, object>> _creatorCache = new();
         private readonly Dictionary<FieldInfo, Func<object?, object?>> _fieldAccessorCache = new();
@@ -347,15 +347,15 @@ namespace Tauron
             => FindMemberAttributes<TAttribute>(type, nonPublic, BindingFlags.Instance | BindingFlags.FlattenHierarchy);
 
         public static T[] GetAllCustomAttributes<T>(this ICustomAttributeProvider member) where T : Attribute
-            => (T[])member.GetCustomAttributes(typeof(T), true);
+            => (T[])member.GetCustomAttributes(typeof(T), inherit: true);
 
 
         public static object[] GetAllCustomAttributes(this ICustomAttributeProvider member, Type type)
-            => member.GetCustomAttributes(type, true);
+            => member.GetCustomAttributes(type, inherit: true);
 
         public static Option<TAttribute> GetCustomAttribute<TAttribute>(this ICustomAttributeProvider provider)
             where TAttribute : Attribute
-            => GetCustomAttribute<TAttribute>(provider, true);
+            => GetCustomAttribute<TAttribute>(provider, inherit: true);
 
         public static Option<TAttribute> GetCustomAttribute<TAttribute>(this ICustomAttributeProvider provider, bool inherit)
             where TAttribute : Attribute
@@ -370,7 +370,7 @@ namespace Tauron
             if (provider == null) throw new ArgumentNullException(nameof(provider));
 
             return from attributeType in attributeTypes
-                   from attribute in provider.GetCustomAttributes(attributeType, false)
+                   from attribute in provider.GetCustomAttributes(attributeType, inherit: false)
                    select attribute;
         }
 
@@ -461,7 +461,7 @@ namespace Tauron
         {
             if (member == null) throw new ArgumentNullException(nameof(member));
 
-            return member.IsDefined(typeof(T), true);
+            return member.IsDefined(typeof(T), inherit: true);
         }
 
         public static bool HasAttribute(this ICustomAttributeProvider member, Type type)
@@ -469,7 +469,7 @@ namespace Tauron
             if (member == null) throw new ArgumentNullException(nameof(member));
             if (type == null) throw new ArgumentNullException(nameof(type));
 
-            return member.IsDefined(type, true);
+            return member.IsDefined(type, inherit: true);
         }
 
         public static bool HasMatchingAttribute<T>(this ICustomAttributeProvider member, T attributeToMatch)

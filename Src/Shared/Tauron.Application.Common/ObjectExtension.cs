@@ -143,7 +143,7 @@ namespace Tauron
             where TType : class
             => reference.TryGetTarget(out var obj) ? obj.AsOption() : default;
 
-        public static TimeSpan LocalTimeSpanToUTC(this TimeSpan ts)
+        public static TimeSpan LocalTimeSpanToUtc(this TimeSpan ts)
         {
             var dt = DateTime.Now.Date.Add(ts);
             var dtUtc = dt.ToUniversalTime();
@@ -152,7 +152,7 @@ namespace Tauron
             return tsUtc;
         }
 
-        public static TimeSpan UTCTimeSpanToLocal(this TimeSpan tsUtc)
+        public static TimeSpan UtcTimeSpanToLocal(this TimeSpan tsUtc)
         {
             var dtUtc = DateTime.UtcNow.Date.Add(tsUtc);
             var dt = dtUtc.ToLocalTime();

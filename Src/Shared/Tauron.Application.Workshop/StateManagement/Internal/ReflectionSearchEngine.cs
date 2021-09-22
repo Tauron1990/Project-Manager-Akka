@@ -43,7 +43,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
             var processors = new List<Type>();
 
             foreach (var type in _types)
-                foreach (var customAttribute in type.GetCustomAttributes(false))
+                foreach (var customAttribute in type.GetCustomAttributes(inherit: false))
                     switch (customAttribute)
                     {
                         case StateAttribute state:

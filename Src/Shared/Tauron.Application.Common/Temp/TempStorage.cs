@@ -10,7 +10,7 @@ namespace Tauron.Temp
         private static TempStorage? _default;
 
         public TempStorage()
-            : this(DefaultNameProvider, Path.GetTempPath(), false) { }
+            : this(DefaultNameProvider, Path.GetTempPath(), deleteBasePath: false) { }
 
         public TempStorage(Func<bool, string> nameProvider, string basePath, bool deleteBasePath)
             : base(basePath, default, nameProvider, deleteBasePath)
@@ -31,7 +31,7 @@ namespace Tauron.Temp
         {
             path.ClearDirectory();
 
-            return new TempStorage(DefaultNameProvider, path, true);
+            return new TempStorage(DefaultNameProvider, path, deleteBasePath: true);
         }
 
         private void WireUp()

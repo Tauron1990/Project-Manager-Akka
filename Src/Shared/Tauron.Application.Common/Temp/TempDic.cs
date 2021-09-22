@@ -54,7 +54,7 @@ namespace Tauron.Temp
                 name,
                 key =>
                 {
-                    var dic = new TempDic(Path.Combine(FullPath, key), this, _nameGenerator, true);
+                    var dic = new TempDic(Path.Combine(FullPath, key), this, _nameGenerator, deleteDic: true);
                     dic.TrackDispose(() => _tempDics.TryRemove(key, out _));
 
                     return dic;

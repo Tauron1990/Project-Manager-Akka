@@ -31,12 +31,12 @@ namespace Tauron.Application.Workshop.Mutating
             data = Data;
         }
 
-        public MutatingContext<TData> Update(MutatingChange change, TData newData)
+        public MutatingContext<TData> Update(MutatingChange? change, TData newData)
         {
-            if (change != null && change != Change && newData is ICanApplyChange<TData> apply)
+            if (change is not null && change != Change && newData is ICanApplyChange<TData> apply)
                 newData = apply.Apply(change);
 
-            if (Change == null || change == null || ReferenceEquals(Change, change))
+            if (Change is null || change is null || ReferenceEquals(Change, change))
                 return new MutatingContext<TData>(change, newData);
 
             if (Change is MultiChange multiChange)

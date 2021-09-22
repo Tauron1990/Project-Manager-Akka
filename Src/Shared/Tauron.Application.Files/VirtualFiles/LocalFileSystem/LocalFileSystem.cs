@@ -1,11 +1,10 @@
-﻿using JetBrains.Annotations;
-using Tauron.Application.VirtualFiles;
+﻿using Tauron.Application.VirtualFiles;
 
 namespace Tauron.Application.Files.VirtualFiles.LocalFileSystem
 {
     public class LocalFileSystem : LocalDirectory, IVirtualFileSystem
     {
-        public LocalFileSystem([NotNull] string path)
+        public LocalFileSystem(string path)
             : base(path, () => null) { }
 
         public void Dispose() { }

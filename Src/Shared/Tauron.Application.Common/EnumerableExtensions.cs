@@ -7,11 +7,12 @@ using JetBrains.Annotations;
 
 namespace Tauron
 {
+    // ReSharper disable once UnusedTypeParameter
     public abstract record CallResult<TResult>(bool IsOk);
 
-    public sealed record ErrorCallResult<TResult>(Exception Error) : CallResult<TResult>(false);
+    public sealed record ErrorCallResult<TResult>(Exception Error) : CallResult<TResult>(IsOk: false);
 
-    public sealed record SucessCallResult<TResult>(TResult Result) : CallResult<TResult>(true);
+    public sealed record SucessCallResult<TResult>(TResult Result) : CallResult<TResult>(IsOk: true);
 
     [DebuggerNonUserCode]
     [PublicAPI]

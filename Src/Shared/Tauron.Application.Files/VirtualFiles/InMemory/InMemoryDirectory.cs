@@ -13,7 +13,7 @@ namespace Tauron.Application.Files.VirtualFiles.InMemory
         private readonly DataDirectory _dic;
         private readonly InMemoryDirectory? _parentDirectory;
 
-        public InMemoryDirectory(InMemoryDirectory? parentDirectory, string originalPath, string name, DataDirectory dic)
+        protected InMemoryDirectory(InMemoryDirectory? parentDirectory, string originalPath, string name, DataDirectory dic)
             : base(() => parentDirectory, originalPath, name)
         {
             _parentDirectory = parentDirectory;
@@ -31,10 +31,10 @@ namespace Tauron.Application.Files.VirtualFiles.InMemory
 
         protected override void DeleteImpl()
         {
-            _parentDirectory?.InfoObject?.Directories?.Remove(_dic);
+            _parentDirectory?.InfoObject?.Directories.Remove(_dic);
         }
 
-        protected override DataDirectory? GetInfo(string path) => _dic;
+        protected override DataDirectory GetInfo(string path) => _dic;
 
         public override IDirectory GetDirectory(string name)
         {

@@ -30,9 +30,9 @@ namespace Tauron.Application.CommonUI.Commands
 
         public IDisposable Subscribe(IObserver<Unit> observer) => _execute.Subscribe(observer);
 
-        public override void Execute(object? parameter) => _execute.OnNext(Unit.Default);
+        public override void Execute(object? parameter = null) => _execute.OnNext(Unit.Default);
 
-        public override bool CanExecute(object? parameter) => _canExecute.Value;
+        public override bool CanExecute(object? parameter = null) => _canExecute.Value;
 
         public SimpleReactiveCommand Finish(Func<IObservable<Unit>, IDisposable> config)
         {

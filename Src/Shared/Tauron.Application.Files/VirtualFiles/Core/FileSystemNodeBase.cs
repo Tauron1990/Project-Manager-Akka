@@ -52,7 +52,7 @@ namespace Tauron.Application.Files.VirtualFiles.Core
 
         protected abstract void DeleteImpl();
 
-        protected abstract TInfo? GetInfo([NotNull] string path);
+        protected abstract TInfo? GetInfo(string path);
 
         protected virtual void Reset(string path, IDirectory? parent)
         {

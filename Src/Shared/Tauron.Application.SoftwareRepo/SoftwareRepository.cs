@@ -45,7 +45,7 @@ namespace Tauron.Application.SoftwareRepo
                 throw new InvalidOperationException("Apps File not found");
 
             using var reader = new StreamReader(file.Open(FileAccess.Read));
-            Reset(JsonConvert.DeserializeObject<ApplicationList>(reader.ReadToEnd()) ?? new ApplicationList(string.Empty, string.Empty, ImmutableList<ApplicationEntry>.Empty));
+            Reset(JsonConvert.DeserializeObject<ApplicationList>(reader.ReadToEnd()));
         }
 
         internal void InitNew()
@@ -76,9 +76,9 @@ namespace Tauron.Application.SoftwareRepo
                         if (!string.IsNullOrWhiteSpace(name))
                             newData = mc.Data with { Name = name };
                         if (!string.IsNullOrWhiteSpace(description))
-                            newData = newData ?? mc.Data with { Description = description };
+                            newData ??= mc.Data with { Description = description };
 
-                        return newData == null ? mc : mc.Update(new CommonChange(newData), newData);
+                        return newData is null ? mc : mc.Update(new CommonChange(newData), newData);
                     }));
 
         public long Get(string name) => ApplicationList.ApplicationEntries.Find(ae => ae.Name == name)?.Id ?? -1;

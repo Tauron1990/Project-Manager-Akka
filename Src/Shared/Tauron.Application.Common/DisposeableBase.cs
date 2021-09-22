@@ -33,7 +33,7 @@ namespace Tauron
 
         protected void Dispose(bool disposing)
         {
-            if (_isDisposed.GetAndSet(true))
+            if (_isDisposed.GetAndSet(newValue: true))
                 return;
 
             DisposeCore(disposing);

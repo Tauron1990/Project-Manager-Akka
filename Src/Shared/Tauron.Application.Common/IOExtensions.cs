@@ -126,7 +126,7 @@ namespace Tauron
         {
             if (!source.ExisFile()) return;
 
-            File.Copy(source, destination, true);
+            File.Copy(source, destination, overwrite: true);
         }
 
         public static bool CreateDirectoryIfNotExis(this string path)
@@ -170,7 +170,7 @@ namespace Tauron
 
             try
             {
-                if (Directory.Exists(path)) Directory.Delete(path, true);
+                if (Directory.Exists(path)) Directory.Delete(path, recursive: true);
             }
             catch (UnauthorizedAccessException) { }
         }
@@ -188,7 +188,7 @@ namespace Tauron
 
         public static void DeleteDirectory(this string path, bool recursive)
         {
-            if (!string.IsNullOrWhiteSpace(path) && Directory.Exists(path)) new DirectoryInfo(path) { Attributes = FileAttributes.Normal }.Delete(true);
+            if (!string.IsNullOrWhiteSpace(path) && Directory.Exists(path)) new DirectoryInfo(path) { Attributes = FileAttributes.Normal }.Delete(recursive: true);
         }
 
         public static void DeleteDirectoryIfEmpty(this string path)

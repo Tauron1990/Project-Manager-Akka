@@ -22,16 +22,16 @@ namespace Tauron.Akka
         public static IEventActor From(IActorRef actorRef) => new HookEventActor(actorRef);
 
         public static IEventActor Create(IActorRefFactory system, string? name)
-            => Create<Unit>(system, name, null, false);
+            => Create<Unit>(system, name, null, killOnFirstResponse: false);
 
         public static IEventActor CreateSelfKilling(IActorRefFactory system, string? name)
             => CreateSelfKilling<Unit>(system, name, null);
 
         public static IEventActor Create<TPayload>(IActorRefFactory system, string? name, Action<TPayload>? handler)
-            => Create(system, name, handler, false);
+            => Create(system, name, handler, killOnFirstResponse: false);
 
         public static IEventActor CreateSelfKilling<TPayload>(IActorRefFactory system, string? name, Action<TPayload>? handler)
-            => Create(system, name, handler, true);
+            => Create(system, name, handler, killOnFirstResponse: true);
 
         private static IEventActor Create<TPayload>(IActorRefFactory system, string? name, Action<TPayload>? handler, bool killOnFirstResponse)
         {

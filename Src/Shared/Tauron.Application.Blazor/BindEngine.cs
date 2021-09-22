@@ -66,13 +66,16 @@ namespace Tauron.Application.Blazor
 
         private void UpdateSingleBinding(BindingRegistration registration)
         {
-            if (_component == null || _uiObject == null)
-                return;
+            lock (_lock)
+            {
+                if (_component is null || _uiObject is null)
+                    return;
 
-            var (propertyName, internalbinding) = registration;
-            internalbinding.Update(
-                new DeferredSource(propertyName, new RootedDataContextPromise(_uiObject)),
-                () => _component.InvokeAsync(_component.StateHasChanged));
+                var (propertyName, internalbinding) = registration;
+                internalbinding.Update(
+                    new DeferredSource(propertyName, new RootedDataContextPromise(_uiObject)),
+                    () => _component.InvokeAsync(_component.StateHasChanged));
+            }
         }
 
         private record BindingRegistration(string PropertyName, IInternalbinding Binding);

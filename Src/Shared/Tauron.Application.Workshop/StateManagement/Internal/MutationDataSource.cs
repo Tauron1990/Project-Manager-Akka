@@ -10,7 +10,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
     {
         private readonly IExtendedDataSource<TData> _original;
 
-        public MutationDataSource(string cacheKey, IExtendedDataSource<TData> original) => _original = original;
+        public MutationDataSource(IExtendedDataSource<TData> original) => _original = original;
 
         public void Dispose()
         {
@@ -25,6 +25,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal
         {
             var (_, entity) = data;
 
+            // ReSharper disable once SuspiciousTypeConversion.Global
             if (entity is IChangeTrackable { IsChanged: false }) return;
 
             await _original.SetData(query, entity);

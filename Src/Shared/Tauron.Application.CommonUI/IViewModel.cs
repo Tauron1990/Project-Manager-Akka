@@ -14,5 +14,6 @@ namespace Tauron.Application.CommonUI
         public void AwaitInit(Action waiter);
     }
 
+    // ReSharper disable once UnusedTypeParameter
     public interface IViewModel<TModel> : IViewModel { }
 }

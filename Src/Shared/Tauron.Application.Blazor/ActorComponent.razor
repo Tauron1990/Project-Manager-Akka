@@ -1,7 +1,7 @@
-﻿@inherits ActorComponentBase<TModel>
+﻿@inherits ActorComponentBase<TModelType>
 @using Autofac
 @using Tauron.Application.CommonUI
-@typeparam TModel
+@typeparam TModelType
 @inject ILifetimeScope _lifetimeScope
 
 <CascadingValue Value="Model">
@@ -13,7 +13,7 @@
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
-    private IViewModel<TModel>? _model;
-    protected override IViewModel<TModel> Model => _model ??= _lifetimeScope.Resolve<IViewModel<TModel>>();
+    private IViewModel<TModelType>? _model;
+    protected override IViewModel<TModelType> Model => _model ??= _lifetimeScope.Resolve<IViewModel<TModelType>>();
 
 }

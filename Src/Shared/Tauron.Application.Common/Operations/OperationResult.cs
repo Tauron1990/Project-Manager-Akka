@@ -34,23 +34,19 @@ namespace Tauron.Operations
     {
         [JsonIgnore] public string? Error => Errors == null ? null : string.Join(", ", Errors.Select(error => error.Info ?? error.Code));
 
-        public static IOperationResult Success(object? result = null) => new OperationResult(true, null, result);
+        public static IOperationResult Success(object? result = null) => new OperationResult(Ok: true, Errors: null, result);
 
         public static IOperationResult Failure(Error error, object? outcome = null)
         {
-            return new OperationResult(false, new[] { error }, outcome);
+            return new OperationResult(Ok: false, new[] { error }, outcome);
         }
 
         public static IOperationResult Failure(IEnumerable<Error> errors, object? outcome = null)
-            => new OperationResult(false, errors.ToArray(), outcome);
+            => new OperationResult(Ok: false, errors.ToArray(), outcome);
 
-        public static IOperationResult Failure(params Error[] errors) => new OperationResult(false, errors, null);
+        public static IOperationResult Failure(params Error[] errors) => new OperationResult(Ok: false, errors, null);
 
         public static IOperationResult Failure(Exception error)
-        {
-            var unwarped = error.Unwrap() ?? error;
-
-            return new OperationResult(false, new[] { new Error(error) }, null);
-        }
+            => new OperationResult(Ok: false, new[] { new Error(error) }, null);
     }
 }

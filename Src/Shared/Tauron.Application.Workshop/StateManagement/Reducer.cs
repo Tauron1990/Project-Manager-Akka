@@ -36,14 +36,13 @@ namespace Tauron.Application.Workshop.StateManagement
                                    b =>
                                    {
                                        b.When(
-                                           _ => validation != null && !validation.IsValid,
+                                           _ => validation is { IsValid: false },
                                            context => context.Select(
-                                               c
-                                                   => ReducerResult.Fail<TData>(validation!.Errors.Select(f => f.ErrorMessage))));
+                                               _ => ReducerResult.Fail<TData>(validation!.Errors.Select(f => f.ErrorMessage))));
                                        b.When(
-                                           _ => validation == null || validation.IsValid,
+                                           _ => validation is null || validation.IsValid,
                                            context =>
-                                               Reduce(context.Where(_ => validation == null || validation.IsValid), typedAction)
+                                               Reduce(context.Where(_ => validation is null || validation.IsValid), typedAction)
                                                   .Catch<ReducerResult<TData>, Exception>(ErrorHandler));
                                    });
                    };

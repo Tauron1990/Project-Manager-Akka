@@ -66,7 +66,7 @@ namespace Tauron.Application.ActorWorkflow
                 if (msg is TimeoutMarker)
                 {
                     _errorMessage = "Timeout";
-                    Finish(false);
+                    Finish(isok: false);
 
                     return true;
                 }
@@ -131,7 +131,7 @@ namespace Tauron.Application.ActorWorkflow
                         var id = chain.Id;
                         if (id == StepId.Fail)
                         {
-                            Finish(false);
+                            Finish(isok: false);
 
                             return true;
                         }
@@ -140,7 +140,7 @@ namespace Tauron.Application.ActorWorkflow
                         {
                             Log.Warning("No Step Found {Id}", id.Name);
                             _errorMessage = id.Name;
-                            Finish(false);
+                            Finish(isok: false);
 
                             return true;
                         }
@@ -151,11 +151,11 @@ namespace Tauron.Application.ActorWorkflow
                         {
                             case "Fail":
                                 _errorMessage = rev.Step.ErrorMessage;
-                                Finish(false);
+                                Finish(isok: false);
 
                                 break;
                             case "None":
-                                ProgressConditions(rev, true, chain);
+                                ProgressConditions(rev, finish: true, chain);
 
                                 return true;
                             case "Loop":
@@ -164,7 +164,7 @@ namespace Tauron.Application.ActorWorkflow
                                 return true;
                             case "Finish":
                             case "Skip":
-                                Finish(true, rev);
+                                Finish(isok: true, rev);
 
                                 break;
                             case "Waiting":
@@ -196,7 +196,7 @@ namespace Tauron.Application.ActorWorkflow
 
                         if (loopId.Name == StepId.Fail.Name)
                         {
-                            Finish(false);
+                            Finish(isok: false);
 
                             return true;
                         }
@@ -213,7 +213,7 @@ namespace Tauron.Application.ActorWorkflow
             {
                 Log.Error(exception, "Exception While Processing Workflow");
                 _errorMessage = exception.Message;
-                Finish(false);
+                Finish(isok: false);
 
                 return true;
             }
@@ -236,7 +236,7 @@ namespace Tauron.Application.ActorWorkflow
             if (rev.GenericCondition is null)
             {
                 if (finish)
-                    Finish(false);
+                    Finish(isok: false);
             }
             else
             {

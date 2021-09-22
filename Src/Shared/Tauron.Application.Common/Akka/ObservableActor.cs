@@ -99,7 +99,7 @@ namespace Tauron.Akka
 
 
         public void Receive<TEvent>(Func<IObservable<TEvent>, IDisposable> handler)
-            => AddResource(new ObservableInvoker<TEvent, TEvent>(handler, GetSelector<TEvent>(), true).Construct());
+            => AddResource(new ObservableInvoker<TEvent, TEvent>(handler, GetSelector<TEvent>(), isSafe: true).Construct());
 
         protected IObservable<TType> SyncActor<TType>(TType element)
             => Observable.Return(element, ActorScheduler.From(Self));

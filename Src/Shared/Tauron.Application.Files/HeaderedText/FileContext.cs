@@ -8,7 +8,7 @@ namespace Tauron.Application.Files.HeaderedText
     [PublicAPI]
     public sealed class FileContext : IEnumerable<ContextEntry>
     {
-        internal FileContext([NotNull] FileDescription description)
+        internal FileContext(FileDescription description)
             => Description = (FileDescription)description.Clone();
 
         internal FileDescription Description { get; }
@@ -25,9 +25,9 @@ namespace Tauron.Application.Files.HeaderedText
         internal void Reset()
             => ContextEnries.Clear();
 
-        internal bool IsKeyword([NotNull] string key) => Description.Contains(key);
+        internal bool IsKeyword(string key) => Description.Contains(key);
 
-        internal void Add([NotNull] ContextEntry entry)
+        internal void Add(ContextEntry entry)
             => ContextEnries.Add(entry);
     }
 }

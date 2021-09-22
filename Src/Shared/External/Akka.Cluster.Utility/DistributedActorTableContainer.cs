@@ -211,7 +211,7 @@ namespace Akka.Cluster.Utility
                 Context.Unwatch(actor);
                 _watchingActorCount -= 1;
 
-                requester.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, false));
+                requester.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, Added: false));
             }
         }
 
@@ -224,7 +224,7 @@ namespace Akka.Cluster.Utility
                 Context.Unwatch(actor);
                 _watchingActorCount -= 1;
 
-                actor.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, false));
+                actor.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, Added: false));
             }
 
             _addingMap.Clear();

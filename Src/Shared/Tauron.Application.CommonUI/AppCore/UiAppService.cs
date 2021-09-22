@@ -31,7 +31,7 @@ namespace Tauron.Application.CommonUI.AppCore
         {
             void ShutdownApp()
             {
-                if (_shutdown.GetAndSet(true)) return;
+                if (_shutdown.GetAndSet(newValue: true)) return;
 
                 // ReSharper disable MethodSupportsCancellation
                 #pragma warning disable CA2016
@@ -40,7 +40,7 @@ namespace Tauron.Application.CommonUI.AppCore
                             #pragma warning restore CA2016
                         {
                             await Task.Delay(TimeSpan.FromSeconds(60));
-                            Process.GetCurrentProcess().Kill(false);
+                            Process.GetCurrentProcess().Kill(entireProcessTree: false);
                         })
                    .Ignore();
                 // ReSharper restore MethodSupportsCancellation

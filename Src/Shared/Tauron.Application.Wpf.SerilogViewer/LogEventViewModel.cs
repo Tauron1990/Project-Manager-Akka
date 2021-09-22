@@ -8,25 +8,26 @@ namespace Tauron.Application.Wpf.SerilogViewer
 {
     public class LogEventViewModel
     {
-        private static readonly RenderHelper _renderHelper = new();
+        private static readonly RenderHelper Helper = new();
 
         public LogEventViewModel(LoggingEvent info)
         {
             Info = info;
             var logEventInfo = info.EventInfo;
 
-            var msg = _renderHelper.Render(logEventInfo);
+            var msg = Helper.Render(logEventInfo);
 
             ToolTip = msg;
             Level = logEventInfo.Level.ToString();
             FormattedMessage = msg;
             Exception = logEventInfo.Exception;
-            LoggerName = _renderHelper.GetLoggerName(logEventInfo);
+            LoggerName = Helper.GetLoggerName(logEventInfo);
             Time = logEventInfo.TimeStamp.ToString(CultureInfo.InvariantCulture);
 
             SetupColors(logEventInfo);
         }
 
+        // ReSharper disable UnusedAutoPropertyAccessor.Global
         public LoggingEvent Info { get; }
 
 
@@ -35,6 +36,7 @@ namespace Tauron.Application.Wpf.SerilogViewer
         public string Level { get; }
         public string FormattedMessage { get; }
         public Exception? Exception { get; }
+        // ReSharper disable MemberCanBePrivate.Global
         public string ToolTip { get; }
         public SolidColorBrush? Background { get; private set; }
         public SolidColorBrush? Foreground { get; private set; }

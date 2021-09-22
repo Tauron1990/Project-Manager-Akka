@@ -42,7 +42,7 @@ namespace Tauron.Application.Files.VirtualFiles.LocalFileSystem
         }
 
         protected override void DeleteImpl()
-            => InfoObject?.Delete(true);
+            => InfoObject?.Delete(recursive: true);
 
         protected override DirectoryInfo GetInfo(string path) => new(path);
 

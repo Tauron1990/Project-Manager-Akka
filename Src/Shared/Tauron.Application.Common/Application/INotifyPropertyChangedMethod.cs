@@ -7,6 +7,6 @@ namespace Tauron.Application
     [PublicAPI]
     public interface INotifyPropertyChangedMethod : INotifyPropertyChanged
     {
-        void OnPropertyChanged([NotNull] string eventArgs);
+        void OnPropertyChanged(string eventArgs);
     }
 }

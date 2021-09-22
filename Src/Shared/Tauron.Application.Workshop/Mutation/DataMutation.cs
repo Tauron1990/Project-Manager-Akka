@@ -21,6 +21,7 @@ namespace Tauron.Application.Workshop.Mutation
     }
 
     [PublicAPI]
+    // ReSharper disable once UnusedTypeParameter
     public sealed class DataMutation<TData> : ISyncMutation
         where TData : class
     {
@@ -41,6 +42,7 @@ namespace Tauron.Application.Workshop.Mutation
     }
 
     [PublicAPI]
+    // ReSharper disable once UnusedTypeParameter
     public sealed class AsyncDataMutation<TData> : IAsyncMutation
         where TData : class
     {

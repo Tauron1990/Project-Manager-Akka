@@ -450,7 +450,7 @@ namespace Akka.Cluster.Utility
                 // send reply to requester
 
                 foreach (var (actorRef, requestType) in creating.Requesters)
-                    actorRef.Tell(CreateReplyMessage(requestType, id, null, false));
+                    actorRef.Tell(CreateReplyMessage(requestType, id, null, created: false));
             }
         }
 

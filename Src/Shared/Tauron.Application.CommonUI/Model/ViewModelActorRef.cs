@@ -49,7 +49,7 @@ namespace Tauron.Application.CommonUI.Model
             lock (_lock)
             {
                 _isInitialized = true;
-                foreach (var action in _waiter!)
+                foreach (var action in _waiter)
                     action();
 
                 _waiter = null!;

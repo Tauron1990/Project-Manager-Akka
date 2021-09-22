@@ -15,7 +15,7 @@ namespace Tauron.Application.CommonUI.Model
     public sealed class UIProperty<TData> : UIPropertyBase, IObservable<TData>, IDisposable, IObserver<TData>
     {
         private readonly BehaviorSubject<Error?> _currentError = new(null);
-        private readonly BehaviorSubject<DataContainer> _currentValue = new(new DataContainer(default!, true));
+        private readonly BehaviorSubject<DataContainer> _currentValue = new(new DataContainer(default!, IsNull: true));
         private readonly CompositeDisposable _disposable = new();
 
         private bool _isLocked;

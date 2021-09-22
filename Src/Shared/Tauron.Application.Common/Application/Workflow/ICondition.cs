@@ -1,9 +1,7 @@
-﻿using JetBrains.Annotations;
-
-namespace Tauron.Application.Workflow
+﻿namespace Tauron.Application.Workflow
 {
     public interface ICondition<TContext>
     {
-        StepId Select([NotNull] IStep<TContext> lastStep, TContext context);
+        StepId Select(IStep<TContext> lastStep, TContext context);
     }
 }

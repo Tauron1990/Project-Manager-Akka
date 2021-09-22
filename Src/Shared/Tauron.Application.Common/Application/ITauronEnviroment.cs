@@ -12,6 +12,6 @@ namespace Tauron.Application
 
         string LocalApplicationTempFolder { get; }
 
-        IEnumerable<string> GetProfiles([NotNull] string application);
+        IEnumerable<string> GetProfiles(string application);
     }
 }

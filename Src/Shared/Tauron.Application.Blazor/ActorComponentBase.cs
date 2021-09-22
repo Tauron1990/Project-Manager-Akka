@@ -52,9 +52,7 @@ namespace Tauron.Application.Blazor
 
         Task IActorComponent.InvokeAsync(Action action)
         {
-            if (IsDisposed) return Task.CompletedTask;
-
-            return InvokeAsync(action);
+            return IsDisposed ? Task.CompletedTask : InvokeAsync(action);
         }
 
         void IActorComponent.StateHasChanged()
@@ -73,13 +71,15 @@ namespace Tauron.Application.Blazor
             _load.OnNext(true);
 
             Disposable.Create(
-                    () =>
+                    (_unload, _load),
+                    s =>
                     {
-                        _unload.OnNext(true);
-                        _unload.OnCompleted();
-                        _load.OnCompleted();
-                        _unload.Dispose();
-                        _load.Dispose();
+                        var (unload, load) = s;
+                        unload.OnNext(true);
+                        unload.OnCompleted();
+                        load.OnCompleted();
+                        unload.Dispose();
+                        load.Dispose();
                     })
                .DisposeWith(this);
 
@@ -93,6 +93,6 @@ namespace Tauron.Application.Blazor
             base.OnParametersSet();
         }
 
-        private sealed record Registration(IDisposable Binding, IControlBindable Binder);
+        //private sealed record Registration(IDisposable Binding, IControlBindable Binder);
     }
 }

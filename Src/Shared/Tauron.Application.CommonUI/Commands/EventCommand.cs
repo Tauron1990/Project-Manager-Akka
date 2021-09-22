@@ -10,9 +10,9 @@ namespace Tauron.Application.CommonUI.Commands
 
         public event Action<object?>? ExecuteEvent;
 
-        public sealed override bool CanExecute(object? parameter) => OnCanExecute(parameter);
+        public sealed override bool CanExecute(object? parameter = null) => OnCanExecute(parameter);
 
-        public sealed override void Execute(object? parameter)
+        public sealed override void Execute(object? parameter = null)
         {
             OnExecute(parameter);
         }

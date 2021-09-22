@@ -125,7 +125,7 @@ namespace Tauron.Application.CommonUI.Helper
                        .ToArray()
                        .Select(reference => reference?.TypedTarget() ?? default)
                        .Where(target => target.HasValue)
-                       .GetEnumerator()!;
+                       .GetEnumerator();
             }
         }
 
@@ -246,6 +246,7 @@ namespace Tauron.Application.CommonUI.Helper
                    .ForEach(
                         it =>
                         {
+                            // ReSharper disable once SuspiciousTypeConversion.Global
                             if (it is IDisposable dis) dis.Dispose();
 
                             Items.Remove(it);

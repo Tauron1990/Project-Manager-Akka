@@ -220,8 +220,8 @@ namespace Tauron.Application.CommonUI.Model
 
             internal void Deactivate()
             {
-                _deactivated.GetAndSet(true);
-                _canExecute.OnNext(false);
+                _deactivated.GetAndSet(newValue: true);
+                _canExecute.OnNext(value: false);
                 _canExecute.OnCompleted();
                 _dispatcher.Post(RaiseCanExecuteChanged);
             }

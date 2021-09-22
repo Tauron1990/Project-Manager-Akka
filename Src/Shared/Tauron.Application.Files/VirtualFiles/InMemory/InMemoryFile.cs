@@ -39,7 +39,7 @@ namespace Tauron.Application.Files.VirtualFiles.InMemory
             _parentDirectory.Remove(InfoObject);
         }
 
-        protected override DataFile? GetInfo(string path) => _parentDirectory.GetOrAddFile(Name);
+        protected override DataFile GetInfo(string path) => _parentDirectory.GetOrAddFile(Name);
 
         public override IFile MoveTo(string location) => throw new NotSupportedException("In Memory Files does not Support Moving");
 

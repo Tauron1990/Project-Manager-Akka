@@ -102,7 +102,7 @@ namespace Tauron.Application.CommonUI.Helper
             public override void ProcessFailure(IActorContext context, bool restart, IActorRef child, Exception cause, ChildRestartStats stats, IReadOnlyCollection<ChildRestartStats> children)
             {
                 if (restart)
-                    RestartChild(child, cause, false);
+                    RestartChild(child, cause, suspendFirst: false);
                 else
                     context.Stop(child);
             }

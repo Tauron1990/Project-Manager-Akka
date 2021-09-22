@@ -101,7 +101,7 @@ namespace Tauron.Application
         }
 
 
-        public bool RemoveValue(TValue value) => RemoveImpl(default!, value, false, true);
+        public bool RemoveValue(TValue value) => RemoveImpl(default!, value, removeEmpty: false, removeAll: true);
 
         private bool RemoveImpl(TKey key, TValue val, bool removeEmpty, bool removeAll)
         {
@@ -208,15 +208,15 @@ namespace Tauron.Application
 
         #pragma warning disable AV1564
         #pragma warning disable AV1551
-        public bool Remove(TValue value, bool removeEmptyLists) => RemoveImpl(default!, value, removeEmptyLists, true);
+        public bool Remove(TValue value, bool removeEmptyLists) => RemoveImpl(default!, value, removeEmptyLists, removeAll: true);
         #pragma warning restore AV1564
 
-        public bool Remove(TKey key, TValue value) => RemoveImpl(key, value, false, false);
+        public bool Remove(TKey key, TValue value) => RemoveImpl(key, value, removeEmpty: false, removeAll: false);
 
         #pragma warning disable AV1564
         public bool Remove(TKey key, TValue value, bool removeListIfEmpty)
             #pragma warning restore AV1564
-            => RemoveImpl(key, value, removeListIfEmpty, false);
+            => RemoveImpl(key, value, removeListIfEmpty, removeAll: false);
         #pragma warning restore AV1551
     }
 }

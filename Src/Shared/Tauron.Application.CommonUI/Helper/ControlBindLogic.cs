@@ -185,6 +185,7 @@ namespace Tauron.Application.CommonUI.Helper
                         do
                         {
                             // ReSharper disable once SuspiciousTypeConversion.Global
+                            // ReSharper disable once ConstantConditionalAccessQualifier
                             if (affected?.Object is IBinderControllable binder)
                             {
                                 Log.Debug("Root Found for {Element}", affected.GetType());
@@ -210,6 +211,7 @@ namespace Tauron.Application.CommonUI.Helper
 
                         do
                         {
+                            // ReSharper disable once ConstantConditionalAccessQualifier
                             affected = affected?.GetPerent();
 
                             // ReSharper disable once SuspiciousTypeConversion.Global
@@ -235,6 +237,7 @@ namespace Tauron.Application.CommonUI.Helper
 
                         do
                         {
+                            // ReSharper disable once ConstantConditionalAccessQualifier
                             affected = affected?.GetPerent();
                             switch (affected?.Object)
                             {

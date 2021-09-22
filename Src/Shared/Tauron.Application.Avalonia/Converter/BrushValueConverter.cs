@@ -5,6 +5,7 @@ using JetBrains.Annotations;
 
 namespace Tauron.Application.Avalonia.Converter
 {
+    [PublicAPI]
     public sealed class BrushValueConverter : ValueConverterFactoryBase
     {
         protected override IValueConverter Create() => new Converter();
