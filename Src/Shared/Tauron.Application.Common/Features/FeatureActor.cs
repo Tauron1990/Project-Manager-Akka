@@ -50,7 +50,6 @@ namespace Tauron.Features
     }
 
     [PublicAPI]
-    [DebuggerStepThrough]
     public sealed record StatePair<TEvent, TState>(TEvent Event, TState State, ITimerScheduler Timers, IActorContext Context, IActorRef Sender, IActorRef Parent, IActorRef Self)
     {
         public StatePair<TEvent, TNew> Convert<TNew>(Func<TState, TNew> converter)
@@ -80,7 +79,6 @@ namespace Tauron.Features
     }
 
     [PublicAPI]
-    [DebuggerStepThrough]
     public abstract class FeatureActorBase<TFeatured, TState> : ObservableActor, IFeatureActor<TState>
         where TFeatured : FeatureActorBase<TFeatured, TState>, new()
     {
@@ -177,14 +175,15 @@ namespace Tauron.Features
 
         protected override SupervisorStrategy SupervisorStrategy()
             => ((IFeatureActor<TState>)this).SupervisorStrategy ?? base.SupervisorStrategy();
-
-        [DebuggerStepThrough]
+        
         private sealed class ActorFactory : IIndirectActorProducer
         {
             private readonly Action<ActorBuilder<TState>> _builder;
             private readonly Func<IUntypedActorContext, TState> _initialState;
 
-            internal ActorFactory(Action<ActorBuilder<TState>> builder, Func<IUntypedActorContext, TState> initialState)
+            #pragma warning disable GU0073
+            public ActorFactory(Action<ActorBuilder<TState>> builder, Func<IUntypedActorContext, TState> initialState)
+                #pragma warning restore GU0073
             {
                 _builder = builder;
                 _initialState = initialState;

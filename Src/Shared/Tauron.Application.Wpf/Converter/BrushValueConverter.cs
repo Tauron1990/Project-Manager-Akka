@@ -5,6 +5,7 @@ using JetBrains.Annotations;
 
 namespace Tauron.Application.Wpf.Converter
 {
+    [PublicAPI]
     public sealed class BrushValueConverter : ValueConverterFactoryBase
     {
         protected override IValueConverter Create() => new Converter();
@@ -13,7 +14,7 @@ namespace Tauron.Application.Wpf.Converter
         {
             private static readonly BrushConverter ConverterImpl = new();
 
-            protected override Brush Convert([NotNull] string value)
+            protected override Brush Convert(string value)
             {
                 try
                 {

@@ -228,7 +228,9 @@ namespace Tauron.Application.Wpf.UI
             set => Binding.XPath = value;
         }
 
-        [DefaultValue(null)] public Collection<ValidationRule>? ValidationRules => Binding.ValidationRules;
+        // ReSharper disable once ReturnTypeCanBeNotNullable
+        [DefaultValue(null)] 
+        public Collection<ValidationRule>? ValidationRules => Binding.ValidationRules;
 
         [DefaultValue(null)]
         public string? StringFormat

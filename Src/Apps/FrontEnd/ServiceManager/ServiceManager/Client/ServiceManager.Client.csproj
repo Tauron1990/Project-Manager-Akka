@@ -7,29 +7,29 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Compile Remove="wwwroot\css\bootstrap\**"/>
-        <Compile Remove="wwwroot\css\open-iconic\**"/>
-        <Content Remove="wwwroot\css\bootstrap\**"/>
-        <Content Remove="wwwroot\css\open-iconic\**"/>
-        <EmbeddedResource Remove="wwwroot\css\bootstrap\**"/>
-        <EmbeddedResource Remove="wwwroot\css\open-iconic\**"/>
-        <None Remove="wwwroot\css\bootstrap\**"/>
-        <None Remove="wwwroot\css\open-iconic\**"/>
-        <Compile Remove="ViewModels\Identity\CustomAuthenticationProvider .cs"/>
-        <Compile Remove="ViewModels\Identity\UserData.cs"/>
-        <Compile Remove="ViewModels\Identity\UserState.cs"/>
-        <Compile Remove="ViewModels\Models\ModelBase.cs"/>
-        <None Include="ViewModels\Models\ModelBase.cs"/>
+        <Compile Remove="wwwroot\css\bootstrap\**" />
+        <Compile Remove="wwwroot\css\open-iconic\**" />
+        <Content Remove="wwwroot\css\bootstrap\**" />
+        <Content Remove="wwwroot\css\open-iconic\**" />
+        <EmbeddedResource Remove="wwwroot\css\bootstrap\**" />
+        <EmbeddedResource Remove="wwwroot\css\open-iconic\**" />
+        <None Remove="wwwroot\css\bootstrap\**" />
+        <None Remove="wwwroot\css\open-iconic\**" />
+        <Compile Remove="ViewModels\Identity\CustomAuthenticationProvider .cs" />
+        <Compile Remove="ViewModels\Identity\UserData.cs" />
+        <Compile Remove="ViewModels\Identity\UserState.cs" />
+        <Compile Remove="ViewModels\Models\ModelBase.cs" />
+        <None Include="ViewModels\Models\ModelBase.cs" />
     </ItemGroup>
 
     <ItemGroup>
-        <Content Remove="wwwroot\index.html"/>
-        <Content Remove="wwwroot\_content\MudBlazor\MudBlazor.min.css"/>
+        <Content Remove="wwwroot\index.html" />
+        <Content Remove="wwwroot\_content\MudBlazor\MudBlazor.min.css" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="BlazorCarrot.Cookies" Version="1.0.4"/>
-        <PackageReference Include="Blazored.LocalStorage" Version="4.1.5"/>
+        <PackageReference Include="BlazorCarrot.Cookies" Version="1.0.4" />
+        <PackageReference Include="Blazored.LocalStorage" Version="4.1.5" />
         <PackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.1.2">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -38,31 +38,31 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="GridBlazor" Version="2.1.19"/>
+        <PackageReference Include="GridBlazor" Version="2.1.19" />
         <PackageReference Include="Gu.Analyzers" Version="1.8.5">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.AspNetCore.Components.Web.Extensions" Version="5.0.0-preview9.20513.1"/>
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="5.0.10"/>
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="5.0.10"/>
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="5.0.10" PrivateAssets="all"/>
-        <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="5.0.10"/>
-        <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0"/>
-        <PackageReference Include="MudBlazor" Version="5.1.4"/>
-        <PackageReference Include="Reactive.Wasm" Version="1.2.2"/>
-        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10"/>
-        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31"/>
-        <PackageReference Include="Stl.Fusion.Blazor" Version="1.10.6"/>
-        <PackageReference Include="System.Net.Http.Json" Version="5.0.0"/>
+        <PackageReference Include="Microsoft.AspNetCore.Components.Web.Extensions" Version="5.0.0-preview9.20513.1" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="5.0.10" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="5.0.10" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="5.0.10" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="5.0.10" />
+        <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
+        <PackageReference Include="MudBlazor" Version="5.1.4" />
+        <PackageReference Include="Reactive.Wasm" Version="1.2.2" />
+        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
+        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
+        <PackageReference Include="Stl.Fusion.Blazor" Version="1.10.6" />
+        <PackageReference Include="System.Net.Http.Json" Version="5.0.0" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Shared\ServiceManager.Shared.csproj"/>
+        <ProjectReference Include="..\Shared\ServiceManager.Shared.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <ServiceWorker Include="wwwroot\service-worker.js" PublishedContent="wwwroot\service-worker.published.js"/>
+        <ServiceWorker Include="wwwroot\service-worker.js" PublishedContent="wwwroot\service-worker.published.js" />
     </ItemGroup>
 
     <ItemGroup>
@@ -134,21 +134,21 @@
     </ItemGroup>
 
     <ItemGroup>
-        <_ContentIncludedByDefault Remove="Pages\About.razor"/>
-        <_ContentIncludedByDefault Remove="Pages\AppConfiguration.razor"/>
+        <_ContentIncludedByDefault Remove="Pages\About.razor" />
+        <_ContentIncludedByDefault Remove="Pages\AppConfiguration.razor" />
     </ItemGroup>
 
     <ItemGroup>
-        <UpToDateCheckInput Remove="Pages\About.razor"/>
+        <UpToDateCheckInput Remove="Pages\About.razor" />
     </ItemGroup>
 
     <ItemGroup>
-        <UpToDateCheckInput Remove="Pages\AppConfiguration.razor"/>
+        <UpToDateCheckInput Remove="Pages\AppConfiguration.razor" />
     </ItemGroup>
 
 
     <ItemGroup>
-        <None Include="wwwroot\_content\MudBlazor\MudBlazor.min.css"/>
+        <None Include="wwwroot\_content\MudBlazor\MudBlazor.min.css" />
     </ItemGroup>
 
 </Project>

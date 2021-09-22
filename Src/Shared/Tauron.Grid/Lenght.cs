@@ -8,9 +8,9 @@ namespace Tauron.Grid
 
         public int Value { get; }
 
-        public CSSUnit Unit { get; }
+        public CssUnit Unit { get; }
 
-        public Lenght(int value, CSSUnit unit)
+        public Lenght(int value, CssUnit unit)
         {
             Value = value;
             Unit = unit;
@@ -18,25 +18,25 @@ namespace Tauron.Grid
         }
 
         public static Lenght FromFraction(int value)
-            => new(value, CSSUnit.Fraction);
+            => new(value, CssUnit.Fraction);
 
         public static Lenght FromPercentage(int value)
-            => new(value, CSSUnit.Percentage);
+            => new(value, CssUnit.Percentage);
 
         public static Lenght FromViewportHeight(int value)
-            => new(value, CSSUnit.Percentage);
+            => new(value, CssUnit.Percentage);
 
         public static Lenght FromViewportWidth(int value)
-            => new(value, CSSUnit.ViewportWidth);
+            => new(value, CssUnit.ViewportWidth);
 
         public static Lenght FromPixel(int value)
-            => new(value, CSSUnit.Pixel);
+            => new(value, CssUnit.Pixel);
 
         public static Lenght FromCentimeter(int value)
-            => new(value, CSSUnit.Centimeter);
+            => new(value, CssUnit.Centimeter);
 
         public static Lenght FromMilimeter(int value)
-            => new(value, CSSUnit.Milimeter);
+            => new(value, CssUnit.Milimeter);
 
         public override string ToString() => Set ? Converter.ToCss(Value, Unit) : "none";
     }

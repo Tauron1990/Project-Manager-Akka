@@ -5,15 +5,15 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="5.0.10"/>
-        <PackageReference Include="Stl.Fusion.Server" Version="1.9.8"/>
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.1"/>
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="5.0.10" />
+        <PackageReference Include="Stl.Fusion.Server" Version="1.10.6" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.1" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\Shared\Tauron.Application.Common\Tauron.Application.Common.csproj"/>
-        <ProjectReference Include="..\Client\TestWebApplication.Client.csproj"/>
-        <ProjectReference Include="..\Shared\TestWebApplication.Shared.csproj"/>
+        <ProjectReference Include="..\..\..\Shared\Tauron.Application.Common\Tauron.Application.Common.csproj" />
+        <ProjectReference Include="..\Client\TestWebApplication.Client.csproj" />
+        <ProjectReference Include="..\Shared\TestWebApplication.Shared.csproj" />
     </ItemGroup>
 
 

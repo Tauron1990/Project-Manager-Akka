@@ -216,7 +216,7 @@ namespace Tauron.Application.AkkaNode.Bootstrap
         }
 
         [UsedImplicitly]
-        private sealed class KillHelper : IStartUpAction
+        public sealed class KillHelper : IStartUpAction
         {
             [UsedImplicitly]
             #pragma warning disable IDE0052 // Ungelesene private Member entfernen
@@ -229,7 +229,7 @@ namespace Tauron.Application.AkkaNode.Bootstrap
 
             private readonly ActorSystem _system;
 
-            internal KillHelper(IConfiguration configuration, ActorSystem system, IIpcConnection ipcConnection)
+            public KillHelper(IConfiguration configuration, ActorSystem system, IIpcConnection ipcConnection)
             {
                 _logger = LogManager.GetCurrentClassLogger();
                 _comHandle = configuration["ComHandle"];

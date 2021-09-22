@@ -1,5 +1,9 @@
-﻿<h3>AppGridDisplayButton</h3>
+﻿@using ServiceManager.Client.ViewModels.Apps
+@implements GridShared.Columns.ICustomGridComponent<ServiceManager.Client.ViewModels.Apps.LocalAppInfo>
 
 @code {
+
+    [Parameter]
+    public LocalAppInfo Item { get; set; } = null!;
 
 }

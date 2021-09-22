@@ -4,15 +4,15 @@ namespace Tauron.Grid.Internal
 {
     internal static class Converter
     {
-        internal static string ToCss(int value, CSSUnit unit)
+        internal static string ToCss(int value, CssUnit unit)
             => unit switch
             {
-                CSSUnit.Pixel => $"{value}px",
-                CSSUnit.Milimeter => $"{value}mm",
-                CSSUnit.Centimeter => $"{value}cm",
-                CSSUnit.ViewportWidth => $"{value}vw",
-                CSSUnit.ViewportHeight => $"{value}vh",
-                CSSUnit.Percentage => $"{value}%",
+                CssUnit.Pixel => $"{value}px",
+                CssUnit.Milimeter => $"{value}mm",
+                CssUnit.Centimeter => $"{value}cm",
+                CssUnit.ViewportWidth => $"{value}vw",
+                CssUnit.ViewportHeight => $"{value}vh",
+                CssUnit.Percentage => $"{value}%",
                 _ => $"{value}fr"
             };
 

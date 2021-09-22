@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Reactive;
 using System.Windows;
-using JetBrains.Annotations;
 using Ookii.Dialogs.Wpf;
 using Tauron.Application.CommonUI.AppCore;
 using Tauron.Application.Wpf.AppCore;
@@ -157,7 +156,7 @@ namespace Tauron.Application.Wpf.Implementation
                 });
         }
 
-        private static void TranslateDefaultExt([NotNull] VistaFileDialog dialog)
+        private static void TranslateDefaultExt(VistaFileDialog dialog)
         {
             if (string.IsNullOrWhiteSpace(dialog.DefaultExt)) return;
 

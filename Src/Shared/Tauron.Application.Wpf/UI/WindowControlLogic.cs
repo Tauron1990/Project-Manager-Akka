@@ -1,5 +1,4 @@
 ﻿using System.Windows;
-using JetBrains.Annotations;
 using Tauron.Application.CommonUI;
 using Tauron.Application.CommonUI.UI;
 
@@ -7,7 +6,7 @@ namespace Tauron.Application.Wpf.UI
 {
     public sealed class WindowControlLogic : ControlLogicBase<Window>
     {
-        public WindowControlLogic([NotNull] Window userControl, [NotNull] IViewModel model) : base(userControl, model)
+        public WindowControlLogic(Window userControl, IViewModel model) : base(userControl, model)
         {
             userControl.SizeToContent = SizeToContent.Manual;
             userControl.ShowInTaskbar = true;

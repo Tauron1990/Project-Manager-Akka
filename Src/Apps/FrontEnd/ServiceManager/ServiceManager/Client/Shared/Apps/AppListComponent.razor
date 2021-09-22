@@ -1,6 +1,30 @@
 ﻿@using ServiceManager.Client.ViewModels.Apps
+@using Tauron
+
+@inherits DisposableComponent
+
 @inject AppListViewModel _model
 
+@if (_loading)
+{
+    <LoadingSpinner/>
+}
+else
+{
+    <GridComponent T="LocalAppInfo" @ref="_gridComponent" Grid="_model.Grid"/>
+}
+
 @code {
+    private bool _loading = true;
+    private GridComponent<LocalAppInfo>? _gridComponent;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _model.UpdateEvent.Subscribe(_ => _gridComponent?.UpdateGrid()).DisposeWith(this);
+        await _model.Update;
+        await base.OnInitializedAsync();
+        _loading = false;
+        StateHasChanged();
+    }
 
 }

@@ -16,5 +16,9 @@ namespace Tauron.Operations
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string ErrorToString(this ref Option<Error> opt)
             => opt.HasValue ? opt.Value.Info ?? opt.Value.Code : string.Empty;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static string ErrorToString<TData>(this Either<TData, Error> either)
+            => either.Fold(_ => string.Empty, err => err.Info ?? err.Code);
     }
 }

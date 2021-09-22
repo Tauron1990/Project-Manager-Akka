@@ -89,7 +89,7 @@ namespace Tauron.Application.Workshop.StateManagement.Builder
             if (State == null)
                 throw new InvalidOperationException("A State type or Instance Must be set");
 
-            var cacheKey = $"{State.Name}--{Guid.NewGuid():N}";
+            //var cacheKey = $"{State.Name}--{Guid.NewGuid():N}";
             var dataSource = new MutationDataSource<TData>(_source());
 
             var pooledState = false;

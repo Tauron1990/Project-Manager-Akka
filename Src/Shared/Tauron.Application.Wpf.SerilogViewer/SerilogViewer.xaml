@@ -10,6 +10,7 @@
     <UserControl.Resources>
     </UserControl.Resources>
     <Grid>
+        <!-- ReSharper disable once InconsistentNaming -->
         <ListView ItemsSource="{Binding LogEntries}" Name="logView">
             <ListView.View>
                 <GridView>

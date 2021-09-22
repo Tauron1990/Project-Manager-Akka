@@ -6,11 +6,11 @@ using JetBrains.Annotations;
 
 namespace Tauron.Application
 {
-    internal sealed class TauronEnviromentImpl : ITauronEnviroment
+    public sealed class TauronEnviromentImpl : ITauronEnviroment
     {
         private string? _defaultPath;
 
-        internal TauronEnviromentImpl()
+        public TauronEnviromentImpl()
         {
             LocalApplicationData = TauronEnviroment.LocalApplicationData;
             LocalApplicationTempFolder = TauronEnviroment.LocalApplicationTempFolder;

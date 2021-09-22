@@ -1,10 +1,14 @@
 ﻿using System;
+using System.Linq;
 using System.Reactive;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
 using GridBlazor;
 using GridShared;
 using GridShared.Pagination;
+using GridShared.Sorting;
 using GridShared.Totals;
 using GridShared.Utility;
 using Microsoft.Extensions.Logging;
@@ -18,19 +22,38 @@ using Tauron.Application.Master.Commands.Deployment.Build.Data;
 
 namespace ServiceManager.Client.ViewModels.Apps
 {
-    public sealed class AppListViewModel
+    public sealed class AppListViewModel : IDisposable
     {
         public AppListViewModel(IStateFactory factory, IAppManagment appManagment, IEventAggregator aggregator, IApiMessageTranslator translator, ILogger<AppListViewModel> log)
         {
             var dataState = factory.NewComputed<AppList>((_, t) => appManagment.QueryAllApps(t));
 
-            var gridClient = new GridClient<AppInfo>(
+            var gridClient = CreateMainGrid(appManagment, aggregator, translator, log, dataState);
+
+            Update = gridClient.UpdateGrid();
+            Grid = gridClient.Grid;
+
+            dataState.AddEventHandler(StateEventKind.Updated, (_, _) => _onUpdate.OnNext(Unit.Default));
+        }
+
+        private Subject<Unit> _onUpdate = new();
+
+        public IObservable<Unit> UpdateEvent => _onUpdate.AsObservable();
+
+        public Task Update { get; set; }
+
+        public CGrid<LocalAppInfo> Grid { get; }
+
+        private IGridClient<LocalAppInfo> CreateMainGrid(IAppManagment appManagment, IEventAggregator aggregator, IApiMessageTranslator translator, 
+            ILogger log, IComputedState<AppList> dataState)
+        {
+            var gridClient = new GridClient<LocalAppInfo>(
                     async _ =>
                     {
                         var data = (await dataState.Update()).Value;
 
-                        return new ItemsDTO<AppInfo>(
-                            data,
+                        return new ItemsDTO<LocalAppInfo>(
+                            data.Select(ai => new LocalAppInfo(ai)),
                             new TotalsDTO(),
                             new PagerDTO
                             {
@@ -44,14 +67,14 @@ namespace ServiceManager.Client.ViewModels.Apps
                .Columns(
                     collection =>
                     {
-                        collection.Add().RenderComponentAs<AppGridDisplayButton>();
+                        collection.Add().RenderComponentAs<AppGridDisplayButton>().SetCrudHidden(all: true);
                         collection.Add(ai => ai.Name).Titled("Name").SetPrimaryKey(enabled: true);
-                        collection.Add(ai => ai.Repository).Titled("Repository");
-                        collection.Add(ai => ai.ProjectName).Titled("Projekt Name");
-                        collection.Add(ai => ai.LastVersion).Titled("Letzte Version").RenderComponentAs<AppVersionDisplay>();
-                        collection.Add(ai => ai.UpdateDate).Titled("Letztes Update").RenderComponentAs<AppUpdateDisplay>();
-                        collection.Add(ai => ai.CreationTime).Titled("Erstellt am");
-                        collection.Add().Titled("Binaries").RenderValueAs(ai => ai.Binaries.Count.ToString());
+                        collection.Add(ai => ai.Repository).Titled("Repository").SetCrudHidden(create:false, read:false, update:true, delete:true);
+                        collection.Add(ai => ai.ProjectName).Titled("Projekt Name").SetCrudHidden(create:false, read:false, update:true, delete:true);
+                        collection.Add(ai => ai.LastVersion).Titled("Letzte Version").RenderComponentAs<AppVersionDisplay>().SetCrudHidden(all: true);
+                        collection.Add(ai => ai.UpdateDate).Titled("Letztes Update").RenderComponentAs<AppUpdateDisplay>().SetCrudHidden(all:true);
+                        collection.Add(ai => ai.CreationTime).Titled("Erstellt am").SetCrudHidden(all:true);
+                        collection.Add().Titled("Binaries").RenderValueAs(ai => ai.Self.Binaries.Count.ToString()).SetCrudHidden(all:true);
                     })
                .SetLanguage("de-de")
                .Searchable()
@@ -67,20 +90,47 @@ namespace ServiceManager.Client.ViewModels.Apps
                     readEnabled: true,
                     updateEnabled: false,
                     deleteEnabled: true,
-                    new InternalDataService(appManagment, aggregator, translator, log));
+                    new InternalDataService(appManagment, aggregator, translator, log))
+               .SubGrid(CreateBinariesGrid, (nameof(LocalAppInfo.Self), nameof(LocalAppBinary.App)));
 
-
-            Update = gridClient.UpdateGrid();
-            Grid = gridClient.Grid;
-
-            dataState.AddEventHandler(StateEventKind.Updated, (_, _) => Update = Grid.UpdateGrid());
+            return gridClient;
         }
+        
+        private async Task<ICGrid> CreateBinariesGrid(object[] arg)
+        {
+            var gridClient = new GridClient<LocalAppBinary>(
+                _ =>
+                {
+                    var app = (AppInfo)arg[0];
+                    var data = app.Binaries;
 
-        public Task Update { get; set; }
+                    return new ItemsDTO<LocalAppBinary>(
+                        data.Select(ai => new LocalAppBinary(app, ai)),
+                        new TotalsDTO(),
+                        new PagerDTO
+                        {
+                            EnablePaging = false,
+                            ItemsCount = data.Count
+                        });
+                },
+                new QueryDictionary<StringValues>(),
+                renderOnlyRows: false,
+                "BinariesInfoGrid")
+               .Columns(
+                    b =>
+                    {
+                        b.Add(l => l.CreationTime).Titled("Erstell zeitpunkt");
+                        b.Add(l => l.FileVersion).Titled("Version").Sortable(sort: true).SortInitialDirection(GridSortDirection.Ascending);
+                        b.Add(l => l.Repository).Titled("Repository");
+                        b.Add(l => l.Commit).Titled("Commit");
+                    });
 
-        public CGrid<AppInfo> Grid { get; }
+            await gridClient.UpdateGrid();
 
-        private sealed class InternalDataService : ICrudDataService<AppInfo>
+            return gridClient.Grid;
+        }
+        
+        private sealed class InternalDataService : ICrudDataService<LocalAppInfo>
         {
             private readonly IEventAggregator _aggregator;
             private readonly IAppManagment _appManagment;
@@ -95,7 +145,7 @@ namespace ServiceManager.Client.ViewModels.Apps
                 _log = log;
             }
 
-            public Task<AppInfo> Get(params object[] keys)
+            public Task<LocalAppInfo> Get(params object[] keys)
                 => Run(
                     async () =>
                     {
@@ -106,10 +156,10 @@ namespace ServiceManager.Client.ViewModels.Apps
                         if (app.Deleted)
                             throw new InvalidOperationException($"Fhler beim abrufen der Anwendung: {app.Name}");
 
-                        return app;
+                        return new LocalAppInfo(app);
                     });
 
-            public Task Insert(AppInfo item)
+            public Task Insert(LocalAppInfo item)
                 => Run(
                     async () =>
                     {
@@ -120,7 +170,7 @@ namespace ServiceManager.Client.ViewModels.Apps
                         throw new InvalidOperationException(_translator.Translate(result));
                     });
 
-            public Task Update(AppInfo item)
+            public Task Update(LocalAppInfo item)
                 => throw new NotSupportedException("Updates für Anwendungen nicht unterstützt");
 
             public Task Delete(params object[] keys)
@@ -149,5 +199,8 @@ namespace ServiceManager.Client.ViewModels.Apps
                 }
             }
         }
+
+        public void Dispose()
+            => _onUpdate.Dispose();
     }
 }

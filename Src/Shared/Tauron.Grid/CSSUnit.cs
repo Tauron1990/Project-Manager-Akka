@@ -1,6 +1,6 @@
 ﻿namespace Tauron.Grid
 {
-    public enum CSSUnit
+    public enum CssUnit
     {
         Fraction = 0,
         Percentage,

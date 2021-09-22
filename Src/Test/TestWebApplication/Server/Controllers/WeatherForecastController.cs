@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using TestWebApplication.Shared;
 
 namespace TestWebApplication.Server.Controllers
@@ -15,11 +14,6 @@ namespace TestWebApplication.Server.Controllers
         {
             "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
         };
-
-        private readonly ILogger<WeatherForecastController> _logger;
-
-        public WeatherForecastController(ILogger<WeatherForecastController> logger)
-            => _logger = logger;
 
         [HttpGet]
         public IEnumerable<WeatherForecast> Get()

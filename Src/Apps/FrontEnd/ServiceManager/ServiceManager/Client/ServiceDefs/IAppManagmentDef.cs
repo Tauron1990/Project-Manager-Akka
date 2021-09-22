@@ -20,10 +20,10 @@ namespace ServiceManager.Client.ServiceDefs
         [Get(nameof(QueryApp))]
         Task<AppInfo> QueryApp([Query] string name, CancellationToken token);
 
-        [Post]
+        [Post(nameof(CreateNewApp))]
         Task<string> CreateNewApp([Body] ApiCreateAppCommand command, CancellationToken token);
 
-        [Post]
+        [Post(nameof(CreateNewApp))]
         Task<string> DeleteAppCommand([Body] ApiDeleteAppCommand command, CancellationToken token);
 
         [Post(nameof(RunAppSetup))]

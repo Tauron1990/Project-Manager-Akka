@@ -84,10 +84,11 @@ else
             <MudTd>
                 <SelectionMarker Item="@context"/>
             </MudTd>
-            <MudTd DataLabel="Id">@context.Config.Id</MudTd>
-            <MudTd DataLabel="Info">@context.Config.Info</MudTd>
-            <MudTd DataLabel="Konfiguration">@context.Config.ConfigContent</MudTd>
-            <MudTd DataLabel="Bedingungen">@context.Config.Conditions.Count</MudTd>
+            @* ReSharper disable RedundantSuppressNullableWarningExpression *@
+            <MudTd DataLabel="Id">@context!.Config.Id</MudTd>
+            <MudTd DataLabel="Info">@context!.Config.Info</MudTd>
+            <MudTd DataLabel="Konfiguration">@context!.Config.ConfigContent</MudTd>
+            <MudTd DataLabel="Bedingungen">@context!.Config.Conditions.Count</MudTd>
         </RowTemplate>
     </MudTable>
 }

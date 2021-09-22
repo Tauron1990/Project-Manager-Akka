@@ -31,6 +31,7 @@ namespace ServiceManager.Server.AppCore.ClusterTracking
             return _;
         }
 
+
         protected override void ConfigImpl()
         {
             var cluster = Cluster.Get(Context.System);

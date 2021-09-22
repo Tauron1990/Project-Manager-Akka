@@ -22,7 +22,7 @@ namespace Tauron.Application.Wpf
         public override IWindow CreateMessageDialog(string title, string message)
         {
             var window = new System.Windows.Window();
-            window.Content = new MessageDialog(title, message, b => window.DialogResult = b, true)
+            window.Content = new MessageDialog(title, message, b => window.DialogResult = b, canCnacel: true)
                              { Margin = new Thickness(10) };
 
             window.SizeToContent = SizeToContent.WidthAndHeight;

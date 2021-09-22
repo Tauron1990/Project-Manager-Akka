@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using ServiceHost.Client.Shared.ConfigurationServer.Data;
 using ServiceManager.Server.AppCore;
 using ServiceManager.Server.AppCore.Helper;
 using ServiceManager.Server.AppCore.Identity;
@@ -14,6 +15,7 @@ using ServiceManager.Shared.Identity;
 using Tauron.Application.AkkaNode.Bootstrap;
 using Tauron.Application.AkkaNode.Bootstrap.Console;
 using Tauron.Application.Master.Commands.KillSwitch;
+using Tauron.Application.MongoExtensions;
 
 namespace ServiceManager.Server
 {
@@ -28,6 +30,9 @@ namespace ServiceManager.Server
 
         public static async Task Main(string[] args)
         {
+            ImmutableListSerializer<Condition>.Register();
+            ImmutableListSerializer<SeedUrl>.Register();
+            
             await AppIpManager.Aquire();
             var host = CreateHostBuilder(args).Build();
 

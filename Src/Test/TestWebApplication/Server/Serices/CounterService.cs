@@ -6,7 +6,7 @@ using Stl.Fusion;
 using Tauron;
 using TestWebApplication.Shared.Counter;
 
-namespace TestWebApplication.Server.Services
+namespace TestWebApplication.Server.Serices
 {
     public class CounterService : ICounterService
     {

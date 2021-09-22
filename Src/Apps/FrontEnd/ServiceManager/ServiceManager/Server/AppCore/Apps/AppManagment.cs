@@ -17,6 +17,7 @@ using Tauron.Application.Master.Commands.Deployment.Build;
 using Tauron.Application.Master.Commands.Deployment.Build.Commands;
 using Tauron.Application.Master.Commands.Deployment.Build.Data;
 using Tauron.Application.Master.Commands.Deployment.Build.Querys;
+using Tauron.Operations;
 
 namespace ServiceManager.Server.AppCore.Apps
 {
@@ -36,12 +37,13 @@ namespace ServiceManager.Server.AppCore.Apps
             _log = log;
 
             _subscription = dispatcher.Get().AutoSubscribe(
-                _ =>
+                ai =>
                 {
                     using (Computed.Invalidate())
                     {
                         NeedBasicApps(CancellationToken.None).Ignore();
                         QueryAllApps(CancellationToken.None).Ignore();
+                        QueryApp(ai.Name, CancellationToken.None).Ignore();
                     }
                 },
                 e => log.LogError(e, "Error on Process App Event"));
@@ -60,7 +62,7 @@ namespace ServiceManager.Server.AppCore.Apps
             => Run(command, CreateNewAppImpl, token);
 
         public virtual Task<string> DeleteAppCommand(ApiDeleteAppCommand command, CancellationToken token)
-            => throw new NotSupportedException("Not supportet");
+            => Run(command, DeleteAppImpl, token);
 
         public virtual Task<RunAppSetupResponse> RunAppSetup(RunAppSetupCommand command, CancellationToken token)
             => Run(command, RunSetupImpl, token);
@@ -103,12 +105,20 @@ namespace ServiceManager.Server.AppCore.Apps
             throw new InvalidOperationException(message);
         }
 
+        private async Task<string> DeleteAppImpl(ApiDeleteAppCommand command, IProcessServiceHost host, DeploymentApi api, IServiceProvider services, CancellationToken token)
+        {
+            var result = await api.Command<DeleteAppCommand, AppInfo>(new DeleteAppCommand(command.Name), new ApiParameter(TimeSpan.FromSeconds(20), token));
+
+            return result.ErrorToString();
+        }
+        
         private async Task<string> CreateNewAppImpl(ApiCreateAppCommand command, IProcessServiceHost host, DeploymentApi api, IServiceProvider services, CancellationToken token)
         {
             try
             {
+                var (appName, projectName, repositoryName) = command;
                 var result = await api.Command<CreateAppCommand, AppInfo>(
-                    new CreateAppCommand(command.Name, command.ProjectName, command.RepositoryName),
+                    new CreateAppCommand(appName, projectName, repositoryName),
                     new ApiParameter(TimeSpan.FromSeconds(20), token));
 
                 return result.Fold(_ => string.Empty, err => err.Info ?? err.Code);
