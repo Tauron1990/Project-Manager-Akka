@@ -2,6 +2,7 @@
 using Akka.Cluster.Tools.Singleton;
 using ServiceManager.ServiceDeamon.ConfigurationServer;
 using SharpRepository.Repository.Configuration;
+using Tauron.Application.AkkaNode.Services.Core;
 using Tauron.Features;
 
 namespace ServiceManager.ServiceDeamon.Management
@@ -12,7 +13,7 @@ namespace ServiceManager.ServiceDeamon.Management
         public const string RoleName = "Service-Manager";
 
         public static IActorRef Init(ActorSystem system, ISharpRepositoryConfiguration repository)
-            => system.ActorOf("ServiceDeamon", Feature.Create(() => new ServiceManagerDeamon(), _ => new ServiceManagerDeamonState(repository)));
+            => system.ActorOf("ServiceDeamon", Feature.Create(() => new ServiceManagerDeamon(), _ => new ServiceManagerDeamonState(repository)), TellAliveFeature.New());
 
 
         protected override void ConfigImpl()

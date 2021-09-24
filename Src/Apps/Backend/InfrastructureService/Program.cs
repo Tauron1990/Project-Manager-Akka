@@ -5,6 +5,7 @@ using NLog;
 using ServiceHost.Client.Shared;
 using ServiceHost.Client.Shared.ConfigurationServer.Data;
 using ServiceManager.ProjectDeployment;
+using ServiceManager.ProjectDeployment.Data;
 using ServiceManager.ProjectRepository;
 using ServiceManager.ServiceDeamon.Management;
 using SharpRepository.MongoDbRepository;
@@ -29,6 +30,7 @@ namespace InfrastructureService
         {
             ImmutableListSerializer<Condition>.Register();
             ImmutableListSerializer<SeedUrl>.Register();
+            ImmutableListSerializer<AppFileInfo>.Register();
 
             await Bootstrap.StartNode(
                     args,

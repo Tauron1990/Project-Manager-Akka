@@ -11,7 +11,7 @@ namespace ServiceManager.ProjectRepository
     [PublicAPI]
     public sealed class RepositoryManager
     {
-        public const string RepositoryKey = "ReporitoryManager";
+        public const string RepositoryKey = "RepositoryManager";
 
         public static readonly RepositoryManager Empty = new(ActorRefs.Nobody);
 

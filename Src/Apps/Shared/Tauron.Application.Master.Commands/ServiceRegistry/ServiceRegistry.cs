@@ -207,7 +207,9 @@ namespace Tauron.Application.Master.Commands.ServiceRegistry
             private IActorRef _discovery = ActorRefs.Nobody;
             private RegisterService? _self;
 
-            internal ServiceRegistryServiceActor(IActorRef discovery, RegisterService? self)
+            #pragma warning disable GU0073
+            public ServiceRegistryServiceActor(IActorRef discovery, RegisterService? self)
+                #pragma warning restore GU0073
             {
                 _discovery = discovery;
                 _self = self;
@@ -215,7 +217,9 @@ namespace Tauron.Application.Master.Commands.ServiceRegistry
                 Running();
             }
 
-            internal ServiceRegistryServiceActor(Func<Cluster, RegisterService?> selfCreation)
+            #pragma warning disable GU0073
+            public ServiceRegistryServiceActor(Func<Cluster, RegisterService?> selfCreation)
+                #pragma warning restore GU0073
             {
                 var cluster = Cluster.Get(Context.System);
                 var self = Self;

@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ServiceHost.Client.Shared.ConfigurationServer.Data;
+using ServiceManager.ProjectDeployment.Data;
 using ServiceManager.Server.AppCore;
 using ServiceManager.Server.AppCore.Helper;
 using ServiceManager.Server.AppCore.Identity;
@@ -32,7 +33,8 @@ namespace ServiceManager.Server
         {
             ImmutableListSerializer<Condition>.Register();
             ImmutableListSerializer<SeedUrl>.Register();
-            
+            ImmutableListSerializer<AppFileInfo>.Register();
+
             await AppIpManager.Aquire();
             var host = CreateHostBuilder(args).Build();
 

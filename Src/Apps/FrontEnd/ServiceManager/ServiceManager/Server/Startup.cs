@@ -12,6 +12,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using ServiceHost.Client.Shared;
 using ServiceHost.Client.Shared.ConfigurationServer.Data;
 using ServiceManager.Server.AppCore;
 using ServiceManager.Server.AppCore.Apps;
@@ -34,6 +35,7 @@ using Stl.Fusion.Server;
 using Tauron;
 using Tauron.AkkaHost;
 using Tauron.Application.AkkaNode.Bootstrap;
+using Tauron.Application.Master.Commands.ServiceRegistry;
 using Tauron.Application.MongoExtensions;
 
 #pragma warning disable GU0011
@@ -46,9 +48,6 @@ namespace ServiceManager.Server
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            ImmutableListSerializer<Condition>.Register();
-            ImmutableListSerializer<SeedUrl>.Register();
-
             services.AddDbContextFactory<UsersDatabase>(
                 builder =>
                 {
@@ -152,25 +151,20 @@ namespace ServiceManager.Server
         [UsedImplicitly]
         public void ConfigureContainer(IActorApplicationBuilder builder)
         {
-            builder.OnMemberRemoved(
-                    (_, system, _) =>
+            builder
+               .OnMemberRemoved(
+                    // ReSharper disable once AsyncVoidLambda
+                    async (_, system, _) =>
                     {
                         try
                         {
-                            var resolverScope = DependencyResolver.For(system).Resolver.CreateScope();
+                            using var resolverScope = DependencyResolver.For(system).Resolver.CreateScope();
                             var resolver = resolverScope.Resolver;
 
-                            resolver.GetService<IHubContext<ClusterInfoHub>>().Clients.All
-                               .SendAsync(HubEvents.RestartServer)
-                               .ContinueWith(
-                                    _ =>
-                                    {
-                                        using (resolverScope)
-                                        {
-                                            resolver.GetService<IRestartHelper>().Restart = true;
-                                            resolver.GetService<IHostApplicationLifetime>().StopApplication();
-                                        }
-                                    });
+                            await resolver.GetService<IHubContext<ClusterInfoHub>>().Clients.All.SendAsync(HubEvents.RestartServer);
+
+                            resolver.GetService<IRestartHelper>().Restart = true;
+                            resolver.GetService<IHostApplicationLifetime>().StopApplication();
                         }
                         catch (ObjectDisposedException) { }
                     })
