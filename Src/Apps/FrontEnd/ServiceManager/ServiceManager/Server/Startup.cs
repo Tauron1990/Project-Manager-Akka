@@ -12,8 +12,6 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using ServiceHost.Client.Shared;
-using ServiceHost.Client.Shared.ConfigurationServer.Data;
 using ServiceManager.Server.AppCore;
 using ServiceManager.Server.AppCore.Apps;
 using ServiceManager.Server.AppCore.ClusterTracking;
@@ -35,8 +33,6 @@ using Stl.Fusion.Server;
 using Tauron;
 using Tauron.AkkaHost;
 using Tauron.Application.AkkaNode.Bootstrap;
-using Tauron.Application.Master.Commands.ServiceRegistry;
-using Tauron.Application.MongoExtensions;
 
 #pragma warning disable GU0011
 
