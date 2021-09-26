@@ -36,7 +36,7 @@ namespace ServiceManager.Client.ViewModels.Apps
             dataState.AddEventHandler(StateEventKind.Updated, (_, _) => _onUpdate.OnNext(Unit.Default));
         }
 
-        private Subject<Unit> _onUpdate = new();
+        private readonly Subject<Unit> _onUpdate = new();
 
         public IObservable<Unit> UpdateEvent => _onUpdate.AsObservable();
 
@@ -51,7 +51,8 @@ namespace ServiceManager.Client.ViewModels.Apps
                     async _ =>
                     {
                         var data = (await dataState.Update()).Value;
-
+                        Console.WriteLine("Applications Fetched");
+                        
                         return new ItemsDTO<LocalAppInfo>(
                             data.Select(ai => new LocalAppInfo(ai)),
                             new TotalsDTO(),
@@ -77,7 +78,7 @@ namespace ServiceManager.Client.ViewModels.Apps
                         collection.Add().Titled("Binaries").RenderValueAs(ai => ai.Self.Binaries.Count.ToString()).SetCrudHidden(all:true);
                     })
                .SetLanguage("de-de")
-               .Searchable()
+               //.Searchable()
                .Sortable()
                .ExtSortable()
                .Groupable()

@@ -60,12 +60,12 @@ namespace WpfApp
 
         public ObservableCollection<string> Output { get; }
 
-        public void Dispose() => _ipc?.Dispose();
+        public void Dispose() => _ipc.Dispose();
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
         [NotifyPropertyChangedInvocator]
-        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
         private void StartNew()

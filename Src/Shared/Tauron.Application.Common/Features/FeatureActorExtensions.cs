@@ -22,14 +22,14 @@ namespace Tauron.Features
         Props MakeProps();
     }
     
-
+    [DebuggerStepThrough]
     public sealed record GenericState(ImmutableDictionary<Type, object> States)
     {
         public GenericState(IEnumerable<IPreparedFeature> features, IUntypedActorContext context)
             : this(ImmutableDictionary<Type, object>.Empty.AddRange(features.Select(feature => feature.InitialState(context)))) { }
     }
 
-    [PublicAPI]
+    [PublicAPI, DebuggerStepThrough]
     public static class FeatureActorExtensions
     {
         public static IObservable<StatePair<TEvent, TState>> SyncState<TEvent, TState>(
@@ -47,6 +47,7 @@ namespace Tauron.Features
         
     }
 
+    [DebuggerStepThrough]
     internal sealed class GenericActor : FeatureActorBase<GenericActor, GenericState>
     {
         internal static Props Create(IPreparedFeature[] features)
@@ -60,7 +61,7 @@ namespace Tauron.Features
         }
     }
 
-    [PublicAPI]
+    [PublicAPI, DebuggerStepThrough]
     public static class Feature
     {
         public static Props Props(params IPreparedFeature[] features)
@@ -110,6 +111,7 @@ namespace Tauron.Features
             => Create(feature, _ => state);
     }
 
+    [DebuggerStepThrough]
     internal sealed class FeatureImpl<TState> : ActorBuilder<TState>.ConvertingFeature<TState, GenericState>
         where TState : notnull
     {
@@ -121,6 +123,7 @@ namespace Tauron.Features
         { }
     }
 
+    [DebuggerStepThrough]
     internal sealed class PreparedFeature<TState> : IPreparedFeature, ISimpleFeature
         where TState : notnull
     {
@@ -166,6 +169,7 @@ namespace Tauron.Features
             => _target.SelectMany(preparedFeature => preparedFeature.Materialize());
     }
 
+    [DebuggerStepThrough]
     internal sealed class SimpleFeatureActor<TState> : FeatureActorBase<SimpleFeatureActor<TState>, TState>
     {
     }

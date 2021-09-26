@@ -49,7 +49,7 @@ namespace Tauron.Features
         IObservable<TEvent> Receive<TEvent>();
     }
 
-    [PublicAPI]
+    [PublicAPI, DebuggerStepThrough]
     public sealed record StatePair<TEvent, TState>(TEvent Event, TState State, ITimerScheduler Timers, IActorContext Context, IActorRef Sender, IActorRef Parent, IActorRef Self)
     {
         public StatePair<TEvent, TNew> Convert<TNew>(Func<TState, TNew> converter)
@@ -78,7 +78,7 @@ namespace Tauron.Features
         }
     }
 
-    [PublicAPI]
+    [PublicAPI, DebuggerStepThrough]
     public abstract class FeatureActorBase<TFeatured, TState> : ObservableActor, IFeatureActor<TState>
         where TFeatured : FeatureActorBase<TFeatured, TState>, new()
     {
@@ -135,7 +135,7 @@ namespace Tauron.Features
 
         public void UpdateState(TState state)
         {
-            if (InternalCurrentActorCellKeeper.Current == null)
+            if (InternalCurrentActorCellKeeper.Current is null)
                 throw new NotSupportedException("There is no active ActorContext, this is most likely due to use of async operations from within this actor.");
 
             CurrentState.OnNext(state);
@@ -176,6 +176,7 @@ namespace Tauron.Features
         protected override SupervisorStrategy SupervisorStrategy()
             => ((IFeatureActor<TState>)this).SupervisorStrategy ?? base.SupervisorStrategy();
         
+        [DebuggerStepThrough]
         private sealed class ActorFactory : IIndirectActorProducer
         {
             private readonly Action<ActorBuilder<TState>> _builder;
@@ -203,20 +204,21 @@ namespace Tauron.Features
             public Type ActorType { get; } = typeof(TFeatured);
         }
 
-        [PublicAPI]
+        [PublicAPI, DebuggerStepThrough]
         public static class Make
         {
             public static Action<ActorBuilder<TState>> Feature(Action<IFeatureActor<TState>> initializer, params string[] ids)
                 => actorBuilder => actorBuilder.WithFeature(new DelegatingFeature(initializer, ids));
         }
 
-        [PublicAPI]
+        [PublicAPI, DebuggerStepThrough]
         public static class Simple
         {
             public static IFeature<TState> Feature(Action<IFeatureActor<TState>> initializer, params string[] ids)
                 => new DelegatingFeature(initializer, ids);
         }
 
+        [DebuggerStepThrough]
         private class DelegatingFeature : IFeature<TState>
         {
             private readonly IEnumerable<string> _ids;
@@ -280,6 +282,7 @@ namespace Tauron.Features
             Func<TState, TNewState, TState> convertBack)
             => WithFeature(new ConvertingFeature<TNewState, TState>(feature, convert, convertBack));
 
+        [DebuggerStepThrough]
         internal class ConvertingFeature<TTarget, TOriginal> : IFeature<TOriginal>
         {
             private readonly Func<TOriginal, TTarget> _convert;
@@ -307,6 +310,7 @@ namespace Tauron.Features
             public void RemoveResource(IDisposable res) => _feature.RemoveResource(res);
         }
 
+        [DebuggerStepThrough]
         private sealed class StateDelegator<TTarget, TOriginal> : IFeatureActor<TTarget>
         {
             private readonly Func<TOriginal, TTarget> _convert;

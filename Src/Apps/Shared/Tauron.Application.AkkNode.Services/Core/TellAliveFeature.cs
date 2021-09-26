@@ -30,7 +30,9 @@ namespace Tauron.Application.AkkaNode.Services.Core
             private readonly CancellationTokenSource _cancellationTokenSource;
             private readonly TaskCompletionSource<IsAliveResponse> _source;
 
-            internal TempActor(TaskCompletionSource<IsAliveResponse> source, CancellationTokenSource cancellation, ICanTell target)
+            #pragma warning disable GU0073
+            public TempActor(TaskCompletionSource<IsAliveResponse> source, CancellationTokenSource cancellation, ICanTell target)
+                #pragma warning restore GU0073
             {
                 _cancellationTokenSource = cancellation;
                 _source = source;

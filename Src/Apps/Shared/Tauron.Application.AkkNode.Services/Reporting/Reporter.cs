@@ -147,7 +147,9 @@ namespace Tauron.Application.AkkaNode.Services.Reporting
         {
             private bool _compled;
 
-            internal Listner(Action<string> listner, Action<IOperationResult> onCompled, TimeSpan timeSpan)
+            #pragma warning disable GU0073
+            public Listner(Action<string> listner, Action<IOperationResult> onCompled, TimeSpan timeSpan)
+                #pragma warning restore GU0073
             {
                 Receive<IOperationResult>(
                     c =>
@@ -172,7 +174,9 @@ namespace Tauron.Application.AkkaNode.Services.Reporting
         {
             private readonly List<IActorRef> _listner = new();
 
-            internal ReporterActor()
+            #pragma warning disable GU0073
+            public ReporterActor()
+                #pragma warning restore GU0073
             {
                 Receive<TransferedMessage>(
                     msg =>
@@ -203,6 +207,7 @@ namespace Tauron.Application.AkkaNode.Services.Reporting
         private sealed record TransferedMessage(string Message);
     }
 
+    [PublicAPI]
     public static class ReporterExtensions
     {
         public static IObservable<ReporterEvent<TMessage, TState>> Report<TMessage, TState>(this IObservable<ReporterEvent<TMessage, TState>> input, string message)
