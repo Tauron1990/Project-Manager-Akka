@@ -51,10 +51,9 @@ namespace ServiceManager.Client.ViewModels.Apps
                     async _ =>
                     {
                         var data = (await dataState.Update()).Value;
-                        Console.WriteLine("Applications Fetched");
                         
                         return new ItemsDTO<LocalAppInfo>(
-                            data.Select(ai => new LocalAppInfo(ai)),
+                            data.Apps.Select(ai => new LocalAppInfo(ai)),
                             new TotalsDTO(),
                             new PagerDTO
                             {
@@ -68,14 +67,14 @@ namespace ServiceManager.Client.ViewModels.Apps
                .Columns(
                     collection =>
                     {
-                        collection.Add().RenderComponentAs<AppGridDisplayButton>().SetCrudHidden(all: true);
+                        collection.Add().RenderComponentAs<AppGridDisplayButton>().SetCrudHidden(all: true).GetCellCssClasses("mx-3");
                         collection.Add(ai => ai.Name).Titled("Name").SetPrimaryKey(enabled: true);
-                        collection.Add(ai => ai.Repository).Titled("Repository").SetCrudHidden(create:false, read:false, update:true, delete:true);
-                        collection.Add(ai => ai.ProjectName).Titled("Projekt Name").SetCrudHidden(create:false, read:false, update:true, delete:true);
-                        collection.Add(ai => ai.LastVersion).Titled("Letzte Version").RenderComponentAs<AppVersionDisplay>().SetCrudHidden(all: true);
-                        collection.Add(ai => ai.UpdateDate).Titled("Letztes Update").RenderComponentAs<AppUpdateDisplay>().SetCrudHidden(all:true);
-                        collection.Add(ai => ai.CreationTime).Titled("Erstellt am").SetCrudHidden(all:true);
-                        collection.Add().Titled("Binaries").RenderValueAs(ai => ai.Self.Binaries.Count.ToString()).SetCrudHidden(all:true);
+                        collection.Add(ai => ai.Repository).Titled("Repository").SetCrudHidden(create:false, read:false, update:true, delete:true).GetCellCssClasses("mx-3");
+                        collection.Add(ai => ai.ProjectName).Titled("Projekt Name").SetCrudHidden(create:false, read:false, update:true, delete:true).GetCellCssClasses("mx-3");
+                        collection.Add(ai => ai.LastVersion).Titled("Letzte Version").RenderComponentAs<AppVersionDisplay>().SetCrudHidden(all: true).GetCellCssClasses("mx-3");
+                        collection.Add(ai => ai.UpdateDate).Titled("Letztes Update").RenderComponentAs<AppUpdateDisplay>().SetCrudHidden(all:true).GetCellCssClasses("mx-3");
+                        collection.Add(ai => ai.CreationTime).Titled("Erstellt am").SetCrudHidden(all:true).GetCellCssClasses("mx-3");
+                        collection.Add().Titled("Binaries").RenderValueAs(ai => ai.Self.Binaries.Count.ToString()).SetCrudHidden(all:true).GetCellCssClasses("mx-3");
                     })
                .SetLanguage("de-de")
                //.Searchable()
@@ -86,13 +85,13 @@ namespace ServiceManager.Client.ViewModels.Apps
                .HandleServerErrors(showOnGrid: true, throwExceptions: false)
                .SetDeleteConfirmation(enabled: true)
                .SetHeaderCrudButtons(enabled: true)
-               .Crud(
+              .Crud(
                     createEnabled: true,
                     readEnabled: true,
                     updateEnabled: false,
                     deleteEnabled: true,
                     new InternalDataService(appManagment, aggregator, translator, log))
-               .SubGrid(CreateBinariesGrid, (nameof(LocalAppInfo.Self), nameof(LocalAppBinary.App)));
+               ;//.SubGrid(CreateBinariesGrid, (nameof(LocalAppInfo.Self), nameof(LocalAppBinary.App)));
 
             return gridClient;
         }
@@ -102,11 +101,11 @@ namespace ServiceManager.Client.ViewModels.Apps
             var gridClient = new GridClient<LocalAppBinary>(
                 _ =>
                 {
-                    var app = (AppInfo)arg[0];
-                    var data = app.Binaries;
+                    var app = (LocalAppInfo)arg[0];
+                    var data = app.Self.Binaries;
 
                     return new ItemsDTO<LocalAppBinary>(
-                        data.Select(ai => new LocalAppBinary(app, ai)),
+                        data.Select(ai => new LocalAppBinary(app.Self, ai)),
                         new TotalsDTO(),
                         new PagerDTO
                         {

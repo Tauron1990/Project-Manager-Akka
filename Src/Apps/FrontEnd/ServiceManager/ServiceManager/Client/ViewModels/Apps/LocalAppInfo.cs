@@ -43,6 +43,8 @@ namespace ServiceManager.Client.ViewModels.Apps
     
     public sealed class LocalAppInfo
     {
+        public static readonly LocalAppInfo Empty = new(AppInfo.Empty);
+        
         [UsedImplicitly]
         public LocalAppInfo()
         {

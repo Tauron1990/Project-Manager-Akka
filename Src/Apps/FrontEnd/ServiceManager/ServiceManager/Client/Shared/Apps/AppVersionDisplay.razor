@@ -1,4 +1,7 @@
-﻿@using Tauron.Application.Master.Commands.Deployment.Build.Data
+﻿@using ServiceManager.Client.ViewModels.Apps
+
+@implements GridShared.Columns.ICustomGridComponent<LocalAppInfo>
+
 @if (Item.LastVersion == -1)
 {
     <MudText>Keine Version Verfügbar</MudText>
@@ -11,6 +14,6 @@ else
 @code {
 
     [Parameter]
-    public AppInfo Item { get; set; } = AppInfo.Empty;
+    public LocalAppInfo Item { get; set; } = LocalAppInfo.Empty;
 
 }

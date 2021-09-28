@@ -1,12 +1,14 @@
-﻿@using Tauron.Application.Master.Commands.Deployment.Build.Data
-@if (AppInfo.UpdateDate != DateTime.MinValue)
+﻿@using ServiceManager.Client.ViewModels.Apps
+
+@implements GridShared.Columns.ICustomGridComponent<LocalAppInfo>
+
+@if (Item.UpdateDate != DateTime.MinValue)
 {
-    <MudText>@AppInfo.UpdateDate.Date.ToString("f")</MudText>
+    <MudText>@Item.UpdateDate.Date.ToString("f")</MudText>
 }
 
 @code {
 
     [Parameter]
-    public AppInfo AppInfo { get; set; } = AppInfo.Empty;
-
+    public LocalAppInfo Item { get; set; } = LocalAppInfo.Empty;
 }

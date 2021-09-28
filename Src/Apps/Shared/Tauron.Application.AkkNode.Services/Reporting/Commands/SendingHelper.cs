@@ -31,15 +31,15 @@ namespace Tauron.Application.AkkaNode.Services.Reporting.Commands
                     if (result.Ok)
                     {
                         if (isEmpty)
-                            task.SetResult(Either.Left<TResult>(default!));
+                            task.TrySetResult(Either.Left<TResult>(default!));
                         else if (result.Outcome is TResult outcome)
-                            task.SetResult(Either.Left(outcome));
+                            task.TrySetResult(Either.Left(outcome));
                         else
-                            task.SetResult(Either.Right(new Error(new InvalidCastException(result.Outcome?.GetType().Name ?? "null-source"))));
+                            task.TrySetResult(Either.Right(new Error(new InvalidCastException(result.Outcome?.GetType().Name ?? "null-source"))));
                     }
                     else
                     {
-                        task.SetResult(Either.Right(result.Errors?.FirstOrDefault() ?? new Error("Unkowen", "Unkowen")));
+                        task.TrySetResult(Either.Right(result.Errors?.FirstOrDefault() ?? new Error("Unkowen", "Unkowen")));
                     }
                 },
                 timeout);
