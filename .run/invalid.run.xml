@@ -16,7 +16,7 @@
     <option name="PROJECT_WORKING_DIRECTORY_TRACKING" value="1" />
     <option name="PROJECT_KIND" value="DotNetCore" />
     <option name="PROJECT_TFM" value="net5.0" />
-    <browser url="http://localhost:83" name="a7bb68e0-33c0-4d6f-a81a-aac1fdb870c8" start="true" />
+    <browser url="http://localhost:83" start="true" />
     <method v="2">
       <option name="Build" />
     </method>

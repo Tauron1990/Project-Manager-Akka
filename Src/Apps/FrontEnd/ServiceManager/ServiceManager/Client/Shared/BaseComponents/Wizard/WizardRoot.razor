@@ -1,0 +1,112 @@
+﻿@implements IDisposable
+
+@if (Context == null)
+{
+    <MudText>Kein Kontext Vervügbar</MudText>
+}
+else
+{
+    <MudCard>
+        <MudCardHeader>
+            <CardHeaderContent>
+                @if (Context.CurrentPage != null)
+                {
+                    <MudText>@Context.CurrentPage.Title</MudText>
+                }
+                else
+                {
+                    <MudText>Bitte warten</MudText>
+                }
+            </CardHeaderContent>
+            <CardHeaderActions>
+                <MudIconButton Icon="@Icons.Filled.Cancel" OnClick="CancelCallback)"/>
+            </CardHeaderActions>
+        </MudCardHeader>
+        <MudCardContent>
+            @RenderPage(_currentPage.Page);
+        </MudCardContent>
+        @if (Context.CurrentPage?.ShowControls == true)
+        {
+            <MudCardActions>
+                <MudButton OnClick="BackCallback" Disabled="Context.CanBack()">Zurück</MudButton>
+                @foreach(var (label, handler) in Context.CurrentPage.CustomActions)
+                {
+                    <MudButton OnClick="handler">@label</MudButton>
+                }
+                <MudButton OnClick="NextCallback" Disabled="Context.CanNext()">Weiter</MudButton>
+            </MudCardActions>
+        }
+    </MudCard>
+}
+
+@code {
+gj
+    private static readonly RenderFragment<Type?> RenderPage = (comp => b =>
+                                                                       {
+                                                                           if(comp == null)
+                                                                               return;
+                                                                           b.OpenComponent(0, comp);
+                                                                           b.CloseComponent();
+                                                                       }); 
+
+    [Parameter]
+    public WizardContextBase? Context { get; set; }
+    
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+
+    private (Type? Page, CancellationTokenSource? Source) _currentPage;
+
+    private readonly CancellationTokenSource _mainSource = new();
+
+    public void Dispose()
+    {
+        _mainSource.Cancel();
+        _mainSource.Dispose();
+    }
+
+    protected override Task OnInitializedAsync() => NextCallback();
+
+    private async Task BackCallback()
+    {
+        if(Context == null) return;
+        
+        _currentPage.Source?.Dispose();
+        var newSource = CancellationTokenSource.CreateLinkedTokenSource(_mainSource.Token);
+
+        try
+        {
+            _currentPage = (await Context.Back(newSource.Token), newSource);
+        }
+        catch
+        {
+            newSource.Dispose();
+            throw;
+        }
+    }
+
+    private async Task NextCallback()
+    {
+        if(Context == null) return;
+        
+        _currentPage.Source?.Dispose();
+        var newSource = CancellationTokenSource.CreateLinkedTokenSource(_mainSource.Token);
+
+        try
+        {
+            _currentPage = (await Context.Next(newSource.Token), newSource);
+        }
+        catch
+        {
+            newSource.Dispose();
+            throw;
+        }
+    }
+
+    private Task CancelCallback()
+    {
+        _mainSource.Cancel();
+        return OnCancel.InvokeAsync();
+    }
+
+}

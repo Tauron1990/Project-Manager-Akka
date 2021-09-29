@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using GridBlazor;
 using GridShared;
 using GridShared.Pagination;
-using GridShared.Sorting;
 using GridShared.Totals;
 using GridShared.Utility;
 using Microsoft.Extensions.Logging;
@@ -19,6 +18,8 @@ using ServiceManager.Shared.Apps;
 using Stl.Fusion;
 using Tauron.Application;
 using Tauron.Application.Master.Commands.Deployment.Build.Data;
+
+#pragma warning disable GU0011
 
 namespace ServiceManager.Client.ViewModels.Apps
 {
@@ -92,30 +93,29 @@ namespace ServiceManager.Client.ViewModels.Apps
                     deleteEnabled: true,
                     new InternalDataService(appManagment, aggregator, translator, log))
                ;//.SubGrid(CreateBinariesGrid, (nameof(LocalAppInfo.Self), nameof(LocalAppBinary.App)));
-
             return gridClient;
         }
-        
-        private async Task<ICGrid> CreateBinariesGrid(object[] arg)
+
+        /*private async Task<ICGrid> CreateBinariesGrid(object[] arg)
         {
             var gridClient = new GridClient<LocalAppBinary>(
-                _ =>
-                {
-                    var app = (LocalAppInfo)arg[0];
-                    var data = app.Self.Binaries;
+                    _ =>
+                    {
+                        var app = (LocalAppInfo)arg[0];
+                        var data = app.Self.Binaries;
 
-                    return new ItemsDTO<LocalAppBinary>(
-                        data.Select(ai => new LocalAppBinary(app.Self, ai)),
-                        new TotalsDTO(),
-                        new PagerDTO
-                        {
-                            EnablePaging = false,
-                            ItemsCount = data.Count
-                        });
-                },
-                new QueryDictionary<StringValues>(),
-                renderOnlyRows: false,
-                "BinariesInfoGrid")
+                        return new ItemsDTO<LocalAppBinary>(
+                            data.Select(ai => new LocalAppBinary(app.Self, ai)),
+                            new TotalsDTO(),
+                            new PagerDTO
+                            {
+                                EnablePaging = false,
+                                ItemsCount = data.Count
+                            });
+                    },
+                    new QueryDictionary<StringValues>(),
+                    renderOnlyRows: false,
+                    "BinariesInfoGrid")
                .Columns(
                     b =>
                     {
@@ -128,7 +128,7 @@ namespace ServiceManager.Client.ViewModels.Apps
             await gridClient.UpdateGrid();
 
             return gridClient.Grid;
-        }
+        }*/
         
         private sealed class InternalDataService : ICrudDataService<LocalAppInfo>
         {
