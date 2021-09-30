@@ -16,10 +16,12 @@ namespace ServiceManager.Client.ServiceDefs
         [Get(nameof(QueryAllApps))]
         Task<AppList> QueryAllApps(CancellationToken token = default);
 
-
         [Get(nameof(QueryApp))]
         Task<AppInfo> QueryApp([Query] string name, CancellationToken token);
 
+        [Get(nameof(QueryRepository))]
+        Task<QueryRepositoryResult> QueryRepository([Query]string name, CancellationToken token);
+        
         [Post(nameof(CreateNewApp))]
         Task<string> CreateNewApp([Body] ApiCreateAppCommand command, CancellationToken token);
 

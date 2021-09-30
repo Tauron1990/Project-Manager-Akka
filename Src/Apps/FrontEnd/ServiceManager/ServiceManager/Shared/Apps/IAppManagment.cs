@@ -18,6 +18,7 @@ namespace ServiceManager.Shared.Apps
         [ComputeMethod]
         Task<AppInfo> QueryApp(string name, CancellationToken token);
 
+        Task<QueryRepositoryResult> QueryRepository(string name, CancellationToken token);
 
         Task<string> CreateNewApp(ApiCreateAppCommand command, CancellationToken token);
 

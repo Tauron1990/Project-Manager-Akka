@@ -1,0 +1,15 @@
+﻿@using ServiceManager.Client.Shared.BaseComponents.Wizard
+@using ServiceManager.Client.ViewModels.Apps
+@inherits GridCreateComponent<ServiceManager.Client.ViewModels.Apps.LocalAppInfo>
+
+<WizardRoot Context="_wizardContext" OnCancel="CancelCallback"/>
+
+@code {
+
+    private readonly ProcessingWizardContext<LocalAppInfo, LocalAppInfo> _wizardContext
+        = WizardContextBase.Create(LocalAppInfo.Empty, Task.FromResult);
+
+    private Task CancelCallback()
+        => BackButtonClicked();
+
+}

@@ -1,4 +1,7 @@
-﻿@implements IDisposable
+﻿@using Tauron.Application
+@implements IDisposable
+
+@inject IEventAggregator _aggregator;
 
 @if (Context == null)
 {
@@ -28,19 +31,18 @@ else
         @if (Context.CurrentPage?.ShowControls == true)
         {
             <MudCardActions>
-                <MudButton OnClick="BackCallback" Disabled="Context.CanBack()">Zurück</MudButton>
+                <MudButton OnClick="BackCallback" Disabled="CanBack()">Zurück</MudButton>
                 @foreach(var (label, handler) in Context.CurrentPage.CustomActions)
                 {
-                    <MudButton OnClick="handler">@label</MudButton>
+                    <MudButton OnClick="handler" Disabled="_loading">@label</MudButton>
                 }
-                <MudButton OnClick="NextCallback" Disabled="Context.CanNext()">Weiter</MudButton>
+                <MudButton OnClick="NextCallback" Disabled="CanNext()">Weiter</MudButton>
             </MudCardActions>
         }
     </MudCard>
 }
 
 @code {
-gj
     private static readonly RenderFragment<Type?> RenderPage = (comp => b =>
                                                                        {
                                                                            if(comp == null)
@@ -57,6 +59,8 @@ gj
 
     private (Type? Page, CancellationTokenSource? Source) _currentPage;
 
+    private bool _loading = true;
+    
     private readonly CancellationTokenSource _mainSource = new();
 
     public void Dispose()
@@ -88,6 +92,18 @@ gj
     private async Task NextCallback()
     {
         if(Context == null) return;
+
+        _loading = true;
+        StateHasChanged();
+
+        await (Context.CurrentPage?.BeforeNext(Context) ?? Task.CompletedTask);
+
+        var err = Context.CurrentPage == null ? null : await Context.CurrentPage.VerifyNext(Context, _mainSource.Token);
+        if (!string.IsNullOrWhiteSpace(err))
+        {
+            _aggregator.PublishWarnig($"Fehler: {err}");
+            return;
+        }
         
         _currentPage.Source?.Dispose();
         var newSource = CancellationTokenSource.CreateLinkedTokenSource(_mainSource.Token);
@@ -101,6 +117,9 @@ gj
             newSource.Dispose();
             throw;
         }
+
+        _loading = false;
+        StateHasChanged();
     }
 
     private Task CancelCallback()
@@ -108,5 +127,11 @@ gj
         _mainSource.Cancel();
         return OnCancel.InvokeAsync();
     }
+
+    private bool CanBack()
+        => _loading || Context?.CanNext() == true;
+
+    private bool CanNext()
+        => _loading || Context?.CanNext() == true;
 
 }

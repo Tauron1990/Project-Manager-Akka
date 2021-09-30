@@ -13,6 +13,7 @@ using GridShared.Utility;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using ServiceManager.Client.Shared.Apps;
+using ServiceManager.Client.Shared.Apps.NewApp;
 using ServiceManager.Shared.Api;
 using ServiceManager.Shared.Apps;
 using Stl.Fusion;
@@ -92,6 +93,7 @@ namespace ServiceManager.Client.ViewModels.Apps
                     updateEnabled: false,
                     deleteEnabled: true,
                     new InternalDataService(appManagment, aggregator, translator, log))
+              .SetCreateComponent<NewAppComponent>()
                ;//.SubGrid(CreateBinariesGrid, (nameof(LocalAppInfo.Self), nameof(LocalAppBinary.App)));
             return gridClient;
         }

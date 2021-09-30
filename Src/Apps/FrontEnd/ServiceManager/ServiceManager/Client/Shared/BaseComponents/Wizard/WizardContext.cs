@@ -25,17 +25,25 @@ namespace ServiceManager.Client.Shared.BaseComponents.Wizard
 
         protected abstract Task WizardCompled();
 
+        private async Task FinalizeWizard()
+        {
+            foreach (var page in Pages.OfType<IDisposable>()) 
+                page.Dispose();
+
+            await WizardCompled();
+        }
+        
         internal async Task<Type?> Next(CancellationToken token)
         {
             IWizardPageBase page;
-
+            
             do
             {
                 CurrentPosition++;
                 if (CurrentPosition >= Pages.Count)
                 {
                     CurrentPage = null;
-                    await WizardCompled();
+                    await FinalizeWizard();
 
                     return null;
                 }
