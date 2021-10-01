@@ -20,6 +20,8 @@ namespace Tauron.Application.Files.VirtualFiles.InMemory
             _dic = dic;
         }
 
+        public override NodeType Type => NodeType.Directory;
+        
         public override DateTime LastModified => _dic.LastModifed;
         public override bool Exist => true;
 

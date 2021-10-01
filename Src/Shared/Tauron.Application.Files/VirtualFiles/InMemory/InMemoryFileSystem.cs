@@ -6,6 +6,8 @@ namespace Tauron.Application.Files.VirtualFiles.InMemory
 {
     public sealed class InMemoryFileSystem : InMemoryDirectory, IVirtualFileSystem
     {
+        public override NodeType Type => NodeType.Root;
+
         public InMemoryFileSystem(string originalPath, string name, DataDirectory dic)
             : base(null, originalPath, name, dic) { }
 

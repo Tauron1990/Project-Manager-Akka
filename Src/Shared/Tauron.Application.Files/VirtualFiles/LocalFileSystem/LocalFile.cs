@@ -13,6 +13,7 @@ namespace Tauron.Application.Files.VirtualFiles.LocalFileSystem
         private LocalFile(string fullPath)
             : base(() => new LocalDirectory(fullPath.GetDirectoryName() ?? throw new InvalidOperationException("Directory Name not Found")), fullPath, fullPath.GetFileName()) { }
 
+        public override NodeType Type => NodeType.File;
         public override DateTime LastModified => InfoObject?.LastWriteTime ?? DateTime.MinValue;
 
         public override bool Exist => InfoObject?.Exists ?? false;

@@ -17,6 +17,9 @@ namespace Tauron.Application.Files.GridFS
 
         public bool IsRealTime => false;
         public bool SaveAfterDispose { get; set; }
+
+        public override NodeType Type => NodeType.Root;
+
         public string Source => Bucket.Database.Client.Settings.ToString();
         public void Reload(string source) => throw new NotSupportedException("Reloading Is not Supportet On MongoDb");
 

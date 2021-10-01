@@ -24,6 +24,7 @@ namespace Tauron.Application.Files.Zip
         }
 
 
+        public override NodeType Type => NodeType.File;
         public override DateTime LastModified => InfoObject?.LastModified ?? DateTime.MinValue;
 
         public override bool Exist => InfoObject == null;

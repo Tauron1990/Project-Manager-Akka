@@ -11,6 +11,8 @@ namespace Tauron.Application.Files.Zip
     {
         private ZipFile _file;
 
+        public override NodeType Type => NodeType.Root;
+
         public InZipFileSystem(ZipFile file)
             : base(null, "zip::", InternalZipDirectory.ReadZipDirectory(file), file, string.Empty)
         {

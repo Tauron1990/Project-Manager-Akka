@@ -4,6 +4,8 @@ namespace Tauron.Application.Files.VirtualFiles.LocalFileSystem
 {
     public class LocalFileSystem : LocalDirectory, IVirtualFileSystem
     {
+        public override NodeType Type => NodeType.Root;
+
         public LocalFileSystem(string path)
             : base(path, () => null) { }
 

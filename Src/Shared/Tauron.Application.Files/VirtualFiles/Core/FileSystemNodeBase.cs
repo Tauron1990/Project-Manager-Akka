@@ -46,6 +46,7 @@ namespace Tauron.Application.Files.VirtualFiles.Core
 
         public bool IsDirectory { get; private set; }
 
+        public abstract NodeType Type { get; }
         public string OriginalPath { get; private set; }
 
         public abstract bool Exist { get; }

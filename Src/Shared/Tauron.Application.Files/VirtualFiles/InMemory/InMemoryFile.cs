@@ -14,6 +14,7 @@ namespace Tauron.Application.Files.VirtualFiles.InMemory
             : base(() => parentDirectory, originalPath, name)
             => _parentDirectory = parentDirectory;
 
+        public override NodeType Type => NodeType.File;
         public override DateTime LastModified => InfoObject?.LastModifed ?? DateTime.MinValue;
         public override bool Exist => _parentDirectory.ExistFile(Name);
 

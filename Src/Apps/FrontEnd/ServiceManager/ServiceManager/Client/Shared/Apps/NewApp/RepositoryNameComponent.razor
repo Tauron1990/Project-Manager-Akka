@@ -1,5 +1,16 @@
-﻿@inherits WizardPageComponent<AppRegistrationInfo>
+﻿@inherits WizardPageComponent<AppRegistrationInfo, RepositoryPage>
+
+<div class="d-flex flex-row">
+    <MudTextFieldString Class="ma-2" Label="Repository Name" Value="@Context.Data.Repository" ValueChanged="RepositoryChangedCallback" DebounceInterval="100"/>
+    <MudCheckBox T=bool Class="ms-2" Label="Projekte Laden" Checked="@Context.Data.RequestRepository" CheckedChanged="LoadProjecktsChangedCallback"/>
+</div>
 
 @code {
-    
+
+    private void RepositoryChangedCallback(string newValue) 
+        => Context.Data = Context.Data with{ Repository = newValue};
+
+    private void LoadProjecktsChangedCallback(bool request)
+        => Context.Data = Context.Data with{RequestRepository = request};
+
 }

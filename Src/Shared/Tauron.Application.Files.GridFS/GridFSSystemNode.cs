@@ -47,7 +47,7 @@ namespace Tauron.Application.Files.GridFS
             {
                 lock (_setLock)
                 {
-                    if (FileInfo == null)
+                    if (FileInfo is null)
                         throw new FileNotFoundException(OriginalPath + " Not Found");
 
                     return FileInfo;
@@ -55,6 +55,7 @@ namespace Tauron.Application.Files.GridFS
             }
         }
 
+        public abstract NodeType Type { get; }
         public string OriginalPath { get; }
 
         public DateTime LastModified => FileInfo?.UploadDateTime ?? DateTime.MinValue;

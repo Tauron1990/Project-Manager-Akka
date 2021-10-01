@@ -6,6 +6,8 @@ namespace Tauron.Application.VirtualFiles
     [PublicAPI]
     public interface IFileSystemNode
     {
+        NodeType Type { get; }
+        
         string OriginalPath { get; }
 
         DateTime LastModified { get; }

@@ -23,6 +23,8 @@ namespace Tauron.Application.Files.Zip
             _file = file;
         }
 
+        public override NodeType Type => NodeType.Directory;
+        
         public override DateTime LastModified => _dic.ZipEntry?.ModifiedTime ?? DateTime.MinValue;
 
         public override bool Exist => _dic.ZipEntry != null || _dic.Files.Count + _dic.Directorys.Count > 0;

@@ -12,6 +12,7 @@ namespace Tauron.Application.Files.GridFS
         public GridFSFile(GridFSBucket bucket, GridFSFileInfo? fileInfo, IDirectory? parentDirectory, string name, string path, Action? existsNow)
             : base(bucket, fileInfo, parentDirectory, name, path, existsNow) { }
 
+        public override NodeType Type => NodeType.File;
         public override bool IsDirectory => false;
 
         public string Extension

@@ -15,6 +15,7 @@ namespace Tauron.Application.Files.VirtualFiles.LocalFileSystem
         public LocalDirectory(string fullPath)
             : base(() => GetParentDirectory(fullPath), fullPath, fullPath.GetFileName()) { }
 
+        public override NodeType Type => NodeType.Directory;
         public override DateTime LastModified => InfoObject?.LastWriteTime ?? DateTime.MinValue;
 
         public override bool Exist => InfoObject?.Exists ?? false;
