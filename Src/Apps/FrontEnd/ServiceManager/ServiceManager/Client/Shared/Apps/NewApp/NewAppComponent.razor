@@ -1,13 +1,25 @@
 ﻿@using ServiceManager.Client.Shared.BaseComponents.Wizard
 @using ServiceManager.Client.ViewModels.Apps
+@using ServiceManager.Shared.Apps
+
 @inherits GridCreateComponent<ServiceManager.Client.ViewModels.Apps.LocalAppInfo>
+
+@inject IEventAggregator _aggregator
+@inject IAppManagment _managment 
 
 <WizardRoot Context="_wizardContext" OnCancel="CancelCallback"/>
 
 @code {
 
-    private readonly ProcessingWizardContext<LocalAppInfo, LocalAppInfo> _wizardContext
-        = WizardContextBase.Create(LocalAppInfo.Empty, Task.FromResult);
+    private ProcessingWizardContext<AppRegistrationInfo, LocalAppInfo>? _wizardContext;
+
+    protected override void OnInitialized()
+    {
+        _wizardContext = WizardContextBase.Create(new AppRegistrationInfo(), ri => ri.ToAppInfo(),
+        new RepositoryPage(_aggregator, _managment));
+        
+        base.OnInitialized();
+    }
 
     private Task CancelCallback()
         => BackButtonClicked();

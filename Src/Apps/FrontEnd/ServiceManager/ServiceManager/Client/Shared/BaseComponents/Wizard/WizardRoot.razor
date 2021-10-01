@@ -26,7 +26,11 @@ else
             </CardHeaderActions>
         </MudCardHeader>
         <MudCardContent>
-            @RenderPage(_currentPage.Page);
+            <CascadingValue Value="Context.CurrentPage">
+                <CascadingValue Value="Context">
+                    @RenderPage((_currentPage.Page, NextCallback, this));
+                </CascadingValue>
+            </CascadingValue>
         </MudCardContent>
         @if (Context.CurrentPage?.ShowControls == true)
         {
@@ -43,13 +47,18 @@ else
 }
 
 @code {
-    private static readonly RenderFragment<Type?> RenderPage = (comp => b =>
-                                                                       {
-                                                                           if(comp == null)
-                                                                               return;
-                                                                           b.OpenComponent(0, comp);
-                                                                           b.CloseComponent();
-                                                                       }); 
+
+    private static readonly RenderFragment<(Type? Type, Func<Task> Next, object Reciever)> RenderPage =
+        dat => b =>
+               {
+                   var (comp, callback, reciever) = dat;
+                   if (comp == null)
+                       return;
+
+                   b.OpenComponent(0, comp);
+                   b.AddAttribute(1, "OnNext", EventCallback.Factory.Create(reciever, callback));
+                   b.CloseComponent();
+               };
 
     [Parameter]
     public WizardContextBase? Context { get; set; }

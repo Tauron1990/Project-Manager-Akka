@@ -8,7 +8,7 @@ using Tauron.Application;
 
 namespace ServiceManager.Client.Shared.Apps.NewApp
 {
-    public sealed class RepositoryPage : WizardPage<LocalAppInfo>
+    public sealed class RepositoryPage : WizardPage<AppRegistrationInfo>
     {
         private readonly IEventAggregator _aggregator;
         private readonly IAppManagment _appManagment;
@@ -20,11 +20,13 @@ namespace ServiceManager.Client.Shared.Apps.NewApp
             _appManagment = appManagment;
         }
 
-        protected override async Task<string?> VerifyNextImpl(WizardContext<LocalAppInfo> context, CancellationToken token)
+        protected override async Task<string?> VerifyNextImpl(WizardContext<AppRegistrationInfo> context, CancellationToken token)
         {
             try
             {
-                var result = _appManagment.QueryRepository(context.Data.Repository, token);
+                var (isOk, error) = await _appManagment.QueryRepository(context.Data.Repository, token);
+
+                return isOk ? null : error;
             }
             catch (Exception e)
             {
@@ -34,10 +36,10 @@ namespace ServiceManager.Client.Shared.Apps.NewApp
             }
         }
 
-        protected override Task<bool> NeedRender(WizardContext<LocalAppInfo> context)
-            => throw new NotImplementedException();
+        protected override Task<bool> NeedRender(WizardContext<AppRegistrationInfo> context)
+            => Task.FromResult(true);
 
-        protected override Task<Type> Init(WizardContext<LocalAppInfo> context, CancellationToken cancellationToken)
-            => throw new NotImplementedException();
+        protected override Task<Type> Init(WizardContext<AppRegistrationInfo> context, CancellationToken cancellationToken)
+            => Task.FromResult(typeof(RepositoryNameComponent));
     }
 }
