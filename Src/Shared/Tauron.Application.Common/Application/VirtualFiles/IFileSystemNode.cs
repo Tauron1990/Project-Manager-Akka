@@ -6,6 +6,8 @@ namespace Tauron.Application.VirtualFiles
     [PublicAPI]
     public interface IFileSystemNode
     {
+        FileSystemFeature Features { get; }
+        
         NodeType Type { get; }
         
         string OriginalPath { get; }
@@ -13,8 +15,6 @@ namespace Tauron.Application.VirtualFiles
         DateTime LastModified { get; }
 
         IDirectory? ParentDirectory { get; }
-
-        bool IsDirectory { get; }
 
         bool Exist { get; }
 
