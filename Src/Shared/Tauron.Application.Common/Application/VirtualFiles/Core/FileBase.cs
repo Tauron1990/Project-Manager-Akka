@@ -65,7 +65,7 @@ namespace Tauron.Application.VirtualFiles.Core
         {
             ValidateFeature(FileSystemFeature.Moveable);
 
-            return MoveTo(Context, location);
+            return MoveTo(Context, GenericPathHelper.NormalizePath(location));
         }
 
         protected virtual IFile MoveTo(TContext context, string location)

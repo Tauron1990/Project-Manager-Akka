@@ -1,4 +1,5 @@
-﻿using JetBrains.Annotations;
+﻿using System.IO;
+using JetBrains.Annotations;
 
 namespace Tauron.Application.VirtualFiles.Core
 {
@@ -8,8 +9,8 @@ namespace Tauron.Application.VirtualFiles.Core
         public const char GenericSeperator = '/';
 
         public static string ChangeExtension(string path, string newExtension)
-        {
-            if (string.IsNullOrWhiteSpace(path)) return path;
+            => Path.ChangeExtension(path, newExtension);
+            /*if (string.IsNullOrWhiteSpace(path)) return path;
 
             var point = -1;
 
@@ -26,29 +27,39 @@ namespace Tauron.Application.VirtualFiles.Core
 
             return point == -1 
                 ? path 
-                : $"{path[..point]}{newExtension}";
-        }
+                : $"{path[..point]}{newExtension}";*/
 
-        public static string Combine(string first, string secund)
-        {
-            if (string.IsNullOrEmpty(first))
-                return string.IsNullOrWhiteSpace(secund) ? string.Empty : secund;
-
-            if (string.IsNullOrEmpty(secund))
-                return string.IsNullOrWhiteSpace(first) ? string.Empty : first;
-            
-            if (first.EndsWith(GenericSeperator))
+            public static string Combine(string first, string secund)
             {
-                if (secund.StartsWith(GenericSeperator))
-                    return first + secund[1..];
+                var result = Path.Combine(first, secund);
 
-                return first + secund;
+                return Path.DirectorySeparatorChar != Path.AltDirectorySeparatorChar 
+                    ? result.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) 
+                    : result;
             }
 
-            if (secund.StartsWith(GenericSeperator))
-                return first + secund;
+            public static string NormalizePath(string path)
+                => path.Replace('\\', GenericSeperator);
 
-            return first + GenericSeperator + secund;
-        }
+            /*{
+                if (string.IsNullOrEmpty(first))
+                    return string.IsNullOrWhiteSpace(secund) ? string.Empty : secund;
+    
+                if (string.IsNullOrEmpty(secund))
+                    return string.IsNullOrWhiteSpace(first) ? string.Empty : first;
+                
+                if (first.EndsWith(GenericSeperator))
+                {
+                    if (secund.StartsWith(GenericSeperator))
+                        return first + secund[1..];
+    
+                    return first + secund;
+                }
+    
+                if (secund.StartsWith(GenericSeperator))
+                    return first + secund;
+    
+                return first + GenericSeperator + secund;
+            }*/
     }
 }

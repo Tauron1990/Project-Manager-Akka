@@ -84,5 +84,16 @@ namespace Tauron.Application.Common.Tests.Application.VirtualFiles.Core
 
             result.Should().Be(expeced);
         }
+
+        [Fact]
+        public void Test_NormalizePath()
+        {
+            const string toTest = "Test\\Test";
+            const string expect = "Test/Test";
+
+            var result = GenericPathHelper.NormalizePath(toTest);
+
+            result.Should().Be(expect);
+        }
     }
 }

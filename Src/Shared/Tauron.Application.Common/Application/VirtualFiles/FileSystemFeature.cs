@@ -14,6 +14,7 @@ namespace Tauron.Application.VirtualFiles
         Exist = 1 << 5,
         Delete = 1 << 6,
         Extension = 1 << 7,
-        Create = 1 << 8
+        Create = 1 << 8,
+        Reloading = 1 << 9
     }
 }

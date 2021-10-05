@@ -7,10 +7,13 @@ namespace Tauron.Application.VirtualFiles
     public interface IVirtualFileSystem : IDirectory, IDisposable
     {
         bool IsRealTime { get; }
+        
         bool SaveAfterDispose { get; set; }
 
         string Source { get; }
 
         void Reload(string source);
+
+        void Save();
     }
 }
