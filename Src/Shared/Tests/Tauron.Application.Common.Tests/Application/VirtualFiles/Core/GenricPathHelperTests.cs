@@ -28,16 +28,7 @@ namespace Tauron.Application.Common.Tests.Application.VirtualFiles.Core
 
             newPath.Should().Contain(targetName).And.StartWith(start).And.EndWith(targetExt);
         }
-
-        [Fact]
-        public void ChangeExtension_Should_return_the_same_without_dot()
-        {
-            const string testFileName = "test";
-
-            var result = GenericPathHelper.ChangeExtension(testFileName, "dat");
-
-            result.Should().Be(testFileName);
-        }
+        
 
         [Fact]
         public void ChangeExtension_With_dot_in_provided_Extension()
@@ -67,10 +58,7 @@ namespace Tauron.Application.Common.Tests.Application.VirtualFiles.Core
             yield return new object[] { testFile, testPath, $"{testFile}{GenericPathHelper.GenericSeperator}{testPath}" };
 
             yield return new object[] { testPath + GenericPathHelper.GenericSeperator, testFile, $"{testPath}{GenericPathHelper.GenericSeperator}{testFile}" };
-            yield return new object[] { testFile, GenericPathHelper.GenericSeperator + testPath, $"{testFile}{GenericPathHelper.GenericSeperator}{testPath}" };
 
-            yield return new object[] { testFile + GenericPathHelper.GenericSeperator, GenericPathHelper.GenericSeperator + testPath, $"{testFile}{GenericPathHelper.GenericSeperator}{testPath}" };
-            
             yield return new object[] { string.Empty, string.Empty, string.Empty };
             yield return new object[] { string.Empty, testFile, testFile };
             yield return new object[] { testFile, string.Empty, testFile };
