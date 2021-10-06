@@ -14,8 +14,12 @@ namespace Tauron.Application.VirtualFiles.InMemory.Data
 
         public DirectoryEntry GetDirectoryEntry()
             => _directoryPool.Rent();
-        
-        
+
+        public void ReturnFile(FileEntry entry)
+            => _filePool.Recycle(entry);
+
+        public void ReturnDirectory(DirectoryEntry entry)
+            => _directoryPool.Recycle(entry);
 
         public override void Dispose()
         {
