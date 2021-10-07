@@ -1,11 +1,10 @@
 ﻿using Akka.Actor;
 
-namespace Tauron.Localization.Provider
-{
-    public interface ILocStoreProducer
-    {
-        string Name { get; }
+namespace Tauron.Localization.Provider;
 
-        Props GetProps();
-    }
+public interface ILocStoreProducer
+{
+    string Name { get; }
+
+    Props GetProps();
 }

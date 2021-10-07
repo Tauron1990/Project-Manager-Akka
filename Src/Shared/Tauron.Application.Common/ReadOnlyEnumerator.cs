@@ -2,17 +2,16 @@
 using System.Collections.Generic;
 using JetBrains.Annotations;
 
-namespace Tauron
+namespace Tauron;
+
+[PublicAPI]
+public class ReadOnlyEnumerator<T> : IEnumerable<T>
 {
-    [PublicAPI]
-    public class ReadOnlyEnumerator<T> : IEnumerable<T>
-    {
-        private readonly IEnumerable<T> _enumerable;
+    private readonly IEnumerable<T> _enumerable;
 
-        public ReadOnlyEnumerator(IEnumerable<T> enumerable) => _enumerable = enumerable;
+    public ReadOnlyEnumerator(IEnumerable<T> enumerable) => _enumerable = enumerable;
 
-        public IEnumerator<T> GetEnumerator() => _enumerable.GetEnumerator();
+    public IEnumerator<T> GetEnumerator() => _enumerable.GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-    }
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

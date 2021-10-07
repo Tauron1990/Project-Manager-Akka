@@ -2,23 +2,22 @@
 using Akka.DependencyInjection;
 using JetBrains.Annotations;
 
-namespace Tauron.Akka
+namespace Tauron.Akka;
+
+[PublicAPI]
+public sealed class ActorRefFactory<TActor> where TActor : ActorBase
 {
-    [PublicAPI]
-    public sealed class ActorRefFactory<TActor> where TActor : ActorBase
-    {
-        private readonly ActorSystem _system;
+    private readonly ActorSystem _system;
 
-        public ActorRefFactory(ActorSystem system) => _system = system;
+    public ActorRefFactory(ActorSystem system) => _system = system;
 
-        public IActorRef Create(string? name = null) => _system.ActorOf(CreateProps(), name);
+    public IActorRef Create(string? name = null) => _system.ActorOf(CreateProps(), name);
 
-        public IActorRef CreateSync(string? name = null) => _system.ActorOf(CreateSyncProps(), name);
+    public IActorRef CreateSync(string? name = null) => _system.ActorOf(CreateSyncProps(), name);
 
-        public Props CreateProps()
-            => _system.GetExtension<DependencyResolver>().Props<TActor>();
+    public Props CreateProps()
+        => _system.GetExtension<DependencyResolver>().Props<TActor>();
 
-        public Props CreateSyncProps()
-            => CreateProps().WithDispatcher("synchronized-dispatcher");
-    }
+    public Props CreateSyncProps()
+        => CreateProps().WithDispatcher("synchronized-dispatcher");
 }

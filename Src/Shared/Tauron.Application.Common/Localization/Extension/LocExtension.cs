@@ -2,17 +2,16 @@
 using Akka.DependencyInjection;
 using Tauron.Localization.Actor;
 
-namespace Tauron.Localization.Extension
+namespace Tauron.Localization.Extension;
+
+public sealed class LocExtension : IExtension
 {
-    public sealed class LocExtension : IExtension
+    public IActorRef LocCoordinator { get; private set; } = ActorRefs.Nobody;
+
+    internal LocExtension Init(ActorSystem system)
     {
-        public IActorRef LocCoordinator { get; private set; } = ActorRefs.Nobody;
+        LocCoordinator = system.ActorOf(system.GetExtension<DependencyResolver>().Props<LocCoordinator>());
 
-        internal LocExtension Init(ActorSystem system)
-        {
-            LocCoordinator = system.ActorOf(system.GetExtension<DependencyResolver>().Props<LocCoordinator>());
-
-            return this;
-        }
+        return this;
     }
 }

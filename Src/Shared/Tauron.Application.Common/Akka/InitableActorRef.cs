@@ -1,15 +1,14 @@
 ﻿using Akka.Actor;
 using JetBrains.Annotations;
 
-namespace Tauron.Akka
+namespace Tauron.Akka;
+
+[PublicAPI]
+public interface IInitableActorRef
 {
-    [PublicAPI]
-    public interface IInitableActorRef
-    {
-        IActorRef Actor { get; }
+    IActorRef Actor { get; }
 
-        void Init(string? name = null);
+    void Init(string? name = null);
 
-        void Init(IActorRefFactory factory, string? name = null);
-    }
+    void Init(IActorRefFactory factory, string? name = null);
 }

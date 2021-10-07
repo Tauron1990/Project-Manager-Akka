@@ -1,21 +1,20 @@
 ﻿using System.IO;
 using JetBrains.Annotations;
 
-namespace Tauron.Application.VirtualFiles
+namespace Tauron.Application.VirtualFiles;
+
+[PublicAPI]
+public interface IFile : IFileSystemNode
 {
-    [PublicAPI]
-    public interface IFile : IFileSystemNode
-    {
-        string Extension { get; set; }
+    string Extension { get; set; }
 
-        long Size { get; }
+    long Size { get; }
 
-        Stream Open(FileAccess access);
+    Stream Open(FileAccess access);
 
-        Stream Create();
+    Stream Open();
 
-        Stream CreateNew();
+    Stream CreateNew();
 
-        IFile MoveTo(string location);
-    }
+    IFile MoveTo(string location);
 }

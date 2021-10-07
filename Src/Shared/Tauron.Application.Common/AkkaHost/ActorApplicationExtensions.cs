@@ -15,199 +15,198 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.EventLog;
 using Microsoft.Extensions.Options;
 
-namespace Tauron.AkkaHost
+namespace Tauron.AkkaHost;
+
+public static class ActorApplicationExtensions
 {
-    public static class ActorApplicationExtensions
+    [PublicAPI]
+    public static IHostBuilder ConfigureAkkaApplication(this IHostBuilder hostBuilder, Action<IActorApplicationBuilder>? config = null)
+        => hostBuilder.UseServiceProviderFactory(
+            builderContext =>
+            {
+                var builder = new ActorApplicationBluilder(builderContext, hostBuilder);
+                config?.Invoke(builder);
+
+                return new ActorServiceProviderFactory(builder);
+            });
+
+    private sealed class ActorApplicationBluilder : IActorApplicationBuilder
     {
-        [PublicAPI]
-        public static IHostBuilder ConfigureAkkaApplication(this IHostBuilder hostBuilder, Action<IActorApplicationBuilder>? config = null)
-            => hostBuilder.UseServiceProviderFactory(
-                builderContext =>
-                {
-                    var builder = new ActorApplicationBluilder(builderContext, hostBuilder);
-                    config?.Invoke(builder);
+        private readonly List<Func<HostBuilderContext, Config>> _akkaConfig = new();
+        private readonly List<Func<HostBuilderContext, Setup>> _akkaSetup = new();
+        private readonly IHostBuilder _builder;
 
-                    return new ActorServiceProviderFactory(builder);
-                });
+        private readonly ContainerBuilder _containerBuilder = new();
 
-        private sealed class ActorApplicationBluilder : IActorApplicationBuilder
+        private readonly HostBuilderContext _context;
+        private readonly ActorSystemHolder _holder = new();
+        private readonly List<Action<HostBuilderContext, ActorSystem>> _systemConfig = new();
+
+        internal ActorApplicationBluilder(HostBuilderContext context, IHostBuilder builder)
         {
-            private readonly List<Func<HostBuilderContext, Config>> _akkaConfig = new();
-            private readonly List<Func<HostBuilderContext, Setup>> _akkaSetup = new();
-            private readonly IHostBuilder _builder;
+            _context = context;
+            _builder = builder;
 
-            private readonly ContainerBuilder _containerBuilder = new();
-
-            private readonly HostBuilderContext _context;
-            private readonly ActorSystemHolder _holder = new();
-            private readonly List<Action<HostBuilderContext, ActorSystem>> _systemConfig = new();
-
-            internal ActorApplicationBluilder(HostBuilderContext context, IHostBuilder builder)
-            {
-                _context = context;
-                _builder = builder;
-
-                _containerBuilder.RegisterModule<CommonModule>();
-                _containerBuilder.RegisterInstance(_holder).SingleInstance();
-                _containerBuilder.Register(componentContext => componentContext.Resolve<ActorSystemHolder>().System).SingleInstance();
-            }
-
-            public IActorApplicationBuilder ConfigureAutoFac(Action<ContainerBuilder> config)
-            {
-                config(_containerBuilder);
-
-                return this;
-            }
-
-            public IActorApplicationBuilder ConfigureAkka(Func<HostBuilderContext, Config> config)
-            {
-                _akkaConfig.Add(config);
-
-                return this;
-            }
-
-            public IActorApplicationBuilder ConfigureAkka(Func<HostBuilderContext, Setup> config)
-            {
-                _akkaSetup.Add(config);
-
-                return this;
-            }
-
-            public IActorApplicationBuilder ConfigureAkkaSystem(Action<HostBuilderContext, ActorSystem> system)
-            {
-                _systemConfig.Add(system);
-
-                return this;
-            }
-
-            public IActorApplicationBuilder ConfigureHostConfiguration(Action<IConfigurationBuilder> configureDelegate)
-            {
-                _builder.ConfigureHostConfiguration(configureDelegate);
-
-                return this;
-            }
-
-            public IActorApplicationBuilder ConfigureAppConfiguration(Action<HostBuilderContext, IConfigurationBuilder> configureDelegate)
-            {
-                _builder.ConfigureAppConfiguration(configureDelegate);
-
-                return this;
-            }
-
-            public IActorApplicationBuilder ConfigureServices(Action<HostBuilderContext, IServiceCollection> configureDelegate)
-            {
-                _builder.ConfigureServices(configureDelegate);
-
-                return this;
-            }
-
-            public IActorApplicationBuilder ConfigureContainer<TContainerBuilder>(Action<HostBuilderContext, TContainerBuilder> configureDelegate)
-            {
-                _builder.ConfigureContainer(configureDelegate);
-
-                return this;
-            }
-
-            internal ActorSystem CreateSystem(IServiceProvider provider)
-            {
-                var config = _akkaConfig.Aggregate(Config.Empty, (current, cfunc) => current.WithFallback(cfunc(_context)));
-                var setup = _akkaSetup.Aggregate(
-                    ActorSystemSetup.Create(DependencyResolverSetup.Create(provider)),
-                    (systemSetup, func) => systemSetup.And(func(_context)));
-                var system = ActorSystem.Create(GetActorSystemName(provider.GetRequiredService<IConfiguration>()), setup.WithSetup(BootstrapSetup.Create().WithConfig(config)));
-                system.RegisterExtension(new DependencyResolverExtension());
-                _holder.System = system;
-
-                foreach (var action in _systemConfig)
-                    action(_context, system);
-
-                return system;
-            }
-
-            private string GetActorSystemName(IConfiguration config)
-            {
-                var name = config["actorsystem"];
-
-                return !string.IsNullOrWhiteSpace(name)
-                    ? name
-                    : _context.HostingEnvironment.ApplicationName.Replace('.', '-');
-            }
-
-            internal void Populate(IServiceCollection collection)
-            {
-                ApplyFixes(_containerBuilder, collection);
-                _containerBuilder.Populate(collection);
-            }
-
-            internal IServiceProvider CreateServiceProvider()
-                => new AutofacServiceProvider(_containerBuilder.Build());
-
-            private static void ApplyFixes(ContainerBuilder builder, IServiceCollection serviceCollection)
-            {
-                if (TryRemove(serviceCollection, typeof(EventLogLoggerProvider)))
-                    builder.Register(componentContext => new EventLogLoggerProvider(componentContext.Resolve<IOptions<EventLogSettings>>())).As<ILoggerProvider>();
-            }
-
-            private static bool TryRemove(IServiceCollection collection, Type impl)
-            {
-                var sd = collection.FindIndex(serviceDescriptor => serviceDescriptor.ImplementationType == impl);
-
-                if (sd == -1) return false;
-
-                collection.RemoveAt(sd);
-
-                return true;
-            }
-
-            private sealed class ActorSystemHolder
-            {
-                private ActorSystem? _system;
-
-                internal ActorSystem System
-                {
-                    get
-                    {
-                        if (_system == null)
-                            throw new InvalidOperationException("ActorSystem not Created");
-
-                        return _system;
-                    }
-                    set => _system = value;
-                }
-            }
+            _containerBuilder.RegisterModule<CommonModule>();
+            _containerBuilder.RegisterInstance(_holder).SingleInstance();
+            _containerBuilder.Register(componentContext => componentContext.Resolve<ActorSystemHolder>().System).SingleInstance();
         }
 
-        private sealed class ActorServiceProviderFactory : IServiceProviderFactory<IActorApplicationBuilder>
+        public IActorApplicationBuilder ConfigureAutoFac(Action<ContainerBuilder> config)
         {
-            private readonly ActorApplicationBluilder _actorBuilder;
+            config(_containerBuilder);
 
-            internal ActorServiceProviderFactory(ActorApplicationBluilder actorBuilder) => _actorBuilder = actorBuilder;
+            return this;
+        }
 
-            public IActorApplicationBuilder CreateBuilder(IServiceCollection services)
+        public IActorApplicationBuilder ConfigureAkka(Func<HostBuilderContext, Config> config)
+        {
+            _akkaConfig.Add(config);
+
+            return this;
+        }
+
+        public IActorApplicationBuilder ConfigureAkka(Func<HostBuilderContext, Setup> config)
+        {
+            _akkaSetup.Add(config);
+
+            return this;
+        }
+
+        public IActorApplicationBuilder ConfigureAkkaSystem(Action<HostBuilderContext, ActorSystem> system)
+        {
+            _systemConfig.Add(system);
+
+            return this;
+        }
+
+        public IActorApplicationBuilder ConfigureHostConfiguration(Action<IConfigurationBuilder> configureDelegate)
+        {
+            _builder.ConfigureHostConfiguration(configureDelegate);
+
+            return this;
+        }
+
+        public IActorApplicationBuilder ConfigureAppConfiguration(Action<HostBuilderContext, IConfigurationBuilder> configureDelegate)
+        {
+            _builder.ConfigureAppConfiguration(configureDelegate);
+
+            return this;
+        }
+
+        public IActorApplicationBuilder ConfigureServices(Action<HostBuilderContext, IServiceCollection> configureDelegate)
+        {
+            _builder.ConfigureServices(configureDelegate);
+
+            return this;
+        }
+
+        public IActorApplicationBuilder ConfigureContainer<TContainerBuilder>(Action<HostBuilderContext, TContainerBuilder> configureDelegate)
+        {
+            _builder.ConfigureContainer(configureDelegate);
+
+            return this;
+        }
+
+        internal ActorSystem CreateSystem(IServiceProvider provider)
+        {
+            var config = _akkaConfig.Aggregate(Config.Empty, (current, cfunc) => current.WithFallback(cfunc(_context)));
+            var setup = _akkaSetup.Aggregate(
+                ActorSystemSetup.Create(DependencyResolverSetup.Create(provider)),
+                (systemSetup, func) => systemSetup.And(func(_context)));
+            var system = ActorSystem.Create(GetActorSystemName(provider.GetRequiredService<IConfiguration>()), setup.WithSetup(BootstrapSetup.Create().WithConfig(config)));
+            system.RegisterExtension(new DependencyResolverExtension());
+            _holder.System = system;
+
+            foreach (var action in _systemConfig)
+                action(_context, system);
+
+            return system;
+        }
+
+        private string GetActorSystemName(IConfiguration config)
+        {
+            var name = config["actorsystem"];
+
+            return !string.IsNullOrWhiteSpace(name)
+                ? name
+                : _context.HostingEnvironment.ApplicationName.Replace('.', '-');
+        }
+
+        internal void Populate(IServiceCollection collection)
+        {
+            ApplyFixes(_containerBuilder, collection);
+            _containerBuilder.Populate(collection);
+        }
+
+        internal IServiceProvider CreateServiceProvider()
+            => new AutofacServiceProvider(_containerBuilder.Build());
+
+        private static void ApplyFixes(ContainerBuilder builder, IServiceCollection serviceCollection)
+        {
+            if (TryRemove(serviceCollection, typeof(EventLogLoggerProvider)))
+                builder.Register(componentContext => new EventLogLoggerProvider(componentContext.Resolve<IOptions<EventLogSettings>>())).As<ILoggerProvider>();
+        }
+
+        private static bool TryRemove(IServiceCollection collection, Type impl)
+        {
+            var sd = collection.FindIndex(serviceDescriptor => serviceDescriptor.ImplementationType == impl);
+
+            if (sd == -1) return false;
+
+            collection.RemoveAt(sd);
+
+            return true;
+        }
+
+        private sealed class ActorSystemHolder
+        {
+            private ActorSystem? _system;
+
+            internal ActorSystem System
             {
-                _actorBuilder.Populate(services);
+                get
+                {
+                    if (_system == null)
+                        throw new InvalidOperationException("ActorSystem not Created");
 
-                return _actorBuilder;
+                    return _system;
+                }
+                set => _system = value;
             }
+        }
+    }
 
-            public IServiceProvider CreateServiceProvider(IActorApplicationBuilder containerBuilder)
-            {
-                if (_actorBuilder != containerBuilder) throw new InvalidOperationException("Builder was replaced during Configuration");
+    private sealed class ActorServiceProviderFactory : IServiceProviderFactory<IActorApplicationBuilder>
+    {
+        private readonly ActorApplicationBluilder _actorBuilder;
 
-                var prov = _actorBuilder.CreateServiceProvider();
+        internal ActorServiceProviderFactory(ActorApplicationBluilder actorBuilder) => _actorBuilder = actorBuilder;
 
-                var system = _actorBuilder.CreateSystem(prov);
-                var lifetime = prov.GetRequiredService<IHostApplicationLifetime>();
+        public IActorApplicationBuilder CreateBuilder(IServiceCollection services)
+        {
+            _actorBuilder.Populate(services);
 
-                ActorApplication.ActorSystem = system;
-                ActorApplication.LoggerFactory = prov.GetRequiredService<ILoggerFactory>();
-                ActorApplication.ServiceProvider = prov;
+            return _actorBuilder;
+        }
 
-                lifetime.ApplicationStopping.Register(() => system.Terminate());
-                system.RegisterOnTermination(() => lifetime.StopApplication());
+        public IServiceProvider CreateServiceProvider(IActorApplicationBuilder containerBuilder)
+        {
+            if (_actorBuilder != containerBuilder) throw new InvalidOperationException("Builder was replaced during Configuration");
 
-                return prov;
-            }
+            var prov = _actorBuilder.CreateServiceProvider();
+
+            var system = _actorBuilder.CreateSystem(prov);
+            var lifetime = prov.GetRequiredService<IHostApplicationLifetime>();
+
+            ActorApplication.ActorSystem = system;
+            ActorApplication.LoggerFactory = prov.GetRequiredService<ILoggerFactory>();
+            ActorApplication.ServiceProvider = prov;
+
+            lifetime.ApplicationStopping.Register(() => system.Terminate());
+            system.RegisterOnTermination(() => lifetime.StopApplication());
+
+            return prov;
         }
     }
 }

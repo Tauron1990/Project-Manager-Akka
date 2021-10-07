@@ -9,94 +9,93 @@ using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Tauron.Localization.Actor
+namespace Tauron.Localization.Actor;
+
+[UsedImplicitly]
+public sealed class JsonLocLocStoreActor : LocStoreActorBase
 {
-    [UsedImplicitly]
-    public sealed class JsonLocLocStoreActor : LocStoreActorBase
+    private static readonly char[] Sep = { '.' };
+
+    private readonly JsonConfiguration? _configuration;
+    private readonly Dictionary<string, Dictionary<string, JToken>> _files = new();
+    private bool _isInitialized;
+
+    public JsonLocLocStoreActor(ILifetimeScope scope)
+        => _configuration = scope.ResolveOptional<JsonConfiguration>();
+
+    protected override Option<object> TryQuery(string name, CultureInfo target)
     {
-        private static readonly char[] Sep = { '.' };
+        if (_configuration == null)
+            return Option<object>.None;
 
-        private readonly JsonConfiguration? _configuration;
-        private readonly Dictionary<string, Dictionary<string, JToken>> _files = new();
-        private bool _isInitialized;
+        EnsureInitialized();
 
-        public JsonLocLocStoreActor(ILifetimeScope scope)
-            => _configuration = scope.ResolveOptional<JsonConfiguration>();
-
-        protected override Option<object> TryQuery(string name, CultureInfo target)
+        do
         {
-            if (_configuration == null)
-                return Option<object>.None;
+            var obj = LookUp(name, target);
 
-            EnsureInitialized();
+            if (obj != null)
+                return obj;
 
-            do
-            {
-                var obj = LookUp(name, target);
+            target = target.Parent;
+        } while (!Equals(target, CultureInfo.InvariantCulture));
 
-                if (obj != null)
-                    return obj;
+        return LookUp(name, CultureInfo.GetCultureInfo(_configuration.Fallback)).OptionNotNull();
+    }
 
-                target = target.Parent;
-            } while (!Equals(target, CultureInfo.InvariantCulture));
+    private object? LookUp(string name, CultureInfo target)
+    {
+        if (_configuration == null) return null;
 
-            return LookUp(name, CultureInfo.GetCultureInfo(_configuration.Fallback)).OptionNotNull();
+        string language = _configuration.NameMode switch
+        {
+            JsonFileNameMode.Name => target.Name,
+            JsonFileNameMode.TwoLetterIsoLanguageName => target.TwoLetterISOLanguageName,
+            JsonFileNameMode.ThreeLetterIsoLanguageName => target.ThreeLetterISOLanguageName,
+            JsonFileNameMode.ThreeLetterWindowsLanguageName => target.ThreeLetterWindowsLanguageName,
+            JsonFileNameMode.DisplayName => target.DisplayName,
+            JsonFileNameMode.EnglishName => target.EnglishName,
+            _ => throw new InvalidOperationException("No Valid Json File Name Mode")
+        };
+
+        if (!_files.TryGetValue(language, out var entrys) || !entrys.TryGetValue(name, out var entry) ||
+            entry is not JValue value) return null;
+
+        return value.Type == JTokenType.String ? EscapeHelper.Decode(value.Value<string>()) : value.Value;
+    }
+
+    private void EnsureInitialized()
+    {
+        if (_isInitialized) return;
+        if (_configuration == null) return;
+
+        _files.Clear();
+
+
+        foreach (var file in Directory.EnumerateFiles(_configuration.RootDic, "*.json"))
+        {
+            //var text = File.ReadAllText(file, Encoding.UTF8);
+            using var stream = new FileStream(file, FileMode.Open);
+            var text = new StreamReader(stream, Encoding.UTF8).ReadToEnd();
+            var name = GetName(file);
+
+            if (string.IsNullOrWhiteSpace(name)) return;
+
+            _files[name] = JsonConvert.DeserializeObject<Dictionary<string, JToken>>(text) ?? new Dictionary<string, JToken>();
         }
 
-        private object? LookUp(string name, CultureInfo target)
+        _isInitialized = true;
+    }
+
+    private static string? GetName(string fileName)
+    {
+        var data = Path.GetFileNameWithoutExtension(fileName).Split(Sep, StringSplitOptions.RemoveEmptyEntries);
+
+        return data.Length switch
         {
-            if (_configuration == null) return null;
-
-            string language = _configuration.NameMode switch
-            {
-                JsonFileNameMode.Name => target.Name,
-                JsonFileNameMode.TwoLetterIsoLanguageName => target.TwoLetterISOLanguageName,
-                JsonFileNameMode.ThreeLetterIsoLanguageName => target.ThreeLetterISOLanguageName,
-                JsonFileNameMode.ThreeLetterWindowsLanguageName => target.ThreeLetterWindowsLanguageName,
-                JsonFileNameMode.DisplayName => target.DisplayName,
-                JsonFileNameMode.EnglishName => target.EnglishName,
-                _ => throw new InvalidOperationException("No Valid Json File Name Mode")
-            };
-
-            if (!_files.TryGetValue(language, out var entrys) || !entrys.TryGetValue(name, out var entry) ||
-                entry is not JValue value) return null;
-
-            return value.Type == JTokenType.String ? EscapeHelper.Decode(value.Value<string>()) : value.Value;
-        }
-
-        private void EnsureInitialized()
-        {
-            if (_isInitialized) return;
-            if (_configuration == null) return;
-
-            _files.Clear();
-
-
-            foreach (var file in Directory.EnumerateFiles(_configuration.RootDic, "*.json"))
-            {
-                //var text = File.ReadAllText(file, Encoding.UTF8);
-                using var stream = new FileStream(file, FileMode.Open);
-                var text = new StreamReader(stream, Encoding.UTF8).ReadToEnd();
-                var name = GetName(file);
-
-                if (string.IsNullOrWhiteSpace(name)) return;
-
-                _files[name] = JsonConvert.DeserializeObject<Dictionary<string, JToken>>(text);
-            }
-
-            _isInitialized = true;
-        }
-
-        private static string? GetName(string fileName)
-        {
-            var data = Path.GetFileNameWithoutExtension(fileName).Split(Sep, StringSplitOptions.RemoveEmptyEntries);
-
-            return data.Length switch
-            {
-                2 => data[1],
-                1 => data[0],
-                _ => null
-            };
-        }
+            2 => data[1],
+            1 => data[0],
+            _ => null
+        };
     }
 }

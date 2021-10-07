@@ -1,58 +1,61 @@
 ﻿using System;
 using System.IO;
+using System.Reactive.PlatformServices;
 
-namespace Tauron.Application.VirtualFiles.InMemory.Data
+namespace Tauron.Application.VirtualFiles.InMemory.Data;
+
+public sealed class FileEntry : DataElementBase
 {
-    public sealed class FileEntry : IDataElement
+    public MemoryStream? Data { get; private set; }
+
+    public string ActualName
     {
-        public MemoryStream? Data { get; private set; }
-        
-        public string? Name { get; private set; }
-
-        public string ActualName
+        get
         {
-            get
-            {
-                if(string.IsNullOrWhiteSpace(Name))
-                    ThrowNotInitException();
+            if(string.IsNullOrWhiteSpace(Name))
+                ThrowNotInitException();
 
-                return Name!;
-            }
+            return Name;
         }
-
-        public MemoryStream ActualData
-        {
-            get
-            {
-                if(Data is null)
-                    ThrowNotInitException();
-
-                return Data!;
-            }
-        }
-
-        public FileEntry Init(string name, MemoryStream stream)
-        {
-            if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentException("Name dhould not be null", nameof(name));
-            
-            Name = name;
-            Data = stream;
-
-            return this;
-        }
-        
-        public void Dispose()
-        {
-            Data?.Dispose();
-            Data = null;
-            Name = null;
-        }
-
-        private void ThrowNotInitException()
-            => throw new InvalidOperationException("Entry not initialized");
-
-        public void Recycle()
-            => Dispose();
     }
+
+    public MemoryStream ActualData
+    {
+        get
+        {
+            if(Data is null)
+                ThrowNotInitException();
+
+            return Data!;
+        }
+    }
+
+    public FileEntry Init(string name, MemoryStream stream, ISystemClock clock)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("Name dhould not be null", nameof(name));
+            
+        Name = name;
+        Data = stream;
+        CreationDate = clock.UtcNow.LocalDateTime;
+        ModifyDate = clock.UtcNow.LocalDateTime; 
+            
+        return this;
+    }
+        
+    public override void Dispose()
+    {
+        base.Dispose();
+            
+        Data?.Dispose();
+            
+        Data = null;
+        Name = string.Empty;
+    }
+
+    private static void ThrowNotInitException()
+        => throw new InvalidOperationException("Entry not initialized");
+
+    public override void Recycle()
+        => Dispose();
 }

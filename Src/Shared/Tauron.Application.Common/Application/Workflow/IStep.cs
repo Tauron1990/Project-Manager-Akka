@@ -1,15 +1,14 @@
-﻿namespace Tauron.Application.Workflow
+﻿namespace Tauron.Application.Workflow;
+
+public interface IStep<in TContext>
 {
-    public interface IStep<in TContext>
-    {
-        string ErrorMessage { get; }
+    string ErrorMessage { get; }
 
-        //StepId Id { get; }
+    //StepId Id { get; }
 
-        StepId OnExecute(TContext context);
+    StepId OnExecute(TContext context);
 
-        StepId NextElement(TContext context);
+    StepId NextElement(TContext context);
 
-        void OnExecuteFinish(TContext context);
-    }
+    void OnExecuteFinish(TContext context);
 }

@@ -1,10 +1,9 @@
 ﻿using Akka.Actor;
 
-namespace Tauron.Akka
+namespace Tauron.Akka;
+
+public class DefaultActorRef<TActor> : BaseActorRef<TActor>, IDefaultActorRef<TActor> where TActor : ActorBase
 {
-    public class DefaultActorRef<TActor> : BaseActorRef<TActor>, IDefaultActorRef<TActor> where TActor : ActorBase
-    {
-        public DefaultActorRef(ActorRefFactory<TActor> actorBuilder)
-            : base(actorBuilder) { }
-    }
+    public DefaultActorRef(ActorRefFactory<TActor> actorBuilder)
+        : base(actorBuilder) { }
 }

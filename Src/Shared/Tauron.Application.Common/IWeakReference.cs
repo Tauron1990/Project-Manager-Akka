@@ -1,10 +1,9 @@
 ﻿using JetBrains.Annotations;
 
-namespace Tauron
+namespace Tauron;
+
+[PublicAPI]
+public interface IWeakReference
 {
-    [PublicAPI]
-    public interface IWeakReference
-    {
-        bool IsAlive { get; }
-    }
+    bool IsAlive { get; }
 }

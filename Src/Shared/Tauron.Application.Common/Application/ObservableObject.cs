@@ -13,96 +13,95 @@ using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 using Tauron.AkkaHost;
 
-namespace Tauron.Application
+namespace Tauron.Application;
+
+[PublicAPI]
+public static class ObservablePropertyChangedExtensions
 {
-    [PublicAPI]
-    public static class ObservablePropertyChangedExtensions
+    public static IObservable<TProp> WhenAny<TProp>(this IObservablePropertyChanged @this, Expression<Func<TProp>> prop)
     {
-        public static IObservable<TProp> WhenAny<TProp>(this IObservablePropertyChanged @this, Expression<Func<TProp>> prop)
-        {
-            var name = Reflex.PropertyName(prop);
-            var func = prop.CompileFast();
+        var name = Reflex.PropertyName(prop);
+        var func = prop.CompileFast();
 
-            return @this.PropertyChangedObservable.Where(propName => propName == name).Select(_ => func());
-        }
+        return @this.PropertyChangedObservable.Where(propName => propName == name).Select(_ => func());
+    }
+}
+
+[PublicAPI]
+public interface IObservablePropertyChanged
+{
+    IObservable<string> PropertyChangedObservable { get; }
+}
+
+[Serializable]
+[PublicAPI]
+[DebuggerStepThrough]
+public abstract class ObservableObject : INotifyPropertyChangedMethod, IObservablePropertyChanged
+{
+    private readonly Subject<string> _propertyChnaged = new();
+
+    [field: NonSerialized] public event PropertyChangedEventHandler? PropertyChanged;
+
+    [NotifyPropertyChangedInvocator]
+    public virtual void OnPropertyChanged([CallerMemberName] string? eventArgs = null)
+        => OnPropertyChanged(new PropertyChangedEventArgs(eventArgs ?? string.Empty));
+
+    public IObservable<string> PropertyChangedObservable => _propertyChnaged.AsObservable();
+
+    public void SetProperty<TType>(ref TType property, TType value, [CallerMemberName] string? name = null)
+    {
+        if (EqualityComparer<TType>.Default.Equals(property, value)) return;
+
+        property = value;
+        OnPropertyChangedExplicit(name ?? string.Empty);
     }
 
-    [PublicAPI]
-    public interface IObservablePropertyChanged
+    public void SetProperty<TType>(ref TType property, TType value, Action changed, [CallerMemberName] string? name = null)
     {
-        IObservable<string> PropertyChangedObservable { get; }
+        if (EqualityComparer<TType>.Default.Equals(property, value)) return;
+
+        property = value;
+        OnPropertyChangedExplicit(name ?? string.Empty);
+        changed();
     }
 
-    [Serializable]
-    [PublicAPI]
-    [DebuggerStepThrough]
-    public abstract class ObservableObject : INotifyPropertyChangedMethod, IObservablePropertyChanged
+    public void SetProperty<TType>(ref TType property, TType value, Func<Task> changed, [CallerMemberName] string? name = null)
     {
-        private readonly Subject<string> _propertyChnaged = new();
+        var context = ExecutionContext.Capture();
 
-        [field: NonSerialized] public event PropertyChangedEventHandler? PropertyChanged;
-
-        [NotifyPropertyChangedInvocator]
-        public virtual void OnPropertyChanged([CallerMemberName] string? eventArgs = null)
-            => OnPropertyChanged(new PropertyChangedEventArgs(eventArgs ?? string.Empty));
-
-        public IObservable<string> PropertyChangedObservable => _propertyChnaged.AsObservable();
-
-        public void SetProperty<TType>(ref TType property, TType value, [CallerMemberName] string? name = null)
+        async Task RunChangedAsync()
         {
-            if (EqualityComparer<TType>.Default.Equals(property, value)) return;
-
-            property = value;
-            OnPropertyChangedExplicit(name ?? string.Empty);
-        }
-
-        public void SetProperty<TType>(ref TType property, TType value, Action changed, [CallerMemberName] string? name = null)
-        {
-            if (EqualityComparer<TType>.Default.Equals(property, value)) return;
-
-            property = value;
-            OnPropertyChangedExplicit(name ?? string.Empty);
-            changed();
-        }
-
-        public void SetProperty<TType>(ref TType property, TType value, Func<Task> changed, [CallerMemberName] string? name = null)
-        {
-            var context = ExecutionContext.Capture();
-
-            async Task RunChangedAsync()
+            try
             {
-                try
-                {
-                    await changed();
-                }
-                catch (Exception exception)
-                {
-                    ActorApplication.GetLogger(GetType()).LogError(exception, "Error on Execute Async property Changed");
-                    if (context != null)
-                        ExecutionContext.Run(context, state => throw (Exception)state!, exception);
-                }
+                await changed();
             }
-
-            SetProperty(ref property, value, () => RunChangedAsync().Ignore(), name);
+            catch (Exception exception)
+            {
+                ActorApplication.GetLogger(GetType()).LogError(exception, "Error on Execute Async property Changed");
+                if (context != null)
+                    ExecutionContext.Run(context, state => throw (Exception)state!, exception);
+            }
         }
 
-        public virtual void OnPropertyChangedExplicit(string propertyName)
-            => OnPropertyChanged(new PropertyChangedEventArgs(propertyName));
-
-        #pragma warning disable AV1551
-        public virtual void OnPropertyChanged(PropertyChangedEventArgs eventArgs)
-            => OnPropertyChanged(this, eventArgs);
-
-        protected virtual void OnPropertyChanged(object sender, PropertyChangedEventArgs eventArgs)
-        {
-            if (!string.IsNullOrWhiteSpace(eventArgs.PropertyName))
-                _propertyChnaged.OnNext(eventArgs.PropertyName);
-            PropertyChanged?.Invoke(sender, eventArgs);
-        }
-
-
-        public virtual void OnPropertyChanged<T>(Expression<Func<T>> eventArgs)
-            => OnPropertyChanged(new PropertyChangedEventArgs(Reflex.PropertyName(eventArgs)));
-        #pragma warning restore AV1551
+        SetProperty(ref property, value, () => RunChangedAsync().Ignore(), name);
     }
+
+    public virtual void OnPropertyChangedExplicit(string propertyName)
+        => OnPropertyChanged(new PropertyChangedEventArgs(propertyName));
+
+    #pragma warning disable AV1551
+    public virtual void OnPropertyChanged(PropertyChangedEventArgs eventArgs)
+        => OnPropertyChanged(this, eventArgs);
+
+    protected virtual void OnPropertyChanged(object sender, PropertyChangedEventArgs eventArgs)
+    {
+        if (!string.IsNullOrWhiteSpace(eventArgs.PropertyName))
+            _propertyChnaged.OnNext(eventArgs.PropertyName);
+        PropertyChanged?.Invoke(sender, eventArgs);
+    }
+
+
+    public virtual void OnPropertyChanged<T>(Expression<Func<T>> eventArgs)
+        => OnPropertyChanged(new PropertyChangedEventArgs(Reflex.PropertyName(eventArgs)));
+    #pragma warning restore AV1551
 }

@@ -3,100 +3,99 @@ using NSubstitute;
 using Tauron.Application.VirtualFiles.InMemory.Data;
 using Xunit;
 
-namespace Tauron.Application.Common.Tests.Application.VirtualFiles.InMemory.Data
+namespace Tauron.Application.Common.Tests.Application.VirtualFiles.InMemory.Data;
+
+public class DirectoryEntryTests
 {
-    public class DirectoryEntryTests
+    [Fact]
+    public void Simple_Add_Test()
     {
-        [Fact]
-        public void Simple_Add_Test()
-        {
-            var data = new DirectoryEntry();
-            var toTest = new DirectoryEntry();
+        var data = new DirectoryEntry();
+        var toTest = new DirectoryEntry();
 
-            var result = data.GetOrAdd("Test", () => toTest);
+        var result = data.GetOrAdd("Test", () => toTest);
 
-            result.Should().Be(toTest);
-        }
+        result.Should().Be(toTest);
+    }
 
-        [Fact]
-        public void Duplicate_Add_Test()
-        {
-            var data = new DirectoryEntry();
-            var toTest = new DirectoryEntry();
-            var duplicate = new DirectoryEntry();
-            var testName = "Test";
+    [Fact]
+    public void Duplicate_Add_Test()
+    {
+        var data = new DirectoryEntry();
+        var toTest = new DirectoryEntry();
+        var duplicate = new DirectoryEntry();
+        var testName = "Test";
 
-            var result1 = data.GetOrAdd(testName, () => toTest);
-            var result2 = data.GetOrAdd(testName, () => duplicate);
+        var result1 = data.GetOrAdd(testName, () => toTest);
+        var result2 = data.GetOrAdd(testName, () => duplicate);
 
-            result1.Should().Be(toTest);
-            result2.Should().Be(toTest);
-        }
+        result1.Should().Be(toTest);
+        result2.Should().Be(toTest);
+    }
 
-        [Fact]
-        public void Duplicate_TypeMismatch_Add_Test()
-        {
-            var data = new DirectoryEntry();
-            var toTest = new DirectoryEntry();
-            var duplicate = new FileEntry();
-            var testName = "Test";
+    [Fact]
+    public void Duplicate_TypeMismatch_Add_Test()
+    {
+        var data = new DirectoryEntry();
+        var toTest = new DirectoryEntry();
+        var duplicate = new FileEntry();
+        var testName = "Test";
 
-            var result1 = data.GetOrAdd(testName, () => toTest);
-            var result2 = data.GetOrAdd(testName, () => duplicate);
+        var result1 = data.GetOrAdd(testName, () => toTest);
+        var result2 = data.GetOrAdd(testName, () => duplicate);
 
-            result1.Should().Be(toTest);
-            result2.Should().BeNull();
-        }
+        result1.Should().Be(toTest);
+        result2.Should().BeNull();
+    }
         
-        [Fact]
-        public void File_Enumerator_Test()
-        {
-            var data = new DirectoryEntry();
-            var testFile = new FileEntry();
+    [Fact]
+    public void File_Enumerator_Test()
+    {
+        var data = new DirectoryEntry();
+        var testFile = new FileEntry();
             
-            data.GetOrAdd("Test", () => testFile);
+        data.GetOrAdd("Test", () => testFile);
 
-            data.Files.Should().HaveCount(1).And.Contain(testFile);
-            data.Directorys.Should().HaveCount(0);
-        }
+        data.Files.Should().HaveCount(1).And.Contain(testFile);
+        data.Directorys.Should().HaveCount(0);
+    }
 
-        [Fact]
-        public void Directory_Enumerator_Test()
-        {
-            var data = new DirectoryEntry();
-            var testDic = new DirectoryEntry();
+    [Fact]
+    public void Directory_Enumerator_Test()
+    {
+        var data = new DirectoryEntry();
+        var testDic = new DirectoryEntry();
 
-            data.GetOrAdd("Test", () => testDic);
+        data.GetOrAdd("Test", () => testDic);
 
-            data.Files.Should().HaveCount(0);
-            data.Directorys.Should().HaveCount(1).And.Contain(testDic);
-        }
+        data.Files.Should().HaveCount(0);
+        data.Directorys.Should().HaveCount(1).And.Contain(testDic);
+    }
 
-        [Fact]
-        public void Remove_Test()
-        {
-            var data = new DirectoryEntry();
-            var testAdd = new DirectoryEntry();
-            var testName = "Test";
+    [Fact]
+    public void Remove_Test()
+    {
+        var data = new DirectoryEntry();
+        var testAdd = new DirectoryEntry();
+        var testName = "Test";
             
-            data.GetOrAdd(testName, () => testAdd);
-            var result = data.Remove(testName, out var removed);
+        data.GetOrAdd(testName, () => testAdd);
+        var result = data.Remove(testName, out var removed);
 
-            result.Should().BeTrue();
-            removed.Should().Be(testAdd);
-            data.Directorys.Should().HaveCount(0);
-        }
+        result.Should().BeTrue();
+        removed.Should().Be(testAdd);
+        data.Directorys.Should().HaveCount(0);
+    }
 
-        [Fact]
-        public void Dispose_Test()
-        {
-            var data = new DirectoryEntry();
-            var mockData = Substitute.For<IDataElement>();
+    [Fact]
+    public void Dispose_Test()
+    {
+        var data = new DirectoryEntry();
+        var mockData = Substitute.For<IDataElement>();
 
-            data.GetOrAdd("Test", () => mockData);
-            data.Dispose();
+        data.GetOrAdd("Test", () => mockData);
+        data.Dispose();
             
-            mockData.Received(1).Dispose();
-        }
+        mockData.Received(1).Dispose();
     }
 }

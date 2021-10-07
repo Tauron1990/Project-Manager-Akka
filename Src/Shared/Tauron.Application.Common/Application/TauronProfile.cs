@@ -8,140 +8,139 @@ using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 using Tauron.AkkaHost;
 
-namespace Tauron.Application
+namespace Tauron.Application;
+
+[PublicAPI]
+public abstract class TauronProfile : ObservableObject, IEnumerable<string>
 {
-    [PublicAPI]
-    public abstract class TauronProfile : ObservableObject, IEnumerable<string>
+    private static readonly char[] ContentSplitter = { '=' };
+
+    private readonly string _defaultPath;
+    private readonly ILogger<TauronProfile> _logger = ActorApplication.GetLogger<TauronProfile>();
+
+    private readonly Dictionary<string, string> _settings = new();
+
+    protected TauronProfile(string application, string defaultPath)
     {
-        private static readonly char[] ContentSplitter = { '=' };
-
-        private readonly string _defaultPath;
-        private readonly ILogger<TauronProfile> _logger = ActorApplication.GetLogger<TauronProfile>();
-
-        private readonly Dictionary<string, string> _settings = new();
-
-        protected TauronProfile(string application, string defaultPath)
-        {
-            Application = application;
-            _defaultPath = defaultPath;
-        }
-
-        public virtual string this[string key]
-        {
-            get => _settings[key];
-
-            set
-            {
-                IlligalCharCheck(key);
-                _settings[key] = value;
-            }
-        }
-
-        public int Count => _settings.Count;
-
-        public string Application { get; private set; }
-
-        public Option<string> Name { get; private set; }
-
-        protected Option<string> Dictionary { get; private set; }
-
-        protected Option<string> FilePath { get; private set; }
-
-        public IEnumerator<string> GetEnumerator()
-            => _settings.Select(pair => pair.Key).GetEnumerator();
-
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-        public void Delete()
-        {
-            _settings.Clear();
-
-            _logger.LogInformation("{Application} -- Delete Profile infos... {Path}", Application, Dictionary.GetOrElse(string.Empty).PathShorten(20));
-
-            Dictionary.OnSuccess(dic => dic.DeleteDirectory());
-        }
-
-        public virtual void Load(string name)
-        {
-            IlligalCharCheck(name);
-
-            Name = name;
-            Dictionary = _defaultPath.CombinePath(Application, name);
-            Dictionary.OnSuccess(dic => dic.CreateDirectoryIfNotExis());
-            FilePath = Dictionary.Select(dic => dic.CombinePath("Settings.db"));
-
-            _logger.LogInformation("{Application} -- Begin Load Profile infos... {Path}", Application, FilePath.GetOrElse(string.Empty).PathShorten(20));
-
-            _settings.Clear();
-            foreach (var vals in FilePath.Value.EnumerateTextLinesIfExis()
-               .Select(line => line.Split(ContentSplitter, 2))
-               .Where(vals => vals.Length == 2))
-            {
-                _logger.LogInformation("key: {Key} | Value {Value}", vals[0], vals[1]);
-
-                _settings[vals[0]] = vals[1];
-            }
-        }
-
-        public virtual void Save()
-        {
-            _logger.LogInformation("{Application} -- Begin Save Profile infos...", Application);
-
-            try
-            {
-                var writerOption = FilePath.Select(path => path.OpenTextWrite());
-
-                if (!writerOption.HasValue) return;
-
-                using var writer = writerOption.Value;
-
-                foreach (var (key, value) in _settings)
-                {
-                    writer.WriteLine("{0}={1}", key, value);
-
-                    _logger.LogInformation("key: {Key} | Value {Value}", key, value);
-                }
-            }
-            catch (Exception exception)
-            {
-                _logger.LogError(exception, "Error on Profile Save");
-            }
-        }
-
-        public virtual string? GetValue(string? defaultValue, [CallerMemberName] string? key = null)
-        {
-            if (string.IsNullOrWhiteSpace(key)) return string.Empty;
-
-            IlligalCharCheck(key);
-
-            return !_settings.ContainsKey(key) ? defaultValue : _settings[key];
-        }
-
-        public virtual int GetValue(int defaultValue, [CallerMemberName] string? key = null)
-            => int.TryParse(GetValue(null, key), out var result) ? result : defaultValue;
-
-        #pragma warning disable AV1564
-        public virtual bool GetValue(bool defaultValue, [CallerMemberName] string? key = null)
-            #pragma warning restore AV1564
-            => bool.TryParse(GetValue(null, key), out var result) ? result : defaultValue;
-
-        public virtual void SetVaue(object value, [CallerMemberName] string? key = null)
-        {
-            if (string.IsNullOrWhiteSpace(key)) return;
-
-            IlligalCharCheck(key);
-
-            _settings[key] = value.ToString() ?? string.Empty;
-            OnPropertyChangedExplicit(key);
-        }
-
-        private static void IlligalCharCheck(string key)
-        {
-            if (key.Contains('='))
-                throw new ArgumentException($"The Key ({key}) Contains an Illigal Char: =");
-        }
-
-        public void Clear()
-            => _settings.Clear();
+        Application = application;
+        _defaultPath = defaultPath;
     }
+
+    public virtual string this[string key]
+    {
+        get => _settings[key];
+
+        set
+        {
+            IlligalCharCheck(key);
+            _settings[key] = value;
+        }
+    }
+
+    public int Count => _settings.Count;
+
+    public string Application { get; private set; }
+
+    public Option<string> Name { get; private set; }
+
+    protected Option<string> Dictionary { get; private set; }
+
+    protected Option<string> FilePath { get; private set; }
+
+    public IEnumerator<string> GetEnumerator()
+        => _settings.Select(pair => pair.Key).GetEnumerator();
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    public void Delete()
+    {
+        _settings.Clear();
+
+        _logger.LogInformation("{Application} -- Delete Profile infos... {Path}", Application, Dictionary.GetOrElse(string.Empty).PathShorten(20));
+
+        Dictionary.OnSuccess(dic => dic.DeleteDirectory());
+    }
+
+    public virtual void Load(string name)
+    {
+        IlligalCharCheck(name);
+
+        Name = name;
+        Dictionary = _defaultPath.CombinePath(Application, name);
+        Dictionary.OnSuccess(dic => dic.CreateDirectoryIfNotExis());
+        FilePath = Dictionary.Select(dic => dic.CombinePath("Settings.db"));
+
+        _logger.LogInformation("{Application} -- Begin Load Profile infos... {Path}", Application, FilePath.GetOrElse(string.Empty).PathShorten(20));
+
+        _settings.Clear();
+        foreach (var vals in FilePath.Value.EnumerateTextLinesIfExis()
+           .Select(line => line.Split(ContentSplitter, 2))
+           .Where(vals => vals.Length == 2))
+        {
+            _logger.LogInformation("key: {Key} | Value {Value}", vals[0], vals[1]);
+
+            _settings[vals[0]] = vals[1];
+        }
+    }
+
+    public virtual void Save()
+    {
+        _logger.LogInformation("{Application} -- Begin Save Profile infos...", Application);
+
+        try
+        {
+            var writerOption = FilePath.Select(path => path.OpenTextWrite());
+
+            if (!writerOption.HasValue) return;
+
+            using var writer = writerOption.Value;
+
+            foreach (var (key, value) in _settings)
+            {
+                writer.WriteLine("{0}={1}", key, value);
+
+                _logger.LogInformation("key: {Key} | Value {Value}", key, value);
+            }
+        }
+        catch (Exception exception)
+        {
+            _logger.LogError(exception, "Error on Profile Save");
+        }
+    }
+
+    public virtual string? GetValue(string? defaultValue, [CallerMemberName] string? key = null)
+    {
+        if (string.IsNullOrWhiteSpace(key)) return string.Empty;
+
+        IlligalCharCheck(key);
+
+        return !_settings.ContainsKey(key) ? defaultValue : _settings[key];
+    }
+
+    public virtual int GetValue(int defaultValue, [CallerMemberName] string? key = null)
+        => int.TryParse(GetValue(null, key), out var result) ? result : defaultValue;
+
+    #pragma warning disable AV1564
+    public virtual bool GetValue(bool defaultValue, [CallerMemberName] string? key = null)
+        #pragma warning restore AV1564
+        => bool.TryParse(GetValue(null, key), out var result) ? result : defaultValue;
+
+    public virtual void SetVaue(object value, [CallerMemberName] string? key = null)
+    {
+        if (string.IsNullOrWhiteSpace(key)) return;
+
+        IlligalCharCheck(key);
+
+        _settings[key] = value.ToString() ?? string.Empty;
+        OnPropertyChangedExplicit(key);
+    }
+
+    private static void IlligalCharCheck(string key)
+    {
+        if (key.Contains('='))
+            throw new ArgumentException($"The Key ({key}) Contains an Illigal Char: =");
+    }
+
+    public void Clear()
+        => _settings.Clear();
 }

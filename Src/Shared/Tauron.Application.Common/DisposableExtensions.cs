@@ -3,25 +3,24 @@ using System.Reactive.Disposables;
 using JetBrains.Annotations;
 using Tauron.Akka;
 
-namespace Tauron
+namespace Tauron;
+
+[PublicAPI]
+public static class DisposableExtensions
 {
-    [PublicAPI]
-    public static class DisposableExtensions
+    public static TValue DisposeWith<TValue>(this TValue value, CompositeDisposable cd)
+        where TValue : IDisposable
     {
-        public static TValue DisposeWith<TValue>(this TValue value, CompositeDisposable cd)
-            where TValue : IDisposable
-        {
-            cd.Add(value);
+        cd.Add(value);
 
-            return value;
-        }
+        return value;
+    }
 
-        public static TValue DisposeWith<TValue>(this TValue value, IResourceHolder cd)
-            where TValue : IDisposable
-        {
-            cd.AddResource(value);
+    public static TValue DisposeWith<TValue>(this TValue value, IResourceHolder cd)
+        where TValue : IDisposable
+    {
+        cd.AddResource(value);
 
-            return value;
-        }
+        return value;
     }
 }

@@ -2,16 +2,15 @@
 using Akka.DependencyInjection;
 using Tauron.Localization.Actor;
 
-namespace Tauron.Localization.Provider
+namespace Tauron.Localization.Provider;
+
+public sealed class LocJsonProvider : ILocStoreProducer
 {
-    public sealed class LocJsonProvider : ILocStoreProducer
-    {
-        private readonly ActorSystem _actorSystem;
+    private readonly ActorSystem _actorSystem;
 
-        public LocJsonProvider(ActorSystem actorSystem) => _actorSystem = actorSystem;
+    public LocJsonProvider(ActorSystem actorSystem) => _actorSystem = actorSystem;
 
-        public string Name => "Json";
+    public string Name => "Json";
 
-        public Props GetProps() => _actorSystem.GetExtension<DependencyResolver>().Props<JsonLocLocStoreActor>();
-    }
+    public Props GetProps() => _actorSystem.GetExtension<DependencyResolver>().Props<JsonLocLocStoreActor>();
 }

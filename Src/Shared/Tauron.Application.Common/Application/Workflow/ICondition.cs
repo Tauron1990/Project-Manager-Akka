@@ -1,7 +1,6 @@
-﻿namespace Tauron.Application.Workflow
+﻿namespace Tauron.Application.Workflow;
+
+public interface ICondition<TContext>
 {
-    public interface ICondition<TContext>
-    {
-        StepId Select(IStep<TContext> lastStep, TContext context);
-    }
+    StepId Select(IStep<TContext> lastStep, TContext context);
 }

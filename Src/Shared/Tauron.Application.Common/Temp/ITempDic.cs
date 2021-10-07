@@ -1,20 +1,19 @@
 ﻿using JetBrains.Annotations;
 
-namespace Tauron.Temp
+namespace Tauron.Temp;
+
+[PublicAPI]
+public interface ITempDic : ITempInfo
 {
-    [PublicAPI]
-    public interface ITempDic : ITempInfo
-    {
-        bool KeepAlive { get; set; }
+    bool KeepAlive { get; set; }
 
-        ITempDic CreateDic(string name);
+    ITempDic CreateDic(string name);
 
-        ITempFile CreateFile(string name);
+    ITempFile CreateFile(string name);
 
-        ITempDic CreateDic();
+    ITempDic CreateDic();
 
-        ITempFile CreateFile();
+    ITempFile CreateFile();
 
-        void Clear();
-    }
+    void Clear();
 }

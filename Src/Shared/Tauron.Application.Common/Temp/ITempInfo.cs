@@ -2,12 +2,11 @@
 using Akka.Util;
 using JetBrains.Annotations;
 
-namespace Tauron.Temp
+namespace Tauron.Temp;
+
+[PublicAPI]
+public interface ITempInfo : IDisposable
 {
-    [PublicAPI]
-    public interface ITempInfo : IDisposable
-    {
-        string FullPath { get; }
-        Option<ITempDic> Parent { get; }
-    }
+    string FullPath { get; }
+    Option<ITempDic> Parent { get; }
 }

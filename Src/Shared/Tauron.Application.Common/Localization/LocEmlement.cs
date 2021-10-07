@@ -1,15 +1,14 @@
-﻿namespace Tauron.Localization
+﻿namespace Tauron.Localization;
+
+public abstract class LocEmlement<TValue>
 {
-    public abstract class LocEmlement<TValue>
+    protected LocEmlement(string key, TValue value)
     {
-        protected LocEmlement(string key, TValue value)
-        {
-            Key = key;
-            Value = value;
-        }
-
-        public string Key { get; }
-
-        public virtual TValue Value { get; }
+        Key = key;
+        Value = value;
     }
+
+    public string Key { get; }
+
+    public virtual TValue Value { get; }
 }

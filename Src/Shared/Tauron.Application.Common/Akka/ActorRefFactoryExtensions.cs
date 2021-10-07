@@ -3,27 +3,26 @@ using System.Linq.Expressions;
 using Akka.Actor;
 using JetBrains.Annotations;
 
-namespace Tauron.Akka
+namespace Tauron.Akka;
+
+[PublicAPI]
+public static class ActorRefFactoryExtensions
 {
-    [PublicAPI]
-    public static class ActorRefFactoryExtensions
+    public static IActorRef GetOrAdd<TActor>(this IActorContext context, string? name)
+        where TActor : ActorBase, new()
+        => GetOrAdd(context, name, Props.Create<TActor>());
+
+    public static IActorRef GetOrAdd(this IActorContext context, string? name, Props props)
     {
-        public static IActorRef GetOrAdd<TActor>(this IActorContext context, string? name)
-            where TActor : ActorBase, new()
-            => GetOrAdd(context, name, Props.Create<TActor>());
+        var child = context.Child(name);
 
-        public static IActorRef GetOrAdd(this IActorContext context, string? name, Props props)
-        {
-            var child = context.Child(name);
-
-            return child.Equals(ActorRefs.Nobody) ? context.ActorOf(props, name) : child;
-        }
-
-        public static IActorRef ActorOf<TActor>(
-            this IActorRefFactory fac, Expression<Func<TActor>> creator,
-            string? name = null) where TActor : ActorBase => fac.ActorOf(Props.Create(creator), name);
-
-        //public static IActorRef ActorOf<TActor>(this IActorRefFactory fac, string? name = null) where TActor : ActorBase
-        //    => fac.ActorOf(Props.Create<TActor>(), name);
+        return child.Equals(ActorRefs.Nobody) ? context.ActorOf(props, name) : child;
     }
+
+    public static IActorRef ActorOf<TActor>(
+        this IActorRefFactory fac, Expression<Func<TActor>> creator,
+        string? name = null) where TActor : ActorBase => fac.ActorOf(Props.Create(creator), name);
+
+    //public static IActorRef ActorOf<TActor>(this IActorRefFactory fac, string? name = null) where TActor : ActorBase
+    //    => fac.ActorOf(Props.Create<TActor>(), name);
 }

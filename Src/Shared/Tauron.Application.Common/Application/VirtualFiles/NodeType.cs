@@ -1,9 +1,8 @@
-﻿namespace Tauron.Application.VirtualFiles
+﻿namespace Tauron.Application.VirtualFiles;
+
+public enum NodeType
 {
-    public enum NodeType
-    {
-        Root,
-        Directory,
-        File
-    }
+    Root,
+    Directory,
+    File
 }

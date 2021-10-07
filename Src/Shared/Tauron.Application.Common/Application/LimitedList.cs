@@ -1,45 +1,44 @@
 ﻿using System.Collections.ObjectModel;
 using JetBrains.Annotations;
 
-namespace Tauron.Application
+namespace Tauron.Application;
+
+[PublicAPI]
+public class LimitedList<T> : Collection<T>
 {
-    [PublicAPI]
-    public class LimitedList<T> : Collection<T>
+    private int _limit;
+
+    public LimitedList() : this(-1) { }
+
+    public LimitedList(int limit) => _limit = limit;
+
+    public int Limit
     {
-        private int _limit;
+        get => _limit;
 
-        public LimitedList() : this(-1) { }
-
-        public LimitedList(int limit) => _limit = limit;
-
-        public int Limit
+        set
         {
-            get => _limit;
-
-            set
-            {
-                _limit = value;
-                CleanUp();
-            }
-        }
-
-        protected override void InsertItem(int index, T item)
-        {
-            base.InsertItem(index, item);
+            _limit = value;
             CleanUp();
         }
+    }
 
-        protected override void SetItem(int index, T item)
-        {
-            base.SetItem(index, item);
-            CleanUp();
-        }
+    protected override void InsertItem(int index, T item)
+    {
+        base.InsertItem(index, item);
+        CleanUp();
+    }
 
-        private void CleanUp()
-        {
-            if (Limit == -1) return;
+    protected override void SetItem(int index, T item)
+    {
+        base.SetItem(index, item);
+        CleanUp();
+    }
 
-            while (Count > Limit) Items.RemoveAt(0);
-        }
+    private void CleanUp()
+    {
+        if (Limit == -1) return;
+
+        while (Count > Limit) Items.RemoveAt(0);
     }
 }

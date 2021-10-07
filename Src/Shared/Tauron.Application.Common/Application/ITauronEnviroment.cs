@@ -1,17 +1,16 @@
 ﻿using System.Collections.Generic;
 using JetBrains.Annotations;
 
-namespace Tauron.Application
+namespace Tauron.Application;
+
+[PublicAPI]
+public interface ITauronEnviroment
 {
-    [PublicAPI]
-    public interface ITauronEnviroment
-    {
-        string DefaultProfilePath { get; set; }
+    string DefaultProfilePath { get; set; }
 
-        string LocalApplicationData { get; }
+    string LocalApplicationData { get; }
 
-        string LocalApplicationTempFolder { get; }
+    string LocalApplicationTempFolder { get; }
 
-        IEnumerable<string> GetProfiles(string application);
-    }
+    IEnumerable<string> GetProfiles(string application);
 }

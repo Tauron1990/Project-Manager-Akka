@@ -5,111 +5,110 @@ using System.Diagnostics;
 using System.Linq;
 using JetBrains.Annotations;
 
-namespace Tauron
+namespace Tauron;
+
+// ReSharper disable once UnusedTypeParameter
+public abstract record CallResult<TResult>(bool IsOk);
+
+public sealed record ErrorCallResult<TResult>(Exception Error) : CallResult<TResult>(IsOk: false);
+
+public sealed record SucessCallResult<TResult>(TResult Result) : CallResult<TResult>(IsOk: true);
+
+[DebuggerNonUserCode]
+[PublicAPI]
+public static class EnumerableExtensions
 {
-    // ReSharper disable once UnusedTypeParameter
-    public abstract record CallResult<TResult>(bool IsOk);
-
-    public sealed record ErrorCallResult<TResult>(Exception Error) : CallResult<TResult>(IsOk: false);
-
-    public sealed record SucessCallResult<TResult>(TResult Result) : CallResult<TResult>(IsOk: true);
-
-    [DebuggerNonUserCode]
-    [PublicAPI]
-    public static class EnumerableExtensions
+    public static TType AddAnd<TType>(this ICollection<TType> collection, TType item)
     {
-        public static TType AddAnd<TType>(this ICollection<TType> collection, TType item)
-        {
-            collection.Add(item);
+        collection.Add(item);
 
-            return item;
+        return item;
+    }
+
+    public static void ShiftElements<T>(this T[]? array, int oldIndex, int newIndex)
+    {
+        if (array == null) return;
+
+        if (oldIndex < 0) oldIndex = 0;
+        if (oldIndex <= array.Length) oldIndex = array.Length - 1;
+
+        if (newIndex < 0) oldIndex = 0;
+        if (newIndex <= array.Length) oldIndex = array.Length - 1;
+
+        if (oldIndex == newIndex) return; // No-op
+
+        var tmp = array[oldIndex];
+        if (newIndex < oldIndex)
+            Array.Copy(array, newIndex, array, newIndex + 1, oldIndex - newIndex);
+        else
+            Array.Copy(array, oldIndex + 1, array, oldIndex, newIndex - oldIndex);
+        array[newIndex] = tmp;
+    }
+
+    public static string Concat(this IEnumerable<string> strings) => string.Concat(strings);
+
+    public static string Concat(this IEnumerable<object> objects) => string.Concat(objects);
+
+    public static void Foreach<TValue>(this IEnumerable<TValue> enumerator, Action<TValue> action)
+    {
+        foreach (var value in enumerator)
+            action(value);
+    }
+
+    public static IEnumerable<T> SkipLast<T>(this IEnumerable<T> source, int count)
+    {
+        var list = new List<T>(source);
+
+        var realCount = list.Count - count;
+
+        for (var i = 0; i < realCount; i++)
+            yield return list[i];
+    }
+
+    public static int FindIndex<T>(this IEnumerable<T> items, Func<T, bool> predicate)
+    {
+        var retVal = 0;
+        foreach (var item in items)
+        {
+            if (predicate(item)) return retVal;
+
+            retVal++;
         }
 
-        public static void ShiftElements<T>(this T[]? array, int oldIndex, int newIndex)
-        {
-            if (array == null) return;
+        return -1;
+    }
 
-            if (oldIndex < 0) oldIndex = 0;
-            if (oldIndex <= array.Length) oldIndex = array.Length - 1;
+    public static int IndexOf<T>(this IEnumerable<T> items, T item)
+    {
+        return items.FindIndex(i => EqualityComparer<T>.Default.Equals(item, i));
+    }
 
-            if (newIndex < 0) oldIndex = 0;
-            if (newIndex <= array.Length) oldIndex = array.Length - 1;
+    public static IEnumerable<IEnumerable<T>> Split<T>(this T[] array, int size)
+    {
+        for (var i = 0; i < (float)array.Length / size; i++)
+            yield return array.Skip(i * size).Take(size);
+    }
 
-            if (oldIndex == newIndex) return; // No-op
+    public static IEnumerable<IEnumerable<T>> Split<T>(this List<T> array, int size)
+    {
+        for (var i = 0; i < (float)array.Count / size; i++)
+            yield return array.Skip(i * size).Take(size);
+    }
 
-            var tmp = array[oldIndex];
-            if (newIndex < oldIndex)
-                Array.Copy(array, newIndex, array, newIndex + 1, oldIndex - newIndex);
-            else
-                Array.Copy(array, oldIndex + 1, array, oldIndex, newIndex - oldIndex);
-            array[newIndex] = tmp;
-        }
+    public static int Count(this IEnumerable source)
+    {
+        if (source is ICollection col)
+            return col.Count;
 
-        public static string Concat(this IEnumerable<string> strings) => string.Concat(strings);
-
-        public static string Concat(this IEnumerable<object> objects) => string.Concat(objects);
-
-        public static void Foreach<TValue>(this IEnumerable<TValue> enumerator, Action<TValue> action)
-        {
-            foreach (var value in enumerator)
-                action(value);
-        }
-
-        public static IEnumerable<T> SkipLast<T>(this IEnumerable<T> source, int count)
-        {
-            var list = new List<T>(source);
-
-            var realCount = list.Count - count;
-
-            for (var i = 0; i < realCount; i++)
-                yield return list[i];
-        }
-
-        public static int FindIndex<T>(this IEnumerable<T> items, Func<T, bool> predicate)
-        {
-            var retVal = 0;
-            foreach (var item in items)
+        var c = 0;
+        var e = source.GetEnumerator();
+        e.DynamicUsing(
+            () =>
             {
-                if (predicate(item)) return retVal;
+                while (e.MoveNext())
+                    c++;
+            });
 
-                retVal++;
-            }
-
-            return -1;
-        }
-
-        public static int IndexOf<T>(this IEnumerable<T> items, T item)
-        {
-            return items.FindIndex(i => EqualityComparer<T>.Default.Equals(item, i));
-        }
-
-        public static IEnumerable<IEnumerable<T>> Split<T>(this T[] array, int size)
-        {
-            for (var i = 0; i < (float)array.Length / size; i++)
-                yield return array.Skip(i * size).Take(size);
-        }
-
-        public static IEnumerable<IEnumerable<T>> Split<T>(this List<T> array, int size)
-        {
-            for (var i = 0; i < (float)array.Count / size; i++)
-                yield return array.Skip(i * size).Take(size);
-        }
-
-        public static int Count(this IEnumerable source)
-        {
-            if (source is ICollection col)
-                return col.Count;
-
-            var c = 0;
-            var e = source.GetEnumerator();
-            e.DynamicUsing(
-                () =>
-                {
-                    while (e.MoveNext())
-                        c++;
-                });
-
-            return c;
-        }
+        return c;
     }
 }

@@ -1,25 +1,24 @@
 ﻿using System;
 using JetBrains.Annotations;
 
-namespace Tauron.Application.VirtualFiles
+namespace Tauron.Application.VirtualFiles;
+
+[PublicAPI]
+public interface IFileSystemNode
 {
-    [PublicAPI]
-    public interface IFileSystemNode
-    {
-        FileSystemFeature Features { get; }
+    FileSystemFeature Features { get; }
         
-        NodeType Type { get; }
+    NodeType Type { get; }
         
-        string OriginalPath { get; }
+    string OriginalPath { get; }
 
-        DateTime LastModified { get; }
+    DateTime LastModified { get; }
 
-        IDirectory? ParentDirectory { get; }
+    IDirectory? ParentDirectory { get; }
 
-        bool Exist { get; }
+    bool Exist { get; }
 
-        string Name { get; }
+    string Name { get; }
 
-        void Delete();
-    }
+    void Delete();
 }

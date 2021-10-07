@@ -1,19 +1,18 @@
 ﻿using System;
 using JetBrains.Annotations;
 
-namespace Tauron.Application.VirtualFiles
+namespace Tauron.Application.VirtualFiles;
+
+[PublicAPI]
+public interface IVirtualFileSystem : IDirectory, IDisposable
 {
-    [PublicAPI]
-    public interface IVirtualFileSystem : IDirectory, IDisposable
-    {
-        bool IsRealTime { get; }
+    bool IsRealTime { get; }
         
-        bool SaveAfterDispose { get; set; }
+    bool SaveAfterDispose { get; set; }
 
-        string Source { get; }
+    string Source { get; }
 
-        void Reload(string source);
+    void Reload(string source);
 
-        void Save();
-    }
+    void Save();
 }

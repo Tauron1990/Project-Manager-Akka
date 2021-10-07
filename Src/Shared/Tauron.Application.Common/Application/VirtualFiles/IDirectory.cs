@@ -1,19 +1,18 @@
 ﻿using System.Collections.Generic;
 using JetBrains.Annotations;
 
-namespace Tauron.Application.VirtualFiles
+namespace Tauron.Application.VirtualFiles;
+
+[PublicAPI]
+public interface IDirectory : IFileSystemNode
 {
-    [PublicAPI]
-    public interface IDirectory : IFileSystemNode
-    {
-        IEnumerable<IDirectory> Directories { get; }
+    IEnumerable<IDirectory> Directories { get; }
 
-        IEnumerable<IFile> Files { get; }
+    IEnumerable<IFile> Files { get; }
 
-        IFile GetFile(string name);
+    IFile GetFile(string name);
 
-        IDirectory GetDirectory(string name);
+    IDirectory GetDirectory(string name);
 
-        IDirectory MoveTo(string location);
-    }
+    IDirectory MoveTo(string location);
 }

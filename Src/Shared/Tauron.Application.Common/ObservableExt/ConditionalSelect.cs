@@ -4,63 +4,62 @@ using System.Diagnostics;
 using System.Reactive.Linq;
 using JetBrains.Annotations;
 
-namespace Tauron.ObservableExt
+namespace Tauron.ObservableExt;
+
+[PublicAPI]
+[DebuggerStepThrough]
+public static class ConditionalSelectExtension
 {
-    [PublicAPI]
-    [DebuggerStepThrough]
-    public static class ConditionalSelectExtension
+    public static ConditionalSelectTypeConfig<TSource> ConditionalSelect<TSource>(this IObservable<TSource> observable)
+        => new(observable);
+}
+
+[PublicAPI]
+[DebuggerStepThrough]
+public sealed class ConditionalSelectTypeConfig<TSource>
+{
+    private readonly IObservable<TSource> _observable;
+
+    public ConditionalSelectTypeConfig(IObservable<TSource> observable) => _observable = observable;
+
+    public IObservable<TResult> ToResult<TResult>(Action<ConditionalSelectBuilder<TSource, TResult>> builder)
     {
-        public static ConditionalSelectTypeConfig<TSource> ConditionalSelect<TSource>(this IObservable<TSource> observable)
-            => new(observable);
+        var setup = new ConditionalSelectBuilder<TSource, TResult>();
+        builder(setup);
+
+        return setup.Build(_observable).Merge();
     }
 
-    [PublicAPI]
-    [DebuggerStepThrough]
-    public sealed class ConditionalSelectTypeConfig<TSource>
+    public IObservable<TSource> ToSame(Action<ConditionalSelectBuilder<TSource, TSource>> builder)
+        => ToResult(builder);
+}
+
+[PublicAPI]
+[DebuggerStepThrough]
+public sealed class ConditionalSelectBuilder<TSource, TResult>
+{
+    private readonly List<(Func<TSource, bool>, Func<IObservable<TSource>, IObservable<TResult>>)> _registrations =
+        new();
+
+    public void Add(Func<TSource, bool> when, Func<IObservable<TSource>, IObservable<TResult>> then)
     {
-        private readonly IObservable<TSource> _observable;
-
-        public ConditionalSelectTypeConfig(IObservable<TSource> observable) => _observable = observable;
-
-        public IObservable<TResult> ToResult<TResult>(Action<ConditionalSelectBuilder<TSource, TResult>> builder)
-        {
-            var setup = new ConditionalSelectBuilder<TSource, TResult>();
-            builder(setup);
-
-            return setup.Build(_observable).Merge();
-        }
-
-        public IObservable<TSource> ToSame(Action<ConditionalSelectBuilder<TSource, TSource>> builder)
-            => ToResult(builder);
+        _registrations.Add((when, then));
     }
 
-    [PublicAPI]
-    [DebuggerStepThrough]
-    public sealed class ConditionalSelectBuilder<TSource, TResult>
+    public ConditionalSelectBuilder<TSource, TResult> When(
+        Func<TSource, bool> when,
+        Func<IObservable<TSource>, IObservable<TResult>> then)
     {
-        private readonly List<(Func<TSource, bool>, Func<IObservable<TSource>, IObservable<TResult>>)> _registrations =
-            new();
+        _registrations.Add((when, then));
 
-        public void Add(Func<TSource, bool> when, Func<IObservable<TSource>, IObservable<TResult>> then)
-        {
-            _registrations.Add((when, then));
-        }
+        return this;
+    }
 
-        public ConditionalSelectBuilder<TSource, TResult> When(
-            Func<TSource, bool> when,
-            Func<IObservable<TSource>, IObservable<TResult>> then)
-        {
-            _registrations.Add((when, then));
+    public IEnumerable<IObservable<TResult>> Build(IObservable<TSource> rawRource)
+    {
+        var source = rawRource.Publish().RefCount(_registrations.Count);
 
-            return this;
-        }
-
-        public IEnumerable<IObservable<TResult>> Build(IObservable<TSource> rawRource)
-        {
-            var source = rawRource.Publish().RefCount(_registrations.Count);
-
-            foreach (var (when, then) in _registrations)
-                yield return then(source.Where(when));
-        }
+        foreach (var (when, then) in _registrations)
+            yield return then(source.Where(when));
     }
 }
