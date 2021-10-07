@@ -11,6 +11,8 @@ namespace Tauron.Application.VirtualFiles.InMemory.Data
     {
         private readonly ConcurrentDictionary<string, IDataElement> _elements = new();
 
+        public string Name { get; set; } = string.Empty;
+        
         public IEnumerable<FileEntry> Files => _elements.Values.OfType<FileEntry>();
 
         public IEnumerable<DirectoryEntry> Directorys => _elements.Values.OfType<DirectoryEntry>();
@@ -24,6 +26,8 @@ namespace Tauron.Application.VirtualFiles.InMemory.Data
         
         public virtual void Dispose()
         {
+            Name = string.Empty;
+            
             foreach (var value in _elements.Values)
                 value.Dispose();
             
