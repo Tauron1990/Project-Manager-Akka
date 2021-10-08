@@ -11,12 +11,12 @@ public abstract class VirtualFileSystemBase<TContext> : DirectoryBase<TContext>,
         
     public bool SaveAfterDispose { get; set; }
         
-    public abstract string Source { get; }
+    public abstract FilePath Source { get; }
         
-    public void Reload(string source)
+    public void Reload(FilePath source)
     {
         ValidateFeature(FileSystemFeature.Reloading);
-        ReloadImpl(Context);
+        ReloadImpl(Context, source);
     }
 
     public void Save()
@@ -43,5 +43,5 @@ public abstract class VirtualFileSystemBase<TContext> : DirectoryBase<TContext>,
         
     protected abstract void DisposeImpl();
 
-    protected abstract void ReloadImpl(TContext context);
+    protected abstract void ReloadImpl(TContext context, FilePath filePath);
 }

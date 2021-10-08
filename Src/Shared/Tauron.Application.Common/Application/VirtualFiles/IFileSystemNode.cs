@@ -10,7 +10,7 @@ public interface IFileSystemNode
         
     NodeType Type { get; }
         
-    string OriginalPath { get; }
+    FilePath OriginalPath { get; }
 
     DateTime LastModified { get; }
 

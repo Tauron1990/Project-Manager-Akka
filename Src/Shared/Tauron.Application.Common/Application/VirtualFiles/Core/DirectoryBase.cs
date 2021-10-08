@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using JetBrains.Annotations;
 
@@ -17,46 +18,40 @@ public abstract class DirectoryBase<TContext> : SystemNodeBase<TContext>, IDirec
         
     public abstract IEnumerable<IFile> Files { get; }
 
-    protected abstract IDirectory GetDirectory(TContext context, string name);
+    protected abstract IDirectory GetDirectory(TContext context, FilePath name);
         
-    protected abstract IFile GetFile(TContext context, string name);
+    protected abstract IFile GetFile(TContext context, FilePath name);
 
-    protected virtual IDirectory SplitDirectoryPath(string name)
+    private TResult SplitPath<TResult>(FilePath path, Func<TContext, FilePath, TResult> getDirect, Func<TContext, string, string, TResult> getFromSubpath)
     {
-        name = GenericPathHelper.NormalizePath(name);
+        path = GenericPathHelper.NormalizePath(path);
 
-        if (!name.Contains(GenericPathHelper.GenericSeperator)) return GetDirectory(Context, name);
+        if (!path.Path.Contains(GenericPathHelper.GenericSeperator)) return getDirect(Context, path);
 
-        var elements = name.Split(GenericPathHelper.GenericSeperator, 2);
+        var elements = path.Path.Split(GenericPathHelper.GenericSeperator, 2);
 
-        return GetDirectory(Context, elements[0]).GetDirectory(elements[1]);
-
+        return getFromSubpath(Context, elements[0], elements[1]);
     }
-        
-    protected virtual IFile SplitFilePath(string name)
-    {
-        name = GenericPathHelper.NormalizePath(name);
 
-        if (!name.Contains(GenericPathHelper.GenericSeperator)) return GetFile(Context, name);
+    protected virtual IDirectory SplitDirectoryPath(FilePath name)
+        => SplitPath(name.Path, GetDirectory, (context, path, actualName) => GetDirectory(context, path).GetDirectory(actualName));
 
-        var elements = name.Split(GenericPathHelper.GenericSeperator, 2);
+    protected virtual IFile SplitFilePath(FilePath name)
+        => SplitPath(name, GetFile, (context, path, actualName) => GetDirectory(context, path).GetFile(actualName));
 
-        return GetDirectory(Context, elements[0]).GetFile(elements[1]);
-    }
-        
-    public IFile GetFile(string name)
+    public IFile GetFile(FilePath name)
         => SplitFilePath(name);
 
-    public IDirectory GetDirectory(string name)
+    public IDirectory GetDirectory(FilePath name)
         => SplitDirectoryPath(name);
 
-    public IDirectory MoveTo(string location)
+    public IDirectory MoveTo(FilePath location)
     {
         ValidateFeature(FileSystemFeature.Moveable);
             
         return MovetTo(Context, GenericPathHelper.NormalizePath(location));
     }
 
-    protected virtual IDirectory MovetTo(TContext context, string location)
+    protected virtual IDirectory MovetTo(TContext context, FilePath location)
         => throw new IOException("Move is not Implemented");
 }

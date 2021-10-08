@@ -10,7 +10,7 @@ public class InMemoryDirectory : DirectoryBase<DirectoryContext>
 {
     public InMemoryDirectory(DirectoryContext context, FileSystemFeature feature) : base(context, feature) { }
 
-    public override string OriginalPath => GenericPathHelper.Combine(Context.Path, Name);
+    public override FilePath OriginalPath => GenericPathHelper.Combine(Context.Path, Name);
 
     public override DateTime LastModified => Context.Data.ModifyDate;
 
@@ -28,10 +28,10 @@ public class InMemoryDirectory : DirectoryBase<DirectoryContext>
     public override IEnumerable<IFile> Files
         => Context.Data.Files.Select(
             f => new InMemoryFile(
-                new FileContext(Context.Root, this, f, OriginalPath, Context.Clock),
+                Context.GetFileContext(this, f, OriginalPath),
                 Features));
     
-    protected override IDirectory GetDirectory(DirectoryContext context, string name)
+    protected override IDirectory GetDirectory(DirectoryContext context, FilePath name)
         => new InMemoryDirectory(context with
                                  {
                                      Path = OriginalPath, 
@@ -39,8 +39,8 @@ public class InMemoryDirectory : DirectoryBase<DirectoryContext>
                                      Parent = this
                                  }, Features);
 
-    protected override IFile GetFile(DirectoryContext context, string name)
+    protected override IFile GetFile(DirectoryContext context, FilePath name)
         => new InMemoryFile(
-            new FileContext(context.Root, this, context.Root.GetInitializedFile(name, context.Clock), OriginalPath, context.Clock),
+            Context.GetFileContext(this, name, OriginalPath),
             Features);
 }

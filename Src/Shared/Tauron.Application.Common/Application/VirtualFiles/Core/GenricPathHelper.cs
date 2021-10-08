@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using JetBrains.Annotations;
 
 namespace Tauron.Application.VirtualFiles.Core;
@@ -8,28 +9,36 @@ public static class GenericPathHelper
 {
     public const char GenericSeperator = '/';
 
-    public static string ChangeExtension(string path, string newExtension)
-        => Path.ChangeExtension(path, newExtension);
-    /*if (string.IsNullOrWhiteSpace(path)) return path;
+    public const string AbsolutPathMarker = "::";
 
-    var point = -1;
-
-    for (var i = path.Length - 1; i >= 0; i--)
+    public static bool IsAbsolute(string path)
     {
-        if (path[i] == GenericSeperator) return path + newExtension;
+        ReadOnlySpan<char> str = path;
 
-        if (path[i] != '.') continue;
+        #pragma warning disable EPS06
+        var index = str.IndexOf(AbsolutPathMarker, StringComparison.Ordinal);
 
-        point = i;
-
-        break;
+        return index > 0 && !str[..index].Contains(GenericSeperator);
+        #pragma warning restore EPS06
     }
 
-    return point == -1 
-        ? path 
-        : $"{path[..point]}{newExtension}";*/
+    public static FilePath ToRelativePath(FilePath path)
+    {
+        if (path.Kind == PathType.Relative) return path;
+        
+        ReadOnlySpan<char> str = path.Path;
 
-    public static string Combine(string first, string secund)
+        #pragma warning disable EPS06
+        var index = str.IndexOf(AbsolutPathMarker, StringComparison.Ordinal);
+        #pragma warning restore EPS06
+
+        return index == -1 ? path with { Kind = PathType.Relative } : new FilePath(str[..index].ToString(), PathType.Relative);
+    }
+    
+    public static FilePath ChangeExtension(FilePath path, string newExtension)
+        => Path.ChangeExtension(path, newExtension);
+
+    public static FilePath Combine(FilePath first, FilePath secund)
     {
         var result = Path.Combine(first, secund);
 
@@ -38,27 +47,6 @@ public static class GenericPathHelper
             : result;
     }
 
-    public static string NormalizePath(string path)
-        => path.Replace('\\', GenericSeperator);
-
-    /*{
-        if (string.IsNullOrEmpty(first))
-            return string.IsNullOrWhiteSpace(secund) ? string.Empty : secund;
-
-        if (string.IsNullOrEmpty(secund))
-            return string.IsNullOrWhiteSpace(first) ? string.Empty : first;
-        
-        if (first.EndsWith(GenericSeperator))
-        {
-            if (secund.StartsWith(GenericSeperator))
-                return first + secund[1..];
-
-            return first + secund;
-        }
-
-        if (secund.StartsWith(GenericSeperator))
-            return first + secund;
-
-        return first + GenericSeperator + secund;
-    }*/
+    public static FilePath NormalizePath(FilePath path)
+        => path with{ Path = path.Path.Replace('\\', GenericSeperator) };
 }

@@ -10,9 +10,9 @@ public interface IVirtualFileSystem : IDirectory, IDisposable
         
     bool SaveAfterDispose { get; set; }
 
-    string Source { get; }
+    FilePath Source { get; }
 
-    void Reload(string source);
+    void Reload(FilePath source);
 
     void Save();
 }

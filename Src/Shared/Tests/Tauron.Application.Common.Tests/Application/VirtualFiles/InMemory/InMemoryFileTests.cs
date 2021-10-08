@@ -2,6 +2,7 @@
 using System.IO;
 using System.Reactive.PlatformServices;
 using FluentAssertions;
+using NSubstitute;
 using Tauron.Application.VirtualFiles;
 using Tauron.Application.VirtualFiles.InMemory;
 using Tauron.Application.VirtualFiles.InMemory.Data;
@@ -16,7 +17,7 @@ public class InMemoryFileTests
     {
         var dataRoot = new InMemoryRoot();
 
-        return new FileContext(dataRoot, null, dataRoot.GetInitializedFile(name, clock), name, clock);
+        return new FileContext(dataRoot, null, dataRoot.GetInitializedFile(name, clock), name, clock, Substitute.For<IVirtualFileSystem>());
     }
 
     [Fact]

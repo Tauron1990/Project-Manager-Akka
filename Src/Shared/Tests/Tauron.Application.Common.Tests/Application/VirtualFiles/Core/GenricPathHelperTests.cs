@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using FluentAssertions;
+using Tauron.Application.VirtualFiles;
 using Tauron.Application.VirtualFiles.Core;
 using Xunit;
 
@@ -26,7 +27,7 @@ public class GenricPathHelperTests
     {
         var newPath = GenericPathHelper.ChangeExtension(pathToChange, targetExt);
 
-        newPath.Should().Contain(targetName).And.StartWith(start).And.EndWith(targetExt);
+        newPath.Path.Should().Contain(targetName).And.StartWith(start).And.EndWith(targetExt);
     }
         
 
@@ -46,7 +47,7 @@ public class GenricPathHelperTests
     {
         var result = GenericPathHelper.ChangeExtension(string.Empty, "dat");
 
-        result.Should().BeEmpty();
+        result.Path.Should().BeEmpty();
     }
         
     public static IEnumerable<object[]> GetTestNamesForCombineTest()
@@ -83,4 +84,39 @@ public class GenricPathHelperTests
 
         result.Should().Be(expect);
     }
+
+    [Fact]
+    public void IsAbsolute_with_Absolute_Test()
+    {
+        const string toTest = "zip::C:/Test/test.zip";
+
+        var result = GenericPathHelper.IsAbsolute(toTest);
+        
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public void IsAbsolute_with_Relative_Test()
+    {
+        const string toTest = "C:/Test/test.zip";
+
+        var result = GenericPathHelper.IsAbsolute(toTest);
+
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public void ToRelative_with_Absolute_Test()
+    {
+        const string toTest = "zip::C:/Test.zip";
+
+        var relative = GenericPathHelper.ToRelativePath(toTest);
+
+        relative.Path.Should().Be("C:/Test.zip");
+        relative.Kind.Should().Be(PathType.Relative);
+    }
+    
+    [Fact]
+    public void ToRelative_with_Relative_Test()
+    {}
 }

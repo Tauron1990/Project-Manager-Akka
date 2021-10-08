@@ -10,7 +10,7 @@ public sealed class InMemoryFile : FileBase<FileContext>
     public InMemoryFile(FileContext context, FileSystemFeature feature) 
         : base(context, feature) { }
 
-    public override string OriginalPath => GenericPathHelper.Combine(Context.Path, Name);
+    public override FilePath OriginalPath => GenericPathHelper.Combine(Context.Path, Name);
 
     public override DateTime LastModified => Context.Data.ModifyDate;
 
@@ -37,5 +37,9 @@ public sealed class InMemoryFile : FileBase<FileContext>
             Context.Root.ReInit(Context.Data, Context.Clock);
 
         return new StreamWrapper(Context.Data.ActualData, access, () => Context.Data.ModifyDate = Context.Clock.UtcNow.LocalDateTime);
+    }
+
+    protected override void Delete(FileContext context)
+    {
     }
 }
