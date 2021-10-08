@@ -19,7 +19,7 @@ public abstract class SystemNodeBase<TContext> : IFileSystemNode
         
     public abstract IDirectory? ParentDirectory { get; }
 
-    public bool Exist => Features.HasFlag(FileSystemFeature.Exist);
+    public abstract bool Exist { get; } 
         
     public abstract string Name { get; }
 

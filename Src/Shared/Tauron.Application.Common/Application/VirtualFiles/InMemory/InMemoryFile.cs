@@ -10,11 +10,12 @@ public sealed class InMemoryFile : FileBase<FileContext>
     public InMemoryFile(FileContext context, FileSystemFeature feature) 
         : base(context, feature) { }
 
-    public override string OriginalPath => Context.Path;
+    public override string OriginalPath => GenericPathHelper.Combine(Context.Path, Name);
 
     public override DateTime LastModified => Context.Data.ModifyDate;
 
     public override IDirectory? ParentDirectory => Context.Parent;
+    public override bool Exist => true;
 
     public override string Name => Context.Data.ActualName;
 

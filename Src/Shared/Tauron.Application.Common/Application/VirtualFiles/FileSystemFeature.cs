@@ -11,7 +11,6 @@ public enum FileSystemFeature
     Save = 1 << 2,
     RealTime = 1 << 3,
     Moveable = 1 << 4,
-    Exist = 1 << 5,
     Delete = 1 << 6,
     Extension = 1 << 7,
     Create = 1 << 8,
