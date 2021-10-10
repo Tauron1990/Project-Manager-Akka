@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Tauron.Application.VirtualFiles.Core;
 using Tauron.Application.VirtualFiles.InMemory.Data;
@@ -9,6 +10,9 @@ namespace Tauron.Application.VirtualFiles.InMemory;
 public class InMemoryDirectory : DirectoryBase<DirectoryContext>
 {
     public InMemoryDirectory(DirectoryContext context, FileSystemFeature feature) : base(context, feature) { }
+    
+    public static InMemoryDirectory? Create([NotNullIfNotNull("context")]DirectoryContext? context, FileSystemFeature features)
+        => context is null ? null : new InMemoryDirectory(context, features);
 
     public override FilePath OriginalPath => GenericPathHelper.Combine(Context.Path, Name);
 

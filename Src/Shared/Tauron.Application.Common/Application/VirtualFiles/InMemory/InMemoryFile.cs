@@ -7,6 +7,8 @@ namespace Tauron.Application.VirtualFiles.InMemory;
 
 public sealed class InMemoryFile : FileBase<FileContext>
 {
+    private bool _exist = true;
+    
     public InMemoryFile(FileContext context, FileSystemFeature feature) 
         : base(context, feature) { }
 
@@ -14,8 +16,9 @@ public sealed class InMemoryFile : FileBase<FileContext>
 
     public override DateTime LastModified => Context.Data.ModifyDate;
 
-    public override IDirectory? ParentDirectory => Context.Parent;
-    public override bool Exist => true;
+    public override IDirectory? ParentDirectory => InMemoryDirectory.Create(Context.Parent, Features);
+
+    public override bool Exist => _exist;
 
     public override string Name => Context.Data.ActualName;
 
@@ -41,5 +44,22 @@ public sealed class InMemoryFile : FileBase<FileContext>
 
     protected override void Delete(FileContext context)
     {
+        if(context.Parent is null) return;
+
+        _exist = !context.Parent.Data.Remove(context.Data.Name, out var ele);
+        if(ele is FileEntry entry)
+            context.Root.ReturnFile(entry);
+    }
+
+    protected override IFile MoveTo(FileContext context, FilePath location)
+    {
+        if (location.Kind == PathType.Absolute)
+        {
+            
+        }
+        else
+        {
+            
+        }
     }
 }
