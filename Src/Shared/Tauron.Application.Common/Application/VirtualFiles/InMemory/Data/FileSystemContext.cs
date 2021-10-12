@@ -2,13 +2,13 @@
 
 namespace Tauron.Application.VirtualFiles.InMemory.Data;
 
-public abstract record FileSystemContextBase<TData>(InMemoryRoot Root, DirectoryContext? Parent, TData Data, FilePath Path, ISystemClock Clock, IVirtualFileSystem RootSystem)
+public abstract record FileSystemContextBase<TData>(InMemoryRoot Root, DirectoryContext? Parent, TData Data, FilePath Path, ISystemClock Clock, InMemoryFileSystem RootSystem)
     where TData : IDataElement;
 
-public sealed record FileContext(InMemoryRoot Root, DirectoryContext? Parent, FileEntry Data, FilePath Path, ISystemClock Clock, IVirtualFileSystem RootSystem) 
+public sealed record FileContext(InMemoryRoot Root, DirectoryContext? Parent, FileEntry Data, FilePath Path, ISystemClock Clock, InMemoryFileSystem RootSystem) 
     : FileSystemContextBase<FileEntry>(Root, Parent, Data, Path, Clock, RootSystem);
 
-public sealed record DirectoryContext(InMemoryRoot Root, DirectoryContext? Parent, DirectoryEntry Data, FilePath Path, ISystemClock Clock, IVirtualFileSystem RootSystem)
+public sealed record DirectoryContext(InMemoryRoot Root, DirectoryContext? Parent, DirectoryEntry Data, FilePath Path, ISystemClock Clock, InMemoryFileSystem RootSystem)
     : FileSystemContextBase<DirectoryEntry>(Root, Parent, Data, Path, Clock, RootSystem)
 {
     public FileContext GetFileContext(DirectoryContext parent, FileEntry file, FilePath path) 

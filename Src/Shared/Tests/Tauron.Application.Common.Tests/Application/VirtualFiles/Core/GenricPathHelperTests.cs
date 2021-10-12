@@ -115,8 +115,15 @@ public class GenricPathHelperTests
         relative.Path.Should().Be("C:/Test.zip");
         relative.Kind.Should().Be(PathType.Relative);
     }
-    
+
     [Fact]
     public void ToRelative_with_Relative_Test()
-    {}
+    {
+        const string toTest = "C:/Test.zip";
+        
+        var relative = GenericPathHelper.ToRelativePath(toTest);
+        
+        relative.Path.Should().Be(toTest);
+        relative.Kind.Should().Be(PathType.Relative);
+    }
 }

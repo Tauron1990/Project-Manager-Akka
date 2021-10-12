@@ -1,4 +1,5 @@
-﻿using JetBrains.Annotations;
+﻿using System;
+using JetBrains.Annotations;
 
 namespace Tauron.Application.VirtualFiles.Core;
 
@@ -43,5 +44,6 @@ public abstract class VirtualFileSystemBase<TContext> : DirectoryBase<TContext>,
         
     protected abstract void DisposeImpl();
 
-    protected abstract void ReloadImpl(TContext context, FilePath filePath);
+    protected virtual void ReloadImpl(TContext context, FilePath filePath)
+        => throw new InvalidOperationException("Reloading not Supported");
 }

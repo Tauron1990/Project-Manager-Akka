@@ -44,4 +44,7 @@ public class DirectoryEntry : DataElementBase
 
     public override void Recycle()
         => Dispose();
+
+    public bool TryAddElement(string name, IDataElement element)
+        => _elements.TryAdd(name, element);
 }

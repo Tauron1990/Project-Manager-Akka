@@ -53,13 +53,20 @@ public sealed class InMemoryFile : FileBase<FileContext>
 
     protected override IFile MoveTo(FileContext context, FilePath location)
     {
+        IFile? file = null;
+        
         if (location.Kind == PathType.Absolute)
-        {
-            
-        }
+            file = Context.RootSystem.MoveElement(Name, location, context.Data,
+                (directoryContext, directory, fileEntry) => 
+                    new InMemoryFile(directoryContext.GetFileContext(directoryContext, fileEntry, GenericPathHelper.Combine(location, Name)), Features));
         else
         {
-            
+            var target = ParentDirectory?.GetDirectory(location);
         }
+
+        if (file == null)
+            throw new InvalidOperationException("Movement Has failed (Possible Duplicate?)");
+
+        return file;
     }
 }

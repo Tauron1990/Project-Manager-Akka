@@ -18,33 +18,41 @@ public class InMemoryDirectory : DirectoryBase<DirectoryContext>
 
     public override DateTime LastModified => Context.Data.ModifyDate;
 
-    public override IDirectory? ParentDirectory => Context.Parent;
+    public override IDirectory? ParentDirectory => Context.Parent != null
+        ? new InMemoryDirectory(Context with { Path = OriginalPath, Data = Context.Parent.Data }, Features)
+        : null;
+    
     public override bool Exist => true;
 
     public override string Name => Context.Data.Name;
 
+    internal DirectoryContext DirectoryContext => Context;
+    
     public override IEnumerable<IDirectory> Directories
         => Context.Data.Directorys.Select(
             d => new InMemoryDirectory(
-                Context with { Parent = this, Path = OriginalPath, Data = d },
+                Context with { Parent = this.Context, Path = OriginalPath, Data = d },
                 Features));
 
     public override IEnumerable<IFile> Files
         => Context.Data.Files.Select(
             f => new InMemoryFile(
-                Context.GetFileContext(this, f, OriginalPath),
+                Context.GetFileContext(Context, f, OriginalPath),
                 Features));
+
+    internal bool TryAddElement(string name, IDataElement element)
+        => Context.Data.TryAddElement(name, element);
     
     protected override IDirectory GetDirectory(DirectoryContext context, FilePath name)
         => new InMemoryDirectory(context with
                                  {
                                      Path = OriginalPath, 
                                      Data = Context.Root.GetDirectoryEntry(name, context.Clock),
-                                     Parent = this
+                                     Parent = Context
                                  }, Features);
 
     protected override IFile GetFile(DirectoryContext context, FilePath name)
         => new InMemoryFile(
-            Context.GetFileContext(this, name, OriginalPath),
+            Context.GetFileContext(Context, name, OriginalPath),
             Features);
 }
