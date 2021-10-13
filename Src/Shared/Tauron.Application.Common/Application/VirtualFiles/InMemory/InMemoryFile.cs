@@ -14,21 +14,21 @@ public sealed class InMemoryFile : FileBase<FileContext>
 
     public override FilePath OriginalPath => GenericPathHelper.Combine(Context.Path, Name);
 
-    public override DateTime LastModified => Context.Data.ModifyDate;
+    public override DateTime LastModified => Context.ActualData.ModifyDate;
 
     public override IDirectory? ParentDirectory => InMemoryDirectory.Create(Context.Parent, Features);
 
     public override bool Exist => _exist;
 
-    public override string Name => Context.Data.ActualName;
+    public override string Name => Context.ActualData.ActualName;
 
     protected override string ExtensionImpl
     {
-        get => Path.GetExtension(Context.Data.Name);
+        get => Path.GetExtension(Context.ActualData.Name);
         set
         {
-            Context.Data.Name = GenericPathHelper.ChangeExtension(Context.Data.Name, value);
-            Context.Data.ModifyDate = Context.Clock.UtcNow.LocalDateTime;
+            Context.ActualData.Name = GenericPathHelper.ChangeExtension(Context.ActualData.Name, value);
+            Context.ActualData.ModifyDate = Context.Clock.UtcNow.LocalDateTime;
         }
     }
 
@@ -37,18 +37,19 @@ public sealed class InMemoryFile : FileBase<FileContext>
     protected override Stream CreateStream(FileContext context, FileAccess access, bool createNew)
     {
         if (createNew)
-            Context.Root.ReInit(Context.Data, Context.Clock);
+            Context.Root.ReInit(Context.ActualData, Context.Clock);
 
-        return new StreamWrapper(Context.Data.ActualData, access, () => Context.Data.ModifyDate = Context.Clock.UtcNow.LocalDateTime);
+        return new StreamWrapper(Context.ActualData.ActualData, access, () => Context.ActualData.ModifyDate = Context.Clock.UtcNow.LocalDateTime);
     }
 
     protected override void Delete(FileContext context)
     {
         if(context.Parent is null) return;
 
-        _exist = !context.Parent.Data.Remove(context.Data.Name, out var ele);
-        if(ele is FileEntry entry)
-            context.Root.ReturnFile(entry);
+        _exist = !context.Parent.ActualData.Remove(context.ActualData.Name);
+
+        context.Root.ReturnFile(context.ActualData);
+        Context = context with { Parent = null, Data = null };
     }
 
     protected override IFile MoveTo(FileContext context, FilePath location)
@@ -56,24 +57,26 @@ public sealed class InMemoryFile : FileBase<FileContext>
         IFile? file = null;
 
         if (location.Kind == PathType.Absolute)
-            file = Context.RootSystem.MoveElement(Name, location, context.Data,
-                (directoryContext, fileEntry) => 
-                    new InMemoryFile(directoryContext.GetFileContext(directoryContext, fileEntry, GenericPathHelper.Combine(location, Name)), Features));
+            file = context.RootSystem.MoveElement(Name, location, context.ActualData,
+                (directoryContext, newPath, fileEntry) => 
+                    new InMemoryFile(directoryContext.GetFileContext(directoryContext, fileEntry, GenericPathHelper.Combine(newPath, Name)), Features));
         else
         {
             if (ParentDirectory?.GetDirectory(location) is InMemoryDirectory parent)
             {
-                if (parent.TryAddElement(Name, Context.Data))
+                if (parent.TryAddElement(Name, context.ActualData))
                 {
                     file = parent.GetFile(Name);
                 }
             }
         }
 
-        if (file == null)
+        if (file is null)
             throw new InvalidOperationException("Movement Has failed (Possible Duplicate?)");
 
-        Context.Parent?.Data.Remove(Name, out _);
+        context.Parent?.ActualData.Remove(Name);
+        Context = context with { Data = null, Parent = null };
+        _exist = false;
         
         return file;
     }

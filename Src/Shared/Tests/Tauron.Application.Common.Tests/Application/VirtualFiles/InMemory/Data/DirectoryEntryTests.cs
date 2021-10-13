@@ -80,7 +80,7 @@ public class DirectoryEntryTests
         var testName = "Test";
             
         data.GetOrAdd(testName, () => testAdd);
-        var result = data.Remove(testName, out var removed);
+        var result = data.Remove(testName);
 
         result.Should().BeTrue();
         removed.Should().Be(testAdd);

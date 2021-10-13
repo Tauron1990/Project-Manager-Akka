@@ -7,7 +7,7 @@ namespace Tauron.Application.VirtualFiles.Core;
 [PublicAPI]
 public abstract class SystemNodeBase<TContext> : IFileSystemNode
 {
-    protected TContext Context { get; }
+    protected TContext Context { get; set; }
 
     public FileSystemFeature Features { get; }
         

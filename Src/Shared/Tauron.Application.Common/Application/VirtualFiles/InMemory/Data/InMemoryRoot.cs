@@ -31,6 +31,20 @@ public sealed class InMemoryRoot : DirectoryEntry
     {
         if (entry.GetType() != typeof(DirectoryEntry))
             throw new InvalidOperationException("Invalid Directory Returned");
+
+        foreach (var subEntry in entry)
+        {
+            switch (subEntry)
+            {
+                case FileEntry ent:
+                    ReturnFile(ent);
+                    break;
+                case DirectoryEntry dicEnt:
+                    ReturnDirectory(dicEnt);
+                    break;
+            }
+        }
+        
         _directoryPool.Recycle(entry);
     }
 

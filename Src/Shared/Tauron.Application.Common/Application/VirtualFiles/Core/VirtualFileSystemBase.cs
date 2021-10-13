@@ -40,9 +40,10 @@ public abstract class VirtualFileSystemBase<TContext> : DirectoryBase<TContext>,
         }
     }
 
-    protected abstract void SaveImpl(TContext context);
+    protected virtual void SaveImpl(TContext context)
+        => throw new InvalidOperationException("Save not Implemented");
         
-    protected abstract void DisposeImpl();
+    protected virtual void DisposeImpl(){}
 
     protected virtual void ReloadImpl(TContext context, FilePath filePath)
         => throw new InvalidOperationException("Reloading not Supported");

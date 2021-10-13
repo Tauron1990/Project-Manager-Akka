@@ -5,9 +5,20 @@ using Tauron.Application.VirtualFiles.InMemory.Data;
 
 namespace Tauron.Application.VirtualFiles.InMemory;
 
-public class InMemoryFileSystem : VirtualFileSystemBase<DirectoryContext>
+public class InMemoryFileSystem : VirtualFileSystemBase<InMemoryDirectory>
 {
-    public InMemoryFileSystem(DirectoryContext context, FileSystemFeature feature) : base(context, feature) { }
+
+    internal TResult? MoveElement<TResult, TElement>(string name, FilePath path, TElement element, Func<DirectoryContext, FilePath, TElement, TResult> factory)
+        where TElement : IDataElement
+        where TResult : class
+    {
+        var relative = GenericPathHelper.ToRelativePath(path);
+        var dic = (InMemoryDirectory)GetDirectory(relative);
+
+        return dic.TryAddElement(name, element) ? factory(dic.DirectoryContext, relative, element) : null;
+    }
+
+    public InMemoryFileSystem(InMemoryDirectory context, FileSystemFeature feature) : base(context, feature) { }
     public override FilePath OriginalPath { get; }
     public override DateTime LastModified { get; }
     public override IDirectory? ParentDirectory { get; }
@@ -15,30 +26,11 @@ public class InMemoryFileSystem : VirtualFileSystemBase<DirectoryContext>
     public override string Name { get; }
     public override IEnumerable<IDirectory> Directories { get; }
     public override IEnumerable<IFile> Files { get; }
-    protected override IDirectory GetDirectory(DirectoryContext context, FilePath name)
+    protected override IDirectory GetDirectory(InMemoryDirectory context, FilePath name)
         => throw new NotImplementedException();
 
-    protected override IFile GetFile(DirectoryContext context, FilePath name)
+    protected override IFile GetFile(InMemoryDirectory context, FilePath name)
         => throw new NotImplementedException();
 
     public override FilePath Source { get; }
-    protected override void SaveImpl(DirectoryContext context)
-    {
-        throw new NotImplementedException();
-    }
-
-    internal TResult? MoveElement<TResult, TElement>(string name, FilePath path, TElement element, Func<DirectoryContext, TElement, TResult> factory)
-        where TElement : IDataElement
-        where TResult : class
-    {
-        var dic = (InMemoryDirectory)GetDirectory(path);
-
-        return dic.TryAddElement(name, element) ? factory(dic.DirectoryContext, element) : null;
-    }
-
-    protected override void DisposeImpl()
-    {
-        throw new NotImplementedException();
-    }
-
 }
