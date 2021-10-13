@@ -27,13 +27,13 @@ public class InMemoryFileSystem : VirtualFileSystemBase<DirectoryContext>
         throw new NotImplementedException();
     }
 
-    internal TResult? MoveElement<TResult, TElement>(string name, FilePath path, TElement element, Func<DirectoryContext, InMemoryDirectory, TElement, TResult> factory)
+    internal TResult? MoveElement<TResult, TElement>(string name, FilePath path, TElement element, Func<DirectoryContext, TElement, TResult> factory)
         where TElement : IDataElement
         where TResult : class
     {
         var dic = (InMemoryDirectory)GetDirectory(path);
 
-        return dic.TryAddElement(name, element) ? factory(dic.DirectoryContext, dic, element) : null;
+        return dic.TryAddElement(name, element) ? factory(dic.DirectoryContext, element) : null;
     }
 
     protected override void DisposeImpl()
