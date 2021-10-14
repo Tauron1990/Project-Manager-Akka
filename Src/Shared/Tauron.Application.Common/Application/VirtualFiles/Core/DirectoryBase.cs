@@ -24,11 +24,11 @@ public abstract class DirectoryBase<TContext> : SystemNodeBase<TContext>, IDirec
         
     public abstract IEnumerable<IFile> Files { get; }
 
-    protected abstract IDirectory GetDirectory(TContext context, FilePath name);
+    protected abstract IDirectory GetDirectory(TContext context, PathInfo name);
         
-    protected abstract IFile GetFile(TContext context, FilePath name);
+    protected abstract IFile GetFile(TContext context, PathInfo name);
 
-    private TResult SplitPath<TResult>(FilePath path, Func<TContext, FilePath, TResult> getDirect, Func<TContext, string, string, TResult> getFromSubpath)
+    private TResult SplitPath<TResult>(PathInfo path, Func<TContext, PathInfo, TResult> getDirect, Func<TContext, string, string, TResult> getFromSubpath)
     {
         path = GenericPathHelper.NormalizePath(path);
 
@@ -39,25 +39,25 @@ public abstract class DirectoryBase<TContext> : SystemNodeBase<TContext>, IDirec
         return getFromSubpath(Context, elements[0], elements[1]);
     }
 
-    protected virtual IDirectory SplitDirectoryPath(FilePath name)
+    protected virtual IDirectory SplitDirectoryPath(PathInfo name)
         => SplitPath(name.Path, GetDirectory, (context, path, actualName) => GetDirectory(context, path).GetDirectory(actualName));
 
-    protected virtual IFile SplitFilePath(FilePath name)
+    protected virtual IFile SplitFilePath(PathInfo name)
         => SplitPath(name, GetFile, (context, path, actualName) => GetDirectory(context, path).GetFile(actualName));
 
-    public IFile GetFile(FilePath name)
+    public IFile GetFile(PathInfo name)
         => SplitFilePath(name);
 
-    public IDirectory GetDirectory(FilePath name)
+    public IDirectory GetDirectory(PathInfo name)
         => SplitDirectoryPath(name);
 
-    public IDirectory MoveTo(FilePath location)
+    public IDirectory MoveTo(PathInfo location)
     {
         ValidateFeature(FileSystemFeature.Moveable);
             
         return MovetTo(Context, GenericPathHelper.NormalizePath(location));
     }
 
-    protected virtual IDirectory MovetTo(TContext context, FilePath location)
+    protected virtual IDirectory MovetTo(TContext context, PathInfo location)
         => throw new IOException("Move is not Implemented");
 }

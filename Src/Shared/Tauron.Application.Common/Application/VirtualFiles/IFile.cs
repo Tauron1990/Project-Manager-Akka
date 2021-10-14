@@ -16,5 +16,5 @@ public interface IFile : IFileSystemNode
 
     Stream CreateNew();
 
-    IFile MoveTo(FilePath location);
+    IFile MoveTo(PathInfo location);
 }

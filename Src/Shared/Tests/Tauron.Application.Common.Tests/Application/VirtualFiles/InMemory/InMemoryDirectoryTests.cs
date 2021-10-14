@@ -1,5 +1,4 @@
 ﻿using FluentAssertions;
-using NSubstitute;
 using Tauron.Application.VirtualFiles;
 using Tauron.Application.VirtualFiles.Core;
 using Tauron.Application.VirtualFiles.InMemory;
@@ -16,9 +15,9 @@ public class InMemoryDirectoryTests
         var clock = MockHelper.CreateStaticClock();
         var root = new InMemoryRoot();
 
-        return new DirectoryContext(root, null, root.GetDirectoryEntry("Test", clock), "Test", clock, Substitute.For<IVirtualFileSystem>());
+        return new DirectoryContext(root, null, root.GetDirectoryEntry("Test", clock), "Test", clock, new InMemoryFileSystem(clock, "mem"));
     }
-    
+
     [Fact]
     public void GetDirecory_Test()
     {

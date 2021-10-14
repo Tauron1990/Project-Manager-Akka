@@ -10,9 +10,9 @@ public interface IDirectory : IFileSystemNode
 
     IEnumerable<IFile> Files { get; }
 
-    IFile GetFile(FilePath name);
+    IFile GetFile(PathInfo name);
 
-    IDirectory GetDirectory(FilePath name);
+    IDirectory GetDirectory(PathInfo name);
 
-    IDirectory MoveTo(FilePath location);
+    IDirectory MoveTo(PathInfo location);
 }

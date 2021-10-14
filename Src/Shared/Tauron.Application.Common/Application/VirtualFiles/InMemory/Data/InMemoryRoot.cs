@@ -32,7 +32,7 @@ public sealed class InMemoryRoot : DirectoryEntry
         if (entry.GetType() != typeof(DirectoryEntry))
             throw new InvalidOperationException("Invalid Directory Returned");
 
-        foreach (var subEntry in entry)
+        foreach (var subEntry in entry.Elements)
         {
             switch (subEntry)
             {

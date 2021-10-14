@@ -16,7 +16,7 @@ public class InMemoryDirectory : DirectoryBase<DirectoryContext>
     public static InMemoryDirectory? Create([NotNullIfNotNull("context")]DirectoryContext? context, FileSystemFeature features)
         => context is null ? null : new InMemoryDirectory(context, features);
 
-    public override FilePath OriginalPath => GenericPathHelper.Combine(Context.Path, Name);
+    public override PathInfo OriginalPath => GenericPathHelper.Combine(Context.Path, Name);
 
     public override DateTime LastModified => Context.ActualData.ModifyDate;
 
@@ -45,7 +45,7 @@ public class InMemoryDirectory : DirectoryBase<DirectoryContext>
     internal bool TryAddElement(string name, IDataElement element)
         => Context.ActualData.TryAddElement(name, element);
     
-    protected override IDirectory GetDirectory(DirectoryContext context, FilePath name)
+    protected override IDirectory GetDirectory(DirectoryContext context, PathInfo name)
         => new InMemoryDirectory(context with
                                  {
                                      Path = OriginalPath, 
@@ -53,7 +53,7 @@ public class InMemoryDirectory : DirectoryBase<DirectoryContext>
                                      Parent = Context
                                  }, Features);
 
-    protected override IFile GetFile(DirectoryContext context, FilePath name)
+    protected override IFile GetFile(DirectoryContext context, PathInfo name)
         => new InMemoryFile(
             Context.GetFileContext(Context, name, OriginalPath),
             Features);
@@ -67,11 +67,11 @@ public class InMemoryDirectory : DirectoryBase<DirectoryContext>
         _exist = false;
     }
 
-    private IDirectory? AddTo(FilePath path, string name, DirectoryContext context)
+    private IDirectory? AddTo(PathInfo path, string name, DirectoryContext context)
         => GetDirectory(path) is InMemoryDirectory newDic && newDic.DirectoryContext.ActualData.TryAddElement(name, context.ActualData) 
             ? new InMemoryDirectory(context with { Parent = newDic.DirectoryContext }, Features) : null;
 
-    protected override IDirectory MovetTo(DirectoryContext context, FilePath location)
+    protected override IDirectory MovetTo(DirectoryContext context, PathInfo location)
     {
         IDirectory? newDic = null;
         

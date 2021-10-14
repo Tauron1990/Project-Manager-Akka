@@ -13,7 +13,7 @@ public abstract class SystemNodeBase<TContext> : IFileSystemNode
         
     public NodeType Type { get; }
         
-    public abstract FilePath OriginalPath { get; }
+    public abstract PathInfo OriginalPath { get; }
         
     public abstract DateTime LastModified { get; }
         

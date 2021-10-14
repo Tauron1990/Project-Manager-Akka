@@ -12,7 +12,7 @@ public sealed class InMemoryFile : FileBase<FileContext>
     public InMemoryFile(FileContext context, FileSystemFeature feature) 
         : base(context, feature) { }
 
-    public override FilePath OriginalPath => GenericPathHelper.Combine(Context.Path, Name);
+    public override PathInfo OriginalPath => GenericPathHelper.Combine(Context.Path, Name);
 
     public override DateTime LastModified => Context.ActualData.ModifyDate;
 
@@ -52,7 +52,7 @@ public sealed class InMemoryFile : FileBase<FileContext>
         Context = context with { Parent = null, Data = null };
     }
 
-    protected override IFile MoveTo(FileContext context, FilePath location)
+    protected override IFile MoveTo(FileContext context, PathInfo location)
     {
         IFile? file = null;
 

@@ -1,5 +1,7 @@
-﻿using Autofac;
+﻿using System.Reactive.PlatformServices;
+using Autofac;
 using Autofac.Features.ResolveAnything;
+using Stl.Time;
 using Tauron.Akka;
 using Tauron.Application;
 using Tauron.Localization.Provider;
@@ -10,6 +12,8 @@ public sealed class CommonModule : Module
 {
     protected override void Load(ContainerBuilder builder)
     {
+        builder.RegisterInstance(CpuClock.Instance).As<IMomentClock, ISystemClock>().SingleInstance();
+
         builder.RegisterSource<AnyConcreteTypeNotAlreadyRegisteredSource>();
         builder.RegisterType<LocJsonProvider>().As<ILocStoreProducer>();
 

@@ -61,13 +61,13 @@ public abstract class FileBase<TContext> : SystemNodeBase<TContext>, IFile
 
     protected abstract Stream CreateStream(TContext context, FileAccess access, bool createNew);
 
-    public IFile MoveTo(FilePath location)
+    public IFile MoveTo(PathInfo location)
     {
         ValidateFeature(FileSystemFeature.Moveable);
 
         return MoveTo(Context, GenericPathHelper.NormalizePath(location));
     }
 
-    protected virtual IFile MoveTo(TContext context, FilePath location)
+    protected virtual IFile MoveTo(TContext context, PathInfo location)
         => throw new IOException("Move is not Implemented");
 }

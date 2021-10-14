@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,9 +6,11 @@ using System.Reactive.PlatformServices;
 
 namespace Tauron.Application.VirtualFiles.InMemory.Data;
 
-public class DirectoryEntry : DataElementBase, IEnumerable<IDataElement>
+public class DirectoryEntry : DataElementBase
 {
     private readonly ConcurrentDictionary<string, IDataElement> _elements = new();
+
+    public IEnumerable<IDataElement> Elements => _elements.Values;
 
     public IEnumerable<FileEntry> Files => _elements.Values.OfType<FileEntry>();
 
@@ -48,10 +49,4 @@ public class DirectoryEntry : DataElementBase, IEnumerable<IDataElement>
 
     public bool TryAddElement(string name, IDataElement element)
         => _elements.TryAdd(name, element);
-
-    public IEnumerator<IDataElement> GetEnumerator()
-        => _elements.Values.GetEnumerator();
-
-    IEnumerator IEnumerable.GetEnumerator()
-        => GetEnumerator();
 }

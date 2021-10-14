@@ -14,7 +14,7 @@ public class DirectoryEntryTests
         var toTest = new DirectoryEntry();
 
         var result = data.GetOrAdd("Test", () => toTest);
-
+        
         result.Should().Be(toTest);
     }
 
@@ -83,7 +83,6 @@ public class DirectoryEntryTests
         var result = data.Remove(testName);
 
         result.Should().BeTrue();
-        removed.Should().Be(testAdd);
         data.Directorys.Should().HaveCount(0);
     }
 
