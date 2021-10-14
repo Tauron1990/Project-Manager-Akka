@@ -14,6 +14,12 @@ public abstract class DirectoryBase<TContext> : SystemNodeBase<TContext>, IDirec
     protected DirectoryBase(TContext context, FileSystemFeature feature) 
         : base(context, feature, NodeType.Directory) { }
 
+    protected DirectoryBase(Func<IFileSystemNode, TContext> context, FileSystemFeature feature, NodeType nodeType) 
+        : base(context, feature, nodeType) { }
+        
+    protected DirectoryBase(Func<IFileSystemNode, TContext> context, FileSystemFeature feature) 
+        : base(context, feature, NodeType.Directory) { }
+    
     public abstract IEnumerable<IDirectory> Directories { get; }
         
     public abstract IEnumerable<IFile> Files { get; }

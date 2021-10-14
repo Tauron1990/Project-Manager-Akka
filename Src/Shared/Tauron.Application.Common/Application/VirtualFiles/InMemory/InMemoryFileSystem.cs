@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reactive.PlatformServices;
 using Tauron.Application.VirtualFiles.Core;
 using Tauron.Application.VirtualFiles.InMemory.Data;
 
@@ -18,13 +19,41 @@ public class InMemoryFileSystem : VirtualFileSystemBase<InMemoryDirectory>
         return dic.TryAddElement(name, element) ? factory(dic.DirectoryContext, relative, element) : null;
     }
 
-    public InMemoryFileSystem(InMemoryDirectory context, FileSystemFeature feature) : base(context, feature) { }
-    public override FilePath OriginalPath { get; }
-    public override DateTime LastModified { get; }
-    public override IDirectory? ParentDirectory { get; }
-    public override bool Exist { get; }
-    public override string Name { get; }
+    private static FileSystemFeature Features
+        => FileSystemFeature.Create | FileSystemFeature.Delete | FileSystemFeature.Extension | FileSystemFeature.Moveable |
+           FileSystemFeature.Read | FileSystemFeature.Write | FileSystemFeature.RealTime;
+    
+    private static InMemoryDirectory CreateContext(IFileSystemNode system, ISystemClock clock)
+    {
+        var root = new InMemoryRoot();
+        var dicContext = new DirectoryContext(
+            root,
+            null,
+            root.GetDirectoryEntry("mem::", clock),
+            "mem::",
+            clock,
+            (InMemoryFileSystem)system);
+
+        return new InMemoryDirectory(dicContext, Features);
+    }
+
+    public InMemoryFileSystem(ISystemClock clock)
+        : base(
+            sys => CreateContext(sys, clock),
+            Features) { }
+
+    public override FilePath OriginalPath => Context.OriginalPath;
+
+    public override DateTime LastModified => Context.LastModified;
+
+    public override IDirectory? ParentDirectory => Context.ParentDirectory;
+
+    public override bool Exist => Context.Exist;
+
+    public override string Name => Context.Name;
+    
     public override IEnumerable<IDirectory> Directories { get; }
+    
     public override IEnumerable<IFile> Files { get; }
     protected override IDirectory GetDirectory(InMemoryDirectory context, FilePath name)
         => throw new NotImplementedException();

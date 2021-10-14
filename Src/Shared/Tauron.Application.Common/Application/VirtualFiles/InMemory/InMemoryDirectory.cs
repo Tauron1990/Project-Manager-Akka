@@ -68,11 +68,9 @@ public class InMemoryDirectory : DirectoryBase<DirectoryContext>
     }
 
     private IDirectory? AddTo(FilePath path, string name, DirectoryContext context)
-    {
-        if (GetDirectory(path) is InMemoryDirectory newDic && newDic.DirectoryContext.ActualData.TryAddElement(name, context.ActualData))
-            return new InMemoryDirectory(context with { Parent = newDic.DirectoryContext }, Features);
-    }
-    
+        => GetDirectory(path) is InMemoryDirectory newDic && newDic.DirectoryContext.ActualData.TryAddElement(name, context.ActualData) 
+            ? new InMemoryDirectory(context with { Parent = newDic.DirectoryContext }, Features) : null;
+
     protected override IDirectory MovetTo(DirectoryContext context, FilePath location)
     {
         IDirectory? newDic = null;

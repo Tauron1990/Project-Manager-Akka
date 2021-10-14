@@ -32,7 +32,7 @@ public sealed class InMemoryFile : FileBase<FileContext>
         }
     }
 
-    public override long Size => Context.Data.ActualData.Length;
+    public override long Size => Context.ActualData.ActualData.Length;
 
     protected override Stream CreateStream(FileContext context, FileAccess access, bool createNew)
     {

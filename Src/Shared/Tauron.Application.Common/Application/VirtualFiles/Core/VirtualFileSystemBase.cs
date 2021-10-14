@@ -6,8 +6,12 @@ namespace Tauron.Application.VirtualFiles.Core;
 [PublicAPI]
 public abstract class VirtualFileSystemBase<TContext> : DirectoryBase<TContext>, IVirtualFileSystem
 {
-    protected VirtualFileSystemBase(TContext context, FileSystemFeature feature) : base(context, feature, NodeType.Root) { }
+    protected VirtualFileSystemBase(TContext context, FileSystemFeature feature) 
+        : base(context, feature, NodeType.Root) { }
 
+    protected VirtualFileSystemBase(Func<IFileSystemNode, TContext> context, FileSystemFeature feature) 
+        : base(context, feature, NodeType.Root) { }
+    
     public bool IsRealTime => Features.HasFlag(FileSystemFeature.RealTime);
         
     public bool SaveAfterDispose { get; set; }
