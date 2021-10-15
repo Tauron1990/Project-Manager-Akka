@@ -31,9 +31,9 @@ public class VirtualFileSystemTest
         var dic = system.GetDirectory(testDic);
         dic.OriginalPath.Path.Should().StartWith(testPath).And.EndWith(testDic);
 
-        var file = system.GetFile(testFile);
+        var file = dic.GetFile(testFile);
         file.OriginalPath.Path.Should().StartWith(testPath).And.Contain(testDic).And.EndWith(testFile);
-        file.Extension.Should().Be("txt");
+        file.Extension.Should().Be(".txt");
         file.Exist.Should().BeTrue();
         
         using (var file1 = new StreamWriter(file.Open()))
@@ -64,7 +64,7 @@ public class VirtualFileSystemTest
         var newFile = simpleMoveFile.MoveTo(movedFile);
 
         newFile.OriginalPath.Path.Should().StartWith(testPath).And.EndWith(movedFile).And.NotContain(testDic);
-        newFile.Extension.Should().Be("text");
+        newFile.Extension.Should().Be(".text");
 
         using (var file4 = new StreamReader(newFile.Open())) 
             file4.ReadToEnd().Should().Be(testContent);

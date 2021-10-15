@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reactive.PlatformServices;
+using Tauron.Application.VirtualFiles.Core;
 
 namespace Tauron.Application.VirtualFiles.InMemory.Data;
 
@@ -28,5 +29,5 @@ public sealed record DirectoryContext(InMemoryRoot Root, DirectoryContext? Paren
         => new(Root, parent, file, path, Clock, RootSystem);
     
     public FileContext GetFileContext(DirectoryContext parent, PathInfo file, PathInfo path) 
-        => new(Root, parent, Root.GetInitializedFile(file, Clock), path, Clock, RootSystem);
+        => new(Root, parent, Root.GetInitializedFile(file, Clock), GenericPathHelper.Combine(path, file), Clock, RootSystem);
 }

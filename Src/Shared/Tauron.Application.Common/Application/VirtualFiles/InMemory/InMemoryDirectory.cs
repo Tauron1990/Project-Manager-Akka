@@ -16,7 +16,7 @@ public class InMemoryDirectory : DirectoryBase<DirectoryContext>
     public static InMemoryDirectory? Create([NotNullIfNotNull("context")]DirectoryContext? context, FileSystemFeature features)
         => context is null ? null : new InMemoryDirectory(context, features);
 
-    public override PathInfo OriginalPath => GenericPathHelper.Combine(Context.Path, Name);
+    public override PathInfo OriginalPath => Context.Path;
 
     public override DateTime LastModified => Context.ActualData.ModifyDate;
 
@@ -33,7 +33,7 @@ public class InMemoryDirectory : DirectoryBase<DirectoryContext>
     public override IEnumerable<IDirectory> Directories
         => Context.ActualData.Directorys.Select(
             d => new InMemoryDirectory(
-                Context with { Parent = this.Context, Path = OriginalPath, Data = d },
+                Context with { Parent = Context, Path = OriginalPath, Data = d },
                 Features));
 
     public override IEnumerable<IFile> Files
@@ -48,7 +48,7 @@ public class InMemoryDirectory : DirectoryBase<DirectoryContext>
     protected override IDirectory GetDirectory(DirectoryContext context, PathInfo name)
         => new InMemoryDirectory(context with
                                  {
-                                     Path = OriginalPath, 
+                                     Path = GenericPathHelper.Combine(OriginalPath, name), 
                                      Data = Context.Root.GetDirectoryEntry(name, context.Clock),
                                      Parent = Context
                                  }, Features);

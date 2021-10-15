@@ -26,7 +26,7 @@ public class InMemoryDirectoryTests
 
         var dic2 = dic.GetDirectory($"Test2{GenericPathHelper.GenericSeperator}Test3");
 
-        dic2.OriginalPath.Should().Be($"Test{GenericPathHelper.GenericSeperator}Test2{GenericPathHelper.GenericSeperator}Test3");
+        dic2.OriginalPath.Path.Should().Be($"Test{GenericPathHelper.GenericSeperator}Test2{GenericPathHelper.GenericSeperator}Test3");
     }
     
     [Fact]
@@ -37,6 +37,6 @@ public class InMemoryDirectoryTests
 
         var dic2 = dic.GetFile($"Test2{GenericPathHelper.GenericSeperator}Test3.dat");
 
-        dic2.OriginalPath.Should().Be($"Test{GenericPathHelper.GenericSeperator}Test2{GenericPathHelper.GenericSeperator}Test3.dat");
+        dic2.OriginalPath.Path.Should().Be($"Test{GenericPathHelper.GenericSeperator}Test2{GenericPathHelper.GenericSeperator}Test3.dat");
     }
 }

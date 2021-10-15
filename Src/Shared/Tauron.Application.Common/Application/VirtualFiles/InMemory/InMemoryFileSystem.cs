@@ -41,8 +41,6 @@ public sealed class InMemoryFileSystem : DelegatingVirtualFileSystem<InMemoryDir
             sys => CreateContext(sys, start, clock),
             ReadyFeatures & ~(FileSystemFeature.Moveable | FileSystemFeature.Delete)) { }
 
-    public override PathInfo OriginalPath => Name;
-
     public override PathInfo Source => Context.OriginalPath;
 
     protected override void DisposeImpl()
