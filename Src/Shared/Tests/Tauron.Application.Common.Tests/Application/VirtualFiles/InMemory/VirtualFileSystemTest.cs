@@ -1,9 +1,7 @@
 ﻿using System;
-using System.ComponentModel.Design;
 using System.IO;
 using System.Reactive.PlatformServices;
 using FluentAssertions;
-using Stl.Collections;
 using Stl.Time;
 using Tauron.Application.VirtualFiles;
 using Tauron.Application.VirtualFiles.Core;
