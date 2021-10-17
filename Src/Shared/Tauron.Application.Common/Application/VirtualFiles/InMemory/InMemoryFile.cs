@@ -34,6 +34,10 @@ public sealed class InMemoryFile : FileBase<FileContext>
 
     public override long Size => Context.ActualData.ActualData.Length;
 
+    protected override bool CanWrite => Exist && base.CanWrite;
+
+    protected override bool CanCreate => Exist && base.CanCreate;
+
     protected override Stream CreateStream(FileContext context, FileAccess access, bool createNew)
     {
         if (createNew)
@@ -52,21 +56,43 @@ public sealed class InMemoryFile : FileBase<FileContext>
         Context = context with { Parent = null, Data = null };
     }
 
+    
+    
     protected override IFile MoveTo(FileContext context, PathInfo location)
     {
-        IFile? file = null;
+        var originalName = Name;
+        
+        string name;
+        PathInfo path;
 
-        if (location.Kind == PathType.Absolute)
-            file = context.RootSystem.MoveElement(Name, location, context.ActualData,
-                (directoryContext, newPath, fileEntry) => 
-                    new InMemoryFile(directoryContext.GetFileContext(directoryContext, fileEntry, GenericPathHelper.Combine(newPath, Name)), Features));
+        if (Path.HasExtension(location.Path))
+        {
+            name = Path.GetFileName(GenericPathHelper.ToRelativePath(location));
+            path = location with
+                   {
+                       Path = location.Path[..^name.Length]
+                   };
+        }
         else
         {
-            if (ParentDirectory?.GetDirectory(location) is InMemoryDirectory parent)
+            name = Name;
+            path = location;
+        }
+            
+        
+        IFile? file = null;
+
+        if (path.Kind == PathType.Absolute)
+            file = context.RootSystem.MoveElement(name, path, context.ActualData,
+                (directoryContext, newPath, fileEntry) => 
+                    new InMemoryFile(directoryContext.GetFileContext(directoryContext, fileEntry, newPath), Features));
+        else
+        {
+            if (ParentDirectory?.GetDirectory(path) is InMemoryDirectory parent)
             {
-                if (parent.TryAddElement(Name, context.ActualData))
+                if (parent.TryAddElement(name, context.ActualData))
                 {
-                    file = parent.GetFile(Name);
+                    file = parent.GetFile(name);
                 }
             }
         }
@@ -74,7 +100,7 @@ public sealed class InMemoryFile : FileBase<FileContext>
         if (file is null)
             throw new InvalidOperationException("Movement Has failed (Possible Duplicate?)");
 
-        context.Parent?.ActualData.Remove(Name);
+        context.Parent?.ActualData.Remove(originalName);
         Context = context with { Data = null, Parent = null };
         _exist = false;
         

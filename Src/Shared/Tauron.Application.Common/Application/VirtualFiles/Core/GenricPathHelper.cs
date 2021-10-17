@@ -39,7 +39,7 @@ public static class GenericPathHelper
         
         var index = str.IndexOf(AbsolutPathMarker, StringComparison.Ordinal);
 
-        return index == -1 ? path with { Kind = PathType.Relative } : new PathInfo(str[..index].ToString(), PathType.Relative);
+        return index == -1 ? path with { Kind = PathType.Relative } : new PathInfo(str[(index+2)..].ToString(), PathType.Relative);
     }
     
     public static PathInfo ChangeExtension(PathInfo path, string newExtension)

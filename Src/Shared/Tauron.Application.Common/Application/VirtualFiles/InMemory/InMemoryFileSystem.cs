@@ -13,9 +13,17 @@ public sealed class InMemoryFileSystem : DelegatingVirtualFileSystem<InMemoryDir
         where TResult : class
     {
         var relative = GenericPathHelper.ToRelativePath(path);
-        var dic = (InMemoryDirectory)GetDirectory(relative);
+        var tempdic = GetDirectory(relative);
+        InMemoryDirectory dic;
 
-        return dic.TryAddElement(name, element) ? factory(dic.DirectoryContext, relative, element) : null;
+        if (tempdic == this)
+            dic = Context;
+        else
+            dic = (InMemoryDirectory)tempdic;
+
+        return dic.TryAddElement(name, element) 
+            ? factory(dic.DirectoryContext, GenericPathHelper.Combine(dic.OriginalPath, name), element) 
+            : null;
     }
 
     private static FileSystemFeature ReadyFeatures

@@ -19,9 +19,11 @@ public class DirectoryEntry : DataElementBase
     public bool Remove(string name)
         => _elements.TryRemove(name, out _);
 
-    public TResult? GetOrAdd<TResult>(string name, Func<TResult> factory)
+    public TResult GetOrAdd<TResult>(string name, Func<TResult> factory)
         where TResult : IDataElement
-        => _elements.GetOrAdd(name, static (_, fac) => fac(), factory) is TResult res ? res : default;
+        => _elements.GetOrAdd(name, static (_, fac) => fac(), factory) is TResult res 
+            ? res 
+            : throw new InvalidCastException("Factory Created Wrong Type (Should Be Impossible)");
 
     public void Init(string name, ISystemClock clock)
     {

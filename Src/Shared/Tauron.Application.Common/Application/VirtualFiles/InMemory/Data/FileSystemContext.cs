@@ -28,6 +28,6 @@ public sealed record DirectoryContext(InMemoryRoot Root, DirectoryContext? Paren
     public FileContext GetFileContext(DirectoryContext parent, FileEntry file, PathInfo path) 
         => new(Root, parent, file, path, Clock, RootSystem);
     
-    public FileContext GetFileContext(DirectoryContext parent, PathInfo file, PathInfo path) 
-        => new(Root, parent, Root.GetInitializedFile(file, Clock), GenericPathHelper.Combine(path, file), Clock, RootSystem);
+    public FileContext GetFileContext(DirectoryContext parent, PathInfo file, PathInfo path)
+        => new(Root, parent, ActualData.GetOrAdd(file, () => Root.GetInitializedFile(file, Clock)), GenericPathHelper.Combine(path, file), Clock, RootSystem);
 }

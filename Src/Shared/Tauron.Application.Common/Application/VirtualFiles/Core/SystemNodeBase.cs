@@ -36,7 +36,7 @@ public abstract class SystemNodeBase<TContext> : IFileSystemNode
         Features = feature;
         Type = nodeType;
     }
-    
+
     public void Delete()
     {
         if(!Features.HasFlag(FileSystemFeature.Delete)) return;

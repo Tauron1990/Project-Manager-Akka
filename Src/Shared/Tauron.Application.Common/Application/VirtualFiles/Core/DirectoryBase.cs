@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using JetBrains.Annotations;
+using Stl;
 
 namespace Tauron.Application.VirtualFiles.Core;
 
@@ -40,10 +41,20 @@ public abstract class DirectoryBase<TContext> : SystemNodeBase<TContext>, IDirec
     }
 
     protected virtual IDirectory SplitDirectoryPath(PathInfo name)
-        => SplitPath(name.Path, GetDirectory, (context, path, actualName) => GetDirectory(context, path).GetDirectory(actualName));
+    {
+        var (nameData, _) = name;
+
+        return nameData.IsNullOrEmpty() 
+            ? this 
+            : SplitPath(nameData, GetDirectory, (context, path, actualName) => GetDirectory(context, path).GetDirectory(actualName));
+    }
 
     protected virtual IFile SplitFilePath(PathInfo name)
-        => SplitPath(name, GetFile, (context, path, actualName) => GetDirectory(context, path).GetFile(actualName));
+    {
+        if (name.Path.IsNullOrEmpty())
+            throw new InvalidOperationException("No File Name Provided");
+        return SplitPath(name, GetFile, (context, path, actualName) => GetDirectory(context, path).GetFile(actualName));
+    }
 
     public IFile GetFile(PathInfo name)
         => SplitFilePath(name);

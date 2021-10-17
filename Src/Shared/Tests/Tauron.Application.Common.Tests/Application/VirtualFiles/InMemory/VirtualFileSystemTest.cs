@@ -16,21 +16,25 @@ public class VirtualFileSystemTest
     public void TestInMemoryVirtualFileSystem()
     {
         var fac = new VirtualFileFactory();
-        const string testPath = "mem::Test/Test2";
+        const string testRootPath = "mem::Test/Test2";
         const string testDic = "Test3/Test4";
         const string testFile = "Test5/Test.txt";
-        const string movedFile = "mem::Test6.text";
+        string[] movedFiles = { "mem::Test6.text", "mem::Test6/Test7.text", "mem::Test6", "mem::Test6/Test7" };
+        (string, string)[] movedDics =
+        {
+            ("mem::TestXX", "TestXX"), ("mem::TestXX/TestXXX", "TestXX/TestXXX"), ("TestXX", "TestXX"), ("TestXX/TestXXX", "TestXX/TestXXX")
+        };
         const string testContent = "Hello World";
         
-        using IVirtualFileSystem system = fac.TryResolve(testPath, new DeterministicServiceProvider((typeof(ISystemClock), CpuClock.Instance)))!;
+        using IVirtualFileSystem system = fac.TryResolve(testRootPath, new DeterministicServiceProvider((typeof(ISystemClock), CpuClock.Instance)))!;
         system.Should().NotBeNull();
-        system.OriginalPath.Path.Should().Be(testPath);
+        system.OriginalPath.Path.Should().Be(testRootPath);
 
         var dic = system.GetDirectory(testDic);
-        dic.OriginalPath.Path.Should().StartWith(testPath).And.EndWith(testDic);
+        dic.OriginalPath.Path.Should().StartWith(testRootPath).And.EndWith(testDic);
 
         var file = dic.GetFile(testFile);
-        file.OriginalPath.Path.Should().StartWith(testPath).And.Contain(testDic).And.EndWith(testFile);
+        file.OriginalPath.Path.Should().StartWith(testRootPath).And.Contain(testDic).And.EndWith(testFile);
         file.Extension.Should().Be(".txt");
         file.Exist.Should().BeTrue();
         
@@ -53,24 +57,47 @@ public class VirtualFileSystemTest
             writer.Write(testContent);
         }
 
-        var simpleMoveFile = file.MoveTo(GenericPathHelper.ToRelativePath(movedFile));
-        
-        file.Exist.Should().BeFalse();
-        Func<string> test = () => file.Extension;
-        test.Should().Throw<InvalidOperationException>();
-        
-        var newFile = simpleMoveFile.MoveTo(movedFile);
+        foreach (var movedFile in movedFiles)
+        {
+            var simpleMoveFile = file.MoveTo(GenericPathHelper.ToRelativePath(movedFile));
 
-        newFile.OriginalPath.Path.Should().StartWith(testPath).And.EndWith(movedFile).And.NotContain(testDic);
-        newFile.Extension.Should().Be(".text");
+            file.Exist.Should().BeFalse();
+            // ReSharper disable once AccessToModifiedClosure
+            Func<string> test = () => file.Extension;
+            test.Should().Throw<InvalidOperationException>();
 
-        using (var file4 = new StreamReader(newFile.Open())) 
-            file4.ReadToEnd().Should().Be(testContent);
-        
-        newFile.Delete();
-        
-        newFile.Exist.Should().BeFalse();
-        Func<string> newFileTest = () => file.Extension;
-        newFileTest.Should().Throw<InvalidOperationException>();
+            var newFile = simpleMoveFile.MoveTo(movedFile);
+
+            newFile.OriginalPath.Path.Should().StartWith(testRootPath).And.EndWith(GenericPathHelper.ToRelativePath(movedFile)).And.NotContain(testDic);
+            newFile.Extension.Should().Be(".text");
+
+            using (var file4 = new StreamReader(newFile.Open()))
+                file4.ReadToEnd().Should().Be(testContent);
+
+            newFile.Delete();
+
+            newFile.Exist.Should().BeFalse();
+            // ReSharper disable once AccessToModifiedClosure
+            Func<string> newFileTest = () => file.Extension;
+            newFileTest.Should().Throw<InvalidOperationException>();
+
+            file = newFile;
+        }
+
+        foreach (var (newPath, excpected) in movedDics)
+        {
+            var newDic = dic.MoveTo(newPath);
+
+            dic.Exist.Should().BeFalse();
+            // ReSharper disable once AccessToModifiedClosure
+            Func<string> oldPath = () => dic.Name;
+            oldPath.Should().Throw<InvalidOperationException>();
+
+            newDic.Exist.Should().BeTrue();
+            excpected.Should().Contain(newDic.Name);
+            newDic.OriginalPath.Path.Should().StartWith(testRootPath).And.EndWith(excpected);
+            
+            dic = newDic;
+        }
     }
 }
