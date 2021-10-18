@@ -21,6 +21,8 @@ public sealed class InMemoryFileSystem : DelegatingVirtualFileSystem<InMemoryDir
         else
             dic = (InMemoryDirectory)tempdic;
 
+        element.Name = name;
+        
         return dic.TryAddElement(name, element) 
             ? factory(dic.DirectoryContext, GenericPathHelper.Combine(dic.OriginalPath, name), element) 
             : null;

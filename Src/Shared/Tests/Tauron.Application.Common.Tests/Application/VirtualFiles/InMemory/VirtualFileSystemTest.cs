@@ -19,7 +19,7 @@ public class VirtualFileSystemTest
         const string testRootPath = "mem::Test/Test2";
         const string testDic = "Test3/Test4";
         const string testFile = "Test5/Test.txt";
-        string[] movedFiles = { "mem::Test6.text", "mem::Test6/Test7.text", "mem::Test6", "mem::Test6/Test7" };
+        string[] movedFiles = { "mem::Test6.text", "mem::Test6/Test7.text", "mem::Test8", "mem::Test6/Test7" };
         (string, string)[] movedDics =
         {
             ("mem::TestXX", "TestXX"), ("mem::TestXX/TestXXX", "TestXX/TestXXX"), ("TestXX", "TestXX"), ("TestXX/TestXXX", "TestXX/TestXXX")
@@ -68,22 +68,23 @@ public class VirtualFileSystemTest
 
             var newFile = simpleMoveFile.MoveTo(movedFile);
 
-            newFile.OriginalPath.Path.Should().StartWith(testRootPath).And.EndWith(GenericPathHelper.ToRelativePath(movedFile)).And.NotContain(testDic);
+            if(Path.HasExtension(movedFile))
+                newFile.OriginalPath.Path.Should().StartWith(testRootPath).And.EndWith(GenericPathHelper.ToRelativePath(movedFile)).And.NotContain(testDic);
             newFile.Extension.Should().Be(".text");
 
             using (var file4 = new StreamReader(newFile.Open()))
                 file4.ReadToEnd().Should().Be(testContent);
 
-            newFile.Delete();
-
-            newFile.Exist.Should().BeFalse();
-            // ReSharper disable once AccessToModifiedClosure
-            Func<string> newFileTest = () => file.Extension;
-            newFileTest.Should().Throw<InvalidOperationException>();
-
             file = newFile;
         }
 
+        file.Delete();
+
+        file.Exist.Should().BeFalse();
+        // ReSharper disable once AccessToModifiedClosure
+        Func<string> newFileTest = () => file.Extension;
+        newFileTest.Should().Throw<InvalidOperationException>();
+        
         foreach (var (newPath, excpected) in movedDics)
         {
             var newDic = dic.MoveTo(newPath);

@@ -5,7 +5,7 @@ namespace Tauron.Application.VirtualFiles.InMemory.Data;
 
 public interface IDataElement : IDisposable, IPoolable
 {
-        
+    string Name { get; set; }
 }
     
 public abstract class DataElementBase : IDataElement
