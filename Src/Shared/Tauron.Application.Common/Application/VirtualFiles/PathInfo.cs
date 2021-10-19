@@ -17,5 +17,5 @@ public sealed record PathInfo(string Path, PathType Kind)
         => path.Path;
 
     public static implicit operator PathInfo(string path) 
-        => new(path, GenericPathHelper.IsAbsolute(path) ? PathType.Absolute : PathType.Relative);
+        => new(GenericPathHelper.NormalizePath(path), GenericPathHelper.IsAbsolute(path) ? PathType.Absolute : PathType.Relative);
 }

@@ -8,7 +8,11 @@ namespace Tauron.Application.VirtualFiles.Resolvers;
 
 public static class ResolverRegistry
 {
-    private static readonly ConcurrentBag<IFileSystemResolver> Resolvers = new(new IFileSystemResolver[]{ new InMemoryResolver() });
+    private static readonly ConcurrentBag<IFileSystemResolver> Resolvers = new(new IFileSystemResolver[]
+                                                                               {
+                                                                                   new InMemoryResolver(),
+                                                                                   new LocalFileSystemResolver()
+                                                                               });
 
     [PublicAPI]
     public static void Register(IFileSystemResolver resolver)

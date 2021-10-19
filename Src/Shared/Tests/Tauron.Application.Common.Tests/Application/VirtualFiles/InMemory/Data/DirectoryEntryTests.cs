@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using System;
+using FluentAssertions;
 using NSubstitute;
 using Tauron.Application.VirtualFiles.InMemory.Data;
 using Xunit;
@@ -42,10 +43,10 @@ public class DirectoryEntryTests
         var testName = "Test";
 
         var result1 = data.GetOrAdd(testName, () => toTest);
-        var result2 = data.GetOrAdd(testName, () => duplicate);
+        Action result2 = () => data.GetOrAdd(testName, () => duplicate);
 
         result1.Should().Be(toTest);
-        result2.Should().BeNull();
+        result2.Should().Throw<InvalidCastException>();
     }
         
     [Fact]

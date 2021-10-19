@@ -1,9 +1,8 @@
 ﻿using System;
-using MHLab.Pooling;
 
 namespace Tauron.Application.VirtualFiles.InMemory.Data;
 
-public interface IDataElement : IDisposable, IPoolable
+public interface IDataElement : IDisposable
 {
     string Name { get; set; }
 }
@@ -21,6 +20,4 @@ public abstract class DataElementBase : IDataElement
         ModifyDate = DateTime.MinValue;
         CreationDate = DateTime.MinValue;
     }
-
-    public abstract void Recycle();
 }

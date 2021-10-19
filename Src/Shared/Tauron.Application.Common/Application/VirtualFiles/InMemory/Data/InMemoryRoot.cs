@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Reactive.PlatformServices;
-using MHLab.Pooling;
 using Microsoft.IO;
 
 namespace Tauron.Application.VirtualFiles.InMemory.Data;
@@ -8,8 +7,8 @@ namespace Tauron.Application.VirtualFiles.InMemory.Data;
 public sealed class InMemoryRoot : DirectoryEntry
 {
     private readonly RecyclableMemoryStreamManager _manager = new();
-    private readonly Pool<FileEntry> _filePool = new(0, () => new FileEntry());
-    private readonly Pool<DirectoryEntry> _directoryPool = new(0, () => new DirectoryEntry());
+    private readonly SimplePool<FileEntry> _filePool = new(PoolConfig<FileEntry>.Default);
+    private readonly SimplePool<DirectoryEntry> _directoryPool = new(PoolConfig<DirectoryEntry>.Default);
 
     public FileEntry GetInitializedFile(string name, ISystemClock clock)
         => _filePool.Rent().Init(name, _manager.GetStream(), clock);
@@ -25,7 +24,7 @@ public sealed class InMemoryRoot : DirectoryEntry
     }
 
     public void ReturnFile(FileEntry entry)
-        => _filePool.Recycle(entry);
+        => _filePool.Return(entry);
 
     public void ReturnDirectory(DirectoryEntry entry)
     {
@@ -45,7 +44,7 @@ public sealed class InMemoryRoot : DirectoryEntry
             }
         }
         
-        _directoryPool.Recycle(entry);
+        _directoryPool.Return(entry);
     }
 
     public override void Dispose()

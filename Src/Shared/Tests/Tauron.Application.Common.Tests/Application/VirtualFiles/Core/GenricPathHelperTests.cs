@@ -39,7 +39,7 @@ public class GenricPathHelperTests
 
         var result = GenericPathHelper.ChangeExtension(targetPath, targetExtension);
 
-        result.Should().Be("test.dot");
+        result.Path.Should().Be("test.dot");
     }
 
     [Fact]
@@ -71,7 +71,7 @@ public class GenricPathHelperTests
     {
         var result = GenericPathHelper.Combine(first, secund);
 
-        result.Should().Be(expeced);
+        result.Path.Should().Be(expeced);
     }
 
     [Fact]
@@ -82,7 +82,7 @@ public class GenricPathHelperTests
 
         var result = GenericPathHelper.NormalizePath(toTest);
 
-        result.Should().Be(expect);
+        result.Path.Should().Be(expect);
     }
 
     [Fact]

@@ -22,7 +22,7 @@ public class VirtualFileSystemTest
         string[] movedFiles = { "mem::Test6.text", "mem::Test6/Test7.text", "mem::Test8", "mem::Test6/Test7" };
         (string, string)[] movedDics =
         {
-            ("mem::TestXX", "TestXX"), ("mem::TestXX/TestXXX", "TestXX/TestXXX"), ("TestXX", "TestXX"), ("TestXX/TestXXX", "TestXX/TestXXX")
+            ("mem::Test1", "Test1"), ("mem::Test2/Test3", "Test2/Test3"), ("Test4", "Test4"), ("Test5/Test6", "Test5/Test6")
         };
         const string testContent = "Hello World";
         
@@ -87,6 +87,7 @@ public class VirtualFileSystemTest
         
         foreach (var (newPath, excpected) in movedDics)
         {
+            dic = system.GetDirectory("MovementTest");
             var newDic = dic.MoveTo(newPath);
 
             dic.Exist.Should().BeFalse();
@@ -95,8 +96,7 @@ public class VirtualFileSystemTest
             oldPath.Should().Throw<InvalidOperationException>();
 
             newDic.Exist.Should().BeTrue();
-            excpected.Should().Contain(newDic.Name);
-            newDic.OriginalPath.Path.Should().StartWith(testRootPath).And.EndWith(excpected);
+            newDic.OriginalPath.Path.Should().StartWith(testRootPath).And.Contain(excpected);
             
             dic = newDic;
         }

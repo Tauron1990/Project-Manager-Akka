@@ -31,16 +31,24 @@ public static class GenericPathHelper
         return index > 0 && !str[..index].Contains(GenericSeperator);
     }
 
-    public static PathInfo ToRelativePath(PathInfo path)
+    public static PathInfo ToRelativePath(PathInfo path, out string scheme)
     {
-        if (path.Kind == PathType.Relative) return path;
+        if (path.Kind == PathType.Relative)
+        {
+            scheme = string.Empty;
+            return path;
+        }
         
         ReadOnlySpan<char> str = path.Path;
         
         var index = str.IndexOf(AbsolutPathMarker, StringComparison.Ordinal);
 
+        scheme = str[..index].ToString();
         return index == -1 ? path with { Kind = PathType.Relative } : new PathInfo(str[(index+2)..].ToString(), PathType.Relative);
     }
+
+    public static PathInfo ToRelativePath(PathInfo info)
+        => ToRelativePath(info, out _);
     
     public static PathInfo ChangeExtension(PathInfo path, string newExtension)
         => Path.ChangeExtension(path, newExtension);
@@ -55,5 +63,25 @@ public static class GenericPathHelper
     }
 
     public static PathInfo NormalizePath(PathInfo path)
-        => path with{ Path = path.Path.Replace('\\', GenericSeperator) };
+        => path with{ Path = NormalizeString(path.Path) };
+    
+    public static string NormalizeString(string path)
+        => path.Replace('\\', GenericSeperator);
+
+    /*public static (PathInfo Path, PathInfo Head) SplitPathHead(PathInfo path)
+    {
+        var isAbsolut = path.Kind == PathType.Absolute;
+        var scheme = string.Empty;
+        var workingPath = (isAbsolut ? ToRelativePath(path, out scheme) : path).Path.AsSpan();
+
+        if (workingPath.Contains(GenericSeperator)) { }
+
+        var head = Path.GetDirectoryName(workingPath);
+        var rest = workingPath[..^head.Length];
+
+        PathInfo restInfo = isAbsolut ? $"{scheme}{AbsolutPathMarker}{rest.ToString()}" : rest.ToString();
+        PathInfo headInfo = head.ToString();
+
+        return (restInfo, headInfo);
+    }*/
 }

@@ -55,7 +55,4 @@ public sealed class FileEntry : DataElementBase
 
     private static void ThrowNotInitException()
         => throw new InvalidOperationException("Entry not initialized");
-
-    public override void Recycle()
-        => Dispose();
 }

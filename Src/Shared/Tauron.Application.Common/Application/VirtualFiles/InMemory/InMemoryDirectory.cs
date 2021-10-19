@@ -68,11 +68,15 @@ public class InMemoryDirectory : DirectoryBase<DirectoryContext>
     }
 
     private IDirectory? AddTo(PathInfo path, string name, DirectoryContext context)
-        => GetDirectory(path) is InMemoryDirectory newDic && newDic.DirectoryContext.ActualData.TryAddElement(name, context.ActualData) 
-            ? new InMemoryDirectory(context with { Parent = newDic.DirectoryContext }, Features) : null;
+        => GetDirectory(path) is InMemoryDirectory newDic 
+        && newDic.DirectoryContext.ActualData.TryAddElement(name, context.ActualData) 
+            ? new InMemoryDirectory(context with { Parent = newDic.DirectoryContext, Path = GenericPathHelper.Combine(newDic.OriginalPath, name)}, Features) 
+            : null;
 
     protected override IDirectory MovetTo(DirectoryContext context, PathInfo location)
     {
+        ValidateSheme(location, "mem");
+        
         IDirectory? newDic = null;
         
         if (location.Kind == PathType.Absolute)
@@ -85,7 +89,7 @@ public class InMemoryDirectory : DirectoryBase<DirectoryContext>
                     context with
                     {
                         Parent = newContext,
-                        Path = GenericPathHelper.Combine(newPath, Name),
+                        Path = newPath,
                         Data = dic
                     },
                     Features));
@@ -99,6 +103,7 @@ public class InMemoryDirectory : DirectoryBase<DirectoryContext>
         if (newDic is null)
             throw new InvalidOperationException("Directory moving Failed");
 
+        _exist = false;
         Context = context with { Parent = null, Data = null };
 
         return newDic;
