@@ -4,10 +4,18 @@
         <OutputType>Exe</OutputType>
         <TargetFramework>net6.0</TargetFramework>
         <LangVersion>10</LangVersion>
+        <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <ItemGroup>
       <PackageReference Include="Be.Vlaanderen.Basisregisters.Generators.Guid.Deterministic" Version="2.2.12" />
+      <PackageReference Include="DotNetZip" Version="1.15.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="Program.cs">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Compile>
     </ItemGroup>
 
 </Project>

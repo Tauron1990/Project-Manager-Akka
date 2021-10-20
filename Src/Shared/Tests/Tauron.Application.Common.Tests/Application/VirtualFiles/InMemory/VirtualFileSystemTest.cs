@@ -17,6 +17,7 @@ public class VirtualFileSystemTest
     {
         var fac = new VirtualFileFactory();
         const string testRootPath = "mem::Test/Test2";
+        const string testRootPathExpected = "Test/Test2";
         const string testDic = "Test3/Test4";
         const string testFile = "Test5/Test.txt";
         string[] movedFiles = { "mem::Test6.text", "mem::Test6/Test7.text", "mem::Test8", "mem::Test6/Test7" };
@@ -31,10 +32,10 @@ public class VirtualFileSystemTest
         system.OriginalPath.Path.Should().Be(testRootPath);
 
         var dic = system.GetDirectory(testDic);
-        dic.OriginalPath.Path.Should().StartWith(testRootPath).And.EndWith(testDic);
+        dic.OriginalPath.Path.Should().StartWith(testRootPathExpected).And.EndWith(testDic);
 
         var file = dic.GetFile(testFile);
-        file.OriginalPath.Path.Should().StartWith(testRootPath).And.Contain(testDic).And.EndWith(testFile);
+        file.OriginalPath.Path.Should().StartWith(testRootPathExpected).And.Contain(testDic).And.EndWith(testFile);
         file.Extension.Should().Be(".txt");
         file.Exist.Should().BeTrue();
         
@@ -69,7 +70,7 @@ public class VirtualFileSystemTest
             var newFile = simpleMoveFile.MoveTo(movedFile);
 
             if(Path.HasExtension(movedFile))
-                newFile.OriginalPath.Path.Should().StartWith(testRootPath).And.EndWith(GenericPathHelper.ToRelativePath(movedFile)).And.NotContain(testDic);
+                newFile.OriginalPath.Path.Should().StartWith(testRootPathExpected).And.EndWith(GenericPathHelper.ToRelativePath(movedFile)).And.NotContain(testDic);
             newFile.Extension.Should().Be(".text");
 
             using (var file4 = new StreamReader(newFile.Open()))
@@ -96,7 +97,7 @@ public class VirtualFileSystemTest
             oldPath.Should().Throw<InvalidOperationException>();
 
             newDic.Exist.Should().BeTrue();
-            newDic.OriginalPath.Path.Should().StartWith(testRootPath).And.Contain(excpected);
+            newDic.OriginalPath.Path.Should().StartWith(testRootPathExpected).And.Contain(excpected);
             
             dic = newDic;
         }
