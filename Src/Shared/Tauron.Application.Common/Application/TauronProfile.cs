@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Akka.Util;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 using Tauron.AkkaHost;
+using Tauron.Application.VirtualFiles;
 
 namespace Tauron.Application;
 
@@ -15,12 +17,12 @@ public abstract class TauronProfile : ObservableObject, IEnumerable<string>
 {
     private static readonly char[] ContentSplitter = { '=' };
 
-    private readonly string _defaultPath;
+    private readonly IDirectory _defaultPath;
     private readonly ILogger<TauronProfile> _logger = ActorApplication.GetLogger<TauronProfile>();
 
     private readonly Dictionary<string, string> _settings = new();
 
-    protected TauronProfile(string application, string defaultPath)
+    protected TauronProfile(string application, IDirectory defaultPath)
     {
         Application = application;
         _defaultPath = defaultPath;
@@ -43,9 +45,9 @@ public abstract class TauronProfile : ObservableObject, IEnumerable<string>
 
     public Option<string> Name { get; private set; }
 
-    protected Option<string> Dictionary { get; private set; }
+    protected Option<IDirectory> Dictionary { get; private set; }
 
-    protected Option<string> FilePath { get; private set; }
+    protected Option<IFile> File { get; private set; }
 
     public IEnumerator<string> GetEnumerator()
         => _settings.Select(pair => pair.Key).GetEnumerator();
@@ -56,9 +58,12 @@ public abstract class TauronProfile : ObservableObject, IEnumerable<string>
     {
         _settings.Clear();
 
-        _logger.LogInformation("{Application} -- Delete Profile infos... {Path}", Application, Dictionary.GetOrElse(string.Empty).PathShorten(20));
+        _logger.LogInformation(
+            "{Application} -- Delete Profile infos... {Path}", 
+            Application, 
+            Dictionary.Select(d => d.OriginalPath.Path).GetOrElse(string.Empty).PathShorten(20));
 
-        Dictionary.OnSuccess(dic => dic.DeleteDirectory());
+        Dictionary.OnSuccess(dic => dic.Delete());
     }
 
     public virtual void Load(string name)
@@ -66,14 +71,16 @@ public abstract class TauronProfile : ObservableObject, IEnumerable<string>
         IlligalCharCheck(name);
 
         Name = name;
-        Dictionary = _defaultPath.CombinePath(Application, name);
-        Dictionary.OnSuccess(dic => dic.CreateDirectoryIfNotExis());
-        FilePath = Dictionary.Select(dic => dic.CombinePath("Settings.db"));
+        Dictionary = _defaultPath.GetDirectory(Path.Combine(Application, name)).OptionNotNull();
+        File = Dictionary.Select(dic => dic.GetFile("Settings.db"));
 
-        _logger.LogInformation("{Application} -- Begin Load Profile infos... {Path}", Application, FilePath.GetOrElse(string.Empty).PathShorten(20));
+        _logger.LogInformation(
+            "{Application} -- Begin Load Profile infos... {Path}", 
+            Application, 
+            File.Select(f => f.OriginalPath.Path).GetOrElse(string.Empty).PathShorten(20));
 
         _settings.Clear();
-        foreach (var vals in FilePath.Value.EnumerateTextLinesIfExis()
+        foreach (var vals in File.Value.EnumerateTextLinesIfExis()
            .Select(line => line.Split(ContentSplitter, 2))
            .Where(vals => vals.Length == 2))
         {
@@ -89,7 +96,7 @@ public abstract class TauronProfile : ObservableObject, IEnumerable<string>
 
         try
         {
-            var writerOption = FilePath.Select(path => path.OpenTextWrite());
+            var writerOption = File.Select(path => new StreamWriter(path.Open(FileAccess.Write)));
 
             if (!writerOption.HasValue) return;
 

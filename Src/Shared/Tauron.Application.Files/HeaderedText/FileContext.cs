@@ -3,31 +3,30 @@ using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
 
-namespace Tauron.Application.Files.HeaderedText
+namespace Tauron.Application.Files.HeaderedText;
+
+[PublicAPI]
+public sealed class FileContext : IEnumerable<ContextEntry>
 {
-    [PublicAPI]
-    public sealed class FileContext : IEnumerable<ContextEntry>
-    {
-        internal FileContext(FileDescription description)
-            => Description = (FileDescription)description.Clone();
+    internal FileContext(FileDescription description)
+        => Description = (FileDescription)description.Clone();
 
-        internal FileDescription Description { get; }
+    internal FileDescription Description { get; }
 
-        internal List<ContextEntry> ContextEnries { get; } = new();
+    internal List<ContextEntry> ContextEnries { get; } = new();
 
-        public IEnumerable<ContextEntry> this[string key]
-            => ContextEnries.Where(contextEnry => contextEnry.Key == key);
+    public IEnumerable<ContextEntry> this[string key]
+        => ContextEnries.Where(contextEnry => contextEnry.Key == key);
 
-        public IEnumerator<ContextEntry> GetEnumerator() => ContextEnries.GetEnumerator();
+    public IEnumerator<ContextEntry> GetEnumerator() => ContextEnries.GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        internal void Reset()
-            => ContextEnries.Clear();
+    internal void Reset()
+        => ContextEnries.Clear();
 
-        internal bool IsKeyword(string key) => Description.Contains(key);
+    internal bool IsKeyword(string key) => Description.Contains(key);
 
-        internal void Add(ContextEntry entry)
-            => ContextEnries.Add(entry);
-    }
+    internal void Add(ContextEntry entry)
+        => ContextEnries.Add(entry);
 }

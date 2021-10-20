@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Text;
+using System.Linq;
 using Akka.Util;
 using Autofac;
 using JetBrains.Annotations;
@@ -25,7 +25,7 @@ public sealed class JsonLocLocStoreActor : LocStoreActorBase
 
     protected override Option<object> TryQuery(string name, CultureInfo target)
     {
-        if (_configuration == null)
+        if (_configuration is null)
             return Option<object>.None;
 
         EnsureInitialized();
@@ -72,12 +72,14 @@ public sealed class JsonLocLocStoreActor : LocStoreActorBase
         _files.Clear();
 
 
-        foreach (var file in Directory.EnumerateFiles(_configuration.RootDic, "*.json"))
+        foreach (var file in from f in _configuration.RootDic.Files
+                             where f.Extension == ".json"
+                             select f)
         {
             //var text = File.ReadAllText(file, Encoding.UTF8);
-            using var stream = new FileStream(file, FileMode.Open);
-            var text = new StreamReader(stream, Encoding.UTF8).ReadToEnd();
-            var name = GetName(file);
+            using var stream = file.Open(FileAccess.Read);
+            var text = new StreamReader(stream).ReadToEnd();
+            var name = GetName(file.OriginalPath);
 
             if (string.IsNullOrWhiteSpace(name)) return;
 

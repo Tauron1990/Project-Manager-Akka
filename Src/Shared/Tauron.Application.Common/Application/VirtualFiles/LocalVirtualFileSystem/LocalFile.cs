@@ -5,7 +5,7 @@ using Tauron.Application.VirtualFiles.Resolvers;
 
 namespace Tauron.Application.VirtualFiles.LocalVirtualFileSystem;
 
-public sealed class LocalFile : FileBase<FileContext>
+public sealed class LocalFile : FileBase<FileContext>, IHasFileAttributes, IFullFileStreamSupport
 {
     public LocalFile(FileContext context, FileSystemFeature feature) 
         : base(context, feature)
@@ -68,4 +68,13 @@ public sealed class LocalFile : FileBase<FileContext>
 
         return new LocalFile(context with { Data = new FileInfo(target) }, Features);
     }
+    
+    public FileAttributes Attributes
+    {
+        get => Context.Data.Attributes;
+        set => Context.Data.Attributes = value;
+    }
+
+    public Stream Open(FileMode mode, FileAccess access, FileShare share, int bufferSize, FileOptions options)
+        => new FileStream(Context.Data.FullName, mode, access, share, bufferSize, options);
 }

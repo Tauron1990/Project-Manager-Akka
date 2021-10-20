@@ -1,16 +1,17 @@
 ﻿using System.Collections.Generic;
 using JetBrains.Annotations;
+using Tauron.Application.VirtualFiles;
 
 namespace Tauron.Application;
 
 [PublicAPI]
 public interface ITauronEnviroment
 {
-    string DefaultProfilePath { get; set; }
+    IDirectory DefaultProfilePath { get; set; }
 
-    string LocalApplicationData { get; }
+    IDirectory LocalApplicationData { get; }
 
-    string LocalApplicationTempFolder { get; }
+    IDirectory LocalApplicationTempFolder { get; }
 
-    IEnumerable<string> GetProfiles(string application);
+    IEnumerable<IDirectory> GetProfiles(string application);
 }

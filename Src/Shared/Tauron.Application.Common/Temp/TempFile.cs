@@ -1,25 +1,30 @@
 ﻿using System.IO;
 using Akka.Util;
+using Tauron.Application.VirtualFiles;
+using Tauron.Application.VirtualFiles.LocalVirtualFileSystem;
 
 namespace Tauron.Temp;
 
 public sealed class TempFile : DisposeableBase, ITempFile
 {
+    private readonly IFile? _file;
     private Stream? _targetStream;
 
-    public TempFile(string targetPath, Option<ITempDic> parent)
+    public TempFile(IFile? file, Option<ITempDic> parent)
     {
+        _file = file;
         Parent = parent;
-        FullPath = targetPath;
     }
 
-    internal Stream InternalStrem => _targetStream ??= new FileStream(
-        FullPath,
-        FileMode.OpenOrCreate,
-        FileAccess.ReadWrite,
-        FileShare.Delete | FileShare.Read,
-        4096,
-        FileOptions.DeleteOnClose);
+    private Stream CreateStream()
+    {
+        if (_file is IFullFileStreamSupport fileStreamSupport)
+            return fileStreamSupport.Open(FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Delete | FileShare.Read, 4096, FileOptions.DeleteOnClose);
+
+        return _file?.Open(FileAccess.ReadWrite) ?? Stream.Null;
+    }
+    
+    internal Stream InternalStrem => _targetStream ??= CreateStream();
 
     public Option<ITempDic> Parent { get; }
 
@@ -29,7 +34,7 @@ public sealed class TempFile : DisposeableBase, ITempFile
 
     public Stream NoDisposeStream => new TempStream(this, noDispose: true);
 
-    public string FullPath { get; }
+    public PathInfo FullPath => _file?.OriginalPath ?? string.Empty;
 
     protected override void DisposeCore(bool disposing) => _targetStream?.Dispose();
 }

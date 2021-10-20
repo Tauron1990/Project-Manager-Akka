@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 using JetBrains.Annotations;
+using Tauron.Application.VirtualFiles;
+using Tauron.Application.VirtualFiles.LocalVirtualFileSystem;
 
 namespace Tauron.Temp;
 
@@ -10,9 +12,9 @@ public sealed class TempStorage : TempDic
     private static TempStorage? _default;
 
     public TempStorage()
-        : this(DefaultNameProvider, Path.GetTempPath(), deleteBasePath: false) { }
+        : this(DefaultNameProvider, new LocalSystem(Path.GetTempPath()), deleteBasePath: false) { }
 
-    public TempStorage(Func<bool, string> nameProvider, string basePath, bool deleteBasePath)
+    public TempStorage(Func<bool, string> nameProvider, IDirectory basePath, bool deleteBasePath)
         : base(basePath, default, nameProvider, deleteBasePath)
     {
         WireUp();
@@ -27,17 +29,15 @@ public sealed class TempStorage : TempDic
         return file ? name : name.Replace('.', '_');
     }
 
-    public static TempStorage CleanAndCreate(string path)
+    public static TempStorage CleanAndCreate(IVirtualFileSystem path)
     {
-        path.ClearDirectory();
+        path.Clear();
 
         return new TempStorage(DefaultNameProvider, path, deleteBasePath: true);
     }
 
     private void WireUp()
-    {
-        AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
-    }
+        => AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
 
     private void OnProcessExit(object? sender, EventArgs e)
     {

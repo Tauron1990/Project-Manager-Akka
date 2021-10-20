@@ -4,65 +4,64 @@ using System.Globalization;
 using System.IO;
 using JetBrains.Annotations;
 
-namespace Tauron.Application.Files.HeaderedText
+namespace Tauron.Application.Files.HeaderedText;
+
+[PublicAPI]
+public sealed class HeaderedFileWriter
 {
-    [PublicAPI]
-    public sealed class HeaderedFileWriter
+    private readonly FileContext _context;
+    private readonly FileDescription _description;
+    private readonly HeaderedFile _file;
+
+    private bool _isWriten;
+
+    internal HeaderedFileWriter(HeaderedFile file)
     {
-        private readonly FileContext _context;
-        private readonly FileDescription _description;
-        private readonly HeaderedFile _file;
+        _file = file;
+        file.CurrentWriter = this;
+        _context = file.Context;
+        _description = _context.Description;
+    }
 
-        private bool _isWriten;
+    public string? Content
+    {
+        get => _file.Content;
+        set => _file.Content = value;
+    }
 
-        internal HeaderedFileWriter(HeaderedFile file)
-        {
-            _file = file;
-            file.CurrentWriter = this;
-            _context = file.Context;
-            _description = _context.Description;
-        }
+    public IEnumerable<ContextEntry> Enries => _context;
 
-        public string? Content
-        {
-            get => _file.Content;
-            set => _file.Content = value;
-        }
+    public IEnumerable<ContextEntry> this[string key] => _context[key];
 
-        public IEnumerable<ContextEntry> Enries => _context;
+    public void Add(string key, string value)
+    {
+        if (!_description.Contains(key))
+            throw new InvalidOperationException(
+                string.Format(
+                    CultureInfo.InvariantCulture,
+                    "The key {0} is Invalid",
+                    key));
 
-        public IEnumerable<ContextEntry> this[string key] => _context[key];
+        _context.Add(new ContextEntry(key, value));
+    }
 
-        public void Add(string key, string value)
-        {
-            if (!_description.Contains(key))
-                throw new InvalidOperationException(
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        "The key {0} is Invalid",
-                        key));
+    public bool Remove(ContextEntry entry) => _context.ContextEnries.Remove(entry);
 
-            _context.Add(new ContextEntry(key, value));
-        }
+    public int RemoveAll(string key)
+        => _context.ContextEnries.RemoveAll(ent => ent.Key == key);
 
-        public bool Remove(ContextEntry entry) => _context.ContextEnries.Remove(entry);
+    public void Save(TextWriter writer)
+    {
+        if (_isWriten) throw new InvalidOperationException("The Content is Writen");
 
-        public int RemoveAll(string key)
-            => _context.ContextEnries.RemoveAll(ent => ent.Key == key);
+        _context.ContextEnries.Sort((one, two) => string.Compare(one.Key, two.Key, StringComparison.Ordinal));
 
-        public void Save(TextWriter writer)
-        {
-            if (_isWriten) throw new InvalidOperationException("The Content is Writen");
+        foreach (var (key, content) in Enries) writer.WriteLine("{0} {1}", key, content);
 
-            _context.ContextEnries.Sort((one, two) => string.Compare(one.Key, two.Key, StringComparison.Ordinal));
+        writer.Write(Content);
+        writer.Flush();
 
-            foreach (var contextEnry in Enries) writer.WriteLine("{0} {1}", contextEnry.Key, contextEnry.Content);
-
-            writer.Write(Content);
-            writer.Flush();
-
-            _file.CurrentWriter = null;
-            _isWriten = true;
-        }
+        _file.CurrentWriter = null;
+        _isWriten = true;
     }
 }

@@ -6,6 +6,7 @@ using Akka.Util;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 using Tauron.AkkaHost;
+using Tauron.Application.VirtualFiles;
 
 namespace Tauron.Temp;
 
@@ -13,35 +14,30 @@ namespace Tauron.Temp;
 public class TempDic : DisposeableBase, ITempDic
 {
     public static readonly ITempDic Null = new TempDic();
+    
     private readonly bool _deleteDic;
-
+    private readonly IDirectory? _directory;
+    
     private readonly Func<bool, string> _nameGenerator;
     private readonly ConcurrentDictionary<string, ITempDic> _tempDics = new();
     private readonly ConcurrentDictionary<string, ITempFile> _tempFiles = new();
 
-    #pragma warning disable AV1564
-    protected TempDic(string fullPath, Option<ITempDic> parent, Func<bool, string> nameGenerator, bool deleteDic)
-        #pragma warning restore AV1564
+    protected TempDic(IDirectory? directory, Option<ITempDic> parent, Func<bool, string> nameGenerator, bool deleteDic)
     {
         _nameGenerator = nameGenerator;
         _deleteDic = deleteDic;
-        FullPath = fullPath;
+        _directory = directory;
         Parent = parent;
-
-        #pragma warning disable GU0011
-        fullPath.CreateDirectoryIfNotExis();
-        #pragma warning restore GU0011
     }
 
     private TempDic()
     {
-        FullPath = string.Empty;
         KeepAlive = true;
         _deleteDic = false;
         _nameGenerator = _ => string.Empty;
     }
 
-    public string FullPath { get; }
+    public PathInfo FullPath => _directory?.OriginalPath ?? string.Empty;
     public Option<ITempDic> Parent { get; }
     public bool KeepAlive { get; set; }
 
@@ -54,7 +50,7 @@ public class TempDic : DisposeableBase, ITempDic
             name,
             key =>
             {
-                var dic = new TempDic(Path.Combine(FullPath, key), this, _nameGenerator, deleteDic: true);
+                var dic = new TempDic(_directory?.GetDirectory(key), this, _nameGenerator, deleteDic: true);
                 dic.TrackDispose(() => _tempDics.TryRemove(key, out _));
 
                 return dic;
@@ -70,7 +66,7 @@ public class TempDic : DisposeableBase, ITempDic
             name,
             key =>
             {
-                var file = new TempFile(Path.Combine(FullPath, key), this);
+                var file = new TempFile(_directory?.GetFile(key), this);
                 file.TrackDispose(() => _tempFiles.TryRemove(key, out _));
 
                 return file;
@@ -132,7 +128,7 @@ public class TempDic : DisposeableBase, ITempDic
         try
         {
             if (_deleteDic)
-                FullPath.ClearDirectory();
+                _directory?.Clear();
         }
         catch (IOException) { }
     }

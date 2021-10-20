@@ -1,63 +1,53 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using System.Threading;
 using JetBrains.Annotations;
+using Tauron.Application.VirtualFiles;
 
 namespace Tauron.Application;
 
 public sealed class TauronEnviromentImpl : ITauronEnviroment
 {
-    private string? _defaultPath;
+    private IDirectory? _defaultPath;
 
-    public TauronEnviromentImpl()
+    public TauronEnviromentImpl(VirtualFileFactory factory)
     {
-        LocalApplicationData = TauronEnviroment.LocalApplicationData;
-        LocalApplicationTempFolder = TauronEnviroment.LocalApplicationTempFolder;
+        LocalApplicationData = factory.Local(TauronEnviroment.LocalApplicationData);
+        LocalApplicationTempFolder = factory.Local(TauronEnviroment.LocalApplicationTempFolder);
     }
 
-    string ITauronEnviroment.DefaultProfilePath
+    IDirectory ITauronEnviroment.DefaultProfilePath
     {
-        get
-        {
-            if (string.IsNullOrWhiteSpace(_defaultPath))
-                _defaultPath = TauronEnviroment.DefaultPath.Value;
-
-            return _defaultPath;
-        }
-
+        get => _defaultPath ??= TauronEnviroment.DefaultPath.Value;
         set => _defaultPath = value;
     }
 
-    public string LocalApplicationData { get; }
+    public IDirectory LocalApplicationData { get; }
 
-    public string LocalApplicationTempFolder { get; }
+    public IDirectory LocalApplicationTempFolder { get; }
 
-    public IEnumerable<string> GetProfiles(string application)
-        => TauronEnviroment.DefaultProfilePath.CombinePath(application)
-           .EnumerateDirectorys()
-           .Select(ent => ent.Split('\\').Last());
+    public IEnumerable<IDirectory> GetProfiles(string application)
+        => TauronEnviroment.DefaultProfilePath.GetDirectory(application)
+           .Directories;
 }
 
 [PublicAPI]
 public static class TauronEnviroment
 {
-    public static string AppRepository = "Tauron";
+    internal static string AppRepository = "Tauron";
 
-    internal static Lazy<string> DefaultPath = new(
+    internal static Lazy<IDirectory> DefaultPath = new(
         () =>
         {
             var defaultPath = LocalApplicationData;
-            #pragma warning disable GU0011
-            defaultPath.CreateDirectoryIfNotExis();
-            #pragma warning restore GU0011
-            return defaultPath;
+            return new VirtualFileFactory().Local(defaultPath);
         },
         LazyThreadSafetyMode.ExecutionAndPublication);
 
-    public static string DefaultProfilePath => DefaultPath.Value;
+    internal static IDirectory DefaultProfilePath => DefaultPath.Value;
 
-    public static string LocalApplicationData => Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData).CombinePath(AppRepository);
+    internal static string LocalApplicationData => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), AppRepository);
 
-    public static string LocalApplicationTempFolder => LocalApplicationData.CombinePath("Temp");
+    internal static string LocalApplicationTempFolder => Path.Combine(LocalApplicationData, "Temp");
 }

@@ -2,55 +2,54 @@
 using System.Text;
 using JetBrains.Annotations;
 
-namespace Tauron.Application.Files.HeaderedText
+namespace Tauron.Application.Files.HeaderedText;
+
+[PublicAPI]
+public sealed class HeaderedFile
 {
-    [PublicAPI]
-    public sealed class HeaderedFile
+    public HeaderedFile(FileDescription description) => Context = new FileContext(description);
+
+    internal HeaderedFileWriter? CurrentWriter { get; set; }
+
+    public FileContext Context { get; private set; }
+
+    public string? Content { get; internal set; }
+
+    public void Read(TextReader reader)
     {
-        public HeaderedFile(FileDescription description) => Context = new FileContext(description);
+        var builder = new StringBuilder();
 
-        internal HeaderedFileWriter? CurrentWriter { get; set; }
+        Context.Reset();
 
-        public FileContext Context { get; private set; }
+        var compled = false;
 
-        public string? Content { get; internal set; }
-
-        public void Read(TextReader reader)
+        foreach (var textLine in reader.EnumerateTextLines())
         {
-            var builder = new StringBuilder();
-
-            Context.Reset();
-
-            var compled = false;
-
-            foreach (var textLine in reader.EnumerateTextLines())
+            if (compled)
             {
-                if (compled)
-                {
-                    builder.AppendLine(textLine);
+                builder.AppendLine(textLine);
 
-                    continue;
-                }
+                continue;
+            }
 
-                var textLineTemp = textLine.Trim();
-                var temp = textLineTemp.Split(new[] { ' ' }, 2);
-                if (Context.IsKeyword(temp[0]))
-                {
-                    var key = temp[0];
-                    var content = string.Empty;
+            var textLineTemp = textLine.Trim();
+            var temp = textLineTemp.Split(new[] { ' ' }, 2);
+            if (Context.IsKeyword(temp[0]))
+            {
+                var key = temp[0];
+                var content = string.Empty;
 
-                    if (temp.Length < 1) content = temp[1];
+                if (temp.Length < 1) content = temp[1];
 
-                    Context.Add(new ContextEntry(key, content));
-                }
-                else
-                {
-                    builder.AppendLine(textLine);
-                    compled = true;
-                }
+                Context.Add(new ContextEntry(key, content));
+            }
+            else
+            {
+                builder.AppendLine(textLine);
+                compled = true;
             }
         }
-
-        public HeaderedFileWriter CreateWriter() => CurrentWriter ?? new HeaderedFileWriter(this);
     }
+
+    public HeaderedFileWriter CreateWriter() => CurrentWriter ?? new HeaderedFileWriter(this);
 }

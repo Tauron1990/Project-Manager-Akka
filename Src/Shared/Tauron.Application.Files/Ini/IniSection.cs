@@ -4,39 +4,38 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using JetBrains.Annotations;
 
-namespace Tauron.Application.Files.Ini
+namespace Tauron.Application.Files.Ini;
+
+[PublicAPI]
+[Serializable]
+public sealed record IniSection(string Name, ImmutableDictionary<string, IniEntry> Entries) : IEnumerable<IniEntry>
 {
-    [PublicAPI]
-    [Serializable]
-    public sealed record IniSection(string Name, ImmutableDictionary<string, IniEntry> Entries) : IEnumerable<IniEntry>
+    public IniSection(string name)
+        : this(name, ImmutableDictionary<string, IniEntry>.Empty) { }
+
+    public IEnumerator<IniEntry> GetEnumerator() => Entries.Values.GetEnumerator();
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    public SingleIniEntry? GetSingleEntry(string name)
     {
-        public IniSection(string name)
-            : this(name, ImmutableDictionary<string, IniEntry>.Empty) { }
+        if (Entries.TryGetValue(name, out var entry))
+            return entry as SingleIniEntry;
 
-        public IEnumerator<IniEntry> GetEnumerator() => Entries.Values.GetEnumerator();
+        return null;
+    }
 
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    public IniSection AddSingleKey(string name)
+    {
+        var entry = new SingleIniEntry(name, null);
 
-        public SingleIniEntry? GetSingleEntry(string name)
-        {
-            if (Entries.TryGetValue(name, out var entry))
-                return entry as SingleIniEntry;
+        return this with { Entries = Entries.Add(name, entry) };
+    }
 
-            return null;
-        }
+    public ListIniEntry? GetListEntry(string name)
+    {
+        if (!Entries.TryGetValue(name, out var value)) return null;
 
-        public IniSection AddSingleKey(string name)
-        {
-            var entry = new SingleIniEntry(name, null);
-
-            return this with { Entries = Entries.Add(name, entry) };
-        }
-
-        public ListIniEntry? GetListEntry(string name)
-        {
-            if (!Entries.TryGetValue(name, out var value)) return null;
-
-            return value as ListIniEntry;
-        }
+        return value as ListIniEntry;
     }
 }

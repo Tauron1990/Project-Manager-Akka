@@ -4,6 +4,7 @@ using Autofac.Features.ResolveAnything;
 using Stl.Time;
 using Tauron.Akka;
 using Tauron.Application;
+using Tauron.Application.VirtualFiles;
 using Tauron.Localization.Provider;
 
 namespace Tauron;
@@ -12,6 +13,7 @@ public sealed class CommonModule : Module
 {
     protected override void Load(ContainerBuilder builder)
     {
+        builder.RegisterType<VirtualFileFactory>();
         builder.RegisterInstance(CpuClock.Instance).As<IMomentClock, ISystemClock>().SingleInstance();
 
         builder.RegisterSource<AnyConcreteTypeNotAlreadyRegisteredSource>();
