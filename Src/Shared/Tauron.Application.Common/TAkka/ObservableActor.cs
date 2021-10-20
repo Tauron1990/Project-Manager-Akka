@@ -11,7 +11,7 @@ using Akka.Actor;
 using Akka.Event;
 using JetBrains.Annotations;
 
-namespace Tauron.Akka;
+namespace Tauron.TAkka;
 
 public interface IResourceHolder : IDisposable
 {

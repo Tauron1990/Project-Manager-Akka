@@ -1,4 +1,5 @@
 ﻿using System;
+using Akka.Serialization;
 using Autofac;
 using JetBrains.Annotations;
 
@@ -14,7 +15,7 @@ public static class AutofacExtensions
 
         if (builder.Properties.ContainsKey(startableTypeKey))
             return;
-
+        
         builder.Properties.Add(startableTypeKey, null);
         register(builder);
     }

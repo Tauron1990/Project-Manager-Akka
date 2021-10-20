@@ -3,7 +3,7 @@ using System.Reactive;
 using Akka.Actor;
 using JetBrains.Annotations;
 
-namespace Tauron.Akka;
+namespace Tauron.TAkka;
 
 [PublicAPI]
 public static class EventActorExtensions

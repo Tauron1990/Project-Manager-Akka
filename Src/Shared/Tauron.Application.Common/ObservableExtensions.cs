@@ -9,8 +9,8 @@ using Akka.Actor.Internal;
 using Akka.Util;
 using Akka.Util.Extensions;
 using JetBrains.Annotations;
-using Tauron.Akka;
 using Tauron.Features;
+using Tauron.TAkka;
 
 namespace Tauron;
 

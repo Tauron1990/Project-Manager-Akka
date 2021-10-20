@@ -8,7 +8,7 @@ using Akka.Actor.Internal;
 using JetBrains.Annotations;
 using IScheduler = System.Reactive.Concurrency.IScheduler;
 
-namespace Tauron.Akka;
+namespace Tauron.TAkka;
 
 [PublicAPI]
 public sealed class ActorScheduler : LocalScheduler

@@ -1,7 +1,7 @@
 ﻿using System;
 using JetBrains.Annotations;
 
-namespace Tauron.Akka;
+namespace Tauron.TAkka;
 
 [PublicAPI]
 public sealed record HookEvent(Delegate Invoker, Type Target)

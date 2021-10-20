@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reactive.Disposables;
 using JetBrains.Annotations;
-using Tauron.Akka;
+using Tauron.TAkka;
 
 namespace Tauron;
 

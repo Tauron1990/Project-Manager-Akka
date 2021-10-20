@@ -2,10 +2,10 @@
 using Autofac;
 using Autofac.Features.ResolveAnything;
 using Stl.Time;
-using Tauron.Akka;
 using Tauron.Application;
 using Tauron.Application.VirtualFiles;
 using Tauron.Localization.Provider;
+using Tauron.TAkka;
 
 namespace Tauron;
 

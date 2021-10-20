@@ -1,6 +1,6 @@
 ﻿using Akka.Actor;
 
-namespace Tauron.Akka;
+namespace Tauron.TAkka;
 
 public class SyncActorRef<TActor> : BaseActorRef<TActor>, ISyncActorRef<TActor> where TActor : ActorBase
 {

@@ -9,7 +9,7 @@ using Akka.Dispatch;
 using Akka.Event;
 using JetBrains.Annotations;
 
-namespace Tauron.Akka;
+namespace Tauron.TAkka;
 
 [PublicAPI]
 public sealed class TimerScheduler : SchedulerBase, IDateTimeOffsetNowTimeProvider, IDisposable

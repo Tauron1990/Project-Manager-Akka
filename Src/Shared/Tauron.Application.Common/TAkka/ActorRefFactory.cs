@@ -2,7 +2,7 @@
 using Akka.DependencyInjection;
 using JetBrains.Annotations;
 
-namespace Tauron.Akka;
+namespace Tauron.TAkka;
 
 [PublicAPI]
 public sealed class ActorRefFactory<TActor> where TActor : ActorBase

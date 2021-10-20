@@ -4,8 +4,8 @@ using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Util;
 using JetBrains.Annotations;
-using Tauron.Akka;
 using Tauron.Localization.Actor;
+using Tauron.TAkka;
 
 namespace Tauron.Localization.Extension;
 
