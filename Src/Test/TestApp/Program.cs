@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Linq;
 using Ionic.Zip;
 
 namespace TestApp
@@ -12,6 +13,7 @@ namespace TestApp
             // var zip = ZipFile.Read(testzip);
 
             using var test = ZipFile.Read("test.zip");
+            test.First().FileName = Path.ChangeExtension(test.First().FileName, ".test");
 
             // using var zip = new ZipFile();
             //

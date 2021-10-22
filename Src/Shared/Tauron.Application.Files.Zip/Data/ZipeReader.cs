@@ -7,9 +7,9 @@ namespace Tauron.Application.Files.Zip.Data;
 
 public static class ZipeReader
 {
-    public static ZipDirectory ReadData(ZipFile file)
+    public static ZipDirectoryContext ReadData(ZipFile file)
     {
-        var start = new ZipDirectory(file, null, "", null);
+        var start = new ZipDirectoryContext(file, null, "", null);
 
         foreach (var entry in file)
         {
@@ -30,7 +30,7 @@ public static class ZipeReader
     }
     
     #pragma warning disable EPS06
-    private static void AddFile(ZipFile file, ZipEntry entry, ZipDirectory root)
+    private static void AddFile(ZipFile file, ZipEntry entry, ZipDirectoryContext root)
     {
         var fileName = entry.FileName.AsSpan();
         var nameIndex = fileName.LastIndexOf('/');
@@ -46,7 +46,7 @@ public static class ZipeReader
         }
     }
     
-    private static void AddDirectory(ZipFile file, ZipEntry entry, ZipDirectory root)
+    private static void AddDirectory(ZipFile file, ZipEntry entry, ZipDirectoryContext root)
     {
         var target = SearchDic(entry.FileName.AsSpan(), file, root);
 
@@ -57,7 +57,7 @@ public static class ZipeReader
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static ZipDirectory SearchDic(ReadOnlySpan<char> fileName, ZipFile file, ZipDirectory dic)
+    private static ZipDirectoryContext SearchDic(ReadOnlySpan<char> fileName, ZipFile file, ZipDirectoryContext dic)
     {
         var searchroom = fileName;
         if (searchroom[0] == '/')
@@ -70,7 +70,7 @@ public static class ZipeReader
             {
                 return dic.Dics.AddOrUpdate(
                     searchroom.ToString(),
-                    name => new ZipDirectory(file, null, name, dic), 
+                    name => new ZipDirectoryContext(file, null, name, dic), 
                     (_, d) => d)!;
             }
             
@@ -78,7 +78,7 @@ public static class ZipeReader
             
             dic = dic.Dics.AddOrUpdate(
                 searchroom[..foundIndex].ToString(),
-                name => new ZipDirectory(file, null, name, parentDic), 
+                name => new ZipDirectoryContext(file, null, name, parentDic), 
                 (_, d) => d)!;
 
             searchroom = searchroom[(foundIndex + 1)..];
