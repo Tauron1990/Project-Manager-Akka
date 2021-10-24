@@ -32,10 +32,21 @@ public sealed class ZipFileEntry : FileBase<ZipContext>
         get
         {
             var entry = ValidateFileExist(Context);
+
+            if (entry.UncompressedSize != 0)
+                return entry.UncompressedSize;
+
+            if (entry.CompressedSize != 0)
+                return entry.CompressedSize;
+
+            if (entry.Source == ZipEntrySource.Stream)
+                return entry.InputStream?.Length ?? 0;
+
+            return 0;
         }
     }
     protected override Stream CreateStream(ZipContext context, FileAccess access, bool createNew)
-        => throw new NotImplementedException();
+        => ValidateFileExist(context).OpenReader();
 
     private ZipEntry ValidateFileExist(ZipContext context)
     {

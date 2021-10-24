@@ -304,11 +304,11 @@ public sealed class ActorBuilder<TState>
         public virtual void Init(IFeatureActor<TOriginal> actor)
             => _feature.Init(new StateDelegator<TTarget, TOriginal>(actor, _convert, _convertBack));
 
-        public void Dispose() => _feature.Dispose();
+        void IDisposable.Dispose() => _feature.Dispose();
 
-        public void AddResource(IDisposable res) => _feature.AddResource(res);
+        void IResourceHolder.AddResource(IDisposable res) => _feature.AddResource(res);
 
-        public void RemoveResource(IDisposable res) => _feature.RemoveResource(res);
+        void IResourceHolder.RemoveResource(IDisposable res) => _feature.RemoveResource(res);
     }
 
     [DebuggerStepThrough]
