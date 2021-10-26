@@ -1,14 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net5.0</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
         <Nullable>enable</Nullable>
         <AssemblyName>Tauron.Application.AkkaNode.Bootstrap</AssemblyName>
         <RootNamespace>Tauron.Application.AkkaNode.Bootstrap</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
-        <None Remove="base.conf"/>
+        <None Remove="base.conf" />
     </ItemGroup>
 
     <ItemGroup>
@@ -18,8 +18,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Akka.Cluster.Sharding" Version="1.4.25"/>
-        <PackageReference Include="Akka.Logger.NLog" Version="1.4.10"/>
+        <PackageReference Include="Akka.Cluster.Sharding" Version="1.4.27" />
+        <PackageReference Include="Akka.Logger.NLog" Version="1.4.10" />
         <PackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.1.2">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -32,14 +32,14 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10"/>
-        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31"/>
+        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
+        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\Shared\Tauron.Application.Logging\Tauron.Application.Logging.csproj"/>
-        <ProjectReference Include="..\Servicemnager.Networking\Servicemnager.Networking.csproj"/>
-        <ProjectReference Include="..\Tauron.Application.Master.Commands\Tauron.Application.Master.Commands.csproj"/>
+        <ProjectReference Include="..\..\..\Shared\Tauron.Application.Logging\Tauron.Application.Logging.csproj" />
+        <ProjectReference Include="..\Servicemnager.Networking\Servicemnager.Networking.csproj" />
+        <ProjectReference Include="..\Tauron.Application.Master.Commands\Tauron.Application.Master.Commands.csproj" />
     </ItemGroup>
 
 </Project>

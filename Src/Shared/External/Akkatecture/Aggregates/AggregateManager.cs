@@ -23,6 +23,7 @@
 
 using System;
 using Akka.Actor;
+using Akka.DependencyInjection;
 using Akka.Event;
 using Akka.Persistence;
 using Akkatecture.Commands;

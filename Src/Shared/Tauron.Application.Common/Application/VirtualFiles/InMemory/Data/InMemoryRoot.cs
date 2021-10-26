@@ -6,12 +6,12 @@ namespace Tauron.Application.VirtualFiles.InMemory.Data;
 
 public sealed class InMemoryRoot : DirectoryEntry
 {
-    private readonly RecyclableMemoryStreamManager _manager = new();
+    public static readonly RecyclableMemoryStreamManager Manager = new();
     private readonly SimplePool<FileEntry> _filePool = new(PoolConfig<FileEntry>.Default);
     private readonly SimplePool<DirectoryEntry> _directoryPool = new(PoolConfig<DirectoryEntry>.Default);
 
     public FileEntry GetInitializedFile(string name, ISystemClock clock)
-        => _filePool.Rent().Init(name, _manager.GetStream(), clock);
+        => _filePool.Rent().Init(name, Manager.GetStream(), clock);
 
     public DirectoryEntry GetDirectoryEntry(string name, ISystemClock clock)
     {
@@ -57,6 +57,6 @@ public sealed class InMemoryRoot : DirectoryEntry
     public void ReInit(FileEntry data, ISystemClock clock)
     {
         data.ActualData.Dispose();
-        data.Init(data.ActualName, _manager.GetStream(), clock);
+        data.Init(data.ActualName, Manager.GetStream(), clock);
     }
 }

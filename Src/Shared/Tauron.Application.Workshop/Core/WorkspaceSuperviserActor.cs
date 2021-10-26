@@ -5,7 +5,7 @@ using Akka.Actor;
 using Akka.Actor.Internal;
 using Akka.DependencyInjection;
 using Akka.Util;
-using Tauron.Akka;
+using Tauron.TAkka;
 using Tauron.Application.Workshop.Mutation;
 
 namespace Tauron.Application.Workshop.Core

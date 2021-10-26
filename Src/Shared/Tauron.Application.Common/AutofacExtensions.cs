@@ -1,5 +1,4 @@
 ﻿using System;
-using Akka.Serialization;
 using Autofac;
 using JetBrains.Annotations;
 

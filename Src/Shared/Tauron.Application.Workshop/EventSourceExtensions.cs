@@ -1,6 +1,6 @@
 ﻿using System;
 using JetBrains.Annotations;
-using Tauron.Akka;
+using Tauron.TAkka;
 using Tauron.Application.Workshop.Mutation;
 
 namespace Tauron.Application.Workshop

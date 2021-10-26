@@ -6,7 +6,7 @@ using Akka.Cluster;
 using Akka.Cluster.Utility;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
-using Tauron.Akka;
+using Tauron.TAkka;
 using Tauron.AkkaHost;
 using Tauron.Features;
 using static Akka.Cluster.Utility.ClusterActorDiscoveryMessage;

@@ -1,12 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net5.0</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
         <Nullable>enable</Nullable>
+        <LangVersion>10</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Autofac" Version="6.2.0"/>
+        <PackageReference Include="Autofac" Version="6.2.0" />
         <PackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.1.2">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -19,16 +20,16 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="JetBrains.Annotations" Version="2021.2.0"/>
-        <PackageReference Include="MurmurHash-net-core" Version="1.0.0"/>
-        <PackageReference Include="NLog" Version="4.7.11"/>
-        <PackageReference Include="NLog.Extensions.Logging" Version="1.7.4"/>
-        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10"/>
-        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31"/>
+        <PackageReference Include="JetBrains.Annotations" Version="2021.2.0" />
+        <PackageReference Include="MurmurHash-net-core" Version="1.0.0" />
+        <PackageReference Include="NLog" Version="4.7.11" />
+        <PackageReference Include="NLog.Extensions.Logging" Version="1.7.4" />
+        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
+        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Tauron.Application.Common\Tauron.Application.Common.csproj"/>
+        <ProjectReference Include="..\Tauron.Application.Common\Tauron.Application.Common.csproj" />
     </ItemGroup>
 
 </Project>

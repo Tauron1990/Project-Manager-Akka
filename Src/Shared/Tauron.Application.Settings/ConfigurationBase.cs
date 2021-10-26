@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
-using Tauron.Akka;
+using Tauron.TAkka;
 
 namespace Tauron.Application.Settings
 {

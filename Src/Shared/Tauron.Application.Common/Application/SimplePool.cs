@@ -7,7 +7,13 @@ namespace Tauron.Application;
 public sealed record PoolConfig<TToPool>(int MaximumSize, bool UseDispose, Func<TToPool> Factory)
 {
     public static PoolConfig<TToPool> Default 
-        => new(0, UseDispose: true, () => (TToPool)FastReflection.Shared.GetCreator(typeof(TToPool), Type.EmptyTypes)(Array.Empty<object>()));
+        => new(0, UseDispose: true, () =>
+                                    {
+                                        if(FastReflection.Shared.GetCreator(typeof(TToPool), Type.EmptyTypes)?.Invoke(Array.Empty<object>()) is not TToPool data)
+                                            throw new InvalidOperationException("Pool Element not Created");
+
+                                        return data;
+                                    });
 }
 
 [PublicAPI]

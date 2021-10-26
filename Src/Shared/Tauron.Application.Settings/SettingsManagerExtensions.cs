@@ -1,7 +1,7 @@
 ﻿using System;
 using Akka.Actor;
 using Autofac;
-using Tauron.Akka;
+using Tauron.TAkka;
 
 namespace Tauron.Application.Settings
 {

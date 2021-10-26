@@ -1,7 +1,7 @@
 ﻿using System;
 using Akka.Actor;
 using JetBrains.Annotations;
-using Tauron.Akka;
+using Tauron.TAkka;
 using Tauron.Features;
 
 namespace Tauron.Application.AkkaNode.Services.Core

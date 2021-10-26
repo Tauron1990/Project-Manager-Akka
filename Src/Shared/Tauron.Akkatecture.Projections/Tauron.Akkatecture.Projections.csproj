@@ -1,14 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net5.0</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
         <Nullable>enable</Nullable>
+        <LangVersion>10</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
-        <Compile Remove="Internal\**"/>
-        <EmbeddedResource Remove="Internal\**"/>
-        <None Remove="Internal\**"/>
+        <Compile Remove="Internal\**" />
+        <EmbeddedResource Remove="Internal\**" />
+        <None Remove="Internal\**" />
     </ItemGroup>
 
     <ItemGroup>
@@ -24,14 +25,14 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="LiquidProjections" Version="3.2.0"/>
-        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10"/>
-        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31"/>
+        <PackageReference Include="LiquidProjections" Version="3.2.0" />
+        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
+        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\External\Akkatecture\Akkatecture.csproj"/>
-        <ProjectReference Include="..\Tauron.Application.Common\Tauron.Application.Common.csproj"/>
+        <ProjectReference Include="..\External\Akkatecture\Akkatecture.csproj" />
+        <ProjectReference Include="..\Tauron.Application.Common\Tauron.Application.Common.csproj" />
     </ItemGroup>
 
 </Project>

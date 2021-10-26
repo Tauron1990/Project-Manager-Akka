@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Akka.Actor;
 using JetBrains.Annotations;
-using Tauron.Akka;
+using Tauron.TAkka;
 using Tauron.Application.Workshop.Analyzing.Actor;
 
 namespace Tauron.Application.Workshop.Analyzing.Rules

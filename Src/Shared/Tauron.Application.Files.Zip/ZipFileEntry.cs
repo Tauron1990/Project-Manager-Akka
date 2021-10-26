@@ -4,6 +4,7 @@ using Ionic.Zip;
 using Tauron.Application.Files.Zip.Data;
 using Tauron.Application.VirtualFiles;
 using Tauron.Application.VirtualFiles.Core;
+using Tauron.Application.VirtualFiles.InMemory.Data;
 
 namespace Tauron.Application.Files.Zip;
 
@@ -46,7 +47,17 @@ public sealed class ZipFileEntry : FileBase<ZipContext>
         }
     }
     protected override Stream CreateStream(ZipContext context, FileAccess access, bool createNew)
-        => ValidateFileExist(context).OpenReader();
+    {
+        var entry = ValidateFileExist(context);
+
+        if (entry.Source == ZipEntrySource.ZipFile)
+        {
+            if(!access.HasFlag(FileAccess.Write))
+                return entry.OpenReader();
+
+            var newStream = new StreamWrapper(InMemoryRoot.Manager.GetStream(), FileAccess.ReadWrite, () => { });
+        }
+    }
 
     private ZipEntry ValidateFileExist(ZipContext context)
     {
