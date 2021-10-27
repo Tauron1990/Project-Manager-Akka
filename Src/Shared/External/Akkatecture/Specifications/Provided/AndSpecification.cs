@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Tauron.Operations;
 
 namespace Akkatecture.Specifications.Provided
 {
@@ -44,7 +45,7 @@ namespace Akkatecture.Specifications.Provided
             _specification2 = specification2 ?? throw new ArgumentNullException(nameof(specification2));
         }
 
-        protected override IEnumerable<string> IsNotSatisfiedBecause(T aggregate) => _specification1
+        protected override IEnumerable<Error> IsNotSatisfiedBecause(T aggregate) => _specification1
            .WhyIsNotSatisfiedBy(aggregate).Concat(_specification2.WhyIsNotSatisfiedBy(aggregate));
     }
 }

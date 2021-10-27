@@ -28,6 +28,7 @@
 using System.Collections.Generic;
 using Akkatecture.Aggregates;
 using JetBrains.Annotations;
+using Tauron.Operations;
 
 namespace Akkatecture.Specifications.Provided
 {
@@ -38,9 +39,10 @@ namespace Akkatecture.Specifications.Provided
 
         private AggregateIsNewSpecification() { }
 
-        protected override IEnumerable<string> IsNotSatisfiedBecause(IAggregateRoot aggregate)
+        protected override IEnumerable<Error> IsNotSatisfiedBecause(IAggregateRoot aggregate)
         {
-            if (!aggregate.IsNew) yield return $"'{aggregate.Name}' with ID '{aggregate.GetIdentity()}' is not new";
+            if (!aggregate.IsNew) 
+                yield return new Error($"'{aggregate.Name}' with ID '{aggregate.GetIdentity()}' is not new", DefaultErrorCodes.NotNewAggregate);
         }
     }
 }

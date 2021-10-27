@@ -1,4 +1,5 @@
 ﻿using Akka.Actor;
+using Akka.Event;
 using Akkatecture.Aggregates;
 using Akkatecture.Core;
 using Tauron.Operations;
@@ -12,17 +13,23 @@ public class InternalAggregateRoot<TAggregate, TIdentity, TAggregateState> : Agg
     
     public InternalAggregateRoot(TIdentity id) : base(id) { }
 
-    protected void Run<TCommand>(TCommand command, Func<TCommand, IOperationResult> runner)
+    protected bool Run<TCommand>(TCommand command, Func<TCommand, IOperationResult> runner)
     {
         try
         {
+            var result = runner(command);
+            if(!Sender.IsNobody())
+                Sender.Tell(result);
 
+            return true;
         }
         catch (Exception e)
         {
             if(!Sender.IsNobody())
                 Sender.Tell(OperationResult.Failure(e));
-            throw;
+            Context.GetLogger().Error(e, "Eoor on process Command {Command}", command);
+
+            return false;
         }
     }
 }

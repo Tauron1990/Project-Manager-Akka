@@ -51,20 +51,20 @@ namespace Akkatecture.Extensions
             ISpecification<T> specification2)
             => new AndSpeficication<T>(specification1, specification2);
 
-        public static ISpecification<T> And<T>(
-            this ISpecification<T> specification,
-            Expression<Func<T, bool>> expression)
-            => specification.And(new ExpressionSpecification<T>(expression));
+        //public static ISpecification<T> And<T>(
+        //    this ISpecification<T> specification,
+        //    Expression<Func<T, bool>> expression)
+        //    => specification.And(new ExpressionSpecification<T>(expression));
 
         public static ISpecification<T> Or<T>(
             this ISpecification<T> specification1,
             ISpecification<T> specification2)
             => new OrSpecification<T>(specification1, specification2);
 
-        public static ISpecification<T> Or<T>(
-            this ISpecification<T> specification,
-            Expression<Func<T, bool>> expression)
-            => specification.Or(new ExpressionSpecification<T>(expression));
+        //public static ISpecification<T> Or<T>(
+        //    this ISpecification<T> specification,
+        //    Expression<Func<T, bool>> expression)
+        //    => specification.Or(new ExpressionSpecification<T>(expression));
 
         public static ISpecification<T> Not<T>(
             this ISpecification<T> specification)

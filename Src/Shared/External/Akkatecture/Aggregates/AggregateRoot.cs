@@ -205,7 +205,7 @@ namespace Akkatecture.Aggregates
             long version, IMetadata? metadata = null)
             where TAggregateEvent : class, IAggregateEvent<TAggregate, TIdentity>
         {
-            if (aggregateEvent == null) throw new ArgumentNullException(nameof(aggregateEvent));
+            if (aggregateEvent is null) throw new ArgumentNullException(nameof(aggregateEvent));
 
             _eventDefinitionService.Load(aggregateEvent.GetType());
             var eventDefinition = _eventDefinitionService.GetDefinition(aggregateEvent.GetType());
@@ -278,7 +278,7 @@ namespace Akkatecture.Aggregates
 
             var aggregateSnapshot = CreateSnapshot();
 
-            if (aggregateSnapshot == null) return;
+            if (aggregateSnapshot is null) return;
 
             _snapshotDefinitionService.Load(aggregateSnapshot.GetType());
             var snapshotDefinition = _snapshotDefinitionService.GetDefinition(aggregateSnapshot.GetType());
@@ -339,7 +339,7 @@ namespace Akkatecture.Aggregates
 
         protected override bool AroundReceive(Receive receive, object message)
         {
-            if (!(message is Command<TAggregate, TIdentity> command)) return base.AroundReceive(receive, message);
+            if (message is not Command<TAggregate, TIdentity> command) return base.AroundReceive(receive, message);
 
             if (IsNew || Id.Equals(command.AggregateId))
                 PinnedCommand = command;
@@ -562,9 +562,7 @@ namespace Akkatecture.Aggregates
         {
             try
             {
-                var handler = FastReflection.Shared.FastCreateInstance(typeof(TCommandHandler)) as TCommandHandler;
-
-                if (handler is null)
+                if (FastReflection.Shared.FastCreateInstance(typeof(TCommandHandler)) is not TCommandHandler handler)
                     Log.Error("Unable to resolve CommandHandler of Type={0} for Aggregate of Type={1}.");
                 else
                     Command(command => handler.HandleCommand((TAggregate)this, Context, command), shouldHandle);

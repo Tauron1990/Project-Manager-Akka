@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 
 namespace Tauron.Operations;
 
-public sealed record Error(string? Info, string Code)
+public readonly record struct Error(string? Info, string Code)
 {
     public Error(Exception ex)
         : this(ex.Message, ex.HResult.ToString()) { }
@@ -28,15 +28,13 @@ public interface IOperationResult
 }
 
 [PublicAPI]
-#pragma warning disable AV1564
 public sealed record OperationResult(bool Ok, Error[]? Errors, object? Outcome) : IOperationResult
-    #pragma warning restore AV1564
 {
-    [JsonIgnore] public string? Error => Errors == null ? null : string.Join(", ", Errors.Select(error => error.Info ?? error.Code));
+    [JsonIgnore] public string? Error => Errors is null ? null : string.Join(", ", Errors.Select(error => error.Info ?? error.Code));
 
     public static IOperationResult Success(object? result = null) => new OperationResult(Ok: true, Errors: null, result);
 
-    public static IOperationResult Failure(Error error, object? outcome = null)
+    public static IOperationResult Failure(in Error error, object? outcome = null)
     {
         return new OperationResult(Ok: false, new[] { error }, outcome);
     }

@@ -26,6 +26,7 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System.Collections.Generic;
+using Tauron.Operations;
 
 namespace Akkatecture.Specifications
 {
@@ -33,6 +34,6 @@ namespace Akkatecture.Specifications
     {
         bool IsSatisfiedBy(T obj);
 
-        IEnumerable<string> WhyIsNotSatisfiedBy(T obj);
+        IEnumerable<Error> WhyIsNotSatisfiedBy(T obj);
     }
 }

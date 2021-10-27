@@ -27,6 +27,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Tauron.Operations;
 
 namespace Akkatecture.Specifications
 {
@@ -34,8 +35,8 @@ namespace Akkatecture.Specifications
     {
         public bool IsSatisfiedBy(T obj) => !IsNotSatisfiedBecause(obj).Any();
 
-        public IEnumerable<string> WhyIsNotSatisfiedBy(T obj) => IsNotSatisfiedBecause(obj);
+        public IEnumerable<Error> WhyIsNotSatisfiedBy(T obj) => IsNotSatisfiedBecause(obj);
 
-        protected abstract IEnumerable<string> IsNotSatisfiedBecause(T aggregate);
+        protected abstract IEnumerable<Error> IsNotSatisfiedBecause(T aggregate);
     }
 }

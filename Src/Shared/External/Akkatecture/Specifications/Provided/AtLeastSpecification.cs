@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Akkatecture.Extensions;
+using Tauron.Operations;
 
 namespace Akkatecture.Specifications.Provided
 {
@@ -55,7 +56,7 @@ namespace Akkatecture.Specifications.Provided
             _specifications = specificationList;
         }
 
-        protected override IEnumerable<string> IsNotSatisfiedBecause(T aggregate)
+        protected override IEnumerable<Error> IsNotSatisfiedBecause(T aggregate)
         {
             var notStatisfiedReasons = _specifications
                .Select(
@@ -65,11 +66,14 @@ namespace Akkatecture.Specifications.Provided
                         WhyIsNotStatisfied: specification.WhyIsNotSatisfiedBy(aggregate).ToList()
                     ))
                .Where(pair => pair.WhyIsNotStatisfied.Any())
-               .Select(pair => $"{pair.Specification.GetType().PrettyPrint()}: {string.Join(", ", pair.WhyIsNotStatisfied)}")
+               .Select(
+                    pair => new Error(
+                        $"{pair.Specification.GetType().PrettyPrint()}: {string.Join(", ", pair.WhyIsNotStatisfied.Select(e => e.Info ?? string.Empty))}",
+                        string.Join(", ", pair.WhyIsNotStatisfied.Select(e => e.Code))))
                .ToList();
 
             return _specifications.Count - notStatisfiedReasons.Count >= _requiredSpecifications
-                ? Enumerable.Empty<string>()
+                ? Enumerable.Empty<Error>()
                 : notStatisfiedReasons;
         }
     }

@@ -15,6 +15,11 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <Compile Remove="Specifications\Provided\ExpressionSpecification.cs" />
+      <Compile Remove="Specifications\SpecificationBuilder.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
         <None Remove="Configuration\defaults.conf" />
         <None Remove="Configuration\reference.conf" />
     </ItemGroup>
@@ -22,6 +27,11 @@
     <ItemGroup>
         <EmbeddedResource Include="Configuration\defaults.conf" />
         <EmbeddedResource Include="Configuration\reference.conf" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Include="Specifications\Provided\ExpressionSpecification.cs" />
+      <None Include="Specifications\SpecificationBuilder.cs" />
     </ItemGroup>
 
     <ItemGroup>
