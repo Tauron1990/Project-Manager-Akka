@@ -77,7 +77,7 @@ namespace Akkatecture.Core
         {
             try
             {
-                return (T)(FastReflection.Shared.FastCreateInstance(typeof(T)) ??
+                return (T)(FastReflection.Shared.FastCreateInstance(typeof(T), value) ??
                            throw new InvalidOperationException($"No Instantance of {typeof(T)} Created"));
             }
             catch (TargetInvocationException exception)

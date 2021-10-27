@@ -624,7 +624,7 @@ namespace Akkatecture.Aggregates
                 var subscriptionFunction = Delegate.CreateDelegate(funcType, this, methods[subscriptionType]);
                 var actorReceiveMethod = method.MakeGenericMethod(subscriptionType);
 
-                actorReceiveMethod.InvokeFast(this, subscriptionFunction);
+                actorReceiveMethod.Invoke(this, new object[] { subscriptionFunction });
             }
         }
     }

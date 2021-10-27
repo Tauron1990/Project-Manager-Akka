@@ -1,5 +1,4 @@
-﻿using Akkatecture.Jobs;
-using FluentValidation;
+﻿using FluentValidation;
 
 namespace SimpleProjectManager.Shared.Validators;
 

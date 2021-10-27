@@ -1,5 +1,4 @@
 ﻿using Akkatecture.Core;
-using JetBrains.Annotations;
 
 namespace SimpleProjectManager.Shared;
 
@@ -9,6 +8,6 @@ public sealed class ProjectFileId : Identity<ProjectFileId>
 
     public ProjectFileId(string value) : base(value) { }
 
-    public static ProjectFileId For(ProjectName projectNumber)
-        => NewDeterministic(FileNamespace, projectNumber.Value);
+    public static ProjectFileId For(ProjectName projectNumber, FileName name)
+        => NewDeterministic(FileNamespace, $"{projectNumber.Value}--{name.Value}");
 }

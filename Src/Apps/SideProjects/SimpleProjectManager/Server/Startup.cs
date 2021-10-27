@@ -1,10 +1,12 @@
 using Akka.DependencyInjection;
+using Akka.Persistence;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.SignalR;
 using MudBlazor.Services;
 using SimpleProjectManager.Server.Core.Data;
+using SimpleProjectManager.Server.Core.Projections;
 using Stl.CommandR;
 using Stl.Fusion;
 using Stl.Fusion.Server;
@@ -44,6 +46,14 @@ public class Startup
     public void ConfigureContainer(IActorApplicationBuilder builder)
     {
         builder
+           .OnMemberUp(
+                (_, sys, _) =>
+                {
+                    sys.RegisterExtension(Persistence.Instance);
+                    #if DEBUG
+                    TestStartUp.Run(sys);
+                    #endif
+                })
            .OnMemberRemoved(
                 (_, system, _) =>
                 {
@@ -56,7 +66,8 @@ public class Startup
                     catch (ObjectDisposedException) { }
                 })
            .AddModule<MainModule>()
-           .AddModule<DataModule>();
+           .AddModule<DataModule>()
+           .AddModule<ProjectionModule>();
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -14,6 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\Tauron.Application.MongoExtensions\Tauron.Application.MongoExtensions.csproj" />
     <ProjectReference Include="..\..\..\..\Shared\External\Akkatecture\Akkatecture.csproj" />
     <ProjectReference Include="..\..\..\..\Shared\Tauron.Akkatecture.Projections\Tauron.Akkatecture.Projections.csproj" />
     <ProjectReference Include="..\..\..\Shared\Tauron.Application.AkkaNode.Boottrap\Tauron.Application.AkkaNode.Boottrap.csproj" />
@@ -23,7 +24,6 @@
 
   <ItemGroup>
     <Folder Include="Controllers" />
-    <Folder Include="Core\Projections\" />
     <Folder Include="wwwroot\" />
   </ItemGroup>
 

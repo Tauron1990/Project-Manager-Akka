@@ -32,10 +32,10 @@ using JetBrains.Annotations;
 namespace Akkatecture.Aggregates
 {
     [PublicAPI]
-    public abstract class AggregateEvent<TAggregate, TIdentity> : IAggregateEvent<TAggregate, TIdentity>
+    public abstract record AggregateEvent<TAggregate, TIdentity> : IAggregateEvent<TAggregate, TIdentity>
         where TAggregate : IAggregateRoot<TIdentity>
         where TIdentity : IIdentity
     {
-        public override string ToString() => $"{typeof(TAggregate).PrettyPrint()}/{GetType().PrettyPrint()}";
+        //public override string ToString() => $"{typeof(TAggregate).PrettyPrint()}/{GetType().PrettyPrint()}";
     }
 }

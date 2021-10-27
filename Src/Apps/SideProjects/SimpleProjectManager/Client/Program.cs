@@ -1,7 +1,5 @@
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
-using SimpleProjectManager.Client;
 using Stl.Fusion;
 using Stl.Fusion.Blazor;
 using Stl.Fusion.Client;
