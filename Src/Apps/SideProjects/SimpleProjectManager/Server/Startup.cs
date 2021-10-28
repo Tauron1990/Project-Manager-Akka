@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.SignalR;
 using MudBlazor.Services;
 using SimpleProjectManager.Server.Core.Data;
 using SimpleProjectManager.Server.Core.Projections;
+using SimpleProjectManager.Server.Core.Services;
+using SimpleProjectManager.Shared.Services;
 using Stl.CommandR;
 using Stl.Fusion;
 using Stl.Fusion.Server;
@@ -26,7 +28,8 @@ public class Startup
         services.AddMudServices();
 
         var fusion = services.AddFusion();
-        fusion.AddPublisher();
+        fusion.AddPublisher()
+           .AddComputeService<IJobDatabaseService, JobDatabaseService>();
         
         services.AddHttpContextAccessor();
         services.AddDataProtection();
@@ -51,7 +54,7 @@ public class Startup
                 {
                     sys.RegisterExtension(Persistence.Instance);
                     #if DEBUG
-                    TestStartUp.Run(sys);
+                    //TestStartUp.Run(sys);
                     #endif
                 })
            .OnMemberRemoved(
@@ -67,7 +70,8 @@ public class Startup
                 })
            .AddModule<MainModule>()
            .AddModule<DataModule>()
-           .AddModule<ProjectionModule>();
+           .AddModule<ProjectionModule>()
+           .AddModule<ServicesModule>();
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
