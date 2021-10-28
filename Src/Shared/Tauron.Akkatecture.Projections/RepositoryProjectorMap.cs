@@ -48,7 +48,7 @@ namespace Tauron.Akkatecture.Projections
         }
 
         protected virtual Task<bool> Delete(TIdentity key, ProjectionContext context)
-            => _repository.Delete(context, key);
+            => _repository.Delete<TProjection, TIdentity>(context, key);
 
         protected virtual async Task Create(
             TIdentity key, ProjectionContext context, Func<TProjection, Task> projector,

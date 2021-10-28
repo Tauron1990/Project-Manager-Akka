@@ -19,7 +19,8 @@ namespace Tauron.Akkatecture.Projections
             where TProjection : class, IProjectorData<TIdentity>
             where TIdentity : IIdentity;
 
-        Task<bool> Delete<TIdentity>(ProjectionContext context, TIdentity identity)
+        Task<bool> Delete<TProjection, TIdentity>(ProjectionContext context, TIdentity identity)
+            where TProjection : class, IProjectorData<TIdentity>
             where TIdentity : IIdentity;
 
         Task Commit<TIdentity>(ProjectionContext context, TIdentity identity)

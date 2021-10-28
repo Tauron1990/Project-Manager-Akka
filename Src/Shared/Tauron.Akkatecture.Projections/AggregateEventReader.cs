@@ -204,11 +204,13 @@ namespace Tauron.Akkatecture.Projections
             private async Task Run(ISinkQueue<ImmutableList<Transaction>> queue)
             {
                 while (!_isCancel.Value)
+                {
                     try
                     {
                         var data = await queue.PullAsync();
 
                         if (data.HasValue)
+                        {
                             await _subscriber.HandleTransactions(
                                 data.Value,
                                 new SubscriptionInfo
@@ -216,13 +218,15 @@ namespace Tauron.Akkatecture.Projections
                                     Id = data.Value.Last().StreamId,
                                     Subscription = this
                                 });
+                        }
                         else
-                            Thread.Sleep(1);
+                            Thread.Sleep(100);
                     }
                     catch (Exception e)
                     {
                         _errorHandler?.Invoke(_exceptionInfo, e);
                     }
+                }
             }
 
             protected abstract Source<EventEnvelope, NotUsed> CreateSource(Offset offset);
