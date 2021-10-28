@@ -1,6 +1,4 @@
 ﻿using Akka.Actor;
-using Akka.Persistence.MongoDb.Journal;
-using Akka.Persistence.MongoDb.Query;
 using LiquidProjections;
 using SimpleProjectManager.Server.Core.Data;
 using SimpleProjectManager.Server.Core.Data.Events;
@@ -21,24 +19,20 @@ public sealed class ProjectProjectionManager : ProjectionManagerBase
             map =>
             {
                 map.Map<NewProjectCreatedEvent>(
-                    b =>
-                    {
-                        b.AsCreateOf(e => e.AggregateIdentity)
-                           .HandlingDuplicatesUsing((_,_,_) => true)
-                           .Using(
-                                (projection, evt, _) =>
-                                {
-                                    projection.Id = evt.AggregateIdentity;
-                                    projection.JobName = evt.AggregateEvent.Name;
+                    b => b.AsCreateOf(e => e.AggregateIdentity)
+                       .HandlingDuplicatesUsing((_, _, _) => true)
+                       .Using(
+                            (projection, evt, _) =>
+                            {
+                                projection.Id = evt.AggregateIdentity;
+                                projection.JobName = evt.AggregateEvent.Name;
 
-                                    return Task.CompletedTask;
-                                });
-                    });
+                                return Task.CompletedTask;
+                            }));
                 map.Map<ProjectDeadLineChangedEvent>(
                     b =>
                     {
                         b.AsUpdateOf(e => e.AggregateIdentity)
-                           .CreatingIfMissing()
                            .Using(
                                 (projection, evt, _) =>
                                 {
@@ -47,6 +41,22 @@ public sealed class ProjectProjectionManager : ProjectionManagerBase
                                     return Task.CompletedTask;
                                 });
                     });
+
+                map.Map<ProjectFilesAttachedEvent>(
+                    b => b.AsUpdateOf(e => e.AggregateIdentity)
+                       .Using(
+                            (projection, evt, _) =>
+                            {
+                                projection.ProjectFiles = projection.ProjectFiles.AddRange(evt.AggregateEvent.Files);
+                            }));
+
+                map.Map<ProjectStatusChangedEvent>(
+                    b => b.AsUpdateOf(e => e.AggregateIdentity)
+                       .Using(
+                            (projection, evt, _) =>
+                            {
+                                projection.Status = evt.AggregateEvent.NewStatus;
+                            }));
             });
     }
 }

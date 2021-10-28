@@ -4,7 +4,10 @@ using Akkatecture.Aggregates;
 using Akkatecture.Aggregates.Snapshot;
 using Akkatecture.Aggregates.Snapshot.Strategies;
 using Akkatecture.Core;
+using FluentValidation;
+using SimpleProjectManager.Shared;
 using Tauron.Operations;
+using Error = Tauron.Operations.Error;
 
 namespace SimpleProjectManager.Server.Core.Data;
 
@@ -38,11 +41,40 @@ public abstract class InternalAggregateRoot<TAggregate, TIdentity, TAggregateSta
         SetSnapshotStrategy(new SnapshotEveryFewVersionsStrategy(100));
     }
 
-    protected bool Run<TCommand>(TCommand command, Func<TCommand, IOperationResult> runner)
+    protected bool Run<TCommand>(TCommand command, IValidator<TCommand> validator, AggregateNeed need, Func<TCommand, IOperationResult> runner)
     {
         try
         {
-            var result = runner(command);
+            IOperationResult result;
+
+            switch (need)
+            {
+                case AggregateNeed.New:
+                    if (!IsNew)
+                    {
+                        result = OperationResult.Failure(new Error(GetErrorMessage(Errors.NoNewError), Errors.NoNewError));
+                        break;
+                    }
+                    else
+                        goto default;
+                case AggregateNeed.Exist:
+                    if (IsNew)
+                    {
+                        result = OperationResult.Failure(new Error(GetErrorMessage(Errors.NewError), Errors.NewError));
+                        break;
+                    }
+                    else
+                        goto default;
+                case AggregateNeed.Nothing:
+                default:
+                    var validationResult = validator.Validate(command);
+
+                    result = !validationResult.IsValid 
+                        ? OperationResult.Failure(validationResult.Errors.Select(err => new Error(err.ErrorMessage, err.ErrorCode))) 
+                        : runner(command);
+                    break;
+            }
+            
             if(!Sender.IsNobody())
                 Sender.Tell(result);
 
@@ -62,5 +94,15 @@ public abstract class InternalAggregateRoot<TAggregate, TIdentity, TAggregateSta
     {
         if (State == null) return null;
         return State.CreateSnapshot();
+    }
+
+    protected virtual string? GetErrorMessage(string errorCode)
+        => null;
+
+    protected enum AggregateNeed
+    {
+        Nothing,
+        New,
+        Exist
     }
 }

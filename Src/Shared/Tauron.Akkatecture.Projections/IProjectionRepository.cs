@@ -23,8 +23,13 @@ namespace Tauron.Akkatecture.Projections
             where TProjection : class, IProjectorData<TIdentity>
             where TIdentity : IIdentity;
 
-        Task Commit<TIdentity>(ProjectionContext context, TIdentity identity)
-            where TIdentity : IIdentity;
+        Task Commit<TProjection, TIdentity>(ProjectionContext context, TProjection projection, TIdentity identity)
+            where TIdentity : IIdentity
+            where TProjection : class, IProjectorData<TIdentity>;
+    
+
+        Task Completed<TIdentity>(TIdentity identity)
+                where TIdentity : IIdentity;
 
         long GetLastCheckpoint<TProjection, TIdentity>()
             where TProjection : class, IProjectorData<TIdentity>

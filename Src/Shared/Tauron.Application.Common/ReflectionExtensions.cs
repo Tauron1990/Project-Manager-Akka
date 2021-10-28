@@ -290,6 +290,11 @@ public sealed class FastReflection
     {
         return GetCreator(target, parm.Select(o => o.GetType()).ToArray())?.Invoke(parm);
     }
+
+    public object? FastCreateInstance(Type target, Type[] parmTypes,  params object[] parm)
+    {
+        return GetCreator(target, parmTypes)?.Invoke(parm);
+    }
 }
 
 [PublicAPI]

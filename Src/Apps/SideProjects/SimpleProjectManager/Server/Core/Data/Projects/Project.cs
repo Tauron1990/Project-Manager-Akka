@@ -1,4 +1,5 @@
 ﻿using Akkatecture.Aggregates;
+using FluentValidation;
 using SimpleProjectManager.Server.Core.Data.Events;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Validators;
@@ -9,7 +10,11 @@ namespace SimpleProjectManager.Server.Core.Data
     public sealed class Project : InternalAggregateRoot<Project, ProjectId, ProjectState, ProjectStateSnapshot>,
         IExecute<CreateProjectCommandCarrier>
     {
-        private readonly CreateProjectCommandValidator _createProjectCommandValidator = new();
+        private readonly IValidator<CreateProjectCommandCarrier> _createProjectCommandValidator =
+            new InlineValidator<CreateProjectCommandCarrier>
+            {
+                v => v.RuleFor(c => c.Data).SetValidator(new CreateProjectCommandValidator())
+            };
 
         public Project(ProjectId id) 
             : base(id) { }
@@ -18,17 +23,12 @@ namespace SimpleProjectManager.Server.Core.Data
         {
             return Run(
                 command,
+                _createProjectCommandValidator,
+                AggregateNeed.New,
                 com =>
                 {
-                    if (!IsNew) return OperationResult.Failure(new Error($"Der Job {command.Data.Project} ist nicht neu", Errors.ProjectNoNewError));
-
-                    var validationResult = _createProjectCommandValidator.Validate(com.Data);
-
-                    if (!validationResult.IsValid)
-                        return OperationResult.Failure(validationResult.Errors.Select(err => new Error(err.ErrorMessage, err.ErrorCode)));
-
                     var data = com.Data;
-
+                    
                     EmitAll(
                         new NewProjectCreatedEvent(data.Project),
                         new ProjectFilesAttachedEvent(data.Files),
@@ -39,5 +39,13 @@ namespace SimpleProjectManager.Server.Core.Data
                     return OperationResult.Success();
                 });
         }
+
+        protected override string GetErrorMessage(string errorCode)
+            => errorCode switch
+            {
+                Errors.NewError => "Der Job ist nicht neu",
+                Errors.NoNewError => "Der Job wurde nicht gefunde",
+                _ => errorCode
+            };
     }
 }

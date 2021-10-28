@@ -51,7 +51,7 @@ namespace SimpleProjectManager.Server.Core.Projections.Core
             var projector = new DomainProjector(eventMap);
 
             var dispatcher = new DomainDispatcher<TProjection, TIdentity>(
-                new AggregateEventReader<MongoDbReadJournal>(system, "akka.persistence.journal.mongodb"), projector, repository);
+                new AggregateEventReader<MongoDbReadJournal>(system, "akka.persistence.journal.mongoRead"), projector, repository);
 
             return dispatcher;
         }

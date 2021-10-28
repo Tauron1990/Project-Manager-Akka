@@ -1,4 +1,5 @@
-﻿using Akkatecture.Core;
+﻿using System.Collections.Concurrent;
+using Akkatecture.Core;
 using LiquidProjections;
 using MongoDB.Driver;
 using Tauron;
@@ -8,6 +9,7 @@ namespace SimpleProjectManager.Server.Core.Projections.Core;
 
 public sealed class InternalRepository : IProjectionRepository
 {
+    private readonly ConcurrentDictionary<object, IClientSessionHandle> _transactions = new();
     private readonly IMongoDatabase _database;
     private readonly IMongoCollection<CheckPointInfo> _checkpointInfo;
 
@@ -20,26 +22,37 @@ public sealed class InternalRepository : IProjectionRepository
     private static string GetDatabaseId(Type type)
         => type.FullName ?? type.Name;
 
-    private async Task<IMongoCollection<TData>> Collection<TData>()
+    private IClientSessionHandle GetTransaction(object key)
+        => _transactions.GetOrAdd(key, _ =>
+                                       {
+                                           var session = _database.Client.StartSession();
+
+                                           if(!session.IsInTransaction)
+                                               session.StartTransaction();
+
+                                           return session;
+                                       });
+
+    private async Task CommitCheckpoint<TData>(IClientSessionHandle? handle, ProjectionContext context)
     {
-        // ReSharper disable once InvertIf
-        if (context is not null)
-        {
-            var id = GetDatabaseId(typeof(TData));
-            var data = new CheckPointInfo { Checkpoint = context.Checkpoint, Id = id };
-            var filter = Builders<CheckPointInfo>.Filter.Eq(cp => cp.Id, id);
-            var option = new ReplaceOptions { IsUpsert = true };
+        var id = GetDatabaseId(typeof(TData));
+        var data = new CheckPointInfo { Checkpoint = context.Checkpoint, Id = id };
+        var filter = Builders<CheckPointInfo>.Filter.Eq(cp => cp.Id, id);
+        var option = new ReplaceOptions { IsUpsert = true };
 
+        if(handle == null)
             await _checkpointInfo.ReplaceOneAsync(filter, data, option);
-        }
-
-        return _database.GetCollection<TData>(typeof(TData).Name);
+        else
+            await _checkpointInfo.ReplaceOneAsync(handle, filter, data, option);
     }
+
+    private IMongoCollection<TData> Collection<TData>()
+        => _database.GetCollection<TData>(typeof(TData).Name);
 
     public async Task<TProjection?> Get<TProjection, TIdentity>(ProjectionContext context, TIdentity identity)
         where TProjection : class, IProjectorData<TIdentity>
         where TIdentity : IIdentity
-        => await (await Collection<TProjection>(context)).Find(Builders<TProjection>.Filter.Eq(p => p.Id, identity)).FirstOrDefaultAsync()!;
+        => await Collection<TProjection>().Find(Builders<TProjection>.Filter.Eq(p => p.Id, identity)).FirstOrDefaultAsync()!;
 
     public async Task<TProjection> Create<TProjection, TIdentity>(ProjectionContext context, TIdentity identity, Func<TProjection, bool> shouldoverwite) 
         where TProjection : class, IProjectorData<TIdentity> 
@@ -53,19 +66,17 @@ public sealed class InternalRepository : IProjectionRepository
             return data;
         }
 
-        var coll = await Collection<TProjection>(context);
+        var coll = Collection<TProjection>();
         var filter = Builders<TProjection>.Filter.Eq(p => p.Id, identity);
 
         var data = await coll.Find(filter).FirstOrDefaultAsync();
         if (data == null)
-        {
             data = DataFactory();
-            await coll.InsertOneAsync(data);
-        }
         else if (shouldoverwite(data))
         {
             data = DataFactory();
-            await coll.ReplaceOneAsync(filter, data);
+            var trans = GetTransaction(identity);
+            await coll.ReplaceOneAsync(trans, filter, data);
         }
 
         return data;
@@ -75,9 +86,10 @@ public sealed class InternalRepository : IProjectionRepository
         where TIdentity : IIdentity
         where TProjection : class, IProjectorData<TIdentity>
     {
-        var coll = await Collection<TProjection>(context);
+        var coll = Collection<TProjection>();
         var filter = Builders<TProjection>.Filter.Eq(p => p.Id, identity);
         var result = await coll.DeleteOneAsync(filter);
+        await CommitCheckpoint<TProjection>(null, context);
 
         return result.DeletedCount == 1;
     }
@@ -86,7 +98,25 @@ public sealed class InternalRepository : IProjectionRepository
         where TIdentity : IIdentity
         where TProjection : class, IProjectorData<TIdentity>
     {
+        var trans = GetTransaction(identity);
+        var filter = Builders<TProjection>.Filter.Eq(p => p.Id, identity);
+        var options = new ReplaceOptions { IsUpsert = true };
+        var coll = Collection<TProjection>();
 
+        await coll.ReplaceOneAsync(trans, filter, projection, options);
+        await CommitCheckpoint<TProjection>(trans, context);
+
+        await trans.CommitTransactionAsync();
+    }
+
+    public async Task Completed<TIdentity>(TIdentity identity)
+        where TIdentity : IIdentity
+    {
+        if (!_transactions.TryRemove(identity, out var transaction)) return;
+
+        if (transaction.IsInTransaction)
+            await transaction.AbortTransactionAsync();
+        transaction.Dispose();
     }
 
     public long GetLastCheckpoint<TProjection, TIdentity>() where TProjection : class, IProjectorData<TIdentity>

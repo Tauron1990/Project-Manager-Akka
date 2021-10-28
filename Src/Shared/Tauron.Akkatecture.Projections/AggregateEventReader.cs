@@ -84,10 +84,12 @@ namespace Tauron.Akkatecture.Projections
             in long? lastProcessedCheckpoint, Subscriber subscriber,
             Type aggregate)
         {
-            var genericType = typeof(SubscriptionBuilder<>).MakeGenericType(aggregate);
+            var builder = typeof(SubscriptionBuilder<>);
+            var genericType = builder.MakeGenericType(typeof(TJournal), aggregate);
             var subscriberInst =
                 (SubscriptionBuilder)FastReflection.Shared.FastCreateInstance(
                     genericType,
+                    new[] { typeof(ActorMaterializer), typeof(ActorSystem), typeof(string), typeof(Subscriber) },
                     _actorMaterializer,
                     _system,
                     _journalId,
@@ -191,12 +193,14 @@ namespace Tauron.Akkatecture.Projections
 
                 _cancelable = source.Item1;
 
+
+
                 var sinkQueue = source.Item2.RunWith(
                     Sink.Queue<ImmutableList<Transaction>>()
                        .WithAttributes(new Attributes(new Attributes.InputBuffer(2, 2))),
                     _materializer);
 
-                _runner = Run(sinkQueue);
+                _runner = Task.Run(() => Run(sinkQueue));
 
                 return this;
             }
@@ -220,7 +224,7 @@ namespace Tauron.Akkatecture.Projections
                                 });
                         }
                         else
-                            Thread.Sleep(100);
+                            break;
                     }
                     catch (Exception e)
                     {
@@ -271,7 +275,7 @@ namespace Tauron.Akkatecture.Projections
             private readonly string _journalId;
             private readonly ActorSystem _system;
 
-            internal SubscriptionBuilder(
+            public SubscriptionBuilder(
                 ActorMaterializer materializer, ActorSystem system, string journalId,
                 Subscriber subscriber)
                 : base(materializer, subscriber, typeof(TAggregate).AssemblyQualifiedName ?? "Unkowne Type")

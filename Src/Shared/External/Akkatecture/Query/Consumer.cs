@@ -89,7 +89,7 @@ namespace Akkatecture.Query
             var aggregateName = typeof(TAggregate).GetAggregateName();
 
             return Journal
-               .EventsByTag(aggregateName.Value, offset)
+               .CurrentEventsByTag(aggregateName.Value, offset)
                .Select(
                     envelope =>
                     {

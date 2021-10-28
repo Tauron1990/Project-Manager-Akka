@@ -34,28 +34,43 @@ namespace Tauron.Akkatecture.Projections
             TIdentity key, ProjectionContext context, Func<TProjection, Task> projector,
             Func<bool> createifmissing)
         {
-            var data = await _repository.Get<TProjection, TIdentity>(context, key);
-            if (data == null)
+            try
             {
-                if (createifmissing())
-                    data = await _repository.Create<TProjection, TIdentity>(context, key, _ => true);
-                else
-                    throw new KeyNotFoundException($"The key {key} is not in The Repository");
-            }
+                var data = await _repository.Get<TProjection, TIdentity>(context, key);
+                if (data == null)
+                {
+                    if (createifmissing())
+                        data = await _repository.Create<TProjection, TIdentity>(context, key, _ => true);
+                    else
+                        throw new KeyNotFoundException($"The key {key} is not in The Repository");
+                }
 
-            await projector(data);
-            await _repository.Commit(context, key);
+                await projector(data);
+                await _repository.Commit(context, data, key);
+            }
+            finally
+            {
+                await _repository.Completed(key);
+            }
         }
 
-        protected virtual Task<bool> Delete(TIdentity key, ProjectionContext context)
-            => _repository.Delete<TProjection, TIdentity>(context, key);
+        protected virtual async Task<bool> Delete(TIdentity key, ProjectionContext context)
+            => await _repository.Delete<TProjection, TIdentity>(context, key);
 
         protected virtual async Task Create(
             TIdentity key, ProjectionContext context, Func<TProjection, Task> projector,
             Func<TProjection, bool> shouldoverwite)
         {
-            await projector(await _repository.Create(context, key, shouldoverwite));
-            await _repository.Commit(context, key);
+            try
+            {
+                var data = await _repository.Create(context, key, shouldoverwite);
+                await projector(data);
+                await _repository.Commit(context, data, key);
+            }
+            finally
+            {
+                await _repository.Completed(key);
+            }
         }
     }
 }
