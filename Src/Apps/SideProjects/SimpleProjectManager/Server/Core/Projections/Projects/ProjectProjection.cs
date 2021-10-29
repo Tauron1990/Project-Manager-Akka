@@ -14,6 +14,8 @@ public sealed class ProjectProjection : IProjectorData<ProjectId>
 
     public ProjectStatus Status { get; set; }
 
+    public short Ordering { get; set; } = short.MaxValue;
+
     public ProjectDeadline? Deadline { get; set; }
 
     public ImmutableList<ProjectFileId> ProjectFiles { get; set; } = ImmutableList<ProjectFileId>.Empty;

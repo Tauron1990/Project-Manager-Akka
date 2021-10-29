@@ -55,7 +55,7 @@ public sealed class InternalRepository : IProjectionRepository
             await _checkpointInfo.ReplaceOneAsync(handle, filter, data, option);
     }
 
-    private IMongoCollection<TData> Collection<TData>()
+    public IMongoCollection<TData> Collection<TData>()
         => _database.GetCollection<TData>(typeof(TData).Name);
 
     public async Task<TProjection?> Get<TProjection, TIdentity>(ProjectionContext context, TIdentity identity)

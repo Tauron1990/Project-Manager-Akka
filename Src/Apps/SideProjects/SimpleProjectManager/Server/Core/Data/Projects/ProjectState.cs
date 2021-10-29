@@ -23,6 +23,8 @@ public sealed class ProjectState : InternalState<Project, ProjectId, ProjectStat
 
     public ProjectStatus Status { get; private set; }
 
+    public short Ordering { get; set; } = short.MaxValue;
+
     public void Apply(NewProjectCreatedEvent aggregateEvent)
         => ProjectName = aggregateEvent.Name;
 
