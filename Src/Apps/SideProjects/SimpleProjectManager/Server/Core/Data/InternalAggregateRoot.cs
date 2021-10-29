@@ -35,7 +35,7 @@ public abstract class InternalAggregateRoot<TAggregate, TIdentity, TAggregateSta
     where TSnapshot : IAggregateSnapshot<TAggregate, TIdentity>
 {
 
-    protected InternalAggregateRoot(TIdentity id) : base(id)
+    protected InternalAggregateRoot(TIdentity id) : base(id, new AggregateRootSettings(TimeSpan.FromDays(7), true, true))
     {
         // ReSharper disable once VirtualMemberCallInConstructor
         SetSnapshotStrategy(new SnapshotEveryFewVersionsStrategy(100));

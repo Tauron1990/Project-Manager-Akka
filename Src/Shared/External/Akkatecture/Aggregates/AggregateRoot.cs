@@ -64,18 +64,21 @@ namespace Akkatecture.Aggregates
         private readonly ISnapshotDefinitionService _snapshotDefinitionService;
         private CircularBuffer<ISourceId> _previousSourceIds = new(100);
 
-        protected AggregateRoot(TIdentity id)
+        protected AggregateRoot(TIdentity id, AggregateRootSettings? settings = null)
         {
-            Settings = new AggregateRootSettings(Context.System.Settings.Config);
+            Settings = settings ?? new AggregateRootSettings(Context.System.Settings.Config);
 
             if (id is null)
                 throw new ArgumentNullException(nameof(id));
 
             if (this is not TAggregate)
+            {
                 throw new InvalidOperationException(
                     $"Aggregate {Name} specifies Type={typeof(TAggregate).PrettyPrint()} as generic argument, it should be its own type.");
+            }
 
             if (State is null)
+            {
                 try
                 {
                     State = (TAggregateState?)FastReflection.Shared.FastCreateInstance(typeof(TAggregateState));
@@ -88,6 +91,7 @@ namespace Akkatecture.Aggregates
                         typeof(TAggregateState).PrettyPrint(),
                         Name);
                 }
+            }
 
             PinnedCommand = null!;
             _eventDefinitionService = new EventDefinitionService(Context.GetLogger());

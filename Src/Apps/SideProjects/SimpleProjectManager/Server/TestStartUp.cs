@@ -1,6 +1,7 @@
 ﻿using System.Collections.Immutable;
 using Akka.Actor;
 using Akka.DependencyInjection;
+using Akka.Persistence.MongoDb.Query;
 using SimpleProjectManager.Server.Core;
 using SimpleProjectManager.Server.Core.Projections;
 using SimpleProjectManager.Shared;
