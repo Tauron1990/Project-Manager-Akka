@@ -1,0 +1,11 @@
+﻿<div class="d-flex flex-row justify-center">
+    <div class="d-flex flex-column justify-center">
+        @ChildContent
+    </div>
+</div>
+
+@code
+{
+    [Parameter]
+    public RenderFragment ChildContent { get; set; } = _ => { };
+}

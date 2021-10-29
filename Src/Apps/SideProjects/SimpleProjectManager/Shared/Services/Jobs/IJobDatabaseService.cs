@@ -1,5 +1,4 @@
 ﻿using Stl.Fusion;
-using Tauron.Operations;
 
 namespace SimpleProjectManager.Shared.Services;
 
@@ -8,5 +7,10 @@ public interface IJobDatabaseService
     [ComputeMethod]
     Task<JobInfo[]> GetActiveJobs(CancellationToken token);
 
-    Task<OperationResult> CreateJob(CreateProjectCommand command, CancellationToken token);
+    [ComputeMethod]
+    Task<SortOrder> GetSortOrder(ProjectId id, CancellationToken token);
+
+    Task<ApiResult> CreateJob(CreateProjectCommand command, CancellationToken token);
+
+    Task<ApiResult> ChangeOrder(SetSortOrder newOrder, CancellationToken token);
 }

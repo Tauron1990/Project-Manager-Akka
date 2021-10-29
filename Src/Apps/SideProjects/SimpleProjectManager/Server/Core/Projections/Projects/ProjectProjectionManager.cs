@@ -4,6 +4,7 @@ using SimpleProjectManager.Server.Core.Data;
 using SimpleProjectManager.Server.Core.Data.Events;
 using SimpleProjectManager.Server.Core.Projections.Core;
 using SimpleProjectManager.Shared;
+using SimpleProjectManager.Shared.Services;
 using Tauron.Application.MongoExtensions;
 
 namespace SimpleProjectManager.Server.Core.Projections;
@@ -37,6 +38,8 @@ public sealed class ProjectProjectionManager : ProjectionManagerBase, IInitializ
                                 (projection, evt, _) =>
                                 {
                                     projection.Deadline = evt.AggregateEvent.Deadline;
+                                    if (projection.Ordering.Value == 0 && evt.AggregateEvent.Deadline != null)
+                                        projection.Ordering = new SortOrder(evt.AggregateEvent.Deadline.Value.Ticks);
 
                                     return Task.CompletedTask;
                                 });

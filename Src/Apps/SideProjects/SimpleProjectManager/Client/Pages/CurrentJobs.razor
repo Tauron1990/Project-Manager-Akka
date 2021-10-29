@@ -1,0 +1,20 @@
+﻿@using SimpleProjectManager.Client.Shared.CurrentJobs;
+
+@page "/"
+
+@inherits ComputedStateComponent<JobInfo[]>
+
+@inject IJobDatabaseService _jobService
+
+<PageTitle>Job Manager - Aktuelle Aufträge</PageTitle>
+
+<StateAwaiter State="State">
+    <JobSideBar CurrentJobs="context"/>
+</StateAwaiter>
+
+@code {
+    protected override Task<JobInfo[]> ComputeState(CancellationToken cancellationToken) 
+        => _jobService.GetActiveJobs(cancellationToken);
+}
+
+

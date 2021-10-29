@@ -1,6 +1,7 @@
 ﻿using System.Collections.Immutable;
 using MongoDB.Bson.Serialization.Attributes;
 using SimpleProjectManager.Shared;
+using SimpleProjectManager.Shared.Services;
 using Tauron.Akkatecture.Projections;
 
 namespace SimpleProjectManager.Server.Core.Projections;
@@ -14,7 +15,7 @@ public sealed class ProjectProjection : IProjectorData<ProjectId>
 
     public ProjectStatus Status { get; set; }
 
-    public short Ordering { get; set; } = short.MaxValue;
+    public SortOrder Ordering { get; set; } = new(0);
 
     public ProjectDeadline? Deadline { get; set; }
 

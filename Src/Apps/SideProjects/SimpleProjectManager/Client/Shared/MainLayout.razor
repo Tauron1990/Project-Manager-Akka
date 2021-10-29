@@ -1,5 +1,10 @@
 ﻿@inherits LayoutComponentBase
 
+@implements IDisposable
+
+@inject IEventAggregator _aggregator;
+@inject ISnackbar _snackbar;
+
 <MudThemeProvider Theme="_darkTheme"/>
 <MudDialogProvider />
 <MudSnackbarProvider />
@@ -24,6 +29,7 @@
 {
     bool _open;
     
+
     void ToggleDrawer() => _open = !_open;
 
     private readonly MudTheme _darkTheme =
@@ -60,4 +66,16 @@
                       }
         };
 
+    private IDisposable _subscription = System.Reactive.Disposables.Disposable.Empty;
+
+    protected override void OnInitialized()
+    {
+        _subscription = _aggregator.GetEvent<AggregateEvent<SnackbarMessage>, SnackbarMessage>().Get().Subscribe(m => m.Apply(_snackbar));
+        base.OnInitialized();
+    }
+
+    public void Dispose()
+    {
+
+    }
 }

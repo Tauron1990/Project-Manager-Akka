@@ -1,3 +1,3 @@
 ﻿namespace SimpleProjectManager.Shared.Services;
 
-public record JobInfo(ProjectId Project, ProjectName Name, ProjectDeadline? Deadline, short Ordering);
+public record JobInfo(ProjectId Project, ProjectName Name, ProjectDeadline? Deadline);

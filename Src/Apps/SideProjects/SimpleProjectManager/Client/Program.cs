@@ -1,5 +1,8 @@
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
+using SimpleProjectManager.Client.Core;
+using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
 using Stl.Fusion.Blazor;
 using Stl.Fusion.Client;
@@ -7,7 +10,7 @@ using Stl.Fusion.Extensions;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 //builder.RootComponents.Add<App>("#app");
-//builder.RootComponents.Add<HeadOutlet>("head::after");
+builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 ConfigFusion(builder.Services, new Uri(builder.HostEnvironment.BaseAddress));
@@ -31,5 +34,6 @@ static void ConfigFusion(IServiceCollection collection, Uri baseAdress)
                     Console.WriteLine($"Client Config: {c.BaseAddress} -- {baseAdress}");
                     c.BaseAddress = baseAdress;
                 }))
-       .ConfigureWebSocketChannel(new WebSocketChannelProvider.Options { BaseUri = baseAdress });
+       .ConfigureWebSocketChannel(new WebSocketChannelProvider.Options { BaseUri = baseAdress })
+       .AddReplicaService<IJobDatabaseService, IJobDatabaseServiceDef>();
 }

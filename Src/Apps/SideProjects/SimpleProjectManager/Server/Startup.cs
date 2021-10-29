@@ -49,14 +49,6 @@ public class Startup
     public void ConfigureContainer(IActorApplicationBuilder builder)
     {
         builder
-           .OnMemberUp(
-                (_, sys, _) =>
-                {
-                    sys.RegisterExtension(Persistence.Instance);
-                    #if DEBUG
-                    //TestStartUp.Run(sys);
-                    #endif
-                })
            .OnMemberRemoved(
                 (_, system, _) =>
                 {

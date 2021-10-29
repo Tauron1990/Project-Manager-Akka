@@ -2,7 +2,6 @@
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
 using Stl.Fusion.Server;
-using Tauron.Operations;
 
 namespace SimpleProjectManager.Server.Controllers
 {
@@ -18,8 +17,16 @@ namespace SimpleProjectManager.Server.Controllers
         public Task<JobInfo[]> GetActiveJobs(CancellationToken token)
             => _service.GetActiveJobs(token);
 
+        [HttpGet]
+        public Task<SortOrder> GetSortOrder([FromQuery]ProjectId id, CancellationToken token)
+            => _service.GetSortOrder(id, token);
+
         [HttpPost]
-        public Task<OperationResult> CreateJob(CreateProjectCommand command, CancellationToken token)
+        Task<ApiResult> IJobDatabaseService.CreateJob(CreateProjectCommand command, CancellationToken token)
             => _service.CreateJob(command, token);
+
+        [HttpPost]
+        public Task<ApiResult> ChangeOrder(SetSortOrder newOrder, CancellationToken token)
+            => _service.ChangeOrder(newOrder, token);
     }
 }

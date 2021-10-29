@@ -1,4 +1,5 @@
 ﻿using Akka.Actor;
+using Akka.Persistence;
 using Tauron;
 using Tauron.Application.AkkaNode.Bootstrap;
 
@@ -16,5 +17,8 @@ public sealed class ProjectionInitializer : IStartUpAction
     }
 
     public void Run()
-        => _projections.Foreach(p => p.Initialize(_system));
+    {
+        _system.RegisterExtension(Persistence.Instance);
+        _projections.Foreach(p => p.Initialize(_system));
+    }
 }

@@ -1,0 +1,49 @@
+﻿@using Tauron.Application
+@implements IDisposable
+
+@inject IEventAggregator _aggregator;
+
+<MudContainer MaxWidth="MaxWidth.Large">
+    @if (Context == null)
+    {
+        <MudText>Kein Kontext Vervügbar</MudText>
+    }
+    else
+    {
+        <MudCard>
+            <MudCardHeader>
+                <CardHeaderContent>
+                    @if (Context.CurrentPage != null)
+                    {
+                        <MudText>@Context.CurrentPage.Title</MudText>
+                    }
+                    else
+                    {
+                        <MudText>Bitte warten</MudText>
+                    }
+                </CardHeaderContent>
+                <CardHeaderActions>
+                    <MudIconButton Icon="@Icons.Filled.Cancel" OnClick="CancelCallback"/>
+                </CardHeaderActions>
+            </MudCardHeader>
+            <MudCardContent>
+                <CascadingValue Value="Context.CurrentPage">
+                    <CascadingValue Value="Context">
+                        @RenderPage((_currentPage.Page, NextCallback, this));
+                    </CascadingValue>
+                </CascadingValue>
+            </MudCardContent>
+            @if (Context.CurrentPage?.ShowControls == true)
+            {
+                <MudCardActions>
+                    <MudButton OnClick="BackCallback" Disabled="CanBack()">Zurück</MudButton>
+                    @foreach(var (label, handler) in Context.CurrentPage.CustomActions)
+                    {
+                        <MudButton OnClick="handler" Disabled="_loading">@label</MudButton>
+                    }
+                    <MudButton OnClick="NextCallback" Disabled="CanNext()">Weiter</MudButton>
+                </MudCardActions>
+            }
+        </MudCard>
+    }
+</MudContainer>
