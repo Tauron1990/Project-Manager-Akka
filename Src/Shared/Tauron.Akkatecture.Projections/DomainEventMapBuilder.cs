@@ -33,11 +33,10 @@ namespace Tauron.Akkatecture.Projections
         }
 
         public DomainEventMapBuilder<TProjection, TAggregate, TIdentity> Map<TEvent>(
-            Action<ICrudAction<IDomainEvent<TAggregate, TIdentity, TEvent>, TProjection, TIdentity, ProjectionContext>>
-                builder)
+            Action<ICrudAction<DomainEvent<TAggregate, TIdentity, TEvent>, TProjection, TIdentity, ProjectionContext>> builder)
             where TEvent : class, IAggregateEvent<TAggregate, TIdentity>
         {
-            builder(_builder.Map<IDomainEvent<TAggregate, TIdentity, TEvent>>());
+            builder(_builder.Map<DomainEvent<TAggregate, TIdentity, TEvent>>());
 
             return this;
         }

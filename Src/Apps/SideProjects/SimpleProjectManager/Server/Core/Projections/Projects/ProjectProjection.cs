@@ -10,11 +10,11 @@ public sealed class ProjectProjection : IProjectorData<ProjectId>
     [BsonId]
     public ProjectId Id { get; set; } = ProjectId.New;
 
-    public long LastCheckPoint { get; set; } = 0;
-
     public ProjectName JobName { get; set; } = new(string.Empty);
 
     public ProjectStatus Status { get; set; }
+
+    public short Ordering { get; set; } = short.MaxValue;
 
     public ProjectDeadline? Deadline { get; set; }
 

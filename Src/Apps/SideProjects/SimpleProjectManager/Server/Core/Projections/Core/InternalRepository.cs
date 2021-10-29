@@ -27,8 +27,17 @@ public sealed class InternalRepository : IProjectionRepository
                                        {
                                            var session = _database.Client.StartSession();
 
-                                           if(!session.IsInTransaction)
-                                               session.StartTransaction();
+                                           if (!session.IsInTransaction)
+                                           {
+                                               try
+                                               {
+                                                   session.StartTransaction();
+                                               }
+                                               catch (NotSupportedException)
+                                               {
+
+                                               }
+                                           }
 
                                            return session;
                                        });
@@ -46,7 +55,7 @@ public sealed class InternalRepository : IProjectionRepository
             await _checkpointInfo.ReplaceOneAsync(handle, filter, data, option);
     }
 
-    private IMongoCollection<TData> Collection<TData>()
+    public IMongoCollection<TData> Collection<TData>()
         => _database.GetCollection<TData>(typeof(TData).Name);
 
     public async Task<TProjection?> Get<TProjection, TIdentity>(ProjectionContext context, TIdentity identity)
@@ -106,7 +115,8 @@ public sealed class InternalRepository : IProjectionRepository
         await coll.ReplaceOneAsync(trans, filter, projection, options);
         await CommitCheckpoint<TProjection>(trans, context);
 
-        await trans.CommitTransactionAsync();
+        if(trans.IsInTransaction)
+            await trans.CommitTransactionAsync();
     }
 
     public async Task Completed<TIdentity>(TIdentity identity)

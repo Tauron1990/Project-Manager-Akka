@@ -14,8 +14,8 @@ public static class TestStartUp
 {
     public static async void Run(ActorSystem system)
     {
-        using var resolver = DependencyResolver.For(system).Resolver.CreateScope();
-        var commandProcessor = resolver.Resolver.GetService<CommandProcessor>();
+        var resolver = DependencyResolver.For(system).Resolver;
+        var commandProcessor = resolver.GetService<CommandProcessor>();
 
         var testProject = new ProjectName("BM19_12345");
 
@@ -28,7 +28,7 @@ public static class TestStartUp
                 ProjectStatus.Running,
                 new ProjectDeadline(DateTimeOffset.UtcNow + TimeSpan.FromDays(10))));
 
-        var projector = resolver.Resolver.GetService<ProjectProjectionManager>();
+        var projector = resolver.GetService<ProjectProjectionManager>();
     }
 }
 

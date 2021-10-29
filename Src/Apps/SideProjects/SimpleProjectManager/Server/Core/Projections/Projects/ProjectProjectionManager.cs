@@ -8,7 +8,7 @@ using Tauron.Application.MongoExtensions;
 
 namespace SimpleProjectManager.Server.Core.Projections;
 
-public sealed class ProjectProjectionManager : ProjectionManagerBase
+public sealed class ProjectProjectionManager : ProjectionManagerBase, IInitializeProjection
 {
     public void Initialize(ActorSystem system)
     {

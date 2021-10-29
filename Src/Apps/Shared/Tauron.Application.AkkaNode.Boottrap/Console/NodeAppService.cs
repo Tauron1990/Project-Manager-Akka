@@ -23,24 +23,29 @@ namespace Tauron.Application.AkkaNode.Bootstrap.Console
             return Task.Run(
                 () =>
                 {
-                    if (_actions != null)
-                        foreach (var startUpAction in _actions.Value)
-                            try
-                            {
-                                startUpAction.Run();
-                            }
-                            catch (Exception e)
-                            {
-                                LogManager.GetCurrentClassLogger().Error(e, "Error on Startup Action");
-                            }
+                    if (_actions == null) return;
 
-                    _actions?.Dispose();
-                    _actions = null;
+                    foreach (var startUpAction in _actions.Value)
+                    {
+                        try
+                        {
+                            startUpAction.Run();
+                        }
+                        catch (Exception e)
+                        {
+                            LogManager.GetCurrentClassLogger().Error(e, "Error on Startup Action");
+                        }
+                    }
                 },
                 cancellationToken);
         }
 
-        public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            _actions?.Dispose();
+            _actions = null;
+            return Task.CompletedTask;
+        }
 
         [DllImport("user32.dll")]
         private static extern bool ShowWindow(IntPtr hWnd, int cmdShow);

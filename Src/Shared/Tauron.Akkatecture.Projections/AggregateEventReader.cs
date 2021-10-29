@@ -140,7 +140,7 @@ namespace Tauron.Akkatecture.Projections
             {
                 _errorHandler = errorHandler;
 
-                var source = CreateSource(Offset.Sequence(lastProcessedCheckpoint ?? 0))
+                var (uniqueKillSwitch, source) = CreateSource(Offset.Sequence(lastProcessedCheckpoint ?? 0))
                    .Select(ee => (ee.Event as IDomainEvent, ee.Offset))
                    .Where(de => de.Item1 != null)
                    .Batch(
@@ -191,11 +191,11 @@ namespace Tauron.Akkatecture.Projections
                    .ViaMaterialized(KillSwitches.Single<ImmutableList<Transaction>>(), (_, kill) => kill)
                    .PreMaterialize(_materializer);
 
-                _cancelable = source.Item1;
+                _cancelable = uniqueKillSwitch;
 
 
 
-                var sinkQueue = source.Item2.RunWith(
+                var sinkQueue = source.RunWith(
                     Sink.Queue<ImmutableList<Transaction>>()
                        .WithAttributes(new Attributes(new Attributes.InputBuffer(2, 2))),
                     _materializer);

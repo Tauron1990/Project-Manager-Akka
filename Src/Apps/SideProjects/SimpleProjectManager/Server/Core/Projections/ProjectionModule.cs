@@ -4,6 +4,7 @@ using Autofac;
 using MongoDB.Driver;
 using SimpleProjectManager.Server.Core.Projections.Core;
 using Tauron.Application;
+using Tauron.Application.AkkaNode.Bootstrap;
 
 namespace SimpleProjectManager.Server.Core.Projections;
 
@@ -20,12 +21,12 @@ public class ProjectionModule : Module
 
                 return new MongoClient(url).GetDatabase(url.DatabaseName);
             }).SingleInstance();
-
         builder.Register(c => c.Resolve<IEventAggregator>().GetEvent<DomainEventDispatcher, IDomainEvent>());
-
         builder.RegisterType<InternalRepository>();
+        builder.RegisterStartUpAction<ProjectionInitializer>();
 
-        builder.RegisterType<ProjectProjectionManager>().SingleInstance().OnActivated(arg => arg.Instance.Initialize(arg.Context.Resolve<ActorSystem>()));
+        builder.RegisterProjection<ProjectProjectionManager>();
+
         base.Load(builder);
     }
 }

@@ -205,8 +205,10 @@ namespace Akka.Cluster.Utility
         //        RemoveNode(item.Key);
         //}
 
-        private void RemoveNode(IActorRef discoveryActor)
+        private void RemoveNode(IActorRef? discoveryActor)
         {
+            if(discoveryActor == null) return;
+
             if (_nodeMap.TryGetValue(discoveryActor, out var node) == false)
                 return;
 
