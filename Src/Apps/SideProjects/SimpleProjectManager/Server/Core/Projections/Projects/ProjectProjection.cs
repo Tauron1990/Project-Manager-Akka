@@ -11,11 +11,11 @@ public sealed class ProjectProjection : IProjectorData<ProjectId>
     [BsonId]
     public ProjectId Id { get; set; } = ProjectId.New;
 
-    public ProjectName JobName { get; set; } = new(string.Empty);
+    public ProjectName JobName { get; set; } = ProjectName.Empty;
 
     public ProjectStatus Status { get; set; }
 
-    public SortOrder Ordering { get; set; } = new(0);
+    public SortOrder Ordering { get; set; } = SortOrder.Default;
 
     public ProjectDeadline? Deadline { get; set; }
 

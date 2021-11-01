@@ -46,7 +46,7 @@ namespace SimpleProjectManager.Client
             PublishMessage(aggregator, new SnackbarErrorMessage($"{error.GetType().Name} -- {error.Message}"));
         }
 
-        public static void PublishError(this IEventAggregator aggregator, string message)
+        public static void PublishError(this IEventAggregator aggregator, string? message)
             => PublishMessage(aggregator, new SnackbarErrorMessage(message));
 
         public static void PublishWarnig(this IEventAggregator aggregator, string message)

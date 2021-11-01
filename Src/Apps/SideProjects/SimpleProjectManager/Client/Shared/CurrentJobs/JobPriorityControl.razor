@@ -1,0 +1,159 @@
+﻿@using System.Reactive.Disposables
+@inherits DisposableComponent
+
+@inject IJobDatabaseService _jobDatabase
+@inject IEventAggregator _aggregator
+
+<div class="d-flex">
+    <MudIconButton Icon="@Icons.Outlined.ArrowUpward" Disabled="@(!_processing && _canGoUp)" OnClick="GoUp"/>
+    <MudIconButton Icon="@Icons.Outlined.ArrowDownward" Disabled="@(!_processing && _canGoDown)" OnClick="GoDown"/>
+    <MudButton StartIcon="@Icons.Outlined.AddTask" Disabled="@(!_processing && !_isPriority && _canPriority)" OnClick="Priorize">Priorisieren</MudButton>
+</div>
+
+@code {
+
+    [Parameter]
+    public JobsViewModel? Model { get; set; }
+
+    [Parameter]
+    public ImmutableList<JobSortOrderPair> ActivePairs { get; set; } = ImmutableList<JobSortOrderPair>.Empty;
+
+    private IDisposable _currentSubsrciption = Disposable.Empty;
+    private JobSortOrderPair? _info;
+    private bool _canGoUp;
+    private bool _canGoDown;
+    private bool _isPriority;
+    private bool _canPriority;
+
+    private bool _processing;
+
+    protected override void OnParametersSet()
+    {
+        RemoveResource(_currentSubsrciption);
+
+        _currentSubsrciption = 
+            Model?.CurrentInfo
+            .Subscribe(NewJobIncomming)
+            .DisposeWith(this) ?? Disposable.Empty;
+
+        base.OnParametersSet();
+    }
+
+    private async Task GoUp()
+    {
+        if(_info == null) return;
+
+        var index = ActivePairs.IndexOf(_info) + 1;
+        if(index == 0) return;
+
+        _processing = true;
+        await InvokeAsync(StateHasChanged);
+
+        try
+        {
+            using var source = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+            var result = await _jobDatabase.ChangeOrder(new SetSortOrder(_info.Info.Project, new SortOrder(ActivePairs[index].Order.Value + 1)),
+                source.Token);
+            if(result.IsValid) return;
+
+            _aggregator.PublishError(result.Error);
+        }
+        catch (Exception error)
+        {
+            _aggregator.PublishError(error);
+        }
+        finally
+        {
+            _processing = false;
+        }
+    }
+
+    private async Task GoDown()
+    {
+        if(_info == null) return;
+
+        var index = ActivePairs.IndexOf(_info) - 1;
+        if(index < 0) return;
+
+        _processing = true;
+        await InvokeAsync(StateHasChanged);
+
+        try
+        {
+            using var source = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+            var result = await _jobDatabase.ChangeOrder(new SetSortOrder(_info.Info.Project, new SortOrder(ActivePairs[index].Order.Value - 1)),
+                source.Token);
+            if(result.IsValid) return;
+
+            _aggregator.PublishError(result.Error);
+        }
+        catch (Exception error)
+        {
+            _aggregator.PublishError(error);
+        }
+        finally
+        {
+            _processing = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task Priorize()
+    {
+        if(_info == null || _info.Order.Value < 0) return;
+
+        _processing = true;
+        await InvokeAsync(StateHasChanged);
+
+        try
+        {
+            using var source = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+            var apiResult = await _jobDatabase.ChangeOrder(new SetSortOrder(_info.Info.Project, new SortOrder(_info.Order.Value * -1)), source.Token);
+            if(apiResult.IsValid) return;
+
+            _aggregator.PublishError(apiResult.Error);
+        }
+        catch (Exception e)
+        {
+            _aggregator.PublishError(e);
+        }
+        finally
+        {
+            _processing = false;
+        }
+    }
+
+    private void NewJobIncomming(JobSortOrderPair? info)
+    {
+        void Invalid()
+        {
+            _isPriority = false;
+            _canPriority = false;
+
+            _canGoUp = false;
+            _canGoDown = false;
+        }
+
+        _info = info;
+
+        if (info != null)
+        {
+            _isPriority = info.Order.Value < 0;
+            _canPriority = true;
+
+            var index = ActivePairs.IndexOf(info);
+            if (index == -1)
+                Invalid();
+            else
+            {
+                _canGoUp = index < ActivePairs.Count - 1;
+                _canGoDown = index != 0;
+            }
+            
+        }
+        else
+            Invalid();
+
+        StateHasChanged();
+    }
+}

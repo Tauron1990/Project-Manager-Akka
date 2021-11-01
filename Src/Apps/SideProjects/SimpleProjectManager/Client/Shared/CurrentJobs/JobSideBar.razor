@@ -1,7 +1,109 @@
-﻿<h3>JobSideBar</h3>
+﻿
+@inherits ComputedStateComponent<ImmutableList<JobSortOrderPair>>
+
+@implements IDisposable
+
+@inject IJobDatabaseService _jobDatabase;
+@inject NavigationManager _navigation;
+
+<MudDrawer Open="true" Width="fit-content" Fixed="false" Anchor="Anchor.Left">
+    <MudDrawerHeader>
+        <MudButton Class="ma-3" StartIcon="@Icons.Filled.NewLabel" OnClick="NewJob">Neuer Job</MudButton>
+    </MudDrawerHeader>
+    <StateAwaiter State="State">
+        @if (context == null || context.Count == 0)
+        {
+            <MudText>Kein Aktiven Aufträge</MudText>
+        }
+        else
+        {
+            <MudList Clickable="true" SelectedValue="_selectedValue" SelectedValueChanged="_newItemSelectedAction">
+                @foreach (var job in context)
+                {
+                    <MudListItem @key="job.Info.Project" Value="job">
+                        <MudPaper @key="job.Info.Project">
+                            <MudText Typo="Typo.h3">@job.Info.Name.Value</MudText>
+                            @if (job.Info.Deadline == null)
+                            {
+                                <MudText Typo="Typo.h4">Kein Termin angegeben</MudText>
+                            }
+                            else
+                            {
+                                <MudText Typo="Typo.h4">Termin: @job.Info.Deadline.Value.LocalDateTime.ToString("d")</MudText>
+                            }
+                            <MudText Typo="Typo.h6">Status: @JobTranslator.GetString(job.Info.Status)</MudText>
+                        </MudPaper>
+                    </MudListItem>
+                }
+            </MudList>
+        }
+    </StateAwaiter>
+</MudDrawer>
 
 @code {
-
+    
     [Parameter]
     public JobInfo[] CurrentJobs { get; set; } = Array.Empty<JobInfo>();
+
+    [Parameter]
+    public JobsViewModel Model { get; set; } = null!;
+    
+    private object? _selectedValue;
+    private IDisposable _subscription = System.Reactive.Disposables.Disposable.Empty;
+
+    private void NewJob()
+        => _navigation.NavigateTo("/NewJob");
+
+    protected override void OnInitialized()
+    {
+        _newItemSelectedAction = EventUtil.AsNonRenderingEventHandler<object?>(NewItemSelected);
+
+        base.OnInitialized();
+    }
+
+    protected override void OnParametersSet()
+    {
+        _subscription.Dispose();
+        _subscription = Model.CurrentInfo
+            .Subscribe(i =>
+                       {
+                           if (_selectedValue is not JobSortOrderPair info || info != i) return;
+
+                           _selectedValue = i;
+                           StateHasChanged();
+
+                       });
+
+        base.OnParametersSet();
+    }
+
+    private Action<object?> _newItemSelectedAction = _ => { };
+
+    private void NewItemSelected(object? data)
+    {
+        _selectedValue = data;
+
+        if(data is JobSortOrderPair info)
+        Model.Publish(info);
+    }
+
+    protected override async Task<ImmutableList<JobSortOrderPair>> ComputeState(CancellationToken cancellationToken)
+    {
+        var list = new List<JobSortOrderPair>();
+        foreach (var currentJob in CurrentJobs)
+        {
+            if (cancellationToken.IsCancellationRequested) return ImmutableList<JobSortOrderPair>.Empty;
+            list.Add(new JobSortOrderPair(await _jobDatabase.GetSortOrder(currentJob.Project, cancellationToken), currentJob));
+        }
+
+        return list
+            .OrderByDescending(p => p.Info.Status)
+            .ThenBy(p => p.Order.Value)
+            .ThenBy(p => p.Info.Deadline?.Value)
+            .ToImmutableList();
+    }
+
+    public void Dispose()
+        => _subscription.Dispose();
+
 }

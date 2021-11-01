@@ -2,6 +2,7 @@
 using Akkatecture.Aggregates;
 using Autofac;
 using MongoDB.Driver;
+using MongoDB.Driver.GridFS;
 using SimpleProjectManager.Server.Core.Projections.Core;
 using Tauron.Application;
 using Tauron.Application.AkkaNode.Bootstrap;
@@ -21,8 +22,10 @@ public class ProjectionModule : Module
 
                 return new MongoClient(url).GetDatabase(url.DatabaseName);
             }).SingleInstance();
+        builder.Register(c => new GridFSBucket(c.Resolve<IMongoDatabase>()));
+
         builder.Register(c => c.Resolve<IEventAggregator>().GetEvent<DomainEventDispatcher, IDomainEvent>());
-        builder.RegisterType<InternalRepository>();
+        builder.RegisterType<InternalDataRepository>();
         builder.RegisterStartUpAction<ProjectionInitializer>();
 
         builder.RegisterProjection<ProjectProjectionManager>();

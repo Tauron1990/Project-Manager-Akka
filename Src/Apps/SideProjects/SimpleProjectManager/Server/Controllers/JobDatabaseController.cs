@@ -21,6 +21,10 @@ namespace SimpleProjectManager.Server.Controllers
         public Task<SortOrder> GetSortOrder([FromQuery]ProjectId id, CancellationToken token)
             => _service.GetSortOrder(id, token);
 
+        [HttpGet]
+        public Task<JobData> GetJobData([FromQuery]ProjectId id, CancellationToken token)
+            => _service.GetJobData(id, token);
+
         [HttpPost]
         Task<ApiResult> IJobDatabaseService.CreateJob(CreateProjectCommand command, CancellationToken token)
             => _service.CreateJob(command, token);

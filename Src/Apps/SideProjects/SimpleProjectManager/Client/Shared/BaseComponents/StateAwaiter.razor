@@ -5,7 +5,7 @@
 @{
     var error = State?.Error;
     var value = State != null ? State.ValueOrDefault : default;
-    var isLoading = State?.Computed.ConsistencyState == ConsistencyState.Computing || (!State?.HasValue ?? true) || value == null;
+    var isLoading = State?.Computed.ConsistencyState == ConsistencyState.Computing || (!State?.HasValue ?? true); //|| value == null;
 
     #if DEBUG
     if (error != null)

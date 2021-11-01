@@ -1,0 +1,41 @@
+﻿@using SimpleProjectManager.Client.Core
+@inherits ComputedStateComponent<ProjectFileInfo?>
+
+@inject IJobFileService _fileService
+@inject BaseUrl _url
+
+<StateAwaiter State="State">
+    @if (context != null)
+    {
+        <MudPaper Outlined="true" Class="ma-1">
+            <MudGrid>
+                <MudItem lg="6" Class="ma-1">
+                    <MudText Align="Align.End">Name: @context.FileName.Value</MudText>
+                </MudItem>
+                <MudItem lg="6" Class="ma-1">
+                    <MudLink Href="@($"/{ApiPaths.FilesApi}/GetFileDownload/{context.Id.Value}")" Target="_blank" rel="noopener"/>
+                </MudItem>
+                <MudItem lg="12">
+                    <MudText>Größe: @context.Size.ToMegaByteString()</MudText>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+    }
+    else
+    {
+        <MudText Align="Align.Center">Datei nicht gefunden</MudText>
+    }
+</StateAwaiter>
+
+@code {
+    [Parameter]
+    public ProjectFileId? ProjectFileId { get; set; }
+
+    protected override async Task<ProjectFileInfo?> ComputeState(CancellationToken cancellationToken)
+    {
+        if (ProjectFileId == null) return null;
+
+        return await _fileService.GetJobFileInfo(ProjectFileId, cancellationToken);
+    }
+
+}

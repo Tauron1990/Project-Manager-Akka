@@ -1,16 +1,31 @@
 ﻿using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using SimpleProjectManager.Shared.Services;
+using Stl;
+using Stl.Fusion;
 
 namespace SimpleProjectManager.Client.Shared.CurrentJobs;
 
 public sealed class JobsViewModel : IDisposable
 {
-    private BehaviorSubject<JobInfo?> _jobsSubject = new(null);
+    private readonly BehaviorSubject<JobSortOrderPair?> _jobsSubject = new(null);
 
-    public IObservable<JobInfo?> CurrentInfo => _jobsSubject.AsObservable();
+    public JobSortOrderPair? Current => _jobsSubject.Value;
 
-    public void Publ
+    public IObservable<JobSortOrderPair?> CurrentInfo => _jobsSubject.DistinctUntilChanged();
+
+    public IState<JobSortOrderPair?> CurrentJobState { get; }
+
+    public JobsViewModel(IStateFactory stateFactory)
+    {
+        var state = stateFactory.NewMutable(Result.Value<JobSortOrderPair?>(null));
+
+        CurrentInfo.Subscribe(p => state.Set(p));
+
+        CurrentJobState = state;
+    }
+
+    public void Publish(JobSortOrderPair? info)
+        => _jobsSubject.OnNext(info);
 
     public void Dispose()
         => _jobsSubject.Dispose();

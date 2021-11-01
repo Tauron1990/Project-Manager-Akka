@@ -1,5 +1,78 @@
-﻿<h3>JobDetailDisplay</h3>
+﻿@inherits ComputedStateComponent<JobData?>
+
+@inject IJobDatabaseService _databaseService;
+
+<MudGrid>
+    <MudItem lg="12">
+        <MudText Align="Align.Center" Typo="Typo.h2">Job Informationen</MudText>
+    </MudItem>
+    <StateAwaiter State="State">
+        @if (context != null)
+        {
+            <MudItem lg="12">
+                <MudPaper Class="m-3">
+                    <MudGrid>
+                        <MudItem lg="6" Class="m-1">
+                            <MudText Align="Align.End" Typo="Typo.h3">Job:</MudText>
+                        </MudItem>
+                        <MudItem lg="6" Class="m-1">
+                            <MudText Align="Align.Start" Typo="Typo.h3">@context.JobName.Value</MudText>
+                        </MudItem>
+                        <MudItem lg="6" Class="m-1">
+                            <MudText Align="Align.End" Typo="Typo.h2">Termin:</MudText>
+                        </MudItem>
+                        <MudItem lg="6" Class="m-1">
+                            <MudText Align="Align.Start" Typo="Typo.h2">@(context.Deadline?.Value.ToLocalTime().ToString("d") ?? "Kein Termin Gesetzt")</MudText>
+                        </MudItem>
+                        <MudItem lg="6" Class="m-1">
+                            <MudText Align="Align.End" Typo="Typo.h2">Status:</MudText>
+                        </MudItem>
+                        <MudItem lg="6" Class="m-1">
+                            <MudText Align="Align.Start" Typo="Typo.h2">@JobTranslator.GetString(context.Status)</MudText>
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+            </MudItem>
+            <MudItem>
+                <MudPaper Class="m-3">
+                    @if (context.ProjectFiles.Count > 0)
+                    {
+                        <MudGrid>
+                            @foreach (var file in context.ProjectFiles)
+                            {
+                                <MudItem lg="12" @key="file.Value">
+                                    <FileDetailDisplay ProjectFileId="file"/>
+                                </MudItem>
+                            }
+                        </MudGrid>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.h3" Align="Align.Center">Kein Dateien Hochgeladen</MudText>
+                    }
+                </MudPaper>
+            </MudItem>
+        }
+        else
+        {
+            <MudItem lg="12">
+                <MudText Align="Align.Center" Typo="Typo.h3">Keine Daten Verfügbar</MudText>
+            </MudItem>
+        }
+    </StateAwaiter>
+</MudGrid>
 
 @code {
+    [Parameter]
+    public JobsViewModel Model { get; set; } = null!;
+    
+
+    protected override async Task<JobData?> ComputeState(CancellationToken cancellationToken)
+    {
+        var currentSelected = await Model.CurrentJobState.Use(cancellationToken);
+        if (currentSelected == null) return null;
+        
+        return await _databaseService.GetJobData(currentSelected.Info.Project, cancellationToken);
+    }
 
 }

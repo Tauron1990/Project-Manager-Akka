@@ -7,13 +7,13 @@ using Tauron.Akkatecture.Projections;
 
 namespace SimpleProjectManager.Server.Core.Projections.Core;
 
-public sealed class InternalRepository : IProjectionRepository
+public sealed class InternalDataRepository : IProjectionRepository
 {
     private readonly ConcurrentDictionary<object, IClientSessionHandle> _transactions = new();
     private readonly IMongoDatabase _database;
     private readonly IMongoCollection<CheckPointInfo> _checkpointInfo;
 
-    public InternalRepository(IMongoDatabase database)
+    public InternalDataRepository(IMongoDatabase database)
     {
         _database = database;
         _checkpointInfo = database.GetCollection<CheckPointInfo>(nameof(CheckPointInfo));

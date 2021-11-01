@@ -1,0 +1,20 @@
+﻿@page "/NewJob"
+
+<PageTitle>Neuer Auftrag</PageTitle>
+
+<JobEditor Title="Neuer Auftrag" Commit="CreateNewJob"></JobEditor>
+
+@code {
+
+    private Task CreateNewJob(JobData data)
+    {
+        return Task.CompletedTask;
+    }
+
+    protected override bool ShouldRender()
+    {
+        StateHasChanged();
+        return false;
+    }
+
+}

@@ -43,7 +43,7 @@ namespace SimpleProjectManager.Server.Core.Projections.Core
         {
             var resolver = DependencyResolver.For(system);
 
-            var repository = resolver.Resolver.GetService<InternalRepository>();
+            var repository = resolver.Resolver.GetService<InternalDataRepository>();
             var eventDispatcher = resolver.Resolver.GetService<DomainEventDispatcher>();
 
             var evtBuilder = new DomainEventMapBuilder<TProjection, TAggregate, TIdentity>();

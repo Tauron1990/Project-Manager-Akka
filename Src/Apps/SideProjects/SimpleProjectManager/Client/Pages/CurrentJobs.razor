@@ -3,18 +3,47 @@
 @page "/"
 
 @inherits ComputedStateComponent<JobInfo[]>
+@implements IDisposable
 
+@inject IStateFactory _stateFactory;
 @inject IJobDatabaseService _jobService
 
 <PageTitle>Job Manager - Aktuelle Aufträge</PageTitle>
 
 <StateAwaiter State="State">
-    <JobSideBar CurrentJobs="context"/>
+    <MudDrawerContainer>
+        <JobSideBar CurrentJobs="context" Model="_model"/>
+        <JobDetailDisplay Model="_model"/>
+    </MudDrawerContainer>
 </StateAwaiter>
 
 @code {
+
+    private JobsViewModel? _model;
+
     protected override Task<JobInfo[]> ComputeState(CancellationToken cancellationToken) 
         => _jobService.GetActiveJobs(cancellationToken);
+
+    protected override void OnInitialized()
+    {
+        _model = new JobsViewModel(_stateFactory);
+        State.AddEventHandler(StateEventKind.Updated, (_, _) => NewJobs());
+        base.OnInitialized();
+    }
+
+    private void NewJobs()
+    {
+        var jobs = State.ValueOrDefault;
+        if(jobs == null || _model?.Current == null) return;
+
+        if(!jobs.Contains(_model.Current.Info))
+            _model.Publish(null);
+
+    }
+
+    public void Dispose()
+        => _model?.Dispose();
+
 }
 
 

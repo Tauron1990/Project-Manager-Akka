@@ -12,8 +12,11 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 //builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
+builder.Services.AddSingleton(new BaseUrl(builder.HostEnvironment.BaseAddress));
 builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+
 ConfigFusion(builder.Services, new Uri(builder.HostEnvironment.BaseAddress));
+
 builder.Services.AddMudServices();
 
 await builder.Build().RunAsync();
@@ -35,5 +38,6 @@ static void ConfigFusion(IServiceCollection collection, Uri baseAdress)
                     c.BaseAddress = baseAdress;
                 }))
        .ConfigureWebSocketChannel(new WebSocketChannelProvider.Options { BaseUri = baseAdress })
-       .AddReplicaService<IJobDatabaseService, IJobDatabaseServiceDef>();
+       .AddReplicaService<IJobDatabaseService, IJobDatabaseServiceDef>()
+       .AddReplicaService<IJobFileService, IJobFileServiceDef>();
 }

@@ -29,7 +29,8 @@ public class Startup
 
         var fusion = services.AddFusion();
         fusion.AddPublisher()
-           .AddComputeService<IJobDatabaseService, JobDatabaseService>();
+           .AddComputeService<IJobDatabaseService, JobDatabaseService>()
+           .AddComputeService<IJobFileService, JobFileService>();
         
         services.AddHttpContextAccessor();
         services.AddDataProtection();
