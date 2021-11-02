@@ -1,0 +1,58 @@
+﻿
+<MudCard>
+    @if (_model == null)
+    {
+        <MudText>Fehler bei der Initialisirung</MudText>
+    }
+    else
+    {
+        @if (!string.IsNullOrWhiteSpace(Title))
+        {
+            <MudCardHeader>
+                <MudText Typo="Typo.h2">@Title</MudText>
+            </MudCardHeader>
+        }
+        <MudCardContent>
+            <MudForm @bind-IsValid="_isValid">
+                <MudTextField @bind-Value="_model.JobName" Label="Job Name" Validation="_model.ValidateJobName" DebounceInterval="100"/>
+            </MudForm>
+        </MudCardContent>
+        <MudCardActions>
+
+        </MudCardActions>
+    }
+</MudCard>
+
+@code {
+    [Parameter]
+    public string Title { get; set; } = string.Empty;
+
+    [Parameter]
+    public JobData? Input { get; set; }
+
+    [Parameter]
+    public EventCallback<JobData> Commit { get; set; }
+
+    [Parameter]
+    public EventCallback Cancel { get; set; }
+
+    [Parameter]
+    public bool CanCancel { get; set; }
+
+    [Parameter]
+    public bool StatusEditing { get; set; }
+
+    [Parameter]
+    public bool SortOrderEditing { get; set; }
+
+    private bool _isValid;
+
+    private JobEditorModel? _model;
+
+    protected override void OnParametersSet()
+    {
+        _model = new JobEditorModel(Input);
+        base.OnParametersSet();
+    }
+
+}

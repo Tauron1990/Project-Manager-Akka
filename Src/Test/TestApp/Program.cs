@@ -8,18 +8,9 @@ namespace TestApp
     {
         static void Main()
         {
-            // const string testzip = @"D:\IMAGES\Daten Algemein\RemoveWindowsStoreApp.zip";
-            //
-            // var zip = ZipFile.Read(testzip);
+            string test2 = "bm21_15000";
 
-            using var test = ZipFile.Read("test.zip");
-            test.First().FileName = Path.ChangeExtension(test.First().FileName, ".test");
-
-            // using var zip = new ZipFile();
-            //
-            // zip.AddEntry("TestDic/Program.cs", File.Open("Program.cs", FileMode.Open));
-            //
-            // zip.Save("test.zip");
+            string test3 = test2.ToUpper();
         }
     }
 }
