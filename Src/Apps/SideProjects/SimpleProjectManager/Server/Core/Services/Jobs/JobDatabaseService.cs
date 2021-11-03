@@ -56,13 +56,13 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
         var filter = Builders<ProjectProjection>.Filter.Eq(p => p.Id, id);
         var result = await _projects.Find(filter).FirstAsync(token);
 
-        return new JobData(result.Id, result.JobName, result.Status, result.Ordering, result.Deadline, result.ProjectFiles);
+        return new JobData(result.JobName, result.Status, result.Ordering, result.Deadline, result.ProjectFiles);
     }
 
-    public virtual async Task<ApiResult> CreateJob(CreateProjectCommand command, CancellationToken token)
-        => new(await _commandProcessor.RunCommand(command));
+    public virtual async Task<string> CreateJob(CreateProjectCommand command, CancellationToken token)
+        => (await _commandProcessor.RunCommand(command)).Error ?? string.Empty;
 
-    public virtual async Task<ApiResult> ChangeOrder(SetSortOrder newOrder, CancellationToken token)
+    public virtual async Task<string> ChangeOrder(SetSortOrder newOrder, CancellationToken token)
     {
         var (projectId, sortOrder) = newOrder;
         var result = await _projects.FindOneAndUpdateAsync(
@@ -71,8 +71,8 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
             cancellationToken: token);
 
         return result?.Ordering == newOrder.SortOrder 
-            ? new ApiResult(string.Empty) 
-            : new ApiResult("Das Element wurde nicht gefunden");
+            ? string.Empty 
+            : "Das Element wurde nicht gefunden";
     }
 
     public void Dispose()

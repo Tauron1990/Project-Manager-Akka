@@ -26,11 +26,11 @@ namespace SimpleProjectManager.Server.Controllers
             => _service.GetJobData(id, token);
 
         [HttpPost]
-        Task<ApiResult> IJobDatabaseService.CreateJob(CreateProjectCommand command, CancellationToken token)
+        Task<string> IJobDatabaseService.CreateJob(CreateProjectCommand command, CancellationToken token)
             => _service.CreateJob(command, token);
 
         [HttpPost]
-        public Task<ApiResult> ChangeOrder(SetSortOrder newOrder, CancellationToken token)
+        public Task<string> ChangeOrder(SetSortOrder newOrder, CancellationToken token)
             => _service.ChangeOrder(newOrder, token);
     }
 }

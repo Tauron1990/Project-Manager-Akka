@@ -1,10 +1,8 @@
-﻿using Microsoft.AspNetCore.Components;
-
-namespace SimpleProjectManager.Client.Shared.BaseComponents;
+﻿namespace SimpleProjectManager.Client.Shared.BaseComponents;
 
 public class NonAutoRenderingComponent : DisposableComponent
 {
-    public RenderingManager RenderingManager { get; } = new();
+    protected RenderingManager RenderingManager { get; } = new();
 
     protected override void OnInitialized()
     {

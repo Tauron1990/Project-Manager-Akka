@@ -26,7 +26,6 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using Akkatecture.Core;
-using Akkatecture.Extensions;
 using JetBrains.Annotations;
 
 namespace Akkatecture.Aggregates

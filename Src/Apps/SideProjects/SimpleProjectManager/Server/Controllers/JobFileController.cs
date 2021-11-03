@@ -22,7 +22,7 @@ namespace SimpleProjectManager.Server.Controllers
         public Task<ProjectFileInfo?> GetJobFileInfo(ProjectFileId id, CancellationToken token)
             => _service.GetJobFileInfo(id, token);
 
-        public Task<ApiResult> RegisterFile(ProjectFileInfo projectFile, CancellationToken token)
+        public Task<string> RegisterFile(ProjectFileInfo projectFile, CancellationToken token)
             => _service.RegisterFile(projectFile, token);
 
         [HttpGet("{id}")]

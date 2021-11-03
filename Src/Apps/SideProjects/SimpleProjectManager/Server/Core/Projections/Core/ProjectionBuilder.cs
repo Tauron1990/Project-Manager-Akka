@@ -4,9 +4,6 @@ using Akka.Persistence.MongoDb.Query;
 using Akkatecture.Aggregates;
 using Akkatecture.Core;
 using LiquidProjections;
-using SimpleProjectManager.Server.Core.Data;
-using SimpleProjectManager.Server.Core.Data.Events;
-using SimpleProjectManager.Shared;
 using Tauron.Akkatecture.Projections;
 
 namespace SimpleProjectManager.Server.Core.Projections.Core

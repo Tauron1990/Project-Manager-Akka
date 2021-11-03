@@ -16,14 +16,14 @@
 }
 else
 {
-    <JobEditor Title="Neuer Auftrag" Commit="CreateNewJob" CanCancel="true" Cancel="CancelCreation"></JobEditor>
+    <JobEditor Title="Neuer Auftrag" Commit="CreateNewJob" CanCancel="true" Cancel="CancelCreation" Model="_model"></JobEditor>
 }
 
 @code {
 
     private bool _isCommiting;
 
-    private JobEditorModel _model = new(null);
+    private readonly JobEditorModel _model = new(null);
 
     private async Task CreateNewJob(JobData data)
         => await RenderingManager.PerformTask(

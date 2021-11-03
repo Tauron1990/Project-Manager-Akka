@@ -1,6 +1,6 @@
 {
-  "name": "SimpleProjectManager",
-  "short_name": "SimpleProjectManager",
+  "name": "Simple Project Manager",
+  "short_name": "SPM",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#ffffff",

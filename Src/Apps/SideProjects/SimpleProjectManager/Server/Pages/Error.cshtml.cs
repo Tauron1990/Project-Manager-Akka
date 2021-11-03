@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Diagnostics;
+using JetBrains.Annotations;
 
 namespace SimpleProjectManager.Server.Pages
 {
@@ -8,17 +9,13 @@ namespace SimpleProjectManager.Server.Pages
     [IgnoreAntiforgeryToken]
     public class ErrorModel : PageModel
     {
+        [UsedImplicitly]
         public string? RequestId { get; set; }
 
         public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
+        
 
-        private readonly ILogger<ErrorModel> _logger;
-
-        public ErrorModel(ILogger<ErrorModel> logger)
-        {
-            _logger = logger;
-        }
-
+        [UsedImplicitly]
         public void OnGet()
         {
             RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier;

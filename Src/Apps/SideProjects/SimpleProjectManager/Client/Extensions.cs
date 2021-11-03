@@ -1,5 +1,5 @@
 ﻿using System.Net.Http.Json;
-using System.Threading.Tasks.Sources;
+using JetBrains.Annotations;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.WebUtilities;
 using Stl.Fusion;
@@ -7,6 +7,7 @@ using Tauron.Application;
 
 namespace SimpleProjectManager.Client
 {
+    [PublicAPI]
     public static class Extensions
     {
         public static bool IsLoading<TData>(this IState<TData> state)

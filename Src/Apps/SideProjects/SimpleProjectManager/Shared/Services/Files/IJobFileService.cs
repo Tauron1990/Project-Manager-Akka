@@ -7,5 +7,5 @@ public interface IJobFileService
     [ComputeMethod]
     Task<ProjectFileInfo?> GetJobFileInfo(ProjectFileId id, CancellationToken token);
 
-    Task<ApiResult> RegisterFile(ProjectFileInfo projectFile, CancellationToken token);
+    Task<string> RegisterFile(ProjectFileInfo projectFile, CancellationToken token);
 }

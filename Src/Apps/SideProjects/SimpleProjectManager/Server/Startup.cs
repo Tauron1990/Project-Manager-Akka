@@ -1,21 +1,15 @@
 using Akka.DependencyInjection;
-using Akka.Persistence;
 using JetBrains.Annotations;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.ResponseCompression;
-using Microsoft.AspNetCore.SignalR;
 using MudBlazor.Services;
 using SimpleProjectManager.Server.Core.Data;
 using SimpleProjectManager.Server.Core.Projections;
 using SimpleProjectManager.Server.Core.Services;
 using SimpleProjectManager.Shared.Services;
-using Stl.CommandR;
 using Stl.Fusion;
 using Stl.Fusion.Server;
 using Tauron.AkkaHost;
 using Tauron.Application.AkkaNode.Bootstrap;
-
-#pragma warning disable GU0011
 
 namespace SimpleProjectManager.Server;
 

@@ -322,7 +322,8 @@ public static class ReflectionExtensions
                 from mem in type.GetMembers(bindingflags)
                 let attr = CustomAttributeExtensions.GetCustomAttribute<TAttribute>(mem)
                 where attr != null
-                select (mem, attr))!;
+                select (mem, attr)
+            );
 
         return
             from mem in type.GetHieratichialMembers(bindingflags)
