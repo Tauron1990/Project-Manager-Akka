@@ -11,5 +11,5 @@ public interface IJobFileServiceDef
     Task<ProjectFileInfo?> GetJobFileInfo([Query]ProjectFileId id, CancellationToken token);
 
     [Post(nameof(RegisterFile))]
-    Task<ApiResult> RegisterFile([Body]ProjectFileInfo projectFile, CancellationToken token);
+    Task<string> RegisterFile([Body]ProjectFileInfo projectFile, CancellationToken token);
 }

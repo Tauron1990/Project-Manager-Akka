@@ -15,10 +15,25 @@
         <MudCardContent>
             <MudForm @bind-IsValid="_isValid">
                 <MudTextField @bind-Value="_model.JobName" Label="Job Name" Validation="_model.ValidateJobName" DebounceInterval="100"/>
+                <MudDatePicker @bind-Date="_model.Deadline" Label="Termin" Validation="_model.ValidateDeadline"/>
+                @if (StatusEditing)
+                {
+                    <MudSelect @bind-Value="@_model.Status">
+                        @foreach (var stat in Enum.GetValues<ProjectStatus>())
+                        {
+                            <MudSelectItem Value="stat">@JobTranslator.GetString(stat)</MudSelectItem>
+                        }
+                    </MudSelect>
+                }
+                @if (SortOrderEditing)
+                {
+                    <MudTextField @bind-Value="_model.Ordering" Label="Sortier Position"/>
+                }
             </MudForm>
         </MudCardContent>
         <MudCardActions>
-
+            <MudButton Disabled="@(!_isValid)" StartIcon="@Icons.Filled.Save" OnClick="CommitChanges">Speichern</MudButton>
+            <MudButton Disabled="@(!CanCancel)" StartIcon="@Icons.Filled.Cancel" OnClick="Cancel">Abbrechen</MudButton>
         </MudCardActions>
     }
 </MudCard>
@@ -26,9 +41,6 @@
 @code {
     [Parameter]
     public string Title { get; set; } = string.Empty;
-
-    [Parameter]
-    public JobData? Input { get; set; }
 
     [Parameter]
     public EventCallback<JobData> Commit { get; set; }
@@ -45,14 +57,43 @@
     [Parameter]
     public bool SortOrderEditing { get; set; }
 
+    [Parameter]
+    public JobEditorModel? Model { get; set; }
+
     private bool _isValid;
 
     private JobEditorModel? _model;
 
     protected override void OnParametersSet()
     {
-        _model = new JobEditorModel(Input);
+        _model = Model ?? new JobEditorModel(null);
         base.OnParametersSet();
+    }
+
+    private async Task CommitChanges()
+    {
+        if(_model == null) return;
+
+        var data = _model.OriginalData;
+        if (data != null)
+        {
+            data = data with
+            {
+                JobName = new ProjectName(_model.JobName ?? string.Empty),
+                Status = _model.Status,
+                Deadline = ProjectDeadline.FromDateTime(_model.Deadline),
+                Ordering = new SortOrder(_model.Ordering)
+            };
+        }
+        else
+        {
+            var name = new ProjectName(_model.JobName ?? string.Empty);
+            data = new JobData(
+                ProjectId.For(name), name, _model.Status, new SortOrder(_model.Ordering), 
+                ProjectDeadline.FromDateTime(_model.Deadline), ImmutableList<ProjectFileId>.Empty);
+        }
+
+        await Commit.InvokeAsync(data);
     }
 
 }

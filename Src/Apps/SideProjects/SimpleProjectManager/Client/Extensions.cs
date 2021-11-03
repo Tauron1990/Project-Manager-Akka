@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Json;
+using System.Threading.Tasks.Sources;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.WebUtilities;
 using Stl.Fusion;
@@ -11,7 +12,28 @@ namespace SimpleProjectManager.Client
         public static bool IsLoading<TData>(this IState<TData> state)
             => state.Computed.ConsistencyState != ConsistencyState.Consistent;
 
-        public static async Task<bool> IsSuccess(this IEventAggregator aggregator, Func<Task<string>> runner)
+        //public static async Task<bool> IsSuccess(this IEventAggregator aggregator, Func<Task<string>> runner)
+        //{
+        //    try
+        //    {
+        //        var result = await runner();
+
+        //        if (string.IsNullOrWhiteSpace(result))
+        //            return true;
+
+        //        aggregator.PublishWarnig(result);
+
+        //        return false;
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        aggregator.PublishError(e);
+
+        //        return false;
+        //    }
+        //}
+
+        public static async ValueTask<bool> IsSuccess(this IEventAggregator aggregator, Func<ValueTask<string>> runner)
         {
             try
             {

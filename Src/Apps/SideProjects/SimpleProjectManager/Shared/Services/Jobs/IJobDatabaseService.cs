@@ -13,7 +13,7 @@ public interface IJobDatabaseService
     [ComputeMethod]
     Task<JobData> GetJobData(ProjectId id, CancellationToken token);
 
-    Task<ApiResult> CreateJob(CreateProjectCommand command, CancellationToken token);
+    Task<string> CreateJob(CreateProjectCommand command, CancellationToken token);
 
-    Task<ApiResult> ChangeOrder(SetSortOrder newOrder, CancellationToken token);
+    Task<string> ChangeOrder(SetSortOrder newOrder, CancellationToken token);
 }

@@ -1,5 +1,7 @@
 ﻿@using System.Reactive.Disposables
-@inherits DisposableComponent
+@using System.Threading.Tasks.Sources
+@using ObservableExtensions = System.ObservableExtensions
+@inherits NonAutoRenderingComponent
 
 @inject IJobDatabaseService _jobDatabase
 @inject IEventAggregator _aggregator
@@ -42,30 +44,14 @@
     private async Task GoUp()
     {
         if(_info == null) return;
-
         var index = ActivePairs.IndexOf(_info) + 1;
         if(index == 0) return;
 
-        _processing = true;
-        await InvokeAsync(StateHasChanged);
-
-        try
-        {
-            using var source = new CancellationTokenSource(TimeSpan.FromSeconds(20));
-            var result = await _jobDatabase.ChangeOrder(new SetSortOrder(_info.Info.Project, new SortOrder(ActivePairs[index].Order.Value + 1)),
-                source.Token);
-            if(result.IsValid) return;
-
-            _aggregator.PublishError(result.Error);
-        }
-        catch (Exception error)
-        {
-            _aggregator.PublishError(error);
-        }
-        finally
-        {
-            _processing = false;
-        }
+        await RenderingManager.PerformTask(
+            () => _processing = true,
+            () => _processing = false,
+            () => _aggregator.IsSuccess(() => TimeoutToken.With(TimeSpan.FromSeconds(20),
+                token => _jobDatabase.ChangeOrder(new SetSortOrder(_info.Info.Project, new SortOrder(ActivePairs[index].Order.Value + 1)), token))));
     }
 
     private async Task GoDown()

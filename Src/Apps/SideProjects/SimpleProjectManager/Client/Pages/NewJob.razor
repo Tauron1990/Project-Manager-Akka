@@ -1,20 +1,49 @@
 ﻿@page "/NewJob"
 
+@inherits NonAutoRenderingComponent
+
+@inject IJobDatabaseService _jobDatabase
+@inject IEventAggregator _aggregator
+@inject NavigationManager _navigationManager
+
 <PageTitle>Neuer Auftrag</PageTitle>
 
-<JobEditor Title="Neuer Auftrag" Commit="CreateNewJob"></JobEditor>
+@if (_isCommiting)
+{
+    <CenterElement>
+        <MudProgressCircular Indeterminate="true"/>
+    </CenterElement>
+}
+else
+{
+    <JobEditor Title="Neuer Auftrag" Commit="CreateNewJob" CanCancel="true" Cancel="CancelCreation"></JobEditor>
+}
 
 @code {
 
-    private Task CreateNewJob(JobData data)
-    {
-        return Task.CompletedTask;
-    }
+    private bool _isCommiting;
 
-    protected override bool ShouldRender()
-    {
-        StateHasChanged();
-        return false;
-    }
+    private JobEditorModel _model = new(null);
+
+    private async Task CreateNewJob(JobData data)
+        => await RenderingManager.PerformTask(
+            () => _isCommiting = true,
+            () => _isCommiting = false,
+            async () =>
+                  {
+                      var success = await _aggregator.IsSuccess(
+                          async () =>
+                                {
+                                    return await TimeoutToken.With(TimeSpan.FromSeconds(30),
+                                        async token => await _jobDatabase.CreateJob(new CreateProjectCommand(data.JobName, data.ProjectFiles, data.Status, data.Deadline), token));
+                                });
+                      if(success)
+                          _navigationManager.NavigateTo("/");
+                      return !success;
+                  }
+            );
+
+    private void CancelCreation() 
+        => _navigationManager.NavigateTo("/");
 
 }

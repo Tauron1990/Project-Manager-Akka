@@ -17,8 +17,8 @@ public interface IJobDatabaseServiceDef
     Task<JobData> GetJobData([Query]ProjectId id, CancellationToken token);
 
     [Post(nameof(CreateJob))]
-    Task<ApiResult> CreateJob(CreateProjectCommand command, CancellationToken token);
+    Task<string> CreateJob(CreateProjectCommand command, CancellationToken token);
 
     [Post(nameof(ChangeOrder))]
-    Task<ApiResult> ChangeOrder(ProjectId id, SortOrder newOrder, CancellationToken token);
+    Task<string> ChangeOrder(ProjectId id, SortOrder newOrder, CancellationToken token);
 }
