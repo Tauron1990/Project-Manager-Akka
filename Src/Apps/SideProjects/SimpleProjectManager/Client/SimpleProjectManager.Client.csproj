@@ -8,10 +8,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="..\Server\bin\Release\net6.0\publish\wwwroot\_content\MudBlazor\MudBlazor.min.css" Link="wwwroot\_content\MudBlazor\MudBlazor.min.css" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="6.0.0-rc.2.21480.10" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="6.0.0-rc.2.21480.10" PrivateAssets="all" />
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
-    <PackageReference Include="MudBlazor" Version="5.1.5" />
+    <PackageReference Include="MudBlazor" Version="5.2.0" />
     <PackageReference Include="Stl.Fusion.Blazor" Version="1.11.8" />
   </ItemGroup>
 
@@ -25,6 +29,7 @@
 
   <ItemGroup>
     <Folder Include="Core\" />
+    <Folder Include="wwwroot\_content\MudBlazor\" />
   </ItemGroup>
 
 </Project>

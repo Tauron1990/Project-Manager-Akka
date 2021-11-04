@@ -45,7 +45,7 @@ public class ZipReaderTest
             {
                 var targetElement = pathElement.Trim('/');
                 
-                var searchResult = toTest!.Dics.TryGetValue(targetElement, out toTest);
+                var searchResult = toTest.Dics.TryGetValue(targetElement, out toTest);
 
                 searchResult.Should().BeTrue();
                 toTest!.Name.Should().Be(targetElement);
@@ -66,7 +66,7 @@ public class ZipReaderTest
 
                 if (Path.HasExtension(targetElement))
                 {
-                    searchResult = toTest!.Files.TryGetValue(targetElement, out var testFile);
+                    searchResult = toTest.Files.TryGetValue(targetElement, out var testFile);
 
                     testFile!.Name.Should().Be(targetElement);
                 }

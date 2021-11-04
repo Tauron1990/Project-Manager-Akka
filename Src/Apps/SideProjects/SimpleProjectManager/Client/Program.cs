@@ -7,6 +7,7 @@ using Stl.Fusion;
 using Stl.Fusion.Blazor;
 using Stl.Fusion.Client;
 using Stl.Fusion.Extensions;
+using Tauron.Application;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
@@ -17,10 +18,15 @@ builder.Services.AddSingleton(new BaseUrl(builder.HostEnvironment.BaseAddress));
 builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
 ConfigFusion(builder.Services, new Uri(builder.HostEnvironment.BaseAddress));
-
-builder.Services.AddMudServices();
+RegisterServices();
 
 await builder.Build().RunAsync();
+
+void RegisterServices()
+{
+    builder.Services.AddMudServices();
+    builder.Services.AddSingleton<IEventAggregator, EventAggregator>();
+}
 
 static void ConfigFusion(IServiceCollection collection, Uri baseAdress)
 {
@@ -28,8 +34,6 @@ static void ConfigFusion(IServiceCollection collection, Uri baseAdress)
     collection.AddFusion()
        .AddFusionTime()
        .AddBlazorUIServices()
-       .AddAuthentication(
-            o => o.AddBlazor().AddRestEaseClient())
        .AddRestEaseClient()
        .ConfigureHttpClientFactory(
             (_, _, options) => options.HttpClientActions.Add(
@@ -39,6 +43,6 @@ static void ConfigFusion(IServiceCollection collection, Uri baseAdress)
                     c.BaseAddress = baseAdress;
                 }))
        .ConfigureWebSocketChannel(new WebSocketChannelProvider.Options { BaseUri = baseAdress })
-       .AddReplicaService<IJobDatabaseService, IJobDatabaseServiceDef>()
-       .AddReplicaService<IJobFileService, IJobFileServiceDef>();
+       .AddClientService<IJobDatabaseService, IJobDatabaseServiceDef>()
+       .AddClientService<IJobFileService, IJobFileServiceDef>();
 }

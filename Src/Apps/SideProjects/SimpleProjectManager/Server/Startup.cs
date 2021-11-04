@@ -22,9 +22,11 @@ public class Startup
         services.AddMudServices();
 
         var fusion = services.AddFusion();
-        fusion.AddPublisher()
+        fusion
            .AddComputeService<IJobDatabaseService, JobDatabaseService>()
            .AddComputeService<IJobFileService, JobFileService>();
+
+        fusion.AddWebServer();
         
         services.AddHttpContextAccessor();
         services.AddDataProtection();

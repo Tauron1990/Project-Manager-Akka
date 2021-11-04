@@ -49,7 +49,11 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
     }
 
     public virtual async Task<SortOrder> GetSortOrder(ProjectId id, CancellationToken token)
-        => await _projects.Find(p => p.Id == id).Project(p => p.Ordering).FirstAsync(token);
+    {
+        var result = await _projects.Find(p => p.Id == id).Project(p => p.Ordering).FirstAsync(token);
+
+        return result;
+    }
 
     public virtual async Task<JobData> GetJobData(ProjectId id, CancellationToken token)
     {

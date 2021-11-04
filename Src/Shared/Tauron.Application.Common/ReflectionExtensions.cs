@@ -352,7 +352,7 @@ public static class ReflectionExtensions
         bool nonPublic) where TAttribute : Attribute
         => FindMemberAttributes<TAttribute>(type, nonPublic, BindingFlags.Instance | BindingFlags.FlattenHierarchy);
 
-    public static T[] GetAllCustomAttributes<T>(this ICustomAttributeProvider member) where T : Attribute
+    public static T[] GetAllCustomAttributes<T>(this ICustomAttributeProvider member) where T : class
         => (T[])member.GetCustomAttributes(typeof(T), inherit: true);
 
 

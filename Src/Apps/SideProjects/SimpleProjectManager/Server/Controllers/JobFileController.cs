@@ -18,10 +18,11 @@ namespace SimpleProjectManager.Server.Controllers
         public JobFileController(IJobFileService service)
             => _service = service;
 
-
-        public Task<ProjectFileInfo?> GetJobFileInfo(ProjectFileId id, CancellationToken token)
+        [Publish, HttpGet]
+        public Task<ProjectFileInfo?> GetJobFileInfo([FromQuery]ProjectFileId id, CancellationToken token)
             => _service.GetJobFileInfo(id, token);
 
+        [Publish, HttpPost]
         public Task<string> RegisterFile(ProjectFileInfo projectFile, CancellationToken token)
             => _service.RegisterFile(projectFile, token);
 

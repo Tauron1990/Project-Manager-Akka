@@ -5,7 +5,9 @@ namespace SimpleProjectManager.Client.Shared.EditJob;
 
 public class JobEditorModel
 {
-    private bool _isUpdate;
+    private readonly bool _isUpdate;
+
+    public ProjectId? Id { get; set; }
 
     public JobData? OriginalData { get; }
 
@@ -13,7 +15,7 @@ public class JobEditorModel
 
     public ProjectStatus Status { get; set; }
     
-    public long Ordering { get; set; } = long.MaxValue;
+    public long? Ordering { get; set; }
     
     public DateTime? Deadline { get; set; }
 
@@ -27,8 +29,9 @@ public class JobEditorModel
 
         JobName = originalData.JobName.Value;
         Status = originalData.Status;
-        Ordering = originalData.Ordering.Value;
+        Ordering = originalData.Ordering?.Value;
         Deadline = originalData.Deadline?.Value.ToLocalTime().Date;
+        Id = originalData.Id;
     }
 
     public readonly Func<DateTime?, string?> ValidateDeadline;
@@ -49,7 +52,14 @@ public class JobEditorModel
 
         if (arg.ToUpper().StartsWith("BM"))
         {
+            var isOk =
+                arg.Length == 10
+             && arg[2..2].All(char.IsDigit)
+             && arg[4] == '_'
+             && arg[5..].All(char.IsDigit);
 
+            if (!isOk)
+                return "DIe Auftrags Nummer ist im Falschen Format";
         }
 
         return null;

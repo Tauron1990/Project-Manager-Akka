@@ -5,30 +5,51 @@
 @inherits ComputedStateComponent<JobInfo[]>
 @implements IDisposable
 
-@inject IStateFactory _stateFactory;
+@inject NavigationManager _navigationManager
+@inject IStateFactory _stateFactory
 @inject IJobDatabaseService _jobService
 
 <PageTitle>Job Manager - Aktuelle Aufträge</PageTitle>
 
 <StateAwaiter State="State">
-    <MudDrawerContainer>
-        <JobSideBar CurrentJobs="context" Model="_model"/>
-        <JobDetailDisplay Model="_model"/>
-    </MudDrawerContainer>
+    @if (context == null || context.Length == 0)
+    {
+        <MudGrid Justify="Justify.Center">
+            <MudItem lg="12">
+                <MudText Align="Align.Center" Typo="Typo.h1">Keine Aufträge</MudText>
+            </MudItem>
+            <MudItem lg="5"/>
+            <MudItem lg="2">
+                <MudButton StartIcon="@Icons.Filled.NewLabel" OnClick="@(() => _navigationManager.NavigateTo("/NewJob"))" Class="align-center">Neuer Auftrag</MudButton>
+            </MudItem>
+            <MudItem lg="5"/>
+        </MudGrid>
+    }
+    else
+    {
+        <MudGrid>
+            <MudItem lg="3">
+                <JobSideBar CurrentJobs="context" Model="_model"/>
+            </MudItem>
+            <MudItem lg="9">
+                <JobDetailDisplay Model="_model"/>
+            </MudItem>
+        </MudGrid>
+    }
 </StateAwaiter>
 
 @code {
 
     private JobsViewModel? _model;
 
-    protected override Task<JobInfo[]> ComputeState(CancellationToken cancellationToken) 
-        => _jobService.GetActiveJobs(cancellationToken);
+    protected override async Task<JobInfo[]> ComputeState(CancellationToken cancellationToken) 
+        => await _jobService.GetActiveJobs(cancellationToken);
 
     protected override void OnInitialized()
     {
         _model = new JobsViewModel(_stateFactory);
-        State.AddEventHandler(StateEventKind.Updated, (_, _) => NewJobs());
         base.OnInitialized();
+        State.AddEventHandler(StateEventKind.Updated, (_, _) => NewJobs());
     }
 
     private void NewJobs()

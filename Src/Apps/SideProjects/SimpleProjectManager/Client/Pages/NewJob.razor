@@ -16,7 +16,7 @@
 }
 else
 {
-    <JobEditor Title="Neuer Auftrag" Commit="CreateNewJob" CanCancel="true" Cancel="CancelCreation" Model="_model"></JobEditor>
+    <JobEditor Title="Neuer Auftrag" Commit="CreateNewJob" CanCancel="true" Cancel="CancelCreation" Model="_model" SortOrderEditing="true" StatusEditing="true"/>
 }
 
 @code {
@@ -32,13 +32,17 @@ else
             async () =>
                   {
                       var success = await _aggregator.IsSuccess(
-                          async () =>
-                                {
-                                    return await TimeoutToken.With(TimeSpan.FromSeconds(30),
-                                        async token => await _jobDatabase.CreateJob(new CreateProjectCommand(data.JobName, data.ProjectFiles, data.Status, data.Deadline), token));
-                                });
-                      if(success)
+                          () => TimeoutToken.WithDefault(
+                              token => _jobDatabase.CreateJob(new CreateProjectCommand(data.JobName, data.ProjectFiles, data.Status, data.Deadline), token)));
+                      if (success)
+                      {
+                          if (data.Ordering != null)
+                          {
+                              await _aggregator.IsSuccess(() => TimeoutToken.WithDefault(
+                                  token => _jobDatabase.ChangeOrder(new SetSortOrder(data.Id, data.Ordering), token)));
+                          }
                           _navigationManager.NavigateTo("/");
+                      }
                       return !success;
                   }
             );

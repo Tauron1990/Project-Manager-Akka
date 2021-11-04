@@ -6,7 +6,7 @@
 @inject ISnackbar _snackbar;
 
 <MudThemeProvider Theme="_darkTheme"/>
-<MudDialogProvider />
+<MudDialogProvider DisableBackdropClick="true" CloseButton="true" Position="DialogPosition.Center"/>
 <MudSnackbarProvider />
 
 <MudLayout>
@@ -14,12 +14,12 @@
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer"/>
         <MudSpacer/>
     </MudAppBar>
-    <MudDrawer Open="@_open" Elevation="4" Variant="DrawerVariant.Responsive" ClipMode="DrawerClipMode.Always">
-        <MudDrawerHeader>Simple Project Manager</MudDrawerHeader>
+    <MudDrawer Open="@_open" Elevation="4" ClipMode="DrawerClipMode.Always">
+        <MudDrawerHeader>Job Manager</MudDrawerHeader>
         <NavMenu/>
     </MudDrawer>
     <MudMainContent>
-        <MudContainer Fixed="true" Class="mt-2">
+        <MudContainer MaxWidth="MaxWidth.Large" Class="mt-2">
             @Body
         </MudContainer>
     </MudMainContent>
@@ -34,7 +34,7 @@
 
     private readonly MudTheme _darkTheme =
         new()
-        {
+        {   
             Palette = new Palette()
                       {
                           Primary = "#776be7",

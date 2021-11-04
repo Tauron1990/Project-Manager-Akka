@@ -13,24 +13,25 @@ namespace SimpleProjectManager.Server.Controllers
         public JobDatabaseController(IJobDatabaseService service)
             => _service = service;
 
-        [HttpGet]
+        [HttpGet, Publish]
         public Task<JobInfo[]> GetActiveJobs(CancellationToken token)
             => _service.GetActiveJobs(token);
 
-        [HttpGet]
-        public Task<SortOrder> GetSortOrder([FromQuery]ProjectId id, CancellationToken token)
+        [HttpPost, Publish]
+        public Task<SortOrder> GetSortOrder([FromBody]ProjectId id, CancellationToken token)
             => _service.GetSortOrder(id, token);
 
-        [HttpGet]
-        public Task<JobData> GetJobData([FromQuery]ProjectId id, CancellationToken token)
+        [HttpPost, Publish]
+        public Task<JobData> GetJobData([FromBody]ProjectId id, CancellationToken token)
             => _service.GetJobData(id, token);
 
         [HttpPost]
-        Task<string> IJobDatabaseService.CreateJob(CreateProjectCommand command, CancellationToken token)
+        public Task<string> CreateJob([FromBody]CreateProjectCommand command, CancellationToken token)
             => _service.CreateJob(command, token);
 
+
         [HttpPost]
-        public Task<string> ChangeOrder(SetSortOrder newOrder, CancellationToken token)
+        public Task<string> ChangeOrder([FromBody]SetSortOrder newOrder, CancellationToken token)
             => _service.ChangeOrder(newOrder, token);
     }
 }

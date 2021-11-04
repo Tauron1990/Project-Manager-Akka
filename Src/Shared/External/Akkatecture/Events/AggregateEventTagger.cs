@@ -54,7 +54,7 @@ namespace Akkatecture.Events
                 var eventDefinition = eventDefinitionService.GetDefinition(aggregateEventType);
 
                 var tags = new HashSet<string> { aggregateName.Value, eventDefinition.Name };
-                evt.GetType().GetAllCustomAttributes<TagAttribute>().Select(attribute => attribute.Name).Foreach(name => tags.Add(name));
+                aggregateEventType.GetAllCustomAttributes<ITagAttribute>().Select(attribute => attribute.Name).Foreach(name => tags.Add(name));
 
                 return new Tagged(evt, tags);
             }

@@ -2,65 +2,67 @@
 
 @inject IJobDatabaseService _databaseService;
 
-<MudGrid>
-    <MudItem lg="12">
-        <MudText Align="Align.Center" Typo="Typo.h2">Job Informationen</MudText>
-    </MudItem>
-    <StateAwaiter State="State">
-        @if (context != null)
-        {
-            <MudItem lg="12">
-                <MudPaper Class="m-3">
-                    <MudGrid>
-                        <MudItem lg="6" Class="m-1">
-                            <MudText Align="Align.End" Typo="Typo.h3">Job:</MudText>
-                        </MudItem>
-                        <MudItem lg="6" Class="m-1">
-                            <MudText Align="Align.Start" Typo="Typo.h3">@context.JobName.Value</MudText>
-                        </MudItem>
-                        <MudItem lg="6" Class="m-1">
-                            <MudText Align="Align.End" Typo="Typo.h2">Termin:</MudText>
-                        </MudItem>
-                        <MudItem lg="6" Class="m-1">
-                            <MudText Align="Align.Start" Typo="Typo.h2">@(context.Deadline?.Value.ToLocalTime().ToString("d") ?? "Kein Termin Gesetzt")</MudText>
-                        </MudItem>
-                        <MudItem lg="6" Class="m-1">
-                            <MudText Align="Align.End" Typo="Typo.h2">Status:</MudText>
-                        </MudItem>
-                        <MudItem lg="6" Class="m-1">
-                            <MudText Align="Align.Start" Typo="Typo.h2">@JobTranslator.GetString(context.Status)</MudText>
-                        </MudItem>
-                    </MudGrid>
-                </MudPaper>
-            </MudItem>
-            <MudItem>
-                <MudPaper Class="m-3">
-                    @if (context.ProjectFiles.Count > 0)
-                    {
+<MudContainer>
+    <MudGrid>
+        <MudItem lg="12">
+            <MudText Align="Align.Center" Typo="Typo.h3">Job Informationen</MudText>
+        </MudItem>
+        <StateAwaiter State="State">
+            @if (context != null)
+            {
+                <MudItem lg="12">
+                    <MudPaper Class="ma-1 pa-3">
                         <MudGrid>
-                            @foreach (var file in context.ProjectFiles)
-                            {
-                                <MudItem lg="12" @key="file.Value">
-                                    <FileDetailDisplay ProjectFileId="file"/>
-                                </MudItem>
-                            }
+                            <MudItem lg="6" Class="m-1">
+                                <MudText Align="Align.End" Typo="Typo.h3">Job:</MudText>
+                            </MudItem>
+                            <MudItem lg="6" Class="m-1">
+                                <MudText Align="Align.Start" Typo="Typo.h3">@context.JobName.Value</MudText>
+                            </MudItem>
+                            <MudItem lg="6" Class="m-1">
+                                <MudText Align="Align.End" Typo="Typo.h5">Termin:</MudText>
+                            </MudItem>
+                            <MudItem lg="6" Class="m-1">
+                                <MudText Align="Align.Start" Typo="Typo.h5">@(context.Deadline?.Value.ToLocalTime().ToString("d") ?? "Kein Termin Gesetzt")</MudText>
+                            </MudItem>
+                            <MudItem lg="6" Class="m-1">
+                                <MudText Align="Align.End" Typo="Typo.h5">Status:</MudText>
+                            </MudItem>
+                            <MudItem lg="6" Class="m-1">
+                                <MudText Align="Align.Start" Typo="Typo.h5">@JobTranslator.GetString(context.Status)</MudText>
+                            </MudItem>
                         </MudGrid>
-                    }
-                    else
-                    {
-                        <MudText Typo="Typo.h3" Align="Align.Center">Kein Dateien Hochgeladen</MudText>
-                    }
-                </MudPaper>
-            </MudItem>
-        }
-        else
-        {
-            <MudItem lg="12">
-                <MudText Align="Align.Center" Typo="Typo.h3">Keine Daten Verfügbar</MudText>
-            </MudItem>
-        }
-    </StateAwaiter>
-</MudGrid>
+                    </MudPaper>
+                </MudItem>
+                <MudItem lg="12">
+                    <MudPaper Class="ma-1 pa-3">
+                        @if (context.ProjectFiles.Count > 0)
+                        {
+                            <MudGrid>
+                                @foreach (var file in context.ProjectFiles)
+                                {
+                                    <MudItem lg="12" @key="file.Value">
+                                        <FileDetailDisplay ProjectFileId="file"/>
+                                    </MudItem>
+                                }
+                            </MudGrid>
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.body1" Align="Align.Center">Keine Dateien Hochgeladen</MudText>
+                        }
+                    </MudPaper>
+                </MudItem>
+            }
+            else
+            {
+                <MudItem lg="12">
+                    <MudText Align="Align.Center" Typo="Typo.h3">Keine Daten Verfügbar</MudText>
+                </MudItem>
+            }
+        </StateAwaiter>
+    </MudGrid>
+</MudContainer>
 
 @code {
     [Parameter]

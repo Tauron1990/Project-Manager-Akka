@@ -5,7 +5,7 @@
 @{
     var error = State?.Error;
     var value = State != null ? State.ValueOrDefault : default;
-    var isLoading = State?.Computed.ConsistencyState == ConsistencyState.Computing || (!State?.HasValue ?? true); //|| value == null;
+    var isLoading = State == null || _isInitial || State.Computed.ConsistencyState == ConsistencyState.Computing || !State.HasValue; //|| value == null;
 
     #if DEBUG
     if (error != null)
@@ -50,6 +50,8 @@ else
 
     private IDisposable _subscription = Disposable.Empty;
 
+    private bool _isInitial = true;
+
     [Parameter]
     public IState<TValue>? State { get; set; }
 
@@ -77,7 +79,10 @@ else
     }
 
     private void Handler(IState<TValue> arg1, StateEventKind arg2)
-        => StateHasChanged();
+    {
+        _isInitial = false;
+        InvokeAsync(StateHasChanged);
+    }
 
     public void Dispose()
         => _subscription.Dispose();

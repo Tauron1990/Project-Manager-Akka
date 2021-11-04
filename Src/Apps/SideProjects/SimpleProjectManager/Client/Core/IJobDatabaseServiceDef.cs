@@ -10,15 +10,15 @@ public interface IJobDatabaseServiceDef
     [Get(nameof(GetActiveJobs))]
     Task<JobInfo[]> GetActiveJobs(CancellationToken token);
 
-    [Get(nameof(GetSortOrder))]
-    Task<SortOrder> GetSortOrder([Query]ProjectId id);
+    [Post(nameof(GetSortOrder))]
+    Task<SortOrder> GetSortOrder([Body]ProjectId id, CancellationToken token);
 
-    [Get(nameof(GetJobData))]
-    Task<JobData> GetJobData([Query]ProjectId id, CancellationToken token);
+    [Post(nameof(GetJobData))]
+    Task<JobData> GetJobData([Body]ProjectId id, CancellationToken token);
 
     [Post(nameof(CreateJob))]
-    Task<string> CreateJob(CreateProjectCommand command, CancellationToken token);
+    Task<string> CreateJob([Body]CreateProjectCommand command, CancellationToken token);
 
     [Post(nameof(ChangeOrder))]
-    Task<string> ChangeOrder(ProjectId id, SortOrder newOrder, CancellationToken token);
+    Task<string> ChangeOrder([Body]SetSortOrder newOrder, CancellationToken token);
 }

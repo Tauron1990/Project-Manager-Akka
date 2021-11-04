@@ -38,8 +38,10 @@ public sealed class ProjectProjectionManager : ProjectionManagerBase, IInitializ
                                 (projection, evt, _) =>
                                 {
                                     projection.Deadline = evt.AggregateEvent.Deadline;
-                                    if (projection.Ordering.Value == 0 && evt.AggregateEvent.Deadline != null)
+                                    if (projection.Ordering.Value == long.MaxValue && evt.AggregateEvent.Deadline != null)
                                         projection.Ordering = new SortOrder(evt.AggregateEvent.Deadline.Value.Ticks);
+                                    else
+                                        projection.Ordering = new SortOrder(long.MaxValue);
 
                                     return Task.CompletedTask;
                                 });
