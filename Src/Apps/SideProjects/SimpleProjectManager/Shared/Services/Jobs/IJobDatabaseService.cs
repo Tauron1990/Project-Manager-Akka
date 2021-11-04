@@ -8,7 +8,7 @@ public interface IJobDatabaseService
     Task<JobInfo[]> GetActiveJobs(CancellationToken token);
 
     [ComputeMethod]
-    Task<SortOrder> GetSortOrder(ProjectId id, CancellationToken token);
+    Task<SortOrder[]> GetSortOrders(CancellationToken token);
 
     [ComputeMethod]
     Task<JobData> GetJobData(ProjectId id, CancellationToken token);

@@ -43,8 +43,8 @@ namespace SimpleProjectManager.Server.Core.Data
         protected override string GetErrorMessage(string errorCode)
             => errorCode switch
             {
-                Errors.NewError => "Der Job ist nicht neu",
-                Errors.NoNewError => "Der Job wurde nicht gefunde",
+                Errors.NoNewError => "Der Job ist nicht neu",
+                Errors.NewError => "Der Job wurde nicht gefunden",
                 _ => errorCode
             };
     }

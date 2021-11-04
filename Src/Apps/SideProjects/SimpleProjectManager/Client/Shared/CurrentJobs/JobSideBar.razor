@@ -11,36 +11,56 @@
     <MudItem lg="12">
         <MudButton Class="ma-3" StartIcon="@Icons.Filled.NewLabel" OnClick="NewJob">Neuer Job</MudButton>
     </MudItem>
-    <MudItem lg="12">
-        <StateAwaiter State="State">
-            @if (context == null || context.Count == 0)
-            {
+    <StateAwaiter State="State">
+
+        @if (context == null || context.Count == 0 || Model == null)
+        {
+            <MudItem lg="12">
                 <MudText>Kein Aktiven Aufträge</MudText>
-            }
-            else
-            {
+            </MudItem>
+        }
+        else
+        {
+            <MudItem lg="12">
+                <JobPriorityControl ActivePairs="context" Model="Model"/>
+            </MudItem>
+            <MudItem lg="12">
                 <MudList Clickable="true" SelectedValue="_selectedValue" SelectedValueChanged="_newItemSelectedAction">
                     @foreach (var job in context)
                     {
                         <MudListItem @key="job.Info.Project" Value="job">
-                            <MudPaper @key="job.Info.Project" Class="pa-2">
-                                <MudText Typo="Typo.h4">@job.Info.Name.Value</MudText>
-                                @if (job.Info.Deadline == null)
-                                {
-                                    <MudText Typo="Typo.body1">Kein Termin angegeben</MudText>
-                                }
-                                else
-                                {
-                                    <MudText Typo="Typo.body1">Termin: @job.Info.Deadline.Value.LocalDateTime.ToString("d")</MudText>
-                                }
-                                <MudText Typo="Typo.body1">Status: @JobTranslator.GetString(job.Info.Status)</MudText>
+                            <MudPaper Class="pa-2">
+                                <MudGrid>
+                                    <MudItem lg="12" Class="mb-n2">
+                                        <MudText Typo="Typo.h4">@job.Info.Name.Value</MudText>
+                                    </MudItem>
+                                    <MudItem lg="9" Class="my-n2">
+                                        @if (job.Info.Deadline == null)
+                                        {
+                                            <MudText Typo="Typo.body1">Kein Termin angegeben</MudText>
+                                        }
+                                        else
+                                        {
+                                            <MudText Typo="Typo.body1">Termin: @job.Info.Deadline.Value.LocalDateTime.ToString("d")</MudText>
+                                        }
+                                    </MudItem>
+                                    <MudItem lg="3" Style="height: 48px" Class="my-n2">
+                                        @if (job.Order.Value < 0)
+                                        {
+                                            <MudIcon Icon="@Icons.Rounded.Warning" Color="Color.Warning"/>
+                                        }
+                                    </MudItem>
+                                    <MudItem lg="12" Class="mt-n2">
+                                        <MudText Typo="Typo.body1">Status: @JobTranslator.GetString(job.Info.Status)</MudText>
+                                    </MudItem>
+                                </MudGrid>
                             </MudPaper>
                         </MudListItem>
                     }
                 </MudList>
-            }
-        </StateAwaiter>
-    </MudItem>
+            </MudItem>
+        }
+    </StateAwaiter>
 </MudGrid>
 
 @code {
@@ -49,7 +69,7 @@
     public JobInfo[]? CurrentJobs { get; set; } = Array.Empty<JobInfo>();
 
     [Parameter]
-    public JobsViewModel Model { get; set; } = null!;
+    public JobsViewModel? Model { get; set; }
     
     private object? _selectedValue;
     private IDisposable _subscription = System.Reactive.Disposables.Disposable.Empty;
@@ -66,16 +86,20 @@
 
     protected override void OnParametersSet()
     {
-        _subscription.Dispose();
-        _subscription = Model.CurrentInfo
-            .Subscribe(i =>
-                       {
-                           if (_selectedValue is not JobSortOrderPair info || info != i) return;
+        if (Model != null)
+        {
+            _subscription.Dispose();
+            _subscription = Model
+                .CurrentInfo
+                .Subscribe(i =>
+                           {
+                               if (_selectedValue is not JobSortOrderPair info || info != i) return;
 
-                           _selectedValue = i;
-                           StateHasChanged();
+                               _selectedValue = i;
+                               StateHasChanged();
 
-                       });
+                           });
+        }
 
         base.OnParametersSet();
     }
@@ -87,7 +111,7 @@
         _selectedValue = data;
 
         if(data is JobSortOrderPair info)
-        Model.Publish(info);
+        Model?.Publish(info);
     }
 
     protected override async Task<ImmutableList<JobSortOrderPair>> ComputeState(CancellationToken cancellationToken)
@@ -103,13 +127,13 @@
                 {
                     if (cancellationToken.IsCancellationRequested) return ImmutableList<JobSortOrderPair>.Empty;
 
-                    list.Add(new JobSortOrderPair(await _jobDatabase.GetSortOrder(currentJob.Project, cancellationToken), currentJob, 0));
+                    list.Add(new JobSortOrderPair(await _jobDatabase.GetSortOrders(currentJob.Project, cancellationToken), currentJob));
                 }
             }
 
             return list
                 .GroupBy(p => p.Info.Status)
-                .OrderBy(g => g.Key)
+                .OrderByDescending(g => g.Key)
                 .SelectMany(g => g.OrderBy(p => p.Order.Value))
                 .ToImmutableList();
         }

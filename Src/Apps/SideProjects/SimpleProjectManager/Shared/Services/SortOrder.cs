@@ -1,13 +1,14 @@
-﻿using Akkatecture.ValueObjects;
+﻿using Akkatecture.Entities;
 
 namespace SimpleProjectManager.Shared.Services;
 
-public sealed class SortOrder : SingleValueObject<long>
+public sealed class SortOrder : Entity<ProjectId>
 {
-    public SortOrder(long value) : base(value) { }
+    public int SkipCount { get; }
 
-    public static readonly SortOrder Default = new(long.MaxValue);
+    public SortOrder(ProjectId id, int skipCount) : base(id)
+        => SkipCount = skipCount;
 
-    public static SortOrder? From(long? value)
-        => value == null ? null : new SortOrder(value.Value);
+    public SortOrder WithCount(int count)
+        => new(Id, count);
 }

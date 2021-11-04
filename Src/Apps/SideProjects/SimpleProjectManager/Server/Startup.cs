@@ -1,7 +1,9 @@
 using Akka.DependencyInjection;
 using JetBrains.Annotations;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.ResponseCompression;
 using MudBlazor.Services;
+using SimpleProjectManager.Server.Controllers.ValueFactories;
 using SimpleProjectManager.Server.Core.Data;
 using SimpleProjectManager.Server.Core.Projections;
 using SimpleProjectManager.Server.Core.Services;
@@ -36,7 +38,8 @@ public class Startup
         services.AddCors();
         services.AddSignalR();
         services.AddControllersWithViews();
-        services.AddRazorPages();
+        services.AddRazorPages()
+           .AddMvcOptions(o => o.ValueProviderFactories.Add(new IdValueProvider()));
         services.AddResponseCompression(
             opts => opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/octet-stream" }));
     }

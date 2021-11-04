@@ -88,7 +88,7 @@
         else
         {
             var name = new ProjectName(_model.JobName ?? string.Empty);
-            data = new JobData(name, _model.Status, SortOrder.From(_model.Ordering), 
+            data = new JobData(ProjectId.For(name),  name, _model.Status, SortOrder.From(_model.Ordering), 
                 ProjectDeadline.FromDateTime(_model.Deadline), ImmutableList<ProjectFileId>.Empty);
         }
 

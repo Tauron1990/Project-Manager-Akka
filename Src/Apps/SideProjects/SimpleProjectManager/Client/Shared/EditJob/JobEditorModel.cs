@@ -7,8 +7,6 @@ public class JobEditorModel
 {
     private readonly bool _isUpdate;
 
-    public ProjectId? Id { get; set; }
-
     public JobData? OriginalData { get; }
 
     public string? JobName { get; set; }
@@ -31,7 +29,6 @@ public class JobEditorModel
         Status = originalData.Status;
         Ordering = originalData.Ordering?.Value;
         Deadline = originalData.Deadline?.Value.ToLocalTime().Date;
-        Id = originalData.Id;
     }
 
     public readonly Func<DateTime?, string?> ValidateDeadline;

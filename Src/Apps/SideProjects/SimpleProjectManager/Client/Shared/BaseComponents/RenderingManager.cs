@@ -58,21 +58,21 @@ public sealed class RenderingManager
     {
         init();
         await StateHasChangedAsync();
-        if (await run())
-        {
-            compled();
-            await StateHasChangedAsync();
-        }
+
+        await run();
+
+        compled();
+        await StateHasChangedAsync();
     }
 
-    public ValueTask PerformTask(Action init, Action compled, Func<ValueTask> run)
-        => PerformTask(
-            init,
-            compled,
-            async () =>
-            {
-                await run();
+    public async ValueTask PerformTask(Action init, Action compled, Func<ValueTask> run)
+    {
+        init();
+        await StateHasChangedAsync();
 
-                return true;
-            });
+        await run();
+
+        compled();
+        await StateHasChangedAsync();
+    }
 }

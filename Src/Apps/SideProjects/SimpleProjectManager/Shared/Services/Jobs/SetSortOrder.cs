@@ -1,3 +1,3 @@
 ﻿namespace SimpleProjectManager.Shared.Services;
 
-public record SetSortOrder(ProjectId Project, SortOrder SortOrder);
+public record SetSortOrder(SortOrder SortOrder);

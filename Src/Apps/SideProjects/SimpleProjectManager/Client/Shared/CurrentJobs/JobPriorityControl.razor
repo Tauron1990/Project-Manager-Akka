@@ -5,9 +5,9 @@
 @inject IEventAggregator _aggregator
 
 <div class="d-flex">
-    <MudIconButton Icon="@Icons.Outlined.ArrowUpward" Disabled="@(!_processing && _canGoUp)" OnClick="GoUp"/>
-    <MudIconButton Icon="@Icons.Outlined.ArrowDownward" Disabled="@(!_processing && _canGoDown)" OnClick="GoDown"/>
-    <MudButton StartIcon="@Icons.Outlined.AddTask" Disabled="@(!_processing && !_isPriority && _canPriority)" OnClick="Priorize">Priorisieren</MudButton>
+    <MudIconButton Icon="@Icons.Outlined.ArrowUpward" Disabled="CanNotGoUp" OnClick="GoUp"/>
+    <MudIconButton Icon="@Icons.Outlined.ArrowDownward" Disabled="CanNotGoDown" OnClick="GoDown"/>
+    <MudButton StartIcon="@Icons.Outlined.AddTask" Disabled="CanNotPriority" OnClick="Priorize">Priorisieren</MudButton>
 </div>
 
 @code {
@@ -22,8 +22,11 @@
     private JobSortOrderPair? _info;
     private bool _canGoUp;
     private bool _canGoDown;
-    private bool _isPriority;
     private bool _canPriority;
+
+    private bool CanNotGoUp => _processing || !_canGoUp;
+    private bool CanNotGoDown => _processing || !_canGoDown;
+    private bool CanNotPriority => _processing || !_canPriority;
 
     private bool _processing;
 
@@ -42,28 +45,28 @@
     private async Task GoUp()
     {
         if(_info == null) return;
-        var index = ActivePairs.IndexOf(_info) + 1;
-        if(index == 0) return;
+        var index = ActivePairs.IndexOf(_info) - 1;
+        if(index == -1) return;
 
         await RenderingManager.PerformTask(
             () => _processing = true,
             () => _processing = false,
-            () => _aggregator.IsSuccess(() => TimeoutToken.With(TimeSpan.FromSeconds(20),
-                token => _jobDatabase.ChangeOrder(new SetSortOrder(_info.Info.Project, new SortOrder(ActivePairs[index].Order.Value + 1)), token))));
+            () => _aggregator.IsSuccess(() => TimeoutToken.WithDefault(
+                token => _jobDatabase.ChangeOrder(new SetSortOrder(_info.Info.Project, new SortOrder(ActivePairs[index].Order.Value + 100)), token))));
     }
 
     private async Task GoDown()
     {
         if (_info == null) return;
 
-        var index = ActivePairs.IndexOf(_info) - 1;
-        if (index < 0) return;
+        var index = ActivePairs.IndexOf(_info) + 1;
+        if (index == ActivePairs.Count) return;
 
         await RenderingManager.PerformTask(
             () => _processing = true,
             () => _processing = false,
-            () => _aggregator.IsSuccess(() => TimeoutToken.With(TimeSpan.FromSeconds(20),
-                token => _jobDatabase.ChangeOrder(new SetSortOrder(_info.Info.Project, new SortOrder(ActivePairs[index].Order.Value - 1)), token))));
+            () => _aggregator.IsSuccess(() => TimeoutToken.WithDefault(
+                token => _jobDatabase.ChangeOrder(new SetSortOrder(_info.Info.Project, new SortOrder(ActivePairs[index].Order.Value - 100)), token))));
     }
 
     private async Task Priorize()
@@ -73,41 +76,41 @@
         await RenderingManager.PerformTask(
             () => _processing = true,
             () => _processing = false,
-            () => _aggregator.IsSuccess(() => TimeoutToken.With(TimeSpan.FromSeconds(20),
+            () => _aggregator.IsSuccess(() => TimeoutToken.WithDefault(
                 token => _jobDatabase.ChangeOrder(new SetSortOrder(_info.Info.Project, new SortOrder(_info.Order.Value * -1)), token))));
     }
 
     private void NewJobIncomming(JobSortOrderPair? info)
     {
+        Console.WriteLine($"New Job for Priority Control: {info}");
+
         void Invalid()
         {
-            _isPriority = false;
-            _canPriority = false;
+            Console.WriteLine("Job Priority Control: AllInvalid");
 
+            _canPriority = false;
             _canGoUp = false;
             _canGoDown = false;
         }
 
         _info = info;
 
-        if (info != null)
+        if (info != null && ActivePairs.Count != 0)
         {
-            _isPriority = info.Order.Value < 0;
-            _canPriority = true;
-
-            var index = ActivePairs.IndexOf(info);
-            if (index == -1)
+            _canPriority = info.Order.Value > 0;
+            
+            if (!ActivePairs.Contains(info))
                 Invalid();
             else
             {
-                _canGoUp = index < ActivePairs.Count - 1;
-                _canGoDown = index != 0;
+                _canGoUp = ActivePairs[0] != info;
+                _canGoDown = ActivePairs.Last() != info;
             }
             
         }
         else
             Invalid();
 
-        StateHasChanged();
+        RenderingManager.StateHasChanged();
     }
 }

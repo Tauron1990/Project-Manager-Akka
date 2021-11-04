@@ -18,8 +18,8 @@ namespace SimpleProjectManager.Server.Controllers
             => _service.GetActiveJobs(token);
 
         [HttpPost, Publish]
-        public Task<SortOrder> GetSortOrder([FromBody]ProjectId id, CancellationToken token)
-            => _service.GetSortOrder(id, token);
+        public Task<SortOrder> GetSortOrders([FromBody]ProjectId id, CancellationToken token)
+            => _service.GetSortOrders(id, token);
 
         [HttpPost, Publish]
         public Task<JobData> GetJobData([FromBody]ProjectId id, CancellationToken token)

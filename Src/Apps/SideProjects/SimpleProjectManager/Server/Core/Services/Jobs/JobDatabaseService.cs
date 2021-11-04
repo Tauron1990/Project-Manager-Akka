@@ -31,7 +31,7 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
                         break;
                     case ProjectDeadLineChangedEvent:
                         using(Computed.Invalidate())
-                            GetSortOrder((ProjectId)de.GetIdentity(), default).Ignore();
+                            GetSortOrders((ProjectId)de.GetIdentity(), default).Ignore();
                         break;
                 }
             });
@@ -48,7 +48,7 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
         return result.ToArray();
     }
 
-    public virtual async Task<SortOrder> GetSortOrder(ProjectId id, CancellationToken token)
+    public virtual async Task<SortOrder> GetSortOrders(ProjectId id, CancellationToken token)
     {
         var result = await _projects.Find(p => p.Id == id).Project(p => p.Ordering).FirstAsync(token);
 
@@ -60,7 +60,7 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
         var filter = Builders<ProjectProjection>.Filter.Eq(p => p.Id, id);
         var result = await _projects.Find(filter).FirstAsync(token);
 
-        return new JobData(result.JobName, result.Status, result.Ordering, result.Deadline, result.ProjectFiles);
+        return new JobData(result.Id, result.JobName, result.Status, result.Ordering, result.Deadline, result.ProjectFiles);
     }
 
     public virtual async Task<string> CreateJob(CreateProjectCommand command, CancellationToken token)
@@ -74,7 +74,13 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
             Builders<ProjectProjection>.Update.Set(p => p.Ordering, sortOrder),
             cancellationToken: token);
 
-        return result?.Ordering == newOrder.SortOrder 
+        if (result != null)
+        {
+            using(Computed.Invalidate())
+                GetSortOrders(newOrder.Project, CancellationToken.None).Ignore();
+        }
+
+        return result != null 
             ? string.Empty 
             : "Das Element wurde nicht gefunden";
     }
