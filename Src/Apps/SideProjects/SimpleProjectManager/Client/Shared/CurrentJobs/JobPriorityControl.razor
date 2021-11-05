@@ -4,7 +4,7 @@
 @inject IJobDatabaseService _jobDatabase
 @inject IEventAggregator _aggregator
 
-<div class="d-flex">
+<div class="d-flex my-n3">
     <MudIconButton Icon="@Icons.Outlined.ArrowUpward" Disabled="CanNotGoUp" OnClick="GoUp"/>
     <MudIconButton Icon="@Icons.Outlined.ArrowDownward" Disabled="CanNotGoDown" OnClick="GoDown"/>
     <MudButton StartIcon="@Icons.Outlined.AddTask" Disabled="CanNotPriority" OnClick="Priorize">Priorisieren</MudButton>

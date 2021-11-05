@@ -39,7 +39,7 @@ public class Startup
         services.AddSignalR();
         services.AddControllersWithViews();
         services.AddRazorPages()
-           .AddMvcOptions(o => o.ValueProviderFactories.Add(new IdValueProvider()));
+           .AddMvcOptions(o => o.ModelBinderProviders.Insert());
         services.AddResponseCompression(
             opts => opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/octet-stream" }));
     }
