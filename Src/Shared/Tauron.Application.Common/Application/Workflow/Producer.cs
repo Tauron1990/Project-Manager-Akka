@@ -45,7 +45,7 @@ public abstract class Producer<TState, TContext>
             return SetLastId(StepId.Fail);
 
         var sId = rev.Step.OnExecute(context);
-        var result = false;
+        bool result;
 
         switch (sId.Name)
         {
@@ -58,26 +58,8 @@ public abstract class Producer<TState, TContext>
 
                 break;
             case "Loop":
-                var ok = true;
-
-                do
-                {
-                    var loopId = rev.Step.NextElement(context);
-                    if (loopId.Name == StepId.LoopEnd.Name)
-                    {
-                        ok = false;
-
-                        continue;
-                    }
-
-                    if (loopId.Name == StepId.Fail.Name)
-                        return SetLastId(StepId.Fail);
-
-                    #pragma warning disable GU0011
-                    ProgressConditions(rev, context);
-                    #pragma warning restore GU0011
-                } while (ok);
-
+                if (ProcessLoop(context, rev, out result)) 
+                    return result;
                 break;
             case "Finish":
             case "Skip":
@@ -92,6 +74,36 @@ public abstract class Producer<TState, TContext>
             rev.Step.OnExecuteFinish(context);
 
         return result;
+    }
+
+    private bool ProcessLoop(TContext context, StepRev<TState, TContext> rev, out bool result)
+    {
+        var ok = true;
+
+        do
+        {
+            var loopId = rev.Step.NextElement(context);
+            if (loopId.Name == StepId.LoopEnd.Name)
+            {
+                ok = false;
+
+                continue;
+            }
+
+            if (loopId.Name == StepId.Fail.Name)
+            {
+                result = SetLastId(StepId.Fail);
+
+                return true;
+            }
+
+            #pragma warning disable GU0011
+            ProgressConditions(rev, context);
+            #pragma warning restore GU0011
+        } while (ok);
+
+        result = false;
+        return false;
     }
 
     private bool ProgressConditions(StepRev<TState, TContext> rev, TContext context)

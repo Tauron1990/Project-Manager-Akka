@@ -29,13 +29,13 @@
 
 @code {
     [Parameter]
-    public ProjectFileId? ProjectFileId { get; set; }
+    public ProjectFileId? FileId { get; set; }
 
     protected override async Task<ProjectFileInfo?> ComputeState(CancellationToken cancellationToken)
     {
-        if (ProjectFileId == null) return null;
+        if (FileId == null) return null;
 
-        return await _fileService.GetJobFileInfo(ProjectFileId, cancellationToken);
+        return await _fileService.GetJobFileInfo(FileId, cancellationToken);
     }
 
 }

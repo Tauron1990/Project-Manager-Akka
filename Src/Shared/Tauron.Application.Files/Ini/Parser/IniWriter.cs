@@ -24,16 +24,17 @@ public class IniWriter
             {
                 _writer.WriteLine(string.Format(CultureInfo.InvariantCulture, "[{0}]", section.Name));
                 foreach (var iniEntry in section)
+                {
                     if (iniEntry is SingleIniEntry(var key, var data))
                     {
                         _writer.WriteLine(string.Format(CultureInfo.InvariantCulture, "{0}={1}", key, data));
+                        continue;
                     }
-                    else
-                    {
-                        var (name, values) = (ListIniEntry)iniEntry;
-                        foreach (var value in values)
-                            _writer.WriteLine(string.Format(CultureInfo.InvariantCulture, "{0}={1}", name, value));
-                    }
+
+                    var (name, values) = (ListIniEntry)iniEntry;
+                    foreach (var value in values)
+                        _writer.WriteLine(string.Format(CultureInfo.InvariantCulture, "{0}={1}", name, value));
+                }
             }
         }
         finally

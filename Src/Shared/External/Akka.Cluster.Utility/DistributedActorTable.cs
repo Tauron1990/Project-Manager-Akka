@@ -113,18 +113,23 @@ namespace Akka.Cluster.Utility
 
                 // cancel all pending creating requests
 
-                if (!_creatingMap.TryGetValue(key, out var creating) || creating is null) continue;
-
-                _creatingMap.Remove(key);
-
-                foreach (var (targetActor, type) in creating.Requesters)
-                    targetActor.Tell(CreateReplyMessage(type, key, null, created: false));
+                CancelCreationRequest(key);
             }
 
             // When stopping done, ingest poison pill
 
             if (_stopping && _containerMap.Count == 0)
                 Context.Stop(Self);
+
+            void CancelCreationRequest(TKey key)
+            {
+                if (!_creatingMap.TryGetValue(key, out var creating) || creating is null) return;
+
+                _creatingMap.Remove(key);
+
+                foreach (var (targetActor, type) in creating.Requesters)
+                    targetActor.Tell(CreateReplyMessage(type, key, null, created: false));
+            }
         }
 
         private void Handle(Terminated member)

@@ -274,7 +274,9 @@ namespace Tauron.Akkatecture.Projections
             private readonly string _journalId;
             private readonly ActorSystem _system;
 
+            #pragma warning disable GU0073
             public SubscriptionBuilder(
+                #pragma warning restore GU0073
                 ActorMaterializer materializer, ActorSystem system, string journalId,
                 Subscriber subscriber)
                 : base(materializer, subscriber, typeof(TAggregate).AssemblyQualifiedName ?? "Unkowne Type")

@@ -52,7 +52,7 @@
             () => _processing = true,
             () => _processing = false,
             () => _aggregator.IsSuccess(() => TimeoutToken.WithDefault(
-                token => _jobDatabase.ChangeOrder(new SetSortOrder(_info.Info.Project, new SortOrder(ActivePairs[index].Order.Value + 100)), token))));
+                token => _jobDatabase.ChangeOrder(new SetSortOrder(_info.Order.Increment()), token))));
     }
 
     private async Task GoDown()
@@ -66,28 +66,24 @@
             () => _processing = true,
             () => _processing = false,
             () => _aggregator.IsSuccess(() => TimeoutToken.WithDefault(
-                token => _jobDatabase.ChangeOrder(new SetSortOrder(_info.Info.Project, new SortOrder(ActivePairs[index].Order.Value - 100)), token))));
+                token => _jobDatabase.ChangeOrder(new SetSortOrder(_info.Order.Decrement()), token))));
     }
 
     private async Task Priorize()
     {
-        if(_info == null || _info.Order.Value < 0) return;
+        if(_info == null || _info.Order.IsPriority) return;
 
         await RenderingManager.PerformTask(
             () => _processing = true,
             () => _processing = false,
             () => _aggregator.IsSuccess(() => TimeoutToken.WithDefault(
-                token => _jobDatabase.ChangeOrder(new SetSortOrder(_info.Info.Project, new SortOrder(_info.Order.Value * -1)), token))));
+                token => _jobDatabase.ChangeOrder(new SetSortOrder(_info.Order.Priority()), token))));
     }
 
     private void NewJobIncomming(JobSortOrderPair? info)
     {
-        Console.WriteLine($"New Job for Priority Control: {info}");
-
         void Invalid()
         {
-            Console.WriteLine("Job Priority Control: AllInvalid");
-
             _canPriority = false;
             _canGoUp = false;
             _canGoDown = false;
@@ -97,7 +93,7 @@
 
         if (info != null && ActivePairs.Count != 0)
         {
-            _canPriority = info.Order.Value > 0;
+            _canPriority = !info.Order.IsPriority;
             
             if (!ActivePairs.Contains(info))
                 Invalid();

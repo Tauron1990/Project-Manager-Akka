@@ -3,11 +3,12 @@ using JetBrains.Annotations;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.ResponseCompression;
 using MudBlazor.Services;
-using SimpleProjectManager.Server.Controllers.ValueFactories;
+using SimpleProjectManager.Server.Controllers.ModelBinder;
 using SimpleProjectManager.Server.Core.Data;
 using SimpleProjectManager.Server.Core.Projections;
 using SimpleProjectManager.Server.Core.Services;
 using SimpleProjectManager.Shared.Services;
+using Stl.Collections;
 using Stl.Fusion;
 using Stl.Fusion.Server;
 using Tauron.AkkaHost;
@@ -39,7 +40,16 @@ public class Startup
         services.AddSignalR();
         services.AddControllersWithViews();
         services.AddRazorPages()
-           .AddMvcOptions(o => o.ModelBinderProviders.Insert());
+           .AddMvcOptions(options => {
+                              var oldModelBinderProviders = options.ModelBinderProviders.ToList();
+                              var newModelBinderProviders = new IModelBinderProvider[] 
+                                                            {
+                                                                new IdentityModelBinderFactory()
+                                                            };
+                              options.ModelBinderProviders.Clear();
+                              options.ModelBinderProviders.AddRange(newModelBinderProviders);
+                              options.ModelBinderProviders.AddRange(oldModelBinderProviders);
+                          });
         services.AddResponseCompression(
             opts => opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/octet-stream" }));
     }
@@ -89,7 +99,6 @@ public class Startup
 
         app.UseWebSockets();
         app.UseRouting();
-
 
         app.UseAuthentication();
         app.UseAuthorization();

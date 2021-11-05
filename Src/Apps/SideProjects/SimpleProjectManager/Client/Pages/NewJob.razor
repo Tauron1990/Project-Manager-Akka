@@ -39,7 +39,7 @@ else
                           if (data.Ordering != null)
                           {
                               await _aggregator.IsSuccess(() => TimeoutToken.WithDefault(
-                                  token => _jobDatabase.ChangeOrder(new SetSortOrder(data.Id, data.Ordering), token)));
+                                  token => _jobDatabase.ChangeOrder(new SetSortOrder(data.Ordering), token)));
                           }
                           _navigationManager.NavigateTo("/");
                       }

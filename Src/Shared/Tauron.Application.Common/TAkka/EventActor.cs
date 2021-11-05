@@ -47,47 +47,62 @@ public sealed class EventActor : UntypedActor
         switch (message)
         {
             case HookEvent hookEvent:
-                if (_registrations.TryGetValue(hookEvent.Target, out var del))
-                    del = Delegate.Combine(del, hookEvent.Invoker);
-                else
-                    del = hookEvent.Invoker;
-
-                _registrations[hookEvent.Target] = del;
-
-                Sender.Tell(Disposable.Create((Self, Del: del, hookEvent.Target), info => info.Self.Tell(new RemoveDel(info.Del, info.Target))));
-
+                RegisterEvent(hookEvent);
                 break;
             case RemoveDel remove:
-                if (!_registrations.TryGetValue(remove.Target, out var action)) return;
-
-                if (action == remove.Delegate)
-                    _registrations.Remove(remove.Target);
-                else
-                    _registrations[remove.Target] = action.Remove(remove.Delegate);
-
+                RemoveDelegate(remove);
                 break;
             default:
-                var msgType = message.GetType();
-                if (_registrations.TryGetValue(msgType, out var callDel))
-                {
-                    try
-                    {
-                        callDel?.DynamicInvoke(message);
-                    }
-                    catch (Exception exception)
-                    {
-                        _log.Error(exception, "Error On Event Hook Execution");
-                    }
-
-                    if (_killOnFirstRespond)
-                        Context.Stop(Context.Self);
-                }
-                else
-                {
-                    Unhandled(message);
-                }
-
+                DefaultHandler(message);
                 break;
+        }
+    }
+
+    private void RemoveDelegate(RemoveDel remove)
+    {
+        var (@delegate, target) = remove;
+
+        if (!_registrations.TryGetValue(target, out var action)) return;
+
+        if (action == @delegate)
+            _registrations.Remove(target);
+        else
+            _registrations[target] = action.Remove(@delegate);
+    }
+
+    private void RegisterEvent(HookEvent hookEvent)
+    {
+        var (@delegate, target) = hookEvent;
+        if (_registrations.TryGetValue(target, out var del))
+            del = Delegate.Combine(del, @delegate);
+        else
+            del = @delegate;
+
+        _registrations[target] = del;
+
+        Sender.Tell(Disposable.Create((Self, Del: del, Target: target), info => info.Self.Tell(new RemoveDel(info.Del, info.Target))));
+    }
+
+    private void DefaultHandler(object message)
+    {
+        var msgType = message.GetType();
+        if (_registrations.TryGetValue(msgType, out var callDel))
+        {
+            try
+            {
+                callDel?.DynamicInvoke(message);
+            }
+            catch (Exception exception)
+            {
+                _log.Error(exception, "Error On Event Hook Execution");
+            }
+
+            if (_killOnFirstRespond)
+                Context.Stop(Context.Self);
+        }
+        else
+        {
+            Unhandled(message);
         }
     }
 

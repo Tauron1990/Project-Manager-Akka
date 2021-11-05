@@ -49,47 +49,43 @@ public abstract class InternalAggregateRoot<TAggregate, TIdentity, TAggregateSta
 
             switch (need)
             {
-                case AggregateNeed.New:
-                    if (!IsNew)
-                    {
-                        result = OperationResult.Failure(new Error(GetErrorMessage(Errors.NoNewError), Errors.NoNewError));
-                        break;
-                    }
-                    else
-                        goto default;
-                case AggregateNeed.Exist:
-                    if (IsNew)
-                    {
-                        result = OperationResult.Failure(new Error(GetErrorMessage(Errors.NewError), Errors.NewError));
-                        break;
-                    }
-                    else
-                        goto default;
+                case AggregateNeed.New when !IsNew:
+                    result = OperationResult.Failure(new Error(GetErrorMessage(Errors.NoNewError), Errors.NoNewError));
+                    break;
+                case AggregateNeed.Exist when IsNew:
+                    result = OperationResult.Failure(new Error(GetErrorMessage(Errors.NewError), Errors.NewError));
+                    break;
                 case AggregateNeed.Nothing:
                 default:
                     var validationResult = validator.Validate(command);
 
-                    result = !validationResult.IsValid 
-                        ? OperationResult.Failure(validationResult.Errors.Select(err => new Error(err.ErrorMessage, err.ErrorCode))) 
+                    result = !validationResult.IsValid
+                        ? OperationResult.Failure(validationResult.Errors.Select(err => new Error(err.ErrorMessage, err.ErrorCode)))
                         : runner(command);
+
                     break;
             }
-            
-            if(!Sender.IsNobody())
-                Sender.Tell(result);
+
+            TellSenderIsPresent(result);
 
             return true;
         }
         catch (Exception e)
         {
-            if(!Sender.IsNobody())
-                Sender.Tell(OperationResult.Failure(e));
+            TellSenderIsPresent(OperationResult.Failure(e));
             Context.GetLogger().Error(e, "Eoor on process Command {Command}", command);
 
             return false;
         }
     }
 
+    protected void TellSenderIsPresent(object message)
+    {
+        if(Sender.IsNobody()) return;
+
+        Sender.Tell(message);
+    }
+    
     protected override IAggregateSnapshot<TAggregate, TIdentity>? CreateSnapshot()
     {
         if (State == null) return null;

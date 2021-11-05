@@ -42,7 +42,7 @@
                                 @foreach (var file in context.ProjectFiles)
                                 {
                                     <MudItem lg="12" @key="file.Value">
-                                        <FileDetailDisplay ProjectFileId="file"/>
+                                        <FileDetailDisplay FileId="file"/>
                                     </MudItem>
                                 }
                             </MudGrid>

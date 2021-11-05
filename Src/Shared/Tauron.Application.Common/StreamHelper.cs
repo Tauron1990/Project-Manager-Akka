@@ -1,15 +1,14 @@
 ﻿using System;
+using System.Buffers;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
 
 namespace Tauron;
 
 [PublicAPI]
-public sealed record CopyFromArguments(long TotalLength = -1, int BufferSize = 4096, ProgressChange? ProgressChangeCallback = null, WaitHandle? StopEvent = null)
-{
-    public TimeSpan ProgressChangeCallbackInterval { get; init; } = TimeSpan.FromSeconds(0.2);
-}
+public sealed record CopyFromArguments(long TotalLength = -1, int BufferSize = 4096, ProgressChange? ProgressChangeCallback = null, CancellationToken StopEvent = default);
 
 /// <summary>
 ///     A static class for basic stream operations.
@@ -33,80 +32,57 @@ public static class StreamHelper
     ///     Thrown if arguments.BufferSize is less than 128 or
     ///     arguments.ProgressChangeCallbackInterval is less than 0
     /// </exception>
-    public static long CopyFrom(this Stream target, Stream source, CopyFromArguments arguments)
+    public static async Task<long> CopyFrom(this Stream target, Stream source, CopyFromArguments arguments)
     {
-        // ReSharper disable NotResolvedInText
+        ValidateArguments(arguments);
+
+        var buffer = ArrayPool<byte>.Shared.Rent(arguments.BufferSize);
+        try
+        {
+            var totalLength = arguments.TotalLength;
+            if (totalLength == -1 && source.CanSeek) totalLength = source.Length;
+
+            long length = 0;
+
+            do
+            {
+                var mem = buffer.AsMemory(0, arguments.BufferSize);
+                var count = await source.ReadAsync(mem, arguments.StopEvent);
+
+                if (count == 0) break;
+
+                await target.WriteAsync(mem, arguments.StopEvent);
+
+                length += count;
+
+                if (arguments.StopEvent.IsCancellationRequested)
+                    break;
+
+                arguments.ProgressChangeCallback?.Invoke(count, totalLength);
+
+            } while (!arguments.StopEvent.IsCancellationRequested);
+
+            arguments.ProgressChangeCallback?.Invoke(length, totalLength);
+
+            return length;
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
+        }
+    }
+
+    private static void ValidateArguments(CopyFromArguments arguments)
+    {
         #pragma warning disable EX005
         if (arguments.BufferSize < 128)
             throw new ArgumentOutOfRangeException(
+                // ReSharper disable once NotResolvedInText
                 "arguments.BufferSize",
                 arguments.BufferSize,
                 "BufferSize has to be greater or equal than 128.");
 
-        if (arguments.ProgressChangeCallbackInterval.TotalSeconds < 0)
-            throw new ArgumentOutOfRangeException(
-                "arguments.ProgressChangeCallbackInterval",
-                arguments.ProgressChangeCallbackInterval,
-                "ProgressChangeCallbackInterval has to be greater or equal than 0.");
-
         #pragma warning restore EX005
-        // ReSharper restore NotResolvedInText
-        long length = 0;
-
-        var runningFlag = true;
-
-        Action<Stream, Stream, int> copyMemory = (targetParm, sourceParm, bufferSize) =>
-                                                     //Raw copy-operation, "length" and "runningFlag" are enclosed as closure
-                                                 {
-                                                     int count;
-                                                     byte[] buffer = new byte[bufferSize];
-
-                                                     // ReSharper disable AccessToModifiedClosure
-                                                     while ((count = sourceParm.Read(buffer, 0, bufferSize)) != 0 && runningFlag)
-                                                     {
-                                                         targetParm.Write(buffer, 0, count);
-                                                         var newLength = length + count;
-                                                         //"length" can be read as this is the only thread which writes to "length"
-                                                         Interlocked.Exchange(ref length, newLength);
-                                                     }
-                                                     // ReSharper restore AccessToModifiedClosure
-                                                 };
-
-        IAsyncResult asyncResult = copyMemory.BeginInvoke(target, source, arguments.BufferSize, null, null);
-
-        var totalLength = arguments.TotalLength;
-        if (totalLength == -1 && source.CanSeek) totalLength = source.Length;
-
-        var lastCallback = DateTime.Now;
-        long lastLength = 0;
-
-        while (!asyncResult.IsCompleted)
-        {
-            if (arguments.StopEvent != null && arguments.StopEvent.WaitOne(0))
-                runningFlag = false; //to indicate that the copy-operation has to abort
-
-            Thread.Sleep((int)(arguments.ProgressChangeCallbackInterval.TotalMilliseconds / 10));
-
-            if (arguments.ProgressChangeCallback == null ||
-                DateTime.Now - lastCallback <= arguments.ProgressChangeCallbackInterval) continue;
-
-            var currentLength =
-                Interlocked.Read(ref length); //Since length is 64 bit, reading is not an atomic operation.
-
-            if (currentLength == lastLength) continue;
-
-            lastLength = currentLength;
-            lastCallback = DateTime.Now;
-            arguments.ProgressChangeCallback(currentLength, totalLength);
-        }
-
-        if (arguments.ProgressChangeCallback != null && lastLength != length)
-            //to ensure that the callback is called once with maximum progress
-            arguments.ProgressChangeCallback(length, totalLength);
-
-        copyMemory.EndInvoke(asyncResult);
-
-        return length;
     }
 
     /// <summary>

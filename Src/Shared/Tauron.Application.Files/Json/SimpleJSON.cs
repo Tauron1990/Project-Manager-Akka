@@ -33,6 +33,7 @@ public abstract partial class JsonNode
 
     internal static StringBuilder EscapeBuilder => _escapeBuilder ??= new StringBuilder();
 
+    // ReSharper disable once CognitiveComplexity
     internal static string Escape(string aText)
     {
         var sb = EscapeBuilder;
@@ -111,6 +112,7 @@ public abstract partial class JsonNode
         return token;
     }
 
+    // ReSharper disable once CognitiveComplexity
     public static JsonNode Parse(string aJson)
     {
         var stack = new Stack<JsonNode>();
@@ -821,6 +823,7 @@ public partial class JsonObject : JsonNode
         return aNode;
     }
 
+    // ReSharper disable once CognitiveComplexity
     internal override void WriteToStringBuilder(StringBuilder aSb, int aIndent, int aIndentInc, JsonTextMode aMode)
     {
         aSb.Append('{');

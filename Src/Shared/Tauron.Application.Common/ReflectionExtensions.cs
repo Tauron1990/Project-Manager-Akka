@@ -534,32 +534,18 @@ public static class ReflectionExtensions
 
     public static void SetInvokeMember(this MemberInfo info, object instance, params object?[]? parameter)
     {
-        if (info == null) throw new ArgumentNullException(nameof(info));
+        if (info is null) throw new ArgumentNullException(nameof(info));
 
         switch (info)
         {
             case PropertyInfo property:
             {
-                object? value = null;
-                object?[]? indexes = null;
-                if (parameter != null)
-                {
-                    if (parameter.Length >= 1) value = parameter[0];
-
-                    if (parameter.Length > 1) indexes = parameter.Skip(1).ToArray();
-                }
-
-                FastReflection.Shared.GetPropertySetter(property)(instance, indexes, value);
-
+                SetProperty(instance, parameter, property);
                 break;
             }
             case FieldInfo field:
             {
-                object? value = null;
-                if (parameter != null) value = parameter.FirstOrDefault();
-
-                FastReflection.Shared.GetFieldSetter(field)(instance, value);
-
+                SetField(instance, parameter, field);
                 break;
             }
             case MethodInfo method:
@@ -567,6 +553,27 @@ public static class ReflectionExtensions
 
                 break;
         }
+    }
+
+    private static void SetField(object instance, object?[]? parameter, FieldInfo field)
+    {
+        object? value = null;
+        if (parameter != null) value = parameter.FirstOrDefault();
+
+        FastReflection.Shared.GetFieldSetter(field)(instance, value);
+    }
+
+    private static void SetProperty(object instance, object?[]? parameter, PropertyInfo property)
+    {
+        object? value = null;
+        object?[]? indexes = null;
+        if (parameter != null)
+        {
+            if (parameter.Length >= 1) value = parameter[0];
+            if (parameter.Length > 1) indexes = parameter.Skip(1).ToArray();
+        }
+
+        FastReflection.Shared.GetPropertySetter(property)(instance, indexes, value);
     }
 
     public static bool TryParseEnum<TEnum>(this string value, out TEnum eEnum) where TEnum : struct

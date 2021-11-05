@@ -13,7 +13,7 @@ public class JobEditorModel
 
     public ProjectStatus Status { get; set; }
     
-    public long? Ordering { get; set; }
+    public int? Ordering { get; set; }
     
     public DateTime? Deadline { get; set; }
 
@@ -27,7 +27,7 @@ public class JobEditorModel
 
         JobName = originalData.JobName.Value;
         Status = originalData.Status;
-        Ordering = originalData.Ordering?.Value;
+        Ordering = originalData.Ordering?.SkipCount;
         Deadline = originalData.Deadline?.Value.ToLocalTime().Date;
     }
 

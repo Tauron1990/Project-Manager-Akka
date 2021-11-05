@@ -1,3 +1,4 @@
+using Blazor.Extensions.Logging;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
@@ -17,6 +18,14 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddSingleton(new BaseUrl(builder.HostEnvironment.BaseAddress));
 builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
+#if DEBUG
+builder.Services.AddLogging(b =>
+                            {
+                                b.SetMinimumLevel(LogLevel.Information)
+                                   .AddBrowserConsole();
+                            });
+#endif
+
 ConfigFusion(builder.Services, new Uri(builder.HostEnvironment.BaseAddress));
 RegisterServices();
 
@@ -30,11 +39,17 @@ void RegisterServices()
 
 static void ConfigFusion(IServiceCollection collection, Uri baseAdress)
 {
+    Console.WriteLine($"Base Adress: {baseAdress}");
+
     collection.AddSingleton<BlazorModeHelper>();
     collection.AddFusion()
        .AddFusionTime()
        .AddBlazorUIServices()
-       .AddRestEaseClient()
+       .AddRestEaseClient(((_, options) =>
+                           {
+                               options.BaseUri = baseAdress;
+                               options.IsLoggingEnabled = true;
+                           }))
        .ConfigureHttpClientFactory(
             (_, _, options) => options.HttpClientActions.Add(
                 c =>
@@ -42,7 +57,6 @@ static void ConfigFusion(IServiceCollection collection, Uri baseAdress)
                     Console.WriteLine($"Client Config: {c.BaseAddress} -- {baseAdress}");
                     c.BaseAddress = baseAdress;
                 }))
-       .ConfigureWebSocketChannel(new WebSocketChannelProvider.Options { BaseUri = baseAdress })
-       .AddClientService<IJobDatabaseService, IJobDatabaseServiceDef>()
-       .AddClientService<IJobFileService, IJobFileServiceDef>();
+       .AddReplicaService<IJobDatabaseService, IJobDatabaseServiceDef>()
+       .AddReplicaService<IJobFileService, IJobFileServiceDef>();
 }

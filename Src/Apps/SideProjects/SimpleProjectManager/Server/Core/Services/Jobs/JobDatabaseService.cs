@@ -31,7 +31,7 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
                         break;
                     case ProjectDeadLineChangedEvent:
                         using(Computed.Invalidate())
-                            GetSortOrders((ProjectId)de.GetIdentity(), default).Ignore();
+                            GetSortOrders(default).Ignore();
                         break;
                 }
             });
@@ -42,17 +42,24 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
         var filter = Builders<ProjectProjection>.Filter.Eq(p => p.Status, ProjectStatus.Finished);
 
         var result = await _projects.Find(Builders<ProjectProjection>.Filter.Not(filter))
-           .Project(p => new JobInfo(p.Id, p.JobName, p.Deadline, p.Status))
+           .Project(p => new JobInfo(p.Id, p.JobName, p.Deadline, p.Status, p.ProjectFiles.Count != 0))
            .ToListAsync(token);
 
         return result.ToArray();
     }
 
-    public virtual async Task<SortOrder> GetSortOrders(ProjectId id, CancellationToken token)
+    public virtual async Task<SortOrder[]> GetSortOrders(CancellationToken token)
     {
-        var result = await _projects.Find(p => p.Id == id).Project(p => p.Ordering).FirstAsync(token);
+        var builder = Builders<ProjectProjection>.Filter;
+        var filter = builder.Or
+            (
+                builder.Eq(p => p.Status, ProjectStatus.Entered),
+                builder.Eq(p => p.Status, ProjectStatus.Pending)
+            );
 
-        return result;
+        var list = await _projects.Find(filter).Project(p => p.Ordering).ToListAsync(token);
+
+        return list.ToArray();
     }
 
     public virtual async Task<JobData> GetJobData(ProjectId id, CancellationToken token)
@@ -68,16 +75,15 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
 
     public virtual async Task<string> ChangeOrder(SetSortOrder newOrder, CancellationToken token)
     {
-        var (projectId, sortOrder) = newOrder;
         var result = await _projects.FindOneAndUpdateAsync(
-            Builders<ProjectProjection>.Filter.Eq(p => p.Id, projectId),
-            Builders<ProjectProjection>.Update.Set(p => p.Ordering, sortOrder),
+            Builders<ProjectProjection>.Filter.Eq(p => p.Id, newOrder.SortOrder.Id),
+            Builders<ProjectProjection>.Update.Set(p => p.Ordering, newOrder.SortOrder),
             cancellationToken: token);
 
         if (result != null)
         {
             using(Computed.Invalidate())
-                GetSortOrders(newOrder.Project, CancellationToken.None).Ignore();
+                GetSortOrders(CancellationToken.None).Ignore();
         }
 
         return result != null 

@@ -124,90 +124,12 @@ public abstract class WorkflowActorBase<TStep, TContext> : ActorBase, IWithTimer
     {
         try
         {
-            switch (msg)
+            return msg switch
             {
-                case ChainCall chain:
-                {
-                    var id = chain.Id;
-                    if (id == StepId.Fail)
-                    {
-                        Finish(isok: false);
-
-                        return true;
-                    }
-
-                    if (!_steps.TryGetValue(id, out var rev))
-                    {
-                        Log.Warning("No Step Found {Id}", id.Name);
-                        _errorMessage = id.Name;
-                        Finish(isok: false);
-
-                        return true;
-                    }
-
-                    var sId = rev.Step.OnExecute(RunContext);
-
-                    switch (sId.Name)
-                    {
-                        case "Fail":
-                            _errorMessage = rev.Step.ErrorMessage;
-                            Finish(isok: false);
-
-                            break;
-                        case "None":
-                            ProgressConditions(rev, finish: true, chain);
-
-                            return true;
-                        case "Loop":
-                            Self.Forward(new LoopElement(rev, chain));
-
-                            return true;
-                        case "Finish":
-                        case "Skip":
-                            Finish(isok: true, rev);
-
-                            break;
-                        case "Waiting":
-                            _waiting = true;
-                            if (rev.Step is IHasTimeout { Timeout: { } } timeout)
-                                Timers.StartSingleTimer(_timeout, new TimeoutMarker(), timeout.Timeout.Value);
-                            _lastCall = chain;
-
-                            return true;
-                        default:
-                            Self.Forward(new ChainCall(sId).WithBase(chain));
-
-                            return true;
-                    }
-
-                    if (_running)
-                        Self.Forward(chain.Next());
-
-                    return true;
-                }
-                case LoopElement(var stepRev, var chainCall):
-                {
-                    var loopId = stepRev.Step.NextElement(RunContext);
-                    if (loopId != StepId.LoopEnd)
-                        Self.Forward(new LoopElement(stepRev, chainCall));
-
-                    if (loopId == StepId.LoopContinue)
-                        return true;
-
-                    if (loopId.Name == StepId.Fail.Name)
-                    {
-                        Finish(isok: false);
-
-                        return true;
-                    }
-
-                    ProgressConditions(stepRev, baseCall: chainCall);
-
-                    return true;
-                }
-                default:
-                    return false;
-            }
+                ChainCall chain => ProcessChainCall(chain),
+                LoopElement(var stepRev, var chainCall) => ProcessLoopElement(stepRev, chainCall),
+                _ => false
+            };
         }
         catch (Exception exception)
         {
@@ -217,6 +139,88 @@ public abstract class WorkflowActorBase<TStep, TContext> : ActorBase, IWithTimer
 
             return true;
         }
+    }
+
+    private bool ProcessLoopElement(StepRev<TStep, TContext> stepRev, ChainCall chainCall)
+    {
+        var loopId = stepRev.Step.NextElement(RunContext);
+
+        if (loopId != StepId.LoopEnd)
+            Self.Forward(new LoopElement(stepRev, chainCall));
+
+        if (loopId == StepId.LoopContinue)
+            return true;
+
+        if (loopId.Name == StepId.Fail.Name)
+        {
+            Finish(isok: false);
+
+            return true;
+        }
+
+        ProgressConditions(stepRev, baseCall: chainCall);
+
+        return true;
+    }
+
+    private bool ProcessChainCall(ChainCall chain)
+    {
+        var id = chain.Id;
+        if (id == StepId.Fail)
+        {
+            Finish(isok: false);
+
+            return true;
+        }
+
+        if (!_steps.TryGetValue(id, out var rev))
+        {
+            Log.Warning("No Step Found {Id}", id.Name);
+            _errorMessage = id.Name;
+            Finish(isok: false);
+
+            return true;
+        }
+
+        var sId = rev.Step.OnExecute(RunContext);
+
+        switch (sId.Name)
+        {
+            case "Fail":
+                _errorMessage = rev.Step.ErrorMessage;
+                Finish(isok: false);
+
+                break;
+            case "None":
+                ProgressConditions(rev, finish: true, chain);
+
+                return true;
+            case "Loop":
+                Self.Forward(new LoopElement(rev, chain));
+
+                return true;
+            case "Finish":
+            case "Skip":
+                Finish(isok: true, rev);
+
+                break;
+            case "Waiting":
+                _waiting = true;
+                if (rev.Step is IHasTimeout { Timeout: { } } timeout)
+                    Timers.StartSingleTimer(_timeout, new TimeoutMarker(), timeout.Timeout.Value);
+                _lastCall = chain;
+
+                return true;
+            default:
+                Self.Forward(new ChainCall(sId).WithBase(chain));
+
+                return true;
+        }
+
+        if (_running)
+            Self.Forward(chain.Next());
+
+        return true;
     }
 
     private void ProgressConditions(StepRev<TStep, TContext> rev, bool finish = false, ChainCall? baseCall = null)

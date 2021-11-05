@@ -13,11 +13,8 @@ namespace Tauron.Application;
 [DebuggerStepThrough]
 public class GroupDictionary<TKey, TValue> : Dictionary<TKey, ICollection<TValue>>
     where TKey : notnull
-//where TKey : class where TValue : class
 {
     private readonly Type _listType;
-
-    private Type? _genericTemp;
 
     public GroupDictionary(Type listType) => _listType = listType;
 
@@ -30,10 +27,7 @@ public class GroupDictionary<TKey, TValue> : Dictionary<TKey, ICollection<TValue
 
     public GroupDictionary(GroupDictionary<TKey, TValue> groupDictionary)
         : base(groupDictionary)
-    {
-        _listType = groupDictionary._listType;
-        _genericTemp = groupDictionary._genericTemp;
-    }
+        => _listType = groupDictionary._listType;
 
     protected GroupDictionary(SerializationInfo info, StreamingContext context)
         : base(info, context)
@@ -62,31 +56,33 @@ public class GroupDictionary<TKey, TValue> : Dictionary<TKey, ICollection<TValue
 
     private object CreateList()
     {
-        if (!typeof(ICollection<TValue>).IsAssignableFrom(_listType)) throw new InvalidOperationException("List Type not Compatible With GroupDicitioonary Value Type");
+        if (!typeof(ICollection<TValue>).IsAssignableFrom(_listType)) 
+            throw new InvalidOperationException("List Type not Compatible With GroupDicitioonary Value Type");
 
-        if (_genericTemp != null)
-            return Activator.CreateInstance(_genericTemp) ??
-                   throw new InvalidOperationException("List Creation Failed");
-
+        Type genericTemp;
+        
         if (_listType.ContainsGenericParameters)
         {
-            if (_listType.GetGenericArguments().Length != 1) throw new InvalidOperationException("More then one Genric Type Parameter in Provided List Type");
+            if (_listType.GetGenericArguments().Length != 1) 
+                throw new InvalidOperationException("More then one Genric Type Parameter in Provided List Type");
 
-            _genericTemp = _listType.MakeGenericType(typeof(TValue));
+            genericTemp = _listType.MakeGenericType(typeof(TValue));
         }
         else
         {
-            var generic = _listType.GetGenericArguments();
+            if (!_listType.IsGenericType)
+                genericTemp = _listType;
+            else
+            {
+                var generic = _listType.GetGenericArguments();
 
-            if (generic.Length == 0) _genericTemp = _listType;
-
-            if (_genericTemp is null && generic[0] == typeof(TValue)) _genericTemp = _listType;
-            else _genericTemp = _listType.GetGenericTypeDefinition().MakeGenericType(typeof(TValue));
+                genericTemp = generic.Length == 0 ? _listType : _listType.GetGenericTypeDefinition().MakeGenericType(typeof(TValue));
+            }
         }
 
-        if (_genericTemp is null) throw new InvalidOperationException("List Type for Group Dicitionay not Successful Created");
+        if (genericTemp is null) throw new InvalidOperationException("List Type for Group Dicitionay not Successful Created");
 
-        return Activator.CreateInstance(_genericTemp) ??
+        return Activator.CreateInstance(genericTemp) ??
                throw new InvalidOperationException("List Creation Failed");
     }
 
@@ -104,41 +100,43 @@ public class GroupDictionary<TKey, TValue> : Dictionary<TKey, ICollection<TValue
     public bool RemoveValue(TValue value) => RemoveImpl(default!, value, removeEmpty: false, removeAll: true);
 
     private bool RemoveImpl(TKey key, TValue val, bool removeEmpty, bool removeAll)
+        => removeAll ? RemoveAll(val, removeEmpty) : RemoveSingleObject(key, val, removeAll);
+
+    private bool RemoveAll(TValue val, bool removeEmpty)
     {
         var ok = false;
-
-        if (removeAll)
+        var keys = Keys.ToArray().GetEnumerator();
+        var vals = Values.ToArray().GetEnumerator();
+        while (keys.MoveNext() && vals.MoveNext())
         {
-            var keys = Keys.ToArray().GetEnumerator();
-            var vals = Values.ToArray().GetEnumerator();
-            while (keys.MoveNext() && vals.MoveNext())
-            {
-                var coll = vals.Current as ICollection<TValue> ?? Array.Empty<TValue>();
+            var coll = vals.Current as ICollection<TValue> ?? Array.Empty<TValue>();
 
-                if (keys.Current is not TKey currkey)
-                    throw new InvalidCastException("Provided Key is not Right Type");
+            if (keys.Current is not TKey currkey)
+                throw new InvalidCastException("Provided Key is not Right Type");
 
-                ok |= RemoveList(coll, val);
+            ok |= RemoveList(coll, val);
 
-                // ReSharper disable once PossibleNullReferenceException
-                // ReSharper disable once AssignNullToNotNullAttribute
-                if (removeEmpty && coll.Count == 0) ok |= Remove(currkey);
-            }
+            // ReSharper disable once PossibleNullReferenceException
+            // ReSharper disable once AssignNullToNotNullAttribute
+            if (removeEmpty && coll.Count == 0) ok |= Remove(currkey);
         }
-        else
-        {
-            ok = ContainsKey(key);
 
-            if (!ok) return false;
+        return ok;
+    }
+    
+    private bool RemoveSingleObject(TKey key, TValue val, bool removeEmpty)
+    {
+        var ok = ContainsKey(key);
 
-            var col = base[key];
+        if (!ok) return false;
 
-            ok |= RemoveList(col, val);
+        var col = base[key];
 
-            if (!removeEmpty) return true;
+        ok |= RemoveList(col, val);
 
-            if (col.Count == 0) ok |= Remove(key);
-        }
+        if (!removeEmpty) return true;
+
+        if (col.Count == 0) ok |= Remove(key);
 
         return ok;
     }

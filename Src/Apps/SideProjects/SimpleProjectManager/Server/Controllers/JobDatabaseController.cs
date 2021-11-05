@@ -17,12 +17,12 @@ namespace SimpleProjectManager.Server.Controllers
         public Task<JobInfo[]> GetActiveJobs(CancellationToken token)
             => _service.GetActiveJobs(token);
 
-        [HttpPost, Publish]
-        public Task<SortOrder> GetSortOrders([FromBody]ProjectId id, CancellationToken token)
-            => _service.GetSortOrders(id, token);
+        [HttpGet, Publish]
+        public Task<SortOrder[]> GetSortOrders(CancellationToken token)
+            => _service.GetSortOrders(token);
 
-        [HttpPost, Publish]
-        public Task<JobData> GetJobData([FromBody]ProjectId id, CancellationToken token)
+        [HttpGet, Publish]
+        public Task<JobData> GetJobData([FromQuery]ProjectId id, CancellationToken token)
             => _service.GetJobData(id, token);
 
         [HttpPost]

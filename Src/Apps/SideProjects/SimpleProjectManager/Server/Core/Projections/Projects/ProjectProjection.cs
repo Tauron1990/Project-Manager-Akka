@@ -15,7 +15,7 @@ public sealed class ProjectProjection : IProjectorData<ProjectId>
 
     public ProjectStatus Status { get; set; }
 
-    public SortOrder Ordering { get; set; } = SortOrder.Default;
+    public SortOrder Ordering { get; set; } = null!;
 
     public ProjectDeadline? Deadline { get; set; }
 

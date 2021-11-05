@@ -27,7 +27,8 @@ public sealed class ProjectProjectionManager : ProjectionManagerBase, IInitializ
                             {
                                 projection.Id = evt.AggregateIdentity;
                                 projection.JobName = evt.AggregateEvent.Name;
-
+                                projection.Ordering = new SortOrder(evt.AggregateIdentity, 0, false);
+                                
                                 return Task.CompletedTask;
                             }));
                 map.Map<ProjectDeadLineChangedEvent>(
@@ -38,11 +39,6 @@ public sealed class ProjectProjectionManager : ProjectionManagerBase, IInitializ
                                 (projection, evt, _) =>
                                 {
                                     projection.Deadline = evt.AggregateEvent.Deadline;
-                                    if (projection.Ordering.Value == long.MaxValue && evt.AggregateEvent.Deadline != null)
-                                        projection.Ordering = new SortOrder(evt.AggregateEvent.Deadline.Value.Ticks);
-                                    else
-                                        projection.Ordering = new SortOrder(long.MaxValue);
-
                                     return Task.CompletedTask;
                                 });
                     });

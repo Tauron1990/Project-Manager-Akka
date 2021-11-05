@@ -24,7 +24,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\ValueFactories\" />
     <Folder Include="wwwroot\" />
   </ItemGroup>
 

@@ -20,45 +20,56 @@ public sealed class IniParser
     {
         var entrys = new Dictionary<string, GroupDictionary<string, string>>();
         var currentSection = new GroupDictionary<string, string>();
-        string? currentSectionName = null;
-
-        foreach (var line in _reader.EnumerateTextLines())
-        {
-            if (line[0] == '[' && line[^1] == ']')
-            {
-                if (currentSectionName != null) entrys[currentSectionName] = currentSection;
-
-                currentSectionName = line.Trim().Trim('[', ']');
-                currentSection = new GroupDictionary<string, string>();
-
-                continue;
-            }
-
-            var content = line.Split(KeyValueChar, 2, StringSplitOptions.RemoveEmptyEntries);
-
-            if (content.Length <= 1)
-                continue;
-
-            currentSection[content[0]].Add(content[1]);
-        }
+        
+        var currentSectionName = _reader
+           .EnumerateTextLines()
+           .Aggregate<string?, string?>(null, (current, line) => ReadIniContent(line ?? string.Empty, current, entrys, ref currentSection));
 
         if (currentSectionName != null)
             entrys[currentSectionName] = currentSection;
 
         var sections = ImmutableDictionary<string, IniSection>.Empty;
 
-        foreach (var (key, value) in entrys)
-        {
-            var entries = ImmutableDictionary<string, IniEntry>.Empty;
-
-            foreach (var (entryKey, collection) in value)
-                entries = collection.Count < 1
-                    ? entries.Add(entryKey, new ListIniEntry(entryKey, ImmutableList<string>.Empty.AddRange(collection)))
-                    : entries.Add(entryKey, new SingleIniEntry(entryKey, collection.ElementAt(0)));
-
-            sections = sections.Add(key, new IniSection(key, entries));
-        }
+        foreach (var (key, value) in entrys) 
+            sections = CreateEntrys(value, sections, key);
 
         return new IniFile(sections);
+    }
+
+    private static ImmutableDictionary<string, IniSection> CreateEntrys(GroupDictionary<string, string> value, ImmutableDictionary<string, IniSection> sections, string key)
+    {
+        var entries = ImmutableDictionary<string, IniEntry>.Empty;
+
+        foreach (var (entryKey, collection) in value)
+            entries = collection.Count < 1
+                ? entries.Add(entryKey, new ListIniEntry(entryKey, ImmutableList<string>.Empty.AddRange(collection)))
+                : entries.Add(entryKey, new SingleIniEntry(entryKey, collection.ElementAt(0)));
+
+        sections = sections.Add(key, new IniSection(key, entries));
+
+        return sections;
+    }
+
+    private static string? ReadIniContent(string line, string? currentSectionName, Dictionary<string, GroupDictionary<string, string>> entrys, ref GroupDictionary<string, string> currentSection)
+    {
+        if (line[0] == '[' && line[^1] == ']')
+        {
+            if (currentSectionName != null) 
+                entrys[currentSectionName] = currentSection;
+
+            currentSectionName = line.Trim().Trim('[', ']');
+            currentSection = new GroupDictionary<string, string>();
+
+            return currentSectionName;
+        }
+
+        var content = line.Split(KeyValueChar, 2, StringSplitOptions.RemoveEmptyEntries);
+
+        if (content.Length <= 1)
+            return currentSectionName;
+
+        currentSection[content[0]].Add(content[1]);
+
+        return currentSectionName;
     }
 }

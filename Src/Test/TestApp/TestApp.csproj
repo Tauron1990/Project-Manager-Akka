@@ -13,6 +13,10 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\Apps\SideProjects\SimpleProjectManager\Shared\SimpleProjectManager.Shared.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
       <Compile Update="Program.cs">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Compile>

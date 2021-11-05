@@ -10,6 +10,7 @@ namespace Tauron.Application.Files.Zip.Tests.Data;
 public class ZipReaderTest
 {
     [Fact]
+    // ReSharper disable once CognitiveComplexity
     public void TestZipReader()
     {
         var testDics = new[]
@@ -72,7 +73,7 @@ public class ZipReaderTest
                 }
                 else
                 {
-                    searchResult = toTest!.Dics.TryGetValue(targetElement, out toTest);
+                    searchResult = toTest.Dics.TryGetValue(targetElement, out toTest);
                     toTest!.Name.Should().Be(targetElement);
                 }
 
