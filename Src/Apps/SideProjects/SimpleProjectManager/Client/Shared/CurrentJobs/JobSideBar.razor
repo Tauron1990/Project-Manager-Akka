@@ -168,12 +168,12 @@
                 .SelectMany(PriorityToSkipCountSort);
         }
 
-        return statusGroup.OrderByDescending(p => p.Info.Deadline?.Value ?? DateTimeOffset.MaxValue);
+        return statusGroup.OrderBy(p => p.Info.Deadline?.Value ?? DateTimeOffset.MaxValue);
     }
 
     private IEnumerable<JobSortOrderPair> PriorityToSkipCountSort(IGrouping<bool, JobSortOrderPair> priorityGroup)
     {
-        var temp = priorityGroup.OrderByDescending(p => p.Info.Deadline?.Value ?? DateTimeOffset.MaxValue).ToArray();
+        var temp = priorityGroup.OrderBy(p => p.Info.Deadline?.Value ?? DateTimeOffset.MaxValue).ToArray();
         for (var index = 0; index < temp.ToArray().Length; index++)
         {
             var orderPair = temp.ToArray()[index];
@@ -191,15 +191,15 @@
     {
         for (var i = 0; i < orderPair.Order.SkipCount; i++)
         {
-            if (index + 1 >= temp.Length) break;
+            if (index - i + 1 >= temp.Length) break;
 
-            temp[index] = temp[index + 1];
+            temp[index - i] = temp[index - i + 1];
         }
 
-        if (index + orderPair.Order.SkipCount >= temp.Length)
+        if (index - orderPair.Order.SkipCount >= temp.Length)
             temp[^1] = orderPair;
         else
-            temp[index + orderPair.Order.SkipCount] = orderPair;
+            temp[index - orderPair.Order.SkipCount] = orderPair;
     }
 
     public void Dispose()

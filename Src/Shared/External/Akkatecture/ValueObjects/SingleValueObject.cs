@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 using Akkatecture.Extensions;
 
@@ -60,6 +61,7 @@ namespace Akkatecture.ValueObjects
 
         public object GetValue() => Value;
 
+        [DebuggerNonUserCode]
         protected override IEnumerable<object> GetEqualityComponents()
         {
             yield return Value;

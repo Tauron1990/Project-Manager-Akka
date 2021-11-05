@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using JetBrains.Annotations;
@@ -50,6 +51,7 @@ namespace Akkatecture.ValueObjects
             return obj is ValueObject other && GetEqualityComponents().SequenceEqual(other.GetEqualityComponents());
         }
 
+        [DebuggerNonUserCode]
         public override int GetHashCode()
         {
             unchecked
@@ -66,6 +68,7 @@ namespace Akkatecture.ValueObjects
         public override string ToString()
             => $"{{{string.Join(", ", GetProperties().Select(propertyInfo => $"{propertyInfo.Name}: {propertyInfo.GetValue(this)}"))}}}";
 
+        [DebuggerNonUserCode]
         protected virtual IEnumerable<object?> GetEqualityComponents()
             => GetProperties().Select(propertyInfo => propertyInfo.GetValue(this));
 
