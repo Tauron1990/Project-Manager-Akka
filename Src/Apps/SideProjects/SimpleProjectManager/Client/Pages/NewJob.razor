@@ -16,7 +16,8 @@
 }
 else
 {
-    <JobEditor Title="Neuer Auftrag" Commit="CreateNewJob" CanCancel="true" Cancel="CancelCreation" Model="_model" SortOrderEditing="true" StatusEditing="true"/>
+    <JobEditor Title="Neuer Auftrag" Commit="CreateNewJob" CanCancel="true" Cancel="CancelCreation" Model="_model" 
+               Configuration="@JobEditorConfiguration.NewJobConfig"/>
 }
 
 @code {
@@ -25,8 +26,10 @@ else
 
     private readonly JobEditorModel _model = new(null);
 
-    private async Task CreateNewJob(JobData data)
-        => await RenderingManager.PerformTask(
+    private async Task CreateNewJob(JobEditorCommit commit)
+    {
+        var data = commit.JobData.NewData;
+        await RenderingManager.PerformTask(
             () => _isCommiting = true,
             () => _isCommiting = false,
             async () =>
@@ -46,6 +49,7 @@ else
                       return !success;
                   }
             );
+    }
 
     private void CancelCreation() 
         => _navigationManager.NavigateTo("/");

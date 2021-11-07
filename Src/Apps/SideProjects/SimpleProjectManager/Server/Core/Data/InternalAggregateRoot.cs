@@ -101,4 +101,11 @@ public abstract class InternalAggregateRoot<TAggregate, TIdentity, TAggregateSta
         New,
         Exist
     }
+
+    protected static IValidator<TCarrier> CreateValidator<TCarrier, TData>(IValidator<TData> validator)
+        where TCarrier : CommandCarrier<TData, TAggregate, TIdentity>
+        => new InlineValidator<TCarrier>
+           {
+               v => v.RuleFor(c => c.Command).SetValidator(validator)
+           };
 }

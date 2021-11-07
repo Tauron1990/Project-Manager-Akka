@@ -1,4 +1,7 @@
-﻿using MongoDB.Driver;
+﻿using System.Reactive.Linq;
+using Akkatecture.Aggregates;
+using MongoDB.Driver;
+using SimpleProjectManager.Server.Core.Data;
 using SimpleProjectManager.Server.Core.Data.Events;
 using SimpleProjectManager.Server.Core.Projections;
 using SimpleProjectManager.Server.Core.Projections.Core;
@@ -20,20 +23,29 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
         _commandProcessor = commandProcessor;
         _projects = database.Collection<ProjectProjection>();
 
-        _subscription = dispatcher.Get().Subscribe(
+        _subscription = dispatcher.Get()
+           .OfType<IDomainEvent<Project, ProjectId>>()
+           .Subscribe(
             de =>
             {
-                switch (de.GetAggregateEvent())
+                using (Computed.Invalidate())
                 {
-                    case NewProjectCreatedEvent:
-                        using (Computed.Invalidate()) 
-                            GetActiveJobs(default).Ignore();
-                        break;
-                    case ProjectDeadLineChangedEvent:
-                        using(Computed.Invalidate())
-                            GetSortOrders(default).Ignore();
-                        break;
+                    (de.GetAggregateEvent() switch
+                    {
+                        NewProjectCreatedEvent => GetActiveJobs(default),
+
+                        ProjectDeadLineChangedEvent => DataChanged(),
+                        ProjectNameChangedEvent => DataChanged(),
+                        ProjectStatusChangedEvent => DataChanged(),
+
+                        _ => Task.CompletedTask
+                    }).Ignore();
                 }
+
+                Task DataChanged()
+                    => Task.WhenAny(
+                        GetActiveJobs(default),
+                        GetJobData(de.AggregateIdentity, default));
             });
     }
 
@@ -90,6 +102,9 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
             ? string.Empty 
             : "Das Element wurde nicht gefunden";
     }
+
+    public async Task<string> UpdateJobData(UpdateProjectCommand command, CancellationToken token)
+        => (await _commandProcessor.RunCommand(command)).Error ?? string.Empty;
 
     public void Dispose()
         => _subscription.Dispose();

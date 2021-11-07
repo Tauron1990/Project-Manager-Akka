@@ -145,8 +145,10 @@ namespace Akkatecture.Aggregates
             Persist(committedEvent, ApplyCommittedEvent);
         }
 
-
         public virtual void EmitAll(params IAggregateEvent<TAggregate, TIdentity>[] aggregateEvents)
+            => EmitAll(aggregateEvents.AsEnumerable());
+
+        public virtual void EmitAll(IEnumerable<IAggregateEvent<TAggregate, TIdentity>> aggregateEvents)
         {
             var version = Version;
 

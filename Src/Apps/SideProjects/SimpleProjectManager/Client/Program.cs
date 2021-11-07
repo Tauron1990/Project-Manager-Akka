@@ -1,6 +1,7 @@
 using Blazor.Extensions.Logging;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using MudBlazor;
 using MudBlazor.Services;
 using SimpleProjectManager.Client.Core;
 using SimpleProjectManager.Shared.Services;
@@ -33,7 +34,7 @@ await builder.Build().RunAsync();
 
 void RegisterServices()
 {
-    builder.Services.AddMudServices();
+    builder.Services.AddMudServices(c => c.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomCenter);
     builder.Services.AddSingleton<IEventAggregator, EventAggregator>();
 }
 

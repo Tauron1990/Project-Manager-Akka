@@ -47,17 +47,16 @@ public class JobEditorModel
         if (string.IsNullOrWhiteSpace(arg))
             return "Es muss ein name angegeben werden";
 
-        if (arg.ToUpper().StartsWith("BM"))
-        {
-            var isOk =
-                arg.Length == 10
-             && arg[2..2].All(char.IsDigit)
-             && arg[4] == '_'
-             && arg[5..].All(char.IsDigit);
+        if (!arg.ToUpper().StartsWith("BM")) return null;
 
-            if (!isOk)
-                return "DIe Auftrags Nummer ist im Falschen Format";
-        }
+        var isOk =
+            arg.Length == 10
+         && arg[2..2].All(char.IsDigit)
+         && arg[4] == '_'
+         && arg[5..].All(char.IsDigit);
+
+        if (!isOk)
+            return "DIe Auftrags Nummer ist im Falschen Format";
 
         return null;
     }

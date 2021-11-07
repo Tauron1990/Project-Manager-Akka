@@ -21,4 +21,7 @@ public interface IJobDatabaseServiceDef
 
     [Post(nameof(ChangeOrder))]
     Task<string> ChangeOrder([Body]SetSortOrder newOrder, CancellationToken token);
+
+    [Post(nameof(UpdateJobData))]
+    Task<string> UpdateJobData([Body] UpdateProjectCommand command, CancellationToken token);
 }

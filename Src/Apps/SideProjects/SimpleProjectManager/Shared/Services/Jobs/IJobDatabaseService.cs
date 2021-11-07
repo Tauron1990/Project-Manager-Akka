@@ -16,4 +16,6 @@ public interface IJobDatabaseService
     Task<string> CreateJob(CreateProjectCommand command, CancellationToken token);
 
     Task<string> ChangeOrder(SetSortOrder newOrder, CancellationToken token);
+
+    Task<string> UpdateJobData(UpdateProjectCommand command, CancellationToken token);
 }

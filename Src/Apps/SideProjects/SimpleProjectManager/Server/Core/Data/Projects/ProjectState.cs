@@ -10,10 +10,8 @@ public sealed record ProjectStateSnapshot(ProjectName Name, ImmutableList<Projec
     : IAggregateSnapshot<Project, ProjectId>;
 
 public sealed class ProjectState : InternalState<Project, ProjectId, ProjectStateSnapshot>,
-    IApply<NewProjectCreatedEvent>,
-    IApply<ProjectDeadLineChangedEvent>,
-    IApply<ProjectFilesAttachedEvent>,
-    IApply<ProjectStatusChangedEvent>
+    IApply<NewProjectCreatedEvent>, IApply<ProjectNameChangedEvent>, IApply<ProjectDeadLineChangedEvent>,
+    IApply<ProjectFilesAttachedEvent>, IApply<ProjectStatusChangedEvent>
 {
     public ProjectName ProjectName { get; private set; } = new (string.Empty);
 
@@ -22,6 +20,20 @@ public sealed class ProjectState : InternalState<Project, ProjectId, ProjectStat
     public ProjectDeadline? Deadline { get; private set; }
 
     public ProjectStatus Status { get; private set; }
+
+    public override void Hydrate(ProjectStateSnapshot aggregateSnapshot)
+    {
+        ProjectName = aggregateSnapshot.Name;
+        Files = aggregateSnapshot.Files;
+        Deadline = aggregateSnapshot.Deadline;
+        Status = aggregateSnapshot.Status;
+    }
+
+    public override ProjectStateSnapshot CreateSnapshot() 
+        => new(ProjectName, Files, Deadline, Status);
+
+    public void Apply(ProjectNameChangedEvent aggregateEvent)
+        => ProjectName = aggregateEvent.NewName;
 
     public void Apply(NewProjectCreatedEvent aggregateEvent)
         => ProjectName = aggregateEvent.Name;
@@ -34,15 +46,4 @@ public sealed class ProjectState : InternalState<Project, ProjectId, ProjectStat
 
     public void Apply(ProjectStatusChangedEvent aggregateEvent)
         => Status = aggregateEvent.NewStatus;
-
-    public override void Hydrate(ProjectStateSnapshot aggregateSnapshot)
-    {
-        ProjectName = aggregateSnapshot.Name;
-        Files = aggregateSnapshot.Files;
-        Deadline = aggregateSnapshot.Deadline;
-        Status = aggregateSnapshot.Status;
-    }
-
-    public override ProjectStateSnapshot CreateSnapshot() 
-        => new(ProjectName, Files, Deadline, Status);
 }

@@ -33,5 +33,9 @@ namespace SimpleProjectManager.Server.Controllers
         [HttpPost]
         public Task<string> ChangeOrder([FromBody]SetSortOrder newOrder, CancellationToken token)
             => _service.ChangeOrder(newOrder, token);
+
+        [HttpPost]
+        public Task<string> UpdateJobData([FromBody]UpdateProjectCommand command, CancellationToken token)
+            => _service.UpdateJobData(command, token);
     }
 }

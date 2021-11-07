@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
 
@@ -18,29 +16,29 @@ namespace TestApp
 
             (string Name, bool Prio, int Pos, ProjectStatus Status, DateTime? Deadline)[] data =
             {
-                ("T1_10000", false, 0, ProjectStatus.Entered, now + TimeSpan.FromDays(1)),
-                ("T1_20000", false, 0, ProjectStatus.Entered, now + TimeSpan.FromDays(2)),
-                ("T1_40000", false, 0, ProjectStatus.Entered, now + TimeSpan.FromDays(3)),
+                //("T1_10000", false, 0, ProjectStatus.Entered, now + TimeSpan.FromDays(1)),
+                //("T1_20000", false, 0, ProjectStatus.Entered, now + TimeSpan.FromDays(2)),
+                //("T1_40000", false, 0, ProjectStatus.Entered, now + TimeSpan.FromDays(3)),
                 ("T1_50000", false, 0, ProjectStatus.Entered, now + TimeSpan.FromDays(4)),
-                ("T1_30000", false, 2, ProjectStatus.Entered, now + TimeSpan.FromDays(5)),
+                ("T1_30000", false, 1, ProjectStatus.Entered, now + TimeSpan.FromDays(5)),
 
-                ("T2_10000", true, 0, ProjectStatus.Pending, now + TimeSpan.FromDays(1)),
-                ("T2_20000", true, 0, ProjectStatus.Pending, now + TimeSpan.FromDays(2)),
-                ("T2_40000", true, 0, ProjectStatus.Pending, now + TimeSpan.FromDays(3)),
-                ("T2_50000", true, 0, ProjectStatus.Pending, now + TimeSpan.FromDays(4)),
-                ("T2_30000", true, 2, ProjectStatus.Pending, now + TimeSpan.FromDays(5)),
+                //("T2_10000", true, 0, ProjectStatus.Pending, now + TimeSpan.FromDays(1)),
+                //("T2_20000", true, 0, ProjectStatus.Pending, now + TimeSpan.FromDays(2)),
+                //("T2_40000", true, 0, ProjectStatus.Pending, now + TimeSpan.FromDays(3)),
+                //("T2_50000", true, 0, ProjectStatus.Pending, now + TimeSpan.FromDays(4)),
+                //("T2_30000", true, 2, ProjectStatus.Pending, now + TimeSpan.FromDays(5)),
 
-                ("T3_10000", false, 0, ProjectStatus.Finished, now + TimeSpan.FromDays(1)),
-                ("T3_20000", false, 0, ProjectStatus.Finished, now + TimeSpan.FromDays(2)),
-                ("T3_40000", false, 0, ProjectStatus.Finished, now + TimeSpan.FromDays(3)),
-                ("T3_50000", false, 0, ProjectStatus.Finished, now + TimeSpan.FromDays(4)),
-                ("T3_30000", false, 2, ProjectStatus.Finished, now + TimeSpan.FromDays(5)),
+                //("T3_10000", false, 0, ProjectStatus.Finished, now + TimeSpan.FromDays(1)),
+                //("T3_20000", false, 0, ProjectStatus.Finished, now + TimeSpan.FromDays(2)),
+                //("T3_40000", false, 0, ProjectStatus.Finished, now + TimeSpan.FromDays(3)),
+                //("T3_50000", false, 0, ProjectStatus.Finished, now + TimeSpan.FromDays(4)),
+                //("T3_30000", false, 2, ProjectStatus.Finished, now + TimeSpan.FromDays(5)),
 
-                ("T4_10000", false, 0, ProjectStatus.Entered, null),
-                ("T4_40000", false, 0, ProjectStatus.Entered, null),
-                ("T4_30000", false, 0, ProjectStatus.Entered, null),
-                ("T4_20000", false, 2, ProjectStatus.Entered, null),
-                ("T4_50000", false, 0, ProjectStatus.Entered, null),
+                //("T4_10000", false, 0, ProjectStatus.Entered, null),
+                //("T4_40000", false, 0, ProjectStatus.Entered, null),
+                //("T4_30000", false, 0, ProjectStatus.Entered, null),
+                //("T4_20000", false, 2, ProjectStatus.Entered, null),
+                //("T4_50000", false, 0, ProjectStatus.Entered, null),
             };
 
             var jobs = ImmutableList<JobInfo>.Empty;
@@ -68,24 +66,21 @@ namespace TestApp
                 Console.WriteLine(string.Join(", ", name.Value, status, sortOrder.IsPriority, deadline?.Value.ToString("d") ?? "null"));
         }
 
-        public static ImmutableList<JobSortOrderPair> ComputeState(ImmutableList<JobInfo> CurrentJobs, ImmutableList<SortOrder> Sorts)
+        public static ImmutableList<JobSortOrderPair> ComputeState(ImmutableList<JobInfo> currentJobs, ImmutableList<SortOrder> sorts)
         {
             try
             {
                 var list = new List<JobSortOrderPair>();
 
                 // ReSharper disable once InvertIf
-                if (CurrentJobs != null)
+                var activeJobs = currentJobs.ToDictionary(c => c.Project);
+                foreach (var sortOrder in sorts)
                 {
-                    var activeJobs = CurrentJobs.ToDictionary(c => c.Project);
-                    foreach (var sortOrder in Sorts)
-                    {
-                        if (activeJobs.Remove(sortOrder.Id, out var data))
-                            list.Add(new JobSortOrderPair(sortOrder, data));
-                    }
-
-                    list.AddRange(activeJobs.Select(job => new JobSortOrderPair(new SortOrder(job.Key, 0, false), job.Value)));
+                    if (activeJobs.Remove(sortOrder.Id, out var data))
+                        list.Add(new JobSortOrderPair(sortOrder, data));
                 }
+
+                list.AddRange(activeJobs.Select(job => new JobSortOrderPair(new SortOrder(job.Key, 0, false), job.Value)));
 
                 return list
                     //.OrderByDescending(j => j, JobSortOrderPairComparer.Comp)

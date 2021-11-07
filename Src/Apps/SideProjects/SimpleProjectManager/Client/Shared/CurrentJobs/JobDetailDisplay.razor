@@ -13,22 +13,25 @@
                 <MudItem lg="12">
                     <MudPaper Class="ma-1 pa-3">
                         <MudGrid>
-                            <MudItem lg="6" Class="m-1">
+                            <MudItem lg="3">
+                                <MudButton>Editieren</MudButton>
+                            </MudItem>
+                            <MudItem lg="2" Class="m-1">
                                 <MudText Align="Align.End" Typo="Typo.h3">Job:</MudText>
                             </MudItem>
-                            <MudItem lg="6" Class="m-1">
+                            <MudItem lg="7" Class="m-1">
                                 <MudText Align="Align.Start" Typo="Typo.h3">@context.JobName.Value</MudText>
                             </MudItem>
-                            <MudItem lg="6" Class="m-1">
+                            <MudItem lg="5" Class="m-1">
                                 <MudText Align="Align.End" Typo="Typo.h5">Termin:</MudText>
                             </MudItem>
-                            <MudItem lg="6" Class="m-1">
+                            <MudItem lg="7" Class="m-1">
                                 <MudText Align="Align.Start" Typo="Typo.h5">@(context.Deadline?.Value.ToLocalTime().ToString("d") ?? "Kein Termin Gesetzt")</MudText>
                             </MudItem>
-                            <MudItem lg="6" Class="m-1">
+                            <MudItem lg="5" Class="m-1">
                                 <MudText Align="Align.End" Typo="Typo.h5">Status:</MudText>
                             </MudItem>
-                            <MudItem lg="6" Class="m-1">
+                            <MudItem lg="7" Class="m-1">
                                 <MudText Align="Align.Start" Typo="Typo.h5">@JobTranslator.GetString(context.Status)</MudText>
                             </MudItem>
                         </MudGrid>

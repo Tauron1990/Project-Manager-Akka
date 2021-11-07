@@ -3,15 +3,9 @@ using SimpleProjectManager.Shared;
 
 namespace SimpleProjectManager.Server.Core.Data;
 
-public sealed class CreateProjectCommandCarrier : Command<Project, ProjectId>
+public sealed class CreateProjectCommandCarrier : CommandCarrier<CreateProjectCommand, Project, ProjectId>
 {
-    public CreateProjectCommand Data { get; }
 
     public CreateProjectCommandCarrier(CreateProjectCommand data) 
-        : base(ProjectId.For(data.Project))
-        => Data = data;
-
-    public CreateProjectCommandCarrier(CreateProjectCommand data, CommandId sourceId) 
-        : base(ProjectId.For(data.Project), sourceId)
-        => Data = data;
+        : base(data, ProjectId.For(data.Project)){}
 }

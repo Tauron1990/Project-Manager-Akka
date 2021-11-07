@@ -23,7 +23,7 @@ public sealed class ProjectProjectionManager : ProjectionManagerBase, IInitializ
                     b => b.AsCreateOf(e => e.AggregateIdentity)
                        .HandlingDuplicatesUsing((_, _, _) => true)
                        .Using(
-                            (projection, evt, _) =>
+                            (projection, evt) =>
                             {
                                 projection.Id = evt.AggregateIdentity;
                                 projection.JobName = evt.AggregateEvent.Name;
@@ -36,7 +36,7 @@ public sealed class ProjectProjectionManager : ProjectionManagerBase, IInitializ
                     {
                         b.AsUpdateOf(e => e.AggregateIdentity)
                            .Using(
-                                (projection, evt, _) =>
+                                (projection, evt) =>
                                 {
                                     projection.Deadline = evt.AggregateEvent.Deadline;
                                     return Task.CompletedTask;
@@ -46,7 +46,7 @@ public sealed class ProjectProjectionManager : ProjectionManagerBase, IInitializ
                 map.Map<ProjectFilesAttachedEvent>(
                     b => b.AsUpdateOf(e => e.AggregateIdentity)
                        .Using(
-                            (projection, evt, _) =>
+                            (projection, evt) =>
                             {
                                 projection.ProjectFiles = projection.ProjectFiles.AddRange(evt.AggregateEvent.Files);
                             }));
@@ -54,10 +54,17 @@ public sealed class ProjectProjectionManager : ProjectionManagerBase, IInitializ
                 map.Map<ProjectStatusChangedEvent>(
                     b => b.AsUpdateOf(e => e.AggregateIdentity)
                        .Using(
-                            (projection, evt, _) =>
+                            (projection, evt) =>
                             {
                                 projection.Status = evt.AggregateEvent.NewStatus;
                             }));
+
+                map.Map<ProjectNameChangedEvent>(
+                    b => b.AsUpdateOf(e => e.AggregateIdentity)
+                       .Using(((projection, evt) =>
+                               {
+                                   projection.JobName = evt.AggregateEvent.NewName;
+                               })));
             });
     }
 }

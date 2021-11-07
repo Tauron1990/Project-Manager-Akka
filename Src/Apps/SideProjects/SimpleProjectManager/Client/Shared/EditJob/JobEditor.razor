@@ -43,19 +43,20 @@
     public string Title { get; set; } = string.Empty;
 
     [Parameter]
-    public EventCallback<JobData> Commit { get; set; }
+    public EventCallback<JobEditorCommit> Commit { get; set; }
 
     [Parameter]
     public EventCallback Cancel { get; set; }
 
     [Parameter]
     public bool CanCancel { get; set; }
-
+    
     [Parameter]
-    public bool StatusEditing { get; set; }
+    public JobEditorConfiguration Configuration { get; set; } = JobEditorConfiguration.Default;
 
-    [Parameter]
-    public bool SortOrderEditing { get; set; }
+    private bool StatusEditing => Configuration.StatusEditing;
+
+    private bool SortOrderEditing => Configuration.SortOrderEditing;
 
     [Parameter]
     public JobEditorModel? Model { get; set; }
@@ -93,7 +94,7 @@
                 ProjectDeadline.FromDateTime(_model.Deadline), ImmutableList<ProjectFileId>.Empty);
         }
 
-        await Commit.InvokeAsync(data);
+        await Commit.InvokeAsync(new JobEditorCommit(new JobEditorPair<JobData>(data, _model.OriginalData)));
 
         SortOrder? GetOrdering(ProjectId id)
         {

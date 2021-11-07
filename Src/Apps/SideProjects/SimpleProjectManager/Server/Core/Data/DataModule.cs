@@ -11,7 +11,9 @@ public sealed class DataModule : Module
         builder.RegisterType<CommandProcessor>().SingleInstance();
 
         builder.RegisterInstance(CommandMapping.For<Project, ProjectId, ProjectState, ProjectManager, Command<Project, ProjectId>>());
+
         builder.RegisterInstance(ApiCommandMapping.For<CreateProjectCommand>(c => new CreateProjectCommandCarrier(c)));
+        builder.RegisterInstance(ApiCommandMapping.For<UpdateProjectCommand>(c => new UpdateProjectCommandCarrier(c)));
 
         base.Load(builder);
     }
