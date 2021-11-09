@@ -16,7 +16,7 @@
 else
 {
     <StateAwaiter State="State">
-        <JobEditor Model="context" CanCancel="true" SortOrderEditing="true" StatusEditing="true" Title="JobData Beabeiten" Cancel="Cancel" Commit="Commit"/>
+        <JobEditor Model="context" CanCancel="true" Configuration="@JobEditorConfiguration.EditJobConfig" Title="JobData Beabeiten" Cancel="Cancel" Commit="Commit"/>
     </StateAwaiter>
 }
 
