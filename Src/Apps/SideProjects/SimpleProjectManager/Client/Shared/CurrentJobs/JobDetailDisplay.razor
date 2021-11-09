@@ -1,6 +1,7 @@
 ﻿@inherits ComputedStateComponent<JobData?>
 
-@inject IJobDatabaseService _databaseService;
+@inject IJobDatabaseService _databaseService
+@inject NavigationManager _navigationManager
 
 <MudContainer>
     <MudGrid>
@@ -14,7 +15,7 @@
                     <MudPaper Class="ma-1 pa-3">
                         <MudGrid>
                             <MudItem lg="3">
-                                <MudButton>Editieren</MudButton>
+                                <MudButton OnClick="@(() => _navigationManager.NavigateTo($"/EditJob/{context.Id.Value}"))">Editieren</MudButton>
                             </MudItem>
                             <MudItem lg="2" Class="m-1">
                                 <MudText Align="Align.End" Typo="Typo.h3">Job:</MudText>
