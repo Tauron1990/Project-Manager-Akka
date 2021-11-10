@@ -53,7 +53,7 @@ namespace SimpleProjectManager.Server.Core.Data
                 {
                     var data = com.Command;
 
-                    IEnumerable<IAggregateEvent<Project, ProjectId>> CreateCommands()
+                    IEnumerable<IAggregateEvent<Project, ProjectId>> CreateEvents()
                     {
                         if (data.Name is not null)
                             yield return new ProjectNameChangedEvent(data.Name);
@@ -65,7 +65,7 @@ namespace SimpleProjectManager.Server.Core.Data
                             yield return new ProjectDeadLineChangedEvent(data.Deadline.Data);
                     }
 
-                    EmitAll(CreateCommands());
+                    EmitAll(CreateEvents());
 
                     return OperationResult.Success();
                 });
