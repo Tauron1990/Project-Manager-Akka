@@ -189,17 +189,16 @@
 
     private static void SwapArray(JobSortOrderPair orderPair, int index, JobSortOrderPair[] temp)
     {
-        for (var i = 0; i < orderPair.Order.SkipCount; i++)
+        var skipCount = orderPair.Order.SkipCount;
+        if (skipCount > index)
+            skipCount = index;
+        
+        for (var i = 0; i < skipCount; i++)
         {
-            if (index - i - 1 >= temp.Length) break;
-
             temp[index - i] = temp[index - i - 1];
         }
-
-        if (index - orderPair.Order.SkipCount >= temp.Length)
-            temp[^1] = orderPair;
-        else
-            temp[index - orderPair.Order.SkipCount] = orderPair;
+        
+        temp[index - skipCount] = orderPair;
     }
 
     public void Dispose()

@@ -4,10 +4,10 @@ namespace SimpleProjectManager.Shared.Services;
 
 public interface IJobDatabaseService
 {
-    [ComputeMethod]
+    [ComputeMethod(KeepAliveTime = 12 * 60 * 60)]
     Task<JobInfo[]> GetActiveJobs(CancellationToken token);
 
-    [ComputeMethod]
+    [ComputeMethod(KeepAliveTime = 12 * 60 * 60)]
     Task<SortOrder[]> GetSortOrders(CancellationToken token);
 
     [ComputeMethod]
