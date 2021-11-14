@@ -1,6 +1,6 @@
 ﻿using MudBlazor;
 
-namespace SimpleProjectManager.Client
+namespace Tauron.Application.Blazor
 {
     public abstract record SnackbarMessage
     {

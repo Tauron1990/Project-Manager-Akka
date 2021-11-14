@@ -1,38 +1,22 @@
-﻿using System.Net.Http.Json;
+﻿using System;
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.WebUtilities;
+using Stl;
 using Stl.Fusion;
-using Tauron.Application;
 
-namespace SimpleProjectManager.Client
+namespace Tauron.Application.Blazor
 {
     [PublicAPI]
     public static class Extensions
     {
         public static bool IsLoading<TData>(this IState<TData> state)
             => state.Computed.ConsistencyState != ConsistencyState.Consistent;
-
-        //public static async Task<bool> IsSuccess(this IEventAggregator aggregator, Func<Task<string>> runner)
-        //{
-        //    try
-        //    {
-        //        var result = await runner();
-
-        //        if (string.IsNullOrWhiteSpace(result))
-        //            return true;
-
-        //        aggregator.PublishWarnig(result);
-
-        //        return false;
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        aggregator.PublishError(e);
-
-        //        return false;
-        //    }
-        //}
 
         public static async ValueTask<bool> IsSuccess(this IEventAggregator aggregator, Func<ValueTask<string>> runner)
         {
@@ -97,9 +81,49 @@ namespace SimpleProjectManager.Client
 
             return await response.Content.ReadFromJsonAsync<TResult>();
         }
+
+        public static IDisposableState<TData> ToState<TData>(this IObservable<TData> input, IStateFactory factory)
+        {
+            var serial = new SerialDisposable();
+            var state = factory.NewMutable(new MutableState<TData>.Options());
+            serial.Disposable = input.AutoSubscribe(n => state.Set(n), () => serial.Dispose(), e => state.Set(Result.Error<TData>(e)));
+
+            return new DisposableState<TData>(state, serial);
+        }
+
+        public static IObservable<TData> ToObservable<TData>(this IState<TData> state)
+            => Observable.Create<TData>(o => new StateRegistration<TData>(o, state))
+               .DistinctUntilChanged();
         
+        private sealed class StateRegistration<TData> : IDisposable
+        {
+            private readonly IObserver<TData> _observer;
+            private readonly IState<TData> _state;
+
+            internal StateRegistration(IObserver<TData> observer, IState<TData> state)
+            {
+                _observer = observer;
+                _state = state;
+                
+                state.AddEventHandler(StateEventKind.All, Handler);
+            }
+
+            private void Handler(IState<TData> arg1, StateEventKind arg2)
+            {
+                if(_state.HasValue)
+                    _observer.OnNext(_state.Value);
+                else if(_state.HasError && _state.Error is not null)
+                    _observer.OnError(_state.Error);
+            }
+
+            public void Dispose() => _state.RemoveEventHandler(StateEventKind.All, Handler);
+        }
+
+        public static Scoped<TService> GetIsolatedService<TService>(this IServiceProvider serviceProvider) 
+            where TService : notnull => new(serviceProvider);
     }
 
+    [PublicAPI]
     public static class NavigationManagerExtensions
     {
         public static bool TryGetQueryString<T>(this NavigationManager navManager, string key, out T? value)

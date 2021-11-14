@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 
-namespace SimpleProjectManager.Client.Shared.BaseComponents.Wizard
+namespace Tauron.Application.Blazor.Wizard
 {
     public abstract class WizardPageComponent<TData, TPage> : ComponentBase
     {

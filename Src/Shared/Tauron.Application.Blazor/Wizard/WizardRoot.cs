@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Components;
 
-namespace SimpleProjectManager.Client.Shared.BaseComponents.Wizard;
+namespace Tauron.Application.Blazor.Wizard;
 
 public partial class WizardRoot
 {

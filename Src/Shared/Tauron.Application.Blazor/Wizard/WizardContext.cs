@@ -1,7 +1,11 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
 
-namespace SimpleProjectManager.Client.Shared.BaseComponents.Wizard
+namespace Tauron.Application.Blazor.Wizard
 {
     public abstract class WizardContextBase
     {

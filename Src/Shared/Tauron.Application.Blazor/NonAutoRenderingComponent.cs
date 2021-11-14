@@ -1,8 +1,8 @@
-﻿namespace SimpleProjectManager.Client.Shared.BaseComponents;
+﻿namespace Tauron.Application.Blazor;
 
 public class NonAutoRenderingComponent : DisposableComponent
 {
-    protected RenderingManager RenderingManager { get; } = new();
+    public RenderingManager RenderingManager { get; } = new();
 
     protected override void OnInitialized()
     {

@@ -13,14 +13,15 @@
 
   <ItemGroup>
     <PackageReference Include="Blazor.Extensions.Logging" Version="2.0.4" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="6.0.0-rc.2.21480.10" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="6.0.0-rc.2.21480.10" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="6.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="6.0.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
-    <PackageReference Include="MudBlazor" Version="5.2.0" />
-    <PackageReference Include="Stl.Fusion.Blazor" Version="1.11.8" />
+    <PackageReference Include="MudBlazor" Version="6.0.2" />
+    <PackageReference Include="Stl.Fusion.Blazor" Version="2.0.90" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Shared\Tauron.Application.Blazor\Tauron.Application.Blazor.csproj" />
     <ProjectReference Include="..\Shared\SimpleProjectManager.Shared.csproj" />
   </ItemGroup>
 
@@ -31,6 +32,15 @@
   <ItemGroup>
     <Folder Include="Core\" />
     <Folder Include="wwwroot\_content\MudBlazor\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Shared\CurrentJobs\JobPriorityControl.cs">
+      <DependentUpon>JobPriorityControl.razor</DependentUpon>
+    </Compile>
+    <Compile Update="Shared\CurrentJobs\FileDetailDisplay.cs">
+      <DependentUpon>FileDetailDisplay.razor</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>

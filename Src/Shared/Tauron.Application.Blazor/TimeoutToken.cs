@@ -1,5 +1,11 @@
-﻿namespace SimpleProjectManager.Client;
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
+using JetBrains.Annotations;
 
+namespace Tauron.Application.Blazor;
+
+[PublicAPI]
 public sealed class TimeoutToken
 {
     public static ValueTask<TResult> WithDefault<TResult>(Func<CancellationToken, Task<TResult>> runner)

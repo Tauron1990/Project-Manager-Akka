@@ -1,7 +1,6 @@
 ﻿@using SimpleProjectManager.Client.Core
-@inherits ComputedStateComponent<ProjectFileInfo?>
+@inherits NonAutoRenderingView<FileDetailDisplayViewModel>
 
-@inject IJobFileService _fileService
 @inject BaseUrl _url
 
 <StateAwaiter State="State">
@@ -26,16 +25,3 @@
         <MudText Align="Align.Center">Datei nicht gefunden</MudText>
     }
 </StateAwaiter>
-
-@code {
-    [Parameter]
-    public ProjectFileId? FileId { get; set; }
-
-    protected override async Task<ProjectFileInfo?> ComputeState(CancellationToken cancellationToken)
-    {
-        if (FileId == null) return null;
-
-        return await _fileService.GetJobFileInfo(FileId, cancellationToken);
-    }
-
-}

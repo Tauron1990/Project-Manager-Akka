@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor;
 using MudBlazor.Services;
 using SimpleProjectManager.Client.Core;
+using SimpleProjectManager.Client.Shared.CurrentJobs;
+using SimpleProjectManager.Client.ViewModels;
 using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
 using Stl.Fusion.Blazor;
@@ -36,6 +38,8 @@ void RegisterServices()
 {
     builder.Services.AddMudServices(c => c.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomCenter);
     builder.Services.AddSingleton<IEventAggregator, EventAggregator>();
+    builder.Services.AddSingleton<JobsViewModel>();
+    builder.Services.AddTransient<FileDetailDisplayViewModel>();
 }
 
 static void ConfigFusion(IServiceCollection collection, Uri baseAdress)

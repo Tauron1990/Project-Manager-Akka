@@ -55,9 +55,6 @@ public class JobEditorModel
          && arg[4] == '_'
          && arg[5..].All(char.IsDigit);
 
-        if (!isOk)
-            return "DIe Auftrags Nummer ist im Falschen Format";
-
-        return null;
+        return !isOk ? "DIe Auftrags Nummer ist im Falschen Format" : null;
     }
 }

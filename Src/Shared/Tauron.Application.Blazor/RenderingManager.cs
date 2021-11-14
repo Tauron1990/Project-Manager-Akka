@@ -1,4 +1,7 @@
-﻿namespace SimpleProjectManager.Client.Shared.BaseComponents;
+﻿using System;
+using System.Threading.Tasks;
+
+namespace Tauron.Application.Blazor;
 
 public sealed class RenderingManager
 {

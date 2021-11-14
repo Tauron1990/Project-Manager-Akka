@@ -1,7 +1,9 @@
-﻿using JetBrains.Annotations;
+﻿using System;
+using System.Threading.Tasks;
+using JetBrains.Annotations;
 using Microsoft.AspNetCore.Components;
 
-namespace SimpleProjectManager.Client;
+namespace Tauron.Application.Blazor;
 
 [PublicAPI]
 public static class EventUtil
@@ -16,10 +18,10 @@ public static class EventUtil
     public static Func<TValue, Task> AsNonRenderingEventHandler<TValue>(Func<TValue, Task> callback)
         => new AsyncReceiver<TValue>(callback).Invoke;
 
-    record SyncReceiver(Action Callback) : ReceiverBase { public void Invoke() => Callback(); }
-    record SyncReceiver<T>(Action<T> Callback) : ReceiverBase { public void Invoke(T arg) => Callback(arg); }
-    record AsyncReceiver(Func<Task> Callback) : ReceiverBase { public Task Invoke() => Callback(); }
-    record AsyncReceiver<T>(Func<T, Task> Callback) : ReceiverBase { public Task Invoke(T arg) => Callback(arg); }
+    record SyncReceiver(Action Callback) : ReceiverBase { internal void Invoke() => Callback(); }
+    record SyncReceiver<T>(Action<T> Callback) : ReceiverBase { internal void Invoke(T arg) => Callback(arg); }
+    record AsyncReceiver(Func<Task> Callback) : ReceiverBase { internal Task Invoke() => Callback(); }
+    record AsyncReceiver<T>(Func<T, Task> Callback) : ReceiverBase { internal Task Invoke(T arg) => Callback(arg); }
 
     // By implementing IHandleEvent, we can override the event handling logic on a per-handler basis
     // The logic here just calls the callback without triggering any re-rendering

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 
-namespace SimpleProjectManager.Client.Shared.BaseComponents
+namespace Tauron.Application.Blazor
 {
     public interface ISelectable
     {
