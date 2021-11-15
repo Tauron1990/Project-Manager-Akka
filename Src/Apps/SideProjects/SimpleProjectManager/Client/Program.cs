@@ -1,24 +1,18 @@
 using Blazor.Extensions.Logging;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using MudBlazor;
-using MudBlazor.Services;
 using SimpleProjectManager.Client.Core;
-using SimpleProjectManager.Client.ViewModels;
 using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
 using Stl.Fusion.Blazor;
 using Stl.Fusion.Client;
 using Stl.Fusion.Extensions;
-using Tauron.Application;
 using Splat.Microsoft.Extensions.DependencyInjection;
-using Splat;
-using ReactiveUI;
 using SimpleProjectManager.Client;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
-//builder.RootComponents.Add<App>("#app");
+builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddSingleton(new BaseUrl(builder.HostEnvironment.BaseAddress));
@@ -27,7 +21,7 @@ builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(builder.H
 #if DEBUG
 builder.Services.AddLogging(b =>
                             {
-                                b.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Information)
+                                b.SetMinimumLevel(LogLevel.Information)
                                    .AddBrowserConsole();
                             });
 #endif

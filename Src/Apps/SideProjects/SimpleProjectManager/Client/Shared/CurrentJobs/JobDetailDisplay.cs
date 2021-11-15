@@ -1,5 +1,6 @@
 ﻿using System.Reactive.Linq;
 using Blazor.Extensions.Logging;
+using Microsoft.AspNetCore.Components;
 using ReactiveUI;
 using SimpleProjectManager.Client.ViewModels;
 using Tauron;
@@ -10,28 +11,46 @@ namespace SimpleProjectManager.Client.Shared.CurrentJobs;
 
 public partial class JobDetailDisplay
 {
-    protected override JobDetailDisplayViewModel CreateModel()
+    private MudCommandButton? _editButton;
+    private JobDetailDisplayViewModel? _displayModel;
+
+    [Parameter]
+    public JobDetailDisplayViewModel DisplayModel
     {
-        _logger.LogInformation("Create Job Detail Diplay View Model");
-        return Services.GetRequiredService<JobDetailDisplayViewModel>();
+        get => _displayModel ?? Services.GetRequiredService<JobDetailDisplayViewModel>();
+        set => _displayModel = value;
     }
 
-    public MudCommandButton? EditButton { get; set; }
-    
+    protected override JobDetailDisplayViewModel CreateModel()
+        => Services.GetRequiredService<JobDetailDisplayViewModel>();
+
+    private MudCommandButton? EditButton
+    {
+        get => _editButton;
+        set
+        {
+            _editButton = value;
+            OnPropertyChanged();
+        }
+    }
+
     protected override void InitializeModel()
     {
-        _logger.LogInformation("intialize Job Detail Diplay View Model");
-
         this.WhenActivated(dispo =>
                            {
                                if(ViewModel == null) return;
 
-                               _logger.LogInformation("Create Job Detail Command Bindings for View Model");
-
-                               this.BindCommand(ViewModel, 
+                               this.BindCommand(
+                                       ViewModel,
                                        m => m.EditJobs,
                                        v => v.EditButton,
-                                       ViewModel.State.ToObservable().NotNull().Select(d => d.Id))
+                                       ViewModel.NextElement.Select(
+                                           d =>
+                                           {
+                                               Console.WriteLine("New Id");
+
+                                               return d?.Id;
+                                           }))
                                   .DisposeWith(dispo);
                            });
     }

@@ -61,11 +61,7 @@ public abstract class NonAutoRenderingView<TModel> : DisposableComponent, IViewF
     object? IViewFor.ViewModel
     {
         get => ViewModel;
-        set
-        {
-            ViewModel = (TModel?)value;
-            StateHasChangedAsync().Ignore();
-        }
+        set => ViewModel = (TModel?)value;
     }
 
     /// <inheritdoc />
@@ -154,12 +150,6 @@ public abstract class NonAutoRenderingView<TModel> : DisposableComponent, IViewF
     
     protected override bool ShouldRender()
         => RenderingManager.CanRender;
-
-    public new void StateHasChanged()
-        => RenderingManager.StateHasChanged();
-
-    public Task StateHasChangedAsync()
-        => RenderingManager.StateHasChangedAsync();
 
     public ValueTask PerformTask(Action init, Action compled, Func<ValueTask<bool>> run)
         => RenderingManager.PerformTask(init, compled, run);

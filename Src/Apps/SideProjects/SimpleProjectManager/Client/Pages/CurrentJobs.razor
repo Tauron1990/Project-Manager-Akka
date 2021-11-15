@@ -9,6 +9,7 @@
 @inject IStateFactory _stateFactory
 @inject IJobDatabaseService _jobService
 @inject JobsViewModel _model
+@inject JobDetailDisplayViewModel _detailDisplay
 
 <PageTitle>Aktuelle Aufträge</PageTitle>
 
@@ -33,7 +34,7 @@
                 <JobSideBar CurrentJobs="context" Model="_model"/>
             </MudItem>
             <MudItem lg="9">
-                <JobDetailDisplay/>
+                <JobDetailDisplay DisplayModel="_detailDisplay"/>
             </MudItem>
         </MudGrid>
     }

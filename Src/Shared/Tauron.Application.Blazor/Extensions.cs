@@ -92,7 +92,11 @@ namespace Tauron.Application.Blazor
         }
 
         public static IObservable<TData> ToObservable<TData>(this IState<TData> state)
-            => Observable.Create<TData>(o => new StateRegistration<TData>(o, state))
+            => Observable.Create<TData>(o =>
+                                        {
+                                            Console.WriteLine("New State Observable");
+                                            return new StateRegistration<TData>(o, state);
+                                        })
                .DistinctUntilChanged();
         
         private sealed class StateRegistration<TData> : IDisposable
