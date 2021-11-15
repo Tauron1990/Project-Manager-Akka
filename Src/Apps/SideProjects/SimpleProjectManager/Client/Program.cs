@@ -12,6 +12,9 @@ using Stl.Fusion.Blazor;
 using Stl.Fusion.Client;
 using Stl.Fusion.Extensions;
 using Tauron.Application;
+using Splat.Microsoft.Extensions.DependencyInjection;
+using Splat;
+using ReactiveUI;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
@@ -24,22 +27,33 @@ builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(builder.H
 #if DEBUG
 builder.Services.AddLogging(b =>
                             {
-                                b.SetMinimumLevel(LogLevel.Information)
+                                b.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Information)
                                    .AddBrowserConsole();
                             });
 #endif
 
+builder.Services.UseMicrosoftDependencyResolver(); //Splat config
+var resolver = Locator.CurrentMutable;
+resolver.InitializeSplat();
+resolver.InitializeReactiveUI();
+
 ConfigFusion(builder.Services, new Uri(builder.HostEnvironment.BaseAddress));
 RegisterServices();
 
-await builder.Build().RunAsync();
+var host = builder.Build();
+
+host.Services.UseMicrosoftDependencyResolver();
+
+await host.RunAsync();
 
 void RegisterServices()
 {
     builder.Services.AddMudServices(c => c.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomCenter);
     builder.Services.AddSingleton<IEventAggregator, EventAggregator>();
+    
     builder.Services.AddSingleton<JobsViewModel>();
     builder.Services.AddTransient<FileDetailDisplayViewModel>();
+    builder.Services.AddScoped<JobDetailDisplayViewModel>();
 }
 
 static void ConfigFusion(IServiceCollection collection, Uri baseAdress)

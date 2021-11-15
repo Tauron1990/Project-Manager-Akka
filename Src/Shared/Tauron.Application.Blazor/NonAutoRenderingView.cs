@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Components;
 using ReactiveUI;
 using Stl.Collections;
 using Stl.DependencyInjection;
+using Tauron.Application.Blazor.Parameters;
 
 namespace Tauron.Application.Blazor;
 
@@ -60,7 +61,11 @@ public abstract class NonAutoRenderingView<TModel> : DisposableComponent, IViewF
     object? IViewFor.ViewModel
     {
         get => ViewModel;
-        set => ViewModel = (TModel?)value;
+        set
+        {
+            ViewModel = (TModel?)value;
+            StateHasChangedAsync().Ignore();
+        }
     }
 
     /// <inheritdoc />
@@ -133,12 +138,16 @@ public abstract class NonAutoRenderingView<TModel> : DisposableComponent, IViewF
     }
     #endregion
 
+    public override async Task SetParametersAsync(ParameterView parameters)
+    {
+         await base.SetParametersAsync(parameters);
+         if(ViewModel is IParameterUpdateable updateable)
+             updateable.Updater.UpdateParameters(parameters);
+    }
+
     protected abstract TModel CreateModel();
 
-    protected virtual void InitializeModel()
-    {
-        
-    }
+    protected virtual void InitializeModel() { }
     
     protected override bool ShouldRender()
         => RenderingManager.CanRender;

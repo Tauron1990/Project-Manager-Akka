@@ -37,7 +37,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Parameters" />
         <Folder Include="wwwroot\" />
     </ItemGroup>
 
@@ -50,11 +49,11 @@
     </ItemGroup>
 
 	<ItemGroup>
-      <Compile Update="StateAwaiter.cs">
-        <DependentUpon>StateAwaiter.razor</DependentUpon>
-      </Compile>
       <Compile Update="Wizard\WizardRoot.cs">
         <DependentUpon>WizardRoot.razor</DependentUpon>
+      </Compile>
+      <Compile Update="CommandElement\CommandHelper.cs">
+        <DependentUpon>CommandHelper.razor</DependentUpon>
       </Compile>
     </ItemGroup>
 

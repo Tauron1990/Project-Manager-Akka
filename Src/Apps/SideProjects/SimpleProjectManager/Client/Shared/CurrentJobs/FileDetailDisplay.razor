@@ -3,7 +3,7 @@
 
 @inject BaseUrl _url
 
-<StateAwaiter State="State">
+<StateAwaiter State="ViewModel?.State">
     @if (context != null)
     {
         <MudPaper Outlined="true" Class="ma-1 pa-2">

@@ -1,7 +1,5 @@
-﻿@inherits ComputedStateComponent<JobData?>
-
-@inject IJobDatabaseService _databaseService
-@inject NavigationManager _navigationManager
+﻿@using ReactiveUI
+@inherits NonAutoRenderingView<JobDetailDisplayViewModel>
 
 <MudContainer>
     <MudGrid>
@@ -69,16 +67,16 @@
 </MudContainer>
 
 @code {
-    [Parameter]
-    public JobsViewModel Model { get; set; } = null!;
-    
+    protected override JobDetailDisplayViewModel CreateModel() => Services.GetRequiredService<JobDetailDisplayViewModel>();
 
-    protected override async Task<JobData?> ComputeState(CancellationToken cancellationToken)
+    protected override void InitializeModel()
     {
-        var currentSelected = await Model.CurrentJobState.Use(cancellationToken);
-        if (currentSelected == null) return null;
-        
-        return await _databaseService.GetJobData(currentSelected.Info.Project, cancellationToken);
+        this.WhenActivated(dispo =>
+                           {
+                                if(ViewModel == null) return;
+                               
+                               this.BindCommand()
+                           });
     }
 
 }

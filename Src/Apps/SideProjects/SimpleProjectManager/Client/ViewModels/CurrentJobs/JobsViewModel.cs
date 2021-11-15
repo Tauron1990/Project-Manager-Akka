@@ -1,9 +1,10 @@
 ﻿using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using SimpleProjectManager.Client.Shared.CurrentJobs;
 using Stl;
 using Stl.Fusion;
 
-namespace SimpleProjectManager.Client.Shared.CurrentJobs;
+namespace SimpleProjectManager.Client.ViewModels;
 
 public sealed class JobsViewModel : IDisposable
 {

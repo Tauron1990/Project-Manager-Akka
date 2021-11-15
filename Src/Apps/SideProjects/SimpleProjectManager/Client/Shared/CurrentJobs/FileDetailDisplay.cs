@@ -13,17 +13,5 @@ public partial class FileDetailDisplay
     public ProjectFileId? FileId { get; set; }
 
     protected override FileDetailDisplayViewModel CreateModel()
-        => Services.GetIsolatedService<FileDetailDisplayViewModel>();
-
-    protected override void InitializeModel()
-    {
-        this.WhenActivated(
-            dispo =>
-            {
-                if(ViewModel == null) return;
-
-                ViewModel.Id.RegisterHandler(context => context.SetOutput(FileId))
-                   .DisposeWith(dispo);
-            });
-    }
+        => Services.GetIsolatedService<FileDetailDisplayViewModel>().DisposeWith(this);
 }

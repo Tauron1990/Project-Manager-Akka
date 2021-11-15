@@ -1,7 +1,7 @@
 ﻿using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
 
-namespace SimpleProjectManager.Client.Shared.CurrentJobs;
+namespace SimpleProjectManager.Client.ViewModels;
 
 public sealed class JobSortOrderPairComparer : IComparer<JobSortOrderPair>
 {

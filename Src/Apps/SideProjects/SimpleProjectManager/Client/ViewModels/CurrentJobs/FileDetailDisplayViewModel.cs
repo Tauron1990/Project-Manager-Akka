@@ -1,6 +1,4 @@
-﻿using System.Reactive;
-using System.Reactive.Linq;
-using ReactiveUI;
+﻿using SimpleProjectManager.Client.Shared.CurrentJobs;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
@@ -12,7 +10,7 @@ public sealed class FileDetailDisplayViewModel : StatefulViewModel<ProjectFileIn
 {
     private readonly IJobFileService _fileService;
 
-    public Interaction<Unit, ProjectFileId?> Id { get; } = new();
+    public IState<ProjectFileId?> Id => GetParameter<ProjectFileId?>(nameof(FileDetailDisplay.FileId));
     
     public FileDetailDisplayViewModel(IStateFactory stateFactory, IJobFileService fileService) 
         : base(stateFactory)
@@ -22,7 +20,7 @@ public sealed class FileDetailDisplayViewModel : StatefulViewModel<ProjectFileIn
 
     protected override async Task<ProjectFileInfo?> ComputeState(CancellationToken cancellationToken)
     {
-        var id = await Id.Handle(Unit.Default);
+        var id = await Id.Use(cancellationToken);
 
         if (id is null) return null;
 
