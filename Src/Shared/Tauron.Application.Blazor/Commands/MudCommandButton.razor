@@ -1,0 +1,12 @@
+﻿<CommandHelper @ref="_commandHelper">
+    <MudButton Disabled="@context.Disabled" OnClick="context.Execute">
+        @ChildContent
+    </MudButton>
+</CommandHelper>
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private CommandHelper? _commandHelper;
+}

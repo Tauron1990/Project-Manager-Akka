@@ -1,0 +1,10 @@
+﻿@inherits DisposableComponent
+
+@if (ChildContent != null)
+{
+    @ChildContent(_commandState);
+}
+else
+{
+    <MudText>No CommandHelper Child Content</MudText>
+}
