@@ -31,6 +31,9 @@ public class JobDetailDisplayViewModel : StatefulViewModel<JobData?>
 
     protected override async Task<JobData?> ComputeState(CancellationToken cancellationToken)
     {
+        if (_jobsModel is null)
+            return null;
+
         var currentSelected = await _jobsModel.CurrentJobState.Use(cancellationToken);
         if (currentSelected == null) return null;
         

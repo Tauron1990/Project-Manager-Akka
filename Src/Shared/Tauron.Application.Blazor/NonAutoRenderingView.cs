@@ -93,15 +93,18 @@ public abstract class NonAutoRenderingView<TModel> : DisposableComponent, IViewF
             viewModelChanged
                 .WhereNotNull()
                 .Select(x =>
-                            Observable
-                                .FromEvent<PropertyChangedEventHandler, Unit>(
-                                                                              eventHandler =>
-                                                                              {
-                                                                                  void Handler(object? sender, PropertyChangedEventArgs e) => eventHandler(Unit.Default);
-                                                                                  return Handler;
-                                                                              },
-                                                                              eh => x.PropertyChanged += eh,
-                                                                              eh => x.PropertyChanged -= eh))
+                        {
+                            return Observable
+                               .FromEvent<PropertyChangedEventHandler, Unit>(
+                                    eventHandler =>
+                                    {
+                                        void Handler(object? sender, PropertyChangedEventArgs e) => eventHandler(Unit.Default);
+
+                                        return Handler;
+                                    },
+                                    eh => x.PropertyChanged += eh,
+                                    eh => x.PropertyChanged -= eh);
+                        })
                 .Switch()
                 .Subscribe(_ => RenderingManager.StateHasChangedAsync())
                 #pragma warning restore CS4014

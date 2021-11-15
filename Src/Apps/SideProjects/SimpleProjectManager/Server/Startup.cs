@@ -3,6 +3,7 @@ using JetBrains.Annotations;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.ResponseCompression;
 using MudBlazor.Services;
+using SimpleProjectManager.Client;
 using SimpleProjectManager.Server.Controllers.ModelBinder;
 using SimpleProjectManager.Server.Core.Data;
 using SimpleProjectManager.Server.Core.Projections;
@@ -21,10 +22,7 @@ public class Startup
     // This method gets called by the runtime. Use this method to add services to the container.
     // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
     public void ConfigureServices(IServiceCollection services)
-    {
-        services.AddMudServices();
-
-        var fusion = services.AddFusion();
+    { var fusion = services.AddFusion();
         fusion
            .AddComputeService<IJobDatabaseService, JobDatabaseService>()
            .AddComputeService<IJobFileService, JobFileService>();
@@ -52,6 +50,9 @@ public class Startup
                           });
         services.AddResponseCompression(
             opts => opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/octet-stream" }));
+
+        //ClientRegistrations
+        //ServiceRegistrar.RegisterServices(services);
     }
 
 

@@ -1,0 +1,27 @@
+﻿using MudBlazor;
+using MudBlazor.Services;
+using ReactiveUI;
+using SimpleProjectManager.Client.ViewModels;
+using Splat;
+using Splat.Microsoft.Extensions.DependencyInjection;
+using Tauron.Application;
+
+namespace SimpleProjectManager.Client;
+
+public class ServiceRegistrar
+{
+    public static void RegisterServices(IServiceCollection services)
+    {
+        services.UseMicrosoftDependencyResolver(); //Splat config
+        var resolver = Locator.CurrentMutable;
+        resolver.InitializeSplat();
+        resolver.InitializeReactiveUI();
+
+        services.AddMudServices(c => c.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomCenter);
+        services.AddSingleton<IEventAggregator, EventAggregator>();
+
+        services.AddSingleton<JobsViewModel>();
+        services.AddTransient<FileDetailDisplayViewModel>();
+        services.AddScoped<JobDetailDisplayViewModel>();
+    }
+}

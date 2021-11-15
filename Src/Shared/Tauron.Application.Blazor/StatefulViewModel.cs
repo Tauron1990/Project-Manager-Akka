@@ -28,7 +28,7 @@ public abstract class StatefulViewModel<TData> : ReactiveObject, IActivatableVie
 
         NextElement = State.ToObservable();
     }
-    
+
     public virtual ViewModelActivator Activator { get; } = new();
 
     protected virtual void ConfigureState(State<TData>.Options options) { }

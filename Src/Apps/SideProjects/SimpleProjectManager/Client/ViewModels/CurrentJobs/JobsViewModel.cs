@@ -1,6 +1,5 @@
 ﻿using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using SimpleProjectManager.Client.Shared.CurrentJobs;
 using Stl;
 using Stl.Fusion;
 

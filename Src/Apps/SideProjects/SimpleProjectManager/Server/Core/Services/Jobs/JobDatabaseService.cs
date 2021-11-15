@@ -97,7 +97,7 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
             using(Computed.Invalidate())
                 GetSortOrders(CancellationToken.None).Ignore();
         }
-
+        
         return result != null 
             ? string.Empty 
             : "Das Element wurde nicht gefunden";

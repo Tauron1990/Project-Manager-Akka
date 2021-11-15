@@ -42,6 +42,9 @@
     <Compile Update="Shared\CurrentJobs\FileDetailDisplay.cs">
       <DependentUpon>FileDetailDisplay.razor</DependentUpon>
     </Compile>
+    <Compile Update="Shared\CurrentJobs\JobDetailDisplay.cs">
+      <DependentUpon>JobDetailDisplay.razor</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>

@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor;
 using MudBlazor.Services;
 using SimpleProjectManager.Client.Core;
-using SimpleProjectManager.Client.Shared.CurrentJobs;
 using SimpleProjectManager.Client.ViewModels;
 using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
@@ -15,6 +14,7 @@ using Tauron.Application;
 using Splat.Microsoft.Extensions.DependencyInjection;
 using Splat;
 using ReactiveUI;
+using SimpleProjectManager.Client;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
@@ -32,29 +32,24 @@ builder.Services.AddLogging(b =>
                             });
 #endif
 
-builder.Services.UseMicrosoftDependencyResolver(); //Splat config
-var resolver = Locator.CurrentMutable;
-resolver.InitializeSplat();
-resolver.InitializeReactiveUI();
-
 ConfigFusion(builder.Services, new Uri(builder.HostEnvironment.BaseAddress));
-RegisterServices();
+
+
+
+
+ServiceRegistrar.RegisterServices(builder.Services);
 
 var host = builder.Build();
 
 host.Services.UseMicrosoftDependencyResolver();
 
+#if DEBUG
+Console.WriteLine("Debug Delay");
+await Task.Delay(1000);
+#endif
 await host.RunAsync();
 
-void RegisterServices()
-{
-    builder.Services.AddMudServices(c => c.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomCenter);
-    builder.Services.AddSingleton<IEventAggregator, EventAggregator>();
-    
-    builder.Services.AddSingleton<JobsViewModel>();
-    builder.Services.AddTransient<FileDetailDisplayViewModel>();
-    builder.Services.AddScoped<JobDetailDisplayViewModel>();
-}
+
 
 static void ConfigFusion(IServiceCollection collection, Uri baseAdress)
 {

@@ -1,19 +1,20 @@
-﻿@using ReactiveUI
-@inherits NonAutoRenderingView<JobDetailDisplayViewModel>
+﻿@inherits NonAutoRenderingView<JobDetailDisplayViewModel>
+
+@inject ILogger<JobDetailDisplay> _logger
 
 <MudContainer>
     <MudGrid>
         <MudItem lg="12">
             <MudText Align="Align.Center" Typo="Typo.h3">Job Informationen</MudText>
         </MudItem>
-        <StateAwaiter State="State">
+        <StateAwaiter State="ViewModel?.State">
             @if (context != null)
             {
                 <MudItem lg="12">
                     <MudPaper Class="ma-1 pa-3">
                         <MudGrid>
                             <MudItem lg="3">
-                                <MudButton OnClick="@(() => _navigationManager.NavigateTo($"/EditJob/{context.Id.Value}"))">Editieren</MudButton>
+                                <MudCommandButton @ref="EditButton">Editieren</MudCommandButton>
                             </MudItem>
                             <MudItem lg="2" Class="m-1">
                                 <MudText Align="Align.End" Typo="Typo.h3">Job:</MudText>
@@ -65,18 +66,3 @@
         </StateAwaiter>
     </MudGrid>
 </MudContainer>
-
-@code {
-    protected override JobDetailDisplayViewModel CreateModel() => Services.GetRequiredService<JobDetailDisplayViewModel>();
-
-    protected override void InitializeModel()
-    {
-        this.WhenActivated(dispo =>
-                           {
-                                if(ViewModel == null) return;
-                               
-                               this.BindCommand()
-                           });
-    }
-
-}

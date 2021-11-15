@@ -82,7 +82,7 @@ else
     private void Handler(IState<TValue> arg1, StateEventKind arg2)
     {
         _isInitial = false;
-        InvokeAsync(StateHasChanged);
+        InvokeAsync(StateHasChanged).Ignore();
     }
 
     public void Dispose()

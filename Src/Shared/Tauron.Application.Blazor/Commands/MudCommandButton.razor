@@ -1,12 +1,16 @@
-﻿<CommandHelper @ref="_commandHelper">
-    <MudButton Disabled="@context.Disabled" OnClick="context.Execute">
-        @ChildContent
-    </MudButton>
-</CommandHelper>
+﻿@inherits CommandContainer
+
+<CascadingValue Value="CommandParameter" Name="@(nameof(CommandParameter))">
+    <CascadingValue Value="Command" Name="@(nameof(Command))">
+        <CommandHelper>
+            <MudButton Disabled="@context.Disabled" OnClick="context.Execute">
+                @ChildContent
+            </MudButton>
+        </CommandHelper>
+    </CascadingValue>
+</CascadingValue>
 
 @code {
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
-
-    private CommandHelper? _commandHelper;
 }

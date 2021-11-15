@@ -189,6 +189,8 @@
 
     private static void SwapArray(JobSortOrderPair orderPair, int index, JobSortOrderPair[] temp)
     {
+        return;
+
         var skipCount = orderPair.Order.SkipCount;
         if (skipCount > index)
             skipCount = index;

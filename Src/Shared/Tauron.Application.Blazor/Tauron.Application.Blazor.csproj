@@ -52,9 +52,6 @@
       <Compile Update="Wizard\WizardRoot.cs">
         <DependentUpon>WizardRoot.razor</DependentUpon>
       </Compile>
-      <Compile Update="CommandElement\CommandHelper.cs">
-        <DependentUpon>CommandHelper.razor</DependentUpon>
-      </Compile>
     </ItemGroup>
 
 </Project>

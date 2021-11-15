@@ -4,7 +4,7 @@ using System.Windows.Input;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Components;
 
-namespace Tauron.Application.Blazor;
+namespace Tauron.Application.Blazor.Commands;
 
 public sealed record CommandState(Action Execute, bool Disabled)
 {
@@ -13,31 +13,12 @@ public sealed record CommandState(Action Execute, bool Disabled)
 
 public partial class CommandHelper
 {
-    private object? _commandParameter;
-    private ICommand? _command;
+    [CascadingParameter(Name = nameof(Command))]
+    public ICommand? Command { get; set; }
 
-    [UsedImplicitly]
-    public ICommand? Command
-    {
-        get => _command;
-        set
-        {
-            _command = value;
-            InvokeAsync(StateHasChanged);
-        }
-    }
+    [CascadingParameter(Name = nameof(CommandParameter))]
+    public object? CommandParameter { get; set; }
 
-    [UsedImplicitly]
-    public object? CommandParameter
-    {
-        get => _commandParameter;
-        set
-        {
-            _commandParameter = value;
-            InvokeAsync(StateHasChanged);
-        }
-    }
-    
     [Parameter]
     public RenderFragment<CommandState>? ChildContent { get; set; }
 
@@ -73,7 +54,7 @@ public partial class CommandHelper
     private void CanExecuteChanged(object? sender, EventArgs e)
     {
         CreateCommandState();
-        InvokeAsync(StateHasChanged);
+        InvokeAsync(StateHasChanged).Ignore();
     }
 
     private void CreateCommandState()
