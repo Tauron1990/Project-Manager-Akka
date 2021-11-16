@@ -34,7 +34,7 @@
                 <JobSideBar CurrentJobs="context" Model="_model"/>
             </MudItem>
             <MudItem lg="9">
-                <JobDetailDisplay DisplayModel="_detailDisplay"/>
+                <JobDetailDisplay/>
             </MudItem>
         </MudGrid>
     }
@@ -62,7 +62,7 @@
     }
 
     public void Dispose()
-        => _model?.Dispose();
+        => _model?.Reset();
 
 }
 

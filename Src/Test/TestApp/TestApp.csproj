@@ -9,7 +9,7 @@
 
     <ItemGroup>
       <PackageReference Include="Be.Vlaanderen.Basisregisters.Generators.Guid.Deterministic" Version="2.2.12" />
-      <PackageReference Include="DotNetZip" Version="1.15.0" />
+      <PackageReference Include="DotNetZip" Version="1.16.0" />
     </ItemGroup>
 
     <ItemGroup>

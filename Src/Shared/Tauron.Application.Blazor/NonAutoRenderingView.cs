@@ -17,7 +17,7 @@ using Tauron.Application.Blazor.Parameters;
 namespace Tauron.Application.Blazor;
 
 [PublicAPI]
-public abstract class NonAutoRenderingView<TModel> : DisposableComponent, IViewFor<TModel>, INotifyPropertyChanged, ICanActivate, IHasServices
+public abstract class NonAutoRenderingView<TModel> : DisposableComponent, IViewFor<TModel>, ICanActivate, IHasServices, IReactiveObject
     where TModel : class, INotifyPropertyChanged
 {
     public RenderingManager RenderingManager { get; } = new();
@@ -47,7 +47,7 @@ public abstract class NonAutoRenderingView<TModel> : DisposableComponent, IViewF
         get => _viewModel;
         set
         {
-            if (EqualityComparer<TModel?>.Default.Equals(_viewModel, value))
+            if (EqualityComparer<TModel>.Default.Equals(_viewModel, value))
             {
                 return;
             }
@@ -159,4 +159,18 @@ public abstract class NonAutoRenderingView<TModel> : DisposableComponent, IViewF
 
     [Inject]
     public IServiceProvider Services { get; set; } = ImmutableOptionSet.Empty;
+
+    private PropertyChangingEventHandler? _changingEventHandler;
+
+    event PropertyChangingEventHandler? INotifyPropertyChanging.PropertyChanging
+    {
+        add => _changingEventHandler = _changingEventHandler.Combine(value);
+        remove => _changingEventHandler = _changingEventHandler.Remove(value);
+    }
+
+    void IReactiveObject.RaisePropertyChanging(PropertyChangingEventArgs args)
+        => _changingEventHandler?.Invoke(this, args);
+
+    void IReactiveObject.RaisePropertyChanged(PropertyChangedEventArgs args)
+        => PropertyChanged?.Invoke(this, args);
 }

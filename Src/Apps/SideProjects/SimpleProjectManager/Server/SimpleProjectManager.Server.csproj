@@ -10,8 +10,8 @@
     <PackageReference Include="Akka.Persistence.MongoDb" Version="1.4.25" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="6.0.0" />
     <PackageReference Include="MongoDB.Driver.GridFS" Version="2.13.2" />
-    <PackageReference Include="Stl.Fusion" Version="2.0.90" />
-    <PackageReference Include="Stl.Fusion.Server" Version="2.0.90" />
+    <PackageReference Include="Stl.Fusion" Version="2.0.94" />
+    <PackageReference Include="Stl.Fusion.Server" Version="2.0.94" />
   </ItemGroup>
 
   <ItemGroup>

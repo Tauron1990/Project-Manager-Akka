@@ -11,32 +11,19 @@ using Tauron.TAkka;
 namespace Tauron.Application.Blazor;
 
 [PublicAPI]
-public abstract class StatefulViewModel<TData> : ReactiveObject, IActivatableViewModel, IResourceHolder, IParameterUpdateable
+public class BlazorViewModel : ReactiveObject, IActivatableViewModel, IResourceHolder, IParameterUpdateable
 {
-    private readonly IStateFactory _stateFactory;
+    public IStateFactory StateFactory { get; }
     private readonly CompositeDisposable _disposable = new();
-    
-    public IState<TData> State { get; }
 
-    public IObservable<TData> NextElement { get; }
-
-    protected StatefulViewModel(IStateFactory stateFactory)
-    {
-        _stateFactory = stateFactory;
-        State = stateFactory.NewComputed<TData>(ConfigureState, (_, cancel) => ComputeState(cancel))
-           .DisposeWith(_disposable);
-
-        NextElement = State.ToObservable();
-    }
+    protected BlazorViewModel(IStateFactory stateFactory)
+        => StateFactory = stateFactory;
 
     public virtual ViewModelActivator Activator { get; } = new();
-
-    protected virtual void ConfigureState(State<TData>.Options options) { }
     
-    protected abstract Task<TData> ComputeState(CancellationToken cancellationToken);
 
     public IState<TValue> GetParameter<TValue>(string name)
-        => Updater.Register<TValue>(name, _stateFactory);
+        => Updater.Register<TValue>(name, StateFactory);
 
     void IDisposable.Dispose()
         => _disposable.Dispose();
@@ -48,4 +35,25 @@ public abstract class StatefulViewModel<TData> : ReactiveObject, IActivatableVie
         => _disposable.Remove(res);
 
     public ParameterUpdater Updater { get; } = new();
+}
+
+[PublicAPI]
+public abstract class StatefulViewModel<TData> : BlazorViewModel
+{
+    public IState<TData> State { get; }
+
+    public IObservable<TData> NextElement { get; }
+
+    protected StatefulViewModel(IStateFactory stateFactory)
+        : base(stateFactory)
+    {
+        State = stateFactory.NewComputed<TData>(ConfigureState, (_, cancel) => ComputeState(cancel))
+           .DisposeWith(this);
+
+        NextElement = State.ToObservable();
+    }
+    
+    protected virtual void ConfigureState(State<TData>.Options options) { }
+    
+    protected abstract Task<TData> ComputeState(CancellationToken cancellationToken);
 }

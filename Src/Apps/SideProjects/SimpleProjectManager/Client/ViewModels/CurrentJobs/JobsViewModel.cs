@@ -29,4 +29,7 @@ public sealed class JobsViewModel : IDisposable
 
     public void Dispose()
         => _jobsSubject.Dispose();
+
+    public void Reset()
+        => _jobsSubject.OnNext(null);
 }

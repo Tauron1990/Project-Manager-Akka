@@ -3,9 +3,9 @@
 <CascadingValue Value="CommandParameter" Name="@(nameof(CommandParameter))">
     <CascadingValue Value="Command" Name="@(nameof(Command))">
         <CommandHelper>
-            <MudButton Class="@Class" Disabled="@context.Disabled" OnClick="context.Execute" StartIcon="@StartIcon">
+            <MudIconButton Disabled="@context.Disabled" OnClick="context.Execute" Icon="@Icon">
                 @ChildContent
-            </MudButton>
+            </MudIconButton>
         </CommandHelper>
     </CascadingValue>
 </CascadingValue>
@@ -15,8 +15,6 @@
     public RenderFragment? ChildContent { get; set; }
 
     [Parameter]
-    public string? StartIcon { get; set; }
-    
-    [Parameter]
-    public string? Class { get; set; }
+    public string? Icon { get; set; }
+
 }

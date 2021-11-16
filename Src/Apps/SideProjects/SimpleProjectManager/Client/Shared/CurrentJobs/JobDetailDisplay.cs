@@ -12,14 +12,6 @@ namespace SimpleProjectManager.Client.Shared.CurrentJobs;
 public partial class JobDetailDisplay
 {
     private MudCommandButton? _editButton;
-    private JobDetailDisplayViewModel? _displayModel;
-
-    [Parameter]
-    public JobDetailDisplayViewModel DisplayModel
-    {
-        get => _displayModel ?? Services.GetRequiredService<JobDetailDisplayViewModel>();
-        set => _displayModel = value;
-    }
 
     protected override JobDetailDisplayViewModel CreateModel()
         => Services.GetRequiredService<JobDetailDisplayViewModel>();
@@ -44,13 +36,7 @@ public partial class JobDetailDisplay
                                        ViewModel,
                                        m => m.EditJobs,
                                        v => v.EditButton,
-                                       ViewModel.NextElement.Select(
-                                           d =>
-                                           {
-                                               Console.WriteLine("New Id");
-
-                                               return d?.Id;
-                                           }))
+                                       ViewModel.NextElement.Select(d => d?.Id))
                                   .DisposeWith(dispo);
                            });
     }

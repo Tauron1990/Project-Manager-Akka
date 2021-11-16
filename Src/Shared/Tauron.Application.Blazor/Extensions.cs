@@ -94,7 +94,8 @@ namespace Tauron.Application.Blazor
         public static IObservable<TData> ToObservable<TData>(this IState<TData> state)
             => Observable.Create<TData>(o =>
                                         {
-                                            Console.WriteLine("New State Observable");
+                                            if(state.HasValue)
+                                                o.OnNext(state.Value);
                                             return new StateRegistration<TData>(o, state);
                                         })
                .DistinctUntilChanged();

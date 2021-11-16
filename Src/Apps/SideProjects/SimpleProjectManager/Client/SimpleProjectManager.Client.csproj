@@ -18,7 +18,7 @@
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
     <PackageReference Include="MudBlazor" Version="6.0.2" />
     <PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" Version="13.1.42" />
-    <PackageReference Include="Stl.Fusion.Blazor" Version="2.0.90" />
+    <PackageReference Include="Stl.Fusion.Blazor" Version="2.0.94" />
   </ItemGroup>
 
   <ItemGroup>
@@ -44,6 +44,12 @@
     </Compile>
     <Compile Update="Shared\CurrentJobs\JobDetailDisplay.cs">
       <DependentUpon>JobDetailDisplay.razor</DependentUpon>
+    </Compile>
+    <Compile Update="Shared\CurrentJobs\JobSideBar.cs">
+      <DependentUpon>JobSideBar.razor</DependentUpon>
+    </Compile>
+    <Compile Update="Pages\CurrentJobs.cs">
+      <DependentUpon>CurrentJobs.razor</DependentUpon>
     </Compile>
   </ItemGroup>
 

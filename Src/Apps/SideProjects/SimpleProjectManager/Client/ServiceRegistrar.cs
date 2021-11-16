@@ -23,5 +23,8 @@ public class ServiceRegistrar
         services.AddSingleton<JobsViewModel>();
         services.AddTransient<FileDetailDisplayViewModel>();
         services.AddScoped<JobDetailDisplayViewModel>();
+        services.AddScoped<JobPriorityViewModel>();
+        services.AddScoped<JobSidebarModel>();
+        services.AddScoped<CurrentJobsViewModel>();
     }
 }
