@@ -20,6 +20,8 @@ public class ServiceRegistrar
         services.AddMudServices(c => c.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomCenter);
         services.AddSingleton<IEventAggregator, EventAggregator>();
 
+        services.AddTransient<PageNavigation>();
+        
         services.AddSingleton<JobsViewModel>();
         services.AddTransient<FileDetailDisplayViewModel>();
         services.AddScoped<JobDetailDisplayViewModel>();

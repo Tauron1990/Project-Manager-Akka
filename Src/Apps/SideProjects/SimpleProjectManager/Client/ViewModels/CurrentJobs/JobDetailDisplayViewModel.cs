@@ -18,7 +18,7 @@ public class JobDetailDisplayViewModel : StatefulViewModel<JobData?>
     
     public JobDetailDisplayViewModel(
         IStateFactory stateFactory, JobsViewModel jobsModel, IJobDatabaseService jobDatabaseService,
-        NavigationManager navigationManager, IEventAggregator aggregator) : base(stateFactory)
+        PageNavigation navigationManager, IEventAggregator aggregator) : base(stateFactory)
     {
         _jobsModel = jobsModel;
         _jobDatabaseService = jobDatabaseService;
@@ -27,12 +27,12 @@ public class JobDetailDisplayViewModel : StatefulViewModel<JobData?>
             {
                 if (id is null)
                 {
-                    aggregator.PublishWarnig("Keine Prijekt id Verfügabr");
+                    aggregator.PublishWarnig("Keine Projekt id Verfügbar");
 
                     return Unit.Default;
                 }
 
-                navigationManager.NavigateTo($"/EditJob/{id.Value}");
+                navigationManager.EditJob(id);
 
                 return Unit.Default;
             });

@@ -25,7 +25,7 @@ public class JobSidebarModel : StatefulViewModel<ImmutableList<JobSortOrderPair>
     public JobSortOrderPair? SelectedValue => _selectedValue.Value;
     
     public JobSidebarModel(IStateFactory stateFactory, JobsViewModel jobsViewModel, IJobDatabaseService databaseService, 
-        NavigationManager navigationManager) 
+        PageNavigation navigationManager) 
         : base(stateFactory)
     {
         _databaseService = databaseService;
@@ -34,7 +34,7 @@ public class JobSidebarModel : StatefulViewModel<ImmutableList<JobSortOrderPair>
         _selectedValue = jobsViewModel.CurrentInfo.ToProperty(this, p => p.SelectedValue)
            .DisposeWith(this);
         
-        NewJob = ReactiveCommand.Create(() => navigationManager.NavigateTo("/NewJob"));
+        NewJob = ReactiveCommand.Create(navigationManager.NewJob);
         NewItemSelected = ReactiveCommand.Create<object, Unit>(
             o =>
             {
