@@ -1,9 +1,9 @@
 ﻿using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
 
-namespace SimpleProjectManager.Client.Shared.EditJob;
+namespace SimpleProjectManager.Client.ViewModels;
 
-public class JobEditorModel
+public class JobEditorData
 {
     private readonly bool _isUpdate;
 
@@ -17,7 +17,7 @@ public class JobEditorModel
     
     public DateTime? Deadline { get; set; }
 
-    public JobEditorModel(JobData? originalData)
+    public JobEditorData(JobData? originalData)
     {
         OriginalData = originalData;
         _isUpdate = originalData != null;

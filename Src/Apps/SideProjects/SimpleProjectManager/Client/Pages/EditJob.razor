@@ -1,7 +1,7 @@
 ﻿@page "/EditJob/{ProjectId}"
 
 @using SimpleProjectManager.Shared.Validators
-@inherits ComputedStateComponent<JobEditorModel?>
+@inherits ComputedStateComponent<JobEditorData?>
 
 @inject IEventAggregator _eventAggregator
 @inject IJobDatabaseService _jobDatabase
@@ -24,9 +24,9 @@ else
     [Parameter]
     public string ProjectId { get; set; } = string.Empty;
 
-    protected override async Task<JobEditorModel?> ComputeState(CancellationToken cancellationToken) 
+    protected override async Task<JobEditorData?> ComputeState(CancellationToken cancellationToken) 
         => string.IsNullOrWhiteSpace(ProjectId) 
-            ? null : new JobEditorModel(await _jobDatabase.GetJobData(new ProjectId(ProjectId), cancellationToken));
+            ? null : new JobEditorData(await _jobDatabase.GetJobData(new ProjectId(ProjectId), cancellationToken));
 
     private void Cancel()
         => _navigationManager.NavigateTo("/");

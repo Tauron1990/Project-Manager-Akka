@@ -1,4 +1,4 @@
-﻿namespace SimpleProjectManager.Client.Shared.EditJob;
+﻿namespace SimpleProjectManager.Client.ViewModels;
 
 public sealed record JobEditorConfiguration(bool StatusEditing, bool SortOrderEditing)
 {

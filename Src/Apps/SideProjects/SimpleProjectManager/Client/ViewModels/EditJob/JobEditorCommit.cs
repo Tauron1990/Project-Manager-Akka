@@ -1,6 +1,6 @@
 ﻿using SimpleProjectManager.Shared.Services;
 
-namespace SimpleProjectManager.Client.Shared.EditJob;
+namespace SimpleProjectManager.Client.ViewModels;
 
 public sealed record JobEditorPair<TData>(TData NewData, TData? OldData);
 

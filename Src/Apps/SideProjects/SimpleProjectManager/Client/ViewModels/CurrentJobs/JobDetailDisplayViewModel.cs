@@ -1,5 +1,4 @@
 ﻿using System.Reactive;
-using Microsoft.AspNetCore.Components;
 using ReactiveUI;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;

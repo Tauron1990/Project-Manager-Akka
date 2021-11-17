@@ -1,6 +1,5 @@
 ﻿using System.Collections.Immutable;
 using System.Reactive;
-using Microsoft.AspNetCore.Components;
 using ReactiveUI;
 using SimpleProjectManager.Client.Shared.CurrentJobs;
 using SimpleProjectManager.Shared;
