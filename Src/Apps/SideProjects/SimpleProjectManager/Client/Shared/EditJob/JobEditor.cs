@@ -1,13 +1,19 @@
-﻿using System.Collections.Immutable;
+﻿
+
+using System.Reactive.Disposables;
 using Microsoft.AspNetCore.Components;
+using ReactiveUI;
 using SimpleProjectManager.Client.ViewModels;
-using SimpleProjectManager.Shared;
-using SimpleProjectManager.Shared.Services;
+using Tauron.Application.Blazor;
+using Tauron.Application.Blazor.Commands;
 
 namespace SimpleProjectManager.Client.Shared.EditJob;
 
 public partial class JobEditor
 {
+    private MudCommandButton? _cancelButton;
+    private MudCommandButton? _commitButton;
+
     [Parameter]
     public string Title { get; set; } = string.Empty;
 
@@ -30,51 +36,28 @@ public partial class JobEditor
     [Parameter]
     public JobEditorData? Model { get; set; }
 
-    private bool _isValid;
+    protected override JobEditorModel CreateModel()
+        => Services.GetIsolatedService<JobEditorModel>().DisposeWith(this);
 
-    private JobEditorData? _model;
-
-    protected override void OnParametersSet()
+    public MudCommandButton? CancelButton
     {
-        _model = Model ?? new JobEditorData(null);
-        base.OnParametersSet();
+        get => _cancelButton;
+        set => this.RaiseAndSetIfChanged(ref _cancelButton, value);
     }
 
-    private async Task CommitChanges()
+    public MudCommandButton? CommitButton
     {
-        if(_model == null) return;
+        get => _commitButton;
+        set => this.RaiseAndSetIfChanged(ref _commitButton, value);
+    }
 
-        var data = _model.OriginalData;
-        if (data != null)
-        {
-            data = data with
+    protected override void InitializeModel()
+    {
+        this.WhenActivated(
+            dispo =>
             {
-                JobName = new ProjectName(_model.JobName ?? string.Empty),
-                Status = _model.Status,
-                Deadline = ProjectDeadline.FromDateTime(_model.Deadline),
-                Ordering = GetOrdering(data.Id)
-            };
-        }
-        else
-        {
-            var name = new ProjectName(_model.JobName ?? string.Empty);
-            var id = ProjectId.For(name);
-            data = new JobData(id,  name, _model.Status, GetOrdering(id), 
-                ProjectDeadline.FromDateTime(_model.Deadline), ImmutableList<ProjectFileId>.Empty);
-        }
-
-        await Commit.InvokeAsync(new JobEditorCommit(new JobEditorPair<JobData>(data, _model.OriginalData)));
-
-        SortOrder? GetOrdering(ProjectId id)
-        {
-            if (_model.Ordering != null)
-            {
-                return data?.Ordering == null 
-                    ? new SortOrder(id, _model.Ordering.Value, false) 
-                    : data.Ordering.WithCount(_model.Ordering.Value);
-            }
-
-            return data?.Ordering;
-        }
+                this.BindCommand(ViewModel, m => m.Cancel, v => v.CancelButton).DisposeWith(dispo);
+                this.BindCommand(ViewModel, m => m.Commit, v => v.CommitButton).DisposeWith(dispo);
+            });
     }
 }
