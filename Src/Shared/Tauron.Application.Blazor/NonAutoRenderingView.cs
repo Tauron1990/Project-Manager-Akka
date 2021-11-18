@@ -24,6 +24,7 @@ public abstract class NonAutoRenderingView<TModel> : DisposableComponent, IViewF
 
     protected override void OnInitialized()
     {
+        Console.WriteLine("Current jobs Init");
         RenderingManager.Init(StateHasChanged, InvokeAsync);
         ViewModel = CreateModel();
         InitializeModel();
@@ -144,9 +145,10 @@ public abstract class NonAutoRenderingView<TModel> : DisposableComponent, IViewF
              updateable.Updater.UpdateParameters(parameters);
     }
 
-    protected abstract TModel CreateModel();
+    protected TModel CreateModel()
+        => Services.GetIsolatedService<TModel>().DisposeWith(this);
 
-    protected virtual void InitializeModel() { }
+    protected virtual void InitializeModel(){}
     
     protected override bool ShouldRender()
         => RenderingManager.CanRender;

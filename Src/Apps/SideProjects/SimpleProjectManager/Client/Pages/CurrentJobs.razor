@@ -9,7 +9,11 @@
 <PageTitle>Aktuelle Aufträge</PageTitle>
 
 <StateAwaiter State="@ViewModel?.State">
-    @if (context == null || context.Length == 0)
+    @if(context == null)
+    {
+        <GenericLoadingElement Label="Daten werden Abgerufen"/>
+    }
+    else if (context.Length == 0)
     {
         <MudGrid Justify="Justify.Center">
             <MudItem lg="12">
@@ -33,6 +37,7 @@
             </MudItem>
         </MudGrid>
     }
+    
 </StateAwaiter>
 
 

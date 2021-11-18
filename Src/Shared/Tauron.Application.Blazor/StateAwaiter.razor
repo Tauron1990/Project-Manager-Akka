@@ -6,7 +6,7 @@
 @{
     var error = State?.Error;
     var value = State != null ? State.ValueOrDefault : default;
-    var isLoading = State == null || _isInitial || State.Computed.ConsistencyState == ConsistencyState.Computing || !State.HasValue; //|| value == null;
+    var isLoading = State == null || _isInitial || State.Computed.ConsistencyState != ConsistencyState.Consistent || !State.HasValue; //|| value == null;
 
     #if DEBUG
     if (error != null)
@@ -36,10 +36,7 @@ else if (isLoading)
     }
     else
     {
-        <CenterElement>
-            <MudProgressCircular Indeterminate="true"/>
-            <MudText>Laden...</MudText>
-        </CenterElement>
+        <GenericLoadingElement/>
     }
 }
 else

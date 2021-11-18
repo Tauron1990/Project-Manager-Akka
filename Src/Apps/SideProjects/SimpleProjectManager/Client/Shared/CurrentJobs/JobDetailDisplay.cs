@@ -1,10 +1,6 @@
 ﻿using System.Reactive.Linq;
-using Blazor.Extensions.Logging;
-using Microsoft.AspNetCore.Components;
 using ReactiveUI;
-using SimpleProjectManager.Client.ViewModels;
 using Tauron;
-using Tauron.Application.Blazor;
 using Tauron.Application.Blazor.Commands;
 using System.Reactive.Disposables;
 
@@ -14,17 +10,10 @@ public partial class JobDetailDisplay
 {
     private MudCommandButton? _editButton;
 
-    protected override JobDetailDisplayViewModel CreateModel()
-        => Services.GetRequiredService<JobDetailDisplayViewModel>();
-
     private MudCommandButton? EditButton
     {
         get => _editButton;
-        set
-        {
-            _editButton = value;
-            OnPropertyChanged();
-        }
+        set => this.RaiseAndSetIfChanged(ref _editButton, value);
     }
 
     protected override void InitializeModel()
@@ -35,7 +24,7 @@ public partial class JobDetailDisplay
 
                                this.BindCommand(
                                        ViewModel,
-                                       m => m.EditJobs,
+                                       m => m.EditJob,
                                        v => v.EditButton,
                                        ViewModel.NextElement.Select(d => d?.Id))
                                   .DisposeWith(dispo);

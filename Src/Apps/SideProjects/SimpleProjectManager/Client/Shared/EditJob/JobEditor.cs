@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Components;
 using ReactiveUI;
 using SimpleProjectManager.Client.ViewModels;
-using Tauron.Application.Blazor;
 using Tauron.Application.Blazor.Commands;
 using Tauron;
 
@@ -34,9 +33,6 @@ public partial class JobEditor
 
     [Parameter]
     public JobEditorData? Data { get; set; }
-
-    protected override JobEditorViewModel CreateModel()
-        => Services.GetIsolatedService<JobEditorViewModel>().DisposeWith(this);
 
     private MudCommandButton? CancelButton
     {

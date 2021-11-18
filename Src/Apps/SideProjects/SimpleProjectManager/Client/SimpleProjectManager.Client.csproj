@@ -32,6 +32,7 @@
 
   <ItemGroup>
     <Folder Include="Core\" />
+    <Folder Include="ViewModels\AppBar\" />
     <Folder Include="wwwroot\_content\MudBlazor\" />
   </ItemGroup>
 
@@ -59,6 +60,18 @@
     </Compile>
     <Compile Update="Pages\EditJob.cs">
       <DependentUpon>EditJob.razor</DependentUpon>
+    </Compile>
+    <Compile Update="Shared\NavMenu.cs">
+      <DependentUpon>NavMenu.razor</DependentUpon>
+    </Compile>
+    <Compile Update="Shared\MainLayout.cs">
+      <DependentUpon>MainLayout.razor</DependentUpon>
+    </Compile>
+    <Compile Update="Shared\AppBar\MainAppBar.cs">
+      <DependentUpon>MainAppBar.razor</DependentUpon>
+    </Compile>
+    <Compile Update="Shared\EditJob\FileUploader.cs">
+      <DependentUpon>FileUploader.razor</DependentUpon>
     </Compile>
   </ItemGroup>
 

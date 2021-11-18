@@ -22,15 +22,15 @@ public class ServiceRegistrar
         services.AddTransient<PageNavigation>();
         
         services.AddSingleton<JobsViewModel>();
-        services.AddTransient<FileDetailDisplayViewModel>();
+        services.AddScoped<FileDetailDisplayViewModel>();
         services.AddScoped<JobDetailDisplayViewModel>();
         services.AddScoped<JobPriorityViewModel>();
         services.AddScoped<JobSidebarViewModel>();
         services.AddScoped<CurrentJobsViewModel>();
 
-        services.AddTransient<JobEditorViewModel>();
-        services.AddTransient<NewJobViewModel>();
-        services.AddTransient<NewJobViewModel>();
-        services.AddTransient<EditJobViewModel>();
+        services.AddScoped<JobEditorViewModel>();
+        services.AddScoped<NewJobViewModel>();
+        services.AddScoped<NewJobViewModel>();
+        services.AddScoped<EditJobViewModel>();
     }
 }

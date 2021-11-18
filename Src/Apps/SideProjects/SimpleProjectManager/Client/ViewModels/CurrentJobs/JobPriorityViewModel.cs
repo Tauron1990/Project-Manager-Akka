@@ -25,7 +25,12 @@ public sealed class JobPriorityViewModel : BlazorViewModel
     public JobPriorityViewModel(IStateFactory stateFactory, IJobDatabaseService databaseService, IEventAggregator aggregator, JobsViewModel model)
         : base(stateFactory)
     {
-        _model = model;
+        if (stateFactory == null) throw new ArgumentNullException(nameof(stateFactory));
+        if (databaseService == null) throw new ArgumentNullException(nameof(databaseService));
+        if (aggregator == null) throw new ArgumentNullException(nameof(aggregator));
+
+        _model = model ?? throw new ArgumentNullException(nameof(model));
+
         ActivePairs = GetParameter<ImmutableList<JobSortOrderPair>>(nameof(JobPriorityControl.ActivePairs)).ToObservable();
         
         GoUp = ReactiveCommand.CreateFromObservable(CreateExecute(
@@ -61,6 +66,9 @@ public sealed class JobPriorityViewModel : BlazorViewModel
         (
             from activePair in ActivePairs
             from jobSortOrderPair in _model.CurrentInfo
-            select activePair.Contains(jobSortOrderPair) && predicate(activePair, jobSortOrderPair)
+            select activePair != null 
+                && jobSortOrderPair != null 
+                && activePair.Contains(jobSortOrderPair) 
+                && predicate(activePair, jobSortOrderPair)
         ).StartWith(false);
 }

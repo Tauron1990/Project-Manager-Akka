@@ -1,6 +1,5 @@
 ﻿using System.Reactive.Disposables;
 using ReactiveUI;
-using SimpleProjectManager.Client.ViewModels;
 using Tauron.Application.Blazor.Commands;
 
 namespace SimpleProjectManager.Client.Pages;
@@ -16,9 +15,6 @@ public partial class CurrentJobs
         set => this.RaiseAndSetIfChanged(ref _newJob, value);
     }
 
-    protected override CurrentJobsViewModel CreateModel()
-        => Services.GetRequiredService<CurrentJobsViewModel>();
-
     protected override void InitializeModel()
     {
         this.WhenActivated(
@@ -27,11 +23,5 @@ public partial class CurrentJobs
                 this.BindCommand(ViewModel, m => m.NewJob, v => v.NewJob)
                    .DisposeWith(dispo);
             });
-    }
-
-    protected override void Dispose(bool disposing)
-    {
-        base.Dispose(disposing);
-        _model.Reset();
     }
 }

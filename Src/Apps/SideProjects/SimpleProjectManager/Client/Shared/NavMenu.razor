@@ -3,17 +3,6 @@
 
 <MudDivider Class="mb-4"/>
 <MudNavMenu>
-    <MudNavLink Class="ma-1" OnClick="@(() => Navigate(""))">Übersicht</MudNavLink>
-    <MudNavLink Class="ma-1" OnClick="@(() => Navigate("/NewJob"))">Neuer Job</MudNavLink>
+    <MudNavLink Class="ma-1" OnClick="@(() => Navigate(PageNavigation.StartPageUrl))">Übersicht</MudNavLink>
+    <MudNavLink Class="ma-1" OnClick="@(() => Navigate(PageNavigation.NewJobUrl))">Neuer Job</MudNavLink>
 </MudNavMenu>
-
-@code {
-    [Parameter]
-    public EventCallback Navigating { get; set; }
-
-    private async Task Navigate(string target)
-    {
-        await Navigating.InvokeAsync();
-        _navigationManager.NavigateTo(target);
-    }
-}

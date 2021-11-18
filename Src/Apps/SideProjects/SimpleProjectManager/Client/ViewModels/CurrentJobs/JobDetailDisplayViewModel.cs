@@ -13,7 +13,7 @@ public class JobDetailDisplayViewModel : StatefulViewModel<JobData?>
     private readonly JobsViewModel _jobsModel;
     private readonly IJobDatabaseService _jobDatabaseService;
 
-    public ReactiveCommand<ProjectId?, Unit> EditJobs { get; }
+    public ReactiveCommand<ProjectId?, Unit> EditJob { get; }
     
     public JobDetailDisplayViewModel(
         IStateFactory stateFactory, JobsViewModel jobsModel, IJobDatabaseService jobDatabaseService,
@@ -21,7 +21,7 @@ public class JobDetailDisplayViewModel : StatefulViewModel<JobData?>
     {
         _jobsModel = jobsModel;
         _jobDatabaseService = jobDatabaseService;
-        EditJobs = ReactiveCommand.Create<ProjectId?, Unit>(
+        EditJob = ReactiveCommand.Create<ProjectId?, Unit>(
             id =>
             {
                 if (id is null)

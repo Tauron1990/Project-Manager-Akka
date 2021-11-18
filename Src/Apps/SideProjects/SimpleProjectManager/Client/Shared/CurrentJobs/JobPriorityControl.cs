@@ -34,9 +34,6 @@ public partial class JobPriorityControl
     [Parameter]
     public ImmutableList<JobSortOrderPair> ActivePairs { get; set; } = ImmutableList<JobSortOrderPair>.Empty;
 
-    protected override JobPriorityViewModel CreateModel()
-        => Services.GetRequiredService<JobPriorityViewModel>();
-
     protected override void InitializeModel()
     {
         this.WhenActivated(

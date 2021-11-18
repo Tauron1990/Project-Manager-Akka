@@ -15,9 +15,6 @@ public partial class JobSideBar
         set => this.RaiseAndSetIfChanged(ref _newJob, value);
     }
 
-    protected override JobSidebarViewModel CreateModel()
-        => Services.GetRequiredService<JobSidebarViewModel>();
-
     protected override void InitializeModel()
     {
         this.WhenActivated(
