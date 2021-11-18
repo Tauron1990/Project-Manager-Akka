@@ -24,7 +24,7 @@ public sealed class CurrentJobsViewModel : StatefulViewModel<JobInfo[]>
         (from newJobs in NextElement
          where newJobs is not null && jobsViewModel.Current is not null
                                    && !newJobs.Contains(jobsViewModel.Current.Info)
-         select (JobSortOrderPair)null)
+         select default(JobSortOrderPair))
            .Subscribe(jobsViewModel.Publish)
            .DisposeWith(this);
     }

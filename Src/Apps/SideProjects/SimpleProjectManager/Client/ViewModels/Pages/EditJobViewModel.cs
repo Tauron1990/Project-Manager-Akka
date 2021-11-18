@@ -64,6 +64,4 @@ public sealed class EditJobViewModel : StatefulViewModel<JobEditorData?>
         return string.IsNullOrWhiteSpace(id) 
             ? null : new JobEditorData(await _databaseService.GetJobData(new ProjectId(id), cancellationToken));
     }
-
-    private sealed record CommitError(bool IsOk, string? Error);
 }

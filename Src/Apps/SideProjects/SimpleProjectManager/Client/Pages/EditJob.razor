@@ -1,19 +1,19 @@
 ﻿@page "/EditJob/{ProjectId}"
-@inherits ComputedStateComponent<JobEditorData?>
-
-@inject IEventAggregator _eventAggregator
-@inject IJobDatabaseService _jobDatabase
-@inject NavigationManager _navigationManager
+@inherits NonAutoRenderingView<EditJobViewModel>
 
 <PageTitle>Job Beabeiten</PageTitle>
 
-@if (string.IsNullOrWhiteSpace(ProjectId))
+@if (ViewModel is not null)
 {
-    <MudText Typo="Typo.h3">Kein Job Id Angegeben</MudText>
-}
-else
-{
-    <StateAwaiter State="State">
-        <JobEditor Data="context" CanCancel="true" Configuration="@JobEditorConfiguration.EditJobConfig" Title="JobData Beabeiten" Cancel="Cancel" Commit="Commit"/>
-    </StateAwaiter>
+    @if (string.IsNullOrWhiteSpace(ProjectId))
+    {
+        <MudText Typo="Typo.h3">Kein Job Id Angegeben</MudText>
+    }
+    else
+    {
+        <StateAwaiter State="ViewModel.State">
+            <JobEditor Data="context" CanCancel="true" Configuration="@JobEditorConfiguration.EditJobConfig" Title="JobData Beabeiten"
+                       Cancel="ViewModel.Cancel" Commit="ViewModel.Commit"/>
+        </StateAwaiter>
+    }
 }

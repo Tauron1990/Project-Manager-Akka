@@ -87,6 +87,8 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
 
     public virtual async Task<string> ChangeOrder(SetSortOrder newOrder, CancellationToken token)
     {
+        if (newOrder.SortOrder == null) return "Daten nicht zur Verfügung gestellt";
+        
         var result = await _projects.FindOneAndUpdateAsync(
             Builders<ProjectProjection>.Filter.Eq(p => p.Id, newOrder.SortOrder.Id),
             Builders<ProjectProjection>.Update.Set(p => p.Ordering, newOrder.SortOrder),

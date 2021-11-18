@@ -10,8 +10,8 @@ namespace SimpleProjectManager.Client.Shared.CurrentJobs;
 public partial class JobPriorityControl
 {
     private MudCommandButton? _priorize;
-    private MudCommandButton? _goup;
-    private MudCommandButton? _godown;
+    private MudCommandIconButton? _goup;
+    private MudCommandIconButton? _godown;
 
     private MudCommandButton? Priorize
     {
@@ -19,13 +19,13 @@ public partial class JobPriorityControl
         set => this.RaiseAndSetIfChanged(ref _priorize, value);
     }
 
-    private MudCommandButton? Goup
+    private MudCommandIconButton? Goup
     {
         get => _goup;
         set => this.RaiseAndSetIfChanged(ref _goup, value);
     }
 
-    private MudCommandButton? Godown
+    private MudCommandIconButton? Godown
     {
         get => _godown;
         set => this.RaiseAndSetIfChanged(ref _godown, value);
