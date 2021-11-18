@@ -38,8 +38,7 @@ public sealed class EditJobViewModel : StatefulViewModel<JobEditorData?>
                 }
 
                 var command = UpdateProjectCommand.Create(newData.JobData.NewData, newData.JobData.OldData);
-                var validator = new UpdateProjectCommandValidator();
-                var validationResult = await validator.ValidateAsync(command);
+                var validationResult = await _validator.ValidateAsync(command);
 
                 if (validationResult.IsValid)
                 {
