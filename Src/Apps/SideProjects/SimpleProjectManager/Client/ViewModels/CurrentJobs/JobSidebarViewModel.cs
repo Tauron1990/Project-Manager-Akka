@@ -10,7 +10,7 @@ using Tauron.Application.Blazor;
 
 namespace SimpleProjectManager.Client.ViewModels;
 
-public class JobSidebarModel : StatefulViewModel<ImmutableList<JobSortOrderPair>>
+public class JobSidebarViewModel : StatefulViewModel<ImmutableList<JobSortOrderPair>>
 {
     private readonly IJobDatabaseService _databaseService;
 
@@ -23,7 +23,7 @@ public class JobSidebarModel : StatefulViewModel<ImmutableList<JobSortOrderPair>
     private readonly ObservableAsPropertyHelper<JobSortOrderPair?> _selectedValue;
     public JobSortOrderPair? SelectedValue => _selectedValue.Value;
     
-    public JobSidebarModel(IStateFactory stateFactory, JobsViewModel jobsViewModel, IJobDatabaseService databaseService, 
+    public JobSidebarViewModel(IStateFactory stateFactory, JobsViewModel jobsViewModel, IJobDatabaseService databaseService, 
         PageNavigation navigationManager) 
         : base(stateFactory)
     {

@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.WebUtilities;
+using ReactiveUI;
 using Stl;
 using Stl.Fusion;
 
@@ -126,6 +129,12 @@ namespace Tauron.Application.Blazor
 
         public static Scoped<TService> GetIsolatedService<TService>(this IServiceProvider serviceProvider) 
             where TService : notnull => new(serviceProvider);
+
+        public static Action<TInput> ToAction<TInput, TResult>(this ReactiveCommand<TInput, TResult> command)
+            => i => ((ICommand)command).Execute(i);
+        
+        public static Action ToAction<TResult>(this ReactiveCommand<Unit, TResult> command)
+            => () => ((ICommand)command).Execute(Unit.Default);
     }
 
     [PublicAPI]

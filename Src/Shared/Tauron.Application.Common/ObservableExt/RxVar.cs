@@ -23,7 +23,11 @@ public sealed class RxVar<T> : IDisposable, IObservable<T>, IObserver<T>, IEquat
     private readonly IEqualityComparer<T> _equalityComparer = EqualityComparer<T>.Default;
     private readonly BehaviorSubject<T> _subject;
 
-    public RxVar(T initial) => _subject = new BehaviorSubject<T>(initial).DisposeWith(_disposable);
+    public RxVar(T initial)
+    {
+        _subject = new BehaviorSubject<T>(initial);
+        _disposable.Add(_subject);
+    }
 
     public bool IsDistinctMode { get; set; }
 
@@ -58,7 +62,13 @@ public sealed class RxVar<T> : IDisposable, IObservable<T>, IObserver<T>, IEquat
         _subject.OnNext(value);
     }
 
-    public IDisposable ListenTo(IObserver<T> intrest) => _subject.Subscribe(intrest).DisposeWith(_disposable);
+    public IDisposable ListenTo(IObserver<T> intrest)
+    {
+        var result =  _subject.Subscribe(intrest);
+        _disposable.Add(result);
+
+        return Disposable.Create((result, _disposable), d => d._disposable.Remove(d.result));
+    }
 
     public override int GetHashCode()
     {
@@ -106,8 +116,10 @@ public sealed class RxVal<T> : IDisposable, IObservable<T?>, IEquatable<RxVal<T>
 
     public RxVal(IObservable<T> source)
     {
-        _subject = new BehaviorSubject<T?>(default).DisposeWith(_disposable);
-        source.Subscribe(_subject).DisposeWith(_disposable);
+        _subject = new BehaviorSubject<T?>(default);
+        var sub = source.Subscribe(_subject);
+        _disposable.Add(_subject);
+        _disposable.Add(sub);
     }
 
     public T? Value => _subject.Value;
@@ -125,7 +137,12 @@ public sealed class RxVal<T> : IDisposable, IObservable<T?>, IEquatable<RxVal<T>
 
     IDisposable IObservable<T?>.Subscribe(IObserver<T?> observer) => _subject.Subscribe(observer);
 
-    public IDisposable ListenTo(IObserver<T?> intrest) => _subject.Subscribe(intrest).DisposeWith(_disposable);
+    public IDisposable ListenTo(IObserver<T?> intrest)
+    {
+        var result = _subject.Subscribe(intrest);
+
+        return Disposable.Create((result, _disposable), s => s._disposable.Remove(s.result));
+    }
 
     public override int GetHashCode()
     {

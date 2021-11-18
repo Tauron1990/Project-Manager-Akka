@@ -1,57 +1,20 @@
 ﻿@page "/NewJob"
 
-@inherits NonAutoRenderingComponent
-
-@inject IJobDatabaseService _jobDatabase
-@inject IEventAggregator _aggregator
-@inject NavigationManager _navigationManager
+@inherits NonAutoRenderingView<NewJobViewModel>
 
 <PageTitle>Neuer Auftrag</PageTitle>
 
-@if (_isCommiting)
+@if (ViewModel is not null)
 {
-    <CenterElement>
-        <MudProgressCircular Indeterminate="true"/>
-    </CenterElement>
-}
-else
-{
-    <JobEditor Title="Neuer Auftrag" Commit="CreateNewJob" CanCancel="true" Cancel="CancelCreation" Model="_model" 
-               Configuration="@JobEditorConfiguration.NewJobConfig"/>
-}
-
-@code {
-
-    private bool _isCommiting;
-
-    private readonly JobEditorData _model = new(null);
-
-    private async Task CreateNewJob(JobEditorCommit commit)
+    @if (ViewModel.IsCommiting)
     {
-        var data = commit.JobData.NewData;
-        await RenderingManager.PerformTask(
-            () => _isCommiting = true,
-            () => _isCommiting = false,
-            async () =>
-                  {
-                      var success = await _aggregator.IsSuccess(
-                          () => TimeoutToken.WithDefault(
-                              token => _jobDatabase.CreateJob(new CreateProjectCommand(data.JobName, data.ProjectFiles, data.Status, data.Deadline), token)));
-                      if (success)
-                      {
-                          if (data.Ordering != null)
-                          {
-                              await _aggregator.IsSuccess(() => TimeoutToken.WithDefault(
-                                  token => _jobDatabase.ChangeOrder(new SetSortOrder(data.Ordering), token)));
-                          }
-                          _navigationManager.NavigateTo("/");
-                      }
-                      return !success;
-                  }
-            );
+        <CenterElement>
+            <MudProgressCircular Indeterminate="true"/>
+        </CenterElement>
     }
-
-    private void CancelCreation() 
-        => _navigationManager.NavigateTo("/");
-
+    else
+    {
+        <JobEditor Title="Neuer Auftrag" Commit="ViewModel.Commit" CanCancel="true" Cancel="ViewModel.Cancel"
+                   Configuration="@JobEditorConfiguration.NewJobConfig"/>
+    }
 }

@@ -1,11 +1,10 @@
-﻿
-
-using System.Reactive.Disposables;
+﻿using System.Reactive.Disposables;
 using Microsoft.AspNetCore.Components;
 using ReactiveUI;
 using SimpleProjectManager.Client.ViewModels;
 using Tauron.Application.Blazor;
 using Tauron.Application.Blazor.Commands;
+using Tauron;
 
 namespace SimpleProjectManager.Client.Shared.EditJob;
 
@@ -34,18 +33,18 @@ public partial class JobEditor
     private bool SortOrderEditing => Configuration.SortOrderEditing;
 
     [Parameter]
-    public JobEditorData? Model { get; set; }
+    public JobEditorData? Data { get; set; }
 
-    protected override JobEditorModel CreateModel()
-        => Services.GetIsolatedService<JobEditorModel>().DisposeWith(this);
+    protected override JobEditorViewModel CreateModel()
+        => Services.GetIsolatedService<JobEditorViewModel>().DisposeWith(this);
 
-    public MudCommandButton? CancelButton
+    private MudCommandButton? CancelButton
     {
         get => _cancelButton;
         set => this.RaiseAndSetIfChanged(ref _cancelButton, value);
     }
 
-    public MudCommandButton? CommitButton
+    private MudCommandButton? CommitButton
     {
         get => _commitButton;
         set => this.RaiseAndSetIfChanged(ref _commitButton, value);

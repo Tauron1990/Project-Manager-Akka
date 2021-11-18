@@ -1,12 +1,7 @@
-﻿@inherits NonAutoRenderingView<JobEditorModel>
-
+﻿@inherits NonAutoRenderingView<JobEditorViewModel>
 
 <MudCard>
-    @if (_model == null)
-    {
-        <MudText>Fehler bei der Initialisirung</MudText>
-    }
-    else
+    @if (ViewModel is not null)
     {
         @if (!string.IsNullOrWhiteSpace(Title))
         {
@@ -15,12 +10,12 @@
             </MudCardHeader>
         }
         <MudCardContent>
-            <MudForm @bind-IsValid="_isValid">
-                <MudTextField @bind-Value="_model.JobName" Label="Job Name" Validation="_model.ValidateJobName" DebounceInterval="100"/>
-                <MudDatePicker @bind-Date="_model.Deadline" Label="Termin" Validation="_model.ValidateDeadline"/>
+            <MudForm IsValid="ViewModel.IsValid" IsValidChanged="ViewModel.IsValidChanged">
+                <MudTextField @bind-Value="ViewModel.Data.JobName" Label="Job Name" Validation="ViewModel.Data.ValidateJobName" DebounceInterval="100"/>
+                <MudDatePicker @bind-Date="ViewModel.Data.Deadline" Label="Termin" Validation="ViewModel.Data.ValidateDeadline"/>
                 @if (StatusEditing)
                 {
-                    <MudSelect @bind-Value="@_model.Status">
+                    <MudSelect @bind-Value="@ViewModel.Data.Status">
                         @foreach (var stat in Enum.GetValues<ProjectStatus>())
                         {
                             <MudSelectItem Value="stat">@JobTranslator.GetString(stat)</MudSelectItem>
@@ -29,13 +24,17 @@
                 }
                 @if (SortOrderEditing)
                 {
-                    <MudTextField @bind-Value="_model.Ordering" Label="Sortier Position"/>
+                    <MudTextField @bind-Value="ViewModel.Data.Ordering" Label="Sortier Position"/>
                 }
             </MudForm>
         </MudCardContent>
         <MudCardActions>
-            <MudButton Disabled="@(!_isValid)" StartIcon="@Icons.Filled.Save" OnClick="CommitChanges">Speichern</MudButton>
+            <MudCommandButton StartIcon="@Icons.Filled.Save" @ref="CommitButton">Speichern</MudCommandButton>
             <MudButton Disabled="@(!CanCancel)" StartIcon="@Icons.Filled.Cancel" OnClick="Cancel">Abbrechen</MudButton>
         </MudCardActions>
+    }
+    else
+    {
+        <MudText>Fehler bei der Initialisierung</MudText>
     }
 </MudCard>

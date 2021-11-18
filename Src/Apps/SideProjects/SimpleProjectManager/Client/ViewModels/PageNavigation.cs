@@ -8,10 +8,11 @@ public class PageNavigation
     private readonly NavigationManager _navigationManager;
 
     public PageNavigation(NavigationManager navigationManager)
-    {
-        _navigationManager = navigationManager;
-    }
+        => _navigationManager = navigationManager;
 
+    public void ShowStartPage()
+        => _navigationManager.NavigateTo("/");
+    
     public void NewJob()
         => _navigationManager.NavigateTo("/NewJob");
 

@@ -6,6 +6,7 @@ using SimpleProjectManager.Client.ViewModels;
 using Tauron;
 using Tauron.Application.Blazor;
 using Tauron.Application.Blazor.Commands;
+using System.Reactive.Disposables;
 
 namespace SimpleProjectManager.Client.Shared.CurrentJobs;
 

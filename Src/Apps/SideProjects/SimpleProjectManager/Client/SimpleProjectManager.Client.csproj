@@ -54,6 +54,12 @@
     <Compile Update="Shared\EditJob\JobEditor.cs">
       <DependentUpon>JobEditor.razor</DependentUpon>
     </Compile>
+    <Compile Update="Pages\NewJob.cs">
+      <DependentUpon>NewJob.razor</DependentUpon>
+    </Compile>
+    <Compile Update="Pages\EditJob.cs">
+      <DependentUpon>EditJob.razor</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>

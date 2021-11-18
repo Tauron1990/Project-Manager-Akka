@@ -15,11 +15,12 @@ using Tauron.Application.Blazor;
 
 namespace SimpleProjectManager.Client.ViewModels;
 
-public sealed class JobEditorModel : BlazorViewModel
+public sealed class JobEditorViewModel : BlazorViewModel
 {
     private readonly BehaviorSubject<bool> _isValid;
 
-    public Action<bool> IsValid => _isValid.OnNext;
+    public bool IsValid => _isValid.Value;
+    public Action<bool> IsValidChanged => _isValid.OnNext;
 
     private readonly ObservableAsPropertyHelper<JobEditorData> _data;
 
@@ -29,7 +30,7 @@ public sealed class JobEditorModel : BlazorViewModel
     
     public ReactiveCommand<Unit, Unit> Commit { get; }
 
-    public JobEditorModel(IStateFactory stateFactory)
+    public JobEditorViewModel(IStateFactory stateFactory)
         : base(stateFactory)
     {
         _isValid = new BehaviorSubject<bool>(false).DisposeWith(this);
@@ -38,7 +39,7 @@ public sealed class JobEditorModel : BlazorViewModel
         var cancelEvent = GetParameter<EventCallback>(nameof(JobEditor.Cancel));
         var canCancel = GetParameter<bool>(nameof(JobEditor.CanCancel));
 
-        _data = GetParameter<JobEditorData?>(nameof(JobEditor.Model))
+        _data = GetParameter<JobEditorData?>(nameof(JobEditor.Data))
            .ToObservable()
            .Select(i => i ?? new JobEditorData(null))
            .ToProperty(this, m => m.Data)
