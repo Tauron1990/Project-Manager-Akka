@@ -3,9 +3,12 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Text;
 using Akka.Util;
 using DynamicData;
+using DynamicData.Alias;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.Toolkit.HighPerformance;
 using ReactiveUI;
 using Stl.Fusion;
 using Tauron;
@@ -16,6 +19,8 @@ namespace SimpleProjectManager.Client.ViewModels;
 
 public sealed class FileUploaderViewModel : BlazorViewModel
 {
+    private static readonly string[] _allowedContentTypes = { "application/pdf", "application/x-zip-compressed", "application/zip", "image/tiff", "image/x-tiff" };
+    
     private readonly IEventAggregator _aggregator;
     private readonly SourceCache<FileUploadFile, string> _files = new(bf => bf.Name);
     private readonly BehaviorSubject<bool> _isUploading = new(false);
@@ -50,14 +55,24 @@ public sealed class FileUploaderViewModel : BlazorViewModel
            .Bind(out var list)
            .Subscribe()
            .DisposeWith(this);
-
+        
+        _files.Connect()
+           .Where(f => f.UploadState == UploadState.Pending && string.IsNullOrWhiteSpace(ProjectId))
+           .Select(TryExtrectName)
+           .Flatten()
+           .Where(n => !string.IsNullOrWhiteSpace(n.Current) && string.IsNullOrWhiteSpace(ProjectId))  
+           .Do(n => ProjectId = n.Current)
+           .Subscribe()
+           .DisposeWith(this);
+        
         Files = list;
 
         var canExecute = _isUploading.CombineLatest(_files.CountChanged).Select(d => !d.First && d.Second > 0).Publish().RefCount();
 
         _shouldDisable = canExecute.Select(canExecuteResult => !canExecuteResult).ToProperty(this, m => m.ShouldDisable);
         
-        Upload = ReactiveCommand.CreateFromObservable(UploadFiles, canExecute)
+        Upload = ReactiveCommand.CreateFromObservable(UploadFiles, 
+                canExecute.CombineLatest(this.WhenAnyValue(m => m.ProjectId)).Select(t => t.First && !string.IsNullOrWhiteSpace(t.Second)))
            .DisposeWith(this);
         Upload.IsExecuting.Subscribe(_isUploading).DisposeWith(this);
         
@@ -67,18 +82,63 @@ public sealed class FileUploaderViewModel : BlazorViewModel
         var filesChanged = ReactiveCommand.Create<InputFileChangeEventArgs, Unit>(
             args =>
             {
-                _files.Edit(u => u.Load(args.GetMultipleFiles().Where(ValidateFile).Select(bf => new FileUploadFile(bf))));
+                _files.Edit(u => u.Load(args.GetMultipleFiles()
+                               .Where(IsFileValid)
+                               .Select(bf => new FileUploadFile(bf))));
                 return Unit.Default;
             })
            .DisposeWith(this);
         FilesChanged = filesChanged.ToAction();
+    }
 
-        bool ValidateFile(IBrowserFile file)
+    private bool IsFileValid(IBrowserFile file)
+    {
+        var result = _allowedContentTypes.Any(t => t == file.ContentType);
+        if(!result)
+            _aggregator.PublishWarnig($"Die Datei {file.Name} kann nicht Hochgeladen werden. Nur Tiff, zip und Pdf sinf erlaubt");
+
+        return result;
+    }
+
+    IObservable<Unit> UploadFiles()
+    {
+        //TODO Implement File Upload
+        return Observable.Empty<Unit>();
+    }
+
+    private static string? TryExtrectName(FileUploadFile file)
+    {
+        var upperName = file.Name.ToUpper().AsSpan();
+
+        var index = upperName.IndexOf("BM");
+
+        if (index == -1) return null;
+
+        while (upperName.Length >= 10)
         {
-            return true;
+            upperName = upperName[index..];
+            if(upperName.Length != 10) break;
+
+            if (AllDigit(upperName[2..2]) &&
+                upperName[4] == '_' &&
+                AllDigit(upperName[5..10]))
+            {
+                return upperName[..10].ToString();
+            }
         }
-        
-        IObservable<Unit> UploadFiles()
-                => Observable.Empty<Unit>();
+
+        return null;
+    }
+
+    private static bool AllDigit(in ReadOnlySpan<char> input)
+    {
+        foreach (var t in input)
+        {
+            if(char.IsDigit(t)) continue;
+
+            return false;
+        }
+
+        return true;
     }
 }

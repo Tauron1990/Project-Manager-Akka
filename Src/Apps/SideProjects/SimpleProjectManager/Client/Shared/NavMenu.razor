@@ -5,4 +5,9 @@
 <MudNavMenu>
     <MudNavLink Class="ma-1" OnClick="@(() => Navigate(PageNavigation.StartPageUrl))">Übersicht</MudNavLink>
     <MudNavLink Class="ma-1" OnClick="@(() => Navigate(PageNavigation.NewJobUrl))">Neuer Job</MudNavLink>
+    <MudTooltip Text="Seiten die für Fehlerbehandlung und Server Administration gedacht sind">
+        <MudNavGroup Class="ma-1" Expanded="false" Title="Intern">
+            <MudNavLink OnClick="@(() => Navigate(PageNavigation.CriticalErrorsUrl))">Kritische Fehler</MudNavLink>
+        </MudNavGroup>
+    </MudTooltip>
 </MudNavMenu>

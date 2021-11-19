@@ -1,0 +1,27 @@
+﻿@inherits NonAutoRenderingView<CriticalErrorViewModel>
+
+@{
+    var item = ViewModel?.Item;
+}
+
+@if (item is not null)
+{
+    <MudExpansionPanels>
+        <MudExpansionPanel IsExpanded="@_firstExpanded">
+            <MudGrid Justify="Justify.Center">
+                <MudItem lg="3">
+                    <MudText>@item.Occurrence.ToString("G")</MudText>
+                </MudItem>
+                <MudItem lg="6">
+                    <MudText>@item.Message</MudText>
+                </MudItem>
+                <MudItem lg="3">
+                    <MudText>@item.ApplicationPart</MudText>
+                </MudItem>
+            </MudGrid>
+        </MudExpansionPanel>
+        <MudExpansionPanel>
+            
+        </MudExpansionPanel>
+    </MudExpansionPanels>
+}

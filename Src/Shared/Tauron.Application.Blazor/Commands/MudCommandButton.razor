@@ -3,7 +3,8 @@
 <CascadingValue Value="CommandParameter" Name="@(nameof(CommandParameter))">
     <CascadingValue Value="Command" Name="@(nameof(Command))">
         <CommandHelper>
-            <MudButton Class="@Class" Disabled="@context.Disabled" OnClick="context.Execute" StartIcon="@StartIcon">
+            <MudButton Class="@Class" Disabled="@context.Disabled" OnClick="context.Execute" StartIcon="@StartIcon" Color="Color"
+                       Size="Size" Variant="Variant">
                 @ChildContent
             </MudButton>
         </CommandHelper>
@@ -19,4 +20,15 @@
     
     [Parameter]
     public string? Class { get; set; }
+    
+    [Parameter]
+    public Color Color { get; set; }
+
+    /// <summary>The Size of the component.</summary>
+    [Parameter]
+    public Size Size { get; set; } = Size.Medium;
+
+    /// <summary>The variant to use.</summary>
+    [Parameter]
+    public Variant Variant { get; set; }
 }

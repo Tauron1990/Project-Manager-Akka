@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
+    <PublishTrimmed>false</PublishTrimmed>
   </PropertyGroup>
 
   <ItemGroup>
@@ -72,6 +73,12 @@
     </Compile>
     <Compile Update="Shared\EditJob\FileUploader.cs">
       <DependentUpon>FileUploader.razor</DependentUpon>
+    </Compile>
+    <Compile Update="Pages\CriticalErrors.cs">
+      <DependentUpon>CriticalErrors.razor</DependentUpon>
+    </Compile>
+    <Compile Update="Shared\CriticalErrors\CriticalErrorDispaly.cs">
+      <DependentUpon>CriticalErrorDispaly.razor</DependentUpon>
     </Compile>
   </ItemGroup>
 

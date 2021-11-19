@@ -66,5 +66,6 @@ static void ConfigFusion(IServiceCollection collection, Uri baseAdress)
                     c.BaseAddress = baseAdress;
                 }))
        .AddReplicaService<IJobDatabaseService, IJobDatabaseServiceDef>()
-       .AddReplicaService<IJobFileService, IJobFileServiceDef>();
+       .AddReplicaService<IJobFileService, IJobFileServiceDef>()
+       .AddReplicaService<ICriticalErrorService, ICriticalErrorServiceDef>();
 }

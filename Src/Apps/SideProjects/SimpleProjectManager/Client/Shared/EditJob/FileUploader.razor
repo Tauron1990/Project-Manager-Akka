@@ -1,55 +1,70 @@
-﻿
+﻿@inherits NonAutoRenderingView<FileUploaderViewModel>
 
-@inject ISnackbar Snackbar
-<!--suppress CssUnresolvedCustomProperty -->
-<style>
-    .drag-drop-zone {
-        display: flex;align-items: center;justify-content: center;transition: all .4s;min-height: 400px;
-    }
-    .drag-drop-input {
-        position: absolute;width: 100%;height: 90%;opacity: 0;cursor:pointer;
-        z-index:2;
-    }
-    .drag-enter {
-        box-shadow: var(--mud-elevation-10);
-    }
-    .list{
-        padding:2em;min-width:100%;
-    }
-</style>
+@if (ViewModel != null)
+{
+    <MudGrid>
+        <MudItem lg="12">
+            <MudText Align="Align.Center">Hochladen von PDF, Zip und Tiff datein zum Server</MudText>
+        </MudItem>
+        <MudItem lg="12">
+            <MudGrid Justify="Justify.Center">
+                <MudItem lg="3"/>
+                <MudItem lg="6">
+                    <MudTextField Label="Job Name:" @bind-Value="ViewModel.ProjectId" DebounceInterval="100"/>
+                </MudItem>
+                <MudItem lg="3"/>
+            </MudGrid>
+        </MudItem>
+        <MudItem lg="12">
+            <MudPaper @ondragenter="@(() => _dragEnterStyle = "drag-enter")"
+                      @ondragleave="@(() => _dragEnterStyle = null)"
+                      @ondragend="@(() => _dragEnterStyle = null)"
+                      Class=@("drag-drop-zone " + _dragEnterStyle)>
 
-<MudPaper @ondragenter="@(()=>_dragEnterStyle="drag-enter")"
-          @ondragleave="@(()=>_dragEnterStyle=null)"
-          @ondragend="@(()=>_dragEnterStyle=null)"
-          Class=@("drag-drop-zone "+ _dragEnterStyle)>
+                <InputFile OnChange="ViewModel.FilesChanged" multiple class="drag-drop-input" disabled="@ViewModel.ShouldDisable"/>
 
-    <InputFile OnChange="OnInputFileChanged" multiple  class="drag-drop-input"/>
-
-    @if (!_fileNames.Any())
-    {
-        <MudText Typo="Typo.h3">Drag and Drop oder Klicken zum hinzufügen</MudText> 
-    }else
-    {
-        <MudList Style="padding:2em;width:100%;" Dense="true" >
-            @foreach (var file in _fileNames)
-            {
-                <MudListItem @key="@file" >
-                   <MudChip Color="Color.Dark" 
-                            Style="width:60px; overflow:hidden;" 
-                            Text="@(file.Split(".").Last())" />
-                   @file
-                </MudListItem>}
-        </MudList>
-    }
-</MudPaper>
-
-<MudGrid Justify="Justify.Center" Spacing="4">
-    <MudItem>
-        <MudButton OnClick="Upload" Disabled="@(!_fileNames.Any())" Color="Color.Primary" Variant="Variant.Filled">Hochladen</MudButton>
-    </MudItem>
-    <MudItem>
-        <MudButton OnClick="@_fileNames.Clear" Disabled="@(!_fileNames.Any())" Color="Color.Error" Variant="Variant.Filled">Löschen</MudButton>
-    </MudItem>
-</MudGrid>
+                <ObservableCollectionView SourceParameter="ViewModel.Files">
+                    <EmptyRender>
+                        <MudText Typo="Typo.h3">Drag and Drop oder Klicken zum hinzufügen</MudText>
+                    </EmptyRender>
+                    <ListRender>
+                        <MudList Style="padding:2em;width:100%;" Dense="true">
+                            @foreach (var file in context)
+                            {
+                                <MudListItem @key="@file.Name">
+                                    <MudChip Color="Color.Dark"
+                                             Style="width:60px; overflow:hidden;"
+                                             Text="@(file.Name.Split(".").Last())"/>
+                                    <MudText>@file.Name</MudText>
+                                    @if (file.UploadState != UploadState.Pending)
+                                    {
+                                        @if (file.UploadState == UploadState.Uploading)
+                                        {
+                                            <MudText Class="ml-1">Hochladen</MudText>
+                                        }
+                                        else
+                                        {
+                                            <MudText Class="ml-1">Fertig</MudText>
+                                        }
+                                    }
+                                </MudListItem>
+                            }
+                        </MudList>
+                    </ListRender>
+                </ObservableCollectionView>
+            </MudPaper>
+        </MudItem>
+        <MudItem lg="12">
+            <MudGrid Justify="Justify.Center" Spacing="4">
+                <MudItem>
+                    <MudCommandButton @ref="Upload" Color="Color.Primary" Variant="Variant.Filled">Hochladen</MudCommandButton>
+                </MudItem>
+                <MudItem>
+                    <MudCommandButton @ref="Clear" Color="Color.Error" Variant="Variant.Filled">Löschen</MudCommandButton>
+                </MudItem>
+            </MudGrid>
+        </MudItem>
+    </MudGrid>
+}
 
 

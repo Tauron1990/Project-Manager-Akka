@@ -1,0 +1,21 @@
+﻿@page "/CriticalErrors"
+
+@inherits NonAutoRenderingView<CriticalErrorsViewModel>
+
+<StateAwaiter State="ViewModel?.State">
+    <ObservableCollectionView SourceParameter="context">
+        <EmptyRender>
+            <MudText Align="Align.Center" Typo="Typo.h4">Keine Aktuellen Fehler</MudText>
+        </EmptyRender>
+        <ListRender>
+            <MudGrid Justify="Justify.Center">
+                @foreach (var item in context)
+                {
+                    <MudItem lg="12" @key="item.Id">
+                        <CriticalErrorDispaly Error="item"/>
+                    </MudItem>
+                }
+            </MudGrid>
+        </ListRender>
+    </ObservableCollectionView>
+</StateAwaiter>

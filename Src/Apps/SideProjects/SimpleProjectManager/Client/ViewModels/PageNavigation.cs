@@ -7,7 +7,7 @@ public class PageNavigation
 {
     public const string StartPageUrl = "/";
     public const string NewJobUrl = "/NewJob";
-
+    public const string CriticalErrorsUrl = "/CriticalErrors";
 
     private readonly NavigationManager _navigationManager;
 

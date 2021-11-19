@@ -23,7 +23,8 @@ public class Startup
     { var fusion = services.AddFusion();
         fusion
            .AddComputeService<IJobDatabaseService, JobDatabaseService>()
-           .AddComputeService<IJobFileService, JobFileService>();
+           .AddComputeService<IJobFileService, JobFileService>()
+           .AddComputeService<ICriticalErrorService, CriticalErrorService>();
 
         fusion.AddWebServer();
         

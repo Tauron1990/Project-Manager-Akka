@@ -33,5 +33,8 @@ public class ServiceRegistrar
         services.AddScoped<FileUploaderViewModel>();
         services.AddScoped<NewJobViewModel>();
         services.AddScoped<NewJobViewModel>();
+
+        services.AddScoped<CriticalErrorsViewModel>();
+        services.AddScoped<CriticalErrorViewModel>();
     }
 }
