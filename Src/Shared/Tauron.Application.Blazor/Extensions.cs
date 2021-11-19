@@ -131,10 +131,24 @@ namespace Tauron.Application.Blazor
             where TService : notnull => new(serviceProvider);
 
         public static Action<TInput> ToAction<TInput, TResult>(this ReactiveCommand<TInput, TResult> command)
-            => i => ((ICommand)command).Execute(i);
-        
+        {
+            var com = (ICommand)command;
+            return i =>
+                   {
+                       if(com.CanExecute(i))
+                        com.Execute(i);
+                   };
+        }
+
         public static Action ToAction<TResult>(this ReactiveCommand<Unit, TResult> command)
-            => () => ((ICommand)command).Execute(Unit.Default);
+        {
+            var com = (ICommand)command;
+            return () =>
+                   {
+                       if(com.CanExecute(Unit.Default))
+                           com.Execute(Unit.Default);
+                   };
+        }
     }
 
     [PublicAPI]

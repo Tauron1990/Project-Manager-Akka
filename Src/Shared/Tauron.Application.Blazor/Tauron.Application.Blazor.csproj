@@ -52,6 +52,9 @@
       <Compile Update="Wizard\WizardRoot.cs">
         <DependentUpon>WizardRoot.razor</DependentUpon>
       </Compile>
+      <Compile Update="ObservableCollectionView.cs">
+        <DependentUpon>ObservableCollectionView.razor</DependentUpon>
+      </Compile>
     </ItemGroup>
 
 </Project>

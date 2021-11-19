@@ -28,9 +28,10 @@ public class ServiceRegistrar
         services.AddScoped<JobSidebarViewModel>();
         services.AddScoped<CurrentJobsViewModel>();
 
-        services.AddScoped<JobEditorViewModel>();
-        services.AddScoped<NewJobViewModel>();
-        services.AddScoped<NewJobViewModel>();
         services.AddScoped<EditJobViewModel>();
+        services.AddScoped<JobEditorViewModel>();
+        services.AddScoped<FileUploaderViewModel>();
+        services.AddScoped<NewJobViewModel>();
+        services.AddScoped<NewJobViewModel>();
     }
 }
