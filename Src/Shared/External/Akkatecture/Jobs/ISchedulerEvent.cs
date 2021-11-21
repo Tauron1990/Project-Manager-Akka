@@ -22,10 +22,24 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using Akkatecture.Core.VersionedTypes;
+using JetBrains.Annotations;
 
 namespace Akkatecture.Jobs
 {
-    public interface ISchedulerEvent : IVersionedType { }
+    [PublicAPI]
+    public enum JobEventType
+    {
+        Cancel,
+        Schedule,
+        Finish
+    }
+    
+    [PublicAPI]
+    public interface ISchedulerEvent : IVersionedType
+    {
+        JobEventType GetEventType();
+        string GetJobId();
+    }
 
     // ReSharper disable UnusedTypeParameter
     public interface ISchedulerEvent<TJob, TIdentity> : ISchedulerEvent

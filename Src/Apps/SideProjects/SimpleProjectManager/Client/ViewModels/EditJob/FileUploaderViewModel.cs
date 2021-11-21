@@ -1,14 +1,10 @@
 ﻿using System.Collections.ObjectModel;
 using System.Reactive;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using System.Text;
-using Akka.Util;
 using DynamicData;
 using DynamicData.Alias;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.Toolkit.HighPerformance;
 using ReactiveUI;
 using Stl.Fusion;
 using Tauron;
@@ -19,7 +15,7 @@ namespace SimpleProjectManager.Client.ViewModels;
 
 public sealed class FileUploaderViewModel : BlazorViewModel
 {
-    private static readonly string[] _allowedContentTypes = { "application/pdf", "application/x-zip-compressed", "application/zip", "image/tiff", "image/x-tiff" };
+    private static readonly string[] AllowedContentTypes = { "application/pdf", "application/x-zip-compressed", "application/zip", "image/tiff", "image/x-tiff" };
     
     private readonly IEventAggregator _aggregator;
     private readonly SourceCache<FileUploadFile, string> _files = new(bf => bf.Name);
@@ -93,7 +89,7 @@ public sealed class FileUploaderViewModel : BlazorViewModel
 
     private bool IsFileValid(IBrowserFile file)
     {
-        var result = _allowedContentTypes.Any(t => t == file.ContentType);
+        var result = AllowedContentTypes.Any(t => t == file.ContentType);
         if(!result)
             _aggregator.PublishWarnig($"Die Datei {file.Name} kann nicht Hochgeladen werden. Nur Tiff, zip und Pdf sinf erlaubt");
 

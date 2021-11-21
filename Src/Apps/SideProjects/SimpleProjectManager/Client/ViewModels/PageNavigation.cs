@@ -8,7 +8,8 @@ public class PageNavigation
     public const string StartPageUrl = "/";
     public const string NewJobUrl = "/NewJob";
     public const string CriticalErrorsUrl = "/CriticalErrors";
-
+    public const string TaskManagerUrl = "/TaskManager";
+    
     private readonly NavigationManager _navigationManager;
 
     public PageNavigation(NavigationManager navigationManager)

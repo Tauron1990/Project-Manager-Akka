@@ -6,7 +6,9 @@ using SimpleProjectManager.Server.Controllers.ModelBinder;
 using SimpleProjectManager.Server.Core.Data;
 using SimpleProjectManager.Server.Core.Projections;
 using SimpleProjectManager.Server.Core.Services;
+using SimpleProjectManager.Server.Core.Tasks;
 using SimpleProjectManager.Shared.Services;
+using SimpleProjectManager.Shared.Services.Tasks;
 using Stl.Collections;
 using Stl.Fusion;
 using Stl.Fusion.Server;
@@ -20,14 +22,16 @@ public class Startup
     // This method gets called by the runtime. Use this method to add services to the container.
     // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
     public void ConfigureServices(IServiceCollection services)
-    { var fusion = services.AddFusion();
+    {
+        var fusion = services.AddFusion();
         fusion
            .AddComputeService<IJobDatabaseService, JobDatabaseService>()
            .AddComputeService<IJobFileService, JobFileService>()
-           .AddComputeService<ICriticalErrorService, CriticalErrorService>();
+           .AddComputeService<ICriticalErrorService, CriticalErrorService>()
+           .AddComputeService<ITaskManager, TaskManager>();
 
         fusion.AddWebServer();
-        
+
         services.AddHttpContextAccessor();
         services.AddDataProtection();
 
@@ -37,16 +41,18 @@ public class Startup
         services.AddSignalR();
         services.AddControllersWithViews();
         services.AddRazorPages()
-           .AddMvcOptions(options => {
-                              var oldModelBinderProviders = options.ModelBinderProviders.ToList();
-                              var newModelBinderProviders = new IModelBinderProvider[] 
-                                                            {
-                                                                new IdentityModelBinderFactory()
-                                                            };
-                              options.ModelBinderProviders.Clear();
-                              options.ModelBinderProviders.AddRange(newModelBinderProviders);
-                              options.ModelBinderProviders.AddRange(oldModelBinderProviders);
-                          });
+           .AddMvcOptions(
+                options =>
+                {
+                    var oldModelBinderProviders = options.ModelBinderProviders.ToList();
+                    var newModelBinderProviders = new IModelBinderProvider[]
+                                                  {
+                                                      new IdentityModelBinderFactory()
+                                                  };
+                    options.ModelBinderProviders.Clear();
+                    options.ModelBinderProviders.AddRange(newModelBinderProviders);
+                    options.ModelBinderProviders.AddRange(oldModelBinderProviders);
+                });
         services.AddResponseCompression(
             opts => opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/octet-stream" }));
 
@@ -73,7 +79,8 @@ public class Startup
            .AddModule<MainModule>()
            .AddModule<DataModule>()
            .AddModule<ProjectionModule>()
-           .AddModule<ServicesModule>();
+           .AddModule<ServicesModule>()
+           .AddModule<TaskModule>();
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

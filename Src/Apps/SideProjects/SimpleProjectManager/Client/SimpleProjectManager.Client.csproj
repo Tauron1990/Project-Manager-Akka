@@ -19,7 +19,7 @@
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
     <PackageReference Include="MudBlazor" Version="6.0.2" />
     <PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" Version="13.1.42" />
-    <PackageReference Include="Stl.Fusion.Blazor" Version="2.0.94" />
+    <PackageReference Include="Stl.Fusion.Blazor" Version="2.0.101" />
   </ItemGroup>
 
   <ItemGroup>
@@ -79,6 +79,15 @@
     </Compile>
     <Compile Update="Shared\CriticalErrors\CriticalErrorDispaly.cs">
       <DependentUpon>CriticalErrorDispaly.razor</DependentUpon>
+    </Compile>
+    <Compile Update="Shared\AppBar\ErrorNotify.cs">
+      <DependentUpon>ErrorNotify.razor</DependentUpon>
+    </Compile>
+    <Compile Update="Pages\TaskManager.cs">
+      <DependentUpon>TaskManager.razor</DependentUpon>
+    </Compile>
+    <Compile Update="Shared\Tasks\PendingTaskDisplay.cs">
+      <DependentUpon>PendingTaskDisplay.razor</DependentUpon>
     </Compile>
   </ItemGroup>
 

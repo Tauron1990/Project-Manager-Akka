@@ -30,27 +30,34 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
             {
                 using (Computed.Invalidate())
                 {
-                    (de.GetAggregateEvent() switch
+                    switch (de.GetAggregateEvent())
                     {
-                        NewProjectCreatedEvent => GetActiveJobs(default),
-
-                        ProjectDeadLineChangedEvent => DataChanged(),
-                        ProjectNameChangedEvent => DataChanged(),
-                        ProjectStatusChangedEvent => DataChanged(),
-
-                        _ => Task.CompletedTask
-                    }).Ignore();
+                            case NewProjectCreatedEvent :
+                                GetActiveJobs (default).Ignore();
+                                break;
+                            case ProjectDeadLineChangedEvent:
+                                DataChanged().Ignore();
+                                break;
+                            case ProjectNameChangedEvent:
+                                DataChanged().Ignore();
+                                break;
+                            case ProjectStatusChangedEvent:
+                                DataChanged().Ignore();
+                                break;
+                    }
                 }
 
                 Task DataChanged()
                     => Task.WhenAny(
-                        GetActiveJobs(default),
-                        GetJobData(de.AggregateIdentity, default));
+                        GetActiveJobs(default).AsTask(),
+                        GetJobData(de.AggregateIdentity, default).AsTask());
             });
     }
 
-    public virtual async Task<JobInfo[]> GetActiveJobs(CancellationToken token)
+    public virtual async ValueTask<JobInfo[]> GetActiveJobs(CancellationToken token)
     {
+        if (Computed.IsInvalidating()) return Array.Empty<JobInfo>();
+        
         var filter = Builders<ProjectProjection>.Filter.Eq(p => p.Status, ProjectStatus.Finished);
 
         var result = await _projects.Find(Builders<ProjectProjection>.Filter.Not(filter))
@@ -60,8 +67,10 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
         return result.ToArray();
     }
 
-    public virtual async Task<SortOrder[]> GetSortOrders(CancellationToken token)
+    public virtual async ValueTask<SortOrder[]> GetSortOrders(CancellationToken token)
     {
+        if (Computed.IsInvalidating()) return Array.Empty<SortOrder>();
+        
         var builder = Builders<ProjectProjection>.Filter;
         var filter = builder.Or
             (
@@ -74,18 +83,20 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
         return list.ToArray();
     }
 
-    public virtual async Task<JobData> GetJobData(ProjectId id, CancellationToken token)
+    public virtual async ValueTask<JobData> GetJobData(ProjectId id, CancellationToken token)
     {
+        if (Computed.IsInvalidating()) return null!;
+        
         var filter = Builders<ProjectProjection>.Filter.Eq(p => p.Id, id);
         var result = await _projects.Find(filter).FirstAsync(token);
 
         return new JobData(result.Id, result.JobName, result.Status, result.Ordering, result.Deadline, result.ProjectFiles);
     }
 
-    public virtual async Task<string> CreateJob(CreateProjectCommand command, CancellationToken token)
+    public virtual async ValueTask<string> CreateJob(CreateProjectCommand command, CancellationToken token)
         => (await _commandProcessor.RunCommand(command)).Error ?? string.Empty;
 
-    public virtual async Task<string> ChangeOrder(SetSortOrder newOrder, CancellationToken token)
+    public virtual async ValueTask<string> ChangeOrder(SetSortOrder newOrder, CancellationToken token)
     {
         if (newOrder.SortOrder == null) return "Daten nicht zur Verfügung gestellt";
         
@@ -105,9 +116,12 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
             : "Das Element wurde nicht gefunden";
     }
 
-    public async Task<string> UpdateJobData(UpdateProjectCommand command, CancellationToken token)
+    public async ValueTask<string> UpdateJobData(UpdateProjectCommand command, CancellationToken token)
         => (await _commandProcessor.RunCommand(command)).Error ?? string.Empty;
 
     public void Dispose()
-        => _subscription.Dispose();
+    {
+        _subscription.Dispose();
+        GC.SuppressFinalize(this);
+    }
 }

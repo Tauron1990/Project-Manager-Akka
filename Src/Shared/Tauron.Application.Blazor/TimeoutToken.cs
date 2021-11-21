@@ -8,10 +8,10 @@ namespace Tauron.Application.Blazor;
 [PublicAPI]
 public sealed class TimeoutToken
 {
-    public static ValueTask<TResult> WithDefault<TResult>(Func<CancellationToken, Task<TResult>> runner)
+    public static ValueTask<TResult> WithDefault<TResult>(Func<CancellationToken, ValueTask<TResult>> runner)
         => With(TimeSpan.FromSeconds(20), runner);
 
-    public static async ValueTask<TResult> With<TResult>(TimeSpan timeSpan, Func<CancellationToken, Task<TResult>> runner)
+    public static async ValueTask<TResult> With<TResult>(TimeSpan timeSpan, Func<CancellationToken, ValueTask<TResult>> runner)
     {
         using var cts = new CancellationTokenSource
             (

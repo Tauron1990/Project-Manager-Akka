@@ -1,6 +1,7 @@
 using Blazor.Extensions.Logging;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using RestEase;
 using SimpleProjectManager.Client.Core;
 using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
@@ -9,6 +10,7 @@ using Stl.Fusion.Client;
 using Stl.Fusion.Extensions;
 using Splat.Microsoft.Extensions.DependencyInjection;
 using SimpleProjectManager.Client;
+using SimpleProjectManager.Shared.Services.Tasks;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
@@ -38,6 +40,7 @@ var host = builder.Build();
 host.Services.UseMicrosoftDependencyResolver();
 
 #if DEBUG
+Console.WriteLine(host.Services.GetRequiredService<ResponseDeserializer>().GetType());
 Console.WriteLine("Debug Delay");
 await Task.Delay(1000);
 #endif
@@ -48,7 +51,7 @@ await host.RunAsync();
 static void ConfigFusion(IServiceCollection collection, Uri baseAdress)
 {
     Console.WriteLine($"Base Adress: {baseAdress}");
-
+    
     collection.AddSingleton<BlazorModeHelper>();
     collection.AddFusion()
        .AddFusionTime()
@@ -67,5 +70,6 @@ static void ConfigFusion(IServiceCollection collection, Uri baseAdress)
                 }))
        .AddReplicaService<IJobDatabaseService, IJobDatabaseServiceDef>()
        .AddReplicaService<IJobFileService, IJobFileServiceDef>()
-       .AddReplicaService<ICriticalErrorService, ICriticalErrorServiceDef>();
+       .AddReplicaService<ICriticalErrorService, ICriticalErrorServiceDef>()
+       .AddReplicaService<ITaskManager, ITaskManagerDef>();
 }

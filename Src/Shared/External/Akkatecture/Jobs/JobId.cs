@@ -25,9 +25,10 @@ using Akkatecture.Core;
 
 namespace Akkatecture.Jobs
 {
-    public class JobId : Identity<JobId>, IJobId
+    public abstract class JobId<TSelf> : Identity<TSelf>, IJobId 
+        where TSelf : Identity<TSelf>
     {
-        public JobId(string value)
+        protected JobId(string value)
             : base(value) { }
     }
 }

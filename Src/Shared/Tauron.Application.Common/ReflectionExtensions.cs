@@ -287,13 +287,22 @@ public sealed class FastReflection
     }
 
     public object? FastCreateInstance(Type target, params object[] parm)
-    {
-        return GetCreator(target, parm.Select(o => o.GetType()).ToArray())?.Invoke(parm);
-    }
+        => GetCreator(target, parm.Select(o => o.GetType()).ToArray())?.Invoke(parm);
 
     public object? FastCreateInstance(Type target, Type[] parmTypes,  params object[] parm)
+        => GetCreator(target, parmTypes)?.Invoke(parm);
+
+    public TType FastCreateInstance<TType>(params object[] parm)
+        => FastCreateInstance<TType>(parm.Select(o => o.GetType()).ToArray(), parm);
+
+    public TType FastCreateInstance<TType>(Type[] parmTypes, params object[] parm)
     {
-        return GetCreator(target, parmTypes)?.Invoke(parm);
+        var obj = FastCreateInstance(typeof(TType), parmTypes, parm);
+
+        if (obj is TType result)
+            return result;
+
+        throw new InvalidOperationException("No Instance was Created");
     }
 }
 

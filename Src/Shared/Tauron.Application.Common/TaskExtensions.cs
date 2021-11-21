@@ -39,4 +39,8 @@ public static class TaskExtensions
     public static void Ignore(this Task _) { }
 
     public static void Ignore<T>(this Task<T> _) { }
+    
+    public static void Ignore(this ValueTask _) { }
+
+    public static void Ignore<T>(this ValueTask<T> _) { }
 }

@@ -1,0 +1,13 @@
+﻿@inherits NonAutoRenderingView<PendingTaskDisplayViewModel>
+
+@if (ViewModel is not null && PendingTask is not null)
+{
+    <MudGrid>
+        <MudItem lg="4">
+            <MudText>Name: @PendingTask.Name</MudText>
+        </MudItem>
+        <MudItem lg="8">
+            <MudText>Info: @PendingTask.Info</MudText>
+        </MudItem>
+    </MudGrid>
+}

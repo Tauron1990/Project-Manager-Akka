@@ -8,6 +8,7 @@ public sealed class MainModule : Module
     protected override void Load(ContainerBuilder builder)
     {
         builder.RegisterStartUpAction<ClusterJoinSelf>();
+        builder.RegisterStartUpAction<JobManagerRegistrations>();
         base.Load(builder);
     }
 }

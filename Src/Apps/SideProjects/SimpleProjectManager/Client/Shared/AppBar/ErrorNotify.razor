@@ -1,0 +1,16 @@
+﻿@inherits ComputedStateComponent<long>
+
+@inject ICriticalErrorService _errorService
+
+<StateAwaiter State="State">
+    <MudTooltip Text="Aktuelle Kritische Fehler">
+        @if (context == 0)
+        {
+            <MudAlert Severity="Severity.Success">Keine</MudAlert>
+        }
+        else
+        {
+            <MudAlert Severity="Severity.Warning">@context</MudAlert>
+        }
+    </MudTooltip>
+</StateAwaiter>

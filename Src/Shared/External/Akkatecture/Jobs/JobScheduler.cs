@@ -247,29 +247,20 @@ namespace Akkatecture.Jobs
 
         public void ApplySchedulerEvent(SchedulerEvent<TJob, TIdentity> schedulerEvent)
         {
-            switch (schedulerEvent)
+            State = schedulerEvent switch
             {
-                case Scheduled<TJob, TIdentity> scheduled:
-                    State = State.AddEntry(scheduled.Entry);
-
-                    break;
-                case Finished<TJob, TIdentity> completed:
-                    State = State.RemoveEntry(completed.JobId);
-
-                    break;
-                case Cancelled<TJob, TIdentity> cancelled:
-                    State = State.RemoveEntry(cancelled.JobId);
-
-                    break;
-                default: throw new ArgumentException(nameof(schedulerEvent));
-            }
+                Scheduled<TJob, TIdentity> scheduled => State.AddEntry(scheduled.Entry),
+                Finished<TJob, TIdentity> completed => State.RemoveEntry(completed.JobId),
+                Cancelled<TJob, TIdentity> cancelled => State.RemoveEntry(cancelled.JobId),
+                _ => throw new ArgumentException(nameof(schedulerEvent))
+            };
+            
+            Context.System.EventStream.Publish(schedulerEvent);
         }
 
         private void Emit<TEvent>(TEvent schedulerEvent, Action<TEvent> handler)
             where TEvent : SchedulerEvent<TJob, TIdentity>
-        {
-            PersistAsync(schedulerEvent, handler);
-        }
+            => PersistAsync(schedulerEvent, handler);
 
         protected override void PostStop()
         {

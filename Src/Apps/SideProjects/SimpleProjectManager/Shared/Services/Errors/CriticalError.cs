@@ -2,4 +2,6 @@
 
 namespace SimpleProjectManager.Shared.Services;
 
-public sealed record CriticalError(string Id, DateTime Occurrence, string ApplicationPart, string Message, string? StackTrace, ImmutableDictionary<string, string> ContextData);
+public sealed record ErrorProperty(string Key, string Value);
+
+public sealed record CriticalError(string Id, DateTime Occurrence, string ApplicationPart, string Message, string? StackTrace, ImmutableList<ErrorProperty> ContextData);

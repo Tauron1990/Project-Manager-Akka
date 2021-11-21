@@ -7,4 +7,6 @@ public class ApiPaths
     public const string FilesApi = "Api/Files";
 
     public const string ErrorApi = "Api/Errors";
+
+    public const string TaskApi = "Api/TaskManager";
 }

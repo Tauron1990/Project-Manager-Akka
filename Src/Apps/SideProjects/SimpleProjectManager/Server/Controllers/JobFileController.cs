@@ -19,11 +19,11 @@ namespace SimpleProjectManager.Server.Controllers
             => _service = service;
 
         [Publish, HttpGet]
-        public Task<ProjectFileInfo?> GetJobFileInfo([FromQuery]ProjectFileId id, CancellationToken token)
+        public ValueTask<ProjectFileInfo?> GetJobFileInfo([FromQuery]ProjectFileId id, CancellationToken token)
             => _service.GetJobFileInfo(id, token);
 
         [Publish, HttpPost]
-        public Task<string> RegisterFile(ProjectFileInfo projectFile, CancellationToken token)
+        public ValueTask<string> RegisterFile(ProjectFileInfo projectFile, CancellationToken token)
             => _service.RegisterFile(projectFile, token);
 
         [HttpGet("{id}")]

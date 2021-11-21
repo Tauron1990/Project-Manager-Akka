@@ -7,9 +7,9 @@
         <EmptyRender>
             <MudText Align="Align.Center" Typo="Typo.h4">Keine Aktuellen Fehler</MudText>
         </EmptyRender>
-        <ListRender>
+        <ListRender Context="items">
             <MudGrid Justify="Justify.Center">
-                @foreach (var item in context)
+                @foreach (var item in items)
                 {
                     <MudItem lg="12" @key="item.Id">
                         <CriticalErrorDispaly Error="item"/>

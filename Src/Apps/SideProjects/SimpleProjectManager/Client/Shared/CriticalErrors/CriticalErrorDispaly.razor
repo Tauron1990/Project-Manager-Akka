@@ -6,22 +6,61 @@
 
 @if (item is not null)
 {
-    <MudExpansionPanels>
-        <MudExpansionPanel IsExpanded="@_firstExpanded">
-            <MudGrid Justify="Justify.Center">
-                <MudItem lg="3">
-                    <MudText>@item.Occurrence.ToString("G")</MudText>
-                </MudItem>
-                <MudItem lg="6">
-                    <MudText>@item.Message</MudText>
-                </MudItem>
-                <MudItem lg="3">
-                    <MudText>@item.ApplicationPart</MudText>
-                </MudItem>
-            </MudGrid>
-        </MudExpansionPanel>
-        <MudExpansionPanel>
-            
-        </MudExpansionPanel>
-    </MudExpansionPanels>
+    <MudPaper Class="ma-2" Elevation="3">
+        <MudExpansionPanels>
+            <MudExpansionPanel>
+                <TitleContent>
+                    <MudGrid Justify="Justify.Center">
+                        <MudItem lg="2">
+                            <MudText>@item.Occurrence.ToString("G")</MudText>
+                        </MudItem>
+                        <MudItem lg="5">
+                            <MudText>@item.Message</MudText>
+                        </MudItem>
+                        <MudItem lg="3">
+                            <MudText>@item.ApplicationPart</MudText>
+                        </MudItem>
+                        <MudItem lg="1">
+                            <MudCommandButton @ref="Hide" Color="Color.Info">Ausblenden</MudCommandButton>
+                        </MudItem>
+                        <MudItem lg="1"/>
+                    </MudGrid>
+                </TitleContent>
+                <ChildContent>
+                    <MudGrid>
+                        <MudItem lg="12">
+                            <MudCard>
+                                <MudCardHeader>
+                                    <MudText>Kontext Informationen</MudText>
+                                </MudCardHeader>
+                                <MudCardContent>
+                                    @if (item.ContextData.IsEmpty)
+                                    {
+                                        <MudText>Keine Kontext Informationen</MudText>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var (key, value) in item.ContextData)
+                                        {
+                                            <MudText>@($"{key} -- {value}")</MudText>
+                                        }
+                                    }
+                                </MudCardContent>
+                            </MudCard>
+                        </MudItem>
+                        <MudItem lg="12">
+                            <MudCard>
+                                <MudCardHeader>
+                                    <MudText>Stack Trace</MudText>
+                                </MudCardHeader>
+                                <MudCardContent>
+                                    <MudText>@item.StackTrace</MudText>
+                                </MudCardContent>
+                            </MudCard>
+                        </MudItem>
+                    </MudGrid>
+                </ChildContent>
+            </MudExpansionPanel>
+        </MudExpansionPanels>
+    </MudPaper>
 }

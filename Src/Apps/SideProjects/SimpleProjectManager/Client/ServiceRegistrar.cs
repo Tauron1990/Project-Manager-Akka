@@ -36,5 +36,7 @@ public class ServiceRegistrar
 
         services.AddScoped<CriticalErrorsViewModel>();
         services.AddScoped<CriticalErrorViewModel>();
+
+        services.AddScoped<PendingTaskDisplayViewModel>();
     }
 }

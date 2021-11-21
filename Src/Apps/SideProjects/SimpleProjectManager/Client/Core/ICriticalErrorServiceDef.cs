@@ -6,6 +6,9 @@ namespace SimpleProjectManager.Client.Core;
 [BasePath(ApiPaths.ErrorApi)]
 public interface ICriticalErrorServiceDef
 {
+    [Get(nameof(CountErrors))]
+    Task<long> CountErrors(CancellationToken token);
+    
     [Get(nameof(GetErrors))]
     Task<CriticalError[]> GetErrors(CancellationToken token);
 

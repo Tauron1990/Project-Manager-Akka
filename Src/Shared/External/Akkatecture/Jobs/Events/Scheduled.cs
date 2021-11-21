@@ -37,5 +37,10 @@ namespace Akkatecture.Jobs.Events
             => Entry = entry ?? throw new ArgumentNullException(nameof(entry));
 
         public Schedule<TJob, TIdentity> Entry { get; }
+        public override JobEventType GetEventType()
+            => JobEventType.Schedule;
+
+        public override string GetJobId()
+            => Entry.JobId.Value;
     }
 }

@@ -2,6 +2,7 @@
 using SimpleProjectManager.Server.Core.Projections.Core;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
+using Stl.Fusion;
 
 namespace SimpleProjectManager.Server.Core.Services;
 
@@ -16,8 +17,10 @@ public class JobFileService : IJobFileService
         _files = dataRepository.Collection<FileInfoData>();
     }
 
-    public async Task<ProjectFileInfo?> GetJobFileInfo(ProjectFileId id, CancellationToken token)
+    public async ValueTask<ProjectFileInfo?> GetJobFileInfo(ProjectFileId id, CancellationToken token)
     {
+        if (Computed.IsInvalidating()) return null;
+        
         var filter = Builders<FileInfoData>.Filter.Eq(d => d.Id, id);
         var result = await _files.Find(filter).FirstOrDefaultAsync(token);
 
@@ -26,7 +29,7 @@ public class JobFileService : IJobFileService
             : new ProjectFileInfo(result.Id, result.ProjectName, result.FileName, result.Size, result.FileType, result.Mime);
     }
 
-    public async Task<string> RegisterFile(ProjectFileInfo projectFile, CancellationToken token)
+    public async ValueTask<string> RegisterFile(ProjectFileInfo projectFile, CancellationToken token)
     {
         try
         {

@@ -12,12 +12,12 @@ namespace SimpleProjectManager.Client.ViewModels;
 
 public class CriticalErrorViewModel : BlazorViewModel
 {
-    private ObservableAsPropertyHelper<CriticalError?> _item;
+    private readonly ObservableAsPropertyHelper<CriticalError?> _item;
     public CriticalError? Item => _item.Value;
 
     public ReactiveCommand<Unit, Unit> Hide { get; }
 
-    protected CriticalErrorViewModel(IStateFactory stateFactory, ICriticalErrorService errorService, IEventAggregator eventAggregator)
+    public CriticalErrorViewModel(IStateFactory stateFactory, ICriticalErrorService errorService, IEventAggregator eventAggregator)
         : base(stateFactory)
     {
         var currentError = GetParameter<CriticalError?>(nameof(CriticalErrorDispaly.Error));

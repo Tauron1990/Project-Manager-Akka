@@ -44,5 +44,10 @@ namespace Akkatecture.Jobs.Events
 
         public TIdentity JobId { get; }
         public DateTime TriggerDate { get; }
+        public override JobEventType GetEventType()
+            => JobEventType.Finish;
+
+        public override string GetJobId()
+            => JobId.Value;
     }
 }
