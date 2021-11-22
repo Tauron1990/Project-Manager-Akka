@@ -2,6 +2,7 @@
 using SimpleProjectManager.Shared.Services.Tasks;
 using Stl.Fusion;
 using Tauron;
+using Tauron.Application;
 
 namespace SimpleProjectManager.Server.Core.Tasks;
 
@@ -10,10 +11,10 @@ public class TaskManager : ITaskManager, IDisposable
     private readonly TaskManagerCore _taskManagerCore;
     private readonly IDisposable _subscription;
 
-    public TaskManager(TaskManagerCore taskManagerCore)
+    public TaskManager(TaskManagerCore taskManagerCore, IEventAggregator aggregator)
     {
         _taskManagerCore = taskManagerCore;
-        _subscription = MessageBus.Current.Listen<TasksChanged>()
+        _subscription = aggregator.SubscribeTo<TasksChanged>()
            .Subscribe(
                 _ =>
                 {

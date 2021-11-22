@@ -4,6 +4,7 @@ using MongoDB.Driver;
 using ReactiveUI;
 using SimpleProjectManager.Shared.Services;
 using Tauron;
+using Tauron.Application;
 using Tauron.Operations;
 
 namespace SimpleProjectManager.Server.Core.Tasks;
@@ -19,11 +20,13 @@ public sealed class TaskManagerJobRunner : JobRunner<TaskManagerDeleteEntry, Tas
 {
     private readonly IMongoCollection<TaskManagerEntry> _collection;
     private readonly CriticalErrorHelper _errorHelper;
+    private readonly IEventAggregator _aggregator;
 
-    public TaskManagerJobRunner(IMongoCollection<TaskManagerEntry> collection, CriticalErrorHelper errorHelper)
+    public TaskManagerJobRunner(IMongoCollection<TaskManagerEntry> collection, CriticalErrorHelper errorHelper, IEventAggregator aggregator)
     {
         _collection = collection;
         _errorHelper = errorHelper;
+        _aggregator = aggregator;
     }
 
     public bool Run(TaskManagerDeleteEntry job)
@@ -56,7 +59,7 @@ public sealed class TaskManagerJobRunner : JobRunner<TaskManagerDeleteEntry, Tas
         var result = await _collection.DeleteOneAsync(filter);
 
         var success = result.IsAcknowledged && result.DeletedCount == 1;
-        if (success) MessageBus.Current.SendMessage(TasksChanged.Inst);
+        if (success) _aggregator.Publish();.SendMessage(TasksChanged.Inst);
 
         return success ? OperationResult.Success() : OperationResult.Failure();
     }
@@ -67,8 +70,8 @@ public sealed class TaskManagerScheduler : JobScheduler<TaskManagerScheduler, Ta
 
 public sealed class TaskManagerDeleteEntryManager : JobManager<TaskManagerScheduler, TaskManagerJobRunner, TaskManagerDeleteEntry, TaskManagerJobId>
 {
-    public TaskManagerDeleteEntryManager(IMongoCollection<TaskManagerEntry> collection, CriticalErrorHelper errorHelper)
-        : base(() => new TaskManagerScheduler(), () => new TaskManagerJobRunner(collection, errorHelper))
+    public TaskManagerDeleteEntryManager(IMongoCollection<TaskManagerEntry> collection, CriticalErrorHelper errorHelper, IEventAggregator aggregator)
+        : base(() => new TaskManagerScheduler(), () => new TaskManagerJobRunner(collection, errorHelper, aggregator))
     {
         
     }
