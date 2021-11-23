@@ -1,4 +1,5 @@
 ﻿using Autofac;
+using SimpleProjectManager.Server.Core.JobManager;
 using Tauron.Application.AkkaNode.Bootstrap;
 
 namespace SimpleProjectManager.Server;

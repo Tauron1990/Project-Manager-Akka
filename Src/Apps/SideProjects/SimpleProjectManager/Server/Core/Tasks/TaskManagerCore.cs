@@ -9,6 +9,7 @@ using MongoDB.Driver;
 using ReactiveUI;
 using SimpleProjectManager.Server.Core.Projections.Core;
 using SimpleProjectManager.Shared.Services;
+using Tauron.Application;
 using Tauron.Operations;
 
 #pragma warning disable EX006
@@ -23,14 +24,17 @@ public sealed class TaskManagerCore
     private readonly ConcurrentBag<RegisterJobType> _registrations = new();
     private readonly ConcurrentDictionary<string, IActorRef> _jobManagers = new();
     private readonly ActorSystem _actorSystem;
+    private readonly IEventAggregator _aggregator;
     private readonly CriticalErrorHelper _criticalErrors;
 
     private readonly ConcurrentDictionary<string, TaskManagerJobId> _autoCancelDely = new();
     private IActorRef _autoRemoveManager = Nobody.Instance;
 
-    public TaskManagerCore(InternalDataRepository repository, ActorSystem actorSystem, ICriticalErrorService criticalErrorService, ILogger<TaskManagerCore> logger)
+    public TaskManagerCore(InternalDataRepository repository, ActorSystem actorSystem, ICriticalErrorService criticalErrorService, 
+        ILogger<TaskManagerCore> logger, IEventAggregator aggregator)
     {
         _actorSystem = actorSystem;
+        _aggregator = aggregator;
         _criticalErrors = new CriticalErrorHelper(nameof(TaskManagerCore), criticalErrorService, logger);
         _entrys = repository.Collection<TaskManagerEntry>();
         
@@ -39,7 +43,7 @@ public sealed class TaskManagerCore
 
     private void InitAutoDelete()
     {
-        _autoRemoveManager = _actorSystem.ActorOf(Props.Create(() => new TaskManagerDeleteEntryManager(_entrys, _criticalErrors)));
+        _autoRemoveManager = _actorSystem.ActorOf(Props.Create(() => new TaskManagerDeleteEntryManager(_entrys, _criticalErrors, _aggregator)));
         _actorSystem.ActorOf(
             d =>
             {
@@ -131,7 +135,7 @@ public sealed class TaskManagerCore
                     if (!result.Ok)
                         throw new InvalidOperationException("Task Konnte nicht eingerehit werden");
 
-                    MessageBus.Current.SendMessage(TasksChanged.Inst);
+                    _aggregator.Publish(TasksChanged.Inst);
                     return OperationResult.Success();
                 }
                 catch (Exception e)
@@ -164,7 +168,7 @@ public sealed class TaskManagerCore
                 var deleteResult = await _entrys.DeleteOneAsync(filter, token);
                 if (deleteResult.IsAcknowledged)
                 {
-                    MessageBus.Current.SendMessage(TasksChanged.Inst);
+                    _aggregator.Publish(TasksChanged.Inst);
                     return OperationResult.Success();
                 }
                 

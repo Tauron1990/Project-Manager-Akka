@@ -1,6 +1,6 @@
 ﻿using Tauron.Application.AkkaNode.Bootstrap;
 
-namespace SimpleProjectManager.Server;
+namespace SimpleProjectManager.Server.Core.JobManager;
 
 public sealed class JobManagerRegistrations : IStartUpAction
 {

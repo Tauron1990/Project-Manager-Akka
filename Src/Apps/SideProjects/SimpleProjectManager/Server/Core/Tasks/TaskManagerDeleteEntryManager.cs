@@ -59,7 +59,7 @@ public sealed class TaskManagerJobRunner : JobRunner<TaskManagerDeleteEntry, Tas
         var result = await _collection.DeleteOneAsync(filter);
 
         var success = result.IsAcknowledged && result.DeletedCount == 1;
-        if (success) _aggregator.Publish();.SendMessage(TasksChanged.Inst);
+        if (success) _aggregator.Publish(TasksChanged.Inst);
 
         return success ? OperationResult.Success() : OperationResult.Failure();
     }
