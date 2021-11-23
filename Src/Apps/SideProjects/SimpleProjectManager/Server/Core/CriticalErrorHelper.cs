@@ -1,10 +1,13 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics;
+using JetBrains.Annotations;
 using SimpleProjectManager.Shared.Services;
+using Tauron.Application;
 using Tauron.Operations;
 
 namespace SimpleProjectManager.Server.Core;
 
+[PublicAPI]
 public sealed class CriticalErrorHelper
 {
     private readonly string _generalPart;
@@ -58,6 +61,28 @@ public sealed class CriticalErrorHelper
                 return OperationResult.Failure(e);
 
             return await WriteError(detailPart, e, erros);
+        }
+    }
+
+    public async ValueTask<string?> ProcessTransaction(TransactionResult result, string detailePart, Func<ImmutableList<ErrorProperty>> propertys)
+    {
+        var (trasnactionState, exception) = result;
+
+        if (trasnactionState == TrasnactionState.Successeded) return null;
+        if (exception is null)
+            return "Unbekannter Fehler";
+
+        switch (trasnactionState)
+        {
+            case TrasnactionState.RollbackFailed:
+                await WriteError(
+                    detailePart,
+                    exception,
+                    propertys);
+
+                return exception.Message;
+            default:
+                return exception.Message;
         }
     }
 }

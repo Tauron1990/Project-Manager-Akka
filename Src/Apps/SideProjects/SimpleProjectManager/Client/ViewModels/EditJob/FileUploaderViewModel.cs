@@ -15,7 +15,8 @@ namespace SimpleProjectManager.Client.ViewModels;
 
 public sealed class FileUploaderViewModel : BlazorViewModel
 {
-    private static readonly string[] AllowedContentTypes = { "application/pdf", "application/x-zip-compressed", "application/zip", "image/tiff", "image/x-tiff" };
+    public static readonly string[] AllowedContentTypes = { "application/pdf", "application/x-zip-compressed", "application/zip", "image/tiff", "image/x-tiff" };
+    public const long MaxSize = 524_288_000;
     
     private readonly IEventAggregator _aggregator;
     private readonly SourceCache<FileUploadFile, string> _files = new(bf => bf.Name);

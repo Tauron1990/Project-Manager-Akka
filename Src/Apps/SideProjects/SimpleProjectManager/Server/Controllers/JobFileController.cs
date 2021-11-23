@@ -1,7 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Collections.Immutable;
+using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
+using SimpleProjectManager.Client.ViewModels;
+using SimpleProjectManager.Server.Controllers.FileUpload;
+using SimpleProjectManager.Server.Core;
 using SimpleProjectManager.Server.Core.Projections.Core;
 using SimpleProjectManager.Server.Core.Services;
 using SimpleProjectManager.Shared;
@@ -22,7 +26,8 @@ namespace SimpleProjectManager.Server.Controllers
         public ValueTask<ProjectFileInfo?> GetJobFileInfo([FromQuery]ProjectFileId id, CancellationToken token)
             => _service.GetJobFileInfo(id, token);
 
-        [Publish, HttpPost]
+        
+        [HttpPost]
         public ValueTask<string> RegisterFile(ProjectFileInfo projectFile, CancellationToken token)
             => _service.RegisterFile(projectFile, token);
 
@@ -35,9 +40,29 @@ namespace SimpleProjectManager.Server.Controllers
             var data = await coll.Find(filter).FirstOrDefaultAsync(token);
             if(data == null) return NotFound();
 
+            
             return File(
-                await bucked.OpenDownloadStreamAsync(BsonValue.Create(data.Id.Value), cancellationToken:token),
+                await bucked.OpenDownloadStreamByNameAsync(data.Id.Value, cancellationToken:token),
                 data.Mime.Value, data.FileName.Value);
+        }
+        
+        [HttpPost]
+        public async Task<string> UploadFile(UploadFiles files, 
+            [FromServices] FileContentManager contentManager,
+            [FromServices] ICriticalErrorService errorService,
+            [FromServices] ILogger<JobFileController> logger,
+            CancellationToken cancellationToken)
+        {
+            var transaction = new FileUploadTransaction();
+            var context = new FileUploadContext(files, contentManager, _service, cancellationToken);
+            var errorHelper = new CriticalErrorHelper(nameof(JobFileController), errorService, logger);
+
+            return await errorHelper.ProcessTransaction(
+                await transaction.Execute(context),
+                nameof(UploadFile),
+                () => ImmutableList<ErrorProperty>.Empty
+                   .Add(new ErrorProperty("Job", files.JobName)))
+                ?? string.Empty;
         }
     }
 }

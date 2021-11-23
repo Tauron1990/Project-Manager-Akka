@@ -2,11 +2,11 @@
 using System.Collections.Immutable;
 using Akka.Actor;
 using Akka.Actor.Dsl;
+using Akka.DependencyInjection;
 using Akkatecture.Jobs;
 using Akkatecture.Jobs.Commands;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using ReactiveUI;
 using SimpleProjectManager.Server.Core.Projections.Core;
 using SimpleProjectManager.Shared.Services;
 using Tauron.Application;
@@ -105,8 +105,24 @@ public sealed class TaskManagerCore
             static (_, fac) => fac.System.ActorOf(fac.JobManagerFactory()), 
             (registration.JobManagerFactory, System:_actorSystem));
 
-    public void Register(RegisterJobType registerJobType)
-        => _registrations.Add(registerJobType);
+    public TaskManagerCore Register(RegisterJobType registerJobType)
+    {
+        _registrations.Add(registerJobType);
+
+        return this;
+    }
+
+    public TaskManagerCore Register<TJobManager, TJobScheduler, TJobRunner, TJob, TId>(string id, IDependencyResolver resolver)
+        where TJobManager : JobManager<TJobScheduler, TJobRunner, TJob, TId>
+        where TJob : IJob
+        where TId : IJobId
+        where TJobRunner : JobRunner<TJob, TId>
+        where TJobScheduler : JobScheduler<TJobScheduler, TJob, TId>
+    {
+        Register(RegisterJobType.Create<TJobManager, TJobScheduler, TJobRunner, TJob, TId>(id, resolver));
+        return this;
+    }
+    
 
     public async ValueTask<IOperationResult> AddNewTask(AddTaskCommand command, CancellationToken token)
         => await _criticalErrors.Try(

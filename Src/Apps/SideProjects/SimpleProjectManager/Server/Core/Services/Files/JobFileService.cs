@@ -1,20 +1,38 @@
-﻿using MongoDB.Driver;
+﻿using System.Reactive.Concurrency;
+using System.Reactive.Linq;
+using MongoDB.Driver;
 using SimpleProjectManager.Server.Core.Projections.Core;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
+using Tauron;
+using Tauron.Application;
 
 namespace SimpleProjectManager.Server.Core.Services;
 
-public class JobFileService : IJobFileService
+public class JobFileService : IJobFileService, IDisposable
 {
     private readonly ILogger<JobFileService> _logger;
     private readonly IMongoCollection<FileInfoData> _files;
+    private readonly IDisposable _subscription;
 
-    public JobFileService(InternalDataRepository dataRepository, ILogger<JobFileService> logger)
+    public JobFileService(InternalDataRepository dataRepository, ILogger<JobFileService> logger, IEventAggregator aggregator)
     {
         _logger = logger;
         _files = dataRepository.Collection<FileInfoData>();
+        _subscription = aggregator.SubscribeTo<FileDeleted>()
+           .ObserveOn(Scheduler.Default)
+           .Subscribe(
+                d =>
+                {
+                    var filter = Builders<FileInfoData>.Filter.Eq(m => m.Id, d.Id);
+                    var result = _files.DeleteOne(filter);
+
+                    if (!result.IsAcknowledged || result.DeletedCount != 1) return;
+
+                    using (Computed.Invalidate())
+                        GetJobFileInfo(d.Id, default).Ignore();
+                });
     }
 
     public async ValueTask<ProjectFileInfo?> GetJobFileInfo(ProjectFileId id, CancellationToken token)
@@ -58,4 +76,7 @@ public class JobFileService : IJobFileService
             return ex.Message;
         }
     }
+
+    public void Dispose()
+        => _subscription.Dispose();
 }

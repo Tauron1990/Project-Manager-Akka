@@ -1,5 +1,4 @@
-﻿using ReactiveUI;
-using SimpleProjectManager.Shared.Services.Tasks;
+﻿using SimpleProjectManager.Shared.Services.Tasks;
 using Stl.Fusion;
 using Tauron;
 using Tauron.Application;

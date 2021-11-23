@@ -2,5 +2,6 @@ dotnet publish -r <rid> --self-contained=false /p:PublishSingleFile=true
 https://github.com/skbkontur/Metrics.NET
 
 https://karthiktechblog.com/aspnetcore/how-to-upload-a-file-with-net-core-web-api-3-1-using-iformfile
+https://medium.com/riteklick/send-multi-part-content-to-an-api-from-a-net-core-api-net-5-0-7239e9c3a712
 
 default supress: ;AV1562;AV1210;AV1500;AV1532;AV1535;AV1008;AV1561;AV2210

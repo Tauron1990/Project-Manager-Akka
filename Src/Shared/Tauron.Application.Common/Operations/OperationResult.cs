@@ -44,6 +44,6 @@ public sealed record OperationResult(bool Ok, Error[]? Errors, object? Outcome) 
 
     public static IOperationResult Failure(params Error[] errors) => new OperationResult(Ok: false, errors, null);
 
-    public static IOperationResult Failure(Exception error)
-        => new OperationResult(Ok: false, new[] { new Error(error) }, null);
+    public static IOperationResult Failure(Exception error, object? outcome = null)
+        => new OperationResult(Ok: false, new[] { new Error(error) }, outcome);
 }

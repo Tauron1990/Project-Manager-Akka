@@ -28,7 +28,7 @@ public class FileUploadFile : ReactiveObject
 
 
     public Try<Stream> Open(CancellationToken token)
-        => Try<Stream>.From(() => BrowserFile.OpenReadStream(524_288_000, token));
+        => Try<Stream>.From(() => BrowserFile.OpenReadStream(FileUploaderViewModel.MaxSize, token));
 
     public FileUploadFile(IBrowserFile browserFile)
         => BrowserFile = browserFile;

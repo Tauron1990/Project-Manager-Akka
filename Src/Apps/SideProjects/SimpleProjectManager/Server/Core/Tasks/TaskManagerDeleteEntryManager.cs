@@ -1,7 +1,6 @@
 ﻿using System.Collections.Immutable;
 using Akkatecture.Jobs;
 using MongoDB.Driver;
-using ReactiveUI;
 using SimpleProjectManager.Shared.Services;
 using Tauron;
 using Tauron.Application;
