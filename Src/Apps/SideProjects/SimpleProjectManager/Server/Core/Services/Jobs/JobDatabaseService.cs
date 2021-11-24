@@ -123,6 +123,12 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
     public async ValueTask<string> UpdateJobData(UpdateProjectCommand command, CancellationToken token)
         => (await _commandProcessor.RunCommand(command, token)).Error ?? string.Empty;
 
+    public async ValueTask<string> AttachFiles(ProjectAttachFilesCommand command, CancellationToken token)
+        => (await _commandProcessor.RunCommand(command, token)).Error ?? string.Empty;
+
+    public async ValueTask<string> RemoveFiles(ProjectRemoveFilesCommand command, CancellationToken token)
+        => (await _commandProcessor.RunCommand(command, token)).Error ?? string.Empty;
+
     public void Dispose()
     {
         _subscription.Dispose();

@@ -68,7 +68,7 @@ public sealed class FileUploaderViewModel : BlazorViewModel
 
         _shouldDisable = canExecute.Select(canExecuteResult => !canExecuteResult).ToProperty(this, m => m.ShouldDisable);
         
-        Upload = ReactiveCommand.CreateFromObservable(UploadFiles, 
+        Upload = ReactiveCommand.CreateFromTask(UploadFiles, 
                 canExecute.CombineLatest(this.WhenAnyValue(m => m.ProjectId)).Select(t => t.First && !string.IsNullOrWhiteSpace(t.Second)))
            .DisposeWith(this);
         Upload.IsExecuting.Subscribe(_isUploading).DisposeWith(this);
@@ -97,10 +97,9 @@ public sealed class FileUploaderViewModel : BlazorViewModel
         return result;
     }
 
-    IObservable<Unit> UploadFiles()
+    Task UploadFiles()
     {
-        //TODO Implement File Upload
-        return Observable.Empty<Unit>();
+        
     }
 
     private static string? TryExtrectName(FileUploadFile file)

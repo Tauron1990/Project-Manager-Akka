@@ -61,7 +61,7 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Gu.Analyzers" Version="1.8.5">
+        <PackageReference Include="Gu.Analyzers" Version="2.0.0">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
@@ -69,7 +69,7 @@
         <PackageReference Include="SharpRepository.Repository" Version="2.2.1" />
         <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
         <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
-        <PackageReference Include="Stl" Version="2.0.101" />
+        <PackageReference Include="Stl" Version="2.0.103" />
         <PackageReference Include="System.IO.FileSystem" Version="4.3.0" />
         <PackageReference Include="System.Net.Primitives" Version="4.3.1" />
     </ItemGroup>

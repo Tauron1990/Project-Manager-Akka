@@ -8,7 +8,7 @@ using Tauron.Operations;
 namespace SimpleProjectManager.Server.Core.Data
 {
     public sealed class Project : InternalAggregateRoot<Project, ProjectId, ProjectState, ProjectStateSnapshot>,
-        IExecute<CreateProjectCommandCarrier>, IExecute<UpdateProjectCommandCarrier>
+        IExecute<CreateProjectCommandCarrier>, IExecute<UpdateProjectCommandCarrier>, IExecute<>
     {
         private readonly IValidator<CreateProjectCommandCarrier> _createProjectCommandValidator 
             = CreateValidator<CreateProjectCommandCarrier, CreateProjectCommand>(new CreateProjectCommandValidator());

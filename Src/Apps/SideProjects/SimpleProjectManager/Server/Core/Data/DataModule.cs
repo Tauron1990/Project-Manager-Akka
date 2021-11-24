@@ -1,6 +1,5 @@
 ﻿using Akkatecture.Commands;
 using Autofac;
-using SimpleProjectManager.Server.Core.Data.Events;
 using SimpleProjectManager.Shared;
 
 namespace SimpleProjectManager.Server.Core.Data;

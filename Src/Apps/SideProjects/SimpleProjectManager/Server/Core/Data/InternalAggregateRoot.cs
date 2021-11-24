@@ -108,4 +108,7 @@ public abstract class InternalAggregateRoot<TAggregate, TIdentity, TAggregateSta
            {
                v => v.RuleFor(c => c.Command).SetValidator(validator)
            };
+
+    protected static IValidator<TCarrier> CreateEmptyValidator<TCarrier>()
+        => new InlineValidator<TCarrier>();
 }

@@ -24,10 +24,20 @@ namespace SimpleProjectManager.Server.Controllers
         public ValueTask<ProjectFileInfo?> GetJobFileInfo([FromQuery]ProjectFileId id, CancellationToken token)
             => _service.GetJobFileInfo(id, token);
 
-        
+        [Publish, HttpGet]
+        public ValueTask<DatabaseFile[]> GetAllFiles(CancellationToken token)
+            => _service.GetAllFiles(token);
+
+
         [HttpPost]
         public ValueTask<string> RegisterFile(ProjectFileInfo projectFile, CancellationToken token)
             => _service.RegisterFile(projectFile, token);
+
+        public ValueTask<string> CommitFiles(FileList files, CancellationToken token)
+            => _service.CommitFiles(files, token);
+
+        public ValueTask<string> DeleteFiles(FileList files, CancellationToken token)
+            => _service.DeleteFiles(files, token);
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetFileDownload(

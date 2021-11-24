@@ -19,7 +19,7 @@
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
     <PackageReference Include="MudBlazor" Version="6.0.2" />
     <PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" Version="13.1.42" />
-    <PackageReference Include="Stl.Fusion.Blazor" Version="2.0.101" />
+    <PackageReference Include="Stl.Fusion.Blazor" Version="2.0.103" />
   </ItemGroup>
 
   <ItemGroup>
@@ -88,6 +88,9 @@
     </Compile>
     <Compile Update="Shared\Tasks\PendingTaskDisplay.cs">
       <DependentUpon>PendingTaskDisplay.razor</DependentUpon>
+    </Compile>
+    <Compile Update="Pages\FileManager.cs">
+      <DependentUpon>FileManager.razor</DependentUpon>
     </Compile>
   </ItemGroup>
 

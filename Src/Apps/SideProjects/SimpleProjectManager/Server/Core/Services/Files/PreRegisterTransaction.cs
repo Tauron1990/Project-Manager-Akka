@@ -8,7 +8,7 @@ using Tauron.Application;
 
 namespace SimpleProjectManager.Server.Core.Services;
 
-public sealed record PreRegistrationContext(Func<Stream> ToRegister, ProjectFileId FileId, GridFSBucket Bucket, TaskManagerCore TaskManager, CancellationToken Token);
+public sealed record PreRegistrationContext(Func<Stream> ToRegister, ProjectFileId FileId, string FileName, string JobName, GridFSBucket Bucket, TaskManagerCore TaskManager, CancellationToken Token);
 
 
 public sealed class PreRegisterTransaction : SimpleTransaction<PreRegistrationContext>
@@ -39,9 +39,17 @@ public sealed class PreRegisterTransaction : SimpleTransaction<PreRegistrationCo
     {
         var bucked = context.Bucket;
         var id = ObjectId.GenerateNewId();
+        var meta = new BsonDocument
+                   {
+                       new BsonElement(FileContentManager.MetaJobName, context.JobName),
+                       new BsonElement(FileContentManager.MetaFileNme, context.FileName)
+                   };
         
         await using var stream = context.ToRegister();
-        await bucked.UploadFromStreamAsync(id, context.FileId.Value, stream, cancellationToken:context.Token);
+        await bucked.UploadFromStreamAsync(id, context.FileId.Value, stream, new GridFSUploadOptions
+                                                                             {
+                                                                                 Metadata = meta
+                                                                             }, context.Token);
 
         return async _ => await bucked.DeleteAsync(id);
     }

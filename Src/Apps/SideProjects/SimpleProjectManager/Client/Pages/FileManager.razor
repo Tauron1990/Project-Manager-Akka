@@ -1,0 +1,27 @@
+﻿@page "/FileManager"
+
+@inherits NonAutoRenderingView<FileManagerViewModel>
+
+@inject IDialogService _dialogService
+
+<PageTitle>Datei Manager</PageTitle>
+
+@if (ViewModel != null)
+{
+    <MudTable Items="ViewModel.Files" LoadingProgressColor="Color.Info" Loading="ViewModel.IsLoading" GroupBy="_groupDefinition">
+        <HeaderContent>
+            <MudTh>Aktionen</MudTh>
+            <MudTh>Datei Name</MudTh>
+            <MudTh>Datei Größe</MudTh>
+            <MudTh>Job Name</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Aktionen">
+                <MudButton OnClick="@(() => ViewModel.DeleteFile(context))">Löschen</MudButton>
+            </MudTd>
+            <MudTd DataLabel="Datei Name">@context.Name</MudTd>
+            <MudTd DataLabel="Datei Größe">@((context.Size.Value / 1024d / 1024d).ToString("F"))</MudTd>
+            <MudTd DataLabel="Job Name">@context.JobName.Value</MudTd>
+        </RowTemplate>
+    </MudTable>
+}

@@ -27,7 +27,7 @@ public class FileUploadTransaction : SimpleTransaction<FileUploadContext>
         
         var id = ProjectFileId.For(projectName, new FileName(name));
 
-        var preRegister = await contentManager.PreRegisterFile(file.OpenReadStream, id, name, cancellationToken);
+        var preRegister = await contentManager.PreRegisterFile(file.OpenReadStream, id, name, context.Files.JobName, cancellationToken);
 
         if (!string.IsNullOrWhiteSpace(preRegister)) throw new InvalidOperationException(preRegister);
 
