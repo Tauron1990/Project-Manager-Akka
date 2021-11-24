@@ -32,18 +32,22 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
                 {
                     switch (de.GetAggregateEvent())
                     {
-                            case NewProjectCreatedEvent :
-                                GetActiveJobs (default).Ignore();
-                                break;
-                            case ProjectDeadLineChangedEvent:
-                                DataChanged().Ignore();
-                                break;
-                            case ProjectNameChangedEvent:
-                                DataChanged().Ignore();
-                                break;
-                            case ProjectStatusChangedEvent:
-                                DataChanged().Ignore();
-                                break;
+                        case ProjectFilesRemovedEvent:
+                        case ProjectFilesAttachedEvent:
+                            GetJobData(de.AggregateIdentity, default).Ignore();
+                            break;
+                        case NewProjectCreatedEvent:
+                            GetActiveJobs(default).Ignore();
+                            break;
+                        case ProjectDeadLineChangedEvent:
+                            DataChanged().Ignore();
+                            break;
+                        case ProjectNameChangedEvent:
+                            DataChanged().Ignore();
+                            break;
+                        case ProjectStatusChangedEvent:
+                            DataChanged().Ignore();
+                            break;
                     }
                 }
 
@@ -94,7 +98,7 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
     }
 
     public virtual async ValueTask<string> CreateJob(CreateProjectCommand command, CancellationToken token)
-        => (await _commandProcessor.RunCommand(command)).Error ?? string.Empty;
+        => (await _commandProcessor.RunCommand(command, token)).Error ?? string.Empty;
 
     public virtual async ValueTask<string> ChangeOrder(SetSortOrder newOrder, CancellationToken token)
     {
@@ -117,7 +121,7 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
     }
 
     public async ValueTask<string> UpdateJobData(UpdateProjectCommand command, CancellationToken token)
-        => (await _commandProcessor.RunCommand(command)).Error ?? string.Empty;
+        => (await _commandProcessor.RunCommand(command, token)).Error ?? string.Empty;
 
     public void Dispose()
     {

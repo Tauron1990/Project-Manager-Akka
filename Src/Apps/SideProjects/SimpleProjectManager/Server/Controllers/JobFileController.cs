@@ -1,9 +1,7 @@
 ﻿using System.Collections.Immutable;
 using Microsoft.AspNetCore.Mvc;
-using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
-using SimpleProjectManager.Client.ViewModels;
 using SimpleProjectManager.Server.Controllers.FileUpload;
 using SimpleProjectManager.Server.Core;
 using SimpleProjectManager.Server.Core.Projections.Core;
@@ -47,7 +45,7 @@ namespace SimpleProjectManager.Server.Controllers
         }
         
         [HttpPost]
-        public async Task<string> UploadFile(UploadFiles files, 
+        public async Task<string> UploadFiles(UploadFiles files, 
             [FromServices] FileContentManager contentManager,
             [FromServices] ICriticalErrorService errorService,
             [FromServices] ILogger<JobFileController> logger,
@@ -59,7 +57,7 @@ namespace SimpleProjectManager.Server.Controllers
 
             return await errorHelper.ProcessTransaction(
                 await transaction.Execute(context),
-                nameof(UploadFile),
+                nameof(UploadFiles),
                 () => ImmutableList<ErrorProperty>.Empty
                    .Add(new ErrorProperty("Job", files.JobName)))
                 ?? string.Empty;

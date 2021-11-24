@@ -11,9 +11,9 @@ public sealed record CommitRegistrationContext(TaskManagerCore TaskManager, Proj
 
 public sealed class CommitRegistrationTransaction : SimpleTransaction<CommitRegistrationContext>
 {
-    private Exception? Last;
+    private Exception? _last;
     
-    public CommitRegistrationTransaction(ILogger logger) : base(logger)
+    public CommitRegistrationTransaction()
     {
         Register(CancelOldTask);
         Register(CreateCommitTask);
@@ -30,11 +30,11 @@ public sealed class CommitRegistrationTransaction : SimpleTransaction<CommitRegi
                     DateTime.Now + TimeSpan.FromDays(6 * 30))),
             context.Token);
         
-        if(result.Ok) return _ => throw Last ?? new InvalidOperationException("Unbekannter Fehler");
+        if(result.Ok) return _ => throw _last ?? new InvalidOperationException("Unbekannter Fehler");
 
-        Last = CreateCommitExceptionFor("Erstellen des neun Tasks zum Automatischen Löschens");
+        _last = CreateCommitExceptionFor("Erstellen des neun Tasks zum Automatischen Löschens");
 
-        throw Last;
+        throw _last;
     }
 
     private async ValueTask<Rollback<CommitRegistrationContext>> CancelOldTask(CommitRegistrationContext context)
@@ -42,11 +42,11 @@ public sealed class CommitRegistrationTransaction : SimpleTransaction<CommitRegi
         var (taskManagerCore, projectFileId, cancellationToken) = context;
         var result = await taskManagerCore.Delete(FilePurgeId.For(projectFileId).Value, cancellationToken);
 
-        if (result.Ok) return _ => throw Last ?? new InvalidOperationException("Unbekannter Fehler");
+        if (result.Ok) return _ => throw _last ?? new InvalidOperationException("Unbekannter Fehler");
 
-        Last = CreateCommitExceptionFor("Abbrechen des Alten Tasks zum Automatischen Löschens");
+        _last = CreateCommitExceptionFor("Abbrechen des Alten Tasks zum Automatischen Löschens");
 
-        throw Last;
+        throw _last;
 
     }
 

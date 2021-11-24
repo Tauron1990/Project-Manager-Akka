@@ -28,43 +28,29 @@ public sealed class ProjectProjectionManager : ProjectionManagerBase, IInitializ
                                 projection.Id = evt.AggregateIdentity;
                                 projection.JobName = evt.AggregateEvent.Name;
                                 projection.Ordering = new SortOrder(evt.AggregateIdentity, 0, false);
-                                
-                                return Task.CompletedTask;
                             }));
                 map.Map<ProjectDeadLineChangedEvent>(
                     b =>
                     {
                         b.AsUpdateOf(e => e.AggregateIdentity)
-                           .Using(
-                                (projection, evt) =>
-                                {
-                                    projection.Deadline = evt.AggregateEvent.Deadline;
-                                    return Task.CompletedTask;
-                                });
+                           .Using((projection, evt) => projection.Deadline = evt.AggregateEvent.Deadline);
                     });
 
                 map.Map<ProjectFilesAttachedEvent>(
                     b => b.AsUpdateOf(e => e.AggregateIdentity)
-                       .Using(
-                            (projection, evt) =>
-                            {
-                                projection.ProjectFiles = projection.ProjectFiles.AddRange(evt.AggregateEvent.Files);
-                            }));
+                       .Using((projection, evt) => projection.ProjectFiles = projection.ProjectFiles.AddRange(evt.AggregateEvent.Files)));
 
+                map.Map<ProjectFilesRemovedEvent>(
+                    b => b.AsUpdateOf(e => e.AggregateIdentity)
+                       .Using((projection, evt) => projection.ProjectFiles = projection.ProjectFiles.RemoveRange(evt.AggregateEvent.Files)));
+                
                 map.Map<ProjectStatusChangedEvent>(
                     b => b.AsUpdateOf(e => e.AggregateIdentity)
-                       .Using(
-                            (projection, evt) =>
-                            {
-                                projection.Status = evt.AggregateEvent.NewStatus;
-                            }));
+                       .Using((projection, evt) => projection.Status = evt.AggregateEvent.NewStatus));
 
                 map.Map<ProjectNameChangedEvent>(
                     b => b.AsUpdateOf(e => e.AggregateIdentity)
-                       .Using(((projection, evt) =>
-                               {
-                                   projection.JobName = evt.AggregateEvent.NewName;
-                               })));
+                       .Using((projection, evt) => projection.JobName = evt.AggregateEvent.NewName));
             });
     }
 }

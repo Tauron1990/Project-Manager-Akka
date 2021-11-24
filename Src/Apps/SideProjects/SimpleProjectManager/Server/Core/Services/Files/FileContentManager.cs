@@ -13,7 +13,6 @@ public sealed class FileContentManager
 {
     private readonly GridFSBucket _bucked;
     private readonly TaskManagerCore _taskManager;
-    private readonly ILogger<FileContentManager> _logger;
     private readonly IEventAggregator _aggregator;
     private readonly CriticalErrorHelper _criticalErrorHelper;
     
@@ -22,14 +21,13 @@ public sealed class FileContentManager
     {
         _bucked = bucked;
         _taskManager = taskManager;
-        _logger = logger;
         _aggregator = aggregator;
         _criticalErrorHelper = new CriticalErrorHelper(nameof(FileContentManager), criticalErrorService, logger);
     }
 
     public async Task<string?> PreRegisterFile(Func<Stream> toRegister, ProjectFileId id, string fileName, CancellationToken token)
     {
-        var transaction = new PreRegisterTransaction(_logger);
+        var transaction = new PreRegisterTransaction();
         var context = new PreRegistrationContext(toRegister, id, _bucked, _taskManager, token);
 
         return await _criticalErrorHelper.ProcessTransaction(
@@ -42,7 +40,7 @@ public sealed class FileContentManager
 
     public async Task<string?> CommitFile(ProjectFileId id, CancellationToken token)
     {
-        var trans = new CommitRegistrationTransaction(_logger);
+        var trans = new CommitRegistrationTransaction();
         var context = new CommitRegistrationContext(_taskManager, id, token);
 
         return await _criticalErrorHelper.ProcessTransaction(

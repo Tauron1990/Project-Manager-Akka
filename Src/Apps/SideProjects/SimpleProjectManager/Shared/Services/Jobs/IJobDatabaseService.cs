@@ -18,4 +18,8 @@ public interface IJobDatabaseService
     ValueTask<string> ChangeOrder(SetSortOrder newOrder, CancellationToken token);
 
     ValueTask<string> UpdateJobData(UpdateProjectCommand command, CancellationToken token);
+
+    ValueTask<string> AttachFiles(ProjectAttachFilesCommand command, CancellationToken token);
+
+    ValueTask<string> RemoveFiles(ProjectRemoveFilesCommand command, CancellationToken token);
 }

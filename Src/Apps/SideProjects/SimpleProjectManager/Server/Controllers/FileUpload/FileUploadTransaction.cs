@@ -1,5 +1,4 @@
-﻿using JetBrains.Annotations;
-using SimpleProjectManager.Client.ViewModels;
+﻿using SimpleProjectManager.Client.ViewModels;
 using SimpleProjectManager.Server.Core.Services;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;

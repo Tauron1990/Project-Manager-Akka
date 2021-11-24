@@ -12,4 +12,7 @@ public interface IJobFileServiceDef
 
     [Post(nameof(RegisterFile))]
     Task<string> RegisterFile([Body]ProjectFileInfo projectFile, CancellationToken token);
+
+    [Post(nameof(UploadFiles))]
+    public Task<string> UploadFiles([Body]MultipartFormDataContent content, CancellationToken token);
 }

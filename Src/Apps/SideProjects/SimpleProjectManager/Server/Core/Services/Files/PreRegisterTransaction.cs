@@ -13,7 +13,7 @@ public sealed record PreRegistrationContext(Func<Stream> ToRegister, ProjectFile
 
 public sealed class PreRegisterTransaction : SimpleTransaction<PreRegistrationContext>
 {
-    public PreRegisterTransaction(ILogger logger) : base(logger)
+    public PreRegisterTransaction()
     {
         Register(AddToDatabase);
         Register(AddShortTimeAutoDelete);

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using RestEase;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
 using Stl.Fusion.Server;
@@ -37,5 +38,13 @@ namespace SimpleProjectManager.Server.Controllers
         [HttpPost]
         public ValueTask<string> UpdateJobData([FromBody]UpdateProjectCommand command, CancellationToken token)
             => _service.UpdateJobData(command, token);
+
+        [HttpPost]
+        public ValueTask<string> AttachFiles([FromBody]ProjectAttachFilesCommand command, CancellationToken token)
+            => _service.AttachFiles(command, token);
+
+        [HttpPost]
+        public ValueTask<string> RemoveFiles([FromBody]ProjectRemoveFilesCommand command, CancellationToken token)
+            => _service.RemoveFiles(command, token);
     }
 }

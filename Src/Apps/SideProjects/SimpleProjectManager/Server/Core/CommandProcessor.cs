@@ -25,17 +25,17 @@ public class CommandProcessor
         _apiCommandMappings = apiCommandMappings.ToImmutableDictionary(m => m.TargetType);
     }
 
-    public async Task<IOperationResult> RunCommand(ICommand command)
+    private async Task<IOperationResult> RunCommand(ICommand command, CancellationToken token)
     {
         var handler = _commandMappings.FirstOrDefault(cm => cm.CommandType.IsInstanceOfType(command));
         if(handler == null) return OperationResult.Failure(new Error("Kein Handler gefunden", "No-Handler"));
 
         var name = GuidFactories.Deterministic.Create(_nameNamespace, handler.AggregateManager.AssemblyQualifiedName!).ToString("N");
-        var manager = _managers.GetOrAdd(name, n => _system.ActorOf(Props.Create(handler.AggregateManager), n));
+        var manager = _managers.GetOrAdd(name, static (n, p) => p.System.ActorOf(Props.Create(p.Handler.AggregateManager), n), (System:_system, Handler:handler));
 
         try
         {
-            return await manager.Ask<IOperationResult>(command, TimeSpan.FromSeconds(30));
+            return await manager.Ask<IOperationResult>(command, TimeSpan.FromSeconds(30), token);
         }
         catch (OperationCanceledException)
         {
@@ -43,12 +43,12 @@ public class CommandProcessor
         }
     }
 
-    public async Task<IOperationResult> RunCommand(object apiCommand)
+    public async Task<IOperationResult> RunCommand(object apiCommand, CancellationToken token)
     {
         try
         {
             if (_apiCommandMappings.TryGetValue(apiCommand.GetType(), out var mapping))
-                return await RunCommand(mapping.Converter(apiCommand));
+                return await RunCommand(mapping.Converter(apiCommand), token);
 
             return OperationResult.Failure("Kommando Konverter nicht gefunden", "no-converter");
         }
