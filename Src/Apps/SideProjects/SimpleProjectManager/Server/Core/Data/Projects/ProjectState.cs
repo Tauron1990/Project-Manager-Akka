@@ -11,7 +11,7 @@ public sealed record ProjectStateSnapshot(ProjectName Name, ImmutableList<Projec
 
 public sealed class ProjectState : InternalState<Project, ProjectId, ProjectStateSnapshot>,
     IApply<NewProjectCreatedEvent>, IApply<ProjectNameChangedEvent>, IApply<ProjectDeadLineChangedEvent>,
-    IApply<ProjectFilesAttachedEvent>, IApply<ProjectStatusChangedEvent>
+    IApply<ProjectFilesAttachedEvent>, IApply<ProjectStatusChangedEvent>,
 {
     public ProjectName ProjectName { get; private set; } = new (string.Empty);
 
