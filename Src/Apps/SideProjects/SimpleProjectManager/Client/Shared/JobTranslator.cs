@@ -14,6 +14,7 @@ public static class JobTranslator
             ProjectStatus.Suspended => "Pausiert",
             ProjectStatus.Finished => "Fertig",
             ProjectStatus.ReRun => "Wiederholung",
+            ProjectStatus.Deleted => "Gelöscht",
             _ => ""
         };
     }

@@ -3,4 +3,4 @@ using SimpleProjectManager.Shared;
 
 namespace SimpleProjectManager.Server.Core.Data.Events;
 
-public record ProjectStatusChangedEvent(ProjectStatus NewStatus) : AggregateEvent<Project, ProjectId>;
+public sealed record ProjectStatusChangedEvent(ProjectStatus NewStatus) : AggregateEvent<Project, ProjectId>;

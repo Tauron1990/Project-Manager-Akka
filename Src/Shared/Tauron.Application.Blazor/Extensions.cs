@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Reactive;
@@ -50,6 +51,8 @@ namespace Tauron.Application.Blazor
 
         public static void PublishError(this IEventAggregator aggregator, Exception error)
         {
+            error = error.Demystify();
+            
             #if DEBUG
             Console.WriteLine(error);
             #endif

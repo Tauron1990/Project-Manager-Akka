@@ -1,4 +1,5 @@
 ﻿using Autofac;
+using SimpleProjectManager.Server.Controllers.FileUpload;
 using SimpleProjectManager.Server.Core.JobManager;
 using Tauron.Application.AkkaNode.Bootstrap;
 
@@ -10,6 +11,9 @@ public sealed class MainModule : Module
     {
         builder.RegisterStartUpAction<ClusterJoinSelf>();
         builder.RegisterStartUpAction<JobManagerRegistrations>();
+
+        builder.RegisterType<FileUploadTransaction>().InstancePerDependency();
+        
         base.Load(builder);
     }
 }

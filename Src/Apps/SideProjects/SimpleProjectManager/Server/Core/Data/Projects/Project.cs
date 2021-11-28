@@ -8,13 +8,14 @@ using Tauron.Operations;
 namespace SimpleProjectManager.Server.Core.Data
 {
     public sealed class Project : InternalAggregateRoot<Project, ProjectId, ProjectState, ProjectStateSnapshot>,
-        IExecute<CreateProjectCommandCarrier>, IExecute<UpdateProjectCommandCarrier>, IExecute<>
+        IExecute<CreateProjectCommandCarrier>, IExecute<UpdateProjectCommandCarrier>, IExecute<ProjectRemoveFilesCommandCarrier>,
+        IExecute<ProjectAttachFilesCommandCarrier>, IExecute<ProjectDeleteCommandCarrier>
     {
         private readonly IValidator<CreateProjectCommandCarrier> _createProjectCommandValidator 
             = CreateValidator<CreateProjectCommandCarrier, CreateProjectCommand>(new CreateProjectCommandValidator());
 
-        private readonly IValidator<UpdateProjectCommandCarrier> _updateCommandValidator =
-            CreateValidator<UpdateProjectCommandCarrier, UpdateProjectCommand>(new UpdateProjectCommandValidator());
+        private readonly IValidator<UpdateProjectCommandCarrier> _updateCommandValidator 
+            = CreateValidator<UpdateProjectCommandCarrier, UpdateProjectCommand>(new UpdateProjectCommandValidator());
 
         public Project(ProjectId id) 
             : base(id) { }
@@ -28,13 +29,15 @@ namespace SimpleProjectManager.Server.Core.Data
             };
 
         public bool Execute(CreateProjectCommandCarrier command)
-            => Run(command,
+        {
+            return Run(
+                command,
                 _createProjectCommandValidator,
                 AggregateNeed.New,
                 com =>
                 {
                     var data = com.Command;
-                    
+
                     EmitAll(
                         new NewProjectCreatedEvent(data.Project),
                         new ProjectFilesAttachedEvent(data.Files),
@@ -44,9 +47,12 @@ namespace SimpleProjectManager.Server.Core.Data
 
                     return OperationResult.Success();
                 });
+        }
 
         public bool Execute(UpdateProjectCommandCarrier command)
-            => Run(command,
+        {
+            return Run(
+                command,
                 _updateCommandValidator,
                 AggregateNeed.Exist,
                 com =>
@@ -69,5 +75,67 @@ namespace SimpleProjectManager.Server.Core.Data
 
                     return OperationResult.Success();
                 });
+        }
+
+        public bool Execute(ProjectRemoveFilesCommandCarrier command)
+        {
+            return Run(
+                command,
+                null,
+                AggregateNeed.Exist,
+                com =>
+                {
+                    Emit(new ProjectFilesRemovedEvent(com.Command.Files));
+
+                    return OperationResult.Success();
+                });
+        }
+
+        public bool Execute(ProjectAttachFilesCommandCarrier command)
+        {
+            try
+            {
+                var evt = new ProjectFilesAttachedEvent(command.Command.Files);
+                if (IsNew)
+                {
+                    var validator = new ProjectNameValidator();
+                    var validationResult = validator.Validate(command.Command.Name);
+                    if (validationResult.IsValid)
+                    {
+                        EmitAll(new NewProjectCreatedEvent(command.Command.Name), evt);
+                        TellSenderIsPresent(OperationResult.Success(true));
+                    }
+                    else
+                        TellSenderIsPresent(CreateFailure(validationResult));
+                }
+                else
+                {
+                    Emit(evt);
+                    TellSenderIsPresent(OperationResult.Success(false));
+                }
+            
+                return true;
+            }
+            catch (Exception e)
+            {
+                TellSenderIsPresent(OperationResult.Failure(e));
+            }
+
+            return true;
+        }
+
+        public bool Execute(ProjectDeleteCommandCarrier command)
+        {
+            return Run(
+                command,
+                null,
+                AggregateNeed.Exist,
+                _ =>
+                {
+                    Emit(new ProjectDeletedEvent());
+                    
+                    return OperationResult.Success();
+                });
+        }
     }
 }

@@ -23,5 +23,6 @@ public sealed class DataModule : Module
         builder.RegisterInstance(ApiCommandMapping.For<UpdateProjectCommand>(c => new UpdateProjectCommandCarrier(c)));
         builder.RegisterInstance(ApiCommandMapping.For<ProjectAttachFilesCommand>(c => new ProjectAttachFilesCommandCarrier(c)));
         builder.RegisterInstance(ApiCommandMapping.For<ProjectRemoveFilesCommand>(c => new ProjectRemoveFilesCommandCarrier(c)));
+        builder.RegisterInstance(ApiCommandMapping.For<ProjectId>(i => new ProjectDeleteCommandCarrier(i)));
     }
 }

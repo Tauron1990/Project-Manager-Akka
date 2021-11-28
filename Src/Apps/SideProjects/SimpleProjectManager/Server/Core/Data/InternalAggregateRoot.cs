@@ -5,6 +5,7 @@ using Akkatecture.Aggregates.Snapshot;
 using Akkatecture.Aggregates.Snapshot.Strategies;
 using Akkatecture.Core;
 using FluentValidation;
+using FluentValidation.Results;
 using SimpleProjectManager.Shared;
 using Tauron.Operations;
 using Error = Tauron.Operations.Error;
@@ -41,7 +42,7 @@ public abstract class InternalAggregateRoot<TAggregate, TIdentity, TAggregateSta
         SetSnapshotStrategy(new SnapshotEveryFewVersionsStrategy(100));
     }
 
-    protected bool Run<TCommand>(TCommand command, IValidator<TCommand> validator, AggregateNeed need, Func<TCommand, IOperationResult> runner)
+    protected bool Run<TCommand>(TCommand command, IValidator<TCommand>? validator, AggregateNeed need, Func<TCommand, IOperationResult> runner)
     {
         try
         {
@@ -57,10 +58,10 @@ public abstract class InternalAggregateRoot<TAggregate, TIdentity, TAggregateSta
                     break;
                 case AggregateNeed.Nothing:
                 default:
-                    var validationResult = validator.Validate(command);
+                    var validationResult = validator?.Validate(command);
 
-                    result = !validationResult.IsValid
-                        ? OperationResult.Failure(validationResult.Errors.Select(err => new Error(err.ErrorMessage, err.ErrorCode)))
+                    result = !(validationResult?.IsValid ?? true)
+                        ? CreateFailure(validationResult)
                         : runner(command);
 
                     break;
@@ -79,6 +80,9 @@ public abstract class InternalAggregateRoot<TAggregate, TIdentity, TAggregateSta
         }
     }
 
+    protected IOperationResult CreateFailure(ValidationResult result)
+        => OperationResult.Failure(result.Errors.Select(err => new Error(err.ErrorMessage, err.ErrorCode)));
+    
     protected void TellSenderIsPresent(object message)
     {
         if(Sender.IsNobody()) return;

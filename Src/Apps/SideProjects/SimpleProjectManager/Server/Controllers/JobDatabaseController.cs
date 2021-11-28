@@ -25,6 +25,9 @@ namespace SimpleProjectManager.Server.Controllers
         public ValueTask<JobData> GetJobData([FromQuery]ProjectId id, CancellationToken token)
             => _service.GetJobData(id, token);
 
+        public ValueTask<string> DeleteJob(ProjectId id, CancellationToken token)
+            => _service.DeleteJob(id, token);
+
         [HttpPost]
         public ValueTask<string> CreateJob([FromBody]CreateProjectCommand command, CancellationToken token)
             => _service.CreateJob(command, token);
@@ -39,7 +42,7 @@ namespace SimpleProjectManager.Server.Controllers
             => _service.UpdateJobData(command, token);
 
         [HttpPost]
-        public ValueTask<string> AttachFiles([FromBody]ProjectAttachFilesCommand command, CancellationToken token)
+        public ValueTask<AttachResult> AttachFiles([FromBody]ProjectAttachFilesCommand command, CancellationToken token)
             => _service.AttachFiles(command, token);
 
         [HttpPost]

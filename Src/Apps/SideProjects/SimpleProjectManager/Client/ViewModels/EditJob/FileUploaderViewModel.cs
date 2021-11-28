@@ -1,4 +1,6 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Collections.Immutable;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -6,6 +8,9 @@ using DynamicData;
 using DynamicData.Alias;
 using Microsoft.AspNetCore.Components.Forms;
 using ReactiveUI;
+using SimpleProjectManager.Shared;
+using SimpleProjectManager.Shared.Services;
+using SimpleProjectManager.Shared.Validators;
 using Stl.Fusion;
 using Tauron;
 using Tauron.Application;
@@ -19,9 +24,12 @@ public sealed class FileUploaderViewModel : BlazorViewModel
     public const long MaxSize = 524_288_000;
     
     private readonly IEventAggregator _aggregator;
+    private readonly UploadTransaction _transaction;
+    private readonly ICriticalErrorService _criticalErrorService;
     private readonly SourceCache<FileUploadFile, string> _files = new(bf => bf.Name);
     private readonly BehaviorSubject<bool> _isUploading = new(false);
     private readonly ObservableAsPropertyHelper<bool> _shouldDisable;
+    private readonly ProjectNameValidator _nameValidator = new();
     private string? _projectId;
 
     public bool ShouldDisable => _shouldDisable.Value;
@@ -32,6 +40,8 @@ public sealed class FileUploaderViewModel : BlazorViewModel
 
     public Action<InputFileChangeEventArgs> FilesChanged { get; }
 
+    public Func<string, string> ValidateName { get; }
+
     public ReadOnlyObservableCollection<FileUploadFile> Files { get; }
 
     public string? ProjectId
@@ -40,10 +50,14 @@ public sealed class FileUploaderViewModel : BlazorViewModel
         set => this.RaiseAndSetIfChanged(ref _projectId, value);
     }
 
-    public FileUploaderViewModel(IStateFactory stateFactory, IEventAggregator aggregator)
+    public FileUploaderViewModel(IStateFactory stateFactory, IEventAggregator aggregator, UploadTransaction transaction, ICriticalErrorService criticalErrorService)
         : base(stateFactory)
     {
         _aggregator = aggregator;
+        _transaction = transaction;
+        _criticalErrorService = criticalErrorService;
+        
+        ValidateName = ValidateProjectName;
         
         _files.DisposeWith(this);
 
@@ -88,6 +102,14 @@ public sealed class FileUploaderViewModel : BlazorViewModel
         FilesChanged = filesChanged.ToAction();
     }
 
+    private string ValidateProjectName(string? arg)
+    {
+        var name = new ProjectName(arg ?? string.Empty);
+        var result = _nameValidator.Validate(name);
+        
+        return result.IsValid ? string.Empty : string.Join(", ", result.Errors.Select(err => err.ErrorMessage));
+    }
+
     private bool IsFileValid(IBrowserFile file)
     {
         var result = AllowedContentTypes.Any(t => t == file.ContentType);
@@ -97,9 +119,51 @@ public sealed class FileUploaderViewModel : BlazorViewModel
         return result;
     }
 
-    Task UploadFiles()
+    private async Task UploadFiles()
     {
+        var validation = ValidateProjectName(ProjectId);
+        if (!string.IsNullOrWhiteSpace(validation))
+        {
+            _aggregator.PublishWarnig(validation);
+            return;
+        }
+        if(string.IsNullOrWhiteSpace(ProjectId)) return;
         
+        var context = new UploadTransactionContext(Files.ToImmutableList(), new ProjectName(ProjectId));
+
+        var (trasnactionState, exception) = await _transaction.Execute(context);
+        switch (trasnactionState)
+        {
+            case TrasnactionState.Successeded:
+                return;
+            case TrasnactionState.Rollback when exception is not null:
+                try
+                {
+                    var newEx = exception.Demystify();
+
+                    await _criticalErrorService.WriteError(
+                        new CriticalError(
+                            string.Empty,
+                            DateTime.Now,
+                            $"{nameof(FileUploaderViewModel)} -- {nameof(UploadFiles)}",
+                            newEx.Message,
+                            newEx.StackTrace,
+                            ImmutableList<ErrorProperty>.Empty),
+                        default);
+                }
+                catch (Exception e)
+                {
+                    _aggregator.PublishError(exception);
+                    _aggregator.PublishError(e);
+                }
+                break;
+            case TrasnactionState.RollbackFailed when exception is not null:
+                _aggregator.PublishError(exception);
+                break;
+            default:
+                _aggregator.PublishWarnig("Datei Upload Unbekannter zustand");
+                break;
+        }
     }
 
     private static string? TryExtrectName(FileUploadFile file)

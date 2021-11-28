@@ -51,6 +51,9 @@ public sealed class ProjectProjectionManager : ProjectionManagerBase, IInitializ
                 map.Map<ProjectNameChangedEvent>(
                     b => b.AsUpdateOf(e => e.AggregateIdentity)
                        .Using((projection, evt) => projection.JobName = evt.AggregateEvent.NewName));
+
+                map.Map<ProjectDeletedEvent>(
+                    b => b.AsDeleteOf(de => de.AggregateIdentity).IgnoringMisses());
             });
     }
 }

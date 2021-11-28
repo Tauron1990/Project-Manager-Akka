@@ -53,7 +53,7 @@ public sealed class FileManagerViewModel : StatefulViewModel<DatabaseFile[]>
         if (await ConfirmDelete.Handle(arg))
         {
             await _aggregator.IsSuccess(
-                () => TimeoutToken.WithDefault(
+                () => TimeoutToken.WithDefault(default,
                     t => _fileService.DeleteFiles(new FileList(ImmutableList<ProjectFileId>.Empty.Add(arg.Id)), t)));
         }
         

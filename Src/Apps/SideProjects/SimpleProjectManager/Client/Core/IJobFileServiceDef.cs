@@ -17,7 +17,7 @@ public interface IJobFileServiceDef
     Task<string> RegisterFile([Body]ProjectFileInfo projectFile, CancellationToken token);
 
     [Post(nameof(UploadFiles))]
-    Task<string> UploadFiles([Body]MultipartFormDataContent content, CancellationToken token);
+    Task<UploadFileResult> UploadFiles([Body]MultipartFormDataContent content, CancellationToken token);
     
     [Post(nameof(CommitFiles))]
     ValueTask<string> CommitFiles([Body]FileList files, CancellationToken token);

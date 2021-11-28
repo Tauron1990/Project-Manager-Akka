@@ -39,12 +39,9 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
                         case NewProjectCreatedEvent:
                             GetActiveJobs(default).Ignore();
                             break;
+                        case ProjectDeletedEvent:
                         case ProjectDeadLineChangedEvent:
-                            DataChanged().Ignore();
-                            break;
                         case ProjectNameChangedEvent:
-                            DataChanged().Ignore();
-                            break;
                         case ProjectStatusChangedEvent:
                             DataChanged().Ignore();
                             break;
@@ -97,6 +94,9 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
         return new JobData(result.Id, result.JobName, result.Status, result.Ordering, result.Deadline, result.ProjectFiles);
     }
 
+    public async ValueTask<string> DeleteJob(ProjectId id, CancellationToken token)
+        => (await _commandProcessor.RunCommand(id, token)).Error ?? string.Empty;
+
     public virtual async ValueTask<string> CreateJob(CreateProjectCommand command, CancellationToken token)
         => (await _commandProcessor.RunCommand(command, token)).Error ?? string.Empty;
 
@@ -122,9 +122,18 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
 
     public async ValueTask<string> UpdateJobData(UpdateProjectCommand command, CancellationToken token)
         => (await _commandProcessor.RunCommand(command, token)).Error ?? string.Empty;
+    
 
-    public async ValueTask<string> AttachFiles(ProjectAttachFilesCommand command, CancellationToken token)
-        => (await _commandProcessor.RunCommand(command, token)).Error ?? string.Empty;
+    public async ValueTask<AttachResult> AttachFiles(ProjectAttachFilesCommand command, CancellationToken token)
+    {
+        var result = await _commandProcessor.RunCommand(command, token);
+
+        return result.Ok
+            ? result.Outcome is bool isNew
+                ? new AttachResult(string.Empty, isNew)
+                : new AttachResult(string.Empty, true)
+            : new AttachResult(result.Error ?? string.Empty, false);
+    }
 
     public async ValueTask<string> RemoveFiles(ProjectRemoveFilesCommand command, CancellationToken token)
         => (await _commandProcessor.RunCommand(command, token)).Error ?? string.Empty;

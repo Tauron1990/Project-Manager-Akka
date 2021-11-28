@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
@@ -55,22 +56,26 @@ namespace SimpleProjectManager.Server.Controllers
         }
         
         [HttpPost]
-        public async Task<string> UploadFiles(UploadFiles files, 
-            [FromServices] FileContentManager contentManager,
+        public async Task<UploadFileResult> UploadFiles(UploadFiles files, 
+            [FromServices] FileUploadTransaction transaction,
             [FromServices] ICriticalErrorService errorService,
             [FromServices] ILogger<JobFileController> logger,
             CancellationToken cancellationToken)
         {
-            var transaction = new FileUploadTransaction();
-            var context = new FileUploadContext(files, contentManager, _service, cancellationToken);
+            var ids = new ConcurrentBag<ProjectFileId>();
+            var context = new FileUploadContext(files, ids);
             var errorHelper = new CriticalErrorHelper(nameof(JobFileController), errorService, logger);
 
-            return await errorHelper.ProcessTransaction(
-                await transaction.Execute(context),
-                nameof(UploadFiles),
-                () => ImmutableList<ErrorProperty>.Empty
-                   .Add(new ErrorProperty("Job", files.JobName)))
-                ?? string.Empty;
+            var result = await errorHelper.ProcessTransaction(
+                             await transaction.Execute(context, cancellationToken),
+                             nameof(UploadFiles),
+                             () => ImmutableList<ErrorProperty>.Empty
+                                .Add(new ErrorProperty("Job", files.JobName)))
+                      ?? string.Empty;
+
+            return string.IsNullOrWhiteSpace(result) 
+                ? new UploadFileResult(result, ids.ToImmutableList())
+                : new UploadFileResult(result, ImmutableList<ProjectFileId>.Empty);
         }
     }
 }

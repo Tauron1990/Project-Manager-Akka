@@ -10,10 +10,10 @@ public sealed record ProjectStateSnapshot(ProjectName Name, ImmutableList<Projec
     : IAggregateSnapshot<Project, ProjectId>;
 
 public sealed class ProjectState : InternalState<Project, ProjectId, ProjectStateSnapshot>,
-    IApply<NewProjectCreatedEvent>, IApply<ProjectNameChangedEvent>, IApply<ProjectDeadLineChangedEvent>,
-    IApply<ProjectFilesAttachedEvent>, IApply<ProjectStatusChangedEvent>,
+    IApply<NewProjectCreatedEvent>, IApply<ProjectNameChangedEvent>, IApply<ProjectDeadLineChangedEvent>, IApply<ProjectDeletedEvent>,
+    IApply<ProjectFilesAttachedEvent>, IApply<ProjectStatusChangedEvent>, IApply<ProjectFilesRemovedEvent>
 {
-    public ProjectName ProjectName { get; private set; } = new (string.Empty);
+    public ProjectName ProjectName { get; private set; } = ProjectName.Empty;
 
     public ImmutableList<ProjectFileId> Files { get; private set; } = ImmutableList<ProjectFileId>.Empty;
 
@@ -46,4 +46,15 @@ public sealed class ProjectState : InternalState<Project, ProjectId, ProjectStat
 
     public void Apply(ProjectStatusChangedEvent aggregateEvent)
         => Status = aggregateEvent.NewStatus;
+
+    public void Apply(ProjectFilesRemovedEvent aggregateEvent)
+        => Files = Files.RemoveRange(aggregateEvent.Files);
+
+    public void Apply(ProjectDeletedEvent aggregateEvent)
+    {
+        ProjectName = ProjectName.Empty;
+        Files = ImmutableList<ProjectFileId>.Empty;
+        Deadline = null;
+        Status = ProjectStatus.Deleted;
+    }
 }

@@ -35,21 +35,21 @@ public sealed class JobPriorityViewModel : BlazorViewModel
         
         GoUp = ReactiveCommand.CreateFromObservable(CreateExecute(
             async info => await aggregator.IsSuccess(
-                () => TimeoutToken.WithDefault(
+                () => TimeoutToken.WithDefault(default,
                     token => databaseService.ChangeOrder(new SetSortOrder(info.Order.Increment()), token)))),
             CreateCanExecute((pairs, pair) => pairs[0] != pair))
            .DisposeWith(this);
 
         GoDown = ReactiveCommand.CreateFromObservable(CreateExecute(
             async info => await aggregator.IsSuccess(
-                () => TimeoutToken.WithDefault(
+                () => TimeoutToken.WithDefault(default,
                     token => databaseService.ChangeOrder(new SetSortOrder(info.Order.Decrement()), token)))),
             CreateCanExecute((pairs, pair) => pairs.Last() != pair))
            .DisposeWith(this);
 
         Priorize = ReactiveCommand.CreateFromObservable(CreateExecute(
             async info => await aggregator.IsSuccess(
-                () => TimeoutToken.WithDefault(
+                () => TimeoutToken.WithDefault(default,
                     token => databaseService.ChangeOrder(new SetSortOrder(info.Order.Decrement()), token)))),
             CreateCanExecute((_, pair) => !pair.Order.IsPriority))
            .DisposeWith(this);

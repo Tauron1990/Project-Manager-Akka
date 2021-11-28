@@ -30,7 +30,7 @@ public sealed class PendingTaskDisplayViewModel : BlazorViewModel
 
                     if (task == null) return Unit.Default;
                     
-                    await aggregator.IsSuccess(() => TimeoutToken.WithDefault(
+                    await aggregator.IsSuccess(() => TimeoutToken.WithDefault(default,
                                                    t => taskManager.DeleteTask(task.Id, t)));
                     return Unit.Default;
                 },

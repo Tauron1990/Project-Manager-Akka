@@ -28,7 +28,7 @@ public class CriticalErrorViewModel : BlazorViewModel
             {
                 var err = currentError.ValueOrDefault;
                 if(err is null) return;
-                await eventAggregator.IsSuccess(() => TimeoutToken.WithDefault(
+                await eventAggregator.IsSuccess(() => TimeoutToken.WithDefault(default,
                                                     t => errorService.DisableError(err.Id, t)));
             }, currentError.ToObservable().Select(d => d is not null).StartWith(false))
            .DisposeWith(this);

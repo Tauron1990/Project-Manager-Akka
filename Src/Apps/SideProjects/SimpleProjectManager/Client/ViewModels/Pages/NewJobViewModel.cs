@@ -35,12 +35,12 @@ public sealed class NewJobViewModel : BlazorViewModel
                 return
                     from data in dataObs
                     from sucess in eventAggregator.IsSuccess(
-                            () => TimeoutToken.WithDefault(
+                            () => TimeoutToken.WithDefault(default,
                                 token => databaseService.CreateJob(new CreateProjectCommand(data.JobName, data.ProjectFiles, data.Status, data.Deadline), token)))
                        .AsTask()
                     from sucess2 in sucess
                         ? eventAggregator.IsSuccess(
-                            () => TimeoutToken.WithDefault(
+                            () => TimeoutToken.WithDefault(default,
                                 token => databaseService.ChangeOrder(new SetSortOrder(data.Ordering), token))).AsTask()
                         : Task.FromResult(false)
                     select sucess2;

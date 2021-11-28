@@ -42,7 +42,7 @@ public sealed class EditJobViewModel : StatefulViewModel<JobEditorData?>
 
                 if (validationResult.IsValid)
                 {
-                    if (await eventAggregator.IsSuccess(() => TimeoutToken.WithDefault(t => databaseService.UpdateJobData(command, t))))
+                    if (await eventAggregator.IsSuccess(() => TimeoutToken.WithDefault(default, t => databaseService.UpdateJobData(command, t))))
                         pageNavigation.ShowStartPage();
                 }
                 else

@@ -8,36 +8,45 @@ using Tauron.Application;
 
 namespace SimpleProjectManager.Server.Core.Services;
 
-public sealed record PreRegistrationContext(Func<Stream> ToRegister, ProjectFileId FileId, string FileName, string JobName, GridFSBucket Bucket, TaskManagerCore TaskManager, CancellationToken Token);
+public sealed record PreRegistrationContext(Func<Stream> ToRegister, ProjectFileId FileId, string FileName, string JobName);
 
 
 public sealed class PreRegisterTransaction : SimpleTransaction<PreRegistrationContext>
 {
-    public PreRegisterTransaction()
+    private readonly GridFSBucket _bucket;
+    private readonly TaskManagerCore _taskManager;
+
+    public PreRegisterTransaction(GridFSBucket bucket, TaskManagerCore taskManager)
     {
+        _bucket = bucket;
+        _taskManager = taskManager;
+
         Register(AddToDatabase);
         Register(AddShortTimeAutoDelete);
     }
 
-    private static async ValueTask<Rollback<PreRegistrationContext>> AddShortTimeAutoDelete(PreRegistrationContext context)
+    private async ValueTask<Rollback<PreRegistrationContext>> AddShortTimeAutoDelete(Context<PreRegistrationContext> transactionContext)
     {
+        var (context, _, token) = transactionContext;
+        
         var id = FilePurgeId.For(context.FileId);
-        var result = await context.TaskManager
+        var result = await _taskManager
            .AddNewTask(
                 AddTaskCommand.Create(
                     "Auto SortTime File Delete",
                     new Schedule<FilePurgeJob, FilePurgeId>(id, new FilePurgeJob(context.FileId), DateTime.Now + TimeSpan.FromMinutes(30))),
-                context.Token);
+                token);
 
         if (!result.Ok)
             throw new InvalidOperationException("Task zu Automatischen Löschen der Datei konnte nicht erstellt werden");
 
-        return async _ => await context.TaskManager.Delete(id.Value, default);
+        return async _ => await _taskManager.Delete(id.Value, default);
     }
 
-    private static async ValueTask<Rollback<PreRegistrationContext>> AddToDatabase(PreRegistrationContext context)
+    private async ValueTask<Rollback<PreRegistrationContext>> AddToDatabase(Context<PreRegistrationContext> transactionContext)
     {
-        var bucked = context.Bucket;
+        var (context, _, token) = transactionContext;
+        
         var id = ObjectId.GenerateNewId();
         var meta = new BsonDocument
                    {
@@ -46,11 +55,11 @@ public sealed class PreRegisterTransaction : SimpleTransaction<PreRegistrationCo
                    };
         
         await using var stream = context.ToRegister();
-        await bucked.UploadFromStreamAsync(id, context.FileId.Value, stream, new GridFSUploadOptions
+        await _bucket.UploadFromStreamAsync(id, context.FileId.Value, stream, new GridFSUploadOptions
                                                                              {
                                                                                  Metadata = meta
-                                                                             }, context.Token);
+                                                                             }, token);
 
-        return async _ => await bucked.DeleteAsync(id);
+        return async _ => await _bucket.DeleteAsync(id);
     }
 }

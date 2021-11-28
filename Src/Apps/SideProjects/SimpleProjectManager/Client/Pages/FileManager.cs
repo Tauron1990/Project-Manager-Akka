@@ -40,6 +40,8 @@ public partial class FileManager
                                     Position = DialogPosition.Center
                                 }
                             );
+                            
+                            c.SetOutput(result ?? false);
                         })
                    .DisposeWith(dipo);
             });

@@ -6,47 +6,50 @@ using Tauron.Application;
 
 namespace SimpleProjectManager.Server.Core.Services;
 
-public sealed record CommitRegistrationContext(TaskManagerCore TaskManager, ProjectFileId Id, CancellationToken Token);
-
-
-public sealed class CommitRegistrationTransaction : SimpleTransaction<CommitRegistrationContext>
+public sealed class CommitRegistrationTransaction : SimpleTransaction<ProjectFileId>
 {
-    private Exception? _last;
-    
-    public CommitRegistrationTransaction()
+    private readonly TaskManagerCore _taskManagerCore;
+
+    public CommitRegistrationTransaction(TaskManagerCore taskManagerCore)
     {
+        _taskManagerCore = taskManagerCore;
+        
         Register(CancelOldTask);
         Register(CreateCommitTask);
     }
 
-    private async ValueTask<Rollback<CommitRegistrationContext>> CreateCommitTask(CommitRegistrationContext context)
+    private async ValueTask<Rollback<ProjectFileId>> CreateCommitTask(Context<ProjectFileId> transactionContext)
     {
-        var result = await context.TaskManager.AddNewTask(
-            AddTaskCommand.Create(
-                $"Datai {context.Id.Value} Löschen",
-                new Schedule<FilePurgeJob, FilePurgeId>(
-                    FilePurgeId.For(context.Id),
-                    new FilePurgeJob(context.Id),
-                    DateTime.Now + TimeSpan.FromDays(6 * 30))),
-            context.Token);
+        var (projectFileId, meta, token) = transactionContext;
         
-        if(result.Ok) return _ => throw _last ?? new InvalidOperationException("Unbekannter Fehler");
+        var result = await _taskManagerCore.AddNewTask(
+            AddTaskCommand.Create(
+                $"Datai {projectFileId.Value} Löschen",
+                new Schedule<FilePurgeJob, FilePurgeId>(
+                    FilePurgeId.For(projectFileId),
+                    new FilePurgeJob(projectFileId),
+                    DateTime.Now + TimeSpan.FromDays(6 * 30))),
+            token);
+        
+        if(result.Ok) return c => throw c.Metadata.GetOptional<Exception>() ??  new InvalidOperationException("Unbekannter Fehler");
 
-        _last = CreateCommitExceptionFor("Erstellen des neun Tasks zum Automatischen Löschens");
-
-        throw _last;
+        var error = CreateCommitExceptionFor("Erstellen des neun Tasks zum Automatischen Löschens");
+        meta.Set(error);
+        
+        throw error;
     }
 
-    private async ValueTask<Rollback<CommitRegistrationContext>> CancelOldTask(CommitRegistrationContext context)
+    private async ValueTask<Rollback<ProjectFileId>> CancelOldTask(Context<ProjectFileId> transactionContext)
     {
-        var (taskManagerCore, projectFileId, cancellationToken) = context;
-        var result = await taskManagerCore.Delete(FilePurgeId.For(projectFileId).Value, cancellationToken);
+        var (projectFileId, meta, cancellationToken) = transactionContext;
+        var result = await _taskManagerCore.Delete(FilePurgeId.For(projectFileId).Value, cancellationToken);
 
-        if (result.Ok) return _ => throw _last ?? new InvalidOperationException("Unbekannter Fehler");
+        if (result.Ok) return c => throw c.Metadata.GetOptional<Exception>() ?? new InvalidOperationException("Unbekannter Fehler");
 
-        _last = CreateCommitExceptionFor("Abbrechen des Alten Tasks zum Automatischen Löschens");
-
-        throw _last;
+        var error = CreateCommitExceptionFor("Abbrechen des Alten Tasks zum Automatischen Löschens");
+        meta.Set(error);
+        
+        throw error;
 
     }
 

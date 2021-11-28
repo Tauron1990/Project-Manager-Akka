@@ -13,13 +13,15 @@ public interface IJobDatabaseService
     [ComputeMethod]
     ValueTask<JobData> GetJobData(ProjectId id, CancellationToken token);
 
+    ValueTask<string> DeleteJob(ProjectId id, CancellationToken token);
+
     ValueTask<string> CreateJob(CreateProjectCommand command, CancellationToken token);
 
     ValueTask<string> ChangeOrder(SetSortOrder newOrder, CancellationToken token);
 
     ValueTask<string> UpdateJobData(UpdateProjectCommand command, CancellationToken token);
 
-    ValueTask<string> AttachFiles(ProjectAttachFilesCommand command, CancellationToken token);
+    ValueTask<AttachResult> AttachFiles(ProjectAttachFilesCommand command, CancellationToken token);
 
     ValueTask<string> RemoveFiles(ProjectRemoveFilesCommand command, CancellationToken token);
 }
