@@ -14,10 +14,10 @@ public sealed class TaskManagerController : Controller, ITaskManager
         => _taskManager = taskManager;
 
     [HttpGet, Publish]
-    public ValueTask<PendingTask[]> GetTasks(CancellationToken token)
+    public Task<PendingTask[]> GetTasks(CancellationToken token)
         => _taskManager.GetTasks(token);
 
     [HttpPost]
-    public ValueTask<string> DeleteTask([FromBody]string id, CancellationToken token)
+    public Task<string> DeleteTask([FromBody] string id, CancellationToken token)
         => _taskManager.DeleteTask(id, token);
 }

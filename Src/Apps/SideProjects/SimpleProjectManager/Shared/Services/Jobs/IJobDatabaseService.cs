@@ -5,23 +5,23 @@ namespace SimpleProjectManager.Shared.Services;
 public interface IJobDatabaseService
 {
     [ComputeMethod(KeepAliveTime = 12 * 60 * 60)]
-    ValueTask<JobInfo[]> GetActiveJobs(CancellationToken token);
+    Task<JobInfo[]> GetActiveJobs(CancellationToken token);
 
     [ComputeMethod(KeepAliveTime = 12 * 60 * 60)]
-    ValueTask<SortOrder[]> GetSortOrders(CancellationToken token);
+    Task<SortOrder[]> GetSortOrders(CancellationToken token);
 
     [ComputeMethod]
-    ValueTask<JobData> GetJobData(ProjectId id, CancellationToken token);
+    Task<JobData> GetJobData(ProjectId id, CancellationToken token);
 
-    ValueTask<string> DeleteJob(ProjectId id, CancellationToken token);
+    Task<string> DeleteJob(ProjectId id, CancellationToken token);
 
-    ValueTask<string> CreateJob(CreateProjectCommand command, CancellationToken token);
+    Task<string> CreateJob(CreateProjectCommand command, CancellationToken token);
 
-    ValueTask<string> ChangeOrder(SetSortOrder newOrder, CancellationToken token);
+    Task<string> ChangeOrder(SetSortOrder newOrder, CancellationToken token);
 
-    ValueTask<string> UpdateJobData(UpdateProjectCommand command, CancellationToken token);
+    Task<string> UpdateJobData(UpdateProjectCommand command, CancellationToken token);
 
-    ValueTask<AttachResult> AttachFiles(ProjectAttachFilesCommand command, CancellationToken token);
+    Task<AttachResult> AttachFiles(ProjectAttachFilesCommand command, CancellationToken token);
 
-    ValueTask<string> RemoveFiles(ProjectRemoveFilesCommand command, CancellationToken token);
+    Task<string> RemoveFiles(ProjectRemoveFilesCommand command, CancellationToken token);
 }

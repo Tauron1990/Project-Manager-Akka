@@ -9,10 +9,10 @@ namespace Tauron.Application.Blazor;
 public sealed class TimeoutToken
 {
     #pragma warning disable CA1068
-    public static ValueTask<TResult> WithDefault<TResult>(CancellationToken token, Func<CancellationToken, ValueTask<TResult>> runner)
+    public static ValueTask<TResult> WithDefault<TResult>(CancellationToken token, Func<CancellationToken, Task<TResult>> runner)
         => With(TimeSpan.FromSeconds(20), token, runner);
     
-    public static async ValueTask<TResult> With<TResult>(TimeSpan timeSpan, CancellationToken token, Func<CancellationToken, ValueTask<TResult>> runner)
+    public static async ValueTask<TResult> With<TResult>(TimeSpan timeSpan, CancellationToken token, Func<CancellationToken, Task<TResult>> runner)
         #pragma warning restore CA1068
     {
         using var cts = CreateSource();

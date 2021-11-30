@@ -22,22 +22,22 @@ namespace SimpleProjectManager.Server.Controllers
             => _service = service;
 
         [Publish, HttpGet]
-        public ValueTask<ProjectFileInfo?> GetJobFileInfo([FromQuery]ProjectFileId id, CancellationToken token)
+        public Task<ProjectFileInfo?> GetJobFileInfo([FromQuery] ProjectFileId id, CancellationToken token)
             => _service.GetJobFileInfo(id, token);
 
         [Publish, HttpGet]
-        public ValueTask<DatabaseFile[]> GetAllFiles(CancellationToken token)
+        public Task<DatabaseFile[]> GetAllFiles(CancellationToken token)
             => _service.GetAllFiles(token);
 
 
         [HttpPost]
-        public ValueTask<string> RegisterFile(ProjectFileInfo projectFile, CancellationToken token)
+        public Task<string> RegisterFile(ProjectFileInfo projectFile, CancellationToken token)
             => _service.RegisterFile(projectFile, token);
 
-        public ValueTask<string> CommitFiles(FileList files, CancellationToken token)
+        public Task<string> CommitFiles(FileList files, CancellationToken token)
             => _service.CommitFiles(files, token);
 
-        public ValueTask<string> DeleteFiles(FileList files, CancellationToken token)
+        public Task<string> DeleteFiles(FileList files, CancellationToken token)
             => _service.DeleteFiles(files, token);
 
         [HttpGet("{id}")]

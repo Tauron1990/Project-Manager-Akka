@@ -22,7 +22,7 @@ public class TaskManager : ITaskManager, IDisposable
                 });
     }
 
-    public async ValueTask<PendingTask[]> GetTasks(CancellationToken token)
+    public async Task<PendingTask[]> GetTasks(CancellationToken token)
     {
         if (Computed.IsInvalidating()) return Array.Empty<PendingTask>();
 
@@ -31,7 +31,7 @@ public class TaskManager : ITaskManager, IDisposable
         return entrys.Select(e => new PendingTask(e.JobId, e.Name, e.Info)).ToArray();
     }
 
-    public async ValueTask<string> DeleteTask(string id, CancellationToken token)
+    public async Task<string> DeleteTask(string id, CancellationToken token)
     {
         try
         {

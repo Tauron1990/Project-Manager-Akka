@@ -5,12 +5,12 @@ namespace SimpleProjectManager.Shared.Services;
 public interface ICriticalErrorService
 {
     [ComputeMethod]
-    ValueTask<long> CountErrors(CancellationToken token);
+    Task<long> CountErrors(CancellationToken token);
 
     [ComputeMethod]
-    ValueTask<CriticalError[]> GetErrors(CancellationToken token);
+    Task<CriticalError[]> GetErrors(CancellationToken token);
 
-    ValueTask<string> DisableError(string id, CancellationToken token);
+    Task<string> DisableError(string id, CancellationToken token);
     
-    ValueTask WriteError(CriticalError error, CancellationToken token);
+    Task WriteError(CriticalError error, CancellationToken token);
 }

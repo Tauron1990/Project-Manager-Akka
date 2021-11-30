@@ -50,12 +50,12 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
 
                 Task DataChanged()
                     => Task.WhenAny(
-                        GetActiveJobs(default).AsTask(),
-                        GetJobData(de.AggregateIdentity, default).AsTask());
+                        GetActiveJobs(default),
+                        GetJobData(de.AggregateIdentity, default));
             });
     }
 
-    public virtual async ValueTask<JobInfo[]> GetActiveJobs(CancellationToken token)
+    public virtual async Task<JobInfo[]> GetActiveJobs(CancellationToken token)
     {
         if (Computed.IsInvalidating()) return Array.Empty<JobInfo>();
         
@@ -68,7 +68,7 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
         return result.ToArray();
     }
 
-    public virtual async ValueTask<SortOrder[]> GetSortOrders(CancellationToken token)
+    public virtual async Task<SortOrder[]> GetSortOrders(CancellationToken token)
     {
         if (Computed.IsInvalidating()) return Array.Empty<SortOrder>();
         
@@ -84,7 +84,7 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
         return list.ToArray();
     }
 
-    public virtual async ValueTask<JobData> GetJobData(ProjectId id, CancellationToken token)
+    public virtual async Task<JobData> GetJobData(ProjectId id, CancellationToken token)
     {
         if (Computed.IsInvalidating()) return null!;
         
@@ -94,13 +94,13 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
         return new JobData(result.Id, result.JobName, result.Status, result.Ordering, result.Deadline, result.ProjectFiles);
     }
 
-    public async ValueTask<string> DeleteJob(ProjectId id, CancellationToken token)
+    public async Task<string> DeleteJob(ProjectId id, CancellationToken token)
         => (await _commandProcessor.RunCommand(id, token)).Error ?? string.Empty;
 
-    public virtual async ValueTask<string> CreateJob(CreateProjectCommand command, CancellationToken token)
+    public virtual async Task<string> CreateJob(CreateProjectCommand command, CancellationToken token)
         => (await _commandProcessor.RunCommand(command, token)).Error ?? string.Empty;
 
-    public virtual async ValueTask<string> ChangeOrder(SetSortOrder newOrder, CancellationToken token)
+    public virtual async Task<string> ChangeOrder(SetSortOrder newOrder, CancellationToken token)
     {
         if (newOrder.SortOrder == null) return "Daten nicht zur Verfügung gestellt";
         
@@ -120,11 +120,11 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
             : "Das Element wurde nicht gefunden";
     }
 
-    public async ValueTask<string> UpdateJobData(UpdateProjectCommand command, CancellationToken token)
+    public async Task<string> UpdateJobData(UpdateProjectCommand command, CancellationToken token)
         => (await _commandProcessor.RunCommand(command, token)).Error ?? string.Empty;
     
 
-    public async ValueTask<AttachResult> AttachFiles(ProjectAttachFilesCommand command, CancellationToken token)
+    public async Task<AttachResult> AttachFiles(ProjectAttachFilesCommand command, CancellationToken token)
     {
         var result = await _commandProcessor.RunCommand(command, token);
 
@@ -135,7 +135,7 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
             : new AttachResult(result.Error ?? string.Empty, false);
     }
 
-    public async ValueTask<string> RemoveFiles(ProjectRemoveFilesCommand command, CancellationToken token)
+    public async Task<string> RemoveFiles(ProjectRemoveFilesCommand command, CancellationToken token)
         => (await _commandProcessor.RunCommand(command, token)).Error ?? string.Empty;
 
     public void Dispose()

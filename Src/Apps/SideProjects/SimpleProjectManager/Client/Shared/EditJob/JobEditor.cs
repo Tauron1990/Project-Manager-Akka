@@ -11,7 +11,6 @@ public partial class JobEditor
 {
     private MudCommandButton? _cancelButton;
     private MudCommandButton? _commitButton;
-    private FileUploader? _uploader;
 
     [Parameter]
     public string Title { get; set; } = string.Empty;

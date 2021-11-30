@@ -55,7 +55,7 @@ public class JobFileService : IJobFileService, IDisposable
                         };
     }
 
-    public async ValueTask<ProjectFileInfo?> GetJobFileInfo(ProjectFileId id, CancellationToken token)
+    public async Task<ProjectFileInfo?> GetJobFileInfo(ProjectFileId id, CancellationToken token)
     {
         if (Computed.IsInvalidating()) return null;
         
@@ -67,7 +67,7 @@ public class JobFileService : IJobFileService, IDisposable
             : new ProjectFileInfo(result.Id, result.ProjectName, result.FileName, result.Size, result.FileType, result.Mime);
     }
 
-    public virtual async ValueTask<DatabaseFile[]> GetAllFiles(CancellationToken token)
+    public virtual async Task<DatabaseFile[]> GetAllFiles(CancellationToken token)
     {
         var files = new List<DatabaseFile>();
 
@@ -83,7 +83,7 @@ public class JobFileService : IJobFileService, IDisposable
         return files.ToArray();
     }
 
-    public async ValueTask<string> RegisterFile(ProjectFileInfo projectFile, CancellationToken token)
+    public async Task<string> RegisterFile(ProjectFileInfo projectFile, CancellationToken token)
     {
         try
         {
@@ -128,10 +128,10 @@ public class JobFileService : IJobFileService, IDisposable
         return errors.IsEmpty ? string.Empty : string.Join($", {Environment.NewLine}", errors);
     }
 
-    public async ValueTask<string> CommitFiles(FileList files, CancellationToken token)
+    public async Task<string> CommitFiles(FileList files, CancellationToken token)
         => await AggregateErrors(files.Files, id => _contentManager.CommitFile(id, token));
 
-    public async ValueTask<string> DeleteFiles(FileList files, CancellationToken token)
+    public async Task<string> DeleteFiles(FileList files, CancellationToken token)
         => await AggregateErrors(files.Files, id => _contentManager.DeleteFile(id, token));
 
     public void Dispose()

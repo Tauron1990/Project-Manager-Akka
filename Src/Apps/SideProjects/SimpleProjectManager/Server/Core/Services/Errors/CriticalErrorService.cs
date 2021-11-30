@@ -32,7 +32,7 @@ public class CriticalErrorService : ICriticalErrorService
         #endif
     }
 
-    public virtual async ValueTask<long> CountErrors(CancellationToken token)
+    public virtual async Task<long> CountErrors(CancellationToken token)
     {
         if (Computed.IsInvalidating()) return 0;
 
@@ -41,7 +41,7 @@ public class CriticalErrorService : ICriticalErrorService
         return await _errorEntrys.CountDocumentsAsync(filter, cancellationToken:token);
     }
 
-    public virtual async ValueTask<CriticalError[]> GetErrors(CancellationToken token)
+    public virtual async Task<CriticalError[]> GetErrors(CancellationToken token)
     {
         if (Computed.IsInvalidating()) return Array.Empty<CriticalError>();
         
@@ -50,7 +50,7 @@ public class CriticalErrorService : ICriticalErrorService
         return list.ToArray();
     }
 
-    public virtual async ValueTask<string> DisableError(string id, CancellationToken token)
+    public virtual async Task<string> DisableError(string id, CancellationToken token)
     {
         var filter = Builders<CriticalErrorEntry>.Filter.Eq(e => e.Id, new ObjectId(id));
         var updater = Builders<CriticalErrorEntry>.Update.Set(e => e.IsDisabled, true);
@@ -74,7 +74,7 @@ public class CriticalErrorService : ICriticalErrorService
         }
     }
 
-    public virtual async ValueTask WriteError(CriticalError error, CancellationToken token)
+    public virtual async Task WriteError(CriticalError error, CancellationToken token)
     {
         try
         {
