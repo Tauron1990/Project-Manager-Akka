@@ -10,7 +10,8 @@
             <MudGrid Justify="Justify.Center">
                 <MudItem lg="3"/>
                 <MudItem lg="6">
-                    <MudTextField Label="Job Name:" @bind-Value="ViewModel.ProjectId" DebounceInterval="100" Validation="@ViewModel.ValidateName"/>
+                    <MudTextField Label="Job Name:" @bind-Value="ViewModel.ProjectId" DebounceInterval="100" Validation="@ViewModel.ValidateName"
+                                  Disabled="@DisableNameEdit"/>
                 </MudItem>
                 <MudItem lg="3"/>
             </MudGrid>

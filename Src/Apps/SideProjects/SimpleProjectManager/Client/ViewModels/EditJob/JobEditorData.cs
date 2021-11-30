@@ -1,15 +1,21 @@
-﻿using SimpleProjectManager.Shared;
+﻿using ReactiveUI;
+using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
 
 namespace SimpleProjectManager.Client.ViewModels;
 
-public class JobEditorData
+public class JobEditorData : ReactiveObject
 {
     private readonly bool _isUpdate;
-
+    private string? _jobName;
+    
     public JobData? OriginalData { get; }
 
-    public string? JobName { get; set; }
+    public string? JobName
+    {
+        get => _jobName;
+        set => this.RaiseAndSetIfChanged(ref _jobName, value);
+    }
 
     public ProjectStatus Status { get; set; }
     

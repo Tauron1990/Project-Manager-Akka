@@ -8,6 +8,7 @@ using DynamicData;
 using DynamicData.Alias;
 using Microsoft.AspNetCore.Components.Forms;
 using ReactiveUI;
+using SimpleProjectManager.Client.Shared.EditJob;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
 using SimpleProjectManager.Shared.Validators;
@@ -56,6 +57,10 @@ public sealed class FileUploaderViewModel : BlazorViewModel
         _aggregator = aggregator;
         _transaction = transaction;
         _criticalErrorService = criticalErrorService;
+
+        var nameState = GetParameter<string>(nameof(FileUploader.ProjectName)).ToObservable().StartWith(string.Empty);
+
+        nameState.Subscribe(s => ProjectId = s).DisposeWith(this);
         
         ValidateName = ValidateProjectName;
         

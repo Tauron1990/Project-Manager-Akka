@@ -1,4 +1,5 @@
 ﻿using System.Reactive.Disposables;
+using Microsoft.AspNetCore.Components;
 using ReactiveUI;
 using Tauron.Application.Blazor.Commands;
 
@@ -11,6 +12,12 @@ public partial class FileUploader
     private MudCommandButton? _clear;
     private MudCommandButton? _upload;
 
+    [Parameter]
+    public bool DisableNameEdit { get; set; }
+
+    [Parameter] 
+    public string ProjectName { get; set; } = string.Empty;
+    
     public MudCommandButton? Clear
     {
         get => _clear;
