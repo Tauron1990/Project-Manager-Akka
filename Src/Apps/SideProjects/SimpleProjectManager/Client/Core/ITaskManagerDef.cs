@@ -8,8 +8,8 @@ namespace SimpleProjectManager.Client.Core;
 public interface ITaskManagerDef
 {
     [Get(nameof(GetTasks))]
-    ValueTask<PendingTask[]> GetTasks(CancellationToken token);
+    Task<PendingTask[]> GetTasks(CancellationToken token);
 
     [Post(nameof(DeleteTask))]
-    ValueTask<string> DeleteTask([Body]string id, CancellationToken token);
+    Task<string> DeleteTask([Body]string id, CancellationToken token);
 }

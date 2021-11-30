@@ -46,20 +46,16 @@ public partial class JobEditor
         get => _commitButton;
         set => this.RaiseAndSetIfChanged(ref _commitButton, value);
     }
-
-    public FileUploader? Uploader
-    {
-        get => _uploader;
-        set => this.RaiseAndSetIfChanged(ref _uploader, value);
-    }
-
+    
     protected override void InitializeModel()
     {
         this.WhenActivated(
             dispo =>
             {
-                this.OneWayBind(ViewModel, m => m.Data.JobName, e => e.Uploader!.ProjectName);
-                
+                if(ViewModel == null) return;
+
+                ViewModel.Data.Changed.Subscribe(_ => RenderingManager.StateHasChangedAsync().Ignore()).DisposeWith(dispo);
+
                 this.BindCommand(ViewModel, m => m.Cancel, v => v.CancelButton).DisposeWith(dispo);
                 this.BindCommand(ViewModel, m => m.Commit, v => v.CommitButton).DisposeWith(dispo);
             });

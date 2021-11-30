@@ -20,8 +20,8 @@ public interface IJobFileServiceDef
     Task<UploadFileResult> UploadFiles([Body]MultipartFormDataContent content, CancellationToken token);
     
     [Post(nameof(CommitFiles))]
-    ValueTask<string> CommitFiles([Body]FileList files, CancellationToken token);
+    Task<string> CommitFiles([Body]FileList files, CancellationToken token);
 
     [Post(nameof(DeleteFiles))]
-    ValueTask<string> DeleteFiles([Body]FileList files, CancellationToken token);
+    Task<string> DeleteFiles([Body]FileList files, CancellationToken token);
 }

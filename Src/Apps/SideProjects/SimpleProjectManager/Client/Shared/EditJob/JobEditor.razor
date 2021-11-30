@@ -38,7 +38,7 @@
             </MudCard>
         </MudTabPanel>
         <MudTabPanel Text="Bild Dateien">
-            <FileUploader DisableNameEdit="true" @ref="Uploader"/>
+            <FileUploader DisableNameEdit="true" ProjectName="@ViewModel.Data.JobName"/>
         </MudTabPanel>
     </MudTabs>
 }

@@ -26,8 +26,8 @@ public interface IJobDatabaseServiceDef
     Task<string> UpdateJobData([Body] UpdateProjectCommand command, CancellationToken token);
     
     [Post(nameof(AttachFiles))]
-    ValueTask<string> AttachFiles([Body]ProjectAttachFilesCommand command, CancellationToken token);
+    Task<string> AttachFiles([Body]ProjectAttachFilesCommand command, CancellationToken token);
 
     [Post(nameof(RemoveFiles))]
-    ValueTask<string> RemoveFiles(ProjectRemoveFilesCommand command, CancellationToken token);
+    Task<string> RemoveFiles(ProjectRemoveFilesCommand command, CancellationToken token);
 }
