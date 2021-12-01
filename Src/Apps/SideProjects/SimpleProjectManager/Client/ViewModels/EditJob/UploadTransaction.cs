@@ -53,8 +53,10 @@ public sealed class UploadTransaction : SimpleTransaction<UploadTransactionConte
                   {
                       if(!isNew) return;
 
-                      var deleteResult = await TimeoutToken.WithDefault(c.Token,
-                          t => _databaseService.DeleteJob(c.Metadata.Get<ProjectId>(), t));
+                      var (_, contextMetadata, cancellationToken) = c;
+
+                      var deleteResult = await TimeoutToken.WithDefault(cancellationToken,
+                          t => _databaseService.DeleteJob(contextMetadata.Get<ProjectId>(), t));
 
                       deleteResult.ThrowIfFail();
                   });
