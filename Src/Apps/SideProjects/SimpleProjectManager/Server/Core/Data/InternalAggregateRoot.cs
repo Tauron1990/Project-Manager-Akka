@@ -7,7 +7,6 @@ using Akkatecture.Core;
 using FluentValidation;
 using FluentValidation.Results;
 using SimpleProjectManager.Shared;
-using Tauron.Operations;
 using Error = Tauron.Operations.Error;
 
 namespace SimpleProjectManager.Server.Core.Data;

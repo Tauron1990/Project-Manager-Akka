@@ -2,9 +2,6 @@
 using Akkatecture.Jobs;
 using MongoDB.Driver;
 using SimpleProjectManager.Shared.Services;
-using Tauron;
-using Tauron.Application;
-using Tauron.Operations;
 
 namespace SimpleProjectManager.Server.Core.Tasks;
 

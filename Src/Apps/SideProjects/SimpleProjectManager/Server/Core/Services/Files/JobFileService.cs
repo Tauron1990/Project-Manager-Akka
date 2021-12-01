@@ -8,8 +8,6 @@ using SimpleProjectManager.Server.Core.Projections.Core;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
-using Tauron;
-using Tauron.Application;
 
 namespace SimpleProjectManager.Server.Core.Services;
 

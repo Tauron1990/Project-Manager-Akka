@@ -1,6 +1,4 @@
-﻿using Tauron.Application;
-
-namespace SimpleProjectManager.Server;
+﻿namespace SimpleProjectManager.Server;
 
 public static class Extensions
 {

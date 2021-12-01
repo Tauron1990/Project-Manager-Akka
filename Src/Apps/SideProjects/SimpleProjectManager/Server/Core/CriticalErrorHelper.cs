@@ -2,8 +2,6 @@
 using System.Diagnostics;
 using JetBrains.Annotations;
 using SimpleProjectManager.Shared.Services;
-using Tauron.Application;
-using Tauron.Operations;
 
 namespace SimpleProjectManager.Server.Core;
 

@@ -2,8 +2,6 @@
 using Akka.DependencyInjection;
 using Akkatecture.Jobs;
 using Akkatecture.Jobs.Commands;
-using Tauron;
-using Tauron.Operations;
 
 namespace SimpleProjectManager.Server.Core.Tasks;
 

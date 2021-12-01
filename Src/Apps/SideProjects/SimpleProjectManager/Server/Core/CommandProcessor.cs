@@ -3,7 +3,6 @@ using System.Collections.Immutable;
 using Akka.Actor;
 using Akkatecture.Commands;
 using Akkatecture.Core;
-using Tauron.Operations;
 
 namespace SimpleProjectManager.Server.Core;
 

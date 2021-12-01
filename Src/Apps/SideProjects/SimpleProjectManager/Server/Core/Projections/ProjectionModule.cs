@@ -4,7 +4,6 @@ using Autofac;
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
 using SimpleProjectManager.Server.Core.Projections.Core;
-using Tauron.Application;
 using Tauron.Application.AkkaNode.Bootstrap;
 
 namespace SimpleProjectManager.Server.Core.Projections;

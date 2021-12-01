@@ -5,7 +5,6 @@ using MongoDB.Driver;
 using SimpleProjectManager.Server.Core.Projections.Core;
 using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
-using Tauron;
 using Tauron.Application.MongoExtensions;
 
 namespace SimpleProjectManager.Server.Core.Services;

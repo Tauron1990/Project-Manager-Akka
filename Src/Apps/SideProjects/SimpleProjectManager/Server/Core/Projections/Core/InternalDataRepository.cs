@@ -2,7 +2,6 @@
 using Akkatecture.Core;
 using LiquidProjections;
 using MongoDB.Driver;
-using Tauron;
 using Tauron.Akkatecture.Projections;
 
 namespace SimpleProjectManager.Server.Core.Projections.Core;

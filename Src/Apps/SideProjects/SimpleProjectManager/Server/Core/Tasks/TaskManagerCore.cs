@@ -9,8 +9,6 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 using SimpleProjectManager.Server.Core.Projections.Core;
 using SimpleProjectManager.Shared.Services;
-using Tauron.Application;
-using Tauron.Operations;
 
 #pragma warning disable EX006
 

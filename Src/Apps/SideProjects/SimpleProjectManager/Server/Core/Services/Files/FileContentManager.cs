@@ -5,8 +5,6 @@ using SimpleProjectManager.Server.Core.JobManager;
 using SimpleProjectManager.Server.Core.Tasks;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
-using Tauron.Application;
-using Tauron.Operations;
 
 namespace SimpleProjectManager.Server.Core.Services;
 

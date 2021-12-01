@@ -3,7 +3,6 @@ using SimpleProjectManager.Client.ViewModels;
 using SimpleProjectManager.Server.Core.Services;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
-using Tauron.Application;
 
 namespace SimpleProjectManager.Server.Controllers.FileUpload;
 

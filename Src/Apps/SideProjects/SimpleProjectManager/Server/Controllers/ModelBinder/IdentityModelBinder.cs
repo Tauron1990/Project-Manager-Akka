@@ -1,6 +1,5 @@
 ﻿using Akkatecture.Core;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Tauron;
 
 namespace SimpleProjectManager.Server.Controllers.ModelBinder;
 

@@ -1,6 +1,5 @@
 ﻿using Akka.Actor;
 using Akka.Persistence;
-using Tauron;
 using Tauron.Application.AkkaNode.Bootstrap;
 
 namespace SimpleProjectManager.Server.Core.Projections.Core;

@@ -4,7 +4,6 @@ using MongoDB.Driver.GridFS;
 using SimpleProjectManager.Server.Core.JobManager;
 using SimpleProjectManager.Server.Core.Tasks;
 using SimpleProjectManager.Shared;
-using Tauron.Application;
 
 namespace SimpleProjectManager.Server.Core.Services;
 

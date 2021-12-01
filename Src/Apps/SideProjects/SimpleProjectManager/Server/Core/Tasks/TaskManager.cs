@@ -1,7 +1,5 @@
 ﻿using SimpleProjectManager.Shared.Services.Tasks;
 using Stl.Fusion;
-using Tauron;
-using Tauron.Application;
 
 namespace SimpleProjectManager.Server.Core.Tasks;
 

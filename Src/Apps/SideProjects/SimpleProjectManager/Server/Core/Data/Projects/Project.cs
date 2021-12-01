@@ -3,7 +3,6 @@ using FluentValidation;
 using SimpleProjectManager.Server.Core.Data.Events;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Validators;
-using Tauron.Operations;
 
 namespace SimpleProjectManager.Server.Core.Data
 {

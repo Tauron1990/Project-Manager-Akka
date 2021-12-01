@@ -1,5 +1,4 @@
 ﻿using Akkatecture.Aggregates;
-using Tauron.Application;
 
 namespace SimpleProjectManager.Server.Core.Projections.Core;
 
