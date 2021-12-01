@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.Net.Http.Headers;
+using Castle.DynamicProxy;
 using SimpleProjectManager.Client.Core;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
@@ -14,15 +15,32 @@ public sealed record UploadTransactionContext(ImmutableList<FileUploadFile> File
 public sealed class UploadTransaction : SimpleTransaction<UploadTransactionContext>
 {
     private readonly IEventAggregator _aggregator;
-    private readonly ClientAccessor<IJobFileServiceDef> _clientAccessor;
+    private readonly IJobFileServiceDef _clientAccessor;
     private readonly IJobFileService _fileService;
     private readonly IJobDatabaseService _databaseService;
 
-    public UploadTransaction(IEventAggregator aggregator, ClientAccessor<IJobFileServiceDef> clientAccessor, IJobFileService fileService,
+    public UploadTransaction(IEventAggregator aggregator, ClientAccessor<IJobFileService> clientAccessor, IJobFileService fileService,
         IJobDatabaseService databaseService)
     {
         _aggregator = aggregator;
-        _clientAccessor = clientAccessor;
+
+        // ReSharper disable once SuspiciousTypeConversion.Global
+        if (clientAccessor is { Client: IProxyTargetAccessor proxyTarget })
+        {
+            if (proxyTarget.DynProxyGetTarget() is IJobFileServiceDef service)
+            {
+                _clientAccessor = service;
+            }
+            else
+            {
+                throw new InvalidOperationException("Unable to Cast Original Client Service");
+            }
+        }
+        else
+        {
+            throw new InvalidOperationException("No Proxy Target Found");
+        }
+
         _fileService = fileService;
         _databaseService = databaseService;
         
@@ -95,7 +113,7 @@ public sealed class UploadTransaction : SimpleTransaction<UploadTransactionConte
                     }
                 }
 
-                return await _clientAccessor.Client.UploadFiles(requestContent, t);
+                return await _clientAccessor.UploadFiles(requestContent, t);
             });
 
         meta.Set(ids);

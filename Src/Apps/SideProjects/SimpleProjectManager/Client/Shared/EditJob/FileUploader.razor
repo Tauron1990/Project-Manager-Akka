@@ -1,5 +1,23 @@
 ﻿@inherits NonAutoRenderingView<FileUploaderViewModel>
 
+<style>
+    .drag-drop-zone {
+        display: flex;align-items: center;justify-content: center;transition: all .4s;min-height: 400px;
+    }
+    .drag-drop-input {
+        position: absolute;width: 100%;height: 90%;opacity: 0;cursor:pointer;
+        z-index:2;
+    }
+
+    /*noinspection ALL*/
+    .drag-enter {
+        box-shadow: var(--mud-elevation-10);
+    }
+    .list{
+        padding:2em;min-width:100%;
+    }
+</style>
+
 @if (ViewModel != null)
 {
     <MudGrid>
@@ -20,9 +38,9 @@
             <MudPaper @ondragenter="@(() => _dragEnterStyle = "drag-enter")"
                       @ondragleave="@(() => _dragEnterStyle = null)"
                       @ondragend="@(() => _dragEnterStyle = null)"
-                      Class=@("drag-drop-zone " + _dragEnterStyle)>
+                      Class=@("drag-drop-zone " + _dragEnterStyle) MinHeight="300px">
 
-                <InputFile OnChange="ViewModel.FilesChanged" multiple class="drag-drop-input" disabled="@ViewModel.ShouldDisable"/>
+                <InputFile OnChange="ViewModel.FilesChanged" multiple class="drag-drop-input"/>
 
                 <ObservableCollectionView SourceParameter="ViewModel.Files">
                     <EmptyRender>
@@ -33,8 +51,9 @@
                             @foreach (var file in context)
                             {
                                 <MudListItem @key="@file.Name">
+                                    <MudGrid></MudGrid>
                                     <MudChip Color="Color.Dark"
-                                             Style="width:60px; overflow:hidden;"
+                                             Style="width: 60px; overflow: hidden;"
                                              Text="@(file.Name.Split(".").Last())"/>
                                     <MudText>@file.Name</MudText>
                                     @if (file.UploadState != UploadState.Pending)
