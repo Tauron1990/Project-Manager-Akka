@@ -12,7 +12,7 @@
     else
     {
         <StateAwaiter State="ViewModel.State">
-            <JobEditor Data="context" CanCancel="true" Configuration="@JobEditorConfiguration.EditJobConfig" Title="JobData Beabeiten"
+            <JobEditor Data="context" CanCancel="true" Configuration="@JobEditorConfiguration.EditJobConfig" Title="@($"{context?.JobName} beabeiten")"
                        Cancel="ViewModel.Cancel" Commit="ViewModel.Commit"/>
         </StateAwaiter>
     }

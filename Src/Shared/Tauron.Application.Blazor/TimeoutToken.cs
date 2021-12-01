@@ -23,7 +23,7 @@ public sealed class TimeoutToken
         {
             var timeout =
                     #if DEBUG
-                    TimeSpan.FromSeconds(300)
+                    TimeSpan.FromMinutes(300)
                     #else
                     timeSpan
                     #endif

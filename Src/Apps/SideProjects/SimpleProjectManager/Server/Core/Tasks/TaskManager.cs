@@ -20,7 +20,7 @@ public class TaskManager : ITaskManager, IDisposable
                 });
     }
 
-    public async Task<PendingTask[]> GetTasks(CancellationToken token)
+    public virtual async Task<PendingTask[]> GetTasks(CancellationToken token)
     {
         if (Computed.IsInvalidating()) return Array.Empty<PendingTask>();
 

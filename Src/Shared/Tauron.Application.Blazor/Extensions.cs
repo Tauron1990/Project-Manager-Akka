@@ -5,11 +5,13 @@ using System.Net.Http.Json;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Primitives;
 using ReactiveUI;
 using Stl;
 using Stl.Fusion;
@@ -86,6 +88,14 @@ namespace Tauron.Application.Blazor
             response.EnsureSuccessStatusCode();
 
             return await response.Content.ReadFromJsonAsync<TResult>();
+        }
+
+        public static async Task<TResult?> PostJson<TResult>(this HttpClient client, string url, HttpContent content, CancellationToken token)
+        {
+            var response = await client.PostAsync(url, content, token);
+            response.EnsureSuccessStatusCode();
+
+            return await response.Content.ReadFromJsonAsync<TResult>(cancellationToken: token);
         }
 
         public static IDisposableState<TData> ToState<TData>(this IObservable<TData> input, IStateFactory factory)

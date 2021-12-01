@@ -1,4 +1,5 @@
 
+using Akka.Configuration;
 using SimpleProjectManager.Server;
 using Tauron.Application.AkkaNode.Bootstrap;
 using Tauron.Application.AkkaNode.Bootstrap.Console;
@@ -8,7 +9,14 @@ var builder = Bootstrap.StartNode(args, KillRecpientType.Seed, IpcApplicationTyp
    .ConfigureWebHostDefaults(
         b =>
         {
-            b.UseUrls("http://localhost:85");//, "http://192.168.105.96:85");
+            if (File.Exists("seed.conf"))
+            {
+                var config = ConfigurationFactory.ParseString(File.ReadAllText("seed.conf"));
+                var ip = config.GetString("akka.remote.dot-netty.tcp.hostname");
+                b.UseUrls("http://localhost:85", $"http://{ip}:85");
+            }
+            else
+                b.UseUrls("http://localhost:85");//, "http://192.168.105.96:85");
             b.UseStartup<Startup>();
         });
 

@@ -53,7 +53,7 @@ public class JobFileService : IJobFileService, IDisposable
                         };
     }
 
-    public async Task<ProjectFileInfo?> GetJobFileInfo(ProjectFileId id, CancellationToken token)
+    public virtual async Task<ProjectFileInfo?> GetJobFileInfo(ProjectFileId id, CancellationToken token)
     {
         if (Computed.IsInvalidating()) return null;
         

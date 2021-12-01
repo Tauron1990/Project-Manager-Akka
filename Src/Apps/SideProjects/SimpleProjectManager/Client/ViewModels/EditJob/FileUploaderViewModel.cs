@@ -67,7 +67,7 @@ public sealed class FileUploaderViewModel : BlazorViewModel
         _files.DisposeWith(this);
 
         _files.Connect()
-           .AutoRefresh(f => f.UploadState)
+           .AutoRefresh(f => f.UploadState, TimeSpan.FromMilliseconds(200))
            .Bind(out var list)
            .Subscribe()
            .DisposeWith(this);
@@ -126,48 +126,63 @@ public sealed class FileUploaderViewModel : BlazorViewModel
 
     private async Task UploadFiles()
     {
-        var validation = ValidateProjectName(ProjectId);
-        if (!string.IsNullOrWhiteSpace(validation))
+        try
         {
-            _aggregator.PublishWarnig(validation);
-            return;
-        }
-        if(string.IsNullOrWhiteSpace(ProjectId)) return;
-        
-        var context = new UploadTransactionContext(Files.ToImmutableList(), new ProjectName(ProjectId));
+            var validation = ValidateProjectName(ProjectId);
+            if (!string.IsNullOrWhiteSpace(validation))
+            {
+                _aggregator.PublishWarnig(validation);
 
-        var (trasnactionState, exception) = await _transaction.Execute(context);
-        switch (trasnactionState)
-        {
-            case TrasnactionState.Successeded:
                 return;
-            case TrasnactionState.Rollback when exception is not null:
-                try
-                {
-                    var newEx = exception.Demystify();
+            }
 
-                    await _criticalErrorService.WriteError(
-                        new CriticalError(
-                            string.Empty,
-                            DateTime.Now,
-                            $"{nameof(FileUploaderViewModel)} -- {nameof(UploadFiles)}",
-                            newEx.Message,
-                            newEx.StackTrace,
-                            ImmutableList<ErrorProperty>.Empty),
-                        default);
-                }
-                catch (Exception e)
-                {
+            if (string.IsNullOrWhiteSpace(ProjectId)) return;
+
+            var context = new UploadTransactionContext(Files.ToImmutableList(), new ProjectName(ProjectId));
+
+            var (trasnactionState, exception) = await _transaction.Execute(context);
+            switch (trasnactionState)
+            {
+                case TrasnactionState.Successeded:
+                    return;
+                case TrasnactionState.RollbackFailed when exception is not null:
+                    try
+                    {
+                        var newEx = exception.Demystify();
+
+                        await _criticalErrorService.WriteError(
+                            new CriticalError(
+                                string.Empty,
+                                DateTime.Now,
+                                $"{nameof(FileUploaderViewModel)} -- {nameof(UploadFiles)}",
+                                newEx.Message,
+                                newEx.StackTrace,
+                                ImmutableList<ErrorProperty>.Empty),
+                            default);
+                    }
+                    catch (Exception e)
+                    {
+                        _aggregator.PublishError(e);
+                    }
+                    finally
+                    {
+                        _aggregator.PublishError(exception);
+                    }
+
+                    break;
+                case TrasnactionState.Rollback when exception is not null:
                     _aggregator.PublishError(exception);
-                    _aggregator.PublishError(e);
-                }
-                break;
-            case TrasnactionState.RollbackFailed when exception is not null:
-                _aggregator.PublishError(exception);
-                break;
-            default:
-                _aggregator.PublishWarnig("Datei Upload Unbekannter zustand");
-                break;
+
+                    break;
+                default:
+                    _aggregator.PublishWarnig("Datei Upload Unbekannter zustand");
+
+                    break;
+            }
+        }
+        finally
+        {
+            _files.KeyValues.Select(p => p.Value).Foreach(f => f.UploadState = UploadState.Compled);
         }
     }
 

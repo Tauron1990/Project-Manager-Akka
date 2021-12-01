@@ -55,8 +55,10 @@ namespace SimpleProjectManager.Server.Controllers
                 data.Mime.Value, data.FileName.Value);
         }
         
-        [HttpPost]
-        public async Task<UploadFileResult> UploadFiles(UploadFiles files, 
+        [HttpPost] 
+        [DisableRequestSizeLimit, RequestFormLimits(MultipartBodyLengthLimit = 800 * 1024 * 1024)]
+        public async Task<UploadFileResult> UploadFiles(
+            [FromForm]UploadFiles files, 
             [FromServices] FileUploadTransaction transaction,
             [FromServices] ICriticalErrorService errorService,
             [FromServices] ILogger<JobFileController> logger,
