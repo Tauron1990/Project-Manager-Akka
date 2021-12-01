@@ -1,5 +1,6 @@
 ﻿@inherits NonAutoRenderingView<FileUploaderViewModel>
 
+/*noinspection ALL*/
 <style>
     .drag-drop-zone {
         display: flex;align-items: center;justify-content: center;transition: all .4s;min-height: 400px;
@@ -9,7 +10,6 @@
         z-index:2;
     }
 
-    /*noinspection ALL*/
     .drag-enter {
 /* ReSharper disable once CssNotResolved */
         box-shadow: var(--mud-elevation-10);
@@ -42,7 +42,7 @@
                       Class=@("drag-drop-zone " + _dragEnterStyle) MinHeight="300px">
 
                 <InputFile OnChange="ViewModel.FilesChanged" multiple class="drag-drop-input"/>
-
+                
                 <ObservableCollectionView SourceParameter="ViewModel.Files">
                     <EmptyRender>
                         <MudText Typo="Typo.h3">Drag and Drop oder Klicken zum hinzufügen</MudText>
