@@ -33,7 +33,7 @@ public sealed class PreRegisterTransaction : SimpleTransaction<PreRegistrationCo
            .AddNewTask(
                 AddTaskCommand.Create(
                     "Auto SortTime File Delete",
-                    new Schedule<FilePurgeJob, FilePurgeId>(id, new FilePurgeJob(context.FileId), DateTime.Now + TimeSpan.FromMinutes(30))),
+                    Schedule.Fixed(id, new FilePurgeJob(context.FileId), DateTime.Now + TimeSpan.FromMinutes(30))),
                 token);
 
         if (!result.Ok)
