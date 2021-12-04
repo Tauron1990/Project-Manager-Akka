@@ -1,6 +1,7 @@
 ﻿@inherits ComputedStateComponent<long>
 
 @inject ICriticalErrorService _errorService
+@inject PageNavigation _navigation
 
 <StateAwaiter State="State">
     <MudTooltip Text="Aktuelle Kritische Fehler">
@@ -10,7 +11,7 @@
         }
         else
         {
-            <MudAlert Severity="Severity.Warning">@context</MudAlert>
+            <MudAlert Severity="Severity.Warning" OnClick="@_navigation.Errors">@context</MudAlert>
         }
     </MudTooltip>
 </StateAwaiter>

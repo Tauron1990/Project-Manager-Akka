@@ -8,6 +8,10 @@ public sealed class FileSize : SingleValueObject<long>
 
     public static readonly FileSize Empty = new(0);
 
-    public string ToMegaByteString()
-        => $"{Value / 1024 / 1024} Mb";
+    public string ToByteString()
+    {
+        var first = Value / 1024d;
+
+        return first < 1024 ? $"{first} KB" : $"{first / 1024} MB";
+    }
 }

@@ -1,6 +1,8 @@
-﻿using System.Reactive.Disposables;
+﻿using System.Reactive;
+using System.Reactive.Disposables;
 using Microsoft.AspNetCore.Components;
 using ReactiveUI;
+using SimpleProjectManager.Client.ViewModels;
 using Tauron.Application.Blazor.Commands;
 
 namespace SimpleProjectManager.Client.Shared.EditJob;
@@ -15,9 +17,18 @@ public partial class FileUploader
     [Parameter]
     public bool DisableNameEdit { get; set; }
 
+    [Parameter]
+    public bool DisableUploadButton { get; set; }
+
+    [Parameter]
+    public FileUploadTrigger? UploadTrigger { get; set; }
+
+    [Parameter]
+    public FileUploaderViewModel? UploaderViewModel { get; set; }
+
     [Parameter] 
     public string ProjectName { get; set; } = string.Empty;
-    
+
     public MudCommandButton? Clear
     {
         get => _clear;
@@ -39,4 +50,7 @@ public partial class FileUploader
                 this.BindCommand(ViewModel, m => m.Upload, v => v.Upload).DisposeWith(dispo);
             });
     }
+
+    protected override FileUploaderViewModel CreateModel()
+        => UploaderViewModel ?? base.CreateModel();
 }

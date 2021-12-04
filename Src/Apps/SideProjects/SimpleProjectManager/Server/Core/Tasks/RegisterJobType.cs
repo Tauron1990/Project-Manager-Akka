@@ -22,7 +22,7 @@ public sealed record RegisterJobType(
             s => new Cancel<TJob, TId>(FastReflection.Shared.FastCreateInstance<TId>(s), OperationResult.Success(), OperationResult.Failure()),
             o => o switch
             {
-                Schedule<TJob, TId> schedule => schedule.ToString(),
+                Schedule<TJob, TId> schedule => schedule.JobId.ToString() ?? string.Empty,
                 TId jobId => jobId.ToString() ?? string.Empty,
                 _ => string.Empty
             });

@@ -27,12 +27,18 @@ public partial class JobEditor
     [Parameter]
     public JobEditorConfiguration Configuration { get; set; } = JobEditorConfiguration.Default;
 
+    [Parameter]
+    public string Style { get; set; } = string.Empty;
+
     private bool StatusEditing => Configuration.StatusEditing;
 
     private bool SortOrderEditing => Configuration.SortOrderEditing;
 
     [Parameter]
     public JobEditorData? Data { get; set; }
+
+    [Parameter]
+    public JobEditorViewModel? CustomViewModel { get; set; }
 
     private MudCommandButton? CancelButton
     {
@@ -45,15 +51,18 @@ public partial class JobEditor
         get => _commitButton;
         set => this.RaiseAndSetIfChanged(ref _commitButton, value);
     }
-    
+
+    protected override JobEditorViewModel CreateModel()
+        => CustomViewModel ?? base.CreateModel();
+
     protected override void InitializeModel()
     {
         this.WhenActivated(
             dispo =>
             {
-                if(ViewModel == null) return;
+                if(ViewModel is null) return;
 
-                ViewModel.Data.Changed.Subscribe(_ => RenderingManager.StateHasChangedAsync().Ignore()).DisposeWith(dispo);
+                ViewModel.Data?.Changed.Subscribe(_ => RenderingManager.StateHasChangedAsync().Ignore()).DisposeWith(dispo);
 
                 this.BindCommand(ViewModel, m => m.Cancel, v => v.CancelButton).DisposeWith(dispo);
                 this.BindCommand(ViewModel, m => m.Commit, v => v.CommitButton).DisposeWith(dispo);

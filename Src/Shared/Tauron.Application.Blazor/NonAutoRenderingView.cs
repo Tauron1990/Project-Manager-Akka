@@ -141,11 +141,12 @@ public abstract class NonAutoRenderingView<TModel> : DisposableComponent, IViewF
     public override async Task SetParametersAsync(ParameterView parameters)
     {
          await base.SetParametersAsync(parameters);
+
          if(ViewModel is IParameterUpdateable updateable)
              updateable.Updater.UpdateParameters(parameters);
     }
 
-    protected TModel CreateModel()
+    protected virtual TModel CreateModel()
         => Services.GetIsolatedService<TModel>().DisposeWith(this);
 
     protected virtual void InitializeModel(){}

@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using DynamicData;
@@ -31,13 +32,15 @@ public sealed class FileUploaderViewModel : BlazorViewModel
     private readonly BehaviorSubject<bool> _isUploading = new(false);
     private readonly ObservableAsPropertyHelper<bool> _shouldDisable;
     private readonly ProjectNameValidator _nameValidator = new();
+    private readonly SerialDisposable _triggerSubscribe;
+
     private string? _projectId;
 
     public bool ShouldDisable => _shouldDisable.Value;
     
     public ReactiveCommand<Unit, Unit> Clear { get; }
     
-    public ReactiveCommand<Unit, Unit> Upload { get; }
+    public ReactiveCommand<Unit, string> Upload { get; }
 
     public Action<InputFileChangeEventArgs> FilesChanged { get; }
 
@@ -54,16 +57,21 @@ public sealed class FileUploaderViewModel : BlazorViewModel
     public FileUploaderViewModel(IStateFactory stateFactory, IEventAggregator aggregator, UploadTransaction transaction, ICriticalErrorService criticalErrorService)
         : base(stateFactory)
     {
+        Console.WriteLine("Inititlize View Model");
+
         _aggregator = aggregator;
         _transaction = transaction;
         _criticalErrorService = criticalErrorService;
+        _triggerSubscribe = 
+            new SerialDisposable()
+           .DisposeWith(this);
 
         var nameState = GetParameter<string>(nameof(FileUploader.ProjectName)).ToObservable().StartWith(string.Empty);
 
         nameState.Subscribe(s => ProjectId = s).DisposeWith(this);
-        
+
         ValidateName = ValidateProjectName;
-        
+
         _files.DisposeWith(this);
 
         _files.Connect()
@@ -71,41 +79,55 @@ public sealed class FileUploaderViewModel : BlazorViewModel
            .Bind(out var list)
            .Subscribe()
            .DisposeWith(this);
-        
+
         _files.Connect()
            .Where(f => f.UploadState == UploadState.Pending && string.IsNullOrWhiteSpace(ProjectId))
            .Select(TryExtrectName)
            .Flatten()
-           .Where(n => !string.IsNullOrWhiteSpace(n.Current) && string.IsNullOrWhiteSpace(ProjectId))  
+           .Where(n => !string.IsNullOrWhiteSpace(n.Current) && string.IsNullOrWhiteSpace(ProjectId))
            .Do(n => ProjectId = n.Current)
            .Subscribe()
            .DisposeWith(this);
-        
+
         Files = list;
 
         var canExecute = _isUploading.CombineLatest(_files.CountChanged).Select(d => !d.First && d.Second > 0).Publish().RefCount();
 
         _shouldDisable = canExecute.Select(canExecuteResult => !canExecuteResult).ToProperty(this, m => m.ShouldDisable);
-        
-        Upload = ReactiveCommand.CreateFromTask(UploadFiles, 
+
+        Upload = ReactiveCommand.CreateFromTask(
+                UploadFiles,
                 canExecute.CombineLatest(this.WhenAnyValue(m => m.ProjectId)).Select(t => t.First && !string.IsNullOrWhiteSpace(t.Second)))
            .DisposeWith(this);
         Upload.IsExecuting.Subscribe(_isUploading).DisposeWith(this);
-        
+
         Clear = ReactiveCommand.Create(() => _files.Clear(), canExecute)
            .DisposeWith(this);
 
         var filesChanged = ReactiveCommand.Create<InputFileChangeEventArgs, Unit>(
-            args =>
-            {
-                _files.Edit(u => u.Load(args.GetMultipleFiles()
+                args =>
+                {
+                    _files.Edit(
+                        u => u.Load(
+                            args.GetMultipleFiles()
                                .Where(IsFileValid)
                                .Select(bf => new FileUploadFile(bf))));
-                return Unit.Default;
-            })
+
+                    return Unit.Default;
+                })
            .DisposeWith(this);
         FilesChanged = filesChanged.ToAction();
+
+        GetParameter<FileUploadTrigger>(nameof(FileUploader.UploadTrigger))
+           .ToObservable()
+           .NotNull()
+           .Subscribe(NewTrigger)
+           .DisposeWith(this);
     }
+
+    private void NewTrigger(FileUploadTrigger trigger)
+        => _triggerSubscribe.Disposable = trigger.Set(UploadFiles);
+    
 
     private string ValidateProjectName(string? arg)
     {
@@ -124,27 +146,29 @@ public sealed class FileUploaderViewModel : BlazorViewModel
         return result;
     }
 
-    private async Task UploadFiles()
+    private async Task<string> UploadFiles()
     {
+        if(Files.Count == 0) return string.Empty;
+
         try
         {
             var validation = ValidateProjectName(ProjectId);
             if (!string.IsNullOrWhiteSpace(validation))
             {
                 _aggregator.PublishWarnig(validation);
-
-                return;
+                return validation;
             }
 
-            if (string.IsNullOrWhiteSpace(ProjectId)) return;
+            if (string.IsNullOrWhiteSpace(ProjectId)) return "Keine Projekt Id";
 
             var context = new UploadTransactionContext(Files.ToImmutableList(), new ProjectName(ProjectId));
 
             var (trasnactionState, exception) = await _transaction.Execute(context);
+
             switch (trasnactionState)
             {
                 case TrasnactionState.Successeded:
-                    return;
+                    return string.Empty;
                 case TrasnactionState.RollbackFailed when exception is not null:
                     try
                     {
@@ -168,16 +192,15 @@ public sealed class FileUploaderViewModel : BlazorViewModel
                     {
                         _aggregator.PublishError(exception);
                     }
-
-                    break;
+                    return exception.Message;
                 case TrasnactionState.Rollback when exception is not null:
                     _aggregator.PublishError(exception);
 
-                    break;
+                    return exception.Message;
                 default:
                     _aggregator.PublishWarnig("Datei Upload Unbekannter zustand");
 
-                    break;
+                    return "Datei Upload Unbekannter zustand";
             }
         }
         finally

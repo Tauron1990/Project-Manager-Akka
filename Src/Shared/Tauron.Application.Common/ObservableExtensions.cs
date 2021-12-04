@@ -73,7 +73,7 @@ public static class ObservableExtensions
         => source.Where(d => !Equals(d, default(TData)))!;
 
     public static IObservable<TData> NotNull<TData>(this IObservable<TData?> source)
-        => source.Where(d => d != null)!;
+        => source.Where(d => d is not null)!;
 
     public static IObservable<string> NotEmpty(this IObservable<string?> source)
         => source.Where(s => !string.IsNullOrWhiteSpace(s))!;

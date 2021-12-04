@@ -1,6 +1,4 @@
-﻿using System.Collections.Immutable;
-using System.Diagnostics;
-using MongoDB.Bson;
+﻿using MongoDB.Bson;
 using MongoDB.Driver;
 using SimpleProjectManager.Server.Core.Projections.Core;
 using SimpleProjectManager.Shared.Services;
@@ -22,13 +20,13 @@ public class CriticalErrorService : ICriticalErrorService
 
         _logger = logger;
         _errorEntrys = repository.Collection<CriticalErrorEntry>();
-        #if DEBUG
-        if (_errorEntrys.CountDocuments(Builders<CriticalErrorEntry>.Filter.Empty) == 0)
-        {
-            var id = ObjectId.GenerateNewId();
-            _errorEntrys.InsertOne(new CriticalErrorEntry(id, new CriticalError(id.ToString(), DateTime.Now, "Test Part", "Test Nachricht", EnhancedStackTrace.Current().ToString(), ImmutableList<ErrorProperty>.Empty.Add(new ErrorProperty("Test Property", "Test Info"))), false));
-        }
-        #endif
+        //#if DEBUG
+        //if (_errorEntrys.CountDocuments(Builders<CriticalErrorEntry>.Filter.Empty) == 0)
+        //{
+        //    var id = ObjectId.GenerateNewId();
+        //    _errorEntrys.InsertOne(new CriticalErrorEntry(id, new CriticalError(id.ToString(), DateTime.Now, "Test Part", "Test Nachricht", EnhancedStackTrace.Current().ToString(), ImmutableList<ErrorProperty>.Empty.Add(new ErrorProperty("Test Property", "Test Info"))), false));
+        //}
+        //#endif
     }
 
     public virtual async Task<long> CountErrors(CancellationToken token)

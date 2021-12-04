@@ -33,7 +33,7 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
                     {
                         case ProjectFilesRemovedEvent:
                         case ProjectFilesAttachedEvent:
-                            GetJobData(de.AggregateIdentity, default).Ignore();
+                            DataChanged().Ignore();
                             break;
                         case NewProjectCreatedEvent:
                             GetActiveJobs(default).Ignore();
@@ -101,20 +101,23 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
 
     public virtual async Task<string> ChangeOrder(SetSortOrder newOrder, CancellationToken token)
     {
-        if (newOrder.SortOrder == null) return "Daten nicht zur Verfügung gestellt";
-        
+        var (ignoreIfEmpty, sortOrder) = newOrder;
+
+        if (sortOrder is null)
+            return ignoreIfEmpty ? string.Empty : "Sortier Daten nicht zur Verfügung gestellt";
+
         var result = await _projects.FindOneAndUpdateAsync(
-            Builders<ProjectProjection>.Filter.Eq(p => p.Id, newOrder.SortOrder.Id),
-            Builders<ProjectProjection>.Update.Set(p => p.Ordering, newOrder.SortOrder),
+            Builders<ProjectProjection>.Filter.Eq(p => p.Id, sortOrder.Id),
+            Builders<ProjectProjection>.Update.Set(p => p.Ordering, sortOrder),
             cancellationToken: token);
 
-        if (result != null)
+        if (result is not null)
         {
             using(Computed.Invalidate())
                 GetSortOrders(CancellationToken.None).Ignore();
         }
         
-        return result != null 
+        return result is not null 
             ? string.Empty 
             : "Das Element wurde nicht gefunden";
     }

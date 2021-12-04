@@ -16,6 +16,9 @@ public class PageNavigation
     public PageNavigation(NavigationManager navigationManager)
         => _navigationManager = navigationManager;
 
+    public void Errors()
+        => _navigationManager.NavigateTo(CriticalErrorsUrl);
+
     public void ShowStartPage()
         => _navigationManager.NavigateTo(StartPageUrl);
     

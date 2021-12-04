@@ -14,7 +14,7 @@ public sealed class JobPriorityViewModel : BlazorViewModel
 {
     private readonly JobsViewModel _model;
 
-    public IObservable<ImmutableList<JobSortOrderPair>> ActivePairs { get; }
+    private IObservable<ImmutableList<JobSortOrderPair>> ActivePairs { get; }
 
     public ReactiveCommand<JobSortOrderPair?, bool> GoUp { get; }
 
@@ -36,21 +36,21 @@ public sealed class JobPriorityViewModel : BlazorViewModel
         GoUp = ReactiveCommand.CreateFromObservable(CreateExecute(
             async info => await aggregator.IsSuccess(
                 () => TimeoutToken.WithDefault(default,
-                    token => databaseService.ChangeOrder(new SetSortOrder(info.Order.Increment()), token)))),
+                    token => databaseService.ChangeOrder(new SetSortOrder(false, info.Order.Increment()), token)))),
             CreateCanExecute((pairs, pair) => pairs[0] != pair))
            .DisposeWith(this);
 
         GoDown = ReactiveCommand.CreateFromObservable(CreateExecute(
             async info => await aggregator.IsSuccess(
                 () => TimeoutToken.WithDefault(default,
-                    token => databaseService.ChangeOrder(new SetSortOrder(info.Order.Decrement()), token)))),
+                    token => databaseService.ChangeOrder(new SetSortOrder(false, info.Order.Decrement()), token)))),
             CreateCanExecute((pairs, pair) => pairs.Last() != pair))
            .DisposeWith(this);
 
         Priorize = ReactiveCommand.CreateFromObservable(CreateExecute(
             async info => await aggregator.IsSuccess(
                 () => TimeoutToken.WithDefault(default,
-                    token => databaseService.ChangeOrder(new SetSortOrder(info.Order.Decrement()), token)))),
+                    token => databaseService.ChangeOrder(new SetSortOrder(false, info.Order.Decrement()), token)))),
             CreateCanExecute((_, pair) => !pair.Order.IsPriority))
            .DisposeWith(this);
     }

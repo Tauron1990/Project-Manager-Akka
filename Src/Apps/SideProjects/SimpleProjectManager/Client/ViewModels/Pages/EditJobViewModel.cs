@@ -42,7 +42,8 @@ public sealed class EditJobViewModel : StatefulViewModel<JobEditorData?>
 
                 if (validationResult.IsValid)
                 {
-                    if (await eventAggregator.IsSuccess(() => TimeoutToken.WithDefault(default, t => databaseService.UpdateJobData(command, t))))
+                    if (await eventAggregator.IsSuccess(() => TimeoutToken.WithDefault(default, t => databaseService.UpdateJobData(command, t))) 
+                      && await eventAggregator.IsSuccess(async () => await newData.Upload())) 
                         pageNavigation.ShowStartPage();
                 }
                 else

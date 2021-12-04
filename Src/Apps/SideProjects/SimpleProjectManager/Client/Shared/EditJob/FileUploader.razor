@@ -83,9 +83,12 @@
         </MudItem>
         <MudItem lg="12">
             <MudGrid Justify="Justify.Center" Spacing="4">
-                <MudItem>
-                    <MudCommandButton @ref="Upload" Color="Color.Primary" Variant="Variant.Filled">Hochladen</MudCommandButton>
-                </MudItem>
+                @if (!DisableUploadButton)
+                {
+                    <MudItem>
+                        <MudCommandButton @ref="Upload" Color="Color.Primary" Variant="Variant.Filled">Hochladen</MudCommandButton>
+                    </MudItem>
+                }
                 <MudItem>
                     <MudCommandButton @ref="Clear" Color="Color.Error" Variant="Variant.Filled">Löschen</MudCommandButton>
                 </MudItem>

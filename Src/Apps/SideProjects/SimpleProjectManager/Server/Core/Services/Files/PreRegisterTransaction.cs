@@ -32,7 +32,7 @@ public sealed class PreRegisterTransaction : SimpleTransaction<PreRegistrationCo
         var result = await _taskManager
            .AddNewTask(
                 AddTaskCommand.Create(
-                    "Auto SortTime File Delete",
+                    "Automatisches Löschen der Datei Kurtz",
                     Schedule.Fixed(id, new FilePurgeJob(context.FileId), DateTime.Now + TimeSpan.FromMinutes(30))),
                 token);
 

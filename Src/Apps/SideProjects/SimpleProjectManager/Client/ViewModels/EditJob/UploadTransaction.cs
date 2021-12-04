@@ -1,6 +1,5 @@
 ﻿using System.Collections.Immutable;
 using System.Net.Http.Headers;
-using System.Reactive;
 using SimpleProjectManager.Client.Core;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
@@ -33,6 +32,8 @@ public sealed class UploadTransaction : SimpleTransaction<UploadTransactionConte
 
     private async ValueTask<Rollback<UploadTransactionContext>> CommitFiles(Context<UploadTransactionContext> context)
     {
+        Console.WriteLine("Commit Files");
+
         var result = await TimeoutToken.WithDefault(context.Token,
             t => _fileService.CommitFiles(new FileList(context.Metadata.Get<ImmutableList<ProjectFileId>>()), t));
 
@@ -48,15 +49,30 @@ public sealed class UploadTransaction : SimpleTransaction<UploadTransactionConte
         var (failMessage, isNew) = await TimeoutToken.WithDefault(token,
             t => _databaseService.AttachFiles(new ProjectAttachFilesCommand(id, projectName, meta.Get<ImmutableList<ProjectFileId>>()), t));
 
+        Console.WriteLine("Files Attached");
+
         return failMessage.ThrowIfFail<Rollback<UploadTransactionContext>>(
             () => async c =>
                   {
-                      if(!isNew) return;
-
                       var (_, contextMetadata, cancellationToken) = c;
+                      string deleteResult;
 
-                      var deleteResult = await TimeoutToken.WithDefault(cancellationToken,
-                          t => _databaseService.DeleteJob(contextMetadata.Get<ProjectId>(), t));
+                      if (!isNew)
+                      {
+                          deleteResult = await TimeoutToken.WithDefault(
+                              cancellationToken,
+                              t => _databaseService.RemoveFiles(
+                                  new ProjectRemoveFilesCommand(
+                                      contextMetadata.Get<ProjectId>(),
+                                      contextMetadata.Get<ImmutableList<ProjectFileId>>()),
+                                  t));
+                      }
+                      else
+                      {
+                          deleteResult = await TimeoutToken.WithDefault(
+                              cancellationToken,
+                              t => _databaseService.DeleteJob(contextMetadata.Get<ProjectId>(), t));
+                      }
 
                       deleteResult.ThrowIfFail();
                   });
@@ -85,10 +101,15 @@ public sealed class UploadTransaction : SimpleTransaction<UploadTransactionConte
                     t.ThrowIfCancellationRequested();
 
                     var stream = file.Open(t)
-                       .Recover(e => _aggregator.PublishError(e));
+                       .Recover(e =>
+                                {
+                                    Console.WriteLine("Error on Open Stream");
+                                    _aggregator.PublishError(e);
+                                });
 
                     if (stream.IsSuccess)
                     {
+                        Console.WriteLine("Add File Stream");
                         requestContent.Add(
                             new StreamContent(stream.Get())
                             {

@@ -1,6 +1,4 @@
-﻿
-
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -11,6 +9,7 @@ using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
 using Tauron;
+using Tauron.Application;
 using Tauron.Application.Blazor;
 
 namespace SimpleProjectManager.Client.ViewModels;
@@ -22,19 +21,26 @@ public sealed class JobEditorViewModel : BlazorViewModel
     public bool IsValid => _isValid.Value;
     public Action<bool> IsValidChanged => _isValid.OnNext;
 
-    private readonly ObservableAsPropertyHelper<JobEditorData> _data;
+    private readonly ObservableAsPropertyHelper<JobEditorData?> _data;
 
-    public JobEditorData Data => _data.Value;
+    public JobEditorData? Data => _data.Value;
 
     public ReactiveCommand<Unit, Unit> Cancel { get; }
     
     public ReactiveCommand<Unit, Unit> Commit { get; }
 
-    public JobEditorViewModel(IStateFactory stateFactory)
+    public FileUploadTrigger FileUploadTrigger { get; }
+
+    public FileUploaderViewModel UploaderViewModel { get; }
+
+    public JobEditorViewModel(IStateFactory stateFactory, IEventAggregator aggregator, FileUploaderViewModel uploaderViewModel)
         : base(stateFactory)
     {
+        UploaderViewModel = uploaderViewModel;
+
         _isValid = new BehaviorSubject<bool>(false).DisposeWith(this);
-        
+        FileUploadTrigger = new FileUploadTrigger();
+
         var commitEvent = GetParameter<EventCallback<JobEditorCommit>>(nameof(JobEditor.Commit));
         var cancelEvent = GetParameter<EventCallback>(nameof(JobEditor.Cancel));
         var canCancel = GetParameter<bool>(nameof(JobEditor.CanCancel));
@@ -59,6 +65,12 @@ public sealed class JobEditorViewModel : BlazorViewModel
         async Task CreateCommit()
         {
             if(!commitEvent.HasValue) return;
+
+            if (Data == null)
+            {
+                aggregator.PublishError("Keine Daten Verfügbar");
+                return;
+            }
 
             await commitEvent.Value.InvokeAsync(CreateNewJobData(Data));
         }
@@ -97,6 +109,6 @@ public sealed class JobEditorViewModel : BlazorViewModel
             return data?.Ordering;
         }
 
-        return new JobEditorCommit(new JobEditorPair<JobData>(data, editorData.OriginalData));
+        return new JobEditorCommit(new JobEditorPair<JobData>(data, editorData.OriginalData), FileUploadTrigger.Upload);
     }
 }

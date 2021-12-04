@@ -10,12 +10,14 @@ public sealed class FileDetailDisplayViewModel : StatefulViewModel<ProjectFileIn
 {
     private readonly IJobFileService _fileService;
 
-    public IState<ProjectFileId?> Id => GetParameter<ProjectFileId?>(nameof(FileDetailDisplay.FileId));
+    public IState<ProjectFileId?> Id { get; }
     
     public FileDetailDisplayViewModel(IStateFactory stateFactory, IJobFileService fileService) 
         : base(stateFactory)
     {
         _fileService = fileService;
+
+        Id = GetParameter<ProjectFileId?>(nameof(FileDetailDisplay.FileId));
     }
 
     protected override async Task<ProjectFileInfo?> ComputeState(CancellationToken cancellationToken)
