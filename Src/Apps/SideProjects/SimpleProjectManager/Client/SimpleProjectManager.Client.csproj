@@ -32,7 +32,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Core\" />
     <Folder Include="ViewModels\AppBar\" />
     <Folder Include="wwwroot\_content\MudBlazor\" />
   </ItemGroup>
@@ -91,6 +90,9 @@
     </Compile>
     <Compile Update="Pages\FileManager.cs">
       <DependentUpon>FileManager.razor</DependentUpon>
+    </Compile>
+    <Compile Update="Pages\Dashboard.cs">
+      <DependentUpon>Dashboard.razor</DependentUpon>
     </Compile>
   </ItemGroup>
 

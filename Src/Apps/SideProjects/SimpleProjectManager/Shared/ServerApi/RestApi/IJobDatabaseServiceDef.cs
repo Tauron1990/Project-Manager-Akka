@@ -1,8 +1,7 @@
 ﻿using RestEase;
-using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
 
-namespace SimpleProjectManager.Client.Core;
+namespace SimpleProjectManager.Shared.ServerApi.RestApi;
 
 [BasePath(ApiPaths.JobsApi)]
 public interface IJobDatabaseServiceDef
@@ -16,6 +15,9 @@ public interface IJobDatabaseServiceDef
     [Get(nameof(GetJobData))]
     Task<JobData> GetJobData([Query]ProjectId id, CancellationToken token);
 
+    [Get(nameof(CountActiveJobs))]
+    Task<long> CountActiveJobs(CancellationToken token);
+    
     [Post(nameof(CreateJob))]
     Task<string> CreateJob([Body]CreateProjectCommand command, CancellationToken token);
 

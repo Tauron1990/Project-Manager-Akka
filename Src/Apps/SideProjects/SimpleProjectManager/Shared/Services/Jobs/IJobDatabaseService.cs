@@ -13,6 +13,9 @@ public interface IJobDatabaseService
     [ComputeMethod]
     Task<JobData> GetJobData(ProjectId id, CancellationToken token);
 
+    [ComputeMethod]
+    Task<long> CountActiveJobs(CancellationToken token);
+
     Task<string> DeleteJob(ProjectId id, CancellationToken token);
 
     Task<string> CreateJob(CreateProjectCommand command, CancellationToken token);

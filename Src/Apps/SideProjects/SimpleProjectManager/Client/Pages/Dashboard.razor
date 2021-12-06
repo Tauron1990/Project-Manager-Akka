@@ -1,0 +1,39 @@
+﻿@page "/"
+
+@inherits NonAutoRenderingView<DashboardViewModel>
+
+@inject PageNavigation _pageNavigation
+
+<PageTitle>Start Seite</PageTitle>
+
+
+<MudGrid>
+    <MudItem lg="3">
+        <MudPaper Elevation="2" @onclick="_pageNavigation.ShowCurrentJobs" Height="25%">
+            <MudGrid Spacing="1">
+                <MudItem lg="12">
+                    <MudText Align="Align.Center">Aufträge</MudText>
+                </MudItem>
+                <MudItem lg="12">
+                    <StateAwaiter State="@ViewModel?.JobCountState">
+                        <MudText Align="Align.Center">@context</MudText>
+                    </StateAwaiter>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+    </MudItem>
+    <MudItem lg="3">
+        <MudPaper Height="25%">
+            <MudGrid Spacing="2">
+                <MudGrid Justify="Justify.Center">
+                    <MudItem lg="12">
+                        <MudButton FullWidth="@true" StartIcon="@Icons.Filled.NewLabel" OnClick="@(() => _pageNavigation.NewJob())">Neuer Job</MudButton>
+                    </MudItem>
+                    <MudItem lg="12">
+                        <MudButton FullWidth="@true" OnClick="@(() => _pageNavigation.UploadFiles())">Daten Hochladen</MudButton>
+                    </MudItem>
+                </MudGrid>
+            </MudGrid>
+        </MudPaper>
+    </MudItem>
+</MudGrid>

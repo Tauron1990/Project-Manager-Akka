@@ -1,8 +1,7 @@
 ﻿using RestEase;
-using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
 
-namespace SimpleProjectManager.Client.Core;
+namespace SimpleProjectManager.Shared.ServerApi.RestApi;
 
 [BasePath(ApiPaths.FilesApi)]
 public interface IJobFileServiceDef

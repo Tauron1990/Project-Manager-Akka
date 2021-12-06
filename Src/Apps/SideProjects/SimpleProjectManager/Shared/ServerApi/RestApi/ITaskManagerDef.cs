@@ -2,7 +2,7 @@
 using SimpleProjectManager.Shared.Services;
 using SimpleProjectManager.Shared.Services.Tasks;
 
-namespace SimpleProjectManager.Client.Core;
+namespace SimpleProjectManager.Shared.ServerApi.RestApi;
 
 [BasePath(ApiPaths.TaskApi)]
 public interface ITaskManagerDef

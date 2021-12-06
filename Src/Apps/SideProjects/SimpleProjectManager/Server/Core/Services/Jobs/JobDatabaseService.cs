@@ -36,6 +36,7 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
                             DataChanged().Ignore();
                             break;
                         case NewProjectCreatedEvent:
+                            CountActiveJobs(default).Ignore();
                             GetActiveJobs(default).Ignore();
                             break;
                         case ProjectDeletedEvent:
@@ -49,6 +50,7 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
 
                 Task DataChanged()
                     => Task.WhenAny(
+                        CountActiveJobs(default),
                         GetActiveJobs(default),
                         GetJobData(de.AggregateIdentity, default));
             });
@@ -91,6 +93,16 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
         var result = await _projects.Find(filter).FirstAsync(token);
 
         return new JobData(result.Id, result.JobName, result.Status, result.Ordering, result.Deadline, result.ProjectFiles);
+    }
+
+    public virtual async Task<long> CountActiveJobs(CancellationToken token)
+    {
+        if (Computed.IsInvalidating()) return 0;
+        
+        var filter = Builders<ProjectProjection>.Filter.Eq(p => p.Status, ProjectStatus.Finished);
+        var result = _projects.Find(Builders<ProjectProjection>.Filter.Not(filter));
+
+        return await result.CountDocumentsAsync(token);
     }
 
     public async Task<string> DeleteJob(ProjectId id, CancellationToken token)

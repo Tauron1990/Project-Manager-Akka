@@ -1,7 +1,8 @@
 ﻿using System.Collections.Immutable;
 using System.Net.Http.Headers;
-using SimpleProjectManager.Client.Core;
 using SimpleProjectManager.Shared;
+using SimpleProjectManager.Shared.ServerApi;
+using SimpleProjectManager.Shared.ServerApi.RestApi;
 using SimpleProjectManager.Shared.Services;
 using Tauron.Application;
 using Tauron.Application.Blazor;

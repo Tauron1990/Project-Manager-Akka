@@ -10,12 +10,20 @@ public class PageNavigation
     public const string CriticalErrorsUrl = "/CriticalErrors";
     public const string TaskManagerUrl = "/TaskManager";
     public const string FileManagerUrl = "/FileManager";
+    public const string CurrentJobs = "/CurrentJobs";
+    public const string UploadFilesUrl = "/Upload";
     
     private readonly NavigationManager _navigationManager;
 
     public PageNavigation(NavigationManager navigationManager)
         => _navigationManager = navigationManager;
 
+    public void ShowCurrentJobs()
+        => _navigationManager.NavigateTo(CurrentJobs);
+
+    public void UploadFiles()
+        => _navigationManager.NavigateTo(UploadFilesUrl);
+    
     public void Errors()
         => _navigationManager.NavigateTo(CriticalErrorsUrl);
 

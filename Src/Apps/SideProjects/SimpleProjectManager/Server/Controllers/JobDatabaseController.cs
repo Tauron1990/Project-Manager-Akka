@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SimpleProjectManager.Shared;
+using SimpleProjectManager.Shared.ServerApi;
 using SimpleProjectManager.Shared.Services;
 using Stl.Fusion.Server;
 
@@ -24,6 +25,10 @@ namespace SimpleProjectManager.Server.Controllers
         [HttpGet, Publish]
         public Task<JobData> GetJobData([FromQuery] ProjectId id, CancellationToken token)
             => _service.GetJobData(id, token);
+
+        [HttpGet, Publish]
+        public Task<long> CountActiveJobs(CancellationToken token)
+            => _service.CountActiveJobs(token);
 
         public Task<string> DeleteJob(ProjectId id, CancellationToken token)
             => _service.DeleteJob(id, token);

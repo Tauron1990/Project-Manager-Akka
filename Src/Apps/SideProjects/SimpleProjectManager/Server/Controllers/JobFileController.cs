@@ -8,6 +8,7 @@ using SimpleProjectManager.Server.Core;
 using SimpleProjectManager.Server.Core.Projections.Core;
 using SimpleProjectManager.Server.Core.Services;
 using SimpleProjectManager.Shared;
+using SimpleProjectManager.Shared.ServerApi;
 using SimpleProjectManager.Shared.Services;
 using Stl.Fusion.Server;
 

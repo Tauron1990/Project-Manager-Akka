@@ -1,7 +1,9 @@
-﻿namespace SimpleProjectManager.Shared.Services;
+﻿namespace SimpleProjectManager.Shared.ServerApi;
 
 public class ApiPaths
 {
+    public const string PingApi = "Api/Ping";
+    
     public const string JobsApi = "Api/Jobs";
 
     public const string FilesApi = "Api/Files";

@@ -1,7 +1,7 @@
 ﻿using RestEase;
 using SimpleProjectManager.Shared.Services;
 
-namespace SimpleProjectManager.Client.Core;
+namespace SimpleProjectManager.Shared.ServerApi.RestApi;
 
 [BasePath(ApiPaths.ErrorApi)]
 public interface ICriticalErrorServiceDef
