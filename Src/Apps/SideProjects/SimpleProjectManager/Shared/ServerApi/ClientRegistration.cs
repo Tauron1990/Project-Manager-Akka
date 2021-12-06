@@ -12,8 +12,6 @@ public static class ClientRegistration
 {
     public static FusionRestEaseClientBuilder ConfigFusion(IServiceCollection collection, Uri baseAdress)
     {
-        Console.WriteLine($"Base Adress: {baseAdress}");
-        
         return collection.AddFusion()
            .AddFusionTime()
            .AddRestEaseClient(((_, options) =>

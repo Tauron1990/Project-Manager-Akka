@@ -8,6 +8,7 @@ using Autofac;
 using Autofac.Builder;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Tauron.AkkaHost;
 using Tauron.Application.AkkaNode.Services.Configuration;
@@ -56,6 +57,10 @@ namespace Tauron.Application.AkkaNode.Bootstrap
             where TImpl : IStartUpAction
             => builder.RegisterType<TImpl>().As<IStartUpAction>();
 
+        public static IServiceCollection RegisterStartUpAction<TImpl>(this IServiceCollection builder)
+            where TImpl : class, IStartUpAction
+            => builder.AddScoped<IStartUpAction, TImpl>();
+        
         public static IActorApplicationBuilder OnMemberUp(this IActorApplicationBuilder builder, Action<HostBuilderContext, ActorSystem, Cluster> up)
         {
             return builder.ConfigureAkkaSystem(
