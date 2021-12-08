@@ -1,6 +1,6 @@
 ﻿namespace SimpleProjectManager.Operation.Client.Shared.Core;
 
-public class ImageManagerFeature
+public sealed class ImageManagerFeature
 {
-    
+    public sealed record State(string TargetPath);
 }
