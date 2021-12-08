@@ -27,7 +27,7 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
-        <PackageReference Include="NLog" Version="4.7.12" />
+        <PackageReference Include="NLog" Version="4.7.13" />
         <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
         <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
     </ItemGroup>
