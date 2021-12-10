@@ -4,50 +4,49 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 
-namespace Tauron.Application.Wpf.Implementation
+namespace Tauron.Application.Wpf.Implementation;
+
+[PublicAPI]
+public class PackUriHelper : IPackUriHelper
 {
-    [PublicAPI]
-    public class PackUriHelper : IPackUriHelper
+    public string GetString(string pack) => GetString(pack, Assembly.GetCallingAssembly().GetName().Name, full: false);
+
+    public string GetString(string pack, string? assembly, bool full)
     {
-        public string GetString(string pack) => GetString(pack, Assembly.GetCallingAssembly().GetName().Name, full: false);
+        if (assembly == null) return pack;
 
-        public string GetString(string pack, string? assembly, bool full)
-        {
-            if (assembly == null) return pack;
+        var fullstring = full ? "pack://application:,,," : string.Empty;
 
-            var fullstring = full ? "pack://application:,,," : string.Empty;
+        return $"{fullstring}/{assembly};component/{pack}";
+    }
 
-            return $"{fullstring}/{assembly};component/{pack}";
-        }
+    public Uri GetUri(string pack) => GetUri(pack, Assembly.GetCallingAssembly().GetName().Name, full: false);
 
-        public Uri GetUri(string pack) => GetUri(pack, Assembly.GetCallingAssembly().GetName().Name, full: false);
+    public Uri GetUri(string pack, string? assembly, bool full)
+    {
+        var compledpack = GetString(pack, assembly, full);
+        var uriKind = full ? UriKind.Absolute : UriKind.Relative;
 
-        public Uri GetUri(string pack, string? assembly, bool full)
-        {
-            var compledpack = GetString(pack, assembly, full);
-            var uriKind = full ? UriKind.Absolute : UriKind.Relative;
+        return new Uri(compledpack, uriKind);
+    }
 
-            return new Uri(compledpack, uriKind);
-        }
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public T Load<T>(string pack) where T : class => Load<T>(pack, Assembly.GetCallingAssembly().GetName().Name);
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public T Load<T>(string pack) where T : class => Load<T>(pack, Assembly.GetCallingAssembly().GetName().Name);
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public T Load<T>(string pack, string? assembly) where T : class
+        => (T)System.Windows.Application.LoadComponent(GetUri(pack, assembly, full: false));
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public T Load<T>(string pack, string? assembly) where T : class
-            => (T)System.Windows.Application.LoadComponent(GetUri(pack, assembly, full: false));
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public Stream LoadStream(string pack) => LoadStream(pack, Assembly.GetCallingAssembly().GetName().Name);
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public Stream LoadStream(string pack) => LoadStream(pack, Assembly.GetCallingAssembly().GetName().Name);
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public Stream LoadStream(string pack, string? assembly)
+    {
+        var info = System.Windows.Application.GetResourceStream(GetUri(pack, assembly, full: true));
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public Stream LoadStream(string pack, string? assembly)
-        {
-            var info = System.Windows.Application.GetResourceStream(GetUri(pack, assembly, full: true));
+        if (info != null) return info.Stream;
 
-            if (info != null) return info.Stream;
-
-            throw new InvalidOperationException("Stream loading Failed");
-        }
+        throw new InvalidOperationException("Stream loading Failed");
     }
 }

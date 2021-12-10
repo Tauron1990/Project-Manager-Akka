@@ -1,9 +1,8 @@
-﻿namespace Tauron.Application.Master.Commands.Administration.Host
+﻿namespace Tauron.Application.Master.Commands.Administration.Host;
+
+public enum AppType
 {
-    public enum AppType
-    {
-        Host,
-        Cluster,
-        StartUp
-    }
+    Host,
+    Cluster,
+    StartUp
 }

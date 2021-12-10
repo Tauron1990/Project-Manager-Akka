@@ -28,12 +28,11 @@
 using Akkatecture.ValueObjects;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Sagas
+namespace Akkatecture.Sagas;
+
+[PublicAPI]
+public class SagaName : SingleValueObject<string>, ISagaName
 {
-    [PublicAPI]
-    public class SagaName : SingleValueObject<string>, ISagaName
-    {
-        public SagaName(string value)
-            : base(value) { }
-    }
+    public SagaName(string value)
+        : base(value) { }
 }

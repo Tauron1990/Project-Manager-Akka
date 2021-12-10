@@ -1,17 +1,16 @@
 ﻿using System;
 using JetBrains.Annotations;
 
-namespace Tauron.Application.AkkaNode.Bootstrap.Console
+namespace Tauron.Application.AkkaNode.Bootstrap.Console;
+
+[PublicAPI]
+public interface IIpcConnection
 {
-    [PublicAPI]
-    public interface IIpcConnection
-    {
-        bool IsReady { get; }
+    bool IsReady { get; }
 
-        IObservable<CallResult<TType>> OnMessage<TType>();
+    IObservable<CallResult<TType>> OnMessage<TType>();
 
-        bool SendMessage<TMessage>(string to, TMessage message);
+    bool SendMessage<TMessage>(string to, TMessage message);
 
-        bool SendMessage<TMessage>(TMessage message);
-    }
+    bool SendMessage<TMessage>(TMessage message);
 }

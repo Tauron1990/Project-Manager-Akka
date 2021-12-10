@@ -24,13 +24,12 @@
 using Akka.Configuration;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Configuration
+namespace Akkatecture.Configuration;
+
+[PublicAPI]
+public class AkkatectureDefaultSettings
 {
-    [PublicAPI]
-    public class AkkatectureDefaultSettings
-    {
-        public static Config DefaultConfig()
-            => ConfigurationFactory.FromResource<AkkatectureDefaultSettings>(
-                "Akkatecture.Configuration.reference.conf");
-    }
+    public static Config DefaultConfig()
+        => ConfigurationFactory.FromResource<AkkatectureDefaultSettings>(
+            "Akkatecture.Configuration.reference.conf");
 }

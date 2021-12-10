@@ -1,55 +1,54 @@
 ﻿using System;
 using JetBrains.Annotations;
 
-namespace Tauron.Application.CommonUI.Helper
+namespace Tauron.Application.CommonUI.Helper;
+
+public abstract class ControlBindableBase : IControlBindable
 {
-    public abstract class ControlBindableBase : IControlBindable
+    // ReSharper disable once MemberCanBePrivate.Global
+    protected IUIObject Root { [UsedImplicitly] get; private set; } = new Dummy();
+
+    protected IUIObject AffectedObject { get; private set; } = new Dummy();
+
+    public IDisposable Bind(IUIObject root, IUIObject affectedObject, object dataContext)
     {
-        // ReSharper disable once MemberCanBePrivate.Global
-        protected IUIObject Root { [UsedImplicitly] get; private set; } = new Dummy();
+        Root = root;
+        AffectedObject = affectedObject;
+        Bind(dataContext);
 
-        protected IUIObject AffectedObject { get; private set; } = new Dummy();
+        return new CleanUpHelper(this);
+    }
 
-        public IDisposable Bind(IUIObject root, IUIObject affectedObject, object dataContext)
+    //public IDisposable NewContext(object newContext)
+    //{
+    //    Bind(newContext);
+    //    return new CleanUpHelper(this);
+    //}
+
+    protected abstract void CleanUp();
+
+    protected abstract void Bind(object context);
+
+    private class CleanUpHelper : IDisposable
+    {
+        private readonly ControlBindableBase _control;
+        private bool _isDisposed;
+
+        internal CleanUpHelper(ControlBindableBase control) => _control = control;
+
+        public void Dispose()
         {
-            Root = root;
-            AffectedObject = affectedObject;
-            Bind(dataContext);
+            if (_isDisposed) return;
 
-            return new CleanUpHelper(this);
+            _control.CleanUp();
+            _isDisposed = true;
         }
+    }
 
-        //public IDisposable NewContext(object newContext)
-        //{
-        //    Bind(newContext);
-        //    return new CleanUpHelper(this);
-        //}
+    private class Dummy : IUIObject
+    {
+        public IUIObject? GetPerent() => null;
 
-        protected abstract void CleanUp();
-
-        protected abstract void Bind(object context);
-
-        private class CleanUpHelper : IDisposable
-        {
-            private readonly ControlBindableBase _control;
-            private bool _isDisposed;
-
-            internal CleanUpHelper(ControlBindableBase control) => _control = control;
-
-            public void Dispose()
-            {
-                if (_isDisposed) return;
-
-                _control.CleanUp();
-                _isDisposed = true;
-            }
-        }
-
-        private class Dummy : IUIObject
-        {
-            public IUIObject? GetPerent() => null;
-
-            public object Object => new();
-        }
+        public object Object => new();
     }
 }

@@ -31,27 +31,26 @@ using Akkatecture.Core;
 using Akkatecture.ValueObjects;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Entities
+namespace Akkatecture.Entities;
+
+[PublicAPI]
+public abstract class Entity<TIdentity> : ValueObject, IEntity<TIdentity>
+    where TIdentity : IIdentity
 {
-    [PublicAPI]
-    public abstract class Entity<TIdentity> : ValueObject, IEntity<TIdentity>
-        where TIdentity : IIdentity
+    protected Entity(TIdentity id)
     {
-        protected Entity(TIdentity id)
-        {
-            if (id is null)
-                throw new ArgumentNullException(nameof(id));
+        if (id is null)
+            throw new ArgumentNullException(nameof(id));
 
-            Id = id;
-        }
+        Id = id;
+    }
 
-        public TIdentity Id { get; }
+    public TIdentity Id { get; }
 
-        public IIdentity GetIdentity() => Id;
+    public IIdentity GetIdentity() => Id;
 
-        protected override IEnumerable<object> GetEqualityComponents()
-        {
-            yield return Id;
-        }
+    protected override IEnumerable<object> GetEqualityComponents()
+    {
+        yield return Id;
     }
 }

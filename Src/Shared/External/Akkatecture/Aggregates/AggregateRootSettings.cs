@@ -25,30 +25,29 @@ using System;
 using Akka.Configuration;
 using Akkatecture.Configuration;
 
-namespace Akkatecture.Aggregates
+namespace Akkatecture.Aggregates;
+
+public class AggregateRootSettings
 {
-    public class AggregateRootSettings
+    private const string Section = "akkatecture.aggregate-root";
+    public readonly TimeSpan SetReceiveTimeout;
+    public readonly bool UseDefaultEventRecover;
+    public readonly bool UseDefaultSnapshotRecover;
+
+    public AggregateRootSettings(Config config)
     {
-        private const string Section = "akkatecture.aggregate-root";
-        public readonly TimeSpan SetReceiveTimeout;
-        public readonly bool UseDefaultEventRecover;
-        public readonly bool UseDefaultSnapshotRecover;
+        var aggregateRootConfig = config.WithFallback(AkkatectureDefaultSettings.DefaultConfig());
+        aggregateRootConfig = aggregateRootConfig.GetConfig(Section);
 
-        public AggregateRootSettings(Config config)
-        {
-            var aggregateRootConfig = config.WithFallback(AkkatectureDefaultSettings.DefaultConfig());
-            aggregateRootConfig = aggregateRootConfig.GetConfig(Section);
+        UseDefaultEventRecover = aggregateRootConfig.GetBoolean("use-default-event-recover");
+        UseDefaultSnapshotRecover = aggregateRootConfig.GetBoolean("use-default-snapshot-recover");
+        SetReceiveTimeout = aggregateRootConfig.GetTimeSpan("set-receive-timeout");
+    }
 
-            UseDefaultEventRecover = aggregateRootConfig.GetBoolean("use-default-event-recover");
-            UseDefaultSnapshotRecover = aggregateRootConfig.GetBoolean("use-default-snapshot-recover");
-            SetReceiveTimeout = aggregateRootConfig.GetTimeSpan("set-receive-timeout");
-        }
-
-        public AggregateRootSettings(TimeSpan setReceiveTimeout, bool useDefaultEventRecover, bool useDefaultSnapshotRecover)
-        {
-            SetReceiveTimeout = setReceiveTimeout;
-            UseDefaultEventRecover = useDefaultEventRecover;
-            UseDefaultSnapshotRecover = useDefaultSnapshotRecover;
-        }
+    public AggregateRootSettings(TimeSpan setReceiveTimeout, bool useDefaultEventRecover, bool useDefaultSnapshotRecover)
+    {
+        SetReceiveTimeout = setReceiveTimeout;
+        UseDefaultEventRecover = useDefaultEventRecover;
+        UseDefaultSnapshotRecover = useDefaultSnapshotRecover;
     }
 }

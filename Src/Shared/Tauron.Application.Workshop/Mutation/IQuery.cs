@@ -1,7 +1,6 @@
-﻿namespace Tauron.Application.Workshop.Mutation
+﻿namespace Tauron.Application.Workshop.Mutation;
+
+public interface IQuery
 {
-    public interface IQuery
-    {
-        string ToHash();
-    }
+    string ToHash();
 }

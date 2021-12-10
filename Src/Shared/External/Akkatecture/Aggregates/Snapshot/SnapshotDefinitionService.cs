@@ -25,14 +25,13 @@ using System;
 using Akka.Event;
 using Akkatecture.Core.VersionedTypes;
 
-namespace Akkatecture.Aggregates.Snapshot
-{
-    public class SnapshotDefinitionService : VersionedTypeDefinitionService<IAggregateSnapshot, SnapshotVersionAttribute, SnapshotDefinition>, ISnapshotDefinitionService
-    {
-        public SnapshotDefinitionService(ILoggingAdapter logger)
-            : base(logger) { }
+namespace Akkatecture.Aggregates.Snapshot;
 
-        protected override SnapshotDefinition CreateDefinition(int version, Type type, string name)
-            => new(version, type, name);
-    }
+public class SnapshotDefinitionService : VersionedTypeDefinitionService<IAggregateSnapshot, SnapshotVersionAttribute, SnapshotDefinition>, ISnapshotDefinitionService
+{
+    public SnapshotDefinitionService(ILoggingAdapter logger)
+        : base(logger) { }
+
+    protected override SnapshotDefinition CreateDefinition(int version, Type type, string name)
+        => new(version, type, name);
 }

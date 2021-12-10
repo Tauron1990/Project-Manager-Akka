@@ -32,124 +32,123 @@ using Akkatecture.Extensions;
 using Akkatecture.Messages;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Sagas.AggregateSaga
+namespace Akkatecture.Sagas.AggregateSaga;
+
+[PublicAPI]
+public abstract class AggregateSagaManager<TAggregateSaga, TIdentity, TSagaLocator> : ReceiveActor,
+    IAggregateSagaManager<TAggregateSaga, TIdentity, TSagaLocator>
+    where TAggregateSaga : ReceivePersistentActor, IAggregateSaga<TIdentity>
+    where TIdentity : SagaId<TIdentity>
+    where TSagaLocator : class, ISagaLocator<TIdentity>, new()
 {
-    [PublicAPI]
-    public abstract class AggregateSagaManager<TAggregateSaga, TIdentity, TSagaLocator> : ReceiveActor,
-        IAggregateSagaManager<TAggregateSaga, TIdentity, TSagaLocator>
-        where TAggregateSaga : ReceivePersistentActor, IAggregateSaga<TIdentity>
-        where TIdentity : SagaId<TIdentity>
-        where TSagaLocator : class, ISagaLocator<TIdentity>, new()
+    protected AggregateSagaManager(Expression<Func<TAggregateSaga>> sagaFactory)
     {
-        protected AggregateSagaManager(Expression<Func<TAggregateSaga>> sagaFactory)
+        Logger = Context.GetLogger();
+
+        SubscriptionTypes = new List<Type>();
+
+        SagaLocator = new TSagaLocator();
+        SagaFactory = sagaFactory;
+        Settings = new AggregateSagaManagerSettings(Context.System.Settings.Config);
+
+        var sagaType = typeof(TAggregateSaga);
+
+        if (Settings.AutoSubscribe)
         {
-            Logger = Context.GetLogger();
+            var sagaEventSubscriptionTypes =
+                sagaType
+                   .GetSagaEventSubscriptionTypes();
 
-            SubscriptionTypes = new List<Type>();
+            var asyncSagaEventSubscriptionTypes =
+                sagaType
+                   .GetAsyncSagaEventSubscriptionTypes();
 
-            SagaLocator = new TSagaLocator();
-            SagaFactory = sagaFactory;
-            Settings = new AggregateSagaManagerSettings(Context.System.Settings.Config);
+            var subscriptionTypes = new List<Type>();
 
-            var sagaType = typeof(TAggregateSaga);
+            subscriptionTypes.AddRange(sagaEventSubscriptionTypes);
+            subscriptionTypes.AddRange(asyncSagaEventSubscriptionTypes);
 
-            if (Settings.AutoSubscribe)
+            SubscriptionTypes = subscriptionTypes.AsReadOnly();
+
+            foreach (var type in SubscriptionTypes) Context.System.EventStream.Subscribe(Self, type);
+        }
+
+        if (Settings.AutoSpawnOnReceive) Receive<IDomainEvent>(Handle);
+
+        Receive<UnsubscribeFromAll>(Handle);
+        Receive<Terminated>(Terminate);
+    }
+
+    private IReadOnlyList<Type> SubscriptionTypes { get; }
+    protected ILoggingAdapter Logger { get; }
+    protected TSagaLocator SagaLocator { get; }
+    public AggregateSagaManagerSettings Settings { get; }
+
+    public Expression<Func<TAggregateSaga>> SagaFactory { get; }
+
+    protected virtual bool Handle(UnsubscribeFromAll command)
+    {
+        UnsubscribeFromAllTopics();
+
+        return true;
+    }
+
+    protected void UnsubscribeFromAllTopics()
+    {
+        foreach (var type in SubscriptionTypes) Context.System.EventStream.Unsubscribe(Self, type);
+    }
+
+    protected virtual bool Handle(IDomainEvent domainEvent)
+    {
+        var sagaId = SagaLocator.LocateSaga(domainEvent);
+        var saga = FindOrSpawn(sagaId);
+        saga.Tell(domainEvent, Sender);
+
+        return true;
+    }
+
+    protected virtual bool Terminate(Terminated message)
+    {
+        Logger.Warning(
+            "AggregateSaga of Type={0}, and Id={1}; has terminated.",
+            typeof(TAggregateSaga).PrettyPrint(),
+            message.ActorRef.Path.Name);
+        Context.Unwatch(message.ActorRef);
+
+        return true;
+    }
+
+    protected override SupervisorStrategy SupervisorStrategy()
+    {
+        return new OneForOneStrategy(
+            3,
+            3000,
+            exception =>
             {
-                var sagaEventSubscriptionTypes =
-                    sagaType
-                       .GetSagaEventSubscriptionTypes();
+                Logger.Warning(
+                    "{0} will supervise Exception={1} to be decided as {2}.",
+                    GetType().PrettyPrint(),
+                    exception.ToString(),
+                    Directive.Restart);
 
-                var asyncSagaEventSubscriptionTypes =
-                    sagaType
-                       .GetAsyncSagaEventSubscriptionTypes();
+                return Directive.Restart;
+            });
+    }
 
-                var subscriptionTypes = new List<Type>();
+    protected IActorRef FindOrSpawn(TIdentity sagaId)
+    {
+        var saga = Context.Child(sagaId);
 
-                subscriptionTypes.AddRange(sagaEventSubscriptionTypes);
-                subscriptionTypes.AddRange(asyncSagaEventSubscriptionTypes);
+        if (saga.IsNobody()) return Spawn(sagaId);
 
-                SubscriptionTypes = subscriptionTypes.AsReadOnly();
+        return saga;
+    }
 
-                foreach (var type in SubscriptionTypes) Context.System.EventStream.Subscribe(Self, type);
-            }
+    private IActorRef Spawn(TIdentity sagaId)
+    {
+        var saga = Context.ActorOf(Props.Create(SagaFactory), sagaId.Value);
+        Context.Watch(saga);
 
-            if (Settings.AutoSpawnOnReceive) Receive<IDomainEvent>(Handle);
-
-            Receive<UnsubscribeFromAll>(Handle);
-            Receive<Terminated>(Terminate);
-        }
-
-        private IReadOnlyList<Type> SubscriptionTypes { get; }
-        protected ILoggingAdapter Logger { get; }
-        protected TSagaLocator SagaLocator { get; }
-        public AggregateSagaManagerSettings Settings { get; }
-
-        public Expression<Func<TAggregateSaga>> SagaFactory { get; }
-
-        protected virtual bool Handle(UnsubscribeFromAll command)
-        {
-            UnsubscribeFromAllTopics();
-
-            return true;
-        }
-
-        protected void UnsubscribeFromAllTopics()
-        {
-            foreach (var type in SubscriptionTypes) Context.System.EventStream.Unsubscribe(Self, type);
-        }
-
-        protected virtual bool Handle(IDomainEvent domainEvent)
-        {
-            var sagaId = SagaLocator.LocateSaga(domainEvent);
-            var saga = FindOrSpawn(sagaId);
-            saga.Tell(domainEvent, Sender);
-
-            return true;
-        }
-
-        protected virtual bool Terminate(Terminated message)
-        {
-            Logger.Warning(
-                "AggregateSaga of Type={0}, and Id={1}; has terminated.",
-                typeof(TAggregateSaga).PrettyPrint(),
-                message.ActorRef.Path.Name);
-            Context.Unwatch(message.ActorRef);
-
-            return true;
-        }
-
-        protected override SupervisorStrategy SupervisorStrategy()
-        {
-            return new OneForOneStrategy(
-                3,
-                3000,
-                exception =>
-                {
-                    Logger.Warning(
-                        "{0} will supervise Exception={1} to be decided as {2}.",
-                        GetType().PrettyPrint(),
-                        exception.ToString(),
-                        Directive.Restart);
-
-                    return Directive.Restart;
-                });
-        }
-
-        protected IActorRef FindOrSpawn(TIdentity sagaId)
-        {
-            var saga = Context.Child(sagaId);
-
-            if (saga.IsNobody()) return Spawn(sagaId);
-
-            return saga;
-        }
-
-        private IActorRef Spawn(TIdentity sagaId)
-        {
-            var saga = Context.ActorOf(Props.Create(SagaFactory), sagaId.Value);
-            Context.Watch(saga);
-
-            return saga;
-        }
+        return saga;
     }
 }

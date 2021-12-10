@@ -27,7 +27,6 @@
 
 using Akkatecture.Core;
 
-namespace Akkatecture.Aggregates
-{
-    public interface IAggregateName : IIdentity { }
-}
+namespace Akkatecture.Aggregates;
+
+public interface IAggregateName : IIdentity { }

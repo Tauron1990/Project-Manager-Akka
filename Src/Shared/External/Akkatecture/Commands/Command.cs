@@ -31,46 +31,45 @@ using Akkatecture.Core;
 using Akkatecture.ValueObjects;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Commands
+namespace Akkatecture.Commands;
+
+public abstract class Command<TAggregate, TIdentity, TSourceIdentity> :
+    ValueObject,
+    ICommand<TAggregate, TIdentity, TSourceIdentity>
+    where TAggregate : IAggregateRoot<TIdentity>
+    where TIdentity : IIdentity
+    where TSourceIdentity : ISourceId
 {
-    public abstract class Command<TAggregate, TIdentity, TSourceIdentity> :
-        ValueObject,
-        ICommand<TAggregate, TIdentity, TSourceIdentity>
-        where TAggregate : IAggregateRoot<TIdentity>
-        where TIdentity : IIdentity
-        where TSourceIdentity : ISourceId
+    protected Command(
+        TIdentity aggregateId,
+        TSourceIdentity sourceId)
     {
-        protected Command(
-            TIdentity aggregateId,
-            TSourceIdentity sourceId)
-        {
-            if (aggregateId == null) throw new ArgumentNullException(nameof(aggregateId));
-            if (sourceId == null) throw new ArgumentNullException(nameof(sourceId));
+        if (aggregateId == null) throw new ArgumentNullException(nameof(aggregateId));
+        if (sourceId == null) throw new ArgumentNullException(nameof(sourceId));
 
-            AggregateId = aggregateId;
-            SourceId = sourceId;
-        }
-
-        public TSourceIdentity SourceId { get; }
-        public TIdentity AggregateId { get; }
-
-        public ISourceId GetSourceId() => SourceId;
+        AggregateId = aggregateId;
+        SourceId = sourceId;
     }
 
-    [PublicAPI]
-    public abstract class Command<TAggregate, TIdentity> :
-        Command<TAggregate, TIdentity, ISourceId>,
-        ICommand<TAggregate, TIdentity>
-        where TAggregate : IAggregateRoot<TIdentity>
-        where TIdentity : IIdentity
-    {
-        protected Command(
-            TIdentity aggregateId)
-            : this(aggregateId, CommandId.New) { }
+    public TSourceIdentity SourceId { get; }
+    public TIdentity AggregateId { get; }
 
-        protected Command(
-            TIdentity aggregateId,
-            CommandId sourceId)
-            : base(aggregateId, sourceId) { }
-    }
+    public ISourceId GetSourceId() => SourceId;
+}
+
+[PublicAPI]
+public abstract class Command<TAggregate, TIdentity> :
+    Command<TAggregate, TIdentity, ISourceId>,
+    ICommand<TAggregate, TIdentity>
+    where TAggregate : IAggregateRoot<TIdentity>
+    where TIdentity : IIdentity
+{
+    protected Command(
+        TIdentity aggregateId)
+        : this(aggregateId, CommandId.New) { }
+
+    protected Command(
+        TIdentity aggregateId,
+        CommandId sourceId)
+        : base(aggregateId, sourceId) { }
 }

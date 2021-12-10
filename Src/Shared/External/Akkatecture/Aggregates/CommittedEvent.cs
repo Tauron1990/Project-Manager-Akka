@@ -29,44 +29,43 @@ using System;
 using Akkatecture.Core;
 using Akkatecture.Extensions;
 
-namespace Akkatecture.Aggregates
+namespace Akkatecture.Aggregates;
+
+public class
+    CommittedEvent<TAggregate, TIdentity, TAggregateEvent> : ICommittedEvent<TAggregate, TIdentity, TAggregateEvent>
+    where TAggregate : IAggregateRoot<TIdentity>
+    where TIdentity : IIdentity
+    where TAggregateEvent : class, IAggregateEvent<TAggregate, TIdentity>
 {
-    public class
-        CommittedEvent<TAggregate, TIdentity, TAggregateEvent> : ICommittedEvent<TAggregate, TIdentity, TAggregateEvent>
-        where TAggregate : IAggregateRoot<TIdentity>
-        where TIdentity : IIdentity
-        where TAggregateEvent : class, IAggregateEvent<TAggregate, TIdentity>
+    public CommittedEvent(
+        TIdentity aggregateIdentity,
+        TAggregateEvent aggregateEvent,
+        Metadata metadata,
+        DateTimeOffset timestamp,
+        long aggregateSequenceNumber)
     {
-        public CommittedEvent(
-            TIdentity aggregateIdentity,
-            TAggregateEvent aggregateEvent,
-            Metadata metadata,
-            DateTimeOffset timestamp,
-            long aggregateSequenceNumber)
-        {
-            if (timestamp == default) throw new ArgumentNullException(nameof(timestamp));
-            if (aggregateIdentity == null || string.IsNullOrEmpty(aggregateIdentity.Value))
-                throw new ArgumentNullException(nameof(aggregateIdentity));
-            if (aggregateSequenceNumber <= 0) throw new ArgumentOutOfRangeException(nameof(aggregateSequenceNumber));
+        if (timestamp == default) throw new ArgumentNullException(nameof(timestamp));
+        if (aggregateIdentity == null || string.IsNullOrEmpty(aggregateIdentity.Value))
+            throw new ArgumentNullException(nameof(aggregateIdentity));
+        if (aggregateSequenceNumber <= 0) throw new ArgumentOutOfRangeException(nameof(aggregateSequenceNumber));
 
-            AggregateIdentity = aggregateIdentity;
-            AggregateSequenceNumber = aggregateSequenceNumber;
-            AggregateEvent = aggregateEvent ?? throw new ArgumentNullException(nameof(aggregateEvent));
-            Metadata = metadata ?? throw new ArgumentNullException(nameof(metadata));
-            Timestamp = timestamp;
-        }
-
-        public TIdentity AggregateIdentity { get; }
-        public TAggregateEvent AggregateEvent { get; }
-        public Metadata Metadata { get; }
-        public long AggregateSequenceNumber { get; }
-        public DateTimeOffset Timestamp { get; }
-
-        public IIdentity GetIdentity() => AggregateIdentity;
-
-        public IAggregateEvent GetAggregateEvent() => AggregateEvent;
-
-        public override string ToString()
-            => $"{typeof(TAggregate).PrettyPrint()} v{AggregateSequenceNumber}/{typeof(TAggregateEvent).PrettyPrint()}:{AggregateIdentity}";
+        AggregateIdentity = aggregateIdentity;
+        AggregateSequenceNumber = aggregateSequenceNumber;
+        AggregateEvent = aggregateEvent ?? throw new ArgumentNullException(nameof(aggregateEvent));
+        Metadata = metadata ?? throw new ArgumentNullException(nameof(metadata));
+        Timestamp = timestamp;
     }
+
+    public TIdentity AggregateIdentity { get; }
+    public TAggregateEvent AggregateEvent { get; }
+    public Metadata Metadata { get; }
+    public long AggregateSequenceNumber { get; }
+    public DateTimeOffset Timestamp { get; }
+
+    public IIdentity GetIdentity() => AggregateIdentity;
+
+    public IAggregateEvent GetAggregateEvent() => AggregateEvent;
+
+    public override string ToString()
+        => $"{typeof(TAggregate).PrettyPrint()} v{AggregateSequenceNumber}/{typeof(TAggregateEvent).PrettyPrint()}:{AggregateIdentity}";
 }

@@ -30,23 +30,22 @@ using System.Collections.Generic;
 using Akkatecture.Core;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Aggregates
-{
-    [PublicAPI]
-    public interface IMetadata : IMetadataContainer
-    {
-        IEventId EventId { get; }
-        ISourceId SourceId { get; }
-        string EventName { get; }
-        int EventVersion { get; }
-        DateTimeOffset Timestamp { get; }
-        long TimestampEpoch { get; }
-        long AggregateSequenceNumber { get; }
-        string AggregateId { get; }
-        string CorrelationId { get; }
-        string CausationId { get; }
+namespace Akkatecture.Aggregates;
 
-        IMetadata CloneWith(params KeyValuePair<string, string>[] keyValuePairs);
-        IMetadata CloneWith(IEnumerable<KeyValuePair<string, string>> keyValuePairs);
-    }
+[PublicAPI]
+public interface IMetadata : IMetadataContainer
+{
+    IEventId EventId { get; }
+    ISourceId SourceId { get; }
+    string EventName { get; }
+    int EventVersion { get; }
+    DateTimeOffset Timestamp { get; }
+    long TimestampEpoch { get; }
+    long AggregateSequenceNumber { get; }
+    string AggregateId { get; }
+    string CorrelationId { get; }
+    string CausationId { get; }
+
+    IMetadata CloneWith(params KeyValuePair<string, string>[] keyValuePairs);
+    IMetadata CloneWith(IEnumerable<KeyValuePair<string, string>> keyValuePairs);
 }

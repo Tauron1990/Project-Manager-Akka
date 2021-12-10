@@ -23,12 +23,11 @@
 
 using Akkatecture.Aggregates;
 
-namespace Akkatecture.Events
+namespace Akkatecture.Events;
+
+public interface IUpcast<in TFrom, out TTo>
+    where TFrom : IAggregateEvent
+    where TTo : IAggregateEvent
 {
-    public interface IUpcast<in TFrom, out TTo>
-        where TFrom : IAggregateEvent
-        where TTo : IAggregateEvent
-    {
-        TTo Upcast(TFrom aggregateEvent);
-    }
+    TTo Upcast(TFrom aggregateEvent);
 }

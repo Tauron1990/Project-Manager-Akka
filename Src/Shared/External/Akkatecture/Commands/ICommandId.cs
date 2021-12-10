@@ -27,7 +27,6 @@
 
 using Akkatecture.Core;
 
-namespace Akkatecture.Commands
-{
-    public interface ICommandId : ISourceId { }
-}
+namespace Akkatecture.Commands;
+
+public interface ICommandId : ISourceId { }

@@ -1,38 +1,37 @@
 ﻿using System;
 using JetBrains.Annotations;
 
-namespace Tauron.Application.CommonUI.Commands
+namespace Tauron.Application.CommonUI.Commands;
+
+[PublicAPI]
+public class EventCommand : CommandBase
 {
-    [PublicAPI]
-    public class EventCommand : CommandBase
+    public event Func<object?, bool>? CanExecuteEvent;
+
+    public event Action<object?>? ExecuteEvent;
+
+    public sealed override bool CanExecute(object? parameter = null) => OnCanExecute(parameter);
+
+    public sealed override void Execute(object? parameter = null)
     {
-        public event Func<object?, bool>? CanExecuteEvent;
+        OnExecute(parameter);
+    }
 
-        public event Action<object?>? ExecuteEvent;
+    protected virtual bool OnCanExecute(object? parameter)
+    {
+        var handler = CanExecuteEvent;
 
-        public sealed override bool CanExecute(object? parameter = null) => OnCanExecute(parameter);
+        return handler == null || handler(parameter);
+    }
 
-        public sealed override void Execute(object? parameter = null)
-        {
-            OnExecute(parameter);
-        }
+    protected virtual void OnExecute(object? parameter)
+    {
+        ExecuteEvent?.Invoke(parameter);
+    }
 
-        protected virtual bool OnCanExecute(object? parameter)
-        {
-            var handler = CanExecuteEvent;
-
-            return handler == null || handler(parameter);
-        }
-
-        protected virtual void OnExecute(object? parameter)
-        {
-            ExecuteEvent?.Invoke(parameter);
-        }
-
-        public void Clear()
-        {
-            CanExecuteEvent = null;
-            ExecuteEvent = null;
-        }
+    public void Clear()
+    {
+        CanExecuteEvent = null;
+        ExecuteEvent = null;
     }
 }

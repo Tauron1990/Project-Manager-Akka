@@ -24,36 +24,35 @@
 using System;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Jobs.Commands
+namespace Akkatecture.Jobs.Commands;
+
+[PublicAPI]
+public sealed class ScheduleRepeatedly<TJob, TIdentity> : Schedule<TJob, TIdentity>
+    where TJob : IJob
+    where TIdentity : IJobId
 {
-    [PublicAPI]
-    public sealed class ScheduleRepeatedly<TJob, TIdentity> : Schedule<TJob, TIdentity>
-        where TJob : IJob
-        where TIdentity : IJobId
+    public ScheduleRepeatedly(
+        TIdentity jobId,
+        TJob job,
+        TimeSpan interval,
+        DateTime triggerDate,
+        object? ack = null,
+        object? nack = null)
+        : base(jobId, job, triggerDate, ack, nack)
     {
-        public ScheduleRepeatedly(
-            TIdentity jobId,
-            TJob job,
-            TimeSpan interval,
-            DateTime triggerDate,
-            object? ack = null,
-            object? nack = null)
-            : base(jobId, job, triggerDate, ack, nack)
-        {
-            if (interval == default) throw new ArgumentException(nameof(interval));
+        if (interval == default) throw new ArgumentException(nameof(interval));
 
-            Interval = interval;
-        }
-
-        public TimeSpan Interval { get; }
-
-        public override Schedule<TJob, TIdentity> WithNextTriggerDate(DateTime utcDate)
-            => new ScheduleRepeatedly<TJob, TIdentity>(JobId, Job, Interval, TriggerDate + Interval);
-
-        public override Schedule<TJob, TIdentity> WithAck(object? ack)
-            => new ScheduleRepeatedly<TJob, TIdentity>(JobId, Job, Interval, TriggerDate, ack, Nack);
-
-        public override Schedule<TJob, TIdentity> WithNack(object? nack)
-            => new ScheduleRepeatedly<TJob, TIdentity>(JobId, Job, Interval, TriggerDate, Ack, nack);
+        Interval = interval;
     }
+
+    public TimeSpan Interval { get; }
+
+    public override Schedule<TJob, TIdentity> WithNextTriggerDate(DateTime utcDate)
+        => new ScheduleRepeatedly<TJob, TIdentity>(JobId, Job, Interval, TriggerDate + Interval);
+
+    public override Schedule<TJob, TIdentity> WithAck(object? ack)
+        => new ScheduleRepeatedly<TJob, TIdentity>(JobId, Job, Interval, TriggerDate, ack, Nack);
+
+    public override Schedule<TJob, TIdentity> WithNack(object? nack)
+        => new ScheduleRepeatedly<TJob, TIdentity>(JobId, Job, Interval, TriggerDate, Ack, nack);
 }

@@ -28,12 +28,11 @@
 using System.Collections.Generic;
 using Tauron.Operations;
 
-namespace Akkatecture.Specifications
-{
-    public interface ISpecification<in T>
-    {
-        bool IsSatisfiedBy(T obj);
+namespace Akkatecture.Specifications;
 
-        IEnumerable<Error> WhyIsNotSatisfiedBy(T obj);
-    }
+public interface ISpecification<in T>
+{
+    bool IsSatisfiedBy(T obj);
+
+    IEnumerable<Error> WhyIsNotSatisfiedBy(T obj);
 }

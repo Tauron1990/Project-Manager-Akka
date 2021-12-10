@@ -15,6 +15,7 @@
             <ListView.View>
                 <GridView>
                     <GridView.Columns>
+                        <!-- ReSharper disable Xaml.BindingWithContextNotResolved -->
                         <GridViewColumn DisplayMemberBinding="{Binding Time}" Header="Zeit"
                                         Width="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:SerilogViewer}}, Path=TimeWidth}" />
                         <GridViewColumn DisplayMemberBinding="{Binding LoggerName}" Header="Logger"
@@ -26,6 +27,7 @@
                         <GridViewColumn DisplayMemberBinding="{Binding Exception}" Header="Exception"
                                         Width="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:SerilogViewer}}, Path=ExceptionWidth}" />
                     </GridView.Columns>
+                    <!-- ReSharper restore Xaml.BindingWithContextNotResolved -->
                 </GridView>
             </ListView.View>
         </ListView>

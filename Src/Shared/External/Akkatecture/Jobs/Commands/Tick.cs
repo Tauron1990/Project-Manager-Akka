@@ -21,14 +21,13 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Akkatecture.Jobs.Commands
-{
-    internal sealed class Tick<TJob, TIdentity> : SchedulerMessage<TJob, TIdentity>
-        where TJob : IJob
-        where TIdentity : IJobId
-    {
-        private Tick() { }
+namespace Akkatecture.Jobs.Commands;
 
-        internal static Tick<TJob, TIdentity> Instance { get; } = new();
-    }
+internal sealed class Tick<TJob, TIdentity> : SchedulerMessage<TJob, TIdentity>
+    where TJob : IJob
+    where TIdentity : IJobId
+{
+    private Tick() { }
+
+    internal static Tick<TJob, TIdentity> Instance { get; } = new();
 }

@@ -23,7 +23,6 @@
 
 using Akkatecture.Core;
 
-namespace Akkatecture.Jobs
-{
-    public interface IJobId : IIdentity { }
-}
+namespace Akkatecture.Jobs;
+
+public interface IJobId : IIdentity { }

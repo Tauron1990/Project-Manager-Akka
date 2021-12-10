@@ -23,21 +23,20 @@
 
 using JetBrains.Annotations;
 
-namespace Akkatecture.Jobs.Commands
+namespace Akkatecture.Jobs.Commands;
+
+[PublicAPI]
+public class Cancel<TJob, TIdentity> : SchedulerCommand<TJob, TIdentity>
+    where TJob : IJob
+    where TIdentity : IJobId
 {
-    [PublicAPI]
-    public class Cancel<TJob, TIdentity> : SchedulerCommand<TJob, TIdentity>
-        where TJob : IJob
-        where TIdentity : IJobId
-    {
-        public Cancel(
-            TIdentity jobId,
-            object? ack = null,
-            object? nack = null)
-            : base(jobId, ack, nack) { }
+    public Cancel(
+        TIdentity jobId,
+        object? ack = null,
+        object? nack = null)
+        : base(jobId, ack, nack) { }
 
-        public virtual Cancel<TJob, TIdentity> WithAck(object ack) => new(JobId, ack, Nack);
+    public virtual Cancel<TJob, TIdentity> WithAck(object ack) => new(JobId, ack, Nack);
 
-        public virtual Cancel<TJob, TIdentity> WithNack(object nack) => new(JobId, Ack, nack);
-    }
+    public virtual Cancel<TJob, TIdentity> WithNack(object nack) => new(JobId, Ack, nack);
 }

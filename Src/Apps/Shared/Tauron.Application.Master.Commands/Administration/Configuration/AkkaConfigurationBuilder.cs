@@ -7,58 +7,57 @@ using Akka.Configuration;
 using Microsoft.Extensions.Logging;
 using Tauron.AkkaHost;
 
-namespace Tauron.Application.Master.Commands.Administration.Configuration
+namespace Tauron.Application.Master.Commands.Administration.Configuration;
+
+public static class AkkaConfigurationBuilder
 {
-    public static class AkkaConfigurationBuilder
+    public const string Base = "base.conf";
+    public const string Main = "akka.conf";
+    public const string Seed = "seed.conf";
+    private static readonly ILogger Log = ActorApplication.GetLogger(typeof(AkkaConfigurationBuilder));
+
+    public static IObservable<string> PatchSeedUrls(string data, IEnumerable<string> urls)
     {
-        public const string Base = "base.conf";
-        public const string Main = "akka.conf";
-        public const string Seed = "seed.conf";
-        private static readonly ILogger Log = ActorApplication.GetLogger(typeof(AkkaConfigurationBuilder));
+        var baseConfig = ConfigurationFactory.ParseString(data);
+        var newConfig = ConfigurationFactory.ParseString($"akka.cluster.seed-nodes = [{string.Join(',', urls.Select(s => $"\"{s}\""))}]")
+           .WithFallback(baseConfig);
 
-        public static IObservable<string> PatchSeedUrls(string data, IEnumerable<string> urls)
+        return Observable.Return(newConfig.ToString(includeFallback: true));
+    }
+
+    public static string ApplyMongoUrl(string dat, string baseConfig, string url)
+    {
+        Log.LogInformation("Update AppBase Configuration");
+
+        const string snapshot = "akka.persistence.snapshot-store.plugin = \"akka.persistence.snapshot-store.mongodb\"";
+        const string journal = "akka.persistence.journal.plugin = \"akka.persistence.journal.mongodb\"";
+
+        const string connectionSnapshot = "akka.persistence.snapshot-store.mongodb.connection-string = \"{0}\"";
+        const string connectionJournal = "akka.persistence.journal.mongodb.connection-string = \"{0}\"";
+
+        var currentConfiguration = ConfigurationFactory.ParseString(dat);
+
+        var hasBase = currentConfiguration.HasPath("akka.persistence.journal.mongodb.connection-string ")
+                   || currentConfiguration.HasPath("akka.persistence.snapshot-store.mongodb.connection-string");
+
+        if (!hasBase)
         {
-            var baseConfig = ConfigurationFactory.ParseString(data);
-            var newConfig = ConfigurationFactory.ParseString($"akka.cluster.seed-nodes = [{string.Join(',', urls.Select(s => $"\"{s}\""))}]")
-               .WithFallback(baseConfig);
-
-            return Observable.Return(newConfig.ToString(includeFallback: true));
+            Log.LogInformation("Apply Default Configuration");
+            currentConfiguration = ConfigurationFactory.ParseString(baseConfig).WithFallback(currentConfiguration);
         }
 
-        public static string ApplyMongoUrl(string dat, string baseConfig, string url)
-        {
-            Log.LogInformation("Update AppBase Configuration");
+        var builder = new StringBuilder();
 
-            const string snapshot = "akka.persistence.snapshot-store.plugin = \"akka.persistence.snapshot-store.mongodb\"";
-            const string journal = "akka.persistence.journal.plugin = \"akka.persistence.journal.mongodb\"";
+        builder
+           .AppendLine(snapshot)
+           .AppendLine(journal)
+           .AppendFormat(connectionSnapshot, url).AppendLine()
+           .AppendFormat(connectionJournal, url).AppendLine();
 
-            const string connectionSnapshot = "akka.persistence.snapshot-store.mongodb.connection-string = \"{0}\"";
-            const string connectionJournal = "akka.persistence.journal.mongodb.connection-string = \"{0}\"";
+        currentConfiguration = ConfigurationFactory.ParseString(builder.ToString()).WithFallback(currentConfiguration);
 
-            var currentConfiguration = ConfigurationFactory.ParseString(dat);
+        Log.LogInformation("AppBase Configuration Updated");
 
-            var hasBase = currentConfiguration.HasPath("akka.persistence.journal.mongodb.connection-string ")
-                       || currentConfiguration.HasPath("akka.persistence.snapshot-store.mongodb.connection-string");
-
-            if (!hasBase)
-            {
-                Log.LogInformation("Apply Default Configuration");
-                currentConfiguration = ConfigurationFactory.ParseString(baseConfig).WithFallback(currentConfiguration);
-            }
-
-            var builder = new StringBuilder();
-
-            builder
-               .AppendLine(snapshot)
-               .AppendLine(journal)
-               .AppendFormat(connectionSnapshot, url).AppendLine()
-               .AppendFormat(connectionJournal, url).AppendLine();
-
-            currentConfiguration = ConfigurationFactory.ParseString(builder.ToString()).WithFallback(currentConfiguration);
-
-            Log.LogInformation("AppBase Configuration Updated");
-
-            return currentConfiguration.ToString(includeFallback: true);
-        }
+        return currentConfiguration.ToString(includeFallback: true);
     }
 }

@@ -24,12 +24,11 @@
 using Akkatecture.Core;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Aggregates.Snapshot
+namespace Akkatecture.Aggregates.Snapshot;
+
+[PublicAPI]
+public class SnapshotId : Identity<SnapshotId>, ISnapshotId
 {
-    [PublicAPI]
-    public class SnapshotId : Identity<SnapshotId>, ISnapshotId
-    {
-        public SnapshotId(string value)
-            : base(value) { }
-    }
+    public SnapshotId(string value)
+        : base(value) { }
 }

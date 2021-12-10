@@ -1,4 +1,3 @@
-﻿namespace Tauron.Application.Settings
-{
-    public sealed record RequestAllValues(string SettingScope);
-}
+﻿namespace Tauron.Application.Settings;
+
+public sealed record RequestAllValues(string SettingScope);

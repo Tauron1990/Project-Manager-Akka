@@ -23,12 +23,11 @@
 
 using JetBrains.Annotations;
 
-namespace Akkatecture.Aggregates.Snapshot
+namespace Akkatecture.Aggregates.Snapshot;
+
+[PublicAPI]
+public interface IHydrate<in TAggregateSnapshot>
+    where TAggregateSnapshot : IAggregateSnapshot
 {
-    [PublicAPI]
-    public interface IHydrate<in TAggregateSnapshot>
-        where TAggregateSnapshot : IAggregateSnapshot
-    {
-        void Hydrate(TAggregateSnapshot aggregateSnapshot);
-    }
+    void Hydrate(TAggregateSnapshot aggregateSnapshot);
 }

@@ -2,28 +2,27 @@
 using Autofac;
 using JetBrains.Annotations;
 
-namespace Tauron.Application.CommonUI.AppCore
+namespace Tauron.Application.CommonUI.AppCore;
+
+[PublicAPI]
+public class BaseAppConfiguration
 {
-    [PublicAPI]
-    public class BaseAppConfiguration
+    internal readonly ContainerBuilder ServiceCollection;
+
+    public BaseAppConfiguration(ContainerBuilder serviceCollection) => ServiceCollection = serviceCollection;
+
+    public BaseAppConfiguration WithAppFactory(Func<IUIApplication> factory)
     {
-        internal readonly ContainerBuilder ServiceCollection;
+        ServiceCollection.Register(_ => new DelegateAppFactory(factory)).As<IAppFactory>()
+           .IfNotRegistered(typeof(IAppFactory));
 
-        public BaseAppConfiguration(ContainerBuilder serviceCollection) => ServiceCollection = serviceCollection;
-
-        public BaseAppConfiguration WithAppFactory(Func<IUIApplication> factory)
-        {
-            ServiceCollection.Register(_ => new DelegateAppFactory(factory)).As<IAppFactory>()
-               .IfNotRegistered(typeof(IAppFactory));
-
-            return this;
-        }
-
-        //public BaseAppConfiguration WithRoute<TRoute>(string name)
-        //    where TRoute : class, IAppRoute
-        //{
-        //    ServiceCollection.RegisterType<TRoute>().Named<IAppRoute>(name);
-        //    return this;
-        //}
+        return this;
     }
+
+    //public BaseAppConfiguration WithRoute<TRoute>(string name)
+    //    where TRoute : class, IAppRoute
+    //{
+    //    ServiceCollection.RegisterType<TRoute>().Named<IAppRoute>(name);
+    //    return this;
+    //}
 }

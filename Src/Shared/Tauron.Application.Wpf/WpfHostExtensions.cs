@@ -9,40 +9,39 @@ using Tauron.Application.Wpf.AppCore;
 using Window = System.Windows.Window;
 
 // ReSharper disable once CheckNamespace
-namespace Tauron.AkkaHost
+namespace Tauron.AkkaHost;
+
+[PublicAPI]
+public static class WpfHostExtensions
 {
-    [PublicAPI]
-    public static class WpfHostExtensions
+    public static IActorApplicationBuilder UseWpf<TMainWindow>(this IActorApplicationBuilder hostBuilder, Action<BaseAppConfiguration>? config = null)
+        where TMainWindow : class, IMainWindow
     {
-        public static IActorApplicationBuilder UseWpf<TMainWindow>(this IActorApplicationBuilder hostBuilder, Action<BaseAppConfiguration>? config = null)
-            where TMainWindow : class, IMainWindow
-        {
-            hostBuilder.ConfigureAutoFac(
-                sc =>
-                {
-                    sc.RegisterModule<WpfModule>();
+        hostBuilder.ConfigureAutoFac(
+            sc =>
+            {
+                sc.RegisterModule<WpfModule>();
 
-                    sc.RegisterType<TMainWindow>().As<IMainWindow>().SingleInstance();
+                sc.RegisterType<TMainWindow>().As<IMainWindow>().SingleInstance();
 
-                    var wpf = new BaseAppConfiguration(sc);
-                    config?.Invoke(wpf);
-                });
+                var wpf = new BaseAppConfiguration(sc);
+                config?.Invoke(wpf);
+            });
 
-            return hostBuilder;
-        }
-
-        public static IActorApplicationBuilder UseWpf<TMainWindow, TApp>(this IActorApplicationBuilder builder)
-            where TApp : System.Windows.Application, new()
-            where TMainWindow : class, IMainWindow
-        {
-            return UseWpf<TMainWindow>(
-                builder,
-                c => c.WithAppFactory(() => new WpfFramework.DelegateApplication(new TApp())));
-        }
-
-        public static IRegistrationBuilder<SimpleSplashScreen<TWindow>, ConcreteReflectionActivatorData,
-                SingleRegistrationStyle>
-            AddSplash<TWindow>(this ContainerBuilder collection) where TWindow : Window, IWindow, new()
-            => collection.RegisterType<SimpleSplashScreen<TWindow>>().As<ISplashScreen>();
+        return hostBuilder;
     }
+
+    public static IActorApplicationBuilder UseWpf<TMainWindow, TApp>(this IActorApplicationBuilder builder)
+        where TApp : System.Windows.Application, new()
+        where TMainWindow : class, IMainWindow
+    {
+        return UseWpf<TMainWindow>(
+            builder,
+            c => c.WithAppFactory(() => new WpfFramework.DelegateApplication(new TApp())));
+    }
+
+    public static IRegistrationBuilder<SimpleSplashScreen<TWindow>, ConcreteReflectionActivatorData,
+            SingleRegistrationStyle>
+        AddSplash<TWindow>(this ContainerBuilder collection) where TWindow : Window, IWindow, new()
+        => collection.RegisterType<SimpleSplashScreen<TWindow>>().As<ISplashScreen>();
 }

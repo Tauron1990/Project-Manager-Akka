@@ -1,11 +1,10 @@
 ﻿using Tauron.Application.Workshop.Mutation;
 
-namespace Tauron.Application.Workshop.StateManagement
-{
-    public interface IStateAction
-    {
-        string ActionName { get; }
+namespace Tauron.Application.Workshop.StateManagement;
 
-        IQuery Query { get; }
-    }
+public interface IStateAction
+{
+    string ActionName { get; }
+
+    IQuery Query { get; }
 }

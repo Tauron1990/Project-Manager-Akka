@@ -30,13 +30,12 @@ using System.Text;
 using Akkatecture.Core;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Extensions
+namespace Akkatecture.Extensions;
+
+[PublicAPI]
+public static class IdentityExtensions
 {
-    [PublicAPI]
-    public static class IdentityExtensions
-    {
-        #pragma warning disable AV1130
-        public static byte[] GetBytes(this IIdentity identity) => Encoding.UTF8.GetBytes(identity.Value);
-        #pragma warning restore AV1130
-    }
+    #pragma warning disable AV1130
+    public static byte[] GetBytes(this IIdentity identity) => Encoding.UTF8.GetBytes(identity.Value);
+    #pragma warning restore AV1130
 }

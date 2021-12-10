@@ -30,54 +30,53 @@ using System.Collections;
 using System.Collections.Generic;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Core
+namespace Akkatecture.Core;
+
+[PublicAPI]
+public class CircularBuffer<T> : IEnumerable<T>
 {
-    [PublicAPI]
-    public class CircularBuffer<T> : IEnumerable<T>
+    private readonly T[] _buffer;
+    private int _end;
+    private int _start;
+
+    public CircularBuffer(int capacity)
     {
-        private readonly T[] _buffer;
-        private int _end;
-        private int _start;
+        if (capacity <= 0) throw new ArgumentException("Capacity must be Larger then 0", nameof(capacity));
 
-        public CircularBuffer(int capacity)
+        _buffer = new T[capacity + 1];
+        _start = 0;
+        _end = 0;
+    }
+
+    public CircularBuffer(
+        int capacity,
+        params T[] items)
+        : this(capacity)
+    {
+        if (items.Length > capacity) throw new ArgumentException(nameof(capacity));
+
+        foreach (var item in items) Put(item);
+    }
+
+    public int Capacity => _buffer.Length - 1;
+
+    public IEnumerator<T> GetEnumerator()
+    {
+        var start = _start;
+        while (start != _end)
         {
-            if (capacity <= 0) throw new ArgumentException("Capacity must be Larger then 0", nameof(capacity));
+            yield return _buffer[start];
 
-            _buffer = new T[capacity + 1];
-            _start = 0;
-            _end = 0;
+            start = (start + 1) % _buffer.Length;
         }
+    }
 
-        public CircularBuffer(
-            int capacity,
-            params T[] items)
-            : this(capacity)
-        {
-            if (items.Length > capacity) throw new ArgumentException(nameof(capacity));
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-            foreach (var item in items) Put(item);
-        }
-
-        public int Capacity => _buffer.Length - 1;
-
-        public IEnumerator<T> GetEnumerator()
-        {
-            var start = _start;
-            while (start != _end)
-            {
-                yield return _buffer[start];
-
-                start = (start + 1) % _buffer.Length;
-            }
-        }
-
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-        public void Put(T item)
-        {
-            _buffer[_end] = item;
-            _end = (_end + 1) % _buffer.Length;
-            if (_end == _start) _start = (_start + 1) % _buffer.Length;
-        }
+    public void Put(T item)
+    {
+        _buffer[_end] = item;
+        _end = (_end + 1) % _buffer.Length;
+        if (_end == _start) _start = (_start + 1) % _buffer.Length;
     }
 }

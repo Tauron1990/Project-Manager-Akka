@@ -23,13 +23,12 @@
 
 using JetBrains.Annotations;
 
-namespace Akkatecture.Aggregates.Snapshot.Strategies
-{
-    [PublicAPI]
-    public class SnapshotAlwaysStrategy : ISnapshotStrategy
-    {
-        public static ISnapshotStrategy Instance => new SnapshotAlwaysStrategy();
+namespace Akkatecture.Aggregates.Snapshot.Strategies;
 
-        public bool ShouldCreateSnapshot(IAggregateRoot snapshotAggregateRoot) => true;
-    }
+[PublicAPI]
+public class SnapshotAlwaysStrategy : ISnapshotStrategy
+{
+    public static ISnapshotStrategy Instance => new SnapshotAlwaysStrategy();
+
+    public bool ShouldCreateSnapshot(IAggregateRoot snapshotAggregateRoot) => true;
 }

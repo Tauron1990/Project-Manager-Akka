@@ -1,38 +1,37 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace Tauron.Application.AkkaNode.Services.FileTransfer
+namespace Tauron.Application.AkkaNode.Services.FileTransfer;
+
+public sealed class AwaitResponse
 {
-    public sealed class AwaitResponse
+    private readonly IncomingDataTransfer? _request;
+
+    public AwaitResponse(IncomingDataTransfer? request) => _request = request;
+
+    public async Task<TransferMessages.TransferCompled> TryStart(Func<ITransferData?> getdata)
     {
-        private readonly IncomingDataTransfer? _request;
+        if (_request == null)
+            return new TransferFailed(string.Empty, FailReason.Deny, "NoData");
 
-        public AwaitResponse(IncomingDataTransfer? request) => _request = request;
+        var data = getdata();
 
-        public async Task<TransferMessages.TransferCompled> TryStart(Func<ITransferData?> getdata)
-        {
-            if (_request == null)
-                return new TransferFailed(string.Empty, FailReason.Deny, "NoData");
+        if (data == null)
+            return new TransferFailed(_request.OperationId, FailReason.Deny, _request.Data);
 
-            var data = getdata();
+        return await _request.Accept(() => data);
+    }
+}
 
-            if (data == null)
-                return new TransferFailed(_request.OperationId, FailReason.Deny, _request.Data);
-
-            return await _request.Accept(() => data);
-        }
+public sealed class AwaitRequest
+{
+    public AwaitRequest(TimeSpan timeout, string id)
+    {
+        Timeout = timeout;
+        Id = id;
     }
 
-    public sealed class AwaitRequest
-    {
-        public AwaitRequest(TimeSpan timeout, string id)
-        {
-            Timeout = timeout;
-            Id = id;
-        }
+    public TimeSpan Timeout { get; }
 
-        public TimeSpan Timeout { get; }
-
-        public string Id { get; }
-    }
+    public string Id { get; }
 }

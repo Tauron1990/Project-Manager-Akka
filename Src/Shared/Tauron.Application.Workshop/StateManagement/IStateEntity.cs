@@ -1,10 +1,9 @@
 ﻿using JetBrains.Annotations;
 
-namespace Tauron.Application.Workshop.StateManagement
+namespace Tauron.Application.Workshop.StateManagement;
+
+[PublicAPI]
+public interface IStateEntity
 {
-    [PublicAPI]
-    public interface IStateEntity
-    {
-        //string Id { get; }
-    }
+    //string Id { get; }
 }

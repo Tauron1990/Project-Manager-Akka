@@ -29,35 +29,34 @@ using System;
 using Akkatecture.Core;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Aggregates
+namespace Akkatecture.Aggregates;
+
+[PublicAPI]
+public interface ICommittedEvent
 {
-    [PublicAPI]
-    public interface ICommittedEvent
-    {
-        long AggregateSequenceNumber { get; }
-        Metadata Metadata { get; }
-        DateTimeOffset Timestamp { get; }
+    long AggregateSequenceNumber { get; }
+    Metadata Metadata { get; }
+    DateTimeOffset Timestamp { get; }
 
-        IIdentity GetIdentity();
-        IAggregateEvent GetAggregateEvent();
-    }
+    IIdentity GetIdentity();
+    IAggregateEvent GetAggregateEvent();
+}
 
-    [PublicAPI]
-    // ReSharper disable once UnusedTypeParameter
-    public interface ICommittedEvent<TAggregate, out TIdentity> : ICommittedEvent
-        where TAggregate : IAggregateRoot<TIdentity>
-        where TIdentity : IIdentity
-    {
-        TIdentity AggregateIdentity { get; }
-    }
+[PublicAPI]
+// ReSharper disable once UnusedTypeParameter
+public interface ICommittedEvent<TAggregate, out TIdentity> : ICommittedEvent
+    where TAggregate : IAggregateRoot<TIdentity>
+    where TIdentity : IIdentity
+{
+    TIdentity AggregateIdentity { get; }
+}
 
-    [PublicAPI]
-    public interface
-        ICommittedEvent<TAggregate, out TIdentity, out TAggregateEvent> : ICommittedEvent<TAggregate, TIdentity>
-        where TAggregate : IAggregateRoot<TIdentity>
-        where TIdentity : IIdentity
-        where TAggregateEvent : class, IAggregateEvent<TAggregate, TIdentity>
-    {
-        TAggregateEvent AggregateEvent { get; }
-    }
+[PublicAPI]
+public interface
+    ICommittedEvent<TAggregate, out TIdentity, out TAggregateEvent> : ICommittedEvent<TAggregate, TIdentity>
+    where TAggregate : IAggregateRoot<TIdentity>
+    where TIdentity : IIdentity
+    where TAggregateEvent : class, IAggregateEvent<TAggregate, TIdentity>
+{
+    TAggregateEvent AggregateEvent { get; }
 }

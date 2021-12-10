@@ -9,75 +9,74 @@ using Tauron.Application.Workshop.Analyzing.Rules;
 using Tauron.Application.Workshop.Core;
 using Tauron.Application.Workshop.Mutation;
 
-namespace Tauron.Application.Workshop.Analyzing
+namespace Tauron.Application.Workshop.Analyzing;
+
+[PublicAPI]
+public sealed class Analyzer<TWorkspace, TData> : DeferredActor, IAnalyzer<TWorkspace, TData>
+    where TWorkspace : WorkspaceBase<TData> where TData : class
 {
-    [PublicAPI]
-    public sealed class Analyzer<TWorkspace, TData> : DeferredActor, IAnalyzer<TWorkspace, TData>
-        where TWorkspace : WorkspaceBase<TData> where TData : class
+    private readonly HashSet<string> _rules = new();
+
+    internal Analyzer(Task<IActorRef> actor, IEventSource<IssuesEvent> source)
+        : base(actor)
+        => Issues = source;
+
+    internal Analyzer()
+        : base(Task.FromResult<IActorRef>(ActorRefs.Nobody))
+        => Issues = new AnalyzerEventSource<TWorkspace, TData>(
+            Task.FromResult<IActorRef>(ActorRefs.Nobody),
+            new WorkspaceSuperviser());
+
+    public void RegisterRule(IRule<TWorkspace, TData> rule)
     {
-        private readonly HashSet<string> _rules = new();
-
-        internal Analyzer(Task<IActorRef> actor, IEventSource<IssuesEvent> source)
-            : base(actor)
-            => Issues = source;
-
-        internal Analyzer()
-            : base(Task.FromResult<IActorRef>(ActorRefs.Nobody))
-            => Issues = new AnalyzerEventSource<TWorkspace, TData>(
-                Task.FromResult<IActorRef>(ActorRefs.Nobody),
-                new WorkspaceSuperviser());
-
-        public void RegisterRule(IRule<TWorkspace, TData> rule)
+        lock (_rules)
         {
-            lock (_rules)
-            {
-                if (!_rules.Add(rule.Name))
-                    return;
-            }
-
-            TellToActor(new RegisterRule<TWorkspace, TData>(rule));
+            if (!_rules.Add(rule.Name))
+                return;
         }
 
-        public IEventSource<IssuesEvent> Issues { get; }
+        TellToActor(new RegisterRule<TWorkspace, TData>(rule));
     }
 
-    [PublicAPI]
-    public static class Analyzer
+    public IEventSource<IssuesEvent> Issues { get; }
+}
+
+[PublicAPI]
+public static class Analyzer
+{
+    public static IAnalyzer<TWorkspace, TData> From<TWorkspace, TData>(
+        TWorkspace workspace,
+        WorkspaceSuperviser superviser)
+        where TWorkspace : WorkspaceBase<TData> where TData : class
     {
-        public static IAnalyzer<TWorkspace, TData> From<TWorkspace, TData>(
-            TWorkspace workspace,
-            WorkspaceSuperviser superviser)
-            where TWorkspace : WorkspaceBase<TData> where TData : class
+        var evtSource = new SourceFabricator<TWorkspace, TData>();
+
+        var actor = superviser.Create(
+            Props.Create(() => new AnalyzerActor<TWorkspace, TData>(workspace, evtSource.Send)),
+            "AnalyzerActor");
+        evtSource.Init(actor, superviser);
+
+        return new Analyzer<TWorkspace, TData>(
+            actor,
+            evtSource.EventSource ?? throw new InvalidOperationException("Create Analyzer"));
+    }
+
+    private class SourceFabricator<TWorkspace, TData> where TWorkspace : WorkspaceBase<TData> where TData : class
+    {
+        internal AnalyzerEventSource<TWorkspace, TData>? EventSource { get; private set; }
+
+
+        internal void Init(Task<IActorRef> actor, WorkspaceSuperviser superviser)
         {
-            var evtSource = new SourceFabricator<TWorkspace, TData>();
-
-            var actor = superviser.Create(
-                Props.Create(() => new AnalyzerActor<TWorkspace, TData>(workspace, evtSource.Send)),
-                "AnalyzerActor");
-            evtSource.Init(actor, superviser);
-
-            return new Analyzer<TWorkspace, TData>(
-                actor,
-                evtSource.EventSource ?? throw new InvalidOperationException("Create Analyzer"));
+            EventSource = new AnalyzerEventSource<TWorkspace, TData>(actor, superviser);
         }
 
-        private class SourceFabricator<TWorkspace, TData> where TWorkspace : WorkspaceBase<TData> where TData : class
+        internal IObserver<RuleIssuesChanged<TWorkspace, TData>> Send()
         {
-            internal AnalyzerEventSource<TWorkspace, TData>? EventSource { get; private set; }
+            if (EventSource == null)
+                throw new InvalidOperationException("Analýzer is not Initialized");
 
-
-            internal void Init(Task<IActorRef> actor, WorkspaceSuperviser superviser)
-            {
-                EventSource = new AnalyzerEventSource<TWorkspace, TData>(actor, superviser);
-            }
-
-            internal IObserver<RuleIssuesChanged<TWorkspace, TData>> Send()
-            {
-                if (EventSource == null)
-                    throw new InvalidOperationException("Analýzer is not Initialized");
-
-                return EventSource.SendEvent();
-            }
+            return EventSource.SendEvent();
         }
     }
 }

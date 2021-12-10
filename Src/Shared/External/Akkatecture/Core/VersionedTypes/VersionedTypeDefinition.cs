@@ -4,36 +4,35 @@ using System.Reflection;
 using Akkatecture.Extensions;
 using Akkatecture.ValueObjects;
 
-namespace Akkatecture.Core.VersionedTypes
+namespace Akkatecture.Core.VersionedTypes;
+
+public abstract class VersionedTypeDefinition : ValueObject
 {
-    public abstract class VersionedTypeDefinition : ValueObject
+    protected VersionedTypeDefinition(
+        int version,
+        Type type,
+        string name)
     {
-        protected VersionedTypeDefinition(
-            int version,
-            Type type,
-            string name)
-        {
-            Version = version;
-            Type = type;
-            Name = name;
-        }
+        Version = version;
+        Type = type;
+        Name = name;
+    }
 
-        public int Version { get; }
-        public Type Type { get; }
-        public string Name { get; }
+    public int Version { get; }
+    public Type Type { get; }
+    public string Name { get; }
 
-        public override string ToString()
-        {
-            var assemblyName = Type.GetTypeInfo().Assembly.GetName();
+    public override string ToString()
+    {
+        var assemblyName = Type.GetTypeInfo().Assembly.GetName();
 
-            return $"{Name} v{Version} ({assemblyName.Name} - {Type.PrettyPrint()})";
-        }
+        return $"{Name} v{Version} ({assemblyName.Name} - {Type.PrettyPrint()})";
+    }
 
-        protected override IEnumerable<object> GetEqualityComponents()
-        {
-            yield return Version;
-            yield return Type;
-            yield return Name;
-        }
+    protected override IEnumerable<object> GetEqualityComponents()
+    {
+        yield return Version;
+        yield return Type;
+        yield return Name;
     }
 }

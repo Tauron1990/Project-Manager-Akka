@@ -30,26 +30,25 @@ using Akkatecture.Core;
 using Akkatecture.Extensions;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Aggregates
-{
-    [PublicAPI]
-    public abstract class
-        AggregateState<TAggregate, TIdentity> : AggregateState<TAggregate, TIdentity,
-            IMessageApplier<TAggregate, TIdentity>>
-        where TAggregate : IAggregateRoot<TIdentity>
-        where TIdentity : IIdentity { }
+namespace Akkatecture.Aggregates;
 
-    public abstract class
-        AggregateState<TAggregate, TIdentity, TMessageApplier> : IMessageApplier<TAggregate, TIdentity>
-        where TMessageApplier : class, IMessageApplier<TAggregate, TIdentity>
-        where TAggregate : IAggregateRoot<TIdentity>
-        where TIdentity : IIdentity
+[PublicAPI]
+public abstract class
+    AggregateState<TAggregate, TIdentity> : AggregateState<TAggregate, TIdentity,
+        IMessageApplier<TAggregate, TIdentity>>
+    where TAggregate : IAggregateRoot<TIdentity>
+    where TIdentity : IIdentity { }
+
+public abstract class
+    AggregateState<TAggregate, TIdentity, TMessageApplier> : IMessageApplier<TAggregate, TIdentity>
+    where TMessageApplier : class, IMessageApplier<TAggregate, TIdentity>
+    where TAggregate : IAggregateRoot<TIdentity>
+    where TIdentity : IIdentity
+{
+    protected AggregateState()
     {
-        protected AggregateState()
-        {
-            if (this is not TMessageApplier)
-                throw new InvalidOperationException(
-                    $"MessageApplier of Type={GetType().PrettyPrint()} has a wrong generic argument Type={typeof(TMessageApplier).PrettyPrint()}.");
-        }
+        if (this is not TMessageApplier)
+            throw new InvalidOperationException(
+                $"MessageApplier of Type={GetType().PrettyPrint()} has a wrong generic argument Type={typeof(TMessageApplier).PrettyPrint()}.");
     }
 }

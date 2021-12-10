@@ -30,119 +30,118 @@ using Akkatecture.Core;
 using Akkatecture.Extensions;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Aggregates
+namespace Akkatecture.Aggregates;
+
+[PublicAPI]
+public abstract class AggregateManager<TAggregate, TIdentity, TCommand> : ReceiveActor,
+    IAggregateManager<TAggregate, TIdentity>
+    where TAggregate : ReceivePersistentActor, IAggregateRoot<TIdentity>
+    where TIdentity : IIdentity
+    where TCommand : ICommand<TAggregate, TIdentity>
 {
-    [PublicAPI]
-    public abstract class AggregateManager<TAggregate, TIdentity, TCommand> : ReceiveActor,
-        IAggregateManager<TAggregate, TIdentity>
-        where TAggregate : ReceivePersistentActor, IAggregateRoot<TIdentity>
-        where TIdentity : IIdentity
-        where TCommand : ICommand<TAggregate, TIdentity>
+    protected AggregateManager()
     {
-        protected AggregateManager()
+        Logger = Context.GetLogger();
+        Settings = new AggregateManagerSettings(Context.System.Settings.Config);
+        Name = GetType().PrettyPrint();
+        Receive<Terminated>(Terminate);
+
+        if (Settings.AutoDispatchOnReceive)
+            Receive<TCommand>(Dispatch);
+
+        if (Settings.HandleDeadLetters)
         {
-            Logger = Context.GetLogger();
-            Settings = new AggregateManagerSettings(Context.System.Settings.Config);
-            Name = GetType().PrettyPrint();
-            Receive<Terminated>(Terminate);
+            Context.System.EventStream.Subscribe(Self, typeof(DeadLetter));
+            Receive(DeadLetterHandler);
+        }
+    }
 
-            if (Settings.AutoDispatchOnReceive)
-                Receive<TCommand>(Dispatch);
+    protected ILoggingAdapter Logger { get; set; }
+    protected Func<DeadLetter, bool> DeadLetterHandler => Handle;
+    public AggregateManagerSettings Settings { get; }
+    public string Name { get; }
 
-            if (Settings.HandleDeadLetters)
+    protected virtual bool Dispatch(TCommand command)
+    {
+        Logger.Info(
+            "AggregateManager of Type={0}; has received a command of Type={1}",
+            Name,
+            command.GetType().PrettyPrint());
+
+        var aggregateRef = FindOrCreate(command.AggregateId);
+
+        aggregateRef.Forward(command);
+
+        return true;
+    }
+
+
+    protected virtual bool ReDispatch(TCommand command)
+    {
+        Logger.Info(
+            "AggregateManager of Type={0}; is ReDispatching deadletter of Type={1}",
+            Name,
+            command.GetType().PrettyPrint());
+
+        var aggregateRef = FindOrCreate(command.AggregateId);
+
+        aggregateRef.Forward(command);
+
+        return true;
+    }
+
+    protected bool Handle(DeadLetter deadLetter)
+    {
+        if (deadLetter.Message is not TCommand command ||
+            command.GetPropertyValue("AggregateId")?.GetType() != typeof(TIdentity)) return true;
+
+        return ReDispatch(command);
+    }
+
+    protected virtual bool Terminate(Terminated message)
+    {
+        Logger.Warning(
+            "Aggregate of Type={0}, and Id={1}; has terminated.",
+            typeof(TAggregate).PrettyPrint(),
+            message.ActorRef.Path.Name);
+        Context.Unwatch(message.ActorRef);
+
+        return true;
+    }
+
+    protected virtual IActorRef FindOrCreate(TIdentity aggregateId)
+    {
+        var aggregate = Context.Child(aggregateId);
+
+        if (aggregate.IsNobody()) aggregate = CreateAggregate(aggregateId);
+
+        return aggregate;
+    }
+
+    protected virtual IActorRef CreateAggregate(TIdentity aggregateId)
+    {
+        var aggregateRef = Context.ActorOf(Props.Create<TAggregate>(args: aggregateId), aggregateId.Value);
+        Context.Watch(aggregateRef);
+
+        return aggregateRef;
+    }
+
+    protected override SupervisorStrategy SupervisorStrategy()
+    {
+        var logger = Logger;
+
+        return new OneForOneStrategy(
+            3,
+            3000,
+            exception =>
             {
-                Context.System.EventStream.Subscribe(Self, typeof(DeadLetter));
-                Receive(DeadLetterHandler);
-            }
-        }
+                logger.Warning(
+                    "AggregateManager of Type={0}; will supervise Exception={1} to be decided as {2}.",
+                    Name,
+                    exception.ToString(),
+                    Directive.Restart);
 
-        protected ILoggingAdapter Logger { get; set; }
-        protected Func<DeadLetter, bool> DeadLetterHandler => Handle;
-        public AggregateManagerSettings Settings { get; }
-        public string Name { get; }
-
-        protected virtual bool Dispatch(TCommand command)
-        {
-            Logger.Info(
-                "AggregateManager of Type={0}; has received a command of Type={1}",
-                Name,
-                command.GetType().PrettyPrint());
-
-            var aggregateRef = FindOrCreate(command.AggregateId);
-
-            aggregateRef.Forward(command);
-
-            return true;
-        }
-
-
-        protected virtual bool ReDispatch(TCommand command)
-        {
-            Logger.Info(
-                "AggregateManager of Type={0}; is ReDispatching deadletter of Type={1}",
-                Name,
-                command.GetType().PrettyPrint());
-
-            var aggregateRef = FindOrCreate(command.AggregateId);
-
-            aggregateRef.Forward(command);
-
-            return true;
-        }
-
-        protected bool Handle(DeadLetter deadLetter)
-        {
-            if (deadLetter.Message is not TCommand command ||
-                command.GetPropertyValue("AggregateId")?.GetType() != typeof(TIdentity)) return true;
-
-            return ReDispatch(command);
-        }
-
-        protected virtual bool Terminate(Terminated message)
-        {
-            Logger.Warning(
-                "Aggregate of Type={0}, and Id={1}; has terminated.",
-                typeof(TAggregate).PrettyPrint(),
-                message.ActorRef.Path.Name);
-            Context.Unwatch(message.ActorRef);
-
-            return true;
-        }
-
-        protected virtual IActorRef FindOrCreate(TIdentity aggregateId)
-        {
-            var aggregate = Context.Child(aggregateId);
-
-            if (aggregate.IsNobody()) aggregate = CreateAggregate(aggregateId);
-
-            return aggregate;
-        }
-
-        protected virtual IActorRef CreateAggregate(TIdentity aggregateId)
-        {
-            var aggregateRef = Context.ActorOf(Props.Create<TAggregate>(args: aggregateId), aggregateId.Value);
-            Context.Watch(aggregateRef);
-
-            return aggregateRef;
-        }
-
-        protected override SupervisorStrategy SupervisorStrategy()
-        {
-            var logger = Logger;
-
-            return new OneForOneStrategy(
-                3,
-                3000,
-                exception =>
-                {
-                    logger.Warning(
-                        "AggregateManager of Type={0}; will supervise Exception={1} to be decided as {2}.",
-                        Name,
-                        exception.ToString(),
-                        Directive.Restart);
-
-                    return Directive.Restart;
-                });
-        }
+                return Directive.Restart;
+            });
     }
 }

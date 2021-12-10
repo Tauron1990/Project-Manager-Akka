@@ -25,25 +25,24 @@ using System.Collections.Immutable;
 using Akkatecture.Jobs.Commands;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Jobs
+namespace Akkatecture.Jobs;
+
+[PublicAPI]
+public class SchedulerState<TJob, TIdentity>
+    where TJob : IJob
+    where TIdentity : IJobId
 {
-    [PublicAPI]
-    public class SchedulerState<TJob, TIdentity>
-        where TJob : IJob
-        where TIdentity : IJobId
-    {
-        public SchedulerState(
-            ImmutableDictionary<TIdentity, Schedule<TJob, TIdentity>> entries)
-            => Entries = entries;
+    public SchedulerState(
+        ImmutableDictionary<TIdentity, Schedule<TJob, TIdentity>> entries)
+        => Entries = entries;
 
-        public static SchedulerState<TJob, TIdentity> New { get; } =
-            new(ImmutableDictionary<TIdentity, Schedule<TJob, TIdentity>>.Empty);
+    public static SchedulerState<TJob, TIdentity> New { get; } =
+        new(ImmutableDictionary<TIdentity, Schedule<TJob, TIdentity>>.Empty);
 
-        public ImmutableDictionary<TIdentity, Schedule<TJob, TIdentity>> Entries { get; }
+    public ImmutableDictionary<TIdentity, Schedule<TJob, TIdentity>> Entries { get; }
 
-        public SchedulerState<TJob, TIdentity> AddEntry(Schedule<TJob, TIdentity> entry)
-            => new(Entries.SetItem(entry.JobId, entry));
+    public SchedulerState<TJob, TIdentity> AddEntry(Schedule<TJob, TIdentity> entry)
+        => new(Entries.SetItem(entry.JobId, entry));
 
-        public SchedulerState<TJob, TIdentity> RemoveEntry(TIdentity jobId) => new(Entries.Remove(jobId));
-    }
+    public SchedulerState<TJob, TIdentity> RemoveEntry(TIdentity jobId) => new(Entries.Remove(jobId));
 }

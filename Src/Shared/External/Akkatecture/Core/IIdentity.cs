@@ -25,10 +25,9 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Akkatecture.Core
+namespace Akkatecture.Core;
+
+public interface IIdentity
 {
-    public interface IIdentity
-    {
-        string Value { get; }
-    }
+    string Value { get; }
 }

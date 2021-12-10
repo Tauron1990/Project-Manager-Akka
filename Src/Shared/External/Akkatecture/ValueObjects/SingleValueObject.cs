@@ -31,42 +31,41 @@ using System.Diagnostics;
 using System.Reflection;
 using Akkatecture.Extensions;
 
-namespace Akkatecture.ValueObjects
+namespace Akkatecture.ValueObjects;
+
+public abstract class SingleValueObject<T> : ValueObject, IComparable, ISingleValueObject
+    where T : IComparable
 {
-    public abstract class SingleValueObject<T> : ValueObject, IComparable, ISingleValueObject
-        where T : IComparable
+    private static readonly Type Type = typeof(T);
+    private static readonly TypeInfo TypeInfo = typeof(T).GetTypeInfo();
+
+    protected SingleValueObject(T value)
     {
-        private static readonly Type Type = typeof(T);
-        private static readonly TypeInfo TypeInfo = typeof(T).GetTypeInfo();
+        if (TypeInfo.IsEnum && !Enum.IsDefined(Type, value))
+            throw new ArgumentException($"The value '{value}' isn't defined in enum '{Type.PrettyPrint()}'");
 
-        protected SingleValueObject(T value)
-        {
-            if (TypeInfo.IsEnum && !Enum.IsDefined(Type, value))
-                throw new ArgumentException($"The value '{value}' isn't defined in enum '{Type.PrettyPrint()}'");
-
-            Value = value;
-        }
-
-        public T Value { get; }
-
-        public int CompareTo(object? obj)
-        {
-            return obj switch
-            {
-                null => throw new ArgumentNullException(nameof(obj)),
-                SingleValueObject<T> other => Value.CompareTo(other.Value),
-                _ => throw new ArgumentException($"Cannot compare '{GetType().PrettyPrint()}' and '{obj.GetType().PrettyPrint()}'")
-            };
-        }
-
-        public object GetValue() => Value;
-
-        [DebuggerNonUserCode]
-        protected override IEnumerable<object> GetEqualityComponents()
-        {
-            yield return Value;
-        }
-
-        public override string ToString() => Value.ToString() ?? string.Empty;
+        Value = value;
     }
+
+    public T Value { get; }
+
+    public int CompareTo(object? obj)
+    {
+        return obj switch
+        {
+            null => throw new ArgumentNullException(nameof(obj)),
+            SingleValueObject<T> other => Value.CompareTo(other.Value),
+            _ => throw new ArgumentException($"Cannot compare '{GetType().PrettyPrint()}' and '{obj.GetType().PrettyPrint()}'")
+        };
+    }
+
+    public object GetValue() => Value;
+
+    [DebuggerNonUserCode]
+    protected override IEnumerable<object> GetEqualityComponents()
+    {
+        yield return Value;
+    }
+
+    public override string ToString() => Value.ToString() ?? string.Empty;
 }

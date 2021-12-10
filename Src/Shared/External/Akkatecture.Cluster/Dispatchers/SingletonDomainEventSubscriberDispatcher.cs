@@ -29,41 +29,40 @@ using Akkatecture.Extensions;
 using Akkatecture.Subscribers;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Cluster.Dispatchers
+namespace Akkatecture.Cluster.Dispatchers;
+
+[PublicAPI]
+public class SingletonDomainEventSubscriberDispatcher<TDomainEventSubscriber> : ReceiveActor
+    where TDomainEventSubscriber : DomainEventSubscriber
 {
-    [PublicAPI]
-    public class SingletonDomainEventSubscriberDispatcher<TDomainEventSubscriber> : ReceiveActor
-        where TDomainEventSubscriber : DomainEventSubscriber
+    public SingletonDomainEventSubscriberDispatcher(IActorRef domainEventProxy)
     {
-        public SingletonDomainEventSubscriberDispatcher(IActorRef domainEventProxy)
-        {
-            Logger = Context.GetLogger();
-            DomainEventProxy = domainEventProxy;
-            var subscriberType = typeof(TDomainEventSubscriber);
+        Logger = Context.GetLogger();
+        DomainEventProxy = domainEventProxy;
+        var subscriberType = typeof(TDomainEventSubscriber);
 
-            var subscriptionTypes =
-                subscriberType
-                   .GetDomainEventSubscriptionTypes();
+        var subscriptionTypes =
+            subscriberType
+               .GetDomainEventSubscriptionTypes();
 
-            foreach (var type in subscriptionTypes) Context.System.EventStream.Subscribe(Self, type);
+        foreach (var type in subscriptionTypes) Context.System.EventStream.Subscribe(Self, type);
 
-            Receive<IDomainEvent>(Dispatch);
-        }
+        Receive<IDomainEvent>(Dispatch);
+    }
 
-        public ILoggingAdapter Logger { get; }
-        public IActorRef DomainEventProxy { get; }
+    public ILoggingAdapter Logger { get; }
+    public IActorRef DomainEventProxy { get; }
 
-        protected virtual bool Dispatch(IDomainEvent domainEvent)
-        {
-            DomainEventProxy.Tell(domainEvent);
+    protected virtual bool Dispatch(IDomainEvent domainEvent)
+    {
+        DomainEventProxy.Tell(domainEvent);
 
-            Logger.Debug(
-                "{0} just dispatched {1} to {2}",
-                GetType().PrettyPrint(),
-                domainEvent.GetType().PrettyPrint(),
-                DomainEventProxy.Path.Name);
+        Logger.Debug(
+            "{0} just dispatched {1} to {2}",
+            GetType().PrettyPrint(),
+            domainEvent.GetType().PrettyPrint(),
+            DomainEventProxy.Path.Name);
 
-            return true;
-        }
+        return true;
     }
 }

@@ -23,7 +23,6 @@
 
 using Akkatecture.Jobs;
 
-namespace Akkatecture.Sagas.SagaTimeouts
-{
-    public interface ISagaTimeoutJob : IJob { }
-}
+namespace Akkatecture.Sagas.SagaTimeouts;
+
+public interface ISagaTimeoutJob : IJob { }

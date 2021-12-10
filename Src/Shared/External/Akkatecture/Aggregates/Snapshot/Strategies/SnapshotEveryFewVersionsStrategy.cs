@@ -23,27 +23,26 @@
 
 using JetBrains.Annotations;
 
-namespace Akkatecture.Aggregates.Snapshot.Strategies
+namespace Akkatecture.Aggregates.Snapshot.Strategies;
+
+[PublicAPI]
+public class SnapshotEveryFewVersionsStrategy : ISnapshotStrategy
 {
-    [PublicAPI]
-    public class SnapshotEveryFewVersionsStrategy : ISnapshotStrategy
-    {
-        public const int DefautSnapshotAfterVersions = 50;
+    public const int DefautSnapshotAfterVersions = 50;
 
-        public SnapshotEveryFewVersionsStrategy(
-            int snapshotAfterVersions)
-            => SnapshotAfterVersions = snapshotAfterVersions;
+    public SnapshotEveryFewVersionsStrategy(
+        int snapshotAfterVersions)
+        => SnapshotAfterVersions = snapshotAfterVersions;
 
-        public int SnapshotAfterVersions { get; }
+    public int SnapshotAfterVersions { get; }
 
-        public static ISnapshotStrategy Default { get; } = With();
+    public static ISnapshotStrategy Default { get; } = With();
 
 
-        public bool ShouldCreateSnapshot(IAggregateRoot snapshotAggregateRoot)
-            => snapshotAggregateRoot.Version % SnapshotAfterVersions == 0 && !snapshotAggregateRoot.IsNew;
+    public bool ShouldCreateSnapshot(IAggregateRoot snapshotAggregateRoot)
+        => snapshotAggregateRoot.Version % SnapshotAfterVersions == 0 && !snapshotAggregateRoot.IsNew;
 
-        public static SnapshotEveryFewVersionsStrategy With(
-            int snapshotAfterVersions = DefautSnapshotAfterVersions)
-            => new(snapshotAfterVersions);
-    }
+    public static SnapshotEveryFewVersionsStrategy With(
+        int snapshotAfterVersions = DefautSnapshotAfterVersions)
+        => new(snapshotAfterVersions);
 }

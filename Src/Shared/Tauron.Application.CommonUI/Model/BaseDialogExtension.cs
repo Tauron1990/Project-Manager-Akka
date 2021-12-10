@@ -4,101 +4,100 @@ using System.Threading.Tasks;
 using Autofac;
 using Autofac.Core;
 using JetBrains.Annotations;
-using Tauron.Akka;
+using Tauron.TAkka;
 using Tauron.Application.CommonUI.Dialogs;
 
-namespace Tauron.Application.CommonUI.Model
+namespace Tauron.Application.CommonUI.Model;
+
+[PublicAPI]
+public static class BaseDialogExtension
 {
-    [PublicAPI]
-    public static class BaseDialogExtension
+    private static IDialogCoordinator? _dialogCoordinator;
+
+    public static Task<TData> ShowDialogAsync<TDialog, TData, TViewData>(this UiActor actor, Func<TViewData> initalData, params Parameter[] parameters)
+        where TDialog : IBaseDialog<TData, TViewData>
+        => ShowDialog<TDialog, TData, TViewData>(actor, initalData, parameters)();
+
+    public static Task<TData> ShowDialogAsync<TDialog, TData>(this UiActor actor, Func<TData> initalData, params Parameter[] parameters)
+        where TDialog : IBaseDialog<TData, TData>
+        => ShowDialog<TDialog, TData>(actor, initalData, parameters)();
+
+    public static Task<TData> ShowDialogAsync<TDialog, TData>(this UiActor actor, params Parameter[] parameters)
+        where TDialog : IBaseDialog<TData, TData>
+        => ShowDialog<TDialog, TData>(actor, parameters)();
+
+    public static Func<Task<TData>> ShowDialog<TDialog, TData>(this UiActor actor, params Parameter[] parameters)
+        where TDialog : IBaseDialog<TData, TData>
+        => ShowDialog<TDialog, TData, TData>(actor, () => default!, parameters);
+
+    //public static Func<Task<TData>> ShowDialog<TDialog, TData>(this UiActor actor, params Parameter[] parameters)
+    //    where TDialog : IBaseDialog<TData, TData>
+    //{
+    //    return ShowDialog<TDialog, TData, TData>(actor, () => default!, parameters);
+    //}
+
+    public static Func<Task<TData>> ShowDialog<TDialog, TData>(
+        this UiActor actor, Func<TData> initalData,
+        params Parameter[] parameters)
+        where TDialog : IBaseDialog<TData, TData>
+        => ShowDialog<TDialog, TData, TData>(actor, initalData, parameters);
+
+    public static Func<Task<TData>> ShowDialog<TDialog, TData, TViewData>(
+        this UiActor actor,
+        Func<TViewData> initalData, params Parameter[] parameters)
+        where TDialog : IBaseDialog<TData, TViewData>
     {
-        private static IDialogCoordinator? _dialogCoordinator;
+        _dialogCoordinator ??= actor.LifetimeScope.Resolve<IDialogCoordinator>();
 
-        public static Task<TData> ShowDialogAsync<TDialog, TData, TViewData>(this UiActor actor, Func<TViewData> initalData, params Parameter[] parameters)
-            where TDialog : IBaseDialog<TData, TViewData>
-            => ShowDialog<TDialog, TData, TViewData>(actor, initalData, parameters)();
+        return async () =>
+               {
+                   var result = await actor
+                      .Dispatcher
+                      .InvokeAsync(
+                           () =>
+                           {
+                               var dialog = actor.LifetimeScope.Resolve<TDialog>(parameters);
+                               var task = dialog.Init(initalData());
 
-        public static Task<TData> ShowDialogAsync<TDialog, TData>(this UiActor actor, Func<TData> initalData, params Parameter[] parameters)
-            where TDialog : IBaseDialog<TData, TData>
-            => ShowDialog<TDialog, TData>(actor, initalData, parameters)();
+                               _dialogCoordinator.ShowDialog(dialog);
 
-        public static Task<TData> ShowDialogAsync<TDialog, TData>(this UiActor actor, params Parameter[] parameters)
-            where TDialog : IBaseDialog<TData, TData>
-            => ShowDialog<TDialog, TData>(actor, parameters)();
+                               return task;
+                           });
 
-        public static Func<Task<TData>> ShowDialog<TDialog, TData>(this UiActor actor, params Parameter[] parameters)
-            where TDialog : IBaseDialog<TData, TData>
-            => ShowDialog<TDialog, TData, TData>(actor, () => default!, parameters);
+                   actor.Dispatcher.Post(() => _dialogCoordinator.HideDialog());
 
-        //public static Func<Task<TData>> ShowDialog<TDialog, TData>(this UiActor actor, params Parameter[] parameters)
-        //    where TDialog : IBaseDialog<TData, TData>
-        //{
-        //    return ShowDialog<TDialog, TData, TData>(actor, () => default!, parameters);
-        //}
+                   return result;
+               };
+    }
 
-        public static Func<Task<TData>> ShowDialog<TDialog, TData>(
-            this UiActor actor, Func<TData> initalData,
-            params Parameter[] parameters)
-            where TDialog : IBaseDialog<TData, TData>
-            => ShowDialog<TDialog, TData, TData>(actor, initalData, parameters);
+    public static DialogBuilder<TViewData> Dialog<TViewData>(
+        this IObservable<TViewData> input, UiActor actor,
+        params Parameter[] parameters) => new(input, parameters, actor);
 
-        public static Func<Task<TData>> ShowDialog<TDialog, TData, TViewData>(
-            this UiActor actor,
-            Func<TViewData> initalData, params Parameter[] parameters)
-            where TDialog : IBaseDialog<TData, TViewData>
+    [PublicAPI]
+    public sealed class DialogBuilder<TInitialData>
+    {
+        private readonly UiActor _actor;
+        private readonly IObservable<TInitialData> _data;
+        private readonly Parameter[] _parameters;
+
+        public DialogBuilder(IObservable<TInitialData> data, Parameter[] parameters, UiActor actor)
         {
-            _dialogCoordinator ??= actor.LifetimeScope.Resolve<IDialogCoordinator>();
-
-            return async () =>
-                   {
-                       var result = await actor
-                          .Dispatcher
-                          .InvokeAsync(
-                               () =>
-                               {
-                                   var dialog = actor.LifetimeScope.Resolve<TDialog>(parameters);
-                                   var task = dialog.Init(initalData());
-
-                                   _dialogCoordinator.ShowDialog(dialog);
-
-                                   return task;
-                               });
-
-                       actor.Dispatcher.Post(() => _dialogCoordinator.HideDialog());
-
-                       return result;
-                   };
+            _data = data;
+            _parameters = parameters;
+            _actor = actor;
         }
 
-        public static DialogBuilder<TViewData> Dialog<TViewData>(
-            this IObservable<TViewData> input, UiActor actor,
-            params Parameter[] parameters) => new(input, parameters, actor);
-
-        [PublicAPI]
-        public sealed class DialogBuilder<TInitialData>
+        public IObservable<TResult> Of<TDialog, TResult>() where TDialog : IBaseDialog<TResult, TInitialData>
         {
-            private readonly UiActor _actor;
-            private readonly IObservable<TInitialData> _data;
-            private readonly Parameter[] _parameters;
-
-            public DialogBuilder(IObservable<TInitialData> data, Parameter[] parameters, UiActor actor)
-            {
-                _data = data;
-                _parameters = parameters;
-                _actor = actor;
-            }
-
-            public IObservable<TResult> Of<TDialog, TResult>() where TDialog : IBaseDialog<TResult, TInitialData>
-            {
-                return _data.SelectMany(
-                        data
-                            => ShowDialog<TDialog, TResult, TInitialData>(_actor, () => data, _parameters)())
-                   .ObserveOnSelf();
-            }
-
-            public IObservable<TInitialData> Of<TDialog>()
-                where TDialog : IBaseDialog<TInitialData, TInitialData>
-                => Of<TDialog, TInitialData>();
+            return _data.SelectMany(
+                    data
+                        => ShowDialog<TDialog, TResult, TInitialData>(_actor, () => data, _parameters)())
+               .ObserveOnSelf();
         }
+
+        public IObservable<TInitialData> Of<TDialog>()
+            where TDialog : IBaseDialog<TInitialData, TInitialData>
+            => Of<TDialog, TInitialData>();
     }
 }

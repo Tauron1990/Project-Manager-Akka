@@ -28,12 +28,11 @@
 using Akkatecture.Core;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Commands
+namespace Akkatecture.Commands;
+
+[PublicAPI]
+public class CommandId : Identity<CommandId>, ICommandId
 {
-    [PublicAPI]
-    public class CommandId : Identity<CommandId>, ICommandId
-    {
-        public CommandId(string value)
-            : base(value) { }
-    }
+    public CommandId(string value)
+        : base(value) { }
 }

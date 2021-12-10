@@ -1,26 +1,25 @@
 ﻿using System;
 using JetBrains.Annotations;
 
-namespace Tauron.Application.Settings.Provider
+namespace Tauron.Application.Settings.Provider;
+
+[PublicAPI]
+public static class ProviderConfig
 {
-    [PublicAPI]
-    public static class ProviderConfig
+    public static Func<ISettingProviderConfiguration> Json(string scope, string fileName)
+        => () => new JsonProviderConfig(fileName, scope);
+
+    private sealed class JsonProviderConfig : ISettingProviderConfiguration
     {
-        public static Func<ISettingProviderConfiguration> Json(string scope, string fileName)
-            => () => new JsonProviderConfig(fileName, scope);
+        private readonly string _fileName;
 
-        private sealed class JsonProviderConfig : ISettingProviderConfiguration
+        internal JsonProviderConfig(string fileName, string scope)
         {
-            private readonly string _fileName;
-
-            internal JsonProviderConfig(string fileName, string scope)
-            {
-                _fileName = fileName;
-                Scope = scope;
-            }
-
-            public string Scope { get; }
-            public ISettingProvider Provider => new JsonProvider(_fileName);
+            _fileName = fileName;
+            Scope = scope;
         }
+
+        public string Scope { get; }
+        public ISettingProvider Provider => new JsonProvider(_fileName);
     }
 }

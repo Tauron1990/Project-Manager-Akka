@@ -7,33 +7,32 @@ using Tauron.Application.AkkaNode.Services.Core;
 using Tauron.Application.AkkaNode.Services.Reporting;
 using Tauron.Application.AkkaNode.Services.Reporting.Commands;
 
-namespace Tauron.Application.Master.Commands.Deployment.Repository
+namespace Tauron.Application.Master.Commands.Deployment.Repository;
+
+[PublicAPI]
+public sealed class RepositoryApi : ISender
 {
-    [PublicAPI]
-    public sealed class RepositoryApi : ISender
+    public const string RepositoryPath = @"RepositoryManager";
+
+    private readonly IActorRef _repository;
+
+    private RepositoryApi(IActorRef repository) => _repository = repository;
+    public static RepositoryApi Empty { get; } = new(ActorRefs.Nobody);
+
+    void ISender.SendCommand(IReporterMessage command) => _repository.Tell(command);
+
+    public Task<IsAliveResponse> QueryIsAlive(ActorSystem system, TimeSpan timeout)
+        => AkkaNode.Services.Core.QueryIsAlive.Ask(system, _repository, timeout);
+
+    public static RepositoryApi CreateFromActor(IActorRef manager)
+        => new(manager);
+
+    public static RepositoryApi CreateProxy(ActorSystem system, string name = "RepositoryProxy")
     {
-        public const string RepositoryPath = @"RepositoryManager";
+        var proxy = ClusterSingletonProxy.Props(
+            $"/user/{RepositoryPath}",
+            ClusterSingletonProxySettings.Create(system).WithRole("UpdateSystem"));
 
-        private readonly IActorRef _repository;
-
-        private RepositoryApi(IActorRef repository) => _repository = repository;
-        public static RepositoryApi Empty { get; } = new(ActorRefs.Nobody);
-
-        void ISender.SendCommand(IReporterMessage command) => _repository.Tell(command);
-
-        public Task<IsAliveResponse> QueryIsAlive(ActorSystem system, TimeSpan timeout)
-            => AkkaNode.Services.Core.QueryIsAlive.Ask(system, _repository, timeout);
-
-        public static RepositoryApi CreateFromActor(IActorRef manager)
-            => new(manager);
-
-        public static RepositoryApi CreateProxy(ActorSystem system, string name = "RepositoryProxy")
-        {
-            var proxy = ClusterSingletonProxy.Props(
-                $"/user/{RepositoryPath}",
-                ClusterSingletonProxySettings.Create(system).WithRole("UpdateSystem"));
-
-            return new RepositoryApi(system.ActorOf(proxy, name));
-        }
+        return new RepositoryApi(system.ActorOf(proxy, name));
     }
 }

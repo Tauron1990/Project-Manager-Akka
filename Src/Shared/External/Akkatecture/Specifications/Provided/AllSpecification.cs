@@ -30,24 +30,23 @@ using System.Collections.Generic;
 using System.Linq;
 using Tauron.Operations;
 
-namespace Akkatecture.Specifications.Provided
+namespace Akkatecture.Specifications.Provided;
+
+public class AllSpecifications<T> : Specification<T>
 {
-    public class AllSpecifications<T> : Specification<T>
+    private readonly IReadOnlyList<ISpecification<T>> _specifications;
+
+    public AllSpecifications(
+        IEnumerable<ISpecification<T>> specifications)
     {
-        private readonly IReadOnlyList<ISpecification<T>> _specifications;
+        var specificationList = specifications.ToList();
 
-        public AllSpecifications(
-            IEnumerable<ISpecification<T>> specifications)
-        {
-            var specificationList = specifications.ToList();
+        if (!specificationList.Any())
+            throw new ArgumentException("Please provide some specifications", nameof(specifications));
 
-            if (!specificationList.Any())
-                throw new ArgumentException("Please provide some specifications", nameof(specifications));
-
-            _specifications = specificationList;
-        }
-
-        protected override IEnumerable<Error> IsNotSatisfiedBecause(T aggregate)
-            => _specifications.SelectMany(specification => specification.WhyIsNotSatisfiedBy(aggregate));
+        _specifications = specificationList;
     }
+
+    protected override IEnumerable<Error> IsNotSatisfiedBecause(T aggregate)
+        => _specifications.SelectMany(specification => specification.WhyIsNotSatisfiedBy(aggregate));
 }

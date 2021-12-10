@@ -21,10 +21,9 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Akkatecture.Jobs
+namespace Akkatecture.Jobs;
+
+public interface IRun<in TJob>
 {
-    public interface IRun<in TJob>
-    {
-        bool Run(TJob job);
-    }
+    bool Run(TJob job);
 }

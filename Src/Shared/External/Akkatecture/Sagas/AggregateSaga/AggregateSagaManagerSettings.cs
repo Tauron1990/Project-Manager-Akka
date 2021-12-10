@@ -24,21 +24,20 @@
 using Akka.Configuration;
 using Akkatecture.Configuration;
 
-namespace Akkatecture.Sagas.AggregateSaga
+namespace Akkatecture.Sagas.AggregateSaga;
+
+public class AggregateSagaManagerSettings
 {
-    public class AggregateSagaManagerSettings
+    private const string Section = "akkatecture.aggregate-saga-manager";
+    public readonly bool AutoSpawnOnReceive;
+    public readonly bool AutoSubscribe;
+
+    public AggregateSagaManagerSettings(Config config)
     {
-        private const string Section = "akkatecture.aggregate-saga-manager";
-        public readonly bool AutoSpawnOnReceive;
-        public readonly bool AutoSubscribe;
+        var aggregateSagaManagerConfig = config.WithFallback(AkkatectureDefaultSettings.DefaultConfig());
+        aggregateSagaManagerConfig = aggregateSagaManagerConfig.GetConfig(Section);
 
-        public AggregateSagaManagerSettings(Config config)
-        {
-            var aggregateSagaManagerConfig = config.WithFallback(AkkatectureDefaultSettings.DefaultConfig());
-            aggregateSagaManagerConfig = aggregateSagaManagerConfig.GetConfig(Section);
-
-            AutoSpawnOnReceive = aggregateSagaManagerConfig.GetBoolean("auto-spawn-on-receive");
-            AutoSubscribe = aggregateSagaManagerConfig.GetBoolean("auto-subscribe");
-        }
+        AutoSpawnOnReceive = aggregateSagaManagerConfig.GetBoolean("auto-spawn-on-receive");
+        AutoSubscribe = aggregateSagaManagerConfig.GetBoolean("auto-subscribe");
     }
 }

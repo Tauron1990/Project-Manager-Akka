@@ -1,9 +1,8 @@
 ﻿using Akka.Actor;
 
-namespace Tauron.Application.Workshop.StateManagement.Dispatcher
+namespace Tauron.Application.Workshop.StateManagement.Dispatcher;
+
+public interface IStateDispatcherConfigurator
 {
-    public interface IStateDispatcherConfigurator
-    {
-        Props Configurate(Props mutator);
-    }
+    Props Configurate(Props mutator);
 }

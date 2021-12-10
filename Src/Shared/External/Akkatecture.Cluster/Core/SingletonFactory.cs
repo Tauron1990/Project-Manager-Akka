@@ -29,50 +29,49 @@ using Akkatecture.Cluster.Dispatchers;
 using Akkatecture.Subscribers;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Cluster.Core
+namespace Akkatecture.Cluster.Core;
+
+[PublicAPI]
+public static class SingletonFactory<TDomainEventSubscriber>
+    where TDomainEventSubscriber : DomainEventSubscriber
 {
-    [PublicAPI]
-    public static class SingletonFactory<TDomainEventSubscriber>
-        where TDomainEventSubscriber : DomainEventSubscriber
+    public static IActorRef StartSingletonSubscriber(
+        ActorSystem actorSystem,
+        Expression<Func<TDomainEventSubscriber>> domainEventSubscriberFactory,
+        string roleName)
     {
-        public static IActorRef StartSingletonSubscriber(
-            ActorSystem actorSystem,
-            Expression<Func<TDomainEventSubscriber>> domainEventSubscriberFactory,
-            string roleName)
-        {
-            var name = typeof(TDomainEventSubscriber).Name;
+        var name = typeof(TDomainEventSubscriber).Name;
 
-            var domainEventSubscriberProps = Props.Create(domainEventSubscriberFactory);
+        var domainEventSubscriberProps = Props.Create(domainEventSubscriberFactory);
 
-            actorSystem.ActorOf(
-                ClusterSingletonManager.Props(
-                    Props.Create(() => new ClusterParentProxy(domainEventSubscriberProps, true)),
-                    PoisonPill.Instance,
-                    ClusterSingletonManagerSettings.Create(actorSystem).WithRole(roleName).WithSingletonName(name)),
-                name);
+        actorSystem.ActorOf(
+            ClusterSingletonManager.Props(
+                Props.Create(() => new ClusterParentProxy(domainEventSubscriberProps, true)),
+                PoisonPill.Instance,
+                ClusterSingletonManagerSettings.Create(actorSystem).WithRole(roleName).WithSingletonName(name)),
+            name);
 
-            var proxy = StartSingletonSubscriberProxy(actorSystem, roleName);
+        var proxy = StartSingletonSubscriberProxy(actorSystem, roleName);
 
-            actorSystem.ActorOf(
-                Props.Create(
-                    () =>
-                        new SingletonDomainEventSubscriberDispatcher<TDomainEventSubscriber>(proxy)),
-                $"{typeof(TDomainEventSubscriber).Name}Dispatcher");
+        actorSystem.ActorOf(
+            Props.Create(
+                () =>
+                    new SingletonDomainEventSubscriberDispatcher<TDomainEventSubscriber>(proxy)),
+            $"{typeof(TDomainEventSubscriber).Name}Dispatcher");
 
-            return proxy;
-        }
+        return proxy;
+    }
 
-        public static IActorRef StartSingletonSubscriberProxy(ActorSystem actorSystem, string roleName)
-        {
-            var name = typeof(TDomainEventSubscriber).Name;
+    public static IActorRef StartSingletonSubscriberProxy(ActorSystem actorSystem, string roleName)
+    {
+        var name = typeof(TDomainEventSubscriber).Name;
 
-            var proxy = actorSystem.ActorOf(
-                ClusterSingletonProxy.Props(
-                    $"/user/{name}",
-                    ClusterSingletonProxySettings.Create(actorSystem).WithRole(roleName).WithSingletonName(name)),
-                $"{name}Proxy");
+        var proxy = actorSystem.ActorOf(
+            ClusterSingletonProxy.Props(
+                $"/user/{name}",
+                ClusterSingletonProxySettings.Create(actorSystem).WithRole(roleName).WithSingletonName(name)),
+            $"{name}Proxy");
 
-            return proxy;
-        }
+        return proxy;
     }
 }

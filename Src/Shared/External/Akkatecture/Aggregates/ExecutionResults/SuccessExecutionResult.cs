@@ -25,12 +25,11 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Akkatecture.Aggregates.ExecutionResults
-{
-    public class SuccessExecutionResult : ExecutionResult
-    {
-        public override bool IsSuccess => true;
+namespace Akkatecture.Aggregates.ExecutionResults;
 
-        public override string ToString() => "Successful execution";
-    }
+public class SuccessExecutionResult : ExecutionResult
+{
+    public override bool IsSuccess => true;
+
+    public override string ToString() => "Successful execution";
 }

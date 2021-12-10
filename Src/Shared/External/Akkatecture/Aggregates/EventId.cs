@@ -28,12 +28,11 @@
 using Akkatecture.Core;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Aggregates
+namespace Akkatecture.Aggregates;
+
+[PublicAPI]
+public class EventId : Identity<EventId>, IEventId
 {
-    [PublicAPI]
-    public class EventId : Identity<EventId>, IEventId
-    {
-        public EventId(string value)
-            : base(value) { }
-    }
+    public EventId(string value)
+        : base(value) { }
 }

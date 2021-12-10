@@ -1,7 +1,6 @@
-﻿namespace Tauron.Application.CommonUI.Helper
+﻿namespace Tauron.Application.CommonUI.Helper;
+
+public interface IInternalWeakReference
 {
-    public interface IInternalWeakReference
-    {
-        bool IsAlive { get; }
-    }
+    bool IsAlive { get; }
 }

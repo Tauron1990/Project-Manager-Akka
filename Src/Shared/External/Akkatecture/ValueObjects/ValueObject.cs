@@ -33,54 +33,53 @@ using System.Linq;
 using System.Reflection;
 using JetBrains.Annotations;
 
-namespace Akkatecture.ValueObjects
+namespace Akkatecture.ValueObjects;
+
+[PublicAPI]
+#pragma warning disable GU0025
+public abstract class ValueObject
+    #pragma warning restore GU0025
 {
-    [PublicAPI]
-    #pragma warning disable GU0025
-    public abstract class ValueObject
-        #pragma warning restore GU0025
+    private static readonly ConcurrentDictionary<Type, IReadOnlyCollection<PropertyInfo>> TypeProperties = new();
+
+    public override bool Equals(object? obj)
     {
-        private static readonly ConcurrentDictionary<Type, IReadOnlyCollection<PropertyInfo>> TypeProperties = new();
+        if (ReferenceEquals(this, obj)) return true;
+        if (obj is null) return false;
+        if (GetType() != obj.GetType()) return false;
 
-        public override bool Equals(object? obj)
+        return obj is ValueObject other && GetEqualityComponents().SequenceEqual(other.GetEqualityComponents());
+    }
+
+    [DebuggerNonUserCode]
+    public override int GetHashCode()
+    {
+        unchecked
         {
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj is null) return false;
-            if (GetType() != obj.GetType()) return false;
-
-            return obj is ValueObject other && GetEqualityComponents().SequenceEqual(other.GetEqualityComponents());
+            return GetEqualityComponents()
+               .Aggregate(17, (current, obj) => current * 23 + (obj?.GetHashCode() ?? 0));
         }
+    }
 
-        [DebuggerNonUserCode]
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                return GetEqualityComponents()
-                   .Aggregate(17, (current, obj) => current * 23 + (obj?.GetHashCode() ?? 0));
-            }
-        }
+    public static bool operator ==(ValueObject? left, ValueObject? right) => Equals(left, right);
 
-        public static bool operator ==(ValueObject? left, ValueObject? right) => Equals(left, right);
+    public static bool operator !=(ValueObject? left, ValueObject? right) => !Equals(left, right);
 
-        public static bool operator !=(ValueObject? left, ValueObject? right) => !Equals(left, right);
+    public override string ToString()
+        => $"{{{string.Join(", ", GetProperties().Select(propertyInfo => $"{propertyInfo.Name}: {propertyInfo.GetValue(this)}"))}}}";
 
-        public override string ToString()
-            => $"{{{string.Join(", ", GetProperties().Select(propertyInfo => $"{propertyInfo.Name}: {propertyInfo.GetValue(this)}"))}}}";
+    [DebuggerNonUserCode]
+    protected virtual IEnumerable<object?> GetEqualityComponents()
+        => GetProperties().Select(propertyInfo => propertyInfo.GetValue(this));
 
-        [DebuggerNonUserCode]
-        protected virtual IEnumerable<object?> GetEqualityComponents()
-            => GetProperties().Select(propertyInfo => propertyInfo.GetValue(this));
-
-        protected virtual IEnumerable<PropertyInfo> GetProperties()
-        {
-            return TypeProperties.GetOrAdd(
-                GetType(),
-                type => type
-                   .GetTypeInfo()
-                   .GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                   .OrderBy(info => info.Name)
-                   .ToList());
-        }
+    protected virtual IEnumerable<PropertyInfo> GetProperties()
+    {
+        return TypeProperties.GetOrAdd(
+            GetType(),
+            type => type
+               .GetTypeInfo()
+               .GetProperties(BindingFlags.Instance | BindingFlags.Public)
+               .OrderBy(info => info.Name)
+               .ToList());
     }
 }

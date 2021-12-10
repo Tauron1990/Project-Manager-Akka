@@ -28,13 +28,12 @@
 using Akkatecture.Core;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Aggregates
+namespace Akkatecture.Aggregates;
+
+[PublicAPI]
+public abstract record AggregateEvent<TAggregate, TIdentity> : IAggregateEvent<TAggregate, TIdentity>
+    where TAggregate : IAggregateRoot<TIdentity>
+    where TIdentity : IIdentity
 {
-    [PublicAPI]
-    public abstract record AggregateEvent<TAggregate, TIdentity> : IAggregateEvent<TAggregate, TIdentity>
-        where TAggregate : IAggregateRoot<TIdentity>
-        where TIdentity : IIdentity
-    {
-        //public override string ToString() => $"{typeof(TAggregate).PrettyPrint()}/{GetType().PrettyPrint()}";
-    }
+    //public override string ToString() => $"{typeof(TAggregate).PrettyPrint()}/{GetType().PrettyPrint()}";
 }

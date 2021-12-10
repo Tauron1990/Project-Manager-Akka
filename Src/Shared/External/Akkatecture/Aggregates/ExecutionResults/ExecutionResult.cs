@@ -29,25 +29,24 @@ using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Aggregates.ExecutionResults
+namespace Akkatecture.Aggregates.ExecutionResults;
+
+[PublicAPI]
+public abstract class ExecutionResult : IExecutionResult
 {
-    [PublicAPI]
-    public abstract class ExecutionResult : IExecutionResult
-    {
-        private static readonly IExecutionResult SuccessResult = new SuccessExecutionResult();
-        private static readonly IExecutionResult FailedResult = new FailedExecutionResult(Enumerable.Empty<string>());
+    private static readonly IExecutionResult SuccessResult = new SuccessExecutionResult();
+    private static readonly IExecutionResult FailedResult = new FailedExecutionResult(Enumerable.Empty<string>());
 
-        public abstract bool IsSuccess { get; }
+    public abstract bool IsSuccess { get; }
 
-        public static IExecutionResult Success() => SuccessResult;
+    public static IExecutionResult Success() => SuccessResult;
 
-        public static IExecutionResult Failed() => FailedResult;
+    public static IExecutionResult Failed() => FailedResult;
 
-        public static IExecutionResult Failed(IEnumerable<string> errors)
-            => new FailedExecutionResult(errors.ToArray());
+    public static IExecutionResult Failed(IEnumerable<string> errors)
+        => new FailedExecutionResult(errors.ToArray());
 
-        public static IExecutionResult Failed(params string[] errors) => new FailedExecutionResult(errors);
+    public static IExecutionResult Failed(params string[] errors) => new FailedExecutionResult(errors);
 
-        public override string ToString() => $"ExecutionResult - IsSuccess:{IsSuccess}";
-    }
+    public override string ToString() => $"ExecutionResult - IsSuccess:{IsSuccess}";
 }

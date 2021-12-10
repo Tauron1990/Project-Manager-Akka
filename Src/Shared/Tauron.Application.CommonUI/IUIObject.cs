@@ -1,8 +1,7 @@
-﻿namespace Tauron.Application.CommonUI
+﻿namespace Tauron.Application.CommonUI;
+
+public interface IUIObject
 {
-    public interface IUIObject
-    {
-        object Object { get; }
-        IUIObject? GetPerent();
-    }
+    object Object { get; }
+    IUIObject? GetPerent();
 }

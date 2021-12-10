@@ -27,7 +27,6 @@
 
 using Akkatecture.Core.VersionedTypes;
 
-namespace Akkatecture.Events
-{
-    public interface IEventDefinitionService : IVersionedTypeDefinitionService<EventVersionAttribute, EventDefinition> { }
-}
+namespace Akkatecture.Events;
+
+public interface IEventDefinitionService : IVersionedTypeDefinitionService<EventVersionAttribute, EventDefinition> { }

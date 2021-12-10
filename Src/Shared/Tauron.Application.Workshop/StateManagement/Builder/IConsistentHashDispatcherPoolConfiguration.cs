@@ -1,12 +1,11 @@
 ﻿using JetBrains.Annotations;
 
-namespace Tauron.Application.Workshop.StateManagement.Builder
+namespace Tauron.Application.Workshop.StateManagement.Builder;
+
+[PublicAPI]
+public interface
+    IConsistentHashDispatcherPoolConfiguration : IDispatcherPoolConfiguration<
+        IConsistentHashDispatcherPoolConfiguration>
 {
-    [PublicAPI]
-    public interface
-        IConsistentHashDispatcherPoolConfiguration : IDispatcherPoolConfiguration<
-            IConsistentHashDispatcherPoolConfiguration>
-    {
-        public IConsistentHashDispatcherPoolConfiguration WithVirtualNodesFactor(int vnodes);
-    }
+    public IConsistentHashDispatcherPoolConfiguration WithVirtualNodesFactor(int vnodes);
 }

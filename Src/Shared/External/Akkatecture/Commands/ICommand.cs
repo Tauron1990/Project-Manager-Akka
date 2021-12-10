@@ -30,26 +30,25 @@ using Akkatecture.Core;
 using Akkatecture.Core.VersionedTypes;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Commands
+namespace Akkatecture.Commands;
+
+[PublicAPI]
+public interface ICommand : IVersionedType
 {
-    [PublicAPI]
-    public interface ICommand : IVersionedType
-    {
-        ISourceId GetSourceId();
-    }
-
-    [PublicAPI]
-    // ReSharper disable once UnusedTypeParameter
-    public interface ICommand<in TAggregate, out TIdentity, out TSourceIdentity> : ICommand
-        where TAggregate : IAggregateRoot<TIdentity>
-        where TIdentity : IIdentity
-        where TSourceIdentity : ISourceId
-    {
-        TIdentity AggregateId { get; }
-        TSourceIdentity SourceId { get; }
-    }
-
-    public interface ICommand<in TAggregate, out TIdentity> : ICommand<TAggregate, TIdentity, ISourceId>
-        where TAggregate : IAggregateRoot<TIdentity>
-        where TIdentity : IIdentity { }
+    ISourceId GetSourceId();
 }
+
+[PublicAPI]
+// ReSharper disable once UnusedTypeParameter
+public interface ICommand<in TAggregate, out TIdentity, out TSourceIdentity> : ICommand
+    where TAggregate : IAggregateRoot<TIdentity>
+    where TIdentity : IIdentity
+    where TSourceIdentity : ISourceId
+{
+    TIdentity AggregateId { get; }
+    TSourceIdentity SourceId { get; }
+}
+
+public interface ICommand<in TAggregate, out TIdentity> : ICommand<TAggregate, TIdentity, ISourceId>
+    where TAggregate : IAggregateRoot<TIdentity>
+    where TIdentity : IIdentity { }

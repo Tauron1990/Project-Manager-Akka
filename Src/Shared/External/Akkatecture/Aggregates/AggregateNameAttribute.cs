@@ -28,20 +28,19 @@
 using System;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Aggregates
+namespace Akkatecture.Aggregates;
+
+[PublicAPI]
+[AttributeUsage(AttributeTargets.Class, Inherited = false)]
+public class AggregateNameAttribute : Attribute
 {
-    [PublicAPI]
-    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
-    public class AggregateNameAttribute : Attribute
+    public AggregateNameAttribute(string name)
     {
-        public AggregateNameAttribute(string name)
-        {
-            if (string.IsNullOrEmpty(name))
-                throw new ArgumentNullException(nameof(name));
+        if (string.IsNullOrEmpty(name))
+            throw new ArgumentNullException(nameof(name));
 
-            Name = name;
-        }
-
-        public string Name { get; }
+        Name = name;
     }
+
+    public string Name { get; }
 }

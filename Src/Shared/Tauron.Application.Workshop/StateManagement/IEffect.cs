@@ -1,9 +1,8 @@
-﻿namespace Tauron.Application.Workshop.StateManagement
-{
-    public interface IEffect
-    {
-        void Handle(IStateAction action, IActionInvoker dispatcher);
+﻿namespace Tauron.Application.Workshop.StateManagement;
 
-        bool ShouldReactToAction(IStateAction action);
-    }
+public interface IEffect
+{
+    void Handle(IStateAction action, IActionInvoker dispatcher);
+
+    bool ShouldReactToAction(IStateAction action);
 }

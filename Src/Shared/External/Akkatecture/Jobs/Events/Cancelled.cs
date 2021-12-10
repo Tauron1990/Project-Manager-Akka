@@ -24,30 +24,29 @@
 using System;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Jobs.Events
+namespace Akkatecture.Jobs.Events;
+
+[PublicAPI]
+public class Cancelled<TJob, TIdentity> : SchedulerEvent<TJob, TIdentity>
+    where TJob : IJob
+    where TIdentity : IJobId
 {
-    [PublicAPI]
-    public class Cancelled<TJob, TIdentity> : SchedulerEvent<TJob, TIdentity>
-        where TJob : IJob
-        where TIdentity : IJobId
+    public Cancelled(
+        TIdentity jobId,
+        DateTime triggerDate)
     {
-        public Cancelled(
-            TIdentity jobId,
-            DateTime triggerDate)
-        {
-            if (jobId == null) throw new ArgumentNullException(nameof(jobId));
-            if (triggerDate == default) throw new ArgumentException(nameof(triggerDate));
+        if (jobId == null) throw new ArgumentNullException(nameof(jobId));
+        if (triggerDate == default) throw new ArgumentException(nameof(triggerDate));
 
-            JobId = jobId;
-            TriggerDate = triggerDate;
-        }
-
-        public TIdentity JobId { get; }
-        public DateTime TriggerDate { get; }
-        public override JobEventType GetEventType()
-            => JobEventType.Cancel;
-
-        public override string GetJobId()
-            => JobId.Value;
+        JobId = jobId;
+        TriggerDate = triggerDate;
     }
+
+    public TIdentity JobId { get; }
+    public DateTime TriggerDate { get; }
+    public override JobEventType GetEventType()
+        => JobEventType.Cancel;
+
+    public override string GetJobId()
+        => JobId.Value;
 }

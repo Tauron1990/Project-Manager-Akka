@@ -25,43 +25,42 @@ using System;
 using Cronos;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Jobs.Commands
+namespace Akkatecture.Jobs.Commands;
+
+[PublicAPI]
+public sealed class ScheduleCron<TJob, TIdentity> : Schedule<TJob, TIdentity>
+    where TJob : IJob
+    where TIdentity : IJobId
 {
-    [PublicAPI]
-    public sealed class ScheduleCron<TJob, TIdentity> : Schedule<TJob, TIdentity>
-        where TJob : IJob
-        where TIdentity : IJobId
+    private readonly CronExpression _expression;
+
+    public ScheduleCron(
+        TIdentity jobId,
+        TJob job,
+        string cronExpression,
+        DateTime triggerDate,
+        object? ack = null,
+        object? nack = null)
+        : base(jobId, job, triggerDate, ack, nack)
     {
-        private readonly CronExpression _expression;
+        if (string.IsNullOrWhiteSpace(cronExpression)) throw new ArgumentNullException(nameof(cronExpression));
 
-        public ScheduleCron(
-            TIdentity jobId,
-            TJob job,
-            string cronExpression,
-            DateTime triggerDate,
-            object? ack = null,
-            object? nack = null)
-            : base(jobId, job, triggerDate, ack, nack)
-        {
-            if (string.IsNullOrWhiteSpace(cronExpression)) throw new ArgumentNullException(nameof(cronExpression));
-
-            CronExpression = cronExpression;
-            _expression = Cronos.CronExpression.Parse(cronExpression);
-        }
-
-        public string CronExpression { get; }
-
-        public override Schedule<TJob, TIdentity>? WithNextTriggerDate(DateTime utcDate)
-        {
-            var next = _expression.GetNextOccurrence(utcDate);
-
-            return next is { } ? new ScheduleCron<TJob, TIdentity>(JobId, Job, CronExpression, next.Value) : null;
-        }
-
-        public override Schedule<TJob, TIdentity> WithAck(object? ack)
-            => new ScheduleCron<TJob, TIdentity>(JobId, Job, CronExpression, TriggerDate, ack, Nack);
-
-        public override Schedule<TJob, TIdentity> WithNack(object? nack)
-            => new ScheduleCron<TJob, TIdentity>(JobId, Job, CronExpression, TriggerDate, Ack, nack);
+        CronExpression = cronExpression;
+        _expression = Cronos.CronExpression.Parse(cronExpression);
     }
+
+    public string CronExpression { get; }
+
+    public override Schedule<TJob, TIdentity>? WithNextTriggerDate(DateTime utcDate)
+    {
+        var next = _expression.GetNextOccurrence(utcDate);
+
+        return next is { } ? new ScheduleCron<TJob, TIdentity>(JobId, Job, CronExpression, next.Value) : null;
+    }
+
+    public override Schedule<TJob, TIdentity> WithAck(object? ack)
+        => new ScheduleCron<TJob, TIdentity>(JobId, Job, CronExpression, TriggerDate, ack, Nack);
+
+    public override Schedule<TJob, TIdentity> WithNack(object? nack)
+        => new ScheduleCron<TJob, TIdentity>(JobId, Job, CronExpression, TriggerDate, Ack, nack);
 }

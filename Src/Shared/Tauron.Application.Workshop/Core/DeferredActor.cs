@@ -2,49 +2,48 @@
 using System.Threading.Tasks;
 using Akka.Actor;
 
-namespace Tauron.Application.Workshop.Core
+namespace Tauron.Application.Workshop.Core;
+
+public abstract class DeferredActor
 {
-    public abstract class DeferredActor
+    private readonly object _lock = new();
+    private ImmutableList<object>? _stash;
+
+    protected DeferredActor(Task<IActorRef> actor)
     {
-        private readonly object _lock = new();
-        private ImmutableList<object>? _stash;
+        actor.ContinueWith(OnCompleded);
+        _stash = ImmutableList<object>.Empty;
+    }
 
-        protected DeferredActor(Task<IActorRef> actor)
+    private IActorRef Actor { get; set; } = ActorRefs.Nobody;
+
+    private void OnCompleded(Task<IActorRef> obj)
+    {
+        lock (_lock)
         {
-            actor.ContinueWith(OnCompleded);
-            _stash = ImmutableList<object>.Empty;
+            Actor = obj.Result;
+            foreach (var message in _stash ?? ImmutableList<object>.Empty)
+                Actor.Tell(message);
+
+            _stash = null;
         }
+    }
 
-        private IActorRef Actor { get; set; } = ActorRefs.Nobody;
-
-        private void OnCompleded(Task<IActorRef> obj)
-        {
+    protected void TellToActor(object msg)
+    {
+        if (!Actor.IsNobody())
+            Actor.Tell(msg);
+        else
             lock (_lock)
             {
-                Actor = obj.Result;
-                foreach (var message in _stash ?? ImmutableList<object>.Empty)
-                    Actor.Tell(message);
-
-                _stash = null;
-            }
-        }
-
-        protected void TellToActor(object msg)
-        {
-            if (!Actor.IsNobody())
-                Actor.Tell(msg);
-            else
-                lock (_lock)
+                if (!Actor.IsNobody())
                 {
-                    if (!Actor.IsNobody())
-                    {
-                        Actor.Tell(msg);
+                    Actor.Tell(msg);
 
-                        return;
-                    }
-
-                    _stash = _stash?.Add(msg) ?? ImmutableList<object>.Empty.Add(msg);
+                    return;
                 }
-        }
+
+                _stash = _stash?.Add(msg) ?? ImmutableList<object>.Empty.Add(msg);
+            }
     }
 }

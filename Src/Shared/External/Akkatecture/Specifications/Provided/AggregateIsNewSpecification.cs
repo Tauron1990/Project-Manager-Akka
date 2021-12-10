@@ -30,19 +30,18 @@ using Akkatecture.Aggregates;
 using JetBrains.Annotations;
 using Tauron.Operations;
 
-namespace Akkatecture.Specifications.Provided
+namespace Akkatecture.Specifications.Provided;
+
+[PublicAPI]
+public class AggregateIsNewSpecification : Specification<IAggregateRoot>
 {
-    [PublicAPI]
-    public class AggregateIsNewSpecification : Specification<IAggregateRoot>
+    public static readonly AggregateIsNewSpecification Instance = new();
+
+    private AggregateIsNewSpecification() { }
+
+    protected override IEnumerable<Error> IsNotSatisfiedBecause(IAggregateRoot aggregate)
     {
-        public static readonly AggregateIsNewSpecification Instance = new();
-
-        private AggregateIsNewSpecification() { }
-
-        protected override IEnumerable<Error> IsNotSatisfiedBecause(IAggregateRoot aggregate)
-        {
-            if (!aggregate.IsNew) 
-                yield return new Error($"'{aggregate.Name}' with ID '{aggregate.GetIdentity()}' is not new", DefaultErrorCodes.NotNewAggregate);
-        }
+        if (!aggregate.IsNew) 
+            yield return new Error($"'{aggregate.Name}' with ID '{aggregate.GetIdentity()}' is not new", DefaultErrorCodes.NotNewAggregate);
     }
 }

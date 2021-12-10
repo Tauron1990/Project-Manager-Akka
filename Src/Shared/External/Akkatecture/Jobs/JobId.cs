@@ -23,12 +23,11 @@
 
 using Akkatecture.Core;
 
-namespace Akkatecture.Jobs
+namespace Akkatecture.Jobs;
+
+public abstract class JobId<TSelf> : Identity<TSelf>, IJobId 
+    where TSelf : Identity<TSelf>
 {
-    public abstract class JobId<TSelf> : Identity<TSelf>, IJobId 
-        where TSelf : Identity<TSelf>
-    {
-        protected JobId(string value)
-            : base(value) { }
-    }
+    protected JobId(string value)
+        : base(value) { }
 }

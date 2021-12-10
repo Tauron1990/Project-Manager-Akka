@@ -3,38 +3,37 @@ using Servicemnager.Networking.Data;
 using Servicemnager.Networking.Server;
 using SimpleTcp;
 
-namespace Servicemnager.Networking
+namespace Servicemnager.Networking;
+
+public sealed class ClientConnectedArgs : EventArgs
 {
-    public sealed class ClientConnectedArgs : EventArgs
-    {
-        public ClientConnectedArgs(string connection) => Connection = connection;
+    public ClientConnectedArgs(string connection) => Connection = connection;
 
-        public string Connection { get; }
+    public string Connection { get; }
+}
+
+public sealed class ClientDisconnectedArgs : EventArgs
+{
+    public ClientDisconnectedArgs(string connection, DisconnectReason reason)
+    {
+        Connection = connection;
+        Reason = reason;
     }
 
-    public sealed class ClientDisconnectedArgs : EventArgs
-    {
-        public ClientDisconnectedArgs(string connection, DisconnectReason reason)
-        {
-            Connection = connection;
-            Reason = reason;
-        }
+    /// <summary>
+    ///     The IP address and port number of the disconnected client socket.
+    /// </summary>
+    public string Connection { get; }
 
-        /// <summary>
-        ///     The IP address and port number of the disconnected client socket.
-        /// </summary>
-        public string Connection { get; }
+    /// <summary>The reason for the disconnection.</summary>
+    public DisconnectReason Reason { get; }
+}
 
-        /// <summary>The reason for the disconnection.</summary>
-        public DisconnectReason Reason { get; }
-    }
-
-    public interface IDataClient
-    {
-        bool Connect();
-        event EventHandler<ClientConnectedArgs>? Connected;
-        event EventHandler<ClientDisconnectedArgs>? Disconnected;
-        event EventHandler<MessageFromServerEventArgs>? OnMessageReceived;
-        bool Send(NetworkMessage msg);
-    }
+public interface IDataClient
+{
+    bool Connect();
+    event EventHandler<ClientConnectedArgs>? Connected;
+    event EventHandler<ClientDisconnectedArgs>? Disconnected;
+    event EventHandler<MessageFromServerEventArgs>? OnMessageReceived;
+    bool Send(NetworkMessage msg);
 }

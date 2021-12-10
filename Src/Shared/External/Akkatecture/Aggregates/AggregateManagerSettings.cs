@@ -24,23 +24,22 @@
 using Akka.Configuration;
 using Akkatecture.Configuration;
 
-namespace Akkatecture.Aggregates
+namespace Akkatecture.Aggregates;
+
+public class AggregateManagerSettings
 {
-    public class AggregateManagerSettings
+    private const string Section = "akkatecture.aggregate-manager";
+    public readonly bool AutoDispatchOnReceive;
+    public readonly bool HandleDeadLetters;
+
+    public AggregateManagerSettings(Config config)
     {
-        private const string Section = "akkatecture.aggregate-manager";
-        public readonly bool AutoDispatchOnReceive;
-        public readonly bool HandleDeadLetters;
+        var aggregateManagerConfig = config.WithFallback(AkkatectureDefaultSettings.DefaultConfig());
+        aggregateManagerConfig = aggregateManagerConfig.GetConfig(Section);
 
-        public AggregateManagerSettings(Config config)
-        {
-            var aggregateManagerConfig = config.WithFallback(AkkatectureDefaultSettings.DefaultConfig());
-            aggregateManagerConfig = aggregateManagerConfig.GetConfig(Section);
-
-            #pragma warning disable GU0009
-            HandleDeadLetters = aggregateManagerConfig.GetBoolean("handle-deadletters", true);
-            AutoDispatchOnReceive = aggregateManagerConfig.GetBoolean("auto-dispatch-on-receive", true);
-            #pragma warning restore GU0009
-        }
+        #pragma warning disable GU0009
+        HandleDeadLetters = aggregateManagerConfig.GetBoolean("handle-deadletters", true);
+        AutoDispatchOnReceive = aggregateManagerConfig.GetBoolean("auto-dispatch-on-receive", true);
+        #pragma warning restore GU0009
     }
 }

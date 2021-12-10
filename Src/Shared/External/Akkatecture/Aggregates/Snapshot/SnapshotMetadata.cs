@@ -28,62 +28,61 @@ using Akkatecture.Core;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 
-namespace Akkatecture.Aggregates.Snapshot
+namespace Akkatecture.Aggregates.Snapshot;
+
+[PublicAPI]
+public class SnapshotMetadata : MetadataContainer, ISnapshotMetadata
 {
-    [PublicAPI]
-    public class SnapshotMetadata : MetadataContainer, ISnapshotMetadata
+    public SnapshotMetadata() { }
+
+    public SnapshotMetadata(IDictionary<string, string> keyValuePairs)
+        : base(keyValuePairs) { }
+
+    public SnapshotMetadata(IEnumerable<KeyValuePair<string, string>> keyValuePairs)
+        : base(keyValuePairs.ToDictionary(kv => kv.Key, kv => kv.Value)) { }
+
+    public SnapshotMetadata(params KeyValuePair<string, string>[] keyValuePairs)
+        : this((IEnumerable<KeyValuePair<string, string>>)keyValuePairs) { }
+
+    [JsonIgnore]
+    public string AggregateId
     {
-        public SnapshotMetadata() { }
+        get => GetMetadataValue(SnapshotMetadataKeys.AggregateId);
+        set => Add(SnapshotMetadataKeys.AggregateId, value);
+    }
 
-        public SnapshotMetadata(IDictionary<string, string> keyValuePairs)
-            : base(keyValuePairs) { }
+    [JsonIgnore]
+    public string AggregateName
+    {
+        get => GetMetadataValue(SnapshotMetadataKeys.AggregateName);
+        set => Add(SnapshotMetadataKeys.AggregateName, value);
+    }
 
-        public SnapshotMetadata(IEnumerable<KeyValuePair<string, string>> keyValuePairs)
-            : base(keyValuePairs.ToDictionary(kv => kv.Key, kv => kv.Value)) { }
+    [JsonIgnore]
+    public long AggregateSequenceNumber
+    {
+        get => GetMetadataValue(SnapshotMetadataKeys.AggregateSequenceNumber, long.Parse);
+        set => Add(SnapshotMetadataKeys.AggregateSequenceNumber, value.ToString(CultureInfo.InvariantCulture));
+    }
 
-        public SnapshotMetadata(params KeyValuePair<string, string>[] keyValuePairs)
-            : this((IEnumerable<KeyValuePair<string, string>>)keyValuePairs) { }
+    [JsonIgnore]
+    public string SnapshotName
+    {
+        get => GetMetadataValue(SnapshotMetadataKeys.SnapshotName);
+        set => Add(SnapshotMetadataKeys.SnapshotName, value);
+    }
 
-        [JsonIgnore]
-        public string AggregateId
-        {
-            get => GetMetadataValue(SnapshotMetadataKeys.AggregateId);
-            set => Add(SnapshotMetadataKeys.AggregateId, value);
-        }
+    [JsonIgnore]
+    public ISnapshotId SnapshotId
+    {
+        get => GetMetadataValue(SnapshotMetadataKeys.SnapshotId, Snapshot.SnapshotId.With);
+        set => Add(SnapshotMetadataKeys.SnapshotId, value.Value);
+    }
 
-        [JsonIgnore]
-        public string AggregateName
-        {
-            get => GetMetadataValue(SnapshotMetadataKeys.AggregateName);
-            set => Add(SnapshotMetadataKeys.AggregateName, value);
-        }
-
-        [JsonIgnore]
-        public long AggregateSequenceNumber
-        {
-            get => GetMetadataValue(SnapshotMetadataKeys.AggregateSequenceNumber, long.Parse);
-            set => Add(SnapshotMetadataKeys.AggregateSequenceNumber, value.ToString(CultureInfo.InvariantCulture));
-        }
-
-        [JsonIgnore]
-        public string SnapshotName
-        {
-            get => GetMetadataValue(SnapshotMetadataKeys.SnapshotName);
-            set => Add(SnapshotMetadataKeys.SnapshotName, value);
-        }
-
-        [JsonIgnore]
-        public ISnapshotId SnapshotId
-        {
-            get => GetMetadataValue(SnapshotMetadataKeys.SnapshotId, Snapshot.SnapshotId.With);
-            set => Add(SnapshotMetadataKeys.SnapshotId, value.Value);
-        }
-
-        [JsonIgnore]
-        public int SnapshotVersion
-        {
-            get => GetMetadataValue(SnapshotMetadataKeys.SnapshotVersion, int.Parse);
-            set => Add(SnapshotMetadataKeys.SnapshotVersion, value.ToString(CultureInfo.InvariantCulture));
-        }
+    [JsonIgnore]
+    public int SnapshotVersion
+    {
+        get => GetMetadataValue(SnapshotMetadataKeys.SnapshotVersion, int.Parse);
+        set => Add(SnapshotMetadataKeys.SnapshotVersion, value.ToString(CultureInfo.InvariantCulture));
     }
 }

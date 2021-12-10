@@ -1,9 +1,8 @@
-﻿namespace Tauron.Application.Workshop.Mutation
-{
-    public interface IDataSource<TData>
-    {
-        TData GetData();
+﻿namespace Tauron.Application.Workshop.Mutation;
 
-        void SetData(TData data);
-    }
+public interface IDataSource<TData>
+{
+    TData GetData();
+
+    void SetData(TData data);
 }

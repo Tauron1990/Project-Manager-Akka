@@ -27,46 +27,45 @@ using Akkatecture.Extensions;
 using JetBrains.Annotations;
 using Tauron;
 
-namespace Akkatecture.Events
+namespace Akkatecture.Events;
+
+public static class DomainEventMapper
 {
-    public static class DomainEventMapper
+    internal static object FromCommittedEvent(object evt)
     {
-        internal static object FromCommittedEvent(object evt)
-        {
-            var eventType = evt.GetType();
+        var eventType = evt.GetType();
 
-            if (evt is not ICommittedEvent || eventType.GenericTypeArguments.Length != 3) return evt;
+        if (evt is not ICommittedEvent || eventType.GenericTypeArguments.Length != 3) return evt;
 
-            var genericType = typeof(DomainEvent<,,>)
-               .MakeGenericType(
-                    eventType.GetGenericArguments()[0],
-                    eventType.GetGenericArguments()[1],
-                    eventType.GetGenericArguments()[2]);
+        var genericType = typeof(DomainEvent<,,>)
+           .MakeGenericType(
+                eventType.GetGenericArguments()[0],
+                eventType.GetGenericArguments()[1],
+                eventType.GetGenericArguments()[2]);
 
-            var domainEvent = FastReflection.Shared.FastCreateInstance(
-                genericType,
-                evt.GetPropertyValue("AggregateIdentity")!,
-                evt.GetPropertyValue("AggregateEvent")!,
-                evt.GetPropertyValue("Metadata")!,
-                evt.GetPropertyValue("Timestamp")!,
-                evt.GetPropertyValue("AggregateSequenceNumber")!)!;
+        var domainEvent = FastReflection.Shared.FastCreateInstance(
+            genericType,
+            evt.GetPropertyValue("AggregateIdentity")!,
+            evt.GetPropertyValue("AggregateEvent")!,
+            evt.GetPropertyValue("Metadata")!,
+            evt.GetPropertyValue("Timestamp")!,
+            evt.GetPropertyValue("AggregateSequenceNumber")!)!;
 
-            return domainEvent;
-        }
+        return domainEvent;
+    }
 
-        [PublicAPI]
-        public static EventEnvelope FromEnvelope(EventEnvelope eventEnvelope)
-        {
-            var domainEvent = FromCommittedEvent(eventEnvelope.Event);
+    [PublicAPI]
+    public static EventEnvelope FromEnvelope(EventEnvelope eventEnvelope)
+    {
+        var domainEvent = FromCommittedEvent(eventEnvelope.Event);
 
-            var newEventEnvelope = new EventEnvelope(
-                eventEnvelope.Offset,
-                eventEnvelope.PersistenceId,
-                eventEnvelope.SequenceNr,
-                domainEvent,
-                eventEnvelope.Timestamp);
+        var newEventEnvelope = new EventEnvelope(
+            eventEnvelope.Offset,
+            eventEnvelope.PersistenceId,
+            eventEnvelope.SequenceNr,
+            domainEvent,
+            eventEnvelope.Timestamp);
 
-            return newEventEnvelope;
-        }
+        return newEventEnvelope;
     }
 }

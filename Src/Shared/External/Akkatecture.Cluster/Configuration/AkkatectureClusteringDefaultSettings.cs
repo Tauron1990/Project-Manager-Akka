@@ -24,13 +24,12 @@
 using Akka.Configuration;
 using Hyperion.Internal;
 
-namespace Akkatecture.Cluster.Configuration
+namespace Akkatecture.Cluster.Configuration;
+
+[PublicAPI]
+public class AkkatectureClusteringDefaultSettings
 {
-    [PublicAPI]
-    public class AkkatectureClusteringDefaultSettings
-    {
-        public static Config DefaultConfig()
-            => ConfigurationFactory.FromResource<AkkatectureClusteringDefaultSettings>(
-                "Akkatecture.Clustering.Configuration.default.conf");
-    }
+    public static Config DefaultConfig()
+        => ConfigurationFactory.FromResource<AkkatectureClusteringDefaultSettings>(
+            "Akkatecture.Clustering.Configuration.default.conf");
 }

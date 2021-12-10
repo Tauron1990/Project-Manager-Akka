@@ -26,32 +26,31 @@ using Akkatecture.ValueObjects;
 
 // ReSharper disable UnusedTypeParameter
 
-namespace Akkatecture.Jobs
+namespace Akkatecture.Jobs;
+
+public abstract class SchedulerMessage<TJob, TIdentity> : ValueObject
+    where TJob : IJob
+    where TIdentity : IJobId { }
+
+#pragma warning disable AV1507
+public abstract class SchedulerCommand<TJob, TIdentity> : SchedulerMessage<TJob, TIdentity>
+    #pragma warning restore AV1507
+    where TJob : IJob
+    where TIdentity : IJobId
 {
-    public abstract class SchedulerMessage<TJob, TIdentity> : ValueObject
-        where TJob : IJob
-        where TIdentity : IJobId { }
-
-    #pragma warning disable AV1507
-    public abstract class SchedulerCommand<TJob, TIdentity> : SchedulerMessage<TJob, TIdentity>
-        #pragma warning restore AV1507
-        where TJob : IJob
-        where TIdentity : IJobId
+    protected SchedulerCommand(
+        TIdentity jobId,
+        object? ack = null,
+        object? nack = null)
     {
-        protected SchedulerCommand(
-            TIdentity jobId,
-            object? ack = null,
-            object? nack = null)
-        {
-            if (jobId == null) throw new ArgumentNullException(nameof(jobId));
+        if (jobId == null) throw new ArgumentNullException(nameof(jobId));
 
-            JobId = jobId;
-            Ack = ack;
-            Nack = nack;
-        }
-
-        public TIdentity JobId { get; }
-        public object? Ack { get; }
-        public object? Nack { get; }
+        JobId = jobId;
+        Ack = ack;
+        Nack = nack;
     }
+
+    public TIdentity JobId { get; }
+    public object? Ack { get; }
+    public object? Nack { get; }
 }

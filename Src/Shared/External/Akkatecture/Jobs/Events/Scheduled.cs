@@ -25,22 +25,21 @@ using System;
 using Akkatecture.Jobs.Commands;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Jobs.Events
+namespace Akkatecture.Jobs.Events;
+
+[PublicAPI]
+public class Scheduled<TJob, TIdentity> : SchedulerEvent<TJob, TIdentity>
+    where TJob : IJob
+    where TIdentity : IJobId
 {
-    [PublicAPI]
-    public class Scheduled<TJob, TIdentity> : SchedulerEvent<TJob, TIdentity>
-        where TJob : IJob
-        where TIdentity : IJobId
-    {
-        public Scheduled(
-            Schedule<TJob, TIdentity> entry)
-            => Entry = entry ?? throw new ArgumentNullException(nameof(entry));
+    public Scheduled(
+        Schedule<TJob, TIdentity> entry)
+        => Entry = entry ?? throw new ArgumentNullException(nameof(entry));
 
-        public Schedule<TJob, TIdentity> Entry { get; }
-        public override JobEventType GetEventType()
-            => JobEventType.Schedule;
+    public Schedule<TJob, TIdentity> Entry { get; }
+    public override JobEventType GetEventType()
+        => JobEventType.Schedule;
 
-        public override string GetJobId()
-            => Entry.JobId.Value;
-    }
+    public override string GetJobId()
+        => Entry.JobId.Value;
 }

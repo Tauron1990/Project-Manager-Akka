@@ -29,82 +29,81 @@ using Akka.Pattern;
 using Akkatecture.Extensions;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Jobs
+namespace Akkatecture.Jobs;
+
+[PublicAPI]
+public class JobManager<TJobScheduler, TJobRunner, TJob, TIdentity> : ReceiveActor, IJobManager<TJob, TIdentity>
+    where TJobScheduler : JobScheduler<TJobScheduler, TJob, TIdentity>
+    where TJobRunner : JobRunner<TJob, TIdentity>
+    where TJob : IJob
+    where TIdentity : IJobId
 {
-    [PublicAPI]
-    public class JobManager<TJobScheduler, TJobRunner, TJob, TIdentity> : ReceiveActor, IJobManager<TJob, TIdentity>
-        where TJobScheduler : JobScheduler<TJobScheduler, TJob, TIdentity>
-        where TJobRunner : JobRunner<TJob, TIdentity>
-        where TJob : IJob
-        where TIdentity : IJobId
+    private static readonly IJobName JobName = typeof(TJob).GetJobName();
+
+    public JobManager(
+        Expression<Func<TJobScheduler>> jobSchedulerFactory,
+        Expression<Func<TJobRunner>> jobRunnerFactory)
     {
-        private static readonly IJobName JobName = typeof(TJob).GetJobName();
+        var runnerProps = Props.Create(jobRunnerFactory).WithDispatcher(Context.Props.Dispatcher);
+        var schedulerProps = Props.Create(jobSchedulerFactory).WithDispatcher(Context.Props.Dispatcher);
+        var runnerName = $"{Name}-runner";
+        var schedulerName = $"{Name}-scheduler";
 
-        public JobManager(
-            Expression<Func<TJobScheduler>> jobSchedulerFactory,
-            Expression<Func<TJobRunner>> jobRunnerFactory)
-        {
-            var runnerProps = Props.Create(jobRunnerFactory).WithDispatcher(Context.Props.Dispatcher);
-            var schedulerProps = Props.Create(jobSchedulerFactory).WithDispatcher(Context.Props.Dispatcher);
-            var runnerName = $"{Name}-runner";
-            var schedulerName = $"{Name}-scheduler";
+        var runnerSupervisorProps =
+            BackoffSupervisor.Props(
+                Backoff.OnFailure(
+                    runnerProps,
+                    runnerName,
+                    TimeSpan.FromSeconds(10),
+                    TimeSpan.FromSeconds(60),
+                    0.2,
+                    3)).WithDispatcher(Context.Props.Dispatcher);
 
-            var runnerSupervisorProps =
-                BackoffSupervisor.Props(
-                    Backoff.OnFailure(
-                        runnerProps,
-                        runnerName,
-                        TimeSpan.FromSeconds(10),
-                        TimeSpan.FromSeconds(60),
-                        0.2,
-                        3)).WithDispatcher(Context.Props.Dispatcher);
+        var schedulerSupervisorProps =
+            BackoffSupervisor.Props(
+                Backoff.OnFailure(
+                    schedulerProps,
+                    schedulerName,
+                    TimeSpan.FromSeconds(10),
+                    TimeSpan.FromSeconds(60),
+                    0.2,
+                    3)).WithDispatcher(Context.Props.Dispatcher);
 
-            var schedulerSupervisorProps =
-                BackoffSupervisor.Props(
-                    Backoff.OnFailure(
-                        schedulerProps,
-                        schedulerName,
-                        TimeSpan.FromSeconds(10),
-                        TimeSpan.FromSeconds(60),
-                        0.2,
-                        3)).WithDispatcher(Context.Props.Dispatcher);
+        JobRunner = Context.ActorOf(runnerSupervisorProps, $"{runnerName}-supervisor");
+        JobScheduler = Context.ActorOf(schedulerSupervisorProps, $"{schedulerName}-supervisor");
 
-            JobRunner = Context.ActorOf(runnerSupervisorProps, $"{runnerName}-supervisor");
-            JobScheduler = Context.ActorOf(schedulerSupervisorProps, $"{schedulerName}-supervisor");
+        Log = Context.GetLogger();
 
-            Log = Context.GetLogger();
+        Receive<TJob>(Forward);
+        Receive<SchedulerMessage<TJob, TIdentity>>(Forward);
+    }
 
-            Receive<TJob>(Forward);
-            Receive<SchedulerMessage<TJob, TIdentity>>(Forward);
-        }
+    public IJobName Name => JobName;
+    protected ILoggingAdapter Log { get; }
+    protected IActorRef JobScheduler { get; }
+    protected IActorRef JobRunner { get; }
 
-        public IJobName Name => JobName;
-        protected ILoggingAdapter Log { get; }
-        protected IActorRef JobScheduler { get; }
-        protected IActorRef JobRunner { get; }
+    private bool Forward(TJob command)
+    {
+        Log.Info(
+            "JobManager for Job of Name={0} is forwarding job command of Type={1} to JobRunner at ActorPath={2}",
+            Name,
+            typeof(TJob).PrettyPrint(),
+            JobRunner.Path);
+        JobRunner.Forward(command);
 
-        private bool Forward(TJob command)
-        {
-            Log.Info(
-                "JobManager for Job of Name={0} is forwarding job command of Type={1} to JobRunner at ActorPath={2}",
-                Name,
-                typeof(TJob).PrettyPrint(),
-                JobRunner.Path);
-            JobRunner.Forward(command);
+        return true;
+    }
 
-            return true;
-        }
+    private bool Forward(SchedulerMessage<TJob, TIdentity> command)
+    {
+        Log.Info(
+            "JobManager for Job of Name={0} is forwarding job command of Type={1} to JobScheduler at ActorPath={2}",
+            Name,
+            typeof(TJob).PrettyPrint(),
+            JobScheduler.Path);
+        JobScheduler.Forward(command);
 
-        private bool Forward(SchedulerMessage<TJob, TIdentity> command)
-        {
-            Log.Info(
-                "JobManager for Job of Name={0} is forwarding job command of Type={1} to JobScheduler at ActorPath={2}",
-                Name,
-                typeof(TJob).PrettyPrint(),
-                JobScheduler.Path);
-            JobScheduler.Forward(command);
-
-            return true;
-        }
+        return true;
     }
 }

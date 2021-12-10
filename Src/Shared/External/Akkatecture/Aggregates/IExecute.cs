@@ -24,14 +24,13 @@
 using Akkatecture.Commands;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Aggregates
-{
-    public interface IExecute { }
+namespace Akkatecture.Aggregates;
 
-    [PublicAPI]
-    public interface IExecute<in TCommand> : IExecute
-        where TCommand : ICommand
-    {
-        bool Execute(TCommand command);
-    }
+public interface IExecute { }
+
+[PublicAPI]
+public interface IExecute<in TCommand> : IExecute
+    where TCommand : ICommand
+{
+    bool Execute(TCommand command);
 }

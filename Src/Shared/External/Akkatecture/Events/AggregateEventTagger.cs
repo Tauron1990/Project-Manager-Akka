@@ -29,41 +29,40 @@ using Akkatecture.Extensions;
 using JetBrains.Annotations;
 using Tauron;
 
-namespace Akkatecture.Events
+namespace Akkatecture.Events;
+
+[PublicAPI]
+public class AggregateEventTagger : IWriteEventAdapter
 {
-    [PublicAPI]
-    public class AggregateEventTagger : IWriteEventAdapter
+    public string Manifest(object evt) => string.Empty;
+
+    public object ToJournal(object evt)
     {
-        public string Manifest(object evt) => string.Empty;
-
-        public object ToJournal(object evt)
+        try
         {
-            try
-            {
-                var aggregateName = evt
-                   .GetType()
-                   .GetCommittedEventAggregateRootName();
+            var aggregateName = evt
+               .GetType()
+               .GetCommittedEventAggregateRootName();
 
-                var eventDefinitionService = new EventDefinitionService(null);
+            var eventDefinitionService = new EventDefinitionService(null);
 
-                var aggregateEventType = evt
-                   .GetType()
-                   .GetCommittedEventAggregateEventType();
+            var aggregateEventType = evt
+               .GetType()
+               .GetCommittedEventAggregateEventType();
 
-                eventDefinitionService.Load(aggregateEventType);
-                var eventDefinition = eventDefinitionService.GetDefinition(aggregateEventType);
+            eventDefinitionService.Load(aggregateEventType);
+            var eventDefinition = eventDefinitionService.GetDefinition(aggregateEventType);
 
-                var tags = new HashSet<string> { aggregateName.Value, eventDefinition.Name };
-                aggregateEventType.GetAllCustomAttributes<ITagAttribute>().Select(attribute => attribute.Name).Foreach(name => tags.Add(name));
+            var tags = new HashSet<string> { aggregateName.Value, eventDefinition.Name };
+            aggregateEventType.GetAllCustomAttributes<ITagAttribute>().Select(attribute => attribute.Name).Foreach(name => tags.Add(name));
 
-                return new Tagged(evt, tags);
-            }
-            catch
-            {
-                #pragma warning disable ERP022
-                return evt;
-                #pragma warning restore ERP022
-            }
+            return new Tagged(evt, tags);
+        }
+        catch
+        {
+            #pragma warning disable ERP022
+            return evt;
+            #pragma warning restore ERP022
         }
     }
 }

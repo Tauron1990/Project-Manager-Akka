@@ -24,16 +24,15 @@
 using System;
 using System.Linq.Expressions;
 
-namespace Akkatecture.Sagas.AggregateSaga
-{
-    public interface IAggregateSagaManager { }
+namespace Akkatecture.Sagas.AggregateSaga;
 
-    // ReSharper disable once UnusedTypeParameter
-    public interface IAggregateSagaManager<TAggregateSaga, TIdentity, TSagaLocator> : IAggregateSagaManager
-        where TAggregateSaga : IAggregateSaga<TIdentity>
-        where TIdentity : SagaId<TIdentity>
-        where TSagaLocator : class, ISagaLocator<TIdentity>, new()
-    {
-        Expression<Func<TAggregateSaga>> SagaFactory { get; }
-    }
+public interface IAggregateSagaManager { }
+
+// ReSharper disable once UnusedTypeParameter
+public interface IAggregateSagaManager<TAggregateSaga, TIdentity, TSagaLocator> : IAggregateSagaManager
+    where TAggregateSaga : IAggregateSaga<TIdentity>
+    where TIdentity : SagaId<TIdentity>
+    where TSagaLocator : class, ISagaLocator<TIdentity>, new()
+{
+    Expression<Func<TAggregateSaga>> SagaFactory { get; }
 }

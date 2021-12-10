@@ -1,9 +1,8 @@
-﻿namespace Tauron.Application.AkkaNode.Services.Reporting
-{
-    public interface IDelegatingMessage
-    {
-        Reporter Reporter { get; }
+﻿namespace Tauron.Application.AkkaNode.Services.Reporting;
 
-        string Info { get; }
-    }
+public interface IDelegatingMessage
+{
+    Reporter Reporter { get; }
+
+    string Info { get; }
 }

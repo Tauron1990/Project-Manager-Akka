@@ -28,20 +28,19 @@
 using System;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Sagas
+namespace Akkatecture.Sagas;
+
+[AttributeUsage(AttributeTargets.Class, Inherited = false)]
+[PublicAPI]
+public class SagaNameAttribute : Attribute
 {
-    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
-    [PublicAPI]
-    public class SagaNameAttribute : Attribute
+    public SagaNameAttribute(string name)
     {
-        public SagaNameAttribute(string name)
-        {
-            if (string.IsNullOrEmpty(name))
-                throw new ArgumentNullException(nameof(name));
+        if (string.IsNullOrEmpty(name))
+            throw new ArgumentNullException(nameof(name));
 
-            Name = name;
-        }
-
-        public string Name { get; }
+        Name = name;
     }
+
+    public string Name { get; }
 }

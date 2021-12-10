@@ -27,11 +27,10 @@
 
 using Akkatecture.Aggregates;
 
-namespace Akkatecture.Sagas
+namespace Akkatecture.Sagas;
+
+public interface ISagaLocator<out TIdentity>
+    where TIdentity : ISagaId
 {
-    public interface ISagaLocator<out TIdentity>
-        where TIdentity : ISagaId
-    {
-        TIdentity LocateSaga(IDomainEvent domainEvent);
-    }
+    TIdentity LocateSaga(IDomainEvent domainEvent);
 }

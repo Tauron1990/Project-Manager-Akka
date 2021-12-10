@@ -30,21 +30,20 @@ using System.Threading.Tasks;
 using Akkatecture.Aggregates;
 using Akkatecture.Core;
 
-namespace Akkatecture.Subscribers
-{
-    public interface ISubscribeToAsync<TAggregate, in TIdentity, in TAggregateEvent>
-        where TAggregate : IAggregateRoot<TIdentity>
-        where TIdentity : IIdentity
-        where TAggregateEvent : class, IAggregateEvent<TAggregate, TIdentity>
-    {
-        Task HandleAsync(IDomainEvent<TAggregate, TIdentity, TAggregateEvent> domainEvent);
-    }
+namespace Akkatecture.Subscribers;
 
-    public interface ISubscribeTo<TAggregate, in TIdentity, in TAggregateEvent>
-        where TAggregate : IAggregateRoot<TIdentity>
-        where TIdentity : IIdentity
-        where TAggregateEvent : class, IAggregateEvent<TAggregate, TIdentity>
-    {
-        bool Handle(IDomainEvent<TAggregate, TIdentity, TAggregateEvent> domainEvent);
-    }
+public interface ISubscribeToAsync<TAggregate, in TIdentity, in TAggregateEvent>
+    where TAggregate : IAggregateRoot<TIdentity>
+    where TIdentity : IIdentity
+    where TAggregateEvent : class, IAggregateEvent<TAggregate, TIdentity>
+{
+    Task HandleAsync(IDomainEvent<TAggregate, TIdentity, TAggregateEvent> domainEvent);
+}
+
+public interface ISubscribeTo<TAggregate, in TIdentity, in TAggregateEvent>
+    where TAggregate : IAggregateRoot<TIdentity>
+    where TIdentity : IIdentity
+    where TAggregateEvent : class, IAggregateEvent<TAggregate, TIdentity>
+{
+    bool Handle(IDomainEvent<TAggregate, TIdentity, TAggregateEvent> domainEvent);
 }

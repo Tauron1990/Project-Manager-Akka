@@ -25,15 +25,14 @@ using System;
 using Akkatecture.Core.VersionedTypes;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Aggregates.Snapshot
+namespace Akkatecture.Aggregates.Snapshot;
+
+[PublicAPI]
+[AttributeUsage(AttributeTargets.Class)]
+public class SnapshotVersionAttribute : VersionedTypeAttribute
 {
-    [PublicAPI]
-    [AttributeUsage(AttributeTargets.Class)]
-    public class SnapshotVersionAttribute : VersionedTypeAttribute
-    {
-        public SnapshotVersionAttribute(
-            string name,
-            int version)
-            : base(name, version) { }
-    }
+    public SnapshotVersionAttribute(
+        string name,
+        int version)
+        : base(name, version) { }
 }

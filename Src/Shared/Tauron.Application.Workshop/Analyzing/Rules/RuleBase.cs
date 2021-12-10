@@ -5,33 +5,32 @@ using JetBrains.Annotations;
 using Tauron.TAkka;
 using Tauron.Application.Workshop.Analyzing.Actor;
 
-namespace Tauron.Application.Workshop.Analyzing.Rules
+namespace Tauron.Application.Workshop.Analyzing.Rules;
+
+[PublicAPI]
+public abstract class RuleBase<TWorkspace, TData> : IRule<TWorkspace, TData>
+    where TWorkspace : WorkspaceBase<TData> where TData : class
 {
-    [PublicAPI]
-    public abstract class RuleBase<TWorkspace, TData> : IRule<TWorkspace, TData>
-        where TWorkspace : WorkspaceBase<TData> where TData : class
+    protected TWorkspace Workspace { get; private set; } = null!;
+
+    public abstract string Name { get; }
+
+    public IActorRef Init(IActorRefFactory superviser, TWorkspace workspace)
     {
-        protected TWorkspace Workspace { get; private set; } = null!;
+        Workspace = workspace;
 
-        public abstract string Name { get; }
+        return superviser.ActorOf(() => new InternalRuleActor(ActorConstruct), Name);
+    }
 
-        public IActorRef Init(IActorRefFactory superviser, TWorkspace workspace)
-        {
-            Workspace = workspace;
+    protected abstract void ActorConstruct(IObservableActor actor);
 
-            return superviser.ActorOf(() => new InternalRuleActor(ActorConstruct), Name);
-        }
+    protected void SendIssues(IEnumerable<Issue.IssueCompleter> issues, IActorContext context)
+    {
+        context.Parent.Tell(new RuleIssuesChanged<TWorkspace, TData>(this, issues));
+    }
 
-        protected abstract void ActorConstruct(IObservableActor actor);
-
-        protected void SendIssues(IEnumerable<Issue.IssueCompleter> issues, IActorContext context)
-        {
-            context.Parent.Tell(new RuleIssuesChanged<TWorkspace, TData>(this, issues));
-        }
-
-        private sealed class InternalRuleActor : ObservableActor
-        {
-            internal InternalRuleActor(Action<IObservableActor> constructor) => constructor(this);
-        }
+    private sealed class InternalRuleActor : ObservableActor
+    {
+        internal InternalRuleActor(Action<IObservableActor> constructor) => constructor(this);
     }
 }

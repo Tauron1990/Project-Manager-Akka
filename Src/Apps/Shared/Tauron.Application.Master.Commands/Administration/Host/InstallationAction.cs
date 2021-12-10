@@ -1,8 +1,7 @@
-﻿namespace Tauron.Application.Master.Commands.Administration.Host
+﻿namespace Tauron.Application.Master.Commands.Administration.Host;
+
+public enum InstallationAction
 {
-    public enum InstallationAction
-    {
-        Install,
-        Uninstall
-    }
+    Install,
+    Uninstall
 }

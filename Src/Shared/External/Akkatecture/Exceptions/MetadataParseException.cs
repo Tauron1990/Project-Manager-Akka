@@ -27,14 +27,13 @@
 
 using System;
 
-namespace Akkatecture.Exceptions
+namespace Akkatecture.Exceptions;
+
+[Serializable]
+public class MetadataParseException : Exception
 {
-    [Serializable]
-    public class MetadataParseException : Exception
-    {
-        public MetadataParseException(string key, string value, Exception innerException)
-            : base(
-                $"Failed to parse metadata key '{key}' with value '{value}' due to '{innerException.Message}'",
-                innerException) { }
-    }
+    public MetadataParseException(string key, string value, Exception innerException)
+        : base(
+            $"Failed to parse metadata key '{key}' with value '{value}' due to '{innerException.Message}'",
+            innerException) { }
 }

@@ -32,86 +32,85 @@ using Akkatecture.Extensions;
 using JetBrains.Annotations;
 using Tauron;
 
-namespace Akkatecture.Events
+namespace Akkatecture.Events;
+
+[PublicAPI]
+public abstract class
+    AggregateEventUpcaster<TAggregate, TIdentity> : AggregateEventUpcaster<TAggregate, TIdentity,
+        IEventUpcaster<TAggregate, TIdentity>>
+    where TAggregate : IAggregateRoot<TIdentity>
+    where TIdentity : IIdentity { }
+
+public abstract class AggregateEventUpcaster<TAggregate, TIdentity, TEventUpcaster> : IReadEventAdapter,
+    IEventUpcaster<TAggregate, TIdentity>
+    where TEventUpcaster : class, IEventUpcaster<TAggregate, TIdentity>
+    where TAggregate : IAggregateRoot<TIdentity>
+    where TIdentity : IIdentity
 {
-    [PublicAPI]
-    public abstract class
-        AggregateEventUpcaster<TAggregate, TIdentity> : AggregateEventUpcaster<TAggregate, TIdentity,
-            IEventUpcaster<TAggregate, TIdentity>>
-        where TAggregate : IAggregateRoot<TIdentity>
-        where TIdentity : IIdentity { }
+    // ReSharper disable once StaticMemberInGenericType
+    private static ConcurrentDictionary<Type, bool> _decisionCache = new();
 
-    public abstract class AggregateEventUpcaster<TAggregate, TIdentity, TEventUpcaster> : IReadEventAdapter,
-        IEventUpcaster<TAggregate, TIdentity>
-        where TEventUpcaster : class, IEventUpcaster<TAggregate, TIdentity>
-        where TAggregate : IAggregateRoot<TIdentity>
-        where TIdentity : IIdentity
+    private readonly IReadOnlyDictionary<Type, Func<TEventUpcaster, IAggregateEvent, IAggregateEvent>>
+        _upcastFunctions;
+
+
+    protected AggregateEventUpcaster()
     {
-        // ReSharper disable once StaticMemberInGenericType
-        private static ConcurrentDictionary<Type, bool> _decisionCache = new();
+        var upcastTypes = GetType().GetAggregateEventUpcastTypes();
+        var dictionary = upcastTypes.ToDictionary(type => type, _ => true);
+        _decisionCache = new ConcurrentDictionary<Type, bool>(dictionary);
 
-        private readonly IReadOnlyDictionary<Type, Func<TEventUpcaster, IAggregateEvent, IAggregateEvent>>
-            _upcastFunctions;
+        if (this is not TEventUpcaster)
+            throw new InvalidOperationException(
+                $"Event applier of type '{GetType().PrettyPrint()}' has a wrong generic argument '{typeof(TEventUpcaster).PrettyPrint()}'");
 
-
-        protected AggregateEventUpcaster()
-        {
-            var upcastTypes = GetType().GetAggregateEventUpcastTypes();
-            var dictionary = upcastTypes.ToDictionary(type => type, _ => true);
-            _decisionCache = new ConcurrentDictionary<Type, bool>(dictionary);
-
-            if (this is not TEventUpcaster)
-                throw new InvalidOperationException(
-                    $"Event applier of type '{GetType().PrettyPrint()}' has a wrong generic argument '{typeof(TEventUpcaster).PrettyPrint()}'");
-
-            _upcastFunctions = GetType().GetAggregateEventUpcastMethods<TAggregate, TIdentity, TEventUpcaster>();
-        }
+        _upcastFunctions = GetType().GetAggregateEventUpcastMethods<TAggregate, TIdentity, TEventUpcaster>();
+    }
 
 
-        public IAggregateEvent<TAggregate, TIdentity>? Upcast(IAggregateEvent<TAggregate, TIdentity> aggregateEvent)
-        {
-            var aggregateEventType = aggregateEvent.GetType();
+    public IAggregateEvent<TAggregate, TIdentity>? Upcast(IAggregateEvent<TAggregate, TIdentity> aggregateEvent)
+    {
+        var aggregateEventType = aggregateEvent.GetType();
 
-            if (!_upcastFunctions.TryGetValue(aggregateEventType, out var upcaster))
-                throw new ArgumentException(nameof(aggregateEventType));
+        if (!_upcastFunctions.TryGetValue(aggregateEventType, out var upcaster))
+            throw new ArgumentException(nameof(aggregateEventType));
 
-            var evt =
-                upcaster((TEventUpcaster)(object)this, aggregateEvent) as IAggregateEvent<TAggregate, TIdentity>;
+        var evt =
+            upcaster((TEventUpcaster)(object)this, aggregateEvent) as IAggregateEvent<TAggregate, TIdentity>;
 
-            return evt;
-        }
+        return evt;
+    }
 
-        public IEventSequence FromJournal(object evt, string manifest)
-        {
-            if (!ShouldUpcast(evt)) return EventSequence.Single(evt);
+    public IEventSequence FromJournal(object evt, string manifest)
+    {
+        if (!ShouldUpcast(evt)) return EventSequence.Single(evt);
 
-            var upcastedEvent =
-                Upcast(evt.GetPropertyValue<IAggregateEvent<TAggregate, TIdentity>>("AggregateEvent")) ??
-                throw new InvalidOperationException($"Error on Upcasting Event {evt}");
+        var upcastedEvent =
+            Upcast(evt.GetPropertyValue<IAggregateEvent<TAggregate, TIdentity>>("AggregateEvent")) ??
+            throw new InvalidOperationException($"Error on Upcasting Event {evt}");
 
-            Type genericType = typeof(CommittedEvent<,,>)
-               .MakeGenericType(typeof(TAggregate), typeof(TIdentity), upcastedEvent.GetType());
+        Type genericType = typeof(CommittedEvent<,,>)
+           .MakeGenericType(typeof(TAggregate), typeof(TIdentity), upcastedEvent.GetType());
 
-            var upcastedCommittedEvent = FastReflection.Shared.FastCreateInstance(
-                genericType,
-                evt.GetPropertyValue("AggregateIdentity")!,
-                upcastedEvent,
-                evt.GetPropertyValue("Metadata")!,
-                evt.GetPropertyValue("Timestamp")!,
-                evt.GetPropertyValue("AggregateSequenceNumber")!);
+        var upcastedCommittedEvent = FastReflection.Shared.FastCreateInstance(
+            genericType,
+            evt.GetPropertyValue("AggregateIdentity")!,
+            upcastedEvent,
+            evt.GetPropertyValue("Metadata")!,
+            evt.GetPropertyValue("Timestamp")!,
+            evt.GetPropertyValue("AggregateSequenceNumber")!);
 
-            return EventSequence.Single(upcastedCommittedEvent);
-        }
+        return EventSequence.Single(upcastedCommittedEvent);
+    }
 
-        private bool ShouldUpcast(object potentialUpcast)
-        {
-            var type = potentialUpcast.GetType();
+    private bool ShouldUpcast(object potentialUpcast)
+    {
+        var type = potentialUpcast.GetType();
 
-            if (!(potentialUpcast is ICommittedEvent<TAggregate, TIdentity>)) return false;
+        if (!(potentialUpcast is ICommittedEvent<TAggregate, TIdentity>)) return false;
 
-            var eventType = type.GenericTypeArguments[2];
+        var eventType = type.GenericTypeArguments[2];
 
-            return _decisionCache.ContainsKey(eventType);
-        }
+        return _decisionCache.ContainsKey(eventType);
     }
 }

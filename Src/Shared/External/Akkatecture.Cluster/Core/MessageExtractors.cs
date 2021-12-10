@@ -29,51 +29,50 @@ using Akkatecture.Core;
 using Akkatecture.Sagas;
 using Akkatecture.Sagas.AggregateSaga;
 
-namespace Akkatecture.Cluster.Core
+namespace Akkatecture.Cluster.Core;
+
+public class
+    // ReSharper disable once UnusedTypeParameter
+    MessageExtractor<TAggregateSagaManager, TAggregateSaga, TIdentity, TSagaLocator> : HashCodeMessageExtractor
+    where TAggregateSagaManager : IAggregateSagaManager<TAggregateSaga, TIdentity, TSagaLocator>
+    where TAggregateSaga : IAggregateSaga<TIdentity>
+    where TIdentity : SagaId<TIdentity>
+    where TSagaLocator : class, ISagaLocator<TIdentity>, new()
 {
-    public class
-        // ReSharper disable once UnusedTypeParameter
-        MessageExtractor<TAggregateSagaManager, TAggregateSaga, TIdentity, TSagaLocator> : HashCodeMessageExtractor
-        where TAggregateSagaManager : IAggregateSagaManager<TAggregateSaga, TIdentity, TSagaLocator>
-        where TAggregateSaga : IAggregateSaga<TIdentity>
-        where TIdentity : SagaId<TIdentity>
-        where TSagaLocator : class, ISagaLocator<TIdentity>, new()
+    public MessageExtractor(int maxNumberOfShards)
+        : base(maxNumberOfShards)
+        => SagaLocator = new TSagaLocator();
+
+    private TSagaLocator SagaLocator { get; }
+
+    public override string EntityId(object message)
     {
-        public MessageExtractor(int maxNumberOfShards)
-            : base(maxNumberOfShards)
-            => SagaLocator = new TSagaLocator();
-
-        private TSagaLocator SagaLocator { get; }
-
-        public override string EntityId(object message)
-        {
-            if (message is null)
-                throw new ArgumentNullException(nameof(message));
+        if (message is null)
+            throw new ArgumentNullException(nameof(message));
 
 
-            if (message is IDomainEvent domainEvent)
-                return SagaLocator.LocateSaga(domainEvent).Value;
+        if (message is IDomainEvent domainEvent)
+            return SagaLocator.LocateSaga(domainEvent).Value;
 
-            throw new ArgumentException(nameof(message));
-        }
+        throw new ArgumentException(nameof(message));
     }
+}
 
-    public class MessageExtractor<TAggregate, TIdentity> : HashCodeMessageExtractor
-        where TAggregate : IAggregateRoot<TIdentity>
-        where TIdentity : IIdentity
+public class MessageExtractor<TAggregate, TIdentity> : HashCodeMessageExtractor
+    where TAggregate : IAggregateRoot<TIdentity>
+    where TIdentity : IIdentity
+{
+    public MessageExtractor(int maxNumberOfShards)
+        : base(maxNumberOfShards) { }
+
+    public override string EntityId(object message)
     {
-        public MessageExtractor(int maxNumberOfShards)
-            : base(maxNumberOfShards) { }
+        if (message is null)
+            throw new ArgumentNullException(nameof(message));
 
-        public override string EntityId(object message)
-        {
-            if (message is null)
-                throw new ArgumentNullException(nameof(message));
+        if (message is ICommand<TAggregate, TIdentity> command)
+            return command.AggregateId.Value;
 
-            if (message is ICommand<TAggregate, TIdentity> command)
-                return command.AggregateId.Value;
-
-            throw new ArgumentException(nameof(message));
-        }
+        throw new ArgumentException(nameof(message));
     }
 }

@@ -28,12 +28,11 @@
 
 using JetBrains.Annotations;
 
-namespace Akkatecture.Sagas
-{
-    public interface ISaga { }
+namespace Akkatecture.Sagas;
 
-    // ReSharper disable once UnusedTypeParameter
-    [PublicAPI]
-    public interface ISaga<TSagaId> : ISaga
-        where TSagaId : ISagaId { }
-}
+public interface ISaga { }
+
+// ReSharper disable once UnusedTypeParameter
+[PublicAPI]
+public interface ISaga<TSagaId> : ISaga
+    where TSagaId : ISagaId { }

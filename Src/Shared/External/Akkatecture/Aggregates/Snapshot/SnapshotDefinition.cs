@@ -24,14 +24,13 @@
 using System;
 using Akkatecture.Core.VersionedTypes;
 
-namespace Akkatecture.Aggregates.Snapshot
+namespace Akkatecture.Aggregates.Snapshot;
+
+public class SnapshotDefinition : VersionedTypeDefinition
 {
-    public class SnapshotDefinition : VersionedTypeDefinition
-    {
-        public SnapshotDefinition(
-            int version,
-            Type type,
-            string name)
-            : base(version, type, name) { }
-    }
+    public SnapshotDefinition(
+        int version,
+        Type type,
+        string name)
+        : base(version, type, name) { }
 }

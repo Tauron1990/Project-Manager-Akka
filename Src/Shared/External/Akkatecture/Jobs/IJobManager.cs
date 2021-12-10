@@ -21,12 +21,11 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Akkatecture.Jobs
-{
-    public interface IJobManager { }
+namespace Akkatecture.Jobs;
 
-    // ReSharper disable UnusedTypeParameter
-    public interface IJobManager<TJob, TIdentity> : IJobManager
-        where TJob : IJob
-        where TIdentity : IJobId { }
-}
+public interface IJobManager { }
+
+// ReSharper disable UnusedTypeParameter
+public interface IJobManager<TJob, TIdentity> : IJobManager
+    where TJob : IJob
+    where TIdentity : IJobId { }

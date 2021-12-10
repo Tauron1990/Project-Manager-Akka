@@ -29,18 +29,17 @@ using System;
 using Akkatecture.ValueObjects;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Core
-{
-    [PublicAPI]
-    public class SourceId : SingleValueObject<string>, ISourceId
-    {
-        public SourceId(string value)
-            : base(value)
-        {
-            if (string.IsNullOrEmpty(value))
-                throw new ArgumentNullException(nameof(value));
-        }
+namespace Akkatecture.Core;
 
-        public static ISourceId New => new SourceId(Guid.NewGuid().ToString("D"));
+[PublicAPI]
+public class SourceId : SingleValueObject<string>, ISourceId
+{
+    public SourceId(string value)
+        : base(value)
+    {
+        if (string.IsNullOrEmpty(value))
+            throw new ArgumentNullException(nameof(value));
     }
+
+    public static ISourceId New => new SourceId(Guid.NewGuid().ToString("D"));
 }

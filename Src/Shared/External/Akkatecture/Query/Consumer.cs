@@ -9,94 +9,93 @@ using Akkatecture.Events;
 using Akkatecture.Extensions;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Query
+namespace Akkatecture.Query;
+
+[PublicAPI]
+public class Consumer
 {
-    [PublicAPI]
-    public class Consumer
+    internal Consumer(
+        string name,
+        ActorSystem actorSystem)
     {
-        internal Consumer(
-            string name,
-            ActorSystem actorSystem)
-        {
-            ActorSystem = actorSystem;
-            Name = name;
-        }
-
-        private Consumer(
-            string name,
-            Config config)
-        {
-            var actorSystem = ActorSystem.Create(name, config);
-            ActorSystem = actorSystem;
-            Name = name;
-        }
-
-        public ActorSystem ActorSystem { get; set; }
-        protected string Name { get; set; }
-
-        public static Consumer Create(string name, Config config) => new(name, config);
-
-        #pragma warning disable AV1551
-        public static Consumer Create(ActorSystem actorSystem) => new(actorSystem.Name, actorSystem);
-        #pragma warning restore AV1551
-
-        public Consumer<TJournal> Using<TJournal>(
-            string readJournalPluginId)
-            where TJournal : IEventsByTagQuery, ICurrentEventsByTagQuery
-        {
-            var readJournal = PersistenceQuery
-               .Get(ActorSystem)
-               .ReadJournalFor<TJournal>(readJournalPluginId);
-
-            return new Consumer<TJournal>(Name, ActorSystem, readJournal);
-        }
+        ActorSystem = actorSystem;
+        Name = name;
     }
 
-    [PublicAPI]
-    public class Consumer<TJournal> : Consumer
+    private Consumer(
+        string name,
+        Config config)
+    {
+        var actorSystem = ActorSystem.Create(name, config);
+        ActorSystem = actorSystem;
+        Name = name;
+    }
+
+    public ActorSystem ActorSystem { get; set; }
+    protected string Name { get; set; }
+
+    public static Consumer Create(string name, Config config) => new(name, config);
+
+    #pragma warning disable AV1551
+    public static Consumer Create(ActorSystem actorSystem) => new(actorSystem.Name, actorSystem);
+    #pragma warning restore AV1551
+
+    public Consumer<TJournal> Using<TJournal>(
+        string readJournalPluginId)
         where TJournal : IEventsByTagQuery, ICurrentEventsByTagQuery
     {
-        public Consumer(
-            string name,
-            ActorSystem actorSystem,
-            TJournal journal)
-            : base(name, actorSystem)
-            => Journal = journal;
+        var readJournal = PersistenceQuery
+           .Get(ActorSystem)
+           .ReadJournalFor<TJournal>(readJournalPluginId);
 
-        protected TJournal Journal { get; }
+        return new Consumer<TJournal>(Name, ActorSystem, readJournal);
+    }
+}
 
-        public Source<EventEnvelope, NotUsed> EventsFromAggregate<TAggregate>(Offset? offset = null)
-            where TAggregate : IAggregateRoot
-        {
-            var mapper = new DomainEventReadAdapter();
-            var aggregateName = typeof(TAggregate).GetAggregateName();
+[PublicAPI]
+public class Consumer<TJournal> : Consumer
+    where TJournal : IEventsByTagQuery, ICurrentEventsByTagQuery
+{
+    public Consumer(
+        string name,
+        ActorSystem actorSystem,
+        TJournal journal)
+        : base(name, actorSystem)
+        => Journal = journal;
 
-            return Journal
-               .EventsByTag(aggregateName.Value, offset)
-               .Select(
-                    envelope =>
-                    {
-                        var domainEvent = mapper.FromJournal(envelope.Event, string.Empty).Events.Single();
+    protected TJournal Journal { get; }
 
-                        return new EventEnvelope(envelope.Offset, envelope.PersistenceId, envelope.SequenceNr, domainEvent, envelope.Timestamp);
-                    });
-        }
+    public Source<EventEnvelope, NotUsed> EventsFromAggregate<TAggregate>(Offset? offset = null)
+        where TAggregate : IAggregateRoot
+    {
+        var mapper = new DomainEventReadAdapter();
+        var aggregateName = typeof(TAggregate).GetAggregateName();
 
-        public Source<EventEnvelope, NotUsed> CurrentEventsFromAggregate<TAggregate>(Offset? offset = null)
-            where TAggregate : IAggregateRoot
-        {
-            var mapper = new DomainEventReadAdapter();
-            var aggregateName = typeof(TAggregate).GetAggregateName();
+        return Journal
+           .EventsByTag(aggregateName.Value, offset)
+           .Select(
+                envelope =>
+                {
+                    var domainEvent = mapper.FromJournal(envelope.Event, string.Empty).Events.Single();
 
-            return Journal
-               .CurrentEventsByTag(aggregateName.Value, offset)
-               .Select(
-                    envelope =>
-                    {
-                        var domainEvent = mapper.FromJournal(envelope.Event, string.Empty).Events.Single();
+                    return new EventEnvelope(envelope.Offset, envelope.PersistenceId, envelope.SequenceNr, domainEvent, envelope.Timestamp);
+                });
+    }
 
-                        return new EventEnvelope(envelope.Offset, envelope.PersistenceId, envelope.SequenceNr, domainEvent, envelope.Timestamp);
-                    });
-        }
+    public Source<EventEnvelope, NotUsed> CurrentEventsFromAggregate<TAggregate>(Offset? offset = null)
+        where TAggregate : IAggregateRoot
+    {
+        var mapper = new DomainEventReadAdapter();
+        var aggregateName = typeof(TAggregate).GetAggregateName();
+
+        return Journal
+           .CurrentEventsByTag(aggregateName.Value, offset)
+           .Select(
+                envelope =>
+                {
+                    var domainEvent = mapper.FromJournal(envelope.Event, string.Empty).Events.Single();
+
+                    return new EventEnvelope(envelope.Offset, envelope.PersistenceId, envelope.SequenceNr, domainEvent, envelope.Timestamp);
+                });
     }
 }

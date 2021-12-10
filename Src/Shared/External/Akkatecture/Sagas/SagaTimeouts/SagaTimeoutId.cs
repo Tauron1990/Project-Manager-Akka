@@ -25,11 +25,10 @@ using Akkatecture.Core;
 using Akkatecture.Jobs;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Sagas.SagaTimeouts
+namespace Akkatecture.Sagas.SagaTimeouts;
+
+[PublicAPI]
+public class SagaTimeoutId : Identity<SagaTimeoutId>, IJobId
 {
-    [PublicAPI]
-    public class SagaTimeoutId : Identity<SagaTimeoutId>, IJobId
-    {
-        public SagaTimeoutId(string value) : base(value) { }
-    }
+    public SagaTimeoutId(string value) : base(value) { }
 }

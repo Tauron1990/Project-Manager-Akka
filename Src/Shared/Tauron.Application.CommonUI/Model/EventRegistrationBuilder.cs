@@ -2,46 +2,45 @@
 using JetBrains.Annotations;
 using Tauron.Application.CommonUI.Commands;
 
-namespace Tauron.Application.CommonUI.Model
+namespace Tauron.Application.CommonUI.Model;
+
+[PublicAPI]
+public sealed class EventRegistrationBuilder
 {
-    [PublicAPI]
-    public sealed class EventRegistrationBuilder
+    private readonly string _name;
+    private readonly Action<string, Delegate> _register;
+
+    internal EventRegistrationBuilder(string name, Action<string, Delegate> register)
     {
-        private readonly string _name;
-        private readonly Action<string, Delegate> _register;
+        _name = name;
+        _register = register;
+    }
 
-        internal EventRegistrationBuilder(string name, Action<string, Delegate> register)
-        {
-            _name = name;
-            _register = register;
-        }
+    public EventRegistrationBuilder WithEventHandler(Action handler)
+    {
+        _register(_name, handler);
 
-        public EventRegistrationBuilder WithEventHandler(Action handler)
-        {
-            _register(_name, handler);
+        return this;
+    }
 
-            return this;
-        }
+    public EventRegistrationBuilder WithEventHandler(string name, Action<EventData> handler)
+    {
+        _register(_name, handler);
 
-        public EventRegistrationBuilder WithEventHandler(string name, Action<EventData> handler)
-        {
-            _register(_name, handler);
+        return this;
+    }
 
-            return this;
-        }
+    public EventRegistrationBuilder WithEventHandler(string name, Action<object, EventArgs> handler)
+    {
+        _register(_name, handler);
 
-        public EventRegistrationBuilder WithEventHandler(string name, Action<object, EventArgs> handler)
-        {
-            _register(_name, handler);
+        return this;
+    }
 
-            return this;
-        }
+    public EventRegistrationBuilder WithEventHandler(string name, Action<EventArgs> handler)
+    {
+        _register(_name, handler);
 
-        public EventRegistrationBuilder WithEventHandler(string name, Action<EventArgs> handler)
-        {
-            _register(_name, handler);
-
-            return this;
-        }
+        return this;
     }
 }

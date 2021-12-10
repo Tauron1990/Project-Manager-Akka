@@ -29,37 +29,36 @@ using System;
 using Akkatecture.Core;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Aggregates
+namespace Akkatecture.Aggregates;
+
+[PublicAPI]
+public interface IDomainEvent
 {
-    [PublicAPI]
-    public interface IDomainEvent
-    {
-        Type AggregateType { get; }
-        Type IdentityType { get; }
-        Type EventType { get; }
-        long AggregateSequenceNumber { get; }
-        Metadata Metadata { get; }
-        DateTimeOffset Timestamp { get; }
+    Type AggregateType { get; }
+    Type IdentityType { get; }
+    Type EventType { get; }
+    long AggregateSequenceNumber { get; }
+    Metadata Metadata { get; }
+    DateTimeOffset Timestamp { get; }
 
-        IIdentity GetIdentity();
-        IAggregateEvent GetAggregateEvent();
-    }
+    IIdentity GetIdentity();
+    IAggregateEvent GetAggregateEvent();
+}
 
-    [PublicAPI]
-    // ReSharper disable once UnusedTypeParameter
-    public interface IDomainEvent<TAggregate, out TIdentity> : IDomainEvent
-        where TAggregate : IAggregateRoot<TIdentity>
-        where TIdentity : IIdentity
-    {
-        TIdentity AggregateIdentity { get; }
-    }
+[PublicAPI]
+// ReSharper disable once UnusedTypeParameter
+public interface IDomainEvent<TAggregate, out TIdentity> : IDomainEvent
+    where TAggregate : IAggregateRoot<TIdentity>
+    where TIdentity : IIdentity
+{
+    TIdentity AggregateIdentity { get; }
+}
 
-    [PublicAPI]
-    public interface IDomainEvent<TAggregate, out TIdentity, out TAggregateEvent> : IDomainEvent<TAggregate, TIdentity>
-        where TAggregate : IAggregateRoot<TIdentity>
-        where TIdentity : IIdentity
-        where TAggregateEvent : class, IAggregateEvent<TAggregate, TIdentity>
-    {
-        TAggregateEvent AggregateEvent { get; }
-    }
+[PublicAPI]
+public interface IDomainEvent<TAggregate, out TIdentity, out TAggregateEvent> : IDomainEvent<TAggregate, TIdentity>
+    where TAggregate : IAggregateRoot<TIdentity>
+    where TIdentity : IIdentity
+    where TAggregateEvent : class, IAggregateEvent<TAggregate, TIdentity>
+{
+    TAggregateEvent AggregateEvent { get; }
 }

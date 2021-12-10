@@ -1,11 +1,10 @@
-﻿namespace Tauron.Application.Master.Commands.KillSwitch
+﻿namespace Tauron.Application.Master.Commands.KillSwitch;
+
+public enum KillRecpientType
 {
-    public enum KillRecpientType
-    {
-        Unkowen,
-        Frontend,
-        Host,
-        Service,
-        Seed
-    }
+    Unkowen,
+    Frontend,
+    Host,
+    Service,
+    Seed
 }

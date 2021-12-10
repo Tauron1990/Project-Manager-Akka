@@ -30,16 +30,15 @@ using Akkatecture.Aggregates;
 using Akkatecture.Core;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Commands
-{
-    public interface ICommandHandler { }
+namespace Akkatecture.Commands;
 
-    [PublicAPI]
-    public interface ICommandHandler<in TAggregate, TIdentity, out TResult, in TCommand> : ICommandHandler
-        where TAggregate : IAggregateRoot<TIdentity>
-        where TIdentity : IIdentity
-        where TCommand : ICommand<TAggregate, TIdentity>
-    {
-        TResult HandleCommand(TAggregate aggregate, IActorContext context, TCommand command);
-    }
+public interface ICommandHandler { }
+
+[PublicAPI]
+public interface ICommandHandler<in TAggregate, TIdentity, out TResult, in TCommand> : ICommandHandler
+    where TAggregate : IAggregateRoot<TIdentity>
+    where TIdentity : IIdentity
+    where TCommand : ICommand<TAggregate, TIdentity>
+{
+    TResult HandleCommand(TAggregate aggregate, IActorContext context, TCommand command);
 }

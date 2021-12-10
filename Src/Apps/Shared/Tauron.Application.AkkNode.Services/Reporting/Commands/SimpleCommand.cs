@@ -5,23 +5,22 @@ using Akka.Util;
 using JetBrains.Annotations;
 using Tauron.Operations;
 
-namespace Tauron.Application.AkkaNode.Services.Reporting.Commands
+namespace Tauron.Application.AkkaNode.Services.Reporting.Commands;
+
+[PublicAPI]
+public abstract record SimpleCommand<TSender, TThis> : ReporterCommandBase<TSender, TThis>
+    where TThis : SimpleCommand<TSender, TThis>
+    where TSender : ISender;
+
+public static class SimpleCommandExtensions
 {
-    [PublicAPI]
-    public abstract record SimpleCommand<TSender, TThis> : ReporterCommandBase<TSender, TThis>
-        where TThis : SimpleCommand<TSender, TThis>
-        where TSender : ISender;
-
-    public static class SimpleCommandExtensions
+    public static async Task<Option<Error>> Send<TSender, TCommand>(
+        this TSender sender, TCommand command, TimeSpan timeout, Action<string> messages, CancellationToken token = default)
+        where TCommand : SimpleCommand<TSender, TCommand>, IReporterMessage
+        where TSender : ISender
     {
-        public static async Task<Option<Error>> Send<TSender, TCommand>(
-            this TSender sender, TCommand command, TimeSpan timeout, Action<string> messages, CancellationToken token = default)
-            where TCommand : SimpleCommand<TSender, TCommand>, IReporterMessage
-            where TSender : ISender
-        {
-            var result = await SendingHelper.Send<object, TCommand>(sender, command, messages, timeout, isEmpty: true, token);
+        var result = await SendingHelper.Send<object, TCommand>(sender, command, messages, timeout, isEmpty: true, token);
 
-            return result.Fold(_ => Option<Error>.None, e => e);
-        }
+        return result.Fold(_ => Option<Error>.None, e => e);
     }
 }

@@ -1,11 +1,10 @@
 ﻿using Microsoft.AspNetCore.Components;
 
-namespace Tauron.Application.Blazor
-{
-    public interface ISelectable
-    {
-        public EventCallback Callback { get; set; }
+namespace Tauron.Application.Blazor;
 
-        public bool IsSelected { get; set; }
-    }
+public interface ISelectable
+{
+    public EventCallback Callback { get; set; }
+
+    public bool IsSelected { get; set; }
 }

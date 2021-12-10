@@ -3,79 +3,78 @@ using System.Threading.Tasks;
 using Akka.Actor;
 using JetBrains.Annotations;
 
-namespace Akka.Cluster.Utility
+namespace Akka.Cluster.Utility;
+
+// Intefaced actor-ref for DistributedActorTable<TKey>
+[PublicAPI]
+public sealed class DistributedActorTableRef<TKey>
 {
-    // Intefaced actor-ref for DistributedActorTable<TKey>
-    [PublicAPI]
-    public sealed class DistributedActorTableRef<TKey>
+    public DistributedActorTableRef(IActorRef target, TimeSpan? timeout = null)
     {
-        public DistributedActorTableRef(IActorRef target, TimeSpan? timeout = null)
-        {
-            Target = target;
-            Timeout = timeout;
-        }
-
-        public IActorRef Target { get; }
-        public TimeSpan? Timeout { get; }
-
-        public DistributedActorTableRef<TKey> WithTimeout(TimeSpan? timeout) => new(Target, timeout);
-
-        #pragma warning disable AV1551
-        public Task<DistributedActorTableMessage<TKey>.CreateReply> Create(object[] args)
-            #pragma warning restore AV1551
-            => Target.Ask<DistributedActorTableMessage<TKey>.CreateReply>(
-                new DistributedActorTableMessage<TKey>.Create(args),
-                Timeout);
-
-        public Task<DistributedActorTableMessage<TKey>.CreateReply> Create(TKey id, object[] args)
-            => Target.Ask<DistributedActorTableMessage<TKey>.CreateReply>(
-                new DistributedActorTableMessage<TKey>.Create(id, args),
-                Timeout);
-
-        public Task<DistributedActorTableMessage<TKey>.GetOrCreateReply> GetOrCreate(TKey id, object[] args)
-            => Target.Ask<DistributedActorTableMessage<TKey>.GetOrCreateReply>(
-                new DistributedActorTableMessage<TKey>.GetOrCreate(id, args),
-                Timeout);
-
-        public Task<DistributedActorTableMessage<TKey>.GetReply> Get(TKey id)
-            => Target.Ask<DistributedActorTableMessage<TKey>.GetReply>(
-                new DistributedActorTableMessage<TKey>.Get(id),
-                Timeout);
-
-        public Task<DistributedActorTableMessage<TKey>.GetIdsReply> GetIds()
-            => Target.Ask<DistributedActorTableMessage<TKey>.GetIdsReply>(
-                new DistributedActorTableMessage<TKey>.GetIds(),
-                Timeout);
-
-        public void GracefulStop(object stopMessage)
-        {
-            Target.Tell(new DistributedActorTableMessage<TKey>.GracefulStop(stopMessage));
-        }
+        Target = target;
+        Timeout = timeout;
     }
 
-    // Intefaced actor-ref for DistributedActorTableContainer<TKey>
-    [PublicAPI]
-    public class DistributedActorTableContainerRef<TKey>
+    public IActorRef Target { get; }
+    public TimeSpan? Timeout { get; }
+
+    public DistributedActorTableRef<TKey> WithTimeout(TimeSpan? timeout) => new(Target, timeout);
+
+    #pragma warning disable AV1551
+    public Task<DistributedActorTableMessage<TKey>.CreateReply> Create(object[] args)
+        #pragma warning restore AV1551
+        => Target.Ask<DistributedActorTableMessage<TKey>.CreateReply>(
+            new DistributedActorTableMessage<TKey>.Create(args),
+            Timeout);
+
+    public Task<DistributedActorTableMessage<TKey>.CreateReply> Create(TKey id, object[] args)
+        => Target.Ask<DistributedActorTableMessage<TKey>.CreateReply>(
+            new DistributedActorTableMessage<TKey>.Create(id, args),
+            Timeout);
+
+    public Task<DistributedActorTableMessage<TKey>.GetOrCreateReply> GetOrCreate(TKey id, object[] args)
+        => Target.Ask<DistributedActorTableMessage<TKey>.GetOrCreateReply>(
+            new DistributedActorTableMessage<TKey>.GetOrCreate(id, args),
+            Timeout);
+
+    public Task<DistributedActorTableMessage<TKey>.GetReply> Get(TKey id)
+        => Target.Ask<DistributedActorTableMessage<TKey>.GetReply>(
+            new DistributedActorTableMessage<TKey>.Get(id),
+            Timeout);
+
+    public Task<DistributedActorTableMessage<TKey>.GetIdsReply> GetIds()
+        => Target.Ask<DistributedActorTableMessage<TKey>.GetIdsReply>(
+            new DistributedActorTableMessage<TKey>.GetIds(),
+            Timeout);
+
+    public void GracefulStop(object stopMessage)
     {
-        public DistributedActorTableContainerRef(IActorRef target, TimeSpan? timeout = null)
-        {
-            Target = target;
-            Timeout = timeout;
-        }
+        Target.Tell(new DistributedActorTableMessage<TKey>.GracefulStop(stopMessage));
+    }
+}
 
-        public IActorRef Target { get; }
-        public TimeSpan? Timeout { get; }
+// Intefaced actor-ref for DistributedActorTableContainer<TKey>
+[PublicAPI]
+public class DistributedActorTableContainerRef<TKey>
+{
+    public DistributedActorTableContainerRef(IActorRef target, TimeSpan? timeout = null)
+    {
+        Target = target;
+        Timeout = timeout;
+    }
 
-        public DistributedActorTableContainerRef<TKey> WithTimeout(TimeSpan? timeout) => new(Target, timeout);
+    public IActorRef Target { get; }
+    public TimeSpan? Timeout { get; }
 
-        public Task<DistributedActorTableMessage<TKey>.AddReply> Add(TKey id, IActorRef actor)
-            => Target.Ask<DistributedActorTableMessage<TKey>.AddReply>(
-                new DistributedActorTableMessage<TKey>.Add(id, actor),
-                Timeout);
+    public DistributedActorTableContainerRef<TKey> WithTimeout(TimeSpan? timeout) => new(Target, timeout);
 
-        public void Remove(TKey id)
-        {
-            Target.Tell(new DistributedActorTableMessage<TKey>.Remove(id));
-        }
+    public Task<DistributedActorTableMessage<TKey>.AddReply> Add(TKey id, IActorRef actor)
+        => Target.Ask<DistributedActorTableMessage<TKey>.AddReply>(
+            new DistributedActorTableMessage<TKey>.Add(id, actor),
+            Timeout);
+
+    public void Remove(TKey id)
+    {
+        Target.Tell(new DistributedActorTableMessage<TKey>.Remove(id));
     }
 }

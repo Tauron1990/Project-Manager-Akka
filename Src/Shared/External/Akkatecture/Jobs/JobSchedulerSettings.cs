@@ -25,24 +25,23 @@ using System;
 using Akka.Configuration;
 using Akkatecture.Configuration;
 
-namespace Akkatecture.Jobs
+namespace Akkatecture.Jobs;
+
+public class JobSchedulerSettings
 {
-    public class JobSchedulerSettings
+    private static readonly string _section = "akkatecture.job-scheduler";
+
+    public JobSchedulerSettings(Config config)
     {
-        private static readonly string _section = "akkatecture.job-scheduler";
+        var schedulerConfig = config.WithFallback(AkkatectureDefaultSettings.DefaultConfig());
+        schedulerConfig = schedulerConfig.GetConfig(_section);
 
-        public JobSchedulerSettings(Config config)
-        {
-            var schedulerConfig = config.WithFallback(AkkatectureDefaultSettings.DefaultConfig());
-            schedulerConfig = schedulerConfig.GetConfig(_section);
-
-            JournalPluginId = schedulerConfig.GetString("journal-plugin-id");
-            SnapshotPluginId = schedulerConfig.GetString("snapshot-plugin-id");
-            TickInterval = schedulerConfig.GetTimeSpan("tick-interval");
-        }
-
-        public string JournalPluginId { get; }
-        public string SnapshotPluginId { get; }
-        public TimeSpan TickInterval { get; }
+        JournalPluginId = schedulerConfig.GetString("journal-plugin-id");
+        SnapshotPluginId = schedulerConfig.GetString("snapshot-plugin-id");
+        TickInterval = schedulerConfig.GetTimeSpan("tick-interval");
     }
+
+    public string JournalPluginId { get; }
+    public string SnapshotPluginId { get; }
+    public TimeSpan TickInterval { get; }
 }

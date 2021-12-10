@@ -29,18 +29,17 @@ using System;
 using Akkatecture.Aggregates;
 using Akkatecture.Extensions;
 
-namespace Akkatecture.Sagas
+namespace Akkatecture.Sagas;
+
+public abstract class SagaState<TSaga, TIdentity, TMessageApplier> : IMessageApplier<TSaga, TIdentity>
+    where TMessageApplier : class, IMessageApplier<TSaga, TIdentity>
+    where TSaga : IAggregateRoot<TIdentity>
+    where TIdentity : ISagaId
 {
-    public abstract class SagaState<TSaga, TIdentity, TMessageApplier> : IMessageApplier<TSaga, TIdentity>
-        where TMessageApplier : class, IMessageApplier<TSaga, TIdentity>
-        where TSaga : IAggregateRoot<TIdentity>
-        where TIdentity : ISagaId
+    protected SagaState()
     {
-        protected SagaState()
-        {
-            if (this is not TMessageApplier)
-                throw new InvalidOperationException(
-                    $"MessageApplier of Type={GetType().PrettyPrint()} has a wrong generic argument Type={typeof(TMessageApplier).PrettyPrint()}.");
-        }
+        if (this is not TMessageApplier)
+            throw new InvalidOperationException(
+                $"MessageApplier of Type={GetType().PrettyPrint()} has a wrong generic argument Type={typeof(TMessageApplier).PrettyPrint()}.");
     }
 }

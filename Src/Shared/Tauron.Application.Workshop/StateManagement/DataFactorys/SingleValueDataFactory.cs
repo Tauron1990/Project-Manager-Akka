@@ -4,72 +4,71 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Tauron.Application.Workshop.Mutation;
 
-namespace Tauron.Application.Workshop.StateManagement.DataFactorys
+namespace Tauron.Application.Workshop.StateManagement.DataFactorys;
+
+[PublicAPI]
+public abstract class SingleValueDataFactory<TData> : AdvancedDataSourceFactory
+    where TData : IStateEntity
 {
-    [PublicAPI]
-    public abstract class SingleValueDataFactory<TData> : AdvancedDataSourceFactory
-        where TData : IStateEntity
+    private readonly object _lock = new();
+    private SingleValueSource? _source;
+
+    public override bool CanSupply(Type dataType) => dataType == typeof(TData);
+
+    public override Func<IExtendedDataSource<TRealData>> Create<TRealData>(CreationMetadata? metadata)
     {
-        private readonly object _lock = new();
-        private SingleValueSource? _source;
+        return () =>
+               {
+                   if (_source != null) return (IExtendedDataSource<TRealData>)(object)_source;
 
-        public override bool CanSupply(Type dataType) => dataType == typeof(TData);
-
-        public override Func<IExtendedDataSource<TRealData>> Create<TRealData>(CreationMetadata? metadata)
-        {
-            return () =>
+                   lock (_lock)
                    {
-                       if (_source != null) return (IExtendedDataSource<TRealData>)(object)_source;
-
-                       lock (_lock)
+                       switch (_source)
                        {
-                           switch (_source)
-                           {
-                               case null:
-                                   _source = new SingleValueSource(CreateValue(metadata));
+                           case null:
+                               _source = new SingleValueSource(CreateValue(metadata));
 
-                                   return (IExtendedDataSource<TRealData>)(object)_source;
-                               default:
-                                   return (IExtendedDataSource<TRealData>)(object)_source;
-                           }
+                               return (IExtendedDataSource<TRealData>)(object)_source;
+                           default:
+                               return (IExtendedDataSource<TRealData>)(object)_source;
                        }
-                   };
+                   }
+               };
+    }
+
+    protected abstract Task<TData> CreateValue(CreationMetadata? metadata);
+
+    private sealed class SingleValueSource : IExtendedDataSource<TData>, IDisposable
+    {
+        private readonly SemaphoreSlim _semaphore = new(0, 1);
+        private Task<TData> _value;
+
+        internal SingleValueSource(Task<TData> value) => _value = value;
+
+        public void Dispose()
+        {
+            _semaphore.Dispose();
         }
 
-        protected abstract Task<TData> CreateValue(CreationMetadata? metadata);
-
-        private sealed class SingleValueSource : IExtendedDataSource<TData>, IDisposable
+        public async Task<TData> GetData(IQuery query)
         {
-            private readonly SemaphoreSlim _semaphore = new(0, 1);
-            private Task<TData> _value;
+            await _semaphore.WaitAsync();
 
-            internal SingleValueSource(Task<TData> value) => _value = value;
+            return await _value;
+        }
 
-            public void Dispose()
-            {
-                _semaphore.Dispose();
-            }
+        public Task SetData(IQuery query, TData data)
+        {
+            _value = Task.FromResult(data);
 
-            public async Task<TData> GetData(IQuery query)
-            {
-                await _semaphore.WaitAsync();
+            return Task.CompletedTask;
+        }
 
-                return await _value;
-            }
+        public Task OnCompled(IQuery query)
+        {
+            _semaphore.Release();
 
-            public Task SetData(IQuery query, TData data)
-            {
-                _value = Task.FromResult(data);
-
-                return Task.CompletedTask;
-            }
-
-            public Task OnCompled(IQuery query)
-            {
-                _semaphore.Release();
-
-                return Task.CompletedTask;
-            }
+            return Task.CompletedTask;
         }
     }
 }

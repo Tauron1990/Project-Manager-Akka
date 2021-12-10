@@ -1,11 +1,10 @@
 ﻿using System.Threading.Tasks;
 
-namespace Tauron.Application.CommonUI
+namespace Tauron.Application.CommonUI;
+
+public interface IWindow : IUIElement
 {
-    public interface IWindow : IUIElement
-    {
-        void Show();
-        void Hide();
-        Task<bool?> ShowDialog();
-    }
+    void Show();
+    void Hide();
+    Task<bool?> ShowDialog();
 }

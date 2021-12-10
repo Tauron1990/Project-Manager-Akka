@@ -1,19 +1,18 @@
 ﻿using System;
 using JetBrains.Annotations;
 
-namespace Tauron.Application.Workshop.StateManagement.Builder
+namespace Tauron.Application.Workshop.StateManagement.Builder;
+
+[PublicAPI]
+public interface IStateBuilder<TData> : IDispatcherConfigurable<IStateBuilder<TData>>
+    where TData : class
 {
-    [PublicAPI]
-    public interface IStateBuilder<TData> : IDispatcherConfigurable<IStateBuilder<TData>>
-        where TData : class
-    {
-        IStateBuilder<TData> WithStateType<TState>()
-            where TState : IState;
+    IStateBuilder<TData> WithStateType<TState>()
+        where TState : IState;
 
-        IStateBuilder<TData> WithStateType(Type type);
+    IStateBuilder<TData> WithStateType(Type type);
 
-        IStateBuilder<TData> WithReducer(Func<IReducer<TData>> reducer);
+    IStateBuilder<TData> WithReducer(Func<IReducer<TData>> reducer);
 
-        IStateBuilder<TData> WithKey(string key);
-    }
+    IStateBuilder<TData> WithKey(string key);
 }

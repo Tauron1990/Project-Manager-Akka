@@ -24,25 +24,24 @@
 using Akkatecture.Core.VersionedTypes;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Jobs
-{
-    [PublicAPI]
-    public enum JobEventType
-    {
-        Cancel,
-        Schedule,
-        Finish
-    }
-    
-    [PublicAPI]
-    public interface ISchedulerEvent : IVersionedType
-    {
-        JobEventType GetEventType();
-        string GetJobId();
-    }
+namespace Akkatecture.Jobs;
 
-    // ReSharper disable UnusedTypeParameter
-    public interface ISchedulerEvent<TJob, TIdentity> : ISchedulerEvent
-        where TJob : IJob
-        where TIdentity : IJobId { }
+[PublicAPI]
+public enum JobEventType
+{
+    Cancel,
+    Schedule,
+    Finish
 }
+    
+[PublicAPI]
+public interface ISchedulerEvent : IVersionedType
+{
+    JobEventType GetEventType();
+    string GetJobId();
+}
+
+// ReSharper disable UnusedTypeParameter
+public interface ISchedulerEvent<TJob, TIdentity> : ISchedulerEvent
+    where TJob : IJob
+    where TIdentity : IJobId { }

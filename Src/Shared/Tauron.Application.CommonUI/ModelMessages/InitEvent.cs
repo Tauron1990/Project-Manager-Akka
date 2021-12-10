@@ -1,4 +1,3 @@
-﻿namespace Tauron.Application.CommonUI.ModelMessages
-{
-    public sealed record InitEvent;
-}
+﻿namespace Tauron.Application.CommonUI.ModelMessages;
+
+public sealed record InitEvent;

@@ -27,12 +27,11 @@
 
 using Akkatecture.Core;
 
-namespace Akkatecture.Aggregates
-{
-    public interface IAggregateManager { }
+namespace Akkatecture.Aggregates;
 
-    // ReSharper disable once UnusedTypeParameter
-    public interface IAggregateManager<TAggregate, TIdentity> : IAggregateManager
-        where TAggregate : IAggregateRoot<TIdentity>
-        where TIdentity : IIdentity { }
-}
+public interface IAggregateManager { }
+
+// ReSharper disable once UnusedTypeParameter
+public interface IAggregateManager<TAggregate, TIdentity> : IAggregateManager
+    where TAggregate : IAggregateRoot<TIdentity>
+    where TIdentity : IIdentity { }

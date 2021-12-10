@@ -24,52 +24,51 @@
 using System;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Jobs.Commands
+namespace Akkatecture.Jobs.Commands;
+
+public static class Schedule
 {
-    public static class Schedule
+    public static Schedule<TJob, TId> Fixed<TJob, TId>(TId id, TJob job, DateTime triggerDate)
+        where TId : IJobId where TJob : IJob 
+        => new(id, job, triggerDate);
+
+    public static Schedule<TJob, TId> Repead<TJob, TId>(TId id, TJob job, DateTime triggerDate, TimeSpan interval) 
+        where TId : IJobId where TJob : IJob
+        => new ScheduleRepeatedly<TJob, TId>(id, job, interval, triggerDate);
+
+    public static Schedule<TJob, TId> Cron<TJob, TId>(TId id, TJob job, DateTime triggerDate, string expression) 
+        where TJob : IJob where TId : IJobId
+        => new ScheduleCron<TJob, TId>(id, job, expression, triggerDate);
+}
+
+[PublicAPI]
+public class Schedule<TJob, TIdentity> : SchedulerCommand<TJob, TIdentity>
+    where TJob : IJob
+    where TIdentity : IJobId
+{
+    public Schedule(
+        TIdentity jobId,
+        TJob job,
+        DateTime triggerDate,
+        object? ack = null,
+        object? nack = null)
+        : base(jobId, ack, nack)
     {
-        public static Schedule<TJob, TId> Fixed<TJob, TId>(TId id, TJob job, DateTime triggerDate)
-            where TId : IJobId where TJob : IJob 
-            => new(id, job, triggerDate);
+        if (job == null) throw new ArgumentNullException(nameof(job));
+        if (triggerDate == default) throw new ArgumentException(nameof(triggerDate));
 
-        public static Schedule<TJob, TId> Repead<TJob, TId>(TId id, TJob job, DateTime triggerDate, TimeSpan interval) 
-            where TId : IJobId where TJob : IJob
-            => new ScheduleRepeatedly<TJob, TId>(id, job, interval, triggerDate);
-
-        public static Schedule<TJob, TId> Cron<TJob, TId>(TId id, TJob job, DateTime triggerDate, string expression) 
-            where TJob : IJob where TId : IJobId
-            => new ScheduleCron<TJob, TId>(id, job, expression, triggerDate);
+        Job = job;
+        TriggerDate = triggerDate;
     }
 
-    [PublicAPI]
-    public class Schedule<TJob, TIdentity> : SchedulerCommand<TJob, TIdentity>
-        where TJob : IJob
-        where TIdentity : IJobId
-    {
-        public Schedule(
-            TIdentity jobId,
-            TJob job,
-            DateTime triggerDate,
-            object? ack = null,
-            object? nack = null)
-            : base(jobId, ack, nack)
-        {
-            if (job == null) throw new ArgumentNullException(nameof(job));
-            if (triggerDate == default) throw new ArgumentException(nameof(triggerDate));
+    public TJob Job { get; }
+    public DateTime TriggerDate { get; }
 
-            Job = job;
-            TriggerDate = triggerDate;
-        }
+    public virtual Schedule<TJob, TIdentity>? WithNextTriggerDate(DateTime utcDate) => null;
 
-        public TJob Job { get; }
-        public DateTime TriggerDate { get; }
+    public virtual Schedule<TJob, TIdentity> WithAck(object? ack) => new(JobId, Job, TriggerDate, ack, Nack);
 
-        public virtual Schedule<TJob, TIdentity>? WithNextTriggerDate(DateTime utcDate) => null;
+    public virtual Schedule<TJob, TIdentity> WithNack(object? nack) => new(JobId, Job, TriggerDate, Ack, nack);
 
-        public virtual Schedule<TJob, TIdentity> WithAck(object? ack) => new(JobId, Job, TriggerDate, ack, Nack);
-
-        public virtual Schedule<TJob, TIdentity> WithNack(object? nack) => new(JobId, Job, TriggerDate, Ack, nack);
-
-        public virtual Schedule<TJob, TIdentity> WithOutAcks() => WithAck(null).WithNack(null);
-    }
+    public virtual Schedule<TJob, TIdentity> WithOutAcks() => WithAck(null).WithNack(null);
 }

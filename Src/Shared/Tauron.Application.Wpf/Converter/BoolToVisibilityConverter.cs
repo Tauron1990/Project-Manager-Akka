@@ -4,95 +4,94 @@ using System.Windows.Data;
 using System.Windows.Markup;
 using JetBrains.Annotations;
 
-namespace Tauron.Application.Wpf.Converter
+namespace Tauron.Application.Wpf.Converter;
+
+[PublicAPI]
+[MarkupExtensionReturnType(typeof(IValueConverter))]
+public class StringToIntConverter : ValueConverterFactoryBase
 {
-    [PublicAPI]
-    [MarkupExtensionReturnType(typeof(IValueConverter))]
-    public class StringToIntConverter : ValueConverterFactoryBase
+    protected override IValueConverter Create() => new Converter();
+
+    private class Converter : StringConverterBase<int>
     {
-        protected override IValueConverter Create() => new Converter();
+        protected override bool CanConvertBack => true;
 
-        private class Converter : StringConverterBase<int>
+        protected override string Convert(int value) => value.ToString();
+
+        protected override int ConvertBack(string value)
         {
-            protected override bool CanConvertBack => true;
+            if (string.IsNullOrEmpty(value))
+                return 0;
 
-            protected override string Convert(int value) => value.ToString();
-
-            protected override int ConvertBack(string value)
+            try
             {
-                if (string.IsNullOrEmpty(value))
-                    return 0;
-
-                try
-                {
-                    return int.Parse(value);
-                }
-                catch (Exception e) when (e is ArgumentException || e is FormatException || e is OverflowException)
-                {
-                    return 0;
-                }
+                return int.Parse(value);
+            }
+            catch (Exception e) when (e is ArgumentException || e is FormatException || e is OverflowException)
+            {
+                return 0;
             }
         }
     }
+}
 
 
-    [PublicAPI]
-    [MarkupExtensionReturnType(typeof(IValueConverter))]
-    public class BoolToVisibilityConverter : ValueConverterFactoryBase
+[PublicAPI]
+[MarkupExtensionReturnType(typeof(IValueConverter))]
+public class BoolToVisibilityConverter : ValueConverterFactoryBase
+{
+    public bool IsHidden { get; set; }
+
+    public bool Reverse { get; set; }
+
+    protected override IValueConverter Create() => new Converter(IsHidden, Reverse);
+
+    private class Converter : ValueConverterBase<bool, Visibility>
     {
-        public bool IsHidden { get; set; }
+        private readonly bool _isHidden;
 
-        public bool Reverse { get; set; }
+        private readonly bool _reverse;
 
-        protected override IValueConverter Create() => new Converter(IsHidden, Reverse);
-
-        private class Converter : ValueConverterBase<bool, Visibility>
+        internal Converter(bool isHidden, bool reverse)
         {
-            private readonly bool _isHidden;
+            _isHidden = isHidden;
+            _reverse = reverse;
+        }
 
-            private readonly bool _reverse;
+        protected override bool CanConvertBack => true;
 
-            internal Converter(bool isHidden, bool reverse)
+        protected override Visibility Convert(bool value)
+        {
+            if (_reverse) value = !value;
+
+            if (value) return Visibility.Visible;
+
+            return _isHidden ? Visibility.Hidden : Visibility.Collapsed;
+        }
+
+        protected override bool ConvertBack(Visibility value)
+        {
+            bool result;
+            switch (value)
             {
-                _isHidden = isHidden;
-                _reverse = reverse;
+                case Visibility.Collapsed:
+                case Visibility.Hidden:
+                    result = false;
+
+                    break;
+                case Visibility.Visible:
+                    result = true;
+
+                    break;
+                default:
+                    result = false;
+
+                    break;
             }
 
-            protected override bool CanConvertBack => true;
+            if (_reverse) result = !result;
 
-            protected override Visibility Convert(bool value)
-            {
-                if (_reverse) value = !value;
-
-                if (value) return Visibility.Visible;
-
-                return _isHidden ? Visibility.Hidden : Visibility.Collapsed;
-            }
-
-            protected override bool ConvertBack(Visibility value)
-            {
-                bool result;
-                switch (value)
-                {
-                    case Visibility.Collapsed:
-                    case Visibility.Hidden:
-                        result = false;
-
-                        break;
-                    case Visibility.Visible:
-                        result = true;
-
-                        break;
-                    default:
-                        result = false;
-
-                        break;
-                }
-
-                if (_reverse) result = !result;
-
-                return result;
-            }
+            return result;
         }
     }
 }

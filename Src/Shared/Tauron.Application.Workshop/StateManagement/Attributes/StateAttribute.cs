@@ -1,19 +1,18 @@
 ﻿using System;
 using JetBrains.Annotations;
 
-namespace Tauron.Application.Workshop.StateManagement.Attributes
+namespace Tauron.Application.Workshop.StateManagement.Attributes;
+
+[MeansImplicitUse(ImplicitUseKindFlags.Access)]
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+[BaseTypeRequired(typeof(IState))]
+[PublicAPI]
+public sealed class StateAttribute : Attribute
 {
-    [MeansImplicitUse(ImplicitUseKindFlags.Access)]
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-    [BaseTypeRequired(typeof(IState))]
-    [PublicAPI]
-    public sealed class StateAttribute : Attribute
-    {
-        public StateAttribute(params Type[] types)
-            => Types = types;
+    public StateAttribute(params Type[] types)
+        => Types = types;
 
-        public string? Key { get; set; }
+    public string? Key { get; set; }
 
-        public Type[] Types { get; }
-    }
+    public Type[] Types { get; }
 }

@@ -27,11 +27,10 @@
 
 using JetBrains.Annotations;
 
-namespace Akkatecture.Aggregates.ExecutionResults
+namespace Akkatecture.Aggregates.ExecutionResults;
+
+[PublicAPI]
+public interface IExecutionResult
 {
-    [PublicAPI]
-    public interface IExecutionResult
-    {
-        bool IsSuccess { get; }
-    }
+    bool IsSuccess { get; }
 }

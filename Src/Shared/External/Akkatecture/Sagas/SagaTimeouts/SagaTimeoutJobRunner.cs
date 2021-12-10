@@ -23,16 +23,15 @@
 
 using Akkatecture.Jobs;
 
-namespace Akkatecture.Sagas.SagaTimeouts
-{
-    public class SagaTimeoutJobRunner<TTimeout> : JobRunner<TTimeout, SagaTimeoutId>, IRun<TTimeout>
-        where TTimeout : ISagaTimeoutJob, IJob
-    {
-        public bool Run(TTimeout job)
-        {
-            Context.ActorSelection(Context.Parent.Path.Parent.Parent).Tell(job);
+namespace Akkatecture.Sagas.SagaTimeouts;
 
-            return true;
-        }
+public class SagaTimeoutJobRunner<TTimeout> : JobRunner<TTimeout, SagaTimeoutId>, IRun<TTimeout>
+    where TTimeout : ISagaTimeoutJob, IJob
+{
+    public bool Run(TTimeout job)
+    {
+        Context.ActorSelection(Context.Parent.Path.Parent.Parent).Tell(job);
+
+        return true;
     }
 }

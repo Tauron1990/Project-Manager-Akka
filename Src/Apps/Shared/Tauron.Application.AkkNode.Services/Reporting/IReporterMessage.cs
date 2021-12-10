@@ -1,16 +1,15 @@
 ﻿using System;
 using Akka.Actor;
 
-namespace Tauron.Application.AkkaNode.Services.Reporting
+namespace Tauron.Application.AkkaNode.Services.Reporting;
+
+public interface IReporterMessage
 {
-    public interface IReporterMessage
-    {
-        IActorRef Listner { get; }
+    IActorRef Listner { get; }
 
-        string Info { get; }
+    string Info { get; }
 
-        void SetListner(IActorRef listner);
+    void SetListner(IActorRef listner);
 
-        void ValidateApi(Type apiType);
-    }
+    void ValidateApi(Type apiType);
 }

@@ -28,22 +28,21 @@
 using Akkatecture.Core;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Aggregates
-{
-    [PublicAPI]
-    public interface IAggregateRoot
-    {
-        IAggregateName Name { get; }
-        long Version { get; }
-        bool IsNew { get; }
-        bool HasSourceId(ISourceId sourceId);
-        IIdentity GetIdentity();
-    }
+namespace Akkatecture.Aggregates;
 
-    [PublicAPI]
-    public interface IAggregateRoot<out TIdentity> : IAggregateRoot
-        where TIdentity : IIdentity
-    {
-        TIdentity Id { get; }
-    }
+[PublicAPI]
+public interface IAggregateRoot
+{
+    IAggregateName Name { get; }
+    long Version { get; }
+    bool IsNew { get; }
+    bool HasSourceId(ISourceId sourceId);
+    IIdentity GetIdentity();
+}
+
+[PublicAPI]
+public interface IAggregateRoot<out TIdentity> : IAggregateRoot
+    where TIdentity : IIdentity
+{
+    TIdentity Id { get; }
 }

@@ -33,41 +33,40 @@ using Akkatecture.Aggregates;
 using Akkatecture.Core;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Commands
+namespace Akkatecture.Commands;
+
+[PublicAPI]
+public abstract class DistinctCommand<TAggregate, TIdentity> : ICommand<TAggregate, TIdentity>
+    where TAggregate : IAggregateRoot<TIdentity>
+    where TIdentity : IIdentity
 {
-    [PublicAPI]
-    public abstract class DistinctCommand<TAggregate, TIdentity> : ICommand<TAggregate, TIdentity>
-        where TAggregate : IAggregateRoot<TIdentity>
-        where TIdentity : IIdentity
+    private readonly Lazy<ISourceId> _lazySourceId;
+
+    protected DistinctCommand(
+        TIdentity aggregateId)
     {
-        private readonly Lazy<ISourceId> _lazySourceId;
+        if (aggregateId == null)
+            throw new ArgumentNullException(nameof(aggregateId));
 
-        protected DistinctCommand(
-            TIdentity aggregateId)
-        {
-            if (aggregateId == null)
-                throw new ArgumentNullException(nameof(aggregateId));
+        _lazySourceId = new Lazy<ISourceId>(CalculateSourceId, LazyThreadSafetyMode.PublicationOnly);
 
-            _lazySourceId = new Lazy<ISourceId>(CalculateSourceId, LazyThreadSafetyMode.PublicationOnly);
-
-            AggregateId = aggregateId;
-        }
-
-        public ISourceId SourceId => _lazySourceId.Value;
-        public TIdentity AggregateId { get; }
-
-
-        public ISourceId GetSourceId() => SourceId;
-
-        private CommandId CalculateSourceId()
-        {
-            var bytes = GetSourceIdComponents().SelectMany(data => data).ToArray();
-
-            return CommandId.NewDeterministic(
-                GuidFactories.Deterministic.Namespaces.Commands,
-                bytes);
-        }
-
-        protected abstract IEnumerable<byte[]> GetSourceIdComponents();
+        AggregateId = aggregateId;
     }
+
+    public ISourceId SourceId => _lazySourceId.Value;
+    public TIdentity AggregateId { get; }
+
+
+    public ISourceId GetSourceId() => SourceId;
+
+    private CommandId CalculateSourceId()
+    {
+        var bytes = GetSourceIdComponents().SelectMany(data => data).ToArray();
+
+        return CommandId.NewDeterministic(
+            GuidFactories.Deterministic.Namespaces.Commands,
+            bytes);
+    }
+
+    protected abstract IEnumerable<byte[]> GetSourceIdComponents();
 }

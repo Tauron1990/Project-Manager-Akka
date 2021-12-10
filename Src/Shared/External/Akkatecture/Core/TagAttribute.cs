@@ -1,21 +1,20 @@
 ﻿using System;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Core
+namespace Akkatecture.Core;
+
+public interface ITagAttribute
 {
-    public interface ITagAttribute
-    {
-        string Name { get; }
-    }
+    string Name { get; }
+}
 
 
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-    [PublicAPI]
-    public sealed class TagAttribute : Attribute, ITagAttribute
-    {
-        public TagAttribute(string name)
-            => Name = name;
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+[PublicAPI]
+public sealed class TagAttribute : Attribute, ITagAttribute
+{
+    public TagAttribute(string name)
+        => Name = name;
 
-        public string Name { get; }
-    }
+    public string Name { get; }
 }

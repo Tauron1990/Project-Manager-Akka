@@ -1,8 +1,7 @@
-﻿namespace Tauron.Application.AkkaNode.Services.FileTransfer
+﻿namespace Tauron.Application.AkkaNode.Services.FileTransfer;
+
+public sealed class TransferSucess : TransferMessages.TransferCompled
 {
-    public sealed class TransferSucess : TransferMessages.TransferCompled
-    {
-        public TransferSucess(string operationId, string? data)
-            : base(operationId, data) { }
-    }
+    public TransferSucess(string operationId, string? data)
+        : base(operationId, data) { }
 }

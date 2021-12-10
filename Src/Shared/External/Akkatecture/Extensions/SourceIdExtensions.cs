@@ -27,10 +27,9 @@
 
 using Akkatecture.Core;
 
-namespace Akkatecture.Extensions
+namespace Akkatecture.Extensions;
+
+public static class SourceIdExtensions
 {
-    public static class SourceIdExtensions
-    {
-        public static bool IsNone(this ISourceId sourceId) => string.IsNullOrEmpty(sourceId.Value);
-    }
+    public static bool IsNone(this ISourceId sourceId) => string.IsNullOrEmpty(sourceId.Value);
 }

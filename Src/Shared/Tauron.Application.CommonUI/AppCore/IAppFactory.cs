@@ -1,7 +1,6 @@
-﻿namespace Tauron.Application.CommonUI.AppCore
+﻿namespace Tauron.Application.CommonUI.AppCore;
+
+public interface IAppFactory
 {
-    public interface IAppFactory
-    {
-        IUIApplication Create();
-    }
+    IUIApplication Create();
 }

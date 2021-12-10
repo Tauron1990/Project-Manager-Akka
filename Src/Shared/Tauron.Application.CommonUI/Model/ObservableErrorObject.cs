@@ -12,94 +12,98 @@ using DynamicData.Kernel;
 using JetBrains.Annotations;
 using Tauron.ObservableExt;
 
-namespace Tauron.Application.CommonUI.Model
+namespace Tauron.Application.CommonUI.Model;
+
+[PublicAPI]
+public abstract class ObservableErrorObject : INotifyDataErrorInfo, IObservablePropertyChanged, INotifyPropertyChanged, IDisposable
 {
-    [PublicAPI]
-    public abstract class ObservableErrorObject : INotifyDataErrorInfo, IObservablePropertyChanged, INotifyPropertyChanged, IDisposable
+    private readonly SourceCache<ValidationError, string> _errors = new(ve => ve.Property);
+    private readonly SourceCache<InternalData, string> _propertys = new(d => d.Name);
+
+    protected ObservableErrorObject()
     {
-        private readonly SourceCache<ValidationError, string> _errors = new(ve => ve.Property);
-        private readonly SourceCache<InternalData, string> _propertys = new(d => d.Name);
+        ErrorsChanged = Observable.Create<string>(
+            o => _errors.Connect().Flatten()
+               .Select(c => c.Key)
+               .Subscribe(o));
 
-        protected ObservableErrorObject()
-        {
-            ErrorsChanged = Observable.Create<string>(
-                o => _errors.Connect().Flatten()
-                   .Select(c => c.Key)
-                   .Subscribe(o));
-
+        Disposer.Add
+        (
             _errors.Connect().Select(d => d.Property)
                .Flatten().Subscribe(c => ErrorsChangedInternal?.Invoke(this, new DataErrorsChangedEventArgs(c.Current)))
-               .DisposeWith(Disposer);
+        );
+    }
+
+    protected CompositeDisposable Disposer { get; } = new();
+
+    public int ErrorCount => _errors.Count;
+
+    public string InternalError
+    {
+        get => GetValue(string.Empty);
+        set => SetValue(value);
+    }
+
+    public IObservable<string> ErrorsChanged { get; }
+
+    public void Dispose()
+    {
+        _errors.Dispose();
+        _propertys.Dispose();
+        Disposer.Dispose();
+    }
+
+    IEnumerable INotifyDataErrorInfo.GetErrors(string? propertyName)
+    {
+        if (string.IsNullOrWhiteSpace(propertyName))
+        {
+            foreach (var error in _errors.Items) yield return error.Error;
+
+            yield break;
         }
 
-        protected CompositeDisposable Disposer { get; } = new();
+        var opt = _errors.Lookup(propertyName);
 
-        public int ErrorCount => _errors.Count;
+        if (!opt.HasValue) yield break;
 
-        public string InternalError
-        {
-            get => GetValue(string.Empty);
-            set => SetValue(value);
-        }
+        yield return opt.Value.Error;
+    }
 
-        public IObservable<string> ErrorsChanged { get; }
+    bool INotifyDataErrorInfo.HasErrors => _errors.Count != 0;
 
-        public void Dispose()
-        {
-            _errors.Dispose();
-            _propertys.Dispose();
-            Disposer.Dispose();
-        }
+    event EventHandler<DataErrorsChangedEventArgs>? INotifyDataErrorInfo.ErrorsChanged
+    {
+        add => ErrorsChangedInternal += value;
+        remove => ErrorsChangedInternal -= value;
+    }
 
-        IEnumerable INotifyDataErrorInfo.GetErrors(string? propertyName)
-        {
-            if (string.IsNullOrWhiteSpace(propertyName))
-            {
-                foreach (var error in _errors.Items) yield return error.Error;
+    public event PropertyChangedEventHandler? PropertyChanged;
 
-                yield break;
-            }
-
-            var opt = _errors.Lookup(propertyName);
-
-            if (!opt.HasValue) yield break;
-
-            yield return opt.Value.Error;
-        }
-
-        bool INotifyDataErrorInfo.HasErrors => _errors.Count != 0;
-
-        event EventHandler<DataErrorsChangedEventArgs>? INotifyDataErrorInfo.ErrorsChanged
-        {
-            add => ErrorsChangedInternal += value;
-            remove => ErrorsChangedInternal -= value;
-        }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        IObservable<string> IObservablePropertyChanged.PropertyChangedObservable
-            => _propertys.Connect().Flatten().Select(d => d.Key);
+    IObservable<string> IObservablePropertyChanged.PropertyChangedObservable
+        => _propertys.Connect().Flatten().Select(d => d.Key);
 
 
-        protected void SetValue<TData>(TData value, [CallerMemberName] string? name = null)
-            => _propertys.AddOrUpdate(new InternalData(value, name!));
+    protected void SetValue<TData>(TData value, [CallerMemberName] string? name = null)
+        => _propertys.AddOrUpdate(new InternalData(value, name!));
 
-        protected TData GetValue<TData>(TData defaultData, [CallerMemberName] string? name = null)
-            #pragma warning disable EPS06
-            => _propertys.Lookup(name!).ConvertOr(id => id?.Data is TData data ? data : defaultData, () => defaultData)!;
-        #pragma warning restore EPS06
+    protected TData GetValue<TData>(TData defaultData, [CallerMemberName] string? name = null)
+        #pragma warning disable EPS06
+        => _propertys.Lookup(name!).ConvertOr(id => id?.Data is TData data ? data : defaultData, () => defaultData)!;
+    #pragma warning restore EPS06
 
-        protected IObserver<TData> PropertyObserver<TData>(Expression<Func<TData>> property)
-        {
-            string name = Reflex.PropertyName(property);
+    protected IObserver<TData> PropertyObserver<TData>(Expression<Func<TData>> property)
+    {
+        string name = Reflex.PropertyName(property);
 
-            return Observer.Create<TData>(v => SetValue(v, name), ErrorEncountered);
-        }
+        return Observer.Create<TData>(v => SetValue(v, name), ErrorEncountered);
+    }
 
-        protected void AddValidation<TData>(Expression<Func<TData>> property, Func<IObservable<TData?>, IObservable<string>> validate)
-        {
-            var name = Reflex.PropertyName(property);
+    protected void AddValidation<TData>(Expression<Func<TData>> property, Func<IObservable<TData?>, IObservable<string>> validate)
+    {
+        var name = Reflex.PropertyName(property);
 
+        Disposer.Add
+        (
             _propertys.Connect()
                .Where(o => o.Name == name)
                .Flatten()
@@ -118,11 +122,11 @@ namespace Tauron.Application.CommonUI.Model
                                     {
                                         o.When(
                                             string.IsNullOrWhiteSpace,
-                                            s => s.Select(_ => new Action(() => _errors.RemoveKey(name))));
+                                            s => s.Select(_ => () => _errors.RemoveKey(name)));
                                         o.When(
                                             e => !string.IsNullOrWhiteSpace(e),
                                             no => no.NotEmpty()
-                                               .Select(e => new Action(() => _errors.AddOrUpdate(new ValidationError(e, name)))));
+                                               .Select(e => () => _errors.AddOrUpdate(new ValidationError(e, name))));
                                     });
                         }
 
@@ -135,23 +139,22 @@ namespace Tauron.Application.CommonUI.Model
                         };
                     })
                .AutoSubscribe(a => a(), ErrorEncountered)
-               .DisposeWith(Disposer);
-        }
-
-        public virtual void ErrorEncountered(Exception exception)
-        {
-            InternalError = exception.Message;
-            _errors.AddOrUpdate(new ValidationError(exception.Message, "InternalError"));
-        }
-
-        private event EventHandler<DataErrorsChangedEventArgs>? ErrorsChangedInternal;
-
-        [NotifyPropertyChangedInvocator]
-        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-
-        private sealed record ValidationError(string Error, string Property);
-
-        private sealed record InternalData(object? Data, string Name);
+        );
     }
+
+    public virtual void ErrorEncountered(Exception exception)
+    {
+        InternalError = exception.Message;
+        _errors.AddOrUpdate(new ValidationError(exception.Message, "InternalError"));
+    }
+
+    private event EventHandler<DataErrorsChangedEventArgs>? ErrorsChangedInternal;
+
+    [NotifyPropertyChangedInvocator]
+    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+    private sealed record ValidationError(string Error, string Property);
+
+    private sealed record InternalData(object? Data, string Name);
 }

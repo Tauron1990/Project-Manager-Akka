@@ -1,8 +1,7 @@
-﻿namespace Tauron.Application.CommonUI.Helper
+﻿namespace Tauron.Application.CommonUI.Helper;
+
+public interface IBinderControllable
 {
-    public interface IBinderControllable
-    {
-        void Register(string key, IControlBindable bindable, IUIObject affectedPart);
-        void CleanUp(string key);
-    }
+    void Register(string key, IControlBindable bindable, IUIObject affectedPart);
+    void CleanUp(string key);
 }

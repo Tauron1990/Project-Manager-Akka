@@ -34,239 +34,238 @@ using Akkatecture.Jobs.Commands;
 using Akkatecture.Jobs.Events;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Jobs
+namespace Akkatecture.Jobs;
+
+[PublicAPI]
+public class JobScheduler<TJobScheduler, TJob, TIdentity> : ReceivePersistentActor, IJobScheduler<TIdentity>
+    where TJobScheduler : JobScheduler<TJobScheduler, TJob, TIdentity>
+    where TJob : IJob
+    where TIdentity : IJobId
 {
-    [PublicAPI]
-    public class JobScheduler<TJobScheduler, TJob, TIdentity> : ReceivePersistentActor, IJobScheduler<TIdentity>
-        where TJobScheduler : JobScheduler<TJobScheduler, TJob, TIdentity>
-        where TJob : IJob
-        where TIdentity : IJobId
+    private static readonly IJobName JobName = typeof(TJob).GetJobName();
+    private readonly IJobDefinitionService _jobDefinitionService;
+    private readonly ICancelable _tickerTask;
+
+    protected JobScheduler()
     {
-        private static readonly IJobName JobName = typeof(TJob).GetJobName();
-        private readonly IJobDefinitionService _jobDefinitionService;
-        private readonly ICancelable _tickerTask;
+        if (this is not TJobScheduler)
+            throw new InvalidOperationException(
+                $"JobScheduler for Job of Name={Name} specifies Type={typeof(TJobScheduler).PrettyPrint()} as generic argument, it should be its own type.");
 
-        protected JobScheduler()
+        Settings = new JobSchedulerSettings(Context.System.Settings.Config);
+        State = SchedulerState<TJob, TIdentity>.New;
+
+
+        PersistenceId = $"{Name}-scheduler";
+        JournalPluginId = Settings.JournalPluginId;
+        SnapshotPluginId = Settings.SnapshotPluginId;
+
+        _tickerTask =
+            Context
+               .System
+               .Scheduler
+               .ScheduleTellRepeatedlyCancelable(
+                    Settings.TickInterval,
+                    Settings.TickInterval,
+                    Self,
+                    Tick<TJob, TIdentity>.Instance,
+                    ActorRefs.NoSender);
+
+        _jobDefinitionService = new JobDefinitionService(Context.GetLogger());
+
+        Command<Tick<TJob, TIdentity>>(Execute);
+        Command<Schedule<TJob, TIdentity>>(Execute);
+        Command<Cancel<TJob, TIdentity>>(Execute);
+
+        Recover<Scheduled<TJob, TIdentity>>(ApplySchedulerEvent);
+        Recover<Cancelled<TJob, TIdentity>>(ApplySchedulerEvent);
+        Recover<Finished<TJob, TIdentity>>(ApplySchedulerEvent);
+        Recover<SnapshotOffer>(Recover);
+
+        Command<SaveSnapshotSuccess>(Execute);
+        Command<SaveSnapshotFailure>(Execute);
+        Command<DeleteMessagesSuccess>(Execute);
+        Command<DeleteMessagesFailure>(Execute);
+    }
+
+    public IJobName Name => JobName;
+    protected SchedulerState<TJob, TIdentity> State { get; private set; }
+    protected JobSchedulerSettings Settings { get; }
+    public override string PersistenceId { get; }
+
+    private bool Execute(Tick<TJob, TIdentity> tick)
+    {
+        var now = Context.System.Scheduler.Now.UtcDateTime;
+
+        foreach (var schedule in State.Entries.Values.Where(schedule => ShouldTriggerSchedule(schedule, now)))
         {
-            if (this is not TJobScheduler)
-                throw new InvalidOperationException(
-                    $"JobScheduler for Job of Name={Name} specifies Type={typeof(TJobScheduler).PrettyPrint()} as generic argument, it should be its own type.");
-
-            Settings = new JobSchedulerSettings(Context.System.Settings.Config);
-            State = SchedulerState<TJob, TIdentity>.New;
-
-
-            PersistenceId = $"{Name}-scheduler";
-            JournalPluginId = Settings.JournalPluginId;
-            SnapshotPluginId = Settings.SnapshotPluginId;
-
-            _tickerTask =
-                Context
-                   .System
-                   .Scheduler
-                   .ScheduleTellRepeatedlyCancelable(
-                        Settings.TickInterval,
-                        Settings.TickInterval,
-                        Self,
-                        Tick<TJob, TIdentity>.Instance,
-                        ActorRefs.NoSender);
-
-            _jobDefinitionService = new JobDefinitionService(Context.GetLogger());
-
-            Command<Tick<TJob, TIdentity>>(Execute);
-            Command<Schedule<TJob, TIdentity>>(Execute);
-            Command<Cancel<TJob, TIdentity>>(Execute);
-
-            Recover<Scheduled<TJob, TIdentity>>(ApplySchedulerEvent);
-            Recover<Cancelled<TJob, TIdentity>>(ApplySchedulerEvent);
-            Recover<Finished<TJob, TIdentity>>(ApplySchedulerEvent);
-            Recover<SnapshotOffer>(Recover);
-
-            Command<SaveSnapshotSuccess>(Execute);
-            Command<SaveSnapshotFailure>(Execute);
-            Command<DeleteMessagesSuccess>(Execute);
-            Command<DeleteMessagesFailure>(Execute);
-        }
-
-        public IJobName Name => JobName;
-        protected SchedulerState<TJob, TIdentity> State { get; private set; }
-        protected JobSchedulerSettings Settings { get; }
-        public override string PersistenceId { get; }
-
-        private bool Execute(Tick<TJob, TIdentity> tick)
-        {
-            var now = Context.System.Scheduler.Now.UtcDateTime;
-
-            foreach (var schedule in State.Entries.Values.Where(schedule => ShouldTriggerSchedule(schedule, now)))
-            {
-                _jobDefinitionService.Load(schedule.Job.GetType());
-                var jobDefinition = _jobDefinitionService.GetDefinition(schedule.Job.GetType());
-                Log.Info(
-                    "JobScheduler for Job of Name={0}; sending job of Definition={1} to JobRunner.",
-                    Name,
-                    jobDefinition);
-
-                var manager = Context.ActorSelection(Context.Parent.Path.Parent);
-                manager.Tell(schedule.Job, ActorRefs.NoSender);
-
-                Emit(new Finished<TJob, TIdentity>(schedule.JobId, now), ApplySchedulerEvent);
-
-                var next = schedule.WithNextTriggerDate(now);
-                if (next != null)
-                    Emit(new Scheduled<TJob, TIdentity>(next), ApplySchedulerEvent);
-            }
-
-            return true;
-        }
-
-        protected bool Execute(Schedule<TJob, TIdentity> command)
-        {
-            var sender = Sender;
-            _jobDefinitionService.Load(command.Job.GetType());
-            var jobDefinition = _jobDefinitionService.GetDefinition(command.Job.GetType());
-            try
-            {
-                Emit(
-                    new Scheduled<TJob, TIdentity>(command.WithOutAcks()),
-                    schedulerEvent =>
-                    {
-                        ApplySchedulerEvent(schedulerEvent);
-
-                        if (!sender.IsNobody() && command.Ack != null) sender.Tell(command.Ack);
-
-                        Log.Info(
-                            "JobScheduler for Job of Name={0}, Definition={1}, and Id={2}; has been successfully scheduled to run at TriggerDate={3}.",
-                            Name,
-                            jobDefinition,
-                            schedulerEvent.Entry.JobId,
-                            schedulerEvent.Entry.TriggerDate);
-                    });
-            }
-            catch (Exception error)
-            {
-                if (!sender.IsNobody() && command.Nack != null) sender.Tell(command.Nack);
-
-                Log.Error(
-                    error,
-                    "JobScheduler for Job of Name={0}, and Definition={1}, and Id={2}; has failed to schedule a job.",
-                    Name,
-                    jobDefinition,
-                    command.JobId);
-            }
-
-            return true;
-        }
-
-        protected bool Execute(Cancel<TJob, TIdentity> command)
-        {
-            var sender = Sender;
-            var jobId = command.JobId;
-            var now = Context.System.Scheduler.Now.UtcDateTime;
-            try
-            {
-                Emit(
-                    new Cancelled<TJob, TIdentity>(command.JobId, now),
-                    schedulerEvent =>
-                    {
-                        ApplySchedulerEvent(schedulerEvent);
-                        if (!sender.IsNobody() && command.Ack != null) sender.Tell(command.Ack);
-                        Log.Info(
-                            "JobScheduler for Job of Name={0}, and Id={1}; has been successfully cancelled.",
-                            Name,
-                            schedulerEvent.JobId);
-                    });
-            }
-            catch (Exception error)
-            {
-                if (!sender.IsNobody() && command.Nack != null) sender.Tell(command.Nack);
-
-                Log.Error(error, "JobScheduler for Job of Name={0}, and Id={1}; has failed to cancel.", Name, jobId);
-            }
-
-            return true;
-        }
-
-        private bool Execute(SaveSnapshotSuccess command)
-        {
-            Log.Debug(
-                "JobScheduler for Job of Name={0}; Successfully saved its scheduler snapshot. Removing all events before SequenceNr={1}.",
+            _jobDefinitionService.Load(schedule.Job.GetType());
+            var jobDefinition = _jobDefinitionService.GetDefinition(schedule.Job.GetType());
+            Log.Info(
+                "JobScheduler for Job of Name={0}; sending job of Definition={1} to JobRunner.",
                 Name,
-                command.Metadata.SequenceNr);
-            DeleteMessages(command.Metadata.SequenceNr - 1);
+                jobDefinition);
 
-            return true;
+            var manager = Context.ActorSelection(Context.Parent.Path.Parent);
+            manager.Tell(schedule.Job, ActorRefs.NoSender);
+
+            Emit(new Finished<TJob, TIdentity>(schedule.JobId, now), ApplySchedulerEvent);
+
+            var next = schedule.WithNextTriggerDate(now);
+            if (next != null)
+                Emit(new Scheduled<TJob, TIdentity>(next), ApplySchedulerEvent);
         }
 
-        private bool Execute(SaveSnapshotFailure command)
+        return true;
+    }
+
+    protected bool Execute(Schedule<TJob, TIdentity> command)
+    {
+        var sender = Sender;
+        _jobDefinitionService.Load(command.Job.GetType());
+        var jobDefinition = _jobDefinitionService.GetDefinition(command.Job.GetType());
+        try
         {
+            Emit(
+                new Scheduled<TJob, TIdentity>(command.WithOutAcks()),
+                schedulerEvent =>
+                {
+                    ApplySchedulerEvent(schedulerEvent);
+
+                    if (!sender.IsNobody() && command.Ack != null) sender.Tell(command.Ack);
+
+                    Log.Info(
+                        "JobScheduler for Job of Name={0}, Definition={1}, and Id={2}; has been successfully scheduled to run at TriggerDate={3}.",
+                        Name,
+                        jobDefinition,
+                        schedulerEvent.Entry.JobId,
+                        schedulerEvent.Entry.TriggerDate);
+                });
+        }
+        catch (Exception error)
+        {
+            if (!sender.IsNobody() && command.Nack != null) sender.Tell(command.Nack);
+
             Log.Error(
-                command.Cause,
-                "JobScheduler for Job of Name={0}, at SequenceNr={1}; Failed to save scheduler snapshot.",
+                error,
+                "JobScheduler for Job of Name={0}, and Definition={1}, and Id={2}; has failed to schedule a job.",
                 Name,
-                command.Metadata.SequenceNr);
-
-            return true;
+                jobDefinition,
+                command.JobId);
         }
 
-        private bool Execute(DeleteMessagesSuccess command)
-        {
-            Log.Debug(
-                "Job of Name={0} at SequenceNr={1}; deleted scheduler messages to SequenceNr={2}.",
-                Name,
-                LastSequenceNr,
-                command.ToSequenceNr);
+        return true;
+    }
 
-            return true;
+    protected bool Execute(Cancel<TJob, TIdentity> command)
+    {
+        var sender = Sender;
+        var jobId = command.JobId;
+        var now = Context.System.Scheduler.Now.UtcDateTime;
+        try
+        {
+            Emit(
+                new Cancelled<TJob, TIdentity>(command.JobId, now),
+                schedulerEvent =>
+                {
+                    ApplySchedulerEvent(schedulerEvent);
+                    if (!sender.IsNobody() && command.Ack != null) sender.Tell(command.Ack);
+                    Log.Info(
+                        "JobScheduler for Job of Name={0}, and Id={1}; has been successfully cancelled.",
+                        Name,
+                        schedulerEvent.JobId);
+                });
+        }
+        catch (Exception error)
+        {
+            if (!sender.IsNobody() && command.Nack != null) sender.Tell(command.Nack);
+
+            Log.Error(error, "JobScheduler for Job of Name={0}, and Id={1}; has failed to cancel.", Name, jobId);
         }
 
-        private bool Execute(DeleteMessagesFailure command)
+        return true;
+    }
+
+    private bool Execute(SaveSnapshotSuccess command)
+    {
+        Log.Debug(
+            "JobScheduler for Job of Name={0}; Successfully saved its scheduler snapshot. Removing all events before SequenceNr={1}.",
+            Name,
+            command.Metadata.SequenceNr);
+        DeleteMessages(command.Metadata.SequenceNr - 1);
+
+        return true;
+    }
+
+    private bool Execute(SaveSnapshotFailure command)
+    {
+        Log.Error(
+            command.Cause,
+            "JobScheduler for Job of Name={0}, at SequenceNr={1}; Failed to save scheduler snapshot.",
+            Name,
+            command.Metadata.SequenceNr);
+
+        return true;
+    }
+
+    private bool Execute(DeleteMessagesSuccess command)
+    {
+        Log.Debug(
+            "Job of Name={0} at SequenceNr={1}; deleted scheduler messages to SequenceNr={2}.",
+            Name,
+            LastSequenceNr,
+            command.ToSequenceNr);
+
+        return true;
+    }
+
+    private bool Execute(DeleteMessagesFailure command)
+    {
+        Log.Error(
+            command.Cause,
+            "Job of Name={0} at SequenceNr={1}; Failed to delete scheduler messages to SequenceNr={2}.",
+            Name,
+            LastSequenceNr,
+            command.ToSequenceNr);
+
+        return true;
+    }
+
+    private bool Recover(SnapshotOffer offer)
+    {
+        if (offer.Snapshot is SchedulerState<TJob, TIdentity> state) State = state;
+
+        return true;
+    }
+
+    protected virtual bool ShouldTriggerSchedule(Schedule<TJob, TIdentity> schedule, DateTime now)
+    {
+        var shouldTrigger = schedule.TriggerDate <= now;
+
+        return shouldTrigger;
+    }
+
+    public void ApplySchedulerEvent(SchedulerEvent<TJob, TIdentity> schedulerEvent)
+    {
+        State = schedulerEvent switch
         {
-            Log.Error(
-                command.Cause,
-                "Job of Name={0} at SequenceNr={1}; Failed to delete scheduler messages to SequenceNr={2}.",
-                Name,
-                LastSequenceNr,
-                command.ToSequenceNr);
-
-            return true;
-        }
-
-        private bool Recover(SnapshotOffer offer)
-        {
-            if (offer.Snapshot is SchedulerState<TJob, TIdentity> state) State = state;
-
-            return true;
-        }
-
-        protected virtual bool ShouldTriggerSchedule(Schedule<TJob, TIdentity> schedule, DateTime now)
-        {
-            var shouldTrigger = schedule.TriggerDate <= now;
-
-            return shouldTrigger;
-        }
-
-        public void ApplySchedulerEvent(SchedulerEvent<TJob, TIdentity> schedulerEvent)
-        {
-            State = schedulerEvent switch
-            {
-                Scheduled<TJob, TIdentity> scheduled => State.AddEntry(scheduled.Entry),
-                Finished<TJob, TIdentity> completed => State.RemoveEntry(completed.JobId),
-                Cancelled<TJob, TIdentity> cancelled => State.RemoveEntry(cancelled.JobId),
-                _ => throw new ArgumentException(nameof(schedulerEvent))
-            };
+            Scheduled<TJob, TIdentity> scheduled => State.AddEntry(scheduled.Entry),
+            Finished<TJob, TIdentity> completed => State.RemoveEntry(completed.JobId),
+            Cancelled<TJob, TIdentity> cancelled => State.RemoveEntry(cancelled.JobId),
+            _ => throw new ArgumentException(nameof(schedulerEvent))
+        };
             
-            Context.System.EventStream.Publish(schedulerEvent);
-        }
+        Context.System.EventStream.Publish(schedulerEvent);
+    }
 
-        private void Emit<TEvent>(TEvent schedulerEvent, Action<TEvent> handler)
-            where TEvent : SchedulerEvent<TJob, TIdentity>
-            => PersistAsync(schedulerEvent, handler);
+    private void Emit<TEvent>(TEvent schedulerEvent, Action<TEvent> handler)
+        where TEvent : SchedulerEvent<TJob, TIdentity>
+        => PersistAsync(schedulerEvent, handler);
 
-        protected override void PostStop()
-        {
-            _tickerTask.Cancel();
-            Log.Info("JobScheduler for Job Name={0} has stopped.", Name);
-            base.PostStop();
-        }
+    protected override void PostStop()
+    {
+        _tickerTask.Cancel();
+        Log.Info("JobScheduler for Job Name={0} has stopped.", Name);
+        base.PostStop();
     }
 }

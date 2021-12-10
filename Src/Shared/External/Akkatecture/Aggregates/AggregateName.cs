@@ -27,11 +27,10 @@
 
 using Akkatecture.ValueObjects;
 
-namespace Akkatecture.Aggregates
+namespace Akkatecture.Aggregates;
+
+public class AggregateName : SingleValueObject<string>, IAggregateName
 {
-    public class AggregateName : SingleValueObject<string>, IAggregateName
-    {
-        public AggregateName(string value)
-            : base(value) { }
-    }
+    public AggregateName(string value)
+        : base(value) { }
 }

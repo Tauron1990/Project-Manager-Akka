@@ -1,7 +1,6 @@
-﻿namespace Tauron.Application.Workshop.StateManagement
+﻿namespace Tauron.Application.Workshop.StateManagement;
+
+public interface IChangeTrackable
 {
-    public interface IChangeTrackable
-    {
-        bool IsChanged { get; }
-    }
+    bool IsChanged { get; }
 }

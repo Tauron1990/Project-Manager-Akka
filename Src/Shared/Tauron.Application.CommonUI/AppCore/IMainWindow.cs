@@ -1,11 +1,10 @@
 ﻿using System;
 using JetBrains.Annotations;
 
-namespace Tauron.Application.CommonUI.AppCore
+namespace Tauron.Application.CommonUI.AppCore;
+
+[PublicAPI]
+public interface IMainWindow : IWindowProvider
 {
-    [PublicAPI]
-    public interface IMainWindow : IWindowProvider
-    {
-        event EventHandler? Shutdown;
-    }
+    event EventHandler? Shutdown;
 }

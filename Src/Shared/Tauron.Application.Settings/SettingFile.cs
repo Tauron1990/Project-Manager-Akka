@@ -3,48 +3,47 @@ using System.Collections.Immutable;
 using Akka.Actor;
 using Akka.Event;
 
-namespace Tauron.Application.Settings
+namespace Tauron.Application.Settings;
+
+public sealed class SettingFile : ReceiveActor
 {
-    public sealed class SettingFile : ReceiveActor
+    private readonly ILoggingAdapter _log = Context.GetLogger();
+    private readonly ISettingProvider _provider;
+    private ImmutableDictionary<string, string> _data = ImmutableDictionary<string, string>.Empty;
+    private bool _isLoaded;
+
+    public SettingFile(ISettingProvider provider)
     {
-        private readonly ILoggingAdapter _log = Context.GetLogger();
-        private readonly ISettingProvider _provider;
-        private ImmutableDictionary<string, string> _data = ImmutableDictionary<string, string>.Empty;
-        private bool _isLoaded;
+        _provider = provider;
 
-        public SettingFile(ISettingProvider provider)
+        Receive<RequestAllValues>(RequestAllValues);
+        Receive<SetSettingValue>(SetSettingValue);
+    }
+
+    private void SetSettingValue(SetSettingValue obj)
+    {
+        _log.Info("Set Setting Value and Save {Scope}:{Key}--{Value}", obj.SettingsScope, obj.Name, obj.Value);
+        _data = _data.SetItem(obj.Name, obj.Value);
+        _provider.Save(_data);
+    }
+
+    private void RequestAllValues(RequestAllValues obj)
+    {
+        try
         {
-            _provider = provider;
-
-            Receive<RequestAllValues>(RequestAllValues);
-            Receive<SetSettingValue>(SetSettingValue);
-        }
-
-        private void SetSettingValue(SetSettingValue obj)
-        {
-            _log.Info("Set Setting Value and Save {Scope}:{Key}--{Value}", obj.SettingsScope, obj.Name, obj.Value);
-            _data = _data.SetItem(obj.Name, obj.Value);
-            _provider.Save(_data);
-        }
-
-        private void RequestAllValues(RequestAllValues obj)
-        {
-            try
+            if (!_isLoaded)
             {
-                if (!_isLoaded)
-                {
-                    _log.Info("Load Settings Value");
-                    _data = _provider.Load();
-                }
+                _log.Info("Load Settings Value");
+                _data = _provider.Load();
             }
-            catch (Exception e)
-            {
-                _log.Error(e, "Error on Load Configuration");
-                _data = ImmutableDictionary<string, string>.Empty;
-            }
-
-            _isLoaded = true;
-            Context.Sender.Tell(_data);
         }
+        catch (Exception e)
+        {
+            _log.Error(e, "Error on Load Configuration");
+            _data = ImmutableDictionary<string, string>.Empty;
+        }
+
+        _isLoaded = true;
+        Context.Sender.Tell(_data);
     }
 }

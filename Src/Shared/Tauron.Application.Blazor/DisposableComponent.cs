@@ -5,43 +5,42 @@ using Microsoft.AspNetCore.Components;
 using Stl.Fusion.Blazor;
 using Tauron.TAkka;
 
-namespace Tauron.Application.Blazor
+namespace Tauron.Application.Blazor;
+
+[PublicAPI]
+public abstract class DisposableComponent : ComponentBase, IResourceHolder
 {
-    [PublicAPI]
-    public abstract class DisposableComponent : ComponentBase, IResourceHolder
+    private readonly CompositeDisposable _disposables = new();
+
+    public void AddResource(IDisposable disposable) => _disposables.Add(disposable);
+
+    public void RemoveResource(IDisposable res) => _disposables.Remove(res);
+
+    public void Dispose()
     {
-        private readonly CompositeDisposable _disposables = new();
-
-        public void AddResource(IDisposable disposable) => _disposables.Add(disposable);
-
-        public void RemoveResource(IDisposable res) => _disposables.Remove(res);
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                _disposables.Dispose();
-            }
-        }
+        Dispose(true);
+        GC.SuppressFinalize(this);
     }
 
-    public abstract class DisposableComponent<TState> : ComputedStateComponent<TState>, IResourceHolder
+    protected virtual void Dispose(bool disposing)
     {
-        private readonly CompositeDisposable _disposables = new();
-
-        public void AddResource(IDisposable disposable) => _disposables.Add(disposable);
-
-        public void RemoveResource(IDisposable res) => _disposables.Remove(res);
-
-        public void Dispose()
+        if (disposing)
         {
             _disposables.Dispose();
         }
+    }
+}
+
+public abstract class DisposableComponent<TState> : ComputedStateComponent<TState>, IResourceHolder
+{
+    private readonly CompositeDisposable _disposables = new();
+
+    public void AddResource(IDisposable disposable) => _disposables.Add(disposable);
+
+    public void RemoveResource(IDisposable res) => _disposables.Remove(res);
+
+    public void Dispose()
+    {
+        _disposables.Dispose();
     }
 }

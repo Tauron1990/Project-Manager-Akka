@@ -1,10 +1,9 @@
 ﻿using System;
 using Tauron.Application.CommonUI.Helper;
 
-namespace Tauron.Application.CommonUI
+namespace Tauron.Application.CommonUI;
+
+public interface IView : IBinderControllable
 {
-    public interface IView : IBinderControllable
-    {
-        event Action? ControlUnload;
-    }
+    event Action? ControlUnload;
 }

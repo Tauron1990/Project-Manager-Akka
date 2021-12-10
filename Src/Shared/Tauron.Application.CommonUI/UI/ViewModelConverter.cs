@@ -1,24 +1,23 @@
-﻿namespace Tauron.Application.CommonUI.UI
+﻿namespace Tauron.Application.CommonUI.UI;
+
+public class ViewModelConverter
 {
-    public class ViewModelConverter
+    public object Convert(object value)
     {
-        public object Convert(object value)
-        {
-            //if(!(parameter is IView root)) return value;
-            if (value is not IViewModel model) return value;
+        //if(!(parameter is IView root)) return value;
+        if (value is not IViewModel model) return value;
 
-            //var view = root.ViewManager.Get(model, root);
-            //if (view != null)
-            //    return view;
+        //var view = root.ViewManager.Get(model, root);
+        //if (view != null)
+        //    return view;
 
-            var manager = AutoViewLocation.Manager;
-            var view = manager.ResolveView(model);
+        var manager = AutoViewLocation.Manager;
+        var view = manager.ResolveView(model);
 
-            return view.HasValue ? view.Value : value;
+        return view.HasValue ? view.Value : value;
 
-            //root.ViewManager.ThenRegister(model, view, root);
-        }
-
-        public object? ConvertBack(object value) => ((dynamic)value).DataContext;
+        //root.ViewManager.ThenRegister(model, view, root);
     }
+
+    public object? ConvertBack(object value) => ((dynamic)value).DataContext;
 }

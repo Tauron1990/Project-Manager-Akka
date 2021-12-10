@@ -28,17 +28,16 @@
 using Akkatecture.Core;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Entities
-{
-    [PublicAPI]
-    public interface IEntity
-    {
-        IIdentity GetIdentity();
-    }
+namespace Akkatecture.Entities;
 
-    public interface IEntity<out TIdentity> : IEntity
-        where TIdentity : IIdentity
-    {
-        TIdentity Id { get; }
-    }
+[PublicAPI]
+public interface IEntity
+{
+    IIdentity GetIdentity();
+}
+
+public interface IEntity<out TIdentity> : IEntity
+    where TIdentity : IIdentity
+{
+    TIdentity Id { get; }
 }

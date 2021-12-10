@@ -30,15 +30,14 @@ using Akka.Event;
 using Akkatecture.Aggregates;
 using Akkatecture.Core.VersionedTypes;
 
-namespace Akkatecture.Events
-{
-    public class EventDefinitionService :
-        VersionedTypeDefinitionService<IAggregateEvent, EventVersionAttribute, EventDefinition>, IEventDefinitionService
-    {
-        public EventDefinitionService(ILoggingAdapter? logger)
-            : base(logger) { }
+namespace Akkatecture.Events;
 
-        protected override EventDefinition CreateDefinition(int version, Type type, string name)
-            => new(version, type, name);
-    }
+public class EventDefinitionService :
+    VersionedTypeDefinitionService<IAggregateEvent, EventVersionAttribute, EventDefinition>, IEventDefinitionService
+{
+    public EventDefinitionService(ILoggingAdapter? logger)
+        : base(logger) { }
+
+    protected override EventDefinition CreateDefinition(int version, Type type, string name)
+        => new(version, type, name);
 }

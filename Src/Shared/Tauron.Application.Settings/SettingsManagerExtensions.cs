@@ -3,22 +3,21 @@ using Akka.Actor;
 using Autofac;
 using Tauron.TAkka;
 
-namespace Tauron.Application.Settings
-{
-    public static class SettingsManagerExtensions
-    {
-        public static void RegisterSettingsManager(this ContainerBuilder builder, Action<SettingsConfiguration>? config = null)
-        {
-            if (config != null)
-            {
-                var s = new SettingsConfiguration(builder);
-                config(s);
-            }
+namespace Tauron.Application.Settings;
 
-            builder.RegisterType<DefaultActorRef<SettingsManager>>().As<IDefaultActorRef<SettingsManager>>()
-               .OnActivating(i => i.Instance.Init("Settings-Manager"))
-               .OnRelease(sm => sm.Actor.Tell(PoisonPill.Instance))
-               .SingleInstance();
+public static class SettingsManagerExtensions
+{
+    public static void RegisterSettingsManager(this ContainerBuilder builder, Action<SettingsConfiguration>? config = null)
+    {
+        if (config != null)
+        {
+            var s = new SettingsConfiguration(builder);
+            config(s);
         }
+
+        builder.RegisterType<DefaultActorRef<SettingsManager>>().As<IDefaultActorRef<SettingsManager>>()
+           .OnActivating(i => i.Instance.Init("Settings-Manager"))
+           .OnRelease(sm => sm.Actor.Tell(PoisonPill.Instance))
+           .SingleInstance();
     }
 }

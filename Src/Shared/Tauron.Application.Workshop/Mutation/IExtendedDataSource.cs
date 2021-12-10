@@ -1,13 +1,12 @@
 ﻿using System.Threading.Tasks;
 
-namespace Tauron.Application.Workshop.Mutation
+namespace Tauron.Application.Workshop.Mutation;
+
+public interface IExtendedDataSource<TData>
 {
-    public interface IExtendedDataSource<TData>
-    {
-        Task<TData> GetData(IQuery query);
+    Task<TData> GetData(IQuery query);
 
-        Task SetData(IQuery query, TData data);
+    Task SetData(IQuery query, TData data);
 
-        Task OnCompled(IQuery query);
-    }
+    Task OnCompled(IQuery query);
 }

@@ -23,11 +23,10 @@
 
 using Akkatecture.ValueObjects;
 
-namespace Akkatecture.Jobs
+namespace Akkatecture.Jobs;
+
+public class JobName : SingleValueObject<string>, IJobName
 {
-    public class JobName : SingleValueObject<string>, IJobName
-    {
-        public JobName(string value)
-            : base(value) { }
-    }
+    public JobName(string value)
+        : base(value) { }
 }

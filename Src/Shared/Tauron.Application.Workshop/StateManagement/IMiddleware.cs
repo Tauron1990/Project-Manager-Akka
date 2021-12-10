@@ -1,13 +1,12 @@
-﻿namespace Tauron.Application.Workshop.StateManagement
+﻿namespace Tauron.Application.Workshop.StateManagement;
+
+public interface IMiddleware
 {
-    public interface IMiddleware
-    {
-        void Initialize(RootManager store);
+    void Initialize(RootManager store);
 
-        void AfterInitializeAllMiddlewares();
+    void AfterInitializeAllMiddlewares();
 
-        bool MayDispatchAction(IStateAction action);
+    bool MayDispatchAction(IStateAction action);
 
-        void BeforeDispatch(IStateAction action);
-    }
+    void BeforeDispatch(IStateAction action);
 }

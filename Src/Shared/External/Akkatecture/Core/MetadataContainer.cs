@@ -31,48 +31,47 @@ using System.Linq;
 using Akkatecture.Exceptions;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Core
+namespace Akkatecture.Core;
+
+[PublicAPI]
+public class MetadataContainer : Dictionary<string, string>
 {
-    [PublicAPI]
-    public class MetadataContainer : Dictionary<string, string>
+    public MetadataContainer() { }
+
+    public MetadataContainer(IDictionary<string, string> keyValuePairs)
+        : base(keyValuePairs) { }
+
+    public MetadataContainer(IEnumerable<KeyValuePair<string, string>> keyValuePairs)
+        : base(keyValuePairs.ToDictionary(kv => kv.Key, kv => kv.Value)) { }
+
+    public MetadataContainer(params KeyValuePair<string, string>[] keyValuePairs)
+        : this((IEnumerable<KeyValuePair<string, string>>)keyValuePairs) { }
+
+    public void AddRange(params KeyValuePair<string, string>[] keyValuePairs)
+        => AddRange((IEnumerable<KeyValuePair<string, string>>)keyValuePairs);
+
+    public void AddRange(IEnumerable<KeyValuePair<string, string>> keyValuePairs)
     {
-        public MetadataContainer() { }
+        foreach (var (key, value) in keyValuePairs) Add(key, value);
+    }
 
-        public MetadataContainer(IDictionary<string, string> keyValuePairs)
-            : base(keyValuePairs) { }
+    public override string ToString()
+        => string.Join(Environment.NewLine, this.Select(kv => $"{kv.Key}: {kv.Value}"));
 
-        public MetadataContainer(IEnumerable<KeyValuePair<string, string>> keyValuePairs)
-            : base(keyValuePairs.ToDictionary(kv => kv.Key, kv => kv.Value)) { }
+    public string GetMetadataValue(string key)
+        => GetMetadataValue(key, value => value);
 
-        public MetadataContainer(params KeyValuePair<string, string>[] keyValuePairs)
-            : this((IEnumerable<KeyValuePair<string, string>>)keyValuePairs) { }
+    public virtual T GetMetadataValue<T>(string key, Func<string, T> converter)
+    {
+        if (!TryGetValue(key, out var value)) throw new MetadataKeyNotFoundException(key);
 
-        public void AddRange(params KeyValuePair<string, string>[] keyValuePairs)
-            => AddRange((IEnumerable<KeyValuePair<string, string>>)keyValuePairs);
-
-        public void AddRange(IEnumerable<KeyValuePair<string, string>> keyValuePairs)
+        try
         {
-            foreach (var (key, value) in keyValuePairs) Add(key, value);
+            return converter(value);
         }
-
-        public override string ToString()
-            => string.Join(Environment.NewLine, this.Select(kv => $"{kv.Key}: {kv.Value}"));
-
-        public string GetMetadataValue(string key)
-            => GetMetadataValue(key, value => value);
-
-        public virtual T GetMetadataValue<T>(string key, Func<string, T> converter)
+        catch (Exception exception)
         {
-            if (!TryGetValue(key, out var value)) throw new MetadataKeyNotFoundException(key);
-
-            try
-            {
-                return converter(value);
-            }
-            catch (Exception exception)
-            {
-                throw new MetadataParseException(key, value, exception);
-            }
+            throw new MetadataParseException(key, value, exception);
         }
     }
 }

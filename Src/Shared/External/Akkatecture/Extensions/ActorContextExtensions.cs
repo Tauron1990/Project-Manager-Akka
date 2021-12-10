@@ -24,12 +24,11 @@
 using Akka.Actor;
 using Akkatecture.Core;
 
-namespace Akkatecture.Extensions
+namespace Akkatecture.Extensions;
+
+public static class ActorContextExtensions
 {
-    public static class ActorContextExtensions
-    {
-        public static IActorRef Child<TIdentity>(this IActorContext context, TIdentity identity)
-            where TIdentity : IIdentity
-            => context.Child(identity.Value);
-    }
+    public static IActorRef Child<TIdentity>(this IActorContext context, TIdentity identity)
+        where TIdentity : IIdentity
+        => context.Child(identity.Value);
 }

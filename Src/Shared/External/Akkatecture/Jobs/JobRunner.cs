@@ -29,70 +29,69 @@ using Akkatecture.Extensions;
 using JetBrains.Annotations;
 using Tauron;
 
-namespace Akkatecture.Jobs
+namespace Akkatecture.Jobs;
+
+[PublicAPI]
+public abstract class JobRunner : ReceiveActor
 {
-    [PublicAPI]
-    public abstract class JobRunner : ReceiveActor
+    protected JobRunner()
+        => InitReceives();
+
+    public void InitReceives()
     {
-        protected JobRunner()
-            => InitReceives();
+        var type = GetType();
 
-        public void InitReceives()
+        var subscriptionTypes =
+            type
+               .GetJobRunTypes();
+
+        var methods = type
+           .GetTypeInfo()
+           .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+           .Where(
+                mi =>
+                {
+                    if (mi.Name != "Run")
+                        return false;
+
+                    var parameters = mi.GetParameters();
+
+                    return
+                        parameters.Length == 1;
+                })
+           .ToDictionary(
+                mi => mi.GetParameters()[0].ParameterType,
+                mi => mi);
+
+
+        var method = type
+           .GetBaseType("ReceiveActor")
+           .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+           .Where(
+                mi =>
+                {
+                    if (mi.Name != "Receive") return false;
+
+                    var parameters = mi.GetParameters();
+
+                    return
+                        parameters.Length == 1
+                     && parameters[0].ParameterType.Name.Contains("Func");
+                })
+           .First();
+
+        foreach (var subscriptionType in subscriptionTypes)
         {
-            var type = GetType();
+            var funcType = typeof(Func<,>).MakeGenericType(subscriptionType, typeof(bool));
+            var subscriptionFunction = Delegate.CreateDelegate(funcType, this, methods[subscriptionType]);
+            var actorReceiveMethod = method.MakeGenericMethod(subscriptionType);
 
-            var subscriptionTypes =
-                type
-                   .GetJobRunTypes();
-
-            var methods = type
-               .GetTypeInfo()
-               .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-               .Where(
-                    mi =>
-                    {
-                        if (mi.Name != "Run")
-                            return false;
-
-                        var parameters = mi.GetParameters();
-
-                        return
-                            parameters.Length == 1;
-                    })
-               .ToDictionary(
-                    mi => mi.GetParameters()[0].ParameterType,
-                    mi => mi);
-
-
-            var method = type
-               .GetBaseType("ReceiveActor")
-               .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-               .Where(
-                    mi =>
-                    {
-                        if (mi.Name != "Receive") return false;
-
-                        var parameters = mi.GetParameters();
-
-                        return
-                            parameters.Length == 1
-                         && parameters[0].ParameterType.Name.Contains("Func");
-                    })
-               .First();
-
-            foreach (var subscriptionType in subscriptionTypes)
-            {
-                var funcType = typeof(Func<,>).MakeGenericType(subscriptionType, typeof(bool));
-                var subscriptionFunction = Delegate.CreateDelegate(funcType, this, methods[subscriptionType]);
-                var actorReceiveMethod = method.MakeGenericMethod(subscriptionType);
-
-                actorReceiveMethod.InvokeFast(this, subscriptionFunction);
-            }
+            actorReceiveMethod.InvokeFast(this, subscriptionFunction);
         }
     }
-
-    // ReSharper disable UnusedTypeParameter
-    public abstract class JobRunner<TJob, TIdentity> : JobRunner
-        where TJob : IJob
-        where TIdentity : IJobId { }
 }
+
+// ReSharper disable UnusedTypeParameter
+public abstract class JobRunner<TJob, TIdentity> : JobRunner
+    where TJob : IJob
+    where TIdentity : IJobId { }

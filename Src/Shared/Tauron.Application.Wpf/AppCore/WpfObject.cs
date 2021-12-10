@@ -3,32 +3,31 @@ using System.Windows;
 using System.Windows.Media;
 using Tauron.Application.CommonUI;
 
-namespace Tauron.Application.Wpf.AppCore
+namespace Tauron.Application.Wpf.AppCore;
+
+public class WpfObject : IUIObject
 {
-    public class WpfObject : IUIObject
+    public WpfObject(DependencyObject obj) => DependencyObject = obj;
+
+    public DependencyObject DependencyObject { get; }
+
+    public IUIObject? GetPerent()
     {
-        public WpfObject(DependencyObject obj) => DependencyObject = obj;
+        if (DependencyObject is FrameworkElement { TemplatedParent: { } } ele)
+            return ElementMapper.Create(ele.TemplatedParent);
 
-        public DependencyObject DependencyObject { get; }
-
-        public IUIObject? GetPerent()
+        DependencyObject? temp;
+        try
         {
-            if (DependencyObject is FrameworkElement { TemplatedParent: { } } ele)
-                return ElementMapper.Create(ele.TemplatedParent);
-
-            DependencyObject? temp;
-            try
-            {
-                temp = LogicalTreeHelper.GetParent(DependencyObject) ?? VisualTreeHelper.GetParent(DependencyObject);
-            }
-            catch (InvalidOperationException)
-            {
-                temp = null;
-            }
-
-            return temp == null ? null : ElementMapper.Create(temp);
+            temp = LogicalTreeHelper.GetParent(DependencyObject) ?? VisualTreeHelper.GetParent(DependencyObject);
+        }
+        catch (InvalidOperationException)
+        {
+            temp = null;
         }
 
-        public object Object => DependencyObject;
+        return temp == null ? null : ElementMapper.Create(temp);
     }
+
+    public object Object => DependencyObject;
 }

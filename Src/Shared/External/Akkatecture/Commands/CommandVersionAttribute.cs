@@ -29,15 +29,14 @@ using System;
 using Akkatecture.Core.VersionedTypes;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Commands
+namespace Akkatecture.Commands;
+
+[PublicAPI]
+[AttributeUsage(AttributeTargets.Class)]
+public class CommandVersionAttribute : VersionedTypeAttribute
 {
-    [PublicAPI]
-    [AttributeUsage(AttributeTargets.Class)]
-    public class CommandVersionAttribute : VersionedTypeAttribute
-    {
-        public CommandVersionAttribute(
-            string name,
-            int version)
-            : base(name, version) { }
-    }
+    public CommandVersionAttribute(
+        string name,
+        int version)
+        : base(name, version) { }
 }

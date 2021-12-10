@@ -23,17 +23,16 @@
 
 using Akkatecture.Jobs;
 
-namespace Akkatecture.Sagas.SagaTimeouts
+namespace Akkatecture.Sagas.SagaTimeouts;
+
+public class SagaTimeoutManager<TTimeout> :
+    JobManager<
+        SagaTimeoutJobScheduler<TTimeout>,
+        SagaTimeoutJobRunner<TTimeout>,
+        TTimeout,
+        SagaTimeoutId> where TTimeout : ISagaTimeoutJob
 {
-    public class SagaTimeoutManager<TTimeout> :
-        JobManager<
-            SagaTimeoutJobScheduler<TTimeout>,
-            SagaTimeoutJobRunner<TTimeout>,
-            TTimeout,
-            SagaTimeoutId> where TTimeout : ISagaTimeoutJob
-    {
-        public SagaTimeoutManager() : base(
-            () => new SagaTimeoutJobScheduler<TTimeout>(),
-            () => new SagaTimeoutJobRunner<TTimeout>()) { }
-    }
+    public SagaTimeoutManager() : base(
+        () => new SagaTimeoutJobScheduler<TTimeout>(),
+        () => new SagaTimeoutJobRunner<TTimeout>()) { }
 }

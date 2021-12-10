@@ -27,12 +27,11 @@
 
 using System;
 
-namespace Akkatecture.Exceptions
+namespace Akkatecture.Exceptions;
+
+[Serializable]
+public class MetadataKeyNotFoundException : ArgumentOutOfRangeException
 {
-    [Serializable]
-    public class MetadataKeyNotFoundException : ArgumentOutOfRangeException
-    {
-        public MetadataKeyNotFoundException(string key)
-            : base($"Could not find metadata key '{key}'") { }
-    }
+    public MetadataKeyNotFoundException(string key)
+        : base($"Could not find metadata key '{key}'") { }
 }

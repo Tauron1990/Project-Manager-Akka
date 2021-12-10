@@ -1,10 +1,9 @@
 ﻿using JetBrains.Annotations;
 
-namespace Tauron.Application.AkkaNode.Services.Reporting.Commands
+namespace Tauron.Application.AkkaNode.Services.Reporting.Commands;
+
+public interface ISender
 {
-    public interface ISender
-    {
-        [PublicAPI]
-        void SendCommand(IReporterMessage command);
-    }
+    [PublicAPI]
+    void SendCommand(IReporterMessage command);
 }

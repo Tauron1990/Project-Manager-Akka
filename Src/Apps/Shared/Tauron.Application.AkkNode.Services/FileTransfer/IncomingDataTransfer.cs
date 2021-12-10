@@ -5,44 +5,43 @@ using System.Threading.Tasks;
 using Akka.Actor;
 using JetBrains.Annotations;
 
-namespace Tauron.Application.AkkaNode.Services.FileTransfer
+namespace Tauron.Application.AkkaNode.Services.FileTransfer;
+
+[PublicAPI]
+public sealed class IncomingDataTransfer : TransferMessages.TransferMessage
 {
-    [PublicAPI]
-    public sealed class IncomingDataTransfer : TransferMessages.TransferMessage
+    private readonly Timer _denyTimer;
+
+    public IncomingDataTransfer(string operationId, DataTransferManager manager, string? data)
+        : base(operationId)
     {
-        private readonly Timer _denyTimer;
+        Manager = manager;
+        Data = data;
 
-        public IncomingDataTransfer(string operationId, DataTransferManager manager, string? data)
-            : base(operationId)
-        {
-            Manager = manager;
-            Data = data;
+        _denyTimer = new Timer(_ => Deny(), null, TimeSpan.FromMinutes(1), Timeout.InfiniteTimeSpan);
+    }
 
-            _denyTimer = new Timer(_ => Deny(), null, TimeSpan.FromMinutes(1), Timeout.InfiniteTimeSpan);
-        }
+    public DataTransferManager Manager { get; }
 
-        public DataTransferManager Manager { get; }
+    public string? Data { get; }
 
-        public string? Data { get; }
+    public event Action? DenyEvent;
 
-        public event Action? DenyEvent;
+    public void Deny()
+    {
+        DenyEvent?.Invoke();
+        _denyTimer.Dispose();
+        Manager.Actor.Tell(new TransferMessages.RequestDeny(OperationId));
+    }
 
-        public void Deny()
-        {
-            DenyEvent?.Invoke();
-            _denyTimer.Dispose();
-            Manager.Actor.Tell(new TransferMessages.RequestDeny(OperationId));
-        }
+    public Task<TransferMessages.TransferCompled> Accept(Func<Stream> to) => Accept(() => new StreamData(to()));
 
-        public Task<TransferMessages.TransferCompled> Accept(Func<Stream> to) => Accept(() => new StreamData(to()));
+    public Task<TransferMessages.TransferCompled> Accept(Func<ITransferData> to)
+    {
+        _denyTimer.Dispose();
+        var source = new TaskCompletionSource<TransferMessages.TransferCompled>();
+        Manager.Actor.Tell(new TransferMessages.RequestAccept(OperationId, to, source));
 
-        public Task<TransferMessages.TransferCompled> Accept(Func<ITransferData> to)
-        {
-            _denyTimer.Dispose();
-            var source = new TaskCompletionSource<TransferMessages.TransferCompled>();
-            Manager.Actor.Tell(new TransferMessages.RequestAccept(OperationId, to, source));
-
-            return source.Task;
-        }
+        return source.Task;
     }
 }

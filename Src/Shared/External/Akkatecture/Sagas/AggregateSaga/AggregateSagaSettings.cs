@@ -24,25 +24,24 @@
 using Akka.Configuration;
 using Akkatecture.Configuration;
 
-namespace Akkatecture.Sagas.AggregateSaga
+namespace Akkatecture.Sagas.AggregateSaga;
+
+public class AggregateSagaSettings
 {
-    public class AggregateSagaSettings
+    private const string Section = "akkatecture.aggregate-saga";
+    public readonly bool AutoReceive;
+    public readonly bool UseDefaultEventRecover;
+    public readonly bool UseDefaultSnapshotRecover;
+
+    public AggregateSagaSettings(Config config)
     {
-        private const string Section = "akkatecture.aggregate-saga";
-        public readonly bool AutoReceive;
-        public readonly bool UseDefaultEventRecover;
-        public readonly bool UseDefaultSnapshotRecover;
+        var aggregateSagaConfig = config.WithFallback(AkkatectureDefaultSettings.DefaultConfig());
+        aggregateSagaConfig = aggregateSagaConfig.GetConfig(Section);
 
-        public AggregateSagaSettings(Config config)
-        {
-            var aggregateSagaConfig = config.WithFallback(AkkatectureDefaultSettings.DefaultConfig());
-            aggregateSagaConfig = aggregateSagaConfig.GetConfig(Section);
-
-            #pragma warning disable GU0009
-            AutoReceive = aggregateSagaConfig.GetBoolean("auto-receive", true);
-            UseDefaultEventRecover = aggregateSagaConfig.GetBoolean("use-default-event-recover", true);
-            UseDefaultSnapshotRecover = aggregateSagaConfig.GetBoolean("use-default-snapshot-recover", true);
-            #pragma warning restore GU0009
-        }
+        #pragma warning disable GU0009
+        AutoReceive = aggregateSagaConfig.GetBoolean("auto-receive", true);
+        UseDefaultEventRecover = aggregateSagaConfig.GetBoolean("use-default-event-recover", true);
+        UseDefaultSnapshotRecover = aggregateSagaConfig.GetBoolean("use-default-snapshot-recover", true);
+        #pragma warning restore GU0009
     }
 }

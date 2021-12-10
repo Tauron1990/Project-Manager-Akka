@@ -30,20 +30,19 @@ using System.Collections.Generic;
 using Akkatecture.Extensions;
 using Tauron.Operations;
 
-namespace Akkatecture.Specifications.Provided
+namespace Akkatecture.Specifications.Provided;
+
+public class NotSpecification<T> : Specification<T>
 {
-    public class NotSpecification<T> : Specification<T>
+    private readonly ISpecification<T> _specification;
+
+    public NotSpecification(
+        ISpecification<T> specification)
+        => _specification = specification ?? throw new ArgumentNullException(nameof(specification));
+
+    protected override IEnumerable<Error> IsNotSatisfiedBecause(T aggregate)
     {
-        private readonly ISpecification<T> _specification;
-
-        public NotSpecification(
-            ISpecification<T> specification)
-            => _specification = specification ?? throw new ArgumentNullException(nameof(specification));
-
-        protected override IEnumerable<Error> IsNotSatisfiedBecause(T aggregate)
-        {
-            if (_specification.IsSatisfiedBy(aggregate))
-                yield return new Error($"Specification '{_specification.GetType().PrettyPrint()}' should not be satisfied", DefaultErrorCodes.NotSpectification);
-        }
+        if (_specification.IsSatisfiedBy(aggregate))
+            yield return new Error($"Specification '{_specification.GetType().PrettyPrint()}' should not be satisfied", DefaultErrorCodes.NotSpectification);
     }
 }

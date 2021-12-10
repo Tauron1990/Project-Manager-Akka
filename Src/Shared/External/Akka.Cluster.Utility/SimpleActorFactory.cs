@@ -1,15 +1,14 @@
 ﻿using Akka.Actor;
 using JetBrains.Annotations;
 
-namespace Akka.Cluster.Utility
-{
-    [PublicAPI]
-    public sealed class SimpleActorFactory<TActor> : IActorFactory
-        where TActor : ActorBase
-    {
-        public void Initialize(object[]? args) { }
+namespace Akka.Cluster.Utility;
 
-        public IActorRef CreateActor(IActorRefFactory actorRefFactory, object id, object[]? args)
-            => actorRefFactory.ActorOf(Props.Create<TActor>(args), id.ToString());
-    }
+[PublicAPI]
+public sealed class SimpleActorFactory<TActor> : IActorFactory
+    where TActor : ActorBase
+{
+    public void Initialize(object[]? args) { }
+
+    public IActorRef CreateActor(IActorRefFactory actorRefFactory, object id, object[]? args)
+        => actorRefFactory.ActorOf(Props.Create<TActor>(args), id.ToString());
 }

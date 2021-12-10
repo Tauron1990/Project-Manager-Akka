@@ -27,12 +27,11 @@
 
 using JetBrains.Annotations;
 
-namespace Akkatecture.Aggregates
+namespace Akkatecture.Aggregates;
+
+[PublicAPI]
+public interface IApply<in TAggregateEvent>
+    where TAggregateEvent : IAggregateEvent
 {
-    [PublicAPI]
-    public interface IApply<in TAggregateEvent>
-        where TAggregateEvent : IAggregateEvent
-    {
-        void Apply(TAggregateEvent aggregateEvent);
-    }
+    void Apply(TAggregateEvent aggregateEvent);
 }

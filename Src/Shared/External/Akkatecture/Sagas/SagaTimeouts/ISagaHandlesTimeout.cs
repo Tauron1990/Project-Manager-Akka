@@ -24,19 +24,18 @@
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Sagas.SagaTimeouts
-{
-    [PublicAPI]
-    public interface ISagaHandlesTimeout<in TTimeout> : ISaga
-        where TTimeout : class, ISagaTimeoutJob
-    {
-        bool HandleTimeout(TTimeout timeout);
-    }
+namespace Akkatecture.Sagas.SagaTimeouts;
 
-    [PublicAPI]
-    public interface ISagaHandlesTimeoutAsync<in TTimeout> : ISaga
-        where TTimeout : class, ISagaTimeoutJob
-    {
-        Task HandleTimeoutAsync(TTimeout timeout);
-    }
+[PublicAPI]
+public interface ISagaHandlesTimeout<in TTimeout> : ISaga
+    where TTimeout : class, ISagaTimeoutJob
+{
+    bool HandleTimeout(TTimeout timeout);
+}
+
+[PublicAPI]
+public interface ISagaHandlesTimeoutAsync<in TTimeout> : ISaga
+    where TTimeout : class, ISagaTimeoutJob
+{
+    Task HandleTimeoutAsync(TTimeout timeout);
 }

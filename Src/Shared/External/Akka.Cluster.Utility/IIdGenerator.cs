@@ -1,8 +1,7 @@
-﻿namespace Akka.Cluster.Utility
+﻿namespace Akka.Cluster.Utility;
+
+public interface IIdGenerator<out TKey>
 {
-    public interface IIdGenerator<out TKey>
-    {
-        void Initialize(object[]? args);
-        TKey GenerateId();
-    }
+    void Initialize(object[]? args);
+    TKey GenerateId();
 }

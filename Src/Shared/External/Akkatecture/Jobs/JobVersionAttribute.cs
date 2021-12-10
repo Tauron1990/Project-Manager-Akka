@@ -25,15 +25,14 @@ using System;
 using Akkatecture.Core.VersionedTypes;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Jobs
+namespace Akkatecture.Jobs;
+
+[AttributeUsage(AttributeTargets.Class)]
+[PublicAPI]
+public class JobVersionAttribute : VersionedTypeAttribute
 {
-    [AttributeUsage(AttributeTargets.Class)]
-    [PublicAPI]
-    public class JobVersionAttribute : VersionedTypeAttribute
-    {
-        public JobVersionAttribute(
-            string name,
-            int version)
-            : base(name, version) { }
-    }
+    public JobVersionAttribute(
+        string name,
+        int version)
+        : base(name, version) { }
 }

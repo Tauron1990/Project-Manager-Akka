@@ -27,10 +27,9 @@
 
 using Akkatecture.Core;
 
-namespace Akkatecture.Aggregates
-{
-    // ReSharper disable once UnusedTypeParameter
-    public interface IEventApplier<TAggregate, TIdentity>
-        where TAggregate : IAggregateRoot<TIdentity>
-        where TIdentity : IIdentity { }
-}
+namespace Akkatecture.Aggregates;
+
+// ReSharper disable once UnusedTypeParameter
+public interface IEventApplier<TAggregate, TIdentity>
+    where TAggregate : IAggregateRoot<TIdentity>
+    where TIdentity : IIdentity { }

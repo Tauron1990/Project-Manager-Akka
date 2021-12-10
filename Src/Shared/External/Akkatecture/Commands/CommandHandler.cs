@@ -33,45 +33,44 @@ using Akkatecture.Core;
 using Akkatecture.Extensions;
 using JetBrains.Annotations;
 
-namespace Akkatecture.Commands
+namespace Akkatecture.Commands;
+
+public abstract class CommandHandler<TAggregate, TIdentity, TResult, TCommand> :
+    ICommandHandler<TAggregate, TIdentity, TResult, TCommand>
+    where TAggregate : ReceivePersistentActor, IAggregateRoot<TIdentity>
+    where TIdentity : IIdentity
+    where TCommand : ICommand<TAggregate, TIdentity>
 {
-    public abstract class CommandHandler<TAggregate, TIdentity, TResult, TCommand> :
-        ICommandHandler<TAggregate, TIdentity, TResult, TCommand>
-        where TAggregate : ReceivePersistentActor, IAggregateRoot<TIdentity>
-        where TIdentity : IIdentity
-        where TCommand : ICommand<TAggregate, TIdentity>
+    public abstract TResult HandleCommand(
+        TAggregate aggregate,
+        IActorContext context,
+        TCommand command);
+}
+
+[PublicAPI]
+public abstract class CommandHandler<TAggregate, TIdentity, TCommand> :
+    CommandHandler<TAggregate, TIdentity, bool, TCommand>
+    where TAggregate : ReceivePersistentActor, IAggregateRoot<TIdentity>
+    where TIdentity : IIdentity
+    where TCommand : ICommand<TAggregate, TIdentity>
+{
+    public override bool HandleCommand(
+        TAggregate aggregate,
+        IActorContext context,
+        TCommand command)
     {
-        public abstract TResult HandleCommand(
-            TAggregate aggregate,
-            IActorContext context,
-            TCommand command);
+        var logger = context.GetLogger();
+        Handle(aggregate, context, command);
+        logger.Debug(
+            "Command of Type={0} handled in CommandHandler of Type={1}",
+            command.GetType().PrettyPrint(),
+            GetType().PrettyPrint());
+
+        return true;
     }
 
-    [PublicAPI]
-    public abstract class CommandHandler<TAggregate, TIdentity, TCommand> :
-        CommandHandler<TAggregate, TIdentity, bool, TCommand>
-        where TAggregate : ReceivePersistentActor, IAggregateRoot<TIdentity>
-        where TIdentity : IIdentity
-        where TCommand : ICommand<TAggregate, TIdentity>
-    {
-        public override bool HandleCommand(
-            TAggregate aggregate,
-            IActorContext context,
-            TCommand command)
-        {
-            var logger = context.GetLogger();
-            Handle(aggregate, context, command);
-            logger.Debug(
-                "Command of Type={0} handled in CommandHandler of Type={1}",
-                command.GetType().PrettyPrint(),
-                GetType().PrettyPrint());
-
-            return true;
-        }
-
-        public abstract void Handle(
-            TAggregate aggregate,
-            IActorContext context,
-            TCommand command);
-    }
+    public abstract void Handle(
+        TAggregate aggregate,
+        IActorContext context,
+        TCommand command);
 }
