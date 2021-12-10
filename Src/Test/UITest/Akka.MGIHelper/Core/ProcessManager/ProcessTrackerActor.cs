@@ -2,10 +2,14 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
+using System.Windows;
 using Akka.Actor;
+using Akka.Util;
 using Tauron;
+using Tauron.ObservableExt;
 using Tauron.Features;
 
 namespace Akka.MGIHelper.Core.ProcessManager
@@ -15,17 +19,17 @@ namespace Akka.MGIHelper.Core.ProcessManager
         private ProcessTrackerActor() { }
 
         public static IPreparedFeature New()
-            => Feature.Create(() => new ProcessTrackerActor(), c => new ProcessTrackerState(new Timer(_ => c.Self.Tell(GatherProcess.Inst), null, 2000, 2000), ImmutableArray<string>.Empty));
+            => Feature.Create(() => new ProcessTrackerActor(), c => new ProcessTrackerState(null, ImmutableArray<string>.Empty, 0, 0);
 
         protected override void ConfigImpl()
         {
-            Stop.Subscribe(_ => CurrentState.ProcessTimer.Dispose());
+            Stop.Subscribe(_ => CurrentState.Gartherer?.Dispose());
 
             Receive<ProcessExitMessage>(Handler);
 
-            Receive<RegisterProcessFile>(Handler);
+            Receive<StartProcessTracking>(Handler);
 
-            Receive<GatherProcess>(Handler);
+            //Receive<GatherProcess>(Handler);
 
             Receive<Process>(Handler);
 
@@ -47,13 +51,13 @@ namespace Akka.MGIHelper.Core.ProcessManager
                             name = process.ProcessName;
                             id = process.Id;
 
-                            if (Context.Child(FormatName(process.Id)).Equals(ActorRefs.Nobody)) ok = true;
+                            if (Context.Child(FormatName(process.Id)).Equals(ActorRefs.Nobody))
+                                ok = true;
 
                             var processName = process.ProcessName;
-                            if (ok && state.Tracked.Any(s => s.Contains(processName)))
-                                ok = true;
-                            else
-                                ok = false;
+                            ok = ok && state.Tracked.Any(s => s.Contains(processName));
+
+                            ConfigProcess(process, ok);
 
                             if (!ok) process.Dispose();
                         }
@@ -71,7 +75,21 @@ namespace Akka.MGIHelper.Core.ProcessManager
                .ToParent();
         }
 
-        private IDisposable Handler(IObservable<StatePair<GatherProcess, ProcessTrackerState>> obs)
+        private void ConfigProcess(Process process, bool isCLient)
+        {
+            var (_, _, clientAffinity, operationSystemAffinity) = CurrentState;
+            
+            if (isCLient)
+            {
+                if(clientAffinity != 0)
+                    Try<IntPtr>.From(() => process.ProcessorAffinity = (IntPtr)clientAffinity);
+                Try<ProcessPriorityClass>.From(() => process.PriorityClass = ProcessPriorityClass.RealTime);
+            }
+            else if(operationSystemAffinity != 0) 
+                Try<IntPtr>.From(() => process.ProcessorAffinity = (IntPtr)operationSystemAffinity);
+        }
+        
+        /*private IDisposable Handler(IObservable<StatePair<GatherProcess, ProcessTrackerState>> obs)
         {
             return obs.Where(pair => Context.GetChildren().Count() != pair.State.Tracked.Length)
                .Do(_ => Log.Info("Update Processes"))
@@ -90,12 +108,23 @@ namespace Akka.MGIHelper.Core.ProcessManager
                         }
                     })
                .ToSelf();
-        }
+        }*/
 
-        private IObservable<ProcessTrackerState> Handler(IObservable<StatePair<RegisterProcessFile, ProcessTrackerState>> obs)
+        private IObservable<ProcessTrackerState> Handler(IObservable<StatePair<StartProcessTracking, ProcessTrackerState>> obs)
         {
-            return obs.Where(p => !string.IsNullOrWhiteSpace(p.Event.FileName))
-               .Select(p => p.State with { Tracked = p.State.Tracked.Add(p.Event.FileName.Trim()) });
+            return obs.Select(p => p.State with
+                                   {
+                                       Tracked = p.Event.FileNames.Where(s => !string.IsNullOrWhiteSpace(s)).ToImmutableArray(),
+                                       ClientAffinity = p.Event.ClientAffinity,
+                                       OperationSystemAffinity = p.Event.OperatingAffinity,
+                                       Gartherer = new ProcessGartherer(p.Self, Log)
+                                   })
+               .Do(_ => {},
+                    ex =>
+                    {
+                        MessageBox.Show($"Fehler beim Starten der Process Überwachung:{Environment.NewLine}{ex}", "Schwerer Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+                        Environment.FailFast(ex.Message, ex);sadfsa
+                    });
         }
 
         private IDisposable Handler(IObservable<StatePair<ProcessExitMessage, ProcessTrackerState>> obs)
@@ -107,6 +136,6 @@ namespace Akka.MGIHelper.Core.ProcessManager
 
         private static string FormatName(int id) => $"Process-{id}";
 
-        public sealed record ProcessTrackerState(Timer ProcessTimer, ImmutableArray<string> Tracked);
+        public sealed record ProcessTrackerState(ProcessGartherer? Gartherer, ImmutableArray<string> Tracked, int ClientAffinity, int OperationSystemAffinity);
     }
 }

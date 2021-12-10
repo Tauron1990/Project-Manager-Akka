@@ -80,12 +80,7 @@ namespace Akka.MGIHelper.UI.MgiStarter
                     }).ThenRegister("TryStart");
 
             NewCommad
-               .WithCanExecute(
-                    from client in Client
-                    select client != null)
-               .WithCanExecute(
-                    from kernel in Kernel
-                    select kernel != null)
+               .WithCanExecute(Kernel.CombineLatest(Client, (kernel, client) => kernel is not null || client is not null))
                .WithExecute(
                     () =>
                     {
@@ -121,13 +116,13 @@ namespace Akka.MGIHelper.UI.MgiStarter
                     case ProcessChange.Started:
                         if (_config.Kernel.Contains(name))
                         {
-                            ConfigProcess(process);
+                            //ConfigProcess(process);
                             Kernel += process;
                         }
 
                         if (_config.Client.Contains(name))
                         {
-                            ConfigProcess(process);
+                            //ConfigProcess(process);
                             Client += process;
                         }
 
@@ -166,12 +161,11 @@ namespace Akka.MGIHelper.UI.MgiStarter
             _processManager.Tell(new RegisterProcessList(Self, ImmutableArray<string>.Empty.Add(_config.Client).Add(_config.Kernel)));
         }
 
-        private static void ConfigProcess(Process p)
-        {
-            p.ProcessorAffinity = (IntPtr)0x000F;
-            if (p.PriorityClass != ProcessPriorityClass.RealTime)
-                p.PriorityClass = ProcessPriorityClass.RealTime;
-        }
+        // private static void ConfigProcess(Process p)
+        // {
+        //     if (p.PriorityClass != ProcessPriorityClass.RealTime)
+        //         p.PriorityClass = ProcessPriorityClass.RealTime;
+        // }
 
 
         private void UpdateLabel()

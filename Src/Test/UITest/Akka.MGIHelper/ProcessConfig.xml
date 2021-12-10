@@ -7,4 +7,10 @@
     <Client>
         C:\IHM\JETvarnish.exe
     </Client>
+    <ClientAffinity>
+        true, true, false, false, false, false, false, false
+    </ClientAffinity>
+    <OperatingSystemAffinity>
+        false, false, true, true, true, true, true, true
+    </OperatingSystemAffinity>
 </Config>
