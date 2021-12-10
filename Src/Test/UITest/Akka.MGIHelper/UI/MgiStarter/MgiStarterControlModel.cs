@@ -108,6 +108,7 @@ namespace Akka.MGIHelper.UI.MgiStarter
 
         private UIProperty<string?> StatusLabel { get; set; }
 
+        // ReSharper disable once CognitiveComplexity
         private void ProcessStateChangeHandler(ProcessStateChange obj)
         {
             try
@@ -167,8 +168,9 @@ namespace Akka.MGIHelper.UI.MgiStarter
 
         private static void ConfigProcess(Process p)
         {
-            if (p.PriorityClass != ProcessPriorityClass.High)
-                p.PriorityClass = ProcessPriorityClass.High;
+            p.ProcessorAffinity = (IntPtr)0x000F;
+            if (p.PriorityClass != ProcessPriorityClass.RealTime)
+                p.PriorityClass = ProcessPriorityClass.RealTime;
         }
 
 

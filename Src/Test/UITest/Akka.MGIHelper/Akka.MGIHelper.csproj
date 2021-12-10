@@ -2,12 +2,13 @@
 
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
-        <TargetFramework>net5.0-windows</TargetFramework>
+        <TargetFramework>net6.0-windows</TargetFramework>
         <UseWPF>true</UseWPF>
         <Nullable>enable</Nullable>
         <StartupObject>Akka.MGIHelper.CoreProgramm</StartupObject>
         <ApplicationIcon>app.ico</ApplicationIcon>
         <ApplicationManifest>app.manifest</ApplicationManifest>
+        <LangVersion>10</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
@@ -23,12 +24,12 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Gu.Analyzers" Version="1.8.5">
+        <PackageReference Include="Gu.Analyzers" Version="2.0.0">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
-        <PackageReference Include="MaterialDesignThemes" Version="4.2.1" />
+        <PackageReference Include="MaterialDesignThemes" Version="4.3.0" />
         <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
         <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
     </ItemGroup>

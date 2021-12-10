@@ -21,74 +21,88 @@ namespace Akka.MGIHelper.Core.ProcessManager
         {
             Stop.Subscribe(_ => CurrentState.ProcessTimer.Dispose());
 
-            Receive<ProcessExitMessage>(
-                obs => obs.Select(p => p.Event)
-                   .Select(obj => new ProcessStateChange(ProcessChange.Stopped, obj.Name, obj.Id, obj.Target))
-                   .ForwardToParent());
+            Receive<ProcessExitMessage>(Handler);
 
-            Receive<RegisterProcessFile>(
-                obs => obs.Where(p => !string.IsNullOrWhiteSpace(p.Event.FileName))
-                   .Select(p => p.State with { Tracked = p.State.Tracked.Add(p.Event.FileName.Trim()) }));
+            Receive<RegisterProcessFile>(Handler);
 
-            Receive<GatherProcess>(
-                obs => obs.Where(pair => Context.GetChildren().Count() != pair.State.Tracked.Length)
-                   .Do(_ => Log.Info("Update Processes"))
-                   .SelectMany(
-                        _ =>
-                        {
-                            try
-                            {
-                                return Process.GetProcesses();
-                            }
-                            catch (Exception e)
-                            {
-                                Log.Error(e, "Error While Recieving Processes");
+            Receive<GatherProcess>(Handler);
 
-                                return Array.Empty<Process>();
-                            }
-                        })
-                   .ToSelf());
-
-            Receive<Process>(
-                obs => obs.Select(
-                        p =>
-                        {
-                            var ok = false;
-                            Process process = p.Event;
-                            var id = -1;
-                            string name = string.Empty;
-
-                            try
-                            {
-                                name = process.ProcessName;
-                                id = process.Id;
-
-                                if (Context.Child(FormatName(process.Id)).Equals(ActorRefs.Nobody))
-                                    ok = true;
-
-                                var processName = process.ProcessName;
-                                if (ok && p.State.Tracked.Any(s => s.Contains(processName)))
-                                    ok = true;
-                                else
-                                    ok = false;
-
-                                if (!ok)
-                                    process.Dispose();
-                            }
-                            catch (Exception e)
-                            {
-                                Log.Error(e, "Error While inspecting Process");
-                            }
-
-                            return (ok, process, id, name);
-                        })
-                   .Where(p => p.ok)
-                   .Do(e => Log.Info("Process Found {Name}", e.name))
-                   .Do(e => Context.ActorOf(FormatName(e.id), TrackedProcessActor.New(e.process, e.id, e.name)))
-                   .Select(p => new ProcessStateChange(ProcessChange.Started, p.name, p.id, p.process))
-                   .ToParent());
+            Receive<Process>(Handler);
 
             SupervisorStrategy = new OneForOneStrategy(_ => Directive.Stop);
+        }
+
+        private IDisposable Handler(IObservable<StatePair<Process, ProcessTrackerState>> obs)
+        {
+            return obs.Select(
+                    p =>
+                    {
+                        var ok = false;
+                        var (process, state) = p;
+                        var id = -1;
+                        var name = string.Empty;
+
+                        try
+                        {
+                            name = process.ProcessName;
+                            id = process.Id;
+
+                            if (Context.Child(FormatName(process.Id)).Equals(ActorRefs.Nobody)) ok = true;
+
+                            var processName = process.ProcessName;
+                            if (ok && state.Tracked.Any(s => s.Contains(processName)))
+                                ok = true;
+                            else
+                                ok = false;
+
+                            if (!ok) process.Dispose();
+                        }
+                        catch (Exception e)
+                        {
+                            Log.Error(e, "Error While inspecting Process");
+                        }
+
+                        return (ok, process, id, name);
+                    })
+               .Where(p => p.ok)
+               .Do(e => Log.Info("Process Found {Name}", e.name))
+               .Do(e => Context.ActorOf(FormatName(e.id), TrackedProcessActor.New(e.process, e.id, e.name)))
+               .Select(p => new ProcessStateChange(ProcessChange.Started, p.name, p.id, p.process))
+               .ToParent();
+        }
+
+        private IDisposable Handler(IObservable<StatePair<GatherProcess, ProcessTrackerState>> obs)
+        {
+            return obs.Where(pair => Context.GetChildren().Count() != pair.State.Tracked.Length)
+               .Do(_ => Log.Info("Update Processes"))
+               .SelectMany(
+                    _ =>
+                    {
+                        try
+                        {
+                            return Process.GetProcesses();
+                        }
+                        catch (Exception e)
+                        {
+                            Log.Error(e, "Error While Recieving Processes");
+
+                            return Array.Empty<Process>();
+                        }
+                    })
+               .ToSelf();
+        }
+
+        private IObservable<ProcessTrackerState> Handler(IObservable<StatePair<RegisterProcessFile, ProcessTrackerState>> obs)
+        {
+            return obs.Where(p => !string.IsNullOrWhiteSpace(p.Event.FileName))
+               .Select(p => p.State with { Tracked = p.State.Tracked.Add(p.Event.FileName.Trim()) });
+        }
+
+        private IDisposable Handler(IObservable<StatePair<ProcessExitMessage, ProcessTrackerState>> obs)
+        {
+            return obs.Select(p => p.Event)
+               .Select(obj => new ProcessStateChange(ProcessChange.Stopped, obj.Name, obj.Id, obj.Target))
+               .ForwardToParent();
         }
 
         private static string FormatName(int id) => $"Process-{id}";

@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using Tauron.Akka;
+using Tauron.TAkka;
 using Tauron.Application.Settings;
 
 namespace Akka.MGIHelper.Core.Configuration

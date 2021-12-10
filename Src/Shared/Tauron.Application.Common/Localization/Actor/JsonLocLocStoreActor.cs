@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using Akka.Util;
 using Autofac;
+using Autofac.Core;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -21,7 +22,14 @@ public sealed class JsonLocLocStoreActor : LocStoreActorBase
     private bool _isInitialized;
 
     public JsonLocLocStoreActor(ILifetimeScope scope)
-        => _configuration = scope.ResolveOptional<JsonConfiguration>();
+    {
+        try
+        {
+            _configuration = scope.ResolveOptional<JsonConfiguration>();
+        }
+        catch(DependencyResolutionException)
+        {}
+    }
 
     protected override Option<object> TryQuery(string name, CultureInfo target)
     {

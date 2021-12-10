@@ -4,7 +4,7 @@ using Akka.Event;
 using Autofac;
 using DynamicData;
 using Tauron;
-using Tauron.Akka;
+using Tauron.TAkka;
 using Tauron.Application.CommonUI.AppCore;
 using Tauron.Application.CommonUI.Model;
 

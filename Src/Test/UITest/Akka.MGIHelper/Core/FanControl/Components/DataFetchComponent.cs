@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Akka.MGIHelper.Core.Configuration;
 using Akka.MGIHelper.Core.FanControl.Bus;
@@ -26,7 +26,10 @@ namespace Akka.MGIHelper.Core.FanControl.Components
 
         private readonly FanControlOptions _options;
 
-        private readonly WebClient _webClient = new MyWebClient();
+        private readonly HttpClient _webClient = new()
+                                                 {
+                                                     Timeout = TimeSpan.FromSeconds(2)
+                                                 };
 
         public DataFetchComponent(FanControlOptions options) => _options = options;
 
@@ -36,7 +39,7 @@ namespace Akka.MGIHelper.Core.FanControl.Components
         {
             try
             {
-                var trackingString = _webClient.DownloadString($"http://{_options.Ip}/html/top.html?SysStatusData?");
+                var trackingString = await _webClient.GetStringAsync($"http://{_options.Ip}/html/top.html?SysStatusData?");
 
                 var elements = trackingString.Split("&");
 
@@ -65,18 +68,6 @@ namespace Akka.MGIHelper.Core.FanControl.Components
             internal string Value { get; init; } = string.Empty;
 
             public override string ToString() => $"{Name}={Value}";
-        }
-
-        private sealed class MyWebClient : WebClient
-        {
-            protected override WebRequest GetWebRequest(Uri address)
-            {
-                var request = base.GetWebRequest(address);
-
-                request.Timeout = 2000;
-
-                return request;
-            }
         }
     }
 }
