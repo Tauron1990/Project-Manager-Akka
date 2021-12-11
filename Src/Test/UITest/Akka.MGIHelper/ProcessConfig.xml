@@ -2,10 +2,10 @@
 
 <Config>
     <Kernel>
-        C:\Noyau\Noyau_MGI.exe
+        Noyau_MGI.exe
     </Kernel>
     <Client>
-        C:\IHM\JETvarnish.exe
+        JETvarnish.exe
     </Client>
     <ClientAffinity>
         true, true, false, false, false, false, false, false

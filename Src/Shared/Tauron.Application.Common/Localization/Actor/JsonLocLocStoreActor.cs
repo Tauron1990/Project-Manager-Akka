@@ -9,6 +9,7 @@ using Autofac.Core;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Tauron.Application.VirtualFiles;
 
 namespace Tauron.Localization.Actor;
 
@@ -21,14 +22,17 @@ public sealed class JsonLocLocStoreActor : LocStoreActorBase
     private readonly Dictionary<string, Dictionary<string, JToken>> _files = new();
     private bool _isInitialized;
 
-    public JsonLocLocStoreActor(ILifetimeScope scope)
+    public JsonLocLocStoreActor(ILifetimeScope scope, VirtualFileFactory factory)
     {
         try
         {
-            _configuration = scope.ResolveOptional<JsonConfiguration>();
+            _configuration = scope.ResolveOptional<JsonConfiguration>()
+                ?? JsonConfiguration.CreateFromApplicationPath(factory);
         }
-        catch(DependencyResolutionException)
-        {}
+        catch (DependencyResolutionException)
+        {
+            _configuration = JsonConfiguration.CreateFromApplicationPath(factory);
+        }
     }
 
     protected override Option<object> TryQuery(string name, CultureInfo target)

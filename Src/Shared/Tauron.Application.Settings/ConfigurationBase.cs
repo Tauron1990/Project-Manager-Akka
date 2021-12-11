@@ -14,17 +14,18 @@ public abstract class ConfigurationBase : ObservableObject
 {
     private readonly IDefaultActorRef<SettingsManager> _actor;
     private readonly Task _loader;
-    private readonly ILogger _logger;
     private readonly string _scope;
 
     private ImmutableDictionary<string, string> _dic = ImmutableDictionary<string, string>.Empty;
 
     private bool _isBlocked;
 
+    protected ILogger Logger { get; }
+    
     protected ConfigurationBase(IDefaultActorRef<SettingsManager> actor, string scope, ILogger logger)
     {
         _actor = actor;
-        _logger = logger;
+        Logger = logger;
 
         if (actor is EmptyActor<SettingsManager>)
         {
@@ -60,7 +61,7 @@ public abstract class ConfigurationBase : ObservableObject
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Error on  Load Configuration Data");
+            Logger.LogError(e, "Error on  Load Configuration Data");
 
             return defaultValue;
         }
@@ -73,7 +74,7 @@ public abstract class ConfigurationBase : ObservableObject
 
         if (string.IsNullOrEmpty(name)) return;
 
-        _dic = _dic.Add(value, name);
+        _dic = _dic.SetItem(value, name);
 
         _actor.Tell(new SetSettingValue(_scope, name, value));
 

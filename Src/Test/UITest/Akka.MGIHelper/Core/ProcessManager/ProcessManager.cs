@@ -22,7 +22,7 @@ namespace Akka.MGIHelper.Core.ProcessManager
                     {
                         var (script, (processTracker, targetProcesses)) = p;
 
-                        targetProcesses = script.Files
+                        targetProcesses = script.TrackingData.FileNames
                            .Where(fileName => !string.IsNullOrWhiteSpace(fileName))
                            .Aggregate(
                                 targetProcesses,
@@ -31,11 +31,11 @@ namespace Akka.MGIHelper.Core.ProcessManager
                                     if (dic.ContainsKey(file))
                                         Log.Error("Only One Script per File Suporrtet: {Script}", script.Intrest.Path.ToString());
 
-                                    processTracker.Tell(new RegisterProcessFile(file));
-
                                     return dic.SetItem(file, script.Intrest);
                                 });
 
+                        processTracker.Tell(script.TrackingData);
+                        
                         return p.State with { TargetProcesses = targetProcesses };
                     }));
 

@@ -156,16 +156,13 @@ namespace Akka.MGIHelper.UI.MgiStarter
         }
 
         protected override void Initialize(InitEvent evt)
-        {
-            // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable
-            _processManager.Tell(new RegisterProcessList(Self, ImmutableArray<string>.Empty.Add(_config.Client).Add(_config.Kernel)));
-        }
-
-        // private static void ConfigProcess(Process p)
-        // {
-        //     if (p.PriorityClass != ProcessPriorityClass.RealTime)
-        //         p.PriorityClass = ProcessPriorityClass.RealTime;
-        // }
+            => _processManager.Tell(
+                new RegisterProcessList(
+                    Self,
+                    new StartProcessTracking(
+                        ImmutableList<string>.Empty.Add(_config.Client).Add(_config.Kernel),
+                        _config.ClientAffinity,
+                        _config.OperatingSystemAffinity)));
 
 
         private void UpdateLabel()

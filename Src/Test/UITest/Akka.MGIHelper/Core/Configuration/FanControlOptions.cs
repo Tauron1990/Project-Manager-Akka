@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Globalization;
+using JetBrains.Annotations;
+using Microsoft.Extensions.Logging;
 using Tauron.TAkka;
 using Tauron.Application.Settings;
 
@@ -9,17 +11,47 @@ namespace Akka.MGIHelper.Core.Configuration
         public FanControlOptions(IDefaultActorRef<SettingsManager> actor, string scope, ILogger<FanControlOptions> logger)
             : base(actor, scope, logger) { }
 
-        public int ClockTimeMs => GetValue(int.Parse, 1000);
+        public int ClockTimeMs
+        {
+            get => GetValue(int.Parse, 1000);
+            [UsedImplicitly]
+            set => SetValue(value.ToString());
+        }
 
         //set => SetValue(value.ToString(CultureInfo.InvariantCulture));
-        public string Ip => GetValue(s => s, "192.168.187.48")!;
+        public string Ip
+        {
+            get => GetValue(s => s, "192.168.187.48")!;
+            [UsedImplicitly]
+            set => SetValue(value);
+        }
 
-        public int GoStandbyTime => GetValue(int.Parse, 25);
+        public int GoStandbyTime
+        {
+            get => GetValue(int.Parse, 25);
+            [UsedImplicitly]
+            set => SetValue(value.ToString());
+        }
 
-        public int MaxStartupTemp => GetValue(int.Parse, 70);
+        public int MaxStartupTemp
+        {
+            get => GetValue(int.Parse, 70);
+            [UsedImplicitly]
+            set => SetValue(value.ToString());
+        }
 
-        public int MaxStandbyTemp => GetValue(int.Parse, 115);
+        public int MaxStandbyTemp
+        {
+            get => GetValue(int.Parse, 115);
+            [UsedImplicitly]
+            set => SetValue(value.ToString());
+        }
 
-        public double FanControlMultipler => GetValue(double.Parse, 1.3d);
+        public double FanControlMultipler
+        {
+            get => GetValue(double.Parse, 1.3d);
+            [UsedImplicitly]
+            set => SetValue(value.ToString(CultureInfo.InvariantCulture));
+        }
     }
 }

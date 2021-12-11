@@ -17,7 +17,7 @@ public sealed class EventActor : UntypedActor
     private readonly Dictionary<Type, Delegate?> _registrations = new();
     private bool _killOnFirstRespond;
 
-    private EventActor(bool killOnFirstRespond) => _killOnFirstRespond = killOnFirstRespond;
+    public EventActor(bool killOnFirstRespond) => _killOnFirstRespond = killOnFirstRespond;
 
     public static IEventActor From(IActorRef actorRef) => new HookEventActor(actorRef);
 

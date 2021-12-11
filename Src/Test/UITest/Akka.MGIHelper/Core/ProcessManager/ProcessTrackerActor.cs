@@ -2,14 +2,11 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Linq;
-using System.Threading;
 using System.Windows;
 using Akka.Actor;
 using Akka.Util;
 using Tauron;
-using Tauron.ObservableExt;
 using Tauron.Features;
 
 namespace Akka.MGIHelper.Core.ProcessManager
@@ -19,7 +16,7 @@ namespace Akka.MGIHelper.Core.ProcessManager
         private ProcessTrackerActor() { }
 
         public static IPreparedFeature New()
-            => Feature.Create(() => new ProcessTrackerActor(), c => new ProcessTrackerState(null, ImmutableArray<string>.Empty, 0, 0);
+            => Feature.Create(() => new ProcessTrackerActor(), _ => new ProcessTrackerState(null, ImmutableArray<string>.Empty, 0, 0));
 
         protected override void ConfigImpl()
         {
@@ -55,7 +52,7 @@ namespace Akka.MGIHelper.Core.ProcessManager
                                 ok = true;
 
                             var processName = process.ProcessName;
-                            ok = ok && state.Tracked.Any(s => s.Contains(processName));
+                            ok = ok && state.Tracked.Any(s => processName.Contains(s));
 
                             ConfigProcess(process, ok);
 
@@ -77,16 +74,26 @@ namespace Akka.MGIHelper.Core.ProcessManager
 
         private void ConfigProcess(Process process, bool isCLient)
         {
+            void SetAffinity(int bits)
+            {
+                if(bits == 0) return;
+                #if DEBUG
+                // ReSharper disable once RedundantJumpStatement
+                return;
+                #else
+                Try<IntPtr>.From(() => process.ProcessorAffinity = (IntPtr)bits);
+                #endif
+            }
+            
             var (_, _, clientAffinity, operationSystemAffinity) = CurrentState;
             
             if (isCLient)
             {
-                if(clientAffinity != 0)
-                    Try<IntPtr>.From(() => process.ProcessorAffinity = (IntPtr)clientAffinity);
+                SetAffinity(clientAffinity);
                 Try<ProcessPriorityClass>.From(() => process.PriorityClass = ProcessPriorityClass.RealTime);
             }
-            else if(operationSystemAffinity != 0) 
-                Try<IntPtr>.From(() => process.ProcessorAffinity = (IntPtr)operationSystemAffinity);
+            else 
+                SetAffinity(operationSystemAffinity);
         }
         
         /*private IDisposable Handler(IObservable<StatePair<GatherProcess, ProcessTrackerState>> obs)
@@ -114,16 +121,18 @@ namespace Akka.MGIHelper.Core.ProcessManager
         {
             return obs.Select(p => p.State with
                                    {
-                                       Tracked = p.Event.FileNames.Where(s => !string.IsNullOrWhiteSpace(s)).ToImmutableArray(),
+                                       Tracked = p.Event.FileNames
+                                          .Where(s => !string.IsNullOrWhiteSpace(s)).Select(s => s.Trim())
+                                          .ToImmutableArray(),
                                        ClientAffinity = p.Event.ClientAffinity,
                                        OperationSystemAffinity = p.Event.OperatingAffinity,
                                        Gartherer = new ProcessGartherer(p.Self, Log)
                                    })
-               .Do(_ => {},
+               .Do(_ => Process.GetProcesses().Foreach(p => Self.Tell(p)),
                     ex =>
                     {
                         MessageBox.Show($"Fehler beim Starten der Process Überwachung:{Environment.NewLine}{ex}", "Schwerer Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
-                        Environment.FailFast(ex.Message, ex);sadfsa
+                        Environment.FailFast(ex.Message, ex);
                     });
         }
 
