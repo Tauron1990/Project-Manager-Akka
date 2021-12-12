@@ -13,6 +13,8 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer;
 [PublicAPI]
 public sealed class DataTransferManager
 {
+    public static DataTransferManager Empty => new(ActorRefs.Nobody);
+    
     public DataTransferManager(IActorRef actor) => Actor = actor;
 
     public IActorRef Actor { get; }
