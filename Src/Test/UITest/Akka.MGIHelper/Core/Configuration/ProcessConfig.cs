@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Immutable;
 using Microsoft.Extensions.Logging;
 using Tauron.TAkka;
 using Tauron.Application.Settings;
@@ -14,6 +15,10 @@ namespace Akka.MGIHelper.Core.Configuration
         public string Kernel => GetValue(s => s, string.Empty)!;
 
         public string Client => GetValue(s => s, string.Empty)!;
+
+        public ImmutableList<string> ClientProcesses => GetValue(CreateProcessList, ImmutableList<string>.Empty) ?? ImmutableList<string>.Empty;
+
+
 
         public int ClientAffinity => GetValue(GetBitMap);
 
@@ -43,5 +48,8 @@ namespace Akka.MGIHelper.Core.Configuration
 
             return 0;
         }
+        
+        private ImmutableList<string> CreateProcessList(string arg)
+            => ImmutableList<string>.Empty.AddRange(arg.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries));
     }
 }

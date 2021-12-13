@@ -162,7 +162,8 @@ namespace Akka.MGIHelper.UI.MgiStarter
                     new StartProcessTracking(
                         ImmutableList<string>.Empty.Add(_config.Client).Add(_config.Kernel),
                         _config.ClientAffinity,
-                        _config.OperatingSystemAffinity)));
+                        _config.OperatingSystemAffinity,
+                        _config.ClientProcesses)));
 
 
         private void UpdateLabel()

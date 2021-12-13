@@ -16,7 +16,7 @@ namespace Akka.MGIHelper.Core.ProcessManager
         private ProcessTrackerActor() { }
 
         public static IPreparedFeature New()
-            => Feature.Create(() => new ProcessTrackerActor(), _ => new ProcessTrackerState(null, ImmutableArray<string>.Empty, 0, 0));
+            => Feature.Create(() => new ProcessTrackerActor(), _ => new ProcessTrackerState(null, ImmutableArray<string>.Empty, 0, 0, ImmutableList<string>.Empty));
 
         protected override void ConfigImpl()
         {
@@ -52,9 +52,10 @@ namespace Akka.MGIHelper.Core.ProcessManager
                                 ok = true;
 
                             var processName = process.ProcessName;
-                            ok = ok && state.Tracked.Any(s => processName.Contains(s));
-
-                            ConfigProcess(process, ok);
+                            ok = ok && state.Tracked.Any(s => s.Contains(processName));
+                            var isPriority = p.State.PriorityProcesses.Any(prio => processName.Contains(prio));
+                            
+                            ConfigProcess(process, ok || isPriority);
 
                             if (!ok) process.Dispose();
                         }
@@ -85,7 +86,7 @@ namespace Akka.MGIHelper.Core.ProcessManager
                 #endif
             }
             
-            var (_, _, clientAffinity, operationSystemAffinity) = CurrentState;
+            var (_, _, clientAffinity, operationSystemAffinity, _) = CurrentState;
             
             if (isCLient)
             {
@@ -126,7 +127,8 @@ namespace Akka.MGIHelper.Core.ProcessManager
                                           .ToImmutableArray(),
                                        ClientAffinity = p.Event.ClientAffinity,
                                        OperationSystemAffinity = p.Event.OperatingAffinity,
-                                       Gartherer = new ProcessGartherer(p.Self, Log)
+                                       Gartherer = new ProcessGartherer(p.Self, Log),
+                                       PriorityProcesses = p.Event.PriorityProcesses
                                    })
                .Do(_ => Process.GetProcesses().Foreach(p => Self.Tell(p)),
                     ex =>
@@ -145,6 +147,6 @@ namespace Akka.MGIHelper.Core.ProcessManager
 
         private static string FormatName(int id) => $"Process-{id}";
 
-        public sealed record ProcessTrackerState(ProcessGartherer? Gartherer, ImmutableArray<string> Tracked, int ClientAffinity, int OperationSystemAffinity);
+        public sealed record ProcessTrackerState(ProcessGartherer? Gartherer, ImmutableArray<string> Tracked, int ClientAffinity, int OperationSystemAffinity, ImmutableList<string> PriorityProcesses);
     }
 }

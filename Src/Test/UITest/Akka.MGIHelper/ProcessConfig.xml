@@ -2,15 +2,18 @@
 
 <Config>
     <Kernel>
-        Noyau_MGI.exe
+        C:\Noyau\Noyau_MGI.exe
     </Kernel>
     <Client>
-        JETvarnish.exe
+        C:\IHM\JETvarnish.exe
     </Client>
+    <ClientProcesses>
+		PD-NetmanageServer, svchost, NetmanageServerService, nusb3mon, ModbusDrv, dllhost, ModbusDrvSys, Nahimic2Svc64, Nahimic2Svc32, NA_Service
+	</ClientProcesses>
     <ClientAffinity>
-        true, true, false, false, false, false, false, false
+        true, true, true, true, false, false, false, false
     </ClientAffinity>
     <OperatingSystemAffinity>
-        false, false, true, true, true, true, true, true
+        false, false, false, false, true, true, true, true
     </OperatingSystemAffinity>
 </Config>
