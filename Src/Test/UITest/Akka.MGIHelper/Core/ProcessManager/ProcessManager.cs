@@ -1,4 +1,6 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Linq;
 using Akka.Actor;
@@ -16,6 +18,8 @@ namespace Akka.MGIHelper.Core.ProcessManager
 
         protected override void ConfigImpl()
         {
+            Receive<Process>(o => o.Subscribe(s => s.State.ProcessTracker.Tell(s.Event)));
+            
             Receive<RegisterProcessList>(
                 obs => obs.Select(
                     p =>

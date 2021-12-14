@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FluentValidation" Version="10.3.5" />
+    <PackageReference Include="FluentValidation" Version="10.3.6" />
     <PackageReference Include="Stl.Fusion" Version="2.0.138" />
     <PackageReference Include="Stl.Fusion.Client" Version="2.0.138" />
   </ItemGroup>
