@@ -8,7 +8,7 @@
         C:\IHM\JETvarnish.exe
     </Client>
     <ClientProcesses>
-		PD-NetmanageServer, svchost, NetmanageServerService, nusb3mon, ModbusDrv, dllhost, ModbusDrvSys, Nahimic2Svc64, Nahimic2Svc32, NA_Service
+		PD-NetmanageServer, svchost, NetmanageServerService, nusb3mon, ModbusDrv, dllhost, ModbusDrvSys, Nahimic2Svc64, Nahimic2Svc32, NA_Service,, UsbConnect, winvnc4
 	</ClientProcesses>
     <ClientAffinity>
         true, true, true, true, false, false, false, false

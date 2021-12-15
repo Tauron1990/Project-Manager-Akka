@@ -40,7 +40,7 @@ namespace Akka.MGIHelper.UI.MgiStarter
             _config = config;
 
             _processManager = Context.ActorOf("Process-Manager", ProcessManagerActor.New());
-            var mgiStarting = Context.ActorOf("Mgi-Starter", MgiStartingActor.New(dialogFactory));
+            var mgiStarting = Context.ActorOf("Mgi-Starter", MgiStartingActor.New(dialogFactory, _processManager));
 
             var currentStart = new BehaviorSubject<CancellationTokenSource?>(null).DisposeWith(this);
             (from start in currentStart

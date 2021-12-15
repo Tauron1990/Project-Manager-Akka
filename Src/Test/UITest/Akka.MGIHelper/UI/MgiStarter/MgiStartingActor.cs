@@ -14,12 +14,12 @@ using Tauron.Localization;
 
 namespace Akka.MGIHelper.UI.MgiStarter
 {
-    public sealed class MgiStartingActor : ActorFeatureBase<IDialogFactory>
+    public sealed class MgiStartingActor : ActorFeatureBase<(IDialogFactory Factory, IActorRef ProcessManager)>
     {
         private MgiStartingActor() { }
 
-        public static IPreparedFeature New(IDialogFactory dialogFactory)
-            => Feature.Create(() => new MgiStartingActor(), dialogFactory);
+        public static IPreparedFeature New(IDialogFactory dialogFactory, IActorRef manager)
+            => Feature.Create(() => new MgiStartingActor(), (dialogFactory, manager));
 
         protected override void ConfigImpl()
         {
@@ -37,13 +37,13 @@ namespace Akka.MGIHelper.UI.MgiStarter
                 obj.Kill();
 
                 Thread.Sleep(500);
-                if (!CheckKernelRunning(config, obj.Cancel, out var target))
+                if (!CheckKernelRunning(config, obj.Cancel, out var kernel))
                 {
                     //CurrentState.ShowMessageBox(null, Context.Loc().RequestString("kernelstarterror"), "Error", MsgBoxButton.Ok, MsgBoxImage.Error);
                     try
                     {
-                        target.Kill(entireProcessTree: true);
-                        target.Dispose();
+                        kernel.Kill(entireProcessTree: true);
+                        kernel.Dispose();
                     }
                     catch (Exception e)
                     {
@@ -52,7 +52,7 @@ namespace Akka.MGIHelper.UI.MgiStarter
 
                     return;
                 }
-
+                
                 Thread.Sleep(500);
                 #pragma warning disable EX006
                 Directory.SetCurrentDirectory(Path.GetDirectoryName(config.Client.Trim()) ?? throw new InvalidOperationException("Current Directory Set Fail"));
@@ -60,19 +60,20 @@ namespace Akka.MGIHelper.UI.MgiStarter
 
                 if (obj.Cancel.IsCancellationRequested)
                 {
-                    target.Kill(entireProcessTree: true);
+                    kernel.Kill(entireProcessTree: true);
 
                     return;
                 }
 
-                Process.Start(config.Client);
+                CurrentState.ProcessManager.Tell(kernel);
+                CurrentState.ProcessManager.Tell(Process.Start(config.Client));
 
                 Sender.Tell(new StartStatusUpdate(Context.Loc().RequestString("kernelstartcompledlabel").Value));
             }
             catch (Exception e)
             {
                 Log.Warning(e, "Error on Start Mgi process");
-                CurrentState.FormatException(null, e);
+                CurrentState.Factory.FormatException(null, e);
             }
             finally
             {
