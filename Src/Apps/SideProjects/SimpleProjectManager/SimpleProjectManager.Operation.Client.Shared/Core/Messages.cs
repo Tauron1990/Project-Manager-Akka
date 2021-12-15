@@ -15,6 +15,8 @@ public sealed record ServerManagerResponse(DataTransferManager ClientManager);
 
 public sealed record StartProject(string JobName);
 
+public sealed record ProjectStartResponse(string? Message);
+
 public sealed record SyncFile(string OperationId, ProjectFileId FileId, string FileName);
 
 public sealed record FileChanged(ProjectFileId FileId);

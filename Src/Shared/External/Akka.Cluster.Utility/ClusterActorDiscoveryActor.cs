@@ -14,7 +14,8 @@ public sealed class ClusterActorDiscovery : IExtension
 
     public IActorRef Discovery { get; }
 
-    public static ClusterActorDiscovery Get(ActorSystem system) => system.GetExtension<ClusterActorDiscovery>();
+    public static ClusterActorDiscovery Get(ActorSystem system)
+        => system.GetExtension<ClusterActorDiscovery?>() ?? new ClusterActorDiscoveryId().Apply(system);
 
     public void MonitorActor(ClusterActorDiscoveryMessage.MonitorActor actor)
         => Discovery.Tell(actor);
