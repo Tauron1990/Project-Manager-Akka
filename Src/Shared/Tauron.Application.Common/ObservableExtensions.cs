@@ -18,6 +18,8 @@ namespace Tauron;
 [DebuggerStepThrough]
 public static class ObservableExtensions
 {
+    #region Common
+
     /// <summary>
     ///     Group observable sequence into buffers separated by periods of calm
     /// </summary>
@@ -178,6 +180,8 @@ public static class ObservableExtensions
 
                 return d;
             });
+
+    #endregion
 
     #region AutoSubscribe
 
@@ -615,6 +619,15 @@ public static class ObservableExtensions
 
     public static IDisposable SubscribeWithStatus<TMessage>(this IObservable<TMessage> source)
         => SubscribeWithStatus(source, null, _ => { });
+
+    #endregion
+
+    #region Pause
+
+    public static IObservable<TData> TakeWhile<TData>(this IObservable<TData> input, IObservable<bool> condition)
+        => input.CombineLatest(condition.StartWith(true), (d, b) => (Data: d, CanRun: b))
+           .Where(p => p.CanRun)
+           .Select(p => p.Data);
 
     #endregion
 }
