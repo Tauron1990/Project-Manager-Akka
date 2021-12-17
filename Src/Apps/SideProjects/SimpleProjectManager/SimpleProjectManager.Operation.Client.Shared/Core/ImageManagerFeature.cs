@@ -116,7 +116,8 @@ public sealed class ImageManagerFeature : ActorFeatureBase<ImageManagerFeature.S
             Observable.FromEvent<FileSystemEventHandler, FileSystemEventArgs>(
                 a => (_, args) => a(args),
                 d => watcher.Created += d,
-                d => watcher.Created -= d));
+                d => watcher.Created -= d))
+           .Select(s => HandleCreated(s, newToken));
 
         var deleted = PrepareEventStream(
             currentState.DispatchFileSystemEvents,
@@ -138,20 +139,31 @@ public sealed class ImageManagerFeature : ActorFeatureBase<ImageManagerFeature.S
                };
     }
 
+    private IObservable<FileChangeEvent> HandleCreated(StatePair<FileSystemEventArgs, State> arg, int token)
+        => from msg in arg
+           let fileName = msg.Event.Name
+           where !string.IsNullOrWhiteSpace(fileName)
+           let originalName = TryExtractOriginalName(fileName)
+           where !string.IsNullOrWhiteSpace(originalName)
+           from mapentry in msg.State.FileMapping 
+           where mapentry.Value.Contains(originalName)
+           select new FileChangeEvent(token, fileName, mapentry.Key);
+
     private IObservable<StatePair<TData, State>> PrepareEventStream<TData>(IObservable<bool> suspender, IObservable<TData> obs)
         => UpdateAndSyncActor(obs)
            .TakeWhile(suspender)
            .Do(s => s.State.DispatchFileSystemEvents.OnNext(false));
-    
-    private FileChangeEvent HandleChanged(StatePair<FileSystemEventArgs, State> arg, int token)
-    {
-        var name = arg.Event.Name;
 
-        if (string.IsNullOrWhiteSpace(name)) return null;
-    }
+    private IObservable<FileChangeEvent> HandleChanged(StatePair<FileSystemEventArgs, State> arg, int token)
+        => from msg in arg
+           let fileName = msg.Event.Name
+           where !string.IsNullOrWhiteSpace(fileName)
+           from mapentry in msg.State.FileMapping
+           where mapentry.Value == fileName
+           select new FileChangeEvent(token, fileName, mapentry.Key);
 
     private static IObservable<FileChangeEvent> HandleRename(StatePair<RenamedEventArgs, State> arg, int token)
-        => from msg in Observable.Return(arg)
+        => from msg in arg
            let oldName = msg.Event.OldName
            let newName = msg.Event.Name
            where !string.IsNullOrWhiteSpace(oldName) && !string.IsNullOrWhiteSpace(newName)
@@ -159,6 +171,18 @@ public sealed class ImageManagerFeature : ActorFeatureBase<ImageManagerFeature.S
            where mapentry.Value == oldName
            select new FileChangeEvent(token, newName, mapentry.Key);
 
+    private string? TryExtractOriginalName(string newName)
+    {
+        ReadOnlySpan<char> name = Path.GetFileNameWithoutExtension(newName);
+
+        if (name.Length < 3 || name.IsWhiteSpace()) return null;
+
+        if (char.IsDigit(name[^0]) && char.IsDigit(name[^1]) && name[^2] == 'V')
+            return name[..^2].ToString();
+
+        return null;
+    }
+    
     private static void CreateOrClearDirectory(string path)
     {
         if (Directory.Exists(path))

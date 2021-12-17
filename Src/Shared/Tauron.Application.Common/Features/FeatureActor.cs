@@ -52,6 +52,7 @@ public interface IFeatureActor<TState> : IResourceHolder, IObservable<TState>, I
 
 [PublicAPI, DebuggerStepThrough]
 public sealed record StatePair<TEvent, TState>(TEvent Event, TState State, ITimerScheduler Timers, IActorContext Context, IActorRef Sender, IActorRef Parent, IActorRef Self)
+    : IObservable<StatePair<TEvent, TState>>
 {
     public StatePair<TEvent, TNew> Convert<TNew>(Func<TState, TNew> converter)
         => new(Event, converter(State), Timers, Context, Sender, Parent, Self);
@@ -77,6 +78,9 @@ public sealed record StatePair<TEvent, TState>(TEvent Event, TState State, ITime
         state = State;
         scheduler = Timers;
     }
+
+    IDisposable IObservable<StatePair<TEvent, TState>>.Subscribe(IObserver<StatePair<TEvent, TState>> observer)
+        => Observable.Return(this).Subscribe(observer);
 }
 
 [PublicAPI, DebuggerStepThrough]
