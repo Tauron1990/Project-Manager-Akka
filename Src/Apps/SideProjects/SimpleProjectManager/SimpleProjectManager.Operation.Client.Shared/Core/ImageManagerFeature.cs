@@ -52,11 +52,12 @@ public sealed class ImageManagerFeature : ActorFeatureBase<ImageManagerFeature.S
         {
             var jobName = evt.JobName;
             var targetPath = Path.Combine(state.CurrentPath, jobName);
-        
+
+            var newState = UpdateFileSystemWatcher(state, targetPath);
             CreateOrClearDirectory(targetPath);
             obj.Sender.Tell(new ProjectStartResponse(null));
 
-            return state with { CurrentPath = targetPath };
+            return newState with { CurrentPath = targetPath };
         }
         catch (Exception e)
         {
@@ -64,7 +65,7 @@ public sealed class ImageManagerFeature : ActorFeatureBase<ImageManagerFeature.S
             obj.Sender.Tell(new ProjectStartResponse(e.Message));
         }
 
-        return obj.State;
+        return obj.State with{CurrentPath = string.Empty};
     }
 
     private State StartSingle(StatePair<StartProject, State> obj)
@@ -74,9 +75,11 @@ public sealed class ImageManagerFeature : ActorFeatureBase<ImageManagerFeature.S
         try
         {
             CreateOrClearDirectory(obj.State.TargetPath);
+            var state = UpdateFileSystemWatcher(obj.State, obj.State.TargetPath);
+            
             obj.Sender.Tell(new ProjectStartResponse(null));
 
-            return obj.State with { CurrentPath = obj.State.TargetPath };
+            return state with { CurrentPath = obj.State.TargetPath };
         }
         catch (Exception e)
         {
@@ -84,11 +87,12 @@ public sealed class ImageManagerFeature : ActorFeatureBase<ImageManagerFeature.S
             obj.Sender.Tell(new ProjectStartResponse(e.Message));
         }
         
-        return obj.State;
+        return obj.State with{ CurrentPath = string.Empty };
     }
 
-    private State UpdateFileSystemWatcher(State currentState, string newPath, FileSystemWatcher watcher)
+    private State UpdateFileSystemWatcher(State currentState, string newPath)
     {
+        var watcher = currentState.Watcher;
         ((IResourceHolder)this).RemoveResource(currentState.Subscription);
 
         var self = Self;
@@ -124,21 +128,29 @@ public sealed class ImageManagerFeature : ActorFeatureBase<ImageManagerFeature.S
             Observable.FromEvent<FileSystemEventHandler, FileSystemEventArgs>(
                 a => (_, args) => a(args),
                 d => watcher.Deleted += d,
-                d => watcher.Deleted -= d));
+                d => watcher.Deleted -= d))
+           .Select(s => HandleDelete(s, newToken));
 
         return currentState with
                {
                    Token = newToken,
-                   Subscription = new CompositeDisposable
-                                  {
-                                      rename.ToActor(self),
-                                      changed.ToActor(self),
-                                      created.ToActor(self),
-                                      deleted.ToActor(self)
-                                  }.DisposeWith(this)
+                   Subscription = Observable.Merge(rename, changed, created, deleted).ToActor(self).DisposeWith(this)
                };
     }
+    
+    private IObservable<StatePair<TData, State>> PrepareEventStream<TData>(IObservable<bool> suspender, IObservable<TData> obs)
+        => UpdateAndSyncActor(obs)
+           .TakeWhile(suspender)
+           .Do(s => s.State.DispatchFileSystemEvents.OnNext(false));
 
+    private IObservable<FileChangeEvent> HandleDelete(StatePair<FileSystemEventArgs, State> arg, int token)
+        => from msg in arg
+           let fileName = msg.Event.Name
+           where !string.IsNullOrWhiteSpace(fileName)
+           from mapEntry in msg.State.FileMapping 
+           where mapEntry.Value == fileName
+           select new FileChangeEvent(token, fileName, mapEntry.Key);
+    
     private IObservable<FileChangeEvent> HandleCreated(StatePair<FileSystemEventArgs, State> arg, int token)
         => from msg in arg
            let fileName = msg.Event.Name
@@ -148,12 +160,7 @@ public sealed class ImageManagerFeature : ActorFeatureBase<ImageManagerFeature.S
            from mapentry in msg.State.FileMapping 
            where mapentry.Value.Contains(originalName)
            select new FileChangeEvent(token, fileName, mapentry.Key);
-
-    private IObservable<StatePair<TData, State>> PrepareEventStream<TData>(IObservable<bool> suspender, IObservable<TData> obs)
-        => UpdateAndSyncActor(obs)
-           .TakeWhile(suspender)
-           .Do(s => s.State.DispatchFileSystemEvents.OnNext(false));
-
+    
     private IObservable<FileChangeEvent> HandleChanged(StatePair<FileSystemEventArgs, State> arg, int token)
         => from msg in arg
            let fileName = msg.Event.Name
@@ -213,4 +220,6 @@ public sealed class ImageManagerFeature : ActorFeatureBase<ImageManagerFeature.S
     }
 
     private sealed record FileChangeEvent(int token, string FileName, ProjectFileId Id);
+
+    private sealed record SyncFromServer;
 }
