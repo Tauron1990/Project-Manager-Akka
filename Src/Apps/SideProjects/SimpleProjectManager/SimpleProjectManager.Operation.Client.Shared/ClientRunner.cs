@@ -19,6 +19,5 @@ public sealed class ClientRunner
         collection.RegisterStartUpAction<ImageEditorStartup>();
         
         collection.RegisterInstance(this);
-        collection.RegisterInstance(this);
     }
 }

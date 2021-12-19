@@ -2,7 +2,6 @@ using Akka.DependencyInjection;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.ResponseCompression;
-using SimpleProjectManager.Operation.Client.Shared;
 using SimpleProjectManager.Server.Controllers.ModelBinder;
 using SimpleProjectManager.Server.Core.Data;
 using SimpleProjectManager.Server.Core.Projections;
@@ -24,9 +23,6 @@ public class Startup
     // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
     public void ConfigureServices(IServiceCollection services)
     {
-        var runner = new ClientRunner();
-        runner.ApplyClientServices(services);
-        
         var fusion = services.AddFusion();
         fusion
            .AddComputeService<IJobDatabaseService, JobDatabaseService>()
