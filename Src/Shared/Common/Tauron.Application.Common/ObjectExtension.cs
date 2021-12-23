@@ -1,9 +1,8 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Globalization;
-using Akka.Util;
-using Akka.Util.Extensions;
 using JetBrains.Annotations;
+using Stl;
 
 namespace Tauron;
 
@@ -35,12 +34,30 @@ public static class ObjectExtension
         }
     }
 
+    public static Option<TData> AsOption<TData>(this TData data) => new(hasValue: true, data);
+
     public static Option<TData> OptionNotNull<TData>(this TData? data)
         where TData : class
         => data ?? Option<TData>.None;
 
-    public static Option<TNew> Select<TOld, TNew>(this Option<TOld> old, Func<TOld, TNew> onValue, Func<TNew> defaultValue)
+    public static void OnSuccess<TData>(this in Option<TData> data, Action<TData> action)
+    {
+        var (hasValue, value) = data;
+        if (hasValue)
+            action(value);
+    }
+
+    public static TData GetOrElse<TData>(this in Option<TData> option, TData els)
+        => option.HasValue ? option.Value : els;
+    
+    public static Option<TNew> Select<TOld, TNew>(this in Option<TOld> old, Func<TOld, TNew> onValue)
+        => old.HasValue ? Option.Some(onValue(old.Value)) : Option.None<TNew>(); 
+
+    public static Option<TNew> Select<TOld, TNew>(this in Option<TOld> old, Func<TOld, TNew> onValue, Func<TNew> defaultValue)
         => old.HasValue ? old.Select(onValue) : defaultValue();
+
+    public static Option<TNew> FlatSelect<TOld, TNew>(this in Option<TOld> old, Func<TOld, Option<TNew>> onValue)
+        => old.HasValue ? onValue(old.Value) : Option.None<TNew>();
 
     public static bool WhenTrue(this bool input, Action run)
     {

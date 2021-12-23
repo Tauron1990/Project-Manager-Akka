@@ -7,8 +7,8 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using Akka.Util;
 using JetBrains.Annotations;
+using Stl;
 
 namespace Tauron.Application;
 
@@ -54,13 +54,13 @@ public sealed class WeakCollection<TType> : IList<Option<TType>>
         for (var targetIndex = arrayIndex; targetIndex < array.Length; targetIndex++)
         {
             var target = Option<TType>.None;
-            while (target.IsEmpty && index <= _internalCollection.Count)
+            while (!target.HasValue && index <= _internalCollection.Count)
             {
                 target = _internalCollection[index].TypedTarget();
                 index++;
             }
 
-            if (target.IsEmpty) break;
+            if (!target.HasValue) break;
 
             array[targetIndex] = target;
         }
@@ -72,7 +72,7 @@ public sealed class WeakCollection<TType> : IList<Option<TType>>
 
     public int IndexOf(Option<TType> item)
     {
-        if (item.IsEmpty) return -1;
+        if (!item.HasValue) return -1;
 
         int index;
         for (index = 0; index < _internalCollection.Count; index++)
@@ -87,14 +87,14 @@ public sealed class WeakCollection<TType> : IList<Option<TType>>
 
     public void Insert(int index, Option<TType> item)
     {
-        if (item.IsEmpty) return;
+        if (!item.HasValue) return;
 
         _internalCollection.Insert(index, new WeakReference<TType>(item.Value));
     }
 
     public bool Remove(Option<TType> item)
     {
-        if (item.IsEmpty) return false;
+        if (!item.HasValue) return false;
 
         var index = IndexOf(item);
 

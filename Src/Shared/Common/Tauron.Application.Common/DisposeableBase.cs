@@ -1,18 +1,18 @@
 ﻿using System;
-using Akka.Util;
+using System.Threading;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
-using Tauron.AkkaHost;
+using Tauron.Application;
 
 namespace Tauron;
 
 [PublicAPI]
 public abstract class DisposeableBase : IDisposable
 {
-    private readonly AtomicBoolean _isDisposed = new();
+    private int _isDisposed;
     private Action? _tracker;
 
-    public bool IsDisposed => _isDisposed.Value;
+    public bool IsDisposed => _isDisposed == 1;
 
 
     public void Dispose()
@@ -23,7 +23,7 @@ public abstract class DisposeableBase : IDisposable
 
     protected void ThrowDispose()
     {
-        if (_isDisposed.Value)
+        if (IsDisposed)
             throw new ObjectDisposedException(nameof(GetType));
     }
 
@@ -33,7 +33,7 @@ public abstract class DisposeableBase : IDisposable
 
     protected void Dispose(bool disposing)
     {
-        if (_isDisposed.GetAndSet(newValue: true))
+        if (Interlocked.Exchange(ref _isDisposed, 1) == 1)
             return;
 
         DisposeCore(disposing);
@@ -44,7 +44,7 @@ public abstract class DisposeableBase : IDisposable
         }
         catch (Exception e)
         {
-            ActorApplication.GetLogger(GetType()).LogWarning(e, "Error on Execute Dispose Tracker");
+            TauronEnviroment.GetLogger(GetType()).LogWarning(e, "Error on Execute Dispose Tracker");
         }
         finally
         {

@@ -4,6 +4,20 @@
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <RootNamespace>Tauron</RootNamespace>
     </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Akka.DependencyInjection" Version="1.4.31" />
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Tauron.Application.Common\Tauron.Application.Common.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Application" />
+    </ItemGroup>
 
 </Project>

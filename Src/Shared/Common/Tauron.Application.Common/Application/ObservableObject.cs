@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using FastExpressionCompiler;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
-using Tauron.AkkaHost;
 
 namespace Tauron.Application;
 
@@ -77,7 +76,7 @@ public abstract class ObservableObject : INotifyPropertyChangedMethod, IObservab
             }
             catch (Exception exception)
             {
-                ActorApplication.GetLogger(GetType()).LogError(exception, "Error on Execute Async property Changed");
+                TauronEnviroment.GetLogger(GetType()).LogError(exception, "Error on Execute Async property Changed");
                 if (context != null)
                     ExecutionContext.Run(context, state => throw (Exception)state!, exception);
             }

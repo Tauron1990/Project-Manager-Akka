@@ -1,8 +1,6 @@
-﻿using System;
-using Akka.Actor;
+﻿using Akka.Actor;
 using Akka.Actor.Setup;
 using Akka.Configuration;
-using Autofac;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,8 +11,6 @@ namespace Tauron.AkkaHost;
 [PublicAPI]
 public interface IActorApplicationBuilder
 {
-    IActorApplicationBuilder ConfigureAutoFac(Action<ContainerBuilder> config);
-
     IActorApplicationBuilder ConfigureAkka(Func<HostBuilderContext, Config> config);
 
     IActorApplicationBuilder ConfigureAkka(Func<HostBuilderContext, Setup> config);

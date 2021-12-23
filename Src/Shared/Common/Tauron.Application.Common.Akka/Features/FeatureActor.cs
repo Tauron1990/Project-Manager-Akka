@@ -9,7 +9,7 @@ using Akka.Actor;
 using Akka.Actor.Internal;
 using Akka.Event;
 using JetBrains.Annotations;
-using IResourceHolder = Tauron.TAkka.IResourceHolder;
+using IResourceHolder = Tauron.IResourceHolder;
 using ObservableActor = Tauron.TAkka.ObservableActor;
 
 namespace Tauron.Features;

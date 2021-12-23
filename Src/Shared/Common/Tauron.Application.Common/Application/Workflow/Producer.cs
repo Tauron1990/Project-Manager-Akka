@@ -138,7 +138,7 @@ public class StepConfiguration<TState, TContext>
 {
     private readonly StepRev<TState, TContext> _context;
 
-    internal StepConfiguration(StepRev<TState, TContext> context) => _context = context;
+    public StepConfiguration(StepRev<TState, TContext> context) => _context = context;
 
     public StepConfiguration<TState, TContext> WithCondition(ICondition<TContext> condition)
     {
@@ -181,19 +181,19 @@ public class ConditionConfiguration<TState, TContext>
     }
 }
 
-internal sealed class StepRev<TState, TContext>
+public sealed class StepRev<TState, TContext>
 {
-    internal StepRev(TState step)
+    public StepRev(TState step)
     {
         Step = step;
         Conditions = new List<ICondition<TContext>>();
     }
 
-    internal TState Step { get; }
+    public TState Step { get; }
 
-    internal List<ICondition<TContext>> Conditions { get; }
+    public List<ICondition<TContext>> Conditions { get; }
 
-    internal ICondition<TContext>? GenericCondition { get; set; }
+    public ICondition<TContext>? GenericCondition { get; set; }
 
     public override string ToString()
     {

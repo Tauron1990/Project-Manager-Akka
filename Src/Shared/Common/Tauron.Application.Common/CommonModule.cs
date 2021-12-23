@@ -1,29 +1,27 @@
-﻿using System.Reactive.PlatformServices;
-using Autofac;
-using Autofac.Features.ResolveAnything;
-using Stl.Time;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Reactive.PlatformServices;
+using Microsoft.Extensions.DependencyInjection;
 using Tauron.Application;
 using Tauron.Application.VirtualFiles;
-using Tauron.Localization.Provider;
-using Tauron.TAkka;
+using Tauron.Modules;
 
 namespace Tauron;
 
-public sealed class CommonModule : Module
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
+public sealed class CommonModule : IModule
 {
-    protected override void Load(ContainerBuilder builder)
+    private sealed class Clock : ISystemClock
     {
-        builder.RegisterType<VirtualFileFactory>();
-        builder.RegisterInstance(CpuClock.Instance).As<IMomentClock, ISystemClock>().SingleInstance();
+        public DateTimeOffset UtcNow => DateTimeOffset.Now;
+    }
 
-        builder.RegisterSource<AnyConcreteTypeNotAlreadyRegisteredSource>();
-        builder.RegisterType<LocJsonProvider>().As<ILocStoreProducer>();
+    public void Load(IServiceCollection builder)
+    {
+        builder.AddTransient<VirtualFileFactory>();
+        builder.AddTransient<ISystemClock, Clock>();
 
-        builder.RegisterGeneric(typeof(ActorRefFactory<>)).AsSelf();
-        builder.RegisterGeneric(typeof(DefaultActorRef<>)).As(typeof(IDefaultActorRef<>));
-        builder.RegisterGeneric(typeof(SyncActorRef<>)).As(typeof(ISyncActorRef<>));
-
-        builder.RegisterType<TauronEnviromentImpl>().As<ITauronEnviroment>().SingleInstance();
-        builder.RegisterType<EventAggregator>().As<IEventAggregator>().SingleInstance();
+        builder.AddSingleton<ITauronEnviroment, TauronEnviromentImpl>();
+        builder.AddSingleton<IEventAggregator, EventAggregator>();
     }
 }

@@ -2,8 +2,8 @@
 using System.Linq;
 using System.Reflection;
 using System.Resources;
-using Akka.Util;
 using JetBrains.Annotations;
+using Stl;
 
 namespace Tauron.Application;
 

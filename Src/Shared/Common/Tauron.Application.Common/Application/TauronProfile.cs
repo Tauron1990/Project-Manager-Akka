@@ -4,10 +4,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using Akka.Util;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
-using Tauron.AkkaHost;
+using Stl;
 using Tauron.Application.VirtualFiles;
 
 namespace Tauron.Application;
@@ -18,7 +17,7 @@ public abstract class TauronProfile : ObservableObject, IEnumerable<string>
     private static readonly char[] ContentSplitter = { '=' };
 
     private readonly IDirectory _defaultPath;
-    private readonly ILogger<TauronProfile> _logger = ActorApplication.GetLogger<TauronProfile>();
+    private readonly ILogger<TauronProfile> _logger = TauronEnviroment.GetLogger<TauronProfile>();
 
     private readonly Dictionary<string, string> _settings = new();
 

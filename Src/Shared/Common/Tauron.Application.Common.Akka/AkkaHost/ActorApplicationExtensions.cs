@@ -1,19 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Akka.Actor;
+﻿using Akka.Actor;
 using Akka.Actor.Setup;
 using Akka.Configuration;
 using Akka.DependencyInjection;
-using Autofac;
-using Autofac.Extensions.DependencyInjection;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.EventLog;
-using Microsoft.Extensions.Options;
+using Tauron.Application;
 
 namespace Tauron.AkkaHost;
 
@@ -36,7 +29,7 @@ public static class ActorApplicationExtensions
         private readonly List<Func<HostBuilderContext, Setup>> _akkaSetup = new();
         private readonly IHostBuilder _builder;
 
-        private readonly ContainerBuilder _containerBuilder = new();
+        private readonly ServiceCollection _containerBuilder = new ServiceCollection();
 
         private readonly HostBuilderContext _context;
         private readonly ActorSystemHolder _holder = new();
@@ -47,16 +40,9 @@ public static class ActorApplicationExtensions
             _context = context;
             _builder = builder;
 
-            _containerBuilder.RegisterModule<CommonModule>();
-            _containerBuilder.RegisterInstance(_holder).SingleInstance();
-            _containerBuilder.Register(componentContext => componentContext.Resolve<ActorSystemHolder>().System).SingleInstance();
-        }
-
-        public IActorApplicationBuilder ConfigureAutoFac(Action<ContainerBuilder> config)
-        {
-            config(_containerBuilder);
-
-            return this;
+            _containerBuilder.ScanModules();
+            _containerBuilder.AddSingleton(_holder);
+            _containerBuilder.AddSingleton(p => p.GetRequiredService<ActorSystemHolder>().System);
         }
 
         public IActorApplicationBuilder ConfigureAkka(Func<HostBuilderContext, Config> config)
@@ -133,31 +119,31 @@ public static class ActorApplicationExtensions
                 : _context.HostingEnvironment.ApplicationName.Replace('.', '-');
         }
 
-        internal void Populate(IServiceCollection collection)
-        {
-            ApplyFixes(_containerBuilder, collection);
-            _containerBuilder.Populate(collection);
-        }
+        // internal void Populate(IServiceCollection collection)
+        // {
+        //     ApplyFixes(_containerBuilder, collection);
+        //     _containerBuilder.Populate(collection);
+        // }
 
         internal IServiceProvider CreateServiceProvider()
-            => new AutofacServiceProvider(_containerBuilder.Build());
+            => _containerBuilder.BuildServiceProvider();
 
-        private static void ApplyFixes(ContainerBuilder builder, IServiceCollection serviceCollection)
-        {
-            if (TryRemove(serviceCollection, typeof(EventLogLoggerProvider)))
-                builder.Register(componentContext => new EventLogLoggerProvider(componentContext.Resolve<IOptions<EventLogSettings>>())).As<ILoggerProvider>();
-        }
+        // private static void ApplyFixes(ContainerBuilder builder, IServiceCollection serviceCollection)
+        // {
+        //     if (TryRemove(serviceCollection, typeof(EventLogLoggerProvider)))
+        //         builder.Register(componentContext => new EventLogLoggerProvider(componentContext.Resolve<IOptions<EventLogSettings>>())).As<ILoggerProvider>();
+        // }
 
-        private static bool TryRemove(IServiceCollection collection, Type impl)
-        {
-            var sd = collection.FindIndex(serviceDescriptor => serviceDescriptor.ImplementationType == impl);
-
-            if (sd == -1) return false;
-
-            collection.RemoveAt(sd);
-
-            return true;
-        }
+        // private static bool TryRemove(IServiceCollection collection, Type impl)
+        // {
+        //     var sd = collection.FindIndex(serviceDescriptor => serviceDescriptor.ImplementationType == impl);
+        //
+        //     if (sd == -1) return false;
+        //
+        //     collection.RemoveAt(sd);
+        //
+        //     return true;
+        // }
 
         private sealed class ActorSystemHolder
         {
@@ -184,11 +170,7 @@ public static class ActorApplicationExtensions
         internal ActorServiceProviderFactory(ActorApplicationBluilder actorBuilder) => _actorBuilder = actorBuilder;
 
         public IActorApplicationBuilder CreateBuilder(IServiceCollection services)
-        {
-            _actorBuilder.Populate(services);
-
-            return _actorBuilder;
-        }
+            => _actorBuilder;
 
         public IServiceProvider CreateServiceProvider(IActorApplicationBuilder containerBuilder)
         {
@@ -200,8 +182,7 @@ public static class ActorApplicationExtensions
             var lifetime = prov.GetRequiredService<IHostApplicationLifetime>();
 
             ActorApplication.ActorSystem = system;
-            ActorApplication.LoggerFactory = prov.GetRequiredService<ILoggerFactory>();
-            ActorApplication.ServiceProvider = prov;
+            new TauronEnviromentSetup().Run(prov);
 
             lifetime.ApplicationStopping.Register(() => system.Terminate());
             system.RegisterOnTermination(() => lifetime.StopApplication());

@@ -13,12 +13,6 @@ using JetBrains.Annotations;
 
 namespace Tauron.TAkka;
 
-public interface IResourceHolder : IDisposable
-{
-    void AddResource(IDisposable res);
-    void RemoveResource(IDisposable res);
-}
-
 [PublicAPI]
 public interface IObservableActor : IResourceHolder
 {

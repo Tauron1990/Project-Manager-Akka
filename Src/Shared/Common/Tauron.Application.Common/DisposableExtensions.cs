@@ -1,6 +1,5 @@
 ﻿using System;
 using JetBrains.Annotations;
-using Tauron.TAkka;
 
 namespace Tauron;
 

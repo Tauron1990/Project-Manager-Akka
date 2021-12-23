@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Akka.Event;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 
@@ -9,9 +8,6 @@ namespace Tauron;
 [PublicAPI]
 public static class TaskExtensions
 {
-    public static void LogTaskError(this Task task, string errorMessage, ILoggingAdapter logger)
-        => LogTaskError(task, exception => logger.Error(exception, errorMessage));
-
     public static void LogTaskError(this Task task, string errorMessage, ILogger logger)
         // ReSharper disable once TemplateIsNotCompileTimeConstantProblem
         => LogTaskError(task, exception => logger.LogError(exception, errorMessage));
