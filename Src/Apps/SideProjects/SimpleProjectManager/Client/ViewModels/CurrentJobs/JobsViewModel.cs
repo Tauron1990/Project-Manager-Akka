@@ -1,6 +1,5 @@
 ﻿using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using Stl;
 using Stl.Fusion;
 
 namespace SimpleProjectManager.Client.ViewModels;
@@ -17,7 +16,7 @@ public sealed class JobsViewModel : IDisposable
 
     public JobsViewModel(IStateFactory stateFactory)
     {
-        var state = stateFactory.NewMutable(Result.Value<JobSortOrderPair?>(null));
+        var state = stateFactory.NewMutable<JobSortOrderPair?>();
 
         CurrentInfo.Subscribe(p => state.Set(p));
 

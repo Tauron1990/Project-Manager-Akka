@@ -219,7 +219,7 @@ public sealed class ImageManagerFeature : ActorFeatureBase<ImageManagerFeature.S
         }
     }
 
-    private sealed record FileChangeEvent(int token, string FileName, ProjectFileId Id);
+    private sealed record FileChangeEvent(int Token, string FileName, ProjectFileId Id);
 
     private sealed record SyncFromServer;
 }

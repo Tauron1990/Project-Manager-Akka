@@ -47,13 +47,16 @@ public abstract class StatefulViewModel<TData> : BlazorViewModel
     protected StatefulViewModel(IStateFactory stateFactory)
         : base(stateFactory)
     {
-        State = stateFactory.NewComputed<TData>(ConfigureState, (_, cancel) => ComputeState(cancel))
+        var ops = new ComputedState<TData>.Options();
+        // ReSharper disable once VirtualMemberCallInConstructor
+        ConfigureState(ops);
+        State = stateFactory.NewComputed(ops, (_, cancel) => ComputeState(cancel))
            .DisposeWith(this);
 
         NextElement = State.ToObservable();
     }
     
-    protected virtual void ConfigureState(State<TData>.Options options) { }
+    protected virtual void ConfigureState(ComputedState<TData>.Options options) { }
     
     protected abstract Task<TData> ComputeState(CancellationToken cancellationToken);
 }

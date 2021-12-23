@@ -18,7 +18,9 @@ try
         await SetupRunner.Run(ip);
     }
     else
+#pragma warning disable EX006 // Do not write logic driven by exceptions.
         throw new InvalidOperationException("The File seed.conf does not Exist");
+#pragma warning restore EX006 // Do not write logic driven by exceptions.
 
     var builder = Bootstrap.StartNode(args, KillRecpientType.Seed, IpcApplicationType.NoIpc, consoleLog: true)
        .ConfigureWebHostDefaults(

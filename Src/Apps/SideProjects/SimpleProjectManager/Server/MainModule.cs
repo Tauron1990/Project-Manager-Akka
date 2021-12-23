@@ -10,8 +10,8 @@ public sealed class MainModule : Module
 {
     protected override void Load(ContainerBuilder builder)
     {        
-        var runner = new ClientRunner();
-        runner.ApplyClientServices(builder);
+        //var runner = new ClientRunner();
+        //runner.ApplyClientServices(builder);
         
         builder.RegisterStartUpAction<ClusterJoinSelf>();
         builder.RegisterStartUpAction<JobManagerRegistrations>();

@@ -14,12 +14,12 @@
 
   <ItemGroup>
     <PackageReference Include="Blazor.Extensions.Logging" Version="2.0.4" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="6.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="6.0.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="6.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="6.0.1" PrivateAssets="all" />
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
     <PackageReference Include="MudBlazor" Version="6.0.2" />
-    <PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" Version="14.1.1" />
-    <PackageReference Include="Stl.Fusion.Blazor" Version="2.0.138" />
+    <PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" Version="14.1.17" />
+    <PackageReference Include="Stl.Fusion.Blazor" Version="2.1.10" />
   </ItemGroup>
 
   <ItemGroup>
