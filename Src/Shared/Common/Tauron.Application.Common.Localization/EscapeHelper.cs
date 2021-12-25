@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 using JetBrains.Annotations;
 
-namespace Tauron.Localization;
+namespace Tauron.Application.Common.Localization;
 
 [PublicAPI]
 public class EscapeHelper

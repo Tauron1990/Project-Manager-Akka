@@ -1,7 +1,7 @@
 ﻿using Akka.Actor;
-using Tauron.Localization.Extension;
+using Tauron.Application.Common.Localization.Extension;
 
-namespace Tauron.Localization;
+namespace Tauron.Application.Common.Localization;
 
 public sealed class LocExtensionId : ExtensionIdProvider<LocExtension>
 {

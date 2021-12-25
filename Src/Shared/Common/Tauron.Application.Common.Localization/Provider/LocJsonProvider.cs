@@ -1,8 +1,8 @@
 ﻿using Akka.Actor;
 using Akka.DependencyInjection;
-using Tauron.Localization.Actor;
+using Tauron.Application.Common.Localization.Actor;
 
-namespace Tauron.Localization.Provider;
+namespace Tauron.Application.Common.Localization.Provider;
 
 public sealed class LocJsonProvider : ILocStoreProducer
 {

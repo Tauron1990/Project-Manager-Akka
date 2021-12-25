@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
+﻿using System.Globalization;
 using Akka.Actor;
 using Akka.Util;
-using Tauron.Localization.Provider;
+using Tauron.Application.Common.Localization.Provider;
 
-namespace Tauron.Localization.Actor;
+namespace Tauron.Application.Common.Localization.Actor;
 
 public sealed class LocCoordinator : ReceiveActor, IWithTimers
 {

@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
-using Tauron.Localization.Provider;
+using Tauron.Application.Common.Localization.Provider;
 using Tauron.Modules;
 
 namespace Tauron.Application.Common.Localization;

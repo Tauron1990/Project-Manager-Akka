@@ -1,9 +1,7 @@
-﻿using System;
-using System.IO;
-using JetBrains.Annotations;
+﻿using JetBrains.Annotations;
 using Tauron.Application.VirtualFiles;
 
-namespace Tauron.Localization;
+namespace Tauron.Application.Common.Localization;
 
 public enum JsonFileNameMode
 {

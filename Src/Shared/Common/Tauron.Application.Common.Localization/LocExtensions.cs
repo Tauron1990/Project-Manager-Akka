@@ -1,8 +1,8 @@
 ﻿using Akka.Actor;
 using JetBrains.Annotations;
-using Tauron.Localization.Extension;
+using Tauron.Application.Common.Localization.Extension;
 
-namespace Tauron.Localization;
+namespace Tauron.Application.Common.Localization;
 
 [PublicAPI]
 public static class LocExtensions

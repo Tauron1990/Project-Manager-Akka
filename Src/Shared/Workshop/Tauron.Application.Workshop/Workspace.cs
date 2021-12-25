@@ -4,12 +4,11 @@ using Tauron.Application.Workshop.Analyzing;
 using Tauron.Application.Workshop.Mutating;
 using Tauron.Application.Workshop.Mutating.Changes;
 using Tauron.Application.Workshop.Mutation;
-using Tauron.Application.Workshop.StateManagement;
 
 namespace Tauron.Application.Workshop;
 
 [PublicAPI]
-public abstract class WorkspaceBase<TData> : IDataSource<TData>, IState
+public abstract class WorkspaceBase<TData> : IDataSource<TData>//, IState
     where TData : class
 {
     protected WorkspaceBase(WorkspaceSuperviser superviser) => Engine = MutatingEngine.From(this, superviser);
@@ -19,14 +18,10 @@ public abstract class WorkspaceBase<TData> : IDataSource<TData>, IState
     TData IDataSource<TData>.GetData() => GetDataInternal();
 
     void IDataSource<TData>.SetData(TData data)
-    {
-        SetDataInternal(data);
-    }
+        => SetDataInternal(data);
 
     public void Dispatch(IDataMutation mutationOld)
-    {
-        Engine.Mutate(mutationOld);
-    }
+        => Engine.Mutate(mutationOld);
 
     protected abstract TData GetDataInternal();
 
@@ -45,7 +40,5 @@ public abstract class Workspace<TThis, TRawData> : WorkspaceBase<MutatingContext
     public IAnalyzer<TThis, MutatingContext<TRawData>> Analyzer { get; }
 
     public void Reset(TRawData newData)
-    {
-        Engine.Mutate(nameof(Reset), data => data.Select(d => d.Update(new ResetChange(), newData)));
-    }
+        => Engine.Mutate(nameof(Reset), data => data.Select(d => d.Update(new ResetChange(), newData)));
 }

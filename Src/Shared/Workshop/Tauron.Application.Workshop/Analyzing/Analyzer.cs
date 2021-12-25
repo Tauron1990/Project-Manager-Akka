@@ -73,8 +73,8 @@ public static class Analyzer
 
         internal IObserver<RuleIssuesChanged<TWorkspace, TData>> Send()
         {
-            if (EventSource == null)
-                throw new InvalidOperationException("Analýzer is not Initialized");
+            if (EventSource is null)
+                throw new InvalidOperationException("Analyzer is not Initialized");
 
             return EventSource.SendEvent();
         }

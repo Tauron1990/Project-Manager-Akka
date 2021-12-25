@@ -1,12 +1,11 @@
-﻿using System;
-using System.Globalization;
-using System.Threading.Tasks;
+﻿using System.Globalization;
 using Akka.Actor;
 using Akka.Util;
 using JetBrains.Annotations;
-using Tauron.Localization.Actor;
+using Tauron.Application.Common.Localization.Actor;
+using Tauron.TAkka;
 
-namespace Tauron.Localization.Extension;
+namespace Tauron.Application.Common.Localization.Extension;
 
 [PublicAPI]
 public sealed class LocExtensionAdaptor

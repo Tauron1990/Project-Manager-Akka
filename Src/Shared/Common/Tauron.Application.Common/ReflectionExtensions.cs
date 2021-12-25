@@ -427,15 +427,15 @@ public static class ReflectionExtensions
 
     public static IEnumerable<Type> GetParameterTypes(this MethodBase method)
     {
-        if (method == null) throw new ArgumentNullException(nameof(method));
+        if (method is null) throw new ArgumentNullException(nameof(method));
 
         return method.GetParameters().Select(p => p.ParameterType);
     }
 
     public static Option<PropertyInfo> GetPropertyFromMethod(this MethodInfo method, Type implementingType)
     {
-        if (method == null) throw new ArgumentNullException(nameof(method));
-        if (implementingType == null) throw new ArgumentNullException(nameof(implementingType));
+        if (method is null) throw new ArgumentNullException(nameof(method));
+        if (implementingType is null) throw new ArgumentNullException(nameof(implementingType));
 
         if (!method.IsSpecialName || method.Name.Length < 4) return default;
 

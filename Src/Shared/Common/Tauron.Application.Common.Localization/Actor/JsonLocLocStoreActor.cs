@@ -1,17 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
+﻿using System.Globalization;
 using Akka.Util;
-using Autofac;
-using Autofac.Core;
 using JetBrains.Annotations;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Tauron.Application.VirtualFiles;
 
-namespace Tauron.Localization.Actor;
+namespace Tauron.Application.Common.Localization.Actor;
 
 [UsedImplicitly]
 public sealed class JsonLocLocStoreActor : LocStoreActorBase
@@ -22,14 +17,14 @@ public sealed class JsonLocLocStoreActor : LocStoreActorBase
     private readonly Dictionary<string, Dictionary<string, JToken>> _files = new();
     private bool _isInitialized;
 
-    public JsonLocLocStoreActor(ILifetimeScope scope, VirtualFileFactory factory)
+    public JsonLocLocStoreActor(IServiceProvider scope, VirtualFileFactory factory)
     {
         try
         {
-            _configuration = scope.ResolveOptional<JsonConfiguration>()
+            _configuration = scope.GetService<JsonConfiguration>()
                 ?? JsonConfiguration.CreateFromApplicationPath(factory);
         }
-        catch (DependencyResolutionException)
+        catch (Exception)
         {
             _configuration = JsonConfiguration.CreateFromApplicationPath(factory);
         }

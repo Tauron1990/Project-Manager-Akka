@@ -14,7 +14,8 @@ public static class HostExtensions
             cb => cb.RegisterStateManager(
                 (b, context) =>
                 {
-                    foreach (var assembly in assemblys) b.AddFromAssembly(assembly, context);
+                    foreach (var assembly in assemblys) 
+                        b.AddFromAssembly(assembly, context);
                 }));
     }
 }

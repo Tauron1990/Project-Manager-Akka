@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
+﻿using System.Reflection;
 using Akka.Actor;
-using Autofac;
-using Autofac.Builder;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -58,39 +52,44 @@ public abstract class FeatureActorRefBase<TInterface> : IFeatureActorRef<TInterf
 }
 
 [PublicAPI]
-public static class FeaturAutofacExtension
+public static class FeaturesServiceExtension
 {
-    public static IServiceCollection RegisterFeature<TImpl, TIterfaceType>(this IServiceCollection builder, Delegate del)
-        where TIterfaceType : IFeatureActorRef<TIterfaceType>
-        where TImpl : TIterfaceType
+    public static IServiceCollection RegisterFeature<TImpl, TInterfaceType>(this IServiceCollection builder, Delegate del)
+        where TInterfaceType : class, IFeatureActorRef<TInterfaceType>
+        where TImpl : TInterfaceType
     {
         var param = del.Method.GetParameters().Select(info => info.ParameterType).ToArray();
-        var factory = ActivatorUtilities.CreateInstance()
-        
-        
-        return builder.RegisterType<TImpl>()
-           .OnActivated(
-                eventArgs =>
-                {
-                    var system = eventArgs.Context.Resolve<ActorSystem>();
-                    eventArgs.Instance.Init(
-                        system,
-                        () => del.DynamicInvoke(param.Select(eventArgs.Context.Resolve).ToArray()) switch
-                        {
-                            IPreparedFeature feature => Feature.Props(feature),
-                            IPreparedFeature[] features => Feature.Props(features),
-                            IEnumerable<IPreparedFeature> features => Feature.Props(features.ToArray()),
-                            _ => throw new InvalidOperationException("Invalid Feature Construction Method")
-                        });
-                })
-           .As<TIterfaceType>().SingleInstance();
+        var factory = ActivatorUtilities.CreateFactory(typeof(TImpl), GetParameters(typeof(TImpl)));
+
+        return builder.AddSingleton<TInterfaceType>(
+            s =>
+            {
+                var inst = (TImpl)factory(s, null);
+                var system = s.GetRequiredService<ActorSystem>();
+                
+                inst.Init(
+                    system,
+                    () => del.DynamicInvoke(param.Select(s.GetService).ToArray()) switch
+                    {
+                        IPreparedFeature feature => Feature.Props(feature),
+                        IPreparedFeature[] features => Feature.Props(features),
+                        IEnumerable<IPreparedFeature> features => Feature.Props(features.ToArray()),
+                        _ => throw new InvalidOperationException("Invalid Feature Construction Method")
+                    });
+                    
+                return inst;
+            });
     }
 
-    private Type[] GetParameters(Type type)
+    private static Type[] GetParameters(Type type)
     {
         var contructors = type.GetConstructors();
 
         if (contructors.Length == 0)
             throw new InvalidOperationException($"No Public Constrctor for {type.Name} Defined");
+
+        var constructor = contructors.FirstOrDefault(c => c.IsDefined(typeof(ActivatorUtilitiesConstructorAttribute))) ?? contructors.Single();
+
+        return constructor.GetParameterTypes().ToArray();
     }
 }

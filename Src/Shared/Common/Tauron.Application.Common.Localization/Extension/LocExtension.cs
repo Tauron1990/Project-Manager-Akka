@@ -1,8 +1,8 @@
 ﻿using Akka.Actor;
 using Akka.DependencyInjection;
-using Tauron.Localization.Actor;
+using Tauron.Application.Common.Localization.Actor;
 
-namespace Tauron.Localization.Extension;
+namespace Tauron.Application.Common.Localization.Extension;
 
 public sealed class LocExtension : IExtension
 {
