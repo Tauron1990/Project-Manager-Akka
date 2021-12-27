@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-using Akka.Actor;
+﻿using Akka.Actor;
 using Akka.Event;
 using JetBrains.Annotations;
 

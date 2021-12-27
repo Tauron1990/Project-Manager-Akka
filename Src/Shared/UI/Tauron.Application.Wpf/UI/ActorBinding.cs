@@ -3,7 +3,6 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using Akka.Util.Extensions;
 using JetBrains.Annotations;
 using Tauron.Application.CommonUI.Helper;
 using Tauron.Application.CommonUI.UI;

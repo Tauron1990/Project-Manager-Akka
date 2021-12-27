@@ -1,5 +1,4 @@
-﻿using System;
-using Akka.Actor;
+﻿using Akka.Actor;
 using Tauron.Application.Workshop.Mutation;
 
 namespace Tauron.Application.Workshop.Analyzing.Actor;
@@ -7,13 +6,13 @@ namespace Tauron.Application.Workshop.Analyzing.Actor;
 public sealed class AnalyzerActor<TWorkspace, TData> : ReceiveActor
     where TWorkspace : WorkspaceBase<TData> where TData : class
 {
-    private readonly Lazy<IObserver<RuleIssuesChanged<TWorkspace, TData>>> _issesAction;
+    private readonly IObserver<RuleIssuesChanged<TWorkspace, TData>> _issesAction;
     private readonly TWorkspace _workspace;
 
-    public AnalyzerActor(TWorkspace workspace, Func<IObserver<RuleIssuesChanged<TWorkspace, TData>>> issesAction)
+    public AnalyzerActor(TWorkspace workspace, IObserver<RuleIssuesChanged<TWorkspace, TData>> issesAction)
     {
         _workspace = workspace;
-        _issesAction = new Lazy<IObserver<RuleIssuesChanged<TWorkspace, TData>>>(issesAction);
+        _issesAction = issesAction;
 
         Receive<RegisterRule<TWorkspace, TData>>(RegisterRule);
         Receive<RuleIssuesChanged<TWorkspace, TData>>(OnNext);
@@ -24,9 +23,7 @@ public sealed class AnalyzerActor<TWorkspace, TData> : ReceiveActor
     }
 
     private void OnNext(RuleIssuesChanged<TWorkspace, TData> obj)
-    {
-        _issesAction.Value.OnNext(obj);
-    }
+        => _issesAction.OnNext(obj);
 
     private void RegisterRule(RegisterRule<TWorkspace, TData> obj)
     {

@@ -3,9 +3,8 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
-using Akka.Actor;
 using JetBrains.Annotations;
-using Tauron.Application.Workshop.Core;
+using Tauron.Application.Workshop.Driver;
 using Tauron.Application.Workshop.Mutating;
 using Tauron.Application.Workshop.Mutating.Changes;
 
@@ -16,27 +15,20 @@ public sealed class MutatingEngine<TData> : MutatingEngine, IEventSourceable<TDa
     where TData : class
 {
     private readonly IDataSource<TData> _dataSource;
-    private readonly Task<IActorRef> _mutator;
     private readonly Subject<TData> _responder;
-    private readonly WorkspaceSuperviser _superviser;
 
-    internal MutatingEngine(Task<IActorRef> mutator, IDataSource<TData> dataSource, WorkspaceSuperviser superviser)
-        : base(mutator, superviser)
+    internal MutatingEngine(Action<IDataMutation> mutator, IDataSource<TData> dataSource)
+        : base(mutator)
     {
-        _mutator = mutator;
         _dataSource = dataSource;
-        _superviser = superviser;
         _responder = new Subject<TData>();
         _responder.Subscribe(dataSource.SetData);
     }
 
-    public MutatingEngine(IDataSource<TData> dataSource) : base(
-        Task.FromResult<IActorRef>(ActorRefs.Nobody),
-        new WorkspaceSuperviser())
+    public MutatingEngine(IDataSource<TData> dataSource) 
+        : base(_ => {})
     {
-        _mutator = Task.FromResult<IActorRef>(ActorRefs.Nobody);
         _dataSource = dataSource;
-        _superviser = new WorkspaceSuperviser();
         _responder = new Subject<TData>();
         _responder.Subscribe(_dataSource.SetData);
     }
@@ -56,16 +48,14 @@ public sealed class MutatingEngine<TData> : MutatingEngine, IEventSourceable<TDa
     public IEventSource<TRespond> EventSource<TRespond>(
         Func<TData, TRespond> transformer,
         Func<TData, bool>? where = null)
-        => new EventSource<TRespond, TData>(_superviser, _mutator, transformer, where, _responder);
+        => new EventSource<TRespond, TData>(transformer, where, _responder);
 
     public IEventSource<TRespond> EventSource<TRespond>(Func<IObservable<TData>, IObservable<TRespond>> transform)
-        => new EventSource<TRespond, TData>(_superviser, _mutator, transform(_responder.AsObservable()));
+        => new EventSource<TRespond, TData>(transform(_responder.AsObservable()));
 
 
     public void Mutate(string name, Func<IObservable<TData>, IObservable<TData?>> transform, object? hash = null)
-    {
-        Mutate(CreateMutate(name, transform, hash));
-    }
+        => Mutate(CreateMutate(name, transform, hash));
 
     public IDataMutation CreateMutate(
         string name, Func<IObservable<TData>, IObservable<TData?>> transform,
@@ -90,28 +80,22 @@ public sealed class ExtendedMutatingEngine<TData> : MutatingEngine, IEventSource
     where TData : class
 {
     private readonly IExtendedDataSource<TData> _dataSource;
-    private readonly Task<IActorRef> _mutator;
     private readonly ResponderList _responder;
-    private readonly WorkspaceSuperviser _superviser;
 
-    internal ExtendedMutatingEngine(
-        Task<IActorRef> mutator, IExtendedDataSource<TData> dataSource,
-        WorkspaceSuperviser superviser)
-        : base(mutator, superviser)
+    internal ExtendedMutatingEngine(Action<IDataMutation> mutator, IExtendedDataSource<TData> dataSource)
+        : base(mutator)
     {
-        _mutator = mutator;
         _dataSource = dataSource;
-        _superviser = superviser;
         _responder = new ResponderList(dataSource.SetData, dataSource.OnCompled);
     }
 
     public IEventSource<TRespond> EventSource<TRespond>(
         Func<TData, TRespond> transformer,
         Func<TData, bool>? where = null)
-        => new EventSource<TRespond, TData>(_superviser, _mutator, transformer, where, _responder);
+        => new EventSource<TRespond, TData>(transformer, where, _responder);
 
     public IEventSource<TRespond> EventSource<TRespond>(Func<IObservable<TData>, IObservable<TRespond>> transform)
-        => new EventSource<TRespond, TData>(_superviser, _mutator, transform(_responder));
+        => new EventSource<TRespond, TData>(transform(_responder));
 
     public void Mutate(string name, IQuery query, Func<IObservable<TData>, IObservable<TData?>> transform, IObserver<Unit>? onCompled = null)
         => Mutate(CreateMutate(name, query, transform, onCompled));
@@ -166,7 +150,7 @@ public sealed class ExtendedMutatingEngine<TData> : MutatingEngine, IEventSource
                     })
                .Timeout(TimeSpan.FromMinutes(10));
 
-            if (onCompled == null)
+            if (onCompled is null)
                 handler.Subscribe();
             else
                 handler.SubscribeSafe(onCompled);
@@ -175,66 +159,37 @@ public sealed class ExtendedMutatingEngine<TData> : MutatingEngine, IEventSource
 }
 
 [PublicAPI]
-public class MutatingEngine : DeferredActor
+public class MutatingEngine
 {
-    private readonly Task<IActorRef> _mutator;
+    protected Action<IDataMutation> Mutator { get; }
 
-    protected MutatingEngine(Task<IActorRef> mutator, WorkspaceSuperviser superviser)
-        : base(mutator)
-    {
-        _mutator = mutator;
-        Superviser = superviser;
-    }
+    protected MutatingEngine(Action<IDataMutation> mutator)
+        => Mutator = mutator;
 
-    public WorkspaceSuperviser Superviser { get; }
+    public static MutatingEngine Create(IDriverFactory driverFactory) 
+        => new(driverFactory.CreateMutator());
 
-    public static MutatingEngine Create(WorkspaceSuperviser superviser, Func<Props, Props>? configurate = null)
-    {
-        var mutatorProps = Props.Create<MutationActor>();
-        mutatorProps = configurate?.Invoke(mutatorProps) ?? mutatorProps;
-
-        var mutator = superviser.Create(mutatorProps, "Mutator");
-
-        return new MutatingEngine(mutator, superviser);
-    }
-
-    public static ExtendedMutatingEngine<TData> From<TData>(IExtendedDataSource<TData> source, WorkspaceSuperviser superviser, Func<Props, Props>? configurate = null)
-        where TData : class
-    {
-        var mutatorProps = Props.Create<MutationActor>();
-        mutatorProps = configurate?.Invoke(mutatorProps) ?? mutatorProps;
-
-        var mutator = superviser.Create(mutatorProps, "Mutator");
-
-        return new ExtendedMutatingEngine<TData>(mutator, source, superviser);
-    }
+    public static ExtendedMutatingEngine<TData> From<TData>(IExtendedDataSource<TData> source, IDriverFactory factory) 
+        where TData : class 
+        => new(factory.CreateMutator(), source);
 
     public static ExtendedMutatingEngine<TData> From<TData>(IExtendedDataSource<TData> source, MutatingEngine parent)
         where TData : class
-        => new(parent._mutator, source, parent.Superviser);
+        => new(parent.Mutator, source);
 
-    public static MutatingEngine<TData> From<TData>(
-        IDataSource<TData> source, WorkspaceSuperviser superviser,
-        Func<Props, Props>? configurate = null)
-        where TData : class
-    {
-        var mutatorProps = Props.Create<MutationActor>();
-        mutatorProps = configurate?.Invoke(mutatorProps) ?? mutatorProps;
-
-        var mutator = superviser.Create(mutatorProps, "Mutator");
-
-        return new MutatingEngine<TData>(mutator, source, superviser);
-    }
+    public static MutatingEngine<TData> From<TData>(IDataSource<TData> source, IDriverFactory factory) 
+        where TData : class 
+        => new(factory.CreateMutator(), source);
 
     public static MutatingEngine<TData> From<TData>(IDataSource<TData> source, MutatingEngine parent)
         where TData : class
-        => new(parent._mutator, source, parent.Superviser);
+        => new(parent.Mutator, source);
 
     public static MutatingEngine<TData> Dummy<TData>(IDataSource<TData> source)
         where TData : class
         => new(source);
 
-    public void Mutate(IDataMutation mutationOld) => TellToActor(mutationOld);
+    public void Mutate(IDataMutation mutationOld) => Mutator(mutationOld);
 }
 
 [PublicAPI]

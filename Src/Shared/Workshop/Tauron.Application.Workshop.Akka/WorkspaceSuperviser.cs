@@ -5,13 +5,50 @@ using Tauron.Application.Workshop.Mutation;
 
 namespace Tauron.Application.Workshop;
 
+internal class SuprvisorExt : IExtension
+{
+    private readonly ActorSystem _system;
+    private WorkspaceSuperviser? _superviser;
+
+    public SuprvisorExt(ActorSystem system)
+    {
+        _system = system;
+    }
+
+    public WorkspaceSuperviser GetOrInit(string name)
+    {
+        if (_superviser is not null) return _superviser;
+
+        _superviser = new WorkspaceSuperviser(_system, name);
+
+        return _superviser;
+    }
+}
+
+internal class SupervisorExtProv : ExtensionIdProvider<SuprvisorExt>
+{
+    public static SupervisorExtProv Inst = new();
+    
+    public override SuprvisorExt CreateExtension(ExtendedActorSystem system)
+        => new SuprvisorExt(system);
+}
+
 [PublicAPI]
 public sealed class WorkspaceSuperviser
 {
+    public static WorkspaceSuperviser Get(ActorSystem actorSystem, string? name = null)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            name = "Workspace-Superviser";
+
+        return actorSystem.WithExtension<SuprvisorExt>(typeof(SupervisorExtProv)).GetOrInit(name);
+    }
+    
     public WorkspaceSuperviser(IActorRefFactory context, string? name = null)
         => Superviser = context.ActorOf<WorkspaceSuperviserActor>(name);
 
-    internal WorkspaceSuperviser() => Superviser = ActorRefs.Nobody;
+    internal WorkspaceSuperviser() 
+        => Superviser = ActorRefs.Nobody;
 
     private IActorRef Superviser { get; }
 

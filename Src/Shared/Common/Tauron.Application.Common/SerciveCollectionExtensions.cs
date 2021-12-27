@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -27,23 +28,27 @@ public static class AutofacExtensions
 [PublicAPI]
 public static class SerciveCollectionExtensions
 {
-    public static IServiceCollection ScanModules(this IServiceCollection collection, Predicate<Assembly>? predicate = null)
+    public static IServiceCollection ScanModules(this IServiceCollection collection, IEnumerable<Assembly> assemblies)
     {
-        foreach (var module in from lib in DependencyContext.Default.RuntimeLibraries
-                              from name in lib.GetDefaultAssemblyNames(DependencyContext.Default)
-                              let assembly = TryLoad(name)
-                              where assembly is not null && (predicate?.Invoke(assembly) ?? true)
-                              from type in assembly.ExportedTypes
-                              where type.IsAssignableTo(typeof(IModule))
-                              let inst = TryActivate(type)
-                              where inst is not null
-                              select inst)
+        foreach (var module in from lib in assemblies
+                               from type in lib.ExportedTypes
+                               where type.IsAssignableTo(typeof(IModule))
+                               let inst = TryActivate(type)
+                               where inst is not null
+                               select inst)
         {
             module.Load(collection);
         }
 
         return collection;
     }
+    
+    public static IServiceCollection ScanModules(this IServiceCollection collection, Predicate<Assembly>? predicate = null)
+        => ScanModules(collection, from lib in DependencyContext.Default.RuntimeLibraries
+                                   from name in lib.GetDefaultAssemblyNames(DependencyContext.Default)
+                                   let assembly = TryLoad(name)
+                                   where assembly is not null && (predicate?.Invoke(assembly) ?? true)
+                                   select assembly);
 
     private static IModule? TryActivate(Type type)
     {

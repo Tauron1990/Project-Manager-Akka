@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Akka.Routing;
 using JetBrains.Annotations;
 
 namespace Tauron.Application.Workshop.Mutation;
 
-public interface IDataMutation : IConsistentHashable
+public interface IDataMutation
 {
     string Name { get; }
 }

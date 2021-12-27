@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using Akka.Actor;
 using Akka.Actor.Internal;
 using Akka.DependencyInjection;
@@ -24,7 +22,7 @@ public sealed class WorkspaceSuperviserActor : ObservableActor
             obs => obs.SubscribeWithStatus(
                 wi =>
                 {
-                    ImmutableInterlocked.AddOrUpdate<IActorRef, Action>(
+                    ImmutableInterlocked.AddOrUpdate(
                         ref _intrest, 
                         wi.Target, _ => wi.OnRemove, 
                         (_, action) => action.Combine(wi.OnRemove) ?? wi.OnRemove);

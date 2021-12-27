@@ -1,20 +1,16 @@
 ﻿using System.Collections.Immutable;
 using System.Reflection;
-using Akka.Actor;
-using Akka.Util;
 using Microsoft.Extensions.DependencyInjection;
 using Tauron.Application.Workshop.Mutating;
 using Tauron.Application.Workshop.Mutation;
 using Tauron.Application.Workshop.StateManagement.Dispatcher;
 using Tauron.Application.Workshop.StateManagement.Internal;
 using Tauron.Application.Workshop.StateManagement.StatePooling;
-using Tauron.Features;
-
 namespace Tauron.Application.Workshop.StateManagement.Builder;
 
 public sealed record StateBuilderParameter(
     MutatingEngine Engine, IServiceProvider? ServiceProvider, IActionInvoker Invoker, StatePool StatePool, DispatcherPool DispatcherPool,
-    WorkspaceSuperviser Superviser);
+    IStateInstanceFactory[] InstanceFactoys);
 
 public abstract class StateBuilderBase
 {
@@ -80,7 +76,7 @@ public sealed class StateBuilder<TData> : StateBuilderBase, IStateBuilder<TData>
 
     public override (StateContainer State, string Key) Materialize(StateBuilderParameter parameter)
     {
-        var (engine, componentContext, invoker, statePool, dispatcherPool, superviser) = parameter;
+        var (engine, componentContext, invoker, statePool, dispatcherPool, instanceFactories) = parameter;
 
         if (State == null)
             throw new InvalidOperationException("A State type or Instance Must be set");
@@ -90,7 +86,7 @@ public sealed class StateBuilder<TData> : StateBuilderBase, IStateBuilder<TData>
 
         var pooledState = false;
 
-        if (State.Implements<IPooledState>() && string.IsNullOrWhiteSpace(_dispatcherKey) && _dispatcher != null)
+        if (State.GetInterfaces().Contains(typeof(IPooledState)) && string.IsNullOrWhiteSpace(_dispatcherKey) && _dispatcher != null)
         {
             _dispatcherKey = State.AssemblyQualifiedName;
             pooledState = true;
@@ -98,7 +94,7 @@ public sealed class StateBuilder<TData> : StateBuilderBase, IStateBuilder<TData>
 
         var dataEngine = CreateDataEngine(dataSource, engine, dispatcherPool);
 
-        IStateInstance? Factory() => CreateStateFactory(superviser, componentContext, dataEngine, invoker);
+        IStateInstance? Factory() => CreateStateFactory(instanceFactories, componentContext, dataEngine, invoker);
 
         var targetState = pooledState ? statePool.Get(State, Factory) : Factory();
 
@@ -112,7 +108,7 @@ public sealed class StateBuilder<TData> : StateBuilderBase, IStateBuilder<TData>
         return (container, _key ?? string.Empty);
     }
 
-    private IStateInstance? CreateStateFactory(WorkspaceSuperviser superviser, IServiceProvider? serviceProvider, ExtendedMutatingEngine<MutatingContext<TData>> dataEngine, IActionInvoker invoker)
+    private IStateInstance? CreateStateFactory(IStateInstanceFactory[] instanceFactories, IServiceProvider? serviceProvider, ExtendedMutatingEngine<MutatingContext<TData>> dataEngine, IActionInvoker invoker)
     {
         if (State is null) return null;
 

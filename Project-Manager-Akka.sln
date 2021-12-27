@@ -185,6 +185,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tauron.Application.Workshop
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tauron.Application.Workshop.Task", "Src\Shared\Workshop\Tauron.Application.Workshop.Task\Tauron.Application.Workshop.Task.csproj", "{AC81DA80-8444-4D21-A0F9-E5BD503403F0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tauron.Application.Workshop.StateManagement.Akka", "Src\Shared\Workshop\Tauron.Application.Workshop.StateManagement.Akka\Tauron.Application.Workshop.StateManagement.Akka.csproj", "{D3FDBEB6-254F-4090-951A-7AE738C08FD0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1459,6 +1461,26 @@ Global
 		{AC81DA80-8444-4D21-A0F9-E5BD503403F0}.Release|x64.Build.0 = Release|Any CPU
 		{AC81DA80-8444-4D21-A0F9-E5BD503403F0}.Release|x86.ActiveCfg = Release|Any CPU
 		{AC81DA80-8444-4D21-A0F9-E5BD503403F0}.Release|x86.Build.0 = Release|Any CPU
+		{D3FDBEB6-254F-4090-951A-7AE738C08FD0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3FDBEB6-254F-4090-951A-7AE738C08FD0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3FDBEB6-254F-4090-951A-7AE738C08FD0}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{D3FDBEB6-254F-4090-951A-7AE738C08FD0}.Debug|ARM.Build.0 = Debug|Any CPU
+		{D3FDBEB6-254F-4090-951A-7AE738C08FD0}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{D3FDBEB6-254F-4090-951A-7AE738C08FD0}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{D3FDBEB6-254F-4090-951A-7AE738C08FD0}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D3FDBEB6-254F-4090-951A-7AE738C08FD0}.Debug|x64.Build.0 = Debug|Any CPU
+		{D3FDBEB6-254F-4090-951A-7AE738C08FD0}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D3FDBEB6-254F-4090-951A-7AE738C08FD0}.Debug|x86.Build.0 = Debug|Any CPU
+		{D3FDBEB6-254F-4090-951A-7AE738C08FD0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3FDBEB6-254F-4090-951A-7AE738C08FD0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3FDBEB6-254F-4090-951A-7AE738C08FD0}.Release|ARM.ActiveCfg = Release|Any CPU
+		{D3FDBEB6-254F-4090-951A-7AE738C08FD0}.Release|ARM.Build.0 = Release|Any CPU
+		{D3FDBEB6-254F-4090-951A-7AE738C08FD0}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{D3FDBEB6-254F-4090-951A-7AE738C08FD0}.Release|ARM64.Build.0 = Release|Any CPU
+		{D3FDBEB6-254F-4090-951A-7AE738C08FD0}.Release|x64.ActiveCfg = Release|Any CPU
+		{D3FDBEB6-254F-4090-951A-7AE738C08FD0}.Release|x64.Build.0 = Release|Any CPU
+		{D3FDBEB6-254F-4090-951A-7AE738C08FD0}.Release|x86.ActiveCfg = Release|Any CPU
+		{D3FDBEB6-254F-4090-951A-7AE738C08FD0}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1551,6 +1573,7 @@ Global
 		{4932AF75-484D-4913-ADE6-EF5EF42E1BE6} = {B16B3AD9-4C05-4041-93E3-CD143E5F2ED7}
 		{757BA21B-C861-4E7F-85A4-7325563C0CAC} = {B07210B5-089A-4B1A-B819-09BF3A8FD2DE}
 		{AC81DA80-8444-4D21-A0F9-E5BD503403F0} = {B07210B5-089A-4B1A-B819-09BF3A8FD2DE}
+		{D3FDBEB6-254F-4090-951A-7AE738C08FD0} = {B07210B5-089A-4B1A-B819-09BF3A8FD2DE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F63AD2ED-4320-43AB-8761-A3FEBC507539}

@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using Akka.Actor;
+﻿using Akka.Actor;
 using JetBrains.Annotations;
+using Tauron.Application.Workshop.Analyzing.Rules;
 using Tauron.TAkka;
-using Tauron.Application.Workshop.Analyzing.Actor;
 
-namespace Tauron.Application.Workshop.Analyzing.Rules;
+namespace Tauron.Application.Workshop.Analyzing;
 
 [PublicAPI]
 public abstract class RuleBase<TWorkspace, TData> : IRule<TWorkspace, TData>
@@ -15,11 +13,14 @@ public abstract class RuleBase<TWorkspace, TData> : IRule<TWorkspace, TData>
 
     public abstract string Name { get; }
 
-    public IActorRef Init(IActorRefFactory superviser, TWorkspace workspace)
+    public void Init(object metadata, TWorkspace workspace)
     {
+        if (metadata is not IActorRefFactory factory)
+            throw new InvalidOperationException("Actor Rule Base is Only Compatible with Actor Analyser");
+        
         Workspace = workspace;
 
-        return superviser.ActorOf(() => new InternalRuleActor(ActorConstruct), Name);
+        factory.ActorOf(() => new InternalRuleActor(ActorConstruct), Name);
     }
 
     protected abstract void ActorConstruct(IObservableActor actor);

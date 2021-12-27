@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Windows;
 using System.Windows.Markup;
-using Akka.Util.Extensions;
 using JetBrains.Annotations;
 using Tauron.Application.CommonUI.Helper;
 using Tauron.Application.CommonUI.UI;

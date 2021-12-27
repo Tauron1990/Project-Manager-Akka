@@ -1,8 +1,9 @@
-﻿using Akka.Actor;
+﻿
+using Tauron.Application.Workshop.Driver;
 
 namespace Tauron.Application.Workshop.StateManagement.Dispatcher;
 
 public interface IStateDispatcherConfigurator
 {
-    Props Configurate(Props mutator);
+    IDriverFactory Configurate(IDriverFactory mutator);
 }

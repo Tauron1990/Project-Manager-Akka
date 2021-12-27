@@ -2,7 +2,7 @@
 using JetBrains.Annotations;
 using Tauron.AkkaHost;
 
-namespace Tauron.Application.Workshop.StateManagement;
+namespace Tauron.Application.Workshop.StateManagement.Akka;
 
 [PublicAPI]
 public static class HostExtensions

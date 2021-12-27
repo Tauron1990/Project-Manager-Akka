@@ -1,15 +1,14 @@
 ﻿using System.Collections.Immutable;
-using System.Threading.Tasks;
 using Akka.Actor;
 
 namespace Tauron.Application.Workshop.Core;
 
-public abstract class DeferredActor
+public class DeferredActor
 {
     private readonly object _lock = new();
     private ImmutableList<object>? _stash;
 
-    protected DeferredActor(Task<IActorRef> actor)
+    public DeferredActor(Task<IActorRef> actor)
     {
         actor.ContinueWith(OnCompleded);
         _stash = ImmutableList<object>.Empty;
@@ -29,7 +28,7 @@ public abstract class DeferredActor
         }
     }
 
-    protected void TellToActor(object msg)
+    public void TellToActor(object msg)
     {
         if (!Actor.IsNobody())
             Actor.Tell(msg);

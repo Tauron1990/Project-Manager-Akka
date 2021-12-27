@@ -1,6 +1,7 @@
 ﻿using System.Reactive.Linq;
 using JetBrains.Annotations;
 using Tauron.Application.Workshop.Analyzing;
+using Tauron.Application.Workshop.Driver;
 using Tauron.Application.Workshop.Mutating;
 using Tauron.Application.Workshop.Mutating.Changes;
 using Tauron.Application.Workshop.Mutation;
@@ -11,7 +12,8 @@ namespace Tauron.Application.Workshop;
 public abstract class WorkspaceBase<TData> : IDataSource<TData>//, IState
     where TData : class
 {
-    protected WorkspaceBase(WorkspaceSuperviser superviser) => Engine = MutatingEngine.From(this, superviser);
+    protected WorkspaceBase(IDriverFactory driverFactory) 
+        => Engine = MutatingEngine.From(this, driverFactory);
 
     protected MutatingEngine<TData> Engine { get; }
 
@@ -33,9 +35,9 @@ public abstract class Workspace<TThis, TRawData> : WorkspaceBase<MutatingContext
     where TThis : Workspace<TThis, TRawData>
 
 {
-    protected Workspace(WorkspaceSuperviser superviser)
-        : base(superviser)
-        => Analyzer = Analyzing.Analyzer.From<TThis, MutatingContext<TRawData>>((TThis)this, superviser);
+    protected Workspace(IDriverFactory factory)
+        : base(factory)
+        => Analyzer = Analyzing.Analyzer.From<TThis, MutatingContext<TRawData>>((TThis)this, factory);
 
     public IAnalyzer<TThis, MutatingContext<TRawData>> Analyzer { get; }
 

@@ -3,7 +3,7 @@ using System.Linq;
 using JetBrains.Annotations;
 using Tauron.Application.Workshop.Analyzing.Rules;
 
-namespace Tauron.Application.Workshop.Analyzing.Actor;
+namespace Tauron.Application.Workshop.Analyzing;
 
 [PublicAPI]
 public sealed class RuleIssuesChanged<TWorkspace, TData>

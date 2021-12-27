@@ -2,13 +2,13 @@
 using System.Collections.Immutable;
 using System.IO;
 using System.Reactive.Linq;
-using Akka.Actor;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Tauron.Application.SoftwareRepo.Data;
 using Tauron.Application.SoftwareRepo.Mutation;
 using Tauron.Application.VirtualFiles;
 using Tauron.Application.Workshop;
+using Tauron.Application.Workshop.Driver;
 using Tauron.Application.Workshop.Mutating;
 using Tauron.Application.Workshop.Mutation;
 
@@ -19,14 +19,14 @@ namespace Tauron.Application.SoftwareRepo
     {
         internal const string FileName = "Apps.json";
 
-        public SoftwareRepository(IActorRefFactory factory, IDirectory path)
-            : base(new WorkspaceSuperviser(factory, "Software-Repository"))
+        public SoftwareRepository(IDriverFactory factory, IDirectory path)
+            : base(factory)
         {
             Path = path;
             Changed = Engine.EventSource(
                 mc => mc.GetChange<CommonChange>().ApplicationList,
                 context => context.Change is CommonChange);
-            Changed.RespondOn(null, Save);
+            Changed.RespondOn(Save);
         }
 
         public IDirectory Path { get; }

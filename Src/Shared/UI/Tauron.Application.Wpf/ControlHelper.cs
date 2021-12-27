@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using Akka.Actor;
-using Akka.Util.Extensions;
 using JetBrains.Annotations;
 using NLog;
 using Tauron.Application.CommonUI;

@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Linq;
 using Akka.Actor;
-using Akka.Util.Extensions;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
