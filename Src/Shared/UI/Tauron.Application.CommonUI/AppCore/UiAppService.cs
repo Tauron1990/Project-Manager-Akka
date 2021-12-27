@@ -5,14 +5,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Util;
-using Autofac;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 namespace Tauron.Application.CommonUI.AppCore;
 
 public sealed class UiAppService : BackgroundService
 {
-    private readonly ILifetimeScope _factory;
+    private readonly IServiceProvider _factory;
     private readonly CommonUIFramework _framework;
     private readonly AtomicBoolean _shutdown = new();
     private readonly TaskCompletionSource<int> _shutdownWaiter = new();
@@ -20,7 +20,7 @@ public sealed class UiAppService : BackgroundService
 
     private IUIApplication? _internalApplication;
 
-    public UiAppService(ILifetimeScope factory, CommonUIFramework framework, ActorSystem system)
+    public UiAppService(IServiceProvider factory, CommonUIFramework framework, ActorSystem system)
     {
         _factory = factory;
         _framework = framework;
@@ -50,21 +50,22 @@ public sealed class UiAppService : BackgroundService
 
         void Runner()
         {
-            using var scope = _factory.BeginLifetimeScope();
-
-            _internalApplication = scope.ResolveOptional<IAppFactory>()?.Create() ?? _framework.CreateDefault();
+            using var scope = _factory.CreateScope();
+            var provider = scope.ServiceProvider;
+            
+            _internalApplication = provider.GetService<IAppFactory>()?.Create() ?? _framework.CreateDefault();
             _internalApplication.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
             _internalApplication.Startup += (_, _) =>
                                             {
                                                 // ReSharper disable once AccessToDisposedClosure
-                                                DispatcherScheduler.CurrentDispatcher = DispatcherScheduler.From(scope.Resolve<IUIDispatcher>());
+                                                DispatcherScheduler.CurrentDispatcher = DispatcherScheduler.From(provider.GetRequiredService<IUIDispatcher>());
 
                                                 // ReSharper disable AccessToDisposedClosure
-                                                var splash = scope.ResolveOptional<ISplashScreen>()?.Window;
+                                                var splash = provider.GetService<ISplashScreen>()?.Window;
                                                 splash?.Show();
 
-                                                var mainWindow = scope.Resolve<IMainWindow>();
+                                                var mainWindow = provider.GetRequiredService<IMainWindow>();
                                                 mainWindow.Window.Show();
                                                 mainWindow.Shutdown += (_, _) => ShutdownApp();
 

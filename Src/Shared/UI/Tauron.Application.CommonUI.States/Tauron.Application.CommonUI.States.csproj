@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>Tauron.Application.CommonUI</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\Workshop\Tauron.Application.Workshop.StateManagement\Tauron.Application.Workshop.StateManagement.csproj" />
+      <ProjectReference Include="..\Tauron.Application.CommonUI\Tauron.Application.CommonUI.csproj" />
+    </ItemGroup>
+
+</Project>

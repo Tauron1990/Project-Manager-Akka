@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Tauron.Application.ActorWorkflow;
+﻿namespace Tauron.Application.ActorWorkflow;
 
 public interface IHasTimeout
 {

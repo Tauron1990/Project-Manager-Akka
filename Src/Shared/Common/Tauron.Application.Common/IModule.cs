@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
-namespace Tauron.Modules;
+namespace Tauron;
 
 public interface IModule
 {

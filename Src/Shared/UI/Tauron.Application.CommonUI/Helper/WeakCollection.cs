@@ -7,9 +7,9 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using Akka.Util;
 using Akka.Util.Internal;
 using JetBrains.Annotations;
+using Stl;
 
 namespace Tauron.Application.CommonUI.Helper;
 
@@ -48,7 +48,7 @@ public sealed class WeakCollection<TType> : IList<Option<TType>>
         {
             lock (_internalCollection)
             {
-                _internalCollection[index] = value.IsEmpty ? null : new WeakReference<TType>(value.Value);
+                _internalCollection[index] = value.HasValue ? new WeakReference<TType>(value.Value) : null;
             }
         }
     }
@@ -70,7 +70,7 @@ public sealed class WeakCollection<TType> : IList<Option<TType>>
 
     public void Add(Option<TType> item)
     {
-        if (item.IsEmpty) return;
+        if (!item.HasValue) return;
 
         lock (_internalCollection)
         {
@@ -103,13 +103,13 @@ public sealed class WeakCollection<TType> : IList<Option<TType>>
             for (var i = arrayIndex; i < array.Length; i++)
             {
                 Option<TType> target = default;
-                while (target.IsEmpty && index <= _internalCollection.Count)
+                while (!target.HasValue && index <= _internalCollection.Count)
                 {
                     target = _internalCollection[index]?.TypedTarget() ?? default;
                     index++;
                 }
 
-                if (target.IsEmpty) break;
+                if (!target.HasValue) break;
 
                 array[i] = target;
             }
@@ -133,7 +133,7 @@ public sealed class WeakCollection<TType> : IList<Option<TType>>
     {
         lock (_internalCollection)
         {
-            if (item.IsEmpty) return -1;
+            if (!item.HasValue) return -1;
 
             int index;
             for (index = 0; index < _internalCollection.Count; index++)
@@ -149,17 +149,19 @@ public sealed class WeakCollection<TType> : IList<Option<TType>>
 
     public void Insert(int index, Option<TType> item)
     {
-        if (item.IsEmpty) return;
+        var (hasValue, value) = item;
+
+        if (!hasValue) return;
 
         lock (_internalCollection)
         {
-            _internalCollection.Insert(index, new WeakReference<TType>(item.Value));
+            _internalCollection.Insert(index, new WeakReference<TType>(value));
         }
     }
 
     public bool Remove(Option<TType> item)
     {
-        if (item.IsEmpty) return false;
+        if (!item.HasValue) return false;
 
         var index = IndexOf(item);
 

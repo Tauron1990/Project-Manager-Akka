@@ -5,7 +5,6 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
-using Tauron.AkkaHost;
 using Tauron.Application.CommonUI.AppCore;
 
 namespace Tauron.Application.CommonUI;
@@ -23,7 +22,7 @@ public class UIObservableCollection<TType> : ObservableCollection<TType>
         : base(enumerable) { }
 
     protected IUIDispatcher InternalUISynchronize { get; } =
-        ActorApplication.ServiceProvider.GetRequiredService<IUIDispatcher>();
+        TauronEnviroment.ServiceProvider.GetRequiredService<IUIDispatcher>();
 
     public void AddRange(IEnumerable<TType> enumerable)
     {

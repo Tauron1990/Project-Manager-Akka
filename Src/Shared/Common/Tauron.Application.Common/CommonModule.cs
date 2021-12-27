@@ -4,7 +4,6 @@ using System.Reactive.PlatformServices;
 using Microsoft.Extensions.DependencyInjection;
 using Tauron.Application;
 using Tauron.Application.VirtualFiles;
-using Tauron.Modules;
 
 namespace Tauron;
 
@@ -18,6 +17,7 @@ public sealed class CommonModule : IModule
 
     public void Load(IServiceCollection builder)
     {
+        #pragma warning disable GU0011
         builder.AddTransient<VirtualFileFactory>();
         builder.AddTransient<ISystemClock, Clock>();
 

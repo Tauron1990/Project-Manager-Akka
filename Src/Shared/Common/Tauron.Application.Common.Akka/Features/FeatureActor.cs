@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -9,7 +6,6 @@ using Akka.Actor;
 using Akka.Actor.Internal;
 using Akka.Event;
 using JetBrains.Annotations;
-using IResourceHolder = Tauron.IResourceHolder;
 using ObservableActor = Tauron.TAkka.ObservableActor;
 
 namespace Tauron.Features;

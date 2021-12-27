@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using Akka.Util;
-using Autofac;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
-using Tauron.AkkaHost;
+using Stl;
 
 namespace Tauron.Application.CommonUI.UI;
 
@@ -13,11 +11,11 @@ public sealed class AutoViewLocation
 {
     private static readonly Dictionary<Type, Type> Views = new();
 
-    private readonly ILifetimeScope _provider;
+    private readonly IServiceProvider _provider;
 
-    public AutoViewLocation(ILifetimeScope provider) => _provider = provider;
+    public AutoViewLocation(IServiceProvider provider) => _provider = provider;
 
-    public static AutoViewLocation Manager => ActorApplication.ServiceProvider.GetRequiredService<AutoViewLocation>();
+    public static AutoViewLocation Manager => TauronEnviroment.ServiceProvider.GetRequiredService<AutoViewLocation>();
 
     public static void AddPair(Type view, Type model)
         => Views[model] = view;
@@ -30,7 +28,10 @@ public sealed class AutoViewLocation
         var type = model.ModelType;
 
         return Views.TryGetValue(type, out var view)
-            ? (_provider.ResolveOptional(view, new TypedParameter(typeof(IViewModel<>).MakeGenericType(type), viewModel)) as IView).OptionNotNull()
+            ?  ActivatorUtilities.CreateInstance(_provider, view, viewModel)
+               .OptionNotNull()
+               .CastAs<IView>()
+               .FlatSelect(v => v is null ? Option<IView>.None : Option<IView>.Some(v))
             : Option<IView>.None;
     }
 }

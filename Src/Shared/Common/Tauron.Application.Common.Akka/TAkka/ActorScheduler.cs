@@ -1,8 +1,6 @@
-﻿using System;
-using System.Reactive.Concurrency;
+﻿using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Threading;
 using Akka.Actor;
 using Akka.Actor.Internal;
 using JetBrains.Annotations;

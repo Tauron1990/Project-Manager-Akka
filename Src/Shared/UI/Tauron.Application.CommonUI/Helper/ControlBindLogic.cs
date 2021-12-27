@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Linq;
-using Akka.Util;
-using Akka.Util.Extensions;
 using JetBrains.Annotations;
 using NLog;
+using Stl;
 
 namespace Tauron.Application.CommonUI.Helper;
 
@@ -75,8 +74,8 @@ public sealed class DisconnectedDataContextRoot : DataContextPromise
     {
         void OnLoad()
         {
-            var root = ControlBindLogic.FindRoot(elementBase.AsOption<IUIObject>());
-            if (root.HasValue && root.Value is IView control and IUIElement { DataContext: IViewModel model })
+            var (hasValue, value) = ControlBindLogic.FindRoot(elementBase.AsOption<IUIObject>());
+            if (hasValue && value is IView control and IUIElement { DataContext: IViewModel model })
             {
                 _modelAction?.Invoke(model, control);
 
@@ -257,7 +256,7 @@ public sealed class ControlBindLogic
     {
         promise = null;
         var root = FindRoot(affected);
-        if (root.HasValue && root.Value is IUIElement element)
+        if (root is { HasValue: true } and { Value: IUIElement element })
             promise = new RootedDataContextPromise(element);
         else if (affected.HasValue && affected.Value is IUIElement affectedElement)
             promise = new DisconnectedDataContextRoot(affectedElement);

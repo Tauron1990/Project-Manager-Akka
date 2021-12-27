@@ -6,18 +6,8 @@ using Tauron.Application.Workshop.Mutating.Changes;
 namespace Tauron.Application.Workshop.Mutating;
 
 [PublicAPI]
-public sealed class MutatingContext<TData>
+public sealed record MutatingContext<TData>(MutatingChange? Change, TData Data)
 {
-    private MutatingContext(MutatingChange? change, TData data)
-    {
-        Change = change;
-        Data = data;
-    }
-
-    public MutatingChange? Change { get; }
-
-    public TData Data { get; }
-
     public TType GetChange<TType>()
         where TType : MutatingChange
         => Change?.Cast<TType>() ?? throw new InvalidCastException("Change has not the Requested Type");

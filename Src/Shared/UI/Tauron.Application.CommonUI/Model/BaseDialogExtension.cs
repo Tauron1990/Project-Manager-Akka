@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using Autofac;
-using Autofac.Core;
 using JetBrains.Annotations;
+using Microsoft.Extensions.DependencyInjection;
 using Tauron.TAkka;
 using Tauron.Application.CommonUI.Dialogs;
 
@@ -14,19 +13,19 @@ public static class BaseDialogExtension
 {
     private static IDialogCoordinator? _dialogCoordinator;
 
-    public static Task<TData> ShowDialogAsync<TDialog, TData, TViewData>(this UiActor actor, Func<TViewData> initalData, params Parameter[] parameters)
+    public static Task<TData> ShowDialogAsync<TDialog, TData, TViewData>(this UiActor actor, Func<TViewData> initalData, params object[] parameters)
         where TDialog : IBaseDialog<TData, TViewData>
         => ShowDialog<TDialog, TData, TViewData>(actor, initalData, parameters)();
 
-    public static Task<TData> ShowDialogAsync<TDialog, TData>(this UiActor actor, Func<TData> initalData, params Parameter[] parameters)
+    public static Task<TData> ShowDialogAsync<TDialog, TData>(this UiActor actor, Func<TData> initalData, params object[] parameters)
         where TDialog : IBaseDialog<TData, TData>
         => ShowDialog<TDialog, TData>(actor, initalData, parameters)();
 
-    public static Task<TData> ShowDialogAsync<TDialog, TData>(this UiActor actor, params Parameter[] parameters)
+    public static Task<TData> ShowDialogAsync<TDialog, TData>(this UiActor actor, params object[] parameters)
         where TDialog : IBaseDialog<TData, TData>
         => ShowDialog<TDialog, TData>(actor, parameters)();
 
-    public static Func<Task<TData>> ShowDialog<TDialog, TData>(this UiActor actor, params Parameter[] parameters)
+    public static Func<Task<TData>> ShowDialog<TDialog, TData>(this UiActor actor, params object[] parameters)
         where TDialog : IBaseDialog<TData, TData>
         => ShowDialog<TDialog, TData, TData>(actor, () => default!, parameters);
 
@@ -38,16 +37,16 @@ public static class BaseDialogExtension
 
     public static Func<Task<TData>> ShowDialog<TDialog, TData>(
         this UiActor actor, Func<TData> initalData,
-        params Parameter[] parameters)
+        params object[] parameters)
         where TDialog : IBaseDialog<TData, TData>
         => ShowDialog<TDialog, TData, TData>(actor, initalData, parameters);
 
     public static Func<Task<TData>> ShowDialog<TDialog, TData, TViewData>(
         this UiActor actor,
-        Func<TViewData> initalData, params Parameter[] parameters)
+        Func<TViewData> initalData, params object[] parameters)
         where TDialog : IBaseDialog<TData, TViewData>
     {
-        _dialogCoordinator ??= actor.LifetimeScope.Resolve<IDialogCoordinator>();
+        _dialogCoordinator ??= actor.ServiceProvider.GetRequiredService<IDialogCoordinator>();
 
         return async () =>
                {
@@ -56,7 +55,10 @@ public static class BaseDialogExtension
                       .InvokeAsync(
                            () =>
                            {
-                               var dialog = actor.LifetimeScope.Resolve<TDialog>(parameters);
+                               var dialog = 
+                                   parameters.Length == 0
+                                   ? actor.ServiceProvider.GetRequiredService<TDialog>()
+                                   : ActivatorUtilities.CreateInstance<TDialog>(actor.ServiceProvider, parameters);
                                var task = dialog.Init(initalData());
 
                                _dialogCoordinator.ShowDialog(dialog);
@@ -72,16 +74,16 @@ public static class BaseDialogExtension
 
     public static DialogBuilder<TViewData> Dialog<TViewData>(
         this IObservable<TViewData> input, UiActor actor,
-        params Parameter[] parameters) => new(input, parameters, actor);
+        params object[] parameters) => new(input, parameters, actor);
 
     [PublicAPI]
     public sealed class DialogBuilder<TInitialData>
     {
         private readonly UiActor _actor;
         private readonly IObservable<TInitialData> _data;
-        private readonly Parameter[] _parameters;
+        private readonly object[] _parameters;
 
-        public DialogBuilder(IObservable<TInitialData> data, Parameter[] parameters, UiActor actor)
+        public DialogBuilder(IObservable<TInitialData> data, object[] parameters, UiActor actor)
         {
             _data = data;
             _parameters = parameters;

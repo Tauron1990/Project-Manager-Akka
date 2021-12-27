@@ -16,7 +16,7 @@ public abstract class ViewModelActorRef : IViewModel
 }
 
 [PublicAPI]
-public sealed class ViewModelActorRef<TModel> : ViewModelActorRef, IViewModel<TModel>
+public sealed class ViewModelActorRef<TModel> : ViewModelActorRef, IViewModel<TModel>, IDisposable
     where TModel : UiActor
 {
     private readonly object _lock = new();
@@ -55,4 +55,7 @@ public sealed class ViewModelActorRef<TModel> : ViewModelActorRef, IViewModel<TM
             _waiter = null!;
         }
     }
+
+    public void Dispose()
+        => _actor.Tell(PoisonPill.Instance);
 }

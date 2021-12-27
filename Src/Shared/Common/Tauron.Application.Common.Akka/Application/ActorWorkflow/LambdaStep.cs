@@ -1,5 +1,4 @@
-﻿using System;
-using JetBrains.Annotations;
+﻿using JetBrains.Annotations;
 using Tauron.Application.Workflow;
 
 namespace Tauron.Application.ActorWorkflow;

@@ -11,8 +11,8 @@ using System.Windows.Input;
 using Akka.Actor;
 using Akka.Util;
 using Akka.Util.Internal;
-using Autofac;
 using JetBrains.Annotations;
+using Microsoft.Extensions.DependencyInjection;
 using Tauron.TAkka;
 using Tauron.Application.CommonUI.AppCore;
 using Tauron.Application.CommonUI.Commands;
@@ -33,17 +33,17 @@ public abstract class UiActor : ObservableActor, IObservablePropertyChanged
 
     private bool _isSeald;
 
-    protected UiActor(ILifetimeScope lifetimeScope, IUIDispatcher dispatcher)
+    protected UiActor(IServiceProvider serviceProvider, IUIDispatcher dispatcher)
     {
         AddResource(_onPropertyChanged);
-        LifetimeScope = lifetimeScope;
+        ServiceProvider = serviceProvider;
         Dispatcher = dispatcher;
         InitHandler();
     }
 
     //internal IUntypedActorContext UIActorContext => Context;
 
-    public ILifetimeScope LifetimeScope { get; }
+    public IServiceProvider ServiceProvider { get; }
 
     public IObservable<string> PropertyChangedObservable => _onPropertyChanged.AsObservable();
 
@@ -352,7 +352,7 @@ public abstract class UiActor : ObservableActor, IObservablePropertyChanged
     protected void ShowWindow<TWindow>()
         where TWindow : IWindow
     {
-        Dispatcher.Post(() => LifetimeScope.Resolve<TWindow>().Show());
+        Dispatcher.Post(() => ServiceProvider.GetRequiredService<TWindow>().Show());
     }
 
     protected virtual void Initialize(InitEvent evt) { }

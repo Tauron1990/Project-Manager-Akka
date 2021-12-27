@@ -1,4 +1,4 @@
-﻿namespace Tauron.Application.Workshop;
+﻿//namespace Tauron.Application.Workshop;
 
 //public interface IState { }
 

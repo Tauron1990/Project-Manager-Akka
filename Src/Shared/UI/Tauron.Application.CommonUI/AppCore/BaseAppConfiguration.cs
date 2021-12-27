@@ -1,20 +1,20 @@
 ﻿using System;
-using Autofac;
 using JetBrains.Annotations;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Tauron.Application.CommonUI.AppCore;
 
 [PublicAPI]
 public class BaseAppConfiguration
 {
-    internal readonly ContainerBuilder ServiceCollection;
+    internal readonly IServiceCollection ServiceCollection;
 
-    public BaseAppConfiguration(ContainerBuilder serviceCollection) => ServiceCollection = serviceCollection;
+    public BaseAppConfiguration(IServiceCollection serviceCollection) => ServiceCollection = serviceCollection;
 
     public BaseAppConfiguration WithAppFactory(Func<IUIApplication> factory)
     {
-        ServiceCollection.Register(_ => new DelegateAppFactory(factory)).As<IAppFactory>()
-           .IfNotRegistered(typeof(IAppFactory));
+        ServiceCollection.TryAddSingleton<IAppFactory>(_ => new DelegateAppFactory(factory));
 
         return this;
     }

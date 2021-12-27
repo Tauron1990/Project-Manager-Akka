@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
-using Tauron.Modules;
 using Tauron.TAkka;
 
 namespace Tauron;

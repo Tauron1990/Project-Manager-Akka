@@ -1,5 +1,5 @@
-﻿using Autofac;
-using JetBrains.Annotations;
+﻿using JetBrains.Annotations;
+using Microsoft.Extensions.DependencyInjection;
 using Tauron.TAkka;
 using Tauron.Application.CommonUI.Helper;
 
@@ -11,7 +11,7 @@ public static class UIActorExtensions
     public static UIModel<TModel> RegisterViewModel<TModel>(this UiActor actor, string name, IViewModel<TModel>? model = null)
         where TModel : class
     {
-        model ??= actor.LifetimeScope.Resolve<IViewModel<TModel>>();
+        model ??= actor.ServiceProvider.GetRequiredService<IViewModel<TModel>>();
 
         if (!model.IsInitialized)
             model.InitModel(ObservableActor.ExposedContext, name);

@@ -18,6 +18,8 @@ public enum RoundType : short
     QuaterHour = 15
 }
 
+#pragma warning disable EPS02
+
 [PublicAPI]
 public static class ObjectExtension
 {
@@ -44,7 +46,7 @@ public static class ObjectExtension
     {
         var (hasValue, value) = data;
         if (hasValue)
-            action(value);
+            action(value!);
     }
 
     public static TData GetOrElse<TData>(this in Option<TData> option, TData els)
