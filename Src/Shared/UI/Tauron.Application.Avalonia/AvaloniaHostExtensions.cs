@@ -1,8 +1,7 @@
 ﻿using System;
-using Autofac;
-using Autofac.Builder;
 using Avalonia;
 using JetBrains.Annotations;
+using Microsoft.Extensions.DependencyInjection;
 using Tauron.Application.Avalonia;
 using Tauron.Application.Avalonia.AppCore;
 using Tauron.Application.CommonUI;
@@ -19,12 +18,10 @@ namespace Tauron.AkkaHost
             Action<AvaloniaConfiguration>? config = null)
             where TMainWindow : class, IMainWindow
         {
-            hostBuilder.ConfigureAutoFac(
-                sc =>
+            hostBuilder.ConfigureServices(
+                (_, sc) =>
                 {
-                    sc.RegisterModule<AvaloniaModule>();
-
-                    sc.RegisterType<TMainWindow>().As<IMainWindow>().SingleInstance();
+                    sc.AddSingleton<IMainWindow, TMainWindow>();
 
                     var avaloniaConfiguration = new AvaloniaConfiguration(sc);
                     config?.Invoke(avaloniaConfiguration);
@@ -42,9 +39,8 @@ namespace Tauron.AkkaHost
             return UseAvalonia<TMainWindow>(builder, c => c.WithApp<TApp>(config));
         }
 
-        public static IRegistrationBuilder<SimpleSplashScreen<TWindow>, ConcreteReflectionActivatorData,
-                SingleRegistrationStyle>
-            AddSplash<TWindow>(this ContainerBuilder collection) where TWindow : Window, IWindow, new()
-            => collection.RegisterType<SimpleSplashScreen<TWindow>>().As<ISplashScreen>();
+        public static IServiceCollection AddSplash<TWindow>(this IServiceCollection collection) 
+            where TWindow : Window, IWindow, new()
+            => collection.AddTransient<ISplashScreen, SimpleSplashScreen<TWindow>>();
     }
 }

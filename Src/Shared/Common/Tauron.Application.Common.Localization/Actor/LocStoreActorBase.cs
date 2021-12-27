@@ -2,7 +2,7 @@
 using Akka.Actor;
 using Akka.Util;
 
-namespace Tauron.Application.Common.Localization.Actor;
+namespace Tauron.Localization.Actor;
 
 public abstract class LocStoreActorBase : UntypedActor
 {

@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using JetBrains.Annotations;
 
-namespace Tauron.Application.Common.Localization;
+namespace Tauron.Localization;
 
 [PublicAPI]
 public class EscapeHelper

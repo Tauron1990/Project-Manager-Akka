@@ -1,18 +1,16 @@
-﻿using Autofac;
-using JetBrains.Annotations;
+﻿using JetBrains.Annotations;
+using Microsoft.Extensions.DependencyInjection;
 using Tauron.Application.CommonUI;
 
 namespace Tauron.Application.Avalonia
 {
     [PublicAPI]
-    public sealed class AvaloniaModule : Module
+    public sealed class AvaloniaModule : IModule
     {
-        protected override void Load(ContainerBuilder builder)
+        public void Load(IServiceCollection collection)
         {
-            builder.RegisterModule<CommonUiModule>();
-            builder.Register(_ => AvaloniaFramework.UIDispatcher);
-            builder.RegisterType<AvaloniaFramework>().As<CommonUIFramework>().SingleInstance();
-            base.Load(builder);
+            collection.AddTransient(_ => AvaloniaFramework.UIDispatcher);
+            collection.AddSingleton<CommonUIFramework, AvaloniaFramework>();
         }
     }
 }

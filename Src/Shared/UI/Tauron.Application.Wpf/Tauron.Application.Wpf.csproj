@@ -30,8 +30,8 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\..\Common\Tauron.Application.Common.Localization\Tauron.Application.Common.Localization.csproj" />
         <ProjectReference Include="..\Tauron.Application.CommonUI\Tauron.Application.CommonUI.csproj" />
-        <ProjectReference Include="..\Tauron.Application.Workshop\Tauron.Application.Workshop.csproj" />
     </ItemGroup>
 
     <ItemGroup>

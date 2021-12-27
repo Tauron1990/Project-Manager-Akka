@@ -1,6 +1,6 @@
 ﻿using Akka.Actor;
 
-namespace Tauron.Application.Common.Localization.Provider;
+namespace Tauron.Localization.Provider;
 
 public interface ILocStoreProducer
 {

@@ -1,7 +1,7 @@
 ﻿using JetBrains.Annotations;
 using Tauron.Application.VirtualFiles;
 
-namespace Tauron.Application.Common.Localization;
+namespace Tauron.Localization;
 
 public enum JsonFileNameMode
 {

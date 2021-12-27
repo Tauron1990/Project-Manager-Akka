@@ -2,10 +2,10 @@
 using Akka.Actor;
 using Akka.Util;
 using JetBrains.Annotations;
-using Tauron.Application.Common.Localization.Actor;
+using Tauron.Localization.Actor;
 using Tauron.TAkka;
 
-namespace Tauron.Application.Common.Localization.Extension;
+namespace Tauron.Localization.Extension;
 
 [PublicAPI]
 public sealed class LocExtensionAdaptor

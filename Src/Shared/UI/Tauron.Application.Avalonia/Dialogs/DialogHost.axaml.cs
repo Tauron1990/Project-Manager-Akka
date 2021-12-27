@@ -5,7 +5,6 @@ using Avalonia.Data;
 using Avalonia.Markup.Xaml;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
-using Tauron.AkkaHost;
 using Tauron.Application.CommonUI.Dialogs;
 
 namespace Tauron.Application.Avalonia.Dialogs
@@ -23,7 +22,7 @@ namespace Tauron.Application.Avalonia.Dialogs
         {
             InitializeComponent();
 
-            var coordinator = (IDialogCoordinatorUIEvents)ActorApplication.ServiceProvider.GetRequiredService<IDialogCoordinator>();
+            var coordinator = (IDialogCoordinatorUIEvents)TauronEnviroment.ServiceProvider.GetRequiredService<IDialogCoordinator>();
 
             coordinator.HideDialogEvent += () =>
                                            {

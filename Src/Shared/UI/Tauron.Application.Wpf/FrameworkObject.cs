@@ -5,8 +5,8 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using System.Windows.Media;
-using Akka.Util;
 using JetBrains.Annotations;
+using Stl;
 using Tauron.Application.CommonUI;
 using Tauron.Application.CommonUI.Helper;
 using Tauron.Application.Wpf.AppCore;
@@ -192,6 +192,6 @@ public sealed class FrameworkObject : IInternalWeakReference
 
         internal Option<TReference> Target => _weakRef.Select(v => v.TypedTarget()).GetOrElse(_reference);
 
-        public bool IsAlive => _weakRef.IsEmpty || _weakRef.Value.IsAlive();
+        public bool IsAlive => _weakRef.HasValue && _weakRef.Value.IsAlive();
     }
 }

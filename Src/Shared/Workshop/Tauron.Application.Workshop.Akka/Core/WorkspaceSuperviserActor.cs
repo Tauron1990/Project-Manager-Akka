@@ -24,7 +24,10 @@ public sealed class WorkspaceSuperviserActor : ObservableActor
             obs => obs.SubscribeWithStatus(
                 wi =>
                 {
-                    ImmutableInterlocked.AddOrUpdate(ref _intrest, wi.Target, _ => wi.OnRemove, (_, action) => action.Combine(wi.OnRemove) ?? wi.OnRemove);
+                    ImmutableInterlocked.AddOrUpdate<IActorRef, Action>(
+                        ref _intrest, 
+                        wi.Target, _ => wi.OnRemove, 
+                        (_, action) => action.Combine(wi.OnRemove) ?? wi.OnRemove);
                     Context.Watch(wi.Target);
                 }));
         Receive<Terminated>(

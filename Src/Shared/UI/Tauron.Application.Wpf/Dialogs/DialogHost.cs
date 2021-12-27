@@ -45,7 +45,7 @@ public class DialogHost : Control
             return;
 
         var coordinator =
-            (IDialogCoordinatorUIEvents)ActorApplication.ServiceProvider.GetRequiredService<IDialogCoordinator>();
+            (IDialogCoordinatorUIEvents)TauronEnviroment.ServiceProvider.GetRequiredService<IDialogCoordinator>();
 
         coordinator.HideDialogEvent += () =>
                                        {

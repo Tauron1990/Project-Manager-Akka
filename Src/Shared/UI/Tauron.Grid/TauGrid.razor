@@ -111,9 +111,10 @@
                 (s, g) => s.AddStyle(g.Key, g.Aggregate(string.Empty, (ss, d) => $"{ss} {d.Render()}")))
             .AddStyle("grid-template-areas", _templateRows.Aggregate(string.Empty, (s, row) => $"{s} \"{row.Def}\" \n"));
 
-
-        StateHasChanged();
+        
         base.OnAfterRender(firstRender);
+
+        InvokeAsync(StateHasChanged);
     }
 
     internal void RegisterTemplate(GridTemplateRow row)

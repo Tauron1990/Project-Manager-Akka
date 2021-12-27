@@ -11,9 +11,9 @@ namespace Tauron.Application.SoftwareRepo
         SoftwareRepository Read(IActorRefFactory factory, IDirectory path);
         bool IsValid(IDirectory path);
 
-        SoftwareRepository Create(IActorRefFactory factory, string path);
-
-        SoftwareRepository Read(IActorRefFactory factory, string path);
-        bool IsValid(string path);
+        // SoftwareRepository Create(IActorRefFactory factory, string path);
+        //
+        // SoftwareRepository Read(IActorRefFactory factory, string path);
+        // bool IsValid(string path);
     }
 }

@@ -45,7 +45,7 @@ namespace Tauron.Application.SoftwareRepo
                 throw new InvalidOperationException("Apps File not found");
 
             using var reader = new StreamReader(file.Open(FileAccess.Read));
-            Reset(JsonConvert.DeserializeObject<ApplicationList>(reader.ReadToEnd()));
+            Reset(JsonConvert.DeserializeObject<ApplicationList>(reader.ReadToEnd()) ?? throw new InvalidOperationException("Deserilizing File Failed"));
         }
 
         internal void InitNew()

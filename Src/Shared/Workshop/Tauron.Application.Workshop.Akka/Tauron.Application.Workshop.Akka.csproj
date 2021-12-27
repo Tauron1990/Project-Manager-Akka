@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>Tauron.Application.Workshop</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\Common\Tauron.Application.Common.Akka\Tauron.Application.Common.Akka.csproj" />
+      <ProjectReference Include="..\Tauron.Application.Workshop\Tauron.Application.Workshop.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Mutation" />
+    </ItemGroup>
+
+</Project>

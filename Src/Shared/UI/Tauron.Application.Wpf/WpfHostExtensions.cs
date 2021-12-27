@@ -1,7 +1,6 @@
 ﻿using System;
-using Autofac;
-using Autofac.Builder;
 using JetBrains.Annotations;
+using Microsoft.Extensions.DependencyInjection;
 using Tauron.Application.CommonUI;
 using Tauron.Application.CommonUI.AppCore;
 using Tauron.Application.Wpf;
@@ -17,12 +16,10 @@ public static class WpfHostExtensions
     public static IActorApplicationBuilder UseWpf<TMainWindow>(this IActorApplicationBuilder hostBuilder, Action<BaseAppConfiguration>? config = null)
         where TMainWindow : class, IMainWindow
     {
-        hostBuilder.ConfigureAutoFac(
-            sc =>
+        hostBuilder.ConfigureServices(
+            (_, sc) =>
             {
-                sc.RegisterModule<WpfModule>();
-
-                sc.RegisterType<TMainWindow>().As<IMainWindow>().SingleInstance();
+                sc.AddSingleton<IMainWindow, TMainWindow>();
 
                 var wpf = new BaseAppConfiguration(sc);
                 config?.Invoke(wpf);
@@ -40,8 +37,6 @@ public static class WpfHostExtensions
             c => c.WithAppFactory(() => new WpfFramework.DelegateApplication(new TApp())));
     }
 
-    public static IRegistrationBuilder<SimpleSplashScreen<TWindow>, ConcreteReflectionActivatorData,
-            SingleRegistrationStyle>
-        AddSplash<TWindow>(this ContainerBuilder collection) where TWindow : Window, IWindow, new()
-        => collection.RegisterType<SimpleSplashScreen<TWindow>>().As<ISplashScreen>();
+    public static IServiceCollection AddSplash<TWindow>(this IServiceCollection collection) where TWindow : Window, IWindow, new()
+        => collection.AddScoped<ISplashScreen, SimpleSplashScreen<TWindow>>();
 }

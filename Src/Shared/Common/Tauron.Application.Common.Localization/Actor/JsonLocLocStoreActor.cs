@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Tauron.Application.VirtualFiles;
 
-namespace Tauron.Application.Common.Localization.Actor;
+namespace Tauron.Localization.Actor;
 
 [UsedImplicitly]
 public sealed class JsonLocLocStoreActor : LocStoreActorBase

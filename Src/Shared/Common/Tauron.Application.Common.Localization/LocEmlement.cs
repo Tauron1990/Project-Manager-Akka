@@ -1,4 +1,4 @@
-﻿namespace Tauron.Application.Common.Localization;
+﻿namespace Tauron.Localization;
 
 public abstract class LocEmlement<TValue>
 {
