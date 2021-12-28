@@ -1,8 +1,9 @@
 ﻿using Akka.Actor;
 using Akka.Routing;
+using Tauron.Application.Workshop.Driver;
 using Tauron.Application.Workshop.StateManagement.Dispatcher;
 
-namespace Tauron.Application.Workshop.StateManagement.Builder;
+namespace Tauron.Application.Workshop.StateManagement.Akka.Builder;
 
 public sealed class ConcurrentDispatcherConfugiration : DispatcherPoolConfigurationBase<IConcurrentDispatcherConfugiration>, IConcurrentDispatcherConfugiration
 {
@@ -28,7 +29,7 @@ public sealed class ConcurrentDispatcherConfugiration : DispatcherPoolConfigurat
             _custom = custom;
         }
 
-        public Props Configurate(Props mutator)
+        private Props Configurate(Props mutator)
         {
             var route = new SmallestMailboxPool(_instances)
                .WithSupervisorStrategy(_supervisorStrategy);
@@ -41,6 +42,14 @@ public sealed class ConcurrentDispatcherConfugiration : DispatcherPoolConfigurat
             mutator = mutator.WithRouter(route);
 
             return _custom != null ? _custom(mutator) : mutator;
+        }
+
+        public IDriverFactory Configurate(IDriverFactory factory)
+        {
+            if (factory is not AkkaDriverFactory akkaFactory)
+                throw new InvalidOperationException("No Akka Driver Factory Provided");
+
+            return akkaFactory.CustomMutator(Configurate);
         }
     }
 }

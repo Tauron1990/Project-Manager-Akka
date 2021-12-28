@@ -5,5 +5,5 @@ namespace Tauron.Application.Workshop.StateManagement.Dispatcher;
 
 public interface IStateDispatcherConfigurator
 {
-    IDriverFactory Configurate(IDriverFactory mutator);
+    IDriverFactory Configurate(IDriverFactory factory);
 }

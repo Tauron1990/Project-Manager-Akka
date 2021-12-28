@@ -3,7 +3,7 @@ using Akka.Routing;
 using JetBrains.Annotations;
 using Tauron.Application.Workshop.StateManagement.Dispatcher;
 
-namespace Tauron.Application.Workshop.StateManagement.Builder;
+namespace Tauron.Application.Workshop.StateManagement.Akka.Builder;
 
 [PublicAPI]
 public abstract class DispatcherPoolConfigurationBase<TConfig> : IDispatcherPoolConfiguration<TConfig>
