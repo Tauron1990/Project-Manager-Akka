@@ -16,6 +16,5 @@ public class DataModule : IModule
         collection.AddIndexedDb(new IndexedDb<int>(nameof(CacheTimeout)));
         collection.AddScoped<CacheDb>();
         collection.AddScoped<TimeoutManager>();
-        collection.AddSingleton<ISwapService, IndexedDdSwapService>();
     }
 }
