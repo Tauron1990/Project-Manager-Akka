@@ -13,14 +13,12 @@ public sealed record UploadTransactionContext(ImmutableList<FileUploadFile> File
 
 public sealed class UploadTransaction : SimpleTransaction<UploadTransactionContext>
 {
-    private readonly IEventAggregator _aggregator;
     private readonly HttpClient _client;
     private readonly IJobFileService _fileService;
     private readonly IJobDatabaseService _databaseService;
 
-    public UploadTransaction(IEventAggregator aggregator, HttpClient client, IJobFileService fileService, IJobDatabaseService databaseService)
+    public UploadTransaction(HttpClient client, IJobFileService fileService, IJobDatabaseService databaseService)
     {
-        _aggregator = aggregator;
         _client = client;
 
         _fileService = fileService;
@@ -101,18 +99,11 @@ public sealed class UploadTransaction : SimpleTransaction<UploadTransactionConte
                 {
                     t.ThrowIfCancellationRequested();
 
-                    var stream = file.Open(t)
-                       .Recover(e =>
-                                {
-                                    Console.WriteLine("Error on Open Stream");
-                                    _aggregator.PublishError(e);
-                                });
+                    var stream = file.Open(t);
 
-                    if (stream.IsSuccess)
-                    {
                         Console.WriteLine("Add File Stream");
                         requestContent.Add(
-                            new StreamContent(stream.Get())
+                            new StreamContent(stream)
                             {
                                 Headers =
                                 {
@@ -122,7 +113,6 @@ public sealed class UploadTransaction : SimpleTransaction<UploadTransactionConte
                             },
                             "files",
                             file.Name);
-                    }
                 }
 
                 #if DEBUG

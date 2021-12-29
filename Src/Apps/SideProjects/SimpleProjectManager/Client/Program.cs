@@ -4,8 +4,11 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Stl.Fusion.Blazor;
 using Splat.Microsoft.Extensions.DependencyInjection;
 using SimpleProjectManager.Client;
+using SimpleProjectManager.Client.Data;
 using SimpleProjectManager.Shared.ServerApi;
 using SimpleProjectManager.Shared.ServerApi.RestApi;
+using Tauron;
+using Tauron.Application;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
@@ -30,9 +33,11 @@ config.Fusion.AddBlazorUIServices();
 
 //Services
 ServiceRegistrar.RegisterServices(builder.Services);
+builder.Services.RegisterModule<DataModule>();
 
 var host = builder.Build();
 
 host.Services.UseMicrosoftDependencyResolver();
+new TauronEnviromentSetup().Run(host.Services);
 
 await host.RunAsync();

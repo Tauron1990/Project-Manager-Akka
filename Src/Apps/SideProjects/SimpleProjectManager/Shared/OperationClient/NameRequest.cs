@@ -1,5 +1,4 @@
-﻿using Akka.Actor;
-using Microsoft.Extensions.Logging;
+﻿/*using Microsoft.Extensions.Logging;
 
 namespace SimpleProjectManager.Shared.OperationClient;
 
@@ -24,4 +23,4 @@ public sealed record NameRequest
             return null;
         }
     }
-}
+}*/

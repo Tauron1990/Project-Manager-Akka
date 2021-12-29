@@ -9,15 +9,20 @@
 
   <ItemGroup>
     <PackageReference Include="FluentValidation" Version="10.3.6" />
+    <PackageReference Include="RestEase" Version="1.5.5" />
+    <PackageReference Include="RestEase.SourceGenerator" Version="1.5.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Stl.Fusion" Version="2.2.6" />
     <PackageReference Include="Stl.Fusion.Client" Version="2.2.6" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\Shared\External\Akkatecture\Akkatecture.csproj" />
+    <SupportedPlatform Include="browser" />
   </ItemGroup>
 
   <ItemGroup>
-    <SupportedPlatform Include="browser" />
+    <ProjectReference Include="..\..\..\..\Shared\External\Akkatecture.Abstractions\Akkatecture.Abstractions.csproj" />
   </ItemGroup>
 </Project>

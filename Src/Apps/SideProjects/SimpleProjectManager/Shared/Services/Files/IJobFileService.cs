@@ -4,10 +4,10 @@ namespace SimpleProjectManager.Shared.Services;
 
 public interface IJobFileService
 {
-    [ComputeMethod]
+    [ComputeMethod(KeepAliveTime = 5), Swap(1)]
     Task<ProjectFileInfo?> GetJobFileInfo(ProjectFileId id, CancellationToken token);
 
-    [ComputeMethod]
+    [ComputeMethod(KeepAliveTime = 5), Swap(1)]
     Task<DatabaseFile[]> GetAllFiles(CancellationToken token);
 
     Task<string> RegisterFile(ProjectFileInfo projectFile, CancellationToken token);

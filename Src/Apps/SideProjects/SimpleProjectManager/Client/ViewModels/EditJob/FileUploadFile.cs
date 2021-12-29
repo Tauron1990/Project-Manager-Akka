@@ -1,5 +1,4 @@
-﻿using Akka.Util;
-using Microsoft.AspNetCore.Components.Forms;
+﻿using Microsoft.AspNetCore.Components.Forms;
 using ReactiveUI;
 
 namespace SimpleProjectManager.Client.ViewModels;
@@ -27,8 +26,8 @@ public class FileUploadFile : ReactiveObject
     }
 
 
-    public Try<Stream> Open(CancellationToken token)
-        => Try<Stream>.From(() => BrowserFile.OpenReadStream(FileUploaderViewModel.MaxSize, token));
+    public Stream Open(CancellationToken token)
+        => BrowserFile.OpenReadStream(FileUploaderViewModel.MaxSize, token);
 
     public FileUploadFile(IBrowserFile browserFile)
         => BrowserFile = browserFile;

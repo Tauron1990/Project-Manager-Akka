@@ -77,12 +77,19 @@ public static class SerciveCollectionExtensions
     }
     
     public static IServiceCollection RegisterModule<TModule>(this IServiceCollection collection)
-        where TModule : class, IModule
-        => RegisterModule(collection, Activator.CreateInstance<TModule>());
+        where TModule : class, IModule, new()
+        => RegisterModule(collection, new TModule());
 
     public static IServiceCollection RegisterModule(this IServiceCollection collection, IModule module)
     {
         module.Load(collection);
+
+        return collection;
+    }
+    
+    public static IServiceCollection RegisterModules(this IServiceCollection collection, params IModule[] modules)
+    {
+        foreach (var module in modules) module.Load(collection);
 
         return collection;
     }

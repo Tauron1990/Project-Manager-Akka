@@ -8,7 +8,7 @@ namespace SimpleProjectManager.Client.Shared.CriticalErrors;
 
 public partial class CriticalErrorDispaly
 {
-    private bool _firstExpanded = true;
+    //private bool _firstExpanded = true;
     private MudCommandButton? _hide;
 
     [Parameter]

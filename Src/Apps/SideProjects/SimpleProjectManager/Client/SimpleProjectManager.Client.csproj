@@ -20,10 +20,12 @@
     <PackageReference Include="MudBlazor" Version="6.0.2" />
     <PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" Version="14.1.17" />
     <PackageReference Include="Stl.Fusion.Blazor" Version="2.2.6" />
+    <PackageReference Include="Tavenem.Blazor.IndexedDB" Version="1.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\Shared\UI\Tauron.Application.Blazor\Tauron.Application.Blazor.csproj" />
+    <ProjectReference Include="..\..\..\..\Shared\Workshop\Tauron.Application.Workshop.Task\Tauron.Application.Workshop.Task.csproj" />
     <ProjectReference Include="..\Shared\SimpleProjectManager.Shared.csproj" />
   </ItemGroup>
 

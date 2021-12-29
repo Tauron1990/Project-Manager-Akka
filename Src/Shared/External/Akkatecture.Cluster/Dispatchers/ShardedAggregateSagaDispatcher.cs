@@ -26,7 +26,6 @@ using Akka.Event;
 using Akka.Persistence;
 using Akkatecture.Aggregates;
 using Akkatecture.Cluster.Core;
-using Akkatecture.Cluster.Extentions;
 using Akkatecture.Extensions;
 using Akkatecture.Sagas;
 using Akkatecture.Sagas.AggregateSaga;
@@ -53,8 +52,7 @@ public class
         var sagaType = typeof(TAggregateSaga);
 
         var sagaHandlesSubscriptionTypes =
-            sagaType
-               .GetSagaEventSubscriptionTypes();
+            sagaType.GetSagaEventSubscriptionTypes();
 
         foreach (var type in sagaHandlesSubscriptionTypes) Context.System.EventStream.Subscribe(Self, type);
 
