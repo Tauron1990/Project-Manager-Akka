@@ -9,7 +9,6 @@ using Tauron;
 using Tauron.Application.AkkaNode.Services.FileTransfer;
 using Tauron.Features;
 using Tauron.ObservableExt;
-using Tauron.TAkka;
 
 namespace SimpleProjectManager.Operation.Client.Shared.Core;
 

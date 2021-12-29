@@ -1,7 +1,6 @@
 ﻿using Akka.Actor;
 using Akkatecture.Aggregates;
 using Akkatecture.Core;
-using SimpleProjectManager.Server.Core.Data;
 using Tauron.Akkatecture.Projections;
 
 namespace SimpleProjectManager.Server.Core.Projections.Core;

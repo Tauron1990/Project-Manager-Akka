@@ -3,8 +3,6 @@ using JetBrains.Annotations;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.ResponseCompression;
 using SimpleProjectManager.Server.Controllers.ModelBinder;
-using SimpleProjectManager.Server.Core.Data;
-using SimpleProjectManager.Server.Core.Projections;
 using SimpleProjectManager.Server.Core.Services;
 using SimpleProjectManager.Server.Core.Tasks;
 using SimpleProjectManager.Shared.Services;

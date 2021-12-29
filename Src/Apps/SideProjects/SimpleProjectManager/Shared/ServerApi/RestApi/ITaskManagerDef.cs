@@ -1,5 +1,4 @@
 ﻿using RestEase;
-using SimpleProjectManager.Shared.Services;
 using SimpleProjectManager.Shared.Services.Tasks;
 
 namespace SimpleProjectManager.Shared.ServerApi.RestApi;
