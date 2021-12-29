@@ -11,6 +11,6 @@ public class AkkaModule : IModule
     {
         collection.AddScoped(typeof(ActorRefFactory<>));
         collection.AddScoped(typeof(IDefaultActorRef<>), typeof(DefaultActorRef<>));
-        collection.AddScoped(typeof(ISyncActorRef<>), typeof(ISyncActorRef<>));
+        collection.AddScoped(typeof(ISyncActorRef<>), typeof(SyncActorRef<>));
     }
 }

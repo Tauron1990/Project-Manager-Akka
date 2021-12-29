@@ -9,7 +9,7 @@ public abstract class FileBase<TContext> : SystemNodeBase<TContext>, IFile
     protected FileBase(TContext context, FileSystemFeature feature) 
         : base(context, feature, NodeType.File) { }
 
-    protected virtual bool CanRead => Exist && Features.HasFlag(FileSystemFeature.Read);
+    protected virtual bool CanRead => Features.HasFlag(FileSystemFeature.Read);
     protected virtual bool CanWrite => Features.HasFlag(FileSystemFeature.Write);
     protected virtual bool CanCreate => Features.HasFlag(FileSystemFeature.Create);
 

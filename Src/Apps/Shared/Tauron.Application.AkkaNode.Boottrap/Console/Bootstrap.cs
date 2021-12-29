@@ -6,6 +6,7 @@ using Akka.Actor;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -52,8 +53,9 @@ public static partial class Bootstrap
                 ab =>
                 {
                     ab.ConfigureServices(
-                            (_, cb) =>
+                            (host, cb) =>
                             {
+                                cb.TryAddSingleton(host.Configuration);
                                 cb.AddHostedService<NodeAppService>();
                                 cb.AddScoped<IStartUpAction, KillHelper>();
                                 cb.AddSingleton<IIpcConnection>(ipc);

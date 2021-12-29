@@ -6,6 +6,7 @@ using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Stl.Collections;
 using Tauron.Application;
 
 namespace Tauron.AkkaHost;
@@ -28,21 +29,22 @@ public static class ActorApplicationExtensions
         private readonly List<Func<HostBuilderContext, Config>> _akkaConfig = new();
         private readonly List<Func<HostBuilderContext, Setup>> _akkaSetup = new();
         private readonly IHostBuilder _builder;
-
-        private readonly ServiceCollection _containerBuilder = new ServiceCollection();
-
+        
         private readonly HostBuilderContext _context;
         private readonly ActorSystemHolder _holder = new();
         private readonly List<Action<HostBuilderContext, ActorSystem>> _systemConfig = new();
+
+        public IServiceCollection Collection { get; set; } = new ServiceCollection();
 
         internal ActorApplicationBluilder(HostBuilderContext context, IHostBuilder builder)
         {
             _context = context;
             _builder = builder;
 
-            _containerBuilder.ScanModules();
-            _containerBuilder.AddSingleton(_holder);
-            _containerBuilder.AddSingleton(p => p.GetRequiredService<ActorSystemHolder>().System);
+            Collection
+               .ScanModules()
+               .AddSingleton(_holder)
+               .AddSingleton(serviceProvider => serviceProvider.GetRequiredService<ActorSystemHolder>().System);
         }
 
         public IActorApplicationBuilder ConfigureAkka(Func<HostBuilderContext, Config> config)
@@ -124,9 +126,7 @@ public static class ActorApplicationExtensions
         //     ApplyFixes(_containerBuilder, collection);
         //     _containerBuilder.Populate(collection);
         // }
-
-        internal IServiceProvider CreateServiceProvider()
-            => _containerBuilder.BuildServiceProvider();
+        
 
         // private static void ApplyFixes(ContainerBuilder builder, IServiceCollection serviceCollection)
         // {
@@ -170,13 +170,17 @@ public static class ActorApplicationExtensions
         internal ActorServiceProviderFactory(ActorApplicationBluilder actorBuilder) => _actorBuilder = actorBuilder;
 
         public IActorApplicationBuilder CreateBuilder(IServiceCollection services)
-            => _actorBuilder;
+        {
+            _actorBuilder.Collection.AddRange(services);
+            return _actorBuilder;
+        }
+        
 
         public IServiceProvider CreateServiceProvider(IActorApplicationBuilder containerBuilder)
         {
             if (_actorBuilder != containerBuilder) throw new InvalidOperationException("Builder was replaced during Configuration");
 
-            var prov = _actorBuilder.CreateServiceProvider();
+            var prov = _actorBuilder.Collection.BuildServiceProvider();
 
             var system = _actorBuilder.CreateSystem(prov);
             var lifetime = prov.GetRequiredService<IHostApplicationLifetime>();
