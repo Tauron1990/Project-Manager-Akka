@@ -65,7 +65,7 @@
         <PackageReference Include="Scrutor" Version="3.3.0" />
         <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
         <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
-        <PackageReference Include="Stl" Version="2.1.10" />
+        <PackageReference Include="Stl" Version="2.2.6" />
         <PackageReference Include="System.Reactive" Version="5.0.0" />
     </ItemGroup>
 

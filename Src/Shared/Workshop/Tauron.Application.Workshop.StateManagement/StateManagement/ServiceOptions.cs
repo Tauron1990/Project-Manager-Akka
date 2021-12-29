@@ -3,4 +3,4 @@
 namespace Tauron.Application.Workshop.StateManagement;
 
 [PublicAPI]
-public sealed record ServiceOptions(bool ResolveEffects = true, bool ResolveMiddleware = true, bool RegisterSuperviser = true);
+public sealed record ServiceOptions(bool ResolveEffects = true, bool ResolveMiddleware = true, bool ResolveStateFactorys = true);

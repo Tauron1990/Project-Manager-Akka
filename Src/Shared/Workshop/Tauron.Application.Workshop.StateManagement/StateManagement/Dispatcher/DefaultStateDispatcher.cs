@@ -1,10 +1,11 @@
-﻿using Akka.Actor;
-using JetBrains.Annotations;
+﻿using JetBrains.Annotations;
+using Tauron.Application.Workshop.Driver;
 
 namespace Tauron.Application.Workshop.StateManagement.Dispatcher;
 
 [PublicAPI]
 public sealed class DefaultStateDispatcher : IStateDispatcherConfigurator
 {
-    public Props Configurate(Props mutator) => mutator;
+    public IDriverFactory Configurate(IDriverFactory factory)
+        => factory;
 }

@@ -33,6 +33,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\..\..\Shared\Common\Tauron.Application.Common\Tauron.Application.Common.csproj" />
         <ProjectReference Include="..\..\..\Shared\External\Akka.Cluster.Utility\Akka.Cluster.Utility.csproj" />
         <ProjectReference Include="..\Tauron.Application.AkkNode.Services\Tauron.Application.AkkNode.Services.csproj" />
     </ItemGroup>

@@ -12,7 +12,7 @@ namespace Tauron.Application.AkkaNode.Services.Reporting.Commands;
 
 public static class SendingHelper
 {
-    private static readonly ILogger Log = ActorApplication.GetLogger(typeof(SendingHelper));
+    private static readonly ILogger Log = TauronEnviroment.GetLogger(typeof(SendingHelper));
 
     public static async Task<Either<TResult, Error>> Send<TResult, TCommand>(ISender sender, TCommand command, Action<string> messages, TimeSpan timeout, bool isEmpty, CancellationToken token)
         where TCommand : class, IReporterMessage

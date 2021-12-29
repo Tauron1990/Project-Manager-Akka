@@ -1,13 +1,17 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Tauron.Application.Workshop.StateManagement.Akka.Builder;
+﻿using System.Diagnostics.CodeAnalysis;
+using JetBrains.Annotations;
+using Microsoft.Extensions.DependencyInjection;
+using Tauron.Application.Workshop.StateManagement.Akka.Internal;
 using Tauron.Application.Workshop.StateManagement.Builder;
 
 namespace Tauron.Application.Workshop.StateManagement.Akka;
 
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces), PublicAPI]
 public class AkkaStateModule : IModule
 {
     public void Load(IServiceCollection collection)
     {
-        collection.AddTransient<IStateInstanceFactory, FeatureBasedState>();
+        collection.AddTransient<IStateInstanceFactory, FeatureBasedStateFactory>();
+        collection.AddTransient<IStateInstanceFactory, ActorStateFactory>();
     }
 }

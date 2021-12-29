@@ -37,7 +37,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\Shared\Tauron.Application.Logging\Tauron.Application.Logging.csproj" />
+        <ProjectReference Include="..\..\..\Shared\Common\Tauron.Application.Logging\Tauron.Application.Logging.csproj" />
         <ProjectReference Include="..\Servicemnager.Networking\Servicemnager.Networking.csproj" />
         <ProjectReference Include="..\Tauron.Application.Master.Commands\Tauron.Application.Master.Commands.csproj" />
     </ItemGroup>

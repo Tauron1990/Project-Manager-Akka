@@ -119,12 +119,13 @@ namespace Tauron.Application.Avalonia
 
         private class WindowLinker : LinkerBase
         {
+            // ReSharper disable once CognitiveComplexity
             protected override void Scan()
             {
                 var realName = Name;
                 string? windowName = null;
 
-                if (realName.Contains(":"))
+                if (realName.Contains(':'))
                 {
                     var nameSplit = realName.Split(new[] { ':' }, 2);
                     realName = nameSplit[0];
@@ -133,13 +134,13 @@ namespace Tauron.Application.Avalonia
 
                 var priTarget = ((AvaObject)AffectedObject).Obj;
 
-                if (windowName == null)
+                if (windowName is null)
                 {
-                    if (!(priTarget is Window))
+                    if (priTarget is not Window)
                         while (priTarget != null)
                             priTarget = priTarget is StyledElement { Parent: StyledElement parent } ? parent : null;
 
-                    if (priTarget == null)
+                    if (priTarget is null)
                         LogManager.GetCurrentClassLogger().Error($"ControlHelper: No Window Found: {DataContext.GetType()}|{realName}");
                 }
                 else
@@ -150,11 +151,11 @@ namespace Tauron.Application.Avalonia
                             ? lifetime.Windows.FirstOrDefault(win => win.Name == windowName)
                             : null;
 
-                    if (priTarget == null)
+                    if (priTarget is null)
                         LogManager.GetCurrentClassLogger().Error($"ControlHelper: No Window Named {windowName} Found");
                 }
 
-                if (priTarget == null) return;
+                if (priTarget is null) return;
 
                 if (DataContext is IViewModel model && ElementMapper.Create(priTarget) is IUIElement element)
                     model.Actor.Tell(new ControlSetEvent(Name, element));

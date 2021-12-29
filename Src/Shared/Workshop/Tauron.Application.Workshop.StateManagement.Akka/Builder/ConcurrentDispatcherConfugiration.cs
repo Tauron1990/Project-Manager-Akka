@@ -45,11 +45,6 @@ public sealed class ConcurrentDispatcherConfugiration : DispatcherPoolConfigurat
         }
 
         public IDriverFactory Configurate(IDriverFactory factory)
-        {
-            if (factory is not AkkaDriverFactory akkaFactory)
-                throw new InvalidOperationException("No Akka Driver Factory Provided");
-
-            return akkaFactory.CustomMutator(Configurate);
-        }
+            => AkkaDriverFactory.Get(factory).CustomMutator(Configurate);
     }
 }

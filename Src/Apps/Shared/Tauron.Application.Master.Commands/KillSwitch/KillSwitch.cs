@@ -18,7 +18,7 @@ public static class KillSwitch
 {
     private const string KillSwitchName = "KillSwitch";
 
-    private static readonly ILogger Log = ActorApplication.GetLogger(typeof(KillSwitch));
+    private static readonly ILogger Log = TauronEnviroment.GetLogger(typeof(KillSwitch));
 
     private static IActorRef _switch = ActorRefs.Nobody;
 

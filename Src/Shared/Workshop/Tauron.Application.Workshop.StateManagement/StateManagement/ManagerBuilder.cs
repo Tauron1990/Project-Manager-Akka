@@ -1,8 +1,10 @@
 ﻿using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
+using Tauron.Application.Workshop.Driver;
 using Tauron.Application.Workshop.Mutation;
 using Tauron.Application.Workshop.StateManagement.Builder;
 using Tauron.Application.Workshop.StateManagement.Dispatcher;
+using Tauron.Application.Workshop.StateManagement.Internal;
 
 namespace Tauron.Application.Workshop.StateManagement;
 
@@ -17,11 +19,11 @@ public sealed class ManagerBuilder : IDispatcherConfigurable<ManagerBuilder>
 
     private bool _sendBackSetting;
 
-    internal ManagerBuilder(WorkspaceSuperviser superviser) => Superviser = superviser;
+    internal ManagerBuilder(IDriverFactory driver) => Driver = driver;
 
     public IServiceProvider? ServiceProvider { get; set; }
 
-    public WorkspaceSuperviser Superviser { get; }
+    public IDriverFactory Driver { get; }
 
     public ManagerBuilder WithDispatcher(Func<IStateDispatcherConfigurator>? factory)
     {
@@ -30,11 +32,12 @@ public sealed class ManagerBuilder : IDispatcherConfigurable<ManagerBuilder>
         return this;
     }
 
-    public ManagerBuilder WithDispatcher(string name, Func<IStateDispatcherConfigurator>? factory) => throw new NotSupportedException("Polled Dispatcher not Supported");
+    public ManagerBuilder WithDispatcher(string name, Func<IStateDispatcherConfigurator>? factory) 
+        => throw new NotSupportedException("Polled Dispatcher not Supported");
 
-    public static RootManager CreateManager(WorkspaceSuperviser superviser, Action<ManagerBuilder> builder)
+    public static RootManager CreateManager(IDriverFactory driverFactory, Action<ManagerBuilder> builder)
     {
-        var managerBuilder = new ManagerBuilder(superviser);
+        var managerBuilder = new ManagerBuilder(driverFactory);
         builder(managerBuilder);
 
         return managerBuilder.Build(null);
@@ -83,29 +86,36 @@ public sealed class ManagerBuilder : IDispatcherConfigurable<ManagerBuilder>
     }
 
 
-    internal RootManager Build(ServiceOptions? autofacOptions)
+    internal RootManager Build(ServiceOptions? serviceOptions)
     {
         List<IEffect> additionalEffects = new();
         List<IMiddleware> additionalMiddlewares = new();
+        List<IStateInstanceFactory> stateInstanceFactories = new();
 
         if (ServiceProvider != null)
         {
-            autofacOptions ??= new ServiceOptions();
+            serviceOptions ??= new ServiceOptions();
 
-            if (autofacOptions.ResolveEffects)
+            if (serviceOptions.ResolveEffects)
                 additionalEffects.AddRange(ServiceProvider.GetRequiredService<IEnumerable<IEffect>>());
-            if (autofacOptions.ResolveMiddleware)
+            if (serviceOptions.ResolveMiddleware)
                 additionalMiddlewares.AddRange(ServiceProvider.GetRequiredService<IEnumerable<IMiddleware>>());
+            if(serviceOptions.ResolveStateFactorys)
+                stateInstanceFactories.AddRange(ServiceProvider.GetRequiredService<IEnumerable<IStateInstanceFactory>>());
         }
 
+        if(stateInstanceFactories.Count == 0)
+            stateInstanceFactories.AddRange(new IStateInstanceFactory []{ new ActivatorUtilitiesStateFactory(), new SimpleConstructorStateFactory() });
+        
         var man = new RootManager(
-            Superviser,
+            Driver,
             _dispatcherFunc(),
             _states,
             _effects.Select(e => e()).Concat(additionalEffects),
             _middlewares.Select(m => m()).Concat(additionalMiddlewares),
             _sendBackSetting,
-            ServiceProvider);
+            ServiceProvider,
+            stateInstanceFactories.ToArray());
 
         man.PostInit();
 

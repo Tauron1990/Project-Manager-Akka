@@ -1,5 +1,4 @@
-﻿using Autofac;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using SimpleProjectManager.Operation.Client.Shared.Config;
 using SimpleProjectManager.Operation.Client.Shared.ImageEditor;
 using SimpleProjectManager.Shared.ServerApi;
@@ -14,10 +13,10 @@ public sealed class ClientRunner
     public void ApplyFusionServices(IServiceCollection collection)
         => ClientRegistration.ConfigFusion(collection, new Uri(ConfigManager.Configuration.ServerIp));
 
-    public void ApplyClientServices(ContainerBuilder collection)
+    public void ApplyClientServices(IServiceCollection collection)
     {
         collection.RegisterStartUpAction<ImageEditorStartup>();
         
-        collection.RegisterInstance(this);
+        collection.AddSingleton(this);
     }
 }

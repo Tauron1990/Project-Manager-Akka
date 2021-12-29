@@ -8,4 +8,6 @@ public interface
         IConsistentHashDispatcherPoolConfiguration>
 {
     public IConsistentHashDispatcherPoolConfiguration WithVirtualNodesFactor(int vnodes);
+
+    public IConsistentHashDispatcherPoolConfiguration WithHashSelector(Func<object, object> selector);
 }

@@ -69,14 +69,14 @@
         <PackageReference Include="SharpRepository.Repository" Version="2.2.1" />
         <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
         <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
-        <PackageReference Include="Stl" Version="2.1.10" />
+        <PackageReference Include="Stl" Version="2.2.6" />
         <PackageReference Include="System.IO.FileSystem" Version="4.3.0" />
         <PackageReference Include="System.Net.Primitives" Version="4.3.1" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\Shared\Tauron.Application.Files\Tauron.Application.Files.csproj" />
-        <ProjectReference Include="..\..\..\Shared\Tauron.Application.Workshop\Tauron.Application.Workshop.csproj" />
+        <ProjectReference Include="..\..\..\Shared\Common\Tauron.Application.Common.Akka\Tauron.Application.Common.Akka.csproj" />
+        <ProjectReference Include="..\..\..\Shared\Workshop\Tauron.Application.Workshop\Tauron.Application.Workshop.csproj" />
     </ItemGroup>
 
 </Project>

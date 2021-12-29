@@ -3,9 +3,9 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Text;
 using Akka.Actor;
-using Autofac;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -51,12 +51,12 @@ public static partial class Bootstrap
            .ConfigurateNode(
                 ab =>
                 {
-                    ab.ConfigureAutoFac(
-                            cb =>
+                    ab.ConfigureServices(
+                            (_, cb) =>
                             {
-                                cb.RegisterType<NodeAppService>().As<IHostedService>();
-                                cb.RegisterType<KillHelper>().As<IStartUpAction>();
-                                cb.RegisterInstance(ipc).As<IIpcConnection>();
+                                cb.AddHostedService<NodeAppService>();
+                                cb.AddScoped<IStartUpAction, KillHelper>();
+                                cb.AddSingleton<IIpcConnection>(ipc);
                             })
                        .ConfigureAkkaSystem(
                             (_, system) =>
@@ -65,11 +65,9 @@ public static partial class Bootstrap
                                 {
                                     case KillRecpientType.Seed:
                                         KillSwitch.Setup(system);
-
                                         break;
                                     default:
                                         KillSwitch.Subscribe(system, type);
-
                                         break;
                                 }
                             });

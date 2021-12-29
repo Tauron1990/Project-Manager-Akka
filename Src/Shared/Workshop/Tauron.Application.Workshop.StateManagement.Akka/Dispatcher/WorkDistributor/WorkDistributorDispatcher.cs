@@ -3,7 +3,7 @@ using Akka.Event;
 using JetBrains.Annotations;
 using Tauron.Application.Workshop.Mutation;
 
-namespace Tauron.Application.Workshop.StateManagement.Dispatcher.WorkDistributor;
+namespace Tauron.Application.Workshop.StateManagement.Akka.Dispatcher.WorkDistributor;
 
 public sealed class WorkDistributorDispatcher : ActorBase
 {

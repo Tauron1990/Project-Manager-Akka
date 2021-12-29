@@ -11,17 +11,16 @@
     <PackageReference Include="Ben.Demystifier" Version="0.4.1" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="6.0.1" />
     <PackageReference Include="MongoDB.Driver.GridFS" Version="2.14.1" />
-    <PackageReference Include="Stl.Fusion.Server" Version="2.1.10" />
+    <PackageReference Include="Stl.Fusion.Server" Version="2.2.6" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\..\Tauron.Application.MongoExtensions\Tauron.Application.MongoExtensions.csproj" />
+    <ProjectReference Include="..\..\..\..\Shared\Data\Tauron.Akkatecture.Projections\Tauron.Akkatecture.Projections.csproj" />
     <ProjectReference Include="..\..\..\..\Shared\External\Akkatecture\Akkatecture.csproj" />
-    <ProjectReference Include="..\..\..\..\Shared\Tauron.Akkatecture.Projections\Tauron.Akkatecture.Projections.csproj" />
     <ProjectReference Include="..\..\..\Shared\Tauron.Application.AkkaNode.Boottrap\Tauron.Application.AkkaNode.Boottrap.csproj" />
     <ProjectReference Include="..\Client\SimpleProjectManager.Client.csproj" />
     <ProjectReference Include="..\Shared\SimpleProjectManager.Shared.csproj" />
-    <ProjectReference Include="..\SimpleProjectManager.Operation.Client.Shared\SimpleProjectManager.Operation.Client.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>

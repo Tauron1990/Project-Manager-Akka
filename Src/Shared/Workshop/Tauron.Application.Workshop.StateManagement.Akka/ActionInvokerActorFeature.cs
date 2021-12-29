@@ -2,10 +2,11 @@
 using System.Reactive.Linq;
 using Akka.Actor;
 using JetBrains.Annotations;
+using Tauron.Application.Workshop.StateManagement.Akka.Internal;
 using Tauron.Features;
 using Tauron.Operations;
 
-namespace Tauron.Application.Workshop.StateManagement;
+namespace Tauron.Application.Workshop.StateManagement.Akka;
 
 [PublicAPI]
 public abstract class ActionInvokerActorFeature<TClassState> : ActorFeatureBase<TClassState>
@@ -105,5 +106,32 @@ public abstract class ActionInvokerActorFeature<TClassState> : ActorFeatureBase<
             evt = Event;
             state = State;
         }
+    }
+}
+
+[PublicAPI]
+public abstract class ActorStateBase : ReceiveActor
+{
+    protected override bool AroundReceive(Receive receive, object message)
+    {
+        if (message is StateActorMessage msg)
+        {
+            msg.Apply(this);
+
+            return true;
+        }
+
+        return base.AroundReceive(receive, message);
+    }
+}
+
+[PublicAPI]
+public abstract class ActorFeatureStateBase<TState> : ActorFeatureBase<TState>
+{
+    protected override void Config()
+    {
+        Receive<StateActorMessage>(obs => obs.Select(m => m.Event).SubscribeWithStatus(m => m.Apply(this)));
+
+        base.Config();
     }
 }

@@ -4,8 +4,6 @@ using System.Reflection;
 using Akka.Actor;
 using Akka.Cluster;
 using Akka.Configuration;
-using Autofac;
-using Autofac.Builder;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,12 +34,12 @@ public static partial class Bootstrap
            .ConfigureAkkaApplication(
                 ab =>
                 {
-                    ab.ConfigureAutoFac(
-                            cb => cb.Register(
+                    ab.ConfigureServices(
+                            (_, cb) => cb.AddSingleton(
                                 context =>
                                 {
                                     var opt = new AppNodeInfo();
-                                    context.Resolve<IConfiguration>().Bind(opt);
+                                    context.GetRequiredService<IConfiguration>().Bind(opt);
 
                                     return opt;
                                 }))
@@ -53,14 +51,10 @@ public static partial class Bootstrap
     }
 
     [PublicAPI]
-    public static IRegistrationBuilder<TImpl, ConcreteReflectionActivatorData, SingleRegistrationStyle> RegisterStartUpAction<TImpl>(this ContainerBuilder builder)
-        where TImpl : IStartUpAction
-        => builder.RegisterType<TImpl>().As<IStartUpAction>();
-
     public static IServiceCollection RegisterStartUpAction<TImpl>(this IServiceCollection builder)
         where TImpl : class, IStartUpAction
         => builder.AddScoped<IStartUpAction, TImpl>();
-        
+
     public static IActorApplicationBuilder OnMemberUp(this IActorApplicationBuilder builder, Action<HostBuilderContext, ActorSystem, Cluster> up)
     {
         return builder.ConfigureAkkaSystem(

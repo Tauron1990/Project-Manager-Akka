@@ -1,10 +1,6 @@
-﻿using System.Reactive.Linq;
-using Akka.Actor;
-using JetBrains.Annotations;
+﻿using JetBrains.Annotations;
 using Tauron.Application.Workshop.Mutating;
 using Tauron.Application.Workshop.Mutation;
-using Tauron.Application.Workshop.StateManagement.Internal;
-using Tauron.Features;
 
 namespace Tauron.Application.Workshop.StateManagement;
 
@@ -41,29 +37,3 @@ public abstract class StateBase<TData> : ICanQuery<TData>
     }
 }
 
-[PublicAPI]
-public abstract class ActorStateBase : ReceiveActor
-{
-    protected override bool AroundReceive(Receive receive, object message)
-    {
-        if (message is StateActorMessage msg)
-        {
-            msg.Apply(this);
-
-            return true;
-        }
-
-        return base.AroundReceive(receive, message);
-    }
-}
-
-[PublicAPI]
-public abstract class ActorFeatureStateBase<TState> : ActorFeatureBase<TState>
-{
-    protected override void Config()
-    {
-        Receive<StateActorMessage>(obs => obs.Select(m => m.Event).SubscribeWithStatus(m => m.Apply(this)));
-
-        base.Config();
-    }
-}

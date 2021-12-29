@@ -1,8 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Reactive;
-using Akka.Actor;
-using Akka.Actor.Internal;
 using JetBrains.Annotations;
+using Tauron.Application.Workshop.Driver;
 using Tauron.Application.Workshop.Mutation;
 using Tauron.Application.Workshop.StateManagement.Builder;
 using Tauron.Application.Workshop.StateManagement.Dispatcher;
@@ -20,20 +19,23 @@ public sealed class RootManager : DisposeableBase, IActionInvoker
     private readonly IEffect[] _effects;
     private readonly MutatingEngine _engine;
     private readonly IMiddleware[] _middlewares;
+    private readonly IDriverFactory _driverFactory;
     private readonly bool _sendBackSetting;
     private readonly ConcurrentDictionary<string, ConcurrentBag<StateContainer>> _stateContainers = new();
     private readonly StateContainer[] _states;
 
     internal RootManager(
-        WorkspaceSuperviser superviser, IStateDispatcherConfigurator stateDispatcher, IEnumerable<StateBuilderBase> states,
-        IEnumerable<IEffect?> effects, IEnumerable<IMiddleware?> middlewares, bool sendBackSetting, IServiceProvider? serviceProvider)
+        IDriverFactory driverFactory, IStateDispatcherConfigurator stateDispatcher, IEnumerable<StateBuilderBase> states,
+        IEnumerable<IEffect?> effects, IEnumerable<IMiddleware?> middlewares, bool sendBackSetting, IServiceProvider? serviceProvider,
+        IStateInstanceFactory[] instanceFactories)
     {
+        _driverFactory = driverFactory;
         _sendBackSetting = sendBackSetting;
-        _engine = MutatingEngine.Create(superviser, stateDispatcher.Configurate);
+        _engine = MutatingEngine.Create(stateDispatcher.Configurate(driverFactory));
         _effects = effects.Where(e => e != null).ToArray()!;
         _middlewares = middlewares.Where(m => m != null).ToArray()!;
 
-        var builderParameter = new StateBuilderParameter(_engine, serviceProvider, this, new StatePool(), new DispatcherPool(), superviser);
+        var builderParameter = new StateBuilderParameter(_engine, serviceProvider, this, new StatePool(), new DispatcherPool(), instanceFactories);
 
         foreach (var stateBuilder in states)
         {
@@ -61,15 +63,8 @@ public sealed class RootManager : DisposeableBase, IActionInvoker
 
         foreach (var stateContainer in bag)
         {
-            switch (stateContainer.Instance)
-            {
-                case PhysicalInstance physicalInstance:
-                    return physicalInstance.State as TState;
-                case ActorRefInstance actorRefInstance:
-                    if (typeof(TState) == typeof(IActorRef))
-                        return (TState)actorRefInstance.ActorRef.Result;
-                    break;
-            }
+            if (stateContainer.Instance.ActualState is TState state)
+                return state;
         }
 
         return null;
@@ -82,10 +77,7 @@ public sealed class RootManager : DisposeableBase, IActionInvoker
 
         _middlewares.Foreach(m => m.BeforeDispatch(action));
 
-        var sender = ActorRefs.NoSender;
-        var context = InternalCurrentActorCellKeeper.Current;
-        if (context != null)
-            sender = context.Self;
+        var sender = _driverFactory.GetResultSender();
 
         var effects = new EffectInvoker(_effects.Where(e => e.ShouldReactToAction(action)), action, this);
         var resultInvoker = new ResultInvoker(effects, _engine, sender, sendBack ?? _sendBackSetting, action);
@@ -131,14 +123,14 @@ public sealed class RootManager : DisposeableBase, IActionInvoker
         private readonly MutatingEngine _mutatingEngine;
         private readonly ConcurrentBag<IReducerResult> _results = new();
         private readonly bool _sendBack;
-        private readonly IActorRef _sender;
+        private readonly Action<IOperationResult>? _sender;
         private int _pending;
 
         private IObserver<IReducerResult>? _result;
         private IObserver<Unit>? _workCompled;
 
         internal ResultInvoker(
-            EffectInvoker effectInvoker, MutatingEngine mutatingEngine, IActorRef sender,
+            EffectInvoker effectInvoker, MutatingEngine mutatingEngine, Action<IOperationResult>? sender,
             bool sendBack, IStateAction action)
         {
             _effectInvoker = effectInvoker;
@@ -147,15 +139,13 @@ public sealed class RootManager : DisposeableBase, IActionInvoker
             _sendBack = sendBack;
             _action = action;
         }
-
-
-        public object ConsistentHashKey => "RootManagerInternals";
+        
         public string Name => "SendBack";
         public Action Run => Runner;
 
         private void Runner()
         {
-            if (!_sendBack || _sender.IsNobody()) return;
+            if (!_sendBack || _sender is null) return;
 
             var errors = new List<string>();
             var fail = false;
@@ -168,11 +158,9 @@ public sealed class RootManager : DisposeableBase, IActionInvoker
                 errors.AddRange(result.Errors ?? Array.Empty<string>());
             }
 
-            _sender.Tell(
-                fail
+            _sender(fail
                     ? OperationResult.Failure(errors.Select(s => new Error(s, s)), _action)
-                    : OperationResult.Success(_action),
-                ActorRefs.NoSender);
+                    : OperationResult.Success(_action));
         }
 
         internal void PushWork()
@@ -215,7 +203,6 @@ public sealed class RootManager : DisposeableBase, IActionInvoker
             _invoker = invoker;
         }
 
-        public object ConsistentHashKey => "RootManagerInternals";
         public string Name => "Invoke Effects";
         public Action Run => () => _effects.Foreach(e => e.Handle(_action, _invoker));
     }

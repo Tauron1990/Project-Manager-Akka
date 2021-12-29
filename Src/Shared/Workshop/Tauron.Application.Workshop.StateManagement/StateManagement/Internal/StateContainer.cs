@@ -2,9 +2,6 @@
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using System.Reactive.Threading.Tasks;
-using Akka.Actor;
-using Akka.Util;
 using Tauron.Application.Workshop.Mutating;
 using Tauron.Application.Workshop.Mutation;
 using Tauron.Application.Workshop.StateManagement.StatePooling;
@@ -24,6 +21,8 @@ public abstract class StateContainer : IDisposable
 
 public interface IStateInstance
 {
+    object ActualState { get; }
+    
     void InitState<TData>(ExtendedMutatingEngine<MutatingContext<TData>> engine);
 
     void ApplyQuery<TData>(IExtendedDataSource<MutatingContext<TData>> engine)
@@ -36,20 +35,20 @@ public sealed class PhysicalInstance : IStateInstance
 {
     private bool _initCalled;
 
-    public PhysicalInstance(object state) => State = state;
+    public PhysicalInstance(object state) => ActualState = state;
 
-    public object State { get; }
+    public object ActualState { get; }
 
     public void InitState<TData>(ExtendedMutatingEngine<MutatingContext<TData>> engine)
     {
         // ReSharper disable once SuspiciousTypeConversion.Global
-        if (State is IInitState<TData> init)
+        if (ActualState is IInitState<TData> init)
             init.Init(engine);
     }
 
     public void ApplyQuery<TData>(IExtendedDataSource<MutatingContext<TData>> engine) where TData : class, IStateEntity
     {
-        if (State is IGetSource<TData> canQuery)
+        if (ActualState is IGetSource<TData> canQuery)
             canQuery.DataSource(engine);
     }
 
@@ -60,101 +59,12 @@ public sealed class PhysicalInstance : IStateInstance
         _initCalled = true;
 
         // ReSharper disable once SuspiciousTypeConversion.Global
-        if (State is IPostInit postInit)
+        if (ActualState is IPostInit postInit)
             postInit.Init(actionInvoker);
     }
 }
 
-public sealed class ActorRefInstance : IStateInstance
-{
-    private readonly Type _targetType;
-    private bool _initCalled;
 
-    public ActorRefInstance(Task<IActorRef> actorRef, Type targetType)
-    {
-        ActorRef = actorRef;
-        _targetType = targetType;
-    }
-
-    public Task<IActorRef> ActorRef { get; }
-
-
-    public void InitState<TData>(ExtendedMutatingEngine<MutatingContext<TData>> engine)
-    {
-        if (_targetType.Implements<IInitState<TData>>())
-            ActorRef.ToObservable().Subscribe(a => a.Tell(StateActorMessage.Create(engine)));
-    }
-
-    public void ApplyQuery<TData>(IExtendedDataSource<MutatingContext<TData>> engine) where TData : class, IStateEntity
-    {
-        if (_targetType.Implements<IGetSource<TData>>())
-            ActorRef.ToObservable().Subscribe(m => m.Tell(StateActorMessage.Create(engine)));
-    }
-
-    public void PostInit(IActionInvoker actionInvoker)
-    {
-        if (_initCalled) return;
-
-        _initCalled = true;
-
-        if (_targetType.Implements<IPostInit>())
-            ActorRef.ToObservable().Subscribe(m => m.Tell(StateActorMessage.Create(actionInvoker)));
-    }
-}
-
-public abstract class StateActorMessage
-{
-    public static StateActorMessage Create<TData>(IExtendedDataSource<MutatingContext<TData>> source)
-        where TData : class, IStateEntity => new QueryMessage<TData>(source);
-
-    public static StateActorMessage Create<TData>(ExtendedMutatingEngine<MutatingContext<TData>> engine)
-        => new InitMessage<TData>(engine);
-
-    public static StateActorMessage Create(IActionInvoker actionInvoker)
-        => new PostInit(actionInvoker);
-
-    public abstract void Apply(object @this);
-
-    private sealed class InitMessage<TData> : StateActorMessage
-    {
-        private readonly ExtendedMutatingEngine<MutatingContext<TData>> _engine;
-
-        internal InitMessage(ExtendedMutatingEngine<MutatingContext<TData>> engine) => _engine = engine;
-
-        public override void Apply(object @this)
-        {
-            if (@this is IInitState<TData> state)
-                state.Init(_engine);
-        }
-    }
-
-    private sealed class QueryMessage<TData> : StateActorMessage
-        where TData : class, IStateEntity
-    {
-        private readonly IExtendedDataSource<MutatingContext<TData>> _dataSource;
-
-        internal QueryMessage(IExtendedDataSource<MutatingContext<TData>> dataSource) => _dataSource = dataSource;
-
-        public override void Apply(object @this)
-        {
-            if (@this is ICanQuery<TData> query)
-                query.DataSource(_dataSource);
-        }
-    }
-
-    private sealed class PostInit : StateActorMessage
-    {
-        private readonly IActionInvoker _invoker;
-
-        internal PostInit(IActionInvoker invoker) => _invoker = invoker;
-
-        public override void Apply(object @this)
-        {
-            if (@this is IPostInit postInit)
-                postInit.Init(_invoker);
-        }
-    }
-}
 
 public sealed class StateContainer<TData> : StateContainer
     where TData : class

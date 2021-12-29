@@ -27,7 +27,7 @@ public sealed class WorkspaceContainer<TData> : StateContainer
 
         return !_map.TryGetValue(type, out var runner)
             ? null
-            : new WorkspaceMutation(() => runner(_source, action), sendResult, onCompled, action.ActionName, action.ActionName);
+            : new WorkspaceMutation(() => runner(_source, action), sendResult, onCompled, action.ActionName);
     }
 
     public override void Dispose() { }
@@ -38,16 +38,14 @@ public sealed class WorkspaceContainer<TData> : StateContainer
         private readonly IObserver<IReducerResult> _result;
         private readonly Func<IDataMutation> _run;
 
-        internal WorkspaceMutation(Func<IDataMutation> run, IObserver<IReducerResult> result, IObserver<Unit> compled, object hashKey, string actionName)
+        internal WorkspaceMutation(Func<IDataMutation> run, IObserver<IReducerResult> result, IObserver<Unit> compled, string actionName)
         {
             _run = run;
             _result = result;
             _compled = compled;
-            ConsistentHashKey = hashKey;
             Name = actionName;
         }
 
-        public object ConsistentHashKey { get; }
 
         public string Name { get; }
 

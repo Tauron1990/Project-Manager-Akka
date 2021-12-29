@@ -8,6 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\Workshop\Tauron.Application.Workshop.StateManagement.Akka\Tauron.Application.Workshop.StateManagement.Akka.csproj" />
       <ProjectReference Include="..\..\Workshop\Tauron.Application.Workshop.StateManagement\Tauron.Application.Workshop.StateManagement.csproj" />
       <ProjectReference Include="..\Tauron.Application.CommonUI\Tauron.Application.CommonUI.csproj" />
     </ItemGroup>

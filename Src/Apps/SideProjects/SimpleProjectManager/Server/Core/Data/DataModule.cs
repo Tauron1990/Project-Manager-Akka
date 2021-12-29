@@ -1,28 +1,27 @@
 ﻿using Akkatecture.Commands;
-using Autofac;
+using JetBrains.Annotations;
 using SimpleProjectManager.Shared;
 
 namespace SimpleProjectManager.Server.Core.Data;
 
-public sealed class DataModule : Module
+[UsedImplicitly]
+public sealed class DataModule : IModule
 {
-    protected override void Load(ContainerBuilder builder)
+    private static void ProjectRegistrations(IServiceCollection builder)
     {
-        builder.RegisterType<CommandProcessor>().SingleInstance();
+        builder.AddSingleton(CommandMapping.For<Project, ProjectId, ProjectState, ProjectManager, Command<Project, ProjectId>>());
 
-        ProjectRegistrations(builder);
-
-        base.Load(builder);
+        builder.AddSingleton(ApiCommandMapping.For<CreateProjectCommand>(c => new CreateProjectCommandCarrier(c)));
+        builder.AddSingleton(ApiCommandMapping.For<UpdateProjectCommand>(c => new UpdateProjectCommandCarrier(c)));
+        builder.AddSingleton(ApiCommandMapping.For<ProjectAttachFilesCommand>(c => new ProjectAttachFilesCommandCarrier(c)));
+        builder.AddSingleton(ApiCommandMapping.For<ProjectRemoveFilesCommand>(c => new ProjectRemoveFilesCommandCarrier(c)));
+        builder.AddSingleton(ApiCommandMapping.For<ProjectId>(i => new ProjectDeleteCommandCarrier(i)));
     }
 
-    private static void ProjectRegistrations(ContainerBuilder builder)
+    public void Load(IServiceCollection collection)
     {
-        builder.RegisterInstance(CommandMapping.For<Project, ProjectId, ProjectState, ProjectManager, Command<Project, ProjectId>>());
-
-        builder.RegisterInstance(ApiCommandMapping.For<CreateProjectCommand>(c => new CreateProjectCommandCarrier(c)));
-        builder.RegisterInstance(ApiCommandMapping.For<UpdateProjectCommand>(c => new UpdateProjectCommandCarrier(c)));
-        builder.RegisterInstance(ApiCommandMapping.For<ProjectAttachFilesCommand>(c => new ProjectAttachFilesCommandCarrier(c)));
-        builder.RegisterInstance(ApiCommandMapping.For<ProjectRemoveFilesCommand>(c => new ProjectRemoveFilesCommandCarrier(c)));
-        builder.RegisterInstance(ApiCommandMapping.For<ProjectId>(i => new ProjectDeleteCommandCarrier(i)));
+        collection.AddSingleton<CommandProcessor>();
+        
+        ProjectRegistrations(collection);
     }
 }

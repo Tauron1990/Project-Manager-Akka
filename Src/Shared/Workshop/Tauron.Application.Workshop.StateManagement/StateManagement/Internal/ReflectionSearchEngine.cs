@@ -47,7 +47,7 @@ public class ReflectionSearchEngine
         }
 
         foreach (var processor in processors)
-            builder.Superviser.CreateAnonym(processor, $"Processor--{processor.Name}");
+            builder.Driver.CreateProcessor(processor, $"Processor--{processor.Name}");
     }
 
     private void ProcessAttribute(ManagerBuilder builder, object customAttribute, ICollection<(Type TargetState, string? Key, Type[] DataTypes)> states, Type type, GroupDictionary<Type, Type> reducers, ICollection<AdvancedDataSourceFactory> factorys, ICollection<Type> processors)

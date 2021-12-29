@@ -5,7 +5,6 @@ using System.Reactive.Linq;
 using System.Text;
 using Akka.Configuration;
 using Microsoft.Extensions.Logging;
-using Tauron.AkkaHost;
 
 namespace Tauron.Application.Master.Commands.Administration.Configuration;
 
@@ -14,7 +13,7 @@ public static class AkkaConfigurationBuilder
     public const string Base = "base.conf";
     public const string Main = "akka.conf";
     public const string Seed = "seed.conf";
-    private static readonly ILogger Log = ActorApplication.GetLogger(typeof(AkkaConfigurationBuilder));
+    private static readonly ILogger Log = TauronEnviroment.GetLogger(typeof(AkkaConfigurationBuilder));
 
     public static IObservable<string> PatchSeedUrls(string data, IEnumerable<string> urls)
     {

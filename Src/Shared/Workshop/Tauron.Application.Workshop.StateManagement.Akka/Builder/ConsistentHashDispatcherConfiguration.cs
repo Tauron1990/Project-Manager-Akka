@@ -9,7 +9,8 @@ public sealed class ConsistentHashDispatcherConfiguration : DispatcherPoolConfig
     IConsistentHashDispatcherPoolConfiguration
 {
     private int? _vNotes;
-
+    private ConsistentHashMapping _mapping = msg => msg.GetHashCode();
+    
     public IConsistentHashDispatcherPoolConfiguration WithVirtualNodesFactor(int vnodes)
     {
         _vNotes = vnodes;
@@ -17,12 +18,20 @@ public sealed class ConsistentHashDispatcherConfiguration : DispatcherPoolConfig
         return this;
     }
 
+    public IConsistentHashDispatcherPoolConfiguration WithHashSelector(Func<object, object> selector)
+    {
+        _mapping = msg => selector(msg);
+
+        return this;
+    }
+
     public override IStateDispatcherConfigurator Create()
-        => new ActualDispatcher(Instances, Resizer, SupervisorStrategy, Dispatcher, _vNotes, Custom);
+        => new ActualDispatcher(Instances, Resizer, SupervisorStrategy, Dispatcher, _vNotes, Custom, _mapping);
 
     private sealed class ActualDispatcher : IStateDispatcherConfigurator
     {
         private readonly Func<Props, Props>? _custom;
+        private readonly ConsistentHashMapping _consistentHashMapping;
         private readonly string? _dispatcher;
         private readonly int _instances;
         private readonly Resizer? _resizer;
@@ -31,7 +40,7 @@ public sealed class ConsistentHashDispatcherConfiguration : DispatcherPoolConfig
 
         internal ActualDispatcher(
             int instances, Resizer? resizer, SupervisorStrategy supervisorStrategy,
-            string? dispatcher, int? vNotes, Func<Props, Props>? custom)
+            string? dispatcher, int? vNotes, Func<Props, Props>? custom, ConsistentHashMapping consistentHashMapping)
         {
             _instances = instances;
             _resizer = resizer;
@@ -39,12 +48,14 @@ public sealed class ConsistentHashDispatcherConfiguration : DispatcherPoolConfig
             _dispatcher = dispatcher;
             _vNotes = vNotes;
             _custom = custom;
+            _consistentHashMapping = consistentHashMapping;
         }
 
         private Props Configurate(Props mutator)
         {
             var router = new ConsistentHashingPool(_instances)
-               .WithSupervisorStrategy(_supervisorStrategy);
+               .WithSupervisorStrategy(_supervisorStrategy)
+               .WithHashMapping(_consistentHashMapping);
 
             if (_resizer != null)
                 router = router.WithResizer(_resizer);
@@ -59,11 +70,6 @@ public sealed class ConsistentHashDispatcherConfiguration : DispatcherPoolConfig
         }
         
         public IDriverFactory Configurate(IDriverFactory factory)
-        {
-            if (factory is not AkkaDriverFactory akkaFactory)
-                throw new InvalidOperationException("No Akka Driver Factory Provided");
-
-            return akkaFactory.CustomMutator(Configurate);
-        }
+            => AkkaDriverFactory.Get(factory).CustomMutator(Configurate);
     }
 }

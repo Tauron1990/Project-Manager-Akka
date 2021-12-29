@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Autofac.Features.OwnedInstances;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NLog;
 
@@ -12,9 +12,14 @@ namespace Tauron.Application.AkkaNode.Bootstrap.Console;
 
 public sealed class NodeAppService : IHostedService
 {
-    private Owned<IEnumerable<IStartUpAction>>? _actions;
-
-    public NodeAppService(Owned<IEnumerable<IStartUpAction>> startUpActions) => _actions = startUpActions;
+    private IEnumerable<IStartUpAction> _actions;
+    private IServiceScope _serviceScope;
+    
+    public NodeAppService(IServiceProvider provider)
+    {
+        _serviceScope = provider.CreateScope();
+        _actions = _serviceScope.ServiceProvider.GetRequiredService<IEnumerable<IStartUpAction>>();
+    }
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
@@ -23,9 +28,7 @@ public sealed class NodeAppService : IHostedService
         return Task.Run(
             () =>
             {
-                if (_actions == null) return;
-
-                foreach (var startUpAction in _actions.Value)
+                foreach (var startUpAction in _actions)
                 {
                     try
                     {
@@ -42,8 +45,9 @@ public sealed class NodeAppService : IHostedService
 
     public Task StopAsync(CancellationToken cancellationToken)
     {
-        _actions?.Dispose();
-        _actions = null;
+        _serviceScope.Dispose();
+        _serviceScope = null!;
+        _actions = null!;
         return Task.CompletedTask;
     }
 
