@@ -52,7 +52,7 @@ namespace Tauron.Application.Avalonia.Converter
         {
             protected virtual bool CanConvertBack => false;
 
-            public virtual object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
+            public virtual object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
             {
                 //if (value is TDest && typeof(TSource) != typeof(TDest)) return value;
                 if (value is not TSource source) return null;
@@ -60,7 +60,7 @@ namespace Tauron.Application.Avalonia.Converter
                 return Convert(source);
             }
 
-            public virtual object? ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            public virtual object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
             {
                 if (!CanConvertBack || value is not TDest dest) return null;
 

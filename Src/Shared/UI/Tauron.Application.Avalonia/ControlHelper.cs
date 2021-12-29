@@ -146,7 +146,7 @@ namespace Tauron.Application.Avalonia
                 else
                 {
                     priTarget =
-                        global::Avalonia.Application.Current.ApplicationLifetime is
+                        global::Avalonia.Application.Current?.ApplicationLifetime is
                             IClassicDesktopStyleApplicationLifetime lifetime
                             ? lifetime.Windows.FirstOrDefault(win => win.Name == windowName)
                             : null;

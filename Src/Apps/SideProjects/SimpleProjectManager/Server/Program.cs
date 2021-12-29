@@ -1,6 +1,4 @@
-
 using Akka.Configuration;
-using SimpleProjectManager.Operation.Client.Shared.Setup;
 using SimpleProjectManager.Server;
 using Tauron.Application.AkkaNode.Bootstrap;
 using Tauron.Application.AkkaNode.Bootstrap.Console;
@@ -15,7 +13,7 @@ try
         var config = ConfigurationFactory.ParseString(File.ReadAllText("seed.conf"));
         ip = config.GetString("akka.remote.dot-netty.tcp.hostname");
 
-        await SetupRunner.Run(ip);
+        //await SetupRunner.Run(ip);
     }
     else
     #pragma warning disable EX006 // Do not write logic driven by exceptions.

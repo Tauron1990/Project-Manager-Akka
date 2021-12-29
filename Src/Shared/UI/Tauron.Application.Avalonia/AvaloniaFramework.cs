@@ -67,7 +67,7 @@ namespace Tauron.Application.Avalonia
             #pragma warning restore GU0073
 
             private ClassicDesktopStyleApplicationLifetime AppLifetime
-                => (ClassicDesktopStyleApplicationLifetime)ApplicationLifetime;
+                => ApplicationLifetime as ClassicDesktopStyleApplicationLifetime ?? throw new InvalidOperationException("Only Classic Desktop Style Supported");
 
 
             public event EventHandler? Startup;
@@ -122,7 +122,7 @@ namespace Tauron.Application.Avalonia
             }
 
             private ClassicDesktopStyleApplicationLifetime AppLifetime
-                => (ClassicDesktopStyleApplicationLifetime)_application.ApplicationLifetime;
+                => _application.ApplicationLifetime as ClassicDesktopStyleApplicationLifetime ?? throw new InvalidOperationException("Only Classic Desktop Style Supported");
 
 
             public event EventHandler? Startup;

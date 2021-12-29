@@ -2,7 +2,7 @@
 
 public class ViewModelConverter
 {
-    public object Convert(object value)
+    public object? Convert(object? value)
     {
         //if(!(parameter is IView root)) return value;
         if (value is not IViewModel model) return value;
@@ -19,5 +19,6 @@ public class ViewModelConverter
         //root.ViewManager.ThenRegister(model, view, root);
     }
 
-    public object? ConvertBack(object value) => ((dynamic)value).DataContext;
+    public object? ConvertBack(object? value) 
+        => value is not null ? ((dynamic)value).DataContext : null;
 }

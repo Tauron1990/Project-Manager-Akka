@@ -16,7 +16,7 @@ public sealed class ViewModelConverterExtension : ValueConverterFactoryBase
     {
         private readonly ViewModelConverter _converter = new();
 
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
             => _converter.Convert(value);
 
         public object? ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

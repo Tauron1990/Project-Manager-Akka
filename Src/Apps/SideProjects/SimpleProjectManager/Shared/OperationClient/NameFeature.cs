@@ -1,4 +1,4 @@
-﻿namespace SimpleProjectManager.Shared.OperationClient;
+﻿//namespace SimpleProjectManager.Shared.OperationClient;
 
 /*public sealed class NameFeature : ActorFeatureBase<NameFeature.State>
 {
