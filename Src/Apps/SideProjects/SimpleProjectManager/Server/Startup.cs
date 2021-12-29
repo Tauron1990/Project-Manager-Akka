@@ -75,12 +75,7 @@ public class Startup
                         resolver.GetService<IHostApplicationLifetime>().StopApplication();
                     }
                     catch (ObjectDisposedException) { }
-                })
-           .AddModule<MainModule>()
-           .AddModule<DataModule>()
-           .AddModule<ProjectionModule>()
-           .AddModule<ServicesModule>()
-           .AddModule<TaskModule>();
+                });
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

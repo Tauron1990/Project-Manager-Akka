@@ -1,23 +1,16 @@
-﻿using Autofac;
-using SimpleProjectManager.Operation.Client.Shared;
-using SimpleProjectManager.Server.Controllers.FileUpload;
+﻿using SimpleProjectManager.Server.Controllers.FileUpload;
 using SimpleProjectManager.Server.Core.JobManager;
 using Tauron.Application.AkkaNode.Bootstrap;
 
 namespace SimpleProjectManager.Server;
 
-public sealed class MainModule : Module
+public sealed class MainModule : IModule
 {
-    protected override void Load(ContainerBuilder builder)
-    {        
-        //var runner = new ClientRunner();
-        //runner.ApplyClientServices(builder);
-        
-        builder.RegisterStartUpAction<ClusterJoinSelf>();
-        builder.RegisterStartUpAction<JobManagerRegistrations>();
+    public void Load(IServiceCollection collection)
+    {
+        collection.RegisterStartUpAction<ClusterJoinSelf>();
+        collection.RegisterStartUpAction<JobManagerRegistrations>();
 
-        builder.RegisterType<FileUploadTransaction>().InstancePerDependency();
-        
-        base.Load(builder);
+        collection.AddScoped<FileUploadTransaction>();
     }
 }

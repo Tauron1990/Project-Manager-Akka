@@ -18,7 +18,7 @@ public abstract class ProjectionManagerBase : IDisposable
     {
         var dispatcher = ProjectionBuilder.CreateProjection(system, mapBuilderAction);
 
-        _subscription = dispatcher.Subscribe<Project>();
+        _subscription = dispatcher.Subscribe<TAggregate>();
     }
 
     public virtual void Dispose()

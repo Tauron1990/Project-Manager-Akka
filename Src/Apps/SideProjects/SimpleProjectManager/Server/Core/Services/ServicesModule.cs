@@ -1,16 +1,13 @@
 ﻿
-using Autofac;
-
 namespace SimpleProjectManager.Server.Core.Services
 {
-    public sealed class ServicesModule : Module
+    public sealed class ServicesModule : IModule
     {
-        protected override void Load(ContainerBuilder builder)
+        public void Load(IServiceCollection collection)
         {
-            builder.RegisterType<FileContentManager>().SingleInstance();
-            builder.RegisterType<CommitRegistrationTransaction>().InstancePerDependency();
-            builder.RegisterType<PreRegisterTransaction>().InstancePerDependency();
-            base.Load(builder);
+            collection.AddSingleton<FileContentManager>();
+            collection.AddScoped<CommitRegistrationTransaction>();
+            collection.AddScoped<PreRegisterTransaction>();
         }
     }
 }

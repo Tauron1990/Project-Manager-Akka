@@ -1,6 +1,5 @@
 ﻿using Akka.Actor;
 using Akkatecture.Aggregates;
-using Autofac;
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
 using SimpleProjectManager.Server.Core.Projections.Core;
@@ -8,27 +7,27 @@ using Tauron.Application.AkkaNode.Bootstrap;
 
 namespace SimpleProjectManager.Server.Core.Projections;
 
-public class ProjectionModule : Module
+public class ProjectionModule : IModule
 {
-    protected override void Load(ContainerBuilder builder)
+
+    public void Load(IServiceCollection collection)
     {
-        builder.Register(
+        collection.AddSingleton(
             c =>
             {
-                var system = c.Resolve<ActorSystem>();
+                var system = c.GetRequiredService<ActorSystem>();
                 var database = system.Settings.Config.GetString("akka.persistence.journal.mongodb.connection-string");
                 var url = MongoUrl.Create(database);
 
                 return new MongoClient(url).GetDatabase(url.DatabaseName);
-            }).SingleInstance();
-        builder.Register(c => new GridFSBucket(c.Resolve<IMongoDatabase>()));
+            });
+        collection.AddScoped(c => new GridFSBucket(c.GetRequiredService<IMongoDatabase>()));
 
-        builder.Register(c => c.Resolve<IEventAggregator>().GetEvent<DomainEventDispatcher, IDomainEvent>());
-        builder.RegisterType<InternalDataRepository>();
-        builder.RegisterStartUpAction<ProjectionInitializer>();
-
-        builder.RegisterProjection<ProjectProjectionManager>();
-
-        base.Load(builder);
+        collection.AddTransient(c => c.GetRequiredService<IEventAggregator>().GetEvent<DomainEventDispatcher, IDomainEvent>());
+        collection.AddScoped<InternalDataRepository>();
+        
+        collection.RegisterStartUpAction<ProjectionInitializer>();
+        
+        collection.RegisterProjection<ProjectProjectionManager>();
     }
 }

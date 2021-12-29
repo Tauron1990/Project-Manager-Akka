@@ -1,12 +1,7 @@
-﻿using Autofac;
+﻿namespace SimpleProjectManager.Server.Core.Tasks;
 
-namespace SimpleProjectManager.Server.Core.Tasks;
-
-public sealed class TaskModule : Module
+public sealed class TaskModule : IModule
 {
-    protected override void Load(ContainerBuilder builder)
-    {
-        builder.RegisterType<TaskManagerCore>().SingleInstance();
-        base.Load(builder);
-    }
+    public void Load(IServiceCollection collection)
+        => collection.AddSingleton<TaskManagerCore>();
 }
