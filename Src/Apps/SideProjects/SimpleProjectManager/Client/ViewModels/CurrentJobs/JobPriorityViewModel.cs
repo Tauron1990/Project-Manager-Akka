@@ -1,6 +1,7 @@
 ﻿using System.Collections.Immutable;
 using System.Reactive.Linq;
 using ReactiveUI;
+using SimpleProjectManager.Client.Data.States;
 using SimpleProjectManager.Client.Shared.CurrentJobs;
 using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;

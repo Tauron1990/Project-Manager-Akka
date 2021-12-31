@@ -67,20 +67,29 @@ public interface IReducerFactory<TState>
 public interface IEffectFactory<TState>
 	where TState : class, new()
 {
-	Effect<TState> CreateEffect(Func<IObservable<object>> run, bool dispatch = true);
+	IEffect CreateEffect(Func<IObservable<object>> run, bool dispatch = true);
 
-	Effect<TState> CreateEffect(Func<IObservable<TState>, IObservable<object>> run, bool dispatch = true);
+	IEffect CreateEffect(Func<IObservable<TState>, IObservable<object>> run, bool dispatch = true);
+
+	IEffect CreateEffect<TAction>(Func<IObservable<(TAction Action, TState State)>, IObservable<object>> run, bool dispatch = true);
 }
 
 [PublicAPI]
 public interface IRequestFactory<TState>
 {
-	IRequestFactory<TState> AddRequest<TAction>(Func<TAction, Task<string>> runRequest, Func<TState, TAction, TState> onScess);
+	IRequestFactory<TState> AddRequest<TAction>(Func<TAction, Task<string>> runRequest, Func<TState, TAction, TState> onScess)
+		where TAction : class;
 	
 	IRequestFactory<TState> AddRequest<TAction>(
 		Func<TAction, Task<string>> runRequest, 
 		Func<TState, TAction, TState> onScess,
-		Func<TState, object, TState> onFail);
+		Func<TState, object, TState> onFail)
+		where TAction : class;
+
+	IRequestFactory<TState> OnTheFlyUpdate<TSource, TData>(
+		Func<TState, TSource> sourceSelector,
+		Func<CancellationToken, Func<CancellationToken, ValueTask<TSource>>, Task<TData>> fetcher,
+		Func<TState, TData, TState> patcher);
 }
 
 [PublicAPI]
@@ -95,15 +104,15 @@ public interface IStateConfiguration<TActualState>
 
     IStateConfiguration<TActualState> ApplyReducers(Func<IReducerFactory<TActualState>, IEnumerable<On<TActualState>>> factory);
 
-    IStateConfiguration<TActualState> ApplyEffect(Func<IEffectFactory<TActualState>, Effect<TActualState>> factory);
+    IStateConfiguration<TActualState> ApplyEffect(Func<IEffectFactory<TActualState>, IEffect> factory);
 
-    IStateConfiguration<TActualState> ApplyEffects(params Func<IEffectFactory<TActualState>, Effect<TActualState>>[] factorys);
+    IStateConfiguration<TActualState> ApplyEffects(params Func<IEffectFactory<TActualState>, IEffect>[] factorys);
 
-    IStateConfiguration<TActualState> ApplyEffects(Func<IEffectFactory<TActualState>, IEnumerable<Effect<TActualState>>> factory);
+    IStateConfiguration<TActualState> ApplyEffects(Func<IEffectFactory<TActualState>, IEnumerable<IEffect>> factory);
 
     IStateConfiguration<TActualState> ApplyRequests(Action<IRequestFactory<TActualState>> factory);
 
     IStateConfiguration<TActualState> ApplyRequests(params Action<IRequestFactory<TActualState>>[] factorys);
 
-    IConfiguredState AndFinish(out ISelectorWithoutProps<ApplicationState, TActualState> selector);
+    IConfiguredState AndFinish();
 }

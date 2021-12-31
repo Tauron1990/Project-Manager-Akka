@@ -1,4 +1,6 @@
-﻿using SimpleProjectManager.Client.Data.Cache;
+﻿using System.Reactive.Disposables;
+using SimpleProjectManager.Client.Data.Cache;
+using SimpleProjectManager.Client.Data.Core;
 using Tauron;
 using Tavenem.Blazor.IndexedDB;
 
@@ -10,10 +12,16 @@ public class DataModule : IModule
     {
         collection.RegisterModules(new CommonModule(), new DataModule());
         
-        collection.AddIndexedDb(new IndexedDb<string>(nameof(CacheData)));
-        collection.AddIndexedDb(new IndexedDb<int>(nameof(CacheTimeout)));
+        collection.AddIndexedDb(new IndexedDb<CacheDataId>(nameof(CacheData)));
+        collection.AddIndexedDb(new IndexedDb<CacheTimeoutId>(nameof(CacheTimeout)));
+
+        collection.AddSingleton<GlobalState>();
+        collection.AddSingleton<CompositeDisposable>();
         
         collection.AddScoped<CacheDb>();
-        collection.AddSingleton<TimeoutManager>();
+        collection.AddScoped<TimeoutManager>();
+        collection.AddScoped<StateDb>();
+
+        collection.AddTransient<IStoreConfiguration, StoreConfiguration>();
     }
 }

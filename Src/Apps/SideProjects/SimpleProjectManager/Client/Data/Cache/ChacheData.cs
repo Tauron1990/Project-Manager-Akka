@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace SimpleProjectManager.Client.Data.Cache;
 
 [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
-public sealed record CacheTimeout([property: Key] int Id, string DataKey, DateTime Timeout);
+public sealed record CacheTimeout([property: Key] CacheTimeoutId Id, CacheDataId DataKey, DateTime Timeout);
 
 [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
-public sealed record CacheData([property: Key] string Id, string Data);
+public sealed record CacheData([property: Key] CacheDataId Id, string Data);

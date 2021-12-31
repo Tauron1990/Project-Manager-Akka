@@ -106,12 +106,12 @@ public static class Extensions
         return new DisposableState<TData>(state, serial);
     }
 
-    public static IObservable<TData> ToObservable<TData>(this IState<TData> state)
+    public static IObservable<TData> ToObservable<TData>(this IState<TData> state, bool skipErrors = false)
         => Observable.Create<TData>(o =>
                                     {
                                         if(state.HasValue)
                                             o.OnNext(state.Value);
-                                        return new StateRegistration<TData>(o, state);
+                                        return new StateRegistration<TData>(o, state, skipErrors);
                                     })
            .DistinctUntilChanged();
         
@@ -119,12 +119,16 @@ public static class Extensions
     {
         private readonly IObserver<TData> _observer;
         private readonly IState<TData> _state;
+        private readonly bool _skipErrors;
 
-        internal StateRegistration(IObserver<TData> observer, IState<TData> state)
+        internal StateRegistration(IObserver<TData> observer, IState<TData> state, bool skipErrors)
         {
             _observer = observer;
             _state = state;
-                
+            _skipErrors = skipErrors;
+
+            
+            
             state.AddEventHandler(StateEventKind.All, Handler);
         }
 
@@ -132,7 +136,7 @@ public static class Extensions
         {
             if(_state.HasValue)
                 _observer.OnNext(_state.Value);
-            else if(_state.HasError && _state.Error is not null)
+            else if(!_skipErrors && _state.HasError && _state.Error is not null)
                 _observer.OnError(_state.Error);
         }
 

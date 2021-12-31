@@ -1,9 +1,9 @@
 ﻿using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
 
-namespace SimpleProjectManager.Client.ViewModels;
+namespace SimpleProjectManager.Client.Data.States;
 
-public sealed class JobSortOrderPairComparer : IComparer<JobSortOrderPair>
+/*public sealed class JobSortOrderPairComparer : IComparer<JobSortOrderPair>
 {
     public static readonly JobSortOrderPairComparer Comp = new();
 
@@ -43,6 +43,6 @@ public sealed class JobSortOrderPairComparer : IComparer<JobSortOrderPair>
         return CompareDate(x.Info.Deadline?.Value, y.Info.Deadline?.Value);
 
     }
-}
+}*/
 
 public sealed record JobSortOrderPair(SortOrder Order, JobInfo Info);

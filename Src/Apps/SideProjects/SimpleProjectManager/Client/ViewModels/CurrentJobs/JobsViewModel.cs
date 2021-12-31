@@ -1,6 +1,8 @@
-﻿using System.Reactive.Linq;
+﻿/*using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using SimpleProjectManager.Client.Data.States;
 using Stl.Fusion;
+using Tauron.Application.Blazor;
 
 namespace SimpleProjectManager.Client.ViewModels;
 
@@ -19,7 +21,6 @@ public sealed class JobsViewModel : IDisposable
         var state = stateFactory.NewMutable<JobSortOrderPair?>();
 
         CurrentInfo.Subscribe(p => state.Set(p));
-
         CurrentJobState = state;
     }
 
@@ -28,4 +29,4 @@ public sealed class JobsViewModel : IDisposable
 
     public void Dispose()
         => _jobsSubject.Dispose();
-}
+}*/
