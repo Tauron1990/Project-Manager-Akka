@@ -1,5 +1,6 @@
 ﻿using System.Reactive;
 using ReactiveUI;
+using SimpleProjectManager.Client.Data;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
@@ -8,19 +9,18 @@ using Tauron.Application.Blazor;
 
 namespace SimpleProjectManager.Client.ViewModels;
 
-public class JobDetailDisplayViewModel : StatefulViewModel<JobData?>
+public class JobDetailDisplayViewModel : BlazorViewModel
 {
-    private readonly JobsViewModel _jobsModel;
-    private readonly IJobDatabaseService _jobDatabaseService;
-
     public ReactiveCommand<ProjectId?, Unit> EditJob { get; }
+
+    private readonly ObservableAsPropertyHelper<JobData?> _jobData;
+    public JobData? JobData => _jobData.Value;
     
-    public JobDetailDisplayViewModel(
-        IStateFactory stateFactory, JobsViewModel jobsModel, IJobDatabaseService jobDatabaseService,
-        PageNavigation navigationManager, IEventAggregator aggregator) : base(stateFactory)
+    public JobDetailDisplayViewModel(IStateFactory stateFactory, GlobalState globalState, PageNavigation navigationManager, IEventAggregator aggregator) 
+        : base(stateFactory)
     {
-        _jobsModel = jobsModel;
-        _jobDatabaseService = jobDatabaseService;
+        _jobData = globalState.JobsState.CurrentlySelectedData.ToProperty(this, model => model.JobData);
+        
         EditJob = ReactiveCommand.Create<ProjectId?, Unit>(
             id =>
             {
@@ -34,14 +34,6 @@ public class JobDetailDisplayViewModel : StatefulViewModel<JobData?>
                 navigationManager.EditJob(id);
 
                 return Unit.Default;
-            });
-    }
-
-    protected override async Task<JobData?> ComputeState(CancellationToken cancellationToken)
-    {
-        var currentSelected = await _jobsModel.CurrentJobState.Use(cancellationToken);
-        if (currentSelected == null) return null;
-        
-        return await _jobDatabaseService.GetJobData(currentSelected.Info.Project, cancellationToken);
+            }, globalState.IsOnline);
     }
 }

@@ -1,75 +1,71 @@
 ﻿using System.Collections.Immutable;
+using System.Reactive;
 using System.Reactive.Linq;
 using ReactiveUI;
+using SimpleProjectManager.Client.Data;
 using SimpleProjectManager.Client.Data.States;
 using SimpleProjectManager.Client.Shared.CurrentJobs;
 using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
 using Tauron;
-using Tauron.Application;
 using Tauron.Application.Blazor;
 
 namespace SimpleProjectManager.Client.ViewModels;
 
 public sealed class JobPriorityViewModel : BlazorViewModel
 {
-    private readonly JobsViewModel _model;
-
+    private readonly GlobalState _globalState;
+    
     private IObservable<ImmutableList<JobSortOrderPair>> ActivePairs { get; }
 
-    public ReactiveCommand<JobSortOrderPair?, bool> GoUp { get; }
+    public ReactiveCommand<JobSortOrderPair?, Unit> GoUp { get; }
 
-    public ReactiveCommand<JobSortOrderPair?, bool> GoDown { get; }
+    public ReactiveCommand<JobSortOrderPair?, Unit> GoDown { get; }
 
-    public ReactiveCommand<JobSortOrderPair?, bool> Priorize { get; }
+    public ReactiveCommand<JobSortOrderPair?, Unit> Priorize { get; }
 
-    public JobPriorityViewModel(IStateFactory stateFactory, IJobDatabaseService databaseService, IEventAggregator aggregator, JobsViewModel model)
+    public JobPriorityViewModel(IStateFactory stateFactory, GlobalState globalState)
         : base(stateFactory)
     {
-        if (stateFactory == null) throw new ArgumentNullException(nameof(stateFactory));
-        if (databaseService == null) throw new ArgumentNullException(nameof(databaseService));
-        if (aggregator == null) throw new ArgumentNullException(nameof(aggregator));
-
-        _model = model ?? throw new ArgumentNullException(nameof(model));
+        _globalState = globalState;
 
         ActivePairs = GetParameter<ImmutableList<JobSortOrderPair>>(nameof(JobPriorityControl.ActivePairs)).ToObservable();
-        
-        GoUp = ReactiveCommand.CreateFromObservable(CreateExecute(
-            async info => await aggregator.IsSuccess(
-                () => TimeoutToken.WithDefault(default,
-                    token => databaseService.ChangeOrder(new SetSortOrder(false, info.Order.Increment()), token)))),
-            CreateCanExecute((pairs, pair) => pairs[0] != pair))
+
+        GoUp = ReactiveCommand.Create(
+                CreateExecute(info => new SetSortOrder(false, info.Order.Increment())),
+                CreateCanExecute((pairs, pair) => pairs[0] != pair))
            .DisposeWith(this);
 
-        GoDown = ReactiveCommand.CreateFromObservable(CreateExecute(
-            async info => await aggregator.IsSuccess(
-                () => TimeoutToken.WithDefault(default,
-                    token => databaseService.ChangeOrder(new SetSortOrder(false, info.Order.Decrement()), token)))),
-            CreateCanExecute((pairs, pair) => pairs.Last() != pair))
+        GoDown = ReactiveCommand.Create(
+                CreateExecute(info => new SetSortOrder(false, info.Order.Decrement())),
+                CreateCanExecute((pairs, pair) => pairs.Last() != pair))
            .DisposeWith(this);
 
-        Priorize = ReactiveCommand.CreateFromObservable(CreateExecute(
-            async info => await aggregator.IsSuccess(
-                () => TimeoutToken.WithDefault(default,
-                    token => databaseService.ChangeOrder(new SetSortOrder(false, info.Order.Decrement()), token)))),
-            CreateCanExecute((_, pair) => !pair.Order.IsPriority))
+        Priorize = ReactiveCommand.Create(
+                CreateExecute(info => new SetSortOrder(false, info.Order.Decrement())),
+                CreateCanExecute((_, pair) => !pair.Order.IsPriority))
            .DisposeWith(this);
     }
 
-    private static Func<JobSortOrderPair?, IObservable<bool>> CreateExecute(Func<JobSortOrderPair, Task<bool>> executor)
-        => i => from info in Observable.Return(i)
-                where info is not null
-                from result in executor(info)
-                select result;
+    private Action<JobSortOrderPair?> CreateExecute(Func<JobSortOrderPair, SetSortOrder> executor)
+        => i =>
+           {
+               if (i is null) return;
+               _globalState.JobsState.SetNewSortOrder(executor(i));     
+           };
 
     private IObservable<bool> CreateCanExecute(Func<ImmutableList<JobSortOrderPair>, JobSortOrderPair, bool> predicate)
         => 
         (
-            from activePair in ActivePairs
-            from jobSortOrderPair in _model.CurrentInfo
-            select activePair != null 
-                && jobSortOrderPair != null 
-                && activePair.Contains(jobSortOrderPair) 
-                && predicate(activePair, jobSortOrderPair)
+            from info in ActivePairs.CombineLatest(
+                _globalState.IsOnline, 
+                _globalState.JobsState.CurrentlySelectedPair,
+                (pairs, online, selected) => (pairs, online, selected))
+            
+            select info.online
+                && info.pairs is not null 
+                && info.selected is not null 
+                && info.pairs.Contains(info.selected) 
+                && predicate(info.pairs, info.selected)
         ).StartWith(false);
 }

@@ -22,7 +22,6 @@ public class ServiceRegistrar
         services.AddTransient<PageNavigation>();
         services.AddTransient<UploadTransaction>();
         
-        services.AddSingleton<JobsViewModel>();
         services.AddScoped<FileDetailDisplayViewModel>();
         services.AddScoped<JobDetailDisplayViewModel>();
         services.AddScoped<JobPriorityViewModel>();

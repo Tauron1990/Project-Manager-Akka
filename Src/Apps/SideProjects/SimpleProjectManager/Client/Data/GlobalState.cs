@@ -1,19 +1,28 @@
 ﻿using SimpleProjectManager.Client.Data.Core;
 using SimpleProjectManager.Client.Data.States;
-using SimpleProjectManager.Shared.Services;
 
 namespace SimpleProjectManager.Client.Data;
 
 public sealed class GlobalState
 {
+    public IOnlineMonitor OnlineMonitor { get; }
+
+    public IObservable<bool> IsOnline => OnlineMonitor.Online;
+
     public IRootStore RootStore { get; }
     
     public JobsState JobsState { get; }
 
-    public GlobalState(IStoreConfiguration configuration, IJobDatabaseService jobDatabaseService)
+    public ErrorState ErrorState { get; }
+    
+    public GlobalState(IServiceProvider serviceProvider)
     {
-        JobsState = new JobsState(configuration, jobDatabaseService);
-
+        var configuration = serviceProvider.GetRequiredService<IStoreConfiguration>();
+        
+        OnlineMonitor = serviceProvider.GetRequiredService<IOnlineMonitor>();
+        JobsState = new JobsState(configuration, serviceProvider);
+        ErrorState = new ErrorState(configuration, serviceProvider);
+        
         RootStore = configuration.Build();
     }
 }

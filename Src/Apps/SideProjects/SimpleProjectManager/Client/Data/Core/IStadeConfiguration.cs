@@ -77,11 +77,20 @@ public interface IEffectFactory<TState>
 [PublicAPI]
 public interface IRequestFactory<TState>
 {
-	IRequestFactory<TState> AddRequest<TAction>(Func<TAction, Task<string>> runRequest, Func<TState, TAction, TState> onScess)
+	IRequestFactory<TState> AddRequest<TAction>(Func<TAction, CancellationToken, ValueTask<string>> runRequest, Func<TState, TAction, TState> onScess)
 		where TAction : class;
 	
 	IRequestFactory<TState> AddRequest<TAction>(
-		Func<TAction, Task<string>> runRequest, 
+		Func<TAction, CancellationToken, ValueTask<string>> runRequest, 
+		Func<TState, TAction, TState> onScess,
+		Func<TState, object, TState> onFail)
+		where TAction : class;
+	
+	IRequestFactory<TState> AddRequest<TAction>(Func<TAction, CancellationToken, Task<string>> runRequest, Func<TState, TAction, TState> onScess)
+		where TAction : class;
+	
+	IRequestFactory<TState> AddRequest<TAction>(
+		Func<TAction, CancellationToken, Task<string>> runRequest, 
 		Func<TState, TAction, TState> onScess,
 		Func<TState, object, TState> onFail)
 		where TAction : class;
@@ -114,5 +123,5 @@ public interface IStateConfiguration<TActualState>
 
     IStateConfiguration<TActualState> ApplyRequests(params Action<IRequestFactory<TActualState>>[] factorys);
 
-    IConfiguredState AndFinish();
+    IConfiguredState AndFinish(Action<IRootStore>? onCreate = null);
 }

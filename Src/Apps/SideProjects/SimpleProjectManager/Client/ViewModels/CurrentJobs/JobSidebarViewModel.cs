@@ -1,86 +1,52 @@
 ﻿using System.Collections.Immutable;
 using System.Reactive;
+using System.Reactive.Linq;
 using ReactiveUI;
+using SimpleProjectManager.Client.Data;
 using SimpleProjectManager.Client.Data.States;
-using SimpleProjectManager.Client.Shared.CurrentJobs;
 using SimpleProjectManager.Shared;
-using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
 using Tauron;
 using Tauron.Application.Blazor;
 
 namespace SimpleProjectManager.Client.ViewModels;
 
-public class JobSidebarViewModel : StatefulViewModel<ImmutableList<JobSortOrderPair>>
+public class JobSidebarViewModel : BlazorViewModel
 {
-    private readonly IJobDatabaseService _databaseService;
-
-    public IState<JobInfo[]?> CurrentJobs { get; }
-
     public ReactiveCommand<Unit, Unit> NewJob { get; }
 
     public ReactiveCommand<object, Unit> NewItemSelected { get; }
 
     private readonly ObservableAsPropertyHelper<JobSortOrderPair?> _selectedValue;
     public JobSortOrderPair? SelectedValue => _selectedValue.Value;
+
+    private readonly ObservableAsPropertyHelper<ImmutableList<JobSortOrderPair>> _currentJobs;
+    public ImmutableList<JobSortOrderPair> CurrentJobs => _currentJobs.Value;
     
-    public JobSidebarViewModel(IStateFactory stateFactory, JobsViewModel jobsViewModel, IJobDatabaseService databaseService, 
-        PageNavigation navigationManager) 
+    public JobSidebarViewModel(IStateFactory stateFactory, PageNavigation navigationManager, GlobalState globalState) 
         : base(stateFactory)
     {
-        _databaseService = databaseService;
+        _currentJobs = globalState.JobsState.CurrentJobs.Select(Sort).ToProperty(this, model => model.CurrentJobs).DisposeWith(this);
+        _selectedValue = globalState.JobsState.CurrentlySelectedPair.ToProperty(this, p => p.SelectedValue).DisposeWith(this);
         
-        CurrentJobs = GetParameter<JobInfo[]?>(nameof(JobSideBar.CurrentJobs));
-        _selectedValue = jobsViewModel.CurrentInfo.ToProperty(this, p => p.SelectedValue)
-           .DisposeWith(this);
-        
-        NewJob = ReactiveCommand.Create(navigationManager.NewJob);
+        NewJob = ReactiveCommand.Create(navigationManager.NewJob, globalState.IsOnline);
         NewItemSelected = ReactiveCommand.Create<object, Unit>(
             o =>
             {
                 if(o is JobSortOrderPair pair)
-                    jobsViewModel.Publish(pair);
+                    globalState.JobsState.NewSelection(pair);
                 
                 return Unit.Default;
-            });
-    }
-    
-    
-    protected override async Task<ImmutableList<JobSortOrderPair>> ComputeState(CancellationToken cancellationToken)
-    {
-        try
-        {
-            var list = new List<JobSortOrderPair>();
-
-            var currentJobs = await CurrentJobs.Use(cancellationToken);
-            
-    // ReSharper disable once InvertIf
-            if (currentJobs != null)
-            {
-                var activeJobs = currentJobs.ToDictionary(c => c.Project);
-                foreach (var sortOrder in await _databaseService.GetSortOrders(cancellationToken))
-                {
-                    if (activeJobs.Remove(sortOrder.Id, out var data))
-                        list.Add(new JobSortOrderPair(sortOrder, data));
-                }
-
-                list.AddRange(activeJobs.Select(job => new JobSortOrderPair(new SortOrder(job.Key, 0, false), job.Value)));
-            }
-
-            return list
-                //.OrderByDescending(j => j, JobSortOrderPairComparer.Comp)
-                .GroupBy(p => p.Info.Status)
-                .OrderByDescending(g => g.Key)
-                .SelectMany(StatusToPrioritySort)
-                .ToImmutableList();
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            throw;
-        }
+            }, globalState.IsOnline);
     }
 
+    private ImmutableList<JobSortOrderPair> Sort(JobSortOrderPair[] unsorted)
+        => unsorted
+           .GroupBy(p => p.Info.Status)
+           .OrderByDescending(g => g.Key)
+           .SelectMany(StatusToPrioritySort)
+           .ToImmutableList();
+    
     private IEnumerable<JobSortOrderPair> StatusToPrioritySort(IGrouping<ProjectStatus, JobSortOrderPair> statusGroup)
     {
         if (statusGroup.Key is ProjectStatus.Entered or ProjectStatus.Pending)

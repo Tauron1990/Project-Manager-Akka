@@ -2,27 +2,17 @@
 
 namespace SimpleProjectManager.Shared.Services;
 
-public sealed class SortOrder : Entity<ProjectId>
+public sealed record SortOrder(ProjectId Id, int SkipCount, bool IsPriority)
 {
-    public int SkipCount { get; }
-
-    public bool IsPriority { get; }
-    
-    public SortOrder(ProjectId id, int skipCount, bool isPriority) : base(id)
-    {
-        SkipCount = skipCount;
-        IsPriority = isPriority;
-    }
-
     public SortOrder WithCount(int count)
-        => new(Id, count, IsPriority);
-    
+        => this with { SkipCount = count };
+
     public SortOrder Increment()
-        => new(Id, SkipCount + 1, IsPriority);
-    
+        => this with { SkipCount = SkipCount + 1 };
+
     public SortOrder Decrement()
-        => new(Id, SkipCount - 1, IsPriority);
+        => this with { SkipCount = SkipCount - 1 };
 
     public SortOrder Priority()
-        => IsPriority ? this : new SortOrder(Id, 0, true);
+        => this with { IsPriority = true };
 }

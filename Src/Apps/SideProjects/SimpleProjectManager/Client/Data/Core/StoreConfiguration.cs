@@ -34,5 +34,12 @@ public sealed class StoreConfiguration : IStoreConfiguration
     }
 
     public IRootStore Build()
-        => new RootStore(_configuredStates);
+    {
+        var store = new RootStore(_configuredStates);
+
+        foreach (var configuredState in _configuredStates) 
+            configuredState.PostBuild(store);
+
+        return store;
+    }
 }

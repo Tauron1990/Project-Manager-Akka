@@ -138,18 +138,18 @@ public sealed class EffectFactory<TState> : IEffectFactory<TState>
 public sealed class RequesterFactory<TState> : IRequestFactory<TState> 
     where TState : class, new()
 {
-    private sealed record StartRequest<TAction>(TAction Action, Func<TAction, Task<string>> RequestRunner,  Func<TState, TAction, TState> OnSucess, Func<TState, object, TState> OnFail);
+    private sealed record StartRequest<TAction>(TAction Action, Func<TAction, CancellationToken, ValueTask<string>> RequestRunner,  Func<TState, TAction, TState> OnSucess, Func<TState, object, TState> OnFail);
 
     // ReSharper disable once UnusedTypeParameter
     private sealed record FinishRequest<TAction>(Func<TState, TState> Apply);
     
     private sealed class RequestRegister<TAction> : IEffect
     {
-        private readonly Func<TAction, Task<string>> _runRequest;
+        private readonly Func<TAction, CancellationToken, ValueTask<string>> _runRequest;
         private readonly Func<TState, TAction, TState> _onSucess;
         private readonly Func<TState, object, TState> _onFail;
 
-        public RequestRegister(Func<TAction, Task<string>> runRequest,  Func<TState, TAction, TState> onSucess, Func<TState, object, TState> onFail)
+        public RequestRegister(Func<TAction, CancellationToken, ValueTask<string>> runRequest,  Func<TState, TAction, TState> onSucess, Func<TState, object, TState> onFail)
         {
             _runRequest = runRequest;
             _onSucess = onSucess;
@@ -170,7 +170,7 @@ public sealed class RequesterFactory<TState> : IRequestFactory<TState>
             => store.ObserveAction<StartRequest<TAction>>()
                .CatchSafe(
                     d => from data in Observable.Return(d)
-                         from result in d.RequestRunner(data.Action)
+                         from result in TimeoutToken.WithDefault(default, async c => await d.RequestRunner(data.Action, c)).AsTask()
                          select string.IsNullOrWhiteSpace(result)
                              ? new FinishRequest<TAction>(s => data.OnSucess(s, data.Action))
                              : new FinishRequest<TAction>(s => data.OnFail(s, result)),
@@ -257,7 +257,7 @@ public sealed class RequesterFactory<TState> : IRequestFactory<TState>
                 (state, action) => state.UpdateState(stateId, action.Updater(state.GetState<TState>(stateId)))));
     
     private void RegisterEffectForAction<TAction>(
-        Func<TAction, Task<string>> runRequest,  
+        Func<TAction, CancellationToken, ValueTask<string>> runRequest,  
         Func<TState, TAction, TState> onSucess, 
         Func<TState, object, TState> onFail) 
         where TAction : class
@@ -276,16 +276,27 @@ public sealed class RequesterFactory<TState> : IRequestFactory<TState>
             throw new InvalidOperationException("Action Already Registrated");
     }
 
-    public IRequestFactory<TState> AddRequest<TAction>(Func<TAction, Task<string>> runRequest, Func<TState, TAction, TState> onScess) 
+    public IRequestFactory<TState> AddRequest<TAction>(Func<TAction, CancellationToken, ValueTask<string>> runRequest, Func<TState, TAction, TState> onScess) 
         where TAction : class
         => AddRequest(runRequest, onScess, GetDefaultErrorHandler(_aggregator));
 
-    public IRequestFactory<TState> AddRequest<TAction>(Func<TAction, Task<string>> runRequest, Func<TState, TAction, TState> onScess, Func<TState, object, TState> onFail) 
+    public IRequestFactory<TState> AddRequest<TAction>(Func<TAction, CancellationToken, ValueTask<string>> runRequest, Func<TState, TAction, TState> onScess, Func<TState, object, TState> onFail) 
         where TAction : class
     {
         RegisterEffectForAction(runRequest, onScess, onFail);
 
         return this;
+    }
+
+    public IRequestFactory<TState> AddRequest<TAction>(Func<TAction, CancellationToken, Task<string>> runRequest, Func<TState, TAction, TState> onScess) where TAction : class
+        => AddRequest(runRequest, onScess, GetDefaultErrorHandler(_aggregator));
+
+    public IRequestFactory<TState> AddRequest<TAction>(Func<TAction, CancellationToken, Task<string>> runRequest, Func<TState, TAction, TState> onScess, Func<TState, object, TState> onFail) where TAction : class
+    {
+        async ValueTask<string> Run(TAction action, CancellationToken token)
+            => await runRequest(action, token);
+
+        return AddRequest(Run, onScess, onFail);
     }
 
     public IRequestFactory<TState> OnTheFlyUpdate<TSource, TData>(
@@ -413,6 +424,6 @@ public sealed class StateConfiguration<TState> : IStateConfiguration<TState>
         return this;
     }
 
-    public IConfiguredState AndFinish()
-        => new ConfiguratedState(_reducer, _effects, typeof(TState), _stateId);
+    public IConfiguredState AndFinish(Action<IRootStore>? onCreate = null)
+        => new ConfiguratedState(_reducer, _effects, typeof(TState), _stateId, onCreate);
 }

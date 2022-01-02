@@ -9,9 +9,6 @@ namespace SimpleProjectManager.Client.Shared.CurrentJobs;
 
 public partial class JobSideBar
 {
-    [Parameter]
-    public JobInfo[]? CurrentJobs { get; set; }
-    
     private MudCommandButton? _newJob;
 
     public MudCommandButton? NewJob
