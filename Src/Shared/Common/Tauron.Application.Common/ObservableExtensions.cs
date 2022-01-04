@@ -24,21 +24,20 @@ public static class ObservableExtensions
     /// <param name="maxDuration">Max duration to buffer before returning</param>
     public static IObservable<IList<T>> BufferUntilCalm<T>(this IObservable<T> source, TimeSpan calmDuration, int? maxCount = null, TimeSpan? maxDuration = null)
     {
-        if (source == null)
+        if (source is null)
             throw new ArgumentNullException(nameof(source));
 
         var closes = source.Throttle(calmDuration);
-        if (maxCount != null)
+        if (maxCount is not null)
         {
             var overflows = source.Where((_, index) => index + 1 >= maxCount);
             closes = closes.Amb(overflows);
         }
 
-        if (maxDuration != null)
-        {
-            var ages = source.Delay(maxDuration.Value);
-            closes = closes.Amb(ages);
-        }
+        if (maxDuration is null) return source.Window(() => closes).SelectMany(window => window.ToList());
+
+        var ages = source.Delay(maxDuration.Value);
+        closes = closes.Amb(ages);
 
         return source.Window(() => closes).SelectMany(window => window.ToList());
     }
