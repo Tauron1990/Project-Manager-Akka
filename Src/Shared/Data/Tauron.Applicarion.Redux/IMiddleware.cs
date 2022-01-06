@@ -8,5 +8,5 @@ public interface IMiddleware<TState>
 {
     public void Initialize(IStore<TState> store);
     
-    public IObservable<TState> Connect(IObservable<DispatchedAction<TState>> action, DispatchNext<TState> next);
+    public IObservable<TState> Connect(IObservable<DispatchedAction<TState>> actionObservable, DispatchNext<TState> next);
 }
