@@ -13,11 +13,8 @@ public abstract class Middleware<TState> : IMiddleware<TState>
     public virtual void Initialize(IStore<TState> store)
         => Store = store;
 
-    public IObservable<TState> Connect(IObservable<DispatchedAction<TState>> actionObservable, DispatchNext<TState> next)
-    {
-        Initialize();
-
-        return next(actionObservable
+    public IObservable<DispatchedAction<TState>> Connect(IObservable<DispatchedAction<TState>> actionObservable, DispatchNext<TState> next)
+        => next(actionObservable
            .SelectMany(
                 dispatchedAction =>
                 {
@@ -25,14 +22,24 @@ public abstract class Middleware<TState> : IMiddleware<TState>
                         _processors.FirstOrDefault(r => r.Can(dispatchedAction))?.Exec(dispatchedAction) ??
                         Observable.Return(dispatchedAction);
                 }));
-    }
 
     protected void Dispatch(object action)
         => Store.Dispatch(action);
 
-    protected abstract void Initialize();
-    
-    protected void OnAction<TAction>(Func<IObservable<DispatchedAction<TState>>, IObservable<DispatchedAction<TState>>> runner)
+    protected void OnAction<TAction>(Func<IObservable<TypedDispatechedAction<TAction>>, IObservable<DispatchedAction<TState>>> runner)
+    {
+        _processors.Add(new FilterRegistration(
+            a => a.Action is TAction,
+            o => runner(from da1 in o
+                        where da1.Action is TAction
+                        select new TypedDispatechedAction<TAction>(da1.State, ((TAction)da1.Action!)!))));
+    }
+
+    [PublicAPI]
+    protected sealed record TypedDispatechedAction<TAction>(TState State, TAction Action)
+    {
+        public DispatchedAction<TState> NewAction(object action) => new(State, action);
+    }
     
     private delegate IObservable<DispatchedAction<TState>> DispatchNextInternal(IObservable<DispatchedAction<TState>> action);
     

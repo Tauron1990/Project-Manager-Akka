@@ -1,8 +1,11 @@
-﻿namespace Tauron.Applicarion.Redux;
+﻿using JetBrains.Annotations;
+
+namespace Tauron.Applicarion.Redux;
 
 public sealed record ActionState<TState, TAction>(TState State, TAction Action);
 
-public interface IStore<TState>
+[PublicAPI]
+public interface IStore<TState> : IDisposable
 {
     IObservable<TResult> Select<TResult>(Func<TState, TResult> selector);
 
@@ -13,6 +16,8 @@ public interface IStore<TState>
     IObservable<TResult> ObservAction<TAction, TResult>(Func<TState, TAction, TResult> selector);
 
     TState CurrentState { get; }
+
+    void Reset();
     
     void Dispatch(object action);
     
@@ -21,4 +26,10 @@ public interface IStore<TState>
     void RegisterReducers(IEnumerable<On<TState>> reducers);
     
     void RegisterEffects(IEnumerable<Effect<TState>> effects);
+    
+    void RegisterMiddlewares(params IMiddleware<TState>[] middlewares);
+    
+    void RegisterReducers(params On<TState>[] reducers);
+    
+    void RegisterEffects(params Effect<TState>[] effects);
 }
