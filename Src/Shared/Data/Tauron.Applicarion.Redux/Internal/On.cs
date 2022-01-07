@@ -1,4 +1,4 @@
-﻿namespace Tauron.Applicarion.Redux;
+﻿namespace Tauron.Applicarion.Redux.Internal;
 
 public delegate TState MutateState<TState>(TState state, object action);
 

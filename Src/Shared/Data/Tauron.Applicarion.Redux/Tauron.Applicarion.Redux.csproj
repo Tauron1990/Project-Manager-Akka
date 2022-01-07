@@ -7,7 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\Common\Tauron.Application.Common\Tauron.Application.Common.csproj" />
+      <ProjectReference Include="..\..\External\Akkatecture.Abstractions\Akkatecture.Abstractions.csproj" />
     </ItemGroup>
 
 </Project>

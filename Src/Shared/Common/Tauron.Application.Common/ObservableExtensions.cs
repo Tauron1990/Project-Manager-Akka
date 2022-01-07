@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
@@ -73,6 +74,22 @@ public static class ObservableExtensions
 
     public static IObservable<string> NotEmpty(this IObservable<string?> source)
         => source.Where(s => !string.IsNullOrWhiteSpace(s))!;
+
+    public static IObservable<TData> OnErrorResumeNext<TData>(this IObservable<TData> obs, Func<Exception, IObservable<TData>> handler)
+    {
+        return Observable.Create<TData>(
+            o =>
+            {
+                var disposer = new SerialDisposable();
+
+                disposer.Disposable = obs.Subscribe(
+                    o.OnNext, 
+                    e => disposer.Disposable = handler(e).Subscribe(o),
+                    o.OnCompleted);
+                
+                return disposer;
+            });
+    }
 
     public static IObservable<CallResult<TResult>> SelectSafe<TEvent, TResult>(
         this IObservable<TEvent> observable,

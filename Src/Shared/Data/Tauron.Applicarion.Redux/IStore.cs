@@ -1,4 +1,5 @@
 ﻿using JetBrains.Annotations;
+using Tauron.Applicarion.Redux.Internal;
 
 namespace Tauron.Applicarion.Redux;
 
@@ -22,6 +23,9 @@ public interface IStore<TState> : IDisposable
     void Dispatch(object action);
     
     void RegisterMiddlewares(IEnumerable<IMiddleware<TState>> middlewares);
+
+    TMiddleware Get<TMiddleware>(Func<TMiddleware> factory)
+        where TMiddleware : IMiddleware<TState>;
     
     void RegisterReducers(IEnumerable<On<TState>> reducers);
     

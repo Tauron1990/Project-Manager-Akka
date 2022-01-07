@@ -1,4 +1,4 @@
-﻿namespace Tauron.Applicarion.Redux;
+﻿namespace Tauron.Applicarion.Redux.Internal;
 
 public delegate IObservable<object?> EffectFactory<TState>(IStore<TState> store);
 

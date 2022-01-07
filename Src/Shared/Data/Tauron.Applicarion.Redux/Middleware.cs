@@ -14,14 +14,20 @@ public abstract class Middleware<TState> : IMiddleware<TState>
         => Store = store;
 
     public IObservable<DispatchedAction<TState>> Connect(IObservable<DispatchedAction<TState>> actionObservable, DispatchNext<TState> next)
-        => next(actionObservable
-           .SelectMany(
-                dispatchedAction =>
-                {
-                    return
-                        _processors.FirstOrDefault(r => r.Can(dispatchedAction))?.Exec(dispatchedAction) ??
-                        Observable.Return(dispatchedAction);
-                }));
+    {
+        if (_processors.Count == 0)
+            return next(actionObservable);
+        
+        return next(
+            actionObservable
+               .SelectMany(
+                    dispatchedAction =>
+                    {
+                        return
+                            _processors.FirstOrDefault(r => r.Can(dispatchedAction))?.Exec(dispatchedAction) ??
+                            Observable.Return(dispatchedAction);
+                    }));
+    }
 
     protected void Dispatch(object action)
         => Store.Dispatch(action);

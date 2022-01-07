@@ -1,4 +1,4 @@
-﻿namespace Tauron.Applicarion.Redux.Impl;
+﻿namespace Tauron.Applicarion.Redux.Internal;
 
 internal abstract class BaseStateLens<TState, TFeatureState> : IStateLens<TState, TFeatureState>
 {

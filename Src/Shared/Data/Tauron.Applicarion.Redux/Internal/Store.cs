@@ -2,8 +2,9 @@
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using Tauron.Applicarion.Redux.Extensions;
 
-namespace Tauron.Applicarion.Redux.Impl;
+namespace Tauron.Applicarion.Redux.Internal;
 
 internal sealed class Store<TState> : IStore<TState>
 {
@@ -15,7 +16,7 @@ internal sealed class Store<TState> : IStore<TState>
     private readonly Subject<object> _dispatcher = new();
     private readonly Subject<DispatchedAction<TState>> _dispatched = new();
 
-    private readonly List<IMiddleware<TState>> _middlewares = new();
+    private readonly Dictionary<Type, IMiddleware<TState>> _middlewares = new();
     private readonly List<On<TState>> _reducers = new();
 
     private readonly IObservable<object> _actionsStream;
@@ -77,9 +78,21 @@ internal sealed class Store<TState> : IStore<TState>
         foreach (var middleware in middlewares)
         {
             middleware.Initialize(this);
-            _middlewares.Add(middleware);
+            _middlewares.Add(middleware.GetType(), middleware);
         }
         RebuildPipeline();
+    }
+
+    public TMiddleware Get<TMiddleware>(Func<TMiddleware> factory)
+        where TMiddleware : IMiddleware<TState>
+    {
+        if (_middlewares.TryGetValue(typeof(TMiddleware), out var middleware))
+            return (TMiddleware)middleware;
+
+        var newInst = factory();
+        RegisterMiddlewares(newInst);
+
+        return newInst;
     }
 
     public void RegisterReducers(IEnumerable<On<TState>> reducers)
@@ -102,17 +115,20 @@ internal sealed class Store<TState> : IStore<TState>
 
     private void RebuildPipeline()
     {
-        var nextDispatcher = _middlewares
+        var nextDispatcher = _middlewares.Values
            .Aggregate<IMiddleware<TState>, DispatchNext<TState>>(
                 RunActualReducers,
                 (current, middleware) => pprovider => middleware.Connect(pprovider, current));
 
-        _currentPipeline.Disposable = nextDispatcher(
+        _currentPipeline.Disposable = nextDispatcher
+            (
                 _actionsStream
                    .Select(action => new DispatchedAction<TState>(CurrentState, action))
             )
            .Retry()
            .Subscribe(_dispatched);
+        
+        MutateCallbackPlugin.Install(this);
     }
 
     private IObservable<DispatchedAction<TState>> RunActualReducers(IObservable<DispatchedAction<TState>> actionStream)

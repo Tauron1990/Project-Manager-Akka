@@ -1,6 +1,6 @@
 ﻿using System.Reactive.Concurrency;
 using JetBrains.Annotations;
-using Tauron.Applicarion.Redux.Impl;
+using Tauron.Applicarion.Redux.Internal;
 
 namespace Tauron.Applicarion.Redux;
 

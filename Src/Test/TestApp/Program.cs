@@ -24,7 +24,7 @@ static class Program
 {
     static void Main()
     {
-        using var store = Create.Store(new TestState(0), ImmediateScheduler.Instance);
+        using var store = Create.Store(new TestState(0), Scheduler.CurrentThread);
 
         store.RegisterMiddlewares(new TestMiddleware());
         store.RegisterReducers(Create.On<IncremntAction, TestState>(s => s with{ Counter = s.Counter + 1}));
