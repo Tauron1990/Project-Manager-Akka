@@ -10,4 +10,8 @@
       <ProjectReference Include="..\..\External\Akkatecture.Abstractions\Akkatecture.Abstractions.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Stl.Fusion" Version="2.2.34" />
+    </ItemGroup>
+
 </Project>
