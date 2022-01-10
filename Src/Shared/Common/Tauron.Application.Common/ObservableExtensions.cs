@@ -108,6 +108,24 @@ public static class ObservableExtensions
                 }
             });
     }
+    
+    public static IObservable<CallResult<TResult>> SelectManySafe<TEvent, TResult>(
+        this IObservable<TEvent> observable,
+        Func<TEvent, Task<TResult>> selector)
+    {
+        return observable.SelectMany<TEvent, CallResult<TResult>>(
+            async evt =>
+            {
+                try
+                {
+                    return new SucessCallResult<TResult>(await selector(evt));
+                }
+                catch (Exception e)
+                {
+                    return new ErrorCallResult<TResult>(e);
+                }
+            });
+    }
 
     public static IObservable<Exception> OnError<TResult>(this IObservable<CallResult<TResult>> observable)
         => observable.Where(cr => cr is ErrorCallResult<TResult>).Cast<ErrorCallResult<TResult>>()
