@@ -6,7 +6,11 @@
 
 <PageTitle>Datei Manager</PageTitle>
 
-@if (ViewModel != null)
+@if (ViewModel?.Error is not null)
+{
+    <ExceptionDisplay Error="ViewModel.Error"/>
+}
+else if (ViewModel != null)
 {
     <MudTable Items="ViewModel.Files" LoadingProgressColor="Color.Info" Loading="ViewModel.IsLoading" GroupBy="_groupDefinition">
         <HeaderContent>
@@ -24,4 +28,10 @@
             <MudTd DataLabel="Job Name">@context.JobName.Value</MudTd>
         </RowTemplate>
     </MudTable>
+}
+else
+{
+    <CenterElement>
+        <MudText>Fehler beim Initialisieren</MudText>
+    </CenterElement>
 }

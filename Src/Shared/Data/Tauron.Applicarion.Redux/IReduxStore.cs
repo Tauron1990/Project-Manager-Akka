@@ -6,7 +6,7 @@ namespace Tauron.Applicarion.Redux;
 public sealed record ActionState<TState, TAction>(TState State, TAction Action);
 
 [PublicAPI]
-public interface IStore<TState> : IDisposable
+public interface IReduxStore<TState> : IDisposable
 {
     IObservable<TResult> Select<TResult>(Func<TState, TResult> selector);
 
@@ -24,7 +24,7 @@ public interface IStore<TState> : IDisposable
     
     void RegisterMiddlewares(IEnumerable<IMiddleware<TState>> middlewares);
 
-    TMiddleware Get<TMiddleware>(Func<TMiddleware> factory)
+    TMiddleware GetMiddleware<TMiddleware>(Func<TMiddleware> factory)
         where TMiddleware : IMiddleware<TState>;
     
     void RegisterReducers(IEnumerable<On<TState>> reducers);
@@ -36,4 +36,12 @@ public interface IStore<TState> : IDisposable
     void RegisterReducers(params On<TState>[] reducers);
     
     void RegisterEffects(params Effect<TState>[] effects);
+    
+    IObservable<object> ObserveAction();
+    
+    IObservable<TAction> ObserveAction<TAction>()
+        where TAction : class;
+
+    IObservable<TResult> ObserveAction<TAction, TResult>(Func<TAction, TState, TResult> resultSelector)
+        where TAction : class;
 }

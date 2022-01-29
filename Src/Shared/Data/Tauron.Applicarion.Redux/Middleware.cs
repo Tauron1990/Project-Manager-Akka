@@ -8,9 +8,9 @@ public abstract class Middleware<TState> : IMiddleware<TState>
 {
     private readonly List<FilterRegistration> _processors = new();
 
-    protected IStore<TState> Store { get; private set; } = null!;
+    protected IReduxStore<TState> Store { get; private set; } = null!;
     
-    public virtual void Initialize(IStore<TState> store)
+    public virtual void Initialize(IReduxStore<TState> store)
         => Store = store;
 
     public IObservable<DispatchedAction<TState>> Connect(IObservable<DispatchedAction<TState>> actionObservable, DispatchNext<TState> next)

@@ -9,10 +9,11 @@ using DynamicData;
 using DynamicData.Alias;
 using Microsoft.AspNetCore.Components.Forms;
 using ReactiveUI;
+using SimpleProjectManager.Client.Data;
+using SimpleProjectManager.Client.Data.States;
 using SimpleProjectManager.Client.Shared.EditJob;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
-using SimpleProjectManager.Shared.Validators;
 using Stl.Fusion;
 using Tauron;
 using Tauron.Application;
@@ -22,16 +23,11 @@ namespace SimpleProjectManager.Client.ViewModels;
 
 public sealed class FileUploaderViewModel : BlazorViewModel
 {
-    public static readonly string[] AllowedContentTypes = { "application/pdf", "application/x-zip-compressed", "application/zip", "image/tiff", "image/x-tiff" };
-    public const long MaxSize = 524_288_000;
-    
     private readonly IEventAggregator _aggregator;
-    private readonly UploadTransaction _transaction;
-    private readonly ICriticalErrorService _criticalErrorService;
+    private readonly GlobalState _globalState;
     private readonly SourceCache<FileUploadFile, string> _files = new(bf => bf.Name);
     private readonly BehaviorSubject<bool> _isUploading = new(false);
     private readonly ObservableAsPropertyHelper<bool> _shouldDisable;
-    private readonly ProjectNameValidator _nameValidator = new();
     private readonly SerialDisposable _triggerSubscribe;
 
     private string? _projectId;
@@ -54,14 +50,13 @@ public sealed class FileUploaderViewModel : BlazorViewModel
         set => this.RaiseAndSetIfChanged(ref _projectId, value);
     }
 
-    public FileUploaderViewModel(IStateFactory stateFactory, IEventAggregator aggregator, UploadTransaction transaction, ICriticalErrorService criticalErrorService)
+    public FileUploaderViewModel(IStateFactory stateFactory, IEventAggregator aggregator, GlobalState globalState)
         : base(stateFactory)
     {
         Console.WriteLine("Inititlize View Model");
 
         _aggregator = aggregator;
-        _transaction = transaction;
-        _criticalErrorService = criticalErrorService;
+        _globalState = globalState;
         _triggerSubscribe = 
             new SerialDisposable()
            .DisposeWith(this);
@@ -70,7 +65,7 @@ public sealed class FileUploaderViewModel : BlazorViewModel
 
         nameState.Subscribe(s => ProjectId = s).DisposeWith(this);
 
-        ValidateName = ValidateProjectName;
+        ValidateName = globalState.JobsState.ValidateProjectName;
 
         _files.DisposeWith(this);
 
@@ -82,7 +77,8 @@ public sealed class FileUploaderViewModel : BlazorViewModel
 
         _files.Connect()
            .Where(f => f.UploadState == UploadState.Pending && string.IsNullOrWhiteSpace(ProjectId))
-           .Select(TryExtrectName)
+           .Select(f => f.Name)
+           .Select(globalState.JobsState.TryExtrectName)
            .Flatten()
            .Where(n => !string.IsNullOrWhiteSpace(n.Current) && string.IsNullOrWhiteSpace(ProjectId))
            .Do(n => ProjectId = n.Current)
@@ -110,7 +106,7 @@ public sealed class FileUploaderViewModel : BlazorViewModel
                     _files.Edit(
                         u => u.Load(
                             args.GetMultipleFiles()
-                               .Where(IsFileValid)
+                               .Where(_aggregator.IsSuccess<IBrowserFile>(FilesState.IsFileValid))
                                .Select(bf => new FileUploadFile(bf))));
 
                     return Unit.Default;
@@ -127,24 +123,6 @@ public sealed class FileUploaderViewModel : BlazorViewModel
 
     private void NewTrigger(FileUploadTrigger trigger)
         => _triggerSubscribe.Disposable = trigger.Set(UploadFiles);
-    
-
-    private string ValidateProjectName(string? arg)
-    {
-        var name = new ProjectName(arg ?? string.Empty);
-        var result = _nameValidator.Validate(name);
-        
-        return result.IsValid ? string.Empty : string.Join(", ", result.Errors.Select(err => err.ErrorMessage));
-    }
-
-    private bool IsFileValid(IBrowserFile file)
-    {
-        var result = AllowedContentTypes.Any(t => t == file.ContentType);
-        if(!result)
-            _aggregator.PublishWarnig($"Die Datei {file.Name} kann nicht Hochgeladen werden. Nur Tiff, zip und Pdf sinf erlaubt");
-
-        return result;
-    }
 
     private async Task<string> UploadFiles()
     {
@@ -152,7 +130,7 @@ public sealed class FileUploaderViewModel : BlazorViewModel
 
         try
         {
-            var validation = ValidateProjectName(ProjectId);
+            var validation = _globalState.JobsState.ValidateProjectName(ProjectId);
             if (!string.IsNullOrWhiteSpace(validation))
             {
                 _aggregator.PublishWarnig(validation);
@@ -163,7 +141,7 @@ public sealed class FileUploaderViewModel : BlazorViewModel
 
             var context = new UploadTransactionContext(Files.ToImmutableList(), new ProjectName(ProjectId));
 
-            var (trasnactionState, exception) = await _transaction.Execute(context);
+            var (trasnactionState, exception) = await _globalState.FilesState.CreateUpload().Execute(context);
 
             switch (trasnactionState)
             {
@@ -174,15 +152,13 @@ public sealed class FileUploaderViewModel : BlazorViewModel
                     {
                         var newEx = exception.Demystify();
 
-                        await _criticalErrorService.WriteError(
-                            new CriticalError(
-                                string.Empty,
+                        _globalState.Dispatch(
+                            new WriteCriticalError(
                                 DateTime.Now,
                                 $"{nameof(FileUploaderViewModel)} -- {nameof(UploadFiles)}",
                                 newEx.Message,
                                 newEx.StackTrace,
-                                ImmutableList<ErrorProperty>.Empty),
-                            default);
+                                ImmutableList<ErrorProperty>.Empty));
                     }
                     catch (Exception e)
                     {
@@ -207,41 +183,5 @@ public sealed class FileUploaderViewModel : BlazorViewModel
         {
             _files.KeyValues.Select(p => p.Value).Foreach(f => f.UploadState = UploadState.Compled);
         }
-    }
-
-    private static string? TryExtrectName(FileUploadFile file)
-    {
-        var upperName = file.Name.ToUpper().AsSpan();
-
-        var index = upperName.IndexOf("BM");
-
-        if (index == -1) return null;
-
-        while (upperName.Length >= 10)
-        {
-            upperName = upperName[index..];
-            if(upperName.Length != 10) break;
-
-            if (AllDigit(upperName[2..2]) &&
-                upperName[4] == '_' &&
-                AllDigit(upperName[5..10]))
-            {
-                return upperName[..10].ToString();
-            }
-        }
-
-        return null;
-    }
-
-    private static bool AllDigit(in ReadOnlySpan<char> input)
-    {
-        foreach (var t in input)
-        {
-            if(char.IsDigit(t)) continue;
-
-            return false;
-        }
-
-        return true;
     }
 }

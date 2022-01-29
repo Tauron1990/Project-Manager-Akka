@@ -4,20 +4,34 @@
 
 <PageTitle>Schwerwiegende Fehler</PageTitle>
 
-<StateAwaiter State="ViewModel?.State">
-    <ObservableCollectionView SourceParameter="context">
-        <EmptyRender>
-            <MudText Align="Align.Center" Typo="Typo.h4">Keine Aktuellen Fehler</MudText>
-        </EmptyRender>
-        <ListRender Context="items">
-            <MudGrid Justify="Justify.Center">
-                @foreach (var item in items)
-                {
-                    <MudItem lg="12" @key="item.Id">
-                        <CriticalErrorDispaly Error="item"/>
-                    </MudItem>
-                }
-            </MudGrid>
-        </ListRender>
-    </ObservableCollectionView>
-</StateAwaiter>
+<ObservableRenderer Observable="@ViewModel?.Errors">
+    <ValueRenderer>
+        @if (context.IsOnline)
+        {
+            <ObservableCollectionView SourceParameter="context.Errors">
+                <EmptyRender>
+                    <MudText Align="Align.Center" Typo="Typo.h4">Keine Aktuellen Fehler</MudText>
+                </EmptyRender>
+                <ListRender Context="items">
+                    <MudGrid Justify="Justify.Center">
+                        @foreach (var item in items)
+                        {
+                            <MudItem lg="12" @key="item.Id">
+                                <CriticalErrorDispaly Error="item"/>
+                            </MudItem>
+                        }
+                    </MudGrid>
+                </ListRender>
+            </ObservableCollectionView>
+        }
+        else
+        {
+            <CenterElement>
+                <MudText Typo="Typo.h4">Keine Verbindung zum Server</MudText>
+            </CenterElement>
+        }
+    </ValueRenderer>
+    <OnCompled>
+        <GenericStreamError/>
+    </OnCompled>
+</ObservableRenderer>

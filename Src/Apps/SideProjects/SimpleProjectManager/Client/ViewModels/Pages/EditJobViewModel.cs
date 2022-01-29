@@ -1,68 +1,34 @@
 ﻿using System.Reactive;
+using System.Reactive.Threading.Tasks;
 using ReactiveUI;
+using SimpleProjectManager.Client.Data;
 using SimpleProjectManager.Client.Pages;
-using SimpleProjectManager.Shared;
-using SimpleProjectManager.Shared.Services;
-using SimpleProjectManager.Shared.Validators;
 using Stl.Fusion;
-using Tauron.Application;
 using Tauron.Application.Blazor;
 
 namespace SimpleProjectManager.Client.ViewModels;
 
-public sealed class EditJobViewModel : StatefulViewModel<JobEditorData?>
+public sealed class EditJobViewModel : BlazorViewModel
 {
-    private readonly UpdateProjectCommandValidator _validator = new();
-    private readonly IJobDatabaseService _databaseService;
     private IState<string> JobId { get; }
 
+    public IObservable<JobEditorData?> EditorData { get; }
+    
     public Action Cancel { get; }
     
     public Action<JobEditorCommit> Commit { get; }
 
-    public EditJobViewModel(IStateFactory stateFactory, IJobDatabaseService databaseService, PageNavigation pageNavigation, IEventAggregator eventAggregator)
+    public EditJobViewModel(IStateFactory stateFactory, GlobalState state, PageNavigation pageNavigation)
         : base(stateFactory)
     {
-        _databaseService = databaseService;
-        
         JobId = GetParameter<string>(nameof(EditJob.ProjectId));
         Cancel = pageNavigation.ShowStartPage;
 
-        var commit = ReactiveCommand.CreateFromTask<JobEditorCommit, Unit>(
-            async newData =>
-            {
-                if (newData.JobData.OldData == null)
-                {
-                    eventAggregator.PublishError("Keine Original Daten zur verfügung gestellt");
-                    return Unit.Default;
-                }
-
-                var command = UpdateProjectCommand.Create(newData.JobData.NewData, newData.JobData.OldData);
-                var validationResult = await _validator.ValidateAsync(command);
-
-                if (validationResult.IsValid)
-                {
-                    if (await eventAggregator.IsSuccess(() => TimeoutToken.WithDefault(default, t => databaseService.UpdateJobData(command, t))) 
-                      && await eventAggregator.IsSuccess(async () => await newData.Upload())) 
-                        pageNavigation.ShowStartPage();
-                }
-                else
-                {
-                    var err = string.Join(", ", validationResult.Errors.Select(f => f.ErrorMessage));
-                    eventAggregator.PublishWarnig(err);
-                }
-
-                return Unit.Default;
-            });
+        EditorData = state.JobsState.GetJobEditorData(JobId.ToObservable());
+        
+        var commit = ReactiveCommand.CreateFromObservable<JobEditorCommit, Unit>(
+            newData => state.JobsState.CommitJobData(newData, pageNavigation.ShowStartPage).ToObservable());
+        
         Commit = commit.ToAction();
-    }
-
-
-    protected override async Task<JobEditorData?> ComputeState(CancellationToken cancellationToken)
-    {
-        var id = await JobId.Use(cancellationToken);
-
-        return string.IsNullOrWhiteSpace(id) 
-            ? null : new JobEditorData(await _databaseService.GetJobData(new ProjectId(id), cancellationToken));
     }
 }

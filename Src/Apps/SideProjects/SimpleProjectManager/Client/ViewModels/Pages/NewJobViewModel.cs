@@ -2,6 +2,7 @@
 using System.Reactive.Linq;
 using System.Windows.Input;
 using ReactiveUI;
+using SimpleProjectManager.Client.Data;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
@@ -23,8 +24,8 @@ public sealed class NewJobViewModel : BlazorViewModel
 
     public bool IsCommiting => _commiting.Value;
     
-    public NewJobViewModel(IStateFactory stateFactory, PageNavigation pageNavigation, IEventAggregator eventAggregator, 
-        IJobDatabaseService databaseService, JobEditorViewModel editorModel)
+    public NewJobViewModel(IStateFactory stateFactory, PageNavigation pageNavigation, IEventAggregator eventAggregator,
+        GlobalState globalState, JobEditorViewModel editorModel)
         : base(stateFactory)
     {
         EditorModel = editorModel;

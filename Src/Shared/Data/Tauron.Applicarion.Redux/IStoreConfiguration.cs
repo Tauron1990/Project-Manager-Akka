@@ -1,5 +1,9 @@
-﻿namespace SimpleProjectManager.Client.Data.Core;
+﻿using JetBrains.Annotations;
+using Tauron.Applicarion.Redux.Configuration;
 
+namespace Tauron.Applicarion.Redux;
+
+[PublicAPI]
 public interface IStoreConfiguration
 {
     IStoreConfiguration NewState<TState>(Func<ISourceConfiguration<TState>, IConfiguredState> configurator)

@@ -2,6 +2,7 @@
 using System.Reactive;
 using System.Reactive.Linq;
 using ReactiveUI;
+using SimpleProjectManager.Client.Data;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
@@ -11,63 +12,48 @@ using Tauron.Application.Blazor;
 
 namespace SimpleProjectManager.Client.ViewModels;
 
-public sealed class FileManagerViewModel : StatefulViewModel<DatabaseFile[]>
+public sealed class FileManagerViewModel : BlazorViewModel
 {
-    private readonly IJobFileService _fileService;
-    private readonly IEventAggregator _aggregator;
+    private record struct FilesInfo(bool IsLoading, DatabaseFile[] Files);
+    
+    private ObservableAsPropertyHelper<bool> _loading;
+    public bool IsLoading => _loading.Value;
 
-    private readonly ObservableAsPropertyHelper<bool> _isLoading;
-    public bool IsLoading => _isLoading.Value;
-
-    private readonly ObservableAsPropertyHelper<DatabaseFile[]> _files;
+    private ObservableAsPropertyHelper<DatabaseFile[]> _files;
     public DatabaseFile[] Files => _files.Value;
+
+    private ObservableAsPropertyHelper<Exception?> _error;
+    public Exception? Error => _error.Value;
 
     public Action<DatabaseFile> DeleteFile { get; }
 
     public Interaction<DatabaseFile, bool> ConfirmDelete { get; } = new();
     
-    public FileManagerViewModel(IStateFactory stateFactory, IJobFileService fileService, IEventAggregator aggregator)
+    public FileManagerViewModel(IStateFactory stateFactory, GlobalState globalState, IEventAggregator aggregator)
         : base(stateFactory)
     {
-        _isLoading = Observable.FromEventPattern<Action<IState<DatabaseFile[]>, StateEventKind>, StateChangeEventArgs>(
-            eh => (state, kind) => eh(state, new StateChangeEventArgs(kind)),
-            h => State.AddEventHandler(StateEventKind.All, h),
-            h => State.RemoveEventHandler(StateEventKind.All, h))
-           .Select(ep => ep.EventArgs.EventKind != StateEventKind.Updated)
-           .ToProperty(this, m => m.IsLoading, initialValue:true)
-           .DisposeWith(this);
-
-        _files = NextElement
-           .ToProperty(this, m => m.Files, Array.Empty<DatabaseFile>())
-           .DisposeWith(this);
-
+        var filesStream = globalState.FilesState.AllFiles
+           .Select(files => new FilesInfo(false, files))
+           .StartWith(new FilesInfo(true, Array.Empty<DatabaseFile>()))
+           .Publish().RefCount();
+        
+        _files = filesStream.Select(i => i.Files).ToProperty(this, m => m.Files);
+        _loading = filesStream.Select(i => i.IsLoading).ToProperty(this, m => m.IsLoading);
+        _error = _files.ThrownExceptions.Merge(_loading.ThrownExceptions).ToProperty(this, m => m.Error);
+        
         var command = ReactiveCommand.CreateFromTask<DatabaseFile, Unit>(DeleteFileImpl).DisposeWith(this);
+        
         DeleteFile = command.ToAction();
         
-        _fileService = fileService;
-        _aggregator = aggregator;
-    }
-
-    private async Task<Unit> DeleteFileImpl(DatabaseFile arg)
-    {
-        if (await ConfirmDelete.Handle(arg))
+        async Task<Unit> DeleteFileImpl(DatabaseFile databaseFile)
         {
-            await _aggregator.IsSuccess(
-                () => TimeoutToken.WithDefault(default,
-                    t => _fileService.DeleteFiles(new FileList(ImmutableList<ProjectFileId>.Empty.Add(arg.Id)), t)));
-        }
+            if (await ConfirmDelete.Handle(databaseFile))
+            {
+                await aggregator.IsSuccess(
+                    () => TimeoutToken.WithDefault(default, t => globalState.FilesState.DeleteFile(databaseFile, t)));
+            }
         
-        return Unit.Default;
-    }
-
-    protected override async Task<DatabaseFile[]> ComputeState(CancellationToken cancellationToken)
-        => await _fileService.GetAllFiles(cancellationToken);
-    
-    private sealed class StateChangeEventArgs : EventArgs
-    {
-        public StateEventKind EventKind { get; }
-
-        public StateChangeEventArgs(StateEventKind eventKind)
-            => EventKind = eventKind;
+            return Unit.Default;
+        }
     }
 }

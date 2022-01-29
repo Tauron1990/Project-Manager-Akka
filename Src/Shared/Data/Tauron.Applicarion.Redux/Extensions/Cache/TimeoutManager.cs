@@ -1,4 +1,6 @@
-﻿namespace Tauron.Applicarion.Redux.Extensions.Cache;
+﻿using Tauron.Applicarion.Redux.Configuration;
+
+namespace Tauron.Applicarion.Redux.Extensions.Cache;
 
 public sealed class TimeoutManager
 {
@@ -11,10 +13,10 @@ public sealed class TimeoutManager
     private CancellationTokenSource? _cancellation;
     private CacheDataId? _currentKey;
     
-    public TimeoutManager(ICacheDb db, Action<Exception> errorHandler)
+    public TimeoutManager(ICacheDb db, IErrorHandler errorHandler)
     {
         _db = db;
-        _errorHandler = errorHandler;
+        _errorHandler = errorHandler.TimeoutError;
     }
 
     public void Start()

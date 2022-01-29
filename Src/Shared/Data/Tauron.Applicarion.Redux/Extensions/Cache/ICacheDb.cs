@@ -5,15 +5,15 @@ namespace Tauron.Applicarion.Redux.Extensions.Cache;
 [PublicAPI]
 public interface ICacheDb
 {
-    Task DeleteElement(CacheTimeoutId key);
+    ValueTask DeleteElement(CacheTimeoutId key);
 
-    Task DeleteElement(CacheDataId key);
+    ValueTask DeleteElement(CacheDataId key);
 
-    Task<(CacheTimeoutId? id, CacheDataId? Key, DateTime Time)> GetNextTimeout();
+    ValueTask<(CacheTimeoutId? id, CacheDataId? Key, DateTime Time)> GetNextTimeout();
 
-    Task UpdateTimeout(CacheDataId key);
+    //ValueTask UpdateTimeout(CacheDataId key);
 
-    Task TryAddOrUpdateElement(CacheDataId key, string data);
+    ValueTask TryAddOrUpdateElement(CacheDataId key, string data);
 
-    Task<string?> ReNewAndGet(CacheDataId key);
+    ValueTask<string?> ReNewAndGet(CacheDataId key);
 } 

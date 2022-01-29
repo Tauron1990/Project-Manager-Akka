@@ -18,14 +18,13 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="6.0.1" PrivateAssets="all" />
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
     <PackageReference Include="MudBlazor" Version="6.0.2" />
-    <PackageReference Include="ReduxSimple" Version="3.7.0" />
-    <PackageReference Include="ReduxSimple.Entity" Version="3.7.0-preview001" />
     <PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" Version="14.1.17" />
     <PackageReference Include="Stl.Fusion.Blazor" Version="2.2.6" />
     <PackageReference Include="Tavenem.Blazor.IndexedDB" Version="1.0.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Shared\Data\Tauron.Applicarion.Redux\Tauron.Applicarion.Redux.csproj" />
     <ProjectReference Include="..\..\..\..\Shared\UI\Tauron.Application.Blazor\Tauron.Application.Blazor.csproj" />
     <ProjectReference Include="..\Shared\SimpleProjectManager.Shared.csproj" />
   </ItemGroup>

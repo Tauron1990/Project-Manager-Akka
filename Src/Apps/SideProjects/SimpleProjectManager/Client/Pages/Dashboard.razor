@@ -15,9 +15,14 @@
                     <MudText Align="Align.Center">Aufträge</MudText>
                 </MudItem>
                 <MudItem lg="12">
-                    <StateAwaiter State="@ViewModel?.JobCountState">
-                        <MudText Align="Align.Center">@context</MudText>
-                    </StateAwaiter>
+                    <ObservableRenderer Observable="ViewModel?.JobCountState">
+                        <ValueRenderer>
+                            <MudText Align="Align.Center">@context</MudText>
+                        </ValueRenderer>
+                        <OnCompled>
+                            <GenericStreamError/>
+                        </OnCompled>
+                    </ObservableRenderer>
                 </MudItem>
             </MudGrid>
         </MudPaper>

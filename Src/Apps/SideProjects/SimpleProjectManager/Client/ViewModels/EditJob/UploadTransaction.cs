@@ -4,6 +4,7 @@ using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.ServerApi;
 using SimpleProjectManager.Shared.ServerApi.RestApi;
 using SimpleProjectManager.Shared.Services;
+using Tauron;
 using Tauron.Application;
 using Tauron.Application.Blazor;
 

@@ -1,4 +1,5 @@
 ﻿@page "/EditJob/{ProjectId}"
+
 @inherits NonAutoRenderingView<EditJobViewModel>
 
 <PageTitle>Job Beabeiten</PageTitle>
@@ -11,9 +12,24 @@
     }
     else
     {
-        <StateAwaiter State="ViewModel.State">
-            <JobEditor Data="context" CanCancel="true" Configuration="@JobEditorConfiguration.EditJobConfig" Title="@($"{context?.JobName} beabeiten")"
-                       Cancel="ViewModel.Cancel" Commit="ViewModel.Commit"/>
-        </StateAwaiter>
+        <ObservableRenderer Observable="ViewModel?.EditorData">
+            <ValueRenderer>
+                <JobEditor Data="context" CanCancel="true" Configuration="@JobEditorConfiguration.EditJobConfig" Title="@($"{context?.JobName} beabeiten")"
+                           Cancel="ViewModel!.Cancel" Commit="ViewModel.Commit"/>
+            </ValueRenderer>
+            <OnError>
+                <MudGrid>
+                    <MudItem lg="12">
+                        <MudText>Fehler beim Abrufen der Daten</MudText>
+                    </MudItem>
+                    <MudItem lg="12">
+                        <MudText>@context.Message</MudText>
+                    </MudItem>
+                </MudGrid>
+            </OnError>
+            <OnCompled>
+                <GenericStreamError/>
+            </OnCompled>
+        </ObservableRenderer>
     }
 }

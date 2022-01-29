@@ -1,6 +1,7 @@
 ﻿using System.Reactive;
 using System.Reactive.Linq;
 using ReactiveUI;
+using SimpleProjectManager.Client.Data;
 using SimpleProjectManager.Client.Data.States;
 using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
@@ -9,27 +10,16 @@ using Tauron.Application.Blazor;
 
 namespace SimpleProjectManager.Client.ViewModels;
 
-public sealed class CurrentJobsViewModel : StatefulViewModel<JobInfo[]>
+public sealed class CurrentJobsViewModel : BlazorViewModel
 {
-    private readonly IJobDatabaseService _databaseService;
-
+    public IObservable<JobSortOrderPair[]> Jobs { get; }
+    
     public ReactiveCommand<Unit, Unit> NewJob { get; }
     
-    public CurrentJobsViewModel(IStateFactory stateFactory, IJobDatabaseService databaseService, JobsViewModel jobsViewModel, PageNavigation pageNavigation)
+    public CurrentJobsViewModel(IStateFactory stateFactory, GlobalState state, PageNavigation pageNavigation)
         : base(stateFactory)
     {
-        _databaseService = databaseService;
-        
+        Jobs = state.JobsState.CurrentJobs;
         NewJob = ReactiveCommand.Create(pageNavigation.NewJob);
-        
-        (from newJobs in NextElement
-         where newJobs is not null && jobsViewModel.Current is not null
-                                   && !newJobs.Contains(jobsViewModel.Current.Info)
-         select default(JobSortOrderPair))
-           .Subscribe(jobsViewModel.Publish)
-           .DisposeWith(this);
     }
-
-    protected override async Task<JobInfo[]> ComputeState(CancellationToken cancellationToken)
-        => await _databaseService.GetActiveJobs(cancellationToken);
 }

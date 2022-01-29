@@ -1,0 +1,110 @@
+﻿@typeparam TValue
+@using System.Reactive
+@using System.Reactive.Disposables
+@implements IDisposable
+
+@if (_currentNotification is null)
+{
+    @if(Waiting is not null)
+    {
+        @Waiting
+    }
+    else
+    {
+        <GenericLoadingElement/>
+    }
+}
+else
+{
+    @switch(_currentNotification.Kind)
+    {
+        case NotificationKind.OnNext:
+            @if (ValueRenderer is null)
+            {
+                <span>Kein Inhalt: @_currentNotification.Value?.ToString()</span>
+            }
+            else
+            {
+                @ValueRenderer(_currentNotification.Value)
+            }
+            break;
+        case NotificationKind.OnError:
+            @if (_currentNotification.Exception is not null)
+            {
+                @if (OnError is not null)
+                {
+                    OnError(_currentNotification.Exception);
+                }
+                else
+                {
+                    <MudGrid>
+                        <MudItem lg="12">
+                            <MudText>Ein fehler ist Aufgetreten:</MudText>
+                        </MudItem>
+                        <MudItem lg="12">
+                            <MudText>@_currentNotification.Exception.Message</MudText>
+                        </MudItem>
+                    </MudGrid>
+                }
+            }
+            break;
+        case NotificationKind.OnCompleted:
+            @if (OnCompled is not null)
+            {
+                @OnCompled
+            }
+            break;
+        default:
+            throw new ArgumentOutOfRangeException();
+    }
+}
+
+@code {
+    [Parameter]
+    public IObservable<TValue>? Observable { get; set; }
+
+    [Parameter]
+    public RenderFragment<TValue>? ValueRenderer { get; set; }
+
+    [Parameter]
+    public RenderFragment? OnCompled { get; set; }
+
+    [Parameter]
+    public RenderFragment<Exception>? OnError { get; set; }
+
+    [Parameter]
+    public RenderFragment? Waiting { get; set; }
+
+    private readonly SerialDisposable _subscription = new();
+
+    private Notification<TValue>? _currentNotification;
+
+    protected override void OnParametersSet()
+    {
+        _currentNotification = null;
+
+        if (Observable is not null)
+        {
+            _subscription.Disposable = Observable.Subscribe(
+                v =>
+                {
+                    _currentNotification = Notification.CreateOnNext(v);
+                    InvokeAsync(StateHasChanged).Ignore();
+                },
+                e =>
+                {
+                    _currentNotification = Notification.CreateOnError<TValue>(e);
+                    InvokeAsync(StateHasChanged).Ignore();
+                },
+                () =>
+                {
+                    _currentNotification = Notification.CreateOnCompleted<TValue>();
+                    InvokeAsync(StateHasChanged).Ignore();
+                });
+        }
+
+        base.OnParametersSet();
+    }
+
+    public void Dispose() => _subscription.Dispose();
+}

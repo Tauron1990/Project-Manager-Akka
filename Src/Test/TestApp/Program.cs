@@ -1,38 +1,143 @@
 ﻿using System;
-using System.Reactive.Concurrency;
-using System.Reactive.Linq;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Tauron.Applicarion.Redux;
+using Tauron.Applicarion.Redux.Configuration;
+using Tauron.Applicarion.Redux.Extensions.Cache;
 
 namespace TestApp;
 
-public sealed record TestState(int Counter);
-
-public sealed record IncremntAction;
-
-public sealed record IncrementMiddlewareAction;
-
-public sealed class TestMiddleware : Middleware<TestState>
+internal sealed class TestCache : ICacheDb
 {
-    public TestMiddleware()
+    private readonly ConcurrentDictionary<CacheTimeoutId, CacheTimeout> _timeouts = new();
+    private readonly ConcurrentDictionary<CacheDataId, CacheData> _datas = new();
+
+    public ValueTask DeleteElement(CacheTimeoutId key)
     {
-        OnAction<IncrementMiddlewareAction>(observable => from typed in observable
-                                                          select typed.NewAction(new IncremntAction()));
+        _timeouts.TryRemove(key, out _);
+        return ValueTask.CompletedTask;
+    }
+
+    public ValueTask DeleteElement(CacheDataId key)
+    {
+        _datas.Remove(key, out _);
+        return ValueTask.CompletedTask;
+    }
+
+    public ValueTask<(CacheTimeoutId? id, CacheDataId? Key, DateTime Time)> GetNextTimeout()
+    {
+        var date = DateTime.UtcNow;
+        var result = (from timeout in _timeouts
+                      where timeout.Value.Timeout < date
+                      orderby timeout.Value.Timeout descending
+                      select timeout.Value).FirstOrDefault();
+
+        return (result is null 
+            ? ValueTask.FromResult<(CacheTimeoutId?, CacheDataId?, DateTime)>(default)! 
+            : ValueTask.FromResult((result.Id, result.DataKey, result.Timeout)))!;
+    }
+
+    public ValueTask UpdateTimeout(CacheDataId key)
+    {
+        var id = CacheTimeoutId.FromCacheId(key);
+        _timeouts.AddOrUpdate(
+            id,
+            timeoutId => new CacheTimeout(timeoutId, key, DateTime.UtcNow + TimeSpan.FromDays(7)),
+            (_, d) => d with { Timeout = DateTime.UtcNow + TimeSpan.FromDays(7) });
+        return ValueTask.CompletedTask;
+    }
+
+    public async ValueTask TryAddOrUpdateElement(CacheDataId key, string data)
+    {
+        await UpdateTimeout(key);
+        _datas.AddOrUpdate(
+            key,
+            id => new CacheData(id, data),
+            (_, value) => value with { Data = data });
+    }
+
+    public async ValueTask<string?> ReNewAndGet(CacheDataId key)
+    {
+        if (!_datas.TryGetValue(key, out var data)) return null;
+
+        await UpdateTimeout(key);
+
+        return data.Data;
+
     }
 }
 
+internal sealed class TestErrorHandler : IErrorHandler
+{
+    public void RequestError(string error)
+    {
+        Console.WriteLine();
+        
+        var org = Console.ForegroundColor;
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine(error);
+        Console.ForegroundColor = org;
+        
+        Console.WriteLine();
+    }
+
+    public void RequestError(Exception error)
+        => RequestError(error.ToString());
+
+    public void StateDbError(Exception error)
+        => RequestError(error);
+
+    public void TimeoutError(Exception error)
+        => RequestError(error);
+}
+
+public sealed record TestState(int Counter)
+{
+    public TestState() : this(0) {}
+}
+
+public sealed record IncremntAction;
+
+
+
 static class Program
 {
-    static void Main()
+    static async Task Main()
     {
-        using var store = Create.Store(new TestState(0), Scheduler.CurrentThread);
-
-        store.RegisterMiddlewares(new TestMiddleware());
-        store.RegisterReducers(Create.On<IncremntAction, TestState>(s => s with{ Counter = s.Counter + 1}));
-        store.RegisterEffects(Create.Effect<TestState>(s => s.Select().Where(ts => ts.Counter == 2).Select(_ => new IncremntAction())));
+        var coll = new ServiceCollection();
+        coll.AddTransient<IErrorHandler, TestErrorHandler>();
+        coll.AddSingleton<ICacheDb, TestCache>();
+        coll.AddRootStore(CreateTestStore);
         
-        using var logger = store.Select().Subscribe(s => Console.WriteLine(s.ToString()));
+        await using var prov = coll.BuildServiceProvider();
+        var store = prov.GetRequiredService<IRootStore>();
+        using var _ = store.ForState<TestState>().Select(state => state.Counter).Subscribe(Console.WriteLine);
         
+        await Task.Delay(3000);
         store.Dispatch(new IncremntAction());
-        store.Dispatch(new IncrementMiddlewareAction());
+
+        Console.WriteLine();
+        Console.WriteLine("Fertig...");
+        Console.ReadKey();
+    }
+
+    private static void CreateTestStore(IStoreConfiguration config)
+    {
+        config.NewState<TestState>(
+            source => source
+               .FromCacheAndServer(TestRequest)
+               .ApplyReducer(f => f.On<IncremntAction>(ts => ts with { Counter = ts.Counter + 1 }))
+               .AndFinish());
+    }
+
+    private static async Task<TestState> TestRequest(CancellationToken token)
+    {
+        await Task.Delay(2000, token);
+
+        return new TestState(5);
     }
 }

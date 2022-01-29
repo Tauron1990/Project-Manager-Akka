@@ -1,4 +1,4 @@
-﻿using SimpleProjectManager.Shared.Services;
+﻿using SimpleProjectManager.Client.Data;
 using Stl.Fusion;
 using Tauron.Application.Blazor;
 
@@ -6,13 +6,11 @@ namespace SimpleProjectManager.Client.ViewModels;
 
 public sealed class DashboardViewModel : BlazorViewModel
 {
-    public IState<long> JobCountState { get; }
+    public IObservable<long> JobCountState { get; }
     
-    public DashboardViewModel(IStateFactory stateFactory, IJobDatabaseService databaseService)
+    public DashboardViewModel(IStateFactory stateFactory, GlobalState globalState)
         : base(stateFactory)
     {
-        JobCountState = stateFactory.NewComputed(
-            new ComputedState<long>.Options(),
-            async (_, t) => await databaseService.CountActiveJobs(t));
+        JobCountState = globalState.JobsState.ActiveJobsCount;
     }
 }

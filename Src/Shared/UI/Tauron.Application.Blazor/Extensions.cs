@@ -23,6 +23,30 @@ public static class Extensions
     public static bool IsLoading<TData>(this IState<TData> state)
         => state.Computed.ConsistencyState != ConsistencyState.Consistent;
 
+    public static Func<TInput, bool> IsSuccess<TInput>(this IEventAggregator aggregator, Func<TInput, string> runner)
+    {
+        return input =>
+               {
+                   try
+                   {
+                       var result = runner(input);
+
+                       if (string.IsNullOrWhiteSpace(result))
+                           return true;
+
+                       aggregator.PublishWarnig(result);
+
+                       return false;
+                   }
+                   catch (Exception e)
+                   {
+                       aggregator.PublishError(e);
+
+                       return false;
+                   }
+               };
+    }
+    
     public static async ValueTask<bool> IsSuccess(this IEventAggregator aggregator, Func<ValueTask<string>> runner)
     {
         try
@@ -35,6 +59,36 @@ public static class Extensions
             aggregator.PublishWarnig(result);
 
             return false;
+        }
+        catch (Exception e)
+        {
+            aggregator.PublishError(e);
+
+            return false;
+        }
+    }
+    
+    public static async ValueTask<bool> IsSuccess(this IEventAggregator aggregator, Func<ValueTask<Unit>> runner)
+    {
+        try
+        {
+            await runner();
+            return true;
+        }
+        catch (Exception e)
+        {
+            aggregator.PublishError(e);
+
+            return false;
+        }
+    }
+    
+    public static async ValueTask<bool> IsSuccess(this IEventAggregator aggregator, Func<ValueTask> runner)
+    {
+        try
+        {
+            await runner();
+            return true;
         }
         catch (Exception e)
         {
@@ -66,6 +120,16 @@ public static class Extensions
     public static void PublishWarnig(this IEventAggregator aggregator, string message)
         => PublishMessage(aggregator, new SnackbarWarningMessage(message));
 
+    public static void PublishWarnig(this IEventAggregator aggregator, Exception error)
+    {
+        error = error.Demystify();
+            
+        #if DEBUG
+        Console.WriteLine(error);
+        #endif
+        PublishMessage(aggregator, new SnackbarWarningMessage($"{error.GetType().Name} -- {error.Message}"));
+    }
+    
     public static void PublishInfo(this IEventAggregator aggregator, string message)
         => PublishMessage(aggregator, new SnackbarInfoMessage(message));
 

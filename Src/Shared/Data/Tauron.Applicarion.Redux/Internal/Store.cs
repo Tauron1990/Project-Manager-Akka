@@ -6,11 +6,13 @@ using Tauron.Applicarion.Redux.Extensions;
 
 namespace Tauron.Applicarion.Redux.Internal;
 
-internal sealed class Store<TState> : IStore<TState>
+internal sealed class Store<TState> : IReduxStore<TState>
 {
     private readonly TState _initialState;
     private readonly IScheduler _scheduler;
+    
     private readonly SerialDisposable _currentPipeline = new();
+    private readonly CompositeDisposable _subscriptions = new();
     
     private readonly BehaviorSubject<TState> _currentState;
     private readonly Subject<object> _dispatcher = new();
@@ -26,16 +28,14 @@ internal sealed class Store<TState> : IStore<TState>
         _initialState = initialState;
         _scheduler = scheduler;
         _currentState = new BehaviorSubject<TState>(initialState);
-
-        var disposer = new CompositeDisposable();
-        var connect = _dispatcher.Synchronize().Finally(() => disposer.Dispose()).Publish();
         
-        disposer.Add(connect.Connect());
-        disposer.Add(_dispatched.Select(a => a.State).Subscribe(_currentState));
-        disposer.Add(_currentPipeline);
+        _subscriptions.Add(_dispatched.Select(a => a.State).Subscribe(_currentState));
+        _subscriptions.Add(_currentPipeline);
         
-        _actionsStream = connect.AsObservable();
+        _actionsStream = _dispatcher.Synchronize();
+        
         RebuildPipeline();
+        MutateCallbackPlugin.Install(this);
     }
 
     public void Dispose()
@@ -44,6 +44,7 @@ internal sealed class Store<TState> : IStore<TState>
         _dispatched.OnCompleted();
         _dispatcher.OnCompleted();
 
+        _subscriptions.Dispose();
         _currentState.Dispose();
         _dispatched.Dispose();
         _dispatcher.Dispose();
@@ -83,7 +84,7 @@ internal sealed class Store<TState> : IStore<TState>
         RebuildPipeline();
     }
 
-    public TMiddleware Get<TMiddleware>(Func<TMiddleware> factory)
+    public TMiddleware GetMiddleware<TMiddleware>(Func<TMiddleware> factory)
         where TMiddleware : IMiddleware<TState>
     {
         if (_middlewares.TryGetValue(typeof(TMiddleware), out var middleware))
@@ -101,7 +102,7 @@ internal sealed class Store<TState> : IStore<TState>
     public void RegisterEffects(IEnumerable<Effect<TState>> effects)
     {
         foreach (var effect in effects) 
-            effect.CreateEffect(this).Retry().NotNull().Subscribe(_dispatcher);
+            effect.CreateEffect(this).Retry().NotNull().Subscribe(_dispatcher.OnNext);
     }
 
     public void RegisterMiddlewares(params IMiddleware<TState>[] middlewares)
@@ -112,6 +113,19 @@ internal sealed class Store<TState> : IStore<TState>
 
     public void RegisterEffects(params Effect<TState>[] effects)
         => RegisterEffects(effects.AsEnumerable());
+
+    public IObservable<object> ObserveAction()
+        => _dispatched.Select(da => da.Action).NotNull();
+
+    public IObservable<TAction> ObserveAction<TAction>() where TAction : class
+        => _dispatched.Select(da => da.Action as TAction).NotNull();
+
+    public IObservable<TResult> ObserveAction<TAction, TResult>(Func<TAction, TState, TResult> resultSelector)
+        where TAction : class
+        => from dispatchedAction in _dispatched
+           let action = dispatchedAction.Action as TAction
+           where action is not null
+           select resultSelector(action, dispatchedAction.State);
 
     private void RebuildPipeline()
     {
@@ -127,8 +141,6 @@ internal sealed class Store<TState> : IStore<TState>
             )
            .Retry()
            .Subscribe(_dispatched);
-        
-        MutateCallbackPlugin.Install(this);
     }
 
     private IObservable<DispatchedAction<TState>> RunActualReducers(IObservable<DispatchedAction<TState>> actionStream)

@@ -3,7 +3,11 @@ using Tauron;
 
 namespace SimpleProjectManager.Client.Data.States;
 
-internal static class InternalJobDataPatcher
+
+
+public record SelectNewPairAction(JobSortOrderPair? Selection);
+
+internal static class JobDataPatcher
 {
     public static InternalJobData ReplaceSelected(InternalJobData data, CurrentSelected selected)
         => data with { CurrentSelected = selected };
@@ -32,13 +36,13 @@ internal static class InternalJobDataPatcher
     }
 }
 
-internal static class IntenalJobDataSelectors
+internal static class JobDataSelectors
 {
     public static CurrentSelected CurrentSelected(InternalJobData data)
         => data.CurrentSelected;
 }
 
-public static class InternalDataRequests
+public static class JobDataRequests
 {
     public static async Task<CurrentSelected> FetchjobData(CancellationToken cancel, Func<CancellationToken, ValueTask<CurrentSelected>> source, IJobDatabaseService jobDatabaseService)
     {

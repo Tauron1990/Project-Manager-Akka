@@ -1,0 +1,30 @@
+﻿
+@if (Error is not null)
+{
+    <MudGrid>
+        <MudItem lg="12">
+            @if (string.IsNullOrWhiteSpace(Message))
+            {
+                <MudText>Ein fehler ist Aufgetreten.</MudText>
+            }
+            else
+            {
+                <MudText>@Message</MudText>
+            }
+        </MudItem>
+        <MudItem lg="12">
+            @if (Error is null)
+            {
+                <MudText>@Error.Message</MudText>
+            }
+        </MudItem>
+    </MudGrid>
+}
+
+@code {
+    [Parameter]
+    public Exception? Error { get; set; }
+    
+    [Parameter]
+    public string? Message { get; set; }
+}

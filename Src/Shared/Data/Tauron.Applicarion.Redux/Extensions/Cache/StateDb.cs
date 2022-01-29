@@ -1,4 +1,5 @@
 ﻿using JetBrains.Annotations;
+using Tauron.Applicarion.Redux.Configuration;
 
 namespace Tauron.Applicarion.Redux.Extensions.Cache;
 
@@ -9,11 +10,11 @@ public sealed class StateDb
     private readonly TimeoutManager _timeoutManager;
     private readonly Action<Exception> _errorHandler;
 
-    public StateDb(ICacheDb db, TimeoutManager timeoutManager, Action<Exception> errorHandler)
+    public StateDb(ICacheDb db, TimeoutManager timeoutManager, IErrorHandler errorHandler)
     {
         _db = db;
         _timeoutManager = timeoutManager;
-        _errorHandler = errorHandler;
+        _errorHandler = errorHandler.StateDbError;
 
         timeoutManager.Start();
     }

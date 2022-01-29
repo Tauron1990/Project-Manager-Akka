@@ -1,11 +1,11 @@
-﻿using Microsoft.JSInterop;
+﻿using Tauron.Applicarion.Redux.Extensions.Cache;
 using Tauron.Application;
 using Tauron.Application.Blazor;
 using Tavenem.Blazor.IndexedDB;
 
-namespace SimpleProjectManager.Client.Data.Cache;
+namespace SimpleProjectManager.Client.Data.Core;
 
-public sealed class CacheDb
+public sealed class CacheDb : ICacheDb
 {
     private readonly IndexedDbService<CacheDataId> _dataDb;
     private readonly IndexedDbService<CacheTimeoutId> _timeoutDb;
@@ -18,7 +18,7 @@ public sealed class CacheDb
         _eventAggregator = eventAggregator;
     }
 
-    public async Task DeleteElement(CacheTimeoutId key)
+    public async ValueTask DeleteElement(CacheTimeoutId key)
     {
         try
         {
@@ -30,7 +30,7 @@ public sealed class CacheDb
         }
     }
     
-    public async Task DeleteElement(CacheDataId key)
+    public async ValueTask DeleteElement(CacheDataId key)
     {
         var all = await _timeoutDb.GetAllAsync<CacheTimeout>();
         var toDelete = all.FirstOrDefault(d => d.DataKey == key);
@@ -40,7 +40,7 @@ public sealed class CacheDb
         await _dataDb.DeleteKeyAsync(key);
     }
     
-    public async Task<(CacheTimeoutId? id, CacheDataId? Key, DateTime Time)> GetNextTimeout()
+    public async ValueTask<(CacheTimeoutId? id, CacheDataId? Key, DateTime Time)> GetNextTimeout()
     {
         try
         {
@@ -64,7 +64,7 @@ public sealed class CacheDb
     private static DateTime GetTimeout()
         => DateTime.UtcNow + TimeSpan.FromDays(7);
 
-    private async Task UpdateTimeout(CacheDataId key)
+    private async ValueTask UpdateTimeout(CacheDataId key)
     {
         var id = CacheTimeoutId.FromCacheId(key);
         var timeout = await _timeoutDb.GetValueAsync<CacheTimeout>(id);
@@ -75,12 +75,10 @@ public sealed class CacheDb
                 : timeout with { Timeout = GetTimeout() });
     }
     
-    public async Task TryAddOrUpdateElement(CacheDataId key, string data)
+    public async ValueTask TryAddOrUpdateElement(CacheDataId key, string data)
     {
         try
         {
-            var timeoutId = CacheTimeoutId.FromCacheId(key);
-
             var cacheData = new CacheData(key, data);
 
             await UpdateTimeout(key);
@@ -93,7 +91,7 @@ public sealed class CacheDb
         }
     }
 
-    public async Task<string?> ReNewAndGet(CacheDataId key)
+    public async ValueTask<string?> ReNewAndGet(CacheDataId key)
     {
         var result = await _dataDb.GetValueAsync<CacheData>(key);
 

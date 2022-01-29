@@ -1,6 +1,7 @@
 ﻿using System.Reactive.Linq;
 using JetBrains.Annotations;
 using Stl.Fusion;
+using Tauron.Applicarion.Redux.Extensions.Internal;
 using Tauron.Applicarion.Redux.Internal;
 
 namespace Tauron.Applicarion.Redux.Extensions;
@@ -8,7 +9,7 @@ namespace Tauron.Applicarion.Redux.Extensions;
 [PublicAPI]
 public static class DynamicUpdate
 {
-    private static IObservable<TData> ToObservable<TData>(IState<TData> state, bool skipErrors = false)
+    internal static IObservable<TData> ToObservable<TData>(IState<TData> state, bool skipErrors = false)
         => Observable.Create<TData>(o =>
                                     {
                                         if(state.HasValue)
@@ -74,27 +75,63 @@ public static class DynamicUpdate
                                                               observableSubscription.Dispose();
                                                           };
                                                }));
-    
-    void AddRequest<TState, TAction>(Func<TAction, CancellationToken, ValueTask<string>> runRequest, Func<TState, TAction, TState> onScess)
-        where TAction : class;
-	
-    void AddRequest<TState, TAction>(
-        Func<TAction, CancellationToken, ValueTask<string>> runRequest, 
-        Func<TState, TAction, TState> onScess,
-        Func<TState, object, TState> onFail)
-        where TAction : class;
-	
-    void AddRequest<TState, TAction>(Func<TAction, CancellationToken, Task<string>> runRequest, Func<TState, TAction, TState> onScess)
-        where TAction : class;
-	
-    void AddRequest<TState,TAction>(
-        Func<TAction, CancellationToken, Task<string>> runRequest, 
-        Func<TState, TAction, TState> onScess,
-        Func<TState, object, TState> onFail)
-        where TAction : class;
 
-    void OnTheFlyUpdate<TState, TSource, TData>(
-        Func<TState, TSource> sourceSelector,
+    public static void AddRequest<TState, TAction>(
+        IReduxStore<TState> store,
+        Func<TAction, ValueTask<string?>> runRequest, Func<TState, TAction, TState> onScess)
+        where TAction : class
+        => AsyncRequestMiddleware
+           .Get(store)
+           .AddRequest(runRequest, onScess, (state, _) => state);
+
+    public static void AddRequest<TState, TAction>(
+        IReduxStore<TState> store,
+        Func<TAction, ValueTask<string?>> runRequest,
+        Func<TState, TAction, TState> onScess,
+        Func<TState, object, TState> onFail)
+        where TAction : class
+        => AsyncRequestMiddleware
+           .Get(store)
+           .AddRequest(runRequest, onScess, onFail);
+
+    public static void AddRequest<TState, TAction>(IReduxStore<TState> store, Func<TAction, Task<string?>> runRequest, Func<TState, TAction, TState> onScess)
+        where TAction : class
+        => AsyncRequestMiddleware
+           .Get(store)
+           .AddRequest(runRequest, onScess, (state, _) => state);
+
+    public static void AddRequest<TState, TAction>(
+        IReduxStore<TState> store,
+        Func<TAction, Task<string?>> runRequest,
+        Func<TState, TAction, TState> onScess,
+        Func<TState, object, TState> onFail)
+        where TAction : class
+        => AsyncRequestMiddleware
+           .Get(store)
+           .AddRequest(runRequest, onScess, onFail);
+
+    public static void OnTheFlyUpdate<TState, TSource, TData>(
+        IReduxStore<TState> store,
+        IStateFactory stateFactory,
+        Selector<TState, TSource> sourceSelector,
         Func<CancellationToken, Func<CancellationToken, ValueTask<TSource>>, Task<TData>> fetcher,
-        Func<TState, TData, TState> patcher);
+        Patcher<TData, TState> patcher)
+        => store.RegisterEffects(CreateDynamicUpdaterInternal(stateFactory, sourceSelector, fetcher, patcher));
+
+    public static void OnTheFlyUpdate<TState, TData>(
+        IReduxStore<TState> store,
+        IStateFactory stateFactory,
+        Func<CancellationToken, Task<TData>> fetcher,
+        Patcher<TData, TState> patcher)
+        => store.RegisterEffects(
+            CreateDynamicUpdaterInternal(
+                stateFactory,
+                _ => 0,
+                async (token, sel) =>
+                {
+                    await sel(token);
+
+                    return await fetcher(token);
+                },
+                patcher));
 }
