@@ -1,17 +1,19 @@
-﻿@inherits ComputedStateComponent<long>
+﻿@inherits NonAutoRenderingComponent
 
-@inject ICriticalErrorService _errorService
+@inject GlobalState _errorService
 @inject PageNavigation _navigation
 
-<StateAwaiter State="State">
-    <MudTooltip Text="Aktuelle Kritische Fehler">
-        @if (context == 0)
-        {
-            <MudAlert Severity="Severity.Success">Keine</MudAlert>
-        }
-        else
-        {
-            <MudAlert Severity="Severity.Warning" OnClick="@_navigation.Errors">@context</MudAlert>
-        }
-    </MudTooltip>
-</StateAwaiter>
+<ObservableRenderer Observable="_errorService.ErrorState">
+    <ValueRenderer>
+        <MudTooltip Text="Aktuelle Kritische Fehler">
+            @if (context == 0)
+            {
+                <MudAlert Severity="Severity.Success">Keine</MudAlert>
+            }
+            else
+            {
+                <MudAlert Severity="Severity.Warning" OnClick="@_navigation.Errors">@context</MudAlert>
+            }
+        </MudTooltip>
+    </ValueRenderer>
+</ObservableRenderer>

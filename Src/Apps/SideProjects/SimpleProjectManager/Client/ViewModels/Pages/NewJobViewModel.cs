@@ -1,13 +1,12 @@
 ﻿using System.Reactive;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Windows.Input;
 using ReactiveUI;
 using SimpleProjectManager.Client.Data;
-using SimpleProjectManager.Shared;
-using SimpleProjectManager.Shared.Services;
+using SimpleProjectManager.Client.Data.States;
 using Stl.Fusion;
 using Tauron;
-using Tauron.Application;
 using Tauron.Application.Blazor;
 
 namespace SimpleProjectManager.Client.ViewModels;
@@ -24,8 +23,7 @@ public sealed class NewJobViewModel : BlazorViewModel
 
     public bool IsCommiting => _commiting.Value;
     
-    public NewJobViewModel(IStateFactory stateFactory, PageNavigation pageNavigation, IEventAggregator eventAggregator,
-        GlobalState globalState, JobEditorViewModel editorModel)
+    public NewJobViewModel(IStateFactory stateFactory, PageNavigation pageNavigation, GlobalState globalState, JobEditorViewModel editorModel)
         : base(stateFactory)
     {
         EditorModel = editorModel;
@@ -35,25 +33,10 @@ public sealed class NewJobViewModel : BlazorViewModel
         var commit = ReactiveCommand.CreateFromObservable<JobEditorCommit, bool>(
             commit =>
             {
-                var dataObs = Observable.Return(commit.JobData.NewData);
-
-                return
-                    from data in dataObs
-                    from sucess in eventAggregator.IsSuccess(
-                            () => TimeoutToken.WithDefault(
-                                default,
-                                token => databaseService.CreateJob(new CreateProjectCommand(data.JobName, data.ProjectFiles, data.Status, data.Deadline), token)))
-                       .AsTask()
-                    from sucess2 in sucess
-                        ? eventAggregator.IsSuccess(
-                            () => TimeoutToken.WithDefault(
-                                default,
-                                token => databaseService.ChangeOrder(new SetSortOrder(true, data.Ordering), token))).AsTask()
-                        : Task.FromResult(false)
-                    from sucess3 in sucess2
-                        ? eventAggregator.IsSuccess(async () => await commit.Upload()).AsTask()
-                        : Task.FromResult(false)
-                    select sucess3;
+                var sub = new Subject<bool>();
+                globalState.Dispatch(new CommitJobEditorData(commit, sub.OnNext));
+                
+                return sub.Take(1);
             }).DisposeWith(this);
 
         commit.Subscribe(
