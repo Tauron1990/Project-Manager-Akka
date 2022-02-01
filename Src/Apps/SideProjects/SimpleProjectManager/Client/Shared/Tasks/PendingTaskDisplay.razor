@@ -9,5 +9,12 @@
         <MudItem lg="8">
             <MudText>Info: @PendingTask.Info</MudText>
         </MudItem>
+        <MudItem lg="12">
+            <MudGrid Justify="Justify.FlexEnd">
+                <MudItem lg="4">
+                    <MudCommandButton @ref="CancelButton">Abbrechen</MudCommandButton>
+                </MudItem>
+            </MudGrid>
+        </MudItem>
     </MudGrid>
 }

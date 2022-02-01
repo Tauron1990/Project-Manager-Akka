@@ -37,7 +37,7 @@ public sealed class NewJobViewModel : BlazorViewModel
                 globalState.Dispatch(new CommitJobEditorData(commit, sub.OnNext));
                 
                 return sub.Take(1);
-            }).DisposeWith(this);
+            }, globalState.IsOnline).DisposeWith(this);
 
         commit.Subscribe(
             s =>

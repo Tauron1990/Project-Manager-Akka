@@ -71,6 +71,10 @@ internal sealed class Store<TState> : IReduxStore<TState>
     public void Reset()
         => _currentState.OnNext(_initialState);
 
+    IObservable<TAction> IActionDispatcher.ObservAction<TAction>()
+        => _actionsStream.OfType<TAction>();
+        
+
     public void Dispatch(object action)
         => _dispatcher.OnNext(action);
 

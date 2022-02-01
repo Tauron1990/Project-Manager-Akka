@@ -1,15 +1,14 @@
 ﻿@page "/TaskManager"
 
-@using SimpleProjectManager.Shared.Services.Tasks
 @using SimpleProjectManager.Client.Shared.Tasks
 
-@inherits ComputedStateComponent<PendingTask[]>
+@inherits NonAutoRenderingComponent
 
-@inject ITaskManager _taskManager
+@inject GlobalState _globalState
 
 <PageTitle>Task Manager</PageTitle>
 
-<StateAwaiter State="State">
+<StateAwaiter State="_pendingTasks">
     <ObservableCollectionView SourceParameter="context">
         <EmptyRender>
             <MudText Align="Align.Center" Typo="Typo.h3">Aktuell Keine Aufgaben</MudText>

@@ -17,10 +17,11 @@ public sealed class OnlineMonitor : IOnlineMonitor
         _jsRuntime = jsRuntime;
         _logger = logger;
         _pingService = RestEase.RestClient.For<IPingServiceDef>(client);
-        Online = 
+        Online =
             Observable.Interval(TimeSpan.FromSeconds(6))
-           .SelectMany(_ => IsOnline())
-           .StartWith(false);
+               .SelectMany(_ => IsOnline())
+               .StartWith(false)
+               .DistinctUntilChanged();
     }
 
     public async Task<bool> IsOnline()

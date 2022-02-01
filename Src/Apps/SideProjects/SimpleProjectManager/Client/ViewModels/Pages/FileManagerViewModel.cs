@@ -32,7 +32,7 @@ public sealed class FileManagerViewModel : BlazorViewModel
     public FileManagerViewModel(IStateFactory stateFactory, GlobalState globalState, IEventAggregator aggregator)
         : base(stateFactory)
     {
-        var filesStream = globalState.FilesState.AllFiles
+        var filesStream = globalState.Files.AllFiles
            .Select(files => new FilesInfo(false, files))
            .StartWith(new FilesInfo(true, Array.Empty<DatabaseFile>()))
            .Publish().RefCount();
@@ -41,7 +41,7 @@ public sealed class FileManagerViewModel : BlazorViewModel
         _loading = filesStream.Select(i => i.IsLoading).ToProperty(this, m => m.IsLoading);
         _error = _files.ThrownExceptions.Merge(_loading.ThrownExceptions).ToProperty(this, m => m.Error);
         
-        var command = ReactiveCommand.CreateFromTask<DatabaseFile, Unit>(DeleteFileImpl).DisposeWith(this);
+        var command = ReactiveCommand.CreateFromTask<DatabaseFile, Unit>(DeleteFileImpl, globalState.IsOnline).DisposeWith(this);
         
         DeleteFile = command.ToAction();
         
@@ -50,7 +50,7 @@ public sealed class FileManagerViewModel : BlazorViewModel
             if (await ConfirmDelete.Handle(databaseFile))
             {
                 await aggregator.IsSuccess(
-                    () => TimeoutToken.WithDefault(default, t => globalState.FilesState.DeleteFile(databaseFile, t)));
+                    () => TimeoutToken.WithDefault(default, t => globalState.Files.DeleteFile(databaseFile, t)));
             }
         
             return Unit.Default;

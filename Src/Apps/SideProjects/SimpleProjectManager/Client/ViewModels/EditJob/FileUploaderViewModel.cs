@@ -32,7 +32,7 @@ public sealed class FileUploaderViewModel : BlazorViewModel
 
     private string? _projectId;
 
-    public bool ShouldDisable => _shouldDisable.Value;
+    private bool ShouldDisable => _shouldDisable.Value;
     
     public ReactiveCommand<Unit, Unit> Clear { get; }
     
@@ -65,7 +65,7 @@ public sealed class FileUploaderViewModel : BlazorViewModel
 
         nameState.Subscribe(s => ProjectId = s).DisposeWith(this);
 
-        ValidateName = globalState.JobsState.ValidateProjectName;
+        ValidateName = globalState.Jobs.ValidateProjectName;
 
         _files.DisposeWith(this);
 
@@ -78,7 +78,7 @@ public sealed class FileUploaderViewModel : BlazorViewModel
         _files.Connect()
            .Where(f => f.UploadState == UploadState.Pending && string.IsNullOrWhiteSpace(ProjectId))
            .Select(f => f.Name)
-           .Select(globalState.JobsState.TryExtrectName)
+           .Select(globalState.Jobs.TryExtrectName)
            .Flatten()
            .Where(n => !string.IsNullOrWhiteSpace(n.Current) && string.IsNullOrWhiteSpace(ProjectId))
            .Do(n => ProjectId = n.Current)
@@ -87,7 +87,10 @@ public sealed class FileUploaderViewModel : BlazorViewModel
 
         Files = list;
 
-        var canExecute = _isUploading.CombineLatest(_files.CountChanged).Select(d => !d.First && d.Second > 0).Publish().RefCount();
+        var canExecute =
+            _isUploading.CombineLatest(_files.CountChanged).Select(d => !d.First && d.Second > 0)
+               .AndIsOnline(globalState.OnlineMonitor)
+               .Publish().RefCount();
 
         _shouldDisable = canExecute.Select(canExecuteResult => !canExecuteResult).ToProperty(this, m => m.ShouldDisable);
 
@@ -130,7 +133,7 @@ public sealed class FileUploaderViewModel : BlazorViewModel
 
         try
         {
-            var validation = _globalState.JobsState.ValidateProjectName(ProjectId);
+            var validation = _globalState.Jobs.ValidateProjectName(ProjectId);
             if (!string.IsNullOrWhiteSpace(validation))
             {
                 _aggregator.PublishWarnig(validation);
@@ -141,7 +144,7 @@ public sealed class FileUploaderViewModel : BlazorViewModel
 
             var context = new UploadTransactionContext(Files.ToImmutableList(), new ProjectName(ProjectId));
 
-            var (trasnactionState, exception) = await _globalState.FilesState.CreateUpload().Execute(context);
+            var (trasnactionState, exception) = await _globalState.Files.CreateUpload().Execute(context);
 
             switch (trasnactionState)
             {

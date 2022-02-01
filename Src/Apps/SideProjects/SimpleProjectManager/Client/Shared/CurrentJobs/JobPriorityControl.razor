@@ -1,7 +1,7 @@
 ﻿@using System.Reactive.Disposables
 @inherits NonAutoRenderingView<JobPriorityViewModel>
 
-@inject JobsViewModel _jobsViewModel
+@inject GlobalState _globalState
 
 <div class="d-flex my-n3">
     <MudCommandIconButton @ref="Goup" Icon="@Icons.Outlined.ArrowUpward"/>

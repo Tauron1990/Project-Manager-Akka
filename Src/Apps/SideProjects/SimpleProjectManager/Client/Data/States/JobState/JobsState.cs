@@ -21,11 +21,11 @@ public sealed partial class JobsState : StateBase<InternalJobData>
     private readonly IJobDatabaseService _service;
     private readonly IEventAggregator _eventAggregator;
     
-    public JobsState(IStoreConfiguration storeConfiguration, IStateFactory stateFactory)
+    public JobsState(IStoreConfiguration storeConfiguration, IStateFactory stateFactory, IJobDatabaseService jobDatabaseService, IEventAggregator eventAggregator)
         : base(storeConfiguration, stateFactory)
     {
-        _service = stateFactory.Services.GetRequiredService<IJobDatabaseService>();
-        _eventAggregator = stateFactory.Services.GetRequiredService<IEventAggregator>();
+        _service = jobDatabaseService;
+        _eventAggregator = eventAggregator;
     }
 
     protected override IStateConfiguration<InternalJobData> ConfigurateState(ISourceConfiguration<InternalJobData> configuration)

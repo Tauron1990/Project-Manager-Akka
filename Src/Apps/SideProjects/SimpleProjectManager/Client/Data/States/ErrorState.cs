@@ -10,9 +10,9 @@ public sealed class ErrorState : StateBase<InternalErrorState>
 {
     private readonly ICriticalErrorService _errorService;
 
-    public ErrorState(IStoreConfiguration configuration, IStateFactory stateFactory)
+    public ErrorState(IStoreConfiguration configuration, IStateFactory stateFactory, ICriticalErrorService errorService)
         : base(configuration, stateFactory)
-        => _errorService = stateFactory.Services.GetRequiredService<ICriticalErrorService>();
+        => _errorService = errorService;
 
     protected override IStateConfiguration<InternalErrorState> ConfigurateState(ISourceConfiguration<InternalErrorState> configuration)
     {
@@ -24,6 +24,10 @@ public sealed class ErrorState : StateBase<InternalErrorState>
                     factory.AddRequest(
                         ErrorStateRequests.WriteError(_errorService),
                         (state, _) => state with { ErrorCount = state.ErrorCount + 1 });
+
+                    factory.AddRequest(
+                        ErrorStateRequests.DisableError(_errorService),
+                        ErrorStatePatcher.DecrementErrorCount);
                 });
     }
 

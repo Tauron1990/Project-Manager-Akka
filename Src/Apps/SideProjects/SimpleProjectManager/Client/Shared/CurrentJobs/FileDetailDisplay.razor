@@ -4,25 +4,30 @@
 
 @inject BaseUrl _url
 
-<StateAwaiter State="ViewModel?.State">
-    @if (context != null)
-    {
-        <MudPaper Outlined="true" Class="ma-1 pa-1">
-            <MudGrid>
-                <MudItem lg="6">
-                    <MudText Align="Align.Start">Name: @context.FileName.Value</MudText>
-                </MudItem>
-                <MudItem lg="6">
-                    <MudLink Href="@($"/{ApiPaths.FilesApi}/GetFileDownload/{context.Id.Value}")" Target="_blank" rel="noopener">Download</MudLink>
-                </MudItem>
-                <MudItem lg="12">
-                    <MudText>Größe: @context.Size.ToByteString()</MudText>
-                </MudItem>
-            </MudGrid>
-        </MudPaper>
-    }
-    else
-    {
-        <MudText Align="Align.Center">Datei nicht gefunden</MudText>
-    }
-</StateAwaiter>
+<ObservableRenderer Observable="ViewModel?.FileInfo">
+    <Waiting>
+        <GenericLoadingElement Label="Daten werden Abgerufen"/>
+    </Waiting>
+    <ValueRenderer>
+        @if (context != null)
+        {
+            <MudPaper Outlined="true" Class="ma-1 pa-1">
+                <MudGrid>
+                    <MudItem lg="6">
+                        <MudText Align="Align.Start">Name: @context.FileName.Value</MudText>
+                    </MudItem>
+                    <MudItem lg="6">
+                        <MudLink Href="@($"/{ApiPaths.FilesApi}/GetFileDownload/{context.Id.Value}")" Target="_blank" rel="noopener">Download</MudLink>
+                    </MudItem>
+                    <MudItem lg="12">
+                        <MudText>Größe: @context.Size.ToByteString()</MudText>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+        }
+        else
+        {
+            <MudText Align="Align.Center">Datei nicht gefunden</MudText>
+        }
+    </ValueRenderer>
+</ObservableRenderer>

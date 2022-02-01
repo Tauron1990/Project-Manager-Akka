@@ -5,8 +5,15 @@ namespace Tauron.Applicarion.Redux;
 
 public sealed record ActionState<TState, TAction>(TState State, TAction Action);
 
+public interface IActionDispatcher
+{
+    IObservable<TAction> ObservAction<TAction>();
+
+    void Dispatch(object action);
+}
+
 [PublicAPI]
-public interface IReduxStore<TState> : IDisposable
+public interface IReduxStore<TState> : IActionDispatcher, IDisposable
 {
     IObservable<TResult> Select<TResult>(Func<TState, TResult> selector);
 
@@ -20,7 +27,6 @@ public interface IReduxStore<TState> : IDisposable
 
     void Reset();
     
-    void Dispatch(object action);
     
     void RegisterMiddlewares(IEnumerable<IMiddleware<TState>> middlewares);
 

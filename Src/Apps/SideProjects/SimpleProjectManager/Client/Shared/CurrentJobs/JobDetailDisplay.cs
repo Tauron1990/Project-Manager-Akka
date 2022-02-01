@@ -26,7 +26,7 @@ public partial class JobDetailDisplay
                                        ViewModel,
                                        m => m.EditJob,
                                        v => v.EditButton,
-                                       ViewModel.NextElement.Select(d => d?.Id))
+                                       ViewModel.WhenAny(m => m.JobData, m => m.Value))
                                   .DisposeWith(dispo);
                            });
     }

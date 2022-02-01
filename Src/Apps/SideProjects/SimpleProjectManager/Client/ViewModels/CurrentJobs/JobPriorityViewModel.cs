@@ -33,17 +33,17 @@ public sealed class JobPriorityViewModel : BlazorViewModel
 
         GoUp = ReactiveCommand.Create(
                 CreateExecute(info => new SetSortOrder(false, info.Order.Increment())),
-                CreateCanExecute((pairs, pair) => pairs[0] != pair))
+                CreateCanExecute(globalState, (pairs, pair) => pairs[0] != pair))
            .DisposeWith(this);
 
         GoDown = ReactiveCommand.Create(
                 CreateExecute(info => new SetSortOrder(false, info.Order.Decrement())),
-                CreateCanExecute((pairs, pair) => pairs.Last() != pair))
+                CreateCanExecute(globalState, (pairs, pair) => pairs.Last() != pair))
            .DisposeWith(this);
 
         Priorize = ReactiveCommand.Create(
-                CreateExecute(info => new SetSortOrder(false, info.Order.Decrement())),
-                CreateCanExecute((_, pair) => !pair.Order.IsPriority))
+                CreateExecute(info => new SetSortOrder(false, info.Order.Priority())),
+                CreateCanExecute(globalState, (_, pair) => !pair.Order.IsPriority))
            .DisposeWith(this);
     }
 
@@ -51,15 +51,15 @@ public sealed class JobPriorityViewModel : BlazorViewModel
         => i =>
            {
                if (i is null) return;
-               _globalState.JobsState.SetNewSortOrder(executor(i));     
+               _globalState.Dispatch(executor(i));     
            };
 
-    private IObservable<bool> CreateCanExecute(Func<ImmutableList<JobSortOrderPair>, JobSortOrderPair, bool> predicate)
+    private IObservable<bool> CreateCanExecute(GlobalState state, Func<ImmutableList<JobSortOrderPair>, JobSortOrderPair, bool> predicate)
         => 
         (
             from info in ActivePairs.CombineLatest(
                 _globalState.IsOnline, 
-                _globalState.JobsState.CurrentlySelectedPair,
+                _globalState.Jobs.CurrentlySelectedPair,
                 (pairs, online, selected) => (pairs, online, selected))
             
             select info.online
@@ -67,5 +67,5 @@ public sealed class JobPriorityViewModel : BlazorViewModel
                 && info.selected is not null 
                 && info.pairs.Contains(info.selected) 
                 && predicate(info.pairs, info.selected)
-        ).StartWith(false);
+        ).StartWith(false).AndIsOnline(state.OnlineMonitor);
 }

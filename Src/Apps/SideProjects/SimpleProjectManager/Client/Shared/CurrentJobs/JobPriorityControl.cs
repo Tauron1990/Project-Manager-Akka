@@ -5,6 +5,7 @@ using System.Reactive.Disposables;
 using Microsoft.AspNetCore.Components;
 using ReactiveUI;
 using SimpleProjectManager.Client.Data.States;
+using Tauron;
 using Tauron.Application.Blazor.Commands;
 
 namespace SimpleProjectManager.Client.Shared.CurrentJobs;
@@ -39,11 +40,13 @@ public partial class JobPriorityControl
     protected override void InitializeModel()
     {
         this.WhenActivated(
-            (CompositeDisposable dispo) =>
+            dispo =>
             {
-                this.BindCommand(ViewModel, m => m.GoDown, v => v.Godown, _jobsViewModel.CurrentInfo).DisposeWith(dispo);
-                this.BindCommand(ViewModel, m => m.GoUp, v => v.Goup, _jobsViewModel.CurrentInfo).DisposeWith(dispo);
-                this.BindCommand(ViewModel, m => m.Priorize, v => v.Priorize, _jobsViewModel.CurrentInfo).DisposeWith(dispo);
+                var currentInfo = _globalState.Jobs.CurrentlySelectedPair.NotNull();
+                
+                this.BindCommand(ViewModel, m => m.GoDown, v => v.Godown, currentInfo).DisposeWith(dispo);
+                this.BindCommand(ViewModel, m => m.GoUp, v => v.Goup, currentInfo).DisposeWith(dispo);
+                this.BindCommand(ViewModel, m => m.Priorize, v => v.Priorize, currentInfo).DisposeWith(dispo);
             });
     }
 }

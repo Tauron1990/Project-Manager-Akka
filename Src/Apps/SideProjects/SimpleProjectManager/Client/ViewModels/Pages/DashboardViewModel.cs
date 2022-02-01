@@ -11,6 +11,6 @@ public sealed class DashboardViewModel : BlazorViewModel
     public DashboardViewModel(IStateFactory stateFactory, GlobalState globalState)
         : base(stateFactory)
     {
-        JobCountState = globalState.JobsState.ActiveJobsCount;
+        JobCountState = globalState.Jobs.ActiveJobsCount;
     }
 }

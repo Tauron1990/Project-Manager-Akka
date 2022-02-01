@@ -3,7 +3,7 @@
 @inject GlobalState _errorService
 @inject PageNavigation _navigation
 
-<ObservableRenderer Observable="_errorService.ErrorState">
+<ObservableRenderer Observable="_errorService.Errors">
     <ValueRenderer>
         <MudTooltip Text="Aktuelle Kritische Fehler">
             @if (context == 0)

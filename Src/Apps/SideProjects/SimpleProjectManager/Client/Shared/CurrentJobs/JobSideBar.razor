@@ -1,13 +1,16 @@
 ﻿@using System.Windows.Input
 @inherits NonAutoRenderingView<JobSidebarViewModel>
 
+@{
+    var currentJobs = ViewModel?.CurrentJobs;
+}
+
 <MudGrid>
     <MudItem lg="12">
         <MudCommandButton Class="ma-3" StartIcon="@Icons.Filled.NewLabel" @ref="NewJob">Neuer Job</MudCommandButton>
     </MudItem>
-    <StateAwaiter State="@ViewModel?.State">
 
-        @if (context == null || context.Count == 0 || ViewModel == null)
+        @if (currentJobs == null || currentJobs.Count == 0 || ViewModel == null)
         {
             <MudItem lg="12">
                 <MudText>Kein Aktiven Aufträge</MudText>
@@ -17,11 +20,11 @@
         {
             <MudItem lg="12">
                 <JobPriorityControl 
-                    ActivePairs="@context.Where(p => p.Info.Status is ProjectStatus.Entered or ProjectStatus.Pending).ToImmutableList()"/>
+                    ActivePairs="@currentJobs.Where(p => p.Info.Status is ProjectStatus.Entered or ProjectStatus.Pending).ToImmutableList()"/>
             </MudItem>
             <MudItem lg="12">
                 <MudList Clickable="true" SelectedValue="@ViewModel.SelectedValue" SelectedValueChanged="@(((ICommand)ViewModel.NewItemSelected).Execute)">
-                    @foreach (var job in context)
+                    @foreach (var job in currentJobs)
                     {
                         <MudListItem @key="job.Info.Project" Value="job">
                             <MudPaper Class="pa-2">
@@ -65,5 +68,4 @@
                 </MudList>
             </MudItem>
         }
-    </StateAwaiter>
 </MudGrid>

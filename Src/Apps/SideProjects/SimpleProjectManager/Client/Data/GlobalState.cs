@@ -14,22 +14,28 @@ public sealed class GlobalState : IDisposable
 
     public IRootStore RootStore { get; }
     
-    public JobsState JobsState { get; }
+    public JobsState Jobs { get; }
 
-    public FilesState FilesState { get; }
+    public FilesState Files { get; }
     
-    public ErrorState ErrorState { get; }
+    public ErrorState Errors { get; }
+
+    public TaskState Tasks { get; }
     
-    public GlobalState(IStateFactory stateFactory)
+    public GlobalState(IStateFactory stateFactory, IServiceProvider serviceProvider)
     {
-        var configuration = stateFactory.Services.GetRequiredService<IStoreConfiguration>();
-        OnlineMonitor = stateFactory.Services.GetRequiredService<IOnlineMonitor>();
+        var configuration = serviceProvider.GetRequiredService<IStoreConfiguration>();
+        OnlineMonitor = serviceProvider.GetRequiredService<IOnlineMonitor>();
         
-        JobsState = new JobsState(configuration, stateFactory);
-        ErrorState = new ErrorState(configuration, stateFactory);
-        FilesState = new FilesState(stateFactory);
+        Jobs = CreateState<JobsState>();
+        Errors = CreateState<ErrorState>();
+        Files = CreateState<FilesState>();
+        Tasks = CreateState<TaskState>();
         
         RootStore = configuration.Build();
+        
+        TState CreateState<TState>()
+            => ActivatorUtilities.CreateInstance<TState>(serviceProvider, configuration, stateFactory);
     }
 
     public void Dispatch(object action)

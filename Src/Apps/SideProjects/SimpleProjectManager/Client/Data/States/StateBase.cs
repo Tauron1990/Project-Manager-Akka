@@ -1,6 +1,7 @@
 ﻿using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Stl.Fusion;
+using Tauron;
 using Tauron.Applicarion.Redux;
 using Tauron.Applicarion.Redux.Configuration;
 using Tauron.Application.Blazor;
@@ -9,7 +10,7 @@ namespace SimpleProjectManager.Client.Data.States;
 
 public abstract class StateBase
 {
-    private IStateFactory StateFactory { get; }
+    protected IStateFactory StateFactory { get; }
     
 
     protected StateBase(IStateFactory stateFactory)

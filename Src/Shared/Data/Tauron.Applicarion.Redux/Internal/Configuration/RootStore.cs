@@ -10,6 +10,8 @@ public sealed class RootStore : IRootStore
     private readonly IReduxStore<MultiState> _reduxStore = new Store<MultiState>(new MultiState(ImmutableDictionary<Guid, StateData>.Empty), Scheduler.Default);
     private readonly Dictionary<Type, Guid> _guidMapping = new();
 
+    internal IActionDispatcher ActionDispatcher => _reduxStore;
+    
     public RootStore(List<IConfiguredState> configuredStates, Action<IReduxStore<MultiState>> config)
     {
         config(_reduxStore);

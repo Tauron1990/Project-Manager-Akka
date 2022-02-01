@@ -1,6 +1,8 @@
 ﻿using System.Reactive;
 using System.Reactive.Linq;
 using ReactiveUI;
+using SimpleProjectManager.Client.Data;
+using SimpleProjectManager.Client.Data.States;
 using SimpleProjectManager.Client.Shared.CriticalErrors;
 using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
@@ -17,20 +19,21 @@ public class CriticalErrorViewModel : BlazorViewModel
 
     public ReactiveCommand<Unit, Unit> Hide { get; }
 
-    public CriticalErrorViewModel(IStateFactory stateFactory, ICriticalErrorService errorService, IEventAggregator eventAggregator)
+    public CriticalErrorViewModel(IStateFactory stateFactory, GlobalState globalState)
         : base(stateFactory)
     {
         var currentError = GetParameter<CriticalError?>(nameof(CriticalErrorDispaly.Error));
         _item = currentError.ToObservable().ToProperty(this, m => m.Item).DisposeWith(this);
         
-        Hide = ReactiveCommand.CreateFromTask(
-            async () =>
+        Hide = ReactiveCommand.Create(
+            () =>
             {
                 var err = currentError.ValueOrDefault;
                 if(err is null) return;
-                await eventAggregator.IsSuccess(() => TimeoutToken.WithDefault(default,
-                                                    t => errorService.DisableError(err.Id, t)));
-            }, currentError.ToObservable().Select(d => d is not null).StartWith(false))
+                globalState.Dispatch(new DisableError(err));
+            }, 
+            currentError.ToObservable().Select(d => d is not null).StartWith(false)
+               .AndIsOnline(globalState.OnlineMonitor))
            .DisposeWith(this);
     }
 }

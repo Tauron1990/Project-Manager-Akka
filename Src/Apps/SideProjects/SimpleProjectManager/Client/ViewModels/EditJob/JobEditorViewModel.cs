@@ -58,7 +58,7 @@ public sealed class JobEditorViewModel : BlazorViewModel
             }, canCancel.ToObservable().StartWith(false))
            .DisposeWith(this);
 
-        Commit = ReactiveCommand.CreateFromTask(CreateCommit, _isValid);
+        Commit = ReactiveCommand.CreateFromTask(CreateCommit, _isValid.AndIsOnline(globalState.OnlineMonitor));
 
         async Task CreateCommit()
         {
@@ -70,7 +70,7 @@ public sealed class JobEditorViewModel : BlazorViewModel
                 return;
             }
 
-            await commitEvent.Value.InvokeAsync(globalState.JobsState.CreateNewJobData(Data, FileUploadTrigger.Upload));
+            await commitEvent.Value.InvokeAsync(globalState.Jobs.CreateNewJobData(Data, FileUploadTrigger.Upload));
         }
     }
     

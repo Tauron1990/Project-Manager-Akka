@@ -4,12 +4,26 @@ using Tauron.Operations;
 
 namespace SimpleProjectManager.Client.Data.States;
 
+public sealed record DisableError(CriticalError Error);
+
 public sealed record WriteCriticalError(DateTime Occurrence, string ApplicationPart, string Message, string? StackTrace, ImmutableList<ErrorProperty> ContextData)
 {
     public CriticalError ToCriticalError() => new(string.Empty, Occurrence, ApplicationPart, Message, StackTrace, ContextData);
 }
 
-public static class ErrorStateRequests
+internal static class ErrorStatePatcher
+{
+    public static InternalErrorState DecrementErrorCount(InternalErrorState errorState, DisableError error)
+    {
+        if (errorState.ErrorCount > 0)
+            return errorState with { ErrorCount = errorState.ErrorCount - 1 };
+
+        return errorState;
+    }
+        
+}
+
+internal static class ErrorStateRequests
 {
     public static Func<WriteCriticalError, CancellationToken, ValueTask<string?>> WriteError(ICriticalErrorService service)
     {
@@ -20,4 +34,7 @@ public static class ErrorStateRequests
                    return null;
                };
     }
+
+    public static Func<DisableError, CancellationToken, ValueTask<string?>> DisableError(ICriticalErrorService errorService)
+        => async (disable, token) => await errorService.DisableError(disable.Error.Id, token);
 }

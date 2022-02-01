@@ -26,15 +26,15 @@ public class JobSidebarViewModel : BlazorViewModel
     public JobSidebarViewModel(IStateFactory stateFactory, PageNavigation navigationManager, GlobalState globalState) 
         : base(stateFactory)
     {
-        _currentJobs = globalState.JobsState.CurrentJobs.Select(Sort).ToProperty(this, model => model.CurrentJobs).DisposeWith(this);
-        _selectedValue = globalState.JobsState.CurrentlySelectedPair.ToProperty(this, p => p.SelectedValue).DisposeWith(this);
+        _currentJobs = globalState.Jobs.CurrentJobs.Select(Sort).ToProperty(this, model => model.CurrentJobs).DisposeWith(this);
+        _selectedValue = globalState.Jobs.CurrentlySelectedPair.ToProperty(this, p => p.SelectedValue).DisposeWith(this);
         
         NewJob = ReactiveCommand.Create(navigationManager.NewJob, globalState.IsOnline);
         NewItemSelected = ReactiveCommand.Create<object, Unit>(
             o =>
             {
                 if(o is JobSortOrderPair pair)
-                    globalState.JobsState.NewSelection(pair);
+                    globalState.Dispatch(new SelectNewPairAction(pair));
                 
                 return Unit.Default;
             }, globalState.IsOnline);

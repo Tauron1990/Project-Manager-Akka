@@ -5,8 +5,7 @@
         <MudItem lg="12">
             <MudText Align="Align.Center" Typo="Typo.h3">Job Informationen</MudText>
         </MudItem>
-        <StateAwaiter State="ViewModel?.State">
-            @if (context != null)
+            @if (ViewModel?.JobData != null)
             {
                 <MudItem lg="12">
                     <MudPaper Class="ma-1 pa-3">
@@ -18,29 +17,29 @@
                                 <MudText Align="Align.End" Typo="Typo.h3">Job:</MudText>
                             </MudItem>
                             <MudItem lg="7" Class="m-1">
-                                <MudText Align="Align.Start" Typo="Typo.h3">@context.JobName.Value</MudText>
+                                <MudText Align="Align.Start" Typo="Typo.h3">@ViewModel.JobData.JobName.Value</MudText>
                             </MudItem>
                             <MudItem lg="5" Class="m-1">
                                 <MudText Align="Align.End" Typo="Typo.h5">Termin:</MudText>
                             </MudItem>
                             <MudItem lg="7" Class="m-1">
-                                <MudText Align="Align.Start" Typo="Typo.h5">@(context.Deadline?.Value.ToLocalTime().ToString("d") ?? "Kein Termin Gesetzt")</MudText>
+                                <MudText Align="Align.Start" Typo="Typo.h5">@(ViewModel.JobData.Deadline?.Value.ToLocalTime().ToString("d") ?? "Kein Termin Gesetzt")</MudText>
                             </MudItem>
                             <MudItem lg="5" Class="m-1">
                                 <MudText Align="Align.End" Typo="Typo.h5">Status:</MudText>
                             </MudItem>
                             <MudItem lg="7" Class="m-1">
-                                <MudText Align="Align.Start" Typo="Typo.h5">@JobTranslator.GetString(context.Status)</MudText>
+                                <MudText Align="Align.Start" Typo="Typo.h5">@JobTranslator.GetString(ViewModel.JobData.Status)</MudText>
                             </MudItem>
                         </MudGrid>
                     </MudPaper>
                 </MudItem>
                 <MudItem lg="12">
                     <MudPaper Class="ma-1 pa-3">
-                        @if (context.ProjectFiles.Count > 0)
+                        @if (ViewModel.JobData.ProjectFiles.Count > 0)
                         {
                             <MudGrid>
-                                @foreach (var file in context.ProjectFiles)
+                                @foreach (var file in ViewModel.JobData.ProjectFiles)
                                 {
                                     <MudItem lg="12" @key="file.Value">
                                         <FileDetailDisplay FileId="file"/>
@@ -61,6 +60,5 @@
                     <MudText Align="Align.Center" Typo="Typo.h3">Keine Daten Verfügbar</MudText>
                 </MudItem>
             }
-        </StateAwaiter>
     </MudGrid>
 </MudContainer>

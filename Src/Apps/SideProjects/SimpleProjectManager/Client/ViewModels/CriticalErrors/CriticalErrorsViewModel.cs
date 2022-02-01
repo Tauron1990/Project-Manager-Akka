@@ -14,5 +14,5 @@ public sealed class CriticalErrorsViewModel : BlazorViewModel
     
     public CriticalErrorsViewModel(IStateFactory stateFactory, GlobalState globalState)
         : base(stateFactory)
-        => Errors = globalState.IsOnline.CombineLatest(globalState.ErrorState.Errors, (online, errors) => new ErrorData(online, errors));
+        => Errors = globalState.IsOnline.CombineLatest(globalState.Errors.Errors, (online, errors) => new ErrorData(online, errors));
 }

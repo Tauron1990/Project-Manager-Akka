@@ -19,7 +19,7 @@ public sealed class CurrentJobsViewModel : BlazorViewModel
     public CurrentJobsViewModel(IStateFactory stateFactory, GlobalState state, PageNavigation pageNavigation)
         : base(stateFactory)
     {
-        Jobs = state.JobsState.CurrentJobs;
-        NewJob = ReactiveCommand.Create(pageNavigation.NewJob);
+        Jobs = state.Jobs.CurrentJobs;
+        NewJob = ReactiveCommand.Create(pageNavigation.NewJob, state.IsOnline);
     }
 }

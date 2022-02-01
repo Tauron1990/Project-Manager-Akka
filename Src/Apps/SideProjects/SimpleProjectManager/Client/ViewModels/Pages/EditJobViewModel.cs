@@ -24,10 +24,11 @@ public sealed class EditJobViewModel : BlazorViewModel
         JobId = GetParameter<string>(nameof(EditJob.ProjectId));
         Cancel = pageNavigation.ShowStartPage;
 
-        EditorData = state.JobsState.GetJobEditorData(JobId.ToObservable());
+        EditorData = state.Jobs.GetJobEditorData(JobId.ToObservable());
         
         var commit = ReactiveCommand.CreateFromObservable<JobEditorCommit, Unit>(
-            newData => state.JobsState.CommitJobData(newData, pageNavigation.ShowStartPage).ToObservable());
+            newData => state.Jobs.CommitJobData(newData, pageNavigation.ShowStartPage).ToObservable(),
+            state.IsOnline);
         
         Commit = commit.ToAction();
     }

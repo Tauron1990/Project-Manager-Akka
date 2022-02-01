@@ -19,7 +19,7 @@ public class JobDetailDisplayViewModel : BlazorViewModel
     public JobDetailDisplayViewModel(IStateFactory stateFactory, GlobalState globalState, PageNavigation navigationManager, IEventAggregator aggregator) 
         : base(stateFactory)
     {
-        _jobData = globalState.JobsState.CurrentlySelectedData.ToProperty(this, model => model.JobData);
+        _jobData = globalState.Jobs.CurrentlySelectedData.ToProperty(this, model => model.JobData);
         
         EditJob = ReactiveCommand.Create<ProjectId?, Unit>(
             id =>

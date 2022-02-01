@@ -12,7 +12,8 @@ public sealed class StoreConfiguration : IStoreConfiguration
     private readonly StateDb _stateDb;
     
     private readonly List<IConfiguredState> _configuredStates = new();
-    private readonly List<Action<IReduxStore<MultiState>>> _config = new(); 
+    private readonly List<Action<IReduxStore<MultiState>>> _config = new();
+    private readonly List<object> _finisher = new();
 
     public StoreConfiguration(IStateFactory stateFactory, IErrorHandler errorHandler, StateDb stateDb)
     {
@@ -30,6 +31,12 @@ public sealed class StoreConfiguration : IStoreConfiguration
         return this;
     }
 
+    public IStoreConfiguration RegisterForFhinising(object toRegister)
+    {
+        _finisher.Add(toRegister);
+        return this;
+    }
+
     public IRootStore Build()
     {
         var store = new RootStore(
@@ -43,6 +50,19 @@ public sealed class StoreConfiguration : IStoreConfiguration
         foreach (var configuredState in _configuredStates) 
             configuredState.PostBuild(store);
 
+        foreach (var toCall in _finisher)
+        {
+            switch (toCall)
+            {
+                case IProvideActionDispatcher toProvideActionDispatcher:
+                    toProvideActionDispatcher.StoreCreated(store.ActionDispatcher);
+                    break;
+                case IProvideRootStore toProvideStore:
+                    toProvideStore.StoreCreated(store);
+                    break;
+            }
+        }
+        
         return store;
     }
 }

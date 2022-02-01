@@ -1,9 +1,11 @@
 ﻿using System.Collections.Immutable;
+using System.Reactive.Linq;
 using Microsoft.AspNetCore.Components.Forms;
 using SimpleProjectManager.Client.ViewModels;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
+using Tauron.Application.Blazor;
 
 namespace SimpleProjectManager.Client.Data.States;
 
@@ -27,13 +29,13 @@ public sealed class FilesState : StateBase
 
     public IObservable<DatabaseFile[]> AllFiles { get; }
 
-    public FilesState(IStateFactory stateFactory)
+    public FilesState(IStateFactory stateFactory, IJobFileService jobFileService, Func<UploadTransaction> uploadTransaction)
         : base(stateFactory)
     {
-        _service = stateFactory.Services.GetRequiredService<IJobFileService>();
+        _service = jobFileService;
 
         AllFiles = FromServer(_service.GetAllFiles);
-        _transactionFactory = stateFactory.Services.GetRequiredService<UploadTransaction>;
+        _transactionFactory = uploadTransaction;
     }
 
     public async Task DeleteFile(DatabaseFile file, CancellationToken token)
@@ -41,4 +43,24 @@ public sealed class FilesState : StateBase
 
     public UploadTransaction CreateUpload()
         => _transactionFactory();
+
+    public IObservable<ProjectFileInfo?> QueryFileInfo(IState<ProjectFileId?> id)
+    {
+        async Task<ProjectFileInfo?> ComputeState(IComputedState<ProjectFileInfo?> unused, CancellationToken cancellationToken)
+        {
+            var actualId = await id.Use(cancellationToken);
+
+            if (actualId is null) return null;
+
+            return await _service.GetJobFileInfo(actualId, cancellationToken);
+        }
+
+        return Observable.Defer(
+            () =>
+            {
+                var computer = StateFactory.NewComputed<ProjectFileInfo?>(ComputeState);
+
+                return computer.ToObservable().Finally(computer.Dispose);
+            });
+    }
 }
