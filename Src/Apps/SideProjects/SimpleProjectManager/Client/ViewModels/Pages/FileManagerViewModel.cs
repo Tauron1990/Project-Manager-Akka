@@ -1,10 +1,8 @@
-﻿using System.Collections.Immutable;
-using System.Reactive;
+﻿using System.Reactive;
 using System.Reactive.Linq;
 using ReactiveUI;
 using SimpleProjectManager.Client.Data;
 using SimpleProjectManager.Shared;
-using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
 using Tauron;
 using Tauron.Application;
@@ -16,13 +14,13 @@ public sealed class FileManagerViewModel : BlazorViewModel
 {
     private record struct FilesInfo(bool IsLoading, DatabaseFile[] Files);
     
-    private ObservableAsPropertyHelper<bool> _loading;
+    private readonly ObservableAsPropertyHelper<bool> _loading;
     public bool IsLoading => _loading.Value;
 
-    private ObservableAsPropertyHelper<DatabaseFile[]> _files;
+    private readonly ObservableAsPropertyHelper<DatabaseFile[]> _files;
     public DatabaseFile[] Files => _files.Value;
 
-    private ObservableAsPropertyHelper<Exception?> _error;
+    private readonly ObservableAsPropertyHelper<Exception?> _error;
     public Exception? Error => _error.Value;
 
     public Action<DatabaseFile> DeleteFile { get; }

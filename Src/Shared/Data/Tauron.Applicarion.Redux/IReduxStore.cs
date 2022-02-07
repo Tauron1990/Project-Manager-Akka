@@ -19,7 +19,7 @@ public interface IReduxStore<TState> : IActionDispatcher, IDisposable
 
     IObservable<TState> Select();
 
-    IObservable<ActionState<TState, TAction>> ObservAction<TAction>();
+    IObservable<ActionState<TState, TAction>> ObservActionState<TAction>();
 
     IObservable<TResult> ObservAction<TAction, TResult>(Func<TState, TAction, TResult> selector);
 

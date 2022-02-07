@@ -11,12 +11,12 @@ namespace SimpleProjectManager.Client.Data.States;
 
 public sealed class FilesState : StateBase
 {
-    private static readonly string[] AllowedContentTypes =
+    public static readonly string[] AllowedContentTypes =
     {
         "application/pdf", "application/x-zip-compressed", "application/zip", "image/tiff", "image/x-tiff"
     };
     
-    private const long MaxSize = 524_288_000;
+    public const long MaxSize = 524_288_000;
     
     public static string IsFileValid(IBrowserFile file)
     {

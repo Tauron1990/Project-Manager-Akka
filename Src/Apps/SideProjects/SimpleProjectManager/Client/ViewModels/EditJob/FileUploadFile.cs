@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components.Forms;
 using ReactiveUI;
+using SimpleProjectManager.Client.Data.States;
 
 namespace SimpleProjectManager.Client.ViewModels;
 
@@ -27,7 +28,7 @@ public class FileUploadFile : ReactiveObject
 
 
     public Stream Open(CancellationToken token)
-        => BrowserFile.OpenReadStream(FileUploaderViewModel.MaxSize, token);
+        => BrowserFile.OpenReadStream(FilesState.MaxSize, token);
 
     public FileUploadFile(IBrowserFile browserFile)
         => BrowserFile = browserFile;

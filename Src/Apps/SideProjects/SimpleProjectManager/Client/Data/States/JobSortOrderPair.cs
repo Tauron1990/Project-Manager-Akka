@@ -1,5 +1,4 @@
-﻿using SimpleProjectManager.Shared;
-using SimpleProjectManager.Shared.Services;
+﻿using SimpleProjectManager.Shared.Services;
 
 namespace SimpleProjectManager.Client.Data.States;
 

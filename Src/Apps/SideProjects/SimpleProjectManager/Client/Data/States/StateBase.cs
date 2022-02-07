@@ -1,7 +1,6 @@
 ﻿using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Stl.Fusion;
-using Tauron;
 using Tauron.Applicarion.Redux;
 using Tauron.Applicarion.Redux.Configuration;
 using Tauron.Application.Blazor;

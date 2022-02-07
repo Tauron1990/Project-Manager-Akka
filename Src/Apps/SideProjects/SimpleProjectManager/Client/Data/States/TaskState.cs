@@ -1,6 +1,4 @@
 ﻿using System.Reactive.Linq;
-using JetBrains.Annotations;
-using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services.Tasks;
 using Stl.Fusion;
 using Tauron;

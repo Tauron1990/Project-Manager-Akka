@@ -8,12 +8,12 @@ namespace SimpleProjectManager.Client.Shared.Tasks;
 
 public partial class PendingTaskDisplay
 {
-    private MudCommandButton _cancelButton;
+    private MudCommandButton? _cancelButton;
 
     [Parameter]
     public PendingTask? PendingTask { get; set; }
 
-    public MudCommandButton CancelButton
+    public MudCommandButton? CancelButton
     {
         get => _cancelButton;
         set => this.RaiseAndSetIfChanged(ref _cancelButton, value);

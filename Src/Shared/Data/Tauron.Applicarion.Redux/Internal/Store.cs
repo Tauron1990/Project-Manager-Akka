@@ -56,7 +56,7 @@ internal sealed class Store<TState> : IReduxStore<TState>
     public IObservable<TState> Select()
         => _currentState.ObserveOn(_scheduler).DistinctUntilChanged();
 
-    public IObservable<ActionState<TState, TAction>> ObservAction<TAction>()
+    public IObservable<ActionState<TState, TAction>> ObservActionState<TAction>()
         => from actionDipatched in _dispatched.ObserveOn(_scheduler)
            where actionDipatched.Action is TAction
            select new ActionState<TState, TAction>(actionDipatched.State, ((TAction)actionDipatched.Action!)!);

@@ -1,10 +1,8 @@
-﻿using System.Reactive.Disposables;
-using SimpleProjectManager.Client.Data.Core;
+﻿using SimpleProjectManager.Client.Data.Core;
 using Tauron;
 using Tauron.Applicarion.Redux;
 using Tauron.Applicarion.Redux.Configuration;
 using Tauron.Applicarion.Redux.Extensions.Cache;
-using Tauron.Applicarion.Redux.Internal.Configuration;
 using Tavenem.Blazor.IndexedDB;
 
 namespace SimpleProjectManager.Client.Data;

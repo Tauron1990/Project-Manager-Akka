@@ -1,15 +1,10 @@
-﻿using System.Collections.Immutable;
-using System.Reactive.Linq;
-using SimpleProjectManager.Client.ViewModels;
-using SimpleProjectManager.Shared;
+﻿using System.Reactive.Linq;
 using SimpleProjectManager.Shared.Services;
 using SimpleProjectManager.Shared.Validators;
 using Stl.Fusion;
-using Tauron;
 using Tauron.Applicarion.Redux;
 using Tauron.Applicarion.Redux.Configuration;
 using Tauron.Application;
-using Tauron.Application.Blazor;
 
 namespace SimpleProjectManager.Client.Data.States;
 

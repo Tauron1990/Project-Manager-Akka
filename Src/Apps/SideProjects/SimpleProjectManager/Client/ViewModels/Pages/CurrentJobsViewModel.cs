@@ -1,11 +1,8 @@
 ﻿using System.Reactive;
-using System.Reactive.Linq;
 using ReactiveUI;
 using SimpleProjectManager.Client.Data;
 using SimpleProjectManager.Client.Data.States;
-using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
-using Tauron;
 using Tauron.Application.Blazor;
 
 namespace SimpleProjectManager.Client.ViewModels;

@@ -3,6 +3,8 @@ using SimpleProjectManager.Client.ViewModels;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
 using Tauron;
+using Tauron.Application;
+using Tauron.Application.Blazor;
 
 namespace SimpleProjectManager.Client.Data.States;
 
@@ -90,7 +92,7 @@ internal static class JobDataRequests
         return new CurrentSelected(pair, jobData);
     }
 
-    public static Func<CommitJobEditorData, CancellationToken, ValueTask<string?>> PostJobCommit(IJobDatabaseService service)
+    public static Func<CommitJobEditorData, CancellationToken, ValueTask<string?>> PostJobCommit(IJobDatabaseService service, IEventAggregator aggregator)
     {
         return async (input, token) =>
                {
@@ -120,6 +122,7 @@ internal static class JobDataRequests
                    }
                    catch (Exception e)
                    {
+                       aggregator.PublishError(e);
                        input.OnCompled(false);
                        throw;
                    }

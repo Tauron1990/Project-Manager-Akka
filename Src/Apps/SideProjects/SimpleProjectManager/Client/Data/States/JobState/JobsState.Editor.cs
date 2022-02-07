@@ -15,7 +15,7 @@ public partial class JobsState
         => configuration.ApplyRequests(
             f =>
             {
-                f.AddRequest(JobDataRequests.PostJobCommit(_service), JobDataPatcher.PatchEditorCommit);
+                f.AddRequest(JobDataRequests.PostJobCommit(_service, _eventAggregator), JobDataPatcher.PatchEditorCommit);
             });
 
     public string ValidateProjectName(string? arg)

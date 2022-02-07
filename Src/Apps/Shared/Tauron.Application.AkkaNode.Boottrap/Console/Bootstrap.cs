@@ -56,9 +56,11 @@ public static partial class Bootstrap
                             (host, cb) =>
                             {
                                 cb.TryAddSingleton(host.Configuration);
-                                cb.AddHostedService<NodeAppService>();
-                                cb.AddScoped<IStartUpAction, KillHelper>();
-                                cb.AddSingleton<IIpcConnection>(ipc);
+
+                                #pragma warning disable GU0011
+                                cb.AddHostedService<NodeAppService>()
+                                .AddScoped<IStartUpAction, KillHelper>()
+                                .AddSingleton<IIpcConnection>(ipc);
                             })
                        .ConfigureAkkaSystem(
                             (_, system) =>

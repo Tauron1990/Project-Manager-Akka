@@ -7,7 +7,6 @@ using SimpleProjectManager.Client.Shared.CriticalErrors;
 using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
 using Tauron;
-using Tauron.Application;
 using Tauron.Application.Blazor;
 
 namespace SimpleProjectManager.Client.ViewModels;
