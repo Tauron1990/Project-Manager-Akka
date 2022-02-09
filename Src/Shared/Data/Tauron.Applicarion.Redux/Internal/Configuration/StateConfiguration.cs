@@ -162,6 +162,7 @@ public sealed class RequesterFactory<TState> : IRequestFactory<TState> where TSt
 
     public IRequestFactory<TState> OnTheFlyUpdate<TSource, TData>(Func<TState, TSource> sourceSelector, Func<CancellationToken, Func<CancellationToken, ValueTask<TSource>>, Task<TData>> fetcher, Func<TState, TData, TState> patcher)
     {
+        Console.WriteLine("On the Fly Update");
         _registrar.Add(
             s =>
             {

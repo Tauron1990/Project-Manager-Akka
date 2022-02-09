@@ -12,7 +12,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddStoreConfiguration(this IServiceCollection coll)
     {
         coll.AddTransient<TimeoutManager>()
-           .AddSingleton<StateDb>()
+           .AddScoped<StateDb>()
            .AddTransient<IStoreConfiguration, StoreConfiguration>();
         coll.AddFusion();
 

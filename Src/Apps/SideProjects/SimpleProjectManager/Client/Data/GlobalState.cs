@@ -8,6 +8,8 @@ namespace SimpleProjectManager.Client.Data;
 
 public sealed class GlobalState : IDisposable
 {
+    private readonly IDisposable _scope;
+
     public IOnlineMonitor OnlineMonitor { get; }
 
     public IObservable<bool> IsOnline => OnlineMonitor.Online;
@@ -22,8 +24,12 @@ public sealed class GlobalState : IDisposable
 
     public TaskState Tasks { get; }
     
-    public GlobalState(IStateFactory stateFactory, IServiceProvider serviceProvider)
+    public GlobalState(IStateFactory stateFactory, IServiceProvider rootProvider)
     {
+        var scope = rootProvider.CreateScope();
+        _scope = scope;
+        var serviceProvider = scope.ServiceProvider;
+
         var configuration = serviceProvider.GetRequiredService<IStoreConfiguration>();
         OnlineMonitor = serviceProvider.GetRequiredService<IOnlineMonitor>();
         
@@ -42,5 +48,8 @@ public sealed class GlobalState : IDisposable
         => RootStore.Dispatch(action);
 
     public void Dispose()
-        => RootStore.Dispose();
+    {
+        _scope.Dispose();
+        RootStore.Dispose();
+    }
 }

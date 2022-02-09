@@ -13,12 +13,14 @@ public class DataModule : IModule
     {
         collection.RegisterModules(new CommonModule());
         
+
         collection.AddIndexedDb(new IndexedDb<CacheDataId>(nameof(CacheData)));
         collection.AddIndexedDb(new IndexedDb<CacheTimeoutId>(nameof(CacheTimeout)));
 
         collection.AddSingleton<GlobalState>();
-        
-        collection.AddScoped<CacheDb>();
+
+        collection.AddScoped<IOnlineMonitor, OnlineMonitor>();
+        collection.AddScoped<ICacheDb, CacheDb>();
         collection.AddScoped<IErrorHandler, ErrorHandler>();
         collection.AddStoreConfiguration();
     }

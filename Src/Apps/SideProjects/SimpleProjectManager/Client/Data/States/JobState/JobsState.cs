@@ -51,11 +51,14 @@ public sealed partial class JobsState : StateBase<InternalJobData>
                 f => f.On<SelectNewPairAction>(JobDataPatcher.ReplaceSlected))
            .ApplyRequests(
                 requestFactory =>
+                {
+                    Console.WriteLine($"Request Factory: {requestFactory}");
                     requestFactory.OnTheFlyUpdate(
                             JobDataSelectors.CurrentSelected,
                             (cancel, source) => JobDataRequests.FetchjobData(source, _service, cancel),
                             JobDataPatcher.ReplaceSelected)
-                       .AddRequest<SetSortOrder>(_service.ChangeOrder!, JobDataPatcher.PatchSortOrder));
+                       .AddRequest<SetSortOrder>(_service.ChangeOrder!, JobDataPatcher.PatchSortOrder);
+                });
     }
 
     protected override void PostConfiguration(IRootStoreState<InternalJobData> state)
