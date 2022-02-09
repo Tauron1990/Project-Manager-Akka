@@ -1,4 +1,5 @@
-﻿using Stl.Fusion;
+﻿using Microsoft.Extensions.Logging;
+using Stl.Fusion;
 using Tauron.Applicarion.Redux.Configuration;
 using Tauron.Applicarion.Redux.Extensions.Cache;
 using Tauron.Applicarion.Redux.Extensions.Internal;
@@ -10,7 +11,7 @@ public sealed class StoreConfiguration : IStoreConfiguration
     private readonly IStateFactory _stateFactory;
     private readonly IErrorHandler _errorHandler;
     private readonly StateDb _stateDb;
-    
+
     private readonly List<IConfiguredState> _configuredStates = new();
     private readonly List<Action<IReduxStore<MultiState>>> _config = new();
     private readonly List<object> _finisher = new();

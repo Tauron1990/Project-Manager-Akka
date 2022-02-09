@@ -2,9 +2,15 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using SimpleProjectManager.Client.Data;
+using SimpleProjectManager.Client.Data.States;
+using SimpleProjectManager.Shared;
+using SimpleProjectManager.Shared.Services;
+using Tauron;
 using Tauron.Applicarion.Redux;
 using Tauron.Applicarion.Redux.Configuration;
 using Tauron.Applicarion.Redux.Extensions.Cache;
@@ -95,14 +101,80 @@ internal sealed class TestErrorHandler : IErrorHandler
         => RequestError(error);
 }
 
-public sealed record TestState(int Counter)
+internal sealed class FakeOnlineModitor : IOnlineMonitor
 {
-    public TestState() : this(0) {}
+    public IObservable<bool> Online { get; } = Observable.Return(true);
+    public Task<bool> IsOnline()
+        => Task.FromResult(true);
 }
 
-public sealed record IncremntAction;
+#pragma warning disable EX002
 
+internal sealed class FakeJobDatabaseService : IJobDatabaseService
+{
+    public Task<JobInfo[]> GetActiveJobs(CancellationToken token)
+        => Task.FromResult(Array.Empty<JobInfo>());
 
+    public Task<SortOrder[]> GetSortOrders(CancellationToken token)
+        => Task.FromResult(Array.Empty<SortOrder>());
+
+    public Task<JobData> GetJobData(ProjectId id, CancellationToken token)
+        => throw new InvalidOperationException();
+
+    public Task<long> CountActiveJobs(CancellationToken token)
+        => throw new InvalidOperationException();
+
+    public Task<string> DeleteJob(ProjectId id, CancellationToken token)
+        => throw new InvalidOperationException();
+
+    public Task<string> CreateJob(CreateProjectCommand command, CancellationToken token)
+        => throw new InvalidOperationException();
+
+    public Task<string> ChangeOrder(SetSortOrder newOrder, CancellationToken token)
+        => throw new InvalidOperationException();
+
+    public Task<string> UpdateJobData(UpdateProjectCommand command, CancellationToken token)
+        => throw new InvalidOperationException();
+
+    public Task<AttachResult> AttachFiles(ProjectAttachFilesCommand command, CancellationToken token)
+        => throw new InvalidOperationException();
+
+    public Task<string> RemoveFiles(ProjectRemoveFilesCommand command, CancellationToken token)
+        => throw new InvalidOperationException();
+}
+
+internal sealed class FakeErrorService : ICriticalErrorService
+{
+    public Task<long> CountErrors(CancellationToken token)
+        => Task.FromResult(0L);
+
+    public Task<CriticalError[]> GetErrors(CancellationToken token)
+        => throw new InvalidOperationException();
+
+    public Task<string> DisableError(string id, CancellationToken token)
+        => throw new InvalidOperationException();
+
+    public Task WriteError(CriticalError error, CancellationToken token)
+        => throw new InvalidOperationException();
+}
+
+internal sealed class FakeFileService : IJobFileService
+{
+    public Task<ProjectFileInfo?> GetJobFileInfo(ProjectFileId id, CancellationToken token)
+        => throw new InvalidOperationException();
+
+    public Task<DatabaseFile[]> GetAllFiles(CancellationToken token)
+        => throw new InvalidOperationException();
+
+    public Task<string> RegisterFile(ProjectFileInfo projectFile, CancellationToken token)
+        => throw new InvalidOperationException();
+
+    public Task<string> CommitFiles(FileList files, CancellationToken token)
+        => throw new InvalidOperationException();
+
+    public Task<string> DeleteFiles(FileList files, CancellationToken token)
+        => throw new InvalidOperationException();
+}
 
 static class Program
 {
@@ -111,33 +183,24 @@ static class Program
         var coll = new ServiceCollection();
         coll.AddTransient<IErrorHandler, TestErrorHandler>();
         coll.AddSingleton<ICacheDb, TestCache>();
-        coll.AddRootStore(CreateTestStore);
+
+        coll.AddSingleton<IOnlineMonitor, FakeOnlineModitor>();
+        coll.AddTransient<IJobDatabaseService, FakeJobDatabaseService>();
+        coll.AddTransient<ICriticalErrorService, FakeErrorService>();
+        coll.AddTransient<IJobFileService, FakeFileService>();
+
+        coll.AddSingleton<GlobalState>();
+        coll.AddStoreConfiguration();
+
+        coll.RegisterModule<CommonModule>();
         
         await using var prov = coll.BuildServiceProvider();
-        var store = prov.GetRequiredService<IRootStore>();
-        using var _ = store.ForState<TestState>().Select(state => state.Counter).Subscribe(Console.WriteLine);
+        var store = prov.GetRequiredService<GlobalState>();
         
         await Task.Delay(3000);
-        store.Dispatch(new IncremntAction());
 
         Console.WriteLine();
         Console.WriteLine("Fertig...");
         Console.ReadKey();
-    }
-
-    private static void CreateTestStore(IStoreConfiguration config)
-    {
-        config.NewState<TestState>(
-            source => source
-               .FromCacheAndServer(TestRequest)
-               .ApplyReducer(f => f.On<IncremntAction>(ts => ts with { Counter = ts.Counter + 1 }))
-               .AndFinish());
-    }
-
-    private static async Task<TestState> TestRequest(CancellationToken token)
-    {
-        await Task.Delay(2000, token);
-
-        return new TestState(5);
     }
 }

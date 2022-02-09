@@ -135,59 +135,59 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessCpuDelegator", "Src\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{FBB502A4-BB21-4741-A4DF-6937DC00D4D4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tauron.Application.Common", "Src\Shared\Common\Tauron.Application.Common\Tauron.Application.Common.csproj", "{128D2509-1B35-4B39-BE11-2D1659BAFE6F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tauron.Application.Common", "Src\Shared\Common\Tauron.Application.Common\Tauron.Application.Common.csproj", "{128D2509-1B35-4B39-BE11-2D1659BAFE6F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tauron.Application.Common.Akka", "Src\Shared\Common\Tauron.Application.Common.Akka\Tauron.Application.Common.Akka.csproj", "{FFC61549-9402-4334-AB41-F48858A2C301}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tauron.Application.Common.Akka", "Src\Shared\Common\Tauron.Application.Common.Akka\Tauron.Application.Common.Akka.csproj", "{FFC61549-9402-4334-AB41-F48858A2C301}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tauron.Application.Common.Localization", "Src\Shared\Common\Tauron.Application.Common.Localization\Tauron.Application.Common.Localization.csproj", "{641717DE-F15E-4484-8E31-BCAB66D179B3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tauron.Application.Common.Localization", "Src\Shared\Common\Tauron.Application.Common.Localization\Tauron.Application.Common.Localization.csproj", "{641717DE-F15E-4484-8E31-BCAB66D179B3}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UI", "UI", "{B16B3AD9-4C05-4041-93E3-CD143E5F2ED7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tauron.Application.CommonUI", "Src\Shared\UI\Tauron.Application.CommonUI\Tauron.Application.CommonUI.csproj", "{B7BF52A3-D218-45F6-B5FB-B15AFA630DF8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tauron.Application.CommonUI", "Src\Shared\UI\Tauron.Application.CommonUI\Tauron.Application.CommonUI.csproj", "{B7BF52A3-D218-45F6-B5FB-B15AFA630DF8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tauron.Application.Settings", "Src\Shared\Common\Tauron.Application.Settings\Tauron.Application.Settings.csproj", "{698693F2-8B74-4705-AA29-628B7EA9E61C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tauron.Application.Settings", "Src\Shared\Common\Tauron.Application.Settings\Tauron.Application.Settings.csproj", "{698693F2-8B74-4705-AA29-628B7EA9E61C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Workshop", "Workshop", "{B07210B5-089A-4B1A-B819-09BF3A8FD2DE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tauron.Application.Workshop", "Src\Shared\Workshop\Tauron.Application.Workshop\Tauron.Application.Workshop.csproj", "{72C28824-A6FD-4417-96A9-D45D234B5DC8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tauron.Application.Workshop", "Src\Shared\Workshop\Tauron.Application.Workshop\Tauron.Application.Workshop.csproj", "{72C28824-A6FD-4417-96A9-D45D234B5DC8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tauron.Application.Workshop.StateManagement", "Src\Shared\Workshop\Tauron.Application.Workshop.StateManagement\Tauron.Application.Workshop.StateManagement.csproj", "{5B4D4032-26C7-44F4-880A-2F566AE47EB2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tauron.Application.Workshop.StateManagement", "Src\Shared\Workshop\Tauron.Application.Workshop.StateManagement\Tauron.Application.Workshop.StateManagement.csproj", "{5B4D4032-26C7-44F4-880A-2F566AE47EB2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tauron.Application.Logging", "Src\Shared\Common\Tauron.Application.Logging\Tauron.Application.Logging.csproj", "{2DB48C69-E1FC-4997-955D-EEDC6834B2D8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tauron.Application.Logging", "Src\Shared\Common\Tauron.Application.Logging\Tauron.Application.Logging.csproj", "{2DB48C69-E1FC-4997-955D-EEDC6834B2D8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tauron.Application.CommonUI.States", "Src\Shared\UI\Tauron.Application.CommonUI.States\Tauron.Application.CommonUI.States.csproj", "{D43D57BA-83E8-4C70-ADE0-26C5A234CB32}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tauron.Application.CommonUI.States", "Src\Shared\UI\Tauron.Application.CommonUI.States\Tauron.Application.CommonUI.States.csproj", "{D43D57BA-83E8-4C70-ADE0-26C5A234CB32}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tauron.Application.SoftwareRepo", "Src\Shared\Workshop\Tauron.Application.SoftwareRepo\Tauron.Application.SoftwareRepo.csproj", "{00049AFC-8447-4512-B70F-7A1ECF577D09}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tauron.Application.SoftwareRepo", "Src\Shared\Workshop\Tauron.Application.SoftwareRepo\Tauron.Application.SoftwareRepo.csproj", "{00049AFC-8447-4512-B70F-7A1ECF577D09}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Files", "Files", "{6F29CAF5-6D49-4AFD-9E82-F8EF8F01D74D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Data", "Data", "{BC25DF2A-DCD8-4120-B224-6630824437B7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tauron.Akkatecture.Projections", "Src\Shared\Data\Tauron.Akkatecture.Projections\Tauron.Akkatecture.Projections.csproj", "{177980DE-44DD-4A53-BFC6-E6372515B16B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tauron.Akkatecture.Projections", "Src\Shared\Data\Tauron.Akkatecture.Projections\Tauron.Akkatecture.Projections.csproj", "{177980DE-44DD-4A53-BFC6-E6372515B16B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tauron.Application.Files", "Src\Shared\Files\Tauron.Application.Files\Tauron.Application.Files.csproj", "{248F845B-A623-41CD-B773-17AC7E01CD7B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tauron.Application.Files", "Src\Shared\Files\Tauron.Application.Files\Tauron.Application.Files.csproj", "{248F845B-A623-41CD-B773-17AC7E01CD7B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tauron.Application.Files.Zip", "Src\Shared\Files\Tauron.Application.Files.Zip\Tauron.Application.Files.Zip.csproj", "{FF807EC6-1E49-4820-A10F-8710F746A4C5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tauron.Application.Files.GridFS", "Src\Shared\Files\Tauron.Application.Files.GridFS\Tauron.Application.Files.GridFS.csproj", "{65ADEE62-0AFC-4278-B67E-48882911FDBE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tauron.Grid", "Src\Shared\UI\Tauron.Grid\Tauron.Grid.csproj", "{D7FDD074-644F-4573-B028-1D2B92BE92E0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tauron.Grid", "Src\Shared\UI\Tauron.Grid\Tauron.Grid.csproj", "{D7FDD074-644F-4573-B028-1D2B92BE92E0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tauron.Application.Avalonia", "Src\Shared\UI\Tauron.Application.Avalonia\Tauron.Application.Avalonia.csproj", "{C0FAC1CE-7A84-4E76-BE00-E47CE271C039}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tauron.Application.Avalonia", "Src\Shared\UI\Tauron.Application.Avalonia\Tauron.Application.Avalonia.csproj", "{C0FAC1CE-7A84-4E76-BE00-E47CE271C039}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tauron.Application.Wpf", "Src\Shared\UI\Tauron.Application.Wpf\Tauron.Application.Wpf.csproj", "{4932AF75-484D-4913-ADE6-EF5EF42E1BE6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tauron.Application.Wpf", "Src\Shared\UI\Tauron.Application.Wpf\Tauron.Application.Wpf.csproj", "{4932AF75-484D-4913-ADE6-EF5EF42E1BE6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tauron.Application.Workshop.Akka", "Src\Shared\Workshop\Tauron.Application.Workshop.Akka\Tauron.Application.Workshop.Akka.csproj", "{757BA21B-C861-4E7F-85A4-7325563C0CAC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tauron.Application.Workshop.Akka", "Src\Shared\Workshop\Tauron.Application.Workshop.Akka\Tauron.Application.Workshop.Akka.csproj", "{757BA21B-C861-4E7F-85A4-7325563C0CAC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tauron.Application.Workshop.Task", "Src\Shared\Workshop\Tauron.Application.Workshop.Task\Tauron.Application.Workshop.Task.csproj", "{AC81DA80-8444-4D21-A0F9-E5BD503403F0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tauron.Application.Workshop.Task", "Src\Shared\Workshop\Tauron.Application.Workshop.Task\Tauron.Application.Workshop.Task.csproj", "{AC81DA80-8444-4D21-A0F9-E5BD503403F0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tauron.Application.Workshop.StateManagement.Akka", "Src\Shared\Workshop\Tauron.Application.Workshop.StateManagement.Akka\Tauron.Application.Workshop.StateManagement.Akka.csproj", "{D3FDBEB6-254F-4090-951A-7AE738C08FD0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tauron.Application.Workshop.StateManagement.Akka", "Src\Shared\Workshop\Tauron.Application.Workshop.StateManagement.Akka\Tauron.Application.Workshop.StateManagement.Akka.csproj", "{D3FDBEB6-254F-4090-951A-7AE738C08FD0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tauron.Application.Blazor", "Src\Shared\UI\Tauron.Application.Blazor\Tauron.Application.Blazor.csproj", "{61BB96B6-152C-46A7-BFFF-317922D7AE3E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tauron.Application.Blazor", "Src\Shared\UI\Tauron.Application.Blazor\Tauron.Application.Blazor.csproj", "{61BB96B6-152C-46A7-BFFF-317922D7AE3E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Akkatecture.Abstractions", "Src\Shared\External\Akkatecture.Abstractions\Akkatecture.Abstractions.csproj", "{33E1FFCD-1F4C-4B49-945A-9BD00DC85CFD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Akkatecture.Abstractions", "Src\Shared\External\Akkatecture.Abstractions\Akkatecture.Abstractions.csproj", "{33E1FFCD-1F4C-4B49-945A-9BD00DC85CFD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tauron.Applicarion.Redux", "Src\Shared\Data\Tauron.Applicarion.Redux\Tauron.Applicarion.Redux.csproj", "{B426D900-3BFA-4F01-9208-067F662F70E5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tauron.Applicarion.Redux", "Src\Shared\Data\Tauron.Applicarion.Redux\Tauron.Applicarion.Redux.csproj", "{B426D900-3BFA-4F01-9208-067F662F70E5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1527,6 +1527,7 @@ Global
 		{B2B779E8-C25A-4163-84A4-D96FCB54D09B} = {D32A84E7-9DA0-461D-B03B-267E84B7D778}
 		{5240E794-95D4-4B50-8E87-22417D517216} = {79F4F24B-7CCF-4905-8933-2D43F86AE096}
 		{B59E2F2F-0151-457A-A44C-37101D412149} = {79F4F24B-7CCF-4905-8933-2D43F86AE096}
+		{5BF63585-1BC8-4426-B759-1A8F11C84B84} = {79F4F24B-7CCF-4905-8933-2D43F86AE096}
 		{DA9FE433-00BC-4867-B7B2-110A479353D0} = {5BF63585-1BC8-4426-B759-1A8F11C84B84}
 		{5796968C-4CF1-4604-B206-DC073E836D0D} = {5BF63585-1BC8-4426-B759-1A8F11C84B84}
 		{A5C372A4-9762-4CE5-906C-24075813C668} = {5BF63585-1BC8-4426-B759-1A8F11C84B84}
@@ -1557,6 +1558,7 @@ Global
 		{6A0716C8-A079-4E2B-894E-FF9C96113E53} = {5BF63585-1BC8-4426-B759-1A8F11C84B84}
 		{ED36B25F-4252-4B1C-B06F-A4089AB6077B} = {06C2AE73-CFD3-4AF4-92F5-723E0C47D65B}
 		{3AEC5148-F81F-4179-89D0-33DC28EB4B93} = {9F0D00CD-133F-412C-B87F-EE6051E28700}
+		{44BB223B-89CA-43E0-9401-7240F683005F} = {3AEC5148-F81F-4179-89D0-33DC28EB4B93}
 		{A9651267-52AE-40A1-8E30-A289A41B5A10} = {3AEC5148-F81F-4179-89D0-33DC28EB4B93}
 		{2DF929B3-D7F7-43B1-9641-10A15A2C04E9} = {06C2AE73-CFD3-4AF4-92F5-723E0C47D65B}
 		{967C6CF1-BA0D-422D-A824-44009C2F357B} = {3AEC5148-F81F-4179-89D0-33DC28EB4B93}
@@ -1567,10 +1569,8 @@ Global
 		{AECA76CD-A240-4307-9F17-FE8A75429B24} = {3956CBDB-5F8A-4FB0-93A4-0423CCE00956}
 		{77329786-61CF-4218-837C-DADC9BF77269} = {AECA76CD-A240-4307-9F17-FE8A75429B24}
 		{2BECF81E-2215-4486-B44B-01E2856C0BE8} = {D5CAA153-6FA3-45A2-9967-5C32E9201B07}
-		{5BF63585-1BC8-4426-B759-1A8F11C84B84} = {79F4F24B-7CCF-4905-8933-2D43F86AE096}
 		{FBB502A4-BB21-4741-A4DF-6937DC00D4D4} = {9F0D00CD-133F-412C-B87F-EE6051E28700}
 		{128D2509-1B35-4B39-BE11-2D1659BAFE6F} = {FBB502A4-BB21-4741-A4DF-6937DC00D4D4}
-		{44BB223B-89CA-43E0-9401-7240F683005F} = {FBB502A4-BB21-4741-A4DF-6937DC00D4D4}
 		{FFC61549-9402-4334-AB41-F48858A2C301} = {FBB502A4-BB21-4741-A4DF-6937DC00D4D4}
 		{641717DE-F15E-4484-8E31-BCAB66D179B3} = {FBB502A4-BB21-4741-A4DF-6937DC00D4D4}
 		{B16B3AD9-4C05-4041-93E3-CD143E5F2ED7} = {9F0D00CD-133F-412C-B87F-EE6051E28700}

@@ -41,7 +41,14 @@ public sealed class GlobalState : IDisposable
         RootStore = configuration.Build();
         
         TState CreateState<TState>()
-            => ActivatorUtilities.CreateInstance<TState>(serviceProvider, configuration, stateFactory);
+        {
+            var state = ActivatorUtilities.CreateInstance<TState>(serviceProvider, stateFactory);
+
+            if(state is IStoreInitializer baseState)
+                baseState.RunConfig(configuration);
+
+            return state;
+        }
     }
 
     public void Dispatch(object action)

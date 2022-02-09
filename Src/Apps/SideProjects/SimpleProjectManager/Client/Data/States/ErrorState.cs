@@ -10,8 +10,8 @@ public sealed class ErrorState : StateBase<InternalErrorState>
 {
     private readonly ICriticalErrorService _errorService;
 
-    public ErrorState(IStoreConfiguration configuration, IStateFactory stateFactory, ICriticalErrorService errorService)
-        : base(configuration, stateFactory)
+    public ErrorState(IStateFactory stateFactory, ICriticalErrorService errorService)
+        : base(stateFactory)
         => _errorService = errorService;
 
     protected override IStateConfiguration<InternalErrorState> ConfigurateState(ISourceConfiguration<InternalErrorState> configuration)

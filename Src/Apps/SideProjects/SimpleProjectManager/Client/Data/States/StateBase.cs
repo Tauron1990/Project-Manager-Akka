@@ -25,16 +25,27 @@ public abstract class StateBase
             });
 }
 
-public abstract class StateBase<TState> : StateBase
+public interface IStoreInitializer
+{
+    void RunConfig(IStoreConfiguration configuration);
+}
+
+public abstract class StateBase<TState> : StateBase, IStoreInitializer
     where TState : class, new()
 {
     
     protected Action<object> Dispatch { get; private set; } =_ => { };
 
-    protected StateBase(IStoreConfiguration storeConfiguration, IStateFactory stateFactory)
+    protected StateBase(IStateFactory stateFactory)
         : base(stateFactory)
     {
-        storeConfiguration.NewState<TState>(
+
+    }
+
+
+    void IStoreInitializer.RunConfig(IStoreConfiguration configuration)
+    {
+        configuration.NewState<TState>(
             s => ConfigurateState(s).AndFinish(
                 store =>
                 {
