@@ -1,4 +1,5 @@
-﻿using Stl.Fusion;
+﻿using Microsoft.Extensions.Logging;
+using Stl.Fusion;
 using Tauron.Applicarion.Redux.Configuration;
 using Tauron.Applicarion.Redux.Extensions;
 using Tauron.Applicarion.Redux.Extensions.Internal;
@@ -84,13 +85,15 @@ public sealed class RequesterFactory<TState> : IRequestFactory<TState> where TSt
     private readonly Guid _stateId;
     private readonly IErrorHandler _errorHandler;
     private readonly IStateFactory _stateFactory;
+    private readonly ILogger<RequesterFactory<TState>> _logger;
 
-    public RequesterFactory(List<Action<IReduxStore<MultiState>>> registrar, Guid stateId, IErrorHandler errorHandler, IStateFactory stateFactory)
+    public RequesterFactory(List<Action<IReduxStore<MultiState>>> registrar, Guid stateId, IErrorHandler errorHandler, IStateFactory stateFactory, ILogger<RequesterFactory<TState>> logger)
     {
         _registrar = registrar;
         _stateId = stateId;
         _errorHandler = errorHandler;
         _stateFactory = stateFactory;
+        _logger = logger;
     }
 
     private static Func<TState, object, TState> GetDefaultErrorHandler(IErrorHandler errorHandler)
@@ -162,14 +165,17 @@ public sealed class RequesterFactory<TState> : IRequestFactory<TState> where TSt
 
     public IRequestFactory<TState> OnTheFlyUpdate<TSource, TData>(Func<TState, TSource> sourceSelector, Func<CancellationToken, Func<CancellationToken, ValueTask<TSource>>, Task<TData>> fetcher, Func<TState, TData, TState> patcher)
     {
-        Console.WriteLine("On the Fly Update");
+        _logger.LogTrace("Register On the Fly Update");
         _registrar.Add(
             s =>
             {
+                _logger.LogTrace("Run Register On the Fly Update");
                 DynamicUpdate.OnTheFlyUpdate(s, _stateFactory,
                     CreateSourceSelector(_stateId, sourceSelector),
                     fetcher, CreatePatacher(_stateId, patcher));
+                _logger.LogTrace("Run Register On the Fly Update Compled");
             });
+        _logger.LogTrace("Register On the Fly Update Compled");
         return this;
     }
 
