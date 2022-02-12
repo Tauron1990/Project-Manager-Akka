@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using SimpleProjectManager.Client.Data;
 using SimpleProjectManager.Client.Data.States;
+using SimpleProjectManager.Client.ViewModels;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
 using Tauron;
@@ -183,6 +184,7 @@ static class Program
         var coll = new ServiceCollection();
         coll.AddTransient<IErrorHandler, TestErrorHandler>();
         coll.AddSingleton<ICacheDb, TestCache>();
+        coll.AddScoped<UploadTransaction>();
 
         coll.AddSingleton<IOnlineMonitor, FakeOnlineModitor>();
         coll.AddTransient<IJobDatabaseService, FakeJobDatabaseService>();

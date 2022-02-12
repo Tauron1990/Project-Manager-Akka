@@ -1,4 +1,5 @@
 ﻿using SimpleProjectManager.Client.Data.Core;
+using SimpleProjectManager.Client.ViewModels;
 using Tauron;
 using Tauron.Applicarion.Redux;
 using Tauron.Applicarion.Redux.Configuration;
@@ -12,13 +13,14 @@ public class DataModule : IModule
     public void Load(IServiceCollection collection)
     {
         collection.RegisterModules(new CommonModule());
-        
 
-        collection.AddIndexedDb(new IndexedDb<CacheDataId>(nameof(CacheData)));
-        collection.AddIndexedDb(new IndexedDb<CacheTimeoutId>(nameof(CacheTimeout)));
+        collection.AddIndexedDb(new IndexedDb<string>(nameof(CacheData)));
+        collection.AddIndexedDb(new IndexedDb<string>(nameof(CacheTimeout)));
 
+        collection.AddTransient<UploadTransaction>();
+        collection.AddScoped<Func<UploadTransaction>>(s => s.GetRequiredService<UploadTransaction>);
         collection.AddSingleton<GlobalState>();
-
+        
         collection.AddScoped<IOnlineMonitor, OnlineMonitor>();
         collection.AddScoped<ICacheDb, CacheDb>();
         collection.AddScoped<IErrorHandler, ErrorHandler>();

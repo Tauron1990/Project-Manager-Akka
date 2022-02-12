@@ -7,11 +7,11 @@ namespace SimpleProjectManager.Client.Data.Core;
 
 public sealed class CacheDb : ICacheDb
 {
-    private readonly IndexedDbService<CacheDataId> _dataDb;
-    private readonly IndexedDbService<CacheTimeoutId> _timeoutDb;
+    private readonly IndexedDbService<string> _dataDb;
+    private readonly IndexedDbService<string> _timeoutDb;
     private readonly IEventAggregator _eventAggregator;
 
-    public CacheDb(IndexedDbService<CacheDataId> dataDb, IndexedDbService<CacheTimeoutId> timeoutDb, IEventAggregator eventAggregator)
+    public CacheDb(IndexedDbService<string> dataDb, IndexedDbService<string> timeoutDb, IEventAggregator eventAggregator)
     {
         _dataDb = dataDb;
         _timeoutDb = timeoutDb;
@@ -22,7 +22,7 @@ public sealed class CacheDb : ICacheDb
     {
         try
         {
-            await _timeoutDb.DeleteKeyAsync(key);
+            await _timeoutDb.DeleteKeyAsync(key.ToString());
         }
         catch (Exception e)
         {
@@ -35,9 +35,9 @@ public sealed class CacheDb : ICacheDb
         var all = await _timeoutDb.GetAllAsync<CacheTimeout>();
         var toDelete = all.FirstOrDefault(d => d.DataKey == key);
         if (toDelete != null)
-            await _timeoutDb.DeleteKeyAsync(toDelete.Id);
+            await _timeoutDb.DeleteKeyAsync(toDelete.Id.ToString());
 
-        await _dataDb.DeleteKeyAsync(key);
+        await _dataDb.DeleteKeyAsync(key.ToString());
     }
     
     public async ValueTask<(CacheTimeoutId? id, CacheDataId? Key, DateTime Time)> GetNextTimeout()
@@ -67,7 +67,7 @@ public sealed class CacheDb : ICacheDb
     private async ValueTask UpdateTimeout(CacheDataId key)
     {
         var id = CacheTimeoutId.FromCacheId(key);
-        var timeout = await _timeoutDb.GetValueAsync<CacheTimeout>(id);
+        var timeout = await _timeoutDb.GetValueAsync<CacheTimeout>(id.ToString());
         await _timeoutDb.PutValueAsync(
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             timeout is null
@@ -93,7 +93,7 @@ public sealed class CacheDb : ICacheDb
 
     public async ValueTask<string?> ReNewAndGet(CacheDataId key)
     {
-        var result = await _dataDb.GetValueAsync<CacheData>(key);
+        var result = await _dataDb.GetValueAsync<CacheData>(key.ToString());
 
         // ReSharper disable once ConditionIsAlwaysTrueOrFalse
         if (result is null) return null;
