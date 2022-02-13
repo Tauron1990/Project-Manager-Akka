@@ -4,17 +4,19 @@
   "repository": "https://github.com/Tauron1990/Project-Manager-Akka",
   "license": "MIT",
   "version": "1.0.0",
-  "dependencies": {
-  },
   "devDependencies": {
-    "webpack": "^5.31.0",
-    "webpack-cli": "^4.6.0",
+    "@types/webpack-env": "^1.16.3",
     "css-loader": "^5.2.0",
-    "style-loader": "^2.0.0",
     "file-loader": "^6.2.0",
-    "url-loader": "^4.1.1"
+    "style-loader": "^2.0.0",
+    "url-loader": "^4.1.1",
+    "webpack": "^5.31.0",
+    "webpack-cli": "^4.6.0"
   },
   "scripts": {
     "build": "webpack"
+  },
+  "dependencies": {
+    "idb": "^7.0.0"
   }
 }

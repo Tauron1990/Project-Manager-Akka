@@ -1,0 +1,8 @@
+﻿{
+  "compileOnSave": true,
+  "compilerOptions": {
+    "types": [
+      "webpack-env"
+    ]
+  }
+}

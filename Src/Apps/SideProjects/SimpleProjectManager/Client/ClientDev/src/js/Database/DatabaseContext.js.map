@@ -1,0 +1,1 @@
+{"version":3,"file":"DatabaseContext.js","sourceRoot":"","sources":["DatabaseContext.ts"],"names":[],"mappings":";;;AAAA,IAAiB,eAAe,CAO/B;AAPD,WAAiB,eAAe;IAC5B,SAAgB,QAAQ;QACpB,IAAM,OAAO,GAAG,aAAa,CAAC;QAE9B,OAAO,CAAC,GAAG,CAAC,OAAO,CAAC,CAAC;IAEzB,CAAC;IALe,wBAAQ,WAKvB,CAAA;AACL,CAAC,EAPgB,eAAe,GAAf,uBAAe,KAAf,uBAAe,QAO/B"}

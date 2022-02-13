@@ -20,7 +20,7 @@ public sealed class OnlineMonitor : IOnlineMonitor
         Online =
             Observable.Interval(TimeSpan.FromSeconds(6))
                .SelectMany(_ => IsOnline())
-               .StartWith(false)
+               .StartWith(true)
                .DistinctUntilChanged();
     }
 
@@ -32,7 +32,7 @@ public sealed class OnlineMonitor : IOnlineMonitor
         {
             try
             {
-                if (!await _jsRuntime.InvokeAsync<bool>("IsOnline", source.Token))
+                if (!await _jsRuntime.InvokeAsync<bool>("isOnline", source.Token))
                     return false;
             }
             catch (Exception e)

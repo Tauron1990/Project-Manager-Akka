@@ -1,101 +1,226 @@
-<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+﻿<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
 
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
-    <PublishTrimmed>false</PublishTrimmed>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
+		<PublishTrimmed>false</PublishTrimmed>
 
-  <ItemGroup>
-    <None Include="..\Server\bin\Release\net6.0\publish\wwwroot\_content\MudBlazor\MudBlazor.min.css" Link="wwwroot\_content\MudBlazor\MudBlazor.min.css" />
-  </ItemGroup>
+		<IsPackable>false</IsPackable>
+		<MpaRoot>ClientDev\</MpaRoot>
+		<WWWRoot>wwwroot\</WWWRoot>
+		<!--<DefaultItemExcludes>$(DefaultItemExcludes);$(MpaRoot)node_modules\**</DefaultItemExcludes>-->
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Blazor.Extensions.Logging" Version="2.0.4" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="6.0.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="6.0.2" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
-    <PackageReference Include="MudBlazor" Version="6.0.6" />
-    <PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" Version="14.1.17" />
-    <PackageReference Include="Stl.Fusion.Blazor" Version="2.3.23" />
-    <PackageReference Include="Tavenem.Blazor.IndexedDB" Version="1.0.0" />
-  </ItemGroup>
+	<ItemGroup>
+		<Content Remove="ClientDev\package-lock.json" />
+		<Content Remove="ClientDev\package.json" />
+		<Content Remove="ClientDev\tsconfig.json" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\..\Shared\Data\Tauron.Applicarion.Redux\Tauron.Applicarion.Redux.csproj" />
-    <ProjectReference Include="..\..\..\..\Shared\UI\Tauron.Application.Blazor\Tauron.Application.Blazor.csproj" />
-    <ProjectReference Include="..\Shared\SimpleProjectManager.Shared.csproj" />
-  </ItemGroup>
+	<!--<ItemGroup>
+		<Content Include="ClientDev\src\css\app.css" />
+		<Content Include="ClientDev\src\css\bootstrap\bootstrap.min.css" />
+		<Content Include="ClientDev\src\css\bootstrap\bootstrap.min.css.map" />
+		<Content Include="ClientDev\src\css\FontData\KFOlCnqEu92Fr1MmEU9fBBc4.woff2" />
+		<Content Include="ClientDev\src\css\FontData\KFOlCnqEu92Fr1MmEU9fBxc4EsA.woff2" />
+		<Content Include="ClientDev\src\css\FontData\KFOlCnqEu92Fr1MmEU9fChc4EsA.woff2" />
+		<Content Include="ClientDev\src\css\FontData\KFOlCnqEu92Fr1MmEU9fCxc4EsA.woff2" />
+		<Content Include="ClientDev\src\css\FontData\KFOlCnqEu92Fr1MmWUlfABc4EsA.woff2" />
+		<Content Include="ClientDev\src\css\FontData\KFOlCnqEu92Fr1MmWUlfBBc4.woff2" />
+		<Content Include="ClientDev\src\css\FontData\KFOlCnqEu92Fr1MmWUlfBxc4EsA.woff2" />
+		<Content Include="ClientDev\src\css\FontData\KFOlCnqEu92Fr1MmWUlfCBc4EsA.woff2" />
+		<Content Include="ClientDev\src\css\FontData\KFOlCnqEu92Fr1MmWUlfChc4EsA.woff2" />
+		<Content Include="ClientDev\src\css\FontData\KFOlCnqEu92Fr1MmWUlfCRc4EsA.woff2" />
+		<Content Include="ClientDev\src\css\FontData\KFOlCnqEu92Fr1MmWUlfCxc4EsA.woff2" />
+		<Content Include="ClientDev\src\css\Fonts.css" />
+		<Content Include="ClientDev\src\css\open-iconic\FONT-LICENSE" />
+		<Content Include="ClientDev\src\css\open-iconic\font\css\open-iconic-bootstrap.min.css" />
+		<Content Include="ClientDev\src\css\open-iconic\font\fonts\open-iconic.eot" />
+		<Content Include="ClientDev\src\css\open-iconic\font\fonts\open-iconic.otf" />
+		<Content Include="ClientDev\src\css\open-iconic\font\fonts\open-iconic.svg" />
+		<Content Include="ClientDev\src\css\open-iconic\font\fonts\open-iconic.ttf" />
+		<Content Include="ClientDev\src\css\open-iconic\font\fonts\open-iconic.woff" />
+		<Content Include="ClientDev\src\css\open-iconic\ICON-LICENSE" />
+		<Content Include="ClientDev\src\css\open-iconic\README.md" />
+		<Content Include="ClientDev\src\css\site.css" />
+	</ItemGroup>-->
 
-  <ItemGroup>
-    <ServiceWorker Include="wwwroot\service-worker.js" PublishedContent="wwwroot\service-worker.published.js" />
-  </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="ViewModels\AppBar\" />
-    <Folder Include="wwwroot\_content\MudBlazor\" />
-  </ItemGroup>
+	<!--<ItemGroup>
+		~1~ Don't publish the MPA source files, but do show them in the project files list @1@
+		<Content Remove="$(MpaRoot)**" />
+		<None Remove="$(MpaRoot)**" />
+		<None Include="$(MpaRoot)**" Exclude="$(MpaRoot)node_modules\**" />
+	</ItemGroup>-->
 
-  <ItemGroup>
-    <Compile Update="Shared\CurrentJobs\JobPriorityControl.cs">
-      <DependentUpon>JobPriorityControl.razor</DependentUpon>
-    </Compile>
-    <Compile Update="Shared\CurrentJobs\FileDetailDisplay.cs">
-      <DependentUpon>FileDetailDisplay.razor</DependentUpon>
-    </Compile>
-    <Compile Update="Shared\CurrentJobs\JobDetailDisplay.cs">
-      <DependentUpon>JobDetailDisplay.razor</DependentUpon>
-    </Compile>
-    <Compile Update="Shared\CurrentJobs\JobSideBar.cs">
-      <DependentUpon>JobSideBar.razor</DependentUpon>
-    </Compile>
-    <Compile Update="Pages\CurrentJobs.cs">
-      <DependentUpon>CurrentJobs.razor</DependentUpon>
-    </Compile>
-    <Compile Update="Shared\EditJob\JobEditor.cs">
-      <DependentUpon>JobEditor.razor</DependentUpon>
-    </Compile>
-    <Compile Update="Pages\NewJob.cs">
-      <DependentUpon>NewJob.razor</DependentUpon>
-    </Compile>
-    <Compile Update="Pages\EditJob.cs">
-      <DependentUpon>EditJob.razor</DependentUpon>
-    </Compile>
-    <Compile Update="Shared\NavMenu.cs">
-      <DependentUpon>NavMenu.razor</DependentUpon>
-    </Compile>
-    <Compile Update="Shared\MainLayout.cs">
-      <DependentUpon>MainLayout.razor</DependentUpon>
-    </Compile>
-    <Compile Update="Shared\AppBar\MainAppBar.cs">
-      <DependentUpon>MainAppBar.razor</DependentUpon>
-    </Compile>
-    <Compile Update="Shared\EditJob\FileUploader.cs">
-      <DependentUpon>FileUploader.razor</DependentUpon>
-    </Compile>
-    <Compile Update="Pages\CriticalErrors.cs">
-      <DependentUpon>CriticalErrors.razor</DependentUpon>
-    </Compile>
-    <Compile Update="Shared\CriticalErrors\CriticalErrorDispaly.cs">
-      <DependentUpon>CriticalErrorDispaly.razor</DependentUpon>
-    </Compile>
-    <Compile Update="Shared\AppBar\ErrorNotify.cs">
-      <DependentUpon>ErrorNotify.razor</DependentUpon>
-    </Compile>
-    <Compile Update="Shared\Tasks\PendingTaskDisplay.cs">
-      <DependentUpon>PendingTaskDisplay.razor</DependentUpon>
-    </Compile>
-    <Compile Update="Pages\FileManager.cs">
-      <DependentUpon>FileManager.razor</DependentUpon>
-    </Compile>
-    <Compile Update="Pages\Dashboard.cs">
-      <DependentUpon>Dashboard.razor</DependentUpon>
-    </Compile>
-    <Compile Update="Pages\TaskManager.cs">
-      <DependentUpon>TaskManager.razor</DependentUpon>
-    </Compile>
-  </ItemGroup>
+	<Target Name="NpmInstall" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(MpaRoot)node_modules') ">
+		    <Exec Command="node --version" ContinueOnError="true">
+			<Output TaskParameter="ExitCode" PropertyName="ErrorCode" />
+		</Exec>
+		<Error Condition="'$(ErrorCode)' != '0'" Text="Node.js is required to build and run this project. To continue, please install Node.js from https://nodejs.org/, and then restart your command prompt or IDE." />
+		<Message Importance="high" Text="Restoring dependencies using 'npm'. This may take several minutes..." />
+		<Exec WorkingDirectory="$(MpaRoot)" Command="npm install" />
+	</Target>
+
+	<Target Name="NpmRunBuild" BeforeTargets="Build" DependsOnTargets="NpmInstall">
+		<Exec WorkingDirectory="$(MpaRoot)" Command="npm run build" />
+
+	</Target>
+
+	<Target Name="PublishRunWebpack" AfterTargets="ComputeFilesToPublish">
+		<Exec WorkingDirectory="$(MpaRoot)" Command="npm install" />
+		<Exec WorkingDirectory="$(MpaRoot)" Command="npm run build" />
+		<ItemGroup>
+			<DistFiles Include="$(WWWRoot)dist\**" />
+			<ResolvedFileToPublish Include="@(DistFiles->'%(FullPath)')" Exclude="@(ResolvedFileToPublish)">
+				<RelativePath>%(DistFiles.Identity)</RelativePath>
+				<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+				<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+
+			</ResolvedFileToPublish>
+
+		</ItemGroup>
+
+	</Target>
+
+	<!--<Target Name="NpmClean" BeforeTargets="Clean">
+		<RemoveDir Directories="$(WWWRoot)dist" />
+		<RemoveDir Directories="$(MpaRoot)node_modules" />
+	</Target>-->
+
+	<ItemGroup>
+	  <None Remove="ClientDev\package-lock.json" />
+	  <None Remove="ClientDev\package.json" />
+	  <None Remove="ClientDev\src\js\Database\DatabaseContext.ts" />
+	  <None Remove="ClientDev\src\js\index.ts" />
+	  <None Remove="ClientDev\tsconfig.json" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Include="ClientDev\package-lock.json" />
+	  <Content Include="ClientDev\package.json" />
+	  <Content Include="ClientDev\tsconfig.json" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="..\Server\bin\Release\net6.0\publish\wwwroot\_content\MudBlazor\MudBlazor.min.css" Link="wwwroot\_content\MudBlazor\MudBlazor.min.css" />
+		<None Include="wwwroot\css\app.css" />
+		<None Include="wwwroot\css\bootstrap\bootstrap.min.css" />
+		<None Include="wwwroot\css\bootstrap\bootstrap.min.css.map" />
+		<None Include="wwwroot\css\FontData\KFOlCnqEu92Fr1MmEU9fBBc4.woff2" />
+		<None Include="wwwroot\css\FontData\KFOlCnqEu92Fr1MmEU9fBxc4EsA.woff2" />
+		<None Include="wwwroot\css\FontData\KFOlCnqEu92Fr1MmEU9fChc4EsA.woff2" />
+		<None Include="wwwroot\css\FontData\KFOlCnqEu92Fr1MmEU9fCxc4EsA.woff2" />
+		<None Include="wwwroot\css\FontData\KFOlCnqEu92Fr1MmWUlfABc4EsA.woff2" />
+		<None Include="wwwroot\css\FontData\KFOlCnqEu92Fr1MmWUlfBBc4.woff2" />
+		<None Include="wwwroot\css\FontData\KFOlCnqEu92Fr1MmWUlfBxc4EsA.woff2" />
+		<None Include="wwwroot\css\FontData\KFOlCnqEu92Fr1MmWUlfCBc4EsA.woff2" />
+		<None Include="wwwroot\css\FontData\KFOlCnqEu92Fr1MmWUlfChc4EsA.woff2" />
+		<None Include="wwwroot\css\FontData\KFOlCnqEu92Fr1MmWUlfCRc4EsA.woff2" />
+		<None Include="wwwroot\css\FontData\KFOlCnqEu92Fr1MmWUlfCxc4EsA.woff2" />
+		<None Include="wwwroot\css\Fonts.css" />
+		<None Include="wwwroot\css\open-iconic\FONT-LICENSE" />
+		<None Include="wwwroot\css\open-iconic\font\css\open-iconic-bootstrap.min.css" />
+		<None Include="wwwroot\css\open-iconic\font\fonts\open-iconic.eot" />
+		<None Include="wwwroot\css\open-iconic\font\fonts\open-iconic.otf" />
+		<None Include="wwwroot\css\open-iconic\font\fonts\open-iconic.svg" />
+		<None Include="wwwroot\css\open-iconic\font\fonts\open-iconic.ttf" />
+		<None Include="wwwroot\css\open-iconic\font\fonts\open-iconic.woff" />
+		<None Include="wwwroot\css\open-iconic\ICON-LICENSE" />
+		<None Include="wwwroot\css\open-iconic\README.md" />
+		<None Include="wwwroot\css\site.css" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Blazor.Extensions.Logging" Version="2.0.4" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="6.0.2" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="6.0.2" PrivateAssets="all" />
+		<PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
+		<PackageReference Include="Microsoft.TypeScript.MSBuild" Version="4.5.3">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="MudBlazor" Version="6.0.6" />
+		<PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" Version="14.1.17" />
+		<PackageReference Include="Stl.Fusion.Blazor" Version="2.3.23" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\..\..\Shared\Data\Tauron.Applicarion.Redux\Tauron.Applicarion.Redux.csproj" />
+		<ProjectReference Include="..\..\..\..\Shared\UI\Tauron.Application.Blazor\Tauron.Application.Blazor.csproj" />
+		<ProjectReference Include="..\Shared\SimpleProjectManager.Shared.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ServiceWorker Include="wwwroot\service-worker.js" PublishedContent="wwwroot\service-worker.published.js" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Folder Include="ViewModels\AppBar\" />
+		<Folder Include="wwwroot\dist\" />
+		<Folder Include="wwwroot\_content\MudBlazor\" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Compile Update="Shared\CurrentJobs\JobPriorityControl.cs">
+			<DependentUpon>JobPriorityControl.razor</DependentUpon>
+		</Compile>
+		<Compile Update="Shared\CurrentJobs\FileDetailDisplay.cs">
+			<DependentUpon>FileDetailDisplay.razor</DependentUpon>
+		</Compile>
+		<Compile Update="Shared\CurrentJobs\JobDetailDisplay.cs">
+			<DependentUpon>JobDetailDisplay.razor</DependentUpon>
+		</Compile>
+		<Compile Update="Shared\CurrentJobs\JobSideBar.cs">
+			<DependentUpon>JobSideBar.razor</DependentUpon>
+		</Compile>
+		<Compile Update="Pages\CurrentJobs.cs">
+			<DependentUpon>CurrentJobs.razor</DependentUpon>
+		</Compile>
+		<Compile Update="Shared\EditJob\JobEditor.cs">
+			<DependentUpon>JobEditor.razor</DependentUpon>
+		</Compile>
+		<Compile Update="Pages\NewJob.cs">
+			<DependentUpon>NewJob.razor</DependentUpon>
+		</Compile>
+		<Compile Update="Pages\EditJob.cs">
+			<DependentUpon>EditJob.razor</DependentUpon>
+		</Compile>
+		<Compile Update="Shared\NavMenu.cs">
+			<DependentUpon>NavMenu.razor</DependentUpon>
+		</Compile>
+		<Compile Update="Shared\MainLayout.cs">
+			<DependentUpon>MainLayout.razor</DependentUpon>
+		</Compile>
+		<Compile Update="Shared\AppBar\MainAppBar.cs">
+			<DependentUpon>MainAppBar.razor</DependentUpon>
+		</Compile>
+		<Compile Update="Shared\EditJob\FileUploader.cs">
+			<DependentUpon>FileUploader.razor</DependentUpon>
+		</Compile>
+		<Compile Update="Pages\CriticalErrors.cs">
+			<DependentUpon>CriticalErrors.razor</DependentUpon>
+		</Compile>
+		<Compile Update="Shared\CriticalErrors\CriticalErrorDispaly.cs">
+			<DependentUpon>CriticalErrorDispaly.razor</DependentUpon>
+		</Compile>
+		<Compile Update="Shared\AppBar\ErrorNotify.cs">
+			<DependentUpon>ErrorNotify.razor</DependentUpon>
+		</Compile>
+		<Compile Update="Shared\Tasks\PendingTaskDisplay.cs">
+			<DependentUpon>PendingTaskDisplay.razor</DependentUpon>
+		</Compile>
+		<Compile Update="Pages\FileManager.cs">
+			<DependentUpon>FileManager.razor</DependentUpon>
+		</Compile>
+		<Compile Update="Pages\Dashboard.cs">
+			<DependentUpon>Dashboard.razor</DependentUpon>
+		</Compile>
+		<Compile Update="Pages\TaskManager.cs">
+			<DependentUpon>TaskManager.razor</DependentUpon>
+		</Compile>
+	</ItemGroup>
 
 </Project>

@@ -1,4 +1,3 @@
-﻿function IsOnline()
-{
+function isOnline() {
     return window.navigator.onLine;
 }

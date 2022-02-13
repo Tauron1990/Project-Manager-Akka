@@ -1,28 +1,37 @@
-﻿using Tauron.Applicarion.Redux.Extensions.Cache;
+﻿using Microsoft.JSInterop;
+using Tauron.Applicarion.Redux.Extensions.Cache;
 using Tauron.Application;
 using Tauron.Application.Blazor;
-using Tavenem.Blazor.IndexedDB;
 
 namespace SimpleProjectManager.Client.Data.Core;
 
 public sealed class CacheDb : ICacheDb
 {
-    private readonly IndexedDbService<string> _dataDb;
-    private readonly IndexedDbService<string> _timeoutDb;
+    private const string scriptImport = "./Database/DatabaseContext";
+
+    private readonly IJSRuntime _jsRuntime;
+    private IJSObjectReference? _dbContext;
     private readonly IEventAggregator _eventAggregator;
 
-    public CacheDb(IndexedDbService<string> dataDb, IndexedDbService<string> timeoutDb, IEventAggregator eventAggregator)
+    public CacheDb(IJSRuntime jsRuntime, IEventAggregator eventAggregator)
     {
-        _dataDb = dataDb;
-        _timeoutDb = timeoutDb;
+        _jsRuntime = jsRuntime;
         _eventAggregator = eventAggregator;
     }
+
+    private async ValueTask<IJSObjectReference> GetDatabseConnection()
+        => _dbContext ??= await _jsRuntime.InvokeAsync<IJSObjectReference>("import", scriptImport);
 
     public async ValueTask DeleteElement(CacheTimeoutId key)
     {
         try
         {
-            await _timeoutDb.DeleteKeyAsync(key.ToString());
+            var db = await GetDatabseConnection();
+            var (sucess, message) = await db.InvokeAsync<InternalResult>("deleteTimeoutElement", key.ToString());
+
+            if(sucess) return;
+
+            _eventAggregator.PublishError(message);
         }
         catch (Exception e)
         {
@@ -32,19 +41,16 @@ public sealed class CacheDb : ICacheDb
     
     public async ValueTask DeleteElement(CacheDataId key)
     {
-        var all = await _timeoutDb.GetAllAsync<CacheTimeout>();
-        var toDelete = all.FirstOrDefault(d => d.DataKey == key);
-        if (toDelete != null)
-            await _timeoutDb.DeleteKeyAsync(toDelete.Id.ToString());
-
-        await _dataDb.DeleteKeyAsync(key.ToString());
+        var db = await GetDatabseConnection();
+        await db.InvokeVoidAsync("deleteElement", key.ToString(), CacheTimeoutId.FromCacheId(key).ToString());
     }
     
     public async ValueTask<(CacheTimeoutId? id, CacheDataId? Key, DateTime Time)> GetNextTimeout()
     {
         try
         {
-            var all = await _timeoutDb.GetAllAsync<CacheTimeout>();
+            var db = await GetDatabseConnection();
+            var all = await db.InvokeAsync<CacheTimeout[]>("getAllTimeoutElements");
 
             var entry = (from cacheTimeout in all
                          orderby cacheTimeout.Timeout
@@ -102,4 +108,6 @@ public sealed class CacheDb : ICacheDb
 
         return result.Data;
     }
+
+    public sealed record InternalResult(bool Sucess, string? Message);
 } 
