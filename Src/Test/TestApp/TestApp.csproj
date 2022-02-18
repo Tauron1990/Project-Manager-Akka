@@ -20,9 +20,4 @@
       </Compile>
     </ItemGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\..\Apps\SideProjects\SimpleProjectManager\Client\SimpleProjectManager.Client.csproj" />
-      <ProjectReference Include="..\..\Shared\Data\Tauron.Applicarion.Redux\Tauron.Applicarion.Redux.csproj" />
-    </ItemGroup>
-
 </Project>

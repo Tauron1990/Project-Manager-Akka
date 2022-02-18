@@ -1,23 +1,10 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reactive.Linq;
-using System.Threading;
+using System.Diagnostics;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using SimpleProjectManager.Client.Data;
-using SimpleProjectManager.Client.Data.States;
-using SimpleProjectManager.Client.ViewModels;
-using SimpleProjectManager.Shared;
-using SimpleProjectManager.Shared.Services;
-using Tauron;
-using Tauron.Applicarion.Redux;
-using Tauron.Applicarion.Redux.Configuration;
-using Tauron.Applicarion.Redux.Extensions.Cache;
 
 namespace TestApp;
 
+/*
 internal sealed class TestCache : ICacheDb
 {
     private readonly ConcurrentDictionary<CacheTimeoutId, CacheTimeout> _timeouts = new();
@@ -176,12 +163,13 @@ internal sealed class FakeFileService : IJobFileService
     public Task<string> DeleteFiles(FileList files, CancellationToken token)
         => throw new InvalidOperationException();
 }
+*/
 
 static class Program
 {
     static async Task Main()
     {
-        var coll = new ServiceCollection();
+        /*var coll = new ServiceCollection();
         coll.AddTransient<IErrorHandler, TestErrorHandler>();
         coll.AddSingleton<ICacheDb, TestCache>();
         coll.AddScoped<UploadTransaction>();
@@ -199,8 +187,25 @@ static class Program
         await using var prov = coll.BuildServiceProvider();
         var store = prov.GetRequiredService<GlobalState>();
         
-        await Task.Delay(3000);
+        await Task.Delay(3000);*/
 
+        var launchcommand = " start.bat";
+        
+        int num1 = launchcommand.IndexOf(' ');
+        string launchCommand1 = launchcommand;
+        int num2 = 0;
+        int num3 = num1 - num2;
+        int startIndex1 = num2;
+        int length1 = num3;
+        string str = launchCommand1.Substring(startIndex1, length1);
+        string launchCommand2 = launchcommand;
+        int length2 = launchCommand2.Length;
+        int num4;
+        int startIndex2 = num4 = num1 + 1;
+        int num5 = startIndex2;
+        int length3 = length2 - num5;
+        string arguments = launchCommand2.Substring(startIndex2, length3);
+        
         Console.WriteLine();
         Console.WriteLine("Fertig...");
         Console.ReadKey();

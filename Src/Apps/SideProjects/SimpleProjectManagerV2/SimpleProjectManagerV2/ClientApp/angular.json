@@ -20,7 +20,8 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "dist/client-app",
+            "progress": false,
+            "outputPath": "dist",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
@@ -75,7 +76,8 @@
               "browserTarget": "ClientApp:build:production"
             },
             "development": {
-              "browserTarget": "ClientApp:build:development"
+              "browserTarget": "ClientApp:build:development",
+			        "proxyConfig": "proxy.conf.js"
             }
           },
           "defaultConfiguration": "development"

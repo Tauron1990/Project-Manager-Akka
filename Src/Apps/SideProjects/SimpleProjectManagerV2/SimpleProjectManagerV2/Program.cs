@@ -7,14 +7,18 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddGrpc();
 builder.Services.AddControllersWithViews();
-builder.Services.AddSpaStaticFiles();
+
+#if DEBUG
+builder.Services.AddSpaYarp();
+#endif
+
 
 
 var app = builder.Build();
 
-#if DEBUG
-app.UseDeveloperExceptionPage();
-#endif
+Console.WriteLine($"Dev: {app.Environment.IsDevelopment()}");
+
+Console.WriteLine(app.Configuration["ASPNETCORE_HOSTINGSTARTUPASSEMBLIES"]);
 
 app.UseStaticFiles();
 app.UseRouting();
@@ -24,5 +28,10 @@ app.MapControllerRoute(
     pattern: "{controller}/{action=Index}/{id?}");
 
 app.MapFallbackToFile("index.html");
+
+#if DEBUG
+app.UseDeveloperExceptionPage();
+app.UseSpaYarp();
+#endif
 
 app.Run();
