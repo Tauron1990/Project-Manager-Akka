@@ -1,0 +1,7 @@
+﻿syntax = "proto3";
+option csharp_namespace = "SimpleProjectManager.Shared";
+package Abstract;
+
+message Null{
+  
+}
