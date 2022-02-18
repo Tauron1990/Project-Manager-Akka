@@ -10,8 +10,6 @@ message ErrorProperty{
   string Value = 2;
 }
 
-//CriticalError(string Id, DateTime Occurrence, string ApplicationPart, string Message, string? StackTrace, ImmutableList<ErrorProperty> ContextData);
-
 message CriticalError{
   string Id = 1;
   google.protobuf.Timestamp Occurrence = 2;
@@ -23,4 +21,16 @@ message CriticalError{
   } 
   
   repeated ErrorProperty ContextData = 7;
+}
+
+message TestRequest{
+  
+}
+
+message TestResponse{
+  string Result = 1;
+}
+
+service TestService{
+  rpc Test(TestRequest) returns(TestResponse);
 }
