@@ -14,9 +14,9 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Stl.Fusion" Version="2.2.6" />
-    <PackageReference Include="Stl.Fusion.Client" Version="2.2.6" />
-    <PackageReference Include="System.Text.Json" Version="6.0.1" />
+    <PackageReference Include="Stl.Fusion" Version="2.3.23" />
+    <PackageReference Include="Stl.Fusion.Client" Version="2.3.23" />
+    <PackageReference Include="System.Text.Json" Version="6.0.2" />
   </ItemGroup>
 
   <ItemGroup>
