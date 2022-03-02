@@ -7,7 +7,7 @@ namespace SimpleProjectManager.Client.Data.Core;
 
 public sealed class CacheDb : ICacheDb
 {
-    private const string scriptImport = "./Database/DatabaseContext";
+    private const string ScriptImport = "./Database/DatabaseContext";
 
     private readonly IJSRuntime _jsRuntime;
     private IJSObjectReference? _dbContext;
@@ -20,7 +20,7 @@ public sealed class CacheDb : ICacheDb
     }
 
     private async ValueTask<IJSObjectReference> GetDatabseConnection()
-        => _dbContext ??= await _jsRuntime.InvokeAsync<IJSObjectReference>("import", scriptImport);
+        => _dbContext ??= await _jsRuntime.InvokeAsync<IJSObjectReference>("import", ScriptImport);
 
     public async ValueTask DeleteElement(CacheTimeoutId key)
     {
@@ -72,6 +72,8 @@ public sealed class CacheDb : ICacheDb
 
     private async ValueTask UpdateTimeout(CacheDataId key)
     {
+        var db = GetDatabseConnection();
+        
         var id = CacheTimeoutId.FromCacheId(key);
         var timeout = await _timeoutDb.GetValueAsync<CacheTimeout>(id.ToString());
         await _timeoutDb.PutValueAsync(
@@ -109,5 +111,19 @@ public sealed class CacheDb : ICacheDb
         return result.Data;
     }
 
-    public sealed record InternalResult(bool Sucess, string? Message);
+    private sealed record InternalResult(bool Sucess, string? Message);
+    
+    private sealed class DatabaseConnection
+    {
+        private readonly IJSObjectReference _reference;
+
+        public DatabaseConnection(IJSObjectReference reference)
+            => _reference = reference;
+
+        public async Task DeleteElement(CacheDataId key)
+            => await _reference.InvokeVoidAsync("deleteElement", key.ToString(), CacheTimeoutId.FromCacheId(key).ToString());
+
+        public async Task<CacheTimeout[]> GetTimeoutElements()
+            => await _reference.InvokeAsync<CacheTimeout[]>("getAllTimeoutElements");
+    }
 } 

@@ -58,6 +58,17 @@ export namespace DatabaseContext {
         return StaticData.database;
     }
 
+    export async function saveData(id: string, data: JSON) {
+        try {
+            const db = await openDataDatabase();
+            await db.put("data", new DataContainer(id, data));
+
+            return new Result();
+        } catch (e) {
+            return new Result(e.toString());
+        }
+    }
+    
     export async function getAllTimeoutElements() {
         const db = await openDataDatabase();
 
@@ -75,7 +86,7 @@ export namespace DatabaseContext {
 
         const timeoutData = await timeoutStore.get(timeoutId);
 
-        if (timeoutData != undefined) {
+        if (timeoutData !== undefined) {
             await timeoutStore.delete(timeoutId);
         }
         await dataStore.delete(id);
@@ -94,14 +105,18 @@ export namespace DatabaseContext {
         } 
     }
 
-    export async function saveData(id: string, data: JSON) {
-        try {
-            const db = await openDataDatabase();
-            await db.put("data", new DataContainer(id, data));
-
-            return new Result();
-        } catch (e) {
-            return new Result(e.toString());
+    export async function getTimeout(id:string){
+        const db = await openDataDatabase();
+        const entry = await db.get("timeout", id);
+        if(entry === undefined){
+            return "";
         }
+        
+        return entry.data;
+    }
+    
+    export async function updateTimeout(id:string, data:JSON){
+        const db = await openDataDatabase();
+        await db.put("timeout", new DataContainer(id, data), id);
     }
 }
