@@ -1,6 +1,7 @@
 ﻿{
   "compileOnSave": true,
   "compilerOptions": {
+    "lib": ["ES2016"],
     "types": [
       "webpack-env"
     ]

@@ -17,6 +17,7 @@
     "build": "webpack"
   },
   "dependencies": {
-    "idb": "^7.0.0"
+    "idb": "^7.0.0",
+    "typescript": "^4.6.2"
   }
 }

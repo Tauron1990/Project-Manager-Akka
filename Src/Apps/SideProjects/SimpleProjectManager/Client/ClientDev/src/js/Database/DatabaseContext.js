@@ -1,4 +1,5 @@
 "use strict";
+// noinspection JSUnusedGlobalSymbols
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -88,6 +89,23 @@ var DatabaseContext;
             });
         });
     }
+    function saveData(id, data) {
+        return __awaiter(this, void 0, void 0, function () {
+            var db;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, openDataDatabase()];
+                    case 1:
+                        db = _a.sent();
+                        return [4 /*yield*/, db.put("data", new DataContainer(id, data))];
+                    case 2:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
+            });
+        });
+    }
+    DatabaseContext.saveData = saveData;
     function getAllTimeoutElements() {
         return __awaiter(this, void 0, void 0, function () {
             var db, dataList;
@@ -119,7 +137,7 @@ var DatabaseContext;
                         return [4 /*yield*/, timeoutStore.get(timeoutId)];
                     case 2:
                         timeoutData = _a.sent();
-                        if (!(timeoutData != undefined)) return [3 /*break*/, 4];
+                        if (!(timeoutData !== undefined)) return [3 /*break*/, 4];
                         return [4 /*yield*/, timeoutStore["delete"](timeoutId)];
                     case 3:
                         _a.sent();
@@ -159,27 +177,60 @@ var DatabaseContext;
         });
     }
     DatabaseContext.deleteTimeoutElement = deleteTimeoutElement;
-    function saveData(id, data) {
+    function getTimeout(id) {
         return __awaiter(this, void 0, void 0, function () {
-            var db, e_2;
+            var db, entry;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0:
-                        _a.trys.push([0, 3, , 4]);
-                        return [4 /*yield*/, openDataDatabase()];
+                    case 0: return [4 /*yield*/, openDataDatabase()];
                     case 1:
                         db = _a.sent();
-                        return [4 /*yield*/, db.put("data", new DataContainer(id, data))];
+                        return [4 /*yield*/, db.get("timeout", id)];
                     case 2:
-                        _a.sent();
-                        return [2 /*return*/, new Result()];
-                    case 3:
-                        e_2 = _a.sent();
-                        return [2 /*return*/, new Result(e_2.toString())];
-                    case 4: return [2 /*return*/];
+                        entry = _a.sent();
+                        if (entry === undefined) {
+                            return [2 /*return*/, ""];
+                        }
+                        return [2 /*return*/, entry.data];
                 }
             });
         });
     }
-    DatabaseContext.saveData = saveData;
+    DatabaseContext.getTimeout = getTimeout;
+    function updateTimeout(id, data) {
+        return __awaiter(this, void 0, void 0, function () {
+            var db;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, openDataDatabase()];
+                    case 1:
+                        db = _a.sent();
+                        return [4 /*yield*/, db.put("timeout", new DataContainer(id, data), id)];
+                    case 2:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
+            });
+        });
+    }
+    DatabaseContext.updateTimeout = updateTimeout;
+    function getCacheEntry(id) {
+        return __awaiter(this, void 0, void 0, function () {
+            var db, result;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, openDataDatabase()];
+                    case 1:
+                        db = _a.sent();
+                        return [4 /*yield*/, db.get("data", id)];
+                    case 2:
+                        result = _a.sent();
+                        if (result === undefined)
+                            return [2 /*return*/, ""];
+                        return [2 /*return*/, result.data];
+                }
+            });
+        });
+    }
+    DatabaseContext.getCacheEntry = getCacheEntry;
 })(DatabaseContext = exports.DatabaseContext || (exports.DatabaseContext = {}));
