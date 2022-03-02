@@ -5,7 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
 using Servicemnager.Networking.Data;
-using SimpleTcp;
+using SuperSimpleTcp;
 
 namespace Servicemnager.Networking.Server;
 
@@ -53,7 +53,7 @@ public sealed class DataServer : IDataServer
     public EndPoint EndPoint
         // ReSharper disable once ConstantNullCoalescingCondition
         => _endPoint ??=
-            ((TcpListener)_server.GetType().GetField("_Listener", BindingFlags.Instance | BindingFlags.NonPublic)
+            ((TcpListener)_server.GetType().GetField("_listener", BindingFlags.Instance | BindingFlags.NonPublic)
               ?.GetValue(_server)!).LocalEndpoint;
 
     public event EventHandler<ClientConnectedArgs>? ClientConnected;

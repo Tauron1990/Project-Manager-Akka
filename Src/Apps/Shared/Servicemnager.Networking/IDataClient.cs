@@ -1,7 +1,7 @@
 ﻿using System;
 using Servicemnager.Networking.Data;
 using Servicemnager.Networking.Server;
-using SimpleTcp;
+using SuperSimpleTcp;
 
 namespace Servicemnager.Networking;
 
