@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using Stl.Fusion;
+﻿using Stl.Fusion;
 using Tauron.Applicarion.Redux.Configuration;
 using Tauron.Applicarion.Redux.Extensions;
 using Tauron.Applicarion.Redux.Extensions.Internal;

@@ -202,7 +202,7 @@ public class DistributedActorTable<TKey> : ReceiveActor
 
     private void PutOnCreateWaitingList(RequestType requestType, TKey id, IActorRef requester)
     {
-        var (_, creating) = _creatingMap.FirstOrDefault(map => map.Key.Equals(id));
+        var (_, creating) = _creatingMap.First(map => map.Key.Equals(id));
         if (creating == null)
         {
             _log.Error($"Cannot find creatingMap. (Id=${id} RequestType={requestType})");

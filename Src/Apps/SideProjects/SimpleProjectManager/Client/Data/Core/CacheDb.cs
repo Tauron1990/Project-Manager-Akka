@@ -1,4 +1,5 @@
-﻿using Microsoft.JSInterop;
+﻿using System.Text.Json;
+using Microsoft.JSInterop;
 using Tauron.Applicarion.Redux.Extensions.Cache;
 using Tauron.Application;
 using Tauron.Application.Blazor;
@@ -10,7 +11,7 @@ public sealed class CacheDb : ICacheDb
     private const string ScriptImport = "./Database/DatabaseContext";
 
     private readonly IJSRuntime _jsRuntime;
-    private IJSObjectReference? _dbContext;
+    private DatabaseConnection? _dbContext;
     private readonly IEventAggregator _eventAggregator;
 
     public CacheDb(IJSRuntime jsRuntime, IEventAggregator eventAggregator)
@@ -19,16 +20,16 @@ public sealed class CacheDb : ICacheDb
         _eventAggregator = eventAggregator;
     }
 
-    private async ValueTask<IJSObjectReference> GetDatabseConnection()
-        => _dbContext ??= await _jsRuntime.InvokeAsync<IJSObjectReference>("import", ScriptImport);
+    private async ValueTask<DatabaseConnection> GetDatabseConnection()
+        => _dbContext ??= new DatabaseConnection(await _jsRuntime.InvokeAsync<IJSObjectReference>("import", ScriptImport));
 
     public async ValueTask DeleteElement(CacheTimeoutId key)
     {
         try
         {
             var db = await GetDatabseConnection();
-            var (sucess, message) = await db.InvokeAsync<InternalResult>("deleteTimeoutElement", key.ToString());
-
+            var (sucess, message) = await db.DeleteTimeoutElement(key);
+            
             if(sucess) return;
 
             _eventAggregator.PublishError(message);
@@ -42,7 +43,7 @@ public sealed class CacheDb : ICacheDb
     public async ValueTask DeleteElement(CacheDataId key)
     {
         var db = await GetDatabseConnection();
-        await db.InvokeVoidAsync("deleteElement", key.ToString(), CacheTimeoutId.FromCacheId(key).ToString());
+        await db.DeleteElement(key);
     }
     
     public async ValueTask<(CacheTimeoutId? id, CacheDataId? Key, DateTime Time)> GetNextTimeout()
@@ -50,7 +51,7 @@ public sealed class CacheDb : ICacheDb
         try
         {
             var db = await GetDatabseConnection();
-            var all = await db.InvokeAsync<CacheTimeout[]>("getAllTimeoutElements");
+            var all = await db.GetTimeoutElements();
 
             var entry = (from cacheTimeout in all
                          orderby cacheTimeout.Timeout
@@ -72,26 +73,27 @@ public sealed class CacheDb : ICacheDb
 
     private async ValueTask UpdateTimeout(CacheDataId key)
     {
-        var db = GetDatabseConnection();
+        var db = await GetDatabseConnection();
         
         var id = CacheTimeoutId.FromCacheId(key);
-        var timeout = await _timeoutDb.GetValueAsync<CacheTimeout>(id.ToString());
-        await _timeoutDb.PutValueAsync(
-            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+        var timeout = await db.GetTimeout(id);
+        await db.UpdateTimeout(
             timeout is null
-                ? new CacheTimeout(id, key, GetTimeout())
-                : timeout with { Timeout = GetTimeout() });
+            ? new CacheTimeout(id, key, GetTimeout())
+            : timeout with { Timeout = GetTimeout() });
     }
     
     public async ValueTask TryAddOrUpdateElement(CacheDataId key, string data)
     {
         try
         {
+            var db = await GetDatabseConnection();
+            
             var cacheData = new CacheData(key, data);
 
             await UpdateTimeout(key);
             
-            await _dataDb.PutValueAsync(cacheData);
+            await db.UpdateData(cacheData);
         }
         catch (Exception e)
         {
@@ -101,7 +103,8 @@ public sealed class CacheDb : ICacheDb
 
     public async ValueTask<string?> ReNewAndGet(CacheDataId key)
     {
-        var result = await _dataDb.GetValueAsync<CacheData>(key.ToString());
+        var db = await GetDatabseConnection();
+        var result = await db.GetCacheEntry(key);
 
         // ReSharper disable once ConditionIsAlwaysTrueOrFalse
         if (result is null) return null;
@@ -120,10 +123,33 @@ public sealed class CacheDb : ICacheDb
         public DatabaseConnection(IJSObjectReference reference)
             => _reference = reference;
 
+        public async Task UpdateData(CacheData data)
+            => await _reference.InvokeVoidAsync("saveData", data.Id.ToString(), data);
+
         public async Task DeleteElement(CacheDataId key)
             => await _reference.InvokeVoidAsync("deleteElement", key.ToString(), CacheTimeoutId.FromCacheId(key).ToString());
 
         public async Task<CacheTimeout[]> GetTimeoutElements()
             => await _reference.InvokeAsync<CacheTimeout[]>("getAllTimeoutElements");
+
+        public async Task<InternalResult> DeleteTimeoutElement(CacheTimeoutId id)
+            => await _reference.InvokeAsync<InternalResult>("deleteTimeoutElement", id.ToString());
+
+        public async Task<CacheTimeout?> GetTimeout(CacheTimeoutId id)
+        {
+            var result = await _reference.InvokeAsync<string>("getTimeout", id.ToString());
+
+            return string.IsNullOrWhiteSpace(result) ? null : JsonSerializer.Deserialize<CacheTimeout>(result);
+        }
+
+        public async Task UpdateTimeout(CacheTimeout timeout)
+            => await _reference.InvokeVoidAsync("updateTimeout", timeout.Id.ToString(), timeout);
+
+        public async Task<CacheData?> GetCacheEntry(CacheDataId id)
+        {
+            var result = await _reference.InvokeAsync<string>("getCacheEntry", id.ToString());
+
+            return string.IsNullOrWhiteSpace(result) ? null : JsonSerializer.Deserialize<CacheData>(result);
+        }
     }
 } 

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace TestApp;
@@ -167,7 +166,7 @@ internal sealed class FakeFileService : IJobFileService
 
 static class Program
 {
-    static async Task Main()
+    static Task Main()
     {
         /*var coll = new ServiceCollection();
         coll.AddTransient<IErrorHandler, TestErrorHandler>();
@@ -189,25 +188,10 @@ static class Program
         
         await Task.Delay(3000);*/
 
-        var launchcommand = " start.bat";
-        
-        int num1 = launchcommand.IndexOf(' ');
-        string launchCommand1 = launchcommand;
-        int num2 = 0;
-        int num3 = num1 - num2;
-        int startIndex1 = num2;
-        int length1 = num3;
-        string str = launchCommand1.Substring(startIndex1, length1);
-        string launchCommand2 = launchcommand;
-        int length2 = launchCommand2.Length;
-        int num4;
-        int startIndex2 = num4 = num1 + 1;
-        int num5 = startIndex2;
-        int length3 = length2 - num5;
-        string arguments = launchCommand2.Substring(startIndex2, length3);
-        
         Console.WriteLine();
         Console.WriteLine("Fertig...");
         Console.ReadKey();
+        
+        return Task.CompletedTask;
     }
 }

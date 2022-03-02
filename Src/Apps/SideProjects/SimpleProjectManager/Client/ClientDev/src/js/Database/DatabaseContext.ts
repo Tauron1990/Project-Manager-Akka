@@ -1,4 +1,6 @@
-﻿import { openDB, deleteDB, DBSchema, IDBPDatabase } from 'idb';
+﻿// noinspection JSUnusedGlobalSymbols
+
+import { openDB, DBSchema, IDBPDatabase } from 'idb';
 
 export namespace DatabaseContext {
 
@@ -59,14 +61,8 @@ export namespace DatabaseContext {
     }
 
     export async function saveData(id: string, data: JSON) {
-        try {
             const db = await openDataDatabase();
             await db.put("data", new DataContainer(id, data));
-
-            return new Result();
-        } catch (e) {
-            return new Result(e.toString());
-        }
     }
     
     export async function getAllTimeoutElements() {
@@ -118,5 +114,16 @@ export namespace DatabaseContext {
     export async function updateTimeout(id:string, data:JSON){
         const db = await openDataDatabase();
         await db.put("timeout", new DataContainer(id, data), id);
+    }
+    
+    export async function getCacheEntry(id:string)
+    {
+        const db = await openDataDatabase();
+        
+        const result = await db.get("data", id);
+    
+        if(result === undefined) return "";
+        
+        return result.data;
     }
 }

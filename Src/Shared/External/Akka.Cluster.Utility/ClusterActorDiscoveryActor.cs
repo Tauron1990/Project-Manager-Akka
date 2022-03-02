@@ -133,7 +133,7 @@ public class ClusterActorDiscoveryActor : ReceiveActor
     {
         _log.Info($"Cluster.Unreachable: {member.Member.Address} Role={string.Join(",", member.Member.Roles)}");
 
-        var (key, _) = _nodeMap.FirstOrDefault(node => node.Value.ClusterAddress == member.Member.UniqueAddress);
+        var (key, _) = _nodeMap.First(node => node.Value.ClusterAddress == member.Member.UniqueAddress);
         RemoveNode(key);
     }
 
@@ -141,7 +141,7 @@ public class ClusterActorDiscoveryActor : ReceiveActor
     {
         _log.Info($"Cluster.MemberRemoved: {member.Member.Address} Role={string.Join(",", member.Member.Roles)}");
 
-        var (key, _) = _nodeMap.FirstOrDefault(node => node.Value.ClusterAddress == member.Member.UniqueAddress);
+        var (key, _) = _nodeMap.First(node => node.Value.ClusterAddress == member.Member.UniqueAddress);
         RemoveNode(key);
     }
 
@@ -174,7 +174,7 @@ public class ClusterActorDiscoveryActor : ReceiveActor
 
         // Reregister node
 
-        var (key, _) = _nodeMap.FirstOrDefault(node => node.Value.ClusterAddress == member.ClusterAddress);
+        var (key, _) = _nodeMap.First(node => node.Value.ClusterAddress == member.ClusterAddress);
         //if (key != null)
         RemoveNode(key);
 

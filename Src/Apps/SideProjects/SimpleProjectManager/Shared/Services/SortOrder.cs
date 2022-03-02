@@ -1,6 +1,4 @@
-﻿using Akkatecture.Entities;
-
-namespace SimpleProjectManager.Shared.Services;
+﻿namespace SimpleProjectManager.Shared.Services;
 
 public sealed record SortOrder(ProjectId Id, int SkipCount, bool IsPriority)
 {

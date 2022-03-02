@@ -814,7 +814,9 @@ public partial class JsonObject : JsonNode
 
     public override JsonNode? Remove(JsonNode aNode)
     {
+        #pragma warning disable GU0019
         var item = _dict.FirstOrDefault(k => k.Value == aNode);
+        #pragma warning restore GU0019
 
         if (item is { Key: null }) return null;
 

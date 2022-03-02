@@ -1,6 +1,5 @@
 ﻿using System.Collections.Concurrent;
 using SimpleProjectManager.Client.Data.States;
-using SimpleProjectManager.Client.ViewModels;
 using SimpleProjectManager.Server.Core.Services;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
