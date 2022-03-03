@@ -34,7 +34,7 @@ export namespace DatabaseContext {
         message: string;
 
         constructor(msg?: string) {
-            if (msg == undefined) {
+            if (msg === undefined) {
                 this.sucess = true;
             } else {
                 this.sucess = false;
