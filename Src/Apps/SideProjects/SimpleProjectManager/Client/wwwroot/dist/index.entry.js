@@ -6,7 +6,7 @@ var __webpack_exports__ = {};
 function isOnline() {
     return window.navigator.onLine;
 }
-
+//# sourceMappingURL=index.js.map
 /******/ })()
 ;
 //# sourceMappingURL=index.entry.js.map

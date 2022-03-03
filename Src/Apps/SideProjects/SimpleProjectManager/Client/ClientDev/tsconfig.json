@@ -1,9 +1,20 @@
 ﻿{
   "compileOnSave": true,
   "compilerOptions": {
-    "lib": ["ES2016"],
-    "types": [
-      "webpack-env"
-    ]
+    "baseUrl": "./",
+    "sourceMap": true,
+    "declaration": false,
+    "allowSyntheticDefaultImports": true,
+    "module": "es2015",
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "importHelpers": true,
+    "target": "es5",
+    "typeRoots": [ "node_modules/@types" ],
+    "lib": ["ES2018", "DOM"],
+    "types": [ "webpack-env" ]
   }
 }

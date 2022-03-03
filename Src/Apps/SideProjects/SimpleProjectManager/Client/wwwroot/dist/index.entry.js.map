@@ -1,1 +1,1 @@
-{"version":3,"file":"index.entry.js","mappings":";;;;;AAAA;AACA;AACA","sources":["webpack://simpleprojectmanager/./src/js/index.js"],"sourcesContent":["function isOnline() {\r\n    return window.navigator.onLine;\r\n}\r\n"],"names":[],"sourceRoot":""}
+{"version":3,"file":"index.entry.js","mappings":";;;;;AAAA;AACA;AACA;AACA,iC","sources":["webpack://simpleprojectmanager/./src/js/index.js"],"sourcesContent":["function isOnline() {\r\n    return window.navigator.onLine;\r\n}\r\n//# sourceMappingURL=index.js.map"],"names":[],"sourceRoot":""}
