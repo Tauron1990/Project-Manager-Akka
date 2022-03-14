@@ -675,7 +675,7 @@ var DatabaseContext;
     }());
     var Result = /** @class */ (function () {
         function Result(msg) {
-            if (msg == undefined) {
+            if (msg === undefined) {
                 this.sucess = true;
             }
             else {

@@ -2,7 +2,7 @@
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
 <!DOCTYPE html>
-<html>
+<html lang="de">
 
 <head>
     <title>Einfacher Projekt Manager</title>
@@ -21,6 +21,10 @@
     @*<link href="_content/GridBlazor/css/gridblazor.min.css" rel="stylesheet"/>
 
     <script src="_content/GridBlazor/js/gridblazor.js"></script>*@
+    
+    <script src="dist/database.entry.js"></script>
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+    <script src="dist/index.entry.js"></script>
 </head>
 
 <body>
@@ -28,10 +32,6 @@
 <noscript>
     JavaScript ist zum betrieb der Webseite erfordelich!
 </noscript>
-
-<script src="_content/MudBlazor/MudBlazor.min.js"></script>
-<script src="dist/database.entry.js"></script>
-<script src="dist/index.entry.js"></script>
 
 @*
 <div id="app">Loading...</div>
@@ -54,6 +54,3 @@
 </body>
 
 </html>
-
-@{
-}
