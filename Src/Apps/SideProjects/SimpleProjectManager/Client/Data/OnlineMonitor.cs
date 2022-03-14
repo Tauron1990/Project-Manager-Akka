@@ -6,7 +6,7 @@ namespace SimpleProjectManager.Client.Data;
 
 public sealed class OnlineMonitor : IOnlineMonitor
 {
-    private readonly Task<IJSObjectReference> _jsRuntime;
+    private readonly IJSRuntime _jsRuntime;
     private readonly ILogger<OnlineMonitor> _logger;
     private readonly IPingServiceDef _pingService;
     
@@ -14,7 +14,7 @@ public sealed class OnlineMonitor : IOnlineMonitor
 
     public OnlineMonitor(HttpClient client, IJSRuntime jsRuntime, ILogger<OnlineMonitor> logger)
     {
-        _jsRuntime = jsRuntime.InvokeAsync<IJSObjectReference>("Index").AsTask();
+        _jsRuntime = jsRuntime;
         _logger = logger;
         _pingService = RestEase.RestClient.For<IPingServiceDef>(client);
         Online =
@@ -32,8 +32,7 @@ public sealed class OnlineMonitor : IOnlineMonitor
         {
             try
             {
-                var refernce = await _jsRuntime;
-                if (!await refernce.InvokeAsync<bool>("isOnline", source.Token))
+                if (!await _jsRuntime.InvokeAsync<bool>("Index.isOnline", source.Token))
                     return false;
             }
             catch (Exception e)

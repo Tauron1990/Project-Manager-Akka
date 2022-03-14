@@ -41,3 +41,5 @@ host.Services.UseMicrosoftDependencyResolver();
 new TauronEnviromentSetup().Run(host.Services);
 
 await host.RunAsync();
+
+Console.WriteLine("Application Closed");

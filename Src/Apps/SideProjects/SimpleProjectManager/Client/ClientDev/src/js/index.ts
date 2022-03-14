@@ -1,6 +1,6 @@
 ﻿export namespace Index {
-
-    function isOnline() {
+    
+    export function isOnline() {
         return window.navigator.onLine;
     }
 }
