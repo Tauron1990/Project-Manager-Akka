@@ -24,7 +24,7 @@ try
        .ConfigureWebHostDefaults(
             b =>
             {
-                b.UseUrls("http://localhost:5000", $"http://{ip}:5000");
+                b.UseUrls("http://localhost:6000", $"http://{ip}:6000");
 
                 b.UseStartup<Startup>();
             });

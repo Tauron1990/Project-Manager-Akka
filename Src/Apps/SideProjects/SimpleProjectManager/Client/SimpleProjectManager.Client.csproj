@@ -159,6 +159,7 @@
 
 	<ItemGroup>
 		<Folder Include="ViewModels\AppBar\" />
+		<Folder Include="wwwroot\dist" />
 		<Folder Include="wwwroot\dist\" />
 		<Folder Include="wwwroot\_content\MudBlazor\" />
 	</ItemGroup>

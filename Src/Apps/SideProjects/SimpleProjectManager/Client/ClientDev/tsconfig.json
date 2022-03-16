@@ -1,12 +1,14 @@
 ﻿{
   "compileOnSave": true,
   "compilerOptions": {
+    
+    "allowJs": true,
     "baseUrl": "./",
     "sourceMap": true,
     "declaration": false,
     "allowSyntheticDefaultImports": true,
-    "module": "es2015",
-    "moduleResolution": "node",
+    "module": "ES6",
+    "moduleResolution": "Node",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "resolveJsonModule": true,
@@ -15,6 +17,16 @@
     "target": "es5",
     "typeRoots": [ "node_modules/@types" ],
     "lib": ["ES2018", "DOM"],
-    "types": [ "webpack-env" ]
-  }
+    "types": [ "webpack-env" ],
+    "outDir": "../wwwroot/dist"
+  },
+
+  "include": [
+    "./**/*"
+  ],
+  "exclude": [
+    "./plugins/**/*",
+    "./typings/**/*",
+    "./built/**/*" // This is what fixed it!
+  ]
 }

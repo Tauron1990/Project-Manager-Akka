@@ -13,7 +13,7 @@
             }
         </MudItem>
         <MudItem lg="12">
-            @if (Error is null)
+            @if (Error is not null)
             {
                 <MudText>@Error.Message</MudText>
             }

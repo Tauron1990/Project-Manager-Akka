@@ -32,7 +32,7 @@ public sealed class OnlineMonitor : IOnlineMonitor
         {
             try
             {
-                if (!await _jsRuntime.InvokeAsync<bool>("Index.isOnline", source.Token))
+                if (!await _jsRuntime.InvokeAsync<bool>("window.isOnline", source.Token))
                     return false;
             }
             catch (Exception e)

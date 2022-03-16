@@ -1,20 +1,30 @@
 const path = require('path');
+const TerserPlugin = require("terser-webpack-plugin");
 
 module.exports = {
     entry: {
-        index: './src/js/index.js',
-        database: './src/js/Database/DatabaseContext.js'
+        index: './src/js/index.ts'
     },
     output: {
-        filename: '[name].entry.js',
-        path: path.resolve(__dirname, '..', 'wwwroot', 'dist')
+        filename: 'bundle.js',
+        path: path.resolve(__dirname, '..', 'wwwroot', 'dist'),
+        clean: true
     },
-    devtool: 'source-map',
-    mode: 'development',
+    devtool: 'inline-source-map',
+    mode: 'development', //development
     module: {
         rules: [
-            { test: /\.css$/, use: ['style-loader', 'css-loader'] },
-            { test: /\.eot(\?v=\d+\.\d+\.\d+)?$/, use: ['file-loader'] },
+            { 
+                test: /\.tsx?$/,
+                use: 'ts-loader',
+                exclude: /node_modules/,
+            },
+            { 
+                test: /\.css$/, 
+                use: ['style-loader', 'css-loader'] },
+            { 
+                test: /\.eot(\?v=\d+\.\d+\.\d+)?$/, 
+                use: ['file-loader'] },
             {
                 test: /\.(woff|woff2)$/, use: [
                     {
@@ -48,5 +58,8 @@ module.exports = {
                 ]
             },
         ]
-    }
+    },
+    resolve: {
+        extensions: ['.tsx', '.ts', '.js'],
+    },
 };

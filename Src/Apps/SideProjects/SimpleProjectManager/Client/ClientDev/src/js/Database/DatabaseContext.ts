@@ -1,9 +1,42 @@
 ﻿// noinspection JSUnusedGlobalSymbols
 
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
+import * as Console from "console";
+
+export {}
+
+declare global {
+    interface Database{
+        getCacheEntry(id:string)
+        updateTimeout(id:string, data:JSON)
+        getTimeout(id:string)
+        deleteTimeoutElement(id: string)
+        deleteElement(id:string, timeoutId:string)
+        getAllTimeoutElements()
+        saveData(id: string, data: JSON)
+    }
+    
+    interface Window{
+        Database: Database
+    }
+}
 
 export namespace DatabaseContext {
 
+    export function initDatabase(){
+        console.log("Init Database Api");
+        
+        // @ts-ignore
+        window.Database = {}
+        window.Database.getCacheEntry = getCacheEntry;
+        window.Database.updateTimeout = updateTimeout;
+        window.Database.getTimeout = getTimeout;
+        window.Database.deleteTimeoutElement = deleteTimeoutElement;
+        window.Database.deleteElement = deleteElement;
+        window.Database.getAllTimeoutElements = getAllTimeoutElements;
+        window.Database.saveData = saveData;
+    }
+    
     interface IDefaultDatabase extends DBSchema {
         timeout: {
             value: DataContainer;
@@ -116,8 +149,7 @@ export namespace DatabaseContext {
         await db.put("timeout", new DataContainer(id, data), id);
     }
     
-    export async function getCacheEntry(id:string)
-    {
+    export async function getCacheEntry(id:string) {
         const db = await openDataDatabase();
         
         const result = await db.get("data", id);
