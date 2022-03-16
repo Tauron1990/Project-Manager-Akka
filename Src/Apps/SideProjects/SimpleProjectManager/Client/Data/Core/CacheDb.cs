@@ -8,8 +8,6 @@ namespace SimpleProjectManager.Client.Data.Core;
 
 public sealed class CacheDb : ICacheDb
 {
-    private const string ScriptImport = "./Database/DatabaseContext";
-
     private readonly IJSRuntime _jsRuntime;
     private DatabaseConnection? _dbContext;
     private readonly IEventAggregator _eventAggregator;
@@ -21,7 +19,7 @@ public sealed class CacheDb : ICacheDb
     }
 
     private async ValueTask<DatabaseConnection> GetDatabseConnection()
-        => _dbContext ??= new DatabaseConnection(await _jsRuntime.InvokeAsync<IJSObjectReference>("import", ScriptImport));
+        => _dbContext ??= new DatabaseConnection(_jsRuntime);
 
     public async ValueTask DeleteElement(CacheTimeoutId key)
     {
@@ -118,36 +116,36 @@ public sealed class CacheDb : ICacheDb
     
     private sealed class DatabaseConnection
     {
-        private readonly IJSObjectReference _reference;
+        private readonly IJSRuntime _reference;
 
-        public DatabaseConnection(IJSObjectReference reference)
+        public DatabaseConnection(IJSRuntime reference)
             => _reference = reference;
 
         public async Task UpdateData(CacheData data)
-            => await _reference.InvokeVoidAsync("saveData", data.Id.ToString(), data);
+            => await _reference.InvokeVoidAsync("window.Database.saveData", data.Id.ToString(), data);
 
         public async Task DeleteElement(CacheDataId key)
-            => await _reference.InvokeVoidAsync("deleteElement", key.ToString(), CacheTimeoutId.FromCacheId(key).ToString());
+            => await _reference.InvokeVoidAsync("window.Database.deleteElement", key.ToString(), CacheTimeoutId.FromCacheId(key).ToString());
 
         public async Task<CacheTimeout[]> GetTimeoutElements()
-            => await _reference.InvokeAsync<CacheTimeout[]>("getAllTimeoutElements");
+            => await _reference.InvokeAsync<CacheTimeout[]>("window.Database.getAllTimeoutElements");
 
         public async Task<InternalResult> DeleteTimeoutElement(CacheTimeoutId id)
-            => await _reference.InvokeAsync<InternalResult>("deleteTimeoutElement", id.ToString());
+            => await _reference.InvokeAsync<InternalResult>("window.Database.deleteTimeoutElement", id.ToString());
 
         public async Task<CacheTimeout?> GetTimeout(CacheTimeoutId id)
         {
-            var result = await _reference.InvokeAsync<string>("getTimeout", id.ToString());
+            var result = await _reference.InvokeAsync<string>("window.Database.getTimeout", id.ToString());
 
             return string.IsNullOrWhiteSpace(result) ? null : JsonSerializer.Deserialize<CacheTimeout>(result);
         }
 
         public async Task UpdateTimeout(CacheTimeout timeout)
-            => await _reference.InvokeVoidAsync("updateTimeout", timeout.Id.ToString(), timeout);
+            => await _reference.InvokeVoidAsync("window.Database.updateTimeout", timeout.Id.ToString(), timeout);
 
         public async Task<CacheData?> GetCacheEntry(CacheDataId id)
         {
-            var result = await _reference.InvokeAsync<string>("getCacheEntry", id.ToString());
+            var result = await _reference.InvokeAsync<string>("window.Database.getCacheEntry", id.ToString());
 
             return string.IsNullOrWhiteSpace(result) ? null : JsonSerializer.Deserialize<CacheData>(result);
         }
