@@ -1,9 +1,23 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using SimpleProjectManager.Client.Data;
+using SimpleProjectManager.Client.ViewModels;
+using SimpleProjectManager.Shared;
+using SimpleProjectManager.Shared.Services;
+using SimpleProjectManager.Shared.Services.Tasks;
+using Tauron;
+using Tauron.Applicarion.Redux;
+using Tauron.Applicarion.Redux.Configuration;
+using Tauron.Applicarion.Redux.Extensions.Cache;
 
 namespace TestApp;
 
-/*
 internal sealed class TestCache : ICacheDb
 {
     private readonly ConcurrentDictionary<CacheTimeoutId, CacheTimeout> _timeouts = new();
@@ -133,7 +147,7 @@ internal sealed class FakeJobDatabaseService : IJobDatabaseService
 internal sealed class FakeErrorService : ICriticalErrorService
 {
     public Task<long> CountErrors(CancellationToken token)
-        => Task.FromResult(0L);
+        => Task.FromResult(10L);
 
     public Task<CriticalError[]> GetErrors(CancellationToken token)
         => throw new InvalidOperationException();
@@ -162,21 +176,31 @@ internal sealed class FakeFileService : IJobFileService
     public Task<string> DeleteFiles(FileList files, CancellationToken token)
         => throw new InvalidOperationException();
 }
-*/
+
+internal sealed class FakeTaskManager : ITaskManager
+{
+    public Task<PendingTask[]> GetTasks(CancellationToken token)
+        => Task.FromResult(Array.Empty<PendingTask>());
+
+    public Task<string> DeleteTask(string id, CancellationToken token)
+        => Task.FromResult(string.Empty);
+}
 
 static class Program
 {
-    static Task Main()
+    static async Task Main()
     {
-        /*var coll = new ServiceCollection();
+        var coll = new ServiceCollection();
         coll.AddTransient<IErrorHandler, TestErrorHandler>();
         coll.AddSingleton<ICacheDb, TestCache>();
-        coll.AddScoped<UploadTransaction>();
-
+        coll.AddTransient<UploadTransaction>();
+        coll.AddTransient<Func<UploadTransaction>>(p => p.GetRequiredService<UploadTransaction>);
+        
         coll.AddSingleton<IOnlineMonitor, FakeOnlineModitor>();
         coll.AddTransient<IJobDatabaseService, FakeJobDatabaseService>();
         coll.AddTransient<ICriticalErrorService, FakeErrorService>();
         coll.AddTransient<IJobFileService, FakeFileService>();
+        coll.AddTransient<ITaskManager, FakeTaskManager>();
 
         coll.AddSingleton<GlobalState>();
         coll.AddStoreConfiguration();
@@ -185,13 +209,22 @@ static class Program
         
         await using var prov = coll.BuildServiceProvider();
         var store = prov.GetRequiredService<GlobalState>();
+
+        using var waiter = new AutoResetEvent(false);
+
+        store.Errors.ErrorCount.Subscribe(
+            i =>
+            {
+                Console.WriteLine($"Test Error Count: {i}");
+                // ReSharper disable once AccessToDisposedClosure
+                waiter.Set();
+            });
         
-        await Task.Delay(3000);*/
+        waiter.WaitOne();
+        await Task.Delay(3000);
 
         Console.WriteLine();
         Console.WriteLine("Fertig...");
         Console.ReadKey();
-        
-        return Task.CompletedTask;
     }
 }

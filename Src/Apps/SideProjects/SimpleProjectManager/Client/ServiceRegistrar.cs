@@ -8,7 +8,7 @@ using Tauron.Application;
 
 namespace SimpleProjectManager.Client;
 
-public class ServiceRegistrar
+public static class ServiceRegistrar
 {
     public static void RegisterServices(IServiceCollection services)
     {

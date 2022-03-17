@@ -18,14 +18,14 @@ public sealed class CacheDb : ICacheDb
         _eventAggregator = eventAggregator;
     }
 
-    private async ValueTask<DatabaseConnection> GetDatabseConnection()
+    private DatabaseConnection GetDatabseConnection()
         => _dbContext ??= new DatabaseConnection(_jsRuntime);
 
     public async ValueTask DeleteElement(CacheTimeoutId key)
     {
         try
         {
-            var db = await GetDatabseConnection();
+            var db = GetDatabseConnection();
             var (sucess, message) = await db.DeleteTimeoutElement(key);
             
             if(sucess) return;
@@ -40,7 +40,7 @@ public sealed class CacheDb : ICacheDb
     
     public async ValueTask DeleteElement(CacheDataId key)
     {
-        var db = await GetDatabseConnection();
+        var db = GetDatabseConnection();
         await db.DeleteElement(key);
     }
     
@@ -48,7 +48,7 @@ public sealed class CacheDb : ICacheDb
     {
         try
         {
-            var db = await GetDatabseConnection();
+            var db = GetDatabseConnection();
             var all = await db.GetTimeoutElements();
 
             var entry = (from cacheTimeout in all
@@ -71,7 +71,7 @@ public sealed class CacheDb : ICacheDb
 
     private async ValueTask UpdateTimeout(CacheDataId key)
     {
-        var db = await GetDatabseConnection();
+        var db = GetDatabseConnection();
         
         var id = CacheTimeoutId.FromCacheId(key);
         var timeout = await db.GetTimeout(id);
@@ -85,7 +85,7 @@ public sealed class CacheDb : ICacheDb
     {
         try
         {
-            var db = await GetDatabseConnection();
+            var db = GetDatabseConnection();
             
             var cacheData = new CacheData(key, data);
 
@@ -101,7 +101,7 @@ public sealed class CacheDb : ICacheDb
 
     public async ValueTask<string?> ReNewAndGet(CacheDataId key)
     {
-        var db = await GetDatabseConnection();
+        var db = GetDatabseConnection();
         var result = await db.GetCacheEntry(key);
 
         // ReSharper disable once ConditionIsAlwaysTrueOrFalse

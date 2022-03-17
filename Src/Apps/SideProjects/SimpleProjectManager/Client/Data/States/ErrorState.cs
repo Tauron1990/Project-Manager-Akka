@@ -16,7 +16,7 @@ public sealed class ErrorState : StateBase<InternalErrorState>
     protected override IStateConfiguration<InternalErrorState> ConfigurateState(ISourceConfiguration<InternalErrorState> configuration)
     {
         return configuration
-           .FromServer(_errorService.CountErrors, (state, errorCount) => state with { ErrorCount = errorCount })
+           .FromCacheAndServer(_errorService.CountErrors, (state, errorCount) => state with { ErrorCount = errorCount })
            .ApplyRequests(
                 factory =>
                 {
@@ -32,6 +32,7 @@ public sealed class ErrorState : StateBase<InternalErrorState>
 
     protected override void PostConfiguration(IRootStoreState<InternalErrorState> state)
     {
+        Console.WriteLine("Post Config Error State");
         Errors = FromServer(_errorService.GetErrors);
         ErrorCount = state.Select(data => data.ErrorCount);
     }

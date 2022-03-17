@@ -7,6 +7,7 @@ using SimpleProjectManager.Client;
 using SimpleProjectManager.Client.Data;
 using SimpleProjectManager.Shared.ServerApi;
 using SimpleProjectManager.Shared.ServerApi.RestApi;
+using Stl.Fusion.UI;
 using Tauron;
 using Tauron.Application;
 
@@ -28,6 +29,7 @@ builder.Services.AddLogging(b =>
 
 //Fusion
 builder.Services.AddSingleton<BlazorModeHelper>();
+builder.Services.AddSingleton<IUICommandTracker, UICommandTracker>();
 var config = ClientRegistration.ConfigFusion(builder.Services, new Uri(builder.HostEnvironment.BaseAddress));
 config.Fusion.AddBlazorUIServices();
 

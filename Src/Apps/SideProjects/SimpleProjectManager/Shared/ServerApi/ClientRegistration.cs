@@ -13,12 +13,13 @@ public static class ClientRegistration
     public static FusionRestEaseClientBuilder ConfigFusion(IServiceCollection collection, Uri baseAdress)
     {
         return collection.AddFusion()
+           .AddBackendStatus()
            .AddFusionTime()
-           .AddRestEaseClient(((_, options) =>
-                               {
-                                   options.BaseUri = baseAdress;
-                                   options.IsLoggingEnabled = true;
-                               }))
+           .AddRestEaseClient((_, options) =>
+                              {
+                                  options.BaseUri = baseAdress;
+                                  options.IsLoggingEnabled = true;
+                              })
            .ConfigureHttpClientFactory(
                 (_, _, options) => options.HttpClientActions.Add(
                     c =>

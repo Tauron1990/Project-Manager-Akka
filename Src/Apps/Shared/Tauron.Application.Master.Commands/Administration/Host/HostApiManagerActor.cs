@@ -69,7 +69,9 @@ public sealed class HostApiManagerFeature : ActorFeatureBase<HostApiManagerFeatu
                .Select(
                     m => new
                          {
+                             #pragma warning disable GU0019
                              Command = m.Event, Host = m.State.Entries.FirstOrDefault(e => e.Value.Name == m.Event.Target).Value
+                             #pragma warning restore GU0019
                          })
                .SubscribeWithStatus(
                     m =>

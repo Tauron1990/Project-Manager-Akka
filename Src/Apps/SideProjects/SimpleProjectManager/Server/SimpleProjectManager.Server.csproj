@@ -17,13 +17,13 @@
   <ItemGroup>
     <PackageReference Include="Akka.Persistence.MongoDb" Version="1.4.31" />
     <PackageReference Include="Ben.Demystifier" Version="0.4.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="6.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="6.0.3" />
     <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="4.6.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="MongoDB.Driver.GridFS" Version="2.14.1" />
-    <PackageReference Include="Stl.Fusion.Server" Version="2.3.23" />
+    <PackageReference Include="MongoDB.Driver.GridFS" Version="2.15.0" />
+    <PackageReference Include="Stl.Fusion.Server" Version="2.3.48" />
   </ItemGroup>
 
   <ItemGroup>
