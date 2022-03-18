@@ -13,7 +13,7 @@ public static class EnumGenerationHelper
 namespace {Namespace}
 {{
     [System.AttributeUsage(System.AttributeTargets.Enum)]
-    public class {TypeName} : System.Attribute
+    internal class {TypeName} : System.Attribute
     {{
         public string ExtensionClassName {{ get; set; }}
         public string ExtensionNamespaceName {{ get; set; }}

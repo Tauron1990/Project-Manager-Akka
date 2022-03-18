@@ -154,6 +154,9 @@ public class Generator : IIncrementalGenerator
         var extensionName = "EnumExtensions";
         var namespaceName = GetNamespace(syntaxNode);
 
+        if (string.IsNullOrWhiteSpace(namespaceName))
+            namespaceName = EnumGenerationHelper.Namespace;
+
         if (enumSymbol is null) return (extensionName, namespaceName);
 
         // Loop through all of the attributes on the enum
