@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading.Tasks;
 using Tauron.SourceGenerators.Utils;
-using VerifyTests;
 using VerifyXunit;
 using Xunit;
 
@@ -15,12 +13,12 @@ public class AttributeHelpersTests
     [Fact]
     public Task TestGenerateAttribute()
     {
-        var targets = AttributeTargets.Class | AttributeTargets.Enum | AttributeTargets.Interface;
-        var testNamespace = "Tauron.Test";
-        var testClass = "TestClassAttribute";
+        const AttributeTargets targets = AttributeTargets.Class | AttributeTargets.Enum | AttributeTargets.Interface;
+        const string testNamespace = "Tauron.Test";
+        const string testClass = "TestClassAttribute";
         var testPropertys = ImmutableDictionary<string, string>.Empty.Add("string", "TestProperty").Add("int", "TestProperty2");
 
-        var result = AttributeHelpers.GenerateAttribute(targets, testNamespace, testClass, testPropertys);
+        var result = AttributeHelpers.GenerateAttribute(targets, testNamespace, testClass, testPropertys)();
 
         return Verifier.Verify(result);
     }

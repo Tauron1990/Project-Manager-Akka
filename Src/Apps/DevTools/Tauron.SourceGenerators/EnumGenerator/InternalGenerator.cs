@@ -4,24 +4,34 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Tauron.SourceGenerators.Utils;
 
 namespace Tauron.SourceGenerators.EnumGenerator;
 
 [Generator(LanguageNames.CSharp)]
-public class Generator : IIncrementalGenerator
+public class InternalGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
+        var attributeData = AttributeHelpers.GenerateAttribute(
+            AttributeTargets.Enum,
+            EnumGenerationHelper.Namespace,
+            EnumGenerationHelper.TypeName,
+            ImmutableDictionary<string, string>.Empty
+               .Add("string", "ExtensionClassName")
+               .Add("string", "ExtensionNamespaceName")
+        );
+        
         // Add the marker attribute to the compilation
         context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
                                                      "EnumExtensionsAttribute.g.cs", 
-                                                     SourceText.From(EnumGenerationHelper.Attribute, Encoding.UTF8)));
+                                                     SourceText.From(attributeData(), Encoding.UTF8)));
 
         // Do a simple filter for enums
         IncrementalValuesProvider<EnumDeclarationSyntax> enumDeclarations = context.SyntaxProvider
            .CreateSyntaxProvider(
-                predicate: static (s, _) => IsSyntaxTargetForGeneration(s), // select enums with attributes
-                transform: static (ctx, _) => GetSemanticTargetForGeneration(ctx)) // sect the enum with the [EnumExtensions] attribute
+                BaseTypeDeclarationHelpers.MatchTypeAndHasAttributes<EnumDeclarationSyntax>, // select enums with attributes
+                BaseTypeDeclarationHelpers.GetSemanticTargetForGeneration<EnumDeclarationSyntax>(s => s.ToDisplayString() == EnumGenerationHelper.FullName)) // sect the enum with the [EnumExtensions] attribute
            .Where(static m => m is not null)!; // filter out attributed enums that we don't care about
 
         // Combine the selected enums with the `Compilation`
@@ -33,40 +43,7 @@ public class Generator : IIncrementalGenerator
             static (spc, source) => Execute(source.Item1, source.Item2, spc));
     }
 
-    private static bool IsSyntaxTargetForGeneration(SyntaxNode node)
-        => node is EnumDeclarationSyntax { AttributeLists.Count: > 0 };
     
-    static EnumDeclarationSyntax? GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
-    {
-        // we know the node is a EnumDeclarationSyntax thanks to IsSyntaxTargetForGeneration
-        var enumDeclarationSyntax = (EnumDeclarationSyntax)context.Node;
-
-        // loop through all the attributes on the method
-        foreach (var attributeListSyntax in enumDeclarationSyntax.AttributeLists)
-        {
-            foreach (var attributeSyntax in attributeListSyntax.Attributes)
-            {
-                if (ModelExtensions.GetSymbolInfo(context.SemanticModel, attributeSyntax).Symbol is not IMethodSymbol attributeSymbol)
-                {
-                    // weird, we couldn't get the symbol, ignore it
-                    continue;
-                }
-
-                var attributeContainingTypeSymbol = attributeSymbol.ContainingType;
-                var fullName = attributeContainingTypeSymbol.ToDisplayString();
-
-                // Is the attribute the [EnumExtensions] attribute?
-                if (fullName == EnumGenerationHelper.FullName)
-                {
-                    // return the enum
-                    return enumDeclarationSyntax;
-                }
-            }
-        }
-
-        // we didn't find the attribute we were looking for
-        return null;
-    }   
     
     private static void Execute(Compilation compilation, ImmutableArray<EnumDeclarationSyntax> enums, SourceProductionContext context)
     {

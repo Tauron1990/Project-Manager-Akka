@@ -5,20 +5,9 @@ namespace Tauron.SourceGenerators.EnumGenerator;
 public static class EnumGenerationHelper
 {
     public const string Namespace = "Tauron.SourceGenerators.EnumGenerators";
-    private const string TypeName = "EnumExtensionsAttribute";
+    public const string TypeName = "EnumExtensionsAttribute";
 
     public const string FullName = $"{Namespace}.{TypeName}";
-
-    public const string Attribute = $@"
-namespace {Namespace}
-{{
-    [System.AttributeUsage(System.AttributeTargets.Enum)]
-    internal class {TypeName} : System.Attribute
-    {{
-        public string ExtensionClassName {{ get; set; }}
-        public string ExtensionNamespaceName {{ get; set; }}
-    }}
-}}";
 
     public static string GenerateExtensionClass(IEnumerable<EnumToGenerate> enumsToGenerate, string namespaceName)
     {

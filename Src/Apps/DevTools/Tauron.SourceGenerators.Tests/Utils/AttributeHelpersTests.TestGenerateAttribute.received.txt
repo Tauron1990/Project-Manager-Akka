@@ -1,8 +1,0 @@
-﻿namespace Tauron.Test;
-
-[System.AttributeUsage(System.AttributeTargets.Class System.AttributeTargets.Enum | System.AttributeTargets.Interface | )]
-internal class TestClassAttribute : System.Attribute
-{
-public string TestProperty { get; set; }
-public int TestProperty2 { get; set; }
-}
