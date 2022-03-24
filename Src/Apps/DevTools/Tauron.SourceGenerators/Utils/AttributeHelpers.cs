@@ -35,7 +35,7 @@ public static class AttributeHelpers
 
                foreach (var property in propertys)
                {
-                   builder.Append("public ").Append(property.Key).Append(" ").Append(property.Value).AppendLine(" { get; set; }");
+                   builder.Append("public ").Append(property.Value).Append(" ").Append(property.Key).AppendLine(" { get; set; }");
                }
 
                builder.AppendLine("}");

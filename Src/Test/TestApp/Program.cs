@@ -15,7 +15,6 @@ using Tauron;
 using Tauron.Applicarion.Redux;
 using Tauron.Applicarion.Redux.Configuration;
 using Tauron.Applicarion.Redux.Extensions.Cache;
-using Tauron.SourceGenerators.EnumGenerators;
 
 namespace TestApp;
 
@@ -185,15 +184,6 @@ internal sealed class FakeTaskManager : ITaskManager
 
     public Task<string> DeleteTask(string id, CancellationToken token)
         => Task.FromResult(string.Empty);
-}
-
-[EnumExtensions]
-public enum TestEnum
-{
-    Test1,
-    Test2,
-    Test3,
-    Test4
 }
 
 static class Program

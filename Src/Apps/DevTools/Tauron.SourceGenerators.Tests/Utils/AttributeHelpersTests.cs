@@ -16,7 +16,7 @@ public class AttributeHelpersTests
         const AttributeTargets targets = AttributeTargets.Class | AttributeTargets.Enum | AttributeTargets.Interface;
         const string testNamespace = "Tauron.Test";
         const string testClass = "TestClassAttribute";
-        var testPropertys = ImmutableDictionary<string, string>.Empty.Add("string", "TestProperty").Add("int", "TestProperty2");
+        var testPropertys = ImmutableDictionary<string, string>.Empty.Add("TestProperty", "string").Add("TestProperty2", "int");
 
         var result = AttributeHelpers.GenerateAttribute(targets, testNamespace, testClass, testPropertys)();
 

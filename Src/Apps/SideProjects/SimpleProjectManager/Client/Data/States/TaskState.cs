@@ -9,20 +9,20 @@ using Tauron.Application.Blazor;
 
 namespace SimpleProjectManager.Client.Data.States;
 
-public sealed class TaskState : StateBase, IProvideActionDispatcher
+public sealed class TaskState : StateBase, IProvideActionDispatcher, IStoreInitializer
 {
     private readonly ITaskManager _taskManager;
     private readonly IEventAggregator _aggregator;
 
-    public TaskState(IStateFactory stateFactory, IStoreConfiguration storeConfiguration, ITaskManager taskManager, IEventAggregator aggregator) 
+    public TaskState(IStateFactory stateFactory, ITaskManager taskManager, IEventAggregator aggregator) 
         : base(stateFactory)
     {
         _taskManager = taskManager;
         _aggregator = aggregator;
-        storeConfiguration.RegisterForFhinising(this);
 
         ProviderFactory = () => stateFactory.NewComputed<PendingTask[]>(ComputeState);
     }
+    
 
     public void StoreCreated(IActionDispatcher dispatcher)
     {
@@ -37,4 +37,7 @@ public sealed class TaskState : StateBase, IProvideActionDispatcher
     
     private async Task<PendingTask[]> ComputeState(IComputedState<PendingTask[]> unUsed, CancellationToken cancellationToken)
         => await _taskManager.GetTasks(cancellationToken);
+
+    public void RunConfig(IStoreConfiguration configuration)
+        => configuration.RegisterForFhinising(this);
 }

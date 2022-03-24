@@ -18,8 +18,8 @@ public class InternalGenerator : IIncrementalGenerator
             EnumGenerationHelper.Namespace,
             EnumGenerationHelper.TypeName,
             ImmutableDictionary<string, string>.Empty
-               .Add("string", "ExtensionClassName")
-               .Add("string", "ExtensionNamespaceName")
+               .Add("ExtensionClassName", "string")
+               .Add("ExtensionNamespaceName", "string")
         );
         
         // Add the marker attribute to the compilation
