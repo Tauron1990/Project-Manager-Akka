@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\..\..\..\..\..\Shared\Data\Tauron.Applicarion.Redux\Tauron.Applicarion.Redux.csproj" />
+      <ProjectReference Include="..\..\..\Shared\SimpleProjectManager.Shared.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+      <PackageReference Include="Ben.Demystifier" Version="0.4.1" />
+      <PackageReference Include="ReactiveUI" Version="17.1.50" />
+    </ItemGroup>
+</Project>

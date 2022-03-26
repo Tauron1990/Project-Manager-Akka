@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 using System.Reactive.Disposables;
 using Microsoft.AspNetCore.Components;
 using ReactiveUI;
-using SimpleProjectManager.Client.Data.States;
+using SimpleProjectManager.Client.Shared.Data.States;
 using Tauron;
 using Tauron.Application.Blazor.Commands;
 

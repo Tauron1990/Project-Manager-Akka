@@ -1,10 +1,16 @@
 ﻿using MudBlazor;
 using MudBlazor.Services;
 using ReactiveUI;
+using SimpleProjectManager.Client.Shared.Data.Files;
+using SimpleProjectManager.Client.Shared.ViewModels;
+using SimpleProjectManager.Client.Shared.ViewModels.CriticalErrors;
+using SimpleProjectManager.Client.Shared.ViewModels.CurrentJobs;
+using SimpleProjectManager.Client.Shared.ViewModels.Pages;
+using SimpleProjectManager.Client.Shared.ViewModels.Tasks;
 using SimpleProjectManager.Client.ViewModels;
 using Splat;
 using Splat.Microsoft.Extensions.DependencyInjection;
-using Tauron.Application;
+using Tauron;
 
 namespace SimpleProjectManager.Client;
 
@@ -17,29 +23,16 @@ public static class ServiceRegistrar
         resolver.InitializeSplat();
         resolver.InitializeReactiveUI();
 
+        services.RegisterModule<ViewModelModule>();
+        
         services.AddMudServices(c => c.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomCenter);
-        services.AddSingleton<IEventAggregator, EventAggregator>();
-        services.AddTransient<PageNavigation>();
-        services.AddTransient<UploadTransaction>();
         
         services.AddScoped<FileDetailDisplayViewModel>();
-        services.AddScoped<JobDetailDisplayViewModel>();
         services.AddScoped<JobPriorityViewModel>();
-        services.AddScoped<JobSidebarViewModel>();
-        services.AddScoped<CurrentJobsViewModel>();
-
-        services.AddScoped<EditJobViewModel>();
+        
         services.AddScoped<JobEditorViewModel>();
         services.AddScoped<FileUploaderViewModel>();
-        services.AddScoped<NewJobViewModel>();
-        services.AddScoped<NewJobViewModel>();
-        services.AddScoped<DashboardViewModel>();
-
-        services.AddScoped<CriticalErrorsViewModel>();
+        
         services.AddScoped<CriticalErrorViewModel>();
-
-        services.AddScoped<PendingTaskDisplayViewModel>();
-
-        services.AddScoped<FileManagerViewModel>();
     }
 }

@@ -77,7 +77,7 @@ public interface IStateConfiguration<TActualState>
 
     IStateConfiguration<TActualState> ApplyRequests(Action<IRequestFactory<TActualState>> factory);
 
-    IStateConfiguration<TActualState> ApplyRequests(params Action<IRequestFactory<TActualState>>[] factorys);
+    IStateConfiguration<TActualState> ApplyRequests(object factory, params Action<IRequestFactory<TActualState>>[] factorys);
 
     IConfiguredState AndFinish(Action<IRootStore>? onCreate = null);
 }

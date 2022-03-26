@@ -19,10 +19,6 @@
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Compile>
     </ItemGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\..\Apps\SideProjects\SimpleProjectManager\Client\SimpleProjectManager.Client.csproj" />
-    </ItemGroup>
     
     <ItemGroup>
         <ProjectReference Include="..\..\Apps\DevTools\Tauron.SourceGenerators\Tauron.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />

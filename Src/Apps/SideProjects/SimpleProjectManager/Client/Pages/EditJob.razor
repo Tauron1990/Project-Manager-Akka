@@ -1,6 +1,8 @@
 ﻿@page "/EditJob/{ProjectId}"
 
-@inherits NonAutoRenderingView<EditJobViewModel>
+@using SimpleProjectManager.Client.Shared.ViewModels
+@using SimpleProjectManager.Client.Shared.ViewModels.EditJob
+@inherits NonAutoRenderingView<SimpleProjectManager.Client.Shared.ViewModels.Pages.EditJobViewModel>
 
 <PageTitle>Job Beabeiten</PageTitle>
 

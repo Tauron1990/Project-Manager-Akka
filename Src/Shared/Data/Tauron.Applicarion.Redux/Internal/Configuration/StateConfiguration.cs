@@ -267,7 +267,7 @@ public sealed class StateConfiguration<TState> : IStateConfiguration<TState>
         return this;
     }
 
-    public IStateConfiguration<TState> ApplyRequests(params Action<IRequestFactory<TState>>[] factorys)
+    public IStateConfiguration<TState> ApplyRequests(object factory1, params Action<IRequestFactory<TState>>[] factorys)
     {
         foreach (var factory in factorys)
         {

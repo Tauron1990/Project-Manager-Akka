@@ -9,6 +9,12 @@ using Tauron.Application.Blazor.Parameters;
 
 namespace Tauron.Application.Blazor;
 
+public static class BlazorViewModelExtensions
+{
+    public static IState<TValue> GetParameter<TValue>(this IParameterUpdateable updateable, string name, IStateFactory stateFactory)
+        => updateable.Updater.Register<TValue>(name, stateFactory);
+}
+
 [PublicAPI]
 public class BlazorViewModel : ReactiveObject, IActivatableViewModel, IResourceHolder, IParameterUpdateable
 {
@@ -22,7 +28,7 @@ public class BlazorViewModel : ReactiveObject, IActivatableViewModel, IResourceH
     
 
     public IState<TValue> GetParameter<TValue>(string name)
-        => Updater.Register<TValue>(name, StateFactory);
+        => this.GetParameter<TValue>(name, StateFactory);
 
     void IDisposable.Dispose()
         => _disposable.Dispose();

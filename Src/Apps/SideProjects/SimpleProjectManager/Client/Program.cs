@@ -35,7 +35,7 @@ config.Fusion.AddBlazorUIServices();
 
 //Services
 ServiceRegistrar.RegisterServices(builder.Services);
-builder.Services.RegisterModule<DataModule>();
+builder.Services.RegisterModule<InternalDataModule>();
 
 var host = builder.Build();
 

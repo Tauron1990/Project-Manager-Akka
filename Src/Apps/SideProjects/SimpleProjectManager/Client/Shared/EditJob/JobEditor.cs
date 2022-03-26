@@ -1,7 +1,9 @@
 ﻿using System.Reactive.Disposables;
 using Microsoft.AspNetCore.Components;
 using ReactiveUI;
-using SimpleProjectManager.Client.ViewModels;
+using SimpleProjectManager.Client.Shared.Data.JobEdit;
+using SimpleProjectManager.Client.Shared.ViewModels;
+using SimpleProjectManager.Client.Shared.ViewModels.EditJob;
 using Tauron.Application.Blazor.Commands;
 using Tauron;
 

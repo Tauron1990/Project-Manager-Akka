@@ -1,7 +1,6 @@
 ﻿using System.Reactive.Disposables;
 using Microsoft.AspNetCore.Components;
 using ReactiveUI;
-using SimpleProjectManager.Client.ViewModels;
 using SimpleProjectManager.Shared.Services;
 using Tauron.Application.Blazor.Commands;
 
