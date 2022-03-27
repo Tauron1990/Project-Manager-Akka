@@ -35,9 +35,11 @@ public abstract class JobEditorViewModelBase : ViewModelBase
 
     public FileUploaderViewModelBase UploaderViewModel { get; }
 
-    protected JobEditorViewModelBase(IMessageMapper mapper, FileUploaderViewModelBase uploaderViewModel, GlobalState globalState,
-        ModelConfig modelConfig)
+    protected JobEditorViewModelBase(IMessageMapper mapper, FileUploaderViewModelBase uploaderViewModel, GlobalState globalState)
     {
+        // ReSharper disable once VirtualMemberCallInConstructor
+        var modelConfig = GetModelConfiguration();
+        
         UploaderViewModel = uploaderViewModel;
 
         _isValid = new BehaviorSubject<bool>(false).DisposeWith(this);
@@ -76,5 +78,7 @@ public abstract class JobEditorViewModelBase : ViewModelBase
             await commitEvent.Value.InvokeAsync(globalState.Jobs.CreateNewJobData(Data, FileUploadTrigger.Upload));
         }
     }
-    
+
+    protected abstract ModelConfig GetModelConfiguration();
+
 }

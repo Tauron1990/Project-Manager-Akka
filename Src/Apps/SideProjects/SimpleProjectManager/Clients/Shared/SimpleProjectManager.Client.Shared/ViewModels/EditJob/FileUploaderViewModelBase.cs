@@ -53,10 +53,10 @@ public abstract class FileUploaderViewModelBase : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _projectId, value);
     }
 
-    protected FileUploaderViewModelBase(IMessageMapper aggregator, GlobalState globalState, 
-        IObservable<FileUploadTrigger> triggerUpload, IState<string> nameState)
+    protected FileUploaderViewModelBase(IMessageMapper aggregator, GlobalState globalState)
     {
-        Console.WriteLine("Inititlize View Model");
+        // ReSharper disable once VirtualMemberCallInConstructor
+        var (triggerUpload, nameState) = GetModelInformation();
 
         _aggregator = aggregator;
         _globalState = globalState;
@@ -123,6 +123,8 @@ public abstract class FileUploaderViewModelBase : ViewModelBase
            .DisposeWith(this);
     }
 
+    protected abstract (IObservable<FileUploadTrigger> triggerUpload, IState<string> nameState) GetModelInformation();
+    
     private void NewTrigger(FileUploadTrigger trigger)
         => _triggerSubscribe.Disposable = trigger.Set(UploadFiles);
 

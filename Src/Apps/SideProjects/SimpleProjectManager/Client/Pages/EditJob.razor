@@ -1,6 +1,4 @@
 ﻿@page "/EditJob/{ProjectId}"
-
-@using SimpleProjectManager.Client.Shared.ViewModels
 @using SimpleProjectManager.Client.Shared.ViewModels.EditJob
 @inherits NonAutoRenderingView<SimpleProjectManager.Client.Shared.ViewModels.Pages.EditJobViewModel>
 
@@ -17,7 +15,7 @@
         <ObservableRenderer Observable="ViewModel?.EditorData">
             <ValueRenderer>
                 <JobEditor Data="context" CanCancel="true" Configuration="@JobEditorConfiguration.EditJobConfig" Title="@($"{context?.JobName} beabeiten")"
-                           Cancel="ViewModel!.Cancel" Commit="ViewModel.Commit"/>
+                           Cancel="ViewModel!.Cancel" Commit="CommitAction"/>
             </ValueRenderer>
             <OnError>
                 <MudGrid>

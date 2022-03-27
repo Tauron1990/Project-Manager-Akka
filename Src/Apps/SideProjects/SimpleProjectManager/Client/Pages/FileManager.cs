@@ -2,6 +2,7 @@
 using MudBlazor;
 using ReactiveUI;
 using SimpleProjectManager.Shared;
+using Tauron.Application.Blazor;
 
 namespace SimpleProjectManager.Client.Pages;
 
@@ -14,6 +15,8 @@ public partial class FileManager
                                                                                IsInitiallyExpanded = false
                                                                            };
 
+    private Action<DatabaseFile> _deleteFile = _ => { };
+
     protected override void InitializeModel()
     {
         
@@ -22,6 +25,8 @@ public partial class FileManager
             {
                 if(ViewModel == null) return;
 
+                _deleteFile = ViewModel.DeleteFile.ToAction();
+                
                 ViewModel.ConfirmDelete.RegisterHandler(
                         async c =>
                         {

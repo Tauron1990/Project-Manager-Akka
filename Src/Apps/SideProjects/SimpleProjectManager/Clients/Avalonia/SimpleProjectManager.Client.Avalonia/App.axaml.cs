@@ -2,9 +2,11 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Microsoft.Extensions.DependencyInjection;
+using ReactiveUI;
 using SimpleProjectManager.Client.Avalonia.Models.Data;
 using SimpleProjectManager.Client.Avalonia.ViewModels;
 using SimpleProjectManager.Client.Avalonia.Views;
+using Splat;
 using Tauron;
 
 namespace SimpleProjectManager.Client.Avalonia
@@ -23,7 +25,7 @@ namespace SimpleProjectManager.Client.Avalonia
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 CreateSeriveProvider();
-                
+
                 desktop.Exit += FreeServiceProvider;
                 desktop.MainWindow = new MainWindow
                                      {

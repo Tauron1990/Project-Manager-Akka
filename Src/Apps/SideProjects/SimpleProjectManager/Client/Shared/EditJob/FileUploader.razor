@@ -1,6 +1,6 @@
 ﻿@using SimpleProjectManager.Client.Shared.Data
 @using SimpleProjectManager.Client.Shared.Data.Files
-@inherits NonAutoRenderingView<SimpleProjectManager.Client.Shared.ViewModels.EditJob.FileUploaderViewModel>
+@inherits NonAutoRenderingView<SimpleProjectManager.Client.ViewModels.FileUploaderViewModel>
 
 <!--suppress CssUnusedSymbol -->
 <style>
@@ -43,7 +43,7 @@
                       @ondragend="@(() => _dragEnterStyle = null)"
                       Class=@("drag-drop-zone " + _dragEnterStyle) MinHeight="300px">
 
-                <InputFile OnChange="ViewModel.FilesChanged" multiple class="drag-drop-input"/>
+                <InputFile OnChange="FilesChanged" multiple class="drag-drop-input"/>
                 
                 <ObservableCollectionView SourceParameter="ViewModel.Files">
                     <EmptyRender>

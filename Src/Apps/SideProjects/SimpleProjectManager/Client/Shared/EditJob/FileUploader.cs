@@ -1,9 +1,14 @@
-﻿using System.Reactive;
+﻿using System.Collections.Immutable;
+using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
 using ReactiveUI;
+using SimpleProjectManager.Client.Shared.Data.Files;
 using SimpleProjectManager.Client.Shared.ViewModels;
 using SimpleProjectManager.Client.Shared.ViewModels.EditJob;
+using SimpleProjectManager.Client.ViewModels;
 using Tauron.Application.Blazor.Commands;
 
 namespace SimpleProjectManager.Client.Shared.EditJob;
@@ -54,4 +59,27 @@ public partial class FileUploader
 
     protected override FileUploaderViewModel CreateModel()
         => UploaderViewModel ?? base.CreateModel();
+
+    private void FilesChanged(InputFileChangeEventArgs evt)
+        => ViewModel?.FilesChanged
+           .Execute(
+                new FileChangeEvent(
+                    ImmutableList<IFileReference>.Empty
+                       .AddRange(evt.GetMultipleFiles().Select(f => new FileMap(f)))))
+           .Catch(Observable.Empty<Unit>())
+           .Subscribe();
+
+    private sealed class FileMap : IFileReference
+    {
+        private readonly IBrowserFile _file;
+
+        public FileMap(IBrowserFile file)
+            => _file = file;
+
+        public string Name => _file.Name;
+        public string ContentType => _file.ContentType;
+        public long Size => _file.Size;
+        public Stream OpenReadStream(long maxSize, CancellationToken token)
+            => _file.OpenReadStream(maxSize, token);
+    }
 }

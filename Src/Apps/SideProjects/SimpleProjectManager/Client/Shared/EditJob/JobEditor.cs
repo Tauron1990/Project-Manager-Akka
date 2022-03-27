@@ -4,6 +4,7 @@ using ReactiveUI;
 using SimpleProjectManager.Client.Shared.Data.JobEdit;
 using SimpleProjectManager.Client.Shared.ViewModels;
 using SimpleProjectManager.Client.Shared.ViewModels.EditJob;
+using SimpleProjectManager.Client.ViewModels;
 using Tauron.Application.Blazor.Commands;
 using Tauron;
 

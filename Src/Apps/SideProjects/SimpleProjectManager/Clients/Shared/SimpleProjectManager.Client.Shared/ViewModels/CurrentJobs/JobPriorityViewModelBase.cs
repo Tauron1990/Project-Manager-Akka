@@ -23,11 +23,12 @@ public abstract class JobPriorityViewModelBase : ViewModelBase
 
     public ReactiveCommand<JobSortOrderPair?, Unit> Priorize { get; }
 
-    protected JobPriorityViewModelBase(GlobalState globalState, IObservable<ImmutableList<JobSortOrderPair>> activePairs)
+    protected JobPriorityViewModelBase(GlobalState globalState)
     {
         _globalState = globalState;
 
-        ActivePairs = activePairs;
+        // ReSharper disable once VirtualMemberCallInConstructor
+        ActivePairs = GetActivePairs();
 
         GoUp = ReactiveCommand.Create(
                 CreateExecute(info => new SetSortOrder(false, info.Order.Increment())),
@@ -45,6 +46,8 @@ public abstract class JobPriorityViewModelBase : ViewModelBase
            .DisposeWith(this);
     }
 
+    protected abstract IObservable<ImmutableList<JobSortOrderPair>> GetActivePairs();
+    
     private Action<JobSortOrderPair?> CreateExecute(Func<JobSortOrderPair, SetSortOrder> executor)
         => i =>
            {

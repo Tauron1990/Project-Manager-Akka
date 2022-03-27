@@ -21,7 +21,7 @@ else if (ViewModel != null)
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="Aktionen">
-                <MudButton OnClick="@(() => ViewModel.DeleteFile(context))">Löschen</MudButton>
+                <MudButton OnClick="@(() => _deleteFile(context))">Löschen</MudButton>
             </MudTd>
             <MudTd DataLabel="Datei Name">@context.Name</MudTd>
             <MudTd DataLabel="Datei Größe">@((context.Size.Value / 1024d / 1024d).ToString("F"))</MudTd>

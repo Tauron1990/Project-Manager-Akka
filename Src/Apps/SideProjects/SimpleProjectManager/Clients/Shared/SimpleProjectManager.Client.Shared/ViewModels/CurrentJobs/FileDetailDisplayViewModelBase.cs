@@ -6,10 +6,13 @@ using Stl.Fusion;
 
 namespace SimpleProjectManager.Client.Shared.ViewModels.CurrentJobs;
 
-public sealed class FileDetailDisplayViewModelBase : ReactiveObject
+public abstract class FileDetailDisplayViewModelBase : ReactiveObject
 {
     public IObservable<ProjectFileInfo?> FileInfo { get; }
     
-    public FileDetailDisplayViewModelBase(GlobalState state, IState<ProjectFileId?> id)
-        => FileInfo = state.Files.QueryFileInfo(id);
+    protected FileDetailDisplayViewModelBase(GlobalState state)
+        // ReSharper disable once VirtualMemberCallInConstructor
+        => FileInfo = state.Files.QueryFileInfo(GetId());
+
+    protected abstract IState<ProjectFileId?> GetId();
 }

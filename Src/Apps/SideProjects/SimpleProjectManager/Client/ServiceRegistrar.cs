@@ -1,12 +1,7 @@
 ﻿using MudBlazor;
 using MudBlazor.Services;
 using ReactiveUI;
-using SimpleProjectManager.Client.Shared.Data.Files;
 using SimpleProjectManager.Client.Shared.ViewModels;
-using SimpleProjectManager.Client.Shared.ViewModels.CriticalErrors;
-using SimpleProjectManager.Client.Shared.ViewModels.CurrentJobs;
-using SimpleProjectManager.Client.Shared.ViewModels.Pages;
-using SimpleProjectManager.Client.Shared.ViewModels.Tasks;
 using SimpleProjectManager.Client.ViewModels;
 using Splat;
 using Splat.Microsoft.Extensions.DependencyInjection;
