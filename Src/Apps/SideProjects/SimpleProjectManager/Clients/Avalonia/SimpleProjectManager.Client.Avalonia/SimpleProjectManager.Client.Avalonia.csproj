@@ -37,4 +37,9 @@
       <ProjectReference Include="..\..\..\..\..\..\Shared\Common\Tauron.Application.Common\Tauron.Application.Common.csproj" />
       <ProjectReference Include="..\..\Shared\SimpleProjectManager.Client.Shared\SimpleProjectManager.Client.Shared.csproj" />
     </ItemGroup>
+    <ItemGroup>
+      <Compile Update="Controls\Alert.cs">
+        <DependentUpon>Alert.axaml</DependentUpon>
+      </Compile>
+    </ItemGroup>
 </Project>
