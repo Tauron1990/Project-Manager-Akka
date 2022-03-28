@@ -15,19 +15,19 @@ public sealed class ViewModelModule : IModule
         services.AddTransient<PageNavigation>();
         services.AddTransient<UploadTransaction>();
         
-        services.AddScoped<JobDetailDisplayViewModel>();
-        services.AddScoped<JobSidebarViewModel>();
-        services.AddScoped<CurrentJobsViewModel>();
+        services.AddTransient<JobDetailDisplayViewModel>();
+        services.AddTransient<JobSidebarViewModel>();
+        services.AddTransient<CurrentJobsViewModel>();
 
-        services.AddScoped<EditJobViewModel>();
-        services.AddScoped<NewJobViewModel>();
-        services.AddScoped<NewJobViewModel>();
-        services.AddScoped<DashboardViewModel>();
+        services.AddTransient<EditJobViewModel>();
+        services.AddTransient<NewJobViewModel>();
+        services.AddTransient<NewJobViewModel>();
+        services.AddTransient<DashboardViewModel>();
 
-        services.AddScoped<CriticalErrorsViewModel>();
+        services.AddTransient<CriticalErrorsViewModel>();
 
-        services.AddScoped<PendingTaskDisplayViewModel>();
+        services.AddTransient<PendingTaskDisplayViewModel>();
 
-        services.AddScoped<FileManagerViewModel>();
+        services.AddTransient<FileManagerViewModel>();
     }
 }

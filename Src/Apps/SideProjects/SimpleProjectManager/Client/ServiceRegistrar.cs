@@ -22,12 +22,12 @@ public static class ServiceRegistrar
         
         services.AddMudServices(c => c.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomCenter);
         
-        services.AddScoped<FileDetailDisplayViewModel>();
-        services.AddScoped<JobPriorityViewModel>();
+        services.AddTransient<FileDetailDisplayViewModel>();
+        services.AddTransient<JobPriorityViewModel>();
         
-        services.AddScoped<JobEditorViewModel>();
-        services.AddScoped<FileUploaderViewModel>();
+        services.AddTransient<JobEditorViewModel>();
+        services.AddTransient<FileUploaderViewModel>();
         
-        services.AddScoped<CriticalErrorViewModel>();
+        services.AddTransient<CriticalErrorViewModel>();
     }
 }

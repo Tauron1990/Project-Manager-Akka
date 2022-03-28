@@ -9,6 +9,8 @@ namespace SimpleProjectManager.Client.Avalonia.Views
         public MainWindow()
         {
             InitializeComponent();
+
+            Closed += (_, _) => ViewModel?.Dispose();
         }
     }
 }

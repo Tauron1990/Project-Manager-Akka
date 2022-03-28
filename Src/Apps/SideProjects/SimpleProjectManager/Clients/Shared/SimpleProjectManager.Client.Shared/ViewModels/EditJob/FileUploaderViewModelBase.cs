@@ -62,19 +62,19 @@ public abstract class FileUploaderViewModelBase : ViewModelBase
         _globalState = globalState;
         _triggerSubscribe = 
             new SerialDisposable()
-           .DisposeWith(this);
+           .DisposeWith(Disposer);
         
-        nameState.Subscribe(s => ProjectId = s).DisposeWith(this);
+        nameState.Subscribe(s => ProjectId = s).DisposeWith(Disposer);
 
         ValidateName = globalState.Jobs.ValidateProjectName;
 
-        _files.DisposeWith(this);
+        _files.DisposeWith(Disposer);
 
         _files.Connect()
            .AutoRefresh(f => f.UploadState, TimeSpan.FromMilliseconds(200))
            .Bind(out var list)
            .Subscribe()
-           .DisposeWith(this);
+           .DisposeWith(Disposer);
 
         _files.Connect()
            .Where(f => f.UploadState == UploadState.Pending && string.IsNullOrWhiteSpace(ProjectId))
@@ -84,7 +84,7 @@ public abstract class FileUploaderViewModelBase : ViewModelBase
            .Where(n => !string.IsNullOrWhiteSpace(n.Current) && string.IsNullOrWhiteSpace(ProjectId))
            .Do(n => ProjectId = n.Current)
            .Subscribe()
-           .DisposeWith(this);
+           .DisposeWith(Disposer);
 
         Files = list;
 
@@ -98,11 +98,11 @@ public abstract class FileUploaderViewModelBase : ViewModelBase
         Upload = ReactiveCommand.CreateFromTask(
                 UploadFiles,
                 canExecute.CombineLatest(this.WhenAnyValue(m => m.ProjectId)).Select(t => t.First && !string.IsNullOrWhiteSpace(t.Second)))
-           .DisposeWith(this);
-        Upload.IsExecuting.Subscribe(_isUploading).DisposeWith(this);
+           .DisposeWith(Disposer);
+        Upload.IsExecuting.Subscribe(_isUploading).DisposeWith(Disposer);
 
         Clear = ReactiveCommand.Create(() => _files.Clear(), canExecute)
-           .DisposeWith(this);
+           .DisposeWith(Disposer);
 
         FilesChanged = ReactiveCommand.Create<FileChangeEvent, Unit>(
                 args =>
@@ -115,12 +115,12 @@ public abstract class FileUploaderViewModelBase : ViewModelBase
 
                     return Unit.Default;
                 })
-           .DisposeWith(this);
+           .DisposeWith(Disposer);
 
         triggerUpload
            .NotNull()
            .Subscribe(NewTrigger)
-           .DisposeWith(this);
+           .DisposeWith(Disposer);
     }
 
     protected abstract (IObservable<FileUploadTrigger> triggerUpload, IState<string> nameState) GetModelInformation();

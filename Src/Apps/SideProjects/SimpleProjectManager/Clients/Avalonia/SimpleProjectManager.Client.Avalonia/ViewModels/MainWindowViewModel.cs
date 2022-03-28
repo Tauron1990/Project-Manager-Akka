@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Text;
 using Material.Styles;
+using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
 using SimpleProjectManager.Client.Avalonia.Models;
 using SimpleProjectManager.Client.Shared.ViewModels;
@@ -17,7 +16,8 @@ namespace SimpleProjectManager.Client.Avalonia.ViewModels
         {
             
         }
-        []
+        
+        [ActivatorUtilitiesConstructor]
         public MainWindowViewModel(IEventAggregator aggregator)
         {
             this.WhenActivated(

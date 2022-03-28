@@ -5,25 +5,24 @@ using Tauron;
 
 namespace SimpleProjectManager.Client.Shared.ViewModels
 {
-    public abstract class ViewModelBase : ReactiveObject, IResourceHolder, IActivatableViewModel
+    public abstract class ViewModelBase : ReactiveObject, IActivatableViewModel, IDisposable
     {
-        private readonly CompositeDisposable _disposable = new();
-
-        protected ViewModelBase()
-            => this.WhenActivated(dispo => dispo(_disposable));
-
-        void IDisposable.Dispose()
-        {
-            _disposable.Dispose();
-            GC.SuppressFinalize(this);
-        }
-
-        void IResourceHolder.AddResource(IDisposable res)
-            => _disposable.Add(res);
-
-        void IResourceHolder.RemoveResource(IDisposable res)
-            => _disposable.Add(res);
+        protected readonly CompositeDisposable Disposer = new();
 
         public ViewModelActivator Activator { get; } = new();
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposing) return;
+
+            Disposer.Dispose();
+            Activator.Dispose();
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
     }
 }

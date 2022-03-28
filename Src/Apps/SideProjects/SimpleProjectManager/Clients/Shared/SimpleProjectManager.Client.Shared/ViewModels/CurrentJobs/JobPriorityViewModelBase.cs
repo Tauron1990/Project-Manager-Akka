@@ -2,12 +2,12 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using ReactiveUI;
 using SimpleProjectManager.Client.Shared.Data;
 using SimpleProjectManager.Client.Shared.Data.States;
 using SimpleProjectManager.Shared.Services;
-using Tauron;
 
 namespace SimpleProjectManager.Client.Shared.ViewModels.CurrentJobs;
 
@@ -33,17 +33,17 @@ public abstract class JobPriorityViewModelBase : ViewModelBase
         GoUp = ReactiveCommand.Create(
                 CreateExecute(info => new SetSortOrder(false, info.Order.Increment())),
                 CreateCanExecute(globalState, (pairs, pair) => pairs[0] != pair))
-           .DisposeWith(this);
+           .DisposeWith(Disposer);
 
         GoDown = ReactiveCommand.Create(
                 CreateExecute(info => new SetSortOrder(false, info.Order.Decrement())),
                 CreateCanExecute(globalState, (pairs, pair) => pairs.Last() != pair))
-           .DisposeWith(this);
+           .DisposeWith(Disposer);
 
         Priorize = ReactiveCommand.Create(
                 CreateExecute(info => new SetSortOrder(false, info.Order.Priority())),
                 CreateCanExecute(globalState, (_, pair) => !pair.Order.IsPriority))
-           .DisposeWith(this);
+           .DisposeWith(Disposer);
     }
 
     protected abstract IObservable<ImmutableList<JobSortOrderPair>> GetActivePairs();

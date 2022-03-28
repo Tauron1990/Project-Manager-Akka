@@ -11,7 +11,7 @@
         Icon="/Assets/icon.png" WindowState="Maximized"
         ExtendClientAreaToDecorationsHint="True" ExtendClientAreaChromeHints="NoChrome"
         ExtendClientAreaTitleBarHeightHint="-1"
-        Title="SimpleProjectManager.Client.Avalonia">
+        Title="Einfacher Project Manager">
     <!-- ReSharper disable Xaml.StyleClassNotFound -->
     <Design.DataContext>
         <vm:MainWindowViewModel/>
