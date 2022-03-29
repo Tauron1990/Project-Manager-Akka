@@ -21,9 +21,9 @@ public partial class CriticalErrorDispaly
         set => this.RaiseAndSetIfChanged(ref _hide, value);
     }
 
-    protected override void InitializeModel()
+    protected override IEnumerable<IDisposable> InitializeModel()
     {
-        this.WhenActivated(
+        yield return this.WhenActivated(
             dispo =>
             {
                 this.BindCommand(ViewModel, m => m.Hide, v => v.Hide).DisposeWith(dispo);

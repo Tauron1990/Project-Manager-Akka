@@ -10,17 +10,13 @@ public partial class EditJob
     [Parameter]
     public string ProjectId { get; set; } = string.Empty;
 
-    private Action<JobEditorCommit> CommitAction = _ => { };
+    private Action<JobEditorCommit> _commitAction = _ => { };
 
-    protected override void InitializeModel()
+    protected override IEnumerable<IDisposable> InitializeModel()
     {
-        this.WhenActivated(
-            _ =>
-            {
-                if (ViewModel == null) return;
 
-                CommitAction = ViewModel.Commit.ToAction();
-            });
-        base.InitializeModel();
+        if (ViewModel == null) yield break;
+
+        _commitAction = ViewModel.Commit.ToAction();
     }
 }

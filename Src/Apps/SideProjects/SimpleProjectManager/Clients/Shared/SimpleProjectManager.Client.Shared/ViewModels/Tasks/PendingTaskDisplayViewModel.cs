@@ -1,4 +1,5 @@
 ﻿using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using ReactiveUI;
@@ -18,7 +19,7 @@ public sealed class PendingTaskDisplayViewModel : ViewModelBase
 
     public PendingTaskDisplayViewModel(GlobalState globalState, IState<PendingTask?> taskState)
     {
-        _canRun.DisposeWith(this);
+        _canRun.DisposeWith(Disposer);
 
         Cancel = ReactiveCommand.Create(
                 () =>
@@ -31,8 +32,8 @@ public sealed class PendingTaskDisplayViewModel : ViewModelBase
                 _canRun.CombineLatest(taskState.ToObservable().Select(pt => pt is not null))
                    .Select(i => i.First && i.Second)
                    .AndIsOnline(globalState.OnlineMonitor))
-           .DisposeWith(this);
+           .DisposeWith(Disposer);
 
-        Cancel.Select(_ => false).Take(1).Subscribe(_canRun).DisposeWith(this);
+        Cancel.Select(_ => false).Take(1).Subscribe(_canRun).DisposeWith(Disposer);
     }
 }

@@ -17,39 +17,31 @@ public partial class FileManager
 
     private Action<DatabaseFile> _deleteFile = _ => { };
 
-    protected override void InitializeModel()
+    protected override IEnumerable<IDisposable> InitializeModel()
     {
-        
-        this.WhenActivated(
-            dipo =>
-            {
-                if(ViewModel == null) return;
+        if (ViewModel == null) yield break;
 
-                _deleteFile = ViewModel.DeleteFile.ToAction();
-                
-                ViewModel.ConfirmDelete.RegisterHandler(
-                        async c =>
-                        {
-                            var result = await _dialogService.ShowMessageBox
-                            (
-                                new MessageBoxOptions
-                                {
-                                    Title = "Datei Löschen",
-                                    Message = $"Möchten sie die datei {c.Input.Name} wirklich Löschen?",
-                                    YesText = "Ja",
-                                    NoText = "Nein"
-                                },
-                                new DialogOptions
-                                {
-                                    DisableBackdropClick = true,
-                                    Position = DialogPosition.Center
-                                }
-                            );
-                            
-                            c.SetOutput(result ?? false);
-                        })
-                   .DisposeWith(dipo);
+        _deleteFile = ViewModel.DeleteFile.ToAction();
+
+        yield return ViewModel.ConfirmDelete.RegisterHandler(
+            async c =>
+            {
+                var result = await _dialogService.ShowMessageBox(
+                    new MessageBoxOptions
+                    {
+                        Title = "Datei Löschen",
+                        Message = $"Möchten sie die datei {c.Input.Name} wirklich Löschen?",
+                        YesText = "Ja",
+                        NoText = "Nein"
+                    },
+                    new DialogOptions
+                    {
+                        DisableBackdropClick = true,
+                        Position = DialogPosition.Center
+                    }
+                );
+
+                c.SetOutput(result ?? false);
             });
-        base.InitializeModel();
     }
 }

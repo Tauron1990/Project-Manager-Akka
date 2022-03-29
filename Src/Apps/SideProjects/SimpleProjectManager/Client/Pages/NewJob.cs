@@ -10,17 +10,11 @@ public partial class NewJob
 
     private Action<JobEditorCommit>? _commit;
 
-    protected override void InitializeModel()
+    protected override IEnumerable<IDisposable> InitializeModel()
     {
-        this.WhenActivated(
-            _ =>
-            {
-                if(ViewModel == null) return;
+        if (ViewModel == null) yield break;
 
-                _cancel = ViewModel.Cancel.ToAction();
-                _commit = ViewModel.Commit.ToAction();
-            });
-        
-        base.InitializeModel();
+        _cancel = ViewModel.Cancel.ToAction();
+        _commit = ViewModel.Commit.ToAction();
     }
 }

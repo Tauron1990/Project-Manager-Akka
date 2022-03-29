@@ -15,7 +15,7 @@
         <ObservableRenderer Observable="ViewModel?.EditorData">
             <ValueRenderer>
                 <JobEditor Data="context" CanCancel="true" Configuration="@JobEditorConfiguration.EditJobConfig" Title="@($"{context?.JobName} beabeiten")"
-                           Cancel="ViewModel!.Cancel" Commit="CommitAction"/>
+                           Cancel="ViewModel!.Cancel" Commit="_commitAction"/>
             </ValueRenderer>
             <OnError>
                 <MudGrid>

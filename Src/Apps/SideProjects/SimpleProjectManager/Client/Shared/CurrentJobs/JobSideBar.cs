@@ -16,13 +16,8 @@ public partial class JobSideBar
         set => this.RaiseAndSetIfChanged(ref _newJob, value);
     }
 
-    protected override void InitializeModel()
+    protected override IEnumerable<IDisposable> InitializeModel()
     {
-        this.WhenActivated(
-            dispo =>
-            {
-                this.BindCommand(ViewModel, m => m.NewJob, v => v.NewJob)
-                   .DisposeWith(dispo);
-            });
+        yield return this.BindCommand(ViewModel, m => m.NewJob, v => v.NewJob);
     }
 }

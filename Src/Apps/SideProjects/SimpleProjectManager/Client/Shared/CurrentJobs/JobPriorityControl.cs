@@ -37,16 +37,12 @@ public partial class JobPriorityControl
     [Parameter]
     public ImmutableList<JobSortOrderPair> ActivePairs { get; set; } = ImmutableList<JobSortOrderPair>.Empty;
 
-    protected override void InitializeModel()
+    protected override IEnumerable<IDisposable> InitializeModel()
     {
-        this.WhenActivated(
-            dispo =>
-            {
-                var currentInfo = _globalState.Jobs.CurrentlySelectedPair.NotNull();
-                
-                this.BindCommand(ViewModel, m => m.GoDown, v => v.Godown, currentInfo).DisposeWith(dispo);
-                this.BindCommand(ViewModel, m => m.GoUp, v => v.Goup, currentInfo).DisposeWith(dispo);
-                this.BindCommand(ViewModel, m => m.Priorize, v => v.Priorize, currentInfo).DisposeWith(dispo);
-            });
+        var currentInfo = _globalState.Jobs.CurrentlySelectedPair.NotNull();
+
+        yield return this.BindCommand(ViewModel, m => m.GoDown, v => v.Godown, currentInfo);
+        yield return this.BindCommand(ViewModel, m => m.GoUp, v => v.Goup, currentInfo);
+        yield return this.BindCommand(ViewModel, m => m.Priorize, v => v.Priorize, currentInfo);
     }
 }

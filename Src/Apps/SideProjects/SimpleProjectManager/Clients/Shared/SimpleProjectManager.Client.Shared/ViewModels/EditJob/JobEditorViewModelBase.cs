@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
@@ -42,7 +43,9 @@ public abstract class JobEditorViewModelBase : ViewModelBase
         
         UploaderViewModel = uploaderViewModel;
 
-        _isValid = new BehaviorSubject<bool>(false).DisposeWith(this);
+        this.WhenActivated((CompositeDisposable _) => _isValid?.OnNext(false));
+        
+        _isValid = new BehaviorSubject<bool>(false).DisposeWith(Disposer);
         FileUploadTrigger = new FileUploadTrigger();
 
         var commitEvent = modelConfig.CommitEvent;
@@ -52,7 +55,7 @@ public abstract class JobEditorViewModelBase : ViewModelBase
         _data = modelConfig.JobData
            .Select(i => i ?? new JobEditorData(null))
            .ToProperty(this, m => m.Data)
-           .DisposeWith(this);
+           .DisposeWith(Disposer);
 
         Cancel = ReactiveCommand.CreateFromTask(
             async () =>
@@ -61,9 +64,10 @@ public abstract class JobEditorViewModelBase : ViewModelBase
 
                 await cancelEvent.Value.InvokeAsync();
             }, canCancel.ToObservable().StartWith(false))
-           .DisposeWith(this);
+           .DisposeWith(Disposer);
 
-        Commit = ReactiveCommand.CreateFromTask(CreateCommit, _isValid.AndIsOnline(globalState.OnlineMonitor));
+        Commit = ReactiveCommand.CreateFromTask(CreateCommit, _isValid.AndIsOnline(globalState.OnlineMonitor))
+           .DisposeWith(Disposer);
 
         async Task CreateCommit()
         {

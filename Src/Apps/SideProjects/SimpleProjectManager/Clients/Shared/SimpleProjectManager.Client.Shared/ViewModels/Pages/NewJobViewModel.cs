@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using ReactiveUI;
@@ -7,7 +8,6 @@ using SimpleProjectManager.Client.Shared.Data;
 using SimpleProjectManager.Client.Shared.Data.JobEdit;
 using SimpleProjectManager.Client.Shared.Data.States.Actions;
 using SimpleProjectManager.Client.Shared.ViewModels.EditJob;
-using Tauron;
 
 namespace SimpleProjectManager.Client.Shared.ViewModels.Pages;
 
@@ -26,7 +26,7 @@ public sealed class NewJobViewModel : ViewModelBase
     public NewJobViewModel(PageNavigation pageNavigation, GlobalState globalState, JobEditorViewModelBase editorModel)
     {
         EditorModel = editorModel;
-        Cancel = ReactiveCommand.Create(pageNavigation.ShowStartPage).DisposeWith(this);
+        Cancel = ReactiveCommand.Create(pageNavigation.ShowStartPage).DisposeWith(Disposer);
 
         Commit = ReactiveCommand.CreateFromObservable<JobEditorCommit, bool>(
             commit =>
@@ -35,15 +35,15 @@ public sealed class NewJobViewModel : ViewModelBase
                 globalState.Dispatch(new CommitJobEditorData(commit, sub.OnNext));
                 
                 return sub.Take(1);
-            }, globalState.IsOnline).DisposeWith(this);
+            }, globalState.IsOnline).DisposeWith(Disposer);
 
         Commit.Subscribe(
             s =>
             {
                 if (s)
                     pageNavigation.ShowStartPage();
-            }).DisposeWith(this);
+            }).DisposeWith(Disposer);
 
-        _commiting = Commit.IsExecuting.ToProperty(this, m => m.IsCommiting).DisposeWith(this);
+        _commiting = Commit.IsExecuting.ToProperty(this, m => m.IsCommiting).DisposeWith(Disposer);
     }
 }

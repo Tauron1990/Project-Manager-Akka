@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using ReactiveUI;
@@ -34,11 +35,11 @@ public sealed class FileManagerViewModel : ViewModelBase
            .StartWith(new FilesInfo(true, Array.Empty<DatabaseFile>()))
            .Publish().RefCount();
         
-        _files = filesStream.Select(i => i.Files).ToProperty(this, m => m.Files);
-        _loading = filesStream.Select(i => i.IsLoading).ToProperty(this, m => m.IsLoading);
-        _error = _files.ThrownExceptions.Merge(_loading.ThrownExceptions).ToProperty(this, m => m.Error);
+        _files = filesStream.Select(i => i.Files).ToProperty(this, m => m.Files).DisposeWith(Disposer);
+        _loading = filesStream.Select(i => i.IsLoading).ToProperty(this, m => m.IsLoading).DisposeWith(Disposer);
+        _error = _files.ThrownExceptions.Merge(_loading.ThrownExceptions).ToProperty(this, m => m.Error).DisposeWith(Disposer);
         
-        DeleteFile = ReactiveCommand.CreateFromTask<DatabaseFile, Unit>(DeleteFileImpl, globalState.IsOnline).DisposeWith(this);
+        DeleteFile = ReactiveCommand.CreateFromTask<DatabaseFile, Unit>(DeleteFileImpl, globalState.IsOnline).DisposeWith(Disposer);
 
         async Task<Unit> DeleteFileImpl(DatabaseFile databaseFile)
         {

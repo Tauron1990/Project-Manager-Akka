@@ -16,19 +16,15 @@ public partial class JobDetailDisplay
         set => this.RaiseAndSetIfChanged(ref _editButton, value);
     }
 
-    protected override void InitializeModel()
+    protected override IEnumerable<IDisposable> InitializeModel()
     {
-        this.WhenActivated(dispo =>
-                           {
-                               if(ViewModel == null) return;
+        if (ViewModel == null) yield break;
 
-                               this.BindCommand(
-                                       ViewModel,
-                                       m => m.EditJob,
-                                       v => v.EditButton,
-                                       ViewModel.WhenAny(m => m.JobData, m => m.Value))
-                                  .DisposeWith(dispo);
-                           });
+        yield return this.BindCommand(
+            ViewModel,
+            m => m.EditJob,
+            v => v.EditButton,
+            ViewModel.WhenAny(m => m.JobData, m => m.Value));
     }
 
 }
