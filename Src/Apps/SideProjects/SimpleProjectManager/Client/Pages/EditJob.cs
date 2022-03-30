@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Components;
-using ReactiveUI;
 using SimpleProjectManager.Client.Shared.Data.JobEdit;
 using Tauron.Application.Blazor;
 

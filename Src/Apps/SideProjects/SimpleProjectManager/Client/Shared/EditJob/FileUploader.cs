@@ -47,14 +47,10 @@ public partial class FileUploader
         set => this.RaiseAndSetIfChanged(ref _upload, value);
     }
 
-    protected override void InitializeModel()
+    protected override IEnumerable<IDisposable> InitializeModel()
     {
-        this.WhenActivated(
-            dispo =>
-            {
-                this.BindCommand(ViewModel, m => m.Clear, v => v.Clear).DisposeWith(dispo);
-                this.BindCommand(ViewModel, m => m.Upload, v => v.Upload).DisposeWith(dispo);
-            });
+        yield return this.BindCommand(ViewModel, m => m.Clear, v => v.Clear);
+        yield return this.BindCommand(ViewModel, m => m.Upload, v => v.Upload);
     }
 
     protected override FileUploaderViewModel CreateModel()

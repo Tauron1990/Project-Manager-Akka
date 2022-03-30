@@ -1,20 +1,23 @@
+using System;
+using System.Reactive.Disposables;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Microsoft.Extensions.DependencyInjection;
-using ReactiveUI;
 using SimpleProjectManager.Client.Avalonia.Models.Data;
 using SimpleProjectManager.Client.Avalonia.ViewModels;
 using SimpleProjectManager.Client.Avalonia.Views;
-using Splat;
 using Tauron;
 
 namespace SimpleProjectManager.Client.Avalonia
 {
+    // ReSharper disable once PartialTypeWithSinglePart
     public partial class App : Application
     {
         private ServiceProvider? _serviceProvider;
 
+        public static IDisposable Disposer { get; private set; } = Disposable.Empty;
+        
         public override void Initialize()
         {
             AvaloniaXamlLoader.Load(this);
@@ -26,7 +29,6 @@ namespace SimpleProjectManager.Client.Avalonia
             {
                 CreateSeriveProvider();
 
-                desktop.Exit += FreeServiceProvider;
                 desktop.MainWindow = new MainWindow
                                      {
                                          ViewModel = _serviceProvider?.GetService<MainWindowViewModel>(),
@@ -36,9 +38,6 @@ namespace SimpleProjectManager.Client.Avalonia
             base.OnFrameworkInitializationCompleted();
         }
 
-        private void FreeServiceProvider(object? sender, ControlledApplicationLifetimeExitEventArgs e)
-            => _serviceProvider?.Dispose();
-
         private void CreateSeriveProvider()
         {
             var collection = new ServiceCollection();
@@ -47,6 +46,7 @@ namespace SimpleProjectManager.Client.Avalonia
             collection.AddTransient<MainWindowViewModel>();
             
             _serviceProvider = collection.BuildServiceProvider();
+            Disposer = _serviceProvider;
         }
     }
 }

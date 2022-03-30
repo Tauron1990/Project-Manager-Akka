@@ -19,12 +19,8 @@ public partial class PendingTaskDisplay
         set => this.RaiseAndSetIfChanged(ref _cancelButton, value);
     }
 
-    protected override void InitializeModel()
+    protected override IEnumerable<IDisposable> InitializeModel()
     {
-        this.WhenActivated(
-            dispo =>
-            {
-                this.BindCommand(ViewModel, m => m.Cancel, d => d.CancelButton).DisposeWith(dispo);
-            });
+        yield return this.BindCommand(ViewModel, m => m.Cancel, d => d.CancelButton);
     }
 }

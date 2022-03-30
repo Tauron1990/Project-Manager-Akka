@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Reactive.Disposables;
 using ReactiveUI;
-using Tauron;
 
 namespace SimpleProjectManager.Client.Shared.ViewModels
 {

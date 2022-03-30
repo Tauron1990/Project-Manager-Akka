@@ -1,8 +1,6 @@
 using System;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
-using Material.Styles.Themes.Base;
-using SimpleProjectManager.Client.Avalonia.ViewModels;
 using SimpleProjectManager.Client.Shared.ViewModels;
 
 namespace SimpleProjectManager.Client.Avalonia

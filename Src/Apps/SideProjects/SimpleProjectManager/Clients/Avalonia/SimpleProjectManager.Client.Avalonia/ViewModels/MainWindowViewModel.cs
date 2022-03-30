@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using Material.Styles;
+using Material.Styles.Models;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
+using SimpleProjectManager.Client.Avalonia.Controls;
 using SimpleProjectManager.Client.Avalonia.Models;
 using SimpleProjectManager.Client.Shared.ViewModels;
 using Tauron.Application;
@@ -25,7 +28,21 @@ namespace SimpleProjectManager.Client.Avalonia.ViewModels
                 {
                     aggregator.ConsumeSharedMessage()
                        .ObserveOn(RxApp.MainThreadScheduler)
-                       .Subscribe(m => SnackbarHost.Post("Test"))
+                       .Subscribe(m =>
+                                  {
+                                      var alert = new Alert
+                                                  {
+                                                      Message = m.Message,
+                                                      Severity = m.MessageType switch
+                                                      {
+                                                          MessageType.Info => AlertSeverity.Information,
+                                                          MessageType.Warning => AlertSeverity.Warning,
+                                                          MessageType.Error => AlertSeverity.Error,
+                                                          _ => AlertSeverity.Error
+                                                      }
+                                                  };
+                                      SnackbarHost.Post(new SnackbarModel(alert));
+                                  })
                        .DisposeWith(dispo);
                 });
         }

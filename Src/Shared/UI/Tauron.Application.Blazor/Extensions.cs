@@ -1,18 +1,12 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Net.Http;
-using System.Net.Http.Json;
 using System.Reactive;
-using System.Reactive.Disposables;
-using System.Reactive.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.WebUtilities;
 using ReactiveUI;
-using Stl;
 using Stl.Fusion;
 
 namespace Tauron.Application.Blazor;

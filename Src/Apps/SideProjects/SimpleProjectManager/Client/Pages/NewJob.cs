@@ -1,5 +1,4 @@
-﻿using ReactiveUI;
-using SimpleProjectManager.Client.Shared.Data.JobEdit;
+﻿using SimpleProjectManager.Client.Shared.Data.JobEdit;
 using Tauron.Application.Blazor;
 
 namespace SimpleProjectManager.Client.Pages;

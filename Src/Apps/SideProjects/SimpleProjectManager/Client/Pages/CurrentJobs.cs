@@ -1,5 +1,4 @@
-﻿using System.Reactive.Disposables;
-using ReactiveUI;
+﻿using ReactiveUI;
 using Tauron.Application.Blazor.Commands;
 
 namespace SimpleProjectManager.Client.Pages;

@@ -58,17 +58,13 @@ public partial class JobEditor
     protected override JobEditorViewModel CreateModel()
         => CustomViewModel ?? base.CreateModel();
 
-    protected override void InitializeModel()
+    protected override IEnumerable<IDisposable> InitializeModel()
     {
-        this.WhenActivated(
-            dispo =>
-            {
-                if(ViewModel is null) return;
+        if (ViewModel is null) yield break;
 
-                ViewModel.Data?.Changed.Subscribe(_ => RenderingManager.StateHasChangedAsync().Ignore()).DisposeWith(dispo);
+        yield return ViewModel.Data?.Changed.Subscribe(_ => RenderingManager.StateHasChangedAsync().Ignore()) ?? Disposable.Empty;
 
-                this.BindCommand(ViewModel, m => m.Cancel, v => v.CancelButton).DisposeWith(dispo);
-                this.BindCommand(ViewModel, m => m.Commit, v => v.CommitButton).DisposeWith(dispo);
-            });
+        yield return this.BindCommand(ViewModel, m => m.Cancel, v => v.CancelButton);
+        yield return this.BindCommand(ViewModel, m => m.Commit, v => v.CommitButton);
     }
 }

@@ -205,7 +205,9 @@ public class InternalGenerator : IIncrementalGenerator
         return nameSpace;
     }
 
+    // ReSharper disable UnusedMember.Local
     private static ParentClass? GetParentClasses(SyntaxNode typeSyntax)
+        
     {
         // Try and get the parent syntax. If it isn't a type like class/struct, this will be null
         var parentSyntax = typeSyntax.Parent as TypeDeclarationSyntax;
@@ -291,3 +293,4 @@ public class InternalGenerator : IIncrementalGenerator
         return sb.ToString();
     }
 }
+// ReSharper restore UnusedMember.Local

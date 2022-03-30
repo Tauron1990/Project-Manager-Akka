@@ -1,6 +1,4 @@
-﻿using System.Reactive.Disposables;
-using MudBlazor;
-using ReactiveUI;
+﻿using MudBlazor;
 using SimpleProjectManager.Shared;
 using Tauron.Application.Blazor;
 
