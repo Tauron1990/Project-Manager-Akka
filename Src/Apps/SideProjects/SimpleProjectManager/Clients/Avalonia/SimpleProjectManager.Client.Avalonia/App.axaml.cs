@@ -28,7 +28,7 @@ namespace SimpleProjectManager.Client.Avalonia
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 CreateSeriveProvider();
-
+                
                 desktop.MainWindow = new MainWindow
                                      {
                                          ViewModel = _serviceProvider?.GetService<MainWindowViewModel>(),
@@ -43,7 +43,7 @@ namespace SimpleProjectManager.Client.Avalonia
             var collection = new ServiceCollection();
             
             collection.RegisterModule<InternalDataModule>();
-            collection.AddTransient<MainWindowViewModel>();
+            collection.RegisterModule<ViewModelModule>();
             
             _serviceProvider = collection.BuildServiceProvider();
             Disposer = _serviceProvider;

@@ -1,4 +1,6 @@
-﻿using System.Reactive;
+﻿using System;
+using System.Collections.Generic;
+using System.Reactive;
 using System.Reactive.Disposables;
 using ReactiveUI;
 using SimpleProjectManager.Client.Shared.Data;
@@ -10,31 +12,36 @@ namespace SimpleProjectManager.Client.Shared.ViewModels.CurrentJobs;
 
 public sealed class JobDetailDisplayViewModel : ViewModelBase
 {
-    public ReactiveCommand<ProjectId?, Unit> EditJob { get; }
+    public ReactiveCommand<ProjectId?, Unit>? EditJob { get; private set; }
 
     private ObservableAsPropertyHelper<JobData?>? _jobData;
     public JobData? JobData => _jobData?.Value;
     
     public JobDetailDisplayViewModel(GlobalState globalState, PageNavigation navigationManager, IMessageMapper aggregator) 
     {
-        this.WhenActivated(dispo => _jobData = globalState.Jobs
-                              .CurrentlySelectedData
-                              .ToProperty(this, model => model.JobData)
-                              .DisposeWith(dispo));
+        this.WhenActivated(Init);
         
-        EditJob = ReactiveCommand.Create<ProjectId?, Unit>(
-                    id =>
+        IEnumerable<IDisposable> Init()
+        {
+            yield return _jobData = globalState.Jobs
+               .CurrentlySelectedData
+               .ToProperty(this, model => model.JobData);
+            
+            yield return EditJob = ReactiveCommand.Create<ProjectId?, Unit>(
+                id =>
+                {
+                    if (id is null)
                     {
-                        if (id is null)
-                        {
-                            aggregator.PublishWarnig("Keine Projekt id Verfügbar");
-
-                            return Unit.Default;
-                        }
-
-                        navigationManager.EditJob(id);
+                        aggregator.PublishWarnig("Keine Projekt id Verfügbar");
 
                         return Unit.Default;
-                    }, globalState.IsOnline).DisposeWith(Disposer);
+                    }
+
+                    navigationManager.EditJob(id);
+
+                    return Unit.Default;
+                },
+                globalState.IsOnline);
+        }
     }
 }

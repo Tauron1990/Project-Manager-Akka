@@ -2,7 +2,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:avalonia="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              x:Class="SimpleProjectManager.Client.Avalonia.Controls.Alert">
-        <Border Name="AlertBorder" CornerRadius="12" Margin="20" Padding="10" BorderBrush="Gray" BorderThickness="3">
+        <Border Name="AlertBorder" CornerRadius="12" Margin="20" Padding="10" BorderBrush="Gray" BorderThickness="3" 
+                PointerPressed="AlertBorder_OnPointerPressed" PointerReleased="AlertBorder_OnPointerReleased">
             <StackPanel Orientation="Horizontal">
                 <avalonia:MaterialIcon Margin="5" Height="45" Width="45" Name="Icon" Kind="AlertBox"/>
                 <!-- ReSharper disable once Xaml.StyleClassNotFound -->

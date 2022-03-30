@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 using Material.Styles;
 using Material.Styles.Models;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
 using SimpleProjectManager.Client.Avalonia.Controls;
 using SimpleProjectManager.Client.Avalonia.Models;
+using SimpleProjectManager.Client.Avalonia.ViewModels.AppBar;
 using SimpleProjectManager.Client.Shared.ViewModels;
 using Tauron.Application;
 
@@ -15,14 +15,13 @@ namespace SimpleProjectManager.Client.Avalonia.ViewModels
 {
     public class MainWindowViewModel : ViewModelBase
     {
-        public MainWindowViewModel()
-        {
-            
-        }
+        public AppBarViewModel AppBarModel { get; }
         
         [ActivatorUtilitiesConstructor]
-        public MainWindowViewModel(IEventAggregator aggregator)
+        public MainWindowViewModel(IEventAggregator aggregator, AppBarViewModel appBarViewModel)
         {
+            AppBarModel = appBarViewModel;
+            
             this.WhenActivated(
                 dispo =>
                 {

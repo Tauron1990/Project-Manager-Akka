@@ -1,6 +1,5 @@
 ﻿using System;
 using Avalonia;
-using Avalonia.Media;
 using Avalonia.ReactiveUI;
 
 namespace SimpleProjectManager.Client.Avalonia

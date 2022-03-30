@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reactive;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using ReactiveUI;
 using SimpleProjectManager.Client.Shared.Data;
@@ -15,9 +14,9 @@ namespace SimpleProjectManager.Client.Shared.ViewModels.CurrentJobs;
 
 public sealed class JobSidebarViewModel : ViewModelBase
 {
-    public ReactiveCommand<Unit, Unit> NewJob { get; }
+    public ReactiveCommand<Unit, Unit>? NewJob { get; private set; }
 
-    public ReactiveCommand<object, Unit> NewItemSelected { get; }
+    public ReactiveCommand<object, Unit>? NewItemSelected { get; private set; }
 
     private ObservableAsPropertyHelper<JobSortOrderPair?>? _selectedValue;
     public JobSortOrderPair? SelectedValue => _selectedValue?.Value;
@@ -27,27 +26,25 @@ public sealed class JobSidebarViewModel : ViewModelBase
     
     public JobSidebarViewModel(PageNavigation navigationManager, GlobalState globalState)
     {
-        this.WhenActivated(
-            dispo =>
-            {
-                _currentJobs = globalState.Jobs.CurrentJobs.Select(Sort).ToProperty(this, model => model.CurrentJobs)
-                   .DisposeWith(dispo);
-                _selectedValue = globalState.Jobs.CurrentlySelectedPair.ToProperty(this, p => p.SelectedValue)
-                   .DisposeWith(dispo);
-            });
+        this.WhenActivated(Init);
 
-        NewJob = ReactiveCommand.Create(navigationManager.NewJob, globalState.IsOnline)
-           .DisposeWith(Disposer);
-        
-        NewItemSelected = ReactiveCommand.Create<object, Unit>(
-            o =>
-            {
-                if(o is JobSortOrderPair pair)
-                    globalState.Dispatch(new SelectNewPairAction(pair));
-                
-                return Unit.Default;
-            }, globalState.IsOnline)
-           .DisposeWith(Disposer);
+        IEnumerable<IDisposable> Init()
+        {
+            yield return _currentJobs = globalState.Jobs.CurrentJobs.Select(Sort).ToProperty(this, model => model.CurrentJobs);
+            yield return _selectedValue = globalState.Jobs.CurrentlySelectedPair.ToProperty(this, p => p.SelectedValue);
+
+            yield return NewJob = ReactiveCommand.Create(navigationManager.NewJob, globalState.IsOnline);
+
+            yield return NewItemSelected = ReactiveCommand.Create<object, Unit>(
+                o =>
+                {
+                    if (o is JobSortOrderPair pair)
+                        globalState.Dispatch(new SelectNewPairAction(pair));
+
+                    return Unit.Default;
+                },
+                globalState.IsOnline);
+        }
     }
 
     private ImmutableList<JobSortOrderPair> Sort(JobSortOrderPair[] unsorted)

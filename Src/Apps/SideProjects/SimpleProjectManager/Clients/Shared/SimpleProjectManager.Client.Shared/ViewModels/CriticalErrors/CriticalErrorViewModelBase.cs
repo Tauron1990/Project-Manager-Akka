@@ -1,5 +1,6 @@
-﻿using System.Reactive;
-using System.Reactive.Disposables;
+﻿using System;
+using System.Collections.Generic;
+using System.Reactive;
 using System.Reactive.Linq;
 using ReactiveUI;
 using SimpleProjectManager.Client.Shared.Data;
@@ -15,14 +16,18 @@ public abstract class CriticalErrorViewModelBase : ViewModelBase
     private ObservableAsPropertyHelper<CriticalError?>? _item;
     public CriticalError? Item => _item?.Value;
 
-    public ReactiveCommand<Unit, Unit> Hide { get; }
+    public ReactiveCommand<Unit, Unit>? Hide { get; private set; }
 
     protected CriticalErrorViewModelBase(GlobalState globalState)
     {
-        // ReSharper disable once VirtualMemberCallInConstructor
-        var currentError = GetErrorState();
+        this.WhenActivated(Init);
         
-        Hide = ReactiveCommand.Create(
+        IEnumerable<IDisposable> Init()
+        {
+            var currentError = GetErrorState();
+            
+            yield return _item = currentError.ToObservable().ToProperty(this, m => m.Item);
+            yield return Hide = ReactiveCommand.Create(
                 () =>
                 {
                     var err = currentError.ValueOrDefault;
@@ -32,10 +37,8 @@ public abstract class CriticalErrorViewModelBase : ViewModelBase
                     globalState.Dispatch(new DisableError(err));
                 },
                 currentError.ToObservable().Select(d => d is not null).StartWith(false)
-                   .AndIsOnline(globalState.OnlineMonitor))
-           .DisposeWith(Disposer);
-        
-        this.WhenActivated(dispo => _item = currentError.ToObservable().ToProperty(this, m => m.Item).DisposeWith(dispo));
+                   .AndIsOnline(globalState.OnlineMonitor));
+        }
     }
 
     protected abstract IState<CriticalError?> GetErrorState();

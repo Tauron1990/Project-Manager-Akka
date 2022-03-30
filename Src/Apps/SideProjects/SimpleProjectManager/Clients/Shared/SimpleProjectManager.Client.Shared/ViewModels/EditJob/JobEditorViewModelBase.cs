@@ -19,16 +19,16 @@ public abstract class JobEditorViewModelBase : ViewModelBase
         IState<IEventCallback<JobEditorCommit>> CommitEvent, IState<IEventCallback> CancelEvent,
         IState<bool> CanCancel, IObservable<JobEditorData?> JobData);
 
-    private readonly BehaviorSubject<bool> _isValid;
+    private BehaviorSubject<bool>? _isValid;
 
-    public bool IsValid => _isValid.Value;
-    public Action<bool> IsValidChanged => _isValid.OnNext;
+    public bool IsValid => _isValid?.Value ?? false;
+    public Action<bool> IsValidChanged => NotNull(_isValid, nameof(_isValid)).OnNext;
 
-    private readonly ObservableAsPropertyHelper<JobEditorData?> _data;
+    private readonly ObservableAsPropertyHelper<JobEditorData?>? _data;
 
-    public JobEditorData? Data => _data.Value;
+    public JobEditorData? Data => _data?.Value;
 
-    public ReactiveCommand<Unit, Unit> Cancel { get; }
+    public ReactiveCommand<Unit, Unit>? Cancel { get; private set; }
     
     public ReactiveCommand<Unit, Unit> Commit { get; }
 

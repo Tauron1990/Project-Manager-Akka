@@ -1,27 +1,19 @@
 ﻿using System;
-using System.Reactive.Disposables;
+using System.Runtime.CompilerServices;
 using ReactiveUI;
 
 namespace SimpleProjectManager.Client.Shared.ViewModels
 {
-    public abstract class ViewModelBase : ReactiveObject, IActivatableViewModel, IDisposable
+    public abstract class ViewModelBase : ReactiveObject, IActivatableViewModel
     {
-        protected readonly CompositeDisposable Disposer = new();
-
         public ViewModelActivator Activator { get; } = new();
 
-        protected virtual void Dispose(bool disposing)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected TValue NotNull<TValue>(TValue? value, string name)
         {
-            if (!disposing) return;
+            if (value is null) throw new InvalidOperationException($"The Value {name} is null");
 
-            Disposer.Dispose();
-            Activator.Dispose();
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            return value;
         }
     }
 }

@@ -31,7 +31,7 @@
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.3" />
-        <PackageReference Include="XamlNameReferenceGenerator" Version="1.3.4" />
+        <PackageReference Include="XamlNameReferenceGenerator" Version="1.3.4" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\..\..\..\..\..\Shared\Common\Tauron.Application.Common\Tauron.Application.Common.csproj" />
@@ -40,6 +40,9 @@
     <ItemGroup>
       <Compile Update="Controls\Alert.cs">
         <DependentUpon>Alert.axaml</DependentUpon>
+      </Compile>
+      <Compile Update="Views\AppBar\MainAppBar.cs">
+        <DependentUpon>MainAppBar.axaml</DependentUpon>
       </Compile>
     </ItemGroup>
 </Project>

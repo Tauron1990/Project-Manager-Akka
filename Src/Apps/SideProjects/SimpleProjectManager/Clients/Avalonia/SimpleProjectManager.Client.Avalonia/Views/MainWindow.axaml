@@ -1,12 +1,10 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:SimpleProjectManager.Client.Avalonia.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:styles="clr-namespace:Material.Styles;assembly=Material.Styles"
         xmlns:avalonia="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
         xmlns:dialogHost="clr-namespace:DialogHost;assembly=DialogHost.Avalonia"
-        xmlns:controls="clr-namespace:SimpleProjectManager.Client.Avalonia.Controls"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="SimpleProjectManager.Client.Avalonia.Views.MainWindow"
         Icon="/Assets/icon.png" WindowState="Maximized"
@@ -14,10 +12,6 @@
         ExtendClientAreaTitleBarHeightHint="-1"
         Title="Einfacher Project Manager">
     <!-- ReSharper disable Xaml.StyleClassNotFound -->
-    <Design.DataContext>
-        <vm:MainWindowViewModel/>
-    </Design.DataContext>
-
     <styles:SnackbarHost HostName="Root">
         <dialogHost:DialogHost>
             <styles:NavigationDrawer Name="LeftDrawer"
@@ -73,40 +67,15 @@
                     <styles:ColorZone Name="PART_AppBarContainer" VerticalAlignment="Top" HorizontalAlignment="Stretch"
                                       DockPanel.Dock="Top"
                                       Height="56" Mode="PrimaryMid" ZIndex="1">
-                        <Grid Margin="16">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="24" />
-                                <ColumnDefinition Width="32" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="32" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <ToggleButton Name="NavDrawerSwitch"
+                        <Grid RowDefinitions="Auto" ColumnDefinitions="15, Auto, *">
+                            <ToggleButton Name="NavDrawerSwitch" Grid.Column="1"
                                           Classes="Flat TransparentBack"
                                           Width="32" Height="32" Padding="4">
+
                                 <avalonia:MaterialIcon Kind="Menu" Width="24" Height="24" />
                             </ToggleButton>
-                            <TextBlock Grid.Column="2" Classes="Headline6" Text="Material.Avalonia Demo"
-                                       VerticalAlignment="Center" />
-                            <Menu Grid.Column="4" Height="32" Padding="0" Margin="0">
-                                <MenuItem Height="32" Width="32" Header="{avalonia:MaterialIconExt DotsVertical, Size=24}">
-                                    <MenuItem Header="Hello!">
-                                        <MenuItem.Icon>
-                                            <avalonia:MaterialIcon Kind="Hand" Width="24" Height="24" />
-                                        </MenuItem.Icon>
-                                    </MenuItem>
-                                    <Separator />
-                                    <MenuItem Header="Action 1" />
-                                    <MenuItem Header="Action 2" />
-                                    <MenuItem Header="Action 3" />
-                                    <Separator />
-                                    <MenuItem Header="Goodbye">
-                                        <MenuItem.Icon>
-                                            <avalonia:MaterialIcon Kind="ExitRun" Width="24" Height="24" />
-                                        </MenuItem.Icon>
-                                    </MenuItem>
-                                </MenuItem>
-                            </Menu>
+                            
+                            <ContentControl Margin="0" Padding="0" Name="MainAppBar" Grid.Row="0" Grid.Column="2"/>
                         </Grid>
                     </styles:ColorZone>
                     <!-- ReSharper disable once InconsistentNaming -->
