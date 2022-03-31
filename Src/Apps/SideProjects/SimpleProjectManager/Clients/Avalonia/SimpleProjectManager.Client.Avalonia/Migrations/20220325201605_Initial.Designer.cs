@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using SimpleProjectManager.Client.Avalonia.Models.Data;
+using SimpleProjectManager.Client.Avalonia.Models.Services;
 
 #nullable disable
 

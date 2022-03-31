@@ -4,7 +4,7 @@ using Tauron;
 
 namespace SimpleProjectManager.Client.Avalonia.ViewModels;
 
-public sealed class ViewModelModule : IModule
+public sealed class InternalViewModelModule : IModule
 {
     public void Load(IServiceCollection collection)
     {
@@ -12,5 +12,6 @@ public sealed class ViewModelModule : IModule
 
         collection.AddTransient<AppBarViewModel>();
         collection.AddTransient<NotifyErrorModel>();
+        collection.AddTransient<ClockDisplayViewModel>();
     }
 }

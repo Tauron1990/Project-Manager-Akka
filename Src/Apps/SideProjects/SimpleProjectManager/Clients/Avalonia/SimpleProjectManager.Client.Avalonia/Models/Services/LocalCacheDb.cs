@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.DependencyInjection;
 using Tauron.Applicarion.Redux.Extensions.Cache;
 
-namespace SimpleProjectManager.Client.Avalonia.Models.Data;
+namespace SimpleProjectManager.Client.Avalonia.Models.Services;
 
 public sealed class LocalCacheDbContextDesingFactory : IDesignTimeDbContextFactory<LocalCacheDbContext>
 {
@@ -66,6 +66,9 @@ public sealed class LocalCacheDb : ICacheDb
             Directory.CreateDirectory(DatabaseDirectory);
 
         _contextFactory = serviceProvider.GetRequiredService<LocalCacheDbContext>;
+
+        using var factory = _contextFactory();
+        factory.Database.Migrate();
     }
 
     public async ValueTask DeleteElement(CacheTimeoutId key)

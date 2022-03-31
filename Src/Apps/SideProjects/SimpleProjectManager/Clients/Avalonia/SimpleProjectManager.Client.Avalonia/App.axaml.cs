@@ -4,9 +4,11 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Microsoft.Extensions.DependencyInjection;
-using SimpleProjectManager.Client.Avalonia.Models.Data;
+using SimpleProjectManager.Client.Avalonia.Models.Services;
 using SimpleProjectManager.Client.Avalonia.ViewModels;
 using SimpleProjectManager.Client.Avalonia.Views;
+using SimpleProjectManager.Client.Shared.ViewModels;
+using SimpleProjectManager.Shared.ServerApi;
 using Tauron;
 
 namespace SimpleProjectManager.Client.Avalonia
@@ -43,7 +45,10 @@ namespace SimpleProjectManager.Client.Avalonia
             var collection = new ServiceCollection();
             
             collection.RegisterModule<InternalDataModule>();
+            collection.RegisterModule<InternalViewModelModule>();
             collection.RegisterModule<ViewModelModule>();
+            
+            ClientRegistration.ConfigFusion(collection, new Uri("http://localhost:4001"));
             
             _serviceProvider = collection.BuildServiceProvider();
             Disposer = _serviceProvider;

@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using SimpleProjectManager.Client.Shared.Services;
 using Tauron.Application;
 
-namespace SimpleProjectManager.Client.Avalonia.Models.Data;
+namespace SimpleProjectManager.Client.Avalonia.Models.Services;
 
 public sealed class MessageMapper : IMessageMapper
 {

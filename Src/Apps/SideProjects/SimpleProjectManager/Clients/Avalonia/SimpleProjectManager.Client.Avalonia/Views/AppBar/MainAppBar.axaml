@@ -8,6 +8,7 @@
             <ColumnDefinition Width="32" />
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="32" />
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
@@ -15,6 +16,7 @@
                    VerticalAlignment="Center" />
         
         <ContentControl Name="ErrorNotify" Grid.Column="2"/>
+        <ContentControl Name="ClockControl" Grid.Column="4"/>
         
         <Menu Grid.Column="4" Height="32" Padding="0" Margin="0">
             <MenuItem Height="32" Width="32" Header="{avalonia:MaterialIconExt DotsVertical, Size=24}">

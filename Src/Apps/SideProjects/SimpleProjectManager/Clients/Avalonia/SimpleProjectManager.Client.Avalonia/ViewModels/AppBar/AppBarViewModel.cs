@@ -6,6 +6,11 @@ public sealed class AppBarViewModel : ViewModelBase
 {
     public NotifyErrorModel ErrorModel { get; }
 
-    public AppBarViewModel(NotifyErrorModel errorModel)
-        => ErrorModel = errorModel;
+    public ClockDisplayViewModel ClockModel { get; }
+    
+    public AppBarViewModel(NotifyErrorModel errorModel, ClockDisplayViewModel clockModel)
+    {
+        ErrorModel = errorModel;
+        ClockModel = clockModel;
+    }
 }

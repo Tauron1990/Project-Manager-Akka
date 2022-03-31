@@ -14,26 +14,26 @@ public class PageNavigation
     public const string UploadFilesUrl = "/Upload";
     public const string EditJobUrl = "/EditJob";
     
-    private readonly INavigationHelper _navigationManager;
-
+    public INavigationHelper NavigationManager { get; }
+    
     public PageNavigation(INavigationHelper navigationManager)
-        => _navigationManager = navigationManager;
+        => NavigationManager = navigationManager;
 
     public void ShowCurrentJobs()
-        => _navigationManager.NavigateTo(CurrentJobs);
+        => NavigationManager.NavigateTo(CurrentJobs);
 
     public void UploadFiles()
-        => _navigationManager.NavigateTo(UploadFilesUrl);
+        => NavigationManager.NavigateTo(UploadFilesUrl);
     
     public void Errors()
-        => _navigationManager.NavigateTo(CriticalErrorsUrl);
+        => NavigationManager.NavigateTo(CriticalErrorsUrl);
 
     public void ShowStartPage()
-        => _navigationManager.NavigateTo(StartPageUrl);
+        => NavigationManager.NavigateTo(StartPageUrl);
     
     public void NewJob()
-        => _navigationManager.NavigateTo(NewJobUrl);
+        => NavigationManager.NavigateTo(NewJobUrl);
 
     public void EditJob(ProjectId id)
-        => _navigationManager.NavigateTo($"{EditJobUrl}/{id.Value}");
+        => NavigationManager.NavigateTo($"{EditJobUrl}/{id.Value}");
 }

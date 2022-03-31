@@ -5,7 +5,7 @@ using Tauron;
 using Tauron.Applicarion.Redux.Configuration;
 using Tauron.Applicarion.Redux.Extensions.Cache;
 
-namespace SimpleProjectManager.Client.Avalonia.Models.Data;
+namespace SimpleProjectManager.Client.Avalonia.Models.Services;
 
 public sealed class InternalDataModule : IModule
 {
@@ -17,6 +17,8 @@ public sealed class InternalDataModule : IModule
         collection.AddSingleton<ICacheDb, LocalCacheDb>();
         collection.AddSingleton<IOnlineMonitor, OnlineMonitor>();
         collection.AddTransient<IMessageMapper, MessageMapper>();
+
+        collection.AddSingleton<INavigationHelper, NavigationManager>();
         
         collection.AddTransient<LocalCacheDbContext>();
     }

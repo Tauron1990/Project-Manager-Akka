@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using SimpleProjectManager.Client.Shared.Data;
 
-namespace SimpleProjectManager.Client.Avalonia.Models.Data;
+namespace SimpleProjectManager.Client.Avalonia.Models.Services;
 
 public sealed class OnlineMonitor : OnlineMonitorBase<OnlineMonitor>
 {

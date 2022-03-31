@@ -11,6 +11,7 @@ namespace SimpleProjectManager.Client.Avalonia
         public IControl Build(object data)
             => data switch
             {
+                ClockDisplayViewModel clockDisplayViewModel => new ClockDisplay { DataContext = clockDisplayViewModel },
                 AppBarViewModel appBarViewModel => new MainAppBar { DataContext = appBarViewModel },
                 NotifyErrorModel notifyErrorModel => new ErrorNotify { DataContext = notifyErrorModel },
                 _ => new TextBlock { Text = $"View not Found for {data.GetType().Name}"}

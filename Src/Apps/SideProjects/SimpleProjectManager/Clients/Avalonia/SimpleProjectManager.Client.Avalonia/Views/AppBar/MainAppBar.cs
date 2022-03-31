@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Reactive.Disposables;
+using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
@@ -13,12 +13,15 @@ public partial class MainAppBar : ReactiveUserControl<AppBarViewModel>
 {
     public MainAppBar()
     {
-        this.WhenActivated(d =>
-                           {
-                               this.OneWayBind(ViewModel, m => m.ErrorModel, v => v.ErrorNotify.Content).DisposeWith(d);
-                           });
+        this.WhenActivated(Init);
         
         InitializeComponent();
+
+        IEnumerable<IDisposable> Init()
+        {
+            yield return this.OneWayBind(ViewModel, m => m.ErrorModel, v => v.ErrorNotify.Content);
+            yield return this.OneWayBind(ViewModel, m => m.ClockModel, v => v.ClockControl.Content);
+        }
     }
 
     // ReSharper disable UnusedParameter.Local
