@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reactive;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using ReactiveUI;
@@ -15,35 +15,42 @@ public sealed class NewJobViewModel : ViewModelBase
 {
     public JobEditorViewModelBase EditorModel { get; }
 
-    public ReactiveCommand<JobEditorCommit, bool> Commit { get; }
+    public ReactiveCommand<JobEditorCommit, bool>? Commit { get; private set; }
 
-    public ReactiveCommand<Unit, Unit> Cancel { get; }
+    public ReactiveCommand<Unit, Unit>? Cancel { get; private set; }
 
-    private readonly ObservableAsPropertyHelper<bool> _commiting;
+    private ObservableAsPropertyHelper<bool>? _commiting;
 
-    public bool IsCommiting => _commiting.Value;
+    public bool IsCommiting => _commiting?.Value ?? false;
     
     public NewJobViewModel(PageNavigation pageNavigation, GlobalState globalState, JobEditorViewModelBase editorModel)
     {
         EditorModel = editorModel;
-        Cancel = ReactiveCommand.Create(pageNavigation.ShowStartPage).DisposeWith(Disposer);
 
-        Commit = ReactiveCommand.CreateFromObservable<JobEditorCommit, bool>(
-            commit =>
-            {
-                var sub = new Subject<bool>();
-                globalState.Dispatch(new CommitJobEditorData(commit, sub.OnNext));
-                
-                return sub.Take(1);
-            }, globalState.IsOnline).DisposeWith(Disposer);
+        this.WhenActivated(Init);
+        
+        IEnumerable<IDisposable> Init()
+        {
+            yield return Cancel = ReactiveCommand.Create(pageNavigation.ShowStartPage);
 
-        Commit.Subscribe(
-            s =>
-            {
-                if (s)
-                    pageNavigation.ShowStartPage();
-            }).DisposeWith(Disposer);
+            yield return Commit = ReactiveCommand.CreateFromObservable<JobEditorCommit, bool>(
+                commit =>
+                {
+                    var sub = new Subject<bool>();
+                    globalState.Dispatch(new CommitJobEditorData(commit, sub.OnNext));
 
-        _commiting = Commit.IsExecuting.ToProperty(this, m => m.IsCommiting).DisposeWith(Disposer);
+                    return sub.Take(1);
+                },
+                globalState.IsOnline);
+
+            yield return Commit.Subscribe(
+                s =>
+                {
+                    if (s)
+                        pageNavigation.ShowStartPage();
+                });
+
+            yield return _commiting = Commit.IsExecuting.ToProperty(this, m => m.IsCommiting);
+        }
     }
 }

@@ -1,5 +1,6 @@
-﻿using System.Reactive;
-using System.Reactive.Disposables;
+﻿using System;
+using System.Collections.Generic;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using ReactiveUI;
@@ -13,15 +14,17 @@ namespace SimpleProjectManager.Client.Shared.ViewModels.Tasks;
 
 public sealed class PendingTaskDisplayViewModel : ViewModelBase
 {
-    private readonly BehaviorSubject<bool> _canRun = new(true);
-
-    public ReactiveCommand<Unit, Unit> Cancel { get; }
+    public ReactiveCommand<Unit, Unit>? Cancel { get; private set; }
 
     public PendingTaskDisplayViewModel(GlobalState globalState, IState<PendingTask?> taskState)
     {
-        _canRun.DisposeWith(Disposer);
-
-        Cancel = ReactiveCommand.Create(
+        BehaviorSubject<bool>? canRun;
+        this.WhenActivated(Init);
+        
+        IEnumerable<IDisposable> Init()
+        {
+            yield return canRun = new BehaviorSubject<bool>(false);
+            yield return Cancel = ReactiveCommand.Create(
                 () =>
                 {
                     var task = taskState.ValueOrDefault;
@@ -29,11 +32,11 @@ public sealed class PendingTaskDisplayViewModel : ViewModelBase
 
                     globalState.Dispatch(new DeleteTask(task));
                 },
-                _canRun.CombineLatest(taskState.ToObservable().Select(pt => pt is not null))
+                canRun.CombineLatest(taskState.ToObservable().Select(pt => pt is not null))
                    .Select(i => i.First && i.Second)
-                   .AndIsOnline(globalState.OnlineMonitor))
-           .DisposeWith(Disposer);
-
-        Cancel.Select(_ => false).Take(1).Subscribe(_canRun).DisposeWith(Disposer);
+                   .AndIsOnline(globalState.OnlineMonitor));
+            
+            yield return Cancel.Select(_ => false).Take(1).Subscribe(canRun);
+        }
     }
 }

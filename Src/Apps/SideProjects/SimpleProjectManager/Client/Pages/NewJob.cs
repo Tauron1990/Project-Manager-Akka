@@ -13,7 +13,7 @@ public partial class NewJob
     {
         if (ViewModel == null) yield break;
 
-        _cancel = ViewModel.Cancel.ToAction();
-        _commit = ViewModel.Commit.ToAction();
+        _cancel = ViewModel.Cancel?.ToAction();
+        _commit = ViewModel.Commit?.ToAction();
     }
 }

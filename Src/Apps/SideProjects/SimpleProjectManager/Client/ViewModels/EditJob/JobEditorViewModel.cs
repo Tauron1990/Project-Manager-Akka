@@ -1,4 +1,3 @@
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Microsoft.AspNetCore.Components;
 using SimpleProjectManager.Client.Shared.Data;
@@ -28,10 +27,10 @@ public sealed class JobEditorViewModel : JobEditorViewModelBase, IParameterUpdat
         (
             Updater.Register<EventCallback<JobEditorCommit>>(nameof(JobEditor.Commit), _factory)
                .ToObservable().Select(c => (IEventCallback<JobEditorCommit>)new EventCallBackImpl<JobEditorCommit>(c))
-               .ToState(_factory).DisposeWith(Disposer),
+               .ToState(_factory),
             Updater.Register<EventCallback>(nameof(JobEditor.Cancel), _factory)
                .ToObservable().Select(c => (IEventCallback)new EventCallBackImpl(c))
-               .ToState(_factory).DisposeWith(Disposer),
+               .ToState(_factory),
             Updater.Register<bool>(nameof(JobEditor.CanCancel), _factory),
             Updater.Register<JobEditorData?>(nameof(JobEditor.Data), _factory).ToObservable()
         );

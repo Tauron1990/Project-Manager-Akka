@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reactive;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using ReactiveUI;
@@ -15,31 +15,36 @@ public sealed class FileManagerViewModel : ViewModelBase
 {
     private record struct FilesInfo(bool IsLoading, DatabaseFile[] Files);
     
-    private readonly ObservableAsPropertyHelper<bool> _loading;
-    public bool IsLoading => _loading.Value;
+    private ObservableAsPropertyHelper<bool>? _loading;
+    public bool IsLoading => _loading?.Value ?? false;
 
-    private readonly ObservableAsPropertyHelper<DatabaseFile[]> _files;
-    public DatabaseFile[] Files => _files.Value;
+    private ObservableAsPropertyHelper<DatabaseFile[]>? _files;
+    public DatabaseFile[] Files => _files?.Value ?? Array.Empty<DatabaseFile>();
 
-    private readonly ObservableAsPropertyHelper<Exception?> _error;
-    public Exception? Error => _error.Value;
+    private ObservableAsPropertyHelper<Exception?>? _error;
+    public Exception? Error => _error?.Value;
 
-    public ReactiveCommand<DatabaseFile, Unit> DeleteFile { get; }
+    public ReactiveCommand<DatabaseFile, Unit>? DeleteFile { get; private set; }
 
     public Interaction<DatabaseFile, bool> ConfirmDelete { get; } = new();
     
     public FileManagerViewModel(GlobalState globalState, IMessageMapper mapper)
     {
-        var filesStream = globalState.Files.AllFiles
-           .Select(files => new FilesInfo(false, files))
-           .StartWith(new FilesInfo(true, Array.Empty<DatabaseFile>()))
-           .Publish().RefCount();
+        this.WhenActivated(Init);
         
-        _files = filesStream.Select(i => i.Files).ToProperty(this, m => m.Files).DisposeWith(Disposer);
-        _loading = filesStream.Select(i => i.IsLoading).ToProperty(this, m => m.IsLoading).DisposeWith(Disposer);
-        _error = _files.ThrownExceptions.Merge(_loading.ThrownExceptions).ToProperty(this, m => m.Error).DisposeWith(Disposer);
-        
-        DeleteFile = ReactiveCommand.CreateFromTask<DatabaseFile, Unit>(DeleteFileImpl, globalState.IsOnline).DisposeWith(Disposer);
+        IEnumerable<IDisposable> Init()
+        {
+            var filesStream = globalState.Files.AllFiles
+               .Select(files => new FilesInfo(false, files))
+               .StartWith(new FilesInfo(true, Array.Empty<DatabaseFile>()))
+               .Publish().RefCount();
+            
+            yield return _files = filesStream.Select(i => i.Files).ToProperty(this, m => m.Files);
+            yield return _loading = filesStream.Select(i => i.IsLoading).ToProperty(this, m => m.IsLoading);
+            yield return _error = _files.ThrownExceptions.Merge(_loading.ThrownExceptions).ToProperty(this, m => m.Error);
+            
+            yield return DeleteFile = ReactiveCommand.CreateFromTask<DatabaseFile, Unit>(DeleteFileImpl, globalState.IsOnline);
+        }
 
         async Task<Unit> DeleteFileImpl(DatabaseFile databaseFile)
         {

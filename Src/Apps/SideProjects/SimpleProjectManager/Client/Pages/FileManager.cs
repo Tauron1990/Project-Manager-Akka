@@ -13,13 +13,13 @@ public partial class FileManager
                                                                                IsInitiallyExpanded = false
                                                                            };
 
-    private Action<DatabaseFile> _deleteFile = _ => { };
+    private Action<DatabaseFile>? _deleteFile;
 
     protected override IEnumerable<IDisposable> InitializeModel()
     {
         if (ViewModel == null) yield break;
 
-        _deleteFile = ViewModel.DeleteFile.ToAction();
+        _deleteFile = ViewModel.DeleteFile?.ToAction();
 
         yield return ViewModel.ConfirmDelete.RegisterHandler(
             async c =>

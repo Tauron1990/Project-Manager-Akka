@@ -8,7 +8,7 @@ using SimpleProjectManager.Client.Shared.ViewModels;
 
 namespace SimpleProjectManager.Client.Avalonia.ViewModels.AppBar;
 
-public sealed partial class NotifyErrorModel : ViewModelBase
+public sealed class NotifyErrorModel : ViewModelBase
 {
     public ReactiveCommand<Unit, Unit>? NavigateError { get; set; }
 

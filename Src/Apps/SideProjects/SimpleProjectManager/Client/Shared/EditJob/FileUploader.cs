@@ -2,6 +2,7 @@
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using JetBrains.Annotations;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using ReactiveUI;
@@ -35,16 +36,18 @@ public partial class FileUploader
     [Parameter] 
     public string ProjectName { get; set; } = string.Empty;
 
+    [PublicAPI]
     public MudCommandButton? Clear
     {
         get => _clear;
-        set => this.RaiseAndSetIfChanged(ref _clear, value);
+        private set => this.RaiseAndSetIfChanged(ref _clear, value);
     }
 
+    [PublicAPI]
     public MudCommandButton? Upload
     {
         get => _upload;
-        set => this.RaiseAndSetIfChanged(ref _upload, value);
+        private set => this.RaiseAndSetIfChanged(ref _upload, value);
     }
 
     protected override IEnumerable<IDisposable> InitializeModel()
@@ -57,7 +60,7 @@ public partial class FileUploader
         => UploaderViewModel ?? base.CreateModel();
 
     private void FilesChanged(InputFileChangeEventArgs evt)
-        => ViewModel?.FilesChanged
+        => ViewModel?.FilesChanged?
            .Execute(
                 new FileChangeEvent(
                     ImmutableList<IFileReference>.Empty
