@@ -6,7 +6,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="SimpleProjectManager.Client.Avalonia.Views.AppBar.ErrorNotify">
     <Grid>
-        <controls:Alert Name="OkControl" Severity="Sucess" Message="Keine" IsVisible="False" />
-        <controls:Alert Name="ErrorCounter" Severity="Warning" Message="0" />
+        <controls:Alert Name="OkControl" Severity="Sucess" Message="Keine" IsVisible="False" AlertPadding="5"/>
+        <controls:Alert Name="ErrorCounter" Severity="Warning" Message="0" AlertPadding="5" />
     </Grid>
 </UserControl>

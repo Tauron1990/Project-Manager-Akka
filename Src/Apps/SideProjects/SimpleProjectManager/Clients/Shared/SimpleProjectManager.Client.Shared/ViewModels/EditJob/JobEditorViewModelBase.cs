@@ -58,6 +58,7 @@ public abstract class JobEditorViewModelBase : ViewModelBase
             
             yield return _data = modelConfig.JobData
                .Select(i => i ?? new JobEditorData(null))
+               .ObserveOn(RxApp.MainThreadScheduler)
                .ToProperty(this, m => m.Data);
 
             yield return Cancel = ReactiveCommand.CreateFromTask(

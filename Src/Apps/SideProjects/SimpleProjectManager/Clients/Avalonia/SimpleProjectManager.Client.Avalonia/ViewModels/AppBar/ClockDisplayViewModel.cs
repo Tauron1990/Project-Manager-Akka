@@ -25,7 +25,11 @@ public sealed class ClockDisplayViewModel : ViewModelBase
             var state = stateFactory.NewComputed<DateTime>(ComputeState);
             yield return state;
 
-            yield return _currentTime = state.ToObservable().Select(dt => dt.ToString("G")).ToProperty(this, model => model.CurrentTime);
+            yield return _currentTime = state
+               .ToObservable()
+               .Select(dt => dt.ToLocalTime().ToString("G"))
+               .ObserveOn(RxApp.MainThreadScheduler)
+               .ToProperty(this, model => model.CurrentTime);
         }
         
         async Task<DateTime> ComputeState(IComputedState<DateTime> _, CancellationToken cancellationToken) => await time.GetUtcNow(TimeSpan.FromMilliseconds(200));

@@ -50,7 +50,7 @@ public sealed class NewJobViewModel : ViewModelBase
                         pageNavigation.ShowStartPage();
                 });
 
-            yield return _commiting = Commit.IsExecuting.ToProperty(this, m => m.IsCommiting);
+            yield return _commiting = Commit.IsExecuting.ObserveOn(RxApp.MainThreadScheduler).ToProperty(this, m => m.IsCommiting);
         }
     }
 }

@@ -30,8 +30,14 @@ public sealed class JobSidebarViewModel : ViewModelBase
 
         IEnumerable<IDisposable> Init()
         {
-            yield return _currentJobs = globalState.Jobs.CurrentJobs.Select(Sort).ToProperty(this, model => model.CurrentJobs);
-            yield return _selectedValue = globalState.Jobs.CurrentlySelectedPair.ToProperty(this, p => p.SelectedValue);
+            yield return _currentJobs = globalState.Jobs.CurrentJobs
+               .Select(Sort)
+               .ObserveOn(RxApp.MainThreadScheduler).
+                ToProperty(this, model => model.CurrentJobs);
+            
+            yield return _selectedValue = globalState.Jobs.CurrentlySelectedPair
+               .ObserveOn(RxApp.MainThreadScheduler)
+               .ToProperty(this, p => p.SelectedValue);
 
             yield return NewJob = ReactiveCommand.Create(navigationManager.NewJob, globalState.IsOnline);
 

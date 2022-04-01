@@ -9,7 +9,5 @@ public sealed class DashboardViewModel : ReactiveObject
     public IObservable<long> JobCountState { get; }
     
     public DashboardViewModel(GlobalState globalState)
-    {
-        JobCountState = globalState.Jobs.ActiveJobsCount;
-    }
+        => JobCountState = globalState.Jobs.ActiveJobsCount;
 }

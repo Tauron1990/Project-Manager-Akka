@@ -26,7 +26,7 @@ public abstract class CriticalErrorViewModelBase : ViewModelBase
         {
             var currentError = GetErrorState();
             
-            yield return _item = currentError.ToObservable().ToProperty(this, m => m.Item);
+            yield return _item = currentError.ToObservable().ObserveOn(RxApp.MainThreadScheduler).ToProperty(this, m => m.Item);
             yield return Hide = ReactiveCommand.Create(
                 () =>
                 {

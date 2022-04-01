@@ -1,6 +1,7 @@
 using System;
 using System.Net.Http;
 using System.Reactive.Linq;
+using System.Reactive.Threading.Tasks;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -22,9 +23,12 @@ public abstract class OnlineMonitorBase<TThis> : IOnlineMonitor
         Logger = logger;
         _pingService = RestEase.RestClient.For<IPingServiceDef>(client);
         Online =
-            Observable.Interval(TimeSpan.FromSeconds(6))
-               .SelectMany(_ => IsOnline())
-               .StartWith(true)
+            IsOnline().ToObservable()
+               .Concat
+                (
+                    Observable.Interval(TimeSpan.FromSeconds(6))
+                       .SelectMany(_ => IsOnline())
+                )
                .DistinctUntilChanged();
     }
 
@@ -40,7 +44,8 @@ public abstract class OnlineMonitorBase<TThis> : IOnlineMonitor
         }
         catch (Exception e)
         {
-            Logger.LogError(e, "Error on Ping Server");
+            if(e is not HttpRequestException)
+                Logger.LogError(e, "Error on Ping Server");
             return false;
         }
     }

@@ -74,6 +74,7 @@ public abstract class FileUploaderViewModelBase : ViewModelBase
 
             yield return _files.Connect()
                .AutoRefresh(f => f.UploadState, TimeSpan.FromMilliseconds(200))
+               .ObserveOn(RxApp.MainThreadScheduler)
                .Bind(out var list)
                .Subscribe();
 
@@ -83,6 +84,7 @@ public abstract class FileUploaderViewModelBase : ViewModelBase
                .Select(globalState.Jobs.TryExtrectName)
                .Flatten()
                .Where(n => !string.IsNullOrWhiteSpace(n.Current) && string.IsNullOrWhiteSpace(ProjectId))
+               .ObserveOn(RxApp.MainThreadScheduler)
                .Do(n => ProjectId = n.Current)
                .Subscribe();
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Windows.Input;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
@@ -24,6 +25,12 @@ public sealed partial class Alert : UserControl, ICommandSource
     private AlertSeverity _severity;
     private string _message = string.Empty;
 
+    public double AlertPadding
+    {
+        get => AlertBorder.Padding.Top;
+        set => AlertBorder.Padding = new Thickness(value);
+    }
+    
     public AlertSeverity Severity
     {
         get => _severity;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reactive;
+using System.Reactive.Linq;
 using ReactiveUI;
 using SimpleProjectManager.Client.Shared.Data;
 using SimpleProjectManager.Client.Shared.Services;
@@ -24,6 +25,7 @@ public sealed class JobDetailDisplayViewModel : ViewModelBase
         {
             yield return _jobData = globalState.Jobs
                .CurrentlySelectedData
+               .ObserveOn(RxApp.MainThreadScheduler)
                .ToProperty(this, model => model.JobData);
             
             yield return EditJob = ReactiveCommand.Create<ProjectId?, Unit>(

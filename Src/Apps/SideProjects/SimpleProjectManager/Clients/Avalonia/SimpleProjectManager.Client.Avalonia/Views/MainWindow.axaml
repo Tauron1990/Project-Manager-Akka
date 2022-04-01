@@ -65,8 +65,7 @@
                 <DockPanel LastChildFill="true">
                     <!-- ReSharper disable once InconsistentNaming -->
                     <styles:ColorZone Name="PART_AppBarContainer" VerticalAlignment="Top" HorizontalAlignment="Stretch"
-                                      DockPanel.Dock="Top"
-                                      Height="56" Mode="PrimaryMid" ZIndex="1">
+                                      DockPanel.Dock="Top" Mode="PrimaryMid" ZIndex="1">
                         <Grid RowDefinitions="Auto" ColumnDefinitions="15, Auto, *">
                             <ToggleButton Name="NavDrawerSwitch" Grid.Column="1"
                                           Classes="Flat TransparentBack"

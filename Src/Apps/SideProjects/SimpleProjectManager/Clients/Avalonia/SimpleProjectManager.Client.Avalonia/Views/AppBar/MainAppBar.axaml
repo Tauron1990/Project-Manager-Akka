@@ -3,22 +3,14 @@
              xmlns:avalonia="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              x:Class="SimpleProjectManager.Client.Avalonia.Views.AppBar.MainAppBar">
     <!-- ReSharper disable Xaml.StyleClassNotFound -->
-    <Grid Margin="16">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="32" />
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="32" />
-            <ColumnDefinition Width="Auto" />
-        </Grid.ColumnDefinitions>
+    <Grid Margin="16" ColumnDefinitions="32,Auto,Auto,*,Auto,32,Auto">
         <TextBlock Grid.Column="1" Classes="Headline6" Text="Einfacher Project Manager"
                    VerticalAlignment="Center" />
         
-        <ContentControl Name="ErrorNotify" Grid.Column="2"/>
-        <ContentControl Name="ClockControl" Grid.Column="4"/>
+        <ContentControl Name="ErrorNotify" Grid.Column="2" VerticalContentAlignment="Center" Margin="10, 0"/>
+        <ContentControl Name="ClockControl" Grid.Column="4" VerticalContentAlignment="Center" Margin="10, 0"/>
         
-        <Menu Grid.Column="4" Height="32" Padding="0" Margin="0">
+        <Menu Grid.Column="5" Height="32" Padding="0" Margin="0">
             <MenuItem Height="32" Width="32" Header="{avalonia:MaterialIconExt DotsVertical, Size=24}">
                 <MenuItem Header="Beenden" Click="Exit_OnClick">
                     <MenuItem.Icon>
