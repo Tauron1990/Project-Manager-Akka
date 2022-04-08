@@ -15,6 +15,7 @@ namespace SimpleProjectManager.Client.Avalonia.Views
                 d =>
                 {
                     this.OneWayBind(ViewModel, m => m.AppBarModel, v => v.MainAppBar.Content).DisposeWith(d);
+                    this.OneWayBind(ViewModel, m => m.CurrentContent, v => v.MainContent.Content).DisposeWith(d);
                 });
         }
     }

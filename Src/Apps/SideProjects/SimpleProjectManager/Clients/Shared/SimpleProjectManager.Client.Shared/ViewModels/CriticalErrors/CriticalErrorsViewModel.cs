@@ -8,7 +8,7 @@ namespace SimpleProjectManager.Client.Shared.ViewModels.CriticalErrors;
 
 public record struct ErrorData(bool IsOnline, CriticalError[] Errors);
 
-public sealed class CriticalErrorsViewModel : ReactiveObject
+public sealed class CriticalErrorsViewModel : ViewModelBase
 {
     public IObservable<ErrorData> Errors { get; }
     

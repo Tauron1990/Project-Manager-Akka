@@ -5,7 +5,7 @@ namespace SimpleProjectManager.Client.Avalonia.Models;
 
 public sealed record Navigating(ViewModelBase Model);
 
-public sealed class NivigatingEvent : AggregateEvent<Navigating>
+public sealed class NavigatingEvent : AggregateEvent<Navigating>
 {
     
 }
