@@ -10,7 +10,7 @@ namespace SimpleProjectManager.Client.Avalonia.ViewModels.AppBar;
 
 public sealed class NotifyErrorModel : ViewModelBase
 {
-    public ReactiveCommand<Unit, Unit>? NavigateError { get; set; }
+    public ReactiveCommand<Unit, Unit>? NavigateError { get; private set; }
 
     private ObservableAsPropertyHelper<string>? _errorCount;
     public string ErrorCount => _errorCount?.Value ?? string.Empty;

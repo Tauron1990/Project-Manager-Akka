@@ -31,7 +31,7 @@ public partial class FileUploader
     public FileUploadTrigger? UploadTrigger { get; set; }
 
     [Parameter]
-    public FileUploaderViewModel? UploaderViewModel { get; set; }
+    public FileUploaderViewModelBase? UploaderViewModel { get; set; }
 
     [Parameter] 
     public string ProjectName { get; set; } = string.Empty;
@@ -57,7 +57,7 @@ public partial class FileUploader
     }
 
     protected override FileUploaderViewModel CreateModel()
-        => UploaderViewModel ?? base.CreateModel();
+        => (UploaderViewModel as FileUploaderViewModel) ?? base.CreateModel();
 
     private void FilesChanged(InputFileChangeEventArgs evt)
         => ViewModel?.FilesChanged?

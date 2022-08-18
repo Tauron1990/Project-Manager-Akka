@@ -41,7 +41,7 @@ public partial class JobEditor
     public JobEditorData? Data { get; set; }
 
     [Parameter]
-    public JobEditorViewModel? CustomViewModel { get; set; }
+    public JobEditorViewModelBase? CustomViewModel { get; set; }
 
     private MudCommandButton? CancelButton
     {
@@ -55,8 +55,8 @@ public partial class JobEditor
         set => this.RaiseAndSetIfChanged(ref _commitButton, value);
     }
 
-    protected override JobEditorViewModel CreateModel()
-        => CustomViewModel ?? base.CreateModel();
+     protected override JobEditorViewModel CreateModel()
+         => (CustomViewModel as JobEditorViewModel) ?? base.CreateModel();
 
     protected override IEnumerable<IDisposable> InitializeModel()
     {

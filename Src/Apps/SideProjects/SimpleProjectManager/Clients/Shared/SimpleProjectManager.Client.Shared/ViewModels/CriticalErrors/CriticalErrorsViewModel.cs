@@ -10,8 +10,13 @@ public record struct ErrorData(bool IsOnline, CriticalError[] Errors);
 
 public sealed class CriticalErrorsViewModel : ViewModelBase
 {
+    public GlobalState GlobalState { get; }
+    
     public IObservable<ErrorData> Errors { get; }
     
     public CriticalErrorsViewModel(GlobalState globalState)
-        => Errors = globalState.IsOnline.CombineLatest(globalState.Errors.Errors, (online, errors) => new ErrorData(online, errors));
+    {
+        GlobalState = globalState;
+        Errors = globalState.IsOnline.CombineLatest(globalState.Errors.Errors, (online, errors) => new ErrorData(online, errors));
+    }
 }

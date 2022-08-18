@@ -10,6 +10,8 @@ namespace SimpleProjectManager.Client.Shared.Data;
 
 public sealed class GlobalState : IDisposable
 {
+    public IStateFactory StateFactory { get; }
+    
     private readonly IDisposable _scope;
 
     public IOnlineMonitor OnlineMonitor { get; }
@@ -28,6 +30,7 @@ public sealed class GlobalState : IDisposable
     
     public GlobalState(IStateFactory stateFactory, IServiceProvider rootProvider)
     {
+        StateFactory = stateFactory;
         var scope = rootProvider.CreateScope();
         _scope = scope;
         var serviceProvider = scope.ServiceProvider;

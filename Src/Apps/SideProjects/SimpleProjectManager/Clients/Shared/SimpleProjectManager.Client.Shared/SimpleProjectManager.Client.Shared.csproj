@@ -9,6 +9,6 @@
     </ItemGroup>
     <ItemGroup>
       <PackageReference Include="Ben.Demystifier" Version="0.4.1" />
-      <PackageReference Include="ReactiveUI" Version="17.1.50" />
+      <PackageReference Include="ReactiveUI" Version="18.3.1" />
     </ItemGroup>
 </Project>

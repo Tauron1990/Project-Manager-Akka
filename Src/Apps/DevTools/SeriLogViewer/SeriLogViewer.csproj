@@ -17,19 +17,19 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Gu.Analyzers" Version="1.8.5">
+        <PackageReference Include="Gu.Analyzers" Version="2.0.2">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="JetBrains.Annotations" Version="2021.2.0"/>
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.1"/>
-        <PackageReference Include="Ookii.Dialogs.Wpf" Version="4.0.0"/>
-        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10"/>
-        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31"/>
-        <PackageReference Include="Syncfusion.SfGrid.WPF" Version="19.2.0.62"/>
-        <PackageReference Include="Syncfusion.SfSkinManager.WPF" Version="19.2.0.62"/>
-        <PackageReference Include="Syncfusion.Shared.WPF" Version="19.2.0.62"/>
-        <PackageReference Include="Syncfusion.Themes.Blend.WPF" Version="19.2.0.62"/>
+        <PackageReference Include="JetBrains.Annotations" Version="2022.1.0" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+        <PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
+        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
+        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
+        <PackageReference Include="Syncfusion.SfGrid.WPF" Version="20.2.0.44" />
+        <PackageReference Include="Syncfusion.SfSkinManager.WPF" Version="20.2.0.44" />
+        <PackageReference Include="Syncfusion.Shared.WPF" Version="20.2.0.44" />
+        <PackageReference Include="Syncfusion.Themes.Blend.WPF" Version="20.2.0.44" />
     </ItemGroup>
 
 </Project>

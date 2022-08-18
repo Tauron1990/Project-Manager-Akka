@@ -5,13 +5,15 @@ using Akka.MGIHelper.UI;
 using Akka.MGIHelper.UI.FanControl;
 using Akka.MGIHelper.UI.MgiStarter;
 using Autofac;
+using Microsoft.Extensions.DependencyInjection;
+using Tauron;
 using Tauron.Application.CommonUI;
 using Tauron.Application.Settings;
 using Tauron.Application.Settings.Provider;
 
 namespace Akka.MGIHelper
 {
-    public sealed class MainModule : Module
+    public sealed class MainModule : IModule
     {
         protected override void Load(ContainerBuilder builder)
         {
@@ -28,6 +30,11 @@ namespace Akka.MGIHelper
             builder.RegisterType<WindowOptions>().AsSelf().InstancePerLifetimeScope().WithParameter("scope", SettingTypes.WindowOptions);
             builder.RegisterType<FanControlOptions>().AsSelf().InstancePerLifetimeScope().WithParameter("scope", SettingTypes.FanControlOptions);
             builder.RegisterType<ProcessConfig>().AsSelf().InstancePerLifetimeScope().WithParameter("scope", SettingTypes.ProcessOptions);
+        }
+
+        public void Load(IServiceCollection collection)
+        {
+            
         }
     }
 }

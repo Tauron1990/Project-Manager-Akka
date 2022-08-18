@@ -105,7 +105,7 @@ public sealed partial class Alert : UserControl, ICommandSource
 
     public void CanExecuteChanged(object sender, EventArgs e) { }
 
-    public ICommand? Command { get; }
+    public ICommand? Command { get; set; }
     
-    public object? CommandParameter { get; }
+    public object? CommandParameter { get; set; }
 }

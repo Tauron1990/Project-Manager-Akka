@@ -26,6 +26,7 @@ public sealed class DisposableState<TData> : IDisposableState<TData>
         => _state.Cast<TOther>();
 
     public bool HasValue => _state.HasValue;
+    public object? UntypedValue => _state.UntypedValue;
 
     public TData Value => _state.Value;
 
@@ -47,7 +48,7 @@ public sealed class DisposableState<TData> : IDisposableState<TData>
 
     public TData? ValueOrDefault => _state.ValueOrDefault;
 
-    object? IResult.Value => ((IResult)_state).Value;
+    object? IResult.UntypedValue => _state.UntypedValue;
 
     public bool HasError => _state.HasError;
 

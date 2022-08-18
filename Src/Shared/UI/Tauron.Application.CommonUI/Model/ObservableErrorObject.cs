@@ -122,11 +122,11 @@ public abstract class ObservableErrorObject : INotifyDataErrorInfo, IObservableP
                                     {
                                         o.When(
                                             string.IsNullOrWhiteSpace,
-                                            s => s.Select(_ => () => _errors.RemoveKey(name)));
+                                            s => s.Select<string?, Action>(_ => () => _errors.RemoveKey(name)));
                                         o.When(
                                             e => !string.IsNullOrWhiteSpace(e),
                                             no => no.NotEmpty()
-                                               .Select(e => () => _errors.AddOrUpdate(new ValidationError(e, name))));
+                                               .Select<string, Action>(e => () => _errors.AddOrUpdate(new ValidationError(e, name))));
                                     });
                         }
 

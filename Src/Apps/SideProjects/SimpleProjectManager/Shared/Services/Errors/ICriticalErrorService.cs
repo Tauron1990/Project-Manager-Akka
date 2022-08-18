@@ -4,10 +4,10 @@ namespace SimpleProjectManager.Shared.Services;
 
 public interface ICriticalErrorService
 {
-    [ComputeMethod(KeepAliveTime = 5)]
+    [ComputeMethod(MinCacheDuration = 5)]
     Task<long> CountErrors(CancellationToken token);
 
-    [ComputeMethod(KeepAliveTime = 5)]
+    [ComputeMethod(MinCacheDuration = 5)]
     Task<CriticalError[]> GetErrors(CancellationToken token);
 
     Task<string> DisableError(string id, CancellationToken token);

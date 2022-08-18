@@ -16,7 +16,7 @@ public partial class ErrorNotify : ReactiveUserControl<NotifyErrorModel>
         {
             this.OneWayBind(ViewModel, m => m.HasErrors, v => v.ErrorCounter.IsVisible).DisposeWith(d);
             this.OneWayBind(ViewModel, m => m.ErrorCount, v => v.ErrorCounter.Message).DisposeWith(d);
-            this.BindCommand(ViewModel, m => m.NavigateError, v => v.ErrorCounter.Command).DisposeWith(d);
+            this.BindCommand(ViewModel, m => m.NavigateError, v => v.ErrorCounter).DisposeWith(d);
             
             this.WhenAnyValue(v => v.ViewModel!.HasErrors)
                .Select(b => !b)
