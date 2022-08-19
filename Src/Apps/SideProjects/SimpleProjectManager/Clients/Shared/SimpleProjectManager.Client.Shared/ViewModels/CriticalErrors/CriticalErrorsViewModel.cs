@@ -17,6 +17,6 @@ public sealed class CriticalErrorsViewModel : ViewModelBase
     public CriticalErrorsViewModel(GlobalState globalState)
     {
         GlobalState = globalState;
-        Errors = globalState.IsOnline.CombineLatest(globalState.Errors.Errors, (online, errors) => new ErrorData(online, errors));
+        Errors = globalState.IsOnline.StartWith(false).CombineLatest(globalState.Errors.Errors, (online, errors) => new ErrorData(online, errors));
     }
 }

@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using DynamicData;
-using DynamicData.Alias;
-using DynamicData.Binding;
-using ReactiveUI;
+using DynamicData.Alias; 
 using SimpleProjectManager.Client.Shared.Data;
 using SimpleProjectManager.Client.Shared.ViewModels.CriticalErrors;
 using SimpleProjectManager.Shared.Services;
@@ -34,7 +33,18 @@ public sealed class ErrorViewModel : CriticalErrorViewModelBase
     }
 
 
-    public static IObservable<IObservableList<ErrorViewModel>> TranslateErrorList(CriticalErrorsViewModel errors, out IDisposable disposer)
+    public static IObservable<(bool NoConnection, bool NoError)> TranslateHasError(IObservable<IChangeSet<ErrorViewModel, string>> errors)
+        => errors.Aggregate(
+                new IntermediateCache<ErrorViewModel, string>(),
+                (intermediateCache, set) =>
+                {
+                    intermediateCache.Edit(u => u.Clone(set));
+
+                    return intermediateCache;
+                })
+           .Select(c => (c.Count == 1 && c.Keys.ElementAt(0) == "None", c.Count == 0));
+
+    public static IObservable<IChangeSet<ErrorViewModel, string>> TranslateErrorList(CriticalErrorsViewModel errors, out IDisposable disposer)
     {
         var cache = new SourceCache<CriticalError, string>(ce => ce.Id);
         var dispoable = new CompositeDisposable();
@@ -68,13 +78,6 @@ public sealed class ErrorViewModel : CriticalErrorViewModelBase
            .Subscribe()
            .DisposeWith(dispoable);
 
-        cache.Connect()
-           .Select(c => new ErrorViewModel(c, errors.GlobalState))
-           .ObserveOn(RxApp.MainThreadScheduler)
-           .BindToObservableList(out var list)
-           .Subscribe()
-           .DisposeWith(dispoable);
-
-        return Observable.Return(list);
+        return cache.Connect().Select(c => new ErrorViewModel(c, errors.GlobalState));
     }
 }

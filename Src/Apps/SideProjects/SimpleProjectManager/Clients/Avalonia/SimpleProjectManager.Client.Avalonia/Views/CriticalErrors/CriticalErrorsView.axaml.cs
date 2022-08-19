@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
+using System.Reactive.Linq;
 using Avalonia.ReactiveUI;
+using DynamicData;
 using ReactiveUI;
 using SimpleProjectManager.Client.Avalonia.ViewModels.CriticalErrors;
 using SimpleProjectManager.Client.Shared.ViewModels.CriticalErrors;
@@ -19,15 +18,27 @@ public partial class CriticalErrorsView : ReactiveUserControl<CriticalErrorsView
         this.WhenActivated(Init);
     }
 
-    public IEnumerable<IDisposable> Init()
+    private IEnumerable<IDisposable> Init()
     {
         if(ViewModel is null) yield break;
 
-
-
-        yield return ErrorViewModel.TranslateErrorList(ViewModel.Errors, out var disposer)
-           .BindTo(this, v => v.Errors.Items);
+        var errors = ErrorViewModel.TranslateErrorList(ViewModel, out var disposer);
 
         yield return disposer;
+        yield return errors.Bind(out var list).Subscribe();
+
+        Errors.Items = list;
+
+        var hasErrors = ErrorViewModel.TranslateHasError(errors);
+
+        yield return hasErrors.Subscribe();
+        
+        yield return hasErrors.Select(p => p.NoConnection).ObserveOn(RxApp.MainThreadScheduler).BindTo(this, v => v.DiplayLabel.IsVisible);
+        yield return hasErrors.Where(p => p.NoConnection).Select(_ => "Keine Verbindung zum Server").ObserveOn(RxApp.MainThreadScheduler).BindTo(this, v => v.DiplayLabel.Text);
+
+        yield return hasErrors.Select(p => p.NoError).ObserveOn(RxApp.MainThreadScheduler).BindTo(this, v => v.DiplayLabel.IsVisible);
+        yield return hasErrors.Where(p => p.NoError).Select(_ => "Keine Fehler").ObserveOn(RxApp.MainThreadScheduler).BindTo(this, v => v.DiplayLabel.Text);
+
+        yield return hasErrors.Select(p => !p.NoConnection || !p.NoError).ObserveOn(RxApp.MainThreadScheduler).BindTo(this, v => v.Errors.IsVisible);
     }
 }
