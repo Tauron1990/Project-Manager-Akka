@@ -1,11 +1,13 @@
 ﻿using MudBlazor;
 using MudBlazor.Services;
 using ReactiveUI;
+using SimpleProjectManager.Client.Data;
 using SimpleProjectManager.Client.Shared.ViewModels;
 using SimpleProjectManager.Client.ViewModels;
 using Splat;
 using Splat.Microsoft.Extensions.DependencyInjection;
 using Tauron;
+using Tauron.Applicarion.Redux.Configuration;
 
 namespace SimpleProjectManager.Client;
 

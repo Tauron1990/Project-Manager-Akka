@@ -1,5 +1,7 @@
 using System;
+using System.IO;
 using System.Reactive.Disposables;
+using Akka.Configuration;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
@@ -35,6 +37,8 @@ namespace SimpleProjectManager.Client.Avalonia
                                      {
                                          ViewModel = _serviceProvider?.GetService<MainWindowViewModel>(),
                                      };
+
+                desktop.Exit += (_, _) => _serviceProvider?.Dispose();
             }
 
             base.OnFrameworkInitializationCompleted();
@@ -48,7 +52,17 @@ namespace SimpleProjectManager.Client.Avalonia
             collection.RegisterModule<InternalViewModelModule>();
             collection.RegisterModule<ViewModelModule>();
             
-            ClientRegistration.ConfigFusion(collection, new Uri("http://localhost:4001"));
+            string ip = "http://localhost:4000";
+
+            if (File.Exists("seed.conf"))
+            {
+                var config = ConfigurationFactory.ParseString(File.ReadAllText("seed.conf"));
+                ip = $"http://{config.GetString("akka.remote.dot-netty.tcp.hostname")}:4000";
+
+                //await SetupRunner.Run(ip);
+            }
+            
+            ClientRegistration.ConfigFusion(collection, new Uri(ip));
             
             _serviceProvider = collection.BuildServiceProvider();
             Disposer = _serviceProvider;

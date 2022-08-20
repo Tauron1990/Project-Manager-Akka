@@ -34,7 +34,7 @@ public sealed class ErrorViewModel : CriticalErrorViewModelBase
 
 
     public static IObservable<(bool NoConnection, bool NoError)> TranslateHasError(IObservable<IChangeSet<ErrorViewModel, string>> errors)
-        => errors.Aggregate(
+        => errors.Scan(
                 new IntermediateCache<ErrorViewModel, string>(),
                 (intermediateCache, set) =>
                 {
@@ -42,7 +42,8 @@ public sealed class ErrorViewModel : CriticalErrorViewModelBase
 
                     return intermediateCache;
                 })
-           .Select(c => (c.Count == 1 && c.Keys.ElementAt(0) == "None", c.Count == 0));
+           .Select(c => (c.Count == 1 && c.Keys.ElementAt(0) == "None", c.Count == 0))
+           .Replay(1).RefCount();
 
     public static IObservable<IChangeSet<ErrorViewModel, string>> TranslateErrorList(CriticalErrorsViewModel errors, out IDisposable disposer)
     {
@@ -78,6 +79,7 @@ public sealed class ErrorViewModel : CriticalErrorViewModelBase
            .Subscribe()
            .DisposeWith(dispoable);
 
-        return cache.Connect().Select(c => new ErrorViewModel(c, errors.GlobalState));
+        return cache.Connect().Select(c => new ErrorViewModel(c, errors.GlobalState))
+           .Replay().RefCount();
     }
 }

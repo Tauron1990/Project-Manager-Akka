@@ -16,7 +16,8 @@ public static class DynamicUpdate
                                             o.OnNext(state.Value);
                                         return new StateRegistration<TData>(o, state, skipErrors);
                                     })
-           .DistinctUntilChanged();
+           .DistinctUntilChanged()
+           .Replay(1).RefCount();
         
     private sealed class StateRegistration<TData> : IDisposable
     {

@@ -14,22 +14,25 @@ public abstract class OnlineMonitorBase<TThis> : IOnlineMonitor
 {
     protected readonly ILogger<TThis> Logger;
     private readonly IPingServiceDef _pingService;
-    
-    public IObservable<bool> Online { get; }
+    private readonly Lazy<IObservable<bool>> _onlineBuilder;
+
+    public IObservable<bool> Online => _onlineBuilder.Value;
 
     // ReSharper disable once ContextualLoggerProblem
     protected OnlineMonitorBase(HttpClient client, ILogger<TThis> logger)
     {
         Logger = logger;
         _pingService = RestEase.RestClient.For<IPingServiceDef>(client);
-        Online =
-            IsOnline().ToObservable()
-               .Concat
-                (
-                    Observable.Interval(TimeSpan.FromSeconds(6))
-                       .SelectMany(_ => IsOnline())
-                )
-               .DistinctUntilChanged();
+        _onlineBuilder = new Lazy<IObservable<bool>>(
+            () =>
+                IsOnline().ToObservable()
+                   .Concat
+                    (
+                        Observable.Interval(TimeSpan.FromSeconds(6))
+                           .SelectMany(_ => IsOnline())
+                    )
+                   .DistinctUntilChanged()
+                   .Replay(1).RefCount());
     }
 
     protected abstract ValueTask<bool> RunInternal(CancellationToken token);

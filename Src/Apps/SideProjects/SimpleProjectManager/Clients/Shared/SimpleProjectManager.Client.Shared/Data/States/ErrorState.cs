@@ -19,7 +19,11 @@ public sealed class ErrorState : StateBase<InternalErrorState>
     protected override IStateConfiguration<InternalErrorState> ConfigurateState(ISourceConfiguration<InternalErrorState> configuration)
     {
         return configuration
-           .FromCacheAndServer(_errorService.CountErrors, (state, errorCount) => state with { ErrorCount = errorCount })
+           .FromCacheAndServer(_errorService.CountErrors, (state, errorCount) =>
+                                                          {
+                                                              Console.WriteLine($"Patching Error State: {errorCount}");
+                                                              return state with { ErrorCount = errorCount };
+                                                          })
            .ApplyRequests(
                 factory =>
                 {
@@ -36,7 +40,11 @@ public sealed class ErrorState : StateBase<InternalErrorState>
     protected override void PostConfiguration(IRootStoreState<InternalErrorState> state)
     {
         Errors = FromServer(_errorService.GetErrors);
-        ErrorCount = state.Select(data => data.ErrorCount);
+        ErrorCount = state.Select(data =>
+                                  {
+                                      Console.WriteLine($"Critical Error Count: {data.ErrorCount}");
+                                      return data.ErrorCount;
+                                  });
     }
 
     public IObservable<long> ErrorCount { get; private set; } = Observable.Empty<long>();

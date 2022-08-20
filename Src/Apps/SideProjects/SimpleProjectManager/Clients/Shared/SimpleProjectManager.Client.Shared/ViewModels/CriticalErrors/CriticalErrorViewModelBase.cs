@@ -14,7 +14,7 @@ namespace SimpleProjectManager.Client.Shared.ViewModels.CriticalErrors;
 public abstract class CriticalErrorViewModelBase : ViewModelBase
 {
     private ObservableAsPropertyHelper<CriticalError?>? _item;
-    public CriticalError? Item => _item?.Value;
+    public CriticalError Item => _item?.Value ?? CriticalError.Empty;
 
     public ReactiveCommand<Unit, Unit>? Hide { get; private set; }
 

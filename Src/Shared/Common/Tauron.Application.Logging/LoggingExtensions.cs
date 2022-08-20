@@ -62,7 +62,7 @@ public static class LoggingExtensions
                                                                                      "eventType",
                                                                                      "message"
                                                                                  },
-                                                             IncludeAllProperties = true
+                                                             IncludeEventProperties = true
                                                          })
                                                  }
                                              },
@@ -117,7 +117,7 @@ public static class LoggingExtensions
                                                                              "eventType",
                                                                              "message"
                                                                          },
-                                                     IncludeAllProperties = true
+                                                     IncludeEventProperties = true
                                                  })
                                          }
                                      },

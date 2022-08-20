@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:criticalErrors="clr-namespace:SimpleProjectManager.Client.Avalonia.ViewModels.CriticalErrors"
              xmlns:assists="clr-namespace:Material.Styles.Assists;assembly=Material.Styles"
-             xmlns:criticalErrors1="clr-namespace:SimpleProjectManager.Client.Avalonia.Views.CriticalErrors"
+             xmlns:views="clr-namespace:SimpleProjectManager.Client.Avalonia.Views.CriticalErrors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="SimpleProjectManager.Client.Avalonia.Views.CriticalErrors.CriticalErrorsView">
     <Grid>
@@ -12,15 +12,12 @@
         <ListBox Name="Errors">
             <ListBox.DataTemplates>
                 <DataTemplate DataType="criticalErrors:ErrorViewModel">
-                    <Grid RowDefinitions="Auto, Auto, Auto" ColumnDefinitions="Auto, Auto, Auto, *">
-                        <TextBlock Margin="3" Text="{Binding Item.Id}"/>
-                        <TextBlock Margin="3" Grid.Row="0" Grid.Column="1" Text="{Binding Item.Message}"/>
-                        <TextBlock Margin="3" Grid.Row="0" Grid.Column="2" Text="{Binding Item.ApplicationPart}"/>
-                        <Button Margin="3" Grid.Row="0" Grid.Column="3" Command="{Binding Hide}" assists:ButtonAssist.CornerRadius="5">Ausblenden</Button>
-                        <Expander  Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="4" Header="Context" Margin="3">
-                            <criticalErrors1:ErrorContextInfo Margin="3" ContextInfo="{Binding Item.ContextData}"/>
+                    <Grid RowDefinitions="Auto, Auto, Auto">
+                        <views:CriticalErrorDisplay DataContext="{Binding .}"/>
+                        <Expander  Grid.Row="1" Grid.Column="0" Header="Context" Margin="3">
+                            <views:ErrorContextInfo Margin="3" ContextInfo="{Binding Item.ContextData}"/>
                         </Expander>
-                        <Expander  Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="4" Margin="3" Header="Stack Trace:">
+                        <Expander  Grid.Row="2" Grid.Column="0" Margin="3" Header="Stack Trace:">
                             <TextBlock Margin="3" Text="{Binding Item.StackTrace}"/>
                         </Expander>
                     </Grid>

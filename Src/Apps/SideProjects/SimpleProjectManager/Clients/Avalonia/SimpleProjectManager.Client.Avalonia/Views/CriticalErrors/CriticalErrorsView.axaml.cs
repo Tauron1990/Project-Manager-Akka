@@ -30,15 +30,12 @@ public partial class CriticalErrorsView : ReactiveUserControl<CriticalErrorsView
         Errors.Items = list;
 
         var hasErrors = ErrorViewModel.TranslateHasError(errors);
-
-        yield return hasErrors.Subscribe();
         
-        yield return hasErrors.Select(p => p.NoConnection).ObserveOn(RxApp.MainThreadScheduler).BindTo(this, v => v.DiplayLabel.IsVisible);
+        yield return hasErrors.Select(p => p.NoConnection || p.NoError).ObserveOn(RxApp.MainThreadScheduler).BindTo(this, v => v.DiplayLabel.IsVisible);
+        
         yield return hasErrors.Where(p => p.NoConnection).Select(_ => "Keine Verbindung zum Server").ObserveOn(RxApp.MainThreadScheduler).BindTo(this, v => v.DiplayLabel.Text);
-
-        yield return hasErrors.Select(p => p.NoError).ObserveOn(RxApp.MainThreadScheduler).BindTo(this, v => v.DiplayLabel.IsVisible);
         yield return hasErrors.Where(p => p.NoError).Select(_ => "Keine Fehler").ObserveOn(RxApp.MainThreadScheduler).BindTo(this, v => v.DiplayLabel.Text);
 
-        yield return hasErrors.Select(p => !p.NoConnection || !p.NoError).ObserveOn(RxApp.MainThreadScheduler).BindTo(this, v => v.Errors.IsVisible);
+        yield return hasErrors.Select(p => !p.NoConnection && !p.NoError).ObserveOn(RxApp.MainThreadScheduler).BindTo(this, v => v.Errors.IsVisible);
     }
 }

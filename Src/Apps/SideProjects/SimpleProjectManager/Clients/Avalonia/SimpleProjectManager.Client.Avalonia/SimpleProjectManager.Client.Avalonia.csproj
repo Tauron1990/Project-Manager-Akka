@@ -20,6 +20,7 @@
         <TrimmableAssembly Include="Avalonia.Themes.Default" />
     </ItemGroup>
     <ItemGroup>
+        <PackageReference Include="Akka" Version="1.4.40" />
         <PackageReference Include="Avalonia" Version="0.10.18" />
         <PackageReference Include="Avalonia.Desktop" Version="0.10.18" />
         <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
@@ -51,5 +52,11 @@
       <Compile Update="Views\CriticalErrors\ErrorContextInfo.cs">
         <DependentUpon>ErrorContextInfo.axaml</DependentUpon>
       </Compile>
+    </ItemGroup>
+    <ItemGroup>
+      <Content Include="..\..\..\Server\seed.conf">
+        <Link>seed.conf</Link>
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
     </ItemGroup>
 </Project>

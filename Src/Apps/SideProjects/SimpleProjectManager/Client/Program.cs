@@ -7,6 +7,7 @@ using SimpleProjectManager.Client;
 using SimpleProjectManager.Client.Data;
 using SimpleProjectManager.Shared.ServerApi;
 using SimpleProjectManager.Shared.ServerApi.RestApi;
+using Stl.Fusion.Extensions;
 using Stl.Fusion.UI;
 using Tauron;
 using Tauron.Application;

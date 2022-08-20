@@ -24,11 +24,7 @@ try
        .ConfigureWebHostDefaults(
             b =>
             {
-                #if DEBUG
-                b.UseUrls("http://localhost:4000");
-                #else
                 b.UseUrls("http://localhost:4000", $"http://{ip}:4000");
-                #endif
                 
                 b.UseStartup<Startup>();
             });
