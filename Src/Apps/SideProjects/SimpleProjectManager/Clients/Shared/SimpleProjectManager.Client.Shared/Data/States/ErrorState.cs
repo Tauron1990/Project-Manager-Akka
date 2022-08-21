@@ -40,11 +40,8 @@ public sealed class ErrorState : StateBase<InternalErrorState>
     protected override void PostConfiguration(IRootStoreState<InternalErrorState> state)
     {
         Errors = FromServer(_errorService.GetErrors);
-        ErrorCount = state.Select(data =>
-                                  {
-                                      Console.WriteLine($"Critical Error Count: {data.ErrorCount}");
-                                      return data.ErrorCount;
-                                  });
+        ErrorCount = state.Select(data => data.ErrorCount);
+        ErrorCount.Subscribe(data => Console.WriteLine($"Critical Error Count: {data}"));
     }
 
     public IObservable<long> ErrorCount { get; private set; } = Observable.Empty<long>();
