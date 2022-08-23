@@ -1,4 +1,5 @@
 using Akka.DependencyInjection;
+using Akka.Hosting;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.ResponseCompression;
@@ -65,6 +66,7 @@ public class Startup
     public void ConfigureContainer(IActorApplicationBuilder builder)
     {
         builder
+           .ConfigureAkka((_, configurationBuilder) => configurationBuilder.AddHocon("cluster.roles = [\"Master\"]"))
            .OnMemberRemoved(
                 (_, system, _) =>
                 {

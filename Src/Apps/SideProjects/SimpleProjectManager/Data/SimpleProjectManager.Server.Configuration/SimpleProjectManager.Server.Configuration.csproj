@@ -6,4 +6,14 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\..\..\..\..\Shared\Common\Tauron.Application.Common.Akka\Tauron.Application.Common.Akka.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="StartConfig.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>

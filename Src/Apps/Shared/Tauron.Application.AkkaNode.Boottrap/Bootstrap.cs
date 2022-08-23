@@ -45,6 +45,7 @@ public static partial class Bootstrap
                                 configurationBuilder
                                    .ConfigureLoggers(lcb => lcb.AddLogger<NLogLogger>())
                                    .WithExtensions(typeof(ClusterActorDiscoveryId))
+                                   .WithClustering()
                                    .WithDistributedPubSub(string.Empty)
                                    .WithClusterClientReceptionist()
                                    .AddHocon(config);
