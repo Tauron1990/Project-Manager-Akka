@@ -25,9 +25,7 @@ public class ProjectionModule : IModule
 
         collection.AddTransient(c => c.GetRequiredService<IEventAggregator>().GetEvent<DomainEventDispatcher, IDomainEvent>());
         collection.AddScoped<InternalDataRepository>();
-        
-        collection.RegisterStartUpAction<ProjectionInitializer>();
-        
+
         collection.RegisterProjection<ProjectProjectionManager>();
     }
 }

@@ -59,21 +59,29 @@ public static partial class Bootstrap
 
                                 #pragma warning disable GU0011
                                 cb.AddHostedService<NodeAppService>()
-                                .AddScoped<IStartUpAction, KillHelper>()
+                                   .AddSingleton<KillHelper>()
                                 .AddSingleton<IIpcConnection>(ipc);
                             })
-                       .ConfigureAkkaSystem(
-                            (_, system) =>
+                       .ConfigureAkka(
+                            (_, provider, systemBuilder) =>
                             {
-                                switch (type)
-                                {
-                                    case KillRecpientType.Seed:
-                                        KillSwitch.Setup(system);
-                                        break;
-                                    default:
-                                        KillSwitch.Subscribe(system, type);
-                                        break;
-                                }
+                                systemBuilder.AddStartup(
+                                    (system, _) =>
+                                    {
+                                        provider.GetRequiredService<KillHelper>().Run();
+                                        
+                                        switch (type)
+                                        {
+                                            case KillRecpientType.Seed:
+                                                KillSwitch.Setup(system);
+
+                                                break;
+                                            default:
+                                                KillSwitch.Subscribe(system, type);
+
+                                                break;
+                                        }
+                                    });
                             });
 
                     build?.Invoke(ab);
@@ -218,7 +226,7 @@ public static partial class Bootstrap
     }
 
     [UsedImplicitly]
-    public sealed class KillHelper : IStartUpAction
+    public sealed class KillHelper
     {
         [UsedImplicitly]
         #pragma warning disable IDE0052 // Ungelesene private Member entfernen

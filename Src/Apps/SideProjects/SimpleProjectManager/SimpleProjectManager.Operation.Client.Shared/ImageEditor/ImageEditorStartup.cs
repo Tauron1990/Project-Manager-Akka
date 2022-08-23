@@ -3,7 +3,7 @@ using Tauron.Application.AkkaNode.Bootstrap;
 
 namespace SimpleProjectManager.Operation.Client.Shared.ImageEditor;
 
-public sealed class ImageEditorStartup : IStartUpAction
+public sealed class ImageEditorStartup
 {
     private readonly ConfigManager _configManager;
 

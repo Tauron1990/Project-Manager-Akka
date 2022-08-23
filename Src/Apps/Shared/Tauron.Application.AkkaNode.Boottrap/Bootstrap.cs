@@ -1,15 +1,18 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
+using Akka.Hosting;
 using Akka.Actor;
 using Akka.Cluster;
+using Akka.Cluster.Hosting;
+using Akka.Cluster.Utility;
 using Akka.Configuration;
+using Akka.Logger.NLog;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Tauron.AkkaHost;
-using Tauron.Application.AkkaNode.Services.Configuration;
 using Tauron.Application.Logging;
 using Tauron.Application.Master.Commands.Administration.Configuration;
 
@@ -24,13 +27,6 @@ public static partial class Bootstrap
         var config = GetConfig();
 
         return builder
-           .ConfigureHostConfiguration(
-                configurationBuilder => configurationBuilder.Add(
-                    new HoconConfigurationSource(
-                        () => config,
-                        ("akka.appinfo.applicationName", "ApplicationName"),
-                        ("akka.appinfo.actorsystem", "Actorsystem"),
-                        ("akka.appinfo.appslocation", "AppsLocation"))))
            .ConfigureAkkaApplication(
                 ab =>
                 {
@@ -43,35 +39,47 @@ public static partial class Bootstrap
 
                                     return opt;
                                 }))
-                       .ConfigureAkka(_ => config);
+                       .ConfigureAkka(
+                            (_, configurationBuilder) =>
+                            {
+                                configurationBuilder
+                                   .ConfigureLoggers(lcb => lcb.AddLogger<NLogLogger>())
+                                   .WithExtensions(typeof(ClusterActorDiscoveryId))
+                                   .WithDistributedPubSub(string.Empty)
+                                   .WithClusterClientReceptionist()
+                                   .AddHocon(config);
+                            });
 
                     appConfig?.Invoke(ab);
                 })
            .ConfigureLogging((context, configuration) => configuration.ConfigDefaultLogging(context.HostingEnvironment.ApplicationName));
     }
 
-    [PublicAPI]
-    public static IServiceCollection RegisterStartUpAction<TImpl>(this IServiceCollection builder)
-        where TImpl : class, IStartUpAction
-        => builder.AddScoped<IStartUpAction, TImpl>();
-
     public static IActorApplicationBuilder OnMemberUp(this IActorApplicationBuilder builder, Action<HostBuilderContext, ActorSystem, Cluster> up)
     {
-        return builder.ConfigureAkkaSystem(
-            (context, system) =>
+        return builder.ConfigureAkka(
+            (context, systemBuilder) =>
             {
-                var cluster = Cluster.Get(system);
-                cluster.RegisterOnMemberUp(() => up(context, system, cluster));
+                systemBuilder.AddStartup(
+                    (system, _) =>
+                    {
+                        var cluster = Cluster.Get(system);
+                        cluster.RegisterOnMemberUp(() => up(context, system, cluster));
+                    });
             });
     }
 
     public static IActorApplicationBuilder OnMemberRemoved(this IActorApplicationBuilder builder, Action<HostBuilderContext, ActorSystem, Cluster> remove)
     {
-        return builder.ConfigureAkkaSystem(
-            (context, system) =>
+        return builder.ConfigureAkka(
+            (context, systemBuilder) =>
             {
-                var cluster = Cluster.Get(system);
-                cluster.RegisterOnMemberRemoved(() => remove(context, system, cluster));
+                systemBuilder.AddStartup(
+                    (system, _) =>
+                    {
+                        var cluster = Cluster.Get(system);
+                        cluster.RegisterOnMemberRemoved(() => remove(context, system, cluster));
+                    });
             });
     }
 
@@ -83,15 +91,18 @@ public static partial class Bootstrap
         if (!string.IsNullOrWhiteSpace(basePath))
             basePath = Path.GetDirectoryName(basePath) ?? string.Empty;
 
-        if (File.Exists(Path.Combine(basePath, AkkaConfigurationBuilder.Base)))
-            config = ConfigurationFactory.ParseString(File.ReadAllText(Path.Combine(basePath, AkkaConfigurationBuilder.Base))).WithFallback(config);
+        if (File.Exists(Path.Combine(basePath, AkkaConfigurationHelper.Main)))
+            config = ConfigurationFactory.ParseString(File.ReadAllText(Path.Combine(basePath, AkkaConfigurationHelper.Main))).WithFallback(config);
 
-        if (File.Exists(Path.Combine(basePath, AkkaConfigurationBuilder.Main)))
-            config = ConfigurationFactory.ParseString(File.ReadAllText(Path.Combine(basePath, AkkaConfigurationBuilder.Main))).WithFallback(config);
-
-        if (File.Exists(Path.Combine(basePath, AkkaConfigurationBuilder.Seed)))
-            config = ConfigurationFactory.ParseString(File.ReadAllText(Path.Combine(basePath, AkkaConfigurationBuilder.Seed))).WithFallback(config);
+        if (File.Exists(Path.Combine(basePath, AkkaConfigurationHelper.Seed)))
+            config = ConfigurationFactory.ParseString(File.ReadAllText(Path.Combine(basePath, AkkaConfigurationHelper.Seed))).WithFallback(config);
 
         return config;
     }
+
+    public static IActorApplicationBuilder RegisterStartUp<TStarter>(this IActorApplicationBuilder builder, Action<TStarter> onStart)
+        where TStarter : class
+        => builder
+           .ConfigureServices((_, c) => c.AddSingleton<TStarter>())
+           .ConfigureAkka((_, prov, b) => b.AddStartup((_, _) => onStart(prov.GetRequiredService<TStarter>())));
 }

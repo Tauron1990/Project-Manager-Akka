@@ -5,7 +5,7 @@ using Tauron.Application.AkkaNode.Bootstrap;
 
 namespace SimpleProjectManager.Server.Core.JobManager;
 
-public sealed class JobManagerRegistrations : IStartUpAction
+public sealed class JobManagerRegistrations
 {
     private readonly TaskManagerCore _taskManagerCore;
     private readonly IDependencyResolver _dependencyResolver;

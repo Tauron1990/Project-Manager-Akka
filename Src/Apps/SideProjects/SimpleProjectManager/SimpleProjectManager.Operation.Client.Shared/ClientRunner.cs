@@ -2,6 +2,7 @@
 using SimpleProjectManager.Operation.Client.Shared.Config;
 using SimpleProjectManager.Operation.Client.Shared.ImageEditor;
 using SimpleProjectManager.Shared.ServerApi;
+using Tauron.AkkaHost;
 using Tauron.Application.AkkaNode.Bootstrap;
 
 namespace SimpleProjectManager.Operation.Client.Shared;
@@ -13,10 +14,10 @@ public sealed class ClientRunner
     public void ApplyFusionServices(IServiceCollection collection)
         => ClientRegistration.ConfigFusion(collection, new Uri(ConfigManager.Configuration.ServerIp));
 
-    public void ApplyClientServices(IServiceCollection collection)
+    public void ApplyClientServices(IActorApplicationBuilder actorApplication)
     {
-        collection.RegisterStartUpAction<ImageEditorStartup>();
-        
-        collection.AddSingleton(this);
+        actorApplication
+           .ConfigureServices((_, coll) => coll.AddSingleton(this))
+           .RegisterStartUp<ImageEditorStartup>(e => e.Run());
     }
 }

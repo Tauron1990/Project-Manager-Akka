@@ -3,6 +3,8 @@ using JetBrains.Annotations;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.ResponseCompression;
 using SimpleProjectManager.Server.Controllers.ModelBinder;
+using SimpleProjectManager.Server.Core.JobManager;
+using SimpleProjectManager.Server.Core.Projections.Core;
 using SimpleProjectManager.Server.Core.Services;
 using SimpleProjectManager.Server.Core.Tasks;
 using SimpleProjectManager.Shared.Services;
@@ -73,7 +75,10 @@ public class Startup
                         resolver.GetService<IHostApplicationLifetime>().StopApplication();
                     }
                     catch (ObjectDisposedException) { }
-                });
+                })
+           .RegisterStartUp<ClusterJoinSelf>(c => c.Run())
+           .RegisterStartUp<JobManagerRegistrations>(jm => jm.Run())
+           .RegisterStartUp<ProjectionInitializer>(i => i.Run());
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

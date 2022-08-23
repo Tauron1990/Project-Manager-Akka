@@ -9,10 +9,5 @@ namespace SimpleProjectManager.Server;
 public sealed class MainModule : IModule
 {
     public void Load(IServiceCollection collection)
-    {
-        collection.RegisterStartUpAction<ClusterJoinSelf>();
-        collection.RegisterStartUpAction<JobManagerRegistrations>();
-
-        collection.AddScoped<FileUploadTransaction>();
-    }
+        => collection.AddScoped<FileUploadTransaction>();
 }

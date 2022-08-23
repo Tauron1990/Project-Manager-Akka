@@ -8,12 +8,12 @@ using Microsoft.Extensions.Logging;
 
 namespace Tauron.Application.Master.Commands.Administration.Configuration;
 
-public static class AkkaConfigurationBuilder
+public static class AkkaConfigurationHelper
 {
     public const string Base = "base.conf";
     public const string Main = "akka.conf";
     public const string Seed = "seed.conf";
-    private static readonly ILogger Log = TauronEnviroment.GetLogger(typeof(AkkaConfigurationBuilder));
+    private static readonly ILogger Log = TauronEnviroment.GetLogger(typeof(AkkaConfigurationHelper));
 
     public static IObservable<string> PatchSeedUrls(string data, IEnumerable<string> urls)
     {

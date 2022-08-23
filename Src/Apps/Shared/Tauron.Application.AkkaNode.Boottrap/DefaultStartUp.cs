@@ -4,6 +4,7 @@ using JetBrains.Annotations;
 
 namespace Tauron.Application.AkkaNode.Bootstrap;
 
+/*
 [PublicAPI]
 public abstract class ClusterStartUp : IStartUpAction
 {
@@ -25,4 +26,4 @@ public abstract class ClusterStartUp : IStartUpAction
     public virtual void MemberRemoved() { }
 
     public virtual void Run() { }
-}
+}*/

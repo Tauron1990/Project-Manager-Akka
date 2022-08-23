@@ -1,6 +1,4 @@
-﻿using Akka.Actor;
-using Akka.Actor.Setup;
-using Akka.Configuration;
+﻿using Akka.Hosting;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,11 +9,13 @@ namespace Tauron.AkkaHost;
 [PublicAPI]
 public interface IActorApplicationBuilder
 {
-    IActorApplicationBuilder ConfigureAkka(Func<HostBuilderContext, Config> config);
+    // IActorApplicationBuilder ConfigureAkka(Func<HostBuilderContext, Config> config);
+    //
+    // IActorApplicationBuilder ConfigureAkka(Func<HostBuilderContext, Setup> config);
 
-    IActorApplicationBuilder ConfigureAkka(Func<HostBuilderContext, Setup> config);
-
-    IActorApplicationBuilder ConfigureAkkaSystem(Action<HostBuilderContext, ActorSystem> system);
+    IActorApplicationBuilder ConfigureAkka(Action<HostBuilderContext, AkkaConfigurationBuilder> system);
+    
+    IActorApplicationBuilder ConfigureAkka(Action<HostBuilderContext, IServiceProvider, AkkaConfigurationBuilder> system);
 
     IActorApplicationBuilder ConfigureHostConfiguration(Action<IConfigurationBuilder> configureDelegate);
 
