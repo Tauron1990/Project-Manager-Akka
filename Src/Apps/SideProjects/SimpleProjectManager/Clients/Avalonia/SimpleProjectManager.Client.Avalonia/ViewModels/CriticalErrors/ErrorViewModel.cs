@@ -35,12 +35,13 @@ public sealed class ErrorViewModel : CriticalErrorViewModelBase
 
     public static IObservable<(bool NoConnection, bool NoError)> TranslateHasError(IObservable<IChangeSet<ErrorViewModel, string>> errors)
         => errors.Scan(
-                new IntermediateCache<ErrorViewModel, string>(),
-                (intermediateCache, set) =>
+                new ChangeAwareCache<ErrorViewModel, string>(),
+                (cache, set) =>
                 {
-                    intermediateCache.Edit(u => u.Clone(set));
-
-                    return intermediateCache;
+                    cache.Clone(set);
+                    cache.CaptureChanges();
+                    
+                    return cache;
                 })
            .Select(c => (c.Count == 1 && c.Keys.ElementAt(0) == "None", c.Count == 0))
            .Replay(1).RefCount();
