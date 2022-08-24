@@ -3,6 +3,7 @@ using MongoDB.Bson;
 using MongoDB.Driver.GridFS;
 using SimpleProjectManager.Server.Core.JobManager;
 using SimpleProjectManager.Server.Core.Tasks;
+using SimpleProjectManager.Server.Data;
 using SimpleProjectManager.Shared;
 
 namespace SimpleProjectManager.Server.Core.Services;
@@ -12,10 +13,10 @@ public sealed record PreRegistrationContext(Func<Stream> ToRegister, ProjectFile
 
 public sealed class PreRegisterTransaction : SimpleTransaction<PreRegistrationContext>
 {
-    private readonly GridFSBucket _bucket;
+    private readonly IInternalFileRepository _bucket;
     private readonly TaskManagerCore _taskManager;
 
-    public PreRegisterTransaction(GridFSBucket bucket, TaskManagerCore taskManager)
+    public PreRegisterTransaction(IInternalFileRepository bucket, TaskManagerCore taskManager)
     {
         _bucket = bucket;
         _taskManager = taskManager;

@@ -8,6 +8,7 @@ public interface IDatabaseCollection<TData>
 
     Task<long> CountEntrys(IFilter<TData> filter, CancellationToken token);
     
-    ValueTask<OperationResult> UpdateOneAsync(IFilter<TData> filter, IUpdate<TData> updater, CancellationToken cancellationToken);
+    ValueTask<DbOperationResult> UpdateOneAsync(IFilter<TData> filter, IUpdate<TData> updater, CancellationToken cancellationToken);
     ValueTask InsertOneAsync(TData data, CancellationToken cancellationToken);
+    DbOperationResult DeleteOne(IFilter<TData> filter);
 }

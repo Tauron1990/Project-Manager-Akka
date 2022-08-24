@@ -1,12 +1,9 @@
 ﻿using System.Collections.Immutable;
-using MongoDB.Driver;
-using MongoDB.Driver.GridFS;
 using SimpleProjectManager.Server.Core.JobManager;
 using SimpleProjectManager.Server.Core.Tasks;
 using SimpleProjectManager.Server.Data;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
-using OperationResult = Tauron.Operations.OperationResult;
 
 namespace SimpleProjectManager.Server.Core.Services;
 
@@ -60,8 +57,8 @@ public sealed class FileContentManager
                .Add(new ErrorProperty("File Id", id.Value)));
     }
 
-    public async ValueTask<IAsyncCursor<GridFSFileInfo>> QueryFiles(CancellationToken token)
-        => await _bucked.FindAsync(Builders<GridFSFileInfo>.Filter.Empty, cancellationToken: token);
+    public async ValueTask<IAsyncEnumerable<FileEntry>> QueryFiles(CancellationToken token)
+        => await _bucked.FindAsync(_bucked.Operations.Empty, cancellationToken: token);
 
     public async ValueTask<string?> DeleteFile(ProjectFileId id, CancellationToken token)
     {
@@ -69,7 +66,7 @@ public sealed class FileContentManager
             nameof(DeleteFile),
             async () =>
             {
-                var filter = Builders<GridFSFileInfo>.Filter.Eq(m => m.Filename, id.Value);
+                var filter = _bucked.Operations.Eq(m => m.FileId, id.Value);
                 var search = await (await _bucked.FindAsync(filter, cancellationToken: token)).FirstOrDefaultAsync(token);
 
                 if (search == null)

@@ -3,8 +3,7 @@ using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Akkatecture.Jobs;
-using MongoDB.Driver;
-using SimpleProjectManager.Server.Core.Projections.Core;
+using SimpleProjectManager.Server.Data;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
@@ -15,10 +14,10 @@ public class JobFileService : IJobFileService, IDisposable
 {
     private readonly ILogger<JobFileService> _logger;
     private readonly FileContentManager _contentManager;
-    private readonly IMongoCollection<FileInfoData> _files;
+    private readonly IDatabaseCollection<FileInfoData> _files;
     private readonly IDisposable _subscription;
 
-    public JobFileService(InternalDataRepository dataRepository, ILogger<JobFileService> logger, IEventAggregator aggregator, FileContentManager contentManager)
+    public JobFileService(IInternalDataRepository dataRepository, ILogger<JobFileService> logger, IEventAggregator aggregator, FileContentManager contentManager)
     {
         _logger = logger;
         _contentManager = contentManager;
@@ -42,7 +41,7 @@ public class JobFileService : IJobFileService, IDisposable
                                         using (Computed.Invalidate())
                                             GetAllFiles(default).Ignore();
 
-                                        var filter = Builders<FileInfoData>.Filter.Eq(m => m.Id, d.Id);
+                                        var filter = _files.Operations.Eq(m => m.Id, d.Id);
                                         var result = _files.DeleteOne(filter);
 
                                         if (!result.IsAcknowledged || result.DeletedCount != 1) return;
@@ -57,7 +56,7 @@ public class JobFileService : IJobFileService, IDisposable
     {
         if (Computed.IsInvalidating()) return null;
         
-        var filter = Builders<FileInfoData>.Filter.Eq(d => d.Id, id);
+        var filter =_files.Operations.Eq(d => d.Id, id);
         var result = await _files.Find(filter).FirstOrDefaultAsync(token);
 
         return result == null 
@@ -72,10 +71,10 @@ public class JobFileService : IJobFileService, IDisposable
         await (await _contentManager.QueryFiles(token)).ForEachAsync(
             d => files.Add(
                 new DatabaseFile(
-                    new ProjectFileId(d.Filename),
-                    new FileName(d.Metadata.GetValue(FileContentManager.MetaFileNme).AsString),
+                    new ProjectFileId(d.FileId),
+                    new FileName(d.FileName),
                     new FileSize(d.Length),
-                    new JobName(d.Metadata.GetValue(FileContentManager.MetaJobName).AsString))),
+                    new JobName(d.JobName))),
             token);
 
         return files.ToArray();
@@ -85,9 +84,9 @@ public class JobFileService : IJobFileService, IDisposable
     {
         try
         {
-            var filter = Builders<FileInfoData>.Filter.Eq(d => d.Id, projectFile.Id);
+            var filter = _files.Operations.Eq(d => d.Id, projectFile.Id);
 
-            if (await _files.CountDocumentsAsync(filter, cancellationToken: token) == 1)
+            if (await _files.CountEntrys(filter, token) == 1)
                 return "Der eintrag existiert schon";
 
             await _files.InsertOneAsync(
