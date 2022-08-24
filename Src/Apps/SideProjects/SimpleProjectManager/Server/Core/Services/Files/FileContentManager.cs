@@ -3,8 +3,10 @@ using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
 using SimpleProjectManager.Server.Core.JobManager;
 using SimpleProjectManager.Server.Core.Tasks;
+using SimpleProjectManager.Server.Data;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
+using OperationResult = Tauron.Operations.OperationResult;
 
 namespace SimpleProjectManager.Server.Core.Services;
 
@@ -13,14 +15,14 @@ public sealed class FileContentManager
     public const string MetaJobName = "JobName";
     public const string MetaFileNme = "FileName";
     
-    private readonly GridFSBucket _bucked;
+    private readonly IInternalFileRepository _bucked;
     private readonly TaskManagerCore _taskManager;
     private readonly IEventAggregator _aggregator;
     private readonly CommitRegistrationTransaction _commitRegistrationTransaction;
     private readonly PreRegisterTransaction _preRegisterTransaction;
     private readonly CriticalErrorHelper _criticalErrorHelper;
     
-    public FileContentManager(GridFSBucket bucked, ICriticalErrorService criticalErrorService, TaskManagerCore taskManager, 
+    public FileContentManager(IInternalFileRepository bucked, ICriticalErrorService criticalErrorService, TaskManagerCore taskManager, 
         ILogger<FileContentManager> logger, IEventAggregator aggregator,
         CommitRegistrationTransaction commitRegistrationTransaction, PreRegisterTransaction preRegisterTransaction)
     {

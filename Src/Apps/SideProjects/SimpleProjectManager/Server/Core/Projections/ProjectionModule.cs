@@ -1,18 +1,16 @@
-﻿using Akka.Actor;
-using Akkatecture.Aggregates;
-using MongoDB.Driver;
-using MongoDB.Driver.GridFS;
+﻿using Akkatecture.Aggregates;
+using JetBrains.Annotations;
 using SimpleProjectManager.Server.Core.Projections.Core;
-using Tauron.Application.AkkaNode.Bootstrap;
 
 namespace SimpleProjectManager.Server.Core.Projections;
 
+[UsedImplicitly]
 public class ProjectionModule : IModule
 {
 
     public void Load(IServiceCollection collection)
     {
-        collection.AddSingleton(
+        /*collection.AddSingleton(
             c =>
             {
                 var system = c.GetRequiredService<ActorSystem>();
@@ -20,12 +18,9 @@ public class ProjectionModule : IModule
                 var url = MongoUrl.Create(database);
 
                 return new MongoClient(url).GetDatabase(url.DatabaseName);
-            });
-        collection.AddScoped(c => new GridFSBucket(c.GetRequiredService<IMongoDatabase>()));
-
+            })*/;
         collection.AddTransient(c => c.GetRequiredService<IEventAggregator>().GetEvent<DomainEventDispatcher, IDomainEvent>());
-        collection.AddScoped<InternalDataRepository>();
-
+        
         collection.RegisterProjection<ProjectProjectionManager>();
     }
 }

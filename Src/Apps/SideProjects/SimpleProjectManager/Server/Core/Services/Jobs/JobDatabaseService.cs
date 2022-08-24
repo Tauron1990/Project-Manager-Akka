@@ -5,6 +5,7 @@ using SimpleProjectManager.Server.Core.Data;
 using SimpleProjectManager.Server.Core.Data.Events;
 using SimpleProjectManager.Server.Core.Projections;
 using SimpleProjectManager.Server.Core.Projections.Core;
+using SimpleProjectManager.Server.Data;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
@@ -17,7 +18,7 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
     private readonly IMongoCollection<ProjectProjection> _projects;
     private readonly IDisposable _subscription;
 
-    public JobDatabaseService(InternalDataRepository database, CommandProcessor commandProcessor, DomainEventDispatcher dispatcher)
+    public JobDatabaseService(IInternalDataRepository database, CommandProcessor commandProcessor, DomainEventDispatcher dispatcher)
     {
         _commandProcessor = commandProcessor;
         _projects = database.Collection<ProjectProjection>();

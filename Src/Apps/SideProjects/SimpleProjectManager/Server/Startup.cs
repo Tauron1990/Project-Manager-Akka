@@ -3,6 +3,7 @@ using Akka.Hosting;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.ResponseCompression;
+using SimpleProjectManager.Server.Configuration;
 using SimpleProjectManager.Server.Controllers.ModelBinder;
 using SimpleProjectManager.Server.Core.JobManager;
 using SimpleProjectManager.Server.Core.Projections.Core;
@@ -65,6 +66,7 @@ public class Startup
     [UsedImplicitly]
     public void ConfigureContainer(IActorApplicationBuilder builder)
     {
+        StartConfigManager.ConfigManager.ConfigurateApp(builder);
         builder
            .ConfigureAkka((_, configurationBuilder) => configurationBuilder.AddHocon("cluster.roles = [\"Master\"]"))
            .OnMemberRemoved(

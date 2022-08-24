@@ -4,6 +4,7 @@ using Akka.Persistence.MongoDb.Query;
 using Akkatecture.Aggregates;
 using Akkatecture.Core;
 using LiquidProjections;
+using SimpleProjectManager.Server.Data;
 using Tauron.Akkatecture.Projections;
 
 namespace SimpleProjectManager.Server.Core.Projections.Core
@@ -40,7 +41,7 @@ namespace SimpleProjectManager.Server.Core.Projections.Core
         {
             var resolver = DependencyResolver.For(system);
 
-            var repository = resolver.Resolver.GetService<InternalDataRepository>();
+            var repository = resolver.Resolver.GetService<IInternalDataRepository>();
             var eventDispatcher = resolver.Resolver.GetService<DomainEventDispatcher>();
 
             var evtBuilder = new DomainEventMapBuilder<TProjection, TAggregate, TIdentity>();

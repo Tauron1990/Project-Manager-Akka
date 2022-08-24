@@ -1,6 +1,6 @@
-﻿using MongoDB.Bson;
-using MongoDB.Driver;
-using SimpleProjectManager.Server.Core.Projections.Core;
+﻿using Hyperion.Internal;
+using MongoDB.Bson;
+using SimpleProjectManager.Server.Data;
 using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
 using Tauron.Application.MongoExtensions;
@@ -12,14 +12,14 @@ public sealed record CriticalErrorEntry(ObjectId Id, CriticalError Error, bool I
 public class CriticalErrorService : ICriticalErrorService
 {
     private readonly ILogger<CriticalErrorService> _logger;
-    private readonly IMongoCollection<CriticalErrorEntry> _errorEntrys;
+    private readonly IDatabaseCollection<CriticalErrorEntry> _errorEntrys;
 
-    public CriticalErrorService(InternalDataRepository repository, ILogger<CriticalErrorService> logger)
+    public CriticalErrorService(IInternalDataRepository dataRepository, ILogger<CriticalErrorService> logger)
     {
         ImmutableListSerializer<ErrorProperty>.Register();
 
         _logger = logger;
-        _errorEntrys = repository.Collection<CriticalErrorEntry>();
+        _errorEntrys = dataRepository.Collection<CriticalErrorEntry>();
         //#if DEBUG
         //if (_errorEntrys.CountDocuments(Builders<CriticalErrorEntry>.Filter.Empty) == 0)
         //{
@@ -33,24 +33,22 @@ public class CriticalErrorService : ICriticalErrorService
     {
         if (Computed.IsInvalidating()) return 0;
 
-        var filter = Builders<CriticalErrorEntry>.Filter.Eq(m => m.IsDisabled, false);
+        var filter = _errorEntrys.Operations.Eq(m => m.IsDisabled, false);
 
-        return await _errorEntrys.CountDocumentsAsync(filter, cancellationToken:token);
+        return await _errorEntrys.CountEntrys(filter, token);
     }
 
     public virtual async Task<CriticalError[]> GetErrors(CancellationToken token)
     {
         if (Computed.IsInvalidating()) return Array.Empty<CriticalError>();
         
-        var list = await _errorEntrys.Find(Builders<CriticalErrorEntry>.Filter.Eq(e => e.IsDisabled, false)).Project(d => d.Error).ToListAsync(token);
-
-        return list.ToArray();
+        return await _errorEntrys.Find(_errorEntrys.Operations.Eq(e => e.IsDisabled, false)).Project(d => d.Error).ToArrayAsync(token);
     }
 
     public virtual async Task<string> DisableError(string id, CancellationToken token)
     {
-        var filter = Builders<CriticalErrorEntry>.Filter.Eq(e => e.Id, new ObjectId(id));
-        var updater = Builders<CriticalErrorEntry>.Update.Set(e => e.IsDisabled, true);
+        var filter = _errorEntrys.Operations.Eq(e => e.Id, new ObjectId(id));
+        var updater = _errorEntrys.Operations.Set(e => e.IsDisabled, true);
 
         try
         {
@@ -76,7 +74,7 @@ public class CriticalErrorService : ICriticalErrorService
         try
         {
             var id = ObjectId.GenerateNewId();
-            await _errorEntrys.InsertOneAsync(new CriticalErrorEntry(id, error with { Id = id.ToString() }, false), cancellationToken:token);
+            await _errorEntrys.InsertOneAsync(new CriticalErrorEntry(id, error with { Id = id.ToString() }, false), token);
             Invalidate();
         }
         catch (Exception e)

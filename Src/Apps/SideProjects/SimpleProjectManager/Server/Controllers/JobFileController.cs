@@ -1,12 +1,10 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Mvc;
-using MongoDB.Driver;
-using MongoDB.Driver.GridFS;
 using SimpleProjectManager.Server.Controllers.FileUpload;
 using SimpleProjectManager.Server.Core;
-using SimpleProjectManager.Server.Core.Projections.Core;
 using SimpleProjectManager.Server.Core.Services;
+using SimpleProjectManager.Server.Data;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.ServerApi;
 using SimpleProjectManager.Shared.Services;
@@ -43,16 +41,16 @@ namespace SimpleProjectManager.Server.Controllers
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetFileDownload(
-            [FromRoute] ProjectFileId id, [FromServices]InternalDataRepository repository, [FromServices] GridFSBucket bucked, CancellationToken token)
+            [FromRoute] ProjectFileId id, [FromServices]IInternalDataRepository dataRepository, [FromServices] IInternalFileRepository bucked, CancellationToken token)
         {
-            var coll = repository.Collection<FileInfoData>();
-            var filter = Builders<FileInfoData>.Filter.Eq(p => p.Id, id);
+            var coll = dataRepository.Collection<FileInfoData>();
+            var filter = coll.Operations.Eq(p => p.Id, id);
             var data = await coll.Find(filter).FirstOrDefaultAsync(token);
             if(data == null) return NotFound();
 
             
             return File(
-                await bucked.OpenDownloadStreamByNameAsync(data.Id.Value, cancellationToken:token),
+                await bucked.OpenStream(data.Id.Value, token),
                 data.Mime.Value, data.FileName.Value);
         }
         

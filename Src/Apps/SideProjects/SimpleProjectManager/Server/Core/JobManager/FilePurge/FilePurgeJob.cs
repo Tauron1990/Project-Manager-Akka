@@ -1,14 +1,13 @@
 ﻿using Akkatecture.Jobs;
-using MongoDB.Driver;
-using MongoDB.Driver.GridFS;
 using SimpleProjectManager.Server.Core.Services;
+using SimpleProjectManager.Server.Data;
 using SimpleProjectManager.Shared;
 
 namespace SimpleProjectManager.Server.Core.JobManager;
 
 public sealed class FilePurgeId : JobId<FilePurgeId>
 {
-    private static readonly Guid Namespace = new Guid("E7B269D1-1453-4854-97BD-6CC07ED27A4B");
+    private static readonly Guid Namespace = new("E7B269D1-1453-4854-97BD-6CC07ED27A4B");
     
     public FilePurgeId(string value) 
         : base(value) { }
@@ -21,11 +20,11 @@ public sealed record FilePurgeJob(ProjectFileId FileToDelete) : IJob;
 
 public sealed class FilePurgeRunner : JobRunner<FilePurgeJob, FilePurgeId>, IRun<FilePurgeJob>
 {
-    private readonly GridFSBucket _bucket;
+    private readonly IInternalFileRepository _bucket;
     private readonly ILogger _logger;
     private readonly IEventAggregator _aggregator;
 
-    public FilePurgeRunner(GridFSBucket bucket, ILogger logger, IEventAggregator aggregator)
+    public FilePurgeRunner(IInternalFileRepository bucket, ILogger logger, IEventAggregator aggregator)
     {
         _bucket = bucket;
         _logger = logger;
@@ -34,15 +33,14 @@ public sealed class FilePurgeRunner : JobRunner<FilePurgeJob, FilePurgeId>, IRun
 
     public bool Run(FilePurgeJob job)
     {
-        var filter = Builders<GridFSFileInfo>.Filter.Eq(m => m.Filename, job.FileToDelete.Value);
-        var search = _bucket.Find(filter).FirstOrDefault();
-        if (search == null)
+        var search = _bucket.FindIdByFileName(job.FileToDelete.Value).FirstOrDefault();
+        if (string.IsNullOrEmpty(search))
         {
             _logger.LogWarning("File with Name {Id} not found", job.FileToDelete.Value);
             return false;
         }
 
-        _bucket.Delete(search.Id);
+        _bucket.Delete(search);
         _aggregator.Publish(new FileDeleted(job.FileToDelete));
         return true;
     }
@@ -53,7 +51,7 @@ public sealed class FilePureScheduler : JobScheduler<FilePureScheduler, FilePurg
 
 public sealed class FilePurgeManager : JobManager<FilePureScheduler, FilePurgeRunner, FilePurgeJob, FilePurgeId>
 {
-    public FilePurgeManager(GridFSBucket bucket, ILogger<FilePurgeManager> logger, IEventAggregator aggregator)
+    public FilePurgeManager(IInternalFileRepository bucket, ILogger<FilePurgeManager> logger, IEventAggregator aggregator)
         : base(() => new FilePureScheduler(), () => new FilePurgeRunner(bucket, logger, aggregator))
     {
         

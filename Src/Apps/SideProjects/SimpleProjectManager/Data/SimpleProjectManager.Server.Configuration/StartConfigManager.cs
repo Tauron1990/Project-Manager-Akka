@@ -1,7 +1,9 @@
 ﻿using System.Collections.Immutable;
 using JetBrains.Annotations;
+using Microsoft.AspNetCore.Hosting;
 using Newtonsoft.Json.Linq;
 using SimpleProjectManager.Server.Configuration.ConfigurationExtensions;
+using SimpleProjectManager.Server.Configuration.Core;
 using Tauron;
 using Tauron.AkkaHost;
 
@@ -10,38 +12,46 @@ namespace SimpleProjectManager.Server.Configuration;
 [PublicAPI]
 public sealed class StartConfigManager
 {
-    private ImmutableArray<IConfigExtension> _extensions = ImmutableArray<IConfigExtension>.Empty;
+    private ImmutableArray<IConfigExtension> _extensions = ImmutableArray<IConfigExtension>.Empty
+       .Add(new HostValueProcessor())
+       .Add(new IpConfig())
+       .Add(new AkkaConfig());
+    private ImmutableDictionary<string, string> _data = ImmutableDictionary<string, string>.Empty;
 
     public static StartConfigManager ConfigManager { get; } = new();
 
     public void RegisterExtension(IConfigExtension extension)
         => _extensions = _extensions.Add(extension);
 
-    public void Configurate(IActorApplicationBuilder builder, string? file = null)
+    public void Init(string? file = null)
     {
         if(string.IsNullOrEmpty(file))
             file = "StartConfig.json";
         var dic = ReadSettings(file);
         if(dic.IsEmpty) return;
 
-        dic = ProcessPropertys(dic);
-        _extensions.Foreach(e => e.Apply(dic, builder));
+        _data = ProcessPropertys(dic);
     }
 
+    public void ConfigurateWeb(IWebHostBuilder webHostBuilder)
+        => _extensions.Foreach(e => e.Apply(_data, webHostBuilder));
+
+    public void ConfigurateApp(IActorApplicationBuilder builder)
+        => _extensions.Foreach(e => e.Apply(_data, builder));
+    
     private ImmutableDictionary<string, string> ProcessPropertys(ImmutableDictionary<string, string> dic)
     {
         foreach (var entry in dic)
         {
             // ReSharper disable once AccessToModifiedClosure
-            var newValue = _extensions.Aggregate(entry.Value, (currentValue, extension) => extension.ProcessValue(dic, entry.Key, currentValue));
-            dic = dic.SetItem(entry.Key, newValue);
+            dic = _extensions.Aggregate(dic, (currentValue, extension) => extension.ProcessValue(currentValue, entry.Key, entry.Value));
         }
 
-        return dic;
+        return ValueReplacer.ExpandPropertys(dic);
     }
 
     // ReSharper disable once CognitiveComplexity
-    private ImmutableDictionary<string, string> ReadSettings(string file)
+    private static ImmutableDictionary<string, string> ReadSettings(string file)
     {
         if(!File.Exists(file))
             return ImmutableDictionary<string, string>.Empty;
