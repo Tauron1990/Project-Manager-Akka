@@ -10,7 +10,7 @@ using Tauron.AkkaHost;
 
 namespace SimpleProjectManager.Server.Data.MongoDb;
 
-public class MongoDbDriver : IDatabaseModule
+public class MongoDbDatabaseDriver : IDatabaseModule
 {
     public void Configurate(IActorApplicationBuilder builder)
     {

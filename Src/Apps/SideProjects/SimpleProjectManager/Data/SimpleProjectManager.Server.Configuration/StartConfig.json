@@ -10,6 +10,7 @@
   "MongoBase": {
     "BasedOn": "RemoteBase",
     "Settings": {
+      "databaseDriver": "mongodb",
       "akka.persistence.journal.mangodb.connection-string": "\"mongodb://{mongoIp}/SimpleProjectManager?readPreference=primary&appname=SimpleProjectManager&directConnection=true&ssl=false\"",
       "akka.persistence.snapshot-store.mongodb.connection-string": "\"mongodb://{mongoIp}/SimpleProjectManager?readPreference=primary&appname=SimpleProjectManager&directConnection=true&ssl=false\"",
       "akka.persistence.journal.mongoRead.class": "\"Akka.Persistence.MongoDb.Query.MongoDbReadJournalProvider, Akka.Persistence.MongoDb\"",

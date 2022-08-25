@@ -15,7 +15,8 @@ public sealed class StartConfigManager
     private ImmutableArray<IConfigExtension> _extensions = ImmutableArray<IConfigExtension>.Empty
        .Add(new HostValueProcessor())
        .Add(new IpConfig())
-       .Add(new AkkaConfig());
+       .Add(new AkkaConfig())
+       .Add(new ProjectionStartConfig());
     private ImmutableDictionary<string, string> _data = ImmutableDictionary<string, string>.Empty;
 
     public static StartConfigManager ConfigManager { get; } = new();

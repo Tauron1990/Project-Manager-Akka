@@ -8,6 +8,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\..\..\..\Shared\Common\Tauron.Application.Common.Akka\Tauron.Application.Common.Akka.csproj" />
+      <ProjectReference Include="..\SimpleProjectManager.Server.Data.MongoDb\SimpleProjectManager.Server.Data.MongoDb.csproj" />
     </ItemGroup>
 
     <ItemGroup>
