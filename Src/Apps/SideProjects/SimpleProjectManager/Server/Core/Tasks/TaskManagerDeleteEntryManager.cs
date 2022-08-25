@@ -1,6 +1,6 @@
 ﻿using System.Collections.Immutable;
 using Akkatecture.Jobs;
-using MongoDB.Driver;
+using SimpleProjectManager.Server.Data;
 using SimpleProjectManager.Shared.Services;
 
 namespace SimpleProjectManager.Server.Core.Tasks;
@@ -14,11 +14,11 @@ public sealed record TaskManagerDeleteEntry(string EntryId) : IJob;
 
 public sealed class TaskManagerJobRunner : JobRunner<TaskManagerDeleteEntry, TaskManagerJobId>, IRun<TaskManagerDeleteEntry>
 {
-    private readonly IMongoCollection<TaskManagerEntry> _collection;
+    private readonly IDatabaseCollection<TaskManagerEntry> _collection;
     private readonly CriticalErrorHelper _errorHelper;
     private readonly IEventAggregator _aggregator;
 
-    public TaskManagerJobRunner(IMongoCollection<TaskManagerEntry> collection, CriticalErrorHelper errorHelper, IEventAggregator aggregator)
+    public TaskManagerJobRunner(IDatabaseCollection<TaskManagerEntry> collection, CriticalErrorHelper errorHelper, IEventAggregator aggregator)
     {
         _collection = collection;
         _errorHelper = errorHelper;
@@ -51,7 +51,7 @@ public sealed class TaskManagerJobRunner : JobRunner<TaskManagerDeleteEntry, Tas
     
     public async ValueTask<IOperationResult> RunDeltation(TaskManagerDeleteEntry job)
     {
-        var filter = Builders<TaskManagerEntry>.Filter.Eq(m => m.JobId, job.EntryId);
+        var filter = _collection.Operations.Eq(m => m.JobId, job.EntryId);
         var result = await _collection.DeleteOneAsync(filter);
 
         var success = result.IsAcknowledged && result.DeletedCount == 1;
@@ -66,7 +66,7 @@ public sealed class TaskManagerScheduler : JobScheduler<TaskManagerScheduler, Ta
 
 public sealed class TaskManagerDeleteEntryManager : JobManager<TaskManagerScheduler, TaskManagerJobRunner, TaskManagerDeleteEntry, TaskManagerJobId>
 {
-    public TaskManagerDeleteEntryManager(IMongoCollection<TaskManagerEntry> collection, CriticalErrorHelper errorHelper, IEventAggregator aggregator)
+    public TaskManagerDeleteEntryManager(IDatabaseCollection<TaskManagerEntry> collection, CriticalErrorHelper errorHelper, IEventAggregator aggregator)
         : base(() => new TaskManagerScheduler(), () => new TaskManagerJobRunner(collection, errorHelper, aggregator))
     {
         

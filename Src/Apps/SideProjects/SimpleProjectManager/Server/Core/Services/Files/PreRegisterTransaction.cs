@@ -1,6 +1,5 @@
 ﻿using Akkatecture.Jobs.Commands;
 using MongoDB.Bson;
-using MongoDB.Driver.GridFS;
 using SimpleProjectManager.Server.Core.JobManager;
 using SimpleProjectManager.Server.Core.Tasks;
 using SimpleProjectManager.Server.Data;
@@ -47,19 +46,11 @@ public sealed class PreRegisterTransaction : SimpleTransaction<PreRegistrationCo
     {
         var (context, _, token) = transactionContext;
         
-        var id = ObjectId.GenerateNewId();
-        var meta = new BsonDocument
-                   {
-                       new BsonElement(FileContentManager.MetaJobName, context.JobName),
-                       new BsonElement(FileContentManager.MetaFileNme, context.FileName)
-                   };
+        var id = ObjectId.GenerateNewId().ToString();
         
         await using var stream = context.ToRegister();
-        await _bucket.UploadFromStreamAsync(id, context.FileId.Value, stream, new GridFSUploadOptions
-                                                                             {
-                                                                                 Metadata = meta
-                                                                             }, token);
+        await _bucket.UploadFromStreamAsync(id, context.FileId.Value, stream, context.JobName, context.FileName, token);
 
-        return async _ => await _bucket.DeleteAsync(id);
+        return async _ => await _bucket.DeleteAsync(id, token);
     }
 }

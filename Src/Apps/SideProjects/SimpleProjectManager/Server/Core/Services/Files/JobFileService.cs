@@ -65,20 +65,15 @@ public class JobFileService : IJobFileService, IDisposable
     }
 
     public virtual async Task<DatabaseFile[]> GetAllFiles(CancellationToken token)
-    {
-        var files = new List<DatabaseFile>();
-
-        await (await _contentManager.QueryFiles(token)).ForEachAsync(
-            d => files.Add(
-                new DatabaseFile(
+        => await _contentManager.QueryFiles(token)
+           .TakeWhile(_ => !token.IsCancellationRequested)
+           .Select(
+                d => new DatabaseFile(
                     new ProjectFileId(d.FileId),
                     new FileName(d.FileName),
                     new FileSize(d.Length),
-                    new JobName(d.JobName))),
-            token);
-
-        return files.ToArray();
-    }
+                    new JobName(d.JobName)))
+           .ToArrayAsync(cancellationToken: token);
 
     public async Task<string> RegisterFile(ProjectFileInfo projectFile, CancellationToken token)
     {

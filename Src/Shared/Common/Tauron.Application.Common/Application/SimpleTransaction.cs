@@ -50,7 +50,7 @@ public enum TrasnactionState
 
 public sealed record TransactionResult(TrasnactionState State, Exception? Exception);
 
-public sealed record Context<TContext>(TContext Data, ContextMetadata Metadata, CancellationToken Token);
+public sealed record  Context<TContext>(TContext Data, ContextMetadata Metadata, CancellationToken Token);
 
 public delegate ValueTask Rollback<TContext>(Context<TContext> context);
 

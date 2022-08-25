@@ -2,5 +2,5 @@
 
 public interface IFilter<TData>
 {
-    
+    IFilter<TData> Not { get; }
 }

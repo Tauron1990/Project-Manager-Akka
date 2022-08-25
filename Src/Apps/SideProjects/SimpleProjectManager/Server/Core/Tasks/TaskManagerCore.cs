@@ -6,8 +6,7 @@ using Akka.DependencyInjection;
 using Akkatecture.Jobs;
 using Akkatecture.Jobs.Commands;
 using MongoDB.Bson;
-using MongoDB.Driver;
-using SimpleProjectManager.Server.Core.Projections.Core;
+using SimpleProjectManager.Server.Data;
 using SimpleProjectManager.Shared.Services;
 
 #pragma warning disable EX006
@@ -18,7 +17,7 @@ public sealed record TaskManagerEntry(ObjectId Id, string ManagerId, string Name
 
 public sealed class TaskManagerCore
 {
-    private readonly IMongoCollection<TaskManagerEntry> _entrys;
+    private readonly IDatabaseCollection<TaskManagerEntry> _entrys;
     private readonly ConcurrentBag<RegisterJobType> _registrations = new();
     private readonly ConcurrentDictionary<string, IActorRef> _jobManagers = new();
     private readonly ActorSystem _actorSystem;
@@ -28,7 +27,7 @@ public sealed class TaskManagerCore
     private readonly ConcurrentDictionary<string, TaskManagerJobId> _autoCancelDely = new();
     private IActorRef _autoRemoveManager = Nobody.Instance;
 
-    public TaskManagerCore(InternalDataRepository repository, ActorSystem actorSystem, ICriticalErrorService criticalErrorService, 
+    public TaskManagerCore(IInternalDataRepository repository, ActorSystem actorSystem, ICriticalErrorService criticalErrorService, 
         ILogger<TaskManagerCore> logger, IEventAggregator aggregator)
     {
         _actorSystem = actorSystem;
@@ -142,7 +141,7 @@ public sealed class TaskManagerCore
                     var manager = GetJobManager(registration);
                     
                     await _entrys.InsertOneAsync(entry, cancellationToken: token);
-                    remove = async () => await _entrys.DeleteOneAsync(Builders<TaskManagerEntry>.Filter.Eq(e => e.Id, entry.Id), token);
+                    remove = async () => await _entrys.DeleteOneAsync(_entrys.Operations.Eq(e => e.Id, entry.Id), token);
                     
                     var result = await manager.Ask<IOperationResult>(taskCommand, TimeSpan.FromSeconds(10), token);
 
@@ -170,7 +169,7 @@ public sealed class TaskManagerCore
             nameof(Delete),
             async () =>
             {
-                var filter = Builders<TaskManagerEntry>.Filter.Eq(e => e.JobId, id);
+                var filter = _entrys.Operations.Eq(e => e.JobId, id);
                 var ele = await _entrys.Find(filter).SingleAsync(token);
                 var registration = _registrations.First(r => r.Id == ele.ManagerId);
                 var manager = GetJobManager(registration);
@@ -192,5 +191,5 @@ public sealed class TaskManagerCore
             () => ImmutableList<ErrorProperty>.Empty.Add(new ErrorProperty("Task Id", id)));
 
     public async ValueTask<TaskManagerEntry[]> GetCurrentTasks(CancellationToken token)
-        => (await _entrys.Find(Builders<TaskManagerEntry>.Filter.Empty).ToListAsync(token)).ToArray();
+        => (await _entrys.Find(_entrys.Operations.Empty).ToArrayAsync(token));
 }

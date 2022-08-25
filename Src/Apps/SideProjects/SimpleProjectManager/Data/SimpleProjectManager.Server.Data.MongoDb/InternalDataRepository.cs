@@ -2,16 +2,19 @@
 using Akkatecture.Core;
 using LiquidProjections;
 using MongoDB.Driver;
+using Tauron;
 using Tauron.Akkatecture.Projections;
 
-namespace SimpleProjectManager.Server.Core.Projections.Core;
+namespace SimpleProjectManager.Server.Data.MongoDb;
 
-public sealed class InternalDataRepository : IProjectionRepository
+public sealed class InternalDataRepository : IInternalDataRepository
 {
     private readonly ConcurrentDictionary<object, IClientSessionHandle> _transactions = new();
     private readonly IMongoDatabase _database;
     private readonly IMongoCollection<CheckPointInfo> _checkpointInfo;
 
+    
+    
     public InternalDataRepository(IMongoDatabase database)
     {
         _database = database;
@@ -54,13 +57,16 @@ public sealed class InternalDataRepository : IProjectionRepository
             await _checkpointInfo.ReplaceOneAsync(handle, filter, data, option);
     }
 
-    public IMongoCollection<TData> Collection<TData>()
+    public IDatabaseCollection<TData> Collection<TData>()
+        => new DatabaseCollection<TData>(InternalCollection<TData>());
+    
+    private IMongoCollection<TData> InternalCollection<TData>()
         => _database.GetCollection<TData>(typeof(TData).Name);
 
     public async Task<TProjection?> Get<TProjection, TIdentity>(ProjectionContext context, TIdentity identity)
         where TProjection : class, IProjectorData<TIdentity>
         where TIdentity : IIdentity
-        => await Collection<TProjection>().Find(Builders<TProjection>.Filter.Eq(p => p.Id, identity)).FirstOrDefaultAsync()!;
+        => await InternalCollection<TProjection>().Find(Builders<TProjection>.Filter.Eq(p => p.Id, identity)).FirstOrDefaultAsync()!;
 
     public async Task<TProjection> Create<TProjection, TIdentity>(ProjectionContext context, TIdentity identity, Func<TProjection, bool> shouldoverwite) 
         where TProjection : class, IProjectorData<TIdentity> 
@@ -74,7 +80,7 @@ public sealed class InternalDataRepository : IProjectionRepository
             return data;
         }
 
-        var coll = Collection<TProjection>();
+        var coll = InternalCollection<TProjection>();
         var filter = Builders<TProjection>.Filter.Eq(p => p.Id, identity);
 
         var data = await coll.Find(filter).FirstOrDefaultAsync();
@@ -94,7 +100,7 @@ public sealed class InternalDataRepository : IProjectionRepository
         where TIdentity : IIdentity
         where TProjection : class, IProjectorData<TIdentity>
     {
-        var coll = Collection<TProjection>();
+        var coll = InternalCollection<TProjection>();
         var filter = Builders<TProjection>.Filter.Eq(p => p.Id, identity);
         var result = await coll.DeleteOneAsync(filter);
         await CommitCheckpoint<TProjection>(null, context);
@@ -109,7 +115,7 @@ public sealed class InternalDataRepository : IProjectionRepository
         var trans = GetTransaction(identity);
         var filter = Builders<TProjection>.Filter.Eq(p => p.Id, identity);
         var options = new ReplaceOptions { IsUpsert = true };
-        var coll = Collection<TProjection>();
+        var coll = InternalCollection<TProjection>();
 
         await coll.ReplaceOneAsync(trans, filter, projection, options);
         await CommitCheckpoint<TProjection>(trans, context);

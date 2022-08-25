@@ -4,11 +4,12 @@ public interface IDatabaseCollection<TData>
 {
     IOperationFactory<TData> Operations { get; }
     
-    IFindQuery<TData> Find(IFilter<TData> filter);
+    IFindQuery<TData, TData> Find(IFilter<TData> filter);
 
-    Task<long> CountEntrys(IFilter<TData> filter, CancellationToken token);
+    ValueTask<long> CountEntrys(IFilter<TData> filter, CancellationToken token = default);
     
-    ValueTask<DbOperationResult> UpdateOneAsync(IFilter<TData> filter, IUpdate<TData> updater, CancellationToken cancellationToken);
-    ValueTask InsertOneAsync(TData data, CancellationToken cancellationToken);
+    ValueTask<DbOperationResult> UpdateOneAsync(IFilter<TData> filter, IUpdate<TData> updater, CancellationToken cancellationToken = default);
+    ValueTask InsertOneAsync(TData data, CancellationToken cancellationToken = default);
     DbOperationResult DeleteOne(IFilter<TData> filter);
+    ValueTask<DbOperationResult> DeleteOneAsync(IFilter<TData> filter, CancellationToken token = default);
 }

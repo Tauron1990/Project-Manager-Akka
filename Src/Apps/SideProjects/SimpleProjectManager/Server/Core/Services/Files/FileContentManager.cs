@@ -57,8 +57,8 @@ public sealed class FileContentManager
                .Add(new ErrorProperty("File Id", id.Value)));
     }
 
-    public async ValueTask<IAsyncEnumerable<FileEntry>> QueryFiles(CancellationToken token)
-        => await _bucked.FindAsync(_bucked.Operations.Empty, cancellationToken: token);
+    public IAsyncEnumerable<FileEntry> QueryFiles(CancellationToken token)
+        => _bucked.FindAllAsync(cancellationToken: token);
 
     public async ValueTask<string?> DeleteFile(ProjectFileId id, CancellationToken token)
     {
@@ -66,8 +66,7 @@ public sealed class FileContentManager
             nameof(DeleteFile),
             async () =>
             {
-                var filter = _bucked.Operations.Eq(m => m.FileId, id.Value);
-                var search = await (await _bucked.FindAsync(filter, cancellationToken: token)).FirstOrDefaultAsync(token);
+                var search = await _bucked.FindByIdAsync(id.Value, token);
 
                 if (search == null)
                 {

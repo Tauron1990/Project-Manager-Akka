@@ -1,6 +1,5 @@
 ﻿using System.Reactive.Linq;
 using Akkatecture.Aggregates;
-using MongoDB.Driver;
 using SimpleProjectManager.Server.Core.Data;
 using SimpleProjectManager.Server.Core.Data.Events;
 using SimpleProjectManager.Server.Core.Projections;
@@ -15,7 +14,7 @@ namespace SimpleProjectManager.Server.Core.Services;
 public class JobDatabaseService : IJobDatabaseService, IDisposable
 {
     private readonly CommandProcessor _commandProcessor;
-    private readonly IMongoCollection<ProjectProjection> _projects;
+    private readonly IDatabaseCollection<ProjectProjection> _projects;
     private readonly IDisposable _subscription;
 
     public JobDatabaseService(IInternalDataRepository database, CommandProcessor commandProcessor, DomainEventDispatcher dispatcher)
@@ -61,36 +60,31 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
     {
         if (Computed.IsInvalidating()) return Array.Empty<JobInfo>();
         
-        var filter = Builders<ProjectProjection>.Filter.Eq(p => p.Status, ProjectStatus.Finished);
+        var filter = _projects.Operations.Eq(p => p.Status, ProjectStatus.Finished);
 
-        var result = await _projects.Find(Builders<ProjectProjection>.Filter.Not(filter))
+        return await _projects.Find(filter.Not)
            .Project(p => new JobInfo(p.Id, p.JobName, p.Deadline, p.Status, p.ProjectFiles.Count != 0))
-           .ToListAsync(token);
-
-        return result.ToArray();
+           .ToArrayAsync(token);
     }
 
     public virtual async Task<SortOrder[]> GetSortOrders(CancellationToken token)
     {
         if (Computed.IsInvalidating()) return Array.Empty<SortOrder>();
         
-        var builder = Builders<ProjectProjection>.Filter;
-        var filter = builder.Or
+        var filter = _projects.Operations.Or
             (
-                builder.Eq(p => p.Status, ProjectStatus.Entered),
-                builder.Eq(p => p.Status, ProjectStatus.Pending)
+                _projects.Operations.Eq(p => p.Status, ProjectStatus.Entered),
+                _projects.Operations.Eq(p => p.Status, ProjectStatus.Pending)
             );
 
-        var list = await _projects.Find(filter).Project(p => p.Ordering).ToListAsync(token);
-
-        return list.ToArray();
+        return await _projects.Find(filter).Project(p => p.Ordering).ToArrayAsync(token);
     }
 
     public virtual async Task<JobData> GetJobData(ProjectId id, CancellationToken token)
     {
         if (Computed.IsInvalidating()) return null!;
         
-        var filter = Builders<ProjectProjection>.Filter.Eq(p => p.Id, id);
+        var filter = _projects.Operations.Eq(p => p.Id, id);
         var result = await _projects.Find(filter).FirstAsync(token);
 
         return new JobData(result.Id, result.JobName, result.Status, result.Ordering, result.Deadline, result.ProjectFiles);
@@ -100,10 +94,10 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
     {
         if (Computed.IsInvalidating()) return 0;
         
-        var filter = Builders<ProjectProjection>.Filter.Eq(p => p.Status, ProjectStatus.Finished);
-        var result = _projects.Find(Builders<ProjectProjection>.Filter.Not(filter));
+        var filter = _projects.Operations.Eq(p => p.Status, ProjectStatus.Finished);
+        var result = _projects.Find(filter.Not);
 
-        return await result.CountDocumentsAsync(token);
+        return await result.CountAsync(token);
     }
 
     public async Task<string> DeleteJob(ProjectId id, CancellationToken token)
@@ -119,20 +113,18 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
         if (sortOrder is null)
             return ignoreIfEmpty ? string.Empty : "Sortier Daten nicht zur Verfügung gestellt";
 
-        var result = await _projects.FindOneAndUpdateAsync(
-            Builders<ProjectProjection>.Filter.Eq(p => p.Id, sortOrder.Id),
-            Builders<ProjectProjection>.Update.Set(p => p.Ordering, sortOrder),
+        var result = await _projects.UpdateOneAsync(
+            _projects.Operations.Eq(p => p.Id, sortOrder.Id),
+            _projects.Operations.Set(p => p.Ordering, sortOrder),
             cancellationToken: token);
 
-        if (result is not null)
-        {
-            using(Computed.Invalidate())
-                GetSortOrders(CancellationToken.None).Ignore();
-        }
-        
-        return result is not null 
-            ? string.Empty 
-            : "Das Element wurde nicht gefunden";
+        if(result.ModifiedCount == 0)
+            return "Das Element wurde nicht gefunden";
+
+        using(Computed.Invalidate())
+            GetSortOrders(CancellationToken.None).Ignore();
+
+        return string.Empty;
     }
 
     public async Task<string> UpdateJobData(UpdateProjectCommand command, CancellationToken token)
