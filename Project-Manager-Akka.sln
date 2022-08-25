@@ -209,6 +209,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleProjectManager.Server
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleProjectManager.Server.Data.MongoDb", "Src\Apps\SideProjects\SimpleProjectManager\Data\SimpleProjectManager.Server.Data.MongoDb\SimpleProjectManager.Server.Data.MongoDb.csproj", "{BBCB55F8-25B9-44A9-A49E-2D07B9FD07A9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleProjectManager.Server.Data.LiteDbDriver", "Src\Apps\SideProjects\SimpleProjectManager\Data\SimpleProjectManager.Server.Data.LiteDbDriver\SimpleProjectManager.Server.Data.LiteDbDriver.csproj", "{BF018A41-DC95-4740-8600-6153EE5EFF92}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1603,6 +1605,26 @@ Global
 		{BBCB55F8-25B9-44A9-A49E-2D07B9FD07A9}.Release|x64.Build.0 = Release|Any CPU
 		{BBCB55F8-25B9-44A9-A49E-2D07B9FD07A9}.Release|x86.ActiveCfg = Release|Any CPU
 		{BBCB55F8-25B9-44A9-A49E-2D07B9FD07A9}.Release|x86.Build.0 = Release|Any CPU
+		{BF018A41-DC95-4740-8600-6153EE5EFF92}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF018A41-DC95-4740-8600-6153EE5EFF92}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF018A41-DC95-4740-8600-6153EE5EFF92}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{BF018A41-DC95-4740-8600-6153EE5EFF92}.Debug|ARM.Build.0 = Debug|Any CPU
+		{BF018A41-DC95-4740-8600-6153EE5EFF92}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{BF018A41-DC95-4740-8600-6153EE5EFF92}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{BF018A41-DC95-4740-8600-6153EE5EFF92}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{BF018A41-DC95-4740-8600-6153EE5EFF92}.Debug|x64.Build.0 = Debug|Any CPU
+		{BF018A41-DC95-4740-8600-6153EE5EFF92}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{BF018A41-DC95-4740-8600-6153EE5EFF92}.Debug|x86.Build.0 = Debug|Any CPU
+		{BF018A41-DC95-4740-8600-6153EE5EFF92}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF018A41-DC95-4740-8600-6153EE5EFF92}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF018A41-DC95-4740-8600-6153EE5EFF92}.Release|ARM.ActiveCfg = Release|Any CPU
+		{BF018A41-DC95-4740-8600-6153EE5EFF92}.Release|ARM.Build.0 = Release|Any CPU
+		{BF018A41-DC95-4740-8600-6153EE5EFF92}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{BF018A41-DC95-4740-8600-6153EE5EFF92}.Release|ARM64.Build.0 = Release|Any CPU
+		{BF018A41-DC95-4740-8600-6153EE5EFF92}.Release|x64.ActiveCfg = Release|Any CPU
+		{BF018A41-DC95-4740-8600-6153EE5EFF92}.Release|x64.Build.0 = Release|Any CPU
+		{BF018A41-DC95-4740-8600-6153EE5EFF92}.Release|x86.ActiveCfg = Release|Any CPU
+		{BF018A41-DC95-4740-8600-6153EE5EFF92}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1707,6 +1729,7 @@ Global
 		{4BDB8630-F777-4B14-AFFF-B99FACA8A3CE} = {20481EF8-F6D5-4309-AD2A-4A9FB5E8E75E}
 		{557F221D-EBA9-48E6-9D87-358BF326881F} = {20481EF8-F6D5-4309-AD2A-4A9FB5E8E75E}
 		{BBCB55F8-25B9-44A9-A49E-2D07B9FD07A9} = {20481EF8-F6D5-4309-AD2A-4A9FB5E8E75E}
+		{BF018A41-DC95-4740-8600-6153EE5EFF92} = {20481EF8-F6D5-4309-AD2A-4A9FB5E8E75E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F63AD2ED-4320-43AB-8761-A3FEBC507539}

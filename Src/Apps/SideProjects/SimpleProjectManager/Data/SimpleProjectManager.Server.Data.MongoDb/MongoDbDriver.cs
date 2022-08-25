@@ -1,4 +1,5 @@
-﻿using Akka.Actor;
+﻿using System.Collections.Immutable;
+using Akka.Actor;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
@@ -12,7 +13,7 @@ namespace SimpleProjectManager.Server.Data.MongoDb;
 
 public class MongoDbDatabaseDriver : IDatabaseModule
 {
-    public void Configurate(IActorApplicationBuilder builder)
+    public void Configurate(IActorApplicationBuilder builder, ImmutableDictionary<string, string> propertys)
     {
         BsonClassMap.RegisterClassMap<CheckPointInfo>(
             b =>

@@ -14,6 +14,6 @@ public sealed class ProjectionStartConfig : ConfigExtension
     {
         var module = _databaseModules[propertys["databaseDriver"]];
         
-        module.Configurate(applicationBuilder);
+        module.Configurate(applicationBuilder, propertys);
     }
 }
