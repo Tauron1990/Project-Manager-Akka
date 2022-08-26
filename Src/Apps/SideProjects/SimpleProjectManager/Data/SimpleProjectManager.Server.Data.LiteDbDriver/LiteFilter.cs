@@ -1,13 +1,23 @@
-namespace SimpleProjectManager.Server.Data.LiteDb;
+using LiteDB;
 
-public sealed class LiteFilter<TData> : IFilter<TData>
+namespace SimpleProjectManager.Server.Data.LiteDbDriver;
+
+public abstract class LiteFilter<TData> : IFilter<TData>
 {
-    private bool _isNot;
+    public bool IsNot { get; set; }
+
+    protected internal void Prepare(bool isNot)
+        => IsNot = isNot;
     
-    public LiteFilter(Func<>)
+    protected internal abstract BsonExpression? Create();
+
+    public IFilter<TData> Not
     {
-        
+        get
+        {
+            IsNot = true;
+
+            return this;
+        }
     }
-    
-    public IFilter<TData> Not { get; }
 }

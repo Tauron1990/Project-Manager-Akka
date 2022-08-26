@@ -3,7 +3,7 @@ using LiteDB;
 using LiteDB.Async;
 using Tauron.AkkaHost;
 
-namespace SimpleProjectManager.Server.Data.LiteDb;
+namespace SimpleProjectManager.Server.Data.LiteDbDriver;
 
 public class LiteDbDriverModule : IDatabaseModule
 {

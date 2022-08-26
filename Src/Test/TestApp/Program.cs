@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Linq.Expressions;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices.ComTypes;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using SimpleProjectManager.Client.Shared.Data.States;
+using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
 using Tauron.Applicarion.Redux;
 using Tauron.Applicarion.Redux.Configuration;
@@ -103,8 +105,15 @@ public sealed class CounterState : StateBase<TestCounter>
 
 static class Program
 {
+    private static void Test<TInput, TField>(Expression<Func<TInput, TField>> test)
+    {
+        
+    }
+    
     static Task Main()
     {
+        Test<CriticalError, string>(e => e.Id);
+        
         var coll = new ServiceCollection();
         coll.AddTransient<ICacheDb, FakeCahce>();
         coll.AddTransient<IErrorHandler, FakeError>();

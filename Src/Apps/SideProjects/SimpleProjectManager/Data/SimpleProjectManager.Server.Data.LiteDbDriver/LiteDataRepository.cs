@@ -1,50 +1,24 @@
-﻿using System.Collections.Concurrent;
-using Akkatecture.Core;
+﻿using Akkatecture.Core;
 using LiquidProjections;
-using MongoDB.Driver;
-using Tauron;
+using LiteDB.Async;
 using Tauron.Akkatecture.Projections;
 
-namespace SimpleProjectManager.Server.Data.MongoDb;
+namespace SimpleProjectManager.Server.Data.LiteDbDriver;
 
-public sealed class InternalDataRepository : IInternalDataRepository
+public sealed class LiteDataRepository : IInternalDataRepository
 {
-    private readonly ConcurrentDictionary<object, IClientSessionHandle> _transactions = new();
-    private readonly IMongoDatabase _database;
-    private readonly IMongoCollection<CheckPointInfo> _checkpointInfo;
-
+    private readonly ILiteDatabaseAsync _database;
     
-    
-    public InternalDataRepository(IMongoDatabase database)
+    public LiteDataRepository(ILiteDatabaseAsync database)
     {
         _database = database;
-        _checkpointInfo = database.GetCollection<CheckPointInfo>(nameof(CheckPointInfo));
+        _database.BeginTransactionAsync()
     }
 
     private static string GetDatabaseId(Type type)
         => type.FullName ?? type.Name;
 
-    private IClientSessionHandle GetTransaction(object key)
-        => _transactions.GetOrAdd(
-            key,
-            static (_, db) =>
-            {
-                var session = db.Client.StartSession();
-
-                if(session.IsInTransaction)
-                    return session;
-
-                try
-                {
-                    session.StartTransaction();
-                }
-                catch (NotSupportedException) { }
-
-                return session;
-            },
-            _database);
-
-    private async Task CommitCheckpoint<TData>(IClientSessionHandle? handle, ProjectionContext context)
+    private async Task CommitCheckpoint<TData>(ILiteDatabaseAsync? handle, ProjectionContext context)
     {
         var id = GetDatabaseId(typeof(TData));
         var data = new CheckPointInfo { Checkpoint = context.Checkpoint, Id = id };
