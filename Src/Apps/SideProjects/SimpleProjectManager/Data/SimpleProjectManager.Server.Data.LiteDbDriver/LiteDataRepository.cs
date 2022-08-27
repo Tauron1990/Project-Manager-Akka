@@ -1,6 +1,9 @@
-﻿using Akkatecture.Core;
+﻿using System.Collections.Concurrent;
+using Akkatecture.Core;
 using LiquidProjections;
+using LiteDB;
 using LiteDB.Async;
+using Tauron;
 using Tauron.Akkatecture.Projections;
 
 namespace SimpleProjectManager.Server.Data.LiteDbDriver;
@@ -8,39 +11,42 @@ namespace SimpleProjectManager.Server.Data.LiteDbDriver;
 public sealed class LiteDataRepository : IInternalDataRepository
 {
     private readonly ILiteDatabaseAsync _database;
-    
+    private readonly ConcurrentDictionary<object, Task<ILiteDatabaseAsync>> _transactions = new();
+
     public LiteDataRepository(ILiteDatabaseAsync database)
     {
         _database = database;
-        _database.BeginTransactionAsync()
+        SerializationHelper<CheckPointInfo>.Register();
     }
+
+    private Task<ILiteDatabaseAsync> GetTransaction(object key)
+        => _transactions.GetOrAdd(key, static (_, db) => db.BeginTransactionAsync(), _database);
 
     private static string GetDatabaseId(Type type)
         => type.FullName ?? type.Name;
 
-    private async Task CommitCheckpoint<TData>(ILiteDatabaseAsync? handle, ProjectionContext context)
+    private async Task CommitCheckpoint<TData>(ILiteDatabaseAsync database, ProjectionContext context, object key)
     {
         var id = GetDatabaseId(typeof(TData));
         var data = new CheckPointInfo { Checkpoint = context.Checkpoint, Id = id };
-        var filter = Builders<CheckPointInfo>.Filter.Eq(cp => cp.Id, id);
-        var option = new ReplaceOptions { IsUpsert = true };
-
-        if(handle == null)
-            await _checkpointInfo.ReplaceOneAsync(filter, data, option);
-        else
-            await _checkpointInfo.ReplaceOneAsync(handle, filter, data, option);
+        await database.GetCollection<CheckPointInfo>().UpsertAsync(data);
+        await database.CommitAsync();
+        _transactions.TryRemove(key, out _);
     }
 
     public IDatabaseCollection<TData> Collection<TData>()
-        => new DatabaseCollection<TData>(InternalCollection<TData>());
+        => new LiteDatabaseCollection<TData>(InternalCollection<TData>());
     
-    private IMongoCollection<TData> InternalCollection<TData>()
-        => _database.GetCollection<TData>(typeof(TData).Name);
+    private ILiteCollectionAsync<TData> InternalCollection<TData>(ILiteDatabaseAsync? transaction = null)
+    {
+        SerializationHelper<TData>.Register();
+        return (transaction ?? _database).GetCollection<TData>(typeof(TData).Name);
+    }
 
     public async Task<TProjection?> Get<TProjection, TIdentity>(ProjectionContext context, TIdentity identity)
         where TProjection : class, IProjectorData<TIdentity>
         where TIdentity : IIdentity
-        => await InternalCollection<TProjection>().Find(Builders<TProjection>.Filter.Eq(p => p.Id, identity)).FirstOrDefaultAsync()!;
+        => await InternalCollection<TProjection>().FindByIdAsync(new BsonValue(identity));
 
     public async Task<TProjection> Create<TProjection, TIdentity>(ProjectionContext context, TIdentity identity, Func<TProjection, bool> shouldoverwite) 
         where TProjection : class, IProjectorData<TIdentity> 
@@ -55,16 +61,14 @@ public sealed class LiteDataRepository : IInternalDataRepository
         }
 
         var coll = InternalCollection<TProjection>();
-        var filter = Builders<TProjection>.Filter.Eq(p => p.Id, identity);
-
-        var data = await coll.Find(filter).FirstOrDefaultAsync();
+        
+        var data = await coll.FindByIdAsync(new BsonValue(identity));
         if (data == null)
             data = DataFactory();
         else if (shouldoverwite(data))
         {
             data = DataFactory();
-            var trans = GetTransaction(identity);
-            await coll.ReplaceOneAsync(trans, filter, data);
+            await coll.UpdateAsync(data);
         }
 
         return data;
@@ -74,28 +78,41 @@ public sealed class LiteDataRepository : IInternalDataRepository
         where TIdentity : IIdentity
         where TProjection : class, IProjectorData<TIdentity>
     {
-        var coll = InternalCollection<TProjection>();
-        var filter = Builders<TProjection>.Filter.Eq(p => p.Id, identity);
-        var result = await coll.DeleteOneAsync(filter);
-        await CommitCheckpoint<TProjection>(null, context);
+        using var transaction = await GetTransaction(identity);
+        try
+        {
+            var coll = InternalCollection<TProjection>(transaction);
+            var result = await coll.DeleteAsync(new BsonValue(identity));
+            await CommitCheckpoint<TProjection>(transaction, context, identity);
 
-        return result.DeletedCount == 1;
+            return result;
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+
+            throw;
+        }
     }
 
     public async Task Commit<TProjection, TIdentity>(ProjectionContext context, TProjection projection, TIdentity identity) 
         where TIdentity : IIdentity
         where TProjection : class, IProjectorData<TIdentity>
     {
-        var trans = GetTransaction(identity);
-        var filter = Builders<TProjection>.Filter.Eq(p => p.Id, identity);
-        var options = new ReplaceOptions { IsUpsert = true };
-        var coll = InternalCollection<TProjection>();
+        var trans = await GetTransaction(identity);
+        try
+        {
+            var coll = InternalCollection<TProjection>(trans);
 
-        await coll.ReplaceOneAsync(trans, filter, projection, options);
-        await CommitCheckpoint<TProjection>(trans, context);
+            await coll.UpsertAsync(projection);
+            await CommitCheckpoint<TProjection>(trans, context, identity);
+        }
+        catch
+        {
+            await trans.RollbackAsync();
 
-        if(trans.IsInTransaction)
-            await trans.CommitTransactionAsync();
+            throw;
+        }
     }
 
     public async Task Completed<TIdentity>(TIdentity identity)
@@ -103,16 +120,14 @@ public sealed class LiteDataRepository : IInternalDataRepository
     {
         if (!_transactions.TryRemove(identity, out var transaction)) return;
 
-        if (transaction.IsInTransaction)
-            await transaction.AbortTransactionAsync();
+        await (await transaction).RollbackAsync();
         transaction.Dispose();
     }
 
     public long GetLastCheckpoint<TProjection, TIdentity>() where TProjection : class, IProjectorData<TIdentity>
         where TIdentity : IIdentity
     {
-        var filter = Builders<CheckPointInfo>.Filter.Eq(p => p.Id, GetDatabaseId(typeof(TProjection)));
-
-        return _checkpointInfo.Find(filter).FirstOrDefault()?.Checkpoint ?? 0;
+        return _database.UnderlyingDatabase.GetCollection<CheckPointInfo>()
+           .FindById(GetDatabaseId(typeof(TProjection)))?.Checkpoint ?? 0;
     }
 }

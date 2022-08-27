@@ -1,10 +1,16 @@
 ﻿using System;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.IO;
 using System.Linq.Expressions;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices.ComTypes;
 using System.Threading;
 using System.Threading.Tasks;
+using LiteDB;
+using LiteDB.Async;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using SimpleProjectManager.Client.Shared.Data.States;
 using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
@@ -105,14 +111,26 @@ public sealed class CounterState : StateBase<TestCounter>
 
 static class Program
 {
-    private static void Test<TInput, TField>(Expression<Func<TInput, TField>> test)
+    private static async Task<ILiteDatabaseAsync> Test(ILiteDatabaseAsync dbTest)
     {
-        
+        using var db = await dbTest.BeginTransactionAsync();
+        var coll = db.GetCollection<CriticalError>();
+        await coll.InsertAsync(new CriticalError("TestError", DateTime.Now, "TestPart", "TestMessage", new StackTrace().ToString(), ImmutableList<ErrorProperty>.Empty));
+        await db.CommitAsync();
+
+        return db;
     }
     
-    static Task Main()
+    static async Task Main()
     {
-        Test<CriticalError, string>(e => e.Id);
+        SerializationHelper<CriticalError>.Register();
+        SerializationHelper<CriticalError>.Register();
+
+        using var mem = new MemoryStream();
+        using var db = new LiteDatabaseAsync(mem);
+
+        var result = await Test(db);
+        var entrys = (await db.GetCollection<CriticalError>().FindAllAsync()).ToImmutableArray();
         
         var coll = new ServiceCollection();
         coll.AddTransient<ICacheDb, FakeCahce>();
@@ -120,7 +138,7 @@ static class Program
         coll.AddStoreConfiguration();
         coll.AddFusion().AddComputeService<IFakeServer, FakeServerImpl>();
 
-        using var serviceProvider = coll.BuildServiceProvider();
+        await using var serviceProvider = coll.BuildServiceProvider();
         var stateFactory = serviceProvider.GetService<IStateFactory>();
         var configuration = serviceProvider.GetRequiredService<IStoreConfiguration>();
 
@@ -142,7 +160,5 @@ static class Program
 
             return state;
         }
-        
-        return Task.CompletedTask;
     }
 }

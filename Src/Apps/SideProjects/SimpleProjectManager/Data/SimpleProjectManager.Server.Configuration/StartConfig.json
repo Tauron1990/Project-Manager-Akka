@@ -1,5 +1,5 @@
 ﻿{
-  "CurrentSwitch": "Actual",
+  "CurrentSwitch": "Dev",
   "RemoteBase":{
     "Settings": {
       "akka.remote.dot-netty.tcp.hostname": "{ip}",
@@ -34,6 +34,19 @@
     "BasedOn": "MongoBase",
     "Settings": {
       "mongoIp": "localhost:27017",
+      "serverIp": "http://{ip}:{severPort}",
+      "ip": "192.168.178.33",
+      "host": "local"
+    }
+  },
+  "InMemeoryDatabase":{
+    "BasedOn": "RemoteBase",
+    "Settings": {
+    }
+  },
+  "Dev":{
+    "BasedOn": "RemoteBase",
+    "Settings": {
       "serverIp": "http://{ip}:{severPort}",
       "ip": "192.168.178.33",
       "host": "local"

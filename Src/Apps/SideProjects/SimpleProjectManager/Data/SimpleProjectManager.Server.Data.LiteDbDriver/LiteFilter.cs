@@ -4,7 +4,7 @@ namespace SimpleProjectManager.Server.Data.LiteDbDriver;
 
 public abstract class LiteFilter<TData> : IFilter<TData>
 {
-    public bool IsNot { get; set; }
+    protected bool IsNot { get; set; }
 
     protected internal void Prepare(bool isNot)
         => IsNot = isNot;

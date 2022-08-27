@@ -10,6 +10,7 @@
     <ItemGroup>
       <PackageReference Include="Be.Vlaanderen.Basisregisters.Generators.Guid.Deterministic" Version="3.0.1" />
       <PackageReference Include="DotNetZip" Version="1.16.0" />
+      <PackageReference Include="LiteDB.Async" Version="0.1.1" />
       <PackageReference Include="Polly.Caching.Distributed" Version="3.0.1" />
       <PackageReference Include="System.Management" Version="6.0.0" />
     </ItemGroup>
