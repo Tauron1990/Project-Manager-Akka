@@ -1,4 +1,6 @@
-﻿namespace SimpleProjectManager.Server.Core.Projections.Core;
+﻿using Microsoft.Extensions.DependencyInjection.Extensions;
+
+namespace SimpleProjectManager.Server.Core.Projections.Core;
 
 public static class ProjectionExtensions
 {

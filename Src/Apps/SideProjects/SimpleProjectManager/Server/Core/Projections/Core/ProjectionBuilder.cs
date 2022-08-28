@@ -5,6 +5,7 @@ using Akkatecture.Aggregates;
 using Akkatecture.Core;
 using LiquidProjections;
 using SimpleProjectManager.Server.Data;
+using Stl.Reflection;
 using Tauron.Akkatecture.Projections;
 
 namespace SimpleProjectManager.Server.Core.Projections.Core
@@ -51,8 +52,22 @@ namespace SimpleProjectManager.Server.Core.Projections.Core
 
             var projector = new DomainProjector(eventMap);
 
+            var journalType = Type.GetType(system.Settings.Config.GetString("akka.persistence.query.journal.queryConfig.class"));
+
+            if(journalType is null)
+                throw new InvalidOperationException("Journal Type not found");
+
+            var reader = typeof(AggregateEventReader<>)
+                   .MakeGenericType(journalType)
+                  ?.GetConstructor(new[] { typeof(ActorSystem), typeof(string) })
+                  ?.Invoke(new object[] { system, "akka.persistence.journal.queryConfig" })
+                as AggregateEventReader;
+
+            if(reader is null)
+                throw new InvalidOperationException("Journal Creation Failed");
+                
             var dispatcher = new DomainDispatcher<TProjection, TIdentity>(
-                new AggregateEventReader<MongoDbReadJournal>(system, "akka.persistence.journal.mongoRead"), projector, repository);
+                new AggregateEventReader<MongoDbReadJournal>(system, "akka.persistence.journal.queryConfig"), projector, repository);
 
             return dispatcher;
         }

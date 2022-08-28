@@ -1,5 +1,6 @@
 ﻿using Akkatecture.Commands;
 using JetBrains.Annotations;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using SimpleProjectManager.Shared;
 
 namespace SimpleProjectManager.Server.Core.Data;
@@ -9,18 +10,18 @@ public sealed class DataModule : IModule
 {
     private static void ProjectRegistrations(IServiceCollection builder)
     {
-        builder.AddSingleton(CommandMapping.For<Project, ProjectId, ProjectState, ProjectManager, Command<Project, ProjectId>>());
+        builder.TryAddSingleton(CommandMapping.For<Project, ProjectId, ProjectState, ProjectManager, Command<Project, ProjectId>>());
 
-        builder.AddSingleton(ApiCommandMapping.For<CreateProjectCommand>(c => new CreateProjectCommandCarrier(c)));
-        builder.AddSingleton(ApiCommandMapping.For<UpdateProjectCommand>(c => new UpdateProjectCommandCarrier(c)));
-        builder.AddSingleton(ApiCommandMapping.For<ProjectAttachFilesCommand>(c => new ProjectAttachFilesCommandCarrier(c)));
-        builder.AddSingleton(ApiCommandMapping.For<ProjectRemoveFilesCommand>(c => new ProjectRemoveFilesCommandCarrier(c)));
-        builder.AddSingleton(ApiCommandMapping.For<ProjectId>(i => new ProjectDeleteCommandCarrier(i)));
+        builder.TryAddSingleton(ApiCommandMapping.For<CreateProjectCommand>(c => new CreateProjectCommandCarrier(c)));
+        builder.TryAddSingleton(ApiCommandMapping.For<UpdateProjectCommand>(c => new UpdateProjectCommandCarrier(c)));
+        builder.TryAddSingleton(ApiCommandMapping.For<ProjectAttachFilesCommand>(c => new ProjectAttachFilesCommandCarrier(c)));
+        builder.TryAddSingleton(ApiCommandMapping.For<ProjectRemoveFilesCommand>(c => new ProjectRemoveFilesCommandCarrier(c)));
+        builder.TryAddSingleton(ApiCommandMapping.For<ProjectId>(i => new ProjectDeleteCommandCarrier(i)));
     }
 
     public void Load(IServiceCollection collection)
     {
-        collection.AddSingleton<CommandProcessor>();
+        collection.TryAddSingleton<CommandProcessor>();
         
         ProjectRegistrations(collection);
     }

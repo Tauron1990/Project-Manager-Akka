@@ -13,12 +13,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="StartConfig.json">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-    </ItemGroup>
-
-    <ItemGroup>
+      <PackageReference Include="Akka.Persistence.Query.Sql" Version="1.4.40" />
+      <PackageReference Include="Akka.Persistence.Sqlite" Version="1.4.40" />
       <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.2.7" />
       <PackageReference Include="Superpower" Version="3.0.0" />
     </ItemGroup>

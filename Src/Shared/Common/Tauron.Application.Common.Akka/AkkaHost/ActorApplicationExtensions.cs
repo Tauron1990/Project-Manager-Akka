@@ -1,7 +1,4 @@
 ﻿using Akka.Actor;
-using Akka.Actor.Setup;
-using Akka.Configuration;
-using Akka.DependencyInjection;
 using Akka.Hosting;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
@@ -16,32 +13,33 @@ public static class ActorApplicationExtensions
 {
     [PublicAPI]
     public static IHostBuilder ConfigureAkkaApplication(this IHostBuilder hostBuilder, Action<IActorApplicationBuilder>? config = null)
-        => hostBuilder.UseServiceProviderFactory(
+    {
+        var builder = new ActorApplicationBluilder(hostBuilder);
+        config?.Invoke(builder);
+        
+        return hostBuilder.UseServiceProviderFactory(
             builderContext =>
             {
-                var builder = new ActorApplicationBluilder(builderContext, hostBuilder);
-                config?.Invoke(builder);
-
+                builder.Init(builderContext);
                 return new ActorServiceProviderFactory(builder);
             });
+    }
 
     private sealed class ActorApplicationBluilder : IActorApplicationBuilder
     {
         private readonly List<Action<HostBuilderContext, IServiceProvider, AkkaConfigurationBuilder>> _config = new();
 
         private readonly IHostBuilder _builder;
-        private readonly HostBuilderContext _context;
+        private HostBuilderContext? _context;
 
         public IServiceCollection Collection { get; set; } = new ServiceCollection();
 
-        internal ActorApplicationBluilder(HostBuilderContext context, IHostBuilder builder)
-        {
-            _context = context;
-            _builder = builder;
+        internal ActorApplicationBluilder(IHostBuilder builder)
+            => _builder = builder;
 
-            Collection.ScanModules();
-        }
-
+        public void Init(HostBuilderContext context)
+            => _context = context;
+        
         public IActorApplicationBuilder ConfigureAkka(Action<HostBuilderContext, AkkaConfigurationBuilder> system)
             => ConfigureAkka((h, _, c) => system(h, c));
 
@@ -82,15 +80,22 @@ public static class ActorApplicationExtensions
 
         private string GetActorSystemName(IConfiguration config)
         {
+            if(_context is null)
+                throw new InvalidOperationException("HostBuilder Context is Null");
+            
             var name = config["actorsystem"];
-
+            
             return !string.IsNullOrWhiteSpace(name)
                 ? name
                 : _context.HostingEnvironment.ApplicationName.Replace('.', '-');
         }
 
         public void AddAkka()
-            => Collection.AddAkka(GetActorSystemName(_context.Configuration), (builder, provider) => _config.ForEach(a => a(_context, provider, builder)));
+        {
+            if(_context is null)
+                throw new InvalidOperationException("HostBuilder Context is Null");
+            Collection.AddAkka(GetActorSystemName(_context.Configuration), (builder, provider) => _config.ForEach(a => a(_context, provider, builder)));
+        }
     }
 
 
@@ -102,7 +107,8 @@ public static class ActorApplicationExtensions
 
         public IActorApplicationBuilder CreateBuilder(IServiceCollection services)
         {
-            _actorBuilder.Collection.AddRange(services);
+            services.AddRange(_actorBuilder.Collection);
+            _actorBuilder.Collection = services;
 
             return _actorBuilder;
         }

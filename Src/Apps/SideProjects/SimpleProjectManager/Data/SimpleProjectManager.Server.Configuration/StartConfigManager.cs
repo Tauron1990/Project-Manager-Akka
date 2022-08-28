@@ -72,16 +72,19 @@ public sealed class StartConfigManager
                 {
                     if(setting is JProperty property)
                     {
-                        var value = property.Value<string>();
-                        if(!string.IsNullOrEmpty(value) && !dic.ContainsKey(property.Name))
-                            dic = dic.Add(property.Name, value);
+                        var value = property.Value.Value<string>();
+                        if(!dic.ContainsKey(property.Name))
+                            dic = dic.Add(property.Name, value ?? string.Empty);
                     }
                     else
                         throw new InvalidOperationException("Only Propertys for Settings are Supported");
                 }       
             }
 
-            toRead = toRead["BasedOn"];
+            var basedOn = toRead["BasedOn"]?.Value<string>();
+            toRead = string.IsNullOrWhiteSpace(basedOn)
+                ? null
+                : token[basedOn];
         }
 
         return dic;

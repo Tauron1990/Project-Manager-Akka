@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Tauron.TAkka;
 
 namespace Tauron;
@@ -11,8 +12,8 @@ public class AkkaModule : IModule
 {
     public void Load(IServiceCollection collection)
     {
-        collection.AddScoped(typeof(ActorRefFactory<>));
-        collection.AddScoped(typeof(IDefaultActorRef<>), typeof(DefaultActorRef<>));
-        collection.AddScoped(typeof(ISyncActorRef<>), typeof(SyncActorRef<>));
+        collection.TryAddScoped(typeof(ActorRefFactory<>));
+        collection.TryAddScoped(typeof(IDefaultActorRef<>), typeof(DefaultActorRef<>));
+        collection.TryAddScoped(typeof(ISyncActorRef<>), typeof(SyncActorRef<>));
     }
 }

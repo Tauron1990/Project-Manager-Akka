@@ -1,5 +1,6 @@
 ﻿using Akkatecture.Aggregates;
 using JetBrains.Annotations;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using SimpleProjectManager.Server.Core.Projections.Core;
 
 namespace SimpleProjectManager.Server.Core.Projections;
@@ -19,7 +20,7 @@ public class ProjectionModule : IModule
 
                 return new MongoClient(url).GetDatabase(url.DatabaseName);
             })*/;
-        collection.AddTransient(c => c.GetRequiredService<IEventAggregator>().GetEvent<DomainEventDispatcher, IDomainEvent>());
+        collection.TryAddTransient(c => c.GetRequiredService<IEventAggregator>().GetEvent<DomainEventDispatcher, IDomainEvent>());
         
         collection.RegisterProjection<ProjectProjectionManager>();
     }

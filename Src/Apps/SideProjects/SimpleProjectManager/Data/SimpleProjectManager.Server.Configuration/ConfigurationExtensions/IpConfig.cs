@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Data.Sqlite;
 
 namespace SimpleProjectManager.Server.Configuration.ConfigurationExtensions;
 
