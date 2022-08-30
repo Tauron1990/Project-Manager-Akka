@@ -22,7 +22,7 @@
         <PackageReference Include="SharmIPC" Version="1.18.0" />
         <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
         <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
-        <PackageReference Include="SuperSimpleTcp" Version="2.6.1.4" />
+        <PackageReference Include="SuperSimpleTcp" Version="3.0.0" />
     </ItemGroup>
 
 </Project>

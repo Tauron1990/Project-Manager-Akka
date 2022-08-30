@@ -1,3 +1,4 @@
+using Akka.DependencyInjection;
 using SimpleProjectManager.Server;
 using SimpleProjectManager.Server.Configuration;
 using SimpleProjectManager.Server.Core.Data;

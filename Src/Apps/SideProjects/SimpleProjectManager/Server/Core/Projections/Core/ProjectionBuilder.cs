@@ -1,6 +1,7 @@
 ﻿using Akka.Actor;
 using Akka.DependencyInjection;
 using Akka.Persistence.MongoDb.Query;
+using Akka.Persistence.Query;
 using Akkatecture.Aggregates;
 using Akkatecture.Core;
 using LiquidProjections;
@@ -52,22 +53,21 @@ namespace SimpleProjectManager.Server.Core.Projections.Core
 
             var projector = new DomainProjector(eventMap);
 
-            var journalType = Type.GetType(system.Settings.Config.GetString("akka.persistence.query.journal.queryConfig.class"));
+            var journalType = Type.GetType(system.Settings.Config.GetString("akka.persistence.journal.queryConfig.class"));
 
-            if(journalType is null)
+            if(journalType is null || Activator.CreateInstance(journalType, system, system.Settings.Config) is not IReadJournalProvider journalProvider)
                 throw new InvalidOperationException("Journal Type not found");
 
-            var reader = typeof(AggregateEventReader<>)
-                   .MakeGenericType(journalType)
-                  ?.GetConstructor(new[] { typeof(ActorSystem), typeof(string) })
-                  ?.Invoke(new object[] { system, "akka.persistence.journal.queryConfig" })
-                as AggregateEventReader;
-
-            if(reader is null)
+            
+            journalType = journalProvider.GetReadJournal().GetType();
+            
+            if(typeof(AggregateEventReader<>)
+                  .MakeGenericType(journalType)
+                 ?.GetConstructor(new[] { typeof(ActorSystem), typeof(string) })
+                 ?.Invoke(new object[] { system, "akka.persistence.journal.queryConfig" }) is not AggregateEventReader reader)
                 throw new InvalidOperationException("Journal Creation Failed");
                 
-            var dispatcher = new DomainDispatcher<TProjection, TIdentity>(
-                new AggregateEventReader<MongoDbReadJournal>(system, "akka.persistence.journal.queryConfig"), projector, repository);
+            var dispatcher = new DomainDispatcher<TProjection, TIdentity>(reader, projector, repository);
 
             return dispatcher;
         }

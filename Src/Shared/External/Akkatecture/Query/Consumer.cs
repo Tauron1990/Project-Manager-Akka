@@ -44,9 +44,8 @@ public class Consumer
         string readJournalPluginId)
         where TJournal : IEventsByTagQuery, ICurrentEventsByTagQuery
     {
-        var readJournal = PersistenceQuery
-           .Get(ActorSystem)
-           .ReadJournalFor<TJournal>(readJournalPluginId);
+        var persistenceQuery = PersistenceQuery.Get(ActorSystem);
+        var readJournal = persistenceQuery.ReadJournalFor<TJournal>(readJournalPluginId);
 
         return new Consumer<TJournal>(Name, ActorSystem, readJournal);
     }

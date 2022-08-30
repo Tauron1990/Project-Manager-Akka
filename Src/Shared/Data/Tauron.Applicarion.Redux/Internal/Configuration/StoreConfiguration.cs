@@ -39,6 +39,8 @@ public sealed class StoreConfiguration : IStoreConfiguration
 
     public IRootStore Build()
     {
+        Console.WriteLine($"ReduxStore Configuration: {_configuredStates.Count}");
+
         var store = new RootStore(
             _configuredStates,
             reduxStore =>

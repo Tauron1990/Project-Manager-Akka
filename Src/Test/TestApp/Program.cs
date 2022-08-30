@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Dynamic;
 using System.IO;
 using System.Linq.Expressions;
 using System.Reactive.Linq;
@@ -111,6 +112,14 @@ public sealed class CounterState : StateBase<TestCounter>
 
 static class Program
 {
+    private static void Test()
+    {
+        dynamic test = new ExpandoObject();
+        test.Hallo = "Test";
+        test.Hallo2 = new ExpandoObject();
+        test.Hallo2.Hallo3 = "Test2";
+    }
+    
     private static async Task<ILiteDatabaseAsync> Test(ILiteDatabaseAsync dbTest)
     {
         using var db = await dbTest.BeginTransactionAsync();
@@ -123,15 +132,6 @@ static class Program
     
     static async Task Main()
     {
-        SerializationHelper<CriticalError>.Register();
-        SerializationHelper<CriticalError>.Register();
-
-        using var mem = new MemoryStream();
-        using var db = new LiteDatabaseAsync(mem);
-
-        var result = await Test(db);
-        var entrys = (await db.GetCollection<CriticalError>().FindAllAsync()).ToImmutableArray();
-        
         var coll = new ServiceCollection();
         coll.AddTransient<ICacheDb, FakeCahce>();
         coll.AddTransient<IErrorHandler, FakeError>();

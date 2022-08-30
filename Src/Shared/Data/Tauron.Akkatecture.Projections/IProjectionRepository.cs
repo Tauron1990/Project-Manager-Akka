@@ -31,7 +31,7 @@ public interface IProjectionRepository
     Task Completed<TIdentity>(TIdentity identity)
         where TIdentity : IIdentity;
 
-    long GetLastCheckpoint<TProjection, TIdentity>()
+    long? GetLastCheckpoint<TProjection, TIdentity>()
         where TProjection : class, IProjectorData<TIdentity>
         where TIdentity : IIdentity;
 }

@@ -139,7 +139,7 @@ public sealed class AggregateEventReader<TJournal> : AggregateEventReader
         {
             _errorHandler = errorHandler;
 
-            var (uniqueKillSwitch, source) = CreateSource(Offset.Sequence(lastProcessedCheckpoint ?? 0))
+            var (uniqueKillSwitch, source) = CreateSource(lastProcessedCheckpoint is null ? Offset.NoOffset() : Offset.Sequence(lastProcessedCheckpoint.Value))
                .Select(ee => (ee.Event as IDomainEvent, ee.Offset))
                .Where(de => de.Item1 != null)
                .Batch(
@@ -285,7 +285,8 @@ public sealed class AggregateEventReader<TJournal> : AggregateEventReader
             _journalId = journalId;
         }
 
-        protected override Source<EventEnvelope, NotUsed> CreateSource(Offset offset) => Consumer.Create(_system)
+        protected override Source<EventEnvelope, NotUsed> CreateSource(Offset offset) => 
+            Consumer.Create(_system)
            .Using<TJournal>(_journalId)
            .EventsFromAggregate<TAggregate>(offset);
     }

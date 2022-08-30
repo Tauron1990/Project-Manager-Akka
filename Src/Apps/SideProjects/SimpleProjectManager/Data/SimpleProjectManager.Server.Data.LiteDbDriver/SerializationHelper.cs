@@ -38,10 +38,10 @@ public static class SerializationHelper<TData>
         var parameter = Expression.Parameter(typeof(TData));
         var exp = Expression.Block(
             new[] { parameter },
-            Expression.Call(convertMetod, Expression.PropertyOrField(parameter, "Id"))
+            Expression.Call(convertMetod, Expression.Convert(Expression.PropertyOrField(parameter, "Id"), typeof(object)))
         );
 
-        return Expression.Lambda<Func<TData, string>>(exp)
+        return Expression.Lambda<Func<TData, string>>(exp, parameter)
            .CompileFast();
     }
 }

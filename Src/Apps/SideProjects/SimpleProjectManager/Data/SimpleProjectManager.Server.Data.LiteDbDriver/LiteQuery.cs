@@ -1,44 +1,77 @@
 ﻿using System.Linq.Expressions;
+using FastExpressionCompiler;
 using LiteDB.Async;
 
 namespace SimpleProjectManager.Server.Data.LiteDbDriver;
 
-public sealed class LiteFullQuery<TStart> : LiteQuery<TStart, TStart>
+public sealed class TransformingQuery<TStart, TData> : IFindQuery<TStart, TData>
 {
-    private readonly ILiteQueryableAsync<TStart> _query;
-    public LiteFullQuery(ILiteQueryableAsync<TStart> query) : base(query)
-        => _query = query;
+    private readonly LiteQuery<TStart> _original;
+    private readonly Func<TStart, TData> _transform;
 
-    public override IFindQuery<TStart, TResult> Project<TResult>(Expression<Func<TStart, TResult>> transform)
-        => new LiteQuery<TStart, TResult>(_query.Select(transform));
-}
-
-
-public class LiteQuery<TStart, TData> : IFindQuery<TStart, TData>
-{
-    private readonly ILiteQueryableAsyncResult<TData> _query;
-
-    public LiteQuery(ILiteQueryableAsyncResult<TData> query)
-        => _query = query;
+    public TransformingQuery(LiteQuery<TStart> original, Expression<Func<TStart, TData>> transform)
+    {
+        _original = original;
+        _transform = transform.CompileFast();
+    }
 
     public async ValueTask<TData?> FirstOrDefaultAsync(CancellationToken cancellationToken)
-        => await _query.FirstOrDefaultAsync();
+    {
+        var result = await _original.FirstOrDefaultAsync(cancellationToken);
+
+        return EqualityComparer<TStart?>.Default.Equals(result, default) ? default : _transform(result!);
+    }
 
     public TData? FirstOrDefault()
-        => _query.FirstOrDefaultAsync().Result;
+    {
+        var result = _original.FirstOrDefault();
 
-    public virtual IFindQuery<TStart, TResult> Project<TResult>(Expression<Func<TStart, TResult>> transform)
-        => throw new NotSupportedException("Projection is on Result Query not Supported");
+        return EqualityComparer<TStart?>.Default.Equals(result, default) ? default : _transform(result!);
+    }
+
+    public IFindQuery<TStart, TResult> Project<TResult>(Expression<Func<TStart, TResult>> transform)
+        => _original.Project(transform);
 
     public async ValueTask<TData[]> ToArrayAsync(CancellationToken token)
-        => await _query.ToArrayAsync();
+        => (from arg in await _original.ToArrayAsync(token)
+            select _transform(arg)
+            ).ToArray();
 
     public async ValueTask<TData> FirstAsync(CancellationToken token)
+        => _transform(await _original.FirstAsync(token));
+
+    public ValueTask<long> CountAsync(CancellationToken token)
+        => _original.CountAsync(token);
+
+    public async ValueTask<TData> SingleAsync(CancellationToken token = default)
+        => _transform(await _original.SingleAsync(token));
+}
+
+public sealed class LiteQuery<TStart> : IFindQuery<TStart, TStart>
+{
+    private readonly ILiteQueryableAsyncResult<TStart> _query;
+
+    public LiteQuery(ILiteQueryableAsyncResult<TStart> query)
+        => _query = query;
+
+    public async ValueTask<TStart?> FirstOrDefaultAsync(CancellationToken cancellationToken)
+        => await _query.FirstOrDefaultAsync();
+
+    public TStart FirstOrDefault()
+        => _query.FirstOrDefaultAsync().Result;
+
+    public IFindQuery<TStart, TResult> Project<TResult>(Expression<Func<TStart, TResult>> transform)
+        => new TransformingQuery<TStart, TResult>(this, transform);
+
+    public async ValueTask<TStart[]> ToArrayAsync(CancellationToken token)
+        => await _query.ToArrayAsync();
+
+    public async ValueTask<TStart> FirstAsync(CancellationToken token)
         => await _query.FirstAsync() ;
 
     public async ValueTask<long> CountAsync(CancellationToken token)
         => await _query.CountAsync();
 
-    public async ValueTask<TData> SingleAsync(CancellationToken token = default)
+    public async ValueTask<TStart> SingleAsync(CancellationToken token = default)
         => await _query.SingleAsync();
 }

@@ -124,10 +124,10 @@ public sealed class LiteDataRepository : IInternalDataRepository
         transaction.Dispose();
     }
 
-    public long GetLastCheckpoint<TProjection, TIdentity>() where TProjection : class, IProjectorData<TIdentity>
+    public long? GetLastCheckpoint<TProjection, TIdentity>() where TProjection : class, IProjectorData<TIdentity>
         where TIdentity : IIdentity
     {
         return _database.UnderlyingDatabase.GetCollection<CheckPointInfo>()
-           .FindById(GetDatabaseId(typeof(TProjection)))?.Checkpoint ?? 0;
+           .FindById(GetDatabaseId(typeof(TProjection)))?.Checkpoint;
     }
 }

@@ -47,16 +47,21 @@
     "BasedOn": "RemoteBase",
     "Settings": {
       "databaseDriver": "litedb",
+      "akka.persistence.snapshot-store.sqlite.class": "\"Akka.Persistence.Sqlite.Snapshot.SqliteSnapshotStore, Akka.Persistence.Sqlite\"",
       "akka.persistence.snapshot-store.plugin": "\"akka.persistence.snapshot-store.sqlite\"",
       "akka.persistence.snapshot-store.sqlite.auto-initialize": "true",
+      
       "akka.persistence.journal.plugin": "\"akka.persistence.journal.sqlite\"",
-      "akka.persistence.journal.sqlite.class": "\"Akka.Persistence.MongoDb.Journal.MongoDbJournal, Akka.Persistence.MongoDb\"",
+      "akka.persistence.journal.sqlite.class": "\"Akka.Persistence.Sqlite.Journal.SqliteJournal, Akka.Persistence.Sqlite\"",
       "akka.persistence.journal.sqlite.auto-initialize": "true",
-      "akka.persistence.query.journal.queryConfig.class": "\"Akka.Persistence.Query.Sql.SqlReadJournalProvider, Akka.Persistence.Query.Sql\"",
-      "akka.persistence.query.journal.queryConfig.refresh-interval": "3s",
-
-      "akka.persistence.journal.mangodb.event-adapters.aggregate-event-tagger": "\"Akkatecture.Events.AggregateEventTagger, Akkatecture\"",
-      "akka.persistence.journal.mangodb.event-adapter-bindings.\"Akkatecture.Aggregates.ICommittedEvent, Akkatecture\"":  "aggregate-event-tagger"
+      
+      "akka.persistence.journal.queryConfig.class": "\"Akka.Persistence.Query.Sql.SqlReadJournalProvider, Akka.Persistence.Query.Sql\"",
+      "akka.persistence.journal.queryConfig.refresh-interval": "3s",
+      "akka.persistence.journal.queryConfig.max-buffer-size": "500",
+      "akka.persistence.journal.queryConfig.write-plugin": "akka.persistence.journal.sqlite",
+      
+      "akka.persistence.journal.sqlite.event-adapters.aggregate-event-tagger": "\"Akkatecture.Events.AggregateEventTagger, Akkatecture\"",
+      "akka.persistence.journal.sqlite.event-adapter-bindings.\"Akkatecture.Aggregates.ICommittedEvent, Akkatecture.Abstractions\"":  "aggregate-event-tagger"
     }
   },
   "SqliteInMemory":{

@@ -13,12 +13,14 @@ public abstract class Middleware<TState> : IMiddleware<TState>
     public virtual void Initialize(IReduxStore<TState> store)
         => Store = store;
 
-    public IObservable<DispatchedAction<TState>> Connect(IObservable<DispatchedAction<TState>> actionObservable, DispatchNext<TState> next)
-        => next(
-            actionObservable
-               .SelectMany(
-                    dispatchedAction => _processors.FirstOrDefault(r => r.Can(dispatchedAction))?.Exec(dispatchedAction) ??
-                                        Observable.Return(dispatchedAction)));
+    public IObservable<DispatchedAction<TState>> Connect(IObservable<DispatchedAction<TState>> actionObservable)
+    {
+        if(_processors.Count == 0) return actionObservable;
+        return actionObservable
+           .SelectMany(
+                dispatchedAction => _processors.FirstOrDefault(r => r.Can(dispatchedAction))?.Exec(dispatchedAction) ??
+                                    Observable.Return(dispatchedAction));
+    }
 
     protected void Dispatch(object action)
         => Store.Dispatch(action);

@@ -1,5 +1,9 @@
+using Akka.Actor;
+using Akka.Cluster.Hosting;
 using Akka.DependencyInjection;
 using Akka.Hosting;
+using Akka.Persistence;
+using Akkatecture.Aggregates;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.ResponseCompression;
@@ -68,7 +72,11 @@ public class Startup
     {
         StartConfigManager.ConfigManager.ConfigurateApp(builder);
         builder
-           .ConfigureAkka((_, configurationBuilder) => configurationBuilder.AddHocon("cluster.roles = [\"Master\"]"))
+           .ConfigureAkka((_, configurationBuilder) =>
+                          {
+                              configurationBuilder.AddHocon("akka.cluster.roles = [\"Master\"]");
+                              configurationBuilder.AddStartup((sys, _) => Persistence.Instance.Apply(sys));
+                          })
            .OnMemberRemoved(
                 (_, system, _) =>
                 {

@@ -17,8 +17,8 @@ public sealed class LiteDatabaseCollection<TData> : IDatabaseCollection<TData>
         var expression = GetFilter(filter);
 
         return expression is null
-            ? new LiteFullQuery<TData>(query)
-            : new LiteFullQuery<TData>(query.Where(expression));
+            ? new LiteQuery<TData>(query)
+            : new LiteQuery<TData>(query.Where(expression));
     }
 
     public async ValueTask<long> CountEntrys(IFilter<TData> filter, CancellationToken token = default)

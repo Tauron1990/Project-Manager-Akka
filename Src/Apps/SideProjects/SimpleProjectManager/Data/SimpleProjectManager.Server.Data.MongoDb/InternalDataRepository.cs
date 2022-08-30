@@ -134,7 +134,7 @@ public sealed class InternalDataRepository : IInternalDataRepository
         transaction.Dispose();
     }
 
-    public long GetLastCheckpoint<TProjection, TIdentity>() where TProjection : class, IProjectorData<TIdentity>
+    public long? GetLastCheckpoint<TProjection, TIdentity>() where TProjection : class, IProjectorData<TIdentity>
         where TIdentity : IIdentity
     {
         var filter = Builders<CheckPointInfo>.Filter.Eq(p => p.Id, GetDatabaseId(typeof(TProjection)));

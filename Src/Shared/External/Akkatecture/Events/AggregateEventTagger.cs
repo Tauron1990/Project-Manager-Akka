@@ -24,6 +24,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Akka.Persistence.Journal;
+using Akkatecture.Aggregates;
 using Akkatecture.Core;
 using Akkatecture.Extensions;
 using JetBrains.Annotations;

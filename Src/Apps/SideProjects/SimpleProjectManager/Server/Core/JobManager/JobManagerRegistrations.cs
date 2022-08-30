@@ -13,7 +13,9 @@ public sealed class JobManagerRegistrations
     public JobManagerRegistrations(TaskManagerCore taskManagerCore, ActorSystem actorSystem)
     {
         _taskManagerCore = taskManagerCore;
-        _dependencyResolver = actorSystem.GetExtension<DependencyResolver>().Resolver;
+        var ext = DependencyResolver.For(actorSystem);
+        
+        _dependencyResolver = ext.Resolver;
     }
 
     public void Run()

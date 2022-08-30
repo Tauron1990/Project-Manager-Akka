@@ -1,4 +1,5 @@
 ﻿using Akka.Actor;
+using Akka.DependencyInjection;
 using Akka.Hosting;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
@@ -27,13 +28,15 @@ public static class ActorApplicationExtensions
 
     private sealed class ActorApplicationBluilder : IActorApplicationBuilder
     {
-        private readonly List<Action<HostBuilderContext, IServiceProvider, AkkaConfigurationBuilder>> _config = new();
-
         private readonly IHostBuilder _builder;
+        
+        private List<Action<HostBuilderContext, IServiceProvider, AkkaConfigurationBuilder>>? _config = new();
         private HostBuilderContext? _context;
 
         public IServiceCollection Collection { get; set; } = new ServiceCollection();
 
+        public bool ConfigurationFinisht { get; set; }
+        
         internal ActorApplicationBluilder(IHostBuilder builder)
             => _builder = builder;
 
@@ -45,13 +48,23 @@ public static class ActorApplicationExtensions
 
         public IActorApplicationBuilder ConfigureAkka(Action<HostBuilderContext, IServiceProvider, AkkaConfigurationBuilder> system)
         {
+            if(_config is null)
+                throw new InvalidOperationException("Akka Configuration is already Finisht");
             _config.Add(system);
 
             return this;
         }
 
+        private void CheckConfigFinisht()
+        {
+            if(ConfigurationFinisht)
+                throw new InvalidOperationException("The Configuration Process is already Finisht");
+        }
+        
+
         public IActorApplicationBuilder ConfigureHostConfiguration(Action<IConfigurationBuilder> configureDelegate)
         {
+            CheckConfigFinisht();
             _builder.ConfigureHostConfiguration(configureDelegate);
 
             return this;
@@ -59,6 +72,7 @@ public static class ActorApplicationExtensions
 
         public IActorApplicationBuilder ConfigureAppConfiguration(Action<HostBuilderContext, IConfigurationBuilder> configureDelegate)
         {
+            CheckConfigFinisht();
             _builder.ConfigureAppConfiguration(configureDelegate);
 
             return this;
@@ -66,7 +80,10 @@ public static class ActorApplicationExtensions
 
         public IActorApplicationBuilder ConfigureServices(Action<HostBuilderContext, IServiceCollection> configureDelegate)
         {
-            _builder.ConfigureServices(configureDelegate);
+            if(ConfigurationFinisht)
+                configureDelegate(_context!, Collection);
+            else
+                _builder.ConfigureServices(configureDelegate);
 
             return this;
         }
@@ -94,7 +111,17 @@ public static class ActorApplicationExtensions
         {
             if(_context is null)
                 throw new InvalidOperationException("HostBuilder Context is Null");
-            Collection.AddAkka(GetActorSystemName(_context.Configuration), (builder, provider) => _config.ForEach(a => a(_context, provider, builder)));
+
+            Collection.AddAkka(
+                GetActorSystemName(_context.Configuration),
+                (builder, provider) =>
+                {
+                    if(_config is null)
+                        throw new InvalidOperationException("Akka _config is null");
+                    
+                    _config.ForEach(a => a(_context, provider, builder));
+                    _config = null;
+                });
         }
     }
 
@@ -107,6 +134,7 @@ public static class ActorApplicationExtensions
 
         public IActorApplicationBuilder CreateBuilder(IServiceCollection services)
         {
+            _actorBuilder.ConfigurationFinisht = true;
             services.AddRange(_actorBuilder.Collection);
             _actorBuilder.Collection = services;
 
