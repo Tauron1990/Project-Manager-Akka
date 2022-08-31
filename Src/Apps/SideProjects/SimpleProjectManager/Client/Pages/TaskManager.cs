@@ -9,7 +9,7 @@ public partial class TaskManager
 
     protected override void OnInitialized()
     {
-        _pendingTasks = _globalState.Tasks.ProviderFactory();
+        _pendingTasks = GlobalState.Tasks.ProviderFactory();
         
         base.OnInitialized();
     }

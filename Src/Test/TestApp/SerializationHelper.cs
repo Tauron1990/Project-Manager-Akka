@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Immutable;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -25,12 +26,15 @@ public static class SerializationHelper<TData>
                     return new BsonDocument();
                 
                 var token = JToken.FromObject(t);
-                
-                return new BsonDocument
-                       {
-                           { "_id", accessor(t) },
-                           { "Data", token.ToString() }
-                       };
+
+                var doc = new BsonDocument();
+
+                foreach (var value in token)
+                {
+                    
+                }
+
+                return doc;
             },
             doc => JsonConvert.DeserializeObject<TData>(doc["Data"].AsString) ?? throw new InvalidOperationException("Deserialization of Entity Failed"));
         

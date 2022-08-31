@@ -64,16 +64,16 @@
       "akka.persistence.journal.sqlite.event-adapter-bindings.\"Akkatecture.Aggregates.ICommittedEvent, Akkatecture.Abstractions\"":  "aggregate-event-tagger"
     }
   },
-  "SqliteInMemory":{
+  "SqliteDev":{
     "BasedOn": "SqlLiteDatabase",
     "Settings": {
-      "LiteConnection": "",
-      "akka.persistence.snapshot-store.sqlite.connection-string": "\"Datasource=devDb;Mode=Memory;Cache=Shared\"",
-      "akka.persistence.journal.sqlite.connection-string": "\"Datasource=devDb;Mode=Memory;Cache=Shared\""
+      "LiteConnection": "projections.db",
+      "akka.persistence.snapshot-store.sqlite.connection-string": "\"Datasource=devDb.db\"",
+      "akka.persistence.journal.sqlite.connection-string": "\"Datasource=devDb.db\""
     }
   },
   "Dev":{
-    "BasedOn": "SqliteInMemory",
+    "BasedOn": "SqliteDev",
     "Settings": {
       "serverIp": "http://{ip}:{severPort}",
       "ip": "192.168.178.33",

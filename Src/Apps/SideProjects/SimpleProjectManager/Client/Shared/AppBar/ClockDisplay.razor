@@ -1,9 +1,9 @@
 ﻿@using Stl.Fusion.Extensions
 @inherits ComputedStateComponent<DateTime>
-@inject IFusionTime _fusionTime
+@inject IFusionTime FusionTime
 
 @code {
-    protected override async Task<DateTime> ComputeState(CancellationToken cancellationToken) => await _fusionTime.GetUtcNow(TimeSpan.FromMilliseconds(200));
+    protected override async Task<DateTime> ComputeState(CancellationToken cancellationToken) => await FusionTime.GetUtcNow(TimeSpan.FromMilliseconds(200));
 }
 
 @{

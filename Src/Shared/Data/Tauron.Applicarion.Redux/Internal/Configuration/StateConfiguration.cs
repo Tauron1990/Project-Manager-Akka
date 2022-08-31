@@ -215,7 +215,7 @@ public sealed class StateConfiguration<TState> : IStateConfiguration<TState>
     
     private static On<MultiState> TransformOn(Guid id, On<TState> on)
     {
-        MultiState Mutator(MultiState state, object action)
+        MultiState Mutator(MultiState state, object? action)
             => state.UpdateState(id, on.Mutator(state.GetState<TState>(id), action));
 
         return new On<MultiState>

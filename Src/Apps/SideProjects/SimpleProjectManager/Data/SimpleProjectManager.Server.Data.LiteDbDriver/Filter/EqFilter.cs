@@ -1,8 +1,6 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
-using Akkatecture.Extensions;
 using LiteDB;
-using LiteDB.Async;
 
 namespace SimpleProjectManager.Server.Data.LiteDbDriver.Filter;
 

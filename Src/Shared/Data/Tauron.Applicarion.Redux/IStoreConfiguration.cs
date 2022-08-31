@@ -1,4 +1,5 @@
-﻿using JetBrains.Annotations;
+﻿using System.Reactive.Concurrency;
+using JetBrains.Annotations;
 using Tauron.Applicarion.Redux.Configuration;
 
 namespace Tauron.Applicarion.Redux;
@@ -11,5 +12,5 @@ public interface IStoreConfiguration
 
     IStoreConfiguration RegisterForFhinising(object toRegister);
     
-    IRootStore Build();
+    IRootStore Build(IScheduler? scheduler = null);
 }

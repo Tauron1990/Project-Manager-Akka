@@ -1,7 +1,4 @@
-﻿using LiteDB;
-using LiteDB.Async;
-
-namespace SimpleProjectManager.Server.Data.LiteDbDriver;
+﻿namespace SimpleProjectManager.Server.Data.LiteDbDriver;
 
 public sealed class LiteUpdate<TData> : IUpdate<TData>
 {

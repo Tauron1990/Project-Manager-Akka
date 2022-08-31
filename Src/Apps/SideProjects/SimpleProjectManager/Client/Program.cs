@@ -7,7 +7,7 @@ using SimpleProjectManager.Client;
 using SimpleProjectManager.Client.Data;
 using SimpleProjectManager.Shared.ServerApi;
 using SimpleProjectManager.Shared.ServerApi.RestApi;
-using Stl.Fusion.Extensions;
+using Stl.DependencyInjection;
 using Stl.Fusion.UI;
 using Tauron;
 using Tauron.Application;
@@ -37,6 +37,7 @@ config.AddBlazorUIServices();
 //Services
 ServiceRegistrar.RegisterServices(builder.Services);
 builder.Services.RegisterModule<InternalDataModule>();
+
 
 var host = builder.Build();
 

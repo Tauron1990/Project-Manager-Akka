@@ -23,7 +23,7 @@ public static class Create
         => new((s, _) => mutator(s), typeof(TAction));
 
     public static On<TState> On<TAction, TState>(Func<TState, TAction, TState> mutator)
-        => new((s, a) => mutator(s, (TAction)a), typeof(TAction));
+        => new((s, a) => a is TAction action ? mutator(s, action) : s, typeof(TAction));
     
     
     public static IStateLens<TState, TFeatureState> CreateSubReducers<TState, TFeatureState>(Func<TState, TFeatureState> featureSelector, Func<TState, TFeatureState, TState> stateReducer)

@@ -24,7 +24,7 @@ public partial class FileManager
         yield return ViewModel.ConfirmDelete.RegisterHandler(
             async c =>
             {
-                var result = await _dialogService.ShowMessageBox(
+                var result = await DialogService.ShowMessageBox(
                     new MessageBoxOptions
                     {
                         Title = "Datei Löschen",

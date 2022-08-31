@@ -14,7 +14,7 @@ internal sealed class Store<TState> : IReduxStore<TState>
     private readonly CompositeDisposable _subscriptions = new();
     private readonly BehaviorSubject<TState> _state;
     private readonly Subject<object> _dispactcher = new();
-    private readonly Subject<object> _actions = new();
+    private readonly Subject<DispatchedAction<TState>> _actions = new();
     private readonly List<On<TState>> _reducers = new();
     private readonly Dictionary<Type, IMiddleware<TState>> _middlewares = new();
 
@@ -27,30 +27,30 @@ internal sealed class Store<TState> : IReduxStore<TState>
         if(RuntimeInformation.ProcessArchitecture != Architecture.Wasm)
             toAction = _dispactcher.Synchronize();
         
-        _subscriptions.Add(toAction.Subscribe(_actions));
+        _subscriptions.Add(toAction.Select(action => new DispatchedAction<TState>(CurrentState, action)).Subscribe(_actions));
         _subscriptions.Add
         (
             _actions.Select(
-                a => _middlewares.Aggregate(
-                    Observable.Return(new DispatchedAction<TState>(CurrentState, a)), 
-                    (observable, middleware) => middleware.Value.Connect(observable)))
+                    a => _middlewares.Aggregate(
+                        Observable.Return(a),
+                        (observable, middleware) => middleware.Value.Connect(observable)))
                .Switch()
-               .Select(da => _reducers
-                          .Where(on => da.GetType().IsAssignableTo(on.ActionType))
-                          .Aggregate(
-                           (da.State, da.Action),
-                           ((tuple, on) => (on.Mutator(tuple.State, tuple.Action), tuple.Action))))
+               .Select(
+                    da => _reducers
+                       .Where(on => da.GetType().IsAssignableTo(on.ActionType))
+                       .Aggregate(
+                            (da.State, da.Action),
+                            ((tuple, on) => (on.Mutator(tuple.State, tuple.Action), tuple.Action))))
                .Select(a => a.State)
                .NotNull()
-               .ObserveOn(Scheduler.Default)
                .Subscribe(_state)
-            );
+        );
         
         MutateCallbackPlugin.Install(this);
     }
 
     public IObservable<TAction> ObservAction<TAction>()
-        => _actions.OfType<TAction>();
+        => _actions.Select(da => da.Action).NotNull().OfType<TAction>();
 
     public void Dispatch(object action)
         => _dispactcher.OnNext(action);
@@ -71,10 +71,10 @@ internal sealed class Store<TState> : IReduxStore<TState>
         => _state.AsObservable();
 
     public IObservable<ActionState<TState, TAction>> ObservActionState<TAction>()
-        => _actions.OfType<TAction>().Select(a => new ActionState<TState, TAction>(CurrentState, a));
+        => _actions.Select(da => da.Action).NotNull().OfType<TAction>().Select(a => new ActionState<TState, TAction>(CurrentState, a));
 
     public IObservable<TResult> ObservAction<TAction, TResult>(Func<TState, TAction, TResult> selector)
-        => _actions.OfType<TAction>().Select(a => selector(CurrentState, a));
+        => _actions.Select(da => da.Action).NotNull().OfType<TAction>().Select(a => selector(CurrentState, a));
 
     public TState CurrentState => _state.Value;
     public void Reset()
@@ -119,13 +119,16 @@ internal sealed class Store<TState> : IReduxStore<TState>
         => RegisterEffects(effects.AsEnumerable());
 
     public IObservable<object> ObserveAction()
-        => _actions.AsObservable();
+        => _actions.Select(da => da.Action).NotNull().AsObservable();
 
     public IObservable<TAction> ObserveAction<TAction>() where TAction : class
-        => _actions.OfType<TAction>();
+        => _actions.Select(da => da.Action).NotNull().OfType<TAction>();
 
     public IObservable<TResult> ObserveAction<TAction, TResult>(Func<TAction, TState, TResult> resultSelector) where TAction : class
-        => _actions.OfType<TAction>().Select(a => resultSelector(a, CurrentState));
+        => from dispatched in _actions
+           let action = dispatched.Action as TAction
+           where action is not null
+           select resultSelector(action, dispatched.State);
 }
 
 /*internal sealed class StoreOld<TState> : IReduxStore<TState>

@@ -3,14 +3,14 @@
 @using SimpleProjectManager.Client.Shared.ViewModels
 @inherits NonAutoRenderingView<SimpleProjectManager.Client.Shared.ViewModels.Pages.DashboardViewModel>
 
-@inject PageNavigation _pageNavigation
+@inject PageNavigation PageNavigation
 
 <PageTitle>Start Seite</PageTitle>
 
 
 <MudGrid>
     <MudItem lg="3">
-        <MudPaper Elevation="2" @onclick="_pageNavigation.ShowCurrentJobs" Height="25%">
+        <MudPaper Elevation="2" @onclick="PageNavigation.ShowCurrentJobs">
             <MudGrid Spacing="1">
                 <MudItem lg="12">
                     <MudText Align="Align.Center">Aufträge</MudText>
@@ -29,14 +29,14 @@
         </MudPaper>
     </MudItem>
     <MudItem lg="3">
-        <MudPaper Height="25%">
+        <MudPaper>
             <MudGrid Spacing="2">
                 <MudGrid Justify="Justify.Center">
                     <MudItem lg="12">
-                        <MudButton FullWidth="@true" StartIcon="@Icons.Filled.NewLabel" OnClick="@(() => _pageNavigation.NewJob())">Neuer Job</MudButton>
+                        <MudButton FullWidth="@true" StartIcon="@Icons.Filled.NewLabel" OnClick="@(() => PageNavigation.NewJob())">Neuer Job</MudButton>
                     </MudItem>
                     <MudItem lg="12">
-                        <MudButton FullWidth="@true" OnClick="@(() => _pageNavigation.UploadFiles())">Daten Hochladen</MudButton>
+                        <MudButton FullWidth="@true" OnClick="@(() => PageNavigation.UploadFiles())">Daten Hochladen</MudButton>
                     </MudItem>
                 </MudGrid>
             </MudGrid>

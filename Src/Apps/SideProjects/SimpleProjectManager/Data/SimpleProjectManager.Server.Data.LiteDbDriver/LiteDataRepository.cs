@@ -2,7 +2,6 @@
 using Akkatecture.Core;
 using LiquidProjections;
 using LiteDB;
-using LiteDB.Async;
 using Tauron;
 using Tauron.Akkatecture.Projections;
 
@@ -10,28 +9,37 @@ namespace SimpleProjectManager.Server.Data.LiteDbDriver;
 
 public sealed class LiteDataRepository : IInternalDataRepository
 {
-    private readonly ILiteDatabaseAsync _database;
-    private readonly ConcurrentDictionary<object, Task<ILiteDatabaseAsync>> _transactions = new();
+    private readonly ILiteDatabase _database;
+    private readonly ConcurrentDictionary<object, LiteTransaction> _transactions = new();
 
-    public LiteDataRepository(ILiteDatabaseAsync database)
+    public LiteDataRepository(ILiteDatabase database)
     {
         _database = database;
         SerializationHelper<CheckPointInfo>.Register();
     }
 
-    private Task<ILiteDatabaseAsync> GetTransaction(object key)
-        => _transactions.GetOrAdd(key, static (_, db) => db.BeginTransactionAsync(), _database);
+    private LiteTransaction GetTransaction(object key)
+        => _transactions.GetOrAdd(key, static (_, db) => new LiteTransaction(db), _database);
 
     private static string GetDatabaseId(Type type)
         => type.FullName ?? type.Name;
 
-    private async Task CommitCheckpoint<TData>(ILiteDatabaseAsync database, ProjectionContext context, object key)
+    private async Task CommitCheckpoint<TData>(ProjectionContext context, object key)
     {
-        var id = GetDatabaseId(typeof(TData));
-        var data = new CheckPointInfo { Checkpoint = context.Checkpoint, Id = id };
-        await database.GetCollection<CheckPointInfo>().UpsertAsync(data);
-        await database.CommitAsync();
-        _transactions.TryRemove(key, out _);
+        if(!_transactions.TryRemove(key, out var trans))
+            throw new InvalidOperationException($"No Transaction with {key} Found");
+
+        using (trans)
+        {
+            await trans.Run(
+                d =>
+                {
+                    var id = GetDatabaseId(typeof(TData));
+                    var data = new CheckPointInfo { Checkpoint = context.Checkpoint, Id = id };
+                    d.GetCollection<CheckPointInfo>().Upsert(data);
+                });
+            await trans.Run(d => d.Commit());
+        }
     }
 
     public IDatabaseCollection<TData> Collection<TData>()

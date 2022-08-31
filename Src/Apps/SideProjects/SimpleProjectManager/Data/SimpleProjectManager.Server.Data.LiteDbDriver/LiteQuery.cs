@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 using FastExpressionCompiler;
-using LiteDB.Async;
+using LiteDB;
 
 namespace SimpleProjectManager.Server.Data.LiteDbDriver;
 
@@ -15,7 +15,7 @@ public sealed class TransformingQuery<TStart, TData> : IFindQuery<TStart, TData>
         _transform = transform.CompileFast();
     }
 
-    public async ValueTask<TData?> FirstOrDefaultAsync(CancellationToken cancellationToken)
+    public async ValueTask<TData> FirstOrDefaultAsync(CancellationToken cancellationToken)
     {
         var result = await _original.FirstOrDefaultAsync(cancellationToken);
 
@@ -49,29 +49,29 @@ public sealed class TransformingQuery<TStart, TData> : IFindQuery<TStart, TData>
 
 public sealed class LiteQuery<TStart> : IFindQuery<TStart, TStart>
 {
-    private readonly ILiteQueryableAsyncResult<TStart> _query;
+    private readonly ILiteQueryableResult<TStart> _query;
 
-    public LiteQuery(ILiteQueryableAsyncResult<TStart> query)
+    public LiteQuery(ILiteQueryableResult<TStart> query)
         => _query = query;
 
-    public async ValueTask<TStart?> FirstOrDefaultAsync(CancellationToken cancellationToken)
-        => await _query.FirstOrDefaultAsync();
+    public ValueTask<TStart> FirstOrDefaultAsync(CancellationToken cancellationToken)
+        => To.Task(_query.FirstOrDefault);
 
     public TStart FirstOrDefault()
-        => _query.FirstOrDefaultAsync().Result;
+        => _query.FirstOrDefault();
 
     public IFindQuery<TStart, TResult> Project<TResult>(Expression<Func<TStart, TResult>> transform)
         => new TransformingQuery<TStart, TResult>(this, transform);
 
-    public async ValueTask<TStart[]> ToArrayAsync(CancellationToken token)
-        => await _query.ToArrayAsync();
+    public ValueTask<TStart[]> ToArrayAsync(CancellationToken token)
+        => To.Task(_query.ToArray);
 
-    public async ValueTask<TStart> FirstAsync(CancellationToken token)
-        => await _query.FirstAsync() ;
+    public ValueTask<TStart> FirstAsync(CancellationToken token)
+        => To.Task(_query.First);
 
-    public async ValueTask<long> CountAsync(CancellationToken token)
-        => await _query.CountAsync();
+    public ValueTask<long> CountAsync(CancellationToken token)
+        => To.Task(() => (long)_query.Count());
 
-    public async ValueTask<TStart> SingleAsync(CancellationToken token = default)
-        => await _query.SingleAsync();
+    public ValueTask<TStart> SingleAsync(CancellationToken token = default)
+        => To.Task(_query.Single);
 }

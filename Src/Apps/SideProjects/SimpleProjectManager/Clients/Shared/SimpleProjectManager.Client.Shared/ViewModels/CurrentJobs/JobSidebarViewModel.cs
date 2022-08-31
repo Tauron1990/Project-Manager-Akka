@@ -14,9 +14,9 @@ namespace SimpleProjectManager.Client.Shared.ViewModels.CurrentJobs;
 
 public sealed class JobSidebarViewModel : ViewModelBase
 {
-    public ReactiveCommand<Unit, Unit>? NewJob { get; private set; }
+    public ReactiveCommand<Unit, Unit> NewJob { get; private set; } = null!;
 
-    public ReactiveCommand<object, Unit>? NewItemSelected { get; private set; }
+    public ReactiveCommand<object, Unit> NewItemSelected { get; private set; } = null!;
 
     private ObservableAsPropertyHelper<JobSortOrderPair?>? _selectedValue;
     public JobSortOrderPair? SelectedValue => _selectedValue?.Value;

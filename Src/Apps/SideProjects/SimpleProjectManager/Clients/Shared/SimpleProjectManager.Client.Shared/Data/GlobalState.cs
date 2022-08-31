@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Reactive.Concurrency;
+using System.Runtime.InteropServices;
 using Microsoft.Extensions.DependencyInjection;
 using SimpleProjectManager.Client.Shared.Data.States;
 using SimpleProjectManager.Client.Shared.Data.States.JobState;
@@ -28,11 +30,11 @@ public sealed class GlobalState : IDisposable
 
     public TaskState Tasks { get; }
     
-    public GlobalState(IStateFactory stateFactory, IServiceProvider rootProvider)
+    public GlobalState(IServiceProvider rootProvider)
     {
-        StateFactory = stateFactory;
         var scope = rootProvider.CreateScope();
         _scope = scope;
+        StateFactory = scope.ServiceProvider.GetRequiredService<IStateFactory>();
         var serviceProvider = scope.ServiceProvider;
 
         var configuration = serviceProvider.GetRequiredService<IStoreConfiguration>();
@@ -43,11 +45,11 @@ public sealed class GlobalState : IDisposable
         Files = CreateState<FilesState>();
         Tasks = CreateState<TaskState>();
         
-        RootStore = configuration.Build();
+        RootStore = configuration.Build(RuntimeInformation.ProcessArchitecture == Architecture.Wasm ? Scheduler.Immediate : Scheduler.Default);
         
         TState CreateState<TState>()
         {
-            var state = ActivatorUtilities.CreateInstance<TState>(serviceProvider, stateFactory);
+            var state = ActivatorUtilities.CreateInstance<TState>(serviceProvider, StateFactory);
 
             if(state is IStoreInitializer baseState)
                 baseState.RunConfig(configuration);

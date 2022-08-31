@@ -1,13 +1,12 @@
 ﻿using MudBlazor;
 using MudBlazor.Services;
 using ReactiveUI;
-using SimpleProjectManager.Client.Data;
 using SimpleProjectManager.Client.Shared.ViewModels;
+using SimpleProjectManager.Client.Shared.ViewModels.EditJob;
 using SimpleProjectManager.Client.ViewModels;
 using Splat;
 using Splat.Microsoft.Extensions.DependencyInjection;
 using Tauron;
-using Tauron.Applicarion.Redux.Configuration;
 
 namespace SimpleProjectManager.Client;
 
@@ -28,7 +27,10 @@ public static class ServiceRegistrar
         services.AddTransient<JobPriorityViewModel>();
         
         services.AddTransient<JobEditorViewModel>();
+        services.AddTransient<JobEditorViewModelBase>(s => s.GetRequiredService<JobEditorViewModel>());
+        
         services.AddTransient<FileUploaderViewModel>();
+        services.AddTransient<FileUploaderViewModelBase>(s => s.GetRequiredService<FileUploaderViewModel>());
         
         services.AddTransient<CriticalErrorViewModel>();
     }

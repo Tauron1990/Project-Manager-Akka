@@ -1,4 +1,5 @@
-﻿using Stl.Fusion;
+﻿using System.Reactive.Concurrency;
+using Stl.Fusion;
 using Tauron.Applicarion.Redux.Configuration;
 using Tauron.Applicarion.Redux.Extensions.Cache;
 using Tauron.Applicarion.Redux.Extensions.Internal;
@@ -37,11 +38,12 @@ public sealed class StoreConfiguration : IStoreConfiguration
         return this;
     }
 
-    public IRootStore Build()
+    public IRootStore Build(IScheduler? scheduler = null)
     {
         Console.WriteLine($"ReduxStore Configuration: {_configuredStates.Count}");
 
         var store = new RootStore(
+            scheduler ?? Scheduler.Default,
             _configuredStates,
             reduxStore =>
             {

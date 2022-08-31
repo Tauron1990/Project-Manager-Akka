@@ -7,13 +7,14 @@ namespace Tauron.Applicarion.Redux.Internal.Configuration;
 
 public sealed class RootStore : IRootStore
 {
-    private readonly IReduxStore<MultiState> _reduxStore = new Store<MultiState>(new MultiState(ImmutableDictionary<Guid, StateData>.Empty), Scheduler.Default);
+    private readonly IReduxStore<MultiState> _reduxStore;
     private readonly Dictionary<Type, Guid> _guidMapping = new();
 
     internal IActionDispatcher ActionDispatcher => _reduxStore;
     
-    public RootStore(List<IConfiguredState> configuredStates, Action<IReduxStore<MultiState>> config)
+    public RootStore(IScheduler scheduler, List<IConfiguredState> configuredStates, Action<IReduxStore<MultiState>> config)
     {
+        _reduxStore = new Store<MultiState>(new MultiState(ImmutableDictionary<Guid, StateData>.Empty), scheduler);
         config(_reduxStore);
         
         foreach (var configuredState in configuredStates) 
