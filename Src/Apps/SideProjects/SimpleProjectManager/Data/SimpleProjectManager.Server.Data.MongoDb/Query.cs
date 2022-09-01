@@ -10,7 +10,7 @@ public sealed class Query<TStart, TData> : IFindQuery<TStart, TData>
     public Query(IFindFluent<TStart, TData> findFluent)
         => _findFluent = findFluent;
 
-    public async ValueTask<TData> FirstOrDefaultAsync(CancellationToken cancellationToken)
+    public async ValueTask<TData?> FirstOrDefaultAsync(CancellationToken cancellationToken)
         => await _findFluent.FirstOrDefaultAsync(cancellationToken);
 
     public TData? FirstOrDefault()

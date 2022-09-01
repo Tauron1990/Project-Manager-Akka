@@ -25,12 +25,12 @@ public sealed class LiteDatabaseCollection<TData> : IDatabaseCollection<TData>
         var exp = GetFilter(filter);
 
         return exp is null
-            ? To.Task(_collection.LongCount)
-            : To.Task(() => _collection.LongCount(exp));
+            ? To.VTask(_collection.LongCount)
+            : To.VTask(() => _collection.LongCount(exp));
     }
 
     public ValueTask<DbOperationResult> UpdateOneAsync(IFilter<TData> filter, IUpdate<TData> updater, CancellationToken cancellationToken = default)
-        => To.Task(
+        => To.VTask(
             () =>
             {
                 var exp = GetFilter(filter);
@@ -47,7 +47,7 @@ public sealed class LiteDatabaseCollection<TData> : IDatabaseCollection<TData>
             });
 
     public ValueTask InsertOneAsync(TData data, CancellationToken cancellationToken = default)
-        => To.TaskV(() => _collection.Upsert(data));
+        => To.VTaskV(() => _collection.Upsert(data));
 
     public DbOperationResult DeleteOne(IFilter<TData> filter)
     {
@@ -57,7 +57,7 @@ public sealed class LiteDatabaseCollection<TData> : IDatabaseCollection<TData>
     }
 
     public ValueTask<DbOperationResult> DeleteOneAsync(IFilter<TData> filter, CancellationToken token = default)
-        => To.Task(
+        => To.VTask(
             () =>
             {
                 var exp = GetFilter(filter);

@@ -1,16 +1,16 @@
-using System.Collections.Immutable;
 using System.Linq.Expressions;
-using System.Reflection;
 using FastExpressionCompiler;
 using LiteDB;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Tauron;
+using ErrorEventArgs = Newtonsoft.Json.Serialization.ErrorEventArgs;
+using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
 namespace SimpleProjectManager.Server.Data.LiteDbDriver;
 
 public static class SerializationHelper<TData>
 {
+    // ReSharper disable once StaticMemberInGenericType
     private static bool _registrated;
 
     public static void Register()
@@ -25,16 +25,36 @@ public static class SerializationHelper<TData>
                     return new BsonDocument();
                 
                 var token = JToken.FromObject(t);
-                
-                return new BsonDocument
-                       {
-                           { "_id", accessor(t) },
-                           { "Data", token.ToString() }
-                       };
+
+                var boson = MapBson(token);
+                if(boson is BsonDocument doc)
+                    doc["_id"] = new BsonValue(accessor(t));
+
+                return boson;
             },
-            doc => JsonConvert.DeserializeObject<TData>(doc["Data"].AsString) ?? throw new InvalidOperationException("Deserialization of Entity Failed"));
+            doc =>
+            {
+                if(doc is BsonDocument bsonDocument && bsonDocument.ContainsKey("_id"))
+                    bsonDocument.Remove("_id");
+
+                var token = MapJToken(doc);
+
+                if(token is null)
+                    return default!;
+
+                var str = token.ToString(); 
+                var result = JsonConvert.DeserializeObject<TData>(token.ToString());
+
+                return result!;
+
+            });
         
         _registrated = true;
+    }
+
+    private static void TestMetods(object? sender, ErrorEventArgs e)
+    {
+        
     }
 
     private static Func<TData, string> GetAcessor()
@@ -53,4 +73,36 @@ public static class SerializationHelper<TData>
         return Expression.Lambda<Func<TData, string>>(exp, parameter)
            .CompileFast();
     }
+    
+    private static BsonValue MapBson(JToken? token)
+        => token switch
+        {
+            null => BsonValue.Null,
+            JArray array => new BsonArray(array.Select(MapBson)),
+            JObject jObject => new BsonDocument(jObject.ToDictionary<KeyValuePair<string, JToken?>, string, BsonValue>(p => p.Key, p => MapBson(p.Value))),
+            JValue jValue => new BsonValue(jValue.Value),
+            _ => throw new InvalidOperationException($"Token tyoe not Supported: {token.GetType()}")
+        };
+
+    private static JToken? MapJToken(BsonValue value)
+        => value switch
+        {
+            BsonArray array => new JArray(array.Select(MapJToken)),
+            BsonDocument document => new JObject(document.Select(p => new JProperty(p.Key, MapJToken(p.Value)))),
+            _ => value.Type switch
+            {
+                BsonType.Null => null,
+                BsonType.Int32 => new JValue(value.AsInt32),
+                BsonType.Int64 => new JValue(value.AsInt64),
+                BsonType.Double => new JValue(value.AsDouble),
+                BsonType.Decimal => new JValue(value.AsDecimal),
+                BsonType.String => new JValue(value.AsString),
+                BsonType.Binary => new JValue(value.AsBinary),
+                BsonType.ObjectId => new JValue(value.AsObjectId.ToString()),
+                BsonType.Guid => new JValue(value.AsGuid),
+                BsonType.Boolean => new JValue(value.AsBoolean),
+                BsonType.DateTime => new JValue(value.AsDateTime),
+                _ => throw new ArgumentOutOfRangeException(nameof(value), $"BsonValue type not Supported: {value.Type}")
+            }
+        };
 }

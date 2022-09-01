@@ -45,18 +45,19 @@ public sealed class LiteDataRepository : IInternalDataRepository
     public IDatabaseCollection<TData> Collection<TData>()
         => new LiteDatabaseCollection<TData>(InternalCollection<TData>());
     
-    private ILiteCollectionAsync<TData> InternalCollection<TData>(ILiteDatabaseAsync? transaction = null)
+    private ILiteCollection<TData> InternalCollection<TData>(LiteTransaction? transaction = null)
     {
         SerializationHelper<TData>.Register();
-        return (transaction ?? _database).GetCollection<TData>(typeof(TData).Name);
+        
+        return transaction is null ? _database.GetCollection<TData>() : transaction.Collection<TData>();
     }
 
-    public async Task<TProjection?> Get<TProjection, TIdentity>(ProjectionContext context, TIdentity identity)
+    public Task<TProjection?> Get<TProjection, TIdentity>(ProjectionContext context, TIdentity identity)
         where TProjection : class, IProjectorData<TIdentity>
         where TIdentity : IIdentity
-        => await InternalCollection<TProjection>().FindByIdAsync(new BsonValue(identity));
+        => To.Task(() => InternalCollection<TProjection>().FindById(new BsonValue(identity.Value)))!;
 
-    public async Task<TProjection> Create<TProjection, TIdentity>(ProjectionContext context, TIdentity identity, Func<TProjection, bool> shouldoverwite) 
+    public Task<TProjection> Create<TProjection, TIdentity>(ProjectionContext context, TIdentity identity, Func<TProjection, bool> shouldoverwite) 
         where TProjection : class, IProjectorData<TIdentity> 
         where TIdentity : IIdentity
     {
@@ -65,77 +66,66 @@ public sealed class LiteDataRepository : IInternalDataRepository
             if (FastReflection.Shared.FastCreateInstance(typeof(TProjection)) is not TProjection data)
                 throw new InvalidOperationException("Projection Creation Failed");
 
+            data.Id = identity;
+            
             return data;
         }
 
-        var coll = InternalCollection<TProjection>();
-        
-        var data = await coll.FindByIdAsync(new BsonValue(identity));
-        if (data == null)
-            data = DataFactory();
-        else if (shouldoverwite(data))
-        {
-            data = DataFactory();
-            await coll.UpdateAsync(data);
-        }
+        return To.Task(
+            () =>
+            {
+                var coll = InternalCollection<TProjection>();
 
-        return data;
+                var data = coll.FindById(new BsonValue(identity.Value));
+                if(data == null)
+                    data = DataFactory();
+                else if(shouldoverwite(data))
+                {
+                    coll.Delete(data.Id.Value);
+                    data = DataFactory();
+                }
+
+                return data;
+            });
     }
 
     public async Task<bool> Delete<TProjection, TIdentity>(ProjectionContext context, TIdentity identity)
         where TIdentity : IIdentity
         where TProjection : class, IProjectorData<TIdentity>
     {
-        using var transaction = await GetTransaction(identity);
-        try
-        {
-            var coll = InternalCollection<TProjection>(transaction);
-            var result = await coll.DeleteAsync(new BsonValue(identity));
-            await CommitCheckpoint<TProjection>(transaction, context, identity);
+        using var transaction = GetTransaction(identity.Value);
+        var coll = InternalCollection<TProjection>(transaction);
+        var result = await transaction.Run(() => coll.Delete(new BsonValue(identity.Value)));
+        await CommitCheckpoint<TProjection>(context, identity.Value);
 
-            return result;
-        }
-        catch
-        {
-            await transaction.RollbackAsync();
-
-            throw;
-        }
+        return result;
     }
 
-    public async Task Commit<TProjection, TIdentity>(ProjectionContext context, TProjection projection, TIdentity identity) 
+    public async Task Commit<TProjection, TIdentity>(ProjectionContext context, TProjection projection, TIdentity identity)
         where TIdentity : IIdentity
         where TProjection : class, IProjectorData<TIdentity>
     {
-        var trans = await GetTransaction(identity);
-        try
-        {
-            var coll = InternalCollection<TProjection>(trans);
+        using var trans = GetTransaction(identity.Value);
+        var coll = InternalCollection<TProjection>(trans);
 
-            await coll.UpsertAsync(projection);
-            await CommitCheckpoint<TProjection>(trans, context, identity);
-        }
-        catch
-        {
-            await trans.RollbackAsync();
-
-            throw;
-        }
+        await trans.Run(() => coll.Upsert(projection));
+        await CommitCheckpoint<TProjection>(context, identity.Value);
     }
 
-    public async Task Completed<TIdentity>(TIdentity identity)
+    public Task Completed<TIdentity>(TIdentity identity)
         where TIdentity : IIdentity
     {
-        if (!_transactions.TryRemove(identity, out var transaction)) return;
+        if (!_transactions.TryRemove(identity.Value, out var transaction)) return Task.CompletedTask;
 
-        await (await transaction).RollbackAsync();
         transaction.Dispose();
+        
+        return Task.CompletedTask;
     }
 
     public long? GetLastCheckpoint<TProjection, TIdentity>() where TProjection : class, IProjectorData<TIdentity>
         where TIdentity : IIdentity
     {
-        return _database.UnderlyingDatabase.GetCollection<CheckPointInfo>()
+        return _database.GetCollection<CheckPointInfo>()
            .FindById(GetDatabaseId(typeof(TProjection)))?.Checkpoint;
     }
 }

@@ -77,6 +77,7 @@ public sealed class InternalDataRepository : IInternalDataRepository
             if (FastReflection.Shared.FastCreateInstance(typeof(TProjection)) is not TProjection data)
                 throw new InvalidOperationException("Projection Creation Failed");
 
+            data.Id = identity;
             return data;
         }
 

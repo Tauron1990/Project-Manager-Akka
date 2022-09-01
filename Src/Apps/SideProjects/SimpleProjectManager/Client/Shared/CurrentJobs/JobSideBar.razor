@@ -39,7 +39,7 @@
                                         }
                                         else
                                         {
-                                            <MudText Typo="Typo.body1">Termin: @job.Info.Deadline.Value.LocalDateTime.ToString("d")</MudText>
+                                            <MudText Typo="Typo.body1">Termin: @job.Info.Deadline.Value.ToLocalTime().ToString("d")</MudText>
                                         }
                                     </MudItem>
                                     <MudItem lg="2" Style="height: 48px" Class="my-n2">

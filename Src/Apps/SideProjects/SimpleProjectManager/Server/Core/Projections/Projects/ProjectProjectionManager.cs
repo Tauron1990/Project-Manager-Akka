@@ -56,4 +56,6 @@ public sealed class ProjectProjectionManager : ProjectionManagerBase, IInitializ
                     b => b.AsDeleteOf(de => de.AggregateIdentity).IgnoringMisses());
             });
     }
+
+    public ProjectProjectionManager(ILoggerFactory loggerFactory) : base(loggerFactory) { }
 }

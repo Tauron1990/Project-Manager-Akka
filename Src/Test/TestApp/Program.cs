@@ -1,20 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Dynamic;
-using System.IO;
-using System.Linq;
-using System.Linq.Expressions;
 using System.Reactive.Linq;
-using System.Runtime.InteropServices.ComTypes;
 using System.Threading;
 using System.Threading.Tasks;
 using LiteDB;
 using LiteDB.Async;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using SimpleProjectManager.Client.Shared.Data.States;
 using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
@@ -133,57 +126,14 @@ static class Program
         return db;
     }
 
-    public sealed record TestData(int Number, string StringData, DateTime Time, bool TestBool, double TestDouble, ImmutableList<TestData> TestList);
+    public sealed record TestData(int Id, string StringData, DateTime Time, bool TestBool, double TestDouble, ImmutableList<TestData> TestList);
 
-    public static BsonValue MapBson(JToken? token)
-        => token switch
-        {
-            null => BsonValue.Null,
-            JArray array => new BsonArray(array.Select(MapBson)),
-            JObject jObject => new BsonDocument(jObject.ToDictionary<KeyValuePair<string, JToken?>, string, BsonValue>(p => p.Key, p => MapBson(p.Value))),
-            JValue jValue => new BsonValue(jValue.Value),
-            _ => throw new InvalidOperationException($"Token tyoe not Supported: {token.GetType()}")
-        };
 
-    public static JToken? MapJToken(BsonValue value)
-        => value switch
-        {
-            BsonArray array => new JArray(array.Select(MapJToken)),
-            BsonDocument document => new JObject(document.Select(p => new JProperty(p.Key, MapJToken(p.Value)))),
-            _ => value.Type switch
-            {
-                BsonType.Null => null,
-                BsonType.Int32 => new JValue(value.AsInt32),
-                BsonType.Int64 => new JValue(value.AsInt64),
-                BsonType.Double => new JValue(value.AsDouble),
-                BsonType.Decimal => new JValue(value.AsDecimal),
-                BsonType.String => new JValue(value.AsString),
-                BsonType.Binary => new JValue(value.AsBinary),
-                BsonType.ObjectId => new JValue(value.AsObjectId.ToString()),
-                BsonType.Guid => new JValue(value.AsGuid),
-                BsonType.Boolean => new JValue(value.AsBoolean),
-                BsonType.DateTime => new JValue(value.AsDateTime),
-                _ => throw new ArgumentOutOfRangeException(nameof(value), $"BsonValue type not Supported: {value.Type}")
-            }
-        };
     
     static async Task Main()
     {
-        var testData = new TestData(
-            1,
-            "Hallo",
-            DateTime.Now,
-            true,
-            1.5d,
-            ImmutableList<TestData>.Empty
-               .Add(new TestData(1, "Hallo1", DateTime.Now - TimeSpan.FromHours(5), false, 2.5d, ImmutableList<TestData>.Empty))
-               .Add(new TestData(2, "Hallo2", DateTime.Now - TimeSpan.FromDays(5), true, 3.5d, ImmutableList<TestData>.Empty
-                   .Add(new TestData(3, "Test3", DateTime.Now - TimeSpan.FromDays(100), false, 4.5d, ImmutableList<TestData>.Empty)))));
-
-        var bson = MapBson(JToken.FromObject(testData));
-        var token = MapJToken(bson);
-
-        var testData2 = token?.ToObject<TestData>();
+        var source = new TaskCompletionSource();
+        var source2 = new TaskCompletionSource<string>();
         
         var coll = new ServiceCollection();
         coll.AddTransient<ICacheDb, FakeCahce>();

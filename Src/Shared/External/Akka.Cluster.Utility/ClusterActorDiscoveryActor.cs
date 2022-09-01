@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using Akka.Actor;
 using Akka.Event;
 using JetBrains.Annotations;
@@ -141,7 +142,11 @@ public class ClusterActorDiscoveryActor : ReceiveActor
     {
         _log.Info($"Cluster.MemberRemoved: {member.Member.Address} Role={string.Join(",", member.Member.Roles)}");
 
-        var (key, _) = _nodeMap.First(node => node.Value.ClusterAddress == member.Member.UniqueAddress);
+        #pragma warning disable GU0019
+        var (key, _) = _nodeMap.FirstOrDefault(node => node.Value.ClusterAddress == member.Member.UniqueAddress);
+        #pragma warning restore GU0019
+        if(key is null) return;
+        
         RemoveNode(key);
     }
 

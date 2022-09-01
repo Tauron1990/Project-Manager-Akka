@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using JetBrains.Annotations;
 using MongoDB.Bson.Serialization.Attributes;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
@@ -20,4 +21,17 @@ public sealed class ProjectProjection : IProjectorData<ProjectId>
     public ProjectDeadline? Deadline { get; set; }
 
     public ImmutableList<ProjectFileId> ProjectFiles { get; set; } = ImmutableList<ProjectFileId>.Empty;
+
+    public ProjectProjection()
+    {
+        
+    }
+
+    [UsedImplicitly]
+    public ProjectProjection(ProjectStatus status, SortOrder ordering, ProjectDeadline? deadline)
+    {
+        Status = status;
+        Ordering = ordering;
+        Deadline = deadline;
+    }
 }

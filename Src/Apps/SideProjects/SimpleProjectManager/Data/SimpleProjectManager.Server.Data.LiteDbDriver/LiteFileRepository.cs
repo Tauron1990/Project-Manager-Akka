@@ -11,7 +11,7 @@ public sealed class LiteFileRepository : IInternalFileRepository
         => _databaseAsync = databaseAsync.FileStorage;
 
     public ValueTask<Stream> OpenStream(string id, CancellationToken cancellationToken)
-        => To.Task<Stream>(() => _databaseAsync.OpenRead(id));
+        => To.VTask<Stream>(() => _databaseAsync.OpenRead(id));
 
     public IEnumerable<string> FindIdByFileName(string fileName)
     {
@@ -21,7 +21,7 @@ public sealed class LiteFileRepository : IInternalFileRepository
     }
 
     public ValueTask<FileEntry?> FindByIdAsync(string id, CancellationToken token = default)
-        => To.Task(
+        => To.VTask(
             () =>
             {
                 var file = _databaseAsync.FindById(id);
@@ -54,10 +54,10 @@ public sealed class LiteFileRepository : IInternalFileRepository
     }
 
     public ValueTask DeleteAsync(string id, CancellationToken token)
-        => To.TaskV(() => _databaseAsync.Delete(id));
+        => To.VTaskV(() => _databaseAsync.Delete(id));
 
     public ValueTask UploadFromStreamAsync(string id, string fileId, Stream stream, string jobName, string fileName, CancellationToken token)
-        => To.TaskV(
+        => To.VTaskV(
             () =>
             {
                 var doc = new BsonDocument

@@ -1,12 +1,10 @@
 ﻿using Akka.Actor;
 using Akka.DependencyInjection;
-using Akka.Persistence.MongoDb.Query;
 using Akka.Persistence.Query;
 using Akkatecture.Aggregates;
 using Akkatecture.Core;
 using LiquidProjections;
 using SimpleProjectManager.Server.Data;
-using Stl.Reflection;
 using Tauron.Akkatecture.Projections;
 
 namespace SimpleProjectManager.Server.Core.Projections.Core
@@ -36,7 +34,7 @@ namespace SimpleProjectManager.Server.Core.Projections.Core
         }
 
         public static DomainDispatcher<TProjection, TIdentity> CreateProjection<TProjection, TAggregate, TIdentity>(
-            ActorSystem system, Action<DomainEventMapBuilder<TProjection, TAggregate, TIdentity>> mapBuilderAction) 
+            ActorSystem system, Action<DomainEventMapBuilder<TProjection, TAggregate, TIdentity>> mapBuilderAction, ILoggerFactory loggerFactory) 
             where TProjection : class, IProjectorData<TIdentity> 
             where TAggregate : IAggregateRoot<TIdentity>
             where TIdentity : IIdentity
@@ -60,14 +58,14 @@ namespace SimpleProjectManager.Server.Core.Projections.Core
 
             
             journalType = journalProvider.GetReadJournal().GetType();
-            
+
             if(typeof(AggregateEventReader<>)
                   .MakeGenericType(journalType)
-                 ?.GetConstructor(new[] { typeof(ActorSystem), typeof(string) })
+                  .GetConstructor(new[] { typeof(ActorSystem), typeof(string) })
                  ?.Invoke(new object[] { system, "akka.persistence.journal.queryConfig" }) is not AggregateEventReader reader)
                 throw new InvalidOperationException("Journal Creation Failed");
                 
-            var dispatcher = new DomainDispatcher<TProjection, TIdentity>(reader, projector, repository);
+            var dispatcher = new DomainDispatcher<TProjection, TIdentity>(reader, projector, repository, loggerFactory.CreateLogger<DomainDispatcher<TProjection, TIdentity>>());
 
             return dispatcher;
         }

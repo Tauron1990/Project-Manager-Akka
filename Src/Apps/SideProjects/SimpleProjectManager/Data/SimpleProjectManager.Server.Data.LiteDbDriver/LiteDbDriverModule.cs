@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using LiteDB;
-using LiteDB.Async;
 using Microsoft.Extensions.DependencyInjection;
 using Tauron.AkkaHost;
 
@@ -15,10 +14,10 @@ public class LiteDbDriverModule : IDatabaseModule
         builder.ConfigureServices(
             (_, services) =>
             {
-                services.AddSingleton<ILiteDatabaseAsync>(
+                services.AddSingleton<ILiteDatabase>(
                     string.IsNullOrEmpty(connectionString)
-                        ? new LiteDatabaseAsync(new LiteDatabase(new MemoryStream()))
-                        : new LiteDatabaseAsync(new LiteDatabase(connectionString)));
+                        ? new LiteDatabase(new MemoryStream())
+                        : new LiteDatabase(connectionString));
                 
                 services.AddSingleton<IInternalFileRepository, LiteFileRepository>();
                 services.AddSingleton<IInternalDataRepository, LiteDataRepository>();

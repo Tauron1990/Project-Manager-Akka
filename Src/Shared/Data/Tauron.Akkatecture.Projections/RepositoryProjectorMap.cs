@@ -37,7 +37,7 @@ public class RepositoryProjectorMap<TProjection, TIdentity>
         try
         {
             var data = await _repository.Get<TProjection, TIdentity>(context, key);
-            if (data == null)
+            if (data is null)
             {
                 if (createifmissing())
                     data = await _repository.Create<TProjection, TIdentity>(context, key, _ => true);
