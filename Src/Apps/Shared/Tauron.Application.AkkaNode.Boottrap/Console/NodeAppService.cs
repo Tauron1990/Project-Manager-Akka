@@ -25,7 +25,8 @@ public sealed class NodeAppService : IHostedService
 
     private static void Maximize()
     {
-        Process p = Process.GetCurrentProcess();
-        ShowWindow(p.MainWindowHandle, 3); //SW_MAXIMIZE = 3
+        var p = Process.GetCurrentProcess();
+        if(Environment.OSVersion.Platform == PlatformID.Win32NT)
+            ShowWindow(p.MainWindowHandle, 3); //SW_MAXIMIZE = 3
     }
 }

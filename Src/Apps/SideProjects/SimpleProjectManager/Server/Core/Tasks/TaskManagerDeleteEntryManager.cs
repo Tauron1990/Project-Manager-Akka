@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using Akkatecture.Jobs;
+using Hyperion.Internal;
 using SimpleProjectManager.Server.Data;
 using SimpleProjectManager.Shared.Services;
 
@@ -8,6 +9,12 @@ namespace SimpleProjectManager.Server.Core.Tasks;
 public sealed class TaskManagerJobId : JobId<TaskManagerJobId>
 {
     public TaskManagerJobId(string value) : base(value) { }
+    
+    [UsedImplicitly, Obsolete("Used for Serialization")]
+    public TaskManagerJobId()
+    {
+        
+    }
 }
 
 public sealed record TaskManagerDeleteEntry(string EntryId) : IJob;

@@ -22,6 +22,7 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using Akkatecture.Core;
+using JetBrains.Annotations;
 
 namespace Akkatecture.Jobs;
 
@@ -30,4 +31,10 @@ public abstract class JobId<TSelf> : Identity<TSelf>, IJobId
 {
     protected JobId(string value)
         : base(value) { }
+
+    [UsedImplicitly, Obsolete("Used for Serialization")]
+    protected JobId()
+    {
+        
+    }
 }

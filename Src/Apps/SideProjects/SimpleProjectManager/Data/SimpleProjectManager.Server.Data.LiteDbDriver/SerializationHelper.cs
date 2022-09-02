@@ -11,7 +11,7 @@ namespace SimpleProjectManager.Server.Data.LiteDbDriver;
 public static class SerializationHelper<TData>
 {
     // ReSharper disable once StaticMemberInGenericType
-    private static bool _registrated;
+    private static bool _registrated = true;
 
     public static void Register()
     {

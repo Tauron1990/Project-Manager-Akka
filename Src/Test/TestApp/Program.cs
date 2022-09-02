@@ -106,8 +106,16 @@ public sealed class CounterState : StateBase<TestCounter>
     }
 }
 
+public sealed record TestRecord
+{
+    public string Hallo { get; init; }
+
+    public int Test2 { get; init; }
+}
+
 static class Program
 {
+  
     private static void Test()
     {
         dynamic test = new ExpandoObject();

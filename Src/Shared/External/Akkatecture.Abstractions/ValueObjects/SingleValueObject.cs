@@ -28,6 +28,7 @@
 using System.Diagnostics;
 using System.Reflection;
 using Akkatecture.Extensions;
+using JetBrains.Annotations;
 
 namespace Akkatecture.ValueObjects;
 
@@ -45,7 +46,13 @@ public abstract class SingleValueObject<T> : ValueObject, IComparable, ISingleVa
         Value = value;
     }
 
-    public T Value { get; }
+    [UsedImplicitly, Obsolete("Used for Serialization")]
+    protected SingleValueObject()
+    {
+        Value = default!;
+    }
+    
+    public T Value { get; [UsedImplicitly, Obsolete("Used for Serialization")]init; }
 
     public int CompareTo(object? obj)
     {

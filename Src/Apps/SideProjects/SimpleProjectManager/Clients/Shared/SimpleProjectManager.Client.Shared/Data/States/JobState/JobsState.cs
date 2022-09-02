@@ -199,7 +199,12 @@ public partial class JobsState
             if (editorData.Ordering != null)
             {
                 return data?.Ordering == null
-                    ? new SortOrder(id, editorData.Ordering.Value, false)
+                    ? new SortOrder
+                      {
+                          Id = id,
+                          SkipCount = editorData.Ordering.Value,
+                          IsPriority = false
+                      }
                     : data.Ordering.WithCount(editorData.Ordering.Value);
             }
 

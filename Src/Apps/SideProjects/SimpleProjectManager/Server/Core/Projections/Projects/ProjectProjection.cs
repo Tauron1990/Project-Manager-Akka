@@ -7,7 +7,8 @@ using Tauron.Akkatecture.Projections;
 
 namespace SimpleProjectManager.Server.Core.Projections;
 
-public sealed class ProjectProjection : IProjectorData<ProjectId>
+[UsedImplicitly]
+public sealed record ProjectProjection : IProjectorData<ProjectId>
 {
     [BsonId]
     public ProjectId Id { get; set; } = ProjectId.New;
@@ -16,22 +17,10 @@ public sealed class ProjectProjection : IProjectorData<ProjectId>
 
     public ProjectStatus Status { get; set; }
 
-    public SortOrder Ordering { get; set; } = null!;
+    public SortOrder Ordering { get; set; } = SortOrder.Empty;
 
     public ProjectDeadline? Deadline { get; set; }
 
     public ImmutableList<ProjectFileId> ProjectFiles { get; set; } = ImmutableList<ProjectFileId>.Empty;
 
-    public ProjectProjection()
-    {
-        
-    }
-
-    [UsedImplicitly]
-    public ProjectProjection(ProjectStatus status, SortOrder ordering, ProjectDeadline? deadline)
-    {
-        Status = status;
-        Ordering = ordering;
-        Deadline = deadline;
-    }
 }

@@ -58,7 +58,12 @@ internal static class JobDataPatcher
                        ImmutableList<JobSortOrderPair>.Empty
                           .AddRange(data.CurrentJobs)
                           .Add(new JobSortOrderPair(
-                               toPatch.Ordering ?? new SortOrder(toPatch.Id, 0, false),
+                               toPatch.Ordering ?? new SortOrder
+                                                   {
+                                                       Id = toPatch.Id,
+                                                       SkipCount = 0,
+                                                       IsPriority = false
+                                                   },
                                newInfo))
                           .ToArray()
                    };

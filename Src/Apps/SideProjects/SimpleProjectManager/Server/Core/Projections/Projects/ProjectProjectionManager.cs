@@ -27,7 +27,12 @@ public sealed class ProjectProjectionManager : ProjectionManagerBase, IInitializ
                             {
                                 projection.Id = evt.AggregateIdentity;
                                 projection.JobName = evt.AggregateEvent.Name;
-                                projection.Ordering = new SortOrder(evt.AggregateIdentity, 0, false);
+                                projection.Ordering = new SortOrder
+                                                      {
+                                                          Id = evt.AggregateIdentity,
+                                                          SkipCount = 0,
+                                                          IsPriority = false
+                                                      };
                             }));
                 map.Map<ProjectDeadLineChangedEvent>(
                     b =>

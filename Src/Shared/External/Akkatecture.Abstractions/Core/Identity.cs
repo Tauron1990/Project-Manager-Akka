@@ -125,7 +125,13 @@ public abstract class Identity<T> : SingleValueObject<string>, IIdentity
         _lazyGuid = new Lazy<Guid>(() => Guid.Parse(ValueValidation.Match(Value).Groups["guid"].Value));
     }
 
-    private readonly Lazy<Guid> _lazyGuid;
+    [UsedImplicitly, Obsolete("Used for Serialization")]
+    protected Identity()
+    {
+        
+    }
+    
+    private readonly Lazy<Guid> _lazyGuid = null!;
 
     public Guid GetGuid() => _lazyGuid.Value;
 }
