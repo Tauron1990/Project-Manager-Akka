@@ -76,12 +76,12 @@ public sealed class LiteDataRepository : IInternalDataRepository
             {
                 var coll = InternalCollection<TProjection>();
 
-                var data = coll.FindById(new BsonValue(identity.Value));
+                var data = coll.FindById(identity.Value);
                 if(data == null)
                     data = DataFactory();
                 else if(shouldoverwite(data))
                 {
-                    coll.Delete(data.Id.Value);
+                    coll.Delete(identity.Value);
                     data = DataFactory();
                 }
 
@@ -95,7 +95,7 @@ public sealed class LiteDataRepository : IInternalDataRepository
     {
         using var transaction = GetTransaction(identity.Value);
         var coll = InternalCollection<TProjection>(transaction);
-        var result = await transaction.Run(() => coll.Delete(new BsonValue(identity.Value)));
+        var result = await transaction.Run(() => coll.Delete(identity.Value));
         await CommitCheckpoint<TProjection>(context, identity.Value);
 
         return result;
@@ -108,7 +108,7 @@ public sealed class LiteDataRepository : IInternalDataRepository
         using var trans = GetTransaction(identity.Value);
         var coll = InternalCollection<TProjection>(trans);
 
-        await trans.Run(() => coll.Upsert(projection));
+        await trans.Run(() => coll.Upsert(identity.Value, projection));
         await CommitCheckpoint<TProjection>(context, identity.Value);
     }
 

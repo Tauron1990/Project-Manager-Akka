@@ -8,25 +8,37 @@ using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
 namespace SimpleProjectManager.Server.Data.LiteDbDriver;
 
-public static class SerializationHelper<TData>
+// internal static class SerializationHelper
+// {
+//     public static readonly BsonMapper PrivateMapper = new();
+// }
+
+internal static class SerializationHelper<TData>
 {
     // ReSharper disable once StaticMemberInGenericType
-    private static bool _registrated = true;
+    private static bool _registrated;
 
     public static void Register()
     {
         if(_registrated) return;
 
+        if(IsPrimitive())
+        {
+            _registrated = true;
+            return;
+        }
+
         var accessor = GetAcessor();
-        BsonMapper.Global.RegisterType<TData>(
+
+        BsonMapper.Global.RegisterType(
             t =>
             {
                 if(t is null)
                     return new BsonDocument();
-                
-                var token = JToken.FromObject(t);
 
+                var token = JToken.FromObject(t);
                 var boson = MapBson(token);
+                
                 if(boson is BsonDocument doc)
                     doc["_id"] = new BsonValue(accessor(t));
 
@@ -39,22 +51,22 @@ public static class SerializationHelper<TData>
 
                 var token = MapJToken(doc);
 
-                if(token is null)
-                    return default!;
+                if(token is null) return default!;
 
-                var str = token.ToString(); 
-                var result = JsonConvert.DeserializeObject<TData>(token.ToString());
-
-                return result!;
+                var result = token.ToObject<TData>();
+                
+                return result;
 
             });
         
         _registrated = true;
     }
 
-    private static void TestMetods(object? sender, ErrorEventArgs e)
+    private static bool IsPrimitive()
     {
-        
+        var dataType = typeof(TData);
+
+        return dataType.IsPrimitive || dataType.IsEnum || dataType.IsArray || dataType == typeof(Guid) || dataType == typeof(DateTime);
     }
 
     private static Func<TData, string> GetAcessor()
