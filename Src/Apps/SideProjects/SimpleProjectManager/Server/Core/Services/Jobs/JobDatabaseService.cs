@@ -59,7 +59,7 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
     public virtual async Task<JobInfo[]> GetActiveJobs(CancellationToken token)
     {
         if (Computed.IsInvalidating()) return Array.Empty<JobInfo>();
-        
+
         var filter = _projects.Operations.Eq(p => p.Status, ProjectStatus.Finished);
 
         return await _projects.Find(filter.Not)
