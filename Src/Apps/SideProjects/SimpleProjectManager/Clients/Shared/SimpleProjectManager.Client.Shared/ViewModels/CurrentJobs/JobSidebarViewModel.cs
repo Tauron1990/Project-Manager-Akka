@@ -44,8 +44,11 @@ public sealed class JobSidebarViewModel : ViewModelBase
             yield return NewItemSelected = ReactiveCommand.Create<object, Unit>(
                 o =>
                 {
-                    if (o is JobSortOrderPair pair)
+                    if(o is JobSortOrderPair pair)
+                    {
+                        Console.WriteLine($"Job Selected {o}");
                         globalState.Dispatch(new SelectNewPairAction(pair));
+                    }
 
                     return Unit.Default;
                 },

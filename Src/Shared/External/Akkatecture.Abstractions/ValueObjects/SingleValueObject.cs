@@ -38,21 +38,29 @@ public abstract class SingleValueObject<T> : ValueObject, IComparable, ISingleVa
     private static readonly Type Type = typeof(T);
     private static readonly TypeInfo TypeInfo = typeof(T).GetTypeInfo();
 
+    private T _value;
+    
     protected SingleValueObject(T value)
     {
         if (TypeInfo.IsEnum && !Enum.IsDefined(Type, value))
             throw new ArgumentException($"The value '{value}' isn't defined in enum '{Type.PrettyPrint()}'");
 
-        Value = value;
+        _value = value;
     }
 
     [UsedImplicitly, Obsolete("Used for Serialization")]
     protected SingleValueObject()
     {
-        Value = default!;
+        _value = default!;
     }
     
-    public T Value { get; [UsedImplicitly, Obsolete("Used for Serialization")]init; }
+    // ReSharper disable once ConvertToAutoProperty
+    public T Value
+    {
+        get => _value;
+        [UsedImplicitly, Obsolete("Used for Serialization")]
+        init => _value = value;
+    }
 
     public int CompareTo(object? obj)
     {

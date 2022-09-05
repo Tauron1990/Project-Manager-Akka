@@ -122,7 +122,9 @@ public sealed class CacheDb : ICacheDb
             => _reference = reference;
 
         public async Task UpdateData(CacheData data)
-            => await _reference.InvokeVoidAsync("window.Database.saveData", data.Id.ToString(), data);
+        {
+            await _reference.InvokeVoidAsync("window.Database.saveData", data.Id.ToString(), data);
+        }
 
         public async Task DeleteElement(CacheDataId key)
             => await _reference.InvokeVoidAsync("window.Database.deleteElement", key.ToString(), CacheTimeoutId.FromCacheId(key).ToString());
@@ -145,6 +147,10 @@ public sealed class CacheDb : ICacheDb
 
         public async Task<CacheData?> GetCacheEntry(CacheDataId id)
         {
+            #if DEBUG
+            return null;
+            #endif
+            
             var result = await _reference.InvokeAsync<string>("window.Database.getCacheEntry", id.ToString());
 
             return string.IsNullOrWhiteSpace(result) ? null : JsonSerializer.Deserialize<CacheData>(result);

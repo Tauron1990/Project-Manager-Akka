@@ -66,7 +66,8 @@ internal static class SerializationHelper<TData>
     {
         var dataType = typeof(TData);
 
-        return dataType.IsPrimitive || dataType.IsEnum || dataType.IsArray || dataType == typeof(Guid) || dataType == typeof(DateTime);
+        return dataType.IsPrimitive || dataType.IsEnum || dataType.IsArray || dataType == typeof(string) || dataType == typeof(Guid) 
+            || dataType == typeof(DateTime);
     }
 
     private static Func<TData, string> GetAcessor()
