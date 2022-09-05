@@ -33,26 +33,25 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
                     {
                         case ProjectFilesRemovedEvent:
                         case ProjectFilesAttachedEvent:
-                            DataChanged().Ignore();
+                            GetActiveJobs(default).Ignore();
+                            GetJobData(de.AggregateIdentity, default).Ignore();
                             break;
+                        case ProjectDeletedEvent:
                         case NewProjectCreatedEvent:
                             CountActiveJobs(default).Ignore();
                             GetActiveJobs(default).Ignore();
+                            GetSortOrders(default).Ignore();
                             break;
-                        case ProjectDeletedEvent:
+                        case ProjectStatusChangedEvent:
                         case ProjectDeadLineChangedEvent:
                         case ProjectNameChangedEvent:
-                        case ProjectStatusChangedEvent:
-                            DataChanged().Ignore();
+                            GetActiveJobs(default).Ignore();
+                            GetSortOrders(default).Ignore();
+                            CountActiveJobs(default).Ignore();
+                            GetJobData(de.AggregateIdentity, default).Ignore();
                             break;
                     }
                 }
-
-                Task DataChanged()
-                    => Task.WhenAny(
-                        CountActiveJobs(default),
-                        GetActiveJobs(default),
-                        GetJobData(de.AggregateIdentity, default));
             });
     }
 
@@ -61,10 +60,15 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
         if (Computed.IsInvalidating()) return Array.Empty<JobInfo>();
 
         var filter = _projects.Operations.Eq(p => p.Status, ProjectStatus.Finished);
-
+        #if DEBUG
+        var projectionData = await _projects.Find(filter).ToArrayAsync(token);
+        
+        return projectionData.Select(d => new JobInfo(d.Id, d.JobName, d.Deadline, d.Status, d.ProjectFiles.Count != 0)).ToArray();
+        #else
         return await _projects.Find(filter.Not)
            .Project(p => new JobInfo(p.Id, p.JobName, p.Deadline, p.Status, p.ProjectFiles.Count != 0))
            .ToArrayAsync(token);
+        #endif
     }
 
     public virtual async Task<SortOrder[]> GetSortOrders(CancellationToken token)

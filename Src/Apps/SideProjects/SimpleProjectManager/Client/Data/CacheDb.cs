@@ -27,7 +27,7 @@ public sealed class CacheDb : ICacheDb
         {
             var db = GetDatabseConnection();
             var (sucess, message) = await db.DeleteTimeoutElement(key);
-            
+
             if(sucess) return;
 
             _eventAggregator.PublishError(message);
@@ -37,13 +37,13 @@ public sealed class CacheDb : ICacheDb
             _eventAggregator.PublishError(e);
         }
     }
-    
+
     public async ValueTask DeleteElement(CacheDataId key)
     {
         var db = GetDatabseConnection();
         await db.DeleteElement(key);
     }
-    
+
     public async ValueTask<(CacheTimeoutId? id, CacheDataId? Key, DateTime Time)> GetNextTimeout()
     {
         try
@@ -72,25 +72,25 @@ public sealed class CacheDb : ICacheDb
     private async ValueTask UpdateTimeout(CacheDataId key)
     {
         var db = GetDatabseConnection();
-        
+
         var id = CacheTimeoutId.FromCacheId(key);
         var timeout = await db.GetTimeout(id);
         await db.UpdateTimeout(
             timeout is null
-            ? new CacheTimeout(id, key, GetTimeout())
-            : timeout with { Timeout = GetTimeout() });
+                ? new CacheTimeout(id, key, GetTimeout())
+                : timeout with { Timeout = GetTimeout() });
     }
-    
+
     public async ValueTask TryAddOrUpdateElement(CacheDataId key, string data)
     {
         try
         {
             var db = GetDatabseConnection();
-            
+
             var cacheData = new CacheData(key, data);
 
             await UpdateTimeout(key);
-            
+
             await db.UpdateData(cacheData);
         }
         catch (Exception e)
@@ -105,7 +105,7 @@ public sealed class CacheDb : ICacheDb
         var result = await db.GetCacheEntry(key);
 
         // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-        if (result is null) return null;
+        if(result is null) return null;
 
         await UpdateTimeout(key);
 
@@ -113,7 +113,7 @@ public sealed class CacheDb : ICacheDb
     }
 
     private sealed record InternalResult(bool Sucess, string? Message);
-    
+
     private sealed class DatabaseConnection
     {
         private readonly IJSRuntime _reference;
@@ -149,11 +149,11 @@ public sealed class CacheDb : ICacheDb
         {
             #if DEBUG
             return null;
-            #endif
-            
+            #else
             var result = await _reference.InvokeAsync<string>("window.Database.getCacheEntry", id.ToString());
 
             return string.IsNullOrWhiteSpace(result) ? null : JsonSerializer.Deserialize<CacheData>(result);
+            #endif
         }
     }
-} 
+}

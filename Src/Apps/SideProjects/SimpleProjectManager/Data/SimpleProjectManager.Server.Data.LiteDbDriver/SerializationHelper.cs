@@ -3,21 +3,28 @@ using FastExpressionCompiler;
 using LiteDB;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using ErrorEventArgs = Newtonsoft.Json.Serialization.ErrorEventArgs;
-using JsonSerializer = Newtonsoft.Json.JsonSerializer;
+using NewtonSerializer = Newtonsoft.Json.JsonSerializer;
 
 namespace SimpleProjectManager.Server.Data.LiteDbDriver;
 
-// internal static class SerializationHelper
-// {
-//     public static readonly BsonMapper PrivateMapper = new();
-// }
+internal static class SerializationHelper
+{
+     public static readonly NewtonSerializer PrivateSerializer = CreateSerializer();
+
+     private static NewtonSerializer CreateSerializer()
+     {
+         var settings = new JsonSerializerSettings();
+         
+         return NewtonSerializer.Create(settings);
+     }
+}
 
 internal static class SerializationHelper<TData>
 {
     // ReSharper disable once StaticMemberInGenericType
     private static bool _registrated;
 
+    // ReSharper disable once CognitiveComplexity
     public static void Register()
     {
         if(_registrated) return;
@@ -29,14 +36,14 @@ internal static class SerializationHelper<TData>
         }
 
         var accessor = GetAcessor();
-
+        
         BsonMapper.Global.RegisterType(
             t =>
             {
                 if(t is null)
                     return new BsonDocument();
 
-                var token = JToken.FromObject(t);
+                var token = JToken.FromObject(t, SerializationHelper.PrivateSerializer);
                 var boson = MapBson(token);
                 
                 if(boson is BsonDocument doc)
@@ -53,7 +60,7 @@ internal static class SerializationHelper<TData>
 
                 if(token is null) return default!;
 
-                var result = token.ToObject<TData>();
+                var result = token.ToObject<TData>(SerializationHelper.PrivateSerializer);
                 
                 return result;
 
