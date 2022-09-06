@@ -9,8 +9,8 @@ public class LiteDbDriverModule : IDatabaseModule
 {
     public void Configurate(IActorApplicationBuilder builder, ImmutableDictionary<string, string> propertys)
     {
-        BsonMapper.Global.EnumAsInteger = true;
-        
+        SerializationHelper.Init();
+
         var connectionString = propertys["LiteConnection"];
 
         builder.ConfigureServices(

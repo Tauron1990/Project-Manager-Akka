@@ -55,7 +55,7 @@ public sealed class LiteDataRepository : IInternalDataRepository
     public Task<TProjection?> Get<TProjection, TIdentity>(ProjectionContext context, TIdentity identity)
         where TProjection : class, IProjectorData<TIdentity>
         where TIdentity : IIdentity
-        => To.Task(() => InternalCollection<TProjection>().FindById(new BsonValue(identity.Value)))!;
+        => To.Task(() => InternalCollection<TProjection>().FindById(identity.Value))!;
 
     public Task<TProjection> Create<TProjection, TIdentity>(ProjectionContext context, TIdentity identity, Func<TProjection, bool> shouldoverwite) 
         where TProjection : class, IProjectorData<TIdentity> 
@@ -75,7 +75,7 @@ public sealed class LiteDataRepository : IInternalDataRepository
             () =>
             {
                 var coll = InternalCollection<TProjection>();
-
+                
                 var data = coll.FindById(identity.Value);
                 if(data == null)
                     data = DataFactory();
@@ -93,10 +93,11 @@ public sealed class LiteDataRepository : IInternalDataRepository
         where TIdentity : IIdentity
         where TProjection : class, IProjectorData<TIdentity>
     {
-        using var transaction = GetTransaction(identity.Value);
+        using var transaction = GetTransaction(identity);
+        
         var coll = InternalCollection<TProjection>(transaction);
         var result = await transaction.Run(() => coll.Delete(identity.Value));
-        await CommitCheckpoint<TProjection>(context, identity.Value);
+        await CommitCheckpoint<TProjection>(context, identity);
 
         return result;
     }
@@ -105,17 +106,17 @@ public sealed class LiteDataRepository : IInternalDataRepository
         where TIdentity : IIdentity
         where TProjection : class, IProjectorData<TIdentity>
     {
-        using var trans = GetTransaction(identity.Value);
+        using var trans = GetTransaction(identity);
         var coll = InternalCollection<TProjection>(trans);
 
         await trans.Run(() => coll.Upsert(identity.Value, projection));
-        await CommitCheckpoint<TProjection>(context, identity.Value);
+        await CommitCheckpoint<TProjection>(context, identity);
     }
 
     public Task Completed<TIdentity>(TIdentity identity)
         where TIdentity : IIdentity
     {
-        if (!_transactions.TryRemove(identity.Value, out var transaction)) return Task.CompletedTask;
+        if (!_transactions.TryRemove(identity, out var transaction)) return Task.CompletedTask;
 
         transaction.Dispose();
         

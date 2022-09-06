@@ -1,4 +1,7 @@
 using System.Linq.Expressions;
+using System.Reflection;
+using Akkatecture.Core;
+using Akkatecture.ValueObjects;
 using FastExpressionCompiler;
 using LiteDB;
 using Newtonsoft.Json;
@@ -13,17 +16,83 @@ internal static class SerializationHelper
 
      private static NewtonSerializer CreateSerializer()
      {
+         
+         
          var settings = new JsonSerializerSettings();
          
          return NewtonSerializer.Create(settings);
      }
+
+     public static void Init()
+     {
+         BsonMapper.Global.EnumAsInteger = true;
+         BsonMapper.Global.ResolveMember +=
+             (_, info, mapper) =>
+             {
+                 var memberType = info switch
+                 {
+                     PropertyInfo propertyInfo => propertyInfo.PropertyType,
+                     FieldInfo fieldInfo => fieldInfo.FieldType,
+                     _ => null
+                 };
+
+                 if(memberType is null || !memberType.IsAssignableTo(typeof(ISingleValueObject))) return;
+
+                 var targetType = memberType;
+
+                 while (targetType is not null && targetType.Name != "SingleValueObject`1")
+                     targetType = targetType.BaseType;
+
+                 if(targetType is null) return;
+
+                 targetType = targetType.GetGenericArguments()[0];
+
+                 mapper.Serialize = (target, bsonMapper) =>
+                                    {
+                                        var value = bsonMapper.Serialize(((ISingleValueObject)target).GetValue());
+
+                                        return value;
+                                    };
+                 mapper.Deserialize = (value, bsonMapper) =>
+                                      {
+                                              var result = Activator.CreateInstance(memberType, bsonMapper.Deserialize(targetType, value));
+
+                                              return result;
+                                      };
+             };
+     }
 }
+
+/*public sealed class TestValue : SingleValueObject<bool>
+{
+    public TestValue(bool value)
+        : base(value)
+    {
+        
+    }
+}
+
+public sealed class TestId : Identity<TestId>
+{
+    public TestId(string value)
+        : base(value)
+    {
+        
+    }
+}
+
+public sealed record TestClass
+{
+    public TestId Id { get; init; }
+
+    public TestValue TestValue { get; init; }
+}*/
 
 internal static class SerializationHelper<TData>
 {
     // ReSharper disable once StaticMemberInGenericType
-    private static bool _registrated;
-
+    private static bool _registrated = true;
+    
     // ReSharper disable once CognitiveComplexity
     public static void Register()
     {
@@ -36,6 +105,7 @@ internal static class SerializationHelper<TData>
         }
 
         var accessor = GetAcessor();
+        
         
         BsonMapper.Global.RegisterType(
             t =>
