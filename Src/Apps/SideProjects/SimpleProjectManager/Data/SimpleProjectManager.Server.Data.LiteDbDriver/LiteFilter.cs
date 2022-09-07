@@ -8,8 +8,10 @@ public abstract class LiteFilter<TData> : IFilter<TData>
 
     protected internal void Prepare(bool isNot)
         => IsNot = isNot;
+
+    protected internal abstract bool Run(TData data);
     
-    protected internal abstract BsonExpression? Create();
+    protected internal abstract IEnumerable<TData> Run(IEnumerable<TData> input);
 
     public IFilter<TData> Not
     {

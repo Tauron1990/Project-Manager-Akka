@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reactive;
+using System.Reactive.Linq;
 using ReactiveUI;
 using SimpleProjectManager.Client.Shared.Data;
 using SimpleProjectManager.Client.Shared.Data.States;
@@ -14,7 +15,8 @@ public sealed class CurrentJobsViewModel : ReactiveObject
     
     public CurrentJobsViewModel(GlobalState state, PageNavigation pageNavigation)
     {
-        Jobs = state.Jobs.CurrentJobs;
+        Console.WriteLine($"{nameof(CurrentJobsViewModel)} Constructor");
+        Jobs = state.Jobs.CurrentJobs.Do(l => Console.WriteLine($"{nameof(CurrentJobsViewModel)} -- Recived new Data: {l.Length}"));
         NewJob = ReactiveCommand.Create(pageNavigation.NewJob, state.IsOnline);
     }
 }

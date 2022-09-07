@@ -19,14 +19,14 @@ public static class ServiceCollectionExtensions
         return coll;
     }
 
-    public static IServiceCollection AddRootStore(this IServiceCollection coll, Action<IStoreConfiguration> configurate)
+    public static IServiceCollection AddRootStore(this IServiceCollection coll, Action<IServiceProvider, IStoreConfiguration> configurate)
         => coll
            .AddStoreConfiguration()
            .AddSingleton(
                 s =>
                 {
                     var config = s.GetRequiredService<IStoreConfiguration>();
-                    configurate(config);
+                    configurate(s, config);
 
                     return config.Build();
                 });

@@ -50,28 +50,35 @@ public sealed class TransformingQuery<TStart, TData> : IFindQuery<TStart, TData>
 public sealed class LiteQuery<TStart> : IFindQuery<TStart, TStart>
 {
     private readonly ILiteQueryableResult<TStart> _query;
+    private readonly Func<IEnumerable<TStart>, IEnumerable<TStart>> _filter;
 
-    public LiteQuery(ILiteQueryableResult<TStart> query)
-        => _query = query;
+    public LiteQuery(ILiteQueryableResult<TStart> query, Func<IEnumerable<TStart>, IEnumerable<TStart>> filter)
+    {
+        _query = query;
+        _filter = filter;
+    }
+
+    private IEnumerable<TStart> GetData()
+        => _filter(_query.ToEnumerable());
 
     public ValueTask<TStart?> FirstOrDefaultAsync(CancellationToken cancellationToken)
-        => To.VTask(_query.FirstOrDefault)!;
+        => To.VTask(GetData().FirstOrDefault);
 
-    public TStart FirstOrDefault()
-        => _query.FirstOrDefault();
+    public TStart? FirstOrDefault()
+        => GetData().FirstOrDefault();
 
     public IFindQuery<TStart, TResult> Project<TResult>(Expression<Func<TStart, TResult>> transform)
         => new TransformingQuery<TStart, TResult>(this, transform);
 
     public ValueTask<TStart[]> ToArrayAsync(CancellationToken token)
-        => To.VTask(_query.ToArray);
+        => To.VTask(GetData().ToArray);
 
     public ValueTask<TStart> FirstAsync(CancellationToken token)
-        => To.VTask(_query.First);
+        => To.VTask(GetData().First);
 
     public ValueTask<long> CountAsync(CancellationToken token)
-        => To.VTask(() => (long)_query.Count());
+        => To.VTask(() => (long)GetData().Count());
 
     public ValueTask<TStart> SingleAsync(CancellationToken token = default)
-        => To.VTask(_query.Single);
+        => To.VTask(GetData().Single);
 }

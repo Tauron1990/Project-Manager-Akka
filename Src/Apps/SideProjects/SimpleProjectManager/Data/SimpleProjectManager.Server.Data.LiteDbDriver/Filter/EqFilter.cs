@@ -1,41 +1,35 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
+using FastExpressionCompiler;
 using LiteDB;
 
 namespace SimpleProjectManager.Server.Data.LiteDbDriver.Filter;
 
 public sealed class EqFilter<TData, TField> : LiteFilter<TData>
 {
-    private readonly Expression<Func<TData, TField>> _selector;
+    private readonly Func<TData, TField> _selector;
     private readonly TField _toEqual;
+    private readonly EqualityComparer<TField> _equalitiy = EqualityComparer<TField>.Default;
 
     public EqFilter(Expression<Func<TData, TField>> selector, TField toEqual)
     {
-        _selector = selector;
+        _selector = selector.CompileFast();
         _toEqual = toEqual;
 
     }
-    protected internal override BsonExpression? Create()
+
+    protected internal override bool Run(TData data)
     {
-        var name = string.Empty;
+        var fieldValue = _selector(data);
 
-        if(_selector.Body is not MemberExpression memberExpression)
-            throw new InvalidOperationException("Selector is no Member Expression");
-
-        switch (memberExpression.Member)
+        return IsNot switch
         {
-            case PropertyInfo:
-            case FieldInfo:
-                name = memberExpression.Member.Name;
-                break;
-            default:
-                throw new InvalidOperationException("Member Selector must be Property or Field");
-        }
-
-        var value = BsonMapper.Global.Serialize(_toEqual);
-        
-        return IsNot 
-            ? Query.Not(name, value)
-            : Query.EQ(name, value);
+            true when !_equalitiy.Equals(fieldValue, _toEqual) => true,
+            false when _equalitiy.Equals(fieldValue, _toEqual) => true,
+            _ => false
+        };
     }
+
+    protected internal override IEnumerable<TData> Run(IEnumerable<TData> input)
+        => input.Where(Run);
 }

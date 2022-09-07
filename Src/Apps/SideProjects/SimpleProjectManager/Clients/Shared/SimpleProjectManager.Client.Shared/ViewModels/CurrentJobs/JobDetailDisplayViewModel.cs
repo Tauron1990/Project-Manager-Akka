@@ -19,10 +19,14 @@ public sealed class JobDetailDisplayViewModel : ViewModelBase
     
     public JobDetailDisplayViewModel(GlobalState globalState, PageNavigation navigationManager, IMessageMapper aggregator) 
     {
+        Console.WriteLine("JobState Detail View Constructor");
+        
         this.WhenActivated(Init);
         
         IEnumerable<IDisposable> Init()
         {
+            Console.WriteLine("JobState Detail View Init");
+            
             yield return _jobData = globalState.Jobs
                .CurrentlySelectedData
                .ObserveOn(RxApp.MainThreadScheduler)

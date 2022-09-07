@@ -12,9 +12,9 @@ public sealed class RootStore : IRootStore
 
     internal IActionDispatcher ActionDispatcher => _reduxStore;
     
-    public RootStore(IScheduler scheduler, List<IConfiguredState> configuredStates, Action<IReduxStore<MultiState>> config)
+    public RootStore(IScheduler scheduler, List<IConfiguredState> configuredStates, Action<IReduxStore<MultiState>> config, Action<Exception> onError)
     {
-        _reduxStore = new Store<MultiState>(new MultiState(ImmutableDictionary<Guid, StateData>.Empty), scheduler);
+        _reduxStore = new Store<MultiState>(new MultiState(ImmutableDictionary<Guid, StateData>.Empty), scheduler, onError);
         config(_reduxStore);
         
         foreach (var configuredState in configuredStates) 

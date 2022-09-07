@@ -22,4 +22,9 @@ public sealed class ErrorHandler : IErrorHandler
 
     public void TimeoutError(Exception error)
         => _eventAggregator.PublishSharedMessage(SharedMessage.CreateError($"Timeout Fheler: {error.Message}"));
+
+    public void StoreError(Exception error)
+    {
+        _eventAggregator.PublishSharedMessage(SharedMessage.CreateError($"Store Error: {error}"));
+    }
 }

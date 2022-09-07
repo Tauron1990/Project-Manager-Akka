@@ -61,6 +61,9 @@ public sealed class FakeError : IErrorHandler
 
     public void TimeoutError(Exception error)
         => Console.WriteLine($"Timeout Error: {error}");
+
+    public void StoreError(Exception error)
+        => Console.WriteLine($"Store Error: {error}");
 }
 
 public sealed class FakeCahce : ICacheDb

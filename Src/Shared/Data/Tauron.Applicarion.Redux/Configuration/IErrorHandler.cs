@@ -9,4 +9,6 @@ public interface IErrorHandler
     void StateDbError(Exception error);
 
     void TimeoutError(Exception error);
+
+    void StoreError(Exception error);
 }

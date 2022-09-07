@@ -22,4 +22,7 @@ public class ErrorHandler : IErrorHandler
 
     public void TimeoutError(Exception error)
         => _eventAggregator.PublishWarnig(error);
+
+    public void StoreError(Exception error)
+        => _eventAggregator.PublishError(error);
 }

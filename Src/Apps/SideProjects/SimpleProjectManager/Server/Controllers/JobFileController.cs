@@ -43,7 +43,7 @@ namespace SimpleProjectManager.Server.Controllers
         public async Task<IActionResult> GetFileDownload(
             [FromRoute] ProjectFileId id, [FromServices]IInternalDataRepository dataRepository, [FromServices] IInternalFileRepository bucked, CancellationToken token)
         {
-            var coll = dataRepository.Collection<FileInfoData>();
+            IDatabaseCollection<FileInfoData> coll = dataRepository.Collection<FileInfoData>();
             var filter = coll.Operations.Eq(p => p.Id, id);
             var data = await coll.Find(filter).FirstOrDefaultAsync(token);
             if(data == null) return NotFound();

@@ -1,6 +1,5 @@
 using System.Linq.Expressions;
 using System.Reflection;
-using Akkatecture.Core;
 using Akkatecture.ValueObjects;
 using FastExpressionCompiler;
 using LiteDB;
@@ -47,18 +46,8 @@ internal static class SerializationHelper
 
                  targetType = targetType.GetGenericArguments()[0];
 
-                 mapper.Serialize = (target, bsonMapper) =>
-                                    {
-                                        var value = bsonMapper.Serialize(((ISingleValueObject)target).GetValue());
-
-                                        return value;
-                                    };
-                 mapper.Deserialize = (value, bsonMapper) =>
-                                      {
-                                              var result = Activator.CreateInstance(memberType, bsonMapper.Deserialize(targetType, value));
-
-                                              return result;
-                                      };
+                 mapper.Serialize = (target, bsonMapper) => bsonMapper.Serialize(((ISingleValueObject)target).GetValue());
+                 mapper.Deserialize = (value, bsonMapper) => Activator.CreateInstance(memberType, bsonMapper.Deserialize(targetType, value));
              };
      }
 }

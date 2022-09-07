@@ -7,11 +7,11 @@ namespace Tauron.Applicarion.Redux;
 [PublicAPI]
 public static class Create
 {
-    public static IReduxStore<TState> Store<TState>(TState initialState)
-        => new Store<TState>(initialState, Scheduler.Default);
+    public static IReduxStore<TState> Store<TState>(TState initialState, Action<Exception> errors)
+        => new Store<TState>(initialState, Scheduler.Default, errors);
     
-    public static IReduxStore<TState> Store<TState>(TState initialState, IScheduler scheduler)
-        => new Store<TState>(initialState, scheduler);
+    public static IReduxStore<TState> Store<TState>(TState initialState, IScheduler scheduler, Action<Exception> errors)
+        => new Store<TState>(initialState, scheduler, errors);
 
     public static Effect<TState> Effect<TState>(Func<IObservable<object?>> effectFactory) 
         => new(_ => effectFactory());

@@ -61,7 +61,7 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
 
         var filter = _projects.Operations.Eq(p => p.Status, ProjectStatus.Finished);
         #if DEBUG
-        var projectionData = await _projects.Find(filter).ToArrayAsync(token);
+        var projectionData = await _projects.Find(filter.Not).ToArrayAsync(token);
         
         return projectionData.Select(d => new JobInfo(d.Id, d.JobName, d.Deadline, d.Status, d.ProjectFiles.Count != 0)).ToArray();
         #else

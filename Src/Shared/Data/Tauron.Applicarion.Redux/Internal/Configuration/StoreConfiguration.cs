@@ -49,7 +49,8 @@ public sealed class StoreConfiguration : IStoreConfiguration
             {
                 foreach (var action in _config)
                     action(reduxStore);
-            });
+            }, 
+            _errorHandler.StoreError);
 
         foreach (var configuredState in _configuredStates) 
             configuredState.PostBuild(store);

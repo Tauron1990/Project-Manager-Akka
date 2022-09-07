@@ -13,32 +13,25 @@ public sealed class LiteDatabaseCollection<TData> : IDatabaseCollection<TData>
     public IFindQuery<TData, TData> Find(IFilter<TData> filter)
     {
         var query = _collection.Query();
-        var expression = GetFilter(filter);
+        var expression = RunFilter(filter);
 
-        return expression is null
-            ? new LiteQuery<TData>(query)
-            : new LiteQuery<TData>(query.Where(expression));
+        return new LiteQuery<TData>(query, expression);
     }
 
     public ValueTask<long> CountEntrys(IFilter<TData> filter, CancellationToken token = default)
     {
-        var exp = GetFilter(filter);
+        var exp = RunFilter(filter);
 
-        return exp is null
-            ? To.VTask(_collection.LongCount)
-            : To.VTask(() => _collection.LongCount(exp));
+        return To.VTask(() => exp(_collection.FindAll()).LongCount());
     }
 
     public ValueTask<DbOperationResult> UpdateOneAsync(IFilter<TData> filter, IUpdate<TData> updater, CancellationToken cancellationToken = default)
         => To.VTask(
             () =>
             {
-                var exp = GetFilter(filter);
+                var exp = RunFilter(filter);
 
-                if(exp is null)
-                    return new DbOperationResult(false, 0, 0);
-
-                var ent = _collection.FindOne(exp);
+                var ent = exp(_collection.FindAll()).Single();
                 ent = ((LiteUpdate<TData>)updater).Transform(ent);
 
                 _collection.Update(ent);
@@ -60,12 +53,9 @@ public sealed class LiteDatabaseCollection<TData> : IDatabaseCollection<TData>
         => To.VTask(
             () =>
             {
-                var exp = GetFilter(filter);
+                var exp = RunFilter(filter);
 
-                if(exp is null)
-                    return new DbOperationResult(false, 0, 0);
-
-                var toDelete = _collection.FindOne(exp);
+                var toDelete = exp(_collection.FindAll()).Single();
                 var id = _collection.EntityMapper.Id.Getter(toDelete);
 
                 return _collection.Delete(new BsonValue(id))
@@ -73,6 +63,6 @@ public sealed class LiteDatabaseCollection<TData> : IDatabaseCollection<TData>
                     : new DbOperationResult(true, 0, 0);
             });
 
-    private static BsonExpression? GetFilter(IFilter<TData> filter)
-        => ((LiteFilter<TData>)filter).Create();
+    private static Func<IEnumerable<TData>, IEnumerable<TData>> RunFilter(IFilter<TData> filter)
+        => input => ((LiteFilter<TData>)filter).Run(input);
 }

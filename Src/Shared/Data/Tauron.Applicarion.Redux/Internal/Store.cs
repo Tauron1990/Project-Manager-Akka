@@ -10,7 +10,8 @@ namespace Tauron.Applicarion.Redux.Internal;
 internal sealed class Store<TState> : IReduxStore<TState>
 {
     private readonly TState _initialState;
-    
+    private readonly Action<Exception> _onError;
+
     private readonly CompositeDisposable _subscriptions = new();
     private readonly BehaviorSubject<TState> _state;
     private readonly Subject<object> _dispactcher = new();
@@ -18,10 +19,11 @@ internal sealed class Store<TState> : IReduxStore<TState>
     private readonly List<On<TState>> _reducers = new();
     private readonly Dictionary<Type, IMiddleware<TState>> _middlewares = new();
 
-    public Store(TState initialState, IScheduler scheduler)
+    public Store(TState initialState, IScheduler scheduler, Action<Exception> onError)
     {
         _state = new BehaviorSubject<TState>(initialState);
         _initialState = initialState;
+        _onError = onError;
 
         var toAction = _dispactcher.ObserveOn(scheduler);
         if(RuntimeInformation.ProcessArchitecture != Architecture.Wasm)
@@ -43,6 +45,8 @@ internal sealed class Store<TState> : IReduxStore<TState>
                             ((tuple, on) => (on.Mutator(tuple.State, tuple.Action), tuple.Action))))
                .Select(a => a.State)
                .NotNull()
+               .Do(static _ => { }, _onError)
+               .Retry()
                .Subscribe(_state)
         );
         
@@ -106,7 +110,9 @@ internal sealed class Store<TState> : IReduxStore<TState>
     public void RegisterEffects(IEnumerable<Effect<TState>> effects)
     {
         foreach (var effect in effects)
-            effect.CreateEffect(this).Retry().NotNull().Subscribe(_dispactcher.OnNext);
+            effect.CreateEffect(this).Do(
+                static _ => { },
+                _onError).Retry().NotNull().Subscribe(_dispactcher.OnNext);
     }
 
     public void RegisterMiddlewares(params IMiddleware<TState>[] middlewares)
