@@ -1,8 +1,7 @@
 ﻿using System.Reactive.Concurrency;
 using JetBrains.Annotations;
-using Tauron.Applicarion.Redux.Configuration;
 
-namespace Tauron.Applicarion.Redux;
+namespace Tauron.Applicarion.Redux.Configuration;
 
 [PublicAPI]
 public interface IStoreConfiguration

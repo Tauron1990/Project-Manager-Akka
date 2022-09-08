@@ -26,4 +26,9 @@
         <ProjectReference Include="..\..\Apps\SideProjects\SimpleProjectManager\Clients\Shared\SimpleProjectManager.Client.Shared\SimpleProjectManager.Client.Shared.csproj" />
         <ProjectReference Include="..\..\Shared\Data\Tauron.Applicarion.Redux\Tauron.Applicarion.Redux.csproj" />
     </ItemGroup>
+    
+    <ItemGroup>
+      <Folder Include="Old\Configuration" />
+      <Folder Include="Old\Internal" />
+    </ItemGroup>
 </Project>

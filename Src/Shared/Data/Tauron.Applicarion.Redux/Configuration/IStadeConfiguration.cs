@@ -1,5 +1,4 @@
 ﻿using JetBrains.Annotations;
-using Tauron.Applicarion.Redux.Internal;
 
 namespace Tauron.Applicarion.Redux.Configuration;
 
@@ -20,11 +19,11 @@ public interface IReducerFactory<TState>
 public interface IEffectFactory<TState>
 	where TState : class, new()
 {
-	IEffect CreateEffect(Func<IObservable<object>> run);
+	IEffect<TState> CreateEffect(Func<IObservable<object>> run);
 
-	IEffect CreateEffect(Func<IObservable<TState>, IObservable<object>> run);
+	IEffect<TState> CreateEffect(Func<IObservable<TState>, IObservable<object>> run);
 
-	IEffect CreateEffect<TAction>(Func<IObservable<(TAction Action, TState State)>, IObservable<object>> run)
+	IEffect<TState> CreateEffect<TAction>(Func<IObservable<(TAction Action, TState State)>, IObservable<object>> run)
 		where TAction : class;
 }
 
@@ -69,11 +68,11 @@ public interface IStateConfiguration<TActualState>
 
     IStateConfiguration<TActualState> ApplyReducers(Func<IReducerFactory<TActualState>, IEnumerable<On<TActualState>>> factory);
 
-    IStateConfiguration<TActualState> ApplyEffect(Func<IEffectFactory<TActualState>, IEffect> factory);
+    IStateConfiguration<TActualState> ApplyEffect(Func<IEffectFactory<TActualState>, IEffect<TActualState>> factory);
 
-    IStateConfiguration<TActualState> ApplyEffects(params Func<IEffectFactory<TActualState>, IEffect>[] factorys);
+    IStateConfiguration<TActualState> ApplyEffects(params Func<IEffectFactory<TActualState>, IEffect<TActualState>>[] factorys);
 
-    IStateConfiguration<TActualState> ApplyEffects(Func<IEffectFactory<TActualState>, IEnumerable<IEffect>> factory);
+    IStateConfiguration<TActualState> ApplyEffects(Func<IEffectFactory<TActualState>, IEnumerable<IEffect<TActualState>>> factory);
 
     IStateConfiguration<TActualState> ApplyRequests(Action<IRequestFactory<TActualState>> factory);
 

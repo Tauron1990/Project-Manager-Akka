@@ -1,12 +1,12 @@
-﻿namespace Tauron.Applicarion.Redux;
+﻿using System.Reactive.Linq;
 
-public delegate IObservable<DispatchedAction<TState>> DispatchNext<TState>(IObservable<DispatchedAction<TState>> action);
+namespace Tauron.Applicarion.Redux;
 
-public sealed record DispatchedAction<TState>(TState State, object? Action);
 
-public interface IMiddleware<TState>
+
+public interface IMiddleware
 {
-    public void Initialize(IReduxStore<TState> store);
+    void Init(IRootStore rootStore);
     
-    public IObservable<DispatchedAction<TState>> Connect(IObservable<DispatchedAction<TState>> actionObservable);
+    IObservable<object> Connect(IRootStore actionObservable);
 }

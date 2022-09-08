@@ -1,9 +1,6 @@
-﻿using Tauron.Applicarion.Redux.Extensions.Internal;
-using Tauron.Applicarion.Redux.Internal;
+﻿namespace Tauron.Applicarion.Redux.Configuration;
 
-namespace Tauron.Applicarion.Redux.Configuration;
-
-public interface IEffect
+public interface IEffect<TStata>
 {
-    Effect<MultiState> Build();
+    Effect<TStata> Build();
 }

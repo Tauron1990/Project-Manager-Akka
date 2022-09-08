@@ -1,6 +1,7 @@
 ﻿using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using Stl.Fusion;
+using Tauron.Applicarion.Redux.Configuration;
 using Tauron.Applicarion.Redux.Extensions.Cache;
 using Tauron.Applicarion.Redux.Internal.Configuration;
 

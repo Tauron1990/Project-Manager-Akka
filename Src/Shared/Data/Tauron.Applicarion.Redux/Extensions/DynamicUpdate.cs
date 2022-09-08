@@ -2,7 +2,6 @@
 using JetBrains.Annotations;
 using Stl.Fusion;
 using Tauron.Applicarion.Redux.Extensions.Internal;
-using Tauron.Applicarion.Redux.Internal;
 
 namespace Tauron.Applicarion.Redux.Extensions;
 
@@ -78,37 +77,37 @@ public static class DynamicUpdate
                                                }));
 
     public static void AddRequest<TState, TAction>(
-        IReduxStore<TState> store,
+        IRootStore store,
         Func<TAction, ValueTask<string?>> runRequest, Func<TState, TAction, TState> onScess)
-        where TAction : class
+        where TAction : class where TState : new()
         => AsyncRequestMiddleware
-           .Get(store)
+           .Get<TState>(store)
            .AddRequest(runRequest, onScess, (state, _) => state);
 
     public static void AddRequest<TState, TAction>(
-        IReduxStore<TState> store,
+        IRootStore store,
         Func<TAction, ValueTask<string?>> runRequest,
         Func<TState, TAction, TState> onScess,
         Func<TState, object, TState> onFail)
-        where TAction : class
+        where TAction : class where TState : new()
         => AsyncRequestMiddleware
-           .Get(store)
+           .Get<TState>(store)
            .AddRequest(runRequest, onScess, onFail);
 
-    public static void AddRequest<TState, TAction>(IReduxStore<TState> store, Func<TAction, Task<string?>> runRequest, Func<TState, TAction, TState> onScess)
-        where TAction : class
+    public static void AddRequest<TState, TAction>(IRootStore store, Func<TAction, Task<string?>> runRequest, Func<TState, TAction, TState> onScess)
+        where TAction : class where TState : new()
         => AsyncRequestMiddleware
-           .Get(store)
+           .Get<TState>(store)
            .AddRequest(runRequest, onScess, (state, _) => state);
 
     public static void AddRequest<TState, TAction>(
-        IReduxStore<TState> store,
+        IRootStore store,
         Func<TAction, Task<string?>> runRequest,
         Func<TState, TAction, TState> onScess,
         Func<TState, object, TState> onFail)
-        where TAction : class
+        where TAction : class where TState : new()
         => AsyncRequestMiddleware
-           .Get(store)
+           .Get<TState>(store)
            .AddRequest(runRequest, onScess, onFail);
 
     public static void OnTheFlyUpdate<TState, TSource, TData>(

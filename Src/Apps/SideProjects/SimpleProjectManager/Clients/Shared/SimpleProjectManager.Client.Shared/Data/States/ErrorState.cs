@@ -4,7 +4,7 @@ using SimpleProjectManager.Client.Shared.Data.States.Actions;
 using SimpleProjectManager.Client.Shared.Data.States.Data;
 using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
-using Tauron.Applicarion.Redux.Configuration;
+using Tauron.Applicarion.Redux;
 
 namespace SimpleProjectManager.Client.Shared.Data.States;
 
