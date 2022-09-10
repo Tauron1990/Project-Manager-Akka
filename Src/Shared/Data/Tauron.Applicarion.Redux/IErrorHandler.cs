@@ -1,4 +1,4 @@
-﻿namespace Tauron.Applicarion.Redux.Configuration;
+﻿namespace Tauron.Applicarion.Redux;
 
 public interface IErrorHandler
 {

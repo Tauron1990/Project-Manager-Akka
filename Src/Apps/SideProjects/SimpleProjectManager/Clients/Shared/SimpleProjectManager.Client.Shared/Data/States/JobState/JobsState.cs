@@ -14,6 +14,7 @@ using SimpleProjectManager.Shared.Validators;
 using Stl.Fusion;
 using Tauron;
 using Tauron.Applicarion.Redux;
+using Tauron.Applicarion.Redux.Configuration;
 
 namespace SimpleProjectManager.Client.Shared.Data.States.JobState;
 

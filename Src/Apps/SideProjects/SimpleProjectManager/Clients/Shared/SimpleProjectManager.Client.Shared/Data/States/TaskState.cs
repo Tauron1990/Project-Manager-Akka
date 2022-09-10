@@ -12,7 +12,7 @@ using Tauron.Applicarion.Redux.Configuration;
 
 namespace SimpleProjectManager.Client.Shared.Data.States;
 
-public sealed class TaskState : StateBase, IProvideActionDispatcher, IStoreInitializer
+public sealed class TaskState : StateBase, IProvideRootStore, IStoreInitializer
 {
     private readonly ITaskManager _taskManager;
     private readonly IMessageMapper _aggregator;
@@ -27,7 +27,7 @@ public sealed class TaskState : StateBase, IProvideActionDispatcher, IStoreIniti
     }
     
 
-    public void StoreCreated(IActionDispatcher dispatcher)
+    public void StoreCreated(IRootStore dispatcher)
     {
         dispatcher.ObservAction<DeleteTask>()
            .SelectMany(

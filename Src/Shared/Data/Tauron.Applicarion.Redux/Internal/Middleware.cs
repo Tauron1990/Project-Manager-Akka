@@ -24,9 +24,9 @@ public abstract class Middleware : IMiddleware
 
     public IObservable<object> Connect(IRootStore actionObservable)
     {
-        if(_processors.Count == 0) return Observable.Empty<object>();
         return actionObservable
            .ObserveActions()
+           .Where(_ => _processors.Count != 0)
            .SelectMany(
                 dispatchedAction => _processors.FirstOrDefault(r => r.Can(dispatchedAction))?.Exec(dispatchedAction) ??
                                     Observable.Return(dispatchedAction));

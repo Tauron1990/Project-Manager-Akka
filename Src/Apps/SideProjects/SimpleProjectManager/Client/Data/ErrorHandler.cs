@@ -1,4 +1,6 @@
-﻿using Tauron.Application;
+﻿using Tauron.Applicarion.Redux;
+using Tauron.Applicarion.Redux.Configuration;
+using Tauron.Application;
 using Tauron.Application.Blazor;
 
 namespace SimpleProjectManager.Client.Data;

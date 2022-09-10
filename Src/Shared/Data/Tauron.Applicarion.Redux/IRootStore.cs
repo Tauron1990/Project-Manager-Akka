@@ -6,6 +6,8 @@ public interface IActionDispatcher
 {
     bool CanProcess<TAction>();
     
+    bool CanProcess(Type type);
+    
     IObservable<TAction> ObservAction<TAction>()
         where TAction : class;
 
@@ -32,7 +34,7 @@ public interface IRootStore : IActionDispatcher, IDisposable
 [PublicAPI]
 public interface IRootStoreState<out TState>
 {
-    IObservable<TResult> ObserveAction<TAction, TResult>(Func<TAction, TState, TResult> resultSelector)
+    IObservable<TResult> ObserveAction<TAction, TResult>(Func<TState, TAction, TResult> resultSelector)
         where TAction : class;
 
     IObservable<TState> Select();

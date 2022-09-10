@@ -1,4 +1,6 @@
 using System;
+using Tauron.Applicarion.Redux;
+using Tauron.Applicarion.Redux.Configuration;
 using Tauron.Application;
 
 namespace SimpleProjectManager.Client.Avalonia.Models.Services;

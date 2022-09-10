@@ -1,7 +1,6 @@
 ﻿using Stl.Fusion;
 using Tauron.Applicarion.Redux.Configuration;
 using Tauron.Applicarion.Redux.Extensions;
-using Tauron.Applicarion.Redux.Extensions.Internal;
 
 namespace Tauron.Applicarion.Redux.Internal.Configuration;
 
@@ -21,74 +20,62 @@ public sealed class ReducerFactory<TState> : IReducerFactory<TState>
 public sealed class EffectFactory<TState> : IEffectFactory<TState>
     where TState : class, new()
 {
-    private sealed class SimpleEffect : IEffect
+    private sealed class SimpleEffect : IEffect<TState>
     {
         private readonly Func<IObservable<object>> _run;
 
         public SimpleEffect(Func<IObservable<object>> run)
             => _run = run;
 
-        public Effect<MultiState> Build()
-            => Create.Effect<MultiState>(_run);
+        public Effect<TState> Build()
+            => Create.Effect<TState>(_run);
     }
 
-    private sealed class SimpleStateEffect : IEffect
+    private sealed class SimpleStateEffect : IEffect<TState>
     {
         private readonly Func<IObservable<TState>, IObservable<object>> _run;
-        private readonly Guid _state;
 
-        public SimpleStateEffect(Func<IObservable<TState>, IObservable<object>> run, Guid state)
-        {
-            _run = run;
-            _state = state;
-        }
+        public SimpleStateEffect(Func<IObservable<TState>, IObservable<object>> run)
+            => _run = run;
 
-        public Effect<MultiState> Build()
-            => Create.Effect<MultiState>(store => _run(store.Select(state => state.GetState<TState>(_state))));
+        public Effect<TState> Build()
+            => Create.Effect<TState>(store => _run(store.Select()));
     }
     
-    private sealed class ActionStateEffect<TAction> : IEffect where TAction : class
+    private sealed class ActionStateEffect<TAction> : IEffect<TState> where TAction : class
     {
         private readonly Func<IObservable<(TAction Action, TState State)>, IObservable<object>> _run;
-        private readonly Guid _state;
 
-        public ActionStateEffect(Func<IObservable<(TAction Action, TState State)>, IObservable<object>> run, Guid state)
+        public ActionStateEffect(Func<IObservable<(TAction Action, TState State)>, IObservable<object>> run)
         {
             _run = run;
-            _state = state;
         }
         
-        public Effect<MultiState> Build()
-            => Create.Effect<MultiState>(
-                s => _run(s.ObserveAction<TAction, (TAction, TState)>((action, state) => (action, state.GetState<TState>(_state)))));
+        public Effect<TState> Build()
+            => Create.Effect<TState>(
+                s => _run(s.ObserveAction<TAction, (TAction, TState)>((action, state) => (action, state))));
     }
-    
-    private readonly Guid _guid;
-    
-    public EffectFactory(Guid guid)
-        => _guid = guid;
 
-    public IEffect CreateEffect(Func<IObservable<object>> run)
+    public IEffect<TState> CreateEffect(Func<IObservable<object>> run)
         => new SimpleEffect(run);
 
-    public IEffect CreateEffect(Func<IObservable<TState>, IObservable<object>> run)
-        => new SimpleStateEffect(run, _guid);
+    public IEffect<TState> CreateEffect(Func<IObservable<TState>, IObservable<object>> run)
+        => new SimpleStateEffect(run);
 
-    public IEffect CreateEffect<TAction>(Func<IObservable<(TAction Action, TState State)>, IObservable<object>> run) where TAction : class
-        => new ActionStateEffect<TAction>(run, _guid);
+    public IEffect<TState> CreateEffect<TAction>(Func<IObservable<(TAction Action, TState State)>, IObservable<object>> run) where TAction : class
+        => new ActionStateEffect<TAction>(run);
 }
 
 public sealed class RequesterFactory<TState> : IRequestFactory<TState> where TState : class, new()
 {
-    private readonly List<Action<IReduxStore<MultiState>>> _registrar;
-    private readonly Guid _stateId;
+    //private readonly List<Action<IReduxStore<TState>>> _registrar;
+    private readonly List<Action<IRootStore, IReduxStore<TState>>> _registrar;
     private readonly IErrorHandler _errorHandler;
     private readonly IStateFactory _stateFactory;
 
-    public RequesterFactory(List<Action<IReduxStore<MultiState>>> registrar, Guid stateId, IErrorHandler errorHandler, IStateFactory stateFactory)
+    public RequesterFactory(List<Action<IRootStore, IReduxStore<TState>>> registrar, IErrorHandler errorHandler, IStateFactory stateFactory)
     {
         _registrar = registrar;
-        _stateId = stateId;
         _errorHandler = errorHandler;
         _stateFactory = stateFactory;
     }
@@ -114,11 +101,9 @@ public sealed class RequesterFactory<TState> : IRequestFactory<TState> where TSt
     private static Func<TAction, ValueTask<string?>> Adept<TAction>(Func<TAction, CancellationToken, Task<string?>> request)
         => async a => await TimeoutToken.WithDefault(CancellationToken.None, async c => await request(a, c));
     
-    private static Func<MultiState, TAction, MultiState> Adept<TAction>(Guid id, Func<TState, TAction, TState> updater)
-        => (s, a) => s.UpdateState(id, updater(s.GetState<TState>(id), a));
 
-    private static Func<MultiState, object, MultiState> Adept(Guid id, IErrorHandler errorHandler, Func<TState, object, TState>? updater)
-        => updater is null ? Adept(id, errorHandler, GetDefaultErrorHandler(errorHandler)) : (s, e) => s.UpdateState(id, updater(s.GetState<TState>(id), e));
+    private static Func<TState, object, TState> Adept(IErrorHandler errorHandler, Func<TState, object, TState>? updater)
+        => updater ?? GetDefaultErrorHandler(errorHandler);
 
     private void AddRequestInternal<TAction>(Func<TAction, ValueTask<string?>> runRequest, Func<TState, TAction, TState> onScess, Func<TState, object, TState>? onFail) 
         where TAction : class
@@ -127,7 +112,7 @@ public sealed class RequesterFactory<TState> : IRequestFactory<TState> where TSt
             => async action => await from(action);
 
         _registrar.Add(
-            s => DynamicUpdate.AddRequest(s, CreateRunner(runRequest), Adept(_stateId, onScess), Adept(_stateId, _errorHandler, onFail)));
+            (s, _) => DynamicUpdate.AddRequest(s, CreateRunner(runRequest), onScess, Adept(_errorHandler, onFail)));
     }
 
     public IRequestFactory<TState> AddRequest<TAction>(Func<TAction, CancellationToken, ValueTask<string?>> runRequest, Func<TState, TAction, TState> onScess) where TAction : class
@@ -154,20 +139,20 @@ public sealed class RequesterFactory<TState> : IRequestFactory<TState> where TSt
         return this;
     }
 
-    private static Selector<MultiState, TSource> CreateSourceSelector<TSource>(Guid id, Func<TState, TSource> selector)
-        => state => selector(state.GetState<TState>(id));
+    private static Selector<TState, TSource> CreateSourceSelector<TSource>(Func<TState, TSource> selector)
+        => state => selector(state);
 
-    private static Patcher<TData, MultiState> CreatePatacher<TData>(Guid id, Func<TState, TData, TState> patcher)
-        => (data, state) => state.UpdateState(id, patcher(state.GetState<TState>(id), data));
+    private static Patcher<TData, TState> CreatePatacher<TData>(Func<TState, TData, TState> patcher)
+        => (data, state) => patcher(state, data);
 
     public IRequestFactory<TState> OnTheFlyUpdate<TSource, TData>(Func<TState, TSource> sourceSelector, Func<CancellationToken, Func<CancellationToken, ValueTask<TSource>>, Task<TData>> fetcher, Func<TState, TData, TState> patcher)
     {
         _registrar.Add(
-            s =>
+            (_, s) =>
             {
                 DynamicUpdate.OnTheFlyUpdate(s, _stateFactory,
-                    CreateSourceSelector(_stateId, sourceSelector),
-                    fetcher, CreatePatacher(_stateId, patcher));
+                    CreateSourceSelector(sourceSelector),
+                    fetcher, CreatePatacher(patcher));
             });
         return this;
     }
@@ -175,10 +160,7 @@ public sealed class RequesterFactory<TState> : IRequestFactory<TState> where TSt
     public IRequestFactory<TState> OnTheFlyUpdate<TData>(Func<CancellationToken, Task<TData>> fetcher, Func<TState, TData, TState> patcher)
     {
         _registrar.Add(
-            s =>
-            {
-                DynamicUpdate.OnTheFlyUpdate(s, _stateFactory, fetcher, CreatePatacher(_stateId, patcher));
-            });
+            (_, s) => DynamicUpdate.OnTheFlyUpdate(s, _stateFactory, fetcher, CreatePatacher(patcher)));
         
         return this;
     }
@@ -187,75 +169,60 @@ public sealed class RequesterFactory<TState> : IRequestFactory<TState> where TSt
 public sealed class StateConfiguration<TState> : IStateConfiguration<TState> 
     where TState : class, new() 
 {
-    private readonly Guid _stateId;
-
-    private readonly List<On<MultiState>> _reducer = new();
-    private readonly List<IEffect> _effects = new();
+    private readonly List<Action<IRootStore, IReduxStore<TState>>> _config;
+    private readonly List<On<TState>> _reducer = new();
+    private readonly List<IEffect<TState>> _effects = new();
 
     private readonly IReducerFactory<TState> _reducerFactory;
     private readonly IEffectFactory<TState> _effectFactory;
     private readonly IRequestFactory<TState> _requestFactory;
 
-    public StateConfiguration(
-        Guid stateId, IErrorHandler errorHandler, List<Action<IReduxStore<MultiState>>> config, IStateFactory stateFactory)
+    public StateConfiguration(IErrorHandler errorHandler, List<Action<IRootStore, IReduxStore<TState>>> config, IStateFactory stateFactory)
     {
-        _stateId = stateId;
+        _config = config;
 
-        config.Add(s =>
+        config.Add((_, s) =>
                    {
                        s.RegisterEffects(_effects.Select(e => e.Build()));
                        s.RegisterReducers(_reducer);
                    });
         
         _reducerFactory = new ReducerFactory<TState>();
-        _effectFactory = new EffectFactory<TState>(stateId);
-        _requestFactory = new RequesterFactory<TState>(config, stateId, errorHandler, stateFactory);
-    }
-    
-    
-    private static On<MultiState> TransformOn(Guid id, On<TState> on)
-    {
-        MultiState Mutator(MultiState state, object? action)
-            => state.UpdateState(id, on.Mutator(state.GetState<TState>(id), action));
-
-        return new On<MultiState>
-               (
-                   Mutator,
-                   on.ActionType
-               );
+        _effectFactory = new EffectFactory<TState>();
+        _requestFactory = new RequesterFactory<TState>(config, errorHandler, stateFactory);
     }
 
     public IStateConfiguration<TState> ApplyReducer(Func<IReducerFactory<TState>, On<TState>> factory)
     {
-        _reducer.Add(TransformOn(_stateId, factory(_reducerFactory)));
+        _reducer.Add(factory(_reducerFactory));
         return this;
     }
 
     public IStateConfiguration<TState> ApplyReducers(params Func<IReducerFactory<TState>, On<TState>>[] factorys)
     {
-        _reducer.AddRange(factorys.Select(r => TransformOn(_stateId, r(_reducerFactory))));
+        _reducer.AddRange(factorys.Select(r => r(_reducerFactory)));
         return this;
     }
 
     public IStateConfiguration<TState> ApplyReducers(Func<IReducerFactory<TState>, IEnumerable<On<TState>>> factory)
     {
-        _reducer.AddRange(factory(_reducerFactory).Select(r => TransformOn(_stateId, r)));
+        _reducer.AddRange(factory(_reducerFactory));
         return this;
     }
 
-    public IStateConfiguration<TState> ApplyEffect(Func<IEffectFactory<TState>, IEffect> factory)
+    public IStateConfiguration<TState> ApplyEffect(Func<IEffectFactory<TState>, IEffect<TState>> factory)
     {
         _effects.Add(factory(_effectFactory));
         return this;
     }
 
-    public IStateConfiguration<TState> ApplyEffects(params Func<IEffectFactory<TState>, IEffect>[] factorys)
+    public IStateConfiguration<TState> ApplyEffects(params Func<IEffectFactory<TState>, IEffect<TState>>[] factorys)
     {
         _effects.AddRange(factorys.Select(f => f(_effectFactory)));
         return this;
     }
 
-    public IStateConfiguration<TState> ApplyEffects(Func<IEffectFactory<TState>, IEnumerable<IEffect>> factory)
+    public IStateConfiguration<TState> ApplyEffects(Func<IEffectFactory<TState>, IEnumerable<IEffect<TState>>> factory)
     {
         _effects.AddRange(factory(_effectFactory));
         return this;
@@ -278,5 +245,5 @@ public sealed class StateConfiguration<TState> : IStateConfiguration<TState>
     }
 
     public IConfiguredState AndFinish(Action<IRootStore>? onCreate = null)
-        => new ConfiguratedState(typeof(TState), _stateId, onCreate);
+        => new ConfiguratedState<TState>(onCreate, _config);
 }

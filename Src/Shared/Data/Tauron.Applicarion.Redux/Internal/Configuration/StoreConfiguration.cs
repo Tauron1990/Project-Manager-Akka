@@ -2,7 +2,6 @@
 using Stl.Fusion;
 using Tauron.Applicarion.Redux.Configuration;
 using Tauron.Applicarion.Redux.Extensions.Cache;
-using Tauron.Applicarion.Redux.Extensions.Internal;
 
 namespace Tauron.Applicarion.Redux.Internal.Configuration;
 
@@ -13,7 +12,6 @@ public sealed class StoreConfiguration : IStoreConfiguration
     private readonly StateDb _stateDb;
 
     private readonly List<IConfiguredState> _configuredStates = new();
-    private readonly List<Action<IReduxStore<MultiState>>> _config = new();
     private readonly List<object> _finisher = new();
 
     public StoreConfiguration(IStateFactory stateFactory, IErrorHandler errorHandler, StateDb stateDb)
@@ -25,9 +23,7 @@ public sealed class StoreConfiguration : IStoreConfiguration
     
     public IStoreConfiguration NewState<TState>(Func<ISourceConfiguration<TState>, IConfiguredState> configurator) where TState : class, new()
     {
-        var guid = Guid.NewGuid();
-        
-        _configuredStates.Add(configurator(new SourceConfiguration<TState>(_config, _stateFactory, _errorHandler, guid, _stateDb)));
+        _configuredStates.Add(configurator(new SourceConfiguration<TState>(_stateFactory, _errorHandler, _stateDb)));
         
         return this;
     }
@@ -45,11 +41,6 @@ public sealed class StoreConfiguration : IStoreConfiguration
         var store = new RootStore(
             scheduler ?? Scheduler.Default,
             _configuredStates,
-            reduxStore =>
-            {
-                foreach (var action in _config)
-                    action(reduxStore);
-            }, 
             _errorHandler.StoreError);
 
         foreach (var configuredState in _configuredStates) 
@@ -59,9 +50,6 @@ public sealed class StoreConfiguration : IStoreConfiguration
         {
             switch (toCall)
             {
-                case IProvideActionDispatcher toProvideActionDispatcher:
-                    toProvideActionDispatcher.StoreCreated(store.ActionDispatcher);
-                    break;
                 case IProvideRootStore toProvideStore:
                     toProvideStore.StoreCreated(store);
                     break;

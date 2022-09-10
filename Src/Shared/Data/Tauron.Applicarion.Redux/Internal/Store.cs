@@ -49,6 +49,9 @@ internal sealed class Store<TState> : IReduxStore<TState>
         MutateCallbackPlugin.Install(this);
     }
 
+    public bool CanProcess(Type type)
+        => _registratedActions.Contains(type);
+
     public IObservable<TAction> ObservAction<TAction>() where TAction : class
         => _actions.Select(da => da.Action).NotNull().OfType<TAction>();
 

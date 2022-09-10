@@ -5,7 +5,6 @@ using System.Dynamic;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using LiteDB;
 using LiteDB.Async;
 using Microsoft.Extensions.DependencyInjection;
 using SimpleProjectManager.Client.Shared.Data.States;
@@ -109,43 +108,10 @@ public sealed class CounterState : StateBase<TestCounter>
     }
 }
 
-public sealed record TestRecord
-{
-    public string Hallo { get; init; }
-
-    public int Test2 { get; init; }
-}
-
 static class Program
 {
-  
-    private static void Test()
-    {
-        dynamic test = new ExpandoObject();
-        test.Hallo = "Test";
-        test.Hallo2 = new ExpandoObject();
-        test.Hallo2.Hallo3 = "Test2";
-    }
-    
-    private static async Task<ILiteDatabaseAsync> Test(ILiteDatabaseAsync dbTest)
-    {
-        using var db = await dbTest.BeginTransactionAsync();
-        var coll = db.GetCollection<CriticalError>();
-        await coll.InsertAsync(new CriticalError("TestError", DateTime.Now, "TestPart", "TestMessage", new StackTrace().ToString(), ImmutableList<ErrorProperty>.Empty));
-        await db.CommitAsync();
-
-        return db;
-    }
-
-    public sealed record TestData(int Id, string StringData, DateTime Time, bool TestBool, double TestDouble, ImmutableList<TestData> TestList);
-
-
-    
     static async Task Main()
     {
-        var source = new TaskCompletionSource();
-        var source2 = new TaskCompletionSource<string>();
-        
         var coll = new ServiceCollection();
         coll.AddTransient<ICacheDb, FakeCahce>();
         coll.AddTransient<IErrorHandler, FakeError>();
