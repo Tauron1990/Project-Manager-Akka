@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace TestApp.Test.Operator;
 
-public abstract  class ChannelSelectComplex<TIn, TOut, TCollection> : ChannelOperatorBase<TIn, TOut>
+public abstract class ChannelSelectComplex<TIn, TOut, TCollection> : ChannelOperatorBase<TIn, TOut>
 {
     private readonly Func<TIn, TCollection, TOut> _resultSelector;
     private readonly Channel<(TIn Source, TCollection Item)> _dispatcher;
@@ -16,7 +18,8 @@ public abstract  class ChannelSelectComplex<TIn, TOut, TCollection> : ChannelOpe
     {
         _resultSelector = resultSelector;
         _dispatcher = Channel.CreateBounded<(TIn Source, TCollection Item)>(10);
-        Reader.Completion.ContinueWith((_, s) => ((ChannelWriter<(TIn, TCollection)>)s!).Complete(), _dispatcher.Writer);
+        Reader.Completion.ContinueWith((_, s) => ((ChannelWriter<(TIn, TCollection)>)s!).TryComplete(), _dispatcher.Writer);
+        Task.Run(Processor);
     }
 
     public override Task Completion => _dispatcher.Reader.Completion;
@@ -26,20 +29,60 @@ public abstract  class ChannelSelectComplex<TIn, TOut, TCollection> : ChannelOpe
 
     public override bool CanPeek => _dispatcher.Reader.CanPeek;
 
+    private async void Processor()
+    {
+        try
+        {
+            await foreach(var source in Reader.ReadAllAsync())
+        }
+        catch (Exception e)
+        {
+            _dispatcher.Writer.TryComplete(e);
+        }
+    }
+    
+    protected abstract IAsyncEnumerable<TCollection> SelectNext(TIn input);
+
     public override async ValueTask<TOut> ReadAsync(CancellationToken cancellationToken = default)
-        => _dispatcher.Reader.ReadAsync(cancellationToken);
+    {
+        var next = await _dispatcher.Reader.ReadAsync(cancellationToken);
 
-    public override bool TryPeek(out TOut item)
-        => base.TryPeek(out item);
+        return _resultSelector(next.Source, next.Item);
+    }
 
-    public override IAsyncEnumerable<TOut> ReadAllAsync(CancellationToken cancellationToken = new CancellationToken())
-        => base.ReadAllAsync(cancellationToken);
+    public override bool TryPeek([MaybeNullWhen(false)]out TOut item)
+    {
+        if(!_dispatcher.Reader.TryPeek(out var next))
+        {
+            item = default;
 
-    public override bool TryRead(out TOut item)
-        => throw new System.NotImplementedException();
+            return false;
+        }
 
-    public override ValueTask<bool> WaitToReadAsync(CancellationToken cancellationToken = new CancellationToken())
-        => throw new System.NotImplementedException();
+        item = _resultSelector(next.Source, next.Item);
 
-    protected override bool CanCountCore { get; }
+        return true;
+    }
+
+    public override IAsyncEnumerable<TOut> ReadAllAsync(CancellationToken cancellationToken = default)
+        => _dispatcher.Reader.ReadAllAsync(cancellationToken).Select(next => _resultSelector(next.Source, next.Item));
+
+    public override bool TryRead([MaybeNullWhen(false)]out TOut item)
+    {
+        if(!_dispatcher.Reader.TryRead(out var next))
+        {
+            item = default;
+
+            return false;
+        }
+
+        item = _resultSelector(next.Source, next.Item);
+
+        return true;
+    }
+
+    public override ValueTask<bool> WaitToReadAsync(CancellationToken cancellationToken = default)
+        => _dispatcher.Reader.WaitToReadAsync(cancellationToken);
+
+    protected override bool CanCountCore => true;
 }
