@@ -112,6 +112,9 @@ static class Program
 {
     static async Task Main()
     {
+        await Test.TestApp.Run();
+        
+        return;
         var coll = new ServiceCollection();
         coll.AddTransient<ICacheDb, FakeCahce>();
         coll.AddTransient<IErrorHandler, FakeError>();
