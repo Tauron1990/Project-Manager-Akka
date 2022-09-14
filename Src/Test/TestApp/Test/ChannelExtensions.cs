@@ -11,12 +11,14 @@ public static class ChannelExtensions
     public static ChannelReader<TResult> SelectMany<TSource,TCollection,TResult> (
         this ChannelReader<TSource> source,
         Func<TSource,System.Collections.Generic.IEnumerable<TCollection>> collectionSelector,
-        Func<TSource,TCollection,TResult> resultSelector);
-    
-    public static ChannelReader<TResult> SelectMany<TSource,TCollection,TResult> (
+        Func<TSource,TCollection,TResult> resultSelector)
+        =>
+
+    public static ChannelReader<TResult> SelectMany<TSource, TCollection, TResult>(
         this Channel<TSource> source,
-        Func<TSource,System.Collections.Generic.IEnumerable<TCollection>> collectionSelector,
-        Func<TSource,TCollection,TResult> resultSelector);
+        Func<TSource, System.Collections.Generic.IEnumerable<TCollection>> collectionSelector,
+        Func<TSource, TCollection, TResult> resultSelector)
+        => SelectMany(source.Reader, collectionSelector, resultSelector);
     
     public static ChannelReader<TIn> Where<TIn>(this Channel<TIn> channel, Func<TIn, bool> condition)
         => Where(channel.Reader, condition);
