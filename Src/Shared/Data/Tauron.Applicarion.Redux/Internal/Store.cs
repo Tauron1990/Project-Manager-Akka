@@ -7,7 +7,7 @@ using Tauron.Applicarion.Redux.Extensions;
 
 namespace Tauron.Applicarion.Redux.Internal;
 
-internal sealed class Store<TState> : IReduxStore<TState>
+public sealed class Store<TState> : IReduxStore<TState>
 {
     private readonly TState _initialState;
     private readonly Action<Exception> _onError;
@@ -27,7 +27,7 @@ internal sealed class Store<TState> : IReduxStore<TState>
 
         var toAction = _dispactcher.ObserveOn(scheduler);
         if(RuntimeInformation.ProcessArchitecture != Architecture.Wasm)
-            toAction = _dispactcher.Synchronize();
+            toAction = toAction.Synchronize();
         
         _subscriptions.Add(toAction.Select(action => new DispatchedAction<TState>(CurrentState, action)).Subscribe(_actions));
         _subscriptions.Add
@@ -35,7 +35,7 @@ internal sealed class Store<TState> : IReduxStore<TState>
             _actions
                .Select(
                     da => _reducers
-                       .Where(on => da.GetType().IsAssignableTo(on.ActionType))
+                       .Where(on => da.Action is not null && da.Action.GetType().IsAssignableTo(on.ActionType))
                        .Aggregate(
                             (da.State, da.Action),
                             ((tuple, on) => (on.Mutator(tuple.State, tuple.Action), tuple.Action))))

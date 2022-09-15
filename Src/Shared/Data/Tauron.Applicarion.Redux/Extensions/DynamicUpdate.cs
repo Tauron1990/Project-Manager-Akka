@@ -59,7 +59,7 @@ public static class DynamicUpdate
                                                    
                                                    var computer = stateFactory.NewComputed(
                                                        new ComputedState<TData>.Options(),
-                                                       async (_, token) => await requester(token, stlState.Use));
+                                                       async (_, token) => await requester(token, stlState.Use).ConfigureAwait(false));
 
                                                    var observableSubscription = ToObservable(computer, true)
                                                       .Select(data => patcher(data, store.CurrentState))
@@ -129,9 +129,9 @@ public static class DynamicUpdate
                 _ => 0,
                 async (token, sel) =>
                 {
-                    await sel(token);
+                    await sel(token).ConfigureAwait(false);
 
-                    return await fetcher(token);
+                    return await fetcher(token).ConfigureAwait(false);
                 },
                 patcher));
 }

@@ -2,6 +2,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Dynamic;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +14,7 @@ using Stl.Fusion;
 using Tauron.Applicarion.Redux;
 using Tauron.Applicarion.Redux.Configuration;
 using Tauron.Applicarion.Redux.Extensions.Cache;
+using Tauron.Applicarion.Redux.Internal;
 
 namespace TestApp;
 
@@ -32,18 +34,20 @@ public class FakeServerImpl : IFakeServer
 
     public virtual async Task<int> FakeServer(CancellationToken t)
     {
-        await Task.Delay(1000, t);
+        await Task.Delay(1000, t).ConfigureAwait(false);
 
         return _counter;
     }
 
-    public Task<string?> Increment(IncrementCommand command, CancellationToken t)
+    public async Task<string?> Increment(IncrementCommand command, CancellationToken t)
     {
+        await Task.Delay(1500, t).ConfigureAwait(false);
+        
         Interlocked.Increment(ref _counter);
         using (Computed.Invalidate())
             _ = FakeServer(default);
 
-        return Task.FromResult<string?>(string.Empty);
+        return string.Empty;
     }
 }
 
@@ -96,8 +100,8 @@ public sealed class CounterState : StateBase<TestCounter>
         => _fakeServer = fakeServer;
 
     protected override IStateConfiguration<TestCounter> ConfigurateState(ISourceConfiguration<TestCounter> configuration)
-        => configuration.FromCacheAndServer(_fakeServer.FakeServer, (_, i) => new TestCounter(Count: i))
-           .ApplyRequests(f => f.AddRequest<IncrementCommand>(_fakeServer.Increment, (counter, _) => new TestCounter(counter.Count + 1)));
+        => configuration.FromCacheAndServer(_fakeServer.FakeServer, (d, i) => d with { Count = i })
+           .ApplyRequests(f => f.AddRequest<IncrementCommand>(_fakeServer.Increment, (counter, _) => counter with{ Count = counter.Count + 1}));
 
     public IObservable<int> ActualCount { get; private set; } = Observable.Empty<int>();
 
@@ -112,9 +116,19 @@ static class Program
 {
     static async Task Main()
     {
-        await Test.TestApp.Run();
+        //await Test.TestApp.Run();
+
+        using var simpleStore = new Store<TestCounter>(new TestCounter(), Scheduler.Default, Console.WriteLine);
+
+        simpleStore.Select().DistinctUntilChanged().Subscribe(Console.WriteLine);
+        simpleStore.RegisterReducers(Create.On<IncrementCommand, TestCounter>(s => s with{ Count = s.Count + 1}));
+        for (int i = 0; i < 10; i++)
+        {
+            simpleStore.Dispatch(new IncrementCommand());
+        }
         
-        return;
+        Console.ReadKey();
+
         var coll = new ServiceCollection();
         coll.AddTransient<ICacheDb, FakeCahce>();
         coll.AddTransient<IErrorHandler, FakeError>();
@@ -129,14 +143,15 @@ static class Program
         var store = configuration.Build();
         
         test.ActualCount
-           .Do(
-                c =>
-                {
-                    if(c != 10)
-                        store.Dispatch(new IncrementCommand());
-                })
+           .DistinctUntilChanged()
            .Subscribe(Console.WriteLine);
 
+        for (var i = 0; i < 1; i++)
+        {
+            store.Dispatch(new IncrementCommand());
+            await Task.Delay(1000);
+        }
+        
         Console.ReadKey();
         
         TState CreateState<TState>()

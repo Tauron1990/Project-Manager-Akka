@@ -58,7 +58,7 @@ public sealed class DisposableState<TData> : IDisposableState<TData>
 
     IStateSnapshot IState.Snapshot => ((IState)_state).Snapshot;
 
-    public IComputed<TData> Computed => _state.Computed;
+    public Computed<TData> Computed => _state.Computed;
 
     public TData LatestNonErrorValue => _state.LatestNonErrorValue;
 

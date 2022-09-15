@@ -109,7 +109,7 @@ public sealed class RequesterFactory<TState> : IRequestFactory<TState> where TSt
         where TAction : class
     {
         Func<TAction, ValueTask<string?>> CreateRunner(Func<TAction, ValueTask<string?>> from)
-            => async action => await from(action);
+            => async action => await from(action).ConfigureAwait(false);
 
         _registrar.Add(
             (s, _) => DynamicUpdate.AddRequest(s, CreateRunner(runRequest), onScess, Adept(_errorHandler, onFail)));

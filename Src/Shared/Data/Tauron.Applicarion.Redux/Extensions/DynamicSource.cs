@@ -66,7 +66,7 @@ public static class DynamicSource
                 var currentState = store.CurrentState;
                 var data = selector(currentState);
                 token.ThrowIfCancellationRequested();
-                var requestResult = await reqester(token, data);
+                var requestResult = await reqester(token, data).ConfigureAwait(false);
                 token.ThrowIfCancellationRequested();
                 var patch = patcher(requestResult, currentState);
                 token.ThrowIfCancellationRequested();
