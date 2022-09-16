@@ -22,8 +22,7 @@
     </ItemGroup>
     
     <ItemGroup>
-        <ProjectReference Include="..\..\Apps\DevTools\Tauron.SourceGenerators\Tauron.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
         <ProjectReference Include="..\..\Apps\SideProjects\SimpleProjectManager\Clients\Shared\SimpleProjectManager.Client.Shared\SimpleProjectManager.Client.Shared.csproj" />
-        <ProjectReference Include="..\..\Shared\Data\Tauron.Applicarion.Redux\Tauron.Applicarion.Redux.csproj" />
+        <ProjectReference Include="..\..\Shared\Data\Tauron.Application.Akka.Redux\Tauron.Application.Akka.Redux.csproj" />
     </ItemGroup>
 </Project>

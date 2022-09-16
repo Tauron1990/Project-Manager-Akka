@@ -18,7 +18,7 @@ using Tauron.Applicarion.Redux.Internal;
 
 namespace TestApp;
 
-public sealed record IncrementCommand;
+/*public sealed record IncrementCommand;
 
 public interface IFakeServer
 {
@@ -110,26 +110,17 @@ public sealed class CounterState : StateBase<TestCounter>
         base.PostConfiguration(state);
         ActualCount = state.Select(tc => tc.Count);
     }
-}
+}*/
 
 static class Program
 {
     static async Task Main()
     {
+        await AkkaRedux.AkkaTestApp.AkkaMain();
+
         //await Test.TestApp.Run();
 
-        using var simpleStore = new Store<TestCounter>(new TestCounter(), Scheduler.Default, Console.WriteLine);
-
-        simpleStore.Select().DistinctUntilChanged().Subscribe(Console.WriteLine);
-        simpleStore.RegisterReducers(Create.On<IncrementCommand, TestCounter>(s => s with{ Count = s.Count + 1}));
-        for (int i = 0; i < 10; i++)
-        {
-            simpleStore.Dispatch(new IncrementCommand());
-        }
-        
-        Console.ReadKey();
-
-        var coll = new ServiceCollection();
+        /*var coll = new ServiceCollection();
         coll.AddTransient<ICacheDb, FakeCahce>();
         coll.AddTransient<IErrorHandler, FakeError>();
         coll.AddStoreConfiguration();
@@ -146,11 +137,14 @@ static class Program
            .DistinctUntilChanged()
            .Subscribe(Console.WriteLine);
 
-        for (var i = 0; i < 1; i++)
-        {
-            store.Dispatch(new IncrementCommand());
-            await Task.Delay(1000);
-        }
+        var service = serviceProvider.GetRequiredService<IFakeServer>();
+        await service.Increment(new IncrementCommand(), default);
+        
+        // for (var i = 0; i < 1; i++)
+        // {
+        //     store.Dispatch(new IncrementCommand());
+        //     await Task.Delay(1000);
+        // }
         
         Console.ReadKey();
         
@@ -162,6 +156,6 @@ static class Program
                 baseState.RunConfig(configuration);
 
             return state;
-        }
+        }*/
     }
 }

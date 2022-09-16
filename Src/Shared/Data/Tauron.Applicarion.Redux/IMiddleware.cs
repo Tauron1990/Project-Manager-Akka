@@ -1,6 +1,4 @@
-﻿using System.Reactive.Linq;
-
-namespace Tauron.Applicarion.Redux;
+﻿namespace Tauron.Applicarion.Redux;
 
 
 
