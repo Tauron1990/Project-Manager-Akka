@@ -20,7 +20,8 @@ public interface IActionDispatcher
 [PublicAPI]
 public interface IRootStore : IActionDispatcher, IDisposable
 {
-
+    IMaterializer Materializer { get; }
+    
     Source<object, NotUsed> ObserveActions();
 
     IRootStoreState<TState> ForState<TState>()
@@ -37,7 +38,7 @@ public interface IRootStore : IActionDispatcher, IDisposable
 [PublicAPI]
 public interface IRootStoreState<TState>
 {
-    Source<TResult, NotUsed> ObserveAction<TAction, TResult>(Flow<(TState State, TAction Action), TResult, NotUsed> resultSelector)
+    Source<TResult, NotUsed> ObservAction<TAction, TResult>(Flow<(TState State, TAction Action), TResult, NotUsed> resultSelector)
         where TAction : class;
 
     Source<TState, NotUsed> Select();
