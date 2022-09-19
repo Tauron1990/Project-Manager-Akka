@@ -81,7 +81,7 @@ public static class DynamicSource
 
         var state = stateFactory.NewComputed<TState?>(RunRequest);
 
-        return DynamicUpdate.ToObservable(state, true).NotNull();
+        return DynamicUpdate.ToSource(state, true).NotNull();
     }
 
     public static void FromRequest<TState, TSelect>(

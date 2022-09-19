@@ -1,5 +1,7 @@
-﻿using System.Reactive.Linq;
-using System.Reactive.Subjects;
+﻿using Akka;
+using Akka.Streams;
+using Akka.Streams.Dsl;
+using Tauron.Application.Akka.Redux.Internal;
 
 namespace Tauron.Application.Akka.Redux.Extensions.Internal;
 
@@ -12,13 +14,26 @@ public static class AsyncRequestMiddleware
 public sealed class AsyncRequestMiddleware<TState> : Middleware where TState : new()
 {
     internal static readonly Func<AsyncRequestMiddleware<TState>> Factory = () => new AsyncRequestMiddleware<TState>();
+    private IRootStoreState<TState>? _storeState;
 
-    private readonly BehaviorSubject<TState> _currentState = new(new TState());
+    private IRootStoreState<TState> StoreState => Get(_storeState);
+
+    private Flow<TAction, TransferedAction<TAction>, NotUsed> CreateStatefulFlow<TAction>()
+        => Flow.FromGraph(
+            GraphDsl.Create(
+                b =>
+                {
+                    var combiner = b.Add(LastStateShape.Create<TState, TAction, TransferedAction<TAction>>((s, a) => new TransferedAction<TAction>(s, a)));
+
+                    b.From(Source.Single(StoreState.CurrentState).Concat(StoreState.Select())).To(combiner.In0);
+
+                    return new FlowShape<TAction, TransferedAction<TAction>>(combiner.In1, combiner.Out);
+                }));
 
     public override void Init(IRootStore rootStore)
     {
         base.Init(rootStore);
-        rootStore.ForState<TState>().Select().Subscribe(_currentState);
+        _storeState = rootStore.ForState<TState>();
     }
 
     public void AddRequest<TAction>(
@@ -27,29 +42,57 @@ public sealed class AsyncRequestMiddleware<TState> : Middleware where TState : n
         Func<TState, object, TState> onFail)
         where TAction : class
     {
-        IObservable<object> Runner(IObservable<TAction> arg)
-            => arg.SelectManySafe(async action => (action, result:await runRequest(action)))
-               .ConvertResult(
-                    pair => string.IsNullOrWhiteSpace(pair.result) ? onScess(_currentState.Value, pair.action) : onFail(_currentState.Value, pair.result), 
-                    exception => onFail(_currentState.Value, exception))
-               .Select(MutateCallback.Create);
+        var flow = CreateStatefulFlow<TAction>()
+           .SelectAsync(
+                1,
+                async transferedAction =>
+                {
+                    try
+                    {
+                        var result = await runRequest(transferedAction.Action);
+
+                        return string.IsNullOrWhiteSpace(result) 
+                            ? onScess(transferedAction.State, transferedAction.Action) 
+                            : onFail(transferedAction.State, result);
+                    }
+                    catch (Exception e)
+                    {
+                        return onFail(transferedAction.State, e);
+                    }
+                })
+           .Select(state => (object)MutateCallback.Create(state));
         
-        OnAction<TAction>(Runner);
+        OnAction(flow);
     }
-    
+
     public void AddRequest<TAction>(
         Func<TAction, ValueTask<string?>> runRequest,
         Func<TState, TAction, TState> onScess,
         Func<TState, object, TState> onFail)
         where TAction : class
     {
-        IObservable<object> Runner(IObservable<TAction> arg)
-            => arg.SelectManySafe(async action => (Action: action, result:await runRequest(action)))
-               .ConvertResult(
-                    pair => string.IsNullOrWhiteSpace(pair.result) ? onScess(_currentState.Value, pair.Action) : onFail(_currentState.Value, pair.result), 
-                    exception => onFail(_currentState.Value, exception))
-               .Select(MutateCallback.Create);
+        var flow = CreateStatefulFlow<TAction>()
+           .SelectAsync(
+                1,
+                async transferedAction =>
+                {
+                    try
+                    {
+                        var result = await runRequest(transferedAction.Action);
+
+                        return string.IsNullOrWhiteSpace(result) 
+                            ? onScess(transferedAction.State, transferedAction.Action) 
+                            : onFail(transferedAction.State, result);
+                    }
+                    catch (Exception e)
+                    {
+                        return onFail(transferedAction.State, e);
+                    }
+                })
+           .Select(state => (object)MutateCallback.Create(state));
         
-        OnAction<TAction>(Runner);
+        OnAction(flow);
     }
+
+    private sealed record TransferedAction<TAction>(TState State, TAction Action);
 }

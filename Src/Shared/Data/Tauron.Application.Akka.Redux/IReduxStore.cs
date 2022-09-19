@@ -1,4 +1,5 @@
 ﻿using Akka;
+using Akka.Streams;
 using Akka.Streams.Dsl;
 using JetBrains.Annotations;
 
@@ -11,6 +12,7 @@ public sealed record ActionState<TState, TAction>(TState State, TAction Action);
 [PublicAPI]
 public interface IReduxStore<TState> : IActionDispatcher, IDisposable
 {
+    IMaterializer Materializer { get; }
    
     Source<TResult, NotUsed> Select<TResult>(Flow<TState, TResult, NotUsed> selector);
 

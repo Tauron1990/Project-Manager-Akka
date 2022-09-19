@@ -1,34 +1,42 @@
-﻿using System.Reactive.Concurrency;
-using System.Reactive.Disposables;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
+﻿using Akka;
+using Akka.Streams;
+using Akka.Streams.Dsl;
 using Tauron.Application.Akka.Redux.Configuration;
 
 namespace Tauron.Application.Akka.Redux.Internal;
 
+
 public sealed class RootStore : IRootStore
 {
-    private readonly IScheduler _scheduler;
+    private readonly IMaterializer _materializer;
     private readonly Action<Exception> _onError;
+    
     private readonly Dictionary<Type, IActionDispatcher> _stores = new();
     private readonly Dictionary<Type, MiddlewareRegistration> _middlewares = new();
-    private readonly Subject<object> _actions = new();
-    private readonly IDisposable _subscription;
+    
+    private readonly Sink<object, NotUsed> _actions;
+    private readonly Source<object, NotUsed> _dispatcher;
+    private readonly ISourceQueueWithComplete<object> _forDispatching;
 
-    public RootStore(IScheduler scheduler, List<IConfiguredState> configuredStates, Action<Exception> onError)
+    private readonly SharedKillSwitch _close = KillSwitches.Shared("Cancel_Root_Store");
+    
+    public RootStore(IMaterializer materializer, List<IConfiguredState> configuredStates, Action<Exception> onError)
     {
-        _scheduler = scheduler;
+        _materializer = materializer;
         _onError = onError;
 
-        _subscription =
-        (
-            from action in _actions
-            from dispatcher in from dis in _stores.Values
-                               where dis.CanProcess(action.GetType())
-                               select dis
-            select (dispatcher, action)
-        ).Subscribe(p => p.dispatcher.Dispatch(p.action));
+        var (actionCollector, toDispatch) = MergeHub.Source<object>().PreMaterialize(materializer);
+        var (dispatcher, collector) = BroadcastHub.Sink<object>().PreMaterialize(materializer);
 
+        toDispatch.Via(_close.Flow<object>()).RunWith(collector, materializer);
+        _forDispatching = Source.Queue<object>(5, OverflowStrategy.Backpressure)
+           .Via(_close.Flow<object>())
+           .ToMaterialized(actionCollector, Keep.Left)
+           .Run(materializer);
+
+        _actions = actionCollector;
+        _dispatcher = dispatcher;
+        
         foreach (var state in configuredStates)
             state.RunConfig(this);
     }
@@ -39,30 +47,38 @@ public sealed class RootStore : IRootStore
     public bool CanProcess(Type type)
         => _stores.Values.Any(d => d.CanProcess(type));
 
-    public IObservable<TAction> ObservAction<TAction>() where TAction : class
-        => _actions.OfType<TAction>();
+    public Source<TAction, NotUsed> ObservAction<TAction>() where TAction : class
+        => from action in _dispatcher
+           where action is TAction
+           select (TAction)action;
 
-    public void Dispatch(object action)
-        => _actions.OnNext(action);
+    public Task<IQueueOfferResult> Dispatch(object action)
+        => _forDispatching.OfferAsync(action);
+
+    public Sink<object, NotUsed> Dispatcher()
+        => _actions;
+
 
     public void Dispose()
     {
-        _actions.Dispose();
-        _subscription.Dispose();
+        _forDispatching.Complete();
+        _close.Shutdown();
         _stores.Clear();
-        _middlewares.Values.Foreach(m => m.Dispose());
         _middlewares.Clear();
     }
 
-    public IObservable<object> ObserveActions()
-        => _actions.AsObservable();
+
+    public IMaterializer Materializer => _materializer;
+
+    public Source<object, NotUsed> ObserveActions()
+        => _dispatcher;
 
     public IRootStoreState<TState> ForState<TState>() where TState : new()
     {
         if(_stores.TryGetValue(typeof(TState), out var store) && store is IReduxStore<TState> reduxStore)
             return new RootStoreState<TState>(reduxStore);
 
-        var storeState = new RootStoreState<TState>(new Store<TState>(new TState(), _scheduler, _onError));
+        var storeState = new RootStoreState<TState>(new Store<TState>(new TState(), _onError, _materializer));
         _stores[typeof(TState)] = storeState;
 
         return storeState;
@@ -72,7 +88,7 @@ public sealed class RootStore : IRootStore
     {
         foreach (var middleware in middlewares)
         {
-            var reg = new MiddlewareRegistration(middleware);
+            var reg = new MiddlewareRegistration(middleware, _close);
             _middlewares.Add(middleware.GetType(), reg);
             reg.Connect(this);
         }
@@ -82,7 +98,7 @@ public sealed class RootStore : IRootStore
     {
         if(_middlewares.TryGetValue(typeof(TMiddleware), out var registration) && registration.Middleware is TMiddleware typed) return typed;
 
-        registration = new MiddlewareRegistration(factory());
+        registration = new MiddlewareRegistration(factory(), _close);
         _middlewares.Add(typeof(TMiddleware), registration);
         registration.Connect(this);
         
@@ -92,26 +108,23 @@ public sealed class RootStore : IRootStore
     public void RegisterMiddlewares(params IMiddleware[] middlewares)
         => RegisterMiddlewares(middlewares.AsEnumerable());
     
-    private sealed class MiddlewareRegistration : IDisposable
+    private sealed class MiddlewareRegistration
     {
-        private IDisposable _subscriptions = Disposable.Empty;
+        private readonly SharedKillSwitch _killSwitch;
         public IMiddleware Middleware { get; }
 
-        public MiddlewareRegistration(IMiddleware middleware)
+        public MiddlewareRegistration(IMiddleware middleware, SharedKillSwitch killSwitch)
         {
+            _killSwitch = killSwitch;
             Middleware = middleware;
         }
 
         public void Connect(IRootStore store)
         {
             Middleware.Init(store);
-            _subscriptions = Middleware
-               .Connect(store)
-               .Retry()
-               .Subscribe(store.Dispatch);
+            Middleware.Connect(store)
+               .Via(_killSwitch.Flow<object>())
+               .RunWith(store.Dispatcher(), store.Materializer);
         }
-
-        public void Dispose()
-            => _subscriptions.Dispose();
     }
 }

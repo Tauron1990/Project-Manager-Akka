@@ -11,6 +11,8 @@ public sealed class RootStoreState<TState> : IRootStoreState<TState>, IActionDis
     public RootStoreState(IReduxStore<TState> store)
         => Store = store;
 
+    public TState CurrentState => Store.CurrentState;
+
     public Source<TResult, NotUsed> ObservAction<TAction, TResult>(Flow<(TState State, TAction Action), TResult, NotUsed> resultSelector) where TAction : class
         => Store.ObservAction(resultSelector);
 
@@ -31,4 +33,7 @@ public sealed class RootStoreState<TState> : IRootStoreState<TState>, IActionDis
 
     public Task<IQueueOfferResult> Dispatch(object action)
         => Store.Dispatch(action);
+
+    public Sink<object, NotUsed> Dispatcher()
+        => Store.Dispatcher();
 }

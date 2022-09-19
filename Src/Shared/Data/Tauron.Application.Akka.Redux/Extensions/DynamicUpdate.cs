@@ -1,4 +1,7 @@
-﻿using System.Reactive.Linq;
+﻿using Akka;
+using Akka.Streams;
+using Akka.Streams.Dsl;
+using Akka.Streams.Stage;
 using JetBrains.Annotations;
 using Stl.Fusion;
 using Tauron.Application.Akka.Redux.Extensions.Internal;
@@ -8,73 +11,95 @@ namespace Tauron.Application.Akka.Redux.Extensions;
 [PublicAPI]
 public static class DynamicUpdate
 {
-    internal static IObservable<TData> ToObservable<TData>(IState<TData> state, bool skipErrors = false)
-        => Observable.Create<TData>(o =>
-                                    {
-                                        if(state.HasValue)
-                                            o.OnNext(state.Value);
-                                        return new StateRegistration<TData>(o, state, skipErrors);
-                                    })
-           .DistinctUntilChanged()
-           .Replay(1).RefCount();
-        
-    private sealed class StateRegistration<TData> : IDisposable
+    internal static Source<TData, NotUsed> ToSource<TData>(IState<TData> state, bool skipErrors = false)
+        => Source.FromGraph(GraphDsl.Create(b => b.Add(new StatePusher<TData>(state, skipErrors))));
+    
+    private sealed class StatePusher<TData> : GraphStage<SourceShape<TData>>
     {
-        private readonly IObserver<TData> _observer;
+        private sealed class Logic : GraphStageLogic
+        {
+            private readonly Outlet<TData> _out;
+            private readonly IState<TData> _state;
+            private readonly bool _skipErrors;
+
+            public Logic(StatePusher<TData> pusher) : base(pusher.Shape)
+            {
+                _out = pusher.Output;
+                _state = pusher._state;
+                _skipErrors = pusher._skipErrors;
+                
+                _state.AddEventHandler(StateEventKind.Updated | StateEventKind.Updating, NewData);
+            }
+
+            private void NewData(IState<TData> state, StateEventKind kind)
+            {
+                SetHandler(_out, DoNothing);
+                
+                if(state.HasError && !_skipErrors)
+                    FailStage(state.Error);
+                else if(kind == StateEventKind.Updated && state.HasValue)
+                {
+                    if(IsAvailable(_out))
+                        PushNext();
+                    else
+                        SetHandler(_out, PushNext);
+                }
+            }
+
+            private void PushNext()
+            {
+                try
+                {
+                    SetHandler(_out, DoNothing);
+                    Push(_out, _state.Value);
+                }
+                catch (Exception e)
+                {
+                    FailStage(e);
+                }
+            }
+        }
+        
         private readonly IState<TData> _state;
         private readonly bool _skipErrors;
 
-        internal StateRegistration(IObserver<TData> observer, IState<TData> state, bool skipErrors)
+        public StatePusher(IState<TData> state, bool skipErrors)
         {
-            _observer = observer;
             _state = state;
             _skipErrors = skipErrors;
-
-            
-            
-            state.AddEventHandler(StateEventKind.All, Handler);
+            Shape = new SourceShape<TData>(Output);
         }
 
-        private void Handler(IState<TData> arg1, StateEventKind arg2)
-        {
-            if(_state.HasValue)
-                _observer.OnNext(_state.Value);
-            else if(!_skipErrors && _state.HasError && _state.Error is not null)
-                _observer.OnError(_state.Error);
-        }
+        private Outlet<TData> Output { get; } = new("StatePusher.out");
 
-        public void Dispose() => _state.RemoveEventHandler(StateEventKind.All, Handler);
+        public override SourceShape<TData> Shape { get; }
+        
+        protected override GraphStageLogic CreateLogic(Attributes inheritedAttributes)
+            => new Logic(this);
     }
-    
+
+
     private static Effect<TState> CreateDynamicUpdaterInternal<TState, TSource, TData>(
         IStateFactory stateFactory,
-        Selector<TState, TSource> selector, 
-        Func<CancellationToken, Func<CancellationToken, ValueTask<TSource>>, Task<TData>> requester, 
+        Selector<TState, TSource> selector,
+        Func<CancellationToken, Func<CancellationToken, ValueTask<TSource>>, Task<TData>> requester,
         Patcher<TData, TState> patcher)
         => Create.Effect<TState>(
-            store => Observable.Create<object>(o =>
-                                               {
-                                                   var stlState = stateFactory.NewMutable<TSource>();
-                                                   var stateUpdateTrigger = store.Select(state => selector(state)).Subscribe(source => stlState.Set(source));
-                                                   
-                                                   var computer = stateFactory.NewComputed(
-                                                       new ComputedState<TData>.Options(),
-                                                       async (_, token) => await requester(token, stlState.Use).ConfigureAwait(false));
+            store =>
+            {
+                var stlState = stateFactory.NewMutable<TSource>();
+                store.Select(Flow.Create<TState>().Select(t => selector(t)))
+                   .RunForeach(data => stlState.Set(data), store.Materializer);
 
-                                                   var observableSubscription = ToObservable(computer, true)
-                                                      .Select(data => patcher(data, store.CurrentState))
-                                                      .Select(MutateCallback.Create)
-                                                      .Cast<object>()
-                                                      .Subscribe(o);
+                var computer = stateFactory.NewComputed(
+                    new ComputedState<TData>.Options(),
+                    async (_, token) => await requester(token, stlState.Use).ConfigureAwait(false));
 
-                                                   return () =>
-                                                          {
-                                                              computer.Dispose();
-                                                              
-                                                              stateUpdateTrigger.Dispose();
-                                                              observableSubscription.Dispose();
-                                                          };
-                                               }));
+                return ToSource(computer, true)
+                   .Select(data => patcher(data, store.CurrentState))
+                   .Select(data => (object)MutateCallback.Create(data))!;
+            }
+        );
 
     public static void AddRequest<TState, TAction>(
         IRootStore store,

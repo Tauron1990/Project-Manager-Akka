@@ -15,6 +15,8 @@ public interface IActionDispatcher
         where TAction : class;
 
     Task<IQueueOfferResult> Dispatch(object action);
+
+    Sink<object, NotUsed> Dispatcher();
 }
 
 [PublicAPI]
@@ -38,6 +40,8 @@ public interface IRootStore : IActionDispatcher, IDisposable
 [PublicAPI]
 public interface IRootStoreState<TState>
 {
+    TState CurrentState { get; }
+    
     Source<TResult, NotUsed> ObservAction<TAction, TResult>(Flow<(TState State, TAction Action), TResult, NotUsed> resultSelector)
         where TAction : class;
 

@@ -1,4 +1,5 @@
 ﻿using Akka;
+using Akka.Streams;
 using Akka.Streams.Dsl;
 using JetBrains.Annotations;
 
@@ -16,7 +17,7 @@ public abstract class Middleware : IMiddleware
     protected Source<object, NotUsed> Actions => Get(_actions);
     protected Sink<object, NotUsed> ToDispatch => Get(_toDipatch);
 
-    private TValue Get<TValue>(TValue? value)
+    protected TValue Get<TValue>(TValue? value)
     {
         if(value is null)
             throw new InvalidOperationException("Middleware not Initalized");
@@ -45,7 +46,8 @@ public abstract class Middleware : IMiddleware
         (from action in Actions
          where action is TAction
          select (TAction)action)
-           .Via(runner)
+           .Via(RestartFlow.OnFailuresWithBackoff(
+                () => runner, RestartSettings.Create(TimeSpan.Zero, TimeSpan.Zero, 0)))
            .RunWith(ToDispatch, Store.Materializer);
     }
 }

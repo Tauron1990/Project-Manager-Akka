@@ -1,81 +1,16 @@
-﻿using System.Collections.Immutable;
-using Akka;
+﻿using Akka;
 using Akka.Streams;
 using Akka.Streams.Dsl;
-using Akka.Streams.Stage;
 using Akka.Util;
+using Tauron.Application.Akka.Redux.Extensions;
 
 namespace Tauron.Application.Akka.Redux.Internal;
 
 public sealed class Store<TState> : IReduxStore<TState>
-{
-    private sealed class LastState : GraphStage<FanInShape<TState, object, DispatchedAction<TState>>>
-    {
-        private sealed class Logic : GraphStageLogic
-        {
-            private readonly LastState _holder;
-            private TState? _currentState;
-            private ImmutableQueue<object?>? _pending = ImmutableQueue<object?>.Empty;
-
-            public Logic(LastState holder) : base(holder.Shape)
-            {
-                _holder = holder;
-
-                SetHandler(holder.StateIn, () =>
-                                              {
-                                                  _currentState = Grab(holder.StateIn);
-
-                                                  if(_pending is not null)
-                                                  {
-                                                      EmitMultiple(
-                                                          _holder.ActionOut,
-                                                          Interlocked.Exchange(ref _pending, null)
-                                                         .Select(a => new DispatchedAction<TState>(_currentState, a)));
-                                                  }
-                                                  
-                                                  Pull(holder.StateIn);
-                                              });
-                
-                SetHandler(holder.ActionIn,
-                    () =>
-                    {
-                        if(_pending is not null)
-                        {
-                            ImmutableInterlocked.Enqueue(ref _pending, Grab(holder.ActionIn));
-                            Pull(holder.ActionIn);
-                            return;
-                        }
-                        
-                        Emit(holder.ActionOut, new DispatchedAction<TState>(_currentState!, Grab(holder.ActionIn)),
-                            () => Pull(holder.ActionIn));
-                    });
-            }
-
-            public override void PreStart()
-            {
-                Pull(_holder.StateIn);
-                Pull(_holder.ActionIn);
-            }
-        }
-
-
-        public LastState()
-            => Shape = new FanInShape<TState, object, DispatchedAction<TState>>(ActionOut, StateIn, ActionIn);
-
-        private Inlet<TState> StateIn { get; } = new("CombineLast.StateIn");
-
-        private Inlet<object> ActionIn { get; } = new ("CombineLast.ActionIn");
-
-        private Outlet<DispatchedAction<TState>> ActionOut { get; } = new("CombineLast.Out");
-
-        public override FanInShape<TState, object, DispatchedAction<TState>> Shape { get; }
-
-        protected override GraphStageLogic CreateLogic(Attributes inheritedAttributes) => new Logic(this);
-    }
-
+{ 
     private readonly TState _initialState;
     private readonly Action<Exception> _onError;
-    private readonly IMaterializer _materializer;
+    public IMaterializer Materializer { get; }
     private readonly HashSet<Type> _registratedActions = new();
 
     private readonly SharedKillSwitch _claseFlows = KillSwitches.Shared("Disposing");
@@ -93,7 +28,7 @@ public sealed class Store<TState> : IReduxStore<TState>
         _initialState = initialState;
         CurrentState = initialState;
         _onError = onError;
-        _materializer = materializer;
+        Materializer = materializer;
 
         var actionDispatcher = Source.Queue<object?>(10, OverflowStrategy.Backpressure);
         var dispatcher = MergeHub.Source<object?>();
@@ -103,14 +38,18 @@ public sealed class Store<TState> : IReduxStore<TState>
         _actionSink = actualDispatcher;
 
         var (stateCollector, stateDispatcher) = MergeHub.Source<TState>().PreMaterialize(materializer);
-        _states = stateDispatcher.Via(_claseFlows.Flow<TState>()).ToMaterialized(BroadcastHub.Sink<TState>(), Keep.Right).Run(materializer);
+        _states = stateDispatcher
+           .Via(_claseFlows.Flow<TState>())
+           .ToMaterialized(BroadcastHub.Sink<TState>(), Keep.Right)
+           .Run(materializer);
+        
         _stateSink = stateCollector;
 
         _actions = Source.FromGraph(
             GraphDsl.Create(
                 b =>
                 {
-                    var combiner = b.Add(new LastState());
+                    var combiner = b.Add(LastStateShape.Create<TState, object, DispatchedAction<TState>>((s, a) => new DispatchedAction<TState>(s, a)));
 
                     b.From(Source.Single(_initialState).Concat(_states)).To(combiner.In0);
                     b.From(actions.Where(a => a is not null)).To(combiner.In1);
@@ -120,8 +59,10 @@ public sealed class Store<TState> : IReduxStore<TState>
            .Via(_claseFlows.Flow<DispatchedAction<TState>>())
            .ToMaterialized(BroadcastHub.Sink<DispatchedAction<TState>>(), Keep.Right)
            .Run(materializer);
-
+        
         _states.Via(_claseFlows.Flow<TState>()).RunForeach(s => CurrentState = s, materializer);
+        
+        MutateCallbackPlugin.Install(this);
     }
 
     public bool CanProcess<TAction>()
@@ -137,6 +78,9 @@ public sealed class Store<TState> : IReduxStore<TState>
 
     public Task<IQueueOfferResult> Dispatch(object action)
         => _actionDispatcher.OfferAsync(action);
+
+    public Sink<object, NotUsed> Dispatcher()
+        => _actionSink!;
 
     public void Dispose()
         => _claseFlows.Shutdown();
@@ -162,7 +106,7 @@ public sealed class Store<TState> : IReduxStore<TState>
     public TState CurrentState { get; private set; }
 
     public void Reset()
-        => _stateSink.RunWith(Source.Single(_initialState), _materializer);
+        => _stateSink.RunWith(Source.Single(_initialState), Materializer);
 
     private void RegisterReducer(On<TState> reducer)
     {
@@ -179,7 +123,7 @@ public sealed class Store<TState> : IReduxStore<TState>
                         return Option<TState>.None;
                     }), 
                 RestartSettings.Create(TimeSpan.MinValue, TimeSpan.MinValue, 0)))
-           .RunWith(_stateSink, _materializer);
+           .RunWith(_stateSink, Materializer);
     }
 
     private void RegisterEffect(Effect<TState> effect)
@@ -193,7 +137,7 @@ public sealed class Store<TState> : IReduxStore<TState>
                     return Option<object?>.None;
                 }), RestartSettings.Create(TimeSpan.MinValue, TimeSpan.MinValue, 0));
 
-        _actionSink.RunWith(effectSource.Via(_claseFlows.Flow<object?>()), _materializer);
+        _actionSink.RunWith(effectSource.Via(_claseFlows.Flow<object?>()), Materializer);
     }
 
     public void RegisterReducers(IEnumerable<On<TState>> reducers)
