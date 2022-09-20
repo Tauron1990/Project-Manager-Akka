@@ -29,6 +29,8 @@ public static class DynamicUpdate
                 _skipErrors = pusher._skipErrors;
                 
                 _state.AddEventHandler(StateEventKind.Updated | StateEventKind.Updating, NewData);
+                
+                SetHandler(_out, DoNothing);
             }
 
             private void NewData(IState<TData> state, StateEventKind kind)

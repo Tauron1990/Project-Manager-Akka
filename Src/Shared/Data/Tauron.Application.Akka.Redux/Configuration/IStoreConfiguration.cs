@@ -11,5 +11,5 @@ public interface IStoreConfiguration
 
     IStoreConfiguration RegisterForFhinising(object toRegister);
     
-    IRootStore Build(IScheduler? scheduler = null);
+    IRootStore Build();
 }

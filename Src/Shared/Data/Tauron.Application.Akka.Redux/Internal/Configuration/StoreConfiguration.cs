@@ -1,6 +1,8 @@
-﻿using System.Reactive.Concurrency;
+﻿using Akka.Actor;
+using Akka.Streams;
 using Stl.Fusion;
 using Tauron.Application.Akka.Redux.Configuration;
+using Tauron.Application.Akka.Redux.Extensions.Cache;
 
 namespace Tauron.Application.Akka.Redux.Internal.Configuration;
 
@@ -13,16 +15,21 @@ public sealed class StoreConfiguration : IStoreConfiguration
     private readonly List<IConfiguredState> _configuredStates = new();
     private readonly List<object> _finisher = new();
 
-    public StoreConfiguration(IStateFactory stateFactory, IErrorHandler errorHandler, StateDb stateDb)
+    private readonly IMaterializer _materializer;
+    
+    // ReSharper disable once SuggestBaseTypeForParameterInConstructor
+    public StoreConfiguration(IStateFactory stateFactory, IErrorHandler errorHandler, StateDb stateDb, ActorSystem actorSystem)
     {
         _stateFactory = stateFactory;
         _errorHandler = errorHandler;
         _stateDb = stateDb;
+
+        _materializer = ActorMaterializer.Create(actorSystem);
     }
     
     public IStoreConfiguration NewState<TState>(Func<ISourceConfiguration<TState>, IConfiguredState> configurator) where TState : class, new()
     {
-        _configuredStates.Add(configurator(new SourceConfiguration<TState>(_stateFactory, _errorHandler, _stateDb)));
+        _configuredStates.Add(configurator(new SourceConfiguration<TState>(_stateFactory, _errorHandler, _stateDb, _materializer)));
         
         return this;
     }
@@ -33,12 +40,12 @@ public sealed class StoreConfiguration : IStoreConfiguration
         return this;
     }
 
-    public IRootStore Build(IScheduler? scheduler = null)
+    public IRootStore Build()
     {
         Console.WriteLine($"ReduxStore Configuration: {_configuredStates.Count}");
 
         var store = new RootStore(
-            scheduler ?? Scheduler.Default,
+            _materializer,
             _configuredStates,
             _errorHandler.StoreError);
 

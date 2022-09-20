@@ -1,19 +1,37 @@
-﻿using Stl.Fusion;
+﻿using Akka;
+using Akka.Streams;
+using Akka.Streams.Dsl;
+using Stl.Fusion;
 using Tauron.Application.Akka.Redux.Configuration;
+using Tauron.Application.Akka.Redux.Extensions;
 
 namespace Tauron.Application.Akka.Redux.Internal.Configuration;
 
 public sealed class ReducerFactory<TState> : IReducerFactory<TState>
     where TState : class, new()
 {
+    private readonly IMaterializer _materializer;
+
+    public ReducerFactory(IMaterializer materializer)
+        => _materializer = materializer;
+
     public On<TState> On<TAction>(Func<TState, TAction, TState> reducer) where TAction : class
-        => Create.On(reducer);
+        => Create.On(Flow.Create<(TState State, TAction Action)>()
+           .Select(d => reducer(d.State, d.Action)));
 
     public On<TState> On<TAction>(Func<TState, TState> reducer) where TAction : class
+        => Create.On<TAction, TState>(
+            Flow.Create<TState>()
+               .Select(reducer));
+
+    public On<TState> On<TAction>(Flow<(TState, TAction), TState, NotUsed> reducer) where TAction : class
+        => Create.On(reducer);
+
+    public On<TState> On<TAction>(Flow<TState, TState, NotUsed> reducer) where TAction : class
         => Create.On<TAction, TState>(reducer);
 
     public IStateLens<TState, TFeatureState> CreateSubReducers<TFeatureState>(Func<TState, TFeatureState> featureSelector, Func<TState, TFeatureState, TState> stateReducer) where TFeatureState : class, new()
-        => Create.CreateSubReducers(featureSelector, stateReducer);
+        => Create.CreateSubReducers(featureSelector, stateReducer, _materializer);
 }
 
 public sealed class EffectFactory<TState> : IEffectFactory<TState>
@@ -21,9 +39,9 @@ public sealed class EffectFactory<TState> : IEffectFactory<TState>
 {
     private sealed class SimpleEffect : IEffect<TState>
     {
-        private readonly Func<IObservable<object>> _run;
+        private readonly Func<Source<object?, NotUsed>> _run;
 
-        public SimpleEffect(Func<IObservable<object>> run)
+        public SimpleEffect(Func<Source<object?, NotUsed>> run)
             => _run = run;
 
         public Effect<TState> Build()
@@ -32,9 +50,9 @@ public sealed class EffectFactory<TState> : IEffectFactory<TState>
 
     private sealed class SimpleStateEffect : IEffect<TState>
     {
-        private readonly Func<IObservable<TState>, IObservable<object>> _run;
+        private readonly Func<Source<TState, NotUsed>, Source<object?, NotUsed>> _run;
 
-        public SimpleStateEffect(Func<IObservable<TState>, IObservable<object>> run)
+        public SimpleStateEffect(Func<Source<TState, NotUsed>, Source<object?, NotUsed>> run)
             => _run = run;
 
         public Effect<TState> Build()
@@ -43,25 +61,23 @@ public sealed class EffectFactory<TState> : IEffectFactory<TState>
     
     private sealed class ActionStateEffect<TAction> : IEffect<TState> where TAction : class
     {
-        private readonly Func<IObservable<(TAction Action, TState State)>, IObservable<object>> _run;
+        private readonly Func<Source<(TAction Action, TState State), NotUsed>, Source<object?, NotUsed>> _run;
 
-        public ActionStateEffect(Func<IObservable<(TAction Action, TState State)>, IObservable<object>> run)
-        {
-            _run = run;
-        }
-        
+        public ActionStateEffect(Func<Source<(TAction Action, TState State), NotUsed>, Source<object?, NotUsed>> run)
+            => _run = run;
+
         public Effect<TState> Build()
             => Create.Effect<TState>(
-                s => _run(s.ObserveAction<TAction, (TAction, TState)>((action, state) => (action, state))));
+                s => _run(s.ObservActionState<TAction>().Select(a => (a.Action, a.State))));
     }
 
-    public IEffect<TState> CreateEffect(Func<IObservable<object>> run)
+    public IEffect<TState> CreateEffect(Func<Source<object?, NotUsed>> run)
         => new SimpleEffect(run);
 
-    public IEffect<TState> CreateEffect(Func<IObservable<TState>, IObservable<object>> run)
+    public IEffect<TState> CreateEffect(Func<Source<TState, NotUsed>, Source<object?, NotUsed>> run)
         => new SimpleStateEffect(run);
 
-    public IEffect<TState> CreateEffect<TAction>(Func<IObservable<(TAction Action, TState State)>, IObservable<object>> run) where TAction : class
+    public IEffect<TState> CreateEffect<TAction>(Func<Source<(TAction Action, TState State), NotUsed>, Source<object?, NotUsed>> run) where TAction : class
         => new ActionStateEffect<TAction>(run);
 }
 
@@ -176,7 +192,7 @@ public sealed class StateConfiguration<TState> : IStateConfiguration<TState>
     private readonly IEffectFactory<TState> _effectFactory;
     private readonly IRequestFactory<TState> _requestFactory;
 
-    public StateConfiguration(IErrorHandler errorHandler, List<Action<IRootStore, IReduxStore<TState>>> config, IStateFactory stateFactory)
+    public StateConfiguration(IErrorHandler errorHandler, List<Action<IRootStore, IReduxStore<TState>>> config, IStateFactory stateFactory, IMaterializer materializer)
     {
         _config = config;
 
@@ -186,7 +202,7 @@ public sealed class StateConfiguration<TState> : IStateConfiguration<TState>
                        s.RegisterReducers(_reducer);
                    });
         
-        _reducerFactory = new ReducerFactory<TState>();
+        _reducerFactory = new ReducerFactory<TState>(materializer);
         _effectFactory = new EffectFactory<TState>();
         _requestFactory = new RequesterFactory<TState>(config, errorHandler, stateFactory);
     }

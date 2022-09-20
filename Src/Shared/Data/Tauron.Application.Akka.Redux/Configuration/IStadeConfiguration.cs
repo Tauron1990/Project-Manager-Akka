@@ -1,4 +1,6 @@
-﻿using JetBrains.Annotations;
+﻿using Akka;
+using Akka.Streams.Dsl;
+using JetBrains.Annotations;
 
 namespace Tauron.Application.Akka.Redux.Configuration;
 
@@ -10,7 +12,10 @@ public interface IReducerFactory<TState>
 
 	On<TState> On<TAction>(Func<TState, TState> reducer) where TAction : class;
 
+	On<TState> On<TAction>(Flow<(TState, TAction), TState, NotUsed> reducer) where TAction : class;
 
+	On<TState> On<TAction>(Flow<TState, TState, NotUsed> reducer) where TAction : class;
+	
 	IStateLens<TState, TFeatureState> CreateSubReducers<TFeatureState>(Func<TState, TFeatureState> featureSelector, Func<TState, TFeatureState, TState> stateReducer)
 		where TFeatureState : class, new();
 }
@@ -19,11 +24,11 @@ public interface IReducerFactory<TState>
 public interface IEffectFactory<TState>
 	where TState : class, new()
 {
-	IEffect<TState> CreateEffect(Func<IObservable<object>> run);
+	IEffect<TState> CreateEffect(Func<Source<object?, NotUsed>> run);
 
-	IEffect<TState> CreateEffect(Func<IObservable<TState>, IObservable<object>> run);
+	IEffect<TState> CreateEffect(Func<Source<TState, NotUsed>, Source<object?, NotUsed>> run);
 
-	IEffect<TState> CreateEffect<TAction>(Func<IObservable<(TAction Action, TState State)>, IObservable<object>> run)
+	IEffect<TState> CreateEffect<TAction>(Func<Source<(TAction Action, TState State), NotUsed>, Source<object?, NotUsed>> run)
 		where TAction : class;
 }
 

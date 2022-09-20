@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using Akka.Streams;
 using Akka.Streams.Stage;
 
@@ -58,6 +59,8 @@ public sealed class LastStateShape<TState, TInput, TOutput> : GraphStage<FanInSh
                         _holder._transform(_currentState!, Grab(holder.ActionIn)),
                         () => Pull(holder.ActionIn));
                 });
+            
+            SetHandler(_holder.ActionOut, DoNothing);
         }
 
         public override void PreStart()
