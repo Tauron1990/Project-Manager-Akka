@@ -39,9 +39,9 @@ public sealed class EffectFactory<TState> : IEffectFactory<TState>
 {
     private sealed class SimpleEffect : IEffect<TState>
     {
-        private readonly Func<Source<object?, NotUsed>> _run;
+        private readonly Func<Source<object, NotUsed>> _run;
 
-        public SimpleEffect(Func<Source<object?, NotUsed>> run)
+        public SimpleEffect(Func<Source<object, NotUsed>> run)
             => _run = run;
 
         public Effect<TState> Build()
@@ -50,9 +50,9 @@ public sealed class EffectFactory<TState> : IEffectFactory<TState>
 
     private sealed class SimpleStateEffect : IEffect<TState>
     {
-        private readonly Func<Source<TState, NotUsed>, Source<object?, NotUsed>> _run;
+        private readonly Func<Source<TState, NotUsed>, Source<object, NotUsed>> _run;
 
-        public SimpleStateEffect(Func<Source<TState, NotUsed>, Source<object?, NotUsed>> run)
+        public SimpleStateEffect(Func<Source<TState, NotUsed>, Source<object, NotUsed>> run)
             => _run = run;
 
         public Effect<TState> Build()
@@ -61,9 +61,9 @@ public sealed class EffectFactory<TState> : IEffectFactory<TState>
     
     private sealed class ActionStateEffect<TAction> : IEffect<TState> where TAction : class
     {
-        private readonly Func<Source<(TAction Action, TState State), NotUsed>, Source<object?, NotUsed>> _run;
+        private readonly Func<Source<(TAction Action, TState State), NotUsed>, Source<object, NotUsed>> _run;
 
-        public ActionStateEffect(Func<Source<(TAction Action, TState State), NotUsed>, Source<object?, NotUsed>> run)
+        public ActionStateEffect(Func<Source<(TAction Action, TState State), NotUsed>, Source<object, NotUsed>> run)
             => _run = run;
 
         public Effect<TState> Build()
@@ -71,13 +71,13 @@ public sealed class EffectFactory<TState> : IEffectFactory<TState>
                 s => _run(s.ObservActionState<TAction>().Select(a => (a.Action, a.State))));
     }
 
-    public IEffect<TState> CreateEffect(Func<Source<object?, NotUsed>> run)
+    public IEffect<TState> CreateEffect(Func<Source<object, NotUsed>> run)
         => new SimpleEffect(run);
 
-    public IEffect<TState> CreateEffect(Func<Source<TState, NotUsed>, Source<object?, NotUsed>> run)
+    public IEffect<TState> CreateEffect(Func<Source<TState, NotUsed>, Source<object, NotUsed>> run)
         => new SimpleStateEffect(run);
 
-    public IEffect<TState> CreateEffect<TAction>(Func<Source<(TAction Action, TState State), NotUsed>, Source<object?, NotUsed>> run) where TAction : class
+    public IEffect<TState> CreateEffect<TAction>(Func<Source<(TAction Action, TState State), NotUsed>, Source<object, NotUsed>> run) where TAction : class
         => new ActionStateEffect<TAction>(run);
 }
 

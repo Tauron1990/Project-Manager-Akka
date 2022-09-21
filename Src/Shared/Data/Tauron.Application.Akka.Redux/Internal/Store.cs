@@ -15,9 +15,9 @@ public sealed class Store<TState> : IReduxStore<TState>
 
     private readonly SharedKillSwitch _claseFlows = KillSwitches.Shared("Disposing");
     
-    private readonly ISourceQueueWithComplete<object?> _actionDispatcher;
+    private readonly ISourceQueueWithComplete<object> _actionDispatcher;
 
-    private readonly Sink<object?, NotUsed> _actionSink;
+    private readonly Sink<object, NotUsed> _actionSink;
     private readonly Sink<TState, NotUsed> _stateSink;
 
     private readonly Source<DispatchedAction<TState>, NotUsed> _actions;
@@ -30,11 +30,11 @@ public sealed class Store<TState> : IReduxStore<TState>
         _onError = onError;
         Materializer = materializer;
 
-        var actionDispatcher = Source.Queue<object?>(10, OverflowStrategy.Backpressure);
-        var dispatcher = MergeHub.Source<object?>();
+        var actionDispatcher = Source.Queue<object>(10, OverflowStrategy.Backpressure);
+        var dispatcher = MergeHub.Source<object>();
 
         var (actualDispatcher, actions) = dispatcher.PreMaterialize(materializer);
-        _actionDispatcher = actionDispatcher.Via(_claseFlows.Flow<object?>()).ToMaterialized(actualDispatcher, Keep.Left).Run(materializer);
+        _actionDispatcher = actionDispatcher.Via(_claseFlows.Flow<object>()).ToMaterialized(actualDispatcher, Keep.Left).Run(materializer);
         _actionSink = actualDispatcher;
 
         var (stateCollector, stateDispatcher) = MergeHub.Source<TState>().PreMaterialize(materializer);
@@ -80,7 +80,7 @@ public sealed class Store<TState> : IReduxStore<TState>
         => _actionDispatcher.OfferAsync(action);
 
     public Sink<object, NotUsed> Dispatcher()
-        => _actionSink!;
+        => _actionSink;
 
     public void Dispose()
         => _claseFlows.Shutdown();
@@ -122,7 +122,7 @@ public sealed class Store<TState> : IReduxStore<TState>
                         _onError(ex);
                         return Option<TState>.None;
                     }), 
-                RestartSettings.Create(TimeSpan.MinValue, TimeSpan.MinValue, 0)))
+                RestartSettings.Create(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(10), 1)))
            .RunWith(_stateSink, Materializer);
     }
 
@@ -134,10 +134,10 @@ public sealed class Store<TState> : IReduxStore<TState>
                 {
                     _onError(ex);
 
-                    return Option<object?>.None;
-                }), RestartSettings.Create(TimeSpan.MinValue, TimeSpan.MinValue, 0));
+                    return Option<object>.None;
+                }), RestartSettings.Create(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(10), 1));
 
-        _actionSink.RunWith(effectSource.Via(_claseFlows.Flow<object?>()), Materializer);
+        _actionSink.RunWith(effectSource.Via(_claseFlows.Flow<object>()), Materializer);
     }
 
     public void RegisterReducers(IEnumerable<On<TState>> reducers)

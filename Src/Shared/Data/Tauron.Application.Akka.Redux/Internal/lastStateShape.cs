@@ -1,5 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using Akka.Streams;
 using Akka.Streams.Stage;
 
@@ -19,7 +18,7 @@ public sealed class LastStateShape<TState, TInput, TOutput> : GraphStage<FanInSh
     {
         private readonly LastStateShape<TState, TInput, TOutput> _holder;
         private TState? _currentState;
-        private ImmutableQueue<TInput?>? _pending = ImmutableQueue<TInput?>.Empty;
+        private ImmutableQueue<TInput>? _pending = ImmutableQueue<TInput>.Empty;
 
         public Logic(LastStateShape<TState, TInput, TOutput> holder) : base(holder.Shape)
         {

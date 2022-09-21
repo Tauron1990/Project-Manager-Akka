@@ -53,6 +53,7 @@ public static class DynamicUpdate
                 try
                 {
                     SetHandler(_out, DoNothing);
+                    if(_state.Value is null) return;
                     Push(_out, _state.Value);
                 }
                 catch (Exception e)

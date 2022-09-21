@@ -14,7 +14,7 @@ public static class Create
     public static IReduxStore<TState> Store<TState>(TState initialState, IMaterializer materializer, Action<Exception> errors)
         => new Store<TState>(initialState, errors, materializer);
 
-    public static Effect<TState> Effect<TState>(Func<Source<object?, NotUsed>> effectFactory) 
+    public static Effect<TState> Effect<TState>(Func<Source<object, NotUsed>> effectFactory) 
         => new(_ => effectFactory());
 
     public static Effect<TState> Effect<TState>(EffectFactory<TState> effectFactory)

@@ -191,7 +191,6 @@ public static class AkkaTestApp
         //     await Task.Delay(1000);
         // }
 
-        await task;
 
         TState CreateState<TState>()
         {
@@ -202,5 +201,7 @@ public static class AkkaTestApp
 
             return state;
         }
+
+        Console.ReadKey();
     }
 }

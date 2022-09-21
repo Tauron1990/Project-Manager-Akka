@@ -47,7 +47,7 @@ public abstract class Middleware : IMiddleware
          where action is TAction
          select (TAction)action)
            .Via(RestartFlow.OnFailuresWithBackoff(
-                () => runner, RestartSettings.Create(TimeSpan.Zero, TimeSpan.Zero, 0)))
+                () => runner, RestartSettings.Create(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(10), 1)))
            .RunWith(ToDispatch, Store.Materializer);
     }
 }
