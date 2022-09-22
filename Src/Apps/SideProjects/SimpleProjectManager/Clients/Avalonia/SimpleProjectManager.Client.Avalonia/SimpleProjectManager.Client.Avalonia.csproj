@@ -53,10 +53,4 @@
         <DependentUpon>ErrorContextInfo.axaml</DependentUpon>
       </Compile>
     </ItemGroup>
-    <ItemGroup>
-      <Content Include="..\..\..\Server\seed.conf">
-        <Link>seed.conf</Link>
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </Content>
-    </ItemGroup>
 </Project>

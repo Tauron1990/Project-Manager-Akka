@@ -142,9 +142,9 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="MudBlazor" Version="6.0.15" />
+		<PackageReference Include="MudBlazor" Version="6.0.16" />
 		<PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" Version="14.4.1" />
-		<PackageReference Include="Stl.Fusion.Blazor" Version="3.7.2" />
+		<PackageReference Include="Stl.Fusion.Blazor" Version="3.8.11" />
 	</ItemGroup>
 
 	<ItemGroup>

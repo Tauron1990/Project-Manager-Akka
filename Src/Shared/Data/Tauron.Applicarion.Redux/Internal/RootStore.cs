@@ -1,4 +1,5 @@
-﻿using System.Reactive.Concurrency;
+﻿using System.Reactive;
+using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -72,7 +73,7 @@ public sealed class RootStore : IRootStore
     {
         foreach (var middleware in middlewares)
         {
-            var reg = new MiddlewareRegistration(middleware);
+            var reg = new MiddlewareRegistration(middleware, _onError);
             _middlewares.Add(middleware.GetType(), reg);
             reg.Connect(this);
         }
@@ -82,7 +83,7 @@ public sealed class RootStore : IRootStore
     {
         if(_middlewares.TryGetValue(typeof(TMiddleware), out var registration) && registration.Middleware is TMiddleware typed) return typed;
 
-        registration = new MiddlewareRegistration(factory());
+        registration = new MiddlewareRegistration(factory(), _onError);
         _middlewares.Add(typeof(TMiddleware), registration);
         registration.Connect(this);
         
@@ -94,11 +95,13 @@ public sealed class RootStore : IRootStore
     
     private sealed class MiddlewareRegistration : IDisposable
     {
+        private readonly Action<Exception> _error;
         private IDisposable _subscriptions = Disposable.Empty;
         public IMiddleware Middleware { get; }
 
-        public MiddlewareRegistration(IMiddleware middleware)
+        public MiddlewareRegistration(IMiddleware middleware, Action<Exception> error)
         {
+            _error = error;
             Middleware = middleware;
         }
 
@@ -107,12 +110,13 @@ public sealed class RootStore : IRootStore
             Middleware.Init(store);
             _subscriptions = Middleware
                .Connect(store)
-               .Retry()
-               .Do(
-                    c =>
-                    {
-                        
-                    })
+               .RetryWhen(exSource => exSource.Select(
+                              ex =>
+                              {
+                                  _error(ex);
+
+                                  return Unit.Default;
+                              }))
                .Subscribe(store.Dispatch);
         }
 

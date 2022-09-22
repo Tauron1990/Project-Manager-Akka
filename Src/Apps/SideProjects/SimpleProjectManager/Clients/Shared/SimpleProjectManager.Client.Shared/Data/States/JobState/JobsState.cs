@@ -25,6 +25,7 @@ public sealed partial class JobsState : StateBase<InternalJobData>
     
     private readonly IJobDatabaseService _service;
     private readonly IMessageMapper _messageMapper;
+    private IObservable<JobSortOrderPair[]> _currentJobs = Observable.Empty<JobSortOrderPair[]>();
 
     public JobsState(IStateFactory stateFactory, IJobDatabaseService jobDatabaseService, IMessageMapper messageMapper)
         : base(stateFactory)
@@ -40,26 +41,31 @@ public sealed partial class JobsState : StateBase<InternalJobData>
                 configuration.FromCacheAndServer<(JobInfo[], SortOrder[])>(
                     async token =>
                     {
-                        Console.WriteLine($"{nameof(JobsState)} -- Active Jobs Data");
                         var jobs = await _service.GetActiveJobs(token);
-                        Console.WriteLine($"{nameof(JobsState)} -- Order Job Data");
                         var order = await _service.GetSortOrders(token);
-                        Console.WriteLine($"{nameof(JobsState)} -- Compled Recive Job Data");
-                        
+
                         return (jobs, order);
                     },
                     (originalData, serverData) =>
                     {
-                        Console.WriteLine($"{nameof(JobsState)} -- Patch Job Data");
-                        var (jobs, orders) = serverData;
-                        var pairs = jobs.Select(j => new JobSortOrderPair(orders.First(o => o.Id == j.Project), j)).ToArray();
+                        try
+                        {
+                            var (jobs, orders) = serverData;
+                            var pairs = jobs.Select(j => new JobSortOrderPair(orders.First(o => o.Id == j.Project), j)).ToArray();
 
-                        var selection = originalData.CurrentSelected;
-                        // ReSharper disable once AccessToModifiedClosure
-                        if (selection.Pair is not null && pairs.All(s => s.Info.Project != selection.Pair.Info.Project))
-                            selection = new CurrentSelected(null, null);
-                        Console.WriteLine($"{nameof(JobsState)} -- New JobData from Server {pairs.Length} Pairs");
-                        return originalData with { CurrentJobs = pairs, CurrentSelected = selection };
+                            var selection = originalData.CurrentSelected;
+                            // ReSharper disable once AccessToModifiedClosure
+                            if(selection.Pair is not null && pairs.All(s => s?.Info.Project != selection.Pair?.Info.Project))
+                                selection = new CurrentSelected(null, null);
+
+                            return originalData with { CurrentJobs = pairs, CurrentSelected = selection };
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e);
+
+                            throw;
+                        }
                     })
             ).ApplyReducers(
                 f => f.On<SelectNewPairAction>(JobDataPatcher.ReplaceSlected))
@@ -78,17 +84,16 @@ public sealed partial class JobsState : StateBase<InternalJobData>
     {
         CurrentlySelectedData = state.Select(jobData => jobData.CurrentSelected.JobData);
         CurrentlySelectedPair = state.Select(jobData => jobData.CurrentSelected.Pair);
-        CurrentJobs = state.Select(jobData =>
-                                   {
-                                       Console.WriteLine(jobData);
-                                       Console.WriteLine(jobData.CurrentJobs.FirstOrDefault());
-                                       return jobData.CurrentJobs;
-                                   });
+        CurrentJobs = state.Select(jobData => jobData.CurrentJobs);
         CurrentJobs.Subscribe();
         ActiveJobsCount = FromServer(_service.CountActiveJobs);
     }
 
-    public IObservable<JobSortOrderPair[]> CurrentJobs { get; private set; } = Observable.Empty<JobSortOrderPair[]>();
+    public IObservable<JobSortOrderPair[]> CurrentJobs
+    {
+        get => _currentJobs;
+        private set => _currentJobs = value;
+    }
 
     public IObservable<JobData?> CurrentlySelectedData { get; private set; } = Observable.Empty<JobData>();
 

@@ -1,4 +1,5 @@
-﻿using System.Reactive.Concurrency;
+﻿using System.Reactive;
+using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -94,12 +95,23 @@ public sealed class Store<TState> : IReduxStore<TState>
         }
     }
 
+    
     public void RegisterEffects(IEnumerable<Effect<TState>> effects)
     {
         foreach (var effect in effects)
-            effect.CreateEffect(this).Do(
-                static _ => { },
-                _onError).Retry().NotNull().Subscribe(_dispactcher.OnNext);
+        {
+            effect.CreateEffect(this)
+               .RetryWhen(
+                    e => e.Select(
+                        ex =>
+                        {
+                            _onError(ex);
+
+                            return Unit.Default;
+                        }))
+               .NotNull().Subscribe(_dispactcher.OnNext);
+
+        }
     }
 
     public void RegisterReducers(params On<TState>[] reducers)

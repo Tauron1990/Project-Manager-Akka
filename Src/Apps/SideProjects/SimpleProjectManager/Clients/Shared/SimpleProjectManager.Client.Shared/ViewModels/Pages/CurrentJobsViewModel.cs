@@ -15,7 +15,6 @@ public sealed class CurrentJobsViewModel : ReactiveObject
     
     public CurrentJobsViewModel(GlobalState state, PageNavigation pageNavigation)
     {
-        Console.WriteLine($"{nameof(CurrentJobsViewModel)} Constructor");
         Jobs = state.Jobs.CurrentJobs.Do(l => Console.WriteLine($"{nameof(CurrentJobsViewModel)} -- Recived new Data: {l.Length}"));
         NewJob = ReactiveCommand.Create(pageNavigation.NewJob, state.IsOnline);
     }
