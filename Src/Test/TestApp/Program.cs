@@ -18,7 +18,7 @@ using Tauron.Applicarion.Redux.Internal;
 
 namespace TestApp;
 
-/*public sealed record IncrementCommand;
+public sealed record IncrementCommand;
 
 public interface IFakeServer
 {
@@ -110,17 +110,17 @@ public sealed class CounterState : StateBase<TestCounter>
         base.PostConfiguration(state);
         ActualCount = state.Select(tc => tc.Count);
     }
-}*/
+}
 
 static class Program
 {
     static async Task Main()
     {
-        await AkkaRedux.AkkaTestApp.AkkaMain();
+        //await AkkaRedux.AkkaTestApp.AkkaMain();
 
         //await Test.TestApp.Run();
 
-        /*var coll = new ServiceCollection();
+        var coll = new ServiceCollection();
         coll.AddTransient<ICacheDb, FakeCahce>();
         coll.AddTransient<IErrorHandler, FakeError>();
         coll.AddStoreConfiguration();
@@ -135,16 +135,13 @@ static class Program
         
         test.ActualCount
            .DistinctUntilChanged()
-           .Subscribe(Console.WriteLine);
-
-        var service = serviceProvider.GetRequiredService<IFakeServer>();
-        await service.Increment(new IncrementCommand(), default);
+           .Subscribe(d =>
+                      {
+                          if(d < 10)
+                              store.Dispatch(new IncrementCommand());
+                          Console.WriteLine(d);
+                      });
         
-        // for (var i = 0; i < 1; i++)
-        // {
-        //     store.Dispatch(new IncrementCommand());
-        //     await Task.Delay(1000);
-        // }
         
         Console.ReadKey();
         
@@ -156,6 +153,6 @@ static class Program
                 baseState.RunConfig(configuration);
 
             return state;
-        }*/
+        }
     }
 }

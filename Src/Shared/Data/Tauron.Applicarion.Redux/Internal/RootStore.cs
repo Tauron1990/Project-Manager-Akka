@@ -59,8 +59,8 @@ public sealed class RootStore : IRootStore
 
     public IRootStoreState<TState> ForState<TState>() where TState : new()
     {
-        if(_stores.TryGetValue(typeof(TState), out var store) && store is IReduxStore<TState> reduxStore)
-            return new RootStoreState<TState>(reduxStore);
+        if(_stores.TryGetValue(typeof(TState), out var store) && store is IRootStoreState<TState> reduxStore)
+            return reduxStore;
 
         var storeState = new RootStoreState<TState>(new Store<TState>(new TState(), _scheduler, _onError));
         _stores[typeof(TState)] = storeState;
@@ -108,6 +108,11 @@ public sealed class RootStore : IRootStore
             _subscriptions = Middleware
                .Connect(store)
                .Retry()
+               .Do(
+                    c =>
+                    {
+                        
+                    })
                .Subscribe(store.Dispatch);
         }
 

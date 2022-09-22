@@ -29,7 +29,7 @@ public abstract class Middleware : IMiddleware
            .Where(_ => _processors.Count != 0)
            .SelectMany(
                 dispatchedAction => _processors.FirstOrDefault(r => r.Can(dispatchedAction))?.Exec(dispatchedAction) ??
-                                    Observable.Return(dispatchedAction));
+                                    Observable.Empty<object>());
     }
 
     protected void OnAction<TAction>(Func<IObservable<TAction>, IObservable<object>> runner)
