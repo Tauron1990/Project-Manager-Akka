@@ -9,7 +9,9 @@ using System.Threading.Tasks;
 using LiteDB.Async;
 using Microsoft.Extensions.DependencyInjection;
 using SimpleProjectManager.Client.Shared.Data.States;
+using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
+using SimpleProjectManager.Shared.Validators;
 using Stl.Fusion;
 using Tauron.Applicarion.Redux;
 using Tauron.Applicarion.Redux.Configuration;
@@ -116,6 +118,9 @@ static class Program
 {
     static async Task Main()
     {
+        ProjectNameValidator valTest = new ProjectNameValidator();
+        var result = await valTest.ValidateAsync(new ProjectName("BMqr_12345"));
+        
         //await AkkaRedux.AkkaTestApp.AkkaMain();
 
         //await Test.TestApp.Run();

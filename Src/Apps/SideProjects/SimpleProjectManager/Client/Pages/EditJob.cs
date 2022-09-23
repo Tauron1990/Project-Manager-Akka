@@ -16,6 +16,13 @@ public partial class EditJob
 
         if (ViewModel == null) yield break;
 
+        ViewModel.JobId.Set(ProjectId);
         _commitAction = ViewModel.Commit.ToAction();
+    }
+
+    protected override void OnParametersSet()
+    {
+        ViewModel?.JobId.Set(ProjectId);
+        base.OnParametersSet();
     }
 }

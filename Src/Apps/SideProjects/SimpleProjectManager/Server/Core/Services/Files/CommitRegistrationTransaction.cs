@@ -23,7 +23,7 @@ public sealed class CommitRegistrationTransaction : SimpleTransaction<ProjectFil
         
         var result = await _taskManagerCore.AddNewTask(
             AddTaskCommand.Create(
-                $"Datai {projectFileId.Value} Löschen",
+                $"Datei {projectFileId.Value} Löschen - 6 Monate",
                 new Schedule<FilePurgeJob, FilePurgeId>(
                     FilePurgeId.For(projectFileId),
                     new FilePurgeJob(projectFileId),

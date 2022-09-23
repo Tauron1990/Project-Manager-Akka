@@ -8,7 +8,7 @@ public partial class FileManager
 {
     private readonly TableGroupDefinition<DatabaseFile> _groupDefinition = new(file => file.JobName)
                                                                            {
-                                                                               GroupName = "Job: ",
+                                                                               GroupName = "Job",
                                                                                Expandable = true,
                                                                                IsInitiallyExpanded = false
                                                                            };

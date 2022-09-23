@@ -43,7 +43,7 @@ public abstract class FileUploaderViewModelBase : ViewModelBase
 
     public ReactiveCommand<FileChangeEvent, Unit>? FilesChanged { get; private set; }
 
-    public Func<string, string> ValidateName { get; }
+    public Func<string, IEnumerable<string>> ValidateName { get; }
 
     public ReadOnlyObservableCollection<FileUploadFile>? Files { get; private set; }
 
@@ -102,7 +102,12 @@ public abstract class FileUploaderViewModelBase : ViewModelBase
                 canExecute.CombineLatest(this.WhenAnyValue(m => m.ProjectId)).Select(t => t.First && !string.IsNullOrWhiteSpace(t.Second)));
 
             yield return Upload.IsExecuting.Subscribe(isUploading);
-
+            yield return Upload.Select(_ =>
+                                       {
+                                           Console.WriteLine("Upload -- Invoke Clear");
+                                           return Unit.Default;
+                                       }).Delay(TimeSpan.FromSeconds(1)).InvokeCommand(Clear);
+            
             yield return Clear = ReactiveCommand.Create(() => _files.Clear(), canExecute);
 
             yield return FilesChanged = ReactiveCommand.Create<FileChangeEvent, Unit>(
@@ -134,9 +139,10 @@ public abstract class FileUploaderViewModelBase : ViewModelBase
 
         try
         {
-            var validation = _globalState.Jobs.ValidateProjectName(ProjectId);
-            if (!string.IsNullOrWhiteSpace(validation))
+            var validationResult = _globalState.Jobs.ValidateProjectName(ProjectId).AsOrToArray();
+            if (validationResult.Length != 0)
             {
+                var validation = string.Join(", ", validationResult);
                 _aggregator.PublishWarnig(validation);
                 return validation;
             }

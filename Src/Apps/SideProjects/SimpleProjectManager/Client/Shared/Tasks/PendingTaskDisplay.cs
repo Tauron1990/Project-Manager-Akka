@@ -21,6 +21,13 @@ public partial class PendingTaskDisplay
 
     protected override IEnumerable<IDisposable> InitializeModel()
     {
+        ViewModel?.PendingTask.Set(PendingTask);
         yield return this.BindCommand(ViewModel, m => m.Cancel, d => d.CancelButton);
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        ViewModel?.PendingTask.Set(PendingTask);
     }
 }

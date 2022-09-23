@@ -5,7 +5,6 @@ using Akka.Actor.Dsl;
 using Akka.DependencyInjection;
 using Akkatecture.Jobs;
 using Akkatecture.Jobs.Commands;
-using MongoDB.Bson;
 using SimpleProjectManager.Server.Data;
 using SimpleProjectManager.Shared.Services;
 
@@ -13,7 +12,16 @@ using SimpleProjectManager.Shared.Services;
 
 namespace SimpleProjectManager.Server.Core.Tasks;
 
-public sealed record TaskManagerEntry(ObjectId Id, string ManagerId, string Name, string JobId, string Info);
+public sealed record TaskManagerEntry
+{
+    public string Id { get; init; } = string.Empty;
+    public string ManagerId { get; init; } = string.Empty;
+
+    public string Name { get; init; } = string.Empty;
+
+    public string JobId { get; init; } = string.Empty;
+    public string Info { get; init; } = string.Empty;
+}
 
 public sealed class TaskManagerCore
 {
@@ -136,7 +144,14 @@ public sealed class TaskManagerCore
                     if (string.IsNullOrWhiteSpace(jobId))
                         return OperationResult.Failure("Die Job Id ist Leer");
 
-                    var entry = new TaskManagerEntry(ObjectId.GenerateNewId(), registration.Id, name, jobId, info);
+                    var entry = new TaskManagerEntry
+                                {
+                                    Id = Guid.NewGuid().ToString("D"),
+                                    ManagerId = registration.Id,
+                                    Name = name,
+                                    JobId = jobId,
+                                    Info = info
+                                };
 
                     var manager = GetJobManager(registration);
                     

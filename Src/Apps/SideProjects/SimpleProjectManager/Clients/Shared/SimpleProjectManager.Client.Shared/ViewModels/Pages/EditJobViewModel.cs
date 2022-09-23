@@ -11,7 +11,7 @@ namespace SimpleProjectManager.Client.Shared.ViewModels.Pages;
 
 public sealed class EditJobViewModel : ViewModelBase
 {
-    private IState<string> JobId { get; }
+    public IMutableState<string> JobId { get; }
 
     public IObservable<JobEditorData?> EditorData { get; }
     
@@ -19,9 +19,9 @@ public sealed class EditJobViewModel : ViewModelBase
     
     public ReactiveCommand<JobEditorCommit, Unit> Commit { get; }
 
-    public EditJobViewModel(GlobalState state, PageNavigation pageNavigation, IState<string> jobId)
+    public EditJobViewModel(GlobalState state, PageNavigation pageNavigation, IStateFactory stateFactory)
     {
-        JobId = jobId;
+        JobId = stateFactory.NewMutable<string>();
         Cancel = pageNavigation.ShowStartPage;
 
         EditorData = state.Jobs.GetJobEditorData(JobId.ToObservable());

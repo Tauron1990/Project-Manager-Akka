@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reactive.Linq;
@@ -25,7 +26,6 @@ public sealed partial class JobsState : StateBase<InternalJobData>
     
     private readonly IJobDatabaseService _service;
     private readonly IMessageMapper _messageMapper;
-    private IObservable<JobSortOrderPair[]> _currentJobs = Observable.Empty<JobSortOrderPair[]>();
 
     public JobsState(IStateFactory stateFactory, IJobDatabaseService jobDatabaseService, IMessageMapper messageMapper)
         : base(stateFactory)
@@ -55,7 +55,7 @@ public sealed partial class JobsState : StateBase<InternalJobData>
 
                             var selection = originalData.CurrentSelected;
                             // ReSharper disable once AccessToModifiedClosure
-                            if(selection.Pair is not null && pairs.All(s => s?.Info.Project != selection.Pair?.Info.Project))
+                            if(selection?.Pair is not null && pairs.All(s => s.Info.Project != selection.Pair?.Info.Project))
                                 selection = new CurrentSelected(null, null);
 
                             return originalData with { CurrentJobs = pairs, CurrentSelected = selection };
@@ -82,18 +82,14 @@ public sealed partial class JobsState : StateBase<InternalJobData>
 
     protected override void PostConfiguration(IRootStoreState<InternalJobData> state)
     {
-        CurrentlySelectedData = state.Select(jobData => jobData.CurrentSelected.JobData);
-        CurrentlySelectedPair = state.Select(jobData => jobData.CurrentSelected.Pair);
+        CurrentlySelectedData = state.Select(jobData => jobData.CurrentSelected?.JobData);
+        CurrentlySelectedPair = state.Select(jobData => jobData.CurrentSelected?.Pair);
         CurrentJobs = state.Select(jobData => jobData.CurrentJobs);
         CurrentJobs.Subscribe();
         ActiveJobsCount = FromServer(_service.CountActiveJobs);
     }
 
-    public IObservable<JobSortOrderPair[]> CurrentJobs
-    {
-        get => _currentJobs;
-        private set => _currentJobs = value;
-    }
+    public IObservable<JobSortOrderPair[]> CurrentJobs { get; private set; } = Observable.Empty<JobSortOrderPair[]>();
 
     public IObservable<JobData?> CurrentlySelectedData { get; private set; } = Observable.Empty<JobData>();
 
@@ -112,12 +108,12 @@ public partial class JobsState
                 f.AddRequest(JobDataRequests.PostJobCommit(_service, _messageMapper), JobDataPatcher.PatchEditorCommit);
             });
 
-    public string ValidateProjectName(string? arg)
+    public IEnumerable<string> ValidateProjectName(string? arg)
     {
         var name = new ProjectName(arg ?? string.Empty);
         var result = _nameValidator.Validate(name);
 
-        return result.IsValid ? string.Empty : string.Join(", ", result.Errors.Select(err => err.ErrorMessage));
+        return result.IsValid ? Array.Empty<string>() : result.Errors.Select(err => err.ErrorMessage).ToArray();
     }
 
     public IObservable<JobEditorData?> GetJobEditorData(IObservable<string> idObservable)

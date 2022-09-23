@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -8,6 +9,8 @@ using ReactiveUI;
 using SimpleProjectManager.Client.Shared.Data;
 using SimpleProjectManager.Client.Shared.Data.JobEdit;
 using SimpleProjectManager.Client.Shared.Services;
+using SimpleProjectManager.Shared;
+using SimpleProjectManager.Shared.Validators;
 using Stl.Fusion;
 using Tauron;
 
@@ -36,8 +39,22 @@ public abstract class JobEditorViewModelBase : ViewModelBase
 
     public FileUploaderViewModelBase UploaderViewModel { get; }
 
+    public Func<string?, IEnumerable<string>> ProjectNameValidator { get; }
+    
+    public Func<DateTime, IEnumerable<string>> DeadlineValidator { get; }
+
     protected JobEditorViewModelBase(IMessageMapper mapper, FileUploaderViewModelBase uploaderViewModel, GlobalState globalState)
     {
+        var deadlineValidator = new ProjectDeadlineValidator();
+        
+        ProjectNameValidator = globalState.Jobs.ValidateProjectName;
+        DeadlineValidator = time =>
+                            {
+                                var validation = deadlineValidator.Validate(new ProjectDeadline(time));
+                                return validation.IsValid ? Array.Empty<string>() : validation.Errors.Select(err => err.ErrorMessage);
+
+                            };
+        
         FileUploadTrigger = new FileUploadTrigger();
         UploaderViewModel = uploaderViewModel;
         

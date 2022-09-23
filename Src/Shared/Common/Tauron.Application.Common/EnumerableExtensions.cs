@@ -18,6 +18,14 @@ public sealed record SucessCallResult<TResult>(TResult Result) : CallResult<TRes
 [PublicAPI]
 public static class EnumerableExtensions
 {
+    public static TData[] AsOrToArray<TData>(this IEnumerable<TData> input)
+    {
+        if(input is TData[] arr)
+            return arr;
+
+        return input.ToArray();
+    }
+    
     public static TType AddAnd<TType>(this ICollection<TType> collection, TType item)
     {
         collection.Add(item);

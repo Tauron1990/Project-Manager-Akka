@@ -1,17 +1,15 @@
 ﻿@using SimpleProjectManager.Client.Shared.ViewModels
 
-@inject NavigationManager _navigationManager
+@inject NavigationManager NavigationManager
 
 <MudDivider Class="mb-4"/>
 <MudNavMenu>
     <MudNavLink Class="ma-1" OnClick="@(() => Navigate(PageNavigation.StartPageUrl))">Übersicht</MudNavLink>
     <MudNavLink Class="ma-1" OnClick="@(() => Navigate(PageNavigation.CurrentJobs))">Aktuelle Aufträge</MudNavLink>
     <MudNavLink Class="ma-1" OnClick="@(() => Navigate(PageNavigation.NewJobUrl))">Neuer Job</MudNavLink>
-    <MudTooltip Text="Seiten die für Fehlerbehandlung und Server Administration gedacht sind">
-        <MudNavGroup Class="ma-1" Expanded="false" Title="Intern">
-            <MudNavLink OnClick="@(() => Navigate(PageNavigation.CriticalErrorsUrl))">Kritische Fehler</MudNavLink>
-            <MudNavLink OnClick="@(() => Navigate(PageNavigation.TaskManagerUrl))">Task Manager</MudNavLink>
-            <MudNavLink OnClick="@(() => Navigate(PageNavigation.FileManagerUrl))">Datei Manager</MudNavLink>
-        </MudNavGroup>
-    </MudTooltip>
+    <MudNavGroup Class="ma-1" Expanded="false" Title="Intern">
+        <MudNavLink OnClick="@(() => Navigate(PageNavigation.CriticalErrorsUrl))">Kritische Fehler</MudNavLink>
+        <MudNavLink OnClick="@(() => Navigate(PageNavigation.TaskManagerUrl))">Task Manager</MudNavLink>
+        <MudNavLink OnClick="@(() => Navigate(PageNavigation.FileManagerUrl))">Datei Manager</MudNavLink>
+    </MudNavGroup>
 </MudNavMenu>

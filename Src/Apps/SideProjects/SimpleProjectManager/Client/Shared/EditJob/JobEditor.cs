@@ -1,5 +1,6 @@
 ﻿using System.Reactive.Disposables;
 using Microsoft.AspNetCore.Components;
+using MudBlazor;
 using ReactiveUI;
 using SimpleProjectManager.Client.Shared.Data.JobEdit;
 using SimpleProjectManager.Client.Shared.ViewModels;
@@ -14,7 +15,8 @@ public partial class JobEditor
 {
     private MudCommandButton? _cancelButton;
     private MudCommandButton? _commitButton;
-
+    private MudForm? _editorForm;
+    
     [Parameter]
     public string Title { get; set; } = string.Empty;
 
@@ -58,7 +60,14 @@ public partial class JobEditor
      protected override JobEditorViewModel CreateModel()
          => (CustomViewModel as JobEditorViewModel) ?? base.CreateModel();
 
-    protected override IEnumerable<IDisposable> InitializeModel()
+     protected override void OnAfterRender(bool firstRender)
+     {
+         if(firstRender)
+             _editorForm?.Validate();
+         base.OnAfterRender(firstRender);
+     }
+
+     protected override IEnumerable<IDisposable> InitializeModel()
     {
         if (ViewModel is null) yield break;
 

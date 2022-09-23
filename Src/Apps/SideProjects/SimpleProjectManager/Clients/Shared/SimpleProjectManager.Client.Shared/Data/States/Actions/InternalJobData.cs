@@ -22,15 +22,17 @@ internal static class JobDataPatcher
         => data with { CurrentSelected = selected };
         
     public static InternalJobData ReplaceSlected(InternalJobData data, SelectNewPairAction action)
-        => data with { CurrentSelected = data.CurrentSelected with { Pair = action.Selection } };
-        
+        => data.CurrentSelected is null 
+            ? data with { CurrentSelected = new CurrentSelected(action.Selection, null) } 
+            : data with { CurrentSelected = data.CurrentSelected with { Pair = action.Selection } };
+
     public static InternalJobData PatchSortOrder(InternalJobData data, SetSortOrder order)
     {
         var (_, sortOrder) = order;
 
         if (sortOrder is null) return data;
 
-        if (data.CurrentSelected.Pair is not null && data.CurrentSelected.Pair.Order.Id == sortOrder.Id)
+        if (data.CurrentSelected?.Pair is not null && data.CurrentSelected.Pair.Order.Id == sortOrder.Id)
         {
             var pair = data.CurrentSelected.Pair with { Order = sortOrder };
             var selected = data.CurrentSelected with { Pair = pair };
@@ -84,7 +86,7 @@ internal static class JobDataPatcher
 internal static class JobDataSelectors
 {
     public static CurrentSelected CurrentSelected(InternalJobData data)
-        => data.CurrentSelected;
+        => data.CurrentSelected ?? new CurrentSelected(null, null);
 }
 
 internal static class JobDataRequests

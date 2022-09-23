@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace SimpleProjectManager.Client.Shared.Data.States.Data;
 
-public sealed record InternalJobData(JobSortOrderPair[] CurrentJobs, CurrentSelected CurrentSelected)
+public sealed record InternalJobData(JobSortOrderPair[] CurrentJobs, CurrentSelected? CurrentSelected)
 {
     public InternalJobData()
         : this(Array.Empty<JobSortOrderPair>(), new CurrentSelected(null, null))

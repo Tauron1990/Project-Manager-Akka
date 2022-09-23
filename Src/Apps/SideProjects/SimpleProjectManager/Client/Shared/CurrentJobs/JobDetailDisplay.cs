@@ -24,7 +24,7 @@ public partial class JobDetailDisplay
             ViewModel,
             m => m.EditJob,
             v => v.EditButton,
-            ViewModel.WhenAny(m => m.JobData, m => m.Value));
+            ViewModel.WhenAny(m => m.JobData, m => m.Value?.Id));
     }
 
 }
