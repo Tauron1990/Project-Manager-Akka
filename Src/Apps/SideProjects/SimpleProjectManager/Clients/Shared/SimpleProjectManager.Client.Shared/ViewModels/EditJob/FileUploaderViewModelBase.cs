@@ -102,14 +102,9 @@ public abstract class FileUploaderViewModelBase : ViewModelBase
                 canExecute.CombineLatest(this.WhenAnyValue(m => m.ProjectId)).Select(t => t.First && !string.IsNullOrWhiteSpace(t.Second)));
 
             yield return Upload.IsExecuting.Subscribe(isUploading);
-            yield return Upload.Select(_ =>
-                                       {
-                                           Console.WriteLine("Upload -- Invoke Clear");
-                                           return Unit.Default;
-                                       }).Delay(TimeSpan.FromSeconds(1)).InvokeCommand(Clear);
-            
-            yield return Clear = ReactiveCommand.Create(() => _files.Clear(), canExecute);
 
+            yield return Clear = ReactiveCommand.Create(() => _files.Clear(), canExecute);
+            
             yield return FilesChanged = ReactiveCommand.Create<FileChangeEvent, Unit>(
                 args =>
                 {
