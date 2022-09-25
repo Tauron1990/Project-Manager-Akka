@@ -15,9 +15,9 @@ namespace SimpleProjectManager.Client.Shared.Data.States;
 public sealed class TaskState : StateBase, IProvideRootStore, IStoreInitializer
 {
     private readonly ITaskManager _taskManager;
-    private readonly IMessageMapper _aggregator;
+    private readonly IMessageDispatcher _aggregator;
 
-    public TaskState(IStateFactory stateFactory, ITaskManager taskManager, IMessageMapper aggregator) 
+    public TaskState(IStateFactory stateFactory, ITaskManager taskManager, IMessageDispatcher aggregator) 
         : base(stateFactory)
     {
         _taskManager = taskManager;

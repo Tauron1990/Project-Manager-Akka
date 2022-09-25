@@ -1,5 +1,6 @@
 using SimpleProjectManager.Client.Shared.CriticalErrors;
 using SimpleProjectManager.Client.Shared.Data;
+using SimpleProjectManager.Client.Shared.Services;
 using SimpleProjectManager.Client.Shared.ViewModels.CriticalErrors;
 using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
@@ -11,8 +12,8 @@ public sealed class CriticalErrorViewModel : CriticalErrorViewModelBase, IParame
 {
     private readonly IStateFactory _stateFactory;
 
-    public CriticalErrorViewModel(IStateFactory stateFactory, GlobalState globalState)
-        : base(globalState)
+    public CriticalErrorViewModel(IStateFactory stateFactory, GlobalState globalState, IMessageDispatcher messageDispatcher)
+        : base(globalState, messageDispatcher)
         => _stateFactory = stateFactory;
 
     public ParameterUpdater Updater { get; } = new();

@@ -3,6 +3,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using SimpleProjectManager.Client.Shared.Services;
 using Stl.Fusion;
 using Tauron;
 using Tauron.Applicarion.Redux;
@@ -13,18 +14,18 @@ namespace SimpleProjectManager.Client.Shared.Data.States;
 public abstract class StateBase
 {
     protected IStateFactory StateFactory { get; }
-    
+
 
     protected StateBase(IStateFactory stateFactory)
         => StateFactory = stateFactory;
-    
+
     protected IObservable<TValue> FromServer<TValue>(Func<CancellationToken, Task<TValue>> fetcher)
         => Observable.Create<TValue>(
             o =>
             {
                 var state = StateFactory.NewComputed<TValue>(async (_, t) => await fetcher(t));
 
-                return new CompositeDisposable(state, state.ToObservable(true).Subscribe(o));
+                return new CompositeDisposable(state, state.ToObservable(_ => true).Subscribe(o));
             });
 }
 

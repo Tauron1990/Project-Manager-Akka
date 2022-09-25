@@ -5,6 +5,7 @@ using System.Reactive.Linq;
 using ReactiveUI;
 using SimpleProjectManager.Client.Shared.Data;
 using SimpleProjectManager.Client.Shared.Data.States.Actions;
+using SimpleProjectManager.Client.Shared.Services;
 using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
 using Tauron;
@@ -18,7 +19,7 @@ public abstract class CriticalErrorViewModelBase : ViewModelBase
 
     public ReactiveCommand<Unit, Unit>? Hide { get; private set; }
 
-    protected CriticalErrorViewModelBase(GlobalState globalState)
+    protected CriticalErrorViewModelBase(GlobalState globalState, IMessageDispatcher messageDispatcher)
     {
         this.WhenActivated(Init);
         
@@ -26,7 +27,8 @@ public abstract class CriticalErrorViewModelBase : ViewModelBase
         {
             var currentError = GetErrorState();
             
-            yield return _item = currentError.ToObservable().ObserveOn(RxApp.MainThreadScheduler).ToProperty(this, m => m.Item);
+            yield return _item = currentError.ToObservable(messageDispatcher.IgnoreErrors())
+               .ObserveOn(RxApp.MainThreadScheduler).ToProperty(this, m => m.Item);
             yield return Hide = ReactiveCommand.Create(
                 () =>
                 {
@@ -36,7 +38,8 @@ public abstract class CriticalErrorViewModelBase : ViewModelBase
 
                     globalState.Dispatch(new DisableError(err));
                 },
-                currentError.ToObservable().Select(d => d is not null).StartWith(false)
+                currentError.ToObservable(messageDispatcher.IgnoreErrors())
+                   .Select(d => d is not null).StartWith(false)
                    .AndIsOnline(globalState.OnlineMonitor));
         }
     }

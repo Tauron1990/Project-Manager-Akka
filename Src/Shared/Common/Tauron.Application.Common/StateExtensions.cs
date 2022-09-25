@@ -17,22 +17,23 @@ public static class StateExtensions
         return new DisposableState<TData>(state, serial);
     }
 
-    public static IObservable<TData> ToObservable<TData>(this IState<TData> state, bool skipErrors = false)
+    public static IObservable<TData> ToObservable<TData>(this IState<TData> state, Func<Exception, bool> decidePropagateErrors)
         => Observable.Create<TData>(o =>
                                     {
                                         if(state.HasValue)
                                             o.OnNext(state.Value);
-                                        return new StateRegistration<TData>(o, state, skipErrors);
+                                        return new StateRegistration<TData>(o, state, decidePropagateErrors);
                                     })
-           .DistinctUntilChanged();
+           .DistinctUntilChanged()
+           .Replay(1).RefCount();
     
     private sealed class StateRegistration<TData> : IDisposable
     {
         private readonly IObserver<TData> _observer;
         private readonly IState<TData> _state;
-        private readonly bool _skipErrors;
+        private readonly Func<Exception, bool> _skipErrors;
 
-        internal StateRegistration(IObserver<TData> observer, IState<TData> state, bool skipErrors)
+        internal StateRegistration(IObserver<TData> observer, IState<TData> state, Func<Exception, bool> skipErrors)
         {
             _observer = observer;
             _state = state;
@@ -47,8 +48,11 @@ public static class StateExtensions
         {
             if(_state.HasValue)
                 _observer.OnNext(_state.Value);
-            else if(!_skipErrors && _state.HasError && _state.Error is not null)
-                _observer.OnError(_state.Error);
+            else if(_state.HasError && _state.Error is not null)
+            {
+                if(_skipErrors(_state.Error))
+                    _observer.OnError(_state.Error);
+            }
         }
 
         public void Dispose() => _state.RemoveEventHandler(StateEventKind.All, Handler);

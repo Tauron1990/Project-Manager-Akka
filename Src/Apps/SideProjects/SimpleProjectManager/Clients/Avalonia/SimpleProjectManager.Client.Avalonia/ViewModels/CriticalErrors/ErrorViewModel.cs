@@ -6,6 +6,7 @@ using System.Reactive.Linq;
 using DynamicData;
 using DynamicData.Alias; 
 using SimpleProjectManager.Client.Shared.Data;
+using SimpleProjectManager.Client.Shared.Services;
 using SimpleProjectManager.Client.Shared.ViewModels.CriticalErrors;
 using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
@@ -17,8 +18,8 @@ public sealed class ErrorViewModel : CriticalErrorViewModelBase
     private readonly CriticalError _error;
     private readonly GlobalState _globalState;
     
-    public ErrorViewModel(CriticalError error, GlobalState globalState) 
-        : base(globalState)
+    public ErrorViewModel(CriticalError error, GlobalState globalState, IMessageDispatcher messageDispatcher) 
+        : base(globalState, messageDispatcher)
     {
         _error = error;
         _globalState = globalState;
@@ -46,7 +47,8 @@ public sealed class ErrorViewModel : CriticalErrorViewModelBase
            .Select(c => (c.Count == 1 && c.Keys.ElementAt(0) == "None", c.Count == 0))
            .Replay(1).RefCount();
 
-    public static IObservable<IChangeSet<ErrorViewModel, string>> TranslateErrorList(CriticalErrorsViewModel errors, out IDisposable disposer)
+    public static IObservable<IChangeSet<ErrorViewModel, string>> TranslateErrorList(
+        CriticalErrorsViewModel errors, IMessageDispatcher messageDispatcher, out IDisposable disposer)
     {
         var cache = new SourceCache<CriticalError, string>(ce => ce.Id);
         var dispoable = new CompositeDisposable();
@@ -80,7 +82,8 @@ public sealed class ErrorViewModel : CriticalErrorViewModelBase
            .Subscribe()
            .DisposeWith(dispoable);
 
-        return cache.Connect().Select(c => new ErrorViewModel(c, errors.GlobalState))
+        return cache.Connect()
+           .Select(c => new ErrorViewModel(c, errors.GlobalState, messageDispatcher))
            .Replay().RefCount();
     }
 }

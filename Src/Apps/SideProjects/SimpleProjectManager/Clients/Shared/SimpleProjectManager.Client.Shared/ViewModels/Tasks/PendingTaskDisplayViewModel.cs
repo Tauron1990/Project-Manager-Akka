@@ -6,6 +6,7 @@ using System.Reactive.Subjects;
 using ReactiveUI;
 using SimpleProjectManager.Client.Shared.Data;
 using SimpleProjectManager.Client.Shared.Data.States.Actions;
+using SimpleProjectManager.Client.Shared.Services;
 using SimpleProjectManager.Shared.Services.Tasks;
 using Stl.Fusion;
 using Tauron;
@@ -18,7 +19,7 @@ public sealed class PendingTaskDisplayViewModel : ViewModelBase
     
     public ReactiveCommand<Unit, Unit>? Cancel { get; private set; }
 
-    public PendingTaskDisplayViewModel(GlobalState globalState, IStateFactory stateFactory)
+    public PendingTaskDisplayViewModel(GlobalState globalState, IStateFactory stateFactory, IMessageDispatcher messageDispatcher)
     {
         PendingTask = stateFactory.NewMutable<PendingTask?>();
         
@@ -37,7 +38,7 @@ public sealed class PendingTaskDisplayViewModel : ViewModelBase
                     globalState.Dispatch(new DeleteTask(task));
                 },
                 //PendingTask.ToObservable().Select(pt => pt is not null)
-                 canRun.CombineLatest(PendingTask.ToObservable().Select(pt => pt is not null))
+                 canRun.CombineLatest(PendingTask.ToObservable(messageDispatcher.IgnoreErrors()).Select(pt => pt is not null))
                     .Select(i => i.First && i.Second)
                     .AndIsOnline(globalState.OnlineMonitor)
                 );

@@ -8,49 +8,12 @@ namespace Tauron.Applicarion.Redux.Extensions;
 [PublicAPI]
 public static class DynamicUpdate
 {
-    internal static IObservable<TData> ToObservable<TData>(IState<TData> state, bool skipErrors = false)
-        => Observable.Create<TData>(o =>
-                                    {
-                                        if(state.HasValue)
-                                            o.OnNext(state.Value);
-                                        return new StateRegistration<TData>(o, state, skipErrors);
-                                    })
-           .DistinctUntilChanged()
-           .Replay(1).RefCount();
-        
-    private sealed class StateRegistration<TData> : IDisposable
-    {
-        private readonly IObserver<TData> _observer;
-        private readonly IState<TData> _state;
-        private readonly bool _skipErrors;
-
-        internal StateRegistration(IObserver<TData> observer, IState<TData> state, bool skipErrors)
-        {
-            _observer = observer;
-            _state = state;
-            _skipErrors = skipErrors;
-
-            
-            
-            state.AddEventHandler(StateEventKind.All, Handler);
-        }
-
-        private void Handler(IState<TData> arg1, StateEventKind arg2)
-        {
-            if(_state.HasValue)
-                _observer.OnNext(_state.Value);
-            else if(!_skipErrors && _state.HasError && _state.Error is not null)
-                _observer.OnError(_state.Error);
-        }
-
-        public void Dispose() => _state.RemoveEventHandler(StateEventKind.All, Handler);
-    }
-    
     private static Effect<TState> CreateDynamicUpdaterInternal<TState, TSource, TData>(
         IStateFactory stateFactory,
         Selector<TState, TSource> selector, 
         Func<CancellationToken, Func<CancellationToken, ValueTask<TSource>>, Task<TData>> requester, 
-        Patcher<TData, TState> patcher)
+        Patcher<TData, TState> patcher, 
+        Action<Exception>? errorHandler)
         => Create.Effect<TState>(
             store => Observable.Create<object>(o =>
                                                {
@@ -61,7 +24,13 @@ public static class DynamicUpdate
                                                        new ComputedState<TData>.Options(),
                                                        async (_, token) => await requester(token, stlState.Use).ConfigureAwait(false));
 
-                                                   var observableSubscription = ToObservable(computer, true)
+                                                   var observableSubscription = computer
+                                                      .ToObservable(
+                                                           ex =>
+                                                           {
+                                                               errorHandler?.Invoke(ex);
+                                                               return false;
+                                                           })
                                                       .Select(data => patcher(data, store.CurrentState))
                                                       .Select(MutateCallback.Create)
                                                       .Cast<object>()
@@ -115,14 +84,16 @@ public static class DynamicUpdate
         IStateFactory stateFactory,
         Selector<TState, TSource> sourceSelector,
         Func<CancellationToken, Func<CancellationToken, ValueTask<TSource>>, Task<TData>> fetcher,
-        Patcher<TData, TState> patcher)
-        => store.RegisterEffects(CreateDynamicUpdaterInternal(stateFactory, sourceSelector, fetcher, patcher));
+        Patcher<TData, TState> patcher,
+        Action<Exception>? errorHandler)
+        => store.RegisterEffects(CreateDynamicUpdaterInternal(stateFactory, sourceSelector, fetcher, patcher, errorHandler));
 
     public static void OnTheFlyUpdate<TState, TData>(
         IReduxStore<TState> store,
         IStateFactory stateFactory,
         Func<CancellationToken, Task<TData>> fetcher,
-        Patcher<TData, TState> patcher)
+        Patcher<TData, TState> patcher,
+        Action<Exception>? errorHandler)
         => store.RegisterEffects(
             CreateDynamicUpdaterInternal(
                 stateFactory,
@@ -133,5 +104,5 @@ public static class DynamicUpdate
 
                     return await fetcher(token).ConfigureAwait(false);
                 },
-                patcher));
+                patcher, errorHandler));
 }

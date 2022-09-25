@@ -4,6 +4,7 @@ using System.Reactive.Threading.Tasks;
 using ReactiveUI;
 using SimpleProjectManager.Client.Shared.Data;
 using SimpleProjectManager.Client.Shared.Data.JobEdit;
+using SimpleProjectManager.Client.Shared.Services;
 using Stl.Fusion;
 using Tauron;
 
@@ -19,12 +20,12 @@ public sealed class EditJobViewModel : ViewModelBase
     
     public ReactiveCommand<JobEditorCommit, Unit> Commit { get; }
 
-    public EditJobViewModel(GlobalState state, PageNavigation pageNavigation, IStateFactory stateFactory)
+    public EditJobViewModel(GlobalState state, PageNavigation pageNavigation, IStateFactory stateFactory, IMessageDispatcher messageDispatcher)
     {
         JobId = stateFactory.NewMutable<string>();
         Cancel = pageNavigation.ShowStartPage;
 
-        EditorData = state.Jobs.GetJobEditorData(JobId.ToObservable());
+        EditorData = state.Jobs.GetJobEditorData(JobId.ToObservable(messageDispatcher.IgnoreErrors()));
         
         Commit = ReactiveCommand.CreateFromObservable<JobEditorCommit, Unit>(
             newData => state.Jobs.CommitJobData(newData, pageNavigation.ShowStartPage).ToObservable(),

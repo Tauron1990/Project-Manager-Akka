@@ -28,7 +28,7 @@ public sealed class FileManagerViewModel : ViewModelBase
 
     public Interaction<DatabaseFile, bool> ConfirmDelete { get; } = new();
     
-    public FileManagerViewModel(GlobalState globalState, IMessageMapper mapper)
+    public FileManagerViewModel(GlobalState globalState, IMessageDispatcher dispatcher)
     {
         this.WhenActivated(Init);
         
@@ -50,7 +50,7 @@ public sealed class FileManagerViewModel : ViewModelBase
         {
             if (await ConfirmDelete.Handle(databaseFile))
             {
-                await mapper.IsSuccess(
+                await dispatcher.IsSuccess(
                     () => TimeoutToken.WithDefault(default, t => globalState.Files.DeleteFile(databaseFile, t)));
             }
         

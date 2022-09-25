@@ -22,6 +22,7 @@ public class ErrorHandler : IErrorHandler
 
     public void RequestError(Exception error)
     {
+        error = error.Demystify();
         PrintError(nameof(RequestError), error);
         _eventAggregator.PublishError(error);
     }

@@ -5,10 +5,12 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using SimpleProjectManager.Client.Shared.Data.Files;
+using SimpleProjectManager.Client.Shared.Services;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
 using Tauron;
+using Tauron.Application;
 
 namespace SimpleProjectManager.Client.Shared.Data.States;
 
@@ -29,16 +31,18 @@ public sealed class FilesState : StateBase
     
     private readonly IJobFileService _service;
     private readonly Func<UploadTransaction> _transactionFactory;
+    private readonly IMessageDispatcher _aggregator;
 
     public IObservable<DatabaseFile[]> AllFiles { get; }
 
-    public FilesState(IStateFactory stateFactory, IJobFileService jobFileService, Func<UploadTransaction> uploadTransaction)
+    public FilesState(IStateFactory stateFactory, IJobFileService jobFileService, Func<UploadTransaction> uploadTransaction, IMessageDispatcher aggregator)
         : base(stateFactory)
     {
         _service = jobFileService;
 
         AllFiles = FromServer(_service.GetAllFiles);
         _transactionFactory = uploadTransaction;
+        _aggregator = aggregator;
     }
 
     public async Task DeleteFile(DatabaseFile file, CancellationToken token)
@@ -63,7 +67,13 @@ public sealed class FilesState : StateBase
             {
                 var computer = StateFactory.NewComputed<ProjectFileInfo?>(ComputeState);
 
-                return computer.ToObservable().Finally(computer.Dispose);
+                return computer.ToObservable(
+                    ex =>
+                    {
+                        _aggregator.PublishError(ex);
+
+                        return true;
+                    }).Finally(computer.Dispose);
             });
     }
 }

@@ -25,13 +25,13 @@ public sealed partial class JobsState : StateBase<InternalJobData>
     private readonly ProjectNameValidator _nameValidator = new();
     
     private readonly IJobDatabaseService _service;
-    private readonly IMessageMapper _messageMapper;
+    private readonly IMessageDispatcher _messageDispatcher;
 
-    public JobsState(IStateFactory stateFactory, IJobDatabaseService jobDatabaseService, IMessageMapper messageMapper)
+    public JobsState(IStateFactory stateFactory, IJobDatabaseService jobDatabaseService, IMessageDispatcher messageDispatcher)
         : base(stateFactory)
     {
         _service = jobDatabaseService;
-        _messageMapper = messageMapper;
+        _messageDispatcher = messageDispatcher;
     }
 
     protected override IStateConfiguration<InternalJobData> ConfigurateState(ISourceConfiguration<InternalJobData> configuration)
@@ -105,7 +105,7 @@ public partial class JobsState
         => configuration.ApplyRequests(
             f =>
             {
-                f.AddRequest(JobDataRequests.PostJobCommit(_service, _messageMapper), JobDataPatcher.PatchEditorCommit);
+                f.AddRequest(JobDataRequests.PostJobCommit(_service, _messageDispatcher), JobDataPatcher.PatchEditorCommit);
             });
 
     public IEnumerable<string> ValidateProjectName(string? arg)
@@ -128,7 +128,7 @@ public partial class JobsState
     {
         if (newData.JobData.OldData == null)
         {
-            _messageMapper.PublishError("Keine Original Daten zur verfügung gestellt");
+            _messageDispatcher.PublishError("Keine Original Daten zur verfügung gestellt");
 
             return;
         }
@@ -138,14 +138,14 @@ public partial class JobsState
 
         if (validationResult.IsValid)
         {
-            if (await _messageMapper.IsSuccess(() => TimeoutToken.WithDefault(default, t => _service.UpdateJobData(command, t)))
-             && await _messageMapper.IsSuccess(async () => await newData.Upload()))
+            if (await _messageDispatcher.IsSuccess(() => TimeoutToken.WithDefault(default, t => _service.UpdateJobData(command, t)))
+             && await _messageDispatcher.IsSuccess(async () => await newData.Upload()))
                 onCompled();
         }
         else
         {
             var err = string.Join(", ", validationResult.Errors.Select(f => f.ErrorMessage));
-            _messageMapper.PublishWarnig(err);
+            _messageDispatcher.PublishWarnig(err);
         }
     }
 

@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace SimpleProjectManager.Client.Shared.Services;
 
-public interface IMessageMapper
+public interface IMessageDispatcher
 {
     Func<TInput, bool> IsSuccess<TInput>(Func<TInput, string> runner);
 
@@ -19,4 +19,6 @@ public interface IMessageMapper
     void PublishError(string error);
     
     void PublishWarnig(string warning);
+
+    void PublishMessage(string message);
 }

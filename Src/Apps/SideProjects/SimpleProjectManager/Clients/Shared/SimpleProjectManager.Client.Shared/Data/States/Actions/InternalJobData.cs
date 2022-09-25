@@ -103,7 +103,7 @@ internal static class JobDataRequests
         return new CurrentSelected(pair, jobData);
     }
 
-    public static Func<CommitJobEditorData, CancellationToken, ValueTask<string?>> PostJobCommit(IJobDatabaseService service, IMessageMapper messageMapper)
+    public static Func<CommitJobEditorData, CancellationToken, ValueTask<string?>> PostJobCommit(IJobDatabaseService service, IMessageDispatcher messageDispatcher)
     {
         return async (input, token) =>
                {
@@ -133,7 +133,7 @@ internal static class JobDataRequests
                    }
                    catch (Exception e)
                    {
-                       messageMapper.PublishError(e);
+                       messageDispatcher.PublishError(e);
                        input.OnCompled(false);
                        throw;
                    }

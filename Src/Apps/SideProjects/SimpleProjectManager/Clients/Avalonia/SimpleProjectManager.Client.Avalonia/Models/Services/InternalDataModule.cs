@@ -17,7 +17,7 @@ public sealed class InternalDataModule : IModule
         collection.AddSingleton<IErrorHandler, ErrorHandler>();
         collection.AddSingleton<ICacheDb, LocalCacheDb>();
         collection.AddSingleton<IOnlineMonitor, OnlineMonitor>();
-        collection.AddTransient<IMessageMapper, MessageMapper>();
+        collection.AddTransient<IMessageDispatcher, MessageDispatcher>();
 
         collection.AddSingleton<INavigationHelper, NavigationManager>();
         

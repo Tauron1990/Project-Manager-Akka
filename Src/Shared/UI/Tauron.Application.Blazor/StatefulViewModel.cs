@@ -58,7 +58,7 @@ public abstract class StatefulViewModel<TData> : BlazorViewModel
         State = stateFactory.NewComputed(ops, (_, cancel) => ComputeState(cancel))
            .DisposeWith(this);
 
-        NextElement = State.ToObservable();
+        NextElement = State.ToObservable(_ => true);
     }
     
     protected virtual void ConfigureState(ComputedState<TData>.Options options) { }

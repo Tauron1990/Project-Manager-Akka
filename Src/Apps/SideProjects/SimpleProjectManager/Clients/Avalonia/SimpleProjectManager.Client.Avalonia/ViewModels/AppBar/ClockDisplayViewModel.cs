@@ -8,6 +8,7 @@ using SimpleProjectManager.Client.Shared.ViewModels;
 using Stl.Fusion;
 using Stl.Fusion.Extensions;
 using Tauron;
+using Tauron.Application;
 
 namespace SimpleProjectManager.Client.Avalonia.ViewModels.AppBar;
 
@@ -26,7 +27,7 @@ public sealed class ClockDisplayViewModel : ViewModelBase
             yield return state;
 
             yield return _currentTime = state
-               .ToObservable()
+               .ToObservable(_ => true)
                .Select(dt => dt.ToLocalTime().ToString("G"))
                .ObserveOn(RxApp.MainThreadScheduler)
                .ToProperty(this, model => model.CurrentTime);

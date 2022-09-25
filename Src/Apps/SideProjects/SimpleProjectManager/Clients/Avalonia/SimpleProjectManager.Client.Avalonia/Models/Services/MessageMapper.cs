@@ -6,11 +6,11 @@ using Tauron.Application;
 
 namespace SimpleProjectManager.Client.Avalonia.Models.Services;
 
-public sealed class MessageMapper : IMessageMapper
+public sealed class MessageDispatcher : IMessageDispatcher
 {
     private readonly IEventAggregator _aggregator;
 
-    public MessageMapper(IEventAggregator aggregator)
+    public MessageDispatcher(IEventAggregator aggregator)
         => _aggregator = aggregator;
 
     public Func<TInput, bool> IsSuccess<TInput>(Func<TInput, string> runner)
@@ -96,4 +96,7 @@ public sealed class MessageMapper : IMessageMapper
 
     public void PublishWarnig(string warning)
         => _aggregator.PublishSharedMessage(SharedMessage.CreateWarning(warning));
+
+    public void PublishMessage(string message)
+        => _aggregator.PublishSharedMessage(SharedMessage.CreateInfo(message));
 }

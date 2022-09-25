@@ -17,7 +17,7 @@ public class InternalDataModule : IModule
         collection.AddScoped<ICacheDb, CacheDb>();
         collection.AddScoped<IOnlineMonitor, OnlineMonitor>();
         
-        collection.AddTransient<IMessageMapper, MessageMapper>();
+        collection.AddTransient<IMessageDispatcher, MessageDispatcher>();
         collection.AddTransient<IErrorHandler, ErrorHandler>();
         collection.AddTransient<INavigationHelper, NavigationHelper>();
         collection.AddTransient<Func<IJSRuntime>>(provider => provider.GetRequiredService<IJSRuntime>);

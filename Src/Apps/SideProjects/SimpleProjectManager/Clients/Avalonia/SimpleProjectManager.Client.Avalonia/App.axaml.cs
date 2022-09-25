@@ -18,7 +18,7 @@ namespace SimpleProjectManager.Client.Avalonia
     // ReSharper disable once PartialTypeWithSinglePart
     public partial class App : Application
     {
-        private ServiceProvider? _serviceProvider;
+        public static ServiceProvider? ServiceProvider;
 
         public static IDisposable Disposer { get; private set; } = Disposable.Empty;
         
@@ -35,10 +35,10 @@ namespace SimpleProjectManager.Client.Avalonia
                 
                 desktop.MainWindow = new MainWindow
                                      {
-                                         ViewModel = _serviceProvider?.GetService<MainWindowViewModel>(),
+                                         ViewModel = ServiceProvider?.GetService<MainWindowViewModel>(),
                                      };
 
-                desktop.Exit += (_, _) => _serviceProvider?.Dispose();
+                desktop.Exit += (_, _) => ServiceProvider?.Dispose();
             }
 
             base.OnFrameworkInitializationCompleted();
@@ -64,8 +64,8 @@ namespace SimpleProjectManager.Client.Avalonia
             
             ClientRegistration.ConfigFusion(collection, new Uri(ip));
             
-            _serviceProvider = collection.BuildServiceProvider();
-            Disposer = _serviceProvider;
+            ServiceProvider = collection.BuildServiceProvider();
+            Disposer = ServiceProvider;
         }
     }
 }

@@ -37,13 +37,14 @@ public abstract class JobEditorViewModelBase : ViewModelBase
 
     public FileUploadTrigger FileUploadTrigger { get; }
 
+    protected IMessageDispatcher MessageDispatcher { get; }
     public FileUploaderViewModelBase UploaderViewModel { get; }
 
     public Func<string?, IEnumerable<string>> ProjectNameValidator { get; }
     
     public Func<DateTime, IEnumerable<string>> DeadlineValidator { get; }
 
-    protected JobEditorViewModelBase(IMessageMapper mapper, FileUploaderViewModelBase uploaderViewModel, GlobalState globalState)
+    protected JobEditorViewModelBase(IMessageDispatcher dispatcher, FileUploaderViewModelBase uploaderViewModel, GlobalState globalState)
     {
         var deadlineValidator = new ProjectDeadlineValidator();
         
@@ -56,6 +57,7 @@ public abstract class JobEditorViewModelBase : ViewModelBase
                             };
         
         FileUploadTrigger = new FileUploadTrigger();
+        MessageDispatcher = dispatcher;
         UploaderViewModel = uploaderViewModel;
         
         this.WhenActivated(Init);
@@ -85,7 +87,7 @@ public abstract class JobEditorViewModelBase : ViewModelBase
 
                     await cancelEvent.Value.InvokeAsync();
                 },
-                canCancel.ToObservable().StartWith(false));
+                canCancel.ToObservable(dispatcher.IgnoreErrors()).StartWith(false));
 
             yield return Commit = ReactiveCommand.CreateFromTask(CreateCommit, _isValid.AndIsOnline(globalState.OnlineMonitor));
             
@@ -95,7 +97,7 @@ public abstract class JobEditorViewModelBase : ViewModelBase
 
                 if (Data == null)
                 {
-                    mapper.PublishError("Keine Daten Verfügbar");
+                    dispatcher.PublishError("Keine Daten Verfügbar");
                     return;
                 }
 

@@ -17,7 +17,7 @@ public sealed class JobDetailDisplayViewModel : ViewModelBase
     private ObservableAsPropertyHelper<JobData?>? _jobData;
     public JobData? JobData => _jobData?.Value;
     
-    public JobDetailDisplayViewModel(GlobalState globalState, PageNavigation navigationManager, IMessageMapper aggregator) 
+    public JobDetailDisplayViewModel(GlobalState globalState, PageNavigation navigationManager, IMessageDispatcher aggregator) 
     {
         Console.WriteLine("JobState Detail View Constructor");
         

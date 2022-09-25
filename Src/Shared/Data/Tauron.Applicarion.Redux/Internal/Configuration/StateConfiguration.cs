@@ -152,7 +152,7 @@ public sealed class RequesterFactory<TState> : IRequestFactory<TState> where TSt
             {
                 DynamicUpdate.OnTheFlyUpdate(s, _stateFactory,
                     CreateSourceSelector(sourceSelector),
-                    fetcher, CreatePatacher(patcher));
+                    fetcher, CreatePatacher(patcher), _errorHandler.RequestError);
             });
         return this;
     }
@@ -160,7 +160,7 @@ public sealed class RequesterFactory<TState> : IRequestFactory<TState> where TSt
     public IRequestFactory<TState> OnTheFlyUpdate<TData>(Func<CancellationToken, Task<TData>> fetcher, Func<TState, TData, TState> patcher)
     {
         _registrar.Add(
-            (_, s) => DynamicUpdate.OnTheFlyUpdate(s, _stateFactory, fetcher, CreatePatacher(patcher)));
+            (_, s) => DynamicUpdate.OnTheFlyUpdate(s, _stateFactory, fetcher, CreatePatacher(patcher), _errorHandler.RequestError));
         
         return this;
     }

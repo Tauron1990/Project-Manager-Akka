@@ -5,11 +5,11 @@ using Tauron.Application.Blazor;
 
 namespace SimpleProjectManager.Client.Data;
 
-public sealed class MessageMapper : IMessageMapper
+public sealed class MessageDispatcher : IMessageDispatcher
 {
     private readonly IEventAggregator _eventAggregator;
 
-    public MessageMapper(IEventAggregator eventAggregator)
+    public MessageDispatcher(IEventAggregator eventAggregator)
         => _eventAggregator = eventAggregator;
 
     public Func<TInput, bool> IsSuccess<TInput>(Func<TInput, string> runner)
@@ -32,4 +32,7 @@ public sealed class MessageMapper : IMessageMapper
 
     public void PublishWarnig(string warning)
         => _eventAggregator.PublishWarnig(warning);
+
+    public void PublishMessage(string message)
+        => _eventAggregator.PublishInfo(message);
 }

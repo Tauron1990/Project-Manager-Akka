@@ -1,3 +1,4 @@
+using SimpleProjectManager.Client.Shared;
 using SimpleProjectManager.Client.Shared.Data;
 using SimpleProjectManager.Client.Shared.EditJob;
 using SimpleProjectManager.Client.Shared.Services;
@@ -12,7 +13,7 @@ public sealed class FileUploaderViewModel : FileUploaderViewModelBase, IParamete
 {
     private readonly IStateFactory _factory;
 
-    public FileUploaderViewModel(IMessageMapper aggregator, GlobalState globalState, IStateFactory factory) 
+    public FileUploaderViewModel(IMessageDispatcher aggregator, GlobalState globalState, IStateFactory factory) 
         : base(aggregator, globalState)
     {
         _factory = factory;
@@ -20,7 +21,7 @@ public sealed class FileUploaderViewModel : FileUploaderViewModelBase, IParamete
     
     protected override (IObservable<FileUploadTrigger> triggerUpload, IState<string> nameState) GetModelInformation()
         => (
-            Updater.Register<FileUploadTrigger>(nameof(FileUploader.UploadTrigger), _factory).ToObservable(),
+            Updater.Register<FileUploadTrigger>(nameof(FileUploader.UploadTrigger), _factory).ToObservable(MessageDispatcher.PropagateErrors()),
             Updater.Register<string>(nameof(FileUploader.ProjectName), _factory)
             );
 
