@@ -1,12 +1,10 @@
-using Akka.Actor;
-using Akka.Cluster.Hosting;
 using Akka.DependencyInjection;
 using Akka.Hosting;
 using Akka.Persistence;
-using Akkatecture.Aggregates;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.ResponseCompression;
+using SimpleProjectManager.Client.Operations.Shared;
 using SimpleProjectManager.Server.Configuration;
 using SimpleProjectManager.Server.Controllers.ModelBinder;
 using SimpleProjectManager.Server.Core.JobManager;
@@ -62,8 +60,7 @@ public class Startup
         services.AddResponseCompression(
             opts => opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/octet-stream" }));
 
-        //ClientRegistrations
-        //ServiceRegistrar.RegisterServices(services);
+        services.RegisterFeature<NameRegistry>(NameRegistryFeature.Factory());
     }
 
 
@@ -90,7 +87,8 @@ public class Startup
                 })
            .RegisterStartUp<ClusterJoinSelf>(c => c.Run())
            .RegisterStartUp<JobManagerRegistrations>(jm => jm.Run())
-           .RegisterStartUp<ProjectionInitializer>(i => i.Run());
+           .RegisterStartUp<ProjectionInitializer>(i => i.Run())
+           .RegisterStartUp<InitClientOperationController>(c => c.Run());
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

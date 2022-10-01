@@ -2,6 +2,8 @@
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 
+#pragma warning disable GU0011
+
 namespace Tauron.Application.Settings;
 
 [PublicAPI]

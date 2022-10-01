@@ -10,9 +10,9 @@ public abstract class FileDetailDisplayViewModelBase : ReactiveObject
 {
     public IObservable<ProjectFileInfo?> FileInfo { get; }
     
-    protected FileDetailDisplayViewModelBase(GlobalState state)
+    protected FileDetailDisplayViewModelBase(GlobalState state, IStateFactory stateFactory)
         // ReSharper disable once VirtualMemberCallInConstructor
-        => FileInfo = state.Files.QueryFileInfo(GetId());
+        => FileInfo = state.Files.QueryFileInfo(GetId(stateFactory));
 
-    protected abstract IState<ProjectFileId?> GetId();
+    protected abstract IState<ProjectFileId?> GetId(IStateFactory stateFactory);
 }

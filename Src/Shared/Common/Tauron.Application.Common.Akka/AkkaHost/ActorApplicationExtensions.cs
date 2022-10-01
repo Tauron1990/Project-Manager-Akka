@@ -152,7 +152,7 @@ public static class ActorApplicationExtensions
             var lifetime = prov.GetRequiredService<IHostApplicationLifetime>();
 
             var system = prov.GetRequiredService<ActorSystem>();
-            new TauronEnviromentSetup().Run(prov);
+            TauronEnviromentSetup.Run(prov);
 
             lifetime.ApplicationStopping.Register(() => system.Terminate());
 

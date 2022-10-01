@@ -30,11 +30,11 @@
     <ProjectReference Include="..\..\..\..\Shared\Data\Tauron.Akkatecture.Projections\Tauron.Akkatecture.Projections.csproj" />
     <ProjectReference Include="..\..\..\..\Shared\External\Akkatecture\Akkatecture.csproj" />
     <ProjectReference Include="..\..\..\Shared\Tauron.Application.AkkaNode.Boottrap\Tauron.Application.AkkaNode.Boottrap.csproj" />
+    <ProjectReference Include="..\Clients\Shared\SimpleProjectManager.Client.Operations.Shared\SimpleProjectManager.Client.Operations.Shared.csproj" />
     <ProjectReference Include="..\Client\SimpleProjectManager.Client.csproj" />
     <ProjectReference Include="..\Data\SimpleProjectManager.Server.Configuration\SimpleProjectManager.Server.Configuration.csproj" />
     <ProjectReference Include="..\Data\SimpleProjectManager.Server.Data\SimpleProjectManager.Server.Data.csproj" />
     <ProjectReference Include="..\Shared\SimpleProjectManager.Shared.csproj" />
-    <ProjectReference Include="..\SimpleProjectManager.Operation.Client.Shared\SimpleProjectManager.Operation.Client.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,4 +1,5 @@
-﻿using System.Reactive.Linq;
+﻿using System.Collections.Immutable;
+using System.Reactive.Linq;
 using Akkatecture.Aggregates;
 using SimpleProjectManager.Server.Core.Data;
 using SimpleProjectManager.Server.Core.Data.Events;
@@ -91,7 +92,7 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
         var filter = _projects.Operations.Eq(p => p.Id, id);
         var result = await _projects.Find(filter).FirstAsync(token);
 
-        return new JobData(result.Id, result.JobName, result.Status, result.Ordering, result.Deadline, result.ProjectFiles);
+        return new JobData(result.Id, result.JobName, result.Status, result.Ordering, result.Deadline, result.ProjectFiles.ToImmutableList());
     }
 
     public virtual async Task<long> CountActiveJobs(CancellationToken token)

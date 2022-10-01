@@ -1,4 +1,4 @@
-﻿namespace SimpleProjectManager.Server.Data.LiteDbDriver;
+﻿namespace SimpleProjectManager.Shared;
 
 public static class To
 {

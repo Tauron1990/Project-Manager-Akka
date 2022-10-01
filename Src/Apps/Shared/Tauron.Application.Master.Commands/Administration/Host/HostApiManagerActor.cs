@@ -15,6 +15,7 @@ public sealed class HostApiManagerFeature : ActorFeatureBase<HostApiManagerFeatu
         => Feature.Create(
             () => new HostApiManagerFeature(),
             _ => new ApiState(ImmutableDictionary<ActorPath, HostEntry>.Empty));
+    
 
     protected override void ConfigImpl()
     {
@@ -76,7 +77,7 @@ public sealed class HostApiManagerFeature : ActorFeatureBase<HostApiManagerFeatu
                .SubscribeWithStatus(
                     m =>
                     {
-                        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+                        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
                         if (m.Host is null)
                             Context.Sender.Tell(m.Command.CreateDefaultFailed());
                         else

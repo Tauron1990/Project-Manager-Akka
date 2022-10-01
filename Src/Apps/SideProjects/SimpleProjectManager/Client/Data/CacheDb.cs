@@ -148,6 +148,7 @@ public sealed class CacheDb : ICacheDb
         public async Task<CacheData?> GetCacheEntry(CacheDataId id)
         {
             #if DEBUG
+            await Task.CompletedTask;
             return null;
             #else
             var result = await _reference.InvokeAsync<string>("window.Database.getCacheEntry", id.ToString());

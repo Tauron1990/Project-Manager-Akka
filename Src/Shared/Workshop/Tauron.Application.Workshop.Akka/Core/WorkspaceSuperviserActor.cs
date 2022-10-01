@@ -3,12 +3,13 @@ using Akka.Actor;
 using Akka.Actor.Internal;
 using Akka.DependencyInjection;
 using Akka.Util;
+using Microsoft.Extensions.Logging;
 using Tauron.TAkka;
 using Tauron.Application.Workshop.Mutation;
 
 namespace Tauron.Application.Workshop.Core;
 
-public sealed class WorkspaceSuperviserActor : ObservableActor
+public sealed partial class WorkspaceSuperviserActor : ObservableActor
 {
     private readonly Random _random = new();
     private readonly Dictionary<string, SupervisorStrategy> _supervisorStrategies = new();
@@ -39,6 +40,9 @@ public sealed class WorkspaceSuperviserActor : ObservableActor
                 }));
     }
 
+    [LoggerMessage(EventId = 40, Level = LogLevel.Error, Message = "Error on Create an new Actor with Type {typeName}")]
+    private static partial void CreateActorError(ILogger logger, Exception ex, string typeName);
+    
     private void CreateActor(SuperviseActorBase obj)
     {
         Props? props = null;
@@ -61,7 +65,7 @@ public sealed class WorkspaceSuperviserActor : ObservableActor
         }
         catch (Exception e)
         {
-            Log.Error(e, "Error on Create an new Actor {TypeName}", props?.TypeName ?? "Unkowen");
+            CreateActorError(Log, e, props?.TypeName ?? "Unkowen");
 
             if (Sender.IsNobody()) return;
 

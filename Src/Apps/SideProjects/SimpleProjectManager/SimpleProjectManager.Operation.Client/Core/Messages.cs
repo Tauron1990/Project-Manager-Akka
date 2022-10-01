@@ -1,7 +1,7 @@
 ﻿using SimpleProjectManager.Shared;
 using Tauron.Application.AkkaNode.Services.FileTransfer;
 
-namespace SimpleProjectManager.Operation.Client.Shared.Core;
+namespace SimpleProjectManager.Operation.Client.Core;
 
 public enum ImageManagerMode
 {

@@ -43,11 +43,11 @@ public sealed class ProjectProjectionManager : ProjectionManagerBase, IInitializ
 
                 map.Map<ProjectFilesAttachedEvent>(
                     b => b.AsUpdateOf(e => e.AggregateIdentity)
-                       .Using((projection, evt) => projection.ProjectFiles = projection.ProjectFiles.AddRange(evt.AggregateEvent.Files)));
+                       .Using((projection, evt) => projection.ProjectFiles.AddRange(evt.AggregateEvent.Files)));
 
                 map.Map<ProjectFilesRemovedEvent>(
                     b => b.AsUpdateOf(e => e.AggregateIdentity)
-                       .Using((projection, evt) => projection.ProjectFiles = projection.ProjectFiles.RemoveRange(evt.AggregateEvent.Files)));
+                       .Using((projection, evt) => evt.AggregateEvent.Files.ForEach(d => projection.ProjectFiles.Remove(d))));
                 
                 map.Map<ProjectStatusChangedEvent>(
                     b => b.AsUpdateOf(e => e.AggregateIdentity)

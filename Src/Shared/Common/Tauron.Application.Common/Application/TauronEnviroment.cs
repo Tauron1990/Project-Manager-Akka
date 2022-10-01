@@ -35,9 +35,9 @@ public sealed class TauronEnviromentImpl : ITauronEnviroment
            .Directories;
 }
 
-public class TauronEnviromentSetup
+public static class TauronEnviromentSetup
 {
-    public void Run(IServiceProvider provider)
+    public static void Run(IServiceProvider provider)
     {
         TauronEnviroment.ServiceProvider = provider;
     }

@@ -21,6 +21,6 @@ public sealed record ProjectProjection : IProjectorData<ProjectId>
 
     public ProjectDeadline? Deadline { get; set; }
 
-    public ImmutableList<ProjectFileId> ProjectFiles { get; set; } = ImmutableList<ProjectFileId>.Empty;
+    public List<ProjectFileId> ProjectFiles { get; set; } = new();
 
 }

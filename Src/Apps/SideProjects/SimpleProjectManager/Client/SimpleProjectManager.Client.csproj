@@ -152,7 +152,6 @@
 		<ProjectReference Include="..\..\..\..\Shared\UI\Tauron.Application.Blazor\Tauron.Application.Blazor.csproj" />
 		<ProjectReference Include="..\Clients\Shared\SimpleProjectManager.Client.Shared\SimpleProjectManager.Client.Shared.csproj" />
 		<ProjectReference Include="..\Shared\SimpleProjectManager.Shared.csproj" />
-		<ProjectReference Include="..\SimpleProjectManager.Operation.Client.Shared\SimpleProjectManager.Operation.Client.Shared.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

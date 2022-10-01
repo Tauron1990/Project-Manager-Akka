@@ -4,9 +4,11 @@
         <FocusOnNavigate RouteData="@routeData" Selector="h1" />
     </Found>
     <NotFound>
-        <PageTitle>Not found</PageTitle>
+        <PageTitle>Nicht gefunden</PageTitle>
         <LayoutView Layout="@typeof(MainLayout)">
-            <p role="alert">Sorry, there's nothing at this address.</p>
+            <MudAlert ContentAlignment="HorizontalAlignment.Center" Class="ma-10" Severity="Severity.Error">
+                Bei dieser Adresse Existiert keine Seite!
+            </MudAlert>
         </LayoutView>
     </NotFound>
 </Router>

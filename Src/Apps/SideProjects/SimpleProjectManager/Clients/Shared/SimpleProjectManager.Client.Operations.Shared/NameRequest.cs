@@ -1,12 +1,13 @@
-﻿/*using Microsoft.Extensions.Logging;
+﻿using Akka.Actor;
+using Microsoft.Extensions.Logging;
 
-namespace SimpleProjectManager.Shared.OperationClient;
+namespace SimpleProjectManager.Client.Operations.Shared;
 
 public sealed record NameResponse(string Name);
 
 public sealed record NameRequest
 {
-    public async Task<string?> Ask(IActorRef actorRef, ILogger logger)
+    public static async Task<string?> Ask(IActorRef actorRef, ILogger logger)
     {
         try
         {
@@ -23,4 +24,4 @@ public sealed record NameRequest
             return null;
         }
     }
-}*/
+}

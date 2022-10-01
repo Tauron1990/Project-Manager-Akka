@@ -1,5 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using LiteDB;
+using SimpleProjectManager.Shared;
 
 namespace SimpleProjectManager.Server.Data.LiteDbDriver;
 

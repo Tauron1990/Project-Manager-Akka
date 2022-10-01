@@ -7,8 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\..\Shared\Tauron.Application.AkkaNode.Boottrap\Tauron.Application.AkkaNode.Boottrap.csproj" />
-      <ProjectReference Include="..\Shared\SimpleProjectManager.Shared.csproj" />
+      <ProjectReference Include="..\..\..\..\..\Shared\Tauron.Application.AkkNode.Services\Tauron.Application.AkkNode.Services.csproj" />
     </ItemGroup>
 
 </Project>

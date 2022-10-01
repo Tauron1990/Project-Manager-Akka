@@ -71,10 +71,10 @@ public sealed class Store<TState> : IReduxStore<TState>
         => _registratedActions.Contains(typeof(TAction));
 
     public IObservable<TResult> Select<TResult>(Func<TState, TResult> selector)
-        => _state.Select(selector);
+        => _state.DistinctUntilChanged().Select(selector);
 
     public IObservable<TState> Select()
-        => _state.AsObservable();
+        => _state.DistinctUntilChanged().AsObservable();
 
     public IObservable<ActionState<TState, TAction>> ObservActionState<TAction>()
         => _actions.Select(da => da.Action).NotNull().OfType<TAction>().Select(a => new ActionState<TState, TAction>(CurrentState, a));

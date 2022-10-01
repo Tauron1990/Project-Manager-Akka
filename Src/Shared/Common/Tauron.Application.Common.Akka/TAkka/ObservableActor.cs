@@ -4,8 +4,9 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Reactive.Threading.Tasks;
 using Akka.Actor;
-using Akka.Event;
 using JetBrains.Annotations;
+using Microsoft.Extensions.Logging;
+using Tauron.Application;
 
 namespace Tauron.TAkka;
 
@@ -16,7 +17,7 @@ public interface IObservableActor : IResourceHolder
 
     IObservable<IActorContext> Stop { get; }
 
-    ILoggingAdapter Log { get; }
+    ILogger Log { get; }
     IActorRef Self { get; }
     IActorRef Parent { get; }
     IActorRef? Sender { get; }
@@ -30,6 +31,15 @@ public interface IObservableActor : IResourceHolder
         Func<Exception, bool> errorHandler);
 
     void Receive<TEvent>(Func<IObservable<TEvent>, IDisposable> handler);
+}
+
+internal static partial class ObservableActorLogger
+{
+    [LoggerMessage(EventId = 25, Level = LogLevel.Error, Message = "Unhandelt Exception Thrown")]
+    public static partial void UnhandledException(ILogger logger, Exception ex);
+
+    [LoggerMessage(EventId = 26, Level = LogLevel.Error, Message = "Error on Process Event")]
+    public static partial void EventProcessError(ILogger logger, Exception ex);
 }
 
 [PublicAPI]
@@ -53,6 +63,8 @@ public class ObservableActor : ActorBase, IObservableActor
         _resources.Add(_receiver);
         _resources.Add(_start);
         _resources.Add(_stop);
+
+        Log = TauronEnviroment.GetLogger(GetType());
     }
 
     public bool CallSingleHandler { get; set; }
@@ -61,7 +73,7 @@ public class ObservableActor : ActorBase, IObservableActor
 
     public IObservable<IActorContext> Start => _start.NotNull();
     public IObservable<IActorContext> Stop => _stop.NotNull();
-    public ILoggingAdapter Log { get; } = ActorBase.Context.GetLogger();
+    public ILogger Log { get; }
 
     public virtual void Dispose()
     {
@@ -158,7 +170,7 @@ public class ObservableActor : ActorBase, IObservableActor
         if (message is Status status)
         {
             if (status is Status.Failure failure)
-                Log.Error(failure.Cause, "Unhandled Exception Received");
+                ObservableActorLogger.UnhandledException(Log, failure.Cause);
         }
         else
         {
@@ -211,7 +223,7 @@ public class ObservableActor : ActorBase, IObservableActor
 
     public bool ThrowError(Exception exception)
     {
-        Log.Error(exception, "Error on Process Event");
+        ObservableActorLogger.EventProcessError(Log, exception);
         Self.Tell(new Status.Failure(exception));
 
         return true;
@@ -219,7 +231,7 @@ public class ObservableActor : ActorBase, IObservableActor
 
     public bool DefaultError(Exception exception)
     {
-        Log.Error(exception, "Error on Process Event");
+        ObservableActorLogger.EventProcessError(Log, exception);
 
         return false;
     }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reactive.Linq;
 using Avalonia.ReactiveUI;
 using DynamicData;
+using JetBrains.Annotations;
 using ReactiveUI;
 using SimpleProjectManager.Client.Avalonia.ViewModels.CriticalErrors;
 using SimpleProjectManager.Client.Shared.Services;
@@ -12,6 +13,12 @@ namespace SimpleProjectManager.Client.Avalonia.Views.CriticalErrors;
 
 public partial class CriticalErrorsView : ReactiveUserControl<CriticalErrorsViewModel>
 {
+    [UsedImplicitly]
+    public CriticalErrorsView()
+    {
+        
+    }
+    
     public CriticalErrorsView(IMessageDispatcher messageDispatcher)
     {
         InitializeComponent();

@@ -8,10 +8,15 @@ namespace Tauron.Application.Blazor.Parameters;
 
 public sealed class ParameterUpdater
 {
-    private GroupDictionary<string, IMutableState> _registrations = new();
+    private readonly GroupDictionary<string, IMutableState> _registrations = new();
 
     public IState<TValue> Register<TValue>(string name, IStateFactory stateFactory)
     {
+        if(stateFactory is null)
+            throw new ArgumentNullException(nameof(stateFactory));
+        if(string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
+
         if (_registrations.TryGetValue(name, out var states))
         {
             var oldState = states.FirstOrDefault(s => s.Computed.OutputType == typeof(TValue));

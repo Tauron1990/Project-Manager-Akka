@@ -2,6 +2,7 @@
 using Akkatecture.Core;
 using LiquidProjections;
 using LiteDB;
+using SimpleProjectManager.Shared;
 using Tauron;
 using Tauron.Akkatecture.Projections;
 

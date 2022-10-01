@@ -7,8 +7,6 @@ using SimpleProjectManager.Client;
 using SimpleProjectManager.Client.Data;
 using SimpleProjectManager.Shared.ServerApi;
 using SimpleProjectManager.Shared.ServerApi.RestApi;
-using Stl.DependencyInjection;
-using Stl.Fusion.UI;
 using Tauron;
 using Tauron.Application;
 
@@ -42,7 +40,7 @@ builder.Services.RegisterModule<InternalDataModule>();
 var host = builder.Build();
 
 host.Services.UseMicrosoftDependencyResolver();
-new TauronEnviromentSetup().Run(host.Services);
+TauronEnviromentSetup.Run(host.Services);
 
 await host.RunAsync();
 

@@ -58,7 +58,7 @@ public sealed partial class JobsState : StateBase<InternalJobData>
                             if(selection?.Pair is not null && pairs.All(s => s.Info.Project != selection.Pair?.Info.Project))
                                 selection = new CurrentSelected(null, null);
 
-                            return originalData with { CurrentJobs = pairs, CurrentSelected = selection };
+                            return originalData with { IsLoaded = true, CurrentJobs = pairs, CurrentSelected = selection };
                         }
                         catch (Exception e)
                         {
@@ -85,9 +85,12 @@ public sealed partial class JobsState : StateBase<InternalJobData>
         CurrentlySelectedData = state.Select(jobData => jobData.CurrentSelected?.JobData);
         CurrentlySelectedPair = state.Select(jobData => jobData.CurrentSelected?.Pair);
         CurrentJobs = state.Select(jobData => jobData.CurrentJobs);
+        IsLoaded = state.Select(s => s.IsLoaded);
         CurrentJobs.Subscribe();
         ActiveJobsCount = FromServer(_service.CountActiveJobs);
     }
+
+    public IObservable<bool> IsLoaded { get; private set; } = Observable.Empty<bool>();
 
     public IObservable<JobSortOrderPair[]> CurrentJobs { get; private set; } = Observable.Empty<JobSortOrderPair[]>();
 

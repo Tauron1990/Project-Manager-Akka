@@ -1,6 +1,10 @@
-﻿//namespace SimpleProjectManager.Shared.OperationClient;
+﻿using System.Reactive.Linq;
+using Tauron;
+using Tauron.Features;
 
-/*public sealed class NameFeature : ActorFeatureBase<NameFeature.State>
+namespace SimpleProjectManager.Client.Operations.Shared;
+
+public sealed class NameFeature : ActorFeatureBase<NameFeature.State>
 {
     public sealed record State(string Name);
 
@@ -11,4 +15,4 @@
     {
         Receive<NameRequest>(o => o.Select(s => s.NewEvent(new NameResponse(s.State.Name))).ToSender());
     }
-}*/
+}

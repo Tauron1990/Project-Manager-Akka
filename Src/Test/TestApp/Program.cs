@@ -118,12 +118,9 @@ static class Program
 {
     static async Task Main()
     {
-        ProjectNameValidator valTest = new ProjectNameValidator();
-        var result = await valTest.ValidateAsync(new ProjectName("BMqr_12345"));
-        
-        //await AkkaRedux.AkkaTestApp.AkkaMain();
-
-        //await Test.TestApp.Run();
+        var test1 = new Uri("http://www.google.de");
+        var test2 = new Uri("http://127.0.0.1");
+            
 
         var coll = new ServiceCollection();
         coll.AddTransient<ICacheDb, FakeCahce>();

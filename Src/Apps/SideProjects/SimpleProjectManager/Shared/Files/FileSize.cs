@@ -18,7 +18,7 @@ public sealed class FileSize : SingleValueObject<long>
     public string ToByteString()
     {
         var first = Value / 1024d;
-
-        return first < 1024 ? $"{first} KB" : $"{first / 1024} MB";
+        
+        return first < 1024 ? $"{first:N2} KB" : $"{(first / 1024):N2} MB";
     }
 }

@@ -9,13 +9,11 @@ namespace SimpleProjectManager.Client.ViewModels;
 
 public sealed class FileDetailDisplayViewModel : FileDetailDisplayViewModelBase, IParameterUpdateable
 {
-    private readonly IStateFactory _stateFactory;
-    
-    public FileDetailDisplayViewModel(GlobalState state, IStateFactory stateFactory) : base(state)
-        => _stateFactory = stateFactory;
+    public FileDetailDisplayViewModel(GlobalState state, IStateFactory stateFactory) 
+        : base(state, stateFactory){}
 
-    protected override IState<ProjectFileId?> GetId()
-        => Updater.Register<ProjectFileId?>(nameof(FileDetailDisplay.FileId), _stateFactory);
+    protected override IState<ProjectFileId?> GetId(IStateFactory stateFactory)
+        => Updater.Register<ProjectFileId?>(nameof(FileDetailDisplay.FileId), stateFactory);
 
     public ParameterUpdater Updater { get; } = new();
 }

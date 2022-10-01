@@ -5,6 +5,8 @@ using Tauron.TAkka;
 
 namespace Tauron.Application.Settings;
 
+#pragma warning disable GU0011
+
 [PublicAPI]
 public static class SettingsManagerExtensions
 {

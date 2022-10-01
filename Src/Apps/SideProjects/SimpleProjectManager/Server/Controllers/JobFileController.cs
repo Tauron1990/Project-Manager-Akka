@@ -43,14 +43,15 @@ namespace SimpleProjectManager.Server.Controllers
         public async Task<IActionResult> GetFileDownload(
             [FromRoute] ProjectFileId id, [FromServices]IInternalDataRepository dataRepository, [FromServices] IInternalFileRepository bucked, CancellationToken token)
         {
-            IDatabaseCollection<FileInfoData> coll = dataRepository.Collection<FileInfoData>();
+            var coll = dataRepository.Collection<FileInfoData>();
             var filter = coll.Operations.Eq(p => p.Id, id);
             var data = await coll.Find(filter).FirstOrDefaultAsync(token);
             if(data == null) return NotFound();
 
-            
+            var fileEntry = bucked.FindIdByFileName(data.Id.Value).First();
+
             return File(
-                await bucked.OpenStream(data.Id.Value, token),
+                await bucked.OpenStream(fileEntry, token),
                 data.Mime.Value, data.FileName.Value);
         }
         

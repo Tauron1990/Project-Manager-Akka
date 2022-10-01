@@ -1,8 +1,9 @@
 ﻿using System.Reactive;
 using System.Reactive.Linq;
 using Akka.Actor;
-using Akka.Event;
+using Akka.DependencyInjection;
 using JetBrains.Annotations;
+using Microsoft.Extensions.Logging;
 using Tauron.TAkka;
 
 namespace Tauron.Features;
@@ -20,15 +21,30 @@ public interface IFeature<TState> : IFeature
 [PublicAPI]
 public abstract class ActorFeatureBase<TState> : IFeature<TState>, IFeatureActor<TState>
 {
+    private Lazy<ILogger> _logger;
     private IFeatureActor<TState> _actor = null!;
 
     public IActorContext Context { get; private set; } = null!;
 
+    protected ActorFeatureBase()
+    {
+        _logger = new Lazy<ILogger>(CreateLoggerImpl);
+    }
+    
     public virtual IEnumerable<string> Identify()
     {
         yield return GetType().Name;
     }
 
+    protected ILogger Logger => _logger.Value;
+    
+    protected ILogger CreateLoggerImpl()
+    {
+        var factory = DependencyResolver.For(Context.System).Resolver.GetService<ILoggerFactory>();
+
+        return factory.CreateLogger(GetType());
+    }
+    
     public void Init(IFeatureActor<TState> actor)
     {
         Context = actor.Context;
@@ -78,8 +94,6 @@ public abstract class ActorFeatureBase<TState> : IFeature<TState>, IFeatureActor
     public void UpdateState(TState state) => _actor.UpdateState(state);
 
     public void TellSelf(object msg) => _actor.TellSelf(msg);
-
-    public ILoggingAdapter Log => _actor.Log;
 
     public IObservable<TEvent> Receive<TEvent>() => _actor.Receive<TEvent>();
 

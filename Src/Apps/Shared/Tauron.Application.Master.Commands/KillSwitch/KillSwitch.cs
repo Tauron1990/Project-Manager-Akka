@@ -12,24 +12,63 @@ using static Akka.Cluster.Utility.ClusterActorDiscoveryMessage;
 
 namespace Tauron.Application.Master.Commands.KillSwitch;
 
+internal static partial class KillSwitchWatchLog
+{
+    [LoggerMessage(EventId = 29, Level = LogLevel.Information, Message = "Send ActorUp Back {path}")]
+    internal static partial void SendingActorUp(ILogger logger, ActorPath path);
+
+    [LoggerMessage(EventId = 30, Level = LogLevel.Information, Message = "Sending Respond {type}")]
+    internal static partial void SendingRespond(ILogger logger, KillRecpientType type);
+
+    [LoggerMessage(EventId = 31, Level = LogLevel.Information, Message = "Leaving Cluster")]
+    internal static partial void LeavingCluster(ILogger logger);
+}
+
+internal static partial class KillSwitchFeatureLog
+{
+    [LoggerMessage(EventId = 32, Level = LogLevel.Information, Message = "Remove KillSwitch Actor {path}")]
+    internal static partial void RemoveKillswitch(ILogger logger, ActorPath path);
+
+    [LoggerMessage(EventId = 33, Level = LogLevel.Information, Message = "NewKillSwitch Actor {path}")]
+    internal static partial void NewKillSwitch(ILogger logger, ActorPath path);
+
+    [LoggerMessage(EventId = 34, Level = LogLevel.Information, Message = "Set KillSwitch Actor Type {type} {path}")]
+    internal static partial void KillSwitchActorType(ILogger logger, KillRecpientType type, ActorPath path);
+
+    [LoggerMessage(EventId = 35, Level = LogLevel.Information, Message = "Begin Cluster Shutdown")]
+    internal static partial void BeginClusterShutdown(ILogger logger);
+
+    [LoggerMessage(EventId = 36, Level = LogLevel.Information, Message = "Incomming KillSwitch Actor {path}")]
+    internal static partial void IncommingKillWatcher(ILogger logger, ActorPath path);
+
+    [LoggerMessage(EventId = 37, Level = LogLevel.Information, Message = "Send Kill Message for {type} to {count} Actors")]
+    internal static partial void TellClusterShutdown(ILogger logger, KillRecpientType type, int count);
+}
+
 [PublicAPI]
-public static class KillSwitch
+public static partial class KillSwitch
 {
     private const string KillSwitchName = "KillSwitch";
 
-    private static readonly ILogger Log = TauronEnviroment.GetLogger(typeof(KillSwitch));
+    private static readonly ILogger Logger = TauronEnviroment.GetLogger(typeof(KillSwitch));
 
     private static IActorRef _switch = ActorRefs.Nobody;
 
+    [LoggerMessage(EventId = 27, Level = LogLevel.Information, Message = "Setup Killswitch")]
+    private static partial void SetupKillswitch(ILogger logger);
+
+    [LoggerMessage(EventId = 28, Level = LogLevel.Information, Message = "Subscribe To Event Killswitch")]
+    private static partial void SubscribeKillswitch(ILogger logger);
+    
     public static void Setup(ActorSystem system)
     {
-        Log.LogInformation("Setup Killswitch");
+        SetupKillswitch(Logger);
         _switch = system.ActorOf(KillSwitchName, KillSwitchFeature.Create());
     }
 
     public static void Subscribe(ActorSystem system, KillRecpientType type)
     {
-        Log.LogInformation("SubscribeToEvent Killswitch");
+        SubscribeKillswitch(Logger);
         _switch = system.ActorOf(() => new KillWatcher(type), KillSwitchName);
     }
 
@@ -41,16 +80,16 @@ public static class KillSwitch
         public KillWatcher(KillRecpientType type)
         {
             Receive<ActorUp>(
-                obs => obs.Do(au => Log.Info("Send ActorUp Back {Name}", au.Actor.Path))
+                obs => obs.Do(au => KillSwitchWatchLog.SendingActorUp(Log, au.Actor.Path))
                    .SubscribeWithStatus(au => au.Actor.Tell(new ActorUp(Self, nameof(KillWatcher)))));
 
             Receive<RequestRegistration>(
-                obs => obs.Do(_ => Log.Info($"Sending Respond {type}"))
+                obs => obs.Do(_ => KillSwitchWatchLog.SendingRespond(Log, type))
                    .Select(_ => new RespondRegistration(type))
                    .ToSender());
 
             Receive<KillNode>(
-                obs => obs.Do(_ => Log.Info("Leaving Cluster"))
+                obs => obs.Do(_ => KillSwitchWatchLog.LeavingCluster(Log))
                    .ToUnit(() => Cluster.Get(Context.System).LeaveAsync()));
         }
 
@@ -75,7 +114,7 @@ public static class KillSwitch
         protected override void ConfigImpl()
         {
             Receive<ActorDown>(
-                obs => obs.Do(ad => Log.Info($"Remove KillSwitch Actor {ad.Event.Actor.Path}"))
+                obs => obs.Do(ad => KillSwitchFeatureLog.RemoveKillswitch(Logger, ad.Event.Actor.Path))
                    .Select(
                         m =>
                         {
@@ -89,7 +128,7 @@ public static class KillSwitch
                         }));
 
             Receive<ActorUp>(
-                obs => obs.Do(au => Log.Info($"New killswitch Actor {au.Event.Actor.Path}"))
+                obs => obs.Do(au => KillSwitchFeatureLog.NewKillSwitch(Logger, au.Event.Actor.Path))
                    .Select(
                         m =>
                         {
@@ -101,7 +140,7 @@ public static class KillSwitch
 
             Receive<RespondRegistration>(
                 obs => obs
-                   .Do(r => Log.Info($"Set Killswitch Actor Type {r.Event.RecpientType} {Sender.Path}"))
+                   .Do(r => KillSwitchFeatureLog.KillSwitchActorType(Logger, r.Event.RecpientType, r.Sender.Path))
                    .Select(
                         r =>
                         {
@@ -126,12 +165,12 @@ public static class KillSwitch
             Receive<KillClusterMsg>(obs => obs.SubscribeWithStatus(_ => RunKillCluster()));
 
             Receive<KillNode>(
-                obs => obs.Do(_ => Log.Info("Leaving Cluster"))
+                obs => obs.Do(_ => KillSwitchWatchLog.LeavingCluster(Logger))
                    .SubscribeWithStatus(_ => Cluster.Get(Context.System).LeaveAsync()));
 
             Receive<ActorUp>(
                 obs => obs.Where(m => m.Event.Tag == nameof(KillWatcher))
-                   .Do(up => Log.Info($"Incomming Kill Watcher {up.Event.Actor.Path}"))
+                   .Do(up => KillSwitchFeatureLog.IncommingKillWatcher(Logger, up.Event.Actor.Path))
                    .Select(m => m.Event.Actor)
                    .SubscribeWithStatus(actor => Context.Watch(actor)));
 
@@ -151,7 +190,7 @@ public static class KillSwitch
 
         private void RunKillCluster()
         {
-            Log.Info("Begin Cluster Shutdown");
+            KillSwitchFeatureLog.BeginClusterShutdown(Logger);
 
             var dic = new GroupDictionary<KillRecpientType, IActorRef>
                       {
@@ -168,7 +207,7 @@ public static class KillSwitch
             foreach (var recpientType in Order)
             {
                 var actors = dic[recpientType];
-                Log.Info("Tell Shutdown {Type} -- {Count}", recpientType, actors.Count);
+                KillSwitchFeatureLog.TellClusterShutdown(Logger, recpientType, actors.Count);
                 foreach (var actorRef in actors)
                     actorRef.Tell(new KillNode());
             }

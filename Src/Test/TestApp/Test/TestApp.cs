@@ -26,7 +26,7 @@ public static class TestApp
     
     public static async Task Run()
     {
-
+        await Task.CompletedTask;
         /*var channel = Channel.CreateUnbounded<Option<TestData2>>();
 
         var newReader = (

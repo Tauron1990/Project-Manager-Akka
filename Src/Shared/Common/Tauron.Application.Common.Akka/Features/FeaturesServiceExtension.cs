@@ -54,6 +54,10 @@ public abstract class FeatureActorRefBase<TInterface> : IFeatureActorRef<TInterf
 [PublicAPI]
 public static class FeaturesServiceExtension
 {
+    public static IServiceCollection RegisterFeature<TInterfaceType>(this IServiceCollection builder, Delegate del)
+        where TInterfaceType : class, IFeatureActorRef<TInterfaceType>
+        => RegisterFeature<TInterfaceType, TInterfaceType>(builder, del);
+    
     public static IServiceCollection RegisterFeature<TImpl, TInterfaceType>(this IServiceCollection builder, Delegate del)
         where TInterfaceType : class, IFeatureActorRef<TInterfaceType>
         where TImpl : TInterfaceType

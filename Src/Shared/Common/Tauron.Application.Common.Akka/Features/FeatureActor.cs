@@ -4,7 +4,6 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Akka.Actor;
 using Akka.Actor.Internal;
-using Akka.Event;
 using JetBrains.Annotations;
 using ObservableActor = Tauron.TAkka.ObservableActor;
 
@@ -18,8 +17,6 @@ public interface IFeatureActor<TState> : IResourceHolder, IObservable<TState>, I
     IObservable<IActorContext> Stop { get; }
 
     TState CurrentState { get; }
-
-    ILoggingAdapter Log { get; }
 
     IActorRef Self { get; }
 
@@ -360,9 +357,6 @@ public sealed class ActorBuilder<TState>
             => _original.UpdateState(_convertBack(_original.CurrentState, state));
 
         public void TellSelf(object msg) => _original.TellSelf(msg);
-
-        public ILoggingAdapter Log
-            => _original.Log;
 
         public IDisposable Subscribe(IObserver<TTarget> observer) => _original.Select(_convert).Subscribe(observer);
 

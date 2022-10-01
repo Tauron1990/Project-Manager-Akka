@@ -1,6 +1,7 @@
 ﻿using System.Linq.Expressions;
 using FastExpressionCompiler;
 using LiteDB;
+using SimpleProjectManager.Shared;
 
 namespace SimpleProjectManager.Server.Data.LiteDbDriver;
 

@@ -12,6 +12,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\Shared\SimpleProjectManager.Shared.csproj" />
       <ProjectReference Include="..\SimpleProjectManager.Server.Data\SimpleProjectManager.Server.Data.csproj" />
     </ItemGroup>
 

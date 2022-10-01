@@ -4,15 +4,16 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Akka.Actor;
 using Akka.Cluster.Utility;
+using Microsoft.Extensions.Logging;
 using SimpleProjectManager.Shared;
 using Tauron;
 using Tauron.Application.AkkaNode.Services.FileTransfer;
 using Tauron.Features;
 using Tauron.ObservableExt;
 
-namespace SimpleProjectManager.Operation.Client.Shared.Core;
+namespace SimpleProjectManager.Operation.Client.Core;
 
-public sealed class ImageManagerFeature : ActorFeatureBase<ImageManagerFeature.State>
+public sealed partial class ImageManagerFeature : ActorFeatureBase<ImageManagerFeature.State>
 {
     public sealed record State(
         string TargetPath, string CurrentPath, ImageManagerMode Mode, DataTransferManager Server, DataTransferManager Self,
@@ -24,8 +25,12 @@ public sealed class ImageManagerFeature : ActorFeatureBase<ImageManagerFeature.S
             c => new State(targetPath, string.Empty, mode, DataTransferManager.Empty, DataTransferManager.New(c, "FileTransfer"), 
                 ImmutableDictionary<ProjectFileId, string>.Empty, new FileSystemWatcher(targetPath), Disposable.Empty, new Subject<bool>()));
 
+    private ILogger _logger = null!;
+    
     protected override void ConfigImpl()
     {
+        _logger = Logger;
+        
         CurrentState.Watcher.EnableRaisingEvents = true;
         CurrentState.Watcher.DisposeWith(this);
         
@@ -43,6 +48,9 @@ public sealed class ImageManagerFeature : ActorFeatureBase<ImageManagerFeature.S
                        .When(s => s.State.Mode == ImageManagerMode.Multiple, o => o.Select(StartMultiple))));
     }
 
+    [LoggerMessage(EventId = 38, Level = LogLevel.Error, Message = "Error on Start Project {jobName} with multiple mode.")]
+    private partial void LogStartMultipleProject(Exception ex, string jobName);
+    
     private State StartMultiple(StatePair<StartProject, State> obj)
     {
         var (evt, state) = obj;
@@ -60,13 +68,16 @@ public sealed class ImageManagerFeature : ActorFeatureBase<ImageManagerFeature.S
         }
         catch (Exception e)
         {
-            Log.Error(e, "Error on Start Project with multiple mode: {Name}", evt.JobName);
+            LogStartMultipleProject(e, evt.JobName);
             obj.Sender.Tell(new ProjectStartResponse(e.Message));
         }
 
         return obj.State with{CurrentPath = string.Empty};
     }
 
+    [LoggerMessage(EventId = 39, Level = LogLevel.Error, Message = "Error on Start Project {jobName} with Single Mode")]
+    private partial void LogStartSingle(Exception ex, string jobName);
+    
     private State StartSingle(StatePair<StartProject, State> obj)
     {
         var jobName = obj.Event.JobName;
@@ -82,7 +93,7 @@ public sealed class ImageManagerFeature : ActorFeatureBase<ImageManagerFeature.S
         }
         catch (Exception e)
         {
-            Log.Error(e, "Error on Start Project with Single Mode {Name}", jobName);
+            LogStartSingle(e, jobName);
             obj.Sender.Tell(new ProjectStartResponse(e.Message));
         }
         

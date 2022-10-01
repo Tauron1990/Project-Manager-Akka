@@ -1,9 +1,10 @@
-﻿using Newtonsoft.Json;
+﻿using System.Diagnostics;
+using Newtonsoft.Json;
 using Tauron;
 using Tauron.Application;
 using Tauron.Application.VirtualFiles;
 
-namespace SimpleProjectManager.Operation.Client.Shared.Config;
+namespace SimpleProjectManager.Operation.Client.Config;
 
 public sealed class ConfigManager
 {
@@ -23,7 +24,8 @@ public sealed class ConfigManager
         else
             Configuration = new OperationConfiguration();
     }
-
+    
+    [DebuggerStepThrough]
     public async ValueTask Set(OperationConfiguration configuration)
     {
         Configuration = configuration;

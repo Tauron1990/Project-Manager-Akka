@@ -12,7 +12,7 @@ using Tauron;
 
 namespace SimpleProjectManager.Client.Shared.Data.States.Actions;
 
-public record SelectNewPairAction(JobSortOrderPair? Selection);
+public record SelectNewPairAction(string? Selection);
 
 public record CommitJobEditorData(JobEditorCommit Commit, Action<bool> OnCompled);
 
@@ -23,8 +23,8 @@ internal static class JobDataPatcher
         
     public static InternalJobData ReplaceSlected(InternalJobData data, SelectNewPairAction action)
         => data.CurrentSelected is null 
-            ? data with { CurrentSelected = new CurrentSelected(action.Selection, null) } 
-            : data with { CurrentSelected = data.CurrentSelected with { Pair = action.Selection } };
+            ? data with { CurrentSelected = new CurrentSelected(data.FindPair(action.Selection), null) } 
+            : data with { CurrentSelected = data.CurrentSelected with { Pair = data.FindPair(action.Selection) } };
 
     public static InternalJobData PatchSortOrder(InternalJobData data, SetSortOrder order)
     {

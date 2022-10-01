@@ -1,8 +1,14 @@
 ﻿@using SimpleProjectManager.Client.Shared.CurrentJobs;
+@using SimpleProjectManager.Client.Shared.Data
 
 @page "/CurrentJobs"
+@page "/CurrentJobs/{PreSelected}"
 
 @inherits NonAutoRenderingView<SimpleProjectManager.Client.Shared.ViewModels.Pages.CurrentJobsViewModel>
+
+@inject IJSRuntime JsRuntime
+@inject GlobalState GlobalState 
+@inject IEventAggregator EventAggregator
 
 <PageTitle>Aktuelle Aufträge</PageTitle>
 
