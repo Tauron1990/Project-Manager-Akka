@@ -81,6 +81,7 @@ public abstract class FeatureActorBase<TFeatured, TState> : ObservableActor, IFe
     where TFeatured : FeatureActorBase<TFeatured, TState>, new()
 {
     private readonly HashSet<string> _featureIds = new();
+    private readonly List<IFeature> _features = new();
     private BehaviorSubject<TState>? _currentState;
     private IActorRef _parent = ActorRefs.Nobody;
 
@@ -169,11 +170,28 @@ public abstract class FeatureActorBase<TFeatured, TState> : ObservableActor, IFe
             throw new InvalidOperationException("Duplicate Feature Added");
 
         feature.Init(this);
+        _features.Add(feature);
     }
 
     protected override SupervisorStrategy SupervisorStrategy()
         => ((IFeatureActor<TState>)this).SupervisorStrategy ?? base.SupervisorStrategy();
+
+    protected override void PreStart()
+    {
+        foreach (var feature in _features)
+            feature.PreStart();
         
+        base.PreStart();
+    }
+
+    protected override void PostStop()
+    {
+        foreach (var feature in _features)
+            feature.PostStop();
+
+        base.PostStop();
+    }
+
     [DebuggerStepThrough]
     private sealed class ActorFactory : IIndirectActorProducer
     {
@@ -205,14 +223,14 @@ public abstract class FeatureActorBase<TFeatured, TState> : ObservableActor, IFe
     [PublicAPI, DebuggerStepThrough]
     public static class Make
     {
-        public static Action<ActorBuilder<TState>> Feature(Action<IFeatureActor<TState>> initializer, params string[] ids)
+        public static Action<ActorBuilder<TState>> Feature(Func<IFeatureActor<TState>, IFeature<TState>> initializer, params string[] ids)
             => actorBuilder => actorBuilder.WithFeature(new DelegatingFeature(initializer, ids));
     }
 
     [PublicAPI, DebuggerStepThrough]
     public static class Simple
     {
-        public static IFeature<TState> Feature(Action<IFeatureActor<TState>> initializer, params string[] ids)
+        public static IFeature<TState> Feature(Func<IFeatureActor<TState>, IFeature<TState>> initializer, params string[] ids)
             => new DelegatingFeature(initializer, ids);
     }
 
@@ -220,10 +238,11 @@ public abstract class FeatureActorBase<TFeatured, TState> : ObservableActor, IFe
     private class DelegatingFeature : IFeature<TState>
     {
         private readonly IEnumerable<string> _ids;
-        private readonly Action<IFeatureActor<TState>> _initializer;
+        private readonly Func<IFeatureActor<TState>, IFeature<TState>> _initializer;
         private IFeatureActor<TState>? _actor;
+        private IFeature<TState>? _feature;
 
-        internal DelegatingFeature(Action<IFeatureActor<TState>> initializer, IEnumerable<string> ids)
+        internal DelegatingFeature(Func<IFeatureActor<TState>, IFeature<TState>> initializer, IEnumerable<string> ids)
         {
             _initializer = initializer;
             _ids = ids;
@@ -234,8 +253,14 @@ public abstract class FeatureActorBase<TFeatured, TState> : ObservableActor, IFe
         public void Init(IFeatureActor<TState> actor)
         {
             _actor = actor;
-            _initializer(actor);
+            _feature = _initializer(actor);
         }
+
+        public void PostStop()
+            => _feature?.PostStop();
+
+        public void PreStart()
+            => _feature?.PreStart();
 
         void IDisposable.Dispose() => _actor?.Dispose();
 
@@ -300,6 +325,12 @@ public sealed class ActorBuilder<TState>
 
         public virtual void Init(IFeatureActor<TOriginal> actor)
             => _feature.Init(new StateDelegator<TTarget, TOriginal>(actor, _convert, _convertBack));
+
+        public void PostStop()
+            => _feature.PostStop();
+
+        public void PreStart()
+            => _feature.PreStart();
 
         void IDisposable.Dispose() => _feature.Dispose();
 

@@ -2,16 +2,19 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Dynamic;
+using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Akka.Actor;
 using LiteDB.Async;
 using Microsoft.Extensions.DependencyInjection;
 using SimpleProjectManager.Client.Shared.Data.States;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
 using SimpleProjectManager.Shared.Validators;
+using Stl.Async;
 using Stl.Fusion;
 using Tauron.Applicarion.Redux;
 using Tauron.Applicarion.Redux.Configuration;
@@ -116,12 +119,25 @@ public sealed class CounterState : StateBase<TestCounter>
 
 static class Program
 {
+    public sealed class TestActor : ReceiveActor
+    {
+    }
+    
     static async Task Main()
     {
-        var test1 = new Uri("http://www.google.de");
-        var test2 = new Uri("http://127.0.0.1");
-            
+        using var system = (ExtendedActorSystem)ActorSystem.Create("Test");
 
+        var actor = system.ActorOf<TestActor>("TestActor");
+        var selector = new ActorSelection(system.Guardian, "TestActor");
+        var result = await selector.ResolveOne(TimeSpan.FromSeconds(10));
+
+        if(actor.Equals(result))
+            Console.WriteLine("Selection Ok");
+        
+        await system.Terminate();
+        Console.ReadKey();
+        Debugger.Break();
+        
         var coll = new ServiceCollection();
         coll.AddTransient<ICacheDb, FakeCahce>();
         coll.AddTransient<IErrorHandler, FakeError>();

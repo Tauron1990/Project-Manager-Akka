@@ -5,27 +5,39 @@ using SimpleProjectManager.Client.Operations.Shared;
 
 namespace SimpleProjectManager.Server;
 
-public sealed class InitClientOperationController
+public sealed partial class InitClientOperationController
 {
     private readonly ActorSystem _system;
     private readonly NameRegistry _registry;
-    private readonly ILoggerFactory _loggerFactory;
+    private readonly ILogger<InitClientOperationController> _logger;
 
-    public InitClientOperationController(ActorSystem system, NameRegistry registry, ILoggerFactory loggerFactory)
+    public InitClientOperationController(ActorSystem system, NameRegistry registry, ILogger<InitClientOperationController> logger)
     {
         _system = system;
         _registry = registry;
-        _loggerFactory = loggerFactory;
-
+        _logger = logger;
     }
+
+    [LoggerMessage(EventId = 1000, Level = LogLevel.Error, Message = "Error on Initializing Name Registry")]
+    private partial void NameRegistryError(Exception ex);
     
     public void Run()
     {
-        Cluster.Get(_system).RegisterOnMemberUp(
-            () =>
+        async void MemberUp()
+        {
+            try
             {
+                var actor = await _registry.Actor;
+
                 ClusterActorDiscovery.Get(_system)
-                   .RegisterActor(new ClusterActorDiscoveryMessage.RegisterActor(_registry.Actor, nameof(NameRegistryFeature)));
-            });
+                   .RegisterActor(new ClusterActorDiscoveryMessage.RegisterActor(actor, nameof(NameRegistryFeature)));
+            }
+            catch (Exception e)
+            {
+                NameRegistryError(e);
+            }
+        }
+
+        Cluster.Get(_system).RegisterOnMemberUp(MemberUp);
     }
 }

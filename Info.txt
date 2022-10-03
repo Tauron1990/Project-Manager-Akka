@@ -1,4 +1,4 @@
-EventId=43
+EventId=49
 
 dotnet publish -r <rid> --self-contained=false /p:PublishSingleFile=true
 https://github.com/skbkontur/Metrics.NET

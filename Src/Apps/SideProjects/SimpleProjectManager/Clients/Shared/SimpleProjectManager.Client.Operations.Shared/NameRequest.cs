@@ -3,15 +3,22 @@ using Microsoft.Extensions.Logging;
 
 namespace SimpleProjectManager.Client.Operations.Shared;
 
-public sealed record NameResponse(string Name);
+public sealed record NameResponse(string? Name);
+
+internal static partial class NameRequestLog
+{
+    [LoggerMessage(EventId = 48, Level = LogLevel.Error, Message = "Error on ask for Name to Actor {path}")]
+    internal static partial void NameRequestTimeout(ILogger logger, Exception ex, ActorPath path);
+} 
 
 public sealed record NameRequest
 {
+   
     public static async Task<string?> Ask(IActorRef actorRef, ILogger logger)
     {
         try
         {
-            var response = await actorRef.Ask<NameResponse>(new NameRequest(), TimeSpan.FromSeconds(10));
+            var response = await actorRef.Ask<NameResponse>(new NameRequest(), TimeSpan.FromSeconds(20));
 
             return response.Name;
         }
@@ -19,7 +26,7 @@ public sealed record NameRequest
         {
             if (e is OperationCanceledException) return null;
             
-            logger.LogWarning(e, "Error on ask Name for {Actor}", actorRef.Path);
+            NameRequestLog.NameRequestTimeout(logger, e, actorRef.Path);
 
             return null;
         }

@@ -12,6 +12,15 @@ public sealed class SubscribeFeature : IFeature<SubscribeFeature.State>
         yield return nameof(SubscribeFeature);
     }
 
+    public void PostStop()
+    {
+        
+    }
+
+    public void PreStart()
+    {
+    }
+
     void IFeature<State>.Init(IFeatureActor<State> actor)
     {
         actor.Receive<Terminated>(obs => obs.ToUnit());

@@ -1,8 +1,7 @@
 ﻿using Hyperion.Internal;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using SimpleProjectManager.Client.Operations.Shared;
 using SimpleProjectManager.Server.Controllers.FileUpload;
-using SimpleProjectManager.Server.Core.JobManager;
-using Tauron.Application.AkkaNode.Bootstrap;
 
 namespace SimpleProjectManager.Server;
 
@@ -10,5 +9,8 @@ namespace SimpleProjectManager.Server;
 public sealed class MainModule : IModule
 {
     public void Load(IServiceCollection collection)
-        => collection.TryAddScoped<FileUploadTransaction>();
+    {
+        collection.TryAddScoped<FileUploadTransaction>();
+        collection.RegisterFeature<NameRegistry>(NameRegistryFeature.Factory(),() => SuperviserData.DefaultSuperviser);
+    }
 }

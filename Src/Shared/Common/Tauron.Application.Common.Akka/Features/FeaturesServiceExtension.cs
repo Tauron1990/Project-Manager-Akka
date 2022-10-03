@@ -5,12 +5,13 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Tauron.Features;
 
-public interface IFeatureActorRef<out TInterface>
+[PublicAPI]
+public interface IFeatureActorRef<out TInterface> : ICanTell
     where TInterface : IFeatureActorRef<TInterface>
 {
-    IActorRef Actor { get; }
+    Task<IActorRef> Actor { get; }
 
-    void Init(ActorSystem system, Func<Props> resolver);
+    void Init(Func<Props, Task<IActorRef>> factory, Func<Props> resolver);
 
     TInterface Tell(object msg);
 
@@ -23,42 +24,90 @@ public interface IFeatureActorRef<out TInterface>
 public abstract class FeatureActorRefBase<TInterface> : IFeatureActorRef<TInterface>
     where TInterface : IFeatureActorRef<TInterface>
 {
+    private readonly TaskCompletionSource<IActorRef> _actorSource = new();
     private readonly string? _name;
 
     protected FeatureActorRefBase(string? name)
         => _name = name;
 
-    public IActorRef Actor { get; private set; } = ActorRefs.Nobody;
+    public Task<IActorRef> Actor => _actorSource.Task;
 
-    void IFeatureActorRef<TInterface>.Init(ActorSystem system, Func<Props> resolver)
-        => Actor = system.ActorOf(resolver(), _name);
+    async void IFeatureActorRef<TInterface>.Init(Func<Props, Task<IActorRef>> factoryTask, Func<Props> resolver)
+    {
+        if(_actorSource.Task.IsCompleted)
+            throw new InvalidOperationException("Initialization of Actor Compleded");
+        
+        try
+        {
+            var task = factoryTask(resolver());
+            if(await Task.WhenAny(task, Task.Delay(TimeSpan.FromSeconds(20))).ConfigureAwait(false) == task)
+            {
+                _actorSource.TrySetResult(await task.ConfigureAwait(false));
+            }
+            else
+                _actorSource.TrySetCanceled();
+        }
+        catch (Exception e)
+        {
+            _actorSource.TrySetException(e);
+        }
+    }
 
+    private void OnActor(Action<IActorRef> runner)
+    {
+        if(Actor.IsCompletedSuccessfully)
+            runner(Actor.Result);
+        else if(Actor.IsCanceled)
+            throw new TaskCanceledException(Actor);
+        else if(Actor.IsFaulted)
+            throw Actor.Exception ?? throw new InvalidOperationException("Unkown Error on executing ActorTask");
+        else
+            Actor.ContinueWith(
+                t =>
+                {
+                    if(t.IsCompletedSuccessfully)
+                        runner(t.Result);
+                });
+    }
+    
     public TInterface Tell(object msg)
     {
-        Actor.Tell(msg);
+       OnActor(a => a.Tell(msg));
 
         return (TInterface)(object)this;
     }
 
     public TInterface Forward(object msg)
     {
-        Actor.Forward(msg);
+        OnActor(a => a.Forward(msg));
 
         return (TInterface)(object)this;
     }
 
-    public Task<TResult> Ask<TResult>(object msg, TimeSpan? timeout = null)
-        => Actor.Ask<TResult>(msg, timeout);
+    public async Task<TResult> Ask<TResult>(object msg, TimeSpan? timeout = null)
+    {
+        var actor = await Actor.ConfigureAwait(false);
+
+        return await actor.Ask<TResult>(msg, timeout).ConfigureAwait(false);
+    }
+
+    public void Tell(object message, IActorRef sender)
+        => OnActor(a => a.Tell(message, sender));
+}
+
+public record struct SuperviserData(string Name, SupervisorStrategy? SupervisorStrategy)
+{
+    public static readonly SuperviserData DefaultSuperviser = new("Default", SupervisorStrategy.DefaultStrategy);
 }
 
 [PublicAPI]
 public static class FeaturesServiceExtension
 {
-    public static IServiceCollection RegisterFeature<TInterfaceType>(this IServiceCollection builder, Delegate del)
+    public static IServiceCollection RegisterFeature<TInterfaceType>(this IServiceCollection builder, Delegate del, Func<SuperviserData>? supervisorStrategy = null)
         where TInterfaceType : class, IFeatureActorRef<TInterfaceType>
         => RegisterFeature<TInterfaceType, TInterfaceType>(builder, del);
     
-    public static IServiceCollection RegisterFeature<TImpl, TInterfaceType>(this IServiceCollection builder, Delegate del)
+    public static IServiceCollection RegisterFeature<TImpl, TInterfaceType>(this IServiceCollection builder, Delegate del, Func<SuperviserData>? supervisorStrategy = null)
         where TInterfaceType : class, IFeatureActorRef<TInterfaceType>
         where TImpl : TInterfaceType
     {
@@ -69,10 +118,9 @@ public static class FeaturesServiceExtension
             s =>
             {
                 var inst = (TImpl)factory(s, null);
-                var system = s.GetRequiredService<ActorSystem>();
-                
+
                 inst.Init(
-                    system,
+                    CreateActor,
                     () => del.DynamicInvoke(param.Select(s.GetService).ToArray()) switch
                     {
                         IPreparedFeature feature => Feature.Props(feature),
@@ -82,6 +130,33 @@ public static class FeaturesServiceExtension
                     });
                     
                 return inst;
+                
+                async Task<IActorRef> CreateActor(Props props)
+                {
+                    var system = (ExtendedActorSystem)s.GetRequiredService<ActorSystem>();
+
+                    if(supervisorStrategy is null) return system.ActorOf(props);
+
+                    var data = supervisorStrategy();
+                    var selector = new ActorSelection(system.Guardian, data.Name);
+                    IActorRef supervisor;
+                    try
+                    {
+                        supervisor = await selector.ResolveOne(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
+                    }
+                    catch (ActorNotFoundException)
+                    {
+                        supervisor = system.ActorOf(Props.Create(() => new GenericSupervisorActor(data.SupervisorStrategy)), data.Name);
+                    }
+
+                    var result = await supervisor
+                       .Ask<GenericSupervisorActor.CreateActorResult>(
+                            new GenericSupervisorActor.CreateActor(null, props),
+                            TimeSpan.FromSeconds(15))
+                       .ConfigureAwait(false);
+
+                    return result.Actor;
+                }
             });
     }
 

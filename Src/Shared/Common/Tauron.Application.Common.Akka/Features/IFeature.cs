@@ -11,6 +11,10 @@ namespace Tauron.Features;
 public interface IFeature : IResourceHolder
 {
     IEnumerable<string> Identify();
+    
+    void PostStop();
+
+    void PreStart();
 }
 
 public interface IFeature<TState> : IFeature
@@ -52,6 +56,10 @@ public abstract class ActorFeatureBase<TState> : IFeature<TState>, IFeatureActor
         Timers = actor.Timers;
         Config();
     }
+
+    public virtual void PostStop() { }
+
+    public virtual void PreStart() { }
 
     void IDisposable.Dispose()
     {

@@ -15,7 +15,7 @@ public sealed class NameRegistry : FeatureActorRefBase<NameRegistry>
 
 public sealed partial class NameRegistryFeature : ActorFeatureBase<NameRegistryFeature.State>
 {
-    public sealed record RegisterName;
+    public sealed record RegisterName(string Name);
 
     public sealed record RegisterNameResponse(string? Error, string? Name);
 
@@ -65,58 +65,26 @@ public sealed partial class NameRegistryFeature : ActorFeatureBase<NameRegistryF
             });
 
     private IObservable<State> TryRegisterName(IObservable<StatePair<RegisterName, State>> observable)
-        => observable
-           .SelectMany(AskForName)
-           .Switch()
-           .Select(TryRegisterRecivedName);
+        => observable.Select(TryRegisterRecivedName);
 
-    private async Task<IObservable<StatePair<(string, IActorRef Sender), State>>> AskForName(StatePair<RegisterName, State> p)
+    private State TryRegisterRecivedName(StatePair<RegisterName, State> p)
     {
-        try
-        {
-            NewRequest(p.Sender.Path);
-
-            var result = await NameRequest.Ask(p.Sender, p.State.Logger);
-
-            if(string.IsNullOrWhiteSpace(result))
-            {
-                NoNameReturned(p.Sender.Path);
-                p.Sender.Tell(new RegisterNameResponse("Kein Name wurde vom Sender zurülgegeben", null));
-            }
-            else
-            {
-                NameFound(result, p.Sender.Path);
-
-                return UpdateAndSyncActor((result, p.Sender));
-            }
-        }
-        catch (Exception e)
-        {
-            ErrorAskForName(e, p.Sender.Path);
-            p.Sender.Tell(new RegisterNameResponse(e.Message, null));
-        }
-
-        return UpdateAndSyncActor(((string?)null, p.Sender))!;
-    }
-
-    private State TryRegisterRecivedName(StatePair<(string, IActorRef Sender), State> p)
-    {
-        if(string.IsNullOrWhiteSpace(p.Event.Item1))
+        if(string.IsNullOrWhiteSpace(p.Event.Name))
             return p.State;
 
-        if(p.State.CurrentClients.ContainsKey(p.Event.Item1))
+        if(p.State.CurrentClients.ContainsKey(p.Event.Name))
         {
-            DuplicateNameFound(p.Event.Item1, p.Event.Sender.Path);
+            DuplicateNameFound(p.Event.Name, p.Sender.Path);
             p.Sender.Tell(new RegisterNameResponse("Der Name Existiert Schon", null));
 
             return p.State;
         }
 
-        SuccessfulRegistrated(p.Event.Sender.Path, p.Event.Item1);
-        p.Sender.Tell(new RegisterNameResponse(null, p.Event.Item1));
+        SuccessfulRegistrated(p.Sender.Path, p.Event.Name);
+        p.Sender.Tell(new RegisterNameResponse(null, p.Event.Name));
         p.Context.Watch(p.Sender);
 
-        return p.State with { CurrentClients = p.State.CurrentClients.Add(p.Event.Item1, p.Event.Sender) };
+        return p.State with { CurrentClients = p.State.CurrentClients.Add(p.Event.Name, p.Sender) };
     }
 
     #endregion

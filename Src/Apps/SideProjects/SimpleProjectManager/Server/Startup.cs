@@ -59,8 +59,6 @@ public class Startup
                 });
         services.AddResponseCompression(
             opts => opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/octet-stream" }));
-
-        services.RegisterFeature<NameRegistry>(NameRegistryFeature.Factory());
     }
 
 
