@@ -150,7 +150,10 @@ public partial class ClusterActorDiscoveryActor : ReceiveActor
     {
         MemberUnreachable(member.Member.Address, string.Join(",", member.Member.Roles));
         
-        var (key, _) = _nodeMap.First(node => node.Value.ClusterAddress == member.Member.UniqueAddress);
+        #pragma warning disable GU0019
+        var (key, _) = _nodeMap.FirstOrDefault(node => node.Value.ClusterAddress == member.Member.UniqueAddress);
+        #pragma warning restore GU0019
+        
         RemoveNode(key);
     }
 
@@ -205,9 +208,11 @@ public partial class ClusterActorDiscoveryActor : ReceiveActor
 
         // Reregister node
 
-        var (key, _) = _nodeMap.First(node => node.Value.ClusterAddress == member.ClusterAddress);
-        //if (key != null)
-        RemoveNode(key);
+        #pragma warning disable GU0019
+        var (key, _) = _nodeMap.FirstOrDefault(node => node.Value.ClusterAddress == member.ClusterAddress);
+        #pragma warning restore GU0019
+        if (key != null)
+            RemoveNode(key);
 
         _nodeMap.Add(Sender, new NodeItem(new List<ActorItem>(), member.ClusterAddress));
 

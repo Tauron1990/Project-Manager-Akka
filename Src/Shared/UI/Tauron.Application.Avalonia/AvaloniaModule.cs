@@ -1,6 +1,7 @@
 ﻿using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using Tauron.Application.CommonUI;
+#pragma warning disable GU0011
 
 namespace Tauron.Application.Avalonia
 {

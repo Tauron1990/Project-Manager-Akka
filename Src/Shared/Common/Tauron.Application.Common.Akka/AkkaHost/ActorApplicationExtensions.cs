@@ -145,14 +145,14 @@ public static class ActorApplicationExtensions
         public IServiceProvider CreateServiceProvider(IActorApplicationBuilder containerBuilder)
         {
             if(_actorBuilder != containerBuilder) throw new InvalidOperationException("Builder was replaced during Configuration");
-
             _actorBuilder.AddAkka();
+            
             var prov = _actorBuilder.Collection.BuildServiceProvider();
-
+            TauronEnviromentSetup.Run(prov);
+            
             var lifetime = prov.GetRequiredService<IHostApplicationLifetime>();
 
             var system = prov.GetRequiredService<ActorSystem>();
-            TauronEnviromentSetup.Run(prov);
 
             lifetime.ApplicationStopping.Register(() => system.Terminate());
 

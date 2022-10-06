@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Akka.Streams;
 using Akkatecture.Core;
 using JetBrains.Annotations;
 using LiquidProjections;
@@ -24,10 +25,16 @@ public class DomainDispatcher<TProjection, TIdentity>
         Repo = repo;
 
         reader.OnReadError += (_, exception) 
-                                  => logger.LogError(exception.Exception,
-                                  "Error while Processing Journal Events: {ProjectionType} - {Tag}",
-                                  typeof(TProjection).Name,
-                                  exception.Tag);
+                                  =>
+                              {
+                                  if(exception.Exception is AbruptTerminationException) return;
+                                  
+                                  logger.LogError(
+                                      exception.Exception,
+                                      "Error while Processing Journal Events: {ProjectionType} - {Tag}",
+                                      typeof(TProjection).Name,
+                                      exception.Tag);
+                              };
         Dispatcher = new Dispatcher(reader.CreateSubscription)
                      {
                          ExceptionHandler = ExceptionHandler,

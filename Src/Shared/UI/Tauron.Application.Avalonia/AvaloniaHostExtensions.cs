@@ -6,6 +6,7 @@ using Tauron.Application.Avalonia;
 using Tauron.Application.Avalonia.AppCore;
 using Tauron.Application.CommonUI;
 using Tauron.Application.CommonUI.AppCore;
+#pragma warning disable GU0011
 
 // ReSharper disable once CheckNamespace
 namespace Tauron.AkkaHost

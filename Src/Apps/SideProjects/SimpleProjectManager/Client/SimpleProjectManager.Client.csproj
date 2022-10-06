@@ -138,13 +138,13 @@
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="6.0.9" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="6.0.9" PrivateAssets="all" />
 		<PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
-		<PackageReference Include="Microsoft.TypeScript.MSBuild" Version="4.8.3">
+		<PackageReference Include="Microsoft.TypeScript.MSBuild" Version="4.8.4">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="MudBlazor" Version="6.0.16" />
 		<PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" Version="14.4.1" />
-		<PackageReference Include="Stl.Fusion.Blazor" Version="3.8.11" />
+		<PackageReference Include="Stl.Fusion.Blazor" Version="4.0.12" />
 	</ItemGroup>
 
 	<ItemGroup>

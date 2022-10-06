@@ -5,9 +5,9 @@ using System.Diagnostics;
 using Akka.Actor;
 using Akka.Actor.Internal;
 using Akka.DependencyInjection;
-using Akka.Event;
 using Akka.Util;
 using JetBrains.Annotations;
+using Microsoft.Extensions.Logging;
 using Tauron.TAkka;
 using Tauron.Application.CommonUI.Model;
 
@@ -57,7 +57,7 @@ public sealed class ViewModelSuperviser
 }
 
 [PublicAPI]
-public sealed class ViewModelSuperviserActor : ObservableActor
+public sealed partial class ViewModelSuperviserActor : ObservableActor
 {
     private int _count;
 
@@ -86,7 +86,7 @@ public sealed class ViewModelSuperviserActor : ObservableActor
 
         private CircuitBreakerStrategy(Func<IDecider> decider) => _decider = decider;
 
-        internal CircuitBreakerStrategy(ILoggingAdapter log)
+        internal CircuitBreakerStrategy(ILogger log)
             : this(() => new CircuitBreakerDecider(log)) { }
 
         public override IDecider Decider => throw new NotSupportedException("Single Decider not Supportet");
@@ -116,37 +116,43 @@ public sealed class ViewModelSuperviserActor : ObservableActor
             => throw new NotSupportedException("Can not serialize CircuitBreakerStrategy");
     }
 
-    private sealed class CircuitBreakerDecider : IDecider
+    internal sealed partial class CircuitBreakerDecider : IDecider
     {
-        private readonly ILoggingAdapter _log;
+        private readonly ILogger _logger;
         private readonly Stopwatch _time = new();
 
         private InternalState _currentState = InternalState.Closed;
 
         private int _restartAtempt;
 
-        internal CircuitBreakerDecider(ILoggingAdapter log) => _log = log;
+        internal CircuitBreakerDecider(ILogger log) => _logger = log;
+        
+        [LoggerMessage(EventId = 52, Level = LogLevel.Error, Message = "Initialization Error from Model: {actor}")]
+        private partial void ActorInitializationError(Exception ex, string actor);
+        
+        [LoggerMessage(EventId = 53, Level = LogLevel.Error, Message = "DeathPactException In Model")]
+        private partial void DeathPactError(Exception ex);
 
+        [LoggerMessage(EventId = 54, Level = LogLevel.Error, Message = "Unhandelt Error from Model")]
+        private partial void UnhandhandeltError(Exception ex);
+        
         public Directive Decide(Exception cause)
         {
             switch (cause)
             {
                 case ActorInitializationException m:
-                    _log.Error(
-                        m.InnerException ?? m,
-                        "Initialization Error from Model: {Actor}",
-                        m.Actor?.Path.Name ?? "Unkowen");
-
+                    ActorInitializationError(m.InnerException ?? m, m.Actor?.Path.Name ?? "Unkowen");
+                    
                     return Directive.Escalate;
                 case DeathPactException d:
-                    _log.Error(d, "DeathPactException In Model");
+                    DeathPactError(d);
 
                     return Directive.Escalate;
                 case ActorKilledException:
                     return Directive.Stop;
             }
 
-            _log.Error(cause, "Unhandled Error from Model");
+            UnhandhandeltError(cause);
 
             switch (_currentState)
             {
@@ -162,10 +168,8 @@ public sealed class ViewModelSuperviserActor : ObservableActor
 
                         return Directive.Restart;
                     }
-                    else
-                    {
-                        _restartAtempt++;
-                    }
+
+                    _restartAtempt++;
 
                     _time.Restart();
 
@@ -173,12 +177,10 @@ public sealed class ViewModelSuperviserActor : ObservableActor
                     {
                         return Directive.Escalate;
                     }
-                    else
-                    {
-                        _currentState = InternalState.Closed;
 
-                        return Directive.Restart;
-                    }
+                    _currentState = InternalState.Closed;
+
+                    return Directive.Restart;
                 default:
                     return Directive.Escalate;
             }

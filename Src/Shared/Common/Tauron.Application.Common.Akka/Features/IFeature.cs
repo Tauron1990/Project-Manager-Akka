@@ -143,11 +143,9 @@ public abstract class ActorFeatureBase<TState> : IFeature<TState>, IFeatureActor
 
     protected IObservable<StatePair<TType, TState>> UpdateAndSyncActor<TType>(TType element)
         => from syncElement in Observable.Return(element, ActorScheduler.From(Self))
-           let toUpdate = new StatePair<TType, TState>(syncElement, CurrentState, Timers, Context, Sender, Parent, Self)
-           select toUpdate with { State = CurrentState };
+           select new StatePair<TType, TState>(syncElement, CurrentState, Timers, Context, Sender, Parent, Self);
 
     protected IObservable<StatePair<TType, TState>> UpdateAndSyncActor<TType>(IObservable<TType> toSync)
         => from element in toSync.ObserveOn(ActorScheduler.From(Self))
-           let toUpdate = new StatePair<TType, TState>(element, CurrentState, Timers, Context, Sender, Parent, Self)
-           select toUpdate with { State = CurrentState };
+           select new StatePair<TType, TState>(element, CurrentState, Timers, Context, Sender, Parent, Self);
 }

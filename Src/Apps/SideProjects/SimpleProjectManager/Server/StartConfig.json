@@ -4,6 +4,8 @@
     "Settings": {
       "akka.remote.dot-netty.tcp.hostname": "{ip}",
       "akka.remote.dot-netty.tcp.port": "4001",
+      "akka.cluster.downing-provider-class": "\"Akka.Cluster.SBR.SplitBrainResolverProvider\"",
+      "akka.cluster.split-brain-resolver.down-all-when-unstable": "off",
       "severPort": "4000"
     }
   },

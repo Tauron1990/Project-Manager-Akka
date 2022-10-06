@@ -1,8 +1,10 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Akka.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SimpleProjectManager.Operation.Client.Config;
 using SimpleProjectManager.Operation.Client.Core;
+using SimpleProjectManager.Operation.Client.Device;
 using SimpleProjectManager.Operation.Client.ImageEditor;
 using SimpleProjectManager.Operation.Client.Setup;
 using SimpleProjectManager.Shared.ServerApi;
@@ -25,15 +27,13 @@ public sealed class ClientRunner
         var setup = new SetupRunner(_configManager, _clientInteraction);
         await setup.RunSetup(setupConfig);
 
-         return Host.CreateDefaultBuilder(args)
-        
-        .ConfigurateNode()
-        .ConfigureAppConfiguration((_, b) => b.AddInMemoryCollection(new[] { KeyValuePair.Create("actorsystem", "SimpleProjectManager-Server") }))
-        .ConfigureServices(ser => ser.AddSingleton(setup.Configuration))
-        .ConfigureServices(ApplyFusionServices)
-        .ConfigurateNode(ApplyClientServices)
-        
-        .Build();
+        return Host.CreateDefaultBuilder(args)
+
+           .ConfigureAppConfiguration((_, b) => b.AddInMemoryCollection(new[] { KeyValuePair.Create("actorsystem", "SimpleProjectManager-Server") }))
+           .ConfigureServices(ApplyFusionServices)
+           .ConfigurateNode(ApplyClientServices)
+
+           .Build();
     }
 
     private void ApplyFusionServices(IServiceCollection collection)
@@ -42,7 +42,14 @@ public sealed class ClientRunner
     private void ApplyClientServices(IActorApplicationBuilder actorApplication)
     {
         actorApplication
-           .ConfigureServices((_, coll) => coll.AddSingleton(_configManager.Configuration))
-           .RegisterStartUp<ImageEditorStartup>(e => e.Run());
+           .ConfigureAkka((_, b) => b.AddHocon(Akka.Configuration.ConfigurationFactory.ParseString(
+                              $"akka.cluster.downing-provider-class = \"Akka.Cluster.SBR.SplitBrainResolverProvider\" {Environment.NewLine}" + 
+                              "akka.cluster.split-brain-resolver.down-all-when-unstable = off")))
+           .ConfigureServices((_, coll) => coll
+                                 .AddSingleton(_configManager.Configuration)
+                                 .AddSingleton<HostStarter>()
+                                 .AddSingleton<IHostedService>(sp => sp.GetRequiredService<HostStarter>()))
+           .RegisterStartUp<ImageEditorStartup>(e => e.Run())
+           .RegisterStartUp<DeviceStartUp>(d => d.Run());
     }
 }

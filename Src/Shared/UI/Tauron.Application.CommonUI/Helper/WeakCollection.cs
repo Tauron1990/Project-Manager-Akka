@@ -147,16 +147,17 @@ public sealed class WeakCollection<TType> : IList<Option<TType>>
         }
     }
 
+    
     public void Insert(int index, Option<TType> item)
     {
         var (hasValue, value) = item;
 
         if (!hasValue) return;
 
+        #pragma warning disable CS8604
         lock (_internalCollection)
-        {
             _internalCollection.Insert(index, new WeakReference<TType>(value));
-        }
+        #pragma warning restore CS8604
     }
 
     public bool Remove(Option<TType> item)

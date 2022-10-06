@@ -4,6 +4,8 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Tauron.Application.CommonUI.AppCore;
 using Tauron.Application.CommonUI.Dialogs;
 
+#pragma warning disable GU0011
+
 namespace Tauron.Application.CommonUI;
 
 [PublicAPI]

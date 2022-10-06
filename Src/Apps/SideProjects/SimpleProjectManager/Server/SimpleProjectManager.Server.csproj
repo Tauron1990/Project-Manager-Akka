@@ -18,11 +18,11 @@
     <PackageReference Include="Akka.Persistence.MongoDb" Version="1.4.40" />
     <PackageReference Include="Ben.Demystifier" Version="0.4.1" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="6.0.9" />
-    <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="4.8.3">
+    <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="4.8.4">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Stl.Fusion.Server" Version="3.8.11" />
+    <PackageReference Include="Stl.Fusion.Server" Version="4.0.12" />
   </ItemGroup>
 
   <ItemGroup>

@@ -15,9 +15,9 @@ public sealed class NameRegistry : FeatureActorRefBase<NameRegistry>
 
 public sealed partial class NameRegistryFeature : ActorFeatureBase<NameRegistryFeature.State>
 {
-    public sealed record RegisterName(string Name);
+    public sealed record RegisterName(string Name, IActorRef From);
 
-    public sealed record RegisterNameResponse(string? Error, string? Name);
+    public sealed record RegisterNameResponse(string? Error, string? Name, IActorRef From);
 
     public static Func<ILogger<NameRegistryFeature>, IPreparedFeature> Factory()
         => l => Feature.Create(() => new NameRegistryFeature(), new State(l, ImmutableDictionary<string, IActorRef>.Empty));
@@ -32,17 +32,17 @@ public sealed partial class NameRegistryFeature : ActorFeatureBase<NameRegistryF
     [LoggerMessage(EventId = 1, Level = LogLevel.Information, Message = "Actor {path} Terminated. Delete Entry {name}")]
     private partial void ActorTerminated(ActorPath path, string name);
 
-    [LoggerMessage(EventId = 2, Level = LogLevel.Information, Message = "Incomming Register Name Request: {path}")]
-    private partial void NewRequest(ActorPath path);
-
-    [LoggerMessage(EventId = 43, Level = LogLevel.Information, Message = "Register Name  Request. No Awnser from Sender: {path}")]
-    private partial void NoNameReturned(ActorPath path);
-
-    [LoggerMessage(EventId = 3, Level = LogLevel.Error, Message = "Register Name Request. Error while Ask for Name: {path}")]
-    private partial void ErrorAskForName(Exception ex, ActorPath path);
-
-    [LoggerMessage(EventId = 4, Level = LogLevel.Information, Message = "Register Name Request. Name Found: {name} on {path}")]
-    private partial void NameFound(string name, ActorPath path);
+    // [LoggerMessage(EventId = 2, Level = LogLevel.Information, Message = "Incomming Register Name Request: {path}")]
+    // private partial void NewRequest(ActorPath path);
+    //
+    // [LoggerMessage(EventId = 43, Level = LogLevel.Information, Message = "Register Name  Request. No Awnser from Sender: {path}")]
+    // private partial void NoNameReturned(ActorPath path);
+    //
+    // [LoggerMessage(EventId = 3, Level = LogLevel.Error, Message = "Register Name Request. Error while Ask for Name: {path}")]
+    // private partial void ErrorAskForName(Exception ex, ActorPath path);
+    //
+    // [LoggerMessage(EventId = 4, Level = LogLevel.Information, Message = "Register Name Request. Name Found: {name} on {path}")]
+    // private partial void NameFound(string name, ActorPath path);
 
     [LoggerMessage(EventId = 5, Level = LogLevel.Warning, Message = "Register Name Request. Duplicate Name {name} with {path} found")]
     private partial void DuplicateNameFound(string name, ActorPath path);
@@ -70,18 +70,21 @@ public sealed partial class NameRegistryFeature : ActorFeatureBase<NameRegistryF
     private State TryRegisterRecivedName(StatePair<RegisterName, State> p)
     {
         if(string.IsNullOrWhiteSpace(p.Event.Name))
+        {
+            p.Sender.Tell(new RegisterNameResponse("The Name is Empty", null, p.Event.From));
             return p.State;
+        }
 
         if(p.State.CurrentClients.ContainsKey(p.Event.Name))
         {
             DuplicateNameFound(p.Event.Name, p.Sender.Path);
-            p.Sender.Tell(new RegisterNameResponse("Der Name Existiert Schon", null));
+            p.Sender.Tell(new RegisterNameResponse($"Duplicate Name {p.Event.Name}", null, p.Event.From));
 
             return p.State;
         }
 
         SuccessfulRegistrated(p.Sender.Path, p.Event.Name);
-        p.Sender.Tell(new RegisterNameResponse(null, p.Event.Name));
+        p.Sender.Tell(new RegisterNameResponse(null, p.Event.Name, p.Event.From));
         p.Context.Watch(p.Sender);
 
         return p.State with { CurrentClients = p.State.CurrentClients.Add(p.Event.Name, p.Sender) };

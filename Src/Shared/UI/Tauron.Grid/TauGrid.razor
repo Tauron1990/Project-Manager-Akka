@@ -114,7 +114,7 @@
         
         base.OnAfterRender(firstRender);
 
-        InvokeAsync(StateHasChanged);
+        var _ = InvokeAsync(StateHasChanged);
     }
 
     internal void RegisterTemplate(GridTemplateRow row)
