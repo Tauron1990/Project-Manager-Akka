@@ -8,9 +8,6 @@ namespace SimpleProjectManager.Client.Operations.Shared;
 
 public sealed class NameRegistry : FeatureActorRefBase<NameRegistry>
 {
-    public NameRegistry() 
-        : base("NameRegistry")
-    { }
 }
 
 public sealed partial class NameRegistryFeature : ActorFeatureBase<NameRegistryFeature.State>

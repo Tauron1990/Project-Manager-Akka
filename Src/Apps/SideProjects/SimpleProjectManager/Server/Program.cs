@@ -1,7 +1,7 @@
-using Akka.DependencyInjection;
 using SimpleProjectManager.Server;
 using SimpleProjectManager.Server.Configuration;
 using SimpleProjectManager.Server.Core.Data;
+using SimpleProjectManager.Server.Core.DeviceManager;
 using SimpleProjectManager.Server.Core.Projections;
 using SimpleProjectManager.Server.Core.Services;
 using SimpleProjectManager.Server.Core.Tasks;
@@ -21,7 +21,8 @@ try
                               new MainModule(), 
                               new ProjectionModule(), 
                               new ServicesModule(),
-                              new TaskModule()))
+                              new TaskModule(),
+                              new DeviceModule()))
        .ConfigureWebHostDefaults(
             b =>
             {

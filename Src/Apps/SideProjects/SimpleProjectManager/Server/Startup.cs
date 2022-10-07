@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.ResponseCompression;
 using SimpleProjectManager.Client.Operations.Shared;
 using SimpleProjectManager.Server.Configuration;
 using SimpleProjectManager.Server.Controllers.ModelBinder;
+using SimpleProjectManager.Server.Core.DeviceManager;
 using SimpleProjectManager.Server.Core.JobManager;
 using SimpleProjectManager.Server.Core.Projections.Core;
 using SimpleProjectManager.Server.Core.Services;
@@ -86,7 +87,8 @@ public class Startup
            .RegisterStartUp<ClusterJoinSelf>(c => c.Run())
            .RegisterStartUp<JobManagerRegistrations>(jm => jm.Run())
            .RegisterStartUp<ProjectionInitializer>(i => i.Run())
-           .RegisterStartUp<InitClientOperationController>(c => c.Run());
+           .RegisterStartUp<InitClientOperationController>(c => c.Run())
+           .RegisterStartUp<DeviceManagerStartUp>(s => s.Run());
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

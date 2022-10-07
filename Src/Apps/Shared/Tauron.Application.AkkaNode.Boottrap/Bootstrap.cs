@@ -12,6 +12,7 @@ using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Tauron.AkkaHost;
 using Tauron.Application.Logging;
 using Tauron.Application.Master.Commands.Administration.Configuration;
@@ -53,7 +54,11 @@ public static partial class Bootstrap
 
                     appConfig?.Invoke(ab);
                 })
-           .ConfigureLogging((context, configuration) => configuration.ConfigDefaultLogging(context.HostingEnvironment.ApplicationName));
+           .ConfigureLogging((context, configuration) =>
+                             {
+                                 configuration.ClearProviders();
+                                 configuration.ConfigDefaultLogging(context.HostingEnvironment.ApplicationName);
+                             });
     }
 
     public static IActorApplicationBuilder OnMemberUp(this IActorApplicationBuilder builder, Action<HostBuilderContext, ActorSystem, Cluster> up)

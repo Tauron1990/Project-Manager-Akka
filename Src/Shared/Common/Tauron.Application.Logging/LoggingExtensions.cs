@@ -34,10 +34,13 @@ public static class LoggingExtensions
             return loggerConfiguration;
 
         const string defaultFile = "default-file";
+        const string defaultConsole = "default-Console";
+        
         loggerConfiguration =
             loggerConfiguration.LoadConfiguration(
                 b =>
                 {
+                    b.Configuration.AddTarget(new ColoredConsoleTarget(defaultConsole));
                     b.Configuration.AddTarget(
                         new AsyncTargetWrapper(
                             new FileTarget("actual-" + defaultFile)
@@ -80,6 +83,7 @@ public static class LoggingExtensions
                         });
 
                     b.Configuration.AddRuleForAllLevels(defaultFile);
+                    b.Configuration.AddRuleForAllLevels(defaultConsole);
                 });
 
         return loggerConfiguration;

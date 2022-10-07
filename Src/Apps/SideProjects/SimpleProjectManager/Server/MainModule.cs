@@ -11,6 +11,6 @@ public sealed class MainModule : IModule
     public void Load(IServiceCollection collection)
     {
         collection.TryAddScoped<FileUploadTransaction>();
-        collection.RegisterFeature<NameRegistry>(NameRegistryFeature.Factory(),() => SuperviserData.DefaultSuperviser);
+        collection.RegisterFeature<NameRegistry>(NameRegistryFeature.Factory(), "NameRegistry", () => SuperviserData.DefaultSuperviser);
     }
 }

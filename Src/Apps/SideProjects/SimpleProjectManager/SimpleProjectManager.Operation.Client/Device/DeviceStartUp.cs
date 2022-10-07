@@ -24,6 +24,8 @@ public class DeviceStartUp
             if(!_configuration.Device) return;
             
             await _hostStarter.NameRegistrated;
+            
+            
         }
         catch (Exception e)
         {

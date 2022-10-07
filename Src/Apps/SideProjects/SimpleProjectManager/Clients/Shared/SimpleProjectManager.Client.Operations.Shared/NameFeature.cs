@@ -2,7 +2,6 @@
 using System.Reactive.Linq;
 using Akka.Actor;
 using Akka.Cluster.Utility;
-using Akka.Streams.Implementation.Fusing;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 using Tauron.Features;
@@ -71,7 +70,7 @@ public sealed partial class NameFeature : ActorFeatureBase<NameFeature.State>
             if(await Task.WhenAny(task, Task.Delay(TimeSpan.FromSeconds(15))) == task)
             {
                 await task;
-                p.State.Registry.Tell(new NameRegistryFeature.RegisterName(p.State.Name, p.Sender));
+                CurrentState.Registry.Tell(new NameRegistryFeature.RegisterName(p.State.Name, p.Sender));
 
                 return Unit.Default;
             }
@@ -95,14 +94,14 @@ public sealed partial class NameFeature : ActorFeatureBase<NameFeature.State>
         
         if(string.IsNullOrWhiteSpace(result.Error))
         {
-            p.Sender.Tell(new NameResponse(result.Name));
+            p.Event.From.Tell(new NameResponse(result.Name));
 
-            if(string.IsNullOrWhiteSpace(result.Name))
+            if(!string.IsNullOrWhiteSpace(result.Name))
                 return p.State with{ IsConfirmd = true, IsDown = false };
         }
 
         NameRegisterError(Logger, result.Error ?? string.Empty);
-        p.Sender.Tell(new NameResponse(null));
+        p.Event.From.Tell(new NameResponse(null));
 
         return p.State with { IsConfirmd = false, IsDown = false };
     }

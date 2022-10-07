@@ -25,10 +25,6 @@ public abstract class FeatureActorRefBase<TInterface> : IFeatureActorRef<TInterf
     where TInterface : IFeatureActorRef<TInterface>
 {
     private readonly TaskCompletionSource<IActorRef> _actorSource = new();
-    private readonly string? _name;
-
-    protected FeatureActorRefBase(string? name)
-        => _name = name;
 
     public Task<IActorRef> Actor => _actorSource.Task;
 
@@ -97,17 +93,51 @@ public abstract class FeatureActorRefBase<TInterface> : IFeatureActorRef<TInterf
 
 public record struct SuperviserData(string Name, SupervisorStrategy? SupervisorStrategy)
 {
-    public static readonly SuperviserData DefaultSuperviser = new("Default", SupervisorStrategy.DefaultStrategy);
+    public static readonly SuperviserData DefaultSuperviser = new("DefaultSuperviser", SupervisorStrategy.DefaultStrategy);
 }
 
 [PublicAPI]
 public static class FeaturesServiceExtension
 {
-    public static IServiceCollection RegisterFeature<TInterfaceType>(this IServiceCollection builder, Delegate del, Func<SuperviserData>? supervisorStrategy = null)
+    public static IServiceCollection RegisterFeature<TInterfaceType>(this IServiceCollection builder, Delegate del)
         where TInterfaceType : class, IFeatureActorRef<TInterfaceType>
-        => RegisterFeature<TInterfaceType, TInterfaceType>(builder, del);
+        => RegisterFeature<TInterfaceType, TInterfaceType>(builder, del, null, null);
     
-    public static IServiceCollection RegisterFeature<TImpl, TInterfaceType>(this IServiceCollection builder, Delegate del, Func<SuperviserData>? supervisorStrategy = null)
+    public static IServiceCollection RegisterFeature<TInterfaceType>(this IServiceCollection builder, Delegate del,
+        string? actorName)
+        where TInterfaceType : class, IFeatureActorRef<TInterfaceType>
+        => RegisterFeature<TInterfaceType, TInterfaceType>(builder, del, actorName, null);
+    
+    public static IServiceCollection RegisterFeature<TInterfaceType>(this IServiceCollection builder, Delegate del, Func<SuperviserData>? supervisorStrategy)
+        where TInterfaceType : class, IFeatureActorRef<TInterfaceType>
+        => RegisterFeature<TInterfaceType, TInterfaceType>(builder, del, null, supervisorStrategy);
+
+    public static IServiceCollection RegisterFeature<TInterfaceType>(this IServiceCollection builder, Delegate del, string? actorName, Func<SuperviserData>? supervisorStrategy)
+        where TInterfaceType : class, IFeatureActorRef<TInterfaceType>
+        => RegisterFeature<TInterfaceType, TInterfaceType>(builder, del, actorName, supervisorStrategy);
+
+    public static IServiceCollection RegisterFeature<TImpl, TInterfaceType>(
+        this IServiceCollection builder, Delegate del)
+        where TInterfaceType : class, IFeatureActorRef<TInterfaceType>
+        where TImpl : TInterfaceType
+        => RegisterFeature<TImpl, TInterfaceType>(builder, del, null, null);
+    
+    public static IServiceCollection RegisterFeature<TImpl, TInterfaceType>(
+        this IServiceCollection builder, Delegate del,
+        Func<SuperviserData>? supervisorStrategy)
+        where TInterfaceType : class, IFeatureActorRef<TInterfaceType>
+        where TImpl : TInterfaceType
+        => RegisterFeature<TImpl, TInterfaceType>(builder, del, null, supervisorStrategy);
+    
+    public static IServiceCollection RegisterFeature<TImpl, TInterfaceType>(
+        this IServiceCollection builder, Delegate del,
+        string? actorName)
+        where TInterfaceType : class, IFeatureActorRef<TInterfaceType>
+        where TImpl : TInterfaceType
+        => RegisterFeature<TImpl, TInterfaceType>(builder, del, actorName, null);
+    
+    public static IServiceCollection RegisterFeature<TImpl, TInterfaceType>(this IServiceCollection builder, Delegate del,
+        string? actorName, Func<SuperviserData>? supervisorStrategy)
         where TInterfaceType : class, IFeatureActorRef<TInterfaceType>
         where TImpl : TInterfaceType
     {
@@ -151,7 +181,7 @@ public static class FeaturesServiceExtension
 
                     var result = await supervisor
                        .Ask<GenericSupervisorActor.CreateActorResult>(
-                            new GenericSupervisorActor.CreateActor(null, props),
+                            new GenericSupervisorActor.CreateActor(actorName, props),
                             TimeSpan.FromSeconds(15))
                        .ConfigureAwait(false);
 
