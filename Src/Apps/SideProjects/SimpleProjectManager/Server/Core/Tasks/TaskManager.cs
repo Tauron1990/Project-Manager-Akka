@@ -33,7 +33,7 @@ public class TaskManager : ITaskManager, IDisposable
     {
         try
         {
-            var result = await _taskManagerCore.Delete(id, token);
+            var result = await _taskManagerCore.DeleteTask(id, token);
 
             if (!result.Ok)
                 return result.Error ?? "Unbkannter Fehler";

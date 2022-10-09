@@ -41,7 +41,7 @@ public sealed class CommitRegistrationTransaction : SimpleTransaction<ProjectFil
     private async ValueTask<Rollback<ProjectFileId>> CancelOldTask(Context<ProjectFileId> transactionContext)
     {
         var (projectFileId, meta, cancellationToken) = transactionContext;
-        var result = await _taskManagerCore.Delete(FilePurgeId.For(projectFileId).Value, cancellationToken);
+        var result = await _taskManagerCore.DeleteTask(FilePurgeId.For(projectFileId).Value, cancellationToken);
 
         if (result.Ok) return c => throw c.Metadata.GetOptional<Exception>() ?? new InvalidOperationException("Unbekannter Fehler");
 

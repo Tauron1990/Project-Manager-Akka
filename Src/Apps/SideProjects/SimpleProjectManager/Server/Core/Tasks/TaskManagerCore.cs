@@ -179,9 +179,9 @@ public sealed class TaskManagerCore
                .Add(new ErrorProperty("Task Name", command.Name))
                .Add(new ErrorProperty("Task Info", command.Info)));
 
-    public async ValueTask<IOperationResult> Delete(string id, CancellationToken token)
+    public async ValueTask<IOperationResult> DeleteTask(string id, CancellationToken token)
         => await _criticalErrors.Try(
-            nameof(Delete),
+            nameof(DeleteTask),
             async () =>
             {
                 var filter = _entrys.Operations.Eq(e => e.JobId, id);

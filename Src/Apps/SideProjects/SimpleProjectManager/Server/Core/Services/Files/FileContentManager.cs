@@ -75,7 +75,7 @@ public sealed class FileContentManager
                 }
 
                 await _bucked.DeleteAsync(search.Id, token);
-                var result = await _taskManager.Delete(FilePurgeId.For(id).Value, token);
+                var result = await _taskManager.DeleteTask(FilePurgeId.For(id).Value, token);
 
                 _aggregator.Publish(new FileDeleted(id));
 

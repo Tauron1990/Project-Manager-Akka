@@ -39,7 +39,7 @@ public sealed class PreRegisterTransaction : SimpleTransaction<PreRegistrationCo
         if (!result.Ok)
             throw new InvalidOperationException("Task zu Automatischen Löschen der Datei konnte nicht erstellt werden");
 
-        return async _ => await _taskManager.Delete(id.Value, default);
+        return async _ => await _taskManager.DeleteTask(id.Value, default);
     }
 
     private async ValueTask<Rollback<PreRegistrationContext>> AddToDatabase(Context<PreRegistrationContext> transactionContext)
