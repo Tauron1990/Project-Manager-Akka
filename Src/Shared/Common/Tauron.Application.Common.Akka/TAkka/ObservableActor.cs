@@ -132,8 +132,7 @@ public class ObservableActor : ActorBase, IObservableActor
             case Status.Failure failure:
                 if (OnError(failure))
                     throw failure.Cause;
-                else
-                    return true;
+                return true;
             case Status.Success when _selectors.ContainsKey(typeof(Status.Success)) || _currentWaiting.Any(signal => signal.Match(message)):
                 return RunDefault();
             case AddSignal add:
