@@ -17,6 +17,9 @@ public sealed record DeviceInformations(string DeviceName, bool HasLogs, DeviceU
             ImmutableList<DeviceSensor>.Empty, 
             ImmutableList<DeviceButton>.Empty), 
         ActorRefs.Nobody);
+
+    public DeviceInformations(bool hasLogs, DeviceUiGroup rootGroup)
+        : this(string.Empty, hasLogs, rootGroup, ActorRefs.Nobody) { }
     
     public IEnumerable<DeviceSensor> CollectSensors()
     {

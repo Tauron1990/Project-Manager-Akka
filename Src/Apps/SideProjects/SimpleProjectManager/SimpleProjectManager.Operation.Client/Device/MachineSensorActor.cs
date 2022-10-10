@@ -8,11 +8,7 @@ namespace SimpleProjectManager.Operation.Client.Device;
 
 public sealed partial class MachineSensorActor : ReceiveActor, IWithTimers
 {
-    private sealed record RunUpdate
-    {
-        public static readonly RunUpdate Inst = new();
-    }
-    
+    private readonly string _deviceName;
     private readonly IMachine _machine;
     private readonly DeviceSensor _target;
     private readonly IActorRef _deviceDeviceManager;
@@ -20,8 +16,9 @@ public sealed partial class MachineSensorActor : ReceiveActor, IWithTimers
 
     private ISensorBox _sensorBox;
 
-    public MachineSensorActor(IMachine machine, DeviceSensor target, IActorRef deviceDeviceManager, ILogger<MachineSensorActor> logger)
+    public MachineSensorActor(string deviceName, IMachine machine, DeviceSensor target, IActorRef deviceDeviceManager, ILogger<MachineSensorActor> logger)
     {
+        _deviceName = deviceName;
         _machine = machine;
         _target = target;
         _deviceDeviceManager = deviceDeviceManager;
@@ -35,7 +32,10 @@ public sealed partial class MachineSensorActor : ReceiveActor, IWithTimers
 
     private void ValueRecived(ISensorBox obj)
     {
-        
+        if(_sensorBox == obj) return;
+
+        _sensorBox = obj;
+        _deviceDeviceManager.Tell(new UpdateSensor(_deviceName, _target.Identifer, _sensorBox));
     }
 
     [LoggerMessage(EventId = 67, Level = LogLevel.Error, Message = "Error on Update Sensor {sensor}")]

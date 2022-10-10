@@ -43,20 +43,16 @@ public sealed partial class MachineManagerActor : ReceiveActor
             
             ele.Sensors.ForEach(
                 sen => Context.ActorOf(
-                    () => new MachineSensorActor(_machine, sen, _device.DeviceManager, _loggerFactory.CreateLogger<MachineSensorActor>()),
+                    () => new MachineSensorActor(_deviceName, _machine, sen, _device.DeviceManager, _loggerFactory.CreateLogger<MachineSensorActor>()),
                     sen.Identifer));
 
             ele.DeviceButtons.ForEach(
                 btn => Context.ActorOf(
-                    () => new MachineButtonHandler(_machine, btn, _device.DeviceManager),
+                    () => new MachineButtonHandlerActor(_deviceName, _machine, btn, _device.DeviceManager),
                     btn.Identifer));
         }
 
-        Receive<ButtonClick>(
-            c =>
-            {
-                
-            });
+        Receive<ButtonClick>(c => Context.Child(c.Identifer).Forward(c));
     }
 
     [LoggerMessage(EventId = 66, Level = LogLevel.Error, Message = "Error on Registrating Device with {error}")]
@@ -112,5 +108,4 @@ public sealed partial class MachineManagerActor : ReceiveActor
 
                              return data;
                          });}
-}
 }

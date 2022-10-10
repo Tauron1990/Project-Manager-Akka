@@ -9,4 +9,6 @@ public interface IMachine
     Task<DeviceInformations> CollectInfo();
 
     Task<DeviceManagerMessages.ISensorBox> UpdateSensorValue(DeviceSensor sensor);
+    void ButtonClick(string identifer);
+    void WhenButtonStateChanged(string identifer, Action<bool> onButtonStateChanged);
 }
