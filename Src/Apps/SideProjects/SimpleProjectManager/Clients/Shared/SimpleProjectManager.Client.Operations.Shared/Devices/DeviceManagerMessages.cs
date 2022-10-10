@@ -2,7 +2,7 @@
 
 public static class DeviceManagerMessages
 {
-    public sealed record DeviceInfoResponse(string? Error);
+    public sealed record DeviceInfoResponse(bool Duplicate, string? Error);
 
     public interface IDeviceCommand
     {

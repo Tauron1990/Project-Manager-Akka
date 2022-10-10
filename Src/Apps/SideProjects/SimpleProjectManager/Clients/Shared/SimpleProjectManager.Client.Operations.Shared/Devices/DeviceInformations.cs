@@ -1,4 +1,5 @@
-﻿using Akka.Actor;
+﻿using System.Collections.Immutable;
+using Akka.Actor;
 
 namespace SimpleProjectManager.Client.Operations.Shared.Devices;
 
@@ -8,6 +9,15 @@ public sealed record DeviceInformations(string DeviceName, bool HasLogs, DeviceU
     
     public const string ManagerPath = "/user/DeviceManager";
 
+    public static DeviceInformations Empty => new(
+        "", 
+        false, 
+        new DeviceUiGroup(
+            ImmutableList<DeviceUiGroup>.Empty,
+            ImmutableList<DeviceSensor>.Empty, 
+            ImmutableList<DeviceButton>.Empty), 
+        ActorRefs.Nobody);
+    
     public IEnumerable<DeviceSensor> CollectSensors()
     {
         var stack = new Stack<DeviceUiGroup>();

@@ -1,5 +1,4 @@
 ﻿using System.Reactive;
-using System.Reactive.Linq;
 using Akka.Actor;
 using SimpleProjectManager.Client.Operations.Shared.Devices;
 using SimpleProjectManager.Server.Core.DeviceManager.Events;
@@ -44,7 +43,7 @@ public sealed partial class ServerDeviceManagerFeature : ActorFeatureBase<Server
                 if(string.IsNullOrWhiteSpace(evt.DeviceName))
                 {
                     EmptyDeviceNameRegistration(Logger, pair.Sender.Path);
-                    pair.Sender.Tell(new DeviceInfoResponse("Empty Device Name"));
+                    pair.Sender.Tell(new DeviceInfoResponse(false, "Empty Device Name"));
                     return;
                 }
                     
@@ -52,21 +51,20 @@ public sealed partial class ServerDeviceManagerFeature : ActorFeatureBase<Server
                 if(!pair.Context.Child(evt.DeviceName).Equals(ActorRefs.Nobody))
                 {
                     DuplicateDeviceRegistration(Logger, evt.DeviceName, pair.Sender.Path);
-                    pair.Sender.Tell(new DeviceInfoResponse("Duplicate Device Registration"));
+                    pair.Sender.Tell(new DeviceInfoResponse(true, "Duplicate Device Registration"));
                     return;
                 }
 
                 try
                 {
-                    pair.Context.ActorOf(SingleDeviceFeature.New(evt, state.Events), evt.DeviceName)
-                       .Tell(new SingleDeviceFeature.InitState());
+                    pair.Context.ActorOf(SingleDeviceFeature.New(evt, state.Events), evt.DeviceName);
                     state.Events.Publish(new NewDeviceEvent(evt));
-                    pair.Sender.Tell(new DeviceInfoResponse(null));
+                    pair.Sender.Tell(new DeviceInfoResponse(false, null));
                 }
                 catch (InvalidActorNameException exception)
                 {
                     InvalidActorName(Logger, exception, pair.Sender.Path);
-                    pair.Sender.Tell(new DeviceInfoResponse(exception.Message));
+                    pair.Sender.Tell(new DeviceInfoResponse(false, exception.Message));
                 }
             });
 }

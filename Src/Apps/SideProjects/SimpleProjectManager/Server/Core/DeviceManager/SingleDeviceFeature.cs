@@ -26,6 +26,12 @@ public sealed partial class SingleDeviceFeature : ActorFeatureBase<SingleDeviceF
                     ImmutableDictionary<string, ISensorBox>.Empty,
                     ImmutableDictionary<string, bool>.Empty)));
 
+    public override void PreStart()
+    {
+        Self.Tell(new InitState());
+        base.PreStart();
+    }
+
     protected override void ConfigImpl()
     {
         Receive<InitState>(obs => obs.Select(InitDeviceInfo));
