@@ -1,3 +1,4 @@
+using Akka.Cluster.Hosting;
 using Akka.DependencyInjection;
 using Akka.Hosting;
 using Akka.Persistence;
@@ -70,8 +71,10 @@ public class Startup
         builder
            .ConfigureAkka((_, configurationBuilder) =>
                           {
-                              configurationBuilder.AddHocon("akka.cluster.roles = [\"Master\"]");
-                              configurationBuilder.AddStartup((sys, _) => Persistence.Instance.Apply(sys));
+                              configurationBuilder
+                                 .WithDistributedPubSub("ProjectManager")
+                                 .AddHocon("akka.cluster.roles = [\"Master\"]")
+                                 .AddStartup((sys, _) => Persistence.Instance.Apply(sys));
                           })
            .OnMemberRemoved(
                 (_, system, _) =>

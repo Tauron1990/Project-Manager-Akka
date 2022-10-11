@@ -11,7 +11,7 @@ public sealed record DeviceInformations(string DeviceName, bool HasLogs, DeviceU
 
     public static DeviceInformations Empty => new(
         "", 
-        false, 
+        false,
         new DeviceUiGroup(
             ImmutableList<DeviceUiGroup>.Empty,
             ImmutableList<DeviceSensor>.Empty, 

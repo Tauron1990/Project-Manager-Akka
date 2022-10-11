@@ -40,6 +40,11 @@ public sealed partial class SingleDeviceFeature : ActorFeatureBase<SingleDeviceF
         Receive<QueryButtonState>(obs => obs.ToUnit(FindButtonState));
         Receive<UpdateButtonState>(obs => obs.Select(UpdateButton));
         Receive<ButtonClick>(obs => obs.ToUnit(p => p.State.Info.DeviceManager.Forward(p.Event)));
+        
+        if(!CurrentState.Info.HasLogs) return;
+        
+        var loggerActor = Context.ActorOf(LoggerActor.Create(Context.System, CurrentState.Info.DeviceName), $"Logger--{Guid.NewGuid():N}");
+        Receive<QueryLoggerBatch>(obs => obs.ToUnit(p => loggerActor.Forward(p.Event)));
     }
 
     private State UpdateButton(StatePair<UpdateButtonState, State> arg)

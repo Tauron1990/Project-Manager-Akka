@@ -1,4 +1,6 @@
-﻿namespace SimpleProjectManager.Client.Operations.Shared.Devices;
+﻿using System.Collections.Immutable;
+
+namespace SimpleProjectManager.Client.Operations.Shared.Devices;
 
 public static class DeviceManagerMessages
 {
@@ -56,4 +58,8 @@ public static class DeviceManagerMessages
     public sealed record ButtonClick(string DeviceName, string Identifer) : IDeviceCommand;
 
     public sealed record ButtonStateResponse(bool CanClick);
+
+    public sealed record QueryLoggerBatch(string DeviceName, DateTime From) : IDeviceCommand;
+
+    public sealed record LoggerBatchResult(DateTime Lastest, ImmutableList<LogBatch> Batches);
 } 

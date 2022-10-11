@@ -1,4 +1,5 @@
-﻿using Akka.Hosting;
+﻿using Akka.Cluster.Hosting;
+using Akka.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -42,13 +43,18 @@ public sealed class ClientRunner
     private void ApplyClientServices(IActorApplicationBuilder actorApplication)
     {
         actorApplication
-           .ConfigureAkka((_, b) => b.AddHocon(Akka.Configuration.ConfigurationFactory.ParseString(
-                              $"akka.cluster.downing-provider-class = \"Akka.Cluster.SBR.SplitBrainResolverProvider\" {Environment.NewLine}" + 
-                              "akka.cluster.split-brain-resolver.down-all-when-unstable = off")))
-           .ConfigureServices((_, coll) => coll
-                                 .AddSingleton(_configManager.Configuration)
-                                 .AddSingleton<HostStarter>()
-                                 .AddSingleton<IHostedService>(sp => sp.GetRequiredService<HostStarter>()))
+           .ConfigureAkka(
+                (_, b) => b
+                   .AddHocon(
+                        Akka.Configuration.ConfigurationFactory.ParseString(
+                            $"akka.cluster.downing-provider-class = \"Akka.Cluster.SBR.SplitBrainResolverProvider\" {Environment.NewLine}" +
+                            "akka.cluster.split-brain-resolver.down-all-when-unstable = off"))
+                   .WithDistributedPubSub("ProjectManager"))
+           .ConfigureServices(
+                (_, coll) => coll
+                   .AddSingleton(_configManager.Configuration)
+                   .AddSingleton<HostStarter>()
+                   .AddSingleton<IHostedService>(sp => sp.GetRequiredService<HostStarter>()))
            .RegisterStartUp<ImageEditorStartup>(e => e.Run())
            .RegisterStartUp<DeviceStartUp>(d => d.Run());
     }

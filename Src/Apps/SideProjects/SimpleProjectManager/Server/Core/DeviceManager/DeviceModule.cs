@@ -6,6 +6,6 @@ public sealed class DeviceModule : IModule
 {
     public void Load(IServiceCollection collection)
     {
-        collection.AddTransient<DeviceEventHandler>(sp => sp.GetRequiredService<IEventAggregator>().GetEvent<DeviceEventHandler, IDeviceEvent>());
+        collection.AddTransient(sp => sp.GetRequiredService<IEventAggregator>().GetEvent<DeviceEventHandler, IDeviceEvent>());
     }
 }

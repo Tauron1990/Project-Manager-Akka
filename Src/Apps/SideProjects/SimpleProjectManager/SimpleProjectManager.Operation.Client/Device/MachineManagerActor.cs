@@ -30,6 +30,13 @@ public sealed partial class MachineManagerActor : ReceiveActor
         Become(Starting);
     }
 
+    protected override void PostStop()
+    {
+        if(_machine is IDisposable disposable)
+            disposable.Dispose();
+        base.PostStop();
+    }
+
     private void Running()
     {
         var stack = new Stack<DeviceUiGroup>();
