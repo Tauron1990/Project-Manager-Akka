@@ -17,8 +17,10 @@ public sealed partial class ServerDeviceManagerFeature : ActorFeatureBase<Server
     protected override void ConfigImpl()
     {
         Receive<DeviceInformations>(HandleNewDevice);
-
+        Receive<QueryDevices>(obs => obs.ToUnit(p => p.Sender.Tell(new DevicesResponse(p.Context.GetChildren().Select(r => r.Path.Name).ToArray()))));
+        
         Receive<IDeviceCommand>(obs => obs.ToUnit(p => p.Context.Child(p.Event.DeviceName).Forward(p.Event)));
+        Receive<Terminated>(obs => obs.ToUnit(p => p.State.Events.Publish(new DeviceRemoved(p.Event.ActorRef.Path.Name))));
     }
 
     [LoggerMessage(EventId = 57, Level = LogLevel.Debug, Message = "New Device Registration Incomming from {path} with {name}")]
@@ -57,7 +59,7 @@ public sealed partial class ServerDeviceManagerFeature : ActorFeatureBase<Server
 
                 try
                 {
-                    pair.Context.ActorOf(SingleDeviceFeature.New(evt, state.Events), evt.DeviceName);
+                    pair.Context.Watch(pair.Context.ActorOf(SingleDeviceFeature.New(evt, state.Events), evt.DeviceName));
                     state.Events.Publish(new NewDeviceEvent(evt));
                     pair.Sender.Tell(new DeviceInfoResponse(false, null));
                 }

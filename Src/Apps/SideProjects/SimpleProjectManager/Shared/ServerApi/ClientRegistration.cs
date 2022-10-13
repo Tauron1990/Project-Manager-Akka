@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SimpleProjectManager.Shared.ServerApi.RestApi;
 using SimpleProjectManager.Shared.Services;
+using SimpleProjectManager.Shared.Services.Devices;
 using SimpleProjectManager.Shared.Services.Tasks;
 using Stl.Fusion;
 using Stl.Fusion.Client;
@@ -30,7 +31,8 @@ public static class ClientRegistration
                                      .AddReplicaService<IJobDatabaseService, IJobDatabaseServiceDef>()
                                      .AddReplicaService<IJobFileService, IJobFileServiceDef>()
                                      .AddReplicaService<ICriticalErrorService, ICriticalErrorServiceDef>()
-                                     .AddReplicaService<ITaskManager, ITaskManagerDef>();
+                                     .AddReplicaService<ITaskManager, ITaskManagerDef>()
+                                     .AddReplicaService<IDeviceService, IDeviceServiceDef>();
                               });
     }
 }

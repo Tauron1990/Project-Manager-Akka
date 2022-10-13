@@ -12,8 +12,10 @@ using SimpleProjectManager.Server.Core.DeviceManager;
 using SimpleProjectManager.Server.Core.JobManager;
 using SimpleProjectManager.Server.Core.Projections.Core;
 using SimpleProjectManager.Server.Core.Services;
+using SimpleProjectManager.Server.Core.Services.Devices;
 using SimpleProjectManager.Server.Core.Tasks;
 using SimpleProjectManager.Shared.Services;
+using SimpleProjectManager.Shared.Services.Devices;
 using SimpleProjectManager.Shared.Services.Tasks;
 using Stl.Collections;
 using Stl.Fusion;
@@ -34,7 +36,8 @@ public class Startup
            .AddComputeService<IJobDatabaseService, JobDatabaseService>()
            .AddComputeService<IJobFileService, JobFileService>()
            .AddComputeService<ICriticalErrorService, CriticalErrorService>()
-           .AddComputeService<ITaskManager, TaskManager>();
+           .AddComputeService<ITaskManager, TaskManager>()
+           .AddComputeService<IDeviceService, DeviceService>();
 
         fusion.AddWebServer();
 

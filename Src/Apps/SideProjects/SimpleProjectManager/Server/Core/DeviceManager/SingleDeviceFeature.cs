@@ -38,9 +38,11 @@ public sealed partial class SingleDeviceFeature : ActorFeatureBase<SingleDeviceF
         Receive<UpdateSensor>(obs => obs.Select(UpdateSensor));
         Receive<QuerySensorValue>(obs => obs.ToUnit(FindSensorValue));
         Receive<QueryButtonState>(obs => obs.ToUnit(FindButtonState));
+        Receive<QueryUi>(obs => obs.ToUnit(p => p.Sender.Tell(new UiResponse(p.State.Info.RootUi))));
         Receive<UpdateButtonState>(obs => obs.Select(UpdateButton));
         Receive<ButtonClick>(obs => obs.ToUnit(p => p.State.Info.DeviceManager.Forward(p.Event)));
-        
+        Receive<Terminated>(obs => obs.ToUnit(p => p.Context.Stop(p.Self)));
+
         if(!CurrentState.Info.HasLogs) return;
         
         var loggerActor = Context.ActorOf(LoggerActor.Create(Context.System, CurrentState.Info.DeviceName), $"Logger--{Guid.NewGuid():N}");
@@ -113,7 +115,7 @@ public sealed partial class SingleDeviceFeature : ActorFeatureBase<SingleDeviceF
             return state;
         }
 
-        state.Handler.Publish(new SensorUpdateEvent(evt.DeviceName, evt.Identifer));
+        state.Handler.Publish(new SensorUpdateEvent(evt.DeviceName, evt.Identifer, evt.SensorValue.SensorType));
         return state with { Sensors = state.Sensors.SetItem(evt.Identifer, evt.SensorValue) };
     }
 
@@ -124,6 +126,8 @@ public sealed partial class SingleDeviceFeature : ActorFeatureBase<SingleDeviceF
     {
         InitSingleDevice(Logger, p.State.Info.DeviceName);
 
+        p.Context.Watch(p.State.Info.DeviceManager);
+        
         var sensors = p.State.Sensors.AddRange(
             p.State.Info.CollectSensors()
                .Select(s => KeyValuePair.Create(s.Identifer, SensorBox.CreateDefault(s.SensorType))));

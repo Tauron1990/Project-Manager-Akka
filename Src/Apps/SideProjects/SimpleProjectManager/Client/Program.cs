@@ -21,8 +21,8 @@ builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(builder.H
 #if DEBUG
 builder.Services.AddLogging(b =>
                             {
-                                b.SetMinimumLevel(LogLevel.Information)
-                                   .AddBrowserConsole();
+                                b.SetMinimumLevel(LogLevel.Debug);
+                                b.AddBrowserConsole();
                             });
 #endif
 

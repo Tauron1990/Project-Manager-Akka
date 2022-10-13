@@ -28,7 +28,7 @@ public interface IDeviceService
     [ComputeMethod]
     Task<DateTime> CurrentLogs(CancellationToken token);
 
-    Task<LogBatch[]> GetBatches(DateTime from, CancellationToken token);
+    Task<LogBatch[]> GetBatches(string deviceName, DateTime from, CancellationToken token);
 
-    Task ClickButton(string device, string button, CancellationToken token);
+    Task<string> ClickButton(string device, string button, CancellationToken token);
 }

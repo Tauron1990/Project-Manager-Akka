@@ -34,7 +34,6 @@ public sealed class LoggerActor : ReceiveActor
     private void QueryBatch(DeviceManagerMessages.QueryLoggerBatch obj)
     {
         Sender.Tell(new DeviceManagerMessages.LoggerBatchResult(
-            _batches.Keys.Last(),
             _batches
                .Where(p => p.Key > obj.From)
                .Select(p => p.Value)
@@ -44,8 +43,9 @@ public sealed class LoggerActor : ReceiveActor
     private void NewBatch(LogBatch obj)
     {
         if(obj.DeviceName != _deviceName) return;
-        
-        _batches.Add(DateTime.UtcNow, obj);
+
+        var newKey = DateTime.UtcNow;
+        _batches.Add(newKey, obj);
         
         var counter = 0;
         var toDelete = _batches
@@ -62,7 +62,7 @@ public sealed class LoggerActor : ReceiveActor
         foreach (var key in toDelete)
             _batches.Remove(key);
         
-        _handler.Publish(new NewBatchesArrived(obj.DeviceName));
+        _handler.Publish(new NewBatchesArrived(obj.DeviceName, newKey));
     }
 
     protected override void PreStart()

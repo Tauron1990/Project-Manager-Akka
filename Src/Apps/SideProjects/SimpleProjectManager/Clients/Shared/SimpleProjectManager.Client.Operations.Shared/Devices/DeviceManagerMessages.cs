@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using JetBrains.Annotations;
 
 namespace SimpleProjectManager.Client.Operations.Shared.Devices;
 
@@ -10,14 +11,21 @@ public static class DeviceManagerMessages
     {
         string DeviceName { get; }
     }
-    
+
     public sealed record UpdateSensor(string DeviceName, string Identifer, ISensorBox SensorValue) : IDeviceCommand;
 
     public interface ISensorBox
     {
         SensorType SensorType { get; }
+
+        string AsString { get; }
+
+        int AsInt { get; }
+
+        double AsDouble { get; }
     }
-    
+
+    [PublicAPI]
     public static class SensorBox
     {
         public static ISensorBox CreateDefault(SensorType type)
@@ -29,8 +37,8 @@ public static class DeviceManagerMessages
                 SensorType.Number => Create(0),
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
             };
-        
-        
+
+
         public static ISensorBox Create(string value)
             => new StringSensorBox(value, SensorType.String);
 
@@ -40,12 +48,36 @@ public static class DeviceManagerMessages
         public static ISensorBox Create(double value)
             => new DoubleSensorBox(value, SensorType.Double);
     }
-    
-    public sealed record StringSensorBox(string Value, SensorType SensorType) : ISensorBox;
 
-    public sealed record NumberSensorBox(int Value, SensorType SensorType) : ISensorBox;
-    
-    public sealed record DoubleSensorBox(double Value, SensorType SensorType) : ISensorBox;
+    [UsedImplicitly]
+    public sealed record StringSensorBox(string Value, SensorType SensorType) : ISensorBox
+    {
+        public string AsString => Value;
+
+        public int AsInt => throw new InvalidOperationException("Wrong BoxType");
+
+        public double AsDouble => throw new InvalidOperationException("Wrong BoxType");
+    }
+
+    [UsedImplicitly]
+    public sealed record NumberSensorBox(int Value, SensorType SensorType) : ISensorBox
+    {
+        public string AsString => throw new InvalidOperationException("Wrong BoxType");
+
+        public int AsInt => Value;
+
+        public double AsDouble => throw new InvalidOperationException("Wrong BoxType");
+    }
+
+    [UsedImplicitly]
+    public sealed record DoubleSensorBox(double Value, SensorType SensorType) : ISensorBox
+    {
+        public string AsString => throw new InvalidOperationException("Wrong BoxType");
+
+        public int AsInt => throw new InvalidOperationException("Wrong BoxType");
+
+        public double AsDouble => Value;
+    }
 
     public sealed record QuerySensorValue(string DeviceName, string Identifer) : IDeviceCommand;
 
@@ -61,5 +93,13 @@ public static class DeviceManagerMessages
 
     public sealed record QueryLoggerBatch(string DeviceName, DateTime From) : IDeviceCommand;
 
-    public sealed record LoggerBatchResult(DateTime Lastest, ImmutableList<LogBatch> Batches);
-} 
+    public sealed record LoggerBatchResult(ImmutableList<LogBatch> Batches);
+
+    public sealed record QueryDevices;
+
+    public sealed record DevicesResponse(string[] Devices);
+
+    public sealed record QueryUi(string DeviceName) : IDeviceCommand;
+
+    public sealed record UiResponse(DeviceUiGroup Root);
+}
