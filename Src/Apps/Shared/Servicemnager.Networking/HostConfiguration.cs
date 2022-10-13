@@ -3,22 +3,9 @@ using System.IO.Compression;
 
 namespace Servicemnager.Networking;
 
-public sealed class HostConfiguration
+public sealed record HostConfiguration(string Identifer, string TargetAdress, bool CreateShortcut)
 {
     public const string DefaultFileName = "HostConfig.json";
-
-    private HostConfiguration(string identifer, string targetAdress, bool createShortcut)
-    {
-        Identifer = identifer;
-        TargetAdress = targetAdress;
-        CreateShortcut = createShortcut;
-    }
-
-    public string Identifer { get; }
-
-    public string TargetAdress { get; }
-
-    public bool CreateShortcut { get; }
 
     public static HostConfiguration Read()
     {

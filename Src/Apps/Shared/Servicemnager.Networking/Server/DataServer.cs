@@ -11,7 +11,7 @@ namespace Servicemnager.Networking.Server;
 
 public sealed class MessageFromClientEventArgs : EventArgs
 {
-    public MessageFromClientEventArgs(NetworkMessage message, string client)
+    public MessageFromClientEventArgs(NetworkMessage message, in Client client)
     {
         Message = message;
         Client = client;
@@ -19,7 +19,7 @@ public sealed class MessageFromClientEventArgs : EventArgs
 
     public NetworkMessage Message { get; }
 
-    public string Client { get; }
+    public Client Client { get; }
 }
 
 public sealed class DataServer : IDataServer
@@ -40,12 +40,12 @@ public sealed class DataServer : IDataServer
         _server.Events.ClientConnected += (_, args) =>
                                           {
                                               _clients.TryAdd(args.IpPort, new MessageBuffer(MemoryPool<byte>.Shared));
-                                              ClientConnected?.Invoke(this, new ClientConnectedArgs(args.IpPort));
+                                              ClientConnected?.Invoke(this, new ClientConnectedArgs(Client.From(args.IpPort)));
                                           };
         _server.Events.ClientDisconnected += (sender, args) =>
                                              {
                                                  _clients.TryRemove(args.IpPort, out _);
-                                                 ClientDisconnected?.Invoke(this, new ClientDisconnectedArgs(args.IpPort, args.Reason));
+                                                 ClientDisconnected?.Invoke(this, new ClientDisconnectedArgs(Client.From(args.IpPort), args.Reason));
                                              };
         _server.Events.DataReceived += EventsOnDataReceived;
     }
@@ -62,12 +62,12 @@ public sealed class DataServer : IDataServer
 
     public void Start() => _server.Start();
 
-    public bool Send(string client, NetworkMessage message)
+    public bool Send(in Client client, NetworkMessage message)
     {
         var data = _messageFormatter.WriteMessage(message);
         using var memory = data.Message;
 
-        _server.Send(client, memory.Memory[..data.Lenght].ToArray());
+        _server.Send(client.Value, memory.Memory[..data.Lenght].ToArray());
 
         return true;
     }
@@ -80,6 +80,6 @@ public sealed class DataServer : IDataServer
         var msg = buffer.AddBuffer(e.Data);
 
         if (msg != null)
-            OnMessageReceived?.Invoke(this, new MessageFromClientEventArgs(msg, e.IpPort));
+            OnMessageReceived?.Invoke(this, new MessageFromClientEventArgs(msg, Client.From(e.IpPort)));
     }
 }

@@ -6,7 +6,6 @@ using SimpleProjectManager.Server.Core.Projections;
 using SimpleProjectManager.Server.Core.Services;
 using SimpleProjectManager.Server.Core.Tasks;
 using Tauron.Application.AkkaNode.Bootstrap;
-using Tauron.Application.AkkaNode.Bootstrap.Console;
 using Tauron.Application.Master.Commands.KillSwitch;
 
 try

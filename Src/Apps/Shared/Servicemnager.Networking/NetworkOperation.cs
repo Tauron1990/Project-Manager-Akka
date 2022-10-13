@@ -1,24 +1,20 @@
-﻿namespace Servicemnager.Networking;
+using Vogen;
 
-public static class NetworkOperation
+namespace Servicemnager.Networking;
+
+[Instance("Identifer", "Identifer")]
+[Instance("Deny", "Deny")]
+[Instance("Accept", "Accept")]
+[Instance("Data", "Data")]
+[Instance("Compled", "Compled")]
+[Instance("Message", "Message")]
+[Instance("DataAccept", "DataAccept")]
+[Instance("DataNext", "DataNext")]
+[Instance("DataChunk", "DataChunk")]
+[Instance("DataCompled", "DataCompled")]
+[ValueObject(typeof(string))]
+public readonly partial struct NetworkOperation
 {
-    public const string Identifer = nameof(Identifer);
-
-    public const string Deny = nameof(Deny);
-
-    //public const string Accept = nameof(Accept);
-
-    //public const string Data = nameof(Data);
-
-    //public const string Compled = nameof(Compled);
-
-    public const string Message = nameof(Message);
-
-    public const string DataAccept = nameof(DataAccept);
-
-    public const string DataNext = nameof(DataNext);
-
-    public const string DataChunk = nameof(DataChunk);
-
-    public const string DataCompled = nameof(DataCompled);
+    private static Validation Validate(string value)
+        => Validation.Invalid("No Individual Value Allowed");
 }

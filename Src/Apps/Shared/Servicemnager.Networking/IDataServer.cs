@@ -10,5 +10,5 @@ public interface IDataServer : IDisposable
     event EventHandler<ClientDisconnectedArgs>? ClientDisconnected;
     event EventHandler<MessageFromClientEventArgs>? OnMessageReceived;
     void Start();
-    bool Send(string client, NetworkMessage message);
+    bool Send(in Client client, NetworkMessage message);
 }

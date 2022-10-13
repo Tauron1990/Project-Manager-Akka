@@ -24,9 +24,9 @@ public sealed class DataClient : IDataClient
                       Keepalive = { EnableTcpKeepAlives = true }
                   };
 
-        _client.Events.Connected += (_, args) => Connected?.Invoke(this, new ClientConnectedArgs(args.IpPort));
+        _client.Events.Connected += (_, args) => Connected?.Invoke(this, new ClientConnectedArgs(Client.From(args.IpPort)));
         _client.Events.Disconnected += (_, args)
-                                           => Disconnected?.Invoke(this, new ClientDisconnectedArgs(args.IpPort, args.Reason));
+                                           => Disconnected?.Invoke(this, new ClientDisconnectedArgs(Client.From(args.IpPort), args.Reason));
 
         _client.Events.DataReceived += (_, args) =>
                                        {

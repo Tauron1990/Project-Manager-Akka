@@ -27,11 +27,11 @@
         <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="0.10.18" />
         <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.18" />
         <PackageReference Include="Material.Avalonia" Version="2.5.1" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.9">
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.10">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.9" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.10" />
         <PackageReference Include="ReactiveMarbles.ObservableEvents.SourceGenerator" Version="1.2.3">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

@@ -27,38 +27,43 @@ public static partial class Bootstrap
     {
         var config = GetConfig();
 
+        void ConfigurateAkka(HostBuilderContext _, AkkaConfigurationBuilder configurationBuilder)
+        {
+            configurationBuilder.ConfigureLoggers(lcb => lcb.AddLogger<NLogLogger>())
+               .WithExtensions(typeof(ClusterActorDiscoveryId))
+               .WithClustering()
+               .WithDistributedPubSub(string.Empty)
+               .WithClusterClientReceptionist()
+               .AddHocon(config);
+        }
+
+        void AkkaConfig(IActorApplicationBuilder ab)
+        {
+
+
+            ab.ConfigureServices((_, cb) => cb.AddSingleton(AppInfoFactory))
+               .ConfigureAkka(ConfigurateAkka);
+
+            appConfig?.Invoke(ab);
+        }
+
         return builder
-           .ConfigureAkkaApplication(
-                ab =>
-                {
-                    ab.ConfigureServices(
-                            (_, cb) => cb.AddSingleton(
-                                context =>
-                                {
-                                    var opt = new AppNodeInfo();
-                                    context.GetRequiredService<IConfiguration>().Bind(opt);
+           .ConfigureAkkaApplication(AkkaConfig)
+           .ConfigureLogging(ConfigureLogging);
+    }
 
-                                    return opt;
-                                }))
-                       .ConfigureAkka(
-                            (_, configurationBuilder) =>
-                            {
-                                configurationBuilder
-                                   .ConfigureLoggers(lcb => lcb.AddLogger<NLogLogger>())
-                                   .WithExtensions(typeof(ClusterActorDiscoveryId))
-                                   .WithClustering()
-                                   .WithDistributedPubSub(string.Empty)
-                                   .WithClusterClientReceptionist()
-                                   .AddHocon(config);
-                            });
+    private static void ConfigureLogging(HostBuilderContext context, ILoggingBuilder configuration)
+    {
+        configuration.ClearProviders();
+        configuration.ConfigDefaultLogging(context.HostingEnvironment.ApplicationName);
+    }
 
-                    appConfig?.Invoke(ab);
-                })
-           .ConfigureLogging((context, configuration) =>
-                             {
-                                 configuration.ClearProviders();
-                                 configuration.ConfigDefaultLogging(context.HostingEnvironment.ApplicationName);
-                             });
+    private static AppNodeInfo AppInfoFactory(IServiceProvider context)
+    {
+        var opt = new AppNodeInfo();
+        context.GetRequiredService<IConfiguration>().Bind(opt);
+
+        return opt;
     }
 
     public static IActorApplicationBuilder OnMemberUp(this IActorApplicationBuilder builder, Action<HostBuilderContext, ActorSystem, Cluster> up)
@@ -93,7 +98,7 @@ public static partial class Bootstrap
     {
         var config = Config.Empty;
 
-        var basePath = Assembly.GetEntryAssembly()?.Location ?? string.Empty;
+        string basePath = Assembly.GetEntryAssembly()?.Location ?? string.Empty;
         if (!string.IsNullOrWhiteSpace(basePath))
             basePath = Path.GetDirectoryName(basePath) ?? string.Empty;
 

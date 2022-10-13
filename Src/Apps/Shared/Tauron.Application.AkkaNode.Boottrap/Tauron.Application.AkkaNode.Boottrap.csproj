@@ -7,6 +7,14 @@
         <RootNamespace>Tauron.Application.AkkaNode.Bootstrap</RootNamespace>
     </PropertyGroup>
 
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <NoWarn>1701;1702;EPS02</NoWarn>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <NoWarn>1701;1702;EPS02</NoWarn>
+    </PropertyGroup>
+
     <ItemGroup>
         <None Remove="base.conf" />
     </ItemGroup>

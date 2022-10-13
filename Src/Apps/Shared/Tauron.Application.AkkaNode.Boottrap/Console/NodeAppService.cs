@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 
-namespace Tauron.Application.AkkaNode.Bootstrap.Console;
+namespace Tauron.Application.AkkaNode.Bootstrap;
 
 public sealed class NodeAppService : IHostedService
 {
