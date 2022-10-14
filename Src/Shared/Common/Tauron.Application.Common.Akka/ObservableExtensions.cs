@@ -12,7 +12,7 @@ namespace Tauron;
 public static class ObservableExtensions
 {
     public static IObservable<IActorRef> NotNobody(this IObservable<IActorRef> observable)
-        => observable.Where(a => !ActorRefExtensions.IsNobody(a));
+        => observable.Where(a => !a.IsNobody());
 
     #region Timers
 
