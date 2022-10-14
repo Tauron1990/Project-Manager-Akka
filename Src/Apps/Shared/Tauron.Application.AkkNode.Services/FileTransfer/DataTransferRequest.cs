@@ -7,7 +7,7 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer;
 [PublicAPI]
 public abstract class DataTransferRequest : TransferMessages.TransferMessage
 {
-    protected DataTransferRequest(string operationId, DataTransferManager target, string? data)
+    protected DataTransferRequest(FileOperationId operationId, DataTransferManager target, string? data)
         : base(operationId)
     {
         Target = target;
@@ -33,37 +33,37 @@ public abstract class DataTransferRequest : TransferMessages.TransferMessage
     }
 
     public static DataTransferRequest FromStream(Func<ITransferData> stream, DataTransferManager target, string? data = null)
-        => new StreamTransferRequest(Guid.NewGuid().ToString(), stream, target, data);
+        => new StreamTransferRequest(FileOperationId.New(), stream, target, data);
 
     public static DataTransferRequest FromFile(string file, DataTransferManager target, string? data = null)
-        => new DataStreamTranferRequest(Guid.NewGuid().ToString(), file, target, data);
+        => new DataStreamTranferRequest(FileOperationId.New(), file, target, data);
 
     public static DataTransferRequest FromStream(Stream stream, DataTransferManager target, string? data = null)
-        => new StreamTransferRequest(Guid.NewGuid().ToString(), stream, target, data);
+        => new StreamTransferRequest(FileOperationId.New(), stream, target, data);
 
     public static DataTransferRequest FromStream(Func<Stream> stream, DataTransferManager target, string? data = null)
-        => new StreamTransferRequest(Guid.NewGuid().ToString(), stream, target, data);
+        => new StreamTransferRequest(FileOperationId.New(), stream, target, data);
 
-    public static DataTransferRequest FromFile(string opsId, string file, DataTransferManager target, string? data = null)
+    public static DataTransferRequest FromFile(in FileOperationId opsId, string file, DataTransferManager target, string? data = null)
         => new DataStreamTranferRequest(opsId, file, target, data);
 
-    public static DataTransferRequest FromStream(string opsId, Stream stream, DataTransferManager target, string? data = null)
+    public static DataTransferRequest FromStream(in FileOperationId opsId, Stream stream, DataTransferManager target, string? data = null)
         => new StreamTransferRequest(opsId, stream, target, data);
 
-    public static DataTransferRequest FromStream(string opsId, Func<Stream> stream, DataTransferManager target, string? data = null)
+    public static DataTransferRequest FromStream(in FileOperationId opsId, Func<Stream> stream, DataTransferManager target, string? data = null)
         => new StreamTransferRequest(opsId, stream, target, data);
 
     public sealed class StreamTransferRequest : DataTransferRequest
     {
-        public StreamTransferRequest(string operationId, Func<Stream> source, DataTransferManager target, string? data)
+        public StreamTransferRequest(FileOperationId operationId, Func<Stream> source, DataTransferManager target, string? data)
             : base(operationId, target, data) =>
             Source = () => new StreamData(source());
 
-        public StreamTransferRequest(string operationId, Func<ITransferData> source, DataTransferManager target, string? data)
+        public StreamTransferRequest(FileOperationId operationId, Func<ITransferData> source, DataTransferManager target, string? data)
             : base(operationId, target, data) =>
             Source = source;
 
-        public StreamTransferRequest(string operationId, Stream source, DataTransferManager target, string? data)
+        public StreamTransferRequest(FileOperationId operationId, Stream source, DataTransferManager target, string? data)
             : this(operationId, () => source, target, data) { }
 
         public override Func<ITransferData> Source { get; }
@@ -71,7 +71,7 @@ public abstract class DataTransferRequest : TransferMessages.TransferMessage
 
     public sealed class DataStreamTranferRequest : DataTransferRequest
     {
-        public DataStreamTranferRequest(string operationId, string file, DataTransferManager target, string? data)
+        public DataStreamTranferRequest(FileOperationId operationId, string file, DataTransferManager target, string? data)
             : base(operationId, target, data)
         {
             Source = () => new StreamData(File.OpenRead(file));

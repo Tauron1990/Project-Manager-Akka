@@ -6,6 +6,7 @@ using SharpRepository.Repository;
 using SharpRepository.Repository.Configuration;
 using Tauron.Application.VirtualFiles;
 using Tauron.Features;
+using UnitsNet;
 
 namespace Tauron.Application.AkkaNode.Services.CleanUp;
 
@@ -33,7 +34,7 @@ public sealed class CleanUpManager : ActorFeatureBase<CleanUpManager.CleanUpMana
             obs => obs
                .Where(m => !m.State.IsRunning)
                .Select(data => new { Data = data.State.CleanUpRepository.Get(TimeKey), data.State.CleanUpRepository, data.Timers, data.State })
-               .ApplyWhen(d => d.Data is null, d => d.CleanUpRepository.Add(new CleanUpTime(TimeKey, TimeSpan.FromDays(7), DateTime.Now)))
+               .ApplyWhen(d => d.Data is null, d => d.CleanUpRepository.Add(new CleanUpTime(TimeKey, Duration.FromDays(7), DateTime.Now)))
                .StartPeriodicTimer(d => d.Timers, Initialization, new StartCleanUp(), TimeSpan.FromSeconds(1), TimeSpan.FromHours(1))
                .Select(d => d.State with { IsRunning = true }));
 

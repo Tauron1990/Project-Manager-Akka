@@ -82,7 +82,7 @@ namespace Tauron.Application.AkkNode.Services.Core
         public static byte[] Readbuffer(BinaryReader reader) 
             => reader.ReadBytes(reader.ReadInt32());
 
-        public static void WriteNull<TValue>([AllowNull] TValue value, BinaryWriter writer, Action<TValue> action)
+        public static void WriteNull<TValue>(TValue? value, BinaryWriter writer, Action<TValue> action)
         {
             if(Equals(value, null))
                 writer.Write(false);
@@ -93,8 +93,7 @@ namespace Tauron.Application.AkkNode.Services.Core
             }
         }
 
-        [return:MaybeNull]
-        public static TType ReadNull<TType>(BinaryReader reader, Func<BinaryReader, TType> builder) 
+        public static TType? ReadNull<TType>(BinaryReader reader, Func<BinaryReader, TType> builder) 
             => reader.ReadBoolean() ? builder(reader) : default;
 
         public static IActorRef ReadRef(BinaryReader reader, ExtendedActorSystem system)

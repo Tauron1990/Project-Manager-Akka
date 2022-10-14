@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using UnitsNet;
 
 namespace Tauron.Application.AkkaNode.Services.FileTransfer;
 
@@ -11,12 +12,12 @@ public sealed class AwaitResponse
 
     public async Task<TransferMessages.TransferCompled> TryStart(Func<ITransferData?> getdata)
     {
-        if (_request == null)
-            return new TransferFailed(string.Empty, FailReason.Deny, "NoData");
+        if (_request is null)
+            return new TransferFailed(FileOperationId.Empty, FailReason.Deny, "NoData");
 
         var data = getdata();
 
-        if (data == null)
+        if (data is null)
             return new TransferFailed(_request.OperationId, FailReason.Deny, _request.Data);
 
         return await _request.Accept(() => data);
@@ -25,13 +26,13 @@ public sealed class AwaitResponse
 
 public sealed class AwaitRequest
 {
-    public AwaitRequest(TimeSpan timeout, string id)
+    public AwaitRequest(Duration timeout, FileOperationId id)
     {
         Timeout = timeout;
         Id = id;
     }
 
-    public TimeSpan Timeout { get; }
+    public Duration Timeout { get; }
 
-    public string Id { get; }
+    public FileOperationId Id { get; }
 }

@@ -12,7 +12,7 @@ public sealed class IncomingDataTransfer : TransferMessages.TransferMessage
 {
     private readonly Timer _denyTimer;
 
-    public IncomingDataTransfer(string operationId, DataTransferManager manager, string? data)
+    public IncomingDataTransfer(FileOperationId operationId, DataTransferManager manager, string? data)
         : base(operationId)
     {
         Manager = manager;

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Akka.Configuration;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
@@ -34,14 +35,13 @@ public sealed class HoconConfigurationProvider : ConfigurationProvider
 
     public override void Load()
     {
-        if (_config == null || _names == null)
+        if (_config is null || _names is null)
             return;
 
         var config = _config();
 
-        foreach (var (path, name) in _names)
-            if (config.HasPath(path))
-                Data[name] = config.GetString(path, string.Empty);
+        foreach ((string path, string name) in _names.Where(p => config.HasPath(p.path)))
+            Data[name] = config.GetString(path, string.Empty);
 
         _names = null;
         _config = null;

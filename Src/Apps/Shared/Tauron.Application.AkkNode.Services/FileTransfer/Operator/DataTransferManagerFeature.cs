@@ -26,28 +26,7 @@ public sealed class DataTransferManagerFeature : ActorFeatureBase<DataTransferMa
 
         Receive<TransferCompled>().Subscribe(m => Context.Stop(Context.Child(m.OperationId)));
 
-        Receive<TransmitRequest>(
-            obs => obs
-               .Select(m => new { Child = Context.Child(m.Event.OperationId), Message = m.Event })
-               .ConditionalSelect()
-               .ToResult<Unit>(
-                    b =>
-                    {
-                        b.When(
-                            r => r.Child.IsNobody(),
-                            start => start.ToUnit(
-                                r
-                                    => Context.ActorOf<TransferOperatorActor>(r.Message.OperationId).Tell(r.Message)));
-                        b.When(
-                            r => !r.Child.IsNobody(),
-                            fail => fail.Select(
-                                    d => new
-                                         {
-                                             Message = new TransferFailed(d.Message.OperationId, FailReason.DuplicateOperationId, null),
-                                             Sender = d.Message.From
-                                         })
-                               .ToUnit(i => i.Sender.Tell(i.Message)));
-                    }));
+        Receive<TransmitRequest>(TransmitRequest);
 
         Receive<DataTranfer>(
             obs => obs
@@ -141,6 +120,25 @@ public sealed class DataTransferManagerFeature : ActorFeatureBase<DataTransferMa
 
         Receive<DeleteAwaiter>(obs => obs.Select(m => m.State with { Awaiters = m.State.Awaiters.Remove(m.Event.Id) }));
     }
+
+    private IObservable<Unit> TransmitRequest(IObservable<StatePair<TransmitRequest, State>> obs)
+        => obs.Select(m => (Child: Context.Child(m.Event.OperationId), Message: m.Event))
+           .ConditionalSelect()
+           .ToResult<Unit>(
+                b =>
+                {
+                    b.When(
+                        r => r.Child.IsNobody(),
+                        start => start.ToUnit(r => Context.ActorOf<TransferOperatorActor>(r.Message.OperationId).Tell(r.Message)));
+                    b.When(
+                        r => !r.Child.IsNobody(),
+                        fail => fail.Select(d => new
+                                                 {
+                                                     Message = new TransferFailed(d.Message.OperationId, FailReason.DuplicateOperationId, null),
+                                                     Sender = d.Message.From
+                                                 })
+                           .ToUnit(i => i.Sender.Tell(i.Message)));
+                });
 
     public sealed record State(ImmutableDictionary<string, IncomingDataTransfer> PendingTransfers, ImmutableDictionary<string, AwaitRequestInternal> Awaiters);
 

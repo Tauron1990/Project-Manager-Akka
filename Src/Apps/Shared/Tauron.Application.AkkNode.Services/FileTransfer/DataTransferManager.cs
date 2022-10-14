@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
 using JetBrains.Annotations;
@@ -7,6 +6,7 @@ using Tauron.Application.AkkaNode.Services.Core;
 using Tauron.Application.AkkaNode.Services.FileTransfer.Operator;
 using Tauron.Application.AkkaNode.Services.Reporting.Commands;
 using Tauron.Features;
+using UnitsNet;
 
 namespace Tauron.Application.AkkaNode.Services.FileTransfer;
 
@@ -33,15 +33,15 @@ public sealed class DataTransferManager
     {
         Actor.Tell(request);
 
-        return new FileTransactionId(request.OperationId);
+        return new FileTransactionId(request.OperationId.Value);
     }
 
     public Task<AwaitResponse> AskAwaitOperation(AwaitRequest request)
         => Actor.Ask<AwaitResponse>(
             request,
-            request.Timeout == Timeout.InfiniteTimeSpan
-                ? request.Timeout
-                : request.Timeout + TimeSpan.FromSeconds(2));
+            request.Timeout > Duration.FromYears365(10)
+                ? Timeout.InfiniteTimeSpan
+                : (request.Timeout + Duration.FromSeconds(2)).ToTimeSpan());
 
     public void AwaitOperation(AwaitRequest request)
         => Actor.Tell(request);

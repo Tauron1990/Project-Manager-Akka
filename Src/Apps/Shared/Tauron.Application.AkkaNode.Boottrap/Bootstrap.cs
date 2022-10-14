@@ -8,6 +8,7 @@ using Akka.Cluster.Hosting;
 using Akka.Cluster.Utility;
 using Akka.Configuration;
 using Akka.Logger.NLog;
+using Akka.Serialization;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,6 +31,7 @@ public static partial class Bootstrap
         void ConfigurateAkka(HostBuilderContext _, AkkaConfigurationBuilder configurationBuilder)
         {
             configurationBuilder.ConfigureLoggers(lcb => lcb.AddLogger<NLogLogger>())
+               .WithCustomSerializer("hyperion", new []{typeof(object)}, s => new HyperionSerializer(s, s.Settings.Config))
                .WithExtensions(typeof(ClusterActorDiscoveryId))
                .WithClustering()
                .WithDistributedPubSub(string.Empty)

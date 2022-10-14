@@ -20,6 +20,7 @@ using Tauron.Applicarion.Redux;
 using Tauron.Applicarion.Redux.Configuration;
 using Tauron.Applicarion.Redux.Extensions.Cache;
 using Tauron.Applicarion.Redux.Internal;
+using TestApp.Test2;
 
 namespace TestApp;
 
@@ -125,6 +126,8 @@ static class Program
     
     static async Task Main()
     {
+        SerialTest.Run();
+        
         using var system = (ExtendedActorSystem)ActorSystem.Create("Test");
 
         var actor = system.ActorOf<TestActor>("TestActor");

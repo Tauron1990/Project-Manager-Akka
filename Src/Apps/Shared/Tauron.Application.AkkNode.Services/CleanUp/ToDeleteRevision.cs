@@ -1,12 +1,14 @@
 ﻿using System;
+using Stl.IO;
+using Tauron.Application.VirtualFiles;
 
 namespace Tauron.Application.AkkaNode.Services.CleanUp;
 
-public sealed record ToDeleteRevision(string Id, string FilePath)
+public sealed record ToDeleteRevision(CleanUpId Id, PathInfo FilePath)
 {
     public ToDeleteRevision()
-        : this(string.Empty) { }
+        : this(new PathInfo(string.Empty, PathType.Relative)) { }
 
-    public ToDeleteRevision(string filePath)
-        : this(Guid.NewGuid().ToString("N"), filePath) { }
+    public ToDeleteRevision(PathInfo filePath)
+        : this(CleanUpId.From(Guid.NewGuid().ToString("N")), filePath) { }
 }
