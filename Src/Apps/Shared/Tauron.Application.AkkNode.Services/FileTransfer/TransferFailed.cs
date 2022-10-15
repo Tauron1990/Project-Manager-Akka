@@ -16,7 +16,7 @@ public enum FailReason
 
 public sealed class TransferFailed : TransferMessages.TransferCompled
 {
-    public TransferFailed(FileOperationId operationId, FailReason reason, string? data)
+    public TransferFailed(FileOperationId operationId, FailReason reason, TransferData data)
         : base(operationId, data)
         => Reason = reason;
 

@@ -13,7 +13,7 @@ public sealed class AwaitResponse
     public async Task<TransferMessages.TransferCompled> TryStart(Func<ITransferData?> getdata)
     {
         if (_request is null)
-            return new TransferFailed(FileOperationId.Empty, FailReason.Deny, "NoData");
+            return new TransferFailed(FileOperationId.Empty, FailReason.Deny, TransferData.Empty);
 
         var data = getdata();
 
@@ -26,13 +26,13 @@ public sealed class AwaitResponse
 
 public sealed class AwaitRequest
 {
-    public AwaitRequest(Duration timeout, FileOperationId id)
+    public AwaitRequest(Duration? timeout, FileOperationId id)
     {
         Timeout = timeout;
         Id = id;
     }
 
-    public Duration Timeout { get; }
+    public Duration? Timeout { get; }
 
     public FileOperationId Id { get; }
 }

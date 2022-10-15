@@ -7,6 +7,7 @@ using Akka.Actor;
 using Akka.Util;
 using JetBrains.Annotations;
 using Tauron.Operations;
+using UnitsNet;
 
 namespace Tauron.Application.AkkaNode.Services.Reporting;
 
@@ -28,7 +29,7 @@ public sealed class Reporter
 
     public static IActorRef CreateListner(
         IActorRefFactory factory, Action<string> listner,
-        Action<IOperationResult> onCompled, TimeSpan timeout, string? name = null)
+        Action<IOperationResult> onCompled, in Duration? timeout, string? name = null)
         => factory.ActorOf(
             Props.Create(() => new Listner(listner, onCompled, timeout))
                .WithSupervisorStrategy(SupervisorStrategy.StoppingStrategy),
@@ -41,12 +42,12 @@ public sealed class Reporter
 
     public static IActorRef CreateListner(
         IActorRefFactory factory, Reporter reporter,
-        Action<IOperationResult> onCompled, TimeSpan timeout, string? name = null)
+        Action<IOperationResult> onCompled, in Duration? timeout, string? name = null)
         => CreateListner(factory, reporter.Send, onCompled, timeout, name);
 
     public static IActorRef CreateListner(
         IActorRefFactory factory, Action<string> listner,
-        TaskCompletionSource<IOperationResult> onCompled, TimeSpan timeout, string? name = null)
+        TaskCompletionSource<IOperationResult> onCompled, in Duration? timeout, string? name = null)
         => CreateListner(factory, listner, onCompled.SetResult, timeout, name);
 
     public static IActorRef CreateListner(
@@ -56,11 +57,11 @@ public sealed class Reporter
 
     public static IActorRef CreateListner(
         IActorRefFactory factory, Reporter reporter,
-        TaskCompletionSource<IOperationResult> onCompled, TimeSpan timeout, string? name = null)
+        TaskCompletionSource<IOperationResult> onCompled, in Duration? timeout, string? name = null)
         => CreateListner(factory, reporter.Send, onCompled, timeout, name);
 
     public static IActorRef CreateListner(
-        IActorRefFactory factory, Action<string> listner, TimeSpan timeout,
+        IActorRefFactory factory, Action<string> listner, in Duration? timeout,
         string? name, Action<Task<IOperationResult>> onCompled)
     {
         var source = new TaskCompletionSource<IOperationResult>();
@@ -76,12 +77,12 @@ public sealed class Reporter
         => CreateListner(factory, listner, Timeout.InfiniteTimeSpan, name, onCompled);
 
     public static IActorRef CreateListner(
-        IActorRefFactory factory, Reporter reporter, TimeSpan timeout,
+        IActorRefFactory factory, Reporter reporter, in Duration? timeout,
         string? name, Action<Task<IOperationResult>> onCompled)
         => CreateListner(factory, reporter.Send, timeout, name, onCompled);
 
     public static IActorRef CreateListner(
-        IActorRefFactory factory, Action<string> listner, TimeSpan timeout,
+        IActorRefFactory factory, Action<string> listner, in Duration? timeout,
         Action<Task<IOperationResult>> onCompled)
         => CreateListner(factory, listner, timeout, null, onCompled);
 
@@ -91,12 +92,12 @@ public sealed class Reporter
         => CreateListner(factory, listner, Timeout.InfiniteTimeSpan, null, onCompled);
 
     public static IActorRef CreateListner(
-        IActorRefFactory factory, Reporter reporter, TimeSpan timeout,
+        IActorRefFactory factory, Reporter reporter, in Duration? timeout,
         Action<Task<IOperationResult>> onCompled)
         => CreateListner(factory, reporter.Send, timeout, null, onCompled);
 
     public static IActorRef CreateListner(
-        IActorRefFactory factory, Action<string> listner, TimeSpan timeout,
+        IActorRefFactory factory, Action<string> listner, in Duration? timeout,
         string? name, out Task<IOperationResult> onCompled)
     {
         var source = new TaskCompletionSource<IOperationResult>();
@@ -107,7 +108,7 @@ public sealed class Reporter
     }
 
     public static IActorRef CreateListner(
-        IActorRefFactory factory, Action<string> listner, TimeSpan timeout,
+        IActorRefFactory factory, Action<string> listner, in Duration? timeout,
         out Task<IOperationResult> onCompled)
         => CreateListner(factory, listner, timeout, null, out onCompled);
 

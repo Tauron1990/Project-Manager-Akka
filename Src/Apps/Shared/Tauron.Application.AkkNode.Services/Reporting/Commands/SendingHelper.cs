@@ -7,6 +7,7 @@ using Akka.Util;
 using Microsoft.Extensions.Logging;
 using Tauron.AkkaHost;
 using Tauron.Operations;
+using UnitsNet;
 
 namespace Tauron.Application.AkkaNode.Services.Reporting.Commands;
 
@@ -14,7 +15,7 @@ public static class SendingHelper
 {
     private static readonly ILogger Log = TauronEnviroment.GetLogger(typeof(SendingHelper));
 
-    public static async Task<Either<TResult, Error>> Send<TResult, TCommand>(ISender sender, TCommand command, Action<string> messages, TimeSpan timeout, bool isEmpty, CancellationToken token)
+    public static async Task<Either<TResult, Error>> Send<TResult, TCommand>(ISender sender, TCommand command, Action<string> messages, Duration? timeout, bool isEmpty, CancellationToken token)
         where TCommand : class, IReporterMessage
     {
         Log.LogInformation("Sending Command {CommandType} -- {SenderType}", command.GetType(), sender.GetType());

@@ -39,9 +39,9 @@ public sealed class DataTransferManager
     public Task<AwaitResponse> AskAwaitOperation(AwaitRequest request)
         => Actor.Ask<AwaitResponse>(
             request,
-            request.Timeout > Duration.FromYears365(10)
+            request.Timeout is null
                 ? Timeout.InfiniteTimeSpan
-                : (request.Timeout + Duration.FromSeconds(2)).ToTimeSpan());
+                : (request.Timeout.Value + Duration.FromSeconds(2)).ToTimeSpan());
 
     public void AwaitOperation(AwaitRequest request)
         => Actor.Tell(request);

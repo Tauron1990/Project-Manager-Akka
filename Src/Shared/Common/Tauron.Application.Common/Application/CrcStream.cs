@@ -17,7 +17,7 @@ public class Crc32
         _table = new uint[256];
         for (uint tableIndex = 0; tableIndex < _table.Length; ++tableIndex)
         {
-            var temp = tableIndex;
+            uint temp = tableIndex;
             for (var calc = 8; calc > 0; --calc)
                 if ((temp & 1) == 1)
                     temp = (temp >> 1) ^ poly;
@@ -32,7 +32,7 @@ public class Crc32
     public uint ComputeChecksum(byte[] bytes, int count)
     {
         var crc = 0xffffffff;
-        foreach (var deta in bytes.Take(count))
+        foreach (byte deta in bytes.Take(count))
         {
             var index = (byte)((crc & 0xff) ^ deta);
             crc = (crc >> 8) ^ _table[index];

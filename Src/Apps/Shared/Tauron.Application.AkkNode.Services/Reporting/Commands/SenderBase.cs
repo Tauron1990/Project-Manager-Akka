@@ -2,20 +2,21 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Akka.Util;
+using Google.Protobuf.WellKnownTypes;
 using JetBrains.Annotations;
 using Tauron.Operations;
 
 namespace Tauron.Application.AkkaNode.Services.Reporting.Commands;
 
-public sealed record ApiParameter(TimeSpan Timeout, CancellationToken CancellationToken, Action<string> Messages)
+public sealed record ApiParameter(Duration? Timeout, CancellationToken CancellationToken, Action<string> Messages)
 {
-    public ApiParameter(TimeSpan timeout)
+    public ApiParameter(Duration? timeout)
         : this(timeout, CancellationToken.None, _ => { }) { }
 
-    public ApiParameter(TimeSpan timeout, Action<string> messages)
+    public ApiParameter(Duration? timeout, Action<string> messages)
         : this(timeout, CancellationToken.None, messages) { }
 
-    public ApiParameter(TimeSpan timeout, CancellationToken token)
+    public ApiParameter(Duration? timeout, CancellationToken token)
         : this(timeout, token, _ => { }) { }
 }
 

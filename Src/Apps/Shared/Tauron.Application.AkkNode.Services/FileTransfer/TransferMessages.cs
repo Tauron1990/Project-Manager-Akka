@@ -14,10 +14,11 @@ public static class TransferMessages
         public FileOperationId OperationId { get; }
     }
 
+    [PublicAPI]
     public abstract class TransferCompled : TransferMessage
     {
-        protected TransferCompled(FileOperationId operationId, string? data) : base(operationId) => Data = data;
-        public string? Data { get; }
+        protected TransferCompled(FileOperationId operationId, TransferData data) : base(operationId) => Data = data;
+        public TransferData Data { get; }
     }
 
     public abstract class DataTranfer : TransferMessage
@@ -28,7 +29,7 @@ public static class TransferMessages
     [PublicAPI]
     public sealed class TransferError : DataTranfer
     {
-        public TransferError(FileOperationId operationId, FailReason failReason, string? data)
+        public TransferError(FileOperationId operationId, FailReason failReason, TransferData data)
             : base(operationId)
         {
             FailReason = failReason;
@@ -37,7 +38,7 @@ public static class TransferMessages
 
         public FailReason FailReason { get; }
 
-        public string? Data { get; }
+        public TransferData Data { get; }
 
         public TransferFailed ToFailed()
             => new(OperationId, FailReason, Data);
@@ -97,7 +98,7 @@ public static class TransferMessages
 
     public sealed class TransmitRequest : DataTranfer
     {
-        public TransmitRequest(FileOperationId operationId, IActorRef from, string? data) : base(operationId)
+        public TransmitRequest(FileOperationId operationId, IActorRef from, TransferData data) : base(operationId)
         {
             From = from;
             Data = data;
@@ -105,7 +106,7 @@ public static class TransferMessages
 
         public IActorRef From { get; }
 
-        public string? Data { get; }
+        public TransferData Data { get; }
     }
 
     public sealed class RequestAccept : DataTranfer

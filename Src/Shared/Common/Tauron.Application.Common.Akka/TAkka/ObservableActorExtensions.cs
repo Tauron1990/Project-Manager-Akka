@@ -9,6 +9,16 @@ public static class ObservableActorExtensions
 {
     public static FSMBase.State<TS, TD> Replying<TS, TD>(
         this FSMBase.State<TS, TD> state, object msg,
+        IActorRef actor, IActorRef sender)
+    {
+        actor.Tell(msg, sender);
+
+        return state;
+    }
+
+    
+    public static FSMBase.State<TS, TD> Replying<TS, TD>(
+        this FSMBase.State<TS, TD> state, object msg,
         IActorRef actor)
     {
         actor.Tell(msg);

@@ -1,5 +1,4 @@
 ﻿using System;
-using Stl.IO;
 using Tauron.Application.VirtualFiles;
 
 namespace Tauron.Application.AkkaNode.Services.CleanUp;
