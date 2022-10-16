@@ -68,7 +68,7 @@ public class InternalGenerator : IIncrementalGenerator
         // generate the source code and add it to the output
         foreach (var namespaceGroup in groups)
         {
-            var result = EnumGenerationHelper.GenerateExtensionClass(namespaceGroup, namespaceGroup.Key);
+            string result = EnumGenerationHelper.GenerateExtensionClass(namespaceGroup, namespaceGroup.Key);
             context.AddSource(namespaceGroup.Key + ".g.cs", result);
         }
     }
@@ -78,7 +78,7 @@ public class InternalGenerator : IIncrementalGenerator
         // Create a list to hold our output
         var enumsToGenerate = ImmutableArray<EnumToGenerate>.Empty;
         // Get the semantic representation of our marker attribute 
-        var enumAttribute = compilation.GetTypeByMetadataName(EnumGenerationHelper.FullName);
+        INamedTypeSymbol? enumAttribute = compilation.GetTypeByMetadataName(EnumGenerationHelper.FullName);
 
         if (enumAttribute == null)
         {
@@ -124,12 +124,12 @@ public class InternalGenerator : IIncrementalGenerator
     private static (string ClassName, string NamespaceName) ExtractDataInfo(Compilation compilation, BaseTypeDeclarationSyntax syntaxNode, ISymbol symbol)
     {
         // Get the semantic model of the enum symbol
-        var semanticModel = compilation.GetSemanticModel(syntaxNode.SyntaxTree);
-        var enumSymbol = ModelExtensions.GetDeclaredSymbol(semanticModel, syntaxNode);
+        SemanticModel semanticModel = compilation.GetSemanticModel(syntaxNode.SyntaxTree);
+        ISymbol? enumSymbol = ModelExtensions.GetDeclaredSymbol(semanticModel, syntaxNode);
 
         // Set the default extension name
         var extensionName = "EnumExtensions";
-        var namespaceName = GetNamespace(syntaxNode);
+        string namespaceName = GetNamespace(syntaxNode);
 
         if (string.IsNullOrWhiteSpace(namespaceName))
             namespaceName = EnumGenerationHelper.Namespace;
@@ -137,7 +137,7 @@ public class InternalGenerator : IIncrementalGenerator
         if (enumSymbol is null) return (extensionName, namespaceName);
 
         // Loop through all of the attributes on the enum
-        foreach (var attributeData in enumSymbol.GetAttributes()
+        foreach (AttributeData? attributeData in enumSymbol.GetAttributes()
                     .Where(attributeData => symbol.Equals(attributeData.AttributeClass, SymbolEqualityComparer.Default)))
         {
             // This is the attribute, check all of the named arguments

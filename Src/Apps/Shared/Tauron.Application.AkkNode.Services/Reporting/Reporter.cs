@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reactive.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Util;
@@ -29,7 +28,9 @@ public sealed class Reporter
 
     public static IActorRef CreateListner(
         IActorRefFactory factory, Action<string> listner,
-        Action<IOperationResult> onCompled, in Duration? timeout, string? name = null)
+        #pragma warning disable EPS05
+        Action<IOperationResult> onCompled, Duration? timeout, string? name = null)
+        #pragma warning restore EPS05
         => factory.ActorOf(
             Props.Create(() => new Listner(listner, onCompled, timeout))
                .WithSupervisorStrategy(SupervisorStrategy.StoppingStrategy),
@@ -38,7 +39,7 @@ public sealed class Reporter
     public static IActorRef CreateListner(
         IActorRefFactory factory, Action<string> listner,
         Action<IOperationResult> onCompled, string? name = null)
-        => CreateListner(factory, listner, onCompled, Timeout.InfiniteTimeSpan, name);
+        => CreateListner(factory, listner, onCompled, null, name);
 
     public static IActorRef CreateListner(
         IActorRefFactory factory, Reporter reporter,
@@ -53,7 +54,7 @@ public sealed class Reporter
     public static IActorRef CreateListner(
         IActorRefFactory factory, Action<string> listner,
         TaskCompletionSource<IOperationResult> onCompled, string? name = null)
-        => CreateListner(factory, listner, onCompled, Timeout.InfiniteTimeSpan, name);
+        => CreateListner(factory, listner, onCompled, null, name);
 
     public static IActorRef CreateListner(
         IActorRefFactory factory, Reporter reporter,
@@ -74,7 +75,7 @@ public sealed class Reporter
     public static IActorRef CreateListner(
         IActorRefFactory factory, Action<string> listner, string name,
         Action<Task<IOperationResult>> onCompled)
-        => CreateListner(factory, listner, Timeout.InfiniteTimeSpan, name, onCompled);
+        => CreateListner(factory, listner, null, name, onCompled);
 
     public static IActorRef CreateListner(
         IActorRefFactory factory, Reporter reporter, in Duration? timeout,
@@ -89,7 +90,7 @@ public sealed class Reporter
     public static IActorRef CreateListner(
         IActorRefFactory factory, Action<string> listner,
         Action<Task<IOperationResult>> onCompled)
-        => CreateListner(factory, listner, Timeout.InfiniteTimeSpan, null, onCompled);
+        => CreateListner(factory, listner, null, null, onCompled);
 
     public static IActorRef CreateListner(
         IActorRefFactory factory, Reporter reporter, in Duration? timeout,
@@ -149,7 +150,7 @@ public sealed class Reporter
         private bool _compled;
 
         #pragma warning disable GU0073
-        public Listner(Action<string> listner, Action<IOperationResult> onCompled, TimeSpan timeSpan)
+        public Listner(Action<string> listner, Action<IOperationResult> onCompled, Duration? timeSpan)
             #pragma warning restore GU0073
         {
             Receive<IOperationResult>(
@@ -163,10 +164,10 @@ public sealed class Reporter
                 });
             Receive<TransferedMessage>(m => listner(m.Message));
 
-            if (timeSpan == Timeout.InfiniteTimeSpan)
+            if (timeSpan is null)
                 return;
 
-            Task.Delay(timeSpan).PipeTo(Self, success: () => OperationResult.Failure(new Error(TimeoutError, TimeoutError)));
+            Task.Delay(timeSpan.Value.ToTimeSpan()).PipeTo(Self, success: () => OperationResult.Failure(new Error(TimeoutError, TimeoutError)));
             //Timers.StartSingleTimer(timeSpan, OperationResult.Failure(new Error(TimeoutError, TimeoutError)), timeSpan);
         }
     }

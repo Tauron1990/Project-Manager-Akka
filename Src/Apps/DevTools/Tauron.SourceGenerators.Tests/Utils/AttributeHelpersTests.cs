@@ -18,7 +18,7 @@ public class AttributeHelpersTests
         const string testClass = "TestClassAttribute";
         var testPropertys = ImmutableDictionary<string, string>.Empty.Add("TestProperty", "string").Add("TestProperty2", "int");
 
-        var result = AttributeHelpers.GenerateAttribute(targets, testNamespace, testClass, testPropertys)();
+        string result = AttributeHelpers.GenerateAttribute(targets, testNamespace, testClass, testPropertys)();
 
         return Verifier.Verify(result);
     }
