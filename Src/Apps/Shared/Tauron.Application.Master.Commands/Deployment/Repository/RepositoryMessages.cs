@@ -1,18 +1,16 @@
-﻿namespace Tauron.Application.Master.Commands.Deployment.Repository;
+﻿using Vogen;
 
-public static class RepositoryMessages
+namespace Tauron.Application.Master.Commands.Deployment.Repository;
+
+[ValueObject(typeof(string))]
+[Instance("GetRepo", "GetRepo")]
+[Instance("UpdateRepository", "UpdateRepository")]
+[Instance("DownloadRepository", "DownloadRepository")]
+[Instance("GetRepositoryFromDatabase", "GetRepositoryFromDatabase")]
+[Instance("ExtractRepository", "ExtractRepository")]
+[Instance("CompressRepository", "CompressRepository")]
+[Instance("UploadRepositoryToDatabase", "UploadRepositoryToDatabase")]
+public readonly partial struct RepositoryMessage
 {
-    public const string GetRepo = nameof(GetRepo);
-
-    public const string UpdateRepository = nameof(UpdateRepository);
-
-    public const string DownloadRepository = nameof(DownloadRepository);
-
-    public const string GetRepositoryFromDatabase = nameof(GetRepositoryFromDatabase);
-
-    public const string ExtractRepository = nameof(ExtractRepository);
-
-    public const string CompressRepository = nameof(CompressRepository);
-
-    public const string UploadRepositoryToDatabase = nameof(UploadRepositoryToDatabase);
+    
 }

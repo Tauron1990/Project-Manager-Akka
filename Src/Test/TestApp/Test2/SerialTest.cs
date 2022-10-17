@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 using Hyperion;
+using SimpleProjectManager.Server.Data;
+using SimpleProjectManager.Server.Data.DataConverters;
 using UnitsNet;
 using UnitsNet.Units;
 
@@ -12,15 +14,23 @@ public static class SerialTest
 {
     public static void Run()
     {
-        var test = new Serializer();
+        ToSerialize toser = ToSerialize.Empty; //ToSerialize.From("HalloWelt");
+        string toserstring = string.Empty;
 
-        using var mem = new MemoryStream();
-        test.Serialize(new TestData(ToSerialize.From("Hallo Welt"), Temperature.FromDegreesCelsius(30)), mem);
+        var conv = new DataConverter().Get<ToSerialize, string>();
 
-        mem.Seek(0, SeekOrigin.Begin);
-        var resut = test.Deserialize<TestData>(mem);
+        toserstring = conv.ToDto(toser);
+        toser = conv.FromDto(toserstring);
 
-        string testText = resut.ToSerialize.Value;
-        Console.WriteLine(testText);
+        // var test = new Serializer();
+        //
+        // using var mem = new MemoryStream();
+        // test.Serialize(new TestData(ToSerialize.From("Hallo Welt"), Temperature.FromDegreesCelsius(30)), mem);
+        //
+        // mem.Seek(0, SeekOrigin.Begin);
+        // var resut = test.Deserialize<TestData>(mem);
+        //
+        // string testText = resut.ToSerialize.Value;
+        // Console.WriteLine(testText);
     }
 }

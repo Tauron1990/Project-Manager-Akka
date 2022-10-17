@@ -76,90 +76,91 @@ public sealed class ServiceRegistry
 
         private void Initializing()
         {
-            Receive<ClusterActorDiscoveryMessage.ActorUp>(
-                au =>
-                {
-                    Log.Info("New Service Registry {Name}", au.Actor.Path);
-                    _serviceRegistrys.Add(au.Actor);
-                    Become(Running);
-                    Stash.UnstashAll();
-                });
-
-            Receive<ClusterActorDiscoveryMessage.ActorDown>(
-                ad =>
-                {
-                    Log.Info("Remove Service Registry {Name}", ad.Actor.Path);
-                    #pragma warning disable GU0011
-                    _serviceRegistrys.Remove(ad.Actor);
-                    #pragma warning restore GU0011
-                });
-
+            Receive<ClusterActorDiscoveryMessage.ActorUp>(OnActorUp);
+            Receive<ClusterActorDiscoveryMessage.ActorDown>(OnActorDown);
             ReceiveAny(_ => Stash.Stash());
+        }
+
+        private void OnActorDown(ClusterActorDiscoveryMessage.ActorDown ad)
+        {
+            Log.Info("Remove Service Registry {Name}", ad.Actor.Path);
+            #pragma warning disable GU0011
+            _serviceRegistrys.Remove(ad.Actor);
+            #pragma warning restore GU0011
+        }
+
+        private void OnActorUp(ClusterActorDiscoveryMessage.ActorUp au)
+        {
+            Log.Info("New Service Registry {Name}", au.Actor.Path);
+            _serviceRegistrys.Add(au.Actor);
+            Become(Running);
+            Stash.UnstashAll();
         }
 
         private void Running()
         {
-            Receive<ClusterActorDiscoveryMessage.ActorUp>(
-                au =>
-                {
-                    Log.Info("New Service Registry {Name}", au.Actor.Path);
-                    _serviceRegistrys.Add(au.Actor);
-                });
+            Receive<ClusterActorDiscoveryMessage.ActorUp>(OnActorUppRunning);
+            Receive<ClusterActorDiscoveryMessage.ActorDown>(OnActorDownRunning);
+            Receive<RegisterService>(OnRegisterService);
+            Receive<QueryRegistratedServices>(QueryServices);
+            Receive<QueryRegistratedService>(QueryServices);
+        }
 
-            Receive<ClusterActorDiscoveryMessage.ActorDown>(
-                ad =>
-                {
-                    Log.Info("Remove Service Registry {Name}", ad.Actor.Path);
-                    var count = _serviceRegistrys.Remove(ad.Actor);
+        private void QueryServices(QueryRegistratedService r)
+        {
+            Log.Info("Try Query Service");
+            IActorRef? target = _serviceRegistrys.Next();
+            switch (target)
+            {
+                case null:
+                    Log.Warning("No Service Registry Registrated");
+                    Sender.Tell(new QueryRegistratedServicesResponse(ImmutableList<MemberService>.Empty));
 
-                    if (count == 0)
-                        Become(Initializing);
-                });
+                    break;
+                default:
+                    target.Forward(r);
 
-            Receive<RegisterService>(
-                s =>
-                {
-                    Log.Info("Register New Service {Name} -- {Adress}", s.Name, s.Address);
-                    _serviceRegistrys.Foreach(r => r.Tell(s));
-                });
+                    break;
+            }
+        }
 
-            Receive<QueryRegistratedServices>(
-                rs =>
-                {
-                    Log.Info("Try Query Services");
-                    var target = _serviceRegistrys.Next();
-                    switch (target)
-                    {
-                        case null:
-                            Log.Warning("No Service Registry Registrated");
-                            Sender.Tell(new QueryRegistratedServicesResponse(ImmutableList<MemberService>.Empty));
+        private void QueryServices(QueryRegistratedServices rs)
+        {
+            Log.Info("Try Query Services");
+            IActorRef? target = _serviceRegistrys.Next();
+            switch (target)
+            {
+                case null:
+                    Log.Warning("No Service Registry Registrated");
+                    Sender.Tell(new QueryRegistratedServicesResponse(ImmutableList<MemberService>.Empty));
 
-                            break;
-                        default:
-                            target.Forward(rs);
+                    break;
+                default:
+                    target.Forward(rs);
 
-                            break;
-                    }
-                });
+                    break;
+            }
+        }
 
-            Receive<QueryRegistratedService>(
-                r =>
-                {
-                    Log.Info("Try Query Service");
-                    var target = _serviceRegistrys.Next();
-                    switch (target)
-                    {
-                        case null:
-                            Log.Warning("No Service Registry Registrated");
-                            Sender.Tell(new QueryRegistratedServicesResponse(ImmutableList<MemberService>.Empty));
+        private void OnRegisterService(RegisterService s)
+        {
+            Log.Info("Register New Service {Name} -- {Adress}", s.Name, s.Address);
+            _serviceRegistrys.Foreach(r => r.Tell(s));
+        }
 
-                            break;
-                        default:
-                            target.Forward(r);
+        private void OnActorDownRunning(ClusterActorDiscoveryMessage.ActorDown ad)
+        {
+            Log.Info("Remove Service Registry {Name}", ad.Actor.Path);
+            int count = _serviceRegistrys.Remove(ad.Actor);
 
-                            break;
-                    }
-                });
+            if(count == 0)
+                Become(Initializing);
+        }
+
+        private void OnActorUppRunning(ClusterActorDiscoveryMessage.ActorUp au)
+        {
+            Log.Info("New Service Registry {Name}", au.Actor.Path);
+            _serviceRegistrys.Add(au.Actor);
         }
 
         protected override void PreStart()
@@ -221,8 +222,8 @@ public sealed class ServiceRegistry
         public ServiceRegistryServiceActor(Func<Cluster, RegisterService?> selfCreation)
             #pragma warning restore GU0073
         {
-            var cluster = Cluster.Get(Context.System);
-            var self = Self;
+            Cluster cluster = Cluster.Get(Context.System);
+            IActorRef self = Self;
 
             cluster.RegisterOnMemberUp(
                 () =>
@@ -247,7 +248,8 @@ public sealed class ServiceRegistry
 
         private ILoggingAdapter Log { get; } = Context.GetLogger();
 
-        [UsedImplicitly] public IStash? Stash { get; set; }
+        [UsedImplicitly] 
+        public IStash? Stash { get; set; }
 
         private void Running()
         {
@@ -312,7 +314,7 @@ public sealed class ServiceRegistry
             base.PreStart();
         }
 
-        private sealed record ServiceEntry(string Name, ServiceType ServiceType);
+        private sealed record ServiceEntry(ServiceName Name, ServiceType ServiceType);
 
         private sealed class SyncRegistry
         {

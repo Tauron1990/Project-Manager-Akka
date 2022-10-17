@@ -34,7 +34,7 @@ public sealed class HostApi
         where TResult : OperationResponse, new()
         => _actorRef.Ask<TResult>(command, TimeSpan.FromMinutes(1));
 
-    public Task<ImmutableList<HostApp>> QueryApps(string name)
+    public Task<ImmutableList<HostApp>> QueryApps(HostName name)
         => _actorRef
            .Ask<HostAppsResponse>(new QueryHostApps(name), TimeSpan.FromSeconds(30))
            .ContinueWith(t => t.Result.Apps);

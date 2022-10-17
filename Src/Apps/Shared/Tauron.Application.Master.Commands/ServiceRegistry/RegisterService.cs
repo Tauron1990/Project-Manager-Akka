@@ -2,4 +2,4 @@
 
 namespace Tauron.Application.Master.Commands.ServiceRegistry;
 
-public sealed record RegisterService(string Name, UniqueAddress Address, ServiceType ServiceType);
+public sealed record RegisterService(ServiceName Name, UniqueAddress Address, ServiceType ServiceType);

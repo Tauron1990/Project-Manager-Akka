@@ -31,7 +31,7 @@ public sealed record MemberAddress(int Uid, string Host, int? Port, string Syste
         => !(address == memberAddress);
 }
 
-public sealed record MemberService(string Name, MemberAddress Address, ServiceType ServiceType);
+public sealed record MemberService(ServiceName Name, MemberAddress Address, ServiceType ServiceType);
 
 public sealed record QueryRegistratedServicesResponse(ImmutableList<MemberService> Services);
 

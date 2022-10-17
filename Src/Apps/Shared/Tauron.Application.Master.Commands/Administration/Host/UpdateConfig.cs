@@ -12,6 +12,8 @@ public sealed record UpdateAppConfigResponse(bool Success, string App) : Operati
         : this(Success: false, "NoAppOnError") { }
 }
 
-public sealed record UpdateHostConfigCommand(string Target) : InternalHostMessages.CommandBase<UpdateHostConfigResponse>(Target, InternalHostMessages.CommandType.AppRegistry);
+public sealed record UpdateHostConfigCommand(HostName Target) 
+    : InternalHostMessages.CommandBase<UpdateHostConfigResponse>(Target, InternalHostMessages.CommandType.AppRegistry);
 
-public sealed record UpdateAppConfigCommand(string Target, string App, bool Restart) : InternalHostMessages.CommandBase<UpdateAppConfigResponse>(Target, InternalHostMessages.CommandType.AppRegistry);
+public sealed record UpdateAppConfigCommand(HostName Target, AppName App, bool Restart) 
+    : InternalHostMessages.CommandBase<UpdateAppConfigResponse>(Target, InternalHostMessages.CommandType.AppRegistry);

@@ -2,7 +2,7 @@
 
 namespace Tauron.Application.Master.Commands.Administration.Host;
 
-public sealed record SubscribeInstallationCompled(string Target, bool Unsubscribe)
+public sealed record SubscribeInstallationCompled(HostName Target, bool Unsubscribe)
     : InternalHostMessages.CommandBase<SubscribeInstallationCompledResponse>(Target, InternalHostMessages.CommandType.Installer);
 
 public sealed record SubscribeInstallationCompledResponse(EventSubscribtion Subscription, bool Success) : OperationResponse(Success)

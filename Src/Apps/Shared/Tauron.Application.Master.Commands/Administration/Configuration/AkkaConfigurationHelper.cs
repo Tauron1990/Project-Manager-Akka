@@ -17,8 +17,8 @@ public static class AkkaConfigurationHelper
 
     public static IObservable<string> PatchSeedUrls(string data, IEnumerable<string> urls)
     {
-        var baseConfig = ConfigurationFactory.ParseString(data);
-        var newConfig = ConfigurationFactory.ParseString($"akka.cluster.seed-nodes = [{string.Join(',', urls.Select(s => $"\"{s}\""))}]")
+        Config baseConfig = ConfigurationFactory.ParseString(data);
+        Config newConfig = ConfigurationFactory.ParseString($"akka.cluster.seed-nodes = [{string.Join(',', urls.Select(s => $"\"{s}\""))}]")
            .WithFallback(baseConfig);
 
         return Observable.Return(newConfig.ToString(includeFallback: true));
@@ -34,10 +34,10 @@ public static class AkkaConfigurationHelper
         const string connectionSnapshot = "akka.persistence.snapshot-store.mongodb.connection-string = \"{0}\"";
         const string connectionJournal = "akka.persistence.journal.mongodb.connection-string = \"{0}\"";
 
-        var currentConfiguration = ConfigurationFactory.ParseString(dat);
+        Config currentConfiguration = ConfigurationFactory.ParseString(dat);
 
-        var hasBase = currentConfiguration.HasPath("akka.persistence.journal.mongodb.connection-string ")
-                   || currentConfiguration.HasPath("akka.persistence.snapshot-store.mongodb.connection-string");
+        bool hasBase = currentConfiguration.HasPath("akka.persistence.journal.mongodb.connection-string ")
+                    || currentConfiguration.HasPath("akka.persistence.snapshot-store.mongodb.connection-string");
 
         if (!hasBase)
         {

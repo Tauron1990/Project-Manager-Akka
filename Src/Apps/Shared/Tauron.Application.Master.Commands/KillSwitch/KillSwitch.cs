@@ -118,10 +118,10 @@ public static partial class KillSwitch
                    .Select(
                         m =>
                         {
-                            var (actorDown, state, _) = m;
-                            var entry = state.Actors.Find(e => e.Target.Equals(actorDown.Actor));
+                            (ActorDown actorDown, KillState state) = m;
+                            ActorElement? entry = state.Actors.Find(e => e.Target.Equals(actorDown.Actor));
 
-                            if (entry == null)
+                            if (entry is null)
                                 return state;
 
                             return state with { Actors = state.Actors.Remove(entry) };
@@ -132,7 +132,7 @@ public static partial class KillSwitch
                    .Select(
                         m =>
                         {
-                            var (actorUp, state, _) = m;
+                            (ActorUp actorUp, KillState state) = m;
                             actorUp.Actor.Tell(new RequestRegistration());
 
                             return state with { Actors = state.Actors.Add(ActorElement.New(actorUp.Actor)) };
@@ -144,10 +144,10 @@ public static partial class KillSwitch
                    .Select(
                         r =>
                         {
-                            var (respondRegistration, state, _) = r;
-                            var ele = state.Actors.Find(e => e.Target.Equals(Sender));
+                            (RespondRegistration respondRegistration, KillState state) = r;
+                            ActorElement? ele = state.Actors.Find(e => e.Target.Equals(Sender));
 
-                            if (ele == null)
+                            if (ele is null)
                                 return state;
 
                             return state with
@@ -181,7 +181,7 @@ public static partial class KillSwitch
             Start.Subscribe(
                 _ =>
                 {
-                    var actorDiscovery = ClusterActorDiscovery.Get(ObservableActor.Context.System).Discovery;
+                    IActorRef actorDiscovery = ClusterActorDiscovery.Get(ObservableActor.Context.System).Discovery;
 
                     actorDiscovery.Tell(new RegisterActor(Self, KillSwitchName));
                     actorDiscovery.Tell(new MonitorActor(nameof(KillSwitchName)));
@@ -201,14 +201,14 @@ public static partial class KillSwitch
                           KillRecpientType.Service
                       };
 
-            foreach (var (target, recpientType) in CurrentState.Actors)
+            foreach ((IActorRef target, KillRecpientType recpientType) in CurrentState.Actors)
                 dic.Add(recpientType, target);
 
             foreach (var recpientType in Order)
             {
                 var actors = dic[recpientType];
                 KillSwitchFeatureLog.TellClusterShutdown(Logger, recpientType, actors.Count);
-                foreach (var actorRef in actors)
+                foreach (IActorRef actorRef in actors)
                     actorRef.Tell(new KillNode());
             }
         }

@@ -1,28 +1,20 @@
-﻿namespace Tauron.Application.Master.Commands.Deployment.Build;
+﻿using Vogen;
 
-public static class DeploymentErrorCodes
+namespace Tauron.Application.Master.Commands.Deployment.Build;
+
+[ValueObject(typeof(string))]
+[Instance("GeneralQueryFailed", "GeneralQueryFailed")]
+[Instance("QueryAppNotFound", "QueryAppNotFound")]
+[Instance("QueryFileNotFound", "QueryFileNotFound")]
+[Instance("GerneralCommandError", "GerneralCommandError")]
+[Instance("CommandErrorRegisterRepository", "CommandErrorRegisterRepository")]
+[Instance("CommandDuplicateApp", "CommandDuplicateApp")]
+[Instance("CommandAppNotFound", "CommandAppNotFound")]
+[Instance("GernalBuildError", "GernalBuildError")]
+[Instance("BuildDotnetNotFound", "BuildDotnetNotFound")]
+[Instance("BuildDotNetFailed", "BuildDotNetFailed")]
+[Instance("BuildProjectNotFound", "BuildProjectNotFound")]
+public readonly partial struct DeploymentErrorCode
 {
-    public const string GeneralQueryFailed = nameof(GeneralQueryFailed);
-
-    public const string QueryAppNotFound = nameof(QueryAppNotFound);
-
-    public const string QueryFileNotFound = nameof(QueryFileNotFound);
-
-    public const string GerneralCommandError = nameof(GerneralCommandError);
-
-    public const string CommandErrorRegisterRepository = nameof(CommandErrorRegisterRepository);
-
-    public const string CommandDuplicateApp = nameof(CommandDuplicateApp);
-
-    public const string CommandAppNotFound = nameof(CommandAppNotFound);
-
-    public const string GernalBuildError = nameof(GernalBuildError);
-
-    public const string BuildDotnetNotFound = nameof(BuildDotnetNotFound);
-
-    public const string BuildDotNetFailed = nameof(BuildDotNetFailed);
-
-    public const string BuildProjectNotFound = nameof(BuildProjectNotFound);
-
-    //public const string DatabaseError = nameof(DatabaseError);
-}
+    
+} 

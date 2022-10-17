@@ -5,8 +5,8 @@ namespace Tauron.Application.Master.Commands.Deployment.Build;
 
 [PublicAPI]
 public abstract record DeploymentQueryBase<TThis, TResult>
-    (string AppName) : ResultCommand<DeploymentApi, TThis, TResult>, IDeploymentQuery
+    (AppName AppName) : ResultCommand<DeploymentApi, TThis, TResult>, IDeploymentQuery
     where TThis : ResultCommand<DeploymentApi, TThis, TResult>
 {
-    protected override string Info => AppName;
+    protected override string Info => AppName.Value;
 }

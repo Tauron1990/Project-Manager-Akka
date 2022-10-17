@@ -10,7 +10,7 @@ public sealed record PoolConfig<TToPool>(int MaximumSize, bool UseDispose, Func<
         => new(0, UseDispose: true, () =>
                                     {
                                         if(FastReflection.Shared.GetCreator(typeof(TToPool), Type.EmptyTypes)?.Invoke(Array.Empty<object>()) is not TToPool data)
-                                            throw new InvalidOperationException("Pool Element not Created");
+                                            throw new InvalidOperationException("Pool Element could not be Created");
 
                                         return data;
                                     });
@@ -43,7 +43,7 @@ public sealed class SimplePool<TToPool>
     }
 
     public TToPool Rent()
-        => _pool.TryDequeue(out var pooledObject) ? pooledObject : _config.Factory();
+        => _pool.TryDequeue(out TToPool? pooledObject) ? pooledObject : _config.Factory();
 
     public void Return(TToPool pooledObject)
     {

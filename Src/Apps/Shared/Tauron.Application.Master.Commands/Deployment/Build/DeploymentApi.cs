@@ -29,7 +29,7 @@ public sealed class DeploymentApi : SenderBase<DeploymentApi, IDeploymentQuery, 
 
     public static DeploymentApi CreateProxy(ActorSystem system, string name = "DeploymentProxy")
     {
-        var proxy = ClusterSingletonProxy.Props(
+        Props proxy = ClusterSingletonProxy.Props(
             $"/user/{DeploymentPath}",
             ClusterSingletonProxySettings.Create(system).WithRole("UpdateSystem"));
 

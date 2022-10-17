@@ -2,7 +2,7 @@
 
 namespace Tauron.Application.Master.Commands.Deployment.Repository;
 
-public sealed record RegisterRepository(string RepoName, bool IgnoreDuplicate) : SimpleCommand<RepositoryApi, RegisterRepository>, IRepositoryAction
+public sealed record RegisterRepository(RepositoryName RepoName, bool IgnoreDuplicate) : SimpleCommand<RepositoryApi, RegisterRepository>, IRepositoryAction
 {
-    protected override string Info => RepoName;
+    protected override string Info => RepoName.Value;
 }

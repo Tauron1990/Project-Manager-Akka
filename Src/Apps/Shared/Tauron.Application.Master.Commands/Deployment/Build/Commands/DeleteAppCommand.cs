@@ -2,4 +2,4 @@
 
 namespace Tauron.Application.Master.Commands.Deployment.Build.Commands;
 
-public sealed record DeleteAppCommand(string AppName) : DeploymentCommandBase<DeleteAppCommand, AppInfo>(AppName);
+public sealed record DeleteAppCommand(AppName AppName) : DeploymentCommandBase<DeleteAppCommand, AppInfo>(AppName);
