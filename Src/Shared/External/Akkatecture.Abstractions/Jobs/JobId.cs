@@ -31,10 +31,4 @@ public abstract class JobId<TSelf> : Identity<TSelf>, IJobId
 {
     protected JobId(string value)
         : base(value) { }
-
-    [UsedImplicitly, Obsolete("Used for Serialization")]
-    protected JobId()
-    {
-        
-    }
 }

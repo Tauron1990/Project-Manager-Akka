@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace SimpleProjectManager.Server.Data.DataConverters;
 
-public abstract class BaseConverter<TFrom, TTo>
+public abstract class BaseExpressionConverter
 {
     public abstract Expression CreateFromTo(ParameterExpression fromParamameter);
 

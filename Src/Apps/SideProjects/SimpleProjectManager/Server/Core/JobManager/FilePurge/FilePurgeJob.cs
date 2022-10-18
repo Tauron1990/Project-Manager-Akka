@@ -13,12 +13,6 @@ public sealed class FilePurgeId : JobId<FilePurgeId>
     public FilePurgeId(string value) 
         : base(value) { }
 
-    [UsedImplicitly, Obsolete("Used for Serialization")]
-    public FilePurgeId()
-    {
-        
-    }
-    
     public static FilePurgeId For(ProjectFileId id)
         => NewDeterministic(Namespace, id.Value);
 }

@@ -30,10 +30,4 @@ public class JobName : SingleValueObject<string>, IJobName
 {
     public JobName(string value)
         : base(value) { }
-    
-    [UsedImplicitly, Obsolete("Used for Serialization")]
-    public JobName()
-    {
-        
-    }
 }

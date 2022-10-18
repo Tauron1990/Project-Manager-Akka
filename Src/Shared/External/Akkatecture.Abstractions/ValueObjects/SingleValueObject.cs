@@ -38,7 +38,7 @@ public abstract class SingleValueObject<T> : ValueObject, IComparable, ISingleVa
     private static readonly Type Type = typeof(T);
     private static readonly TypeInfo TypeInfo = typeof(T).GetTypeInfo();
 
-    private T _value;
+    private readonly T _value;
     
     protected SingleValueObject(T value)
     {
@@ -48,19 +48,8 @@ public abstract class SingleValueObject<T> : ValueObject, IComparable, ISingleVa
         _value = value;
     }
 
-    [UsedImplicitly, Obsolete("Used for Serialization")]
-    protected SingleValueObject()
-    {
-        _value = default!;
-    }
-    
     // ReSharper disable once ConvertToAutoProperty
-    public T Value
-    {
-        get => _value;
-        [UsedImplicitly, Obsolete("Used for Serialization")]
-        init => _value = value;
-    }
+    public T Value => _value;
 
     public int CompareTo(object? obj)
     {

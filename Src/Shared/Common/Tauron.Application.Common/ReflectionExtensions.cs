@@ -89,7 +89,7 @@ public sealed class FastReflection
             if (paramsInfo.Length > 0)
             {
                 // Make a NewExpression that calls the constructor with the args we just created.
-                var newExpression = Expression.New(constructor, CreateArgumentExpressions(paramsInfo, param));
+                var newExpression = Expression.Convert(Expression.New(constructor, CreateArgumentExpressions(paramsInfo, param)), typeof(object));
 
                 // CreateEventActor a lambda with the NewExpression as body and our param object[] as arg.
                 var lambda = Expression.Lambda(typeof(Func<object[], object>), newExpression, param);
@@ -105,7 +105,7 @@ public sealed class FastReflection
             else
             {
                 // Make a NewExpression that calls the constructor with the args we just created.
-                var newExpression = Expression.New(constructor);
+                var newExpression = Expression.Convert(Expression.New(constructor), typeof(object));
 
                 // CreateEventActor a lambda with the NewExpression as body and our param object[] as arg.
                 var lambda = Expression.Lambda(typeof(Func<object[], object>), newExpression, param);

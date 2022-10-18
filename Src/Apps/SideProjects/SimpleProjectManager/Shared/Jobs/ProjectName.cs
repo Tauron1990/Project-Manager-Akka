@@ -7,12 +7,6 @@ public sealed class ProjectName : SingleValueObject<string>
 {
     public ProjectName(string value) : base(NormalizeName(value)) { }
 
-    [UsedImplicitly, Obsolete("Used for Serialization")]
-    public ProjectName()
-    {
-        
-    }
-    
     private static string NormalizeName(string input)
     {
         var result = input.ToUpper();

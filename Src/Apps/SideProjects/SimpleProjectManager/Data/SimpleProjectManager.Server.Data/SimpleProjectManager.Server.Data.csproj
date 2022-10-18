@@ -12,6 +12,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="ExpressionTreeToString" Version="3.4.71" />
       <PackageReference Include="Vogen" Version="3.0.1" />
     </ItemGroup>
 

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using System.Linq.Expressions;
+using FastExpressionCompiler;
 using Hyperion;
 using SimpleProjectManager.Server.Data;
 using SimpleProjectManager.Server.Data.DataConverters;
@@ -14,12 +16,11 @@ public static class SerialTest
 {
     public static void Run()
     {
-        ToSerialize toser = ToSerialize.Empty; //ToSerialize.From("HalloWelt");
-        string toserstring = string.Empty;
+        var toser = Temperature.FromDegreesCelsius(20);
 
-        var conv = new DataConverter().Get<ToSerialize, string>();
+        var conv = new DataConverter().Get<Temperature, UnitNetData>();
 
-        toserstring = conv.ToDto(toser);
+        var toserstring = conv.ToDto(toser);
         toser = conv.FromDto(toserstring);
 
         // var test = new Serializer();
