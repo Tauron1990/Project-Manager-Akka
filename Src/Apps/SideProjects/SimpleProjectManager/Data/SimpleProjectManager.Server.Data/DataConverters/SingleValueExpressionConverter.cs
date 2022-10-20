@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using Akkatecture.ValueObjects;
+using OneOf.Types;
 using Tauron;
 
 namespace SimpleProjectManager.Server.Data.DataConverters;
@@ -9,27 +10,24 @@ public sealed class SingleValueExpressionConverter : BaseExpressionConverter
     private readonly Type _toType;
     private readonly Type _fromType;
 
-    public SingleValueExpressionConverter(Type toType, Type fromType)
+    private SingleValueExpressionConverter(Type toType, Type fromType)
     {
         _toType = toType;
         _fromType = fromType;
-        
-        if(fromType.IsAssignableTo(typeof(SingleValueObject<>).MakeGenericType(toType)))
-            return;
-
-        throw new InvalidOperationException("The Type is no Vogen ValueType");
     }
 
-    public static bool CanCreate(Type toType, Type fromType)
+    public static ConverterResult TryCreate(Type toType, Type fromType)
     {
         try
         {
-            return fromType.IsAssignableTo(typeof(SingleValueObject<>).MakeGenericType(toType));
+            if(fromType.IsAssignableTo(typeof(SingleValueObject<>).MakeGenericType(toType)))
+                return new SingleValueExpressionConverter(toType, fromType);
         }
         catch (ArgumentException)
         {
-            return false;
         }
+        
+        return default(None);
     }
 
     public override Expression CreateFromTo(ParameterExpression fromParamameter)

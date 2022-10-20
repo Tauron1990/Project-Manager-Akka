@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
+using OneOf.Types;
 using Tauron;
 using Vogen;
 
@@ -9,24 +10,17 @@ public sealed class VogenExpressionConverter : BaseExpressionConverter
 {
     private readonly Type _fromType;
 
-    public VogenExpressionConverter(Type toType, Type fromType)
-    {
-        _fromType = fromType;
-        var attr = _fromType.GetCustomAttribute<ValueObjectAttribute>();
-        
-        if(attr is not null && attr.UnderlyingType == toType)
-            return;
+    private VogenExpressionConverter(Type fromType)
+        => _fromType = fromType;
 
-        throw new InvalidOperationException("The Type is no Vogen ValueType");
-    }
-
-    public static bool CanCreate(Type toType, Type fromType)
+    public static ConverterResult TryCreate(Type toType, Type fromType)
     {
         var attr = fromType.GetCustomAttribute<ValueObjectAttribute>();
 
-        if(attr is null) return false;
+        if(attr is not null && attr.UnderlyingType == toType) 
+            return new VogenExpressionConverter(fromType);
 
-        return attr.UnderlyingType == toType;
+        return default(None);
     }
 
     public override Expression CreateFromTo(ParameterExpression fromParamameter)

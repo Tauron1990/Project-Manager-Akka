@@ -12,61 +12,73 @@ public abstract class BaseExpressionConverter
     protected Exception DefaultError()
         => new InvalidOperationException("No Factory Expression coud Created");
     
-    /*protected ConstructorInfo? CanConstructor(Type target, PropertyInfo[] parameters)
+    protected static ConstructorInfo? CanConstructor(Type target, PropertyInfo[] parameters)
     {
         var constructors = target.GetConstructors();
 
         ConstructorInfo? constructor = constructors
-           .FirstOrDefault(constructor => constructor.GetParameters().Select(p => p.ParameterType).All(parameters.Contains));
+           .FirstOrDefault(constructor => constructor.GetParameters().Select(p => p.ParameterType).All(parameters.Select(p => p.PropertyType).Contains));
 
         if(constructor is null) return null;
-        var parameterTypes = constructor.GetParameters();
+        var parameterInfos = constructor.GetParameters();
 
-        if(parameterTypes.Length != parameters.Length) return null;
+        if(parameterInfos.Length != parameters.Length) return null;
+
+        var propertys = parameters.ToArray();
         
-        for (var i = 0; i < parameterTypes.Length; i++)
-            parameters[i] = parameterTypes[i].ParameterType;
+        for (var i = 0; i < parameterInfos.Length; i++)
+        {
+            ParameterInfo parameter = parameterInfos[i];
+
+            PropertyInfo? propertyInfo = propertys.SingleOrDefault(
+                pi => pi.PropertyType == parameter.ParameterType
+                   && pi.Name.ToLowerInvariant() == parameter.Name?.ToLowerInvariant());
+
+            if(propertyInfo is null) return null;
+            
+            parameters[i] = propertyInfo;
+        }
 
         return constructor;
     }
 
-    protected PropertyInfo[]? CanPropertys(Type target, PropertyInfo[] parameters)
+    protected static PropertyInfo[]? CanPropertys(Type target, PropertyInfo[] parameters)
     {
         var propertys = target.GetProperties();
         var mappedPropertys = new PropertyInfo[parameters.Length];
 
-        if(propertys.Any(pi => !parameters.Contains(pi.PropertyType)))
+        if(propertys.Any(pi => !parameters.Select(p => p.PropertyType).Contains(pi.PropertyType)))
             return null;
 
         for (var i = 0; i < parameters.Length; i++)
         {
-            Type type = parameters[i];
-            PropertyInfo property = propertys.First(pi => pi.PropertyType == type);
+            PropertyInfo type = parameters[i];
+            PropertyInfo? property = propertys.FirstOrDefault(
+                pi => pi.PropertyType == type 
+                && pi.Name.ToLowerInvariant() == type.Name.ToLowerInvariant());
+
+            if(property is null) return null;
+            
             mappedPropertys[i] = property;
         }
 
         return mappedPropertys;
     }
 
-    protected Expression CreateConstructor(ConstructorInfo targetConstructor, ParameterExpression input, PropertyInfo[] parameters)
+    protected static Expression CreateConstructor(ConstructorInfo targetConstructor, ParameterExpression input, PropertyInfo[] parameters)
     {
-        var block = new List<Expression>();
-        LabelTarget returnlabel = Expression.Label();
-
         IEnumerable<Expression> parameterExpressions =
             parameters.Select(pi => Expression.Property(input, pi));
 
         NewExpression constructor = Expression.New(targetConstructor, parameterExpressions);
         
-        block.Add(Expression.Return(returnlabel, constructor));
 
-        return Expression.Block(new[] { input }, block);
+        return constructor;
     }
     
-    protected Expression CreatePropertyAssigment(Type target, PropertyInfo[] targetPropertys, ParameterExpression input, PropertyInfo[] parameters)
+    protected static Expression CreatePropertyAssigment(Type target, PropertyInfo[] targetPropertys, ParameterExpression input, PropertyInfo[] parameters)
     {
         var block = new List<Expression>();
-        LabelTarget returnlabel = Expression.Label();
         ParameterExpression targetVariable = Expression.Variable(target);
 
         block.Add(Expression.Assign(targetVariable, Expression.New(target)));
@@ -79,10 +91,10 @@ public abstract class BaseExpressionConverter
             block.Add(Expression.Assign(targetVariable, Expression.Assign(targetAccessor, parameterAccesor)));
         }
         
-        block.Add(Expression.Return(returnlabel, targetVariable));
+        block.Add(targetVariable);
 
         return Expression.Block(new[] { input, targetVariable }, block);
-    }*/
+    }
     
     /*var fromProps = _fromType.GetProperties();
 

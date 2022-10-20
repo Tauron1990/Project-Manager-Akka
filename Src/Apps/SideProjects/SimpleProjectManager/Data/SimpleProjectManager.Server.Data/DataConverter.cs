@@ -54,20 +54,17 @@ public sealed class DataConverter
             key =>
             {
                 (Type from, Type to) = key;
-                
-                if(VogenExpressionConverter.CanCreate(to, from))
-                    return new VogenExpressionConverter(to, from);
 
-                if(SingleValueExpressionConverter.CanCreate(to, from))
-                    return new SingleValueExpressionConverter(to, from);
-
-                if(UnitsNetExpressionConverter.CanCreate(from))
-                    return new UnitsNetExpressionConverter(from);
-
-                if(ComplexExpressionConverter.TryCreate(from, to, out var converter))
-                    return converter;
-                
-                return null;
+                return VogenExpressionConverter.TryCreate(to, from)
+                   .Match(
+                        c => c,
+                        _ => SingleValueExpressionConverter.TryCreate(to, from)
+                           .Match(
+                                c => c,
+                                _ => ComplexExpressionConverter.TryCreate(from, to)
+                                   .Match<BaseExpressionConverter?>(
+                                        c => c,
+                                        _ => null)));
             });
 
     private sealed record EntryKey([UsedImplicitly]Type From, [UsedImplicitly]Type To);
