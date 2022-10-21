@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
+using SimpleProjectManager.Server.Data.DataConvertersOld;
 using Tauron;
 using UnitsNet;
 
@@ -22,7 +23,7 @@ public sealed class UnitsNetExpressionConverter : BaseExpressionConverter
     public static bool CanCreate(Type from)
         => from.IsAssignableTo(typeof(IQuantity));
 
-    public override Expression CreateFromTo(ParameterExpression fromParamameter)
+    public override Expression CreateFromTo(Expression fromParamameter)
     {
         LabelTarget returnlabel = Expression.Label();
         ParameterExpression variable = Expression.Variable(typeof(UnitNetData));
@@ -50,7 +51,7 @@ public sealed class UnitsNetExpressionConverter : BaseExpressionConverter
     private Expression SiSystem()
         => Expression.Property(null, typeof(UnitSystem).GetProperty(nameof(UnitSystem.SI)) ?? throw DefaultError());
     
-    public override Expression CreateToFrom(ParameterExpression toParameter)
+    public override Expression CreateToFrom(Expression toParameter)
     {
         MethodCallExpression typeGetter = Expression.Call(
             null,

@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 using FastExpressionCompiler;
 using JetBrains.Annotations;
 using SimpleProjectManager.Server.Data.DataConverters;
-using Stl.Generators;
+using SimpleProjectManager.Server.Data.DataConvertersOld;
 
 namespace SimpleProjectManager.Server.Data;
 
@@ -24,7 +24,7 @@ public sealed class DataConverter
         ParameterExpression fromToInput = Expression.Parameter(typeof(TFrom));
         ParameterExpression toFromInput = Expression.Parameter(typeof(TTo));
 
-        BaseExpressionConverter? cons = CreateExcpressionConverter(typeof(TFrom), typeof(TTo));
+        BaseExpressionConverter? cons = CreateExcpressionConverter(new EntryKey(typeof(TFrom), typeof(TTo)));
 
         if(cons is null)
             throw new InvalidOperationException($"No Converter for ({typeof(TFrom)} -- {typeof(TTo)}) combination found");
@@ -48,9 +48,9 @@ public sealed class DataConverter
         return new Converter<TFrom, TTo>(fromToFunc, toFromFunc);
     }
 
-    private BaseExpressionConverter? CreateExcpressionConverter(Type fromKey, Type toKey)
+    internal BaseExpressionConverter? CreateExcpressionConverter(in EntryKey entryKey)
         => _expressionConverters.GetOrAdd(
-            new EntryKey(fromKey, toKey),
+            entryKey,
             key =>
             {
                 (Type from, Type to) = key;
@@ -66,6 +66,4 @@ public sealed class DataConverter
                                         c => c,
                                         _ => null)));
             });
-
-    private sealed record EntryKey([UsedImplicitly]Type From, [UsedImplicitly]Type To);
 }

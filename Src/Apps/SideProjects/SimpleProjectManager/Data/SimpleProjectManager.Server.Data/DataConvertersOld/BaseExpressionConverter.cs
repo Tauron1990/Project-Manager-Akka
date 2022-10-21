@@ -1,13 +1,14 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
+using SimpleProjectManager.Server.Data.DataConverters;
 
-namespace SimpleProjectManager.Server.Data.DataConverters;
+namespace SimpleProjectManager.Server.Data.DataConvertersOld;
 
-public abstract class BaseExpressionConverter
+internal abstract class BaseExpressionConverter
 {
-    public abstract Expression CreateFromTo(ParameterExpression fromParamameter);
+    public abstract Expression CreateFromTo(Expression fromParamameter);
 
-    public abstract Expression CreateToFrom(ParameterExpression toParameter);
+    public abstract Expression CreateToFrom(Expression toParameter);
 
     protected Exception DefaultError()
         => new InvalidOperationException("No Factory Expression coud Created");
@@ -65,10 +66,12 @@ public abstract class BaseExpressionConverter
         return mappedPropertys;
     }
 
-    protected static Expression CreateConstructor(ConstructorInfo targetConstructor, ParameterExpression input, PropertyInfo[] parameters)
+    protected static Expression CreateConstructor(
+        DataConverter dataConverter, ConstructorInfo targetConstructor, 
+        ParameterExpression input, IEnumerable<PropertyInfo> parameters)
     {
-        IEnumerable<Expression> parameterExpressions =
-            parameters.Select(pi => Expression.Property(input, pi));
+        var parameterExpressions =
+            parameters.Select(pi => WrapConverter(Expression.Property(input, pi), entryKey, dataConverter));
 
         NewExpression constructor = Expression.New(targetConstructor, parameterExpressions);
         
@@ -76,7 +79,8 @@ public abstract class BaseExpressionConverter
         return constructor;
     }
     
-    protected static Expression CreatePropertyAssigment(Type target, PropertyInfo[] targetPropertys, ParameterExpression input, PropertyInfo[] parameters)
+    protected static Expression CreatePropertyAssigment(DataConverter dataConverter,
+        Type target, PropertyInfo[] targetPropertys, ParameterExpression input, PropertyInfo[] parameters)
     {
         var block = new List<Expression>();
         ParameterExpression targetVariable = Expression.Variable(target);
@@ -86,7 +90,7 @@ public abstract class BaseExpressionConverter
         for (var i = 0; i < parameters.Length; i++)
         {
             MemberExpression targetAccessor = Expression.Property(targetVariable, targetPropertys[i]);
-            MemberExpression parameterAccesor = Expression.Property(input, parameters[i]);
+            Expression parameterAccesor = WrapConverter(Expression.Property(input, parameters[i]), key, dataConverter);
             
             block.Add(Expression.Assign(targetVariable, Expression.Assign(targetAccessor, parameterAccesor)));
         }
@@ -94,6 +98,17 @@ public abstract class BaseExpressionConverter
         block.Add(targetVariable);
 
         return Expression.Block(new[] { input, targetVariable }, block);
+    }
+
+    private static Expression WrapConverter(Expression from, EntryKey key, DataConverter converter)
+    {
+        BaseExpressionConverter? conv = converter.CreateExcpressionConverter(key);
+
+        if(conv is null) return from;
+        if(key.From == from.Type)
+            return conv.CreateFromTo(from);
+        return key.To == from.Type ? conv.CreateToFrom(from) : from;
+
     }
     
     /*var fromProps = _fromType.GetProperties();

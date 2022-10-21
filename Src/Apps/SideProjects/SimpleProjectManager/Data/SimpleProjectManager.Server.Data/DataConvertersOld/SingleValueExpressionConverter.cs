@@ -1,6 +1,7 @@
 ﻿using System.Linq.Expressions;
 using Akkatecture.ValueObjects;
 using OneOf.Types;
+using SimpleProjectManager.Server.Data.DataConvertersOld;
 using Tauron;
 
 namespace SimpleProjectManager.Server.Data.DataConverters;
@@ -30,9 +31,9 @@ public sealed class SingleValueExpressionConverter : BaseExpressionConverter
         return default(None);
     }
 
-    public override Expression CreateFromTo(ParameterExpression fromParamameter)
+    public override Expression CreateFromTo(Expression fromParamameter)
         => Expression.Property(fromParamameter, "Value");
 
-    public override Expression CreateToFrom(ParameterExpression toParameter)
+    public override Expression CreateToFrom(Expression toParameter)
         => Expression.New(_fromType.GetConstructor(new[] { _toType }) ?? throw DefaultError(), toParameter);
 }
