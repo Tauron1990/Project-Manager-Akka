@@ -1,6 +1,7 @@
-using NRules;
 using NRules.Fluent;
+using SpaceConqueror.Core;
 using SpaceConqueror.Modules;
+using SpaceConqueror.States;
 using Spectre.Console;
 
 namespace SpaceConqueror;
@@ -11,8 +12,9 @@ public sealed class GameManager : IAsyncDisposable
     
     private readonly string _modFolder;
 
+    public GlobalState State { get; private set; } = null!;
+
     public ModuleManager ModuleManager { get; } = new();
-    public ISessionFactory SessionFactory { get; private set; } = null!;
     
     public GameManager(string modFolder)
         => _modFolder = modFolder;
@@ -21,17 +23,19 @@ public sealed class GameManager : IAsyncDisposable
     {
         AnsiConsole.WriteLine("Module Laden...");
 
-        var rules = new RuleRepository();
+        RuleRepository rules = new();
+        StateRegistrar stateRegistrar = new();
         
-        await ModuleManager.LoadModules(_modFolder, new ModuleConfiguration(rules), AnsiConsole.WriteLine);
+        await ModuleManager.LoadModules(_modFolder, new ModuleConfiguration(rules, stateRegistrar), AnsiConsole.WriteLine, e => AnsiConsole.WriteException(e));
         
         AnsiConsole.WriteLine("Finalisiere Daten");
-        SessionFactory = rules.Compile();
+        State = new GlobalState(rules.CompileFast(), stateRegistrar.GetStates());
     }
 
     public async ValueTask Run()
     {
-        AnsiConsole.Ask("Test", string.Empty);
+        var menu = new MainMenu(this);
+        await menu.Show();
     }
 
     public ValueTask DisposeAsync()
