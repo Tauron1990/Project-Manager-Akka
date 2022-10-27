@@ -62,7 +62,7 @@ public sealed class ModuleManager
         var modules = ImmutableList<RegistratedModule>.Empty;
         var modName = string.Empty;
 
-        foreach (IModule? gameModule in moduleTypes.Select(Activator.CreateInstance).Cast<IModule>())
+        foreach (IModule? gameModule in moduleTypes.Where(t => !t.IsAbstract).Select(Activator.CreateInstance).Cast<IModule>())
         {
             messeages($"Lade Mod Module: {gameModule.ModName} -- {gameModule.Name}");
             messeages($"Version: {gameModule.Version}");

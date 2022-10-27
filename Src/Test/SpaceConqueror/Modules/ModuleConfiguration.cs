@@ -1,6 +1,7 @@
+using JetBrains.Annotations;
 using NRules.Fluent;
-using NRules.RuleModel;
 
 namespace SpaceConqueror.Modules;
 
-public sealed record ModuleConfiguration(RuleRepository RuleRepository, StateRegistrar State);
+[UsedImplicitly]
+public sealed record ModuleConfiguration(RuleRepository RuleRepository, StateRegistrar State, RuleRegistrar Rules, ManagerRegistrar ManagerRegistrar);

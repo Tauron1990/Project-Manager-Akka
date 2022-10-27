@@ -1,6 +1,11 @@
+using System.Collections.Immutable;
+using JetBrains.Annotations;
+
 namespace SpaceConqueror.States;
 
-public sealed class CommandProcessorState : IState
+public sealed record CommandProcessorState(ImmutableList<IGameCommand> Commands) : IState
 {
-    public List<ICommand> Commands { get; set; } = new();
+    [UsedImplicitly]
+    public CommandProcessorState()
+        : this(ImmutableList<IGameCommand>.Empty){}
 }

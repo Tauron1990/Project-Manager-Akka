@@ -8,24 +8,24 @@ public sealed class GlobalState
 {
     private static readonly string SaveGamePath = Path.GetFullPath("saves");
 
-    private readonly Serializer _serializer;
+    private readonly Serializer _serializer = new();
     private readonly ISessionFactory _sessionFactory;
     private readonly Func<IEnumerable<IState>> _newState;
+    private readonly List<IState> _gameState = new();
 
-    private List<IState> _gameState = new();
-    private ISession _updater;
-    
+    public ISession Updater { get; private set; }
+
     public GlobalState(ISessionFactory sessionFactory, Func<IEnumerable<IState>> newState)
     {
         _sessionFactory = sessionFactory;
         _newState = newState;
-        _updater = _sessionFactory.CreateSession();
+        Updater = _sessionFactory.CreateSession();
     }
 
     private void Clear()
     {
         _gameState.Clear();
-        _updater = _sessionFactory.CreateSession();
+        Updater = _sessionFactory.CreateSession();
         
         GC.Collect();
     }
@@ -34,8 +34,7 @@ public sealed class GlobalState
     {
         Clear();
         
-        _gameState.AddRange(_newState());
-        _updater.InsertAll(_gameState);
+        Updater.InsertAll(_gameState);
     }
 
     public static IEnumerable<string> GetSaveGames()
@@ -52,6 +51,10 @@ public sealed class GlobalState
             name += ".sav";
 
         using FileStream file = File.Open(name, FileMode.Create);
+
+        _gameState.Clear();
+        _gameState.AddRange(Updater.Query<IState>());
+        
         _serializer.Serialize(
             new GameRecord(GameManager.GameVersion, _gameState.ToImmutableList()),
             file);
@@ -67,14 +70,13 @@ public sealed class GlobalState
         using FileStream file = File.Open(name, FileMode.Open);
         var record = _serializer.Deserialize<GameRecord>(file);
 
-        _gameState.AddRange(record.GameState);
-        
         if(GameManager.GameVersion != record.GameVersion)
         {
+            _gameState.AddRange(record.GameState);
             SyncState();
         }
         
-        _updater.InsertAll(_gameState);
+        Updater.InsertAll(_gameState);
     }
 
     private void SyncState()
@@ -86,7 +88,7 @@ public sealed class GlobalState
                 continue;
             
             _gameState.Add(state);
-            _updater.Insert(state);
+            Updater.Insert(state);
         }
         
         GC.Collect();

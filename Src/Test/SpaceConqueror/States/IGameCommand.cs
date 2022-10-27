@@ -1,6 +1,6 @@
 namespace SpaceConqueror.States;
 
-public interface ICommand
+public interface IGameCommand
 {
     
 }

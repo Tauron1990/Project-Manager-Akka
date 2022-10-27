@@ -25,9 +25,19 @@ public sealed class GameManager : IAsyncDisposable
 
         RuleRepository rules = new();
         StateRegistrar stateRegistrar = new();
-        
-        await ModuleManager.LoadModules(_modFolder, new ModuleConfiguration(rules, stateRegistrar), AnsiConsole.WriteLine, e => AnsiConsole.WriteException(e));
-        
+        RuleRegistrar ruleRegistrar = new();
+        ManagerRegistrar managerRegistrar = new ManagerRegistrar(stateRegistrar);
+
+        await ModuleManager.LoadModules(
+            _modFolder,
+            new ModuleConfiguration(
+                rules,
+                stateRegistrar,
+                ruleRegistrar,
+                managerRegistrar),
+            AnsiConsole.WriteLine,
+            e => AnsiConsole.WriteException(e));
+
         AnsiConsole.WriteLine("Finalisiere Daten");
         State = new GlobalState(rules.CompileFast(), stateRegistrar.GetStates());
     }
