@@ -2,7 +2,6 @@
 using NRules;
 using SpaceConqueror.States;
 using SpaceConqueror.States.Rendering;
-using SpaceConqueror.States.Rooms;
 using Spectre.Console;
 
 namespace SpaceConqueror.SubMenus;
@@ -21,7 +20,7 @@ public sealed class GameMenu
 
         ISession session = _manager.State.Updater;
 
-        session.Insert(new ShowCurrentRoomsCommand());
+        session.Insert(new InitializeGameCommand());
 
         while (_run)
         {

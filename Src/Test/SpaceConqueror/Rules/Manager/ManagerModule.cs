@@ -15,7 +15,7 @@ public sealed class ManagerModule : ModuleBase
     {
         messages("Systeme werden Geladen");
         
-        config.ManagerRegistrar.RegisterManager<GameTime, GameTimeProcessor>();
+        config.ManagerRegistrar.RegisterManager<GameTime, GameTimeProcessor, GameTimeInitializer>();
         config.ManagerRegistrar.RegisterManager<CommandProcessorState, CommandProcessor>();
         
         return default;

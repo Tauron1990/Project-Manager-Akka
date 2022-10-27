@@ -7,7 +7,7 @@ namespace SpaceConqueror.Modules;
 
 public sealed class ManagerRegistrar
 {
-    private readonly ConcurrentDictionary<Type, Type> _rules = new();
+    private readonly ConcurrentDictionary<Type, Type[]> _rules = new();
     private readonly StateRegistrar _stateRegistrar;
 
     public ManagerRegistrar(StateRegistrar stateRegistrar)
@@ -17,7 +17,16 @@ public sealed class ManagerRegistrar
         where TState : IState, new()
         where TManager : Rule, IManager<TManager, TState>
     {
-        _rules[typeof(IState)] = typeof(TManager);
+        _rules[typeof(IState)] = new []{ typeof(TManager) };
+        _stateRegistrar.Add<TState>();
+    }
+    
+    public void RegisterManager<TState, TManager, TManager2>()
+        where TState : IState, new()
+        where TManager : Rule, IManager<TManager, TState>
+        where TManager2 : Rule, IManager<TManager2, TState>
+    {
+        _rules[typeof(IState)] = new []{ typeof(TManager), typeof(TManager2) };
         _stateRegistrar.Add<TState>();
     }
     
@@ -25,7 +34,10 @@ public sealed class ManagerRegistrar
         where TState : IState
         where TManager : Rule, IManager<TManager, TState>
     {
-        _rules[typeof(IState)] = typeof(TManager);
+        _rules[typeof(IState)] = new []{ typeof(TManager) };
         _stateRegistrar.Add(stateFactory);
     }
+
+    public IEnumerable<Type> GetRules()
+        => _rules.Values.SelectMany(l => l);
 }

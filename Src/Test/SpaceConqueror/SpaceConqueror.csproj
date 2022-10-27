@@ -21,6 +21,7 @@
 
     <ItemGroup>
       <Folder Include="Rules\Rooms" />
+      <Folder Include="States\Rooms" />
     </ItemGroup>
 
 </Project>

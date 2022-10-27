@@ -3,9 +3,11 @@ using JetBrains.Annotations;
 
 namespace SpaceConqueror.States.GameTime;
 
-public sealed record GameTime(TimeSpan Current, TimeSpan LastUpdate, Stopwatch Stopwatch) : IState
+public sealed record GameTime(TimeSpan Current, TimeSpan LastUpdate) : IState
 {
     [UsedImplicitly]
     public GameTime()
-        : this(TimeSpan.Zero, TimeSpan.Zero, Stopwatch.StartNew()){}
+        : this(TimeSpan.Zero, TimeSpan.Zero){}
+
+    public Stopwatch Stopwatch { get; } = new();
 }

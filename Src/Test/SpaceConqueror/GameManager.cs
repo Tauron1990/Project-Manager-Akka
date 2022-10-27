@@ -38,6 +38,9 @@ public sealed class GameManager : IAsyncDisposable
             AnsiConsole.WriteLine,
             e => AnsiConsole.WriteException(e));
 
+        rules.Load(rs => rs.From(ruleRegistrar.GetRules()));
+        rules.Load(rs => rs.From(managerRegistrar.GetRules()));
+        
         AnsiConsole.WriteLine("Finalisiere Daten");
         State = new GlobalState(rules.CompileFast(), stateRegistrar.GetStates());
     }
