@@ -9,6 +9,11 @@ public sealed class StateRegistrar
 {
     private ConcurrentDictionary<Type, Func<IState>> _stateFactorys = new();
 
+    internal StateRegistrar()
+    {
+        
+    }
+    
     public void Add<TType>()
         where TType : IState, new()
         => _stateFactorys[typeof(TType)] = static () => new TType();
@@ -20,7 +25,7 @@ public sealed class StateRegistrar
     private static Func<IState> Wrap<TType>(Func<TType> factory)
         where TType : IState => () => factory();
 
-    public Func<IEnumerable<IState>> GetStates() => Wrap(_stateFactorys.Values);
+    internal Func<IEnumerable<IState>> GetStates() => Wrap(_stateFactorys.Values);
 
     private static Func<IEnumerable<IState>> Wrap(ICollection<Func<IState>> states)
     {

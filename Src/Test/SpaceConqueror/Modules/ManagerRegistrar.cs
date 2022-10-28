@@ -38,6 +38,6 @@ public sealed class ManagerRegistrar
         _stateRegistrar.Add(stateFactory);
     }
 
-    public IEnumerable<Type> GetRules()
+    internal IEnumerable<Type> GetRules()
         => _rules.Values.SelectMany(l => l);
 }

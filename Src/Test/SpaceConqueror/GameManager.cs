@@ -26,23 +26,39 @@ public sealed class GameManager : IAsyncDisposable
         RuleRepository rules = new();
         StateRegistrar stateRegistrar = new();
         RuleRegistrar ruleRegistrar = new();
-        ManagerRegistrar managerRegistrar = new ManagerRegistrar(stateRegistrar);
-
+        ManagerRegistrar managerRegistrar = new(stateRegistrar);
+        RoomRegistrar roomRegistrar = new();
+        
         await ModuleManager.LoadModules(
             _modFolder,
             new ModuleConfiguration(
                 rules,
                 stateRegistrar,
                 ruleRegistrar,
-                managerRegistrar),
+                managerRegistrar,
+                roomRegistrar),
             AnsiConsole.WriteLine,
             e => AnsiConsole.WriteException(e));
 
+        List<Func<IEnumerable<IState>>> states = new List<Func<IEnumerable<IState>>>
+                                                  {
+                                                      stateRegistrar.GetStates()
+                                                  };
+
+        foreach (var rule in roomRegistrar.GetRules())
+        {
+            rules.Load(rs => rs.From(rule.Rules));
+            states.Add(rule.States);
+        }
+        
         rules.Load(rs => rs.From(ruleRegistrar.GetRules()));
         rules.Load(rs => rs.From(managerRegistrar.GetRules()));
         
         AnsiConsole.WriteLine("Finalisiere Daten");
-        State = new GlobalState(rules.CompileFast(), stateRegistrar.GetStates());
+        State = new GlobalState(rules.CompileFast(), Wrap(states));
+
+        static Func<IEnumerable<IState>> Wrap(IEnumerable<Func<IEnumerable<IState>>> states)
+            => () => states.SelectMany(f => f());
     }
 
     public async ValueTask Run()

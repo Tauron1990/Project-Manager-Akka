@@ -10,5 +10,5 @@ public sealed class RuleRegistrar
     public void Register<TType>()
         => _rules.Add(typeof(TType));
 
-    public IEnumerable<Type> GetRules() => _rules.AsEnumerable();
+    internal IEnumerable<Type> GetRules() => _rules.AsEnumerable();
 }
