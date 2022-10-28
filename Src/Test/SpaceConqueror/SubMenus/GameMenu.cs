@@ -96,6 +96,7 @@ public sealed class GameMenu
         => AnsiConsole.Prompt(
             new SelectionPrompt<CommandEntry>()
                .Title(title)
+               .HighlightStyle(Styles.SelectionColor)
                .AddChoices(commands)
                .UseConverter(c => c.Name))
            .Run();
@@ -110,7 +111,16 @@ public sealed class GameMenu
     {
         var tmp = session.Fire();
         var commands = session.Query<IGameCommand>().ToImmutableArray();
-        var states = session.Query<CommandProcessorState>().AsEnumerable().Select(cps => cps with{ Run = true }).ToImmutableArray();
+        var states = session.Query<CommandProcessorState>()
+           .AsEnumerable()
+           .Select(
+                cps =>
+                {
+                    cps.Run = true;
+
+                    return cps;
+                })
+           .ToImmutableArray();
         
         session.RetractAll(commands);
         session.UpdateAll(states);

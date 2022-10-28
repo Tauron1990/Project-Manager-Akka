@@ -1,11 +1,10 @@
 using System.Collections.Immutable;
-using JetBrains.Annotations;
 
 namespace SpaceConqueror.States;
 
-public sealed record CommandProcessorState(ImmutableList<IGameCommand> Commands, bool Run) : IState
+public sealed class CommandProcessorState : IState
 {
-    [UsedImplicitly]
-    public CommandProcessorState()
-        : this(ImmutableList<IGameCommand>.Empty, false){}
+    public ImmutableList<IGameCommand> Commands { get; internal set; } = ImmutableList<IGameCommand>.Empty;
+    
+    public bool Run { get; internal set; }
 }

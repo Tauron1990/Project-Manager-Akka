@@ -1,6 +1,6 @@
 ﻿using NRules.Fluent.Dsl;
-using NRules.RuleModel;
 using SpaceConqueror.Rules.Manager;
+using SpaceConqueror.States;
 using SpaceConqueror.States.GameTime;
 
 namespace SpaceConqueror.Rules;
@@ -12,18 +12,19 @@ public sealed class GameTimeProcessor : Rule, IManager<GameTimeProcessor, GameTi
         GameTime gameTime = null!;
         
         When()
-           .Match<GameTimeTickCommand>()
+           .MatchCommand<GameTimeTickCommand>()
            .MatchGameTime(() => gameTime);
 
         Then()
-           .Do(ctx => UpdateGameTime(ctx, gameTime));
+           .Do(ctx => UpdateGameTime(gameTime));
     }
 
-    private void UpdateGameTime(IContext ctx, GameTime gameTime)
+    private void UpdateGameTime(GameTime gameTime)
     {
         TimeSpan lastUpdate = gameTime.Stopwatch.Elapsed;
         gameTime.Stopwatch.Restart();
 
-        ctx.Update(gameTime with { Current = gameTime.Current + lastUpdate, LastUpdate = lastUpdate });
+        gameTime.Current += lastUpdate;
+        gameTime.LastUpdate = lastUpdate;
     }
 }

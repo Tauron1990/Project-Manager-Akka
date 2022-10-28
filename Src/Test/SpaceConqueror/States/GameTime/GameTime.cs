@@ -1,13 +1,12 @@
 ﻿using System.Diagnostics;
-using JetBrains.Annotations;
 
 namespace SpaceConqueror.States.GameTime;
 
-public sealed record GameTime(TimeSpan Current, TimeSpan LastUpdate) : IState
+public sealed class GameTime : IState
 {
-    [UsedImplicitly]
-    public GameTime()
-        : this(TimeSpan.Zero, TimeSpan.Zero){}
-
+    public TimeSpan Current { get; internal set; } = TimeSpan.Zero;
+    
+    public TimeSpan LastUpdate { get; internal set; } =TimeSpan.Zero;
+    
     public Stopwatch Stopwatch { get; } = new();
 }

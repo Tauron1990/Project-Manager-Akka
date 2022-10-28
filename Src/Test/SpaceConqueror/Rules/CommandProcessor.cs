@@ -13,12 +13,14 @@ public sealed class CommandProcessor : Rule, IManager<CommandProcessor, CommandP
 
         When().Match(() => state, s => !s.Commands.IsEmpty && s.Run);
 
-        Then().Yield(ctx => SupplyCommands(ctx, state));
+        Then().Do(ctx => SupplyCommands(ctx, state));
     }
 
-    private CommandProcessorState SupplyCommands(IContext ctx, CommandProcessorState state)
+    private void SupplyCommands(IContext ctx, CommandProcessorState state)
     {
         ctx.InsertAll(state.Commands);
-        return state with{ Commands = state.Commands.Clear(), Run = false };
+
+        state.Run = false;
+        state.Commands = state.Commands.Clear();
     }
 }

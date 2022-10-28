@@ -14,7 +14,7 @@ public sealed class ManagerModule : ModuleBase
     public override ValueTask Initialize(ModuleConfiguration config, Action<string> messages)
     {
         messages("Systeme werden Geladen");
-        
+
         config.ManagerRegistrar.RegisterManager<GameTime, GameTimeProcessor, GameTimeInitializer>();
         config.ManagerRegistrar.RegisterManager<CommandProcessorState, CommandProcessor>();
         
