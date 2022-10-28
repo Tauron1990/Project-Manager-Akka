@@ -24,7 +24,7 @@ public sealed class GameTimeInitializer : Rule, IManager<GameTimeInitializer, Ga
     }
 
     private void AddTickCommand(IContext context, CommandProcessorState state)
-        => context.Update(state.AddCommand(new GameTimeTickCommand()));
+        => context.Insert(state.AddCommand(new GameTimeTickCommand()));
     
     
     private void StartTimer(IContext context, GameTime gameTime)

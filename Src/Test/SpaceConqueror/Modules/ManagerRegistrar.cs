@@ -17,7 +17,7 @@ public sealed class ManagerRegistrar
         where TState : IState, new()
         where TManager : Rule, IManager<TManager, TState>
     {
-        _rules[typeof(IState)] = new []{ typeof(TManager) };
+        _rules[typeof(TState)] = new []{ typeof(TManager) };
         _stateRegistrar.Add<TState>();
     }
     
@@ -26,7 +26,7 @@ public sealed class ManagerRegistrar
         where TManager : Rule, IManager<TManager, TState>
         where TManager2 : Rule, IManager<TManager2, TState>
     {
-        _rules[typeof(IState)] = new []{ typeof(TManager), typeof(TManager2) };
+        _rules[typeof(TState)] = new []{ typeof(TManager), typeof(TManager2) };
         _stateRegistrar.Add<TState>();
     }
     
@@ -34,7 +34,7 @@ public sealed class ManagerRegistrar
         where TState : IState
         where TManager : Rule, IManager<TManager, TState>
     {
-        _rules[typeof(IState)] = new []{ typeof(TManager) };
+        _rules[typeof(TState)] = new []{ typeof(TManager) };
         _stateRegistrar.Add(stateFactory);
     }
 

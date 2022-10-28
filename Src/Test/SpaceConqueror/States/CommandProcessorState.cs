@@ -3,9 +3,9 @@ using JetBrains.Annotations;
 
 namespace SpaceConqueror.States;
 
-public sealed record CommandProcessorState(ImmutableList<IGameCommand> Commands) : IState
+public sealed record CommandProcessorState(ImmutableList<IGameCommand> Commands, bool Run) : IState
 {
     [UsedImplicitly]
     public CommandProcessorState()
-        : this(ImmutableList<IGameCommand>.Empty){}
+        : this(ImmutableList<IGameCommand>.Empty, false){}
 }

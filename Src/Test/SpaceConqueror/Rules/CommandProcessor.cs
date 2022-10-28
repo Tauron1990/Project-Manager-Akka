@@ -11,7 +11,7 @@ public sealed class CommandProcessor : Rule, IManager<CommandProcessor, CommandP
     {
         CommandProcessorState state = null!;
 
-        When().Match(() => state, s => !s.Commands.IsEmpty);
+        When().Match(() => state, s => !s.Commands.IsEmpty && s.Run);
 
         Then().Yield(ctx => SupplyCommands(ctx, state));
     }
@@ -19,6 +19,6 @@ public sealed class CommandProcessor : Rule, IManager<CommandProcessor, CommandP
     private CommandProcessorState SupplyCommands(IContext ctx, CommandProcessorState state)
     {
         ctx.InsertAll(state.Commands);
-        return state with{ Commands = state.Commands.Clear() };
+        return state with{ Commands = state.Commands.Clear(), Run = false };
     }
 }

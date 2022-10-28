@@ -34,7 +34,7 @@ public sealed class GlobalState
     {
         Clear();
         
-        Updater.InsertAll(_gameState);
+        Updater.InsertAll(_newState());
     }
 
     public static IEnumerable<string> GetSaveGames()

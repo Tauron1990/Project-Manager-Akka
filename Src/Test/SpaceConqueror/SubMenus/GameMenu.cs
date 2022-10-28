@@ -108,9 +108,12 @@ public sealed class GameMenu
 
     private static void Step(ISession session)
     {
-        session.Fire();
+        var tmp = session.Fire();
         var commands = session.Query<IGameCommand>().ToImmutableArray();
+        var states = session.Query<CommandProcessorState>().AsEnumerable().Select(cps => cps with{ Run = true }).ToImmutableArray();
+        
         session.RetractAll(commands);
+        session.UpdateAll(states);
     }
 
     private sealed record CommandEntry(string Name, Action Run);
