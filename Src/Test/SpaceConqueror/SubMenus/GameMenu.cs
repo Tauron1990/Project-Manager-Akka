@@ -10,7 +10,8 @@ public sealed class GameMenu
 {
     private readonly GameManager _manager;
     private bool _run = true;
-    
+    private List<object> _toRemove = new();
+
     public GameMenu(GameManager manager)
         => _manager = manager;
 
@@ -26,7 +27,12 @@ public sealed class GameMenu
         {
             AnsiConsole.Clear();
             
+            session.RetractAll(_toRemove);
+            
             Step(session);
+            
+            _toRemove.AddRange(session.Query<IDisplayData>());
+            _toRemove.AddRange(session.Query<IDisplayCommand>());
             
             foreach (IDisplayData displayData in session.Query<IDisplayData>().OrderBy(dd => dd.Order))
             {
@@ -109,7 +115,8 @@ public sealed class GameMenu
 
     private static void Step(ISession session)
     {
-        var tmp = session.Fire();
+        session.Fire();
+        
         var commands = session.Query<IGameCommand>().ToImmutableArray();
         var states = session.Query<CommandProcessorState>()
            .AsEnumerable()

@@ -12,6 +12,8 @@ public sealed class GameManager : IAsyncDisposable
     
     private readonly string _modFolder;
 
+    public AssetManager AssetManager { get; } = new();
+    
     public GlobalState State { get; private set; } = null!;
 
     public ModuleManager ModuleManager { get; } = new();
@@ -23,11 +25,12 @@ public sealed class GameManager : IAsyncDisposable
     {
         AnsiConsole.WriteLine("Module Laden...");
 
+        
         RuleRepository rules = new();
         StateRegistrar stateRegistrar = new();
         RuleRegistrar ruleRegistrar = new();
         ManagerRegistrar managerRegistrar = new(stateRegistrar);
-        RoomRegistrar roomRegistrar = new();
+        RoomRegistrar roomRegistrar = new(AssetManager);
         
         await ModuleManager.LoadModules(
             _modFolder,

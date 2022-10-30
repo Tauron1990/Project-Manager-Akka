@@ -1,27 +1,45 @@
 ﻿using System.Collections.Concurrent;
+using JetBrains.Annotations;
 using NRules.Fluent.Dsl;
+using SpaceConqueror.Core;
 using SpaceConqueror.Rules.Rooms;
 using SpaceConqueror.States;
 
 namespace SpaceConqueror.Modules;
 
+[PublicAPI]
 public sealed class RoomRegistrar
 {
+    private readonly AssetManager _assetManager;
     private readonly ConcurrentDictionary<string, RoomBuilder> _rules = new();
 
-    internal RoomRegistrar(){}
+    internal RoomRegistrar(AssetManager assetManager)
+        => _assetManager = assetManager;
 
     public RoomBuilder Register<TState, TManager>(string name)
         where TState : IState, new()
         where TManager : Rule, IRoomManager<TManager>
     {
-        var builder = new RoomBuilder(name);
+        var builder = new RoomBuilder(name, _assetManager);
 
         if(!_rules.TryAdd(name, builder))
             throw new InvalidOperationException("The Room is already Registrated");
 
         builder.States.Add<TState>();
         builder.Rules.Add(typeof(TManager));
+        return builder;
+
+    }
+    
+    public RoomBuilder Register<TState>(string name)
+        where TState : IState, new()
+    {
+        var builder = new RoomBuilder(name, _assetManager);
+
+        if(!_rules.TryAdd(name, builder))
+            throw new InvalidOperationException("The Room is already Registrated");
+
+        builder.States.Add<TState>();
         return builder;
 
     }
