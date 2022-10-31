@@ -41,9 +41,18 @@ public sealed class RoomRegistrar
 
         builder.States.Add<TState>();
         return builder;
-
     }
 
+    public RoomBuilder Register(string name)
+    {
+        var builder = new RoomBuilder(name, _assetManager);
+
+        if(!_rules.TryAdd(name, builder))
+            throw new InvalidOperationException("The Room is already Registrated");
+
+        return builder;
+    }
+    
     public RoomBuilder GetRoom(string name) => _rules[name];
     
     public IEnumerable<(IEnumerable<Type> Rules, Func<IEnumerable<IState>> States)> GetRules() 

@@ -28,7 +28,7 @@ public class RoomHistoryUpdater : Rule, IRoomManager<RoomHistoryUpdater>
     {
         if(failed is null) return;
         
-        ctx.InsertLinked(failed, new MoveToRoomCommand(RoomState.FailRoom));
+        ctx.InsertLinked(failed, new MoveToRoomCommand(GameManager.FailRoom, failed));
     }
 
     private void ApplySucess(RoomMoveSuccessCommand? success, PlayerRoomState playerRoomState)

@@ -28,9 +28,9 @@ public class RoomMover : Rule, IRoomManager<RoomMover>
         RoomState? room = rooms.SingleOrDefault();
 
         if(room is not null)
-            return new RoomMoveSuccessCommand(command.Name, playerRoomState.CurrentRoom, room.ExcludeHistory);
+            return new RoomMoveSuccessCommand(command.Name, playerRoomState.CurrentRoom, room.ExcludeHistory, command.Context);
 
-        if(command.Name == RoomState.FailRoom)
+        if(command.Name == GameManager.FailRoom)
             throw new InvalidOperationException("Fail Room not Found");
             
         return new RoomMoveFailedCommand(command.Name);

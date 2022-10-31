@@ -14,13 +14,16 @@ public static class CompilerExtensions
             => expression.CompileFast();
     }
 
-    public static ISessionFactory CompileFast(this IRuleRepository repository)
+    public static ISessionFactory CompileFast(this IRuleRepository repository, IDependencyResolver dependencyResolver)
     {
         var compiler = new RuleCompiler
                        {
                            ExpressionCompiler = new FastExpressionCompiler()
                        };
 
-        return compiler.Compile(repository.GetRuleSets());
+        ISessionFactory? factory =  compiler.Compile(repository.GetRuleSets());
+        factory.DependencyResolver = dependencyResolver;
+
+        return factory;
     }
 }

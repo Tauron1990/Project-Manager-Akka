@@ -43,10 +43,10 @@ public sealed class GameManager : IAsyncDisposable
             AnsiConsole.WriteLine,
             e => AnsiConsole.WriteException(e));
 
-        List<Func<IEnumerable<IState>>> states = new List<Func<IEnumerable<IState>>>
-                                                  {
-                                                      stateRegistrar.GetStates()
-                                                  };
+        var states = new List<Func<IEnumerable<IState>>>
+                     {
+                                    stateRegistrar.GetStates()
+                                };
 
         foreach (var rule in roomRegistrar.GetRules())
         {
@@ -58,7 +58,7 @@ public sealed class GameManager : IAsyncDisposable
         rules.Load(rs => rs.From(managerRegistrar.GetRules()));
         
         AnsiConsole.WriteLine("Finalisiere Daten");
-        State = new GlobalState(rules.CompileFast(), Wrap(states));
+        State = new GlobalState(rules.CompileFast(new GameDependencyRsolver(this)), Wrap(states));
 
         static Func<IEnumerable<IState>> Wrap(IEnumerable<Func<IEnumerable<IState>>> states)
             => () => states.SelectMany(f => f());
@@ -72,4 +72,8 @@ public sealed class GameManager : IAsyncDisposable
 
     public ValueTask DisposeAsync()
         => default;
+
+    public const string FailRoom = "InternalFailRoom";
+
+    public static readonly object EmptyContext = new();
 }

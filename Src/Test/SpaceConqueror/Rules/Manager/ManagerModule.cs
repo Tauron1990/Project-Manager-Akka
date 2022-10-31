@@ -24,6 +24,8 @@ public sealed class ManagerModule : ModuleBase
         config.Rules.Register<RoomMover>();
         config.Rules.Register<RoomHistoryUpdater>();
         config.Rules.Register<RoomUpdater>();
+
+        config.Roonms.Register(GameManager.FailRoom);
         
         return default;
     }
