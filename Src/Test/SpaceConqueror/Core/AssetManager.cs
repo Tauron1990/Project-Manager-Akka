@@ -24,6 +24,8 @@ public sealed class AssetManager
         throw new InvalidOperationException("The Specific Asse tis not found or has anathor Type");
     }
 
+    public 
+    
     private interface IBox
     {
         

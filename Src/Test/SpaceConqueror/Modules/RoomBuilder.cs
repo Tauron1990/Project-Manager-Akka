@@ -93,6 +93,8 @@ public class RoomBuilder
 
     public RoomBuilder ProcessToData<TContext>(string id, Func<TContext, AssetManager, IRenderable> descriptor)
     {
+        
+        
         return ProcessToData<TContext>(id, (t, m) => new StaticDisplayData(int.MinValue, descriptor(t, m)));
     }
 
