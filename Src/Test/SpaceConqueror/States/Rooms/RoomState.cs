@@ -3,12 +3,21 @@ using SpaceConqueror.States.Rendering;
 
 namespace SpaceConqueror.States.Rooms;
 
-public delegate IEnumerable<object> ContextProcessor(AssetManager assetManager, object context);
+public delegate IEnumerable<object?> ContextProcessor(AssetManager assetManager, object context);
+
+public enum RoomType
+{
+    Conventinal,
+    Dungeon,
+    Special
+}
 
 public class RoomState : IState
 {
     public string Id { get; }
 
+    public RoomType RoomType { get; set; }
+    
     public bool IsPlayerInRoom { get; set; }
     
     public bool ExcludeHistory { get; set; }
@@ -30,7 +39,10 @@ public class RoomState : IState
         foreach (string command in PredefinedCommands)
             yield return assetManager.Get<IDisplayCommand>(command);
 
-        foreach (object processor in ProcessorNames.SelectMany(name => assetManager.Get<ContextProcessor>(name)(assetManager, context)))
+        foreach (object? processor in from processorName in ProcessorNames
+                                     from element in assetManager.Get<ContextProcessor>(processorName)(assetManager, context)
+                                     where element is not null
+                                     select element)
             yield return processor;
     }
 }
