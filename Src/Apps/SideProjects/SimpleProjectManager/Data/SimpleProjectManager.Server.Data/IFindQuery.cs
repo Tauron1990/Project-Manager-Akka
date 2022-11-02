@@ -13,4 +13,6 @@ public interface IFindQuery<TStart, TData>
     ValueTask<TData> FirstAsync(CancellationToken token);
     ValueTask<long> CountAsync(CancellationToken token);
     ValueTask<TData> SingleAsync(CancellationToken token = default);
+
+    IAsyncEnumerable<TData> ToAsyncEnumerable(CancellationToken token = default);
 }
