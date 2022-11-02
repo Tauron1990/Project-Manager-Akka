@@ -8,8 +8,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="AutoMapper" Version="12.0.0" />
       <PackageReference Include="Be.Vlaanderen.Basisregisters.Generators.Guid.Deterministic" Version="3.0.1" />
       <PackageReference Include="DotNetZip" Version="1.16.0" />
+      <PackageReference Include="FastExpressionCompiler" Version="3.3.3" />
       <PackageReference Include="Hyperion" Version="0.12.2" />
       <PackageReference Include="LiteDB.Async" Version="0.1.1" />
       <PackageReference Include="Polly.Caching.Distributed" Version="3.0.1" />
@@ -23,10 +25,27 @@
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Compile>
     </ItemGroup>
-    
+
     <ItemGroup>
-        <ProjectReference Include="..\..\Apps\SideProjects\SimpleProjectManager\Clients\Shared\SimpleProjectManager.Client.Shared\SimpleProjectManager.Client.Shared.csproj" />
-        <ProjectReference Include="..\..\Apps\SideProjects\SimpleProjectManager\Server\SimpleProjectManager.Server.csproj" />
-        <ProjectReference Include="..\..\Shared\Data\Tauron.Application.Akka.Redux\Tauron.Application.Akka.Redux.csproj" />
+      <Compile Remove="AkkaRedux\TestApp.cs" />
+      <None Include="AkkaRedux\TestApp.cs" />
+      <Compile Remove="Test\Operator\ChannelCastOperator.cs" />
+      <None Include="Test\Operator\ChannelCastOperator.cs" />
+      <Compile Remove="Test\Operator\ChannelOperatorBase.cs" />
+      <None Include="Test\Operator\ChannelOperatorBase.cs" />
+      <Compile Remove="Test\Operator\ChannelSelect.cs" />
+      <None Include="Test\Operator\ChannelSelect.cs" />
+      <Compile Remove="Test\Operator\ChannelSelectComplex.cs" />
+      <None Include="Test\Operator\ChannelSelectComplex.cs" />
+      <Compile Remove="Test\Operator\ChannelWhere.cs" />
+      <None Include="Test\Operator\ChannelWhere.cs" />
+      <Compile Remove="Test\ChannelExtensions.cs" />
+      <None Include="Test\ChannelExtensions.cs" />
+      <Compile Remove="Test\TestApp.cs" />
+      <None Include="Test\TestApp.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\Shared\External\Akkatecture.Abstractions\Akkatecture.Abstractions.csproj" />
     </ItemGroup>
 </Project>

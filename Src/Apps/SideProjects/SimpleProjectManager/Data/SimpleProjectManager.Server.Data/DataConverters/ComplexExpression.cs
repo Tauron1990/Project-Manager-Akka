@@ -18,7 +18,7 @@ internal sealed class ComplexExpression : IConverterExpression
                                  tp => string.Equals(tp.Name, p.Name, StringComparison.InvariantCultureIgnoreCase))))
             return ConverterResult.None();
 
-        IFactory? fromTo = CreateFromTo(dataConverter, to, fromPropertys, toPropertys);
+        IFactory? fromTo = CreateFromTo(dataConverter, to, fromPropertys);
 
         return fromTo is null 
             ? ConverterResult.None() 
@@ -31,14 +31,14 @@ internal sealed class ComplexExpression : IConverterExpression
         Expression Create(Expression parameterExpression);
     }
 
-    private static IFactory? CreateFromTo(DataConverter dataConverter, Type to, PropertyInfo[] fromPropertys, PropertyInfo[] toPropertys)
+    private static IFactory? CreateFromTo(DataConverter dataConverter, Type to, PropertyInfo[] fromPropertys)
     {
         ConstructorInfo? construcctor = CanConstructor(to, fromPropertys);
         if(construcctor is not null) return new ConstructorFactory(construcctor, fromPropertys, dataConverter);
 
         var props = CanPropertys(to, fromPropertys);
 
-        return props is not null ? new PropertysFactory(to, props, toPropertys, dataConverter) : null;
+        return props is not null ? new PropertysFactory(to, fromPropertys, props, dataConverter) : null;
 
     }
 
@@ -125,7 +125,7 @@ internal sealed class ComplexExpression : IConverterExpression
         Type target, PropertyInfo[] targetPropertys, Expression input, PropertyInfo[] fromPropertys)
     {
         var block = new List<Expression>();
-        ParameterExpression targetVariable = Expression.Variable(target);
+        ParameterExpression targetVariable = Expression.Variable(target, "target_value");
 
         block.Add(Expression.Assign(targetVariable, Expression.New(target)));
 
@@ -138,7 +138,7 @@ internal sealed class ComplexExpression : IConverterExpression
             MemberExpression targetAccessor = Expression.Property(targetVariable, targetProperty);
             Expression parameterAccesor = WrapConverter(Expression.Property(input, fromProperty), key, dataConverter);
             
-            block.Add(Expression.Assign(targetVariable, Expression.Assign(targetAccessor, parameterAccesor)));
+            block.Add(Expression.Assign(targetAccessor, parameterAccesor));
         }
         
         block.Add(targetVariable);

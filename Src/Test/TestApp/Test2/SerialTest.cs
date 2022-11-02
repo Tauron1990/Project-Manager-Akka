@@ -1,6 +1,6 @@
 ﻿using Akkatecture.Core;
-using SimpleProjectManager.Server.Data;
-using SimpleProjectManager.Server.Data.DataConverters;
+using AutoMapper;
+using FastExpressionCompiler;
 using UnitsNet;
 
 namespace TestApp.Test2;
@@ -11,7 +11,7 @@ public sealed record TestDataConvert
 {
     public string ToSerialize { get; init; }
     
-    public UnitNetData Temperature { get; init; }
+    public double Temperature { get; init; }
     
     public string TestSingle { get; init; }
 };
@@ -25,52 +25,24 @@ public static class SerialTest
 {
     public static void Run()
     {
-        var converterContainer = new DataConverter();
+        var config = new MapperConfiguration(
+            cfg =>
+            {
+                cfg.CreateMap<Temperature, double>().ConvertUsing(temperature => temperature.As(UnitSystem.SI));
+                cfg.CreateMap<double, Temperature>().ConvertUsing(d => new Temperature(d, UnitSystem.SI));
+                cfg.CreateMap<TestData, TestDataConvert>()
+                   .ReverseMap();
+            });
         
-        var toser = Temperature.FromDegreesCelsius(20);
+        config.AssertConfigurationIsValid();
 
-        var conv = converterContainer.Get<Temperature, UnitNetData>();
+        IMapper mapper = config.CreateMapper();
+        
+        
+        var testData = new TestData(ToSerialize.Empty, Temperature.FromDegreesCelsius(20), TestSingle.New);
 
-        var toserstring = conv.ToDto(toser);
-        toser = conv.FromDto(toserstring);
+        var dto = mapper.Map<TestDataConvert>(testData);
 
-
-        
-        
-        var toser2 = ToSerialize.From("Hallo");
-
-        var conv2 = converterContainer.Get<ToSerialize, string>();
-
-        var toserstring2 = conv2.ToDto(toser2);
-        toser2 = conv2.FromDto(toserstring2);
-        
-        
-        
-        
-        var toser3 = ToSerialize.Empty;
-
-        var conv3 = converterContainer.Get<ToSerialize, string>();
-
-        var toserstring3 = conv3.ToDto(toser3);
-        toser3 = conv2.FromDto(toserstring3);
-        
-        
-        
-        
-        var toser4 = TestSingle.New;
-
-        var conv4 = converterContainer.Get<TestSingle, string>();
-
-        var toserstring4 = conv4.ToDto(toser4);
-        toser4 = conv4.FromDto(toserstring4);
-        
-        
-        
-        var toser5 = new TestData(toser3, toser, toser4);
-
-        var conv5 = converterContainer.Get<TestData, TestDataConvert>();
-
-        var toserstring5 = conv5.ToDto(toser5);
-        toser5 = conv5.FromDto(toserstring5);
+        var result = mapper.Map<TestData>(dto);
     }
 }

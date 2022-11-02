@@ -24,8 +24,14 @@ public sealed class AssetManager
         throw new InvalidOperationException("The Specific Asse tis not found or has anathor Type");
     }
 
-    public 
-    
+    public Option<TData> TryGet<TData>(string name)
+    {
+        if(_assets.TryGetValue(name, out IBox? value) && value is Box<TData> typedValue)
+            return typedValue.Lazy.Value;
+
+        return Option<TData>.None;
+    }
+
     private interface IBox
     {
         

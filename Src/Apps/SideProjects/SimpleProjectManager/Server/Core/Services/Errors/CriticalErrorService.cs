@@ -1,24 +1,26 @@
-﻿using MongoDB.Bson;
+﻿using AutoMapper;
+using MongoDB.Bson;
 using SimpleProjectManager.Server.Data;
+using SimpleProjectManager.Server.Data.Data;
 using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
 using Tauron.Application.MongoExtensions;
 
 namespace SimpleProjectManager.Server.Core.Services;
 
-public sealed record CriticalErrorEntry(ObjectId Id, CriticalError Error, bool IsDisabled);
-
 public class CriticalErrorService : ICriticalErrorService
 {
     private readonly ILogger<CriticalErrorService> _logger;
-    private readonly IDatabaseCollection<CriticalErrorEntry> _errorEntrys;
-
+    private readonly IDatabaseCollection<DbCriticalErrorEntry> _errorEntrys;
+    private readonly IMapper _mapper;
+    
     public CriticalErrorService(IInternalDataRepository dataRepository, ILogger<CriticalErrorService> logger)
     {
         ImmutableListSerializer<ErrorProperty>.Register();
 
         _logger = logger;
-        _errorEntrys = dataRepository.Collection<CriticalErrorEntry>();
+        _errorEntrys = dataRepository.Databases.CriticalErrors;
+        _mapper = dataRepository.Databases.Mapper;
         //#if DEBUG
         //if (_errorEntrys.CountDocuments(Builders<CriticalErrorEntry>.Filter.Empty) == 0)
         //{
@@ -41,7 +43,9 @@ public class CriticalErrorService : ICriticalErrorService
     {
         if (Computed.IsInvalidating()) return Array.Empty<CriticalError>();
         
-        return await _errorEntrys.Find(_errorEntrys.Operations.Eq(e => e.IsDisabled, false)).Project(d => d.Error).ToArrayAsync(token);
+        var result = await _errorEntrys.Find(_errorEntrys.Operations.Eq(e => e.IsDisabled, false)).Project(d => d.Error).ToArrayAsync(token);
+
+        return _mapper.Map<CriticalError[]>(result);
     }
 
     public virtual async Task<string> DisableError(string id, CancellationToken token)

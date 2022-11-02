@@ -18,7 +18,7 @@ public sealed class GameDependencyRsolver : IDependencyResolver
             return _gameManager;
 
         if(serviceType == typeof(AssetManager))
-            return _gameManager.AssetManager;
+            return GameManager.AssetManager;
 
         if(serviceType == typeof(GlobalState))
             return _gameManager.State;

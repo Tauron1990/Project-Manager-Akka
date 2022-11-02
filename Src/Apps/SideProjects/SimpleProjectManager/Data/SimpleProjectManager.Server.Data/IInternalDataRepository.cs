@@ -4,5 +4,7 @@ namespace SimpleProjectManager.Server.Data;
 
 public interface IInternalDataRepository : IProjectionRepository
 {
-    IDatabaseCollection<TData> Collection<TData>();
+   IDatabases Databases { get; }
+   
+   //IDatabaseCollection<TData> Collection<TData>();
 }

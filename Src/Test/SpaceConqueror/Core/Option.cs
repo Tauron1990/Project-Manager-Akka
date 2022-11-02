@@ -26,6 +26,16 @@ public readonly struct Option<TData>
 
     public static implicit operator Option<TData>(TData data)
         => new(data, true);
+
+    public TResult Map<TResult>(Func<TData, TResult> selector, Func<TResult> defaultValue)
+        => HasValue ? selector(_data!) : defaultValue();
     
-    public TResult Select<TResult>()
+    public TData Map(Func<TData> defaultValue)
+        => HasValue ? _data! : defaultValue();
+    
+    public TResult Map<TResult>(Func<TData, TResult> selector, TResult defaultValue)
+        => HasValue ? selector(_data!) : defaultValue;
+    
+    public TData Map(TData defaultValue)
+        => HasValue ? _data! : defaultValue;
 }

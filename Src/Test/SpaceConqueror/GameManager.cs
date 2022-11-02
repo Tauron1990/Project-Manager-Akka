@@ -12,7 +12,7 @@ public sealed class GameManager : IAsyncDisposable
     
     private readonly string _modFolder;
 
-    public AssetManager AssetManager { get; } = new();
+    public static AssetManager AssetManager { get; } = new();
     
     public GlobalState State { get; private set; } = null!;
 

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using NRules;
+using SpaceConqueror.Core;
 using SpaceConqueror.States;
 using SpaceConqueror.States.Rendering;
 using Spectre.Console;
@@ -10,7 +11,7 @@ public sealed class GameMenu
 {
     private readonly GameManager _manager;
     private bool _run = true;
-    private List<object> _toRemove = new();
+    private readonly List<object> _toRemove = new();
 
     public GameMenu(GameManager manager)
         => _manager = manager;
@@ -42,42 +43,42 @@ public sealed class GameMenu
                 AnsiConsole.Write(new Rule().RoundedBorder());
             }
 
-            List<CommandEntry> commandEntries = new() { new CommandEntry("Menü", () => ShowMenu(session)) };
+            List<CommandEntry> commandEntries = new() { new CommandEntry(GetString("Menü"), () => ShowMenu(session)) };
 
             commandEntries.AddRange(session
                .Query<IDisplayCommand>()
                .OrderBy(dc => dc.Order)
-               .Select(command => new CommandEntry(command.Name, () => session.InsertAll(command.Commands()))));
+               .Select(command => new CommandEntry(GetString(command.Name), () => session.InsertAll(command.Commands()))));
 
-            commandEntries.Add(new CommandEntry("Beenden", CancelGame));
+            commandEntries.Add(new CommandEntry(GetString("Beenden"), CancelGame));
 
 
-            ShowPrompt(commandEntries, "Kommandos");
+            ShowPrompt(commandEntries, GetString("Kommandos"));
         }
     }
 
     private void ShowMenu(ISession session)
     {
-        List<CommandEntry> menuCommands = new() { new CommandEntry("Haupt Menu", ShowMainMenu) };
+        List<CommandEntry> menuCommands = new() { new CommandEntry(GetString("Haupt Menu"), ShowMainMenu) };
 
         foreach (IMenuItem menuItem in session.Query<IMenuItem>())
-            menuCommands.Add(new CommandEntry(menuItem.Name, () => session.InsertAll(menuItem.Commands())));
+            menuCommands.Add(new CommandEntry(GetString(menuItem.Name), () => session.InsertAll(menuItem.Commands())));
 
-        menuCommands.Add(new CommandEntry("Zurück", static () => {}));
+        menuCommands.Add(new CommandEntry(GetString("Zurück"), static () => {}));
         
-        ShowPrompt(menuCommands, "Menü");
+        ShowPrompt(menuCommands, GetString("Menü"));
     }
 
     private void ShowMainMenu()
     {
         List<CommandEntry> menuCommands = new()
                                           {
-                                              new CommandEntry("Speichern", SaveGame),
-                                              new CommandEntry("Beenden", CancelGame),
-                                              new CommandEntry("Zurück", static () => {})
+                                              new CommandEntry(GetString("Speichern"), SaveGame),
+                                              new CommandEntry(GetString("Beenden"), CancelGame),
+                                              new CommandEntry(GetString("Zurück"), static () => {})
                                           };
 
-        ShowPrompt(menuCommands, "Haupt Menü");
+        ShowPrompt(menuCommands, GetString("Haupt Menü"));
     }
 
     private void SaveGame()
@@ -85,14 +86,14 @@ public sealed class GameMenu
         try
         {
             AnsiConsole.WriteLine();
-            var name = AnsiConsole.Ask<string>("Name des Speicherplatzes?");
+            var name = AnsiConsole.Ask<string>(GetString("Name des Speicherplatzes?"));
             
             _manager.State.SaveGame(name);
         }
         catch (Exception e)
         {
             AnsiConsole.WriteLine();
-            AnsiConsole.WriteLine("Fehler beim Speichern");
+            AnsiConsole.WriteLine(GetString("Fehler beim Speichern"));
             AnsiConsole.WriteException(e, ExceptionFormats.ShortenPaths);
             Console.ReadKey();
         }
@@ -109,7 +110,7 @@ public sealed class GameMenu
 
     private void CancelGame()
     {
-        if(AnsiConsole.Confirm("Wirklich Beenden", false))
+        if(AnsiConsole.Confirm(GetString("Wirklich Beenden"), false))
             _run = false;
     }
 
@@ -132,6 +133,9 @@ public sealed class GameMenu
         session.RetractAll(commands);
         session.UpdateAll(states);
     }
+
+    private string GetString(string input)
+        => GameManager.AssetManager.GetString(input);
 
     private sealed record CommandEntry(string Name, Action Run);
 }

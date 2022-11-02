@@ -62,7 +62,7 @@ public class RoomBuilder
         AddDescription(name);
 
         static Func<string> Data(string value)
-            => () => value;
+            => () => GameManager.AssetManager.GetString(value);
 
         _assetManager.Add(name, Data(value));
         
@@ -87,16 +87,10 @@ public class RoomBuilder
     }
 
     public RoomBuilder ProcessToData<TContext>(string id, Func<TContext, AssetManager, string> descriptor)
-    {
-        return ProcessToData<TContext>(id, (t, m) => new Markup(descriptor(t, m)));
-    }
+        => ProcessToData<TContext>(id, (t, m) => new Markup(GameManager.AssetManager.GetString(descriptor(t, m))));
 
     public RoomBuilder ProcessToData<TContext>(string id, Func<TContext, AssetManager, IRenderable> descriptor)
-    {
-        
-        
-        return ProcessToData<TContext>(id, (t, m) => new StaticDisplayData(int.MinValue, descriptor(t, m)));
-    }
+        => ProcessToData<TContext>(id, (t, m) => new StaticDisplayData(int.MinValue, descriptor(t, m)));
 
     public RoomBuilder ProcessToData<TContext>(string id, Func<TContext, AssetManager, IDisplayData> descriptor)
     {

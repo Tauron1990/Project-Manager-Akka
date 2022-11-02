@@ -3,7 +3,6 @@ using System.Collections.Immutable;
 using Microsoft.AspNetCore.Mvc;
 using SimpleProjectManager.Server.Controllers.FileUpload;
 using SimpleProjectManager.Server.Core;
-using SimpleProjectManager.Server.Core.Services;
 using SimpleProjectManager.Server.Data;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.ServerApi;
@@ -43,16 +42,16 @@ namespace SimpleProjectManager.Server.Controllers
         public async Task<IActionResult> GetFileDownload(
             [FromRoute] ProjectFileId id, [FromServices]IInternalDataRepository dataRepository, [FromServices] IInternalFileRepository bucked, CancellationToken token)
         {
-            var coll = dataRepository.Collection<FileInfoData>();
-            var filter = coll.Operations.Eq(p => p.Id, id);
+            var coll = dataRepository.Databases.FileInfos;
+            var filter = coll.Operations.Eq(p => p.Id, id.Value);
             var data = await coll.Find(filter).FirstOrDefaultAsync(token);
             if(data == null) return NotFound();
 
-            var fileEntry = bucked.FindIdByFileName(data.Id.Value).First();
+            string fileEntry = bucked.FindIdByFileName(data.Id).First();
 
             return File(
                 await bucked.OpenStream(fileEntry, token),
-                data.Mime.Value, data.FileName.Value);
+                data.Mime, data.FileName);
         }
         
         [HttpPost] 

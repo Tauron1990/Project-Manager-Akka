@@ -12,4 +12,6 @@ public interface IDatabaseCollection<TData>
     ValueTask InsertOneAsync(TData data, CancellationToken cancellationToken = default);
     DbOperationResult DeleteOne(IFilter<TData> filter);
     ValueTask<DbOperationResult> DeleteOneAsync(IFilter<TData> filter, CancellationToken token = default);
+    
+    
 }

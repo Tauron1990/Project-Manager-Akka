@@ -1,6 +1,6 @@
 namespace SpaceConqueror.States.Actors;
 
-public interface IPlayer
+public interface IPlayerParty
 {
     string PlayerPosition { get; set; }
 }

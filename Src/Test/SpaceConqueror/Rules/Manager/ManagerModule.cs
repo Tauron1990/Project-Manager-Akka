@@ -3,6 +3,7 @@ using SpaceConqueror.Core;
 using SpaceConqueror.Modules;
 using SpaceConqueror.Rules.Rooms;
 using SpaceConqueror.States;
+using SpaceConqueror.States.Actors;
 using SpaceConqueror.States.GameTime;
 using SpaceConqueror.States.Rooms;
 
@@ -19,7 +20,7 @@ public sealed class ManagerModule : ModuleBase
 
         config.ManagerRegistrar.RegisterManager<GameTime, GameTimeProcessor, GameTimeInitializer>();
         config.ManagerRegistrar.RegisterManager<CommandProcessorState, CommandProcessor>();
-        
+
         config.State.Add<PlayerRoomState>();
         config.Rules.Register<RoomMover>();
         config.Rules.Register<RoomHistoryUpdater>();
