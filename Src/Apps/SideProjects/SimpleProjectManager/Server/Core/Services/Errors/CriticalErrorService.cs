@@ -43,19 +43,24 @@ public class CriticalErrorService : ICriticalErrorService
     {
         if (Computed.IsInvalidating()) return Array.Empty<CriticalError>();
         
-        var result = await _errorEntrys.Find(_errorEntrys.Operations.Eq(e => e.IsDisabled, false)).Project(d => d.Error).ToArrayAsync(token);
+        var result = await _errorEntrys
+           .Find(_errorEntrys.Operations.Eq(e => e.IsDisabled, false))
+           .Select(d => d.Error)
+           .ToAsyncEnumerable(token)
+           .ProjectTo<DbCriticalError, CriticalError>(_mapper)
+           .ToArrayAsync(token);
 
-        return _mapper.Map<CriticalError[]>(result);
+        return result;
     }
 
     public virtual async Task<string> DisableError(string id, CancellationToken token)
     {
-        var filter = _errorEntrys.Operations.Eq(e => e.Id, new ObjectId(id));
+        var filter = _errorEntrys.Operations.Eq(e => e.Id, id);
         var updater = _errorEntrys.Operations.Set(e => e.IsDisabled, true);
 
         try
         {
-            var result = await _errorEntrys.UpdateOneAsync(filter, updater, cancellationToken: token);
+            DbOperationResult result = await _errorEntrys.UpdateOneAsync(filter, updater, cancellationToken: token);
 
             if (!result.IsAcknowledged || result.ModifiedCount != 1) 
                 return "Unbekannter fehler beim Aktualisieren der Datenbank";
@@ -76,8 +81,10 @@ public class CriticalErrorService : ICriticalErrorService
     {
         try
         {
-            var id = ObjectId.GenerateNewId();
-            await _errorEntrys.InsertOneAsync(new CriticalErrorEntry(id, error with { Id = id.ToString() }, false), token);
+            var id = ObjectId.GenerateNewId().ToString();
+            CriticalErrorEntry entry = new(id, error with { Id = id }, false);
+            
+            await _errorEntrys.InsertOneAsync(_mapper.Map<DbCriticalErrorEntry>(entry), token);
             Invalidate();
         }
         catch (Exception e)

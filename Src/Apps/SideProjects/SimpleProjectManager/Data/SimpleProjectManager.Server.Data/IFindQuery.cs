@@ -8,7 +8,7 @@ public interface IFindQuery<TStart, TData>
     
     TData? FirstOrDefault();
     
-    IFindQuery<TStart, TResult> Project<TResult>(Expression<Func<TStart, TResult>> transform);
+    IFindQuery<TStart, TResult> Select<TResult>(Expression<Func<TStart, TResult>> transform);
     ValueTask<TData[]> ToArrayAsync(CancellationToken token);
     ValueTask<TData> FirstAsync(CancellationToken token);
     ValueTask<long> CountAsync(CancellationToken token);

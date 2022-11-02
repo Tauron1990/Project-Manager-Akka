@@ -30,8 +30,8 @@ public sealed class TransformingQuery<TStart, TData> : IFindQuery<TStart, TData>
         return EqualityComparer<TStart?>.Default.Equals(result, default) ? default : _transform(result!);
     }
 
-    public IFindQuery<TStart, TResult> Project<TResult>(Expression<Func<TStart, TResult>> transform)
-        => _original.Project(transform);
+    public IFindQuery<TStart, TResult> Select<TResult>(Expression<Func<TStart, TResult>> transform)
+        => _original.Select(transform);
 
     public async ValueTask<TData[]> ToArrayAsync(CancellationToken token)
         => (from arg in await _original.ToArrayAsync(token)
@@ -68,7 +68,7 @@ public sealed class LiteQuery<TStart> : IFindQuery<TStart, TStart>
     public TStart? FirstOrDefault()
         => GetData().FirstOrDefault();
 
-    public IFindQuery<TStart, TResult> Project<TResult>(Expression<Func<TStart, TResult>> transform)
+    public IFindQuery<TStart, TResult> Select<TResult>(Expression<Func<TStart, TResult>> transform)
         => new TransformingQuery<TStart, TResult>(this, transform);
 
     public ValueTask<TStart[]> ToArrayAsync(CancellationToken token)

@@ -82,7 +82,7 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
                 _projects.Operations.Eq(p => p.Status, ProjectStatus.Pending)
             );
 
-        return await _projects.Find(filter).Project(p => p.Ordering).ToArrayAsync(token);
+        return await _projects.Find(filter).Select(p => p.Ordering).ToArrayAsync(token);
     }
 
     public virtual async Task<JobData> GetJobData(ProjectId id, CancellationToken token)

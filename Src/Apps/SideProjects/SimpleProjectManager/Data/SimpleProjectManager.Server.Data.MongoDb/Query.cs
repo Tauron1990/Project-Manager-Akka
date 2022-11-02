@@ -16,7 +16,7 @@ public sealed class Query<TStart, TData> : IFindQuery<TStart, TData>
     public TData? FirstOrDefault()
         => _findFluent.FirstOrDefault();
 
-    public IFindQuery<TStart, TResult> Project<TResult>(Expression<Func<TStart, TResult>> transform)
+    public IFindQuery<TStart, TResult> Select<TResult>(Expression<Func<TStart, TResult>> transform)
         => new Query<TStart, TResult>(_findFluent.Project(transform));
 
     public async ValueTask<TData[]> ToArrayAsync(CancellationToken token)

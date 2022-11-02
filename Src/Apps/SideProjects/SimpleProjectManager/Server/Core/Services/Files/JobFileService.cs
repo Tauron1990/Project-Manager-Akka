@@ -3,7 +3,9 @@ using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Akkatecture.Jobs;
+using AutoMapper;
 using SimpleProjectManager.Server.Data;
+using SimpleProjectManager.Server.Data.Data;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
@@ -14,14 +16,17 @@ public class JobFileService : IJobFileService, IDisposable
 {
     private readonly ILogger<JobFileService> _logger;
     private readonly FileContentManager _contentManager;
-    private readonly IDatabaseCollection<FileInfoData> _files;
+    private readonly IDatabaseCollection<DbFileInfoData> _files;
     private readonly IDisposable _subscription;
+    private readonly IMapper _mapper;
 
     public JobFileService(IInternalDataRepository dataRepository, ILogger<JobFileService> logger, IEventAggregator aggregator, FileContentManager contentManager)
     {
         _logger = logger;
         _contentManager = contentManager;
-        _files = dataRepository.Collection<FileInfoData>();
+        _files = dataRepository.Databases.FileInfos;
+        _mapper = dataRepository.Databases.Mapper;
+        
         _subscription = new CompositeDisposable
                         {
                             aggregator.SubscribeTo<FileAdded>()
@@ -41,8 +46,8 @@ public class JobFileService : IJobFileService, IDisposable
                                         using (Computed.Invalidate())
                                             GetAllFiles(default).Ignore();
 
-                                        var filter = _files.Operations.Eq(m => m.Id, d.Id);
-                                        var result = _files.DeleteOne(filter);
+                                        var filter = _files.Operations.Eq(m => m.Id, d.Id.Value);
+                                        DbOperationResult result = _files.DeleteOne(filter);
 
                                         if (!result.IsAcknowledged || result.DeletedCount != 1) return;
 
@@ -56,7 +61,7 @@ public class JobFileService : IJobFileService, IDisposable
     {
         if (Computed.IsInvalidating()) return null;
         
-        var filter =_files.Operations.Eq(d => d.Id, id);
+        var filter =_files.Operations.Eq(d => d.Id, id.Value);
         var result = await _files.Find(filter).FirstOrDefaultAsync(token);
 
         return result == null 
