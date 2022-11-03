@@ -61,11 +61,7 @@ public class JobFileService : IJobFileService, IDisposable
         if (Computed.IsInvalidating()) return null;
         
         var filter =_files.Operations.Eq(d => d.Id, id.Value);
-        ProjectFileInfo? result = await _files.ExecuteFirstOrDefaultAsync<DbFileInfoData, ProjectFileInfo>(_files.Find(filter), token);
-
-        return result == null
-            ? null
-            : result;
+        return await _files.ExecuteFirstOrDefaultAsync<DbFileInfoData, ProjectFileInfo>(_files.Find(filter), token);
     }
 
     public virtual async Task<DatabaseFile[]> GetAllFiles(CancellationToken token)
