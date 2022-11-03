@@ -13,10 +13,11 @@ public sealed class LiteDataRepository : IInternalDataRepository
     private readonly ILiteDatabase _database;
     private readonly ConcurrentDictionary<object, LiteTransaction> _transactions = new();
 
-    public LiteDataRepository(ILiteDatabase database)
+    public LiteDataRepository(IServiceProvider serviceProvider, ILiteDatabase database)
     {
         _database = database;
         SerializationHelper<CheckPointInfo>.Register();
+        Databases = new LiteDatabases(serviceProvider, database);
     }
 
     private LiteTransaction GetTransaction(object key)
@@ -43,9 +44,6 @@ public sealed class LiteDataRepository : IInternalDataRepository
         }
     }
 
-    public IDatabaseCollection<TData> Collection<TData>()
-        => new LiteDatabaseCollection<TData>(InternalCollection<TData>());
-    
     private ILiteCollection<TData> InternalCollection<TData>(LiteTransaction? transaction = null)
     {
         SerializationHelper<TData>.Register();
@@ -130,4 +128,6 @@ public sealed class LiteDataRepository : IInternalDataRepository
         return _database.GetCollection<CheckPointInfo>()
            .FindById(GetDatabaseId(typeof(TProjection)))?.Checkpoint;
     }
+
+    public IDatabases Databases { get; }
 }

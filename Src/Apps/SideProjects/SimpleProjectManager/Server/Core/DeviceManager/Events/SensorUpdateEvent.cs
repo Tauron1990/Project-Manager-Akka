@@ -1,4 +1,5 @@
 ﻿using SimpleProjectManager.Client.Operations.Shared.Devices;
+using SimpleProjectManager.Shared.Services.Devices;
 
 namespace SimpleProjectManager.Server.Core.DeviceManager.Events;
 

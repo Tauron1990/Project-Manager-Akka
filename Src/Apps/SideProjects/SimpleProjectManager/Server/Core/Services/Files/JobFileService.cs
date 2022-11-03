@@ -3,7 +3,6 @@ using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Akkatecture.Jobs;
-using AutoMapper;
 using SimpleProjectManager.Server.Data;
 using SimpleProjectManager.Server.Data.Data;
 using SimpleProjectManager.Shared;
@@ -16,16 +15,16 @@ public class JobFileService : IJobFileService, IDisposable
 {
     private readonly ILogger<JobFileService> _logger;
     private readonly FileContentManager _contentManager;
-    private readonly IDatabaseCollection<DbFileInfoData> _files;
+    private readonly MappingDatabase<DbFileInfoData, FileInfoData> _files;
     private readonly IDisposable _subscription;
-    private readonly IMapper _mapper;
 
     public JobFileService(IInternalDataRepository dataRepository, ILogger<JobFileService> logger, IEventAggregator aggregator, FileContentManager contentManager)
     {
         _logger = logger;
         _contentManager = contentManager;
-        _files = dataRepository.Databases.FileInfos;
-        _mapper = dataRepository.Databases.Mapper;
+        _files = new MappingDatabase<DbFileInfoData, FileInfoData>(
+            dataRepository.Databases.FileInfos,
+            dataRepository.Databases.Mapper);
         
         _subscription = new CompositeDisposable
                         {
@@ -62,11 +61,11 @@ public class JobFileService : IJobFileService, IDisposable
         if (Computed.IsInvalidating()) return null;
         
         var filter =_files.Operations.Eq(d => d.Id, id.Value);
-        var result = await _files.Find(filter).FirstOrDefaultAsync(token);
+        ProjectFileInfo? result = await _files.ExecuteFirstOrDefaultAsync<DbFileInfoData, ProjectFileInfo>(_files.Find(filter), token);
 
-        return result == null 
-            ? null 
-            : new ProjectFileInfo(result.Id, result.ProjectName, result.FileName, result.Size, result.FileType, result.Mime);
+        return result == null
+            ? null
+            : result;
     }
 
     public virtual async Task<DatabaseFile[]> GetAllFiles(CancellationToken token)
@@ -84,7 +83,7 @@ public class JobFileService : IJobFileService, IDisposable
     {
         try
         {
-            var filter = _files.Operations.Eq(d => d.Id, projectFile.Id);
+            var filter = _files.Operations.Eq(d => d.Id, projectFile.Id.Value);
 
             if (await _files.CountEntrys(filter, token) == 1)
                 return "Der eintrag existiert schon";
@@ -99,7 +98,7 @@ public class JobFileService : IJobFileService, IDisposable
                     FileType = projectFile.FileType,
                     Mime = projectFile.Mime
                 },
-                cancellationToken: token);
+                token);
 
             return string.Empty;
         }

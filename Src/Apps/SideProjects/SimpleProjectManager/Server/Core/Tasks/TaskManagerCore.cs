@@ -6,26 +6,17 @@ using Akka.DependencyInjection;
 using Akkatecture.Jobs;
 using Akkatecture.Jobs.Commands;
 using SimpleProjectManager.Server.Data;
+using SimpleProjectManager.Server.Data.Data;
 using SimpleProjectManager.Shared.Services;
+using SimpleProjectManager.Shared.Services.Tasks;
 
 #pragma warning disable EX006
 
 namespace SimpleProjectManager.Server.Core.Tasks;
 
-public sealed record TaskManagerEntry
-{
-    public string Id { get; init; } = string.Empty;
-    public string ManagerId { get; init; } = string.Empty;
-
-    public string Name { get; init; } = string.Empty;
-
-    public string JobId { get; init; } = string.Empty;
-    public string Info { get; init; } = string.Empty;
-}
-
 public sealed class TaskManagerCore
 {
-    private readonly IDatabaseCollection<TaskManagerEntry> _entrys;
+    private readonly MappingDatabase<DbTaskManagerEntry, TaskManagerEntry> _entrys;
     private readonly ConcurrentBag<RegisterJobType> _registrations = new();
     private readonly ConcurrentDictionary<string, IActorRef> _jobManagers = new();
     private readonly ActorSystem _actorSystem;
@@ -41,7 +32,9 @@ public sealed class TaskManagerCore
         _actorSystem = actorSystem;
         _aggregator = aggregator;
         _criticalErrors = new CriticalErrorHelper(nameof(TaskManagerCore), criticalErrorService, logger);
-        _entrys = repository.Collection<TaskManagerEntry>();
+        _entrys = new MappingDatabase<DbTaskManagerEntry, TaskManagerEntry>(
+            repository.Databases.TaskManagerEntrys,
+            repository.Databases.Mapper);
         
         InitAutoDelete();
     }
@@ -137,9 +130,9 @@ public sealed class TaskManagerCore
                 Func<Task>? remove = null;
                 try
                 {
-                    var (name, taskCommand, info) = command;
-                    var registration = _registrations.First(d => d.IsCompatible(taskCommand));
-                    var jobId = registration.GetId(taskCommand);
+                    (string name, object taskCommand, string info) = command;
+                    RegisterJobType registration = _registrations.First(d => d.IsCompatible(taskCommand));
+                    string jobId = registration.GetId(taskCommand);
 
                     if (string.IsNullOrWhiteSpace(jobId))
                         return OperationResult.Failure("Die Job Id ist Leer");
@@ -153,7 +146,7 @@ public sealed class TaskManagerCore
                                     Info = info
                                 };
 
-                    var manager = GetJobManager(registration);
+                    IActorRef manager = GetJobManager(registration);
                     
                     await _entrys.InsertOneAsync(entry, cancellationToken: token);
                     remove = async () => await _entrys.DeleteOneAsync(_entrys.Operations.Eq(e => e.Id, entry.Id), token);
@@ -206,5 +199,5 @@ public sealed class TaskManagerCore
             () => ImmutableList<ErrorProperty>.Empty.Add(new ErrorProperty("Task Id", id)));
 
     public async ValueTask<TaskManagerEntry[]> GetCurrentTasks(CancellationToken token)
-        => (await _entrys.Find(_entrys.Operations.Empty).ToArrayAsync(token));
+        => await _entrys.ExecuteArray(_entrys.Find(_entrys.Operations.Empty), token);
 }

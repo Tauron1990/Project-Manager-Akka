@@ -10,7 +10,7 @@ public interface ICriticalErrorService
     [ComputeMethod(MinCacheDuration = 5)]
     Task<CriticalError[]> GetErrors(CancellationToken token);
 
-    Task<string> DisableError(string id, CancellationToken token);
+    Task<string> DisableError(ErrorId id, CancellationToken token);
     
     Task WriteError(CriticalError error, CancellationToken token);
 }

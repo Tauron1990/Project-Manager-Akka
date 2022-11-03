@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using Akka.Actor;
+using SimpleProjectManager.Shared.Services.Devices;
 
 namespace SimpleProjectManager.Client.Operations.Shared.Devices;
 

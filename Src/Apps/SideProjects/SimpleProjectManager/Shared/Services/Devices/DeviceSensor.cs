@@ -1,4 +1,4 @@
-﻿namespace SimpleProjectManager.Client.Operations.Shared.Devices;
+﻿namespace SimpleProjectManager.Shared.Services.Devices;
 
 public enum SensorType
 {
@@ -8,4 +8,4 @@ public enum SensorType
     Number
 }
 
-public sealed record DeviceSensor(string DisplayName, string Identifer, SensorType SensorType);
+public sealed record DeviceSensor(string DisplayName, DeviceId Identifer, SensorType SensorType);

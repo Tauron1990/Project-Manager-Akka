@@ -1,6 +1,6 @@
 ﻿using JetBrains.Annotations;
 using RestEase;
-using SimpleProjectManager.Client.Operations.Shared.Devices;
+using SimpleProjectManager.Shared.Services.Devices;
 
 namespace SimpleProjectManager.Shared.ServerApi.RestApi;
 
@@ -11,26 +11,26 @@ public interface IDeviceServiceDef
     Task<string[]> GetAllDevices(CancellationToken token);
 
     [Get(nameof(GetRootUi))]
-    Task<DeviceUiGroup> GetRootUi([Query] string device, CancellationToken token);
+    Task<DeviceUiGroup> GetRootUi([Query] DeviceId device, CancellationToken token);
 
     [Get(nameof(GetStringSensorValue))]
-    Task<string> GetStringSensorValue([Query] string device, [Query] string sensor, CancellationToken token);
+    Task<string> GetStringSensorValue([Query] DeviceId device, [Query] DeviceId sensor, CancellationToken token);
 
     [Get(nameof(GetIntSensorValue))]
-    Task<int> GetIntSensorValue([Query]string device, [Query]string sensor, CancellationToken token);
+    Task<int> GetIntSensorValue([Query]DeviceId device, [Query]DeviceId sensor, CancellationToken token);
     
     [Get(nameof(GetDoubleSensorValue))]
-    Task<double> GetDoubleSensorValue([Query]string device, [Query]string sensor, CancellationToken token);
+    Task<double> GetDoubleSensorValue([Query]DeviceId device, [Query]DeviceId sensor, CancellationToken token);
 
     [Get(nameof(CanClickButton))]
-    Task<bool> CanClickButton([Query]string device, [Query]string button, CancellationToken token);
+    Task<bool> CanClickButton([Query]DeviceId device, [Query]DeviceId button, CancellationToken token);
 
     [Get(nameof(CurrentLogs))]
     Task<DateTime> CurrentLogs(CancellationToken token);
 
     [Get(nameof(GetBatches))]
-    Task<LogBatch[]> GetBatches([Query]string deviceName, [Query]DateTime from, CancellationToken token);
+    Task<LogBatch[]> GetBatches([Query]DeviceId deviceName, [Query]DateTime from, CancellationToken token);
 
     [Post(nameof(ClickButton))]
-    Task<string> ClickButton([Body]string device, [Query]string button, CancellationToken token);
+    Task<string> ClickButton([Body]DeviceId device, [Query]DeviceId button, CancellationToken token);
 }

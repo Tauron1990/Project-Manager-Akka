@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
 using MongoDB.Driver;
 
 namespace SimpleProjectManager.Server.Data.MongoDb;
@@ -30,4 +31,15 @@ public sealed class Query<TStart, TData> : IFindQuery<TStart, TData>
 
     public async ValueTask<TData> SingleAsync(CancellationToken token = default)
         => await _findFluent.SingleAsync(token);
+
+    public async IAsyncEnumerable<TData> ToAsyncEnumerable([EnumeratorCancellation] CancellationToken token = default)
+    {
+        var cursor = await _findFluent.ToCursorAsync(token);
+
+        while (await cursor.MoveNextAsync(token))
+        {
+            foreach (TData data in cursor.Current)
+                yield return data;
+        }
+    }
 }

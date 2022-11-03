@@ -1,5 +1,6 @@
 ﻿using Akka.Actor;
 using Akka.Cluster.Tools.PublishSubscribe;
+using SimpleProjectManager.Shared.Services.Devices;
 
 namespace SimpleProjectManager.Client.Operations.Shared.Devices;
 

@@ -4,6 +4,7 @@ using Akka.Cluster.Tools.PublishSubscribe;
 using Akka.DependencyInjection;
 using SimpleProjectManager.Client.Operations.Shared.Devices;
 using SimpleProjectManager.Server.Core.DeviceManager.Events;
+using SimpleProjectManager.Shared.Services.Devices;
 
 namespace SimpleProjectManager.Server.Core.DeviceManager;
 

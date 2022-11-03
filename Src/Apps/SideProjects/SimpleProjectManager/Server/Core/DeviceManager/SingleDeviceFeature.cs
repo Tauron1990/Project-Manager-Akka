@@ -3,7 +3,7 @@ using System.Reactive.Linq;
 using Akka.Actor;
 using SimpleProjectManager.Client.Operations.Shared.Devices;
 using SimpleProjectManager.Server.Core.DeviceManager.Events;
-
+using SimpleProjectManager.Shared.Services.Devices;
 using static SimpleProjectManager.Client.Operations.Shared.Devices.DeviceManagerMessages;
 
 namespace SimpleProjectManager.Server.Core.DeviceManager;

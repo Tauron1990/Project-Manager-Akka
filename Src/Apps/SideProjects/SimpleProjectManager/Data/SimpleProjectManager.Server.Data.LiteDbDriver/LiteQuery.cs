@@ -46,6 +46,9 @@ public sealed class TransformingQuery<TStart, TData> : IFindQuery<TStart, TData>
 
     public async ValueTask<TData> SingleAsync(CancellationToken token = default)
         => _transform(await _original.SingleAsync(token));
+
+    public IAsyncEnumerable<TData> ToAsyncEnumerable(CancellationToken token = default)
+        => _original.ToAsyncEnumerable(token).Select(_transform);
 }
 
 public sealed class LiteQuery<TStart> : IFindQuery<TStart, TStart>
@@ -82,4 +85,7 @@ public sealed class LiteQuery<TStart> : IFindQuery<TStart, TStart>
 
     public ValueTask<TStart> SingleAsync(CancellationToken token = default)
         => To.VTask(GetData().Single);
+
+    public IAsyncEnumerable<TStart> ToAsyncEnumerable(CancellationToken token = default)
+        => GetData().ToAsyncEnumerable();
 }

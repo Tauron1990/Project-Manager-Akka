@@ -1,5 +1,5 @@
 ﻿using System.Collections.Immutable;
 
-namespace SimpleProjectManager.Client.Operations.Shared.Devices;
+namespace SimpleProjectManager.Shared.Services.Devices;
 
 public sealed record DeviceLogInfo(string Messages, ImmutableDictionary<string, string> Propertys);

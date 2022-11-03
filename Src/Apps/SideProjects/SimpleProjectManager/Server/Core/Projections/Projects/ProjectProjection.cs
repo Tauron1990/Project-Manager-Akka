@@ -10,7 +10,6 @@ namespace SimpleProjectManager.Server.Core.Projections;
 [UsedImplicitly]
 public sealed record ProjectProjection : IProjectorData<ProjectId>
 {
-    [BsonId]
     public ProjectId Id { get; set; } = ProjectId.New;
 
     public ProjectName JobName { get; set; } = ProjectName.Empty;

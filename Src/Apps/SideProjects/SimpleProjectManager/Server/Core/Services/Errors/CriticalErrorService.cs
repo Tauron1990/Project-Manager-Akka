@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using MongoDB.Bson;
+﻿using MongoDB.Bson;
 using SimpleProjectManager.Server.Data;
 using SimpleProjectManager.Server.Data.Data;
 using SimpleProjectManager.Shared.Services;
@@ -11,16 +10,16 @@ namespace SimpleProjectManager.Server.Core.Services;
 public class CriticalErrorService : ICriticalErrorService
 {
     private readonly ILogger<CriticalErrorService> _logger;
-    private readonly IDatabaseCollection<DbCriticalErrorEntry> _errorEntrys;
-    private readonly IMapper _mapper;
+    private readonly MappingDatabase<DbCriticalErrorEntry, CriticalErrorEntry> _errorEntrys;
     
     public CriticalErrorService(IInternalDataRepository dataRepository, ILogger<CriticalErrorService> logger)
     {
         ImmutableListSerializer<ErrorProperty>.Register();
 
         _logger = logger;
-        _errorEntrys = dataRepository.Databases.CriticalErrors;
-        _mapper = dataRepository.Databases.Mapper;
+        _errorEntrys = new MappingDatabase<DbCriticalErrorEntry, CriticalErrorEntry>(
+            dataRepository.Databases.CriticalErrors,
+            dataRepository.Databases.Mapper);
         //#if DEBUG
         //if (_errorEntrys.CountDocuments(Builders<CriticalErrorEntry>.Filter.Empty) == 0)
         //{
@@ -42,13 +41,12 @@ public class CriticalErrorService : ICriticalErrorService
     public virtual async Task<CriticalError[]> GetErrors(CancellationToken token)
     {
         if (Computed.IsInvalidating()) return Array.Empty<CriticalError>();
-        
-        var result = await _errorEntrys
-           .Find(_errorEntrys.Operations.Eq(e => e.IsDisabled, false))
-           .Select(d => d.Error)
-           .ToAsyncEnumerable(token)
-           .ProjectTo<DbCriticalError, CriticalError>(_mapper)
-           .ToArrayAsync(token);
+
+        var result = await _errorEntrys.ExecuteArray<DbCriticalError, CriticalError>(
+            _errorEntrys
+               .Find(_errorEntrys.Operations.Eq(e => e.IsDisabled, false))
+               .Select(d => d.Error),
+            token);
 
         return result;
     }
@@ -84,7 +82,7 @@ public class CriticalErrorService : ICriticalErrorService
             var id = ObjectId.GenerateNewId().ToString();
             CriticalErrorEntry entry = new(id, error with { Id = id }, false);
             
-            await _errorEntrys.InsertOneAsync(_mapper.Map<DbCriticalErrorEntry>(entry), token);
+            await _errorEntrys.InsertOneAsync(entry, token);
             Invalidate();
         }
         catch (Exception e)

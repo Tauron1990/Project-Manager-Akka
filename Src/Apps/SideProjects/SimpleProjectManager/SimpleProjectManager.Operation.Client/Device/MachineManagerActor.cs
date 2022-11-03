@@ -3,6 +3,7 @@ using Akka.Cluster.Tools.Singleton;
 using Microsoft.Extensions.Logging;
 using SimpleProjectManager.Client.Operations.Shared.Devices;
 using SimpleProjectManager.Operation.Client.Config;
+using SimpleProjectManager.Shared.Services.Devices;
 using Tauron.TAkka;
 using static SimpleProjectManager.Client.Operations.Shared.Devices.DeviceManagerMessages;
 

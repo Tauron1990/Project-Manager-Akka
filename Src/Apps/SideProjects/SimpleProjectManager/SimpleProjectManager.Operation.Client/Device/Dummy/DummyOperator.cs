@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using SimpleProjectManager.Client.Operations.Shared.Devices;
+using SimpleProjectManager.Shared.Services.Devices;
 
 namespace SimpleProjectManager.Operation.Client.Device.Dummy;
 

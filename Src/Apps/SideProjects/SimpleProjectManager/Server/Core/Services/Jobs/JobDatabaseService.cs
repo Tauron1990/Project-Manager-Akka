@@ -6,6 +6,7 @@ using SimpleProjectManager.Server.Core.Data.Events;
 using SimpleProjectManager.Server.Core.Projections;
 using SimpleProjectManager.Server.Core.Projections.Core;
 using SimpleProjectManager.Server.Data;
+using SimpleProjectManager.Server.Data.Data;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
@@ -15,14 +16,16 @@ namespace SimpleProjectManager.Server.Core.Services;
 public class JobDatabaseService : IJobDatabaseService, IDisposable
 {
     private readonly CommandProcessor _commandProcessor;
-    private readonly IDatabaseCollection<ProjectProjection> _projects;
+    private readonly MappingDatabase<DbProjectProjection, ProjectProjection> _projects;
     private readonly IDisposable _subscription;
-
+    
     public JobDatabaseService(IInternalDataRepository database, CommandProcessor commandProcessor, DomainEventDispatcher dispatcher)
     {
         _commandProcessor = commandProcessor;
-        _projects = database.Collection<ProjectProjection>();
-
+        _projects = new MappingDatabase<DbProjectProjection, ProjectProjection>(
+            database.Databases.ProjectProjections,
+            database.Databases.Mapper);
+        
         _subscription = dispatcher.Get()
            .OfType<IDomainEvent<Project, ProjectId>>()
            .Subscribe(
@@ -62,7 +65,7 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
 
         var filter = _projects.Operations.Eq(p => p.Status, ProjectStatus.Finished);
         #if DEBUG
-        var projectionData = await _projects.Find(filter.Not).ToArrayAsync(token);
+        var projectionData = await _projects.ExecuteArray(_projects.Find(filter.Not), token);
         
         return projectionData.Select(d => new JobInfo(d.Id, d.JobName, d.Deadline, d.Status, d.ProjectFiles.Count != 0)).ToArray();
         #else
@@ -82,15 +85,15 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
                 _projects.Operations.Eq(p => p.Status, ProjectStatus.Pending)
             );
 
-        return await _projects.Find(filter).Select(p => p.Ordering).ToArrayAsync(token);
+        return await _projects.ExecuteArray<DBSortOrder, SortOrder>(_projects.Find(filter).Select(p => p.Ordering), token);
     }
 
     public virtual async Task<JobData> GetJobData(ProjectId id, CancellationToken token)
     {
         if (Computed.IsInvalidating()) return null!;
         
-        var filter = _projects.Operations.Eq(p => p.Id, id);
-        var result = await _projects.Find(filter).FirstAsync(token);
+        var filter = _projects.Operations.Eq(p => p.Id, id.Value);
+        ProjectProjection result = await _projects.ExecuteFirstAsync(_projects.Find(filter), token);
 
         return new JobData(result.Id, result.JobName, result.Status, result.Ordering, result.Deadline, result.ProjectFiles.ToImmutableList());
     }
@@ -113,14 +116,14 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
 
     public virtual async Task<string> ChangeOrder(SetSortOrder newOrder, CancellationToken token)
     {
-        var (ignoreIfEmpty, sortOrder) = newOrder;
+        (bool ignoreIfEmpty, SortOrder? sortOrder) = newOrder;
 
         if (sortOrder is null)
             return ignoreIfEmpty ? string.Empty : "Sortier Daten nicht zur Verfügung gestellt";
 
-        var result = await _projects.UpdateOneAsync(
-            _projects.Operations.Eq(p => p.Id, sortOrder.Id),
-            _projects.Operations.Set(p => p.Ordering, sortOrder),
+        DbOperationResult result = await _projects.UpdateOneAsync(
+            _projects.Operations.Eq(p => p.Id, sortOrder.Id.Value),
+            _projects.Operations.Set(p => p.Ordering, _projects.Mapper.Map<DBSortOrder>(sortOrder)),
             cancellationToken: token);
 
         if(result.ModifiedCount == 0)

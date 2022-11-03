@@ -13,12 +13,13 @@ public sealed class InternalDataRepository : IInternalDataRepository
     private readonly IMongoDatabase _database;
     private readonly IMongoCollection<CheckPointInfo> _checkpointInfo;
 
+    public IDatabases Databases { get; }
     
-    
-    public InternalDataRepository(IMongoDatabase database)
+    public InternalDataRepository(IServiceProvider serviceProvider, IMongoDatabase database)
     {
         _database = database;
         _checkpointInfo = database.GetCollection<CheckPointInfo>(nameof(CheckPointInfo));
+        Databases = new MongoDataBases(serviceProvider, database);
     }
 
     private static string GetDatabaseId(Type type)
@@ -29,7 +30,7 @@ public sealed class InternalDataRepository : IInternalDataRepository
             key,
             static (_, db) =>
             {
-                var session = db.Client.StartSession();
+                IClientSessionHandle? session = db.Client.StartSession();
 
                 if(session.IsInTransaction)
                     return session;
@@ -46,7 +47,7 @@ public sealed class InternalDataRepository : IInternalDataRepository
 
     private async Task CommitCheckpoint<TData>(IClientSessionHandle? handle, ProjectionContext context)
     {
-        var id = GetDatabaseId(typeof(TData));
+        string id = GetDatabaseId(typeof(TData));
         var data = new CheckPointInfo { Checkpoint = context.Checkpoint, Id = id };
         var filter = Builders<CheckPointInfo>.Filter.Eq(cp => cp.Id, id);
         var option = new ReplaceOptions { IsUpsert = true };
@@ -57,9 +58,6 @@ public sealed class InternalDataRepository : IInternalDataRepository
             await _checkpointInfo.ReplaceOneAsync(handle, filter, data, option);
     }
 
-    public IDatabaseCollection<TData> Collection<TData>()
-        => new DatabaseCollection<TData>(InternalCollection<TData>());
-    
     private IMongoCollection<TData> InternalCollection<TData>()
         => _database.GetCollection<TData>(typeof(TData).Name);
 
@@ -84,13 +82,13 @@ public sealed class InternalDataRepository : IInternalDataRepository
         var coll = InternalCollection<TProjection>();
         var filter = Builders<TProjection>.Filter.Eq(p => p.Id, identity);
 
-        var data = await coll.Find(filter).FirstOrDefaultAsync();
+        TProjection? data = await coll.Find(filter).FirstOrDefaultAsync();
         if (data == null)
             data = DataFactory();
         else if (shouldoverwite(data))
         {
             data = DataFactory();
-            var trans = GetTransaction(identity);
+            IClientSessionHandle trans = GetTransaction(identity);
             await coll.ReplaceOneAsync(trans, filter, data);
         }
 
@@ -103,7 +101,7 @@ public sealed class InternalDataRepository : IInternalDataRepository
     {
         var coll = InternalCollection<TProjection>();
         var filter = Builders<TProjection>.Filter.Eq(p => p.Id, identity);
-        var result = await coll.DeleteOneAsync(filter);
+        DeleteResult? result = await coll.DeleteOneAsync(filter);
         await CommitCheckpoint<TProjection>(null, context);
 
         return result.DeletedCount == 1;
@@ -113,7 +111,7 @@ public sealed class InternalDataRepository : IInternalDataRepository
         where TIdentity : IIdentity
         where TProjection : class, IProjectorData<TIdentity>
     {
-        var trans = GetTransaction(identity);
+        IClientSessionHandle trans = GetTransaction(identity);
         var filter = Builders<TProjection>.Filter.Eq(p => p.Id, identity);
         var options = new ReplaceOptions { IsUpsert = true };
         var coll = InternalCollection<TProjection>();
@@ -128,7 +126,7 @@ public sealed class InternalDataRepository : IInternalDataRepository
     public async Task Completed<TIdentity>(TIdentity identity)
         where TIdentity : IIdentity
     {
-        if (!_transactions.TryRemove(identity, out var transaction)) return;
+        if (!_transactions.TryRemove(identity, out IClientSessionHandle? transaction)) return;
 
         if (transaction.IsInTransaction)
             await transaction.AbortTransactionAsync();

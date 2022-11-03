@@ -1,6 +1,6 @@
 ﻿using Akka.Actor;
 using SimpleProjectManager.Client.Operations.Shared.Devices;
-
+using SimpleProjectManager.Shared.Services.Devices;
 using static SimpleProjectManager.Client.Operations.Shared.Devices.DeviceManagerMessages;
 
 namespace SimpleProjectManager.Operation.Client.Device;

@@ -7,7 +7,11 @@ public interface IDatabases
 {
     IMapper Mapper { get; }
 
-    public IDatabaseCollection<DbFileInfoData> FileInfos { get; }
+    IDatabaseCollection<DbFileInfoData> FileInfos { get; }
     
-    public IDatabaseCollection<DbCriticalErrorEntry> CriticalErrors { get; }
+    IDatabaseCollection<DbCriticalErrorEntry> CriticalErrors { get; }
+    
+    IDatabaseCollection<DbProjectProjection> ProjectProjections { get; }
+    
+    IDatabaseCollection<DbTaskManagerEntry> TaskManagerEntrys { get; }
 }
