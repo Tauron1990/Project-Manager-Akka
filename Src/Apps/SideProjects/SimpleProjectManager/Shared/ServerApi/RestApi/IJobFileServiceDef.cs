@@ -1,9 +1,11 @@
-﻿using RestEase;
+﻿using System.Diagnostics.CodeAnalysis;
+using RestEase;
 using SimpleProjectManager.Shared.Services;
+using Tauron.Operations;
 
 namespace SimpleProjectManager.Shared.ServerApi.RestApi;
 
-[BasePath(ApiPaths.FilesApi)]
+[BasePath(ApiPaths.FilesApi), DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 public interface IJobFileServiceDef
 {
     [Get(nameof(GetJobFileInfo))]
@@ -13,14 +15,14 @@ public interface IJobFileServiceDef
     Task<DatabaseFile[]> GetAllFiles(CancellationToken token);
     
     [Post(nameof(RegisterFile))]
-    Task<string> RegisterFile([Body]ProjectFileInfo projectFile, CancellationToken token);
+    Task<SimpleResult> RegisterFile([Body]ProjectFileInfo projectFile, CancellationToken token);
 
     [Post(nameof(UploadFiles))]
     Task<UploadFileResult> UploadFiles([Body]MultipartFormDataContent content, CancellationToken token);
     
     [Post(nameof(CommitFiles))]
-    Task<string> CommitFiles([Body]FileList files, CancellationToken token);
+    Task<SimpleResult> CommitFiles([Body]FileList files, CancellationToken token);
 
     [Post(nameof(DeleteFiles))]
-    Task<string> DeleteFiles([Body]FileList files, CancellationToken token);
+    Task<SimpleResult> DeleteFiles([Body]FileList files, CancellationToken token);
 }

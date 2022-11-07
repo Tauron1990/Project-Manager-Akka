@@ -1,3 +1,3 @@
 ﻿namespace SimpleProjectManager.Shared;
 
-public sealed record AttachResult(string FailMessage, bool IsNew);
+public sealed record AttachResult(SimpleMessage FailMessage, bool IsNew);

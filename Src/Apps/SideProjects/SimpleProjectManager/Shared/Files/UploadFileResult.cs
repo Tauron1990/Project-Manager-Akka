@@ -2,4 +2,4 @@
 
 namespace SimpleProjectManager.Shared;
 
-public sealed record UploadFileResult(string FailMessage, ImmutableList<ProjectFileId> Ids);
+public sealed record UploadFileResult(SimpleMessage FailMessage, ImmutableList<ProjectFileId> Ids);

@@ -1,35 +1,37 @@
-﻿using RestEase;
+﻿using System.Diagnostics.CodeAnalysis;
+using RestEase;
 using SimpleProjectManager.Shared.Services;
+using Tauron.Operations;
 
 namespace SimpleProjectManager.Shared.ServerApi.RestApi;
 
-[BasePath(ApiPaths.JobsApi)]
+[BasePath(ApiPaths.JobsApi), DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 public interface IJobDatabaseServiceDef
 {
     [Get(nameof(GetActiveJobs))]
-    Task<JobInfo[]> GetActiveJobs(CancellationToken token);
+    Task<Jobs> GetActiveJobs(CancellationToken token);
 
     [Get(nameof(GetSortOrders))]
-    Task<SortOrder[]> GetSortOrders(CancellationToken token);
+    Task<SordOrders> GetSortOrders(CancellationToken token);
 
     [Get(nameof(GetJobData))]
     Task<JobData> GetJobData([Query]ProjectId id, CancellationToken token);
 
     [Get(nameof(CountActiveJobs))]
-    Task<long> CountActiveJobs(CancellationToken token);
+    Task<ActiveJobs> CountActiveJobs(CancellationToken token);
     
     [Post(nameof(CreateJob))]
-    Task<string> CreateJob([Body]CreateProjectCommand command, CancellationToken token);
+    Task<SimpleResult> CreateJob([Body]CreateProjectCommand command, CancellationToken token);
 
     [Post(nameof(ChangeOrder))]
-    Task<string> ChangeOrder([Body]SetSortOrder newOrder, CancellationToken token);
+    Task<SimpleResult> ChangeOrder([Body]SetSortOrder newOrder, CancellationToken token);
 
     [Post(nameof(UpdateJobData))]
-    Task<string> UpdateJobData([Body] UpdateProjectCommand command, CancellationToken token);
+    Task<SimpleResult> UpdateJobData([Body] UpdateProjectCommand command, CancellationToken token);
     
     [Post(nameof(AttachFiles))]
     Task<AttachResult> AttachFiles([Body]ProjectAttachFilesCommand command, CancellationToken token);
 
     [Post(nameof(RemoveFiles))]
-    Task<string> RemoveFiles([Body]ProjectRemoveFilesCommand command, CancellationToken token);
+    Task<SimpleResult> RemoveFiles([Body]ProjectRemoveFilesCommand command, CancellationToken token);
 }

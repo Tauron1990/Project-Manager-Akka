@@ -1,5 +1,6 @@
 ﻿using JetBrains.Annotations;
 using Stl.Fusion;
+using Tauron.Operations;
 
 namespace SimpleProjectManager.Shared.Services.Devices;
 
@@ -7,7 +8,7 @@ namespace SimpleProjectManager.Shared.Services.Devices;
 public interface IDeviceService
 {
     [ComputeMethod]
-    Task<string[]> GetAllDevices(CancellationToken token);
+    Task<Devices> GetAllDevices(CancellationToken token);
 
     [ComputeMethod]
     Task<DeviceUiGroup> GetRootUi(DeviceId device, CancellationToken token);
@@ -27,7 +28,7 @@ public interface IDeviceService
     [ComputeMethod]
     Task<DateTime> CurrentLogs(CancellationToken token);
 
-    Task<LogBatch[]> GetBatches(DeviceId deviceName, DateTime from, CancellationToken token);
+    Task<Logs> GetBatches(DeviceId deviceName, DateTime from, CancellationToken token);
 
-    Task<string> ClickButton(DeviceId device, DeviceId button, CancellationToken token);
+    Task<SimpleResult> ClickButton(DeviceId device, DeviceId button, CancellationToken token);
 }

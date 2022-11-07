@@ -1,14 +1,16 @@
-﻿using JetBrains.Annotations;
+﻿using System.Diagnostics.CodeAnalysis;
+using JetBrains.Annotations;
 using RestEase;
 using SimpleProjectManager.Shared.Services.Devices;
+using Tauron.Operations;
 
 namespace SimpleProjectManager.Shared.ServerApi.RestApi;
 
-[BasePath(ApiPaths.DeviceApi), UsedImplicitly(ImplicitUseTargetFlags.Members)]
+[BasePath(ApiPaths.DeviceApi), UsedImplicitly(ImplicitUseTargetFlags.Members), DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 public interface IDeviceServiceDef
 {
     [Get(nameof(GetAllDevices))]
-    Task<string[]> GetAllDevices(CancellationToken token);
+    Task<Devices> GetAllDevices(CancellationToken token);
 
     [Get(nameof(GetRootUi))]
     Task<DeviceUiGroup> GetRootUi([Query] DeviceId device, CancellationToken token);
@@ -29,8 +31,8 @@ public interface IDeviceServiceDef
     Task<DateTime> CurrentLogs(CancellationToken token);
 
     [Get(nameof(GetBatches))]
-    Task<LogBatch[]> GetBatches([Query]DeviceId deviceName, [Query]DateTime from, CancellationToken token);
+    Task<Logs> GetBatches([Query]DeviceId deviceName, [Query]DateTime from, CancellationToken token);
 
     [Post(nameof(ClickButton))]
-    Task<string> ClickButton([Body]DeviceId device, [Query]DeviceId button, CancellationToken token);
+    Task<SimpleResult> ClickButton([Body]DeviceId device, [Query]DeviceId button, CancellationToken token);
 }

@@ -29,12 +29,12 @@ public sealed record DeviceInformations(string DeviceName, bool HasLogs, DeviceU
 
         while (stack.Count != 0)
         {
-            var group = stack.Pop();
+            DeviceUiGroup group = stack.Pop();
 
-            foreach (var uiGroup in group.Groups)
+            foreach (DeviceUiGroup uiGroup in group.Groups)
                 stack.Push(uiGroup);
 
-            foreach (var sensor in group.Sensors)
+            foreach (DeviceSensor sensor in group.Sensors)
                 yield return sensor;
         }
     }
@@ -46,12 +46,12 @@ public sealed record DeviceInformations(string DeviceName, bool HasLogs, DeviceU
 
         while (stack.Count != 0)
         {
-            var group = stack.Pop();
+            DeviceUiGroup group = stack.Pop();
 
-            foreach (var uiGroup in group.Groups)
+            foreach (DeviceUiGroup uiGroup in group.Groups)
                 stack.Push(uiGroup);
 
-            foreach (var button in group.DeviceButtons)
+            foreach (DeviceButton button in group.DeviceButtons)
                 yield return button;
         }
     }

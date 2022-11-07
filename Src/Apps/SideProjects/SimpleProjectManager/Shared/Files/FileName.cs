@@ -1,5 +1,4 @@
 ﻿using Akkatecture.ValueObjects;
-using JetBrains.Annotations;
 
 namespace SimpleProjectManager.Shared;
 

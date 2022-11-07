@@ -39,7 +39,7 @@ public sealed partial class ServerDeviceManagerFeature : ActorFeatureBase<Server
         => obs.ToUnit(
             pair =>
             {
-                var (evt, state) = pair;
+                (DeviceInformations evt, State state) = pair;
                 NewDeviceRegistration(Logger, evt.DeviceName, pair.Sender.Path);
 
                 if(string.IsNullOrWhiteSpace(evt.DeviceName))
@@ -48,7 +48,8 @@ public sealed partial class ServerDeviceManagerFeature : ActorFeatureBase<Server
                     pair.Sender.Tell(new DeviceInfoResponse(false, "Empty Device Name"));
                     return;
                 }
-                    
+                 
+                
                 
                 if(!pair.Context.Child(evt.DeviceName).Equals(ActorRefs.Nobody))
                 {

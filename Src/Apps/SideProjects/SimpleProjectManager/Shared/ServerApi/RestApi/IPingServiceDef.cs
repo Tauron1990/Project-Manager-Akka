@@ -6,5 +6,5 @@ namespace SimpleProjectManager.Shared.ServerApi.RestApi;
 public interface IPingServiceDef
 {
     [Get]
-    Task<string> Ping(CancellationToken token);
+    Task<PingResult> Ping(CancellationToken token);
 }

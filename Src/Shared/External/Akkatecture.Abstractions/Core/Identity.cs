@@ -25,6 +25,7 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Akkatecture.Extensions;
@@ -51,21 +52,21 @@ public abstract class Identity<T> : SingleValueObject<string>, IIdentity
 
     public static T NewDeterministic(Guid namespaceId, string name)
     {
-        var guid = GuidFactories.Deterministic.Create(namespaceId, name);
+        Guid guid = GuidFactories.Deterministic.Create(namespaceId, name);
 
         return With(guid);
     }
 
     public static T NewDeterministic(Guid namespaceId, byte[] nameBytes)
     {
-        var guid = GuidFactories.Deterministic.Create(namespaceId, nameBytes);
+        Guid guid = GuidFactories.Deterministic.Create(namespaceId, nameBytes);
 
         return With(guid);
     }
 
     public static T NewComb()
     {
-        var guid = GuidFactories.Comb.Create();
+        Guid guid = GuidFactories.Comb.Create();
 
         return With(guid);
     }
@@ -79,7 +80,7 @@ public abstract class Identity<T> : SingleValueObject<string>, IIdentity
         }
         catch (TargetInvocationException exception)
         {
-            if (exception.InnerException != null) throw exception.InnerException;
+            if(exception.InnerException != null) throw exception.InnerException;
 
             throw;
         }
@@ -96,20 +97,20 @@ public abstract class Identity<T> : SingleValueObject<string>, IIdentity
 
     public static IEnumerable<string> Validate(string value)
     {
-        if (string.IsNullOrEmpty(value))
+        if(string.IsNullOrEmpty(value))
         {
             yield return $"Identity of type '{typeof(T).PrettyPrint()}' is null or empty";
 
             yield break;
         }
 
-        if (!string.Equals(value.Trim(), value, StringComparison.OrdinalIgnoreCase))
+        if(!string.Equals(value.Trim(), value, StringComparison.OrdinalIgnoreCase))
             yield return
                 $"Identity '{value}' of type '{typeof(T).PrettyPrint()}' contains leading and/or traling spaces";
 
-        if (!value.StartsWith(Name))
+        if(!value.StartsWith(Name))
             yield return $"Identity '{value}' of type '{typeof(T).PrettyPrint()}' does not start with '{Name}'";
-        if (!ValueValidation.IsMatch(value))
+        if(!ValueValidation.IsMatch(value))
             yield return
                 $"Identity '{value}' of type '{typeof(T).PrettyPrint()}' does not follow the syntax '[NAME]-[GUID]' in lower case";
     }
@@ -119,7 +120,7 @@ public abstract class Identity<T> : SingleValueObject<string>, IIdentity
     {
         var validationErrors = Validate(value).ToList();
 
-        if (validationErrors.Any())
+        if(validationErrors.Any())
             throw new ArgumentException($"Identity is invalid: {string.Join(", ", validationErrors)}");
 
         _lazyGuid = new Lazy<Guid>(() => Guid.Parse(ValueValidation.Match(Value).Groups["guid"].Value));
@@ -128,4 +129,18 @@ public abstract class Identity<T> : SingleValueObject<string>, IIdentity
     private readonly Lazy<Guid> _lazyGuid;
 
     public Guid GetGuid() => _lazyGuid.Value;
+    
+    [UsedImplicitly]
+    public static bool TryParse(string? value, [NotNullWhen(true)]out T? errorId)
+    {
+        if(!string.IsNullOrWhiteSpace(value) && IsValid(value))
+        {
+            errorId = With(value);
+
+            return true;
+        }
+
+        errorId = null;
+        return false;
+    }
 }
