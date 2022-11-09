@@ -3,8 +3,8 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
-using Tauron.TAkka;
 using Tauron.Application.CommonUI.Dialogs;
+using Tauron.TAkka;
 
 namespace Tauron.Application.CommonUI.Model;
 
@@ -50,15 +50,15 @@ public static class BaseDialogExtension
 
         return async () =>
                {
-                   var result = await actor
+                   TData result = await actor
                       .Dispatcher
                       .InvokeAsync(
                            () =>
                            {
-                               var dialog = 
+                               TDialog dialog =
                                    parameters.Length == 0
-                                   ? actor.ServiceProvider.GetRequiredService<TDialog>()
-                                   : ActivatorUtilities.CreateInstance<TDialog>(actor.ServiceProvider, parameters);
+                                       ? actor.ServiceProvider.GetRequiredService<TDialog>()
+                                       : ActivatorUtilities.CreateInstance<TDialog>(actor.ServiceProvider, parameters);
                                var task = dialog.Init(initalData());
 
                                _dialogCoordinator.ShowDialog(dialog);

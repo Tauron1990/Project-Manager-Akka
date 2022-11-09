@@ -9,7 +9,8 @@ public sealed record ActionState<TState, TAction>(TState State, TAction Action);
 [PublicAPI]
 public interface IReduxStore<TState> : IActionDispatcher, IDisposable
 {
-   
+    TState CurrentState { get; }
+
     IObservable<TResult> Select<TResult>(Func<TState, TResult> selector);
 
     IObservable<TState> Select();
@@ -18,21 +19,19 @@ public interface IReduxStore<TState> : IActionDispatcher, IDisposable
 
     IObservable<TResult> ObservAction<TAction, TResult>(Func<TState, TAction, TResult> selector);
 
-    TState CurrentState { get; }
-
     void Reset();
 
     void RegisterReducers(IEnumerable<On<TState>> reducers);
-    
+
     void RegisterEffects(IEnumerable<Effect<TState>> effects);
-    
-    
+
+
     void RegisterReducers(params On<TState>[] reducers);
-    
+
     void RegisterEffects(params Effect<TState>[] effects);
-    
+
     IObservable<object> ObserveAction();
-    
+
     IObservable<TAction> ObserveAction<TAction>()
         where TAction : class;
 

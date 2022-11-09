@@ -1,6 +1,3 @@
 namespace SpaceConqueror.States;
 
-public interface IState
-{
-    
-}
+public interface IState { }

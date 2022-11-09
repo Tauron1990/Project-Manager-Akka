@@ -1,6 +1,4 @@
-﻿using Akkatecture.Entities;
-
-namespace SimpleProjectManager.Server.Data;
+﻿namespace SimpleProjectManager.Server.Data;
 
 public class CheckPointInfo
 {

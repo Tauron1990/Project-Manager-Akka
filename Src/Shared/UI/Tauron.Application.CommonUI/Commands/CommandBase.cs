@@ -15,12 +15,12 @@ public abstract class CommandBase : ICommand
     {
         add
         {
-            if (value != null)
+            if(value != null)
                 _referenceCollection.Add(new WeakDelegate(value));
         }
         remove
         {
-            if (value != null)
+            if(value != null)
                 _referenceCollection.Remove(new WeakDelegate(value));
         }
     }
@@ -31,7 +31,7 @@ public abstract class CommandBase : ICommand
 
     public virtual void RaiseCanExecuteChanged()
     {
-        foreach (var weakDelegate in _referenceCollection)
+        foreach (WeakDelegate weakDelegate in _referenceCollection)
             weakDelegate.Invoke(this, EventArgs.Empty);
     }
 }

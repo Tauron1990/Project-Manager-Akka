@@ -20,6 +20,11 @@ public partial class ErrorContextInfo : UserControl
 
     private ImmutableList<ErrorProperty>? _contextInfo;
 
+    public ErrorContextInfo()
+    {
+        InitializeComponent();
+    }
+
     public ImmutableList<ErrorProperty>? ContextInfo
     {
         get => GetValue(ContextInfoProperty);
@@ -40,10 +45,5 @@ public partial class ErrorContextInfo : UserControl
             Properys.IsVisible = true;
             Properys.Items = ContextInfo;
         }
-    }
-
-    public ErrorContextInfo()
-    {
-        InitializeComponent();
     }
 }

@@ -12,7 +12,7 @@ public static class SettingsManagerExtensions
 {
     public static void RegisterSettingsManager(this IServiceCollection builder, Action<SettingsConfiguration>? config = null)
     {
-        if (config != null)
+        if(config != null)
         {
             var s = new SettingsConfiguration(builder);
             config(s);

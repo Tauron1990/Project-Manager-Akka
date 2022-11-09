@@ -41,11 +41,11 @@ public class AtLeastSpecification<T> : Specification<T>
     {
         var specificationList = specifications.ToList();
 
-        if (requiredSpecifications <= 0)
+        if(requiredSpecifications <= 0)
             throw new ArgumentOutOfRangeException(nameof(requiredSpecifications));
-        if (!specificationList.Any())
+        if(!specificationList.Any())
             throw new ArgumentException("Please provide some specifications", nameof(specifications));
-        if (requiredSpecifications > specificationList.Count)
+        if(requiredSpecifications > specificationList.Count)
             throw new ArgumentOutOfRangeException(
                 $"You required '{requiredSpecifications}' to be met, but only '{specificationList.Count}' was supplied");
 

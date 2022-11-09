@@ -19,13 +19,13 @@ public partial class MessageDialog
         Title = title;
         ContentBox.Text = content;
 
-        if (!canCnacel)
+        if(!canCnacel)
             CancelButton.Visibility = Visibility.Hidden;
     }
 
     private void Ok_OnClick(object sender, RoutedEventArgs e)
     {
-        if (_canCnacel)
+        if(_canCnacel)
             _result?.Invoke(true);
         else
             _result?.Invoke(null);

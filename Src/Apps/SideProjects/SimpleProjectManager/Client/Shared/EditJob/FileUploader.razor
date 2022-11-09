@@ -1,5 +1,4 @@
-﻿@using SimpleProjectManager.Client.Shared.Data
-@using SimpleProjectManager.Client.Shared.Data.Files
+﻿@using SimpleProjectManager.Client.Shared.Data.Files
 @inherits NonAutoRenderingView<SimpleProjectManager.Client.ViewModels.FileUploaderViewModel>
 
 <!--suppress CssUnusedSymbol -->
@@ -21,7 +20,7 @@
     }
 </style>
 
-@if (ViewModel != null)
+@if(ViewModel != null)
 {
     <MudGrid>
         <MudItem lg="12">
@@ -44,14 +43,14 @@
                       Class=@("drag-drop-zone " + _dragEnterStyle) MinHeight="300px">
 
                 <InputFile OnChange="FilesChanged" multiple class="drag-drop-input"/>
-                
+
                 <ObservableCollectionView SourceParameter="ViewModel.Files">
                     <EmptyRender>
                         <MudText Typo="Typo.h3">Drag and Drop oder Klicken zum hinzufügen</MudText>
                     </EmptyRender>
                     <ListRender>
                         <MudList Style="padding:2em;width:100%;" Dense="true">
-                            @foreach (var file in context)
+                            @foreach (FileUploadFile? file in context)
                             {
                                 <MudListItem @key="@file.Name">
                                     <MudGrid>
@@ -63,10 +62,10 @@
                                         <MudItem lg="7">
                                             <MudText>@file.Name</MudText>
                                         </MudItem>
-                                        @if (file.UploadState != UploadState.Pending)
+                                        @if(file.UploadState != UploadState.Pending)
                                         {
                                             <MudItem lg="3">
-                                                @if (file.UploadState == UploadState.Uploading)
+                                                @if(file.UploadState == UploadState.Uploading)
                                                 {
                                                     <MudText Class="ml-1">Hochladen</MudText>
                                                 }
@@ -86,7 +85,7 @@
         </MudItem>
         <MudItem lg="12">
             <MudGrid Justify="Justify.Center" Spacing="4">
-                @if (!DisableUploadButton)
+                @if(!DisableUploadButton)
                 {
                     <MudItem>
                         <MudCommandButton @ref="Upload" Color="Color.Primary" Variant="Variant.Filled">Hochladen</MudCommandButton>
@@ -99,5 +98,3 @@
         </MudItem>
     </MudGrid>
 }
-
-

@@ -5,7 +5,7 @@ namespace SpaceConqueror.Core;
 public abstract class ModuleBase : IModule
 {
     public abstract string Name { get; }
-    
+
     public string ModName => "Main App";
 
     public Version Version => GameManager.GameVersion;

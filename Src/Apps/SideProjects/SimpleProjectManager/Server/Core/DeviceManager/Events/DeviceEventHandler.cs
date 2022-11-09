@@ -1,6 +1,3 @@
 ﻿namespace SimpleProjectManager.Server.Core.DeviceManager.Events;
 
-public sealed class DeviceEventHandler : AggregateEvent<IDeviceEvent>
-{
-    
-}
+public sealed class DeviceEventHandler : AggregateEvent<IDeviceEvent> { }

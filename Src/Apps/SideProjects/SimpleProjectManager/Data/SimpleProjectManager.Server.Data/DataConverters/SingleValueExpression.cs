@@ -5,9 +5,9 @@ namespace SimpleProjectManager.Server.Data.DataConverters;
 
 internal sealed class SingleValueExpression : IConverterExpression
 {
-    private readonly Type _toType;
-    private readonly bool _isTo;
     private readonly Type _fromType;
+    private readonly bool _isTo;
+    private readonly Type _toType;
 
     private SingleValueExpression(Type fromType, Type toType, bool isTo)
     {
@@ -16,12 +16,18 @@ internal sealed class SingleValueExpression : IConverterExpression
         _fromType = fromType;
     }
 
+    public Expression Generate(Expression from)
+        => _isTo
+            ? CreateToFrom(from)
+            : CreateFromTo(from);
+
     public static ConverterResult TryCreate(Type fromType, Type toType)
     {
         if(TypeCheck(fromType, toType))
             return ConverterResult.From(new SingleValueExpression(fromType, toType, false));
-        return TypeCheck(toType, fromType) 
-            ? ConverterResult.From(new SingleValueExpression(fromType, toType, true)) 
+
+        return TypeCheck(toType, fromType)
+            ? ConverterResult.From(new SingleValueExpression(fromType, toType, true))
             : ConverterResult.None();
     }
 
@@ -36,11 +42,6 @@ internal sealed class SingleValueExpression : IConverterExpression
             return false;
         }
     }
-    
-    public Expression Generate(Expression from)
-        => _isTo
-        ? CreateToFrom(from)
-        : CreateFromTo(from);
 
     private Expression CreateFromTo(Expression fromParamameter)
         => Expression.Property(fromParamameter, "Value");

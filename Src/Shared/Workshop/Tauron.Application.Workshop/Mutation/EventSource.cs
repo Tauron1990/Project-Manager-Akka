@@ -7,10 +7,11 @@ namespace Tauron.Application.Workshop.Mutation;
 [PublicAPI]
 public sealed class EventSource<TRespond, TData> : EventSourceBase<TRespond>
 {
-    public EventSource(Func<TData, TRespond> transform,
+    public EventSource(
+        Func<TData, TRespond> transform,
         Func<TData, bool>? where, IObservable<TData> handler)
     {
-        if (where is null)
+        if(where is null)
             handler.Select(transform).Subscribe(Sender());
         else
             handler.Where(where).Select(transform).Subscribe(Sender());

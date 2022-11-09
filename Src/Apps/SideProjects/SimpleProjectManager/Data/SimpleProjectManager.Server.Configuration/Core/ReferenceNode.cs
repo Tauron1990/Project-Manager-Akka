@@ -2,8 +2,8 @@
 
 public sealed class ReferenceNode : NodeBase
 {
-    public string Name { get; }
-
     public ReferenceNode(string name)
         => Name = name;
+
+    public string Name { get; }
 }

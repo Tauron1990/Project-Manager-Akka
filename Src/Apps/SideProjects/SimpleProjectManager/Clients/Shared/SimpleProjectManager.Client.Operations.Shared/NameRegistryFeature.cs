@@ -3,31 +3,38 @@ using System.Reactive.Linq;
 using Akka.Actor;
 using Microsoft.Extensions.Logging;
 using Tauron.Features;
+using Tauron.Operations;
 
 namespace SimpleProjectManager.Client.Operations.Shared;
 
-public sealed class NameRegistry : FeatureActorRefBase<NameRegistry>
-{
-}
+public sealed class NameRegistry : FeatureActorRefBase<NameRegistry> { }
 
 public sealed partial class NameRegistryFeature : ActorFeatureBase<NameRegistryFeature.State>
 {
-    public sealed record RegisterName(string Name, IActorRef From);
-
-    public sealed record RegisterNameResponse(string? Error, string? Name, IActorRef From);
-
-    public static Func<ILogger<NameRegistryFeature>, IPreparedFeature> Factory()
-        => l => Feature.Create(() => new NameRegistryFeature(), new State(l, ImmutableDictionary<string, IActorRef>.Empty));
-
-    public sealed record State(ILogger<NameRegistryFeature> Logger, ImmutableDictionary<string, IActorRef> CurrentClients);
-
     // ReSharper disable once InconsistentNaming
     private ILogger _logger = null!;
+
+    public static Func<ILogger<NameRegistryFeature>, IPreparedFeature> Factory()
+        => l => Feature.Create(() => new NameRegistryFeature(), new State(l, ImmutableDictionary<ObjectName, IActorRef>.Empty));
+
+    protected override void ConfigImpl()
+    {
+        _logger = CurrentState.Logger;
+
+        Receive<Terminated>(OnTerminated);
+        Receive<RegisterName>(TryRegisterName);
+    }
+
+    public sealed record RegisterName(ObjectName Name, IActorRef From);
+
+    public sealed record RegisterNameResponse(SimpleResult Error, ObjectName? Name, IActorRef From);
+
+    public sealed record State(ILogger<NameRegistryFeature> Logger, ImmutableDictionary<ObjectName, IActorRef> CurrentClients);
 
     #region RegisterName
 
     [LoggerMessage(EventId = 1, Level = LogLevel.Information, Message = "Actor {path} Terminated. Delete Entry {name}")]
-    private partial void ActorTerminated(ActorPath path, string name);
+    private partial void ActorTerminated(ActorPath path, ObjectName name);
 
     // [LoggerMessage(EventId = 2, Level = LogLevel.Information, Message = "Incomming Register Name Request: {path}")]
     // private partial void NewRequest(ActorPath path);
@@ -42,10 +49,10 @@ public sealed partial class NameRegistryFeature : ActorFeatureBase<NameRegistryF
     // private partial void NameFound(string name, ActorPath path);
 
     [LoggerMessage(EventId = 5, Level = LogLevel.Warning, Message = "Register Name Request. Duplicate Name {name} with {path} found")]
-    private partial void DuplicateNameFound(string name, ActorPath path);
+    private partial void DuplicateNameFound(ObjectName name, ActorPath path);
 
     [LoggerMessage(EventId = 6, Level = LogLevel.Information, Message = "{path} Successfully Registrated with {name}")]
-    private partial void SuccessfulRegistrated(ActorPath path, string name);
+    private partial void SuccessfulRegistrated(ActorPath path, ObjectName name);
 
     private IObservable<State> OnTerminated(IObservable<StatePair<Terminated, State>> observable)
         => observable.Select(
@@ -66,34 +73,20 @@ public sealed partial class NameRegistryFeature : ActorFeatureBase<NameRegistryF
 
     private State TryRegisterRecivedName(StatePair<RegisterName, State> p)
     {
-        if(string.IsNullOrWhiteSpace(p.Event.Name))
-        {
-            p.Sender.Tell(new RegisterNameResponse("The Name is Empty", null, p.Event.From));
-            return p.State;
-        }
-
         if(p.State.CurrentClients.ContainsKey(p.Event.Name))
         {
             DuplicateNameFound(p.Event.Name, p.Sender.Path);
-            p.Sender.Tell(new RegisterNameResponse($"Duplicate Name {p.Event.Name}", null, p.Event.From));
+            p.Sender.Tell(new RegisterNameResponse(SimpleResult.Failure($"Duplicate Name {p.Event.Name}"), null, p.Event.From));
 
             return p.State;
         }
 
         SuccessfulRegistrated(p.Sender.Path, p.Event.Name);
-        p.Sender.Tell(new RegisterNameResponse(null, p.Event.Name, p.Event.From));
+        p.Sender.Tell(new RegisterNameResponse(SimpleResult.Success(), p.Event.Name, p.Event.From));
         p.Context.Watch(p.Sender);
 
         return p.State with { CurrentClients = p.State.CurrentClients.Add(p.Event.Name, p.Sender) };
     }
 
     #endregion
-
-    protected override void ConfigImpl()
-    {
-        _logger = CurrentState.Logger;
-
-        Receive<Terminated>(OnTerminated);
-        Receive<RegisterName>(TryRegisterName);
-    }
 }

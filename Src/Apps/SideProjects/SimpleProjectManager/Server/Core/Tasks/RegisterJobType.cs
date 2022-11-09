@@ -6,7 +6,7 @@ using Akkatecture.Jobs.Commands;
 namespace SimpleProjectManager.Server.Core.Tasks;
 
 public sealed record RegisterJobType(
-    string Id, Func<Props> JobManagerFactory, Func<object, bool> IsCompatible, 
+    string Id, Func<Props> JobManagerFactory, Func<object, bool> IsCompatible,
     Func<string, object> CreateCancel, Func<object, string> GetId)
 {
     public static RegisterJobType Create<TJobManager, TJobScheduler, TJobRunner, TJob, TId>(string id, IDependencyResolver resolver)

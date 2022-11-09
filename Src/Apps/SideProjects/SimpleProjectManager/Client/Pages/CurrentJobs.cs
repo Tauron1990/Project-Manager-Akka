@@ -16,7 +16,7 @@ public partial class CurrentJobs
     private MudCommandButton? _newJob;
 
     private MudCommandButton? NewJob
-    
+
     {
         get => _newJob;
         set => this.RaiseAndSetIfChanged(ref _newJob, value);
@@ -24,7 +24,7 @@ public partial class CurrentJobs
 
     [Parameter]
     public string? PreSelected { get; set; }
-    
+
     protected override IEnumerable<IDisposable> InitializeModel()
     {
         _compositeDisposable = new CompositeDisposable();
@@ -38,21 +38,20 @@ public partial class CurrentJobs
         base.OnParametersSet();
         Task.Run(
             async () =>
-                 {
-                     if(string.IsNullOrWhiteSpace(PreSelected)) return Task.CompletedTask;
+            {
+                if(string.IsNullOrWhiteSpace(PreSelected)) return Task.CompletedTask;
 
-                     await GlobalState.Jobs.IsLoaded.Where(l => l).Take(1).FirstOrDefaultAsync();
-                     
-                     GlobalState.Dispatch(new SelectNewPairAction(PreSelected));
+                await GlobalState.Jobs.IsLoaded.Where(l => l).Take(1).FirstOrDefaultAsync();
 
-                     return Task.CompletedTask;
-                 });
+                GlobalState.Dispatch(new SelectNewPairAction(PreSelected));
+
+                return Task.CompletedTask;
+            });
     }
 
     protected override void OnAfterRender(bool firstRender)
     {
         if(firstRender)
-        {
             GlobalState.Jobs.CurrentlySelectedPair
                .ObserveOn(RxApp.MainThreadScheduler)
                .SelectMany(
@@ -76,7 +75,6 @@ public partial class CurrentJobs
                     })
                .Subscribe()
                .DisposeWith(_compositeDisposable);
-        }
         base.OnAfterRender(firstRender);
     }
 }

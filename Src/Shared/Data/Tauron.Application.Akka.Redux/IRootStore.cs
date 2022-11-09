@@ -8,9 +8,9 @@ namespace Tauron.Application.Akka.Redux;
 public interface IActionDispatcher
 {
     bool CanProcess<TAction>();
-    
+
     bool CanProcess(Type type);
-    
+
     Source<TAction, NotUsed> ObservAction<TAction>()
         where TAction : class;
 
@@ -23,17 +23,17 @@ public interface IActionDispatcher
 public interface IRootStore : IActionDispatcher, IDisposable
 {
     IMaterializer Materializer { get; }
-    
+
     Source<object, NotUsed> ObserveActions();
 
     IRootStoreState<TState> ForState<TState>()
         where TState : new();
-    
+
     void RegisterMiddlewares(IEnumerable<IMiddleware> middlewares);
 
     TMiddleware GetMiddleware<TMiddleware>(Func<TMiddleware> factory)
         where TMiddleware : IMiddleware;
-    
+
     void RegisterMiddlewares(params IMiddleware[] middlewares);
 }
 
@@ -41,7 +41,7 @@ public interface IRootStore : IActionDispatcher, IDisposable
 public interface IRootStoreState<TState>
 {
     TState CurrentState { get; }
-    
+
     Source<TResult, NotUsed> ObservAction<TAction, TResult>(Flow<(TState State, TAction Action), TResult, NotUsed> resultSelector)
         where TAction : class;
 

@@ -10,10 +10,10 @@ public sealed class SourceConfiguration<TState> : ISourceConfiguration<TState>
     where TState : class, new()
 {
     private readonly List<Action<IRootStore, IReduxStore<TState>>> _config = new();
-    private readonly IStateFactory _stateFactory;
     private readonly IErrorHandler _errorHandler;
-    private readonly StateDb _stateDb;
     private readonly IMaterializer _materializer;
+    private readonly StateDb _stateDb;
+    private readonly IStateFactory _stateFactory;
 
     public SourceConfiguration(IStateFactory stateFactory, IErrorHandler errorHandler, StateDb stateDb, IMaterializer materializer)
     {
@@ -31,14 +31,6 @@ public sealed class SourceConfiguration<TState> : ISourceConfiguration<TState>
         return new StateConfiguration<TState>(_errorHandler, _config, _stateFactory, _materializer);
     }
 
-    private static Reqester<TState> CreateRequester<TToPatch>(Func<CancellationToken, Task<TToPatch>> fetcher, Func<TState, TToPatch, TState> patcher)
-        => async (token, currentState) =>
-           {
-               var request = await TimeoutToken.WithDefault(token, fetcher);
-
-               return patcher(currentState, request);
-           };
-
     public IStateConfiguration<TState> FromServer(Func<CancellationToken, Task<TState>> fetcher)
         => FromServer(fetcher, (_, s) => s);
 
@@ -50,7 +42,7 @@ public sealed class SourceConfiguration<TState> : ISourceConfiguration<TState>
     }
 
     public IStateConfiguration<TState> FromCacheAndServer(Func<CancellationToken, Task<TState>> fetcher)
-        => FromCacheAndServer(fetcher, (_ , s) => s);
+        => FromCacheAndServer(fetcher, (_, s) => s);
 
     public IStateConfiguration<TState> FromCacheAndServer<TToPatch>(Func<CancellationToken, Task<TToPatch>> fetcher, Func<TState, TToPatch, TState> patcher)
     {
@@ -58,4 +50,12 @@ public sealed class SourceConfiguration<TState> : ISourceConfiguration<TState>
 
         return new StateConfiguration<TState>(_errorHandler, _config, _stateFactory, _materializer);
     }
+
+    private static Reqester<TState> CreateRequester<TToPatch>(Func<CancellationToken, Task<TToPatch>> fetcher, Func<TState, TToPatch, TState> patcher)
+        => async (token, currentState) =>
+           {
+               TToPatch request = await TimeoutToken.WithDefault(token, fetcher);
+
+               return patcher(currentState, request);
+           };
 }

@@ -49,7 +49,7 @@ public sealed class DataTransferManagerFeature : ActorFeatureBase<DataTransferMa
                     {
                         if(awaitRequest.Timeout is not null)
                             timerScheduler.StartSingleTimer(
-                                awaitRequest.Id.Value, 
+                                awaitRequest.Id.Value,
                                 new DeleteAwaiter(awaitRequest.Id),
                                 awaitRequest.Timeout.Value.ToTimeSpan());
 
@@ -66,7 +66,7 @@ public sealed class DataTransferManagerFeature : ActorFeatureBase<DataTransferMa
             m =>
             {
                 TransferMessage transferMessage = m.Event;
-                
+
                 m.Context.Child(transferMessage.OperationId.Value)?.Tell(transferMessage);
                 TellSelf(new SendEvent(transferMessage, transferMessage.GetType()));
             });
@@ -118,7 +118,7 @@ public sealed class DataTransferManagerFeature : ActorFeatureBase<DataTransferMa
                         }));
         }
 
-        return obs.Select(msg => ( Child: Context.Child(msg.Event.OperationId.Value), Message: msg.Event ))
+        return obs.Select(msg => (Child: Context.Child(msg.Event.OperationId.Value), Message: msg.Event))
            .ConditionalSelect()
            .ToResult<Unit>(SelectBuilder);
     }

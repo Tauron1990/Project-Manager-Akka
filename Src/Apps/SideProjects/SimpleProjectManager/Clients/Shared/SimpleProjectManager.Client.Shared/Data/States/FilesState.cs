@@ -10,30 +10,22 @@ using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
 using Tauron;
-using Tauron.Application;
 
 namespace SimpleProjectManager.Client.Shared.Data.States;
 
 public sealed class FilesState : StateBase
 {
+    public const long MaxSize = 524_288_000;
+
     public static readonly string[] AllowedContentTypes =
     {
         "application/pdf", "application/x-zip-compressed", "application/zip", "image/tiff", "image/x-tiff"
     };
-    
-    public const long MaxSize = 524_288_000;
-    
-    public static string IsFileValid(IFileReference file)
-    {
-        var result = AllowedContentTypes.Any(t => t == file.ContentType);
-        return !result ? $"Die Datei {file.Name} kann nicht Hochgeladen werden. Nur Tiff, zip und Pdf sinf erlaubt" : string.Empty;
-    }
-    
-    private readonly IJobFileService _service;
-    private readonly Func<UploadTransaction> _transactionFactory;
+
     private readonly IMessageDispatcher _aggregator;
 
-    public IObservable<DatabaseFile[]> AllFiles { get; }
+    private readonly IJobFileService _service;
+    private readonly Func<UploadTransaction> _transactionFactory;
 
     public FilesState(IStateFactory stateFactory, IJobFileService jobFileService, Func<UploadTransaction> uploadTransaction, IMessageDispatcher aggregator)
         : base(stateFactory)
@@ -43,6 +35,15 @@ public sealed class FilesState : StateBase
         AllFiles = FromServer(_service.GetAllFiles);
         _transactionFactory = uploadTransaction;
         _aggregator = aggregator;
+    }
+
+    public IObservable<DatabaseFile[]> AllFiles { get; }
+
+    public static string IsFileValid(IFileReference file)
+    {
+        bool result = AllowedContentTypes.Any(t => t == file.ContentType);
+
+        return !result ? $"Die Datei {file.Name} kann nicht Hochgeladen werden. Nur Tiff, zip und Pdf sinf erlaubt" : string.Empty;
     }
 
     public async Task DeleteFile(DatabaseFile file, CancellationToken token)
@@ -55,9 +56,9 @@ public sealed class FilesState : StateBase
     {
         async Task<ProjectFileInfo?> ComputeState(IComputedState<ProjectFileInfo?> unused, CancellationToken cancellationToken)
         {
-            var actualId = await id.Use(cancellationToken);
+            ProjectFileId? actualId = await id.Use(cancellationToken);
 
-            if (actualId is null) return null;
+            if(actualId is null) return null;
 
             return await _service.GetJobFileInfo(actualId, cancellationToken);
         }

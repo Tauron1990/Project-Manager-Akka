@@ -15,16 +15,15 @@ public sealed record DbProjectProjection
     public DateTime? Deadline { get; set; }
 
     public List<string> ProjectFiles { get; set; } = new();
-
 }
 
 public sealed record DBSortOrder
 {
     public static DBSortOrder Empty = new();
-    
+
     public string Id { get; init; } = string.Empty;
 
     public int SkipCount { get; init; }
-    
+
     public bool IsPriority { get; init; }
 }

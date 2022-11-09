@@ -1,3 +1,4 @@
+using SimpleProjectManager.Client.Operations.Shared;
 using SimpleProjectManager.Operation.Client.Config;
 using SimpleProjectManager.Operation.Client.Core;
 using SimpleProjectManager.Operation.Client.Device;
@@ -13,19 +14,23 @@ public sealed class DevicesSetup : ISetup
 
     public async ValueTask<OperationConfiguration> RunSetup(OperationConfiguration configuration)
     {
-        var newName = await _clientInteraction.Ask(configuration.Name.EmptyToNull(), "Wie Lautet der Name das Gerätes?");
-        var isDevice = await _clientInteraction.Ask(configuration.Device, "Ist das der PC der Maschine?");
+        string newName = await _clientInteraction.Ask(configuration.Name.Value.EmptyToNull(), "Wie Lautet der Name das Gerätes?");
+        bool isDevice = await _clientInteraction.Ask(configuration.Device.Active, "Ist das der PC der Maschine?");
 
         if(isDevice)
         {
-            var newInterface = await _clientInteraction.AskMultipleChoise(
-                configuration.MachineInterface.EmptyToNull(),
-                MachineInterfaces.KnowenInterfaces,
+            string newInterface = await _clientInteraction.AskMultipleChoise(
+                configuration.Device.MachineInterface.Value,
+                MachineInterfaces.KnowenInterfaces.Select(ii => ii.Value).ToArray(),
                 "Welsche Maschiene wird hir betrieben?");
 
-            return configuration with { Name = newName, Device = true, MachineInterface = newInterface };
+            DeviceData device = configuration.Device with { Active = true, MachineInterface = InterfaceId.From(newInterface) };
+
+            return configuration with { Device = device, Name = ObjectName.From(newName)};
         }
-        else
-            return configuration with { Name = newName, Device = false, MachineInterface = string.Empty };
+
+        DeviceData inactiveDevice = configuration.Device with { Active = false, MachineInterface = InterfaceId.Empty };
+        
+        return configuration with { Name = ObjectName.From(newName), Device = inactiveDevice };
     }
 }

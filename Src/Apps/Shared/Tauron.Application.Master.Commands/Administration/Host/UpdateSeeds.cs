@@ -1,11 +1,11 @@
 ﻿namespace Tauron.Application.Master.Commands.Administration.Host;
 
-public sealed record UpdateSeedsResponse(bool Success) 
+public sealed record UpdateSeedsResponse(bool Success)
     : OperationResponse(Success)
 {
     public UpdateSeedsResponse()
         : this(Success: false) { }
 }
 
-public sealed record UpdateSeeds(HostName Target, string[] Urls) 
+public sealed record UpdateSeeds(HostName Target, string[] Urls)
     : InternalHostMessages.CommandBase<UpdateSeedsResponse>(Target, InternalHostMessages.CommandType.AppRegistry);

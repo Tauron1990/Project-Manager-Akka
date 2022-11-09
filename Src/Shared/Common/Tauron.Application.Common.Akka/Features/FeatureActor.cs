@@ -5,7 +5,7 @@ using System.Reactive.Subjects;
 using Akka.Actor;
 using Akka.Actor.Internal;
 using JetBrains.Annotations;
-using ObservableActor = Tauron.TAkka.ObservableActor;
+using Tauron.TAkka;
 
 namespace Tauron.Features;
 
@@ -43,10 +43,14 @@ public interface IFeatureActor<TState> : IResourceHolder, IObservable<TState>, I
     IObservable<TEvent> Receive<TEvent>();
 }
 
-[PublicAPI, DebuggerStepThrough]
+[PublicAPI]
+[DebuggerStepThrough]
 public sealed record StatePair<TEvent, TState>(TEvent Event, TState State, ITimerScheduler Timers, IActorContext Context, IActorRef Sender, IActorRef Parent, IActorRef Self)
     : IObservable<StatePair<TEvent, TState>>
 {
+    IDisposable IObservable<StatePair<TEvent, TState>>.Subscribe(IObserver<StatePair<TEvent, TState>> observer)
+        => Observable.Return(this).Subscribe(observer);
+
     public StatePair<TEvent, TNew> Convert<TNew>(Func<TState, TNew> converter)
         => new(Event, converter(State), Timers, Context, Sender, Parent, Self);
 
@@ -71,12 +75,10 @@ public sealed record StatePair<TEvent, TState>(TEvent Event, TState State, ITime
         state = State;
         scheduler = Timers;
     }
-
-    IDisposable IObservable<StatePair<TEvent, TState>>.Subscribe(IObserver<StatePair<TEvent, TState>> observer)
-        => Observable.Return(this).Subscribe(observer);
 }
 
-[PublicAPI, DebuggerStepThrough]
+[PublicAPI]
+[DebuggerStepThrough]
 public abstract class FeatureActorBase<TFeatured, TState> : ObservableActor, IFeatureActor<TState>
     where TFeatured : FeatureActorBase<TFeatured, TState>, new()
 {
@@ -91,7 +93,7 @@ public abstract class FeatureActorBase<TFeatured, TState> : ObservableActor, IFe
     {
         get
         {
-            if (_currentState == null)
+            if(_currentState == null)
                 throw new InvalidOperationException("The Actor was Not Initialized Propertly");
 
             return _currentState;
@@ -134,7 +136,7 @@ public abstract class FeatureActorBase<TFeatured, TState> : ObservableActor, IFe
 
     public void UpdateState(TState state)
     {
-        if (InternalCurrentActorCellKeeper.Current is null)
+        if(InternalCurrentActorCellKeeper.Current is null)
             throw new NotSupportedException("There is no active ActorContext, this is most likely due to use of async operations from within this actor.");
 
         CurrentState.OnNext(state);
@@ -166,7 +168,7 @@ public abstract class FeatureActorBase<TFeatured, TState> : ObservableActor, IFe
 
     private void RegisterFeature(IFeature<TState> feature)
     {
-        if (feature.Identify().Any(id => !_featureIds.Add(id)))
+        if(feature.Identify().Any(id => !_featureIds.Add(id)))
             throw new InvalidOperationException("Duplicate Feature Added");
 
         feature.Init(this);
@@ -178,15 +180,15 @@ public abstract class FeatureActorBase<TFeatured, TState> : ObservableActor, IFe
 
     protected override void PreStart()
     {
-        foreach (var feature in _features)
+        foreach (IFeature feature in _features)
             feature.PreStart();
-        
+
         base.PreStart();
     }
 
     protected override void PostStop()
     {
-        foreach (var feature in _features)
+        foreach (IFeature feature in _features)
             feature.PostStop();
 
         base.PostStop();
@@ -220,14 +222,16 @@ public abstract class FeatureActorBase<TFeatured, TState> : ObservableActor, IFe
         public Type ActorType { get; } = typeof(TFeatured);
     }
 
-    [PublicAPI, DebuggerStepThrough]
+    [PublicAPI]
+    [DebuggerStepThrough]
     public static class Make
     {
         public static Action<ActorBuilder<TState>> Feature(Func<IFeatureActor<TState>, IFeature<TState>> initializer, params string[] ids)
             => actorBuilder => actorBuilder.WithFeature(new DelegatingFeature(initializer, ids));
     }
 
-    [PublicAPI, DebuggerStepThrough]
+    [PublicAPI]
+    [DebuggerStepThrough]
     public static class Simple
     {
         public static IFeature<TState> Feature(Func<IFeatureActor<TState>, IFeature<TState>> initializer, params string[] ids)

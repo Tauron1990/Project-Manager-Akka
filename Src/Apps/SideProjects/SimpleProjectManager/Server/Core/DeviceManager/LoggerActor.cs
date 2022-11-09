@@ -10,13 +10,11 @@ namespace SimpleProjectManager.Server.Core.DeviceManager;
 
 public sealed class LoggerActor : ReceiveActor
 {
-    public static Props Create(ActorSystem system, string deviceName)
-        => DependencyResolver.For(system).Props<LoggerActor>(deviceName);
-
-    private readonly LogDistribution _logDistribution;
+    private readonly SortedDictionary<DateTime, LogBatch> _batches = new();
     private readonly string _deviceName;
     private readonly DeviceEventHandler _handler;
-    private readonly SortedDictionary<DateTime, LogBatch> _batches = new();
+
+    private readonly LogDistribution _logDistribution;
 
     public LoggerActor(string deviceName, DeviceEventHandler handler)
     {
@@ -26,6 +24,9 @@ public sealed class LoggerActor : ReceiveActor
         Receive<SubscribeAck>(_ => Become(Ready));
     }
 
+    public static Props Create(ActorSystem system, string deviceName)
+        => DependencyResolver.For(system).Props<LoggerActor>(deviceName);
+
     private void Ready()
     {
         Receive<LogBatch>(NewBatch);
@@ -34,35 +35,37 @@ public sealed class LoggerActor : ReceiveActor
 
     private void QueryBatch(DeviceManagerMessages.QueryLoggerBatch obj)
     {
-        Sender.Tell(new DeviceManagerMessages.LoggerBatchResult(
-            _batches
-               .Where(p => p.Key > obj.From)
-               .Select(p => p.Value)
-               .ToImmutableList()));
+        Sender.Tell(
+            new DeviceManagerMessages.LoggerBatchResult(
+                _batches
+                   .Where(p => p.Key > obj.From)
+                   .Select(p => p.Value)
+                   .ToImmutableList()));
     }
 
     private void NewBatch(LogBatch obj)
     {
         if(obj.DeviceName != _deviceName) return;
 
-        var newKey = DateTime.UtcNow;
+        DateTime newKey = DateTime.UtcNow;
         _batches.Add(newKey, obj);
-        
+
         var counter = 0;
         var toDelete = _batches
            .Reverse()
-           .SkipWhile(p =>
-                      {
-                          counter += p.Value.Logs.Count;
+           .SkipWhile(
+                p =>
+                {
+                    counter += p.Value.Logs.Count;
 
-                          return counter < 1000;
-                      })
+                    return counter < 1000;
+                })
            .Select(p => p.Key)
            .ToArray();
 
-        foreach (var key in toDelete)
+        foreach (DateTime key in toDelete)
             _batches.Remove(key);
-        
+
         _handler.Publish(new NewBatchesArrived(obj.DeviceName, newKey));
     }
 

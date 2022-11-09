@@ -21,7 +21,7 @@ public static class LoggingExtensions
 
     public static ILoggingBuilder ConfigDefaultLogging(this ILoggingBuilder loggingBuilder, string applicationName, bool noFile = false)
     {
-        var loggerConfiguration = LogManager.Setup().ConfigDefaultLogging(applicationName, noFile);
+        ISetupBuilder loggerConfiguration = LogManager.Setup().ConfigDefaultLogging(applicationName, noFile);
 
         return loggingBuilder.AddNLog(_ => loggerConfiguration.LogFactory);
     }
@@ -35,7 +35,7 @@ public static class LoggingExtensions
 
         const string defaultFile = "default-file";
         const string defaultConsole = "default-Console";
-        
+
         loggerConfiguration =
             loggerConfiguration.LoadConfiguration(
                 b =>

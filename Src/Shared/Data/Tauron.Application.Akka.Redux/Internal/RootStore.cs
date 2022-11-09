@@ -5,24 +5,21 @@ using Tauron.Application.Akka.Redux.Configuration;
 
 namespace Tauron.Application.Akka.Redux.Internal;
 
-
 public sealed class RootStore : IRootStore
 {
-    private readonly IMaterializer _materializer;
-    private readonly Action<Exception> _onError;
-    
-    private readonly Dictionary<Type, IActionDispatcher> _stores = new();
-    private readonly Dictionary<Type, MiddlewareRegistration> _middlewares = new();
-    
     private readonly Sink<object, NotUsed> _actions;
-    private readonly Source<object, NotUsed> _dispatcher;
-    private readonly ISourceQueueWithComplete<object> _forDispatching;
 
     private readonly SharedKillSwitch _close = KillSwitches.Shared("Cancel_Root_Store");
-    
+    private readonly Source<object, NotUsed> _dispatcher;
+    private readonly ISourceQueueWithComplete<object> _forDispatching;
+    private readonly Dictionary<Type, MiddlewareRegistration> _middlewares = new();
+    private readonly Action<Exception> _onError;
+
+    private readonly Dictionary<Type, IActionDispatcher> _stores = new();
+
     public RootStore(IMaterializer materializer, List<IConfiguredState> configuredStates, Action<Exception> onError)
     {
-        _materializer = materializer;
+        Materializer = materializer;
         _onError = onError;
 
         var (actionCollector, toDispatch) = MergeHub.Source<object>().PreMaterialize(materializer);
@@ -36,8 +33,8 @@ public sealed class RootStore : IRootStore
 
         _actions = actionCollector;
         _dispatcher = dispatcher;
-        
-        foreach (var state in configuredStates)
+
+        foreach (IConfiguredState state in configuredStates)
             state.RunConfig(this);
     }
 
@@ -68,17 +65,17 @@ public sealed class RootStore : IRootStore
     }
 
 
-    public IMaterializer Materializer => _materializer;
+    public IMaterializer Materializer { get; }
 
     public Source<object, NotUsed> ObserveActions()
         => _dispatcher;
 
     public IRootStoreState<TState> ForState<TState>() where TState : new()
     {
-        if(_stores.TryGetValue(typeof(TState), out var store) && store is IReduxStore<TState> reduxStore)
+        if(_stores.TryGetValue(typeof(TState), out IActionDispatcher? store) && store is IReduxStore<TState> reduxStore)
             return new RootStoreState<TState>(reduxStore);
 
-        var storeState = new RootStoreState<TState>(new Store<TState>(new TState(), _onError, _materializer));
+        var storeState = new RootStoreState<TState>(new Store<TState>(new TState(), _onError, Materializer));
         _stores[typeof(TState)] = storeState;
 
         return storeState;
@@ -86,7 +83,7 @@ public sealed class RootStore : IRootStore
 
     public void RegisterMiddlewares(IEnumerable<IMiddleware> middlewares)
     {
-        foreach (var middleware in middlewares)
+        foreach (IMiddleware middleware in middlewares)
         {
             var reg = new MiddlewareRegistration(middleware, _close);
             _middlewares.Add(middleware.GetType(), reg);
@@ -96,28 +93,29 @@ public sealed class RootStore : IRootStore
 
     public TMiddleware GetMiddleware<TMiddleware>(Func<TMiddleware> factory) where TMiddleware : IMiddleware
     {
-        if(_middlewares.TryGetValue(typeof(TMiddleware), out var registration) && registration.Middleware is TMiddleware typed) return typed;
+        if(_middlewares.TryGetValue(typeof(TMiddleware), out MiddlewareRegistration? registration) && registration.Middleware is TMiddleware typed) return typed;
 
         registration = new MiddlewareRegistration(factory(), _close);
         _middlewares.Add(typeof(TMiddleware), registration);
         registration.Connect(this);
-        
+
         return (TMiddleware)registration.Middleware;
     }
 
     public void RegisterMiddlewares(params IMiddleware[] middlewares)
         => RegisterMiddlewares(middlewares.AsEnumerable());
-    
+
     private sealed class MiddlewareRegistration
     {
         private readonly SharedKillSwitch _killSwitch;
-        public IMiddleware Middleware { get; }
 
         public MiddlewareRegistration(IMiddleware middleware, SharedKillSwitch killSwitch)
         {
             _killSwitch = killSwitch;
             Middleware = middleware;
         }
+
+        public IMiddleware Middleware { get; }
 
         public void Connect(IRootStore store)
         {

@@ -11,8 +11,23 @@ public static class LastStateShape
 
 public sealed class LastStateShape<TState, TInput, TOutput> : GraphStage<FanInShape<TState, TInput, TOutput>>
 {
-
     private readonly Func<TState, TInput, TOutput> _transform;
+
+    public LastStateShape(Func<TState, TInput, TOutput> transform)
+    {
+        _transform = transform;
+        Shape = new FanInShape<TState, TInput, TOutput>(ActionOut, StateIn, ActionIn);
+    }
+
+    private Inlet<TState> StateIn { get; } = new("CombineLast.StateIn");
+
+    private Inlet<TInput> ActionIn { get; } = new("CombineLast.ActionIn");
+
+    private Outlet<TOutput> ActionOut { get; } = new("CombineLast.Out");
+
+    public override FanInShape<TState, TInput, TOutput> Shape { get; }
+
+    protected override GraphStageLogic CreateLogic(Attributes inheritedAttributes) => new Logic(this);
 
     private sealed class Logic : GraphStageLogic
     {
@@ -31,12 +46,10 @@ public sealed class LastStateShape<TState, TInput, TOutput> : GraphStage<FanInSh
                     _currentState = Grab(holder.StateIn);
 
                     if(_pending is not null)
-                    {
                         EmitMultiple(
                             _holder.ActionOut,
                             Interlocked.Exchange(ref _pending, null)
                                .Select(a => _holder._transform(_currentState, a)));
-                    }
 
                     Pull(holder.StateIn);
                 });
@@ -58,7 +71,7 @@ public sealed class LastStateShape<TState, TInput, TOutput> : GraphStage<FanInSh
                         _holder._transform(_currentState!, Grab(holder.ActionIn)),
                         () => Pull(holder.ActionIn));
                 });
-            
+
             SetHandler(_holder.ActionOut, DoNothing);
         }
 
@@ -68,20 +81,4 @@ public sealed class LastStateShape<TState, TInput, TOutput> : GraphStage<FanInSh
             Pull(_holder.ActionIn);
         }
     }
-
-    public LastStateShape(Func<TState, TInput, TOutput> transform)
-    {
-        _transform = transform;
-        Shape = new FanInShape<TState, TInput, TOutput>(ActionOut, StateIn, ActionIn);
-    }
-
-    private Inlet<TState> StateIn { get; } = new("CombineLast.StateIn");
-
-    private Inlet<TInput> ActionIn { get; } = new("CombineLast.ActionIn");
-
-    private Outlet<TOutput> ActionOut { get; } = new("CombineLast.Out");
-
-    public override FanInShape<TState, TInput, TOutput> Shape { get; }
-
-    protected override GraphStageLogic CreateLogic(Attributes inheritedAttributes) => new Logic(this);
 }

@@ -6,6 +6,7 @@ using System.Linq.Expressions;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Akka.Actor;
@@ -13,12 +14,12 @@ using Akka.Util;
 using Akka.Util.Internal;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
-using Tauron.TAkka;
 using Tauron.Application.CommonUI.AppCore;
 using Tauron.Application.CommonUI.Commands;
 using Tauron.Application.CommonUI.Helper;
 using Tauron.Application.CommonUI.ModelMessages;
 using Tauron.Operations;
+using Tauron.TAkka;
 
 namespace Tauron.Application.CommonUI.Model;
 
@@ -133,7 +134,7 @@ public abstract class UiActor : ObservableActor, IObservablePropertyChanged
         internal InvokeHelper(Delegate del)
         {
             _method = del;
-            var method = del.Method;
+            MethodInfo method = del.Method;
 
             _methodType = (MethodType)method.GetParameters().Length;
 
@@ -144,7 +145,7 @@ public abstract class UiActor : ObservableActor, IObservablePropertyChanged
 
         internal void Execute(EventData? parameter)
         {
-            var args = _methodType switch
+            object?[] args = _methodType switch
             {
                 MethodType.Zero => Array.Empty<object>(),
                 MethodType.One => new object[] { parameter! },
@@ -220,8 +221,8 @@ public abstract class UiActor : ObservableActor, IObservablePropertyChanged
 
         internal void Deactivate()
         {
-            _deactivated.GetAndSet(newValue: true);
-            _canExecute.OnNext(value: false);
+            _deactivated.GetAndSet(true);
+            _canExecute.OnNext(false);
             _canExecute.OnCompleted();
             _dispatcher.Post(RaiseCanExecuteChanged);
         }
@@ -240,7 +241,7 @@ public abstract class UiActor : ObservableActor, IObservablePropertyChanged
 
     protected Task UICall(Action<IUntypedActorContext> executor)
     {
-        var context = Context;
+        IUntypedActorContext context = Context;
 
         return Dispatcher.InvokeAsync(() => executor(context));
     }
@@ -251,7 +252,7 @@ public abstract class UiActor : ObservableActor, IObservablePropertyChanged
 
     protected IObservable<T> UICall<T>(Func<IUntypedActorContext, Task<T>> executor)
     {
-        var context = Context;
+        IUntypedActorContext context = Context;
 
         return Dispatcher.InvokeAsync(() => executor(context));
     }
@@ -262,19 +263,21 @@ public abstract class UiActor : ObservableActor, IObservablePropertyChanged
 
     private void CommandExecute(CommandExecuteEvent obj)
     {
-        var (name, parameter) = obj;
-        if(_commandRegistrations.TryGetValue(name, out var registration))
+        (string name, object? parameter) = obj;
+        if(_commandRegistrations.TryGetValue(name, out CommandRegistration? registration))
         {
             UiActorLog.ExecuteCommand(Log, name);
             registration.Command(parameter);
         }
         else
+        {
             UiActorLog.CommandNotFound(Log, name);
+        }
     }
 
     protected void InvokeCommand(string name)
     {
-        if(!_commandRegistrations.TryGetValue(name, out var cr))
+        if(!_commandRegistrations.TryGetValue(name, out CommandRegistration? cr))
             return;
 
         if(cr.CanExecute())
@@ -285,7 +288,7 @@ public abstract class UiActor : ObservableActor, IObservablePropertyChanged
         => new(
             (key, command, canExecute) =>
             {
-                var actorCommand = new ActorCommand(key, Context.Self, canExecute, Dispatcher).DisposeWith(this);
+                ActorCommand actorCommand = new ActorCommand(key, Context.Self, canExecute, Dispatcher).DisposeWith(this);
                 var prop = new UIProperty<ICommand>(key).ForceSet(actorCommand);
                 prop.LockSet();
                 var data = new PropertyData(prop);
@@ -308,8 +311,8 @@ public abstract class UiActor : ObservableActor, IObservablePropertyChanged
 
     private void RestartActor(ReviveActor actor)
     {
-        foreach (var (name, data) in actor.Data)
-            foreach (var actorRef in data.Subscriptors)
+        foreach ((string name, PropertyData data) in actor.Data)
+            foreach (IActorRef actorRef in data.Subscriptors)
                 TrackProperty(new TrackPropertyEvent(name), actorRef);
     }
 
@@ -377,14 +380,16 @@ public abstract class UiActor : ObservableActor, IObservablePropertyChanged
 
     private void ExecuteEvent(ExecuteEventEvent obj)
     {
-        var (eventData, name) = obj;
+        (EventData eventData, string name) = obj;
         if(_eventRegistrations.TryGetValue(name, out var reg))
         {
             UiActorLog.ExecuteEvent(Log, name);
             reg.ForEach(e => e.Execute(eventData));
         }
         else
+        {
             UiActorLog.EventNotFound(Log, name);
+        }
     }
 
     protected EventRegistrationBuilder RegisterEvent(string name) => new(name, (s, del) => _eventRegistrations.Add(s, new InvokeHelper(del)));
@@ -406,17 +411,17 @@ public abstract class UiActor : ObservableActor, IObservablePropertyChanged
     private void GetPropertyValue(GetValueRequest obj)
     {
         Context.Sender.Tell(
-            _propertys.TryGetValue(obj.Name, out var propertyData)
+            _propertys.TryGetValue(obj.Name, out PropertyData? propertyData)
                 ? new GetValueResponse(obj.Name, propertyData.PropertyBase.ObjectValue)
                 : new GetValueResponse(obj.Name, null));
     }
 
     private void SetPropertyValue(SetValue obj)
     {
-        if(!_propertys.TryGetValue(obj.Name, out var propertyData))
+        if(!_propertys.TryGetValue(obj.Name, out PropertyData? propertyData))
             return;
 
-        var (_, value) = obj;
+        (_, object? value) = obj;
 
         if(Equals(propertyData.PropertyBase.ObjectValue, value)) return;
 
@@ -428,7 +433,7 @@ public abstract class UiActor : ObservableActor, IObservablePropertyChanged
         if(propertyData.LastValue?.Equals(propertyData.PropertyBase.ObjectValue) == true) return;
 
         propertyData.LastValue = propertyData.PropertyBase.ObjectValue;
-        foreach (var actorRef in propertyData.Subscriptors)
+        foreach (IActorRef actorRef in propertyData.Subscriptors)
         {
             actorRef.Tell(
                 new PropertyChangedEvent(
@@ -442,7 +447,7 @@ public abstract class UiActor : ObservableActor, IObservablePropertyChanged
     {
         UiActorLog.TrackProperty(Log, obj.Name);
 
-        if(!_propertys.TryGetValue(obj.Name, out var prop)) return;
+        if(!_propertys.TryGetValue(obj.Name, out PropertyData? prop)) return;
 
         try
         {
@@ -463,7 +468,7 @@ public abstract class UiActor : ObservableActor, IObservablePropertyChanged
 
     private void PropertyTerminationHandler(PropertyTermination obj)
     {
-        if(!_propertys.TryGetValue(obj.Name, out var prop)) return;
+        if(!_propertys.TryGetValue(obj.Name, out PropertyData? prop)) return;
 
         prop.Subscriptors.Remove(obj.ActorRef);
     }

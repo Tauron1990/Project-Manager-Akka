@@ -18,7 +18,7 @@ public sealed class BrushValueConverter : ValueConverterFactoryBase
         {
             try
             {
-                if (ConverterImpl.ConvertFrom(value) is Brush brush)
+                if(ConverterImpl.ConvertFrom(value) is Brush brush)
                     return brush;
 
                 return Brushes.Black;

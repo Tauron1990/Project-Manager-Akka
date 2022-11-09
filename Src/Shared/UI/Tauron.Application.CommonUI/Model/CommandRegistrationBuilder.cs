@@ -84,7 +84,7 @@ public sealed class CommandRegistrationBuilder
 
     public UIProperty<ICommand>? ThenRegister(string name)
     {
-        if (_command == null) return null;
+        if(_command == null) return null;
 
         var canExec = _canExecute.Count switch
         {

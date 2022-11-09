@@ -13,22 +13,14 @@ namespace SimpleProjectManager.Client.Shared.ViewModels.Pages;
 
 public sealed class NewJobViewModel : ViewModelBase
 {
-    public JobEditorViewModelBase EditorModel { get; }
-
-    public ReactiveCommand<JobEditorCommit, bool>? Commit { get; private set; }
-
-    public ReactiveCommand<Unit, Unit>? Cancel { get; private set; }
-
     private ObservableAsPropertyHelper<bool>? _commiting;
 
-    public bool IsCommiting => _commiting?.Value ?? false;
-    
     public NewJobViewModel(PageNavigation pageNavigation, GlobalState globalState, JobEditorViewModelBase editorModel)
     {
         EditorModel = editorModel;
 
         this.WhenActivated(Init);
-        
+
         IEnumerable<IDisposable> Init()
         {
             yield return Cancel = ReactiveCommand.Create(pageNavigation.ShowStartPage);
@@ -46,11 +38,19 @@ public sealed class NewJobViewModel : ViewModelBase
             yield return Commit.Subscribe(
                 s =>
                 {
-                    if (s)
+                    if(s)
                         pageNavigation.ShowStartPage();
                 });
 
             yield return _commiting = Commit.IsExecuting.ObserveOn(RxApp.MainThreadScheduler).ToProperty(this, m => m.IsCommiting);
         }
     }
+
+    public JobEditorViewModelBase EditorModel { get; }
+
+    public ReactiveCommand<JobEditorCommit, bool>? Commit { get; private set; }
+
+    public ReactiveCommand<Unit, Unit>? Cancel { get; private set; }
+
+    public bool IsCommiting => _commiting?.Value ?? false;
 }

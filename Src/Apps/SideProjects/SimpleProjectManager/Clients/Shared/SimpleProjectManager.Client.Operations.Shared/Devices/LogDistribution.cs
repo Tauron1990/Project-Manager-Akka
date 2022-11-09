@@ -7,7 +7,7 @@ namespace SimpleProjectManager.Client.Operations.Shared.Devices;
 public class LogDistribution
 {
     private readonly IActorRef _mediator;
-    
+
     public LogDistribution(ActorSystem actorSystem)
         => _mediator = DistributedPubSub.Get(actorSystem).Mediator;
 

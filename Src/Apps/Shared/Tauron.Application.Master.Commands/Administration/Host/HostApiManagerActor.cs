@@ -16,7 +16,7 @@ public sealed class HostApiManagerFeature : ActorFeatureBase<HostApiManagerFeatu
         => Feature.Create(
             () => new HostApiManagerFeature(),
             _ => new ApiState(ImmutableDictionary<ActorPath, HostEntry>.Empty));
-    
+
 
     protected override void ConfigImpl()
     {

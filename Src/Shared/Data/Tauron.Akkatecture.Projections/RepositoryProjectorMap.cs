@@ -36,10 +36,10 @@ public class RepositoryProjectorMap<TProjection, TIdentity>
     {
         try
         {
-            var data = await _repository.Get<TProjection, TIdentity>(context, key);
-            if (data is null)
+            TProjection? data = await _repository.Get<TProjection, TIdentity>(context, key);
+            if(data is null)
             {
-                if (createifmissing())
+                if(createifmissing())
                     data = await _repository.Create<TProjection, TIdentity>(context, key, _ => true);
                 else
                     throw new KeyNotFoundException($"The key {key} is not in The Repository");
@@ -63,7 +63,7 @@ public class RepositoryProjectorMap<TProjection, TIdentity>
     {
         try
         {
-            var data = await _repository.Create(context, key, shouldoverwite);
+            TProjection data = await _repository.Create(context, key, shouldoverwite);
             await projector(data);
             await _repository.Commit(context, data, key);
         }

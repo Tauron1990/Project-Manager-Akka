@@ -10,10 +10,10 @@ namespace Tauron.Application.AkkaNode.Services.CleanUp;
 
 public sealed partial class CleanUpOperator : ActorFeatureBase<CleanUpOperator.State>
 {
+    private ILogger _logger = null!;
+
     public static IPreparedFeature New(IRepository<CleanUpTime, string> cleanUp, IRepository<ToDeleteRevision, string> revisions, IDirectory bucket)
         => Feature.Create(() => new CleanUpOperator(), _ => new State(cleanUp, revisions, bucket));
-
-    private ILogger _logger = null!;
 
     [LoggerMessage(EventId = 21, Level = LogLevel.Error, Message = "Error on Clean up Database")]
     private partial void CleanUpError(Exception error);
@@ -21,7 +21,7 @@ public sealed partial class CleanUpOperator : ActorFeatureBase<CleanUpOperator.S
     protected override void ConfigImpl()
     {
         _logger = Logger;
-        
+
         Receive<StartCleanUp>(
             obs => obs.Take(1)
                .Select(s => new { s.State, Data = s.State.CleanUp.Get(CleanUpManager.TimeKey) })

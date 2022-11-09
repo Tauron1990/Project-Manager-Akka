@@ -23,10 +23,8 @@ public abstract class DisposableComponent : ComponentBase, IResourceHolder
 
     protected virtual void Dispose(bool disposing)
     {
-        if (disposing)
-        {
+        if(disposing)
             _disposables.Dispose();
-        }
     }
 }
 

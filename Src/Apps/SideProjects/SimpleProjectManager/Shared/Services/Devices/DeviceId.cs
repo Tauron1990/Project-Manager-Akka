@@ -8,8 +8,8 @@ namespace SimpleProjectManager.Shared.Services.Devices;
 public sealed class DeviceId : Identity<DeviceId>
 {
     public DeviceId(string value) : base(value) { }
-    
+
     [UsedImplicitly]
     public static bool TryParse(string? value, IFormatProvider? provider, [NotNullWhen(true)] out DeviceId? deviceId)
-        => Identity<DeviceId>.TryParse(value, out deviceId);
+        => TryParse(value, out deviceId);
 }

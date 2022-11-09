@@ -15,10 +15,10 @@ public interface IDeviceService
 
     [ComputeMethod]
     Task<string> GetStringSensorValue(DeviceId device, DeviceId sensor, CancellationToken token);
-    
+
     [ComputeMethod]
     Task<int> GetIntSensorValue(DeviceId device, DeviceId sensor, CancellationToken token);
-    
+
     [ComputeMethod]
     Task<double> GetDoubleSensorValue(DeviceId device, DeviceId sensor, CancellationToken token);
 

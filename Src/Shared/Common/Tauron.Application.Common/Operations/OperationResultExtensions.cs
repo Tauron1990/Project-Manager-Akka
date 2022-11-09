@@ -10,9 +10,7 @@ public static class OperationResultExtensions
         => opt.OnSuccess(err => throw err.CreateException());
 
 
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string ErrorToString(this ref Option<Error> opt)
         => opt.HasValue ? opt.Value.Info ?? opt.Value.Code : string.Empty;
-    
 }

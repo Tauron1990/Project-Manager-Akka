@@ -14,17 +14,19 @@ module.exports = {
     mode: 'development', //development
     module: {
         rules: [
-            { 
+            {
                 test: /\.tsx?$/,
                 use: 'ts-loader',
                 exclude: /node_modules/,
             },
-            { 
-                test: /\.css$/, 
-                use: ['style-loader', 'css-loader'] },
-            { 
-                test: /\.eot(\?v=\d+\.\d+\.\d+)?$/, 
-                use: ['file-loader'] },
+            {
+                test: /\.css$/,
+                use: ['style-loader', 'css-loader']
+            },
+            {
+                test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
+                use: ['file-loader']
+            },
             {
                 test: /\.(woff|woff2)$/, use: [
                     {

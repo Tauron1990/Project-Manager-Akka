@@ -53,12 +53,12 @@ public static class ControlHelper
 
     private static void SetLinker(DependencyObject obj, string? oldName, string? newName, Func<LinkerBase> factory)
     {
-        if (string.IsNullOrWhiteSpace(newName))
+        if(string.IsNullOrWhiteSpace(newName))
             return;
 
-        if (DesignerProperties.GetIsInDesignMode(obj)) return;
+        if(DesignerProperties.GetIsInDesignMode(obj)) return;
 
-        var ele = ElementMapper.Create(obj);
+        IUIObject ele = ElementMapper.Create(obj);
         var rootOption = ControlBindLogic.FindRoot(ele.AsOption());
 
         rootOption.Run(
@@ -76,12 +76,12 @@ public static class ControlHelper
         string? newName, string? oldName, IBinderControllable root, IUIObject obj,
         Func<LinkerBase> factory)
     {
-        if (oldName is not null)
+        if(oldName is not null)
             root.CleanUp(ControlHelperPrefix + oldName);
 
-        if (newName is null) return;
+        if(newName is null) return;
 
-        var linker = factory();
+        LinkerBase linker = factory();
         linker.Name = newName;
         root.Register(ControlHelperPrefix + newName, linker, obj);
     }
@@ -91,7 +91,7 @@ public static class ControlHelper
     {
         protected override void Scan()
         {
-            if (DataContext is IViewModel model && AffectedObject is IUIElement element)
+            if(DataContext is IViewModel model && AffectedObject is IUIElement element)
                 model.AwaitInit(() => model.Actor.Tell(new ControlSetEvent(Name, element)));
         }
     }
@@ -118,24 +118,24 @@ public static class ControlHelper
         // ReSharper disable once CognitiveComplexity
         protected override void Scan()
         {
-            var realName = Name;
+            string realName = Name;
             string? windowName = null;
 
-            if (realName.Contains(":"))
+            if(realName.Contains(":"))
             {
-                var nameSplit = realName.Split(new[] { ':' }, 2);
+                string[] nameSplit = realName.Split(new[] { ':' }, 2);
                 realName = nameSplit[0];
                 windowName = nameSplit[1];
             }
 
-            var priTarget = ((WpfObject)AffectedObject).DependencyObject;
+            DependencyObject? priTarget = ((WpfObject)AffectedObject).DependencyObject;
 
-            if (windowName is null)
+            if(windowName is null)
             {
-                if (priTarget is not System.Windows.Window)
+                if(priTarget is not System.Windows.Window)
                     priTarget = System.Windows.Window.GetWindow(priTarget);
 
-                if (priTarget is null)
+                if(priTarget is null)
                     LogManager.GetCurrentClassLogger().Error($"ControlHelper: No Window Found: {DataContext.GetType()}|{realName}");
             }
             else
@@ -144,13 +144,13 @@ public static class ControlHelper
                     System.Windows.Application.Current.Windows.Cast<System.Windows.Window>()
                        .FirstOrDefault(win => win.Name == windowName);
 
-                if (priTarget is null)
+                if(priTarget is null)
                     LogManager.GetCurrentClassLogger().Error($"ControlHelper: No Window Named {windowName} Found");
             }
 
-            if (priTarget is null) return;
+            if(priTarget is null) return;
 
-            if (DataContext is IViewModel model && ElementMapper.Create(priTarget) is IUIElement element)
+            if(DataContext is IViewModel model && ElementMapper.Create(priTarget) is IUIElement element)
                 model.AwaitInit(() => model.Actor.Tell(new ControlSetEvent(Name, element)));
         }
     }

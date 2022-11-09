@@ -21,7 +21,7 @@ public static class PropertyExtensions
                  ?? throw new ArgumentNullException(nameof(name), "Property not Found"),
                     Array.Empty<Type>);
 
-                if (fac is null)
+                if(fac is null)
                     throw new InvalidOperationException("no Factory Created");
 
                 return fac;
@@ -41,7 +41,7 @@ public static class PropertyExtensions
                  ?? throw new ArgumentNullException(nameof(name), "Property not Found"),
                     Array.Empty<Type>);
 
-                if (fac is null)
+                if(fac is null)
                     throw new InvalidOperationException("no Factory Created");
 
                 return fac;
@@ -62,14 +62,14 @@ public static class PropertyExtensions
 
         public bool Equals(CacheKey? other)
         {
-            if (other is null) return false;
-            if (ReferenceEquals(this, other)) return true;
+            if(other is null) return false;
+            if(ReferenceEquals(this, other)) return true;
 
             return Name == other.Name && Type == other.Type;
         }
 
         public override bool Equals(object? obj)
-            => ReferenceEquals(this, obj) || obj is CacheKey other && Equals(other);
+            => ReferenceEquals(this, obj) || (obj is CacheKey other && Equals(other));
 
         public override int GetHashCode() => HashCode.Combine(Name, Type);
 

@@ -3,11 +3,10 @@ using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using ReactiveUI;
 using SimpleProjectManager.Client.Shared.Data.JobEdit;
-using SimpleProjectManager.Client.Shared.ViewModels;
 using SimpleProjectManager.Client.Shared.ViewModels.EditJob;
 using SimpleProjectManager.Client.ViewModels;
-using Tauron.Application.Blazor.Commands;
 using Tauron;
+using Tauron.Application.Blazor.Commands;
 
 namespace SimpleProjectManager.Client.Shared.EditJob;
 
@@ -16,7 +15,7 @@ public partial class JobEditor
     private MudCommandButton? _cancelButton;
     private MudCommandButton? _commitButton;
     private MudForm? _editorForm;
-    
+
     [Parameter]
     public string Title { get; set; } = string.Empty;
 
@@ -28,7 +27,7 @@ public partial class JobEditor
 
     [Parameter]
     public bool CanCancel { get; set; }
-    
+
     [Parameter]
     public JobEditorConfiguration Configuration { get; set; } = JobEditorConfiguration.Default;
 
@@ -57,19 +56,19 @@ public partial class JobEditor
         set => this.RaiseAndSetIfChanged(ref _commitButton, value);
     }
 
-     protected override JobEditorViewModel CreateModel()
-         => (CustomViewModel as JobEditorViewModel) ?? base.CreateModel();
+    protected override JobEditorViewModel CreateModel()
+        => CustomViewModel as JobEditorViewModel ?? base.CreateModel();
 
-     protected override void OnAfterRender(bool firstRender)
-     {
-         if(firstRender)
-             _editorForm?.Validate();
-         base.OnAfterRender(firstRender);
-     }
-
-     protected override IEnumerable<IDisposable> InitializeModel()
+    protected override void OnAfterRender(bool firstRender)
     {
-        if (ViewModel is null) yield break;
+        if(firstRender)
+            _editorForm?.Validate();
+        base.OnAfterRender(firstRender);
+    }
+
+    protected override IEnumerable<IDisposable> InitializeModel()
+    {
+        if(ViewModel is null) yield break;
 
         yield return ViewModel.Data?.Changed.Subscribe(_ => RenderingManager.StateHasChangedAsync().Ignore()) ?? Disposable.Empty;
 

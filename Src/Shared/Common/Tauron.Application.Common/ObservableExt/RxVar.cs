@@ -56,7 +56,7 @@ public sealed class RxVar<T> : IDisposable, IObservable<T>, IObserver<T>, IEquat
 
     void IObserver<T>.OnNext(T value)
     {
-        if (IsDistinctMode && Equals(value))
+        if(IsDistinctMode && Equals(value))
             return;
 
         _subject.OnNext(value);
@@ -64,7 +64,7 @@ public sealed class RxVar<T> : IDisposable, IObservable<T>, IObserver<T>, IEquat
 
     public IDisposable ListenTo(IObserver<T> intrest)
     {
-        var result =  _subject.Subscribe(intrest);
+        IDisposable result = _subject.Subscribe(intrest);
         _disposable.Add(result);
 
         return Disposable.Create((result, _disposable), d => d._disposable.Remove(d.result));
@@ -72,7 +72,7 @@ public sealed class RxVar<T> : IDisposable, IObservable<T>, IObserver<T>, IEquat
 
     public override int GetHashCode()
     {
-        var val = Value;
+        T val = Value;
 
         return val == null ? 0 : _equalityComparer.GetHashCode(val);
     }
@@ -117,7 +117,7 @@ public sealed class RxVal<T> : IDisposable, IObservable<T?>, IEquatable<RxVal<T>
     public RxVal(IObservable<T> source)
     {
         _subject = new BehaviorSubject<T?>(default);
-        var sub = source.Subscribe(_subject);
+        IDisposable sub = source.Subscribe(_subject);
         _disposable.Add(_subject);
         _disposable.Add(sub);
     }
@@ -139,14 +139,14 @@ public sealed class RxVal<T> : IDisposable, IObservable<T?>, IEquatable<RxVal<T>
 
     public IDisposable ListenTo(IObserver<T?> intrest)
     {
-        var result = _subject.Subscribe(intrest);
+        IDisposable result = _subject.Subscribe(intrest);
 
         return Disposable.Create((result, _disposable), s => s._disposable.Remove(s.result));
     }
 
     public override int GetHashCode()
     {
-        var val = Value;
+        T? val = Value;
 
         return val == null ? 0 : _equalityComparer.GetHashCode(val);
     }

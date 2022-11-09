@@ -10,40 +10,42 @@ public static class DynamicUpdate
 {
     private static Effect<TState> CreateDynamicUpdaterInternal<TState, TSource, TData>(
         IStateFactory stateFactory,
-        Selector<TState, TSource> selector, 
-        Func<CancellationToken, Func<CancellationToken, ValueTask<TSource>>, Task<TData>> requester, 
-        Patcher<TData, TState> patcher, 
+        Selector<TState, TSource> selector,
+        Func<CancellationToken, Func<CancellationToken, ValueTask<TSource>>, Task<TData>> requester,
+        Patcher<TData, TState> patcher,
         Action<Exception>? errorHandler)
         => Create.Effect<TState>(
-            store => Observable.Create<object>(o =>
-                                               {
-                                                   var stlState = stateFactory.NewMutable<TSource>();
-                                                   var stateUpdateTrigger = store.Select(state => selector(state)).Subscribe(source => stlState.Set(source));
-                                                   
-                                                   var computer = stateFactory.NewComputed(
-                                                       new ComputedState<TData>.Options(),
-                                                       async (_, token) => await requester(token, stlState.Use).ConfigureAwait(false));
+            store => Observable.Create<object>(
+                o =>
+                {
+                    var stlState = stateFactory.NewMutable<TSource>();
+                    IDisposable stateUpdateTrigger = store.Select(state => selector(state)).Subscribe(source => stlState.Set(source));
 
-                                                   var observableSubscription = computer
-                                                      .ToObservable(
-                                                           ex =>
-                                                           {
-                                                               errorHandler?.Invoke(ex);
-                                                               return false;
-                                                           })
-                                                      .Select(data => patcher(data, store.CurrentState))
-                                                      .Select(MutateCallback.Create)
-                                                      .Cast<object>()
-                                                      .Subscribe(o);
+                    var computer = stateFactory.NewComputed(
+                        new ComputedState<TData>.Options(),
+                        async (_, token) => await requester(token, stlState.Use).ConfigureAwait(false));
 
-                                                   return () =>
-                                                          {
-                                                              computer.Dispose();
-                                                              
-                                                              stateUpdateTrigger.Dispose();
-                                                              observableSubscription.Dispose();
-                                                          };
-                                               }));
+                    IDisposable observableSubscription = computer
+                       .ToObservable(
+                            ex =>
+                            {
+                                errorHandler?.Invoke(ex);
+
+                                return false;
+                            })
+                       .Select(data => patcher(data, store.CurrentState))
+                       .Select(MutateCallback.Create)
+                       .Cast<object>()
+                       .Subscribe(o);
+
+                    return () =>
+                           {
+                               computer.Dispose();
+
+                               stateUpdateTrigger.Dispose();
+                               observableSubscription.Dispose();
+                           };
+                }));
 
     public static void AddRequest<TState, TAction>(
         IRootStore store,
@@ -104,5 +106,6 @@ public static class DynamicUpdate
 
                     return await fetcher(token).ConfigureAwait(false);
                 },
-                patcher, errorHandler));
+                patcher,
+                errorHandler));
 }

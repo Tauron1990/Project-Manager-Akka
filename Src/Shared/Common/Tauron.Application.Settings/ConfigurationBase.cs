@@ -20,14 +20,12 @@ public abstract class ConfigurationBase : ObservableObject
 
     private bool _isBlocked;
 
-    protected ILogger Logger { get; }
-    
     protected ConfigurationBase(IDefaultActorRef<SettingsManager> actor, string scope, ILogger logger)
     {
         _actor = actor;
         Logger = logger;
 
-        if (actor is EmptyActor<SettingsManager>)
+        if(actor is EmptyActor<SettingsManager>)
         {
             _scope = string.Empty;
             _loader = Task.CompletedTask;
@@ -38,6 +36,8 @@ public abstract class ConfigurationBase : ObservableObject
             _loader = Task.Run(async () => await LoadValues());
         }
     }
+
+    protected ILogger Logger { get; }
 
     public IDisposable BlockSet()
     {
@@ -55,9 +55,9 @@ public abstract class ConfigurationBase : ObservableObject
         {
             _loader.Wait();
 
-            if (string.IsNullOrEmpty(name)) return default!;
+            if(string.IsNullOrEmpty(name)) return default!;
 
-            return _dic.TryGetValue(name, out var value) ? converter(value) : defaultValue;
+            return _dic.TryGetValue(name, out string? value) ? converter(value) : defaultValue;
         }
         catch (Exception e)
         {
@@ -69,10 +69,10 @@ public abstract class ConfigurationBase : ObservableObject
 
     protected void SetValue(string value, [CallerMemberName] string? name = null)
     {
-        if (_isBlocked)
+        if(_isBlocked)
             return;
 
-        if (string.IsNullOrEmpty(name)) return;
+        if(string.IsNullOrEmpty(name)) return;
 
         _dic = _dic.SetItem(value, name);
 

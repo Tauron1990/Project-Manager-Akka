@@ -29,22 +29,22 @@ public sealed class ConcurrentDispatcherConfugiration : DispatcherPoolConfigurat
             _custom = custom;
         }
 
+        public IDriverFactory Configurate(IDriverFactory factory)
+            => AkkaDriverFactory.Get(factory).CustomMutator(Configurate);
+
         private Props Configurate(Props mutator)
         {
-            var route = new SmallestMailboxPool(_instances)
+            SmallestMailboxPool? route = new SmallestMailboxPool(_instances)
                .WithSupervisorStrategy(_supervisorStrategy);
 
-            if (_resizer == null)
+            if(_resizer == null)
                 route = route.WithResizer(_resizer);
-            if (!string.IsNullOrWhiteSpace(_dispatcher))
+            if(!string.IsNullOrWhiteSpace(_dispatcher))
                 route = route.WithDispatcher(_dispatcher);
 
             mutator = mutator.WithRouter(route);
 
             return _custom != null ? _custom(mutator) : mutator;
         }
-
-        public IDriverFactory Configurate(IDriverFactory factory)
-            => AkkaDriverFactory.Get(factory).CustomMutator(Configurate);
     }
 }

@@ -1,3 +1,3 @@
 ﻿namespace SimpleProjectManager.Shared.Services.Devices;
 
-public sealed record DeviceButton(string DisplayName, DeviceId Identifer);
+public sealed record DeviceButton(DisplayName DisplayName, DeviceId Identifer);

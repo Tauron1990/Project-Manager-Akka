@@ -13,7 +13,7 @@ public sealed class WeakAction
 
     public WeakAction(object? target, MethodInfo method, Type? parameterType)
     {
-        if (target != null)
+        if(target != null)
             TargetObject = new WeakReference(target);
 
         MethodInfo = method;
@@ -29,7 +29,7 @@ public sealed class WeakAction
     public WeakAction(object? target, MethodInfo method)
     {
         MethodInfo = method;
-        if (target != null)
+        if(target != null)
             TargetObject = new WeakReference(target);
 
         var parames = method.GetParameters().OrderBy(parm => parm.Position).Select(parm => parm.ParameterType)
@@ -57,7 +57,7 @@ public sealed class WeakAction
     {
         unchecked
         {
-            var value = TargetObject?.Target?.GetHashCode();
+            int? value = TargetObject?.Target?.GetHashCode();
 
             return (MethodInfo.GetHashCode() * 397) ^ (value is null ? 0 : value.Value);
         }
@@ -65,15 +65,15 @@ public sealed class WeakAction
 
     public object? Invoke(params object[] parms)
     {
-        var temp = CreateDelegate(out var target);
+        var temp = CreateDelegate(out object? target);
 
         return temp?.Invoke(target, parms);
     }
 
     public override bool Equals(object? obj)
     {
-        if (obj is null) return false;
-        if (ReferenceEquals(this, obj)) return true;
+        if(obj is null) return false;
+        if(ReferenceEquals(this, obj)) return true;
 
         return obj is WeakAction action && Equals(action);
     }
@@ -131,13 +131,13 @@ public class WeakActionEvent<T>
 
         lock (_lock)
         {
-            if (_delegates.Where(del => del.MethodInfo == handler.Method)
-               .Select(weakAction => weakAction.TargetObject?.Target)
-               .Any(weakTarget => weakTarget == handler.Target))
+            if(_delegates.Where(del => del.MethodInfo == handler.Method)
+              .Select(weakAction => weakAction.TargetObject?.Target)
+              .Any(weakTarget => weakTarget == handler.Target))
                 return this;
         }
 
-        var parameterType = parameters[0].ParameterType;
+        Type parameterType = parameters[0].ParameterType;
 
         lock (_lock)
         {
@@ -151,10 +151,10 @@ public class WeakActionEvent<T>
     {
         lock (_lock)
         {
-            foreach (var action in _delegates)
+            foreach (WeakAction action in _delegates)
             {
-                var del = action.CreateDelegate(out var target);
-                if (target != null)
+                var del = action.CreateDelegate(out object? target);
+                if(target != null)
                     del?.Invoke(target, new object?[] { arg });
             }
         }
@@ -164,9 +164,9 @@ public class WeakActionEvent<T>
     {
         lock (_lock)
         {
-            foreach (var del in _delegates.Where(
-                del
-                    => del.TargetObject != null && del.TargetObject.Target == handler.Target))
+            foreach (WeakAction del in _delegates.Where(
+                         del
+                             => del.TargetObject != null && del.TargetObject.Target == handler.Target))
             {
                 _delegates.Remove(del);
 

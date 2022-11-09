@@ -17,7 +17,7 @@ public sealed class RoomUpdater : Rule, IRoomManager<RoomUpdater>
 
 
         Dependency().Resolve(() => assetManager);
-        
+
         When()
            .Match(() => successCommand)
            .Match(() => old, o => o.Id == successCommand.From)
@@ -30,7 +30,7 @@ public sealed class RoomUpdater : Rule, IRoomManager<RoomUpdater>
     {
         old.IsPlayerInRoom = false;
         newState.IsPlayerInRoom = true;
-        
+
         ctx.InsertAll(newState.GetToInsert(assetManager, command.Context));
     }
 }

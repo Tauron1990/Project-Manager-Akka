@@ -40,7 +40,7 @@ public class AggregateIsNewSpecification : Specification<IAggregateRoot>
 
     protected override IEnumerable<Error> IsNotSatisfiedBecause(IAggregateRoot aggregate)
     {
-        if (!aggregate.IsNew) 
+        if(!aggregate.IsNew)
             yield return new Error($"'{aggregate.Name}' with ID '{aggregate.GetIdentity()}' is not new", DefaultErrorCodes.NotNewAggregate);
     }
 }

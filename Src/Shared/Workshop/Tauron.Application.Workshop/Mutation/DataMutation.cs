@@ -34,10 +34,10 @@ public sealed class DataMutation<TData> : ISyncMutation
         Name = name;
     }
 
+    public object ConsistentHashKey => _hash ?? Name;
+
     public string Name { get; }
     Action ISyncMutation.Run => _task;
-
-    public object ConsistentHashKey => _hash ?? Name;
 }
 
 [PublicAPI]
@@ -55,8 +55,8 @@ public sealed class AsyncDataMutation<TData> : IAsyncMutation
         Name = name;
     }
 
-    public string Name { get; }
-
     public object ConsistentHashKey => _hash ?? Name;
+
+    public string Name { get; }
     Func<Task> IAsyncMutation.Run => _task;
 }

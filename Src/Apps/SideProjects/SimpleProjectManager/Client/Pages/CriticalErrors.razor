@@ -6,7 +6,7 @@
 
 <ObservableRenderer Observable="@ViewModel?.Errors">
     <ValueRenderer>
-        @if (context.IsOnline)
+        @if(context.IsOnline)
         {
             <ObservableCollectionView SourceParameter="context.Errors">
                 <EmptyRender>
@@ -14,7 +14,7 @@
                 </EmptyRender>
                 <ListRender Context="items">
                     <MudGrid Justify="Justify.Center">
-                        @foreach (var item in items)
+                        @foreach (CriticalError item in items)
                         {
                             <MudItem lg="12" @key="item.Id">
                                 <CriticalErrorDispaly Error="item"/>

@@ -7,13 +7,11 @@ namespace SpaceConqueror.States;
 public sealed class GlobalState
 {
     private static readonly string SaveGamePath = Path.GetFullPath("saves");
+    private readonly List<IState> _gameState = new();
+    private readonly Func<IEnumerable<IState>> _newState;
 
     private readonly Serializer _serializer = new();
     private readonly ISessionFactory _sessionFactory;
-    private readonly Func<IEnumerable<IState>> _newState;
-    private readonly List<IState> _gameState = new();
-
-    public ISession Updater { get; private set; }
 
     public GlobalState(ISessionFactory sessionFactory, Func<IEnumerable<IState>> newState)
     {
@@ -22,31 +20,33 @@ public sealed class GlobalState
         Updater = _sessionFactory.CreateSession();
     }
 
+    public ISession Updater { get; private set; }
+
     private void Clear()
     {
         _gameState.Clear();
         Updater = _sessionFactory.CreateSession();
-        
+
         GC.Collect();
     }
-    
+
     public void NewGame()
     {
         Clear();
-        
+
         Updater.InsertAll(_newState());
     }
 
     public static IEnumerable<string> GetSaveGames()
-        => Directory.Exists(SaveGamePath) 
-            ? Directory.EnumerateFiles(SaveGamePath) 
+        => Directory.Exists(SaveGamePath)
+            ? Directory.EnumerateFiles(SaveGamePath)
             : Array.Empty<string>();
 
     public void SaveGame(string name)
     {
         if(!name.EndsWith(SaveGamePath))
             name = SaveGamePath + name;
-        
+
         if(!name.EndsWith(".sav"))
             name += ".sav";
 
@@ -54,7 +54,7 @@ public sealed class GlobalState
 
         _gameState.Clear();
         _gameState.AddRange(Updater.Query<IState>());
-        
+
         _serializer.Serialize(
             new GameRecord(GameManager.GameVersion, _gameState.ToImmutableList()),
             file);
@@ -75,7 +75,7 @@ public sealed class GlobalState
             _gameState.AddRange(record.GameState);
             SyncState();
         }
-        
+
         Updater.InsertAll(_gameState);
     }
 
@@ -84,15 +84,16 @@ public sealed class GlobalState
         foreach (IState state in _newState())
         {
             Type type = state.GetType();
+
             if(_gameState.Select(s => s.GetType()).Contains(type))
                 continue;
-            
+
             _gameState.Add(state);
             Updater.Insert(state);
         }
-        
+
         GC.Collect();
     }
-    
+
     private sealed record GameRecord(Version GameVersion, ImmutableList<IState> GameState);
 }

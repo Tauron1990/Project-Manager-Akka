@@ -7,8 +7,8 @@ namespace SimpleProjectManager.Server.Core.DeviceManager;
 
 public class DeviceManagerStartUp
 {
-    private readonly ActorSystem _system;
     private readonly DeviceEventHandler _deviceEventHandler;
+    private readonly ActorSystem _system;
 
     public DeviceManagerStartUp(ActorSystem system, DeviceEventHandler deviceEventHandler)
     {
@@ -18,7 +18,7 @@ public class DeviceManagerStartUp
 
     public void Run()
     {
-        var singleTon = ClusterSingletonManager.Props(ServerDeviceManagerFeature.Create(_deviceEventHandler), ClusterSingletonManagerSettings.Create(_system));
+        Props? singleTon = ClusterSingletonManager.Props(ServerDeviceManagerFeature.Create(_deviceEventHandler), ClusterSingletonManagerSettings.Create(_system));
         _system.ActorOf(singleTon, DeviceInformations.ManagerName);
     }
 }

@@ -1,15 +1,15 @@
 using System.Reactive.Linq;
 using Microsoft.AspNetCore.Components;
+using SimpleProjectManager.Client.Core;
+using SimpleProjectManager.Client.Shared;
 using SimpleProjectManager.Client.Shared.Data;
+using SimpleProjectManager.Client.Shared.Data.JobEdit;
+using SimpleProjectManager.Client.Shared.EditJob;
 using SimpleProjectManager.Client.Shared.Services;
 using SimpleProjectManager.Client.Shared.ViewModels.EditJob;
 using Stl.Fusion;
-using Tauron.Application.Blazor.Parameters;
-using SimpleProjectManager.Client.Core;
-using SimpleProjectManager.Client.Shared;
-using SimpleProjectManager.Client.Shared.Data.JobEdit;
-using SimpleProjectManager.Client.Shared.EditJob;
 using Tauron;
+using Tauron.Application.Blazor.Parameters;
 
 namespace SimpleProjectManager.Client.ViewModels;
 
@@ -17,15 +17,14 @@ public sealed class JobEditorViewModel : JobEditorViewModelBase, IParameterUpdat
 {
     private readonly IStateFactory _factory;
 
-    public JobEditorViewModel(IMessageDispatcher dispatcher, FileUploaderViewModelBase uploaderViewModel, GlobalState globalState, IStateFactory factory) 
+    public JobEditorViewModel(IMessageDispatcher dispatcher, FileUploaderViewModelBase uploaderViewModel, GlobalState globalState, IStateFactory factory)
         : base(dispatcher, uploaderViewModel, globalState)
-    {
-        _factory = factory;
-    }
+        => _factory = factory;
+
+    public ParameterUpdater Updater { get; } = new();
 
     protected override ModelConfig GetModelConfiguration()
-        => new
-        (
+        => new(
             Updater.Register<EventCallback<JobEditorCommit>>(nameof(JobEditor.Commit), _factory)
                .ToObservable(MessageDispatcher.PropagateErrors())
                .Select(c => (IEventCallback<JobEditorCommit>)new EventCallBackImpl<JobEditorCommit>(c))
@@ -38,6 +37,4 @@ public sealed class JobEditorViewModel : JobEditorViewModelBase, IParameterUpdat
             Updater.Register<JobEditorData?>(nameof(JobEditor.Data), _factory)
                .ToObservable(MessageDispatcher.PropagateErrors())
         );
-
-    public ParameterUpdater Updater { get; } = new();
 }

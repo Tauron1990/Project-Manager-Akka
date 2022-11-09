@@ -2,7 +2,6 @@
 using Akka;
 using Akka.Streams;
 using Akka.Streams.Dsl;
-using Akka.Streams.Implementation;
 using Akka.Streams.Stage;
 using Akka.Util;
 using JetBrains.Annotations;
@@ -25,17 +24,20 @@ public static class DynamicSource
     private static Source<TState, NotUsed> CreateAsyncStateSource<TState>(Func<Task<TState>> source, Func<Exception, TState?>? errorHandler)
         => Source.Single(Unit.Default)
            .SelectAsync(1, _ => source())
-           .Recover(ex => 
-                    (
-                        errorHandler is null
-                        ? Option<TState?>.None 
+           .Recover(
+                ex =>
+                (
+                    errorHandler is null
+                        ? Option<TState?>.None
                         : new Option<TState?>(errorHandler(ex))
-                        )!)
+                )!)
            .Where(state => state is not null);
 
     public static void FromAsync<TState>(IReduxStore<TState> store, Func<Task<TState>> source, Func<Exception, TState?>? errorHandler)
-        => store.RegisterEffects(Create.Effect<TState>(() => CreateAsyncStateSource(source, errorHandler)
-                                                          .Select(s => (object)MutateCallback.Create(s))));
+        => store.RegisterEffects(
+            Create.Effect<TState>(
+                () => CreateAsyncStateSource(source, errorHandler)
+                   .Select(s => (object)MutateCallback.Create(s))));
 
     public static void FromAsync<TState>(IReduxStore<TState> store, Task<TState> source, Func<Exception, TState?>? errorHandler)
         => FromAsync(store, () => source, errorHandler);
@@ -57,7 +59,7 @@ public static class DynamicSource
         Reqester<TSelect> reqester,
         Patcher<TSelect, TState> patcher,
         Func<Exception, TState?>? errorHandler)
-    where TState : class
+        where TState : class
         => () => CreateRequestSource(stateFactory, store, selector, reqester, patcher, errorHandler);
 
     private static Source<TState, NotUsed> CreateRequestSource<TState, TSelect>(
@@ -74,14 +76,14 @@ public static class DynamicSource
             try
             {
                 token.ThrowIfCancellationRequested();
-                var currentState = store.CurrentState;
-                var data = selector(currentState);
+                TState currentState = store.CurrentState;
+                TSelect data = selector(currentState);
                 token.ThrowIfCancellationRequested();
-                var requestResult = await reqester(token, data).ConfigureAwait(false);
+                TSelect requestResult = await reqester(token, data).ConfigureAwait(false);
                 token.ThrowIfCancellationRequested();
-                var patch = patcher(requestResult, currentState);
+                TState patch = patcher(requestResult, currentState);
                 token.ThrowIfCancellationRequested();
-                
+
                 return patch;
             }
             catch (Exception e) when (e is not OperationCanceledException)
@@ -104,8 +106,9 @@ public static class DynamicSource
         Func<Exception, TState?>? errorHandler)
         where TState : class
         => store.RegisterEffects(
-            Create.Effect<TState>(s => CreateRequestSource(stateFactory, s, selector, reqester, patcher, errorHandler)
-                                     .Select(state => (object)MutateCallback.Create(state))));
+            Create.Effect<TState>(
+                s => CreateRequestSource(stateFactory, s, selector, reqester, patcher, errorHandler)
+                   .Select(state => (object)MutateCallback.Create(state))));
 
     public static void FromRequest<TState, TSelect>(
         IStateFactory stateFactory,
@@ -115,12 +118,13 @@ public static class DynamicSource
         Patcher<TSelect, TState> patcher)
         where TState : class
         => FromRequest(stateFactory, store, selector, reqester, patcher, null);
-    
+
     public static void FromRequest<TState>(IStateFactory stateFactory, IReduxStore<TState> store, Reqester<TState> reqester, Func<Exception, TState?>? errorHandler)
         where TState : class
         => store.RegisterEffects(
-            Create.Effect<TState>(s => CreateRequestSource(stateFactory, s, state => state, reqester, (state, _) => state, errorHandler)
-                                     .Select(state => (object)MutateCallback.Create(state))));
+            Create.Effect<TState>(
+                s => CreateRequestSource(stateFactory, s, state => state, reqester, (state, _) => state, errorHandler)
+                   .Select(state => (object)MutateCallback.Create(state))));
 
     public static void FromRequest<TState>(IStateFactory stateFactory, IReduxStore<TState> store, Reqester<TState> reqester)
         where TState : class
@@ -135,66 +139,11 @@ public static class DynamicSource
 
     private sealed class StateDbFetcher<TState> : GraphStage<SourceShape<TState>>
     {
-        private sealed class Logic : GraphStageLogic
-        {
-            private readonly StateDb _stateDb;
-
-            private readonly Func<Exception, TState?>? _handler;
-
-            private readonly Outlet<TState> _outlet;
-
-            public Logic(StateDbFetcher<TState> fetcher) : base(fetcher.Shape)
-            {
-                _stateDb = fetcher._stateDb;
-                _handler = fetcher._handler;
-                _outlet = fetcher._outlet;
-                
-                SetHandler(_outlet, RunFetch);
-            }
-
-            private async void RunFetch()
-            {
-                TState? potenialState;
-                
-                try
-                {
-                    potenialState = await _stateDb.Get<TState>();
-                }
-                catch (Exception e)
-                {
-                    if(_handler is null)
-                    {
-                        FailStage(e);
-                        return;
-                    }
-                    
-                    try
-                    {
-                        potenialState = _handler(e);
-
-                    }
-                    catch (Exception exception)
-                    {
-                        FailStage(exception);
-                        return;
-                    }
-                }
-                
-                if(potenialState is null)
-                    CompleteStage();
-                else
-                {
-                    Push(_outlet, potenialState);
-                    CompleteStage();
-                }
-            }
-        }
-        
-        private readonly StateDb _stateDb;
-
         private readonly Func<Exception, TState?>? _handler;
 
         private readonly Outlet<TState> _outlet = new("StateDbFetcher.out");
+
+        private readonly StateDb _stateDb;
 
         public StateDbFetcher(StateDb stateDb, Func<Exception, TState?>? handler)
         {
@@ -204,9 +153,67 @@ public static class DynamicSource
         }
 
         public override SourceShape<TState> Shape { get; }
-        
+
         protected override GraphStageLogic CreateLogic(Attributes inheritedAttributes)
             => new Logic(this);
+
+        private sealed class Logic : GraphStageLogic
+        {
+            private readonly Func<Exception, TState?>? _handler;
+
+            private readonly Outlet<TState> _outlet;
+            private readonly StateDb _stateDb;
+
+            public Logic(StateDbFetcher<TState> fetcher) : base(fetcher.Shape)
+            {
+                _stateDb = fetcher._stateDb;
+                _handler = fetcher._handler;
+                _outlet = fetcher._outlet;
+
+                SetHandler(_outlet, RunFetch);
+            }
+
+            private async void RunFetch()
+            {
+                TState? potenialState;
+
+                try
+                {
+                    potenialState = await _stateDb.Get<TState>();
+                }
+                catch (Exception e)
+                {
+                    if(_handler is null)
+                    {
+                        FailStage(e);
+
+                        return;
+                    }
+
+                    try
+                    {
+                        potenialState = _handler(e);
+
+                    }
+                    catch (Exception exception)
+                    {
+                        FailStage(exception);
+
+                        return;
+                    }
+                }
+
+                if(potenialState is null)
+                {
+                    CompleteStage();
+                }
+                else
+                {
+                    Push(_outlet, potenialState);
+                    CompleteStage();
+                }
+            }
+        }
     }
 
     private static Source<TState, NotUsed> CreateCacheRequestSource<TState, TSelect>(
@@ -224,15 +231,19 @@ public static class DynamicSource
         => CreateCacheSource(stateDb, errorHandler).Concat(CreateAsyncStateSource(source, errorHandler));
 
     public static void FromCache<TState>(IReduxStore<TState> store, StateDb stateDb, Func<Exception, TState?>? errorHandler)
-        => store.RegisterEffects(Create.Effect<TState>(() => CreateCacheSource(stateDb, errorHandler)
-                                                          .Select(state => (object)MutateCallback.Create(state))));
+        => store.RegisterEffects(
+            Create.Effect<TState>(
+                () => CreateCacheSource(stateDb, errorHandler)
+                   .Select(state => (object)MutateCallback.Create(state))));
 
     public static void FromCache<TState>(IReduxStore<TState> store, StateDb stateDb)
         => FromCache(store, stateDb, null);
 
     public static void FromCacheAndAsync<TState>(IReduxStore<TState> store, StateDb stateDb, Func<Task<TState>> source, Func<Exception, TState?>? errorHandler)
-        => store.RegisterEffects(Create.Effect<TState>(() => CreateCacheAsyncObservable(stateDb, source, errorHandler)
-                                                          .Select(state => (object)MutateCallback.Create(state))));
+        => store.RegisterEffects(
+            Create.Effect<TState>(
+                () => CreateCacheAsyncObservable(stateDb, source, errorHandler)
+                   .Select(state => (object)MutateCallback.Create(state))));
 
     public static void FromCacheAndAsync<TState>(IReduxStore<TState> store, StateDb stateDb, Task<TState> source, Func<Exception, TState?>? errorHandler)
         => FromCacheAndAsync(store, stateDb, () => source, errorHandler);

@@ -26,7 +26,7 @@ public interface IProjectionRepository
     Task Commit<TProjection, TIdentity>(ProjectionContext context, TProjection projection, TIdentity identity)
         where TIdentity : IIdentity
         where TProjection : class, IProjectorData<TIdentity>;
-    
+
 
     Task Completed<TIdentity>(TIdentity identity)
         where TIdentity : IIdentity;

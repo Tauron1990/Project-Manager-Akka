@@ -26,7 +26,7 @@ public static class ResourceManagerProvider
 
     private static Option<string> FindResourceImpl(string name, Assembly? key, bool searchEverywere = true)
     {
-        if (key != null && Resources.TryGetValue(key, out var rm))
+        if(key != null && Resources.TryGetValue(key, out ResourceManager? rm))
             return rm.GetString(name).OptionNotNull();
 
         return searchEverywere

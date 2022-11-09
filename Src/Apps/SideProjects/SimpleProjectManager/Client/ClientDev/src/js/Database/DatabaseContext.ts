@@ -1,31 +1,36 @@
 ﻿// noinspection JSUnusedGlobalSymbols
 
-import { openDB, DBSchema, IDBPDatabase } from 'idb';
-import * as Console from "console";
+import {DBSchema, IDBPDatabase, openDB} from 'idb';
 
 export {}
 
 declare global {
-    interface Database{
-        getCacheEntry(id:string)
-        updateTimeout(id:string, data:JSON)
-        getTimeout(id:string)
+    interface Database {
+        getCacheEntry(id: string)
+
+        updateTimeout(id: string, data: JSON)
+
+        getTimeout(id: string)
+
         deleteTimeoutElement(id: string)
-        deleteElement(id:string, timeoutId:string)
+
+        deleteElement(id: string, timeoutId: string)
+
         getAllTimeoutElements()
+
         saveData(id: string, data: JSON)
     }
-    
-    interface Window{
+
+    interface Window {
         Database: Database
     }
 }
 
 export namespace DatabaseContext {
 
-    export function initDatabase(){
+    export function initDatabase() {
         console.log("Init Database Api");
-        
+
         // @ts-ignore
         window.Database = {}
         window.Database.getCacheEntry = getCacheEntry;
@@ -36,7 +41,7 @@ export namespace DatabaseContext {
         window.Database.getAllTimeoutElements = getAllTimeoutElements;
         window.Database.saveData = saveData;
     }
-    
+
     interface IDefaultDatabase extends DBSchema {
         timeout: {
             value: DataContainer;
@@ -83,21 +88,21 @@ export namespace DatabaseContext {
                 1,
                 {
                     upgrade(db) {
-                        db.createObjectStore("timeout", { keyPath: "id" });
-                        db.createObjectStore("data", { keyPath: "id" });
+                        db.createObjectStore("timeout", {keyPath: "id"});
+                        db.createObjectStore("data", {keyPath: "id"});
                     }
                 });
-            
+
         }
 
         return StaticData.database;
     }
 
     export async function saveData(id: string, data: JSON) {
-            const db = await openDataDatabase();
-            await db.put("data", new DataContainer(id, data));
+        const db = await openDataDatabase();
+        await db.put("data", new DataContainer(id, data));
     }
-    
+
     export async function getAllTimeoutElements() {
         const db = await openDataDatabase();
 
@@ -106,7 +111,7 @@ export namespace DatabaseContext {
         return dataList.map((v: DataContainer) => v.data);
     }
 
-    export async function deleteElement(id:string, timeoutId:string) {
+    export async function deleteElement(id: string, timeoutId: string) {
         const db = await openDataDatabase();
         const transaction = db.transaction(["timeout", "data"], "readwrite");
 
@@ -131,31 +136,31 @@ export namespace DatabaseContext {
             return new Result();
         } catch (e) {
             return new Result(e.toString());
-        } 
+        }
     }
 
-    export async function getTimeout(id:string){
+    export async function getTimeout(id: string) {
         const db = await openDataDatabase();
         const entry = await db.get("timeout", id);
-        if(entry === undefined){
+        if (entry === undefined) {
             return "";
         }
-        
+
         return entry.data;
     }
-    
-    export async function updateTimeout(id:string, data:JSON){
+
+    export async function updateTimeout(id: string, data: JSON) {
         const db = await openDataDatabase();
         await db.put("timeout", new DataContainer(id, data), id);
     }
-    
-    export async function getCacheEntry(id:string) {
+
+    export async function getCacheEntry(id: string) {
         const db = await openDataDatabase();
-        
+
         const result = await db.get("data", id);
-    
-        if(result === undefined) return "";
-        
+
+        if (result === undefined) return "";
+
         return result.data;
     }
 }

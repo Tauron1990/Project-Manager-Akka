@@ -14,7 +14,7 @@ public partial class MainAppBar : ReactiveUserControl<AppBarViewModel>
     public MainAppBar()
     {
         this.WhenActivated(Init);
-        
+
         InitializeComponent();
 
         IEnumerable<IDisposable> Init()
@@ -28,15 +28,17 @@ public partial class MainAppBar : ReactiveUserControl<AppBarViewModel>
     private void Exit_OnClick(object? sender, RoutedEventArgs e)
         // ReSharper restore UnusedParameter.Local
     {
-        var lifetime = Application.Current?.ApplicationLifetime;
+        IApplicationLifetime? lifetime = Application.Current?.ApplicationLifetime;
 
-        switch(lifetime)
+        switch (lifetime)
         {
-            case IClassicDesktopStyleApplicationLifetime app :
+            case IClassicDesktopStyleApplicationLifetime app:
                 app.Shutdown();
+
                 break;
             default:
                 Environment.Exit(-1);
+
                 break;
         }
     }

@@ -17,7 +17,7 @@ public readonly struct Option<TData>
             throw new InvalidOperationException("The Option has no Value");
         }
     }
-    
+
     private Option(TData data, bool hasValue)
     {
         _data = data;
@@ -29,13 +29,13 @@ public readonly struct Option<TData>
 
     public TResult Map<TResult>(Func<TData, TResult> selector, Func<TResult> defaultValue)
         => HasValue ? selector(_data!) : defaultValue();
-    
+
     public TData Map(Func<TData> defaultValue)
         => HasValue ? _data! : defaultValue();
-    
+
     public TResult Map<TResult>(Func<TData, TResult> selector, TResult defaultValue)
         => HasValue ? selector(_data!) : defaultValue;
-    
+
     public TData Map(TData defaultValue)
         => HasValue ? _data! : defaultValue;
 }

@@ -16,4 +16,4 @@ public interface ICacheDb
     ValueTask TryAddOrUpdateElement(CacheDataId key, string data);
 
     ValueTask<string?> ReNewAndGet(CacheDataId key);
-} 
+}

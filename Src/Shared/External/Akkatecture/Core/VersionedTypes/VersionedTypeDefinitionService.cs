@@ -67,13 +67,13 @@ public abstract class
 
     public void Load(IReadOnlyCollection<Type>? types)
     {
-        if (types == null) return;
+        if(types == null) return;
 
         var invalidTypes = types
            .Where(type => !typeof(TTypeCheck).GetTypeInfo().IsAssignableFrom(type))
            .ToList();
 
-        if (invalidTypes.Any())
+        if(invalidTypes.Any())
             throw new ArgumentException(
                 $"The following types are not of type '{typeof(TTypeCheck).PrettyPrint()}': {string.Join(", ", invalidTypes.Select(type => type.PrettyPrint()))}");
 
@@ -85,7 +85,7 @@ public abstract class
                .SelectMany(CreateDefinitions)
                .ToList();
 
-            if (!definitions.Any()) return;
+            if(!definitions.Any()) return;
 
             var assemblies = definitions
                .Select(definition => definition.Type.GetTypeInfo().Assembly.GetName().Name)
@@ -93,25 +93,25 @@ public abstract class
                .OrderBy(name => name)
                .ToList();
 
-            var logs =
+            string logs =
                 $"Added {definitions.Count} versioned types to '{GetType().PrettyPrint()}' from these assemblies: {string.Join(", ", assemblies)}";
 
             _logger?.Info(logs);
 
-            foreach (var definition in definitions)
+            foreach (TDefinition definition in definitions)
             {
                 var typeDefinitions = _definitionsByType.GetOrAdd(
                     definition.Type,
                     _ => new List<TDefinition>());
                 typeDefinitions.Add(definition);
 
-                if (!_definitionByNameAndVersion.TryGetValue(definition.Name, out var versions))
+                if(!_definitionByNameAndVersion.TryGetValue(definition.Name, out var versions))
                 {
                     versions = new Dictionary<int, TDefinition>();
                     _definitionByNameAndVersion.TryAdd(definition.Name, versions);
                 }
 
-                if (versions.ContainsKey(definition.Version))
+                if(versions.ContainsKey(definition.Version))
                 {
                     _logger?.Info(
                         "Already loaded versioned type '{0}' v{1}, skipping it",
@@ -138,7 +138,7 @@ public abstract class
     public bool TryGetDefinition(string name, int version, [NotNullWhen(true)] out TDefinition? definition)
         #pragma warning restore AV1551
     {
-        if (_definitionByNameAndVersion.TryGetValue(name, out var versions))
+        if(_definitionByNameAndVersion.TryGetValue(name, out var versions))
             return versions.TryGetValue(version, out definition);
 
         definition = null!;
@@ -150,7 +150,7 @@ public abstract class
     public TDefinition GetDefinition(string name, int version)
         #pragma warning restore AV1551
     {
-        if (!TryGetDefinition(name, version, out var definition))
+        if(!TryGetDefinition(name, version, out TDefinition? definition))
             throw new ArgumentException(
                 $"No versioned type definition for '{name}' with version {version} in '{GetType().PrettyPrint()}'");
 
@@ -161,7 +161,7 @@ public abstract class
     public TDefinition GetDefinition(Type type)
         #pragma warning restore AV1551
     {
-        if (!TryGetDefinition(type, out var definition))
+        if(!TryGetDefinition(type, out TDefinition? definition))
             throw new ArgumentException($"No definition for type '{type.PrettyPrint()}', have you remembered to load it during Akkatecture initialization");
 
         return definition;
@@ -169,7 +169,7 @@ public abstract class
 
     public IReadOnlyCollection<TDefinition> GetDefinitions(Type type)
     {
-        if (!TryGetDefinitions(type, out var definitions))
+        if(!TryGetDefinitions(type, out var definitions))
             throw new ArgumentException(
                 $"No definition for type '{type.PrettyPrint()}', have you remembered to load it during Akkatecture initialization");
 
@@ -180,14 +180,14 @@ public abstract class
     public bool TryGetDefinition(Type type, [NotNullWhen(true)] out TDefinition? definition)
         #pragma warning restore AV1551
     {
-        if (!TryGetDefinitions(type, out var definitions))
+        if(!TryGetDefinitions(type, out var definitions))
         {
             definition = default;
 
             return false;
         }
 
-        if (definitions.Count > 1)
+        if(definitions.Count > 1)
             throw new InvalidOperationException(
                 $"Type '{type.PrettyPrint()}' has multiple definitions: {string.Join(", ", definitions.Select(typeDefinition => typeDefinition.ToString()))}");
 
@@ -198,9 +198,9 @@ public abstract class
 
     public bool TryGetDefinitions(Type type, out IReadOnlyCollection<TDefinition> definitions)
     {
-        if (type == null) throw new ArgumentNullException(nameof(type));
+        if(type == null) throw new ArgumentNullException(nameof(type));
 
-        if (!_definitionsByType.TryGetValue(type, out var list))
+        if(!_definitionsByType.TryGetValue(type, out var list))
         {
             definitions = default!;
 
@@ -217,30 +217,30 @@ public abstract class
     private IEnumerable<TDefinition> CreateDefinitions(Type versionedType)
     {
         var hasAttributeDefinition = false;
-        foreach (var definitionFromAttribute in CreateDefinitionFromAttribute(versionedType))
+        foreach (TDefinition definitionFromAttribute in CreateDefinitionFromAttribute(versionedType))
         {
             hasAttributeDefinition = true;
 
             yield return definitionFromAttribute;
         }
 
-        if (hasAttributeDefinition) yield break;
+        if(hasAttributeDefinition) yield break;
 
         yield return CreateDefinitionFromName(versionedType);
     }
 
     private TDefinition CreateDefinitionFromName(Type versionedType)
     {
-        var match = NameRegex.Match(versionedType.Name);
+        Match match = NameRegex.Match(versionedType.Name);
 
-        if (!match.Success)
+        if(!match.Success)
             throw new ArgumentException($"Versioned type name '{versionedType.Name}' is not a valid name");
 
         var version = 1;
-        var groups = match.Groups["version"];
-        if (groups.Success) version = int.Parse(groups.Value);
+        Group groups = match.Groups["version"];
+        if(groups.Success) version = int.Parse(groups.Value);
 
-        var name = match.Groups["name"].Value;
+        string name = match.Groups["name"].Value;
 
         return CreateDefinition(
             version,

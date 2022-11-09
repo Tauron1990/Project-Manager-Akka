@@ -21,23 +21,25 @@ public sealed class NavigationManager : INavigationHelper
 
     public void NavigateTo(string path)
     {
-        var evt = _aggregator.GetEvent<NavigatingEvent, Navigating>();
+        NavigatingEvent evt = _aggregator.GetEvent<NavigatingEvent, Navigating>();
 
         void Send<TModel>(Action<TModel>? config = null) where TModel : ViewModelBase
         {
             var model = _serviceProvider.GetRequiredService<TModel>();
             config?.Invoke(model);
-            
+
             evt.Publish(new Navigating(model));
         }
-        
+
         switch (path)
         {
             case PageNavigation.CriticalErrorsUrl:
                 Send<CriticalErrorsViewModel>();
+
                 break;
             default:
                 Send<NotFoundViewModel>();
+
                 break;
         }
     }

@@ -20,37 +20,37 @@
         <TrimmableAssembly Include="Avalonia.Themes.Default" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Akka" Version="1.4.43" />
+        <PackageReference Include="Akka" Version="1.4.45" />
         <PackageReference Include="Avalonia" Version="0.10.18" />
         <PackageReference Include="Avalonia.Desktop" Version="0.10.18" />
         <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
         <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="0.10.18" />
         <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.18" />
         <PackageReference Include="Material.Avalonia" Version="2.5.1" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.10">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.10" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.0" />
         <PackageReference Include="ReactiveMarbles.ObservableEvents.SourceGenerator" Version="1.2.3">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="XamlNameReferenceGenerator" Version="1.3.4" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+        <PackageReference Include="XamlNameReferenceGenerator" Version="1.4.2" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
     <ItemGroup>
-      <ProjectReference Include="..\..\..\..\..\..\Shared\Common\Tauron.Application.Common\Tauron.Application.Common.csproj" />
-      <ProjectReference Include="..\..\Shared\SimpleProjectManager.Client.Shared\SimpleProjectManager.Client.Shared.csproj" />
+        <ProjectReference Include="..\..\..\..\..\..\Shared\Common\Tauron.Application.Common\Tauron.Application.Common.csproj" />
+        <ProjectReference Include="..\..\Shared\SimpleProjectManager.Client.Shared\SimpleProjectManager.Client.Shared.csproj" />
     </ItemGroup>
     <ItemGroup>
-      <Compile Update="Controls\Alert.cs">
-        <DependentUpon>Alert.axaml</DependentUpon>
-      </Compile>
-      <Compile Update="Views\AppBar\MainAppBar.cs">
-        <DependentUpon>MainAppBar.axaml</DependentUpon>
-      </Compile>
-      <Compile Update="Views\CriticalErrors\ErrorContextInfo.cs">
-        <DependentUpon>ErrorContextInfo.axaml</DependentUpon>
-      </Compile>
+        <Compile Update="Controls\Alert.cs">
+            <DependentUpon>Alert.axaml</DependentUpon>
+        </Compile>
+        <Compile Update="Views\AppBar\MainAppBar.cs">
+            <DependentUpon>MainAppBar.axaml</DependentUpon>
+        </Compile>
+        <Compile Update="Views\CriticalErrors\ErrorContextInfo.cs">
+            <DependentUpon>ErrorContextInfo.axaml</DependentUpon>
+        </Compile>
     </ItemGroup>
 </Project>

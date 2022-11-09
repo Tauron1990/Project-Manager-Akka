@@ -71,9 +71,9 @@ public sealed class AggregateEventReader<TJournal> : AggregateEventReader
     {
         string ExtractInfo() => subscriptionId[(subscriptionId.IndexOf('@') + 1)..];
 
-        if (subscriptionId.StartsWith("Type"))
+        if(subscriptionId.StartsWith("Type"))
             return MakeAggregateSubscription(lastProcessedCheckpoint, subscriber, Type.GetType(ExtractInfo())!);
-        if (subscriptionId.StartsWith("Tag"))
+        if(subscriptionId.StartsWith("Tag"))
             return MakeTagAggregateSubscription(lastProcessedCheckpoint, subscriber, ExtractInfo());
 
         throw new ArgumentException($"Invalid Subscription Id Format: {subscriptionId}", nameof(subscriptionId));
@@ -83,8 +83,8 @@ public sealed class AggregateEventReader<TJournal> : AggregateEventReader
         in long? lastProcessedCheckpoint, Subscriber subscriber,
         Type aggregate)
     {
-        var builder = typeof(SubscriptionBuilder<>);
-        var genericType = builder.MakeGenericType(typeof(TJournal), aggregate);
+        Type builder = typeof(SubscriptionBuilder<>);
+        Type genericType = builder.MakeGenericType(typeof(TJournal), aggregate);
         var subscriberInst =
             (SubscriptionBuilder)FastReflection.Shared.FastCreateInstance(
                 genericType,
@@ -130,7 +130,7 @@ public sealed class AggregateEventReader<TJournal> : AggregateEventReader
 
         public void Dispose()
         {
-            _isCancel.GetAndSet(newValue: true);
+            _isCancel.GetAndSet(true);
             _cancelable?.Shutdown();
             _runner?.Wait(TimeSpan.FromSeconds(20));
         }
@@ -139,7 +139,7 @@ public sealed class AggregateEventReader<TJournal> : AggregateEventReader
         {
             _errorHandler = errorHandler;
 
-            var (uniqueKillSwitch, source) = CreateSource(lastProcessedCheckpoint is null ? Offset.NoOffset() : Offset.Sequence(lastProcessedCheckpoint.Value))
+            (UniqueKillSwitch? uniqueKillSwitch, var source) = CreateSource(lastProcessedCheckpoint is null ? Offset.NoOffset() : Offset.Sequence(lastProcessedCheckpoint.Value))
                .Select(ee => (ee.Event as IDomainEvent, ee.Offset))
                .Where(de => de.Item1 != null)
                .Batch(
@@ -149,7 +149,7 @@ public sealed class AggregateEventReader<TJournal> : AggregateEventReader
                .Select(
                     de =>
                     {
-                        var (domainEvent, offset) = de.Last();
+                        (IDomainEvent domainEvent, Offset offset) = de.Last();
 
                         return new Transaction
                                {
@@ -162,7 +162,7 @@ public sealed class AggregateEventReader<TJournal> : AggregateEventReader
                                           .Select(
                                                pair =>
                                                {
-                                                   var (evt, _) = pair;
+                                                   (IDomainEvent evt, _) = pair;
 
                                                    return new LiquidProjections.EventEnvelope
                                                           {
@@ -181,17 +181,16 @@ public sealed class AggregateEventReader<TJournal> : AggregateEventReader
                     (list, transaction) => list.Add(transaction))
                .AlsoTo(
                     Sink.OnComplete<ImmutableList<Transaction>>(
-                        () => _isCancel.GetAndSet(newValue: true),
+                        () => _isCancel.GetAndSet(true),
                         e =>
                         {
-                            _isCancel.GetAndSet(newValue: true);
+                            _isCancel.GetAndSet(true);
                             errorHandler(_exceptionInfo, e);
                         }))
                .ViaMaterialized(KillSwitches.Single<ImmutableList<Transaction>>(), (_, kill) => kill)
                .PreMaterialize(_materializer);
 
             _cancelable = uniqueKillSwitch;
-
 
 
             var sinkQueue = source.RunWith(
@@ -207,13 +206,11 @@ public sealed class AggregateEventReader<TJournal> : AggregateEventReader
         private async Task Run(ISinkQueue<ImmutableList<Transaction>> queue)
         {
             while (!_isCancel.Value)
-            {
                 try
                 {
                     var data = await queue.PullAsync();
 
-                    if (data.HasValue)
-                    {
+                    if(data.HasValue)
                         await _subscriber.HandleTransactions(
                             data.Value,
                             new SubscriptionInfo
@@ -221,7 +218,6 @@ public sealed class AggregateEventReader<TJournal> : AggregateEventReader
                                 Id = data.Value.Last().StreamId,
                                 Subscription = this
                             });
-                    }
                     else
                         break;
                 }
@@ -229,7 +225,6 @@ public sealed class AggregateEventReader<TJournal> : AggregateEventReader
                 {
                     _errorHandler?.Invoke(_exceptionInfo, e);
                 }
-            }
         }
 
         protected abstract Source<EventEnvelope, NotUsed> CreateSource(Offset offset);
@@ -261,7 +256,7 @@ public sealed class AggregateEventReader<TJournal> : AggregateEventReader
                .Select(
                     x =>
                     {
-                        var domainEvent = Mapper.FromJournal(x.Event, string.Empty).Events.Single();
+                        object? domainEvent = Mapper.FromJournal(x.Event, string.Empty).Events.Single();
 
                         return new EventEnvelope(x.Offset, x.PersistenceId, x.SequenceNr, domainEvent, x.Timestamp);
                     });
@@ -285,9 +280,9 @@ public sealed class AggregateEventReader<TJournal> : AggregateEventReader
             _journalId = journalId;
         }
 
-        protected override Source<EventEnvelope, NotUsed> CreateSource(Offset offset) => 
+        protected override Source<EventEnvelope, NotUsed> CreateSource(Offset offset) =>
             Consumer.Create(_system)
-           .Using<TJournal>(_journalId)
-           .EventsFromAggregate<TAggregate>(offset);
+               .Using<TJournal>(_journalId)
+               .EventsFromAggregate<TAggregate>(offset);
     }
 }

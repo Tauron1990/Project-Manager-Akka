@@ -12,7 +12,7 @@ public partial class CriticalErrorDispaly
     private MudCommandButton? _hide;
 
     [Parameter]
-    
+
     public CriticalError? Error { get; set; }
 
     public MudCommandButton? Hide
@@ -24,9 +24,6 @@ public partial class CriticalErrorDispaly
     protected override IEnumerable<IDisposable> InitializeModel()
     {
         yield return this.WhenActivated(
-            dispo =>
-            {
-                this.BindCommand(ViewModel, m => m.Hide, v => v.Hide).DisposeWith(dispo);
-            });
+            dispo => { this.BindCommand(ViewModel, m => m.Hide, v => v.Hide).DisposeWith(dispo); });
     }
 }

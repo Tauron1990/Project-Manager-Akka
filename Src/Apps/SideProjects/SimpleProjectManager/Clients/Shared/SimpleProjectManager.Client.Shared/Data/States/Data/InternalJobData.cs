@@ -6,12 +6,11 @@ namespace SimpleProjectManager.Client.Shared.Data.States.Data;
 public sealed record InternalJobData(bool IsLoaded, JobSortOrderPair[] CurrentJobs, CurrentSelected? CurrentSelected)
 {
     public InternalJobData()
-        : this(false, Array.Empty<JobSortOrderPair>(), new CurrentSelected(null, null))
-    { }
+        : this(false, Array.Empty<JobSortOrderPair>(), new CurrentSelected(null, null)) { }
 
     public bool Equals(InternalJobData? other)
     {
-        if (other is null) return false;
+        if(other is null) return false;
 
         return CurrentSelected == other.CurrentSelected && CurrentJobs.SequenceEqual(other.CurrentJobs);
     }

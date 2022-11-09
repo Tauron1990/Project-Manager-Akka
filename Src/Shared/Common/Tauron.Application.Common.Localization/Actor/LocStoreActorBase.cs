@@ -8,7 +8,7 @@ public abstract class LocStoreActorBase : UntypedActor
 {
     protected sealed override void OnReceive(object message)
     {
-        if (message is QueryRequest(var key, var id, var cultureInfo))
+        if(message is QueryRequest(var key, var id, var cultureInfo))
             Context.Sender.Tell(new QueryResponse(TryQuery(key, cultureInfo), id));
         else
             base.Unhandled(message);

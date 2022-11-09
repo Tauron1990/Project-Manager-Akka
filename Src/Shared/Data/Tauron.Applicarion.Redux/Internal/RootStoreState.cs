@@ -2,31 +2,29 @@
 
 public sealed class RootStoreState<TState> : IRootStoreState<TState>, IActionDispatcher, IInternalRootStoreState<TState>
 {
-    private readonly IReduxStore<TState> _store;
-
     public RootStoreState(IReduxStore<TState> store)
-        => _store = store;
-
-    public IObservable<TResult> ObserveAction<TAction, TResult>(Func<TState, TAction, TResult> resultSelector) where TAction : class
-        => _store.ObservAction(resultSelector);
-
-    public IObservable<TState> Select()
-        => _store.Select();
-
-    public IObservable<TResult> Select<TResult>(Func<TState, TResult> selector)
-        => _store.Select(selector);
+        => Store = store;
 
     public bool CanProcess<TAction>()
-        => _store.CanProcess<TAction>();
+        => Store.CanProcess<TAction>();
 
     public bool CanProcess(Type type)
-        => _store.CanProcess(type);
+        => Store.CanProcess(type);
 
     public IObservable<TAction> ObservAction<TAction>() where TAction : class
-        => _store.ObservAction<TAction>();
+        => Store.ObservAction<TAction>();
 
     public void Dispatch(object action)
-        => _store.Dispatch(action);
+        => Store.Dispatch(action);
 
-    public IReduxStore<TState> Store => _store;
+    public IReduxStore<TState> Store { get; }
+
+    public IObservable<TResult> ObserveAction<TAction, TResult>(Func<TState, TAction, TResult> resultSelector) where TAction : class
+        => Store.ObservAction(resultSelector);
+
+    public IObservable<TState> Select()
+        => Store.Select();
+
+    public IObservable<TResult> Select<TResult>(Func<TState, TResult> selector)
+        => Store.Select(selector);
 }

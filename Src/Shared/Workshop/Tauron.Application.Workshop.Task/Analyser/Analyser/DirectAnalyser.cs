@@ -21,8 +21,10 @@ public sealed class DirectAnalyser<TWorkspace, TData>
     public void Register(RegisterRule<TWorkspace, TData> register)
     {
         register.Rule.Init(new Action<RuleIssuesChanged<TWorkspace, TData>>(_observer.OnNext), _workspace);
-        
+
         lock (_lock)
+        {
             _rules = _rules.Add(register.Rule);
+        }
     }
 }

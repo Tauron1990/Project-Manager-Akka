@@ -3,7 +3,7 @@
 @using System.Collections.Immutable
 <CascadingValue Value="this">
 
-    @if (!_isSet)
+    @if(!_isSet)
     {
         @Rows
         @Columns
@@ -102,7 +102,7 @@
 
     protected override void OnAfterRender(bool firstRender)
     {
-        if (_isSet) return;
+        if(_isSet) return;
 
         _isSet = true;
 
@@ -111,22 +111,22 @@
                 (s, g) => s.AddStyle(g.Key, g.Aggregate(string.Empty, (ss, d) => $"{ss} {d.Render()}")))
             .AddStyle("grid-template-areas", _templateRows.Aggregate(string.Empty, (s, row) => $"{s} \"{row.Def}\" \n"));
 
-        
+
         base.OnAfterRender(firstRender);
 
-        var _ = InvokeAsync(StateHasChanged);
+        Task _ = InvokeAsync(StateHasChanged);
     }
 
     internal void RegisterTemplate(GridTemplateRow row)
     {
-        if (_isSet) return;
+        if(_isSet) return;
 
         _templateRows = _templateRows.Add(row);
     }
 
     internal void RegisterDefinition(DefinitionBase definition)
     {
-        if (_isSet) return;
+        if(_isSet) return;
 
         _definitions = _definitions.Add(definition);
     }

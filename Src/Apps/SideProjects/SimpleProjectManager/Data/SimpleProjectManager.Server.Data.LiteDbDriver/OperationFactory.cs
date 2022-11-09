@@ -7,16 +7,16 @@ namespace SimpleProjectManager.Server.Data.LiteDbDriver;
 public sealed class OperationFactory<TData> : IOperationFactory<TData>
 {
     public IFilter<TData> Empty { get; } = new EmptyFilter<TData>();
-    
+
     public IFilter<TData> Eq<TField>(Expression<Func<TData, TField>> selector, TField toEqual)
-        => new EqFilter<TData,TField>(selector, toEqual);
+        => new EqFilter<TData, TField>(selector, toEqual);
 
     public IFilter<TData> Or(params IFilter<TData>[] filter)
         => new OrFilter<TData>(filter);
 
     public IUpdate<TData> Set<TField>(Expression<Func<TData, TField>> selector, TField value)
     {
-        var member = ((MemberExpression)selector.Body).Member;
+        MemberInfo member = ((MemberExpression)selector.Body).Member;
 
         return member switch
         {

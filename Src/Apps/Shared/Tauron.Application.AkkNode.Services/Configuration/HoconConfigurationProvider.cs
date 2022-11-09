@@ -35,10 +35,10 @@ public sealed class HoconConfigurationProvider : ConfigurationProvider
 
     public override void Load()
     {
-        if (_config is null || _names is null)
+        if(_config is null || _names is null)
             return;
 
-        var config = _config();
+        Config config = _config();
 
         foreach ((string path, string name) in _names.Where(p => config.HasPath(p.path)))
             Data[name] = config.GetString(path, string.Empty);

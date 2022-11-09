@@ -15,26 +15,23 @@ namespace SimpleProjectManager.Client.Shared.ViewModels.CriticalErrors;
 public abstract class CriticalErrorViewModelBase : ViewModelBase
 {
     private ObservableAsPropertyHelper<CriticalError?>? _item;
-    public CriticalError Item => _item?.Value ?? CriticalError.Empty;
-
-    public ReactiveCommand<Unit, Unit>? Hide { get; private set; }
 
     protected CriticalErrorViewModelBase(GlobalState globalState, IMessageDispatcher messageDispatcher)
     {
         this.WhenActivated(Init);
-        
+
         IEnumerable<IDisposable> Init()
         {
             var currentError = GetErrorState();
-            
+
             yield return _item = currentError.ToObservable(messageDispatcher.IgnoreErrors())
                .ObserveOn(RxApp.MainThreadScheduler).ToProperty(this, m => m.Item);
             yield return Hide = ReactiveCommand.Create(
                 () =>
                 {
-                    var err = currentError.ValueOrDefault;
+                    CriticalError? err = currentError.ValueOrDefault;
 
-                    if (err is null) return;
+                    if(err is null) return;
 
                     globalState.Dispatch(new DisableError(err));
                 },
@@ -43,6 +40,10 @@ public abstract class CriticalErrorViewModelBase : ViewModelBase
                    .AndIsOnline(globalState.OnlineMonitor));
         }
     }
+
+    public CriticalError Item => _item?.Value ?? CriticalError.Empty;
+
+    public ReactiveCommand<Unit, Unit>? Hide { get; private set; }
 
     protected abstract IState<CriticalError?> GetErrorState();
 }

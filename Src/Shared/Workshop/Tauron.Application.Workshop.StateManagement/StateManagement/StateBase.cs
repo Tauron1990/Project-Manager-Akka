@@ -31,9 +31,8 @@ public abstract class StateBase<TData> : ICanQuery<TData>
         }
         finally
         {
-            if (source != null)
+            if(source != null)
                 await source.OnCompled(query);
         }
     }
 }
-

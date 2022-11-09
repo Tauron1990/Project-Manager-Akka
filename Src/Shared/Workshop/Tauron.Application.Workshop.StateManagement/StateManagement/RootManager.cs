@@ -15,11 +15,11 @@ namespace Tauron.Application.Workshop.StateManagement;
 public sealed class RootManager : DisposeableBase, IActionInvoker
 {
     public static readonly IActionInvoker Empty = new EmptyInvoker();
+    private readonly IDriverFactory _driverFactory;
 
     private readonly IEffect[] _effects;
     private readonly MutatingEngine _engine;
     private readonly IMiddleware[] _middlewares;
-    private readonly IDriverFactory _driverFactory;
     private readonly bool _sendBackSetting;
     private readonly ConcurrentDictionary<string, ConcurrentBag<StateContainer>> _stateContainers = new();
     private readonly StateContainer[] _states;
@@ -37,18 +37,18 @@ public sealed class RootManager : DisposeableBase, IActionInvoker
 
         var builderParameter = new StateBuilderParameter(_engine, serviceProvider, this, new StatePool(), new DispatcherPool(), instanceFactories);
 
-        foreach (var stateBuilder in states)
+        foreach (StateBuilderBase stateBuilder in states)
         {
-            var (container, key) = stateBuilder.Materialize(builderParameter);
+            (StateContainer container, string key) = stateBuilder.Materialize(builderParameter);
             _stateContainers.GetOrAdd(key, _ => new ConcurrentBag<StateContainer>()).Add(container);
         }
 
         _states = _stateContainers.SelectMany(b => b.Value).ToArray();
 
-        foreach (var middleware in _middlewares)
+        foreach (IMiddleware middleware in _middlewares)
             middleware.Initialize(this);
 
-        foreach (var middleware in _middlewares)
+        foreach (IMiddleware middleware in _middlewares)
             middleware.AfterInitializeAllMiddlewares();
     }
 
@@ -59,20 +59,18 @@ public sealed class RootManager : DisposeableBase, IActionInvoker
     public TState? GetState<TState>(string key)
         where TState : class
     {
-        if (!_stateContainers.TryGetValue(key, out var bag)) return null;
+        if(!_stateContainers.TryGetValue(key, out var bag)) return null;
 
-        foreach (var stateContainer in bag)
-        {
-            if (stateContainer.Instance.ActualState is TState state)
+        foreach (StateContainer stateContainer in bag)
+            if(stateContainer.Instance.ActualState is TState state)
                 return state;
-        }
 
         return null;
     }
 
     public void Run(IStateAction action, bool? sendBack)
     {
-        if (_middlewares.Any(m => !m.MayDispatchAction(action)))
+        if(_middlewares.Any(m => !m.MayDispatchAction(action)))
             return;
 
         _middlewares.Foreach(m => m.BeforeDispatch(action));
@@ -82,11 +80,11 @@ public sealed class RootManager : DisposeableBase, IActionInvoker
         var effects = new EffectInvoker(_effects.Where(e => e.ShouldReactToAction(action)), action, this);
         var resultInvoker = new ResultInvoker(effects, _engine, sender, sendBack ?? _sendBackSetting, action);
 
-        foreach (var dataMutation in _states.Select(
+        foreach (IDataMutation? dataMutation in _states.Select(
                      sc
                          => sc.TryDipatch(action, resultInvoker.AddResult(), resultInvoker.WorkCompled())))
         {
-            if (dataMutation == null) continue;
+            if(dataMutation == null) continue;
 
             resultInvoker.PushWork();
             _engine.Mutate(dataMutation);
@@ -95,13 +93,13 @@ public sealed class RootManager : DisposeableBase, IActionInvoker
 
     internal void PostInit()
     {
-        foreach (var instance in _states.Select(s => s.Instance))
+        foreach (IStateInstance instance in _states.Select(s => s.Instance))
             instance.PostInit(this);
     }
 
     protected override void DisposeCore(bool disposing)
     {
-        if (!disposing) return;
+        if(!disposing) return;
 
         _stateContainers.Values.Foreach(s => s.Foreach(d => d.Dispose()));
         _stateContainers.Clear();
@@ -139,26 +137,27 @@ public sealed class RootManager : DisposeableBase, IActionInvoker
             _sendBack = sendBack;
             _action = action;
         }
-        
+
         public string Name => "SendBack";
         public Action Run => Runner;
 
         private void Runner()
         {
-            if (!_sendBack || _sender is null) return;
+            if(!_sendBack || _sender is null) return;
 
             var errors = new List<string>();
             var fail = false;
 
-            foreach (var result in _results)
+            foreach (IReducerResult result in _results)
             {
-                if (result.IsOk) continue;
+                if(result.IsOk) continue;
 
                 fail = true;
                 errors.AddRange(result.Errors ?? Array.Empty<string>());
             }
 
-            _sender(fail
+            _sender(
+                fail
                     ? OperationResult.Failure(errors.Select(s => new Error(s, s)), _action)
                     : OperationResult.Success(_action));
         }
@@ -173,7 +172,7 @@ public sealed class RootManager : DisposeableBase, IActionInvoker
         {
             void Compled()
             {
-                if (Interlocked.Decrement(ref _pending) != 0) return;
+                if(Interlocked.Decrement(ref _pending) != 0) return;
 
                 _mutatingEngine.Mutate(_effectInvoker);
                 _mutatingEngine.Mutate(this);

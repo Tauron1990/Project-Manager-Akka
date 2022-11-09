@@ -47,7 +47,7 @@ public abstract class
 {
     protected AggregateState()
     {
-        if (this is not TMessageApplier)
+        if(this is not TMessageApplier)
             throw new InvalidOperationException(
                 $"MessageApplier of Type={GetType().PrettyPrint()} has a wrong generic argument Type={typeof(TMessageApplier).PrettyPrint()}.");
     }

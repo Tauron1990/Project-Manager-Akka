@@ -18,7 +18,7 @@ public sealed record AddTaskCommand(string Name, object Command, string Info)
             Schedule<TJob, TId> schedule => schedule.WithAck(OperationResult.Success()).WithNack(OperationResult.Failure()),
             _ => throw new InvalidOperationException("Invalid SchedulerCommand")
         };
-    
+
     private static string GetInfo<TJob, TId>(SchedulerCommand<TJob, TId> command)
         where TJob : IJob where TId : IJobId
         => command switch

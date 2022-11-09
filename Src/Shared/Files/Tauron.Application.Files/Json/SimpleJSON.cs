@@ -29,18 +29,19 @@ public enum JsonTextMode
 
 public abstract partial class JsonNode
 {
-    [ThreadStatic] private static StringBuilder? _escapeBuilder;
+    [ThreadStatic]
+    private static StringBuilder? _escapeBuilder;
 
     internal static StringBuilder EscapeBuilder => _escapeBuilder ??= new StringBuilder();
 
     // ReSharper disable once CognitiveComplexity
     internal static string Escape(string aText)
     {
-        var sb = EscapeBuilder;
+        StringBuilder sb = EscapeBuilder;
         sb.Length = 0;
-        if (sb.Capacity < aText.Length + aText.Length / 10)
+        if(sb.Capacity < aText.Length + aText.Length / 10)
             sb.Capacity = aText.Length + aText.Length / 10;
-        foreach (var c in aText)
+        foreach (char c in aText)
             switch (c)
             {
                 case '\\':
@@ -72,7 +73,7 @@ public abstract partial class JsonNode
 
                     break;
                 default:
-                    if (c < ' ' || ForceAscii && c > 127)
+                    if(c < ' ' || (ForceAscii && c > 127))
                     {
                         ushort val = c;
                         sb.Append("\\u").Append(val.ToString("X4"));
@@ -93,10 +94,10 @@ public abstract partial class JsonNode
 
     private static JsonNode ParseElement(string token, bool quoted)
     {
-        if (quoted)
+        if(quoted)
             return token;
 
-        var tmp = token.ToLower();
+        string tmp = token.ToLower();
         switch (tmp)
         {
             case "false":
@@ -106,7 +107,7 @@ public abstract partial class JsonNode
                 return JsonNull.CreateOrGet();
         }
 
-        if (double.TryParse(token, NumberStyles.Float, CultureInfo.InvariantCulture, out var val))
+        if(double.TryParse(token, NumberStyles.Float, CultureInfo.InvariantCulture, out double val))
             return val;
 
         return token;
@@ -127,7 +128,7 @@ public abstract partial class JsonNode
             switch (aJson[i])
             {
                 case '{':
-                    if (quoteMode)
+                    if(quoteMode)
                     {
                         token.Append(aJson[i]);
 
@@ -143,7 +144,7 @@ public abstract partial class JsonNode
                     break;
 
                 case '[':
-                    if (quoteMode)
+                    if(quoteMode)
                     {
                         token.Append(aJson[i]);
 
@@ -160,30 +161,30 @@ public abstract partial class JsonNode
 
                 case '}':
                 case ']':
-                    if (quoteMode)
+                    if(quoteMode)
                     {
                         token.Append(aJson[i]);
 
                         break;
                     }
 
-                    if (stack.Count == 0)
+                    if(stack.Count == 0)
                         throw new InvalidOperationException("JSON Parse: Too many closing brackets");
 
                     stack.Pop();
-                    if (token.Length > 0 || tokenIsQuoted)
+                    if(token.Length > 0 || tokenIsQuoted)
                         ctx?.Add(tokenName, ParseElement(token.ToString(), tokenIsQuoted));
 
                     tokenIsQuoted = false;
                     tokenName = "";
                     token.Length = 0;
-                    if (stack.Count > 0)
+                    if(stack.Count > 0)
                         ctx = stack.Peek();
 
                     break;
 
                 case ':':
-                    if (quoteMode)
+                    if(quoteMode)
                     {
                         token.Append(aJson[i]);
 
@@ -203,14 +204,14 @@ public abstract partial class JsonNode
                     break;
 
                 case ',':
-                    if (quoteMode)
+                    if(quoteMode)
                     {
                         token.Append(aJson[i]);
 
                         break;
                     }
 
-                    if (token.Length > 0 || tokenIsQuoted)
+                    if(token.Length > 0 || tokenIsQuoted)
                         ctx?.Add(tokenName, ParseElement(token.ToString(), tokenIsQuoted));
 
                     tokenName = "";
@@ -225,16 +226,16 @@ public abstract partial class JsonNode
 
                 case ' ':
                 case '\t':
-                    if (quoteMode)
+                    if(quoteMode)
                         token.Append(aJson[i]);
 
                     break;
 
                 case '\\':
                     ++i;
-                    if (quoteMode)
+                    if(quoteMode)
                     {
-                        var c = aJson[i];
+                        char c = aJson[i];
                         switch (c)
                         {
                             case 't':
@@ -259,7 +260,7 @@ public abstract partial class JsonNode
                                 break;
                             case 'u':
                             {
-                                var s = aJson.Substring(i + 1, 4);
+                                string s = aJson.Substring(i + 1, 4);
                                 token.Append(
                                     (char)int.Parse(
                                         s,
@@ -286,7 +287,7 @@ public abstract partial class JsonNode
             ++i;
         }
 
-        if (quoteMode) throw new InvalidOperationException("JSON Parse: Quotation marks seems to be messed up.");
+        if(quoteMode) throw new InvalidOperationException("JSON Parse: Quotation marks seems to be messed up.");
 
         return ctx ?? ParseElement(token.ToString(), tokenIsQuoted);
     }
@@ -392,7 +393,7 @@ public abstract partial class JsonNode
         internal LinqEnumerator(JsonNode? aNode)
         {
             _node = aNode;
-            if (aNode != null)
+            if(aNode != null)
                 _enumerator = aNode.GetEnumerator();
         }
 
@@ -414,7 +415,7 @@ public abstract partial class JsonNode
 
         public void Reset()
         {
-            if (_node != null)
+            if(_node != null)
                 _enumerator = _node.GetEnumerator();
         }
     }
@@ -494,7 +495,7 @@ public abstract partial class JsonNode
 
     public virtual double AsDouble
     {
-        get => double.TryParse(Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var v) ? v : 0.0;
+        get => double.TryParse(Value, NumberStyles.Float, CultureInfo.InvariantCulture, out double v) ? v : 0.0;
         set => Value = value.ToString(CultureInfo.InvariantCulture);
     }
 
@@ -514,7 +515,7 @@ public abstract partial class JsonNode
     {
         get
         {
-            if (bool.TryParse(Value, out var v))
+            if(bool.TryParse(Value, out bool v))
                 return v;
 
             return !string.IsNullOrEmpty(Value);
@@ -524,7 +525,7 @@ public abstract partial class JsonNode
 
     public virtual long AsLong
     {
-        get => long.TryParse(Value, out var val) ? val : 0L;
+        get => long.TryParse(Value, out long val) ? val : 0L;
         set => Value = value.ToString();
     }
 
@@ -554,7 +555,7 @@ public abstract partial class JsonNode
 
     public static implicit operator JsonNode(long n)
     {
-        if (LongAsString)
+        if(LongAsString)
             return new JsonString(n.ToString());
 
         return new JsonNumber(n);
@@ -570,13 +571,13 @@ public abstract partial class JsonNode
 
     public static bool operator ==(JsonNode? a, object? b)
     {
-        if (ReferenceEquals(a, b))
+        if(ReferenceEquals(a, b))
             return true;
 
-        var aIsNull = a is JsonNull or null or JsonLazyCreator;
-        var bIsNull = b is JsonNull or null or JsonLazyCreator;
+        bool aIsNull = a is JsonNull or null or JsonLazyCreator;
+        bool bIsNull = b is JsonNull or null or JsonLazyCreator;
 
-        if (aIsNull && bIsNull)
+        if(aIsNull && bIsNull)
             return true;
 
         return !aIsNull && a!.Equals(b!);
@@ -611,16 +612,16 @@ public partial class JsonArray : JsonNode
     {
         get
         {
-            if (aIndex < 0 || aIndex >= _list.Count)
+            if(aIndex < 0 || aIndex >= _list.Count)
                 return new JsonLazyCreator(this);
 
             return _list[aIndex];
         }
         set
         {
-            if (value == null)
+            if(value == null)
                 value = JsonNull.CreateOrGet();
-            if (aIndex < 0 || aIndex >= _list.Count)
+            if(aIndex < 0 || aIndex >= _list.Count)
                 _list.Add(value);
             else
                 _list[aIndex] = value;
@@ -632,7 +633,7 @@ public partial class JsonArray : JsonNode
         get => new JsonLazyCreator(this);
         set
         {
-            if (value == null)
+            if(value == null)
                 value = JsonNull.CreateOrGet();
             _list.Add(value);
         }
@@ -650,7 +651,7 @@ public partial class JsonArray : JsonNode
     {
         get
         {
-            foreach (var children in _list)
+            foreach (JsonNode children in _list)
                 yield return children;
         }
     }
@@ -659,17 +660,17 @@ public partial class JsonArray : JsonNode
 
     public override void Add(string aKey, JsonNode? aItem)
     {
-        if (aItem == null)
+        if(aItem == null)
             aItem = JsonNull.CreateOrGet();
         _list.Add(aItem);
     }
 
     public override JsonNode? Remove(int aIndex)
     {
-        if (aIndex < 0 || aIndex >= _list.Count)
+        if(aIndex < 0 || aIndex >= _list.Count)
             return null;
 
-        var tmp = _list[aIndex];
+        JsonNode tmp = _list[aIndex];
         _list.RemoveAt(aIndex);
 
         return tmp;
@@ -686,22 +687,22 @@ public partial class JsonArray : JsonNode
     internal override void WriteToStringBuilder(StringBuilder aSb, int aIndent, int aIndentInc, JsonTextMode aMode)
     {
         aSb.Append('[');
-        var count = _list.Count;
-        if (_inline)
+        int count = _list.Count;
+        if(_inline)
             aMode = JsonTextMode.Compact;
         for (var i = 0; i < count; i++)
         {
-            if (i > 0)
+            if(i > 0)
                 aSb.Append(',');
-            if (aMode == JsonTextMode.Indent)
+            if(aMode == JsonTextMode.Indent)
                 aSb.AppendLine();
 
-            if (aMode == JsonTextMode.Indent)
+            if(aMode == JsonTextMode.Indent)
                 aSb.Append(' ', aIndent + aIndentInc);
             _list[i].WriteToStringBuilder(aSb, aIndent + aIndentInc, aIndentInc, aMode);
         }
 
-        if (aMode == JsonTextMode.Indent)
+        if(aMode == JsonTextMode.Indent)
             aSb.AppendLine().Append(' ', aIndent);
         aSb.Append(']');
     }
@@ -728,9 +729,9 @@ public partial class JsonObject : JsonNode
         get => _dict.ContainsKey(aKey) ? _dict[aKey] : new JsonLazyCreator(this, aKey);
         set
         {
-            if (value == null)
+            if(value == null)
                 value = JsonNull.CreateOrGet();
-            if (_dict.ContainsKey(aKey))
+            if(_dict.ContainsKey(aKey))
                 _dict[aKey] = value;
             else
                 _dict.Add(aKey, value);
@@ -747,20 +748,20 @@ public partial class JsonObject : JsonNode
     {
         get
         {
-            if (aIndex < 0 || aIndex >= _dict.Count)
+            if(aIndex < 0 || aIndex >= _dict.Count)
                 return null;
 
             return _dict.ElementAt(aIndex).Value;
         }
         set
         {
-            if (value == null)
+            if(value == null)
                 value = JsonNull.CreateOrGet();
 
-            if (aIndex < 0 || aIndex >= _dict.Count)
+            if(aIndex < 0 || aIndex >= _dict.Count)
                 return;
 
-            var key = _dict.ElementAt(aIndex).Key;
+            string key = _dict.ElementAt(aIndex).Key;
             _dict[key] = value;
         }
     }
@@ -774,12 +775,12 @@ public partial class JsonObject : JsonNode
 
     public override void Add(string aKey, JsonNode? aItem)
     {
-        if (aItem == null)
+        if(aItem == null)
             aItem = JsonNull.CreateOrGet();
 
-        if (!string.IsNullOrEmpty(aKey))
+        if(!string.IsNullOrEmpty(aKey))
         {
-            if (_dict.ContainsKey(aKey))
+            if(_dict.ContainsKey(aKey))
                 _dict[aKey] = aItem;
             else
                 _dict.Add(aKey, aItem);
@@ -792,10 +793,10 @@ public partial class JsonObject : JsonNode
 
     public override JsonNode? Remove(string aKey)
     {
-        if (!_dict.ContainsKey(aKey))
+        if(!_dict.ContainsKey(aKey))
             return null;
 
-        var tmp = _dict[aKey];
+        JsonNode tmp = _dict[aKey];
         _dict.Remove(aKey);
 
         return tmp;
@@ -803,7 +804,7 @@ public partial class JsonObject : JsonNode
 
     public override JsonNode? Remove(int aIndex)
     {
-        if (aIndex < 0 || aIndex >= _dict.Count)
+        if(aIndex < 0 || aIndex >= _dict.Count)
             return null;
 
         var item = _dict.ElementAt(aIndex);
@@ -818,7 +819,7 @@ public partial class JsonObject : JsonNode
         var item = _dict.FirstOrDefault(k => k.Value == aNode);
         #pragma warning restore GU0019
 
-        if (item is { Key: null }) return null;
+        if(item is { Key: null }) return null;
 
         _dict.Remove(item.Key);
 
@@ -830,26 +831,26 @@ public partial class JsonObject : JsonNode
     {
         aSb.Append('{');
         var first = true;
-        if (_inline)
+        if(_inline)
             aMode = JsonTextMode.Compact;
         foreach (var k in _dict)
         {
-            if (!first)
+            if(!first)
                 aSb.Append(',');
             first = false;
-            if (aMode == JsonTextMode.Indent)
+            if(aMode == JsonTextMode.Indent)
                 aSb.AppendLine();
-            if (aMode == JsonTextMode.Indent)
+            if(aMode == JsonTextMode.Indent)
                 aSb.Append(' ', aIndent + aIndentInc);
             aSb.Append('\"').Append(Escape(k.Key)).Append('\"');
-            if (aMode == JsonTextMode.Compact)
+            if(aMode == JsonTextMode.Compact)
                 aSb.Append(':');
             else
                 aSb.Append(" : ");
             k.Value.WriteToStringBuilder(aSb, aIndent + aIndentInc, aIndentInc, aMode);
         }
 
-        if (aMode == JsonTextMode.Indent)
+        if(aMode == JsonTextMode.Indent)
             aSb.AppendLine().Append(' ', aIndent);
         aSb.Append('}');
     }
@@ -902,14 +903,14 @@ public partial class JsonString : JsonNode
 
     public override bool Equals(object? obj)
     {
-        if (base.Equals(obj))
+        if(base.Equals(obj))
             return true;
-        if (obj is string s)
+        if(obj is string s)
             return _data == s;
 
         var s2 = obj as JsonString;
 
-        if (s2 != null)
+        if(s2 != null)
             return _data == s2._data;
 
         return false;
@@ -956,7 +957,7 @@ public partial class JsonNumber : JsonNode
         get => _data.ToString(CultureInfo.InvariantCulture);
         set
         {
-            if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var v))
+            if(double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out double v))
                 _data = v;
         }
     }
@@ -989,16 +990,16 @@ public partial class JsonNumber : JsonNode
 
     public override bool Equals(object? obj)
     {
-        if (obj == null)
+        if(obj == null)
             return false;
-        if (base.Equals(obj))
+        if(base.Equals(obj))
             return true;
 
         var s2 = obj as JsonNumber;
 
-        if (s2 != null)
+        if(s2 != null)
             return Math.Abs(_data - s2._data) < 0;
-        if (IsNumeric(obj))
+        if(IsNumeric(obj))
             return Math.Abs(Convert.ToDouble(obj) - _data) < 0;
 
         return false;
@@ -1045,7 +1046,7 @@ public partial class JsonBool : JsonNode
         get => _data.ToString();
         set
         {
-            if (bool.TryParse(value, out var v))
+            if(bool.TryParse(value, out bool v))
                 _data = v;
         }
     }
@@ -1127,7 +1128,7 @@ public partial class JsonNull : JsonNode
 
     public override bool Equals(object? obj)
     {
-        if (ReferenceEquals(this, obj))
+        if(ReferenceEquals(this, obj))
             return true;
 
         return obj is JsonNull;
@@ -1216,7 +1217,7 @@ internal partial class JsonLazyCreator : JsonNode
     {
         get
         {
-            if (LongAsString)
+            if(LongAsString)
                 Set(new JsonString("0"));
             else
                 Set(new JsonNumber(0.0));
@@ -1225,7 +1226,7 @@ internal partial class JsonLazyCreator : JsonNode
         }
         set
         {
-            if (LongAsString)
+            if(LongAsString)
                 Set(new JsonString(value.ToString()));
             else
                 Set(new JsonNumber(value));
@@ -1236,7 +1237,7 @@ internal partial class JsonLazyCreator : JsonNode
     {
         get
         {
-            Set(new JsonBool(aData: false));
+            Set(new JsonBool(false));
 
             return false;
         }
@@ -1257,7 +1258,7 @@ internal partial class JsonLazyCreator : JsonNode
 
     private T Set<T>(T aVal) where T : JsonNode
     {
-        if (_key is null)
+        if(_key is null)
             _node?.Add(aVal);
         else
             _node?.Add(_key, aVal);

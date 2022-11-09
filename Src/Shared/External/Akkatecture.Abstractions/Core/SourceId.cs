@@ -36,7 +36,7 @@ public class SourceId : SingleValueObject<string>, ISourceId
     public SourceId(string value)
         : base(value)
     {
-        if (string.IsNullOrEmpty(value))
+        if(string.IsNullOrEmpty(value))
             throw new ArgumentNullException(nameof(value));
     }
 

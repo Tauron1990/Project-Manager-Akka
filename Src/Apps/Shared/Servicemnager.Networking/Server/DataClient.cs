@@ -19,7 +19,7 @@ public sealed class DataClient : IDataClient
 
     public DataClient(string host, int port = 0)
     {
-        _client = new SimpleTcpClient(host, port, ssl: false, pfxCertFilename: null, pfxPassword: null)
+        _client = new SimpleTcpClient(host, port, false, null, null)
                   {
                       Keepalive = { EnableTcpKeepAlives = true }
                   };
@@ -30,8 +30,8 @@ public sealed class DataClient : IDataClient
 
         _client.Events.DataReceived += (_, args) =>
                                        {
-                                           var msg = _messageBuffer.AddBuffer(args.Data);
-                                           if (msg != null)
+                                           NetworkMessage? msg = _messageBuffer.AddBuffer(args.Data);
+                                           if(msg != null)
                                                OnMessageReceived?.Invoke(this, new MessageFromServerEventArgs(msg));
                                        };
     }

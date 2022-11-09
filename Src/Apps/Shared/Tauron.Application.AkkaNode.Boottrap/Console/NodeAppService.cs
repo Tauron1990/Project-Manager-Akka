@@ -9,7 +9,6 @@ namespace Tauron.Application.AkkaNode.Bootstrap;
 
 public sealed class NodeAppService : IHostedService
 {
-    
     public Task StartAsync(CancellationToken cancellationToken)
     {
         Maximize();

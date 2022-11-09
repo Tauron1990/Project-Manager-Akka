@@ -1,5 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using FastExpressionCompiler;
 using SimpleProjectManager.Server.Data.DataConverters;
 
@@ -22,19 +21,19 @@ public sealed class DataConverter
 
         IConverterExpression? converterFromTo = _expressionConverters.CreateExcpressionConverter(this, new EntryKey(typeof(TFrom), typeof(TTo)));
         IConverterExpression? converterToFrom = _expressionConverters.CreateExcpressionConverter(this, new EntryKey(typeof(TTo), typeof(TFrom)));
-        
-        
+
+
         if(converterFromTo is null)
             throw new InvalidOperationException($"No Converter for ({typeof(TFrom)} -- {typeof(TTo)}) combination found");
         if(converterToFrom is null)
             throw new InvalidOperationException($"No Converter for ({typeof(TTo)} -- {typeof(TFrom)}) combination found");
-        
+
         Expression fromTo = converterFromTo.Generate(fromToInput);
         Expression tofrom = converterToFrom.Generate(toFromInput);
 
         #if DEBUG
-        var fromToString = fromTo.ToCSharpString();
-        var tofromstring = tofrom.ToCSharpString();
+        string? fromToString = fromTo.ToCSharpString();
+        string? tofromstring = tofrom.ToCSharpString();
         #endif
 
         var fromToFunc = Expression

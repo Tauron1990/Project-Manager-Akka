@@ -10,7 +10,4 @@ namespace Tauron.Application.Master.Commands.Deployment.Repository;
 [Instance("ExtractRepository", "ExtractRepository")]
 [Instance("CompressRepository", "CompressRepository")]
 [Instance("UploadRepositoryToDatabase", "UploadRepositoryToDatabase")]
-public readonly partial struct RepositoryMessage
-{
-    
-}
+public readonly partial struct RepositoryMessage { }

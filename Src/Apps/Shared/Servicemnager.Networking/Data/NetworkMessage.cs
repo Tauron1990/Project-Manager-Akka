@@ -22,8 +22,8 @@ public sealed class NetworkMessageFormatter
 
     public (IMemoryOwner<byte> Message, int Lenght) WriteMessage(NetworkMessage msg, Func<int, (IMemoryOwner<byte> Memory, int Start)>? allocate = null)
     {
-        var typeLenght = Encoding.UTF8.GetByteCount(msg.Type);
-        var lenght = Head.Length + End.Length + msg.RealLength + typeLenght + 12;
+        int typeLenght = Encoding.UTF8.GetByteCount(msg.Type);
+        int lenght = Head.Length + End.Length + msg.RealLength + typeLenght + 12;
         var msgStart = 0;
 
         IMemoryOwner<byte>? memoryOwner = null;
@@ -33,7 +33,7 @@ public sealed class NetworkMessageFormatter
             Memory<byte> message;
             Span<byte> data;
 
-            if (allocate is null)
+            if(allocate is null)
             {
                 memoryOwner = _pool.Rent(lenght + 4);
                 message = memoryOwner.Memory;
@@ -41,7 +41,7 @@ public sealed class NetworkMessageFormatter
             }
             else
             {
-                var (owner, start) = allocate(lenght + 4);
+                (var owner, int start) = allocate(lenght + 4);
                 msgStart = start;
                 memoryOwner = owner;
                 message = start == 0 ? memoryOwner.Memory : memoryOwner.Memory[start..];
@@ -53,9 +53,9 @@ public sealed class NetworkMessageFormatter
 
             BinaryPrimitives.WriteInt32LittleEndian(data[8..], typeLenght);
             Encoding.UTF8.GetBytes(msg.Type, data[12..]);
-            var pos = 12 + typeLenght;
+            int pos = 12 + typeLenght;
 
-            var targetLenght = msg.Lenght == -1 ? msg.Data.Length : msg.Lenght;
+            int targetLenght = msg.Lenght == -1 ? msg.Data.Length : msg.Lenght;
 
             BinaryPrimitives.WriteInt32LittleEndian(data[pos..], targetLenght);
             var msgData = targetLenght != msg.Data.Length
@@ -87,10 +87,10 @@ public sealed class NetworkMessageFormatter
 
     public bool HasTail(Memory<byte> buffer)
     {
-        if (buffer.Length < End.Length)
+        if(buffer.Length < End.Length)
             return false;
 
-        var pos = buffer.Length - End.Length;
+        int pos = buffer.Length - End.Length;
 
         return CheckPresence(buffer.Span, End, ref pos);
     }
@@ -100,26 +100,26 @@ public sealed class NetworkMessageFormatter
         var bufferPos = 0;
         var buffer = bufferMemory.Span;
 
-        if (!CheckPresence(buffer, Head, ref bufferPos))
+        if(!CheckPresence(buffer, Head, ref bufferPos))
             throw new InvalidOperationException("Invalid Message Format");
 
-        var fullLenght = BinaryPrimitives.ReadInt32LittleEndian(buffer[bufferPos..]);
+        int fullLenght = BinaryPrimitives.ReadInt32LittleEndian(buffer[bufferPos..]);
         bufferPos += 4;
 
-        var typeLenght = BinaryPrimitives.ReadInt32LittleEndian(buffer[bufferPos..]);
+        int typeLenght = BinaryPrimitives.ReadInt32LittleEndian(buffer[bufferPos..]);
         bufferPos += 4;
 
-        var type = Encoding.UTF8.GetString(
+        string type = Encoding.UTF8.GetString(
             buffer[bufferPos..(bufferPos + typeLenght)]); //Encoding.UTF8.GetString(buffer, bufferPos, typeLenght);
         bufferPos += typeLenght;
 
-        var dataLenght = BinaryPrimitives.ReadInt32LittleEndian(buffer[bufferPos..]);
+        int dataLenght = BinaryPrimitives.ReadInt32LittleEndian(buffer[bufferPos..]);
         bufferPos += 4;
 
-        var data = buffer[bufferPos..(bufferPos + dataLenght)].ToArray();
+        byte[] data = buffer[bufferPos..(bufferPos + dataLenght)].ToArray();
         bufferPos += dataLenght;
 
-        if (!CheckPresence(buffer, End, ref bufferPos) || fullLenght != bufferPos)
+        if(!CheckPresence(buffer, End, ref bufferPos) || fullLenght != bufferPos)
             throw new InvalidOperationException("Invalid Message Format");
 
         return new NetworkMessage(type, data, -1);
@@ -129,9 +129,9 @@ public sealed class NetworkMessageFormatter
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool CheckPresence(Span<byte> buffer, IEnumerable<byte> target, ref int pos)
     {
-        foreach (var ent in target)
+        foreach (byte ent in target)
         {
-            if (buffer[pos] != ent)
+            if(buffer[pos] != ent)
                 return false;
 
             pos++;

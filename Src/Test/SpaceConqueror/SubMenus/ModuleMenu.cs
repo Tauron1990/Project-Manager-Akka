@@ -15,7 +15,7 @@ public sealed class ModuleMenu
         AnsiConsole.Clear();
 
         await Task.Delay(100);
-        
+
         AnsiConsole.Write(new Rule("Geladene Module").Alignment(Justify.Center));
         AnsiConsole.WriteLine();
         AnsiConsole.WriteLine();
@@ -28,10 +28,11 @@ public sealed class ModuleMenu
 
             foreach (RegistratedModule module in gamePackage.Value.Modules)
                 modules.AddRow(module.Name, module.Version.ToString());
-            
-            AnsiConsole.Write(new Panel(modules)
-               .Expand()
-               .Header($"Mod: {gamePackage.Value.Name}", Justify.Center));
+
+            AnsiConsole.Write(
+                new Panel(modules)
+                   .Expand()
+                   .Header($"Mod: {gamePackage.Value.Name}", Justify.Center));
         }
 
         Console.ReadKey();

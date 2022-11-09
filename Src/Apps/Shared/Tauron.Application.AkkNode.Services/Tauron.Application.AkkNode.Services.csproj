@@ -52,7 +52,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Akka.Persistence.Query" Version="1.4.43" />
         <PackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.1.2">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -71,8 +70,7 @@
         <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
         <PackageReference Include="System.IO.FileSystem" Version="4.3.0" />
         <PackageReference Include="System.Net.Primitives" Version="4.3.1" />
-        <PackageReference Include="UnitsNet" Version="4.145.0" />
-        <PackageReference Include="Vogen" Version="3.0.1" />
+        <PackageReference Include="Vogen" Version="3.0.4" />
     </ItemGroup>
 
     <ItemGroup>

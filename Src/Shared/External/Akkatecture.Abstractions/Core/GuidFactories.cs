@@ -41,13 +41,13 @@ public static class GuidFactories
     {
         public static Guid Create()
         {
-            var destinationArray = Guid.NewGuid().ToByteArray();
+            byte[] destinationArray = Guid.NewGuid().ToByteArray();
             var time = new DateTime(0x76c, 1, 1);
-            var now = DateTime.Now;
+            DateTime now = DateTime.Now;
             var span = new TimeSpan(now.Ticks - time.Ticks);
-            var timeOfDay = now.TimeOfDay;
-            var bytes = BitConverter.GetBytes(span.Days);
-            var array = BitConverter.GetBytes((long)(timeOfDay.TotalMilliseconds / 3.333333));
+            TimeSpan timeOfDay = now.TimeOfDay;
+            byte[] bytes = BitConverter.GetBytes(span.Days);
+            byte[] array = BitConverter.GetBytes((long)(timeOfDay.TotalMilliseconds / 3.333333));
 
             Array.Reverse(bytes);
             Array.Reverse(array);
@@ -89,11 +89,11 @@ public static class GuidFactories
 
         public static Guid Create(Guid namespaceId, string name)
         {
-            if (string.IsNullOrEmpty(name)) throw new ArgumentNullException(nameof(name));
+            if(string.IsNullOrEmpty(name)) throw new ArgumentNullException(nameof(name));
 
             // Convert the name to a sequence of octets (as defined by the standard or conventions of its namespace) (step 3)
             // ASSUME: UTF-8 encoding is always appropriate
-            var nameBytes = Encoding.UTF8.GetBytes(name);
+            byte[] nameBytes = Encoding.UTF8.GetBytes(name);
 
             return Create(namespaceId, nameBytes);
         }
@@ -103,11 +103,11 @@ public static class GuidFactories
             // Always use version 5 (version 3 is MD5, version 5 is SHA1)
             const int version = 5;
 
-            if (namespaceId == default) throw new ArgumentNullException(nameof(namespaceId));
-            if (nameBytes.Length == 0) throw new ArgumentNullException(nameof(nameBytes));
+            if(namespaceId == default) throw new ArgumentNullException(nameof(namespaceId));
+            if(nameBytes.Length == 0) throw new ArgumentNullException(nameof(nameBytes));
 
             // Convert the namespace UUID to network order (step 3)
-            var namespaceBytes = namespaceId.ToByteArray();
+            byte[] namespaceBytes = namespaceId.ToByteArray();
             SwapByteOrder(namespaceBytes);
 
             // Comput the hash of the name space ID concatenated with the name (step 4)

@@ -40,7 +40,7 @@ public class NotSpecification<T> : Specification<T>
 
     protected override IEnumerable<Error> IsNotSatisfiedBecause(T aggregate)
     {
-        if (_specification.IsSatisfiedBy(aggregate))
+        if(_specification.IsSatisfiedBy(aggregate))
             yield return new Error($"Specification '{_specification.GetType().PrettyPrint()}' should not be satisfied", DefaultErrorCodes.NotSpectification);
     }
 }

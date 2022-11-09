@@ -284,12 +284,12 @@ public static class ObservableExtensions
 
     public static IDisposable SubscribeWithStatus<TMessage>(this IObservable<TMessage> source, object? sucessMessage, Action<TMessage> onNext)
     {
-        var cell = InternalCurrentActorCellKeeper.Current;
+        ActorCell? cell = InternalCurrentActorCellKeeper.Current;
 
-        if (cell == null)
+        if(cell == null)
             return source.Subscribe(onNext);
 
-        var self = cell.Self;
+        IActorRef? self = cell.Self;
 
         return source.Subscribe(
             onNext,

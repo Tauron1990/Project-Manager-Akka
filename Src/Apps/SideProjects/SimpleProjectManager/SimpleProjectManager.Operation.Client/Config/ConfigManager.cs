@@ -9,22 +9,24 @@ namespace SimpleProjectManager.Operation.Client.Config;
 public sealed class ConfigManager
 {
     private readonly IFile _location;
-    
-    public OperationConfiguration Configuration { get; private set; }
-    
+
     public ConfigManager()
     {
         _location = new TauronEnviromentImpl(new VirtualFileFactory()).LocalApplicationData.GetDirectory("SimpleProjectManager").GetFile("ClientOperations");
 
-        if (_location.Exist)
+        if(_location.Exist)
         {
-            using var stream = _location.OpenRead();
+            using TextReader stream = _location.OpenRead();
             Configuration = JsonConvert.DeserializeObject<OperationConfiguration>(stream.ReadToEnd()) ?? new OperationConfiguration();
         }
         else
+        {
             Configuration = new OperationConfiguration();
+        }
     }
-    
+
+    public OperationConfiguration Configuration { get; private set; }
+
     [DebuggerStepThrough]
     public async ValueTask Set(OperationConfiguration configuration)
     {

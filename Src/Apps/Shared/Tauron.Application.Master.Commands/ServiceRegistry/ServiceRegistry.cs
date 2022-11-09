@@ -34,7 +34,7 @@ public sealed class ServiceRegistry
 
     public static ServiceRegistry Start(ActorSystem system, RegisterService? self)
     {
-        if (_registry != null)
+        if(_registry != null)
             system.Stop(_registry._target);
         _registry = new ServiceRegistry(system.ActorOf(Props.Create(() => new ServiceRegistryServiceActor(ClusterActorDiscovery.Get(system).Discovery, self)), nameof(ServiceRegistry)));
 
@@ -43,7 +43,7 @@ public sealed class ServiceRegistry
 
     public static ServiceRegistry Start(ActorSystem system, Func<Cluster, RegisterService?> self)
     {
-        if (_registry != null)
+        if(_registry != null)
             system.Stop(_registry._target);
         _registry = new ServiceRegistry(system.ActorOf(Props.Create(() => new ServiceRegistryServiceActor(self)), nameof(ServiceRegistry)));
 
@@ -190,11 +190,11 @@ public sealed class ServiceRegistry
 
             internal T Next()
             {
-                if (_data.Count == 0)
+                if(_data.Count == 0)
                     return default!;
 
                 _curr++;
-                if (_curr >= _data.Count)
+                if(_curr >= _data.Count)
                     _curr = 0;
 
                 return _data[_curr];
@@ -248,12 +248,12 @@ public sealed class ServiceRegistry
 
         private ILoggingAdapter Log { get; } = Context.GetLogger();
 
-        [UsedImplicitly] 
+        [UsedImplicitly]
         public IStash? Stash { get; set; }
 
         private void Running()
         {
-            if (_self != null) _services[_self.Address] = new ServiceEntry(_self.Name, _self.ServiceType);
+            if(_self != null) _services[_self.Address] = new ServiceEntry(_self.Name, _self.ServiceType);
 
             Receive<RegisterService>(
                 service =>
@@ -280,14 +280,14 @@ public sealed class ServiceRegistry
 
             Receive<QueryRegistratedService>(
                 s => Sender.Tell(
-                    _services.TryGetValue(s.Address, out var entry)
+                    _services.TryGetValue(s.Address, out ServiceEntry? entry)
                         ? new QueryRegistratedServiceResponse(new MemberService(entry.Name, MemberAddress.From(s.Address), entry.ServiceType))
                         : new QueryRegistratedServiceResponse(null)));
 
             Receive<ClusterActorDiscoveryMessage.ActorUp>(
                 au =>
                 {
-                    if (au.Actor.Equals(Self)) return;
+                    if(au.Actor.Equals(Self)) return;
 
                     Log.Info("Send Sync New Service registry");
                     au.Actor.Tell(new SyncRegistry(_services));
@@ -305,7 +305,7 @@ public sealed class ServiceRegistry
 
         protected override void PreStart()
         {
-            if (!_discovery.Equals(ActorRefs.Nobody))
+            if(!_discovery.Equals(ActorRefs.Nobody))
             {
                 _discovery.Tell(new ClusterActorDiscoveryMessage.RegisterActor(Self, nameof(ServiceRegistry)));
                 _discovery.Tell(new ClusterActorDiscoveryMessage.MonitorActor(nameof(ServiceRegistry)));

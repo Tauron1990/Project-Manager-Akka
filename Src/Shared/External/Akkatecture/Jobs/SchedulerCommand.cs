@@ -43,7 +43,7 @@ public abstract class SchedulerCommand<TJob, TIdentity> : SchedulerMessage<TJob,
         object? ack = null,
         object? nack = null)
     {
-        if (jobId == null) throw new ArgumentNullException(nameof(jobId));
+        if(jobId == null) throw new ArgumentNullException(nameof(jobId));
 
         JobId = jobId;
         Ack = ack;

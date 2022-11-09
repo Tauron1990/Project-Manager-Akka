@@ -23,7 +23,7 @@ public abstract record FileTransferCommand<TSender, TThis> : ReporterCommandBase
         get => _manager;
         set
         {
-            if (_manager != null)
+            if(_manager != null)
                 throw new InvalidOperationException("Datamanager Should set only once");
 
             _manager = value;
@@ -32,7 +32,7 @@ public abstract record FileTransferCommand<TSender, TThis> : ReporterCommandBase
 
     public DataTransferManager GetTransferManager()
     {
-        if (Manager is null)
+        if(Manager is null)
             throw new InvalidOperationException("Transfer manager not Set");
 
         return Manager;
@@ -57,7 +57,7 @@ public static class FileTransferCommandExtension
             transferManager,
             () =>
             {
-                var str = data();
+                Stream? str = data();
 
                 return str is null ? null : new StreamData(str);
             });
@@ -73,18 +73,18 @@ public static class FileTransferCommandExtension
         where TCommand : FileTransferCommand<TSender, TCommand>
     {
         (
-            TSender sender, 
-            TCommand command, 
-            var timeout, 
+            TSender sender,
+            TCommand command,
+            var timeout,
             DataTransferManager manager,
-            var messages, 
-            var getdata, 
+            var messages,
+            var getdata,
             CancellationToken cancelToken) = buildCommand;
 
         command.Manager = manager;
-        var idEither = await SendingHelper.Send<FileTransactionId, TCommand>(sender, command, messages ?? (_ => { }), timeout, isEmpty: false, token: cancelToken);
+        var idEither = await SendingHelper.Send<FileTransactionId, TCommand>(sender, command, messages ?? (_ => { }), timeout, isEmpty: false, cancelToken);
 
-        if (idEither.IsRight)
+        if(idEither.IsRight)
             return Either.Right((Error)idEither.Value);
 
         var id = (FileTransactionId)idEither.Value;

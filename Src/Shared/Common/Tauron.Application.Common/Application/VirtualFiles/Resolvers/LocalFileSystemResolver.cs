@@ -13,8 +13,8 @@ public sealed class LocalFileSystemResolver : IFileSystemResolver
 
     public IVirtualFileSystem? TryResolve(PathInfo path, IServiceProvider services)
     {
-        var relative = GenericPathHelper.ToRelativePath(path);
-        var fullQualifed = Path.GetFullPath(relative.Path);
+        PathInfo relative = GenericPathHelper.ToRelativePath(path);
+        string fullQualifed = Path.GetFullPath(relative.Path);
 
         return Directory.Exists(fullQualifed) ? new LocalSystem(fullQualifed) : null;
     }

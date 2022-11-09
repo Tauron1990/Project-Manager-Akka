@@ -17,17 +17,17 @@ public class ImageHelper : IImageHelper
 
     public ImageSource? Convert(Uri target, string assembly)
     {
-        var source = _cache.FirstOrDefault(img => img.Key == target);
-        var temp = source?.GetImage();
+        KeyedImage? source = _cache.FirstOrDefault(img => img.Key == target);
+        ImageSource? temp = source?.GetImage();
 
-        if (temp != null) return temp;
+        if(temp != null) return temp;
 
-        var flag = target.IsAbsoluteUri && target.Scheme == Uri.UriSchemeFile && File.Exists(target.OriginalString);
-        if (!flag) flag = target.IsAbsoluteUri;
+        bool flag = target.IsAbsoluteUri && target.Scheme == Uri.UriSchemeFile && File.Exists(target.OriginalString);
+        if(!flag) flag = target.IsAbsoluteUri;
 
-        if (!flag) flag = File.Exists(target.OriginalString);
+        if(!flag) flag = File.Exists(target.OriginalString);
 
-        if (flag)
+        if(flag)
         {
             ImageSource imgSource = BitmapFrame.Create(target);
             _cache.Add(new KeyedImage(target, imgSource));
@@ -48,7 +48,7 @@ public class ImageHelper : IImageHelper
     }
 
     public ImageSource? Convert(string uri, string assembly)
-        => Uri.TryCreate(uri, UriKind.RelativeOrAbsolute, out var target) ? Convert(target, assembly) : null;
+        => Uri.TryCreate(uri, UriKind.RelativeOrAbsolute, out Uri? target) ? Convert(target, assembly) : null;
 
     private class KeyedImage : IWeakReference
     {

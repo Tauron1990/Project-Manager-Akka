@@ -1,5 +1,4 @@
-﻿
-using Akkatecture.Core;
+﻿using Akkatecture.Core;
 
 namespace Tauron.Application.Akka.Redux.Extensions.Cache;
 

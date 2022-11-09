@@ -9,13 +9,13 @@ namespace SimpleProjectManager.Client.Shared.ViewModels.Pages;
 
 public sealed class CurrentJobsViewModel : ReactiveObject
 {
-    public IObservable<JobSortOrderPair[]> Jobs { get; }
-    
-    public ReactiveCommand<Unit, Unit> NewJob { get; }
-    
     public CurrentJobsViewModel(GlobalState state, PageNavigation pageNavigation)
     {
         Jobs = state.Jobs.CurrentJobs.Do(l => Console.WriteLine($"{nameof(CurrentJobsViewModel)} -- Recived new Data: {l.Length}"));
         NewJob = ReactiveCommand.Create(pageNavigation.NewJob, state.IsOnline);
     }
+
+    public IObservable<JobSortOrderPair[]> Jobs { get; }
+
+    public ReactiveCommand<Unit, Unit> NewJob { get; }
 }

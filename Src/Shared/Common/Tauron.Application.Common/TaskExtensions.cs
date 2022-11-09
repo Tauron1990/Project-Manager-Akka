@@ -17,16 +17,16 @@ public static class TaskExtensions
         => task.ContinueWith(
             compled =>
             {
-                if (compled.IsCompletedSuccessfully) return;
+                if(compled.IsCompletedSuccessfully) return;
 
-                if (compled.IsCanceled)
+                if(compled.IsCanceled)
                 {
                     onError(new TaskCanceledException(compled));
                 }
-                else if (compled.IsFaulted)
+                else if(compled.IsFaulted)
                 {
-                    var err = compled.Exception.Unwrap();
-                    if (err != null)
+                    Exception? err = compled.Exception.Unwrap();
+                    if(err != null)
                         onError(err);
                 }
             });
@@ -35,7 +35,7 @@ public static class TaskExtensions
     public static void Ignore(this Task _) { }
 
     public static void Ignore<T>(this Task<T> _) { }
-    
+
     public static void Ignore(this ValueTask _) { }
 
     public static void Ignore<T>(this ValueTask<T> _) { }

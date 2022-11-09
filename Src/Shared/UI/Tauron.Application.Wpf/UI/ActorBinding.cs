@@ -33,20 +33,20 @@ public class ActorBinding : BindingDecoratorBase
     {
         try
         {
-            if (!TryGetTargetItems(provider, out var dependencyObject, out _))
+            if(!TryGetTargetItems(provider, out DependencyObject? dependencyObject, out _))
                 return DependencyProperty.UnsetValue;
 
-            if (DesignerProperties.GetIsInDesignMode(dependencyObject))
+            if(DesignerProperties.GetIsInDesignMode(dependencyObject))
                 return DependencyProperty.UnsetValue;
 
-            if (!ControlBindLogic.FindDataContext(ElementMapper.Create(dependencyObject).AsOption(), out var model))
+            if(!ControlBindLogic.FindDataContext(ElementMapper.Create(dependencyObject).AsOption(), out DataContextPromise? model))
                 return null;
 
             Path = Path != null
                 ? new PropertyPath("Value." + Path.Path, Path.PathParameters)
                 : new PropertyPath("Value");
             Source = new DeferredSource(RootProperty, model);
-            if (Binding.Delay < 200)
+            if(Binding.Delay < 200)
                 Binding.Delay = 200;
             UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
             Binding.ValidatesOnNotifyDataErrors = true;

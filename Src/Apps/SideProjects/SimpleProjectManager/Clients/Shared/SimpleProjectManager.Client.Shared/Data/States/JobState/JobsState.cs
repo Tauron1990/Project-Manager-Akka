@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using FluentValidation.Results;
 using SimpleProjectManager.Client.Shared.Data.JobEdit;
 using SimpleProjectManager.Client.Shared.Data.States.Actions;
 using SimpleProjectManager.Client.Shared.Data.States.Data;
@@ -21,11 +22,11 @@ namespace SimpleProjectManager.Client.Shared.Data.States.JobState;
 
 public sealed partial class JobsState : StateBase<InternalJobData>
 {
-    private readonly UpdateProjectCommandValidator _upodateProjectValidator = new();
-    private readonly ProjectNameValidator _nameValidator = new();
-    
-    private readonly IJobDatabaseService _service;
     private readonly IMessageDispatcher _messageDispatcher;
+    private readonly ProjectNameValidator _nameValidator = new();
+
+    private readonly IJobDatabaseService _service;
+    private readonly UpdateProjectCommandValidator _upodateProjectValidator = new();
 
     public JobsState(IStateFactory stateFactory, IJobDatabaseService jobDatabaseService, IMessageDispatcher messageDispatcher)
         : base(stateFactory)
@@ -34,6 +35,16 @@ public sealed partial class JobsState : StateBase<InternalJobData>
         _messageDispatcher = messageDispatcher;
     }
 
+    public IObservable<bool> IsLoaded { get; private set; } = Observable.Empty<bool>();
+
+    public IObservable<JobSortOrderPair[]> CurrentJobs { get; private set; } = Observable.Empty<JobSortOrderPair[]>();
+
+    public IObservable<JobData?> CurrentlySelectedData { get; private set; } = Observable.Empty<JobData>();
+
+    public IObservable<JobSortOrderPair?> CurrentlySelectedPair { get; private set; } = Observable.Empty<JobSortOrderPair>();
+
+    public IObservable<long> ActiveJobsCount { get; private set; } = Observable.Empty<long>();
+
     protected override IStateConfiguration<InternalJobData> ConfigurateState(ISourceConfiguration<InternalJobData> configuration)
     {
         return ConfigurateEditor
@@ -41,8 +52,8 @@ public sealed partial class JobsState : StateBase<InternalJobData>
                 configuration.FromCacheAndServer<(JobInfo[], SortOrder[])>(
                     async token =>
                     {
-                        var jobs = await _service.GetActiveJobs(token);
-                        var order = await _service.GetSortOrders(token);
+                        Jobs jobs = await _service.GetActiveJobs(token);
+                        SordOrders order = await _service.GetSortOrders(token);
 
                         return (jobs, order);
                     },
@@ -53,7 +64,7 @@ public sealed partial class JobsState : StateBase<InternalJobData>
                             var (jobs, orders) = serverData;
                             var pairs = jobs.Select(j => new JobSortOrderPair(orders.First(o => o.Id == j.Project), j)).ToArray();
 
-                            var selection = originalData.CurrentSelected;
+                            CurrentSelected? selection = originalData.CurrentSelected;
                             // ReSharper disable once AccessToModifiedClosure
                             if(selection?.Pair is not null && pairs.All(s => s.Info.Project != selection.Pair?.Info.Project))
                                 selection = new CurrentSelected(null, null);
@@ -89,32 +100,18 @@ public sealed partial class JobsState : StateBase<InternalJobData>
         CurrentJobs.Subscribe();
         ActiveJobsCount = FromServer(_service.CountActiveJobs);
     }
-
-    public IObservable<bool> IsLoaded { get; private set; } = Observable.Empty<bool>();
-
-    public IObservable<JobSortOrderPair[]> CurrentJobs { get; private set; } = Observable.Empty<JobSortOrderPair[]>();
-
-    public IObservable<JobData?> CurrentlySelectedData { get; private set; } = Observable.Empty<JobData>();
-
-    public IObservable<JobSortOrderPair?> CurrentlySelectedPair { get; private set; } = Observable.Empty<JobSortOrderPair>();
-
-    public IObservable<long> ActiveJobsCount { get; private set; } = Observable.Empty<long>();
-    
 }
 
 public partial class JobsState
 {
     private IStateConfiguration<InternalJobData> ConfigurateEditor(IStateConfiguration<InternalJobData> configuration)
         => configuration.ApplyRequests(
-            f =>
-            {
-                f.AddRequest(JobDataRequests.PostJobCommit(_service, _messageDispatcher), JobDataPatcher.PatchEditorCommit);
-            });
+            f => { f.AddRequest(JobDataRequests.PostJobCommit(_service, _messageDispatcher), JobDataPatcher.PatchEditorCommit); });
 
     public IEnumerable<string> ValidateProjectName(string? arg)
     {
         var name = new ProjectName(arg ?? string.Empty);
-        var result = _nameValidator.Validate(name);
+        ValidationResult? result = _nameValidator.Validate(name);
 
         return result.IsValid ? Array.Empty<string>() : result.Errors.Select(err => err.ErrorMessage).ToArray();
     }
@@ -129,7 +126,7 @@ public partial class JobsState
 
     public async Task CommitJobData(JobEditorCommit newData, Action onCompled)
     {
-        if (newData.JobData.OldData == null)
+        if(newData.JobData.OldData == null)
         {
             _messageDispatcher.PublishError("Keine Original Daten zur verfügung gestellt");
 
@@ -137,17 +134,17 @@ public partial class JobsState
         }
 
         var command = UpdateProjectCommand.Create(newData.JobData.NewData, newData.JobData.OldData);
-        var validationResult = await _upodateProjectValidator.ValidateAsync(command);
+        ValidationResult? validationResult = await _upodateProjectValidator.ValidateAsync(command);
 
-        if (validationResult.IsValid)
+        if(validationResult.IsValid)
         {
-            if (await _messageDispatcher.IsSuccess(() => TimeoutToken.WithDefault(default, t => _service.UpdateJobData(command, t)))
-             && await _messageDispatcher.IsSuccess(async () => await newData.Upload()))
+            if(await _messageDispatcher.IsSuccess(() => TimeoutToken.WithDefault(default, t => _service.UpdateJobData(command, t)))
+            && await _messageDispatcher.IsSuccess(async () => await newData.Upload()))
                 onCompled();
         }
         else
         {
-            var err = string.Join(", ", validationResult.Errors.Select(f => f.ErrorMessage));
+            string err = string.Join(", ", validationResult.Errors.Select(f => f.ErrorMessage));
             _messageDispatcher.PublishWarnig(err);
         }
     }
@@ -156,21 +153,20 @@ public partial class JobsState
     {
         var upperName = name.ToUpper().AsSpan();
 
-        var index = upperName.IndexOf("BM");
+        int index = upperName.IndexOf("BM");
 
-        if (index == -1) return null;
+        if(index == -1) return null;
 
         while (upperName.Length >= 10)
         {
             upperName = upperName[index..];
-            if (upperName.Length != 10) break;
 
-            if (AllDigit(upperName[2..2]) &&
-                upperName[4] == '_' &&
-                AllDigit(upperName[5..10]))
-            {
+            if(upperName.Length != 10) break;
+
+            if(AllDigit(upperName[2..2]) &&
+               upperName[4] == '_' &&
+               AllDigit(upperName[5..10]))
                 return upperName[..10].ToString();
-            }
         }
 
         return null;
@@ -178,9 +174,9 @@ public partial class JobsState
 
     private bool AllDigit(in ReadOnlySpan<char> input)
     {
-        foreach (var t in input)
+        foreach (char t in input)
         {
-            if (char.IsDigit(t)) continue;
+            if(char.IsDigit(t)) continue;
 
             return false;
         }
@@ -190,29 +186,33 @@ public partial class JobsState
 
     public JobEditorCommit CreateNewJobData(JobEditorData editorData, Func<Task<string>> start)
     {
-        var data = editorData.OriginalData;
-        if (data != null)
+        JobData? data = editorData.OriginalData;
+        if(data != null)
         {
             data = data with
-            {
-                JobName = new ProjectName(editorData.JobName ?? string.Empty),
-                Status = editorData.Status,
-                Deadline = ProjectDeadline.FromDateTime(editorData.Deadline),
-                Ordering = GetOrdering(data.Id)
-            };
+                   {
+                       JobName = new ProjectName(editorData.JobName ?? string.Empty),
+                       Status = editorData.Status,
+                       Deadline = ProjectDeadline.FromDateTime(editorData.Deadline),
+                       Ordering = GetOrdering(data.Id)
+                   };
         }
         else
         {
             var name = new ProjectName(editorData.JobName ?? string.Empty);
-            var id = ProjectId.For(name);
-            data = new JobData(id, name, editorData.Status, GetOrdering(id),
-                ProjectDeadline.FromDateTime(editorData.Deadline), ImmutableList<ProjectFileId>.Empty);
+            ProjectId id = ProjectId.For(name);
+            data = new JobData(
+                id,
+                name,
+                editorData.Status,
+                GetOrdering(id),
+                ProjectDeadline.FromDateTime(editorData.Deadline),
+                ImmutableList<ProjectFileId>.Empty);
         }
 
         SortOrder? GetOrdering(ProjectId id)
         {
-            if (editorData.Ordering != null)
-            {
+            if(editorData.Ordering != null)
                 return data?.Ordering == null
                     ? new SortOrder
                       {
@@ -221,7 +221,6 @@ public partial class JobsState
                           IsPriority = false
                       }
                     : data.Ordering.WithCount(editorData.Ordering.Value);
-            }
 
             return data?.Ordering;
         }

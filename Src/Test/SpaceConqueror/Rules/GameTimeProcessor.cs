@@ -10,7 +10,7 @@ public sealed class GameTimeProcessor : Rule, IManager<GameTimeProcessor, GameTi
     public override void Define()
     {
         GameTime gameTime = null!;
-        
+
         When()
            .MatchCommand<GameTimeTickCommand>()
            .MatchGameTime(() => gameTime);

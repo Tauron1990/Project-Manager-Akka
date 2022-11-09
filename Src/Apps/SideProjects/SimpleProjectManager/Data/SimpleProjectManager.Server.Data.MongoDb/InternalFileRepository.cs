@@ -13,7 +13,7 @@ public sealed class InternalFileRepository : IInternalFileRepository
         => _bucket = bucket;
 
     public async ValueTask<Stream> OpenStream(string id, CancellationToken cancellationToken)
-        => await _bucket.OpenDownloadStreamAsync(ObjectId.Parse(id), cancellationToken:cancellationToken);
+        => await _bucket.OpenDownloadStreamAsync(ObjectId.Parse(id), cancellationToken: cancellationToken);
 
     public IEnumerable<string> FindIdByFileName(string fileName)
     {
@@ -26,7 +26,7 @@ public sealed class InternalFileRepository : IInternalFileRepository
     {
         var result = await _bucket.FindAsync(Builders<GridFSFileInfo<ObjectId>>.Filter.Eq(f => f.Id, ObjectId.Parse(id)), cancellationToken: token);
         var file = await result.FirstOrDefaultAsync(token);
-        
+
         // new DatabaseFile(
         //     new ProjectFileId(d.Filename),
         //     new FileName(d.Metadata.GetValue(FileContentManager.MetaFileNme).AsString),
@@ -34,10 +34,10 @@ public sealed class InternalFileRepository : IInternalFileRepository
         //     new JobName(d.Metadata.GetValue(FileContentManager.MetaJobName).AsString))),
 
         return new FileEntry(
-            id, 
+            id,
             file.Filename,
             file.Metadata.GetValue(nameof(FileEntry.JobName)).AsString,
-            file.Metadata.GetValue(nameof(FileEntry.FileName)).AsString, 
+            file.Metadata.GetValue(nameof(FileEntry.FileName)).AsString,
             file.Length);
     }
 
@@ -46,20 +46,18 @@ public sealed class InternalFileRepository : IInternalFileRepository
 
     public async IAsyncEnumerable<FileEntry> FindAllAsync([EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var result = await _bucket.FindAsync(Builders<GridFSFileInfo<ObjectId>>.Filter.Empty, cancellationToken:cancellationToken);
+        var result = await _bucket.FindAsync(Builders<GridFSFileInfo<ObjectId>>.Filter.Empty, cancellationToken: cancellationToken);
 
         if(!await result.MoveNextAsync(cancellationToken))
             yield break;
 
         foreach (var file in result.Current)
-        {
             yield return new FileEntry(
-                file.Id.ToString(), 
+                file.Id.ToString(),
                 file.Filename,
                 file.Metadata.GetValue(nameof(FileEntry.JobName)).AsString,
-                file.Metadata.GetValue(nameof(FileEntry.FileName)).AsString, 
+                file.Metadata.GetValue(nameof(FileEntry.FileName)).AsString,
                 file.Length);
-        }
     }
 
     public async ValueTask DeleteAsync(string id, CancellationToken token)

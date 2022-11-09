@@ -7,11 +7,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\External\Akkatecture.Abstractions\Akkatecture.Abstractions.csproj" />
+        <ProjectReference Include="..\..\External\Akkatecture.Abstractions\Akkatecture.Abstractions.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Stl.Fusion" Version="4.0.16" />
+        <PackageReference Include="Stl.Fusion" Version="4.0.19" />
     </ItemGroup>
 
 </Project>

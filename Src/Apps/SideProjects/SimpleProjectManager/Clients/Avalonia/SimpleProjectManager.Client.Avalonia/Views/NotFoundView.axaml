@@ -5,7 +5,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="SimpleProjectManager.Client.Avalonia.Views.NotFoundView">
     <Grid>
-        <TextBlock Text="Das UserControl für die Anzeige wurde nicht gefunden" 
-                   VerticalAlignment="Center" HorizontalAlignment="Center"/>
+        <TextBlock Text="Das UserControl für die Anzeige wurde nicht gefunden"
+                   VerticalAlignment="Center" HorizontalAlignment="Center" />
     </Grid>
 </UserControl>

@@ -6,8 +6,8 @@ namespace SimpleProjectManager.Client.Shared.ViewModels.Pages;
 
 public sealed class DashboardViewModel : ReactiveObject
 {
-    public IObservable<long> JobCountState { get; }
-    
     public DashboardViewModel(GlobalState globalState)
         => JobCountState = globalState.Jobs.ActiveJobsCount;
+
+    public IObservable<long> JobCountState { get; }
 }

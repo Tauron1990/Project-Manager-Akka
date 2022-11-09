@@ -13,153 +13,152 @@ using Tauron.Application.CommonUI.Helper;
 using Tauron.Application.CommonUI.ModelMessages;
 using Tauron.ObservableExt;
 
-namespace Tauron.Application.Avalonia
+namespace Tauron.Application.Avalonia;
+
+[PublicAPI]
+public class ControlHelper
 {
-    [PublicAPI]
-    public class ControlHelper
+    private const string ControlHelperPrefix = "ControlHelper.";
+
+    public static readonly AttachedProperty<string> MarkControlProperty =
+        AvaloniaProperty.RegisterAttached<ControlHelper, Control, string>("MarkControl", string.Empty);
+
+    public static readonly AttachedProperty<string> MarkWindowProperty =
+        AvaloniaProperty.RegisterAttached<ControlHelper, Control, string>("MarkWindow", string.Empty);
+
+    private ControlHelper() { }
+
+    public static string GetMarkControl(Control obj)
+        => obj.GetValue(MarkControlProperty);
+
+    public static string GetMarkWindow(Control obj)
+        => obj.GetValue(MarkWindowProperty);
+
+    public static void SetMarkControl(Control obj, string value)
     {
-        private const string ControlHelperPrefix = "ControlHelper.";
+        string old = GetMarkControl(obj);
+        obj.SetValue(MarkControlProperty, value);
+        MarkControl(obj, value, old);
+    }
 
-        public static readonly AttachedProperty<string> MarkControlProperty =
-            AvaloniaProperty.RegisterAttached<ControlHelper, Control, string>("MarkControl", string.Empty);
+    public static void SetMarkWindow(Control obj, string value)
+    {
+        string old = GetMarkWindow(obj);
+        obj.SetValue(MarkWindowProperty, value);
+        MarkWindowChanged(obj, value, old);
+    }
 
-        public static readonly AttachedProperty<string> MarkWindowProperty =
-            AvaloniaProperty.RegisterAttached<ControlHelper, Control, string>("MarkWindow", string.Empty);
+    private static void MarkControl(AvaloniaObject d, string newValue, string oldValue)
+    {
+        SetLinker(d, oldValue, newValue, () => new ControlLinker());
+    }
 
-        private ControlHelper() { }
+    private static void MarkWindowChanged(AvaloniaObject d, string newValue, string oldValue)
+    {
+        SetLinker(d, oldValue, newValue, () => new WindowLinker());
+    }
 
-        public static string GetMarkControl(Control obj)
-            => obj.GetValue(MarkControlProperty);
+    private static void SetLinker(AvaloniaObject obj, string? oldName, string? newName, Func<LinkerBase> factory)
+    {
+        if(string.IsNullOrWhiteSpace(newName))
+            return;
 
-        public static string GetMarkWindow(Control obj)
-            => obj.GetValue(MarkWindowProperty);
+        IUIObject ele = ElementMapper.Create(obj);
+        var rootOption = ControlBindLogic.FindRoot(ele.AsOption());
 
-        public static void SetMarkControl(Control obj, string value)
+        rootOption.Run(
+            root => SetLinker(newName, oldName, root, ele, factory),
+            () => ControlBindLogic.MakeLazy(
+                (IUIElement)ele,
+                newName,
+                oldName,
+                (name, old, controllable, dependencyObject)
+                    => SetLinker(old, name, controllable, dependencyObject, factory)));
+    }
+
+    private static void SetLinker(
+        string? newName, string? oldName, IBinderControllable root, IUIObject obj,
+        Func<LinkerBase> factory)
+    {
+        if(oldName is not null)
+            root.CleanUp($"{ControlHelperPrefix}{oldName}");
+
+        if(newName is null) return;
+
+        LinkerBase linker = factory();
+        linker.Name = newName;
+        root.Register($"{ControlHelperPrefix}{newName}", linker, obj);
+    }
+
+    [DebuggerNonUserCode]
+    private class ControlLinker : LinkerBase
+    {
+        protected override void Scan()
         {
-            var old = GetMarkControl(obj);
-            obj.SetValue(MarkControlProperty, value);
-            MarkControl(obj, value, old);
+            if(DataContext is IViewModel model && AffectedObject is IUIElement element)
+                model.Actor.Tell(new ControlSetEvent(Name, element));
         }
+    }
 
-        public static void SetMarkWindow(Control obj, string value)
+    private abstract class LinkerBase : ControlBindableBase
+    {
+        internal string Name { get; set; } = string.Empty;
+
+        protected object DataContext { get; private set; } = new();
+
+        protected abstract void Scan();
+
+        protected override void CleanUp() { }
+
+        protected override void Bind(object context)
         {
-            var old = GetMarkWindow(obj);
-            obj.SetValue(MarkWindowProperty, value);
-            MarkWindowChanged(obj, value, old);
+            DataContext = context;
+            Scan();
         }
+    }
 
-        private static void MarkControl(AvaloniaObject d, string newValue, string oldValue)
+    private class WindowLinker : LinkerBase
+    {
+        // ReSharper disable once CognitiveComplexity
+        protected override void Scan()
         {
-            SetLinker(d, oldValue, newValue, () => new ControlLinker());
-        }
+            string realName = Name;
+            string? windowName = null;
 
-        private static void MarkWindowChanged(AvaloniaObject d, string newValue, string oldValue)
-        {
-            SetLinker(d, oldValue, newValue, () => new WindowLinker());
-        }
-
-        private static void SetLinker(AvaloniaObject obj, string? oldName, string? newName, Func<LinkerBase> factory)
-        {
-            if (string.IsNullOrWhiteSpace(newName))
-                return;
-
-            var ele = ElementMapper.Create(obj);
-            var rootOption = ControlBindLogic.FindRoot(ele.AsOption());
-
-            rootOption.Run(
-                root => SetLinker(newName, oldName, root, ele, factory),
-                () => ControlBindLogic.MakeLazy(
-                    (IUIElement)ele,
-                    newName,
-                    oldName,
-                    (name, old, controllable, dependencyObject)
-                        => SetLinker(old, name, controllable, dependencyObject, factory)));
-        }
-
-        private static void SetLinker(
-            string? newName, string? oldName, IBinderControllable root, IUIObject obj,
-            Func<LinkerBase> factory)
-        {
-            if (oldName is not null)
-                root.CleanUp($"{ControlHelperPrefix}{oldName}");
-
-            if (newName is null) return;
-
-            var linker = factory();
-            linker.Name = newName;
-            root.Register($"{ControlHelperPrefix}{newName}", linker, obj);
-        }
-
-        [DebuggerNonUserCode]
-        private class ControlLinker : LinkerBase
-        {
-            protected override void Scan()
+            if(realName.Contains(':'))
             {
-                if (DataContext is IViewModel model && AffectedObject is IUIElement element)
-                    model.Actor.Tell(new ControlSetEvent(Name, element));
+                string[] nameSplit = realName.Split(new[] { ':' }, 2);
+                realName = nameSplit[0];
+                windowName = nameSplit[1];
             }
-        }
 
-        private abstract class LinkerBase : ControlBindableBase
-        {
-            internal string Name { get; set; } = string.Empty;
+            AvaloniaObject? priTarget = ((AvaObject)AffectedObject).Obj;
 
-            protected object DataContext { get; private set; } = new();
-
-            protected abstract void Scan();
-
-            protected override void CleanUp() { }
-
-            protected override void Bind(object context)
+            if(windowName is null)
             {
-                DataContext = context;
-                Scan();
-            }
-        }
+                if(priTarget is not Window)
+                    while (priTarget != null)
+                        priTarget = priTarget is StyledElement { Parent: StyledElement parent } ? parent : null;
 
-        private class WindowLinker : LinkerBase
-        {
-            // ReSharper disable once CognitiveComplexity
-            protected override void Scan()
+                if(priTarget is null)
+                    LogManager.GetCurrentClassLogger().Error($"ControlHelper: No Window Found: {DataContext.GetType()}|{realName}");
+            }
+            else
             {
-                var realName = Name;
-                string? windowName = null;
+                priTarget =
+                    global::Avalonia.Application.Current?.ApplicationLifetime is
+                        IClassicDesktopStyleApplicationLifetime lifetime
+                        ? lifetime.Windows.FirstOrDefault(win => win.Name == windowName)
+                        : null;
 
-                if (realName.Contains(':'))
-                {
-                    var nameSplit = realName.Split(new[] { ':' }, 2);
-                    realName = nameSplit[0];
-                    windowName = nameSplit[1];
-                }
-
-                var priTarget = ((AvaObject)AffectedObject).Obj;
-
-                if (windowName is null)
-                {
-                    if (priTarget is not Window)
-                        while (priTarget != null)
-                            priTarget = priTarget is StyledElement { Parent: StyledElement parent } ? parent : null;
-
-                    if (priTarget is null)
-                        LogManager.GetCurrentClassLogger().Error($"ControlHelper: No Window Found: {DataContext.GetType()}|{realName}");
-                }
-                else
-                {
-                    priTarget =
-                        global::Avalonia.Application.Current?.ApplicationLifetime is
-                            IClassicDesktopStyleApplicationLifetime lifetime
-                            ? lifetime.Windows.FirstOrDefault(win => win.Name == windowName)
-                            : null;
-
-                    if (priTarget is null)
-                        LogManager.GetCurrentClassLogger().Error($"ControlHelper: No Window Named {windowName} Found");
-                }
-
-                if (priTarget is null) return;
-
-                if (DataContext is IViewModel model && ElementMapper.Create(priTarget) is IUIElement element)
-                    model.Actor.Tell(new ControlSetEvent(Name, element));
+                if(priTarget is null)
+                    LogManager.GetCurrentClassLogger().Error($"ControlHelper: No Window Named {windowName} Found");
             }
+
+            if(priTarget is null) return;
+
+            if(DataContext is IViewModel model && ElementMapper.Create(priTarget) is IUIElement element)
+                model.Actor.Tell(new ControlSetEvent(Name, element));
         }
     }
 }

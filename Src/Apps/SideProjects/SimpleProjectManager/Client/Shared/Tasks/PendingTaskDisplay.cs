@@ -1,5 +1,4 @@
-﻿using System.Reactive.Disposables;
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using ReactiveUI;
 using SimpleProjectManager.Shared.Services.Tasks;
 using Tauron.Application.Blazor.Commands;
@@ -22,6 +21,7 @@ public partial class PendingTaskDisplay
     protected override IEnumerable<IDisposable> InitializeModel()
     {
         ViewModel?.PendingTask.Set(PendingTask);
+
         yield return this.BindCommand(ViewModel, m => m.Cancel, d => d.CancelButton);
     }
 

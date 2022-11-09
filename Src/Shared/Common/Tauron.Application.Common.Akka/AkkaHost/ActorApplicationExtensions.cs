@@ -1,5 +1,4 @@
 ﻿using Akka.Actor;
-using Akka.DependencyInjection;
 using Akka.Hosting;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
@@ -17,11 +16,12 @@ public static class ActorApplicationExtensions
     {
         var builder = new ActorApplicationBluilder(hostBuilder);
         config?.Invoke(builder);
-        
+
         return hostBuilder.UseServiceProviderFactory(
             builderContext =>
             {
                 builder.Init(builderContext);
+
                 return new ActorServiceProviderFactory(builder);
             });
     }
@@ -29,20 +29,17 @@ public static class ActorApplicationExtensions
     private sealed class ActorApplicationBluilder : IActorApplicationBuilder
     {
         private readonly IHostBuilder _builder;
-        
+
         private List<Action<HostBuilderContext, IServiceProvider, AkkaConfigurationBuilder>>? _config = new();
         private HostBuilderContext? _context;
+
+        internal ActorApplicationBluilder(IHostBuilder builder)
+            => _builder = builder;
 
         public IServiceCollection Collection { get; set; } = new ServiceCollection();
 
         public bool ConfigurationFinisht { get; set; }
-        
-        internal ActorApplicationBluilder(IHostBuilder builder)
-            => _builder = builder;
 
-        public void Init(HostBuilderContext context)
-            => _context = context;
-        
         public IActorApplicationBuilder ConfigureAkka(Action<HostBuilderContext, AkkaConfigurationBuilder> system)
             => ConfigureAkka((h, _, c) => system(h, c));
 
@@ -50,17 +47,12 @@ public static class ActorApplicationExtensions
         {
             if(_config is null)
                 throw new InvalidOperationException("Akka Configuration is already Finisht");
+
             _config.Add(system);
 
             return this;
         }
 
-        private void CheckConfigFinisht()
-        {
-            if(ConfigurationFinisht)
-                throw new InvalidOperationException("The Configuration Process is already Finisht");
-        }
-        
 
         public IActorApplicationBuilder ConfigureHostConfiguration(Action<IConfigurationBuilder> configureDelegate)
         {
@@ -95,13 +87,22 @@ public static class ActorApplicationExtensions
             return this;
         }
 
+        public void Init(HostBuilderContext context)
+            => _context = context;
+
+        private void CheckConfigFinisht()
+        {
+            if(ConfigurationFinisht)
+                throw new InvalidOperationException("The Configuration Process is already Finisht");
+        }
+
         private string GetActorSystemName(IConfiguration config)
         {
             if(_context is null)
                 throw new InvalidOperationException("HostBuilder Context is Null");
-            
-            var name = config["actorsystem"];
-            
+
+            string? name = config["actorsystem"];
+
             return !string.IsNullOrWhiteSpace(name)
                 ? name
                 : _context.HostingEnvironment.ApplicationName.Replace('.', '-');
@@ -118,7 +119,7 @@ public static class ActorApplicationExtensions
                 {
                     if(_config is null)
                         throw new InvalidOperationException("Akka _config is null");
-                    
+
                     _config.ForEach(a => a(_context, provider, builder));
                     _config = null;
                 });
@@ -145,11 +146,12 @@ public static class ActorApplicationExtensions
         public IServiceProvider CreateServiceProvider(IActorApplicationBuilder containerBuilder)
         {
             if(_actorBuilder != containerBuilder) throw new InvalidOperationException("Builder was replaced during Configuration");
+
             _actorBuilder.AddAkka();
-            
-            var prov = _actorBuilder.Collection.BuildServiceProvider();
+
+            ServiceProvider prov = _actorBuilder.Collection.BuildServiceProvider();
             TauronEnviromentSetup.Run(prov);
-            
+
             var lifetime = prov.GetRequiredService<IHostApplicationLifetime>();
 
             var system = prov.GetRequiredService<ActorSystem>();

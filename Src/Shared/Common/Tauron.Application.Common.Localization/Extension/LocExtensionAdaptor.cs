@@ -21,7 +21,7 @@ public sealed class LocExtensionAdaptor
 
     public void Request(string name, Action<Option<object>> valueResponse, CultureInfo? info = null)
     {
-        var hook = EventActor.CreateSelfKilling(_system, null);
+        IEventActor hook = EventActor.CreateSelfKilling(_system, null);
         hook.Register(HookEvent.Create<LocCoordinator.ResponseLocValue>(res => valueResponse(res.Result))).Ignore();
         hook.Send(
             _extension.LocCoordinator,

@@ -7,21 +7,19 @@ using Tauron.Application.Akka.Redux.Extensions;
 namespace Tauron.Application.Akka.Redux.Internal;
 
 public sealed class Store<TState> : IReduxStore<TState>
-{ 
-    private readonly TState _initialState;
-    private readonly Action<Exception> _onError;
-    public IMaterializer Materializer { get; }
-    private readonly HashSet<Type> _registratedActions = new();
-
-    private readonly SharedKillSwitch _claseFlows = KillSwitches.Shared("Disposing");
-    
+{
     private readonly ISourceQueueWithComplete<object> _actionDispatcher;
 
-    private readonly Sink<object, NotUsed> _actionSink;
-    private readonly Sink<TState, NotUsed> _stateSink;
-
     private readonly Source<DispatchedAction<TState>, NotUsed> _actions;
+
+    private readonly Sink<object, NotUsed> _actionSink;
+
+    private readonly SharedKillSwitch _claseFlows = KillSwitches.Shared("Disposing");
+    private readonly TState _initialState;
+    private readonly Action<Exception> _onError;
+    private readonly HashSet<Type> _registratedActions = new();
     private readonly Source<TState, NotUsed> _states;
+    private readonly Sink<TState, NotUsed> _stateSink;
 
     public Store(TState initialState, Action<Exception> onError, IMaterializer materializer)
     {
@@ -42,28 +40,30 @@ public sealed class Store<TState> : IReduxStore<TState>
            .Via(_claseFlows.Flow<TState>())
            .ToMaterialized(BroadcastHub.Sink<TState>(), Keep.Right)
            .Run(materializer);
-        
+
         _stateSink = stateCollector;
 
         _actions = Source.FromGraph(
-            GraphDsl.Create(
-                b =>
-                {
-                    var combiner = b.Add(LastStateShape.Create<TState, object, DispatchedAction<TState>>((s, a) => new DispatchedAction<TState>(s, a)));
+                GraphDsl.Create(
+                    b =>
+                    {
+                        var combiner = b.Add(LastStateShape.Create<TState, object, DispatchedAction<TState>>((s, a) => new DispatchedAction<TState>(s, a)));
 
-                    b.From(Source.Single(_initialState).Concat(_states)).To(combiner.In0);
-                    b.From(actions.Where(a => a is not null)).To(combiner.In1);
+                        b.From(Source.Single(_initialState).Concat(_states)).To(combiner.In0);
+                        b.From(actions.Where(a => a is not null)).To(combiner.In1);
 
-                    return new SourceShape<DispatchedAction<TState>>(combiner.Out);
-                }))
+                        return new SourceShape<DispatchedAction<TState>>(combiner.Out);
+                    }))
            .Via(_claseFlows.Flow<DispatchedAction<TState>>())
            .ToMaterialized(BroadcastHub.Sink<DispatchedAction<TState>>(), Keep.Right)
            .Run(materializer);
-        
+
         _states.Via(_claseFlows.Flow<TState>()).RunForeach(s => CurrentState = s, materializer);
-        
+
         MutateCallbackPlugin.Install(this);
     }
+
+    public IMaterializer Materializer { get; }
 
     public bool CanProcess<TAction>()
         => CanProcess(typeof(TAction));
@@ -108,38 +108,6 @@ public sealed class Store<TState> : IReduxStore<TState>
     public void Reset()
         => _stateSink.RunWith(Source.Single(_initialState), Materializer);
 
-    private void RegisterReducer(On<TState> reducer)
-    {
-        if(!_registratedActions.Add(reducer.ActionType)) 
-            throw new InvalidOperationException("The ActionType is already Registrated");
-
-        _actions
-           .Via(_claseFlows.Flow<DispatchedAction<TState>>())
-           .Via(RestartFlow.OnFailuresWithBackoff(
-                () => reducer.Mutator.Recover(
-                    ex =>
-                    {
-                        _onError(ex);
-                        return Option<TState>.None;
-                    }), 
-                RestartSettings.Create(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(10), 1)))
-           .RunWith(_stateSink, Materializer);
-    }
-
-    private void RegisterEffect(Effect<TState> effect)
-    {
-        var effectSource = RestartSource.OnFailuresWithBackoff(
-            () => effect.CreateEffect(this).Recover(
-                ex =>
-                {
-                    _onError(ex);
-
-                    return Option<object>.None;
-                }), RestartSettings.Create(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(10), 1));
-
-        _actionSink.RunWith(effectSource.Via(_claseFlows.Flow<object>()), Materializer);
-    }
-
     public void RegisterReducers(IEnumerable<On<TState>> reducers)
         => reducers.Foreach(RegisterReducer);
 
@@ -169,4 +137,39 @@ public sealed class Store<TState> : IReduxStore<TState>
             where dispatchedAction.Action is TAction
             select ((TAction)dispatchedAction.Action, dispatchedAction.State)
         ).Via(resultSelector);
+
+    private void RegisterReducer(On<TState> reducer)
+    {
+        if(!_registratedActions.Add(reducer.ActionType))
+            throw new InvalidOperationException("The ActionType is already Registrated");
+
+        _actions
+           .Via(_claseFlows.Flow<DispatchedAction<TState>>())
+           .Via(
+                RestartFlow.OnFailuresWithBackoff(
+                    () => reducer.Mutator.Recover(
+                        ex =>
+                        {
+                            _onError(ex);
+
+                            return Option<TState>.None;
+                        }),
+                    RestartSettings.Create(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(10), 1)))
+           .RunWith(_stateSink, Materializer);
+    }
+
+    private void RegisterEffect(Effect<TState> effect)
+    {
+        var effectSource = RestartSource.OnFailuresWithBackoff(
+            () => effect.CreateEffect(this).Recover(
+                ex =>
+                {
+                    _onError(ex);
+
+                    return Option<object>.None;
+                }),
+            RestartSettings.Create(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(10), 1));
+
+        _actionSink.RunWith(effectSource.Via(_claseFlows.Flow<object>()), Materializer);
+    }
 }

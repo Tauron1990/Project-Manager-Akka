@@ -6,11 +6,11 @@
 
 <PageTitle>Datei Manager</PageTitle>
 
-@if (ViewModel?.Error is not null)
+@if(ViewModel?.Error is not null)
 {
     <ExceptionDisplay Error="ViewModel.Error"/>
 }
-else if (ViewModel != null)
+else if(ViewModel != null)
 {
     <MudTable Items="ViewModel.Files" LoadingProgressColor="Color.Info" Loading="ViewModel.IsLoading"
               GroupBy="_groupDefinition" GroupHeaderStyle="background-color:var(--mud-palette-background-grey)"

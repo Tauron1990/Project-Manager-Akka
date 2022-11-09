@@ -18,7 +18,7 @@ internal sealed partial class ReportingActorLog
 
     internal ReportingActorLog(ILogger logger)
         => _logger = logger;
-    
+
     [LoggerMessage(EventId = 22, Level = LogLevel.Information, Message = "Enter Operation {name} -- {info}")]
     public partial void EnterOperation(string name, string info);
 
@@ -41,7 +41,7 @@ public abstract class ReportingActor<TState> : ActorFeatureBase<TState>
         _logger = new ReportingActorLog(Logger);
         base.Config();
     }
-    
+
     private void PrepareReceive<TMessage, TResult>(string name, Func<IObservable<ReporterEvent<TMessage, TState>>, IObservable<TResult?>> factory, Action<TResult?, Reporter> handler)
         where TMessage : IReporterMessage
     {
@@ -62,7 +62,7 @@ public abstract class ReportingActor<TState> : ActorFeatureBase<TState>
                                                  r => handler(r, reporter),
                                                  e =>
                                                  {
-                                                     if (!reporter.IsCompled)
+                                                     if(!reporter.IsCompled)
                                                          reporter.Compled(OperationResult.Failure(new Error(e.Unwrap()?.Message, GenralError)));
 
                                                      _logger.FailedOperation(e, name, m.Event.Info);
@@ -83,7 +83,7 @@ public abstract class ReportingActor<TState> : ActorFeatureBase<TState>
             factory,
             (result, reporter) =>
             {
-                if (!reporter.IsCompled && result != null)
+                if(!reporter.IsCompled && result != null)
                     reporter.Compled(result);
             });
 
@@ -94,7 +94,7 @@ public abstract class ReportingActor<TState> : ActorFeatureBase<TState>
             factory,
             (result, reporter) =>
             {
-                if (!reporter.IsCompled && result.HasValue)
+                if(!reporter.IsCompled && result.HasValue)
                     reporter.Compled(result.Value);
             });
 
@@ -105,7 +105,7 @@ public abstract class ReportingActor<TState> : ActorFeatureBase<TState>
             factory,
             (result, reporter) =>
             {
-                if (!reporter.IsCompled && result?.Event != null)
+                if(!reporter.IsCompled && result?.Event != null)
                     reporter.Compled(result.Event);
             });
 
@@ -124,7 +124,7 @@ public abstract class ReportingActor<TState> : ActorFeatureBase<TState>
            .SelectMany(
                 m =>
                 {
-                    var reporter = m.Event.Reporter;
+                    Reporter reporter = m.Event.Reporter;
                     var subject = Observable.Return(new ReporterEvent<TMessage, TState>(reporter, m));
                     var signal = new Subject<TResult>();
 
@@ -134,7 +134,7 @@ public abstract class ReportingActor<TState> : ActorFeatureBase<TState>
                                              r => signal.OnNext(r),
                                              e =>
                                              {
-                                                 if (!reporter.IsCompled)
+                                                 if(!reporter.IsCompled)
                                                      reporter.Compled(OperationResult.Failure(new Error(e.Unwrap()?.Message, GenralError)));
 
                                                  _logger.FailedOperation(e, name, m.Event.Info);

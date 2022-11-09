@@ -8,12 +8,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\Common\Tauron.Application.Common.Akka\Tauron.Application.Common.Akka.csproj" />
-      <ProjectReference Include="..\..\External\Akkatecture.Abstractions\Akkatecture.Abstractions.csproj" />
+        <ProjectReference Include="..\..\Common\Tauron.Application.Common.Akka\Tauron.Application.Common.Akka.csproj" />
+        <ProjectReference Include="..\..\External\Akkatecture.Abstractions\Akkatecture.Abstractions.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Akka.Streams" Version="1.4.43" />
+        <PackageReference Include="Akka.Streams" Version="1.4.45" />
     </ItemGroup>
 
 </Project>

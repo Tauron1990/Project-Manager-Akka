@@ -7,9 +7,9 @@ namespace Tauron.Application.VirtualFiles;
 public interface IFileSystemNode
 {
     FileSystemFeature Features { get; }
-        
+
     NodeType Type { get; }
-        
+
     PathInfo OriginalPath { get; }
 
     DateTime LastModified { get; }

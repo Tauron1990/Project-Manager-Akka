@@ -14,7 +14,7 @@ public static class Reflex
 {
     public static MethodInfo MethodInfo<T>(Expression<Action<T>> expression)
     {
-        if (expression.Body is MethodCallExpression member)
+        if(expression.Body is MethodCallExpression member)
             return member.Method;
 
         throw new ArgumentException("Expression is not a method", nameof(expression));
@@ -22,7 +22,7 @@ public static class Reflex
 
     public static MethodInfo MethodInfo(Expression<Action> expression)
     {
-        if (expression.Body is MethodCallExpression member)
+        if(expression.Body is MethodCallExpression member)
             return member.Method;
 
         throw new ArgumentException("Expression is not a method", nameof(expression));
@@ -46,7 +46,7 @@ public static class Reflex
 [PublicAPI]
 public sealed class FastReflection
 {
-    private static readonly Lazy<FastReflection> SharedLazy = new(() => new FastReflection(), isThreadSafe: true);
+    private static readonly Lazy<FastReflection> SharedLazy = new(() => new FastReflection(), true);
 
     private readonly Dictionary<ConstructorInfo, Func<object?[]?, object>> _creatorCache = new();
     private readonly Dictionary<FieldInfo, Func<object?, object?>> _fieldAccessorCache = new();
@@ -65,7 +65,7 @@ public sealed class FastReflection
         for (var i = 0; i < paramsInfo.Length; i++)
         {
             Expression index = Expression.Constant(i);
-            var paramType = paramsInfo[i].ParameterType;
+            Type paramType = paramsInfo[i].ParameterType;
             Expression paramAccessorExp = Expression.ArrayIndex(param, index);
             Expression paramCastExp = Expression.Convert(paramAccessorExp, paramType);
             argsExpressions[i] = paramCastExp;
@@ -78,21 +78,21 @@ public sealed class FastReflection
     {
         lock (_creatorCache)
         {
-            if (_creatorCache.TryGetValue(constructor, out var func)) return func;
+            if(_creatorCache.TryGetValue(constructor, out var func)) return func;
 
             // Yes, does this constructor take some parameters?
             var paramsInfo = constructor.GetParameters();
 
             // CreateEventActor a single param of type object[].
-            var param = Expression.Parameter(typeof(object[]), "args");
+            ParameterExpression param = Expression.Parameter(typeof(object[]), "args");
 
-            if (paramsInfo.Length > 0)
+            if(paramsInfo.Length > 0)
             {
                 // Make a NewExpression that calls the constructor with the args we just created.
-                var newExpression = Expression.Convert(Expression.New(constructor, CreateArgumentExpressions(paramsInfo, param)), typeof(object));
+                UnaryExpression newExpression = Expression.Convert(Expression.New(constructor, CreateArgumentExpressions(paramsInfo, param)), typeof(object));
 
                 // CreateEventActor a lambda with the NewExpression as body and our param object[] as arg.
-                var lambda = Expression.Lambda(typeof(Func<object[], object>), newExpression, param);
+                LambdaExpression lambda = Expression.Lambda(typeof(Func<object[], object>), newExpression, param);
 
                 // Compile it
                 var compiled = (Func<object?[]?, object>)lambda.CompileFast();
@@ -105,10 +105,10 @@ public sealed class FastReflection
             else
             {
                 // Make a NewExpression that calls the constructor with the args we just created.
-                var newExpression = Expression.Convert(Expression.New(constructor), typeof(object));
+                UnaryExpression newExpression = Expression.Convert(Expression.New(constructor), typeof(object));
 
                 // CreateEventActor a lambda with the NewExpression as body and our param object[] as arg.
-                var lambda = Expression.Lambda(typeof(Func<object[], object>), newExpression, param);
+                LambdaExpression lambda = Expression.Lambda(typeof(Func<object[], object>), newExpression, param);
 
                 // Compile it
                 var compiled = (Func<object?[]?, object>)lambda.CompileFast();
@@ -125,19 +125,19 @@ public sealed class FastReflection
     {
         lock (_propertyAccessorCache)
         {
-            if (_propertyAccessorCache.TryGetValue(info, out var invoker)) return invoker;
+            if(_propertyAccessorCache.TryGetValue(info, out var invoker)) return invoker;
 
             var arg = arguments();
 
-            var instParam = Expression.Parameter(typeof(object));
-            var argParam = Expression.Parameter(typeof(object[]));
+            ParameterExpression instParam = Expression.Parameter(typeof(object));
+            ParameterExpression argParam = Expression.Parameter(typeof(object[]));
 
             Expression acess;
-            var convert = info.GetGetMethod()?.IsStatic == true
+            UnaryExpression? convert = info.GetGetMethod()?.IsStatic == true
                 ? null
                 : Expression.Convert(instParam, info.DeclaringType ?? throw new InvalidOperationException($"No Declaring Type return for {info}"));
 
-            if (!arg.Any())
+            if(!arg.Any())
                 acess = Expression.Property(convert, info);
             else
                 acess = Expression.Property(
@@ -146,7 +146,7 @@ public sealed class FastReflection
                     CreateArgumentExpressions(info.GetIndexParameters(), argParam));
 
 
-            var delExp = Expression.Convert(acess, typeof(object));
+            UnaryExpression delExp = Expression.Convert(acess, typeof(object));
             var del = Expression.Lambda<Func<object?, object[], object>>(delExp, instParam, argParam).CompileFast();
 
             _propertyAccessorCache[info] = del;
@@ -159,9 +159,9 @@ public sealed class FastReflection
     {
         lock (_fieldAccessorCache)
         {
-            if (_fieldAccessorCache.TryGetValue(field, out var accessor)) return accessor;
+            if(_fieldAccessorCache.TryGetValue(field, out var accessor)) return accessor;
 
-            var param = Expression.Parameter(typeof(object));
+            ParameterExpression param = Expression.Parameter(typeof(object));
 
             var del = Expression.Lambda<Func<object?, object?>>(
                 Expression.Convert(
@@ -183,16 +183,16 @@ public sealed class FastReflection
     {
         lock (_propertySetterCache)
         {
-            if (_propertySetterCache.TryGetValue(info, out var setter)) return setter;
+            if(_propertySetterCache.TryGetValue(info, out var setter)) return setter;
 
-            var instParam = Expression.Parameter(typeof(object));
-            var argsParam = Expression.Parameter(typeof(object[]));
-            var valueParm = Expression.Parameter(typeof(object));
+            ParameterExpression instParam = Expression.Parameter(typeof(object));
+            ParameterExpression argsParam = Expression.Parameter(typeof(object[]));
+            ParameterExpression valueParm = Expression.Parameter(typeof(object));
 
             var indexes = info.GetIndexParameters();
 
-            var convertInst = Expression.Convert(instParam, info.DeclaringType ?? throw new InvalidOperationException($"No Declared Type returned for {info}"));
-            var convertValue = Expression.Convert(valueParm, info.PropertyType);
+            UnaryExpression convertInst = Expression.Convert(instParam, info.DeclaringType ?? throw new InvalidOperationException($"No Declared Type returned for {info}"));
+            UnaryExpression convertValue = Expression.Convert(valueParm, info.PropertyType);
 
             Expression exp = indexes.Length == 0
                 ? Expression.Assign(Expression.Property(convertInst, info), convertValue)
@@ -216,12 +216,12 @@ public sealed class FastReflection
     {
         lock (_fieldSetterCache)
         {
-            if (_fieldSetterCache.TryGetValue(info, out var setter)) return setter;
+            if(_fieldSetterCache.TryGetValue(info, out var setter)) return setter;
 
-            var instParam = Expression.Parameter(typeof(object));
-            var valueParam = Expression.Parameter(typeof(object));
+            ParameterExpression instParam = Expression.Parameter(typeof(object));
+            ParameterExpression valueParam = Expression.Parameter(typeof(object));
 
-            var exp = Expression.Assign(
+            BinaryExpression exp = Expression.Assign(
                 Expression.Field(
                     Expression.Convert(instParam, info.DeclaringType ?? throw new InvalidOperationException($"no Declared Type return for {info}")),
                     info),
@@ -238,13 +238,13 @@ public sealed class FastReflection
     {
         lock (_methodCache)
         {
-            if (_methodCache.TryGetValue(info, out var accessor)) return accessor;
+            if(_methodCache.TryGetValue(info, out var accessor)) return accessor;
 
             var args = arguments().Where(t => t != null).ToArray();
 
-            var instParam = Expression.Parameter(typeof(object));
-            var argsParam = Expression.Parameter(typeof(object[]));
-            var convert = info.IsStatic
+            ParameterExpression instParam = Expression.Parameter(typeof(object));
+            ParameterExpression argsParam = Expression.Parameter(typeof(object[]));
+            UnaryExpression? convert = info.IsStatic
                 ? null
                 : Expression.Convert(instParam, info.DeclaringType ?? throw new InvalidOperationException($"No Declating Type for {info} Returned"));
 
@@ -252,10 +252,10 @@ public sealed class FastReflection
                 ? Expression.Call(convert, info)
                 : Expression.Call(convert, info, CreateArgumentExpressions(info.GetParameters(), argsParam));
 
-            if (info.ReturnType == typeof(void))
+            if(info.ReturnType == typeof(void))
             {
-                var label = Expression.Label(typeof(object));
-                var labelExpression = Expression.Label(label, Expression.Constant(null, typeof(object)));
+                LabelTarget label = Expression.Label(typeof(object));
+                LabelExpression labelExpression = Expression.Label(label, Expression.Constant(null, typeof(object)));
 
                 targetExpression = Expression.Block(
                     Enumerable.Empty<ParameterExpression>(),
@@ -279,7 +279,7 @@ public sealed class FastReflection
     public Func<object[], object>? GetCreator(Type target, Type[] arguments)
     {
         // Get constructor information?
-        var constructor = target.GetConstructor(arguments);
+        ConstructorInfo? constructor = target.GetConstructor(arguments);
 
         // Is there at least 1?
         return constructor == null ? null : GetCreator(constructor);
@@ -288,7 +288,7 @@ public sealed class FastReflection
     public object? FastCreateInstance(Type target, params object[] parm)
         => GetCreator(target, parm.Select(o => o.GetType()).ToArray())?.Invoke(parm);
 
-    public object? FastCreateInstance(Type target, Type[] parmTypes,  params object[] parm)
+    public object? FastCreateInstance(Type target, Type[] parmTypes, params object[] parm)
         => GetCreator(target, parmTypes)?.Invoke(parm);
 
     public TType FastCreateInstance<TType>(params object[] parm)
@@ -296,9 +296,9 @@ public sealed class FastReflection
 
     public TType FastCreateInstance<TType>(Type[] parmTypes, params object[] parm)
     {
-        var obj = FastCreateInstance(typeof(TType), parmTypes, parm);
+        object? obj = FastCreateInstance(typeof(TType), parmTypes, parm);
 
-        if (obj is TType result)
+        if(obj is TType result)
             return result;
 
         throw new InvalidOperationException("No Instance was Created");
@@ -320,18 +320,16 @@ public static class ReflectionExtensions
         bool nonPublic,
         BindingFlags bindingflags) where TAttribute : Attribute
     {
-        if (type == null) throw new ArgumentNullException(nameof(type));
+        if(type == null) throw new ArgumentNullException(nameof(type));
 
         bindingflags |= BindingFlags.Public;
-        if (nonPublic) bindingflags |= BindingFlags.NonPublic;
+        if(nonPublic) bindingflags |= BindingFlags.NonPublic;
 
-        if (!Enum.IsDefined(typeof(BindingFlags), BindingFlags.FlattenHierarchy))
-            return (
-                from mem in type.GetMembers(bindingflags)
-                let attr = CustomAttributeExtensions.GetCustomAttribute<TAttribute>(mem)
-                where attr != null
-                select (mem, attr)
-            );
+        if(!Enum.IsDefined(typeof(BindingFlags), BindingFlags.FlattenHierarchy))
+            return from mem in type.GetMembers(bindingflags)
+                   let attr = CustomAttributeExtensions.GetCustomAttribute<TAttribute>(mem)
+                   where attr != null
+                   select (mem, attr);
 
         return
             from mem in type.GetHieratichialMembers(bindingflags)
@@ -346,10 +344,10 @@ public static class ReflectionExtensions
 
     public static IEnumerable<MemberInfo> GetHieratichialMembers(this Type? type, BindingFlags flags)
     {
-        var targetType = type;
+        Type? targetType = type;
         while (targetType != null)
         {
-            foreach (var mem in targetType.GetMembers(flags)) yield return mem;
+            foreach (MemberInfo mem in targetType.GetMembers(flags)) yield return mem;
 
             targetType = targetType.BaseType;
         }
@@ -361,36 +359,36 @@ public static class ReflectionExtensions
         => FindMemberAttributes<TAttribute>(type, nonPublic, BindingFlags.Instance | BindingFlags.FlattenHierarchy);
 
     public static T[] GetAllCustomAttributes<T>(this ICustomAttributeProvider member) where T : class
-        => (T[])member.GetCustomAttributes(typeof(T), inherit: true);
+        => (T[])member.GetCustomAttributes(typeof(T), true);
 
 
     public static object[] GetAllCustomAttributes(this ICustomAttributeProvider member, Type type)
-        => member.GetCustomAttributes(type, inherit: true);
+        => member.GetCustomAttributes(type, true);
 
     public static Option<TAttribute> GetCustomAttribute<TAttribute>(this ICustomAttributeProvider provider)
         where TAttribute : Attribute
-        => GetCustomAttribute<TAttribute>(provider, inherit: true);
+        => GetCustomAttribute<TAttribute>(provider, true);
 
     public static Option<TAttribute> GetCustomAttribute<TAttribute>(this ICustomAttributeProvider provider, bool inherit)
         where TAttribute : Attribute
     {
-        var temp = provider.GetCustomAttributes(typeof(TAttribute), inherit).FirstOrDefault();
+        object? temp = provider.GetCustomAttributes(typeof(TAttribute), inherit).FirstOrDefault();
 
         return (temp as TAttribute).OptionNotNull();
     }
 
     public static IEnumerable<object> GetCustomAttributes(this ICustomAttributeProvider provider, params Type[] attributeTypes)
     {
-        if (provider == null) throw new ArgumentNullException(nameof(provider));
+        if(provider == null) throw new ArgumentNullException(nameof(provider));
 
         return from attributeType in attributeTypes
-               from attribute in provider.GetCustomAttributes(attributeType, inherit: false)
+               from attribute in provider.GetCustomAttributes(attributeType, false)
                select attribute;
     }
 
     public static Option<TType> GetInvokeMember<TType>(this MemberInfo info, object instance, params object[]? parameter)
     {
-        if (info == null) throw new ArgumentNullException(nameof(info));
+        if(info == null) throw new ArgumentNullException(nameof(info));
 
         parameter ??= Array.Empty<object>();
 
@@ -416,31 +414,31 @@ public static class ReflectionExtensions
 
     public static RuntimeMethodHandle GetMethodHandle(this MethodBase method)
     {
-        if (method == null) throw new ArgumentNullException(nameof(method));
+        if(method == null) throw new ArgumentNullException(nameof(method));
 
         var mi = method as MethodInfo;
 
-        if (mi != null && mi.IsGenericMethod) return mi.GetGenericMethodDefinition().MethodHandle;
+        if(mi != null && mi.IsGenericMethod) return mi.GetGenericMethodDefinition().MethodHandle;
 
         return method.MethodHandle;
     }
 
     public static IEnumerable<Type> GetParameterTypes(this MethodBase method)
     {
-        if (method is null) throw new ArgumentNullException(nameof(method));
+        if(method is null) throw new ArgumentNullException(nameof(method));
 
         return method.GetParameters().Select(p => p.ParameterType);
     }
 
     public static Option<PropertyInfo> GetPropertyFromMethod(this MethodInfo method, Type implementingType)
     {
-        if (method is null) throw new ArgumentNullException(nameof(method));
-        if (implementingType is null) throw new ArgumentNullException(nameof(implementingType));
+        if(method is null) throw new ArgumentNullException(nameof(method));
+        if(implementingType is null) throw new ArgumentNullException(nameof(implementingType));
 
-        if (!method.IsSpecialName || method.Name.Length < 4) return default;
+        if(!method.IsSpecialName || method.Name.Length < 4) return default;
 
-        var isGetMethod = method.Name.Substring(0, 4) == "get_";
-        var returnType = isGetMethod ? method.ReturnType : method.GetParameterTypes().Last();
+        bool isGetMethod = method.Name.Substring(0, 4) == "get_";
+        Type returnType = isGetMethod ? method.ReturnType : method.GetParameterTypes().Last();
         var indexerTypes = isGetMethod
             ? method.GetParameterTypes()
             : method.GetParameterTypes().SkipLast(1);
@@ -451,7 +449,7 @@ public static class ReflectionExtensions
 
     public static Option<PropertyInfo> GetPropertyFromMethod(this MethodBase method)
     {
-        if (method == null) throw new ArgumentNullException(nameof(method));
+        if(method == null) throw new ArgumentNullException(nameof(method));
 
         return !method.IsSpecialName
             ? default
@@ -460,7 +458,7 @@ public static class ReflectionExtensions
 
     public static Type GetSetInvokeType(this MemberInfo info)
     {
-        if (info == null) throw new ArgumentNullException(nameof(info));
+        if(info == null) throw new ArgumentNullException(nameof(info));
 
         return info switch
         {
@@ -473,24 +471,24 @@ public static class ReflectionExtensions
 
     public static bool HasAttribute<T>(this ICustomAttributeProvider member) where T : Attribute
     {
-        if (member == null) throw new ArgumentNullException(nameof(member));
+        if(member == null) throw new ArgumentNullException(nameof(member));
 
-        return member.IsDefined(typeof(T), inherit: true);
+        return member.IsDefined(typeof(T), true);
     }
 
     public static bool HasAttribute(this ICustomAttributeProvider member, Type type)
     {
-        if (member == null) throw new ArgumentNullException(nameof(member));
-        if (type == null) throw new ArgumentNullException(nameof(type));
+        if(member == null) throw new ArgumentNullException(nameof(member));
+        if(type == null) throw new ArgumentNullException(nameof(type));
 
-        return member.IsDefined(type, inherit: true);
+        return member.IsDefined(type, true);
     }
 
     public static bool HasMatchingAttribute<T>(this ICustomAttributeProvider member, T attributeToMatch)
         where T : Attribute
     {
-        if (member == null) throw new ArgumentNullException(nameof(member));
-        if (attributeToMatch == null) throw new ArgumentNullException(nameof(attributeToMatch));
+        if(member == null) throw new ArgumentNullException(nameof(member));
+        if(attributeToMatch == null) throw new ArgumentNullException(nameof(attributeToMatch));
 
         var attributes = member.GetAllCustomAttributes<T>();
 
@@ -499,7 +497,7 @@ public static class ReflectionExtensions
 
     public static Option<TType> InvokeFast<TType>(this MethodBase method, object? instance, params object?[] args)
     {
-        if (method == null) throw new ArgumentNullException(nameof(method));
+        if(method == null) throw new ArgumentNullException(nameof(method));
 
         return method switch
         {
@@ -520,7 +518,7 @@ public static class ReflectionExtensions
 
     public static TEnum ParseEnum<TEnum>(this string value)
     {
-        if (value == null) throw new ArgumentNullException(nameof(value));
+        if(value == null) throw new ArgumentNullException(nameof(value));
 
         return (TEnum)Enum.Parse(typeof(TEnum), value);
     }
@@ -530,9 +528,9 @@ public static class ReflectionExtensions
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(value)) return defaultValue;
+            if(string.IsNullOrWhiteSpace(value)) return defaultValue;
 
-            return Enum.TryParse<TEnum>(value, out var e) ? e : defaultValue;
+            return Enum.TryParse<TEnum>(value, out TEnum e) ? e : defaultValue;
         }
         catch (ArgumentException)
         {
@@ -542,18 +540,20 @@ public static class ReflectionExtensions
 
     public static void SetInvokeMember(this MemberInfo info, object instance, params object?[]? parameter)
     {
-        if (info is null) throw new ArgumentNullException(nameof(info));
+        if(info is null) throw new ArgumentNullException(nameof(info));
 
         switch (info)
         {
             case PropertyInfo property:
             {
                 SetProperty(instance, parameter, property);
+
                 break;
             }
             case FieldInfo field:
             {
                 SetField(instance, parameter, field);
+
                 break;
             }
             case MethodInfo method:
@@ -566,7 +566,7 @@ public static class ReflectionExtensions
     private static void SetField(object instance, object?[]? parameter, FieldInfo field)
     {
         object? value = null;
-        if (parameter != null) value = parameter.FirstOrDefault();
+        if(parameter != null) value = parameter.FirstOrDefault();
 
         FastReflection.Shared.GetFieldSetter(field)(instance, value);
     }
@@ -575,10 +575,10 @@ public static class ReflectionExtensions
     {
         object? value = null;
         object?[]? indexes = null;
-        if (parameter != null)
+        if(parameter != null)
         {
-            if (parameter.Length >= 1) value = parameter[0];
-            if (parameter.Length > 1) indexes = parameter.Skip(1).ToArray();
+            if(parameter.Length >= 1) value = parameter[0];
+            if(parameter.Length > 1) indexes = parameter.Skip(1).ToArray();
         }
 
         FastReflection.Shared.GetPropertySetter(property)(instance, indexes, value);
@@ -586,7 +586,7 @@ public static class ReflectionExtensions
 
     public static bool TryParseEnum<TEnum>(this string value, out TEnum eEnum) where TEnum : struct
     {
-        if (value == null) throw new ArgumentNullException(nameof(value));
+        if(value == null) throw new ArgumentNullException(nameof(value));
 
         return Enum.TryParse(value, out eEnum);
     }

@@ -59,7 +59,7 @@ public abstract class BaseActorRef<TActor>
 
     protected void CheckIsInit()
     {
-        if (IsInitialized)
+        if(IsInitialized)
             throw new InvalidOperationException("ActorRef is Init");
     }
 

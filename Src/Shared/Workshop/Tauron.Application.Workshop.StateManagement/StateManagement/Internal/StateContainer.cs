@@ -22,7 +22,7 @@ public abstract class StateContainer : IDisposable
 public interface IStateInstance
 {
     object ActualState { get; }
-    
+
     void InitState<TData>(ExtendedMutatingEngine<MutatingContext<TData>> engine);
 
     void ApplyQuery<TData>(IExtendedDataSource<MutatingContext<TData>> engine)
@@ -42,29 +42,27 @@ public sealed class PhysicalInstance : IStateInstance
     public void InitState<TData>(ExtendedMutatingEngine<MutatingContext<TData>> engine)
     {
         // ReSharper disable once SuspiciousTypeConversion.Global
-        if (ActualState is IInitState<TData> init)
+        if(ActualState is IInitState<TData> init)
             init.Init(engine);
     }
 
     public void ApplyQuery<TData>(IExtendedDataSource<MutatingContext<TData>> engine) where TData : class, IStateEntity
     {
-        if (ActualState is IGetSource<TData> canQuery)
+        if(ActualState is IGetSource<TData> canQuery)
             canQuery.DataSource(engine);
     }
 
     public void PostInit(IActionInvoker actionInvoker)
     {
-        if (_initCalled) return;
+        if(_initCalled) return;
 
         _initCalled = true;
 
         // ReSharper disable once SuspiciousTypeConversion.Global
-        if (ActualState is IPostInit postInit)
+        if(ActualState is IPostInit postInit)
             postInit.Init(actionInvoker);
     }
 }
-
-
 
 public sealed class StateContainer<TData> : StateContainer
     where TData : class
@@ -86,7 +84,7 @@ public sealed class StateContainer<TData> : StateContainer
     {
         var reducers = Reducers.Where(r => r.ShouldReduceStateForAction(action)).ToList();
 
-        if (reducers.Count == 0)
+        if(reducers.Count == 0)
             return null;
 
         return MutatingEngine

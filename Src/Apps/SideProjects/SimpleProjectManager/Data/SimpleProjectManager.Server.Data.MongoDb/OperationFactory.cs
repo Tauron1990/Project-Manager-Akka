@@ -6,6 +6,7 @@ namespace SimpleProjectManager.Server.Data.MongoDb;
 public sealed class OperationFactory<TData> : IOperationFactory<TData>
 {
     public IFilter<TData> Empty { get; } = new Filter<TData>(Builders<TData>.Filter.Empty);
+
     public IFilter<TData> Eq<TField>(Expression<Func<TData, TField>> selector, TField toEqual)
         => new Filter<TData>(Builders<TData>.Filter.Eq(selector, toEqual));
 

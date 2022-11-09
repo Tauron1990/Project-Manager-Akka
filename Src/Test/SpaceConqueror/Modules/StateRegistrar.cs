@@ -9,11 +9,8 @@ public sealed class StateRegistrar
 {
     private ConcurrentDictionary<Type, Func<IState>> _stateFactorys = new();
 
-    internal StateRegistrar()
-    {
-        
-    }
-    
+    internal StateRegistrar() { }
+
     public void Add<TType>()
         where TType : IState, new()
         => _stateFactorys[typeof(TType)] = static () => new TType();
@@ -32,9 +29,7 @@ public sealed class StateRegistrar
         IEnumerable<IState> Run()
         {
             foreach (var state in states)
-            {
                 yield return state();
-            }
         }
 
         return Run;

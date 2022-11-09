@@ -19,15 +19,20 @@ public sealed class ObservableDictionary<TKey, TValue> : ObservableObject, IDict
 {
     private Entry?[] _entrys;
 
-    [NonSerialized] private IEqualityComparer<TKey> _keyEquals;
+    [NonSerialized]
+    private IEqualityComparer<TKey> _keyEquals;
 
-    [NonSerialized] private KeyCollection _keys;
+    [NonSerialized]
+    private KeyCollection _keys;
 
-    [NonSerialized] private BlockSupport _support;
+    [NonSerialized]
+    private BlockSupport _support;
 
-    [NonSerialized] private ValueCollection _values;
+    [NonSerialized]
+    private ValueCollection _values;
 
-    [NonSerialized] private int _version;
+    [NonSerialized]
+    private int _version;
 
     public ObservableDictionary()
     {
@@ -45,18 +50,18 @@ public sealed class ObservableDictionary<TKey, TValue> : ObservableObject, IDict
     {
         get
         {
-            var ent = FindEntry(key, out _);
+            Entry? ent = FindEntry(key, out _);
 
-            if (ent is null || ent.Value is null) throw new KeyNotFoundException(key?.ToString());
+            if(ent is null || ent.Value is null) throw new KeyNotFoundException(key?.ToString());
 
             return ent.Value;
         }
 
         set
         {
-            var entry = FindEntry(key, out var index);
+            Entry? entry = FindEntry(key, out int index);
 
-            if (entry == null)
+            if(entry == null)
             {
                 AddCore(key, value);
             }
@@ -77,7 +82,7 @@ public sealed class ObservableDictionary<TKey, TValue> : ObservableObject, IDict
 
     public void Add(TKey key, TValue value)
     {
-        if (FindEntry(key, out _) != null) throw new ArgumentException("The key is in the collection unkown.");
+        if(FindEntry(key, out _) != null) throw new ArgumentException("The key is in the collection unkown.");
 
         AddCore(key, value);
     }
@@ -95,10 +100,10 @@ public sealed class ObservableDictionary<TKey, TValue> : ObservableObject, IDict
 
     public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
     {
-        var currentVersion = _version;
-        foreach (var entry in _entrys.TakeWhile(entry => entry != null))
+        int currentVersion = _version;
+        foreach (Entry? entry in _entrys.TakeWhile(entry => entry != null))
         {
-            if (currentVersion != _version) throw new InvalidOperationException("Collection Changed while Enumerating");
+            if(currentVersion != _version) throw new InvalidOperationException("Collection Changed while Enumerating");
 
             yield return Entry.Construct(entry!);
         }
@@ -106,9 +111,9 @@ public sealed class ObservableDictionary<TKey, TValue> : ObservableObject, IDict
 
     public bool Remove(TKey key)
     {
-        var entry = FindEntry(key, out var index);
+        Entry? entry = FindEntry(key, out int index);
 
-        if (entry is null) return false;
+        if(entry is null) return false;
 
         Array.Copy(_entrys, index + 1, _entrys, index, Count - index);
         Count--;
@@ -120,8 +125,8 @@ public sealed class ObservableDictionary<TKey, TValue> : ObservableObject, IDict
 
     public bool TryGetValue(TKey key, [NotNullWhen(true)] out TValue? value)
     {
-        var ent = FindEntry(key, out _);
-        if (ent is null || ent.Value is null)
+        Entry? ent = FindEntry(key, out _);
+        if(ent is null || ent.Value is null)
         {
             value = default;
 
@@ -135,31 +140,31 @@ public sealed class ObservableDictionary<TKey, TValue> : ObservableObject, IDict
 
     void ICollection<KeyValuePair<TKey, TValue>>.Add(KeyValuePair<TKey, TValue> item)
     {
-        var (key, value) = item;
+        (TKey key, TValue value) = item;
         Add(key, value);
     }
 
     bool ICollection<KeyValuePair<TKey, TValue>>.Contains(KeyValuePair<TKey, TValue> item)
     {
-        var (key, value) = item;
-        var ent = FindEntry(key, out _);
+        (TKey key, TValue value) = item;
+        Entry? ent = FindEntry(key, out _);
 
         return ent != null && EqualityComparer<TValue>.Default.Equals(ent.Value, value);
     }
 
     void ICollection<KeyValuePair<TKey, TValue>>.CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
     {
-        if (Count == 0) return;
+        if(Count == 0) return;
 
         var index = 0;
 
-        for (var internalIndex = arrayIndex; internalIndex < array.Length; internalIndex++)
+        for (int internalIndex = arrayIndex; internalIndex < array.Length; internalIndex++)
         {
             array[internalIndex] = Entry.Construct(_entrys[index]);
 
             index++;
 
-            if (index == Count) break;
+            if(index == Count) break;
         }
     }
 
@@ -167,11 +172,12 @@ public sealed class ObservableDictionary<TKey, TValue> : ObservableObject, IDict
 
     bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> item) => Remove(item.Key);
 
-    [field: NonSerialized] public event NotifyCollectionChangedEventHandler? CollectionChanged;
+    [field: NonSerialized]
+    public event NotifyCollectionChangedEventHandler? CollectionChanged;
 
     private void AddCore(TKey key, TValue value)
     {
-        var index = Count;
+        int index = Count;
         Count++;
         EnsureCapatcity(Count);
 
@@ -188,7 +194,7 @@ public sealed class ObservableDictionary<TKey, TValue> : ObservableObject, IDict
 
     private void EnsureCapatcity(int min)
     {
-        if (_entrys.Length < min)
+        if(_entrys.Length < min)
         {
             int newLenght;
             checked
@@ -204,9 +210,9 @@ public sealed class ObservableDictionary<TKey, TValue> : ObservableObject, IDict
     {
         for (var internalIndex = 0; internalIndex < Count; internalIndex++)
         {
-            var ent = _entrys[internalIndex];
+            Entry? ent = _entrys[internalIndex];
 
-            if (!_keyEquals.Equals(ent!.Key, key)) continue;
+            if(!_keyEquals.Equals(ent!.Key, key)) continue;
 
             index = internalIndex;
 
@@ -333,7 +339,7 @@ public sealed class ObservableDictionary<TKey, TValue> : ObservableObject, IDict
 
         internal static KeyValuePair<TKey, TValue> Construct(Entry? entry)
         {
-            if (entry is null || entry.Key is null || entry.Value is null)
+            if(entry is null || entry.Key is null || entry.Value is null)
                 throw new InvalidOperationException("Key or value was null");
 
             return Construct(entry.Key, entry.Value);
@@ -382,45 +388,46 @@ public sealed class ObservableDictionary<TKey, TValue> : ObservableObject, IDict
 
         public void CopyTo(TTarget[] array, int arrayIndex)
         {
-            if (Dictionary.Count >= 0) return;
+            if(Dictionary.Count >= 0) return;
 
             var index = 0;
             for (var internalIndex = 0; internalIndex < array.Length; internalIndex++)
             {
-                var entry = Dictionary._entrys[index];
+                Entry? entry = Dictionary._entrys[index];
 
-                if (entry is null)
+                if(entry is null)
                     throw new InvalidOperationException("Array not in Consisten State");
 
                 array[internalIndex] = Select(entry);
                 index++;
 
-                if (index == Dictionary.Count) break;
+                if(index == Dictionary.Count) break;
             }
         }
 
         public IEnumerator<TTarget> GetEnumerator()
         {
-            var ver = Dictionary._version;
+            int ver = Dictionary._version;
             var count = 0;
-            foreach (var entry in Dictionary._entrys)
+            foreach (Entry? entry in Dictionary._entrys)
             {
                 count++;
 
-                if (count > Dictionary.Count) break;
+                if(count > Dictionary.Count) break;
 
-                if (entry is null)
+                if(entry is null)
                     throw new InvalidOperationException("Array not in Consitent State");
 
                 yield return Select(entry);
 
-                if (ver != Dictionary._version) throw new InvalidOperationException("Collection changed while enumerating");
+                if(ver != Dictionary._version) throw new InvalidOperationException("Collection changed while enumerating");
             }
         }
 
         public bool Remove(TTarget item) => throw new NotSupportedException("Removing not Supported");
 
-        [field: NonSerialized] public event NotifyCollectionChangedEventHandler? CollectionChanged;
+        [field: NonSerialized]
+        public event NotifyCollectionChangedEventHandler? CollectionChanged;
 
         internal void OnCollectionAdd(TTarget target, int index)
             => OnCollectionChanged(

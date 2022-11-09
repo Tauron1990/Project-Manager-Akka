@@ -23,13 +23,13 @@ public sealed record MutatingContext<TData>(MutatingChange? Change, TData Data)
 
     public MutatingContext<TData> Update(MutatingChange? change, TData newData)
     {
-        if (change is not null && change != Change && newData is ICanApplyChange<TData> apply)
+        if(change is not null && change != Change && newData is ICanApplyChange<TData> apply)
             newData = apply.Apply(change);
 
-        if (Change is null || change is null || ReferenceEquals(Change, change))
+        if(Change is null || change is null || ReferenceEquals(Change, change))
             return new MutatingContext<TData>(change, newData);
 
-        if (Change is MultiChange multiChange)
+        if(Change is MultiChange multiChange)
             change = new MultiChange(multiChange.Changes.Add(change));
         else
             change = new MultiChange(ImmutableList<MutatingChange>.Empty.Add(change));

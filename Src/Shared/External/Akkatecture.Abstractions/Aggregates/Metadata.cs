@@ -87,7 +87,7 @@ public class Metadata : MetadataContainer, IMetadata
 
     [JsonIgnore]
     public long TimestampEpoch =>
-        TryGetValue(MetadataKeys.TimestampEpoch, out var timestampEpoch)
+        TryGetValue(MetadataKeys.TimestampEpoch, out string? timestampEpoch)
             ? long.Parse(timestampEpoch)
             : Timestamp.ToUnixTime();
 
@@ -134,7 +134,7 @@ public class Metadata : MetadataContainer, IMetadata
         var metadata = new Metadata(this);
         foreach (var kv in keyValuePairs)
         {
-            if (metadata.ContainsKey(kv.Key)) throw new ArgumentException($"Key '{kv.Key}' is already present!");
+            if(metadata.ContainsKey(kv.Key)) throw new ArgumentException($"Key '{kv.Key}' is already present!");
 
             metadata[kv.Key] = kv.Value;
         }

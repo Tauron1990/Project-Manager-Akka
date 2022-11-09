@@ -1,5 +1,5 @@
-﻿using JetBrains.Annotations;
-using Tauron.Applicarion.Redux.Configuration;
+﻿using System.Text.Json;
+using JetBrains.Annotations;
 
 namespace Tauron.Applicarion.Redux.Extensions.Cache;
 
@@ -7,8 +7,8 @@ namespace Tauron.Applicarion.Redux.Extensions.Cache;
 public sealed class StateDb
 {
     private readonly ICacheDb _db;
-    private readonly TimeoutManager _timeoutManager;
     private readonly Action<Exception> _errorHandler;
+    private readonly TimeoutManager _timeoutManager;
 
     public StateDb(ICacheDb db, TimeoutManager timeoutManager, IErrorHandler errorHandler)
     {
@@ -25,24 +25,24 @@ public sealed class StateDb
         {
             await _db.TryAddOrUpdateElement(
                 CacheDataId.FromType(typeof(TState)),
-                System.Text.Json.JsonSerializer.Serialize(state));
+                JsonSerializer.Serialize(state));
         }
         catch (Exception e)
         {
             _errorHandler(e);
         }
     }
-    
+
     public async Task<TState?> Get<TState>()
     {
-        var data = await _timeoutManager.FetchAndReNew(CacheDataId.FromType(typeof(TState)));
+        string? data = await _timeoutManager.FetchAndReNew(CacheDataId.FromType(typeof(TState)));
 
-        if (string.IsNullOrWhiteSpace(data))
+        if(string.IsNullOrWhiteSpace(data))
             return default;
 
         try
         {
-            return System.Text.Json.JsonSerializer.Deserialize<TState>(data);
+            return JsonSerializer.Deserialize<TState>(data);
         }
         catch (Exception e)
         {

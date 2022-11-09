@@ -14,8 +14,8 @@ public sealed class ProjectionStartConfig : ConfigExtension
 
     public override void Apply(ImmutableDictionary<string, string> propertys, IActorApplicationBuilder applicationBuilder)
     {
-        var module = _databaseModules[propertys["databaseDriver"]];
-        
+        IDatabaseModule module = _databaseModules[propertys["databaseDriver"]];
+
         module.Configurate(applicationBuilder, propertys);
     }
 }

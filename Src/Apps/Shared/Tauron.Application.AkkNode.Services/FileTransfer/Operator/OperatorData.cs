@@ -19,19 +19,19 @@ public sealed record OperatorData(
     object? IndividualMessage)
 {
     public static readonly Crc32 Crc32 = new();
-    
+
     public OperatorData()
         : this(
-            FileOperationId.Empty, 
+            FileOperationId.Empty,
             ActorRefs.Nobody,
             () => new StreamData(Stream.Null),
-            Metadata: null,
+            null,
             new InternalCrcStream(StreamData.Null),
-            Error: null,
-            Completion: null,
+            null,
+            null,
             SendBack: false,
             ActorRefs.Nobody,
-            IndividualMessage: null) { }
+            null) { }
 
     public OperatorData StartSending(DataTransferRequest id, IActorRef sender)
         => this with
@@ -51,19 +51,19 @@ public sealed record OperatorData(
     public OperatorData SetData(
         Func<ITransferData> data,
         TaskCompletionSource<TransferMessages.TransferCompled> completion)
-        => this with{ Data = data, Completion = completion };
+        => this with { Data = data, Completion = completion };
 
     public OperatorData Open() => this with { TransferStrem = new InternalCrcStream(Data()) };
 
     public OperatorData Failed(IActorRef parent, FailReason reason, string? errorData)
     {
         var failed = new TransferMessages.TransferError(
-            OperationId, 
-            reason, 
+            OperationId,
+            reason,
             string.IsNullOrWhiteSpace(errorData)
-                ? TransferData.Empty 
+                ? TransferData.Empty
                 : TransferData.From(errorData));
-        
+
         TargetManager.Tell(failed, parent);
         parent.Tell(failed.ToFailed());
 
@@ -71,5 +71,5 @@ public sealed record OperatorData(
     }
 
     public OperatorData InComingError(TransferMessages.TransferError error)
-        => this with{ Error = error};
+        => this with { Error = error };
 }

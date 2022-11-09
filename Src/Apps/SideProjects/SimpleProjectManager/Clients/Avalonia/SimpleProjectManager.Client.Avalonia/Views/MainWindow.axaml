@@ -21,7 +21,7 @@
                         <StackPanel>
                             <styles:ColorZone Mode="Accent" Height="180">
                                 <StackPanel>
-                                    <Image Height="100" Source="/Assets/icon.png" Margin="10"/>
+                                    <Image Height="100" Source="/Assets/icon.png" Margin="10" />
                                     <TextBlock Classes="Headline6" Text="Einfacher" HorizontalAlignment="Center" />
 
                                     <TextBlock Classes="Subtitle1" Text="Projekt Manager" HorizontalAlignment="Center" />
@@ -73,8 +73,8 @@
 
                                 <avalonia:MaterialIcon Kind="Menu" Width="24" Height="24" />
                             </ToggleButton>
-                            
-                            <ContentControl Margin="0" Padding="0" Name="MainAppBar" Grid.Row="0" Grid.Column="2"/>
+
+                            <ContentControl Margin="0" Padding="0" Name="MainAppBar" Grid.Row="0" Grid.Column="2" />
                         </Grid>
                     </styles:ColorZone>
                     <!-- ReSharper disable once InconsistentNaming -->
@@ -86,7 +86,7 @@
                                   HorizontalScrollBarVisibility="Disabled">
                         <Border HorizontalAlignment="Stretch"
                                 VerticalAlignment="Stretch">
-                            <ContentControl Name="MainContent"/>
+                            <ContentControl Name="MainContent" />
                         </Border>
                     </ScrollViewer>
                 </DockPanel>

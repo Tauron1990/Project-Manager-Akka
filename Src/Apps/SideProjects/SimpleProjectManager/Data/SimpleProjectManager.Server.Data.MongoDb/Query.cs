@@ -37,9 +37,7 @@ public sealed class Query<TStart, TData> : IFindQuery<TStart, TData>
         var cursor = await _findFluent.ToCursorAsync(token);
 
         while (await cursor.MoveNextAsync(token))
-        {
             foreach (TData data in cursor.Current)
                 yield return data;
-        }
     }
 }

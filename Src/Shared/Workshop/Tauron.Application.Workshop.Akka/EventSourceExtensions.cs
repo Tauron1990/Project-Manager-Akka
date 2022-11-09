@@ -26,10 +26,10 @@ public static class EventSourceExtensions
         eventSource.RespondOn(ObservableActor.ExposedContext.Self);
         actor.Receive<TData>(obs => obs.SubscribeWithStatus(action));
     }
-    
+
     public static IDisposable RespondOn<TRespond>(this IEventSource<TRespond> eventSource, IActorRef actorRef, WorkspaceSuperviser superviser)
     {
-        var dispo = eventSource.Subscribe(n => actorRef.Tell(n));
+        IDisposable dispo = eventSource.Subscribe(n => actorRef.Tell(n));
         superviser.WatchIntrest(new WatchIntrest(dispo.Dispose, actorRef));
 
         return dispo;
@@ -37,10 +37,10 @@ public static class EventSourceExtensions
 
     public static IDisposable RespondOn<TRespond>(this IEventSource<TRespond> eventSource, IActorRef? source, Action<TRespond> action, WorkspaceSuperviser superviser)
     {
-        if (source.IsNobody())
+        if(source.IsNobody())
             return eventSource.Subscribe(action);
 
-        var dispo = eventSource.Subscribe(t => source.Tell(new ObservableActor.TransmitAction(() => action(t))));
+        IDisposable dispo = eventSource.Subscribe(t => source.Tell(new ObservableActor.TransmitAction(() => action(t))));
         superviser.WatchIntrest(new WatchIntrest(dispo.Dispose, source!));
 
         return dispo;

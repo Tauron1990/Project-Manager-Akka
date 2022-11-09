@@ -46,8 +46,8 @@ public sealed class EventAggregator : IEventAggregator, IDisposable
 
     public TEventType GetEvent<TEventType, TPayload>() where TEventType : AggregateEvent<TPayload>, new()
     {
-        var eventType = typeof(TEventType);
-        if (!_events.ContainsKey(eventType)) _events[eventType] = new TEventType();
+        Type eventType = typeof(TEventType);
+        if(!_events.ContainsKey(eventType)) _events[eventType] = new TEventType();
 
         return (TEventType)_events[eventType];
     }

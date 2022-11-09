@@ -1,4 +1,5 @@
 ﻿using Akka.Cluster.Hosting;
+using Akka.Configuration;
 using Akka.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,16 +25,14 @@ public sealed class ClientRunner
 
     public async ValueTask<IHost> CreateClient(string[] args)
     {
-        var setupConfig = new ConfigurationBuilder().AddCommandLine(args).Build();
+        IConfigurationRoot? setupConfig = new ConfigurationBuilder().AddCommandLine(args).Build();
         var setup = new SetupRunner(_configManager, _clientInteraction);
         await setup.RunSetup(setupConfig);
 
         return Host.CreateDefaultBuilder(args)
-
            .ConfigureAppConfiguration((_, b) => b.AddInMemoryCollection(new[] { KeyValuePair.Create("actorsystem", "SimpleProjectManager-Server") }))
            .ConfigureServices(ApplyFusionServices)
            .ConfigurateNode(ApplyClientServices)
-
            .Build();
     }
 
@@ -46,7 +45,7 @@ public sealed class ClientRunner
            .ConfigureAkka(
                 (_, b) => b
                    .AddHocon(
-                        Akka.Configuration.ConfigurationFactory.ParseString(
+                        ConfigurationFactory.ParseString(
                             $"akka.cluster.downing-provider-class = \"Akka.Cluster.SBR.SplitBrainResolverProvider\" {Environment.NewLine}" +
                             "akka.cluster.split-brain-resolver.down-all-when-unstable = off"))
                    .WithDistributedPubSub("ProjectManager"))

@@ -15,16 +15,16 @@ internal class ExplicitStateLens<TState, TFeatureState> : BaseStateLens<TState, 
     protected override On<TState> CreateParentReducer(On<TFeatureState> on)
     {
         var on2 = on;
-        return new On<TState>
-               (
-                   (state, action) =>
-                   {
-                       var val = _featureSelector(state);
-                       var val2 = on2.Mutator(val, action);
 
-                       return val?.Equals(val2) == true ? state : _stateReducer(state, val2);
-                   },
-                   on2.ActionType
-               );
+        return new On<TState>(
+            (state, action) =>
+            {
+                TFeatureState val = _featureSelector(state);
+                TFeatureState val2 = on2.Mutator(val, action);
+
+                return val?.Equals(val2) == true ? state : _stateReducer(state, val2);
+            },
+            on2.ActionType
+        );
     }
 }

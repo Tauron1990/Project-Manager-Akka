@@ -39,13 +39,13 @@ public sealed class KillHelper
 
     public void Run()
     {
-        if (string.IsNullOrWhiteSpace(_comHandle)) return;
+        if(string.IsNullOrWhiteSpace(_comHandle)) return;
 
         string? errorToReport = null;
-        if (_ipcConnection.IsReady)
+        if(_ipcConnection.IsReady)
         {
             _ipcConnection.Start(_comHandle);
-            if (!_ipcConnection.IsReady)
+            if(!_ipcConnection.IsReady)
                 errorToReport = _ipcConnection.ErrorMessage;
         }
         else
@@ -53,7 +53,7 @@ public sealed class KillHelper
             errorToReport = _ipcConnection.ErrorMessage;
         }
 
-        if (!string.IsNullOrWhiteSpace(errorToReport))
+        if(!string.IsNullOrWhiteSpace(errorToReport))
         {
             _logger.Warn("Error on Start Kill Watch: {Error}", errorToReport);
 
@@ -63,6 +63,6 @@ public sealed class KillHelper
         _ipcConnection.OnMessage<KillNode>()
            .Subscribe(
                 _ => _system.Terminate(),
-                exception => _logger.Error((Exception)exception, "Error On Killwatch Message Recieve"));
+                exception => _logger.Error(exception, "Error On Killwatch Message Recieve"));
     }
 }

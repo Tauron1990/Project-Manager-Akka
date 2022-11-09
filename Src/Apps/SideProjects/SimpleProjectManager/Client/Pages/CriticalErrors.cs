@@ -1,6 +1,3 @@
 ﻿namespace SimpleProjectManager.Client.Pages;
 
-public partial class CriticalErrors
-{
-    
-}
+public partial class CriticalErrors { }

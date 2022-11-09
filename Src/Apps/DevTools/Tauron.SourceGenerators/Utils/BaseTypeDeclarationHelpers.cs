@@ -14,20 +14,20 @@ public static class BaseTypeDeclarationHelpers
         where TTarget : BaseTypeDeclarationSyntax
         => (context, token) =>
            {
-               if (context.Node is not TTarget enumDeclarationSyntax)
+               if(context.Node is not TTarget enumDeclarationSyntax)
                    return default;
 
                // loop through all the attributes on the method
-               foreach (var attributeSyntax in enumDeclarationSyntax.AttributeLists.SelectMany(attributeListSyntax => attributeListSyntax.Attributes))
+               foreach (AttributeSyntax? attributeSyntax in enumDeclarationSyntax.AttributeLists.SelectMany(attributeListSyntax => attributeListSyntax.Attributes))
                {
                    token.ThrowIfCancellationRequested();
-                   
-                   if (context.SemanticModel.GetSymbolInfo(attributeSyntax).Symbol is not IMethodSymbol attributeSymbol)
+
+                   if(context.SemanticModel.GetSymbolInfo(attributeSyntax).Symbol is not IMethodSymbol attributeSymbol)
                        // weird, we couldn't get the symbol, ignore it
                        continue;
 
                    // Is the attribute the [EnumExtensions] attribute?
-                   if (checkAttribute(attributeSymbol.ContainingType))
+                   if(checkAttribute(attributeSymbol.ContainingType))
                        // return the enum
                        return enumDeclarationSyntax;
                }

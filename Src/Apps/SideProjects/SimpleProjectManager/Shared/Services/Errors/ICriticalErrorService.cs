@@ -12,6 +12,6 @@ public interface ICriticalErrorService
     Task<CriticalErrorList> GetErrors(CancellationToken token);
 
     Task<SimpleResult> DisableError(ErrorId id, CancellationToken token);
-    
+
     Task WriteError(CriticalError error, CancellationToken token);
 }

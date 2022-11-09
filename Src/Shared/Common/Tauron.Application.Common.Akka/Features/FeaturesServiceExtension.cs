@@ -32,14 +32,12 @@ public abstract class FeatureActorRefBase<TInterface> : IFeatureActorRef<TInterf
     {
         if(_actorSource.Task.IsCompleted)
             throw new InvalidOperationException("Initialization of Actor Compleded");
-        
+
         try
         {
             var task = factoryTask(resolver());
             if(await Task.WhenAny(task, Task.Delay(TimeSpan.FromSeconds(20))).ConfigureAwait(false) == task)
-            {
                 _actorSource.TrySetResult(await task.ConfigureAwait(false));
-            }
             else
                 _actorSource.TrySetCanceled();
         }
@@ -48,6 +46,30 @@ public abstract class FeatureActorRefBase<TInterface> : IFeatureActorRef<TInterf
             _actorSource.TrySetException(e);
         }
     }
+
+    public TInterface Tell(object msg)
+    {
+        OnActor(a => a.Tell(msg));
+
+        return (TInterface)(object)this;
+    }
+
+    public TInterface Forward(object msg)
+    {
+        OnActor(a => a.Forward(msg));
+
+        return (TInterface)(object)this;
+    }
+
+    public async Task<TResult> Ask<TResult>(object msg, TimeSpan? timeout = null)
+    {
+        IActorRef actor = await Actor.ConfigureAwait(false);
+
+        return await actor.Ask<TResult>(msg, timeout).ConfigureAwait(false);
+    }
+
+    public void Tell(object message, IActorRef sender)
+        => OnActor(a => a.Tell(message, sender));
 
     private void OnActor(Action<IActorRef> runner)
     {
@@ -65,30 +87,6 @@ public abstract class FeatureActorRefBase<TInterface> : IFeatureActorRef<TInterf
                         runner(t.Result);
                 });
     }
-    
-    public TInterface Tell(object msg)
-    {
-       OnActor(a => a.Tell(msg));
-
-        return (TInterface)(object)this;
-    }
-
-    public TInterface Forward(object msg)
-    {
-        OnActor(a => a.Forward(msg));
-
-        return (TInterface)(object)this;
-    }
-
-    public async Task<TResult> Ask<TResult>(object msg, TimeSpan? timeout = null)
-    {
-        var actor = await Actor.ConfigureAwait(false);
-
-        return await actor.Ask<TResult>(msg, timeout).ConfigureAwait(false);
-    }
-
-    public void Tell(object message, IActorRef sender)
-        => OnActor(a => a.Tell(message, sender));
 }
 
 public record struct SuperviserData(string Name, SupervisorStrategy? SupervisorStrategy)
@@ -102,12 +100,13 @@ public static class FeaturesServiceExtension
     public static IServiceCollection RegisterFeature<TInterfaceType>(this IServiceCollection builder, Delegate del)
         where TInterfaceType : class, IFeatureActorRef<TInterfaceType>
         => RegisterFeature<TInterfaceType, TInterfaceType>(builder, del, null, null);
-    
-    public static IServiceCollection RegisterFeature<TInterfaceType>(this IServiceCollection builder, Delegate del,
+
+    public static IServiceCollection RegisterFeature<TInterfaceType>(
+        this IServiceCollection builder, Delegate del,
         string? actorName)
         where TInterfaceType : class, IFeatureActorRef<TInterfaceType>
         => RegisterFeature<TInterfaceType, TInterfaceType>(builder, del, actorName, null);
-    
+
     public static IServiceCollection RegisterFeature<TInterfaceType>(this IServiceCollection builder, Delegate del, Func<SuperviserData>? supervisorStrategy)
         where TInterfaceType : class, IFeatureActorRef<TInterfaceType>
         => RegisterFeature<TInterfaceType, TInterfaceType>(builder, del, null, supervisorStrategy);
@@ -121,28 +120,29 @@ public static class FeaturesServiceExtension
         where TInterfaceType : class, IFeatureActorRef<TInterfaceType>
         where TImpl : TInterfaceType
         => RegisterFeature<TImpl, TInterfaceType>(builder, del, null, null);
-    
+
     public static IServiceCollection RegisterFeature<TImpl, TInterfaceType>(
         this IServiceCollection builder, Delegate del,
         Func<SuperviserData>? supervisorStrategy)
         where TInterfaceType : class, IFeatureActorRef<TInterfaceType>
         where TImpl : TInterfaceType
         => RegisterFeature<TImpl, TInterfaceType>(builder, del, null, supervisorStrategy);
-    
+
     public static IServiceCollection RegisterFeature<TImpl, TInterfaceType>(
         this IServiceCollection builder, Delegate del,
         string? actorName)
         where TInterfaceType : class, IFeatureActorRef<TInterfaceType>
         where TImpl : TInterfaceType
         => RegisterFeature<TImpl, TInterfaceType>(builder, del, actorName, null);
-    
-    public static IServiceCollection RegisterFeature<TImpl, TInterfaceType>(this IServiceCollection builder, Delegate del,
+
+    public static IServiceCollection RegisterFeature<TImpl, TInterfaceType>(
+        this IServiceCollection builder, Delegate del,
         string? actorName, Func<SuperviserData>? supervisorStrategy)
         where TInterfaceType : class, IFeatureActorRef<TInterfaceType>
         where TImpl : TInterfaceType
     {
         var param = del.Method.GetParameters().Select(info => info.ParameterType).ToArray();
-        var factory = ActivatorUtilities.CreateFactory(typeof(TImpl), GetParameters(typeof(TImpl)));
+        ObjectFactory factory = ActivatorUtilities.CreateFactory(typeof(TImpl), GetParameters(typeof(TImpl)));
 
         return builder.AddSingleton<TInterfaceType>(
             s =>
@@ -158,16 +158,16 @@ public static class FeaturesServiceExtension
                         IEnumerable<IPreparedFeature> features => Feature.Props(features.ToArray()),
                         _ => throw new InvalidOperationException("Invalid Feature Construction Method")
                     });
-                    
+
                 return inst;
-                
+
                 async Task<IActorRef> CreateActor(Props props)
                 {
                     var system = (ExtendedActorSystem)s.GetRequiredService<ActorSystem>();
 
                     if(supervisorStrategy is null) return system.ActorOf(props);
 
-                    var data = supervisorStrategy();
+                    SuperviserData data = supervisorStrategy();
                     var selector = new ActorSelection(system.Guardian, data.Name);
                     IActorRef supervisor;
                     try
@@ -179,7 +179,7 @@ public static class FeaturesServiceExtension
                         supervisor = system.ActorOf(Props.Create(() => new GenericSupervisorActor(data.SupervisorStrategy)), data.Name);
                     }
 
-                    var result = await supervisor
+                    GenericSupervisorActor.CreateActorResult? result = await supervisor
                        .Ask<GenericSupervisorActor.CreateActorResult>(
                             new GenericSupervisorActor.CreateActor(actorName, props),
                             TimeSpan.FromSeconds(15))
@@ -194,10 +194,10 @@ public static class FeaturesServiceExtension
     {
         var contructors = type.GetConstructors();
 
-        if (contructors.Length == 0)
+        if(contructors.Length == 0)
             throw new InvalidOperationException($"No Public Constrctor for {type.Name} Defined");
 
-        var constructor = contructors.FirstOrDefault(c => c.IsDefined(typeof(ActivatorUtilitiesConstructorAttribute))) ?? contructors.Single();
+        ConstructorInfo constructor = contructors.FirstOrDefault(c => c.IsDefined(typeof(ActivatorUtilitiesConstructorAttribute))) ?? contructors.Single();
 
         return constructor.GetParameterTypes().ToArray();
     }

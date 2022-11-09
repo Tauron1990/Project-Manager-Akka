@@ -17,6 +17,10 @@ public sealed class ErrorState : StateBase<InternalErrorState>
         : base(stateFactory)
         => _errorService = errorService;
 
+    public IObservable<long> ErrorCount { get; private set; } = Observable.Empty<long>();
+
+    public IObservable<CriticalError[]> Errors { get; private set; } = Observable.Empty<CriticalError[]>();
+
     protected override IStateConfiguration<InternalErrorState> ConfigurateState(ISourceConfiguration<InternalErrorState> configuration)
     {
         return configuration
@@ -40,8 +44,4 @@ public sealed class ErrorState : StateBase<InternalErrorState>
         ErrorCount = state.Select(data => data.ErrorCount);
         //ErrorCount.Subscribe(data => Console.WriteLine($"Critical Error Count: {data}"));
     }
-
-    public IObservable<long> ErrorCount { get; private set; } = Observable.Empty<long>();
-
-    public IObservable<CriticalError[]> Errors { get; private set; } = Observable.Empty<CriticalError[]>();
-} 
+}

@@ -8,7 +8,6 @@ namespace SimpleProjectManager.Server.Core.Projections;
 [UsedImplicitly]
 public class ProjectionModule : IModule
 {
-
     public void Load(IServiceCollection collection)
     {
         /*collection.AddSingleton(
@@ -19,9 +18,10 @@ public class ProjectionModule : IModule
                 var url = MongoUrl.Create(database);
 
                 return new MongoClient(url).GetDatabase(url.DatabaseName);
-            })*/;
+            })*/
+        ;
         collection.TryAddTransient(c => c.GetRequiredService<IEventAggregator>().GetEvent<DomainEventDispatcher, IDomainEvent>());
-        
+
         collection.RegisterProjection<ProjectProjectionManager>();
     }
 }

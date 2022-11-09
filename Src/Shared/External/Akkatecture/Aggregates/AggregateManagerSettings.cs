@@ -34,7 +34,7 @@ public class AggregateManagerSettings
 
     public AggregateManagerSettings(Config config)
     {
-        var aggregateManagerConfig = config.WithFallback(AkkatectureDefaultSettings.DefaultConfig());
+        Config? aggregateManagerConfig = config.WithFallback(AkkatectureDefaultSettings.DefaultConfig());
         aggregateManagerConfig = aggregateManagerConfig.GetConfig(Section);
 
         #pragma warning disable GU0009

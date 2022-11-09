@@ -12,7 +12,7 @@ public sealed class MutationDataSource<TData> : IExtendedDataSource<MutatingCont
 
     public void Dispose()
     {
-        if (_original is IDisposable source)
+        if(_original is IDisposable source)
             source.Dispose();
     }
 
@@ -21,10 +21,10 @@ public sealed class MutationDataSource<TData> : IExtendedDataSource<MutatingCont
 
     public async Task SetData(IQuery query, MutatingContext<TData> data)
     {
-        var (_, entity) = data;
+        (_, TData entity) = data;
 
         // ReSharper disable once SuspiciousTypeConversion.Global
-        if (entity is IChangeTrackable { IsChanged: false }) return;
+        if(entity is IChangeTrackable { IsChanged: false }) return;
 
         await _original.SetData(query, entity);
     }

@@ -7,12 +7,11 @@ namespace Tauron.Applicarion.Redux.Internal.Configuration;
 
 public sealed class StoreConfiguration : IStoreConfiguration
 {
-    private readonly IStateFactory _stateFactory;
-    private readonly IErrorHandler _errorHandler;
-    private readonly StateDb _stateDb;
-
     private readonly List<IConfiguredState> _configuredStates = new();
+    private readonly IErrorHandler _errorHandler;
     private readonly List<object> _finisher = new();
+    private readonly StateDb _stateDb;
+    private readonly IStateFactory _stateFactory;
 
     public StoreConfiguration(IStateFactory stateFactory, IErrorHandler errorHandler, StateDb stateDb)
     {
@@ -20,17 +19,18 @@ public sealed class StoreConfiguration : IStoreConfiguration
         _errorHandler = errorHandler;
         _stateDb = stateDb;
     }
-    
+
     public IStoreConfiguration NewState<TState>(Func<ISourceConfiguration<TState>, IConfiguredState> configurator) where TState : class, new()
     {
         _configuredStates.Add(configurator(new SourceConfiguration<TState>(_stateFactory, _errorHandler, _stateDb)));
-        
+
         return this;
     }
 
     public IStoreConfiguration RegisterForFhinising(object toRegister)
     {
         _finisher.Add(toRegister);
+
         return this;
     }
 
@@ -43,19 +43,18 @@ public sealed class StoreConfiguration : IStoreConfiguration
             _configuredStates,
             _errorHandler.StoreError);
 
-        foreach (var configuredState in _configuredStates) 
+        foreach (IConfiguredState configuredState in _configuredStates)
             configuredState.PostBuild(store);
 
-        foreach (var toCall in _finisher)
-        {
+        foreach (object toCall in _finisher)
             switch (toCall)
             {
                 case IProvideRootStore toProvideStore:
                     toProvideStore.StoreCreated(store);
+
                     break;
             }
-        }
-        
+
         return store;
     }
 }

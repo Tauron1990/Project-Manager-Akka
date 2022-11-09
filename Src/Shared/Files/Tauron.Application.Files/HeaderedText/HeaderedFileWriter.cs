@@ -35,7 +35,7 @@ public sealed class HeaderedFileWriter
 
     public void Add(string key, string value)
     {
-        if (!_description.Contains(key))
+        if(!_description.Contains(key))
             throw new InvalidOperationException(
                 string.Format(
                     CultureInfo.InvariantCulture,
@@ -52,11 +52,11 @@ public sealed class HeaderedFileWriter
 
     public void Save(TextWriter writer)
     {
-        if (_isWriten) throw new InvalidOperationException("The Content is Writen");
+        if(_isWriten) throw new InvalidOperationException("The Content is Writen");
 
         _context.ContextEnries.Sort((one, two) => string.Compare(one.Key, two.Key, StringComparison.Ordinal));
 
-        foreach (var (key, content) in Enries) writer.WriteLine("{0} {1}", key, content);
+        foreach ((string key, string content) in Enries) writer.WriteLine("{0} {1}", key, content);
 
         writer.Write(Content);
         writer.Flush();

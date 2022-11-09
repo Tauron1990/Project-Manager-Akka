@@ -9,21 +9,19 @@ public static class AttributeHelpers
         => () =>
            {
                var builder = new StringBuilder();
-               var needNamespace = !string.IsNullOrWhiteSpace(namespaceName);
+               bool needNamespace = !string.IsNullOrWhiteSpace(namespaceName);
 
-               if (needNamespace)
+               if(needNamespace)
                    builder.Append("namespace ").Append(namespaceName).AppendLine(";").AppendLine();
 
                builder.Append("[System.AttributeUsage(");
 
                var first = true;
 
-               foreach (var flag in GetFlags(targets))
+               foreach (AttributeTargets flag in GetFlags(targets))
                {
-                   if (!first)
-                   {
+                   if(!first)
                        builder.Append("|").Append(" ");
-                   }
 
                    builder.Append("System.AttributeTargets.").Append(flag.ToString()).Append(" ");
                    first = false;
@@ -34,9 +32,7 @@ public static class AttributeHelpers
                builder.Append("internal class ").Append(className).AppendLine(" : System.Attribute").AppendLine("{");
 
                foreach (var property in propertys)
-               {
                    builder.Append("public ").Append(property.Value).Append(" ").Append(property.Key).AppendLine(" { get; set; }");
-               }
 
                builder.AppendLine("}");
 

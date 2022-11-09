@@ -8,8 +8,9 @@ namespace SimpleProjectManager.Client.Avalonia.Models.Services;
 
 public sealed class OnlineMonitor : OnlineMonitorBase<OnlineMonitor>
 {
-    public OnlineMonitor(HttpClient client, ILogger<OnlineMonitor> logger) 
+    public OnlineMonitor(HttpClient client, ILogger<OnlineMonitor> logger)
         : base(client, logger) { }
+
     protected override ValueTask<bool> RunInternal(CancellationToken token)
         => ValueTask.FromResult(true);
 }

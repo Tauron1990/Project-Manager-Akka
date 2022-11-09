@@ -35,8 +35,8 @@ public class Finished<TJob, TIdentity> : SchedulerEvent<TJob, TIdentity>
         TIdentity jobId,
         DateTime triggerDate)
     {
-        if (jobId == null) throw new ArgumentNullException(nameof(jobId));
-        if (triggerDate == default) throw new ArgumentException(nameof(triggerDate));
+        if(jobId == null) throw new ArgumentNullException(nameof(jobId));
+        if(triggerDate == default) throw new ArgumentException(nameof(triggerDate));
 
         JobId = jobId;
         TriggerDate = triggerDate;
@@ -44,6 +44,7 @@ public class Finished<TJob, TIdentity> : SchedulerEvent<TJob, TIdentity>
 
     public TIdentity JobId { get; }
     public DateTime TriggerDate { get; }
+
     public override JobEventType GetEventType()
         => JobEventType.Finish;
 

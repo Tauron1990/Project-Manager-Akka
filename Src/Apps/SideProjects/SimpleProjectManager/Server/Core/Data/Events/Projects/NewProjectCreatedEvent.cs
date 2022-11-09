@@ -1,5 +1,4 @@
-﻿
-using Akkatecture.Aggregates;
+﻿using Akkatecture.Aggregates;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Tags;
 

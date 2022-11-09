@@ -35,7 +35,7 @@ public static partial class Bootstrap
 
         void ConfigLogging(HostBuilderContext context, ILoggingBuilder configuration)
         {
-            System.Console.Title = context.HostingEnvironment.ApplicationName;
+            Console.Title = context.HostingEnvironment.ApplicationName;
             if(consoleLog)
                 configuration.AddConsole();
         }

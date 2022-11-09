@@ -22,11 +22,10 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using Akkatecture.Core;
-using JetBrains.Annotations;
 
 namespace Akkatecture.Jobs;
 
-public abstract class JobId<TSelf> : Identity<TSelf>, IJobId 
+public abstract class JobId<TSelf> : Identity<TSelf>, IJobId
     where TSelf : Identity<TSelf>
 {
     protected JobId(string value)

@@ -2,7 +2,4 @@
 
 namespace SimpleProjectManager.Client.Avalonia.ViewModels;
 
-public sealed class NotFoundViewModel : ViewModelBase
-{
-    
-}
+public sealed class NotFoundViewModel : ViewModelBase { }

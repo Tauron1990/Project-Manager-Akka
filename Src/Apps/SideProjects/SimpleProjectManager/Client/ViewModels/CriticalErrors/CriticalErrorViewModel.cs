@@ -17,7 +17,7 @@ public sealed class CriticalErrorViewModel : CriticalErrorViewModelBase, IParame
         => _stateFactory = stateFactory;
 
     public ParameterUpdater Updater { get; } = new();
-    
+
     protected override IState<CriticalError?> GetErrorState()
         => Updater.Register<CriticalError?>(nameof(CriticalErrorDispaly.Error), _stateFactory);
 }

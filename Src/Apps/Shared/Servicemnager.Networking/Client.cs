@@ -2,8 +2,6 @@ using Vogen;
 
 namespace Servicemnager.Networking;
 
-
-
 [ValueObject(typeof(string))]
 [Instance("All", "All")]
 public readonly partial struct Client

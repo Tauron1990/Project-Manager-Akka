@@ -3,5 +3,5 @@
 public sealed record InternalErrorState(long ErrorCount)
 {
     public InternalErrorState()
-        : this(0){ }
+        : this(0) { }
 }

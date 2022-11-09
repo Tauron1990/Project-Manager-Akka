@@ -1,10 +1,10 @@
 ﻿using JetBrains.Annotations;
-using Tauron.TAkka;
 using Tauron.Application.CommonUI.AppCore;
 using Tauron.Application.Workshop;
 using Tauron.Application.Workshop.Mutation;
 using Tauron.Application.Workshop.StateManagement;
 using Tauron.Operations;
+using Tauron.TAkka;
 
 namespace Tauron.Application.CommonUI.Model;
 
@@ -25,11 +25,11 @@ public abstract class StateUIActor : UiActor
 
     private void InternalOnOperationCompled(IOperationResult result)
     {
-        var actionType = result.Outcome?.GetType();
+        Type? actionType = result.Outcome?.GetType();
 
-        if (actionType?.IsAssignableTo(typeof(IStateAction)) != true) return;
+        if(actionType?.IsAssignableTo(typeof(IStateAction)) != true) return;
 
-        if (_compledActions.TryGetValue(actionType, out var action))
+        if(_compledActions.TryGetValue(actionType, out var action))
         {
             action(result);
 
@@ -59,7 +59,7 @@ public abstract class StateUIActor : UiActor
     public void WhenActionComnpled<TAction>(Action<IOperationResult> opsAction)
         where TAction : IStateAction
     {
-        var key = typeof(TAction);
+        Type key = typeof(TAction);
         _compledActions[key] = opsAction.Combine(_compledActions.GetValueOrDefault(key))!;
     }
 
@@ -118,7 +118,7 @@ public abstract class StateUIActor : UiActor
                 _actor.Self,
                 evt =>
                 {
-                    if (condition != null && !condition(evt))
+                    if(condition != null && !condition(evt))
                         return;
 
                     property.Set(transform(evt));
@@ -166,7 +166,7 @@ public static class StateUIActorExtenstions
             builder,
             o =>
             {
-                if (o is TParameter parameter)
+                if(o is TParameter parameter)
                     return action(parameter);
 
                 return action(default!);
@@ -177,14 +177,14 @@ public static class StateUIActorExtenstions
         this CommandRegistrationBuilder builder,
         Func<object?, IStateAction?> action)
     {
-        var invoker = TryCast(builder);
+        StateUIActor invoker = TryCast(builder);
 
         return builder.WithExecute(
             o =>
             {
-                var stateAction = action(o);
+                IStateAction? stateAction = action(o);
 
-                if (stateAction == null) return;
+                if(stateAction == null) return;
 
                 invoker.DispatchAction(stateAction);
             });
@@ -192,7 +192,7 @@ public static class StateUIActorExtenstions
 
     private static StateUIActor TryCast(CommandRegistrationBuilder builder)
     {
-        if (builder.Target is StateUIActor uiActor)
+        if(builder.Target is StateUIActor uiActor)
             return uiActor;
 
         throw new InvalidOperationException("command Builder is not a State Actor");

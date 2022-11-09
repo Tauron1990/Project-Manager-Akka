@@ -18,55 +18,86 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
     private readonly CommandProcessor _commandProcessor;
     private readonly MappingDatabase<DbProjectProjection, ProjectProjection> _projects;
     private readonly IDisposable _subscription;
-    
+
     public JobDatabaseService(IInternalDataRepository database, CommandProcessor commandProcessor, DomainEventDispatcher dispatcher)
     {
         _commandProcessor = commandProcessor;
         _projects = new MappingDatabase<DbProjectProjection, ProjectProjection>(
             database.Databases.ProjectProjections,
             database.Databases.Mapper);
-        
+
         _subscription = dispatcher.Get()
            .OfType<IDomainEvent<Project, ProjectId>>()
            .Subscribe(
-            de =>
-            {
-                using (Computed.Invalidate())
+                de =>
                 {
-                    switch (de.GetAggregateEvent())
+                    using (Computed.Invalidate())
                     {
-                        case ProjectFilesRemovedEvent:
-                        case ProjectFilesAttachedEvent:
-                            GetActiveJobs(default).Ignore();
-                            GetJobData(de.AggregateIdentity, default).Ignore();
-                            break;
-                        case ProjectDeletedEvent:
-                        case NewProjectCreatedEvent:
-                            CountActiveJobs(default).Ignore();
-                            GetActiveJobs(default).Ignore();
-                            GetSortOrders(default).Ignore();
-                            break;
-                        case ProjectStatusChangedEvent:
-                        case ProjectDeadLineChangedEvent:
-                        case ProjectNameChangedEvent:
-                            GetActiveJobs(default).Ignore();
-                            GetSortOrders(default).Ignore();
-                            CountActiveJobs(default).Ignore();
-                            GetJobData(de.AggregateIdentity, default).Ignore();
-                            break;
+                        switch (de.GetAggregateEvent())
+                        {
+                            case ProjectFilesRemovedEvent:
+                            case ProjectFilesAttachedEvent:
+                                GetActiveJobs(default).Ignore();
+                                GetJobData(de.AggregateIdentity, default).Ignore();
+
+                                break;
+                            case ProjectDeletedEvent:
+                            case NewProjectCreatedEvent:
+                                CountActiveJobs(default).Ignore();
+                                GetActiveJobs(default).Ignore();
+                                GetSortOrders(default).Ignore();
+
+                                break;
+                            case ProjectStatusChangedEvent:
+                            case ProjectDeadLineChangedEvent:
+                            case ProjectNameChangedEvent:
+                                GetActiveJobs(default).Ignore();
+                                GetSortOrders(default).Ignore();
+                                CountActiveJobs(default).Ignore();
+                                GetJobData(de.AggregateIdentity, default).Ignore();
+
+                                break;
+                        }
                     }
-                }
-            });
+                });
+    }
+
+    public void Dispose()
+    {
+        _subscription.Dispose();
+        GC.SuppressFinalize(this);
+    }
+
+    public virtual async Task<JobData> GetJobData(ProjectId id, CancellationToken token)
+    {
+        if(Computed.IsInvalidating()) return null!;
+
+        var filter = _projects.Operations.Eq(p => p.Id, id.Value);
+        ProjectProjection result = await _projects.ExecuteFirstAsync(_projects.Find(filter), token);
+
+        return new JobData(result.Id, result.JobName, result.Status, result.Ordering, result.Deadline, result.ProjectFiles.ToImmutableList());
+    }
+
+
+    public async Task<AttachResult> AttachFiles(ProjectAttachFilesCommand command, CancellationToken token)
+    {
+        IOperationResult result = await _commandProcessor.RunCommand(command, token);
+
+        return result.Ok
+            ? result.Outcome is bool isNew
+                ? new AttachResult(string.Empty, isNew)
+                : new AttachResult(string.Empty, true)
+            : new AttachResult(result.Error ?? string.Empty, false);
     }
 
     public virtual async Task<JobInfo[]> GetActiveJobs(CancellationToken token)
     {
-        if (Computed.IsInvalidating()) return Array.Empty<JobInfo>();
+        if(Computed.IsInvalidating()) return Array.Empty<JobInfo>();
 
         var filter = _projects.Operations.Eq(p => p.Status, ProjectStatus.Finished);
         #if DEBUG
         var projectionData = await _projects.ExecuteArray(_projects.Find(filter.Not), token);
-        
+
         return projectionData.Select(d => new JobInfo(d.Id, d.JobName, d.Deadline, d.Status, d.ProjectFiles.Count != 0)).ToArray();
         #else
         return await _projects.Find(filter.Not)
@@ -77,31 +108,20 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
 
     public virtual async Task<SortOrder[]> GetSortOrders(CancellationToken token)
     {
-        if (Computed.IsInvalidating()) return Array.Empty<SortOrder>();
-        
-        var filter = _projects.Operations.Or
-            (
-                _projects.Operations.Eq(p => p.Status, ProjectStatus.Entered),
-                _projects.Operations.Eq(p => p.Status, ProjectStatus.Pending)
-            );
+        if(Computed.IsInvalidating()) return Array.Empty<SortOrder>();
+
+        var filter = _projects.Operations.Or(
+            _projects.Operations.Eq(p => p.Status, ProjectStatus.Entered),
+            _projects.Operations.Eq(p => p.Status, ProjectStatus.Pending)
+        );
 
         return await _projects.ExecuteArray<DBSortOrder, SortOrder>(_projects.Find(filter).Select(p => p.Ordering), token);
     }
 
-    public virtual async Task<JobData> GetJobData(ProjectId id, CancellationToken token)
-    {
-        if (Computed.IsInvalidating()) return null!;
-        
-        var filter = _projects.Operations.Eq(p => p.Id, id.Value);
-        ProjectProjection result = await _projects.ExecuteFirstAsync(_projects.Find(filter), token);
-
-        return new JobData(result.Id, result.JobName, result.Status, result.Ordering, result.Deadline, result.ProjectFiles.ToImmutableList());
-    }
-
     public virtual async Task<long> CountActiveJobs(CancellationToken token)
     {
-        if (Computed.IsInvalidating()) return 0;
-        
+        if(Computed.IsInvalidating()) return 0;
+
         var filter = _projects.Operations.Eq(p => p.Status, ProjectStatus.Finished);
         var result = _projects.Find(filter.Not);
 
@@ -118,44 +138,28 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
     {
         (bool ignoreIfEmpty, SortOrder? sortOrder) = newOrder;
 
-        if (sortOrder is null)
+        if(sortOrder is null)
             return ignoreIfEmpty ? string.Empty : "Sortier Daten nicht zur Verfügung gestellt";
 
         DbOperationResult result = await _projects.UpdateOneAsync(
             _projects.Operations.Eq(p => p.Id, sortOrder.Id.Value),
             _projects.Operations.Set(p => p.Ordering, _projects.Mapper.Map<DBSortOrder>(sortOrder)),
-            cancellationToken: token);
+            token);
 
         if(result.ModifiedCount == 0)
             return "Das Element wurde nicht gefunden";
 
-        using(Computed.Invalidate())
+        using (Computed.Invalidate())
+        {
             GetSortOrders(CancellationToken.None).Ignore();
+        }
 
         return string.Empty;
     }
 
     public async Task<string> UpdateJobData(UpdateProjectCommand command, CancellationToken token)
         => (await _commandProcessor.RunCommand(command, token)).Error ?? string.Empty;
-    
-
-    public async Task<AttachResult> AttachFiles(ProjectAttachFilesCommand command, CancellationToken token)
-    {
-        var result = await _commandProcessor.RunCommand(command, token);
-
-        return result.Ok
-            ? result.Outcome is bool isNew
-                ? new AttachResult(string.Empty, isNew)
-                : new AttachResult(string.Empty, true)
-            : new AttachResult(result.Error ?? string.Empty, false);
-    }
 
     public async Task<string> RemoveFiles(ProjectRemoveFilesCommand command, CancellationToken token)
         => (await _commandProcessor.RunCommand(command, token)).Error ?? string.Empty;
-
-    public void Dispose()
-    {
-        _subscription.Dispose();
-        GC.SuppressFinalize(this);
-    }
 }

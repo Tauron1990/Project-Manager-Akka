@@ -4,14 +4,13 @@ namespace Tauron.AkkaHost;
 
 public static class ActorApplication
 {
-    
     private static ActorSystem? _actorSystem;
 
     public static ActorSystem ActorSystem
     {
         get
         {
-            if (_actorSystem is null)
+            if(_actorSystem is null)
                 throw new InvalidOperationException("An Actorsystem was not set");
 
             return _actorSystem;

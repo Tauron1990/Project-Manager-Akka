@@ -1,15 +1,13 @@
 ﻿using System.Linq.Expressions;
-using System.Reflection;
 using FastExpressionCompiler;
-using LiteDB;
 
 namespace SimpleProjectManager.Server.Data.LiteDbDriver.Filter;
 
 public sealed class EqFilter<TData, TField> : LiteFilter<TData>
 {
+    private readonly EqualityComparer<TField> _equalitiy = EqualityComparer<TField>.Default;
     private readonly Func<TData, TField> _selector;
     private readonly TField _toEqual;
-    private readonly EqualityComparer<TField> _equalitiy = EqualityComparer<TField>.Default;
 
     public EqFilter(Expression<Func<TData, TField>> selector, TField toEqual)
     {
@@ -20,7 +18,7 @@ public sealed class EqFilter<TData, TField> : LiteFilter<TData>
 
     protected internal override bool Run(TData data)
     {
-        var fieldValue = _selector(data);
+        TField fieldValue = _selector(data);
 
         return IsNot switch
         {

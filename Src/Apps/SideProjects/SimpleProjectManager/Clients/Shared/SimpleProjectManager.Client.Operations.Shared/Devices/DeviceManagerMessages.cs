@@ -1,19 +1,20 @@
 ﻿using System.Collections.Immutable;
 using JetBrains.Annotations;
 using SimpleProjectManager.Shared.Services.Devices;
+using Tauron.Operations;
 
 namespace SimpleProjectManager.Client.Operations.Shared.Devices;
 
 public static class DeviceManagerMessages
 {
-    public sealed record DeviceInfoResponse(bool Duplicate, string? Error);
+    public sealed record DeviceInfoResponse(bool Duplicate, SimpleResult Result);
 
     public interface IDeviceCommand
     {
-        string DeviceName { get; }
+        DeviceId DeviceName { get; }
     }
 
-    public sealed record UpdateSensor(string DeviceName, string Identifer, ISensorBox SensorValue) : IDeviceCommand;
+    public sealed record UpdateSensor(DeviceId DeviceName, DeviceId Identifer, ISensorBox SensorValue) : IDeviceCommand;
 
     public interface ISensorBox
     {
@@ -80,27 +81,27 @@ public static class DeviceManagerMessages
         public double AsDouble => Value;
     }
 
-    public sealed record QuerySensorValue(string DeviceName, string Identifer) : IDeviceCommand;
+    public sealed record QuerySensorValue(DeviceId DeviceName, DeviceId Identifer) : IDeviceCommand;
 
-    public sealed record SensorValueResult(string? Error, ISensorBox? Value);
+    public sealed record SensorValueResult(SimpleResult Result, ISensorBox? Value);
 
-    public sealed record QueryButtonState(string DeviceName, string Identifer) : IDeviceCommand;
+    public sealed record QueryButtonState(DeviceId DeviceName, DeviceId Identifer) : IDeviceCommand;
 
-    public sealed record UpdateButtonState(string DeviceName, string Identifer, bool State) : IDeviceCommand;
+    public sealed record UpdateButtonState(DeviceId DeviceName, DeviceId Identifer, bool State) : IDeviceCommand;
 
-    public sealed record ButtonClick(string DeviceName, string Identifer) : IDeviceCommand;
+    public sealed record ButtonClick(DeviceId DeviceName, DeviceId Identifer) : IDeviceCommand;
 
     public sealed record ButtonStateResponse(bool CanClick);
 
-    public sealed record QueryLoggerBatch(string DeviceName, DateTime From) : IDeviceCommand;
+    public sealed record QueryLoggerBatch(DeviceId DeviceName, DateTime From) : IDeviceCommand;
 
     public sealed record LoggerBatchResult(ImmutableList<LogBatch> Batches);
 
     public sealed record QueryDevices;
 
-    public sealed record DevicesResponse(string[] Devices);
+    public sealed record DevicesResponse(ImmutableDictionary<DeviceId, DeviceName> Devices);
 
-    public sealed record QueryUi(string DeviceName) : IDeviceCommand;
+    public sealed record QueryUi(DeviceId DeviceName) : IDeviceCommand;
 
     public sealed record UiResponse(DeviceUiGroup Root);
 }

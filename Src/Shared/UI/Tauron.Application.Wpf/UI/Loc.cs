@@ -19,7 +19,7 @@ public sealed class Loc : UpdatableMarkupExtension
 
     protected override object DesignTime()
     {
-        if (EntryName?.Length > 25)
+        if(EntryName?.Length > 25)
             return EntryName.Substring(EntryName.Length - 25, 10);
 
         return EntryName ?? nameof(DesignTime);
@@ -31,17 +31,17 @@ public sealed class Loc : UpdatableMarkupExtension
         {
             lock (Cache)
             {
-                if (!string.IsNullOrWhiteSpace(EntryName) && Cache.TryGetValue(EntryName, out var result))
+                if(!string.IsNullOrWhiteSpace(EntryName) && Cache.TryGetValue(EntryName, out object? result))
                     return result!;
             }
 
-            if (string.IsNullOrWhiteSpace(EntryName)) return "Kein antrag angegeben";
+            if(string.IsNullOrWhiteSpace(EntryName)) return "Kein antrag angegeben";
 
             ActorApplication.ActorSystem.Loc().Request(
                 EntryName,
                 o =>
                 {
-                    var res = o.GetOrElse(EntryName);
+                    object? res = o.GetOrElse(EntryName);
                     lock (Cache)
                     {
                         Cache[EntryName] = res;

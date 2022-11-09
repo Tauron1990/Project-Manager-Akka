@@ -11,7 +11,6 @@ public interface IDialogCoordinatorUIEvents
     event Action? HideDialogEvent;
 }
 
-
 [PublicAPI]
 public interface IDialogCoordinator
 {

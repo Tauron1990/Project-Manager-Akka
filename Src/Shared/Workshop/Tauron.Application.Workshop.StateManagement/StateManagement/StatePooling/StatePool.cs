@@ -8,12 +8,12 @@ public sealed class StatePool
 
     public IStateInstance? Get(Type key, Func<IStateInstance?> factory)
     {
-        if (_pooled.TryGetValue(key, out var inst))
+        if(_pooled.TryGetValue(key, out IStateInstance? inst))
             return inst;
 
         inst = factory();
 
-        if (inst == null)
+        if(inst == null)
             return null;
 
         _pooled.Add(key, inst);

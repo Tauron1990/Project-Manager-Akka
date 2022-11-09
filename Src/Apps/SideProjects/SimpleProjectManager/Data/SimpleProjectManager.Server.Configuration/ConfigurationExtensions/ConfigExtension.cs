@@ -6,13 +6,9 @@ namespace SimpleProjectManager.Server.Configuration.ConfigurationExtensions;
 
 public abstract class ConfigExtension : IConfigExtension
 {
-    public virtual void Apply(ImmutableDictionary<string, string> propertys, IWebHostBuilder applicationBuilder)
-    {
-    }
+    public virtual void Apply(ImmutableDictionary<string, string> propertys, IWebHostBuilder applicationBuilder) { }
 
-    public virtual void Apply(ImmutableDictionary<string, string> propertys, IActorApplicationBuilder applicationBuilder)
-    {
-    }
+    public virtual void Apply(ImmutableDictionary<string, string> propertys, IActorApplicationBuilder applicationBuilder) { }
 
     public virtual ImmutableDictionary<string, string> ProcessValue(ImmutableDictionary<string, string> settings, string key, string value)
         => settings;

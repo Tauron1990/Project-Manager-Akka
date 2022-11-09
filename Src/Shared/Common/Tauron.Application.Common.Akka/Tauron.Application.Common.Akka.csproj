@@ -8,17 +8,17 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Akka.DependencyInjection" Version="1.4.43" />
-      <PackageReference Include="Akka.Hosting" Version="0.5.0" />
-      <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.1" />
+        <PackageReference Include="Akka.DependencyInjection" Version="1.4.45" />
+        <PackageReference Include="Akka.Hosting" Version="0.5.1" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Tauron.Application.Common\Tauron.Application.Common.csproj" />
+        <ProjectReference Include="..\Tauron.Application.Common\Tauron.Application.Common.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Application" />
+        <Folder Include="Application" />
     </ItemGroup>
 
 </Project>

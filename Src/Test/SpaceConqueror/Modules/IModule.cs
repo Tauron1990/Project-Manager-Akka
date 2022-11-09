@@ -7,6 +7,6 @@ public interface IModule
     string ModName { get; }
 
     Version Version { get; }
-    
+
     ValueTask Initialize(ModuleConfiguration config, Action<string> messages);
 }

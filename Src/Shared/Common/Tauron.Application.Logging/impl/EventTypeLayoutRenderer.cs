@@ -13,9 +13,9 @@ public sealed class EventTypeLayoutRenderer : LayoutRenderer
 {
     protected override void Append(StringBuilder builder, LogEventInfo logEvent)
     {
-        var murmur = MurmurHash.Create32();
-        var bytes = Encoding.UTF8.GetBytes(logEvent.Message);
-        var hash = murmur.ComputeHash(bytes);
+        Murmur32? murmur = MurmurHash.Create32();
+        byte[] bytes = Encoding.UTF8.GetBytes(logEvent.Message);
+        byte[] hash = murmur.ComputeHash(bytes);
         var numericHash = BitConverter.ToUInt32(hash, 0);
 
         builder.Append($"{numericHash:x8}");

@@ -15,7 +15,7 @@ namespace Tauron.Application.CommonUI.Model;
 public sealed class UIProperty<TData> : UIPropertyBase, IObservable<TData>, IDisposable, IObserver<TData>
 {
     private readonly BehaviorSubject<Error?> _currentError = new(null);
-    private readonly BehaviorSubject<DataContainer> _currentValue = new(new DataContainer(default!, IsNull: true));
+    private readonly BehaviorSubject<DataContainer> _currentValue = new(new DataContainer(default!, true));
     private readonly CompositeDisposable _disposable = new();
 
     private bool _isLocked;
@@ -35,7 +35,7 @@ public sealed class UIProperty<TData> : UIPropertyBase, IObservable<TData>, IDis
         get => Value;
         set
         {
-            if (value is TData dat)
+            if(value is TData dat)
                 Set(dat);
         }
     }
@@ -66,7 +66,7 @@ public sealed class UIProperty<TData> : UIPropertyBase, IObservable<TData>, IDis
 
     public void Set(TData data)
     {
-        if (_isLocked) return;
+        if(_isLocked) return;
 
         _currentValue.OnNext(new DataContainer(data));
     }

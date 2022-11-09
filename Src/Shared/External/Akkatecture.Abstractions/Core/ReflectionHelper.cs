@@ -42,18 +42,18 @@ public static class ReflectionHelper
         Type type, string methodName,
         params Type[] methodSignature) where TResult : class
     {
-        var typeInfo = type.GetTypeInfo();
+        TypeInfo typeInfo = type.GetTypeInfo();
         var methods = typeInfo
            .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
            .Where(info => info.Name == methodName);
 
-        var methodInfo = !methodSignature.Any()
+        MethodInfo? methodInfo = !methodSignature.Any()
             ? methods.SingleOrDefault()
             : methods.SingleOrDefault(
                 info
                     => info.GetParameters().Select(mp => mp.ParameterType).SequenceEqual(methodSignature));
 
-        if (methodInfo == null)
+        if(methodInfo == null)
             throw new ArgumentException($"Type '{type.PrettyPrint()}' doesn't have a method called '{methodName}'");
 
         return CompileMethodInvocation<TResult>(methodInfo);
@@ -67,14 +67,14 @@ public static class ReflectionHelper
         var methodArgumentList = methodInfo.GetParameters().Select(parameterInfo => parameterInfo.ParameterType).ToList();
         var funcArgumentList = genericArguments.Skip(1).Take(methodArgumentList.Count).ToList();
 
-        if (funcArgumentList.Count != methodArgumentList.Count)
+        if(funcArgumentList.Count != methodArgumentList.Count)
             throw new ArgumentException("Incorrect number of arguments");
 
-        var instanceArgument = Expression.Parameter(genericArguments[0]);
+        ParameterExpression instanceArgument = Expression.Parameter(genericArguments[0]);
 
         var argumentPairs = funcArgumentList.Zip(methodArgumentList, (source, destination) => (Source: source, Destination: destination))
            .ToList();
-        if (argumentPairs.All(pair => pair.Source == pair.Destination))
+        if(argumentPairs.All(pair => pair.Source == pair.Destination))
         {
             // No need to do anything fancy, the types are the same
             var parameters = funcArgumentList.Select(Expression.Parameter).ToList();
@@ -89,8 +89,8 @@ public static class ReflectionHelper
                                  instanceArgument
                              };
 
-        var type = methodInfo.DeclaringType ?? typeof(object);
-        var instanceVariable = Expression.Variable(type);
+        Type type = methodInfo.DeclaringType ?? typeof(object);
+        ParameterExpression instanceVariable = Expression.Variable(type);
         var blockVariables = new List<ParameterExpression>
                              {
                                  instanceVariable
@@ -101,18 +101,18 @@ public static class ReflectionHelper
                                };
         var callArguments = new List<ParameterExpression>();
 
-        foreach (var (source, destination) in argumentPairs)
-            if (source == destination)
+        foreach ((Type source, Type destination) in argumentPairs)
+            if(source == destination)
             {
-                var sourceParameter = Expression.Parameter(source);
+                ParameterExpression sourceParameter = Expression.Parameter(source);
                 lambdaArgument.Add(sourceParameter);
                 callArguments.Add(sourceParameter);
             }
             else
             {
-                var sourceParameter = Expression.Parameter(source);
-                var destinationVariable = Expression.Variable(destination);
-                var assignToDestination = Expression.Assign(
+                ParameterExpression sourceParameter = Expression.Parameter(source);
+                ParameterExpression destinationVariable = Expression.Variable(destination);
+                BinaryExpression assignToDestination = Expression.Assign(
                     destinationVariable,
                     Expression.Convert(sourceParameter, destination));
 
@@ -122,10 +122,10 @@ public static class ReflectionHelper
                 blockExpressions.Add(assignToDestination);
             }
 
-        var callExpression = Expression.Call(instanceVariable, methodInfo, callArguments);
+        MethodCallExpression callExpression = Expression.Call(instanceVariable, methodInfo, callArguments);
         blockExpressions.Add(callExpression);
 
-        var block = Expression.Block(blockVariables, blockExpressions);
+        BlockExpression block = Expression.Block(blockVariables, blockExpressions);
 
         var lambdaExpression = Expression.Lambda<TResult>(block, lambdaArgument);
 

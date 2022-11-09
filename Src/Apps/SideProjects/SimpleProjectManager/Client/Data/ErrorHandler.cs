@@ -10,9 +10,7 @@ public class ErrorHandler : IErrorHandler
     private readonly IEventAggregator _eventAggregator;
 
     public ErrorHandler(IEventAggregator eventAggregator)
-    {
-        _eventAggregator = eventAggregator;
-    }
+        => _eventAggregator = eventAggregator;
 
     public void RequestError(string error)
     {

@@ -5,12 +5,14 @@ namespace Tauron.Application.Blazor;
 
 public sealed class RenderingManager
 {
-    private Action _stateHasChanged = () => {};
     private Func<Action, Task> _runAsync = action =>
                                            {
                                                action();
+
                                                return Task.CompletedTask;
                                            };
+
+    private Action _stateHasChanged = () => { };
 
     public bool CanRender { get; private set; }
 

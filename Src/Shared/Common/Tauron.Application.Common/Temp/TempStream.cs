@@ -65,7 +65,7 @@ public sealed class TempStream : Stream
     /// <inheritdoc />
     protected override void Dispose(bool disposing)
     {
-        if (_file.NoStreamDispose || _noDispose) return;
+        if(_file.NoStreamDispose || _noDispose) return;
 
         _file.Dispose();
     }

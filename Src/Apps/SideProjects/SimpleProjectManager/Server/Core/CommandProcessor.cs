@@ -8,13 +8,13 @@ namespace SimpleProjectManager.Server.Core;
 
 public class CommandProcessor
 {
+    private readonly ImmutableDictionary<Type, ApiCommandMapping> _apiCommandMappings;
+    private readonly CommandMapping[] _commandMappings;
+    private readonly ILogger<CommandProcessor> _log;
+    private readonly ConcurrentDictionary<string, IActorRef> _managers = new();
     private readonly Guid _nameNamespace = Guid.Parse("587C4D9F-04D2-4180-BD73-544338280714");
 
     private readonly ActorSystem _system;
-    private readonly ILogger<CommandProcessor> _log;
-    private readonly CommandMapping[] _commandMappings;
-    private readonly ImmutableDictionary<Type, ApiCommandMapping> _apiCommandMappings;
-    private readonly ConcurrentDictionary<string, IActorRef> _managers = new();
 
     public CommandProcessor(ActorSystem system, IEnumerable<CommandMapping> mapping, IEnumerable<ApiCommandMapping> apiCommandMappings, ILogger<CommandProcessor> log)
     {
@@ -26,11 +26,12 @@ public class CommandProcessor
 
     private async Task<IOperationResult> RunCommand(ICommand command, CancellationToken token)
     {
-        var handler = _commandMappings.FirstOrDefault(cm => cm.CommandType.IsInstanceOfType(command));
+        CommandMapping? handler = _commandMappings.FirstOrDefault(cm => cm.CommandType.IsInstanceOfType(command));
+
         if(handler == null) return OperationResult.Failure(new Error("Kein Handler gefunden", "No-Handler"));
 
         var name = GuidFactories.Deterministic.Create(_nameNamespace, handler.AggregateManager.AssemblyQualifiedName!).ToString("N");
-        var manager = _managers.GetOrAdd(name, static (n, p) => p.System.ActorOf(Props.Create(p.Handler.AggregateManager), n), (System:_system, Handler:handler));
+        IActorRef manager = _managers.GetOrAdd(name, static (n, p) => p.System.ActorOf(Props.Create(p.Handler.AggregateManager), n), (System: _system, Handler: handler));
 
         try
         {
@@ -46,7 +47,7 @@ public class CommandProcessor
     {
         try
         {
-            if (_apiCommandMappings.TryGetValue(apiCommand.GetType(), out var mapping))
+            if(_apiCommandMappings.TryGetValue(apiCommand.GetType(), out ApiCommandMapping? mapping))
                 return await RunCommand(mapping.Converter(apiCommand), token);
 
             return OperationResult.Failure("Kommando Konverter nicht gefunden", "no-converter");
@@ -54,6 +55,7 @@ public class CommandProcessor
         catch (Exception e)
         {
             _log.LogError(e, "Error on Process Commando {Command}", apiCommand);
+
             return OperationResult.Failure(e);
         }
     }

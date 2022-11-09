@@ -6,19 +6,16 @@ using static SimpleProjectManager.Client.Operations.Shared.Devices.DeviceManager
 
 namespace SimpleProjectManager.Server.Core.DeviceManager;
 
-
 public sealed partial class ServerDeviceManagerFeature : ActorFeatureBase<ServerDeviceManagerFeature.State>
 {
     public static Props Create(DeviceEventHandler deviceEvents)
         => Feature.Props(Feature.Create(() => new ServerDeviceManagerFeature(), _ => new State(deviceEvents)));
 
-    public sealed record State(DeviceEventHandler Events);
-
     protected override void ConfigImpl()
     {
         Receive<DeviceInformations>(HandleNewDevice);
         Receive<QueryDevices>(obs => obs.ToUnit(p => p.Sender.Tell(new DevicesResponse(p.Context.GetChildren().Select(r => r.Path.Name).ToArray()))));
-        
+
         Receive<IDeviceCommand>(obs => obs.ToUnit(p => p.Context.Child(p.Event.DeviceName).Forward(p.Event)));
         Receive<Terminated>(obs => obs.ToUnit(p => p.State.Events.Publish(new DeviceRemoved(p.Event.ActorRef.Path.Name))));
     }
@@ -34,7 +31,7 @@ public sealed partial class ServerDeviceManagerFeature : ActorFeatureBase<Server
 
     [LoggerMessage(EventId = 60, Level = LogLevel.Error, Message = "Invalid ActorName from {path}")]
     private static partial void InvalidActorName(ILogger logger, Exception ex, ActorPath path);
-    
+
     private IObservable<Unit> HandleNewDevice(IObservable<StatePair<DeviceInformations, State>> obs)
         => obs.ToUnit(
             pair =>
@@ -46,15 +43,16 @@ public sealed partial class ServerDeviceManagerFeature : ActorFeatureBase<Server
                 {
                     EmptyDeviceNameRegistration(Logger, pair.Sender.Path);
                     pair.Sender.Tell(new DeviceInfoResponse(false, "Empty Device Name"));
+
                     return;
                 }
-                 
-                
-                
+
+
                 if(!pair.Context.Child(evt.DeviceName).Equals(ActorRefs.Nobody))
                 {
                     DuplicateDeviceRegistration(Logger, evt.DeviceName, pair.Sender.Path);
                     pair.Sender.Tell(new DeviceInfoResponse(true, "Duplicate Device Registration"));
+
                     return;
                 }
 
@@ -70,4 +68,6 @@ public sealed partial class ServerDeviceManagerFeature : ActorFeatureBase<Server
                     pair.Sender.Tell(new DeviceInfoResponse(false, exception.Message));
                 }
             });
+
+    public sealed record State(DeviceEventHandler Events);
 }

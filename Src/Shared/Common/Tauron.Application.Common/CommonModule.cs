@@ -11,11 +11,6 @@ namespace Tauron;
 [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
 public sealed class CommonModule : IModule
 {
-    private sealed class Clock : ISystemClock
-    {
-        public DateTimeOffset UtcNow => DateTimeOffset.Now;
-    }
-
     public void Load(IServiceCollection builder)
     {
         #pragma warning disable GU0011
@@ -24,5 +19,10 @@ public sealed class CommonModule : IModule
 
         builder.TryAddSingleton<ITauronEnviroment, TauronEnviromentImpl>();
         builder.TryAddSingleton<IEventAggregator, EventAggregator>();
+    }
+
+    private sealed class Clock : ISystemClock
+    {
+        public DateTimeOffset UtcNow => DateTimeOffset.Now;
     }
 }

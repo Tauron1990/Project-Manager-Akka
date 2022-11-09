@@ -2,18 +2,17 @@
 using System.Runtime.CompilerServices;
 using ReactiveUI;
 
-namespace SimpleProjectManager.Client.Shared.ViewModels
+namespace SimpleProjectManager.Client.Shared.ViewModels;
+
+public abstract class ViewModelBase : ReactiveObject, IActivatableViewModel
 {
-    public abstract class ViewModelBase : ReactiveObject, IActivatableViewModel
+    public ViewModelActivator Activator { get; } = new();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    protected TValue NotNull<TValue>(TValue? value, string name)
     {
-        public ViewModelActivator Activator { get; } = new();
+        if(value is null) throw new InvalidOperationException($"The Value {name} is null");
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected TValue NotNull<TValue>(TValue? value, string name)
-        {
-            if (value is null) throw new InvalidOperationException($"The Value {name} is null");
-
-            return value;
-        }
+        return value;
     }
 }

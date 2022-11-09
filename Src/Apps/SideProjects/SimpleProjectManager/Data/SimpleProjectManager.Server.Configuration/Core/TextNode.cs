@@ -2,8 +2,8 @@
 
 public sealed class TextNode : NodeBase
 {
-    public string Text { get; }
-
     public TextNode(string text)
         => Text = text;
+
+    public string Text { get; }
 }

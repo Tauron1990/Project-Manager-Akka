@@ -3,7 +3,7 @@
 @inject IEventAggregator _aggregator;
 
 <MudContainer MaxWidth="MaxWidth.Large">
-    @if (Context == null)
+    @if(Context == null)
     {
         <MudText>Kein Kontext Vervügbar</MudText>
     }
@@ -12,7 +12,7 @@
         <MudCard>
             <MudCardHeader>
                 <CardHeaderContent>
-                    @if (Context.CurrentPage != null)
+                    @if(Context.CurrentPage != null)
                     {
                         <MudText>@Context.CurrentPage.Title</MudText>
                     }
@@ -32,11 +32,11 @@
                     </CascadingValue>
                 </CascadingValue>
             </MudCardContent>
-            @if (Context.CurrentPage?.ShowControls == true)
+            @if(Context.CurrentPage?.ShowControls == true)
             {
                 <MudCardActions>
                     <MudButton OnClick="BackCallback" Disabled="CanBack()">Zurück</MudButton>
-                    @foreach(var (label, handler) in Context.CurrentPage.CustomActions)
+                    @foreach ((string label, var handler) in Context.CurrentPage.CustomActions)
                     {
                         <MudButton OnClick="handler" Disabled="_loading">@label</MudButton>
                     }

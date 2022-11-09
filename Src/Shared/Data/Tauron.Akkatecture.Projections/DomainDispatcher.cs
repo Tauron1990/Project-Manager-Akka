@@ -24,11 +24,11 @@ public class DomainDispatcher<TProjection, TIdentity>
         Projector = projector;
         Repo = repo;
 
-        reader.OnReadError += (_, exception) 
+        reader.OnReadError += (_, exception)
                                   =>
                               {
                                   if(exception.Exception is AbruptTerminationException) return;
-                                  
+
                                   logger.LogError(
                                       exception.Exception,
                                       "Error while Processing Journal Events: {ProjectionType} - {Tag}",
@@ -52,10 +52,12 @@ public class DomainDispatcher<TProjection, TIdentity>
         ExceptionHandler(Exception exception, int attempts, SubscriptionInfo info)
     {
         _logger.LogError(
-            exception, 
-            "Error while Processing Event on Projection: {ProjectionType} - {SubscriptionId} - {Attempts}", 
-            typeof(TProjection).Name, info.Id, attempts);
-        
+            exception,
+            "Error while Processing Event on Projection: {ProjectionType} - {SubscriptionId} - {Attempts}",
+            typeof(TProjection).Name,
+            info.Id,
+            attempts);
+
         return !exception.IsCriticalApplicationException() && attempts < 3
             ? Task.FromResult(ExceptionResolution.Retry)
             : Task.FromResult(ExceptionResolution.Abort);

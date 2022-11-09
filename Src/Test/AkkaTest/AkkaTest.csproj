@@ -7,21 +7,21 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Compile Remove="InMemoryStorage\PersistentInMemorxConfigRepositoryFactory.cs" />
-        <Compile Remove="JsonRepo\JsonConfigRepositoryFactory.cs" />
-        <Compile Remove="JsonRepo\JsonDbFileStore.cs" />
-        <Compile Remove="JsonRepo\JsonRepository.cs" />
-        <Compile Remove="JsonRepo\JsonRepositoryBase.cs" />
-        <Compile Remove="JsonRepo\JsonRepositoryConfiguration.cs" />
+        <Compile Remove="InMemoryStorage\PersistentInMemorxConfigRepositoryFactory.cs"/>
+        <Compile Remove="JsonRepo\JsonConfigRepositoryFactory.cs"/>
+        <Compile Remove="JsonRepo\JsonDbFileStore.cs"/>
+        <Compile Remove="JsonRepo\JsonRepository.cs"/>
+        <Compile Remove="JsonRepo\JsonRepositoryBase.cs"/>
+        <Compile Remove="JsonRepo\JsonRepositoryConfiguration.cs"/>
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="Old\InMemoryStorage\PersistentInMemorxConfigRepositoryFactory.cs" />
-        <None Include="Old\JsonRepo\JsonConfigRepositoryFactory.cs" />
-        <None Include="Old\JsonRepo\JsonDbFileStore.cs" />
-        <None Include="Old\JsonRepo\JsonRepository.cs" />
-        <None Include="Old\JsonRepo\JsonRepositoryBase.cs" />
-        <None Include="Old\JsonRepo\JsonRepositoryConfiguration.cs" />
+        <None Include="Old\InMemoryStorage\PersistentInMemorxConfigRepositoryFactory.cs"/>
+        <None Include="Old\JsonRepo\JsonConfigRepositoryFactory.cs"/>
+        <None Include="Old\JsonRepo\JsonDbFileStore.cs"/>
+        <None Include="Old\JsonRepo\JsonRepository.cs"/>
+        <None Include="Old\JsonRepo\JsonRepositoryBase.cs"/>
+        <None Include="Old\JsonRepo\JsonRepositoryConfiguration.cs"/>
         <None Update="Old\akka.conf">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
@@ -40,24 +40,24 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Akka.DependencyInjection" Version="1.4.40" />
-        <PackageReference Include="Akka.Remote" Version="1.4.40" />
-        <PackageReference Include="Akka.Streams" Version="1.4.40" />
-        <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="8.0.0" />
-        <PackageReference Include="Be.Vlaanderen.Basisregisters.Generators.Guid.Deterministic" Version="3.0.1" />
-        <PackageReference Include="Castle.Core" Version="5.1.0" />
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
-        <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
-        <PackageReference Include="NLog" Version="5.0.2" />
-        <PackageReference Include="SharpRepository.InMemoryRepository" Version="2.0.3.1" />
-        <PackageReference Include="SharpRepository.MongoDbRepository" Version="2.1.1" />
-        <PackageReference Include="Spectre.Console" Version="0.44.0" />
-        <PackageReference Include="System.Threading.Channels" Version="6.0.0" />
+        <PackageReference Include="Akka.DependencyInjection" Version="1.4.40"/>
+        <PackageReference Include="Akka.Remote" Version="1.4.40"/>
+        <PackageReference Include="Akka.Streams" Version="1.4.40"/>
+        <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="8.0.0"/>
+        <PackageReference Include="Be.Vlaanderen.Basisregisters.Generators.Guid.Deterministic" Version="3.0.1"/>
+        <PackageReference Include="Castle.Core" Version="5.1.0"/>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0"/>
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1"/>
+        <PackageReference Include="NLog" Version="5.0.2"/>
+        <PackageReference Include="SharpRepository.InMemoryRepository" Version="2.0.3.1"/>
+        <PackageReference Include="SharpRepository.MongoDbRepository" Version="2.1.1"/>
+        <PackageReference Include="Spectre.Console" Version="0.44.0"/>
+        <PackageReference Include="System.Threading.Channels" Version="6.0.0"/>
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\Apps\Shared\Stl.Fusion.AkkaBridge\Stl.Fusion.AkkaBridge.csproj" />
-        <ProjectReference Include="..\..\Apps\Shared\Tauron.Application.AkkaNode.Boottrap\Tauron.Application.AkkaNode.Boottrap.csproj" />
+        <ProjectReference Include="..\..\Apps\Shared\Stl.Fusion.AkkaBridge\Stl.Fusion.AkkaBridge.csproj"/>
+        <ProjectReference Include="..\..\Apps\Shared\Tauron.Application.AkkaNode.Boottrap\Tauron.Application.AkkaNode.Boottrap.csproj"/>
     </ItemGroup>
 
     <ItemGroup>

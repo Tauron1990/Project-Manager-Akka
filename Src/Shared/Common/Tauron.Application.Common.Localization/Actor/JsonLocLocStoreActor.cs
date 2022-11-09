@@ -22,7 +22,7 @@ public sealed class JsonLocLocStoreActor : LocStoreActorBase
         try
         {
             _configuration = scope.GetService<JsonConfiguration>()
-                ?? JsonConfiguration.CreateFromApplicationPath(factory);
+                          ?? JsonConfiguration.CreateFromApplicationPath(factory);
         }
         catch (Exception)
         {
@@ -32,16 +32,16 @@ public sealed class JsonLocLocStoreActor : LocStoreActorBase
 
     protected override Option<object> TryQuery(string name, CultureInfo target)
     {
-        if (_configuration is null)
+        if(_configuration is null)
             return Option<object>.None;
 
         EnsureInitialized();
 
         do
         {
-            var obj = LookUp(name, target);
+            object? obj = LookUp(name, target);
 
-            if (obj != null)
+            if(obj != null)
                 return obj;
 
             target = target.Parent;
@@ -52,7 +52,7 @@ public sealed class JsonLocLocStoreActor : LocStoreActorBase
 
     private object? LookUp(string name, CultureInfo target)
     {
-        if (_configuration == null) return null;
+        if(_configuration == null) return null;
 
         string language = _configuration.NameMode switch
         {
@@ -65,30 +65,30 @@ public sealed class JsonLocLocStoreActor : LocStoreActorBase
             _ => throw new InvalidOperationException("No Valid Json File Name Mode")
         };
 
-        if (!_files.TryGetValue(language, out var entrys) || !entrys.TryGetValue(name, out var entry) ||
-            entry is not JValue value) return null;
+        if(!_files.TryGetValue(language, out var entrys) || !entrys.TryGetValue(name, out JToken? entry) ||
+           entry is not JValue value) return null;
 
         return value.Type == JTokenType.String ? EscapeHelper.Decode(value.Value<string>()) : value.Value;
     }
 
     private void EnsureInitialized()
     {
-        if (_isInitialized) return;
-        if (_configuration == null) return;
+        if(_isInitialized) return;
+        if(_configuration == null) return;
 
         _files.Clear();
 
 
-        foreach (var file in from f in _configuration.RootDic.Files
-                             where f.Extension == ".json"
-                             select f)
+        foreach (IFile? file in from f in _configuration.RootDic.Files
+                                where f.Extension == ".json"
+                                select f)
         {
             //var text = File.ReadAllText(file, Encoding.UTF8);
-            using var stream = file.Open(FileAccess.Read);
-            var text = new StreamReader(stream).ReadToEnd();
-            var name = GetName(file.OriginalPath);
+            using Stream stream = file.Open(FileAccess.Read);
+            string text = new StreamReader(stream).ReadToEnd();
+            string? name = GetName(file.OriginalPath);
 
-            if (string.IsNullOrWhiteSpace(name)) return;
+            if(string.IsNullOrWhiteSpace(name)) return;
 
             _files[name] = JsonConvert.DeserializeObject<Dictionary<string, JToken>>(text) ?? new Dictionary<string, JToken>();
         }
@@ -98,7 +98,7 @@ public sealed class JsonLocLocStoreActor : LocStoreActorBase
 
     private static string? GetName(string fileName)
     {
-        var data = Path.GetFileNameWithoutExtension(fileName).Split(Sep, StringSplitOptions.RemoveEmptyEntries);
+        string[] data = Path.GetFileNameWithoutExtension(fileName).Split(Sep, StringSplitOptions.RemoveEmptyEntries);
 
         return data.Length switch
         {

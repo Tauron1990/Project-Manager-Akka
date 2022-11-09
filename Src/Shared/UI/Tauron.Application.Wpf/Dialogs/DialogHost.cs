@@ -41,7 +41,7 @@ public class DialogHost : Control
 
     public DialogHost()
     {
-        if (!ActorApplication.IsStarted)
+        if(!ActorApplication.IsStarted)
             return;
 
         var coordinator =
@@ -49,13 +49,13 @@ public class DialogHost : Control
 
         coordinator.HideDialogEvent += () =>
                                        {
-                                           if (MainContent != null)
+                                           if(MainContent != null)
                                            {
                                                MainContent.IsEnabled = true;
                                                MainContent.Visibility = Visibility.Visible;
                                            }
 
-                                           if (DialogContent == null) return;
+                                           if(DialogContent == null) return;
 
                                            DialogContent.Content = null;
                                            DialogContent.IsEnabled = false;
@@ -64,13 +64,13 @@ public class DialogHost : Control
 
         coordinator.ShowDialogEvent += o =>
                                        {
-                                           if (MainContent != null)
+                                           if(MainContent != null)
                                            {
                                                MainContent.IsEnabled = false;
                                                MainContent.Visibility = Visibility.Collapsed;
                                            }
 
-                                           if (DialogContent == null) return;
+                                           if(DialogContent == null) return;
 
                                            DialogContent.Content = o;
                                            DialogContent.IsEnabled = true;
@@ -99,9 +99,9 @@ public class DialogHost : Control
         MainContent = GetTemplateChild("MainContent") as ContentPresenter;
         DialogContent = GetTemplateChild("DialogContent") as ContentPresenter;
 
-        if (MainContent != null)
+        if(MainContent != null)
             MainContent.Content = Main;
-        if (DialogContent != null)
+        if(DialogContent != null)
             DialogContent.Content = Dialog;
 
         base.OnApplyTemplate();

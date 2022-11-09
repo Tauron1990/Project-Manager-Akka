@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Immutable;
+using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading;
 using System.Threading.Tasks;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.ServerApi;
@@ -9,6 +11,7 @@ using SimpleProjectManager.Shared.ServerApi.RestApi;
 using SimpleProjectManager.Shared.Services;
 using Tauron;
 using Tauron.Application;
+using Tauron.Operations;
 
 namespace SimpleProjectManager.Client.Shared.Data.Files;
 
@@ -17,8 +20,8 @@ public sealed record UploadTransactionContext(ImmutableList<FileUploadFile> File
 public sealed class UploadTransaction : SimpleTransaction<UploadTransactionContext>
 {
     private readonly HttpClient _client;
-    private readonly IJobFileService _fileService;
     private readonly IJobDatabaseService _databaseService;
+    private readonly IJobFileService _fileService;
 
     public UploadTransaction(HttpClient client, IJobFileService fileService, IJobDatabaseService databaseService)
     {
@@ -26,7 +29,7 @@ public sealed class UploadTransaction : SimpleTransaction<UploadTransactionConte
 
         _fileService = fileService;
         _databaseService = databaseService;
-        
+
         Register(UploadFiles);
         Register(UpdateProjectData);
         Register(CommitFiles);
@@ -36,7 +39,8 @@ public sealed class UploadTransaction : SimpleTransaction<UploadTransactionConte
     {
         Console.WriteLine("Commit Files");
 
-        var result = await TimeoutToken.WithDefault(context.Token,
+        SimpleResult result = await TimeoutToken.WithDefault(
+            context.Token,
             t => _fileService.CommitFiles(new FileList(context.Metadata.Get<ImmutableList<ProjectFileId>>()), t));
 
         return result.ThrowIfFail<Rollback<UploadTransactionContext>>(() => _ => default);
@@ -44,11 +48,12 @@ public sealed class UploadTransaction : SimpleTransaction<UploadTransactionConte
 
     private async ValueTask<Rollback<UploadTransactionContext>> UpdateProjectData(Context<UploadTransactionContext> transactionContext)
     {
-        var ((_, projectName), meta, token) = transactionContext;
-        var id = ProjectId.For(projectName);
+        ((_, ProjectName projectName), ContextMetadata meta, CancellationToken token) = transactionContext;
+        ProjectId id = ProjectId.For(projectName);
         meta.Set(id);
-        
-        var (failMessage, isNew) = await TimeoutToken.WithDefault(token,
+
+        (SimpleMessage failMessage, bool isNew) = await TimeoutToken.WithDefault(
+            token,
             t => _databaseService.AttachFiles(new ProjectAttachFilesCommand(id, projectName, meta.Get<ImmutableList<ProjectFileId>>()), t));
 
         Console.WriteLine("Files Attached");
@@ -59,8 +64,7 @@ public sealed class UploadTransaction : SimpleTransaction<UploadTransactionConte
                       var (_, contextMetadata, cancellationToken) = c;
                       string deleteResult;
 
-                      if (!isNew)
-                      {
+                      if(!isNew)
                           deleteResult = await TimeoutToken.WithDefault(
                               cancellationToken,
                               t => _databaseService.RemoveFiles(
@@ -68,13 +72,10 @@ public sealed class UploadTransaction : SimpleTransaction<UploadTransactionConte
                                       contextMetadata.Get<ProjectId>(),
                                       contextMetadata.Get<ImmutableList<ProjectFileId>>()),
                                   t));
-                      }
                       else
-                      {
                           deleteResult = await TimeoutToken.WithDefault(
                               cancellationToken,
                               t => _databaseService.DeleteJob(contextMetadata.Get<ProjectId>(), t));
-                      }
 
                       deleteResult.ThrowIfFail();
                   });
@@ -82,7 +83,7 @@ public sealed class UploadTransaction : SimpleTransaction<UploadTransactionConte
 
     private async ValueTask<Rollback<UploadTransactionContext>> UploadFiles(Context<UploadTransactionContext> transactionContext)
     {
-        var ((fileUploadFiles, projectName), meta, token) = transactionContext;
+        ((var fileUploadFiles, ProjectName projectName), ContextMetadata meta, CancellationToken token) = transactionContext;
         fileUploadFiles.ForEach(f => f.UploadState = UploadState.Uploading);
 
         var requestContent = new MultipartFormDataContent();
@@ -93,29 +94,29 @@ public sealed class UploadTransaction : SimpleTransaction<UploadTransactionConte
 
         requestContent.Add(new StringContent(projectName.Value, null), "JobName");
 
-        var (failMessage, ids) = await TimeoutToken.With(
+        (SimpleResult failMessage, var ids) = await TimeoutToken.With(
             TimeSpan.FromMinutes(30),
             token,
             async t =>
             {
-                foreach (var file in fileUploadFiles)
+                foreach (FileUploadFile file in fileUploadFiles)
                 {
                     t.ThrowIfCancellationRequested();
 
-                    var stream = file.Open(t);
+                    Stream stream = file.Open(t);
 
-                        Console.WriteLine("Add File Stream");
-                        requestContent.Add(
-                            new StreamContent(stream)
+                    Console.WriteLine("Add File Stream");
+                    requestContent.Add(
+                        new StreamContent(stream)
+                        {
+                            Headers =
                             {
-                                Headers =
-                                {
-                                    ContentLength = file.UploadFile.Size,
-                                    ContentType = new MediaTypeHeaderValue(file.ContentType)
-                                }
-                            },
-                            "files",
-                            file.Name);
+                                ContentLength = file.UploadFile.Size,
+                                ContentType = new MediaTypeHeaderValue(file.ContentType)
+                            }
+                        },
+                        "files",
+                        file.Name);
                 }
 
                 #if DEBUG
@@ -127,14 +128,15 @@ public sealed class UploadTransaction : SimpleTransaction<UploadTransactionConte
             });
 
         meta.Set(ids);
-        
+
         return failMessage.ThrowIfFail<Rollback<UploadTransactionContext>>(
             () => async c =>
-            {
-                var deleteResult = await TimeoutToken.WithDefault(c.Token,
-                    t => _fileService.DeleteFiles(new FileList(c.Metadata.Get<ImmutableList<ProjectFileId>>()), t));
+                  {
+                      var deleteResult = await TimeoutToken.WithDefault(
+                          c.Token,
+                          t => _fileService.DeleteFiles(new FileList(c.Metadata.Get<ImmutableList<ProjectFileId>>()), t));
 
-                deleteResult.ThrowIfFail();
-            });
+                      deleteResult.ThrowIfFail();
+                  });
     }
 }

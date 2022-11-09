@@ -4,11 +4,11 @@ using SimpleProjectManager.Operation.Client.Core;
 
 namespace SimpleProjectManager.Operation.Client.ImageEditor;
 
-public sealed partial class ImageEditorStartup
+public sealed class ImageEditorStartup
 {
-    private readonly HostStarter _starter;
     private readonly OperationConfiguration _configuration;
     private readonly ILogger<ImageEditorStartup> _logger;
+    private readonly HostStarter _starter;
 
     public ImageEditorStartup(HostStarter starter, OperationConfiguration configuration, ILogger<ImageEditorStartup> logger)
     {
@@ -21,7 +21,7 @@ public sealed partial class ImageEditorStartup
     {
         try
         {
-            if(!_configuration.ImageEditor) return;
+            if(!_configuration.Editor.Active) return;
 
             await _starter.NameRegistrated;
         }

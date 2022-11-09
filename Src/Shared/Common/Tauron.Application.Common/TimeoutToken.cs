@@ -14,42 +14,45 @@ public sealed class TimeoutToken
         => With(TimeSpan.FromSeconds(20), token, runner);
 
     public static async ValueTask With(TimeSpan timeSpan, CancellationToken token, Func<CancellationToken, Task> runner)
-        => await With(timeSpan, token,
+        => await With(
+            timeSpan,
+            token,
             async timeoutToken =>
             {
                 await runner(timeoutToken);
+
                 return Unit.Default;
             });
-    
+
     public static ValueTask<TResult> WithDefault<TResult>(CancellationToken token, Func<CancellationToken, Task<TResult>> runner)
         => With(TimeSpan.FromSeconds(20), token, runner);
-    
+
     public static async ValueTask<TResult> With<TResult>(TimeSpan timeSpan, CancellationToken token, Func<CancellationToken, Task<TResult>> runner)
         #pragma warning restore CA1068
     {
-        using var cts = CreateSource();
-        
+        using CancellationTokenSource cts = CreateSource();
+
         return await runner(cts.Token);
 
         CancellationTokenSource CreateSource()
         {
-            var timeout =
+            TimeSpan timeout =
                     #if DEBUG
                     TimeSpan.FromMinutes(300)
-                    #else
+                #else
                     timeSpan
-                    #endif
+                #endif
                 ;
 
-            if (token.CanBeCanceled)
+            if(token.CanBeCanceled)
             {
                 var source = CancellationTokenSource.CreateLinkedTokenSource(token);
                 source.CancelAfter(timeout);
 
                 return source;
             }
-            else
-                return new CancellationTokenSource(timeout);
+
+            return new CancellationTokenSource(timeout);
         }
     }
 }

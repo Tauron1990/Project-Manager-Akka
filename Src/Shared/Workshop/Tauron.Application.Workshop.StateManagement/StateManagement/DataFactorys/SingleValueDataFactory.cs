@@ -16,7 +16,7 @@ public abstract class SingleValueDataFactory<TData> : AdvancedDataSourceFactory
     {
         return () =>
                {
-                   if (_source != null) return (IExtendedDataSource<TRealData>)(object)_source;
+                   if(_source != null) return (IExtendedDataSource<TRealData>)(object)_source;
 
                    lock (_lock)
                    {

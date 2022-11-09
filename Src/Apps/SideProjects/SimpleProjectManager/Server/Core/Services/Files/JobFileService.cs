@@ -13,9 +13,9 @@ namespace SimpleProjectManager.Server.Core.Services;
 
 public class JobFileService : IJobFileService, IDisposable
 {
-    private readonly ILogger<JobFileService> _logger;
     private readonly FileContentManager _contentManager;
     private readonly MappingDatabase<DbFileInfoData, FileInfoData> _files;
+    private readonly ILogger<JobFileService> _logger;
     private readonly IDisposable _subscription;
 
     public JobFileService(IInternalDataRepository dataRepository, ILogger<JobFileService> logger, IEventAggregator aggregator, FileContentManager contentManager)
@@ -25,7 +25,7 @@ public class JobFileService : IJobFileService, IDisposable
         _files = new MappingDatabase<DbFileInfoData, FileInfoData>(
             dataRepository.Databases.FileInfos,
             dataRepository.Databases.Mapper);
-        
+
         _subscription = new CompositeDisposable
                         {
                             aggregator.SubscribeTo<FileAdded>()
@@ -34,33 +34,43 @@ public class JobFileService : IJobFileService, IDisposable
                                     _ =>
                                     {
                                         using (Computed.Invalidate())
+                                        {
                                             GetAllFiles(default).Ignore();
+                                        }
                                     }),
-                            
+
                             aggregator.SubscribeTo<FileDeleted>()
                                .ObserveOn(Scheduler.Default)
                                .Subscribe(
                                     d =>
                                     {
                                         using (Computed.Invalidate())
+                                        {
                                             GetAllFiles(default).Ignore();
+                                        }
 
                                         var filter = _files.Operations.Eq(m => m.Id, d.Id.Value);
                                         DbOperationResult result = _files.DeleteOne(filter);
 
-                                        if (!result.IsAcknowledged || result.DeletedCount != 1) return;
+                                        if(!result.IsAcknowledged || result.DeletedCount != 1) return;
 
                                         using (Computed.Invalidate())
+                                        {
                                             GetJobFileInfo(d.Id, default).Ignore();
+                                        }
                                     })
                         };
     }
 
+    public void Dispose()
+        => _subscription.Dispose();
+
     public virtual async Task<ProjectFileInfo?> GetJobFileInfo(ProjectFileId id, CancellationToken token)
     {
-        if (Computed.IsInvalidating()) return null;
-        
-        var filter =_files.Operations.Eq(d => d.Id, id.Value);
+        if(Computed.IsInvalidating()) return null;
+
+        var filter = _files.Operations.Eq(d => d.Id, id.Value);
+
         return await _files.ExecuteFirstOrDefaultAsync<DbFileInfoData, ProjectFileInfo>(_files.Find(filter), token);
     }
 
@@ -73,7 +83,7 @@ public class JobFileService : IJobFileService, IDisposable
                     new FileName(d.FileName),
                     new FileSize(d.Length),
                     new JobName(d.JobName)))
-           .ToArrayAsync(cancellationToken: token);
+           .ToArrayAsync(token);
 
     public async Task<string> RegisterFile(ProjectFileInfo projectFile, CancellationToken token)
     {
@@ -81,7 +91,7 @@ public class JobFileService : IJobFileService, IDisposable
         {
             var filter = _files.Operations.Eq(d => d.Id, projectFile.Id.Value);
 
-            if (await _files.CountEntrys(filter, token) == 1)
+            if(await _files.CountEntrys(filter, token) == 1)
                 return "Der eintrag existiert schon";
 
             await _files.InsertOneAsync(
@@ -101,6 +111,7 @@ public class JobFileService : IJobFileService, IDisposable
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error on Registrationg File");
+
             return ex.Message;
         }
     }
@@ -109,14 +120,15 @@ public class JobFileService : IJobFileService, IDisposable
     {
         var errors = ImmutableList<string>.Empty;
 
-        foreach (var item in items)
+        foreach (TItem item in items)
         {
-            var result = await executor(item);
+            string? result = await executor(item);
+
             if(string.IsNullOrWhiteSpace(result)) continue;
 
             errors = errors.Add(result);
         }
-        
+
         return errors.IsEmpty ? string.Empty : string.Join($", {Environment.NewLine}", errors);
     }
 
@@ -125,7 +137,4 @@ public class JobFileService : IJobFileService, IDisposable
 
     public async Task<string> DeleteFiles(FileList files, CancellationToken token)
         => await AggregateErrors(files.Files, id => _contentManager.DeleteFile(id, token));
-
-    public void Dispose()
-        => _subscription.Dispose();
 }

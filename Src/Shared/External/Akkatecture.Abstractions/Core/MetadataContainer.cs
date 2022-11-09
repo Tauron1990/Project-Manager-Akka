@@ -49,7 +49,7 @@ public class MetadataContainer : Dictionary<string, string>
 
     public void AddRange(IEnumerable<KeyValuePair<string, string>> keyValuePairs)
     {
-        foreach (var (key, value) in keyValuePairs) Add(key, value);
+        foreach ((string key, string value) in keyValuePairs) Add(key, value);
     }
 
     public override string ToString()
@@ -60,7 +60,7 @@ public class MetadataContainer : Dictionary<string, string>
 
     public virtual T GetMetadataValue<T>(string key, Func<string, T> converter)
     {
-        if (!TryGetValue(key, out var value)) throw new MetadataKeyNotFoundException(key);
+        if(!TryGetValue(key, out string? value)) throw new MetadataKeyNotFoundException(key);
 
         try
         {

@@ -1,5 +1,4 @@
-﻿
-@implements IDisposable
+﻿@implements IDisposable
 
 <MudCheckBox ReadOnly="true" Checked="Item?.IsSelected ?? false"/>
 
@@ -10,7 +9,7 @@
 
     public override Task SetParametersAsync(ParameterView parameters)
     {
-        if (Item != null)
+        if(Item != null)
             Item.Callback = default;
 
         return base.SetParametersAsync(parameters);
@@ -18,14 +17,14 @@
 
     protected override void OnParametersSet()
     {
-        if (Item != null)
+        if(Item != null)
             Item.Callback = new EventCallback(this, new Action(StateHasChanged));
         base.OnParametersSet();
     }
 
     public void Dispose()
     {
-        if (Item != null)
+        if(Item != null)
             Item.Callback = default;
     }
 

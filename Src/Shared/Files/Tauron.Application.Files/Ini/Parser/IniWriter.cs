@@ -20,19 +20,20 @@ public class IniWriter
     {
         try
         {
-            foreach (var section in _file)
+            foreach (IniSection section in _file)
             {
                 _writer.WriteLine(string.Format(CultureInfo.InvariantCulture, "[{0}]", section.Name));
-                foreach (var iniEntry in section)
+                foreach (IniEntry iniEntry in section)
                 {
-                    if (iniEntry is SingleIniEntry(var key, var data))
+                    if(iniEntry is SingleIniEntry(var key, var data))
                     {
                         _writer.WriteLine(string.Format(CultureInfo.InvariantCulture, "{0}={1}", key, data));
+
                         continue;
                     }
 
-                    var (name, values) = (ListIniEntry)iniEntry;
-                    foreach (var value in values)
+                    (string name, var values) = (ListIniEntry)iniEntry;
+                    foreach (string value in values)
                         _writer.WriteLine(string.Format(CultureInfo.InvariantCulture, "{0}={1}", name, value));
                 }
             }

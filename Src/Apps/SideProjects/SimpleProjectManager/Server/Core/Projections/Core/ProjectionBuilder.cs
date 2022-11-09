@@ -7,67 +7,66 @@ using LiquidProjections;
 using SimpleProjectManager.Server.Data;
 using Tauron.Akkatecture.Projections;
 
-namespace SimpleProjectManager.Server.Core.Projections.Core
+namespace SimpleProjectManager.Server.Core.Projections.Core;
+
+public static class ProjectionBuilder
 {
-    public static class ProjectionBuilder
+    public static DomainDispatcher<TProjection, TIdentity> CreateProjection<TProjection, TAggregate, TIdentity>(
+        ActorSystem system, Action<DomainEventMapBuilder<TProjection, TAggregate, TIdentity>> mapBuilderAction, ILoggerFactory loggerFactory)
+        where TProjection : class, IProjectorData<TIdentity>
+        where TAggregate : IAggregateRoot<TIdentity>
+        where TIdentity : IIdentity
     {
-        private sealed class EventMapDispatcher : IEventMap<ProjectionContext>
+        DependencyResolver? resolver = DependencyResolver.For(system);
+
+        var repository = resolver.Resolver.GetService<IInternalDataRepository>();
+        var eventDispatcher = resolver.Resolver.GetService<DomainEventDispatcher>();
+
+        var evtBuilder = new DomainEventMapBuilder<TProjection, TAggregate, TIdentity>();
+
+        mapBuilderAction(evtBuilder);
+        var eventMap = new EventMapDispatcher(eventDispatcher, evtBuilder.Build(new RepositoryProjectorMap<TProjection, TIdentity>(repository)));
+
+        var projector = new DomainProjector(eventMap);
+
+        var journalType = Type.GetType(system.Settings.Config.GetString("akka.persistence.journal.queryConfig.class"));
+
+        if(journalType is null || Activator.CreateInstance(journalType, system, system.Settings.Config) is not IReadJournalProvider journalProvider)
+            throw new InvalidOperationException("Journal Type not found");
+
+
+        journalType = journalProvider.GetReadJournal().GetType();
+
+        if(typeof(AggregateEventReader<>)
+              .MakeGenericType(journalType)
+              .GetConstructor(new[] { typeof(ActorSystem), typeof(string) })
+             ?.Invoke(new object[] { system, "akka.persistence.journal.queryConfig" }) is not AggregateEventReader reader)
+            throw new InvalidOperationException("Journal Creation Failed");
+
+        var dispatcher = new DomainDispatcher<TProjection, TIdentity>(reader, projector, repository, loggerFactory.CreateLogger<DomainDispatcher<TProjection, TIdentity>>());
+
+        return dispatcher;
+    }
+
+    private sealed class EventMapDispatcher : IEventMap<ProjectionContext>
+    {
+        private readonly DomainEventDispatcher _eventDispatcher;
+        private readonly IEventMap<ProjectionContext> _originalMap;
+
+        public EventMapDispatcher(DomainEventDispatcher eventDispatcher, IEventMap<ProjectionContext> originalMap)
         {
-            private readonly DomainEventDispatcher _eventDispatcher;
-            private readonly IEventMap<ProjectionContext> _originalMap;
-
-            public EventMapDispatcher(DomainEventDispatcher eventDispatcher, IEventMap<ProjectionContext> originalMap)
-            {
-                _eventDispatcher = eventDispatcher;
-                _originalMap = originalMap;
-            }
-
-            public async Task<bool> Handle(object anEvent, ProjectionContext context)
-            {
-                var result = await _originalMap.Handle(anEvent, context);
-
-                if(result)
-                    _eventDispatcher.Publish((IDomainEvent)anEvent);
-
-                return result;
-            }
+            _eventDispatcher = eventDispatcher;
+            _originalMap = originalMap;
         }
 
-        public static DomainDispatcher<TProjection, TIdentity> CreateProjection<TProjection, TAggregate, TIdentity>(
-            ActorSystem system, Action<DomainEventMapBuilder<TProjection, TAggregate, TIdentity>> mapBuilderAction, ILoggerFactory loggerFactory) 
-            where TProjection : class, IProjectorData<TIdentity> 
-            where TAggregate : IAggregateRoot<TIdentity>
-            where TIdentity : IIdentity
+        public async Task<bool> Handle(object anEvent, ProjectionContext context)
         {
-            var resolver = DependencyResolver.For(system);
+            bool result = await _originalMap.Handle(anEvent, context);
 
-            var repository = resolver.Resolver.GetService<IInternalDataRepository>();
-            var eventDispatcher = resolver.Resolver.GetService<DomainEventDispatcher>();
+            if(result)
+                _eventDispatcher.Publish((IDomainEvent)anEvent);
 
-            var evtBuilder = new DomainEventMapBuilder<TProjection, TAggregate, TIdentity>();
-
-            mapBuilderAction(evtBuilder);
-            var eventMap = new EventMapDispatcher(eventDispatcher, evtBuilder.Build(new RepositoryProjectorMap<TProjection, TIdentity>(repository)));
-
-            var projector = new DomainProjector(eventMap);
-
-            var journalType = Type.GetType(system.Settings.Config.GetString("akka.persistence.journal.queryConfig.class"));
-
-            if(journalType is null || Activator.CreateInstance(journalType, system, system.Settings.Config) is not IReadJournalProvider journalProvider)
-                throw new InvalidOperationException("Journal Type not found");
-
-            
-            journalType = journalProvider.GetReadJournal().GetType();
-
-            if(typeof(AggregateEventReader<>)
-                  .MakeGenericType(journalType)
-                  .GetConstructor(new[] { typeof(ActorSystem), typeof(string) })
-                 ?.Invoke(new object[] { system, "akka.persistence.journal.queryConfig" }) is not AggregateEventReader reader)
-                throw new InvalidOperationException("Journal Creation Failed");
-                
-            var dispatcher = new DomainDispatcher<TProjection, TIdentity>(reader, projector, repository, loggerFactory.CreateLogger<DomainDispatcher<TProjection, TIdentity>>());
-
-            return dispatcher;
+            return result;
         }
     }
 }

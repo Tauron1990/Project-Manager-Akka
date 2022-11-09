@@ -9,12 +9,16 @@ namespace Tauron.Application.Workshop.Driver;
 
 public sealed class TaskDriverFactory : IDriverFactory, IDisposable
 {
+    private readonly List<IProcess> _processes = new();
     private readonly IProcessorQueue _processorQueue = new ProcesRunner();
     private readonly IServiceProvider _provider;
-    private readonly List<IProcess> _processes = new();
 
     public TaskDriverFactory(IServiceProvider provider)
         => _provider = provider;
+
+    public void Dispose()
+        // ReSharper disable once SuspiciousTypeConversion.Global
+        => _processes.OfType<IDisposable>().Foreach(d => d.Dispose());
 
     public Action<IDataMutation> CreateMutator()
         => new MutationRunner().Enqueue;
@@ -25,7 +29,7 @@ public sealed class TaskDriverFactory : IDriverFactory, IDisposable
 
     public void CreateProcessor(Type processor, string name)
     {
-        if (!processor.IsAssignableTo(typeof(IProcess)))
+        if(!processor.IsAssignableTo(typeof(IProcess)))
             throw new InvalidOperationException("The Type is not a Valid Process");
 
         var processInst = (IProcess)ActivatorUtilities.CreateInstance(_provider, processor);
@@ -35,8 +39,4 @@ public sealed class TaskDriverFactory : IDriverFactory, IDisposable
 
     public Action<IOperationResult>? GetResultSender()
         => null;
-
-    public void Dispose()
-        // ReSharper disable once SuspiciousTypeConversion.Global
-        => _processes.OfType<IDisposable>().Foreach(d => d.Dispose());
 }

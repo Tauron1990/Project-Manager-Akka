@@ -32,7 +32,7 @@ public class RoomMover : Rule, IRoomManager<RoomMover>
 
         if(command.Name == GameManager.FailRoom)
             throw new InvalidOperationException("Fail Room not Found");
-            
+
         return new RoomMoveFailedCommand(command.Name);
 
     }

@@ -1,13 +1,11 @@
-﻿
-namespace SimpleProjectManager.Server.Core.Services
+﻿namespace SimpleProjectManager.Server.Core.Services;
+
+public sealed class ServicesModule : IModule
 {
-    public sealed class ServicesModule : IModule
+    public void Load(IServiceCollection collection)
     {
-        public void Load(IServiceCollection collection)
-        {
-            collection.AddSingleton<FileContentManager>();
-            collection.AddScoped<CommitRegistrationTransaction>();
-            collection.AddScoped<PreRegisterTransaction>();
-        }
+        collection.AddSingleton<FileContentManager>();
+        collection.AddScoped<CommitRegistrationTransaction>();
+        collection.AddScoped<PreRegisterTransaction>();
     }
 }

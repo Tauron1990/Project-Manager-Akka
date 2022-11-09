@@ -6,21 +6,8 @@ namespace Tauron.Application.Akka.Redux.Internal;
 
 public sealed class RootStoreState<TState> : IRootStoreState<TState>, IActionDispatcher, IInternalRootStoreState<TState>
 {
-    public IReduxStore<TState> Store { get; }
-
     public RootStoreState(IReduxStore<TState> store)
         => Store = store;
-
-    public TState CurrentState => Store.CurrentState;
-
-    public Source<TResult, NotUsed> ObservAction<TAction, TResult>(Flow<(TState State, TAction Action), TResult, NotUsed> resultSelector) where TAction : class
-        => Store.ObservAction(resultSelector);
-
-    public Source<TState, NotUsed> Select()
-        => Store.Select();
-
-    public Source<TResult, NotUsed> Select<TResult>(Flow<TState, TResult, NotUsed> selector)
-        => Store.Select(selector);
 
     public bool CanProcess<TAction>()
         => Store.CanProcess<TAction>();
@@ -36,4 +23,17 @@ public sealed class RootStoreState<TState> : IRootStoreState<TState>, IActionDis
 
     public Sink<object, NotUsed> Dispatcher()
         => Store.Dispatcher();
+
+    public IReduxStore<TState> Store { get; }
+
+    public TState CurrentState => Store.CurrentState;
+
+    public Source<TResult, NotUsed> ObservAction<TAction, TResult>(Flow<(TState State, TAction Action), TResult, NotUsed> resultSelector) where TAction : class
+        => Store.ObservAction(resultSelector);
+
+    public Source<TState, NotUsed> Select()
+        => Store.Select();
+
+    public Source<TResult, NotUsed> Select<TResult>(Flow<TState, TResult, NotUsed> selector)
+        => Store.Select(selector);
 }

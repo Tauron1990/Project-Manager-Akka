@@ -9,11 +9,11 @@ namespace Tauron.Applicarion.Redux.Internal;
 
 public sealed class RootStore : IRootStore
 {
-    private readonly IScheduler _scheduler;
-    private readonly Action<Exception> _onError;
-    private readonly Dictionary<Type, IActionDispatcher> _stores = new();
-    private readonly Dictionary<Type, MiddlewareRegistration> _middlewares = new();
     private readonly Subject<object> _actions = new();
+    private readonly Dictionary<Type, MiddlewareRegistration> _middlewares = new();
+    private readonly Action<Exception> _onError;
+    private readonly IScheduler _scheduler;
+    private readonly Dictionary<Type, IActionDispatcher> _stores = new();
     private readonly IDisposable _subscription;
 
     public RootStore(IScheduler scheduler, List<IConfiguredState> configuredStates, Action<Exception> onError)
@@ -30,7 +30,7 @@ public sealed class RootStore : IRootStore
             select (dispatcher, action)
         ).Subscribe(p => p.dispatcher.Dispatch(p.action));
 
-        foreach (var state in configuredStates)
+        foreach (IConfiguredState state in configuredStates)
             state.RunConfig(this);
     }
 
@@ -60,7 +60,7 @@ public sealed class RootStore : IRootStore
 
     public IRootStoreState<TState> ForState<TState>() where TState : new()
     {
-        if(_stores.TryGetValue(typeof(TState), out var store) && store is IRootStoreState<TState> reduxStore)
+        if(_stores.TryGetValue(typeof(TState), out IActionDispatcher? store) && store is IRootStoreState<TState> reduxStore)
             return reduxStore;
 
         var storeState = new RootStoreState<TState>(new Store<TState>(new TState(), _scheduler, _onError));
@@ -71,7 +71,7 @@ public sealed class RootStore : IRootStore
 
     public void RegisterMiddlewares(IEnumerable<IMiddleware> middlewares)
     {
-        foreach (var middleware in middlewares)
+        foreach (IMiddleware middleware in middlewares)
         {
             var reg = new MiddlewareRegistration(middleware, _onError);
             _middlewares.Add(middleware.GetType(), reg);
@@ -81,23 +81,22 @@ public sealed class RootStore : IRootStore
 
     public TMiddleware GetMiddleware<TMiddleware>(Func<TMiddleware> factory) where TMiddleware : IMiddleware
     {
-        if(_middlewares.TryGetValue(typeof(TMiddleware), out var registration) && registration.Middleware is TMiddleware typed) return typed;
+        if(_middlewares.TryGetValue(typeof(TMiddleware), out MiddlewareRegistration? registration) && registration.Middleware is TMiddleware typed) return typed;
 
         registration = new MiddlewareRegistration(factory(), _onError);
         _middlewares.Add(typeof(TMiddleware), registration);
         registration.Connect(this);
-        
+
         return (TMiddleware)registration.Middleware;
     }
 
     public void RegisterMiddlewares(params IMiddleware[] middlewares)
         => RegisterMiddlewares(middlewares.AsEnumerable());
-    
+
     private sealed class MiddlewareRegistration : IDisposable
     {
         private readonly Action<Exception> _error;
         private IDisposable _subscriptions = Disposable.Empty;
-        public IMiddleware Middleware { get; }
 
         public MiddlewareRegistration(IMiddleware middleware, Action<Exception> error)
         {
@@ -105,22 +104,25 @@ public sealed class RootStore : IRootStore
             Middleware = middleware;
         }
 
+        public IMiddleware Middleware { get; }
+
+        public void Dispose()
+            => _subscriptions.Dispose();
+
         public void Connect(IRootStore store)
         {
             Middleware.Init(store);
             _subscriptions = Middleware
                .Connect(store)
-               .RetryWhen(exSource => exSource.Select(
-                              ex =>
-                              {
-                                  _error(ex);
+               .RetryWhen(
+                    exSource => exSource.Select(
+                        ex =>
+                        {
+                            _error(ex);
 
-                                  return Unit.Default;
-                              }))
+                            return Unit.Default;
+                        }))
                .Subscribe(store.Dispatch);
         }
-
-        public void Dispose()
-            => _subscriptions.Dispose();
     }
 }

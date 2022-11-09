@@ -14,7 +14,4 @@ namespace Tauron.Application.Master.Commands.Deployment.Build;
 [Instance("BuildDotnetNotFound", "BuildDotnetNotFound")]
 [Instance("BuildDotNetFailed", "BuildDotNetFailed")]
 [Instance("BuildProjectNotFound", "BuildProjectNotFound")]
-public readonly partial struct DeploymentErrorCode
-{
-    
-} 
+public readonly partial struct DeploymentErrorCode { }

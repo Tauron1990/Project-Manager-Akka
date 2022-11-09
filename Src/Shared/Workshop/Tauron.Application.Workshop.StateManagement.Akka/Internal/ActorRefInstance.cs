@@ -25,23 +25,23 @@ public sealed class ActorRefInstance : IStateInstance
 
     public void InitState<TData>(ExtendedMutatingEngine<MutatingContext<TData>> engine)
     {
-        if (_targetType.Implements<IInitState<TData>>())
+        if(_targetType.Implements<IInitState<TData>>())
             ActorRef.ToObservable().Subscribe(a => a.Tell(StateActorMessage.Create(engine)));
     }
 
     public void ApplyQuery<TData>(IExtendedDataSource<MutatingContext<TData>> engine) where TData : class, IStateEntity
     {
-        if (_targetType.Implements<IGetSource<TData>>())
+        if(_targetType.Implements<IGetSource<TData>>())
             ActorRef.ToObservable().Subscribe(m => m.Tell(StateActorMessage.Create(engine)));
     }
 
     public void PostInit(IActionInvoker actionInvoker)
     {
-        if (_initCalled) return;
+        if(_initCalled) return;
 
         _initCalled = true;
 
-        if (_targetType.Implements<IPostInit>())
+        if(_targetType.Implements<IPostInit>())
             ActorRef.ToObservable().Subscribe(m => m.Tell(StateActorMessage.Create(actionInvoker)));
     }
 }

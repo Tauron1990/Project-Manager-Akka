@@ -34,7 +34,7 @@ public class AggregateSagaManagerSettings
 
     public AggregateSagaManagerSettings(Config config)
     {
-        var aggregateSagaManagerConfig = config.WithFallback(AkkatectureDefaultSettings.DefaultConfig());
+        Config? aggregateSagaManagerConfig = config.WithFallback(AkkatectureDefaultSettings.DefaultConfig());
         aggregateSagaManagerConfig = aggregateSagaManagerConfig.GetConfig(Section);
 
         AutoSpawnOnReceive = aggregateSagaManagerConfig.GetBoolean("auto-spawn-on-receive");

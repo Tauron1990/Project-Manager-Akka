@@ -19,17 +19,17 @@ public sealed class MessageBuffer
 
     public NetworkMessage? AddBuffer(Memory<byte> buffer)
     {
-        if (_incomming.Count == 0 && !_messageFormatter.HasHeader(buffer))
+        if(_incomming.Count == 0 && !_messageFormatter.HasHeader(buffer))
             throw new InvalidOperationException("Incomming Message has no header");
 
-        if (_incomming.Count != 0 && buffer.Length < NetworkMessageFormatter.End.Length)
+        if(_incomming.Count != 0 && buffer.Length < NetworkMessageFormatter.End.Length)
         {
             _incomming.Add(buffer);
 
             var temp = Merge();
             using var merge = temp.Memory;
 
-            if (_messageFormatter.HasTail(merge.Memory))
+            if(_messageFormatter.HasTail(merge.Memory))
                 return _messageFormatter.ReadMessage(merge.Memory);
 
             _incomming.Add(merge.Memory[..temp.Lenght].ToArray());
@@ -37,7 +37,7 @@ public sealed class MessageBuffer
             return null;
         }
 
-        if (_incomming.Count == 0 && _messageFormatter.HasTail(buffer))
+        if(_incomming.Count == 0 && _messageFormatter.HasTail(buffer))
         {
             _incomming.Add(buffer);
             var merge = Merge();
@@ -46,7 +46,7 @@ public sealed class MessageBuffer
             return _messageFormatter.ReadMessage(data.Memory);
         }
 
-        if (_messageFormatter.HasTail(buffer))
+        if(_messageFormatter.HasTail(buffer))
         {
             _incomming.Add(buffer);
             var merge = Merge();
@@ -62,7 +62,7 @@ public sealed class MessageBuffer
 
     private (IMemoryOwner<byte> Memory, int Lenght) Merge()
     {
-        var minLenght = _incomming.Sum(a => a.Length);
+        int minLenght = _incomming.Sum(a => a.Length);
         var data = _pool.Rent(minLenght);
 
         var start = 0;

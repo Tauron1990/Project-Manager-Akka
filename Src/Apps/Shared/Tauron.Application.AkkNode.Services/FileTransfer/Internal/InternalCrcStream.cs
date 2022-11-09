@@ -78,7 +78,7 @@ public class InternalCrcStream : IDisposable
             {
                 uint crc = i;
                 for (var j = 8; j > 0; j--)
-                    if ((crc & 1) == 1)
+                    if((crc & 1) == 1)
                         crc = (crc >> 1) ^ poly;
                     else
                         crc >>= 1;

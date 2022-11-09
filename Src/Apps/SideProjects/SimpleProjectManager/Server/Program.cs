@@ -12,16 +12,17 @@ try
 {
     StartConfigManager.ConfigManager.Init();
 
-    var builder = Bootstrap.StartNode(args, KillRecpientType.Seed, IpcApplicationType.NoIpc, consoleLog: true)
-       .ConfigureServices(sc => sc.RegisterModules(
-                              new AkkaModule(), 
-                              new CommonModule(), 
-                              new DataModule(),
-                              new MainModule(), 
-                              new ProjectionModule(), 
-                              new ServicesModule(),
-                              new TaskModule(),
-                              new DeviceModule()))
+    IHostBuilder builder = Bootstrap.StartNode(args, KillRecpientType.Seed, IpcApplicationType.NoIpc, consoleLog: true)
+       .ConfigureServices(
+            sc => sc.RegisterModules(
+                new AkkaModule(),
+                new CommonModule(),
+                new DataModule(),
+                new MainModule(),
+                new ProjectionModule(),
+                new ServicesModule(),
+                new TaskModule(),
+                new DeviceModule()))
        .ConfigureWebHostDefaults(
             b =>
             {

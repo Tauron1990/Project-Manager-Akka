@@ -8,5 +8,5 @@ namespace Tauron.Localization;
 public class LocalicationModule : IModule
 {
     public void Load(IServiceCollection collection)
-        => collection.AddScoped< ILocStoreProducer, LocJsonProvider>();
+        => collection.AddScoped<ILocStoreProducer, LocJsonProvider>();
 }

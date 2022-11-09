@@ -31,7 +31,7 @@ public class JobNameAttribute : Attribute
 {
     public JobNameAttribute(string name)
     {
-        if (string.IsNullOrEmpty(name))
+        if(string.IsNullOrEmpty(name))
             throw new ArgumentNullException(nameof(name));
 
         Name = name;

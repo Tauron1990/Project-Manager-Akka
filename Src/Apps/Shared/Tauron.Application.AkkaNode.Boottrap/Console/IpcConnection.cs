@@ -24,7 +24,7 @@ internal sealed class IpcConnection : IIpcConnection, IDisposable
             switch (type)
             {
                 case IpcApplicationType.Server:
-                    if (masterExists)
+                    if(masterExists)
                     {
                         IsReady = false;
                         ErrorMessage = "Duplicate Server Start";
@@ -37,7 +37,7 @@ internal sealed class IpcConnection : IIpcConnection, IDisposable
 
                     break;
                 case IpcApplicationType.Client:
-                    if (!masterExists)
+                    if(!masterExists)
                     {
                         IsReady = false;
                         ErrorMessage = "No Server Found";
@@ -84,7 +84,7 @@ internal sealed class IpcConnection : IIpcConnection, IDisposable
 
     public IObservable<CallResult<TType>> OnMessage<TType>()
     {
-        if (!IsReady)
+        if(!IsReady)
             return Observable.Empty<CallResult<TType>>();
 
         string type = typeof(TType).AssemblyQualifiedName ??
@@ -95,16 +95,16 @@ internal sealed class IpcConnection : IIpcConnection, IDisposable
 
     public bool SendMessage<TMessage>(in Client to, TMessage message)
     {
-        if (!IsReady)
+        if(!IsReady)
             return false;
 
-        var name = typeof(TMessage).AssemblyQualifiedName ??
-                   throw new InvalidOperationException("Invalid Message Type");
-        var data = JsonConvert.SerializeObject(message);
+        string name = typeof(TMessage).AssemblyQualifiedName ??
+                      throw new InvalidOperationException("Invalid Message Type");
+        string data = JsonConvert.SerializeObject(message);
 
         var nm = NetworkMessage.Create(name, Encoding.UTF8.GetBytes(data));
 
-        if (_dataClient != null)
+        if(_dataClient != null)
             return _dataClient.Send(nm);
 
         return _dataServer != null && _dataServer.Send(to, nm);
@@ -118,11 +118,11 @@ internal sealed class IpcConnection : IIpcConnection, IDisposable
         {
             _dataServer?.Start();
 
-            if (_dataClient is null) return;
+            if(_dataClient is null) return;
 
             _dataClient.Connect();
 
-            if (SendMessage(new RegisterNewClient(SharmComunicator.ProcessId, serviceName)))
+            if(SendMessage(new RegisterNewClient(SharmComunicator.ProcessId, serviceName)))
                 return;
 
             IsReady = false;
@@ -143,7 +143,7 @@ internal sealed class IpcConnection : IIpcConnection, IDisposable
 
     internal void Disconnect()
     {
-        if (_dataClient is SharmClient client)
+        if(_dataClient is SharmClient client)
             client.Disconnect();
     }
 }

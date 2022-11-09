@@ -27,7 +27,7 @@ public static class EventActorExtensions
 
     public static IEventActor GetOrCreateEventActor(this IUntypedActorContext system, string name)
     {
-        var child = system.Child(name);
+        IActorRef? child = system.Child(name);
 
         return child.Equals(ActorRefs.Nobody)
             ? EventActor.Create(system, name)
@@ -36,7 +36,7 @@ public static class EventActorExtensions
 
     public static IEventActor GetOrCreateSelfKillingEventActor(this IUntypedActorContext system, string name)
     {
-        var child = system.Child(name);
+        IActorRef? child = system.Child(name);
 
         return child.Equals(ActorRefs.Nobody)
             ? EventActor.CreateSelfKilling(system, name)

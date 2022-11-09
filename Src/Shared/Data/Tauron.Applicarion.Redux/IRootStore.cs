@@ -5,9 +5,9 @@ namespace Tauron.Applicarion.Redux;
 public interface IActionDispatcher
 {
     bool CanProcess<TAction>();
-    
+
     bool CanProcess(Type type);
-    
+
     IObservable<TAction> ObservAction<TAction>()
         where TAction : class;
 
@@ -17,17 +17,16 @@ public interface IActionDispatcher
 [PublicAPI]
 public interface IRootStore : IActionDispatcher, IDisposable
 {
-
     IObservable<object> ObserveActions();
 
     IRootStoreState<TState> ForState<TState>()
         where TState : new();
-    
+
     void RegisterMiddlewares(IEnumerable<IMiddleware> middlewares);
 
     TMiddleware GetMiddleware<TMiddleware>(Func<TMiddleware> factory)
         where TMiddleware : IMiddleware;
-    
+
     void RegisterMiddlewares(params IMiddleware[] middlewares);
 }
 

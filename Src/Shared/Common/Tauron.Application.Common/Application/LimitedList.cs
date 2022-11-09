@@ -37,7 +37,7 @@ public class LimitedList<T> : Collection<T>
 
     private void CleanUp()
     {
-        if (Limit == -1) return;
+        if(Limit == -1) return;
 
         while (Count > Limit) Items.RemoveAt(0);
     }

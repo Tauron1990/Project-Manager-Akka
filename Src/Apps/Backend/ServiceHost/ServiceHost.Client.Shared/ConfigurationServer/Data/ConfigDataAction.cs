@@ -1,9 +1,8 @@
-﻿namespace ServiceHost.Client.Shared.ConfigurationServer.Data
+﻿namespace ServiceHost.Client.Shared.ConfigurationServer.Data;
+
+public enum ConfigDataAction
 {
-    public enum ConfigDataAction
-    {
-        Delete,
-        Update,
-        Create
-    }
+    Delete,
+    Update,
+    Create
 }

@@ -38,16 +38,14 @@ public sealed class Reciever : IDisposable
             }
 
             if(msg.Type == NetworkOperation.DataCompled)
-            {
                 return false;
-            }
 
             if(msg.Type != NetworkOperation.DataChunk)
                 return false;
 
             if(_stream is null)
                 throw new InvalidOperationException("Write Stream is null");
-            
+
             #pragma warning restore EX006
             _stream.Write(msg.Data, 0, msg.RealLength);
             _client.Send(NetworkMessage.Create(NetworkOperation.DataNext.Value));

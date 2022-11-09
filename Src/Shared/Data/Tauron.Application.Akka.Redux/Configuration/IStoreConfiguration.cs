@@ -1,5 +1,4 @@
-﻿using System.Reactive.Concurrency;
-using JetBrains.Annotations;
+﻿using JetBrains.Annotations;
 
 namespace Tauron.Application.Akka.Redux.Configuration;
 
@@ -10,6 +9,6 @@ public interface IStoreConfiguration
         where TState : class, new();
 
     IStoreConfiguration RegisterForFhinising(object toRegister);
-    
+
     IRootStore Build();
 }

@@ -19,9 +19,9 @@ public sealed class MessageDispatcher : IMessageDispatcher
                {
                    try
                    {
-                       var result = runner(input);
+                       string result = runner(input);
 
-                       if (string.IsNullOrWhiteSpace(result))
+                       if(string.IsNullOrWhiteSpace(result))
                            return true;
 
                        _aggregator.PublishSharedMessage(SharedMessage.CreateWarning(result));
@@ -36,14 +36,14 @@ public sealed class MessageDispatcher : IMessageDispatcher
                    }
                };
     }
-    
+
     public async ValueTask<bool> IsSuccess(Func<ValueTask<string>> runner)
     {
         try
         {
-            var result = await runner();
+            string result = await runner();
 
-            if (string.IsNullOrWhiteSpace(result))
+            if(string.IsNullOrWhiteSpace(result))
                 return true;
 
             _aggregator.PublishSharedMessage(SharedMessage.CreateWarning(result));
@@ -57,12 +57,13 @@ public sealed class MessageDispatcher : IMessageDispatcher
             return false;
         }
     }
-    
+
     public async ValueTask<bool> IsSuccess(Func<ValueTask<Unit>> runner)
     {
         try
         {
             await runner();
+
             return true;
         }
         catch (Exception e)
@@ -72,12 +73,13 @@ public sealed class MessageDispatcher : IMessageDispatcher
             return false;
         }
     }
-    
+
     public async ValueTask<bool> IsSuccess(Func<ValueTask> runner)
     {
         try
         {
             await runner();
+
             return true;
         }
         catch (Exception e)

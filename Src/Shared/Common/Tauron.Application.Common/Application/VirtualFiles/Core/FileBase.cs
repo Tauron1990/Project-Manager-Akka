@@ -6,12 +6,14 @@ namespace Tauron.Application.VirtualFiles.Core;
 [PublicAPI]
 public abstract class FileBase<TContext> : SystemNodeBase<TContext>, IFile
 {
-    protected FileBase(TContext context, FileSystemFeature feature) 
+    protected FileBase(TContext context, FileSystemFeature feature)
         : base(context, feature, NodeType.File) { }
 
     protected virtual bool CanRead => Features.HasFlag(FileSystemFeature.Read);
     protected virtual bool CanWrite => Features.HasFlag(FileSystemFeature.Write);
     protected virtual bool CanCreate => Features.HasFlag(FileSystemFeature.Create);
+
+    protected abstract string ExtensionImpl { get; set; }
 
     public string Extension
     {
@@ -22,44 +24,32 @@ public abstract class FileBase<TContext> : SystemNodeBase<TContext>, IFile
             ExtensionImpl = value;
         }
     }
-        
-    protected abstract string ExtensionImpl { get; set; }
-        
+
     public abstract long Size { get; }
 
-    private void ValidateFileAcess(FileAccess access)
-    {
-        if (access.HasFlag(FileAccess.Read) && !CanRead)
-            throw new IOException("File canot be Read");
-        if (access.HasFlag(FileAccess.Write) && !CanWrite)
-            throw new IOException("File can not be Write");
-    }
-        
     public virtual Stream Open(FileAccess access)
     {
         ValidateFileAcess(access);
-            
-        return CreateStream(Context, access, createNew: false);
+
+        return CreateStream(Context, access, false);
     }
 
     public virtual Stream Open()
     {
         ValidateFileAcess(FileAccess.ReadWrite);
-            
-        return CreateStream(Context, FileAccess.ReadWrite, createNew: false);
+
+        return CreateStream(Context, FileAccess.ReadWrite, false);
     }
 
     public virtual Stream CreateNew()
     {
         ValidateFileAcess(FileAccess.ReadWrite);
 
-        if (!CanCreate)
+        if(!CanCreate)
             throw new IOException("File can not Created");
-            
-        return CreateStream(Context, FileAccess.ReadWrite, createNew: true);
-    }
 
-    protected abstract Stream CreateStream(TContext context, FileAccess access, bool createNew);
+        return CreateStream(Context, FileAccess.ReadWrite, true);
+    }
 
     public IFile MoveTo(PathInfo location)
     {
@@ -67,6 +57,16 @@ public abstract class FileBase<TContext> : SystemNodeBase<TContext>, IFile
 
         return MoveTo(Context, GenericPathHelper.NormalizePath(location));
     }
+
+    private void ValidateFileAcess(FileAccess access)
+    {
+        if(access.HasFlag(FileAccess.Read) && !CanRead)
+            throw new IOException("File canot be Read");
+        if(access.HasFlag(FileAccess.Write) && !CanWrite)
+            throw new IOException("File can not be Write");
+    }
+
+    protected abstract Stream CreateStream(TContext context, FileAccess access, bool createNew);
 
     protected virtual IFile MoveTo(TContext context, PathInfo location)
         => throw new IOException("Move is not Implemented");

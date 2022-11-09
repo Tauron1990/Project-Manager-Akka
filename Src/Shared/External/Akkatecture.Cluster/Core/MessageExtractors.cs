@@ -47,11 +47,11 @@ public class
 
     public override string EntityId(object message)
     {
-        if (message is null)
+        if(message is null)
             throw new ArgumentNullException(nameof(message));
 
 
-        if (message is IDomainEvent domainEvent)
+        if(message is IDomainEvent domainEvent)
             return SagaLocator.LocateSaga(domainEvent).Value;
 
         throw new ArgumentException(nameof(message));
@@ -67,10 +67,10 @@ public class MessageExtractor<TAggregate, TIdentity> : HashCodeMessageExtractor
 
     public override string EntityId(object message)
     {
-        if (message is null)
+        if(message is null)
             throw new ArgumentNullException(nameof(message));
 
-        if (message is ICommand<TAggregate, TIdentity> command)
+        if(message is ICommand<TAggregate, TIdentity> command)
             return command.AggregateId.Value;
 
         throw new ArgumentException(nameof(message));

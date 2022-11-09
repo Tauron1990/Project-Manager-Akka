@@ -1,6 +1,5 @@
 ﻿using Akka.Actor;
 using Akka.Cluster;
-using Tauron.Application.AkkaNode.Bootstrap;
 
 namespace SimpleProjectManager.Server;
 

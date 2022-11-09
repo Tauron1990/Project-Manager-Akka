@@ -8,7 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Tauron.Application.Workshop\Tauron.Application.Workshop.csproj" />
+        <ProjectReference Include="..\Tauron.Application.Workshop\Tauron.Application.Workshop.csproj"/>
     </ItemGroup>
 
 </Project>

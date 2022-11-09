@@ -14,7 +14,7 @@ public sealed class WorkDistributorDispatcher : ActorBase
 
     protected override bool Receive(object message)
     {
-        if (message is IDataMutation mutation)
+        if(message is IDataMutation mutation)
         {
             _mutator.PushWork(mutation);
 

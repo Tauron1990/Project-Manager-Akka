@@ -53,18 +53,18 @@ public sealed class DispatcherScheduler : LocalScheduler
         TState state, TimeSpan dueTime,
         Func<IScheduler, TState, IDisposable> action)
     {
-        var target = Scheduler.Normalize(dueTime);
+        TimeSpan target = Scheduler.Normalize(dueTime);
 
         SingleAssignmentDisposable disposable = new();
 
         void TryRun()
         {
-            if (disposable.IsDisposed) return;
+            if(disposable.IsDisposed) return;
 
             disposable.Disposable = action(this, state);
         }
 
-        if (target == TimeSpan.Zero)
+        if(target == TimeSpan.Zero)
         {
             _dispatcher.Post(TryRun);
         }

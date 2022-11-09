@@ -14,10 +14,10 @@ namespace SimpleProjectManager.Client.Shared.Data.States;
 
 public sealed class TaskState : StateBase, IProvideRootStore, IStoreInitializer
 {
-    private readonly ITaskManager _taskManager;
     private readonly IMessageDispatcher _aggregator;
+    private readonly ITaskManager _taskManager;
 
-    public TaskState(IStateFactory stateFactory, ITaskManager taskManager, IMessageDispatcher aggregator) 
+    public TaskState(IStateFactory stateFactory, ITaskManager taskManager, IMessageDispatcher aggregator)
         : base(stateFactory)
     {
         _taskManager = taskManager;
@@ -25,7 +25,9 @@ public sealed class TaskState : StateBase, IProvideRootStore, IStoreInitializer
 
         ProviderFactory = () => stateFactory.NewComputed<PendingTask[]>(ComputeState);
     }
-    
+
+    public Func<IState<PendingTask[]>> ProviderFactory { get; }
+
 
     public void StoreCreated(IRootStore dispatcher)
     {
@@ -36,11 +38,9 @@ public sealed class TaskState : StateBase, IProvideRootStore, IStoreInitializer
            .Subscribe();
     }
 
-    public Func<IState<PendingTask[]>> ProviderFactory { get; }
-    
-    private async Task<PendingTask[]> ComputeState(IComputedState<PendingTask[]> unUsed, CancellationToken cancellationToken)
-        => await _taskManager.GetTasks(cancellationToken);
-
     public void RunConfig(IStoreConfiguration configuration)
         => configuration.RegisterForFhinising(this);
+
+    private async Task<PendingTask[]> ComputeState(IComputedState<PendingTask[]> unUsed, CancellationToken cancellationToken)
+        => await _taskManager.GetTasks(cancellationToken);
 }

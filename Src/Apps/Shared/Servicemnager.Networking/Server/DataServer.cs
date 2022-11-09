@@ -32,7 +32,7 @@ public sealed class DataServer : IDataServer
 
     public DataServer(string host, int port = 0)
     {
-        _server = new SimpleTcpServer(host, port, ssl: false, pfxCertFilename: null, pfxPassword: null)
+        _server = new SimpleTcpServer(host, port, false, null, null)
                   {
                       Keepalive = { EnableTcpKeepAlives = true }
                   };
@@ -76,10 +76,10 @@ public sealed class DataServer : IDataServer
 
     private void EventsOnDataReceived(object? sender, DataReceivedEventArgs e)
     {
-        var buffer = _clients.GetOrAdd(e.IpPort, _ => new MessageBuffer(MemoryPool<byte>.Shared));
-        var msg = buffer.AddBuffer(e.Data);
+        MessageBuffer buffer = _clients.GetOrAdd(e.IpPort, _ => new MessageBuffer(MemoryPool<byte>.Shared));
+        NetworkMessage? msg = buffer.AddBuffer(e.Data);
 
-        if (msg != null)
+        if(msg != null)
             OnMessageReceived?.Invoke(this, new MessageFromClientEventArgs(msg, Client.From(e.IpPort)));
     }
 }

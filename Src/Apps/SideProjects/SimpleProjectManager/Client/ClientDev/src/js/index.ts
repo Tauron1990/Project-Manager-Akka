@@ -3,9 +3,10 @@
 export {}
 
 declare global {
-    interface Window{
-        isOnline() : boolean;
-        applyUrl(url:string);
+    interface Window {
+        isOnline(): boolean;
+
+        applyUrl(url: string);
     }
 }
 
@@ -15,18 +16,18 @@ export namespace Index {
     init()
 
     function init() {
-        
+
         console.log("Init Index Api")
         window.isOnline = isOnline;
         window.applyUrl = applyUrl;
-        
+
         initDatabase()
     }
 
-    export function applyUrl(url:string) {
+    export function applyUrl(url: string) {
         window.history.pushState("null", "", url);
     }
-    
+
     export function isOnline() {
         return window.navigator.onLine;
     }

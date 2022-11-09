@@ -1,4 +1,3 @@
-﻿namespace ServiceHost.Client.Shared.ConfigurationServer.Data
-{
-    public sealed record FinalAppConfig(string Data);
-}
+﻿namespace ServiceHost.Client.Shared.ConfigurationServer.Data;
+
+public sealed record FinalAppConfig(string Data);

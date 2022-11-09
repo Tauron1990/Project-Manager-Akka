@@ -1,9 +1,8 @@
-﻿@using SimpleProjectManager.Client.Shared.CurrentJobs;
-@using SimpleProjectManager.Client.Shared.Data
-
-@page "/CurrentJobs"
+﻿@page "/CurrentJobs"
 @page "/CurrentJobs/{PreSelected}"
 
+@using SimpleProjectManager.Client.Shared.Data
+@using SimpleProjectManager.Client.Shared.CurrentJobs
 @inherits NonAutoRenderingView<SimpleProjectManager.Client.Shared.ViewModels.Pages.CurrentJobsViewModel>
 
 @inject IJSRuntime JsRuntime
@@ -17,7 +16,7 @@
         <GenericLoadingElement Label="Daten werden Abgerufen"/>
     </Waiting>
     <ValueRenderer>
-        @if (context.Length == 0)
+        @if(context.Length == 0)
         {
             <MudGrid Justify="Justify.Center">
                 <MudItem lg="12">
@@ -46,5 +45,3 @@
         <GenericStreamError/>
     </OnCompled>
 </ObservableRenderer>
-
-

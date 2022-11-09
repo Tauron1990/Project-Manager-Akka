@@ -16,7 +16,7 @@ public sealed class GameTimeInitializer : Rule, IManager<GameTimeInitializer, Ga
            .Match<InitializeGameCommand>()
            .MatchGameTime(() => gameTime, t => !t.Stopwatch.IsRunning)
            .MatchCommands(() => processorState);
-        
+
         Then()
            .Do(ctx => StartTimer(gameTime))
            .Do(ctx => AddTickCommand(processorState));

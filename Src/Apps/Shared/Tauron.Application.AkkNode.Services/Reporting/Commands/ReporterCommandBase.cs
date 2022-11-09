@@ -18,7 +18,7 @@ public abstract record ReporterCommandBase<TSender, TThis> : IReporterMessage
         get => _listner;
         set
         {
-            if (!Listner.IsNobody())
+            if(!Listner.IsNobody())
                 throw new InvalidOperationException("Only One Listner Can be Set");
 
             _listner = value;
@@ -29,7 +29,7 @@ public abstract record ReporterCommandBase<TSender, TThis> : IReporterMessage
 
     public void ValidateApi(Type apiType)
     {
-        if (apiType.IsAssignableTo(typeof(TSender)))
+        if(apiType.IsAssignableTo(typeof(TSender)))
             return;
 
         throw new InvalidOperationException($"Incompatible Command Api Type: {apiType} Expeced: {typeof(TSender)}");

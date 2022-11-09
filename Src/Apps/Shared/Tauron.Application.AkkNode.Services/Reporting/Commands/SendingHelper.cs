@@ -24,16 +24,16 @@ public static class SendingHelper
         var task = new TaskCompletionSource<Either<TResult, Error>>();
         IActorRefFactory factory = ActorApplication.ActorSystem;
 
-        var listner = Reporter.CreateListner(
+        IActorRef listner = Reporter.CreateListner(
             factory,
             messages,
             result =>
             {
-                if (result.Ok)
+                if(result.Ok)
                 {
-                    if (isEmpty)
+                    if(isEmpty)
                         task.TrySetResult(Either.Left<TResult>(default!));
-                    else if (result.Outcome is TResult outcome)
+                    else if(result.Outcome is TResult outcome)
                         task.TrySetResult(Either.Left(outcome));
                     else
                         task.TrySetResult(Either.Right(new Error(new InvalidCastException(result.Outcome?.GetType().Name ?? "null-source"))));
@@ -48,7 +48,7 @@ public static class SendingHelper
         command.SetListner(listner);
         sender.SendCommand(command);
 
-        await using var _ = token.Register(t => ((TaskCompletionSource<Either<TResult, Error>>)t!).TrySetCanceled(), task);
+        await using CancellationTokenRegistration _ = token.Register(t => ((TaskCompletionSource<Either<TResult, Error>>)t!).TrySetCanceled(), task);
         var result = await task.Task;
 
         return result;

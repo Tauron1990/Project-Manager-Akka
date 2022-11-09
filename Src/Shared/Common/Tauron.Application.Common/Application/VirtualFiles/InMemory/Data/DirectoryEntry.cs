@@ -21,28 +21,29 @@ public class DirectoryEntry : DataElementBase
 
     public TResult GetOrAdd<TResult>(string name, Func<TResult> factory)
         where TResult : IDataElement
-        => _elements.GetOrAdd(name, static (_, fac) => fac(), factory) is TResult res 
-            ? res 
+        => _elements.GetOrAdd(name, static (_, fac) => fac(), factory) is TResult res
+            ? res
             : throw new InvalidCastException("Factory Created Wrong Type (Should Be Impossible)");
 
     public void Init(string name, ISystemClock clock)
     {
-        if (string.IsNullOrWhiteSpace(name))
+        if(string.IsNullOrWhiteSpace(name))
             throw new InvalidOperationException("Name should not be Empty or null");
+
         Name = name;
         ModifyDate = clock.UtcNow.LocalDateTime;
         CreationDate = clock.UtcNow.LocalDateTime;
     }
-        
+
     public override void Dispose()
     {
         base.Dispose();
-            
+
         Name = string.Empty;
-            
-        foreach (var value in _elements.Values)
+
+        foreach (IDataElement value in _elements.Values)
             value.Dispose();
-            
+
         _elements.Clear();
     }
 

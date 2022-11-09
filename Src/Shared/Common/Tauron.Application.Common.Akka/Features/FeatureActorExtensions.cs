@@ -18,7 +18,7 @@ public interface ISimpleFeature
 {
     Props MakeProps();
 }
-    
+
 [DebuggerStepThrough]
 public sealed record GenericState(ImmutableDictionary<Type, object> States)
 {
@@ -26,7 +26,8 @@ public sealed record GenericState(ImmutableDictionary<Type, object> States)
         : this(ImmutableDictionary<Type, object>.Empty.AddRange(features.Select(feature => feature.InitialState(context)))) { }
 }
 
-[PublicAPI, DebuggerStepThrough]
+[PublicAPI]
+[DebuggerStepThrough]
 public static class FeatureActorExtensions
 {
     public static IObservable<StatePair<TEvent, TState>> SyncState<TEvent, TState>(
@@ -41,7 +42,6 @@ public static class FeatureActorExtensions
 
     public static IActorRef ActorOf(this IActorRefFactory factory, params IPreparedFeature[] features)
         => ActorOf(factory, null, features);
-        
 }
 
 [DebuggerStepThrough]
@@ -49,7 +49,7 @@ internal sealed class GenericActor : FeatureActorBase<GenericActor, GenericState
 {
     internal static Props Create(IPreparedFeature[] features)
     {
-        if (features.Length == 1 && features[0] is ISimpleFeature simple)
+        if(features.Length == 1 && features[0] is ISimpleFeature simple)
             return simple.MakeProps();
 
         return Create(
@@ -58,7 +58,8 @@ internal sealed class GenericActor : FeatureActorBase<GenericActor, GenericState
     }
 }
 
-[PublicAPI, DebuggerStepThrough]
+[PublicAPI]
+[DebuggerStepThrough]
 public static class Feature
 {
     public static Props Props(params IPreparedFeature[] features)
@@ -116,8 +117,7 @@ internal sealed class FeatureImpl<TState> : ActorBuilder<TState>.ConvertingFeatu
         : base(
             target,
             state => (TState)state.States[typeof(TState)],
-            (original, state) => original with { States = original.States.SetItem(typeof(TState), state) })
-    { }
+            (original, state) => original with { States = original.States.SetItem(typeof(TState), state) }) { }
 }
 
 [DebuggerStepThrough]
@@ -143,7 +143,6 @@ internal sealed class PreparedFeature<TState> : IPreparedFeature, ISimpleFeature
 
     public Props MakeProps()
         => SimpleFeatureActor<TState>.Create(_stateBuilder, builder => builder.WithFeature(_feature()));
-
 }
 
 [DebuggerStepThrough]
@@ -167,6 +166,4 @@ internal sealed class PreparedFeatureList<TState> : IPreparedFeature
 }
 
 [DebuggerStepThrough]
-internal sealed class SimpleFeatureActor<TState> : FeatureActorBase<SimpleFeatureActor<TState>, TState>
-{
-}
+internal sealed class SimpleFeatureActor<TState> : FeatureActorBase<SimpleFeatureActor<TState>, TState> { }

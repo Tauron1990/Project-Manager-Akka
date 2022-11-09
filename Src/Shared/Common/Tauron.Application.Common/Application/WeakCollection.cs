@@ -51,7 +51,7 @@ public sealed class WeakCollection<TType> : IList<Option<TType>>
     public void CopyTo(Option<TType>[] array, int arrayIndex)
     {
         var index = 0;
-        for (var targetIndex = arrayIndex; targetIndex < array.Length; targetIndex++)
+        for (int targetIndex = arrayIndex; targetIndex < array.Length; targetIndex++)
         {
             var target = Option<TType>.None;
             while (!target.HasValue && index <= _internalCollection.Count)
@@ -60,7 +60,7 @@ public sealed class WeakCollection<TType> : IList<Option<TType>>
                 index++;
             }
 
-            if (!target.HasValue) break;
+            if(!target.HasValue) break;
 
             array[targetIndex] = target;
         }
@@ -72,14 +72,14 @@ public sealed class WeakCollection<TType> : IList<Option<TType>>
 
     public int IndexOf(Option<TType> item)
     {
-        if (!item.HasValue) return -1;
+        if(!item.HasValue) return -1;
 
         int index;
         for (index = 0; index < _internalCollection.Count; index++)
         {
             var temp = _internalCollection[index];
 
-            if (temp.TypedTarget() == item) break;
+            if(temp.TypedTarget() == item) break;
         }
 
         return index == _internalCollection.Count ? -1 : index;
@@ -87,18 +87,18 @@ public sealed class WeakCollection<TType> : IList<Option<TType>>
 
     public void Insert(int index, Option<TType> item)
     {
-        if (!item.HasValue) return;
+        if(!item.HasValue) return;
 
         _internalCollection.Insert(index, new WeakReference<TType>(item.Value));
     }
 
     public bool Remove(Option<TType> item)
     {
-        if (!item.HasValue) return false;
+        if(!item.HasValue) return false;
 
-        var index = IndexOf(item);
+        int index = IndexOf(item);
 
-        if (index == -1) return false;
+        if(index == -1) return false;
 
         _internalCollection.RemoveAt(index);
 
@@ -142,7 +142,7 @@ public class WeakReferenceCollection<TType> : Collection<TType>
     {
         lock (_lock)
         {
-            if (index > Count) index = Count;
+            if(index > Count) index = Count;
             base.InsertItem(index, item);
         }
     }
@@ -174,7 +174,7 @@ public class WeakReferenceCollection<TType> : Collection<TType>
                     it =>
                     {
                         // ReSharper disable once SuspiciousTypeConversion.Global
-                        if (it is IDisposable dis) dis.Dispose();
+                        if(it is IDisposable dis) dis.Dispose();
 
                         Items.Remove(it);
                     });

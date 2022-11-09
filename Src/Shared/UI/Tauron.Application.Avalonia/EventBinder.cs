@@ -14,191 +14,190 @@ using Tauron.Application.CommonUI.Helper;
 using Tauron.Application.CommonUI.ModelMessages;
 using Tauron.ObservableExt;
 
-namespace Tauron.Application.Avalonia
+namespace Tauron.Application.Avalonia;
+
+[PublicAPI]
+public class EventBinder
 {
-    [PublicAPI]
-    public class EventBinder
+    private const string EventBinderPrefix = "EventBinder.";
+
+    public static readonly AttachedProperty<string> EventsProperty =
+        AvaloniaProperty.RegisterAttached<EventBinder, Control, string>("Events");
+
+    private EventBinder() { }
+
+    public static string GetEvents(Control obj) => obj.GetValue(EventsProperty);
+
+    public static void SetEvents(Control obj, string value)
     {
-        private const string EventBinderPrefix = "EventBinder.";
+        string old = GetEvents(obj);
+        obj.SetValue(EventsProperty, value);
+        OnEventsChanged(obj, value, old);
+    }
 
-        public static readonly AttachedProperty<string> EventsProperty =
-            AvaloniaProperty.RegisterAttached<EventBinder, Control, string>("Events");
+    private static void OnEventsChanged(Control d, string newValue, string? oldValue)
+    {
+        IUIObject ele = ElementMapper.Create(d);
+        var rootOption = ControlBindLogic.FindRoot(ele.AsOption());
+        rootOption.Run(
+            root => BindInternal(oldValue, newValue, root, ele),
+            () => ControlBindLogic.MakeLazy((IUIElement)ele, newValue, oldValue, BindInternal));
+    }
 
-        private EventBinder() { }
+    private static void BindInternal(
+        string? oldValue, string? newValue, IBinderControllable binder,
+        IUIObject affectedPart)
+    {
+        if(oldValue is not null)
+            binder.CleanUp(EventBinderPrefix + oldValue);
 
-        public static string GetEvents(Control obj) => obj.GetValue(EventsProperty);
+        if(newValue is null) return;
 
-        public static void SetEvents(Control obj, string value)
+        binder.Register(EventBinderPrefix + newValue, new EventLinker { Commands = newValue }, affectedPart);
+    }
+
+    private sealed class EventLinker : ControlBindableBase
+    {
+        private static readonly ILogger Log = LogManager.GetCurrentClassLogger();
+        private readonly List<InternalEventLinker> _linkers = new();
+
+        internal string? Commands { get; init; }
+
+        protected override void CleanUp()
         {
-            var old = GetEvents(obj);
-            obj.SetValue(EventsProperty, value);
-            OnEventsChanged(obj, value, old);
+            Log.Debug("Clean Up Event {Events}", Commands);
+            foreach (InternalEventLinker linker in _linkers) linker.Dispose();
+            _linkers.Clear();
         }
 
-        private static void OnEventsChanged(Control d, string newValue, string? oldValue)
+        protected override void Bind(object context)
         {
-            var ele = ElementMapper.Create(d);
-            var rootOption = ControlBindLogic.FindRoot(ele.AsOption());
-            rootOption.Run(
-                root => BindInternal(oldValue, newValue, root, ele),
-                () => ControlBindLogic.MakeLazy((IUIElement)ele, newValue, oldValue, BindInternal));
-        }
-
-        private static void BindInternal(
-            string? oldValue, string? newValue, IBinderControllable binder,
-            IUIObject affectedPart)
-        {
-            if (oldValue is not null)
-                binder.CleanUp(EventBinderPrefix + oldValue);
-
-            if (newValue is null) return;
-
-            binder.Register(EventBinderPrefix + newValue, new EventLinker { Commands = newValue }, affectedPart);
-        }
-
-        private sealed class EventLinker : ControlBindableBase
-        {
-            private static readonly ILogger Log = LogManager.GetCurrentClassLogger();
-            private readonly List<InternalEventLinker> _linkers = new();
-
-            internal string? Commands { get; init; }
-
-            protected override void CleanUp()
+            if(Commands == null)
             {
-                Log.Debug("Clean Up Event {Events}", Commands);
-                foreach (var linker in _linkers) linker.Dispose();
-                _linkers.Clear();
+                Log.Error("EventBinder: No Command Setted: {Context}", context);
+
+                return;
             }
 
-            protected override void Bind(object context)
+            Log.Debug("Bind Events {Name}", Commands);
+
+            string[] vals = Commands.Split(':');
+            var events = new Dictionary<string, string>();
+
+            try
             {
-                if (Commands == null)
+                for (var i = 0; i < vals.Length; i++) events[vals[i]] = vals[++i];
+            }
+            catch (IndexOutOfRangeException)
+            {
+                Log.Error("EventBinder: EventPairs not Valid: {Commands}", Commands);
+            }
+
+            IUIObject host = AffectedObject;
+
+            if(context is not IViewModel dataContext) return;
+
+            Type hostType = host.GetType();
+
+            foreach ((string @event, string command) in events)
+            {
+                EventInfo? info = hostType.GetEvent(@event);
+                if(info == null)
                 {
-                    Log.Error("EventBinder: No Command Setted: {Context}", context);
+                    Log.Error("EventBinder: No event Found: {HostType}|{Key}", hostType, @event);
 
                     return;
                 }
 
-                Log.Debug("Bind Events {Name}", Commands);
+                _linkers.Add(new InternalEventLinker(info, dataContext, command, host));
+            }
+        }
 
-                var vals = Commands.Split(':');
-                var events = new Dictionary<string, string>();
 
-                try
-                {
-                    for (var i = 0; i < vals.Length; i++) events[vals[i]] = vals[++i];
-                }
-                catch (IndexOutOfRangeException)
-                {
-                    Log.Error("EventBinder: EventPairs not Valid: {Commands}", Commands);
-                }
+        private class InternalEventLinker : IDisposable
+        {
+            private static readonly MethodInfo Method = typeof(InternalEventLinker)
+               .GetMethods(BindingFlags.Instance | BindingFlags.NonPublic)
+               .First(m => m.Name == "Handler");
 
-                var host = AffectedObject;
+            private static readonly ILogger InternalLog = LogManager.GetCurrentClassLogger();
 
-                if (context is not IViewModel dataContext) return;
+            private readonly IViewModel _dataContext;
 
-                var hostType = host.GetType();
+            private readonly EventInfo? _event;
+            private readonly AvaloniaObject? _host;
+            private readonly string _targetName;
+            private Action<EventData>? _command;
+            private Delegate? _delegate;
+            private bool _isDirty;
 
-                foreach (var (@event, command) in events)
-                {
-                    var info = hostType.GetEvent(@event);
-                    if (info == null)
-                    {
-                        Log.Error("EventBinder: No event Found: {HostType}|{Key}", hostType, @event);
+            internal InternalEventLinker(
+                EventInfo? @event, IViewModel dataContext, string targetName,
+                IUIObject? host)
+            {
+                _isDirty = @event == null;
 
-                        return;
-                    }
+                _host = (host as AvaObject)?.Obj;
+                _event = @event;
+                _dataContext = dataContext;
+                _targetName = targetName;
 
-                    _linkers.Add(new InternalEventLinker(info, dataContext, command, host));
-                }
+                Initialize();
+            }
+
+            public void Dispose()
+            {
+                InternalLog.Debug("Remove Event Handler {Name}", _targetName);
+
+                if(_host == null || _delegate == null) return;
+
+                _event?.RemoveEventHandler(_host, _delegate);
+                _delegate = null;
+            }
+
+            private bool EnsureCommandStade()
+            {
+                if(_command != null) return true;
+
+                _command = d => _dataContext.Actor.Tell(new ExecuteEventEvent(d, _targetName));
+
+
+                return _command != null && !_isDirty;
             }
 
 
-            private class InternalEventLinker : IDisposable
+            [UsedImplicitly]
+            private void Handler(object sender, EventArgs e)
             {
-                private static readonly MethodInfo Method = typeof(InternalEventLinker)
-                   .GetMethods(BindingFlags.Instance | BindingFlags.NonPublic)
-                   .First(m => m.Name == "Handler");
-
-                private static readonly ILogger InternalLog = LogManager.GetCurrentClassLogger();
-
-                private readonly IViewModel _dataContext;
-
-                private readonly EventInfo? _event;
-                private readonly AvaloniaObject? _host;
-                private readonly string _targetName;
-                private Action<EventData>? _command;
-                private Delegate? _delegate;
-                private bool _isDirty;
-
-                internal InternalEventLinker(
-                    EventInfo? @event, IViewModel dataContext, string targetName,
-                    IUIObject? host)
+                if(!_isDirty && !EnsureCommandStade())
                 {
-                    _isDirty = @event == null;
+                    Dispose();
 
-                    _host = (host as AvaObject)?.Obj;
-                    _event = @event;
-                    _dataContext = dataContext;
-                    _targetName = targetName;
-
-                    Initialize();
+                    return;
                 }
 
-                public void Dispose()
+                try
                 {
-                    InternalLog.Debug("Remove Event Handler {Name}", _targetName);
-
-                    if (_host == null || _delegate == null) return;
-
-                    _event?.RemoveEventHandler(_host, _delegate);
-                    _delegate = null;
+                    _command?.Invoke(new EventData(sender, e));
                 }
-
-                private bool EnsureCommandStade()
+                catch (ArgumentException)
                 {
-                    if (_command != null) return true;
-
-                    _command = d => _dataContext.Actor.Tell(new ExecuteEventEvent(d, _targetName));
-
-
-                    return _command != null && !_isDirty;
+                    _isDirty = true;
                 }
+            }
 
+            private void Initialize()
+            {
+                InternalLog.Debug("Initialize Event Handler {Name}", _targetName);
 
-                [UsedImplicitly]
-                private void Handler(object sender, EventArgs e)
-                {
-                    if (!_isDirty && !EnsureCommandStade())
-                    {
-                        Dispose();
+                if(_isDirty || _event == null) return;
 
-                        return;
-                    }
+                Type? eventTyp = _event?.EventHandlerType;
 
-                    try
-                    {
-                        _command?.Invoke(new EventData(sender, e));
-                    }
-                    catch (ArgumentException)
-                    {
-                        _isDirty = true;
-                    }
-                }
+                if(_host == null || eventTyp == null) return;
 
-                private void Initialize()
-                {
-                    InternalLog.Debug("Initialize Event Handler {Name}", _targetName);
-
-                    if (_isDirty || _event == null) return;
-
-                    var eventTyp = _event?.EventHandlerType;
-
-                    if (_host == null || eventTyp == null) return;
-
-                    _delegate = Delegate.CreateDelegate(eventTyp, this, Method);
-                    _event?.AddEventHandler(_host, _delegate);
-                }
+                _delegate = Delegate.CreateDelegate(eventTyp, this, Method);
+                _event?.AddEventHandler(_host, _delegate);
             }
         }
     }

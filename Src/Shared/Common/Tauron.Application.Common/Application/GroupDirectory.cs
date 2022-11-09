@@ -32,7 +32,7 @@ public class GroupDictionary<TKey, TValue> : Dictionary<TKey, ICollection<TValue
     protected GroupDictionary(SerializationInfo info, StreamingContext context)
         : base(info, context)
     {
-        if (info.GetValue("listType", typeof(Type)) is not Type listType)
+        if(info.GetValue("listType", typeof(Type)) is not Type listType)
             throw new InvalidOperationException("List Type not in Serialization info");
 
         _listType = listType;
@@ -46,7 +46,7 @@ public class GroupDictionary<TKey, TValue> : Dictionary<TKey, ICollection<TValue
     {
         get
         {
-            if (!ContainsKey(key)) Add(key);
+            if(!ContainsKey(key)) Add(key);
 
             return base[key];
         }
@@ -56,22 +56,24 @@ public class GroupDictionary<TKey, TValue> : Dictionary<TKey, ICollection<TValue
 
     private object CreateList()
     {
-        if (!typeof(ICollection<TValue>).IsAssignableFrom(_listType)) 
+        if(!typeof(ICollection<TValue>).IsAssignableFrom(_listType))
             throw new InvalidOperationException("List Type not Compatible With GroupDicitioonary Value Type");
 
         Type genericTemp;
-        
-        if (_listType.ContainsGenericParameters)
+
+        if(_listType.ContainsGenericParameters)
         {
-            if (_listType.GetGenericArguments().Length != 1) 
+            if(_listType.GetGenericArguments().Length != 1)
                 throw new InvalidOperationException("More then one Genric Type Parameter in Provided List Type");
 
             genericTemp = _listType.MakeGenericType(typeof(TValue));
         }
         else
         {
-            if (!_listType.IsGenericType)
+            if(!_listType.IsGenericType)
+            {
                 genericTemp = _listType;
+            }
             else
             {
                 var generic = _listType.GetGenericArguments();
@@ -80,7 +82,7 @@ public class GroupDictionary<TKey, TValue> : Dictionary<TKey, ICollection<TValue
             }
         }
 
-        if (genericTemp is null) throw new InvalidOperationException("List Type for Group Dicitionay not Successful Created");
+        if(genericTemp is null) throw new InvalidOperationException("List Type for Group Dicitionay not Successful Created");
 
         return Activator.CreateInstance(genericTemp) ??
                throw new InvalidOperationException("List Creation Failed");
@@ -88,16 +90,16 @@ public class GroupDictionary<TKey, TValue> : Dictionary<TKey, ICollection<TValue
 
     public void AddRange(TKey key, IEnumerable<TValue> value)
     {
-        if (!ContainsKey(key)) Add(key);
+        if(!ContainsKey(key)) Add(key);
 
         var values = base[key];
 
         // ReSharper disable once PossibleMultipleEnumeration
-        foreach (var item in value.Where(item => item != null)) values.Add(item);
+        foreach (TValue item in value.Where(item => item != null)) values.Add(item);
     }
 
 
-    public bool RemoveValue(TValue value) => RemoveImpl(default!, value, removeEmpty: false, removeAll: true);
+    public bool RemoveValue(TValue value) => RemoveImpl(default!, value, false, true);
 
     private bool RemoveImpl(TKey key, TValue val, bool removeEmpty, bool removeAll)
         => removeAll ? RemoveAll(val, removeEmpty) : RemoveSingleObject(key, val, removeAll);
@@ -105,38 +107,38 @@ public class GroupDictionary<TKey, TValue> : Dictionary<TKey, ICollection<TValue
     private bool RemoveAll(TValue val, bool removeEmpty)
     {
         var ok = false;
-        var keys = Keys.ToArray().GetEnumerator();
-        var vals = Values.ToArray().GetEnumerator();
+        IEnumerator keys = Keys.ToArray().GetEnumerator();
+        IEnumerator vals = Values.ToArray().GetEnumerator();
         while (keys.MoveNext() && vals.MoveNext())
         {
             var coll = vals.Current as ICollection<TValue> ?? Array.Empty<TValue>();
 
-            if (keys.Current is not TKey currkey)
+            if(keys.Current is not TKey currkey)
                 throw new InvalidCastException("Provided Key is not Right Type");
 
             ok |= RemoveList(coll, val);
 
             // ReSharper disable once PossibleNullReferenceException
             // ReSharper disable once AssignNullToNotNullAttribute
-            if (removeEmpty && coll.Count == 0) ok |= Remove(currkey);
+            if(removeEmpty && coll.Count == 0) ok |= Remove(currkey);
         }
 
         return ok;
     }
-    
+
     private bool RemoveSingleObject(TKey key, TValue val, bool removeEmpty)
     {
-        var ok = ContainsKey(key);
+        bool ok = ContainsKey(key);
 
-        if (!ok) return false;
+        if(!ok) return false;
 
         var col = base[key];
 
         ok |= RemoveList(col, val);
 
-        if (!removeEmpty) return true;
+        if(!removeEmpty) return true;
 
-        if (col.Count == 0) ok |= Remove(key);
+        if(col.Count == 0) ok |= Remove(key);
 
         return ok;
     }
@@ -192,12 +194,12 @@ public class GroupDictionary<TKey, TValue> : Dictionary<TKey, ICollection<TValue
     #pragma warning disable AV1551
     public void Add(TKey key)
     {
-        if (!ContainsKey(key)) base[key] = (ICollection<TValue>)CreateList();
+        if(!ContainsKey(key)) base[key] = (ICollection<TValue>)CreateList();
     }
 
     public void Add(TKey key, TValue value)
     {
-        if (!ContainsKey(key)) Add(key);
+        if(!ContainsKey(key)) Add(key);
 
         var list = base[key];
         list.Add(value);
@@ -206,14 +208,14 @@ public class GroupDictionary<TKey, TValue> : Dictionary<TKey, ICollection<TValue
 
     #pragma warning disable AV1564
     #pragma warning disable AV1551
-    public bool Remove(TValue value, bool removeEmptyLists) => RemoveImpl(default!, value, removeEmptyLists, removeAll: true);
+    public bool Remove(TValue value, bool removeEmptyLists) => RemoveImpl(default!, value, removeEmptyLists, true);
     #pragma warning restore AV1564
 
-    public bool Remove(TKey key, TValue value) => RemoveImpl(key, value, removeEmpty: false, removeAll: false);
+    public bool Remove(TKey key, TValue value) => RemoveImpl(key, value, false, false);
 
     #pragma warning disable AV1564
     public bool Remove(TKey key, TValue value, bool removeListIfEmpty)
         #pragma warning restore AV1564
-        => RemoveImpl(key, value, removeListIfEmpty, removeAll: false);
+        => RemoveImpl(key, value, removeListIfEmpty, false);
     #pragma warning restore AV1551
 }

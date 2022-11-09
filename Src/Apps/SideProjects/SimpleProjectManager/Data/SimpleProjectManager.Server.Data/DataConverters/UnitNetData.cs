@@ -2,7 +2,7 @@
 
 public record UnitNetData
 {
-    public string Type { get; init; }
+    public string Type { get; init; } = string.Empty;
 
     public double Value { get; init; }
 }

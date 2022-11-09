@@ -13,15 +13,15 @@ namespace Tauron.Application.Blazor;
 
 public partial class ObservableCollectionView<TItem> : INotifyPropertyChanged
 {
-    private IDisposable _subscription = Disposable.Empty;
     private IEnumerable<TItem>? _source;
-    
+    private IDisposable _subscription = Disposable.Empty;
+
     [Parameter]
     public RenderFragment<IEnumerable<TItem>>? ListRender { get; set; }
-    
+
     [Parameter]
     public RenderFragment? EmptyRender { get; set; }
-    
+
     [Parameter]
     public IEnumerable<TItem>? SourceParameter { get; set; }
 
@@ -30,7 +30,7 @@ public partial class ObservableCollectionView<TItem> : INotifyPropertyChanged
         get => _source;
         set
         {
-            if (Equals(value, _source)) return;
+            if(Equals(value, _source)) return;
 
             _source = value;
             OnPropertyChanged();
@@ -39,6 +39,8 @@ public partial class ObservableCollectionView<TItem> : INotifyPropertyChanged
     }
 
     private IEnumerable<TItem> NonNullSource => Source ?? SourceParameter ?? Array.Empty<TItem>();
+
+    public event PropertyChangedEventHandler? PropertyChanged;
 
     protected override void OnParametersSet()
     {
@@ -50,8 +52,7 @@ public partial class ObservableCollectionView<TItem> : INotifyPropertyChanged
     {
         RemoveResource(_subscription);
 
-        if (NonNullSource is INotifyCollectionChanged collectionChanged)
-        {
+        if(NonNullSource is INotifyCollectionChanged collectionChanged)
             _subscription = Observable.FromEventPattern<NotifyCollectionChangedEventHandler, NotifyCollectionChangedEventArgs>(
                     h => (sender, args) => h(sender, args),
                     h => collectionChanged.CollectionChanged += h,
@@ -60,15 +61,13 @@ public partial class ObservableCollectionView<TItem> : INotifyPropertyChanged
                     async _ =>
                     {
                         await RenderingManager.StateHasChangedAsync();
+
                         return Unit.Default;
                     })
                .Subscribe()
                .DisposeWith(this);
-        }
 
     }
-    
-    public event PropertyChangedEventHandler? PropertyChanged;
 
     [NotifyPropertyChangedInvocator]
     protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)

@@ -13,48 +13,47 @@ namespace SimpleProjectManager.Client.Shared.ViewModels.Pages;
 
 public sealed class FileManagerViewModel : ViewModelBase
 {
-    private record struct FilesInfo(bool IsLoading, DatabaseFile[] Files);
-    
-    private ObservableAsPropertyHelper<bool>? _loading;
-    public bool IsLoading => _loading?.Value ?? false;
+    private ObservableAsPropertyHelper<Exception?>? _error;
 
     private ObservableAsPropertyHelper<DatabaseFile[]>? _files;
-    public DatabaseFile[] Files => _files?.Value ?? Array.Empty<DatabaseFile>();
 
-    private ObservableAsPropertyHelper<Exception?>? _error;
-    public Exception? Error => _error?.Value;
+    private ObservableAsPropertyHelper<bool>? _loading;
 
-    public ReactiveCommand<DatabaseFile, Unit>? DeleteFile { get; private set; }
-
-    public Interaction<DatabaseFile, bool> ConfirmDelete { get; } = new();
-    
     public FileManagerViewModel(GlobalState globalState, IMessageDispatcher dispatcher)
     {
         this.WhenActivated(Init);
-        
+
         IEnumerable<IDisposable> Init()
         {
             var filesStream = globalState.Files.AllFiles
                .Select(files => new FilesInfo(false, files))
                .StartWith(new FilesInfo(true, Array.Empty<DatabaseFile>()))
                .Publish().RefCount();
-            
+
             yield return _files = filesStream.Select(i => i.Files).ToProperty(this, m => m.Files);
             yield return _loading = filesStream.Select(i => i.IsLoading).ToProperty(this, m => m.IsLoading);
             yield return _error = _files.ThrownExceptions.Merge(_loading.ThrownExceptions).ToProperty(this, m => m.Error);
-            
+
             yield return DeleteFile = ReactiveCommand.CreateFromTask<DatabaseFile, Unit>(DeleteFileImpl, globalState.IsOnline);
         }
 
         async Task<Unit> DeleteFileImpl(DatabaseFile databaseFile)
         {
-            if (await ConfirmDelete.Handle(databaseFile))
-            {
+            if(await ConfirmDelete.Handle(databaseFile))
                 await dispatcher.IsSuccess(
                     () => TimeoutToken.WithDefault(default, t => globalState.Files.DeleteFile(databaseFile, t)));
-            }
-        
+
             return Unit.Default;
         }
     }
+
+    public bool IsLoading => _loading?.Value ?? false;
+    public DatabaseFile[] Files => _files?.Value ?? Array.Empty<DatabaseFile>();
+    public Exception? Error => _error?.Value;
+
+    public ReactiveCommand<DatabaseFile, Unit>? DeleteFile { get; private set; }
+
+    public Interaction<DatabaseFile, bool> ConfirmDelete { get; } = new();
+
+    private record struct FilesInfo(bool IsLoading, DatabaseFile[] Files);
 }

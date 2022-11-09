@@ -8,10 +8,10 @@ public interface IDatabases
     IMapper Mapper { get; }
 
     IDatabaseCollection<DbFileInfoData> FileInfos { get; }
-    
+
     IDatabaseCollection<DbCriticalErrorEntry> CriticalErrors { get; }
-    
+
     IDatabaseCollection<DbProjectProjection> ProjectProjections { get; }
-    
+
     IDatabaseCollection<DbTaskManagerEntry> TaskManagerEntrys { get; }
 }

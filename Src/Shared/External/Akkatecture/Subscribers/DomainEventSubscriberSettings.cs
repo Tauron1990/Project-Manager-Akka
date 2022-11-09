@@ -34,7 +34,7 @@ public class DomainEventSubscriberSettings
 
     public DomainEventSubscriberSettings(Config config)
     {
-        var domainEventSubscriberConfig = config.WithFallback(AkkatectureDefaultSettings.DefaultConfig());
+        Config? domainEventSubscriberConfig = config.WithFallback(AkkatectureDefaultSettings.DefaultConfig());
         domainEventSubscriberConfig = domainEventSubscriberConfig.GetConfig(Section);
 
         #pragma warning disable GU0009

@@ -28,7 +28,7 @@ public sealed class SettingsConfiguration
 
         return this;
     }
-    
+
     public SettingsConfiguration WithProvider<TType>(Func<IServiceProvider, TType> setting)
         where TType : ISettingProviderConfiguration
     {

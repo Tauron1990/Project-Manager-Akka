@@ -35,7 +35,7 @@ public class SagaNameAttribute : Attribute
 {
     public SagaNameAttribute(string name)
     {
-        if (string.IsNullOrEmpty(name))
+        if(string.IsNullOrEmpty(name))
             throw new ArgumentNullException(nameof(name));
 
         Name = name;

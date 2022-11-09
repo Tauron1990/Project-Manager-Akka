@@ -101,7 +101,7 @@ public class ObservableActor : ActorBase, IObservableActor
 
 
     public void Receive<TEvent>(Func<IObservable<TEvent>, IDisposable> handler)
-        => AddResource(new ObservableInvoker<TEvent, TEvent>(handler, GetSelector<TEvent>(), isSafe: true).Construct());
+        => AddResource(new ObservableInvoker<TEvent, TEvent>(handler, GetSelector<TEvent>(), true).Construct());
 
     protected IObservable<TType> SyncActor<TType>(TType element)
         => Observable.Return(element, ActorScheduler.From(Self));
@@ -114,7 +114,7 @@ public class ObservableActor : ActorBase, IObservableActor
         bool RunDefault()
         {
             var signaled = false;
-            foreach (var signal in _currentWaiting.Where(signal => signal.Match(message)))
+            foreach (ISignal signal in _currentWaiting.Where(signal => signal.Match(message)))
             {
                 signal.Signal(message);
                 signaled = true;
@@ -130,8 +130,9 @@ public class ObservableActor : ActorBase, IObservableActor
             case Status.Failure when _selectors.ContainsKey(typeof(Status.Failure)) || _currentWaiting.Any(signal => signal.Match(message)):
                 return RunDefault();
             case Status.Failure failure:
-                if (OnError(failure))
+                if(OnError(failure))
                     throw failure.Cause;
+
                 return true;
             case Status.Success when _selectors.ContainsKey(typeof(Status.Success)) || _currentWaiting.Any(signal => signal.Match(message)):
                 return RunDefault();
@@ -166,9 +167,9 @@ public class ObservableActor : ActorBase, IObservableActor
 
     protected override void Unhandled(object message)
     {
-        if (message is Status status)
+        if(message is Status status)
         {
-            if (status is Status.Failure failure)
+            if(status is Status.Failure failure)
                 ObservableActorLogger.UnhandledException(Log, failure.Cause);
         }
         else
@@ -202,7 +203,7 @@ public class ObservableActor : ActorBase, IObservableActor
 
     protected IObservable<TEvent> GetSelector<TEvent>()
     {
-        if (_selectors.TryGetValue(typeof(TEvent), out var selector)) return (IObservable<TEvent>)selector;
+        if(_selectors.TryGetValue(typeof(TEvent), out object? selector)) return (IObservable<TEvent>)selector;
 
         selector = _receiver
            .Where(msg => msg is TEvent && (!CallSingleHandler || !_isReceived))
@@ -294,7 +295,7 @@ public class ObservableActor : ActorBase, IObservableActor
                            _ => { },
                            exception =>
                            {
-                               if (errorHandler(exception))
+                               if(errorHandler(exception))
                                    Init();
                            });
             _selector = selector;

@@ -7,6 +7,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal;
 public class SimpleConstructorStateFactory : IStateInstanceFactory
 {
     public int Order => int.MaxValue;
+
     public bool CanCreate(Type state)
         => true;
 

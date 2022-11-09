@@ -3,6 +3,7 @@
 namespace SimpleProjectManager.Shared.Services.Devices;
 
 [ValueObject(typeof(string))]
+[Instance("Empty", "")]
 public readonly partial struct DeviceName
 {
     private static Validation Validate(string value)

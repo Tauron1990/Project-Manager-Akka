@@ -4,6 +4,7 @@ using Tauron.Application.Workshop.Mutation;
 using Tauron.Application.Workshop.StateManagement.Dispatcher;
 using Tauron.Application.Workshop.StateManagement.Internal;
 using Tauron.Application.Workshop.StateManagement.StatePooling;
+
 namespace Tauron.Application.Workshop.StateManagement.Builder;
 
 public sealed record StateBuilderParameter(
@@ -74,9 +75,9 @@ public sealed class StateBuilder<TData> : StateBuilderBase, IStateBuilder<TData>
 
     public override (StateContainer State, string Key) Materialize(StateBuilderParameter parameter)
     {
-        var (engine, serviceProvider, invoker, statePool, dispatcherPool, instanceFactories) = parameter;
+        (MutatingEngine engine, IServiceProvider? serviceProvider, IActionInvoker invoker, StatePool statePool, DispatcherPool dispatcherPool, var instanceFactories) = parameter;
 
-        if (State == null)
+        if(State == null)
             throw new InvalidOperationException("A State type or Instance Must be set");
 
         //var cacheKey = $"{State.Name}--{Guid.NewGuid():N}";
@@ -84,7 +85,7 @@ public sealed class StateBuilder<TData> : StateBuilderBase, IStateBuilder<TData>
 
         var pooledState = false;
 
-        if (State.GetInterfaces().Contains(typeof(IPooledState)) && string.IsNullOrWhiteSpace(_dispatcherKey) && _dispatcher != null)
+        if(State.GetInterfaces().Contains(typeof(IPooledState)) && string.IsNullOrWhiteSpace(_dispatcherKey) && _dispatcher != null)
         {
             _dispatcherKey = State.AssemblyQualifiedName;
             pooledState = true;
@@ -94,9 +95,9 @@ public sealed class StateBuilder<TData> : StateBuilderBase, IStateBuilder<TData>
 
         IStateInstance? Factory() => CreateStateFactory(instanceFactories, serviceProvider, dataEngine, invoker);
 
-        var targetState = pooledState ? statePool.Get(State, Factory) : Factory();
+        IStateInstance? targetState = pooledState ? statePool.Get(State, Factory) : Factory();
 
-        if (targetState is null) throw new InvalidOperationException("Failed to Create State");
+        if(targetState is null) throw new InvalidOperationException("Failed to Create State");
 
         targetState.InitState(dataEngine);
         targetState.ApplyQuery(dataSource);
@@ -108,24 +109,25 @@ public sealed class StateBuilder<TData> : StateBuilderBase, IStateBuilder<TData>
 
     private IStateInstance? CreateStateFactory(IEnumerable<IStateInstanceFactory> instanceFactories, IServiceProvider? serviceProvider, ExtendedMutatingEngine<MutatingContext<TData>> dataEngine, IActionInvoker invoker)
     {
-        if (State is null) return null;
+        if(State is null) return null;
 
-        return 
+        return
         (
             from factory in instanceFactories
             orderby factory.Order
             where factory.CanCreate(State)
-            select factory.Create(State, serviceProvider, dataEngine, invoker) into inst
+            select factory.Create(State, serviceProvider, dataEngine, invoker)
+            into inst
             where inst is not null
             select inst
         ).First();
-        
+
     }
 
     private ExtendedMutatingEngine<MutatingContext<TData>> CreateDataEngine(MutationDataSource<TData> dataSource, MutatingEngine engine, DispatcherPool dispatcherPool)
     {
         ExtendedMutatingEngine<MutatingContext<TData>> dataEngine;
-        if (string.IsNullOrWhiteSpace(_dispatcherKey) || _dispatcher == null)
+        if(string.IsNullOrWhiteSpace(_dispatcherKey) || _dispatcher == null)
             dataEngine = _dispatcher == null
                 ? MutatingEngine.From(dataSource, engine)
                 : MutatingEngine.From(dataSource, _dispatcher().Configurate(engine.DriverFactory));

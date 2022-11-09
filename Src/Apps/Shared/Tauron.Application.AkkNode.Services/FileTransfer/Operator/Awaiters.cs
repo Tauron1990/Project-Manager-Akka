@@ -7,7 +7,7 @@ namespace Tauron.Application.AkkaNode.Services.FileTransfer.Operator;
 public sealed class Awaiters
 {
     private readonly ImmutableDictionary<FileOperationId, AwaitRequestInternal> _awaiters;
-    
+
     private Awaiters(ImmutableDictionary<FileOperationId, AwaitRequestInternal> awaiters)
         => _awaiters = awaiters;
 
@@ -18,7 +18,7 @@ public sealed class Awaiters
         if(_awaiters.TryGetValue(transfer.OperationId, out AwaitRequestInternal? request))
         {
             request.Target.Tell(new AwaitResponse(transfer));
-            
+
             return new Awaiters(_awaiters.Remove(transfer.OperationId));
         }
 

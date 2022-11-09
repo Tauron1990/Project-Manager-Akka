@@ -1,8 +1,5 @@
-﻿using System.Reactive.Linq;
-using ReactiveUI;
-using Tauron;
+﻿using ReactiveUI;
 using Tauron.Application.Blazor.Commands;
-using System.Reactive.Disposables;
 
 namespace SimpleProjectManager.Client.Shared.CurrentJobs;
 
@@ -18,7 +15,7 @@ public partial class JobDetailDisplay
 
     protected override IEnumerable<IDisposable> InitializeModel()
     {
-        if (ViewModel == null) yield break;
+        if(ViewModel == null) yield break;
 
         yield return this.BindCommand(
             ViewModel,
@@ -26,5 +23,4 @@ public partial class JobDetailDisplay
             v => v.EditButton,
             ViewModel.WhenAny(m => m.JobData, m => m.Value?.Id));
     }
-
 }

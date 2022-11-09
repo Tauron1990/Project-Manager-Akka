@@ -10,6 +10,6 @@ public interface IStoreConfiguration
         where TState : class, new();
 
     IStoreConfiguration RegisterForFhinising(object toRegister);
-    
+
     IRootStore Build(IScheduler? scheduler = null);
 }

@@ -51,9 +51,9 @@ public abstract class AggregateSagaManager<TAggregateSaga, TIdentity, TSagaLocat
         SagaFactory = sagaFactory;
         Settings = new AggregateSagaManagerSettings(Context.System.Settings.Config);
 
-        var sagaType = typeof(TAggregateSaga);
+        Type sagaType = typeof(TAggregateSaga);
 
-        if (Settings.AutoSubscribe)
+        if(Settings.AutoSubscribe)
         {
             var sagaEventSubscriptionTypes =
                 sagaType
@@ -70,10 +70,10 @@ public abstract class AggregateSagaManager<TAggregateSaga, TIdentity, TSagaLocat
 
             SubscriptionTypes = subscriptionTypes.AsReadOnly();
 
-            foreach (var type in SubscriptionTypes) Context.System.EventStream.Subscribe(Self, type);
+            foreach (Type type in SubscriptionTypes) Context.System.EventStream.Subscribe(Self, type);
         }
 
-        if (Settings.AutoSpawnOnReceive) Receive<IDomainEvent>(Handle);
+        if(Settings.AutoSpawnOnReceive) Receive<IDomainEvent>(Handle);
 
         Receive<UnsubscribeFromAll>(Handle);
         Receive<Terminated>(Terminate);
@@ -95,13 +95,13 @@ public abstract class AggregateSagaManager<TAggregateSaga, TIdentity, TSagaLocat
 
     protected void UnsubscribeFromAllTopics()
     {
-        foreach (var type in SubscriptionTypes) Context.System.EventStream.Unsubscribe(Self, type);
+        foreach (Type type in SubscriptionTypes) Context.System.EventStream.Unsubscribe(Self, type);
     }
 
     protected virtual bool Handle(IDomainEvent domainEvent)
     {
-        var sagaId = SagaLocator.LocateSaga(domainEvent);
-        var saga = FindOrSpawn(sagaId);
+        TIdentity sagaId = SagaLocator.LocateSaga(domainEvent);
+        IActorRef saga = FindOrSpawn(sagaId);
         saga.Tell(domainEvent, Sender);
 
         return true;
@@ -137,16 +137,16 @@ public abstract class AggregateSagaManager<TAggregateSaga, TIdentity, TSagaLocat
 
     protected IActorRef FindOrSpawn(TIdentity sagaId)
     {
-        var saga = Context.Child(sagaId);
+        IActorRef saga = Context.Child(sagaId);
 
-        if (saga.IsNobody()) return Spawn(sagaId);
+        if(saga.IsNobody()) return Spawn(sagaId);
 
         return saga;
     }
 
     private IActorRef Spawn(TIdentity sagaId)
     {
-        var saga = Context.ActorOf(Props.Create(SagaFactory), sagaId.Value);
+        IActorRef? saga = Context.ActorOf(Props.Create(SagaFactory), sagaId.Value);
         Context.Watch(saga);
 
         return saga;

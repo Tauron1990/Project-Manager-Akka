@@ -12,8 +12,6 @@ namespace SpaceConqueror.Modules;
 public class RoomBuilder
 {
     private readonly AssetManager _assetManager;
-    internal List<Type> Rules { get; } = new();
-    internal StateRegistrar States { get; } = new();
 
     private readonly RoomState _roomState;
 
@@ -22,6 +20,9 @@ public class RoomBuilder
         _assetManager = assetManager;
         _roomState = new RoomState(name);
     }
+
+    internal List<Type> Rules { get; } = new();
+    internal StateRegistrar States { get; } = new();
 
     internal (IEnumerable<Type> Rules, Func<IEnumerable<IState>> States) Init()
         => (Rules.AsEnumerable(), GetStates);
@@ -32,7 +33,7 @@ public class RoomBuilder
 
         return this;
     }
-    
+
     private IEnumerable<IState> GetStates()
     {
         yield return _roomState;
@@ -51,21 +52,21 @@ public class RoomBuilder
     public RoomBuilder AddDescription(string name)
     {
         _roomState.PredefinedDescriptions.Add(_roomState.PredefinedDescriptions.Count + 1, name);
-        
+
         return this;
     }
-    
+
     public RoomBuilder AddDescription(string name, string value)
     {
         name = $"{_roomState.Id}_{name}";
-        
+
         AddDescription(name);
 
         static Func<string> Data(string value)
             => () => GameManager.AssetManager.GetString(value);
 
         _assetManager.Add(name, Data(value));
-        
+
         return this;
     }
 
@@ -75,11 +76,11 @@ public class RoomBuilder
 
         return this;
     }
-    
+
     public RoomBuilder AddCommand(IDisplayCommand command)
     {
         var id = $"{_roomState.Id}_{command.Name}";
-        
+
         _assetManager.Add(id, () => command);
         _roomState.PredefinedCommands.Add(id);
 
@@ -95,26 +96,26 @@ public class RoomBuilder
     public RoomBuilder ProcessToData<TContext>(string id, Func<TContext, AssetManager, IDisplayData> descriptor)
     {
         _assetManager.Add(id, CreateContextProcessor(descriptor));
-        
+
         _roomState.ProcessorNames.Add(id);
 
         return this;
     }
 
     public RoomBuilder ProcessToCommand<TContext>(string name, Func<TContext, AssetManager, IGameCommand> commands)
-        => ProcessToCommand(name, new Func<TContext,AssetManager,IDisplayCommand>((c, m) => new StaticDiplayCommand(name, int.MinValue, commands(c, m))));
+        => ProcessToCommand(name, new Func<TContext, AssetManager, IDisplayCommand>((c, m) => new StaticDiplayCommand(name, int.MinValue, commands(c, m))));
 
     public RoomBuilder ProcessToCommand<TContext>(string name, Func<TContext, AssetManager, IDisplayCommand> commands)
     {
         var assetId = $"{_roomState.Id}_{name}";
-        
+
         _assetManager.Add(assetId, CreateContextProcessor(commands));
-        
+
         _roomState.ProcessorNames.Add(assetId);
 
         return this;
     }
-        
+
 
     private static Func<ContextProcessor> CreateContextProcessor<TContext, TResult>(Func<TContext, AssetManager, TResult> builder)
     {
@@ -123,7 +124,7 @@ public class RoomBuilder
             if(context is TContext typedContext)
                 yield return builder(typedContext, assetmanager);
         }
-        
+
         return () => Create;
     }
 }

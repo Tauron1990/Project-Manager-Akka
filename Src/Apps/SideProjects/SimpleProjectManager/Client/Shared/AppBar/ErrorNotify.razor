@@ -8,7 +8,7 @@
 <ObservableRenderer Observable="@ErrorService.Errors.ErrorCount">
     <ValueRenderer>
         <MudTooltip Text="Aktuelle Kritische Fehler">
-            @if (context == 0)
+            @if(context == 0)
             {
                 <MudAlert Severity="Severity.Success">Keine</MudAlert>
             }

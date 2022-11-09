@@ -39,7 +39,7 @@ public class CircularBuffer<T> : IEnumerable<T>
 
     public CircularBuffer(int capacity)
     {
-        if (capacity <= 0) throw new ArgumentException("Capacity must be Larger then 0", nameof(capacity));
+        if(capacity <= 0) throw new ArgumentException("Capacity must be Larger then 0", nameof(capacity));
 
         _buffer = new T[capacity + 1];
         _start = 0;
@@ -51,16 +51,16 @@ public class CircularBuffer<T> : IEnumerable<T>
         params T[] items)
         : this(capacity)
     {
-        if (items.Length > capacity) throw new ArgumentException(nameof(capacity));
+        if(items.Length > capacity) throw new ArgumentException(nameof(capacity));
 
-        foreach (var item in items) Put(item);
+        foreach (T item in items) Put(item);
     }
 
     public int Capacity => _buffer.Length - 1;
 
     public IEnumerator<T> GetEnumerator()
     {
-        var start = _start;
+        int start = _start;
         while (start != _end)
         {
             yield return _buffer[start];
@@ -75,6 +75,6 @@ public class CircularBuffer<T> : IEnumerable<T>
     {
         _buffer[_end] = item;
         _end = (_end + 1) % _buffer.Length;
-        if (_end == _start) _start = (_start + 1) % _buffer.Length;
+        if(_end == _start) _start = (_start + 1) % _buffer.Length;
     }
 }

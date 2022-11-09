@@ -18,7 +18,7 @@ public abstract partial class JsonNode
 
     public void SaveToBinaryFile(IFile aFile)
     {
-        using var fileStream = aFile.Open(FileAccess.Write);
+        using Stream fileStream = aFile.Open(FileAccess.Write);
         SaveToBinaryStream(fileStream);
     }
 
@@ -38,7 +38,7 @@ public abstract partial class JsonNode
         {
             case JsonNodeType.Array:
             {
-                var count = aReader.ReadInt32();
+                int count = aReader.ReadInt32();
                 var tmp = new JsonArray();
                 for (var i = 0; i < count; i++) tmp.Add(DeserializeBinary(aReader));
 
@@ -46,12 +46,12 @@ public abstract partial class JsonNode
             }
             case JsonNodeType.Object:
             {
-                var count = aReader.ReadInt32();
+                int count = aReader.ReadInt32();
                 var tmp = new JsonObject();
                 for (var i = 0; i < count; i++)
                 {
-                    var key = aReader.ReadString();
-                    var val = DeserializeBinary(aReader);
+                    string key = aReader.ReadString();
+                    JsonNode val = DeserializeBinary(aReader);
                     tmp.Add(key, val);
                 }
 
@@ -89,14 +89,14 @@ public abstract partial class JsonNode
 
     public static JsonNode LoadFromBinaryFile(string aFileName)
     {
-        using var fileStream = File.OpenRead(aFileName);
+        using FileStream fileStream = File.OpenRead(aFileName);
 
         return LoadFromBinaryStream(fileStream);
     }
 
     public static JsonNode LoadFromBinaryBase64(string aBase64)
     {
-        var tmp = Convert.FromBase64String(aBase64);
+        byte[] tmp = Convert.FromBase64String(aBase64);
         var stream = new MemoryStream(tmp) { Position = 0 };
 
         return LoadFromBinaryStream(stream);
@@ -109,7 +109,7 @@ public partial class JsonArray
     {
         aWriter.Write((byte)JsonNodeType.Array);
         aWriter.Write(_list.Count);
-        foreach (var jsonNode in _list)
+        foreach (JsonNode jsonNode in _list)
             jsonNode.SerializeBinary(aWriter);
     }
 }
@@ -120,7 +120,7 @@ public partial class JsonObject
     {
         aWriter.Write((byte)JsonNodeType.Object);
         aWriter.Write(_dict.Count);
-        foreach (var key in _dict.Keys)
+        foreach (string key in _dict.Keys)
         {
             aWriter.Write(key);
             _dict[key].SerializeBinary(aWriter);

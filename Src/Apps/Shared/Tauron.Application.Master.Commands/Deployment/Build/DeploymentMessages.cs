@@ -10,7 +10,4 @@ namespace Tauron.Application.Master.Commands.Deployment.Build;
 [Instance("BuildExtractingRepository", "BuildExtractingRepository")]
 [Instance("BuildRunBuilding", "BuildRunBuilding")]
 [Instance("BuildTryFindProject", "BuildTryFindProject")]
-public readonly partial struct DeploymentMessage
-{
-    
-}
+public readonly partial struct DeploymentMessage { }

@@ -7,6 +7,9 @@ public sealed class FileUploadTrigger : IDisposable
 {
     private Func<Task<string>>? _run;
 
+    public void Dispose()
+        => _run = null;
+
     public IDisposable Set(Func<Task<string>> runner)
     {
         _run = runner;
@@ -16,12 +19,9 @@ public sealed class FileUploadTrigger : IDisposable
 
     public async Task<string> Upload()
     {
-        if (_run is null)
+        if(_run is null)
             throw new InvalidOperationException("No Runner Set");
 
         return await _run();
     }
-
-    public void Dispose()
-        => _run = null;
 }

@@ -1,8 +1,8 @@
 ﻿@page "/TaskManager"
 
-@using SimpleProjectManager.Client.Shared.Tasks
 @using SimpleProjectManager.Client.Shared.Data
-
+@using SimpleProjectManager.Client.Shared.Tasks
+@using SimpleProjectManager.Shared.Services.Tasks
 @inherits NonAutoRenderingComponent
 
 @inject GlobalState GlobalState
@@ -16,7 +16,7 @@
         </EmptyRender>
         <ListRender Context="items">
             <MudList>
-                @foreach (var item in items)
+                @foreach (PendingTask item in items)
                 {
                     <MudListItem @key="item.Id">
                         <PendingTaskDisplay PendingTask="item"/>

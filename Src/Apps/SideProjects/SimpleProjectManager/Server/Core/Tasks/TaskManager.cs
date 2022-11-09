@@ -5,8 +5,8 @@ namespace SimpleProjectManager.Server.Core.Tasks;
 
 public class TaskManager : ITaskManager, IDisposable
 {
-    private readonly TaskManagerCore _taskManagerCore;
     private readonly IDisposable _subscription;
+    private readonly TaskManagerCore _taskManagerCore;
 
     public TaskManager(TaskManagerCore taskManagerCore, IEventAggregator aggregator)
     {
@@ -16,13 +16,18 @@ public class TaskManager : ITaskManager, IDisposable
                 _ =>
                 {
                     using (Computed.Invalidate())
+                    {
                         GetTasks(default).Ignore();
+                    }
                 });
     }
 
+    public void Dispose()
+        => _subscription.Dispose();
+
     public virtual async Task<PendingTask[]> GetTasks(CancellationToken token)
     {
-        if (Computed.IsInvalidating()) return Array.Empty<PendingTask>();
+        if(Computed.IsInvalidating()) return Array.Empty<PendingTask>();
 
         var entrys = await _taskManagerCore.GetCurrentTasks(token);
 
@@ -33,9 +38,9 @@ public class TaskManager : ITaskManager, IDisposable
     {
         try
         {
-            var result = await _taskManagerCore.DeleteTask(id, token);
+            IOperationResult result = await _taskManagerCore.DeleteTask(id, token);
 
-            if (!result.Ok)
+            if(!result.Ok)
                 return result.Error ?? "Unbkannter Fehler";
 
             return string.Empty;
@@ -45,7 +50,4 @@ public class TaskManager : ITaskManager, IDisposable
             return e.Message;
         }
     }
-
-    public void Dispose()
-        => _subscription.Dispose();
 }

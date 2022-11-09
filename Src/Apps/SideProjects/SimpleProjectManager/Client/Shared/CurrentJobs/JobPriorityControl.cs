@@ -1,7 +1,4 @@
-﻿
-
-using System.Collections.Immutable;
-using System.Reactive.Disposables;
+﻿using System.Collections.Immutable;
 using Microsoft.AspNetCore.Components;
 using ReactiveUI;
 using SimpleProjectManager.Client.Shared.Data.States;
@@ -12,9 +9,9 @@ namespace SimpleProjectManager.Client.Shared.CurrentJobs;
 
 public partial class JobPriorityControl
 {
-    private MudCommandButton? _priorize;
-    private MudCommandIconButton? _goup;
     private MudCommandIconButton? _godown;
+    private MudCommandIconButton? _goup;
+    private MudCommandButton? _priorize;
 
     private MudCommandButton? Priorize
     {

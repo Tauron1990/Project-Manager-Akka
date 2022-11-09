@@ -23,7 +23,7 @@ public class DeferredSource : ModelConnectorBase<DeferredSource>, INotifyPropert
         get => _value;
         set
         {
-            if (Equals(_value, value)) return;
+            if(Equals(_value, value)) return;
 
             _value = value;
             Model?.Actor.Tell(new SetValue(Name, value));
@@ -35,7 +35,7 @@ public class DeferredSource : ModelConnectorBase<DeferredSource>, INotifyPropert
         get => _error;
         private set
         {
-            if (value == _error) return;
+            if(value == _error) return;
 
             _error = value;
             OnPropertyChanged();
@@ -49,7 +49,7 @@ public class DeferredSource : ModelConnectorBase<DeferredSource>, INotifyPropert
         get => _hasErrors;
         private set
         {
-            if (value == _hasErrors) return;
+            if(value == _hasErrors) return;
 
             _hasErrors = value;
             OnPropertyChanged();
@@ -65,7 +65,7 @@ public class DeferredSource : ModelConnectorBase<DeferredSource>, INotifyPropert
 
     protected override void PropertyChangedHandler(PropertyChangedEvent msg)
     {
-        if (Equals(_value, msg.Value)) return;
+        if(Equals(_value, msg.Value)) return;
 
         _value = msg.Value;
         OnPropertyChanged(nameof(Value));

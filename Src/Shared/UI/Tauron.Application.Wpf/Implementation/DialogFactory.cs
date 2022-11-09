@@ -63,7 +63,7 @@ public sealed class DialogFactory : IDialogFactory
 
                 TranslateDefaultExt(dialog);
 
-                var tempresult = owner != null
+                bool? tempresult = owner != null
                     ? dialog.ShowDialog(owner)
                     : dialog.ShowDialog(_mainWindow);
 
@@ -89,7 +89,7 @@ public sealed class DialogFactory : IDialogFactory
                                  UseDescriptionForTitle = useDescriptionForTitle
                              };
 
-                var tempresult = owner != null
+                bool? tempresult = owner != null
                     ? dialog.ShowDialog(owner)
                     : dialog.ShowDialog(_mainWindow);
 
@@ -114,7 +114,7 @@ public sealed class DialogFactory : IDialogFactory
                                  UseDescriptionForTitle = useDescriptionForTitle
                              };
 
-                var tempresult = owner != null
+                bool? tempresult = owner != null
                     ? dialog.ShowDialog(owner)
                     : dialog.ShowDialog(_mainWindow);
 
@@ -148,7 +148,7 @@ public sealed class DialogFactory : IDialogFactory
 
                 TranslateDefaultExt(dialog);
 
-                var tempresult = owner != null
+                bool? tempresult = owner != null
                     ? dialog.ShowDialog(owner)
                     : dialog.ShowDialog(_mainWindow);
 
@@ -158,13 +158,13 @@ public sealed class DialogFactory : IDialogFactory
 
     private static void TranslateDefaultExt(VistaFileDialog dialog)
     {
-        if (string.IsNullOrWhiteSpace(dialog.DefaultExt)) return;
+        if(string.IsNullOrWhiteSpace(dialog.DefaultExt)) return;
 
-        var ext = "*." + dialog.DefaultExt;
-        var filter = dialog.Filter;
-        var filters = filter.Split('|');
+        string ext = "*." + dialog.DefaultExt;
+        string? filter = dialog.Filter;
+        string[] filters = filter.Split('|');
         for (var i = 1; i < filters.Length; i += 2)
-            if (filters[i] == ext)
+            if(filters[i] == ext)
                 dialog.FilterIndex = 1 + (i - 1) / 2;
     }
 }

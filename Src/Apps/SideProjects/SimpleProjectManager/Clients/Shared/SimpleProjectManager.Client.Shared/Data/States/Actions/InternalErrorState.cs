@@ -18,12 +18,11 @@ internal static class ErrorStatePatcher
 {
     public static InternalErrorState DecrementErrorCount(InternalErrorState errorState, DisableError error)
     {
-        if (errorState.ErrorCount > 0)
+        if(errorState.ErrorCount > 0)
             return errorState with { ErrorCount = errorState.ErrorCount - 1 };
 
         return errorState;
     }
-        
 }
 
 internal static class ErrorStateRequests

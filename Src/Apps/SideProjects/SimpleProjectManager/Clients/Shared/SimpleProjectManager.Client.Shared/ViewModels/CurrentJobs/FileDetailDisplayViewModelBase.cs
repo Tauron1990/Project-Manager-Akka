@@ -8,11 +8,11 @@ namespace SimpleProjectManager.Client.Shared.ViewModels.CurrentJobs;
 
 public abstract class FileDetailDisplayViewModelBase : ReactiveObject
 {
-    public IObservable<ProjectFileInfo?> FileInfo { get; }
-    
     protected FileDetailDisplayViewModelBase(GlobalState state, IStateFactory stateFactory)
         // ReSharper disable once VirtualMemberCallInConstructor
         => FileInfo = state.Files.QueryFileInfo(GetId(stateFactory));
+
+    public IObservable<ProjectFileInfo?> FileInfo { get; }
 
     protected abstract IState<ProjectFileId?> GetId(IStateFactory stateFactory);
 }

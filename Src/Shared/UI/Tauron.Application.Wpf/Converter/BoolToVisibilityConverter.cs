@@ -20,7 +20,7 @@ public class StringToIntConverter : ValueConverterFactoryBase
 
         protected override int ConvertBack(string value)
         {
-            if (string.IsNullOrEmpty(value))
+            if(string.IsNullOrEmpty(value))
                 return 0;
 
             try
@@ -34,7 +34,6 @@ public class StringToIntConverter : ValueConverterFactoryBase
         }
     }
 }
-
 
 [PublicAPI]
 [MarkupExtensionReturnType(typeof(IValueConverter))]
@@ -62,9 +61,9 @@ public class BoolToVisibilityConverter : ValueConverterFactoryBase
 
         protected override Visibility Convert(bool value)
         {
-            if (_reverse) value = !value;
+            if(_reverse) value = !value;
 
-            if (value) return Visibility.Visible;
+            if(value) return Visibility.Visible;
 
             return _isHidden ? Visibility.Hidden : Visibility.Collapsed;
         }
@@ -89,7 +88,7 @@ public class BoolToVisibilityConverter : ValueConverterFactoryBase
                     break;
             }
 
-            if (_reverse) result = !result;
+            if(_reverse) result = !result;
 
             return result;
         }

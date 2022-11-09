@@ -1,16 +1,15 @@
 ﻿using Avalonia;
 using Tauron.Application.CommonUI;
 
-namespace Tauron.Application.Avalonia.AppCore
+namespace Tauron.Application.Avalonia.AppCore;
+
+public class AvaObject : IUIObject
 {
-    public class AvaObject : IUIObject
-    {
-        public AvaObject(AvaloniaObject obj) => Obj = obj;
+    public AvaObject(AvaloniaObject obj) => Obj = obj;
 
-        public AvaloniaObject Obj { get; }
+    public AvaloniaObject Obj { get; }
 
-        public virtual IUIObject? GetPerent() => null;
+    public virtual IUIObject? GetPerent() => null;
 
-        public object Object => Obj;
-    }
+    public object Object => Obj;
 }

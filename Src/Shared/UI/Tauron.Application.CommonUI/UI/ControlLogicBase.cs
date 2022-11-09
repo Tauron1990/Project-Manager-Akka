@@ -67,7 +67,7 @@ public abstract class ControlLogicBase<TControl> : IView
     {
         Logger.Debug("Control Loaded {Element}", UserControl.GetType());
 
-        if (!Model.IsInitialized)
+        if(!Model.IsInitialized)
         {
             var parentOption = ControlBindLogic.FindParentDatacontext(UserControl);
             parentOption.Run(

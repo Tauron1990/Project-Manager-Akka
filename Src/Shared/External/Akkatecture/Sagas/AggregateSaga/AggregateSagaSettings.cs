@@ -35,7 +35,7 @@ public class AggregateSagaSettings
 
     public AggregateSagaSettings(Config config)
     {
-        var aggregateSagaConfig = config.WithFallback(AkkatectureDefaultSettings.DefaultConfig());
+        Config? aggregateSagaConfig = config.WithFallback(AkkatectureDefaultSettings.DefaultConfig());
         aggregateSagaConfig = aggregateSagaConfig.GetConfig(Section);
 
         #pragma warning disable GU0009

@@ -7,30 +7,30 @@ namespace Tauron.Application.Blazor.Wizard;
 
 public partial class WizardRoot
 {
-
     private static readonly RenderFragment<(Type? Type, Func<Task> Next, object Reciever)> RenderPage =
         dat => b =>
-        {
-            var (comp, callback, reciever) = dat;
-            if (comp == null)
-                return;
+               {
+                   (Type? comp, var callback, object reciever) = dat;
 
-            b.OpenComponent(0, comp);
-            b.AddAttribute(1, "OnNext", EventCallback.Factory.Create(reciever, callback));
-            b.CloseComponent();
-        };
+                   if(comp == null)
+                       return;
+
+                   b.OpenComponent(0, comp);
+                   b.AddAttribute(1, "OnNext", EventCallback.Factory.Create(reciever, callback));
+                   b.CloseComponent();
+               };
+
+    private readonly CancellationTokenSource _mainSource = new();
+
+    private (Type? Page, CancellationTokenSource? Source) _currentPage;
+
+    private bool _loading = true;
 
     [Parameter]
     public WizardContextBase? Context { get; set; }
 
     [Parameter]
     public EventCallback OnCancel { get; set; }
-
-    private (Type? Page, CancellationTokenSource? Source) _currentPage;
-
-    private bool _loading = true;
-
-    private readonly CancellationTokenSource _mainSource = new();
 
     public void Dispose()
     {
@@ -42,7 +42,7 @@ public partial class WizardRoot
 
     private async Task BackCallback()
     {
-        if (Context == null) return;
+        if(Context == null) return;
 
         _currentPage.Source?.Dispose();
         var newSource = CancellationTokenSource.CreateLinkedTokenSource(_mainSource.Token);
@@ -54,23 +54,25 @@ public partial class WizardRoot
         catch
         {
             newSource.Dispose();
+
             throw;
         }
     }
 
     private async Task NextCallback()
     {
-        if (Context == null) return;
+        if(Context == null) return;
 
         _loading = true;
         StateHasChanged();
 
         await (Context.CurrentPage?.BeforeNext(Context) ?? Task.CompletedTask);
 
-        var err = Context.CurrentPage == null ? null : await Context.CurrentPage.VerifyNext(Context, _mainSource.Token);
-        if (!string.IsNullOrWhiteSpace(err))
+        string? err = Context.CurrentPage == null ? null : await Context.CurrentPage.VerifyNext(Context, _mainSource.Token);
+        if(!string.IsNullOrWhiteSpace(err))
         {
             _aggregator.PublishWarnig($"Fehler: {err}");
+
             return;
         }
 
@@ -84,6 +86,7 @@ public partial class WizardRoot
         catch
         {
             newSource.Dispose();
+
             throw;
         }
 
@@ -94,6 +97,7 @@ public partial class WizardRoot
     private Task CancelCallback()
     {
         _mainSource.Cancel();
+
         return OnCancel.InvokeAsync();
     }
 

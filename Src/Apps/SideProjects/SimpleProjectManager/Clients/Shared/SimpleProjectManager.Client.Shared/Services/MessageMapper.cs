@@ -13,11 +13,11 @@ public interface IMessageDispatcher
     ValueTask<bool> IsSuccess(Func<ValueTask<Unit>> runner);
 
     ValueTask<bool> IsSuccess(Func<ValueTask> runner);
-    
+
     void PublishError(Exception exception);
-    
+
     void PublishError(string error);
-    
+
     void PublishWarnig(string warning);
 
     void PublishMessage(string message);

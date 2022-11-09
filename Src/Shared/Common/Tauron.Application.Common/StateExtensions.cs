@@ -18,20 +18,22 @@ public static class StateExtensions
     }
 
     public static IObservable<TData> ToObservable<TData>(this IState<TData> state, Func<Exception, bool> decidePropagateErrors)
-        => Observable.Create<TData>(o =>
-                                    {
-                                        if(state.HasValue)
-                                            o.OnNext(state.Value);
-                                        return new StateRegistration<TData>(o, state, decidePropagateErrors);
-                                    })
+        => Observable.Create<TData>(
+                o =>
+                {
+                    if(state.HasValue)
+                        o.OnNext(state.Value);
+
+                    return new StateRegistration<TData>(o, state, decidePropagateErrors);
+                })
            .DistinctUntilChanged()
            .Replay(1).RefCount();
-    
+
     private sealed class StateRegistration<TData> : IDisposable
     {
         private readonly IObserver<TData> _observer;
-        private readonly IState<TData> _state;
         private readonly Func<Exception, bool> _skipErrors;
+        private readonly IState<TData> _state;
 
         internal StateRegistration(IObserver<TData> observer, IState<TData> state, Func<Exception, bool> skipErrors)
         {
@@ -39,23 +41,19 @@ public static class StateExtensions
             _state = state;
             _skipErrors = skipErrors;
 
-            
-            
+
             state.AddEventHandler(StateEventKind.All, Handler);
         }
+
+        public void Dispose() => _state.RemoveEventHandler(StateEventKind.All, Handler);
 
         private void Handler(IState<TData> arg1, StateEventKind arg2)
         {
             if(_state.HasValue)
                 _observer.OnNext(_state.Value);
             else if(_state.HasError && _state.Error is not null)
-            {
                 if(_skipErrors(_state.Error))
                     _observer.OnError(_state.Error);
-            }
         }
-
-        public void Dispose() => _state.RemoveEventHandler(StateEventKind.All, Handler);
     }
-    
 }

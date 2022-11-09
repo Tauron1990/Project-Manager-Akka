@@ -4,46 +4,45 @@ using JetBrains.Annotations;
 using Tauron.AkkaHost;
 using Tauron.Localization;
 
-namespace Tauron.Application.Avalonia.UI
+namespace Tauron.Application.Avalonia.UI;
+
+[PublicAPI]
+public sealed class Loc : UpdatableMarkupExtension
 {
-    [PublicAPI]
-    public sealed class Loc : UpdatableMarkupExtension
+    private static readonly Dictionary<string, object?> Cache = new();
+
+    public Loc(string entryName) => EntryName = entryName;
+
+    public string EntryName { get; set; }
+
+    protected override object ProvideValueInternal(IServiceProvider serviceProvider)
     {
-        private static readonly Dictionary<string, object?> Cache = new();
-
-        public Loc(string entryName) => EntryName = entryName;
-
-        public string EntryName { get; set; }
-
-        protected override object ProvideValueInternal(IServiceProvider serviceProvider)
+        try
         {
-            try
+            lock (Cache)
             {
-                lock (Cache)
+                if(Cache.TryGetValue(EntryName, out object? result))
+                    return result!;
+            }
+
+            ActorApplication.ActorSystem.Loc().Request(
+                EntryName,
+                o =>
                 {
-                    if (Cache.TryGetValue(EntryName, out var result))
-                        return result!;
-                }
-
-                ActorApplication.ActorSystem.Loc().Request(
-                    EntryName,
-                    o =>
+                    object? res = o.GetOrElse(EntryName);
+                    lock (Cache)
                     {
-                        var res = o.GetOrElse(EntryName);
-                        lock (Cache)
-                        {
-                            Cache[EntryName] = res;
-                        }
+                        Cache[EntryName] = res;
+                    }
 
-                        UpdateValue(res);
-                    });
+                    UpdateValue(res);
+                });
 
-                return "Loading";
-            }
-            catch (Exception e)
-            {
-                return $"Error... {e}";
-            }
+            return "Loading";
+        }
+        catch (Exception e)
+        {
+            return $"Error... {e}";
         }
     }
 }

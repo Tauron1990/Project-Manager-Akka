@@ -14,5 +14,4 @@ public static class CommandExtensions
 
     public static void AddCommand(this CommandProcessorState state, IGameCommand command)
         => state.Commands = state.Commands.Add(command);
-
 }

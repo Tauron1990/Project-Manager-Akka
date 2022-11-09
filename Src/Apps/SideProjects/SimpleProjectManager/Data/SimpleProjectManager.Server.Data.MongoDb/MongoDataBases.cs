@@ -6,13 +6,6 @@ namespace SimpleProjectManager.Server.Data.MongoDb;
 
 public sealed class MongoDataBases : IDatabases
 {
-    public IMapper Mapper { get; }
-    
-    public IDatabaseCollection<DbFileInfoData> FileInfos { get; }
-    public IDatabaseCollection<DbCriticalErrorEntry> CriticalErrors { get; }
-    public IDatabaseCollection<DbProjectProjection> ProjectProjections { get; }
-    public IDatabaseCollection<DbTaskManagerEntry> TaskManagerEntrys { get; }
-
     public MongoDataBases(IServiceProvider serviceProvider, IMongoDatabase mongoDatabase)
     {
         Mapper = MapperFactory.CreateMapper(serviceProvider);
@@ -22,4 +15,11 @@ public sealed class MongoDataBases : IDatabases
         ProjectProjections = new DatabaseCollection<DbProjectProjection>(mongoDatabase.GetCollection<DbProjectProjection>(nameof(DbProjectProjection)));
         TaskManagerEntrys = new DatabaseCollection<DbTaskManagerEntry>(mongoDatabase.GetCollection<DbTaskManagerEntry>(nameof(DbTaskManagerEntry)));
     }
+
+    public IMapper Mapper { get; }
+
+    public IDatabaseCollection<DbFileInfoData> FileInfos { get; }
+    public IDatabaseCollection<DbCriticalErrorEntry> CriticalErrors { get; }
+    public IDatabaseCollection<DbProjectProjection> ProjectProjections { get; }
+    public IDatabaseCollection<DbTaskManagerEntry> TaskManagerEntrys { get; }
 }

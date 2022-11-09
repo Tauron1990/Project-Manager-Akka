@@ -40,7 +40,7 @@ public sealed class TransferOperatorActor : FSM<OperatorState, OperatorData>
         When(OperatorState.Reciving, ProcessReciving, SendingTimeout);
         When(OperatorState.Failed, ProcessFailing, FailedTimeout);
         When(OperatorState.Compled, _ => null);
-        
+
         OnTransition(WhenTransition);
         WhenUnhandled(UnHandledEvent);
 
@@ -329,7 +329,7 @@ public sealed class TransferOperatorActor : FSM<OperatorState, OperatorData>
                    .Using(state.StateData.StartRecdiving(transmit));
             case DataTransferRequest request:
                 _log.Info("Incoming Trensfer Request {id} -- {Data}", GetId(state), request.Data);
-                
+
                 return GoTo(OperatorState.InitSending)
                    .Replying(new TransmitRequest(request.OperationId, Parent, request.Data), request.Target.Actor, Parent)
                    .Using(state.StateData.StartSending(request, Sender));
@@ -343,8 +343,8 @@ public sealed class TransferOperatorActor : FSM<OperatorState, OperatorData>
     private static FileOperationId GetId(Event<OperatorData> message)
     {
         FileOperationId id = (message.FsmEvent as TransferMessage)?.OperationId ?? message.StateData.OperationId;
-        if (string.IsNullOrWhiteSpace(id.Value))
-            id =  FileOperationId.From("Unkowen");
+        if(string.IsNullOrWhiteSpace(id.Value))
+            id = FileOperationId.From("Unkowen");
 
         return id;
     }

@@ -2,4 +2,4 @@
 
 namespace SimpleProjectManager.Shared.Services.Devices;
 
-public sealed record LogData(string Message, DateTime Occurance, ImmutableDictionary<string, string> Data);
+public sealed record LogData(SimpleMessage Message, DateTime Occurance, ImmutableDictionary<PropertyName, PropertyValue> Data);

@@ -6,10 +6,11 @@ namespace SimpleProjectManager.Server.Data.LiteDbDriver;
 public sealed class LiteDatabaseCollection<TData> : IDatabaseCollection<TData>
 {
     private readonly ILiteCollection<TData> _collection;
-    public IOperationFactory<TData> Operations { get; } = new OperationFactory<TData>();
 
     public LiteDatabaseCollection(ILiteCollection<TData> collection)
         => _collection = collection;
+
+    public IOperationFactory<TData> Operations { get; } = new OperationFactory<TData>();
 
     public IFindQuery<TData, TData> Find(IFilter<TData> filter)
     {
@@ -32,7 +33,7 @@ public sealed class LiteDatabaseCollection<TData> : IDatabaseCollection<TData>
             {
                 var exp = RunFilter(filter);
 
-                var ent = exp(_collection.FindAll()).Single();
+                TData ent = exp(_collection.FindAll()).Single();
                 ent = ((LiteUpdate<TData>)updater).Transform(ent);
 
                 _collection.Update(ent);
@@ -56,8 +57,8 @@ public sealed class LiteDatabaseCollection<TData> : IDatabaseCollection<TData>
             {
                 var exp = RunFilter(filter);
 
-                var toDelete = exp(_collection.FindAll()).Single();
-                var id = _collection.EntityMapper.Id.Getter(toDelete);
+                TData toDelete = exp(_collection.FindAll()).Single();
+                object? id = _collection.EntityMapper.Id.Getter(toDelete);
 
                 return _collection.Delete(new BsonValue(id))
                     ? new DbOperationResult(true, 1, 0)

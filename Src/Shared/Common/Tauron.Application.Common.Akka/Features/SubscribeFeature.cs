@@ -12,14 +12,9 @@ public sealed class SubscribeFeature : IFeature<SubscribeFeature.State>
         yield return nameof(SubscribeFeature);
     }
 
-    public void PostStop()
-    {
-        
-    }
+    public void PostStop() { }
 
-    public void PreStart()
-    {
-    }
+    public void PreStart() { }
 
     void IFeature<State>.Init(IFeatureActor<State> actor)
     {
@@ -35,7 +30,7 @@ public sealed class SubscribeFeature : IFeature<SubscribeFeature.State>
                .Select(
                     statePair =>
                     {
-                        var ((_, @event), state, _) = statePair;
+                        ((_, Type @event), State state, _) = statePair;
 
                         actor.TellSelf(new InternalEventSubscription(actor.Sender, @event));
 
@@ -48,7 +43,7 @@ public sealed class SubscribeFeature : IFeature<SubscribeFeature.State>
                     statePair =>
                     {
                         actor.Context.Unwatch(actor.Sender);
-                        var (eventUnSubscribe, state, _) = statePair;
+                        (EventUnSubscribe eventUnSubscribe, State state, _) = statePair;
 
                         return state.Update(eventUnSubscribe.Event, refs => refs.Remove(actor.Sender));
                     }));
@@ -57,9 +52,9 @@ public sealed class SubscribeFeature : IFeature<SubscribeFeature.State>
             obs => obs.ToUnit(
                 statePair =>
                 {
-                    var ((@event, eventType), state, _) = statePair;
+                    ((object @event, Type eventType), State state, _) = statePair;
 
-                    if (state.Subscriptions.TryGetValue(eventType, out var intrests))
+                    if(state.Subscriptions.TryGetValue(eventType, out var intrests))
                         intrests.ForEach(actorRef => actorRef.Tell(@event));
                 }));
     }
@@ -80,7 +75,7 @@ public sealed class SubscribeFeature : IFeature<SubscribeFeature.State>
     {
         public State Update(Type type, Func<ImmutableList<IActorRef>, ImmutableList<IActorRef>> listUpdate)
         {
-            if (!Subscriptions.TryGetValue(type, out var list))
+            if(!Subscriptions.TryGetValue(type, out var list))
                 return this with
                        {
                            Subscriptions = Subscriptions.SetItem(type, listUpdate(ImmutableList<IActorRef>.Empty))
@@ -88,7 +83,7 @@ public sealed class SubscribeFeature : IFeature<SubscribeFeature.State>
 
             list = listUpdate(list);
 
-            if (list.IsEmpty)
+            if(list.IsEmpty)
                 return this with { Subscriptions = Subscriptions.Remove(type) };
 
             return this with { Subscriptions = Subscriptions.SetItem(type, list) };

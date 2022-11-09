@@ -15,6 +15,10 @@ public enum UploadState
 public class FileUploadFile : ReactiveObject
 {
     private UploadState _uploadState = UploadState.Pending;
+
+    public FileUploadFile(IFileReference uploadFile)
+        => UploadFile = uploadFile;
+
     public IFileReference UploadFile { get; }
 
     public string Name => UploadFile.Name;
@@ -30,7 +34,4 @@ public class FileUploadFile : ReactiveObject
 
     public Stream Open(CancellationToken token)
         => UploadFile.OpenReadStream(FilesState.MaxSize, token);
-
-    public FileUploadFile(IFileReference uploadFile)
-        => UploadFile = uploadFile;
 }

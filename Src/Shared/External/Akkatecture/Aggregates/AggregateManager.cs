@@ -46,14 +46,14 @@ public abstract class AggregateManager<TAggregate, TIdentity, TCommand> : Receiv
         Name = GetType().PrettyPrint();
         Receive<Terminated>(Terminate);
 
-        if (Settings.AutoDispatchOnReceive)
+        if(Settings.AutoDispatchOnReceive)
             Receive<TCommand>(Dispatch);
 
-        if (Settings.HandleDeadLetters)
-        {
-            Context.System.EventStream.Subscribe(Self, typeof(DeadLetter));
-            Receive(DeadLetterHandler);
-        }
+        if(!Settings.HandleDeadLetters)
+            return;
+
+        Context.System.EventStream.Subscribe(Self, typeof(DeadLetter));
+        Receive(DeadLetterHandler);
     }
 
     protected ILoggingAdapter Logger { get; set; }
@@ -68,7 +68,7 @@ public abstract class AggregateManager<TAggregate, TIdentity, TCommand> : Receiv
             Name,
             command.GetType().PrettyPrint());
 
-        var aggregateRef = FindOrCreate(command.AggregateId);
+        IActorRef aggregateRef = FindOrCreate(command.AggregateId);
 
         aggregateRef.Forward(command);
 
@@ -83,7 +83,7 @@ public abstract class AggregateManager<TAggregate, TIdentity, TCommand> : Receiv
             Name,
             command.GetType().PrettyPrint());
 
-        var aggregateRef = FindOrCreate(command.AggregateId);
+        IActorRef aggregateRef = FindOrCreate(command.AggregateId);
 
         aggregateRef.Forward(command);
 
@@ -92,8 +92,8 @@ public abstract class AggregateManager<TAggregate, TIdentity, TCommand> : Receiv
 
     protected bool Handle(DeadLetter deadLetter)
     {
-        if (deadLetter.Message is not TCommand command ||
-            command.GetPropertyValue("AggregateId")?.GetType() != typeof(TIdentity)) return true;
+        if(deadLetter.Message is not TCommand command ||
+           command.GetPropertyValue("AggregateId")?.GetType() != typeof(TIdentity)) return true;
 
         return ReDispatch(command);
     }
@@ -111,16 +111,16 @@ public abstract class AggregateManager<TAggregate, TIdentity, TCommand> : Receiv
 
     protected virtual IActorRef FindOrCreate(TIdentity aggregateId)
     {
-        var aggregate = Context.Child(aggregateId);
+        IActorRef aggregate = Context.Child(aggregateId);
 
-        if (aggregate.IsNobody()) aggregate = CreateAggregate(aggregateId);
+        if(aggregate.IsNobody()) aggregate = CreateAggregate(aggregateId);
 
         return aggregate;
     }
 
     protected virtual IActorRef CreateAggregate(TIdentity aggregateId)
     {
-        var aggregateRef = Context.ActorOf(Props.Create<TAggregate>(args: aggregateId), aggregateId.Value);
+        IActorRef? aggregateRef = Context.ActorOf(Props.Create<TAggregate>(args: aggregateId), aggregateId.Value);
         Context.Watch(aggregateRef);
 
         return aggregateRef;
@@ -128,7 +128,7 @@ public abstract class AggregateManager<TAggregate, TIdentity, TCommand> : Receiv
 
     protected override SupervisorStrategy SupervisorStrategy()
     {
-        var logger = Logger;
+        ILoggingAdapter logger = Logger;
 
         return new OneForOneStrategy(
             3,

@@ -7,14 +7,14 @@ public enum MessageType
 {
     Info,
     Warning,
-    Error, 
-    Sucess,
+    Error,
+    Sucess
 }
 
 public sealed record SharedMessage(string Message, MessageType MessageType)
 {
     public static SharedMessage CreateError(string error) => new(error, MessageType.Error);
-    
+
     public static SharedMessage CreateError(Exception error) => new(error.Message, MessageType.Error);
 
     public static SharedMessage CreateInfo(string info) => new(info, MessageType.Info);
@@ -24,7 +24,7 @@ public sealed record SharedMessage(string Message, MessageType MessageType)
     public static SharedMessage CreateSucess(string message) => new(message, MessageType.Sucess);
 }
 
-public sealed class SharedMessageEvent : AggregateEvent<SharedMessage>{}
+public sealed class SharedMessageEvent : AggregateEvent<SharedMessage> { }
 
 public static class SharedMessageEventExtensions
 {

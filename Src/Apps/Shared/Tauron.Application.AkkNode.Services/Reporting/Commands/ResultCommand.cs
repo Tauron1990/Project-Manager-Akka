@@ -12,7 +12,6 @@ public abstract record ResultCommand<TSender, TThis, TResult> : ReporterCommandB
     where TSender : ISender
     where TThis : ResultCommand<TSender, TThis, TResult>;
 
-
 public static class ResultCommandExtensions
 {
     [PublicAPI]
@@ -20,5 +19,5 @@ public static class ResultCommandExtensions
         this TSender sender, TCommand command, in Duration? timeout, TResult? resultInfo, Action<string> messages, CancellationToken token = default)
         where TSender : ISender
         where TCommand : ResultCommand<TSender, TCommand, TResult>
-        => SendingHelper.Send<TResult, TCommand>(sender, command, messages, timeout, isEmpty: false, token: token);
+        => SendingHelper.Send<TResult, TCommand>(sender, command, messages, timeout, isEmpty: false, token);
 }

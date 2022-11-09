@@ -15,23 +15,23 @@ public static class ServiceRegistrar
     public static void RegisterServices(IServiceCollection services)
     {
         services.UseMicrosoftDependencyResolver(); //Splat config
-        var resolver = Locator.CurrentMutable;
+        IMutableDependencyResolver resolver = Locator.CurrentMutable;
         resolver.InitializeSplat();
         resolver.InitializeReactiveUI();
 
         services.RegisterModule<ViewModelModule>();
-        
+
         services.AddMudServices(c => c.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomCenter);
-        
+
         services.AddTransient<FileDetailDisplayViewModel>();
         services.AddTransient<JobPriorityViewModel>();
-        
+
         services.AddTransient<JobEditorViewModel>();
         services.AddTransient<JobEditorViewModelBase>(s => s.GetRequiredService<JobEditorViewModel>());
-        
+
         services.AddTransient<FileUploaderViewModel>();
         services.AddTransient<FileUploaderViewModelBase>(s => s.GetRequiredService<FileUploaderViewModel>());
-        
+
         services.AddTransient<CriticalErrorViewModel>();
     }
 }

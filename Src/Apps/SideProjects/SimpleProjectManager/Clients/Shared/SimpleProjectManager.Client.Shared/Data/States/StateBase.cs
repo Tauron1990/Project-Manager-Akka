@@ -3,7 +3,6 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using SimpleProjectManager.Client.Shared.Services;
 using Stl.Fusion;
 using Tauron;
 using Tauron.Applicarion.Redux;
@@ -13,11 +12,10 @@ namespace SimpleProjectManager.Client.Shared.Data.States;
 
 public abstract class StateBase
 {
-    protected IStateFactory StateFactory { get; }
-
-
     protected StateBase(IStateFactory stateFactory)
         => StateFactory = stateFactory;
+
+    protected IStateFactory StateFactory { get; }
 
     protected IObservable<TValue> FromServer<TValue>(Func<CancellationToken, Task<TValue>> fetcher)
         => Observable.Create<TValue>(
@@ -37,14 +35,10 @@ public interface IStoreInitializer
 public abstract class StateBase<TState> : StateBase, IStoreInitializer
     where TState : class, new()
 {
-    
-    protected Action<object> Dispatch { get; private set; } =_ => { };
-
     protected StateBase(IStateFactory stateFactory)
-        : base(stateFactory)
-    {
+        : base(stateFactory) { }
 
-    }
+    protected Action<object> Dispatch { get; private set; } = _ => { };
 
 
     void IStoreInitializer.RunConfig(IStoreConfiguration configuration)
@@ -60,8 +54,5 @@ public abstract class StateBase<TState> : StateBase, IStoreInitializer
 
     protected abstract IStateConfiguration<TState> ConfigurateState(ISourceConfiguration<TState> configuration);
 
-    protected virtual void PostConfiguration(IRootStoreState<TState> state)
-    {
-        
-    }
+    protected virtual void PostConfiguration(IRootStoreState<TState> state) { }
 }

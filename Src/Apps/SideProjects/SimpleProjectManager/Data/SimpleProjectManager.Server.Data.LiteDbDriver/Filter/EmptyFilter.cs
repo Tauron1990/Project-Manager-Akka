@@ -1,6 +1,4 @@
-﻿using LiteDB;
-
-namespace SimpleProjectManager.Server.Data.LiteDbDriver.Filter;
+﻿namespace SimpleProjectManager.Server.Data.LiteDbDriver.Filter;
 
 public sealed class EmptyFilter<TData> : LiteFilter<TData>
 {

@@ -14,7 +14,7 @@ public static class DisposableExtensions
 
         return value;
     }
-    
+
     public static TValue DisposeWith<TValue>(this TValue value, SerialDisposable cd)
         where TValue : IDisposable
     {

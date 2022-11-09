@@ -33,7 +33,7 @@ public enum JobEventType
     Schedule,
     Finish
 }
-    
+
 [PublicAPI]
 public interface ISchedulerEvent : IVersionedType
 {

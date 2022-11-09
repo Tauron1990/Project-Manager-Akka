@@ -7,7 +7,4 @@ namespace Tauron.Application.Master.Commands.Deployment.Repository;
 [Instance("GithubNoRepoFound", "GithubNoRepoFound")]
 [Instance("InvalidRepoName", "InvalidRepoName")]
 [Instance("DatabaseNoRepoFound", "DatabaseNoRepoFound")]
-public readonly partial struct RepositoryErrorCode
-{
-    
-}
+public readonly partial struct RepositoryErrorCode { }

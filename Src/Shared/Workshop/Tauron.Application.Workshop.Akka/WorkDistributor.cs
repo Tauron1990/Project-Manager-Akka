@@ -2,8 +2,8 @@
 using System.Reactive.Linq;
 using Akka.Actor;
 using JetBrains.Annotations;
-using Tauron.TAkka;
 using Tauron.Features;
+using Tauron.TAkka;
 
 namespace Tauron.Application.Workshop;
 
@@ -22,7 +22,7 @@ public sealed class WorkDistributorFeature<TInput, TFinishMessage> : ActorFeatur
     [PublicAPI]
     public static IWorkDistributor<TInput> Create(IActorRefFactory factory, Props worker, string workerName, TimeSpan timeout, string? name = null)
     {
-        var actor = factory.ActorOf(
+        IActorRef actor = factory.ActorOf(
             name,
             Feature.Create(
                 () => new WorkDistributorFeature<TInput, TFinishMessage>(),
@@ -56,8 +56,8 @@ public sealed class WorkDistributorFeature<TInput, TFinishMessage> : ActorFeatur
             obs => obs.Select(
                     s =>
                     {
-                        var (_, state, _) = s;
-                        var worker = Context.ActorOf(
+                        (_, WorkDistributorFeatureState state, _) = s;
+                        IActorRef? worker = Context.ActorOf(
                             state.Configuration.Worker,
                             $"{state.Configuration.WorkerName}-{state.WorkerId}");
                         Context.Watch(worker);
@@ -81,16 +81,16 @@ public sealed class WorkDistributorFeature<TInput, TFinishMessage> : ActorFeatur
                .Select(
                     m =>
                     {
-                        var (_, state, timerScheduler) = m;
+                        (_, WorkDistributorFeatureState state, ITimerScheduler timerScheduler) = m;
 
-                        if (state.PendingWorkload.IsEmpty)
+                        if(state.PendingWorkload.IsEmpty)
                             return state with
                                    {
                                        Running = state.Running.Remove(Context.Sender),
                                        Ready = state.Ready.Enqueue(Context.Sender)
                                    };
 
-                        var newQueue = state.PendingWorkload.Dequeue(out var work);
+                        var newQueue = state.PendingWorkload.Dequeue(out (TInput Workload, IActorRef Sender) work);
 
                         RunWork(work.Workload, Context.Sender, work.Sender, timerScheduler, state.Configuration.Timeout);
 
@@ -101,12 +101,12 @@ public sealed class WorkDistributorFeature<TInput, TFinishMessage> : ActorFeatur
             obs => obs.Select(
                 m =>
                 {
-                    var (input, state, timerScheduler) = m;
+                    (TInput input, WorkDistributorFeatureState state, ITimerScheduler timerScheduler) = m;
 
-                    if (state.Ready.IsEmpty)
+                    if(state.Ready.IsEmpty)
                         return state with { PendingWorkload = state.PendingWorkload.Enqueue((input, Context.Sender)) };
 
-                    var newQueue = state.Ready.Dequeue(out var worker);
+                    var newQueue = state.Ready.Dequeue(out IActorRef worker);
                     RunWork(input, worker, Context.Sender, timerScheduler, state.Configuration.Timeout);
 
                     return state with

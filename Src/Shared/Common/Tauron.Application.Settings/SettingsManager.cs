@@ -10,7 +10,7 @@ public sealed class SettingsManager : ReceiveActor
 {
     public SettingsManager(IEnumerable<ISettingProviderConfiguration> configurations)
     {
-        foreach (var configuration in configurations)
+        foreach (ISettingProviderConfiguration configuration in configurations)
             Context.ActorOf(Props.Create(() => new SettingFile(configuration.Provider)), configuration.Scope);
 
         Receive<SetSettingValue>(SetSettingValue);
@@ -26,7 +26,7 @@ public sealed class SettingsManager : ReceiveActor
 
     private void RequestAllValues(RequestAllValues obj)
     {
-        if (GetChild(obj.SettingScope, out var actor))
+        if(GetChild(obj.SettingScope, out IActorRef actor))
             Context.Sender.Tell(ImmutableDictionary<string, string>.Empty);
         else
             actor.Forward(obj);
@@ -34,7 +34,7 @@ public sealed class SettingsManager : ReceiveActor
 
     private void SetSettingValue(SetSettingValue obj)
     {
-        if (!GetChild(obj.SettingsScope, out var actor))
+        if(!GetChild(obj.SettingsScope, out IActorRef actor))
             actor.Forward(obj);
     }
 }

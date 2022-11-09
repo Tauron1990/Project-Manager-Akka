@@ -47,7 +47,7 @@ public class OrSpecification<T> : Specification<T>
         var reasons1 = _specification1.WhyIsNotSatisfiedBy(aggregate).ToList();
         var reasons2 = _specification2.WhyIsNotSatisfiedBy(aggregate).ToList();
 
-        if (!reasons1.Any() || !reasons2.Any()) return Enumerable.Empty<Error>();
+        if(!reasons1.Any() || !reasons2.Any()) return Enumerable.Empty<Error>();
 
         return reasons1.Concat(reasons2);
     }

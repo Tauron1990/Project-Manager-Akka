@@ -1,7 +1,4 @@
-﻿using System.Reactive.Disposables;
-using Microsoft.AspNetCore.Components;
-using ReactiveUI;
-using SimpleProjectManager.Shared.Services;
+﻿using ReactiveUI;
 using Tauron.Application.Blazor.Commands;
 
 namespace SimpleProjectManager.Client.Shared.CurrentJobs;

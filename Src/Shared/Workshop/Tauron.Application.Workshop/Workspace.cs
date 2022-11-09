@@ -9,10 +9,10 @@ using Tauron.Application.Workshop.Mutation;
 namespace Tauron.Application.Workshop;
 
 [PublicAPI]
-public abstract class WorkspaceBase<TData> : IDataSource<TData>//, IState
+public abstract class WorkspaceBase<TData> : IDataSource<TData> //, IState
     where TData : class
 {
-    protected WorkspaceBase(IDriverFactory driverFactory) 
+    protected WorkspaceBase(IDriverFactory driverFactory)
         => Engine = MutatingEngine.From(this, driverFactory);
 
     protected MutatingEngine<TData> Engine { get; }

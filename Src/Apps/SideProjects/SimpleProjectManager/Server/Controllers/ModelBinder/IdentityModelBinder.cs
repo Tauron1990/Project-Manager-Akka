@@ -7,9 +7,9 @@ public sealed class IdentityModelBinderFactory : IModelBinderProvider
 {
     public IModelBinder? GetBinder(ModelBinderProviderContext context)
     {
-        var model = context.Metadata.ModelType;
+        Type model = context.Metadata.ModelType;
 
-        if (model.IsAssignableTo(typeof(IIdentity)) && model.GetConstructor(new[] { typeof(string) }) != null)
+        if(model.IsAssignableTo(typeof(IIdentity)) && model.GetConstructor(new[] { typeof(string) }) != null)
             return new IdentityModelBinder();
 
         return null;
@@ -22,7 +22,7 @@ public sealed class IdentityModelBinder : IModelBinder
     {
         try
         {
-            var id = bindingContext.ValueProvider.GetValue(bindingContext.ModelName).FirstValue ?? string.Empty;
+            string id = bindingContext.ValueProvider.GetValue(bindingContext.ModelName).FirstValue ?? string.Empty;
             bindingContext.Result = ModelBindingResult.Success(FastReflection.Shared.FastCreateInstance(bindingContext.ModelType, id));
         }
         catch (Exception)

@@ -38,7 +38,7 @@ public class AllSpecifications<T> : Specification<T>
     {
         var specificationList = specifications.ToList();
 
-        if (!specificationList.Any())
+        if(!specificationList.Any())
             throw new ArgumentException("Please provide some specifications", nameof(specifications));
 
         _specifications = specificationList;

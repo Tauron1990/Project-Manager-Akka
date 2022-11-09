@@ -24,21 +24,21 @@ public sealed class ActorScheduler : LocalScheduler
 
     public override IDisposable Schedule<TState>(TState state, TimeSpan dueTime, Func<IScheduler, TState, IDisposable> action)
     {
-        var target = Scheduler.Normalize(dueTime);
+        TimeSpan target = Scheduler.Normalize(dueTime);
 
         SingleAssignmentDisposable disposable = new();
 
         void TryRun()
         {
-            if (disposable.IsDisposed) return;
+            if(disposable.IsDisposed) return;
 
             disposable.Disposable = action(this, state);
         }
 
-        if (target == TimeSpan.Zero)
+        if(target == TimeSpan.Zero)
         {
-            var currentCell = InternalCurrentActorCellKeeper.Current;
-            if (currentCell != null && currentCell.Self.Equals(_targetActor))
+            ActorCell? currentCell = InternalCurrentActorCellKeeper.Current;
+            if(currentCell != null && currentCell.Self.Equals(_targetActor))
                 TryRun();
             else
                 _targetActor.Tell(new ObservableActor.TransmitAction(TryRun));

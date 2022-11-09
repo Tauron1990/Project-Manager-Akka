@@ -27,10 +27,11 @@ public sealed class RoomRegistrar
 
         builder.States.Add<TState>();
         builder.Rules.Add(typeof(TManager));
+
         return builder;
 
     }
-    
+
     public RoomBuilder Register<TState>(string name)
         where TState : IState, new()
     {
@@ -40,6 +41,7 @@ public sealed class RoomRegistrar
             throw new InvalidOperationException("The Room is already Registrated");
 
         builder.States.Add<TState>();
+
         return builder;
     }
 
@@ -52,9 +54,9 @@ public sealed class RoomRegistrar
 
         return builder;
     }
-    
+
     public RoomBuilder GetRoom(string name) => _rules[name];
-    
-    public IEnumerable<(IEnumerable<Type> Rules, Func<IEnumerable<IState>> States)> GetRules() 
+
+    public IEnumerable<(IEnumerable<Type> Rules, Func<IEnumerable<IState>> States)> GetRules()
         => _rules.Values.Select(rb => rb.Init());
 }

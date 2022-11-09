@@ -5,7 +5,7 @@ namespace SimpleProjectManager.Server.Data.DataConverters;
 internal sealed class ExpressionDictionary
 {
     private readonly ConcurrentDictionary<EntryKey, IConverterExpression?> _expressionConverters = new();
-    
+
     internal IConverterExpression? CreateExcpressionConverter(DataConverter dataConverter, in EntryKey entryKey)
         => _expressionConverters.GetOrAdd(
             entryKey,
@@ -26,5 +26,6 @@ internal sealed class ExpressionDictionary
                     return converter4;
 
                 return null;
-            }, dataConverter);
+            },
+            dataConverter);
 }

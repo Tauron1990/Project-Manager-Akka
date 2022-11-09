@@ -1,6 +1,3 @@
 ﻿namespace SpaceConqueror.Game.Rooms;
 
-public class StartModule
-{
-    
-}
+public class StartModule { }

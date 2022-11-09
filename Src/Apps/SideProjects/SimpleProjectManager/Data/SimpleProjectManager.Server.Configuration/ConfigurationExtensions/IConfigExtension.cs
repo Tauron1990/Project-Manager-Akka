@@ -1,6 +1,5 @@
 ﻿using System.Collections.Immutable;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Tauron.AkkaHost;
 
 namespace SimpleProjectManager.Server.Configuration.ConfigurationExtensions;

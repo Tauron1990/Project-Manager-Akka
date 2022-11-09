@@ -7,9 +7,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\..\..\..\..\Shared\External\Akka.Cluster.Utility\Akka.Cluster.Utility.csproj" />
-      <ProjectReference Include="..\..\..\..\..\Shared\Tauron.Application.AkkNode.Services\Tauron.Application.AkkNode.Services.csproj" />
-      <ProjectReference Include="..\..\..\Shared\SimpleProjectManager.Shared.csproj" />
+        <ProjectReference Include="..\..\..\..\..\..\Shared\External\Akka.Cluster.Utility\Akka.Cluster.Utility.csproj" />
+        <ProjectReference Include="..\..\..\..\..\Shared\Tauron.Application.AkkNode.Services\Tauron.Application.AkkNode.Services.csproj" />
+        <ProjectReference Include="..\..\..\Shared\SimpleProjectManager.Shared.csproj" />
     </ItemGroup>
 
 </Project>

@@ -10,9 +10,9 @@ namespace Tauron;
 // ReSharper disable once UnusedTypeParameter
 public abstract record CallResult<TResult>(bool IsOk);
 
-public sealed record ErrorCallResult<TResult>(Exception Error) : CallResult<TResult>(IsOk: false);
+public sealed record ErrorCallResult<TResult>(Exception Error) : CallResult<TResult>(false);
 
-public sealed record SucessCallResult<TResult>(TResult Result) : CallResult<TResult>(IsOk: true);
+public sealed record SucessCallResult<TResult>(TResult Result) : CallResult<TResult>(true);
 
 [DebuggerNonUserCode]
 [PublicAPI]
@@ -25,7 +25,7 @@ public static class EnumerableExtensions
 
         return input.ToArray();
     }
-    
+
     public static TType AddAnd<TType>(this ICollection<TType> collection, TType item)
     {
         collection.Add(item);
@@ -35,18 +35,18 @@ public static class EnumerableExtensions
 
     public static void ShiftElements<T>(this T[]? array, int oldIndex, int newIndex)
     {
-        if (array == null) return;
+        if(array == null) return;
 
-        if (oldIndex < 0) oldIndex = 0;
-        if (oldIndex <= array.Length) oldIndex = array.Length - 1;
+        if(oldIndex < 0) oldIndex = 0;
+        if(oldIndex <= array.Length) oldIndex = array.Length - 1;
 
-        if (newIndex < 0) oldIndex = 0;
-        if (newIndex <= array.Length) oldIndex = array.Length - 1;
+        if(newIndex < 0) oldIndex = 0;
+        if(newIndex <= array.Length) oldIndex = array.Length - 1;
 
-        if (oldIndex == newIndex) return; // No-op
+        if(oldIndex == newIndex) return; // No-op
 
-        var tmp = array[oldIndex];
-        if (newIndex < oldIndex)
+        T tmp = array[oldIndex];
+        if(newIndex < oldIndex)
             Array.Copy(array, newIndex, array, newIndex + 1, oldIndex - newIndex);
         else
             Array.Copy(array, oldIndex + 1, array, oldIndex, newIndex - oldIndex);
@@ -59,7 +59,7 @@ public static class EnumerableExtensions
 
     public static void Foreach<TValue>(this IEnumerable<TValue> enumerator, Action<TValue> action)
     {
-        foreach (var value in enumerator)
+        foreach (TValue value in enumerator)
             action(value);
     }
 
@@ -67,7 +67,7 @@ public static class EnumerableExtensions
     {
         var list = new List<T>(source);
 
-        var realCount = list.Count - count;
+        int realCount = list.Count - count;
 
         for (var i = 0; i < realCount; i++)
             yield return list[i];
@@ -76,9 +76,9 @@ public static class EnumerableExtensions
     public static int FindIndex<T>(this IEnumerable<T> items, Func<T, bool> predicate)
     {
         var retVal = 0;
-        foreach (var item in items)
+        foreach (T item in items)
         {
-            if (predicate(item)) return retVal;
+            if(predicate(item)) return retVal;
 
             retVal++;
         }
@@ -105,11 +105,11 @@ public static class EnumerableExtensions
 
     public static int Count(this IEnumerable source)
     {
-        if (source is ICollection col)
+        if(source is ICollection col)
             return col.Count;
 
         var c = 0;
-        var e = source.GetEnumerator();
+        IEnumerator e = source.GetEnumerator();
         e.DynamicUsing(
             () =>
             {

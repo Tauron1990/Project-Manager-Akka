@@ -8,30 +8,36 @@ namespace SpaceConqueror;
 
 public sealed class GameManager : IAsyncDisposable
 {
+    public const string FailRoom = "InternalFailRoom";
     public static readonly Version GameVersion = new(0, 1);
-    
+
+    public static readonly object EmptyContext = new();
+
     private readonly string _modFolder;
 
+    public GameManager(string modFolder)
+        => _modFolder = modFolder;
+
     public static AssetManager AssetManager { get; } = new();
-    
+
     public GlobalState State { get; private set; } = null!;
 
     public ModuleManager ModuleManager { get; } = new();
-    
-    public GameManager(string modFolder)
-        => _modFolder = modFolder;
+
+    public ValueTask DisposeAsync()
+        => default;
 
     public async Task Initialize(StatusContext context)
     {
         AnsiConsole.WriteLine("Module Laden...");
 
-        
+
         RuleRepository rules = new();
         StateRegistrar stateRegistrar = new();
         RuleRegistrar ruleRegistrar = new();
         ManagerRegistrar managerRegistrar = new(stateRegistrar);
         RoomRegistrar roomRegistrar = new(AssetManager);
-        
+
         await ModuleManager.LoadModules(
             _modFolder,
             new ModuleConfiguration(
@@ -45,18 +51,18 @@ public sealed class GameManager : IAsyncDisposable
 
         var states = new List<Func<IEnumerable<IState>>>
                      {
-                                    stateRegistrar.GetStates()
-                                };
+                         stateRegistrar.GetStates()
+                     };
 
         foreach (var rule in roomRegistrar.GetRules())
         {
             rules.Load(rs => rs.From(rule.Rules));
             states.Add(rule.States);
         }
-        
+
         rules.Load(rs => rs.From(ruleRegistrar.GetRules()));
         rules.Load(rs => rs.From(managerRegistrar.GetRules()));
-        
+
         AnsiConsole.WriteLine("Finalisiere Daten");
         State = new GlobalState(rules.CompileFast(new GameDependencyRsolver(this)), Wrap(states));
 
@@ -69,11 +75,4 @@ public sealed class GameManager : IAsyncDisposable
         var menu = new MainMenu(this);
         await menu.Show();
     }
-
-    public ValueTask DisposeAsync()
-        => default;
-
-    public const string FailRoom = "InternalFailRoom";
-
-    public static readonly object EmptyContext = new();
 }

@@ -11,7 +11,7 @@ public class LiteDbDriverModule : IDatabaseModule
     {
         SerializationHelper.Init();
 
-        var connectionString = propertys["LiteConnection"];
+        string connectionString = propertys["LiteConnection"];
 
         builder.ConfigureServices(
             (_, services) =>
@@ -20,7 +20,7 @@ public class LiteDbDriverModule : IDatabaseModule
                     string.IsNullOrEmpty(connectionString)
                         ? new LiteDatabase(new MemoryStream())
                         : new LiteDatabase(connectionString));
-                
+
                 services.AddSingleton<IInternalFileRepository, LiteFileRepository>();
                 services.AddSingleton<IInternalDataRepository, LiteDataRepository>();
             });

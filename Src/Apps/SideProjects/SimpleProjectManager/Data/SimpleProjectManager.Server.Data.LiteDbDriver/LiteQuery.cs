@@ -18,14 +18,14 @@ public sealed class TransformingQuery<TStart, TData> : IFindQuery<TStart, TData>
 
     public async ValueTask<TData?> FirstOrDefaultAsync(CancellationToken cancellationToken)
     {
-        var result = await _original.FirstOrDefaultAsync(cancellationToken);
+        TStart? result = await _original.FirstOrDefaultAsync(cancellationToken);
 
         return EqualityComparer<TStart?>.Default.Equals(result, default) ? default : _transform(result!);
     }
 
     public TData? FirstOrDefault()
     {
-        var result = _original.FirstOrDefault();
+        TStart? result = _original.FirstOrDefault();
 
         return EqualityComparer<TStart?>.Default.Equals(result, default) ? default : _transform(result!);
     }
@@ -53,17 +53,14 @@ public sealed class TransformingQuery<TStart, TData> : IFindQuery<TStart, TData>
 
 public sealed class LiteQuery<TStart> : IFindQuery<TStart, TStart>
 {
-    private readonly ILiteQueryableResult<TStart> _query;
     private readonly Func<IEnumerable<TStart>, IEnumerable<TStart>> _filter;
+    private readonly ILiteQueryableResult<TStart> _query;
 
     public LiteQuery(ILiteQueryableResult<TStart> query, Func<IEnumerable<TStart>, IEnumerable<TStart>> filter)
     {
         _query = query;
         _filter = filter;
     }
-
-    private IEnumerable<TStart> GetData()
-        => _filter(_query.ToEnumerable());
 
     public ValueTask<TStart?> FirstOrDefaultAsync(CancellationToken cancellationToken)
         => To.VTask(GetData().FirstOrDefault);
@@ -88,4 +85,7 @@ public sealed class LiteQuery<TStart> : IFindQuery<TStart, TStart>
 
     public IAsyncEnumerable<TStart> ToAsyncEnumerable(CancellationToken token = default)
         => GetData().ToAsyncEnumerable();
+
+    private IEnumerable<TStart> GetData()
+        => _filter(_query.ToEnumerable());
 }

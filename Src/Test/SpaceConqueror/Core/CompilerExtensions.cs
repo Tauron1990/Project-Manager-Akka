@@ -8,12 +8,6 @@ namespace SpaceConqueror.Core;
 
 public static class CompilerExtensions
 {
-    private sealed class FastExpressionCompiler : IExpressionCompiler
-    {
-        public TDelegate Compile<TDelegate>(Expression<TDelegate> expression) where TDelegate : Delegate
-            => expression.CompileFast();
-    }
-
     public static ISessionFactory CompileFast(this IRuleRepository repository, IDependencyResolver dependencyResolver)
     {
         var compiler = new RuleCompiler
@@ -21,9 +15,15 @@ public static class CompilerExtensions
                            ExpressionCompiler = new FastExpressionCompiler()
                        };
 
-        ISessionFactory? factory =  compiler.Compile(repository.GetRuleSets());
+        ISessionFactory? factory = compiler.Compile(repository.GetRuleSets());
         factory.DependencyResolver = dependencyResolver;
 
         return factory;
+    }
+
+    private sealed class FastExpressionCompiler : IExpressionCompiler
+    {
+        public TDelegate Compile<TDelegate>(Expression<TDelegate> expression) where TDelegate : Delegate
+            => expression.CompileFast();
     }
 }

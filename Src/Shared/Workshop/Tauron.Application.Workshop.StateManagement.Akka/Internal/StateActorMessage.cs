@@ -25,7 +25,7 @@ public abstract class StateActorMessage
 
         public override void Apply(object @this)
         {
-            if (@this is IInitState<TData> state)
+            if(@this is IInitState<TData> state)
                 state.Init(_engine);
         }
     }
@@ -39,7 +39,7 @@ public abstract class StateActorMessage
 
         public override void Apply(object @this)
         {
-            if (@this is ICanQuery<TData> query)
+            if(@this is ICanQuery<TData> query)
                 query.DataSource(_dataSource);
         }
     }
@@ -52,7 +52,7 @@ public abstract class StateActorMessage
 
         public override void Apply(object @this)
         {
-            if (@this is IPostInit postInit)
+            if(@this is IPostInit postInit)
                 postInit.Init(_invoker);
         }
     }

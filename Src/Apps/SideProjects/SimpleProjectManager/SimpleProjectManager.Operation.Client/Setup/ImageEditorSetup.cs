@@ -1,5 +1,6 @@
 using SimpleProjectManager.Operation.Client.Config;
 using SimpleProjectManager.Operation.Client.Core;
+using Stl.IO;
 
 namespace SimpleProjectManager.Operation.Client.Setup;
 
@@ -12,14 +13,14 @@ public sealed class ImageEditorSetup : ISetup
 
     public async ValueTask<OperationConfiguration> RunSetup(OperationConfiguration operationConfiguration)
     {
-        var isImageEditor = await _clientInteraction.Ask(operationConfiguration.ImageEditor, "Werden auf dem PC Bilder bearbeitet");
+        bool isImageEditor = await _clientInteraction.Ask(operationConfiguration.Editor.Active, "Werden auf dem PC Bilder bearbeitet");
 
         if(!isImageEditor)
-            return operationConfiguration with { ImageEditor = false, Path = string.Empty };
+            return operationConfiguration with { Editor = operationConfiguration.Editor with{ Active = false, Path = FilePath.Empty }};
 
-        var filePath = await _clientInteraction.AskForFile(operationConfiguration.Path.EmptyToNull(), "Pfad zum Bild Editor");
+        string filePath = await _clientInteraction.AskForFile(operationConfiguration.Editor.Path.Value.EmptyToNull(), "Pfad zum Bild Editor");
 
-        return operationConfiguration with { ImageEditor = true, Path = filePath };
+        return operationConfiguration with { Editor = operationConfiguration.Editor with { Active = true, Path = new FilePath(filePath) } };
 
     }
 }

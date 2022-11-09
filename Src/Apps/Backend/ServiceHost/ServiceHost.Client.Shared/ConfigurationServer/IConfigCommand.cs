@@ -1,4 +1,3 @@
-﻿namespace ServiceHost.Client.Shared.ConfigurationServer
-{
-    public interface IConfigCommand { }
-}
+﻿namespace ServiceHost.Client.Shared.ConfigurationServer;
+
+public interface IConfigCommand { }

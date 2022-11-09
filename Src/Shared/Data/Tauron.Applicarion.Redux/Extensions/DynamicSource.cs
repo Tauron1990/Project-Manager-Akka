@@ -46,7 +46,7 @@ public static class DynamicSource
         Reqester<TSelect> reqester,
         Patcher<TSelect, TState> patcher,
         Func<Exception, TState?>? errorHandler)
-    where TState : class
+        where TState : class
         => () => CreateRequestObservable(stateFactory, store, selector, reqester, patcher, errorHandler);
 
     private static IObservable<TState> CreateRequestObservable<TState, TSelect>(
@@ -63,14 +63,14 @@ public static class DynamicSource
             try
             {
                 token.ThrowIfCancellationRequested();
-                var currentState = store.CurrentState;
-                var data = selector(currentState);
+                TState currentState = store.CurrentState;
+                TSelect data = selector(currentState);
                 token.ThrowIfCancellationRequested();
-                var requestResult = await reqester(token, data).ConfigureAwait(false);
+                TSelect requestResult = await reqester(token, data).ConfigureAwait(false);
                 token.ThrowIfCancellationRequested();
-                var patch = patcher(requestResult, currentState);
+                TState patch = patcher(requestResult, currentState);
                 token.ThrowIfCancellationRequested();
-                
+
                 return patch;
             }
             catch (Exception e) when (e is not OperationCanceledException)
@@ -110,7 +110,7 @@ public static class DynamicSource
         Patcher<TSelect, TState> patcher)
         where TState : class
         => FromRequest(stateFactory, store, selector, reqester, patcher, null);
-    
+
     public static void FromRequest<TState>(IStateFactory stateFactory, IReduxStore<TState> store, Reqester<TState> reqester, Func<Exception, TState?>? errorHandler)
         where TState : class
         => store.RegisterEffects(

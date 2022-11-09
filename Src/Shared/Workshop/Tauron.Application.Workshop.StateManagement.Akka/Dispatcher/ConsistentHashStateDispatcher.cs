@@ -9,11 +9,11 @@ namespace Tauron.Application.Workshop.StateManagement.Akka.Dispatcher;
 [PublicAPI]
 public class ConsistentHashStateDispatcher : IStateDispatcherConfigurator
 {
+    public IDriverFactory Configurate(IDriverFactory factory)
+        => AkkaDriverFactory.Get(factory).CustomMutator(Configurate);
+
     private Props Configurate(Props mutator)
         => mutator.WithRouter(
             new ConsistentHashingPool(2)
                .WithResizer(new DefaultResizer(2, 10)));
-
-    public IDriverFactory Configurate(IDriverFactory factory)
-        => AkkaDriverFactory.Get(factory).CustomMutator(Configurate);
 }

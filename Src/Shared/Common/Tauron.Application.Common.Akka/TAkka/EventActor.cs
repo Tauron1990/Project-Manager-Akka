@@ -19,21 +19,21 @@ public sealed class EventActor : UntypedActor
     public static IEventActor From(IActorRef actorRef) => new HookEventActor(actorRef);
 
     public static IEventActor Create(IActorRefFactory system, string? name)
-        => Create<Unit>(system, name, null, killOnFirstResponse: false);
+        => Create<Unit>(system, name, null, false);
 
     public static IEventActor CreateSelfKilling(IActorRefFactory system, string? name)
         => CreateSelfKilling<Unit>(system, name, null);
 
     public static IEventActor Create<TPayload>(IActorRefFactory system, string? name, Action<TPayload>? handler)
-        => Create(system, name, handler, killOnFirstResponse: false);
+        => Create(system, name, handler, false);
 
     public static IEventActor CreateSelfKilling<TPayload>(IActorRefFactory system, string? name, Action<TPayload>? handler)
-        => Create(system, name, handler, killOnFirstResponse: true);
+        => Create(system, name, handler, true);
 
     private static IEventActor Create<TPayload>(IActorRefFactory system, string? name, Action<TPayload>? handler, bool killOnFirstResponse)
     {
         var temp = new HookEventActor(system.ActorOf(Props.Create(() => new EventActor(false)), name));
-        if (handler is not null)
+        if(handler is not null)
             temp.Register(HookEvent.Create(handler)).Ignore();
 
         return temp;
@@ -45,23 +45,26 @@ public sealed class EventActor : UntypedActor
         {
             case HookEvent hookEvent:
                 RegisterEvent(hookEvent);
+
                 break;
             case RemoveDel remove:
                 RemoveDelegate(remove);
+
                 break;
             default:
                 DefaultHandler(message);
+
                 break;
         }
     }
 
     private void RemoveDelegate(RemoveDel remove)
     {
-        var (@delegate, target) = remove;
+        (Delegate @delegate, Type target) = remove;
 
-        if (!_registrations.TryGetValue(target, out var action)) return;
+        if(!_registrations.TryGetValue(target, out Delegate? action)) return;
 
-        if (action == @delegate)
+        if(action == @delegate)
             _registrations.Remove(target);
         else
             _registrations[target] = action.Remove(@delegate);
@@ -69,8 +72,8 @@ public sealed class EventActor : UntypedActor
 
     private void RegisterEvent(HookEvent hookEvent)
     {
-        var (@delegate, target) = hookEvent;
-        if (_registrations.TryGetValue(target, out var del))
+        (Delegate @delegate, Type target) = hookEvent;
+        if(_registrations.TryGetValue(target, out Delegate? del))
             del = Delegate.Combine(del, @delegate);
         else
             del = @delegate;
@@ -82,8 +85,8 @@ public sealed class EventActor : UntypedActor
 
     private void DefaultHandler(object message)
     {
-        var msgType = message.GetType();
-        if (_registrations.TryGetValue(msgType, out var callDel))
+        Type msgType = message.GetType();
+        if(_registrations.TryGetValue(msgType, out Delegate? callDel))
         {
             try
             {
@@ -94,7 +97,7 @@ public sealed class EventActor : UntypedActor
                 _log.Error(exception, "Error On Event Hook Execution");
             }
 
-            if (_killOnFirstRespond)
+            if(_killOnFirstRespond)
                 Context.Stop(Context.Self);
         }
         else

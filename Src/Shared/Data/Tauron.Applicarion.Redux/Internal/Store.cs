@@ -10,15 +10,15 @@ namespace Tauron.Applicarion.Redux.Internal;
 
 public sealed class Store<TState> : IReduxStore<TState>
 {
+    private readonly Subject<DispatchedAction<TState>> _actions = new();
+    private readonly Subject<object> _dispactcher = new();
     private readonly TState _initialState;
     private readonly Action<Exception> _onError;
-
-    private readonly CompositeDisposable _subscriptions = new();
-    private readonly BehaviorSubject<TState> _state;
-    private readonly Subject<object> _dispactcher = new();
-    private readonly Subject<DispatchedAction<TState>> _actions = new();
     private readonly List<On<TState>> _reducers = new();
     private readonly HashSet<Type> _registratedActions = new();
+    private readonly BehaviorSubject<TState> _state;
+
+    private readonly CompositeDisposable _subscriptions = new();
 
     public Store(TState initialState, IScheduler scheduler, Action<Exception> onError)
     {
@@ -29,7 +29,7 @@ public sealed class Store<TState> : IReduxStore<TState>
         var toAction = _dispactcher.ObserveOn(scheduler);
         if(RuntimeInformation.ProcessArchitecture != Architecture.Wasm)
             toAction = toAction.Synchronize();
-        
+
         _subscriptions.Add(toAction.Select(action => new DispatchedAction<TState>(CurrentState, action)).Subscribe(_actions));
         _subscriptions.Add
         (
@@ -39,14 +39,14 @@ public sealed class Store<TState> : IReduxStore<TState>
                        .Where(on => da.Action is not null && da.Action.GetType().IsAssignableTo(on.ActionType))
                        .Aggregate(
                             (da.State, da.Action),
-                            ((tuple, on) => (on.Mutator(tuple.State, tuple.Action), tuple.Action))))
+                            (tuple, on) => (on.Mutator(tuple.State, tuple.Action), tuple.Action)))
                .Select(a => a.State)
                .NotNull()
                .Do(static _ => { }, _onError)
                .Retry()
                .Subscribe(_state)
         );
-        
+
         MutateCallbackPlugin.Install(this);
     }
 
@@ -83,6 +83,7 @@ public sealed class Store<TState> : IReduxStore<TState>
         => _actions.Select(da => da.Action).NotNull().OfType<TAction>().Select(a => selector(CurrentState, a));
 
     public TState CurrentState => _state.Value;
+
     public void Reset()
         => _state.OnNext(_initialState);
 
@@ -95,11 +96,10 @@ public sealed class Store<TState> : IReduxStore<TState>
         }
     }
 
-    
+
     public void RegisterEffects(IEnumerable<Effect<TState>> effects)
     {
         foreach (var effect in effects)
-        {
             effect.CreateEffect(this)
                .RetryWhen(
                     e => e.Select(
@@ -110,8 +110,6 @@ public sealed class Store<TState> : IReduxStore<TState>
                             return Unit.Default;
                         }))
                .NotNull().Subscribe(_dispactcher.OnNext);
-
-        }
     }
 
     public void RegisterReducers(params On<TState>[] reducers)

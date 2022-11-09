@@ -1,22 +1,22 @@
 ﻿@typeparam TValue
-@using System.Reactive.Disposables
 @using Stl.Fusion
+@using System.Reactive.Disposables
 @implements IDisposable
 
 @{
-    var error = State?.Error;
-    var value = State != null ? State.ValueOrDefault : default;
-    var isLoading = State == null || _isInitial || State.Computed.ConsistencyState != ConsistencyState.Consistent || !State.HasValue; //|| value == null;
+    Exception? error = State?.Error;
+    TValue? value = State != null ? State.ValueOrDefault : default;
+    bool isLoading = State == null || _isInitial || State.Computed.ConsistencyState != ConsistencyState.Consistent || !State.HasValue; //|| value == null;
 
     #if DEBUG
-    if (error != null)
+    if(error != null)
         Console.WriteLine(error.ToString());
     #endif
 }
 
-@if (error != null)
+@if(error != null)
 {
-    @if (Error != null)
+    @if(Error != null)
     {
         @Error(error)
     }
@@ -28,9 +28,9 @@
         </CenterElement>
     }
 }
-else if (isLoading)
+else if(isLoading)
 {
-    @if (Loading != null)
+    @if(Loading != null)
     {
         @Loading
     }
@@ -66,7 +66,7 @@ else
     {
         _subscription.Dispose();
 
-        if (State == null)
+        if(State == null)
             _subscription = Disposable.Empty;
         else
         {

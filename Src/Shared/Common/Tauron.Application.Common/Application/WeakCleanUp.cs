@@ -18,7 +18,7 @@ public sealed class WeakDelegate : IWeakReference, IEquatable<WeakDelegate>
     {
         _method = @delegate.Method;
 
-        if (!_method.IsStatic) _reference = new WeakReference(@delegate.Target);
+        if(!_method.IsStatic) _reference = new WeakReference(@delegate.Target);
     }
 
     public WeakDelegate(MethodInfo methodInfo, object target)
@@ -29,8 +29,8 @@ public sealed class WeakDelegate : IWeakReference, IEquatable<WeakDelegate>
 
     public bool Equals(WeakDelegate? other)
     {
-        if (other is null) return false;
-        if (ReferenceEquals(this, other)) return true;
+        if(other is null) return false;
+        if(ReferenceEquals(this, other)) return true;
 
         return other._reference?.Target == _reference?.Target && other._method == _method;
     }
@@ -39,24 +39,24 @@ public sealed class WeakDelegate : IWeakReference, IEquatable<WeakDelegate>
 
     public static bool operator ==(WeakDelegate? left, WeakDelegate? right)
     {
-        var rightNull = right is null;
+        bool rightNull = right is null;
 
         return left?.Equals(right) ?? rightNull;
     }
 
     public static bool operator !=(WeakDelegate? left, WeakDelegate? right)
     {
-        var rightNull = right is null;
+        bool rightNull = right is null;
 
-        if (left is not null) return !left.Equals(right);
+        if(left is not null) return !left.Equals(right);
 
         return !rightNull;
     }
 
     public override bool Equals(object? obj)
     {
-        if (obj is null) return false;
-        if (ReferenceEquals(this, obj)) return true;
+        if(obj is null) return false;
+        if(ReferenceEquals(this, obj)) return true;
 
         return obj is WeakDelegate @delegate && Equals(@delegate);
     }
@@ -74,10 +74,10 @@ public sealed class WeakDelegate : IWeakReference, IEquatable<WeakDelegate>
 
     public object? Invoke(params object[]? parms)
     {
-        if (_method.IsStatic)
+        if(_method.IsStatic)
             return _method.GetMethodInvoker(() => _method.GetParameterTypes()).Invoke(null, parms);
 
-        var target = _reference?.Target;
+        object? target = _reference?.Target;
 
         return target == null
             ? null
@@ -116,8 +116,8 @@ public static class WeakCleanUp
         lock (Actions)
         {
             var dead = new List<WeakDelegate>();
-            foreach (var weakDelegate in Actions.ToArray())
-                if (weakDelegate.IsAlive)
+            foreach (WeakDelegate weakDelegate in Actions.ToArray())
+                if(weakDelegate.IsAlive)
                     try
                     {
                         #pragma warning disable GU0011

@@ -25,13 +25,13 @@ public sealed class DialogCoordinator : IDialogCoordinator, IDialogCoordinatorUI
                 resultTask.SetResult(b);
             });
 
-        ShowDialog(_framework.CreateDefaultMessageContent(title, message, result, canCnacel: true));
+        ShowDialog(_framework.CreateDefaultMessageContent(title, message, result, true));
 
         return resultTask.Task;
     }
 
     public void ShowMessage(string title, string message)
-        => ShowDialog(_framework.CreateDefaultMessageContent(title, message, _ => HideDialog(), canCnacel: false));
+        => ShowDialog(_framework.CreateDefaultMessageContent(title, message, _ => HideDialog(), false));
 
     public void ShowDialog(object dialog)
     {

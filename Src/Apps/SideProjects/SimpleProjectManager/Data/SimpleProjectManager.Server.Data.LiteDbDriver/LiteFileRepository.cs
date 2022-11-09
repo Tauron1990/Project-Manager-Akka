@@ -17,7 +17,7 @@ public sealed class LiteFileRepository : IInternalFileRepository
     public IEnumerable<string> FindIdByFileName(string fileName)
     {
         var files = _databaseAsync.FindAll();
-        
+
         return files.Where(f => f.Filename == fileName).Select(f => f.Id);
     }
 
@@ -43,15 +43,14 @@ public sealed class LiteFileRepository : IInternalFileRepository
     public async IAsyncEnumerable<FileEntry> FindAllAsync([EnumeratorCancellation] CancellationToken cancellationToken)
     {
         await Task.Yield();
+
         foreach (var file in _databaseAsync.FindAll())
-        {
             yield return new FileEntry(
                 file.Id,
                 file.Filename,
                 file.Metadata[nameof(FileEntry.JobName)].AsString,
                 file.Metadata[nameof(FileEntry.FileName)].AsString,
                 file.Length);
-        }
     }
 
     public ValueTask DeleteAsync(string id, CancellationToken token)

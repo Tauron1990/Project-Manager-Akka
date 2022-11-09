@@ -14,7 +14,7 @@ public sealed class ViewModelModule : IModule
     {
         services.AddTransient<PageNavigation>();
         services.AddTransient<UploadTransaction>();
-        
+
         services.AddTransient<JobDetailDisplayViewModel>();
         services.AddTransient<JobSidebarViewModel>();
         services.AddTransient<CurrentJobsViewModel>();

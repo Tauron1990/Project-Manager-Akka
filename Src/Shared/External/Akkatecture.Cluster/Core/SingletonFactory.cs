@@ -40,7 +40,7 @@ public static class SingletonFactory<TDomainEventSubscriber>
         Expression<Func<TDomainEventSubscriber>> domainEventSubscriberFactory,
         string roleName)
     {
-        var name = typeof(TDomainEventSubscriber).Name;
+        string name = typeof(TDomainEventSubscriber).Name;
 
         var domainEventSubscriberProps = Props.Create(domainEventSubscriberFactory);
 
@@ -51,7 +51,7 @@ public static class SingletonFactory<TDomainEventSubscriber>
                 ClusterSingletonManagerSettings.Create(actorSystem).WithRole(roleName).WithSingletonName(name)),
             name);
 
-        var proxy = StartSingletonSubscriberProxy(actorSystem, roleName);
+        IActorRef proxy = StartSingletonSubscriberProxy(actorSystem, roleName);
 
         actorSystem.ActorOf(
             Props.Create(
@@ -64,9 +64,9 @@ public static class SingletonFactory<TDomainEventSubscriber>
 
     public static IActorRef StartSingletonSubscriberProxy(ActorSystem actorSystem, string roleName)
     {
-        var name = typeof(TDomainEventSubscriber).Name;
+        string name = typeof(TDomainEventSubscriber).Name;
 
-        var proxy = actorSystem.ActorOf(
+        IActorRef proxy = actorSystem.ActorOf(
             ClusterSingletonProxy.Props(
                 $"/user/{name}",
                 ClusterSingletonProxySettings.Create(actorSystem).WithRole(roleName).WithSingletonName(name)),

@@ -9,9 +9,9 @@ namespace SimpleProjectManager.Server.Core.Services;
 
 public class CriticalErrorService : ICriticalErrorService
 {
-    private readonly ILogger<CriticalErrorService> _logger;
     private readonly MappingDatabase<DbCriticalErrorEntry, CriticalErrorEntry> _errorEntrys;
-    
+    private readonly ILogger<CriticalErrorService> _logger;
+
     public CriticalErrorService(IInternalDataRepository dataRepository, ILogger<CriticalErrorService> logger)
     {
         ImmutableListSerializer<ErrorProperty>.Register();
@@ -29,9 +29,25 @@ public class CriticalErrorService : ICriticalErrorService
         //#endif
     }
 
+    public virtual async Task WriteError(CriticalError error, CancellationToken token)
+    {
+        try
+        {
+            var id = ObjectId.GenerateNewId().ToString();
+            CriticalErrorEntry entry = new(id, error with { Id = id }, false);
+
+            await _errorEntrys.InsertOneAsync(entry, token);
+            Invalidate();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error on Write Error to Database");
+        }
+    }
+
     public virtual async Task<long> CountErrors(CancellationToken token)
     {
-        if (Computed.IsInvalidating()) return 0;
+        if(Computed.IsInvalidating()) return 0;
 
         var filter = _errorEntrys.Operations.Eq(m => m.IsDisabled, false);
 
@@ -40,7 +56,7 @@ public class CriticalErrorService : ICriticalErrorService
 
     public virtual async Task<CriticalError[]> GetErrors(CancellationToken token)
     {
-        if (Computed.IsInvalidating()) return Array.Empty<CriticalError>();
+        if(Computed.IsInvalidating()) return Array.Empty<CriticalError>();
 
         var result = await _errorEntrys.ExecuteArray<DbCriticalError, CriticalError>(
             _errorEntrys
@@ -58,12 +74,13 @@ public class CriticalErrorService : ICriticalErrorService
 
         try
         {
-            DbOperationResult result = await _errorEntrys.UpdateOneAsync(filter, updater, cancellationToken: token);
+            DbOperationResult result = await _errorEntrys.UpdateOneAsync(filter, updater, token);
 
-            if (!result.IsAcknowledged || result.ModifiedCount != 1) 
+            if(!result.IsAcknowledged || result.ModifiedCount != 1)
                 return "Unbekannter fehler beim Aktualisieren der Datenbank";
 
             Invalidate();
+
             return string.Empty;
 
         }
@@ -72,22 +89,6 @@ public class CriticalErrorService : ICriticalErrorService
             _logger.LogWarning(e, "Error on Disabling ErrorEntry");
 
             return e.Message;
-        }
-    }
-
-    public virtual async Task WriteError(CriticalError error, CancellationToken token)
-    {
-        try
-        {
-            var id = ObjectId.GenerateNewId().ToString();
-            CriticalErrorEntry entry = new(id, error with { Id = id }, false);
-            
-            await _errorEntrys.InsertOneAsync(entry, token);
-            Invalidate();
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Error on Write Error to Database");
         }
     }
 

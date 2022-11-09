@@ -4,5 +4,5 @@ namespace SpaceConqueror;
 
 public sealed class Styles
 {
-    public static Style SelectionColor = new(foreground:Color.Gold3_1);
+    public static Style SelectionColor = new(Color.Gold3_1);
 }

@@ -9,13 +9,15 @@ public static class MessageDispatcherExtensions
         => ex =>
            {
                messageDispatcher.PublishError(ex);
+
                return false;
            };
-    
+
     public static Func<Exception, bool> PropagateErrors(this IMessageDispatcher messageDispatcher)
         => ex =>
            {
                messageDispatcher.PublishError(ex);
+
                return true;
            };
 }

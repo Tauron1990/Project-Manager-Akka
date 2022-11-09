@@ -19,7 +19,7 @@ public sealed record IniSection(string Name, ImmutableDictionary<string, IniEntr
 
     public SingleIniEntry? GetSingleEntry(string name)
     {
-        if (Entries.TryGetValue(name, out var entry))
+        if(Entries.TryGetValue(name, out IniEntry? entry))
             return entry as SingleIniEntry;
 
         return null;
@@ -34,7 +34,7 @@ public sealed record IniSection(string Name, ImmutableDictionary<string, IniEntr
 
     public ListIniEntry? GetListEntry(string name)
     {
-        if (!Entries.TryGetValue(name, out var value)) return null;
+        if(!Entries.TryGetValue(name, out IniEntry? value)) return null;
 
         return value as ListIniEntry;
     }

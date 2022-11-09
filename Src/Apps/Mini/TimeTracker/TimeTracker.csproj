@@ -21,16 +21,16 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="MaterialDesignColors" Version="2.0.6" />
-        <PackageReference Include="MaterialDesignExtensions" Version="3.3.0" />
-        <PackageReference Include="MaterialDesignThemes" Version="4.5.0" />
-        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
-        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
+        <PackageReference Include="MaterialDesignColors" Version="2.0.6"/>
+        <PackageReference Include="MaterialDesignExtensions" Version="3.3.0"/>
+        <PackageReference Include="MaterialDesignThemes" Version="4.5.0"/>
+        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10"/>
+        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31"/>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\..\Shared\Common\Tauron.Application.Logging\Tauron.Application.Logging.csproj" />
-      <ProjectReference Include="..\..\..\Shared\UI\Tauron.Application.Wpf\Tauron.Application.Wpf.csproj" />
+        <ProjectReference Include="..\..\..\Shared\Common\Tauron.Application.Logging\Tauron.Application.Logging.csproj"/>
+        <ProjectReference Include="..\..\..\Shared\UI\Tauron.Application.Wpf\Tauron.Application.Wpf.csproj"/>
     </ItemGroup>
 
 </Project>

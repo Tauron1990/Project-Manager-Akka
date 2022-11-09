@@ -6,19 +6,20 @@ public static class To
     {
         try
         {
-            return ValueTask.FromResult<T>(runner());
+            return ValueTask.FromResult(runner());
         }
         catch (Exception e)
         {
             return ValueTask.FromException<T>(e);
         }
     }
-    
+
     public static ValueTask VTaskV(Action runner)
     {
         try
         {
             runner();
+
             return ValueTask.CompletedTask;
         }
         catch (Exception e)
@@ -26,24 +27,25 @@ public static class To
             return ValueTask.FromException(e);
         }
     }
-    
+
     public static Task<T> Task<T>(Func<T> runner)
     {
         try
         {
-            return System.Threading.Tasks.Task.FromResult<T>(runner());
+            return System.Threading.Tasks.Task.FromResult(runner());
         }
         catch (Exception e)
         {
             return System.Threading.Tasks.Task.FromException<T>(e);
         }
     }
-    
+
     public static Task TaskV(Action runner)
     {
         try
         {
             runner();
+
             return System.Threading.Tasks.Task.CompletedTask;
         }
         catch (Exception e)

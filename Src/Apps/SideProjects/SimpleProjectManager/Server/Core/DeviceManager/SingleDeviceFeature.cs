@@ -10,12 +10,6 @@ namespace SimpleProjectManager.Server.Core.DeviceManager;
 
 public sealed partial class SingleDeviceFeature : ActorFeatureBase<SingleDeviceFeature.State>
 {
-    public sealed record InitState;
-
-    public sealed record State(
-        DeviceInformations Info, DeviceEventHandler Handler,
-        ImmutableDictionary<string, ISensorBox> Sensors, ImmutableDictionary<string, bool> ButtonStates);
-
     public static Props New(DeviceInformations info, DeviceEventHandler handler)
         => Feature.Props(
             Feature.Create(
@@ -44,50 +38,54 @@ public sealed partial class SingleDeviceFeature : ActorFeatureBase<SingleDeviceF
         Receive<Terminated>(obs => obs.ToUnit(p => p.Context.Stop(p.Self)));
 
         if(!CurrentState.Info.HasLogs) return;
-        
-        var loggerActor = Context.ActorOf(LoggerActor.Create(Context.System, CurrentState.Info.DeviceName), $"Logger--{Guid.NewGuid():N}");
+
+        IActorRef? loggerActor = Context.ActorOf(LoggerActor.Create(Context.System, CurrentState.Info.DeviceName), $"Logger--{Guid.NewGuid():N}");
         Receive<QueryLoggerBatch>(obs => obs.ToUnit(p => loggerActor.Forward(p.Event)));
     }
 
     private State UpdateButton(StatePair<UpdateButtonState, State> arg)
     {
-        var (evt, state) = arg;
-        
+        (UpdateButtonState evt, State state) = arg;
+
         if(!state.ButtonStates.ContainsKey(evt.Identifer))
         {
             IdNotFound(Logger, "Button", evt.DeviceName, evt.Identifer);
+
             return state;
         }
 
         state.Handler.Publish(new ButtonStateUpdate(evt.DeviceName, evt.Identifer));
+
         return state with { ButtonStates = state.ButtonStates.SetItem(evt.Identifer, evt.State) };
     }
 
     private void FindButtonState(StatePair<QueryButtonState, State> obj)
     {
-        var(evt, state) = obj;
+        (QueryButtonState evt, State state) = obj;
 
-        if(state.ButtonStates.TryGetValue(evt.Identifer, out var btnState))
+        if(state.ButtonStates.TryGetValue(evt.Identifer, out bool btnState))
         {
             obj.Sender.Tell(new ButtonStateResponse(btnState));
+
             return;
         }
-        
+
         IdNotFound(Logger, "Button", evt.DeviceName, evt.Identifer);
         obj.Sender.Tell(new ButtonStateResponse(false));
     }
 
     private void FindSensorValue(StatePair<QuerySensorValue, State> arg)
     {
-        var (evt, state) = arg;
+        (QuerySensorValue evt, State state) = arg;
 
-        if(!state.Sensors.TryGetValue(evt.Identifer, out var data))
+        if(!state.Sensors.TryGetValue(evt.Identifer, out ISensorBox? data))
         {
             IdNotFound(Logger, "Sensor", evt.DeviceName, evt.Identifer);
             arg.Sender.Tell(new SensorValueResult("Id Not Found", data));
+
             return;
         }
-        
+
         arg.Sender.Tell(new SensorValueResult(null, data));
     }
 
@@ -96,12 +94,12 @@ public sealed partial class SingleDeviceFeature : ActorFeatureBase<SingleDeviceF
 
     [LoggerMessage(EventId = 63, Level = LogLevel.Warning, Message = "The Id {id} of Type {type} was not found for {device}")]
     private static partial void IdNotFound(ILogger logger, string type, string device, string id);
-    
+
     private State UpdateSensor(StatePair<UpdateSensor, State> arg)
     {
-        var (evt, state) = arg;
+        (UpdateSensor evt, State state) = arg;
 
-        if(!state.Sensors.TryGetValue(evt.Identifer, out var data))
+        if(!state.Sensors.TryGetValue(evt.Identifer, out ISensorBox? data))
         {
             IdNotFound(Logger, "Sensor", evt.DeviceName, evt.Identifer);
 
@@ -116,18 +114,19 @@ public sealed partial class SingleDeviceFeature : ActorFeatureBase<SingleDeviceF
         }
 
         state.Handler.Publish(new SensorUpdateEvent(evt.DeviceName, evt.Identifer, evt.SensorValue.SensorType));
+
         return state with { Sensors = state.Sensors.SetItem(evt.Identifer, evt.SensorValue) };
     }
 
     [LoggerMessage(EventId = 61, Level = LogLevel.Debug, Message = "Initialization of Device Interface with Name: {device}")]
     private static partial void InitSingleDevice(ILogger logger, string device);
-    
+
     private State InitDeviceInfo(StatePair<InitState, State> p)
     {
         InitSingleDevice(Logger, p.State.Info.DeviceName);
 
         p.Context.Watch(p.State.Info.DeviceManager);
-        
+
         var sensors = p.State.Sensors.AddRange(
             p.State.Info.CollectSensors()
                .Select(s => KeyValuePair.Create(s.Identifer, SensorBox.CreateDefault(s.SensorType))));
@@ -138,4 +137,10 @@ public sealed partial class SingleDeviceFeature : ActorFeatureBase<SingleDeviceF
 
         return p.State with { Sensors = sensors, ButtonStates = buttons };
     }
+
+    public sealed record InitState;
+
+    public sealed record State(
+        DeviceInformations Info, DeviceEventHandler Handler,
+        ImmutableDictionary<string, ISensorBox> Sensors, ImmutableDictionary<string, bool> ButtonStates);
 }

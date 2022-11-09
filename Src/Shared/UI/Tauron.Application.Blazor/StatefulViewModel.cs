@@ -18,17 +18,16 @@ public static class BlazorViewModelExtensions
 [PublicAPI]
 public class BlazorViewModel : ReactiveObject, IActivatableViewModel, IResourceHolder, IParameterUpdateable
 {
-    public IStateFactory StateFactory { get; }
     private readonly CompositeDisposable _disposable = new();
 
     protected BlazorViewModel(IStateFactory stateFactory)
         => StateFactory = stateFactory;
 
-    public virtual ViewModelActivator Activator { get; } = new();
-    
+    public IStateFactory StateFactory { get; }
 
-    public IState<TValue> GetParameter<TValue>(string name)
-        => this.GetParameter<TValue>(name, StateFactory);
+    public virtual ViewModelActivator Activator { get; } = new();
+
+    public ParameterUpdater Updater { get; } = new();
 
     void IDisposable.Dispose()
         => _disposable.Dispose();
@@ -39,16 +38,14 @@ public class BlazorViewModel : ReactiveObject, IActivatableViewModel, IResourceH
     void IResourceHolder.RemoveResource(IDisposable res)
         => _disposable.Remove(res);
 
-    public ParameterUpdater Updater { get; } = new();
+
+    public IState<TValue> GetParameter<TValue>(string name)
+        => this.GetParameter<TValue>(name, StateFactory);
 }
 
 [PublicAPI]
 public abstract class StatefulViewModel<TData> : BlazorViewModel
 {
-    public IState<TData> State { get; }
-
-    public IObservable<TData> NextElement { get; }
-
     protected StatefulViewModel(IStateFactory stateFactory)
         : base(stateFactory)
     {
@@ -60,8 +57,12 @@ public abstract class StatefulViewModel<TData> : BlazorViewModel
 
         NextElement = State.ToObservable(_ => true);
     }
-    
+
+    public IState<TData> State { get; }
+
+    public IObservable<TData> NextElement { get; }
+
     protected virtual void ConfigureState(ComputedState<TData>.Options options) { }
-    
+
     protected abstract Task<TData> ComputeState(CancellationToken cancellationToken);
 }

@@ -59,17 +59,17 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="JetBrains.Annotations" Version="2022.1.0" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.2" />
+        <PackageReference Include="JetBrains.Annotations" Version="2022.3.1" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
         <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.2.1" />
         <PackageReference Include="OneOf" Version="3.0.223" />
         <PackageReference Include="OneOf.SourceGenerator" Version="3.0.223" />
         <PackageReference Include="Scrutor" Version="4.2.0" />
         <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
         <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
-        <PackageReference Include="Stl.Fusion" Version="4.0.16" />
+        <PackageReference Include="Stl.Fusion" Version="4.0.19" />
         <PackageReference Include="System.Reactive" Version="5.0.0" />
-        <PackageReference Include="UnitsNet" Version="4.145.0" />
+        <PackageReference Include="UnitsNet" Version="4.148.0" />
     </ItemGroup>
-    
+
 </Project>

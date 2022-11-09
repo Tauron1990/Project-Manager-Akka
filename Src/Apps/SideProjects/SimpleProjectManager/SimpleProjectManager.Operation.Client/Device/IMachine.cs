@@ -10,7 +10,7 @@ public interface IMachine
     Task<DeviceInformations> CollectInfo();
 
     Task<DeviceManagerMessages.ISensorBox> UpdateSensorValue(DeviceSensor sensor);
-    void ButtonClick(string identifer);
-    void WhenButtonStateChanged(string identifer, Action<bool> onButtonStateChanged);
+    void ButtonClick(DeviceId identifer);
+    void WhenButtonStateChanged(DeviceId identifer, Action<bool> onButtonStateChanged);
     Task<LogBatch> NextLogBatch();
 }

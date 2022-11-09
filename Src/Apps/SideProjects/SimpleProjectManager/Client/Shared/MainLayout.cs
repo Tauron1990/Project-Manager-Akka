@@ -1,4 +1,5 @@
-﻿using MudBlazor;
+﻿using System.Reactive.Disposables;
+using MudBlazor;
 using Tauron.Application;
 using Tauron.Application.Blazor;
 
@@ -6,14 +7,10 @@ namespace SimpleProjectManager.Client.Shared;
 
 public partial class MainLayout
 {
-    private bool _open;
-
-    private void ToggleDrawer() => _open = !_open;
-
     private readonly MudTheme _darkTheme =
         new()
         {
-            Palette = new Palette()
+            Palette = new Palette
                       {
                           Primary = "#776be7",
                           Black = "#27272f",
@@ -44,7 +41,14 @@ public partial class MainLayout
                       }
         };
 
-    private IDisposable _subscription = System.Reactive.Disposables.Disposable.Empty;
+    private bool _open;
+
+    private IDisposable _subscription = Disposable.Empty;
+
+    public void Dispose()
+        => _subscription.Dispose();
+
+    private void ToggleDrawer() => _open = !_open;
 
     protected override void OnInitialized()
     {
@@ -55,7 +59,4 @@ public partial class MainLayout
 
     private void OnNavigating()
         => _open = false;
-
-    public void Dispose()
-        => _subscription.Dispose();
 }

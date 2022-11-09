@@ -41,7 +41,7 @@ public abstract class ModelConnectorBase<TDrived>
                     View = view;
                     Model = model;
 
-                    if (model.IsInitialized)
+                    if(model.IsInitialized)
                     {
                         Task.Run(async () => await InitAsync())
                            .Ignore();
@@ -72,7 +72,7 @@ public abstract class ModelConnectorBase<TDrived>
         {
             Log.Debug("Init ModelConnector {Type} -- {Name}", typeof(TDrived), Name);
 
-            if (Model == null) return;
+            if(Model == null) return;
 
             OnLoad();
 
@@ -105,7 +105,7 @@ public abstract class ModelConnectorBase<TDrived>
 
     public void ForceUnload()
     {
-        if (Model == null)
+        if(Model == null)
             return;
 
         OnUnload();

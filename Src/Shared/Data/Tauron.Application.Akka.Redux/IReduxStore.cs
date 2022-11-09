@@ -13,7 +13,9 @@ public sealed record ActionState<TState, TAction>(TState State, TAction Action);
 public interface IReduxStore<TState> : IActionDispatcher, IDisposable
 {
     IMaterializer Materializer { get; }
-   
+
+    TState CurrentState { get; }
+
     Source<TResult, NotUsed> Select<TResult>(Flow<TState, TResult, NotUsed> selector);
 
     Source<TState, NotUsed> Select();
@@ -22,21 +24,19 @@ public interface IReduxStore<TState> : IActionDispatcher, IDisposable
 
     Source<TResult, NotUsed> ObservAction<TAction, TResult>(Flow<(TState State, TAction Action), TResult, NotUsed> selector);
 
-    TState CurrentState { get; }
-
     void Reset();
 
     void RegisterReducers(IEnumerable<On<TState>> reducers);
-    
+
     void RegisterEffects(IEnumerable<Effect<TState>> effects);
-    
-    
+
+
     void RegisterReducers(params On<TState>[] reducers);
-    
+
     void RegisterEffects(params Effect<TState>[] effects);
-    
+
     Source<object, NotUsed> ObserveAction();
-    
+
     Source<TAction, NotUsed> ObserveAction<TAction>()
         where TAction : class;
 

@@ -24,7 +24,7 @@ public class SimpleCommand : CommandBase
     public SimpleCommand(Func<bool>? canExecute, Action execute)
     {
         _execute = _ => execute();
-        if (canExecute is not null)
+        if(canExecute is not null)
             _canExecute = _ => canExecute();
     }
 

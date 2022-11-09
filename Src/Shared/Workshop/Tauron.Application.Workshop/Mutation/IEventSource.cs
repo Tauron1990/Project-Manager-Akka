@@ -2,6 +2,4 @@
 
 namespace Tauron.Application.Workshop.Mutation;
 
-public interface IEventSource<out TRespond> : IObservable<TRespond>
-{
-}
+public interface IEventSource<out TRespond> : IObservable<TRespond> { }

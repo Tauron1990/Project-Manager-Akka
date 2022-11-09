@@ -14,7 +14,7 @@ public sealed record SynchronizationContextRemover : INotifyCompletion
 
     public void OnCompleted(Action continuation)
     {
-        var current = SynchronizationContext.Current;
+        SynchronizationContext? current = SynchronizationContext.Current;
         try
         {
             SynchronizationContext.SetSynchronizationContext(null);

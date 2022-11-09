@@ -1,9 +1,9 @@
 ﻿using System.Reactive.Linq;
 using JetBrains.Annotations;
-using Tauron.TAkka;
 using Tauron.Application.Workshop.Mutation;
 using Tauron.Application.Workshop.StateManagement;
 using Tauron.Operations;
+using Tauron.TAkka;
 
 namespace Tauron.Application.CommonUI.Model;
 
@@ -22,18 +22,18 @@ public abstract class ActorModel : ObservableActor
 
     protected virtual void OnOperationCompled(IOperationResult result)
     {
-        var actionType = result.Outcome?.GetType();
+        Type? actionType = result.Outcome?.GetType();
 
-        if (actionType?.IsAssignableTo(typeof(IStateAction)) != true) return;
+        if(actionType?.IsAssignableTo(typeof(IStateAction)) != true) return;
 
-        if (_compledActions.TryGetValue(actionType, out var action))
+        if(_compledActions.TryGetValue(actionType, out var action))
             action(result);
     }
 
     public void WhenActionComnpled<TAction>(Action<IOperationResult> opsAction)
         where TAction : IStateAction
     {
-        var key = typeof(TAction);
+        Type key = typeof(TAction);
         _compledActions[key] = opsAction.Combine(_compledActions.GetValueOrDefault(key))!;
     }
 

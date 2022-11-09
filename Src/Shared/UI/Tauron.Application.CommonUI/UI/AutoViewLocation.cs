@@ -22,13 +22,13 @@ public sealed class AutoViewLocation
 
     public Option<IView> ResolveView(object viewModel)
     {
-        if (viewModel is not IViewModel model)
+        if(viewModel is not IViewModel model)
             return Option<IView>.None;
 
-        var type = model.ModelType;
+        Type type = model.ModelType;
 
-        return Views.TryGetValue(type, out var view)
-            ?  ActivatorUtilities.CreateInstance(_provider, view, viewModel)
+        return Views.TryGetValue(type, out Type? view)
+            ? ActivatorUtilities.CreateInstance(_provider, view, viewModel)
                .OptionNotNull()
                .CastAs<IView>()
                .FlatSelect(v => v is null ? Option<IView>.None : Option<IView>.Some(v))

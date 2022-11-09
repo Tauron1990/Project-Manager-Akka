@@ -49,10 +49,10 @@ public sealed class AsyncRequestMiddleware<TState> : Middleware where TState : n
                 {
                     try
                     {
-                        var result = await runRequest(transferedAction.Action);
+                        string? result = await runRequest(transferedAction.Action);
 
-                        return string.IsNullOrWhiteSpace(result) 
-                            ? onScess(transferedAction.State, transferedAction.Action) 
+                        return string.IsNullOrWhiteSpace(result)
+                            ? onScess(transferedAction.State, transferedAction.Action)
                             : onFail(transferedAction.State, result);
                     }
                     catch (Exception e)
@@ -61,7 +61,7 @@ public sealed class AsyncRequestMiddleware<TState> : Middleware where TState : n
                     }
                 })
            .Select(state => (object)MutateCallback.Create(state));
-        
+
         OnAction(flow);
     }
 
@@ -78,10 +78,10 @@ public sealed class AsyncRequestMiddleware<TState> : Middleware where TState : n
                 {
                     try
                     {
-                        var result = await runRequest(transferedAction.Action);
+                        string? result = await runRequest(transferedAction.Action);
 
-                        return string.IsNullOrWhiteSpace(result) 
-                            ? onScess(transferedAction.State, transferedAction.Action) 
+                        return string.IsNullOrWhiteSpace(result)
+                            ? onScess(transferedAction.State, transferedAction.Action)
                             : onFail(transferedAction.State, result);
                     }
                     catch (Exception e)
@@ -90,7 +90,7 @@ public sealed class AsyncRequestMiddleware<TState> : Middleware where TState : n
                     }
                 })
            .Select(state => (object)MutateCallback.Create(state));
-        
+
         OnAction(flow);
     }
 

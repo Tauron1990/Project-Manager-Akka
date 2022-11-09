@@ -37,7 +37,7 @@ public abstract class Entity<TIdentity> : ValueObject, IEntity<TIdentity>
 {
     protected Entity(TIdentity id)
     {
-        if (id is null)
+        if(id is null)
             throw new ArgumentNullException(nameof(id));
 
         Id = id;

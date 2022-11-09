@@ -11,7 +11,7 @@ namespace Tauron.Features;
 public interface IFeature : IResourceHolder
 {
     IEnumerable<string> Identify();
-    
+
     void PostStop();
 
     void PreStart();
@@ -25,30 +25,21 @@ public interface IFeature<TState> : IFeature
 [PublicAPI]
 public abstract class ActorFeatureBase<TState> : IFeature<TState>, IFeatureActor<TState>
 {
-    private Lazy<ILogger> _logger;
     private IFeatureActor<TState> _actor = null!;
+    private Lazy<ILogger> _logger;
+
+    protected ActorFeatureBase()
+        => _logger = new Lazy<ILogger>(CreateLoggerImpl);
 
     public IActorContext Context { get; private set; } = null!;
 
-    protected ActorFeatureBase()
-    {
-        _logger = new Lazy<ILogger>(CreateLoggerImpl);
-    }
-    
+    protected ILogger Logger => _logger.Value;
+
     public virtual IEnumerable<string> Identify()
     {
         yield return GetType().Name;
     }
 
-    protected ILogger Logger => _logger.Value;
-    
-    protected ILogger CreateLoggerImpl()
-    {
-        var factory = DependencyResolver.For(Context.System).Resolver.GetService<ILoggerFactory>();
-
-        return factory.CreateLogger(GetType());
-    }
-    
     public void Init(IFeatureActor<TState> actor)
     {
         Context = actor.Context;
@@ -122,6 +113,13 @@ public abstract class ActorFeatureBase<TState> : IFeature<TState>, IFeatureActor
     public IDisposable Subscribe(IObserver<TState> observer) => _actor.Subscribe(observer);
 
     public ITimerScheduler Timers { get; set; } = null!;
+
+    protected ILogger CreateLoggerImpl()
+    {
+        var factory = DependencyResolver.For(Context.System).Resolver.GetService<ILoggerFactory>();
+
+        return factory.CreateLogger(GetType());
+    }
 
     protected virtual void Config() => ConfigImpl();
 

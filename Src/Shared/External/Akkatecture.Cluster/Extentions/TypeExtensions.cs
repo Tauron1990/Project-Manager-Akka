@@ -33,7 +33,6 @@ namespace Akkatecture.Cluster.Extentions;
 
 public static class TypeExtensions
 {
-
     internal static IReadOnlyList<Type> GetDomainEventSubscriptionTypes(this Type type)
     {
         var interfaces = type

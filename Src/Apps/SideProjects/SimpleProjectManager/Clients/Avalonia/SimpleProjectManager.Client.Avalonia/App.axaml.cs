@@ -13,59 +13,58 @@ using SimpleProjectManager.Client.Shared.ViewModels;
 using SimpleProjectManager.Shared.ServerApi;
 using Tauron;
 
-namespace SimpleProjectManager.Client.Avalonia
+namespace SimpleProjectManager.Client.Avalonia;
+
+// ReSharper disable once PartialTypeWithSinglePart
+public partial class App : Application
 {
-    // ReSharper disable once PartialTypeWithSinglePart
-    public partial class App : Application
+    public static ServiceProvider? ServiceProvider;
+
+    public static IDisposable Disposer { get; private set; } = Disposable.Empty;
+
+    public override void Initialize()
     {
-        public static ServiceProvider? ServiceProvider;
+        AvaloniaXamlLoader.Load(this);
+    }
 
-        public static IDisposable Disposer { get; private set; } = Disposable.Empty;
-        
-        public override void Initialize()
+    public override void OnFrameworkInitializationCompleted()
+    {
+        if(ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            AvaloniaXamlLoader.Load(this);
+            CreateSeriveProvider();
+
+            desktop.MainWindow = new MainWindow
+                                 {
+                                     ViewModel = ServiceProvider?.GetService<MainWindowViewModel>()
+                                 };
+
+            desktop.Exit += (_, _) => ServiceProvider?.Dispose();
         }
 
-        public override void OnFrameworkInitializationCompleted()
+        base.OnFrameworkInitializationCompleted();
+    }
+
+    private void CreateSeriveProvider()
+    {
+        var collection = new ServiceCollection();
+
+        collection.RegisterModule<InternalDataModule>();
+        collection.RegisterModule<InternalViewModelModule>();
+        collection.RegisterModule<ViewModelModule>();
+
+        var ip = "http://localhost:4000";
+
+        if(File.Exists("seed.conf"))
         {
-            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-            {
-                CreateSeriveProvider();
-                
-                desktop.MainWindow = new MainWindow
-                                     {
-                                         ViewModel = ServiceProvider?.GetService<MainWindowViewModel>(),
-                                     };
+            Config? config = ConfigurationFactory.ParseString(File.ReadAllText("seed.conf"));
+            ip = $"http://{config.GetString("akka.remote.dot-netty.tcp.hostname")}:4000";
 
-                desktop.Exit += (_, _) => ServiceProvider?.Dispose();
-            }
-
-            base.OnFrameworkInitializationCompleted();
+            //await SetupRunner.Run(ip);
         }
 
-        private void CreateSeriveProvider()
-        {
-            var collection = new ServiceCollection();
-            
-            collection.RegisterModule<InternalDataModule>();
-            collection.RegisterModule<InternalViewModelModule>();
-            collection.RegisterModule<ViewModelModule>();
-            
-            string ip = "http://localhost:4000";
+        ClientRegistration.ConfigFusion(collection, new Uri(ip));
 
-            if (File.Exists("seed.conf"))
-            {
-                var config = ConfigurationFactory.ParseString(File.ReadAllText("seed.conf"));
-                ip = $"http://{config.GetString("akka.remote.dot-netty.tcp.hostname")}:4000";
-
-                //await SetupRunner.Run(ip);
-            }
-            
-            ClientRegistration.ConfigFusion(collection, new Uri(ip));
-            
-            ServiceProvider = collection.BuildServiceProvider();
-            Disposer = ServiceProvider;
-        }
+        ServiceProvider = collection.BuildServiceProvider();
+        Disposer = ServiceProvider;
     }
 }

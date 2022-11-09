@@ -19,7 +19,7 @@ public class Crc32
         {
             uint temp = tableIndex;
             for (var calc = 8; calc > 0; --calc)
-                if ((temp & 1) == 1)
+                if((temp & 1) == 1)
                     temp = (temp >> 1) ^ poly;
                 else
                     temp >>= 1;
@@ -141,14 +141,14 @@ public class CrcStream : Stream
     {
         unchecked
         {
-            uint[] table = new uint[256];
+            var table = new uint[256];
 
             const uint poly = 0xEDB88320;
             for (uint tableIndex = 0; tableIndex < table.Length; tableIndex++)
             {
-                var crc = tableIndex;
+                uint crc = tableIndex;
                 for (var calc = 8; calc > 0; calc--)
-                    if ((crc & 1) == 1)
+                    if((crc & 1) == 1)
                         crc = (crc >> 1) ^ poly;
                     else
                         crc >>= 1;

@@ -14,12 +14,15 @@ public enum RoomType
 
 public class RoomState : IState
 {
+    public RoomState(string id)
+        => Id = id;
+
     public string Id { get; }
 
     public RoomType RoomType { get; set; }
-    
+
     public bool IsPlayerInRoom { get; set; }
-    
+
     public bool ExcludeHistory { get; set; }
 
     public Dictionary<int, string> PredefinedDescriptions { get; } = new();
@@ -27,9 +30,6 @@ public class RoomState : IState
     public List<string> PredefinedCommands { get; } = new();
 
     public List<string> ProcessorNames { get; } = new();
-
-    public RoomState(string id)
-        => Id = id;
 
     public IEnumerable<object> GetToInsert(AssetManager assetManager, object context)
     {
@@ -40,9 +40,9 @@ public class RoomState : IState
             yield return assetManager.Get<IDisplayCommand>(command);
 
         foreach (object? processor in from processorName in ProcessorNames
-                                     from element in assetManager.Get<ContextProcessor>(processorName)(assetManager, context)
-                                     where element is not null
-                                     select element)
+                                      from element in assetManager.Get<ContextProcessor>(processorName)(assetManager, context)
+                                      where element is not null
+                                      select element)
             yield return processor;
     }
 }

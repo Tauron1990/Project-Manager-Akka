@@ -5,7 +5,9 @@ using Stl.Fusion.Server;
 
 namespace SimpleProjectManager.Server.Controllers;
 
-[ApiController, JsonifyErrors, Route(ApiPaths.ErrorApi + "/[action]")]
+[ApiController]
+[JsonifyErrors]
+[Route(ApiPaths.ErrorApi + "/[action]")]
 public class ErrorsController : Controller, ICriticalErrorService
 {
     private readonly ICriticalErrorService _errorService;
@@ -13,16 +15,18 @@ public class ErrorsController : Controller, ICriticalErrorService
     public ErrorsController(ICriticalErrorService errorService)
         => _errorService = errorService;
 
-    [HttpGet, Publish]
-    public Task<long> CountErrors(CancellationToken token)
+    [HttpGet]
+    [Publish]
+    public Task<ErrorCount> CountErrors(CancellationToken token)
         => _errorService.CountErrors(token);
 
-    [HttpGet, Publish]
-    public Task<CriticalError[]> GetErrors(CancellationToken token)
+    [HttpGet]
+    [Publish]
+    public Task<CriticalErrorList> GetErrors(CancellationToken token)
         => _errorService.GetErrors(token);
 
     [HttpPost]
-    public Task<string> DisableError([FromQuery] string id, CancellationToken token)
+    public Task<SimpleResult> DisableError([FromQuery] ErrorId id, CancellationToken token)
         => _errorService.DisableError(id, token);
 
     [HttpPost]

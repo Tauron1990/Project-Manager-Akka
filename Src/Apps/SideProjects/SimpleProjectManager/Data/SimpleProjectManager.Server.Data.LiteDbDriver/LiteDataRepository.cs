@@ -20,53 +20,22 @@ public sealed class LiteDataRepository : IInternalDataRepository
         Databases = new LiteDatabases(serviceProvider, database);
     }
 
-    private LiteTransaction GetTransaction(object key)
-        => _transactions.GetOrAdd(key, static (_, db) => new LiteTransaction(db), _database);
-
-    private static string GetDatabaseId(Type type)
-        => type.FullName ?? type.Name;
-
-    private async Task CommitCheckpoint<TData>(ProjectionContext context, object key)
-    {
-        if(!_transactions.TryRemove(key, out var trans))
-            throw new InvalidOperationException($"No Transaction with {key} Found");
-
-        using (trans)
-        {
-            await trans.Run(
-                d =>
-                {
-                    var id = GetDatabaseId(typeof(TData));
-                    var data = new CheckPointInfo { Checkpoint = context.Checkpoint, Id = id };
-                    d.GetCollection<CheckPointInfo>().Upsert(data);
-                });
-            await trans.Run(d => d.Commit());
-        }
-    }
-
-    private ILiteCollection<TData> InternalCollection<TData>(LiteTransaction? transaction = null)
-    {
-        SerializationHelper<TData>.Register();
-        
-        return transaction is null ? _database.GetCollection<TData>() : transaction.Collection<TData>();
-    }
-
     public Task<TProjection?> Get<TProjection, TIdentity>(ProjectionContext context, TIdentity identity)
         where TProjection : class, IProjectorData<TIdentity>
         where TIdentity : IIdentity
         => To.Task(() => InternalCollection<TProjection>().FindById(identity.Value))!;
 
-    public Task<TProjection> Create<TProjection, TIdentity>(ProjectionContext context, TIdentity identity, Func<TProjection, bool> shouldoverwite) 
-        where TProjection : class, IProjectorData<TIdentity> 
+    public Task<TProjection> Create<TProjection, TIdentity>(ProjectionContext context, TIdentity identity, Func<TProjection, bool> shouldoverwite)
+        where TProjection : class, IProjectorData<TIdentity>
         where TIdentity : IIdentity
     {
         TProjection DataFactory()
         {
-            if (FastReflection.Shared.FastCreateInstance(typeof(TProjection)) is not TProjection data)
+            if(FastReflection.Shared.FastCreateInstance(typeof(TProjection)) is not TProjection data)
                 throw new InvalidOperationException("Projection Creation Failed");
 
             data.Id = identity;
-            
+
             return data;
         }
 
@@ -74,10 +43,12 @@ public sealed class LiteDataRepository : IInternalDataRepository
             () =>
             {
                 var coll = InternalCollection<TProjection>();
-                
-                var data = coll.FindById(identity.Value);
+
+                TProjection? data = coll.FindById(identity.Value);
                 if(data == null)
+                {
                     data = DataFactory();
+                }
                 else if(shouldoverwite(data))
                 {
                     coll.Delete(identity.Value);
@@ -92,10 +63,10 @@ public sealed class LiteDataRepository : IInternalDataRepository
         where TIdentity : IIdentity
         where TProjection : class, IProjectorData<TIdentity>
     {
-        using var transaction = GetTransaction(identity);
-        
+        using LiteTransaction transaction = GetTransaction(identity);
+
         var coll = InternalCollection<TProjection>(transaction);
-        var result = await transaction.Run(() => coll.Delete(identity.Value));
+        bool result = await transaction.Run(() => coll.Delete(identity.Value));
         await CommitCheckpoint<TProjection>(context, identity);
 
         return result;
@@ -105,7 +76,7 @@ public sealed class LiteDataRepository : IInternalDataRepository
         where TIdentity : IIdentity
         where TProjection : class, IProjectorData<TIdentity>
     {
-        using var trans = GetTransaction(identity);
+        using LiteTransaction trans = GetTransaction(identity);
         var coll = InternalCollection<TProjection>(trans);
 
         await trans.Run(() => coll.Upsert(identity.Value, projection));
@@ -115,19 +86,48 @@ public sealed class LiteDataRepository : IInternalDataRepository
     public Task Completed<TIdentity>(TIdentity identity)
         where TIdentity : IIdentity
     {
-        if (!_transactions.TryRemove(identity, out var transaction)) return Task.CompletedTask;
+        if(!_transactions.TryRemove(identity, out LiteTransaction? transaction)) return Task.CompletedTask;
 
         transaction.Dispose();
-        
+
         return Task.CompletedTask;
     }
 
     public long? GetLastCheckpoint<TProjection, TIdentity>() where TProjection : class, IProjectorData<TIdentity>
         where TIdentity : IIdentity
-    {
-        return _database.GetCollection<CheckPointInfo>()
+        => _database.GetCollection<CheckPointInfo>()
            .FindById(GetDatabaseId(typeof(TProjection)))?.Checkpoint;
-    }
 
     public IDatabases Databases { get; }
+
+    private LiteTransaction GetTransaction(object key)
+        => _transactions.GetOrAdd(key, static (_, db) => new LiteTransaction(db), _database);
+
+    private static string GetDatabaseId(Type type)
+        => type.FullName ?? type.Name;
+
+    private async Task CommitCheckpoint<TData>(ProjectionContext context, object key)
+    {
+        if(!_transactions.TryRemove(key, out LiteTransaction? trans))
+            throw new InvalidOperationException($"No Transaction with {key} Found");
+
+        using (trans)
+        {
+            await trans.Run(
+                d =>
+                {
+                    string id = GetDatabaseId(typeof(TData));
+                    var data = new CheckPointInfo { Checkpoint = context.Checkpoint, Id = id };
+                    d.GetCollection<CheckPointInfo>().Upsert(data);
+                });
+            await trans.Run(d => d.Commit());
+        }
+    }
+
+    private ILiteCollection<TData> InternalCollection<TData>(LiteTransaction? transaction = null)
+    {
+        SerializationHelper<TData>.Register();
+
+        return transaction is null ? _database.GetCollection<TData>() : transaction.Collection<TData>();
+    }
 }

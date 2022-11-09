@@ -12,12 +12,12 @@ public sealed class AwaitResponse
 
     public async Task<TransferMessages.TransferCompled> TryStart(Func<ITransferData?> getdata)
     {
-        if (_request is null)
+        if(_request is null)
             return new TransferFailed(FileOperationId.Empty, FailReason.Deny, TransferData.Empty);
 
-        var data = getdata();
+        ITransferData? data = getdata();
 
-        if (data is null)
+        if(data is null)
             return new TransferFailed(_request.OperationId, FailReason.Deny, _request.Data);
 
         return await _request.Accept(() => data);

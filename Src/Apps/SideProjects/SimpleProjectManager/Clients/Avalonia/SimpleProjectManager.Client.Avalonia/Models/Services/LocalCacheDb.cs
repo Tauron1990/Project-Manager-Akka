@@ -12,7 +12,7 @@ namespace SimpleProjectManager.Client.Avalonia.Models.Services;
 
 public sealed class LocalCacheDbContextDesingFactory : IDesignTimeDbContextFactory<LocalCacheDbContext>
 {
-    public LocalCacheDbContext CreateDbContext(string[] args) 
+    public LocalCacheDbContext CreateDbContext(string[] args)
         => new();
 }
 
@@ -47,7 +47,7 @@ public sealed class LocalCacheDbContext : DbContext
         modelBuilder.Entity<CacheTimeout>()
            .Property(ct => ct.DataKey)
            .HasConversion(dk => dk.Value, s => new CacheDataId(s));
-        
+
         base.OnModelCreating(modelBuilder);
     }
 }
@@ -62,20 +62,21 @@ public sealed class LocalCacheDb : ICacheDb
 
     public LocalCacheDb(IServiceProvider serviceProvider)
     {
-        if (!Directory.Exists(DatabaseDirectory))
+        if(!Directory.Exists(DatabaseDirectory))
             Directory.CreateDirectory(DatabaseDirectory);
 
         _contextFactory = serviceProvider.GetRequiredService<LocalCacheDbContext>;
 
-        using var factory = _contextFactory();
+        using LocalCacheDbContext factory = _contextFactory();
         factory.Database.Migrate();
     }
 
     public async ValueTask DeleteElement(CacheTimeoutId key)
     {
-        await using var context = _contextFactory();
+        await using LocalCacheDbContext context = _contextFactory();
 
-        var data = await context.Timeout.FindAsync(key);
+        CacheTimeout? data = await context.Timeout.FindAsync(key);
+
         if(data == null) return;
 
         context.Timeout.Remove(data);
@@ -84,23 +85,23 @@ public sealed class LocalCacheDb : ICacheDb
 
     public async ValueTask DeleteElement(CacheDataId key)
     {
-        await using var context = _contextFactory();
+        await using LocalCacheDbContext context = _contextFactory();
 
-        var data = await context.Data.FindAsync(key);
-        if (data != null)
+        CacheData? data = await context.Data.FindAsync(key);
+        if(data != null)
         {
             context.Remove(data);
             await context.SaveChangesAsync();
         }
-        
+
         await DeleteElement(CacheTimeoutId.FromCacheId(key));
     }
 
     public async ValueTask<(CacheTimeoutId? id, CacheDataId? Key, DateTime Time)> GetNextTimeout()
     {
-        await using var context = _contextFactory();
+        await using LocalCacheDbContext context = _contextFactory();
 
-        var result = await 
+        CacheTimeout? result = await
         (
             from data in context.Timeout.AsNoTracking()
             orderby data.Timeout
@@ -112,19 +113,19 @@ public sealed class LocalCacheDb : ICacheDb
 
     public async ValueTask TryAddOrUpdateElement(CacheDataId key, string dataString)
     {
-        await using var context = _contextFactory();
+        await using LocalCacheDbContext context = _contextFactory();
 
-        var timeoutKey = CacheTimeoutId.FromCacheId(key);
-        
-        var timeoutData = await context.Timeout.FindAsync(timeoutKey);
-        var data = await context.Data.FindAsync(key);
+        CacheTimeoutId timeoutKey = CacheTimeoutId.FromCacheId(key);
 
-        if (timeoutData == null)
+        CacheTimeout? timeoutData = await context.Timeout.FindAsync(timeoutKey);
+        CacheData? data = await context.Data.FindAsync(key);
+
+        if(timeoutData == null)
             context.Timeout.Add(new CacheTimeout(timeoutKey, key, GetTimeout()));
         else
             context.Timeout.Update(timeoutData with { DataKey = key, Timeout = GetTimeout() });
 
-        if (data == null)
+        if(data == null)
             context.Data.Add(new CacheData(key, dataString));
         else
             context.Data.Update(data with { Data = dataString });
@@ -134,16 +135,16 @@ public sealed class LocalCacheDb : ICacheDb
 
     public async ValueTask<string?> ReNewAndGet(CacheDataId key)
     {
-        await using var context = _contextFactory();
+        await using LocalCacheDbContext context = _contextFactory();
 
-        var timeoutKey = CacheTimeoutId.FromCacheId(key);
+        CacheTimeoutId timeoutKey = CacheTimeoutId.FromCacheId(key);
 
-        var timeoutData = await context.Timeout.FindAsync(timeoutKey);
-        var data = await context.Data.FindAsync(key);
+        CacheTimeout? timeoutData = await context.Timeout.FindAsync(timeoutKey);
+        CacheData? data = await context.Data.FindAsync(key);
 
-        if (data == null) return string.Empty;
+        if(data == null) return string.Empty;
 
-        if (timeoutData == null)
+        if(timeoutData == null)
             context.Timeout.Add(new CacheTimeout(timeoutKey, key, GetTimeout()));
         else
             context.Timeout.Update(timeoutData with { Timeout = GetTimeout() });
@@ -152,6 +153,7 @@ public sealed class LocalCacheDb : ICacheDb
 
         return data.Data;
     }
+
     private static DateTime GetTimeout()
         => DateTime.UtcNow + TimeSpan.FromDays(7);
 }

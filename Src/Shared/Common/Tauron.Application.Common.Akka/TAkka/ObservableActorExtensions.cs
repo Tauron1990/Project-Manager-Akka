@@ -16,7 +16,7 @@ public static class ObservableActorExtensions
         return state;
     }
 
-    
+
     public static FSMBase.State<TS, TD> Replying<TS, TD>(
         this FSMBase.State<TS, TD> state, object msg,
         IActorRef actor)

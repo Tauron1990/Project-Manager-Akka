@@ -16,23 +16,6 @@ namespace Tauron.Application.Workshop.Mutation;
 public sealed class MutatingEngine<TData> : MutatingEngine, IEventSourceable<TData>
     where TData : class
 {
-    private class DummyFactory : IDriverFactory
-    {
-        public Action<IDataMutation> CreateMutator()
-            => _ => {};
-
-        public Action<RegisterRule<TWorkspace, TData1>> CreateAnalyser<TWorkspace, TData1>(TWorkspace workspace, IObserver<RuleIssuesChanged<TWorkspace, TData1>> observer) where TWorkspace : WorkspaceBase<TData1> where TData1 : class
-            => _ => {};
-
-        public void CreateProcessor(Type processor, string name)
-        {
-            
-        }
-
-        public Action<IOperationResult> GetResultSender()
-            => _ => {};
-    }
-
     private readonly IDataSource<TData> _dataSource;
     private readonly Subject<TData> _responder;
 
@@ -44,8 +27,8 @@ public sealed class MutatingEngine<TData> : MutatingEngine, IEventSourceable<TDa
         _responder.Subscribe(dataSource.SetData);
     }
 
-    public MutatingEngine(IDataSource<TData> dataSource) 
-        : base(_ => {}, new DummyFactory())
+    public MutatingEngine(IDataSource<TData> dataSource)
+        : base(_ => { }, new DummyFactory())
     {
         _dataSource = dataSource;
         _responder = new Subject<TData>();
@@ -92,6 +75,20 @@ public sealed class MutatingEngine<TData> : MutatingEngine, IEventSourceable<TDa
 
         return new DataMutation<TData>(Runner, name, hash);
     }
+
+    private class DummyFactory : IDriverFactory
+    {
+        public Action<IDataMutation> CreateMutator()
+            => _ => { };
+
+        public Action<RegisterRule<TWorkspace, TData1>> CreateAnalyser<TWorkspace, TData1>(TWorkspace workspace, IObserver<RuleIssuesChanged<TWorkspace, TData1>> observer) where TWorkspace : WorkspaceBase<TData1> where TData1 : class
+            => _ => { };
+
+        public void CreateProcessor(Type processor, string name) { }
+
+        public Action<IOperationResult> GetResultSender()
+            => _ => { };
+    }
 }
 
 [PublicAPI]
@@ -126,7 +123,7 @@ public sealed class ExtendedMutatingEngine<TData> : MutatingEngine, IEventSource
             var sender = new Subject<TData>();
             _responder.Push(query, transform(sender).NotNull(), onCompled);
 
-            var data = await _dataSource.GetData(query);
+            TData data = await _dataSource.GetData(query);
 
             sender.OnNext(data);
             sender.OnCompleted();
@@ -169,7 +166,7 @@ public sealed class ExtendedMutatingEngine<TData> : MutatingEngine, IEventSource
                     })
                .Timeout(TimeSpan.FromMinutes(10));
 
-            if (onCompled is null)
+            if(onCompled is null)
                 handler.Subscribe();
             else
                 handler.SubscribeSafe(onCompled);
@@ -180,28 +177,28 @@ public sealed class ExtendedMutatingEngine<TData> : MutatingEngine, IEventSource
 [PublicAPI]
 public class MutatingEngine
 {
-    protected Action<IDataMutation> Mutator { get; }
-    public IDriverFactory DriverFactory { get; }
-
     protected MutatingEngine(Action<IDataMutation> mutator, IDriverFactory driverFactory)
     {
         Mutator = mutator;
         DriverFactory = driverFactory;
     }
 
-    public static MutatingEngine Create(IDriverFactory driverFactory) 
+    protected Action<IDataMutation> Mutator { get; }
+    public IDriverFactory DriverFactory { get; }
+
+    public static MutatingEngine Create(IDriverFactory driverFactory)
         => new(driverFactory.CreateMutator(), driverFactory);
 
-    public static ExtendedMutatingEngine<TData> From<TData>(IExtendedDataSource<TData> source, IDriverFactory factory) 
-        where TData : class 
+    public static ExtendedMutatingEngine<TData> From<TData>(IExtendedDataSource<TData> source, IDriverFactory factory)
+        where TData : class
         => new(factory.CreateMutator(), source, factory);
 
     public static ExtendedMutatingEngine<TData> From<TData>(IExtendedDataSource<TData> source, MutatingEngine parent)
         where TData : class
         => new(parent.Mutator, source, parent.DriverFactory);
 
-    public static MutatingEngine<TData> From<TData>(IDataSource<TData> source, IDriverFactory factory) 
-        where TData : class 
+    public static MutatingEngine<TData> From<TData>(IDataSource<TData> source, IDriverFactory factory)
+        where TData : class
         => new(factory.CreateMutator(), source, factory);
 
     public static MutatingEngine<TData> From<TData>(IDataSource<TData> source, MutatingEngine parent)

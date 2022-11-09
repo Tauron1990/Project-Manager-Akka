@@ -1,12 +1,12 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
-using Akka.Hosting;
 using Akka.Actor;
 using Akka.Cluster;
 using Akka.Cluster.Hosting;
 using Akka.Cluster.Utility;
 using Akka.Configuration;
+using Akka.Hosting;
 using Akka.Logger.NLog;
 using Akka.Serialization;
 using JetBrains.Annotations;
@@ -26,12 +26,12 @@ public static partial class Bootstrap
     [PublicAPI]
     public static IHostBuilder ConfigurateNode(this IHostBuilder builder, Action<IActorApplicationBuilder>? appConfig = null)
     {
-        var config = GetConfig();
+        Config config = GetConfig();
 
         void ConfigurateAkka(HostBuilderContext _, AkkaConfigurationBuilder configurationBuilder)
         {
             configurationBuilder.ConfigureLoggers(lcb => lcb.AddLogger<NLogLogger>())
-               .WithCustomSerializer("hyperion", new []{typeof(object)}, s => new HyperionSerializer(s, s.Settings.Config))
+               .WithCustomSerializer("hyperion", new[] { typeof(object) }, s => new HyperionSerializer(s, s.Settings.Config))
                .WithExtensions(typeof(ClusterActorDiscoveryId))
                .WithClustering()
                .WithDistributedPubSub(string.Empty)
@@ -76,7 +76,7 @@ public static partial class Bootstrap
                 systemBuilder.AddStartup(
                     (system, _) =>
                     {
-                        var cluster = Cluster.Get(system);
+                        Cluster? cluster = Cluster.Get(system);
                         cluster.RegisterOnMemberUp(() => up(context, system, cluster));
                     });
             });
@@ -90,7 +90,7 @@ public static partial class Bootstrap
                 systemBuilder.AddStartup(
                     (system, _) =>
                     {
-                        var cluster = Cluster.Get(system);
+                        Cluster? cluster = Cluster.Get(system);
                         cluster.RegisterOnMemberRemoved(() => remove(context, system, cluster));
                     });
             });
@@ -101,13 +101,13 @@ public static partial class Bootstrap
         var config = Config.Empty;
 
         string basePath = Assembly.GetEntryAssembly()?.Location ?? string.Empty;
-        if (!string.IsNullOrWhiteSpace(basePath))
+        if(!string.IsNullOrWhiteSpace(basePath))
             basePath = Path.GetDirectoryName(basePath) ?? string.Empty;
 
-        if (File.Exists(Path.Combine(basePath, AkkaConfigurationHelper.Main)))
+        if(File.Exists(Path.Combine(basePath, AkkaConfigurationHelper.Main)))
             config = ConfigurationFactory.ParseString(File.ReadAllText(Path.Combine(basePath, AkkaConfigurationHelper.Main))).WithFallback(config);
 
-        if (File.Exists(Path.Combine(basePath, AkkaConfigurationHelper.Seed)))
+        if(File.Exists(Path.Combine(basePath, AkkaConfigurationHelper.Seed)))
             config = ConfigurationFactory.ParseString(File.ReadAllText(Path.Combine(basePath, AkkaConfigurationHelper.Seed))).WithFallback(config);
 
         return config;

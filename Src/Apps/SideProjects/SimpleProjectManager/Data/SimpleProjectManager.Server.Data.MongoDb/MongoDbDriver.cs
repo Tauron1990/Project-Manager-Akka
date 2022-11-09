@@ -23,14 +23,14 @@ public class MongoDbDatabaseDriver : IDatabaseModule
                    .SetIdGenerator(StringObjectIdGenerator.Instance)
                    .SetSerializer(new StringSerializer(BsonType.ObjectId));
             });
-        
+
         builder.ConfigureServices(
             (_, coll) => coll
                .AddSingleton(
                     c =>
                     {
                         var system = c.GetRequiredService<ActorSystem>();
-                        var database = system.Settings.Config.GetString("akka.persistence.journal.mongodb.connection-string");
+                        string? database = system.Settings.Config.GetString("akka.persistence.journal.mongodb.connection-string");
                         var url = MongoUrl.Create(database);
 
                         return new MongoClient(url).GetDatabase(url.DatabaseName);

@@ -17,54 +17,56 @@ public static class GenericPathHelper
     public static bool HasScheme(PathInfo info, string scheme)
     {
         var span = info.Path.AsSpan();
-        
+
         return span.StartsWith(scheme) && span[scheme.Length..].StartsWith(AbsolutPathMarker);
     }
-    
+
     [DebuggerStepThrough]
     public static bool IsAbsolute(string path)
     {
         ReadOnlySpan<char> str = path;
 
-        var index = str.IndexOf(AbsolutPathMarker, StringComparison.Ordinal);
+        int index = str.IndexOf(AbsolutPathMarker, StringComparison.Ordinal);
 
         return index > 0 && !str[..index].Contains(GenericSeperator);
     }
 
     public static PathInfo ToRelativePath(PathInfo path, out string scheme)
     {
-        if (path.Kind == PathType.Relative)
+        if(path.Kind == PathType.Relative)
         {
             scheme = string.Empty;
+
             return path;
         }
-        
+
         ReadOnlySpan<char> str = path.Path;
-        
-        var index = str.IndexOf(AbsolutPathMarker, StringComparison.Ordinal);
+
+        int index = str.IndexOf(AbsolutPathMarker, StringComparison.Ordinal);
 
         scheme = str[..index].ToString();
-        return index == -1 ? path with { Kind = PathType.Relative } : new PathInfo(str[(index+2)..].ToString(), PathType.Relative);
+
+        return index == -1 ? path with { Kind = PathType.Relative } : new PathInfo(str[(index + 2)..].ToString(), PathType.Relative);
     }
 
     public static PathInfo ToRelativePath(PathInfo info)
         => ToRelativePath(info, out _);
-    
+
     public static PathInfo ChangeExtension(PathInfo path, string newExtension)
         => Path.ChangeExtension(path, newExtension);
 
     public static PathInfo Combine(PathInfo first, PathInfo secund)
     {
-        var result = Path.Combine(first, secund);
+        string result = Path.Combine(first, secund);
 
-        return Path.DirectorySeparatorChar != Path.AltDirectorySeparatorChar 
-            ? result.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) 
+        return Path.DirectorySeparatorChar != Path.AltDirectorySeparatorChar
+            ? result.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
             : result;
     }
 
     public static PathInfo NormalizePath(PathInfo path)
-        => path with{ Path = NormalizeString(path.Path) };
-    
+        => path with { Path = NormalizeString(path.Path) };
+
     public static string NormalizeString(string path)
         => path.Replace('\\', GenericSeperator);
 

@@ -15,7 +15,7 @@ public class DataModule : IModule
         collection.AddTransient<UploadTransaction>();
         collection.AddScoped<Func<UploadTransaction>>(s => s.GetRequiredService<UploadTransaction>);
         collection.AddSingleton<GlobalState>();
-        
+
         collection.AddStoreConfiguration();
     }
 }

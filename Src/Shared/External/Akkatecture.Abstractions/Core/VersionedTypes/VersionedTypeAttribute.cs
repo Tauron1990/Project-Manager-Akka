@@ -33,8 +33,8 @@ public abstract class VersionedTypeAttribute : Attribute
         string name,
         int version)
     {
-        if (string.IsNullOrEmpty(name)) throw new ArgumentNullException(nameof(name));
-        if (version <= 0) throw new ArgumentOutOfRangeException(nameof(version), "Version must be positive");
+        if(string.IsNullOrEmpty(name)) throw new ArgumentNullException(nameof(name));
+        if(version <= 0) throw new ArgumentOutOfRangeException(nameof(version), "Version must be positive");
 
         Name = name;
         Version = version;

@@ -9,7 +9,7 @@ public sealed class DispatcherPool
 
     public MutatingEngine Get(string name, IDriverFactory driverFactory)
     {
-        if (_engines.TryGetValue(name, out var enigine))
+        if(_engines.TryGetValue(name, out MutatingEngine? enigine))
             return enigine;
 
         enigine = MutatingEngine.Create(driverFactory);

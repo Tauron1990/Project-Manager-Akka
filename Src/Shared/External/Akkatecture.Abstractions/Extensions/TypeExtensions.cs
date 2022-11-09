@@ -75,11 +75,11 @@ public static class TypeExtensions
 
     private static string PrettyPrintRecursive(Type type, int depth)
     {
-        if (depth > 3) return type.Name;
+        if(depth > 3) return type.Name;
 
-        var nameParts = type.Name.Split('`');
+        string[] nameParts = type.Name.Split('`');
 
-        if (nameParts.Length == 1) return nameParts[0];
+        if(nameParts.Length == 1) return nameParts[0];
 
         var genericArguments = type.GetTypeInfo().GetGenericArguments();
 
@@ -95,7 +95,7 @@ public static class TypeExtensions
             aggregateType,
             type =>
             {
-                if (!typeof(IAggregateRoot).GetTypeInfo().IsAssignableFrom(type))
+                if(!typeof(IAggregateRoot).GetTypeInfo().IsAssignableFrom(type))
                     throw new ArgumentException($"Type '{type.PrettyPrint()}' is not an aggregate root");
 
                 return new AggregateName(
@@ -111,7 +111,7 @@ public static class TypeExtensions
             sagaType,
             type =>
             {
-                if (!typeof(IAggregateRoot).GetTypeInfo().IsAssignableFrom(type))
+                if(!typeof(IAggregateRoot).GetTypeInfo().IsAssignableFrom(type))
                     throw new ArgumentException($"Type '{type.PrettyPrint()}' is not a saga.");
 
                 return new AggregateName(
@@ -127,7 +127,7 @@ public static class TypeExtensions
             jobType,
             type =>
             {
-                if (!typeof(IJob).GetTypeInfo().IsAssignableFrom(type))
+                if(!typeof(IJob).GetTypeInfo().IsAssignableFrom(type))
                     throw new ArgumentException($"Type '{type.PrettyPrint()}' is not a job");
 
                 return new JobName(
@@ -141,7 +141,7 @@ public static class TypeExtensions
         where TAggregate : IAggregateRoot<TIdentity>
         where TIdentity : IIdentity
     {
-        var aggregateEventType = typeof(IAggregateEvent<TAggregate, TIdentity>);
+        Type aggregateEventType = typeof(IAggregateEvent<TAggregate, TIdentity>);
 
         return type
            .GetTypeInfo()
@@ -149,7 +149,7 @@ public static class TypeExtensions
            .Where(
                 mi =>
                 {
-                    if (mi.Name != "Apply") return false;
+                    if(mi.Name != "Apply") return false;
 
                     var parameters = mi.GetParameters();
 
@@ -171,7 +171,7 @@ public static class TypeExtensions
         where TIdentity : IIdentity
         where T : class
     {
-        var aggregateSnapshot = typeof(IAggregateSnapshot<TAggregate, TIdentity>);
+        Type aggregateSnapshot = typeof(IAggregateSnapshot<TAggregate, TIdentity>);
 
         return type
            .GetTypeInfo()
@@ -179,7 +179,7 @@ public static class TypeExtensions
            .Where(
                 mi =>
                 {
-                    if (mi.Name != "Hydrate") return false;
+                    if(mi.Name != "Hydrate") return false;
 
                     var parameters = mi.GetParameters();
 
@@ -201,7 +201,7 @@ public static class TypeExtensions
         where TIdentity : IIdentity
         where TAggregateState : class, IEventApplier<TAggregate, TIdentity>
     {
-        var aggregateEventType = typeof(IAggregateEvent<TAggregate, TIdentity>);
+        Type aggregateEventType = typeof(IAggregateEvent<TAggregate, TIdentity>);
 
         return type
            .GetTypeInfo()
@@ -209,7 +209,7 @@ public static class TypeExtensions
            .Where(
                 mi =>
                 {
-                    if (mi.Name != "Apply") return false;
+                    if(mi.Name != "Apply") return false;
 
                     var parameters = mi.GetParameters();
 
@@ -293,12 +293,12 @@ public static class TypeExtensions
                    .Select(selectorType => selectorType.GetTypeInfo())
                    .ToList();
 
-                var aggregateType = interfaces
+                Type? aggregateType = interfaces
                    .Where(typeInfo => typeInfo.IsGenericType && typeInfo.GetGenericTypeDefinition() == typeof(ICommittedEvent<,>))
                    .Select(typeInfo => typeInfo.GetGenericArguments()[0]).SingleOrDefault();
 
 
-                if (aggregateType != null)
+                if(aggregateType != null)
                     return aggregateType.GetAggregateName();
 
                 #pragma warning disable CA2208
@@ -318,12 +318,12 @@ public static class TypeExtensions
                    .GetInterfaces()
                    .Select(selectorType => selectorType.GetTypeInfo());
 
-                var aggregateEvent = interfaces
+                Type? aggregateEvent = interfaces
                    .Where(typeInfo => typeInfo.IsGenericType && typeInfo.GetGenericTypeDefinition() == typeof(ICommittedEvent<,,>))
                    .Select(typeInfo => typeInfo.GetGenericArguments()[2]).SingleOrDefault();
 
 
-                if (aggregateEvent != null)
+                if(aggregateEvent != null)
                     return aggregateEvent;
 
                 #pragma warning disable CA2208
@@ -441,7 +441,7 @@ public static class TypeExtensions
         where TAggregate : IAggregateRoot<TIdentity>
         where TIdentity : IIdentity
     {
-        var aggregateEventType = typeof(IAggregateEvent<TAggregate, TIdentity>);
+        Type aggregateEventType = typeof(IAggregateEvent<TAggregate, TIdentity>);
 
         return type
            .GetTypeInfo()
@@ -449,7 +449,7 @@ public static class TypeExtensions
            .Where(
                 mi =>
                 {
-                    if (mi.Name != "Upcast")
+                    if(mi.Name != "Upcast")
                         return false;
 
                     var parameters = mi.GetParameters();
@@ -484,11 +484,11 @@ public static class TypeExtensions
 
     public static Type GetBaseType(this Type type, string name)
     {
-        var currentType = type;
+        Type? currentType = type;
 
         while (currentType != null)
         {
-            if (currentType.Name.Contains(name)) return currentType;
+            if(currentType.Name.Contains(name)) return currentType;
 
             currentType = currentType.BaseType;
         }

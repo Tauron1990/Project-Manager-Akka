@@ -28,7 +28,6 @@
 using System.Diagnostics;
 using System.Reflection;
 using Akkatecture.Extensions;
-using JetBrains.Annotations;
 
 namespace Akkatecture.ValueObjects;
 
@@ -39,10 +38,10 @@ public abstract class SingleValueObject<T> : ValueObject, IComparable, ISingleVa
     private static readonly TypeInfo TypeInfo = typeof(T).GetTypeInfo();
 
     private readonly T _value;
-    
+
     protected SingleValueObject(T value)
     {
-        if (TypeInfo.IsEnum && !Enum.IsDefined(Type, value))
+        if(TypeInfo.IsEnum && !Enum.IsDefined(Type, value))
             throw new ArgumentException($"The value '{value}' isn't defined in enum '{Type.PrettyPrint()}'");
 
         _value = value;

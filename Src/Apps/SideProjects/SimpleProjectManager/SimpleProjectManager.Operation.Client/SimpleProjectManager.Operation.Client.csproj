@@ -7,13 +7,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\..\Shared\Tauron.Application.AkkaNode.Boottrap\Tauron.Application.AkkaNode.Boottrap.csproj" />
-      <ProjectReference Include="..\Clients\Shared\SimpleProjectManager.Client.Operations.Shared\SimpleProjectManager.Client.Operations.Shared.csproj" />
-      <ProjectReference Include="..\Shared\SimpleProjectManager.Shared.csproj" />
+        <ProjectReference Include="..\..\..\Shared\Tauron.Application.AkkaNode.Boottrap\Tauron.Application.AkkaNode.Boottrap.csproj" />
+        <ProjectReference Include="..\Clients\Shared\SimpleProjectManager.Client.Operations.Shared\SimpleProjectManager.Client.Operations.Shared.csproj" />
+        <ProjectReference Include="..\Shared\SimpleProjectManager.Shared.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="6.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="7.0.0" />
     </ItemGroup>
 
 </Project>

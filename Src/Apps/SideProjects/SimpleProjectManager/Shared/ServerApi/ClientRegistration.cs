@@ -16,23 +16,21 @@ public static class ClientRegistration
         return collection.AddFusion()
            .AddBackendStatus()
            .AddFusionTime()
-           .AddRestEaseClient(b =>
-                              {
-                                  b.ConfigureWebSocketChannel(_ => new WebSocketChannelProvider.Options { BaseUri = baseAdress });
-                                  b.ConfigureHttpClient(
-                                          (_, _, options) =>
-                                      {
-                                          options.HttpClientActions.Add(
-                                              c =>
-                                              {
-                                                  c.BaseAddress = baseAdress;
-                                              });
-                                      })           
-                                     .AddReplicaService<IJobDatabaseService, IJobDatabaseServiceDef>()
-                                     .AddReplicaService<IJobFileService, IJobFileServiceDef>()
-                                     .AddReplicaService<ICriticalErrorService, ICriticalErrorServiceDef>()
-                                     .AddReplicaService<ITaskManager, ITaskManagerDef>()
-                                     .AddReplicaService<IDeviceService, IDeviceServiceDef>();
-                              });
+           .AddRestEaseClient(
+                b =>
+                {
+                    b.ConfigureWebSocketChannel(_ => new WebSocketChannelProvider.Options { BaseUri = baseAdress });
+                    b.ConfigureHttpClient(
+                            (_, _, options) =>
+                            {
+                                options.HttpClientActions.Add(
+                                    c => { c.BaseAddress = baseAdress; });
+                            })
+                       .AddReplicaService<IJobDatabaseService, IJobDatabaseServiceDef>()
+                       .AddReplicaService<IJobFileService, IJobFileServiceDef>()
+                       .AddReplicaService<ICriticalErrorService, ICriticalErrorServiceDef>()
+                       .AddReplicaService<ITaskManager, ITaskManagerDef>()
+                       .AddReplicaService<IDeviceService, IDeviceServiceDef>();
+                });
     }
 }

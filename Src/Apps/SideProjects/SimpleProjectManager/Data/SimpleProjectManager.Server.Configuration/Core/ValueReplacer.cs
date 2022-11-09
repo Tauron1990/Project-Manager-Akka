@@ -35,11 +35,10 @@ public static class ValueReplacer
         select new TextNode(text.Span.ToStringValue());
 
     private static readonly TokenListParser<ValueToken, PropertyValue> PropertyParser =
-        from values in Parse.OneOf
-            (
-            RefNodeParser.Cast<ValueToken, ReferenceNode, NodeBase>().Try(), 
+        from values in Parse.OneOf(
+            RefNodeParser.Cast<ValueToken, ReferenceNode, NodeBase>().Try(),
             TextNodeParser.Cast<ValueToken, TextNode, NodeBase>()
-            ).Many()
+        ).Many()
         select new PropertyValue(values.ToImmutableList());
 
     private static TokenListParserResult<ValueToken, PropertyValue> ParseValue(string input)
@@ -53,12 +52,13 @@ public static class ValueReplacer
             throw new InvalidOperationException(value.ErrorMessage);
 
         var builder = new StringBuilder();
-        foreach (var node in value.Value.Nodes)
+        foreach (NodeBase node in value.Value.Nodes)
         {
             switch (node)
             {
                 case TextNode txt:
                     builder.Append(txt.Text);
+
                     break;
                 case ReferenceNode refNode:
                     if(!processed.Contains(refNode.Name))
@@ -68,6 +68,7 @@ public static class ValueReplacer
                     }
 
                     builder.Append(dic[refNode.Name]);
+
                     break;
             }
 
@@ -80,13 +81,13 @@ public static class ValueReplacer
     public static ImmutableDictionary<string, string> ExpandPropertys(ImmutableDictionary<string, string> input)
     {
         var processd = ImmutableList<string>.Empty;
-        foreach (var key in input.Keys)
+        foreach (string key in input.Keys)
         {
             if(processd.Contains(key))
                 continue;
 
             input = ParseValue(ref processd, input, key);
-            
+
             processd = processd.Add(key);
         }
 

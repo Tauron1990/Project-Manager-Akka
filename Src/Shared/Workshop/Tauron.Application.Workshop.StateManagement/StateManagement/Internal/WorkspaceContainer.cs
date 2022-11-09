@@ -23,7 +23,7 @@ public sealed class WorkspaceContainer<TData> : StateContainer
         IStateAction action, IObserver<IReducerResult> sendResult,
         IObserver<Unit> onCompled)
     {
-        var type = action.GetType();
+        Type type = action.GetType();
 
         return !_map.TryGetValue(type, out var runner)
             ? null

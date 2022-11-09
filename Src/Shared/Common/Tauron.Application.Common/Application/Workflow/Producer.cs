@@ -22,10 +22,10 @@ public abstract class Producer<TState, TContext>
 
     public void Begin(StepId id, TContext context)
     {
-        if (!Process(id, context))
+        if(!Process(id, context))
             throw new InvalidOperationException("Procession not Successful");
 
-        if (_lastId.Name == StepId.Fail.Name)
+        if(_lastId.Name == StepId.Fail.Name)
             throw new InvalidOperationException(_errorMessage);
     }
 
@@ -39,12 +39,12 @@ public abstract class Producer<TState, TContext>
 
     protected virtual bool Process(StepId id, TContext context)
     {
-        if (SetLastId(id)) return true;
+        if(SetLastId(id)) return true;
 
-        if (!_states.TryGetValue(id, out var rev))
+        if(!_states.TryGetValue(id, out var rev))
             return SetLastId(StepId.Fail);
 
-        var sId = rev.Step.OnExecute(context);
+        StepId sId = rev.Step.OnExecute(context);
         bool result;
 
         switch (sId.Name)
@@ -58,8 +58,9 @@ public abstract class Producer<TState, TContext>
 
                 break;
             case "Loop":
-                if (ProcessLoop(context, rev, out result)) 
+                if(ProcessLoop(context, rev, out result))
                     return result;
+
                 break;
             case "Finish":
             case "Skip":
@@ -70,7 +71,7 @@ public abstract class Producer<TState, TContext>
                 return SetLastId(StepId.Fail);
         }
 
-        if (!result)
+        if(!result)
             rev.Step.OnExecuteFinish(context);
 
         return result;
@@ -82,15 +83,15 @@ public abstract class Producer<TState, TContext>
 
         do
         {
-            var loopId = rev.Step.NextElement(context);
-            if (loopId.Name == StepId.LoopEnd.Name)
+            StepId loopId = rev.Step.NextElement(context);
+            if(loopId.Name == StepId.LoopEnd.Name)
             {
                 ok = false;
 
                 continue;
             }
 
-            if (loopId.Name == StepId.Fail.Name)
+            if(loopId.Name == StepId.Fail.Name)
             {
                 result = SetLastId(StepId.Fail);
 
@@ -103,6 +104,7 @@ public abstract class Producer<TState, TContext>
         } while (ok);
 
         result = false;
+
         return false;
     }
 
@@ -113,11 +115,11 @@ public abstract class Producer<TState, TContext>
                    where stateId.Name != StepId.None.Name
                    select stateId).ToArray();
 
-        if (std.Length != 0) return std.Any(id => Process(id, context));
+        if(std.Length != 0) return std.Any(id => Process(id, context));
 
-        if (rev.GenericCondition == null) return false;
+        if(rev.GenericCondition == null) return false;
 
-        var cid = rev.GenericCondition.Select(rev.Step, context);
+        StepId cid = rev.GenericCondition.Select(rev.Step, context);
 
         return cid.Name != StepId.None.Name && Process(cid, context);
     }
@@ -151,7 +153,7 @@ public class StepConfiguration<TState, TContext>
     {
         var con = new SimpleCondition<TContext> { Guard = guard };
 
-        if (guard != null) return new ConditionConfiguration<TState, TContext>(WithCondition(con), con);
+        if(guard != null) return new ConditionConfiguration<TState, TContext>(WithCondition(con), con);
 
         _context.GenericCondition = con;
 
@@ -202,7 +204,7 @@ public sealed class StepRev<TState, TContext>
 
         foreach (var condition in Conditions) stringBuilder.AppendLine($"->{condition};");
 
-        if (GenericCondition != null) stringBuilder.AppendFormat("Generic->{0};", GenericCondition);
+        if(GenericCondition != null) stringBuilder.AppendFormat("Generic->{0};", GenericCondition);
 
         return stringBuilder.ToString();
     }

@@ -76,20 +76,20 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
         Command<ReceiveTimeout>(_ => Context.Stop(Self));
 
         Settings = new AggregateSagaSettings(Context.System.Settings.Config);
-        var idValue = Context.Self.Path.Name;
+        string? idValue = Context.Self.Path.Name;
         PersistenceId = idValue;
         Id = (TIdentity)(FastReflection.Shared.FastCreateInstance(typeof(TIdentity), idValue) ??
                          throw new InvalidOperationException("Identity Creation Failed"));
 
-        if (Id == null)
+        if(Id == null)
             throw new InvalidOperationException(
                 $"Identity for Saga '{Id?.GetType().PrettyPrint()}' could not be activated.");
 
-        if (!(this is TAggregateSaga))
+        if(!(this is TAggregateSaga))
             throw new InvalidOperationException(
                 $"AggregateSaga {Name} specifies Type={typeof(TAggregateSaga).PrettyPrint()} as generic argument, it should be its own type.");
 
-        if (State == null)
+        if(State == null)
             try
             {
                 State = (TSagaState)(FastReflection.Shared.FastCreateInstance(typeof(TSagaState)) ??
@@ -106,7 +106,7 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
                     typeof(TSagaState).PrettyPrint());
             }
 
-        if (Settings.AutoReceive)
+        if(Settings.AutoReceive)
         {
             InitReceives();
             InitAsyncReceives();
@@ -115,14 +115,14 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
         InitTimeoutJobManagers();
         InitAsyncTimeoutJobManagers();
 
-        if (Settings.UseDefaultEventRecover)
+        if(Settings.UseDefaultEventRecover)
         {
             Recover<ICommittedEvent<TAggregateSaga, TIdentity, IAggregateEvent<TAggregateSaga, TIdentity>>>(
                 Recover);
             Recover<RecoveryCompleted>(Recover);
         }
 
-        if (Settings.UseDefaultSnapshotRecover)
+        if(Settings.UseDefaultSnapshotRecover)
             Recover<SnapshotOffer>(Recover);
 
         Command<SaveSnapshotSuccess>(SnapshotStatus);
@@ -156,10 +156,10 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
     {
         base.PreStart();
         SagaTimeoutManagers = new Dictionary<Type, IActorRef>();
-        foreach (var sagaTimeoutType in SagaTimeoutTypes)
+        foreach (Type sagaTimeoutType in SagaTimeoutTypes)
         {
-            var sagaTimeoutManagerType = typeof(SagaTimeoutManager<>).MakeGenericType(sagaTimeoutType);
-            var sagaTimeoutManager = Context.ActorOf(
+            Type sagaTimeoutManagerType = typeof(SagaTimeoutManager<>).MakeGenericType(sagaTimeoutType);
+            IActorRef? sagaTimeoutManager = Context.ActorOf(
                 Props.Create(() => Activator.CreateInstance(sagaTimeoutManagerType) as ActorBase),
                 $"{sagaTimeoutType.Name}-timeoutmanager");
             SagaTimeoutManagers.Add(sagaTimeoutType, sagaTimeoutManager);
@@ -168,10 +168,10 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
 
     public void InitTimeoutJobManagers()
     {
-        var type = GetType();
+        Type type = GetType();
         var timeoutSubscriptionTypes = type.GetSagaTimeoutSubscriptionTypes();
 
-        if (timeoutSubscriptionTypes.Count == 0) return;
+        if(timeoutSubscriptionTypes.Count == 0) return;
 
         var methods = type
            .GetTypeInfo()
@@ -179,7 +179,7 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
            .Where(
                 mi =>
                 {
-                    if (mi.Name != "HandleTimeout")
+                    if(mi.Name != "HandleTimeout")
                         return false;
 
                     var parameters = mi.GetParameters();
@@ -190,13 +190,13 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
                 mi => mi.GetParameters()[0].ParameterType,
                 mi => mi);
 
-        var method = type
+        MethodInfo method = type
            .GetBaseType("ReceivePersistentActor")
            .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
            .Where(
                 mi =>
                 {
-                    if (mi.Name != "Command") return false;
+                    if(mi.Name != "Command") return false;
 
                     var parameters = mi.GetParameters();
 
@@ -206,11 +206,11 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
                 })
            .First();
 
-        foreach (var timeoutSubscriptionType in timeoutSubscriptionTypes)
+        foreach (Type timeoutSubscriptionType in timeoutSubscriptionTypes)
         {
-            var funcType = typeof(Func<,>).MakeGenericType(timeoutSubscriptionType, typeof(bool));
+            Type funcType = typeof(Func<,>).MakeGenericType(timeoutSubscriptionType, typeof(bool));
             var timeoutHandlerFunction = Delegate.CreateDelegate(funcType, this, methods[timeoutSubscriptionType]);
-            var timeoutHandlerMethod = method.MakeGenericMethod(timeoutSubscriptionType);
+            MethodInfo timeoutHandlerMethod = method.MakeGenericMethod(timeoutSubscriptionType);
             timeoutHandlerMethod.InvokeFast(this, timeoutHandlerFunction);
             SagaTimeoutTypes.Add(timeoutSubscriptionType);
         }
@@ -218,10 +218,10 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
 
     public void InitAsyncTimeoutJobManagers()
     {
-        var type = GetType();
+        Type type = GetType();
         var timeoutSubscriptionTypes = type.GetAsyncSagaTimeoutSubscriptionTypes();
 
-        if (timeoutSubscriptionTypes.Count == 0) return;
+        if(timeoutSubscriptionTypes.Count == 0) return;
 
         var methods = type
            .GetTypeInfo()
@@ -229,7 +229,7 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
            .Where(
                 mi =>
                 {
-                    if (mi.Name != "HandleTimeoutAsync")
+                    if(mi.Name != "HandleTimeoutAsync")
                         return false;
 
                     var parameters = mi.GetParameters();
@@ -240,13 +240,13 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
                 mi => mi.GetParameters()[0].ParameterType,
                 mi => mi);
 
-        var method = type
+        MethodInfo method = type
            .GetBaseType("ReceivePersistentActor")
            .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
            .Where(
                 mi =>
                 {
-                    if (mi.Name != "CommandAsync") return false;
+                    if(mi.Name != "CommandAsync") return false;
 
                     var parameters = mi.GetParameters();
 
@@ -256,11 +256,11 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
                 })
            .First();
 
-        foreach (var timeoutSubscriptionType in timeoutSubscriptionTypes)
+        foreach (Type timeoutSubscriptionType in timeoutSubscriptionTypes)
         {
-            var funcType = typeof(Func<,>).MakeGenericType(timeoutSubscriptionType, typeof(Task));
+            Type funcType = typeof(Func<,>).MakeGenericType(timeoutSubscriptionType, typeof(Task));
             var timeoutHandlerFunction = Delegate.CreateDelegate(funcType, this, methods[timeoutSubscriptionType]);
-            var timeoutHandlerMethod = method.MakeGenericMethod(timeoutSubscriptionType);
+            MethodInfo timeoutHandlerMethod = method.MakeGenericMethod(timeoutSubscriptionType);
             timeoutHandlerMethod.InvokeFast(this, timeoutHandlerFunction, null);
 
             SagaTimeoutTypes.Add(timeoutSubscriptionType);
@@ -269,7 +269,7 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
 
     public void InitReceives()
     {
-        var type = GetType();
+        Type type = GetType();
 
         var subscriptionTypes =
             type
@@ -281,7 +281,7 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
            .Where(
                 mi =>
                 {
-                    if (mi.Name != "Handle" && mi.Name != "HandleTimeout")
+                    if(mi.Name != "Handle" && mi.Name != "HandleTimeout")
                         return false;
 
                     var parameters = mi.GetParameters();
@@ -293,13 +293,13 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
                 mi => mi.GetParameters()[0].ParameterType,
                 mi => mi);
 
-        var method = type
+        MethodInfo method = type
            .GetBaseType("ReceivePersistentActor")
            .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
            .Where(
                 mi =>
                 {
-                    if (mi.Name != "Command") return false;
+                    if(mi.Name != "Command") return false;
 
                     var parameters = mi.GetParameters();
 
@@ -309,11 +309,11 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
                 })
            .First();
 
-        foreach (var subscriptionType in subscriptionTypes)
+        foreach (Type subscriptionType in subscriptionTypes)
         {
-            var funcType = typeof(Func<,>).MakeGenericType(subscriptionType, typeof(bool));
+            Type funcType = typeof(Func<,>).MakeGenericType(subscriptionType, typeof(bool));
             var subscriptionFunction = Delegate.CreateDelegate(funcType, this, methods[subscriptionType]);
-            var actorReceiveMethod = method.MakeGenericMethod(subscriptionType);
+            MethodInfo actorReceiveMethod = method.MakeGenericMethod(subscriptionType);
 
             actorReceiveMethod.InvokeFast(this, subscriptionFunction);
         }
@@ -321,7 +321,7 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
 
     public void InitAsyncReceives()
     {
-        var type = GetType();
+        Type type = GetType();
 
         var subscriptionTypes =
             type
@@ -333,7 +333,7 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
            .Where(
                 mi =>
                 {
-                    if (mi.Name != "HandleAsync" && mi.Name != "HandleTimeoutAsync")
+                    if(mi.Name != "HandleAsync" && mi.Name != "HandleTimeoutAsync")
                         return false;
 
                     var parameters = mi.GetParameters();
@@ -345,13 +345,13 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
                 mi => mi.GetParameters()[0].ParameterType,
                 mi => mi);
 
-        var method = type
+        MethodInfo method = type
            .GetBaseType("ReceivePersistentActor")
            .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
            .Where(
                 mi =>
                 {
-                    if (mi.Name != "CommandAsync") return false;
+                    if(mi.Name != "CommandAsync") return false;
 
                     var parameters = mi.GetParameters();
 
@@ -361,11 +361,11 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
                 })
            .First();
 
-        foreach (var subscriptionType in subscriptionTypes)
+        foreach (Type subscriptionType in subscriptionTypes)
         {
-            var funcType = typeof(Func<,>).MakeGenericType(subscriptionType, typeof(Task));
+            Type funcType = typeof(Func<,>).MakeGenericType(subscriptionType, typeof(Task));
             var subscriptionFunction = Delegate.CreateDelegate(funcType, this, methods[subscriptionType]);
-            var actorReceiveMethod = method.MakeGenericMethod(subscriptionType);
+            MethodInfo actorReceiveMethod = method.MakeGenericMethod(subscriptionType);
 
             actorReceiveMethod.InvokeFast(this, subscriptionFunction, null);
         }
@@ -380,12 +380,12 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
 
     public virtual void EmitAll(params IAggregateEvent<TAggregateSaga, TIdentity>[] aggregateEvents)
     {
-        var version = Version;
+        long version = Version;
 
         var committedEvents = new List<object>();
         foreach (var aggregateEvent in aggregateEvents)
         {
-            var committedEvent = FromObject(aggregateEvent, version + 1);
+            object committedEvent = FromObject(aggregateEvent, version + 1);
             committedEvents.Add(committedEvent);
             version++;
         }
@@ -395,15 +395,15 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
 
     protected virtual object FromObject(object aggregateEvent, long version, IMetadata? metadata = null)
     {
-        if (aggregateEvent is IAggregateEvent)
+        if(aggregateEvent is IAggregateEvent)
         {
             EventDefinitionService.Load(aggregateEvent.GetType());
-            var eventDefinition = EventDefinitionService.GetDefinition(aggregateEvent.GetType());
-            var aggregateSequenceNumber = version + 1;
+            EventDefinition eventDefinition = EventDefinitionService.GetDefinition(aggregateEvent.GetType());
+            long aggregateSequenceNumber = version + 1;
             var eventId = EventId.NewDeterministic(
                 GuidFactories.Deterministic.Namespaces.Events,
                 $"{Id.Value}-v{aggregateSequenceNumber}");
-            var now = DateTimeOffset.UtcNow;
+            DateTimeOffset now = DateTimeOffset.UtcNow;
             var eventMetadata = new Metadata
                                 {
                                     Timestamp = now,
@@ -415,12 +415,12 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
                                     EventVersion = eventDefinition.Version
                                 };
             eventMetadata.Add(MetadataKeys.TimestampEpoch, now.ToUnixTime().ToString());
-            if (metadata != null) eventMetadata.AddRange(metadata);
-            var genericType = typeof(CommittedEvent<,,>)
+            if(metadata != null) eventMetadata.AddRange(metadata);
+            Type genericType = typeof(CommittedEvent<,,>)
                .MakeGenericType(typeof(TAggregateSaga), typeof(TIdentity), aggregateEvent.GetType());
 
 
-            var committedEvent = FastReflection.Shared.FastCreateInstance(
+            object committedEvent = FastReflection.Shared.FastCreateInstance(
                 genericType,
                 Id,
                 aggregateEvent,
@@ -438,12 +438,12 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
     {
         try
         {
-            var method = GetType()
+            MethodInfo method = GetType()
                .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
                .Where(info => info.IsFamily || info.IsPublic)
                .Single(info => info.Name.Equals("ApplyCommittedEvent"));
 
-            var genericMethod = method.MakeGenericMethod(committedEvent.GetType().GenericTypeArguments[2]);
+            MethodInfo genericMethod = method.MakeGenericMethod(committedEvent.GetType().GenericTypeArguments[2]);
 
             genericMethod.InvokeFast(this, committedEvent);
         }
@@ -464,15 +464,15 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
         long version, IMetadata? metadata = null)
         where TAggregateEvent : class, IAggregateEvent<TAggregateSaga, TIdentity>
     {
-        if (aggregateEvent == null) throw new ArgumentNullException(nameof(aggregateEvent));
+        if(aggregateEvent == null) throw new ArgumentNullException(nameof(aggregateEvent));
 
         EventDefinitionService.Load(aggregateEvent.GetType());
-        var eventDefinition = EventDefinitionService.GetDefinition(aggregateEvent.GetType());
-        var aggregateSequenceNumber = version + 1;
+        EventDefinition eventDefinition = EventDefinitionService.GetDefinition(aggregateEvent.GetType());
+        long aggregateSequenceNumber = version + 1;
         var eventId = EventId.NewDeterministic(
             GuidFactories.Deterministic.Namespaces.Events,
             $"{Id.Value}-v{aggregateSequenceNumber}");
-        var now = DateTimeOffset.UtcNow;
+        DateTimeOffset now = DateTimeOffset.UtcNow;
         var eventMetadata = new Metadata
                             {
                                 Timestamp = now,
@@ -484,7 +484,7 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
                                 EventVersion = eventDefinition.Version
                             };
         eventMetadata.Add(MetadataKeys.TimestampEpoch, now.ToUnixTime().ToString());
-        if (metadata != null) eventMetadata.AddRange(metadata);
+        if(metadata != null) eventMetadata.AddRange(metadata);
 
         var committedEvent =
             new CommittedEvent<TAggregateSaga, TIdentity, TAggregateEvent>(
@@ -511,9 +511,9 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
     public virtual void RequestTimeout<TTimeout>(TTimeout timeoutMessage, TimeSpan timeSpan)
         where TTimeout : class, ISagaTimeoutJob
     {
-        var timeoutMessageType = timeoutMessage.GetType();
-        var manager = SagaTimeoutManagers?[timeoutMessageType];
-        var sagaTimeoutId = SagaTimeoutId.New;
+        Type timeoutMessageType = timeoutMessage.GetType();
+        IActorRef? manager = SagaTimeoutManagers?[timeoutMessageType];
+        SagaTimeoutId sagaTimeoutId = SagaTimeoutId.New;
         var scheduledMessage = new Schedule<TTimeout, SagaTimeoutId>(
             sagaTimeoutId,
             timeoutMessage,
@@ -552,14 +552,14 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
 
         Publish(domainEvent);
 
-        if (!SnapshotStrategy.ShouldCreateSnapshot(this)) return;
+        if(!SnapshotStrategy.ShouldCreateSnapshot(this)) return;
 
         var aggregateSnapshot = CreateSnapshot();
 
-        if (aggregateSnapshot == null) return;
+        if(aggregateSnapshot == null) return;
 
         SnapshotDefinitionService.Load(aggregateSnapshot.GetType());
-        var snapshotDefinition = SnapshotDefinitionService.GetDefinition(aggregateSnapshot.GetType());
+        SnapshotDefinition snapshotDefinition = SnapshotDefinitionService.GetDefinition(aggregateSnapshot.GetType());
         var snapshotMetadata = new SnapshotMetadata
                                {
                                    AggregateId = Id.Value,
@@ -593,9 +593,9 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
     protected Action<IAggregateEvent?> GetEventApplyMethods<TAggregateEvent>(TAggregateEvent aggregateEvent)
         where TAggregateEvent : IAggregateEvent<TAggregateSaga, TIdentity>
     {
-        var eventType = aggregateEvent.GetType();
+        Type eventType = aggregateEvent.GetType();
 
-        if (!ApplyMethodsFromState.TryGetValue(eventType, out var applyMethod))
+        if(!ApplyMethodsFromState.TryGetValue(eventType, out var applyMethod))
             #pragma warning disable GU0090
             throw new NotImplementedException(
                 $"SagaState of Type={State?.GetType().PrettyPrint()} does not have an 'Apply' method that takes in an aggregate event of Type={eventType.PrettyPrint()} as an argument.");
@@ -676,7 +676,7 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
         IAggregateSnapshot<TAggregateSaga, TIdentity>? aggregateSnapshot,
         long version)
     {
-        if (aggregateSnapshot == null) return;
+        if(aggregateSnapshot == null) return;
 
         var snapshotHydrater = GetSnapshotHydrateMethods(aggregateSnapshot);
 
@@ -689,9 +689,9 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
         TAggregateSnapshot aggregateEvent)
         where TAggregateSnapshot : IAggregateSnapshot<TAggregateSaga, TIdentity>
     {
-        var snapshotType = aggregateEvent.GetType();
+        Type snapshotType = aggregateEvent.GetType();
 
-        if (!HydrateMethodsFromState.TryGetValue(snapshotType, out var hydrateMethod))
+        if(!HydrateMethodsFromState.TryGetValue(snapshotType, out var hydrateMethod))
             #pragma warning disable GU0090
             throw new NotImplementedException(
                 $"SagaState of Type={State?.GetType().PrettyPrint()} does not have a 'Hydrate' method that takes in an aggregate snapshot of Type={snapshotType.PrettyPrint()} as an argument.");
@@ -709,7 +709,7 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
 
     protected virtual void SetSnapshotStrategy(ISnapshotStrategy? snapshotStrategy)
     {
-        if (snapshotStrategy != null)
+        if(snapshotStrategy != null)
             SnapshotStrategy = snapshotStrategy;
     }
 

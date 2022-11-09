@@ -15,29 +15,32 @@ public enum AlertSeverity
 {
     Error,
     Warning,
-    Information, 
+    Information,
     Sucess
 }
 
 [PublicAPI]
 public sealed partial class Alert : UserControl, ICommandSource
 {
-    private AlertSeverity _severity;
     private string _message = string.Empty;
+    private AlertSeverity _severity;
+
+    public Alert()
+        => InitializeComponent();
 
     public double AlertPadding
     {
         get => AlertBorder.Padding.Top;
         set => AlertBorder.Padding = new Thickness(value);
     }
-    
+
     public AlertSeverity Severity
     {
         get => _severity;
         set
         {
             _severity = value;
-            
+
             AlertBorder.Background =
                 value switch
                 {
@@ -49,7 +52,8 @@ public sealed partial class Alert : UserControl, ICommandSource
                 };
 
             Icon.Kind =
-                value switch {
+                value switch
+                {
                     AlertSeverity.Error => MaterialIconKind.Error,
                     AlertSeverity.Warning => MaterialIconKind.Warning,
                     AlertSeverity.Information => MaterialIconKind.Information,
@@ -69,14 +73,17 @@ public sealed partial class Alert : UserControl, ICommandSource
         }
     }
 
-    public Alert()
-        => InitializeComponent();
-
     private bool IsPressed { get; set; }
-    
+
+    public void CanExecuteChanged(object sender, EventArgs e) { }
+
+    public ICommand? Command { get; set; }
+
+    public object? CommandParameter { get; set; }
+
     private void AlertBorder_OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
+        if(!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
 
         IsPressed = true;
         e.Handled = true;
@@ -84,28 +91,20 @@ public sealed partial class Alert : UserControl, ICommandSource
 
     private void AlertBorder_OnPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
-        if (!IsPressed || e.InitialPressMouseButton != MouseButton.Left) return;
+        if(!IsPressed || e.InitialPressMouseButton != MouseButton.Left) return;
 
         IsPressed = false;
         e.Handled = true;
 
-        if (this.GetVisualsAt(e.GetPosition(this)).Any(c => Equals(this, c) || this.IsVisualAncestorOf(c)))
-        {
+        if(this.GetVisualsAt(e.GetPosition(this)).Any(c => Equals(this, c) || this.IsVisualAncestorOf(c)))
             OnClick();
-        }
     }
 
     private void OnClick()
     {
         if(Command is null) return;
-        
+
         if(Command.CanExecute(CommandParameter))
             Command.Execute(CommandParameter);
     }
-
-    public void CanExecuteChanged(object sender, EventArgs e) { }
-
-    public ICommand? Command { get; set; }
-    
-    public object? CommandParameter { get; set; }
 }

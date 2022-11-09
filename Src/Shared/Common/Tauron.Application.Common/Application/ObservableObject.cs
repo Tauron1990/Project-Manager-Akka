@@ -19,7 +19,7 @@ public static class ObservablePropertyChangedExtensions
 {
     public static IObservable<TProp> WhenAny<TProp>(this IObservablePropertyChanged @this, Expression<Func<TProp>> prop)
     {
-        var name = Reflex.PropertyName(prop);
+        string name = Reflex.PropertyName(prop);
         var func = prop.CompileFast();
 
         return @this.PropertyChangedObservable.Where(propName => propName == name).Select(_ => func());
@@ -39,7 +39,8 @@ public abstract class ObservableObject : INotifyPropertyChangedMethod, IObservab
 {
     private readonly Subject<string> _propertyChnaged = new();
 
-    [field: NonSerialized] public event PropertyChangedEventHandler? PropertyChanged;
+    [field: NonSerialized]
+    public event PropertyChangedEventHandler? PropertyChanged;
 
     [NotifyPropertyChangedInvocator]
     public virtual void OnPropertyChanged([CallerMemberName] string? eventArgs = null)
@@ -49,7 +50,7 @@ public abstract class ObservableObject : INotifyPropertyChangedMethod, IObservab
 
     public void SetProperty<TType>(ref TType property, TType value, [CallerMemberName] string? name = null)
     {
-        if (EqualityComparer<TType>.Default.Equals(property, value)) return;
+        if(EqualityComparer<TType>.Default.Equals(property, value)) return;
 
         property = value;
         OnPropertyChangedExplicit(name ?? string.Empty);
@@ -57,7 +58,7 @@ public abstract class ObservableObject : INotifyPropertyChangedMethod, IObservab
 
     public void SetProperty<TType>(ref TType property, TType value, Action changed, [CallerMemberName] string? name = null)
     {
-        if (EqualityComparer<TType>.Default.Equals(property, value)) return;
+        if(EqualityComparer<TType>.Default.Equals(property, value)) return;
 
         property = value;
         OnPropertyChangedExplicit(name ?? string.Empty);
@@ -66,7 +67,7 @@ public abstract class ObservableObject : INotifyPropertyChangedMethod, IObservab
 
     public void SetProperty<TType>(ref TType property, TType value, Func<Task> changed, [CallerMemberName] string? name = null)
     {
-        var context = ExecutionContext.Capture();
+        ExecutionContext? context = ExecutionContext.Capture();
 
         async Task RunChangedAsync()
         {
@@ -77,7 +78,7 @@ public abstract class ObservableObject : INotifyPropertyChangedMethod, IObservab
             catch (Exception exception)
             {
                 TauronEnviroment.GetLogger(GetType()).LogError(exception, "Error on Execute Async property Changed");
-                if (context != null)
+                if(context != null)
                     ExecutionContext.Run(context, state => throw (Exception)state!, exception);
             }
         }
@@ -94,7 +95,7 @@ public abstract class ObservableObject : INotifyPropertyChangedMethod, IObservab
 
     protected virtual void OnPropertyChanged(object sender, PropertyChangedEventArgs eventArgs)
     {
-        if (!string.IsNullOrWhiteSpace(eventArgs.PropertyName))
+        if(!string.IsNullOrWhiteSpace(eventArgs.PropertyName))
             _propertyChnaged.OnNext(eventArgs.PropertyName);
         PropertyChanged?.Invoke(sender, eventArgs);
     }

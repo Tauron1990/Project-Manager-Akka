@@ -3,7 +3,6 @@ using SimpleProjectManager.Client.Shared.Data;
 using SimpleProjectManager.Client.Shared.Services;
 using Tauron;
 using Tauron.Applicarion.Redux;
-using Tauron.Applicarion.Redux.Configuration;
 using Tauron.Applicarion.Redux.Extensions.Cache;
 
 namespace SimpleProjectManager.Client.Avalonia.Models.Services;
@@ -20,7 +19,7 @@ public sealed class InternalDataModule : IModule
         collection.AddTransient<IMessageDispatcher, MessageDispatcher>();
 
         collection.AddSingleton<INavigationHelper, NavigationManager>();
-        
+
         collection.AddTransient<LocalCacheDbContext>();
     }
 }

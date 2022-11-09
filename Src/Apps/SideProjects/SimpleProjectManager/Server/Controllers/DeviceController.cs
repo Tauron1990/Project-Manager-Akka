@@ -5,48 +5,57 @@ using Stl.Fusion.Server;
 
 namespace SimpleProjectManager.Server.Controllers;
 
-[ApiController, JsonifyErrors, Route(ApiPaths.DeviceApi + "/[action]")]
-public class DeviceController : IDeviceService
+[ApiController]
+[JsonifyErrors]
+[Route(ApiPaths.DeviceApi + "/[action]")]
+public class DeviceController : Controller, IDeviceService
 {
     private readonly IDeviceService _deviceService;
 
     public DeviceController(IDeviceService deviceService)
         => _deviceService = deviceService;
 
-    [HttpGet, Publish]
-    public Task<string[]> GetAllDevices(CancellationToken token)
+    [HttpGet]
+    [Publish]
+    public Task<Devices> GetAllDevices(CancellationToken token)
         => _deviceService.GetAllDevices(token);
 
-    [HttpGet, Publish]
-    public Task<DeviceUiGroup> GetRootUi([FromQuery]DeviceId device, CancellationToken token)
+    [HttpGet]
+    [Publish]
+    public Task<DeviceUiGroup> GetRootUi([FromQuery] DeviceId device, CancellationToken token)
         => _deviceService.GetRootUi(device, token);
 
-    [HttpGet, Publish]
-    public Task<string> GetStringSensorValue([FromQuery]DeviceId device, [FromQuery]DeviceId sensor, CancellationToken token)
+    [HttpGet]
+    [Publish]
+    public Task<string> GetStringSensorValue([FromQuery] DeviceId device, [FromQuery] DeviceId sensor, CancellationToken token)
         => _deviceService.GetStringSensorValue(device, sensor, token);
 
-    [HttpGet, Publish]
-    public Task<int> GetIntSensorValue([FromQuery]DeviceId device, [FromQuery]DeviceId sensor, CancellationToken token)
+    [HttpGet]
+    [Publish]
+    public Task<int> GetIntSensorValue([FromQuery] DeviceId device, [FromQuery] DeviceId sensor, CancellationToken token)
         => _deviceService.GetIntSensorValue(device, sensor, token);
 
-    [HttpGet, Publish]
-    public Task<double> GetDoubleSensorValue([FromQuery]DeviceId device, [FromQuery]DeviceId sensor, CancellationToken token)
+    [HttpGet]
+    [Publish]
+    public Task<double> GetDoubleSensorValue([FromQuery] DeviceId device, [FromQuery] DeviceId sensor, CancellationToken token)
         => _deviceService.GetDoubleSensorValue(device, sensor, token);
 
-    [HttpGet, Publish]
-    public Task<bool> CanClickButton([FromQuery]DeviceId device, [FromQuery]DeviceId button, CancellationToken token)
+    [HttpGet]
+    [Publish]
+    public Task<bool> CanClickButton([FromQuery] DeviceId device, [FromQuery] DeviceId button, CancellationToken token)
         => _deviceService.CanClickButton(device, button, token);
 
-    [HttpGet, Publish]
+    [HttpGet]
+    [Publish]
     public Task<DateTime> CurrentLogs(CancellationToken token)
         => _deviceService.CurrentLogs(token);
 
     [HttpGet]
-    public Task<LogBatch[]> GetBatches([FromQuery]DeviceId deviceName, [FromQuery]DateTime from, CancellationToken token)
+    public Task<Logs> GetBatches([FromQuery] DeviceId deviceName, [FromQuery] DateTime from, CancellationToken token)
         => _deviceService.GetBatches(deviceName, from, token);
 
     [HttpPost]
-    public async Task<string> ClickButton([FromBody]DeviceId device, [FromQuery]DeviceId button, CancellationToken token)
+    public async Task<SimpleResult> ClickButton([FromBody] DeviceId device, [FromQuery] DeviceId button, CancellationToken token)
     {
         try
         {
@@ -54,7 +63,7 @@ public class DeviceController : IDeviceService
         }
         catch (Exception e)
         {
-            return e.Message;
+            return new SimpleResult(e.Message);
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
-using Tauron.TAkka;
 using Tauron.Application.CommonUI.Helper;
+using Tauron.TAkka;
 
 namespace Tauron.Application.CommonUI.Model;
 
@@ -13,7 +13,7 @@ public static class UIActorExtensions
     {
         model ??= actor.ServiceProvider.GetRequiredService<IViewModel<TModel>>();
 
-        if (!model.IsInitialized)
+        if(!model.IsInitialized)
             model.InitModel(ObservableActor.ExposedContext, name);
 
         return new UIModel<TModel>(

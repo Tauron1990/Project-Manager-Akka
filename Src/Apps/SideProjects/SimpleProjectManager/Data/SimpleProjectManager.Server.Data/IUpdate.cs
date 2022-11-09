@@ -1,6 +1,3 @@
 ﻿namespace SimpleProjectManager.Server.Data;
 
-public interface IUpdate<TData>
-{
-    
-}
+public interface IUpdate<TData> { }

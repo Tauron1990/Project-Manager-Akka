@@ -16,9 +16,9 @@ public sealed record TaskManagerDeleteEntry(string EntryId) : IJob;
 
 public sealed class TaskManagerJobRunner : JobRunner<TaskManagerDeleteEntry, TaskManagerJobId>, IRun<TaskManagerDeleteEntry>
 {
+    private readonly IEventAggregator _aggregator;
     private readonly MappingDatabase<DbTaskManagerEntry, TaskManagerEntry> _collection;
     private readonly CriticalErrorHelper _errorHelper;
-    private readonly IEventAggregator _aggregator;
 
     public TaskManagerJobRunner(MappingDatabase<DbTaskManagerEntry, TaskManagerEntry> collection, CriticalErrorHelper errorHelper, IEventAggregator aggregator)
     {
@@ -30,24 +30,26 @@ public sealed class TaskManagerJobRunner : JobRunner<TaskManagerDeleteEntry, Tas
     public bool Run(TaskManagerDeleteEntry job)
     {
         _errorHelper.Try(
-            "AutoDeleteTask",
-            async () => await RunDeltation(job),
-            default,
-            () => ImmutableList<ErrorProperty>.Empty.Add(new ErrorProperty("Task to Delete", job.EntryId)))
+                "AutoDeleteTask",
+                async () => await RunDeltation(job),
+                default,
+                () => ImmutableList<ErrorProperty>.Empty.Add(new ErrorProperty("Task to Delete", job.EntryId)))
            .AsTask().ContinueWith(
                 t =>
                 {
                     if(t.IsCanceled) return;
 
-                    if (t.IsCompletedSuccessfully)
+                    if(t.IsCompletedSuccessfully)
                     {
                         if(!t.Result.Ok)
                             _errorHelper.Logger.LogWarning("Delete Job {Id} was not Successfull", job.EntryId);
                     }
-                    else if (t.IsFaulted && t.Exception != null)
+                    else if(t.IsFaulted && t.Exception != null)
+                    {
                         _errorHelper.Logger.LogError(t.Exception.Unwrap()!, "Error on Try Delete Job {Id}", job.EntryId);
+                    }
                 });
-        
+
         return true;
     }
 
@@ -57,20 +59,16 @@ public sealed class TaskManagerJobRunner : JobRunner<TaskManagerDeleteEntry, Tas
         DbOperationResult result = await _collection.DeleteOneAsync(filter);
 
         bool success = result.IsAcknowledged && result.DeletedCount == 1;
-        if (success) _aggregator.Publish(TasksChanged.Inst);
+        if(success) _aggregator.Publish(TasksChanged.Inst);
 
         return success ? OperationResult.Success() : OperationResult.Failure();
     }
 }
 
-public sealed class TaskManagerScheduler : JobScheduler<TaskManagerScheduler, TaskManagerDeleteEntry, TaskManagerJobId>
-{ }
+public sealed class TaskManagerScheduler : JobScheduler<TaskManagerScheduler, TaskManagerDeleteEntry, TaskManagerJobId> { }
 
 public sealed class TaskManagerDeleteEntryManager : JobManager<TaskManagerScheduler, TaskManagerJobRunner, TaskManagerDeleteEntry, TaskManagerJobId>
 {
     public TaskManagerDeleteEntryManager(MappingDatabase<DbTaskManagerEntry, TaskManagerEntry> collection, CriticalErrorHelper errorHelper, IEventAggregator aggregator)
-        : base(() => new TaskManagerScheduler(), () => new TaskManagerJobRunner(collection, errorHelper, aggregator))
-    {
-        
-    }
+        : base(() => new TaskManagerScheduler(), () => new TaskManagerJobRunner(collection, errorHelper, aggregator)) { }
 }

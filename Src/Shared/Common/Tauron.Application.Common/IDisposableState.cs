@@ -6,10 +6,7 @@ using Stl.Fusion;
 
 namespace Tauron;
 
-public interface IDisposableState<TData> : IState<TData>, IDisposable
-{
-    
-}
+public interface IDisposableState<TData> : IState<TData>, IDisposable { }
 
 public sealed class DisposableState<TData> : IDisposableState<TData>
 {
@@ -22,11 +19,12 @@ public sealed class DisposableState<TData> : IDisposableState<TData>
         _subscription = subscription;
     }
 
+    public object? UntypedValue => _state.UntypedValue;
+
     public Result<TOther> Cast<TOther>()
         => _state.Cast<TOther>();
 
     public bool HasValue => _state.HasValue;
-    public object? UntypedValue => _state.UntypedValue;
 
     public TData Value => _state.Value;
 
@@ -35,11 +33,11 @@ public sealed class DisposableState<TData> : IDisposableState<TData>
         _state.Deconstruct(out value, out error);
     }
 
-    public bool IsValue([MaybeNullWhen(false)]out TData value)
+    public bool IsValue([MaybeNullWhen(false)] out TData value)
         => _state.IsValue(out value);
 
     #pragma warning disable CS8767
-    public bool IsValue([MaybeNullWhen(false)]out TData value, [MaybeNullWhen(false)]out Exception error)
+    public bool IsValue([MaybeNullWhen(false)] out TData value, [MaybeNullWhen(false)] out Exception error)
         #pragma warning restore CS8767
         => _state.IsValue(out value!, out error!);
 

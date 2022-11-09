@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Tauron.Application.CommonUI;
 using Tauron.Application.Wpf.Implementation;
+
 #pragma warning disable GU0011
 
 namespace Tauron.Application.Wpf;

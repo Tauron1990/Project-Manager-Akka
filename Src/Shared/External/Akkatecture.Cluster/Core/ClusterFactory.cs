@@ -46,12 +46,12 @@ public static class ClusterFactory<TAggregateManager, TAggregate, TIdentity>
         ActorSystem actorSystem,
         int numberOfShards = 12)
     {
-        var clusterSharding = ClusterSharding.Get(actorSystem);
-        var clusterShardingSettings = clusterSharding.Settings;
+        ClusterSharding clusterSharding = ClusterSharding.Get(actorSystem);
+        ClusterShardingSettings clusterShardingSettings = clusterSharding.Settings;
 
         var aggregateManagerProps = Props.Create<TAggregateManager>();
 
-        var shardRef = clusterSharding.Start(
+        IActorRef shardRef = clusterSharding.Start(
             typeof(TAggregateManager).Name,
             Props.Create(() => new ClusterParentProxy(aggregateManagerProps, true)),
             clusterShardingSettings,
@@ -66,12 +66,12 @@ public static class ClusterFactory<TAggregateManager, TAggregate, TIdentity>
         Expression<Func<TAggregateManager>> aggregateManagerFactory,
         int numberOfShards = 12)
     {
-        var clusterSharding = ClusterSharding.Get(actorSystem);
-        var clusterShardingSettings = clusterSharding.Settings;
+        ClusterSharding clusterSharding = ClusterSharding.Get(actorSystem);
+        ClusterShardingSettings clusterShardingSettings = clusterSharding.Settings;
 
         var aggregateManagerProps = Props.Create(aggregateManagerFactory);
 
-        var shardRef = clusterSharding.Start(
+        IActorRef shardRef = clusterSharding.Start(
             typeof(TAggregateManager).Name,
             Props.Create(() => new ClusterParentProxy(aggregateManagerProps, false)),
             clusterShardingSettings,
@@ -86,9 +86,9 @@ public static class ClusterFactory<TAggregateManager, TAggregate, TIdentity>
         string clusterRoleName,
         int numberOfShards = 12)
     {
-        var clusterSharding = ClusterSharding.Get(actorSystem);
+        ClusterSharding clusterSharding = ClusterSharding.Get(actorSystem);
 
-        var shardRef = clusterSharding.StartProxy(
+        IActorRef shardRef = clusterSharding.StartProxy(
             typeof(TAggregateManager).Name,
             clusterRoleName,
             new MessageExtractor<TAggregate, TIdentity>(numberOfShards)
@@ -110,15 +110,15 @@ public static class ClusterFactory<TAggregateSagaManager, TAggregateSaga, TIdent
         string clusterRoleName,
         int numberOfShards = 12)
     {
-        if (sagaFactory == null) throw new ArgumentNullException(nameof(sagaFactory));
+        if(sagaFactory == null) throw new ArgumentNullException(nameof(sagaFactory));
 
-        var clusterSharding = ClusterSharding.Get(actorSystem);
-        var clusterShardingSettings = clusterSharding.Settings;
+        ClusterSharding clusterSharding = ClusterSharding.Get(actorSystem);
+        ClusterShardingSettings clusterShardingSettings = clusterSharding.Settings;
 
         // ReSharper disable once PossiblyMistakenUseOfParamsMethod
         var aggregateSagaManagerProps = Props.Create<TAggregateSagaManager>(sagaFactory);
 
-        var shardRef = clusterSharding.Start(
+        IActorRef shardRef = clusterSharding.Start(
             typeof(TAggregateSagaManager).Name,
             Props.Create(() => new ClusterParentProxy(aggregateSagaManagerProps, true)),
             clusterShardingSettings,
@@ -142,9 +142,9 @@ public static class ClusterFactory<TAggregateSagaManager, TAggregateSaga, TIdent
         string clusterRoleName,
         int numberOfShards = 12)
     {
-        var clusterSharding = ClusterSharding.Get(actorSystem);
+        ClusterSharding clusterSharding = ClusterSharding.Get(actorSystem);
 
-        var shardRef = clusterSharding.StartProxy(
+        IActorRef shardRef = clusterSharding.StartProxy(
             typeof(TAggregateSagaManager).Name,
             clusterRoleName,
             new MessageExtractor<TAggregateSagaManager, TAggregateSaga, TIdentity, TSagaLocator>(numberOfShards)

@@ -6,8 +6,8 @@ using Akka.Cluster;
 using Akka.Cluster.Utility;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
-using Tauron.TAkka;
 using Tauron.Features;
+using Tauron.TAkka;
 using static Akka.Cluster.Utility.ClusterActorDiscoveryMessage;
 
 namespace Tauron.Application.Master.Commands.KillSwitch;
@@ -59,7 +59,7 @@ public static partial class KillSwitch
 
     [LoggerMessage(EventId = 28, Level = LogLevel.Information, Message = "Subscribe To Event Killswitch")]
     private static partial void SubscribeKillswitch(ILogger logger);
-    
+
     public static void Setup(ActorSystem system)
     {
         SetupKillswitch(Logger);
@@ -121,7 +121,7 @@ public static partial class KillSwitch
                             (ActorDown actorDown, KillState state) = m;
                             ActorElement? entry = state.Actors.Find(e => e.Target.Equals(actorDown.Actor));
 
-                            if (entry is null)
+                            if(entry is null)
                                 return state;
 
                             return state with { Actors = state.Actors.Remove(entry) };
@@ -147,7 +147,7 @@ public static partial class KillSwitch
                             (RespondRegistration respondRegistration, KillState state) = r;
                             ActorElement? ele = state.Actors.Find(e => e.Target.Equals(Sender));
 
-                            if (ele is null)
+                            if(ele is null)
                                 return state;
 
                             return state with
@@ -204,7 +204,9 @@ public static partial class KillSwitch
             foreach ((IActorRef target, KillRecpientType recpientType) in CurrentState.Actors)
                 dic.Add(recpientType, target);
 
-            foreach (var recpientType in Order)
+            #pragma warning disable GU0071
+            foreach (KillRecpientType recpientType in Order)
+                #pragma warning restore GU0071
             {
                 var actors = dic[recpientType];
                 KillSwitchFeatureLog.TellClusterShutdown(Logger, recpientType, actors.Count);

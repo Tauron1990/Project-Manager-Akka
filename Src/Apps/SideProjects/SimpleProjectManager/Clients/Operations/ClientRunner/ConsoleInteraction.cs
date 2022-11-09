@@ -25,15 +25,17 @@ public class ConsoleInteraction : IClientInteraction
                 while (true)
                 {
                     Console.WriteLine(question);
-                    var consoleLine = Console.ReadLine();
+                    string? consoleLine = Console.ReadLine();
+
                     if(string.IsNullOrWhiteSpace(consoleLine))
                         continue;
 
                     if(consoleLine == "q") break;
-                    
-                    if(int.TryParse(consoleLine, out var number))
+
+                    if(int.TryParse(consoleLine, out int number))
                     {
                         result = number;
+
                         break;
                     }
 
@@ -54,7 +56,8 @@ public class ConsoleInteraction : IClientInteraction
                 while (true)
                 {
                     Console.WriteLine(question);
-                    var consoleLine = Console.ReadLine()?.ToLower();
+                    string? consoleLine = Console.ReadLine()?.ToLower();
+
                     if(string.IsNullOrWhiteSpace(consoleLine))
                         continue;
 
@@ -64,12 +67,14 @@ public class ConsoleInteraction : IClientInteraction
                     if(consoleLine == bool.FalseString || consoleLine is "n" or "no" or "nein")
                     {
                         result = false;
+
                         break;
                     }
 
                     if(consoleLine == bool.TrueString || consoleLine is "y" or "yes" or "ja")
                     {
                         result = true;
+
                         break;
                     }
 
@@ -87,7 +92,7 @@ public class ConsoleInteraction : IClientInteraction
                 PrintInitial(initial);
 
                 var choice = string.Empty;
-                
+
                 while (true)
                 {
                     Console.WriteLine(question);
@@ -97,27 +102,29 @@ public class ConsoleInteraction : IClientInteraction
                         Console.WriteLine($"{i + 1} = {choises[i]}");
                     Console.WriteLine();
 
-                    var result = Console.ReadLine();
+                    string? result = Console.ReadLine();
 
                     if(result == "0")
                         break;
-                    
+
                     if(choises.Contains(result))
                     {
                         choice = result ?? string.Empty;
+
                         break;
                     }
 
-                    if(int.TryParse(result, out var indexer))
+                    if(int.TryParse(result, out int indexer))
                     {
-                        var potential = choises.ElementAtOrDefault(indexer - 1);
+                        string? potential = choises.ElementAtOrDefault(indexer - 1);
                         if(!string.IsNullOrWhiteSpace(potential))
                         {
                             choice = potential;
+
                             break;
                         }
                     }
-                    
+
                     Console.WriteLine();
                     Console.WriteLine($"Fehlerhafte Eingabe: {result}");
                 }
@@ -132,6 +139,7 @@ public class ConsoleInteraction : IClientInteraction
                 PrintInitial(initial);
                 Console.WriteLine(info);
                 Console.Write("Bittent Datei Eingeben:");
+
                 return Console.ReadLine() ?? string.Empty;
             });
 
@@ -139,7 +147,7 @@ public class ConsoleInteraction : IClientInteraction
     {
         if(value is null)
             return;
-        
+
         Console.WriteLine($"Aktueller wert: {value}");
     }
 }

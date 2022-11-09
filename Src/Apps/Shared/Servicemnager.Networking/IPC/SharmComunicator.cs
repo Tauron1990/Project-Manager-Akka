@@ -37,9 +37,9 @@ public sealed class SharmComunicator : IDisposable
     {
         try
         {
-            using var mt = new Mutex(initiallyOwned: true, $"{id}SharmNet_MasterMutex", out var created);
+            using var mt = new Mutex(true, $"{id}SharmNet_MasterMutex", out bool created);
 
-            if (!created) return true;
+            if(!created) return true;
 
             #pragma warning disable MT1013
             mt.ReleaseMutex();
@@ -71,7 +71,7 @@ public sealed class SharmComunicator : IDisposable
 
     public bool Send(NetworkMessage msg, in Client target)
     {
-        var actualTarget = target.Value.Length switch
+        Client actualTarget = target.Value.Length switch
         {
             > 32 => throw new ArgumentOutOfRangeException(nameof(target), target, "Id Longer then 32 Chars"),
             < 32 => target.PadRight(32),
@@ -142,8 +142,8 @@ public sealed class SharmComunicator : IDisposable
         {
             string id = Encoding.ASCII.GetString(arg2, 0, 32).Trim();
             string from = Encoding.ASCII.GetString(arg2, 31, 32).Trim();
-            
-            if (id.StartsWith(Client.All.Value) || id == ProcessId)
+
+            if(id.StartsWith(Client.All.Value) || id == ProcessId)
                 OnMessage?.Invoke(_messageFormatter.ReadMessage(arg2.AsMemory()[63..]), arg1, Client.From(from));
         }
     }
@@ -224,14 +224,18 @@ public sealed class SharmClient : IDataClient, IDisposable
     private void ComunicatorOnOnMessage(NetworkMessage message, ulong messageid, in Client processsid)
     {
         if(message.Type == SharmComunicatorMessage.RegisterClient)
+        {
             Connected?.Invoke(this, new ClientConnectedArgs(processsid));
+        }
         else if(message.Type == SharmComunicatorMessage.UnRegisterClient)
         {
             Disconnected?.Invoke(this, new ClientDisconnectedArgs(processsid, DisconnectReason.Normal));
             Dispose();
         }
         else
+        {
             OnMessageReceived?.Invoke(this, new MessageFromServerEventArgs(message));
+        }
     }
 
     public void Disconnect()

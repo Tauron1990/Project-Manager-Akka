@@ -22,7 +22,7 @@ public abstract class VersionedTypeDefinition : ValueObject
 
     public override string ToString()
     {
-        var assemblyName = Type.GetTypeInfo().Assembly.GetName();
+        AssemblyName assemblyName = Type.GetTypeInfo().Assembly.GetName();
 
         return $"{Name} v{Version} ({assemblyName.Name} - {Type.PrettyPrint()})";
     }

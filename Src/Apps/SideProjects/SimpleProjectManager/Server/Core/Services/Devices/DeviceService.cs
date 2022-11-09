@@ -1,23 +1,21 @@
-﻿using System.Reactive;
-using Akka.Actor;
+﻿using Akka.Actor;
 using SimpleProjectManager.Client.Operations.Shared.Devices;
 using SimpleProjectManager.Server.Core.DeviceManager.Events;
 using SimpleProjectManager.Shared.Services.Devices;
 using Stl.Fusion;
-
 using static SimpleProjectManager.Client.Operations.Shared.Devices.DeviceManagerMessages;
 
 namespace SimpleProjectManager.Server.Core.Services.Devices;
 
 public partial class DeviceService : IDeviceService, IDisposable
 {
-    private readonly ILogger<DeviceService> _logger;
     private readonly ActorSelection _deviceManagerSelection;
+    private readonly ILogger<DeviceService> _logger;
     private readonly IDisposable _subscription;
-    
+
     private IActorRef? _deviceManager;
     private DateTime _lastLog = DateTime.MinValue;
-    
+
     public DeviceService(ActorSystem actorSystem, DeviceEventHandler handler, ILogger<DeviceService> logger)
     {
         _logger = logger;
@@ -26,6 +24,12 @@ public partial class DeviceService : IDeviceService, IDisposable
         _subscription = handler.Get().Subscribe(ProcessEvent);
     }
 
+    public virtual Task<DateTime> CurrentLogs(CancellationToken token)
+        => token.IsCancellationRequested ? Task.FromCanceled<DateTime>(token) : Task.FromResult(_lastLog);
+
+    public virtual void Dispose()
+        => _subscription.Dispose();
+
     // ReSharper disable once CognitiveComplexity
     private void ProcessEvent(IDeviceEvent evt)
     {
@@ -33,12 +37,18 @@ public partial class DeviceService : IDeviceService, IDisposable
         {
             case ButtonStateUpdate buttonStateUpdate:
                 using (Computed.Invalidate())
+                {
                     _ = CanClickButton(buttonStateUpdate.DeviceName, buttonStateUpdate.Identifer, CancellationToken.None);
+                }
+
                 break;
             case NewBatchesArrived newBatchesArrived:
                 _lastLog = newBatchesArrived.Date;
                 using (Computed.Invalidate())
+                {
                     _ = CurrentLogs(CancellationToken.None);
+                }
+
                 break;
             case NewDeviceEvent newDeviceEvent:
                 using (Computed.Invalidate())
@@ -46,6 +56,7 @@ public partial class DeviceService : IDeviceService, IDisposable
                     _ = GetAllDevices(CancellationToken.None);
                     _ = GetRootUi(newDeviceEvent.DeviceName, CancellationToken.None);
                 }
+
                 break;
             case SensorUpdateEvent sensorUpdateEvent:
                 using (Computed.Invalidate())
@@ -66,9 +77,11 @@ public partial class DeviceService : IDeviceService, IDisposable
                             break;
                     }
                 }
+
                 break;
             case DeviceRemoved:
                 _ = GetAllDevices(CancellationToken.None);
+
                 break;
         }
     }
@@ -92,6 +105,7 @@ public partial class DeviceService : IDeviceService, IDisposable
         catch (Exception e)
         {
             ErrorOnProcessRequest(e);
+
             throw;
         }
     }
@@ -159,9 +173,6 @@ public partial class DeviceService : IDeviceService, IDisposable
                 return result.CanClick;
             });
 
-    public virtual Task<DateTime> CurrentLogs(CancellationToken token)
-        => token.IsCancellationRequested ? Task.FromCanceled<DateTime>(token) : Task.FromResult(_lastLog);
-
     public async Task<LogBatch[]> GetBatches(string deviceName, DateTime from, CancellationToken token)
         => await Run(
             async man =>
@@ -176,9 +187,7 @@ public partial class DeviceService : IDeviceService, IDisposable
             man =>
             {
                 man.Tell(new ButtonClick(device, button));
+
                 return Task.FromResult(string.Empty);
             });
-
-    public virtual void Dispose()
-        => _subscription.Dispose();
 }

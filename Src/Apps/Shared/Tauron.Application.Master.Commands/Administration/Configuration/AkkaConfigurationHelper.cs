@@ -39,7 +39,7 @@ public static class AkkaConfigurationHelper
         bool hasBase = currentConfiguration.HasPath("akka.persistence.journal.mongodb.connection-string ")
                     || currentConfiguration.HasPath("akka.persistence.snapshot-store.mongodb.connection-string");
 
-        if (!hasBase)
+        if(!hasBase)
         {
             Log.LogInformation("Apply Default Configuration");
             currentConfiguration = ConfigurationFactory.ParseString(baseConfig).WithFallback(currentConfiguration);

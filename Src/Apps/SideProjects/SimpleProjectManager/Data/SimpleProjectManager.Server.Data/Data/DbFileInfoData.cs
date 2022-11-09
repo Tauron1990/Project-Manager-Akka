@@ -1,23 +1,19 @@
-﻿using AutoMapper;
-using SimpleProjectManager.Shared;
-using SimpleProjectManager.Shared.Services;
-
-namespace SimpleProjectManager.Server.Data.Data;
+﻿namespace SimpleProjectManager.Server.Data.Data;
 
 public sealed record DbFileInfoData
 {
-    public string Id { get; init; }
-    
-    public string ProjectName { get; init; }
-    
-    public string FileName { get; init; }
-    
+    public string Id { get; init; } = string.Empty;
+
+    public string ProjectName { get; init; } = string.Empty;
+
+    public string FileName { get; init; } = string.Empty;
+
     public long Size { get; init; }
-    
+
     public int FileType { get; init; }
-    
-    public string Mime { get; init; }
-    
+
+    public string Mime { get; init; } = string.Empty;
+
     /*public static void Configurate(MapperConfigurationExpression mapperConfiguration)
     {
         mapperConfiguration.CreateMap<FileInfoData, DbFileInfoData>()

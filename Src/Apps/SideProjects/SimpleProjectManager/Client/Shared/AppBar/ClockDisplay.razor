@@ -7,14 +7,14 @@
 }
 
 @{
-    var time = State.ValueOrDefault;
+    DateTime time = State.ValueOrDefault;
 }
 
-@if (time == DateTime.MinValue)
-    {
-        <MudText>Fehler beim abrufen der Zeit</MudText>
-    }
-    else
-    {
-        <MudText>@time.ToLocalTime().ToString("G")</MudText>
-    }
+@if(time == DateTime.MinValue)
+{
+    <MudText>Fehler beim abrufen der Zeit</MudText>
+}
+else
+{
+    <MudText>@time.ToLocalTime().ToString("G")</MudText>
+}

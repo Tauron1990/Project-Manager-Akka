@@ -11,6 +11,8 @@ namespace SimpleProjectManager.Server.Core.Projections;
 
 public sealed class ProjectProjectionManager : ProjectionManagerBase, IInitializeProjection
 {
+    public ProjectProjectionManager(ILoggerFactory loggerFactory) : base(loggerFactory) { }
+
     public void Initialize(ActorSystem system)
     {
         ImmutableListSerializer<ProjectFileId>.Register();
@@ -48,7 +50,7 @@ public sealed class ProjectProjectionManager : ProjectionManagerBase, IInitializ
                 map.Map<ProjectFilesRemovedEvent>(
                     b => b.AsUpdateOf(e => e.AggregateIdentity)
                        .Using((projection, evt) => evt.AggregateEvent.Files.ForEach(d => projection.ProjectFiles.Remove(d))));
-                
+
                 map.Map<ProjectStatusChangedEvent>(
                     b => b.AsUpdateOf(e => e.AggregateIdentity)
                        .Using((projection, evt) => projection.Status = evt.AggregateEvent.NewStatus));
@@ -61,6 +63,4 @@ public sealed class ProjectProjectionManager : ProjectionManagerBase, IInitializ
                     b => b.AsDeleteOf(de => de.AggregateIdentity).IgnoringMisses());
             });
     }
-
-    public ProjectProjectionManager(ILoggerFactory loggerFactory) : base(loggerFactory) { }
 }

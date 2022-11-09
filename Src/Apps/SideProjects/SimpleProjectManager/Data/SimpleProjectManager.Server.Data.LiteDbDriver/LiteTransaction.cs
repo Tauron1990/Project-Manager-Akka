@@ -5,16 +5,17 @@ namespace SimpleProjectManager.Server.Data.LiteDbDriver;
 
 public sealed class LiteTransaction : IDisposable
 {
-    private readonly ILiteDatabase _liteDatabase;
     private readonly ConcurrentDictionary<Type, object> _collections = new();
-    
+    private readonly ILiteDatabase _liteDatabase;
+
     private BlockingCollection<Func<Exception?, Exception?>> _actions = new();
     private Exception? _error;
-    
+
     public LiteTransaction(ILiteDatabase liteDatabase)
     {
         _liteDatabase = liteDatabase;
-        Run(d =>
+        Run(
+            d =>
             {
                 if(d.BeginTrans())
                     return;
@@ -24,11 +25,20 @@ public sealed class LiteTransaction : IDisposable
         Task.Run(Runner);
     }
 
+    public void Dispose()
+    {
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+        if(_actions is null || _actions.IsAddingCompleted) return;
+
+        _actions.CompleteAdding();
+    }
+
     private void Runner()
     {
         foreach (var action in _actions.GetConsumingEnumerable())
         {
-            var err = action(_error);
+            Exception? err = action(_error);
+
             if(err is null) continue;
 
             _error = err;
@@ -65,7 +75,7 @@ public sealed class LiteTransaction : IDisposable
                    }
                };
     }
-    
+
     private Func<Exception?, Exception?> Warp<TResult>(TaskCompletionSource<TResult> task, Action<TaskCompletionSource<TResult>> action)
     {
         return err =>
@@ -92,8 +102,8 @@ public sealed class LiteTransaction : IDisposable
                    }
                };
     }
-    
-    
+
+
     public ILiteCollection<TData> Collection<TData>()
         => (ILiteCollection<TData>)_collections.GetOrAdd(typeof(TData), static (_, db) => db.GetCollection<TData>(), _liteDatabase);
 
@@ -104,31 +114,35 @@ public sealed class LiteTransaction : IDisposable
 
         var task = new TaskCompletionSource();
         _actions.Add(
-            Warp(task,
+            Warp(
+                task,
                 t =>
-                 {
-                     action(_liteDatabase);
-                     t.SetResult();
-                 }));
+                {
+                    action(_liteDatabase);
+                    t.SetResult();
+                }));
 
         return task.Task;
     }
-    
+
     public Task Run(Action action)
     {
         if(_error is not null)
             return Task.FromException(_error);
 
         var task = new TaskCompletionSource();
-        _actions.Add(Warp(task, t =>
-                                {
-                                    action();
-                                    t.SetResult();
-                                }));
+        _actions.Add(
+            Warp(
+                task,
+                t =>
+                {
+                    action();
+                    t.SetResult();
+                }));
 
         return task.Task;
     }
-    
+
     public Task<TResult> Run<TResult>(Func<TResult> action)
     {
         if(_error is not null)
@@ -138,12 +152,5 @@ public sealed class LiteTransaction : IDisposable
         _actions.Add(Warp(task, t => t.SetResult(action())));
 
         return task.Task;
-    }
-
-    public void Dispose()
-    {
-        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
-        if(_actions is null || _actions.IsAddingCompleted) return;
-        _actions.CompleteAdding();
     }
 }

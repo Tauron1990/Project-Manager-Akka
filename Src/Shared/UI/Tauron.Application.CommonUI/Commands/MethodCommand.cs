@@ -30,9 +30,9 @@ public sealed class MethodCommand : CommandBase
 
         _methodType = (MethodType)method.GetParameters().Length;
 
-        if (_methodType != MethodType.One) return;
+        if(_methodType != MethodType.One) return;
 
-        if (method.GetParameters()[0].ParameterType != typeof(EventData)) _methodType = MethodType.EventArgs;
+        if(method.GetParameters()[0].ParameterType != typeof(EventData)) _methodType = MethodType.EventArgs;
     }
 
     private object? Context { get; }
@@ -40,7 +40,7 @@ public sealed class MethodCommand : CommandBase
     public override void Execute(object? parameter = null)
     {
         var temp = parameter as EventData;
-        var args = _methodType switch
+        object?[] args = _methodType switch
         {
             MethodType.Zero => Array.Empty<object>(),
             MethodType.One => new object?[] { temp },

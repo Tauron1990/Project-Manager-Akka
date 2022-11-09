@@ -3,7 +3,7 @@
 @using System.Reactive.Disposables
 @implements IDisposable
 
-@if (_currentNotification is null)
+@if(_currentNotification is null)
 {
     @if(Waiting is not null)
     {
@@ -16,10 +16,10 @@
 }
 else
 {
-    @switch(_currentNotification.Kind)
+    @switch (_currentNotification.Kind)
     {
         case NotificationKind.OnNext:
-            @if (ValueRenderer is null)
+            @if(ValueRenderer is null)
             {
                 <span>Kein Inhalt: @_currentNotification.Value?.ToString()</span>
             }
@@ -29,9 +29,9 @@ else
             }
             break;
         case NotificationKind.OnError:
-            @if (_currentNotification.Exception is not null)
+            @if(_currentNotification.Exception is not null)
             {
-                @if (OnError is not null)
+                @if(OnError is not null)
                 {
                     OnError(_currentNotification.Exception);
                 }
@@ -49,7 +49,7 @@ else
             }
             break;
         case NotificationKind.OnCompleted:
-            @if (OnCompled is not null)
+            @if(OnCompled is not null)
             {
                 @OnCompled
             }
@@ -60,6 +60,7 @@ else
 }
 
 @code {
+
     [Parameter]
     public IObservable<TValue>? Observable { get; set; }
 
@@ -83,7 +84,7 @@ else
     {
         _currentNotification = null;
 
-        if (Observable is not null)
+        if(Observable is not null)
         {
             _subscription.Disposable = Observable.Subscribe(
                 v =>

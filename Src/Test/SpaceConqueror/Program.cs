@@ -5,7 +5,7 @@ using Spectre.Console;
 
 Console.Title = "Space Conqueror";
 
-await using GameManager manager = new (Path.GetFullPath("Mods"));
+await using GameManager manager = new(Path.GetFullPath("Mods"));
 
 AnsiConsole.WriteLine();
 

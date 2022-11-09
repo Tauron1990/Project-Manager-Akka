@@ -29,15 +29,15 @@ public sealed class AsyncRequestMiddleware<TState> : Middleware where TState : n
         where TAction : class
     {
         IObservable<object> Runner(IObservable<TAction> arg)
-            => arg.SelectManySafe(async action => (action, result:await runRequest(action)))
+            => arg.SelectManySafe(async action => (action, result: await runRequest(action)))
                .ConvertResult(
-                    pair => string.IsNullOrWhiteSpace(pair.result) ? onScess(_currentState.Value, pair.action) : onFail(_currentState.Value, pair.result), 
+                    pair => string.IsNullOrWhiteSpace(pair.result) ? onScess(_currentState.Value, pair.action) : onFail(_currentState.Value, pair.result),
                     exception => onFail(_currentState.Value, exception))
                .Select(MutateCallback.Create);
-        
+
         OnAction<TAction>(Runner);
     }
-    
+
     public void AddRequest<TAction>(
         Func<TAction, ValueTask<string?>> runRequest,
         Func<TState, TAction, TState> onScess,
@@ -45,12 +45,12 @@ public sealed class AsyncRequestMiddleware<TState> : Middleware where TState : n
         where TAction : class
     {
         IObservable<object> Runner(IObservable<TAction> arg)
-            => arg.SelectManySafe(async action => (Action: action, result:await runRequest(action)))
+            => arg.SelectManySafe(async action => (Action: action, result: await runRequest(action)))
                .ConvertResult(
-                    pair => string.IsNullOrWhiteSpace(pair.result) ? onScess(_currentState.Value, pair.Action) : onFail(_currentState.Value, pair.result), 
+                    pair => string.IsNullOrWhiteSpace(pair.result) ? onScess(_currentState.Value, pair.Action) : onFail(_currentState.Value, pair.result),
                     exception => onFail(_currentState.Value, exception))
                .Select(MutateCallback.Create);
-        
+
         OnAction<TAction>(Runner);
     }
 }

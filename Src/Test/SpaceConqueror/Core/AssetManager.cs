@@ -6,7 +6,7 @@ public sealed class AssetManager
 {
     private readonly ConcurrentDictionary<string, IBox?> _assets = new();
 
-    internal AssetManager(){}
+    internal AssetManager() { }
 
     public void Add<TData>(string name, Func<TData> data)
     {
@@ -32,10 +32,7 @@ public sealed class AssetManager
         return Option<TData>.None;
     }
 
-    private interface IBox
-    {
-        
-    }
+    private interface IBox { }
 
     private sealed record Box<TBox>(Lazy<TBox> Lazy) : IBox;
 }

@@ -7,11 +7,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="MongoDB.Driver.GridFS" Version="2.17.1" />
+        <PackageReference Include="MongoDB.Driver.GridFS" Version="2.18.0"/>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\SimpleProjectManager.Server.Data\SimpleProjectManager.Server.Data.csproj" />
+        <ProjectReference Include="..\SimpleProjectManager.Server.Data\SimpleProjectManager.Server.Data.csproj"/>
     </ItemGroup>
 
 </Project>

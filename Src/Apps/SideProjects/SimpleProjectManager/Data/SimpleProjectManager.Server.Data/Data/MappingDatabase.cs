@@ -5,7 +5,6 @@ namespace SimpleProjectManager.Server.Data.Data;
 public sealed class MappingDatabase<TSource, TDestination> : IDatabaseCollection<TSource>
 {
     private readonly IDatabaseCollection<TSource> _databaseCollection;
-    public IMapper Mapper { get; }
 
     public MappingDatabase(IDatabaseCollection<TSource> databaseCollection, IMapper mapper)
     {
@@ -13,24 +12,8 @@ public sealed class MappingDatabase<TSource, TDestination> : IDatabaseCollection
         Mapper = mapper;
     }
 
-    public async ValueTask<TDestination[]> ExecuteArray(IFindQuery<TSource, TSource> query, CancellationToken token)
-        => await query.ToAsyncEnumerable(token).ProjectTo<TSource, TDestination>(Mapper).ToArrayAsync(token);
+    public IMapper Mapper { get; }
 
-    public async ValueTask<TRealDestination[]> ExecuteArray<TData, TRealDestination>(IFindQuery<TSource, TData> query, CancellationToken token)
-        => await query.ToAsyncEnumerable(token).ProjectTo<TData, TRealDestination>(Mapper).ToArrayAsync(token);
-    
-    public async ValueTask<TDestination?> ExecuteFirstOrDefaultAsync(IFindQuery<TSource, TSource> query, CancellationToken token)
-        => await query.ToAsyncEnumerable(token).ProjectTo<TSource, TDestination>(Mapper).FirstOrDefaultAsync(token);
-
-    public async ValueTask<TRealDestination?> ExecuteFirstOrDefaultAsync<TData, TRealDestination>(IFindQuery<TSource, TData> query, CancellationToken token)
-        => await query.ToAsyncEnumerable(token).ProjectTo<TData, TRealDestination>(Mapper).FirstOrDefaultAsync(token);
-    
-    public async ValueTask<TDestination> ExecuteFirstAsync(IFindQuery<TSource, TSource> query, CancellationToken token)
-        => await query.ToAsyncEnumerable(token).ProjectTo<TSource, TDestination>(Mapper).FirstAsync(token);
-
-    public async ValueTask<TRealDestination> ExecuteFirstAsync<TData, TRealDestination>(IFindQuery<TSource, TData> query, CancellationToken token)
-        => await query.ToAsyncEnumerable(token).ProjectTo<TData, TRealDestination>(Mapper).FirstAsync(token);
-    
     public IOperationFactory<TSource> Operations => _databaseCollection.Operations;
 
     public IFindQuery<TSource, TSource> Find(IFilter<TSource> filter)
@@ -45,12 +28,30 @@ public sealed class MappingDatabase<TSource, TDestination> : IDatabaseCollection
     public ValueTask InsertOneAsync(TSource data, CancellationToken cancellationToken = default)
         => _databaseCollection.InsertOneAsync(data, cancellationToken);
 
-    public ValueTask InsertOneAsync(TDestination data, CancellationToken cancellationToken = default)
-        => _databaseCollection.InsertOneAsync(Mapper.Map<TSource>(data), cancellationToken);
-    
     public DbOperationResult DeleteOne(IFilter<TSource> filter)
         => _databaseCollection.DeleteOne(filter);
 
     public ValueTask<DbOperationResult> DeleteOneAsync(IFilter<TSource> filter, CancellationToken token = default)
         => _databaseCollection.DeleteOneAsync(filter, token);
+
+    public async ValueTask<TDestination[]> ExecuteArray(IFindQuery<TSource, TSource> query, CancellationToken token)
+        => await query.ToAsyncEnumerable(token).ProjectTo<TSource, TDestination>(Mapper).ToArrayAsync(token);
+
+    public async ValueTask<TRealDestination[]> ExecuteArray<TData, TRealDestination>(IFindQuery<TSource, TData> query, CancellationToken token)
+        => await query.ToAsyncEnumerable(token).ProjectTo<TData, TRealDestination>(Mapper).ToArrayAsync(token);
+
+    public async ValueTask<TDestination?> ExecuteFirstOrDefaultAsync(IFindQuery<TSource, TSource> query, CancellationToken token)
+        => await query.ToAsyncEnumerable(token).ProjectTo<TSource, TDestination>(Mapper).FirstOrDefaultAsync(token);
+
+    public async ValueTask<TRealDestination?> ExecuteFirstOrDefaultAsync<TData, TRealDestination>(IFindQuery<TSource, TData> query, CancellationToken token)
+        => await query.ToAsyncEnumerable(token).ProjectTo<TData, TRealDestination>(Mapper).FirstOrDefaultAsync(token);
+
+    public async ValueTask<TDestination> ExecuteFirstAsync(IFindQuery<TSource, TSource> query, CancellationToken token)
+        => await query.ToAsyncEnumerable(token).ProjectTo<TSource, TDestination>(Mapper).FirstAsync(token);
+
+    public async ValueTask<TRealDestination> ExecuteFirstAsync<TData, TRealDestination>(IFindQuery<TSource, TData> query, CancellationToken token)
+        => await query.ToAsyncEnumerable(token).ProjectTo<TData, TRealDestination>(Mapper).FirstAsync(token);
+
+    public ValueTask InsertOneAsync(TDestination data, CancellationToken cancellationToken = default)
+        => _databaseCollection.InsertOneAsync(Mapper.Map<TSource>(data), cancellationToken);
 }

@@ -25,7 +25,7 @@ public class ProjectNameValidator : AbstractValidator<ProjectName>
 
                     if(arg[4] != '_')
                         context.AddFailure("Nach der Jareszahl kommt ein unterstrich");
-                    
+
                     if(!arg[5..].All(char.IsDigit))
                         context.AddFailure("Nach dem unterstrich kommt ein 5 stelliger Auftragszähler");
                 });

@@ -13,17 +13,15 @@ public sealed class FileUploaderViewModel : FileUploaderViewModelBase, IParamete
 {
     private readonly IStateFactory _factory;
 
-    public FileUploaderViewModel(IMessageDispatcher aggregator, GlobalState globalState, IStateFactory factory) 
+    public FileUploaderViewModel(IMessageDispatcher aggregator, GlobalState globalState, IStateFactory factory)
         : base(aggregator, globalState)
-    {
-        _factory = factory;
-    }
-    
+        => _factory = factory;
+
+    public ParameterUpdater Updater { get; } = new();
+
     protected override (IObservable<FileUploadTrigger> triggerUpload, IState<string> nameState) GetModelInformation()
         => (
             Updater.Register<FileUploadTrigger>(nameof(FileUploader.UploadTrigger), _factory).ToObservable(MessageDispatcher.PropagateErrors()),
             Updater.Register<string>(nameof(FileUploader.ProjectName), _factory)
-            );
-
-    public ParameterUpdater Updater { get; } = new();
+        );
 }

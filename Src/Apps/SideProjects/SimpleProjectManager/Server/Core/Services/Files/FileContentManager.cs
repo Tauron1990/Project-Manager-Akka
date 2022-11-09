@@ -11,15 +11,16 @@ public sealed class FileContentManager
 {
     public const string MetaJobName = "JobName";
     public const string MetaFileNme = "FileName";
-    
-    private readonly IInternalFileRepository _bucked;
-    private readonly TaskManagerCore _taskManager;
     private readonly IEventAggregator _aggregator;
+
+    private readonly IInternalFileRepository _bucked;
     private readonly CommitRegistrationTransaction _commitRegistrationTransaction;
-    private readonly PreRegisterTransaction _preRegisterTransaction;
     private readonly CriticalErrorHelper _criticalErrorHelper;
-    
-    public FileContentManager(IInternalFileRepository bucked, ICriticalErrorService criticalErrorService, TaskManagerCore taskManager, 
+    private readonly PreRegisterTransaction _preRegisterTransaction;
+    private readonly TaskManagerCore _taskManager;
+
+    public FileContentManager(
+        IInternalFileRepository bucked, ICriticalErrorService criticalErrorService, TaskManagerCore taskManager,
         ILogger<FileContentManager> logger, IEventAggregator aggregator,
         CommitRegistrationTransaction commitRegistrationTransaction, PreRegisterTransaction preRegisterTransaction)
     {
@@ -35,7 +36,7 @@ public sealed class FileContentManager
     {
         var context = new PreRegistrationContext(toRegister, id, fileName, jobName);
 
-        var result = await _criticalErrorHelper.ProcessTransaction(
+        SimpleResult result = await _criticalErrorHelper.ProcessTransaction(
             await _preRegisterTransaction.Execute(context, token),
             nameof(PreRegisterFile),
             () => ImmutableList<ErrorProperty>.Empty
@@ -44,7 +45,7 @@ public sealed class FileContentManager
 
         if(string.IsNullOrWhiteSpace(result))
             _aggregator.Publish(FileAdded.Inst);
-        
+
         return result;
     }
 
@@ -58,31 +59,33 @@ public sealed class FileContentManager
     }
 
     public IAsyncEnumerable<FileEntry> QueryFiles(CancellationToken token)
-        => _bucked.FindAllAsync(cancellationToken: token);
+        => _bucked.FindAllAsync(token);
 
     public async ValueTask<string?> DeleteFile(ProjectFileId id, CancellationToken token)
     {
         return (await _criticalErrorHelper.Try(
-            nameof(DeleteFile),
-            async () =>
-            {
-                var search = await _bucked.FindByIdAsync(id.Value, token);
-
-                if (search == null)
+                nameof(DeleteFile),
+                async () =>
                 {
-                    _criticalErrorHelper.Logger.LogWarning("Die Datei {Id} wurde nicht gefunden", id.Value);
-                    return OperationResult.Success();
-                }
+                    FileEntry? search = await _bucked.FindByIdAsync(id.Value, token);
 
-                await _bucked.DeleteAsync(search.Id, token);
-                var result = await _taskManager.DeleteTask(FilePurgeId.For(id).Value, token);
+                    if(search == null)
+                    {
+                        _criticalErrorHelper.Logger.LogWarning("Die Datei {Id} wurde nicht gefunden", id.Value);
 
-                _aggregator.Publish(new FileDeleted(id));
+                        return OperationResult.Success();
+                    }
 
-                return result;
-            }, token, 
-            () => ImmutableList<ErrorProperty>
-               .Empty.Add(new ErrorProperty("File Id", id.Value)))
+                    await _bucked.DeleteAsync(search.Id, token);
+                    IOperationResult result = await _taskManager.DeleteTask(FilePurgeId.For(id).Value, token);
+
+                    _aggregator.Publish(new FileDeleted(id));
+
+                    return result;
+                },
+                token,
+                () => ImmutableList<ErrorProperty>
+                   .Empty.Add(new ErrorProperty("File Id", id.Value)))
             ).Error;
     }
 }

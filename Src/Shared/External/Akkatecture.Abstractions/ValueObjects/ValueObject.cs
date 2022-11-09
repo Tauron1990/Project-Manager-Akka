@@ -41,9 +41,9 @@ public abstract class ValueObject
 
     public override bool Equals(object? obj)
     {
-        if (ReferenceEquals(this, obj)) return true;
-        if (obj is null) return false;
-        if (GetType() != obj.GetType()) return false;
+        if(ReferenceEquals(this, obj)) return true;
+        if(obj is null) return false;
+        if(GetType() != obj.GetType()) return false;
 
         return obj is ValueObject other && GetEqualityComponents().SequenceEqual(other.GetEqualityComponents());
     }

@@ -15,6 +15,7 @@ public abstract class Middleware : IMiddleware
         {
             if(_store is null)
                 throw new InvalidOperationException("Middleware not Initalized");
+
             return _store;
         }
     }
@@ -34,15 +35,17 @@ public abstract class Middleware : IMiddleware
 
     protected void OnAction<TAction>(Func<IObservable<TAction>, IObservable<object>> runner)
     {
-        _processors.Add(new FilterRegistration(
-            a => a is TAction,
-            o => runner(from a in o
-                        where a is TAction
-                        select (TAction)a)));
+        _processors.Add(
+            new FilterRegistration(
+                a => a is TAction,
+                o => runner(
+                    from a in o
+                    where a is TAction
+                    select (TAction)a)));
     }
 
     private delegate IObservable<object> DispatchNextInternal(IObservable<object> action);
-    
+
     private sealed class FilterRegistration
     {
         private readonly Predicate<object> _filter;

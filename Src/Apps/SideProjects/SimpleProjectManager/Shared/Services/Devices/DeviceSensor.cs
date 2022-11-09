@@ -8,4 +8,4 @@ public enum SensorType
     Number
 }
 
-public sealed record DeviceSensor(string DisplayName, DeviceId Identifer, SensorType SensorType);
+public sealed record DeviceSensor(DisplayName DisplayName, DeviceId Identifer, SensorType SensorType);

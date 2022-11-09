@@ -10,8 +10,10 @@ public class EscapeHelper
 
     public static string Decode(string? input)
     {
-        if (string.IsNullOrEmpty(input)) return string.Empty;
+        if(string.IsNullOrEmpty(input)) return string.Empty;
+
         var data = input.AsSpan();
+
         return Coder.Decode(ref data);
     }
 
@@ -34,7 +36,7 @@ public class EscapeHelper
 
         private static char? GetPartforSequence(string @char)
         {
-            if (Parts.TryGetValue(@char, out var escape))
+            if(Parts.TryGetValue(@char, out char escape))
                 return escape;
 
             return null;
@@ -42,19 +44,19 @@ public class EscapeHelper
 
         private static void TryAddPart(StringBuilder builder, string seq)
         {
-            var part = GetPartforSequence(seq);
-                    
-            if (part is null) builder.Append(EscapeStart, 2).Append(seq);
+            char? part = GetPartforSequence(seq);
+
+            if(part is null) builder.Append(EscapeStart, 2).Append(seq);
             else builder.Append(part.Value);
         }
-        
+
         internal static string Encode(IEnumerable<char> toEncode)
         {
             var builder = new StringBuilder();
-            foreach (var @char in toEncode)
+            foreach (char @char in toEncode)
             {
-                var part = GetPartforChar(@char);
-                if (part is null) builder.Append(@char);
+                string? part = GetPartforChar(@char);
+                if(part is null) builder.Append(@char);
                 else builder.Append(EscapeStart, 2).Append(part);
             }
 
@@ -71,31 +73,33 @@ public class EscapeHelper
 
             while (pos != data.Length)
             {
-                var index = currentBatch.IndexOf(EscapeStart);
-                if (index == -1)
+                int index = currentBatch.IndexOf(EscapeStart);
+                if(index == -1)
                 {
                     builder.Append(currentBatch);
+
                     break;
                 }
 
-                if (currentBatch.Length > 1 && currentBatch[index + 1] == EscapeStart)
+                if(currentBatch.Length > 1 && currentBatch[index + 1] == EscapeStart)
                 {
                     var seq = currentBatch.Slice(index + 1, 3).ToString();
                     TryAddPart(builder, seq);
 
                     pos += index + 5;
                     currentBatch = currentBatch[(index + 5)..];
+
                     continue;
                 }
 
                 pos += index;
                 currentBatch = currentBatch[index..];
             }
-            
+
             return builder.ToString();
         }
         #pragma warning restore EPS06
-        
+
         /*internal static string DecodeOld(IEnumerable<char>? toDecode)
         {
             if (toDecode is null)

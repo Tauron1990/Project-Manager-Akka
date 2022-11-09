@@ -6,7 +6,8 @@ using Tauron.Application.Workshop.StateManagement.Builder;
 
 namespace Tauron.Application.Workshop.StateManagement.Akka;
 
-[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces), PublicAPI]
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)]
+[PublicAPI]
 public class AkkaStateModule : IModule
 {
     public void Load(IServiceCollection collection)

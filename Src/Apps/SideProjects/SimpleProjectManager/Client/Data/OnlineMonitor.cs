@@ -1,6 +1,5 @@
 ﻿using Microsoft.JSInterop;
 using SimpleProjectManager.Client.Shared.Data;
-using SimpleProjectManager.Client.Shared.Services;
 
 namespace SimpleProjectManager.Client.Data;
 
@@ -11,7 +10,7 @@ public sealed class OnlineMonitor : OnlineMonitorBase<OnlineMonitor>
     public OnlineMonitor(HttpClient client, ILogger<OnlineMonitor> logger, Func<IJSRuntime> jsRuntime) : base(client, logger)
         => _jsRuntime = jsRuntime;
 
-    protected override  async ValueTask<bool> RunInternal(CancellationToken token)
+    protected override async ValueTask<bool> RunInternal(CancellationToken token)
     {
         try
         {

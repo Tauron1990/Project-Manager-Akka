@@ -88,7 +88,7 @@ public abstract class Identity<T> : SingleValueObject<string>, IIdentity
 
     public static T With(Guid guid)
     {
-        var value = $"{Name}-{guid:D}";
+        string value = $"{Name}-{guid:D}";
 
         return With(value);
     }
@@ -129,9 +129,9 @@ public abstract class Identity<T> : SingleValueObject<string>, IIdentity
     private readonly Lazy<Guid> _lazyGuid;
 
     public Guid GetGuid() => _lazyGuid.Value;
-    
+
     [UsedImplicitly]
-    public static bool TryParse(string? value, [NotNullWhen(true)]out T? errorId)
+    public static bool TryParse(string? value, [NotNullWhen(true)] out T? errorId)
     {
         if(!string.IsNullOrWhiteSpace(value) && IsValid(value))
         {
@@ -141,6 +141,7 @@ public abstract class Identity<T> : SingleValueObject<string>, IIdentity
         }
 
         errorId = null;
+
         return false;
     }
 }

@@ -18,7 +18,7 @@ public sealed class WeakDelegate : IInternalWeakReference, IEquatable<WeakDelega
     {
         _method = @delegate.Method;
 
-        if (!_method.IsStatic) _reference = new WeakReference(@delegate.Target);
+        if(!_method.IsStatic) _reference = new WeakReference(@delegate.Target);
     }
 
     public WeakDelegate(MethodInfo methodInfo, object target)
@@ -29,8 +29,8 @@ public sealed class WeakDelegate : IInternalWeakReference, IEquatable<WeakDelega
 
     public bool Equals(WeakDelegate? other)
     {
-        if (ReferenceEquals(null, other)) return false;
-        if (ReferenceEquals(this, other)) return true;
+        if(ReferenceEquals(null, other)) return false;
+        if(ReferenceEquals(this, other)) return true;
 
         return other._reference?.Target == _reference?.Target && other._method == _method;
     }
@@ -39,26 +39,26 @@ public sealed class WeakDelegate : IInternalWeakReference, IEquatable<WeakDelega
 
     public static bool operator ==(WeakDelegate? left, WeakDelegate? right)
     {
-        var leftnull = ReferenceEquals(left, null);
-        var rightNull = ReferenceEquals(right, null);
+        bool leftnull = ReferenceEquals(left, null);
+        bool rightNull = ReferenceEquals(right, null);
 
         return !leftnull ? left!.Equals(right!) : rightNull;
     }
 
     public static bool operator !=(WeakDelegate? left, WeakDelegate? right)
     {
-        var leftnull = ReferenceEquals(left, null);
-        var rightNull = ReferenceEquals(right, null);
+        bool leftnull = ReferenceEquals(left, null);
+        bool rightNull = ReferenceEquals(right, null);
 
-        if (!leftnull) return !left!.Equals(right!);
+        if(!leftnull) return !left!.Equals(right!);
 
         return !rightNull;
     }
 
     public override bool Equals(object? obj)
     {
-        if (ReferenceEquals(null, obj)) return false;
-        if (ReferenceEquals(this, obj)) return true;
+        if(ReferenceEquals(null, obj)) return false;
+        if(ReferenceEquals(this, obj)) return true;
 
         return obj is WeakDelegate @delegate && Equals(@delegate);
     }
@@ -67,7 +67,7 @@ public sealed class WeakDelegate : IInternalWeakReference, IEquatable<WeakDelega
     {
         unchecked
         {
-            var target = _reference?.Target;
+            object? target = _reference?.Target;
 
             return ((target != null ? target.GetHashCode() : 0) * 397)
                  ^ _method.GetHashCode();
@@ -76,10 +76,10 @@ public sealed class WeakDelegate : IInternalWeakReference, IEquatable<WeakDelega
 
     public Option<object> Invoke(params object[] parms)
     {
-        if (_method.IsStatic)
+        if(_method.IsStatic)
             return _method.GetMethodInvoker(() => _method.GetParameterTypes()).Invoke(null, parms).OptionNotNull();
 
-        var target = _reference?.Target;
+        object? target = _reference?.Target;
 
         return target == null
             ? Option<object>.None
@@ -116,10 +116,8 @@ public static class WeakCleanUp
         lock (Actions)
         {
             var dead = new List<WeakDelegate>();
-            foreach (var weakDelegate in Actions.ToArray())
-            {
+            foreach (WeakDelegate weakDelegate in Actions.ToArray())
                 InvokeDelegate(weakDelegate, dead);
-            }
 
             dead.ForEach(del => Actions.Remove(del));
         }
@@ -138,7 +136,7 @@ public static class WeakCleanUp
                 }
                 catch (Exception e)
                 {
-                    if (e.IsCriticalException()) throw;
+                    if(e.IsCriticalException()) throw;
                 }
 
                 break;

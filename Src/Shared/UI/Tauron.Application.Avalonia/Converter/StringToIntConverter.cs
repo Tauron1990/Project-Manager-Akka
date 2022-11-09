@@ -2,32 +2,31 @@
 using Avalonia.Data.Converters;
 using JetBrains.Annotations;
 
-namespace Tauron.Application.Avalonia.Converter
+namespace Tauron.Application.Avalonia.Converter;
+
+[PublicAPI]
+public class StringToIntConverter : ValueConverterFactoryBase
 {
-    [PublicAPI]
-    public class StringToIntConverter : ValueConverterFactoryBase
+    protected override IValueConverter Create() => new Converter();
+
+    private class Converter : StringConverterBase<int>
     {
-        protected override IValueConverter Create() => new Converter();
+        protected override bool CanConvertBack => true;
 
-        private class Converter : StringConverterBase<int>
+        protected override string Convert(int value) => value.ToString();
+
+        protected override int ConvertBack(string value)
         {
-            protected override bool CanConvertBack => true;
+            if(string.IsNullOrEmpty(value))
+                return 0;
 
-            protected override string Convert(int value) => value.ToString();
-
-            protected override int ConvertBack(string value)
+            try
             {
-                if (string.IsNullOrEmpty(value))
-                    return 0;
-
-                try
-                {
-                    return int.Parse(value);
-                }
-                catch (Exception e) when (e is ArgumentException || e is FormatException || e is OverflowException)
-                {
-                    return 0;
-                }
+                return int.Parse(value);
+            }
+            catch (Exception e) when (e is ArgumentException || e is FormatException || e is OverflowException)
+            {
+                return 0;
             }
         }
     }

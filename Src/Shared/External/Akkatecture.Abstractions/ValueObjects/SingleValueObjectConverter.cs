@@ -39,7 +39,7 @@ public class SingleValueObjectConverter : JsonConverter
 
     public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
     {
-        if (value is not ISingleValueObject singleValueObject) return;
+        if(value is not ISingleValueObject singleValueObject) return;
 
         serializer.Serialize(writer, singleValueObject.GetValue());
     }
@@ -48,18 +48,18 @@ public class SingleValueObjectConverter : JsonConverter
         JsonReader reader, Type objectType, object? existingValue,
         JsonSerializer serializer)
     {
-        var parameterType = ConstructorArgumenTypes.GetOrAdd(
+        Type parameterType = ConstructorArgumenTypes.GetOrAdd(
             objectType,
             type =>
             {
-                var constructorInfo = type.GetTypeInfo()
+                ConstructorInfo constructorInfo = type.GetTypeInfo()
                    .GetConstructors(BindingFlags.Public | BindingFlags.Instance).Single();
-                var parameterInfo = constructorInfo.GetParameters().Single();
+                ParameterInfo parameterInfo = constructorInfo.GetParameters().Single();
 
                 return parameterInfo.ParameterType;
             });
 
-        var value = serializer.Deserialize(reader, parameterType);
+        object? value = serializer.Deserialize(reader, parameterType);
 
         return Activator.CreateInstance(objectType, value) ?? throw new InvalidOperationException("Could not Create Single Value Object");
     }

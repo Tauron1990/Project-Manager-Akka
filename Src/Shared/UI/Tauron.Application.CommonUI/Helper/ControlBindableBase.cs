@@ -6,7 +6,12 @@ namespace Tauron.Application.CommonUI.Helper;
 public abstract class ControlBindableBase : IControlBindable
 {
     // ReSharper disable once MemberCanBePrivate.Global
-    protected IUIObject Root { [UsedImplicitly] get; private set; } = new Dummy();
+    protected IUIObject Root
+    {
+        [UsedImplicitly]
+        get;
+        private set;
+    } = new Dummy();
 
     protected IUIObject AffectedObject { get; private set; } = new Dummy();
 
@@ -38,7 +43,7 @@ public abstract class ControlBindableBase : IControlBindable
 
         public void Dispose()
         {
-            if (_isDisposed) return;
+            if(_isDisposed) return;
 
             _control.CleanUp();
             _isDisposed = true;

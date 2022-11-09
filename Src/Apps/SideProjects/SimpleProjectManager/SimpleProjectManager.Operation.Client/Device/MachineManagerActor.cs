@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using SimpleProjectManager.Client.Operations.Shared.Devices;
 using SimpleProjectManager.Operation.Client.Config;
 using SimpleProjectManager.Shared.Services.Devices;
+using Tauron.Operations;
 using Tauron.TAkka;
 using static SimpleProjectManager.Client.Operations.Shared.Devices.DeviceManagerMessages;
 
@@ -11,19 +12,17 @@ namespace SimpleProjectManager.Operation.Client.Device;
 
 public sealed partial class MachineManagerActor : ReceiveActor
 {
-    private readonly IMachine _machine;
+    private readonly InterfaceId _deviceName;
     private readonly ILogger<MachineManagerActor> _logger;
     private readonly ILoggerFactory _loggerFactory;
-    private readonly string _deviceName;
-    private readonly string _clientName;
+    private readonly IMachine _machine;
 
     private DeviceInformations _device = DeviceInformations.Empty;
     private IActorRef _serverManager = ActorRefs.Nobody;
-    
+
     public MachineManagerActor(IMachine machine, ILogger<MachineManagerActor> logger, OperationConfiguration configuration, ILoggerFactory loggerFactory)
     {
-        _deviceName = configuration.MachineInterface;
-        _clientName = configuration.Name;
+        _deviceName = configuration.Device.MachineInterface;
         _machine = machine;
         _logger = logger;
         _loggerFactory = loggerFactory;
@@ -45,27 +44,30 @@ public sealed partial class MachineManagerActor : ReceiveActor
 
         while (stack.Count != 0)
         {
-            var ele = stack.Pop();
-            
+            DeviceUiGroup ele = stack.Pop();
+
             ele.Groups.ForEach(stack.Push);
-            
+
             ele.Sensors.ForEach(
                 sen => Context.ActorOf(
-                    () => new MachineSensorActor(_deviceName, _machine, sen, _device.DeviceManager, _loggerFactory.CreateLogger<MachineSensorActor>()),
-                    sen.Identifer));
+                    () => new MachineSensorActor(_device.DeviceId, _machine, sen, _device.DeviceManager, _loggerFactory.CreateLogger<MachineSensorActor>()),
+                    sen.Identifer.Value));
 
             ele.DeviceButtons.ForEach(
                 btn => Context.ActorOf(
-                    () => new MachineButtonHandlerActor(_deviceName, _machine, btn, _device.DeviceManager),
-                    btn.Identifer));
+                    () => new MachineButtonHandlerActor(_device.DeviceId, _machine, btn, _device.DeviceManager),
+                    btn.Identifer.Value));
         }
 
-        Receive<ButtonClick>(c => Context.Child(c.Identifer).Forward(c));
+        if(_device.HasLogs)
+            Context.ActorOf(() => new LoggerActor(_machine, _device.DeviceId));
+        
+        Receive<ButtonClick>(c => Context.Child(c.Identifer.Value).Forward(c));
     }
 
     [LoggerMessage(EventId = 66, Level = LogLevel.Error, Message = "Error on Registrating Device with {error}")]
-    private partial void ErrorOnRegisterDeviceOnServer(string error);
-    
+    private partial void ErrorOnRegisterDeviceOnServer(SimpleResult error);
+
     private void Starting()
     {
         void Invalid() { }
@@ -73,19 +75,20 @@ public sealed partial class MachineManagerActor : ReceiveActor
         Receive<DeviceInfoResponse>(
             response =>
             {
-                if(string.IsNullOrWhiteSpace(response.Error))
+                if(response.Result.IsSuccess())
                 {
                     Become(Running);
+
                     return;
                 }
-                
-                ErrorOnRegisterDeviceOnServer(response.Error);
+
+                ErrorOnRegisterDeviceOnServer(response.Result);
                 Become(Invalid);
             });
     }
 
     [LoggerMessage(EventId = 65, Level = LogLevel.Error, Message = "Error on Collect Device Informations {deviceName}")]
-    private partial void ErrorOnCollectDeviceinformations(Exception ex, string deviceName);
+    private partial void ErrorOnCollectDeviceinformations(Exception ex, InterfaceId deviceName);
 
     protected override void PreStart()
     {
@@ -94,13 +97,14 @@ public sealed partial class MachineManagerActor : ReceiveActor
                .Props(DeviceInformations.ManagerPath, ClusterSingletonProxySettings.Create(Context.System)),
             "ServerConnection");
 
-        Task.Run(async () =>
-                 {
-                     var data = await _machine.CollectInfo();
+        Task.Run(
+                async () =>
+                {
+                    DeviceInformations data = await _machine.CollectInfo();
 
-                     return data with { DeviceName = $"{_clientName}--{data.DeviceName}", DeviceManager = Self };
-                 })
-        .PipeTo(
+                    return data with { DeviceId = data.DeviceId, DeviceManager = Self };
+                })
+           .PipeTo(
                 _serverManager,
                 Self,
                 failure: ex =>
@@ -115,5 +119,6 @@ public sealed partial class MachineManagerActor : ReceiveActor
                              Interlocked.Exchange(ref _device, data);
 
                              return data;
-                         });}
+                         });
+    }
 }

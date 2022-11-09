@@ -29,14 +29,14 @@ namespace Akkatecture.Jobs.Commands;
 public static class Schedule
 {
     public static Schedule<TJob, TId> Fixed<TJob, TId>(TId id, TJob job, DateTime triggerDate)
-        where TId : IJobId where TJob : IJob 
+        where TId : IJobId where TJob : IJob
         => new(id, job, triggerDate);
 
-    public static Schedule<TJob, TId> Repead<TJob, TId>(TId id, TJob job, DateTime triggerDate, TimeSpan interval) 
+    public static Schedule<TJob, TId> Repead<TJob, TId>(TId id, TJob job, DateTime triggerDate, TimeSpan interval)
         where TId : IJobId where TJob : IJob
         => new ScheduleRepeatedly<TJob, TId>(id, job, interval, triggerDate);
 
-    public static Schedule<TJob, TId> Cron<TJob, TId>(TId id, TJob job, DateTime triggerDate, string expression) 
+    public static Schedule<TJob, TId> Cron<TJob, TId>(TId id, TJob job, DateTime triggerDate, string expression)
         where TJob : IJob where TId : IJobId
         => new ScheduleCron<TJob, TId>(id, job, expression, triggerDate);
 }
@@ -54,8 +54,8 @@ public class Schedule<TJob, TIdentity> : SchedulerCommand<TJob, TIdentity>
         object? nack = null)
         : base(jobId, ack, nack)
     {
-        if (job == null) throw new ArgumentNullException(nameof(job));
-        if (triggerDate == default) throw new ArgumentException(nameof(triggerDate));
+        if(job == null) throw new ArgumentNullException(nameof(job));
+        if(triggerDate == default) throw new ArgumentException(nameof(triggerDate));
 
         Job = job;
         TriggerDate = triggerDate;

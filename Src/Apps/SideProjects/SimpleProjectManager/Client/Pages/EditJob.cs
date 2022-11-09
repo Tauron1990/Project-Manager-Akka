@@ -6,15 +6,15 @@ namespace SimpleProjectManager.Client.Pages;
 
 public partial class EditJob
 {
+    private Action<JobEditorCommit> _commitAction = _ => { };
+
     [Parameter]
     public string ProjectId { get; set; } = string.Empty;
-
-    private Action<JobEditorCommit> _commitAction = _ => { };
 
     protected override IEnumerable<IDisposable> InitializeModel()
     {
 
-        if (ViewModel == null) yield break;
+        if(ViewModel == null) yield break;
 
         ViewModel.JobId.Set(ProjectId);
         _commitAction = ViewModel.Commit.ToAction();

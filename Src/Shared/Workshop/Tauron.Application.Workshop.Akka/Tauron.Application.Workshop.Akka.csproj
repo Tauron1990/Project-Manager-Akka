@@ -8,8 +8,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\Common\Tauron.Application.Common.Akka\Tauron.Application.Common.Akka.csproj" />
-      <ProjectReference Include="..\Tauron.Application.Workshop\Tauron.Application.Workshop.csproj" />
+        <ProjectReference Include="..\..\Common\Tauron.Application.Common.Akka\Tauron.Application.Common.Akka.csproj"/>
+        <ProjectReference Include="..\Tauron.Application.Workshop\Tauron.Application.Workshop.csproj"/>
     </ItemGroup>
 
 </Project>

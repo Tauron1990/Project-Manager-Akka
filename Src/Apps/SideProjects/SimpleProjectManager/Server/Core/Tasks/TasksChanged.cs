@@ -2,5 +2,5 @@
 
 public sealed record TasksChanged
 {
-    public static readonly TasksChanged Inst = new ();
+    public static readonly TasksChanged Inst = new();
 }

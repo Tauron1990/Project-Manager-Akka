@@ -21,6 +21,7 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+using System;
 using Akka.Actor;
 using Akka.Event;
 using Akkatecture.Aggregates;
@@ -39,13 +40,13 @@ public class SingletonDomainEventSubscriberDispatcher<TDomainEventSubscriber> : 
     {
         Logger = Context.GetLogger();
         DomainEventProxy = domainEventProxy;
-        var subscriberType = typeof(TDomainEventSubscriber);
+        Type subscriberType = typeof(TDomainEventSubscriber);
 
         var subscriptionTypes =
             subscriberType
                .GetDomainEventSubscriptionTypes();
 
-        foreach (var type in subscriptionTypes) Context.System.EventStream.Subscribe(Self, type);
+        foreach (Type type in subscriptionTypes) Context.System.EventStream.Subscribe(Self, type);
 
         Receive<IDomainEvent>(Dispatch);
     }

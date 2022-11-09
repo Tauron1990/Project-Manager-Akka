@@ -16,17 +16,17 @@ public sealed class JobPriorityViewModel : JobPriorityViewModelBase, IParameterU
     private readonly IStateFactory _factory;
     private readonly IMessageDispatcher _messageDispatcher;
 
-    public JobPriorityViewModel(GlobalState globalState, IStateFactory factory, IMessageDispatcher messageDispatcher) 
+    public JobPriorityViewModel(GlobalState globalState, IStateFactory factory, IMessageDispatcher messageDispatcher)
         : base(globalState)
     {
         _factory = factory;
         _messageDispatcher = messageDispatcher;
     }
 
+    public ParameterUpdater Updater { get; } = new();
+
     protected override IObservable<ImmutableList<JobSortOrderPair>> GetActivePairs()
         => Updater
            .Register<ImmutableList<JobSortOrderPair>>(nameof(JobPriorityControl.ActivePairs), _factory)
            .ToObservable(_messageDispatcher.PropagateErrors());
-
-    public ParameterUpdater Updater { get; } = new();
 }

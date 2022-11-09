@@ -8,8 +8,6 @@ namespace Servicemnager.Networking.IPC;
 [ValueObject(typeof(string))]
 public readonly partial struct SharmComunicatorMessage
 {
-    
-    
     private static Validation Validate(string value)
         => throw new InvalidOperationException("Not Allowed to Create Custom");
 }

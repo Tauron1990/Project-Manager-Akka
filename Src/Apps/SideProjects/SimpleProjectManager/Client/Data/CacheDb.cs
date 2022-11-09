@@ -8,9 +8,9 @@ namespace SimpleProjectManager.Client.Data;
 
 public sealed class CacheDb : ICacheDb
 {
+    private readonly IEventAggregator _eventAggregator;
     private readonly IJSRuntime _jsRuntime;
     private DatabaseConnection? _dbContext;
-    private readonly IEventAggregator _eventAggregator;
 
     public CacheDb(IJSRuntime jsRuntime, IEventAggregator eventAggregator)
     {
@@ -18,15 +18,12 @@ public sealed class CacheDb : ICacheDb
         _eventAggregator = eventAggregator;
     }
 
-    private DatabaseConnection GetDatabseConnection()
-        => _dbContext ??= new DatabaseConnection(_jsRuntime);
-
     public async ValueTask DeleteElement(CacheTimeoutId key)
     {
         try
         {
-            var db = GetDatabseConnection();
-            var (sucess, message) = await db.DeleteTimeoutElement(key);
+            DatabaseConnection db = GetDatabseConnection();
+            (bool sucess, string? message) = await db.DeleteTimeoutElement(key);
 
             if(sucess) return;
 
@@ -40,7 +37,7 @@ public sealed class CacheDb : ICacheDb
 
     public async ValueTask DeleteElement(CacheDataId key)
     {
-        var db = GetDatabseConnection();
+        DatabaseConnection db = GetDatabseConnection();
         await db.DeleteElement(key);
     }
 
@@ -48,12 +45,12 @@ public sealed class CacheDb : ICacheDb
     {
         try
         {
-            var db = GetDatabseConnection();
+            DatabaseConnection db = GetDatabseConnection();
             var all = await db.GetTimeoutElements();
 
-            var entry = (from cacheTimeout in all
-                         orderby cacheTimeout.Timeout
-                         select cacheTimeout)
+            CacheTimeout? entry = (from cacheTimeout in all
+                                   orderby cacheTimeout.Timeout
+                                   select cacheTimeout)
                .FirstOrDefault();
 
             return entry is null ? default : (entry.Id, entry.DataKey, entry.Timeout);
@@ -66,26 +63,11 @@ public sealed class CacheDb : ICacheDb
         }
     }
 
-    private static DateTime GetTimeout()
-        => DateTime.UtcNow + TimeSpan.FromDays(7);
-
-    private async ValueTask UpdateTimeout(CacheDataId key)
-    {
-        var db = GetDatabseConnection();
-
-        var id = CacheTimeoutId.FromCacheId(key);
-        var timeout = await db.GetTimeout(id);
-        await db.UpdateTimeout(
-            timeout is null
-                ? new CacheTimeout(id, key, GetTimeout())
-                : timeout with { Timeout = GetTimeout() });
-    }
-
     public async ValueTask TryAddOrUpdateElement(CacheDataId key, string data)
     {
         try
         {
-            var db = GetDatabseConnection();
+            DatabaseConnection db = GetDatabseConnection();
 
             var cacheData = new CacheData(key, data);
 
@@ -101,8 +83,8 @@ public sealed class CacheDb : ICacheDb
 
     public async ValueTask<string?> ReNewAndGet(CacheDataId key)
     {
-        var db = GetDatabseConnection();
-        var result = await db.GetCacheEntry(key);
+        DatabaseConnection db = GetDatabseConnection();
+        CacheData? result = await db.GetCacheEntry(key);
 
         // ReSharper disable once ConditionIsAlwaysTrueOrFalse
         if(result is null) return null;
@@ -110,6 +92,24 @@ public sealed class CacheDb : ICacheDb
         await UpdateTimeout(key);
 
         return result.Data;
+    }
+
+    private DatabaseConnection GetDatabseConnection()
+        => _dbContext ??= new DatabaseConnection(_jsRuntime);
+
+    private static DateTime GetTimeout()
+        => DateTime.UtcNow + TimeSpan.FromDays(7);
+
+    private async ValueTask UpdateTimeout(CacheDataId key)
+    {
+        DatabaseConnection db = GetDatabseConnection();
+
+        CacheTimeoutId id = CacheTimeoutId.FromCacheId(key);
+        CacheTimeout? timeout = await db.GetTimeout(id);
+        await db.UpdateTimeout(
+            timeout is null
+                ? new CacheTimeout(id, key, GetTimeout())
+                : timeout with { Timeout = GetTimeout() });
     }
 
     private sealed record InternalResult(bool Sucess, string? Message);
@@ -149,6 +149,7 @@ public sealed class CacheDb : ICacheDb
         {
             #if DEBUG
             await Task.CompletedTask;
+
             return null;
             #else
             var result = await _reference.InvokeAsync<string>("window.Database.getCacheEntry", id.ToString());

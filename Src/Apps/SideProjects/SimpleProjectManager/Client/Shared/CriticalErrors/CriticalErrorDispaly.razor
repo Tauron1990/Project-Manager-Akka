@@ -1,10 +1,10 @@
 ﻿@inherits NonAutoRenderingView<SimpleProjectManager.Client.ViewModels.CriticalErrorViewModel>
 
 @{
-    var item = ViewModel?.Item;
+    CriticalError? item = ViewModel?.Item;
 }
 
-@if (item is not null)
+@if(item is not null)
 {
     <MudPaper Class="ma-2" Elevation="3">
         <MudExpansionPanels>
@@ -34,13 +34,13 @@
                                     <MudText>Kontext Informationen</MudText>
                                 </MudCardHeader>
                                 <MudCardContent>
-                                    @if (item.ContextData.IsEmpty)
+                                    @if(item.ContextData.IsEmpty)
                                     {
                                         <MudText>Keine Kontext Informationen</MudText>
                                     }
                                     else
                                     {
-                                        @foreach (var (key, value) in item.ContextData)
+                                        @foreach ((PropertyName key, PropertyValue value) in item.ContextData)
                                         {
                                             <MudText>@($"{key} -- {value}")</MudText>
                                         }

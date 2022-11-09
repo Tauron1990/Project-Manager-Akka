@@ -3,7 +3,6 @@ using SpaceConqueror.Core;
 using SpaceConqueror.Modules;
 using SpaceConqueror.Rules.Rooms;
 using SpaceConqueror.States;
-using SpaceConqueror.States.Actors;
 using SpaceConqueror.States.GameTime;
 using SpaceConqueror.States.Rooms;
 
@@ -13,7 +12,7 @@ namespace SpaceConqueror.Rules.Manager;
 public sealed class ManagerModule : ModuleBase
 {
     public override string Name => "Processors";
-    
+
     public override ValueTask Initialize(ModuleConfiguration config, Action<string> messages)
     {
         messages("Systeme werden Geladen");
@@ -27,7 +26,7 @@ public sealed class ManagerModule : ModuleBase
         config.Rules.Register<RoomUpdater>();
 
         config.Roonms.Register(GameManager.FailRoom);
-        
+
         return default;
     }
 }

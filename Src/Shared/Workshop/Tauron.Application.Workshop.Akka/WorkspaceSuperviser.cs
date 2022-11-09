@@ -11,13 +11,11 @@ internal class SuprvisorExt : IExtension
     private WorkspaceSuperviser? _superviser;
 
     public SuprvisorExt(ActorSystem system)
-    {
-        _system = system;
-    }
+        => _system = system;
 
     public WorkspaceSuperviser GetOrInit(string name)
     {
-        if (_superviser is not null) return _superviser;
+        if(_superviser is not null) return _superviser;
 
         _superviser = new WorkspaceSuperviser(_system, name);
 
@@ -28,29 +26,28 @@ internal class SuprvisorExt : IExtension
 internal class SupervisorExtProv : ExtensionIdProvider<SuprvisorExt>
 {
     public static SupervisorExtProv Inst = new();
-    
-    public override SuprvisorExt CreateExtension(ExtendedActorSystem system)
-        => new SuprvisorExt(system);
+
+    public override SuprvisorExt CreateExtension(ExtendedActorSystem system) => new(system);
 }
 
 [PublicAPI]
 public sealed class WorkspaceSuperviser
 {
+    public WorkspaceSuperviser(IActorRefFactory context, string? name = null)
+        => Superviser = context.ActorOf<WorkspaceSuperviserActor>(name);
+
+    internal WorkspaceSuperviser()
+        => Superviser = ActorRefs.Nobody;
+
+    private IActorRef Superviser { get; }
+
     public static WorkspaceSuperviser Get(ActorSystem actorSystem, string? name = null)
     {
-        if (string.IsNullOrWhiteSpace(name))
+        if(string.IsNullOrWhiteSpace(name))
             name = "Workspace-Superviser";
 
         return actorSystem.WithExtension<SuprvisorExt>(typeof(SupervisorExtProv)).GetOrInit(name);
     }
-    
-    public WorkspaceSuperviser(IActorRefFactory context, string? name = null)
-        => Superviser = context.ActorOf<WorkspaceSuperviserActor>(name);
-
-    internal WorkspaceSuperviser() 
-        => Superviser = ActorRefs.Nobody;
-
-    private IActorRef Superviser { get; }
 
     public async Task<IActorRef> Create(Props props, string name)
     {

@@ -15,7 +15,7 @@ public record IniFile(ImmutableDictionary<string, IniSection> Sections) : IEnume
     public IniFile()
         : this(ImmutableDictionary<string, IniSection>.Empty) { }
 
-    public IniSection? this[string name] => Sections.TryGetValue(name, out var section) ? section : null;
+    public IniSection? this[string name] => Sections.TryGetValue(name, out IniSection? section) ? section : null;
 
     public IEnumerator<IniSection> GetEnumerator() => Sections.Values.GetEnumerator();
 
@@ -33,18 +33,18 @@ public record IniFile(ImmutableDictionary<string, IniSection> Sections) : IEnume
 
     public string GetData(string name, string sectionName, string defaultValue)
     {
-        var keyData = this[sectionName]?.GetSingleEntry(name);
+        SingleIniEntry? keyData = this[sectionName]?.GetSingleEntry(name);
 
-        if (keyData == null) return string.Empty;
+        if(keyData == null) return string.Empty;
 
         return string.IsNullOrWhiteSpace(keyData.Value) ? defaultValue : keyData.Value;
     }
 
     public IniFile SetData(string sectionName, string name, string value)
     {
-        var section = this[sectionName];
+        IniSection? section = this[sectionName];
 
-        if (section != null)
+        if(section != null)
             return this with { Sections = Sections.SetItem(sectionName, section with { Entries = section.Entries.SetItem(name, new SingleIniEntry(name, value)) }) };
 
         return this with { Sections = Sections.Add(sectionName, new IniSection(sectionName, ImmutableDictionary<string, IniEntry>.Empty.Add(name, new SingleIniEntry(name, value)))) };
@@ -52,9 +52,9 @@ public record IniFile(ImmutableDictionary<string, IniSection> Sections) : IEnume
 
     public IniFile SetData(string sectionName, string name, IEnumerable<string> value)
     {
-        var section = this[sectionName];
+        IniSection? section = this[sectionName];
 
-        if (section != null)
+        if(section != null)
             return this with { Sections = Sections.SetItem(sectionName, section with { Entries = section.Entries.SetItem(name, new ListIniEntry(name, value)) }) };
 
         return this with { Sections = Sections.Add(sectionName, new IniSection(sectionName, ImmutableDictionary<string, IniEntry>.Empty.Add(name, new ListIniEntry(name, value)))) };

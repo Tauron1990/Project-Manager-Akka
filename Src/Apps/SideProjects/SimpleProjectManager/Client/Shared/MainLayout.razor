@@ -8,7 +8,7 @@
 
 <MudThemeProvider Theme="_darkTheme"/>
 <MudDialogProvider DisableBackdropClick="true" CloseButton="true" Position="DialogPosition.Center"/>
-<MudSnackbarProvider />
+<MudSnackbarProvider/>
 
 <MudLayout>
     <MainAppBar ToggleDrawer="ToggleDrawer"/>
@@ -22,7 +22,7 @@
                 <ObservableRenderer Observable="_globalState.IsOnline">
                     <Waiting></Waiting>
                     <ValueRenderer>
-                        @if (!context)
+                        @if(!context)
                         {
                             <MudItem lg="12">
                                 <MudAlert Dense="true" Severity="Severity.Error">

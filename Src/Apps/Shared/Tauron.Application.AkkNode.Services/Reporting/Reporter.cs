@@ -27,9 +27,9 @@ public sealed class Reporter
         => new(factory.ActorOf(Props.Create(() => new ReporterActor()).WithSupervisorStrategy(SupervisorStrategy.StoppingStrategy), name));
 
     public static IActorRef CreateListner(
-        IActorRefFactory factory, Action<string> listner,
-        #pragma warning disable EPS05
-        Action<IOperationResult> onCompled, Duration? timeout, string? name = null)
+            IActorRefFactory factory, Action<string> listner,
+            #pragma warning disable EPS05
+            Action<IOperationResult> onCompled, Duration? timeout, string? name = null)
         #pragma warning restore EPS05
         => factory.ActorOf(
             Props.Create(() => new Listner(listner, onCompled, timeout))
@@ -66,7 +66,7 @@ public sealed class Reporter
         string? name, Action<Task<IOperationResult>> onCompled)
     {
         var source = new TaskCompletionSource<IOperationResult>();
-        var actor = CreateListner(factory, listner, source, timeout, name);
+        IActorRef actor = CreateListner(factory, listner, source, timeout, name);
         onCompled(source.Task);
 
         return actor;
@@ -102,7 +102,7 @@ public sealed class Reporter
         string? name, out Task<IOperationResult> onCompled)
     {
         var source = new TaskCompletionSource<IOperationResult>();
-        var actor = CreateListner(factory, listner, source, timeout, name);
+        IActorRef actor = CreateListner(factory, listner, source, timeout, name);
         onCompled = source.Task;
 
         return actor;
@@ -115,9 +115,9 @@ public sealed class Reporter
 
     public Reporter Listen(IActorRef actor)
     {
-        if (_reporter.IsNobody()) return this;
+        if(_reporter.IsNobody()) return this;
 
-        if (_compledCalled.Value)
+        if(_compledCalled.Value)
             throw new InvalidOperationException("Reporter is Compled");
 
         _reporter.Tell(new ListeningActor(actor));
@@ -127,9 +127,9 @@ public sealed class Reporter
 
     public void Send(string message)
     {
-        if (_reporter.IsNobody()) return;
+        if(_reporter.IsNobody()) return;
 
-        if (_compledCalled.Value)
+        if(_compledCalled.Value)
             throw new InvalidOperationException("Reporter is Compled");
 
         _reporter.Tell(new TransferedMessage(message));
@@ -137,9 +137,9 @@ public sealed class Reporter
 
     public void Compled(IOperationResult result)
     {
-        if (_reporter.IsNobody()) return;
+        if(_reporter.IsNobody()) return;
 
-        if (_compledCalled.GetAndSet(newValue: true))
+        if(_compledCalled.GetAndSet(newValue: true))
             throw new InvalidOperationException("Reporter is Compled");
 
         _reporter.Tell(result);
@@ -156,7 +156,7 @@ public sealed class Reporter
             Receive<IOperationResult>(
                 c =>
                 {
-                    if (_compled) return;
+                    if(_compled) return;
 
                     _compled = true;
                     Context.Stop(Self);
@@ -164,7 +164,7 @@ public sealed class Reporter
                 });
             Receive<TransferedMessage>(m => listner(m.Message));
 
-            if (timeSpan is null)
+            if(timeSpan is null)
                 return;
 
             Task.Delay(timeSpan.Value.ToTimeSpan()).PipeTo(Self, success: () => OperationResult.Failure(new Error(TimeoutError, TimeoutError)));
@@ -183,13 +183,13 @@ public sealed class Reporter
             Receive<TransferedMessage>(
                 msg =>
                 {
-                    foreach (var actorRef in _listner) actorRef.Forward(msg);
+                    foreach (IActorRef actorRef in _listner) actorRef.Forward(msg);
                 });
 
             Receive<IOperationResult>(
                 msg =>
                 {
-                    foreach (var actorRef in _listner) actorRef.Forward(msg);
+                    foreach (IActorRef actorRef in _listner) actorRef.Forward(msg);
                     Context.Stop(Self);
                 });
 

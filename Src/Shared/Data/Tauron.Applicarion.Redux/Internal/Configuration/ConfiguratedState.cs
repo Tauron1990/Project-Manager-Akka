@@ -4,8 +4,8 @@ namespace Tauron.Applicarion.Redux.Internal.Configuration;
 
 public sealed class ConfiguratedState<TState> : IConfiguredState where TState : new()
 {
-    private readonly Action<IRootStore>? _onCreate;
     private readonly List<Action<IRootStore, IReduxStore<TState>>> _config;
+    private readonly Action<IRootStore>? _onCreate;
 
     public ConfiguratedState(Action<IRootStore>? onCreate, List<Action<IRootStore, IReduxStore<TState>>> config)
     {

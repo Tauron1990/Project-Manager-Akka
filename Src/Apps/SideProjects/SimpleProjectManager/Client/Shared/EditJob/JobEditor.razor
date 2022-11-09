@@ -1,10 +1,10 @@
 ﻿@inherits NonAutoRenderingView<SimpleProjectManager.Client.ViewModels.JobEditorViewModel>
 
-@if (ViewModel?.Data is not null)
+@if(ViewModel?.Data is not null)
 {
     <MudCard Style="@Style">
 
-        @if (!string.IsNullOrWhiteSpace(Title))
+        @if(!string.IsNullOrWhiteSpace(Title))
         {
             <MudCardHeader>
                 <MudText Typo="Typo.h2">@Title</MudText>
@@ -16,16 +16,16 @@
                     <MudForm @ref="_editorForm" IsValid="ViewModel.IsValid" IsValidChanged="ViewModel.IsValidChanged">
                         <MudTextField @bind-Value="ViewModel.Data.JobName" Label="Job Name" Validation="ViewModel.ProjectNameValidator" DebounceInterval="100"/>
                         <MudDatePicker @bind-Date="ViewModel.Data.Deadline" Label="Termin" Validation="ViewModel.DeadlineValidator"/>
-                        @if (StatusEditing)
+                        @if(StatusEditing)
                         {
                             <MudSelect @bind-Value="@ViewModel.Data.Status">
-                                @foreach (var stat in Enum.GetValues<ProjectStatus>())
+                                @foreach (ProjectStatus stat in Enum.GetValues<ProjectStatus>())
                                 {
                                     <MudSelectItem Value="stat">@JobTranslator.GetString(stat)</MudSelectItem>
                                 }
                             </MudSelect>
                         }
-                        @if (SortOrderEditing)
+                        @if(SortOrderEditing)
                         {
                             <MudTextField @bind-Value="ViewModel.Data.Ordering" Label="Sortier Position"/>
                         }

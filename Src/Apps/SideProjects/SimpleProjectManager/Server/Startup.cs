@@ -5,7 +5,6 @@ using Akka.Persistence;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.ResponseCompression;
-using SimpleProjectManager.Client.Operations.Shared;
 using SimpleProjectManager.Server.Configuration;
 using SimpleProjectManager.Server.Controllers.ModelBinder;
 using SimpleProjectManager.Server.Core.DeviceManager;
@@ -31,7 +30,7 @@ public class Startup
     // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
     public void ConfigureServices(IServiceCollection services)
     {
-        var fusion = services.AddFusion();
+        FusionBuilder fusion = services.AddFusion();
         fusion
            .AddComputeService<IJobDatabaseService, JobDatabaseService>()
            .AddComputeService<IJobFileService, JobFileService>()
@@ -72,20 +71,21 @@ public class Startup
     {
         StartConfigManager.ConfigManager.ConfigurateApp(builder);
         builder
-           .ConfigureAkka((_, configurationBuilder) =>
-                          {
-                              configurationBuilder
-                                 .WithDistributedPubSub("ProjectManager")
-                                 .AddHocon("akka.cluster.roles = [\"Master\"]")
-                                 .AddStartup((sys, _) => Persistence.Instance.Apply(sys));
-                          })
+           .ConfigureAkka(
+                (_, configurationBuilder) =>
+                {
+                    configurationBuilder
+                       .WithDistributedPubSub("ProjectManager")
+                       .AddHocon("akka.cluster.roles = [\"Master\"]")
+                       .AddStartup((sys, _) => Persistence.Instance.Apply(sys));
+                })
            .OnMemberRemoved(
                 (_, system, _) =>
                 {
                     try
                     {
-                        using var resolverScope = DependencyResolver.For(system).Resolver.CreateScope();
-                        var resolver = resolverScope.Resolver;
+                        using IResolverScope? resolverScope = DependencyResolver.For(system).Resolver.CreateScope();
+                        IDependencyResolver? resolver = resolverScope.Resolver;
                         resolver.GetService<IHostApplicationLifetime>().StopApplication();
                     }
                     catch (ObjectDisposedException) { }
@@ -102,7 +102,7 @@ public class Startup
     {
         app.UseResponseCompression();
 
-        if (env.IsDevelopment())
+        if(env.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();
             app.UseWebAssemblyDebugging();
@@ -130,7 +130,9 @@ public class Startup
                 endpoints.MapFusionWebSocketServer();
                 endpoints.MapRazorPages();
                 endpoints.MapControllers();
-                endpoints.MapFallbackToPage("/_Host");
+
+                endpoints.MapFallbackToController("NothingToSee", "Index");
+                //endpoints.MapFallbackToPage("/_Host");
             });
     }
 }

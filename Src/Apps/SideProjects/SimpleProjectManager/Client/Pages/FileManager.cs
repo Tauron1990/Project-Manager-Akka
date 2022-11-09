@@ -17,14 +17,14 @@ public partial class FileManager
 
     protected override IEnumerable<IDisposable> InitializeModel()
     {
-        if (ViewModel == null) yield break;
+        if(ViewModel == null) yield break;
 
         _deleteFile = ViewModel.DeleteFile?.ToAction();
 
         yield return ViewModel.ConfirmDelete.RegisterHandler(
             async c =>
             {
-                var result = await DialogService.ShowMessageBox(
+                bool? result = await DialogService.ShowMessageBox(
                     new MessageBoxOptions
                     {
                         Title = "Datei Löschen",

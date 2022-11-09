@@ -1,25 +1,25 @@
 ﻿using System.Collections.Immutable;
 using FluentValidation.Results;
+using SimpleProjectManager.Client.Operations.Shared;
 
 namespace SimpleProjectManager.Operation.Client.Config;
 
 public sealed record OperationConfiguration(
-    string ServerIp, int ServerPort, int AkkaPort, bool ImageEditor, bool Device, string MachineInterface,
-    string Name, string Path)
+    ServerIp ServerIp, Port ServerPort, Port AkkaPort, ObjectName Name, DeviceData Device, EditorData Editor)
 {
     public OperationConfiguration()
-        : this(string.Empty, -1, -1, false, false, string.Empty, string.Empty, string.Empty){}
+        : this(ServerIp.Empty, Port.Empty, Port.Empty, ObjectName.Empty,  new DeviceData(), new EditorData()) { }
 
     public string ServerUrl
         => $"http://{ServerIp}:{ServerPort}";
 
     public string AkkaUrl
-        => $"akka.tcp://SimpleProjectManager-Server@{ServerIp}:{AkkaPort}";
-    
+        => $"akka.tcp://SimpleProjectManager-Server@{ServerIp}:{AkkaPort}"; 
+
     public async ValueTask<ImmutableList<ValidationFailure>> Validate()
     {
         var validator = new ConfigurationValidator();
-        var validationResult = await validator.ValidateAsync(this);
+        ValidationResult? validationResult = await validator.ValidateAsync(this);
 
         return !validationResult.IsValid ? validationResult.Errors.ToImmutableList() : ImmutableList<ValidationFailure>.Empty;
     }

@@ -14,7 +14,7 @@ public sealed class AkkaConfig : ConfigExtension
            .Where(p => p.Key.StartsWith("akka"))
            .Aggregate(new StringBuilder(), (builder, pair) => builder.AppendLine($"{pair.Key}:{pair.Value}"))
            .ToString();
-        
+
         applicationBuilder.ConfigureAkka((_, b) => b.AddHocon(ConfigurationFactory.ParseString(hoconBuilder)));
     }
 }

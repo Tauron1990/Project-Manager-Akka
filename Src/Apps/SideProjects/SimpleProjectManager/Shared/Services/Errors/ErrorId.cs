@@ -11,5 +11,5 @@ public sealed class ErrorId : Identity<ErrorId>
 
     [UsedImplicitly]
     public static bool TryParse(string? value, IFormatProvider? provider, [NotNullWhen(true)] out ErrorId? errorId)
-        => Identity<ErrorId>.TryParse(value, out errorId);
+        => TryParse(value, out errorId);
 }

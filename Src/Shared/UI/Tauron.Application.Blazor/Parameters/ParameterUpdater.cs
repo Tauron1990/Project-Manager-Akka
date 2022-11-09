@@ -17,14 +17,14 @@ public sealed class ParameterUpdater
         if(string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
 
-        if (_registrations.TryGetValue(name, out var states))
+        if(_registrations.TryGetValue(name, out var states))
         {
-            var oldState = states.FirstOrDefault(s => s.Computed.OutputType == typeof(TValue));
+            IMutableState? oldState = states.FirstOrDefault(s => s.Computed.OutputType == typeof(TValue));
 
-            if (oldState != null)
+            if(oldState != null)
                 return (IMutableState<TValue>)oldState;
         }
-        
+
         var state = stateFactory.NewMutable(new MutableState<TValue>.Options());
         _registrations.Add(name, state);
 
@@ -34,18 +34,16 @@ public sealed class ParameterUpdater
     public void UpdateParameters(ParameterView parameterView)
     {
         var parameters = parameterView.ToDictionary();
-        
-        foreach (var (key, states) in _registrations)
-        {
-            if (parameters.TryGetValue(key, out var value))
+
+        foreach ((string key, var states) in _registrations)
+            if(parameters.TryGetValue(key, out object? value))
                 states.Foreach(s => s.Set(Result.Value(value)));
             else
                 states.Foreach(
                     s =>
                     {
-                        var defaultValue = s.Computed.OutputType.IsValueType ? Activator.CreateInstance(s.Computed.OutputType) : null;
+                        object? defaultValue = s.Computed.OutputType.IsValueType ? Activator.CreateInstance(s.Computed.OutputType) : null;
                         s.Set(Result.Value(defaultValue));
                     });
-        }
     }
 }

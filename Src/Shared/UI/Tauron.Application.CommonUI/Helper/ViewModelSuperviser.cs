@@ -8,8 +8,8 @@ using Akka.DependencyInjection;
 using Akka.Util;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
-using Tauron.TAkka;
 using Tauron.Application.CommonUI.Model;
+using Tauron.TAkka;
 
 namespace Tauron.Application.CommonUI.Helper;
 
@@ -36,7 +36,7 @@ public sealed class ViewModelSuperviser
 
     public void Create(IViewModel model, string? name = null)
     {
-        if (model is ViewModelActorRef actualModel)
+        if(model is ViewModelActorRef actualModel)
             _coordinator.Tell(new CreateModel(actualModel, name));
         else
             throw new InvalidOperationException($"Model mot Compatible with {nameof(ViewModelActorRef)}");
@@ -66,12 +66,12 @@ public sealed partial class ViewModelSuperviserActor : ObservableActor
 
     private void NewModel(ViewModelSuperviser.CreateModel obj)
     {
-        if (obj.Model.IsInitialized) return;
+        if(obj.Model.IsInitialized) return;
 
         _count++;
 
-        var props = DependencyResolver.For(Context.System).Props(obj.Model.ModelType);
-        var actor = Context.ActorOf(props, obj.Name ?? $"{obj.Model.ModelType.Name}--{_count}");
+        Props? props = DependencyResolver.For(Context.System).Props(obj.Model.ModelType);
+        IActorRef? actor = Context.ActorOf(props, obj.Name ?? $"{obj.Model.ModelType.Name}--{_count}");
 
         obj.Model.Init(actor);
     }
@@ -94,15 +94,15 @@ public sealed partial class ViewModelSuperviserActor : ObservableActor
         protected override Directive Handle(IActorRef child, Exception exception)
         {
             // ReSharper disable once HeapView.CanAvoidClosure
-            var decider = _deciders.GetOrAdd(child, _ => _decider());
+            IDecider decider = _deciders.GetOrAdd(child, _ => _decider());
 
             return decider.Decide(exception);
         }
 
         public override void ProcessFailure(IActorContext context, bool restart, IActorRef child, Exception cause, ChildRestartStats stats, IReadOnlyCollection<ChildRestartStats> children)
         {
-            if (restart)
-                RestartChild(child, cause, suspendFirst: false);
+            if(restart)
+                RestartChild(child, cause, false);
             else
                 context.Stop(child);
         }
@@ -126,23 +126,14 @@ public sealed partial class ViewModelSuperviserActor : ObservableActor
         private int _restartAtempt;
 
         internal CircuitBreakerDecider(ILogger log) => _logger = log;
-        
-        [LoggerMessage(EventId = 52, Level = LogLevel.Error, Message = "Initialization Error from Model: {actor}")]
-        private partial void ActorInitializationError(Exception ex, string actor);
-        
-        [LoggerMessage(EventId = 53, Level = LogLevel.Error, Message = "DeathPactException In Model")]
-        private partial void DeathPactError(Exception ex);
 
-        [LoggerMessage(EventId = 54, Level = LogLevel.Error, Message = "Unhandelt Error from Model")]
-        private partial void UnhandhandeltError(Exception ex);
-        
         public Directive Decide(Exception cause)
         {
             switch (cause)
             {
                 case ActorInitializationException m:
                     ActorInitializationError(m.InnerException ?? m, m.Actor?.Path.Name ?? "Unkowen");
-                    
+
                     return Directive.Escalate;
                 case DeathPactException d:
                     DeathPactError(d);
@@ -162,7 +153,7 @@ public sealed partial class ViewModelSuperviserActor : ObservableActor
 
                     return Directive.Restart;
                 case InternalState.HalfOpen:
-                    if (_time.Elapsed > TimeSpan.FromMinutes(2))
+                    if(_time.Elapsed > TimeSpan.FromMinutes(2))
                     {
                         _currentState = InternalState.Closed;
 
@@ -173,10 +164,8 @@ public sealed partial class ViewModelSuperviserActor : ObservableActor
 
                     _time.Restart();
 
-                    if (_restartAtempt > 6)
-                    {
+                    if(_restartAtempt > 6)
                         return Directive.Escalate;
-                    }
 
                     _currentState = InternalState.Closed;
 
@@ -185,6 +174,15 @@ public sealed partial class ViewModelSuperviserActor : ObservableActor
                     return Directive.Escalate;
             }
         }
+
+        [LoggerMessage(EventId = 52, Level = LogLevel.Error, Message = "Initialization Error from Model: {actor}")]
+        private partial void ActorInitializationError(Exception ex, string actor);
+
+        [LoggerMessage(EventId = 53, Level = LogLevel.Error, Message = "DeathPactException In Model")]
+        private partial void DeathPactError(Exception ex);
+
+        [LoggerMessage(EventId = 54, Level = LogLevel.Error, Message = "Unhandelt Error from Model")]
+        private partial void UnhandhandeltError(Exception ex);
 
         private enum InternalState
         {

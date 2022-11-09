@@ -10,7 +10,7 @@ public static class ReducerResult
 
     public static ReducerResult<TData> Fail<TData>(IEnumerable<string> errors)
     {
-        if (errors is string[] array)
+        if(errors is string[] array)
             return new ReducerResult<TData>(null, array);
 
         return new ReducerResult<TData>(null, errors.ToArray());

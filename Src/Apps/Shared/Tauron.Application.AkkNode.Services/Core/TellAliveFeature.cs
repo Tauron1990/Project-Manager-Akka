@@ -36,7 +36,7 @@ public sealed record QueryIsAlive
         {
             _cancellationTokenSource = cancellation;
             _source = source;
-            var context = Context;
+            IActorContext? context = Context;
             source.Task.ContinueWith(_ => context.Stop(context.Self));
 
 
@@ -47,7 +47,7 @@ public sealed record QueryIsAlive
 
         protected override bool Receive(object message)
         {
-            _source.TrySetResult(message is not IsAliveResponse response ? new IsAliveResponse(IsAlive: false) : response);
+            _source.TrySetResult(message as IsAliveResponse ?? new IsAliveResponse(IsAlive: false));
 
             return true;
         }

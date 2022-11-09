@@ -6,34 +6,31 @@ using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 using Tauron.Features;
 using Tauron.ObservableExt;
+using Tauron.Operations;
 
 namespace SimpleProjectManager.Client.Operations.Shared;
 
 [PublicAPI]
 public sealed partial class NameFeature : ActorFeatureBase<NameFeature.State>
 {
-    private sealed record SignalInit;
-
-    public sealed record State(string Name, bool IsConfirmd, bool IsDown, IActorRef Registry, TaskCompletionSource RegistryWaiter);
-
-    public static IPreparedFeature Create(string name)
+    public static IPreparedFeature Create(ObjectName name)
         => Feature.Create(() => new NameFeature(), _ => new State(name, false, false, ActorRefs.Nobody, new TaskCompletionSource()));
 
     protected override void ConfigImpl()
     {
         Receive<ClusterActorDiscoveryMessage.ActorUp>(Handle);
-        
+
         Receive<ClusterActorDiscoveryMessage.ActorDown>(Handle);
 
         Receive<SignalInit>(obs => obs.Subscribe(m => m.State.RegistryWaiter.TrySetResult()));
-        
+
         Receive<NameRequest>(Handle);
         Receive<NameRegistryFeature.RegisterNameResponse>(obs => obs.Select(ProcessNameResponse));
     }
 
     [LoggerMessage(EventId = 51, Level = LogLevel.Error, Message = "Name Registration Failed:  {message}")]
     private static partial void NameRegistrationFailed(ILogger logger, string message);
-    
+
     [LoggerMessage(EventId = 50, Level = LogLevel.Warning, Message = "No Registry Found for Name Request")]
     private static partial void NoRegistryFound(ILogger logger);
 
@@ -66,7 +63,7 @@ public sealed partial class NameFeature : ActorFeatureBase<NameFeature.State>
     {
         try
         {
-            var task = p.State.RegistryWaiter.Task;
+            Task task = p.State.RegistryWaiter.Task;
             if(await Task.WhenAny(task, Task.Delay(TimeSpan.FromSeconds(15))) == task)
             {
                 await task;
@@ -74,7 +71,7 @@ public sealed partial class NameFeature : ActorFeatureBase<NameFeature.State>
 
                 return Unit.Default;
             }
-            
+
             NoRegistryFound(Logger);
             p.Sender.Tell(new NameResponse(null));
         }
@@ -84,23 +81,22 @@ public sealed partial class NameFeature : ActorFeatureBase<NameFeature.State>
 
             p.Sender.Tell(new NameResponse(null));
         }
-        
+
         return Unit.Default;
     }
 
     private State ProcessNameResponse(StatePair<NameRegistryFeature.RegisterNameResponse, State> p)
     {
-        var result = p.Event;
-        
-        if(string.IsNullOrWhiteSpace(result.Error))
+        NameRegistryFeature.RegisterNameResponse result = p.Event;
+
+        if(!result.Error.IsError())
         {
             p.Event.From.Tell(new NameResponse(result.Name));
 
-            if(!string.IsNullOrWhiteSpace(result.Name))
-                return p.State with{ IsConfirmd = true, IsDown = false };
+            return p.State with { IsConfirmd = true, IsDown = false };
         }
 
-        NameRegisterError(Logger, result.Error ?? string.Empty);
+        NameRegisterError(Logger, result.Error.GetErrorString());
         p.Event.From.Tell(new NameResponse(null));
 
         return p.State with { IsConfirmd = false, IsDown = false };
@@ -115,7 +111,7 @@ public sealed partial class NameFeature : ActorFeatureBase<NameFeature.State>
 
     [LoggerMessage(EventId = 45, Level = LogLevel.Warning, Message = "New Duplicate Name Registry {path}")]
     private static partial void DuplicateRegistry(ILogger logger, ActorPath path);
-    
+
     private IObservable<State> Handle(IObservable<StatePair<ClusterActorDiscoveryMessage.ActorUp, State>> obs)
         => obs.ConditionalSelect()
            .ToResult<State>(
@@ -136,6 +132,7 @@ public sealed partial class NameFeature : ActorFeatureBase<NameFeature.State>
                                 p =>
                                 {
                                     DuplicateRegistry(Logger, p.Event.Actor.Path);
+
                                     return p.State;
                                 }))
             );
@@ -152,4 +149,8 @@ public sealed partial class NameFeature : ActorFeatureBase<NameFeature.State>
         ClusterActorDiscovery.Get(Context.System)
            .MonitorActor(new ClusterActorDiscoveryMessage.MonitorActor(nameof(NameRegistryFeature)));
     }
+
+    private sealed record SignalInit;
+
+    public sealed record State(ObjectName Name, bool IsConfirmd, bool IsDown, IActorRef Registry, TaskCompletionSource RegistryWaiter);
 }
