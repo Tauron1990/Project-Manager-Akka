@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System.Collections.Immutable;
+using FluentValidation.Results;
+using Microsoft.Extensions.Configuration;
 using SimpleProjectManager.Operation.Client.Config;
 using SimpleProjectManager.Operation.Client.Core;
 
@@ -31,22 +33,8 @@ public sealed class SetupRunner
         bool skipConfig = commandLine.GetValue("skipconfig", false);
         OperationConfiguration config = _configManager.Configuration;
         var validation = await config.Validate();
-        if(validation.IsEmpty)
-        {
-            if(!skipConfig)
-            {
-                bool shouldUse = await _clientInteraction.Ask(
-                    (bool?)null,
-                    $"Möchten sie diese Configuration Benutzen?:{Environment.NewLine}{config}");
-
-                if(shouldUse)
-                    return;
-            }
-            else
-            {
-                return;
-            }
-        }
+        if(await AskUseConfiguration(validation, skipConfig, config))
+            return;
 
         if(skipConfig)
             throw new InvalidOperationException("Die Setup Phase kann nicht mit einer Fehlerhaften Configuration übersprungen werden");
@@ -56,13 +44,32 @@ public sealed class SetupRunner
             config = await setup.RunSetup(config);
 
         validation = await config.Validate();
-        if(validation.IsEmpty)
-        {
-            await _configManager.Set(config);
 
-            return;
+        if(!validation.IsEmpty)
+            throw new InvalidOperationException(string.Join(", ", validation.Select(v => v.ErrorMessage)));
+
+        await _configManager.Set(config);
+    }
+
+    private async Task<bool> AskUseConfiguration(ImmutableList<ValidationFailure> validation, bool skipConfig, OperationConfiguration config)
+    {
+        switch (validation.IsEmpty)
+        {
+            case true when !skipConfig:
+            {
+                bool shouldUse = await _clientInteraction.Ask(
+                    (bool?)null,
+                    $"Möchten sie diese Configuration Benutzen?:{Environment.NewLine}{config}");
+
+                if(shouldUse)
+                    return true;
+
+                break;
+            }
+            case true:
+                return true;
         }
 
-        throw new InvalidOperationException(string.Join(", ", validation.Select(v => v.ErrorMessage)));
+        return false;
     }
 }

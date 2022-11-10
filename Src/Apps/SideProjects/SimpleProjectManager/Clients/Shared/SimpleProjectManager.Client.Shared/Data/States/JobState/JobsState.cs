@@ -17,6 +17,7 @@ using Stl.Fusion;
 using Tauron;
 using Tauron.Applicarion.Redux;
 using Tauron.Applicarion.Redux.Configuration;
+using Tauron.Operations;
 
 namespace SimpleProjectManager.Client.Shared.Data.States.JobState;
 
@@ -43,17 +44,17 @@ public sealed partial class JobsState : StateBase<InternalJobData>
 
     public IObservable<JobSortOrderPair?> CurrentlySelectedPair { get; private set; } = Observable.Empty<JobSortOrderPair>();
 
-    public IObservable<long> ActiveJobsCount { get; private set; } = Observable.Empty<long>();
+    public IObservable<ActiveJobs> ActiveJobsCount { get; private set; } = Observable.Empty<ActiveJobs>();
 
     protected override IStateConfiguration<InternalJobData> ConfigurateState(ISourceConfiguration<InternalJobData> configuration)
     {
         return ConfigurateEditor
             (
-                configuration.FromCacheAndServer<(JobInfo[], SortOrder[])>(
+                configuration.FromCacheAndServer<(Jobs, SortOrders)>(
                     async token =>
                     {
                         Jobs jobs = await _service.GetActiveJobs(token);
-                        SordOrders order = await _service.GetSortOrders(token);
+                        SortOrders order = await _service.GetSortOrders(token);
 
                         return (jobs, order);
                     },
@@ -61,8 +62,8 @@ public sealed partial class JobsState : StateBase<InternalJobData>
                     {
                         try
                         {
-                            var (jobs, orders) = serverData;
-                            var pairs = jobs.Select(j => new JobSortOrderPair(orders.First(o => o.Id == j.Project), j)).ToArray();
+                            (Jobs jobs, SortOrders orders) = serverData;
+                            var pairs = jobs.JobInfos.Select(j => new JobSortOrderPair(orders.OrdersList.First(o => o.Id == j.Project), j)).ToArray();
 
                             CurrentSelected? selection = originalData.CurrentSelected;
                             // ReSharper disable once AccessToModifiedClosure
@@ -87,7 +88,7 @@ public sealed partial class JobsState : StateBase<InternalJobData>
                         JobDataSelectors.CurrentSelected,
                         (cancel, source) => JobDataRequests.FetchjobData(source, _service, cancel),
                         JobDataPatcher.ReplaceSelected);
-                    requestFactory.AddRequest<SetSortOrder>(_service.ChangeOrder!, JobDataPatcher.PatchSortOrder);
+                    requestFactory.AddRequest<SetSortOrder>(_service.ChangeOrder, JobDataPatcher.PatchSortOrder);
                 });
     }
 
@@ -172,7 +173,7 @@ public partial class JobsState
         return null;
     }
 
-    private bool AllDigit(in ReadOnlySpan<char> input)
+    private static bool AllDigit(in ReadOnlySpan<char> input)
     {
         foreach (char t in input)
         {
@@ -184,14 +185,14 @@ public partial class JobsState
         return true;
     }
 
-    public JobEditorCommit CreateNewJobData(JobEditorData editorData, Func<Task<string>> start)
+    public JobEditorCommit CreateNewJobData(JobEditorData editorData, Func<Task<SimpleResult>> start)
     {
         JobData? data = editorData.OriginalData;
         if(data != null)
         {
             data = data with
                    {
-                       JobName = new ProjectName(editorData.JobName ?? string.Empty),
+                       JobName = editorData.JobName ?? ProjectName.Empty,
                        Status = editorData.Status,
                        Deadline = ProjectDeadline.FromDateTime(editorData.Deadline),
                        Ordering = GetOrdering(data.Id)
@@ -199,7 +200,7 @@ public partial class JobsState
         }
         else
         {
-            var name = new ProjectName(editorData.JobName ?? string.Empty);
+            ProjectName name = editorData.JobName ?? ProjectName.Empty;
             ProjectId id = ProjectId.For(name);
             data = new JobData(
                 id,

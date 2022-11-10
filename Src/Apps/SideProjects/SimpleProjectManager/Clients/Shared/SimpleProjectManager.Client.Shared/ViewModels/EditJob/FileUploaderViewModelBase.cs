@@ -16,6 +16,7 @@ using SimpleProjectManager.Client.Shared.Data;
 using SimpleProjectManager.Client.Shared.Data.Files;
 using SimpleProjectManager.Client.Shared.Data.States;
 using SimpleProjectManager.Client.Shared.Data.States.Actions;
+using SimpleProjectManager.Client.Shared.Data.States.JobState;
 using SimpleProjectManager.Client.Shared.Services;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
@@ -62,7 +63,7 @@ public abstract class FileUploaderViewModelBase : ViewModelBase
             yield return _files.Connect()
                .Where(f => f.UploadState == UploadState.Pending && string.IsNullOrWhiteSpace(ProjectId))
                .Select(f => f.Name)
-               .Select(globalState.Jobs.TryExtrectName)
+               .Select(JobsState.TryExtrectName)
                .Flatten()
                .Where(n => !string.IsNullOrWhiteSpace(n.Current) && string.IsNullOrWhiteSpace(ProjectId))
                .ObserveOn(RxApp.MainThreadScheduler)

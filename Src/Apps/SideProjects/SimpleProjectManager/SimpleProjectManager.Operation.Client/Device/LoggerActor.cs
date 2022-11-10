@@ -34,7 +34,7 @@ public sealed class LoggerActor : ReceiveActor, IWithTimers
     {
         LogBatch batch = await _machine.NextLogBatch();
 
-        if(batch.Logs.IsEmpty) return;
+        if(batch.IsEmpty) return;
 
         _logDistribution.Publish(batch with { DeviceName = _deviceName });
 

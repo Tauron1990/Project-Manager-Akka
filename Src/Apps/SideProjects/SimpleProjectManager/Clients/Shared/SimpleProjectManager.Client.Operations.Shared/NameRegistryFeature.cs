@@ -58,7 +58,7 @@ public sealed partial class NameRegistryFeature : ActorFeatureBase<NameRegistryF
         => observable.Select(
             sp =>
             {
-                if(!sp.State.CurrentClients.Values.Contains(sp.Event.ActorRef))
+                if(!sp.State.CurrentClients.ContainsValue(sp.Event.ActorRef))
                     return sp.State;
 
                 var pair = sp.State.CurrentClients.First(p => sp.Event.ActorRef.Equals(p.Value));

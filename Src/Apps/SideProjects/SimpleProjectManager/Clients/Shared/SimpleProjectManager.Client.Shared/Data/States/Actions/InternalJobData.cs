@@ -13,7 +13,7 @@ using Tauron.Operations;
 
 namespace SimpleProjectManager.Client.Shared.Data.States.Actions;
 
-public record SelectNewPairAction(string? Selection);
+public record SelectNewPairAction(PairSelection Selection);
 
 public record CommitJobEditorData(JobEditorCommit Commit, Action<bool> OnCompled);
 
@@ -105,7 +105,7 @@ internal static class JobDataRequests
         return new CurrentSelected(pair, jobData);
     }
 
-    public static Func<CommitJobEditorData, CancellationToken, ValueTask<string?>> PostJobCommit(IJobDatabaseService service, IMessageDispatcher messageDispatcher)
+    public static Func<CommitJobEditorData, CancellationToken, ValueTask<SimpleResult>> PostJobCommit(IJobDatabaseService service, IMessageDispatcher messageDispatcher)
     {
         return async (input, token) =>
                {
@@ -114,7 +114,7 @@ internal static class JobDataRequests
                        JobData newData = input.Commit.JobData.NewData;
                        SimpleResult result = await service.CreateJob(new CreateProjectCommand(newData.JobName, newData.ProjectFiles, newData.Status, newData.Deadline), token);
 
-                       if(!string.IsNullOrWhiteSpace(result))
+                       if(result.IsError())
                        {
                            input.OnCompled(false);
 
@@ -123,7 +123,7 @@ internal static class JobDataRequests
 
                        result = await service.ChangeOrder(new SetSortOrder(true, newData.Ordering), token);
 
-                       if(!string.IsNullOrWhiteSpace(result))
+                       if(result.IsError())
                        {
                            input.OnCompled(false);
 
@@ -131,7 +131,7 @@ internal static class JobDataRequests
                        }
 
                        result = await input.Commit.Upload();
-                       input.OnCompled(string.IsNullOrWhiteSpace(result));
+                       input.OnCompled(result.IsSuccess());
 
                        return result;
                    }

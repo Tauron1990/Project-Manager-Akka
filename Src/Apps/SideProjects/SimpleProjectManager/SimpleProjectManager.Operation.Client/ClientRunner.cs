@@ -25,12 +25,12 @@ public sealed class ClientRunner
 
     public async ValueTask<IHost> CreateClient(string[] args)
     {
-        IConfigurationRoot? setupConfig = new ConfigurationBuilder().AddCommandLine(args).Build();
+        IConfigurationRoot setupConfig = new ConfigurationBuilder().AddCommandLine(args).Build();
         var setup = new SetupRunner(_configManager, _clientInteraction);
         await setup.RunSetup(setupConfig);
 
         return Host.CreateDefaultBuilder(args)
-           .ConfigureAppConfiguration((_, b) => b.AddInMemoryCollection(new[] { KeyValuePair.Create("actorsystem", "SimpleProjectManager-Server") }))
+           .ConfigureAppConfiguration((_, b) => b.AddInMemoryCollection(new[] { KeyValuePair.Create("actorsystem", "SimpleProjectManager-Server") }!))
            .ConfigureServices(ApplyFusionServices)
            .ConfigurateNode(ApplyClientServices)
            .Build();

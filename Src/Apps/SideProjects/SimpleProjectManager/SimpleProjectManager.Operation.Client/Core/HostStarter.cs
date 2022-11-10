@@ -43,7 +43,7 @@ public partial class HostStarter : BackgroundService
             IActorRef nameActor = _system.ActorOf("ClientNameManager", NameFeature.Create(_configuration.Name));
             var result = await NameRequest.Ask(nameActor, _logger);
 
-            if(string.IsNullOrWhiteSpace(result?.Value))
+            if(result.IsInValid())
             {
                 NameRegistrationFailed();
                 _nameRegistrar.TrySetException(new InvalidOperationException("Name Requestation Failed"));

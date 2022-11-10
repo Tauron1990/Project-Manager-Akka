@@ -52,7 +52,7 @@ public sealed class UploadTransaction : SimpleTransaction<UploadTransactionConte
         ProjectId id = ProjectId.For(projectName);
         meta.Set(id);
 
-        (SimpleMessage failMessage, bool isNew) = await TimeoutToken.WithDefault(
+        (SimpleResult failMessage, bool isNew) = await TimeoutToken.WithDefault(
             token,
             t => _databaseService.AttachFiles(new ProjectAttachFilesCommand(id, projectName, meta.Get<ImmutableList<ProjectFileId>>()), t));
 
@@ -61,8 +61,8 @@ public sealed class UploadTransaction : SimpleTransaction<UploadTransactionConte
         return failMessage.ThrowIfFail<Rollback<UploadTransactionContext>>(
             () => async c =>
                   {
-                      var (_, contextMetadata, cancellationToken) = c;
-                      string deleteResult;
+                      (_, ContextMetadata? contextMetadata, CancellationToken cancellationToken) = c;
+                      SimpleResult deleteResult;
 
                       if(!isNew)
                           deleteResult = await TimeoutToken.WithDefault(
@@ -111,12 +111,12 @@ public sealed class UploadTransaction : SimpleTransaction<UploadTransactionConte
                         {
                             Headers =
                             {
-                                ContentLength = file.UploadFile.Size,
-                                ContentType = new MediaTypeHeaderValue(file.ContentType)
+                                ContentLength = file.UploadFile.Size.Value,
+                                ContentType = new MediaTypeHeaderValue(file.ContentType.Value)
                             }
                         },
                         "files",
-                        file.Name);
+                        file.Name.Value);
                 }
 
                 #if DEBUG
@@ -124,7 +124,7 @@ public sealed class UploadTransaction : SimpleTransaction<UploadTransactionConte
                 #endif
 
                 return await _client.PostJson<UploadFileResult>($"{ApiPaths.FilesApi}/{nameof(IJobFileServiceDef.UploadFiles)}", requestContent, t)
-                    ?? new UploadFileResult("Unbekannter Fehler", ImmutableList<ProjectFileId>.Empty);
+                    ?? new UploadFileResult(SimpleResult.Failure("Unbekannter Fehler"), ImmutableList<ProjectFileId>.Empty);
             });
 
         meta.Set(ids);
@@ -132,7 +132,7 @@ public sealed class UploadTransaction : SimpleTransaction<UploadTransactionConte
         return failMessage.ThrowIfFail<Rollback<UploadTransactionContext>>(
             () => async c =>
                   {
-                      var deleteResult = await TimeoutToken.WithDefault(
+                      SimpleResult deleteResult = await TimeoutToken.WithDefault(
                           c.Token,
                           t => _fileService.DeleteFiles(new FileList(c.Metadata.Get<ImmutableList<ProjectFileId>>()), t));
 

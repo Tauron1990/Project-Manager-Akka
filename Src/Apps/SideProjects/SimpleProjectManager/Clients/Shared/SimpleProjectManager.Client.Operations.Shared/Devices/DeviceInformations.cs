@@ -12,7 +12,7 @@ public sealed record DeviceInformations(DeviceId DeviceId, DeviceName Name, bool
     
     public static DeviceInformations Empty => new(
         DeviceId.New, 
-        SimpleProjectManager.Shared.Services.Devices.DeviceName.Empty, 
+        DeviceName.Empty, 
         false,
         new DeviceUiGroup(
             ImmutableList<DeviceUiGroup>.Empty,

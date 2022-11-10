@@ -1,3 +1,5 @@
-﻿namespace SimpleProjectManager.Shared;
+﻿using Tauron.Operations;
 
-public sealed record AttachResult(SimpleMessage FailMessage, bool IsNew);
+namespace SimpleProjectManager.Shared;
+
+public sealed record AttachResult(SimpleResult FailMessage, bool IsNew);

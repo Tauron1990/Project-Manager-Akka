@@ -1,4 +1,5 @@
-﻿using Vogen;
+﻿using Tauron.Operations;
+using Vogen;
 
 namespace SimpleProjectManager.Shared;
 
@@ -20,6 +21,20 @@ public static class Extensions
         throw new InvalidOperationException(error);
     }
 
+    public static TResult ThrowIfFail<TResult>(this SimpleResult error, Func<TResult> resultFactory)
+    {
+        if(error.IsError())
+            throw error.GetException();
+
+        return resultFactory();
+    }
+
+    public static void ThrowIfFail(this SimpleResult error)
+    {
+        if(error.IsError())
+            throw error.GetException();
+    }
+    
     public static Validation ValidateNotNullOrEmpty(this string value, string name)
         => string.IsNullOrWhiteSpace(value) ? Validation.Invalid($"The Value from {name} is null or Empty") : Validation.Ok;
 }

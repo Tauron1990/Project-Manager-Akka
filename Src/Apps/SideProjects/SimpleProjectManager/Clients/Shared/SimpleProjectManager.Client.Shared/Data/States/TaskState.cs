@@ -23,10 +23,10 @@ public sealed class TaskState : StateBase, IProvideRootStore, IStoreInitializer
         _taskManager = taskManager;
         _aggregator = aggregator;
 
-        ProviderFactory = () => stateFactory.NewComputed<PendingTask[]>(ComputeState);
+        ProviderFactory = () => stateFactory.NewComputed<Tasks>(ComputeState);
     }
 
-    public Func<IState<PendingTask[]>> ProviderFactory { get; }
+    public Func<IState<Tasks>> ProviderFactory { get; }
 
 
     public void StoreCreated(IRootStore dispatcher)
@@ -41,6 +41,6 @@ public sealed class TaskState : StateBase, IProvideRootStore, IStoreInitializer
     public void RunConfig(IStoreConfiguration configuration)
         => configuration.RegisterForFhinising(this);
 
-    private async Task<PendingTask[]> ComputeState(IComputedState<PendingTask[]> unUsed, CancellationToken cancellationToken)
+    private async Task<Tasks> ComputeState(IComputedState<Tasks> unUsed, CancellationToken cancellationToken)
         => await _taskManager.GetTasks(cancellationToken);
 }

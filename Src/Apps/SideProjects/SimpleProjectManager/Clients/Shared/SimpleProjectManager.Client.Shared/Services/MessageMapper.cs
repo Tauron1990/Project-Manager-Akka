@@ -1,14 +1,15 @@
 using System;
 using System.Reactive;
 using System.Threading.Tasks;
+using Tauron.Operations;
 
 namespace SimpleProjectManager.Client.Shared.Services;
 
 public interface IMessageDispatcher
 {
-    Func<TInput, bool> IsSuccess<TInput>(Func<TInput, string> runner);
+    Func<TInput, bool> IsSuccess<TInput>(Func<TInput, SimpleResult> runner);
 
-    ValueTask<bool> IsSuccess(Func<ValueTask<string>> runner);
+    ValueTask<bool> IsSuccess(Func<ValueTask<SimpleResult>> runner);
 
     ValueTask<bool> IsSuccess(Func<ValueTask<Unit>> runner);
 

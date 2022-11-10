@@ -2,6 +2,7 @@
 using System.Threading;
 using ReactiveUI;
 using SimpleProjectManager.Client.Shared.Data.States;
+using SimpleProjectManager.Shared;
 
 namespace SimpleProjectManager.Client.Shared.Data.Files;
 
@@ -21,9 +22,9 @@ public class FileUploadFile : ReactiveObject
 
     public IFileReference UploadFile { get; }
 
-    public string Name => UploadFile.Name;
+    public FileName Name => UploadFile.Name;
 
-    public string ContentType => UploadFile.ContentType;
+    public FileMime ContentType => UploadFile.ContentType;
 
     public UploadState UploadState
     {
@@ -33,5 +34,5 @@ public class FileUploadFile : ReactiveObject
 
 
     public Stream Open(CancellationToken token)
-        => UploadFile.OpenReadStream(FilesState.MaxSize, token);
+        => UploadFile.OpenReadStream(MaxSize.Max, token);
 }

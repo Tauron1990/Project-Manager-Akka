@@ -1,7 +1,9 @@
-﻿namespace SimpleProjectManager.Client.Shared.Data.States.Data;
+﻿using SimpleProjectManager.Shared.Services;
 
-public sealed record InternalErrorState(long ErrorCount)
+namespace SimpleProjectManager.Client.Shared.Data.States.Data;
+
+public sealed record InternalErrorState(ErrorCount ErrorCount)
 {
     public InternalErrorState()
-        : this(0) { }
+        : this(ErrorCount.From(0)) { }
 }

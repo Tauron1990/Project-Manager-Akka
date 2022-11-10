@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Newtonsoft.Json.Linq;
 using SimpleProjectManager.Server.Configuration.ConfigurationExtensions;
 using SimpleProjectManager.Server.Configuration.Core;
+using Stl.IO;
 using Tauron;
 using Tauron.AkkaHost;
 
@@ -14,7 +15,7 @@ public sealed class StartConfigManager
 {
     private ImmutableDictionary<string, string> _data = ImmutableDictionary<string, string>.Empty;
 
-    private ImmutableArray<IConfigExtension> _extensions = ImmutableArray<IConfigExtension>.Empty
+    private ImmutableList<IConfigExtension> _extensions = ImmutableList<IConfigExtension>.Empty
        .Add(new HostValueProcessor())
        .Add(new IpConfig())
        .Add(new AkkaConfig())
@@ -25,9 +26,9 @@ public sealed class StartConfigManager
     public void RegisterExtension(IConfigExtension extension)
         => _extensions = _extensions.Add(extension);
 
-    public void Init(string? file = null)
+    public void Init(FilePath file)
     {
-        if(string.IsNullOrEmpty(file))
+        if(file == FilePath.Empty)
             file = "StartConfig.json";
         var dic = ReadSettings(file);
 
@@ -52,7 +53,7 @@ public sealed class StartConfigManager
     }
 
     // ReSharper disable once CognitiveComplexity
-    private static ImmutableDictionary<string, string> ReadSettings(string file)
+    private static ImmutableDictionary<string, string> ReadSettings(FilePath file)
     {
         if(!File.Exists(file))
             return ImmutableDictionary<string, string>.Empty;
@@ -66,25 +67,32 @@ public sealed class StartConfigManager
         JToken? toRead = token[currentSwitch];
 
         while (toRead is not null)
-        {
-            if(toRead["Settings"] is JContainer settings)
-                foreach (JToken setting in settings)
-                    if(setting is JProperty property)
-                    {
-                        var value = property.Value.Value<string>();
-                        if(!dic.ContainsKey(property.Name))
-                            dic = dic.Add(property.Name, value ?? string.Empty);
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException("Only Propertys for Settings are Supported");
-                    }
+            toRead = ProcessToken(toRead, token, ref dic);
 
-            var basedOn = toRead["BasedOn"]?.Value<string>();
-            toRead = string.IsNullOrWhiteSpace(basedOn)
-                ? null
-                : token[basedOn];
+        return dic;
+    }
+
+    private static JToken? ProcessToken(JToken toRead, JToken token, ref ImmutableDictionary<string, string> dic)
+    {
+        if(toRead["Settings"] is JContainer settings)
+            dic = settings.Aggregate(dic, ProcessSettingValue);
+
+        var basedOn = toRead["BasedOn"]?.Value<string>();
+        return string.IsNullOrWhiteSpace(basedOn)
+            ? null
+            : token[basedOn];
+    }
+
+    private static ImmutableDictionary<string, string> ProcessSettingValue(ImmutableDictionary<string, string> dic, JToken setting)
+    {
+        if(setting is JProperty property)
+        {
+            var value = property.Value.Value<string>();
+            if(!dic.ContainsKey(property.Name))
+                dic = dic.Add(property.Name, value ?? string.Empty);
         }
+        else
+            throw new InvalidOperationException("Only Propertys for Settings are Supported");
 
         return dic;
     }

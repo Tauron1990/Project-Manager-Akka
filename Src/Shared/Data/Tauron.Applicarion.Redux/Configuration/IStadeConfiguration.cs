@@ -1,4 +1,5 @@
 ﻿using JetBrains.Annotations;
+using Tauron.Operations;
 
 namespace Tauron.Applicarion.Redux.Configuration;
 
@@ -30,20 +31,20 @@ public interface IEffectFactory<TState>
 [PublicAPI]
 public interface IRequestFactory<TState>
 {
-    IRequestFactory<TState> AddRequest<TAction>(Func<TAction, CancellationToken, ValueTask<string?>> runRequest, Func<TState, TAction, TState> onScess)
+    IRequestFactory<TState> AddRequest<TAction>(Func<TAction, CancellationToken, ValueTask<SimpleResult>> runRequest, Func<TState, TAction, TState> onScess)
         where TAction : class;
 
     IRequestFactory<TState> AddRequest<TAction>(
-        Func<TAction, CancellationToken, ValueTask<string?>> runRequest,
+        Func<TAction, CancellationToken, ValueTask<SimpleResult>> runRequest,
         Func<TState, TAction, TState> onScess,
         Func<TState, object, TState> onFail)
         where TAction : class;
 
-    IRequestFactory<TState> AddRequest<TAction>(Func<TAction, CancellationToken, Task<string?>> runRequest, Func<TState, TAction, TState> onScess)
+    IRequestFactory<TState> AddRequest<TAction>(Func<TAction, CancellationToken, Task<SimpleResult>> runRequest, Func<TState, TAction, TState> onScess)
         where TAction : class;
 
     IRequestFactory<TState> AddRequest<TAction>(
-        Func<TAction, CancellationToken, Task<string?>> runRequest,
+        Func<TAction, CancellationToken, Task<SimpleResult>> runRequest,
         Func<TState, TAction, TState> onScess,
         Func<TState, object, TState> onFail)
         where TAction : class;

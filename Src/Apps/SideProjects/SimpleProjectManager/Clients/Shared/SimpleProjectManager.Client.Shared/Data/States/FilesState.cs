@@ -10,16 +10,15 @@ using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
 using Tauron;
+using Tauron.Operations;
 
 namespace SimpleProjectManager.Client.Shared.Data.States;
 
 public sealed class FilesState : StateBase
 {
-    public const long MaxSize = 524_288_000;
-
-    public static readonly string[] AllowedContentTypes =
+    public static readonly FileMime[] AllowedContentTypes =
     {
-        "application/pdf", "application/x-zip-compressed", "application/zip", "image/tiff", "image/x-tiff"
+        new("application/pdf"), new("application/x-zip-compressed"), new("application/zip"), new("image/tiff"), new("image/x-tiff")
     };
 
     private readonly IMessageDispatcher _aggregator;
@@ -39,11 +38,13 @@ public sealed class FilesState : StateBase
 
     public IObservable<DatabaseFile[]> AllFiles { get; }
 
-    public static string IsFileValid(IFileReference file)
+    public static SimpleResult IsFileValid(IFileReference file)
     {
         bool result = AllowedContentTypes.Any(t => t == file.ContentType);
 
-        return !result ? $"Die Datei {file.Name} kann nicht Hochgeladen werden. Nur Tiff, zip und Pdf sinf erlaubt" : string.Empty;
+        return !result 
+            ? SimpleResult.Failure($"Die Datei {file.Name} kann nicht Hochgeladen werden. Nur Tiff, zip und Pdf sinf erlaubt") 
+            : SimpleResult.Success();
     }
 
     public async Task DeleteFile(DatabaseFile file, CancellationToken token)

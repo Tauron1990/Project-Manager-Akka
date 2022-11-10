@@ -17,9 +17,9 @@ public sealed class ErrorState : StateBase<InternalErrorState>
         : base(stateFactory)
         => _errorService = errorService;
 
-    public IObservable<long> ErrorCount { get; private set; } = Observable.Empty<long>();
+    public IObservable<ErrorCount> ErrorCount { get; private set; } = Observable.Empty<ErrorCount>();
 
-    public IObservable<CriticalError[]> Errors { get; private set; } = Observable.Empty<CriticalError[]>();
+    public IObservable<CriticalErrorList> Errors { get; private set; } = Observable.Empty<CriticalErrorList>();
 
     protected override IStateConfiguration<InternalErrorState> ConfigurateState(ISourceConfiguration<InternalErrorState> configuration)
     {

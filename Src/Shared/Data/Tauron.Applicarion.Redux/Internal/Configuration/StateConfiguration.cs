@@ -1,6 +1,7 @@
 ﻿using Stl.Fusion;
 using Tauron.Applicarion.Redux.Configuration;
 using Tauron.Applicarion.Redux.Extensions;
+using Tauron.Operations;
 
 namespace Tauron.Applicarion.Redux.Internal.Configuration;
 
@@ -79,28 +80,28 @@ public sealed class RequesterFactory<TState> : IRequestFactory<TState> where TSt
         _stateFactory = stateFactory;
     }
 
-    public IRequestFactory<TState> AddRequest<TAction>(Func<TAction, CancellationToken, ValueTask<string?>> runRequest, Func<TState, TAction, TState> onScess) where TAction : class
+    public IRequestFactory<TState> AddRequest<TAction>(Func<TAction, CancellationToken, ValueTask<SimpleResult>> runRequest, Func<TState, TAction, TState> onScess) where TAction : class
     {
         AddRequestInternal(Adept(runRequest), onScess, null);
 
         return this;
     }
 
-    public IRequestFactory<TState> AddRequest<TAction>(Func<TAction, CancellationToken, ValueTask<string?>> runRequest, Func<TState, TAction, TState> onScess, Func<TState, object, TState> onFail) where TAction : class
+    public IRequestFactory<TState> AddRequest<TAction>(Func<TAction, CancellationToken, ValueTask<SimpleResult>> runRequest, Func<TState, TAction, TState> onScess, Func<TState, object, TState> onFail) where TAction : class
     {
         AddRequestInternal(Adept(runRequest), onScess, onFail);
 
         return this;
     }
 
-    public IRequestFactory<TState> AddRequest<TAction>(Func<TAction, CancellationToken, Task<string?>> runRequest, Func<TState, TAction, TState> onScess) where TAction : class
+    public IRequestFactory<TState> AddRequest<TAction>(Func<TAction, CancellationToken, Task<SimpleResult>> runRequest, Func<TState, TAction, TState> onScess) where TAction : class
     {
         AddRequestInternal(Adept(runRequest), onScess, null);
 
         return this;
     }
 
-    public IRequestFactory<TState> AddRequest<TAction>(Func<TAction, CancellationToken, Task<string?>> runRequest, Func<TState, TAction, TState> onScess, Func<TState, object, TState> onFail) where TAction : class
+    public IRequestFactory<TState> AddRequest<TAction>(Func<TAction, CancellationToken, Task<SimpleResult>> runRequest, Func<TState, TAction, TState> onScess, Func<TState, object, TState> onFail) where TAction : class
     {
         AddRequestInternal(Adept(runRequest), onScess, onFail);
 

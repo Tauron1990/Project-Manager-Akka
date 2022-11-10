@@ -13,7 +13,7 @@ public interface IJobDatabaseServiceDef
     Task<Jobs> GetActiveJobs(CancellationToken token);
 
     [Get(nameof(GetSortOrders))]
-    Task<SordOrders> GetSortOrders(CancellationToken token);
+    Task<SortOrders> GetSortOrders(CancellationToken token);
 
     [Get(nameof(GetJobData))]
     Task<JobData> GetJobData([Query] ProjectId id, CancellationToken token);

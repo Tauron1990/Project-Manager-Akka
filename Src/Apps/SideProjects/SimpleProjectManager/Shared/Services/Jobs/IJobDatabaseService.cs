@@ -9,7 +9,7 @@ public interface IJobDatabaseService
     Task<Jobs> GetActiveJobs(CancellationToken token);
 
     [ComputeMethod(MinCacheDuration = 120)]
-    Task<SordOrders> GetSortOrders(CancellationToken token);
+    Task<SortOrders> GetSortOrders(CancellationToken token);
 
     [ComputeMethod(MinCacheDuration = 5)]
     Task<JobData> GetJobData(ProjectId id, CancellationToken token);

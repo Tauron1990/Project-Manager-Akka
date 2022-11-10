@@ -1,15 +1,16 @@
 using System.IO;
 using System.Threading;
+using SimpleProjectManager.Shared;
 
 namespace SimpleProjectManager.Client.Shared.Data.Files;
 
 public interface IFileReference
 {
-    string Name { get; }
+    FileName Name { get; }
 
-    string ContentType { get; }
+    FileMime ContentType { get; }
 
-    long Size { get; }
+    FileSize Size { get; }
 
-    Stream OpenReadStream(long maxSize, CancellationToken token);
+    Stream OpenReadStream(MaxSize maxSize, CancellationToken token);
 }

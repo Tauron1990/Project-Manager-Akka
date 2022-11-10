@@ -2,4 +2,4 @@
 
 namespace SimpleProjectManager.Shared.Services;
 
-public record SordOrders(ImmutableList<SordOrders> OrdersList);
+public record SortOrders(ImmutableList<SortOrder> OrdersList);
