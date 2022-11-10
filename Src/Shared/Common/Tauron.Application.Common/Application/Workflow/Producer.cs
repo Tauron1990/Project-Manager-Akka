@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using JetBrains.Annotations;
 
 namespace Tauron.Application.Workflow;
@@ -25,7 +24,7 @@ public abstract class Producer<TState, TContext>
         if(!Process(id, context))
             throw new InvalidOperationException("Procession not Successful");
 
-        if(_lastId.Name == StepId.Fail.Name)
+        if(string.Equals(_lastId.Name, StepId.Fail.Name, StringComparison.Ordinal))
             throw new InvalidOperationException(_errorMessage);
     }
 
@@ -34,7 +33,8 @@ public abstract class Producer<TState, TContext>
     {
         _lastId = id;
 
-        return _lastId.Name == StepId.Finish.Name || _lastId.Name == StepId.Fail.Name;
+        return string.Equals(_lastId.Name, StepId.Finish.Name, StringComparison.Ordinal) 
+            || string.Equals(_lastId.Name, StepId.Fail.Name, StringComparison.Ordinal);
     }
 
     protected virtual bool Process(StepId id, TContext context)
@@ -84,14 +84,14 @@ public abstract class Producer<TState, TContext>
         do
         {
             StepId loopId = rev.Step.NextElement(context);
-            if(loopId.Name == StepId.LoopEnd.Name)
+            if(string.Equals(loopId.Name, StepId.LoopEnd.Name, StringComparison.Ordinal))
             {
                 ok = false;
 
                 continue;
             }
 
-            if(loopId.Name == StepId.Fail.Name)
+            if(string.Equals(loopId.Name, StepId.Fail.Name, StringComparison.Ordinal))
             {
                 result = SetLastId(StepId.Fail);
 
@@ -112,16 +112,16 @@ public abstract class Producer<TState, TContext>
     {
         var std = (from con in rev.Conditions
                    let stateId = con.Select(rev.Step, context)
-                   where stateId.Name != StepId.None.Name
+                   where !string.Equals(stateId.Name, StepId.None.Name, StringComparison.Ordinal)
                    select stateId).ToArray();
 
         if(std.Length != 0) return std.Any(id => Process(id, context));
 
-        if(rev.GenericCondition == null) return false;
+        if(rev.GenericCondition is null) return false;
 
         StepId cid = rev.GenericCondition.Select(rev.Step, context);
 
-        return cid.Name != StepId.None.Name && Process(cid, context);
+        return !string.Equals(cid.Name, StepId.None.Name, StringComparison.Ordinal) && Process(cid, context);
     }
 
     public StepConfiguration<TState, TContext> SetStep(StepId id, TState stade)
@@ -133,79 +133,4 @@ public abstract class Producer<TState, TContext>
     }
 
     public StepConfiguration<TState, TContext> GetStateConfiguration(StepId id) => new(_states[id]);
-}
-
-[PublicAPI]
-public class StepConfiguration<TState, TContext>
-{
-    private readonly StepRev<TState, TContext> _context;
-
-    public StepConfiguration(StepRev<TState, TContext> context) => _context = context;
-
-    public StepConfiguration<TState, TContext> WithCondition(ICondition<TContext> condition)
-    {
-        _context.Conditions.Add(condition);
-
-        return this;
-    }
-
-    public ConditionConfiguration<TState, TContext> WithCondition(Func<TContext, IStep<TContext>, bool>? guard = null)
-    {
-        var con = new SimpleCondition<TContext> { Guard = guard };
-
-        if(guard != null) return new ConditionConfiguration<TState, TContext>(WithCondition(con), con);
-
-        _context.GenericCondition = con;
-
-        return new ConditionConfiguration<TState, TContext>(this, con);
-    }
-}
-
-[PublicAPI]
-public class ConditionConfiguration<TState, TContext>
-{
-    private readonly SimpleCondition<TContext> _condition;
-    private readonly StepConfiguration<TState, TContext> _config;
-
-    public ConditionConfiguration(
-        StepConfiguration<TState, TContext> config,
-        SimpleCondition<TContext> condition)
-    {
-        _config = config;
-        _condition = condition;
-    }
-
-    public StepConfiguration<TState, TContext> GoesTo(StepId id)
-    {
-        _condition.Target = id;
-
-        return _config;
-    }
-}
-
-public sealed class StepRev<TState, TContext>
-{
-    public StepRev(TState step)
-    {
-        Step = step;
-        Conditions = new List<ICondition<TContext>>();
-    }
-
-    public TState Step { get; }
-
-    public List<ICondition<TContext>> Conditions { get; }
-
-    public ICondition<TContext>? GenericCondition { get; set; }
-
-    public override string ToString()
-    {
-        var stringBuilder = new StringBuilder();
-        stringBuilder.Append(Step);
-
-        foreach (var condition in Conditions) stringBuilder.AppendLine($"->{condition};");
-
-        if(GenericCondition != null) stringBuilder.AppendFormat("Generic->{0};", GenericCondition);
-
-        return stringBuilder.ToString();
-    }
 }

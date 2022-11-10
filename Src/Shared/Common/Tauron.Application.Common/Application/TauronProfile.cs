@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -19,7 +20,7 @@ public abstract class TauronProfile : ObservableObject, IEnumerable<string>
     private readonly IDirectory _defaultPath;
     private readonly ILogger<TauronProfile> _logger = TauronEnviroment.GetLogger<TauronProfile>();
 
-    private readonly Dictionary<string, string> _settings = new();
+    private readonly Dictionary<string, string> _settings = new(StringComparer.Ordinal);
 
     protected TauronProfile(string application, IDirectory defaultPath)
     {
@@ -123,8 +124,8 @@ public abstract class TauronProfile : ObservableObject, IEnumerable<string>
         return !_settings.ContainsKey(key) ? defaultValue : _settings[key];
     }
 
-    public virtual int GetValue(int defaultValue, [CallerMemberName] string? key = null)
-        => int.TryParse(GetValue(null, key), out int result) ? result : defaultValue;
+    public virtual int GetValue(int defaultValue, IFormatProvider? provider = null, [CallerMemberName] string? key = null)
+        => int.TryParse(GetValue(defaultValue: null, key), NumberStyles.Any, provider, out int result) ? result : defaultValue;
 
     #pragma warning disable AV1564
     public virtual bool GetValue(bool defaultValue, [CallerMemberName] string? key = null)
@@ -143,8 +144,8 @@ public abstract class TauronProfile : ObservableObject, IEnumerable<string>
 
     private static void IlligalCharCheck(string key)
     {
-        if(key.Contains('='))
-            throw new ArgumentException($"The Key ({key}) Contains an Illigal Char: =");
+        if(key.Contains('=', StringComparison.Ordinal))
+            throw new ArgumentException($"The Key ({key}) Contains an Illigal Char: =", nameof(key));
     }
 
     public void Clear()

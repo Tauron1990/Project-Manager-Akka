@@ -3,12 +3,6 @@ using Tauron.Application.VirtualFiles.Core;
 
 namespace Tauron.Application.VirtualFiles;
 
-public enum PathType
-{
-    Relative,
-    Absolute
-}
-
 [DebuggerNonUserCode]
 public sealed record PathInfo(string Path, PathType Kind)
 {

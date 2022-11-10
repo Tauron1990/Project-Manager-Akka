@@ -2,30 +2,9 @@
 using System.Collections.Generic;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using System.Runtime.Serialization;
 using JetBrains.Annotations;
 
 namespace Tauron;
-
-public class ProgressEventArgs : EventArgs
-{
-    public ProgressEventArgs(ProgressStatistic progressStatistic)
-        => ProgressStatistic = progressStatistic;
-
-    [PublicAPI]
-    public ProgressStatistic ProgressStatistic { get; }
-}
-
-[Serializable]
-public class OperationAlreadyStartedException : Exception
-{
-    public OperationAlreadyStartedException() { }
-
-    protected OperationAlreadyStartedException(
-        SerializationInfo info,
-        StreamingContext context)
-        : base(info, context) { }
-}
 
 /// <summary>
 ///     A class which calculates progress statistics like average bytes per second or estimated finishing time.

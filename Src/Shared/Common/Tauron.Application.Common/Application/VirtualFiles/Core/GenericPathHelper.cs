@@ -18,7 +18,7 @@ public static class GenericPathHelper
     {
         var span = info.Path.AsSpan();
 
-        return span.StartsWith(scheme) && span[scheme.Length..].StartsWith(AbsolutPathMarker);
+        return span.StartsWith(scheme, StringComparison.Ordinal) && span[scheme.Length..].StartsWith(AbsolutPathMarker, StringComparison.Ordinal);
     }
 
     [DebuggerStepThrough]

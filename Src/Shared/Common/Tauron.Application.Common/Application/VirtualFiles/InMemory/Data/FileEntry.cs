@@ -37,7 +37,6 @@ public sealed class FileEntry : DataElementBase
 
         Name = name;
         Data = stream;
-        CreationDate = clock.UtcNow.LocalDateTime;
         ModifyDate = clock.UtcNow.LocalDateTime;
 
         return this;

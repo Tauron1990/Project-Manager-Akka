@@ -100,11 +100,11 @@ public static class ObservableExtensions
             });
     }
 
-    public static IObservable<CallResult<TResult>> SelectSafe<TEvent, TResult>(
+    public static IObservable<CallResult> SelectSafe<TEvent, TResult>(
         this IObservable<TEvent> observable,
         Func<TEvent, TResult> selector)
     {
-        return observable.Select<TEvent, CallResult<TResult>>(
+        return observable.Select<TEvent, CallResult>(
             evt =>
             {
                 try
@@ -113,16 +113,16 @@ public static class ObservableExtensions
                 }
                 catch (Exception e)
                 {
-                    return new ErrorCallResult<TResult>(e);
+                    return new ErrorCallResult(e);
                 }
             });
     }
 
-    public static IObservable<CallResult<TResult>> SelectManySafe<TEvent, TResult>(
+    public static IObservable<CallResult> SelectManySafe<TEvent, TResult>(
         this IObservable<TEvent> observable,
         Func<TEvent, Task<TResult>> selector)
     {
-        return observable.SelectMany<TEvent, CallResult<TResult>>(
+        return observable.SelectMany<TEvent, CallResult>(
             async evt =>
             {
                 try
@@ -131,28 +131,28 @@ public static class ObservableExtensions
                 }
                 catch (Exception e)
                 {
-                    return new ErrorCallResult<TResult>(e);
+                    return new ErrorCallResult(e);
                 }
             });
     }
 
-    public static IObservable<Exception> OnError<TResult>(this IObservable<CallResult<TResult>> observable)
-        => observable.Where(cr => cr is ErrorCallResult<TResult>).Cast<ErrorCallResult<TResult>>()
+    public static IObservable<Exception> OnError<TResult>(this IObservable<CallResult> observable)
+        => observable.Where(cr => cr is ErrorCallResult).Cast<ErrorCallResult>()
            .Select(er => er.Error);
 
-    public static IObservable<TResult> OnResult<TResult>(this IObservable<CallResult<TResult>> observable)
+    public static IObservable<TResult> OnResult<TResult>(this IObservable<CallResult> observable)
         => observable.Where(cr => cr is SucessCallResult<TResult>).Cast<SucessCallResult<TResult>>()
            .Select(sr => sr.Result);
 
-    public static IObservable<TData> ConvertResult<TData, TResult>(this IObservable<CallResult<TResult>> result, Func<TResult, TData> onSucess, Func<Exception, TData> error)
+    public static IObservable<TData> ConvertResult<TData, TResult>(this IObservable<CallResult> result, Func<TResult, TData> onSucess, Func<Exception, TData> error)
         => result.Select(cr => cr.ConvertResult(onSucess, error));
 
-    public static TData ConvertResult<TData, TResult>(this CallResult<TResult> result, Func<TResult, TData> onSucess, Func<Exception, TData> error)
+    public static TData ConvertResult<TData, TResult>(this CallResult result, Func<TResult, TData> onSucess, Func<Exception, TData> error)
     {
         return result switch
         {
             SucessCallResult<TResult> sucess => onSucess(sucess.Result),
-            ErrorCallResult<TResult> err => error(err.Error),
+            ErrorCallResult err => error(err.Error),
             _ => throw new InvalidOperationException("Incompatiple Call Result")
         };
     }

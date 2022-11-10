@@ -8,29 +8,10 @@ using System.Reactive.Subjects;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using FastExpressionCompiler;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 
 namespace Tauron.Application;
-
-[PublicAPI]
-public static class ObservablePropertyChangedExtensions
-{
-    public static IObservable<TProp> WhenAny<TProp>(this IObservablePropertyChanged @this, Expression<Func<TProp>> prop)
-    {
-        string name = Reflex.PropertyName(prop);
-        var func = prop.CompileFast();
-
-        return @this.PropertyChangedObservable.Where(propName => propName == name).Select(_ => func());
-    }
-}
-
-[PublicAPI]
-public interface IObservablePropertyChanged
-{
-    IObservable<string> PropertyChangedObservable { get; }
-}
 
 [Serializable]
 [PublicAPI]
@@ -43,7 +24,9 @@ public abstract class ObservableObject : INotifyPropertyChangedMethod, IObservab
     public event PropertyChangedEventHandler? PropertyChanged;
 
     [NotifyPropertyChangedInvocator]
-    public virtual void OnPropertyChanged([CallerMemberName] string? eventArgs = null)
+    #pragma warning disable MA0061
+    public void OnPropertyChanged([CallerMemberName] string? eventArgs = null)
+        #pragma warning restore MA0061
         => OnPropertyChanged(new PropertyChangedEventArgs(eventArgs ?? string.Empty));
 
     public IObservable<string> PropertyChangedObservable => _propertyChnaged.AsObservable();
@@ -73,7 +56,7 @@ public abstract class ObservableObject : INotifyPropertyChangedMethod, IObservab
         {
             try
             {
-                await changed();
+                await changed().ConfigureAwait(false);
             }
             catch (Exception exception)
             {
@@ -86,20 +69,16 @@ public abstract class ObservableObject : INotifyPropertyChangedMethod, IObservab
         SetProperty(ref property, value, () => RunChangedAsync().Ignore(), name);
     }
 
-    public virtual void OnPropertyChangedExplicit(string propertyName)
+    public void OnPropertyChangedExplicit(string propertyName)
         => OnPropertyChanged(new PropertyChangedEventArgs(propertyName));
 
     #pragma warning disable AV1551
     public virtual void OnPropertyChanged(PropertyChangedEventArgs eventArgs)
-        => OnPropertyChanged(this, eventArgs);
-
-    protected virtual void OnPropertyChanged(object sender, PropertyChangedEventArgs eventArgs)
     {
         if(!string.IsNullOrWhiteSpace(eventArgs.PropertyName))
             _propertyChnaged.OnNext(eventArgs.PropertyName);
-        PropertyChanged?.Invoke(sender, eventArgs);
+        PropertyChanged?.Invoke(this, eventArgs);
     }
-
 
     public virtual void OnPropertyChanged<T>(Expression<Func<T>> eventArgs)
         => OnPropertyChanged(new PropertyChangedEventArgs(Reflex.PropertyName(eventArgs)));

@@ -19,7 +19,7 @@ public readonly struct StepId
     public static readonly StepId Waiting = new("Waiting");
 
     [DebuggerStepThrough]
-    public override int GetHashCode() => Name.GetHashCode();
+    public override int GetHashCode() => System.StringComparer.Ordinal.GetHashCode(Name);
 
     public StepId(string name) : this()
         => Name = name;
@@ -28,11 +28,11 @@ public readonly struct StepId
 
     [DebuggerStepThrough]
     public override bool Equals(object? obj)
-        => obj is StepId stepId && stepId.Name == Name;
+        => obj is StepId stepId && string.Equals(stepId.Name, Name, System.StringComparison.Ordinal);
 
-    public static bool operator ==(StepId idLeft, StepId idRight) => idLeft.Name == idRight.Name;
+    public static bool operator ==(StepId idLeft, StepId idRight) => string.Equals(idLeft.Name, idRight.Name, System.StringComparison.Ordinal);
 
-    public static bool operator !=(StepId idLeft, StepId idRight) => idLeft.Name != idRight.Name;
+    public static bool operator !=(StepId idLeft, StepId idRight) => !string.Equals(idLeft.Name, idRight.Name, System.StringComparison.Ordinal);
 
     [DebuggerStepThrough]
     public override string ToString() => Name;

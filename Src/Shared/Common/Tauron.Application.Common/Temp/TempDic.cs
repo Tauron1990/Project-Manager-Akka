@@ -19,8 +19,8 @@ public class TempDic : DisposeableBase, ITempDic
     private readonly IDirectory? _directory;
 
     private readonly Func<bool, string> _nameGenerator;
-    private readonly ConcurrentDictionary<string, ITempDic> _tempDics = new();
-    private readonly ConcurrentDictionary<string, ITempFile> _tempFiles = new();
+    private readonly ConcurrentDictionary<string, ITempDic> _tempDics = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, ITempFile> _tempFiles = new(StringComparer.Ordinal);
 
     protected TempDic(IDirectory? directory, Option<ITempDic> parent, Func<bool, string> nameGenerator, bool deleteDic)
     {
@@ -50,7 +50,7 @@ public class TempDic : DisposeableBase, ITempDic
             name,
             key =>
             {
-                var dic = new TempDic(_directory?.GetDirectory(key), this, _nameGenerator, true);
+                var dic = new TempDic(_directory?.GetDirectory(key), this, _nameGenerator, deleteDic: true);
                 dic.TrackDispose(() => _tempDics.TryRemove(key, out _));
 
                 return dic;

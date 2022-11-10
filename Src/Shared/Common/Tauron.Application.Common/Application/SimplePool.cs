@@ -4,21 +4,6 @@ using JetBrains.Annotations;
 
 namespace Tauron.Application;
 
-public sealed record PoolConfig<TToPool>(int MaximumSize, bool UseDispose, Func<TToPool> Factory)
-{
-    public static PoolConfig<TToPool> Default
-        => new(
-            0,
-            true,
-            () =>
-            {
-                if(FastReflection.Shared.GetCreator(typeof(TToPool), Type.EmptyTypes)?.Invoke(Array.Empty<object>()) is not TToPool data)
-                    throw new InvalidOperationException("Pool Element could not be Created");
-
-                return data;
-            });
-}
-
 [PublicAPI]
 public sealed class SimplePool<TToPool>
 {

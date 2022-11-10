@@ -8,12 +8,6 @@ using JetBrains.Annotations;
 namespace Tauron;
 
 // ReSharper disable once UnusedTypeParameter
-public abstract record CallResult<TResult>(bool IsOk);
-
-public sealed record ErrorCallResult<TResult>(Exception Error) : CallResult<TResult>(false);
-
-public sealed record SucessCallResult<TResult>(TResult Result) : CallResult<TResult>(true);
-
 [DebuggerNonUserCode]
 [PublicAPI]
 public static class EnumerableExtensions
@@ -97,7 +91,7 @@ public static class EnumerableExtensions
             yield return array.Skip(i * size).Take(size);
     }
 
-    public static IEnumerable<IEnumerable<T>> Split<T>(this List<T> array, int size)
+    public static IEnumerable<IEnumerable<T>> Split<T>(this ICollection<T> array, int size)
     {
         for (var i = 0; i < (float)array.Count / size; i++)
             yield return array.Skip(i * size).Take(size);

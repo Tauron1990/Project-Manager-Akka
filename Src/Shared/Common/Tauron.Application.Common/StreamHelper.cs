@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Buffers;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 
 namespace Tauron;
-
-[PublicAPI]
-public sealed record CopyFromArguments(long TotalLength = -1, int BufferSize = 4096, ProgressChange? ProgressChangeCallback = null, CancellationToken StopEvent = default);
 
 /// <summary>
 ///     A static class for basic stream operations.
@@ -47,11 +43,11 @@ public static class StreamHelper
             do
             {
                 var mem = buffer.AsMemory(0, arguments.BufferSize);
-                int count = await source.ReadAsync(mem, arguments.StopEvent);
+                int count = await source.ReadAsync(mem, arguments.StopEvent).ConfigureAwait(false);
 
                 if(count == 0) break;
 
-                await target.WriteAsync(mem, arguments.StopEvent);
+                await target.WriteAsync(mem, arguments.StopEvent).ConfigureAwait(false);
 
                 length += count;
 
@@ -78,7 +74,7 @@ public static class StreamHelper
         if(arguments.BufferSize < 128)
             throw new ArgumentOutOfRangeException(
                 // ReSharper disable once NotResolvedInText
-                "arguments.BufferSize",
+                nameof(arguments),
                 arguments.BufferSize,
                 "BufferSize has to be greater or equal than 128.");
 

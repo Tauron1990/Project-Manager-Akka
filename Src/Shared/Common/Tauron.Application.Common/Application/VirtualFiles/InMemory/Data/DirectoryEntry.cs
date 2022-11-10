@@ -8,7 +8,7 @@ namespace Tauron.Application.VirtualFiles.InMemory.Data;
 
 public class DirectoryEntry : DataElementBase
 {
-    private readonly ConcurrentDictionary<string, IDataElement> _elements = new();
+    private readonly ConcurrentDictionary<string, IDataElement> _elements = new(StringComparer.Ordinal);
 
     public IEnumerable<IDataElement> Elements => _elements.Values;
 
@@ -32,7 +32,6 @@ public class DirectoryEntry : DataElementBase
 
         Name = name;
         ModifyDate = clock.UtcNow.LocalDateTime;
-        CreationDate = clock.UtcNow.LocalDateTime;
     }
 
     public override void Dispose()

@@ -6,18 +6,6 @@ using Stl;
 
 namespace Tauron;
 
-[PublicAPI]
-public enum RoundType : short
-{
-    None = 0,
-
-    Hour = 60,
-
-    HalfHour = 30,
-
-    QuaterHour = 15
-}
-
 #pragma warning disable EPS02
 
 [PublicAPI]
@@ -36,7 +24,7 @@ public static class ObjectExtension
         }
     }
 
-    public static Option<TData> AsOption<TData>(this TData data) => new(true, data);
+    public static Option<TData> AsOption<TData>(this TData data) => new(hasValue: true, valueOrDefault: data);
 
     public static Option<TData> OptionNotNull<TData>(this TData? data)
         where TData : class
@@ -44,9 +32,8 @@ public static class ObjectExtension
 
     public static void OnSuccess<TData>(this in Option<TData> data, Action<TData> action)
     {
-        (bool hasValue, TData value) = data;
-        if(hasValue)
-            action(value!);
+        if(data.HasValue)
+            action(data.Value);
     }
 
     public static TData GetOrElse<TData>(this in Option<TData> option, TData els)
