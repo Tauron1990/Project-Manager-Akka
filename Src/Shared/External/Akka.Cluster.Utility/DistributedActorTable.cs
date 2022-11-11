@@ -51,7 +51,7 @@ public class DistributedActorTable<TKey> : ReceiveActor
 
     private void Handle(ClusterActorDiscoveryMessage.ActorUp member)
     {
-        (IActorRef actorRef, _) = member;
+        IActorRef actorRef = member.Actor;
         _log.Info($"Container.ActorUp (Actor={actorRef.Path})");
 
         if(_stopping)
@@ -77,7 +77,7 @@ public class DistributedActorTable<TKey> : ReceiveActor
             foreach ((TKey key, Creating? creating) in _creatingMap.Where(item => item.Value is { WorkingContainer: null }))
             {
                 creating!.WorkingContainer = actorRef;
-                container.ActorMap.Add(key, null);
+                container.ActorMap.Add(key, value: null);
                 actorRef.Tell(new DistributedActorTableMessage<TKey>.Internal.Create(key, creating.Arguments));
             }
 
@@ -90,7 +90,7 @@ public class DistributedActorTable<TKey> : ReceiveActor
 
     private void Handle(ClusterActorDiscoveryMessage.ActorDown member)
     {
-        (IActorRef actor, _) = member;
+        IActorRef actor = member.Actor;
         _log.Info($"Container.ActorDown (Actor={actor.Path})");
 
         if(_containerMap.TryGetValue(actor, out Container? container) == false)
@@ -128,7 +128,7 @@ public class DistributedActorTable<TKey> : ReceiveActor
             _creatingMap.Remove(key);
 
             foreach ((IActorRef targetActor, RequestType type) in creating.Requesters)
-                targetActor.Tell(CreateReplyMessage(type, key, null, false));
+                targetActor.Tell(CreateReplyMessage(type, key, actor: null, created: false));
         }
     }
 
@@ -136,14 +136,14 @@ public class DistributedActorTable<TKey> : ReceiveActor
     {
         // This function should be used under test environment only.
 
-        Handle(new ClusterActorDiscoveryMessage.ActorDown(member.ActorRef, null));
+        Handle(new ClusterActorDiscoveryMessage.ActorDown(member.ActorRef, Tag: null));
     }
 
     private IActorRef? DecideWorkingContainer()
     {
         // round-robind
 
-        if(_containerWorkQueue == null || _containerWorkQueue.Count == 0)
+        if(_containerWorkQueue is null || _containerWorkQueue.Count == 0)
             return null;
 
         int index = _lastWorkNodeIndex + 1;
@@ -163,7 +163,7 @@ public class DistributedActorTable<TKey> : ReceiveActor
 
         // add actor with creating status
 
-        _actorMap.Add(id, null);
+        _actorMap.Add(id, value: null);
 
         _creatingMap.Add(
             id,
@@ -178,7 +178,7 @@ public class DistributedActorTable<TKey> : ReceiveActor
 
         if(container != null)
         {
-            _containerMap[container].ActorMap.Add(id, null);
+            _containerMap[container].ActorMap.Add(id, value: null);
             container.Tell(new DistributedActorTableMessage<TKey>.Internal.Create(id, args));
         }
         else
@@ -196,17 +196,17 @@ public class DistributedActorTable<TKey> : ReceiveActor
             RequestType.Create => new DistributedActorTableMessage<TKey>.CreateReply(id, actor),
             RequestType.GetOrCreate => new DistributedActorTableMessage<TKey>.GetOrCreateReply(id, actor, created),
             RequestType.Get => new DistributedActorTableMessage<TKey>.GetReply(id, actor),
-            _ => throw new ArgumentOutOfRangeException(nameof(requestType), requestType, null)
+            _ => throw new ArgumentOutOfRangeException(nameof(requestType), requestType, message: null)
         };
     }
 
     private void PutOnCreateWaitingList(RequestType requestType, TKey id, IActorRef requester)
     {
-        (_, Creating? creating) = _creatingMap.First(map => map.Key.Equals(id));
-        if(creating == null)
+        Creating? creating = _creatingMap.First(map => map.Key.Equals(id)).Value;
+        if(creating is null)
         {
             _log.Error($"Cannot find creatingMap. (Id=${id} RequestType={requestType})");
-            Sender.Tell(CreateReplyMessage(requestType, id, null, false));
+            Sender.Tell(message: CreateReplyMessage(requestType: requestType, id: id, actor: null, created: false));
 
             return;
         }
@@ -223,11 +223,11 @@ public class DistributedActorTable<TKey> : ReceiveActor
 
         TKey id;
         (TKey? key, object[] args) = tableMsg;
-        if(key != null && key.Equals(default(TKey)) == false)
+        if(key != null && !key.Equals(default(TKey)))
         {
             if(_actorMap.ContainsKey(key))
             {
-                Sender.Tell(new DistributedActorTableMessage<TKey>.CreateReply(key, null));
+                Sender.Tell(new DistributedActorTableMessage<TKey>.CreateReply(key, Actor: null));
 
                 return;
             }
@@ -239,7 +239,7 @@ public class DistributedActorTable<TKey> : ReceiveActor
             if(_idGenerator is null)
             {
                 _log.Error("I don't have ID Generator.");
-                Sender.Tell(new DistributedActorTableMessage<TKey>.CreateReply(key, null));
+                Sender.Tell(new DistributedActorTableMessage<TKey>.CreateReply(key, Actor: null));
 
                 return;
             }
@@ -248,7 +248,7 @@ public class DistributedActorTable<TKey> : ReceiveActor
             if(_actorMap.ContainsKey(id))
             {
                 _log.Error($"ID generated by generator is duplicated. ID={id}, Actor={_actorMap[id]}");
-                Sender.Tell(new DistributedActorTableMessage<TKey>.CreateReply(key, null));
+                Sender.Tell(new DistributedActorTableMessage<TKey>.CreateReply(key, Actor: null));
 
                 return;
             }
@@ -270,7 +270,7 @@ public class DistributedActorTable<TKey> : ReceiveActor
         {
             if(actor != null)
             {
-                Sender.Tell(new DistributedActorTableMessage<TKey>.GetOrCreateReply(tableMsg.Id, actor, false));
+                Sender.Tell(new DistributedActorTableMessage<TKey>.GetOrCreateReply(Id: tableMsg.Id, Actor: actor, Created: false));
 
                 return;
             }
@@ -303,7 +303,7 @@ public class DistributedActorTable<TKey> : ReceiveActor
             return;
         }
 
-        Sender.Tell(new DistributedActorTableMessage<TKey>.GetReply(get.Id, null));
+        Sender.Tell(message: new DistributedActorTableMessage<TKey>.GetReply(get.Id, Actor: null));
     }
 
     private void Handle(DistributedActorTableMessage<TKey>.GetIds getIds)
@@ -375,7 +375,7 @@ public class DistributedActorTable<TKey> : ReceiveActor
         if(actor is null)
         {
             _log.Error($"Invalid null actor for adding. (Id={id})");
-            Sender.Tell(new DistributedActorTableMessage<TKey>.Internal.AddReply(id, actor, false));
+            Sender.Tell(message: new DistributedActorTableMessage<TKey>.Internal.AddReply(id, Actor: actor, Added: false));
 
             return;
         }
@@ -394,12 +394,12 @@ public class DistributedActorTable<TKey> : ReceiveActor
         }
         catch (Exception)
         {
-            Sender.Tell(new DistributedActorTableMessage<TKey>.Internal.AddReply(id, actor, false));
+            Sender.Tell(message: new DistributedActorTableMessage<TKey>.Internal.AddReply(id, Actor: actor, Added: false));
             #pragma warning disable ERP022
         }
         #pragma warning restore ERP022
 
-        Sender.Tell(new DistributedActorTableMessage<TKey>.Internal.AddReply(id, actor, true));
+        Sender.Tell(new DistributedActorTableMessage<TKey>.Internal.AddReply(id, actor, Added: true));
     }
 
     private void Handle(DistributedActorTableMessage<TKey>.Internal.Remove remove)
@@ -455,7 +455,7 @@ public class DistributedActorTable<TKey> : ReceiveActor
             // send reply to requester
 
             foreach ((IActorRef actorRef, RequestType requestType) in creating.Requesters)
-                actorRef.Tell(CreateReplyMessage(requestType, id, null, false));
+                actorRef.Tell(CreateReplyMessage(requestType, id, actor: null, created: false));
         }
     }
 
@@ -530,8 +530,8 @@ public class DistributedActorTable<TKey> : ReceiveActor
         Type idGeneratorType, object[] idGeneratorInitializeArgs)
         : this(name, clusterActorDiscovery, idGeneratorType, idGeneratorInitializeArgs)
     {
-        if(primingTest != "TEST")
-            throw new ArgumentException(nameof(primingTest));
+        if(!string.Equals(primingTest, "TEST", StringComparison.Ordinal))
+            throw new ArgumentException("TEST", nameof(primingTest));
 
         _underTestEnvironment = true;
 

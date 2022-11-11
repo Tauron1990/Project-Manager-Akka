@@ -28,7 +28,9 @@ namespace BeaconLib
             AdvertisedPort = advertisedPort;
             Data = "";
 
+            #pragma warning disable MA0011
             _log.Info("Bind UDP beacon to {Port}", DiscoveryPort);
+            #pragma warning restore MA0011
             _udp = new UdpClient();
             Init();
         }
@@ -49,12 +51,12 @@ namespace BeaconLib
 
         private void Init()
         {
-            _udp.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            _udp.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, optionValue: true);
             _udp.Client.Bind(new IPEndPoint(IPAddress.Any, DiscoveryPort));
 
             try
             {
-                _udp.AllowNatTraversal(true);
+                _udp.AllowNatTraversal(allowed: true);
             }
             catch (Exception exception)
             {
@@ -67,7 +69,7 @@ namespace BeaconLib
             _log.Info("Starting Beacon");
             Stopped = false;
             // ReSharper disable once ArgumentsStyleLiteral
-            _udp.BeginReceive(ProbeReceived, null);
+            _udp.BeginReceive(ProbeReceived, state: null);
         }
 
         public void Stop()
@@ -97,7 +99,7 @@ namespace BeaconLib
                 _log.Info("Incompatible Data");
             }
 
-            if(!Stopped) _udp.BeginReceive(ProbeReceived, null);
+            if(!Stopped) _udp.BeginReceive(ProbeReceived, state: null);
         }
 
         internal static bool HasPrefix<T>(T[] haystack, T[] prefix)
@@ -123,13 +125,14 @@ namespace BeaconLib
         /// <summary>
         ///     Convert network bytes to a string
         /// </summary>
+        /// <exception cref="ArgumentException"></exception>
         internal static string Decode(IEnumerable<byte> data)
         {
             var listData = data as IList<byte> ?? data.ToList();
 
             short packetLenght = IPAddress.NetworkToHostOrder(BitConverter.ToInt16(listData.Take(2).ToArray(), 0));
 
-            if(listData.Count < 2 + packetLenght) throw new ArgumentException("Too few bytes in packet");
+            if(listData.Count < 2 + packetLenght) throw new ArgumentException("Too few bytes in packet", nameof(data));
 
             return Encoding.UTF8.GetString(listData.Skip(2).Take(packetLenght).ToArray());
         }

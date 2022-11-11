@@ -19,7 +19,7 @@ public class LoadingIndicator : Control
     /// </summary>
     public static readonly DependencyProperty SpeedRatioProperty =
         DependencyProperty.Register(
-            "SpeedRatio",
+            nameof(SpeedRatio),
             typeof(double),
             typeof(LoadingIndicator),
             new PropertyMetadata(
@@ -31,15 +31,15 @@ public class LoadingIndicator : Control
     /// </summary>
     public static readonly DependencyProperty IsActiveProperty =
         DependencyProperty.Register(
-            "IsActive",
+            nameof(IsActive),
             typeof(bool),
             typeof(LoadingIndicator),
             new PropertyMetadata(
-                true,
+defaultValue: true,
                 OnIsActiveChanged));
 
     public static readonly DependencyProperty ModeProperty = DependencyProperty.Register(
-        "Mode",
+        nameof(Mode),
         typeof(LoadingIndicatorMode),
         typeof(LoadingIndicator),
         new PropertyMetadata(default(LoadingIndicatorMode)));
@@ -82,7 +82,7 @@ public class LoadingIndicator : Control
     {
         var indicator = (LoadingIndicator)dependencyObject;
 
-        if(indicator.PART_Border == null || indicator.IsActive == false) return;
+        if(indicator.PART_Border is null || indicator.IsActive == false) return;
 
         SetStoryBoardSpeedRatio(indicator.PART_Border, (double)eventArgs.NewValue);
     }
@@ -98,7 +98,7 @@ public class LoadingIndicator : Control
             VisualStateManager.GoToElementState(
                 indicator.PART_Border,
                 IndicatorVisualStateNames.InactiveState.Name,
-                false);
+                useTransitions: false);
             indicator.PART_Border.SetCurrentValue(VisibilityProperty, Visibility.Collapsed);
         }
         else
@@ -106,7 +106,7 @@ public class LoadingIndicator : Control
             VisualStateManager.GoToElementState(
                 indicator.PART_Border,
                 IndicatorVisualStateNames.ActiveState.Name,
-                false);
+                useTransitions: false);
 
             indicator.PART_Border.SetCurrentValue(VisibilityProperty, Visibility.Visible);
 
@@ -138,7 +138,7 @@ public class LoadingIndicator : Control
             IsActive
                 ? IndicatorVisualStateNames.ActiveState.Name
                 : IndicatorVisualStateNames.InactiveState.Name,
-            false);
+            useTransitions: false);
 
         SetStoryBoardSpeedRatio(PART_Border, SpeedRatio);
 

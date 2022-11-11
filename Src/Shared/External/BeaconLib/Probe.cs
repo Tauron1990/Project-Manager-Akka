@@ -37,7 +37,7 @@ namespace BeaconLib
         public Probe(string beaconType)
             #pragma warning restore AV1500
         {
-            _udp.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            _udp.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, optionValue: true);
 
             BeaconType = beaconType;
             _thread = new Task(BackgroundLoop, TaskCreationOptions.LongRunning);
@@ -55,7 +55,7 @@ namespace BeaconLib
                 _log.Error(ex, "Error switching on NAT traversal");
             }
 
-            _udp.BeginReceive(ResponseReceived, null);
+            _udp.BeginReceive(ResponseReceived, state: null);
         }
 
         public string BeaconType { get; private set; }

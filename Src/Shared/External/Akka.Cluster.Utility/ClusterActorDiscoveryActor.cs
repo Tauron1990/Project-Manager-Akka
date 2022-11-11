@@ -8,42 +8,6 @@ using Tauron.Application;
 namespace Akka.Cluster.Utility;
 
 [PublicAPI]
-public sealed class ClusterActorDiscovery : IExtension
-{
-    public ClusterActorDiscovery(ExtendedActorSystem system)
-    {
-        Discovery = system.ActorOf(
-            Props.Create(
-                () => new ClusterActorDiscoveryActor()),
-            nameof(ClusterActorDiscovery));
-    }
-
-    public IActorRef Discovery { get; }
-
-    public static ClusterActorDiscovery Get(ActorSystem system)
-        => system.GetExtension<ClusterActorDiscovery?>() ?? new ClusterActorDiscoveryId().Apply(system);
-
-    public void MonitorActor(ClusterActorDiscoveryMessage.MonitorActor actor)
-        => Discovery.Tell(actor);
-
-    public void UnMonitorActor(ClusterActorDiscoveryMessage.UnmonitorActor actor)
-        => Discovery.Tell(actor);
-
-    public void RegisterActor(ClusterActorDiscoveryMessage.RegisterActor actor)
-        => Discovery.Tell(actor);
-
-    public void UnRegisterActor(ClusterActorDiscoveryMessage.UnmonitorActor actor)
-        => Discovery.Tell(actor);
-}
-
-[PublicAPI]
-public sealed class ClusterActorDiscoveryId : ExtensionIdProvider<ClusterActorDiscovery>
-{
-    public override ClusterActorDiscovery CreateExtension(ExtendedActorSystem system)
-        => new(system);
-}
-
-[PublicAPI]
 public partial class ClusterActorDiscoveryActor : ReceiveActor
 {
     private readonly List<ActorItem> _actorItems = new();
@@ -151,7 +115,7 @@ public partial class ClusterActorDiscoveryActor : ReceiveActor
         MemberUnreachable(member.Member.Address, string.Join(",", member.Member.Roles));
 
         #pragma warning disable GU0019
-        IActorRef? key = _nodeMap.FirstOrDefault(node => node.Value.ClusterAddress == member.Member.UniqueAddress).Key;
+        IActorRef key = _nodeMap.FirstOrDefault(node => node.Value.ClusterAddress == member.Member.UniqueAddress).Key;
         #pragma warning restore GU0019
 
         RemoveNode(key);
@@ -212,7 +176,8 @@ public partial class ClusterActorDiscoveryActor : ReceiveActor
         #pragma warning disable GU0019
         IActorRef? key = _nodeMap.FirstOrDefault(node => node.Value.ClusterAddress == member.ClusterAddress).Key;
         #pragma warning restore GU0019
-        if(key != null)
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+        if(key is not null)
             RemoveNode(key);
 
         _nodeMap.Add(Sender, new NodeItem(new List<ActorItem>(), member.ClusterAddress));
@@ -231,7 +196,7 @@ public partial class ClusterActorDiscoveryActor : ReceiveActor
                     _cluster.SelfUniqueAddress,
                     _actorItems.Select(item => new ClusterActorDiscoveryMessage.ClusterActorUp(item.Actor, item.Tag))
                        .ToList(),
-                    false));
+                    Request: false));
     }
 
     //private void Handle(ClusterActorDiscoveryMessage.UnregisterCluster m)
@@ -375,10 +340,10 @@ public partial class ClusterActorDiscoveryActor : ReceiveActor
 
         // Send actor up message to just registered monitor
 
-        foreach (ActorItem actor in _actorItems.Where(item => item.Tag == member.Tag))
+        foreach (ActorItem actor in _actorItems.Where(item => string.Equals(item.Tag, member.Tag, System.StringComparison.Ordinal)))
             Sender.Tell(new ClusterActorDiscoveryMessage.ActorUp(actor.Actor, actor.Tag));
 
-        foreach (ActorItem actor in _nodeMap.Values.SelectMany(node => node.ActorItems.Where(item => item.Tag == member.Tag)))
+        foreach (ActorItem actor in _nodeMap.Values.SelectMany(node => node.ActorItems.Where(item => string.Equals(item.Tag, member.Tag, System.StringComparison.Ordinal))))
             Sender.Tell(new ClusterActorDiscoveryMessage.ActorUp(actor.Actor, actor.Tag));
     }
 
@@ -389,7 +354,7 @@ public partial class ClusterActorDiscoveryActor : ReceiveActor
     {
         UnmonitorActor(Sender.Path, member.Tag);
 
-        int count = _monitorItems.RemoveAll(item => item.Actor.Equals(Sender) && item.Tag == member.Tag);
+        int count = _monitorItems.RemoveAll(item => item.Actor.Equals(Sender) && string.Equals(item.Tag, member.Tag, System.StringComparison.Ordinal));
         for (var index = 0; index < count; index++)
             UnwatchActor(Sender, 1);
     }
@@ -428,13 +393,13 @@ public partial class ClusterActorDiscoveryActor : ReceiveActor
 
     private void NotifyActorUpToMonitor(IActorRef actor, string tag)
     {
-        foreach (MonitorItem monitor in _monitorItems.Where(item => item.Tag == tag))
+        foreach (MonitorItem monitor in _monitorItems.Where(item => string.Equals(item.Tag, tag, System.StringComparison.Ordinal)))
             monitor.Actor.Tell(new ClusterActorDiscoveryMessage.ActorUp(actor, tag));
     }
 
     private void NotifyActorDownToMonitor(IActorRef actor, string tag)
     {
-        foreach (MonitorItem monitor in _monitorItems.Where(item => item.Tag == tag))
+        foreach (MonitorItem monitor in _monitorItems.Where(item => string.Equals(item.Tag, tag, System.StringComparison.Ordinal)))
             monitor.Actor.Tell(new ClusterActorDiscoveryMessage.ActorDown(actor, tag));
     }
 

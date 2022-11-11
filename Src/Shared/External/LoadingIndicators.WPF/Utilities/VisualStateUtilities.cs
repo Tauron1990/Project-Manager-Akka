@@ -30,7 +30,7 @@ internal static class VisualStateUtilities
 
         var visualStates = visualStateGroup.GetVisualStates();
 
-        return string.IsNullOrWhiteSpace(name) ? visualStates : visualStates?.Where(vs => vs.Name == name);
+        return string.IsNullOrWhiteSpace(name) ? visualStates : visualStates?.Where(vs => string.Equals(vs.Name, name, StringComparison.Ordinal));
     }
 
     private static IEnumerable<VisualStateGroup>? GetVisualStateGroupsByName(
@@ -58,7 +58,7 @@ internal static class VisualStateUtilities
 
         return string.IsNullOrWhiteSpace(name)
             ? castedVisualStateGroups
-            : castedVisualStateGroups.Where(vsg => vsg.Name == name);
+            : castedVisualStateGroups.Where(vsg => string.Equals(vsg.Name, name, StringComparison.Ordinal));
 
         #pragma warning restore AV1135
     }
