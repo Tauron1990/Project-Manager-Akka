@@ -3,16 +3,6 @@ using Tauron.Application.VirtualFiles;
 
 namespace Tauron.Localization;
 
-public enum JsonFileNameMode
-{
-    Name,
-    TwoLetterIsoLanguageName,
-    ThreeLetterIsoLanguageName,
-    ThreeLetterWindowsLanguageName,
-    DisplayName,
-    EnglishName
-}
-
 [PublicAPI]
 public sealed record JsonConfiguration(IDirectory RootDic, JsonFileNameMode NameMode = JsonFileNameMode.Name, string Fallback = "en")
 {

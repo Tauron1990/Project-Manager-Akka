@@ -82,7 +82,7 @@ public sealed class ObservableDictionary<TKey, TValue> : ObservableObject, IDict
 
     public void Add(TKey key, TValue value)
     {
-        if(FindEntry(key, out _) != null) throw new ArgumentException("The key is in the collection unkown.");
+        if(FindEntry(key, out _) != null) throw new ArgumentException("The key is in the collection unkown.", nameof(key));
 
         AddCore(key, value);
     }
@@ -409,7 +409,7 @@ public sealed class ObservableDictionary<TKey, TValue> : ObservableObject, IDict
         {
             int ver = Dictionary._version;
             var count = 0;
-            foreach (Entry? entry in Dictionary._entrys)
+            foreach (var entry in Dictionary._entrys)
             {
                 count++;
 

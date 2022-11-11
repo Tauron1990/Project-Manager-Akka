@@ -54,7 +54,7 @@ public sealed class SourceConfiguration<TState> : ISourceConfiguration<TState>
     private static Reqester<TState> CreateRequester<TToPatch>(Func<CancellationToken, Task<TToPatch>> fetcher, Func<TState, TToPatch, TState> patcher)
         => async (token, currentState) =>
            {
-               TToPatch request = await TimeoutToken.WithDefault(token, fetcher);
+               TToPatch request = await TimeoutToken.WithDefault(token, fetcher).ConfigureAwait(false);
 
                return patcher(currentState, request);
            };

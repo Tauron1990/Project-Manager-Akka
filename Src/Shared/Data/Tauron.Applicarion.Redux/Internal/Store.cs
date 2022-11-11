@@ -42,7 +42,7 @@ public sealed class Store<TState> : IReduxStore<TState>
                             (tuple, on) => (on.Mutator(tuple.State, tuple.Action), tuple.Action)))
                .Select(a => a.State)
                .NotNull()
-               .Do(static _ => { }, _onError)
+               .Do(static _ => { }, onError)
                .Retry()
                .Subscribe(_state)
         );

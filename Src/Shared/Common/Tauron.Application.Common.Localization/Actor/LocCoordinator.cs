@@ -1,13 +1,15 @@
 ﻿using System.Globalization;
 using Akka.Actor;
 using Akka.Util;
+using JetBrains.Annotations;
 using Tauron.Localization.Provider;
 
 namespace Tauron.Localization.Actor;
 
+[PublicAPI]
 public sealed class LocCoordinator : ReceiveActor, IWithTimers
 {
-    private readonly Dictionary<string, Request> _requests = new();
+    private readonly Dictionary<string, Request> _requests = new(StringComparer.Ordinal);
 
     public LocCoordinator(IEnumerable<ILocStoreProducer> producers)
     {

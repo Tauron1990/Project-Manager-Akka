@@ -13,7 +13,7 @@ internal class ExplicitStateLens<TState, TFeatureState> : BaseStateLens<TState, 
 
     private readonly Func<TState, TFeatureState, TState> _stateReducer;
 
-    public ExplicitStateLens(
+    internal ExplicitStateLens(
         Func<TState, TFeatureState> featureSelector,
         Func<TState, TFeatureState, TState> stateReducer,
         IMaterializer materializer)
@@ -38,7 +38,7 @@ internal class ExplicitStateLens<TState, TFeatureState> : BaseStateLens<TState, 
         private readonly IProcessor<DispatchedAction<TFeatureState>, TFeatureState> _processor;
         private readonly ExplicitStateLens<TState, TFeatureState> _stateLens;
 
-        public ContextShape(IProcessor<DispatchedAction<TFeatureState>, TFeatureState> processor, ExplicitStateLens<TState, TFeatureState> stateLens)
+        internal ContextShape(IProcessor<DispatchedAction<TFeatureState>, TFeatureState> processor, ExplicitStateLens<TState, TFeatureState> stateLens)
         {
             _processor = processor;
             _stateLens = stateLens;
@@ -59,26 +59,26 @@ internal class ExplicitStateLens<TState, TFeatureState> : BaseStateLens<TState, 
             private TState? _pending;
             private ISubscription? _subscription;
 
-            public Logic(ContextShape shape) : base(shape.Shape)
+            internal Logic(ContextShape shape) : base(shape.Shape)
             {
                 _shape = shape;
 
                 shape._processor.Subscribe(this);
 
                 SetHandler(
-                    _shape.Incomming,
+                    shape.Incomming,
                     () =>
                     {
                         try
                         {
-                            var data = Grab(_shape.Incomming);
+                            var data = Grab(shape.Incomming);
                             _pending = data.State;
-                            var newData = new DispatchedAction<TFeatureState>(_shape._stateLens._featureSelector(_pending), data.Action);
-                            _shape._processor.OnNext(newData);
+                            var newData = new DispatchedAction<TFeatureState>(shape._stateLens._featureSelector(_pending), data.Action);
+                            shape._processor.OnNext(newData);
                         }
                         catch (Exception e)
                         {
-                            _shape._processor.OnError(e);
+                            shape._processor.OnError(e);
                         }
                     });
             }

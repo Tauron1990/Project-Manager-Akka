@@ -31,7 +31,9 @@ using JetBrains.Annotations;
 namespace Akkatecture.Aggregates;
 
 [PublicAPI]
+#pragma warning disable MA0097
 public class EventId : Identity<EventId>, IEventId
+    #pragma warning restore MA0097
 {
     public EventId(string value)
         : base(value) { }

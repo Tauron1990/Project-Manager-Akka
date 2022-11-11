@@ -20,20 +20,6 @@ using EventEnvelope = Akka.Persistence.Query.EventEnvelope;
 namespace Tauron.Akkatecture.Projections;
 
 [PublicAPI]
-public sealed class EventReaderException : EventArgs
-{
-    public EventReaderException(string tag, Exception exception)
-    {
-        Tag = tag;
-        Exception = exception;
-    }
-
-    public string Tag { get; }
-
-    public Exception Exception { get; }
-}
-
-[PublicAPI]
 public abstract class AggregateEventReader
 {
     public event EventHandler<EventReaderException>? OnReadError;
@@ -71,9 +57,9 @@ public sealed class AggregateEventReader<TJournal> : AggregateEventReader
     {
         string ExtractInfo() => subscriptionId[(subscriptionId.IndexOf('@') + 1)..];
 
-        if(subscriptionId.StartsWith("Type"))
+        if(subscriptionId.StartsWith("Type", StringComparison.Ordinal))
             return MakeAggregateSubscription(lastProcessedCheckpoint, subscriber, Type.GetType(ExtractInfo())!);
-        if(subscriptionId.StartsWith("Tag"))
+        if(subscriptionId.StartsWith("Tag", StringComparison.Ordinal))
             return MakeTagAggregateSubscription(lastProcessedCheckpoint, subscriber, ExtractInfo());
 
         throw new ArgumentException($"Invalid Subscription Id Format: {subscriptionId}", nameof(subscriptionId));
@@ -130,12 +116,14 @@ public sealed class AggregateEventReader<TJournal> : AggregateEventReader
 
         public void Dispose()
         {
-            _isCancel.GetAndSet(true);
+            _isCancel.GetAndSet(newValue: true);
             _cancelable?.Shutdown();
             _runner?.Wait(TimeSpan.FromSeconds(20));
         }
 
+        #pragma warning disable MA0051
         internal IDisposable CreateSubscription(in long? lastProcessedCheckpoint, Action<string, Exception> errorHandler)
+            #pragma warning restore MA0051
         {
             _errorHandler = errorHandler;
 
@@ -162,7 +150,7 @@ public sealed class AggregateEventReader<TJournal> : AggregateEventReader
                                           .Select(
                                                pair =>
                                                {
-                                                   (IDomainEvent evt, _) = pair;
+                                                   IDomainEvent evt = pair.Item1;
 
                                                    return new LiquidProjections.EventEnvelope
                                                           {
@@ -170,7 +158,7 @@ public sealed class AggregateEventReader<TJournal> : AggregateEventReader
                                                               Headers = evt
                                                                  .Metadata
                                                                  .Select(p => Tuple.Create<string, object>(p.Key, p.Value))
-                                                                 .ToDictionary(t => t.Item1, t => t.Item2)
+                                                                 .ToDictionary(t => t.Item1, t => t.Item2, StringComparer.Ordinal)
                                                           };
                                                }))
                                };
@@ -181,10 +169,10 @@ public sealed class AggregateEventReader<TJournal> : AggregateEventReader
                     (list, transaction) => list.Add(transaction))
                .AlsoTo(
                     Sink.OnComplete<ImmutableList<Transaction>>(
-                        () => _isCancel.GetAndSet(true),
+                        () => _isCancel.GetAndSet(newValue: true),
                         e =>
                         {
-                            _isCancel.GetAndSet(true);
+                            _isCancel.GetAndSet(newValue: true);
                             errorHandler(_exceptionInfo, e);
                         }))
                .ViaMaterialized(KillSwitches.Single<ImmutableList<Transaction>>(), (_, kill) => kill)
@@ -208,16 +196,16 @@ public sealed class AggregateEventReader<TJournal> : AggregateEventReader
             while (!_isCancel.Value)
                 try
                 {
-                    var data = await queue.PullAsync();
+                    var data = await queue.PullAsync().ConfigureAwait(false);
 
                     if(data.HasValue)
                         await _subscriber.HandleTransactions(
                             data.Value,
                             new SubscriptionInfo
                             {
-                                Id = data.Value.Last().StreamId,
-                                Subscription = this
-                            });
+                                Id = data.Value[^1].StreamId,
+                                Subscription = this,
+                            }).ConfigureAwait(false);
                     else
                         break;
                 }

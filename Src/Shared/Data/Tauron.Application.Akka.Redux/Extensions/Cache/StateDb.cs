@@ -25,7 +25,7 @@ public sealed class StateDb
         {
             await _db.TryAddOrUpdateElement(
                 CacheDataId.FromType(typeof(TState)),
-                JsonSerializer.Serialize(state));
+                JsonSerializer.Serialize(state)).ConfigureAwait(false);
         }
         catch (Exception e)
         {
@@ -35,7 +35,7 @@ public sealed class StateDb
 
     public async Task<TState?> Get<TState>()
     {
-        string? data = await _timeoutManager.FetchAndReNew(CacheDataId.FromType(typeof(TState)));
+        string? data = await _timeoutManager.FetchAndReNew(CacheDataId.FromType(typeof(TState))).ConfigureAwait(false);
 
         if(string.IsNullOrWhiteSpace(data))
             return default;

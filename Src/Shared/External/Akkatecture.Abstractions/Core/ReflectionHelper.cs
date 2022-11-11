@@ -45,7 +45,7 @@ public static class ReflectionHelper
         TypeInfo typeInfo = type.GetTypeInfo();
         var methods = typeInfo
            .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-           .Where(info => info.Name == methodName);
+           .Where(info => string.Equals(info.Name, methodName, StringComparison.Ordinal));
 
         MethodInfo? methodInfo = !methodSignature.Any()
             ? methods.SingleOrDefault()
@@ -54,13 +54,15 @@ public static class ReflectionHelper
                     => info.GetParameters().Select(mp => mp.ParameterType).SequenceEqual(methodSignature));
 
         if(methodInfo == null)
-            throw new ArgumentException($"Type '{type.PrettyPrint()}' doesn't have a method called '{methodName}'");
+            throw new ArgumentException($"Type '{type.PrettyPrint()}' doesn't have a method called '{methodName}'", nameof(type));
 
         return CompileMethodInvocation<TResult>(methodInfo);
     }
 
     #pragma warning disable AV1551
+    #pragma warning disable MA0051
     public static TResult CompileMethodInvocation<TResult>(MethodInfo methodInfo) where TResult : class
+    #pragma warning restore MA0051
     #pragma warning restore AV1551
     {
         var genericArguments = typeof(TResult).GetTypeInfo().GetGenericArguments();
@@ -68,7 +70,7 @@ public static class ReflectionHelper
         var funcArgumentList = genericArguments.Skip(1).Take(methodArgumentList.Count).ToList();
 
         if(funcArgumentList.Count != methodArgumentList.Count)
-            throw new ArgumentException("Incorrect number of arguments");
+            throw new ArgumentException("Incorrect number of arguments", nameof(methodInfo));
 
         ParameterExpression instanceArgument = Expression.Parameter(genericArguments[0]);
 
@@ -93,11 +95,11 @@ public static class ReflectionHelper
         ParameterExpression instanceVariable = Expression.Variable(type);
         var blockVariables = new List<ParameterExpression>
                              {
-                                 instanceVariable
+                                 instanceVariable,
                              };
         var blockExpressions = new List<Expression>
                                {
-                                   Expression.Assign(instanceVariable, Expression.ConvertChecked(instanceArgument, type))
+                                   Expression.Assign(instanceVariable, Expression.ConvertChecked(instanceArgument, type)),
                                };
         var callArguments = new List<ParameterExpression>();
 

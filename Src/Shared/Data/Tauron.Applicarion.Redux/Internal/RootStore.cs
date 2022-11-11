@@ -98,18 +98,18 @@ public sealed class RootStore : IRootStore
         private readonly Action<Exception> _error;
         private IDisposable _subscriptions = Disposable.Empty;
 
-        public MiddlewareRegistration(IMiddleware middleware, Action<Exception> error)
+        internal MiddlewareRegistration(IMiddleware middleware, Action<Exception> error)
         {
             _error = error;
             Middleware = middleware;
         }
 
-        public IMiddleware Middleware { get; }
+        internal IMiddleware Middleware { get; }
 
         public void Dispose()
             => _subscriptions.Dispose();
 
-        public void Connect(IRootStore store)
+        internal void Connect(IRootStore store)
         {
             Middleware.Init(store);
             _subscriptions = Middleware

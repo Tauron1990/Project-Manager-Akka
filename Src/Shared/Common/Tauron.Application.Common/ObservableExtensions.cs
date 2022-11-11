@@ -100,11 +100,11 @@ public static class ObservableExtensions
             });
     }
 
-    public static IObservable<CallResult> SelectSafe<TEvent, TResult>(
+    public static IObservable<CallResult<TResult>> SelectSafe<TEvent, TResult>(
         this IObservable<TEvent> observable,
         Func<TEvent, TResult> selector)
     {
-        return observable.Select<TEvent, CallResult>(
+        return observable.Select<TEvent, CallResult<TResult>>(
             evt =>
             {
                 try
@@ -113,46 +113,46 @@ public static class ObservableExtensions
                 }
                 catch (Exception e)
                 {
-                    return new ErrorCallResult(e);
+                    return new ErrorCallResult<TResult>(e);
                 }
             });
     }
 
-    public static IObservable<CallResult> SelectManySafe<TEvent, TResult>(
+    public static IObservable<CallResult<TResult>> SelectManySafe<TEvent, TResult>(
         this IObservable<TEvent> observable,
         Func<TEvent, Task<TResult>> selector)
     {
-        return observable.SelectMany<TEvent, CallResult>(
+        return observable.SelectMany<TEvent, CallResult<TResult>>(
             async evt =>
             {
                 try
                 {
-                    return new SucessCallResult<TResult>(await selector(evt));
+                    return new SucessCallResult<TResult>(await selector(evt).ConfigureAwait(false));
                 }
                 catch (Exception e)
                 {
-                    return new ErrorCallResult(e);
+                    return new ErrorCallResult<TResult>(e);
                 }
             });
     }
 
-    public static IObservable<Exception> OnError<TResult>(this IObservable<CallResult> observable)
-        => observable.Where(cr => cr is ErrorCallResult).Cast<ErrorCallResult>()
+    public static IObservable<Exception> OnError<TResult>(this IObservable<CallResult<TResult>> observable)
+        => observable.Where(cr => cr is ErrorCallResult<TResult>).Cast<ErrorCallResult<TResult>>()
            .Select(er => er.Error);
 
-    public static IObservable<TResult> OnResult<TResult>(this IObservable<CallResult> observable)
+    public static IObservable<TResult> OnResult<TResult>(this IObservable<CallResult<TResult>> observable)
         => observable.Where(cr => cr is SucessCallResult<TResult>).Cast<SucessCallResult<TResult>>()
            .Select(sr => sr.Result);
 
-    public static IObservable<TData> ConvertResult<TData, TResult>(this IObservable<CallResult> result, Func<TResult, TData> onSucess, Func<Exception, TData> error)
+    public static IObservable<TData> ConvertResult<TData, TResult>(this IObservable<CallResult<TResult>> result, Func<TResult, TData> onSucess, Func<Exception, TData> error)
         => result.Select(cr => cr.ConvertResult(onSucess, error));
 
-    public static TData ConvertResult<TData, TResult>(this CallResult result, Func<TResult, TData> onSucess, Func<Exception, TData> error)
+    public static TData ConvertResult<TData, TResult>(this CallResult<TResult> result, Func<TResult, TData> onSucess, Func<Exception, TData> error)
     {
         return result switch
         {
             SucessCallResult<TResult> sucess => onSucess(sucess.Result),
-            ErrorCallResult err => error(err.Error),
+            ErrorCallResult<TResult> err => error(err.Error),
             _ => throw new InvalidOperationException("Incompatiple Call Result")
         };
     }
@@ -189,7 +189,7 @@ public static class ObservableExtensions
         return source.SelectMany(
             async _ =>
             {
-                await action();
+                await action().ConfigureAwait(false);
 
                 return Unit.Default;
             });
@@ -200,7 +200,7 @@ public static class ObservableExtensions
         return source.SelectMany(
             async m =>
             {
-                await action(m);
+                await action(m).ConfigureAwait(false);
 
                 return Unit.Default;
             });
@@ -259,7 +259,7 @@ public static class ObservableExtensions
             _strategy = strategy;
             _target = target;
 
-            strategy.ReSubscribe(AddSubscription, null);
+            strategy.ReSubscribe(AddSubscription, cause: null);
         }
 
         public void Dispose()

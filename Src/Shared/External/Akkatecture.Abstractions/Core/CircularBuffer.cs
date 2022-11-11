@@ -51,9 +51,9 @@ public class CircularBuffer<T> : IEnumerable<T>
         params T[] items)
         : this(capacity)
     {
-        if(items.Length > capacity) throw new ArgumentException(nameof(capacity));
+        if(items.Length > capacity) throw new ArgumentException("capacity must be lower then items array", nameof(capacity));
 
-        foreach (T item in items) Put(item);
+        foreach (var item in items) Put(item);
     }
 
     public int Capacity => _buffer.Length - 1;

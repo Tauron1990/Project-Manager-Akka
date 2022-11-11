@@ -13,7 +13,7 @@ public sealed class TimerScheduler : SchedulerBase, IDateTimeOffsetNowTimeProvid
 {
     private static readonly Stopwatch Stopwatch = new();
 
-    private readonly ConcurrentDictionary<string, Registration> _registrations = new();
+    private readonly ConcurrentDictionary<string, Registration> _registrations = new(StringComparer.Ordinal);
     private readonly BlockingCollection<(Action, IDisposable)> _toRun = new();
     private int _isDiposed;
 

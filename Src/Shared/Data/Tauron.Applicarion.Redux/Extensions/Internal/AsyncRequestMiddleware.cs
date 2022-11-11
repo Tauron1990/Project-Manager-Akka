@@ -1,6 +1,7 @@
 ﻿using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Tauron.Applicarion.Redux.Internal;
+using Tauron.Operations;
 
 namespace Tauron.Applicarion.Redux.Extensions.Internal;
 
@@ -23,15 +24,15 @@ public sealed class AsyncRequestMiddleware<TState> : Middleware where TState : n
     }
 
     public void AddRequest<TAction>(
-        Func<TAction, Task<string?>> runRequest,
+        Func<TAction, Task<SimpleResult>> runRequest,
         Func<TState, TAction, TState> onScess,
         Func<TState, object, TState> onFail)
         where TAction : class
     {
         IObservable<object> Runner(IObservable<TAction> arg)
-            => arg.SelectManySafe(async action => (action, result: await runRequest(action)))
+            => arg.SelectManySafe(async action => (action, result: await runRequest(action).ConfigureAwait(false)))
                .ConvertResult(
-                    pair => string.IsNullOrWhiteSpace(pair.result) ? onScess(_currentState.Value, pair.action) : onFail(_currentState.Value, pair.result),
+                    pair => pair.result.IsSuccess() ? onScess(_currentState.Value, pair.action) : onFail(_currentState.Value, pair.result),
                     exception => onFail(_currentState.Value, exception))
                .Select(MutateCallback.Create);
 
@@ -39,15 +40,15 @@ public sealed class AsyncRequestMiddleware<TState> : Middleware where TState : n
     }
 
     public void AddRequest<TAction>(
-        Func<TAction, ValueTask<string?>> runRequest,
+        Func<TAction, ValueTask<SimpleResult>> runRequest,
         Func<TState, TAction, TState> onScess,
         Func<TState, object, TState> onFail)
         where TAction : class
     {
         IObservable<object> Runner(IObservable<TAction> arg)
-            => arg.SelectManySafe(async action => (Action: action, result: await runRequest(action)))
+            => arg.SelectManySafe(async action => (Action: action, result: await runRequest(action).ConfigureAwait(false)))
                .ConvertResult(
-                    pair => string.IsNullOrWhiteSpace(pair.result) ? onScess(_currentState.Value, pair.Action) : onFail(_currentState.Value, pair.result),
+                    pair => pair.result.IsSuccess() ? onScess(_currentState.Value, pair.Action) : onFail(_currentState.Value, pair.result),
                     exception => onFail(_currentState.Value, exception))
                .Select(MutateCallback.Create);
 

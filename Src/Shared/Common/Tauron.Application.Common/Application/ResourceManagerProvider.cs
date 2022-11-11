@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Resources;
@@ -18,19 +19,19 @@ public static class ResourceManagerProvider
     public static void Remove(Assembly key)
         => Resources.Remove(key);
 
-    public static Option<string> FindResource(string name, Assembly? key)
-        => FindResourceImpl(name, key, key is null);
+    public static Option<string> FindResource(string name, Assembly? key, CultureInfo? cultureInfo = null)
+        => FindResourceImpl(name, key, key is null, cultureInfo);
 
-    public static Option<string> FindResource(string name)
-        => FindResource(name, null);
+    public static Option<string> FindResource(string name, CultureInfo? cultureInfo = null)
+        => FindResource(name, key: null, cultureInfo:cultureInfo);
 
-    private static Option<string> FindResourceImpl(string name, Assembly? key, bool searchEverywere = true)
+    private static Option<string> FindResourceImpl(string name, Assembly? key, bool searchEverywere = true, CultureInfo? cultureInfo = null)
     {
         if(key != null && Resources.TryGetValue(key, out ResourceManager? rm))
-            return rm.GetString(name).OptionNotNull();
+            return rm.GetString(name, cultureInfo).OptionNotNull();
 
         return searchEverywere
-            ? Resources.Select(rm2 => rm2.Value.GetString(name))
+            ? Resources.Select(rm2 => rm2.Value.GetString(name, cultureInfo))
                .FirstOrDefault(value => !string.IsNullOrWhiteSpace(value)).OptionNotNull()
             : Option<string>.None;
     }

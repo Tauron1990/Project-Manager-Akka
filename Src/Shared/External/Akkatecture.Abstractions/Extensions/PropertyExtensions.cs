@@ -65,7 +65,7 @@ public static class PropertyExtensions
             if(other is null) return false;
             if(ReferenceEquals(this, other)) return true;
 
-            return Name == other.Name && Type == other.Type;
+            return string.Equals(Name, other.Name, StringComparison.Ordinal) && Type == other.Type;
         }
 
         public override bool Equals(object? obj)

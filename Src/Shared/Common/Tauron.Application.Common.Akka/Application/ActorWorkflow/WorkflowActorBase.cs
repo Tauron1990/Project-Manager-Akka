@@ -6,21 +6,6 @@ using Tauron.Application.Workflow;
 namespace Tauron.Application.ActorWorkflow;
 
 [PublicAPI]
-public abstract class LambdaWorkflowActor<TContext> : WorkflowActorBase<LambdaStep<TContext>, TContext>
-    where TContext : IWorkflowContext
-{
-    protected virtual void WhenStep(
-        StepId id, Action<LambdaStepConfiguration<TContext>> config,
-        Action<StepConfiguration<LambdaStep<TContext>, TContext>>? con = null)
-    {
-        var stepConfig = new LambdaStepConfiguration<TContext>();
-        config.Invoke(stepConfig);
-        var concon = WhenStep(id, stepConfig.Build());
-        con?.Invoke(concon);
-    }
-}
-
-[PublicAPI]
 public abstract class WorkflowActorBase<TStep, TContext> : ActorBase, IWithTimers
     where TStep : IStep<TContext> where TContext : IWorkflowContext
 {
@@ -63,7 +48,7 @@ public abstract class WorkflowActorBase<TStep, TContext> : ActorBase, IWithTimer
             if(msg is TimeoutMarker)
             {
                 _errorMessage = "Timeout";
-                Finish(false);
+                Finish(isok: false);
 
                 return true;
             }
@@ -132,7 +117,7 @@ public abstract class WorkflowActorBase<TStep, TContext> : ActorBase, IWithTimer
         {
             Log.Error(exception, "Exception While Processing Workflow");
             _errorMessage = exception.Message;
-            Finish(false);
+            Finish(isok: false);
 
             return true;
         }
@@ -148,9 +133,9 @@ public abstract class WorkflowActorBase<TStep, TContext> : ActorBase, IWithTimer
         if(loopId == StepId.LoopContinue)
             return true;
 
-        if(loopId.Name == StepId.Fail.Name)
+        if(string.Equals(loopId.Name, StepId.Fail.Name, StringComparison.Ordinal))
         {
-            Finish(false);
+            Finish(isok: false);
 
             return true;
         }
@@ -165,7 +150,7 @@ public abstract class WorkflowActorBase<TStep, TContext> : ActorBase, IWithTimer
         StepId id = chain.Id;
         if(id == StepId.Fail)
         {
-            Finish(false);
+            Finish(isok: false);
 
             return true;
         }
@@ -174,7 +159,7 @@ public abstract class WorkflowActorBase<TStep, TContext> : ActorBase, IWithTimer
         {
             Log.Warning("No Step Found {Id}", id.Name);
             _errorMessage = id.Name;
-            Finish(false);
+            Finish(isok: false);
 
             return true;
         }
@@ -185,11 +170,11 @@ public abstract class WorkflowActorBase<TStep, TContext> : ActorBase, IWithTimer
         {
             case "Fail":
                 _errorMessage = rev.Step.ErrorMessage;
-                Finish(false);
+                Finish(isok: false);
 
                 break;
             case "None":
-                ProgressConditions(rev, true, chain);
+                ProgressConditions(rev, finish: true, chain);
 
                 return true;
             case "Loop":
@@ -198,7 +183,7 @@ public abstract class WorkflowActorBase<TStep, TContext> : ActorBase, IWithTimer
                 return true;
             case "Finish":
             case "Skip":
-                Finish(true, rev);
+                Finish(isok: true, rev);
 
                 break;
             case "Waiting":
@@ -224,7 +209,7 @@ public abstract class WorkflowActorBase<TStep, TContext> : ActorBase, IWithTimer
     {
         var std = (from con in rev.Conditions
                    let stateId = con.Select(rev.Step, RunContext)
-                   where stateId.Name != StepId.None.Name
+                   where !string.Equals(stateId.Name, StepId.None.Name, StringComparison.Ordinal)
                    select stateId).ToArray();
 
         if(std.Length != 0)
@@ -237,12 +222,12 @@ public abstract class WorkflowActorBase<TStep, TContext> : ActorBase, IWithTimer
         if(rev.GenericCondition is null)
         {
             if(finish)
-                Finish(false);
+                Finish(isok: false);
         }
         else
         {
             StepId cid = rev.GenericCondition.Select(rev.Step, RunContext);
-            if(cid.Name != StepId.None.Name)
+            if(!string.Equals(cid.Name, StepId.None.Name, StringComparison.Ordinal))
                 Self.Forward(new ChainCall(cid).WithBase(baseCall));
         }
     }

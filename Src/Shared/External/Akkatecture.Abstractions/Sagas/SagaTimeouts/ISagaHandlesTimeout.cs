@@ -31,10 +31,3 @@ public interface ISagaHandlesTimeout<in TTimeout> : ISaga
 {
     bool HandleTimeout(TTimeout timeout);
 }
-
-[PublicAPI]
-public interface ISagaHandlesTimeoutAsync<in TTimeout> : ISaga
-    where TTimeout : class, ISagaTimeoutJob
-{
-    Task HandleTimeoutAsync(TTimeout timeout);
-}

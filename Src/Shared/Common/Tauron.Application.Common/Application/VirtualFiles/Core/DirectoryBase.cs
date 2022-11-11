@@ -46,7 +46,7 @@ public abstract class DirectoryBase<TContext> : SystemNodeBase<TContext>, IDirec
     {
         path = GenericPathHelper.NormalizePath(path);
 
-        if(!path.Path.Contains(GenericPathHelper.GenericSeperator)) return getDirect(Context, path);
+        if(!path.Path.Contains(GenericPathHelper.GenericSeperator, StringComparison.Ordinal)) return getDirect(Context, path);
 
         string[] elements = path.Path.Split(GenericPathHelper.GenericSeperator, 2);
 
@@ -55,8 +55,8 @@ public abstract class DirectoryBase<TContext> : SystemNodeBase<TContext>, IDirec
 
     protected virtual IDirectory SplitDirectoryPath(PathInfo name)
     {
-        (string nameData, _) = name;
-
+        string nameData = name.Path;
+        
         return nameData.IsNullOrEmpty()
             ? this
             : SplitPath(nameData, GetDirectory, (context, path, actualName) => GetDirectory(context, path).GetDirectory(actualName));

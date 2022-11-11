@@ -25,13 +25,14 @@ public static class DynamicUpdate
             {
                 var stlState = stateFactory.NewMutable<TSource>();
                 store.Select(Flow.Create<TState>().Select(t => selector(t)))
-                   .RunForeach(data => stlState.Set(data), store.Materializer);
+                   .RunForeach(data => stlState.Set(data), store.Materializer)
+                   .Ignore();
 
                 var computer = stateFactory.NewComputed(
                     new ComputedState<TData>.Options(),
                     async (_, token) => await requester(token, stlState.Use).ConfigureAwait(false));
 
-                return ToSource(computer, true)
+                return ToSource(computer, skipErrors: true)
                    .Select(data => patcher(data, store.CurrentState))
                    .Select(data => (object)MutateCallback.Create(data))!;
             }
@@ -102,7 +103,7 @@ public static class DynamicUpdate
 
         private readonly IState<TData> _state;
 
-        public StatePusher(IState<TData> state, bool skipErrors)
+        internal StatePusher(IState<TData> state, bool skipErrors)
         {
             _state = state;
             _skipErrors = skipErrors;
@@ -122,7 +123,7 @@ public static class DynamicUpdate
             private readonly bool _skipErrors;
             private readonly IState<TData> _state;
 
-            public Logic(StatePusher<TData> pusher) : base(pusher.Shape)
+            internal Logic(StatePusher<TData> pusher) : base(pusher.Shape)
             {
                 _out = pusher.Output;
                 _state = pusher._state;

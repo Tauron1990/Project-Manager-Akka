@@ -31,7 +31,9 @@ using JetBrains.Annotations;
 namespace Akkatecture.Core;
 
 [PublicAPI]
+#pragma warning disable MA0097
 public class SourceId : SingleValueObject<string>, ISourceId
+    #pragma warning restore MA0097
 {
     public SourceId(string value)
         : base(value)

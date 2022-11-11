@@ -22,10 +22,14 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using Akkatecture.Core;
+using JetBrains.Annotations;
 
 namespace Akkatecture.Jobs;
 
+#pragma warning disable MA0097
+[PublicAPI]
 public abstract class JobId<TSelf> : Identity<TSelf>, IJobId
+    #pragma warning restore MA0097
     where TSelf : Identity<TSelf>
 {
     protected JobId(string value)

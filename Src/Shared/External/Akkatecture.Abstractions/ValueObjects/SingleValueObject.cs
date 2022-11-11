@@ -31,7 +31,9 @@ using Akkatecture.Extensions;
 
 namespace Akkatecture.ValueObjects;
 
+#pragma warning disable MA0097
 public abstract class SingleValueObject<T> : ValueObject, IComparable, ISingleValueObject
+    #pragma warning restore MA0097
     where T : IComparable
 {
     private static readonly Type Type = typeof(T);
@@ -42,7 +44,7 @@ public abstract class SingleValueObject<T> : ValueObject, IComparable, ISingleVa
     protected SingleValueObject(T value)
     {
         if(TypeInfo.IsEnum && !Enum.IsDefined(Type, value))
-            throw new ArgumentException($"The value '{value}' isn't defined in enum '{Type.PrettyPrint()}'");
+            throw new ArgumentException($"The value '{value}' isn't defined in enum '{Type.PrettyPrint()}'", nameof(value));
 
         _value = value;
     }
@@ -56,7 +58,7 @@ public abstract class SingleValueObject<T> : ValueObject, IComparable, ISingleVa
         {
             null => throw new ArgumentNullException(nameof(obj)),
             SingleValueObject<T> other => Value.CompareTo(other.Value),
-            _ => throw new ArgumentException($"Cannot compare '{GetType().PrettyPrint()}' and '{obj.GetType().PrettyPrint()}'")
+            _ => throw new ArgumentException($"Cannot compare '{GetType().PrettyPrint()}' and '{obj.GetType().PrettyPrint()}'", nameof(obj)),
         };
     }
 

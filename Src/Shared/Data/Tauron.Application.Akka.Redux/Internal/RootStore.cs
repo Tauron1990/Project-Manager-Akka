@@ -109,15 +109,15 @@ public sealed class RootStore : IRootStore
     {
         private readonly SharedKillSwitch _killSwitch;
 
-        public MiddlewareRegistration(IMiddleware middleware, SharedKillSwitch killSwitch)
+        internal MiddlewareRegistration(IMiddleware middleware, SharedKillSwitch killSwitch)
         {
             _killSwitch = killSwitch;
             Middleware = middleware;
         }
 
-        public IMiddleware Middleware { get; }
+        internal IMiddleware Middleware { get; }
 
-        public void Connect(IRootStore store)
+        internal void Connect(IRootStore store)
         {
             Middleware.Init(store);
             Middleware.Connect(store)

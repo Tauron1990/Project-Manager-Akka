@@ -39,7 +39,7 @@ public class MetadataContainer : Dictionary<string, string>
         : base(keyValuePairs) { }
 
     public MetadataContainer(IEnumerable<KeyValuePair<string, string>> keyValuePairs)
-        : base(keyValuePairs.ToDictionary(kv => kv.Key, kv => kv.Value)) { }
+        : base(keyValuePairs.ToDictionary(kv => kv.Key, kv => kv.Value, StringComparer.Ordinal)) { }
 
     public MetadataContainer(params KeyValuePair<string, string>[] keyValuePairs)
         : this((IEnumerable<KeyValuePair<string, string>>)keyValuePairs) { }
@@ -60,7 +60,9 @@ public class MetadataContainer : Dictionary<string, string>
 
     public virtual T GetMetadataValue<T>(string key, Func<string, T> converter)
     {
-        if(!TryGetValue(key, out string? value)) throw new MetadataKeyNotFoundException(key);
+        #pragma warning disable MA0015
+        if(!TryGetValue(key, out string? value)) throw new MetadataKeyNotFoundException(nameof(key), key);
+        #pragma warning restore MA0015
 
         try
         {

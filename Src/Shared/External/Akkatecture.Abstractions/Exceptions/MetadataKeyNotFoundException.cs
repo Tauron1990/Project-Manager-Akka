@@ -25,11 +25,13 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+using JetBrains.Annotations;
+
 namespace Akkatecture.Exceptions;
 
 [Serializable]
 public class MetadataKeyNotFoundException : ArgumentOutOfRangeException
 {
-    public MetadataKeyNotFoundException(string key)
-        : base($"Could not find metadata key '{key}'") { }
+    public MetadataKeyNotFoundException([InvokerParameterName] string parametername, string key)
+        : base(parametername, $"Could not find metadata key '{key}'") { }
 }

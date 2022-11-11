@@ -49,7 +49,7 @@ public sealed class AsyncRequestMiddleware<TState> : Middleware where TState : n
                 {
                     try
                     {
-                        string? result = await runRequest(transferedAction.Action);
+                        string? result = await runRequest(transferedAction.Action).ConfigureAwait(false);
 
                         return string.IsNullOrWhiteSpace(result)
                             ? onScess(transferedAction.State, transferedAction.Action)
@@ -78,7 +78,7 @@ public sealed class AsyncRequestMiddleware<TState> : Middleware where TState : n
                 {
                     try
                     {
-                        string? result = await runRequest(transferedAction.Action);
+                        string? result = await runRequest(transferedAction.Action).ConfigureAwait(false);
 
                         return string.IsNullOrWhiteSpace(result)
                             ? onScess(transferedAction.State, transferedAction.Action)

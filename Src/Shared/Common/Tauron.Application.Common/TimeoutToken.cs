@@ -19,10 +19,11 @@ public sealed class TimeoutToken
             token,
             async timeoutToken =>
             {
-                await runner(timeoutToken);
+                await runner(timeoutToken).ConfigureAwait(false);
 
                 return Unit.Default;
-            });
+            })
+           .ConfigureAwait(false);
 
     public static ValueTask<TResult> WithDefault<TResult>(CancellationToken token, Func<CancellationToken, Task<TResult>> runner)
         => With(TimeSpan.FromSeconds(20), token, runner);
@@ -32,7 +33,7 @@ public sealed class TimeoutToken
     {
         using CancellationTokenSource cts = CreateSource();
 
-        return await runner(cts.Token);
+        return await runner(cts.Token).ConfigureAwait(false);
 
         CancellationTokenSource CreateSource()
         {

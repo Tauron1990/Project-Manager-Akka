@@ -36,9 +36,11 @@ using Akkatecture.Jobs;
 using Akkatecture.Sagas;
 using Akkatecture.Sagas.SagaTimeouts;
 using Akkatecture.Subscribers;
+using JetBrains.Annotations;
 
 namespace Akkatecture.Extensions;
 
+[PublicAPI]
 public static class TypeExtensions
 {
     private static readonly ConcurrentDictionary<Type, string> PrettyPrintCache = new();
@@ -88,15 +90,14 @@ public static class TypeExtensions
             : $"{nameParts[0]}<{string.Join(",", genericArguments.Select(selectType => PrettyPrintRecursive(selectType, depth + 1)))}>";
     }
 
-    public static AggregateName GetAggregateName(
-        this Type aggregateType)
+    public static AggregateName GetAggregateName(this Type aggregateType)
     {
         return AggregateNames.GetOrAdd(
             aggregateType,
             type =>
             {
                 if(!typeof(IAggregateRoot).GetTypeInfo().IsAssignableFrom(type))
-                    throw new ArgumentException($"Type '{type.PrettyPrint()}' is not an aggregate root");
+                    throw new ArgumentException($"Type '{type.PrettyPrint()}' is not an aggregate root", nameof(aggregateType));
 
                 return new AggregateName(
                     type.GetTypeInfo().GetCustomAttributes<AggregateNameAttribute>().SingleOrDefault()?.Name ??
@@ -104,15 +105,14 @@ public static class TypeExtensions
             });
     }
 
-    public static AggregateName GetSagaName(
-        this Type sagaType)
+    public static AggregateName GetSagaName(this Type sagaType)
     {
         return SagaNames.GetOrAdd(
             sagaType,
             type =>
             {
                 if(!typeof(IAggregateRoot).GetTypeInfo().IsAssignableFrom(type))
-                    throw new ArgumentException($"Type '{type.PrettyPrint()}' is not a saga.");
+                    throw new ArgumentException($"Type '{type.PrettyPrint()}' is not a saga.", nameof(sagaType));
 
                 return new AggregateName(
                     type.GetTypeInfo().GetCustomAttributes<SagaNameAttribute>().SingleOrDefault()?.Name ??
@@ -120,15 +120,14 @@ public static class TypeExtensions
             });
     }
 
-    public static JobName GetJobName(
-        this Type jobType)
+    public static JobName GetJobName(this Type jobType)
     {
         return JobNames.GetOrAdd(
             jobType,
             type =>
             {
                 if(!typeof(IJob).GetTypeInfo().IsAssignableFrom(type))
-                    throw new ArgumentException($"Type '{type.PrettyPrint()}' is not a job");
+                    throw new ArgumentException($"Type '{type.PrettyPrint()}' is not a job", nameof(jobType));
 
                 return new JobName(
                     type.GetTypeInfo().GetCustomAttributes<JobNameAttribute>().SingleOrDefault()?.Name ??
@@ -149,7 +148,7 @@ public static class TypeExtensions
            .Where(
                 mi =>
                 {
-                    if(mi.Name != "Apply") return false;
+                    if(!string.Equals(mi.Name, "Apply", StringComparison.Ordinal)) return false;
 
                     var parameters = mi.GetParameters();
 
@@ -179,7 +178,7 @@ public static class TypeExtensions
            .Where(
                 mi =>
                 {
-                    if(mi.Name != "Hydrate") return false;
+                    if(!string.Equals(mi.Name, "Hydrate", StringComparison.Ordinal)) return false;
 
                     var parameters = mi.GetParameters();
 
@@ -209,7 +208,7 @@ public static class TypeExtensions
            .Where(
                 mi =>
                 {
-                    if(mi.Name != "Apply") return false;
+                    if(!string.Equals(mi.Name, "Apply", StringComparison.Ordinal)) return false;
 
                     var parameters = mi.GetParameters();
 
@@ -295,14 +294,15 @@ public static class TypeExtensions
 
                 Type? aggregateType = interfaces
                    .Where(typeInfo => typeInfo.IsGenericType && typeInfo.GetGenericTypeDefinition() == typeof(ICommittedEvent<,>))
-                   .Select(typeInfo => typeInfo.GetGenericArguments()[0]).SingleOrDefault();
+                   .Select(typeInfo => typeInfo.GetGenericArguments()[0])
+                   .SingleOrDefault();
 
 
                 if(aggregateType != null)
                     return aggregateType.GetAggregateName();
 
                 #pragma warning disable CA2208
-                throw new ArgumentException(nameof(type));
+                throw new ArgumentException("The aggregate Type was not Found", nameof(type));
                 #pragma warning restore CA2208
             });
     }
@@ -327,7 +327,7 @@ public static class TypeExtensions
                     return aggregateEvent;
 
                 #pragma warning disable CA2208
-                throw new ArgumentException(nameof(type));
+                throw new ArgumentException("The Aggregate Event eas not Found", nameof(type));
                 #pragma warning restore CA2208
             });
     }
@@ -449,7 +449,7 @@ public static class TypeExtensions
            .Where(
                 mi =>
                 {
-                    if(mi.Name != "Upcast")
+                    if(!string.Equals(mi.Name, "Upcast", StringComparison.Ordinal))
                         return false;
 
                     var parameters = mi.GetParameters();
@@ -488,7 +488,7 @@ public static class TypeExtensions
 
         while (currentType != null)
         {
-            if(currentType.Name.Contains(name)) return currentType;
+            if(currentType.Name.Contains(name, StringComparison.Ordinal)) return currentType;
 
             currentType = currentType.BaseType;
         }

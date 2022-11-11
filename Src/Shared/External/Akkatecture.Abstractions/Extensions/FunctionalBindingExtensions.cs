@@ -21,8 +21,11 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+using JetBrains.Annotations;
+
 namespace Akkatecture.Extensions;
 
+[PublicAPI]
 public static class FunctionalBindingExtensions
 {
     public static Action<T2> Bind<T1, T2>(this Action<T1, T2> action, T1 value)

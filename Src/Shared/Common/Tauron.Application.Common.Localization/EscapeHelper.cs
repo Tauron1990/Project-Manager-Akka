@@ -22,17 +22,21 @@ public class EscapeHelper
         private const char EscapeStart = '@';
 
         private static readonly Dictionary<string, char> Parts
-            = new()
+            = new(StringComparer.Ordinal)
               {
                   { "001", '\r' },
                   { "002", '\t' },
                   { "003", '\n' },
-                  { "004", ':' }
+                  { "004", ':' } ,
               };
 
-        // ReSharper disable once ReturnTypeCanBeNotNullable
         private static string? GetPartforChar(char @char)
-            => Parts.FirstOrDefault(ep => ep.Value == @char).Key;
+        {
+            return (from part in Parts
+                    where part.Value == @char 
+                    select part.Key).FirstOrDefault();
+
+        }
 
         private static char? GetPartforSequence(string @char)
         {

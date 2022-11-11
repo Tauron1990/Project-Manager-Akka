@@ -5,10 +5,6 @@ using JetBrains.Annotations;
 
 namespace Tauron.Application.Akka.Redux;
 
-public sealed record DispatchedAction<TState>(TState State, object Action);
-
-public sealed record ActionState<TState, TAction>(TState State, TAction Action);
-
 [PublicAPI]
 public interface IReduxStore<TState> : IActionDispatcher, IDisposable
 {

@@ -49,7 +49,7 @@ public static class ReflectionExtensions
         Type? targetType = type;
         while (targetType != null)
         {
-            foreach (MemberInfo mem in targetType.GetMembers(flags)) yield return mem;
+            foreach (var mem in targetType.GetMembers(flags)) yield return mem;
 
             targetType = targetType.BaseType;
         }
@@ -61,15 +61,15 @@ public static class ReflectionExtensions
         => FindMemberAttributes<TAttribute>(type, nonPublic, BindingFlags.Instance | BindingFlags.FlattenHierarchy);
 
     public static T[] GetAllCustomAttributes<T>(this ICustomAttributeProvider member) where T : class
-        => (T[])member.GetCustomAttributes(typeof(T), true);
+        => (T[])member.GetCustomAttributes(typeof(T), inherit: true);
 
 
     public static object[] GetAllCustomAttributes(this ICustomAttributeProvider member, Type type)
-        => member.GetCustomAttributes(type, true);
+        => member.GetCustomAttributes(type, inherit: true);
 
     public static Option<TAttribute> GetCustomAttribute<TAttribute>(this ICustomAttributeProvider provider)
         where TAttribute : Attribute
-        => GetCustomAttribute<TAttribute>(provider, true);
+        => GetCustomAttribute<TAttribute>(provider, inherit: true);
 
     public static Option<TAttribute> GetCustomAttribute<TAttribute>(this ICustomAttributeProvider provider, bool inherit)
         where TAttribute : Attribute
@@ -84,7 +84,7 @@ public static class ReflectionExtensions
         if(provider == null) throw new ArgumentNullException(nameof(provider));
 
         return from attributeType in attributeTypes
-               from attribute in provider.GetCustomAttributes(attributeType, false)
+               from attribute in provider.GetCustomAttributes(attributeType, inherit: false)
                select attribute;
     }
 
@@ -139,7 +139,7 @@ public static class ReflectionExtensions
 
         if(!method.IsSpecialName || method.Name.Length < 4) return default;
 
-        bool isGetMethod = method.Name.Substring(0, 4) == "get_";
+        bool isGetMethod = string.Equals(method.Name[..4], "get_", StringComparison.Ordinal);
         Type returnType = isGetMethod ? method.ReturnType : method.GetParameterTypes().Last();
         var indexerTypes = isGetMethod
             ? method.GetParameterTypes()
@@ -175,7 +175,7 @@ public static class ReflectionExtensions
     {
         if(member == null) throw new ArgumentNullException(nameof(member));
 
-        return member.IsDefined(typeof(T), true);
+        return member.IsDefined(typeof(T), inherit: true);
     }
 
     public static bool HasAttribute(this ICustomAttributeProvider member, Type type)
@@ -183,7 +183,7 @@ public static class ReflectionExtensions
         if(member == null) throw new ArgumentNullException(nameof(member));
         if(type == null) throw new ArgumentNullException(nameof(type));
 
-        return member.IsDefined(type, true);
+        return member.IsDefined(type, inherit: true);
     }
 
     public static bool HasMatchingAttribute<T>(this ICustomAttributeProvider member, T attributeToMatch)
@@ -232,7 +232,7 @@ public static class ReflectionExtensions
         {
             if(string.IsNullOrWhiteSpace(value)) return defaultValue;
 
-            return Enum.TryParse<TEnum>(value, out TEnum e) ? e : defaultValue;
+            return Enum.TryParse(value, out TEnum e) ? e : defaultValue;
         }
         catch (ArgumentException)
         {

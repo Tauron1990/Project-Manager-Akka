@@ -2,10 +2,6 @@
 
 namespace Tauron.Applicarion.Redux;
 
-public sealed record DispatchedAction<TState>(TState State, object? Action);
-
-public sealed record ActionState<TState, TAction>(TState State, TAction Action);
-
 [PublicAPI]
 public interface IReduxStore<TState> : IActionDispatcher, IDisposable
 {

@@ -5,12 +5,6 @@ using Tauron.Applicarion.Redux.Extensions.Cache;
 
 namespace Tauron.Applicarion.Redux.Extensions;
 
-public delegate TSelect Selector<in TState, out TSelect>(TState toSelect);
-
-public delegate Task<TData> Reqester<TData>(CancellationToken token, TData input);
-
-public delegate TState Patcher<in TData, TState>(TData data, TState state);
-
 [PublicAPI]
 public static class DynamicSource
 {
@@ -30,7 +24,7 @@ public static class DynamicSource
         => FromAsync(store, () => source, errorHandler);
 
     public static void FromAsync<TState>(IReduxStore<TState> store, Func<Task<TState>> source)
-        => FromAsync(store, source, null);
+        => FromAsync(store, source, errorHandler: null);
 
     public static void FromAsync<TState>(IReduxStore<TState> store, Task<TState> source)
         => FromAsync(store, () => source);
@@ -109,7 +103,7 @@ public static class DynamicSource
         Reqester<TSelect> reqester,
         Patcher<TSelect, TState> patcher)
         where TState : class
-        => FromRequest(stateFactory, store, selector, reqester, patcher, null);
+        => FromRequest(stateFactory, store, selector, reqester, patcher, errorHandler: null);
 
     public static void FromRequest<TState>(IStateFactory stateFactory, IReduxStore<TState> store, Reqester<TState> reqester, Func<Exception, TState?>? errorHandler)
         where TState : class
@@ -118,7 +112,7 @@ public static class DynamicSource
 
     public static void FromRequest<TState>(IStateFactory stateFactory, IReduxStore<TState> store, Reqester<TState> reqester)
         where TState : class
-        => FromRequest(stateFactory, store, reqester, null);
+        => FromRequest(stateFactory, store, reqester, errorHandler: null);
 
     #endregion
 
@@ -147,7 +141,7 @@ public static class DynamicSource
         => store.RegisterEffects(Create.Effect<TState>(() => CreateCacheObservable(stateDb, errorHandler).Select(MutateCallback.Create)));
 
     public static void FromCache<TState>(IReduxStore<TState> store, StateDb stateDb)
-        => FromCache(store, stateDb, null);
+        => FromCache(store, stateDb, errorHandler: null);
 
     public static void FromCacheAndAsync<TState>(IReduxStore<TState> store, StateDb stateDb, Func<Task<TState>> source, Func<Exception, TState?>? errorHandler)
         => store.RegisterEffects(Create.Effect<TState>(() => CreateCacheAsyncObservable(stateDb, source, errorHandler).Select(MutateCallback.Create)));
@@ -156,10 +150,10 @@ public static class DynamicSource
         => FromCacheAndAsync(store, stateDb, () => source, errorHandler);
 
     public static void FromCacheAndAsync<TState>(IReduxStore<TState> store, StateDb stateDb, Func<Task<TState>> source)
-        => FromCacheAndAsync(store, stateDb, source, null);
+        => FromCacheAndAsync(store, stateDb, source, errorHandler: null);
 
     public static void FromCacheAndAsync<TState>(IReduxStore<TState> store, StateDb stateDb, Task<TState> source)
-        => FromCacheAndAsync(store, stateDb, () => source, null);
+        => FromCacheAndAsync(store, stateDb, () => source, errorHandler: null);
 
     public static void FromCacheAndRequest<TState, TSelect>(
         IStateFactory stateFactory,
@@ -183,7 +177,7 @@ public static class DynamicSource
         Reqester<TSelect> reqester,
         Patcher<TSelect, TState> patcher)
         where TState : class
-        => FromCacheAndRequest(stateFactory, store, stateDb, selector, reqester, patcher, null);
+        => FromCacheAndRequest(stateFactory, store, stateDb, selector, reqester, patcher, errorHandler: null);
 
     public static void FromCacheAndRequest<TState>(IStateFactory stateFactory, IReduxStore<TState> store, StateDb stateDb, Reqester<TState> reqester, Func<Exception, TState?>? errorHandler)
         where TState : class
@@ -191,7 +185,7 @@ public static class DynamicSource
 
     public static void FromCacheAndRequest<TState>(IStateFactory stateFactory, IReduxStore<TState> store, StateDb stateDb, Reqester<TState> reqester)
         where TState : class
-        => FromCacheAndRequest(stateFactory, store, stateDb, reqester, null);
+        => FromCacheAndRequest(stateFactory, store, stateDb, reqester, errorHandler: null);
 
     #endregion
 }

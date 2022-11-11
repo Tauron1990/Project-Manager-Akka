@@ -8,7 +8,7 @@ public sealed class LocalSystem : DelegatingVirtualFileSystem<LocalDirectory>, I
     private string _rootPath;
 
     public LocalSystem(string rootPath)
-        : base(new LocalDirectory(new DirectoryContext(rootPath, true, new DirectoryInfo(rootPath)), LocalFeaturs), LocalFeaturs)
+        : base(new LocalDirectory(new DirectoryContext(rootPath, NoParent: true, Data: new DirectoryInfo(rootPath)), LocalFeaturs), LocalFeaturs)
         => _rootPath = rootPath;
 
     private static FileSystemFeature LocalFeaturs => FileSystemFeature.Create | FileSystemFeature.Delete | FileSystemFeature.Extension | FileSystemFeature.Moveable
@@ -25,6 +25,6 @@ public sealed class LocalSystem : DelegatingVirtualFileSystem<LocalDirectory>, I
     protected override void ReloadImpl(LocalDirectory context, PathInfo filePath)
     {
         _rootPath = GenericPathHelper.ToRelativePath(filePath);
-        Context = new LocalDirectory(new DirectoryContext(_rootPath, true, new DirectoryInfo(_rootPath)), LocalFeaturs);
+        Context = new LocalDirectory(new DirectoryContext(_rootPath, NoParent: true, Data: new DirectoryInfo(_rootPath)), LocalFeaturs);
     }
 }

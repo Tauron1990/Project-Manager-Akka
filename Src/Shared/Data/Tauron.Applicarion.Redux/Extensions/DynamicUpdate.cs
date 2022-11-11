@@ -2,6 +2,7 @@
 using JetBrains.Annotations;
 using Stl.Fusion;
 using Tauron.Applicarion.Redux.Extensions.Internal;
+using Tauron.Operations;
 
 namespace Tauron.Applicarion.Redux.Extensions;
 
@@ -49,7 +50,7 @@ public static class DynamicUpdate
 
     public static void AddRequest<TState, TAction>(
         IRootStore store,
-        Func<TAction, ValueTask<string?>> runRequest, Func<TState, TAction, TState> onScess)
+        Func<TAction, ValueTask<SimpleResult>> runRequest, Func<TState, TAction, TState> onScess)
         where TAction : class where TState : new()
         => AsyncRequestMiddleware
            .Get<TState>(store)
@@ -57,7 +58,7 @@ public static class DynamicUpdate
 
     public static void AddRequest<TState, TAction>(
         IRootStore store,
-        Func<TAction, ValueTask<string?>> runRequest,
+        Func<TAction, ValueTask<SimpleResult>> runRequest,
         Func<TState, TAction, TState> onScess,
         Func<TState, object, TState> onFail)
         where TAction : class where TState : new()
@@ -65,7 +66,7 @@ public static class DynamicUpdate
            .Get<TState>(store)
            .AddRequest(runRequest, onScess, onFail);
 
-    public static void AddRequest<TState, TAction>(IRootStore store, Func<TAction, Task<string?>> runRequest, Func<TState, TAction, TState> onScess)
+    public static void AddRequest<TState, TAction>(IRootStore store, Func<TAction, Task<SimpleResult>> runRequest, Func<TState, TAction, TState> onScess)
         where TAction : class where TState : new()
         => AsyncRequestMiddleware
            .Get<TState>(store)
@@ -73,7 +74,7 @@ public static class DynamicUpdate
 
     public static void AddRequest<TState, TAction>(
         IRootStore store,
-        Func<TAction, Task<string?>> runRequest,
+        Func<TAction, Task<SimpleResult>> runRequest,
         Func<TState, TAction, TState> onScess,
         Func<TState, object, TState> onFail)
         where TAction : class where TState : new()

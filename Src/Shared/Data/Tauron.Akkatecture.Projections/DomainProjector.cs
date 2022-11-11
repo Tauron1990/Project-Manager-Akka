@@ -14,7 +14,7 @@ public class DomainProjector
 
     protected virtual async Task<bool> ShouldRetry(ProjectionException exception, int attempts)
     {
-        await Task.Delay((int)Math.Pow(2d, attempts));
+        await Task.Delay((int)Math.Pow(2d, attempts)).ConfigureAwait(false);
 
         return attempts < 3;
     }

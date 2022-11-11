@@ -18,6 +18,8 @@ public sealed class EventTypeLayoutRenderer : LayoutRenderer
         byte[] hash = murmur.ComputeHash(bytes);
         var numericHash = BitConverter.ToUInt32(hash, 0);
 
+        #pragma warning disable MA0011
         builder.Append($"{numericHash:x8}");
+        #pragma warning restore MA0011
     }
 }

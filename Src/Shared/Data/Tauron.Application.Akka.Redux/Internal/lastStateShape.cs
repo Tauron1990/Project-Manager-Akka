@@ -35,7 +35,7 @@ public sealed class LastStateShape<TState, TInput, TOutput> : GraphStage<FanInSh
         private TState? _currentState;
         private ImmutableQueue<TInput>? _pending = ImmutableQueue<TInput>.Empty;
 
-        public Logic(LastStateShape<TState, TInput, TOutput> holder) : base(holder.Shape)
+        internal Logic(LastStateShape<TState, TInput, TOutput> holder) : base(holder.Shape)
         {
             _holder = holder;
 
@@ -47,9 +47,9 @@ public sealed class LastStateShape<TState, TInput, TOutput> : GraphStage<FanInSh
 
                     if(_pending is not null)
                         EmitMultiple(
-                            _holder.ActionOut,
-                            Interlocked.Exchange(ref _pending, null)
-                               .Select(a => _holder._transform(_currentState, a)));
+                            holder.ActionOut,
+                            Interlocked.Exchange(ref _pending, value: null)
+                               .Select(a => holder._transform(_currentState, a)));
 
                     Pull(holder.StateIn);
                 });
@@ -68,11 +68,11 @@ public sealed class LastStateShape<TState, TInput, TOutput> : GraphStage<FanInSh
 
                     Emit(
                         holder.ActionOut,
-                        _holder._transform(_currentState!, Grab(holder.ActionIn)),
+                        holder._transform(_currentState!, Grab(holder.ActionIn)),
                         () => Pull(holder.ActionIn));
                 });
 
-            SetHandler(_holder.ActionOut, DoNothing);
+            SetHandler(holder.ActionOut, DoNothing);
         }
 
         public override void PreStart()

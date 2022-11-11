@@ -58,7 +58,7 @@ public sealed class Store<TState> : IReduxStore<TState>
            .ToMaterialized(BroadcastHub.Sink<DispatchedAction<TState>>(), Keep.Right)
            .Run(materializer);
 
-        _states.Via(_claseFlows.Flow<TState>()).RunForeach(s => CurrentState = s, materializer);
+        _states.Via(_claseFlows.Flow<TState>())?.RunForeach(s => CurrentState = s, materializer);
 
         MutateCallbackPlugin.Install(this);
     }

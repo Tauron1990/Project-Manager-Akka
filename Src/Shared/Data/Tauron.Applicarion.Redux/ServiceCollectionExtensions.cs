@@ -10,6 +10,7 @@ namespace Tauron.Applicarion.Redux;
 [PublicAPI]
 public static class ServiceCollectionExtensions
 {
+    #pragma warning disable GU0011
     public static IServiceCollection AddStoreConfiguration(this IServiceCollection coll)
     {
         coll.AddTransient<TimeoutManager>()

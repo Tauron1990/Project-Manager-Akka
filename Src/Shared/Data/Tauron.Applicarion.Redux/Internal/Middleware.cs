@@ -51,16 +51,16 @@ public abstract class Middleware : IMiddleware
         private readonly Predicate<object> _filter;
         private readonly DispatchNextInternal _runner;
 
-        public FilterRegistration(Predicate<object> filter, DispatchNextInternal runner)
+        internal FilterRegistration(Predicate<object> filter, DispatchNextInternal runner)
         {
             _filter = filter;
             _runner = runner;
         }
 
-        public bool Can(object action)
+        internal bool Can(object action)
             => _filter(action);
 
-        public IObservable<object> Exec(object action)
+        internal IObservable<object> Exec(object action)
             => _runner(Observable.Return(action));
     }
 }

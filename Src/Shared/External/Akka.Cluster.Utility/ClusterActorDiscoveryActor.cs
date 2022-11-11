@@ -139,7 +139,7 @@ public partial class ClusterActorDiscoveryActor : ReceiveActor
                     _cluster.SelfUniqueAddress,
                     _actorItems.Select(item => new ClusterActorDiscoveryMessage.ClusterActorUp(item.Actor, item.Tag))
                        .ToList(),
-                    true));
+                    Request: true));
         }
     }
 
@@ -151,7 +151,7 @@ public partial class ClusterActorDiscoveryActor : ReceiveActor
         MemberUnreachable(member.Member.Address, string.Join(",", member.Member.Roles));
 
         #pragma warning disable GU0019
-        (IActorRef? key, _) = _nodeMap.FirstOrDefault(node => node.Value.ClusterAddress == member.Member.UniqueAddress);
+        IActorRef? key = _nodeMap.FirstOrDefault(node => node.Value.ClusterAddress == member.Member.UniqueAddress).Key;
         #pragma warning restore GU0019
 
         RemoveNode(key);
@@ -165,8 +165,9 @@ public partial class ClusterActorDiscoveryActor : ReceiveActor
         MemberRemoved(member.Member.Address, string.Join(",", member.Member.Roles));
 
         #pragma warning disable GU0019
-        (IActorRef? key, _) = _nodeMap.FirstOrDefault(node => node.Value.ClusterAddress == member.Member.UniqueAddress);
+        IActorRef? key = _nodeMap.FirstOrDefault(node => node.Value.ClusterAddress == member.Member.UniqueAddress).Key;
         #pragma warning restore GU0019
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
         if(key is null) return;
 
         RemoveNode(key);
@@ -209,7 +210,7 @@ public partial class ClusterActorDiscoveryActor : ReceiveActor
         // Reregister node
 
         #pragma warning disable GU0019
-        (IActorRef? key, _) = _nodeMap.FirstOrDefault(node => node.Value.ClusterAddress == member.ClusterAddress);
+        IActorRef? key = _nodeMap.FirstOrDefault(node => node.Value.ClusterAddress == member.ClusterAddress).Key;
         #pragma warning restore GU0019
         if(key != null)
             RemoveNode(key);

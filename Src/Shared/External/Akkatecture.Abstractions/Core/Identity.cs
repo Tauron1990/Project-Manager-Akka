@@ -36,18 +36,20 @@ using Tauron;
 namespace Akkatecture.Core;
 
 [PublicAPI]
+#pragma warning disable MA0097
+#pragma warning disable MA0018
 public abstract class Identity<T> : SingleValueObject<string>, IIdentity
     where T : Identity<T>
 {
     // ReSharper disable StaticMemberInGenericType
-    private static readonly Regex NameReplace = new("Id$");
+    private static readonly Regex NameReplace = new("Id$", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
     private static readonly string Name = NameReplace.Replace(typeof(T).Name, string.Empty).ToLowerInvariant();
 
     private static readonly Regex ValueValidation = new(
         @"^[a-z0-9]+\-(?<guid>[a-f0-9]{8}\-[a-f0-9]{4}\-[a-f0-9]{4}\-[a-f0-9]{4}\-[a-f0-9]{12})$",
-        RegexOptions.Compiled);
+        RegexOptions.Compiled, TimeSpan.FromSeconds(5));
     // ReSharper enable StaticMemberInGenericType
-
+    
     public static T New => With(Guid.NewGuid());
 
     public static T NewDeterministic(Guid namespaceId, string name)
@@ -108,7 +110,7 @@ public abstract class Identity<T> : SingleValueObject<string>, IIdentity
             yield return
                 $"Identity '{value}' of type '{typeof(T).PrettyPrint()}' contains leading and/or traling spaces";
 
-        if(!value.StartsWith(Name))
+        if(!value.StartsWith(Name, StringComparison.Ordinal))
             yield return $"Identity '{value}' of type '{typeof(T).PrettyPrint()}' does not start with '{Name}'";
         if(!ValueValidation.IsMatch(value))
             yield return
@@ -121,7 +123,7 @@ public abstract class Identity<T> : SingleValueObject<string>, IIdentity
         var validationErrors = Validate(value).ToList();
 
         if(validationErrors.Any())
-            throw new ArgumentException($"Identity is invalid: {string.Join(", ", validationErrors)}");
+            throw new ArgumentException($"Identity is invalid: {string.Join(", ", validationErrors)}", nameof(value));
 
         _lazyGuid = new Lazy<Guid>(() => Guid.Parse(ValueValidation.Match(Value).Groups["guid"].Value));
     }
@@ -131,7 +133,9 @@ public abstract class Identity<T> : SingleValueObject<string>, IIdentity
     public Guid GetGuid() => _lazyGuid.Value;
 
     [UsedImplicitly]
+    #pragma warning disable MA0018
     public static bool TryParse(string? value, [NotNullWhen(true)] out T? errorId)
+        #pragma warning restore MA0018
     {
         if(!string.IsNullOrWhiteSpace(value) && IsValid(value))
         {

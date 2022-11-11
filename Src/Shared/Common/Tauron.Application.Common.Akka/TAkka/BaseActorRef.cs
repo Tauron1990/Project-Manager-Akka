@@ -19,7 +19,7 @@ public abstract class BaseActorRef<TActor>
 
     public ActorPath Path => Actor.Path;
 
-    public event Action? Initialized;
+    public event EventHandler? Initialized;
 
     public void Tell(object message, IActorRef sender)
     {
@@ -64,5 +64,5 @@ public abstract class BaseActorRef<TActor>
     }
 
     protected virtual void OnInitialized()
-        => Initialized?.Invoke();
+        => Initialized?.Invoke(this, EventArgs.Empty);
 }

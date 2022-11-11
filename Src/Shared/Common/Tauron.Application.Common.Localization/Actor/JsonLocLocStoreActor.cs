@@ -2,6 +2,7 @@
 using Akka.Util;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Tauron.Application.VirtualFiles;
@@ -14,19 +15,20 @@ public sealed class JsonLocLocStoreActor : LocStoreActorBase
     private static readonly char[] Sep = { '.' };
 
     private readonly JsonConfiguration? _configuration;
-    private readonly Dictionary<string, Dictionary<string, JToken>> _files = new();
+    private readonly Dictionary<string, Dictionary<string, JToken>> _files = new(StringComparer.Ordinal);
     private bool _isInitialized;
 
-    public JsonLocLocStoreActor(IServiceProvider scope, VirtualFileFactory factory)
+    public JsonLocLocStoreActor(IServiceProvider scope, VirtualFileFactory factory, ILogger<JsonLocLocStoreActor> logger)
     {
         try
         {
             _configuration = scope.GetService<JsonConfiguration>()
                           ?? JsonConfiguration.CreateFromApplicationPath(factory);
         }
-        catch (Exception)
+        catch (Exception e)
         {
             _configuration = JsonConfiguration.CreateFromApplicationPath(factory);
+            logger.LogError(e, "Error on get JsonConfiguration use Default");
         }
     }
 
@@ -80,7 +82,7 @@ public sealed class JsonLocLocStoreActor : LocStoreActorBase
 
 
         foreach (IFile? file in from f in _configuration.RootDic.Files
-                                where f.Extension == ".json"
+                                where string.Equals(f.Extension, ".json", StringComparison.Ordinal)
                                 select f)
         {
             //var text = File.ReadAllText(file, Encoding.UTF8);
@@ -90,7 +92,7 @@ public sealed class JsonLocLocStoreActor : LocStoreActorBase
 
             if(string.IsNullOrWhiteSpace(name)) return;
 
-            _files[name] = JsonConvert.DeserializeObject<Dictionary<string, JToken>>(text) ?? new Dictionary<string, JToken>();
+            _files[name] = JsonConvert.DeserializeObject<Dictionary<string, JToken>>(text) ?? new Dictionary<string, JToken>(StringComparer.Ordinal);
         }
 
         _isInitialized = true;

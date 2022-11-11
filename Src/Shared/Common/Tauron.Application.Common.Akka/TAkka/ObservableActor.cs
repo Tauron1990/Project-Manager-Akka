@@ -11,38 +11,6 @@ using Tauron.Application;
 namespace Tauron.TAkka;
 
 [PublicAPI]
-public interface IObservableActor : IResourceHolder
-{
-    IObservable<IActorContext> Start { get; }
-
-    IObservable<IActorContext> Stop { get; }
-
-    ILogger Log { get; }
-    IActorRef Self { get; }
-    IActorRef Parent { get; }
-    IActorRef? Sender { get; }
-    void Receive<TEvent>(Func<IObservable<TEvent>, IObservable<Unit>> handler);
-    IObservable<TEvent> Receive<TEvent>();
-    void Receive<TEvent>(Func<IObservable<TEvent>, IObservable<TEvent>> handler);
-    void Receive<TEvent>(Func<IObservable<TEvent>, IObservable<Unit>> handler, Func<Exception, bool> errorHandler);
-
-    void Receive<TEvent>(
-        Func<IObservable<TEvent>, IObservable<TEvent>> handler,
-        Func<Exception, bool> errorHandler);
-
-    void Receive<TEvent>(Func<IObservable<TEvent>, IDisposable> handler);
-}
-
-internal static partial class ObservableActorLogger
-{
-    [LoggerMessage(EventId = 25, Level = LogLevel.Error, Message = "Unhandelt Exception Thrown")]
-    public static partial void UnhandledException(ILogger logger, Exception ex);
-
-    [LoggerMessage(EventId = 26, Level = LogLevel.Error, Message = "Error on Process Event")]
-    public static partial void EventProcessError(ILogger logger, Exception ex);
-}
-
-[PublicAPI]
 public class ObservableActor : ActorBase, IObservableActor
 {
     private readonly List<ISignal> _currentWaiting = new();
@@ -50,8 +18,8 @@ public class ObservableActor : ActorBase, IObservableActor
     private readonly CompositeDisposable _resources = new();
 
     private readonly Dictionary<Type, object> _selectors = new();
-    private readonly BehaviorSubject<IActorContext?> _start = new(null);
-    private readonly BehaviorSubject<IActorContext?> _stop = new(null);
+    private readonly BehaviorSubject<IActorContext?> _start = new(value: null);
+    private readonly BehaviorSubject<IActorContext?> _stop = new(value: null);
 
     private bool _isReceived;
 
@@ -101,7 +69,7 @@ public class ObservableActor : ActorBase, IObservableActor
 
 
     public void Receive<TEvent>(Func<IObservable<TEvent>, IDisposable> handler)
-        => AddResource(new ObservableInvoker<TEvent, TEvent>(handler, GetSelector<TEvent>(), true).Construct());
+        => AddResource(new ObservableInvoker<TEvent, TEvent>(handler, GetSelector<TEvent>(), isSafe: true).Construct());
 
     protected IObservable<TType> SyncActor<TType>(TType element)
         => Observable.Return(element, ActorScheduler.From(Self));

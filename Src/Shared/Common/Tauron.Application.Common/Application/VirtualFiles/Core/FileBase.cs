@@ -31,14 +31,14 @@ public abstract class FileBase<TContext> : SystemNodeBase<TContext>, IFile
     {
         ValidateFileAcess(access);
 
-        return CreateStream(Context, access, false);
+        return CreateStream(Context, access, createNew: false);
     }
 
     public virtual Stream Open()
     {
         ValidateFileAcess(FileAccess.ReadWrite);
 
-        return CreateStream(Context, FileAccess.ReadWrite, false);
+        return CreateStream(Context, FileAccess.ReadWrite, createNew: false);
     }
 
     public virtual Stream CreateNew()
@@ -48,7 +48,7 @@ public abstract class FileBase<TContext> : SystemNodeBase<TContext>, IFile
         if(!CanCreate)
             throw new IOException("File can not Created");
 
-        return CreateStream(Context, FileAccess.ReadWrite, true);
+        return CreateStream(Context, FileAccess.ReadWrite, createNew: true);
     }
 
     public IFile MoveTo(PathInfo location)

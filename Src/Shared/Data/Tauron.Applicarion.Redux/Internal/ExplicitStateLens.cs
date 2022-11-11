@@ -6,7 +6,7 @@ internal class ExplicitStateLens<TState, TFeatureState> : BaseStateLens<TState, 
 
     private readonly Func<TState, TFeatureState, TState> _stateReducer;
 
-    public ExplicitStateLens(Func<TState, TFeatureState> featureSelector, Func<TState, TFeatureState, TState> stateReducer)
+    internal ExplicitStateLens(Func<TState, TFeatureState> featureSelector, Func<TState, TFeatureState, TState> stateReducer)
     {
         _featureSelector = featureSelector;
         _stateReducer = stateReducer;

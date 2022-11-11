@@ -24,6 +24,6 @@ public sealed record OperationResult(bool Ok, Error[]? Errors, object? Outcome) 
 
     public static IOperationResult Failure(params Error[] errors) => new OperationResult(Ok: false, errors, Outcome: null);
 
-    public static IOperationResult Failure(Exception error, object? outcome = null)
-        => new OperationResult(Ok: false, new[] { new Error(error) }, outcome);
+    public static IOperationResult Failure(Exception error, IFormatProvider? provider = null, object? outcome = null)
+        => new OperationResult(Ok: false, new[] {  Operations.Error.FromException(error, provider) }, outcome);
 }

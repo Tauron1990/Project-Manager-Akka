@@ -25,6 +25,7 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+using System.Globalization;
 using Akkatecture.Core;
 using Akkatecture.Extensions;
 using JetBrains.Annotations;
@@ -44,7 +45,7 @@ public class Metadata : MetadataContainer, IMetadata
         : base(keyValuePairs) { }
 
     public Metadata(IEnumerable<KeyValuePair<string, string>> keyValuePairs)
-        : base(keyValuePairs.ToDictionary(kv => kv.Key, kv => kv.Value)) { }
+        : base(keyValuePairs.ToDictionary(kv => kv.Key, kv => kv.Value, StringComparer.Ordinal)) { }
 
     public Metadata(params KeyValuePair<string, string>[] keyValuePairs)
         : this((IEnumerable<KeyValuePair<string, string>>)keyValuePairs) { }
@@ -75,7 +76,7 @@ public class Metadata : MetadataContainer, IMetadata
     public int EventVersion
     {
         get => GetMetadataValue(MetadataKeys.EventVersion, int.Parse);
-        set => Add(MetadataKeys.EventVersion, value.ToString());
+        set => Add(MetadataKeys.EventVersion, value.ToString(CultureInfo.InvariantCulture));
     }
 
     [JsonIgnore]
@@ -88,14 +89,14 @@ public class Metadata : MetadataContainer, IMetadata
     [JsonIgnore]
     public long TimestampEpoch =>
         TryGetValue(MetadataKeys.TimestampEpoch, out string? timestampEpoch)
-            ? long.Parse(timestampEpoch)
+            ? long.Parse(timestampEpoch, CultureInfo.InvariantCulture)
             : Timestamp.ToUnixTime();
 
     [JsonIgnore]
     public long AggregateSequenceNumber
     {
         get => GetMetadataValue(MetadataKeys.AggregateSequenceNumber, int.Parse);
-        set => Add(MetadataKeys.AggregateSequenceNumber, value.ToString());
+        set => Add(MetadataKeys.AggregateSequenceNumber, value.ToString(CultureInfo.InvariantCulture));
     }
 
     [JsonIgnore]
@@ -134,7 +135,7 @@ public class Metadata : MetadataContainer, IMetadata
         var metadata = new Metadata(this);
         foreach (var kv in keyValuePairs)
         {
-            if(metadata.ContainsKey(kv.Key)) throw new ArgumentException($"Key '{kv.Key}' is already present!");
+            if(metadata.ContainsKey(kv.Key)) throw new ArgumentException($"Key '{kv.Key}' is already present!", nameof(keyValuePairs));
 
             metadata[kv.Key] = kv.Value;
         }

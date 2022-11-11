@@ -59,7 +59,7 @@ public static class LoggingExtensions
                                                      new JsonLayout
                                                      {
                                                          ExcludeEmptyProperties = true,
-                                                         ExcludeProperties = new HashSet<string>
+                                                         ExcludeProperties = new HashSet<string>(StringComparer.Ordinal)
                                                                              {
                                                                                  "time",
                                                                                  "level",
@@ -114,7 +114,7 @@ public static class LoggingExtensions
                                                  new JsonLayout
                                                  {
                                                      ExcludeEmptyProperties = true,
-                                                     ExcludeProperties = new HashSet<string>
+                                                     ExcludeProperties = new HashSet<string>(StringComparer.Ordinal)
                                                                          {
                                                                              "time",
                                                                              "level",
@@ -122,8 +122,8 @@ public static class LoggingExtensions
                                                                              "message"
                                                                          },
                                                      IncludeEventProperties = true
-                                                 })
-                                         }
+                                                 }),
+                                         },
                                      },
                             ArchiveAboveSize = 5_242_880,
                             ConcurrentWrites = false,
@@ -131,10 +131,10 @@ public static class LoggingExtensions
                             FileName = $"Logs\\{applicationName}.log",
                             ArchiveFileName = $"Logs\\{applicationName}.{{###}}.log",
                             ArchiveNumbering = ArchiveNumberingMode.Rolling,
-                            EnableArchiveFileCompression = true
+                            EnableArchiveFileCompression = true,
                         })
                     {
-                        Name = defaultFile
+                        Name = defaultFile,
                     });
 
                 b.Configuration.AddRuleForAllLevels(defaultFile);

@@ -2,11 +2,6 @@
 
 namespace Akkatecture.Core;
 
-public interface ITagAttribute
-{
-    string Name { get; }
-}
-
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 [PublicAPI]
 public sealed class TagAttribute : Attribute, ITagAttribute

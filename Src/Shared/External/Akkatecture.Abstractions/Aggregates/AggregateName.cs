@@ -29,7 +29,9 @@ using Akkatecture.ValueObjects;
 
 namespace Akkatecture.Aggregates;
 
+#pragma warning disable MA0097
 public class AggregateName : SingleValueObject<string>, IAggregateName
+    #pragma warning restore MA0097
 {
     public AggregateName(string value)
         : base(value) { }

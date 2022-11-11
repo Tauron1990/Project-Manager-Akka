@@ -33,7 +33,7 @@ public abstract class ConfigurationBase : ObservableObject
         else
         {
             _scope = scope;
-            _loader = Task.Run(async () => await LoadValues());
+            _loader = Task.Run(async () => await LoadValues().ConfigureAwait(false));
         }
     }
 
@@ -47,7 +47,7 @@ public abstract class ConfigurationBase : ObservableObject
     }
 
     private async Task LoadValues()
-        => _dic = await _actor.Ask<ImmutableDictionary<string, string>>(new RequestAllValues(_scope));
+        => _dic = await _actor.Ask<ImmutableDictionary<string, string>>(new RequestAllValues(_scope)).ConfigureAwait(false);
 
     protected TValue? GetValue<TValue>(Func<string, TValue> converter, TValue? defaultValue = default, [CallerMemberName] string? name = null)
     {

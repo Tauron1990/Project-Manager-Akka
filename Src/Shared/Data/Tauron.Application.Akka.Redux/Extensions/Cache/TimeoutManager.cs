@@ -41,7 +41,7 @@ public sealed class TimeoutManager
 
         try
         {
-            data = await _db.ReNewAndGet(key);
+            data = await _db.ReNewAndGet(key).ConfigureAwait(false);
         }
         catch (Exception e)
         {
@@ -64,14 +64,14 @@ public sealed class TimeoutManager
     {
         try
         {
-            (CacheTimeoutId? entryId, CacheDataId? key, DateTime time) = await _db.GetNextTimeout();
+            (CacheTimeoutId? entryId, CacheDataId? key, DateTime time) = await _db.GetNextTimeout().ConfigureAwait(false);
 
             if(_cancellation?.Token.IsCancellationRequested == true) return;
 
             if(key is null)
             {
                 if(entryId is not null)
-                    await _db.DeleteElement(entryId);
+                    await _db.DeleteElement(entryId).ConfigureAwait(false);
                 else
                     lock (_lock)
                     {
@@ -85,11 +85,11 @@ public sealed class TimeoutManager
 
             DateTime now = DateTime.UtcNow;
             if(now < time)
-                await Task.Delay(time - now, _cancellation?.Token ?? CancellationToken.None);
+                await Task.Delay(time - now, _cancellation?.Token ?? CancellationToken.None).ConfigureAwait(false);
 
             if(_cancellation?.Token.IsCancellationRequested == true) return;
 
-            await _db.DeleteElement(key);
+            await _db.DeleteElement(key).ConfigureAwait(false);
         }
         catch (OperationCanceledException) { }
         catch (Exception e)
