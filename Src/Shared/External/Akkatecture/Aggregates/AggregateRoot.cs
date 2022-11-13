@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using Akka.Actor;
@@ -93,7 +94,9 @@ public abstract class AggregateRoot<TAggregate, TIdentity, TAggregateState> : Re
         _eventDefinitionService = new EventDefinitionService(Context.GetLogger());
         _snapshotDefinitionService = new SnapshotDefinitionService(Context.GetLogger());
         Id = id;
+        #pragma warning disable MA0056
         PersistenceId = id.Value;
+        #pragma warning restore MA0056
         SetSourceIdHistory(100);
 
         if(Settings.UseDefaultSnapshotRecover) Recover<SnapshotOffer>(Recover);
@@ -116,7 +119,9 @@ public abstract class AggregateRoot<TAggregate, TIdentity, TAggregateState> : Re
     private object? PinnedReply { get; set; }
     private ISnapshotStrategy SnapshotStrategy { get; set; } = SnapshotNeverStrategy.Instance;
     public TAggregateState? State { get; }
+    
     public override string PersistenceId { get; }
+
     public override Recovery Recovery => new(SnapshotSelectionCriteria.Latest);
     private AggregateRootSettings Settings { get; }
 
@@ -126,7 +131,7 @@ public abstract class AggregateRoot<TAggregate, TIdentity, TAggregateState> : Re
     public bool IsNew => Version <= 0;
 
     public bool HasSourceId(ISourceId sourceId)
-        => !sourceId.IsNone() && _previousSourceIds.Any(id => id.Value == sourceId.Value);
+        => !sourceId.IsNone() && _previousSourceIds.Any(id => string.Equals(id.Value, sourceId.Value, StringComparison.Ordinal));
 
     public IIdentity GetIdentity() => Id;
 
@@ -182,7 +187,7 @@ public abstract class AggregateRoot<TAggregate, TIdentity, TAggregateState> : Re
                                     EventName = eventDefinition.Name,
                                     EventVersion = eventDefinition.Version
                                 };
-            eventMetadata.Add(MetadataKeys.TimestampEpoch, now.ToUnixTime().ToString());
+            eventMetadata.Add(MetadataKeys.TimestampEpoch, now.ToUnixTime().ToString(CultureInfo.InvariantCulture));
             if(metadata != null) eventMetadata.AddRange(metadata);
             Type genericType = typeof(CommittedEvent<,,>)
                .MakeGenericType(typeof(TAggregate), typeof(TIdentity), aggregateEvent.GetType());
@@ -227,7 +232,7 @@ public abstract class AggregateRoot<TAggregate, TIdentity, TAggregateState> : Re
                                 EventName = eventDefinition.Name,
                                 EventVersion = eventDefinition.Version
                             };
-        eventMetadata.Add(MetadataKeys.TimestampEpoch, now.ToUnixTime().ToString());
+        eventMetadata.Add(MetadataKeys.TimestampEpoch, value: now.ToUnixTime().ToString(CultureInfo.InvariantCulture));
         if(metadata != null) eventMetadata.AddRange(metadata);
 
         var committedEvent = new CommittedEvent<TAggregate, TIdentity, TAggregateEvent>(
@@ -389,8 +394,10 @@ public abstract class AggregateRoot<TAggregate, TIdentity, TAggregateState> : Re
         if(!ApplyMethodsFromState.TryGetValue(eventType, out var applyMethod))
         {
             #pragma warning disable GU0090
+            #pragma warning disable MA0025
             throw new NotImplementedException(
                 $"AggregateState of Type={State?.GetType().PrettyPrint()} does not have an 'Apply' method that takes in an aggregate event of Type={eventType.PrettyPrint()} as an argument.");
+            #pragma warning restore MA0025
             #pragma warning restore GU0090
         }
 
@@ -408,8 +415,10 @@ public abstract class AggregateRoot<TAggregate, TIdentity, TAggregateState> : Re
         if(!HydrateMethodsFromState.TryGetValue(snapshotType, out var hydrateMethod))
         {
             #pragma warning disable GU0090
+            #pragma warning disable MA0025
             throw new NotImplementedException(
                 $"AggregateState of Type={State?.GetType().PrettyPrint()} does not have a 'Hydrate' method that takes in an aggregate snapshot of Type={snapshotType.PrettyPrint()} as an argument.");
+            #pragma warning restore MA0025
             #pragma warning restore GU0090
         }
 
@@ -593,7 +602,7 @@ public abstract class AggregateRoot<TAggregate, TIdentity, TAggregateState> : Re
            .Where(
                 mi =>
                 {
-                    if(mi.Name != "Execute") return false;
+                    if(!string.Equals(mi.Name, "Execute", StringComparison.Ordinal)) return false;
 
                     var parameters = mi.GetParameters();
 
@@ -610,13 +619,13 @@ public abstract class AggregateRoot<TAggregate, TIdentity, TAggregateState> : Re
            .Where(
                 mi =>
                 {
-                    if(mi.Name != "Command") return false;
+                    if(!string.Equals(mi.Name, "Command", StringComparison.Ordinal)) return false;
 
                     var parameters = mi.GetParameters();
 
                     return
                         parameters.Length == 1
-                     && parameters[0].ParameterType.Name.Contains("Func");
+                     && parameters[0].ParameterType.Name.Contains("Func", StringComparison.Ordinal);
                 })
            .First();
 

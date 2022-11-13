@@ -16,7 +16,7 @@ public sealed class FileContext : IEnumerable<ContextEntry>
     internal List<ContextEntry> ContextEnries { get; } = new();
 
     public IEnumerable<ContextEntry> this[string key]
-        => ContextEnries.Where(contextEnry => contextEnry.Key == key);
+        => ContextEnries.Where(contextEnry => string.Equals(contextEnry.Key, key, System.StringComparison.Ordinal));
 
     public IEnumerator<ContextEntry> GetEnumerator() => ContextEnries.GetEnumerator();
 

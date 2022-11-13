@@ -39,7 +39,7 @@ public class SnapshotMetadata : MetadataContainer, ISnapshotMetadata
         : base(keyValuePairs) { }
 
     public SnapshotMetadata(IEnumerable<KeyValuePair<string, string>> keyValuePairs)
-        : base(keyValuePairs.ToDictionary(kv => kv.Key, kv => kv.Value)) { }
+        : base(keyValuePairs.ToDictionary(kv => kv.Key, kv => kv.Value, System.StringComparer.Ordinal)) { }
 
     public SnapshotMetadata(params KeyValuePair<string, string>[] keyValuePairs)
         : this((IEnumerable<KeyValuePair<string, string>>)keyValuePairs) { }

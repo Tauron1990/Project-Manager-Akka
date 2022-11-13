@@ -56,7 +56,9 @@ public class JobScheduler<TJobScheduler, TJob, TIdentity> : ReceivePersistentAct
         State = SchedulerState<TJob, TIdentity>.New;
 
 
+        #pragma warning disable MA0056
         PersistenceId = $"{Name}-scheduler";
+        #pragma warning restore MA0056
         JournalPluginId = Settings.JournalPluginId;
         SnapshotPluginId = Settings.SnapshotPluginId;
 
@@ -252,7 +254,7 @@ public class JobScheduler<TJobScheduler, TJob, TIdentity> : ReceivePersistentAct
             Scheduled<TJob, TIdentity> scheduled => State.AddEntry(scheduled.Entry),
             Finished<TJob, TIdentity> completed => State.RemoveEntry(completed.JobId),
             Cancelled<TJob, TIdentity> cancelled => State.RemoveEntry(cancelled.JobId),
-            _ => throw new ArgumentException(nameof(schedulerEvent))
+            _ => throw new ArgumentException("Invalid Event Type", nameof(schedulerEvent))
         };
 
         Context.System.EventStream.Publish(schedulerEvent);

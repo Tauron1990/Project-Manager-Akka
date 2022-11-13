@@ -30,6 +30,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -38,18 +39,20 @@ using Akkatecture.Extensions;
 
 namespace Akkatecture.Core.VersionedTypes;
 
-public abstract class
-    VersionedTypeDefinitionService<TTypeCheck, TAttribute, TDefinition> : IVersionedTypeDefinitionService<TAttribute, TDefinition>
+internal static class VersionedTypeDefinitionService
+{
+    internal static readonly Regex NameRegex = new(
+        @"^(Old){0,1}(?<name>[\p{L}\p{Nd}]+?)(V(?<version>[0-9]+)){0,1}$",
+        RegexOptions.Compiled | RegexOptions.ExplicitCapture, TimeSpan.FromSeconds(5));
+}
+
+public abstract class VersionedTypeDefinitionService<TTypeCheck, TAttribute, TDefinition> 
+    : IVersionedTypeDefinitionService<TAttribute, TDefinition>
     where TAttribute : VersionedTypeAttribute
     where TDefinition : VersionedTypeDefinition
 {
-    // ReSharper disable once StaticMemberInGenericType
-    private static readonly Regex NameRegex = new(
-        @"^(Old){0,1}(?<name>[\p{L}\p{Nd}]+?)(V(?<version>[0-9]+)){0,1}$",
-        RegexOptions.Compiled);
-
     #pragma warning disable AV1115
-    private readonly ConcurrentDictionary<string, Dictionary<int, TDefinition>> _definitionByNameAndVersion = new();
+    private readonly ConcurrentDictionary<string, Dictionary<int, TDefinition>> _definitionByNameAndVersion = new(StringComparer.Ordinal);
     #pragma warning restore AV1115
     private readonly ConcurrentDictionary<Type, List<TDefinition>> _definitionsByType = new();
     private readonly ILoggingAdapter? _logger;
@@ -67,7 +70,7 @@ public abstract class
 
     public void Load(IReadOnlyCollection<Type>? types)
     {
-        if(types == null) return;
+        if(types is null) return;
 
         var invalidTypes = types
            .Where(type => !typeof(TTypeCheck).GetTypeInfo().IsAssignableFrom(type))
@@ -75,7 +78,8 @@ public abstract class
 
         if(invalidTypes.Any())
             throw new ArgumentException(
-                $"The following types are not of type '{typeof(TTypeCheck).PrettyPrint()}': {string.Join(", ", invalidTypes.Select(type => type.PrettyPrint()))}");
+                $"The following types are not of type '{typeof(TTypeCheck).PrettyPrint()}': {string.Join(", ", invalidTypes.Select(type => type.PrettyPrint()))}",
+                nameof(types));
 
         lock (_syncRoot)
         {
@@ -89,7 +93,7 @@ public abstract class
 
             var assemblies = definitions
                .Select(definition => definition.Type.GetTypeInfo().Assembly.GetName().Name)
-               .Distinct()
+               .Distinct(StringComparer.Ordinal)
                .OrderBy(name => name)
                .ToList();
 
@@ -152,7 +156,7 @@ public abstract class
     {
         if(!TryGetDefinition(name, version, out TDefinition? definition))
             throw new ArgumentException(
-                $"No versioned type definition for '{name}' with version {version} in '{GetType().PrettyPrint()}'");
+                $"No versioned type definition for '{name}' with version {version} in '{GetType().PrettyPrint()}'", nameof(name));
 
         return definition;
     }
@@ -162,7 +166,8 @@ public abstract class
         #pragma warning restore AV1551
     {
         if(!TryGetDefinition(type, out TDefinition? definition))
-            throw new ArgumentException($"No definition for type '{type.PrettyPrint()}', have you remembered to load it during Akkatecture initialization");
+            throw new ArgumentException($"No definition for type '{type.PrettyPrint()}', have you remembered to load it during Akkatecture initialization",
+                nameof(type));
 
         return definition;
     }
@@ -171,7 +176,8 @@ public abstract class
     {
         if(!TryGetDefinitions(type, out var definitions))
             throw new ArgumentException(
-                $"No definition for type '{type.PrettyPrint()}', have you remembered to load it during Akkatecture initialization");
+                $"No definition for type '{type.PrettyPrint()}', have you remembered to load it during Akkatecture initialization",
+                nameof(type));
 
         return definitions;
     }
@@ -198,7 +204,7 @@ public abstract class
 
     public bool TryGetDefinitions(Type type, out IReadOnlyCollection<TDefinition> definitions)
     {
-        if(type == null) throw new ArgumentNullException(nameof(type));
+        if(type is null) throw new ArgumentNullException(nameof(type));
 
         if(!_definitionsByType.TryGetValue(type, out var list))
         {
@@ -231,14 +237,14 @@ public abstract class
 
     private TDefinition CreateDefinitionFromName(Type versionedType)
     {
-        Match match = NameRegex.Match(versionedType.Name);
+        Match match = VersionedTypeDefinitionService.NameRegex.Match(versionedType.Name);
 
         if(!match.Success)
-            throw new ArgumentException($"Versioned type name '{versionedType.Name}' is not a valid name");
+            throw new ArgumentException($"Versioned type name '{versionedType.Name}' is not a valid name", nameof(versionedType));
 
         var version = 1;
         Group groups = match.Groups["version"];
-        if(groups.Success) version = int.Parse(groups.Value);
+        if(groups.Success) version = int.Parse(groups.Value, CultureInfo.InvariantCulture);
 
         string name = match.Groups["name"].Value;
 

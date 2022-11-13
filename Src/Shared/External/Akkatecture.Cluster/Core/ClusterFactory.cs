@@ -42,6 +42,7 @@ public static class ClusterFactory<TAggregateManager, TAggregate, TIdentity>
     where TIdentity : IIdentity
 {
     #pragma warning disable AV1551
+    #pragma warning disable MA0018
     public static IActorRef StartClusteredAggregate(
         ActorSystem actorSystem,
         int numberOfShards = 12)
@@ -110,7 +111,7 @@ public static class ClusterFactory<TAggregateSagaManager, TAggregateSaga, TIdent
         string clusterRoleName,
         int numberOfShards = 12)
     {
-        if(sagaFactory == null) throw new ArgumentNullException(nameof(sagaFactory));
+        if(sagaFactory is null) throw new ArgumentNullException(nameof(sagaFactory));
 
         ClusterSharding clusterSharding = ClusterSharding.Get(actorSystem);
         ClusterShardingSettings clusterShardingSettings = clusterSharding.Settings;
@@ -154,3 +155,4 @@ public static class ClusterFactory<TAggregateSagaManager, TAggregateSaga, TIdent
     }
 }
 #pragma warning restore AV1551
+#pragma warning restore MA0018

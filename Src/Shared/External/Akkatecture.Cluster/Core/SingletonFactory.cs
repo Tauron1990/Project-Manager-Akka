@@ -31,10 +31,12 @@ using JetBrains.Annotations;
 
 namespace Akkatecture.Cluster.Core;
 
+
 [PublicAPI]
 public static class SingletonFactory<TDomainEventSubscriber>
     where TDomainEventSubscriber : DomainEventSubscriber
 {
+    #pragma warning disable MA0018
     public static IActorRef StartSingletonSubscriber(
         ActorSystem actorSystem,
         Expression<Func<TDomainEventSubscriber>> domainEventSubscriberFactory,
@@ -74,4 +76,5 @@ public static class SingletonFactory<TDomainEventSubscriber>
 
         return proxy;
     }
+    #pragma warning restore MA0018
 }

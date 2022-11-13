@@ -54,8 +54,8 @@ public class Schedule<TJob, TIdentity> : SchedulerCommand<TJob, TIdentity>
         object? nack = null)
         : base(jobId, ack, nack)
     {
-        if(job == null) throw new ArgumentNullException(nameof(job));
-        if(triggerDate == default) throw new ArgumentException(nameof(triggerDate));
+        if(job is null) throw new ArgumentNullException(nameof(job));
+        if(triggerDate == default) throw new ArgumentException("Triggerdate is default", nameof(triggerDate));
 
         Job = job;
         TriggerDate = triggerDate;
@@ -70,5 +70,5 @@ public class Schedule<TJob, TIdentity> : SchedulerCommand<TJob, TIdentity>
 
     public virtual Schedule<TJob, TIdentity> WithNack(object? nack) => new(JobId, Job, TriggerDate, Ack, nack);
 
-    public virtual Schedule<TJob, TIdentity> WithOutAcks() => WithAck(null).WithNack(null);
+    public virtual Schedule<TJob, TIdentity> WithOutAcks() => WithAck(ack: null).WithNack(nack: null);
 }

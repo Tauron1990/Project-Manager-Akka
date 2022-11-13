@@ -36,7 +36,9 @@ public class SchedulerState<TJob, TIdentity>
         ImmutableDictionary<TIdentity, Schedule<TJob, TIdentity>> entries)
         => Entries = entries;
 
+    #pragma warning disable MA0018
     public static SchedulerState<TJob, TIdentity> New { get; } =
+        #pragma warning restore MA0018
         new(ImmutableDictionary<TIdentity, Schedule<TJob, TIdentity>>.Empty);
 
     public ImmutableDictionary<TIdentity, Schedule<TJob, TIdentity>> Entries { get; }

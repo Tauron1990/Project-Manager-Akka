@@ -27,7 +27,7 @@ public sealed record IniSection(string Name, ImmutableDictionary<string, IniEntr
 
     public IniSection AddSingleKey(string name)
     {
-        var entry = new SingleIniEntry(name, null);
+        var entry = new SingleIniEntry(name, Value: null);
 
         return this with { Entries = Entries.Add(name, entry) };
     }

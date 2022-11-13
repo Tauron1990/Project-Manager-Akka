@@ -35,8 +35,8 @@ public class Finished<TJob, TIdentity> : SchedulerEvent<TJob, TIdentity>
         TIdentity jobId,
         DateTime triggerDate)
     {
-        if(jobId == null) throw new ArgumentNullException(nameof(jobId));
-        if(triggerDate == default) throw new ArgumentException(nameof(triggerDate));
+        if(jobId is null) throw new ArgumentNullException(nameof(jobId));
+        if(triggerDate == default) throw new ArgumentException("Triggerdate is default", nameof(triggerDate));
 
         JobId = jobId;
         TriggerDate = triggerDate;

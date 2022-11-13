@@ -46,7 +46,7 @@ public class AggregateEventTagger : IWriteEventAdapter
                .GetType()
                .GetCommittedEventAggregateRootName();
 
-            var eventDefinitionService = new EventDefinitionService(null);
+            var eventDefinitionService = new EventDefinitionService(logger: null);
 
             Type aggregateEventType = evt
                .GetType()
@@ -55,7 +55,7 @@ public class AggregateEventTagger : IWriteEventAdapter
             eventDefinitionService.Load(aggregateEventType);
             EventDefinition eventDefinition = eventDefinitionService.GetDefinition(aggregateEventType);
 
-            var tags = new HashSet<string> { aggregateName.Value, eventDefinition.Name };
+            var tags = new HashSet<string>(StringComparer.Ordinal) { aggregateName.Value, eventDefinition.Name };
             aggregateEventType.GetAllCustomAttributes<ITagAttribute>().Select(attribute => attribute.Name).Foreach(name => tags.Add(name));
 
             return new Tagged(evt, tags);

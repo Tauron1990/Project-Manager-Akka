@@ -31,7 +31,9 @@ using JetBrains.Annotations;
 namespace Akkatecture.Sagas;
 
 [PublicAPI]
+#pragma warning disable MA0097
 public class SagaName : SingleValueObject<string>, ISagaName
+    #pragma warning restore MA0097
 {
     public SagaName(string value)
         : base(value) { }

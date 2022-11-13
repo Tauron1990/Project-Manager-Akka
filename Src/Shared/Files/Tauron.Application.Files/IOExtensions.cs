@@ -20,8 +20,13 @@ public static class IoExtensions
 
         using Stream stream = file.Open(FileAccess.Read);
         var arr = new byte[stream.Length];
-        stream.Read(arr, 0, arr.Length);
+        int bytesRead = stream.Read(arr, 0, arr.Length);
 
+        if(bytesRead != stream.Length)
+            #pragma warning disable MA0076
+            throw new InvalidOperationException($"All bytes Read Failed: Lenght: {stream.Length} -- Read: {bytesRead}");
+        #pragma warning restore MA0076
+        
         return arr;
     }
 }

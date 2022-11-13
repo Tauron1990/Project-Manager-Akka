@@ -73,7 +73,7 @@ public abstract class AggregateEventUpcaster<TAggregate, TIdentity, TEventUpcast
         Type aggregateEventType = aggregateEvent.GetType();
 
         if(!_upcastFunctions.TryGetValue(aggregateEventType, out var upcaster))
-            throw new ArgumentException(nameof(aggregateEventType));
+            throw new ArgumentException($"Upcaster not Found for {aggregateEventType}", nameof(aggregateEvent));
 
         var evt =
             upcaster((TEventUpcaster)(object)this, aggregateEvent) as IAggregateEvent<TAggregate, TIdentity>;

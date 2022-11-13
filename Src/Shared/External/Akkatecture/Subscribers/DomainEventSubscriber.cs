@@ -95,7 +95,7 @@ public abstract class DomainEventSubscriber : ReceiveActor
            .Where(
                 mi =>
                 {
-                    if(mi.Name != "Handle") return false;
+                    if(!string.Equals(mi.Name, "Handle", StringComparison.Ordinal)) return false;
 
                     var parameters = mi.GetParameters();
 
@@ -112,13 +112,13 @@ public abstract class DomainEventSubscriber : ReceiveActor
            .Where(
                 mi =>
                 {
-                    if(mi.Name != "Receive") return false;
+                    if(!string.Equals(mi.Name, "Receive", StringComparison.Ordinal)) return false;
 
                     var parameters = mi.GetParameters();
 
                     return
                         parameters.Length == 1
-                     && parameters[0].ParameterType.Name.Contains("Func");
+                     && parameters[0].ParameterType.Name.Contains("Func", StringComparison.Ordinal);
                 })
            .First();
 
@@ -146,7 +146,7 @@ public abstract class DomainEventSubscriber : ReceiveActor
            .Where(
                 mi =>
                 {
-                    if(mi.Name != "HandleAsync") return false;
+                    if(!string.Equals(mi.Name, "HandleAsync", StringComparison.Ordinal)) return false;
 
                     var parameters = mi.GetParameters();
 
@@ -164,13 +164,13 @@ public abstract class DomainEventSubscriber : ReceiveActor
            .Where(
                 mi =>
                 {
-                    if(mi.Name != "ReceiveAsync") return false;
+                    if(!string.Equals(mi.Name, "ReceiveAsync", StringComparison.Ordinal)) return false;
 
                     var parameters = mi.GetParameters();
 
                     return
                         parameters.Length == 2
-                     && parameters[0].ParameterType.Name.Contains("Func");
+                     && parameters[0].ParameterType.Name.Contains("Func", StringComparison.Ordinal);
                 })
            .First();
 

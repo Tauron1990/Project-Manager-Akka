@@ -28,7 +28,7 @@ namespace BeaconLib
 
         private readonly Task _thread;
         private readonly UdpClient _udp = new UdpClient();
-        private readonly EventWaitHandle _waitHandle = new EventWaitHandle(false, EventResetMode.AutoReset);
+        private readonly EventWaitHandle _waitHandle = new EventWaitHandle(initialState: false, mode: EventResetMode.AutoReset);
         private IEnumerable<BeaconLocation> _currentBeacons = Enumerable.Empty<BeaconLocation>();
 
         private bool _running = true;
@@ -46,7 +46,7 @@ namespace BeaconLib
             _udp.Client.Bind(new IPEndPoint(IPAddress.Any, 0));
             try
             {
-                _udp.AllowNatTraversal(true);
+                _udp.AllowNatTraversal(allowed: true);
             }
             #pragma warning disable AV1706
             catch (Exception ex)
@@ -72,7 +72,7 @@ namespace BeaconLib
             }
         }
 
-        public event Action<IEnumerable<BeaconLocation>>? BeaconsUpdated;
+        public event EventHandler<BeaconUpdatedEventArgs>? BeaconsUpdated;
 
         public void Start()
         {
@@ -94,7 +94,7 @@ namespace BeaconLib
             else
                 _log.Info("Incompatiple Data");
 
-            _udp.BeginReceive(ResponseReceived, null);
+            _udp.BeginReceive(ResponseReceived, state: null);
         }
 
         private void ProcessResponse(byte[] bytes, byte[] typeBytes, IPEndPoint remote)
@@ -155,7 +155,7 @@ namespace BeaconLib
         private void CallBeaconsUpdated(List<BeaconLocation> newBeacons)
         {
             var onBeaconsUpdated = BeaconsUpdated;
-            onBeaconsUpdated?.Invoke(newBeacons);
+            onBeaconsUpdated?.Invoke(this, new BeaconUpdatedEventArgs(newBeacons));
             _currentBeacons = newBeacons;
         }
 
@@ -169,7 +169,7 @@ namespace BeaconLib
                .ThenBy(location => location.Address, IpEndPointComparer.Instance)
                .ToList();
             var onBeaconsUpdated = BeaconsUpdated;
-            onBeaconsUpdated?.Invoke(newBeacons);
+            onBeaconsUpdated?.Invoke(this, new BeaconUpdatedEventArgs(newBeacons));
             _currentBeacons = newBeacons;
         }
 

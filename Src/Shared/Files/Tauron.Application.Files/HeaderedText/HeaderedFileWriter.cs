@@ -48,7 +48,7 @@ public sealed class HeaderedFileWriter
     public bool Remove(ContextEntry entry) => _context.ContextEnries.Remove(entry);
 
     public int RemoveAll(string key)
-        => _context.ContextEnries.RemoveAll(ent => ent.Key == key);
+        => _context.ContextEnries.RemoveAll(ent => string.Equals(ent.Key, key, StringComparison.Ordinal));
 
     public void Save(TextWriter writer)
     {

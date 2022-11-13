@@ -51,7 +51,7 @@ public abstract class JobRunner : ReceiveActor
            .Where(
                 mi =>
                 {
-                    if(mi.Name != "Run")
+                    if(!string.Equals(mi.Name, "Run", StringComparison.Ordinal))
                         return false;
 
                     var parameters = mi.GetParameters();
@@ -70,13 +70,13 @@ public abstract class JobRunner : ReceiveActor
            .Where(
                 mi =>
                 {
-                    if(mi.Name != "Receive") return false;
+                    if(!string.Equals(mi.Name, "Receive", StringComparison.Ordinal)) return false;
 
                     var parameters = mi.GetParameters();
 
                     return
                         parameters.Length == 1
-                     && parameters[0].ParameterType.Name.Contains("Func");
+                     && parameters[0].ParameterType.Name.Contains("Func", StringComparison.Ordinal);
                 })
            .First();
 

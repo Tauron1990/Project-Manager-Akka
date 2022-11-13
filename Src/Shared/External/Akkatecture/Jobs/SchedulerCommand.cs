@@ -22,15 +22,10 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
-using Akkatecture.ValueObjects;
 
 // ReSharper disable UnusedTypeParameter
 
 namespace Akkatecture.Jobs;
-
-public abstract class SchedulerMessage<TJob, TIdentity> : ValueObject
-    where TJob : IJob
-    where TIdentity : IJobId { }
 
 #pragma warning disable AV1507
 public abstract class SchedulerCommand<TJob, TIdentity> : SchedulerMessage<TJob, TIdentity>
@@ -43,7 +38,7 @@ public abstract class SchedulerCommand<TJob, TIdentity> : SchedulerMessage<TJob,
         object? ack = null,
         object? nack = null)
     {
-        if(jobId == null) throw new ArgumentNullException(nameof(jobId));
+        if(jobId is null) throw new ArgumentNullException(nameof(jobId));
 
         JobId = jobId;
         Ack = ack;

@@ -35,7 +35,7 @@ public record IniFile(ImmutableDictionary<string, IniSection> Sections) : IEnume
     {
         SingleIniEntry? keyData = this[sectionName]?.GetSingleEntry(name);
 
-        if(keyData == null) return string.Empty;
+        if(keyData is null) return string.Empty;
 
         return string.IsNullOrWhiteSpace(keyData.Value) ? defaultValue : keyData.Value;
     }

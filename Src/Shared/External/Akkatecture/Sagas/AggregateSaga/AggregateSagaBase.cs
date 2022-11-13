@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -48,9 +49,9 @@ using SnapshotMetadata = Akkatecture.Aggregates.Snapshot.SnapshotMetadata;
 namespace Akkatecture.Sagas.AggregateSaga;
 
 [PublicAPI]
-public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : ReceivePersistentActor,
+public abstract class AggregateSagaBase<TAggregateSaga, TIdentity, TSagaState> : ReceivePersistentActor,
     IAggregateSaga<TIdentity>
-    where TAggregateSaga : AggregateSaga<TAggregateSaga, TIdentity, TSagaState>
+    where TAggregateSaga : AggregateSagaBase<TAggregateSaga, TIdentity, TSagaState>
     where TIdentity : SagaId<TIdentity>
     where TSagaState : SagaState<TAggregateSaga, TIdentity, IMessageApplier<TAggregateSaga, TIdentity>>
 {
@@ -70,26 +71,30 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
     protected IEventDefinitionService EventDefinitionService;
     protected ISnapshotDefinitionService SnapshotDefinitionService;
 
-    protected AggregateSaga()
+    #pragma warning disable MA0051
+    protected AggregateSagaBase()
+        #pragma warning restore MA0051
     {
         SetReceiveTimeout(TimeSpan.FromHours(1));
         Command<ReceiveTimeout>(_ => Context.Stop(Self));
 
         Settings = new AggregateSagaSettings(Context.System.Settings.Config);
         string? idValue = Context.Self.Path.Name;
+        #pragma warning disable MA0056
         PersistenceId = idValue;
+        #pragma warning restore MA0056
         Id = (TIdentity)(FastReflection.Shared.FastCreateInstance(typeof(TIdentity), idValue) ??
                          throw new InvalidOperationException("Identity Creation Failed"));
 
-        if(Id == null)
+        if(Id is null)
             throw new InvalidOperationException(
                 $"Identity for Saga '{Id?.GetType().PrettyPrint()}' could not be activated.");
 
-        if(!(this is TAggregateSaga))
+        if(this is not TAggregateSaga)
             throw new InvalidOperationException(
                 $"AggregateSaga {Name} specifies Type={typeof(TAggregateSaga).PrettyPrint()} as generic argument, it should be its own type.");
 
-        if(State == null)
+        if(State is null)
             try
             {
                 State = (TSagaState)(FastReflection.Shared.FastCreateInstance(typeof(TSagaState)) ??
@@ -146,9 +151,7 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
     public bool IsNew => Version <= 0;
 
     public bool HasSourceId(ISourceId sourceId)
-    {
-        return !sourceId.IsNone() && _previousSourceIds.Any(id => id.Value == sourceId.Value);
-    }
+        => !sourceId.IsNone() && _previousSourceIds.Any(id => string.Equals(id.Value, sourceId.Value, StringComparison.Ordinal));
 
     public IIdentity GetIdentity() => Id;
 
@@ -179,7 +182,7 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
            .Where(
                 mi =>
                 {
-                    if(mi.Name != "HandleTimeout")
+                    if(!string.Equals(mi.Name, "HandleTimeout", StringComparison.Ordinal))
                         return false;
 
                     var parameters = mi.GetParameters();
@@ -196,13 +199,13 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
            .Where(
                 mi =>
                 {
-                    if(mi.Name != "Command") return false;
+                    if(!string.Equals(mi.Name, "Command", StringComparison.Ordinal)) return false;
 
                     var parameters = mi.GetParameters();
 
                     return
                         parameters.Length == 1
-                     && parameters[0].ParameterType.Name.Contains("Func");
+                     && parameters[0].ParameterType.Name.Contains("Func", StringComparison.Ordinal);
                 })
            .First();
 
@@ -229,7 +232,7 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
            .Where(
                 mi =>
                 {
-                    if(mi.Name != "HandleTimeoutAsync")
+                    if(!string.Equals(mi.Name, "HandleTimeoutAsync", StringComparison.Ordinal))
                         return false;
 
                     var parameters = mi.GetParameters();
@@ -246,13 +249,13 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
            .Where(
                 mi =>
                 {
-                    if(mi.Name != "CommandAsync") return false;
+                    if(!string.Equals(mi.Name, "CommandAsync", StringComparison.Ordinal)) return false;
 
                     var parameters = mi.GetParameters();
 
                     return
                         parameters.Length == 2
-                     && parameters[0].ParameterType.Name.Contains("Func");
+                     && parameters[0].ParameterType.Name.Contains("Func", StringComparison.Ordinal);
                 })
            .First();
 
@@ -281,7 +284,7 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
            .Where(
                 mi =>
                 {
-                    if(mi.Name != "Handle" && mi.Name != "HandleTimeout")
+                    if(!string.Equals(mi.Name, "Handle", StringComparison.Ordinal) && !string.Equals(mi.Name, "HandleTimeout", StringComparison.Ordinal))
                         return false;
 
                     var parameters = mi.GetParameters();
@@ -299,13 +302,13 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
            .Where(
                 mi =>
                 {
-                    if(mi.Name != "Command") return false;
+                    if(!string.Equals(mi.Name, "Command", StringComparison.Ordinal)) return false;
 
                     var parameters = mi.GetParameters();
 
                     return
                         parameters.Length == 1
-                     && parameters[0].ParameterType.Name.Contains("Func");
+                     && parameters[0].ParameterType.Name.Contains("Func", StringComparison.Ordinal);
                 })
            .First();
 
@@ -333,7 +336,7 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
            .Where(
                 mi =>
                 {
-                    if(mi.Name != "HandleAsync" && mi.Name != "HandleTimeoutAsync")
+                    if(!string.Equals(mi.Name, "HandleAsync", StringComparison.Ordinal) && !string.Equals(mi.Name, "HandleTimeoutAsync", StringComparison.Ordinal))
                         return false;
 
                     var parameters = mi.GetParameters();
@@ -351,13 +354,13 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
            .Where(
                 mi =>
                 {
-                    if(mi.Name != "CommandAsync") return false;
+                    if(!string.Equals(mi.Name, "CommandAsync", StringComparison.Ordinal)) return false;
 
                     var parameters = mi.GetParameters();
 
                     return
                         parameters.Length == 2
-                     && parameters[0].ParameterType.Name.Contains("Func");
+                     && parameters[0].ParameterType.Name.Contains("Func", StringComparison.Ordinal);
                 })
            .First();
 
@@ -414,7 +417,7 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
                                     EventName = eventDefinition.Name,
                                     EventVersion = eventDefinition.Version
                                 };
-            eventMetadata.Add(MetadataKeys.TimestampEpoch, now.ToUnixTime().ToString());
+            eventMetadata.Add(MetadataKeys.TimestampEpoch, now.ToUnixTime().ToString(NumberFormatInfo.InvariantInfo));
             if(metadata != null) eventMetadata.AddRange(metadata);
             Type genericType = typeof(CommittedEvent<,,>)
                .MakeGenericType(typeof(TAggregateSaga), typeof(TIdentity), aggregateEvent.GetType());
@@ -464,7 +467,7 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
         long version, IMetadata? metadata = null)
         where TAggregateEvent : class, IAggregateEvent<TAggregateSaga, TIdentity>
     {
-        if(aggregateEvent == null) throw new ArgumentNullException(nameof(aggregateEvent));
+        if(aggregateEvent is null) throw new ArgumentNullException(nameof(aggregateEvent));
 
         EventDefinitionService.Load(aggregateEvent.GetType());
         EventDefinition eventDefinition = EventDefinitionService.GetDefinition(aggregateEvent.GetType());
@@ -483,7 +486,7 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
                                 EventName = eventDefinition.Name,
                                 EventVersion = eventDefinition.Version
                             };
-        eventMetadata.Add(MetadataKeys.TimestampEpoch, now.ToUnixTime().ToString());
+        eventMetadata.Add(MetadataKeys.TimestampEpoch, now.ToUnixTime().ToString(CultureInfo.InvariantCulture));
         if(metadata != null) eventMetadata.AddRange(metadata);
 
         var committedEvent =
@@ -556,7 +559,7 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
 
         var aggregateSnapshot = CreateSnapshot();
 
-        if(aggregateSnapshot == null) return;
+        if(aggregateSnapshot is null) return;
 
         SnapshotDefinitionService.Load(aggregateSnapshot.GetType());
         SnapshotDefinition snapshotDefinition = SnapshotDefinitionService.GetDefinition(aggregateSnapshot.GetType());
@@ -597,8 +600,10 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
 
         if(!ApplyMethodsFromState.TryGetValue(eventType, out var applyMethod))
             #pragma warning disable GU0090
+            #pragma warning disable MA0025
             throw new NotImplementedException(
                 $"SagaState of Type={State?.GetType().PrettyPrint()} does not have an 'Apply' method that takes in an aggregate event of Type={eventType.PrettyPrint()} as an argument.");
+        #pragma warning restore MA0025
         #pragma warning restore GU0090
 
         var aggregateApplyMethod = applyMethod.Bind(State);
@@ -676,7 +681,7 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
         IAggregateSnapshot<TAggregateSaga, TIdentity>? aggregateSnapshot,
         long version)
     {
-        if(aggregateSnapshot == null) return;
+        if(aggregateSnapshot is null) return;
 
         var snapshotHydrater = GetSnapshotHydrateMethods(aggregateSnapshot);
 
@@ -693,8 +698,10 @@ public abstract class AggregateSaga<TAggregateSaga, TIdentity, TSagaState> : Rec
 
         if(!HydrateMethodsFromState.TryGetValue(snapshotType, out var hydrateMethod))
             #pragma warning disable GU0090
+            #pragma warning disable MA0025
             throw new NotImplementedException(
                 $"SagaState of Type={State?.GetType().PrettyPrint()} does not have a 'Hydrate' method that takes in an aggregate snapshot of Type={snapshotType.PrettyPrint()} as an argument.");
+        #pragma warning restore MA0025
         #pragma warning restore GU0090
 
         var snapshotHydrateMethod = hydrateMethod.Bind(State);
