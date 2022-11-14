@@ -10,7 +10,7 @@ namespace SimpleProjectManager.Shared.ServerApi.RestApi;
 public interface ITaskManagerDef
 {
     [Get(nameof(GetTasks))]
-    Task<Tasks> GetTasks(CancellationToken token);
+    Task<TaskList> GetTasks(CancellationToken token);
 
     [Post(nameof(DeleteTask))]
     Task<SimpleResult> DeleteTask([Body] string id, CancellationToken token);

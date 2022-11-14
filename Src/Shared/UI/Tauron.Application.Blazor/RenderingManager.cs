@@ -33,7 +33,7 @@ public sealed class RenderingManager
     public async Task StateHasChangedAsync()
     {
         CanRender = true;
-        await _runAsync(_stateHasChanged);
+        await _runAsync(_stateHasChanged).ConfigureAwait(false);
         CanRender = false;
     }
 
@@ -62,22 +62,22 @@ public sealed class RenderingManager
     public async ValueTask PerformTask(Action init, Action compled, Func<ValueTask<bool>> run)
     {
         init();
-        await StateHasChangedAsync();
+        await StateHasChangedAsync().ConfigureAwait(false);
 
-        await run();
+        await run().ConfigureAwait(false);
 
         compled();
-        await StateHasChangedAsync();
+        await StateHasChangedAsync().ConfigureAwait(false);
     }
 
     public async ValueTask PerformTask(Action init, Action compled, Func<ValueTask> run)
     {
         init();
-        await StateHasChangedAsync();
+        await StateHasChangedAsync().ConfigureAwait(false);
 
-        await run();
+        await run().ConfigureAwait(false);
 
         compled();
-        await StateHasChangedAsync();
+        await StateHasChangedAsync().ConfigureAwait(false);
     }
 }

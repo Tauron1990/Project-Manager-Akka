@@ -32,7 +32,7 @@ internal sealed class IpcConnection : IIpcConnection, IDisposable
                         return;
                     }
 
-                    _dataServer = new SharmServer(Bootstrap.IpcName, errorHandler);
+                    _dataServer = new SharmServer(AppNode.IpcName, errorHandler);
                     _dataServer.OnMessageReceived += (_, args) => _messageHandler.OnNext(args.Message);
 
                     break;
@@ -45,7 +45,7 @@ internal sealed class IpcConnection : IIpcConnection, IDisposable
                         return;
                     }
 
-                    _dataClient = new SharmClient(Bootstrap.IpcName, errorHandler);
+                    _dataClient = new SharmClient(AppNode.IpcName, errorHandler);
                     _dataClient.OnMessageReceived += (_, args) => _messageHandler.OnNext(args.Message);
 
                     break;
@@ -56,7 +56,7 @@ internal sealed class IpcConnection : IIpcConnection, IDisposable
                     break;
                 default:
                     #pragma warning disable EX006
-                    throw new ArgumentOutOfRangeException(nameof(type), type, null);
+                    throw new ArgumentOutOfRangeException(nameof(type), type, message: null);
                 #pragma warning restore EX006
             }
         }
@@ -90,7 +90,9 @@ internal sealed class IpcConnection : IIpcConnection, IDisposable
         string type = typeof(TType).AssemblyQualifiedName ??
                       throw new InvalidOperationException("Invalid Message Type");
 
-        return _messageHandler.Where(nm => nm.Type == type).SelectSafe(nm => JsonConvert.DeserializeObject<TType>(Encoding.UTF8.GetString(nm.Data))!);
+        return _messageHandler
+           .Where(nm => string.Equals(nm.Type, type, StringComparison.Ordinal))
+           .SelectSafe(nm => JsonConvert.DeserializeObject<TType>(Encoding.UTF8.GetString(nm.Data))!);
     }
 
     public bool SendMessage<TMessage>(in Client to, TMessage message)

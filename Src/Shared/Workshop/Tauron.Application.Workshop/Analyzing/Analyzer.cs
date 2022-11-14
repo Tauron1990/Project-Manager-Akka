@@ -13,7 +13,7 @@ public sealed class Analyzer<TWorkspace, TData> : IAnalyzer<TWorkspace, TData>
     where TWorkspace : WorkspaceBase<TData> where TData : class
 {
     private readonly Action<RegisterRule<TWorkspace, TData>> _registrar;
-    private readonly HashSet<string> _rules = new();
+    private readonly HashSet<string> _rules = new(StringComparer.Ordinal);
 
     internal Analyzer(Action<RegisterRule<TWorkspace, TData>> registrar, IEventSource<IssuesEvent> source)
     {

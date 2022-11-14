@@ -8,7 +8,7 @@ namespace SimpleProjectManager.Shared.Services.Devices;
 public interface IDeviceService
 {
     [ComputeMethod]
-    Task<Devices> GetAllDevices(CancellationToken token);
+    Task<DeviceList> GetAllDevices(CancellationToken token);
 
     [ComputeMethod]
     Task<DeviceUiGroup> GetRootUi(DeviceId device, CancellationToken token);

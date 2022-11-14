@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using System.Globalization;
+using FluentValidation;
 
 namespace SimpleProjectManager.Shared.Validators;
 
@@ -11,7 +12,7 @@ public class ProjectNameValidator : AbstractValidator<ProjectName>
            .Custom(
                 (arg, context) =>
                 {
-                    if(string.IsNullOrWhiteSpace(arg) || !arg.ToUpper().StartsWith("BM")) return;
+                    if(string.IsNullOrWhiteSpace(arg) || !arg.ToUpper(CultureInfo.InvariantCulture).StartsWith("BM", StringComparison.Ordinal)) return;
 
                     if(arg.Length != 10)
                     {

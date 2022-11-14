@@ -9,9 +9,3 @@ public sealed record StartHostApp(AppName AppName, HostName Target, InternalHost
         InternalHostMessages.CommandType.AppManager)
         => AppName = appName;
 }
-
-public sealed record StartHostAppResponse(bool Success) : OperationResponse(Success)
-{
-    public StartHostAppResponse()
-        : this(Success: false) { }
-}

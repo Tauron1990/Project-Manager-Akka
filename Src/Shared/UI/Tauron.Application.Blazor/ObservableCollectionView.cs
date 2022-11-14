@@ -70,9 +70,9 @@ public partial class ObservableCollectionView<TItem> : INotifyPropertyChanged
     }
 
     [NotifyPropertyChangedInvocator]
-    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
-        if(propertyName == nameof(Source))
+        if(string.Equals(propertyName, nameof(Source), StringComparison.Ordinal))
             UpdateSubsription();
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }

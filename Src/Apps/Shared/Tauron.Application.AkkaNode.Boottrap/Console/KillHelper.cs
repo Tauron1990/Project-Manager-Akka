@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using Akka.Actor;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
@@ -55,7 +56,7 @@ public sealed class KillHelper
 
         if(!string.IsNullOrWhiteSpace(errorToReport))
         {
-            _logger.Warn("Error on Start Kill Watch: {Error}", errorToReport);
+            _logger.Warn(CultureInfo.InvariantCulture, "Error on Start Kill Watch: {Error}", errorToReport);
 
             return;
         }

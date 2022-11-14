@@ -36,7 +36,7 @@ public static class SendingHelper
                     else if(result.Outcome is TResult outcome)
                         task.TrySetResult(Either.Left(outcome));
                     else
-                        task.TrySetResult(Either.Right(new Error(new InvalidCastException(result.Outcome?.GetType().Name ?? "null-source"))));
+                        task.TrySetResult(Either.Right(Error.FromException(new InvalidCastException(result.Outcome?.GetType().Name ?? "null-source"))));
                 }
                 else
                 {
@@ -48,8 +48,10 @@ public static class SendingHelper
         command.SetListner(listner);
         sender.SendCommand(command);
 
+        #pragma warning disable MA0004
         await using CancellationTokenRegistration _ = token.Register(t => ((TaskCompletionSource<Either<TResult, Error>>)t!).TrySetCanceled(), task);
-        var result = await task.Task;
+        #pragma warning restore MA0004
+        var result = await task.Task.ConfigureAwait(false);
 
         return result;
     }

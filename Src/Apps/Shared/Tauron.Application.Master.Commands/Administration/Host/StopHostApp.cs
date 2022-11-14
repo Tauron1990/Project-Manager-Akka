@@ -6,9 +6,3 @@ public sealed record StopHostApp(AppName AppName, HostName Target, InternalHostM
     public StopHostApp(HostName target, AppName appName)
         : this(appName, target, InternalHostMessages.CommandType.AppManager) { }
 }
-
-public sealed record StopHostAppResponse(bool Success) : OperationResponse(Success)
-{
-    public StopHostAppResponse()
-        : this(Success: false) { }
-}

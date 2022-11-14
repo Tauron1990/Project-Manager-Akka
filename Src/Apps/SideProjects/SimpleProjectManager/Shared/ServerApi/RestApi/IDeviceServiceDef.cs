@@ -12,7 +12,7 @@ namespace SimpleProjectManager.Shared.ServerApi.RestApi;
 public interface IDeviceServiceDef
 {
     [Get(nameof(GetAllDevices))]
-    Task<Devices> GetAllDevices(CancellationToken token);
+    Task<DeviceList> GetAllDevices(CancellationToken token);
 
     [Get(nameof(GetRootUi))]
     Task<DeviceUiGroup> GetRootUi([Query] DeviceId device, CancellationToken token);

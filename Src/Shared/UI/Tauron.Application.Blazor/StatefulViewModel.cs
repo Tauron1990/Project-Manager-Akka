@@ -1,47 +1,10 @@
 ﻿using System;
-using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
-using ReactiveUI;
 using Stl.Fusion;
-using Tauron.Application.Blazor.Parameters;
 
 namespace Tauron.Application.Blazor;
-
-public static class BlazorViewModelExtensions
-{
-    public static IState<TValue> GetParameter<TValue>(this IParameterUpdateable updateable, string name, IStateFactory stateFactory)
-        => updateable.Updater.Register<TValue>(name, stateFactory);
-}
-
-[PublicAPI]
-public class BlazorViewModel : ReactiveObject, IActivatableViewModel, IResourceHolder, IParameterUpdateable
-{
-    private readonly CompositeDisposable _disposable = new();
-
-    protected BlazorViewModel(IStateFactory stateFactory)
-        => StateFactory = stateFactory;
-
-    public IStateFactory StateFactory { get; }
-
-    public virtual ViewModelActivator Activator { get; } = new();
-
-    public ParameterUpdater Updater { get; } = new();
-
-    void IDisposable.Dispose()
-        => _disposable.Dispose();
-
-    void IResourceHolder.AddResource(IDisposable res)
-        => _disposable.Add(res);
-
-    void IResourceHolder.RemoveResource(IDisposable res)
-        => _disposable.Remove(res);
-
-
-    public IState<TValue> GetParameter<TValue>(string name)
-        => this.GetParameter<TValue>(name, StateFactory);
-}
 
 [PublicAPI]
 public abstract class StatefulViewModel<TData> : BlazorViewModel
@@ -51,7 +14,9 @@ public abstract class StatefulViewModel<TData> : BlazorViewModel
     {
         var ops = new ComputedState<TData>.Options();
         // ReSharper disable once VirtualMemberCallInConstructor
+        #pragma warning disable MA0056
         ConfigureState(ops);
+        #pragma warning restore MA0056
         State = stateFactory.NewComputed(ops, (_, cancel) => ComputeState(cancel))
            .DisposeWith(this);
 

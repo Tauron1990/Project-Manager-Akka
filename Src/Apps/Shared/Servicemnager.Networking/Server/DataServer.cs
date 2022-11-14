@@ -9,22 +9,9 @@ using SuperSimpleTcp;
 
 namespace Servicemnager.Networking.Server;
 
-public sealed class MessageFromClientEventArgs : EventArgs
-{
-    public MessageFromClientEventArgs(NetworkMessage message, in Client client)
-    {
-        Message = message;
-        Client = client;
-    }
-
-    public NetworkMessage Message { get; }
-
-    public Client Client { get; }
-}
-
 public sealed class DataServer : IDataServer
 {
-    private readonly ConcurrentDictionary<string, MessageBuffer> _clients = new();
+    private readonly ConcurrentDictionary<string, MessageBuffer> _clients = new(StringComparer.Ordinal);
     private readonly NetworkMessageFormatter _messageFormatter = NetworkMessageFormatter.Shared;
     private readonly SimpleTcpServer _server;
 
@@ -32,9 +19,9 @@ public sealed class DataServer : IDataServer
 
     public DataServer(string host, int port = 0)
     {
-        _server = new SimpleTcpServer(host, port, false, null, null)
+        _server = new SimpleTcpServer(host, port, ssl: false, pfxCertFilename: null, pfxPassword: null)
                   {
-                      Keepalive = { EnableTcpKeepAlives = true }
+                      Keepalive = { EnableTcpKeepAlives = true },
                   };
 
         _server.Events.ClientConnected += (_, args) =>

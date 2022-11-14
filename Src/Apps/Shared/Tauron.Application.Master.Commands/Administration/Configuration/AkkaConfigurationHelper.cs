@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Text;
@@ -50,8 +51,8 @@ public static class AkkaConfigurationHelper
         builder
            .AppendLine(snapshot)
            .AppendLine(journal)
-           .AppendFormat(connectionSnapshot, url).AppendLine()
-           .AppendFormat(connectionJournal, url).AppendLine();
+           .AppendFormat(CultureInfo.InvariantCulture, connectionSnapshot, url).AppendLine()
+           .AppendFormat(CultureInfo.InvariantCulture, connectionJournal, url).AppendLine();
 
         currentConfiguration = ConfigurationFactory.ParseString(builder.ToString()).WithFallback(currentConfiguration);
 

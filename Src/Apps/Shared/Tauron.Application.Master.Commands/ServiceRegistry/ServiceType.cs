@@ -18,9 +18,8 @@ public sealed class ServiceType : IEquatable<ServiceType>
     public bool Equals(ServiceType? other)
     {
         if(ReferenceEquals(null, other)) return false;
-        if(ReferenceEquals(this, other)) return true;
+        return ReferenceEquals(this, other) || string.Equals(Id, other.Id, StringComparison.Ordinal);
 
-        return Id == other.Id;
     }
 
     public void Deconstruct(out string id, out string displayName)
@@ -31,7 +30,7 @@ public sealed class ServiceType : IEquatable<ServiceType>
 
     public override bool Equals(object? obj) => ReferenceEquals(this, obj) || (obj is ServiceType other && Equals(other));
 
-    public override int GetHashCode() => Id.GetHashCode();
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Id);
 
     public static bool operator ==(ServiceType? left, ServiceType? right) => Equals(left, right);
 

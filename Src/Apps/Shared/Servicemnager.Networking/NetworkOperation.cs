@@ -13,7 +13,9 @@ namespace Servicemnager.Networking;
 [Instance("DataChunk", "DataChunk")]
 [Instance("DataCompled", "DataCompled")]
 [ValueObject(typeof(string))]
+#pragma warning disable MA0097
 public readonly partial struct NetworkOperation
+    #pragma warning restore MA0097
 {
     private static Validation Validate(string value)
         => Validation.Invalid("No Individual Value Allowed");

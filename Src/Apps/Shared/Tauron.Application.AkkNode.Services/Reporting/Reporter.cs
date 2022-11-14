@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Util;
@@ -39,7 +38,7 @@ public sealed class Reporter
     public static IActorRef CreateListner(
         IActorRefFactory factory, Action<string> listner,
         Action<IOperationResult> onCompled, string? name = null)
-        => CreateListner(factory, listner, onCompled, null, name);
+        => CreateListner(factory, listner, onCompled, timeout: null, name);
 
     public static IActorRef CreateListner(
         IActorRefFactory factory, Reporter reporter,
@@ -54,7 +53,7 @@ public sealed class Reporter
     public static IActorRef CreateListner(
         IActorRefFactory factory, Action<string> listner,
         TaskCompletionSource<IOperationResult> onCompled, string? name = null)
-        => CreateListner(factory, listner, onCompled, null, name);
+        => CreateListner(factory, listner, onCompled, timeout: null, name);
 
     public static IActorRef CreateListner(
         IActorRefFactory factory, Reporter reporter,
@@ -75,7 +74,7 @@ public sealed class Reporter
     public static IActorRef CreateListner(
         IActorRefFactory factory, Action<string> listner, string name,
         Action<Task<IOperationResult>> onCompled)
-        => CreateListner(factory, listner, null, name, onCompled);
+        => CreateListner(factory, listner: listner, timeout: null, name, onCompled);
 
     public static IActorRef CreateListner(
         IActorRefFactory factory, Reporter reporter, in Duration? timeout,
@@ -85,17 +84,17 @@ public sealed class Reporter
     public static IActorRef CreateListner(
         IActorRefFactory factory, Action<string> listner, in Duration? timeout,
         Action<Task<IOperationResult>> onCompled)
-        => CreateListner(factory, listner, timeout, null, onCompled);
+        => CreateListner(factory, listner, timeout: timeout, name: null, onCompled);
 
     public static IActorRef CreateListner(
         IActorRefFactory factory, Action<string> listner,
         Action<Task<IOperationResult>> onCompled)
-        => CreateListner(factory, listner, null, null, onCompled);
+        => CreateListner(factory: factory, listner: listner, timeout: null, name: null, onCompled);
 
     public static IActorRef CreateListner(
         IActorRefFactory factory, Reporter reporter, in Duration? timeout,
         Action<Task<IOperationResult>> onCompled)
-        => CreateListner(factory, reporter.Send, timeout, null, onCompled);
+        => CreateListner(factory, reporter.Send, timeout, name: null, onCompled);
 
     public static IActorRef CreateListner(
         IActorRefFactory factory, Action<string> listner, in Duration? timeout,
@@ -111,7 +110,7 @@ public sealed class Reporter
     public static IActorRef CreateListner(
         IActorRefFactory factory, Action<string> listner, in Duration? timeout,
         out Task<IOperationResult> onCompled)
-        => CreateListner(factory, listner, timeout, null, out onCompled);
+        => CreateListner(factory, listner, timeout: timeout, name: null, out onCompled);
 
     public Reporter Listen(IActorRef actor)
     {
@@ -207,38 +206,4 @@ public sealed class Reporter
     private sealed record ListeningActor(IActorRef Actor);
 
     private sealed record TransferedMessage(string Message);
-}
-
-[PublicAPI]
-public static class ReporterExtensions
-{
-    public static IObservable<ReporterEvent<TMessage, TState>> Report<TMessage, TState>(this IObservable<ReporterEvent<TMessage, TState>> input, string message)
-        where TMessage : IReporterMessage
-        => input.Select(
-            i =>
-            {
-                i.Reporter.Send(message);
-
-                return i;
-            });
-
-    public static IObservable<ReporterEvent<TMessage, TState>> Report<TMessage, TState>(this IObservable<ReporterEvent<TMessage, TState>> input, Func<string> message)
-        where TMessage : IReporterMessage
-        => input.Select(
-            i =>
-            {
-                i.Reporter.Send(message());
-
-                return i;
-            });
-
-    public static IObservable<ReporterEvent<TMessage, TState>> Report<TMessage, TState>(this IObservable<ReporterEvent<TMessage, TState>> input, Func<TMessage, string> message)
-        where TMessage : IReporterMessage
-        => input.Select(
-            i =>
-            {
-                i.Reporter.Send(message(i.Event));
-
-                return i;
-            });
 }

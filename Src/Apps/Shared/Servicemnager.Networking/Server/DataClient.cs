@@ -5,12 +5,6 @@ using SuperSimpleTcp;
 
 namespace Servicemnager.Networking.Server;
 
-public class MessageFromServerEventArgs : EventArgs
-{
-    public MessageFromServerEventArgs(NetworkMessage message) => Message = message;
-    public NetworkMessage Message { get; }
-}
-
 public sealed class DataClient : IDataClient
 {
     private readonly SimpleTcpClient _client;
@@ -19,7 +13,7 @@ public sealed class DataClient : IDataClient
 
     public DataClient(string host, int port = 0)
     {
-        _client = new SimpleTcpClient(host, port, false, null, null)
+        _client = new SimpleTcpClient(host, port, ssl: false, pfxCertFilename: null, pfxPassword: null)
                   {
                       Keepalive = { EnableTcpKeepAlives = true }
                   };

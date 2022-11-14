@@ -5,7 +5,9 @@ using JetBrains.Annotations;
 namespace SimpleProjectManager.Shared.Services;
 
 [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods)]
+#pragma warning disable MA0097
 public sealed class ErrorId : Identity<ErrorId>
+    #pragma warning restore MA0097
 {
     public ErrorId(string value) : base(value) { }
 

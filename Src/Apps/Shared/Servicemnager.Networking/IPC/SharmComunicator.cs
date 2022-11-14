@@ -3,17 +3,14 @@ using System.Buffers;
 using System.Text;
 using System.Threading;
 using Servicemnager.Networking.Data;
-using Servicemnager.Networking.Server;
-using SuperSimpleTcp;
 using tiesky.com;
 
 namespace Servicemnager.Networking.IPC;
 
-public delegate void SharmMessageHandler(NetworkMessage message, ulong messageId, in Client processsId);
-
 public sealed class SharmComunicator : IDisposable
 {
     public static readonly SharmProcessId ProcessId = SharmProcessId.From(Guid.NewGuid().ToString("N"));
+    
     private readonly Action<string, Exception> _errorHandler;
     private readonly NetworkMessageFormatter _formatter = NetworkMessageFormatter.Shared;
     private readonly SharmProcessId _globalId;
@@ -37,7 +34,7 @@ public sealed class SharmComunicator : IDisposable
     {
         try
         {
-            using var mt = new Mutex(true, $"{id}SharmNet_MasterMutex", out bool created);
+            using var mt = new Mutex(initiallyOwned: true, $"{id}SharmNet_MasterMutex", out bool created);
 
             if(!created) return true;
 
@@ -52,7 +49,9 @@ public sealed class SharmComunicator : IDisposable
         }
     }
 
+    #pragma warning disable MA0046
     public event SharmMessageHandler? OnMessage;
+    #pragma warning restore MA0046
 
     public void Connect()
     {
@@ -102,7 +101,9 @@ public sealed class SharmComunicator : IDisposable
         #endif
         interface ISharmIpc : IDisposable
     {
+        #pragma warning disable MA0046
         event SharmMessageHandler OnMessage;
+        #pragma warning restore MA0046
 
         bool Send(byte[] msg);
     }
@@ -143,101 +144,8 @@ public sealed class SharmComunicator : IDisposable
             string id = Encoding.ASCII.GetString(arg2, 0, 32).Trim();
             string from = Encoding.ASCII.GetString(arg2, 31, 32).Trim();
 
-            if(id.StartsWith(Client.All.Value) || id == ProcessId)
+            if(id.StartsWith(Client.All.Value, StringComparison.Ordinal) || id == ProcessId)
                 OnMessage?.Invoke(_messageFormatter.ReadMessage(arg2.AsMemory()[63..]), arg1, Client.From(from));
         }
     }
-}
-
-public sealed class SharmServer : IDataServer
-{
-    private readonly SharmComunicator _comunicator;
-
-    public SharmServer(SharmProcessId uniqeName, Action<string, Exception> errorHandler)
-    {
-        _comunicator = new SharmComunicator(uniqeName, errorHandler);
-        _comunicator.OnMessage += ComunicatorOnOnMessage;
-    }
-
-    public void Dispose() => _comunicator.Dispose();
-
-    public event EventHandler<ClientConnectedArgs>? ClientConnected;
-
-    public event EventHandler<ClientDisconnectedArgs>? ClientDisconnected;
-
-    public event EventHandler<MessageFromClientEventArgs>? OnMessageReceived;
-
-    public void Start() => _comunicator.Connect();
-
-    public bool Send(in Client client, NetworkMessage message) => _comunicator.Send(message, client);
-
-    private void ComunicatorOnOnMessage(NetworkMessage message, ulong messageId, in Client processId)
-    {
-        #pragma warning disable GU0011
-        if(message.Type == SharmComunicatorMessage.RegisterClient)
-        {
-            _comunicator.Send(message, processId);
-            ClientConnected?.Invoke(this, new ClientConnectedArgs(processId));
-
-        }
-        else if(message.Type == SharmComunicatorMessage.UnRegisterClient)
-        {
-            _comunicator.Send(message, processId);
-            ClientDisconnected?.Invoke(this, new ClientDisconnectedArgs(processId, DisconnectReason.Normal));
-
-        }
-        else
-        {
-            OnMessageReceived?.Invoke(this, new MessageFromClientEventArgs(message, processId));
-
-        }
-        #pragma warning restore GU0011
-    }
-}
-
-public sealed class SharmClient : IDataClient, IDisposable
-{
-    private readonly SharmComunicator _comunicator;
-
-    public SharmClient(SharmProcessId uniqeName, Action<string, Exception> errorHandler)
-    {
-        _comunicator = new SharmComunicator(uniqeName, errorHandler);
-        _comunicator.OnMessage += ComunicatorOnOnMessage;
-    }
-
-    public bool Connect()
-    {
-        _comunicator.Connect();
-
-        return Send(NetworkMessage.Create(SharmComunicatorMessage.RegisterClient.Value));
-    }
-
-    public event EventHandler<ClientConnectedArgs>? Connected;
-    public event EventHandler<ClientDisconnectedArgs>? Disconnected;
-    public event EventHandler<MessageFromServerEventArgs>? OnMessageReceived;
-
-    public bool Send(NetworkMessage msg)
-        => _comunicator.Send(msg, Client.All);
-
-    public void Dispose() => _comunicator.Dispose();
-
-    private void ComunicatorOnOnMessage(NetworkMessage message, ulong messageid, in Client processsid)
-    {
-        if(message.Type == SharmComunicatorMessage.RegisterClient)
-        {
-            Connected?.Invoke(this, new ClientConnectedArgs(processsid));
-        }
-        else if(message.Type == SharmComunicatorMessage.UnRegisterClient)
-        {
-            Disconnected?.Invoke(this, new ClientDisconnectedArgs(processsid, DisconnectReason.Normal));
-            Dispose();
-        }
-        else
-        {
-            OnMessageReceived?.Invoke(this, new MessageFromServerEventArgs(message));
-        }
-    }
-
-    public void Disconnect()
-        => _comunicator.Send(NetworkMessage.Create(SharmComunicatorMessage.UnRegisterClient.Value), Client.All);
 }

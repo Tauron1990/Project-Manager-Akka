@@ -12,7 +12,9 @@ public sealed record MutatingContext<TData>(MutatingChange? Change, TData Data)
         where TType : MutatingChange
         => Change?.Cast<TType>() ?? throw new InvalidCastException("Change has not the Requested Type");
 
-    public static MutatingContext<TData> New(TData data) => new(null, data);
+    #pragma warning disable MA0018
+    public static MutatingContext<TData> New(TData data) => new(Change: null, data);
+    #pragma warning restore MA0018
 
 
     public void Deconstruct(out MutatingChange? mutatingChange, out TData data)
