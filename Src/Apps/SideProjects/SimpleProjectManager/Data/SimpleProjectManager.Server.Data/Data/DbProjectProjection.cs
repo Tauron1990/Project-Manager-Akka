@@ -10,20 +10,9 @@ public sealed record DbProjectProjection
 
     public ProjectStatus Status { get; set; }
 
-    public DBSortOrder Ordering { get; set; } = DBSortOrder.Empty;
+    public DbSortOrder Ordering { get; set; } = DbSortOrder.Empty;
 
     public DateTime? Deadline { get; set; }
 
-    public List<string> ProjectFiles { get; set; } = new();
-}
-
-public sealed record DBSortOrder
-{
-    public static DBSortOrder Empty = new();
-
-    public string Id { get; init; } = string.Empty;
-
-    public int SkipCount { get; init; }
-
-    public bool IsPriority { get; init; }
+    public IList<string> ProjectFiles { get; set; } = new List<string>();
 }

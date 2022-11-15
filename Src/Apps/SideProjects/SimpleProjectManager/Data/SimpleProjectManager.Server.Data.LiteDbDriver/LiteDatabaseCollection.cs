@@ -38,7 +38,7 @@ public sealed class LiteDatabaseCollection<TData> : IDatabaseCollection<TData>
 
                 _collection.Update(ent);
 
-                return new DbOperationResult(true, 1, 0);
+                return new DbOperationResult(IsAcknowledged: true, 1, 0);
             });
 
     public ValueTask InsertOneAsync(TData data, CancellationToken cancellationToken = default)
@@ -48,7 +48,7 @@ public sealed class LiteDatabaseCollection<TData> : IDatabaseCollection<TData>
     {
         var task = DeleteOneAsync(filter).AsTask();
 
-        return !task.Wait(TimeSpan.FromMinutes(1)) ? new DbOperationResult(false, 0, 0) : task.Result;
+        return !task.Wait(TimeSpan.FromMinutes(1)) ? new DbOperationResult(IsAcknowledged: false, 0, 0) : task.Result;
     }
 
     public ValueTask<DbOperationResult> DeleteOneAsync(IFilter<TData> filter, CancellationToken token = default)
@@ -61,8 +61,8 @@ public sealed class LiteDatabaseCollection<TData> : IDatabaseCollection<TData>
                 object? id = _collection.EntityMapper.Id.Getter(toDelete);
 
                 return _collection.Delete(new BsonValue(id))
-                    ? new DbOperationResult(true, 1, 0)
-                    : new DbOperationResult(true, 0, 0);
+                    ? new DbOperationResult(IsAcknowledged: true, 1, 0)
+                    : new DbOperationResult(IsAcknowledged: true, 0, 0);
             });
 
     private static Func<IEnumerable<TData>, IEnumerable<TData>> RunFilter(IFilter<TData> filter)

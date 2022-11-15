@@ -23,11 +23,13 @@ public sealed class ImageEditorStartup
         {
             if(!_configuration.Editor.Active) return;
 
-            await _starter.NameRegistrated;
+            await _starter.NameRegistrated.ConfigureAwait(false);
         }
-        catch (Exception e)
+        catch (Exception)
         {
             //Later
+            #pragma warning disable ERP022
         }
+        #pragma warning restore ERP022
     }
 }

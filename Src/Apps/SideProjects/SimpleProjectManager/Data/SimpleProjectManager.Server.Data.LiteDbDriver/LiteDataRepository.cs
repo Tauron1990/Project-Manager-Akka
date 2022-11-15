@@ -2,6 +2,7 @@
 using Akkatecture.Core;
 using LiquidProjections;
 using LiteDB;
+using Microsoft.Extensions.DependencyInjection;
 using SimpleProjectManager.Shared;
 using Tauron;
 using Tauron.Akkatecture.Projections;
@@ -12,12 +13,19 @@ public sealed class LiteDataRepository : IInternalDataRepository
 {
     private readonly ILiteDatabase _database;
     private readonly ConcurrentDictionary<object, LiteTransaction> _transactions = new();
+    private readonly Func<ILiteDatabase, LiteTransaction> _transactionFactory;
 
     public LiteDataRepository(IServiceProvider serviceProvider, ILiteDatabase database)
     {
         _database = database;
         SerializationHelper<CheckPointInfo>.Register();
         Databases = new LiteDatabases(serviceProvider, database);
+
+        ObjectFactory objectFactory = ActivatorUtilities.CreateFactory(
+            typeof(LiteTransaction),
+            typeof(LiteTransaction).GetConstructors().Single().GetParameterTypes().ToArray());
+
+        _transactionFactory = liteDatabase => (LiteTransaction)objectFactory(serviceProvider, new object?[] { liteDatabase });
     }
 
     public Task<TProjection?> Get<TProjection, TIdentity>(ProjectionContext context, TIdentity identity)
@@ -66,8 +74,8 @@ public sealed class LiteDataRepository : IInternalDataRepository
         using LiteTransaction transaction = GetTransaction(identity);
 
         var coll = InternalCollection<TProjection>(transaction);
-        bool result = await transaction.Run(() => coll.Delete(identity.Value));
-        await CommitCheckpoint<TProjection>(context, identity);
+        bool result = await transaction.Run(() => coll.Delete(identity.Value)).ConfigureAwait(false);
+        await CommitCheckpoint<TProjection>(context, identity).ConfigureAwait(false);
 
         return result;
     }
@@ -79,8 +87,8 @@ public sealed class LiteDataRepository : IInternalDataRepository
         using LiteTransaction trans = GetTransaction(identity);
         var coll = InternalCollection<TProjection>(trans);
 
-        await trans.Run(() => coll.Upsert(identity.Value, projection));
-        await CommitCheckpoint<TProjection>(context, identity);
+        await trans.Run(() => coll.Upsert(identity.Value, projection)).ConfigureAwait(false);
+        await CommitCheckpoint<TProjection>(context, identity).ConfigureAwait(false);
     }
 
     public Task Completed<TIdentity>(TIdentity identity)
@@ -101,7 +109,7 @@ public sealed class LiteDataRepository : IInternalDataRepository
     public IDatabases Databases { get; }
 
     private LiteTransaction GetTransaction(object key)
-        => _transactions.GetOrAdd(key, static (_, db) => new LiteTransaction(db), _database);
+        => _transactions.GetOrAdd(key, static (_, db) => db._transactionFactory(db._database), (_database, _transactionFactory));
 
     private static string GetDatabaseId(Type type)
         => type.FullName ?? type.Name;
@@ -119,8 +127,8 @@ public sealed class LiteDataRepository : IInternalDataRepository
                     string id = GetDatabaseId(typeof(TData));
                     var data = new CheckPointInfo { Checkpoint = context.Checkpoint, Id = id };
                     d.GetCollection<CheckPointInfo>().Upsert(data);
-                });
-            await trans.Run(d => d.Commit());
+                }).ConfigureAwait(false);
+            await trans.Run(d => d.Commit()).ConfigureAwait(false);
         }
     }
 

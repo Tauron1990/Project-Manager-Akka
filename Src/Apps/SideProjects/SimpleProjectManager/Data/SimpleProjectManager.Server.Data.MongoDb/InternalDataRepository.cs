@@ -25,7 +25,7 @@ public sealed class InternalDataRepository : IInternalDataRepository
     public async Task<TProjection?> Get<TProjection, TIdentity>(ProjectionContext context, TIdentity identity)
         where TProjection : class, IProjectorData<TIdentity>
         where TIdentity : IIdentity
-        => await InternalCollection<TProjection>().Find(Builders<TProjection>.Filter.Eq(p => p.Id, identity)).FirstOrDefaultAsync()!;
+        => await (InternalCollection<TProjection>().Find(Builders<TProjection>.Filter.Eq(p => p.Id, identity)).FirstOrDefaultAsync()!).ConfigureAwait(false);
 
     public async Task<TProjection> Create<TProjection, TIdentity>(ProjectionContext context, TIdentity identity, Func<TProjection, bool> shouldoverwite)
         where TProjection : class, IProjectorData<TIdentity>
@@ -44,8 +44,8 @@ public sealed class InternalDataRepository : IInternalDataRepository
         var coll = InternalCollection<TProjection>();
         var filter = Builders<TProjection>.Filter.Eq(p => p.Id, identity);
 
-        TProjection? data = await coll.Find(filter).FirstOrDefaultAsync();
-        if(data == null)
+        TProjection? data = await coll.Find(filter).FirstOrDefaultAsync().ConfigureAwait(false);
+        if(data is null)
         {
             data = DataFactory();
         }
@@ -53,7 +53,7 @@ public sealed class InternalDataRepository : IInternalDataRepository
         {
             data = DataFactory();
             IClientSessionHandle trans = GetTransaction(identity);
-            await coll.ReplaceOneAsync(trans, filter, data);
+            await coll.ReplaceOneAsync(trans, filter, data).ConfigureAwait(false);
         }
 
         return data;
@@ -65,8 +65,8 @@ public sealed class InternalDataRepository : IInternalDataRepository
     {
         var coll = InternalCollection<TProjection>();
         var filter = Builders<TProjection>.Filter.Eq(p => p.Id, identity);
-        DeleteResult? result = await coll.DeleteOneAsync(filter);
-        await CommitCheckpoint<TProjection>(null, context);
+        DeleteResult? result = await coll.DeleteOneAsync(filter).ConfigureAwait(false);
+        await CommitCheckpoint<TProjection>(handle: null, context).ConfigureAwait(false);
 
         return result.DeletedCount == 1;
     }
@@ -80,11 +80,11 @@ public sealed class InternalDataRepository : IInternalDataRepository
         var options = new ReplaceOptions { IsUpsert = true };
         var coll = InternalCollection<TProjection>();
 
-        await coll.ReplaceOneAsync(trans, filter, projection, options);
-        await CommitCheckpoint<TProjection>(trans, context);
+        await coll.ReplaceOneAsync(trans, filter, projection, options).ConfigureAwait(false);
+        await CommitCheckpoint<TProjection>(trans, context).ConfigureAwait(false);
 
         if(trans.IsInTransaction)
-            await trans.CommitTransactionAsync();
+            await trans.CommitTransactionAsync().ConfigureAwait(false);
     }
 
     public async Task Completed<TIdentity>(TIdentity identity)
@@ -93,7 +93,7 @@ public sealed class InternalDataRepository : IInternalDataRepository
         if(!_transactions.TryRemove(identity, out IClientSessionHandle? transaction)) return;
 
         if(transaction.IsInTransaction)
-            await transaction.AbortTransactionAsync();
+            await transaction.AbortTransactionAsync().ConfigureAwait(false);
         transaction.Dispose();
     }
 
@@ -135,10 +135,10 @@ public sealed class InternalDataRepository : IInternalDataRepository
         var filter = Builders<CheckPointInfo>.Filter.Eq(cp => cp.Id, id);
         var option = new ReplaceOptions { IsUpsert = true };
 
-        if(handle == null)
-            await _checkpointInfo.ReplaceOneAsync(filter, data, option);
+        if(handle is null)
+            await _checkpointInfo.ReplaceOneAsync(filter, data, option).ConfigureAwait(false);
         else
-            await _checkpointInfo.ReplaceOneAsync(handle, filter, data, option);
+            await _checkpointInfo.ReplaceOneAsync(handle, filter, data, option).ConfigureAwait(false);
     }
 
     private IMongoCollection<TData> InternalCollection<TData>()

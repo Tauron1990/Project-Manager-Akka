@@ -1,3 +1,4 @@
+using System.Globalization;
 using SimpleProjectManager.Operation.Client.Core;
 using SimpleProjectManager.Shared;
 
@@ -30,9 +31,9 @@ public class ConsoleInteraction : IClientInteraction
                     if(string.IsNullOrWhiteSpace(consoleLine))
                         continue;
 
-                    if(consoleLine == "q") break;
+                    if(string.Equals(consoleLine, "q", StringComparison.CurrentCulture)) break;
 
-                    if(int.TryParse(consoleLine, out int number))
+                    if(int.TryParse(consoleLine, NumberStyles.Any, CultureInfo.CurrentCulture, out int number))
                     {
                         result = number;
 
@@ -56,22 +57,22 @@ public class ConsoleInteraction : IClientInteraction
                 while (true)
                 {
                     Console.WriteLine(question);
-                    string? consoleLine = Console.ReadLine()?.ToLower();
+                    string? consoleLine = Console.ReadLine()?.ToLower(CultureInfo.CurrentCulture);
 
                     if(string.IsNullOrWhiteSpace(consoleLine))
                         continue;
 
-                    if(consoleLine == "q")
+                    if(string.Equals(consoleLine, "q", StringComparison.CurrentCulture))
                         break;
 
-                    if(consoleLine == bool.FalseString || consoleLine is "n" or "no" or "nein")
+                    if(string.Equals(consoleLine, bool.FalseString, StringComparison.CurrentCulture) || consoleLine is "n" or "no" or "nein")
                     {
                         result = false;
 
                         break;
                     }
 
-                    if(consoleLine == bool.TrueString || consoleLine is "y" or "yes" or "ja")
+                    if(string.Equals(consoleLine, bool.TrueString, StringComparison.CurrentCulture) || consoleLine is "y" or "yes" or "ja")
                     {
                         result = true;
 
@@ -104,17 +105,17 @@ public class ConsoleInteraction : IClientInteraction
 
                     string? result = Console.ReadLine();
 
-                    if(result == "0")
+                    if(string.Equals(result, "0", StringComparison.CurrentCulture))
                         break;
 
-                    if(choises.Contains(result))
+                    if(choises.Contains(result, StringComparer.CurrentCulture))
                     {
                         choice = result ?? string.Empty;
 
                         break;
                     }
 
-                    if(int.TryParse(result, out int indexer))
+                    if(int.TryParse(result, NumberStyles.Any, CultureInfo.CurrentCulture, out int indexer))
                     {
                         string? potential = choises.ElementAtOrDefault(indexer - 1);
                         if(!string.IsNullOrWhiteSpace(potential))

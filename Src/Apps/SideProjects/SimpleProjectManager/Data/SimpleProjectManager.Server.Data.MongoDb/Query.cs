@@ -12,7 +12,7 @@ public sealed class Query<TStart, TData> : IFindQuery<TStart, TData>
         => _findFluent = findFluent;
 
     public async ValueTask<TData?> FirstOrDefaultAsync(CancellationToken cancellationToken)
-        => await _findFluent.FirstOrDefaultAsync(cancellationToken);
+        => await _findFluent.FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
 
     public TData? FirstOrDefault()
         => _findFluent.FirstOrDefault();
@@ -21,22 +21,22 @@ public sealed class Query<TStart, TData> : IFindQuery<TStart, TData>
         => new Query<TStart, TResult>(_findFluent.Project(transform));
 
     public async ValueTask<TData[]> ToArrayAsync(CancellationToken token)
-        => (await _findFluent.ToListAsync(token)).ToArray();
+        => (await _findFluent.ToListAsync(token).ConfigureAwait(false)).ToArray();
 
     public async ValueTask<TData> FirstAsync(CancellationToken token)
-        => await _findFluent.FirstAsync(token);
+        => await _findFluent.FirstAsync(token).ConfigureAwait(false);
 
     public async ValueTask<long> CountAsync(CancellationToken token)
-        => await _findFluent.CountDocumentsAsync(token);
+        => await _findFluent.CountDocumentsAsync(token).ConfigureAwait(false);
 
     public async ValueTask<TData> SingleAsync(CancellationToken token = default)
-        => await _findFluent.SingleAsync(token);
+        => await _findFluent.SingleAsync(token).ConfigureAwait(false);
 
     public async IAsyncEnumerable<TData> ToAsyncEnumerable([EnumeratorCancellation] CancellationToken token = default)
     {
-        var cursor = await _findFluent.ToCursorAsync(token);
+        var cursor = await _findFluent.ToCursorAsync(token).ConfigureAwait(false);
 
-        while (await cursor.MoveNextAsync(token))
+        while (await cursor.MoveNextAsync(token).ConfigureAwait(false))
             foreach (TData data in cursor.Current)
                 yield return data;
     }

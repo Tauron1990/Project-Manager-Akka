@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using SimpleProjectManager.Client.Operations.Shared.Devices;
 using SimpleProjectManager.Operation.Client.Config;
 using SimpleProjectManager.Shared.Services.Devices;
+using Tauron;
 using Tauron.Operations;
 using Tauron.TAkka;
 using static SimpleProjectManager.Client.Operations.Shared.Devices.DeviceManagerMessages;
@@ -66,7 +67,9 @@ public sealed partial class MachineManagerActor : ReceiveActor
     }
 
     [LoggerMessage(EventId = 66, Level = LogLevel.Error, Message = "Error on Registrating Device with {error}")]
+    #pragma warning disable EPS05
     private partial void ErrorOnRegisterDeviceOnServer(SimpleResult error);
+    #pragma warning restore EPS05
 
     private void Starting()
     {
@@ -88,7 +91,7 @@ public sealed partial class MachineManagerActor : ReceiveActor
     }
 
     [LoggerMessage(EventId = 65, Level = LogLevel.Error, Message = "Error on Collect Device Informations {deviceName}")]
-    private partial void ErrorOnCollectDeviceinformations(Exception ex, InterfaceId deviceName);
+    private partial void ErrorOnCollectDeviceinformations(Exception ex, in InterfaceId deviceName);
 
     protected override void PreStart()
     {
@@ -100,7 +103,7 @@ public sealed partial class MachineManagerActor : ReceiveActor
         Task.Run(
                 async () =>
                 {
-                    DeviceInformations data = await _machine.CollectInfo();
+                    DeviceInformations data = await _machine.CollectInfo().ConfigureAwait(false);
 
                     return data with { DeviceId = data.DeviceId, DeviceManager = Self };
                 })
@@ -119,6 +122,7 @@ public sealed partial class MachineManagerActor : ReceiveActor
                              Interlocked.Exchange(ref _device, data);
 
                              return data;
-                         });
+                         })
+           .Ignore();
     }
 }

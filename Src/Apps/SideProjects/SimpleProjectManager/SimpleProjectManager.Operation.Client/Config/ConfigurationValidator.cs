@@ -34,7 +34,7 @@ public sealed class ConfigurationValidator : AbstractValidator<OperationConfigur
                 try
                 {
                     using var pinger = new HttpClient();
-                    HttpResponseMessage result = await pinger.SendAsync(new HttpRequestMessage(HttpMethod.Get, $"{value}/Api/Ping"));
+                    HttpResponseMessage result = await pinger.SendAsync(new HttpRequestMessage(HttpMethod.Get, $"{value}/Api/Ping")).ConfigureAwait(false);
 
                     if(result.StatusCode == HttpStatusCode.OK)
                         return;

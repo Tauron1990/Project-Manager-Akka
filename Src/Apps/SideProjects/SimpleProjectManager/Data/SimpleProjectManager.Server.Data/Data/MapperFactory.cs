@@ -27,7 +27,7 @@ public static class MapperFactory
         exp.CreateMap<CriticalError, DbCriticalError>().ReverseMap();
         exp.CreateMap<CriticalErrorEntry, DbCriticalErrorEntry>().ReverseMap();
 
-        exp.CreateMap<DBSortOrder, SortOrder>().ReverseMap();
+        exp.CreateMap<DbSortOrder, SortOrder>().ReverseMap();
         exp.CreateMap<DbProjectProjection, DbProjectProjection>().ReverseMap();
 
         exp.CreateMap<DbTaskManagerEntry, TaskManagerEntry>().ReverseMap();

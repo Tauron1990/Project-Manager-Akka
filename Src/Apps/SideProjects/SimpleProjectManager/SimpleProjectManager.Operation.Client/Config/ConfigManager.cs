@@ -31,7 +31,8 @@ public sealed class ConfigManager
     public async ValueTask Set(OperationConfiguration configuration)
     {
         Configuration = configuration;
-        await using var stream = new StreamWriter(_location.CreateNew());
-        await stream.WriteAsync(JsonConvert.SerializeObject(Configuration));
+        var stream = new StreamWriter(_location.CreateNew());
+        await using (stream.ConfigureAwait(false))
+            await stream.WriteAsync(JsonConvert.SerializeObject(Configuration)).ConfigureAwait(false);
     }
 }

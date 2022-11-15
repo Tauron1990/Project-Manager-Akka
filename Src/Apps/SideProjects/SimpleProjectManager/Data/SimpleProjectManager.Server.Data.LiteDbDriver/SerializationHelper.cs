@@ -11,7 +11,7 @@ namespace SimpleProjectManager.Server.Data.LiteDbDriver;
 
 internal static class SerializationHelper
 {
-    public static readonly NewtonSerializer PrivateSerializer = CreateSerializer();
+    internal static readonly NewtonSerializer PrivateSerializer = CreateSerializer();
 
     private static NewtonSerializer CreateSerializer()
     {
@@ -22,7 +22,7 @@ internal static class SerializationHelper
         return NewtonSerializer.Create(settings);
     }
 
-    public static void Init()
+    internal static void Init()
     {
         BsonMapper.Global.EnumAsInteger = true;
         BsonMapper.Global.ResolveMember +=
@@ -39,7 +39,7 @@ internal static class SerializationHelper
 
                 Type? targetType = memberType;
 
-                while (targetType is not null && targetType.Name != "SingleValueObject`1")
+                while (targetType is not null && !string.Equals(targetType.Name, "SingleValueObject`1", StringComparison.Ordinal))
                     targetType = targetType.BaseType;
 
                 if(targetType is null) return;
@@ -83,7 +83,7 @@ internal static class SerializationHelper<TData>
     private static bool _registrated = true;
 
     // ReSharper disable once CognitiveComplexity
-    public static void Register()
+    internal static void Register()
     {
         if(_registrated) return;
 
@@ -159,7 +159,7 @@ internal static class SerializationHelper<TData>
         {
             null => BsonValue.Null,
             JArray array => new BsonArray(array.Select(MapBson)),
-            JObject jObject => new BsonDocument(jObject.ToDictionary<KeyValuePair<string, JToken?>, string, BsonValue>(p => p.Key, p => MapBson(p.Value))),
+            JObject jObject => new BsonDocument(jObject.ToDictionary<KeyValuePair<string, JToken?>, string, BsonValue>(p => p.Key, p => MapBson(p.Value), StringComparer.Ordinal)),
             JValue jValue => new BsonValue(jValue.Value),
             _ => throw new InvalidOperationException($"Token tyoe not Supported: {token.GetType()}")
         };

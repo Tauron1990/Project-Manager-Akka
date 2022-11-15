@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using Akka.Actor;
+using Microsoft.Extensions.Logging;
 using SimpleProjectManager.Client.Operations.Shared.Devices;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services.Devices;
@@ -15,8 +16,8 @@ public sealed class DummyMachine : IMachine, IDisposable
     private ImmutableDictionary<DeviceId, DeviceManagerMessages.ISensorBox> _sensorBoxes = ImmutableDictionary<DeviceId, DeviceManagerMessages.ISensorBox>.Empty;
     private ImmutableDictionary<DeviceId, Action<bool>> _stateChanges = ImmutableDictionary<DeviceId, Action<bool>>.Empty;
 
-    public DummyMachine()
-        => _dummyOperator = new DummyOperator(_deviceId, StateChange, ValueChange);
+    public DummyMachine(ILoggerFactory loggerFactory)
+        => _dummyOperator = new DummyOperator(StateChange, ValueChange, loggerFactory.CreateLogger<DummyOperator>());
 
     public void Dispose()
         => _dummyOperator.Dispose();
@@ -57,7 +58,7 @@ public sealed class DummyMachine : IMachine, IDisposable
     }
 
     public Task<DeviceInformations> CollectInfo()
-        => Task.FromResult(new DeviceInformations(_deviceId, DeviceName.From("Dummy Operator"), true, CreateGroup(), ActorRefs.Nobody));
+        => Task.FromResult(new DeviceInformations(_deviceId, DeviceName.From("Dummy Operator"), HasLogs: true, CreateGroup(), ActorRefs.Nobody));
 
     public Task<DeviceManagerMessages.ISensorBox> UpdateSensorValue(DeviceSensor sensor)
         => Task.FromResult(_sensorBoxes.GetValueOrDefault(sensor.Identifer) ?? DeviceManagerMessages.SensorBox.CreateDefault(sensor.SensorType));

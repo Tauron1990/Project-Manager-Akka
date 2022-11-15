@@ -8,8 +8,37 @@
         <RootNamespace>ClientRunnerApp</RootNamespace>
     </PropertyGroup>
 
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <NoWarn>1701;1702;MA0097</NoWarn>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <NoWarn>1701;1702;MA0097</NoWarn>
+    </PropertyGroup>
+
     <ItemGroup>
-        <ProjectReference Include="..\..\..\SimpleProjectManager.Operation.Client\SimpleProjectManager.Operation.Client.csproj"/>
+        <ProjectReference Include="..\..\..\SimpleProjectManager.Operation.Client\SimpleProjectManager.Operation.Client.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.1.2">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="ErrorProne.NET.Structs" Version="0.1.2">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="Gu.Analyzers" Version="2.0.2">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="Meziantou.Analyzer" Version="1.0.748">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
+      <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
     </ItemGroup>
 
 </Project>

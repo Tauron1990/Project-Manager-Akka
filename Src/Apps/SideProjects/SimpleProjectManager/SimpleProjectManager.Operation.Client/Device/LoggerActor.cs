@@ -32,7 +32,7 @@ public sealed class LoggerActor : ReceiveActor, IWithTimers
 
     private async Task OnSendLog(RunUpdate _)
     {
-        LogBatch batch = await _machine.NextLogBatch();
+        LogBatch batch = await _machine.NextLogBatch().ConfigureAwait(false);
 
         if(batch.IsEmpty) return;
 

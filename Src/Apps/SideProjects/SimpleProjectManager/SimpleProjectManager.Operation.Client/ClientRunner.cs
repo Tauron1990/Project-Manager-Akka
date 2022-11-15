@@ -27,7 +27,7 @@ public sealed class ClientRunner
     {
         IConfigurationRoot setupConfig = new ConfigurationBuilder().AddCommandLine(args).Build();
         var setup = new SetupRunner(_configManager, _clientInteraction);
-        await setup.RunSetup(setupConfig);
+        await setup.RunSetup(setupConfig).ConfigureAwait(false);
 
         return Host.CreateDefaultBuilder(args)
            .ConfigureAppConfiguration((_, b) => b.AddInMemoryCollection(new[] { KeyValuePair.Create("actorsystem", "SimpleProjectManager-Server") }!))

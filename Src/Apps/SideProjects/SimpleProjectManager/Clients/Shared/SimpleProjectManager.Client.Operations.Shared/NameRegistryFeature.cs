@@ -7,8 +7,6 @@ using Tauron.Operations;
 
 namespace SimpleProjectManager.Client.Operations.Shared;
 
-public sealed class NameRegistry : FeatureActorRefBase<NameRegistry> { }
-
 public sealed partial class NameRegistryFeature : ActorFeatureBase<NameRegistryFeature.State>
 {
     // ReSharper disable once InconsistentNaming
@@ -34,7 +32,7 @@ public sealed partial class NameRegistryFeature : ActorFeatureBase<NameRegistryF
     #region RegisterName
 
     [LoggerMessage(EventId = 1, Level = LogLevel.Information, Message = "Actor {path} Terminated. Delete Entry {name}")]
-    private partial void ActorTerminated(ActorPath path, ObjectName name);
+    private partial void ActorTerminated(ActorPath path, in ObjectName name);
 
     // [LoggerMessage(EventId = 2, Level = LogLevel.Information, Message = "Incomming Register Name Request: {path}")]
     // private partial void NewRequest(ActorPath path);
@@ -49,10 +47,10 @@ public sealed partial class NameRegistryFeature : ActorFeatureBase<NameRegistryF
     // private partial void NameFound(string name, ActorPath path);
 
     [LoggerMessage(EventId = 5, Level = LogLevel.Warning, Message = "Register Name Request. Duplicate Name {name} with {path} found")]
-    private partial void DuplicateNameFound(ObjectName name, ActorPath path);
+    private partial void DuplicateNameFound(in ObjectName name, ActorPath path);
 
     [LoggerMessage(EventId = 6, Level = LogLevel.Information, Message = "{path} Successfully Registrated with {name}")]
-    private partial void SuccessfulRegistrated(ActorPath path, ObjectName name);
+    private partial void SuccessfulRegistrated(ActorPath path, in ObjectName name);
 
     private IObservable<State> OnTerminated(IObservable<StatePair<Terminated, State>> observable)
         => observable.Select(
@@ -76,7 +74,7 @@ public sealed partial class NameRegistryFeature : ActorFeatureBase<NameRegistryF
         if(p.State.CurrentClients.ContainsKey(p.Event.Name))
         {
             DuplicateNameFound(p.Event.Name, p.Sender.Path);
-            p.Sender.Tell(new RegisterNameResponse(SimpleResult.Failure($"Duplicate Name {p.Event.Name}"), null, p.Event.From));
+            p.Sender.Tell(new RegisterNameResponse(SimpleResult.Failure($"Duplicate Name {p.Event.Name}"), Name: null, p.Event.From));
 
             return p.State;
         }

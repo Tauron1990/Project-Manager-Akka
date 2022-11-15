@@ -66,7 +66,7 @@ public sealed partial class ImageManagerFeature : ActorFeatureBase<ImageManagerF
 
             State newState = UpdateFileSystemWatcher(state, targetPath);
             CreateOrClearDirectory(targetPath);
-            obj.Sender.Tell(new ProjectStartResponse(null));
+            obj.Sender.Tell(new ProjectStartResponse(Message: null));
 
             return newState with { CurrentPath = targetPath };
         }
@@ -91,7 +91,7 @@ public sealed partial class ImageManagerFeature : ActorFeatureBase<ImageManagerF
             CreateOrClearDirectory(obj.State.TargetPath);
             State state = UpdateFileSystemWatcher(obj.State, obj.State.TargetPath);
 
-            obj.Sender.Tell(new ProjectStartResponse(null));
+            obj.Sender.Tell(message: new ProjectStartResponse(Message: null));
 
             return state with { CurrentPath = obj.State.TargetPath };
         }
@@ -155,14 +155,14 @@ public sealed partial class ImageManagerFeature : ActorFeatureBase<ImageManagerF
     private IObservable<StatePair<TData, State>> PrepareEventStream<TData>(IObservable<bool> suspender, IObservable<TData> obs)
         => UpdateAndSyncActor(obs)
            .TakeWhile(suspender)
-           .Do(s => s.State.DispatchFileSystemEvents.OnNext(false));
+           .Do(onNext: s => s.State.DispatchFileSystemEvents.OnNext(value: false));
 
     private IObservable<FileChangeEvent> HandleDelete(StatePair<FileSystemEventArgs, State> arg, int token)
         => from msg in arg
            let fileName = msg.Event.Name
            where !string.IsNullOrWhiteSpace(fileName)
            from mapEntry in msg.State.FileMapping
-           where mapEntry.Value == fileName
+           where string.Equals(mapEntry.Value, fileName, StringComparison.Ordinal)
            select new FileChangeEvent(token, fileName, mapEntry.Key);
 
     private IObservable<FileChangeEvent> HandleCreated(StatePair<FileSystemEventArgs, State> arg, int token)
@@ -172,7 +172,7 @@ public sealed partial class ImageManagerFeature : ActorFeatureBase<ImageManagerF
            let originalName = TryExtractOriginalName(fileName)
            where !string.IsNullOrWhiteSpace(originalName)
            from mapentry in msg.State.FileMapping
-           where mapentry.Value.Contains(originalName)
+           where mapentry.Value.Contains(originalName, StringComparison.Ordinal)
            select new FileChangeEvent(token, fileName, mapentry.Key);
 
     private IObservable<FileChangeEvent> HandleChanged(StatePair<FileSystemEventArgs, State> arg, int token)
@@ -180,7 +180,7 @@ public sealed partial class ImageManagerFeature : ActorFeatureBase<ImageManagerF
            let fileName = msg.Event.Name
            where !string.IsNullOrWhiteSpace(fileName)
            from mapentry in msg.State.FileMapping
-           where mapentry.Value == fileName
+           where string.Equals(mapentry.Value, fileName, StringComparison.Ordinal)
            select new FileChangeEvent(token, fileName, mapentry.Key);
 
     private static IObservable<FileChangeEvent> HandleRename(StatePair<RenamedEventArgs, State> arg, int token)
@@ -189,14 +189,16 @@ public sealed partial class ImageManagerFeature : ActorFeatureBase<ImageManagerF
            let newName = msg.Event.Name
            where !string.IsNullOrWhiteSpace(oldName) && !string.IsNullOrWhiteSpace(newName)
            from mapentry in msg.State.FileMapping
-           where mapentry.Value == oldName
+           where string.Equals(mapentry.Value, oldName, StringComparison.Ordinal)
            select new FileChangeEvent(token, newName, mapentry.Key);
 
     private string? TryExtractOriginalName(string newName)
     {
         ReadOnlySpan<char> name = Path.GetFileNameWithoutExtension(newName);
 
+        #pragma warning disable EPS06
         if(name.Length < 3 || name.IsWhiteSpace()) return null;
+        #pragma warning restore EPS06
 
         if(char.IsDigit(name[^0]) && char.IsDigit(name[^1]) && name[^2] == 'V')
             return name[..^2].ToString();
@@ -226,13 +228,14 @@ public sealed partial class ImageManagerFeature : ActorFeatureBase<ImageManagerF
 
                     break;
                 case DirectoryInfo directory:
-                    directory.Delete(true);
+                    directory.Delete(recursive: true);
 
                     break;
             }
     }
 
     public sealed record State(
+        // ReSharper disable once NotAccessedPositionalProperty.Global
         string TargetPath, string CurrentPath, ImageManagerMode Mode, DataTransferManager Server, DataTransferManager Self,
         ImmutableDictionary<ProjectFileId, string> FileMapping, FileSystemWatcher Watcher, IDisposable Subscription, Subject<bool> DispatchFileSystemEvents, int Token = 1);
 

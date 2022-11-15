@@ -30,25 +30,25 @@ public sealed class SetupRunner
 
     public async ValueTask RunSetup(IConfiguration commandLine)
     {
-        bool skipConfig = commandLine.GetValue("skipconfig", false);
+        bool skipConfig = commandLine.GetValue("skipconfig", defaultValue: false);
         OperationConfiguration config = _configManager.Configuration;
-        var validation = await config.Validate();
-        if(await AskUseConfiguration(validation, skipConfig, config))
+        var validation = await config.Validate().ConfigureAwait(false);
+        if(await AskUseConfiguration(validation, skipConfig, config).ConfigureAwait(false))
             return;
 
         if(skipConfig)
             throw new InvalidOperationException("Die Setup Phase kann nicht mit einer Fehlerhaften Configuration übersprungen werden");
 
         // ReSharper disable once LoopCanBeConvertedToQuery
-        foreach (ISetup setup in _setups)
-            config = await setup.RunSetup(config);
+        foreach (var setup in _setups)
+            config = await setup.RunSetup(config).ConfigureAwait(false);
 
-        validation = await config.Validate();
+        validation = await config.Validate().ConfigureAwait(false);
 
         if(!validation.IsEmpty)
             throw new InvalidOperationException(string.Join(", ", validation.Select(v => v.ErrorMessage)));
 
-        await _configManager.Set(config);
+        await _configManager.Set(config).ConfigureAwait(false);
     }
 
     private async Task<bool> AskUseConfiguration(ImmutableList<ValidationFailure> validation, bool skipConfig, OperationConfiguration config)
@@ -59,7 +59,7 @@ public sealed class SetupRunner
             {
                 bool shouldUse = await _clientInteraction.Ask(
                     (bool?)null,
-                    $"Möchten sie diese Configuration Benutzen?:{Environment.NewLine}{config}");
+                    $"Möchten sie diese Configuration Benutzen?:{Environment.NewLine}{config}").ConfigureAwait(false);
 
                 if(shouldUse)
                     return true;

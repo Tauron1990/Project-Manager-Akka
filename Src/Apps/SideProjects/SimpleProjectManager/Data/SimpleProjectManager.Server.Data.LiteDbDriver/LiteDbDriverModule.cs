@@ -19,10 +19,10 @@ public class LiteDbDriverModule : IDatabaseModule
                 services.AddSingleton<ILiteDatabase>(
                     string.IsNullOrEmpty(connectionString)
                         ? new LiteDatabase(new MemoryStream())
-                        : new LiteDatabase(connectionString));
+                        : new LiteDatabase(connectionString))
 
-                services.AddSingleton<IInternalFileRepository, LiteFileRepository>();
-                services.AddSingleton<IInternalDataRepository, LiteDataRepository>();
+                .AddSingleton<IInternalFileRepository, LiteFileRepository>()
+                .AddSingleton<IInternalDataRepository, LiteDataRepository>();
             });
     }
 }

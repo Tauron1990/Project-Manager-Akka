@@ -18,7 +18,7 @@ public sealed class LiteFileRepository : IInternalFileRepository
     {
         var files = _databaseAsync.FindAll();
 
-        return files.Where(f => f.Filename == fileName).Select(f => f.Id);
+        return files.Where(f => string.Equals(f.Filename, fileName, StringComparison.Ordinal)).Select(f => f.Id);
     }
 
     public ValueTask<FileEntry?> FindByIdAsync(string id, CancellationToken token = default)

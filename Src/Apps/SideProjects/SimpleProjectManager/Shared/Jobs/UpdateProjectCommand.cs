@@ -2,8 +2,6 @@
 
 namespace SimpleProjectManager.Shared;
 
-public sealed record NullableData<TType>(TType Data);
-
 public sealed record UpdateProjectCommand(ProjectId Id, ProjectName? Name, ProjectStatus? Status, NullableData<ProjectDeadline?>? Deadline)
 {
     public static UpdateProjectCommand Create(JobData newData, JobData oldData)

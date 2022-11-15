@@ -3,14 +3,14 @@ using SimpleProjectManager.Operation.Client.Device.Dummy;
 
 namespace SimpleProjectManager.Operation.Client.Device;
 
-public class MachineInterfaces
+public static class MachineInterfaces
 {
     public static readonly InterfaceId[] KnowenInterfaces =
     {
-        InterfaceId.From("Dummy")
+        InterfaceId.From("Dummy"),
     };
 
-    public static IMachine? Create(InterfaceId name, IServiceProvider serviceProvider)
+    public static IMachine? Create(in InterfaceId name, IServiceProvider serviceProvider)
         => name.Value switch
         {
             "Dummy" => ActivatorUtilities.CreateInstance(serviceProvider, typeof(DummyMachine)) as IMachine,

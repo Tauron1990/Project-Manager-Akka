@@ -1,26 +1,32 @@
 ﻿using System.Collections.Immutable;
+using Microsoft.Extensions.Logging;
 using SimpleProjectManager.Client.Operations.Shared.Devices;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services.Devices;
+using Tauron;
 
 namespace SimpleProjectManager.Operation.Client.Device.Dummy;
 
-internal sealed class DummyOperator : IDisposable
+internal sealed partial class DummyOperator : IDisposable
 {
     private readonly CancellationTokenSource _cancellation = new();
 
-    private readonly DeviceId _name;
     private readonly Action<DeviceButton, bool> _stateChange;
     private readonly Action<DeviceSensor, DeviceManagerMessages.ISensorBox> _valueChange;
+    private readonly ILogger<DummyOperator> _logger;
     private ImmutableList<LogData> _currentLog = ImmutableList<LogData>.Empty;
     private ButtonSensorPair[] _pairs;
 
-    public DummyOperator(DeviceId name, Action<DeviceButton, bool> stateChange, Action<DeviceSensor, DeviceManagerMessages.ISensorBox> valueChange)
+    
+    internal DummyOperator(
+        Action<DeviceButton, bool> stateChange, 
+        Action<DeviceSensor, DeviceManagerMessages.ISensorBox> valueChange,
+        ILogger<DummyOperator> logger)
     {
         _pairs = Array.Empty<ButtonSensorPair>();
-        _name = name;
         _stateChange = stateChange;
         _valueChange = valueChange;
+        _logger = logger;
 
     }
 
@@ -31,11 +37,14 @@ internal sealed class DummyOperator : IDisposable
         _cancellation.Cancel();
     }
 
-    public void Init(ButtonSensorPair[] pairs)
+    internal void Init(ButtonSensorPair[] pairs)
     {
         _pairs = pairs;
-        Task.Factory.StartNew(Simulation, TaskCreationOptions.LongRunning);
+        Task.Factory.StartNew(Simulation, TaskCreationOptions.LongRunning).Ignore();
     }
+
+    [LoggerMessage(68, LogLevel.Critical, "Error on Run Device Simulation")]
+    private partial void CriticalSimulationError(Exception error);
 
     // ReSharper disable once CognitiveComplexity
     private async Task Simulation()
@@ -44,21 +53,27 @@ internal sealed class DummyOperator : IDisposable
         {
             while (!_cancellation.IsCancellationRequested)
             {
-                await Task.Delay(TimeSpan.FromSeconds(1));
+                await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
 
-                foreach (ButtonSensorPair sensorPair in _pairs)
+                foreach (var sensorPair in _pairs)
                     UpdatePair(sensorPair);
 
+                #pragma warning disable GU0011
                 Interlocked.Exchange(
                     ref _currentLog,
-                    _currentLog.Add(new LogData(
-                        SimpleMessage.From("TestLog"), 
-                        DateTime.Now, 
-                        ImmutableDictionary<PropertyName, PropertyValue>.Empty
-                           .Add(PropertyName.From("Test"), PropertyValue.From("TestValue")))));
+                    _currentLog.Add(
+                        new LogData(
+                            SimpleMessage.From("TestLog"),
+                            DateTime.Now,
+                            ImmutableDictionary<PropertyName, PropertyValue>.Empty
+                               .Add(PropertyName.From("Test"), PropertyValue.From("TestValue")))));
             }
         }
         catch (OperationCanceledException) { }
+        catch (Exception e)
+        {
+            CriticalSimulationError(e);
+        }
 
         _cancellation.Dispose();
     }
@@ -92,13 +107,13 @@ internal sealed class DummyOperator : IDisposable
         }
     }
 
-    public LogBatch NextBatch()
+    internal LogBatch NextBatch()
     {
         var current = Interlocked.Exchange(ref _currentLog, ImmutableList<LogData>.Empty);
 
         return new LogBatch(current);
     }
 
-    public void ApplyClick(DeviceId id)
+    internal void ApplyClick(DeviceId id)
         => _pairs.First(p => p.Button.Identifer == id).Clicked = true;
 }

@@ -5,13 +5,13 @@ namespace SimpleProjectManager.Operation.Client.Device.Dummy;
 
 internal sealed record ButtonSensorPair(CategoryName Category, DeviceButton Button, DeviceSensor Sensor)
 {
-    public bool CurrentState { get; set; }
+    internal bool CurrentState { get; set; }
 
-    public bool Clicked { get; set; }
+    internal bool Clicked { get; set; }
 
-    public DeviceManagerMessages.ISensorBox CurrentValue { get; set; } = DeviceManagerMessages.SensorBox.CreateDefault(Sensor.SensorType);
+    internal DeviceManagerMessages.ISensorBox CurrentValue { get; set; } = DeviceManagerMessages.SensorBox.CreateDefault(Sensor.SensorType);
 
-    public int SensorValue { get; set; }
+    internal int SensorValue { get; set; }
 
-    public int Counter { get; set; }
+    internal int Counter { get; set; }
 }

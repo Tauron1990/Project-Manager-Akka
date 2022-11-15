@@ -15,5 +15,5 @@ public class DbCriticalError
 
     public string? StackTrace { get; set; }
 
-    public List<DbErrorProperty> ContextData { get; set; } = new();
+    public IList<DbErrorProperty> ContextData { get; set; } = new List<DbErrorProperty>();
 }

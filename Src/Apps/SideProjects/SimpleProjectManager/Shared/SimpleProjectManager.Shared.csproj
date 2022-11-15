@@ -7,6 +7,14 @@
         <PublishTrimmed>false</PublishTrimmed>
     </PropertyGroup>
 
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <NoWarn>1701;1702;MA0097</NoWarn>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <NoWarn>1701;1702;MA0097</NoWarn>
+    </PropertyGroup>
+
     <ItemGroup>
         <PackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.1.2">
           <PrivateAssets>all</PrivateAssets>
@@ -21,7 +29,7 @@
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Meziantou.Analyzer" Version="1.0.747">
+        <PackageReference Include="Meziantou.Analyzer" Version="1.0.748">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>

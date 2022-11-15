@@ -19,7 +19,7 @@ public sealed record OperationConfiguration(
     public async ValueTask<ImmutableList<ValidationFailure>> Validate()
     {
         var validator = new ConfigurationValidator();
-        ValidationResult? validationResult = await validator.ValidateAsync(this);
+        ValidationResult? validationResult = await validator.ValidateAsync(this).ConfigureAwait(false);
 
         return !validationResult.IsValid ? validationResult.Errors.ToImmutableList() : ImmutableList<ValidationFailure>.Empty;
     }

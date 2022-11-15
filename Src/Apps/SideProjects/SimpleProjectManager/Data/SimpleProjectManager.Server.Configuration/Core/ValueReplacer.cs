@@ -7,14 +7,6 @@ using Superpower.Tokenizers;
 
 namespace SimpleProjectManager.Server.Configuration.Core;
 
-public enum ValueToken
-{
-    None,
-    OpenBrace,
-    CloseBrace,
-    Text
-}
-
 public static class ValueReplacer
 {
     private static readonly Tokenizer<ValueToken> Tokenizer =
@@ -61,7 +53,7 @@ public static class ValueReplacer
 
                     break;
                 case ReferenceNode refNode:
-                    if(!processed.Contains(refNode.Name))
+                    if(!processed.Contains(refNode.Name, StringComparer.Ordinal))
                     {
                         dic = ParseValue(ref processed, dic, refNode.Name);
                         processed = processed.Add(refNode.Name);
@@ -83,7 +75,7 @@ public static class ValueReplacer
         var processd = ImmutableList<string>.Empty;
         foreach (string key in input.Keys)
         {
-            if(processd.Contains(key))
+            if(processd.Contains(key, StringComparer.Ordinal))
                 continue;
 
             input = ParseValue(ref processd, input, key);

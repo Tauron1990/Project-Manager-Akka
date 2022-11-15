@@ -13,7 +13,7 @@ public sealed class InternalFileRepository : IInternalFileRepository
         => _bucket = bucket;
 
     public async ValueTask<Stream> OpenStream(string id, CancellationToken cancellationToken)
-        => await _bucket.OpenDownloadStreamAsync(ObjectId.Parse(id), cancellationToken: cancellationToken);
+        => await _bucket.OpenDownloadStreamAsync(ObjectId.Parse(id), cancellationToken: cancellationToken).ConfigureAwait(false);
 
     public IEnumerable<string> FindIdByFileName(string fileName)
     {
@@ -22,10 +22,10 @@ public sealed class InternalFileRepository : IInternalFileRepository
         return _bucket.Find(filter).ToEnumerable().Select(f => f.Filename);
     }
 
-    public async ValueTask<FileEntry?> FindByIdAsync(string id, CancellationToken token)
+    public async ValueTask<FileEntry?> FindByIdAsync(string id, CancellationToken token = default)
     {
-        var result = await _bucket.FindAsync(Builders<GridFSFileInfo<ObjectId>>.Filter.Eq(f => f.Id, ObjectId.Parse(id)), cancellationToken: token);
-        var file = await result.FirstOrDefaultAsync(token);
+        var result = await _bucket.FindAsync(Builders<GridFSFileInfo<ObjectId>>.Filter.Eq(f => f.Id, ObjectId.Parse(id)), cancellationToken: token).ConfigureAwait(false);
+        var file = await result.FirstOrDefaultAsync(token).ConfigureAwait(false);
 
         // new DatabaseFile(
         //     new ProjectFileId(d.Filename),
@@ -46,9 +46,9 @@ public sealed class InternalFileRepository : IInternalFileRepository
 
     public async IAsyncEnumerable<FileEntry> FindAllAsync([EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var result = await _bucket.FindAsync(Builders<GridFSFileInfo<ObjectId>>.Filter.Empty, cancellationToken: cancellationToken);
+        var result = await _bucket.FindAsync(Builders<GridFSFileInfo<ObjectId>>.Filter.Empty, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-        if(!await result.MoveNextAsync(cancellationToken))
+        if(!await result.MoveNextAsync(cancellationToken).ConfigureAwait(false))
             yield break;
 
         foreach (var file in result.Current)
@@ -61,7 +61,7 @@ public sealed class InternalFileRepository : IInternalFileRepository
     }
 
     public async ValueTask DeleteAsync(string id, CancellationToken token)
-        => await _bucket.DeleteAsync(ObjectId.Parse(id), token);
+        => await _bucket.DeleteAsync(ObjectId.Parse(id), token).ConfigureAwait(false);
 
     public async ValueTask UploadFromStreamAsync(string id, string fileId, Stream stream, string jobName, string fileName, CancellationToken token)
     {
@@ -71,6 +71,6 @@ public sealed class InternalFileRepository : IInternalFileRepository
                        new BsonElement(nameof(FileEntry.JobName), jobName)
                    };
 
-        await _bucket.UploadFromStreamAsync(ObjectId.Parse(id), fileId, stream, new GridFSUploadOptions { Metadata = meta }, token);
+        await _bucket.UploadFromStreamAsync(ObjectId.Parse(id), fileId, stream, new GridFSUploadOptions { Metadata = meta }, token).ConfigureAwait(false);
     }
 }

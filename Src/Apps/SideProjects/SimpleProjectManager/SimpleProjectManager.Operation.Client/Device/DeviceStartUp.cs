@@ -29,10 +29,10 @@ public partial class DeviceStartUp
     }
 
     [LoggerMessage(EventId = 64, Level = LogLevel.Critical, Message = "Error on Start Up DeviceInterfece {name}")]
-    private partial void ErrorOnStartupDevice(Exception ex, InterfaceId name);
+    private partial void ErrorOnStartupDevice(Exception ex, in InterfaceId name);
 
     [LoggerMessage(EventId = 65, Level = LogLevel.Error, Message = "Device {name} not Created")]
-    private partial void NoDeviceCreated(InterfaceId name);
+    private partial void NoDeviceCreated(in InterfaceId name);
 
     public async void Run()
     {
@@ -40,7 +40,7 @@ public partial class DeviceStartUp
         {
             if(!_configuration.Device.Active) return;
 
-            await _hostStarter.NameRegistrated;
+            await _hostStarter.NameRegistrated.ConfigureAwait(false);
 
             IMachine? inter = MachineInterfaces.Create(_configuration.Device.MachineInterface, _serviceProvider);
             if(inter is null)
@@ -50,7 +50,7 @@ public partial class DeviceStartUp
                 return;
             }
             
-            await inter.Init();
+            await inter.Init().ConfigureAwait(false);
 
             _actorSystem.ActorOf(
                 DependencyResolver.For(_actorSystem)

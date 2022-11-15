@@ -21,7 +21,7 @@ public sealed class MachineButtonHandlerActor : ReceiveActor
         _deviceDeviceManager = deviceDeviceManager;
 
         Receive<ButtonClick>(OnButtonClick);
-        _machine.WhenButtonStateChanged(_button.Identifer, OnButtonStateChanged);
+        machine.WhenButtonStateChanged(button.Identifer, OnButtonStateChanged);
     }
 
     private void OnButtonStateChanged(bool state)

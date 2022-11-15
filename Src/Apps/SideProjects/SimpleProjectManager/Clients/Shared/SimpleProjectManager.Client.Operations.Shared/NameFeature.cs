@@ -13,8 +13,10 @@ namespace SimpleProjectManager.Client.Operations.Shared;
 [PublicAPI]
 public sealed partial class NameFeature : ActorFeatureBase<NameFeature.State>
 {
+    #pragma warning disable EPS05
     public static IPreparedFeature Create(ObjectName name)
-        => Feature.Create(() => new NameFeature(), _ => new State(name, false, false, ActorRefs.Nobody, new TaskCompletionSource()));
+        #pragma warning restore EPS05
+        => Feature.Create(() => new NameFeature(), _ => new State(name, IsConfirmd: false, IsDown: false, ActorRefs.Nobody, new TaskCompletionSource()));
 
     protected override void ConfigImpl()
     {
@@ -64,22 +66,22 @@ public sealed partial class NameFeature : ActorFeatureBase<NameFeature.State>
         try
         {
             Task task = p.State.RegistryWaiter.Task;
-            if(await Task.WhenAny(task, Task.Delay(TimeSpan.FromSeconds(15))) == task)
+            if(await Task.WhenAny(task, Task.Delay(TimeSpan.FromSeconds(15))).ConfigureAwait(false) == task)
             {
-                await task;
+                await task.ConfigureAwait(false);
                 CurrentState.Registry.Tell(new NameRegistryFeature.RegisterName(p.State.Name, p.Sender));
 
                 return Unit.Default;
             }
 
             NoRegistryFound(Logger);
-            p.Sender.Tell(new NameResponse(null));
+            p.Sender.Tell(new NameResponse(Name: null));
         }
         catch (Exception e)
         {
             ErrorOnRegisterName(Logger, e);
 
-            p.Sender.Tell(new NameResponse(null));
+            p.Sender.Tell(new NameResponse(Name: null));
         }
 
         return Unit.Default;
@@ -97,7 +99,7 @@ public sealed partial class NameFeature : ActorFeatureBase<NameFeature.State>
         }
 
         NameRegisterError(Logger, result.Error.GetErrorString());
-        p.Event.From.Tell(new NameResponse(null));
+        p.Event.From.Tell(new NameResponse(Name: null));
 
         return p.State with { IsConfirmd = false, IsDown = false };
     }

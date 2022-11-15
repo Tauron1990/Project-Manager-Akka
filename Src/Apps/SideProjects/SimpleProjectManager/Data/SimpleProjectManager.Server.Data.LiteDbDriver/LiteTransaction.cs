@@ -1,28 +1,58 @@
 ﻿using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using LiteDB;
+using Microsoft.Extensions.Logging;
+using SimpleProjectManager.Shared;
+using SimpleProjectManager.Shared.Services;
+using Tauron;
 
 namespace SimpleProjectManager.Server.Data.LiteDbDriver;
 
-public sealed class LiteTransaction : IDisposable
+public sealed partial class LiteTransaction : IDisposable
 {
     private readonly ConcurrentDictionary<Type, object> _collections = new();
     private readonly ILiteDatabase _liteDatabase;
+    private readonly ILogger<LiteTransaction> _logger;
 
     private BlockingCollection<Func<Exception?, Exception?>> _actions = new();
     private Exception? _error;
 
-    public LiteTransaction(ILiteDatabase liteDatabase)
+    [LoggerMessage(66, LogLevel.Critical, "Transaction is already Running (Orphan Transaction)")]
+    private partial void CriticalTransactionStart(Exception error);
+    
+    public LiteTransaction(ILiteDatabase liteDatabase, ICriticalErrorService errorService, ILogger<LiteTransaction> logger)
     {
         _liteDatabase = liteDatabase;
+        _logger = logger;
+
+        #pragma warning disable EPC13
         Run(
             d =>
             {
-                if(d.BeginTrans())
-                    return;
+                try
+                {
+                    if(d.BeginTrans())
+                        return;
 
-                throw new InvalidOperationException("Transaction is already Running (Orphan Transaction)");
-            });
-        Task.Run(Runner);
+                    d.Rollback();
+                    d.BeginTrans();
+                }
+                catch (Exception e)
+                {
+                    CriticalTransactionStart(e);
+                    errorService.WriteError(new CriticalError(
+                        ErrorId.New, 
+                        DateTime.Now, 
+                        PropertyValue.From(nameof(LiteTransaction)), 
+                        SimpleMessage.From("Transaction is already Running (Orphan Transaction)"), 
+                        StackTraceData.FromException(e),
+                        ImmutableList<ErrorProperty>.Empty), default)
+                       .Ignore();
+                }
+            }).Ignore();
+        
+
+        Task.Run(Runner).Ignore();
     }
 
     public void Dispose()

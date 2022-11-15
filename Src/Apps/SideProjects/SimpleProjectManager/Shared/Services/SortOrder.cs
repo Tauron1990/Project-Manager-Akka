@@ -2,7 +2,7 @@
 
 public sealed record SortOrder
 {
-    public static SortOrder Empty = new();
+    public static readonly SortOrder Empty = new();
 
     public ProjectId Id { get; init; } = ProjectId.Empty;
 

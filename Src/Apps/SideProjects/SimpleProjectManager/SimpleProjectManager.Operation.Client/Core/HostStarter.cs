@@ -39,9 +39,9 @@ public partial class HostStarter : BackgroundService
     {
         try
         {
-            await Cluster.Get(_system).JoinAsync(Address.Parse(_configuration.AkkaUrl), stoppingToken);
+            await Cluster.Get(_system).JoinAsync(Address.Parse(_configuration.AkkaUrl), stoppingToken).ConfigureAwait(false);
             IActorRef nameActor = _system.ActorOf("ClientNameManager", NameFeature.Create(_configuration.Name));
-            var result = await NameRequest.Ask(nameActor, _logger);
+            var result = await NameRequest.Ask(nameActor, _logger).ConfigureAwait(false);
 
             if(result.IsInValid())
             {
@@ -64,7 +64,7 @@ public partial class HostStarter : BackgroundService
 
             FatalErrorWhileStartHost(e);
             _hostApplicationLifetime.StopApplication();
-            await _system.Terminate();
+            await _system.Terminate().ConfigureAwait(false);
         }
     }
 }

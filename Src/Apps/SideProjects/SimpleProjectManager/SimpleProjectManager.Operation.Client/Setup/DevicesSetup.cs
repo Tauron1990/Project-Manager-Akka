@@ -14,15 +14,15 @@ public sealed class DevicesSetup : ISetup
 
     public async ValueTask<OperationConfiguration> RunSetup(OperationConfiguration configuration)
     {
-        string newName = await _clientInteraction.Ask(configuration.Name.Value.EmptyToNull(), "Wie Lautet der Name das Gerätes?");
-        bool isDevice = await _clientInteraction.Ask(configuration.Device.Active, "Ist das der PC der Maschine?");
+        string newName = await _clientInteraction.Ask(configuration.Name.Value.EmptyToNull(), "Wie Lautet der Name das Gerätes?").ConfigureAwait(false);
+        bool isDevice = await _clientInteraction.Ask(configuration.Device.Active, "Ist das der PC der Maschine?").ConfigureAwait(false);
 
         if(isDevice)
         {
             string newInterface = await _clientInteraction.AskMultipleChoise(
                 configuration.Device.MachineInterface.Value,
                 MachineInterfaces.KnowenInterfaces.Select(ii => ii.Value).ToArray(),
-                "Welsche Maschiene wird hir betrieben?");
+                "Welsche Maschiene wird hir betrieben?").ConfigureAwait(false);
 
             DeviceData device = configuration.Device with { Active = true, MachineInterface = InterfaceId.From(newInterface) };
 
