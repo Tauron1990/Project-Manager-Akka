@@ -1,17 +1,9 @@
 ﻿using System.IO;
 using System.Threading;
 using ReactiveUI;
-using SimpleProjectManager.Client.Shared.Data.States;
 using SimpleProjectManager.Shared;
 
 namespace SimpleProjectManager.Client.Shared.Data.Files;
-
-public enum UploadState
-{
-    Pending,
-    Uploading,
-    Compled
-}
 
 public class FileUploadFile : ReactiveObject
 {

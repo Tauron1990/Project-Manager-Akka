@@ -3,6 +3,12 @@
         <TargetFramework>net6.0</TargetFramework>
         <Nullable>enable</Nullable>
     </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <NoWarn>1701;1702;MA0097</NoWarn>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <NoWarn>1701;1702;MA0097</NoWarn>
+    </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\..\..\..\..\Shared\Data\Tauron.Applicarion.Redux\Tauron.Applicarion.Redux.csproj" />
         <ProjectReference Include="..\..\..\Shared\SimpleProjectManager.Shared.csproj" />

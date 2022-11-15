@@ -21,7 +21,7 @@ public static class Extensions
         throw new InvalidOperationException(error);
     }
 
-    public static TResult ThrowIfFail<TResult>(this SimpleResult error, Func<TResult> resultFactory)
+    public static TResult ThrowIfFail<TResult>(this in SimpleResult error, Func<TResult> resultFactory)
     {
         if(error.IsError())
             throw error.GetException();
@@ -29,7 +29,7 @@ public static class Extensions
         return resultFactory();
     }
 
-    public static void ThrowIfFail(this SimpleResult error)
+    public static void ThrowIfFail(this in SimpleResult error)
     {
         if(error.IsError())
             throw error.GetException();

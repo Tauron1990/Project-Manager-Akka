@@ -15,8 +15,6 @@ using Tauron.Operations;
 
 namespace SimpleProjectManager.Client.Shared.Data.Files;
 
-public sealed record UploadTransactionContext(ImmutableList<FileUploadFile> Files, ProjectName JobName);
-
 public sealed class UploadTransaction : SimpleTransaction<UploadTransactionContext>
 {
     private readonly HttpClient _client;
@@ -41,41 +39,53 @@ public sealed class UploadTransaction : SimpleTransaction<UploadTransactionConte
 
         SimpleResult result = await TimeoutToken.WithDefault(
             context.Token,
-            t => _fileService.CommitFiles(new FileList(context.Metadata.Get<ImmutableList<ProjectFileId>>()), t));
+            t => _fileService.CommitFiles(new FileList(context.Metadata.Get<ImmutableList<ProjectFileId>>()), t))
+           .ConfigureAwait(false);
 
         return result.ThrowIfFail<Rollback<UploadTransactionContext>>(() => _ => default);
     }
 
     private async ValueTask<Rollback<UploadTransactionContext>> UpdateProjectData(Context<UploadTransactionContext> transactionContext)
     {
-        ((_, ProjectName projectName), ContextMetadata meta, CancellationToken token) = transactionContext;
+        (UploadTransactionContext upload, ContextMetadata meta, CancellationToken token) = transactionContext;
+        ProjectName projectName = upload.JobName;
+        
         ProjectId id = ProjectId.For(projectName);
         meta.Set(id);
 
         (SimpleResult failMessage, bool isNew) = await TimeoutToken.WithDefault(
             token,
-            t => _databaseService.AttachFiles(new ProjectAttachFilesCommand(id, projectName, meta.Get<ImmutableList<ProjectFileId>>()), t));
+            t => _databaseService.AttachFiles(new ProjectAttachFilesCommand(id, projectName, meta.Get<ImmutableList<ProjectFileId>>()), t))
+           .ConfigureAwait(false);
 
+        #if DEBUG
         Console.WriteLine("Files Attached");
+        #endif
 
         return failMessage.ThrowIfFail<Rollback<UploadTransactionContext>>(
             () => async c =>
                   {
-                      (_, ContextMetadata? contextMetadata, CancellationToken cancellationToken) = c;
+                      (ContextMetadata? contextMetadata, CancellationToken cancellationToken) = c;
                       SimpleResult deleteResult;
 
                       if(!isNew)
+                      {
                           deleteResult = await TimeoutToken.WithDefault(
                               cancellationToken,
                               t => _databaseService.RemoveFiles(
                                   new ProjectRemoveFilesCommand(
                                       contextMetadata.Get<ProjectId>(),
                                       contextMetadata.Get<ImmutableList<ProjectFileId>>()),
-                                  t));
+                                  t))
+                             .ConfigureAwait(false);
+                      }
                       else
+                      {
                           deleteResult = await TimeoutToken.WithDefault(
                               cancellationToken,
-                              t => _databaseService.DeleteJob(contextMetadata.Get<ProjectId>(), t));
+                              t => _databaseService.DeleteJob(contextMetadata.Get<ProjectId>(), t))
+                             .ConfigureAwait(false);
+                      }
 
                       deleteResult.ThrowIfFail();
                   });
@@ -92,51 +102,59 @@ public sealed class UploadTransaction : SimpleTransaction<UploadTransactionConte
         Console.WriteLine($"Upload JobName = {projectName.Value}");
         #endif
 
-        requestContent.Add(new StringContent(projectName.Value, null), "JobName");
+        requestContent.Add(new StringContent(projectName.Value, encoding: null), "JobName");
+
+        async Task<UploadFileResult> RunUpload(CancellationToken t)
+        {
+            foreach (FileUploadFile file in fileUploadFiles)
+            {
+                t.ThrowIfCancellationRequested();
+
+                Stream stream = file.Open(t);
+
+                #if DEBUG
+                Console.WriteLine("Add File Stream");
+                #endif
+
+                requestContent.Add(
+                    new StreamContent(stream)
+                    {
+                        Headers =
+                        {
+                            ContentLength = file.UploadFile.Size.Value,
+                            ContentType = new MediaTypeHeaderValue(file.ContentType.Value),
+                        },
+                    },
+                    "files",
+                    file.Name.Value);
+            }
+
+            #if DEBUG
+            Console.WriteLine("Upload Files");
+            #endif
+
+            return await _client.PostJson<UploadFileResult>($"{ApiPaths.FilesApi}/{nameof(IJobFileServiceDef.UploadFiles)}", requestContent, t)
+               .ConfigureAwait(false) ?? new UploadFileResult(SimpleResult.Failure("Unbekannter Fehler"), ImmutableList<ProjectFileId>.Empty);
+        }
 
         (SimpleResult failMessage, var ids) = await TimeoutToken.With(
             TimeSpan.FromMinutes(30),
             token,
-            async t =>
-            {
-                foreach (FileUploadFile file in fileUploadFiles)
-                {
-                    t.ThrowIfCancellationRequested();
-
-                    Stream stream = file.Open(t);
-
-                    Console.WriteLine("Add File Stream");
-                    requestContent.Add(
-                        new StreamContent(stream)
-                        {
-                            Headers =
-                            {
-                                ContentLength = file.UploadFile.Size.Value,
-                                ContentType = new MediaTypeHeaderValue(file.ContentType.Value)
-                            }
-                        },
-                        "files",
-                        file.Name.Value);
-                }
-
-                #if DEBUG
-                Console.WriteLine("Upload Files");
-                #endif
-
-                return await _client.PostJson<UploadFileResult>($"{ApiPaths.FilesApi}/{nameof(IJobFileServiceDef.UploadFiles)}", requestContent, t)
-                    ?? new UploadFileResult(SimpleResult.Failure("Unbekannter Fehler"), ImmutableList<ProjectFileId>.Empty);
-            });
+            RunUpload)
+           .ConfigureAwait(false);
 
         meta.Set(ids);
 
-        return failMessage.ThrowIfFail<Rollback<UploadTransactionContext>>(
-            () => async c =>
-                  {
-                      SimpleResult deleteResult = await TimeoutToken.WithDefault(
-                          c.Token,
-                          t => _fileService.DeleteFiles(new FileList(c.Metadata.Get<ImmutableList<ProjectFileId>>()), t));
+        return failMessage.ThrowIfFail<Rollback<UploadTransactionContext>>(() => UploadRollback);
+    }
 
-                      deleteResult.ThrowIfFail();
-                  });
+    private async ValueTask UploadRollback(Context<UploadTransactionContext> c)
+    {
+        SimpleResult deleteResult = await TimeoutToken.WithDefault(
+                c.Token,
+                t => _fileService.DeleteFiles(new FileList(c.Metadata.Get<ImmutableList<ProjectFileId>>()), t))
+           .ConfigureAwait(false);
+
+        deleteResult.ThrowIfFail();
     }
 }

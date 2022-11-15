@@ -12,5 +12,5 @@ public interface IFileReference
 
     FileSize Size { get; }
 
-    Stream OpenReadStream(MaxSize maxSize, CancellationToken token);
+    Stream OpenReadStream(in MaxSize maxSize, CancellationToken token);
 }
