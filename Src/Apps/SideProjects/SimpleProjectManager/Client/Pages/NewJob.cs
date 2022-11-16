@@ -11,7 +11,7 @@ public partial class NewJob
 
     protected override IEnumerable<IDisposable> InitializeModel()
     {
-        if(ViewModel == null) yield break;
+        if(ViewModel is null) yield break;
 
         _cancel = ViewModel.Cancel?.ToAction();
         _commit = ViewModel.Commit?.ToAction();

@@ -23,98 +23,102 @@ using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
 using Tauron;
 using Tauron.Application;
+using Tauron.Operations;
 
 namespace SimpleProjectManager.Client.Shared.ViewModels.EditJob;
 
 public abstract class FileUploaderViewModelBase : ViewModelBase
 {
     private readonly GlobalState _globalState;
-    private SourceCache<FileUploadFile, string>? _files;
+
+    private SourceCache<FileUploadFile, FileName>? _files;
 
     private string? _projectId;
     private ObservableAsPropertyHelper<bool>? _shouldDisable;
     private SerialDisposable? _triggerSubscribe;
+    private BehaviorSubject<bool>? _isUploading;
 
     protected FileUploaderViewModelBase(IMessageDispatcher aggregator, GlobalState globalState)
     {
-        BehaviorSubject<bool>? isUploading;
         MessageDispatcher = aggregator;
         _globalState = globalState;
         ValidateName = globalState.Jobs.ValidateProjectName;
 
         this.WhenActivated(Init);
+    }
 
-        IEnumerable<IDisposable> Init()
-        {
-            var (triggerUpload, nameState) = GetModelInformation();
+    #pragma warning disable MA0051
+    private IEnumerable<IDisposable> Init()
+        #pragma warning restore MA0051
+    {
+        var (triggerUpload, nameState) = GetModelInformation();
 
-            yield return _triggerSubscribe = new SerialDisposable();
-            yield return isUploading = new BehaviorSubject<bool>(false);
-            yield return _files = new SourceCache<FileUploadFile, string>(bf => bf.Name);
+        yield return _triggerSubscribe = new SerialDisposable();
+        yield return _isUploading = new BehaviorSubject<bool>(value: false);
+        yield return _files = new SourceCache<FileUploadFile, FileName>(bf => bf.Name);
 
-            yield return nameState.Subscribe(s => ProjectId = s);
+        yield return nameState.Subscribe(s => ProjectId = s);
 
-            yield return _files.Connect()
-               .AutoRefresh(f => f.UploadState, TimeSpan.FromMilliseconds(200))
-               .ObserveOn(RxApp.MainThreadScheduler)
-               .Bind(out var list)
-               .Subscribe();
+        yield return _files.Connect()
+           .AutoRefresh(f => f.UploadState, TimeSpan.FromMilliseconds(200))
+           .ObserveOn(RxApp.MainThreadScheduler)
+           .Bind(out var list)
+           .Subscribe();
 
-            yield return _files.Connect()
-               .Where(f => f.UploadState == UploadState.Pending && string.IsNullOrWhiteSpace(ProjectId))
-               .Select(f => f.Name)
-               .Select(JobsState.TryExtrectName)
-               .Flatten()
-               .Where(n => !string.IsNullOrWhiteSpace(n.Current) && string.IsNullOrWhiteSpace(ProjectId))
-               .ObserveOn(RxApp.MainThreadScheduler)
-               .Do(n => ProjectId = n.Current)
-               .Subscribe();
+        yield return _files.Connect()
+           .Where(f => f.UploadState == UploadState.Pending && string.IsNullOrWhiteSpace(ProjectId))
+           .Select(f => f.Name)
+           .Select(JobsState.TryExtrectName)
+           .Flatten()
+           .Where(n => !string.IsNullOrWhiteSpace(n.Current) && string.IsNullOrWhiteSpace(ProjectId))
+           .ObserveOn(RxApp.MainThreadScheduler)
+           .Do(n => ProjectId = n.Current)
+           .Subscribe();
 
-            Files = list;
+        Files = list;
 
-            var canExecute =
-                isUploading.CombineLatest(_files.CountChanged).Select(d => !d.First && d.Second > 0)
-                   .AndIsOnline(globalState.OnlineMonitor)
-                   .Publish().RefCount();
+        var canExecute =
+            _isUploading.CombineLatest(_files.CountChanged).Select(d => !d.First && d.Second > 0)
+               .AndIsOnline(_globalState.OnlineMonitor)
+               .Publish().RefCount();
 
-            _shouldDisable = canExecute.Select(canExecuteResult => !canExecuteResult).ToProperty(this, m => m.ShouldDisable);
+        _shouldDisable = canExecute.Select(canExecuteResult => !canExecuteResult).ToProperty(this, m => m.ShouldDisable);
 
-            yield return Upload = ReactiveCommand.CreateFromTask(
-                UploadFiles,
-                canExecute.CombineLatest(this.WhenAnyValue(m => m.ProjectId)).Select(t => t.First && !string.IsNullOrWhiteSpace(t.Second)));
+        yield return Upload = ReactiveCommand.CreateFromTask(
+            UploadFiles,
+            canExecute.CombineLatest(this.WhenAnyValue(m => m.ProjectId)).Select(t => t.First && !string.IsNullOrWhiteSpace(t.Second)));
 
-            yield return Upload.IsExecuting.Subscribe(isUploading);
+        yield return Upload.IsExecuting.Subscribe(_isUploading);
 
-            yield return Clear = ReactiveCommand.Create(() => _files.Clear(), _files.CountChanged.Select(c => c != 0));
-            yield return Upload
-               .ObserveOn(RxApp.MainThreadScheduler)
-               .Do(
-                    s =>
-                    {
-                        if(string.IsNullOrWhiteSpace(s))
-                            MessageDispatcher.PublishMessage("Upload Erfolgreich");
-                        else
-                            MessageDispatcher.PublishError($"Fehler beim Upload: {s}");
-                    })
-               .Select(_ => Unit.Default)
-               .InvokeCommand(Clear);
-
-            yield return FilesChanged = ReactiveCommand.Create<FileChangeEvent, Unit>(
-                args =>
+        yield return Clear = ReactiveCommand.Create(() => _files.Clear(), _files.CountChanged.Select(c => c != 0));
+        yield return Upload
+           .ObserveOn(RxApp.MainThreadScheduler)
+           .Do(
+                s =>
                 {
-                    _files.Edit(
-                        u => u.Load(
-                            args.Files
-                               .Where(MessageDispatcher.IsSuccess<IFileReference>(FilesState.IsFileValid))
-                               .Select(bf => new FileUploadFile(bf))));
+                    if(s.IsSuccess())
+                        MessageDispatcher.PublishMessage("Upload Erfolgreich");
+                    else
+                        MessageDispatcher.PublishError($"Fehler beim Upload: {s.GetErrorString()}");
+                })
+           .Select(_ => Unit.Default)
+           .InvokeCommand(Clear);
 
-                    return Unit.Default;
-                });
+        yield return FilesChanged = ReactiveCommand.Create<FileChangeEvent, Unit>(
+            args =>
+            {
+                _files.Edit(
+                    u => u.Load(
+                        args.Files
+                           .Where(MessageDispatcher.IsSuccess<IFileReference>(FilesState.IsFileValid))
+                           .Select(bf => new FileUploadFile(bf))));
 
-            yield return triggerUpload
-               .NotNull()
-               .Subscribe(NewTrigger);
-        }
+                return Unit.Default;
+            });
+
+        yield return triggerUpload
+           .NotNull()
+           .Subscribe(NewTrigger);
     }
 
     protected IMessageDispatcher MessageDispatcher { get; }
@@ -123,7 +127,7 @@ public abstract class FileUploaderViewModelBase : ViewModelBase
 
     public ReactiveCommand<Unit, Unit>? Clear { get; private set; }
 
-    public ReactiveCommand<Unit, string>? Upload { get; private set; }
+    public ReactiveCommand<Unit, SimpleResult>? Upload { get; private set; }
 
     public ReactiveCommand<FileChangeEvent, Unit>? FilesChanged { get; private set; }
 
@@ -142,9 +146,11 @@ public abstract class FileUploaderViewModelBase : ViewModelBase
     private void NewTrigger(FileUploadTrigger trigger)
         => NotNull(_triggerSubscribe, nameof(_triggerSubscribe)).Disposable = trigger.Set(UploadFiles);
 
-    private async Task<string> UploadFiles()
+    #pragma warning disable MA0051
+    private async Task<SimpleResult> UploadFiles()
+        #pragma warning restore MA0051
     {
-        if(Files is null || Files.Count == 0) return string.Empty;
+        if(Files is null || Files.Count == 0) return SimpleResult.Success();
 
         try
         {
@@ -154,19 +160,19 @@ public abstract class FileUploaderViewModelBase : ViewModelBase
                 string validation = string.Join(", ", validationResult);
                 MessageDispatcher.PublishWarnig(validation);
 
-                return validation;
+                return SimpleResult.Failure(validation);
             }
 
-            if(string.IsNullOrWhiteSpace(ProjectId)) return "Keine Projekt Id";
+            if(string.IsNullOrWhiteSpace(ProjectId)) return SimpleResult.Failure("Keine Projekt Id");
 
             var context = new UploadTransactionContext(Files.ToImmutableList(), new ProjectName(ProjectId));
 
-            (TrasnactionState trasnactionState, Exception? exception) = await _globalState.Files.CreateUpload().Execute(context);
+            (TrasnactionState trasnactionState, Exception? exception) = await _globalState.Files.CreateUpload().Execute(context).ConfigureAwait(false);
 
             switch (trasnactionState)
             {
                 case TrasnactionState.Successeded:
-                    return string.Empty;
+                    return SimpleResult.Success();
                 case TrasnactionState.RollbackFailed when exception is not null:
                     try
                     {
@@ -175,9 +181,9 @@ public abstract class FileUploaderViewModelBase : ViewModelBase
                         _globalState.Dispatch(
                             new WriteCriticalError(
                                 DateTime.Now,
-                                $"{nameof(FileUploaderViewModelBase)} -- {nameof(UploadFiles)}",
-                                newEx.Message,
-                                newEx.StackTrace,
+                                PropertyValue.From($"{nameof(FileUploaderViewModelBase)} -- {nameof(UploadFiles)}"),
+                                SimpleMessage.From(newEx.Message),
+                                StackTraceData.FromException(newEx),
                                 ImmutableList<ErrorProperty>.Empty));
                     }
                     catch (Exception e)
@@ -189,15 +195,15 @@ public abstract class FileUploaderViewModelBase : ViewModelBase
                         MessageDispatcher.PublishError(exception);
                     }
 
-                    return exception.Message;
+                    return SimpleResult.Failure(exception);
                 case TrasnactionState.Rollback when exception is not null:
                     MessageDispatcher.PublishError(exception);
 
-                    return exception.Message;
+                    return SimpleResult.Failure(exception);
                 default:
                     MessageDispatcher.PublishWarnig("Datei Upload Unbekannter zustand");
 
-                    return "Datei Upload Unbekannter zustand";
+                    return SimpleResult.Failure("Datei Upload Unbekannter zustand");
             }
         }
         finally

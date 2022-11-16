@@ -1,3 +1,5 @@
-﻿namespace SimpleProjectManager.Server.Core.DeviceManager.Events;
+﻿using SimpleProjectManager.Shared.Services.Devices;
 
-public sealed record DeviceRemoved(string DeviceName) : IDeviceEvent;
+namespace SimpleProjectManager.Server.Core.DeviceManager.Events;
+
+public sealed record DeviceRemoved(DeviceId Id) : IDeviceEvent;

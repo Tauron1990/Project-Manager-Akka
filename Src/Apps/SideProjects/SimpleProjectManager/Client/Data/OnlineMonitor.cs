@@ -14,7 +14,7 @@ public sealed class OnlineMonitor : OnlineMonitorBase<OnlineMonitor>
     {
         try
         {
-            return await _jsRuntime().InvokeAsync<bool>("window.isOnline", token);
+            return await _jsRuntime().InvokeAsync<bool>("window.isOnline", token).ConfigureAwait(false);
         }
         catch (Exception e)
         {

@@ -14,7 +14,7 @@ public partial class EditJob
     protected override IEnumerable<IDisposable> InitializeModel()
     {
 
-        if(ViewModel == null) yield break;
+        if(ViewModel is null) yield break;
 
         ViewModel.JobId.Set(ProjectId);
         _commitAction = ViewModel.Commit.ToAction();

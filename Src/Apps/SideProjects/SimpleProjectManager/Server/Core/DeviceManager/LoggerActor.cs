@@ -11,12 +11,12 @@ namespace SimpleProjectManager.Server.Core.DeviceManager;
 public sealed class LoggerActor : ReceiveActor
 {
     private readonly SortedDictionary<DateTime, LogBatch> _batches = new();
-    private readonly string _deviceName;
+    private readonly DeviceId _deviceName;
     private readonly DeviceEventHandler _handler;
 
     private readonly LogDistribution _logDistribution;
 
-    public LoggerActor(string deviceName, DeviceEventHandler handler)
+    public LoggerActor(DeviceId deviceName, DeviceEventHandler handler)
     {
         _deviceName = deviceName;
         _handler = handler;
@@ -63,7 +63,7 @@ public sealed class LoggerActor : ReceiveActor
            .Select(p => p.Key)
            .ToArray();
 
-        foreach (DateTime key in toDelete)
+        foreach (var key in toDelete)
             _batches.Remove(key);
 
         _handler.Publish(new NewBatchesArrived(obj.DeviceName, newKey));

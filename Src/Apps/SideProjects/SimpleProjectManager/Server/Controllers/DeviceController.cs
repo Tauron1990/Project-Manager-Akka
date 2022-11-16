@@ -17,7 +17,7 @@ public class DeviceController : Controller, IDeviceService
 
     [HttpGet]
     [Publish]
-    public Task<Devices> GetAllDevices(CancellationToken token)
+    public Task<DeviceList> GetAllDevices(CancellationToken token)
         => _deviceService.GetAllDevices(token);
 
     [HttpGet]

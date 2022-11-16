@@ -12,6 +12,7 @@ public sealed class ContextMetadata
     private readonly ConcurrentDictionary<CacheKey, object?> _meta = new();
 
     public TData Get<TData>(string name = DefaultKey)
+        where TData : notnull
     {
         if(_meta.TryGetValue(new CacheKey(name, typeof(TData)), out object? dat) && dat is TData data)
             return data;

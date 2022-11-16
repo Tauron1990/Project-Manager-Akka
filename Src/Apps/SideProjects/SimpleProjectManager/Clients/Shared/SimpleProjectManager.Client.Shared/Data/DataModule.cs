@@ -6,6 +6,8 @@ using Tauron.Applicarion.Redux;
 
 namespace SimpleProjectManager.Client.Shared.Data;
 
+#pragma warning disable GU0011
+
 public class DataModule : IModule
 {
     public void Load(IServiceCollection collection)

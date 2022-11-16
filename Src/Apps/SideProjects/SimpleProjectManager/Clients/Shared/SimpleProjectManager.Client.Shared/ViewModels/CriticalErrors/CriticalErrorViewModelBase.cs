@@ -14,33 +14,39 @@ namespace SimpleProjectManager.Client.Shared.ViewModels.CriticalErrors;
 
 public abstract class CriticalErrorViewModelBase : ViewModelBase
 {
+    private readonly GlobalState _globalState;
+    private readonly IMessageDispatcher _messageDispatcher;
     private ObservableAsPropertyHelper<CriticalError?>? _item;
 
     protected CriticalErrorViewModelBase(GlobalState globalState, IMessageDispatcher messageDispatcher)
     {
+        _globalState = globalState;
+        _messageDispatcher = messageDispatcher;
         this.WhenActivated(Init);
 
-        IEnumerable<IDisposable> Init()
-        {
-            var currentError = GetErrorState();
 
-            yield return _item = currentError.ToObservable(messageDispatcher.IgnoreErrors())
-               .ObserveOn(RxApp.MainThreadScheduler).ToProperty(this, m => m.Item);
-            yield return Hide = ReactiveCommand.Create(
-                () =>
-                {
-                    CriticalError? err = currentError.ValueOrDefault;
-
-                    if(err is null) return;
-
-                    globalState.Dispatch(new DisableError(err));
-                },
-                currentError.ToObservable(messageDispatcher.IgnoreErrors())
-                   .Select(d => d is not null).StartWith(false)
-                   .AndIsOnline(globalState.OnlineMonitor));
-        }
     }
 
+    private IEnumerable<IDisposable> Init()
+    {
+        var currentError = GetErrorState();
+
+        yield return _item = currentError.ToObservable(_messageDispatcher.IgnoreErrors())
+           .ObserveOn(RxApp.MainThreadScheduler).ToProperty(this, m => m.Item);
+        yield return Hide = ReactiveCommand.Create(
+            () =>
+            {
+                CriticalError? err = currentError.ValueOrDefault;
+
+                if(err is null) return;
+
+                _globalState.Dispatch(new DisableError(err));
+            },
+            currentError.ToObservable(_messageDispatcher.IgnoreErrors())
+               .Select(d => d is not null).StartWith(false)
+               .AndIsOnline(_globalState.OnlineMonitor));
+    }
+    
     public CriticalError Item => _item?.Value ?? CriticalError.Empty;
 
     public ReactiveCommand<Unit, Unit>? Hide { get; private set; }

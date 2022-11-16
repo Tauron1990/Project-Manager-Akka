@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Reactive.Linq;
 using SimpleProjectManager.Client.Shared.Data;
-using SimpleProjectManager.Shared.Services;
 
 namespace SimpleProjectManager.Client.Shared.ViewModels.CriticalErrors;
-
-public record struct ErrorData(bool IsOnline, CriticalError[] Errors);
 
 public sealed class CriticalErrorsViewModel : ViewModelBase
 {

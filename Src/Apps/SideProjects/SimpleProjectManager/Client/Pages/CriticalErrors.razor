@@ -8,7 +8,7 @@
     <ValueRenderer>
         @if(context.IsOnline)
         {
-            <ObservableCollectionView SourceParameter="context.Errors">
+            <ObservableCollectionView SourceParameter="context.Errors.Errors">
                 <EmptyRender>
                     <MudText Align="Align.Center" Typo="Typo.h4">Keine Aktuellen Fehler</MudText>
                 </EmptyRender>

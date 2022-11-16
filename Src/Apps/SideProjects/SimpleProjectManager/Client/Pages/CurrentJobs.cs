@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using ReactiveUI;
 using SimpleProjectManager.Client.Shared.Data.States.Actions;
+using Tauron;
 using Tauron.Application.Blazor;
 using Tauron.Application.Blazor.Commands;
 
@@ -23,7 +24,7 @@ public partial class CurrentJobs
     }
 
     [Parameter]
-    public string? PreSelected { get; set; }
+    public PairSelection PreSelected { get; set; }
 
     protected override IEnumerable<IDisposable> InitializeModel()
     {
@@ -39,14 +40,13 @@ public partial class CurrentJobs
         Task.Run(
             async () =>
             {
-                if(string.IsNullOrWhiteSpace(PreSelected)) return Task.CompletedTask;
+                if(PreSelected == PairSelection.Nothing) return;
 
                 await GlobalState.Jobs.IsLoaded.Where(l => l).Take(1).FirstOrDefaultAsync();
 
                 GlobalState.Dispatch(new SelectNewPairAction(PreSelected));
-
-                return Task.CompletedTask;
-            });
+            })
+           .Ignore();
     }
 
     protected override void OnAfterRender(bool firstRender)

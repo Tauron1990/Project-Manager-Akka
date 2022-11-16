@@ -132,11 +132,12 @@ public sealed class Project : InternalAggregateRoot<Project, ProjectId, ProjectS
             });
     }
 
-    protected override string GetErrorMessage(string errorCode)
-        => errorCode switch
-        {
-            Errors.NoNewError => "Der Job ist nicht neu",
-            Errors.NewError => "Der Job wurde nicht gefunden",
-            _ => errorCode
-        };
+    protected override string GetErrorMessage(AggregateError errorCode)
+    {
+        if(errorCode == AggregateError.NoNewError)
+            return "Der Job ist nicht neu";
+
+        return errorCode == AggregateError.NewError ? "Der Job wurde nicht gefunden" : errorCode.Value;
+
+    }
 }

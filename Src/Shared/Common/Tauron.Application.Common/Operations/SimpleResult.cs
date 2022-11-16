@@ -10,7 +10,7 @@ public readonly record struct SimpleResult<TOutCome>(TOutCome? OutCome, Error? E
 [PublicAPI]
 public readonly record struct SimpleResult(Error? Error)
 {
-    public static SimpleResult Success() => new(null);
+    public static SimpleResult Success() => new(Error: null);
 
     public static SimpleResult<TResult> Success<TResult>(TResult result) => new(result, Error: null);
 

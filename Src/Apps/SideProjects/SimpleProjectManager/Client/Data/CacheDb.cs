@@ -23,7 +23,7 @@ public sealed class CacheDb : ICacheDb
         try
         {
             DatabaseConnection db = GetDatabseConnection();
-            (bool sucess, string? message) = await db.DeleteTimeoutElement(key);
+            (bool sucess, string? message) = await db.DeleteTimeoutElement(key).ConfigureAwait(false);
 
             if(sucess) return;
 
@@ -38,7 +38,7 @@ public sealed class CacheDb : ICacheDb
     public async ValueTask DeleteElement(CacheDataId key)
     {
         DatabaseConnection db = GetDatabseConnection();
-        await db.DeleteElement(key);
+        await db.DeleteElement(key).ConfigureAwait(false);
     }
 
     public async ValueTask<(CacheTimeoutId? id, CacheDataId? Key, DateTime Time)> GetNextTimeout()
@@ -46,7 +46,7 @@ public sealed class CacheDb : ICacheDb
         try
         {
             DatabaseConnection db = GetDatabseConnection();
-            var all = await db.GetTimeoutElements();
+            var all = await db.GetTimeoutElements().ConfigureAwait(false);
 
             CacheTimeout? entry = (from cacheTimeout in all
                                    orderby cacheTimeout.Timeout
@@ -71,9 +71,9 @@ public sealed class CacheDb : ICacheDb
 
             var cacheData = new CacheData(key, data);
 
-            await UpdateTimeout(key);
+            await UpdateTimeout(key).ConfigureAwait(false);
 
-            await db.UpdateData(cacheData);
+            await db.UpdateData(cacheData).ConfigureAwait(false);
         }
         catch (Exception e)
         {
@@ -84,12 +84,12 @@ public sealed class CacheDb : ICacheDb
     public async ValueTask<string?> ReNewAndGet(CacheDataId key)
     {
         DatabaseConnection db = GetDatabseConnection();
-        CacheData? result = await db.GetCacheEntry(key);
+        CacheData? result = await db.GetCacheEntry(key).ConfigureAwait(false);
 
         // ReSharper disable once ConditionIsAlwaysTrueOrFalse
         if(result is null) return null;
 
-        await UpdateTimeout(key);
+        await UpdateTimeout(key).ConfigureAwait(false);
 
         return result.Data;
     }
@@ -105,11 +105,12 @@ public sealed class CacheDb : ICacheDb
         DatabaseConnection db = GetDatabseConnection();
 
         CacheTimeoutId id = CacheTimeoutId.FromCacheId(key);
-        CacheTimeout? timeout = await db.GetTimeout(id);
+        CacheTimeout? timeout = await db.GetTimeout(id).ConfigureAwait(false);
         await db.UpdateTimeout(
             timeout is null
                 ? new CacheTimeout(id, key, GetTimeout())
-                : timeout with { Timeout = GetTimeout() });
+                : timeout with { Timeout = GetTimeout() })
+           .ConfigureAwait(false);
     }
 
     private sealed record InternalResult(bool Sucess, string? Message);
@@ -118,41 +119,39 @@ public sealed class CacheDb : ICacheDb
     {
         private readonly IJSRuntime _reference;
 
-        public DatabaseConnection(IJSRuntime reference)
+        internal DatabaseConnection(IJSRuntime reference)
             => _reference = reference;
 
-        public async Task UpdateData(CacheData data)
+        internal async Task UpdateData(CacheData data)
+            => await _reference.InvokeVoidAsync("window.Database.saveData", data.Id.ToString(), data).ConfigureAwait(false);
+
+        internal async Task DeleteElement(CacheDataId key)
+            => await _reference.InvokeVoidAsync("window.Database.deleteElement", key.ToString(), CacheTimeoutId.FromCacheId(key).ToString()).ConfigureAwait(false);
+
+        internal async Task<CacheTimeout[]> GetTimeoutElements()
+            => await _reference.InvokeAsync<CacheTimeout[]>("window.Database.getAllTimeoutElements").ConfigureAwait(false);
+
+        internal async Task<InternalResult> DeleteTimeoutElement(CacheTimeoutId id)
+            => await _reference.InvokeAsync<InternalResult>("window.Database.deleteTimeoutElement", id.ToString()).ConfigureAwait(false);
+
+        internal async Task<CacheTimeout?> GetTimeout(CacheTimeoutId id)
         {
-            await _reference.InvokeVoidAsync("window.Database.saveData", data.Id.ToString(), data);
-        }
-
-        public async Task DeleteElement(CacheDataId key)
-            => await _reference.InvokeVoidAsync("window.Database.deleteElement", key.ToString(), CacheTimeoutId.FromCacheId(key).ToString());
-
-        public async Task<CacheTimeout[]> GetTimeoutElements()
-            => await _reference.InvokeAsync<CacheTimeout[]>("window.Database.getAllTimeoutElements");
-
-        public async Task<InternalResult> DeleteTimeoutElement(CacheTimeoutId id)
-            => await _reference.InvokeAsync<InternalResult>("window.Database.deleteTimeoutElement", id.ToString());
-
-        public async Task<CacheTimeout?> GetTimeout(CacheTimeoutId id)
-        {
-            var result = await _reference.InvokeAsync<string>("window.Database.getTimeout", id.ToString());
+            var result = await _reference.InvokeAsync<string>("window.Database.getTimeout", id.ToString()).ConfigureAwait(false);
 
             return string.IsNullOrWhiteSpace(result) ? null : JsonSerializer.Deserialize<CacheTimeout>(result);
         }
 
-        public async Task UpdateTimeout(CacheTimeout timeout)
-            => await _reference.InvokeVoidAsync("window.Database.updateTimeout", timeout.Id.ToString(), timeout);
+        internal async Task UpdateTimeout(CacheTimeout timeout)
+            => await _reference.InvokeVoidAsync("window.Database.updateTimeout", timeout.Id.ToString(), timeout).ConfigureAwait(false);
 
-        public async Task<CacheData?> GetCacheEntry(CacheDataId id)
+        internal async Task<CacheData?> GetCacheEntry(CacheDataId id)
         {
             #if DEBUG
-            await Task.CompletedTask;
+            await Task.CompletedTask.ConfigureAwait(false);
 
             return null;
             #else
-            var result = await _reference.InvokeAsync<string>("window.Database.getCacheEntry", id.ToString());
+            var result = await _reference.InvokeAsync<string>("window.Database.getCacheEntry", id.ToString()).ConfigureAwait(false);
 
             return string.IsNullOrWhiteSpace(result) ? null : JsonSerializer.Deserialize<CacheData>(result);
             #endif

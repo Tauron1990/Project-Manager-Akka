@@ -8,6 +8,7 @@ using ReactiveUI;
 using SimpleProjectManager.Client.Shared.Data.Files;
 using SimpleProjectManager.Client.Shared.ViewModels.EditJob;
 using SimpleProjectManager.Client.ViewModels;
+using SimpleProjectManager.Shared;
 using Tauron.Application.Blazor.Commands;
 
 namespace SimpleProjectManager.Client.Shared.EditJob;
@@ -69,14 +70,19 @@ public partial class FileUploader
     {
         private readonly IBrowserFile _file;
 
-        public FileMap(IBrowserFile file)
-            => _file = file;
+        internal FileMap(IBrowserFile file)
+        {
+            _file = file;
+            Size = new FileSize(file.Size);
+            Name = new FileName(file.Name);
+            ContentType = new FileMime(file.ContentType);
+        }
 
-        public string Name => _file.Name;
-        public string ContentType => _file.ContentType;
-        public long Size => _file.Size;
+        public FileName Name { get; }
+        public FileMime ContentType { get; }
+        public FileSize Size { get; }
 
-        public Stream OpenReadStream(long maxSize, CancellationToken token)
-            => _file.OpenReadStream(maxSize, token);
+        public Stream OpenReadStream(in MaxSize maxSize, CancellationToken token)
+            => _file.OpenReadStream(maxSize.Value, token);
     }
 }

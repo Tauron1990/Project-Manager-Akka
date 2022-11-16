@@ -7,6 +7,8 @@ using Tauron.Applicarion.Redux.Extensions.Cache;
 
 namespace SimpleProjectManager.Client.Data;
 
+#pragma warning disable GU0011
+
 public class InternalDataModule : IModule
 {
     public void Load(IServiceCollection collection)

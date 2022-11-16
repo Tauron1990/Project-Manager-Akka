@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading;
@@ -53,8 +54,8 @@ public sealed partial class JobsState : StateBase<InternalJobData>
                 configuration.FromCacheAndServer<(Jobs, SortOrders)>(
                     async token =>
                     {
-                        Jobs jobs = await _service.GetActiveJobs(token);
-                        SortOrders order = await _service.GetSortOrders(token);
+                        Jobs jobs = await _service.GetActiveJobs(token).ConfigureAwait(false);
+                        SortOrders order = await _service.GetSortOrders(token).ConfigureAwait(false);
 
                         return (jobs, order);
                     },
@@ -68,7 +69,7 @@ public sealed partial class JobsState : StateBase<InternalJobData>
                             CurrentSelected? selection = originalData.CurrentSelected;
                             // ReSharper disable once AccessToModifiedClosure
                             if(selection?.Pair is not null && pairs.All(s => s.Info.Project != selection.Pair?.Info.Project))
-                                selection = new CurrentSelected(null, null);
+                                selection = new CurrentSelected(Pair: null, JobData: null);
 
                             return originalData with { IsLoaded = true, CurrentJobs = pairs, CurrentSelected = selection };
                         }
@@ -122,12 +123,15 @@ public partial class JobsState
         (
             id => TimeoutToken.WithDefault(
                 CancellationToken.None,
-                async token => string.IsNullOrWhiteSpace(id) ? null : new JobEditorData(await _service.GetJobData(new ProjectId(id), token))).AsTask()
+                async token => 
+                    string.IsNullOrWhiteSpace(id) 
+                    ? null 
+                    : new JobEditorData(await _service.GetJobData(new ProjectId(id), token).ConfigureAwait(false))).AsTask()
         );
 
     public async Task CommitJobData(JobEditorCommit newData, Action onCompled)
     {
-        if(newData.JobData.OldData == null)
+        if(newData.JobData.OldData is null)
         {
             _messageDispatcher.PublishError("Keine Original Daten zur verfügung gestellt");
 
@@ -135,12 +139,12 @@ public partial class JobsState
         }
 
         var command = UpdateProjectCommand.Create(newData.JobData.NewData, newData.JobData.OldData);
-        ValidationResult? validationResult = await _upodateProjectValidator.ValidateAsync(command);
+        ValidationResult? validationResult = await _upodateProjectValidator.ValidateAsync(command).ConfigureAwait(false);
 
         if(validationResult.IsValid)
         {
-            if(await _messageDispatcher.IsSuccess(() => TimeoutToken.WithDefault(default, t => _service.UpdateJobData(command, t)))
-            && await _messageDispatcher.IsSuccess(async () => await newData.Upload()))
+            if(await _messageDispatcher.IsSuccess(() => TimeoutToken.WithDefault(default, t => _service.UpdateJobData(command, t))).ConfigureAwait(false) 
+            && await _messageDispatcher.IsSuccess(async () => await newData.Upload().ConfigureAwait(false)).ConfigureAwait(false))
                 onCompled();
         }
         else
@@ -150,11 +154,13 @@ public partial class JobsState
         }
     }
 
-    public string? TryExtrectName(string name)
+    public static string? TryExtrectName(FileName name)
     {
-        var upperName = name.ToUpper().AsSpan();
+        var upperName = name.Value.ToUpper(CultureInfo.CurrentCulture).AsSpan();
 
-        int index = upperName.IndexOf("BM");
+        #pragma warning disable EPS06
+        int index = upperName.IndexOf("BM", StringComparison.CurrentCulture);
+        #pragma warning restore EPS06
 
         if(index == -1) return null;
 
@@ -173,6 +179,7 @@ public partial class JobsState
         return null;
     }
 
+    #pragma warning disable EPS02
     private static bool AllDigit(in ReadOnlySpan<char> input)
     {
         foreach (char t in input)
@@ -214,7 +221,7 @@ public partial class JobsState
         SortOrder? GetOrdering(ProjectId id)
         {
             if(editorData.Ordering != null)
-                return data?.Ordering == null
+                return data?.Ordering is null
                     ? new SortOrder
                       {
                           Id = id,

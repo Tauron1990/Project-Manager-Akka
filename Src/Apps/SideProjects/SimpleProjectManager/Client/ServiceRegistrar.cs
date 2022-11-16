@@ -10,6 +10,8 @@ using Tauron;
 
 namespace SimpleProjectManager.Client;
 
+#pragma warning disable GU0011
+
 public static class ServiceRegistrar
 {
     public static void RegisterServices(IServiceCollection services)

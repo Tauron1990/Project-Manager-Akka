@@ -31,7 +31,7 @@ public sealed class FilesState : StateBase
     {
         _service = jobFileService;
 
-        AllFiles = FromServer(_service.GetAllFiles);
+        AllFiles = FromServer(jobFileService.GetAllFiles);
         _transactionFactory = uploadTransaction;
         _aggregator = aggregator;
     }
@@ -48,7 +48,7 @@ public sealed class FilesState : StateBase
     }
 
     public async Task DeleteFile(DatabaseFile file, CancellationToken token)
-        => await _service.DeleteFiles(new FileList(ImmutableList<ProjectFileId>.Empty.Add(file.Id)), token);
+        => await _service.DeleteFiles(new FileList(ImmutableList<ProjectFileId>.Empty.Add(file.Id)), token).ConfigureAwait(false);
 
     public UploadTransaction CreateUpload()
         => _transactionFactory();
@@ -57,11 +57,11 @@ public sealed class FilesState : StateBase
     {
         async Task<ProjectFileInfo?> ComputeState(IComputedState<ProjectFileInfo?> unused, CancellationToken cancellationToken)
         {
-            ProjectFileId? actualId = await id.Use(cancellationToken);
+            ProjectFileId? actualId = await id.Use(cancellationToken).ConfigureAwait(false);
 
             if(actualId is null) return null;
 
-            return await _service.GetJobFileInfo(actualId, cancellationToken);
+            return await _service.GetJobFileInfo(actualId, cancellationToken).ConfigureAwait(false);
         }
 
         return Observable.Defer(

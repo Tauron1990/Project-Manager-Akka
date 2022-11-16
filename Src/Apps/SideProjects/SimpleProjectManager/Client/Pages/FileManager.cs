@@ -10,14 +10,14 @@ public partial class FileManager
                                                                            {
                                                                                GroupName = "Job",
                                                                                Expandable = true,
-                                                                               IsInitiallyExpanded = false
+                                                                               IsInitiallyExpanded = false,
                                                                            };
 
     private Action<DatabaseFile>? _deleteFile;
 
     protected override IEnumerable<IDisposable> InitializeModel()
     {
-        if(ViewModel == null) yield break;
+        if(ViewModel is null) yield break;
 
         _deleteFile = ViewModel.DeleteFile?.ToAction();
 
@@ -35,7 +35,7 @@ public partial class FileManager
                     new DialogOptions
                     {
                         DisableBackdropClick = true,
-                        Position = DialogPosition.Center
+                        Position = DialogPosition.Center,
                     }
                 );
 

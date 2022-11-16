@@ -3,6 +3,9 @@ using Vogen;
 
 namespace SimpleProjectManager.Shared;
 
+#pragma warning disable EPS02
+#pragma warning disable EPS06
+
 public static class Extensions
 {
     public static TResult ThrowIfFail<TResult>(this string? error, Func<TResult> resultFactory)

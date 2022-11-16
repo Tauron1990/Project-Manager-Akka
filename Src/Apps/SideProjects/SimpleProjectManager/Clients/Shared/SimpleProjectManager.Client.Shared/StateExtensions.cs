@@ -13,12 +13,12 @@ public static class StateExtensions
         private readonly Action<TValue> _action;
         private readonly IState<TValue> _state;
 
-        public Subscriber(IState<TValue> state, Action<TValue> action)
+        internal Subscriber(IState<TValue> state, Action<TValue> action)
         {
             _state = state;
             _action = action;
 
-            _state.AddEventHandler(StateEventKind.All, RunHandler);
+            state.AddEventHandler(StateEventKind.All, RunHandler);
         }
 
         public void Dispose() => _state.RemoveEventHandler(StateEventKind.All, RunHandler);

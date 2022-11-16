@@ -19,12 +19,14 @@ namespace SimpleProjectManager.Client.Shared.ViewModels.EditJob;
 
 public abstract class JobEditorViewModelBase : ViewModelBase
 {
+    private readonly GlobalState _globalState;
     private ObservableAsPropertyHelper<JobEditorData?>? _data;
 
     private BehaviorSubject<bool>? _isValid;
 
     protected JobEditorViewModelBase(IMessageDispatcher dispatcher, FileUploaderViewModelBase uploaderViewModel, GlobalState globalState)
     {
+        _globalState = globalState;
         var deadlineValidator = new ProjectDeadlineValidator();
 
         ProjectNameValidator = globalState.Jobs.ValidateProjectName;
@@ -41,52 +43,52 @@ public abstract class JobEditorViewModelBase : ViewModelBase
         UploaderViewModel = uploaderViewModel;
 
         this.WhenActivated(Init);
-
-        IEnumerable<IDisposable> Init()
-        {
-            ModelConfig modelConfig = GetModelConfiguration();
-
-            yield return _isValid = new BehaviorSubject<bool>(false);
-
-            var commitEvent = modelConfig.CommitEvent;
-            var cancelEvent = modelConfig.CancelEvent;
-            var canCancel = modelConfig.CanCancel;
-
-            yield return commitEvent;
-            yield return cancelEvent;
-
-            yield return _data = modelConfig.JobData
-               .Select(i => i ?? new JobEditorData(null))
-               .ObserveOn(RxApp.MainThreadScheduler)
-               .ToProperty(this, m => m.Data);
-
-            yield return Cancel = ReactiveCommand.CreateFromTask(
-                async () =>
-                {
-                    if(!cancelEvent.HasValue) return;
-
-                    await cancelEvent.Value.InvokeAsync();
-                },
-                canCancel.ToObservable(dispatcher.IgnoreErrors()).StartWith(false));
-
-            yield return Commit = ReactiveCommand.CreateFromTask(CreateCommit, _isValid.AndIsOnline(globalState.OnlineMonitor));
-
-            async Task CreateCommit()
-            {
-                if(!commitEvent.HasValue) return;
-
-                if(Data == null)
-                {
-                    dispatcher.PublishError("Keine Daten Verfügbar");
-
-                    return;
-                }
-
-                await commitEvent.Value.InvokeAsync(globalState.Jobs.CreateNewJobData(Data, FileUploadTrigger.Upload));
-            }
-        }
     }
 
+    private IEnumerable<IDisposable> Init()
+    {
+        ModelConfig modelConfig = GetModelConfiguration();
+
+        yield return _isValid = new BehaviorSubject<bool>(value: false);
+
+        var commitEvent = modelConfig.CommitEvent;
+        var cancelEvent = modelConfig.CancelEvent;
+        var canCancel = modelConfig.CanCancel;
+
+        yield return commitEvent;
+        yield return cancelEvent;
+
+        yield return _data = modelConfig.JobData
+           .Select(i => i ?? new JobEditorData(originalData: null))
+           .ObserveOn(RxApp.MainThreadScheduler)
+           .ToProperty(this, m => m.Data);
+
+        yield return Cancel = ReactiveCommand.CreateFromTask(
+            async () =>
+            {
+                if(!cancelEvent.HasValue) return;
+
+                await cancelEvent.Value.InvokeAsync().ConfigureAwait(false);
+            },
+            canCancel.ToObservable(MessageDispatcher.IgnoreErrors()).StartWith(false));
+
+        yield return Commit = ReactiveCommand.CreateFromTask(CreateCommit, _isValid.AndIsOnline(_globalState.OnlineMonitor));
+
+        async Task CreateCommit()
+        {
+            if(!commitEvent.HasValue) return;
+
+            if(Data is null)
+            {
+                MessageDispatcher.PublishError("Keine Daten Verfügbar");
+
+                return;
+            }
+
+            await commitEvent.Value.InvokeAsync(_globalState.Jobs.CreateNewJobData(Data, FileUploadTrigger.Upload)).ConfigureAwait(false);
+        }
+    }
+    
     public bool IsValid => _isValid?.Value ?? false;
     public Action<bool> IsValidChanged => NotNull(_isValid, nameof(_isValid)).OnNext;
 

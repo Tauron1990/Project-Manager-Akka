@@ -17,7 +17,7 @@ public sealed class TaskManagerController : Controller, ITaskManager
 
     [HttpGet]
     [Publish]
-    public Task<Tasks> GetTasks(CancellationToken token)
+    public Task<TaskList> GetTasks(CancellationToken token)
         => _taskManager.GetTasks(token);
 
     [HttpPost]

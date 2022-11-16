@@ -14,41 +14,45 @@ namespace SimpleProjectManager.Client.Shared.ViewModels.CurrentJobs;
 
 public sealed class JobSidebarViewModel : ViewModelBase
 {
+    private readonly PageNavigation _navigationManager;
+    private readonly GlobalState _globalState;
     private ObservableAsPropertyHelper<ImmutableList<JobSortOrderPair>>? _currentJobs;
 
     private ObservableAsPropertyHelper<JobSortOrderPair?>? _selectedValue;
 
     public JobSidebarViewModel(PageNavigation navigationManager, GlobalState globalState)
     {
+        _navigationManager = navigationManager;
+        _globalState = globalState;
         this.WhenActivated(Init);
-
-        IEnumerable<IDisposable> Init()
-        {
-            yield return _currentJobs = globalState.Jobs.CurrentJobs
-               .Select(Sort)
-               .ObserveOn(RxApp.MainThreadScheduler).ToProperty(this, model => model.CurrentJobs);
-
-            yield return _selectedValue = globalState.Jobs.CurrentlySelectedPair
-               .ObserveOn(RxApp.MainThreadScheduler)
-               .ToProperty(this, p => p.SelectedValue);
-
-            yield return NewJob = ReactiveCommand.Create(navigationManager.NewJob, globalState.IsOnline);
-
-            yield return NewItemSelected = ReactiveCommand.Create<object, Unit>(
-                o =>
-                {
-                    if(o is not JobSortOrderPair pair)
-                        return Unit.Default;
-
-                    //Console.WriteLine($"Job Selected {o}");
-                    globalState.Dispatch(new SelectNewPairAction(pair.Order.Id.Value));
-
-                    return Unit.Default;
-                },
-                globalState.IsOnline);
-        }
     }
 
+    private IEnumerable<IDisposable> Init()
+    {
+        yield return _currentJobs = _globalState.Jobs.CurrentJobs
+           .Select(Sort)
+           .ObserveOn(RxApp.MainThreadScheduler).ToProperty(this, model => model.CurrentJobs);
+
+        yield return _selectedValue = _globalState.Jobs.CurrentlySelectedPair
+           .ObserveOn(RxApp.MainThreadScheduler)
+           .ToProperty(this, p => p.SelectedValue);
+
+        yield return NewJob = ReactiveCommand.Create(_navigationManager.NewJob, _globalState.IsOnline);
+
+        yield return NewItemSelected = ReactiveCommand.Create<object, Unit>(
+            o =>
+            {
+                if(o is not JobSortOrderPair pair)
+                    return Unit.Default;
+
+                //Console.WriteLine($"Job Selected {o}");
+                _globalState.Dispatch(new SelectNewPairAction(PairSelection.From(pair.Order.Id.Value)));
+
+                return Unit.Default;
+            },
+            _globalState.IsOnline);
+    }
+    
     public ReactiveCommand<Unit, Unit> NewJob { get; private set; } = null!;
 
     public ReactiveCommand<object, Unit> NewItemSelected { get; private set; } = null!;

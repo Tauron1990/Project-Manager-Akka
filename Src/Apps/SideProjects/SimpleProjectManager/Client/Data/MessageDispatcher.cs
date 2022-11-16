@@ -2,6 +2,7 @@ using System.Reactive;
 using SimpleProjectManager.Client.Shared.Services;
 using Tauron.Application;
 using Tauron.Application.Blazor;
+using Tauron.Operations;
 
 namespace SimpleProjectManager.Client.Data;
 
@@ -12,10 +13,10 @@ public sealed class MessageDispatcher : IMessageDispatcher
     public MessageDispatcher(IEventAggregator eventAggregator)
         => _eventAggregator = eventAggregator;
 
-    public Func<TInput, bool> IsSuccess<TInput>(Func<TInput, string> runner)
+    public Func<TInput, bool> IsSuccess<TInput>(Func<TInput, SimpleResult> runner)
         => _eventAggregator.IsSuccess(runner);
 
-    public ValueTask<bool> IsSuccess(Func<ValueTask<string>> runner)
+    public ValueTask<bool> IsSuccess(Func<ValueTask<SimpleResult>> runner)
         => _eventAggregator.IsSuccess(runner);
 
     public ValueTask<bool> IsSuccess(Func<ValueTask<Unit>> runner)

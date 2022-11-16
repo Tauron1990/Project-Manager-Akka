@@ -23,7 +23,7 @@ public class JobDatabaseController : Controller, IJobDatabaseService
 
     [HttpGet]
     [Publish]
-    public Task<SordOrders> GetSortOrders(CancellationToken token)
+    public Task<SortOrders> GetSortOrders(CancellationToken token)
         => _service.GetSortOrders(token);
 
     [HttpGet]

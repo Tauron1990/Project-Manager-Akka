@@ -23,10 +23,10 @@ public sealed class TaskState : StateBase, IProvideRootStore, IStoreInitializer
         _taskManager = taskManager;
         _aggregator = aggregator;
 
-        ProviderFactory = () => stateFactory.NewComputed<Tasks>(ComputeState);
+        ProviderFactory = () => stateFactory.NewComputed<TaskList>(ComputeState);
     }
 
-    public Func<IState<Tasks>> ProviderFactory { get; }
+    public Func<IState<TaskList>> ProviderFactory { get; }
 
 
     public void StoreCreated(IRootStore dispatcher)
@@ -34,13 +34,16 @@ public sealed class TaskState : StateBase, IProvideRootStore, IStoreInitializer
         dispatcher.ObservAction<DeleteTask>()
            .SelectMany(
                 async dt => await _aggregator.IsSuccess(
-                    () => TimeoutToken.WithDefault(CancellationToken.None, async t => await _taskManager.DeleteTask(dt.Task.Id, t))))
+                    () => TimeoutToken.WithDefault(
+                        CancellationToken.None, 
+                        async t => await _taskManager.DeleteTask(dt.Task.Id, t).ConfigureAwait(false)))
+                   .ConfigureAwait(false))
            .Subscribe();
     }
 
     public void RunConfig(IStoreConfiguration configuration)
         => configuration.RegisterForFhinising(this);
 
-    private async Task<Tasks> ComputeState(IComputedState<Tasks> unUsed, CancellationToken cancellationToken)
-        => await _taskManager.GetTasks(cancellationToken);
+    private async Task<TaskList> ComputeState(IComputedState<TaskList> unUsed, CancellationToken cancellationToken)
+        => await _taskManager.GetTasks(cancellationToken).ConfigureAwait(false);
 }

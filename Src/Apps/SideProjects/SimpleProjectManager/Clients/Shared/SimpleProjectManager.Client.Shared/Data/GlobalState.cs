@@ -24,8 +24,6 @@ public sealed class GlobalState : IDisposable
         var configuration = serviceProvider.GetRequiredService<IStoreConfiguration>();
         OnlineMonitor = serviceProvider.GetRequiredService<IOnlineMonitor>();
 
-        var errorHandler = serviceProvider.GetRequiredService<IErrorHandler>();
-
         Jobs = CreateState<JobsState>();
         Errors = CreateState<ErrorState>();
         Files = CreateState<FilesState>();

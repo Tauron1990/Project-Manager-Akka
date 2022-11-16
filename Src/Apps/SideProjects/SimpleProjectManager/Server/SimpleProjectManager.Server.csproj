@@ -16,13 +16,28 @@
 
     <ItemGroup>
         <PackageReference Include="Akka.Persistence.MongoDb" Version="1.4.40" />
-        <PackageReference Include="Akka.Persistence.Query" Version="1.4.45" />
+        <PackageReference Include="Akka.Persistence.Query" Version="1.4.46" />
         <PackageReference Include="Ben.Demystifier" Version="0.4.1" />
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="6.0.10" />
-        <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="4.8.4">
+        <PackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.1.2">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Gu.Analyzers" Version="2.0.2">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Meziantou.Analyzer" Version="1.0.748">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="7.0.0" />
+        <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="4.9.3">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
+        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
+        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
+        <PackageReference Include="Stl.Fusion.Server" Version="4.1.13" />
     </ItemGroup>
 
     <ItemGroup>

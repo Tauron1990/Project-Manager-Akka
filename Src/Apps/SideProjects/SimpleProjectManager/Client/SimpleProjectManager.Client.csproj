@@ -135,15 +135,28 @@
 
     <ItemGroup>
         <PackageReference Include="Blazor.Extensions.Logging" Version="2.0.4" />
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="6.0.10" PrivateAssets="all" />
+        <PackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.1.2">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Gu.Analyzers" Version="2.0.2">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Meziantou.Analyzer" Version="1.0.748">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="7.0.0" PrivateAssets="all" />
         <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
-        <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="4.8.4">
+        <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="4.9.3">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="MudBlazor" Version="6.0.17" />
+        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
+        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
         <PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" Version="14.4.1" />
-        <PackageReference Include="Stl.Fusion.Blazor" Version="4.0.19" />
+        <PackageReference Include="Stl.Fusion.Blazor" Version="4.1.13" />
     </ItemGroup>
 
     <ItemGroup>

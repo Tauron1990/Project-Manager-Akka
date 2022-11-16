@@ -1,6 +1,6 @@
 ﻿namespace SimpleProjectManager.Client.Shared.Services;
 
-public struct NavigationPath
+public readonly struct NavigationPath
 {
     
 }

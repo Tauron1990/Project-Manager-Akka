@@ -6,6 +6,7 @@ using System.Windows.Input;
 using JetBrains.Annotations;
 using ReactiveUI;
 using Stl.Fusion;
+using Tauron.Operations;
 
 namespace Tauron.Application.Blazor;
 
@@ -15,18 +16,18 @@ public static class Extensions
     public static bool IsLoading<TData>(this IState<TData> state)
         => state.Computed.ConsistencyState != ConsistencyState.Consistent;
 
-    public static Func<TInput, bool> IsSuccess<TInput>(this IEventAggregator aggregator, Func<TInput, string> runner)
+    public static Func<TInput, bool> IsSuccess<TInput>(this IEventAggregator aggregator, Func<TInput, SimpleResult> runner)
     {
         return input =>
                {
                    try
                    {
-                       string result = runner(input);
+                       SimpleResult result = runner(input);
 
-                       if(string.IsNullOrWhiteSpace(result))
+                       if(result.IsSuccess())
                            return true;
 
-                       aggregator.PublishWarnig(result);
+                       aggregator.PublishWarnig(result.GetErrorString());
 
                        return false;
                    }
@@ -39,16 +40,16 @@ public static class Extensions
                };
     }
 
-    public static async ValueTask<bool> IsSuccess(this IEventAggregator aggregator, Func<ValueTask<string>> runner)
+    public static async ValueTask<bool> IsSuccess(this IEventAggregator aggregator, Func<ValueTask<SimpleResult>> runner)
     {
         try
         {
-            string result = await runner().ConfigureAwait(false);
+            SimpleResult result = await runner().ConfigureAwait(false);
 
-            if(string.IsNullOrWhiteSpace(result))
+            if(result.IsSuccess())
                 return true;
 
-            aggregator.PublishWarnig(result);
+            aggregator.PublishWarnig(result.GetErrorString());
 
             return false;
         }

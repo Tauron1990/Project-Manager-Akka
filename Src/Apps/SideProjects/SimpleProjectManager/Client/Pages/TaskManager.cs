@@ -5,7 +5,7 @@ namespace SimpleProjectManager.Client.Pages;
 
 public partial class TaskManager
 {
-    private IState<PendingTask[]>? _pendingTasks;
+    private IState<TaskList>? _pendingTasks;
 
     protected override void OnInitialized()
     {

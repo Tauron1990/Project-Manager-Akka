@@ -42,7 +42,7 @@ public abstract class OnlineMonitorBase<TThis> : IOnlineMonitor
 
         try
         {
-            return await RunInternal(source.Token) && await _pingService.Ping(source.Token) == "ok";
+            return await RunInternal(source.Token).ConfigureAwait(false) && await _pingService.Ping(source.Token).ConfigureAwait(false) == "ok";
         }
         catch (Exception e)
         {

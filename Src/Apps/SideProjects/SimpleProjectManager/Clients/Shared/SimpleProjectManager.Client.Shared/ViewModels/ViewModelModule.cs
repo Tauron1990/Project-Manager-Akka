@@ -8,6 +8,8 @@ using Tauron;
 
 namespace SimpleProjectManager.Client.Shared.ViewModels;
 
+#pragma warning disable GU0011
+
 public sealed class ViewModelModule : IModule
 {
     public void Load(IServiceCollection services)

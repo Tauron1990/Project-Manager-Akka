@@ -68,6 +68,8 @@ public sealed class UploadTransaction : SimpleTransaction<UploadTransactionConte
                       (ContextMetadata? contextMetadata, CancellationToken cancellationToken) = c;
                       SimpleResult deleteResult;
 
+                      #pragma warning disable CS8602
+                      
                       if(!isNew)
                       {
                           deleteResult = await TimeoutToken.WithDefault(
@@ -87,6 +89,8 @@ public sealed class UploadTransaction : SimpleTransaction<UploadTransactionConte
                              .ConfigureAwait(false);
                       }
 
+                      #pragma warning restore CS8602
+                      
                       deleteResult.ThrowIfFail();
                   });
     }

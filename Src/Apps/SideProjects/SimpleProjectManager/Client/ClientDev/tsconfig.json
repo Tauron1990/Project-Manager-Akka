@@ -1,6 +1,7 @@
 ﻿{
   "compileOnSave": true,
   "compilerOptions": {
+    "skipLibCheck": true,
     "allowJs": true,
     "baseUrl": "./",
     "sourceMap": true,

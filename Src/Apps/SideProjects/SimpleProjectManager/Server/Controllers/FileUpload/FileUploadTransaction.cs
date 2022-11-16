@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using SimpleProjectManager.Client.Shared.Data.Files;
 using SimpleProjectManager.Client.Shared.Data.States;
 using SimpleProjectManager.Server.Core.Services;
 using SimpleProjectManager.Shared;
@@ -22,9 +23,9 @@ public class FileUploadTransaction : SimpleTransaction<FileUploadContext>
 
     private async ValueTask<Rollback<FileUploadContext>> UploadTempFile(Context<FileUploadContext> transactionContext, IFormFile file)
     {
-        if(file.Length > FilesState.MaxSize)
+        if(file.Length > MaxSize.MaxFileSize)
             throw new InvalidOperationException($"Die Datei {file.FileName} ist zu groß");
-        if(FilesState.AllowedContentTypes.All(s => file.ContentType != s))
+        if(FilesState.AllowedContentTypes.All(s => new FileMime(file.ContentType) != s))
             throw new InvalidOperationException($"Die Datei {file.FileName} kann nicht Hochgeladen werden. Nur Tiff, zip und Pdf sinf erlaubt");
 
         ((UploadFiles files, var ids), _, CancellationToken token) = transactionContext;

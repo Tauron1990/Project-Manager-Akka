@@ -21,15 +21,10 @@ public abstract class StateBase
         => Observable.Create<TValue>(
             o =>
             {
-                var state = StateFactory.NewComputed<TValue>(async (_, t) => await fetcher(t));
+                var state = StateFactory.NewComputed<TValue>(async (_, t) => await fetcher(t).ConfigureAwait(false));
 
                 return new CompositeDisposable(state, state.ToObservable(_ => true).Subscribe(o));
             });
-}
-
-public interface IStoreInitializer
-{
-    void RunConfig(IStoreConfiguration configuration);
 }
 
 public abstract class StateBase<TState> : StateBase, IStoreInitializer

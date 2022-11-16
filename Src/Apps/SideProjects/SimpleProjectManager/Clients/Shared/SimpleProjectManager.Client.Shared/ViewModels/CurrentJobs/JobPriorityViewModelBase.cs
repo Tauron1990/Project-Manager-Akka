@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using ReactiveUI;
@@ -20,47 +19,47 @@ public abstract class JobPriorityViewModelBase : ViewModelBase
         _globalState = globalState;
 
         this.WhenActivated(Init);
-
-        IEnumerable<IDisposable> Init()
-        {
-            ActivePairs = GetActivePairs();
-
-            yield return GoUp = ReactiveCommand.Create(
-                CreateExecute(info => new SetSortOrder(false, info.Order.Increment())),
-                CreateCanExecute(globalState, (pairs, pair) => pairs[0] != pair));
-
-            yield return GoDown = ReactiveCommand.Create(
-                CreateExecute(info => new SetSortOrder(false, info.Order.Decrement())),
-                CreateCanExecute(globalState, (pairs, pair) => pairs.Last() != pair));
-
-            yield return Priorize = ReactiveCommand.Create(
-                CreateExecute(info => new SetSortOrder(false, info.Order.Priority())),
-                CreateCanExecute(globalState, (_, pair) => !pair.Order.IsPriority));
-
-            Action<JobSortOrderPair?> CreateExecute(Func<JobSortOrderPair, SetSortOrder> executor)
-                => i =>
-                   {
-                       if(i is null) return;
-
-                       _globalState.Dispatch(executor(i));
-                   };
-
-            IObservable<bool> CreateCanExecute(GlobalState state, Func<ImmutableList<JobSortOrderPair>, JobSortOrderPair, bool> predicate)
-                =>
-                (
-                    from info in ActivePairs.CombineLatest(
-                        _globalState.IsOnline,
-                        _globalState.Jobs.CurrentlySelectedPair,
-                        (pairs, online, selected) => (pairs, online, selected))
-                    select info.online
-                        && info.pairs is not null
-                        && info.selected is not null
-                        && info.pairs.Contains(info.selected)
-                        && predicate(info.pairs, info.selected)
-                ).StartWith(false).AndIsOnline(state.OnlineMonitor);
-        }
     }
 
+    IEnumerable<IDisposable> Init()
+    {
+        ActivePairs = GetActivePairs();
+
+        yield return GoUp = ReactiveCommand.Create(
+            CreateExecute(info => new SetSortOrder(IgnoreIfEmpty: false, info.Order.Increment())),
+            CreateCanExecute(_globalState, (pairs, pair) => pairs[0] != pair));
+
+        yield return GoDown = ReactiveCommand.Create(
+            CreateExecute(info => new SetSortOrder(IgnoreIfEmpty: false, info.Order.Decrement())),
+            CreateCanExecute(_globalState, (pairs, pair) => pairs[^1] != pair));
+
+        yield return Priorize = ReactiveCommand.Create(
+            CreateExecute(info => new SetSortOrder(IgnoreIfEmpty: false, info.Order.Priority())),
+            CreateCanExecute(_globalState, (_, pair) => !pair.Order.IsPriority));
+
+        Action<JobSortOrderPair?> CreateExecute(Func<JobSortOrderPair, SetSortOrder> executor)
+            => i =>
+               {
+                   if(i is null) return;
+
+                   _globalState.Dispatch(executor(i));
+               };
+
+        IObservable<bool> CreateCanExecute(GlobalState state, Func<ImmutableList<JobSortOrderPair>, JobSortOrderPair, bool> predicate)
+            =>
+            (
+                from info in ActivePairs.CombineLatest(
+                    _globalState.IsOnline,
+                    _globalState.Jobs.CurrentlySelectedPair,
+                    (pairs, online, selected) => (pairs, online, selected))
+                select info.online
+                    && info.pairs is not null
+                    && info.selected is not null
+                    && info.pairs.Contains(info.selected)
+                    && predicate(info.pairs, info.selected)
+            ).StartWith(false).AndIsOnline(state.OnlineMonitor);
+    }
+    
     private IObservable<ImmutableList<JobSortOrderPair>>? ActivePairs { get; set; }
 
     public ReactiveCommand<JobSortOrderPair?, Unit>? GoUp { get; private set; }

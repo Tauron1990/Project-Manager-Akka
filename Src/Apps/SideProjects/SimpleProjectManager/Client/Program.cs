@@ -44,6 +44,6 @@ WebAssemblyHost host = builder.Build();
 host.Services.UseMicrosoftDependencyResolver();
 TauronEnviromentSetup.Run(host.Services);
 
-await host.RunAsync();
+await host.RunAsync().ConfigureAwait(false);
 
 Console.WriteLine("Application Closed");
