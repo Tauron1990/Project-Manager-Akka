@@ -28,7 +28,7 @@ public sealed class CommitRegistrationTransaction : SimpleTransaction<ProjectFil
                     FilePurgeId.For(projectFileId),
                     new FilePurgeJob(projectFileId),
                     DateTime.Now + TimeSpan.FromDays(6 * 30))),
-            token);
+            token).ConfigureAwait(false);
 
         if(result.IsSuccess()) return c => throw c.Metadata.GetOptional<Exception>() ?? new InvalidOperationException("Unbekannter Fehler");
 
@@ -41,7 +41,7 @@ public sealed class CommitRegistrationTransaction : SimpleTransaction<ProjectFil
     private async ValueTask<Rollback<ProjectFileId>> CancelOldTask(Context<ProjectFileId> transactionContext)
     {
         (ProjectFileId projectFileId, ContextMetadata meta, CancellationToken cancellationToken) = transactionContext;
-        SimpleResult result = await _taskManagerCore.DeleteTask(FilePurgeId.For(projectFileId).Value, cancellationToken);
+        SimpleResult result = await _taskManagerCore.DeleteTask(FilePurgeId.For(projectFileId).Value, cancellationToken).ConfigureAwait(false);
 
         if(result.IsSuccess()) return c => throw c.Metadata.GetOptional<Exception>() ?? new InvalidOperationException("Unbekannter Fehler");
 

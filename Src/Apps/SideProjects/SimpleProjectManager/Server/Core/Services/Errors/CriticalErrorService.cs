@@ -1,6 +1,4 @@
-﻿using System.Collections.Immutable;
-using MongoDB.Bson;
-using SimpleProjectManager.Server.Data;
+﻿using SimpleProjectManager.Server.Data;
 using SimpleProjectManager.Server.Data.Data;
 using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
@@ -36,7 +34,7 @@ public class CriticalErrorService : ICriticalErrorService
         {
             CriticalErrorEntry entry = new(error.Id, error, IsDisabled: false);
 
-            await _errorEntrys.InsertOneAsync(entry, token);
+            await _errorEntrys.InsertOneAsync(entry, token).ConfigureAwait(false);
             Invalidate();
         }
         catch (Exception e)
@@ -49,9 +47,9 @@ public class CriticalErrorService : ICriticalErrorService
     {
         if(Computed.IsInvalidating()) return ErrorCount.From(0);
 
-        var filter = _errorEntrys.Operations.Eq(m => m.IsDisabled, false);
+        var filter = _errorEntrys.Operations.Eq(m => m.IsDisabled, toEqual: false);
 
-        return ErrorCount.From(await _errorEntrys.CountEntrys(filter, token));
+        return ErrorCount.From(await _errorEntrys.CountEntrys(filter, token).ConfigureAwait(false));
     }
 
     public virtual async Task<CriticalErrorList> GetErrors(CancellationToken token)
@@ -74,7 +72,7 @@ public class CriticalErrorService : ICriticalErrorService
 
         try
         {
-            DbOperationResult result = await _errorEntrys.UpdateOneAsync(filter, updater, token);
+            DbOperationResult result = await _errorEntrys.UpdateOneAsync(filter, updater, token).ConfigureAwait(false);
 
             if(!result.IsAcknowledged || result.ModifiedCount != 1)
                 return SimpleResult.Failure("Unbekannter fehler beim Aktualisieren der Datenbank");

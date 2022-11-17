@@ -30,7 +30,7 @@ public class TaskManager : ITaskManager, IDisposable
     {
         if(Computed.IsInvalidating()) return TaskList.Empty;
 
-        var entrys = await _taskManagerCore.GetCurrentTasks(token);
+        var entrys = await _taskManagerCore.GetCurrentTasks(token).ConfigureAwait(false);
 
         return new TaskList(entrys.Select(e => new PendingTask(e.JobId, e.Name, e.Info)).ToImmutableList());
     }
@@ -39,7 +39,7 @@ public class TaskManager : ITaskManager, IDisposable
     {
         try
         {
-            return await _taskManagerCore.DeleteTask(id, token);
+            return await _taskManagerCore.DeleteTask(id, token).ConfigureAwait(false);
         }
         catch (Exception e)
         {

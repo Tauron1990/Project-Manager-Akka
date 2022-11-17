@@ -1,5 +1,7 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using JetBrains.Annotations;
+using Microsoft.AspNetCore.Http;
 
 namespace SimpleProjectManager.Server.Controllers;
 
@@ -13,10 +15,10 @@ public class UploadFiles
         set;
     } = string.Empty;
 
-    public List<IFormFile> Files
+    public IList<IFormFile> Files
     {
         get;
         [UsedImplicitly]
         set;
-    } = new();
+    } = new List<IFormFile>();
 }

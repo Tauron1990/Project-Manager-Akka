@@ -1,13 +1,10 @@
-﻿using System.Collections.Concurrent;
-using SimpleProjectManager.Client.Shared.Data.Files;
+﻿using SimpleProjectManager.Client.Shared.Data.Files;
 using SimpleProjectManager.Client.Shared.Data.States;
 using SimpleProjectManager.Server.Core.Services;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
 
 namespace SimpleProjectManager.Server.Controllers.FileUpload;
-
-public sealed record FileUploadContext(UploadFiles Files, ConcurrentBag<ProjectFileId> Ids);
 
 public class FileUploadTransaction : SimpleTransaction<FileUploadContext>
 {
@@ -28,14 +25,16 @@ public class FileUploadTransaction : SimpleTransaction<FileUploadContext>
         if(FilesState.AllowedContentTypes.All(s => new FileMime(file.ContentType) != s))
             throw new InvalidOperationException($"Die Datei {file.FileName} kann nicht Hochgeladen werden. Nur Tiff, zip und Pdf sinf erlaubt");
 
+        #pragma warning disable GU0017
         ((UploadFiles files, var ids), _, CancellationToken token) = transactionContext;
+        #pragma warning restore GU0017
 
         string name = file.FileName;
         var projectName = new ProjectName(files.JobName);
 
         ProjectFileId id = ProjectFileId.For(projectName, new FileName(name));
 
-        SimpleResult preRegister = await _contentManager.PreRegisterFile(file.OpenReadStream, id, name, files.JobName, token);
+        SimpleResult preRegister = await _contentManager.PreRegisterFile(file.OpenReadStream, id, name, files.JobName, token).ConfigureAwait(false);
 
         if(preRegister.IsError()) throw new InvalidOperationException(preRegister.GetErrorString());
 
@@ -47,13 +46,13 @@ public class FileUploadTransaction : SimpleTransaction<FileUploadContext>
                 new FileSize(file.Length),
                 FileType.OtherFile,
                 new FileMime(file.ContentType)),
-            token);
+            token).ConfigureAwait(false);
 
         if(result.IsError())
             throw result.GetException();
 
         ids.Add(id);
 
-        return async _ => await _contentManager.DeleteFile(id, default);
+        return async _ => await _contentManager.DeleteFile(id, default).ConfigureAwait(false);
     }
 }

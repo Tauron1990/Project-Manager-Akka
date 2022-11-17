@@ -3,11 +3,8 @@ using MongoDB.Bson;
 using SimpleProjectManager.Server.Core.JobManager;
 using SimpleProjectManager.Server.Core.Tasks;
 using SimpleProjectManager.Server.Data;
-using SimpleProjectManager.Shared;
 
 namespace SimpleProjectManager.Server.Core.Services;
-
-public sealed record PreRegistrationContext(Func<Stream> ToRegister, ProjectFileId FileId, string FileName, string JobName);
 
 public sealed class PreRegisterTransaction : SimpleTransaction<PreRegistrationContext>
 {

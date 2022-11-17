@@ -34,7 +34,7 @@ public sealed class CriticalErrorHelper
                     SimpleMessage.From(exception.Message),
                     StackTraceData.FromException(exception.Demystify()),
                     erros?.Invoke() ?? ImmutableList<ErrorProperty>.Empty),
-                default);
+                default).ConfigureAwait(false);
 
             return SimpleResult.Failure(exception);
         }
@@ -53,14 +53,14 @@ public sealed class CriticalErrorHelper
     {
         try
         {
-            return await runner();
+            return await runner().ConfigureAwait(false);
         }
         catch (Exception e)
         {
             if(e is OperationCanceledException)
                 return SimpleResult.Failure(e);
 
-            return await WriteError(detailPart, e, erros);
+            return await WriteError(detailPart, e, erros).ConfigureAwait(false);
         }
     }
 
@@ -78,7 +78,7 @@ public sealed class CriticalErrorHelper
                 await WriteError(
                     detailePart,
                     exception,
-                    propertys);
+                    propertys).ConfigureAwait(false);
 
                 return SimpleResult.Failure(exception.Message);
             default:

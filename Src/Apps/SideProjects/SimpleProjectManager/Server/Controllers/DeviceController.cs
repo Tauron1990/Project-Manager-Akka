@@ -63,7 +63,7 @@ public class DeviceController : Controller, IDeviceService
         }
         catch (Exception e)
         {
-            return new SimpleResult(e.Message);
+            return SimpleResult.Failure(e);
         }
     }
 }

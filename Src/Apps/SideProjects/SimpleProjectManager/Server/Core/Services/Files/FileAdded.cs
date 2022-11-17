@@ -2,5 +2,5 @@
 
 public sealed record FileAdded
 {
-    public static FileAdded Inst = new();
+    public static readonly FileAdded Inst = new();
 }

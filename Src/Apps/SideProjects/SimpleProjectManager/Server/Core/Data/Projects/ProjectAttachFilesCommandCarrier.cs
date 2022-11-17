@@ -7,9 +7,3 @@ public sealed class ProjectAttachFilesCommandCarrier : CommandCarrier<ProjectAtt
     public ProjectAttachFilesCommandCarrier(ProjectAttachFilesCommand command)
         : base(command, command.Id) { }
 }
-
-public sealed class ProjectRemoveFilesCommandCarrier : CommandCarrier<ProjectRemoveFilesCommand, Project, ProjectId>
-{
-    public ProjectRemoveFilesCommandCarrier(ProjectRemoveFilesCommand command)
-        : base(command, command.Id) { }
-}

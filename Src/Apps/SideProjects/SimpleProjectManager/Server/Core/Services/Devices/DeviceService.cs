@@ -89,7 +89,7 @@ public partial class DeviceService : IDeviceService, IDisposable
 
     private async Task<IActorRef> GetDeviceManager()
     {
-        _deviceManager ??= await _deviceManagerSelection.ResolveOne(TimeSpan.FromSeconds(5));
+        _deviceManager ??= await _deviceManagerSelection.ResolveOne(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
 
         return _deviceManager ?? ActorRefs.Nobody;
     }
@@ -101,7 +101,7 @@ public partial class DeviceService : IDeviceService, IDisposable
     {
         try
         {
-            return await runner(await GetDeviceManager());
+            return await runner(await GetDeviceManager().ConfigureAwait(false)).ConfigureAwait(false);
         }
         catch (Exception e)
         {
@@ -124,64 +124,64 @@ public partial class DeviceService : IDeviceService, IDisposable
         => await Run(
             async man =>
             {
-                var result = await man.Ask<UiResponse>(new QueryUi(device), TimeSpan.FromSeconds(10), token);
+                var result = await man.Ask<UiResponse>(new QueryUi(device), TimeSpan.FromSeconds(10), token).ConfigureAwait(false);
 
                 return result.Root;
-            });
+            }).ConfigureAwait(false);
 
     public virtual async Task<string> GetStringSensorValue(DeviceId device, DeviceId sensor, CancellationToken token)
         => await Run(
             async man =>
             {
-                var valueResult = await man.Ask<SensorValueResult>(new QuerySensorValue(device, sensor), TimeSpan.FromSeconds(10), token);
+                var valueResult = await man.Ask<SensorValueResult>(new QuerySensorValue(device, sensor), TimeSpan.FromSeconds(10), token).ConfigureAwait(false);
 
                 if(valueResult.Result.IsSuccess())
                     return valueResult.Value?.AsString ?? string.Empty;
 
                 throw new InvalidOperationException(valueResult.Result.GetErrorString());
-            });
+            }).ConfigureAwait(false);
 
     public virtual async Task<int> GetIntSensorValue(DeviceId device, DeviceId sensor, CancellationToken token)
         => await Run(
             async man =>
             {
-                var valueResult = await man.Ask<SensorValueResult>(new QuerySensorValue(device, sensor), TimeSpan.FromSeconds(10), token);
+                var valueResult = await man.Ask<SensorValueResult>(new QuerySensorValue(device, sensor), TimeSpan.FromSeconds(10), token).ConfigureAwait(false);
 
                 if(valueResult.Result.IsSuccess())
                     return valueResult.Value?.AsInt ?? -1;
 
                 throw new InvalidOperationException(valueResult.Result.GetErrorString());
-            });
+            }).ConfigureAwait(false);
 
     public virtual async Task<double> GetDoubleSensorValue(DeviceId device, DeviceId sensor, CancellationToken token)
         => await Run(
             async man =>
             {
-                var valueResult = await man.Ask<SensorValueResult>(new QuerySensorValue(device, sensor), TimeSpan.FromSeconds(10), token);
+                var valueResult = await man.Ask<SensorValueResult>(new QuerySensorValue(device, sensor), TimeSpan.FromSeconds(10), token).ConfigureAwait(false);
 
                 if(valueResult.Result.IsSuccess())
                     return valueResult.Value?.AsDouble ?? -1d;
 
                 throw new InvalidOperationException(valueResult.Result.GetErrorString());
-            });
+            }).ConfigureAwait(false);
 
     public virtual async Task<bool> CanClickButton(DeviceId device, DeviceId button, CancellationToken token)
         => await Run(
             async man =>
             {
-                var result = await man.Ask<ButtonStateResponse>(new QueryButtonState(device, button), TimeSpan.FromSeconds(10), token);
+                var result = await man.Ask<ButtonStateResponse>(new QueryButtonState(device, button), TimeSpan.FromSeconds(10), token).ConfigureAwait(false);
 
                 return result.CanClick;
-            });
+            }).ConfigureAwait(false);
 
     public async Task<Logs> GetBatches(DeviceId deviceName, DateTime from, CancellationToken token)
         => await Run(
             async man =>
             {
-                var result = await man.Ask<LoggerBatchResult>(new QueryLoggerBatch(deviceName, from), TimeSpan.FromSeconds(10), token);
+                var result = await man.Ask<LoggerBatchResult>(new QueryLoggerBatch(deviceName, from), TimeSpan.FromSeconds(10), token).ConfigureAwait(false);
 
                 return new Logs(result.Batches.ToImmutableList());
-            });
+            }).ConfigureAwait(false);
 
     public async Task<SimpleResult> ClickButton(DeviceId device, DeviceId button, CancellationToken token)
         => await Run(
@@ -190,5 +190,5 @@ public partial class DeviceService : IDeviceService, IDisposable
                 man.Tell(new ButtonClick(device, button));
 
                 return Task.FromResult(SimpleResult.Success());
-            });
+            }).ConfigureAwait(false);
 }

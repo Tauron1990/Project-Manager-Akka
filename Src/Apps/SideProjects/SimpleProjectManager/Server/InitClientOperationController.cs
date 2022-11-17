@@ -27,7 +27,7 @@ public sealed partial class InitClientOperationController
         {
             try
             {
-                IActorRef actor = await _registry.Actor;
+                IActorRef actor = await _registry.Actor.ConfigureAwait(false);
 
                 ClusterActorDiscovery.Get(_system)
                    .RegisterActor(new ClusterActorDiscoveryMessage.RegisterActor(actor, nameof(NameRegistryFeature)));

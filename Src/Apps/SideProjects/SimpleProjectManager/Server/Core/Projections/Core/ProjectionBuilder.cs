@@ -53,7 +53,7 @@ public static class ProjectionBuilder
         private readonly DomainEventDispatcher _eventDispatcher;
         private readonly IEventMap<ProjectionContext> _originalMap;
 
-        public EventMapDispatcher(DomainEventDispatcher eventDispatcher, IEventMap<ProjectionContext> originalMap)
+        internal EventMapDispatcher(DomainEventDispatcher eventDispatcher, IEventMap<ProjectionContext> originalMap)
         {
             _eventDispatcher = eventDispatcher;
             _originalMap = originalMap;
@@ -61,7 +61,7 @@ public static class ProjectionBuilder
 
         public async Task<bool> Handle(object anEvent, ProjectionContext context)
         {
-            bool result = await _originalMap.Handle(anEvent, context);
+            bool result = await _originalMap.Handle(anEvent, context).ConfigureAwait(false);
 
             if(result)
                 _eventDispatcher.Publish((IDomainEvent)anEvent);
