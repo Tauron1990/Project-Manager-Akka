@@ -58,7 +58,7 @@ public class JobFileService : IJobFileService, IDisposable
                                         {
                                             GetJobFileInfo(d.Id, default).Ignore();
                                         }
-                                    })
+                                    }),
                         };
     }
 
@@ -71,7 +71,7 @@ public class JobFileService : IJobFileService, IDisposable
 
         var filter = _files.Operations.Eq(d => d.Id, id.Value);
 
-        return await _files.ExecuteFirstOrDefaultAsync<DbFileInfoData, ProjectFileInfo>(_files.Find(filter), token);
+        return await _files.ExecuteFirstOrDefaultAsync<DbFileInfoData, ProjectFileInfo>(_files.Find(filter), token).ConfigureAwait(false);
     }
 
     public virtual async Task<DatabaseFile[]> GetAllFiles(CancellationToken token)
@@ -83,16 +83,16 @@ public class JobFileService : IJobFileService, IDisposable
                     new FileName(d.FileName),
                     new FileSize(d.Length),
                     new JobName(d.JobName)))
-           .ToArrayAsync(token);
+           .ToArrayAsync(token).ConfigureAwait(false);
 
-    public async Task<string> RegisterFile(ProjectFileInfo projectFile, CancellationToken token)
+    public async Task<SimpleResult> RegisterFile(ProjectFileInfo projectFile, CancellationToken token)
     {
         try
         {
             var filter = _files.Operations.Eq(d => d.Id, projectFile.Id.Value);
 
-            if(await _files.CountEntrys(filter, token) == 1)
-                return "Der eintrag existiert schon";
+            if(await _files.CountEntrys(filter, token).ConfigureAwait(false) == 1)
+                return SimpleResult.Failure("Der eintrag existiert schon");
 
             await _files.InsertOneAsync(
                 new FileInfoData
@@ -102,39 +102,41 @@ public class JobFileService : IJobFileService, IDisposable
                     FileName = projectFile.FileName,
                     Size = projectFile.Size,
                     FileType = projectFile.FileType,
-                    Mime = projectFile.Mime
+                    Mime = projectFile.Mime,
                 },
-                token);
+                token).ConfigureAwait(false);
 
-            return string.Empty;
+            return SimpleResult.Success();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error on Registrationg File");
 
-            return ex.Message;
+            return SimpleResult.Failure(ex);
         }
     }
 
-    private static async ValueTask<string> AggregateErrors<TItem>(IEnumerable<TItem> items, Func<TItem, ValueTask<string?>> executor)
+    private static async ValueTask<SimpleResult> AggregateErrors<TItem>(IEnumerable<TItem> items, Func<TItem, ValueTask<SimpleResult>> executor)
     {
-        var errors = ImmutableList<string>.Empty;
+        var errors = ImmutableList<SimpleResult>.Empty;
 
         foreach (TItem item in items)
         {
-            string? result = await executor(item);
+            SimpleResult result = await executor(item).ConfigureAwait(false);
 
-            if(string.IsNullOrWhiteSpace(result)) continue;
+            if(result.IsSuccess()) continue;
 
             errors = errors.Add(result);
         }
 
-        return errors.IsEmpty ? string.Empty : string.Join($", {Environment.NewLine}", errors);
+        return errors.IsEmpty 
+            ? SimpleResult.Success() 
+            : SimpleResult.Failure((string.Join($", {Environment.NewLine}", errors.Select(e => e.GetErrorString()))));
     }
 
-    public async Task<string> CommitFiles(FileList files, CancellationToken token)
-        => await AggregateErrors(files.Files, id => _contentManager.CommitFile(id, token));
+    public async Task<SimpleResult> CommitFiles(FileList files, CancellationToken token)
+        => await AggregateErrors(files.Files, id => _contentManager.CommitFile(id, token)).ConfigureAwait(false);
 
-    public async Task<string> DeleteFiles(FileList files, CancellationToken token)
-        => await AggregateErrors(files.Files, id => _contentManager.DeleteFile(id, token));
+    public async Task<SimpleResult> DeleteFiles(FileList files, CancellationToken token)
+        => await AggregateErrors(files.Files, id => _contentManager.DeleteFile(id, token)).ConfigureAwait(false);
 }

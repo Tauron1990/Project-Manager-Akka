@@ -2,4 +2,4 @@
 
 namespace SimpleProjectManager.Server.Core.DeviceManager.Events;
 
-public sealed record SensorUpdateEvent(DeviceId Id, string Identifer, SensorType SensorType) : IDeviceEvent;
+public sealed record SensorUpdateEvent(DeviceId Device, DeviceId Identifer, SensorType SensorType) : IDeviceEvent;

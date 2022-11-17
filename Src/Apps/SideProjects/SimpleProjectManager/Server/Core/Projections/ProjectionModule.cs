@@ -19,7 +19,6 @@ public class ProjectionModule : IModule
 
                 return new MongoClient(url).GetDatabase(url.DatabaseName);
             })*/
-        ;
         collection.TryAddTransient(c => c.GetRequiredService<IEventAggregator>().GetEvent<DomainEventDispatcher, IDomainEvent>());
 
         collection.RegisterProjection<ProjectProjectionManager>();

@@ -1,4 +1,5 @@
-﻿using Akka.Actor;
+﻿using System.Collections.Immutable;
+using Akka.Actor;
 using SimpleProjectManager.Client.Operations.Shared.Devices;
 using SimpleProjectManager.Server.Core.DeviceManager.Events;
 using SimpleProjectManager.Shared.Services.Devices;
@@ -38,7 +39,7 @@ public partial class DeviceService : IDeviceService, IDisposable
             case ButtonStateUpdate buttonStateUpdate:
                 using (Computed.Invalidate())
                 {
-                    _ = CanClickButton(buttonStateUpdate.DeviceName, buttonStateUpdate.Identifer, CancellationToken.None);
+                    _ = CanClickButton(buttonStateUpdate.Device, buttonStateUpdate.Identifer, CancellationToken.None);
                 }
 
                 break;
@@ -54,7 +55,7 @@ public partial class DeviceService : IDeviceService, IDisposable
                 using (Computed.Invalidate())
                 {
                     _ = GetAllDevices(CancellationToken.None);
-                    _ = GetRootUi(newDeviceEvent.DeviceName, CancellationToken.None);
+                    _ = GetRootUi(newDeviceEvent.Device, CancellationToken.None);
                 }
 
                 break;
@@ -64,15 +65,15 @@ public partial class DeviceService : IDeviceService, IDisposable
                     switch (sensorUpdateEvent.SensorType)
                     {
                         case SensorType.Double:
-                            _ = GetDoubleSensorValue(sensorUpdateEvent.DeviceName, sensorUpdateEvent.Identifer, CancellationToken.None);
+                            _ = GetDoubleSensorValue(sensorUpdateEvent.Device, sensorUpdateEvent.Identifer, CancellationToken.None);
 
                             break;
                         case SensorType.String:
-                            _ = GetStringSensorValue(sensorUpdateEvent.DeviceName, sensorUpdateEvent.Identifer, CancellationToken.None);
+                            _ = GetStringSensorValue(sensorUpdateEvent.Device, sensorUpdateEvent.Identifer, CancellationToken.None);
 
                             break;
                         case SensorType.Number:
-                            _ = GetIntSensorValue(sensorUpdateEvent.DeviceName, sensorUpdateEvent.Identifer, CancellationToken.None);
+                            _ = GetIntSensorValue(sensorUpdateEvent.Device, sensorUpdateEvent.Identifer, CancellationToken.None);
 
                             break;
                     }
@@ -110,16 +111,16 @@ public partial class DeviceService : IDeviceService, IDisposable
         }
     }
 
-    public virtual async Task<string[]> GetAllDevices(CancellationToken token)
+    public virtual async Task<DeviceList> GetAllDevices(CancellationToken token)
         => await Run(
             async man =>
             {
-                var result = await man.Ask<DevicesResponse>(new QueryDevices(), TimeSpan.FromSeconds(10), token);
+                var result = await man.Ask<DevicesResponse>(new QueryDevices(), TimeSpan.FromSeconds(10), token).ConfigureAwait(false);
 
-                return result.Devices;
-            });
+                return new DeviceList(result.Devices.Select(d => new FoundDevice(d.Value, d.Key)).ToImmutableArray());
+            }).ConfigureAwait(false);
 
-    public virtual async Task<DeviceUiGroup> GetRootUi(string device, CancellationToken token)
+    public virtual async Task<DeviceUiGroup> GetRootUi(DeviceId device, CancellationToken token)
         => await Run(
             async man =>
             {
@@ -128,43 +129,43 @@ public partial class DeviceService : IDeviceService, IDisposable
                 return result.Root;
             });
 
-    public virtual async Task<string> GetStringSensorValue(string device, string sensor, CancellationToken token)
+    public virtual async Task<string> GetStringSensorValue(DeviceId device, DeviceId sensor, CancellationToken token)
         => await Run(
             async man =>
             {
-                var result = await man.Ask<SensorValueResult>(new QuerySensorValue(device, sensor), TimeSpan.FromSeconds(10), token);
+                var valueResult = await man.Ask<SensorValueResult>(new QuerySensorValue(device, sensor), TimeSpan.FromSeconds(10), token);
 
-                if(string.IsNullOrWhiteSpace(result.Error))
-                    return result.Value?.AsString ?? string.Empty;
+                if(valueResult.Result.IsSuccess())
+                    return valueResult.Value?.AsString ?? string.Empty;
 
-                throw new InvalidOperationException(result.Error);
+                throw new InvalidOperationException(valueResult.Result.GetErrorString());
             });
 
-    public virtual async Task<int> GetIntSensorValue(string device, string sensor, CancellationToken token)
+    public virtual async Task<int> GetIntSensorValue(DeviceId device, DeviceId sensor, CancellationToken token)
         => await Run(
             async man =>
             {
-                var result = await man.Ask<SensorValueResult>(new QuerySensorValue(device, sensor), TimeSpan.FromSeconds(10), token);
+                var valueResult = await man.Ask<SensorValueResult>(new QuerySensorValue(device, sensor), TimeSpan.FromSeconds(10), token);
 
-                if(string.IsNullOrWhiteSpace(result.Error))
-                    return result.Value?.AsInt ?? -1;
+                if(valueResult.Result.IsSuccess())
+                    return valueResult.Value?.AsInt ?? -1;
 
-                throw new InvalidOperationException(result.Error);
+                throw new InvalidOperationException(valueResult.Result.GetErrorString());
             });
 
-    public virtual async Task<double> GetDoubleSensorValue(string device, string sensor, CancellationToken token)
+    public virtual async Task<double> GetDoubleSensorValue(DeviceId device, DeviceId sensor, CancellationToken token)
         => await Run(
             async man =>
             {
-                var result = await man.Ask<SensorValueResult>(new QuerySensorValue(device, sensor), TimeSpan.FromSeconds(10), token);
+                var valueResult = await man.Ask<SensorValueResult>(new QuerySensorValue(device, sensor), TimeSpan.FromSeconds(10), token);
 
-                if(string.IsNullOrWhiteSpace(result.Error))
-                    return result.Value?.AsDouble ?? -1d;
+                if(valueResult.Result.IsSuccess())
+                    return valueResult.Value?.AsDouble ?? -1d;
 
-                throw new InvalidOperationException(result.Error);
+                throw new InvalidOperationException(valueResult.Result.GetErrorString());
             });
 
-    public virtual async Task<bool> CanClickButton(string device, string button, CancellationToken token)
+    public virtual async Task<bool> CanClickButton(DeviceId device, DeviceId button, CancellationToken token)
         => await Run(
             async man =>
             {
@@ -173,21 +174,21 @@ public partial class DeviceService : IDeviceService, IDisposable
                 return result.CanClick;
             });
 
-    public async Task<LogBatch[]> GetBatches(string deviceName, DateTime from, CancellationToken token)
+    public async Task<Logs> GetBatches(DeviceId deviceName, DateTime from, CancellationToken token)
         => await Run(
             async man =>
             {
                 var result = await man.Ask<LoggerBatchResult>(new QueryLoggerBatch(deviceName, from), TimeSpan.FromSeconds(10), token);
 
-                return result.Batches.ToArray();
+                return new Logs(result.Batches.ToImmutableList());
             });
 
-    public async Task<string> ClickButton(string device, string button, CancellationToken token)
+    public async Task<SimpleResult> ClickButton(DeviceId device, DeviceId button, CancellationToken token)
         => await Run(
             man =>
             {
                 man.Tell(new ButtonClick(device, button));
 
-                return Task.FromResult(string.Empty);
+                return Task.FromResult(SimpleResult.Success());
             });
 }

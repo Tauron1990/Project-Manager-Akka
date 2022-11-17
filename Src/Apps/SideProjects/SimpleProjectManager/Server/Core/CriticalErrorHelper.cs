@@ -1,6 +1,7 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics;
 using JetBrains.Annotations;
+using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
 
 namespace SimpleProjectManager.Server.Core;
@@ -20,35 +21,35 @@ public sealed class CriticalErrorHelper
 
     public ILogger Logger { get; }
 
-    public async ValueTask<IOperationResult> WriteError(string detailPart, Exception exception, Func<ImmutableList<ErrorProperty>>? erros = null)
+    public async ValueTask<SimpleResult> WriteError(string detailPart, Exception exception, Func<ImmutableList<ErrorProperty>>? erros = null)
     {
-        var part = $"{_generalPart} -- {detailPart}";
+        var part = PropertyValue.From($"{_generalPart} -- {detailPart}");
         try
         {
             await _service.WriteError(
                 new CriticalError(
-                    string.Empty,
+                    ErrorId.New,
                     DateTime.UtcNow,
                     part,
-                    exception.Message,
-                    exception.Demystify().StackTrace ?? string.Empty,
+                    SimpleMessage.From(exception.Message),
+                    StackTraceData.FromException(exception.Demystify()),
                     erros?.Invoke() ?? ImmutableList<ErrorProperty>.Empty),
                 default);
 
-            return OperationResult.Failure(exception);
+            return SimpleResult.Failure(exception);
         }
         catch (Exception serviceException)
         {
             if(serviceException is OperationCanceledException)
-                return OperationResult.Failure(exception);
+                return SimpleResult.Failure(exception);
 
             Logger.LogError(serviceException, "Error on Write Critical Error for {Part} with {Message}", part, exception.Message);
 
-            return OperationResult.Failure(exception);
+            return SimpleResult.Failure(exception);
         }
     }
 
-    public async ValueTask<IOperationResult> Try(string detailPart, Func<ValueTask<IOperationResult>> runner, CancellationToken token, Func<ImmutableList<ErrorProperty>>? erros = null)
+    public async ValueTask<SimpleResult> Try(string detailPart, Func<ValueTask<SimpleResult>> runner, CancellationToken token, Func<ImmutableList<ErrorProperty>>? erros = null)
     {
         try
         {
@@ -57,7 +58,7 @@ public sealed class CriticalErrorHelper
         catch (Exception e)
         {
             if(e is OperationCanceledException)
-                return OperationResult.Failure(e);
+                return SimpleResult.Failure(e);
 
             return await WriteError(detailPart, e, erros);
         }
@@ -69,7 +70,7 @@ public sealed class CriticalErrorHelper
 
         if(trasnactionState == TrasnactionState.Successeded) return SimpleResult.Success();
         if(exception is null)
-            return "Unbekannter Fehler";
+            return SimpleResult.Failure("Unbekannter Fehler");
 
         switch (trasnactionState)
         {
@@ -79,9 +80,9 @@ public sealed class CriticalErrorHelper
                     exception,
                     propertys);
 
-                return exception.Message;
+                return SimpleResult.Failure(exception.Message);
             default:
-                return exception.Message;
+                return SimpleResult.Failure(exception.Message);
         }
     }
 }

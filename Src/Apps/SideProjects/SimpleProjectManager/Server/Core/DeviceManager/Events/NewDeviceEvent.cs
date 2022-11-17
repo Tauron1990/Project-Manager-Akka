@@ -5,5 +5,5 @@ namespace SimpleProjectManager.Server.Core.DeviceManager.Events;
 
 public record NewDeviceEvent(DeviceInformations Informations) : IDeviceEvent
 {
-    public DeviceId Id => Informations.DeviceId;
+    public DeviceId Device => Informations.DeviceId;
 }

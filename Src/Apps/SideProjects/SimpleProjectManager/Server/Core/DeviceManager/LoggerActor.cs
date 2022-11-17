@@ -24,7 +24,7 @@ public sealed class LoggerActor : ReceiveActor
         Receive<SubscribeAck>(_ => Become(Ready));
     }
 
-    public static Props Create(ActorSystem system, string deviceName)
+    public static Props Create(ActorSystem system, DeviceId deviceName)
         => DependencyResolver.For(system).Props<LoggerActor>(deviceName);
 
     private void Ready()

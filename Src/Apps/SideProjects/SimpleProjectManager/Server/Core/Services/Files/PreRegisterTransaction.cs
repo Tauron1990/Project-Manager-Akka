@@ -25,31 +25,37 @@ public sealed class PreRegisterTransaction : SimpleTransaction<PreRegistrationCo
 
     private async ValueTask<Rollback<PreRegistrationContext>> AddShortTimeAutoDelete(Context<PreRegistrationContext> transactionContext)
     {
-        (PreRegistrationContext context, _, CancellationToken token) = transactionContext;
+        PreRegistrationContext context = transactionContext.Data;
+        CancellationToken token = transactionContext.Token;
 
         FilePurgeId id = FilePurgeId.For(context.FileId);
-        IOperationResult result = await _taskManager
+        SimpleResult result = await _taskManager
            .AddNewTask(
                 AddTaskCommand.Create(
                     "Automatisches Löschen der Datei - 30 Minuten",
                     Schedule.Fixed(id, new FilePurgeJob(context.FileId), DateTime.Now + TimeSpan.FromMinutes(30))),
-                token);
+                token).ConfigureAwait(false);
 
-        if(!result.Ok)
+        if(result.IsError())
             throw new InvalidOperationException("Task zu Automatischen Löschen der Datei konnte nicht erstellt werden");
 
-        return async _ => await _taskManager.DeleteTask(id.Value, default);
+        return async _ => await _taskManager.DeleteTask(id.Value, default).ConfigureAwait(false);
     }
 
     private async ValueTask<Rollback<PreRegistrationContext>> AddToDatabase(Context<PreRegistrationContext> transactionContext)
     {
-        (PreRegistrationContext context, _, CancellationToken token) = transactionContext;
+        PreRegistrationContext context = transactionContext.Data;
+        CancellationToken token = transactionContext.Token;
+
 
         var id = ObjectId.GenerateNewId().ToString();
 
-        await using Stream stream = context.ToRegister();
-        await _bucket.UploadFromStreamAsync(id, context.FileId.Value, stream, context.JobName, context.FileName, token);
+        Stream stream = context.ToRegister();
+        await using (stream.ConfigureAwait(false))
+        {
+            await _bucket.UploadFromStreamAsync(id, context.FileId.Value, stream, context.JobName, context.FileName, token).ConfigureAwait(false);
 
-        return async _ => await _bucket.DeleteAsync(id, token);
+            return async _ => await _bucket.DeleteAsync(id, token).ConfigureAwait(false);
+        }
     }
 }

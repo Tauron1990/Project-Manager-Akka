@@ -4,5 +4,5 @@ namespace SimpleProjectManager.Server.Core.DeviceManager.Events;
 
 public interface IDeviceEvent
 {
-    DeviceId Id { get; }
+    DeviceId Device { get; }
 }

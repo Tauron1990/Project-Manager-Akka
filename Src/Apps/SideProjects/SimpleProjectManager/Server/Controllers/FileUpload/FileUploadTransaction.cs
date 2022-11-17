@@ -35,9 +35,9 @@ public class FileUploadTransaction : SimpleTransaction<FileUploadContext>
 
         ProjectFileId id = ProjectFileId.For(projectName, new FileName(name));
 
-        string? preRegister = await _contentManager.PreRegisterFile(file.OpenReadStream, id, name, files.JobName, token);
+        SimpleResult preRegister = await _contentManager.PreRegisterFile(file.OpenReadStream, id, name, files.JobName, token);
 
-        if(!string.IsNullOrWhiteSpace(preRegister)) throw new InvalidOperationException(preRegister);
+        if(preRegister.IsError()) throw new InvalidOperationException(preRegister.GetErrorString());
 
         SimpleResult result = await _fileService.RegisterFile(
             new ProjectFileInfo(

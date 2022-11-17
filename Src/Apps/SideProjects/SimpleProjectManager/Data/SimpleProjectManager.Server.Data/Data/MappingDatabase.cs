@@ -40,6 +40,12 @@ public sealed class MappingDatabase<TSource, TDestination> : IDatabaseCollection
     public async ValueTask<TRealDestination[]> ExecuteArray<TData, TRealDestination>(IFindQuery<TSource, TData> query, CancellationToken token)
         => await query.ToAsyncEnumerable(token).ProjectTo<TData, TRealDestination>(Mapper).ToArrayAsync(token).ConfigureAwait(false);
 
+    public IAsyncEnumerable<TDestination> ExecuteAsyncEnumerable(IFindQuery<TSource, TSource> query, CancellationToken token)
+        => query.ToAsyncEnumerable(token).ProjectTo<TSource, TDestination>(Mapper);
+
+    public IAsyncEnumerable<TRealDestination> ExecuteAsyncEnumerable<TData, TRealDestination>(IFindQuery<TSource, TData> query, CancellationToken token)
+        => query.ToAsyncEnumerable(token).ProjectTo<TData, TRealDestination>(Mapper);
+    
     public async ValueTask<TDestination?> ExecuteFirstOrDefaultAsync(IFindQuery<TSource, TSource> query, CancellationToken token)
         => await query.ToAsyncEnumerable(token).ProjectTo<TSource, TDestination>(Mapper).FirstOrDefaultAsync(token).ConfigureAwait(false);
 

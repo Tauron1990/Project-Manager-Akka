@@ -2,4 +2,4 @@
 
 namespace SimpleProjectManager.Server.Core.DeviceManager.Events;
 
-public sealed record ButtonStateUpdate(DeviceId Id, string Identifer) : IDeviceEvent;
+public sealed record ButtonStateUpdate(DeviceId Device, DeviceId Identifer) : IDeviceEvent;

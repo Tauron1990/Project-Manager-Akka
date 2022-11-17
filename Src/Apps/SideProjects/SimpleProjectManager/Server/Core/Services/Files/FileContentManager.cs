@@ -32,52 +32,53 @@ public sealed class FileContentManager
         _criticalErrorHelper = new CriticalErrorHelper(nameof(FileContentManager), criticalErrorService, logger);
     }
 
-    public async ValueTask<string?> PreRegisterFile(Func<Stream> toRegister, ProjectFileId id, string fileName, string jobName, CancellationToken token)
+    public async ValueTask<SimpleResult> PreRegisterFile(Func<Stream> toRegister, ProjectFileId id, string fileName, string jobName, CancellationToken token)
     {
         var context = new PreRegistrationContext(toRegister, id, fileName, jobName);
 
         SimpleResult result = await _criticalErrorHelper.ProcessTransaction(
-            await _preRegisterTransaction.Execute(context, token),
+            await _preRegisterTransaction.Execute(context, token).ConfigureAwait(false),
             nameof(PreRegisterFile),
             () => ImmutableList<ErrorProperty>.Empty
-               .Add(new ErrorProperty("File Id", id.Value))
-               .Add(new ErrorProperty("File Name", fileName)));
+               .Add(new ErrorProperty(PropertyName.From("File Id"), PropertyValue.From(id.Value)))
+               .Add(new ErrorProperty(PropertyName.From("File Name"), PropertyValue.From(fileName))))
+           .ConfigureAwait(false);
 
-        if(string.IsNullOrWhiteSpace(result))
+        if(result.IsSuccess())
             _aggregator.Publish(FileAdded.Inst);
 
         return result;
     }
 
-    public async ValueTask<string?> CommitFile(ProjectFileId id, CancellationToken token)
+    public async ValueTask<SimpleResult> CommitFile(ProjectFileId id, CancellationToken token)
     {
         return await _criticalErrorHelper.ProcessTransaction(
-            await _commitRegistrationTransaction.Execute(id, token),
+            await _commitRegistrationTransaction.Execute(id, token).ConfigureAwait(false),
             nameof(CommitFile),
             () => ImmutableList<ErrorProperty>.Empty
-               .Add(new ErrorProperty("File Id", id.Value)));
+               .Add(new ErrorProperty(PropertyName.From("File Id"), PropertyValue.From(id.Value)))).ConfigureAwait(false);
     }
 
     public IAsyncEnumerable<FileEntry> QueryFiles(CancellationToken token)
         => _bucked.FindAllAsync(token);
 
-    public async ValueTask<string?> DeleteFile(ProjectFileId id, CancellationToken token)
+    public async ValueTask<SimpleResult> DeleteFile(ProjectFileId id, CancellationToken token)
     {
         return (await _criticalErrorHelper.Try(
                 nameof(DeleteFile),
                 async () =>
                 {
-                    FileEntry? search = await _bucked.FindByIdAsync(id.Value, token);
+                    FileEntry? search = await _bucked.FindByIdAsync(id.Value, token).ConfigureAwait(false);
 
-                    if(search == null)
+                    if(search is null)
                     {
                         _criticalErrorHelper.Logger.LogWarning("Die Datei {Id} wurde nicht gefunden", id.Value);
 
-                        return OperationResult.Success();
+                        return SimpleResult.Success();
                     }
 
-                    await _bucked.DeleteAsync(search.Id, token);
-                    IOperationResult result = await _taskManager.DeleteTask(FilePurgeId.For(id).Value, token);
+                    await _bucked.DeleteAsync(search.Id, token).ConfigureAwait(false);
+                    SimpleResult result = await _taskManager.DeleteTask(FilePurgeId.For(id).Value, token).ConfigureAwait(false);
 
                     _aggregator.Publish(new FileDeleted(id));
 
@@ -85,7 +86,7 @@ public sealed class FileContentManager
                 },
                 token,
                 () => ImmutableList<ErrorProperty>
-                   .Empty.Add(new ErrorProperty("File Id", id.Value)))
-            ).Error;
+                   .Empty.Add(new ErrorProperty(PropertyName.From("File Id"), PropertyValue.From(id.Value))))
+.ConfigureAwait(false));
     }
 }

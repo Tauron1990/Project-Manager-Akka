@@ -1,4 +1,5 @@
-﻿using MongoDB.Bson;
+﻿using System.Collections.Immutable;
+using MongoDB.Bson;
 using SimpleProjectManager.Server.Data;
 using SimpleProjectManager.Server.Data.Data;
 using SimpleProjectManager.Shared.Services;
@@ -33,8 +34,7 @@ public class CriticalErrorService : ICriticalErrorService
     {
         try
         {
-            var id = ObjectId.GenerateNewId().ToString();
-            CriticalErrorEntry entry = new(id, error with { Id = id }, false);
+            CriticalErrorEntry entry = new(error.Id, error, IsDisabled: false);
 
             await _errorEntrys.InsertOneAsync(entry, token);
             Invalidate();
@@ -45,50 +45,50 @@ public class CriticalErrorService : ICriticalErrorService
         }
     }
 
-    public virtual async Task<long> CountErrors(CancellationToken token)
+    public virtual async Task<ErrorCount> CountErrors(CancellationToken token)
     {
-        if(Computed.IsInvalidating()) return 0;
+        if(Computed.IsInvalidating()) return ErrorCount.From(0);
 
         var filter = _errorEntrys.Operations.Eq(m => m.IsDisabled, false);
 
-        return await _errorEntrys.CountEntrys(filter, token);
+        return ErrorCount.From(await _errorEntrys.CountEntrys(filter, token));
     }
 
-    public virtual async Task<CriticalError[]> GetErrors(CancellationToken token)
+    public virtual async Task<CriticalErrorList> GetErrors(CancellationToken token)
     {
-        if(Computed.IsInvalidating()) return Array.Empty<CriticalError>();
+        if(Computed.IsInvalidating()) return CriticalErrorList.Empty;
 
-        var result = await _errorEntrys.ExecuteArray<DbCriticalError, CriticalError>(
+        var result = _errorEntrys.ExecuteAsyncEnumerable<DbCriticalError, CriticalError>(
             _errorEntrys
-               .Find(_errorEntrys.Operations.Eq(e => e.IsDisabled, false))
+               .Find(_errorEntrys.Operations.Eq(e => e.IsDisabled, toEqual: false))
                .Select(d => d.Error),
             token);
 
-        return result;
+        return new CriticalErrorList( await result.ToImmutableList(token).ConfigureAwait(false));
     }
 
-    public virtual async Task<string> DisableError(string id, CancellationToken token)
+    public virtual async Task<SimpleResult> DisableError(ErrorId id, CancellationToken token)
     {
-        var filter = _errorEntrys.Operations.Eq(e => e.Id, id);
-        var updater = _errorEntrys.Operations.Set(e => e.IsDisabled, true);
+        var filter = _errorEntrys.Operations.Eq(e => e.Id, id.Value);
+        var updater = _errorEntrys.Operations.Set(e => e.IsDisabled, value: true);
 
         try
         {
             DbOperationResult result = await _errorEntrys.UpdateOneAsync(filter, updater, token);
 
             if(!result.IsAcknowledged || result.ModifiedCount != 1)
-                return "Unbekannter fehler beim Aktualisieren der Datenbank";
+                return SimpleResult.Failure("Unbekannter fehler beim Aktualisieren der Datenbank");
 
             Invalidate();
 
-            return string.Empty;
+            return SimpleResult.Success();
 
         }
         catch (Exception e)
         {
             _logger.LogWarning(e, "Error on Disabling ErrorEntry");
 
-            return e.Message;
+            return SimpleResult.Failure(e);
         }
     }
 

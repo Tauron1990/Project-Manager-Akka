@@ -21,7 +21,7 @@ public sealed class CommitRegistrationTransaction : SimpleTransaction<ProjectFil
     {
         (ProjectFileId projectFileId, ContextMetadata meta, CancellationToken token) = transactionContext;
 
-        IOperationResult result = await _taskManagerCore.AddNewTask(
+        SimpleResult result = await _taskManagerCore.AddNewTask(
             AddTaskCommand.Create(
                 $"Datei {projectFileId.Value} Löschen - 6 Monate",
                 new Schedule<FilePurgeJob, FilePurgeId>(
@@ -30,7 +30,7 @@ public sealed class CommitRegistrationTransaction : SimpleTransaction<ProjectFil
                     DateTime.Now + TimeSpan.FromDays(6 * 30))),
             token);
 
-        if(result.Ok) return c => throw c.Metadata.GetOptional<Exception>() ?? new InvalidOperationException("Unbekannter Fehler");
+        if(result.IsSuccess()) return c => throw c.Metadata.GetOptional<Exception>() ?? new InvalidOperationException("Unbekannter Fehler");
 
         Exception error = CreateCommitExceptionFor("Erstellen des neun Tasks zum Automatischen Löschens");
         meta.Set(error);
@@ -41,9 +41,9 @@ public sealed class CommitRegistrationTransaction : SimpleTransaction<ProjectFil
     private async ValueTask<Rollback<ProjectFileId>> CancelOldTask(Context<ProjectFileId> transactionContext)
     {
         (ProjectFileId projectFileId, ContextMetadata meta, CancellationToken cancellationToken) = transactionContext;
-        IOperationResult result = await _taskManagerCore.DeleteTask(FilePurgeId.For(projectFileId).Value, cancellationToken);
+        SimpleResult result = await _taskManagerCore.DeleteTask(FilePurgeId.For(projectFileId).Value, cancellationToken);
 
-        if(result.Ok) return c => throw c.Metadata.GetOptional<Exception>() ?? new InvalidOperationException("Unbekannter Fehler");
+        if(result.IsSuccess()) return c => throw c.Metadata.GetOptional<Exception>() ?? new InvalidOperationException("Unbekannter Fehler");
 
         Exception error = CreateCommitExceptionFor("Abbrechen des Alten Tasks zum Automatischen Löschens");
         meta.Set(error);

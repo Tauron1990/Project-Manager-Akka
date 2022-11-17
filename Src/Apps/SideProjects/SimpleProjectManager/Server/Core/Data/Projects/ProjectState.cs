@@ -1,25 +1,21 @@
 ﻿using System.Collections.Immutable;
 using Akkatecture.Aggregates;
-using Akkatecture.Aggregates.Snapshot;
 using SimpleProjectManager.Server.Core.Data.Events;
 using SimpleProjectManager.Shared;
 
 namespace SimpleProjectManager.Server.Core.Data;
 
-public sealed record ProjectStateSnapshot(ProjectName Name, ImmutableList<ProjectFileId> Files, ProjectDeadline? Deadline, ProjectStatus Status)
-    : IAggregateSnapshot<Project, ProjectId>;
-
 public sealed class ProjectState : InternalState<Project, ProjectId, ProjectStateSnapshot>,
     IApply<NewProjectCreatedEvent>, IApply<ProjectNameChangedEvent>, IApply<ProjectDeadLineChangedEvent>, IApply<ProjectDeletedEvent>,
     IApply<ProjectFilesAttachedEvent>, IApply<ProjectStatusChangedEvent>, IApply<ProjectFilesRemovedEvent>
 {
-    public ProjectName ProjectName { get; private set; } = ProjectName.Empty;
+    private ProjectName ProjectName { get; set; } = ProjectName.Empty;
 
-    public ImmutableList<ProjectFileId> Files { get; private set; } = ImmutableList<ProjectFileId>.Empty;
+    private ImmutableList<ProjectFileId> Files { get; set; } = ImmutableList<ProjectFileId>.Empty;
 
-    public ProjectDeadline? Deadline { get; private set; }
+    private ProjectDeadline? Deadline { get; set; }
 
-    public ProjectStatus Status { get; private set; }
+    private ProjectStatus Status { get; set; }
 
     public void Apply(NewProjectCreatedEvent aggregateEvent)
         => ProjectName = aggregateEvent.Name;

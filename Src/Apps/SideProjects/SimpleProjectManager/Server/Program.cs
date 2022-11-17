@@ -5,14 +5,15 @@ using SimpleProjectManager.Server.Core.DeviceManager;
 using SimpleProjectManager.Server.Core.Projections;
 using SimpleProjectManager.Server.Core.Services;
 using SimpleProjectManager.Server.Core.Tasks;
+using Stl.IO;
 using Tauron.Application.AkkaNode.Bootstrap;
 using Tauron.Application.Master.Commands.KillSwitch;
 
 try
 {
-    StartConfigManager.ConfigManager.Init();
+    StartConfigManager.ConfigManager.Init(FilePath.Empty);
 
-    IHostBuilder builder = Bootstrap.StartNode(args, KillRecpientType.Seed, IpcApplicationType.NoIpc, consoleLog: true)
+    IHostBuilder builder = AppNode.StartNode(args, KillRecpientType.Seed, IpcApplicationType.NoIpc, consoleLog: true)
        .ConfigureServices(
             sc => sc.RegisterModules(
                 new AkkaModule(),
@@ -30,7 +31,7 @@ try
                 b.UseStartup<Startup>();
             });
 
-    await builder.Build().RunAsync();
+    await builder.Build().RunAsync().ConfigureAwait(false);
 }
 catch (Exception e)
 {

@@ -4,8 +4,10 @@ namespace SimpleProjectManager.Shared.Services;
 
 public readonly struct CriticalErrorList
 {
-    public ImmutableArray<CriticalError> Errors { get; }
+    public static readonly CriticalErrorList Empty = new(ImmutableList<CriticalError>.Empty);
+    
+    public ImmutableList<CriticalError> Errors { get; }
 
-    public CriticalErrorList(ImmutableArray<CriticalError> errors)
+    public CriticalErrorList(ImmutableList<CriticalError> errors)
         => Errors = errors;
 }
