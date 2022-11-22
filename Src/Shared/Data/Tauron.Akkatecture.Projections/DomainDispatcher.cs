@@ -48,8 +48,7 @@ public class DomainDispatcher<TProjection, TIdentity>
 
     protected virtual Task SuccessHandler(SubscriptionInfo info) => Task.CompletedTask;
 
-    protected virtual Task<ExceptionResolution>
-        ExceptionHandler(Exception exception, int attempts, SubscriptionInfo info)
+    protected virtual Task<ExceptionResolution> ExceptionHandler(Exception exception, int attempts, SubscriptionInfo info)
     {
         _logger.LogError(
             exception,
