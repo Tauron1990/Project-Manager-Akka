@@ -13,6 +13,7 @@ public class PageNavigation
     public const string CurrentJobs = "/CurrentJobs";
     public const string UploadFilesUrl = "/Upload";
     public const string EditJobUrl = "/EditJob";
+    public const string DevicesUrl = "/Devices";
 
     public PageNavigation(INavigationHelper navigationManager)
         => NavigationManager = navigationManager;

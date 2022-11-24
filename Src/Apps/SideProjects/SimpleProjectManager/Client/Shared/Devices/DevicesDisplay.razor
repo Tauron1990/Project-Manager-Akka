@@ -1,0 +1,26 @@
+﻿@inherits NonAutoRenderingView<DevicesViewModel>
+
+<MudGrid>
+    <MudItem lg="12">
+        <ObservableRenderer Observable="ViewModel?.Devices">
+            <ValueRenderer>
+                @if(context.Length == 0)
+                {
+                    <MudAlert Dense="true" Severity="Severity.Info" Variant="Variant.Outlined">Kein Maschienen Gefunden</MudAlert>
+                }
+                else
+                {
+                    <MudSelect @bind-Value="SelectedPair" Dense="true">
+                        @foreach (var item in context)
+                        {
+                            <MudSelectItem @key="item.Id" Value="item">@item.Name.Value</MudSelectItem>
+                        }
+                    </MudSelect>
+                }
+            </ValueRenderer>
+        </ObservableRenderer>
+    </MudItem>
+    <MudItem lg="12">
+        <DeviceDisplay ToDisplay="SelectedPair"/>
+    </MudItem>
+</MudGrid>

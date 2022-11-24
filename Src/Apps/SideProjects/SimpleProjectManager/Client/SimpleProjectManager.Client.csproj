@@ -234,6 +234,15 @@
         <Compile Update="Pages\TaskManager.cs">
             <DependentUpon>TaskManager.razor</DependentUpon>
         </Compile>
+        <Compile Update="Shared\Devices\DevicesDisplay.cs">
+          <DependentUpon>DevicesDisplay.razor</DependentUpon>
+        </Compile>
+        <Compile Update="Shared\Devices\DeviceDisplay.cs">
+          <DependentUpon>DeviceDisplay.razor</DependentUpon>
+        </Compile>
+        <Compile Update="Shared\Devices\DeviceUiDisplay.cs">
+          <DependentUpon>DeviceUiDisplay.razor</DependentUpon>
+        </Compile>
     </ItemGroup>
 
 </Project>

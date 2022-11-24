@@ -1,0 +1,14 @@
+﻿@inherits NonAutoRenderingView<DeviceViewModel>
+
+@if(ToDisplay is null)
+{
+    <CenterElement>
+        <MudText>Kein Maschiene Ausgewählt</MudText>
+    </CenterElement>
+}
+else
+{
+    <StateAwaiter State="ViewModel?.Ui">
+        <DeviceUiDisplay UiGroup="context"/>
+    </StateAwaiter>
+}

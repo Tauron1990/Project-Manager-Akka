@@ -28,6 +28,7 @@ public sealed class GlobalState : IDisposable
         Errors = CreateState<ErrorState>();
         Files = CreateState<FilesState>();
         Tasks = CreateState<TaskState>();
+        Devices = CreateState<DeviceState>();
 
         RootStore = configuration.Build(RuntimeInformation.ProcessArchitecture == Architecture.Wasm ? Scheduler.Immediate : Scheduler.Default);
 
@@ -58,6 +59,8 @@ public sealed class GlobalState : IDisposable
 
     public TaskState Tasks { get; }
 
+    public DeviceState Devices { get; }
+    
     public void Dispose()
     {
         _scope.Dispose();

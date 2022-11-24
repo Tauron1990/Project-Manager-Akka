@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using SimpleProjectManager.Client.Shared.Data.Files;
 using SimpleProjectManager.Client.Shared.ViewModels.CriticalErrors;
 using SimpleProjectManager.Client.Shared.ViewModels.CurrentJobs;
+using SimpleProjectManager.Client.Shared.ViewModels.Devices;
 using SimpleProjectManager.Client.Shared.ViewModels.Pages;
 using SimpleProjectManager.Client.Shared.ViewModels.Tasks;
 using Tauron;
@@ -31,5 +32,8 @@ public sealed class ViewModelModule : IModule
         services.AddTransient<PendingTaskDisplayViewModel>();
 
         services.AddTransient<FileManagerViewModel>();
+
+        services.AddTransient<DevicesViewModel>();
+        services.AddTransient<DeviceViewModel>();
     }
 }
