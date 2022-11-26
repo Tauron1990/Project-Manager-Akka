@@ -4,10 +4,10 @@ using System.Reactive.Subjects;
 using System.Text;
 using Newtonsoft.Json;
 using NLog;
-using Servicemnager.Networking;
-using Servicemnager.Networking.Data;
-using Servicemnager.Networking.IPC;
 using Tauron.Application.AkkaNode.Bootstrap.IpcMessages;
+using Tauron.Servicemnager.Networking;
+using Tauron.Servicemnager.Networking.Data;
+using Tauron.Servicemnager.Networking.IPC;
 
 namespace Tauron.Application.AkkaNode.Bootstrap;
 

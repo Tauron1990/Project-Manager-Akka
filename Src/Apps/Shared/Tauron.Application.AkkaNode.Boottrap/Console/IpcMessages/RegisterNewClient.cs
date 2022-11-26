@@ -1,4 +1,4 @@
-﻿using Servicemnager.Networking.IPC;
+﻿using Tauron.Servicemnager.Networking.IPC;
 
 namespace Tauron.Application.AkkaNode.Bootstrap.IpcMessages;
 

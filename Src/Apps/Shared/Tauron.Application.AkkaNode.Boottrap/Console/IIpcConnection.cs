@@ -1,6 +1,6 @@
 ﻿using System;
 using JetBrains.Annotations;
-using Servicemnager.Networking;
+using Tauron.Servicemnager.Networking;
 
 namespace Tauron.Application.AkkaNode.Bootstrap;
 

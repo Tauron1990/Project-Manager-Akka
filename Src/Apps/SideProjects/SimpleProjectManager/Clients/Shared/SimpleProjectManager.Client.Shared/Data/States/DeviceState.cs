@@ -39,7 +39,7 @@ public sealed class DeviceState : StateBase<DeviceData>
 
     public IState<DeviceUiGroup?> GetUiFetcher(Func<CancellationToken, ValueTask<DeviceId?>> idGetter)
     {
-        async Task<DeviceUiGroup?> GetUi(IComputedState<DeviceUiGroup> g, CancellationToken token)
+        async Task<DeviceUiGroup?> GetUi(IComputedState<DeviceUiGroup?> g, CancellationToken token)
         {
             DeviceId? id = await idGetter(token).ConfigureAwait(false);
 
@@ -49,6 +49,6 @@ public sealed class DeviceState : StateBase<DeviceData>
             return await _deviceService.GetRootUi(id, token).ConfigureAwait(false);
         }
 
-        return _stateFactory.NewComputed<DeviceUiGroup>(GetUi);
+        return _stateFactory.NewComputed<DeviceUiGroup?>(GetUi);
     }
 }

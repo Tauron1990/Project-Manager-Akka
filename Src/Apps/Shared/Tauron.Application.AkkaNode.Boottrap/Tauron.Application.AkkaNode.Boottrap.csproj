@@ -1,10 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net7.0</TargetFramework>
         <Nullable>enable</Nullable>
         <AssemblyName>Tauron.Application.AkkaNode.Bootstrap</AssemblyName>
         <RootNamespace>Tauron.Application.AkkaNode.Bootstrap</RootNamespace>
+        <LangVersion>11</LangVersion>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -47,7 +48,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\..\Shared\Common\Tauron.Application.Logging\Tauron.Application.Logging.csproj" />
-        <ProjectReference Include="..\Servicemnager.Networking.Old\Servicemnager.Networking.Old.csproj" />
+        <ProjectReference Include="..\..\..\Test\NetworkTest\Tauron.Servicemnager.Networking\Tauron.Servicemnager.Networking.csproj" />
         <ProjectReference Include="..\Tauron.Application.Master.Commands\Tauron.Application.Master.Commands.csproj" />
     </ItemGroup>
 

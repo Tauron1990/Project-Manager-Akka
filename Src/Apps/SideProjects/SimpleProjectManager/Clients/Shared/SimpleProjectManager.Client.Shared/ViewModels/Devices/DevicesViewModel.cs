@@ -10,12 +10,11 @@ namespace SimpleProjectManager.Client.Shared.ViewModels.Devices;
 
 public sealed class DevicesViewModel : ViewModelBase
 {
-    private readonly GlobalState _state;
-    private DevicePair _selectedPair;
+    private DevicePair? _selectedPair;
 
     public IObservable<DevicePair[]> Devices { get; }
 
-    public DevicePair SelectedPair
+    public DevicePair? SelectedPair
     {
         get => _selectedPair;
         set => this.RaiseAndSetIfChanged(ref _selectedPair, value);
@@ -23,7 +22,6 @@ public sealed class DevicesViewModel : ViewModelBase
 
     public DevicesViewModel(GlobalState state)
     {
-        _state = state;
         Devices = state.Devices.CurrentDevices.Select(dd => dd.Select(p => new DevicePair(p.Value, p.Key)).ToArray());
         
         this.WhenActivated(Init);

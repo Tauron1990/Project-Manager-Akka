@@ -7,9 +7,9 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NLog;
-using Servicemnager.Networking.IPC;
 using Tauron.AkkaHost;
 using Tauron.Application.Master.Commands.KillSwitch;
+using Tauron.Servicemnager.Networking.IPC;
 
 // ReSharper disable once CheckNamespace
 namespace Tauron.Application.AkkaNode.Bootstrap;
