@@ -1,4 +1,4 @@
-﻿@inherits NonAutoRenderingView<DeviceViewModel>
+﻿@inherits NonAutoRenderingView<SimpleProjectManager.Client.ViewModels.Devices.DeviceDisplayViewModel>
 
 @if(ToDisplay is null)
 {
@@ -9,6 +9,5 @@
 else
 {
     <StateAwaiter State="ViewModel?.Ui">
-        <DeviceUiDisplay UiGroup="context"/>
     </StateAwaiter>
 }

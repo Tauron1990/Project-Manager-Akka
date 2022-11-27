@@ -1,31 +1,42 @@
-﻿using SimpleProjectManager.Client.Shared.Data;
+﻿using System;
+using System.Collections.Generic;
+using System.Reactive.Disposables;
+using ReactiveUI;
+using SimpleProjectManager.Client.Shared.Data;
 using SimpleProjectManager.Shared.Services.Devices;
 using Stl.Fusion;
 
 namespace SimpleProjectManager.Client.Shared.ViewModels.Devices;
 
-public sealed class DeviceViewModel : ViewModelBase
+public abstract class DeviceViewModel : ViewModelBase
 {
-    private readonly IMutableState<DevicePair?> _device;
+    private readonly GlobalState _state;
+    private readonly Func<IState<DevicePair?>> _deviceState;
+    
+    public IState<DeviceUiGroup?>? Ui { get; private set; }
 
-    public DevicePair? DevicePair
+    protected DeviceViewModel(GlobalState state, IStateFactory stateFactory)
     {
-        get => _device.Value;
-        set => _device.Set(value);
+        _state = state;
+        _deviceState = SimpleLazy.Create(stateFactory, CreateDeviceSelector);
+        
+        this.WhenActivated(Init);
     }
 
-    public IState<DeviceUiGroup?> Ui { get; set; }
-    
-    public DeviceViewModel(GlobalState state, IStateFactory stateFactory)
+    private IEnumerable<IDisposable> Init()
     {
-        _device = stateFactory.NewMutable<DevicePair?>();
-
-        Ui = state.Devices.GetUiFetcher(
+        var state = _deviceState();
+        
+        Ui = _state.Devices.GetUiFetcher(
             async t =>
             {
-                DevicePair? result = await _device.Use(t).ConfigureAwait(false);
+                DevicePair? result = await state.Use(t).ConfigureAwait(false);
 
                 return result?.Id;
             });
+        
+        yield return Disposable.Create(this, static self => self.Ui = null);
     }
+
+    protected abstract IState<DevicePair?> CreateDeviceSelector(IStateFactory stateFactory);
 }

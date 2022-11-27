@@ -33,10 +33,10 @@ public sealed class ParameterUpdater
 
     public void UpdateParameters(ParameterView parameterView)
     {
-        var parameters = parameterView.ToDictionary();
-
+  
         foreach ((string key, var states) in _registrations)
-            if(parameters.TryGetValue(key, out object? value))
+        {
+            if(parameterView.TryGetValue(key, out object? value))
                 states.Foreach(s => s.Set(Result.Value(value)));
             else
                 states.Foreach(
@@ -45,5 +45,7 @@ public sealed class ParameterUpdater
                         object? defaultValue = s.Computed.OutputType.IsValueType ? Activator.CreateInstance(s.Computed.OutputType) : null;
                         s.Set(Result.Value(defaultValue));
                     });
+            
+        }
     }
 }

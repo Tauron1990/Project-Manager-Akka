@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using System.Collections.Immutable;
+using Microsoft.AspNetCore.Components;
 using ReactiveUI;
 using SimpleProjectManager.Client.Shared.ViewModels.Devices;
 using SimpleProjectManager.Shared.Services.Devices;
@@ -8,17 +9,25 @@ namespace SimpleProjectManager.Client.Shared.Devices;
 
 public sealed partial class DeviceDisplay
 {
-    private DevicePair? _toDisplay;
 
     [Parameter]
-    public DevicePair? ToDisplay
+    public DevicePair? ToDisplay { get; set; }
+    
+    private IEnumerable<ImmutableList<TData>> GroupToThree<TData>(IEnumerable<TData> enumerable)
     {
-        get => _toDisplay;
-        set => this.RaiseAndSetIfChanged(ref _toDisplay, value);
-    }
+        var list = ImmutableList<TData>.Empty;
 
-    protected override IEnumerable<IDisposable> InitializeModel()
-    {
-        yield return this.Bind(ViewModel, m => m.DevicePair, v => v.ToDisplay);
+        foreach (TData data in enumerable)
+        {
+            list = list.Add(data);
+
+            if(list.Count != 3)
+                continue;
+
+            yield return list;
+            list = ImmutableList<TData>.Empty;
+        }
+        
+        yield return list;
     }
 }

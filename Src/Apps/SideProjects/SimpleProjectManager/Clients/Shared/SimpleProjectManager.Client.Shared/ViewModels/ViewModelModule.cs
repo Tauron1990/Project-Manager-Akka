@@ -34,6 +34,5 @@ public sealed class ViewModelModule : IModule
         services.AddTransient<FileManagerViewModel>();
 
         services.AddTransient<DevicesViewModel>();
-        services.AddTransient<DeviceViewModel>();
     }
 }

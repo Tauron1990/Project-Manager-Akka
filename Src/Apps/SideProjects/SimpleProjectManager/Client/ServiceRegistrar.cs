@@ -4,6 +4,7 @@ using ReactiveUI;
 using SimpleProjectManager.Client.Shared.ViewModels;
 using SimpleProjectManager.Client.Shared.ViewModels.EditJob;
 using SimpleProjectManager.Client.ViewModels;
+using SimpleProjectManager.Client.ViewModels.Devices;
 using Splat;
 using Splat.Microsoft.Extensions.DependencyInjection;
 using Tauron;
@@ -35,5 +36,7 @@ public static class ServiceRegistrar
         services.AddTransient<FileUploaderViewModelBase>(s => s.GetRequiredService<FileUploaderViewModel>());
 
         services.AddTransient<CriticalErrorViewModel>();
+
+        services.AddTransient<DeviceDisplayViewModel>();
     }
 }
