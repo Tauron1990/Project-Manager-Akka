@@ -23,12 +23,19 @@ public sealed class DevicesViewModel : ViewModelBase
     public DevicesViewModel(GlobalState state)
     {
         Devices = state.Devices.CurrentDevices.Select(dd => dd.Select(p => new DevicePair(p.Value, p.Key)).ToArray());
-        
+
         this.WhenActivated(Init);
     }
 
     private IEnumerable<IDisposable> Init()
     {
+        yield return Devices.Subscribe(
+            d =>
+            {
+                if(d.Length == 1)
+                    SelectedPair = d[0];
+            });
+        
         yield break;
     }
 }

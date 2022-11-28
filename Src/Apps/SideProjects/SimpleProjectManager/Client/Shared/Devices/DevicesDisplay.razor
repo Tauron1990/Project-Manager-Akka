@@ -8,6 +8,10 @@
                 {
                     <MudAlert Dense="true" Severity="Severity.Info" Variant="Variant.Outlined">Kein Maschienen Gefunden</MudAlert>
                 }
+                else if(context.Length == 1)
+                {
+                    <MudText>@context[0].Name.Value</MudText>
+                }
                 else
                 {
                     <MudSelect @bind-Value="SelectedPair" Dense="true">

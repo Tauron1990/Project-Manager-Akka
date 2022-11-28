@@ -245,6 +245,12 @@
         <Compile Update="Shared\Devices\DeviceDisplay.cs">
           <DependentUpon>DeviceDisplay.razor</DependentUpon>
         </Compile>
+        <Compile Update="Shared\Devices\UIGroupDisplay.cs">
+          <DependentUpon>UIGroupDisplay.razor</DependentUpon>
+        </Compile>
+        <Compile Update="Shared\Devices\SingleSensorDisplay.cs">
+          <DependentUpon>SingleSensorDisplay.razor</DependentUpon>
+        </Compile>
     </ItemGroup>
 
 </Project>

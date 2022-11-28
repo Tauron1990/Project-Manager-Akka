@@ -13,7 +13,7 @@ public abstract class DeviceViewModel : ViewModelBase
     private readonly GlobalState _state;
     private readonly Func<IState<DevicePair?>> _deviceState;
     
-    public IState<DeviceUiGroup?>? Ui { get; private set; }
+    public IState<(DeviceUiGroup? UI, DeviceId? Id)>? Ui { get; private set; }
 
     protected DeviceViewModel(GlobalState state, IStateFactory stateFactory)
     {

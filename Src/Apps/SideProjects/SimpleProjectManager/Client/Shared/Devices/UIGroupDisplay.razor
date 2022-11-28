@@ -1,0 +1,29 @@
+﻿@if(UiGroup is not null)
+{
+    <MudGrid>
+        @if(ShowCategory)
+        {
+            <MudItem lg="12">
+                <MudText Typo="Typo.h4">@UiGroup.Category</MudText>
+            </MudItem>
+        }
+        @foreach (var sensor in GroupToThree(UiGroup.Sensors))
+        {
+            <SensorDisplay Sensors="sensor" DeviceId="DeviceId"/>
+        }
+        @foreach (var button in GroupToThree(UiGroup.DeviceButtons))
+        {
+            <ButtonDisplay Buttons="button" DeviceId="DeviceId"/>
+        }
+        @foreach (var group in UiGroup.Groups)
+        {
+            <MudItem lg="12">
+                <UIGroupDisplayCarrier UiGroup="group" DeviceId="DeviceId"/>
+            </MudItem>
+        }
+    </MudGrid>
+}
+else
+{
+    <MudText>Keine Gruppe Zur Verfügung gestellet</MudText>
+}

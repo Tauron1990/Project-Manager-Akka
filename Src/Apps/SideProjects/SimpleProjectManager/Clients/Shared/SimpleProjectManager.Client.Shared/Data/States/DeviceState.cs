@@ -37,18 +37,17 @@ public sealed class DeviceState : StateBase<DeviceData>
         base.PostConfiguration(state);
     }
 
-    public IState<DeviceUiGroup?> GetUiFetcher(Func<CancellationToken, ValueTask<DeviceId?>> idGetter)
+    public IState<(DeviceUiGroup? UI, DeviceId? Id)> GetUiFetcher(Func<CancellationToken, ValueTask<DeviceId?>> idGetter)
     {
-        async Task<DeviceUiGroup?> GetUi(IComputedState<DeviceUiGroup?> g, CancellationToken token)
+        async Task<(DeviceUiGroup?, DeviceId?)> GetUi(IComputedState<(DeviceUiGroup?, DeviceId?)> g, CancellationToken token)
         {
             DeviceId? id = await idGetter(token).ConfigureAwait(false);
 
-            if(id is null) return null;
-            
-            
-            return await _deviceService.GetRootUi(id, token).ConfigureAwait(false);
+            return id is null ? default : (await _deviceService.GetRootUi(id, token).ConfigureAwait(false), id);
+
+
         }
 
-        return _stateFactory.NewComputed<DeviceUiGroup?>(GetUi);
+        return _stateFactory.NewComputed<(DeviceUiGroup?, DeviceId?)>(GetUi);
     }
 }

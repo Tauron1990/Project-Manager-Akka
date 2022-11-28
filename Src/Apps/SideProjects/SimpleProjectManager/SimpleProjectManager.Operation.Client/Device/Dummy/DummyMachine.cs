@@ -86,7 +86,7 @@ public sealed class DummyMachine : IMachine, IDisposable
 
     private DeviceUiGroup CreateGroup()
     {
-        var root = new DeviceUiGroup(ImmutableList<DeviceUiGroup>.Empty, ImmutableList<DeviceSensor>.Empty, ImmutableList<DeviceButton>.Empty);
+        var root = new DeviceUiGroup("Root", ImmutableList<DeviceUiGroup>.Empty, ImmutableList<DeviceSensor>.Empty, ImmutableList<DeviceButton>.Empty);
 
         foreach (var grouping in _pairs.GroupBy(p => p.Category))
             if(grouping.Key == "Test")
@@ -97,6 +97,7 @@ public sealed class DummyMachine : IMachine, IDisposable
                            Groups = root.Groups.Add(
                                Fill(
                                    new DeviceUiGroup(
+                                       grouping.Key.Value,
                                        ImmutableList<DeviceUiGroup>.Empty,
                                        ImmutableList<DeviceSensor>.Empty,
                                        ImmutableList<DeviceButton>.Empty),
@@ -111,7 +112,7 @@ public sealed class DummyMachine : IMachine, IDisposable
                 (current, sensorPair) => current with
                                          {
                                              DeviceButtons = current.DeviceButtons.Add(sensorPair.Button),
-                                             Sensors = current.Sensors.Add(sensorPair.Sensor)
+                                             Sensors = current.Sensors.Add(sensorPair.Sensor),
                                          });
     }
 }

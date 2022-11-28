@@ -15,6 +15,7 @@ public sealed record DeviceInformations(DeviceId DeviceId, DeviceName Name, bool
         DeviceName.Empty, 
         HasLogs: false,
         new DeviceUiGroup(
+            string.Empty,
             ImmutableList<DeviceUiGroup>.Empty,
             ImmutableList<DeviceSensor>.Empty,
             ImmutableList<DeviceButton>.Empty),

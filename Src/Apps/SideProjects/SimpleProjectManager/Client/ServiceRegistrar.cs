@@ -38,5 +38,6 @@ public static class ServiceRegistrar
         services.AddTransient<CriticalErrorViewModel>();
 
         services.AddTransient<DeviceDisplayViewModel>();
+        services.AddTransient<SingleSensorViewModel>();
     }
 }

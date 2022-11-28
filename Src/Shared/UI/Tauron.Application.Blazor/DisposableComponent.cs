@@ -17,7 +17,7 @@ public abstract class DisposableComponent : ComponentBase, IResourceHolder
 
     public void Dispose()
     {
-        Dispose(true);
+        Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }
 
@@ -28,6 +28,7 @@ public abstract class DisposableComponent : ComponentBase, IResourceHolder
     }
 }
 
+[PublicAPI]
 public abstract class DisposableComponent<TState> : ComputedStateComponent<TState>, IResourceHolder
 {
     private readonly CompositeDisposable _disposables = new();
