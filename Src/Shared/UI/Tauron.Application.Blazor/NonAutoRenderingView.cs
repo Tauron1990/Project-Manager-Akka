@@ -44,7 +44,7 @@ public abstract class NonAutoRenderingView<TModel> : DisposableComponent, IViewF
 
         RenderingManager.Init(StateHasChanged, InvokeAsync);
         ViewModel = CreateModel();
-        _initSubject.OnNext(Unit.Default);
+        //_initSubject.OnNext(Unit.Default);
         base.OnInitialized();
     }
 
@@ -114,6 +114,8 @@ public abstract class NonAutoRenderingView<TModel> : DisposableComponent, IViewF
     {
         if(firstRender)
         {
+            _initSubject.OnNext(Unit.Default);
+            
             // The following subscriptions are here because if they are done in OnInitialized, they conflict with certain JavaScript frameworks.
             var viewModelChanged =
                 this.WhenAnyValue(x => x.ViewModel)

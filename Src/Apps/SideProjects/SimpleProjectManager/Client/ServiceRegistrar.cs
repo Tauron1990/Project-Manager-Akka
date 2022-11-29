@@ -1,6 +1,7 @@
 ﻿using MudBlazor;
 using MudBlazor.Services;
 using ReactiveUI;
+using SimpleProjectManager.Client.Shared.Devices;
 using SimpleProjectManager.Client.Shared.ViewModels;
 using SimpleProjectManager.Client.Shared.ViewModels.EditJob;
 using SimpleProjectManager.Client.ViewModels;
@@ -39,5 +40,6 @@ public static class ServiceRegistrar
 
         services.AddTransient<DeviceDisplayViewModel>();
         services.AddTransient<SingleSensorViewModel>();
+        services.AddTransient<SingleButtonDisplay>();
     }
 }

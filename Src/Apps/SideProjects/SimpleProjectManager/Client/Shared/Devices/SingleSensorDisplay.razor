@@ -1,5 +1,25 @@
 ﻿@inherits NonAutoRenderingView<SimpleProjectManager.Client.ViewModels.Devices.SingleSensorViewModel>
 
-@code {
-    
+@if(Sensor is null || ViewModel is null)
+{
+    <MudText>Initialisiere</MudText>
+}
+else
+{
+    <MudGrid>
+        <MudItem lg="12">
+            <MudText Inline="true">@(Sensor.DisplayName.Value): </MudText>
+            <StateAwaiter State="ViewModel.SensorValue">
+                <ChildContent>
+                    <MudText Inline="true">context</MudText>
+                </ChildContent>
+                <Loading>
+                    <MudText Inline="true">Laden</MudText>
+                </Loading>
+                <Error>
+                    <MudText Inline="true">Fehler: @context.Message</MudText>
+                </Error>
+            </StateAwaiter>
+        </MudItem>
+    </MudGrid>
 }

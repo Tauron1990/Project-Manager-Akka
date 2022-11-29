@@ -9,11 +9,11 @@
         }
         @foreach (var sensor in GroupToThree(UiGroup.Sensors))
         {
-            <SensorDisplay Sensors="sensor" DeviceId="DeviceId"/>
+            <SensorsDisplay Sensors="sensor" DeviceId="DeviceId"/>
         }
         @foreach (var button in GroupToThree(UiGroup.DeviceButtons))
         {
-            <ButtonDisplay Buttons="button" DeviceId="DeviceId"/>
+            <ButtonsDisplay Buttons="button" DeviceId="DeviceId"/>
         }
         @foreach (var group in UiGroup.Groups)
         {

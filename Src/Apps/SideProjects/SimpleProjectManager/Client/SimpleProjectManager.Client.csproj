@@ -251,6 +251,9 @@
         <Compile Update="Shared\Devices\SingleSensorDisplay.cs">
           <DependentUpon>SingleSensorDisplay.razor</DependentUpon>
         </Compile>
+        <Compile Update="Shared\Devices\SingleButtonDisplay.cs">
+          <DependentUpon>SingleButtonDisplay.razor</DependentUpon>
+        </Compile>
     </ItemGroup>
 
 </Project>
