@@ -55,6 +55,9 @@
         <Compile Update="ObservableCollectionView.cs">
             <DependentUpon>ObservableCollectionView.razor</DependentUpon>
         </Compile>
+        <Compile Update="Commands\CommandHelper.cs">
+          <DependentUpon>CommandHelper.razor</DependentUpon>
+        </Compile>
     </ItemGroup>
 
     <ItemGroup>

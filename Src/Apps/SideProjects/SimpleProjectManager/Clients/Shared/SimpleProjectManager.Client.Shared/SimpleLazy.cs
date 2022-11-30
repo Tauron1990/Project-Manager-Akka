@@ -15,7 +15,7 @@ public static class SimpleLazy
     [PublicAPI]
     public abstract class Lazy<TData>
     {
-        private TData _value;
+        private TData? _value;
 
         public TData Value => _value ??= Create();
 

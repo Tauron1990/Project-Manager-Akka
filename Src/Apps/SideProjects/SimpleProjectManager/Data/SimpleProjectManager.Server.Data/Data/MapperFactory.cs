@@ -20,9 +20,16 @@ public static class MapperFactory
 
     private static void ConfigurateMapper(IMapperConfigurationExpression exp)
     {
-        exp.CreateMap<FileInfoData, DbFileInfoData>().ReverseMap();
-        exp.CreateMap<ProjectFileInfo, DbFileInfoData>().ReverseMap();
-
+        exp.CreateMap<FileInfoData, DbFileInfoData>()
+           .ForMember(m => m.Size, m => m.MapFrom(d => d.Size.Value));
+        exp.CreateMap<DbFileInfoData, FileInfoData>()
+           .ForMember(m => m.Size, m => m.MapFrom(d => new FileSize(d.Size)));
+        
+         exp.CreateMap<ProjectFileInfo, DbFileInfoData>()
+            .ForMember(d => d.Size, m => m.MapFrom(i => i.Size.Value));
+         exp.CreateMap<DbFileInfoData, ProjectFileInfo>()
+            .ForMember(d => d.Size, m => m.MapFrom(i => new FileSize(i.Size)));
+        
         exp.CreateMap<ErrorProperty, DbErrorProperty>().ReverseMap();
         exp.CreateMap<CriticalError, DbCriticalError>().ReverseMap();
         exp.CreateMap<CriticalErrorEntry, DbCriticalErrorEntry>().ReverseMap();

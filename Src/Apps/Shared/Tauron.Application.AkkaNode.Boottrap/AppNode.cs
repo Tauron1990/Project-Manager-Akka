@@ -34,7 +34,6 @@ public static partial class AppNode
                .WithCustomSerializer("hyperion", new[] { typeof(object) }, s => new HyperionSerializer(s, s.Settings.Config))
                .WithExtensions(typeof(ClusterActorDiscoveryId))
                .WithClustering()
-               .WithDistributedPubSub(string.Empty)
                .WithClusterClientReceptionist()
                .AddHocon(config);
         }

@@ -13,7 +13,7 @@ try
 {
     StartConfigManager.ConfigManager.Init(FilePath.Empty);
 
-    IHostBuilder builder = AppNode.StartNode(args, KillRecpientType.Seed, IpcApplicationType.NoIpc, consoleLog: true)
+    IHostBuilder builder = AppNode.StartNode(args, KillRecpientType.Seed, IpcApplicationType.NoIpc, consoleLog: false)
        .ConfigureServices(
             sc => sc.RegisterModules(
                 new AkkaModule(),
