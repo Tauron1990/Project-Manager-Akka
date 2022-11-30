@@ -31,7 +31,7 @@ public sealed class FilesState : StateBase
     {
         _service = jobFileService;
 
-        AllFiles = FromServer(jobFileService.GetAllFiles);
+        AllFiles = FromServer(jobFileService.GetAllFiles, Array.Empty<DatabaseFile>());
         _transactionFactory = uploadTransaction;
         _aggregator = aggregator;
     }

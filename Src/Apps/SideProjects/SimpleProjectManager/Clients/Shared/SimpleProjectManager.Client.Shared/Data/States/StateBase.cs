@@ -3,6 +3,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Stl;
 using Stl.Fusion;
 using Tauron;
 using Tauron.Applicarion.Redux;
@@ -17,11 +18,11 @@ public abstract class StateBase
 
     protected IStateFactory StateFactory { get; }
 
-    protected IObservable<TValue> FromServer<TValue>(Func<CancellationToken, Task<TValue>> fetcher)
+    protected IObservable<TValue> FromServer<TValue>(Func<CancellationToken, Task<TValue>> fetcher, TValue defaultValue)
         => Observable.Create<TValue>(
             o =>
             {
-                var state = StateFactory.NewComputed<TValue>(async (_, t) => await fetcher(t).ConfigureAwait(false));
+                var state = StateFactory.NewComputed(Result.Value(defaultValue), async (_, t) => await fetcher(t).ConfigureAwait(false));
 
                 return new CompositeDisposable(state, state.ToObservable(_ => true).Subscribe(o));
             });

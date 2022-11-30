@@ -60,6 +60,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <Folder Include="Views" />
         <Folder Include="wwwroot\" />
     </ItemGroup>
 
@@ -67,6 +68,10 @@
         <None Include="StartConfig.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <AdditionalFiles Include="Views\Index\NothingToSee.cshtml" />
     </ItemGroup>
 
 

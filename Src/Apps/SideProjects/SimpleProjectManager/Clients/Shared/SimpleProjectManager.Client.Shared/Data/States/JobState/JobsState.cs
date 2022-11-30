@@ -100,7 +100,7 @@ public sealed partial class JobsState : StateBase<InternalJobData>
         CurrentJobs = state.Select(jobData => jobData.CurrentJobs);
         IsLoaded = state.Select(s => s.IsLoaded);
         CurrentJobs.Subscribe();
-        ActiveJobsCount = FromServer(_service.CountActiveJobs);
+        ActiveJobsCount = FromServer(_service.CountActiveJobs, ActiveJobs.From(0));
     }
 }
 
