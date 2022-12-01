@@ -4,6 +4,7 @@ using System.Text;
 using Heretic.InteractiveFiction.Objects;
 using Heretic.InteractiveFiction.Resources;
 using Heretic.InteractiveFiction.Subsystems;
+using Spectre.Console;
 using Console = Spectre.Console.AnsiConsole;
 
 namespace SpaceConqueror.Core.Terminal;
@@ -15,8 +16,11 @@ namespace SpaceConqueror.Core.Terminal;
     private int consoleWidth;
 
     public ConsolePrintingSubsystem(AssetManager assetManager)
-      => _assetManager = assetManager;
-    
+    {
+      Heretic.InteractiveFiction.Objects.Universe
+      _assetManager = assetManager;
+    }
+
     public int ConsoleWidth
     {
       get => consoleWidth == 0 ? System.Console.WindowWidth : Math.Min(System.Console.WindowWidth, this.consoleWidth);
@@ -25,8 +29,8 @@ namespace SpaceConqueror.Core.Terminal;
 
     public TextColor ForegroundColor
     {
-      get => (TextColor) Console.ResetColors().ForegroundColor;
-      set => Console.ForegroundColor = (ConsoleColor) value;
+      get => (TextColor) Color.ToConsoleColor(Console.Foreground);
+      set => Console.Foreground = Color.FromConsoleColor((ConsoleColor) value);
     }
 
     public TextColor BackgroundColor
