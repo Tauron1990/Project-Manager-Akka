@@ -26,7 +26,7 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Meziantou.Analyzer" Version="1.0.748">
+        <PackageReference Include="Meziantou.Analyzer" Version="1.0.756">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
@@ -34,10 +34,10 @@
         <PackageReference Include="MongoDB.Driver" Version="2.18.0" />
         <PackageReference Include="MudBlazor" Version="6.1.2" />
         <PackageReference Include="ReactiveUI.Blazor" Version="18.4.1" />
-        <PackageReference Include="ReactiveUI.Validation" Version="3.0.1" />
+        <PackageReference Include="ReactiveUI.Validation" Version="3.0.22" />
         <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
         <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
-        <PackageReference Include="Stl.Fusion.Blazor" Version="4.1.13" />
+        <PackageReference Include="Stl.Fusion.Blazor" Version="4.1.30" />
     </ItemGroup>
 
     <ItemGroup>
