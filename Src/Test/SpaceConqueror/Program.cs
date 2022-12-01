@@ -3,6 +3,7 @@ using Heretic.InteractiveFiction.Objects;
 using Heretic.InteractiveFiction.Subsystems;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using SpaceConqueror.Core.Console;
 
 namespace SpaceConqueror;
 
