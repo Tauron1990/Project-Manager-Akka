@@ -1,18 +1,29 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿using Heretic.InteractiveFiction.GamePlay;
+using Heretic.InteractiveFiction.Objects;
+using Heretic.InteractiveFiction.Subsystems;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
-using SpaceConqueror;
-using Spectre.Console;
+namespace SpaceConqueror;
 
-Console.Title = "Space Conqueror";
+public static class Program
+{
+    public static void Main()
+    {
+        IHost host = Host.CreateDefaultBuilder()
+           .ConfigureServices(
+                (_, services) =>
+                {
+                    services.AddSingleton<IPrintingSubsystem, ConsolePrintingSubsystem>();
+                    services.AddSingleton<IGamePrerequisitesAssembler, GamePrerequisitesAssembler>();
+                    services.AddSingleton<IResourceProvider, ResourceProvider>();
+                    services.AddSingleton<GameLoop>();
+                    services.AddSingleton<InputProcessor>();
+                    services.AddSingleton<EventProvider>();
+                    services.AddSingleton<Universe>();
+                }).Build();
 
-await using GameManager manager = new(Path.GetFullPath("Mods"));
-
-AnsiConsole.WriteLine();
-
-await AnsiConsole.Status()
-   .SpinnerStyle(Style.Parse("orangered1"))
-   .StartAsync("Starte Spiel...", manager.Initialize);
-
-AnsiConsole.Clear();
-
-await manager.Run();
+        var gameLoop = ActivatorUtilities.CreateInstance<GameLoop>(host.Services, Console.BufferWidth);
+        gameLoop.Run();
+    }
+}

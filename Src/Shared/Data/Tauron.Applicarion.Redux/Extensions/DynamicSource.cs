@@ -54,6 +54,10 @@ public static class DynamicSource
     {
         async Task<TState?> RunRequest(IComputedState<TState?> computedState, CancellationToken token)
         {
+            #if DEBUG
+            Console.WriteLine($"Run Request {nameof(TState)}");
+            #endif
+            
             try
             {
                 token.ThrowIfCancellationRequested();
@@ -67,8 +71,14 @@ public static class DynamicSource
 
                 return patch;
             }
-            catch (Exception e) when (e is not OperationCanceledException)
+            catch (Exception e)
             {
+                if(e is OperationCanceledException)
+                    return default;
+                
+                #if DEBUG
+                Console.WriteLine($"Error on Process Request; {nameof(TState)}");
+                #endif
                 return errorHandler?.Invoke(e) ?? default(TState);
             }
         }
