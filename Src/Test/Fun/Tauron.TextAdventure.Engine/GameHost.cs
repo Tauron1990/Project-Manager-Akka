@@ -1,6 +1,7 @@
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Tauron.TextAdventure.Engine.Core;
 using Tauron.TextAdventure.Engine.UI;
 
 namespace Tauron.TextAdventure.Engine;
@@ -18,8 +19,10 @@ public sealed class GameHost
         hostBuilder.ConfigureServices(
             c =>
             {
-                c.AddSingleton(game)
-                   .AddSingleton<IUILayer>(sp => sp.GetRequiredService<TGame>().CreateUILayer(sp));
+                c
+                   .AddSingleton(game)
+                   .AddSingleton<IUILayer>(sp => sp.GetRequiredService<TGame>().CreateUILayer(sp))
+                   .AddHostedService<GameHostingService<TGame>>();
             });
         
         return hostBuilder.Build();
