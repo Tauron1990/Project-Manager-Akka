@@ -1,9 +1,9 @@
 using System.Collections.Concurrent;
-using Heretic.InteractiveFiction.GamePlay;
+using SpaceConqueror.Core;
 
-namespace SpaceConqueror.Core;
+namespace Tauron.TextAdventure.Engine.Core;
 
-public sealed class AssetManager : IResourceProvider
+public sealed class AssetManager 
 {
     private readonly ConcurrentDictionary<string, IBox?> _assets = new(StringComparer.Ordinal);
 

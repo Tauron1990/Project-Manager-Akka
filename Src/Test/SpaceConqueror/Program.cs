@@ -1,30 +1,14 @@
-﻿using Heretic.InteractiveFiction.GamePlay;
-using Heretic.InteractiveFiction.Objects;
-using Heretic.InteractiveFiction.Subsystems;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using SpaceConqueror.Core.Console;
+﻿using Microsoft.Extensions.Hosting;
+using Tauron.TextAdventure.Engine;
 
 namespace SpaceConqueror;
 
 public static class Program
 {
-    public static void Main()
+    public static async Task Main(string[] args)
     {
-        IHost host = Host.CreateDefaultBuilder()
-           .ConfigureServices(
-                (_, services) =>
-                {
-                    services.AddSingleton<IPrintingSubsystem, ConsolePrintingSubsystem>();
-                    services.AddSingleton<IGamePrerequisitesAssembler, GamePrerequisitesAssembler>();
-                    services.AddSingleton<IResourceProvider, ResourceProvider>();
-                    services.AddSingleton<GameLoop>();
-                    services.AddSingleton<InputProcessor>();
-                    services.AddSingleton<EventProvider>();
-                    services.AddSingleton<Universe>();
-                }).Build();
+        IHost host = await GameHost.Create<Game>(args).ConfigureAwait(false);
 
-        var gameLoop = ActivatorUtilities.CreateInstance<GameLoop>(host.Services, Console.BufferWidth);
-        gameLoop.Run();
+        await host.RunAsync().ConfigureAwait(false);
     }
 }

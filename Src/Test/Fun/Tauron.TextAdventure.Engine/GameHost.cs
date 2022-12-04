@@ -5,6 +5,7 @@ using Microsoft.Extensions.Hosting;
 using Tauron.TextAdventure.Engine.Core;
 using Tauron.TextAdventure.Engine.GamePackages;
 using Tauron.TextAdventure.Engine.UI;
+using Tauron.TextAdventure.Engine.UI.Internal;
 
 namespace Tauron.TextAdventure.Engine;
 
@@ -14,25 +15,28 @@ public sealed class GameHost
     public static async ValueTask<IHost> Create<TGame>(string[] args)
         where TGame : GameBase, new()
     {
-        IHostBuilder hostBuilder = Host.CreateDefaultBuilder(args);
+        IHostBuilder hostBuilder = Host.CreateDefaultBuilder(args).UseConsoleLifetime();
 
         var game = new TGame();
 
+        game.ConfigurateHost(hostBuilder);
+        
         var elements = ImmutableList<PackageElement>.Empty;
-        var metas = ImmutableList<Metadata>.Empty;
+        var metas = new HashSet<Metadata>();
 
-        await foreach (Gamepackage element in game.CreateGamePackage().Load().ConfigureAwait(false))
+        await foreach (GamePackage element in game.CreateGamePackage().Load().ConfigureAwait(false))
         {
-            elements = elements.AddRange(element.Content());
-            metas = metas.Add(element.Metadata);
+            if(metas.Add(element.Metadata))
+                elements = elements.AddRange(element.Content());
         }
 
         hostBuilder.ConfigureServices(
             c =>
             {
                 c
+                   .AddTransient<MainMenu>()
                    .AddSingleton(game)
-                   .AddSingleton<IUILayer>(sp => sp.GetRequiredService<TGame>().CreateUILayer(sp))
+                   .AddSingleton<IUILayer>(sp => sp.GetRequiredService<TGame>().CreateUILayer())
                    .AddHostedService<GameHostingService<TGame>>();
 
                 foreach (PackageElement element in elements)

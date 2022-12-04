@@ -2,5 +2,5 @@
 
 public interface IGamePackageFetcher
 {
-    IAsyncEnumerable<Gamepackage> Load();
+    IAsyncEnumerable<GamePackage> Load();
 }

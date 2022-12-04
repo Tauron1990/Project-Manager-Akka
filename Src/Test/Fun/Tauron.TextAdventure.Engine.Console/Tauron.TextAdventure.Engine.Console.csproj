@@ -18,4 +18,8 @@
       </PackageReference>
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\Tauron.TextAdventure.Engine\Tauron.TextAdventure.Engine.csproj" />
+    </ItemGroup>
+
 </Project>
