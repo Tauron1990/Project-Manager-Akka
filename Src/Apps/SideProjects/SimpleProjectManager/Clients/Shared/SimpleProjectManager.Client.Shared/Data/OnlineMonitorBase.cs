@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using RestEase;
+using SimpleProjectManager.Shared.ServerApi;
 using SimpleProjectManager.Shared.ServerApi.RestApi;
 
 namespace SimpleProjectManager.Client.Shared.Data;
@@ -42,7 +43,7 @@ public abstract class OnlineMonitorBase<TThis> : IOnlineMonitor
 
         try
         {
-            return await RunInternal(source.Token).ConfigureAwait(false) && await _pingService.Ping(source.Token).ConfigureAwait(false) == "ok";
+            return await RunInternal(source.Token).ConfigureAwait(false) && await _pingService.Ping(source.Token).ConfigureAwait(false) == PingResult.IsOk;
         }
         catch (Exception e)
         {

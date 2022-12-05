@@ -32,7 +32,7 @@
         </PackageReference>
         <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
         <PackageReference Include="MongoDB.Driver" Version="2.18.0" />
-        <PackageReference Include="MudBlazor" Version="6.1.2" />
+        <PackageReference Include="MudBlazor" Version="6.1.4" />
         <PackageReference Include="ReactiveUI.Blazor" Version="18.4.1" />
         <PackageReference Include="ReactiveUI.Validation" Version="3.0.22" />
         <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />

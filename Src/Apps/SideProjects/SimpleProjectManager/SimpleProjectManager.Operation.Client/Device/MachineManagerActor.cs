@@ -100,6 +100,8 @@ public sealed partial class MachineManagerActor : ReceiveActor
                .Props(DeviceInformations.ManagerPath, ClusterSingletonProxySettings.Create(Context.System)),
             "ServerConnection");
 
+        var self = Self;
+        
         Task.Run(
                 async () =>
                 {
@@ -109,7 +111,7 @@ public sealed partial class MachineManagerActor : ReceiveActor
                 })
            .PipeTo(
                 _serverManager,
-                Self,
+                self,
                 failure: ex =>
 
                          {

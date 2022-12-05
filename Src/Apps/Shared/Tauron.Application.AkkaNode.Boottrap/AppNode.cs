@@ -33,7 +33,6 @@ public static partial class AppNode
             configurationBuilder.ConfigureLoggers(lcb => lcb.AddLogger<NLogLogger>())
                .WithCustomSerializer("hyperion", new[] { typeof(object) }, s => new HyperionSerializer(s, s.Settings.Config))
                .WithExtensions(typeof(ClusterActorDiscoveryId))
-               .WithClustering()
                .WithClusterClientReceptionist()
                .AddHocon(config);
         }

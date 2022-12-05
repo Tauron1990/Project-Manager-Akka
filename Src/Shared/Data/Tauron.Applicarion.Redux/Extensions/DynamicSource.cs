@@ -55,7 +55,7 @@ public static class DynamicSource
         async Task<TState?> RunRequest(IComputedState<TState?> computedState, CancellationToken token)
         {
             #if DEBUG
-            Console.WriteLine($"Run Request {nameof(TState)}");
+            Console.WriteLine($"Run Request {typeof(TState)}");
             #endif
             
             try
@@ -77,7 +77,7 @@ public static class DynamicSource
                     return default;
                 
                 #if DEBUG
-                Console.WriteLine($"Error on Process Request; {nameof(TState)}");
+                Console.WriteLine($"Error on Process Request; {typeof(TState)}");
                 #endif
                 return errorHandler?.Invoke(e) ?? default(TState);
             }

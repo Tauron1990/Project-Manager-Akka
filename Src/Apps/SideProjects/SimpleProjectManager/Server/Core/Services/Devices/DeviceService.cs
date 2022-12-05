@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using Akka.Actor;
+using Akka.Cluster.Tools.Singleton;
 using SimpleProjectManager.Client.Operations.Shared.Devices;
 using SimpleProjectManager.Server.Core.DeviceManager.Events;
 using SimpleProjectManager.Shared.Services.Devices;
@@ -10,17 +11,20 @@ namespace SimpleProjectManager.Server.Core.Services.Devices;
 
 public partial class DeviceService : IDeviceService, IDisposable
 {
-    private readonly ActorSelection _deviceManagerSelection;
+    private readonly IActorRef _deviceManagerSelection;
     private readonly ILogger<DeviceService> _logger;
     private readonly IDisposable _subscription;
 
-    private IActorRef? _deviceManager;
+    //private IActorRef? _deviceManager;
     private DateTime _lastLog = DateTime.MinValue;
 
     public DeviceService(ActorSystem actorSystem, DeviceEventHandler handler, ILogger<DeviceService> logger)
     {
         _logger = logger;
-        _deviceManagerSelection = actorSystem.ActorSelection(DeviceInformations.ManagerPath);
+        _deviceManagerSelection = actorSystem.ActorOf(
+            ClusterSingletonProxy
+               .Props(DeviceInformations.ManagerPath, ClusterSingletonProxySettings.Create(actorSystem))); 
+        //actorSystem.ActorSelection(DeviceInformations.ManagerPath);
 
         _subscription = handler.Get().Subscribe(ProcessEvent);
     }
@@ -87,12 +91,12 @@ public partial class DeviceService : IDeviceService, IDisposable
         }
     }
 
-    private async Task<IActorRef> GetDeviceManager()
-    {
-        _deviceManager ??= await _deviceManagerSelection.ResolveOne(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
+    //private Task<IActorRef> GetDeviceManager()
+    //{
+        //_deviceManager ??= await _deviceManagerSelection.ResolveOne(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
 
-        return _deviceManager ?? ActorRefs.Nobody;
-    }
+        //return _deviceManager ?? ActorRefs.Nobody;
+    //}
 
     [LoggerMessage(EventId = 65, Level = LogLevel.Error, Message = "Error on Process Ask DeviceManager")]
     private partial void ErrorOnProcessRequest(Exception ex);
@@ -101,7 +105,7 @@ public partial class DeviceService : IDeviceService, IDisposable
     {
         try
         {
-            return await runner(await GetDeviceManager().ConfigureAwait(false)).ConfigureAwait(false);
+            return await runner(_deviceManagerSelection /*await GetDeviceManager().ConfigureAwait(false)*/).ConfigureAwait(false);
         }
         catch (Exception e)
         {

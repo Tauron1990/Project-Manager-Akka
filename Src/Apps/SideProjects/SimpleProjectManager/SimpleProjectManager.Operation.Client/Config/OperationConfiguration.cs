@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using FluentValidation.Results;
+using Newtonsoft.Json;
 using SimpleProjectManager.Client.Operations.Shared;
 
 namespace SimpleProjectManager.Operation.Client.Config;
@@ -10,9 +11,11 @@ public sealed record OperationConfiguration(
     public OperationConfiguration()
         : this(ServerIp.Empty, Port.Empty, Port.Empty, ObjectName.Empty,  new DeviceData(), new EditorData()) { }
 
+    [JsonIgnore]
     public string ServerUrl
         => $"http://{ServerIp}:{ServerPort}";
 
+    [JsonIgnore]
     public string AkkaUrl
         => $"akka.tcp://SimpleProjectManager-Server@{ServerIp}:{AkkaPort}"; 
 

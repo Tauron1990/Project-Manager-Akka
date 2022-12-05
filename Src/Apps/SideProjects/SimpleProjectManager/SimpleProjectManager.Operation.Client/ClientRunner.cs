@@ -1,4 +1,5 @@
 ﻿using Akka.Cluster.Hosting;
+using Akka.Cluster.Hosting.SBR;
 using Akka.Configuration;
 using Akka.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -44,10 +45,7 @@ public sealed class ClientRunner
         actorApplication
            .ConfigureAkka(
                 (_, b) => b
-                   .AddHocon(
-                        ConfigurationFactory.ParseString(
-                            $"akka.cluster.downing-provider-class = \"Akka.Cluster.SBR.SplitBrainResolverProvider\" {Environment.NewLine}" +
-                            "akka.cluster.split-brain-resolver.down-all-when-unstable = off"))
+                   .WithClustering(new ClusterOptions{ Roles = new []{"ProjectManager"}}, SplitBrainResolverOption.Default)
                    .WithDistributedPubSub("ProjectManager"))
            .ConfigureServices(
                 (_, coll) => coll

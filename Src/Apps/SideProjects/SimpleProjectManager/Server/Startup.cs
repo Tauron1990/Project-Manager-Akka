@@ -75,8 +75,8 @@ public class Startup
                 (_, configurationBuilder) =>
                 {
                     configurationBuilder
+                       .WithClustering(new ClusterOptions { Roles = new []{"Master", "ProjectManager"}})
                        .WithDistributedPubSub("ProjectManager")
-                       .AddHocon("akka.cluster.roles = [\"Master\", \"ProjectManager\"]")
                        .AddStartup((sys, _) => Persistence.Instance.Apply(sys));
                 })
            .OnMemberRemoved(

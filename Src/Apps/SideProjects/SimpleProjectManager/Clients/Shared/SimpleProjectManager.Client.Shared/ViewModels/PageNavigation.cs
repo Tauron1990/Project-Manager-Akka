@@ -1,10 +1,28 @@
-﻿using SimpleProjectManager.Client.Shared.Services;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
+using SimpleProjectManager.Client.Shared.Services;
 using SimpleProjectManager.Shared;
 
 namespace SimpleProjectManager.Client.Shared.ViewModels;
 
 public class PageNavigation
 {
+    #pragma warning disable GU0023
+    public static readonly ImmutableList<string> All = ImmutableList<string>.Empty.AddRange(GetAll());
+    #pragma warning restore GU0023
+
+    private static IEnumerable<string> GetAll()
+    {
+        yield return NewJobUrl;
+        yield return CriticalErrorsUrl;
+        yield return TaskManagerUrl;
+        yield return FileManagerUrl;
+        yield return CurrentJobs;
+        yield return UploadFilesUrl;
+        yield return EditJobUrl;
+        yield return DevicesUrl;
+    }
+
     public const string StartPageUrl = "/";
     public const string NewJobUrl = "/NewJob";
     public const string CriticalErrorsUrl = "/CriticalErrors";
