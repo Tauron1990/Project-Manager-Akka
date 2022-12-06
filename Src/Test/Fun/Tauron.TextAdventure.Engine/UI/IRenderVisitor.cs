@@ -8,4 +8,6 @@ public interface IRenderVisitor
     void VisitCustom(CustomElement customElement);
     void VisitGameTitle(GameTitleElement gameTitleElement);
     void VisitMulti(MultiElement multiElement);
+    void VisitCommandMenu(CommandMenu commandMenu);
+    void VisitCommandItem(CommandItem commandItem);
 }

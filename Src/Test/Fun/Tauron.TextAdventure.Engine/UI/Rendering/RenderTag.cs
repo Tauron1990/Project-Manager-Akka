@@ -1,9 +1,6 @@
 namespace Tauron.TextAdventure.Engine.UI.Rendering;
 
-public readonly struct RenderTag
+public readonly record struct RenderTag(string TagValue)
 {
-    public readonly string TagValue = string.Empty;
-
-    public RenderTag(string tagValue)
-        => TagValue = tagValue;
+    public bool IsEmpty => string.IsNullOrEmpty(TagValue);
 }

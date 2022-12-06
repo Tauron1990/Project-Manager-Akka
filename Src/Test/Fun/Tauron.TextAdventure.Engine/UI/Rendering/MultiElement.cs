@@ -14,6 +14,14 @@ public sealed class MultiElement : RenderElement
     private MultiElement(ImmutableList<RenderElement> elements)
         => Elements = elements;
 
+    public override RenderElement WithTag(in RenderTag tag)
+    {
+        foreach (RenderElement renderElement in Elements.Where(e => e.Tag.IsEmpty))
+            renderElement.WithTag(tag);
+
+        return base.WithTag(tag);
+    }
+
     public static MultiElement Add(MultiElement element, RenderElement toRender) => new(element.Elements.Add(toRender));
     
     public static MultiElement AddRange(MultiElement element, IEnumerable<RenderElement> toRender) => new(element.Elements.AddRange(toRender));

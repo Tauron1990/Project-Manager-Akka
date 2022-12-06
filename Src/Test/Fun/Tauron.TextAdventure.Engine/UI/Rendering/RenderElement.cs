@@ -4,7 +4,7 @@ public abstract class RenderElement
 {
     public RenderTag Tag { get; set; }
 
-    public RenderElement WithTag(RenderTag tag)
+    public virtual RenderElement WithTag(in RenderTag tag)
     {
         Tag = tag;
 
