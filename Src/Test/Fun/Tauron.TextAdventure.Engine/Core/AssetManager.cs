@@ -17,12 +17,20 @@ public sealed class AssetManager
         throw new InvalidOperationException($"An Resource with Name {name} is already registrated");
     }
 
+    public string GetString(string name)
+    {
+        if(_assets.TryGetValue(name, out IBox? toCast) && toCast is Box<string> box)
+            return box.Lazy.Value;
+
+        return name;
+    }
+    
     public TData Get<TData>(string name)
     {
         if(_assets.TryGetValue(name, out IBox? toCast) && toCast is Box<TData> box)
             return box.Lazy.Value;
 
-        throw new InvalidOperationException("The Specific Asse tis not found or has anathor Type");
+        throw new InvalidOperationException("The Specific Asset tis not found or has anathor Type");
     }
 
     public Option<TData> TryGet<TData>(string name)

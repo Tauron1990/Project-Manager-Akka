@@ -12,6 +12,8 @@ namespace Tauron.TextAdventure.Engine;
 [PublicAPI]
 public sealed class GameHost
 {
+    internal static ImmutableList<PackageElement> PostConfig = ImmutableList<PackageElement>.Empty;
+    
     public static async ValueTask<IHost> Create<TGame>(string[] args)
         where TGame : GameBase, new()
     {
@@ -30,19 +32,20 @@ public sealed class GameHost
                 elements = elements.AddRange(element.Content());
         }
 
+        PostConfig = elements;
+        
         hostBuilder.ConfigureServices(
             c =>
             {
                 c
+                   .AddSingleton<AssetManager>()
                    .AddTransient<MainMenu>()
                    .AddSingleton(game)
-                   .AddSingleton<IUILayer>(sp => sp.GetRequiredService<TGame>().CreateUILayer())
+                   .AddSingleton<IUILayer>(sp => sp.GetRequiredService<TGame>().CreateUILayer(sp))
                    .AddHostedService<GameHostingService<TGame>>();
 
                 foreach (PackageElement element in elements)
-                {
                     element.Apply(c);
-                }
             });
         
         return hostBuilder.Build();

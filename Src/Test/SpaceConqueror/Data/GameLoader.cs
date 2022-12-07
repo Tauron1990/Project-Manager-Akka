@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using JetBrains.Annotations;
+using SpaceConqueror.Data.Assets;
 using Tauron.TextAdventure.Engine.GamePackages;
 
 namespace SpaceConqueror.Data;
@@ -13,6 +14,6 @@ public sealed class GameLoader : SinglePackage
 
     protected override IEnumerable<PackageElement> LoadPack()
     {
-        yield break;
+        yield return PackageElement.Asset(AssetLoader.LoadAssets);
     }
 }

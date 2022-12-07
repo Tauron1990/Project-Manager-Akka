@@ -25,12 +25,17 @@ public abstract class SpectreVisitor : IRenderVisitor
         }
         private set => _root = value;
     }
-    
+
+    protected void AddWriter(Action action)
+        => _writers = _writers.Add(action);
+
+    public void RunRender()
+        => _writers.ForEach(a => a());
     
     public virtual void Visit(RenderElement element)
     {
         Root = element;
-        _writers = ImmutableList<Action>.Empty;
+        _writers = ImmutableList<Action>.Empty.Add(AnsiConsole.Clear);
         
         element.Accept(this);
     }
@@ -47,5 +52,31 @@ public abstract class SpectreVisitor : IRenderVisitor
         }
     }
     public abstract void VisitGameTitle(GameTitleElement gameTitleElement);
-    public abstract void VisitMulti(MultiElement multiElement);
+
+    public virtual void VisitMulti(MultiElement multiElement)
+    {
+        foreach (RenderElement element in multiElement.Elements)
+            element.Accept(this);
+    }
+
+    public void VisitCommandMenu(CommandMenu commandMenu)
+    {
+        var frame = new CommandFrame
+                    {
+                        Name = commandMenu.Name,
+                    };
+
+        NextCommandFrame(frame);
+
+        foreach (CommandBase menuItem in commandMenu.MenuItems)
+            menuItem.Accept(this);
+        
+        CommandFrameExit();
+    }
+
+    protected abstract void NextCommandFrame(CommandFrame frame);
+
+    protected abstract void CommandFrameExit();
+    
+    public abstract void VisitCommandItem(CommandItem commandItem);
 }

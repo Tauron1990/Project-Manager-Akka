@@ -1,5 +1,3 @@
-using System.Runtime.Loader;
-
 namespace Tauron.TextAdventure.Engine.GamePackages.Fetchers;
 
 public sealed class DirectoryLoader : PackageFetcherBase

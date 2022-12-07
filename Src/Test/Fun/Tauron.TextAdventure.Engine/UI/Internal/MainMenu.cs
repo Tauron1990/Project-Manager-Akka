@@ -17,11 +17,10 @@ public sealed class MainMenu
     {
         RenderElement titleElement = _uiLayer.CreateTitle();
         RenderElement menuRender = MultiElement.Create(
-            titleElement,
-            new CommandMenu(
+                titleElement,
                 new CommandItem(UiKeys.NewGame),
                 new CommandItem(UiKeys.LoadGame),
-                new CommandItem(UiKeys.CloseGame)))
+                new CommandItem(UiKeys.CloseGame))
            .WithTag(Tags.MainMenu);
         
         while (true)

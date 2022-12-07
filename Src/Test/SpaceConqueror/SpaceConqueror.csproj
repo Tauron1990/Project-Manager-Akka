@@ -50,4 +50,10 @@
       <ProjectReference Include="..\Fun\Tauron.TextAdventure.Engine.Console\Tauron.TextAdventure.Engine.Console.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="GameData\lang\de.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>

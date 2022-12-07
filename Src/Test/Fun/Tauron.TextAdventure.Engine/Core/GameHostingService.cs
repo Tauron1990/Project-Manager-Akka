@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using System.Collections.Immutable;
+using Microsoft.Extensions.Hosting;
+using Tauron.TextAdventure.Engine.GamePackages;
 
 namespace Tauron.TextAdventure.Engine.Core;
 
@@ -18,6 +20,11 @@ public sealed class GameHostingService<TGame> : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        foreach(PackageElement element in GameHost.PostConfig)
+            element.PostConfig(_serviceProvider);
+        
+        GameHost.PostConfig = ImmutableList<PackageElement>.Empty;
+        
         await _game.Run(_serviceProvider, stoppingToken).ConfigureAwait(false);
         _lifetime.StopApplication();
     }

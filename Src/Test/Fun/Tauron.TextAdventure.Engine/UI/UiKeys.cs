@@ -7,4 +7,6 @@ public static class UiKeys
     public const string LoadGame = nameof(LoadGame);
 
     public const string CloseGame = nameof(CloseGame);
+
+    public const string More = nameof(More);
 }
