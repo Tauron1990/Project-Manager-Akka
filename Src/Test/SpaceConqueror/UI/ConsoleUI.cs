@@ -24,7 +24,7 @@ public sealed class ConsoleUI : SpectreConsoleLayerBase<ConsoleUIVisitor>
 
     private async ValueTask<string> ExecuteFrame(ConsoleUIVisitor visitor)
     {
-        CommandFrame frame = visitor.Root;
+        CommandFrame frame = visitor.RootCommandFrame;
         
         while (true)
         {

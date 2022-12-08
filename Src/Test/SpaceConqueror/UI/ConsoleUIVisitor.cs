@@ -20,19 +20,19 @@ public sealed class ConsoleUIVisitor : SpectreVisitor
         }
         set => _currentFrame = value;
     }
-    
-    public CommandFrame Root { get; private set; }
 
+    public CommandFrame RootCommandFrame { get; set; }
+    
     public ConsoleUIVisitor()
-        => Root = new CommandFrame();
+        => RootCommandFrame = new CommandFrame();
 
     public override void VisitGameTitle(GameTitleElement gameTitleElement)
         => AddWriter(static () => AnsiConsole.Write(new FigletText("Space Conqueror"){ Alignment = Justify.Center}));
 
     public override void Visit(RenderElement element)
     {
-        Root = new CommandFrame();
-        _currentFrame = Root;
+        RootCommandFrame = new CommandFrame();
+        _currentFrame = RootCommandFrame;
         _frames.Clear();
         
         base.Visit(element);

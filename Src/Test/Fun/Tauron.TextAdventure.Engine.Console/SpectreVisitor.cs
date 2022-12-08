@@ -23,7 +23,7 @@ public abstract class SpectreVisitor : IRenderVisitor
             
             return _root;
         }
-        private set => _root = value;
+        protected set => _root = value;
     }
 
     protected void AddWriter(Action action)

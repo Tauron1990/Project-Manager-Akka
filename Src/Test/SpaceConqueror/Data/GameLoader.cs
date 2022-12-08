@@ -15,5 +15,6 @@ public sealed class GameLoader : SinglePackage
     protected override IEnumerable<PackageElement> LoadPack()
     {
         yield return PackageElement.Asset(AssetLoader.LoadAssets);
+        yield return PackageElement.Translate("GameData");
     }
 }

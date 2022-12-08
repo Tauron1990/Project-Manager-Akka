@@ -17,13 +17,13 @@ public sealed class Translator : PackageElement
     internal override void PostConfig(IServiceProvider serviceProvider)
     {
         var manager = serviceProvider.GetRequiredService<AssetManager>();
-        string culture = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.ToLower(CultureInfo.InvariantCulture);
+        var culture = $"{CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.ToLower(CultureInfo.InvariantCulture)}.json";
 
         string[] files = Directory.GetFiles(_fromDic, "*.json");
 
         string? targetFile = files.FirstOrDefault(d => d.EndsWith(culture, StringComparison.Ordinal));
         if(string.IsNullOrWhiteSpace(targetFile))
-            targetFile = files.FirstOrDefault(d => d.EndsWith("en", StringComparison.Ordinal));
+            targetFile = files.FirstOrDefault(d => d.EndsWith("en.json", StringComparison.Ordinal));
         if(string.IsNullOrWhiteSpace(targetFile))
             targetFile = files.FirstOrDefault();
         if(string.IsNullOrWhiteSpace(targetFile))
@@ -38,6 +38,9 @@ public sealed class Translator : PackageElement
         using JsonDocument doc = JsonDocument.Parse(stream);
 
         foreach (JsonProperty jsonProperty in doc.RootElement.EnumerateObject())
-            manager.Add(jsonProperty.Name, () => jsonProperty.Value.ToString());
+        {
+            var value = jsonProperty.Value.ToString();
+            manager.Add(jsonProperty.Name, () => value);
+        }
     }
 }

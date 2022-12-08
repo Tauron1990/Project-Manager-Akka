@@ -38,7 +38,7 @@ public sealed class GameHost
             c =>
             {
                 c
-                   .AddSingleton<AssetManager>()
+                   .AddSingleton(new AssetManager())
                    .AddTransient<MainMenu>()
                    .AddSingleton(game)
                    .AddSingleton<IUILayer>(sp => sp.GetRequiredService<TGame>().CreateUILayer(sp))
