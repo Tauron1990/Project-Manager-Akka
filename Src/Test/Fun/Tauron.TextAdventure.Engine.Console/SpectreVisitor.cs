@@ -79,4 +79,7 @@ public abstract class SpectreVisitor : IRenderVisitor
     protected abstract void CommandFrameExit();
     
     public abstract void VisitCommandItem(CommandItem commandItem);
+    public abstract void VisitSpacing(SpacingElement spacingElement);
+    public abstract void VisitAsk(AskElement askElement);
+    public abstract void VisitText(TextElement textElement);
 }

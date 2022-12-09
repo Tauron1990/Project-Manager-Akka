@@ -11,6 +11,8 @@ namespace SpaceConqueror;
 
 public sealed class Game : GameBase
 {
+    public override string AppName => "Space Conqueror";
+
     protected override IUILayer CreateUILayer(IServiceProvider serviceProvider)
         => (ConsoleUI)ActivatorUtilities.CreateInstance(serviceProvider, typeof(ConsoleUI));
 

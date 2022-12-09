@@ -1,16 +1,22 @@
 ﻿using System.Globalization;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Hosting;
 using Tauron.TextAdventure.Engine.Core;
 
 namespace Tauron.TextAdventure.Engine.GamePackages.Elements;
 
 public sealed class Translator : PackageElement
 {
+    private readonly IHostEnvironment _environment;
     private readonly string _fromDic;
     
-    public Translator(string fromDic)
-        => _fromDic = Path.Combine(Path.GetFullPath(fromDic), "lang");
+    public Translator(string fromDic, IHostEnvironment environment)
+    {
+        _environment = environment;
+        _fromDic = Path.Combine(fromDic, "lang");
+    }
 
     internal override void Apply(IServiceCollection serviceCollection) { }
 
@@ -19,22 +25,26 @@ public sealed class Translator : PackageElement
         var manager = serviceProvider.GetRequiredService<AssetManager>();
         var culture = $"{CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.ToLower(CultureInfo.InvariantCulture)}.json";
 
-        string[] files = Directory.GetFiles(_fromDic, "*.json");
+        IDirectoryContents fromDic = _environment.ResolvePath(_fromDic);
 
-        string? targetFile = files.FirstOrDefault(d => d.EndsWith(culture, StringComparison.Ordinal));
-        if(string.IsNullOrWhiteSpace(targetFile))
-            targetFile = files.FirstOrDefault(d => d.EndsWith("en.json", StringComparison.Ordinal));
-        if(string.IsNullOrWhiteSpace(targetFile))
+        var files = fromDic.Where(fi => fi.Name.EndsWith(".json", StringComparison.Ordinal)).ToArray();
+
+        IFileInfo? targetFile = files.FirstOrDefault(d => d.Name.EndsWith(culture, StringComparison.Ordinal));
+        // ReSharper disable ConvertIfStatementToNullCoalescingExpression
+        if(targetFile is null)
+            targetFile = files.FirstOrDefault(d => d.Name.EndsWith("en.json", StringComparison.Ordinal));
+        if(targetFile is null)
             targetFile = files.FirstOrDefault();
-        if(string.IsNullOrWhiteSpace(targetFile))
+        if(targetFile is null)
             return;
+        // ReSharper restore ConvertIfStatementToNullCoalescingExpression
 
         ReadLoacels(manager, targetFile);
     }
 
-    private void ReadLoacels(AssetManager manager, string targetFile)
+    private void ReadLoacels(AssetManager manager, IFileInfo targetFile)
     {
-        using FileStream stream = File.OpenRead(targetFile);
+        using Stream stream = targetFile.CreateReadStream();
         using JsonDocument doc = JsonDocument.Parse(stream);
 
         foreach (JsonProperty jsonProperty in doc.RootElement.EnumerateObject())

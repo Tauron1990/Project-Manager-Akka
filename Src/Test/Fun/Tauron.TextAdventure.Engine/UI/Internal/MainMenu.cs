@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Hosting;
+using Tauron.TextAdventure.Engine.Systems;
 using Tauron.TextAdventure.Engine.UI.Rendering;
 
 namespace Tauron.TextAdventure.Engine.UI.Internal;
@@ -5,11 +7,15 @@ namespace Tauron.TextAdventure.Engine.UI.Internal;
 public sealed class MainMenu
 {
     private readonly IUILayer _uiLayer;
+    private readonly IEnumerable<ISystem> _systems;
+    private readonly EventManager _eventManager;
     private readonly IRenderVisitor _renderVisitor;
     
-    public MainMenu(IUILayer uiLayer)
+    public MainMenu(IUILayer uiLayer, IEnumerable<ISystem> systems, EventManager eventManager)
     {
         _uiLayer = uiLayer;
+        _systems = systems;
+        _eventManager = eventManager;
         _renderVisitor = uiLayer.CreateForPage();
     }
 
@@ -18,11 +24,12 @@ public sealed class MainMenu
         RenderElement titleElement = _uiLayer.CreateTitle();
         RenderElement menuRender = MultiElement.Create(
                 titleElement,
+                new SpacingElement { Amount = 3 },
                 new CommandItem(UiKeys.NewGame),
                 new CommandItem(UiKeys.LoadGame),
                 new CommandItem(UiKeys.CloseGame))
            .WithTag(Tags.MainMenu);
-        
+
         while (true)
         {
             _renderVisitor.Visit(menuRender);
@@ -31,10 +38,16 @@ public sealed class MainMenu
             switch (result)
             {
                 case UiKeys.NewGame:
-                    Console.WriteLine("Neues Spiel");
+                    string? name = await new NewGameMenu(_uiLayer).SelectName();
+                    if(string.IsNullOrWhiteSpace(name)) continue;
+                    
+                    await GameHost.RunGame(name, _eventManager, _systems);
                     break;
                 case UiKeys.LoadGame:
-                    Console.WriteLine("Spiel Laden");
+                    string? toLoad = await new LoadGameMenu(_uiLayer).Show();
+                    if(string.IsNullOrWhiteSpace(toLoad)) continue;
+
+                    await GameHost.RunGame(toLoad, _eventManager, _systems);
                     break;
                 case UiKeys.CloseGame:
                     return;

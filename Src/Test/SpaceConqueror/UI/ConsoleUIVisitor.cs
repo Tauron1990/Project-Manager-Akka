@@ -50,4 +50,20 @@ public sealed class ConsoleUIVisitor : SpectreVisitor
 
     public override void VisitCommandItem(CommandItem commandItem)
         => CurrentFrame.AddItem(commandItem);
+
+    public override void VisitSpacing(SpacingElement spacingElement)
+    {
+        for (int i = 0; i < spacingElement.Amount; i++)
+        {
+            AddWriter(AnsiConsole.WriteLine);
+        }
+    }
+
+    public override void VisitAsk(AskElement askElement)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override void VisitText(TextElement textElement)
+        => AddWriter(() => AnsiConsole.WriteLine(textElement.Test));
 }

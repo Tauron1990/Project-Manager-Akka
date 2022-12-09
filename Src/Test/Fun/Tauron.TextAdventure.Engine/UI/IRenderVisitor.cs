@@ -10,4 +10,7 @@ public interface IRenderVisitor
     void VisitMulti(MultiElement multiElement);
     void VisitCommandMenu(CommandMenu commandMenu);
     void VisitCommandItem(CommandItem commandItem);
+    void VisitSpacing(SpacingElement spacingElement);
+    void VisitAsk(AskElement askElement);
+    void VisitText(TextElement textElement);
 }

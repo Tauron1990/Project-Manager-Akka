@@ -6,12 +6,15 @@ namespace Tauron.TextAdventure.Engine.Console;
 public abstract class SpectreConsoleLayerBase<TVisitor> : IUILayer
     where TVisitor : SpectreVisitor
 {
+    protected SpectreConsoleLayerBase(GameBase game)
+        => System.Console.Title = game.AppName;
+
     public IRenderVisitor CreateForPage()
         => CreateForConsole();
 
     protected abstract TVisitor CreateForConsole();
 
-    public ValueTask<string> ExecutePage(IRenderVisitor visitor)
+    public ValueTask<string?> ExecutePage(IRenderVisitor visitor)
     {
         if(visitor is TVisitor spectreVisitor)
             return ExecutePage(spectreVisitor);

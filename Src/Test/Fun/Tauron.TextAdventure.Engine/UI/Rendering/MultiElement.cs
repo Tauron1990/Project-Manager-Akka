@@ -27,6 +27,9 @@ public sealed class MultiElement : RenderElement
     public static MultiElement AddRange(MultiElement element, IEnumerable<RenderElement> toRender) => new(element.Elements.AddRange(toRender));
 
     public static MultiElement Create(params RenderElement[] elements) => new(ImmutableList<RenderElement>.Empty.AddRange(elements));
+    
+    public static MultiElement Create(IEnumerable<RenderElement> elements) => new(ImmutableList<RenderElement>.Empty.AddRange(elements));
+    
     public override void Accept(IRenderVisitor visitor)
         => visitor.VisitMulti(this);
 }

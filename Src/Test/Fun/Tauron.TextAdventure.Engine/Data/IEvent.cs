@@ -2,5 +2,7 @@
 
 public interface IEvent : ISaveable
 {
-    long Sequence { get; }
+    int Sequence { get; }
+
+    IEvent WithSequence(int value);
 }

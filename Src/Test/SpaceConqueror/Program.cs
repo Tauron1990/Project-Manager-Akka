@@ -10,8 +10,6 @@ public static class Program
     {
         try
         {
-            Console.Title = "Space Conqueror";
-
             IHost host = await GameHost.Create<Game>(args).ConfigureAwait(false);
 
             await host.RunAsync().ConfigureAwait(false);

@@ -1,4 +1,5 @@
 using System.Reflection;
+using Microsoft.Extensions.Hosting;
 
 namespace Tauron.TextAdventure.Engine.GamePackages.Fetchers;
 
@@ -9,7 +10,7 @@ public class AssemblyLoader : PackageFetcherBase
     public AssemblyLoader(Assembly assembly)
         => _assembly = assembly;
 
-    public override async IAsyncEnumerable<GamePackage> Load()
+    public override async IAsyncEnumerable<GamePackage> Load(IHostEnvironment environment)
     {
 
         foreach (IGamePackageFetcher? package in _assembly
@@ -18,7 +19,7 @@ public class AssemblyLoader : PackageFetcherBase
                     .Select(Activator.CreateInstance)
                     .Cast<IGamePackageFetcher>())
 
-            await foreach (GamePackage pack in package.Load().ConfigureAwait(false))
+            await foreach (GamePackage pack in package.Load(environment).ConfigureAwait(false))
                 yield return pack;
     }
 }

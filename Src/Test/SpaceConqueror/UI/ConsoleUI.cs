@@ -1,4 +1,5 @@
 using Spectre.Console;
+using Tauron.TextAdventure.Engine;
 using Tauron.TextAdventure.Engine.Console;
 using Tauron.TextAdventure.Engine.Core;
 using Tauron.TextAdventure.Engine.UI;
@@ -10,7 +11,8 @@ public sealed class ConsoleUI : SpectreConsoleLayerBase<ConsoleUIVisitor>
 {
     private readonly AssetManager _manager;
 
-    public ConsoleUI(AssetManager manager)
+    public ConsoleUI(AssetManager manager, GameBase game)
+        : base(game)
         => _manager = manager;
 
     protected override ConsoleUIVisitor CreateForConsole() 

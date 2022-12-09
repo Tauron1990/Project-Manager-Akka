@@ -1,8 +1,10 @@
 ﻿using System.Collections.Immutable;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Tauron.TextAdventure.Engine.Core;
 using Tauron.TextAdventure.Engine.GamePackages.Elements;
+using Tauron.TextAdventure.Engine.Systems;
 
 namespace Tauron.TextAdventure.Engine.GamePackages;
 
@@ -16,10 +18,14 @@ public abstract class PackageElement
     public static PackageElement Group(IEnumerable<PackageElement> gamepackages)
         => new GroupingElement(gamepackages);
 
-    public static PackageElement Translate(string path) => new Translator(path);
+    public static PackageElement Translate(IHostEnvironment environment, string path) => new Translator(path, environment);
 
     public static PackageElement Asset(Action<AssetManager> configurator) => new AssetLoader(configurator);
-    
+
+    public static PackageElement System<TSystem>()
+        where TSystem : class, ISystem
+        => new SystemElement<TSystem>();
+
     private sealed class GroupingElement : PackageElement
     {
         private readonly IEnumerable<PackageElement> _gamepackages;

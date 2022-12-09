@@ -6,7 +6,7 @@ public interface IUILayer
 {
     IRenderVisitor CreateForPage();
 
-    ValueTask<string> ExecutePage(IRenderVisitor visitor);
+    ValueTask<string?> ExecutePage(IRenderVisitor visitor);
 
     RenderElement CreateTitle();
 }

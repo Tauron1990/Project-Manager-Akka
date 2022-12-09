@@ -11,6 +11,10 @@ namespace Tauron.TextAdventure.Engine;
 [PublicAPI]
 public abstract class GameBase
 {
+    protected internal virtual string ContentRoot { get; } = Environment.CurrentDirectory;
+    
+    public abstract string AppName { get; }
+    
     protected internal abstract IUILayer CreateUILayer(IServiceProvider serviceProvider);
 
     protected internal abstract IGamePackageFetcher CreateGamePackage();
