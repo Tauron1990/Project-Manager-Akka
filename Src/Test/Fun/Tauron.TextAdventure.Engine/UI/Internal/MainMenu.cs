@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Hosting;
-using Tauron.TextAdventure.Engine.Systems;
 using Tauron.TextAdventure.Engine.UI.Rendering;
 
 namespace Tauron.TextAdventure.Engine.UI.Internal;
@@ -7,23 +5,21 @@ namespace Tauron.TextAdventure.Engine.UI.Internal;
 public sealed class MainMenu
 {
     private readonly IUILayer _uiLayer;
-    private readonly IEnumerable<ISystem> _systems;
-    private readonly EventManager _eventManager;
+    private readonly IServiceProvider _serviceProvider;
     private readonly IRenderVisitor _renderVisitor;
     
-    public MainMenu(IUILayer uiLayer, IEnumerable<ISystem> systems, EventManager eventManager)
+    public MainMenu(IUILayer uiLayer, IServiceProvider serviceProvider)
     {
         _uiLayer = uiLayer;
-        _systems = systems;
-        _eventManager = eventManager;
+        _serviceProvider = serviceProvider;
         _renderVisitor = uiLayer.CreateForPage();
     }
 
+    // ReSharper disable once CognitiveComplexity
     public async ValueTask Show()
     {
-        RenderElement titleElement = _uiLayer.CreateTitle();
         RenderElement menuRender = MultiElement.Create(
-                titleElement,
+                _uiLayer.CreateTitle(),
                 new SpacingElement { Amount = 3 },
                 new CommandItem(UiKeys.NewGame),
                 new CommandItem(UiKeys.LoadGame),
@@ -33,21 +29,21 @@ public sealed class MainMenu
         while (true)
         {
             _renderVisitor.Visit(menuRender);
-            string result = await _uiLayer.ExecutePage(_renderVisitor).ConfigureAwait(false);
+            string? result = await _uiLayer.ExecutePage(_renderVisitor).ConfigureAwait(false);
 
             switch (result)
             {
                 case UiKeys.NewGame:
-                    string? name = await new NewGameMenu(_uiLayer).SelectName();
+                    string? name = await new NewGameMenu(_uiLayer).SelectName().ConfigureAwait(false);
                     if(string.IsNullOrWhiteSpace(name)) continue;
                     
-                    await GameHost.RunGame(name, _eventManager, _systems);
+                    await GameHost.RunGame(name, _serviceProvider).ConfigureAwait(false);
                     break;
                 case UiKeys.LoadGame:
-                    string? toLoad = await new LoadGameMenu(_uiLayer).Show();
+                    string? toLoad = await new LoadGameMenu(_uiLayer).Show().ConfigureAwait(false);
                     if(string.IsNullOrWhiteSpace(toLoad)) continue;
 
-                    await GameHost.RunGame(toLoad, _eventManager, _systems);
+                    await GameHost.RunGame(toLoad, _serviceProvider).ConfigureAwait(false);
                     break;
                 case UiKeys.CloseGame:
                     return;

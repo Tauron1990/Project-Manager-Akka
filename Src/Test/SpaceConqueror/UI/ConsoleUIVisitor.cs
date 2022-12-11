@@ -21,18 +21,22 @@ public sealed class ConsoleUIVisitor : SpectreVisitor
         set => _currentFrame = value;
     }
 
-    public CommandFrame RootCommandFrame { get; set; }
-    
-    public ConsoleUIVisitor()
-        => RootCommandFrame = new CommandFrame();
+    public IInputElement? RootInputElement { get; private set; }
 
+    private void SetRootInput(IInputElement inputElement)
+    {
+        if(RootInputElement is null)
+            RootInputElement = inputElement;
+        else
+            throw new InvalidOperationException("Only one Input Element can be Used");
+    }
+    
     public override void VisitGameTitle(GameTitleElement gameTitleElement)
         => AddWriter(static () => AnsiConsole.Write(new FigletText("Space Conqueror"){ Alignment = Justify.Center}));
 
     public override void Visit(RenderElement element)
     {
-        RootCommandFrame = new CommandFrame();
-        _currentFrame = RootCommandFrame;
+        RootInputElement = null;
         _frames.Clear();
         
         base.Visit(element);
@@ -40,6 +44,13 @@ public sealed class ConsoleUIVisitor : SpectreVisitor
 
     protected override void NextCommandFrame(CommandFrame frame)
     {
+        if(RootInputElement is null)
+        {
+            _currentFrame = frame;
+            SetRootInput(frame);
+            return;
+        }
+        
         _frames.Push(CurrentFrame);
         CurrentFrame.AddFrame(frame);
         CurrentFrame = frame;
@@ -60,9 +71,7 @@ public sealed class ConsoleUIVisitor : SpectreVisitor
     }
 
     public override void VisitAsk(AskElement askElement)
-    {
-        throw new NotImplementedException();
-    }
+        => SetRootInput(new AskInputElement(askElement.Label));
 
     public override void VisitText(TextElement textElement)
         => AddWriter(() => AnsiConsole.WriteLine(textElement.Test));

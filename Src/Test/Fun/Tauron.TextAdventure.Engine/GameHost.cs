@@ -1,10 +1,12 @@
 using System.Collections.Immutable;
+using System.Reactive.Disposables;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Hosting.Internal;
 using Tauron.TextAdventure.Engine.Core;
+using Tauron.TextAdventure.Engine.Data;
 using Tauron.TextAdventure.Engine.GamePackages;
 using Tauron.TextAdventure.Engine.Systems;
 using Tauron.TextAdventure.Engine.UI;
@@ -79,8 +81,28 @@ public sealed class GameHost
         return elements;
     }
 
-    public static async ValueTask RunGame(string toLoad, EventManager eventManager, IEnumerable<ISystem> systems)
-    { 
-        
+    public static async ValueTask RunGame(string toLoad, IServiceProvider serviceProvider)
+    {
+        AsyncServiceScope scope = serviceProvider.CreateAsyncScope();
+        await using (scope.ConfigureAwait(false))
+        {
+            using var disposer = new CompositeDisposable();
+
+            var eventManager = scope.ServiceProvider.GetRequiredService<EventManager>();
+            var systems = scope.ServiceProvider.GetRequiredService<IEnumerable<ISystem>>();
+
+            var store = new EventStore(toLoad);
+            store.LoadGame();
+
+            eventManager.Initialize(store);
+
+            foreach (IDisposable system in systems.SelectMany(s => s.Initialize(eventManager)))
+                disposer.Add(system);
+
+            var menu = new RunningGame(scope.ServiceProvider);
+            await menu.RunGame().ConfigureAwait(false);
+
+            eventManager.Free();
+        }
     }
 }

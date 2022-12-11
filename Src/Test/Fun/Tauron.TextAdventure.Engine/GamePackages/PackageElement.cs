@@ -3,6 +3,7 @@ using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Tauron.TextAdventure.Engine.Core;
+using Tauron.TextAdventure.Engine.Data;
 using Tauron.TextAdventure.Engine.GamePackages.Elements;
 using Tauron.TextAdventure.Engine.Systems;
 
@@ -26,6 +27,10 @@ public abstract class PackageElement
         where TSystem : class, ISystem
         => new SystemElement<TSystem>();
 
+    public static PackageElement Event<TEvent>(Action<GameState, TEvent> apply) 
+        where TEvent : IEvent
+        => new RegisterEvent<TEvent>(apply);
+    
     private sealed class GroupingElement : PackageElement
     {
         private readonly IEnumerable<PackageElement> _gamepackages;

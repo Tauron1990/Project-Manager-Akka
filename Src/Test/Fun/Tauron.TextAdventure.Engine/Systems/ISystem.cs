@@ -5,5 +5,5 @@ namespace Tauron.TextAdventure.Engine.Systems;
 [PublicAPI]
 public interface ISystem
 {
-    IObservable<object> Initialize(EventManager eventManager);
+    IEnumerable<IDisposable> Initialize(EventManager eventManager);
 }

@@ -24,7 +24,8 @@ public sealed class LoadGameMenu
                 new SpacingElement { Amount = 3},
                 new TextElement("Speicherstände"),
                 new SpacingElement(),
-                MultiElement.Create(saveFiles.Select(s => new CommandItem(s)))
+                MultiElement.Create(saveFiles.Select(s => new CommandItem(s))),
+                new CommandItem(UiKeys.Cancel)
             )
            .WithTag(Tags.LoadGame);
         
