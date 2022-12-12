@@ -20,7 +20,12 @@ public sealed partial class
         Receive<QueryDevices>(obs => obs.ToUnit(p => p.Sender.Tell(new DevicesResponse(p.State.Devices))));
 
         Receive<IDeviceCommand>(obs => obs.ToUnit(p => p.Context.Child(p.Event.DeviceName.Value).Forward(p.Event)));
-        Receive<Terminated>(obs => obs.ToUnit(p => p.State.Events.Publish(new DeviceRemoved(new DeviceId(p.Event.ActorRef.Path.Name)))));
+        Receive<Terminated>(obs => obs.Select(p =>
+                                              {
+                                                  p.State.Events.Publish(new DeviceRemoved(new DeviceId(p.Event.ActorRef.Path.Name)));
+
+                                                  return p.State with { Devices = p.State.Devices.Remove(new DeviceId(p.Event.ActorRef.Path.Name)) };
+                                              }));
     }
 
     [LoggerMessage(EventId = 57, Level = LogLevel.Debug, Message = "New Device Registration Incomming from {path} with {name} and {id}")]
@@ -51,7 +56,7 @@ public sealed partial class
                 }
 
 
-                if(!state.Devices.ContainsKey(evt.DeviceId))
+                if(state.Devices.ContainsKey(evt.DeviceId))
                 {
                     DuplicateDeviceRegistration(Logger, evt.DeviceId, pair.Sender.Path);
                     pair.Sender.Tell(new DeviceInfoResponse(Duplicate: true, SimpleResult.Failure("Duplicate Device Registration")));

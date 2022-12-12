@@ -69,7 +69,7 @@ public sealed class GameHost
                              ContentRootFileProvider = new PhysicalFileProvider(game.ContentRoot),
                          };
         
-        var elements = ImmutableList<PackageElement>.Empty;
+        var elements = ImmutableList<PackageElement>.Empty.AddRange(CorePack.LoadCore());
         var metas = new HashSet<Metadata>();
 
         await foreach (GamePackage element in game.CreateGamePackage().Load(enviroment).ConfigureAwait(false))
@@ -92,9 +92,9 @@ public sealed class GameHost
             var systems = scope.ServiceProvider.GetRequiredService<IEnumerable<ISystem>>();
 
             var store = new EventStore(toLoad);
-            store.LoadGame();
-
+            
             eventManager.Initialize(store);
+            store.LoadGame();
 
             foreach (IDisposable system in systems.SelectMany(s => s.Initialize(eventManager)))
                 disposer.Add(system);

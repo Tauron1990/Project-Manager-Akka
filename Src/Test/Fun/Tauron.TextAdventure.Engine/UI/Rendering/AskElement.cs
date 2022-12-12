@@ -3,7 +3,7 @@
 namespace Tauron.TextAdventure.Engine.UI.Rendering;
 
 [PublicAPI]
-public sealed class AskElement : RenderElement
+public sealed class AskElement : CommandBase
 {
     public string Label { get; }
 

@@ -9,7 +9,7 @@ internal sealed class EventStore
 {
     private ImmutableSortedDictionary<int, IEvent> CurrentEvents { get; set; }
 
-    private GameState GameState { get; }
+    internal GameState GameState { get; }
 
     private string SaveGameName { get; }
 

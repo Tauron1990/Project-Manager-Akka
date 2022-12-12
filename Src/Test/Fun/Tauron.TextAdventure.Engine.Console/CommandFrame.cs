@@ -41,7 +41,8 @@ public sealed class CommandFrame : IInputElement
             {
                 reRender();
 
-                var selector = new SelectionPrompt<FrameItem>().Title(frame.Name)
+                var selector = new SelectionPrompt<FrameItem>()
+                   .Title(manager.GetString(frame.Name))
                    .AddChoices(frame.CreateItems())
                    .PageSize(10)
                    .MoreChoicesText(manager.GetString(UiKeys.More))

@@ -1,0 +1,15 @@
+﻿using Tauron.TextAdventure.Engine.GamePackages;
+using Tauron.TextAdventure.Engine.Systems.Actor;
+using Tauron.TextAdventure.Engine.Systems.Rooms;
+
+namespace Tauron.TextAdventure.Engine.Core;
+
+internal static class CorePack
+{
+    internal static IEnumerable<PackageElement> LoadCore()
+    {
+        yield return PackageElement.System<GameStateAdderSystem>();
+        yield return PackageElement.System<TickCommandSystem>();
+        yield return PackageElement.Init(static s => s.Get<Player>().Location = RoomKeys.Start);
+    }
+}

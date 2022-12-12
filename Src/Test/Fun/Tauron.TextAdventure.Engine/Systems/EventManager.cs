@@ -14,7 +14,9 @@ public sealed class EventManager : IDisposable
     private ImmutableDictionary<Type, IEventProcessor> _eventProcessors = ImmutableDictionary<Type, IEventProcessor>.Empty;
     private readonly Subject<object> _dispatcher = new();
 
-    private EventStore EventStore
+    internal ImmutableList<Action<GameState>> Init { get; set; }
+    
+    internal EventStore EventStore
     {
         get
         {
@@ -25,12 +27,22 @@ public sealed class EventManager : IDisposable
         }
     }
 
+    public GameState GameState => EventStore.GameState;
+    
     internal void RegisterEvent<TEvent>(Action<GameState, TEvent> processor) 
         where TEvent : IEvent
         => _eventProcessors = _eventProcessors.Add(typeof(TEvent), new EventProcessor<TEvent>(_dispatcher, processor));
-    
+
+    internal void Save()
+        => _store.SaveGame();
+
     internal void Initialize(EventStore eventStore)
-        => _store = eventStore;
+    {
+        _store = eventStore;
+
+        foreach (var action in Init)
+            action(GameState);
+    }
 
     internal void Free()
         => _store = null;

@@ -40,11 +40,18 @@ public sealed class GameState : ISaveable
         {
             string typeString = reader.ReadString();
             var type = Type.GetType(typeString, throwOnError: true);
+
+            if(type is null) throw new UnreachableException();
             
-            var state = (IState)Activator.CreateInstance(type!)!;
-            
-            state.Read(reader);
-            _states[type!] = state;
+            if(_states.TryGetValue(type, out IState? state))
+                state.Read(reader);
+            else
+            {
+                state = (IState)Activator.CreateInstance(type)!;
+
+                state.Read(reader);
+                _states[type] = state;
+            }
         }
     }
 }

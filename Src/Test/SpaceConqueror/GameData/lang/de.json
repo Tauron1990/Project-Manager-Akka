@@ -3,5 +3,8 @@
   "LoadGame": "Spiel Laden",
   "CloseGame": "Spiel Beenden",
   "More": "Weitere",
-  "Cancel": "Abbrechen"
+  "Cancel": "Abbrechen",
+  "GameCoreMenu": "Hauptmenu",
+  "SaveGame": "Speichern",
+  "CloseRunningGame": "Hauptmenü"
 }

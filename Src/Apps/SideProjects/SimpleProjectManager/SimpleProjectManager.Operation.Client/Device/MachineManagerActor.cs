@@ -100,14 +100,14 @@ public sealed partial class MachineManagerActor : ReceiveActor
                .Props(DeviceInformations.ManagerPath, ClusterSingletonProxySettings.Create(Context.System)),
             "ServerConnection");
 
-        var self = Self;
+        IActorRef? self = Self;
         
         Task.Run(
                 async () =>
                 {
                     DeviceInformations data = await _machine.CollectInfo().ConfigureAwait(false);
 
-                    return data with { DeviceId = data.DeviceId, DeviceManager = Self };
+                    return data with { DeviceManager = self };
                 })
            .PipeTo(
                 _serverManager,

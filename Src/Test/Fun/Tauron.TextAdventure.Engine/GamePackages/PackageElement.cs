@@ -30,6 +30,9 @@ public abstract class PackageElement
     public static PackageElement Event<TEvent>(Action<GameState, TEvent> apply) 
         where TEvent : IEvent
         => new RegisterEvent<TEvent>(apply);
+
+    public static PackageElement Init(Action<GameState> init)
+        => new InitGame(init);
     
     private sealed class GroupingElement : PackageElement
     {
