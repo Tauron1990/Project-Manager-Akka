@@ -144,6 +144,9 @@ public class ConsoleInteraction : IClientInteraction
                 return Console.ReadLine() ?? string.Empty;
             });
 
+    public bool AskForCancel(string operation, Exception error)
+        => throw new NotImplementedException();
+
     private static void PrintInitial<T>(T? value)
     {
         if(value is null)

@@ -19,10 +19,13 @@ namespace SimpleProjectManager.Operation.Client;
 public sealed class ClientRunner
 {
     private readonly IClientInteraction _clientInteraction;
-    private readonly ConfigManager _configManager = new();
+    private readonly ConfigManager _configManager;
 
     public ClientRunner(IClientInteraction clientInteraction)
-        => _clientInteraction = clientInteraction;
+    {
+        _clientInteraction = clientInteraction;
+        _configManager = new ConfigManager(clientInteraction);
+    }
 
     public async ValueTask<IHost> CreateClient(string[] args)
     {

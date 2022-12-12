@@ -13,12 +13,17 @@ public static class Programm
             IHost host = await new ClientRunner(new ConsoleInteraction()).CreateClient(args).ConfigureAwait(false);
             await host.RunAsync().ConfigureAwait(false);
         }
+        catch (OperationCanceledException)
+        {
+            Console.WriteLine("Start Abgebrochen");
+            Console.ReadKey(true);
+        }
         catch (Exception ex)
         {
             Console.WriteLine("Schwerer Fehler:");
             Console.WriteLine(ex);
             #pragma warning disable GU0011
-            Console.ReadLine();
+            Console.ReadKey(true);
         }
     }
 }

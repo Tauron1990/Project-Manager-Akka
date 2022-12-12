@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using Newtonsoft.Json;
+using SimpleProjectManager.Operation.Client.Core;
 using Tauron;
 using Tauron.Application;
 using Tauron.Application.VirtualFiles;
@@ -10,17 +11,27 @@ public sealed class ConfigManager
 {
     private readonly IFile _location;
 
-    public ConfigManager()
+    public ConfigManager(IClientInteraction clientInteraction)
     {
         _location = new TauronEnviromentImpl(new VirtualFileFactory()).LocalApplicationData.GetDirectory("SimpleProjectManager").GetFile("ClientOperations");
 
-        if(_location.Exist)
+        try
         {
-            using TextReader stream = _location.OpenRead();
-            Configuration = JsonConvert.DeserializeObject<OperationConfiguration>(stream.ReadToEnd()) ?? new OperationConfiguration();
+            if(_location.Exist)
+            {
+                using TextReader stream = _location.OpenRead();
+                Configuration = JsonConvert.DeserializeObject<OperationConfiguration>(stream.ReadToEnd()) ?? new OperationConfiguration();
+            }
+            else
+            {
+                Configuration = new OperationConfiguration();
+            }
         }
-        else
+        catch (Exception e)
         {
+            if(clientInteraction.AskForCancel("Load Configuration", e))
+                throw new OperationCanceledException("Cancel Setup", e);
+
             Configuration = new OperationConfiguration();
         }
     }

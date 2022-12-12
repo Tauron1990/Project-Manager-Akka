@@ -10,4 +10,6 @@ public interface IClientInteraction
     ValueTask<string> AskMultipleChoise(string? initial, string[] choises, string question);
 
     ValueTask<string> AskForFile(string? initial, string info);
+
+    bool AskForCancel(string operation, Exception error);
 }
