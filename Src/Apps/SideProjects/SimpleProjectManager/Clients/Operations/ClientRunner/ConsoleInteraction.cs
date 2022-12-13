@@ -145,7 +145,15 @@ public class ConsoleInteraction : IClientInteraction
             });
 
     public bool AskForCancel(string operation, Exception error)
-        => throw new NotImplementedException();
+    {
+        Console.WriteLine($"Fehler bei der Operation: {operation}");
+        Console.WriteLine(error);
+        Console.Write("Benden(y/n)?");
+        ConsoleKeyInfo result = Console.ReadKey();
+        Console.WriteLine();
+
+        return result.Key == ConsoleKey.Y;
+    }
 
     private static void PrintInitial<T>(T? value)
     {

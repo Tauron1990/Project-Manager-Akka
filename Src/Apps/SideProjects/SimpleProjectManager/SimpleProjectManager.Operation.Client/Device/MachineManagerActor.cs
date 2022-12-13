@@ -51,12 +51,12 @@ public sealed partial class MachineManagerActor : ReceiveActor
 
             ele.Sensors.ForEach(
                 sen => Context.ActorOf(
-                    () => new MachineSensorActor(_device.DeviceId, _machine, sen, _device.DeviceManager, _loggerFactory.CreateLogger<MachineSensorActor>()),
+                    () => new MachineSensorActor(_device.DeviceId, _machine, sen, _serverManager, _loggerFactory.CreateLogger<MachineSensorActor>()),
                     sen.Identifer.Value));
 
             ele.DeviceButtons.ForEach(
                 btn => Context.ActorOf(
-                    () => new MachineButtonHandlerActor(_device.DeviceId, _machine, btn, _device.DeviceManager),
+                    () => new MachineButtonHandlerActor(_device.DeviceId, _machine, btn, _serverManager),
                     btn.Identifer.Value));
         }
 
@@ -107,7 +107,9 @@ public sealed partial class MachineManagerActor : ReceiveActor
                 {
                     DeviceInformations data = await _machine.CollectInfo().ConfigureAwait(false);
 
-                    return data with { DeviceManager = self };
+                    _device = data with { DeviceManager = self };
+
+                    return _device;
                 })
            .PipeTo(
                 _serverManager,

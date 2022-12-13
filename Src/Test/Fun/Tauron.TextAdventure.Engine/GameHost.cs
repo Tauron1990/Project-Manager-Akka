@@ -9,6 +9,7 @@ using Tauron.TextAdventure.Engine.Core;
 using Tauron.TextAdventure.Engine.Data;
 using Tauron.TextAdventure.Engine.GamePackages;
 using Tauron.TextAdventure.Engine.Systems;
+using Tauron.TextAdventure.Engine.Systems.Rooms;
 using Tauron.TextAdventure.Engine.UI;
 using Tauron.TextAdventure.Engine.UI.Internal;
 
@@ -44,6 +45,7 @@ public sealed class GameHost
             c =>
             {
                 c
+                   .AddSingleton<RoomMap>()
                    .AddSingleton<EventManager>()
                    .AddSingleton(new AssetManager())
                    .AddTransient<MainMenu>()

@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using SimpleProjectManager.Client.Shared.Data.States.Data;
 using SimpleProjectManager.Shared.Services.Devices;
 using Stl.Fusion;
@@ -15,12 +16,14 @@ public sealed class DeviceState : StateBase<DeviceData>
 {
     private readonly IStateFactory _stateFactory;
     private readonly IDeviceService _deviceService;
+    private readonly ILogger<DeviceState> _logger;
 
-    public DeviceState(IStateFactory stateFactory, IDeviceService deviceService) 
+    public DeviceState(IStateFactory stateFactory, IDeviceService deviceService, ILogger<DeviceState> logger) 
         : base(stateFactory)
     {
         _stateFactory = stateFactory;
         _deviceService = deviceService;
+        _logger = logger;
     }
 
     public IObservable<ImmutableDictionary<DeviceId, DeviceName>> CurrentDevices { get; private set; }
@@ -32,7 +35,7 @@ public sealed class DeviceState : StateBase<DeviceData>
 
     protected override void PostConfiguration(IRootStoreState<DeviceData> state)
     {
-        CurrentDevices = state.Select(dd => dd.Devices);
+        CurrentDevices = state.Select(dd => dd.Devices).Replay(1);
         
         base.PostConfiguration(state);
     }
@@ -43,6 +46,11 @@ public sealed class DeviceState : StateBase<DeviceData>
         {
             DeviceId? id = await idGetter(token).ConfigureAwait(false);
 
+            #if DEBUG
+            if(id is null)
+                _logger.LogWarning("No Device Id Found");
+            #endif
+            
             return id is null ? default : (await _deviceService.GetRootUi(id, token).ConfigureAwait(false), id);
 
 

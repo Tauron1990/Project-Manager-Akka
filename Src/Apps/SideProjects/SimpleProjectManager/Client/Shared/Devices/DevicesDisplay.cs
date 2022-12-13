@@ -1,5 +1,7 @@
-﻿using ReactiveUI;
+﻿using System.Reactive.Linq;
+using ReactiveUI;
 using SimpleProjectManager.Client.Shared.ViewModels.Devices;
+using Tauron;
 
 namespace SimpleProjectManager.Client.Shared.Devices;
 

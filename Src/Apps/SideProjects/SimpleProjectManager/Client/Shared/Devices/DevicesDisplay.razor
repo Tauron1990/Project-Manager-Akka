@@ -1,5 +1,7 @@
 ﻿@inherits NonAutoRenderingView<DevicesViewModel>
 
+@inject ILogger<DeviceDisplay> _Logger
+
 <MudGrid>
     <ObservableRenderer Observable="ViewModel?.Devices">
         <ValueRenderer>
