@@ -51,7 +51,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="GameData\lang\de.json">
+      <None Update="GameData\lang\de\de.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
     </ItemGroup>

@@ -26,6 +26,7 @@ public sealed class GameHost
     public static async ValueTask<IHost> Create<TGame>(string[] args)
         where TGame : GameBase, new()
     {
+       
         IHostBuilder hostBuilder = Host.CreateDefaultBuilder(args);
 
         var game = new TGame();

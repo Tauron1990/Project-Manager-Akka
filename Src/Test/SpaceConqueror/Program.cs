@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Cottle;
+using Microsoft.Extensions.Hosting;
 using Spectre.Console;
 using Tauron.TextAdventure.Engine;
 
