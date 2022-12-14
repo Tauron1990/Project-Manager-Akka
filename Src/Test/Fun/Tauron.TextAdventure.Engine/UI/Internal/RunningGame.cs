@@ -47,8 +47,6 @@ public sealed class RunningGame
                     ProcessCommand(result);
                     break;
             }
-            
-            _currentCommands.Clear();
         }
     }
 
@@ -100,8 +98,6 @@ public sealed class RunningGame
         MultiElement.Add(element, new SpacingElement { Amount = 3 });
         MultiElement.Add(element, mainMenu);
         MultiElement.AddRange(element, renderState.Commands.Select(c => c.Collect()));
-        
-        renderState.ToRender.Clear();
 
         _mode = _currentCommands.Any(c => c.IsAsk) ? Mode.Ask : Mode.Command;
         

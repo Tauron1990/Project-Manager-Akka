@@ -1,6 +1,7 @@
 ﻿using Tauron.TextAdventure.Engine.GamePackages;
 using Tauron.TextAdventure.Engine.Systems.Actor;
 using Tauron.TextAdventure.Engine.Systems.Rooms;
+using Tauron.TextAdventure.Engine.Systems.Rooms.Core;
 
 namespace Tauron.TextAdventure.Engine.Core;
 
@@ -8,8 +9,9 @@ internal static class CorePack
 {
     internal static IEnumerable<PackageElement> LoadCore()
     {
+        yield return PackageElement.System<RoomManager>();
         yield return PackageElement.System<GameStateAdderSystem>();
         yield return PackageElement.System<TickCommandSystem>();
-        yield return PackageElement.Init(static s => s.Get<Player>().Location = RoomKeys.Start);
+        yield return PackageElement.Init(static s => s.Get<Player>().Location.Value = RoomKeys.Start);
     }
 }

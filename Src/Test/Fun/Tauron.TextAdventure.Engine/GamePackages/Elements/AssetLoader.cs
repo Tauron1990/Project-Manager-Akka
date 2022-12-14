@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Tauron.TextAdventure.Engine.Core;
+using Tauron.TextAdventure.Engine.GamePackages.Core;
 
 namespace Tauron.TextAdventure.Engine.GamePackages.Elements;
 
@@ -10,11 +11,7 @@ public sealed class AssetLoader : PackageElement
     public AssetLoader(Action<AssetManager> configurator)
         => _configurator = configurator;
 
-    internal override void Apply(IServiceCollection serviceCollection)
-    {
-        
-    }
-
-    internal override void PostConfig(IServiceProvider serviceProvider)
-        => _configurator(serviceProvider.GetRequiredService<AssetManager>());
+    
+    internal override void Load(ElementLoadContext context)
+        => context.PostConfigServices.Add(s => _configurator(s.GetRequiredService<AssetManager>()));
 }

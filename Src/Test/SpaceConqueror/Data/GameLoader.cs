@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Hosting;
 using SpaceConqueror.Data.Assets;
+using SpaceConqueror.Data.Rooms;
 using Tauron.TextAdventure.Engine.GamePackages;
 
 namespace SpaceConqueror.Data;
@@ -17,5 +18,6 @@ public sealed class GameLoader : SinglePackage
     {
         yield return PackageElement.Asset(AssetLoader.LoadAssets);
         yield return PackageElement.Translate(hostEnvironment, "GameData");
+        yield return RoomLoader.Load();
     }
 }

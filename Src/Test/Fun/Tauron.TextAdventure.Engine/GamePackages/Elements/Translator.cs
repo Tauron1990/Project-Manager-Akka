@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Tauron.TextAdventure.Engine.Core;
+using Tauron.TextAdventure.Engine.GamePackages.Core;
 
 namespace Tauron.TextAdventure.Engine.GamePackages.Elements;
 
@@ -18,9 +19,7 @@ public sealed class Translator : PackageElement
         _fromDic = Path.Combine(fromDic, "lang");
     }
 
-    internal override void Apply(IServiceCollection serviceCollection) { }
-
-    internal override void PostConfig(IServiceProvider serviceProvider)
+    private void PostConfig(IServiceProvider serviceProvider)
     {
         var manager = serviceProvider.GetRequiredService<AssetManager>();
         var culture = $"{CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.ToLower(CultureInfo.InvariantCulture)}.json";
@@ -53,4 +52,7 @@ public sealed class Translator : PackageElement
             manager.Add(jsonProperty.Name, () => value);
         }
     }
+
+    internal override void Load(ElementLoadContext context)
+        => context.PostConfigServices.Add(PostConfig);
 }

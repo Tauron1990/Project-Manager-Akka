@@ -8,8 +8,9 @@ using Microsoft.Extensions.Hosting.Internal;
 using Tauron.TextAdventure.Engine.Core;
 using Tauron.TextAdventure.Engine.Data;
 using Tauron.TextAdventure.Engine.GamePackages;
+using Tauron.TextAdventure.Engine.GamePackages.Core;
 using Tauron.TextAdventure.Engine.Systems;
-using Tauron.TextAdventure.Engine.Systems.Rooms;
+using Tauron.TextAdventure.Engine.Systems.Rooms.Core;
 using Tauron.TextAdventure.Engine.UI;
 using Tauron.TextAdventure.Engine.UI.Internal;
 
@@ -18,8 +19,8 @@ namespace Tauron.TextAdventure.Engine;
 [PublicAPI]
 public sealed class GameHost
 {
-    internal static ImmutableList<PackageElement> PostConfig = ImmutableList<PackageElement>.Empty;
-
+    internal static ElementLoadContext? LoadContext { get; set; }
+    
     internal static string RootDic { get; set; } = string.Empty;
     
     public static async ValueTask<IHost> Create<TGame>(string[] args)
@@ -35,7 +36,8 @@ public sealed class GameHost
 
         var elements = await RunLoader(game).ConfigureAwait(false);
 
-        PostConfig = elements;
+        LoadContext = new ElementLoadContext();
+        elements.ForEach(e => e.Load(LoadContext));
         
         hostBuilder
            .ConfigureHostOptions((c, _) => c.HostingEnvironment.ApplicationName = game.AppName)
@@ -54,8 +56,8 @@ public sealed class GameHost
                    .AddSingleton<IUILayer>(sp => sp.GetRequiredService<TGame>().CreateUILayer(sp))
                    .AddHostedService<GameHostingService<TGame>>();
 
-                foreach (PackageElement element in elements)
-                    element.Apply(c);
+                foreach (var action in LoadContext.ConfigServices)
+                    action(c);
             });
         
         return hostBuilder.Build();

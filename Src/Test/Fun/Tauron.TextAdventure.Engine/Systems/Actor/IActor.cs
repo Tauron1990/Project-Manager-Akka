@@ -6,5 +6,5 @@ public interface IActor : IState
 {
     string Id { get; }
     
-    string? Location { get; }
+    ReactiveProperty<string> Location { get; }
 }

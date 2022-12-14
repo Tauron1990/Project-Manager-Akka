@@ -1,20 +1,19 @@
 ﻿using System.Collections.Immutable;
 using JetBrains.Annotations;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Tauron.TextAdventure.Engine.Core;
 using Tauron.TextAdventure.Engine.Data;
+using Tauron.TextAdventure.Engine.GamePackages.Core;
 using Tauron.TextAdventure.Engine.GamePackages.Elements;
 using Tauron.TextAdventure.Engine.Systems;
+using Tauron.TextAdventure.Engine.Systems.Rooms.Builders;
 
 namespace Tauron.TextAdventure.Engine.GamePackages;
 
 [PublicAPI]
 public abstract class PackageElement
 {
-    internal abstract void Apply(IServiceCollection serviceCollection);
-
-    internal abstract void PostConfig(IServiceProvider serviceProvider);
+    internal abstract void Load(ElementLoadContext context);
     
     public static PackageElement Group(IEnumerable<PackageElement> gamepackages)
         => new GroupingElement(gamepackages);
@@ -33,6 +32,14 @@ public abstract class PackageElement
 
     public static PackageElement Init(Action<GameState> init)
         => new InitGame(init);
+
+    public static PackageElement ModifyRoom<TBuilder>(string name, Action<TBuilder> builder) 
+        where TBuilder : RoomBuilderBase, new()
+        => new RoomModifyElement<TBuilder>(name, builder);
+
+    public static PackageElement NewRoom<TBuilder>(string name, Action<TBuilder> builder)
+        where TBuilder : RoomBuilderBase, new()
+        => new RoomElement<TBuilder>(name, builder);
     
     private sealed class GroupingElement : PackageElement
     {
@@ -42,14 +49,7 @@ public abstract class PackageElement
         public GroupingElement(IEnumerable<PackageElement> gamepackages)
             => _gamepackages = gamepackages;
 
-
-        internal override void Apply(IServiceCollection serviceCollection)
-            => Run(serviceCollection, (element, collection) => element.Apply(collection));
-
-        internal override void PostConfig(IServiceProvider serviceProvider)
-            => Run(serviceProvider, (element, provider) => element.PostConfig(provider));
-
-        private void Run<TParm>(TParm parm, Action<PackageElement, TParm> runner)
+        internal override void Load(ElementLoadContext context)
         {
             var list = ImmutableQueue<IEnumerable<PackageElement>>.Empty.Enqueue(_gamepackages);
             _visited = new HashSet<PackageElement>();
@@ -69,7 +69,7 @@ public abstract class PackageElement
                         continue;
                     }
 
-                    runner(element, parm);
+                    element.Load(context);
                 }
                 
             } while (!list.IsEmpty);
