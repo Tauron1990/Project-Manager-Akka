@@ -5,11 +5,11 @@ namespace Tauron.TextAdventure.Engine.Systems.Rooms.Core;
 
 public sealed class AskRoom : BaseRoom
 {
-    private readonly RenderElement _description;
+    private readonly RenderElement? _description;
     private readonly string _label;
     private readonly Func<string, IEnumerable<IGameCommand>> _whenEntered;
 
-    public AskRoom(RenderElement description, string label, Func<string, IEnumerable<IGameCommand>> whenEntered)
+    public AskRoom(RenderElement? description, string label, Func<string, IEnumerable<IGameCommand>> whenEntered)
     {
         _description = description;
         _label = label;
@@ -20,7 +20,7 @@ public sealed class AskRoom : BaseRoom
     protected internal override bool CanReturn => false;
     
     protected internal override RenderElement CreateRender()
-        => _description;
+        => _description ?? MultiElement.Create();
 
     protected internal override IEnumerable<CommandPairBase> CreateCommands()
     {

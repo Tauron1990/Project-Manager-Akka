@@ -1,3 +1,4 @@
+using Cottle;
 using Spectre.Console;
 using Tauron.TextAdventure.Engine.Core;
 
@@ -14,7 +15,7 @@ public sealed class AskInputElement : IInputElement
     {
         reRender();
         
-        var textPrompt = new TextPrompt<string>(manager.GetString(_label));
+        var textPrompt = new TextPrompt<string>(manager.GetString(_label, Context.Empty));
 
         return await textPrompt.ShowAsync(AnsiConsole.Console, default).ConfigureAwait(false);
     }

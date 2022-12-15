@@ -82,4 +82,5 @@ public abstract class SpectreVisitor : IRenderVisitor
     public abstract void VisitSpacing(SpacingElement spacingElement);
     public abstract void VisitAsk(AskElement askElement);
     public abstract void VisitText(TextElement textElement);
+    public abstract void VisitDocument(DocumentElement documentElement);
 }

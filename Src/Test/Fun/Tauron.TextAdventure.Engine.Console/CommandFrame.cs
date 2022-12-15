@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using Cottle;
 using JetBrains.Annotations;
 using Spectre.Console;
 using Tauron.TextAdventure.Engine.Core;
@@ -42,11 +43,11 @@ public sealed class CommandFrame : IInputElement
                 reRender();
 
                 var selector = new SelectionPrompt<FrameItem>()
-                   .Title(manager.GetString(frame.Name))
+                   .Title(manager.GetString(frame.Name, Context.Empty))
                    .AddChoices(frame.CreateItems())
                    .PageSize(10)
-                   .MoreChoicesText(manager.GetString(UiKeys.More))
-                   .UseConverter(f => manager.GetString(f.Label));
+                   .MoreChoicesText(manager.GetString(UiKeys.More, Context.Empty))
+                   .UseConverter(f => manager.GetString(f.Label, Context.Empty));
 
                 FrameItem result = await selector.ShowAsync(AnsiConsole.Console, default).ConfigureAwait(false);
 

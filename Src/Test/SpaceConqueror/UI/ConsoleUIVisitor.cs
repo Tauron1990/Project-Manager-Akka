@@ -75,4 +75,7 @@ public sealed class ConsoleUIVisitor : SpectreVisitor
 
     public override void VisitText(TextElement textElement)
         => AddWriter(() => AnsiConsole.WriteLine(textElement.Test));
+
+    public override void VisitDocument(DocumentElement documentElement)
+        => AddWriter(() => AnsiConsole.WriteLine(documentElement.Document.Render(documentElement.Context)));
 }

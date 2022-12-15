@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System.Text.Json;
+using Cottle;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
@@ -22,36 +23,35 @@ public sealed class Translator : PackageElement
     private void PostConfig(IServiceProvider serviceProvider)
     {
         var manager = serviceProvider.GetRequiredService<AssetManager>();
-        var culture = $"{CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.ToLower(CultureInfo.InvariantCulture)}.json";
 
-        IDirectoryContents fromDic = _environment.ResolvePath(_fromDic);
-
-        var files = fromDic.Where(fi => fi.Name.EndsWith(".json", StringComparison.Ordinal)).ToArray();
-
-        IFileInfo? targetFile = files.FirstOrDefault(d => d.Name.EndsWith(culture, StringComparison.Ordinal));
-        // ReSharper disable ConvertIfStatementToNullCoalescingExpression
-        if(targetFile is null)
-            targetFile = files.FirstOrDefault(d => d.Name.EndsWith("en.json", StringComparison.Ordinal));
-        if(targetFile is null)
-            targetFile = files.FirstOrDefault();
-        if(targetFile is null)
-            return;
-        // ReSharper restore ConvertIfStatementToNullCoalescingExpression
-
-        ReadLoacels(manager, targetFile);
+        foreach (IFileInfo file in TranslatorHelper.TryFingLangFiles(_environment, _fromDic, CultureInfo.CurrentUICulture))
+            ReadLoacels(manager, file);
     }
 
-    private void ReadLoacels(AssetManager manager, IFileInfo targetFile)
+    private static void ReadLoacels(AssetManager manager, IFileInfo targetFile)
     {
-        using Stream stream = targetFile.CreateReadStream();
-        using JsonDocument doc = JsonDocument.Parse(stream);
-
-        foreach (JsonProperty jsonProperty in doc.RootElement.EnumerateObject())
+        if(targetFile.Name.EndsWith(".json", StringComparison.Ordinal))
         {
-            var value = jsonProperty.Value.ToString();
-            manager.Add(jsonProperty.Name, () => value);
+            using Stream stream = targetFile.CreateReadStream();
+            using JsonDocument doc = JsonDocument.Parse(stream);
+
+            foreach (JsonProperty jsonProperty in doc.RootElement.EnumerateObject())
+            {
+                var value = jsonProperty.Value.ToString();
+                manager.Add(jsonProperty.Name, () => value);
+            }
         }
+        else
+            manager.Add(Path.GetFileName(targetFile.Name), Create(targetFile));
     }
+
+    private static Func<IDocument> Create(IFileInfo info)
+        => () =>
+           {
+               using Stream stream = info.CreateReadStream();
+
+               return Document.CreateDefault(new StreamReader(stream)).DocumentOrThrow;
+           };
 
     internal override void Load(ElementLoadContext context)
         => context.PostConfigServices.Add(PostConfig);

@@ -13,4 +13,5 @@ public interface IRenderVisitor
     void VisitSpacing(SpacingElement spacingElement);
     void VisitAsk(AskElement askElement);
     void VisitText(TextElement textElement);
+    void VisitDocument(DocumentElement documentElement);
 }
