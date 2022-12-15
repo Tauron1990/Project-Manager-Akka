@@ -43,4 +43,7 @@ public class Universe
     
     public Universe WithCustom(string name, Action<CustomBuilder> builder)
         => WithBuilder(name, builder);
+
+    public Universe WithPage(string name, Action<PageBuilder> builder)
+        => WithBuilder(name, builder);
 }

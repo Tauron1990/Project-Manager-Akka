@@ -17,8 +17,6 @@ public sealed class AskRoom : BaseRoom
 
     }
 
-    protected internal override bool CanReturn => false;
-    
     protected internal override RenderElement CreateRender()
         => _description ?? MultiElement.Create();
 

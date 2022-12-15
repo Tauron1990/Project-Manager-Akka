@@ -17,4 +17,9 @@ public static class UiKeys
     public const string SaveGame = nameof(SaveGame);
 
     public const string CloseRunningGame = nameof(CloseGame);
+    
+    public static class Room
+    {
+        public const string Next = nameof(Next);
+    }
 }

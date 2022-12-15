@@ -6,15 +6,21 @@ namespace Tauron.TextAdventure.Engine.Systems.Rooms.Core;
 public sealed class PageRoom : BaseRoom
 {
     private readonly Func<RenderElement> _element;
+    private readonly string _nextLabel;
+    private readonly Func<IGameCommand> _next;
 
-    public PageRoom(Func<RenderElement> element)
-        => _element = element;
+    public PageRoom(Func<RenderElement> element, string nextLabel, Func<IGameCommand> next)
+    {
+        _element = element;
+        _nextLabel = nextLabel;
+        _next = next;
+    }
 
-    protected internal override bool CanReturn { get; }
-    
     protected internal override RenderElement CreateRender()
-        => throw new NotImplementedException();
+        => _element();
 
     protected internal override IEnumerable<CommandPairBase> CreateCommands()
-        => throw new NotImplementedException();
+    {
+        yield return new SingleCommand("Next", _nextLabel, () => new SingleElementList<IGameCommand>(_next()));
+    }
 }

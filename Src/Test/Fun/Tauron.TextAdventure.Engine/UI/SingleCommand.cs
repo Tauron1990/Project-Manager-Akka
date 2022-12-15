@@ -8,18 +8,20 @@ namespace Tauron.TextAdventure.Engine.UI;
 public sealed class SingleCommand : CommandPairBase
 {
     private readonly string _id;
+    private readonly string _label;
     private readonly Func<IEnumerable<IGameCommand>> _getCommands;
 
-    public SingleCommand(string id, Func<IEnumerable<IGameCommand>> getCommands)
+    public SingleCommand(string id, string label, Func<IEnumerable<IGameCommand>> getCommands)
     {
         _id = id;
+        _label = label;
         _getCommands = getCommands;
     }
 
     public override bool IsAsk => false;
 
     public override CommandBase Collect()
-        => new CommandItem(_id);
+        => new CommandItem(_label, _id);
 
     public override Func<IEnumerable<IGameCommand>>? Find(string id)
         => string.Equals(id, _id, StringComparison.Ordinal)
