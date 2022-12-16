@@ -60,7 +60,14 @@ public sealed class ConsoleUIVisitor : SpectreVisitor
         => CurrentFrame = _frames.Pop();
 
     public override void VisitCommandItem(CommandItem commandItem)
-        => CurrentFrame.AddItem(commandItem);
+    {
+        if(_currentFrame is null)
+        {
+            _currentFrame = new CommandFrame();
+            SetRootInput(_currentFrame);
+        }
+        CurrentFrame.AddItem(commandItem);
+    }
 
     public override void VisitSpacing(SpacingElement spacingElement)
     {
@@ -74,7 +81,7 @@ public sealed class ConsoleUIVisitor : SpectreVisitor
         => SetRootInput(new AskInputElement(askElement.Label));
 
     public override void VisitText(TextElement textElement)
-        => AddWriter(() => AnsiConsole.WriteLine(textElement.Test));
+        => AddWriter(() => AnsiConsole.WriteLine(textElement.Text));
 
     public override void VisitDocument(DocumentElement documentElement)
         => AddWriter(() => AnsiConsole.WriteLine(documentElement.Document.Render(documentElement.Context)));

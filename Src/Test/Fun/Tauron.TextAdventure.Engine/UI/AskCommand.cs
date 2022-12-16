@@ -8,12 +8,12 @@ namespace Tauron.TextAdventure.Engine.UI;
 public sealed class AskCommand : CommandPairBase
 {
     private readonly string _label;
-    public Func<string, IEnumerable<IGameCommand>> AskCompled { get; }
+    private readonly Func<string, IEnumerable<IGameCommand>> _askCompled;
 
     public AskCommand(string label, Func<string, IEnumerable<IGameCommand>> askCompled)
     {
         _label = label;
-        AskCompled = askCompled;
+        _askCompled = askCompled;
 
     }
 
@@ -23,4 +23,10 @@ public sealed class AskCommand : CommandPairBase
 
     public override Func<IEnumerable<IGameCommand>>? Find(string id)
         => null;
+
+    public IEnumerable<IGameCommand> AskCompled(string command)
+        => RunAskCompled(command);
+
+    private IEnumerable<IGameCommand> RunAskCompled(string result)
+        => _askCompled.GetInvocationList().Cast<Func<string, IEnumerable<IGameCommand>>>().SelectMany(@delegate => @delegate(result));
 }

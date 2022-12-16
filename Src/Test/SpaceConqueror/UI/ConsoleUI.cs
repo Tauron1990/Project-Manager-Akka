@@ -19,7 +19,7 @@ public sealed class ConsoleUI : SpectreConsoleLayerBase<ConsoleUIVisitor>
     public override RenderElement CreateTitle()
         => new GameTitleElement();
 
-    protected override async ValueTask<string> ExecutePage(ConsoleUIVisitor visitor)
+    protected override async ValueTask<string?> ExecutePage(ConsoleUIVisitor visitor)
     {
         if(visitor.RootInputElement is null)
         {

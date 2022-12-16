@@ -67,6 +67,9 @@ public sealed class RunningGame
                     select actualCommand
                 ).ToArray();
         
+                if(resultCommand.OfType<EndGameCommand>().Any())
+                    return;
+                
                 _eventManager.SendCommand(new TickCommand(resultCommand));
                 break;
             case Mode.Ask:

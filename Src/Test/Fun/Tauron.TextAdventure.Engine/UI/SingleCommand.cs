@@ -24,7 +24,12 @@ public sealed class SingleCommand : CommandPairBase
         => new CommandItem(_label, _id);
 
     public override Func<IEnumerable<IGameCommand>>? Find(string id)
-        => string.Equals(id, _id, StringComparison.Ordinal)
+    {
+        return string.Equals(id, _id, StringComparison.Ordinal)
             ? _getCommands
             : null;
+    }
+
+    private IEnumerable<IGameCommand> RunCommand()
+        => _getCommands.GetInvocationList().Cast<Func<IEnumerable<IGameCommand>>>().SelectMany(f => f());
 }

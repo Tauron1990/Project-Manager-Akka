@@ -38,7 +38,7 @@ public sealed class SingleElementList<TValue> : IEnumerable<TValue>
 
         public TValue Current { get; }
 
-        object IEnumerator.Current => Current;
+        object? IEnumerator.Current => Current;
 
         public void Dispose()
         {

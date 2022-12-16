@@ -1,3 +1,4 @@
+using Spectre.Console;
 using Tauron.TextAdventure.Engine.UI;
 using Tauron.TextAdventure.Engine.UI.Rendering;
 
@@ -23,6 +24,14 @@ public abstract class SpectreConsoleLayerBase<TVisitor> : IUILayer
     }
 
     public abstract RenderElement CreateTitle();
+    public void CriticalError(Exception exception)
+    {
+        AnsiConsole.Clear();
+        AnsiConsole.WriteLine("Schwerwigender Fehler");
+        AnsiConsole.WriteLine();
+        AnsiConsole.WriteException(exception);
+        System.Console.ReadLine();
+    }
 
-    protected abstract ValueTask<string> ExecutePage(TVisitor visitor);
+    protected abstract ValueTask<string?> ExecutePage(TVisitor visitor);
 }

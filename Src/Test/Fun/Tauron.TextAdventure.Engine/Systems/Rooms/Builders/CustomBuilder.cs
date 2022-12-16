@@ -32,7 +32,7 @@ public sealed class CustomBuilder : RoomBuilderBase
             throw new InvalidOperationException("No Factory for Custom Room Provided");
 
         BaseRoom room = _roomBuilder(assetManager);
-        if(_modify is null)
+        if(_modify is not null)
             _modify(assetManager, room);
 
         return room;

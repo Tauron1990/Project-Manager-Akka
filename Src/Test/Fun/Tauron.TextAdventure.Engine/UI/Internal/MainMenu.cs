@@ -41,7 +41,7 @@ public sealed class MainMenu
                     break;
                 case UiKeys.LoadGame:
                     string? toLoad = await new LoadGameMenu(_uiLayer).Show().ConfigureAwait(false);
-                    if(string.IsNullOrWhiteSpace(toLoad)) continue;
+                    if(string.IsNullOrWhiteSpace(toLoad) || toLoad.Equals(UiKeys.Cancel, StringComparison.Ordinal) == true) continue;
 
                     await GameHost.RunGame(toLoad, _serviceProvider).ConfigureAwait(false);
                     break;

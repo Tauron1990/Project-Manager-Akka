@@ -17,7 +17,9 @@ public sealed class AssetManager
         _renderContext = Context.Empty;
 
         IFunction func = Function.CreatePure1(
-            (_, value) => _assets.TryGetValue(value.AsString, out IBox box) ? box.GetString(_renderContext) : _renderContext[value]);
+            (_, value) => _assets.TryGetValue(value.AsString, out IBox? box) 
+                ? box!.GetString(_renderContext)
+                : _renderContext[value]);
         
         UpdateContext("GetString", Value.FromFunction(func));
     }
@@ -62,6 +64,14 @@ public sealed class AssetManager
 
         return name;
     }
+
+    public IDocument GetDocument(string name)
+    {
+        if(_assets.TryGetValue(name, out IBox? box) && box is DocumentBox documentBox)
+            return documentBox.Document.Value;
+        
+        return Document.Empty;
+    }
     
     public TData Get<TData>(string name)
     {
@@ -95,7 +105,7 @@ public sealed class AssetManager
             => Lazy.Value;
 
         string IBox.GetString(IContext context)
-            => Lazy.Value.ToString();
+            => Lazy.Value?.ToString() ?? string.Empty;
     }
 
     private sealed record Box<TBox>(TBox Value) : IBox<TBox>
@@ -104,7 +114,7 @@ public sealed class AssetManager
             => Value;
 
         string IBox.GetString(IContext context)
-            => Value.ToString();
+            => Value?.ToString() ?? string.Empty;
     }
     
     private sealed record DocumentBox(Lazy<IDocument> Document) : IBox<string> 

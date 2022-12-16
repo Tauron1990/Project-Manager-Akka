@@ -2,10 +2,10 @@
 
 public sealed class TextElement : RenderElement
 {
-    public string Test { get; }
+    public string Text { get; }
 
-    public TextElement(string test)
-        => Test = test;
+    public TextElement(string text)
+        => Text = text;
     
     public override void Accept(IRenderVisitor visitor)
         => visitor.VisitText(this);

@@ -21,6 +21,7 @@ public static class Program
             AnsiConsole.WriteLine("Schwerwigender Fehler");
             AnsiConsole.WriteLine();
             AnsiConsole.WriteException(e);
+            Console.ReadLine();
         }
     }
 }

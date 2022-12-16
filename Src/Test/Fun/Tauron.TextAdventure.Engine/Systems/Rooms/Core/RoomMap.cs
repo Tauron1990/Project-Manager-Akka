@@ -2,7 +2,7 @@
 
 internal sealed class RoomMap
 {
-    private readonly Dictionary<string, BaseRoom> _rooms = new();
+    private readonly Dictionary<string, BaseRoom> _rooms = new(StringComparer.Ordinal);
 
     internal BaseRoom Get(string name)
         => _rooms[name];

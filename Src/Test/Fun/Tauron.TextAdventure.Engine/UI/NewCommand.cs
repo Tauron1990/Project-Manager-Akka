@@ -1,34 +1,20 @@
 ﻿using JetBrains.Annotations;
 using Tauron.TextAdventure.Engine.Data;
-using Tauron.TextAdventure.Engine.UI.Rendering;
 
 namespace Tauron.TextAdventure.Engine.UI;
 
 [PublicAPI]
-public sealed class NewRenderElement : GameStateAdder
+public sealed class NewCommand : GameStateAdder
 {
-    private readonly RenderElement _element;
+    private readonly string _name;
+    private readonly CommandPairBase _command;
 
-    public NewRenderElement(RenderElement element)
+    public NewCommand(string name, CommandPairBase command)
     {
-        if(element is CommandBase)
-            throw new InvalidOperationException("Command Should be add with NewCommand Class");
-
-        _element = element;
+        _name = name;
+        _command = command;
     }
 
     protected internal override void Apply(GameState gameState)
-        => gameState.Get<RenderState>().ToRender.Append(_element);
-}
-
-[PublicAPI]
-public sealed class NewCommand : GameStateAdder
-{
-    private readonly CommandPairBase _command;
-
-    public NewCommand(CommandPairBase command)
-        => _command = command;
-
-    protected internal override void Apply(GameState gameState)
-        => gameState.Get<RenderState>().Commands.Append(_command);
+        => gameState.Get<RenderState>().Commands.Set(_name, _command);
 }

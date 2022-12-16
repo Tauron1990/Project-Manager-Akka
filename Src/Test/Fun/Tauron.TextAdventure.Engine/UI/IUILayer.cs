@@ -9,4 +9,5 @@ public interface IUILayer
     ValueTask<string?> ExecutePage(IRenderVisitor visitor);
 
     RenderElement CreateTitle();
+    void CriticalError(Exception exception);
 }
