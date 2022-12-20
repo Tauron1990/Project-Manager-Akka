@@ -28,19 +28,15 @@ public sealed class SetupRunner
 
     public OperationConfiguration Configuration => _configManager.Configuration;
 
-    public async ValueTask RunSetup(IConfiguration commandLine)
+    public async ValueTask RunSetup(ClientConfiguration commandLine)
     {
-        bool skipConfig = commandLine.GetValue("skipconfig", defaultValue: false);
         OperationConfiguration config = _configManager.Configuration;
         var validation = await config.Validate().ConfigureAwait(false);
-        if(await AskUseConfiguration(validation, skipConfig, config).ConfigureAwait(false))
+        if(CheckUseConfiguration(validation, commandLine, config))
             return;
 
-        if(skipConfig)
-            throw new InvalidOperationException("Die Setup Phase kann nicht mit einer Fehlerhaften Configuration übersprungen werden");
-
         // ReSharper disable once LoopCanBeConvertedToQuery
-        foreach (var setup in _setups)
+        foreach (ISetup setup in _setups)
             config = await setup.RunSetup(config).ConfigureAwait(false);
 
         validation = await config.Validate().ConfigureAwait(false);
@@ -51,24 +47,15 @@ public sealed class SetupRunner
         await _configManager.Set(config).ConfigureAwait(false);
     }
 
-    private async Task<bool> AskUseConfiguration(ImmutableList<ValidationFailure> validation, bool skipConfig, OperationConfiguration config)
+    private bool CheckUseConfiguration(ImmutableList<ValidationFailure> validation, ClientConfiguration clientConfiguration, OperationConfiguration config)
     {
-        switch (validation.IsEmpty)
-        {
-            case true when !skipConfig:
-            {
-                bool shouldUse = await _clientInteraction.Ask(
-                    (bool?)null,
-                    $"Möchten sie diese Configuration Benutzen?:{Environment.NewLine}{config}").ConfigureAwait(false);
+        if(clientConfiguration.ForceSetup)
+            return false;
 
-                if(shouldUse)
-                    return true;
+        if(validation.IsEmpty)
+            return true;
 
-                break;
-            }
-            case true:
-                return true;
-        }
+        _clientInteraction.Display(validation);
 
         return false;
     }

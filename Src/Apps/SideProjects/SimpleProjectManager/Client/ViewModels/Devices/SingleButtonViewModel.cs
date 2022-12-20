@@ -20,7 +20,7 @@ public class SingleButtonViewModel : BlazorViewModel
 
     public ReactiveCommand<Unit, Unit>? ButtonClick { get; private set; }
     
-    protected SingleButtonViewModel(IStateFactory stateFactory, IDeviceService deviceService, IEventAggregator eventAggregator, IOnlineMonitor onlineMonitor) 
+    public SingleButtonViewModel(IStateFactory stateFactory, IDeviceService deviceService, IEventAggregator eventAggregator, IOnlineMonitor onlineMonitor) 
         : base(stateFactory)
     {
         _deviceService = deviceService;

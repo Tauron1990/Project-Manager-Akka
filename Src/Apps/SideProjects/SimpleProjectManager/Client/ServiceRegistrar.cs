@@ -3,6 +3,7 @@ using MudBlazor.Services;
 using ReactiveUI;
 using SimpleProjectManager.Client.Shared.Devices;
 using SimpleProjectManager.Client.Shared.ViewModels;
+using SimpleProjectManager.Client.Shared.ViewModels.Devices;
 using SimpleProjectManager.Client.Shared.ViewModels.EditJob;
 using SimpleProjectManager.Client.ViewModels;
 using SimpleProjectManager.Client.ViewModels.Devices;
@@ -39,7 +40,8 @@ public static class ServiceRegistrar
         services.AddTransient<CriticalErrorViewModel>();
 
         services.AddTransient<DeviceDisplayViewModel>();
+        services.AddTransient<DevicesViewModel>();
         services.AddTransient<SingleSensorViewModel>();
-        services.AddTransient<SingleButtonDisplay>();
+        services.AddTransient<SingleButtonViewModel>();
     }
 }

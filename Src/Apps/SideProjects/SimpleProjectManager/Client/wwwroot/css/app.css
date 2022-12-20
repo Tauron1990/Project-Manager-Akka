@@ -49,3 +49,37 @@ a, .btn-link {
     right: 0.75rem;
     top: 0.5rem;
 }
+
+.loading-Text1 
+{ 
+    grid-area: text1;
+}
+.loading-Text2 
+{ 
+    grid-area: text2;
+}
+.loading-loadingBa1 
+{
+    grid-area: lodingbar; 
+}
+.loading-Empty 
+{ 
+    grid-area: empty;
+    height: 20px;
+}
+
+.loading-grid-container {
+    display: grid;
+    grid-template-areas:
+    'empty empty text1 text1 empty empty'
+    'empty empty text2 text2 empty empty'
+    'empty empty lodingbar lodingbar empty empty';
+    gap: 10px;
+    padding: 10px;
+}
+
+.loading-grid-container > div {
+    text-align: center;
+    padding: 20px 0;
+    font-size: 30px;
+}

@@ -1,3 +1,6 @@
+using System.Collections.Immutable;
+using FluentValidation.Results;
+
 namespace SimpleProjectManager.Operation.Client.Core;
 
 public interface IClientInteraction
@@ -12,4 +15,5 @@ public interface IClientInteraction
     ValueTask<string> AskForFile(string? initial, string info);
 
     bool AskForCancel(string operation, Exception error);
+    void Display(ImmutableList<ValidationFailure> configError);
 }

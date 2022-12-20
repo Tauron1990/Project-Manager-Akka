@@ -53,9 +53,9 @@ internal sealed partial class DummyOperator : IDisposable
         {
             while (!_cancellation.IsCancellationRequested)
             {
-                await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+                await Task.Delay(TimeSpan.FromSeconds(1), _cancellation.Token).ConfigureAwait(false);
 
-                foreach (var sensorPair in _pairs)
+                foreach (ButtonSensorPair sensorPair in _pairs)
                     UpdatePair(sensorPair);
 
                 #pragma warning disable GU0011

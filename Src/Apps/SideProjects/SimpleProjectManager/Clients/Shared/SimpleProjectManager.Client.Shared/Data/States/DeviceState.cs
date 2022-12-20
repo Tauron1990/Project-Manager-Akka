@@ -35,7 +35,7 @@ public sealed class DeviceState : StateBase<DeviceData>
 
     protected override void PostConfiguration(IRootStoreState<DeviceData> state)
     {
-        CurrentDevices = state.Select(dd => dd.Devices).Replay(1);
+        CurrentDevices = state.Select(dd => dd.Devices);
         
         base.PostConfiguration(state);
     }
@@ -48,7 +48,7 @@ public sealed class DeviceState : StateBase<DeviceData>
 
             #if DEBUG
             if(id is null)
-                _logger.LogWarning("No Device Id Found");
+                _logger.LogWarning("DeviceState: No Device Id Found");
             #endif
             
             return id is null ? default : (await _deviceService.GetRootUi(id, token).ConfigureAwait(false), id);

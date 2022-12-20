@@ -26,7 +26,7 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="LiquidProjections" Version="3.2.0" />
-        <PackageReference Include="Meziantou.Analyzer" Version="1.0.756">
+        <PackageReference Include="Meziantou.Analyzer" Version="1.0.757">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>

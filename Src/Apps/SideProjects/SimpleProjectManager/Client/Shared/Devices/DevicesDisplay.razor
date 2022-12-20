@@ -16,6 +16,7 @@
             }
             else if(context.Length == 1)
             {
+                SelectedPair = context[0];
                 <MudItem lg="12">
                     <MudText>@context[0].Name.Value</MudText>
                 </MudItem>
@@ -31,7 +32,11 @@
                     </MudSelect>
                 </MudItem>
             }
-            @if(context.Length > 0)
+            @if(context.Length == 0)
+            {
+                <MudItem lg="12"/>
+            }
+            else
             {
                 <MudItem lg="12">
                     <DeviceDisplay ToDisplay="SelectedPair"/>

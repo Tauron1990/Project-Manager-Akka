@@ -55,7 +55,7 @@ public class DeviceController : Controller, IDeviceService
         => _deviceService.GetBatches(deviceName, from, token);
 
     [HttpPost]
-    public async Task<SimpleResult> ClickButton([FromBody] DeviceId device, [FromQuery] DeviceId button, CancellationToken token)
+    public async Task<SimpleResult> ClickButton([FromBody] DeviceId device, [FromQuery(Name = "button")] DeviceId button, CancellationToken token)
     {
         try
         {

@@ -133,7 +133,7 @@ public sealed partial class SingleDeviceFeature : ActorFeatureBase<SingleDeviceF
 
         var buttons = p.State.ButtonStates.AddRange(
             p.State.Info.CollectButtons()
-               .Select(btn => KeyValuePair.Create(btn.Identifer, value: false)));
+               .Select(btn => KeyValuePair.Create(btn.Button.Identifer, btn.State?.State ?? false)));
 
         return p.State with { Sensors = sensors, ButtonStates = buttons };
     }

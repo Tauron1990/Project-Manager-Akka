@@ -35,9 +35,9 @@ public static class DeviceManagerMessages
             {
 
                 SensorType.Double => Create(0d),
-                SensorType.String => Create(string.Empty),
+                SensorType.String => Create("Empty"),
                 SensorType.Number => Create(0),
-                _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+                _ => throw new ArgumentOutOfRangeException(nameof(type), type, "Invalid Sensor Type"),
             };
 
 

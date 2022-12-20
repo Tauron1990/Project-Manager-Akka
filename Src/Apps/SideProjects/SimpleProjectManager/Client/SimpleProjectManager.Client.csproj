@@ -108,8 +108,6 @@
     <ItemGroup>
         <None Include="..\Server\bin\Release\net6.0\publish\wwwroot\_content\MudBlazor\MudBlazor.min.css" Link="wwwroot\_content\MudBlazor\MudBlazor.min.css" />
         <None Include="wwwroot\css\app.css" />
-        <None Include="wwwroot\css\bootstrap\bootstrap.min.css" />
-        <None Include="wwwroot\css\bootstrap\bootstrap.min.css.map" />
         <None Include="wwwroot\css\FontData\KFOlCnqEu92Fr1MmEU9fBBc4.woff2" />
         <None Include="wwwroot\css\FontData\KFOlCnqEu92Fr1MmEU9fBxc4EsA.woff2" />
         <None Include="wwwroot\css\FontData\KFOlCnqEu92Fr1MmEU9fChc4EsA.woff2" />
@@ -148,7 +146,7 @@
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Meziantou.Analyzer" Version="1.0.756">
+        <PackageReference Include="Meziantou.Analyzer" Version="1.0.757">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
@@ -162,7 +160,7 @@
         <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
         <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
         <PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" Version="14.6.1" />
-        <PackageReference Include="Stl.Fusion.Blazor" Version="4.1.38" />
+        <PackageReference Include="Stl.Fusion.Blazor" Version="4.1.40" />
     </ItemGroup>
 
     <ItemGroup>

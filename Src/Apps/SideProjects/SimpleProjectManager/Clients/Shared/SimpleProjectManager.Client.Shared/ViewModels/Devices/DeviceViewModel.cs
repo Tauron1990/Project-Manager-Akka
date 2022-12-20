@@ -27,13 +27,16 @@ public abstract class DeviceViewModel : ViewModelBase
     {
         var state = _deviceState();
         
-        Ui = _state.Devices.GetUiFetcher(
-            async t =>
-            {
-                DevicePair? result = await state.Use(t).ConfigureAwait(false);
+        Ui = _state.Devices.GetUiFetcher(async t =>
+                                         {
+                                             DevicePair? result = await state.Use(t).ConfigureAwait(false);
 
-                return result?.Id;
-            });
+                                             #if DEBUG
+                                             Console.WriteLine($"DeviceViewModel: NewPair: {result}");
+                                             #endif
+                
+                                             return result?.Id;
+                                         });
         
         yield return Disposable.Create(this, static self => self.Ui = null);
     }

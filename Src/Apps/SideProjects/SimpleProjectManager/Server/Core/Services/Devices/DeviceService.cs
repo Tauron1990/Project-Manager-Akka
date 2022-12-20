@@ -119,7 +119,7 @@ public partial class DeviceService : IDeviceService, IDisposable
         => await Run(
             async man =>
             {
-                var result = await man.Ask<DevicesResponse>(new QueryDevices(), TimeSpan.FromSeconds(10), token).ConfigureAwait(false);
+                DevicesResponse? result = await man.Ask<DevicesResponse>(new QueryDevices(), TimeSpan.FromSeconds(10), token).ConfigureAwait(false);
 
                 return new DeviceList(result.Devices.Select(d => new FoundDevice(d.Value, d.Key)).ToImmutableArray());
             }).ConfigureAwait(false);

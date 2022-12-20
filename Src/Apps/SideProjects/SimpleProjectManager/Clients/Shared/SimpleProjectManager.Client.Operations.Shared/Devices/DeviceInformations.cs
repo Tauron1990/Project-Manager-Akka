@@ -4,7 +4,7 @@ using SimpleProjectManager.Shared.Services.Devices;
 
 namespace SimpleProjectManager.Client.Operations.Shared.Devices;
 
-public sealed record DeviceInformations(DeviceId DeviceId, DeviceName Name, bool HasLogs, DeviceUiGroup RootUi, IActorRef DeviceManager)
+public sealed record DeviceInformations(DeviceId DeviceId, DeviceName Name, bool HasLogs, DeviceUiGroup RootUi, ImmutableList<ButtonState> ButtonStates, IActorRef DeviceManager)
 {
     public const string ManagerName = "DeviceManager";
 
@@ -19,6 +19,7 @@ public sealed record DeviceInformations(DeviceId DeviceId, DeviceName Name, bool
             ImmutableList<DeviceUiGroup>.Empty,
             ImmutableList<DeviceSensor>.Empty,
             ImmutableList<DeviceButton>.Empty),
+        ImmutableList<ButtonState>.Empty, 
         ActorRefs.Nobody);
 
     public IEnumerable<DeviceSensor> CollectSensors()
@@ -38,7 +39,7 @@ public sealed record DeviceInformations(DeviceId DeviceId, DeviceName Name, bool
         }
     }
 
-    public IEnumerable<DeviceButton> CollectButtons()
+    public IEnumerable<(DeviceButton Button, ButtonState? State)> CollectButtons()
     {
         var stack = new Stack<DeviceUiGroup>();
         stack.Push(RootUi);
@@ -51,7 +52,7 @@ public sealed record DeviceInformations(DeviceId DeviceId, DeviceName Name, bool
                 stack.Push(uiGroup);
 
             foreach (DeviceButton button in group.DeviceButtons)
-                yield return button;
+                yield return (button, ButtonStates.FirstOrDefault(s => s.ButtonId == button.Identifer));
         }
     }
 }

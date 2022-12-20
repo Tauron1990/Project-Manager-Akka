@@ -36,5 +36,5 @@ public interface IDeviceServiceDef
     Task<Logs> GetBatches([Query] DeviceId deviceName, [Query] DateTime from, CancellationToken token);
 
     [Post(nameof(ClickButton))]
-    Task<SimpleResult> ClickButton([Body] DeviceId device, [Query] DeviceId button, CancellationToken token);
+    Task<SimpleResult> ClickButton([Body] DeviceId device, [Query("button")] DeviceId button, CancellationToken token);
 }

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Components;
 using Stl;
@@ -9,7 +11,8 @@ namespace Tauron.Application.Blazor.Parameters;
 public sealed class ParameterUpdater
 {
     private readonly GroupDictionary<string, IMutableState> _registrations = new();
-
+    private IReadOnlyDictionary<string, object> _parameterView = ImmutableDictionary<string, object>.Empty;
+    
     public IState<TValue> Register<TValue>(string name, IStateFactory stateFactory)
     {
         if(stateFactory is null)
@@ -28,14 +31,22 @@ public sealed class ParameterUpdater
         var state = stateFactory.NewMutable(new MutableState<TValue>.Options());
         _registrations.Add(name, state);
 
+        if(_parameterView.TryGetValue(name, out object? obj) && obj is TValue value)
+            state.Set(value);
+        
         return state;
     }
 
     public void UpdateParameters(ParameterView parameterView)
     {
+        _parameterView = parameterView.ToDictionary();
   
         foreach ((string key, var states) in _registrations)
         {
+            #if DEBUG
+            Console.WriteLine($"ParameterUpdater: Name: {key} -- States: {states.Count}");
+            #endif
+            
             if(parameterView.TryGetValue(key, out object? value))
                 states.Foreach(s => s.Set(Result.Value(value)));
             else

@@ -11,7 +11,7 @@ else
             <MudText Inline="true">@(Sensor.DisplayName.Value): </MudText>
             <StateAwaiter State="ViewModel.SensorValue">
                 <ChildContent>
-                    <MudText Inline="true">context</MudText>
+                    <MudText Inline="true">@context</MudText>
                 </ChildContent>
                 <Loading>
                     <MudText Inline="true">Laden</MudText>

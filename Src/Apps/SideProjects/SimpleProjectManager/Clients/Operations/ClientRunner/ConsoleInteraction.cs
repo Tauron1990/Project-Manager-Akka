@@ -1,6 +1,9 @@
+using System.Collections.Immutable;
 using System.Globalization;
+using FluentValidation.Results;
 using SimpleProjectManager.Operation.Client.Core;
 using SimpleProjectManager.Shared;
+using Spectre.Console;
 
 namespace ClientRunnerApp;
 
@@ -11,9 +14,8 @@ public class ConsoleInteraction : IClientInteraction
             () =>
             {
                 PrintInitial(initial);
-                Console.WriteLine(question);
 
-                return Console.ReadLine() ?? string.Empty;
+                return AnsiConsole.Ask<string>(question);
             });
 
     public ValueTask<int> Ask(int? initial, string question)
@@ -25,8 +27,7 @@ public class ConsoleInteraction : IClientInteraction
 
                 while (true)
                 {
-                    Console.WriteLine(question);
-                    string? consoleLine = Console.ReadLine();
+                    var consoleLine = AnsiConsole.Ask<string>(question);
 
                     if(string.IsNullOrWhiteSpace(consoleLine))
                         continue;
@@ -40,8 +41,8 @@ public class ConsoleInteraction : IClientInteraction
                         break;
                     }
 
-                    Console.WriteLine("Das ist keine Nummer");
-                    Console.WriteLine();
+                    AnsiConsole.WriteLine("Das ist keine Nummer");
+                    AnsiConsole.WriteLine();
                 }
 
                 return result;
@@ -56,8 +57,7 @@ public class ConsoleInteraction : IClientInteraction
 
                 while (true)
                 {
-                    Console.WriteLine(question);
-                    string? consoleLine = Console.ReadLine()?.ToLower(CultureInfo.CurrentCulture);
+                    string consoleLine = AnsiConsole.Ask<string>(question).ToLower(CultureInfo.CurrentUICulture);
 
                     if(string.IsNullOrWhiteSpace(consoleLine))
                         continue;
@@ -79,8 +79,8 @@ public class ConsoleInteraction : IClientInteraction
                         break;
                     }
 
-                    Console.WriteLine("Das ist keine Wahrheitswert");
-                    Console.WriteLine();
+                    AnsiConsole.WriteLine("Das ist keine Wahrheitswert");
+                    AnsiConsole.WriteLine();
                 }
 
                 return result;
@@ -92,45 +92,11 @@ public class ConsoleInteraction : IClientInteraction
             {
                 PrintInitial(initial);
 
-                var choice = string.Empty;
-
-                while (true)
-                {
-                    Console.WriteLine(question);
-                    Console.WriteLine();
-                    Console.WriteLine("0 = Abbrechen");
-                    for (var i = 0; i < choises.Length; i++)
-                        Console.WriteLine($"{i + 1} = {choises[i]}");
-                    Console.WriteLine();
-
-                    string? result = Console.ReadLine();
-
-                    if(string.Equals(result, "0", StringComparison.CurrentCulture))
-                        break;
-
-                    if(choises.Contains(result, StringComparer.CurrentCulture))
-                    {
-                        choice = result ?? string.Empty;
-
-                        break;
-                    }
-
-                    if(int.TryParse(result, NumberStyles.Any, CultureInfo.CurrentCulture, out int indexer))
-                    {
-                        string? potential = choises.ElementAtOrDefault(indexer - 1);
-                        if(!string.IsNullOrWhiteSpace(potential))
-                        {
-                            choice = potential;
-
-                            break;
-                        }
-                    }
-
-                    Console.WriteLine();
-                    Console.WriteLine($"Fehlerhafte Eingabe: {result}");
-                }
-
-                return choice;
+                string selection = AnsiConsole.Prompt(new SelectionPrompt<string>()
+                   .Title(question)
+                   .AddChoices(choises));
+                
+                return selection;
             });
 
     public ValueTask<string> AskForFile(string? initial, string info)
@@ -138,21 +104,34 @@ public class ConsoleInteraction : IClientInteraction
             () =>
             {
                 PrintInitial(initial);
-                Console.WriteLine(info);
-                Console.Write("Bittent Datei Eingeben:");
+                AnsiConsole.WriteLine(info);
 
-                return Console.ReadLine() ?? string.Empty;
+                return AnsiConsole.Ask<string>("Bitte Datein Eigeben:");
             });
 
     public bool AskForCancel(string operation, Exception error)
     {
-        Console.WriteLine($"Fehler bei der Operation: {operation}");
-        Console.WriteLine(error);
-        Console.Write("Benden(y/n)?");
+        AnsiConsole.WriteLine($"Fehler bei der Operation: {operation}");
+        AnsiConsole.WriteException(error);
+        AnsiConsole.Write("Benden(y/n)?");
         ConsoleKeyInfo result = Console.ReadKey();
-        Console.WriteLine();
+        AnsiConsole.WriteLine();
 
         return result.Key == ConsoleKey.Y;
+    }
+
+    public void Display(ImmutableList<ValidationFailure> configError)
+    {
+        AnsiConsole.WriteLine();
+
+        AnsiConsole.WriteLine("Validation Fehler");
+
+        foreach (ValidationFailure failure in configError)
+        {
+            AnsiConsole.WriteLine(failure.ErrorMessage);
+        }
+
+        AnsiConsole.WriteLine();
     }
 
     private static void PrintInitial<T>(T? value)
@@ -160,6 +139,6 @@ public class ConsoleInteraction : IClientInteraction
         if(value is null)
             return;
 
-        Console.WriteLine($"Aktueller wert: {value}");
+        AnsiConsole.WriteLine($"Aktueller wert: {value}");
     }
 }

@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Hosting;
-using SimpleProjectManager.Operation.Client;
+﻿using Spectre.Console.Cli;
 
 namespace ClientRunnerApp;
 
@@ -8,9 +7,16 @@ public static class Programm
     [STAThread]
     public static async Task Main(string[] args)
     {
-        try
+        var app = new CommandApp();
+
+        app.SetDefaultCommand<ClientApp>();
+        app.Configure(c => c.SetApplicationName("Operation Client"));
+
+        await app.RunAsync(args).ConfigureAwait(false);
+
+        /*try
         {
-            IHost host = await new ClientRunner(new ConsoleInteraction()).CreateClient(args).ConfigureAwait(false);
+            IHost host = await new ClientRunner(new ConsoleInteraction()).CreateClient(TODO).ConfigureAwait(false);
             await host.RunAsync().ConfigureAwait(false);
         }
         catch (OperationCanceledException)
@@ -24,6 +30,6 @@ public static class Programm
             Console.WriteLine(ex);
             #pragma warning disable GU0011
             Console.ReadKey(true);
-        }
+        }*/
     }
 }

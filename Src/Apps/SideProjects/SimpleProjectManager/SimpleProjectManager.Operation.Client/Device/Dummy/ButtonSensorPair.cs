@@ -8,7 +8,7 @@ internal sealed record ButtonSensorPair(CategoryName Category, DeviceButton Butt
     internal bool CurrentState { get; set; }
 
     internal bool Clicked { get; set; }
-
+    
     internal DeviceManagerMessages.ISensorBox CurrentValue { get; set; } = DeviceManagerMessages.SensorBox.CreateDefault(Sensor.SensorType);
 
     internal int SensorValue { get; set; }

@@ -41,9 +41,10 @@ public abstract class NonAutoRenderingView<TModel> : DisposableComponent, IViewF
     protected override void OnInitialized()
     {
         this.WhenActivated(InitializeModel);
-
+        
         RenderingManager.Init(StateHasChanged, InvokeAsync);
         ViewModel = CreateModel();
+        
         //_initSubject.OnNext(Unit.Default);
         base.OnInitialized();
     }
