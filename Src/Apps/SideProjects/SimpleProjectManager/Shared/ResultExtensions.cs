@@ -6,7 +6,7 @@ namespace SimpleProjectManager.Shared;
 #pragma warning disable EPS02
 #pragma warning disable EPS06
 
-public static class Extensions
+public static class ResultExtensions
 {
     public static TResult ThrowIfFail<TResult>(this string? error, Func<TResult> resultFactory)
     {
@@ -38,6 +38,6 @@ public static class Extensions
             throw error.GetException();
     }
     
-    public static Validation ValidateNotNullOrEmpty(this string value, string name)
+    public static Validation ValidateNotNullOrEmpty(this string? value, string name)
         => string.IsNullOrWhiteSpace(value) ? Validation.Invalid($"The Value from {name} is null or Empty") : Validation.Ok;
 }
