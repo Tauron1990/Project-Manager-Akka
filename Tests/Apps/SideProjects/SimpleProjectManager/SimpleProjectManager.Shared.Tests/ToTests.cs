@@ -5,7 +5,7 @@ namespace SimpleProjectManager.Shared.Tests;
 public sealed class ToTests
 {
     [Theory, AutoData]
-    public async Task ValueTaskWithResult(string toTest)
+    public async Task Value_Task_With_Result(string toTest)
     {
         string result = await To.VTask(() => toTest);
         
@@ -13,11 +13,11 @@ public sealed class ToTests
     }
     
     [Fact]
-    public async Task ValueTaskWithResultAndException()
+    public async Task Value_Task_With_Result_And_Exception()
         => await Assert.ThrowsAsync<InvalidOperationException>(async () => await To.VTask<string>(() => throw new InvalidOperationException("Test Error")));
     
     [Theory, AutoData]
-    public async Task TaskWithResult(string toTest)
+    public async Task Task_With_Result(string toTest)
     {
         string result = await To.Task(() => toTest);
         
@@ -25,22 +25,22 @@ public sealed class ToTests
     }
     
     [Fact]
-    public async Task TaskWithResultAndException()
+    public async Task Task_With_Result_And_Exception()
         => await Assert.ThrowsAsync<InvalidOperationException>(async () => await To.Task<string>(() => throw new InvalidOperationException("Test Error")));
 
     [Fact]
-    public async Task ValueTaskWithAction()
+    public async Task Value_Task_With_Action()
         => await To.VTaskV(() => {  });
 
     [Fact]
-    public async Task ValueTaskWithActionAndException()
+    public async Task Value_Task_With_Action_And_Exception()
         => await Assert.ThrowsAsync<InvalidOperationException>(async () => await To.VTaskV(() => throw new InvalidOperationException("Test Error")));
     
     [Fact]
-    public async Task TaskWithAction()
+    public async Task Task_With_Action()
         => await To.TaskV(() => { });
 
     [Fact]
-    public async Task TaskWithActionAndException()
+    public async Task Task_With_Action_And_Exception()
         => await Assert.ThrowsAsync<InvalidOperationException>(async () => await To.TaskV(() => throw new InvalidOperationException("Test Error")));
 }

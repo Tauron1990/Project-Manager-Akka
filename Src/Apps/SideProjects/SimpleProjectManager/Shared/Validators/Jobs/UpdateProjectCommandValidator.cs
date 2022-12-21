@@ -6,6 +6,7 @@ public class UpdateProjectCommandValidator : AbstractValidator<UpdateProjectComm
 {
     public UpdateProjectCommandValidator()
     {
+        RuleFor(c => c.Id).NotNull();
         RuleFor(c => c.Name).SetValidator(new ProjectNameValidator()!).When(c => c.Name is not null);
         RuleFor(c => c.Deadline).SetValidator(GenericNullDataValidator.Create(new ProjectDeadlineValidator())!).When(c => c.Deadline is not null);
     }

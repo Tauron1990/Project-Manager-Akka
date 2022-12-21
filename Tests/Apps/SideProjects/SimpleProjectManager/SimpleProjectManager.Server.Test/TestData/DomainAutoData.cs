@@ -1,6 +1,8 @@
 using AutoFixture;
+using AutoFixture.AutoNSubstitute;
 using AutoFixture.Xunit2;
 using FluentValidation;
+using Microsoft.Extensions.Logging;
 using Tauron.Operations;
 
 namespace SimpleProjectManager.Shared.Tests.TestData;
@@ -14,11 +16,14 @@ public sealed class DomainAutoData : AutoDataAttribute
         
     }
 
-    private static IFixture FixtureFactory()
+    public static IFixture FixtureFactory()
     {
         var fix = new Fixture();
 
         fix.Customize(new ImmutableCollectionsCustomization());
+        fix.Customize(new AutoNSubstituteCustomization());
+        fix.RegisterLoggerFactory(new LoggerFactory());
+
         fix.Register(() => ProjectFileId.New);
         fix.Register(() => ProjectId.New);
         fix.Register(() => new ProjectDeadline(DateTime.Now + TimeSpan.FromDays(1)));

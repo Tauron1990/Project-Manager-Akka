@@ -9,7 +9,7 @@ namespace SimpleProjectManager.Shared.Tests.Validators;
 public sealed class GenericNullDataValidatorTests
 {
     [Theory, DomainAutoData]
-    public void NonNullValidator(NullableData<string> value, IValidator<string> validator)
+    public void Non_Null_Valid_Validator(NullableData<string> value, IValidator<string> validator)
     {
         ValidationResult result = GenericNullDataValidator.Create(validator).Validate(value);
 
@@ -18,8 +18,13 @@ public sealed class GenericNullDataValidatorTests
     }
 
     [Theory, DomainAutoData]
-    public void NoNullInValidValidator(IValidator<string> validator)
+    public void No_Null_InValid_Validator(IValidator<string> validator)
     {
-        
+        ValidationResult result = GenericNullDataValidator.Create(validator).Validate(new NullableData<string>(string.Empty));
+
+        result.Should().NotBeNull();
+        result.IsValid.Should().BeFalse();
     }
+
+
 }

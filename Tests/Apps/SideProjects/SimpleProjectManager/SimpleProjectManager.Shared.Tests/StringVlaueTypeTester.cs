@@ -3,7 +3,7 @@ namespace SimpleProjectManager.Shared.Tests;
 public abstract class StringVlaueTypeTester<TType>
     where TType : IStringValueType<TType>
 {
-    public virtual void NotNullValidValue(string value)
+    public virtual void Not_Null_Valid_Value(string value)
     {
         TType msg = TType.From(value);
         
@@ -11,18 +11,18 @@ public abstract class StringVlaueTypeTester<TType>
         Assert.Equal(value, msg.Value);
     }
 
-    public virtual void NullInValidValue()
+    public virtual void Null_InValid_Value()
         => Assert.Throws<Vogen.ValueObjectValidationException>(() => TType.From(null));
 
-    public virtual void EmptyInValidValue()
+    public virtual void Empty_InValid_Value()
         => Assert.Throws<Vogen.ValueObjectValidationException>(() => TType.From(string.Empty));
     
-    public virtual void DefaultInValidValue()
+    public virtual void Default_InValid_Value()
         #pragma warning disable VOG009
         => Assert.Throws<Vogen.ValueObjectValidationException>(() => default(TType).Value);
     #pragma warning restore VOG009
 
-    public virtual void EmptyEqualValue()
+    public virtual void Empty_Equal_Value()
     {
         Assert.Equal(string.Empty, TType.GetEmpty.Value);
         Assert.True(TType.GetEmpty == string.Empty, "SimpleMessage.Empty == string.Empty; operator");

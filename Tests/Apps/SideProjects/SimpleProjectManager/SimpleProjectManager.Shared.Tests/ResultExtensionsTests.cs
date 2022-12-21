@@ -9,7 +9,7 @@ namespace SimpleProjectManager.Shared.Tests;
 public sealed class ResultExtensionsTests
 {
     [Theory, AutoData]
-    public void ThrowWhenNotEmptyString(string value)
+    public void Throw_When_Not_Empty_String(string value)
     {
         Action act = value.ThrowIfFail;
 
@@ -17,7 +17,7 @@ public sealed class ResultExtensionsTests
     }
 
     [Fact]
-    public void DontThrowWhenEmptyString()
+    public void Dont_Throw_When_Empty_String()
     {
         var empty = string.Empty;
         string? nullValue = null;
@@ -27,7 +27,7 @@ public sealed class ResultExtensionsTests
     }
     
     [Theory, AutoData]
-    public void ThrowWhenNotEmptyStringWithResult(string value)
+    public void Throw_When_Not_Empty_String_With_Result(string value)
     {
         var act = () => value.ThrowIfFail(() => 1);
         
@@ -35,7 +35,7 @@ public sealed class ResultExtensionsTests
     }
 
     [Fact]
-    public void DontThrowWhenEmptyStringWithResult()
+    public void Dont_Throw_When_Empty_String_With_Result()
     {
         var empty = string.Empty;
         string? nullValue = null;
@@ -50,7 +50,7 @@ public sealed class ResultExtensionsTests
     
     
     [Theory, DomainAutoData]
-    public void ThrowWhenNotEmptySimpleResult(SimpleResult value)
+    public void Throw_When_Not_Empty_Simple_Result(SimpleResult value)
     {
         Action act = () => value.ThrowIfFail();
 
@@ -58,7 +58,7 @@ public sealed class ResultExtensionsTests
     }
 
     [Fact]
-    public void DontThrowWhenEmptySimpleResult()
+    public void Dont_Throw_When_Empty_Simple_Result()
     {
         SimpleResult empty = SimpleResult.Success();
         SimpleResult defaultValue = default;
@@ -68,7 +68,7 @@ public sealed class ResultExtensionsTests
     }
     
     [Theory, DomainAutoData]
-    public void ThrowWhenNotEmptySimpleResultWithResult(SimpleResult value)
+    public void Throw_When_Not_Empty_Simple_Result_With_Result(SimpleResult value)
     {
         var act = () => value.ThrowIfFail(() => 1);
 
@@ -76,10 +76,10 @@ public sealed class ResultExtensionsTests
     }
 
     [Fact]
-    public void DontThrowWhenEmptySimpleResultWithResult()
+    public void Dont_Throw_When_Empty_Simple_Result_With_Result()
     {
-        var empty = string.Empty;
-        string? defaultValue = null;
+        var empty = SimpleResult.Success();
+        SimpleResult defaultValue = default;
 
         int result1 = empty.ThrowIfFail(() => 1);
         int result2 = defaultValue.ThrowIfFail(() => 1);
@@ -89,9 +89,9 @@ public sealed class ResultExtensionsTests
     }
 
     [Fact]
-    public void ValidateNullOrEmptyString()
+    public void Validate_Null_Or_Empty_String()
     {
-        const string nameContent = nameof(ValidateNullOrEmptyString);
+        const string nameContent = nameof(Validate_Null_Or_Empty_String);
         
         string? nullValue = null;
         var emptyValue = string.Empty;
@@ -111,9 +111,9 @@ public sealed class ResultExtensionsTests
     }
 
     [Theory, AutoData]
-    public void ValidateValidString(string value)
+    public void Validate_Valid_String(string value)
     {
-        Validation result = value.ValidateNotNullOrEmpty(nameof(ValidateValidString));
+        Validation result = value.ValidateNotNullOrEmpty(nameof(Validate_Valid_String));
 
         result.Should().NotBeNull();
         result.ErrorMessage.Should().BeEmpty();
