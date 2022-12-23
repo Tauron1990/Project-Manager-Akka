@@ -55,7 +55,7 @@ public class Startup
                     var oldModelBinderProviders = options.ModelBinderProviders.ToList();
                     var newModelBinderProviders = new IModelBinderProvider[]
                                                   {
-                                                      new IdentityModelBinderFactory()
+                                                      new IdentityModelBinderFactory(),
                                                   };
                     options.ModelBinderProviders.Clear();
                     options.ModelBinderProviders.AddRange(newModelBinderProviders);

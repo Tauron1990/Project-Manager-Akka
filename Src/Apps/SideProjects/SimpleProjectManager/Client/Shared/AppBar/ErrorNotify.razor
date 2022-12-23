@@ -10,11 +10,11 @@
         <MudTooltip Text="Aktuelle Kritische Fehler">
             @if(context == 0)
             {
-                <MudAlert Severity="Severity.Success">Keine</MudAlert>
+                <MudAlert Severity="Severity.Success">Keine Fehler</MudAlert>
             }
             else
             {
-                <MudAlert Severity="Severity.Warning" OnClick="@Navigation.Errors">@context</MudAlert>
+                <MudAlert Severity="Severity.Warning" OnClick="@Navigation.Errors">Fehler: @context</MudAlert>
             }
         </MudTooltip>
     </ValueRenderer>

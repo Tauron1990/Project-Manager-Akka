@@ -12,10 +12,17 @@ public sealed class IpSetup : ISetup
 
     public async ValueTask<OperationConfiguration> RunSetup(OperationConfiguration operationConfiguration)
     {
+        int selfPort = await _clientInteraction.Ask(operationConfiguration.SelfPort.Value.MinusOneToNull(), "Der Port dieses Clients?").ConfigureAwait(false);
         string newIp = await _clientInteraction.Ask(operationConfiguration.ServerIp.Value.EmptyToNull(), "Die IP Adresse zum Projekt Server?").ConfigureAwait(false);
         int newPort = await _clientInteraction.Ask(operationConfiguration.ServerPort.Value.MinusOneToNull(), "Der Port zum Projekt Server (Stabdart: 4000)?").ConfigureAwait(false);
         int newAkkaPort = await _clientInteraction.Ask(operationConfiguration.AkkaPort.Value.MinusOneToNull(), "Der Port zum Projekt Cluster (Standart: 4001)?").ConfigureAwait(false);
 
-        return operationConfiguration with { ServerIp = ServerIp.From(newIp), ServerPort = Port.From(newPort), AkkaPort = Port.From(newAkkaPort) };
+        return operationConfiguration with
+               {
+                   SelfPort = Port.From(selfPort), 
+                   ServerIp = ServerIp.From(newIp), 
+                   ServerPort = Port.From(newPort), 
+                   AkkaPort = Port.From(newAkkaPort),
+               };
     }
 }

@@ -1,4 +1,5 @@
-﻿using Spectre.Console.Cli;
+﻿using Spectre.Console;
+using Spectre.Console.Cli;
 
 namespace ClientRunnerApp;
 
@@ -7,6 +8,8 @@ public static class Programm
     [STAThread]
     public static async Task Main(string[] args)
     {
+        AnsiConsole.WriteLine("Starting...");
+    
         var app = new CommandApp();
 
         app.SetDefaultCommand<ClientApp>();

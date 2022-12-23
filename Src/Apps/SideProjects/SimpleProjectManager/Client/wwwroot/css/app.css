@@ -50,36 +50,39 @@ a, .btn-link {
     top: 0.5rem;
 }
 
-.loading-Text1 
-{ 
+.loading-Text1
+{
     grid-area: text1;
 }
-.loading-Text2 
-{ 
+.loading-Text2
+{
     grid-area: text2;
 }
-.loading-loadingBa1 
+.loading-loadingBa1
 {
-    grid-area: lodingbar; 
+    grid-area: lodingbar;
 }
-.loading-Empty 
-{ 
+.loading-Empty
+{
     grid-area: empty;
-    height: 20px;
+}
+
+.loading-progress-bar{
+    background-color: black;
 }
 
 .loading-grid-container {
-    display: grid;
+    display: grid | inline-grid;
     grid-template-areas:
     'empty empty text1 text1 empty empty'
     'empty empty text2 text2 empty empty'
     'empty empty lodingbar lodingbar empty empty';
-    gap: 10px;
-    padding: 10px;
+    gap: 5px;
+    padding: 5px;
 }
 
 .loading-grid-container > div {
     text-align: center;
-    padding: 20px 0;
+    padding: 2px;
     font-size: 30px;
 }

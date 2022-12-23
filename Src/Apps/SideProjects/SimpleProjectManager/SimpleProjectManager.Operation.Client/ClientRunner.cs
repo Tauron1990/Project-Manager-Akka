@@ -1,7 +1,5 @@
 ﻿using Akka.Cluster.Hosting;
-using Akka.Cluster.Hosting.SBR;
-using Akka.Configuration;
-using Akka.Hosting;
+using Akka.Remote.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -46,9 +44,15 @@ public sealed class ClientRunner
     {
         actorApplication
            .ConfigureAkka(
-                (_, b) => b
-                   .WithClustering(new ClusterOptions{ Roles = new []{"ProjectManager"}}, SplitBrainResolverOption.Default)
-                   .WithDistributedPubSub("ProjectManager"))
+                (_, b) =>
+                {
+                    if(_configManager.Configuration.SelfPort.Value > 0)
+                        b.WithRemoting(port: _configManager.Configuration.SelfPort.Value);
+                    
+                    b
+                       .WithClustering(new ClusterOptions { Roles = new[] { "ProjectManager" } })
+                       .WithDistributedPubSub("ProjectManager");
+                })
            .ConfigureServices(
                 (_, coll) => coll
                    .AddSingleton(_configManager.Configuration)

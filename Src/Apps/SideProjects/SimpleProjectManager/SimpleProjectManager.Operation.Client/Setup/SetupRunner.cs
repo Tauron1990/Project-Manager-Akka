@@ -36,7 +36,7 @@ public sealed class SetupRunner
             return;
 
         // ReSharper disable once LoopCanBeConvertedToQuery
-        foreach (ISetup setup in _setups)
+        foreach (var setup in _setups)
             config = await setup.RunSetup(config).ConfigureAwait(false);
 
         validation = await config.Validate().ConfigureAwait(false);

@@ -73,8 +73,6 @@ public sealed class ProjectManagerTests : PersistenceTestKit
                 result.Ok.Should().BeTrue();
                 result.Outcome.Should().Be(true);
             });
-        
-        FrozenAttribute
     }
 
     private TResult SendAndGet<TResult>(ICanTell manager, object msg)
@@ -83,7 +81,7 @@ public sealed class ProjectManagerTests : PersistenceTestKit
 
         return ExpectMsg<TResult>(TimeSpan.FromSeconds(10));
     }
-    
+
     private IActorRef Manager()
-        => ActorOf(() => new ProjectManager())
+        => ActorOf(() => new ProjectManager());
 }

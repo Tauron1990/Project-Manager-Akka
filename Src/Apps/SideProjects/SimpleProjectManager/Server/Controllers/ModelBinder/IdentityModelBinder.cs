@@ -9,6 +9,13 @@ public sealed class IdentityModelBinder : IModelBinder
         try
         {
             string id = bindingContext.ValueProvider.GetValue(bindingContext.ModelName).FirstValue ?? string.Empty;
+            if(string.IsNullOrWhiteSpace(id))
+            {
+                bindingContext.Result = ModelBindingResult.Failed();
+
+                return Task.CompletedTask;
+            }
+            
             bindingContext.Result = ModelBindingResult.Success(FastReflection.Shared.FastCreateInstance(bindingContext.ModelType, id));
         }
         catch (Exception)

@@ -5,11 +5,11 @@ using SimpleProjectManager.Client.Operations.Shared;
 
 namespace SimpleProjectManager.Operation.Client.Config;
 
-public sealed record OperationConfiguration(
+public sealed record OperationConfiguration(Port SelfPort,
     ServerIp ServerIp, Port ServerPort, Port AkkaPort, ObjectName Name, DeviceData Device, EditorData Editor)
 {
     public OperationConfiguration()
-        : this(ServerIp.Empty, Port.Empty, Port.Empty, ObjectName.Empty,  new DeviceData(), new EditorData()) { }
+        : this(Port.Empty, ServerIp.Empty, Port.Empty, Port.Empty, ObjectName.Empty,  new DeviceData(), new EditorData()) { }
 
     [JsonIgnore]
     public string ServerUrl

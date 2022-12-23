@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Text.Json;
+using Microsoft.AspNetCore.Mvc;
 using SimpleProjectManager.Shared.ServerApi;
 using SimpleProjectManager.Shared.Services.Devices;
 using Stl.Fusion.Server;
@@ -54,12 +55,25 @@ public class DeviceController : Controller, IDeviceService
     public Task<Logs> GetBatches([FromQuery] DeviceId deviceName, [FromQuery] DateTime from, CancellationToken token)
         => _deviceService.GetBatches(deviceName, from, token);
 
+    public Task<SimpleResult> ClickButton(DeviceId device, DeviceId button, CancellationToken token)
+        => _deviceService.ClickButton(device, button, token);
+
     [HttpPost]
-    public async Task<SimpleResult> ClickButton([FromBody] DeviceId device, [FromQuery(Name = "button")] DeviceId button, CancellationToken token)
+    public async Task<SimpleResult> ClickButton(CancellationToken token)
     {
         try
         {
-            return await _deviceService.ClickButton(device, button, token);
+            using JsonDocument body = await JsonDocument.ParseAsync(HttpContext.Request.Body, cancellationToken: token).ConfigureAwait(false);
+            string? query = HttpContext.Request.Query["button"].Single();
+            
+            
+            if(string.IsNullOrWhiteSpace(query))
+                return SimpleResult.Failure("Keine Maschienen Id");
+
+            var device = new DeviceId(body.RootElement.GetProperty("value").GetString() ?? string.Empty);
+            var button = new DeviceId(query);
+
+            return await ClickButton(device, button, token);
         }
         catch (Exception e)
         {
