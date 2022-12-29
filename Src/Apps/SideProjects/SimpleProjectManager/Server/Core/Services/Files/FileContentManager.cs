@@ -37,11 +37,11 @@ public sealed class FileContentManager
         var context = new PreRegistrationContext(toRegister, id, fileName, jobName);
 
         SimpleResult result = await _criticalErrorHelper.ProcessTransaction(
-            await _preRegisterTransaction.Execute(context, token).ConfigureAwait(false),
-            nameof(PreRegisterFile),
-            () => ImmutableList<ErrorProperty>.Empty
-               .Add(new ErrorProperty(PropertyName.From("File Id"), PropertyValue.From(id.Value)))
-               .Add(new ErrorProperty(PropertyName.From("File Name"), PropertyValue.From(fileName))))
+                await _preRegisterTransaction.Execute(context, token).ConfigureAwait(false),
+                nameof(PreRegisterFile),
+                () => ImmutableList<ErrorProperty>.Empty
+                   .Add(new ErrorProperty(PropertyName.From("File Id"), PropertyValue.From(id.Value)))
+                   .Add(new ErrorProperty(PropertyName.From("File Name"), PropertyValue.From(fileName))))
            .ConfigureAwait(false);
 
         if(result.IsSuccess())
@@ -64,7 +64,7 @@ public sealed class FileContentManager
 
     public async ValueTask<SimpleResult> DeleteFile(ProjectFileId id, CancellationToken token)
     {
-        return (await _criticalErrorHelper.Try(
+        return await _criticalErrorHelper.Try(
                 nameof(DeleteFile),
                 async () =>
                 {
@@ -87,6 +87,6 @@ public sealed class FileContentManager
                 token,
                 () => ImmutableList<ErrorProperty>
                    .Empty.Add(new ErrorProperty(PropertyName.From("File Id"), PropertyValue.From(id.Value))))
-.ConfigureAwait(false));
+           .ConfigureAwait(false);
     }
 }

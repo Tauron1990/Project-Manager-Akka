@@ -28,7 +28,7 @@ public interface IDeviceService
     [ComputeMethod]
     Task<DateTime> CurrentLogs(CancellationToken token);
 
-    Task<Logs> GetBatches(DeviceId deviceName, DateTime from, CancellationToken token);
+    Task<Logs> GetBatches(DeviceId deviceId, DateTime from, DateTime to, CancellationToken token);
 
     Task<SimpleResult> ClickButton(DeviceId device, DeviceId button, CancellationToken token);
 }

@@ -13,30 +13,24 @@ public abstract class SpectreVisitor : IRenderVisitor
     private RenderElement? _root;
 
     private ImmutableList<Action> _writers = ImmutableList<Action>.Empty;
-    
+
     public RenderElement Root
     {
         get
         {
             if(_root is null)
                 throw new InvalidOperationException("No Root elment was Defined");
-            
+
             return _root;
         }
         protected set => _root = value;
     }
 
-    protected void AddWriter(Action action)
-        => _writers = _writers.Add(action);
-
-    public void RunRender()
-        => _writers.ForEach(a => a());
-    
     public virtual void Visit(RenderElement element)
     {
         Root = element;
         _writers = ImmutableList<Action>.Empty.Add(AnsiConsole.Clear);
-        
+
         element.Accept(this);
     }
 
@@ -51,6 +45,7 @@ public abstract class SpectreVisitor : IRenderVisitor
                 throw new InvalidCastException("Unkowen Custom Element");
         }
     }
+
     public abstract void VisitGameTitle(GameTitleElement gameTitleElement);
 
     public virtual void VisitMulti(MultiElement multiElement)
@@ -70,17 +65,23 @@ public abstract class SpectreVisitor : IRenderVisitor
 
         foreach (CommandBase menuItem in commandMenu.MenuItems)
             menuItem.Accept(this);
-        
+
         CommandFrameExit();
     }
 
-    protected abstract void NextCommandFrame(CommandFrame frame);
-
-    protected abstract void CommandFrameExit();
-    
     public abstract void VisitCommandItem(CommandItem commandItem);
     public abstract void VisitSpacing(SpacingElement spacingElement);
     public abstract void VisitAsk(AskElement askElement);
     public abstract void VisitText(TextElement textElement);
     public abstract void VisitDocument(DocumentElement documentElement);
+
+    protected void AddWriter(Action action)
+        => _writers = _writers.Add(action);
+
+    public void RunRender()
+        => _writers.ForEach(a => a());
+
+    protected abstract void NextCommandFrame(CommandFrame frame);
+
+    protected abstract void CommandFrameExit();
 }

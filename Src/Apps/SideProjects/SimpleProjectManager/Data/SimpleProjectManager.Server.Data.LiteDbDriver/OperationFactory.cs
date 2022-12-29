@@ -34,7 +34,7 @@ public sealed class OperationFactory<TData> : IOperationFactory<TData>
 
                     return d;
                 }),
-            _ => throw new InvalidOperationException("Only Property or Fiels are Supported")
+            _ => throw new InvalidOperationException("Only Property or Fiels are Supported"),
         };
     }
 }

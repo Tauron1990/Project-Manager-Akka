@@ -25,7 +25,7 @@ public class SimpleConstructorStateFactory : IStateInstanceFactory
                         param[0].ParameterType.IsAssignableTo(typeof(IActionInvoker))
                             ? new object?[] { invoker, dataEngine }
                             : new object?[] { dataEngine, invoker }),
-                    _ => null
+                    _ => null,
                 }
                 into instance
                 where instance is not null

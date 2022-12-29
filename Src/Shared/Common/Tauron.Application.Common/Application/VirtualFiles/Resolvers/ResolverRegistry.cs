@@ -12,7 +12,7 @@ public static class ResolverRegistry
         new IFileSystemResolver[]
         {
             new InMemoryResolver(),
-            new LocalFileSystemResolver()
+            new LocalFileSystemResolver(),
         });
 
     [PublicAPI]

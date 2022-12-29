@@ -14,7 +14,7 @@ public static class SimpleCommandExtensions
         where TCommand : SimpleCommand<TSender, TCommand>, IReporterMessage
         where TSender : ISender
     {
-        var result = await SendingHelper.Send<object, TCommand>(sender, command, messages, timeout, isEmpty: true, token).ConfigureAwait(false);
+        var result = await SendingHelper.Send<object, TCommand>(sender, command, messages, timeout, true, token).ConfigureAwait(false);
 
         return result.Fold(_ => Option<Error>.None, e => e);
     }

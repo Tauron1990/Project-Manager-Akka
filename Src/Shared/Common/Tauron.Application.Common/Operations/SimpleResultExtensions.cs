@@ -14,13 +14,13 @@ public static class SimpleResultExtensions
         this SimpleResult<TOutcome> result,
         Func<TOutcome, ValueTask<TValue>> success,
         Func<Error, ValueTask<TValue>> onError)
-        => result.Error is null 
-            ? await success(result.OutCome!).ConfigureAwait(false) 
+        => result.Error is null
+            ? await success(result.OutCome!).ConfigureAwait(false)
             : await onError(result.Error.Value).ConfigureAwait(false);
 
     public static bool IsError(this in SimpleResult result)
         => result.Error is not null;
-    
+
     public static bool IsSuccess(this in SimpleResult result)
         => result.Error is null;
 
@@ -31,7 +31,7 @@ public static class SimpleResultExtensions
 
         return new InvalidOperationException(result.Error.Value.Info ?? result.Error.Value.Code);
     }
-    
+
     public static string GetErrorString(this in SimpleResult result)
     {
         if(result.Error is null)

@@ -5,5 +5,5 @@ public enum SensorType
     None = 0,
     Double,
     String,
-    Number
+    Number,
 }

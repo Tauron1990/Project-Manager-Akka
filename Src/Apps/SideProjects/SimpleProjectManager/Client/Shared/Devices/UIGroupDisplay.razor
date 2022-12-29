@@ -1,4 +1,5 @@
-﻿@if(UiGroup is not null)
+﻿@using SimpleProjectManager.Shared.Services.Devices
+@if(UiGroup is not null)
 {
     <MudGrid>
         @if(ShowCategory)
@@ -15,7 +16,7 @@
         {
             <ButtonsDisplay Buttons="button" DeviceId="DeviceId"/>
         }
-        @foreach (var group in UiGroup.Groups)
+        @foreach (DeviceUiGroup group in UiGroup.Groups)
         {
             <MudItem lg="12">
                 <UIGroupDisplayCarrier UiGroup="group" DeviceId="DeviceId"/>

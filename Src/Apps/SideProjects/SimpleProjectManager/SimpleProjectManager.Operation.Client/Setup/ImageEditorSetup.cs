@@ -16,7 +16,7 @@ public sealed class ImageEditorSetup : ISetup
         bool isImageEditor = await _clientInteraction.Ask(operationConfiguration.Editor.Active, "Werden auf dem PC Bilder bearbeitet").ConfigureAwait(false);
 
         if(!isImageEditor)
-            return operationConfiguration with { Editor = operationConfiguration.Editor with{ Active = false, Path = FilePath.Empty }};
+            return operationConfiguration with { Editor = operationConfiguration.Editor with { Active = false, Path = FilePath.Empty } };
 
         string filePath = await _clientInteraction.AskForFile(operationConfiguration.Editor.Path.Value.EmptyToNull(), "Pfad zum Bild Editor").ConfigureAwait(false);
 

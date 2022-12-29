@@ -4,5 +4,5 @@ public enum TrasnactionState
 {
     Successeded,
     Rollback,
-    RollbackFailed
+    RollbackFailed,
 }

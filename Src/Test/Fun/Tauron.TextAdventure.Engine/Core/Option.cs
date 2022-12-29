@@ -1,8 +1,9 @@
+using System.Runtime.InteropServices;
 using JetBrains.Annotations;
 
 namespace SpaceConqueror.Core;
 
-[System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Auto)]
+[StructLayout(LayoutKind.Auto)]
 [PublicAPI]
 public readonly struct Option<TData>
 {
@@ -31,7 +32,7 @@ public readonly struct Option<TData>
     }
 
     public static implicit operator Option<TData>(TData data)
-        => new(data, hasValue: true);
+        => new(data, true);
 
     public TResult Map<TResult>(Func<TData, TResult> selector, Func<TResult> defaultValue)
         => HasValue ? selector(_data!) : defaultValue();

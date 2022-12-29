@@ -81,7 +81,6 @@ public partial class FileUploader
         public FileName Name { get; }
         public FileMime ContentType { get; }
         public FileSize Size { get; }
-
         #pragma warning disable EPS06
         public Stream OpenReadStream(in MaxSize maxSize, CancellationToken token)
             => _file.OpenReadStream(maxSize.Value, token);

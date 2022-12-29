@@ -119,7 +119,7 @@ public abstract class AggregateRoot<TAggregate, TIdentity, TAggregateState> : Re
     private object? PinnedReply { get; set; }
     private ISnapshotStrategy SnapshotStrategy { get; set; } = SnapshotNeverStrategy.Instance;
     public TAggregateState? State { get; }
-    
+
     public override string PersistenceId { get; }
 
     public override Recovery Recovery => new(SnapshotSelectionCriteria.Latest);
@@ -185,7 +185,7 @@ public abstract class AggregateRoot<TAggregate, TIdentity, TAggregateState> : Re
                                     SourceId = PinnedCommand.SourceId,
                                     EventId = eventId,
                                     EventName = eventDefinition.Name,
-                                    EventVersion = eventDefinition.Version
+                                    EventVersion = eventDefinition.Version,
                                 };
             eventMetadata.Add(MetadataKeys.TimestampEpoch, now.ToUnixTime().ToString(CultureInfo.InvariantCulture));
             if(metadata != null) eventMetadata.AddRange(metadata);
@@ -230,9 +230,9 @@ public abstract class AggregateRoot<TAggregate, TIdentity, TAggregateState> : Re
                                 SourceId = PinnedCommand.SourceId,
                                 EventId = eventId,
                                 EventName = eventDefinition.Name,
-                                EventVersion = eventDefinition.Version
+                                EventVersion = eventDefinition.Version,
                             };
-        eventMetadata.Add(MetadataKeys.TimestampEpoch, value: now.ToUnixTime().ToString(CultureInfo.InvariantCulture));
+        eventMetadata.Add(MetadataKeys.TimestampEpoch, now.ToUnixTime().ToString(CultureInfo.InvariantCulture));
         if(metadata != null) eventMetadata.AddRange(metadata);
 
         var committedEvent = new CommittedEvent<TAggregate, TIdentity, TAggregateEvent>(
@@ -295,7 +295,7 @@ public abstract class AggregateRoot<TAggregate, TIdentity, TAggregateState> : Re
                                    AggregateName = Name.Value,
                                    AggregateSequenceNumber = Version,
                                    SnapshotName = snapshotDefinition.Name,
-                                   SnapshotVersion = snapshotDefinition.Version
+                                   SnapshotVersion = snapshotDefinition.Version,
                                };
 
         var committedSnapshot =

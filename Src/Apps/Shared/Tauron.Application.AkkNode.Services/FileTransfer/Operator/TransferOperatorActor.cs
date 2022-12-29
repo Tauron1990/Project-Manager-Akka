@@ -131,7 +131,7 @@ public sealed class TransferOperatorActor : FSM<OperatorState, OperatorData>
         {
             NextChunk chunk => NextChunkRecived(state, chunk),
             RequestDeny => Stay(),
-            _ => null
+            _ => null,
         };
     }
 
@@ -199,7 +199,7 @@ public sealed class TransferOperatorActor : FSM<OperatorState, OperatorData>
             StartTrensfering => Sending(state),
             SendingCompled => SendingCompletd(state),
             RepeadChunk => RepeadingChunk(state),
-            _ => null
+            _ => null,
         };
     }
 

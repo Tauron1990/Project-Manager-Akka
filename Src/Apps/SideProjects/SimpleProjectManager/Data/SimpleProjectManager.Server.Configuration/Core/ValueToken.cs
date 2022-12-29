@@ -5,5 +5,5 @@ public enum ValueToken
     None,
     OpenBrace,
     CloseBrace,
-    Text
+    Text,
 }

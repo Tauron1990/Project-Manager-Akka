@@ -1,5 +1,4 @@
 ﻿using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
 
 namespace SimpleProjectManager.Server.Data;
 
@@ -9,7 +8,7 @@ public static class Extensions
     {
         ImmutableList<TItem>.Builder builder = ImmutableList.CreateBuilder<TItem>();
 
-        await foreach (var item in items.WithCancellation(cancellationToken).ConfigureAwait(false))
+        await foreach (TItem item in items.WithCancellation(cancellationToken).ConfigureAwait(false))
             builder.Add(item);
 
         return builder.ToImmutable();

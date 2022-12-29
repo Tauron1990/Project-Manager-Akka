@@ -15,5 +15,5 @@ public static class ResultCommandExtensions
         this TSender sender, TCommand command, in Duration? timeout, TResult? resultInfo, Action<string> messages, CancellationToken token = default)
         where TSender : ISender
         where TCommand : ResultCommand<TSender, TCommand, TResult>
-        => SendingHelper.Send<TResult, TCommand>(sender, command, messages, timeout, isEmpty: false, token);
+        => SendingHelper.Send<TResult, TCommand>(sender, command, messages, timeout, false, token);
 }

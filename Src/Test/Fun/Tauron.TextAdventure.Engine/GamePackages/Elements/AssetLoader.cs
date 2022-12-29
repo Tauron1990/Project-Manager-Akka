@@ -11,7 +11,7 @@ public sealed class AssetLoader : PackageElement
     public AssetLoader(Action<AssetManager> configurator)
         => _configurator = configurator;
 
-    
+
     internal override void Load(ElementLoadContext context)
         => context.PostConfigServices.Add(s => _configurator(s.GetRequiredService<AssetManager>()));
 }

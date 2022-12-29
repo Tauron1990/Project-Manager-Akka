@@ -14,5 +14,5 @@ public enum FileSystemFeature
     Delete = 1 << 6,
     Extension = 1 << 7,
     Create = 1 << 8,
-    Reloading = 1 << 9
+    Reloading = 1 << 9,
 }

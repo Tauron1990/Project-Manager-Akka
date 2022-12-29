@@ -32,7 +32,14 @@ else if(isLoading)
 {
     @if(Loading != null)
     {
-        @Loading
+        @if(State is null)
+        {
+            @Loading(default)
+        }
+        else
+        {
+            @Loading(State.LatestNonErrorValue)
+        }
     }
     else
     {
@@ -60,7 +67,7 @@ else
     public RenderFragment<Exception>? Error { get; set; }
 
     [Parameter]
-    public RenderFragment? Loading { get; set; }
+    public RenderFragment<TValue?>? Loading { get; set; }
 
     protected override void OnParametersSet()
     {

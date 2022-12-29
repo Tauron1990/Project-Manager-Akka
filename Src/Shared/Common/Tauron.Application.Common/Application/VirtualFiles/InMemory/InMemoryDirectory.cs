@@ -51,7 +51,7 @@ public class InMemoryDirectory : DirectoryBase<DirectoryContext>
             {
                 Path = GenericPathHelper.Combine(OriginalPath, name),
                 Data = Context.Root.GetDirectoryEntry(name, context.Clock),
-                Parent = Context
+                Parent = Context,
             },
             Features);
 
@@ -92,7 +92,7 @@ public class InMemoryDirectory : DirectoryBase<DirectoryContext>
                     {
                         Parent = newContext,
                         Path = newPath,
-                        Data = dic
+                        Data = dic,
                     },
                     Features));
         }

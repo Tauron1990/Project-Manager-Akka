@@ -2,7 +2,7 @@
 <MudGrid>
     @if(Sensors.Count <= 3)
     {
-        foreach (var sensor in Sensors)
+        foreach (DeviceSensor sensor in Sensors)
         {
             <MudItem lg="@(12 / Sensors.Count)">
                 <MudPaper Class="@(@"mud-width-full ma-2")">
@@ -13,7 +13,7 @@
     }
     else
     {
-        foreach (var sensor in Sensors)
+        foreach (DeviceSensor sensor in Sensors)
         {
             <MudItem lg="12">
                 <MudPaper Class="mud-width-full ma-2">
@@ -25,9 +25,11 @@
 </MudGrid>
 
 @code {
+
     [Parameter]
     public ImmutableList<DeviceSensor> Sensors { get; set; } = ImmutableList<DeviceSensor>.Empty;
 
     [Parameter]
     public DeviceId? DeviceId { get; set; }
+
 }

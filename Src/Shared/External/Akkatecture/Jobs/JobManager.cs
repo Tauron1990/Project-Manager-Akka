@@ -46,8 +46,8 @@ public class JobManager<TJobScheduler, TJobRunner, TJob, TIdentity> : ReceiveAct
     {
         Props? runnerProps = Props.Create(jobRunnerFactory).WithDispatcher(Context.Props.Dispatcher);
         Props? schedulerProps = Props.Create(jobSchedulerFactory).WithDispatcher(Context.Props.Dispatcher);
-        string runnerName = $"{Name}-runner";
-        string schedulerName = $"{Name}-scheduler";
+        var runnerName = $"{Name}-runner";
+        var schedulerName = $"{Name}-scheduler";
 
         Props? runnerSupervisorProps =
             BackoffSupervisor.Props(

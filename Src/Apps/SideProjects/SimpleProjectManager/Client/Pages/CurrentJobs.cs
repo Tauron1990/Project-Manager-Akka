@@ -38,14 +38,14 @@ public partial class CurrentJobs
     {
         base.OnParametersSet();
         Task.Run(
-            async () =>
-            {
-                if(PreSelected == PairSelection.Nothing) return;
+                async () =>
+                {
+                    if(PreSelected == PairSelection.Nothing) return;
 
-                await GlobalState.Jobs.IsLoaded.Where(l => l).Take(1).FirstOrDefaultAsync();
+                    await GlobalState.Jobs.IsLoaded.Where(l => l).Take(1).FirstOrDefaultAsync();
 
-                GlobalState.Dispatch(new SelectNewPairAction(PreSelected));
-            })
+                    GlobalState.Dispatch(new SelectNewPairAction(PreSelected));
+                })
            .Ignore();
     }
 

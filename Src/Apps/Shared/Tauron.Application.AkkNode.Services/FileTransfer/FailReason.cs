@@ -11,5 +11,5 @@ public enum FailReason
     Timeout,
     ToManyResends,
     ReadError,
-    WriteError
+    WriteError,
 }

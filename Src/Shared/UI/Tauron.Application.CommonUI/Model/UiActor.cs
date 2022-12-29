@@ -90,7 +90,7 @@ public abstract class UiActor : ObservableActor, IObservablePropertyChanged
             UnloadEvent unloadEvent => Run(unloadEvent, ControlUnload),
             InitParentViewModel initParentViewModel => Run(initParentViewModel, InitParentViewModel),
             ReviveActor reviveActor => Run(reviveActor, RestartActor),
-            _ => base.Receive(message)
+            _ => base.Receive(message),
         };
     }
 
@@ -151,7 +151,7 @@ public abstract class UiActor : ObservableActor, IObservablePropertyChanged
                 MethodType.One => new object[] { parameter! },
                 MethodType.Two => new[] { parameter?.Sender, parameter?.EventArgs },
                 MethodType.EventArgs => new[] { parameter?.EventArgs },
-                _ => Array.Empty<object>()
+                _ => Array.Empty<object>(),
             };
 
             _method.Method.InvokeFast(_method.Target, args);
@@ -162,7 +162,7 @@ public abstract class UiActor : ObservableActor, IObservablePropertyChanged
             Zero = 0,
             One,
             Two,
-            EventArgs
+            EventArgs,
         }
     }
 

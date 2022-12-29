@@ -32,11 +32,11 @@ public abstract class FileUploaderViewModelBase : ViewModelBase
     private readonly GlobalState _globalState;
 
     private SourceCache<FileUploadFile, FileName>? _files;
+    private BehaviorSubject<bool>? _isUploading;
 
     private string? _projectId;
     private ObservableAsPropertyHelper<bool>? _shouldDisable;
     private SerialDisposable? _triggerSubscribe;
-    private BehaviorSubject<bool>? _isUploading;
 
     protected FileUploaderViewModelBase(IMessageDispatcher aggregator, GlobalState globalState)
     {
@@ -47,6 +47,26 @@ public abstract class FileUploaderViewModelBase : ViewModelBase
         this.WhenActivated(Init);
     }
 
+    protected IMessageDispatcher MessageDispatcher { get; }
+
+    private bool ShouldDisable => _shouldDisable?.Value ?? false;
+
+    public ReactiveCommand<Unit, Unit>? Clear { get; private set; }
+
+    public ReactiveCommand<Unit, SimpleResult>? Upload { get; private set; }
+
+    public ReactiveCommand<FileChangeEvent, Unit>? FilesChanged { get; private set; }
+
+    public Func<string, IEnumerable<string>> ValidateName { get; }
+
+    public ReadOnlyObservableCollection<FileUploadFile>? Files { get; private set; }
+
+    public string? ProjectId
+    {
+        get => _projectId;
+        set => this.RaiseAndSetIfChanged(ref _projectId, value);
+    }
+
     #pragma warning disable MA0051
     private IEnumerable<IDisposable> Init()
         #pragma warning restore MA0051
@@ -54,7 +74,7 @@ public abstract class FileUploaderViewModelBase : ViewModelBase
         var (triggerUpload, nameState) = GetModelInformation();
 
         yield return _triggerSubscribe = new SerialDisposable();
-        yield return _isUploading = new BehaviorSubject<bool>(value: false);
+        yield return _isUploading = new BehaviorSubject<bool>(false);
         yield return _files = new SourceCache<FileUploadFile, FileName>(bf => bf.Name);
 
         yield return nameState.Subscribe(s => ProjectId = s);
@@ -119,26 +139,6 @@ public abstract class FileUploaderViewModelBase : ViewModelBase
         yield return triggerUpload
            .NotNull()
            .Subscribe(NewTrigger);
-    }
-
-    protected IMessageDispatcher MessageDispatcher { get; }
-
-    private bool ShouldDisable => _shouldDisable?.Value ?? false;
-
-    public ReactiveCommand<Unit, Unit>? Clear { get; private set; }
-
-    public ReactiveCommand<Unit, SimpleResult>? Upload { get; private set; }
-
-    public ReactiveCommand<FileChangeEvent, Unit>? FilesChanged { get; private set; }
-
-    public Func<string, IEnumerable<string>> ValidateName { get; }
-
-    public ReadOnlyObservableCollection<FileUploadFile>? Files { get; private set; }
-
-    public string? ProjectId
-    {
-        get => _projectId;
-        set => this.RaiseAndSetIfChanged(ref _projectId, value);
     }
 
     protected abstract (IObservable<FileUploadTrigger> triggerUpload, IState<string> nameState) GetModelInformation();

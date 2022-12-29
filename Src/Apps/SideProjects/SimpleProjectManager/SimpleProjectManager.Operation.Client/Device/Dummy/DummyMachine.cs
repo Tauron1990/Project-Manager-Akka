@@ -11,19 +11,21 @@ namespace SimpleProjectManager.Operation.Client.Device.Dummy;
 public sealed class DummyMachine : IMachine, IDisposable
 {
     private const string DummyId = "9E72CF8B-B33E-421E-BFB5-DB17D70379D2";
-    
-    private readonly DummyOperator _dummyOperator;
+
+    private readonly (string Name, DeviceId Id)[] _buttons =
+    {
+        ("TestButton1", DeviceId.ForName("TestButton1")),
+        ("TestButton2", DeviceId.ForName("TestButton2")),
+        ("TestButton3", DeviceId.ForName("TestButton3")),
+        ("TestButton4", DeviceId.ForName("TestButton4")),
+        ("TestButton5", DeviceId.ForName("TestButton5")),
+        ("TestButton6", DeviceId.ForName("TestButton6")),
+    };
+
     private readonly DeviceId _deviceId;
 
-    private readonly string[] _buttons = {
-                                             "TestButton1",
-                                             "TestButton2",
-                                             "TestButton3",
-                                             "TestButton4",
-                                             "TestButton5",
-                                             "TestButton6",
-                                         };
-    
+    private readonly DummyOperator _dummyOperator;
+
     private ButtonSensorPair[] _pairs = Array.Empty<ButtonSensorPair>();
     private ImmutableDictionary<DeviceId, DeviceManagerMessages.ISensorBox> _sensorBoxes = ImmutableDictionary<DeviceId, DeviceManagerMessages.ISensorBox>.Empty;
     private ImmutableDictionary<DeviceId, Action<bool>> _stateChanges = ImmutableDictionary<DeviceId, Action<bool>>.Empty;
@@ -43,28 +45,28 @@ public sealed class DummyMachine : IMachine, IDisposable
                  {
                      new ButtonSensorPair(
                          CategoryName.From("Test"),
-                         new DeviceButton(DisplayName.From(_buttons[0]), Id(_buttons[0])),
-                         new DeviceSensor(DisplayName.From("TestValue1"), Id("TestValue1"), SensorType.String)),
+                         new DeviceButton(DisplayName.From(_buttons[0].Name), _buttons[0].Id),
+                         new DeviceSensor(DisplayName.From("TestValue1"), DeviceId.ForName("TestValue1"), SensorType.String)),
                      new ButtonSensorPair(
                          CategoryName.From("Test"),
-                         new DeviceButton(DisplayName.From(_buttons[1]), Id(_buttons[1])),
-                         new DeviceSensor(DisplayName.From("TestValue2"), Id("TestValue2"), SensorType.String)),
+                         new DeviceButton(DisplayName.From(_buttons[1].Name), _buttons[1].Id),
+                         new DeviceSensor(DisplayName.From("TestValue2"), DeviceId.ForName("TestValue2"), SensorType.String)),
                      new ButtonSensorPair(
                          CategoryName.From("Test1"),
-                         new DeviceButton(DisplayName.From(_buttons[2]), Id(_buttons[2])),
-                         new DeviceSensor(DisplayName.From("TestValue3"), Id("TestValue3"), SensorType.String)),
+                         new DeviceButton(DisplayName.From(_buttons[2].Name), _buttons[2].Id),
+                         new DeviceSensor(DisplayName.From("TestValue3"), DeviceId.ForName("TestValue3"), SensorType.String)),
                      new ButtonSensorPair(
                          CategoryName.From("Test1"),
-                         new DeviceButton(DisplayName.From(_buttons[3]), Id(_buttons[3])),
-                         new DeviceSensor(DisplayName.From("TestValue4"), Id("TestValue4"), SensorType.String)),
+                         new DeviceButton(DisplayName.From(_buttons[3].Name), _buttons[3].Id),
+                         new DeviceSensor(DisplayName.From("TestValue4"), DeviceId.ForName("TestValue4"), SensorType.String)),
                      new ButtonSensorPair(
                          CategoryName.From("Test2"),
-                         new DeviceButton(DisplayName.From(_buttons[4]), Id(_buttons[4])),
-                         new DeviceSensor(DisplayName.From("TestValue5"), Id("TestValue5"), SensorType.String)),
+                         new DeviceButton(DisplayName.From(_buttons[4].Name), _buttons[4].Id),
+                         new DeviceSensor(DisplayName.From("TestValue5"), DeviceId.ForName("TestValue5"), SensorType.String)),
                      new ButtonSensorPair(
                          CategoryName.From("Test2"),
-                         new DeviceButton(DisplayName.From(_buttons[5]), Id(_buttons[5])),
-                         new DeviceSensor(DisplayName.From("TestValue6"), Id("TestValue6"), SensorType.String)),
+                         new DeviceButton(DisplayName.From(_buttons[5].Name), _buttons[5].Id),
+                         new DeviceSensor(DisplayName.From("TestValue6"), DeviceId.ForName("TestValue6"), SensorType.String)),
                  };
 
         _dummyOperator.Init(_pairs);
@@ -77,9 +79,9 @@ public sealed class DummyMachine : IMachine, IDisposable
             new DeviceInformations(
                 _deviceId,
                 DeviceName.From("Dummy Operator"),
-                HasLogs: true,
+                true,
                 CreateGroup(),
-                _buttons.Select(DeviceId.ForName).Select(id => new ButtonState(id, State: true)).ToImmutableList(),
+                _buttons.Select(p => p.Id).Select(id => new ButtonState(id, true)).ToImmutableList(),
                 ActorRefs.Nobody));
 
     public Task<DeviceManagerMessages.ISensorBox> UpdateSensorValue(DeviceSensor sensor)
@@ -103,9 +105,6 @@ public sealed class DummyMachine : IMachine, IDisposable
     private void ValueChange(DeviceSensor sensor, DeviceManagerMessages.ISensorBox sensorBox)
         => _sensorBoxes = _sensorBoxes.SetItem(sensor.Identifer, sensorBox);
 
-    private static DeviceId Id(string name)
-        => DeviceId.ForName(name);
-
     private DeviceUiGroup CreateGroup()
     {
         var root = new DeviceUiGroup("Root", ImmutableList<DeviceUiGroup>.Empty, ImmutableList<DeviceSensor>.Empty, ImmutableList<DeviceButton>.Empty);
@@ -123,7 +122,7 @@ public sealed class DummyMachine : IMachine, IDisposable
                                        ImmutableList<DeviceUiGroup>.Empty,
                                        ImmutableList<DeviceSensor>.Empty,
                                        ImmutableList<DeviceButton>.Empty),
-                                   grouping))
+                                   grouping)),
                        };
 
         return root;

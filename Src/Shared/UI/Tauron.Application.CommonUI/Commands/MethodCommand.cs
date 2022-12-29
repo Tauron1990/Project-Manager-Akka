@@ -46,7 +46,7 @@ public sealed class MethodCommand : CommandBase
             MethodType.One => new object?[] { temp },
             MethodType.Two => new[] { temp?.Sender, temp?.EventArgs },
             MethodType.EventArgs => new[] { temp?.EventArgs },
-            _ => Array.Empty<object>()
+            _ => Array.Empty<object>(),
         };
 
         _method.InvokeFast(Context, args);
@@ -57,6 +57,6 @@ public sealed class MethodCommand : CommandBase
         Zero = 0,
         One,
         Two,
-        EventArgs
+        EventArgs,
     }
 }

@@ -5,18 +5,19 @@ namespace Tauron.Servicemnager.Networking.IPC.Core;
 
 internal class Statistic
 {
-    private int _errorTotalBytesInQueue;
     private readonly ulong _reading = 0;
     private readonly int _readingMax = 0;
     private readonly ulong _readingTimes = 1;
+    private readonly ulong _writing = 0;
+    private readonly int _writingMax = 0;
+    private readonly ulong _writingTimes = 1;
+    private int _errorTotalBytesInQueue;
     private long _readProcedureMax = -1;
     private DateTime _readProcedureMaxSetup = DateTime.MinValue;
 
     private DateTime _readProcedureStart = DateTime.MinValue;
-    internal DateTime Ready2ReadSignalLastSetup = DateTime.MinValue;
     private ulong _ready2WriteSignalCalls;
     private long _ready2WriteSignalLast = -1;
-    internal DateTime Ready2WriteSignalLastSetup = DateTime.MinValue;
     private long _ready2WriteSignalMax = -1;
     private DateTime _ready2WriteSignalMaxSetup = DateTime.MinValue;
     private DateTime _ready2WriteSignalStart = DateTime.MinValue;
@@ -26,10 +27,9 @@ internal class Statistic
     private DateTime _waitForReadMaxSetup = DateTime.MinValue;
 
     private DateTime _waitForReadStart = DateTime.MinValue;
-    private readonly ulong _writing = 0;
-    private readonly int _writingMax = 0;
-    private readonly ulong _writingTimes = 1;
     internal SharmIpc? Ipc = null;
+    internal DateTime Ready2ReadSignalLastSetup = DateTime.MinValue;
+    internal DateTime Ready2WriteSignalLastSetup = DateTime.MinValue;
 
     internal long TotalBytesInQueue = 0;
 

@@ -68,7 +68,7 @@ public sealed class InternalFileRepository : IInternalFileRepository
         var meta = new BsonDocument
                    {
                        new BsonElement(nameof(FileEntry.FileName), fileName),
-                       new BsonElement(nameof(FileEntry.JobName), jobName)
+                       new BsonElement(nameof(FileEntry.JobName), jobName),
                    };
 
         await _bucket.UploadFromStreamAsync(ObjectId.Parse(id), fileId, stream, new GridFSUploadOptions { Metadata = meta }, token).ConfigureAwait(false);

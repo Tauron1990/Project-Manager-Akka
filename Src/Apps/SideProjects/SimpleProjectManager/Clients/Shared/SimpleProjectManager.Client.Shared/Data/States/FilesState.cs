@@ -18,7 +18,7 @@ public sealed class FilesState : StateBase
 {
     public static readonly FileMime[] AllowedContentTypes =
     {
-        new("application/pdf"), new("application/x-zip-compressed"), new("application/zip"), new("image/tiff"), new("image/x-tiff")
+        new("application/pdf"), new("application/x-zip-compressed"), new("application/zip"), new("image/tiff"), new("image/x-tiff"),
     };
 
     private readonly IMessageDispatcher _aggregator;
@@ -42,8 +42,8 @@ public sealed class FilesState : StateBase
     {
         bool result = AllowedContentTypes.Any(t => t == file.ContentType);
 
-        return !result 
-            ? SimpleResult.Failure($"Die Datei {file.Name} kann nicht Hochgeladen werden. Nur Tiff, zip und Pdf sinf erlaubt") 
+        return !result
+            ? SimpleResult.Failure($"Die Datei {file.Name} kann nicht Hochgeladen werden. Nur Tiff, zip und Pdf sinf erlaubt")
             : SimpleResult.Success();
     }
 

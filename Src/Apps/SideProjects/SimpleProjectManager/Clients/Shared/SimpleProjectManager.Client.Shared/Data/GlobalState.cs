@@ -60,7 +60,7 @@ public sealed class GlobalState : IDisposable
     public TaskState Tasks { get; }
 
     public DeviceState Devices { get; }
-    
+
     public void Dispose()
     {
         _scope.Dispose();

@@ -132,83 +132,83 @@ public sealed class TaskManagerCore
 
     public async ValueTask<SimpleResult> AddNewTask(AddTaskCommand command, CancellationToken token)
         => await _criticalErrors.Try(
-            nameof(AddNewTask),
-            async () =>
-            {
-                Func<Task>? remove = null;
-                try
+                nameof(AddNewTask),
+                async () =>
                 {
-                    (string name, object taskCommand, string info) = command;
-                    RegisterJobType registration = _registrations.First(d => d.IsCompatible(taskCommand));
-                    string jobId = registration.GetId(taskCommand);
+                    Func<Task>? remove = null;
+                    try
+                    {
+                        (string name, object taskCommand, string info) = command;
+                        RegisterJobType registration = _registrations.First(d => d.IsCompatible(taskCommand));
+                        string jobId = registration.GetId(taskCommand);
 
-                    if(string.IsNullOrWhiteSpace(jobId))
-                        return SimpleResult.Failure("Die Job Id ist Leer");
+                        if(string.IsNullOrWhiteSpace(jobId))
+                            return SimpleResult.Failure("Die Job Id ist Leer");
 
-                    var entry = new TaskManagerEntry
-                                {
-                                    Id = Guid.NewGuid().ToString("D"),
-                                    ManagerId = registration.Id,
-                                    Name = name,
-                                    JobId = jobId,
-                                    Info = info
-                                };
+                        var entry = new TaskManagerEntry
+                                    {
+                                        Id = Guid.NewGuid().ToString("D"),
+                                        ManagerId = registration.Id,
+                                        Name = name,
+                                        JobId = jobId,
+                                        Info = info,
+                                    };
 
-                    IActorRef manager = GetJobManager(registration);
+                        IActorRef manager = GetJobManager(registration);
 
-                    await _entrys.InsertOneAsync(entry, token).ConfigureAwait(false);
-                    remove = async () => await _entrys.DeleteOneAsync(_entrys.Operations.Eq(e => e.Id, entry.Id), token).ConfigureAwait(false);
+                        await _entrys.InsertOneAsync(entry, token).ConfigureAwait(false);
+                        remove = async () => await _entrys.DeleteOneAsync(_entrys.Operations.Eq(e => e.Id, entry.Id), token).ConfigureAwait(false);
 
-                    var result = await manager.Ask<IOperationResult>(taskCommand, TimeSpan.FromSeconds(10), token).ConfigureAwait(false);
+                        IOperationResult? result = await manager.Ask<IOperationResult>(taskCommand, TimeSpan.FromSeconds(10), token).ConfigureAwait(false);
 
-                    if(!result.Ok)
-                        throw new InvalidOperationException("Task Konnte nicht eingerehit werden");
+                        if(!result.Ok)
+                            throw new InvalidOperationException("Task Konnte nicht eingerehit werden");
 
-                    _aggregator.Publish(TasksChanged.Inst);
+                        _aggregator.Publish(TasksChanged.Inst);
 
-                    return SimpleResult.Success();
-                }
-                catch (Exception e)
-                {
-                    if(remove != null)
-                        await remove().ConfigureAwait(false);
+                        return SimpleResult.Success();
+                    }
+                    catch (Exception e)
+                    {
+                        if(remove != null)
+                            await remove().ConfigureAwait(false);
 
-                    return SimpleResult.Failure(e);
-                }
-            },
-            token,
-            () => ImmutableList<ErrorProperty>.Empty
-               .Add(new ErrorProperty(PropertyName.From("Task Name"), PropertyValue.From(command.Name)))
-               .Add(new ErrorProperty(PropertyName.From("Task Info"), PropertyValue.From(command.Info))))
+                        return SimpleResult.Failure(e);
+                    }
+                },
+                token,
+                () => ImmutableList<ErrorProperty>.Empty
+                   .Add(new ErrorProperty(PropertyName.From("Task Name"), PropertyValue.From(command.Name)))
+                   .Add(new ErrorProperty(PropertyName.From("Task Info"), PropertyValue.From(command.Info))))
            .ConfigureAwait(false);
 
     public async ValueTask<SimpleResult> DeleteTask(string id, CancellationToken token)
         => await _criticalErrors.Try(
-            nameof(DeleteTask),
-            async () =>
-            {
-                var filter = _entrys.Operations.Eq(e => e.JobId, id);
-                DbTaskManagerEntry ele = await _entrys.Find(filter).SingleAsync(token).ConfigureAwait(false);
-                RegisterJobType registration = _registrations.First(r => string.Equals(r.Id, ele.ManagerId, StringComparison.Ordinal));
-                IActorRef manager = GetJobManager(registration);
-                object cancelCommand = registration.CreateCancel(ele.JobId);
-                var cancelResult = await manager.Ask<IOperationResult>(cancelCommand, TimeSpan.FromSeconds(10), token).ConfigureAwait(false);
-
-                if(!cancelResult.Ok)
-                    return SimpleResult.Failure("Der Task konnte nicht Beended werden");
-
-                DbOperationResult deleteResult = await _entrys.DeleteOneAsync(filter, token).ConfigureAwait(false);
-                if(deleteResult.IsAcknowledged)
+                nameof(DeleteTask),
+                async () =>
                 {
-                    _aggregator.Publish(TasksChanged.Inst);
+                    var filter = _entrys.Operations.Eq(e => e.JobId, id);
+                    DbTaskManagerEntry ele = await _entrys.Find(filter).SingleAsync(token).ConfigureAwait(false);
+                    RegisterJobType registration = _registrations.First(r => string.Equals(r.Id, ele.ManagerId, StringComparison.Ordinal));
+                    IActorRef manager = GetJobManager(registration);
+                    object cancelCommand = registration.CreateCancel(ele.JobId);
+                    IOperationResult? cancelResult = await manager.Ask<IOperationResult>(cancelCommand, TimeSpan.FromSeconds(10), token).ConfigureAwait(false);
 
-                    return SimpleResult.Success();
-                }
+                    if(!cancelResult.Ok)
+                        return SimpleResult.Failure("Der Task konnte nicht Beended werden");
 
-                throw new InvalidOperationException("Der Task wurde Abbgebrochen aber nicht aus der Datenbank gelöscht worden.");
-            },
-            token,
-            () => ImmutableList<ErrorProperty>.Empty.Add(new ErrorProperty(PropertyName.From("Task Id"), PropertyValue.From(id))))
+                    DbOperationResult deleteResult = await _entrys.DeleteOneAsync(filter, token).ConfigureAwait(false);
+                    if(deleteResult.IsAcknowledged)
+                    {
+                        _aggregator.Publish(TasksChanged.Inst);
+
+                        return SimpleResult.Success();
+                    }
+
+                    throw new InvalidOperationException("Der Task wurde Abbgebrochen aber nicht aus der Datenbank gelöscht worden.");
+                },
+                token,
+                () => ImmutableList<ErrorProperty>.Empty.Add(new ErrorProperty(PropertyName.From("Task Id"), PropertyValue.From(id))))
            .ConfigureAwait(false);
 
     public async ValueTask<TaskManagerEntry[]> GetCurrentTasks(CancellationToken token)

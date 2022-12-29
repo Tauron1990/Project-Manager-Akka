@@ -23,7 +23,7 @@ public sealed class IniParser
 
         string? currentSectionName = _reader
            .EnumerateTextLines()
-           .Aggregate<string?, string?>(seed: null, (current, line) => ReadIniContent(line ?? string.Empty, current, entrys, ref currentSection));
+           .Aggregate<string?, string?>(null, (current, line) => ReadIniContent(line ?? string.Empty, current, entrys, ref currentSection));
 
         if(currentSectionName != null)
             entrys[currentSectionName] = currentSection;

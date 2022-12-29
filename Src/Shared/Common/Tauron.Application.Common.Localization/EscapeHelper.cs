@@ -27,16 +27,13 @@ public class EscapeHelper
                   { "001", '\r' },
                   { "002", '\t' },
                   { "003", '\n' },
-                  { "004", ':' } ,
+                  { "004", ':' },
               };
 
         private static string? GetPartforChar(char @char)
-        {
-            return (from part in Parts
-                    where part.Value == @char 
-                    select part.Key).FirstOrDefault();
-
-        }
+            => (from part in Parts
+                where part.Value == @char
+                select part.Key).FirstOrDefault();
 
         private static char? GetPartforSequence(string @char)
         {

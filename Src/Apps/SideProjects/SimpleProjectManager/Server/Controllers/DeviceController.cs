@@ -52,8 +52,8 @@ public class DeviceController : Controller, IDeviceService
         => _deviceService.CurrentLogs(token);
 
     [HttpGet]
-    public Task<Logs> GetBatches([FromQuery] DeviceId deviceName, [FromQuery] DateTime from, CancellationToken token)
-        => _deviceService.GetBatches(deviceName, from, token);
+    public Task<Logs> GetBatches([FromQuery] DeviceId deviceId, [FromQuery] DateTime from, [FromQuery] DateTime to, CancellationToken token)
+        => _deviceService.GetBatches(deviceId, from, to, token);
 
     public Task<SimpleResult> ClickButton(DeviceId device, DeviceId button, CancellationToken token)
         => _deviceService.ClickButton(device, button, token);
@@ -65,8 +65,8 @@ public class DeviceController : Controller, IDeviceService
         {
             using JsonDocument body = await JsonDocument.ParseAsync(HttpContext.Request.Body, cancellationToken: token).ConfigureAwait(false);
             string? query = HttpContext.Request.Query["button"].Single();
-            
-            
+
+
             if(string.IsNullOrWhiteSpace(query))
                 return SimpleResult.Failure("Keine Maschienen Id");
 

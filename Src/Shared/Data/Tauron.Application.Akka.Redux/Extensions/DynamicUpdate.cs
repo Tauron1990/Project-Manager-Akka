@@ -32,7 +32,7 @@ public static class DynamicUpdate
                     new ComputedState<TData>.Options(),
                     async (_, token) => await requester(token, stlState.Use).ConfigureAwait(false));
 
-                return ToSource(computer, skipErrors: true)
+                return ToSource(computer, true)
                    .Select(data => patcher(data, store.CurrentState))
                    .Select(data => (object)MutateCallback.Create(data))!;
             }

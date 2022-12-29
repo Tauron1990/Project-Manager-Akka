@@ -16,7 +16,7 @@ public sealed partial class NameFeature : ActorFeatureBase<NameFeature.State>
     #pragma warning disable EPS05
     public static IPreparedFeature Create(ObjectName name)
         #pragma warning restore EPS05
-        => Feature.Create(() => new NameFeature(), _ => new State(name, IsConfirmd: false, IsDown: false, ActorRefs.Nobody, new TaskCompletionSource()));
+        => Feature.Create(() => new NameFeature(), _ => new State(name, false, false, ActorRefs.Nobody, new TaskCompletionSource()));
 
     protected override void ConfigImpl()
     {
@@ -75,13 +75,13 @@ public sealed partial class NameFeature : ActorFeatureBase<NameFeature.State>
             }
 
             NoRegistryFound(Logger);
-            p.Sender.Tell(new NameResponse(Name: null));
+            p.Sender.Tell(new NameResponse(null));
         }
         catch (Exception e)
         {
             ErrorOnRegisterName(Logger, e);
 
-            p.Sender.Tell(new NameResponse(Name: null));
+            p.Sender.Tell(new NameResponse(null));
         }
 
         return Unit.Default;
@@ -99,7 +99,7 @@ public sealed partial class NameFeature : ActorFeatureBase<NameFeature.State>
         }
 
         NameRegisterError(Logger, result.Error.GetErrorString());
-        p.Event.From.Tell(new NameResponse(Name: null));
+        p.Event.From.Tell(new NameResponse(null));
 
         return p.State with { IsConfirmd = false, IsDown = false };
     }

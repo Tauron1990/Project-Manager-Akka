@@ -33,7 +33,7 @@ public abstract class SimpleTransaction<TContext>
             foreach (InternalStep step in _registrations)
                 await step(context, rollback).ConfigureAwait(false);
 
-            return new TransactionResult(TrasnactionState.Successeded, Exception: null);
+            return new TransactionResult(TrasnactionState.Successeded, null);
         }
         catch (Exception exception)
         {

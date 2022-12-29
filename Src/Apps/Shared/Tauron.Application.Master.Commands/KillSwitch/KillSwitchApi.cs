@@ -72,7 +72,7 @@ public static partial class KillSwitchApi
         private static readonly KillRecpientType[] Order =
         {
             KillRecpientType.Unkowen, KillRecpientType.Frontend, KillRecpientType.Host, KillRecpientType.Service,
-            KillRecpientType.Seed
+            KillRecpientType.Seed,
         };
 
         public static IPreparedFeature Create()
@@ -123,7 +123,7 @@ public static partial class KillSwitchApi
                                    {
                                        Actors = state.Actors.Replace(
                                            ele,
-                                           ele with { RecpientType = respondRegistration.RecpientType })
+                                           ele with { RecpientType = respondRegistration.RecpientType }),
                                    };
                         }));
 
@@ -167,7 +167,7 @@ public static partial class KillSwitchApi
                           KillRecpientType.Frontend,
                           KillRecpientType.Host,
                           KillRecpientType.Seed,
-                          KillRecpientType.Service
+                          KillRecpientType.Service,
                       };
 
             foreach ((IActorRef target, KillRecpientType recpientType) in CurrentState.Actors)

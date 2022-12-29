@@ -18,50 +18,50 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Akka.Persistence.MongoDb" Version="1.4.40" />
-        <PackageReference Include="Akka.Persistence.Query" Version="1.4.47" />
-        <PackageReference Include="Ben.Demystifier" Version="0.4.1" />
+        <PackageReference Include="Akka.Persistence.MongoDb" Version="1.4.40"/>
+        <PackageReference Include="Akka.Persistence.Query" Version="1.4.47"/>
+        <PackageReference Include="Ben.Demystifier" Version="0.4.1"/>
         <PackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.1.2">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="ErrorProne.NET.Structs" Version="0.1.2">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Gu.Analyzers" Version="2.0.2">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Meziantou.Analyzer" Version="1.0.757">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="7.0.1" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="7.0.1"/>
         <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="4.9.4">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
-        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
-        <PackageReference Include="Stl.Fusion.Server" Version="4.1.40" />
+        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10"/>
+        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31"/>
+        <PackageReference Include="Stl.Fusion.Server" Version="4.1.47"/>
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\..\..\Tauron.Application.MongoExtensions\Tauron.Application.MongoExtensions.csproj" />
-        <ProjectReference Include="..\..\..\..\Shared\Data\Tauron.Akkatecture.Projections\Tauron.Akkatecture.Projections.csproj" />
-        <ProjectReference Include="..\..\..\..\Shared\External\Akkatecture\Akkatecture.csproj" />
-        <ProjectReference Include="..\..\..\Shared\Tauron.Application.AkkaNode.Boottrap\Tauron.Application.AkkaNode.Boottrap.csproj" />
-        <ProjectReference Include="..\Clients\Shared\SimpleProjectManager.Client.Operations.Shared\SimpleProjectManager.Client.Operations.Shared.csproj" />
-        <ProjectReference Include="..\Client\SimpleProjectManager.Client.csproj" />
-        <ProjectReference Include="..\Data\SimpleProjectManager.Server.Configuration\SimpleProjectManager.Server.Configuration.csproj" />
-        <ProjectReference Include="..\Data\SimpleProjectManager.Server.Data\SimpleProjectManager.Server.Data.csproj" />
-        <ProjectReference Include="..\Shared\SimpleProjectManager.Shared.csproj" />
+        <ProjectReference Include="..\..\..\..\..\Tauron.Application.MongoExtensions\Tauron.Application.MongoExtensions.csproj"/>
+        <ProjectReference Include="..\..\..\..\Shared\Data\Tauron.Akkatecture.Projections\Tauron.Akkatecture.Projections.csproj"/>
+        <ProjectReference Include="..\..\..\..\Shared\External\Akkatecture\Akkatecture.csproj"/>
+        <ProjectReference Include="..\..\..\Shared\Tauron.Application.AkkaNode.Boottrap\Tauron.Application.AkkaNode.Boottrap.csproj"/>
+        <ProjectReference Include="..\Clients\Shared\SimpleProjectManager.Client.Operations.Shared\SimpleProjectManager.Client.Operations.Shared.csproj"/>
+        <ProjectReference Include="..\Client\SimpleProjectManager.Client.csproj"/>
+        <ProjectReference Include="..\Data\SimpleProjectManager.Server.Configuration\SimpleProjectManager.Server.Configuration.csproj"/>
+        <ProjectReference Include="..\Data\SimpleProjectManager.Server.Data\SimpleProjectManager.Server.Data.csproj"/>
+        <ProjectReference Include="..\Shared\SimpleProjectManager.Shared.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Views" />
-        <Folder Include="wwwroot\" />
+        <Folder Include="Views"/>
+        <Folder Include="wwwroot\"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -71,7 +71,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <AdditionalFiles Include="Views\Index\NothingToSee.cshtml" />
+        <AdditionalFiles Include="Views\Index\NothingToSee.cshtml"/>
     </ItemGroup>
 
 

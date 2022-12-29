@@ -125,7 +125,7 @@ public abstract class TauronProfile : ObservableObject, IEnumerable<string>
     }
 
     public virtual int GetValue(int defaultValue, IFormatProvider? provider = null, [CallerMemberName] string? key = null)
-        => int.TryParse(GetValue(defaultValue: null, key), NumberStyles.Any, provider, out int result) ? result : defaultValue;
+        => int.TryParse(GetValue(null, key), NumberStyles.Any, provider, out int result) ? result : defaultValue;
 
     #pragma warning disable AV1564
     public virtual bool GetValue(bool defaultValue, [CallerMemberName] string? key = null)

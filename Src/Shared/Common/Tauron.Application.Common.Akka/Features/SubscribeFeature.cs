@@ -79,7 +79,7 @@ public sealed class SubscribeFeature : IFeature<SubscribeFeature.State>
             if(!Subscriptions.TryGetValue(type, out var list))
                 return this with
                        {
-                           Subscriptions = Subscriptions.SetItem(type, listUpdate(ImmutableList<IActorRef>.Empty))
+                           Subscriptions = Subscriptions.SetItem(type, listUpdate(ImmutableList<IActorRef>.Empty)),
                        };
 
             list = listUpdate(list);

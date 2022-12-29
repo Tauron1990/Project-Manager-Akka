@@ -11,7 +11,7 @@ public static class ElementMapper
         {
             Window w => new AvaloniaWindow(w),
             StyledElement c => new AvaloniaElement(c),
-            _ => new AvaObject(obj)
+            _ => new AvaObject(obj),
         };
     }
 }

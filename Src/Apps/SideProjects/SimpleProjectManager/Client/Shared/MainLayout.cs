@@ -37,8 +37,8 @@ public partial class MainLayout
                           Success = "#0bba83",
                           Warning = "#ffa800",
                           Error = "#f64e62",
-                          Dark = "#27272f"
-                      }
+                          Dark = "#27272f",
+                      },
         };
 
     private bool _open;

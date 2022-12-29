@@ -1,7 +1,6 @@
 ﻿using MudBlazor;
 using MudBlazor.Services;
 using ReactiveUI;
-using SimpleProjectManager.Client.Shared.Devices;
 using SimpleProjectManager.Client.Shared.ViewModels;
 using SimpleProjectManager.Client.Shared.ViewModels.Devices;
 using SimpleProjectManager.Client.Shared.ViewModels.EditJob;

@@ -12,7 +12,7 @@ public sealed class InitGame : PackageElement
     public InitGame(Action<GameState> init)
         => _init = init;
 
-    private  void PostConfig(IServiceProvider serviceProvider)
+    private void PostConfig(IServiceProvider serviceProvider)
     {
         var man = serviceProvider.GetRequiredService<EventManager>();
 

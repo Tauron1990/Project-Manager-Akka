@@ -12,5 +12,5 @@ public enum JsonNodeType
     NullValue = 5,
     Boolean = 6,
     None = 7,
-    Custom = 0xFF
+    Custom = 0xFF,
 }

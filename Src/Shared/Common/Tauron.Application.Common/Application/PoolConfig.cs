@@ -9,7 +9,7 @@ public sealed record PoolConfig<TToPool>(int MaximumSize, bool UseDispose, Func<
         #pragma warning restore MA0018
         => new(
             0,
-            UseDispose: true,
+            true,
             () =>
             {
                 if(FastReflection.Shared.GetCreator(typeof(TToPool), Type.EmptyTypes)?.Invoke(Array.Empty<object>()) is not TToPool data)

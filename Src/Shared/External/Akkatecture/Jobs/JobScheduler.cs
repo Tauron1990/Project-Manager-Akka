@@ -254,7 +254,7 @@ public class JobScheduler<TJobScheduler, TJob, TIdentity> : ReceivePersistentAct
             Scheduled<TJob, TIdentity> scheduled => State.AddEntry(scheduled.Entry),
             Finished<TJob, TIdentity> completed => State.RemoveEntry(completed.JobId),
             Cancelled<TJob, TIdentity> cancelled => State.RemoveEntry(cancelled.JobId),
-            _ => throw new ArgumentException("Invalid Event Type", nameof(schedulerEvent))
+            _ => throw new ArgumentException("Invalid Event Type", nameof(schedulerEvent)),
         };
 
         Context.System.EventStream.Publish(schedulerEvent);

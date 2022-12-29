@@ -9,17 +9,17 @@ public sealed record DeviceInformations(DeviceId DeviceId, DeviceName Name, bool
     public const string ManagerName = "DeviceManager";
 
     public const string ManagerPath = "/user/DeviceManager";
-    
+
     public static DeviceInformations Empty => new(
-        DeviceId.New, 
-        DeviceName.Empty, 
-        HasLogs: false,
+        DeviceId.New,
+        DeviceName.Empty,
+        false,
         new DeviceUiGroup(
             string.Empty,
             ImmutableList<DeviceUiGroup>.Empty,
             ImmutableList<DeviceSensor>.Empty,
             ImmutableList<DeviceButton>.Empty),
-        ImmutableList<ButtonState>.Empty, 
+        ImmutableList<ButtonState>.Empty,
         ActorRefs.Nobody);
 
     public IEnumerable<DeviceSensor> CollectSensors()

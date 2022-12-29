@@ -92,7 +92,9 @@ public sealed class StartConfigManager
                 dic = dic.Add(property.Name, value ?? string.Empty);
         }
         else
+        {
             throw new InvalidOperationException("Only Propertys for Settings are Supported");
+        }
 
         return dic;
     }

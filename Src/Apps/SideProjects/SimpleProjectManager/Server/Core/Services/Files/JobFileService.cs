@@ -116,6 +116,12 @@ public class JobFileService : IJobFileService, IDisposable
         }
     }
 
+    public async Task<SimpleResult> CommitFiles(FileList files, CancellationToken token)
+        => await AggregateErrors(files.Files, id => _contentManager.CommitFile(id, token)).ConfigureAwait(false);
+
+    public async Task<SimpleResult> DeleteFiles(FileList files, CancellationToken token)
+        => await AggregateErrors(files.Files, id => _contentManager.DeleteFile(id, token)).ConfigureAwait(false);
+
     private static async ValueTask<SimpleResult> AggregateErrors<TItem>(IEnumerable<TItem> items, Func<TItem, ValueTask<SimpleResult>> executor)
     {
         var errors = ImmutableList<SimpleResult>.Empty;
@@ -129,14 +135,8 @@ public class JobFileService : IJobFileService, IDisposable
             errors = errors.Add(result);
         }
 
-        return errors.IsEmpty 
-            ? SimpleResult.Success() 
-            : SimpleResult.Failure((string.Join($", {Environment.NewLine}", errors.Select(e => e.GetErrorString()))));
+        return errors.IsEmpty
+            ? SimpleResult.Success()
+            : SimpleResult.Failure(string.Join($", {Environment.NewLine}", errors.Select(e => e.GetErrorString())));
     }
-
-    public async Task<SimpleResult> CommitFiles(FileList files, CancellationToken token)
-        => await AggregateErrors(files.Files, id => _contentManager.CommitFile(id, token)).ConfigureAwait(false);
-
-    public async Task<SimpleResult> DeleteFiles(FileList files, CancellationToken token)
-        => await AggregateErrors(files.Files, id => _contentManager.DeleteFile(id, token)).ConfigureAwait(false);
 }

@@ -1,5 +1,4 @@
-﻿using FluentValidation.Validators;
-using Vogen;
+﻿using Vogen;
 
 namespace SimpleProjectManager.Shared;
 

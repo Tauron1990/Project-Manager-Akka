@@ -5,9 +5,9 @@ using Akkatecture.Commands;
 using Akkatecture.Core;
 using Akkatecture.Sagas;
 using Akkatecture.Sagas.AggregateSaga;
-using ArgumentNullException = System.ArgumentNullException;
 
 namespace Akkatecture.Cluster.Core;
+
 // ReSharper disable once UnusedTypeParameter
 public class MessageExtractor<TAggregateSagaManager, TAggregateSaga, TIdentity, TSagaLocator> : HashCodeMessageExtractor
     where TAggregateSagaManager : IAggregateSagaManager<TAggregateSaga, TIdentity, TSagaLocator>
@@ -26,7 +26,7 @@ public class MessageExtractor<TAggregateSagaManager, TAggregateSaga, TIdentity, 
         {
             null => throw new ArgumentNullException(nameof(message)),
             IDomainEvent domainEvent => SagaLocator.LocateSaga(domainEvent).Value,
-            _ => throw new ArgumentException("Message could cast to Domain Event", nameof(message))
+            _ => throw new ArgumentException("Message could cast to Domain Event", nameof(message)),
         };
 }
 
@@ -42,6 +42,6 @@ public class MessageExtractor<TAggregate, TIdentity> : HashCodeMessageExtractor
         {
             null => throw new ArgumentNullException(nameof(message)),
             ICommand<TAggregate, TIdentity> command => command.AggregateId.Value,
-            _ => throw new ArgumentException("Message could not cast to message", nameof(message))
+            _ => throw new ArgumentException("Message could not cast to message", nameof(message)),
         };
 }

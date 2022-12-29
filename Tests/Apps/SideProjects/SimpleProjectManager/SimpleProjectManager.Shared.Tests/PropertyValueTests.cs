@@ -12,7 +12,8 @@ public sealed class PropertyValueTests : StringVlaueTypeTester<PropertyValue>
     public override void Default_InValid_Value()
         => base.Default_InValid_Value();
 
-    [Theory, AutoData]
+    [Theory]
+    [AutoData]
     public override void Not_Null_Valid_Value(string value)
         => base.Not_Null_Valid_Value(value);
 

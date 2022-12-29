@@ -30,7 +30,7 @@ public partial class FileManager
                         Title = "Datei Löschen",
                         Message = $"Möchten sie die datei {c.Input.Name} wirklich Löschen?",
                         YesText = "Ja",
-                        NoText = "Nein"
+                        NoText = "Nein",
                     },
                     new DialogOptions
                     {

@@ -104,7 +104,7 @@ internal sealed partial class JsonLazyCreator : JsonNode
     {
         get
         {
-            Set(new JsonBool(aData: false));
+            Set(new JsonBool(false));
 
             return false;
         }

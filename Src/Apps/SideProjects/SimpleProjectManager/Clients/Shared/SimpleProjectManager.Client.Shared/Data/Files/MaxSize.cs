@@ -12,7 +12,7 @@ public readonly partial struct MaxSize
 
     public static bool operator <(long lenght, MaxSize maxSize)
         => lenght < maxSize.Value;
-    
+
     public static bool operator >(long lenght, MaxSize maxSize)
         => lenght > maxSize.Value;
 }

@@ -50,7 +50,7 @@ public class TempDic : DisposeableBase, ITempDic
             name,
             key =>
             {
-                var dic = new TempDic(_directory?.GetDirectory(key), this, _nameGenerator, deleteDic: true);
+                var dic = new TempDic(_directory?.GetDirectory(key), this, _nameGenerator, true);
                 dic.TrackDispose(() => _tempDics.TryRemove(key, out _));
 
                 return dic;

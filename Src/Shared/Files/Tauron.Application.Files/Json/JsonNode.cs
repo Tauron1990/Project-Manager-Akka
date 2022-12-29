@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using JetBrains.Annotations;
 using Tauron.Application.VirtualFiles;
@@ -381,14 +382,14 @@ public abstract partial class JsonNode
     #region Enumerators
 
     [PublicAPI]
-    [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Auto)]
+    [StructLayout(LayoutKind.Auto)]
     public struct Enumerator
     {
         private enum Type
         {
             None,
             Array,
-            Object
+            Object,
         }
 
         private readonly Type _type;
@@ -418,7 +419,7 @@ public abstract partial class JsonNode
                 {
                     Type.Array => new KeyValuePair<string, JsonNode>(string.Empty, _array.Current),
                     Type.Object => _object.Current,
-                    _ => throw new InvalidOperationException("No Element")
+                    _ => throw new InvalidOperationException("No Element"),
                 };
             }
         }
@@ -429,7 +430,7 @@ public abstract partial class JsonNode
             {
                 Type.Array => _array.MoveNext(),
                 Type.Object => _object.MoveNext(),
-                _ => false
+                _ => false,
             };
         }
     }

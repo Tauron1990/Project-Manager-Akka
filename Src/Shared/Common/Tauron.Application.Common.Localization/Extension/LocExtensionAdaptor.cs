@@ -38,11 +38,9 @@ public sealed class LocExtensionAdaptor
     #pragma warning disable AV1755
     public async Task<Option<object>> RequestTask(string name, CultureInfo? info = null)
         #pragma warning restore AV1755
-        => (await _extension.
-                LocCoordinator
+        => (await _extension.LocCoordinator
                .Ask<LocCoordinator.ResponseLocValue>(new LocCoordinator.RequestLocValue(name, info ?? CultureInfo.CurrentUICulture))
                .ConfigureAwait(false))
-           
            .Result;
 
     #pragma warning disable AV1551

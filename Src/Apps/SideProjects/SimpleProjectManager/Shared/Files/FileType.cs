@@ -4,5 +4,5 @@ public enum FileType
 {
     OtherFile,
     ViewFile,
-    ProcessFile
+    ProcessFile,
 }

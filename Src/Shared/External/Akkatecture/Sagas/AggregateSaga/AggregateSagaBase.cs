@@ -415,7 +415,7 @@ public abstract class AggregateSagaBase<TAggregateSaga, TIdentity, TSagaState> :
                                     AggregateId = Id.Value,
                                     EventId = eventId,
                                     EventName = eventDefinition.Name,
-                                    EventVersion = eventDefinition.Version
+                                    EventVersion = eventDefinition.Version,
                                 };
             eventMetadata.Add(MetadataKeys.TimestampEpoch, now.ToUnixTime().ToString(NumberFormatInfo.InvariantInfo));
             if(metadata != null) eventMetadata.AddRange(metadata);
@@ -484,7 +484,7 @@ public abstract class AggregateSagaBase<TAggregateSaga, TIdentity, TSagaState> :
                                 AggregateId = Id.Value,
                                 EventId = eventId,
                                 EventName = eventDefinition.Name,
-                                EventVersion = eventDefinition.Version
+                                EventVersion = eventDefinition.Version,
                             };
         eventMetadata.Add(MetadataKeys.TimestampEpoch, now.ToUnixTime().ToString(CultureInfo.InvariantCulture));
         if(metadata != null) eventMetadata.AddRange(metadata);
@@ -569,7 +569,7 @@ public abstract class AggregateSagaBase<TAggregateSaga, TIdentity, TSagaState> :
                                    AggregateName = Name.Value,
                                    AggregateSequenceNumber = Version,
                                    SnapshotName = snapshotDefinition.Name,
-                                   SnapshotVersion = snapshotDefinition.Version
+                                   SnapshotVersion = snapshotDefinition.Version,
                                };
 
         var committedSnapshot =

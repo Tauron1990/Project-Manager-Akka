@@ -4,5 +4,5 @@ public enum IpcApplicationType
 {
     Server,
     Client,
-    NoIpc
+    NoIpc,
 }

@@ -19,9 +19,9 @@ public sealed class IpSetup : ISetup
 
         return operationConfiguration with
                {
-                   SelfPort = Port.From(selfPort), 
-                   ServerIp = ServerIp.From(newIp), 
-                   ServerPort = Port.From(newPort), 
+                   SelfPort = Port.From(selfPort),
+                   ServerIp = ServerIp.From(newIp),
+                   ServerPort = Port.From(newPort),
                    AkkaPort = Port.From(newAkkaPort),
                };
     }

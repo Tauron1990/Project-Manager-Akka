@@ -31,7 +31,7 @@ public sealed class AskBuilder : RoomBuilderBase
         _whenEntered = _whenEntered.Combine(command);
         return this;
     }
-    
+
     protected internal override BaseRoom CreateRoom(AssetManager assetManager)
     {
         if(_whenEntered is null)
@@ -39,7 +39,7 @@ public sealed class AskBuilder : RoomBuilderBase
 
         if(_description is null)
             throw new InvalidOperationException("No Description Provided");
-        
+
         return new AskRoom(_description(assetManager), assetManager.GetString(_label ?? string.Empty, Context.Empty), _whenEntered);
     }
 }

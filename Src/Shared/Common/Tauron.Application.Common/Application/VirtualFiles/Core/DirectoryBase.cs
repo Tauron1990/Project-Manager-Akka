@@ -56,7 +56,7 @@ public abstract class DirectoryBase<TContext> : SystemNodeBase<TContext>, IDirec
     protected virtual IDirectory SplitDirectoryPath(PathInfo name)
     {
         string nameData = name.Path;
-        
+
         return nameData.IsNullOrEmpty()
             ? this
             : SplitPath(nameData, GetDirectory, (context, path, actualName) => GetDirectory(context, path).GetDirectory(actualName));

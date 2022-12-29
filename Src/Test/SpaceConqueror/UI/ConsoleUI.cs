@@ -13,7 +13,7 @@ public sealed class ConsoleUI : SpectreConsoleLayerBase<ConsoleUIVisitor>
         : base(game)
         => _manager = manager;
 
-    protected override ConsoleUIVisitor CreateForConsole() 
+    protected override ConsoleUIVisitor CreateForConsole()
         => new();
 
     public override RenderElement CreateTitle()
@@ -27,7 +27,6 @@ public sealed class ConsoleUI : SpectreConsoleLayerBase<ConsoleUIVisitor>
 
             return string.Empty;
         }
-        else
-            return await visitor.RootInputElement.Execute(_manager, visitor.RunRender).ConfigureAwait(false);
+        return await visitor.RootInputElement.Execute(_manager, visitor.RunRender).ConfigureAwait(false);
     }
 }

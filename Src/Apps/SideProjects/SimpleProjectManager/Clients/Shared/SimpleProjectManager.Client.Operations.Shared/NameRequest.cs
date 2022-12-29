@@ -9,7 +9,7 @@ public sealed record NameRequest
     {
         try
         {
-            var response = await actorRef.Ask<NameResponse>(new NameRequest(), TimeSpan.FromSeconds(20)).ConfigureAwait(false);
+            NameResponse? response = await actorRef.Ask<NameResponse>(new NameRequest(), TimeSpan.FromSeconds(20)).ConfigureAwait(false);
 
             return response.Name;
         }

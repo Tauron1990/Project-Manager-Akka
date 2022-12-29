@@ -5,12 +5,18 @@ using System.Reactive.Linq;
 using ReactiveUI;
 using SimpleProjectManager.Client.Shared.Data;
 
-
 namespace SimpleProjectManager.Client.Shared.ViewModels.Devices;
 
 public sealed class DevicesViewModel : ViewModelBase
 {
     private DevicePair? _selectedPair;
+
+    public DevicesViewModel(GlobalState state)
+    {
+        Devices = state.Devices.CurrentDevices.Select(dd => dd.Select(p => new DevicePair(p.Value, p.Key)).ToArray());
+
+        this.WhenActivated(Init);
+    }
 
     public IObservable<DevicePair[]> Devices { get; }
 
@@ -18,13 +24,6 @@ public sealed class DevicesViewModel : ViewModelBase
     {
         get => _selectedPair;
         set => this.RaiseAndSetIfChanged(ref _selectedPair, value);
-    }
-
-    public DevicesViewModel(GlobalState state)
-    {
-        Devices = state.Devices.CurrentDevices.Select(dd => dd.Select(p => new DevicePair(p.Value, p.Key)).ToArray());
-
-        this.WhenActivated(Init);
     }
 
     private IEnumerable<IDisposable> Init()
@@ -35,7 +34,6 @@ public sealed class DevicesViewModel : ViewModelBase
                 if(d.Length == 1)
                     SelectedPair = d[0];
             });
-        
-        yield break;
+
     }
 }

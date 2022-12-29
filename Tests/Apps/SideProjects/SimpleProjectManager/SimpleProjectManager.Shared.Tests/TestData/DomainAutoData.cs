@@ -9,10 +9,7 @@ namespace SimpleProjectManager.Shared.Tests.TestData;
 public sealed class DomainAutoData : AutoDataAttribute
 {
     public DomainAutoData()
-        : base(FixtureFactory)
-    {
-        
-    }
+        : base(FixtureFactory) { }
 
     private static IFixture FixtureFactory()
     {
@@ -28,7 +25,7 @@ public sealed class DomainAutoData : AutoDataAttribute
                   {
                       v => v.RuleFor(s => s).NotEmpty(),
                   });
-        
+
         return fix;
     }
 }

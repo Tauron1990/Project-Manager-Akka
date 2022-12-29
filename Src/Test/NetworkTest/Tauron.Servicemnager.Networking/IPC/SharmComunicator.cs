@@ -10,7 +10,7 @@ namespace Tauron.Servicemnager.Networking.IPC;
 public sealed class SharmComunicator : IDisposable
 {
     public static readonly SharmProcessId ProcessId = SharmProcessId.From(Guid.NewGuid().ToString("N"));
-    
+
     private readonly Action<string, Exception> _errorHandler;
     private readonly NetworkMessageFormatter _formatter = NetworkMessageFormatter.Shared;
     private readonly SharmProcessId _globalId;
@@ -34,7 +34,7 @@ public sealed class SharmComunicator : IDisposable
     {
         try
         {
-            using var mt = new Mutex(initiallyOwned: true, $"{id}SharmNet_MasterMutex", out bool created);
+            using var mt = new Mutex(true, $"{id}SharmNet_MasterMutex", out bool created);
 
             if(!created) return true;
 
@@ -74,7 +74,7 @@ public sealed class SharmComunicator : IDisposable
         {
             > 32 => throw new ArgumentOutOfRangeException(nameof(target), target, "Id Longer then 32 Chars"),
             < 32 => target.PadRight(32),
-            _ => target
+            _ => target,
         };
 
         (var message, int lenght) = _formatter.WriteMessage(
@@ -142,7 +142,7 @@ public sealed class SharmComunicator : IDisposable
         private void Handle(ulong arg1, byte[]? arg2)
         {
             if(arg2 is null) return;
-            
+
             string id = Encoding.ASCII.GetString(arg2, 0, 32).Trim();
             string from = Encoding.ASCII.GetString(arg2, 31, 32).Trim();
 

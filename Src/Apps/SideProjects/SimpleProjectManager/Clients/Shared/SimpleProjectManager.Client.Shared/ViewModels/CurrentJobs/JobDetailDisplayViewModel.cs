@@ -12,9 +12,9 @@ namespace SimpleProjectManager.Client.Shared.ViewModels.CurrentJobs;
 
 public sealed class JobDetailDisplayViewModel : ViewModelBase
 {
+    private readonly IMessageDispatcher _aggregator;
     private readonly GlobalState _globalState;
     private readonly PageNavigation _navigationManager;
-    private readonly IMessageDispatcher _aggregator;
     private ObservableAsPropertyHelper<JobData?>? _jobData;
 
     public JobDetailDisplayViewModel(GlobalState globalState, PageNavigation navigationManager, IMessageDispatcher aggregator)
@@ -25,18 +25,21 @@ public sealed class JobDetailDisplayViewModel : ViewModelBase
         #if DEBUG
         Console.WriteLine("JobState Detail View Constructor");
         #endif
-        
+
         this.WhenActivated(Init);
 
 
     }
+
+    public ReactiveCommand<ProjectId?, Unit>? EditJob { get; private set; }
+    public JobData? JobData => _jobData?.Value;
 
     private IEnumerable<IDisposable> Init()
     {
         #if DEBUG
         Console.WriteLine("JobState Detail View Init");
         #endif
-        
+
         yield return _jobData = _globalState.Jobs
            .CurrentlySelectedData
            .ObserveOn(RxApp.MainThreadScheduler)
@@ -58,7 +61,4 @@ public sealed class JobDetailDisplayViewModel : ViewModelBase
             },
             _globalState.IsOnline);
     }
-    
-    public ReactiveCommand<ProjectId?, Unit>? EditJob { get; private set; }
-    public JobData? JobData => _jobData?.Value;
 }

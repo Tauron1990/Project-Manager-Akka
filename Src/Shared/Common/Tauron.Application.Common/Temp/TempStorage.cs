@@ -12,7 +12,7 @@ public sealed class TempStorage : TempDic
     private static TempStorage? _default;
 
     public TempStorage()
-        : this(DefaultNameProvider, new LocalSystem(Path.GetTempPath()), deleteBasePath: false) { }
+        : this(DefaultNameProvider, new LocalSystem(Path.GetTempPath()), false) { }
 
     public TempStorage(Func<bool, string> nameProvider, IDirectory basePath, bool deleteBasePath)
         : base(basePath, default, nameProvider, deleteBasePath)
@@ -33,7 +33,7 @@ public sealed class TempStorage : TempDic
     {
         path.Clear();
 
-        return new TempStorage(DefaultNameProvider, path, deleteBasePath: true);
+        return new TempStorage(DefaultNameProvider, path, true);
     }
 
     private void WireUp()

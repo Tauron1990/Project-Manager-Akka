@@ -7,14 +7,6 @@ namespace ClientRunnerApp;
 
 public sealed class ClientApp : AsyncCommand<ClientApp.Stettings>
 {
-    public sealed class Stettings : CommandSettings
-    {
-        [Description("Erzwingt den aufruf des Setups")]
-        [CommandOption("-s|--setup")]
-        [DefaultValue(false)]
-        public bool ForceSetup { get; set; }
-    }
-
     public override async Task<int> ExecuteAsync(CommandContext context, Stettings settings)
     {
         IHost host = await new ClientRunner(new ConsoleInteraction())
@@ -22,7 +14,15 @@ public sealed class ClientApp : AsyncCommand<ClientApp.Stettings>
            .ConfigureAwait(false);
 
         await host.RunAsync().ConfigureAwait(false);
-        
+
         return 0;
+    }
+
+    public sealed class Stettings : CommandSettings
+    {
+        [Description("Erzwingt den aufruf des Setups")]
+        [CommandOption("-s|--setup")]
+        [DefaultValue(false)]
+        public bool ForceSetup { get; set; }
     }
 }

@@ -8,7 +8,7 @@ using static SimpleProjectManager.Client.Operations.Shared.Devices.DeviceManager
 
 namespace SimpleProjectManager.Server.Core.DeviceManager;
 
-public sealed partial class 
+public sealed partial class
     ServerDeviceManagerFeature : ActorFeatureBase<ServerDeviceManagerFeature.State>
 {
     public static Props Create(DeviceEventHandler deviceEvents)
@@ -20,12 +20,14 @@ public sealed partial class
         Receive<QueryDevices>(obs => obs.ToUnit(p => p.Sender.Tell(new DevicesResponse(p.State.Devices))));
 
         Receive<IDeviceCommand>(obs => obs.ToUnit(p => p.Context.Child(p.Event.DeviceName.Value).Forward(p.Event)));
-        Receive<Terminated>(obs => obs.Select(p =>
-                                              {
-                                                  p.State.Events.Publish(new DeviceRemoved(new DeviceId(p.Event.ActorRef.Path.Name)));
+        Receive<Terminated>(
+            obs => obs.Select(
+                p =>
+                {
+                    p.State.Events.Publish(new DeviceRemoved(new DeviceId(p.Event.ActorRef.Path.Name)));
 
-                                                  return p.State with { Devices = p.State.Devices.Remove(new DeviceId(p.Event.ActorRef.Path.Name)) };
-                                              }));
+                    return p.State with { Devices = p.State.Devices.Remove(new DeviceId(p.Event.ActorRef.Path.Name)) };
+                }));
     }
 
     [LoggerMessage(EventId = 57, Level = LogLevel.Debug, Message = "New Device Registration Incomming from {path} with {name} and {id}")]
@@ -50,7 +52,7 @@ public sealed partial class
                 if(string.IsNullOrWhiteSpace(evt.Name.Value))
                 {
                     EmptyDeviceNameRegistration(Logger, pair.Sender.Path);
-                    pair.Sender.Tell(new DeviceInfoResponse(Duplicate: false, Result: SimpleResult.Failure("Empty Device Name")));
+                    pair.Sender.Tell(new DeviceInfoResponse(false, SimpleResult.Failure("Empty Device Name")));
 
                     return state;
                 }
@@ -59,28 +61,28 @@ public sealed partial class
                 if(state.Devices.ContainsKey(evt.DeviceId))
                 {
                     DuplicateDeviceRegistration(Logger, evt.DeviceId, pair.Sender.Path);
-                    pair.Sender.Tell(new DeviceInfoResponse(Duplicate: true, SimpleResult.Failure("Duplicate Device Registration")));
+                    pair.Sender.Tell(new DeviceInfoResponse(true, SimpleResult.Failure("Duplicate Device Registration")));
 
                     return state;
                 }
 
                 try
                 {
-                    var newState = state with
-                                   {
-                                       Devices = state.Devices.Add(evt.DeviceId, evt.Name)
-                                   };
-                    
+                    State newState = state with
+                                     {
+                                         Devices = state.Devices.Add(evt.DeviceId, evt.Name),
+                                     };
+
                     pair.Context.Watch(pair.Context.ActorOf(SingleDeviceFeature.New(evt, state.Events), evt.DeviceId.Value));
                     state.Events.Publish(new NewDeviceEvent(evt));
-                    pair.Sender.Tell(new DeviceInfoResponse(Duplicate: false, Result: SimpleResult.Success()));
+                    pair.Sender.Tell(new DeviceInfoResponse(false, SimpleResult.Success()));
 
                     return newState;
                 }
                 catch (InvalidActorNameException exception)
                 {
                     InvalidActorName(Logger, exception, pair.Sender.Path);
-                    pair.Sender.Tell(new DeviceInfoResponse(Duplicate: false, SimpleResult.Failure(exception.Message)));
+                    pair.Sender.Tell(new DeviceInfoResponse(false, SimpleResult.Failure(exception.Message)));
 
                     return state;
                 }

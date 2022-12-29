@@ -11,16 +11,14 @@ public partial class JsonNumber
     public override void SerializeBinary(BinaryWriter aWriter)
     {
         aWriter.Write((byte)JsonNodeType.Number);
-        aWriter.Write(_data);
+        aWriter.Write(AsDouble);
     }
 }
 
 [PublicAPI]
 public sealed partial class JsonNumber : JsonNode
 {
-    private double _data;
-
-    public JsonNumber(double aData) => _data = aData;
+    public JsonNumber(double aData) => AsDouble = aData;
 
     public JsonNumber(string aData) => Value = aData;
 
@@ -48,24 +46,20 @@ public sealed partial class JsonNumber : JsonNode
 
     public override string Value
     {
-        get => _data.ToString(CultureInfo.InvariantCulture);
+        get => AsDouble.ToString(CultureInfo.InvariantCulture);
         set
         {
             if(double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out double v))
-                _data = v;
+                AsDouble = v;
         }
     }
 
-    public override double AsDouble
-    {
-        get => _data;
-        set => _data = value;
-    }
+    public override double AsDouble { get; set; }
 
     public override long AsLong
     {
-        get => (long)_data;
-        set => _data = value;
+        get => (long)AsDouble;
+        set => AsDouble = value;
     }
 
     public override Enumerator GetEnumerator() => new();
@@ -92,13 +86,13 @@ public sealed partial class JsonNumber : JsonNode
         var s2 = obj as JsonNumber;
 
         if(s2 != null)
-            return Math.Abs(_data - s2._data) < 0;
+            return Math.Abs(AsDouble - s2.AsDouble) < 0;
         if(IsNumeric(obj))
-            return Math.Abs(Convert.ToDouble(obj, CultureInfo.InvariantCulture) - _data) < 0;
+            return Math.Abs(Convert.ToDouble(obj, CultureInfo.InvariantCulture) - AsDouble) < 0;
 
         return false;
     }
 
     // ReSharper disable once NonReadonlyMemberInGetHashCode
-    public override int GetHashCode() => _data.GetHashCode();
+    public override int GetHashCode() => AsDouble.GetHashCode();
 }

@@ -7,7 +7,8 @@ namespace SimpleProjectManager.Shared.Tests.Validators.Jobs;
 
 public sealed class ProjectDeadlineValidatorTests
 {
-    [Theory, DomainAutoData]
+    [Theory]
+    [DomainAutoData]
     public void Valid_Deadline(ProjectDeadline deadline)
     {
         ValidationResult result = new ProjectDeadlineValidator().Validate(deadline);

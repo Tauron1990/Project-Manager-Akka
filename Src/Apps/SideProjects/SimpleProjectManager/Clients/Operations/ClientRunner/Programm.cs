@@ -9,7 +9,7 @@ public static class Programm
     public static async Task Main(string[] args)
     {
         AnsiConsole.WriteLine("Starting...");
-    
+
         var app = new CommandApp();
 
         app.SetDefaultCommand<ClientApp>();

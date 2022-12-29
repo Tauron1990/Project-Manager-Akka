@@ -10,13 +10,13 @@ namespace Tauron.TextAdventure.Engine.UI.Internal;
 
 public sealed class RunningGame
 {
+    private readonly EventManager _eventManager;
     private readonly IUILayer _uiLayer;
     private readonly IRenderVisitor _visitor;
-    private readonly EventManager _eventManager;
-    
+
     private StateList<CommandPairBase>? _currentCommands;
     private Mode _mode;
-    
+
     public RunningGame(IServiceProvider serviceProvider)
     {
         _uiLayer = serviceProvider.GetRequiredService<IUILayer>();
@@ -27,7 +27,7 @@ public sealed class RunningGame
     internal async ValueTask RunGame()
     {
         CommandMenu mainMenu = CreateMainMenu();
-        
+
         while (true)
         {
             _visitor.Visit(CreateDiplayUI(mainMenu));
@@ -53,7 +53,7 @@ public sealed class RunningGame
     private void ProcessCommand(string command)
     {
         if(_currentCommands is null) throw new InvalidOperationException("_currentCommands not Found");
-        
+
         switch (_mode)
         {
 
@@ -66,15 +66,15 @@ public sealed class RunningGame
                     from actualCommand in commandFunc()
                     select actualCommand
                 ).ToArray();
-        
+
                 if(resultCommand.OfType<EndGameCommand>().Any())
                     return;
-                
+
                 _eventManager.SendCommand(new TickCommand(resultCommand));
                 break;
             case Mode.Ask:
                 AskCommand ask = _currentCommands.SelectMany(Unfold).OfType<AskCommand>().First();
-                
+
                 _eventManager.SendCommand(new TickCommand(ask.AskCompled(command).ToArray()));
                 break;
             default:
@@ -90,7 +90,7 @@ public sealed class RunningGame
                 yield return toUnfold;
         }
     }
-    
+
     [MemberNotNull(nameof(_currentCommands))]
     private RenderElement CreateDiplayUI(RenderElement mainMenu)
     {
@@ -103,19 +103,17 @@ public sealed class RunningGame
         MultiElement.AddRange(element, renderState.Commands.Select(c => c.Collect()));
 
         _mode = _currentCommands.Any(c => c.IsAsk) ? Mode.Ask : Mode.Command;
-        
+
         return element;
     }
-    
+
     private CommandMenu CreateMainMenu()
-    {
-        return new CommandMenu(
+        => new CommandMenu(
             UiKeys.GameCoreMenu,
             new CommandItem(UiKeys.SaveGame),
             new CommandItem(UiKeys.CloseRunningGame)
         );
-    }
-    
+
     private enum Mode
     {
         Command,

@@ -6,8 +6,8 @@ namespace Tauron.TextAdventure.Engine.GamePackages.Elements;
 public sealed class RoomElement<TBuilder> : PackageElement
     where TBuilder : RoomBuilderBase, new()
 {
-    private readonly string _name;
     private readonly Action<TBuilder> _builderAction;
+    private readonly string _name;
 
     public RoomElement(string name, Action<TBuilder> builderAction)
     {
@@ -15,10 +15,11 @@ public sealed class RoomElement<TBuilder> : PackageElement
         _builderAction = builderAction;
 
     }
-    
+
     internal override void Load(ElementLoadContext context)
     {
-        context.Rooms.Add(_name,
+        context.Rooms.Add(
+            _name,
             () =>
             {
                 var builder = new TBuilder();

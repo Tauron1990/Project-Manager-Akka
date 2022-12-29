@@ -116,7 +116,7 @@ public sealed class AggregateEventReader<TJournal> : AggregateEventReader
 
         public void Dispose()
         {
-            _isCancel.GetAndSet(newValue: true);
+            _isCancel.GetAndSet(true);
             _cancelable?.Shutdown();
             _runner?.Wait(TimeSpan.FromSeconds(20));
         }
@@ -158,9 +158,9 @@ public sealed class AggregateEventReader<TJournal> : AggregateEventReader
                                                               Headers = evt
                                                                  .Metadata
                                                                  .Select(p => Tuple.Create<string, object>(p.Key, p.Value))
-                                                                 .ToDictionary(t => t.Item1, t => t.Item2, StringComparer.Ordinal)
+                                                                 .ToDictionary(t => t.Item1, t => t.Item2, StringComparer.Ordinal),
                                                           };
-                                               }))
+                                               })),
                                };
                     })
                .Batch(
@@ -169,10 +169,10 @@ public sealed class AggregateEventReader<TJournal> : AggregateEventReader
                     (list, transaction) => list.Add(transaction))
                .AlsoTo(
                     Sink.OnComplete<ImmutableList<Transaction>>(
-                        () => _isCancel.GetAndSet(newValue: true),
+                        () => _isCancel.GetAndSet(true),
                         e =>
                         {
-                            _isCancel.GetAndSet(newValue: true);
+                            _isCancel.GetAndSet(true);
                             errorHandler(_exceptionInfo, e);
                         }))
                .ViaMaterialized(KillSwitches.Single<ImmutableList<Transaction>>(), (_, kill) => kill)

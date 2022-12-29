@@ -81,7 +81,7 @@ public sealed class AvaloniaFramework : CommonUIFramework
                     global::Avalonia.Controls.ShutdownMode.OnLastWindowClose => ShutdownMode.OnLastWindowClose,
                     global::Avalonia.Controls.ShutdownMode.OnMainWindowClose => ShutdownMode.OnMainWindowClose,
                     global::Avalonia.Controls.ShutdownMode.OnExplicitShutdown => ShutdownMode.OnExplicitShutdown,
-                    _ => throw new InvalidCastException("Shutdown mode")
+                    _ => throw new InvalidCastException("Shutdown mode"),
                 };
             }
             set
@@ -91,7 +91,7 @@ public sealed class AvaloniaFramework : CommonUIFramework
                     ShutdownMode.OnLastWindowClose => global::Avalonia.Controls.ShutdownMode.OnLastWindowClose,
                     ShutdownMode.OnMainWindowClose => global::Avalonia.Controls.ShutdownMode.OnMainWindowClose,
                     ShutdownMode.OnExplicitShutdown => global::Avalonia.Controls.ShutdownMode.OnExplicitShutdown,
-                    _ => throw new InvalidCastException("Shutdown mode")
+                    _ => throw new InvalidCastException("Shutdown mode"),
                 };
             }
         }
@@ -136,7 +136,7 @@ public sealed class AvaloniaFramework : CommonUIFramework
                     global::Avalonia.Controls.ShutdownMode.OnLastWindowClose => ShutdownMode.OnLastWindowClose,
                     global::Avalonia.Controls.ShutdownMode.OnMainWindowClose => ShutdownMode.OnMainWindowClose,
                     global::Avalonia.Controls.ShutdownMode.OnExplicitShutdown => ShutdownMode.OnExplicitShutdown,
-                    _ => throw new InvalidCastException("Shutdown mode")
+                    _ => throw new InvalidCastException("Shutdown mode"),
                 };
             }
             set
@@ -146,7 +146,7 @@ public sealed class AvaloniaFramework : CommonUIFramework
                     ShutdownMode.OnLastWindowClose => global::Avalonia.Controls.ShutdownMode.OnLastWindowClose,
                     ShutdownMode.OnMainWindowClose => global::Avalonia.Controls.ShutdownMode.OnMainWindowClose,
                     ShutdownMode.OnExplicitShutdown => global::Avalonia.Controls.ShutdownMode.OnExplicitShutdown,
-                    _ => throw new InvalidCastException("Shutdown mode")
+                    _ => throw new InvalidCastException("Shutdown mode"),
                 };
             }
         }

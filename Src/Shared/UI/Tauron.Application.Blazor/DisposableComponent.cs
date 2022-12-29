@@ -17,7 +17,7 @@ public abstract class DisposableComponent : ComponentBase, IResourceHolder
 
     public void Dispose()
     {
-        Dispose(disposing: true);
+        Dispose(true);
         GC.SuppressFinalize(this);
     }
 

@@ -7,5 +7,5 @@ public enum JsonFileNameMode
     ThreeLetterIsoLanguageName,
     ThreeLetterWindowsLanguageName,
     DisplayName,
-    EnglishName
+    EnglishName,
 }

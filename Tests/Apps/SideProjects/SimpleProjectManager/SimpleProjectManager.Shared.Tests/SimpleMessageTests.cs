@@ -4,7 +4,8 @@ namespace SimpleProjectManager.Shared.Tests;
 
 public sealed class SimpleMessageTests : StringVlaueTypeTester<SimpleMessage>
 {
-    [Theory, AutoData]
+    [Theory]
+    [AutoData]
     public override void Not_Null_Valid_Value(string value)
         => base.Not_Null_Valid_Value(value);
 
@@ -15,7 +16,7 @@ public sealed class SimpleMessageTests : StringVlaueTypeTester<SimpleMessage>
     [Fact]
     public override void Empty_InValid_Value()
         => base.Empty_InValid_Value();
-    
+
     [Fact]
     public override void Default_InValid_Value()
         => base.Default_InValid_Value();

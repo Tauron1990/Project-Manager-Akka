@@ -30,15 +30,15 @@ public sealed class ConsoleUIVisitor : SpectreVisitor
         else
             throw new InvalidOperationException("Only one Input Element can be Used");
     }
-    
+
     public override void VisitGameTitle(GameTitleElement gameTitleElement)
-        => AddWriter(static () => AnsiConsole.Write(new FigletText("Space Conqueror"){ Alignment = Justify.Center}));
+        => AddWriter(static () => AnsiConsole.Write(new FigletText("Space Conqueror") { Alignment = Justify.Center }));
 
     public override void Visit(RenderElement element)
     {
         RootInputElement = null;
         _frames.Clear();
-        
+
         base.Visit(element);
     }
 
@@ -50,7 +50,7 @@ public sealed class ConsoleUIVisitor : SpectreVisitor
             SetRootInput(frame);
             return;
         }
-        
+
         _frames.Push(CurrentFrame);
         CurrentFrame.AddFrame(frame);
         CurrentFrame = frame;
@@ -71,10 +71,8 @@ public sealed class ConsoleUIVisitor : SpectreVisitor
 
     public override void VisitSpacing(SpacingElement spacingElement)
     {
-        for (int i = 0; i < spacingElement.Amount; i++)
-        {
+        for (var i = 0; i < spacingElement.Amount; i++)
             AddWriter(AnsiConsole.WriteLine);
-        }
     }
 
     public override void VisitAsk(AskElement askElement)

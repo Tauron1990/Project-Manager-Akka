@@ -24,6 +24,6 @@ public sealed record RegisterJobType(
             {
                 Schedule<TJob, TId> schedule => schedule.JobId.ToString() ?? string.Empty,
                 TId jobId => jobId.ToString() ?? string.Empty,
-                _ => string.Empty
+                _ => string.Empty,
             });
 }

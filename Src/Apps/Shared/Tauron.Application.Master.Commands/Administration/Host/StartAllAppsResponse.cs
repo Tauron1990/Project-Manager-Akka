@@ -2,5 +2,5 @@
 
 public sealed record StartAllAppsResponse(bool Success) : OperationResponse(Success)
 {
-    public StartAllAppsResponse() : this(Success: false) { }
+    public StartAllAppsResponse() : this(false) { }
 }

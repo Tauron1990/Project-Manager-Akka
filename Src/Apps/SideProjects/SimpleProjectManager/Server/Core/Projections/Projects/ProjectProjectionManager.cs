@@ -33,7 +33,7 @@ public sealed class ProjectProjectionManager : ProjectionManagerBase, IInitializ
                                                       {
                                                           Id = evt.AggregateIdentity,
                                                           SkipCount = 0,
-                                                          IsPriority = false
+                                                          IsPriority = false,
                                                       };
                             }));
                 map.Map<ProjectDeadLineChangedEvent>(

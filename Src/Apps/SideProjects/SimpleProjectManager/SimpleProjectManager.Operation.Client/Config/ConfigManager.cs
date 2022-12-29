@@ -44,6 +44,8 @@ public sealed class ConfigManager
         Configuration = configuration;
         var stream = new StreamWriter(_location.CreateNew());
         await using (stream.ConfigureAwait(false))
+        {
             await stream.WriteAsync(JsonConvert.SerializeObject(Configuration)).ConfigureAwait(false);
+        }
     }
 }

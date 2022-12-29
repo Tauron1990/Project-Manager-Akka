@@ -18,6 +18,7 @@ public sealed class ServiceType : IEquatable<ServiceType>
     public bool Equals(ServiceType? other)
     {
         if(ReferenceEquals(null, other)) return false;
+
         return ReferenceEquals(this, other) || string.Equals(Id, other.Id, StringComparison.Ordinal);
 
     }

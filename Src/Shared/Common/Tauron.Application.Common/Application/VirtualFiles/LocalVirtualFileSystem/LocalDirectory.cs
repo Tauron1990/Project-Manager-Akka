@@ -47,7 +47,7 @@ public class LocalDirectory : DirectoryBase<DirectoryContext>, IHasFileAttribute
         => throw new NotSupportedException("Never called Method");
 
     protected override void Delete(DirectoryContext context)
-        => context.Data.Delete(recursive: true);
+        => context.Data.Delete(true);
 
     protected override IDirectory MovetTo(DirectoryContext context, PathInfo location)
     {

@@ -10,8 +10,8 @@ namespace Tauron.TextAdventure.Engine.Systems.Rooms.Builders;
 [PublicAPI]
 public sealed class PageBuilder : RoomBuilderBase
 {
-    private string _nextLabel = UiKeys.Room.Next;
     private Func<IGameCommand>? _next;
+    private string _nextLabel = UiKeys.Room.Next;
     private Func<AssetManager, RenderElement>? _renderElement;
 
     public PageBuilder WithLabel(string label)
@@ -24,7 +24,7 @@ public sealed class PageBuilder : RoomBuilderBase
     public PageBuilder WithCommand(Func<IGameCommand> command)
     {
         _next = _next.Combine(command);
-        
+
         return this;
     }
 
@@ -38,7 +38,7 @@ public sealed class PageBuilder : RoomBuilderBase
     public PageBuilder WithContent(Func<AssetManager, IDocument> content)
     {
         _renderElement = FromDocument(content);
-        
+
         return this;
     }
 

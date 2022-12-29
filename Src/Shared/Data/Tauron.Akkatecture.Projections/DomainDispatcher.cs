@@ -38,7 +38,7 @@ public class DomainDispatcher<TProjection, TIdentity>
         Dispatcher = new Dispatcher(reader.CreateSubscription)
                      {
                          ExceptionHandler = ExceptionHandler,
-                         SuccessHandler = SuccessHandler
+                         SuccessHandler = SuccessHandler,
                      };
     }
 

@@ -17,39 +17,39 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <None Remove="base.conf" />
+        <None Remove="base.conf"/>
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Akka.Cluster.Hosting" Version="0.5.1" />
-        <PackageReference Include="Akka.Cluster.Sharding" Version="1.4.47" />
-        <PackageReference Include="Akka.Hosting" Version="0.5.1" />
-        <PackageReference Include="Akka.Logger.NLog" Version="1.4.10" />
-        <PackageReference Include="Akka.Serialization.Hyperion" Version="1.4.47" />
+        <PackageReference Include="Akka.Cluster.Hosting" Version="1.0.0"/>
+        <PackageReference Include="Akka.Cluster.Sharding" Version="1.4.47"/>
+        <PackageReference Include="Akka.Hosting" Version="1.0.0"/>
+        <PackageReference Include="Akka.Logger.NLog" Version="1.4.10"/>
+        <PackageReference Include="Akka.Serialization.Hyperion" Version="1.4.47"/>
         <PackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.1.2">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="ErrorProne.NET.Structs" Version="0.1.2">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Gu.Analyzers" Version="2.0.2">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Meziantou.Analyzer" Version="1.0.757">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
-        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
+        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10"/>
+        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31"/>
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\Shared\Common\Tauron.Application.Logging\Tauron.Application.Logging.csproj" />
-        <ProjectReference Include="..\..\..\Test\NetworkTest\Tauron.Servicemnager.Networking\Tauron.Servicemnager.Networking.csproj" />
-        <ProjectReference Include="..\Tauron.Application.Master.Commands\Tauron.Application.Master.Commands.csproj" />
+        <ProjectReference Include="..\..\..\Shared\Common\Tauron.Application.Logging\Tauron.Application.Logging.csproj"/>
+        <ProjectReference Include="..\..\..\Test\NetworkTest\Tauron.Servicemnager.Networking\Tauron.Servicemnager.Networking.csproj"/>
+        <ProjectReference Include="..\Tauron.Application.Master.Commands\Tauron.Application.Master.Commands.csproj"/>
     </ItemGroup>
 
 </Project>

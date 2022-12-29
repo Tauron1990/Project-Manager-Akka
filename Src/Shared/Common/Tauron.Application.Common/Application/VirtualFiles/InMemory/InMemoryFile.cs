@@ -69,7 +69,7 @@ public sealed class InMemoryFile : FileBase<FileContext>
             name = Path.GetFileName(GenericPathHelper.ToRelativePath(location));
             path = location with
                    {
-                       Path = location.Path[..^name.Length]
+                       Path = location.Path[..^name.Length],
                    };
         }
         else

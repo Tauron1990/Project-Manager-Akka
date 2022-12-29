@@ -4,13 +4,12 @@ namespace Tauron.TextAdventure.Engine.Systems.Rooms;
 
 public sealed class MoveToRoomEvent : EventBase
 {
-    public string TargetRoom { get; set; } = string.Empty;
-
-    public MoveToRoomEvent()
-    { }
+    public MoveToRoomEvent() { }
 
     public MoveToRoomEvent(string targetRoom)
         => TargetRoom = targetRoom;
+
+    public string TargetRoom { get; set; } = string.Empty;
 
     protected override void WriteInternal(BinaryWriter writer)
         => writer.Write(TargetRoom);

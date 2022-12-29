@@ -15,14 +15,14 @@ public sealed class TimeoutToken
 
     public static async ValueTask With(TimeSpan timeSpan, CancellationToken token, Func<CancellationToken, Task> runner)
         => await With(
-            timeSpan,
-            token,
-            async timeoutToken =>
-            {
-                await runner(timeoutToken).ConfigureAwait(false);
+                timeSpan,
+                token,
+                async timeoutToken =>
+                {
+                    await runner(timeoutToken).ConfigureAwait(false);
 
-                return Unit.Default;
-            })
+                    return Unit.Default;
+                })
            .ConfigureAwait(false);
 
     public static ValueTask<TResult> WithDefault<TResult>(CancellationToken token, Func<CancellationToken, Task<TResult>> runner)

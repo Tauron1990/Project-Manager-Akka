@@ -50,24 +50,23 @@ a, .btn-link {
     top: 0.5rem;
 }
 
-.loading-Text1
-{
+.loading-Text1 {
     grid-area: text1;
 }
-.loading-Text2
-{
+
+.loading-Text2 {
     grid-area: text2;
 }
-.loading-loadingBa1
-{
+
+.loading-loadingBa1 {
     grid-area: lodingbar;
 }
-.loading-Empty
-{
+
+.loading-Empty {
     grid-area: empty;
 }
 
-.loading-progress-bar{
+.loading-progress-bar {
     background-color: black;
 }
 

@@ -8,7 +8,8 @@ namespace SimpleProjectManager.Shared.Tests;
 
 public sealed class ResultExtensionsTests
 {
-    [Theory, AutoData]
+    [Theory]
+    [AutoData]
     public void Throw_When_Not_Empty_String(string value)
     {
         Action act = value.ThrowIfFail;
@@ -25,12 +26,13 @@ public sealed class ResultExtensionsTests
         empty.ThrowIfFail();
         nullValue.ThrowIfFail();
     }
-    
-    [Theory, AutoData]
+
+    [Theory]
+    [AutoData]
     public void Throw_When_Not_Empty_String_With_Result(string value)
     {
         var act = () => value.ThrowIfFail(() => 1);
-        
+
         act.Should().Throw<InvalidOperationException>();
     }
 
@@ -46,10 +48,10 @@ public sealed class ResultExtensionsTests
         result1.Should().Be(1);
         result2.Should().Be(1);
     }
-    
-    
-    
-    [Theory, DomainAutoData]
+
+
+    [Theory]
+    [DomainAutoData]
     public void Throw_When_Not_Empty_Simple_Result(SimpleResult value)
     {
         Action act = () => value.ThrowIfFail();
@@ -66,8 +68,9 @@ public sealed class ResultExtensionsTests
         empty.ThrowIfFail();
         defaultValue.ThrowIfFail();
     }
-    
-    [Theory, DomainAutoData]
+
+    [Theory]
+    [DomainAutoData]
     public void Throw_When_Not_Empty_Simple_Result_With_Result(SimpleResult value)
     {
         var act = () => value.ThrowIfFail(() => 1);
@@ -78,7 +81,7 @@ public sealed class ResultExtensionsTests
     [Fact]
     public void Dont_Throw_When_Empty_Simple_Result_With_Result()
     {
-        var empty = SimpleResult.Success();
+        SimpleResult empty = SimpleResult.Success();
         SimpleResult defaultValue = default;
 
         int result1 = empty.ThrowIfFail(() => 1);
@@ -92,7 +95,7 @@ public sealed class ResultExtensionsTests
     public void Validate_Null_Or_Empty_String()
     {
         const string nameContent = nameof(Validate_Null_Or_Empty_String);
-        
+
         string? nullValue = null;
         var emptyValue = string.Empty;
 
@@ -110,7 +113,8 @@ public sealed class ResultExtensionsTests
            .And.Contain(nameContent, Exactly.Once());
     }
 
-    [Theory, AutoData]
+    [Theory]
+    [AutoData]
     public void Validate_Valid_String(string value)
     {
         Validation result = value.ValidateNotNullOrEmpty(nameof(Validate_Valid_String));

@@ -9,6 +9,13 @@
 else
 {
     <StateAwaiter State="ViewModel?.Ui">
-        <UIGroupDisplay UiGroup="context.UI" ShowCategory="false" DeviceId="context.Id"/>
+        <MudTabs Rounded="true" Elevation="1" ApplyEffectsToContainer="true">
+            <MudTabPanel Text="Steuerung">
+                <UIGroupDisplay UiGroup="context.UI" ShowCategory="false" DeviceId="context.Id"/>
+            </MudTabPanel>
+            <MudTabPanel Text="Logs">
+                <LogsDisplay DeviceId="context.Id"/>
+            </MudTabPanel>
+        </MudTabs>
     </StateAwaiter>
 }

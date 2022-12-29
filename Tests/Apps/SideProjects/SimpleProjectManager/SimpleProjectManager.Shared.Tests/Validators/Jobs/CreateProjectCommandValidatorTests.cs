@@ -7,7 +7,8 @@ namespace SimpleProjectManager.Shared.Tests.Validators.Jobs;
 
 public sealed class CreateProjectCommandValidatorTests
 {
-    [Theory, DomainAutoData]
+    [Theory]
+    [DomainAutoData]
     public void Valid_Command(CreateProjectCommand command)
     {
         ValidationResult result = new CreateProjectCommandValidator().Validate(command);
@@ -15,7 +16,8 @@ public sealed class CreateProjectCommandValidatorTests
         result.IsValid.Should().BeTrue();
     }
 
-    [Theory, DomainAutoData]
+    [Theory]
+    [DomainAutoData]
     public void Null_Name_Command(CreateProjectCommand command)
     {
         command = command with { Project = null! };
@@ -25,7 +27,8 @@ public sealed class CreateProjectCommandValidatorTests
         result.IsValid.Should().BeFalse();
     }
 
-    [Theory, DomainAutoData]
+    [Theory]
+    [DomainAutoData]
     public void No_Deadline_Command(CreateProjectCommand command)
     {
         command = command with { Deadline = null };
@@ -35,7 +38,8 @@ public sealed class CreateProjectCommandValidatorTests
         result.IsValid.Should().BeTrue();
     }
 
-    [Theory, DomainAutoData]
+    [Theory]
+    [DomainAutoData]
     public void Null_Files_Command(CreateProjectCommand command)
     {
         command = command with { Files = null! };
@@ -44,6 +48,4 @@ public sealed class CreateProjectCommandValidatorTests
 
         result.IsValid.Should().BeFalse();
     }
-    
-    
 }

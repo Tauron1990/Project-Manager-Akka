@@ -13,9 +13,9 @@ internal static class JobDataPatcher
 
     internal static InternalJobData ReplaceSlected(InternalJobData data, SelectNewPairAction action)
         => data.CurrentSelected is null
-            ? data with { CurrentSelected = new CurrentSelected(data.FindPair(action.Selection), JobData: null) }
+            ? data with { CurrentSelected = new CurrentSelected(data.FindPair(action.Selection), null) }
             : data with { CurrentSelected = data.CurrentSelected with { Pair = data.FindPair(action.Selection) } };
-    
+
     internal static InternalJobData PatchSortOrder(InternalJobData data, SetSortOrder order)
     {
         SortOrder? sortOrder = order.SortOrder;
@@ -55,10 +55,10 @@ internal static class JobDataPatcher
                                                        {
                                                            Id = toPatch.Id,
                                                            SkipCount = 0,
-                                                           IsPriority = false
+                                                           IsPriority = false,
                                                        },
                                    newInfo))
-                          .ToArray()
+                          .ToArray(),
                    };
 
         JobSortOrderPair job = data.CurrentJobs[jobIndex];

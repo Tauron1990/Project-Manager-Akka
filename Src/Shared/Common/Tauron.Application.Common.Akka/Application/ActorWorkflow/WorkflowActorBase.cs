@@ -48,7 +48,7 @@ public abstract class WorkflowActorBase<TStep, TContext> : ActorBase, IWithTimer
             if(msg is TimeoutMarker)
             {
                 _errorMessage = "Timeout";
-                Finish(isok: false);
+                Finish(false);
 
                 return true;
             }
@@ -110,14 +110,14 @@ public abstract class WorkflowActorBase<TStep, TContext> : ActorBase, IWithTimer
             {
                 ChainCall chain => ProcessChainCall(chain),
                 LoopElement(var stepRev, var chainCall) => ProcessLoopElement(stepRev, chainCall),
-                _ => false
+                _ => false,
             };
         }
         catch (Exception exception)
         {
             Log.Error(exception, "Exception While Processing Workflow");
             _errorMessage = exception.Message;
-            Finish(isok: false);
+            Finish(false);
 
             return true;
         }
@@ -135,7 +135,7 @@ public abstract class WorkflowActorBase<TStep, TContext> : ActorBase, IWithTimer
 
         if(string.Equals(loopId.Name, StepId.Fail.Name, StringComparison.Ordinal))
         {
-            Finish(isok: false);
+            Finish(false);
 
             return true;
         }
@@ -150,7 +150,7 @@ public abstract class WorkflowActorBase<TStep, TContext> : ActorBase, IWithTimer
         StepId id = chain.Id;
         if(id == StepId.Fail)
         {
-            Finish(isok: false);
+            Finish(false);
 
             return true;
         }
@@ -159,7 +159,7 @@ public abstract class WorkflowActorBase<TStep, TContext> : ActorBase, IWithTimer
         {
             Log.Warning("No Step Found {Id}", id.Name);
             _errorMessage = id.Name;
-            Finish(isok: false);
+            Finish(false);
 
             return true;
         }
@@ -170,11 +170,11 @@ public abstract class WorkflowActorBase<TStep, TContext> : ActorBase, IWithTimer
         {
             case "Fail":
                 _errorMessage = rev.Step.ErrorMessage;
-                Finish(isok: false);
+                Finish(false);
 
                 break;
             case "None":
-                ProgressConditions(rev, finish: true, chain);
+                ProgressConditions(rev, true, chain);
 
                 return true;
             case "Loop":
@@ -183,7 +183,7 @@ public abstract class WorkflowActorBase<TStep, TContext> : ActorBase, IWithTimer
                 return true;
             case "Finish":
             case "Skip":
-                Finish(isok: true, rev);
+                Finish(true, rev);
 
                 break;
             case "Waiting":
@@ -222,7 +222,7 @@ public abstract class WorkflowActorBase<TStep, TContext> : ActorBase, IWithTimer
         if(rev.GenericCondition is null)
         {
             if(finish)
-                Finish(isok: false);
+                Finish(false);
         }
         else
         {

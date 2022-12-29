@@ -48,7 +48,7 @@ public abstract class ReportingActor<TState> : ActorFeatureBase<TState>
 
                                                      _logger.FailedOperation(e, name, m.Event.Info);
                                                  },
-                                                 () => signal.OnCompleted())
+                                                 () => signal.OnCompleted()),
                                          };
 
                         return signal
@@ -120,7 +120,7 @@ public abstract class ReportingActor<TState> : ActorFeatureBase<TState>
 
                                                  _logger.FailedOperation(e, name, m.Event.Info);
                                              },
-                                             () => signal.OnCompleted())
+                                             () => signal.OnCompleted()),
                                      };
 
                     return signal

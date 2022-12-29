@@ -11,9 +11,9 @@ public sealed class FileName : SingleValueObject<string>, IEquatable<FileName>, 
     public static readonly FileName Empty = new(string.Empty);
     public FileName(string value) : base(value) { }
 
-    public bool Equals(FileName? other)
-        => Value.Equals(other?.Value, StringComparison.Ordinal);
-
     public int CompareTo(FileName? other)
         => string.Compare(Value, other?.Value, StringComparison.Ordinal);
+
+    public bool Equals(FileName? other)
+        => Value.Equals(other?.Value, StringComparison.Ordinal);
 }

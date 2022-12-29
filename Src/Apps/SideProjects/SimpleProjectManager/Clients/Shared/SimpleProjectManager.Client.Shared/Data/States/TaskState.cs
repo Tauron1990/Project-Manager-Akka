@@ -34,9 +34,9 @@ public sealed class TaskState : StateBase, IProvideRootStore, IStoreInitializer
         dispatcher.ObservAction<DeleteTask>()
            .SelectMany(
                 async dt => await _aggregator.IsSuccess(
-                    () => TimeoutToken.WithDefault(
-                        CancellationToken.None, 
-                        async t => await _taskManager.DeleteTask(dt.Task.Id, t).ConfigureAwait(false)))
+                        () => TimeoutToken.WithDefault(
+                            CancellationToken.None,
+                            async t => await _taskManager.DeleteTask(dt.Task.Id, t).ConfigureAwait(false)))
                    .ConfigureAwait(false))
            .Subscribe();
     }

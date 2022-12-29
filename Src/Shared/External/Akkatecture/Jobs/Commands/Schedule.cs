@@ -70,5 +70,5 @@ public class Schedule<TJob, TIdentity> : SchedulerCommand<TJob, TIdentity>
 
     public virtual Schedule<TJob, TIdentity> WithNack(object? nack) => new(JobId, Job, TriggerDate, Ack, nack);
 
-    public virtual Schedule<TJob, TIdentity> WithOutAcks() => WithAck(ack: null).WithNack(nack: null);
+    public virtual Schedule<TJob, TIdentity> WithOutAcks() => WithAck(null).WithNack(null);
 }

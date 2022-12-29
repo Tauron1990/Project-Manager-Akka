@@ -64,11 +64,11 @@ public static class LoggingExtensions
                                                                                  "time",
                                                                                  "level",
                                                                                  "eventType",
-                                                                                 "message"
+                                                                                 "message",
                                                                              },
-                                                         IncludeEventProperties = true
-                                                     })
-                                             }
+                                                         IncludeEventProperties = true,
+                                                     }),
+                                             },
                                          },
                                 ArchiveAboveSize = 5_242_880,
                                 ConcurrentWrites = false,
@@ -76,10 +76,10 @@ public static class LoggingExtensions
                                 FileName = "Logs\\Log.log",
                                 ArchiveFileName = "Logs\\Log.{###}.log",
                                 ArchiveNumbering = ArchiveNumberingMode.Rolling,
-                                EnableArchiveFileCompression = true
+                                EnableArchiveFileCompression = true,
                             })
                         {
-                            Name = defaultFile
+                            Name = defaultFile,
                         });
 
                     b.Configuration.AddRuleForAllLevels(defaultFile);
@@ -119,9 +119,9 @@ public static class LoggingExtensions
                                                                              "time",
                                                                              "level",
                                                                              "eventType",
-                                                                             "message"
+                                                                             "message",
                                                                          },
-                                                     IncludeEventProperties = true
+                                                     IncludeEventProperties = true,
                                                  }),
                                          },
                                      },

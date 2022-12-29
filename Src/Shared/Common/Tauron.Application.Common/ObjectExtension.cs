@@ -24,7 +24,7 @@ public static class ObjectExtension
         }
     }
 
-    public static Option<TData> AsOption<TData>(this TData data) => new(hasValue: true, valueOrDefault: data);
+    public static Option<TData> AsOption<TData>(this TData data) => new(true, data);
 
     public static Option<TData> OptionNotNull<TData>(this TData? data)
         where TData : class

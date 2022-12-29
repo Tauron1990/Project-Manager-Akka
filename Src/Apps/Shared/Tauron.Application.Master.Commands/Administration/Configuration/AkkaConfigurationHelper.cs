@@ -22,7 +22,7 @@ public static class AkkaConfigurationHelper
         Config newConfig = ConfigurationFactory.ParseString($"akka.cluster.seed-nodes = [{string.Join(',', urls.Select(s => $"\"{s}\""))}]")
            .WithFallback(baseConfig);
 
-        return Observable.Return(newConfig.ToString(includeFallback: true));
+        return Observable.Return(newConfig.ToString(true));
     }
 
     public static string ApplyMongoUrl(string dat, string baseConfig, string url)
@@ -58,6 +58,6 @@ public static class AkkaConfigurationHelper
 
         Log.LogInformation("AppBase Configuration Updated");
 
-        return currentConfiguration.ToString(includeFallback: true);
+        return currentConfiguration.ToString(true);
     }
 }

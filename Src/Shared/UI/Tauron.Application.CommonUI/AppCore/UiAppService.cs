@@ -83,7 +83,7 @@ public sealed class UiAppService : BackgroundService
         Thread uiThread = new(Runner)
                           {
                               Name = "UI Thread",
-                              IsBackground = true
+                              IsBackground = true,
                           };
         if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             uiThread.SetApartmentState(ApartmentState.STA);

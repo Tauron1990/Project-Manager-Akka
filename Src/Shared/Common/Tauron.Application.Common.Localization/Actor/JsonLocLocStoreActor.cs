@@ -64,7 +64,7 @@ public sealed class JsonLocLocStoreActor : LocStoreActorBase
             JsonFileNameMode.ThreeLetterWindowsLanguageName => target.ThreeLetterWindowsLanguageName,
             JsonFileNameMode.DisplayName => target.DisplayName,
             JsonFileNameMode.EnglishName => target.EnglishName,
-            _ => throw new InvalidOperationException("No Valid Json File Name Mode")
+            _ => throw new InvalidOperationException("No Valid Json File Name Mode"),
         };
 
         if(!_files.TryGetValue(language, out var entrys) || !entrys.TryGetValue(name, out JToken? entry) ||
@@ -106,7 +106,7 @@ public sealed class JsonLocLocStoreActor : LocStoreActorBase
         {
             2 => data[1],
             1 => data[0],
-            _ => null
+            _ => null,
         };
     }
 }

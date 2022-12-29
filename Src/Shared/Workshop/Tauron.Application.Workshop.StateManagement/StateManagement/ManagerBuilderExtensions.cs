@@ -21,7 +21,7 @@ public static class ManagerBuilderExtensions
             {
                 var managerBuilder = new ManagerBuilder(context.GetRequiredService<IDriverFactory>())
                                      {
-                                         ServiceProvider = context
+                                         ServiceProvider = context,
                                      };
 
                 configAction(managerBuilder, context);

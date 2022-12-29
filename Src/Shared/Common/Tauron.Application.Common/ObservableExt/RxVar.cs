@@ -84,7 +84,7 @@ public sealed class RxVar<T> : IDisposable, IObservable<T>, IObserver<T>, IEquat
             RxVar<T> rxVar => Equals(rxVar),
             T data => Equals(data),
             null => false,
-            _ => Equals(this, obj)
+            _ => Equals(this, obj),
         };
     }
 

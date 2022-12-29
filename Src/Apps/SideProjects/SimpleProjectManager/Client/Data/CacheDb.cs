@@ -107,9 +107,9 @@ public sealed class CacheDb : ICacheDb
         CacheTimeoutId id = CacheTimeoutId.FromCacheId(key);
         CacheTimeout? timeout = await db.GetTimeout(id).ConfigureAwait(false);
         await db.UpdateTimeout(
-            timeout is null
-                ? new CacheTimeout(id, key, GetTimeout())
-                : timeout with { Timeout = GetTimeout() })
+                timeout is null
+                    ? new CacheTimeout(id, key, GetTimeout())
+                    : timeout with { Timeout = GetTimeout() })
            .ConfigureAwait(false);
     }
 
@@ -136,7 +136,7 @@ public sealed class CacheDb : ICacheDb
 
         internal async Task<CacheTimeout?> GetTimeout(CacheTimeoutId id)
         {
-            var result = await _reference.InvokeAsync<string>("window.Database.getTimeout", id.ToString()).ConfigureAwait(false);
+            string result = await _reference.InvokeAsync<string>("window.Database.getTimeout", id.ToString()).ConfigureAwait(false);
 
             return string.IsNullOrWhiteSpace(result) ? null : JsonSerializer.Deserialize<CacheTimeout>(result);
         }

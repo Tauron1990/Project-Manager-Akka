@@ -15,9 +15,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Content Remove="ClientDev\package-lock.json" />
-        <Content Remove="ClientDev\package.json" />
-        <Content Remove="ClientDev\tsconfig.json" />
+        <Content Remove="ClientDev\package-lock.json"/>
+        <Content Remove="ClientDev\package.json"/>
+        <Content Remove="ClientDev\tsconfig.json"/>
     </ItemGroup>
 
     <!--<ItemGroup>
@@ -58,23 +58,23 @@
 
     <Target Name="NpmInstall" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(MpaRoot)node_modules') ">
         <Exec Command="node --version" ContinueOnError="true">
-            <Output TaskParameter="ExitCode" PropertyName="ErrorCode" />
+            <Output TaskParameter="ExitCode" PropertyName="ErrorCode"/>
         </Exec>
-        <Error Condition="'$(ErrorCode)' != '0'" Text="Node.js is required to build and run this project. To continue, please install Node.js from https://nodejs.org/, and then restart your command prompt or IDE." />
-        <Message Importance="high" Text="Restoring dependencies using 'npm'. This may take several minutes..." />
-        <Exec WorkingDirectory="$(MpaRoot)" Command="npm install" />
+        <Error Condition="'$(ErrorCode)' != '0'" Text="Node.js is required to build and run this project. To continue, please install Node.js from https://nodejs.org/, and then restart your command prompt or IDE."/>
+        <Message Importance="high" Text="Restoring dependencies using 'npm'. This may take several minutes..."/>
+        <Exec WorkingDirectory="$(MpaRoot)" Command="npm install"/>
     </Target>
 
     <Target Name="NpmRunBuild" BeforeTargets="Build" DependsOnTargets="NpmInstall">
-        <Exec WorkingDirectory="$(MpaRoot)" Command="npm run build" />
+        <Exec WorkingDirectory="$(MpaRoot)" Command="npm run build"/>
 
     </Target>
 
     <Target Name="PublishRunWebpack" AfterTargets="ComputeFilesToPublish">
-        <Exec WorkingDirectory="$(MpaRoot)" Command="npm install" />
-        <Exec WorkingDirectory="$(MpaRoot)" Command="npm run build" />
+        <Exec WorkingDirectory="$(MpaRoot)" Command="npm install"/>
+        <Exec WorkingDirectory="$(MpaRoot)" Command="npm run build"/>
         <ItemGroup>
-            <DistFiles Include="$(WWWRoot)dist\**" />
+            <DistFiles Include="$(WWWRoot)dist\**"/>
             <ResolvedFileToPublish Include="@(DistFiles->'%(FullPath)')" Exclude="@(ResolvedFileToPublish)">
                 <RelativePath>%(DistFiles.Identity)</RelativePath>
                 <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
@@ -92,92 +92,92 @@
     </Target>-->
 
     <ItemGroup>
-        <None Remove="ClientDev\package-lock.json" />
-        <None Remove="ClientDev\package.json" />
-        <None Remove="ClientDev\src\js\Database\DatabaseContext.ts" />
-        <None Remove="ClientDev\src\js\index.ts" />
-        <None Remove="ClientDev\tsconfig.json" />
+        <None Remove="ClientDev\package-lock.json"/>
+        <None Remove="ClientDev\package.json"/>
+        <None Remove="ClientDev\src\js\Database\DatabaseContext.ts"/>
+        <None Remove="ClientDev\src\js\index.ts"/>
+        <None Remove="ClientDev\tsconfig.json"/>
     </ItemGroup>
 
     <ItemGroup>
-        <Content Include="ClientDev\package-lock.json" />
-        <Content Include="ClientDev\package.json" />
-        <Content Include="ClientDev\tsconfig.json" />
+        <Content Include="ClientDev\package-lock.json"/>
+        <Content Include="ClientDev\package.json"/>
+        <Content Include="ClientDev\tsconfig.json"/>
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="..\Server\bin\Release\net6.0\publish\wwwroot\_content\MudBlazor\MudBlazor.min.css" Link="wwwroot\_content\MudBlazor\MudBlazor.min.css" />
-        <None Include="wwwroot\css\app.css" />
-        <None Include="wwwroot\css\FontData\KFOlCnqEu92Fr1MmEU9fBBc4.woff2" />
-        <None Include="wwwroot\css\FontData\KFOlCnqEu92Fr1MmEU9fBxc4EsA.woff2" />
-        <None Include="wwwroot\css\FontData\KFOlCnqEu92Fr1MmEU9fChc4EsA.woff2" />
-        <None Include="wwwroot\css\FontData\KFOlCnqEu92Fr1MmEU9fCxc4EsA.woff2" />
-        <None Include="wwwroot\css\FontData\KFOlCnqEu92Fr1MmWUlfABc4EsA.woff2" />
-        <None Include="wwwroot\css\FontData\KFOlCnqEu92Fr1MmWUlfBBc4.woff2" />
-        <None Include="wwwroot\css\FontData\KFOlCnqEu92Fr1MmWUlfBxc4EsA.woff2" />
-        <None Include="wwwroot\css\FontData\KFOlCnqEu92Fr1MmWUlfCBc4EsA.woff2" />
-        <None Include="wwwroot\css\FontData\KFOlCnqEu92Fr1MmWUlfChc4EsA.woff2" />
-        <None Include="wwwroot\css\FontData\KFOlCnqEu92Fr1MmWUlfCRc4EsA.woff2" />
-        <None Include="wwwroot\css\FontData\KFOlCnqEu92Fr1MmWUlfCxc4EsA.woff2" />
-        <None Include="wwwroot\css\Fonts.css" />
-        <None Include="wwwroot\css\open-iconic\FONT-LICENSE" />
-        <None Include="wwwroot\css\open-iconic\font\css\open-iconic-bootstrap.min.css" />
-        <None Include="wwwroot\css\open-iconic\font\fonts\open-iconic.eot" />
-        <None Include="wwwroot\css\open-iconic\font\fonts\open-iconic.otf" />
-        <None Include="wwwroot\css\open-iconic\font\fonts\open-iconic.svg" />
-        <None Include="wwwroot\css\open-iconic\font\fonts\open-iconic.ttf" />
-        <None Include="wwwroot\css\open-iconic\font\fonts\open-iconic.woff" />
-        <None Include="wwwroot\css\open-iconic\ICON-LICENSE" />
-        <None Include="wwwroot\css\open-iconic\README.md" />
-        <None Include="wwwroot\css\site.css" />
+        <None Include="..\Server\bin\Release\net6.0\publish\wwwroot\_content\MudBlazor\MudBlazor.min.css" Link="wwwroot\_content\MudBlazor\MudBlazor.min.css"/>
+        <None Include="wwwroot\css\app.css"/>
+        <None Include="wwwroot\css\FontData\KFOlCnqEu92Fr1MmEU9fBBc4.woff2"/>
+        <None Include="wwwroot\css\FontData\KFOlCnqEu92Fr1MmEU9fBxc4EsA.woff2"/>
+        <None Include="wwwroot\css\FontData\KFOlCnqEu92Fr1MmEU9fChc4EsA.woff2"/>
+        <None Include="wwwroot\css\FontData\KFOlCnqEu92Fr1MmEU9fCxc4EsA.woff2"/>
+        <None Include="wwwroot\css\FontData\KFOlCnqEu92Fr1MmWUlfABc4EsA.woff2"/>
+        <None Include="wwwroot\css\FontData\KFOlCnqEu92Fr1MmWUlfBBc4.woff2"/>
+        <None Include="wwwroot\css\FontData\KFOlCnqEu92Fr1MmWUlfBxc4EsA.woff2"/>
+        <None Include="wwwroot\css\FontData\KFOlCnqEu92Fr1MmWUlfCBc4EsA.woff2"/>
+        <None Include="wwwroot\css\FontData\KFOlCnqEu92Fr1MmWUlfChc4EsA.woff2"/>
+        <None Include="wwwroot\css\FontData\KFOlCnqEu92Fr1MmWUlfCRc4EsA.woff2"/>
+        <None Include="wwwroot\css\FontData\KFOlCnqEu92Fr1MmWUlfCxc4EsA.woff2"/>
+        <None Include="wwwroot\css\Fonts.css"/>
+        <None Include="wwwroot\css\open-iconic\FONT-LICENSE"/>
+        <None Include="wwwroot\css\open-iconic\font\css\open-iconic-bootstrap.min.css"/>
+        <None Include="wwwroot\css\open-iconic\font\fonts\open-iconic.eot"/>
+        <None Include="wwwroot\css\open-iconic\font\fonts\open-iconic.otf"/>
+        <None Include="wwwroot\css\open-iconic\font\fonts\open-iconic.svg"/>
+        <None Include="wwwroot\css\open-iconic\font\fonts\open-iconic.ttf"/>
+        <None Include="wwwroot\css\open-iconic\font\fonts\open-iconic.woff"/>
+        <None Include="wwwroot\css\open-iconic\ICON-LICENSE"/>
+        <None Include="wwwroot\css\open-iconic\README.md"/>
+        <None Include="wwwroot\css\site.css"/>
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Blazor.Extensions.Logging" Version="2.0.4" />
+        <PackageReference Include="Blazor.Extensions.Logging" Version="2.0.4"/>
         <PackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.1.2">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="ErrorProne.NET.Structs" Version="0.1.2">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Gu.Analyzers" Version="2.0.2">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Meziantou.Analyzer" Version="1.0.757">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="7.0.1" />
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="7.0.1" PrivateAssets="all" />
-        <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="7.0.1"/>
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="7.0.1" PrivateAssets="all"/>
+        <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0"/>
         <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="4.9.4">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
-        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
-        <PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" Version="14.6.1" />
-        <PackageReference Include="Stl.Fusion.Blazor" Version="4.1.40" />
+        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10"/>
+        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31"/>
+        <PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" Version="14.6.1"/>
+        <PackageReference Include="Stl.Fusion.Blazor" Version="4.1.47"/>
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\..\Shared\Data\Tauron.Applicarion.Redux\Tauron.Applicarion.Redux.csproj" />
-        <ProjectReference Include="..\..\..\..\Shared\UI\Tauron.Application.Blazor\Tauron.Application.Blazor.csproj" />
-        <ProjectReference Include="..\Clients\Shared\SimpleProjectManager.Client.Shared\SimpleProjectManager.Client.Shared.csproj" />
-        <ProjectReference Include="..\Shared\SimpleProjectManager.Shared.csproj" />
+        <ProjectReference Include="..\..\..\..\Shared\Data\Tauron.Applicarion.Redux\Tauron.Applicarion.Redux.csproj"/>
+        <ProjectReference Include="..\..\..\..\Shared\UI\Tauron.Application.Blazor\Tauron.Application.Blazor.csproj"/>
+        <ProjectReference Include="..\Clients\Shared\SimpleProjectManager.Client.Shared\SimpleProjectManager.Client.Shared.csproj"/>
+        <ProjectReference Include="..\Shared\SimpleProjectManager.Shared.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-        <ServiceWorker Include="wwwroot\service-worker.js" PublishedContent="wwwroot\service-worker.published.js" />
+        <ServiceWorker Include="wwwroot\service-worker.js" PublishedContent="wwwroot\service-worker.published.js"/>
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="wwwroot\dist" />
-        <Folder Include="wwwroot\dist\" />
-        <Folder Include="wwwroot\_content\MudBlazor\" />
+        <Folder Include="wwwroot\dist"/>
+        <Folder Include="wwwroot\dist\"/>
+        <Folder Include="wwwroot\_content\MudBlazor\"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -239,19 +239,22 @@
             <DependentUpon>TaskManager.razor</DependentUpon>
         </Compile>
         <Compile Update="Shared\Devices\DevicesDisplay.cs">
-          <DependentUpon>DevicesDisplay.razor</DependentUpon>
+            <DependentUpon>DevicesDisplay.razor</DependentUpon>
         </Compile>
         <Compile Update="Shared\Devices\DeviceDisplay.cs">
-          <DependentUpon>DeviceDisplay.razor</DependentUpon>
+            <DependentUpon>DeviceDisplay.razor</DependentUpon>
         </Compile>
         <Compile Update="Shared\Devices\UIGroupDisplay.cs">
-          <DependentUpon>UIGroupDisplay.razor</DependentUpon>
+            <DependentUpon>UIGroupDisplay.razor</DependentUpon>
         </Compile>
         <Compile Update="Shared\Devices\SingleSensorDisplay.cs">
-          <DependentUpon>SingleSensorDisplay.razor</DependentUpon>
+            <DependentUpon>SingleSensorDisplay.razor</DependentUpon>
         </Compile>
         <Compile Update="Shared\Devices\SingleButtonDisplay.cs">
-          <DependentUpon>SingleButtonDisplay.razor</DependentUpon>
+            <DependentUpon>SingleButtonDisplay.razor</DependentUpon>
+        </Compile>
+        <Compile Update="Shared\Devices\LogsDisplay.cs">
+            <DependentUpon>LogsDisplay.razor</DependentUpon>
         </Compile>
     </ItemGroup>
 

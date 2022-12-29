@@ -3,5 +3,5 @@
 public sealed record StopHostAppResponse(bool Success) : OperationResponse(Success)
 {
     public StopHostAppResponse()
-        : this(Success: false) { }
+        : this(false) { }
 }

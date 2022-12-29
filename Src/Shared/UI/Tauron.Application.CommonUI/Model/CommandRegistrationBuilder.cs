@@ -90,7 +90,7 @@ public sealed class CommandRegistrationBuilder
         {
             0 => null,
             1 => _canExecute[0],
-            _ => _canExecute.Select(obs => obs.StartWith(false)).CombineLatest(list => list.All(b => b))
+            _ => _canExecute.Select(obs => obs.StartWith(false)).CombineLatest(list => list.All(b => b)),
         };
 
         return _register(name, (Action<object?>)_command, canExec);

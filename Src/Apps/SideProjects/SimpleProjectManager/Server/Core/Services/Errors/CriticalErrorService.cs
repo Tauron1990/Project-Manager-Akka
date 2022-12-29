@@ -32,7 +32,7 @@ public class CriticalErrorService : ICriticalErrorService
     {
         try
         {
-            CriticalErrorEntry entry = new(error.Id, error, IsDisabled: false);
+            CriticalErrorEntry entry = new(error.Id, error, false);
 
             await _errorEntrys.InsertOneAsync(entry, token).ConfigureAwait(false);
             Invalidate();
@@ -47,7 +47,7 @@ public class CriticalErrorService : ICriticalErrorService
     {
         if(Computed.IsInvalidating()) return ErrorCount.From(0);
 
-        var filter = _errorEntrys.Operations.Eq(m => m.IsDisabled, toEqual: false);
+        var filter = _errorEntrys.Operations.Eq(m => m.IsDisabled, false);
 
         return ErrorCount.From(await _errorEntrys.CountEntrys(filter, token).ConfigureAwait(false));
     }
@@ -58,17 +58,17 @@ public class CriticalErrorService : ICriticalErrorService
 
         var result = _errorEntrys.ExecuteAsyncEnumerable<DbCriticalError, CriticalError>(
             _errorEntrys
-               .Find(_errorEntrys.Operations.Eq(e => e.IsDisabled, toEqual: false))
+               .Find(_errorEntrys.Operations.Eq(e => e.IsDisabled, false))
                .Select(d => d.Error),
             token);
 
-        return new CriticalErrorList( await result.ToImmutableList(token).ConfigureAwait(false));
+        return new CriticalErrorList(await result.ToImmutableList(token).ConfigureAwait(false));
     }
 
     public virtual async Task<SimpleResult> DisableError(ErrorId id, CancellationToken token)
     {
         var filter = _errorEntrys.Operations.Eq(e => e.Id, id.Value);
-        var updater = _errorEntrys.Operations.Set(e => e.IsDisabled, value: true);
+        var updater = _errorEntrys.Operations.Set(e => e.IsDisabled, true);
 
         try
         {

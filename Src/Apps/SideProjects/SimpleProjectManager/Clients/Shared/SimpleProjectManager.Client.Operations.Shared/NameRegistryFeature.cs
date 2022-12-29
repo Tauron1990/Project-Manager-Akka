@@ -74,7 +74,7 @@ public sealed partial class NameRegistryFeature : ActorFeatureBase<NameRegistryF
         if(p.State.CurrentClients.ContainsKey(p.Event.Name))
         {
             DuplicateNameFound(p.Event.Name, p.Sender.Path);
-            p.Sender.Tell(new RegisterNameResponse(SimpleResult.Failure($"Duplicate Name {p.Event.Name}"), Name: null, p.Event.From));
+            p.Sender.Tell(new RegisterNameResponse(SimpleResult.Failure($"Duplicate Name {p.Event.Name}"), null, p.Event.From));
 
             return p.State;
         }

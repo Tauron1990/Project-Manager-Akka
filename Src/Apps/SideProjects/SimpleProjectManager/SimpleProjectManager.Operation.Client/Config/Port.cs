@@ -11,6 +11,6 @@ public readonly partial struct Port
         {
             < 0 => Validation.Invalid("The Port Number ist to Low"),
             > 65_535 => Validation.Invalid("The Port Number is to High"),
-            _ => Validation.Ok
+            _ => Validation.Ok,
         };
 }

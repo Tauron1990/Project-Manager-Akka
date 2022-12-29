@@ -16,33 +16,33 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Compile Remove="ActorFlowBuilder - Backup.cs" />
-        <Compile Remove="Async.cs" />
-        <Compile Remove="AkkaHost\ActorHostEnviroment.cs" />
-        <Compile Remove="AkkaHost\ApplicationLifetime.cs" />
-        <Compile Remove="AkkaHost\CommonLifetime.cs" />
-        <Compile Remove="AkkaHost\Environments.cs" />
-        <Compile Remove="AkkaHost\HostBuilderContext.cs" />
-        <Compile Remove="AkkaHost\HostDefaults.cs" />
-        <Compile Remove="AkkaHost\IActorApplicationLifetime.cs" />
-        <Compile Remove="AkkaHost\IActorHostEnvironment.cs" />
-        <Compile Remove="AkkaHost\IApplicationLifetime.cs" />
-        <Compile Remove="AkkaHost\IAppRoute.cs" />
-        <Compile Remove="AkkaHost\IHostLifetime.cs" />
-        <Compile Remove="AkkaHost\StartupBase.cs" />
-        <Compile Remove="ObservableExt\Branch.cs" />
-        <Compile Remove="SecurityHelper.cs" />
-        <Compile Remove="SerializationExtensions.cs" />
+        <Compile Remove="ActorFlowBuilder - Backup.cs"/>
+        <Compile Remove="Async.cs"/>
+        <Compile Remove="AkkaHost\ActorHostEnviroment.cs"/>
+        <Compile Remove="AkkaHost\ApplicationLifetime.cs"/>
+        <Compile Remove="AkkaHost\CommonLifetime.cs"/>
+        <Compile Remove="AkkaHost\Environments.cs"/>
+        <Compile Remove="AkkaHost\HostBuilderContext.cs"/>
+        <Compile Remove="AkkaHost\HostDefaults.cs"/>
+        <Compile Remove="AkkaHost\IActorApplicationLifetime.cs"/>
+        <Compile Remove="AkkaHost\IActorHostEnvironment.cs"/>
+        <Compile Remove="AkkaHost\IApplicationLifetime.cs"/>
+        <Compile Remove="AkkaHost\IAppRoute.cs"/>
+        <Compile Remove="AkkaHost\IHostLifetime.cs"/>
+        <Compile Remove="AkkaHost\StartupBase.cs"/>
+        <Compile Remove="ObservableExt\Branch.cs"/>
+        <Compile Remove="SecurityHelper.cs"/>
+        <Compile Remove="SerializationExtensions.cs"/>
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="ActorFlowBuilder - Backup.cs" />
-        <None Include="Async.cs" />
-        <None Include="SecurityHelper.cs" />
-        <None Include="SerializationExtensions.cs" />
-        <Compile Remove="ActorFlowBuilder.cs" />
-        <None Include="ObservableExt\Branch.cs" />
-        <None Include="ActorFlowBuilder.cs" />
+        <None Include="ActorFlowBuilder - Backup.cs"/>
+        <None Include="Async.cs"/>
+        <None Include="SecurityHelper.cs"/>
+        <None Include="SerializationExtensions.cs"/>
+        <Compile Remove="ActorFlowBuilder.cs"/>
+        <None Include="ObservableExt\Branch.cs"/>
+        <None Include="ActorFlowBuilder.cs"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -51,29 +51,29 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="ErrorProne.NET.Structs" Version="0.1.2">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="FastExpressionCompiler" Version="3.3.3" />
+        <PackageReference Include="FastExpressionCompiler" Version="3.3.3"/>
         <PackageReference Include="Gu.Analyzers" Version="2.0.2">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="JetBrains.Annotations" Version="2022.3.1" />
+        <PackageReference Include="JetBrains.Annotations" Version="2022.3.1"/>
         <PackageReference Include="Meziantou.Analyzer" Version="1.0.757">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
-        <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.2.1" />
-        <PackageReference Include="OneOf" Version="3.0.223" />
-        <PackageReference Include="OneOf.SourceGenerator" Version="3.0.223" />
-        <PackageReference Include="Scrutor" Version="4.2.0" />
-        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
-        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
-        <PackageReference Include="Stl.Fusion" Version="4.1.40" />
-        <PackageReference Include="System.Reactive" Version="5.0.0" />
-        <PackageReference Include="UnitsNet" Version="4.149.0" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0"/>
+        <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.2.1"/>
+        <PackageReference Include="OneOf" Version="3.0.223"/>
+        <PackageReference Include="OneOf.SourceGenerator" Version="3.0.223"/>
+        <PackageReference Include="Scrutor" Version="4.2.0"/>
+        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10"/>
+        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31"/>
+        <PackageReference Include="Stl.Fusion" Version="4.1.47"/>
+        <PackageReference Include="System.Reactive" Version="5.0.0"/>
+        <PackageReference Include="UnitsNet" Version="4.149.0"/>
     </ItemGroup>
 
 </Project>

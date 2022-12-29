@@ -99,7 +99,7 @@ public sealed class UIProperty<TData> : UIPropertyBase, IObservable<TData>, IDis
         {
             UIProperty<TData> prop => Equals(prop.Value, Value),
             TData val => Equals(val, Value),
-            _ => false
+            _ => false,
         };
     }
 

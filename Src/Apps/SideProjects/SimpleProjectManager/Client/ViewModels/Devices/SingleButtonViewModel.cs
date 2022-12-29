@@ -12,43 +12,53 @@ namespace SimpleProjectManager.Client.ViewModels.Devices;
 
 public class SingleButtonViewModel : BlazorViewModel
 {
+    private readonly IState<DeviceButton?> _button;
+    private readonly IMutableState<bool> _canClick;
+    private readonly IState<DeviceId?> _deviceId;
     private readonly IDeviceService _deviceService;
     private readonly IEventAggregator _eventAggregator;
     private readonly IOnlineMonitor _onlineMonitor;
-    private readonly IState<DeviceId?> _deviceId;
-    private readonly IState<DeviceButton?> _button;
 
-    public ReactiveCommand<Unit, Unit>? ButtonClick { get; private set; }
-    
-    public SingleButtonViewModel(IStateFactory stateFactory, IDeviceService deviceService, IEventAggregator eventAggregator, IOnlineMonitor onlineMonitor) 
+    public SingleButtonViewModel(IStateFactory stateFactory, IDeviceService deviceService, IEventAggregator eventAggregator, IOnlineMonitor onlineMonitor)
         : base(stateFactory)
     {
         _deviceService = deviceService;
         _eventAggregator = eventAggregator;
         _onlineMonitor = onlineMonitor;
+        _canClick = stateFactory.NewMutable<bool>(initialOutput: true);
+
         _deviceId = GetParameter<DeviceId?>(nameof(SingleButtonDisplay.DeviceId));
         _button = GetParameter<DeviceButton?>(nameof(SingleButtonDisplay.Button));
-        
+
         this.WhenActivated(Init);
     }
 
+    public ReactiveCommand<Unit, Unit>? ButtonClick { get; private set; }
+
     private IEnumerable<IDisposable> Init()
     {
-        IState<bool> canClick = StateFactory.NewComputed(new ComputedState<bool>.Options(), GetCanClick);
+        IState<bool> canClickServer = StateFactory.NewComputed(new ComputedState<bool>.Options(), GetCanClick);
+
+        yield return canClickServer.ToObservable(StateError).Subscribe(v => _canClick.Set(v));
 
         yield return ButtonClick = ReactiveCommand.CreateFromTask(
-            ClickButton, 
-            canClick
-               .ToObservable(ex =>
-                             {
-                                 _eventAggregator.PublishError(ex);
-                                 return false;
-                             })
+            ClickButton,
+            _canClick
+               .ToObservable(StateError)
                .AndIsOnline(_onlineMonitor));
+    }
+
+    private bool StateError(Exception ex)
+    {
+        _eventAggregator.PublishError(ex);
+
+        return false;
     }
 
     private async Task ClickButton(CancellationToken token)
     {
+        _canClick.Set(false);
+
         DeviceId? deviceId = _deviceId.ValueOrDefault;
         DeviceButton? button = _button.ValueOrDefault;
 
@@ -74,5 +84,6 @@ public class SingleButtonViewModel : BlazorViewModel
         if(deviceId is null || button is null) return false;
 
         return await _deviceService.CanClickButton(deviceId, button.Identifer, token).ConfigureAwait(false);
+
     }
 }

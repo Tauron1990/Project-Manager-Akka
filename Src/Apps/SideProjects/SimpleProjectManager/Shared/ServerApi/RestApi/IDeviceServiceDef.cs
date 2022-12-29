@@ -33,7 +33,7 @@ public interface IDeviceServiceDef
     Task<DateTime> CurrentLogs(CancellationToken token);
 
     [Get(nameof(GetBatches))]
-    Task<Logs> GetBatches([Query] DeviceId deviceName, [Query] DateTime from, CancellationToken token);
+    Task<Logs> GetBatches([Query] DeviceId deviceId, [Query] DateTime from, [Query] DateTime to, CancellationToken token);
 
     [Post(nameof(ClickButton))]
     Task<SimpleResult> ClickButton([Body] DeviceId device, [Query("button")] DeviceId button, CancellationToken token);

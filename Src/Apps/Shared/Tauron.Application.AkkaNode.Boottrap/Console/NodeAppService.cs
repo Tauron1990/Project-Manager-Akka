@@ -20,7 +20,7 @@ public sealed class NodeAppService : IHostedService
         => Task.CompletedTask;
 
     [DllImport("user32.dll")]
-    private static extern bool ShowWindow(IntPtr hWnd, int cmdShow);
+    private static extern bool ShowWindow(nint hWnd, int cmdShow);
 
     private static void Maximize()
     {

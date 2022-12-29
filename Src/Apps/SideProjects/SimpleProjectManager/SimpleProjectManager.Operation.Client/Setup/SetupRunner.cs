@@ -1,6 +1,5 @@
 ﻿using System.Collections.Immutable;
 using FluentValidation.Results;
-using Microsoft.Extensions.Configuration;
 using SimpleProjectManager.Operation.Client.Config;
 using SimpleProjectManager.Operation.Client.Core;
 
@@ -22,7 +21,7 @@ public sealed class SetupRunner
                   {
                       new IpSetup(clientInteraction),
                       new DevicesSetup(clientInteraction),
-                      new ImageEditorSetup(clientInteraction)
+                      new ImageEditorSetup(clientInteraction),
                   };
     }
 
@@ -36,7 +35,7 @@ public sealed class SetupRunner
             return;
 
         // ReSharper disable once LoopCanBeConvertedToQuery
-        foreach (var setup in _setups)
+        foreach (ISetup setup in _setups)
             config = await setup.RunSetup(config).ConfigureAwait(false);
 
         validation = await config.Validate().ConfigureAwait(false);

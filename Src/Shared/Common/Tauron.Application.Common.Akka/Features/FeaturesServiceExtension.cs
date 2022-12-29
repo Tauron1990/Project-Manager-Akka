@@ -67,7 +67,7 @@ public static class FeaturesServiceExtension
                         IPreparedFeature feature => Feature.Props(feature),
                         IPreparedFeature[] features => Feature.Props(features),
                         IEnumerable<IPreparedFeature> features => Feature.Props(features.ToArray()),
-                        _ => throw new InvalidOperationException("Invalid Feature Construction Method")
+                        _ => throw new InvalidOperationException("Invalid Feature Construction Method"),
                     });
 
                 return inst;

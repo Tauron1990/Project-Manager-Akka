@@ -92,10 +92,11 @@ public class ConsoleInteraction : IClientInteraction
             {
                 PrintInitial(initial);
 
-                string selection = AnsiConsole.Prompt(new SelectionPrompt<string>()
-                   .Title(question)
-                   .AddChoices(choises));
-                
+                string selection = AnsiConsole.Prompt(
+                    new SelectionPrompt<string>()
+                       .Title(question)
+                       .AddChoices(choises));
+
                 return selection;
             });
 
@@ -127,9 +128,7 @@ public class ConsoleInteraction : IClientInteraction
         AnsiConsole.WriteLine("Validation Fehler");
 
         foreach (ValidationFailure failure in configError)
-        {
             AnsiConsole.WriteLine(failure.ErrorMessage);
-        }
 
         AnsiConsole.WriteLine();
     }

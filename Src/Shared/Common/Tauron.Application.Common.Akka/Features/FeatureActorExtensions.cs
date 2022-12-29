@@ -21,5 +21,5 @@ public static class FeatureActorExtensions
         => factory.ActorOf(GenericActor.Create(features), name);
 
     public static IActorRef ActorOf(this IActorRefFactory factory, params IPreparedFeature[] features)
-        => ActorOf(factory, name: null, features);
+        => ActorOf(factory, null, features);
 }

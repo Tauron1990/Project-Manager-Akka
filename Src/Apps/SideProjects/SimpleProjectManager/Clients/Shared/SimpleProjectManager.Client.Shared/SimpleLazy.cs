@@ -1,9 +1,5 @@
 using System;
 using JetBrains.Annotations;
-using Stl;
-using Stl.Collections;
-using Stl.Conversion;
-using Stl.Fusion;
 
 namespace SimpleProjectManager.Client.Shared;
 
@@ -23,15 +19,15 @@ public static class SimpleLazy
 
         private TData GetValue()
             => Value;
-        
+
         public static implicit operator Func<TData>(Lazy<TData> lazy)
             => lazy.GetValue;
     }
 
     private sealed class StateFullLazy<TData, TArg> : Lazy<TData>
     {
-        private Func<TArg, TData>? _input;
         private TArg _arg;
+        private Func<TArg, TData>? _input;
 
         internal StateFullLazy(Func<TArg, TData> input, TArg arg)
         {

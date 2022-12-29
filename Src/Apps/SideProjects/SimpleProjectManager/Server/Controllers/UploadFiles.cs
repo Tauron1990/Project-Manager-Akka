@@ -1,7 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using JetBrains.Annotations;
-using Microsoft.AspNetCore.Http;
 
 namespace SimpleProjectManager.Server.Controllers;
 

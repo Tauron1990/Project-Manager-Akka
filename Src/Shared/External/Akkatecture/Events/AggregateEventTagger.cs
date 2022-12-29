@@ -46,7 +46,7 @@ public class AggregateEventTagger : IWriteEventAdapter
                .GetType()
                .GetCommittedEventAggregateRootName();
 
-            var eventDefinitionService = new EventDefinitionService(logger: null);
+            var eventDefinitionService = new EventDefinitionService(null);
 
             Type aggregateEventType = evt
                .GetType()

@@ -409,7 +409,7 @@ public sealed class ObservableDictionary<TKey, TValue> : ObservableObject, IDict
         {
             int ver = Dictionary._version;
             var count = 0;
-            foreach (var entry in Dictionary._entrys)
+            foreach (Entry? entry in Dictionary._entrys)
             {
                 count++;
 

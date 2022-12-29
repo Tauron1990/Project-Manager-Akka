@@ -33,10 +33,16 @@ public sealed partial class MachineSensorActor : ReceiveActor, IWithTimers
 
     private void ValueRecived(ISensorBox obj)
     {
-        if(_sensorBox == obj) return;
+        if(_sensorBox.Equals(obj))
+        {
+            SheduleUpdate();
+            return;
+        }
 
         _sensorBox = obj;
         _deviceDeviceManager.Tell(new UpdateSensor(_deviceName, _target.Identifer, _sensorBox));
+
+        SheduleUpdate();
     }
 
     [LoggerMessage(EventId = 67, Level = LogLevel.Error, Message = "Error on Update Sensor {sensor}")]

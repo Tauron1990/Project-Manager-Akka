@@ -7,18 +7,18 @@ namespace Tauron.TextAdventure.Engine.Data;
 
 internal sealed class EventStore
 {
-    private ImmutableSortedDictionary<int, IEvent> CurrentEvents { get; set; }
-
-    internal GameState GameState { get; }
-
-    private string SaveGameName { get; }
-
     internal EventStore(string saveGameName)
     {
         GameState = new GameState();
         CurrentEvents = ImmutableSortedDictionary<int, IEvent>.Empty;
         SaveGameName = saveGameName;
     }
+
+    private ImmutableSortedDictionary<int, IEvent> CurrentEvents { get; set; }
+
+    internal GameState GameState { get; }
+
+    private string SaveGameName { get; }
 
     private ZipArchive? GetSaveGameFile(ZipArchiveMode mode)
     {
@@ -30,16 +30,16 @@ internal sealed class EventStore
 
 
         if(mode != ZipArchiveMode.Read)
-            return File.Exists(gameFile) 
-                ? new ZipArchive(File.Open(gameFile, FileMode.OpenOrCreate), mode) 
+            return File.Exists(gameFile)
+                ? new ZipArchive(File.Open(gameFile, FileMode.OpenOrCreate), mode)
                 : new ZipArchive(File.Open(gameFile, FileMode.OpenOrCreate), ZipArchiveMode.Create);
-        
-        return !File.Exists(gameFile) 
-            ? null 
+
+        return !File.Exists(gameFile)
+            ? null
             : new ZipArchive(File.OpenRead(gameFile), mode);
 
     }
-    
+
     internal void LoadGame()
     {
         using ZipArchive? zip = GetSaveGameFile(ZipArchiveMode.Read);
@@ -58,7 +58,7 @@ internal sealed class EventStore
         if(zip is null)
             throw new UnreachableException();
 
-        ZipArchiveEntry state = zip.Entries.FirstOrDefault(ent => string.Equals(ent.Name, "state", StringComparison.Ordinal)) 
+        ZipArchiveEntry state = zip.Entries.FirstOrDefault(ent => string.Equals(ent.Name, "state", StringComparison.Ordinal))
                              ?? zip.CreateEntry("state", CompressionLevel.Optimal);
 
         using Stream entryStream = state.Open();
@@ -68,8 +68,8 @@ internal sealed class EventStore
 
         ZipArchiveEntry eventsEntry = zip.CreateEntry(eventsName.ToString(CultureInfo.InvariantCulture), CompressionLevel.Optimal);
         using Stream stream = eventsEntry.Open();
-        using BinaryWriter writer = new BinaryWriter(stream);
-        
+        using var writer = new BinaryWriter(stream);
+
         writer.Write(CurrentEvents.Count);
 
         foreach (var currentEvent in CurrentEvents)
@@ -78,12 +78,12 @@ internal sealed class EventStore
             writer.Write(currentEvent.Value.GetType().AssemblyQualifiedName ?? throw new UnreachableException());
             currentEvent.Value.Write(writer);
         }
-        
+
         CurrentEvents = ImmutableSortedDictionary<int, IEvent>.Empty;
     }
 
     public void ApplyEvent<TEvent>(TEvent evt, Action<GameState, TEvent>? applyState)
-    where TEvent : IEvent
+        where TEvent : IEvent
     {
         GameState.Sequence++;
         IEvent newEvent = evt.WithSequence(GameState.Sequence);

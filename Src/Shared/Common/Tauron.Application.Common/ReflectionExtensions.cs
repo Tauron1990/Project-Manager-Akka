@@ -49,7 +49,7 @@ public static class ReflectionExtensions
         Type? targetType = type;
         while (targetType != null)
         {
-            foreach (var mem in targetType.GetMembers(flags)) yield return mem;
+            foreach (MemberInfo mem in targetType.GetMembers(flags)) yield return mem;
 
             targetType = targetType.BaseType;
         }
@@ -61,15 +61,15 @@ public static class ReflectionExtensions
         => FindMemberAttributes<TAttribute>(type, nonPublic, BindingFlags.Instance | BindingFlags.FlattenHierarchy);
 
     public static T[] GetAllCustomAttributes<T>(this ICustomAttributeProvider member) where T : class
-        => (T[])member.GetCustomAttributes(typeof(T), inherit: true);
+        => (T[])member.GetCustomAttributes(typeof(T), true);
 
 
     public static object[] GetAllCustomAttributes(this ICustomAttributeProvider member, Type type)
-        => member.GetCustomAttributes(type, inherit: true);
+        => member.GetCustomAttributes(type, true);
 
     public static Option<TAttribute> GetCustomAttribute<TAttribute>(this ICustomAttributeProvider provider)
         where TAttribute : Attribute
-        => GetCustomAttribute<TAttribute>(provider, inherit: true);
+        => GetCustomAttribute<TAttribute>(provider, true);
 
     public static Option<TAttribute> GetCustomAttribute<TAttribute>(this ICustomAttributeProvider provider, bool inherit)
         where TAttribute : Attribute
@@ -84,7 +84,7 @@ public static class ReflectionExtensions
         if(provider == null) throw new ArgumentNullException(nameof(provider));
 
         return from attributeType in attributeTypes
-               from attribute in provider.GetCustomAttributes(attributeType, inherit: false)
+               from attribute in provider.GetCustomAttributes(attributeType, false)
                select attribute;
     }
 
@@ -110,7 +110,7 @@ public static class ReflectionExtensions
                 : default,
             ConstructorInfo constructorInfo =>
                 FastReflection.Shared.GetCreator(constructorInfo)(parameter) is TType cType ? cType.AsOption() : default,
-            _ => default!
+            _ => default!,
         };
     }
 
@@ -167,7 +167,7 @@ public static class ReflectionExtensions
             FieldInfo field => field.FieldType,
             MethodBase method => method.GetParameterTypes().Single(),
             PropertyInfo property => property.PropertyType,
-            _ => throw new ArgumentOutOfRangeException(nameof(info))
+            _ => throw new ArgumentOutOfRangeException(nameof(info)),
         };
     }
 
@@ -175,7 +175,7 @@ public static class ReflectionExtensions
     {
         if(member == null) throw new ArgumentNullException(nameof(member));
 
-        return member.IsDefined(typeof(T), inherit: true);
+        return member.IsDefined(typeof(T), true);
     }
 
     public static bool HasAttribute(this ICustomAttributeProvider member, Type type)
@@ -183,7 +183,7 @@ public static class ReflectionExtensions
         if(member == null) throw new ArgumentNullException(nameof(member));
         if(type == null) throw new ArgumentNullException(nameof(type));
 
-        return member.IsDefined(type, inherit: true);
+        return member.IsDefined(type, true);
     }
 
     public static bool HasMatchingAttribute<T>(this ICustomAttributeProvider member, T attributeToMatch)
@@ -211,7 +211,7 @@ public static class ReflectionExtensions
             ConstructorInfo constructorInfo => FastReflection.Shared.GetCreator(constructorInfo)(args) is TType cr
                 ? cr.AsOption()
                 : default,
-            _ => throw new ArgumentException(@"Method Not Supported", nameof(method))
+            _ => throw new ArgumentException(@"Method Not Supported", nameof(method)),
         };
     }
 

@@ -11,7 +11,7 @@ namespace Tauron;
 [PublicAPI]
 public sealed class FastReflection
 {
-    private static readonly Lazy<FastReflection> SharedLazy = new(() => new FastReflection(), isThreadSafe: true);
+    private static readonly Lazy<FastReflection> SharedLazy = new(() => new FastReflection(), true);
 
     private readonly Dictionary<ConstructorInfo, Func<object?[]?, object>> _creatorCache = new();
     private readonly Dictionary<FieldInfo, Func<object?, object?>> _fieldAccessorCache = new();

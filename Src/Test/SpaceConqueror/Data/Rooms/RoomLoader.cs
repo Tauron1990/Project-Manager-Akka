@@ -12,19 +12,23 @@ public static class RoomLoader
         return Universe.Create(
             uni =>
             {
-                uni.WithPage(RoomKeys.Start, builder =>
-                                             {
-                                                 builder
-                                                    .WithContent(man => man.GetDocument("Intro1"))
-                                                    .WithCommand(() => new MoveToRommCommand(RoomKeys.End));
-                                             });
-                
-                uni.WithPage(RoomKeys.End, builder =>
-                                           {
-                                               builder
-                                                  .WithContent(man => man.GetDocument("Credits"))
-                                                  .WithCommand(() => new EndGameCommand());
-                                           });
+                uni.WithPage(
+                    RoomKeys.Start,
+                    builder =>
+                    {
+                        builder
+                           .WithContent(man => man.GetDocument("Intro1"))
+                           .WithCommand(() => new MoveToRommCommand(RoomKeys.End));
+                    });
+
+                uni.WithPage(
+                    RoomKeys.End,
+                    builder =>
+                    {
+                        builder
+                           .WithContent(man => man.GetDocument("Credits"))
+                           .WithCommand(() => new EndGameCommand());
+                    });
             });
     }
 }

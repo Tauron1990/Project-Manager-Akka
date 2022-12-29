@@ -69,7 +69,7 @@ public class DistributedActorTableContainer<TKey> : ReceiveActor
 
     private void Handle(ClusterActorDiscoveryMessage.ActorUp actorUp)
     {
-        IActorRef actorRef= actorUp.Actor;
+        IActorRef actorRef = actorUp.Actor;
         _log.Info($"Table.ActorUp (Actor={actorRef.Path})");
 
         if(_table != null)
@@ -98,7 +98,7 @@ public class DistributedActorTableContainer<TKey> : ReceiveActor
 
         CancelAllPendingAddRequests();
 
-        foreach ((var _, IActorRef actor) in _actorMap) actor.Tell(_downMessage ?? PoisonPill.Instance);
+        foreach ((TKey _, IActorRef actor) in _actorMap) actor.Tell(_downMessage ?? PoisonPill.Instance);
 
         // NOTE: should we clear actor map or let them to be removed ?
     }
@@ -108,7 +108,7 @@ public class DistributedActorTableContainer<TKey> : ReceiveActor
         (TKey id, IActorRef? actor) = add;
         if(_table is null || _stopping)
         {
-            Sender.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, Added: false));
+            Sender.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, false));
 
             return;
         }
@@ -116,7 +116,7 @@ public class DistributedActorTableContainer<TKey> : ReceiveActor
         if(actor is null)
         {
             _log.Error($"Invalid null actor. (ID={id})");
-            Sender.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, Added: false));
+            Sender.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, false));
 
             return;
         }
@@ -124,7 +124,7 @@ public class DistributedActorTableContainer<TKey> : ReceiveActor
         if(_actorMap.ContainsKey(id))
         {
             _log.Error($"Duplicate ID in local container. (ID={id})");
-            Sender.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, Added: false));
+            Sender.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, false));
 
             return;
         }
@@ -176,7 +176,7 @@ public class DistributedActorTableContainer<TKey> : ReceiveActor
         catch (Exception exception)
         {
             _log.Error(exception, $"Exception in creating actor (Id={id})");
-            Sender.Tell(message: new DistributedActorTableMessage<TKey>.Internal.CreateReply(id, Actor: null));
+            Sender.Tell(new DistributedActorTableMessage<TKey>.Internal.CreateReply(id, null));
 
             return;
         }
@@ -201,7 +201,7 @@ public class DistributedActorTableContainer<TKey> : ReceiveActor
 
         if(added)
         {
-            requester.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, Added: true));
+            requester.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, true));
         }
         else
         {
@@ -211,7 +211,7 @@ public class DistributedActorTableContainer<TKey> : ReceiveActor
             Context.Unwatch(actor);
             _watchingActorCount -= 1;
 
-            requester.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, Added: false));
+            requester.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, false));
         }
     }
 
@@ -224,7 +224,7 @@ public class DistributedActorTableContainer<TKey> : ReceiveActor
             Context.Unwatch(actor);
             _watchingActorCount -= 1;
 
-            actor.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, Actorm: actor, Added: false));
+            actor.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, false));
         }
 
         _addingMap.Clear();
@@ -240,7 +240,7 @@ public class DistributedActorTableContainer<TKey> : ReceiveActor
         CancelAllPendingAddRequests();
 
         if(_actorMap.Count > 0)
-            foreach ((var _, IActorRef actor) in _actorMap)
+            foreach ((TKey _, IActorRef actor) in _actorMap)
                 actor.Tell(gracefulStop.StopMessage ?? PoisonPill.Instance);
         else
             Context.Stop(Self);
@@ -285,7 +285,7 @@ public class DistributedActorTableContainer<TKey> : ReceiveActor
             {
                 Props props => props,
                 Type type => Props.Create(type, args),
-                _ => null
+                _ => null,
             };
         }
     }

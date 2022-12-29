@@ -37,7 +37,7 @@ public static class ResultExtensions
         if(error.IsError())
             throw error.GetException();
     }
-    
+
     public static Validation ValidateNotNullOrEmpty(this string? value, string name)
         => string.IsNullOrWhiteSpace(value) ? Validation.Invalid($"The Value from {name} is null or Empty") : Validation.Ok;
 }

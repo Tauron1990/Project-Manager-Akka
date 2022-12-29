@@ -44,7 +44,7 @@ public sealed class WorkDistributorFeature<TInput, TFinishMessage> : ActorFeatur
                                 .Where(a => !a.Equals(m.Event.ActorRef))
                                 .Aggregate(ImmutableQueue<IActorRef>.Empty, (current, actorRef) => current.Enqueue(actorRef)),
                              Worker = m.State.Worker.Remove(m.Event.ActorRef),
-                             Running = m.State.Running.Remove(m.Event.ActorRef)
+                             Running = m.State.Running.Remove(m.Event.ActorRef),
                          }));
 
         Receive<CheckWorker>(
@@ -69,7 +69,7 @@ public sealed class WorkDistributorFeature<TInput, TFinishMessage> : ActorFeatur
                          {
                              Worker = s.State.Worker.Add(s.Worker),
                              Ready = s.State.Ready.Enqueue(s.Worker),
-                             WorkerId = s.State.WorkerId + 1
+                             WorkerId = s.State.WorkerId + 1,
                          }));
 
         Receive<WorkerTimeout>(
@@ -87,7 +87,7 @@ public sealed class WorkDistributorFeature<TInput, TFinishMessage> : ActorFeatur
                             return state with
                                    {
                                        Running = state.Running.Remove(Context.Sender),
-                                       Ready = state.Ready.Enqueue(Context.Sender)
+                                       Ready = state.Ready.Enqueue(Context.Sender),
                                    };
 
                         var newQueue = state.PendingWorkload.Dequeue(out (TInput Workload, IActorRef Sender) work);
@@ -112,7 +112,7 @@ public sealed class WorkDistributorFeature<TInput, TFinishMessage> : ActorFeatur
                     return state with
                            {
                                Running = state.Running.Add(worker),
-                               Ready = newQueue
+                               Ready = newQueue,
                            };
                 }));
 

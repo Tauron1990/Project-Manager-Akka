@@ -14,8 +14,8 @@ public sealed class SingleElementList<TValue> : IEnumerable<TValue>
 
     IEnumerator IEnumerable.GetEnumerator()
         => GetEnumerator();
-    
-    
+
+
     private class Enumerator : IEnumerator<TValue>
     {
         private bool _nextFinish;
@@ -40,9 +40,6 @@ public sealed class SingleElementList<TValue> : IEnumerable<TValue>
 
         object? IEnumerator.Current => Current;
 
-        public void Dispose()
-        {
-        }
+        public void Dispose() { }
     }
-
 }

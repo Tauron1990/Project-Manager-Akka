@@ -143,7 +143,7 @@ public class ProgressStatistic
         /// <summary>
         ///     Average bytes per second will be used for estimating
         /// </summary>
-        AverageBytesPerSecond
+        AverageBytesPerSecond,
     }
 
     /// <summary>
@@ -169,7 +169,7 @@ public class ProgressStatistic
             {
                 EstimatingMethod.AverageBytesPerSecond => AverageBytesPerSecond,
                 EstimatingMethod.CurrentBytesPerSecond => CurrentBytesPerSecond,
-                _ => throw new InvalidOperationException("No Correct Estimating method")
+                _ => throw new InvalidOperationException("No Correct Estimating method"),
             };
 
             double seconds = (TotalBytesToRead - BytesRead) / bytesPerSecond;

@@ -89,5 +89,4 @@ public sealed partial class JsonNull : JsonNode
 // End of JSONNull
 
 // End of JSONLazyCreator
-
 #pragma warning restore EX002

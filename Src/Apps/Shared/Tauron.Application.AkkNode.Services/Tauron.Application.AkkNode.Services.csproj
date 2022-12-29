@@ -13,43 +13,43 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Compile Remove="Core\ActorBinaryWriter.cs" />
-        <Compile Remove="Core\BinaryHelper.cs" />
-        <Compile Remove="Core\BinaryManifest.cs" />
-        <Compile Remove="Core\InternalSerializable.cs" />
-        <Compile Remove="Core\InternalSerializableBase.cs" />
-        <Compile Remove="Core\InternalSerializer.cs" />
-        <Compile Remove="MongoDb\BuckedSourceFactory.cs" />
-        <Compile Remove="MongoDb\ClientPool.cs" />
-        <Compile Remove="MongoDb\IClientPool.cs" />
-        <Compile Remove="MongoDb\IMongoEntity.cs" />
-        <Compile Remove="MongoDb\IMongoUpdateable.cs" />
-        <Compile Remove="MongoDb\MongoDatabase.cs" />
-        <Compile Remove="MongoDb\MongoDataBaseFactory.cs" />
-        <Compile Remove="MongoDb\MongoDbExtensions.cs" />
-        <Compile Remove="MongoDb\MongoDbSource.cs" />
-        <Compile Remove="MongoDb\MongoQueryBase.cs" />
-        <Compile Remove="MongoExtensions.cs" />
+        <Compile Remove="Core\ActorBinaryWriter.cs"/>
+        <Compile Remove="Core\BinaryHelper.cs"/>
+        <Compile Remove="Core\BinaryManifest.cs"/>
+        <Compile Remove="Core\InternalSerializable.cs"/>
+        <Compile Remove="Core\InternalSerializableBase.cs"/>
+        <Compile Remove="Core\InternalSerializer.cs"/>
+        <Compile Remove="MongoDb\BuckedSourceFactory.cs"/>
+        <Compile Remove="MongoDb\ClientPool.cs"/>
+        <Compile Remove="MongoDb\IClientPool.cs"/>
+        <Compile Remove="MongoDb\IMongoEntity.cs"/>
+        <Compile Remove="MongoDb\IMongoUpdateable.cs"/>
+        <Compile Remove="MongoDb\MongoDatabase.cs"/>
+        <Compile Remove="MongoDb\MongoDataBaseFactory.cs"/>
+        <Compile Remove="MongoDb\MongoDbExtensions.cs"/>
+        <Compile Remove="MongoDb\MongoDbSource.cs"/>
+        <Compile Remove="MongoDb\MongoQueryBase.cs"/>
+        <Compile Remove="MongoExtensions.cs"/>
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="Core\ActorBinaryWriter.cs" />
-        <None Include="Core\BinaryHelper.cs" />
-        <None Include="Core\BinaryManifest.cs" />
-        <None Include="Core\InternalSerializable.cs" />
-        <None Include="Core\InternalSerializableBase.cs" />
-        <None Include="Core\InternalSerializer.cs" />
-        <None Include="MongoDb\BuckedSourceFactory.cs" />
-        <None Include="MongoDb\ClientPool.cs" />
-        <None Include="MongoDb\IClientPool.cs" />
-        <None Include="MongoDb\IMongoEntity.cs" />
-        <None Include="MongoDb\IMongoUpdateable.cs" />
-        <None Include="MongoDb\MongoDatabase.cs" />
-        <None Include="MongoDb\MongoDataBaseFactory.cs" />
-        <None Include="MongoDb\MongoDbExtensions.cs" />
-        <None Include="MongoDb\MongoDbSource.cs" />
-        <None Include="MongoDb\MongoQueryBase.cs" />
-        <None Include="MongoExtensions.cs" />
+        <None Include="Core\ActorBinaryWriter.cs"/>
+        <None Include="Core\BinaryHelper.cs"/>
+        <None Include="Core\BinaryManifest.cs"/>
+        <None Include="Core\InternalSerializable.cs"/>
+        <None Include="Core\InternalSerializableBase.cs"/>
+        <None Include="Core\InternalSerializer.cs"/>
+        <None Include="MongoDb\BuckedSourceFactory.cs"/>
+        <None Include="MongoDb\ClientPool.cs"/>
+        <None Include="MongoDb\IClientPool.cs"/>
+        <None Include="MongoDb\IMongoEntity.cs"/>
+        <None Include="MongoDb\IMongoUpdateable.cs"/>
+        <None Include="MongoDb\MongoDatabase.cs"/>
+        <None Include="MongoDb\MongoDataBaseFactory.cs"/>
+        <None Include="MongoDb\MongoDbExtensions.cs"/>
+        <None Include="MongoDb\MongoDbSource.cs"/>
+        <None Include="MongoDb\MongoQueryBase.cs"/>
+        <None Include="MongoExtensions.cs"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -58,29 +58,29 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="ErrorProne.NET.Structs" Version="0.1.2">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Gu.Analyzers" Version="2.0.2">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Meziantou.Analyzer" Version="1.0.757">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.Win32.Primitives" Version="4.3.0" />
-        <PackageReference Include="SharpRepository.Repository" Version="2.2.1" />
-        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
-        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
-        <PackageReference Include="System.IO.FileSystem" Version="4.3.0" />
-        <PackageReference Include="System.Net.Primitives" Version="4.3.1" />
-        <PackageReference Include="Vogen" Version="3.0.7" />
+        <PackageReference Include="Microsoft.Win32.Primitives" Version="4.3.0"/>
+        <PackageReference Include="SharpRepository.Repository" Version="2.2.1"/>
+        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10"/>
+        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31"/>
+        <PackageReference Include="System.IO.FileSystem" Version="4.3.0"/>
+        <PackageReference Include="System.Net.Primitives" Version="4.3.1"/>
+        <PackageReference Include="Vogen" Version="3.0.8"/>
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\Shared\Common\Tauron.Application.Common.Akka\Tauron.Application.Common.Akka.csproj" />
-        <ProjectReference Include="..\..\..\Shared\Workshop\Tauron.Application.Workshop\Tauron.Application.Workshop.csproj" />
+        <ProjectReference Include="..\..\..\Shared\Common\Tauron.Application.Common.Akka\Tauron.Application.Common.Akka.csproj"/>
+        <ProjectReference Include="..\..\..\Shared\Workshop\Tauron.Application.Workshop\Tauron.Application.Workshop.csproj"/>
     </ItemGroup>
 
 </Project>

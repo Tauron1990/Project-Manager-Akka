@@ -48,7 +48,7 @@ public sealed class ClientRunner
                 {
                     if(_configManager.Configuration.SelfPort.Value > 0)
                         b.WithRemoting(port: _configManager.Configuration.SelfPort.Value);
-                    
+
                     b
                        .WithClustering(new ClusterOptions { Roles = new[] { "ProjectManager" } })
                        .WithDistributedPubSub("ProjectManager");

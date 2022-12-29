@@ -6,8 +6,8 @@ namespace Tauron.TextAdventure.Engine.Systems.Rooms.Core;
 public sealed class PageRoom : BaseRoom
 {
     private readonly Func<RenderElement> _element;
-    private readonly string _nextLabel;
     private readonly Func<IGameCommand> _next;
+    private readonly string _nextLabel;
 
     public PageRoom(Func<RenderElement> element, string nextLabel, Func<IGameCommand> next)
     {

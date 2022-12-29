@@ -19,16 +19,16 @@ public sealed class EventActor : UntypedActor
     public static IEventActor From(IActorRef actorRef) => new HookEventActor(actorRef);
 
     public static IEventActor Create(IActorRefFactory system, string? name)
-        => Create<Unit>(system, name, handler: null, killOnFirstResponse: false);
+        => Create<Unit>(system, name, null, false);
 
     public static IEventActor CreateSelfKilling(IActorRefFactory system, string? name)
-        => CreateSelfKilling<Unit>(system, name, handler: null);
+        => CreateSelfKilling<Unit>(system, name, null);
 
     public static IEventActor Create<TPayload>(IActorRefFactory system, string? name, Action<TPayload>? handler)
-        => Create(system, name, handler, killOnFirstResponse: false);
+        => Create(system, name, handler, false);
 
     public static IEventActor CreateSelfKilling<TPayload>(IActorRefFactory system, string? name, Action<TPayload>? handler)
-        => Create(system, name, handler, killOnFirstResponse: true);
+        => Create(system, name, handler, true);
 
     private static IEventActor Create<TPayload>(IActorRefFactory system, string? name, Action<TPayload>? handler, bool killOnFirstResponse)
     {

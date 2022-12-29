@@ -10,6 +10,6 @@ public abstract class RenderElement
 
         return this;
     }
-    
+
     public abstract void Accept(IRenderVisitor visitor);
 }

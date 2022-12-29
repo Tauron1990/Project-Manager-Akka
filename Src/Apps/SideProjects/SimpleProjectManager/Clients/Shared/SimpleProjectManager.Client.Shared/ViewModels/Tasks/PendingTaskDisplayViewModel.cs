@@ -23,14 +23,18 @@ public sealed class PendingTaskDisplayViewModel : ViewModelBase
         _globalState = globalState;
         _messageDispatcher = messageDispatcher;
         PendingTask = stateFactory.NewMutable<PendingTask?>();
-        
+
         this.WhenActivated(Init);
     }
+
+    public IMutableState<PendingTask?> PendingTask { get; }
+
+    public ReactiveCommand<Unit, Unit>? Cancel { get; private set; }
 
     private IEnumerable<IDisposable> Init()
     {
         BehaviorSubject<bool>? canRun;
-        yield return canRun = new BehaviorSubject<bool>(value: true);
+        yield return canRun = new BehaviorSubject<bool>(true);
         yield return Cancel = ReactiveCommand.Create(
             () =>
             {
@@ -48,8 +52,4 @@ public sealed class PendingTaskDisplayViewModel : ViewModelBase
 
         yield return Cancel.Select(_ => false).Take(1).Subscribe(canRun);
     }
-    
-    public IMutableState<PendingTask?> PendingTask { get; }
-
-    public ReactiveCommand<Unit, Unit>? Cancel { get; private set; }
 }

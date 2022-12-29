@@ -26,11 +26,11 @@ public sealed class DevicesSetup : ISetup
 
             DeviceData device = configuration.Device with { Active = true, MachineInterface = InterfaceId.From(newInterface) };
 
-            return configuration with { Device = device, Name = ObjectName.From(newName)};
+            return configuration with { Device = device, Name = ObjectName.From(newName) };
         }
 
         DeviceData inactiveDevice = configuration.Device with { Active = false, MachineInterface = InterfaceId.Empty };
-        
+
         return configuration with { Name = ObjectName.From(newName), Device = inactiveDevice };
     }
 }

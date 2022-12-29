@@ -38,7 +38,7 @@ public sealed class LoggerActor : ReceiveActor
         Sender.Tell(
             new DeviceManagerMessages.LoggerBatchResult(
                 _batches
-                   .Where(p => p.Key > obj.From)
+                   .Where(p => p.Key > obj.From && p.Key <= obj.To)
                    .Select(p => p.Value)
                    .ToImmutableList()));
     }
@@ -63,7 +63,7 @@ public sealed class LoggerActor : ReceiveActor
            .Select(p => p.Key)
            .ToArray();
 
-        foreach (var key in toDelete)
+        foreach (DateTime key in toDelete)
             _batches.Remove(key);
 
         _handler.Publish(new NewBatchesArrived(obj.DeviceName, newKey));

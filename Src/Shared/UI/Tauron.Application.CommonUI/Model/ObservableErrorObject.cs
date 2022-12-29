@@ -135,7 +135,7 @@ public abstract class ObservableErrorObject : INotifyDataErrorInfo, IObservableP
                             ChangeReason.Add => CreateChangeAction(),
                             ChangeReason.Update => CreateChangeAction(),
                             ChangeReason.Remove => CreateEmpty(),
-                            _ => CreateEmpty()
+                            _ => CreateEmpty(),
                         };
                     })
                .AutoSubscribe(a => a(), ErrorEncountered)

@@ -6,21 +6,21 @@ using SpaceConqueror.Core;
 namespace Tauron.TextAdventure.Engine.Core;
 
 [PublicAPI]
-public sealed class AssetManager 
+public sealed class AssetManager
 {
     private readonly ConcurrentDictionary<string, IBox?> _assets = new(StringComparer.Ordinal);
-    private IContext _renderContext;
     private Dictionary<Value, Value> _contextValues = new();
+    private IContext _renderContext;
 
     public AssetManager()
     {
         _renderContext = Context.Empty;
 
         IFunction func = Function.CreatePure1(
-            (_, value) => _assets.TryGetValue(value.AsString, out IBox? box) 
+            (_, value) => _assets.TryGetValue(value.AsString, out IBox? box)
                 ? box!.GetString(_renderContext)
                 : _renderContext[value]);
-        
+
         UpdateContext("GetString", Value.FromFunction(func));
     }
 
@@ -32,7 +32,7 @@ public sealed class AssetManager
 
     private void ThrowDuplicate(string name)
         => throw new InvalidOperationException($"An Resource with Name {name} is already registrated");
-    
+
     public void Add(string name, Func<IDocument> document)
     {
         if(_assets.TryAdd(name, new DocumentBox(new Lazy<IDocument>(document))))
@@ -48,7 +48,7 @@ public sealed class AssetManager
 
         ThrowDuplicate(name);
     }
-    
+
     public void Add<TData>(string name, Func<TData> data)
     {
         if(_assets.TryAdd(name, new LazyBox<TData>(new Lazy<TData>(data))))
@@ -69,10 +69,10 @@ public sealed class AssetManager
     {
         if(_assets.TryGetValue(name, out IBox? box) && box is DocumentBox documentBox)
             return documentBox.Document.Value;
-        
+
         return Document.Empty;
     }
-    
+
     public TData Get<TData>(string name)
     {
         if(_assets.TryGetValue(name, out IBox? toCast) && toCast is IBox<TData> box)
@@ -98,7 +98,7 @@ public sealed class AssetManager
     {
         TValue Get(IContext context);
     }
-    
+
     private sealed record LazyBox<TBox>(Lazy<TBox> Lazy) : IBox<TBox>
     {
         public TBox Get(IContext context)
@@ -116,12 +116,12 @@ public sealed class AssetManager
         string IBox.GetString(IContext context)
             => Value?.ToString() ?? string.Empty;
     }
-    
-    private sealed record DocumentBox(Lazy<IDocument> Document) : IBox<string> 
+
+    private sealed record DocumentBox(Lazy<IDocument> Document) : IBox<string>
     {
         public string Get(IContext context)
             => Document.Value.Render(context);
-        
+
         public string GetString(IContext context)
             => Document.Value.Render(context);
     }

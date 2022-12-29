@@ -26,7 +26,7 @@ public static class IoExtensions
             #pragma warning disable MA0076
             throw new InvalidOperationException($"All bytes Read Failed: Lenght: {stream.Length} -- Read: {bytesRead}");
         #pragma warning restore MA0076
-        
+
         return arr;
     }
 }

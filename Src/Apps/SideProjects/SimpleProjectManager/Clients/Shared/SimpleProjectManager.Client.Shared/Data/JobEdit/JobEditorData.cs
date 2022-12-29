@@ -1,5 +1,4 @@
 ﻿using System;
-using Akkatecture.Jobs;
 using ReactiveUI;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;

@@ -21,7 +21,6 @@ public sealed class FileFetcher : PackageFetcherBase
         {
             string? dic = Path.GetDirectoryName(_file);
             if(!string.IsNullOrWhiteSpace(dic))
-            {
                 environment = new HostingEnvironment
                               {
                                   ApplicationName = environment.ApplicationName,
@@ -29,7 +28,6 @@ public sealed class FileFetcher : PackageFetcherBase
                                   ContentRootPath = dic,
                                   ContentRootFileProvider = new PhysicalFileProvider(dic),
                               };
-            }
         }
 
         await foreach (GamePackage package in Assembly(assembly).Load(environment).ConfigureAwait(false))

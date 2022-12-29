@@ -10,12 +10,12 @@ namespace Tauron.TextAdventure.Engine.Systems;
 [PublicAPI]
 public sealed class EventManager : IDisposable
 {
-    private EventStore? _store;
-    private ImmutableDictionary<Type, IEventProcessor> _eventProcessors = ImmutableDictionary<Type, IEventProcessor>.Empty;
     private readonly Subject<object> _dispatcher = new();
+    private ImmutableDictionary<Type, IEventProcessor> _eventProcessors = ImmutableDictionary<Type, IEventProcessor>.Empty;
+    private EventStore? _store;
 
     internal ImmutableList<Action<GameState>> Init { get; set; } = ImmutableList<Action<GameState>>.Empty;
-    
+
     internal EventStore EventStore
     {
         get
@@ -28,8 +28,11 @@ public sealed class EventManager : IDisposable
     }
 
     public GameState GameState => EventStore.GameState;
-    
-    internal void RegisterEvent<TEvent>(Action<GameState, TEvent> processor) 
+
+    public void Dispose()
+        => _dispatcher.Dispose();
+
+    internal void RegisterEvent<TEvent>(Action<GameState, TEvent> processor)
         where TEvent : IEvent
         => _eventProcessors = _eventProcessors.Add(typeof(TEvent), new EventProcessor<TEvent>(_dispatcher, processor));
 
@@ -46,10 +49,10 @@ public sealed class EventManager : IDisposable
 
     internal void Free()
         => _store = null;
-    
+
     internal void Dipatch(IEnumerable<object> toDispatch)
     {
-        foreach(object evt in toDispatch)
+        foreach (object evt in toDispatch)
             _dispatcher.OnNext(evt);
     }
 
@@ -76,14 +79,11 @@ public sealed class EventManager : IDisposable
         where TEvent : IEvent
         => Observer.Create<TEvent>(StoreEvent, _dispatcher.OnError, _dispatcher.OnCompleted);
 
-    public void Dispose()
-        => _dispatcher.Dispose();
-    
     private interface IEventProcessor
     {
         void Process(EventStore store, IEvent evt);
     }
-    
+
     private class EventProcessor<TEvent> : IEventProcessor
         where TEvent : IEvent
     {

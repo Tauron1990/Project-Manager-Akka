@@ -153,7 +153,7 @@ public static class ObservableExtensions
         {
             SucessCallResult<TResult> sucess => onSucess(sucess.Result),
             ErrorCallResult<TResult> err => error(err.Error),
-            _ => throw new InvalidOperationException("Incompatiple Call Result")
+            _ => throw new InvalidOperationException("Incompatiple Call Result"),
         };
     }
 
@@ -259,7 +259,7 @@ public static class ObservableExtensions
             _strategy = strategy;
             _target = target;
 
-            strategy.ReSubscribe(AddSubscription, cause: null);
+            strategy.ReSubscribe(AddSubscription, null);
         }
 
         public void Dispose()

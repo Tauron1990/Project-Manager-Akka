@@ -18,7 +18,7 @@ public sealed class IncomingDataTransfer : TransferMessages.TransferMessage
         Manager = manager;
         Data = data;
 
-        _denyTimer = new Timer(_ => Deny(), state: null, TimeSpan.FromMinutes(1), Timeout.InfiniteTimeSpan);
+        _denyTimer = new Timer(_ => Deny(), null, TimeSpan.FromMinutes(1), Timeout.InfiniteTimeSpan);
     }
 
     public DataTransferManager Manager { get; }

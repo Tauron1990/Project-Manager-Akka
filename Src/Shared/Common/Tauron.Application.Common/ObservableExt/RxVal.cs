@@ -59,7 +59,7 @@ public sealed class RxVal<T> : IDisposable, IObservable<T?>, IEquatable<RxVal<T>
             RxVar<T> rxVar => Equals(rxVar),
             T data => Equals(data),
             null => false,
-            _ => Equals(this, obj)
+            _ => Equals(this, obj),
         };
     }
 

@@ -15,7 +15,7 @@ public sealed class IdentityModelBinder : IModelBinder
 
                 return Task.CompletedTask;
             }
-            
+
             bindingContext.Result = ModelBindingResult.Success(FastReflection.Shared.FastCreateInstance(bindingContext.ModelType, id));
         }
         catch (Exception)

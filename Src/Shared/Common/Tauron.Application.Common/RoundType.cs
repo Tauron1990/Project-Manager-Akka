@@ -11,5 +11,5 @@ public enum RoundType : short
 
     HalfHour = 30,
 
-    QuaterHour = 15
+    QuaterHour = 15,
 }

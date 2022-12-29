@@ -24,7 +24,7 @@ public sealed class EqFilter<TData, TField> : LiteFilter<TData>
         {
             true when !_equalitiy.Equals(fieldValue, _toEqual) => true,
             false when _equalitiy.Equals(fieldValue, _toEqual) => true,
-            _ => false
+            _ => false,
         };
     }
 

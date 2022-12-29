@@ -7,8 +7,8 @@ namespace Tauron.TextAdventure.Engine.UI;
 [PublicAPI]
 public sealed class NewRenderElement : GameStateAdder
 {
-    private readonly string _name;
     private readonly RenderElement _element;
+    private readonly string _name;
 
     public NewRenderElement(string name, RenderElement element)
     {

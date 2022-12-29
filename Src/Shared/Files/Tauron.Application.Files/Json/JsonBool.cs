@@ -10,16 +10,14 @@ public partial class JsonBool
     public override void SerializeBinary(BinaryWriter aWriter)
     {
         aWriter.Write((byte)JsonNodeType.Boolean);
-        aWriter.Write(_data);
+        aWriter.Write(AsBool);
     }
 }
 
 [PublicAPI]
 public sealed partial class JsonBool : JsonNode
 {
-    private bool _data;
-
-    public JsonBool(bool aData) => _data = aData;
+    public JsonBool(bool aData) => AsBool = aData;
 
     public JsonBool(string aData) => Value = aData;
 
@@ -47,25 +45,21 @@ public sealed partial class JsonBool : JsonNode
 
     public override string Value
     {
-        get => _data.ToString();
+        get => AsBool.ToString();
         set
         {
             if(bool.TryParse(value, out bool v))
-                _data = v;
+                AsBool = v;
         }
     }
 
-    public override bool AsBool
-    {
-        get => _data;
-        set => _data = value;
-    }
+    public override bool AsBool { get; set; }
 
     public override Enumerator GetEnumerator() => new();
 
     internal override void WriteToStringBuilder(StringBuilder aSb, int aIndent, int aIndentInc, JsonTextMode aMode)
     {
-        aSb.Append(_data ? "true" : "false");
+        aSb.Append(AsBool ? "true" : "false");
     }
 
     public override bool Equals(object? obj)
@@ -73,11 +67,11 @@ public sealed partial class JsonBool : JsonNode
         return obj switch
         {
             null => false,
-            bool b => _data == b,
-            _ => false
+            bool b => AsBool == b,
+            _ => false,
         };
     }
 
     // ReSharper disable once NonReadonlyMemberInGetHashCode
-    public override int GetHashCode() => _data.GetHashCode();
+    public override int GetHashCode() => AsBool.GetHashCode();
 }

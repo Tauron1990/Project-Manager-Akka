@@ -38,8 +38,8 @@ public sealed class UploadTransaction : SimpleTransaction<UploadTransactionConte
         Console.WriteLine("Commit Files");
 
         SimpleResult result = await TimeoutToken.WithDefault(
-            context.Token,
-            t => _fileService.CommitFiles(new FileList(context.Metadata.Get<ImmutableList<ProjectFileId>>()), t))
+                context.Token,
+                t => _fileService.CommitFiles(new FileList(context.Metadata.Get<ImmutableList<ProjectFileId>>()), t))
            .ConfigureAwait(false);
 
         return result.ThrowIfFail<Rollback<UploadTransactionContext>>(() => _ => default);
@@ -49,13 +49,13 @@ public sealed class UploadTransaction : SimpleTransaction<UploadTransactionConte
     {
         (UploadTransactionContext upload, ContextMetadata meta, CancellationToken token) = transactionContext;
         ProjectName projectName = upload.JobName;
-        
+
         ProjectId id = ProjectId.For(projectName);
         meta.Set(id);
 
         (SimpleResult failMessage, bool isNew) = await TimeoutToken.WithDefault(
-            token,
-            t => _databaseService.AttachFiles(new ProjectAttachFilesCommand(id, projectName, meta.Get<ImmutableList<ProjectFileId>>()), t))
+                token,
+                t => _databaseService.AttachFiles(new ProjectAttachFilesCommand(id, projectName, meta.Get<ImmutableList<ProjectFileId>>()), t))
            .ConfigureAwait(false);
 
         #if DEBUG
@@ -69,28 +69,24 @@ public sealed class UploadTransaction : SimpleTransaction<UploadTransactionConte
                       SimpleResult deleteResult;
 
                       #pragma warning disable CS8602
-                      
+
                       if(!isNew)
-                      {
                           deleteResult = await TimeoutToken.WithDefault(
-                              cancellationToken,
-                              t => _databaseService.RemoveFiles(
-                                  new ProjectRemoveFilesCommand(
-                                      contextMetadata.Get<ProjectId>(),
-                                      contextMetadata.Get<ImmutableList<ProjectFileId>>()),
-                                  t))
+                                  cancellationToken,
+                                  t => _databaseService.RemoveFiles(
+                                      new ProjectRemoveFilesCommand(
+                                          contextMetadata.Get<ProjectId>(),
+                                          contextMetadata.Get<ImmutableList<ProjectFileId>>()),
+                                      t))
                              .ConfigureAwait(false);
-                      }
                       else
-                      {
                           deleteResult = await TimeoutToken.WithDefault(
-                              cancellationToken,
-                              t => _databaseService.DeleteJob(contextMetadata.Get<ProjectId>(), t))
+                                  cancellationToken,
+                                  t => _databaseService.DeleteJob(contextMetadata.Get<ProjectId>(), t))
                              .ConfigureAwait(false);
-                      }
 
                       #pragma warning restore CS8602
-                      
+
                       deleteResult.ThrowIfFail();
                   });
     }
@@ -142,9 +138,9 @@ public sealed class UploadTransaction : SimpleTransaction<UploadTransactionConte
         }
 
         (SimpleResult failMessage, var ids) = await TimeoutToken.With(
-            TimeSpan.FromMinutes(30),
-            token,
-            RunUpload)
+                TimeSpan.FromMinutes(30),
+                token,
+                RunUpload)
            .ConfigureAwait(false);
 
         meta.Set(ids);

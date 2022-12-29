@@ -12,7 +12,7 @@ public sealed class ParameterUpdater
 {
     private readonly GroupDictionary<string, IMutableState> _registrations = new();
     private IReadOnlyDictionary<string, object> _parameterView = ImmutableDictionary<string, object>.Empty;
-    
+
     public IState<TValue> Register<TValue>(string name, IStateFactory stateFactory)
     {
         if(stateFactory is null)
@@ -33,20 +33,20 @@ public sealed class ParameterUpdater
 
         if(_parameterView.TryGetValue(name, out object? obj) && obj is TValue value)
             state.Set(value);
-        
+
         return state;
     }
 
     public void UpdateParameters(ParameterView parameterView)
     {
         _parameterView = parameterView.ToDictionary();
-  
+
         foreach ((string key, var states) in _registrations)
         {
             #if DEBUG
             Console.WriteLine($"ParameterUpdater: Name: {key} -- States: {states.Count}");
             #endif
-            
+
             if(parameterView.TryGetValue(key, out object? value))
                 states.Foreach(s => s.Set(Result.Value(value)));
             else
@@ -56,7 +56,7 @@ public sealed class ParameterUpdater
                         object? defaultValue = s.Computed.OutputType.IsValueType ? Activator.CreateInstance(s.Computed.OutputType) : null;
                         s.Set(Result.Value(defaultValue));
                     });
-            
+
         }
     }
 }

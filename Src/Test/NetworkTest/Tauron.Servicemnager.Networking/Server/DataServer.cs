@@ -20,7 +20,7 @@ public sealed class DataServer : IDataServer
 
     public DataServer(string host, int port = 0)
     {
-        _server = new SimpleTcpServer(host, port, ssl: false, pfxCertFilename: null, pfxPassword: null)
+        _server = new SimpleTcpServer(host, port, false, null, null)
                   {
                       Keepalive = { EnableTcpKeepAlives = true },
                   };

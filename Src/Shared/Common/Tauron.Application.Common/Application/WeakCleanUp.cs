@@ -37,7 +37,7 @@ public static class WeakCleanUp
         lock (Actions)
         {
             var dead = new List<WeakDelegate>();
-            foreach (var weakDelegate in Actions.ToArray())
+            foreach (WeakDelegate weakDelegate in Actions.ToArray())
                 if(weakDelegate.IsAlive)
                     try
                     {

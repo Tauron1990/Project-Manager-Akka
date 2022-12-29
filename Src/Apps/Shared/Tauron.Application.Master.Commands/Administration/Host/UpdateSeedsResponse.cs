@@ -4,5 +4,5 @@ public sealed record UpdateSeedsResponse(bool Success)
     : OperationResponse(Success)
 {
     public UpdateSeedsResponse()
-        : this(Success: false) { }
+        : this(false) { }
 }

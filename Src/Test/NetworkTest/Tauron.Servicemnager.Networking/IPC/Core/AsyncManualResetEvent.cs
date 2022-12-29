@@ -21,14 +21,18 @@ public class AsyncManualResetEvent
     public Task<bool> WaitAsync()
     {
         lock (_mutex)
+        {
             return _tcs.Task;
+        }
     }
 
 
     public void Set()
     {
         lock (_mutex)
+        {
             _tcs.TrySetResult(true);
+        }
     }
 
     public void Reset()

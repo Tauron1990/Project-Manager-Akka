@@ -7,11 +7,11 @@ namespace Tauron.Servicemnager.Networking.IPC.Core;
 internal class SspinWait
 {
     private const long TestIterations = 10000;
+    private const int WaitIter = 5; //Start waiting from 10 iterations then every new iteration doubling. 100 times , then spinwt.SpinOnce
     private static long _iterationsInMs; //300K
 
     private int _currentIter;
     private SpinWait _spinwt;
-    private const int WaitIter = 5; //Start waiting from 10 iterations then every new iteration doubling. 100 times , then spinwt.SpinOnce
 
     internal void Spin()
     {

@@ -1,6 +1,5 @@
 using Akka.Cluster.Hosting;
 using Akka.DependencyInjection;
-using Akka.Hosting;
 using Akka.Persistence;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -75,7 +74,7 @@ public class Startup
                 (_, configurationBuilder) =>
                 {
                     configurationBuilder
-                       .WithClustering(new ClusterOptions { Roles = new []{"Master", "ProjectManager"}})
+                       .WithClustering(new ClusterOptions { Roles = new[] { "Master", "ProjectManager" } })
                        .WithDistributedPubSub("ProjectManager")
                        .AddStartup((sys, _) => Persistence.Instance.Apply(sys));
                 })

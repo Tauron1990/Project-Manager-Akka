@@ -17,9 +17,6 @@ public sealed partial class LiteTransaction : IDisposable
     private BlockingCollection<Func<Exception?, Exception?>> _actions = new();
     private Exception? _error;
 
-    [LoggerMessage(66, LogLevel.Critical, "Transaction is already Running (Orphan Transaction)")]
-    private partial void CriticalTransactionStart(Exception error);
-    
     public LiteTransaction(ILiteDatabase liteDatabase, ICriticalErrorService errorService, ILogger<LiteTransaction> logger)
     {
         _liteDatabase = liteDatabase;
@@ -40,20 +37,25 @@ public sealed partial class LiteTransaction : IDisposable
                 catch (Exception e)
                 {
                     CriticalTransactionStart(e);
-                    errorService.WriteError(new CriticalError(
-                        ErrorId.New, 
-                        DateTime.Now, 
-                        PropertyValue.From(nameof(LiteTransaction)), 
-                        SimpleMessage.From("Transaction is already Running (Orphan Transaction)"), 
-                        StackTraceData.FromException(e),
-                        ImmutableList<ErrorProperty>.Empty), default)
+                    errorService.WriteError(
+                            new CriticalError(
+                                ErrorId.New,
+                                DateTime.Now,
+                                PropertyValue.From(nameof(LiteTransaction)),
+                                SimpleMessage.From("Transaction is already Running (Orphan Transaction)"),
+                                StackTraceData.FromException(e),
+                                ImmutableList<ErrorProperty>.Empty),
+                            default)
                        .Ignore();
                 }
             }).Ignore();
-        
+
 
         Task.Run(Runner).Ignore();
     }
+
+    [LoggerMessage(66, LogLevel.Critical, "Transaction is already Running (Orphan Transaction)")]
+    private partial void CriticalTransactionStart(Exception error);
 
     public void Dispose()
     {

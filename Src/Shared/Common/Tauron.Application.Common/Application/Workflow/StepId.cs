@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using JetBrains.Annotations;
 
 namespace Tauron.Application.Workflow;
@@ -19,7 +20,7 @@ public readonly struct StepId
     public static readonly StepId Waiting = new("Waiting");
 
     [DebuggerStepThrough]
-    public override int GetHashCode() => System.StringComparer.Ordinal.GetHashCode(Name);
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Name);
 
     public StepId(string name) : this()
         => Name = name;
@@ -28,11 +29,11 @@ public readonly struct StepId
 
     [DebuggerStepThrough]
     public override bool Equals(object? obj)
-        => obj is StepId stepId && string.Equals(stepId.Name, Name, System.StringComparison.Ordinal);
+        => obj is StepId stepId && string.Equals(stepId.Name, Name, StringComparison.Ordinal);
 
-    public static bool operator ==(StepId idLeft, StepId idRight) => string.Equals(idLeft.Name, idRight.Name, System.StringComparison.Ordinal);
+    public static bool operator ==(StepId idLeft, StepId idRight) => string.Equals(idLeft.Name, idRight.Name, StringComparison.Ordinal);
 
-    public static bool operator !=(StepId idLeft, StepId idRight) => !string.Equals(idLeft.Name, idRight.Name, System.StringComparison.Ordinal);
+    public static bool operator !=(StepId idLeft, StepId idRight) => !string.Equals(idLeft.Name, idRight.Name, StringComparison.Ordinal);
 
     [DebuggerStepThrough]
     public override string ToString() => Name;

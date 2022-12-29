@@ -7,7 +7,8 @@ namespace SimpleProjectManager.Shared.Tests.Validators.Jobs;
 
 public sealed class UpdateProjectCommandValidatorTests
 {
-    [Theory, DomainAutoData]
+    [Theory]
+    [DomainAutoData]
     public void Valid_Command(UpdateProjectCommand command)
     {
         ValidationResult result = new UpdateProjectCommandValidator().Validate(command);
@@ -15,7 +16,8 @@ public sealed class UpdateProjectCommandValidatorTests
         result.IsValid.Should().BeTrue();
     }
 
-    [Theory, DomainAutoData]
+    [Theory]
+    [DomainAutoData]
     public void Null_Id_Command(UpdateProjectCommand command)
     {
         command = command with { Id = null! };

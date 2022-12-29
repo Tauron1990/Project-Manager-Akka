@@ -17,7 +17,7 @@ public abstract class InternalAggregateRoot<TAggregate, TIdentity, TAggregateSta
     where TAggregate : AggregateRoot<TAggregate, TIdentity, TAggregateState>
     where TSnapshot : IAggregateSnapshot<TAggregate, TIdentity>
 {
-    protected InternalAggregateRoot(TIdentity id) : base(id, new AggregateRootSettings(TimeSpan.FromDays(7), useDefaultEventRecover: true, useDefaultSnapshotRecover: true))
+    protected InternalAggregateRoot(TIdentity id) : base(id, new AggregateRootSettings(TimeSpan.FromDays(7), true, true))
     {
         // ReSharper disable once VirtualMemberCallInConstructor
         #pragma warning disable MA0056
@@ -99,6 +99,6 @@ public abstract class InternalAggregateRoot<TAggregate, TIdentity, TAggregateSta
     {
         Nothing,
         New,
-        Exist
+        Exist,
     }
 }

@@ -9,15 +9,13 @@ public partial class JsonString
     public override void SerializeBinary(BinaryWriter aWriter)
     {
         aWriter.Write((byte)JsonNodeType.String);
-        aWriter.Write(_data);
+        aWriter.Write(Value);
     }
 }
 
 public sealed partial class JsonString : JsonNode
 {
-    private string _data;
-
-    public JsonString(string aData) => _data = aData;
+    public JsonString(string aData) => Value = aData;
 
     public override JsonNodeType Tag => JsonNodeType.String;
 
@@ -44,17 +42,13 @@ public sealed partial class JsonString : JsonNode
     }
 
 
-    public override string Value
-    {
-        get => _data;
-        set => _data = value;
-    }
+    public override string Value { get; set; }
 
     public override Enumerator GetEnumerator() => new();
 
     internal override void WriteToStringBuilder(StringBuilder aSb, int aIndent, int aIndentInc, JsonTextMode aMode)
     {
-        aSb.Append('\"').Append(Escape(_data)).Append('\"');
+        aSb.Append('\"').Append(Escape(Value)).Append('\"');
     }
 
     public override bool Equals(object? obj)
@@ -62,16 +56,16 @@ public sealed partial class JsonString : JsonNode
         if(base.Equals(obj))
             return true;
         if(obj is string s)
-            return string.Equals(_data, s, StringComparison.Ordinal);
+            return string.Equals(Value, s, StringComparison.Ordinal);
 
         var s2 = obj as JsonString;
 
         if(s2 != null)
-            return string.Equals(_data, s2._data, StringComparison.Ordinal);
+            return string.Equals(Value, s2.Value, StringComparison.Ordinal);
 
         return false;
     }
 
     // ReSharper disable once NonReadonlyMemberInGetHashCode
-    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(_data);
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
 }

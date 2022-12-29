@@ -23,7 +23,7 @@ public static class ResourceManagerProvider
         => FindResourceImpl(name, key, key is null, cultureInfo);
 
     public static Option<string> FindResource(string name, CultureInfo? cultureInfo = null)
-        => FindResource(name, key: null, cultureInfo:cultureInfo);
+        => FindResource(name, null, cultureInfo);
 
     private static Option<string> FindResourceImpl(string name, Assembly? key, bool searchEverywere = true, CultureInfo? cultureInfo = null)
     {

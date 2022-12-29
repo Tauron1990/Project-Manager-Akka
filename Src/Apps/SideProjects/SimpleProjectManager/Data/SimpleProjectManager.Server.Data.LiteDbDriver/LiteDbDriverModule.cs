@@ -17,12 +17,11 @@ public class LiteDbDriverModule : IDatabaseModule
             (_, services) =>
             {
                 services.AddSingleton<ILiteDatabase>(
-                    string.IsNullOrEmpty(connectionString)
-                        ? new LiteDatabase(new MemoryStream())
-                        : new LiteDatabase(connectionString))
-
-                .AddSingleton<IInternalFileRepository, LiteFileRepository>()
-                .AddSingleton<IInternalDataRepository, LiteDataRepository>();
+                        string.IsNullOrEmpty(connectionString)
+                            ? new LiteDatabase(new MemoryStream())
+                            : new LiteDatabase(connectionString))
+                   .AddSingleton<IInternalFileRepository, LiteFileRepository>()
+                   .AddSingleton<IInternalDataRepository, LiteDataRepository>();
             });
     }
 }

@@ -1,6 +1,3 @@
 ﻿namespace Tauron.TextAdventure.Engine.Data;
 
-public interface IState : ISaveable
-{
-    
-}
+public interface IState : ISaveable { }

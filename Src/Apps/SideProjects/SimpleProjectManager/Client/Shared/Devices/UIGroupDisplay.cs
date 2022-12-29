@@ -14,7 +14,7 @@ public partial class UIGroupDisplay
 
     [Parameter]
     public DeviceId? DeviceId { get; set; }
-    
+
     private IEnumerable<ImmutableList<TData>> GroupToThree<TData>(IEnumerable<TData> enumerable)
     {
         var list = ImmutableList<TData>.Empty;
@@ -27,9 +27,10 @@ public partial class UIGroupDisplay
                 continue;
 
             yield return list;
+
             list = ImmutableList<TData>.Empty;
         }
-        
+
         yield return list;
     }
 }

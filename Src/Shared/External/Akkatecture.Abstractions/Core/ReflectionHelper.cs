@@ -88,7 +88,7 @@ public static class ReflectionHelper
 
         var lambdaArgument = new List<ParameterExpression>
                              {
-                                 instanceArgument
+                                 instanceArgument,
                              };
 
         Type type = methodInfo.DeclaringType ?? typeof(object);

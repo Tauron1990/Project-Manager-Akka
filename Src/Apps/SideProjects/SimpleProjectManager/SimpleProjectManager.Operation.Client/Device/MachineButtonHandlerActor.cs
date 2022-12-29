@@ -13,12 +13,13 @@ public sealed class MachineButtonHandlerActor : ReceiveActor
 
     private bool _state;
 
-    public MachineButtonHandlerActor(DeviceId deviceName, IMachine machine, DeviceButton button, IActorRef deviceDeviceManager)
+    public MachineButtonHandlerActor(DeviceId deviceName, IMachine machine, DeviceButton button, IActorRef deviceDeviceManager, ButtonState? state)
     {
         _deviceName = deviceName;
         _machine = machine;
         _button = button;
         _deviceDeviceManager = deviceDeviceManager;
+        _state = state?.State ?? false;
 
         Receive<ButtonClick>(OnButtonClick);
         machine.WhenButtonStateChanged(button.Identifer, OnButtonStateChanged);

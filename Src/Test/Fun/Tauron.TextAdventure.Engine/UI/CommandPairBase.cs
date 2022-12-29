@@ -8,7 +8,7 @@ namespace Tauron.TextAdventure.Engine.UI;
 public abstract class CommandPairBase
 {
     public abstract bool IsAsk { get; }
-    
+
     public abstract CommandBase Collect();
 
     public abstract Func<IEnumerable<IGameCommand>>? Find(string id);

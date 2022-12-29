@@ -47,9 +47,10 @@ public abstract class Identity<T> : SingleValueObject<string>, IIdentity
 
     private static readonly Regex ValueValidation = new(
         @"^[a-z0-9]+\-(?<guid>[a-f0-9]{8}\-[a-f0-9]{4}\-[a-f0-9]{4}\-[a-f0-9]{4}\-[a-f0-9]{12})$",
-        RegexOptions.Compiled, TimeSpan.FromSeconds(5));
+        RegexOptions.Compiled,
+        TimeSpan.FromSeconds(5));
     // ReSharper enable StaticMemberInGenericType
-    
+
     public static T New => With(Guid.NewGuid());
 
     public static T NewDeterministic(Guid namespaceId, string name)
@@ -90,7 +91,7 @@ public abstract class Identity<T> : SingleValueObject<string>, IIdentity
 
     public static T With(Guid guid)
     {
-        string value = $"{Name}-{guid:D}";
+        var value = $"{Name}-{guid:D}";
 
         return With(value);
     }

@@ -18,7 +18,7 @@ public sealed partial class SingleDeviceFeature : ActorFeatureBase<SingleDeviceF
                     info,
                     handler,
                     ImmutableDictionary<DeviceId, ISensorBox>.Empty,
-                    ImmutableDictionary<DeviceId, bool>.Empty)));
+                    ImmutableDictionary<DeviceId, bool>.Empty.AddRange(info.ButtonStates.Select(bs => KeyValuePair.Create(bs.ButtonId, bs.State))))));
 
     public override void PreStart()
     {
@@ -34,13 +34,22 @@ public sealed partial class SingleDeviceFeature : ActorFeatureBase<SingleDeviceF
         Receive<QueryButtonState>(obs => obs.ToUnit(FindButtonState));
         Receive<QueryUi>(obs => obs.ToUnit(p => p.Sender.Tell(new UiResponse(p.State.Info.RootUi))));
         Receive<UpdateButtonState>(obs => obs.Select(UpdateButton));
-        Receive<ButtonClick>(obs => obs.ToUnit(p => p.State.Info.DeviceManager.Forward(p.Event)));
+        Receive<ButtonClick>(obs => obs.Select(ClickButton));
         Receive<Terminated>(obs => obs.ToUnit(p => p.Context.Stop(p.Self)));
 
         if(!CurrentState.Info.HasLogs) return;
 
         IActorRef? loggerActor = Context.ActorOf(LoggerActor.Create(Context.System, CurrentState.Info.DeviceId), $"Logger--{Guid.NewGuid():N}");
         Receive<QueryLoggerBatch>(obs => obs.ToUnit(p => loggerActor.Forward(p.Event)));
+    }
+
+    private static State ClickButton(StatePair<ButtonClick, State> p)
+    {
+        p.State.Info.DeviceManager.Forward(p.Event);
+
+        p.State.Handler.Publish(new ButtonStateUpdate(p.Event.DeviceName, p.Event.Identifer));
+
+        return p.State with { ButtonStates = p.State.ButtonStates.SetItem(p.Event.Identifer, false) };
     }
 
     private State UpdateButton(StatePair<UpdateButtonState, State> arg)
@@ -71,7 +80,7 @@ public sealed partial class SingleDeviceFeature : ActorFeatureBase<SingleDeviceF
         }
 
         IdNotFound(Logger, "Button", evt.DeviceName, evt.Identifer);
-        obj.Sender.Tell(new ButtonStateResponse(CanClick: false));
+        obj.Sender.Tell(new ButtonStateResponse(false));
     }
 
     private void FindSensorValue(StatePair<QuerySensorValue, State> arg)

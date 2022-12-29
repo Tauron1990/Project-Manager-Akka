@@ -33,7 +33,7 @@ public abstract class Producer<TState, TContext>
     {
         _lastId = id;
 
-        return string.Equals(_lastId.Name, StepId.Finish.Name, StringComparison.Ordinal) 
+        return string.Equals(_lastId.Name, StepId.Finish.Name, StringComparison.Ordinal)
             || string.Equals(_lastId.Name, StepId.Fail.Name, StringComparison.Ordinal);
     }
 

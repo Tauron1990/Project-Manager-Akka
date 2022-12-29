@@ -11,7 +11,7 @@ public sealed record QueryIsAlive
     {
         var source = new TaskCompletionSource<IsAliveResponse>();
         var cancellationTokenSource = new CancellationTokenSource(timeout);
-        cancellationTokenSource.Token.Register(() => source.TrySetResult(new IsAliveResponse(IsAlive: false)));
+        cancellationTokenSource.Token.Register(() => source.TrySetResult(new IsAliveResponse(false)));
 
         system.ActorOf(Props.Create(() => new TempActor(source, cancellationTokenSource, actor)));
 
@@ -40,7 +40,7 @@ public sealed record QueryIsAlive
 
         protected override bool Receive(object message)
         {
-            _source.TrySetResult(message as IsAliveResponse ?? new IsAliveResponse(IsAlive: false));
+            _source.TrySetResult(message as IsAliveResponse ?? new IsAliveResponse(false));
 
             return true;
         }

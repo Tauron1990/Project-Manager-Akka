@@ -3,5 +3,5 @@
 public enum ImageManagerMode
 {
     Single,
-    Multiple
+    Multiple,
 }

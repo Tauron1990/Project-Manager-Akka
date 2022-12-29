@@ -9,9 +9,9 @@ namespace Tauron.TextAdventure.Engine.Core;
 internal sealed class GameHostingService<TGame> : BackgroundService
     where TGame : GameBase
 {
+    private readonly TGame _game;
     private readonly IHostApplicationLifetime _lifetime;
     private readonly IServiceProvider _serviceProvider;
-    private readonly TGame _game;
     private readonly IUILayer _uiLayer;
 
     public GameHostingService(IHostApplicationLifetime lifetime, IServiceProvider serviceProvider, TGame game, IUILayer uiLayer)
@@ -43,7 +43,7 @@ internal sealed class GameHostingService<TGame> : BackgroundService
     private void ConstructRooms()
     {
         var assetManager = _serviceProvider.GetRequiredService<AssetManager>();
-        
+
         if(GameHost.LoadContext is null)
             throw new InvalidOperationException("No Load Context Provided, This Should not be Possible");
 
@@ -53,7 +53,6 @@ internal sealed class GameHostingService<TGame> : BackgroundService
         var map = _serviceProvider.GetRequiredService<RoomMap>();
 
         foreach (var builderPair in GameHost.LoadContext.Rooms)
-        {
             try
             {
                 RoomBuilderBase builder = builderPair.Value();
@@ -66,7 +65,6 @@ internal sealed class GameHostingService<TGame> : BackgroundService
             {
                 throw new RoomCreationException(builderPair.Key, e);
             }
-        }
 
         GameHost.LoadContext = null;
     }

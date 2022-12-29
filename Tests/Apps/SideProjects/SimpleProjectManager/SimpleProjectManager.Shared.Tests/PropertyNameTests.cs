@@ -1,16 +1,18 @@
 using AutoFixture.Xunit2;
+using Vogen;
 
 namespace SimpleProjectManager.Shared.Tests;
 
 public sealed class PropertyNameTests : StringVlaueTypeTester<PropertyName>
 {
-    [Theory, AutoData]
+    [Theory]
+    [AutoData]
     public override void Not_Null_Valid_Value(string value)
         => base.Not_Null_Valid_Value(value);
 
     [Fact]
     public override void Empty_Equal_Value()
-        => Assert.Throws<Vogen.ValueObjectValidationException>(() => base.Empty_Equal_Value());
+        => Assert.Throws<ValueObjectValidationException>(() => base.Empty_Equal_Value());
 
     [Fact]
     public override void Default_InValid_Value()

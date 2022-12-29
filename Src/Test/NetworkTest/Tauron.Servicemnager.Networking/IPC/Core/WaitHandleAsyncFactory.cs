@@ -64,7 +64,7 @@ public static class WaitHandleAsyncFactory
         using (new ThreadPoolRegistration(handle, timeout, tcs))
         {
             await using (token
-                            .Register(state => ((TaskCompletionSource<bool>)state!).TrySetCanceled(), tcs, useSynchronizationContext: false)
+                            .Register(state => ((TaskCompletionSource<bool>)state!).TrySetCanceled(), tcs, false)
                             .ConfigureAwait(false))
             {
                 return await tcs.Task.ConfigureAwait(false);
@@ -149,9 +149,9 @@ public static class WaitHandleAsyncFactory
                 (state, timedOut) => ((TaskCompletionSource<bool>)state!).TrySetResult(!timedOut),
                 tcs,
                 timeout,
-                executeOnlyOnce: true);
+                true);
         }
 
-        void IDisposable.Dispose() => _registeredWaitHandle.Unregister(waitObject: null);
+        void IDisposable.Dispose() => _registeredWaitHandle.Unregister(null);
     }
 }

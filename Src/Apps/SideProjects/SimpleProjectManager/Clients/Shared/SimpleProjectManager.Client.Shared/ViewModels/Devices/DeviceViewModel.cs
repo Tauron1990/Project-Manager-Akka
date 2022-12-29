@@ -10,34 +10,35 @@ namespace SimpleProjectManager.Client.Shared.ViewModels.Devices;
 
 public abstract class DeviceViewModel : ViewModelBase
 {
-    private readonly GlobalState _state;
     private readonly Func<IState<DevicePair?>> _deviceState;
-    
-    public IState<(DeviceUiGroup? UI, DeviceId? Id)>? Ui { get; private set; }
+    private readonly GlobalState _state;
 
     protected DeviceViewModel(GlobalState state, IStateFactory stateFactory)
     {
         _state = state;
         _deviceState = SimpleLazy.Create(stateFactory, CreateDeviceSelector);
-        
+
         this.WhenActivated(Init);
     }
+
+    public IState<(DeviceUiGroup? UI, DeviceId? Id)>? Ui { get; private set; }
 
     private IEnumerable<IDisposable> Init()
     {
         var state = _deviceState();
-        
-        Ui = _state.Devices.GetUiFetcher(async t =>
-                                         {
-                                             DevicePair? result = await state.Use(t).ConfigureAwait(false);
 
-                                             #if DEBUG
-                                             Console.WriteLine($"DeviceViewModel: NewPair: {result}");
-                                             #endif
-                
-                                             return result?.Id;
-                                         });
-        
+        Ui = _state.Devices.GetUiFetcher(
+            async t =>
+            {
+                DevicePair? result = await state.Use(t).ConfigureAwait(false);
+
+                #if DEBUG
+                Console.WriteLine($"DeviceViewModel: NewPair: {result}");
+                #endif
+
+                return result?.Id;
+            });
+
         yield return Disposable.Create(this, static self => self.Ui = null);
     }
 

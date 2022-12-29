@@ -12,8 +12,8 @@ namespace SimpleProjectManager.Server.Data.LiteDbDriver;
 public sealed class LiteDataRepository : IInternalDataRepository
 {
     private readonly ILiteDatabase _database;
-    private readonly ConcurrentDictionary<object, LiteTransaction> _transactions = new();
     private readonly Func<ILiteDatabase, LiteTransaction> _transactionFactory;
+    private readonly ConcurrentDictionary<object, LiteTransaction> _transactions = new();
 
     public LiteDataRepository(IServiceProvider serviceProvider, ILiteDatabase database)
     {

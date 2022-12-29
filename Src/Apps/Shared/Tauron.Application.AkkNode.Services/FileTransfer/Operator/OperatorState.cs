@@ -8,5 +8,5 @@ public enum OperatorState
     Sending,
     Reciving,
     Failed,
-    Compled
+    Compled,
 }

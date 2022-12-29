@@ -25,7 +25,7 @@ public sealed class InternalDataRepository : IInternalDataRepository
     public async Task<TProjection?> Get<TProjection, TIdentity>(ProjectionContext context, TIdentity identity)
         where TProjection : class, IProjectorData<TIdentity>
         where TIdentity : IIdentity
-        => await (InternalCollection<TProjection>().Find(Builders<TProjection>.Filter.Eq(p => p.Id, identity)).FirstOrDefaultAsync()!).ConfigureAwait(false);
+        => await InternalCollection<TProjection>().Find(Builders<TProjection>.Filter.Eq(p => p.Id, identity)).FirstOrDefaultAsync()!.ConfigureAwait(false);
 
     public async Task<TProjection> Create<TProjection, TIdentity>(ProjectionContext context, TIdentity identity, Func<TProjection, bool> shouldoverwite)
         where TProjection : class, IProjectorData<TIdentity>
@@ -66,7 +66,7 @@ public sealed class InternalDataRepository : IInternalDataRepository
         var coll = InternalCollection<TProjection>();
         var filter = Builders<TProjection>.Filter.Eq(p => p.Id, identity);
         DeleteResult? result = await coll.DeleteOneAsync(filter).ConfigureAwait(false);
-        await CommitCheckpoint<TProjection>(handle: null, context).ConfigureAwait(false);
+        await CommitCheckpoint<TProjection>(null, context).ConfigureAwait(false);
 
         return result.DeletedCount == 1;
     }

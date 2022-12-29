@@ -7,8 +7,8 @@ namespace Tauron.TextAdventure.Engine.UI;
 [PublicAPI]
 public sealed class AskCommand : CommandPairBase
 {
-    private readonly string _label;
     private readonly Func<string, IEnumerable<IGameCommand>> _askCompled;
+    private readonly string _label;
 
     public AskCommand(string label, Func<string, IEnumerable<IGameCommand>> askCompled)
     {
@@ -18,6 +18,7 @@ public sealed class AskCommand : CommandPairBase
     }
 
     public override bool IsAsk => true;
+
     public override CommandBase Collect()
         => new AskElement(_label);
 

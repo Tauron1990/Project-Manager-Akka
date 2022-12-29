@@ -63,7 +63,7 @@ public sealed class LiteFileRepository : IInternalFileRepository
                 var doc = new BsonDocument
                           {
                               { nameof(FileEntry.JobName), new BsonValue(jobName) },
-                              { nameof(FileEntry.FileName), new BsonValue(fileName) }
+                              { nameof(FileEntry.FileName), new BsonValue(fileName) },
                           };
 
                 _databaseAsync.Upload(id, fileId, stream, doc);

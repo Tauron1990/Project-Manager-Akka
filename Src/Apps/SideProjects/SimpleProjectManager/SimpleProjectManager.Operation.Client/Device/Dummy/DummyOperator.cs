@@ -10,16 +10,16 @@ namespace SimpleProjectManager.Operation.Client.Device.Dummy;
 internal sealed partial class DummyOperator : IDisposable
 {
     private readonly CancellationTokenSource _cancellation = new();
+    private readonly ILogger<DummyOperator> _logger;
 
     private readonly Action<DeviceButton, bool> _stateChange;
     private readonly Action<DeviceSensor, DeviceManagerMessages.ISensorBox> _valueChange;
-    private readonly ILogger<DummyOperator> _logger;
     private ImmutableList<LogData> _currentLog = ImmutableList<LogData>.Empty;
     private ButtonSensorPair[] _pairs;
 
-    
+
     internal DummyOperator(
-        Action<DeviceButton, bool> stateChange, 
+        Action<DeviceButton, bool> stateChange,
         Action<DeviceSensor, DeviceManagerMessages.ISensorBox> valueChange,
         ILogger<DummyOperator> logger)
     {
@@ -53,9 +53,9 @@ internal sealed partial class DummyOperator : IDisposable
         {
             while (!_cancellation.IsCancellationRequested)
             {
-                await Task.Delay(TimeSpan.FromSeconds(1), _cancellation.Token).ConfigureAwait(false);
+                await Task.Delay(TimeSpan.FromSeconds(2), _cancellation.Token).ConfigureAwait(false);
 
-                foreach (var sensorPair in _pairs)
+                foreach (ButtonSensorPair sensorPair in _pairs)
                     UpdatePair(sensorPair);
 
                 #pragma warning disable GU0011
@@ -63,6 +63,8 @@ internal sealed partial class DummyOperator : IDisposable
                     ref _currentLog,
                     _currentLog.Add(
                         new LogData(
+                            LogLevel.Information,
+                            LogCategory.From("Test"),
                             SimpleMessage.From("TestLog"),
                             DateTime.Now,
                             ImmutableDictionary<PropertyName, PropertyValue>.Empty
@@ -80,31 +82,30 @@ internal sealed partial class DummyOperator : IDisposable
 
     private void UpdatePair(ButtonSensorPair sensorPair)
     {
-        if(sensorPair.CurrentState)
+        if(sensorPair.Clicked)
         {
-            if(!sensorPair.Clicked)
-                return;
-
-            sensorPair.Clicked = false;
-            sensorPair.CurrentState = false;
-            sensorPair.SensorValue++;
-            sensorPair.CurrentValue = DeviceManagerMessages.SensorBox.Create($"Sernsor Value: {sensorPair.SensorValue}");
-
-            _valueChange(sensorPair.Sensor, sensorPair.CurrentValue);
-        }
-        else
-        {
-            sensorPair.Counter++;
-
-            if(sensorPair.Counter <= 5)
-                return;
-
             sensorPair.Counter = 0;
             sensorPair.Clicked = false;
             sensorPair.CurrentState = true;
 
-            _stateChange(sensorPair.Button, sensorPair.CurrentState);
+            _stateChange(sensorPair.Button, false);
+            return;
         }
+
+        if(!sensorPair.CurrentState)
+            return;
+
+        sensorPair.Counter++;
+        sensorPair.SensorValue++;
+        sensorPair.CurrentValue = DeviceManagerMessages.SensorBox.Create($"Sensor Value: {sensorPair.SensorValue}");
+
+        _valueChange(sensorPair.Sensor, sensorPair.CurrentValue);
+
+        if(sensorPair.Counter <= 5)
+            return;
+
+        sensorPair.CurrentState = false;
+        _stateChange(sensorPair.Button, true);
     }
 
     internal LogBatch NextBatch()

@@ -6,11 +6,10 @@ namespace Tauron.TextAdventure.Engine.Systems.Actor;
 [PublicAPI]
 public sealed class Player : IActor
 {
+    public ReactiveProperty<string> PlayerName { get; set; } = new(string.Empty);
     public string Id => "Player";
 
     public ReactiveProperty<string> Location { get; set; } = new(string.Empty);
-
-    public ReactiveProperty<string> PlayerName { get; set; } = new(string.Empty);
 
     void ISaveable.Write(BinaryWriter writer)
     {

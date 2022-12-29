@@ -31,7 +31,6 @@ using JetBrains.Annotations;
 
 namespace Akkatecture.Cluster.Core;
 
-
 [PublicAPI]
 public static class SingletonFactory<TDomainEventSubscriber>
     where TDomainEventSubscriber : DomainEventSubscriber

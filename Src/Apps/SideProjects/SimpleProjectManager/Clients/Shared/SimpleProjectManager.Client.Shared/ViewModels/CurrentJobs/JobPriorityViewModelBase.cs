@@ -21,20 +21,28 @@ public abstract class JobPriorityViewModelBase : ViewModelBase
         this.WhenActivated(Init);
     }
 
-    IEnumerable<IDisposable> Init()
+    private IObservable<ImmutableList<JobSortOrderPair>>? ActivePairs { get; set; }
+
+    public ReactiveCommand<JobSortOrderPair?, Unit>? GoUp { get; private set; }
+
+    public ReactiveCommand<JobSortOrderPair?, Unit>? GoDown { get; private set; }
+
+    public ReactiveCommand<JobSortOrderPair?, Unit>? Priorize { get; private set; }
+
+    private IEnumerable<IDisposable> Init()
     {
         ActivePairs = GetActivePairs();
 
         yield return GoUp = ReactiveCommand.Create(
-            CreateExecute(info => new SetSortOrder(IgnoreIfEmpty: false, info.Order.Increment())),
+            CreateExecute(info => new SetSortOrder(false, info.Order.Increment())),
             CreateCanExecute(_globalState, (pairs, pair) => pairs[0] != pair));
 
         yield return GoDown = ReactiveCommand.Create(
-            CreateExecute(info => new SetSortOrder(IgnoreIfEmpty: false, info.Order.Decrement())),
+            CreateExecute(info => new SetSortOrder(false, info.Order.Decrement())),
             CreateCanExecute(_globalState, (pairs, pair) => pairs[^1] != pair));
 
         yield return Priorize = ReactiveCommand.Create(
-            CreateExecute(info => new SetSortOrder(IgnoreIfEmpty: false, info.Order.Priority())),
+            CreateExecute(info => new SetSortOrder(false, info.Order.Priority())),
             CreateCanExecute(_globalState, (_, pair) => !pair.Order.IsPriority));
 
         Action<JobSortOrderPair?> CreateExecute(Func<JobSortOrderPair, SetSortOrder> executor)
@@ -59,14 +67,6 @@ public abstract class JobPriorityViewModelBase : ViewModelBase
                     && predicate(info.pairs, info.selected)
             ).StartWith(false).AndIsOnline(state.OnlineMonitor);
     }
-    
-    private IObservable<ImmutableList<JobSortOrderPair>>? ActivePairs { get; set; }
-
-    public ReactiveCommand<JobSortOrderPair?, Unit>? GoUp { get; private set; }
-
-    public ReactiveCommand<JobSortOrderPair?, Unit>? GoDown { get; private set; }
-
-    public ReactiveCommand<JobSortOrderPair?, Unit>? Priorize { get; private set; }
 
     protected abstract IObservable<ImmutableList<JobSortOrderPair>> GetActivePairs();
 }

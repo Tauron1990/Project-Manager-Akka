@@ -66,7 +66,7 @@ public sealed partial class ImageManagerFeature : ActorFeatureBase<ImageManagerF
 
             State newState = UpdateFileSystemWatcher(state, targetPath);
             CreateOrClearDirectory(targetPath);
-            obj.Sender.Tell(new ProjectStartResponse(Message: null));
+            obj.Sender.Tell(new ProjectStartResponse(null));
 
             return newState with { CurrentPath = targetPath };
         }
@@ -91,7 +91,7 @@ public sealed partial class ImageManagerFeature : ActorFeatureBase<ImageManagerF
             CreateOrClearDirectory(obj.State.TargetPath);
             State state = UpdateFileSystemWatcher(obj.State, obj.State.TargetPath);
 
-            obj.Sender.Tell(message: new ProjectStartResponse(Message: null));
+            obj.Sender.Tell(new ProjectStartResponse(null));
 
             return state with { CurrentPath = obj.State.TargetPath };
         }
@@ -148,14 +148,14 @@ public sealed partial class ImageManagerFeature : ActorFeatureBase<ImageManagerF
         return currentState with
                {
                    Token = newToken,
-                   Subscription = Observable.Merge(rename, changed, created, deleted).ToActor(self).DisposeWith(this)
+                   Subscription = Observable.Merge(rename, changed, created, deleted).ToActor(self).DisposeWith(this),
                };
     }
 
     private IObservable<StatePair<TData, State>> PrepareEventStream<TData>(IObservable<bool> suspender, IObservable<TData> obs)
         => UpdateAndSyncActor(obs)
            .TakeWhile(suspender)
-           .Do(onNext: s => s.State.DispatchFileSystemEvents.OnNext(value: false));
+           .Do(s => s.State.DispatchFileSystemEvents.OnNext(false));
 
     private IObservable<FileChangeEvent> HandleDelete(StatePair<FileSystemEventArgs, State> arg, int token)
         => from msg in arg
@@ -228,7 +228,7 @@ public sealed partial class ImageManagerFeature : ActorFeatureBase<ImageManagerF
 
                     break;
                 case DirectoryInfo directory:
-                    directory.Delete(recursive: true);
+                    directory.Delete(true);
 
                     break;
             }

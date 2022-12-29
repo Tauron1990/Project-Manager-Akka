@@ -86,8 +86,8 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
         return result.Ok
             ? result.Outcome is bool isNew
                 ? new AttachResult(SimpleResult.Success(), isNew)
-                : new AttachResult(SimpleResult.Success(), IsNew: true)
-            : new AttachResult(SimpleResult.Failure(result.Error ?? string.Empty), IsNew: false);
+                : new AttachResult(SimpleResult.Success(), true)
+            : new AttachResult(SimpleResult.Failure(result.Error ?? string.Empty), false);
     }
 
     public virtual async Task<Jobs> GetActiveJobs(CancellationToken token)
@@ -101,12 +101,13 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
         // return new TaskList(projectionData.Select(d => new JobInfo(d.Id, d.JobName, d.Deadline, d.Status, d.ProjectFiles.Count != 0)).ToImmutableList());
         // #else
         var jobs = _projects.Find(filter.Not)
-           .Select(p => new JobInfo(
-                       new ProjectId(p.Id),
-                       new ProjectName(p.JobName), 
-                       ProjectDeadline.FromDateTime(p.Deadline),
-                       p.Status,
-                       p.ProjectFiles.Count != 0))
+           .Select(
+                p => new JobInfo(
+                    new ProjectId(p.Id),
+                    new ProjectName(p.JobName),
+                    ProjectDeadline.FromDateTime(p.Deadline),
+                    p.Status,
+                    p.ProjectFiles.Count != 0))
            .ToAsyncEnumerable(token);
         //#endif
 
@@ -159,7 +160,9 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
             return SimpleResult.Failure("Das Element wurde nicht gefunden");
 
         using (Computed.Invalidate())
+        {
             GetSortOrders(CancellationToken.None).Ignore();
+        }
 
         return SimpleResult.Success();
     }

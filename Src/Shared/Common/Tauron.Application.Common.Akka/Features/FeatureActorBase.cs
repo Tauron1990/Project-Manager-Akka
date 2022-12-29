@@ -154,24 +154,6 @@ public abstract class FeatureActorBase<TFeatured, TState> : ObservableActor, IFe
         public Type ActorType { get; } = typeof(TFeatured);
     }
 
-    [PublicAPI]
-    [DebuggerStepThrough]
-    #pragma warning disable MA0018
-    public static class Make
-    {
-        public static Action<ActorBuilder<TState>> Feature(Func<IFeatureActor<TState>, IFeature<TState>> initializer, params string[] ids)
-            => actorBuilder => actorBuilder.WithFeature(new DelegatingFeature(initializer, ids));
-    }
-
-    [PublicAPI]
-    [DebuggerStepThrough]
-    public static class Simple
-    {
-        public static IFeature<TState> Feature(Func<IFeatureActor<TState>, IFeature<TState>> initializer, params string[] ids)
-            => new DelegatingFeature(initializer, ids);
-    }
-    #pragma warning restore MA0018
-
     [DebuggerStepThrough]
     private class DelegatingFeature : IFeature<TState>
     {
@@ -206,4 +188,22 @@ public abstract class FeatureActorBase<TFeatured, TState> : ObservableActor, IFe
 
         void IResourceHolder.RemoveResource(IDisposable res) => _actor?.RemoveResource(res);
     }
+
+    [PublicAPI]
+    [DebuggerStepThrough]
+    #pragma warning disable MA0018
+    public static class Make
+    {
+        public static Action<ActorBuilder<TState>> Feature(Func<IFeatureActor<TState>, IFeature<TState>> initializer, params string[] ids)
+            => actorBuilder => actorBuilder.WithFeature(new DelegatingFeature(initializer, ids));
+    }
+
+    [PublicAPI]
+    [DebuggerStepThrough]
+    public static class Simple
+    {
+        public static IFeature<TState> Feature(Func<IFeatureActor<TState>, IFeature<TState>> initializer, params string[] ids)
+            => new DelegatingFeature(initializer, ids);
+    }
+    #pragma warning restore MA0018
 }

@@ -9,7 +9,7 @@ public static class UiKeys
     public const string CloseGame = nameof(CloseGame);
 
     public const string More = nameof(More);
-    
+
     public const string Cancel = nameof(Cancel);
 
     public const string GameCoreMenu = nameof(GameCoreMenu);
@@ -17,7 +17,7 @@ public static class UiKeys
     public const string SaveGame = nameof(SaveGame);
 
     public const string CloseRunningGame = nameof(CloseGame);
-    
+
     public static class Room
     {
         public const string Next = nameof(Next);

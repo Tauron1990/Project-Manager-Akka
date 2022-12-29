@@ -34,7 +34,7 @@ public static partial class AppNode
                .WithCustomSerializer("hyperion", new[] { typeof(object) }, s => new HyperionSerializer(s, s.Settings.Config))
                .WithExtensions(typeof(ClusterActorDiscoveryId))
                .WithClusterClientReceptionist()
-               .AddHocon(config);
+               .AddHocon(config, HoconAddMode.Append);
         }
 
         void AkkaConfig(IActorApplicationBuilder ab)

@@ -25,7 +25,7 @@
             {
                 <MudItem lg="12">
                     <MudSelect @bind-Value="SelectedPair" Dense="true">
-                        @foreach (var item in context)
+                        @foreach (DevicePair? item in context)
                         {
                             <MudSelectItem @key="item.Id" Value="item">@item.Name.Value</MudSelectItem>
                         }

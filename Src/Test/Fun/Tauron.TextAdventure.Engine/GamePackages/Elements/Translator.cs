@@ -13,7 +13,7 @@ public sealed class Translator : PackageElement
 {
     private readonly IHostEnvironment _environment;
     private readonly string _fromDic;
-    
+
     public Translator(string fromDic, IHostEnvironment environment)
     {
         _environment = environment;
@@ -42,7 +42,9 @@ public sealed class Translator : PackageElement
             }
         }
         else
+        {
             manager.Add(Path.GetFileName(targetFile.Name), Create(targetFile));
+        }
     }
 
     private static Func<IDocument> Create(IFileInfo info)

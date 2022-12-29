@@ -43,10 +43,11 @@ internal static class VersionedTypeDefinitionService
 {
     internal static readonly Regex NameRegex = new(
         @"^(Old){0,1}(?<name>[\p{L}\p{Nd}]+?)(V(?<version>[0-9]+)){0,1}$",
-        RegexOptions.Compiled | RegexOptions.ExplicitCapture, TimeSpan.FromSeconds(5));
+        RegexOptions.Compiled | RegexOptions.ExplicitCapture,
+        TimeSpan.FromSeconds(5));
 }
 
-public abstract class VersionedTypeDefinitionService<TTypeCheck, TAttribute, TDefinition> 
+public abstract class VersionedTypeDefinitionService<TTypeCheck, TAttribute, TDefinition>
     : IVersionedTypeDefinitionService<TAttribute, TDefinition>
     where TAttribute : VersionedTypeAttribute
     where TDefinition : VersionedTypeDefinition
@@ -97,7 +98,7 @@ public abstract class VersionedTypeDefinitionService<TTypeCheck, TAttribute, TDe
                .OrderBy(name => name)
                .ToList();
 
-            string logs =
+            var logs =
                 $"Added {definitions.Count} versioned types to '{GetType().PrettyPrint()}' from these assemblies: {string.Join(", ", assemblies)}";
 
             _logger?.Info(logs);
@@ -156,7 +157,8 @@ public abstract class VersionedTypeDefinitionService<TTypeCheck, TAttribute, TDe
     {
         if(!TryGetDefinition(name, version, out TDefinition? definition))
             throw new ArgumentException(
-                $"No versioned type definition for '{name}' with version {version} in '{GetType().PrettyPrint()}'", nameof(name));
+                $"No versioned type definition for '{name}' with version {version} in '{GetType().PrettyPrint()}'",
+                nameof(name));
 
         return definition;
     }
@@ -166,7 +168,8 @@ public abstract class VersionedTypeDefinitionService<TTypeCheck, TAttribute, TDe
         #pragma warning restore AV1551
     {
         if(!TryGetDefinition(type, out TDefinition? definition))
-            throw new ArgumentException($"No definition for type '{type.PrettyPrint()}', have you remembered to load it during Akkatecture initialization",
+            throw new ArgumentException(
+                $"No definition for type '{type.PrettyPrint()}', have you remembered to load it during Akkatecture initialization",
                 nameof(type));
 
         return definition;

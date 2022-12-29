@@ -23,7 +23,7 @@ public sealed class CriticalErrorHelper
 
     public async ValueTask<SimpleResult> WriteError(string detailPart, Exception exception, Func<ImmutableList<ErrorProperty>>? erros = null)
     {
-        var part = PropertyValue.From($"{_generalPart} -- {detailPart}");
+        PropertyValue part = PropertyValue.From($"{_generalPart} -- {detailPart}");
         try
         {
             await _service.WriteError(

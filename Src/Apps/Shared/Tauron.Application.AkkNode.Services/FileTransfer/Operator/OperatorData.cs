@@ -29,7 +29,7 @@ public sealed record OperatorData(
             new InternalCrcStream(StreamData.Null),
             null,
             null,
-            SendBack: false,
+            false,
             ActorRefs.Nobody,
             null) { }
 
@@ -42,7 +42,7 @@ public sealed record OperatorData(
                Metadata = id.Data,
                SendBack = id.SendCompletionBack,
                Sender = sender,
-               IndividualMessage = id.IndividualMessage
+               IndividualMessage = id.IndividualMessage,
            };
 
     public OperatorData StartRecdiving(TransferMessages.TransmitRequest id)

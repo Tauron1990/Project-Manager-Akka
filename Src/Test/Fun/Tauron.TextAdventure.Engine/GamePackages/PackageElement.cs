@@ -14,7 +14,7 @@ namespace Tauron.TextAdventure.Engine.GamePackages;
 public abstract class PackageElement
 {
     internal abstract void Load(ElementLoadContext context);
-    
+
     public static PackageElement Group(IEnumerable<PackageElement> gamepackages)
         => new GroupingElement(gamepackages);
 
@@ -26,21 +26,21 @@ public abstract class PackageElement
         where TSystem : class, ISystem
         => new SystemElement<TSystem>();
 
-    public static PackageElement Event<TEvent>(Action<GameState, TEvent> apply) 
+    public static PackageElement Event<TEvent>(Action<GameState, TEvent> apply)
         where TEvent : IEvent
         => new RegisterEvent<TEvent>(apply);
 
     public static PackageElement Init(Action<GameState> init)
         => new InitGame(init);
 
-    public static PackageElement ModifyRoom<TBuilder>(string name, Action<TBuilder> builder) 
+    public static PackageElement ModifyRoom<TBuilder>(string name, Action<TBuilder> builder)
         where TBuilder : RoomBuilderBase, new()
         => new RoomModifyElement<TBuilder>(name, builder);
 
     public static PackageElement NewRoom<TBuilder>(string name, Action<TBuilder> builder)
         where TBuilder : RoomBuilderBase, new()
         => new RoomElement<TBuilder>(name, builder);
-    
+
     private sealed class GroupingElement : PackageElement
     {
         private readonly IEnumerable<PackageElement> _gamepackages;
@@ -53,7 +53,7 @@ public abstract class PackageElement
         {
             var list = ImmutableQueue<IEnumerable<PackageElement>>.Empty.Enqueue(_gamepackages);
             _visited = new HashSet<PackageElement>();
-            
+
             do
             {
                 list = list.Dequeue(out var toProcess);
@@ -62,7 +62,7 @@ public abstract class PackageElement
                 {
                     if(!_visited.Add(element))
                         continue;
-                    
+
                     if(element is GroupingElement group)
                     {
                         list = list.Enqueue(group._gamepackages);
@@ -71,7 +71,7 @@ public abstract class PackageElement
 
                     element.Load(context);
                 }
-                
+
             } while (!list.IsEmpty);
 
             _visited = null;

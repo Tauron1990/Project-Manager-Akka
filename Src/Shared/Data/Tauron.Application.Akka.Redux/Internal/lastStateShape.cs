@@ -48,7 +48,7 @@ public sealed class LastStateShape<TState, TInput, TOutput> : GraphStage<FanInSh
                     if(_pending is not null)
                         EmitMultiple(
                             holder.ActionOut,
-                            Interlocked.Exchange(ref _pending, value: null)
+                            Interlocked.Exchange(ref _pending, null)
                                .Select(a => holder._transform(_currentState, a)));
 
                     Pull(holder.StateIn);

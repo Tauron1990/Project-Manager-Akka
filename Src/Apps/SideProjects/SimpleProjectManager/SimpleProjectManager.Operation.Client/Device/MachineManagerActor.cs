@@ -43,26 +43,19 @@ public sealed partial class MachineManagerActor : ReceiveActor
         var stack = new Stack<DeviceUiGroup>();
         stack.Push(_device.RootUi);
 
-        while (stack.Count != 0)
-        {
-            DeviceUiGroup ele = stack.Pop();
+        _device.CollectButtons().Foreach(
+            btn => Context.ActorOf(
+                () => new MachineButtonHandlerActor(_device.DeviceId, _machine, btn.Button, _serverManager, btn.State),
+                btn.Button.Identifer.Value));
 
-            ele.Groups.ForEach(stack.Push);
-
-            ele.Sensors.ForEach(
-                sen => Context.ActorOf(
-                    () => new MachineSensorActor(_device.DeviceId, _machine, sen, _serverManager, _loggerFactory.CreateLogger<MachineSensorActor>()),
-                    sen.Identifer.Value));
-
-            ele.DeviceButtons.ForEach(
-                btn => Context.ActorOf(
-                    () => new MachineButtonHandlerActor(_device.DeviceId, _machine, btn, _serverManager),
-                    btn.Identifer.Value));
-        }
+        _device.CollectSensors().Foreach(
+            sen => Context.ActorOf(
+                () => new MachineSensorActor(_device.DeviceId, _machine, sen, _serverManager, _loggerFactory.CreateLogger<MachineSensorActor>()),
+                sen.Identifer.Value));
 
         if(_device.HasLogs)
             Context.ActorOf(() => new LoggerActor(_machine, _device.DeviceId));
-        
+
         Receive<ButtonClick>(c => Context.Child(c.Identifer.Value).Forward(c));
     }
 
@@ -101,7 +94,7 @@ public sealed partial class MachineManagerActor : ReceiveActor
             "ServerConnection");
 
         IActorRef? self = Self;
-        
+
         Task.Run(
                 async () =>
                 {
@@ -120,12 +113,6 @@ public sealed partial class MachineManagerActor : ReceiveActor
                              ErrorOnCollectDeviceinformations(ex, _deviceName);
 
                              return PoisonPill.Instance;
-                         },
-                success: data =>
-                         {
-                             Interlocked.Exchange(ref _device, data);
-
-                             return data;
                          })
            .Ignore();
     }

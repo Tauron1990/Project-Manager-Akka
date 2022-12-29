@@ -7,7 +7,7 @@ public sealed class LoadGameMenu
 {
     private readonly IUILayer _uiLayer;
     private readonly IRenderVisitor _visitor;
-    
+
     public LoadGameMenu(IUILayer uiLayer)
     {
         _uiLayer = uiLayer;
@@ -21,14 +21,14 @@ public sealed class LoadGameMenu
         RenderElement ui = MultiElement
            .Create(
                 _uiLayer.CreateTitle(),
-                new SpacingElement { Amount = 3},
+                new SpacingElement { Amount = 3 },
                 new TextElement("Speicherstände"),
                 new SpacingElement(),
                 MultiElement.Create(saveFiles.Select(s => new CommandItem(s))),
                 new CommandItem(UiKeys.Cancel)
             )
            .WithTag(Tags.LoadGame);
-        
+
         _visitor.Visit(ui);
 
         return _uiLayer.ExecutePage(_visitor);

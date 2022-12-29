@@ -6,21 +6,21 @@ internal class SharedMemory : IDisposable
     internal readonly EInstanceType InstanceType;
     internal readonly int MaxQueueSizeInBytes;
 
-
-    //System.IO.MemoryMappedFiles.MemoryMappedViewAccessor accessor = null;
-    //System.IO.MemoryMappedFiles.MemoryMappedFile mmf = null;
-
-    private Mutex? _mt;
-
     internal readonly SharmIpc.EProtocolVersion ProtocolVersion;
-
-    private ReaderWriterHandler _rwh;
     internal readonly SharmIpc SharmIpc;
 
     //EventWaitHandle ewh_ReadyToRead = null;
     //EventWaitHandle ewh_ReadyToWrite = null;
 
     internal readonly string UniqueHandlerName;
+
+
+    //System.IO.MemoryMappedFiles.MemoryMappedViewAccessor accessor = null;
+    //System.IO.MemoryMappedFiles.MemoryMappedFile mmf = null;
+
+    private Mutex? _mt;
+
+    private ReaderWriterHandler _rwh;
 
     /// <summary>
     /// </summary>
@@ -33,16 +33,16 @@ internal class SharedMemory : IDisposable
     /// <param name="maxQueueSizeInBytes"></param>
     /// <param name="protocolVersion"></param>
     internal SharedMemory(
-        string uniqueHandlerName, 
-        SharmIpc sharmIpc, 
-        long bufferCapacity = 50000, 
-        int maxQueueSizeInBytes = 20000000, 
+        string uniqueHandlerName,
+        SharmIpc sharmIpc,
+        long bufferCapacity = 50000,
+        int maxQueueSizeInBytes = 20000000,
         SharmIpc.EProtocolVersion protocolVersion = SharmIpc.EProtocolVersion.V1)
     {
         SharmIpc = sharmIpc;
         MaxQueueSizeInBytes = maxQueueSizeInBytes;
         ProtocolVersion = protocolVersion;
-        
+
         if(string.IsNullOrEmpty(uniqueHandlerName) || uniqueHandlerName.Length > 200)
             throw new InvalidOperationException("tiesky.com.SharmIpc: uniqueHandlerName can't be empty or more then 200 symbols");
 
@@ -57,7 +57,7 @@ internal class SharedMemory : IDisposable
 
         try
         {
-            _mt = new Mutex(initiallyOwned: true, $"{uniqueHandlerName}SharmNet_MasterMutex");
+            _mt = new Mutex(true, $"{uniqueHandlerName}SharmNet_MasterMutex");
 
             if(_mt.WaitOne(500))
             {

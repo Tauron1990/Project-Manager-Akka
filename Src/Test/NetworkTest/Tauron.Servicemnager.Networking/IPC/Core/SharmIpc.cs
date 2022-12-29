@@ -27,8 +27,6 @@ public class SharmIpc : IDisposable
 
     private readonly ConcurrentDictionary<ulong, ResponseCrate> _df = new();
 
-    internal long Disposed;
-
 
     private readonly Action<string, Exception>? _externalExceptionHandler;
 
@@ -44,14 +42,16 @@ public class SharmIpc : IDisposable
 
     private readonly Func<byte[]?, (bool ResponseOk, byte[]? Data)>? _remoteCallHandler;
 
-    private SharedMemory _sm;
-
     internal readonly Statistic Statistic = new();
+
+    private SharedMemory _sm;
 
     /// <summary>
     ///     Removing timeout requests
     /// </summary>
     private Timer _tmr;
+
+    internal long Disposed;
 
     /// <summary>
     ///     SharmIpc constructor
@@ -77,7 +77,7 @@ public class SharmIpc : IDisposable
         string uniqueHandlerName, Func<byte[]?, (bool ResponseOk, byte[]? Data)> remoteCallHandler, long bufferCapacity = 50000, int maxQueueSizeInBytes = 20000000,
         Action<string, Exception>? externalExceptionHandler = null, EProtocolVersion protocolVersion = EProtocolVersion.V1, bool externalProcessing = false)
         : this(uniqueHandlerName, bufferCapacity, maxQueueSizeInBytes, externalExceptionHandler, protocolVersion, externalProcessing)
-        => this._remoteCallHandler = remoteCallHandler ?? throw new InvalidOperationException("tiesky.com.SharmIpc: remoteCallHandler can't be null");
+        => _remoteCallHandler = remoteCallHandler ?? throw new InvalidOperationException("tiesky.com.SharmIpc: remoteCallHandler can't be null");
 
     /// <summary>
     ///     SharmIpc constructor
@@ -132,11 +132,11 @@ public class SharmIpc : IDisposable
                         el.Value.Set_MRE();
 
                 foreach (ulong el in toRemove)
-                    if(_df.TryRemove(el, out var rc))
+                    if(_df.TryRemove(el, out ResponseCrate? rc))
                         rc.CallBack?.Invoke((false, null)); //timeout
 
             },
-            state: null,
+            null,
             10000,
             10000);
 
@@ -165,7 +165,7 @@ public class SharmIpc : IDisposable
 
         foreach (var el in _df.ToList())
         {
-            if(!_df.TryRemove(el.Key, out var rc))
+            if(!_df.TryRemove(el.Key, out ResponseCrate? rc))
                 continue;
 
             rc.IsRespOk = false;
@@ -264,7 +264,7 @@ public class SharmIpc : IDisposable
             case EMsgType.ErrorInRpc:
             case EMsgType.RpcResponse:
 
-                if(_df.TryGetValue(msgId, out var rsp))
+                if(_df.TryGetValue(msgId, out ResponseCrate? rsp))
                 {
                     rsp.Res = bt;
                     rsp.IsRespOk = msgType == EMsgType.RpcResponse;
@@ -523,9 +523,6 @@ public class SharmIpc : IDisposable
 
     private class ResponseCrate
     {
-        internal AsyncManualResetEvent? Amre;
-        internal Action<(bool ResponseOk, byte[]? Data)>? CallBack;
-
         internal readonly DateTime Created = DateTime.UtcNow;
 
         //async public Task<bool> WaitOneAsync()
@@ -539,18 +536,21 @@ public class SharmIpc : IDisposable
 
 
         private long _isDisposed;
-        internal bool IsRespOk;
 
         /// <summary>
         ///     Not SLIM version must be used (it works faster for longer delay which RPCs are)
         /// </summary>
         private ManualResetEvent? _mre;
 
+        internal AsyncManualResetEvent? Amre;
+        internal Action<(bool ResponseOk, byte[]? Data)>? CallBack;
+        internal bool IsRespOk;
+
         internal byte[]? Res;
         internal int TimeoutsMs = 30000;
 
         internal void Init_MRE()
-            => _mre = new ManualResetEvent(initialState: false);
+            => _mre = new ManualResetEvent(false);
 
         /// <summary>
         ///     Works faster with timer than WaitOneAsync

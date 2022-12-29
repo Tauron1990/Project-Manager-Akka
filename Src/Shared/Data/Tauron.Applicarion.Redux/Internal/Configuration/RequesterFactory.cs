@@ -22,7 +22,7 @@ public sealed class RequesterFactory<TState> : IRequestFactory<TState> where TSt
 
     public IRequestFactory<TState> AddRequest<TAction>(Func<TAction, CancellationToken, ValueTask<SimpleResult>> runRequest, Func<TState, TAction, TState> onScess) where TAction : class
     {
-        AddRequestInternal(Adept(runRequest), onScess, onFail: null);
+        AddRequestInternal(Adept(runRequest), onScess, null);
 
         return this;
     }
@@ -36,7 +36,7 @@ public sealed class RequesterFactory<TState> : IRequestFactory<TState> where TSt
 
     public IRequestFactory<TState> AddRequest<TAction>(Func<TAction, CancellationToken, Task<SimpleResult>> runRequest, Func<TState, TAction, TState> onScess) where TAction : class
     {
-        AddRequestInternal(Adept(runRequest), onScess, onFail: null);
+        AddRequestInternal(Adept(runRequest), onScess, null);
 
         return this;
     }

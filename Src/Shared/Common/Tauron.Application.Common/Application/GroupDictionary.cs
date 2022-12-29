@@ -99,7 +99,7 @@ public class GroupDictionary<TKey, TValue> : Dictionary<TKey, ICollection<TValue
     }
 
 
-    public bool RemoveValue(TValue value) => RemoveImpl(default!, value, removeEmpty: false, removeAll: true);
+    public bool RemoveValue(TValue value) => RemoveImpl(default!, value, false, true);
 
     private bool RemoveImpl(TKey key, TValue val, bool removeEmpty, bool removeAll)
         => removeAll ? RemoveAll(val, removeEmpty) : RemoveSingleObject(key, val, removeAll);
@@ -208,14 +208,14 @@ public class GroupDictionary<TKey, TValue> : Dictionary<TKey, ICollection<TValue
 
     #pragma warning disable AV1564
     #pragma warning disable AV1551
-    public bool Remove(TValue value, bool removeEmptyLists) => RemoveImpl(default!, value, removeEmptyLists, removeAll: true);
+    public bool Remove(TValue value, bool removeEmptyLists) => RemoveImpl(default!, value, removeEmptyLists, true);
     #pragma warning restore AV1564
 
-    public bool Remove(TKey key, TValue value) => RemoveImpl(key, value, removeEmpty: false, removeAll: false);
+    public bool Remove(TKey key, TValue value) => RemoveImpl(key, value, false, false);
 
     #pragma warning disable AV1564
     public bool Remove(TKey key, TValue value, bool removeListIfEmpty)
         #pragma warning restore AV1564
-        => RemoveImpl(key, value, removeListIfEmpty, removeAll: false);
+        => RemoveImpl(key, value, removeListIfEmpty, false);
     #pragma warning restore AV1551
 }

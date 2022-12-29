@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using SimpleProjectManager.Client.Data;
 using SimpleProjectManager.Client.Shared.ViewModels;
 
 namespace SimpleProjectManager.Server.Controllers;
@@ -12,7 +11,7 @@ public class IndexController : Controller
     [Route("App")]
     public IActionResult Index()
         => Redirect("/");
-    
+
     public IActionResult App()
         => View("_Host");
 

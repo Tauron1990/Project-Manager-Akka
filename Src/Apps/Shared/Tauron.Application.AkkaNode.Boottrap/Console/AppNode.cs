@@ -32,7 +32,7 @@ public static partial class AppNode
         var ipc = new IpcConnection(
             masterReady,
             ipcType,
-            (s, exception) => LogManager.GetLogger(typeof(AppNode).FullName).Error(exception, CultureInfo.InvariantCulture,  "Ipc Error: {Info}", s));
+            (s, exception) => LogManager.GetLogger(typeof(AppNode).FullName).Error(exception, CultureInfo.InvariantCulture, "Ipc Error: {Info}", s));
 
         void ConfigLogging(HostBuilderContext context, ILoggingBuilder configuration)
         {

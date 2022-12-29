@@ -85,7 +85,7 @@ internal static class BytesProcessing
         var shift = 0;
         ulong result = 0;
 
-        foreach (var value in bytes)
+        foreach (byte value in bytes)
         {
             ulong byteValue = value;
             ulong tmp = byteValue & 0x7f;

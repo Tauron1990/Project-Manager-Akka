@@ -14,7 +14,14 @@ else
                     <MudText Inline="true">@context</MudText>
                 </ChildContent>
                 <Loading>
-                    <MudText Inline="true">Laden</MudText>
+                    @if(context is null)
+                    {
+                        <MudText Inline="true">Laden</MudText>
+                    }
+                    else
+                    {
+                        <MudText Inline="true">@context</MudText>
+                    }
                 </Loading>
                 <Error>
                     <MudText Inline="true">Fehler: @context.Message</MudText>

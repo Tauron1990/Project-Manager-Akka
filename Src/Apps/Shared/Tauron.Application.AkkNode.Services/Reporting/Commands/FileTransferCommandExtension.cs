@@ -33,7 +33,7 @@ public static class FileTransferCommandExtension
         this TSender sender, TCommand command, in Duration? timeout, DataTransferManager transferManager, Func<ITransferData?> data)
         where TSender : ISender
         where TCommand : FileTransferCommand<TSender, TCommand>
-        => new(sender, command, timeout, transferManager, Messages: null, data);
+        => new(sender, command, timeout, transferManager, null, data);
 
     public static async Task<Either<TransferMessages.TransferCompled, Error>> Send<TSender, TCommand>(this FileTransferConfiguration<TSender, TCommand> buildCommand)
         where TSender : ISender
@@ -49,7 +49,7 @@ public static class FileTransferCommandExtension
             CancellationToken cancelToken) = buildCommand;
 
         command.Manager = manager;
-        var idEither = await SendingHelper.Send<FileTransactionId, TCommand>(sender, command, messages ?? (_ => { }), timeout, isEmpty: false, cancelToken).ConfigureAwait(false);
+        var idEither = await SendingHelper.Send<FileTransactionId, TCommand>(sender, command, messages ?? (_ => { }), timeout, false, cancelToken).ConfigureAwait(false);
 
         if(idEither.IsRight)
             return Either.Right((Error)idEither.Value);

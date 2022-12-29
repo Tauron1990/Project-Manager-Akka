@@ -22,9 +22,9 @@ public sealed class TempFile : DisposeableBase, ITempFile
 
     public bool NoStreamDispose { get; set; }
 
-    public Stream Stream => new TempStream(this, noDispose: false);
+    public Stream Stream => new TempStream(this, false);
 
-    public Stream NoDisposeStream => new TempStream(this, noDispose: true);
+    public Stream NoDisposeStream => new TempStream(this, true);
 
     public PathInfo FullPath => _file?.OriginalPath ?? string.Empty;
 

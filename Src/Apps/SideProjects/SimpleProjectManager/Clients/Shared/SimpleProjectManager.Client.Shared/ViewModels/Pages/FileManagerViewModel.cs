@@ -13,9 +13,9 @@ namespace SimpleProjectManager.Client.Shared.ViewModels.Pages;
 
 public sealed class FileManagerViewModel : ViewModelBase
 {
-    private readonly GlobalState _globalState;
     private readonly IMessageDispatcher _dispatcher;
-    
+    private readonly GlobalState _globalState;
+
     private ObservableAsPropertyHelper<Exception?>? _error;
 
     private ObservableAsPropertyHelper<DatabaseFile[]>? _files;
@@ -29,11 +29,19 @@ public sealed class FileManagerViewModel : ViewModelBase
         this.WhenActivated(Init);
     }
 
+    public bool IsLoading => _loading?.Value ?? false;
+    public DatabaseFile[] Files => _files?.Value ?? Array.Empty<DatabaseFile>();
+    public Exception? Error => _error?.Value;
+
+    public ReactiveCommand<DatabaseFile, Unit>? DeleteFile { get; private set; }
+
+    public Interaction<DatabaseFile, bool> ConfirmDelete { get; } = new();
+
     private IEnumerable<IDisposable> Init()
     {
         var filesStream = _globalState.Files.AllFiles
-           .Select(files => new FilesInfo(IsLoading: false, files))
-           .StartWith(new FilesInfo(IsLoading: true, Array.Empty<DatabaseFile>()))
+           .Select(files => new FilesInfo(false, files))
+           .StartWith(new FilesInfo(true, Array.Empty<DatabaseFile>()))
            .Publish().RefCount();
 
         yield return _files = filesStream.Select(i => i.Files).ToProperty(this, m => m.Files);
@@ -51,14 +59,6 @@ public sealed class FileManagerViewModel : ViewModelBase
 
         return Unit.Default;
     }
-    
-    public bool IsLoading => _loading?.Value ?? false;
-    public DatabaseFile[] Files => _files?.Value ?? Array.Empty<DatabaseFile>();
-    public Exception? Error => _error?.Value;
-
-    public ReactiveCommand<DatabaseFile, Unit>? DeleteFile { get; private set; }
-
-    public Interaction<DatabaseFile, bool> ConfirmDelete { get; } = new();
 
     private record struct FilesInfo(bool IsLoading, DatabaseFile[] Files);
 }

@@ -24,7 +24,7 @@ public class RepositoryProjectorMap<TProjection, TIdentity>
                            Create = Create,
                            Delete = Delete,
                            Update = Update,
-                           Custom = Custom
+                           Custom = Custom,
                        };
     }
 

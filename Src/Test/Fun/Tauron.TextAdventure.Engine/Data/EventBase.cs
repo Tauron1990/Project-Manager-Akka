@@ -14,10 +14,6 @@ public abstract class EventBase : IEvent
         ReadInternal(reader);
     }
 
-    protected abstract void WriteInternal(BinaryWriter writer);
-
-    protected abstract void ReadInternal(BinaryReader reader);
-    
     public int Sequence { get; private set; }
 
     public IEvent WithSequence(int value)
@@ -26,4 +22,8 @@ public abstract class EventBase : IEvent
 
         return this;
     }
+
+    protected abstract void WriteInternal(BinaryWriter writer);
+
+    protected abstract void ReadInternal(BinaryReader reader);
 }

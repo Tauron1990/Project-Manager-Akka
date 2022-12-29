@@ -7,6 +7,6 @@ internal class ElementLoadContext
 {
     internal readonly List<Action<IServiceCollection>> ConfigServices = new();
     internal readonly List<Action<IServiceProvider>> PostConfigServices = new();
-    internal readonly Dictionary<string, Func<RoomBuilderBase>> Rooms = new(StringComparer.Ordinal);
     internal readonly Dictionary<string, Action<RoomBuilderBase>> RoomModify = new(StringComparer.Ordinal);
+    internal readonly Dictionary<string, Func<RoomBuilderBase>> Rooms = new(StringComparer.Ordinal);
 }

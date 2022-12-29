@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Globalization;
 using JetBrains.Annotations;
 using SimpleProjectManager.Shared.Services.Devices;
 using Tauron.Operations;
@@ -16,7 +17,7 @@ public static class DeviceManagerMessages
 
     public sealed record UpdateSensor(DeviceId DeviceName, DeviceId Identifer, ISensorBox SensorValue) : IDeviceCommand;
 
-    public interface ISensorBox
+    public interface ISensorBox : IEquatable<ISensorBox>
     {
         SensorType SensorType { get; }
 
@@ -54,31 +55,79 @@ public static class DeviceManagerMessages
     [UsedImplicitly]
     public sealed record StringSensorBox(string Value, SensorType SensorType) : ISensorBox
     {
+        public bool Equals(StringSensorBox? other)
+        {
+            if(ReferenceEquals(null, other))
+                return false;
+            if(ReferenceEquals(this, other))
+                return true;
+
+            return string.Equals(Value, other.Value, StringComparison.Ordinal) && SensorType == other.SensorType;
+        }
+
         public string AsString => Value;
 
-        public int AsInt => throw new InvalidOperationException("Wrong BoxType");
+        public int AsInt => int.Parse(Value, NumberStyles.Any, CultureInfo.InvariantCulture);
 
-        public double AsDouble => throw new InvalidOperationException("Wrong BoxType");
+        public double AsDouble => double.Parse(Value, NumberStyles.Any, CultureInfo.InvariantCulture);
+
+        public bool Equals(ISensorBox? other)
+            => other is StringSensorBox box && Equals(box);
+
+        public override int GetHashCode()
+            => HashCode.Combine(Value, (int)SensorType);
     }
 
     [UsedImplicitly]
     public sealed record NumberSensorBox(int Value, SensorType SensorType) : ISensorBox
     {
-        public string AsString => throw new InvalidOperationException("Wrong BoxType");
+        public bool Equals(NumberSensorBox? other)
+        {
+            if(ReferenceEquals(null, other))
+                return false;
+            if(ReferenceEquals(this, other))
+                return true;
+
+            return Value == other.Value && SensorType == other.SensorType;
+        }
+
+        public string AsString => Value.ToString(CultureInfo.InvariantCulture);
 
         public int AsInt => Value;
 
-        public double AsDouble => throw new InvalidOperationException("Wrong BoxType");
+        public double AsDouble => Value;
+
+        public bool Equals(ISensorBox? other)
+            => other is NumberSensorBox box && Equals(box);
+
+        public override int GetHashCode()
+            => HashCode.Combine(Value, (int)SensorType);
     }
 
     [UsedImplicitly]
     public sealed record DoubleSensorBox(double Value, SensorType SensorType) : ISensorBox
     {
-        public string AsString => throw new InvalidOperationException("Wrong BoxType");
+        public bool Equals(DoubleSensorBox? other)
+        {
+            if(ReferenceEquals(null, other))
+                return false;
+            if(ReferenceEquals(this, other))
+                return true;
 
-        public int AsInt => throw new InvalidOperationException("Wrong BoxType");
+            return Value.Equals(other.Value) && SensorType == other.SensorType;
+        }
+
+        public string AsString => Value.ToString(CultureInfo.InvariantCulture);
+
+        public int AsInt => (int)Value;
 
         public double AsDouble => Value;
+
+        public bool Equals(ISensorBox? other)
+            => other is DoubleSensorBox box && Equals(box);
+
+        public override int GetHashCode()
+            => HashCode.Combine(Value, (int)SensorType);
     }
 
     public sealed record QuerySensorValue(DeviceId DeviceName, DeviceId Identifer) : IDeviceCommand;
@@ -93,7 +142,7 @@ public static class DeviceManagerMessages
 
     public sealed record ButtonStateResponse(bool CanClick);
 
-    public sealed record QueryLoggerBatch(DeviceId DeviceName, DateTime From) : IDeviceCommand;
+    public sealed record QueryLoggerBatch(DeviceId DeviceName, DateTime From, DateTime To) : IDeviceCommand;
 
     public sealed record LoggerBatchResult(ImmutableList<LogBatch> Batches);
 

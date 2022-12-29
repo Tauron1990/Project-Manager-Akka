@@ -4,10 +4,10 @@ namespace Tauron.TextAdventure.Engine.UI.Internal;
 
 public sealed class MainMenu
 {
-    private readonly IUILayer _uiLayer;
-    private readonly IServiceProvider _serviceProvider;
     private readonly IRenderVisitor _renderVisitor;
-    
+    private readonly IServiceProvider _serviceProvider;
+    private readonly IUILayer _uiLayer;
+
     public MainMenu(IUILayer uiLayer, IServiceProvider serviceProvider)
     {
         _uiLayer = uiLayer;
@@ -36,12 +36,12 @@ public sealed class MainMenu
                 case UiKeys.NewGame:
                     string? name = await new NewGameMenu(_uiLayer).SelectName().ConfigureAwait(false);
                     if(string.IsNullOrWhiteSpace(name)) continue;
-                    
+
                     await GameHost.RunGame(name, _serviceProvider).ConfigureAwait(false);
                     break;
                 case UiKeys.LoadGame:
                     string? toLoad = await new LoadGameMenu(_uiLayer).Show().ConfigureAwait(false);
-                    if(string.IsNullOrWhiteSpace(toLoad) || toLoad.Equals(UiKeys.Cancel, StringComparison.Ordinal) == true) continue;
+                    if(string.IsNullOrWhiteSpace(toLoad) || toLoad.Equals(UiKeys.Cancel, StringComparison.Ordinal)) continue;
 
                     await GameHost.RunGame(toLoad, _serviceProvider).ConfigureAwait(false);
                     break;

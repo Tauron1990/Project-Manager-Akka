@@ -11,7 +11,7 @@ public readonly struct EventCallBackImpl<TEvt> : IEventCallback<TEvt>
         => _eventCallback = eventCallback;
 
     #pragma warning disable EPS06
-    
+
     public Task InvokeAsync(TEvt parameter)
         => _eventCallback.InvokeAsync(parameter);
 }

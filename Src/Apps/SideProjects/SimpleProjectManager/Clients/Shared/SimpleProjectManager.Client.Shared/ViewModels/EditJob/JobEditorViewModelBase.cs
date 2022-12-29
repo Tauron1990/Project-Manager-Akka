@@ -45,11 +45,29 @@ public abstract class JobEditorViewModelBase : ViewModelBase
         this.WhenActivated(Init);
     }
 
+    public bool IsValid => _isValid?.Value ?? false;
+    public Action<bool> IsValidChanged => NotNull(_isValid, nameof(_isValid)).OnNext;
+
+    public JobEditorData? Data => _data?.Value;
+
+    public ReactiveCommand<Unit, Unit>? Cancel { get; private set; }
+
+    public ReactiveCommand<Unit, Unit>? Commit { get; private set; }
+
+    public FileUploadTrigger FileUploadTrigger { get; }
+
+    protected IMessageDispatcher MessageDispatcher { get; }
+    public FileUploaderViewModelBase UploaderViewModel { get; }
+
+    public Func<string?, IEnumerable<string>> ProjectNameValidator { get; }
+
+    public Func<DateTime, IEnumerable<string>> DeadlineValidator { get; }
+
     private IEnumerable<IDisposable> Init()
     {
         ModelConfig modelConfig = GetModelConfiguration();
 
-        yield return _isValid = new BehaviorSubject<bool>(value: false);
+        yield return _isValid = new BehaviorSubject<bool>(false);
 
         var commitEvent = modelConfig.CommitEvent;
         var cancelEvent = modelConfig.CancelEvent;
@@ -59,7 +77,7 @@ public abstract class JobEditorViewModelBase : ViewModelBase
         yield return cancelEvent;
 
         yield return _data = modelConfig.JobData
-           .Select(i => i ?? new JobEditorData(originalData: null))
+           .Select(i => i ?? new JobEditorData(null))
            .ObserveOn(RxApp.MainThreadScheduler)
            .ToProperty(this, m => m.Data);
 
@@ -88,24 +106,6 @@ public abstract class JobEditorViewModelBase : ViewModelBase
             await commitEvent.Value.InvokeAsync(_globalState.Jobs.CreateNewJobData(Data, FileUploadTrigger.Upload)).ConfigureAwait(false);
         }
     }
-    
-    public bool IsValid => _isValid?.Value ?? false;
-    public Action<bool> IsValidChanged => NotNull(_isValid, nameof(_isValid)).OnNext;
-
-    public JobEditorData? Data => _data?.Value;
-
-    public ReactiveCommand<Unit, Unit>? Cancel { get; private set; }
-
-    public ReactiveCommand<Unit, Unit>? Commit { get; private set; }
-
-    public FileUploadTrigger FileUploadTrigger { get; }
-
-    protected IMessageDispatcher MessageDispatcher { get; }
-    public FileUploaderViewModelBase UploaderViewModel { get; }
-
-    public Func<string?, IEnumerable<string>> ProjectNameValidator { get; }
-
-    public Func<DateTime, IEnumerable<string>> DeadlineValidator { get; }
 
     protected abstract ModelConfig GetModelConfiguration();
 

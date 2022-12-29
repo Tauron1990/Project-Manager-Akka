@@ -8,12 +8,10 @@ namespace SimpleProjectManager.Client.ViewModels.Devices;
 
 public sealed class SingleSensorViewModel : BlazorViewModel
 {
+    private readonly IState<DeviceId?> _deviceId;
     private readonly IDeviceService _deviceService;
     private readonly IState<DeviceSensor?> _sensor;
-    private readonly IState<DeviceId?> _deviceId;
 
-    public IState<string> SensorValue { get; }
-    
     public SingleSensorViewModel(IStateFactory stateFactory, IDeviceService deviceService)
         : base(stateFactory)
     {
@@ -23,6 +21,8 @@ public sealed class SingleSensorViewModel : BlazorViewModel
 
         SensorValue = stateFactory.NewComputed(new ComputedState<string>.Options(), GetSensorValue);
     }
+
+    public IState<string> SensorValue { get; }
 
     private async Task<string> GetSensorValue(IComputedState<string> old, CancellationToken token)
     {

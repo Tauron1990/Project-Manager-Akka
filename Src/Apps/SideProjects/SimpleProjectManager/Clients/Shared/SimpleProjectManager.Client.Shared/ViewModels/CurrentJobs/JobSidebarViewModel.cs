@@ -14,8 +14,8 @@ namespace SimpleProjectManager.Client.Shared.ViewModels.CurrentJobs;
 
 public sealed class JobSidebarViewModel : ViewModelBase
 {
-    private readonly PageNavigation _navigationManager;
     private readonly GlobalState _globalState;
+    private readonly PageNavigation _navigationManager;
     private ObservableAsPropertyHelper<ImmutableList<JobSortOrderPair>>? _currentJobs;
 
     private ObservableAsPropertyHelper<JobSortOrderPair?>? _selectedValue;
@@ -26,6 +26,12 @@ public sealed class JobSidebarViewModel : ViewModelBase
         _globalState = globalState;
         this.WhenActivated(Init);
     }
+
+    public ReactiveCommand<Unit, Unit> NewJob { get; private set; } = null!;
+
+    public ReactiveCommand<object, Unit> NewItemSelected { get; private set; } = null!;
+    public JobSortOrderPair? SelectedValue => _selectedValue?.Value;
+    public ImmutableList<JobSortOrderPair> CurrentJobs => _currentJobs?.Value ?? ImmutableList<JobSortOrderPair>.Empty;
 
     private IEnumerable<IDisposable> Init()
     {
@@ -52,12 +58,6 @@ public sealed class JobSidebarViewModel : ViewModelBase
             },
             _globalState.IsOnline);
     }
-    
-    public ReactiveCommand<Unit, Unit> NewJob { get; private set; } = null!;
-
-    public ReactiveCommand<object, Unit> NewItemSelected { get; private set; } = null!;
-    public JobSortOrderPair? SelectedValue => _selectedValue?.Value;
-    public ImmutableList<JobSortOrderPair> CurrentJobs => _currentJobs?.Value ?? ImmutableList<JobSortOrderPair>.Empty;
 
     private ImmutableList<JobSortOrderPair> Sort(JobSortOrderPair[] unsorted)
         => unsorted

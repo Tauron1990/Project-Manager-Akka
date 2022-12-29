@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Akka.Actor;
 using JetBrains.Annotations;
@@ -103,7 +104,7 @@ public partial class ClusterActorDiscoveryActor : ReceiveActor
                     _cluster.SelfUniqueAddress,
                     _actorItems.Select(item => new ClusterActorDiscoveryMessage.ClusterActorUp(item.Actor, item.Tag))
                        .ToList(),
-                    Request: true));
+                    true));
         }
     }
 
@@ -196,7 +197,7 @@ public partial class ClusterActorDiscoveryActor : ReceiveActor
                     _cluster.SelfUniqueAddress,
                     _actorItems.Select(item => new ClusterActorDiscoveryMessage.ClusterActorUp(item.Actor, item.Tag))
                        .ToList(),
-                    Request: false));
+                    false));
     }
 
     //private void Handle(ClusterActorDiscoveryMessage.UnregisterCluster m)
@@ -340,10 +341,10 @@ public partial class ClusterActorDiscoveryActor : ReceiveActor
 
         // Send actor up message to just registered monitor
 
-        foreach (ActorItem actor in _actorItems.Where(item => string.Equals(item.Tag, member.Tag, System.StringComparison.Ordinal)))
+        foreach (ActorItem actor in _actorItems.Where(item => string.Equals(item.Tag, member.Tag, StringComparison.Ordinal)))
             Sender.Tell(new ClusterActorDiscoveryMessage.ActorUp(actor.Actor, actor.Tag));
 
-        foreach (ActorItem actor in _nodeMap.Values.SelectMany(node => node.ActorItems.Where(item => string.Equals(item.Tag, member.Tag, System.StringComparison.Ordinal))))
+        foreach (ActorItem actor in _nodeMap.Values.SelectMany(node => node.ActorItems.Where(item => string.Equals(item.Tag, member.Tag, StringComparison.Ordinal))))
             Sender.Tell(new ClusterActorDiscoveryMessage.ActorUp(actor.Actor, actor.Tag));
     }
 
@@ -354,7 +355,7 @@ public partial class ClusterActorDiscoveryActor : ReceiveActor
     {
         UnmonitorActor(Sender.Path, member.Tag);
 
-        int count = _monitorItems.RemoveAll(item => item.Actor.Equals(Sender) && string.Equals(item.Tag, member.Tag, System.StringComparison.Ordinal));
+        int count = _monitorItems.RemoveAll(item => item.Actor.Equals(Sender) && string.Equals(item.Tag, member.Tag, StringComparison.Ordinal));
         for (var index = 0; index < count; index++)
             UnwatchActor(Sender, 1);
     }
@@ -393,13 +394,13 @@ public partial class ClusterActorDiscoveryActor : ReceiveActor
 
     private void NotifyActorUpToMonitor(IActorRef actor, string tag)
     {
-        foreach (MonitorItem monitor in _monitorItems.Where(item => string.Equals(item.Tag, tag, System.StringComparison.Ordinal)))
+        foreach (MonitorItem monitor in _monitorItems.Where(item => string.Equals(item.Tag, tag, StringComparison.Ordinal)))
             monitor.Actor.Tell(new ClusterActorDiscoveryMessage.ActorUp(actor, tag));
     }
 
     private void NotifyActorDownToMonitor(IActorRef actor, string tag)
     {
-        foreach (MonitorItem monitor in _monitorItems.Where(item => string.Equals(item.Tag, tag, System.StringComparison.Ordinal)))
+        foreach (MonitorItem monitor in _monitorItems.Where(item => string.Equals(item.Tag, tag, StringComparison.Ordinal)))
             monitor.Actor.Tell(new ClusterActorDiscoveryMessage.ActorDown(actor, tag));
     }
 

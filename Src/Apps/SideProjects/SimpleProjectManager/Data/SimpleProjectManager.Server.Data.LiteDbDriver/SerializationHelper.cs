@@ -32,7 +32,7 @@ internal static class SerializationHelper
                 {
                     PropertyInfo propertyInfo => propertyInfo.PropertyType,
                     FieldInfo fieldInfo => fieldInfo.FieldType,
-                    _ => null
+                    _ => null,
                 };
 
                 if(memberType is null || !memberType.IsAssignableTo(typeof(ISingleValueObject))) return;
@@ -161,7 +161,7 @@ internal static class SerializationHelper<TData>
             JArray array => new BsonArray(array.Select(MapBson)),
             JObject jObject => new BsonDocument(jObject.ToDictionary<KeyValuePair<string, JToken?>, string, BsonValue>(p => p.Key, p => MapBson(p.Value), StringComparer.Ordinal)),
             JValue jValue => new BsonValue(jValue.Value),
-            _ => throw new InvalidOperationException($"Token tyoe not Supported: {token.GetType()}")
+            _ => throw new InvalidOperationException($"Token tyoe not Supported: {token.GetType()}"),
         };
 
     private static JToken? MapJToken(BsonValue value)
@@ -182,7 +182,7 @@ internal static class SerializationHelper<TData>
                 BsonType.Guid => new JValue(value.AsGuid),
                 BsonType.Boolean => new JValue(value.AsBoolean),
                 BsonType.DateTime => new JValue(value.AsDateTime),
-                _ => throw new ArgumentOutOfRangeException(nameof(value), $"BsonValue type not Supported: {value.Type}")
-            }
+                _ => throw new ArgumentOutOfRangeException(nameof(value), $"BsonValue type not Supported: {value.Type}"),
+            },
         };
 }

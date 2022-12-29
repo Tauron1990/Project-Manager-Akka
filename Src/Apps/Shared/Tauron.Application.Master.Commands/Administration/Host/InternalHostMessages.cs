@@ -8,7 +8,7 @@ public static class InternalHostMessages
     {
         AppManager,
         AppRegistry,
-        Installer
+        Installer,
     }
 
     public interface IHostApiCommand

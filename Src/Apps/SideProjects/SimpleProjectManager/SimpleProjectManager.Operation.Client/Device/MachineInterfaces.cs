@@ -14,6 +14,6 @@ public static class MachineInterfaces
         => name.Value switch
         {
             "Dummy" => ActivatorUtilities.CreateInstance(serviceProvider, typeof(DummyMachine)) as IMachine,
-            _ => null
+            _ => null,
         };
 }

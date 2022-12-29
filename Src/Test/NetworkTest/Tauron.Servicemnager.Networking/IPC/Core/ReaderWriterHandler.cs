@@ -6,8 +6,11 @@ namespace Tauron.Servicemnager.Networking.IPC.Core;
 internal class ReaderWriterHandler : IDisposable
 {
     private const int ProtocolLen = 25;
-    private readonly object _lockQ = new();
     private readonly int _bufferLenS;
+    private readonly Queue<byte[]> _bytesQueue = new();
+    private readonly object _lockQ = new();
+
+    private readonly SharedMemory _sm;
     private byte[]? _chunksCollected;
 
     //ulong MsgId_Received = 0;
@@ -26,13 +29,10 @@ internal class ReaderWriterHandler : IDisposable
     //ManualResetEvent mre_writer_thread = new ManualResetEvent(false);
     private AsyncManualResetEvent _mreWriterThread = new();
     private ulong _msgIdSending;
-    private readonly Queue<byte[]> _bytesQueue = new();
 
     private MemoryMappedViewAccessor _readerAccessor;
     private unsafe byte* _readerAccessorPtr = (byte*)0;
     private MemoryMappedFile _readerMmf;
-
-    private readonly SharedMemory _sm;
     private byte[]? _toSend;
 
     /*Protocol
@@ -91,22 +91,22 @@ internal class ReaderWriterHandler : IDisposable
         _ewhWriterReadyToRead?.Close();
         _ewhWriterReadyToRead?.Dispose();
         _ewhWriterReadyToRead = null!;
-        
+
         _ewhWriterReadyToWrite?.Close();
         _ewhWriterReadyToWrite?.Dispose();
         _ewhWriterReadyToWrite = null!;
-        
+
         _ewhReaderReadyToRead?.Close();
         _ewhReaderReadyToRead?.Dispose();
         _ewhReaderReadyToRead = null!;
-        
+
         _ewhReaderReadyToWrite?.Close();
         _ewhReaderReadyToWrite?.Dispose();
         _ewhReaderReadyToWrite = null!;
 
         _mreWriterThread?.Set();
         _mreWriterThread = null!;
-        
+
         _writerAccessor?.SafeMemoryMappedViewHandle?.ReleasePointer();
         _writerAccessor?.Dispose();
         _writerAccessor = null!;
@@ -130,12 +130,12 @@ internal class ReaderWriterHandler : IDisposable
 
 
         _ewhWriterReadyToRead = new SWaitHadle(
-            initialState: false,
+            false,
             EventResetMode.ManualReset,
             $"{_sm.UniqueHandlerName}{prefix}_SharmNet_ReadyToRead");
 
         _ewhWriterReadyToWrite = new SWaitHadle(
-            initialState: true,
+            true,
             EventResetMode.ManualReset,
             $"{_sm.UniqueHandlerName}{prefix}_SharmNet_ReadyToWrite");
 
@@ -154,7 +154,7 @@ internal class ReaderWriterHandler : IDisposable
         else
         {
             string name = Path.Combine(Path.GetTempPath(), $"{_sm.UniqueHandlerName}{prefix}_SharmNet_MMF.mem");
-            _writerMmf = MemoryMappedFile.CreateFromFile(name, FileMode.OpenOrCreate, mapName: null, _sm.BufferCapacity, MemoryMappedFileAccess.ReadWrite);
+            _writerMmf = MemoryMappedFile.CreateFromFile(name, FileMode.OpenOrCreate, null, _sm.BufferCapacity, MemoryMappedFileAccess.ReadWrite);
         }
 
         _writerAccessor = _writerMmf.CreateViewAccessor(0, _sm.BufferCapacity);
@@ -169,7 +169,9 @@ internal class ReaderWriterHandler : IDisposable
     internal ulong GetMessageId()
     {
         lock (_lockQ)
+        {
             return ++_msgIdSending;
+        }
     }
 
     /// <summary>
@@ -226,10 +228,12 @@ internal class ReaderWriterHandler : IDisposable
             var i = 0;
             int left = msg?.Length ?? 0;
 
-            ushort totalChunks = msg is null 
-                ? (ushort)1 : msg.Length == 0 ? Convert.ToUInt16(1) 
+            ushort totalChunks = msg is null
+                ? (ushort)1
+                : msg.Length == 0
+                    ? Convert.ToUInt16(1)
                     : Convert.ToUInt16(Math.Ceiling(msg.Length / (double)_bufferLenS));
-            
+
             ushort currentChunk = 1;
 
             while (true)
@@ -261,7 +265,7 @@ internal class ReaderWriterHandler : IDisposable
                 else
                 {
                     pMsg = new byte[left + ProtocolLen];
-                    
+
                     //Writing protocol header
                     Buffer.BlockCopy(new[] { (byte)msgType }, 0, pMsg, 0, 1); //MsgType (1 for standard message)
                     Buffer.BlockCopy(BitConverter.GetBytes(msgId), 0, pMsg, 1, 8); //msgId_Sending
@@ -322,11 +326,9 @@ internal class ReaderWriterHandler : IDisposable
 
                 #pragma warning disable MA0075
                 _sm.SharmIpc.LogException(
-
                     "tiesky.com.SharmIpc.ReaderWriterHandler.SendMessageV2: max queue treshold is reached" + _sm.MaxQueueSizeInBytes,
                     new Exception(
                         $"ReaderWriterHandler max queue treshold is reached {_sm.MaxQueueSizeInBytes}" +
-
                         $"; totalBytesInQUeue: {_totalBytesInQUeue}; q.Count: {_bytesQueue.Count}; " +
                         $"_ready2writeSignal_Last_Setup: {_sm.SharmIpc.Statistic.Ready2WriteSignalLastSetup}" +
                         $"_ready2ReadSignal_Last_Setup: {_sm.SharmIpc.Statistic.Ready2ReadSignalLastSetup}" +
@@ -347,10 +349,12 @@ internal class ReaderWriterHandler : IDisposable
                 var i = 0;
                 int left = msg?.Length ?? 0;
 
-                ushort totalChunks = msg is null 
-                    ? (ushort)1 : msg.Length == 0 ? Convert.ToUInt16(1) 
+                ushort totalChunks = msg is null
+                    ? (ushort)1
+                    : msg.Length == 0
+                        ? Convert.ToUInt16(1)
                         : Convert.ToUInt16(Math.Ceiling(msg.Length / (double)_bufferLenS));
-                
+
                 ushort currentChunk = 1;
 
                 while (true)
@@ -565,7 +569,7 @@ internal class ReaderWriterHandler : IDisposable
         ////--STAT
         //this.sm.SharmIPC.Statistic.Writing(data.Length);
 
-        Marshal.Copy(data, 0, IntPtr.Add(new IntPtr(_writerAccessorPtr), offset), data.Length);
+        Marshal.Copy(data, 0, nint.Add(new nint(_writerAccessorPtr), offset), data.Length);
 
         //https://msdn.microsoft.com/en-us/library/system.io.memorymappedfiles.memorymappedviewaccessor.safememorymappedviewhandle(v=vs.100).aspx
     }
@@ -576,7 +580,7 @@ internal class ReaderWriterHandler : IDisposable
         //this.sm.SharmIPC.Statistic.Reading(num);
 
         var arr = new byte[num];
-        Marshal.Copy(IntPtr.Add(new IntPtr(_readerAccessorPtr), offset), arr, 0, num);
+        Marshal.Copy(nint.Add(new nint(_readerAccessorPtr), offset), arr, 0, num);
 
         return arr;
     }
@@ -587,18 +591,18 @@ internal class ReaderWriterHandler : IDisposable
     {
         string prefix = _sm.InstanceType == EInstanceType.Slave ? "1" : "2";
 
-            _ewhReaderReadyToRead = new SWaitHadle(
-                initialState: false, 
-                EventResetMode.ManualReset, 
-                $"{_sm.UniqueHandlerName}{prefix}_SharmNet_ReadyToRead");
-            
-            _ewhReaderReadyToWrite = new SWaitHadle(
-                initialState: true, 
-                EventResetMode.ManualReset, 
-                $"{_sm.UniqueHandlerName}{prefix}_SharmNet_ReadyToWrite");
-            
-            _ewhReaderReadyToWrite.Set();
-        
+        _ewhReaderReadyToRead = new SWaitHadle(
+            false,
+            EventResetMode.ManualReset,
+            $"{_sm.UniqueHandlerName}{prefix}_SharmNet_ReadyToRead");
+
+        _ewhReaderReadyToWrite = new SWaitHadle(
+            true,
+            EventResetMode.ManualReset,
+            $"{_sm.UniqueHandlerName}{prefix}_SharmNet_ReadyToWrite");
+
+        _ewhReaderReadyToWrite.Set();
+
 
         //if (sm.instanceType == tiesky.com.SharmIpc.eInstanceType.Slave)
         //{
@@ -607,37 +611,41 @@ internal class ReaderWriterHandler : IDisposable
         //    Console.WriteLine(sm.uniqueHandlerName + prefix + "_SharmNet_ReadyToWrite");
         //    Console.WriteLine("-------");
         //}
-        
-            //Reader_mmf = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateOrOpen(sm.uniqueHandlerName + prefix + "_SharmNet_MMF", sm.bufferCapacity, MemoryMappedFileAccess.ReadWrite);
-            //Reader_accessor = Reader_mmf.CreateViewAccessor(0, sm.bufferCapacity);
+
+        //Reader_mmf = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateOrOpen(sm.uniqueHandlerName + prefix + "_SharmNet_MMF", sm.bufferCapacity, MemoryMappedFileAccess.ReadWrite);
+        //Reader_accessor = Reader_mmf.CreateViewAccessor(0, sm.bufferCapacity);
 
 
-            if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                _readerMmf = MemoryMappedFile.CreateOrOpen(
-                    $"{_sm.UniqueHandlerName}{prefix}_SharmNet_MMF",
-                    _sm.BufferCapacity,
-                    MemoryMappedFileAccess.ReadWrite,
-                    MemoryMappedFileOptions.DelayAllocatePages,
-                    HandleInheritability.Inheritable);
-            }
-            else
-            {
-                string fileName = Path.Combine(Path.GetTempPath(), $"{_sm.UniqueHandlerName}{prefix}_SharmNet_MMF.mem");
+        if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            _readerMmf = MemoryMappedFile.CreateOrOpen(
+                $"{_sm.UniqueHandlerName}{prefix}_SharmNet_MMF",
+                _sm.BufferCapacity,
+                MemoryMappedFileAccess.ReadWrite,
+                MemoryMappedFileOptions.DelayAllocatePages,
+                HandleInheritability.Inheritable);
+        }
+        else
+        {
+            string fileName = Path.Combine(Path.GetTempPath(), $"{_sm.UniqueHandlerName}{prefix}_SharmNet_MMF.mem");
 
-                _readerMmf = MemoryMappedFile.CreateFromFile(
-                    fileName, FileMode.OpenOrCreate, mapName: null, _sm.BufferCapacity, MemoryMappedFileAccess.ReadWrite);
-            }
+            _readerMmf = MemoryMappedFile.CreateFromFile(
+                fileName,
+                FileMode.OpenOrCreate,
+                null,
+                _sm.BufferCapacity,
+                MemoryMappedFileAccess.ReadWrite);
+        }
 
-            _readerAccessor = _readerMmf.CreateViewAccessor(0, _sm.BufferCapacity);
-            //AcquirePointer();
-            _readerAccessor.SafeMemoryMappedViewHandle.AcquirePointer(ref _readerAccessorPtr);
-        
+        _readerAccessor = _readerMmf.CreateViewAccessor(0, _sm.BufferCapacity);
+        //AcquirePointer();
+        _readerAccessor.SafeMemoryMappedViewHandle.AcquirePointer(ref _readerAccessorPtr);
 
-            #pragma warning disable EPC13
-            Task.Run(
-                #pragma warning restore EPC13
-                () =>
+
+        #pragma warning disable EPC13
+        Task.Run(
+            #pragma warning restore EPC13
+            () =>
             {
                 switch (_sm.ProtocolVersion)
                 {
@@ -805,13 +813,13 @@ internal class ReaderWriterHandler : IDisposable
 
                             break;
                         case EProtocolPosition.MsgType:
-                                msgType = (EMsgType)hdr[iHdr];
+                            msgType = (EMsgType)hdr[iHdr];
                             iHdr++;
                             protPos = EProtocolPosition.MsgId;
 
                             break;
                         case EProtocolPosition.MsgId:
-                                sizer8[size] = hdr[iHdr];
+                            sizer8[size] = hdr[iHdr];
                             if((sizer8[size] & 0x80) > 0)
                             {
                                 size++;
@@ -912,7 +920,7 @@ internal class ReaderWriterHandler : IDisposable
                             switch (msgType)
                             {
                                 case EMsgType.ErrorInRpc:
-                                    _sm.SharmIpc.InternalDataArrived(msgType, iResponseMsgId, bt: null);
+                                    _sm.SharmIpc.InternalDataArrived(msgType, iResponseMsgId, null);
 
                                     break;
 
@@ -932,11 +940,11 @@ internal class ReaderWriterHandler : IDisposable
                                         switch (msgType)
                                         {
                                             case EMsgType.RpcRequest:
-                                                SendMessage(EMsgType.ErrorInRpc, GetMessageId(), msg: null, iMsgId);
+                                                SendMessage(EMsgType.ErrorInRpc, GetMessageId(), null, iMsgId);
 
                                                 break;
                                             case EMsgType.RpcResponse:
-                                                _sm.SharmIpc.InternalDataArrived(EMsgType.ErrorInRpc, iResponseMsgId, bt: null);
+                                                _sm.SharmIpc.InternalDataArrived(EMsgType.ErrorInRpc, iResponseMsgId, null);
 
                                                 break;
                                         }
@@ -1096,7 +1104,7 @@ internal class ReaderWriterHandler : IDisposable
                         BitConverter.ToInt32(hdr, 9); //+4
                         iResponseMsgId = BitConverter.ToUInt64(hdr, 17); //+8
 
-                        _sm.SharmIpc.InternalDataArrived(msgType, iResponseMsgId, bt: null);
+                        _sm.SharmIpc.InternalDataArrived(msgType, iResponseMsgId, null);
                         jPos = 6;
 
                         break;
@@ -1130,13 +1138,13 @@ internal class ReaderWriterHandler : IDisposable
                             {
                                 case EMsgType.RpcRequest:
                                     jPos = 9;
-                                    SendMessage(EMsgType.ErrorInRpc, GetMessageId(), msg: null, iMsgId);
+                                    SendMessage(EMsgType.ErrorInRpc, GetMessageId(), null, iMsgId);
                                     jPos = 10;
 
                                     break;
                                 case EMsgType.RpcResponse:
                                     jPos = 11;
-                                    _sm.SharmIpc.InternalDataArrived(EMsgType.ErrorInRpc, iResponseMsgId, bt: null);
+                                    _sm.SharmIpc.InternalDataArrived(EMsgType.ErrorInRpc, iResponseMsgId, null);
                                     jPos = 12;
 
                                     break;

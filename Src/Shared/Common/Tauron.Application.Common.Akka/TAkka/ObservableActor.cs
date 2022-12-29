@@ -18,8 +18,8 @@ public class ObservableActor : ActorBase, IObservableActor
     private readonly CompositeDisposable _resources = new();
 
     private readonly Dictionary<Type, object> _selectors = new();
-    private readonly BehaviorSubject<IActorContext?> _start = new(value: null);
-    private readonly BehaviorSubject<IActorContext?> _stop = new(value: null);
+    private readonly BehaviorSubject<IActorContext?> _start = new(null);
+    private readonly BehaviorSubject<IActorContext?> _stop = new(null);
 
     private bool _isReceived;
 
@@ -69,7 +69,7 @@ public class ObservableActor : ActorBase, IObservableActor
 
 
     public void Receive<TEvent>(Func<IObservable<TEvent>, IDisposable> handler)
-        => AddResource(new ObservableInvoker<TEvent, TEvent>(handler, GetSelector<TEvent>(), isSafe: true).Construct());
+        => AddResource(new ObservableInvoker<TEvent, TEvent>(handler, GetSelector<TEvent>(), true).Construct());
 
     protected IObservable<TType> SyncActor<TType>(TType element)
         => Observable.Return(element, ActorScheduler.From(Self));

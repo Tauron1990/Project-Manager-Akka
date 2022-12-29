@@ -69,7 +69,7 @@ public sealed partial class JobsState : StateBase<InternalJobData>
                             CurrentSelected? selection = originalData.CurrentSelected;
                             // ReSharper disable once AccessToModifiedClosure
                             if(selection?.Pair is not null && pairs.All(s => s.Info.Project != selection.Pair?.Info.Project))
-                                selection = new CurrentSelected(Pair: null, JobData: null);
+                                selection = new CurrentSelected(null, null);
 
                             return originalData with { IsLoaded = true, CurrentJobs = pairs, CurrentSelected = selection };
                         }
@@ -123,10 +123,10 @@ public partial class JobsState
         (
             id => TimeoutToken.WithDefault(
                 CancellationToken.None,
-                async token => 
-                    string.IsNullOrWhiteSpace(id) 
-                    ? null 
-                    : new JobEditorData(await _service.GetJobData(new ProjectId(id), token).ConfigureAwait(false))).AsTask()
+                async token =>
+                    string.IsNullOrWhiteSpace(id)
+                        ? null
+                        : new JobEditorData(await _service.GetJobData(new ProjectId(id), token).ConfigureAwait(false))).AsTask()
         );
 
     public async Task CommitJobData(JobEditorCommit newData, Action onCompled)
@@ -143,7 +143,7 @@ public partial class JobsState
 
         if(validationResult.IsValid)
         {
-            if(await _messageDispatcher.IsSuccess(() => TimeoutToken.WithDefault(default, t => _service.UpdateJobData(command, t))).ConfigureAwait(false) 
+            if(await _messageDispatcher.IsSuccess(() => TimeoutToken.WithDefault(default, t => _service.UpdateJobData(command, t))).ConfigureAwait(false)
             && await _messageDispatcher.IsSuccess(async () => await newData.Upload().ConfigureAwait(false)).ConfigureAwait(false))
                 onCompled();
         }
@@ -178,7 +178,6 @@ public partial class JobsState
 
         return null;
     }
-
     #pragma warning disable EPS02
     private static bool AllDigit(in ReadOnlySpan<char> input)
     {
@@ -202,7 +201,7 @@ public partial class JobsState
                        JobName = editorData.JobName ?? ProjectName.Empty,
                        Status = editorData.Status,
                        Deadline = ProjectDeadline.FromDateTime(editorData.Deadline),
-                       Ordering = GetOrdering(data.Id)
+                       Ordering = GetOrdering(data.Id),
                    };
         }
         else
@@ -226,7 +225,7 @@ public partial class JobsState
                       {
                           Id = id,
                           SkipCount = editorData.Ordering.Value,
-                          IsPriority = false
+                          IsPriority = false,
                       }
                     : data.Ordering.WithCount(editorData.Ordering.Value);
 

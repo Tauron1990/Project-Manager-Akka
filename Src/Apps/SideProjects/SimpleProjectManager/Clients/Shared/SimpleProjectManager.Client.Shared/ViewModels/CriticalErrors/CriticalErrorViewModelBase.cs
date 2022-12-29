@@ -27,6 +27,10 @@ public abstract class CriticalErrorViewModelBase : ViewModelBase
 
     }
 
+    public CriticalError Item => _item?.Value ?? CriticalError.Empty;
+
+    public ReactiveCommand<Unit, Unit>? Hide { get; private set; }
+
     private IEnumerable<IDisposable> Init()
     {
         var currentError = GetErrorState();
@@ -46,10 +50,6 @@ public abstract class CriticalErrorViewModelBase : ViewModelBase
                .Select(d => d is not null).StartWith(false)
                .AndIsOnline(_globalState.OnlineMonitor));
     }
-    
-    public CriticalError Item => _item?.Value ?? CriticalError.Empty;
-
-    public ReactiveCommand<Unit, Unit>? Hide { get; private set; }
 
     protected abstract IState<CriticalError?> GetErrorState();
 }

@@ -14,11 +14,11 @@ namespace SimpleProjectManager.Client.Shared.Data.States;
 
 public sealed class DeviceState : StateBase<DeviceData>
 {
-    private readonly IStateFactory _stateFactory;
     private readonly IDeviceService _deviceService;
     private readonly ILogger<DeviceState> _logger;
+    private readonly IStateFactory _stateFactory;
 
-    public DeviceState(IStateFactory stateFactory, IDeviceService deviceService, ILogger<DeviceState> logger) 
+    public DeviceState(IStateFactory stateFactory, IDeviceService deviceService, ILogger<DeviceState> logger)
         : base(stateFactory)
     {
         _stateFactory = stateFactory;
@@ -28,7 +28,7 @@ public sealed class DeviceState : StateBase<DeviceData>
 
     public IObservable<ImmutableDictionary<DeviceId, DeviceName>> CurrentDevices { get; private set; }
         = Observable.Empty<ImmutableDictionary<DeviceId, DeviceName>>();
-    
+
     protected override IStateConfiguration<DeviceData> ConfigurateState(ISourceConfiguration<DeviceData> configuration)
         => configuration.FromServer(async t => new DeviceData(await _deviceService.GetAllDevices(t).ConfigureAwait(false)));
 
@@ -36,7 +36,7 @@ public sealed class DeviceState : StateBase<DeviceData>
     protected override void PostConfiguration(IRootStoreState<DeviceData> state)
     {
         CurrentDevices = state.Select(dd => dd.Devices);
-        
+
         base.PostConfiguration(state);
     }
 
@@ -50,7 +50,7 @@ public sealed class DeviceState : StateBase<DeviceData>
             if(id is null)
                 _logger.LogWarning("DeviceState: No Device Id Found");
             #endif
-            
+
             return id is null ? default : (await _deviceService.GetRootUi(id, token).ConfigureAwait(false), id);
 
 

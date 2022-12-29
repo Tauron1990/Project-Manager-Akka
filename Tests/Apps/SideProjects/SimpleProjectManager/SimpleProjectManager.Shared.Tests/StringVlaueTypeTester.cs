@@ -1,3 +1,5 @@
+using Vogen;
+
 namespace SimpleProjectManager.Shared.Tests;
 
 public abstract class StringVlaueTypeTester<TType>
@@ -6,20 +8,20 @@ public abstract class StringVlaueTypeTester<TType>
     public virtual void Not_Null_Valid_Value(string value)
     {
         TType msg = TType.From(value);
-        
+
         Assert.True(msg == value, "msg == value; operator");
         Assert.Equal(value, msg.Value);
     }
 
     public virtual void Null_InValid_Value()
-        => Assert.Throws<Vogen.ValueObjectValidationException>(() => TType.From(null));
+        => Assert.Throws<ValueObjectValidationException>(() => TType.From(null));
 
     public virtual void Empty_InValid_Value()
-        => Assert.Throws<Vogen.ValueObjectValidationException>(() => TType.From(string.Empty));
-    
+        => Assert.Throws<ValueObjectValidationException>(() => TType.From(string.Empty));
+
     public virtual void Default_InValid_Value()
         #pragma warning disable VOG009
-        => Assert.Throws<Vogen.ValueObjectValidationException>(() => default(TType).Value);
+        => Assert.Throws<ValueObjectValidationException>(() => default(TType).Value);
     #pragma warning restore VOG009
 
     public virtual void Empty_Equal_Value()

@@ -14,9 +14,9 @@ public sealed class DataClient : IDataClient
 
     public DataClient(string host, int port = 0)
     {
-        _client = new SimpleTcpClient(host, port, ssl: false, pfxCertFilename: null, pfxPassword: null)
+        _client = new SimpleTcpClient(host, port, false, null, null)
                   {
-                      Keepalive = { EnableTcpKeepAlives = true }
+                      Keepalive = { EnableTcpKeepAlives = true },
                   };
 
         _client.Events.Connected += (_, args) => Connected?.Invoke(this, new ClientConnectedArgs(Client.From(args.IpPort)));

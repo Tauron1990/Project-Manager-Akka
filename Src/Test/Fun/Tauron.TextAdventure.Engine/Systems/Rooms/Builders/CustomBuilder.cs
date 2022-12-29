@@ -6,10 +6,10 @@ namespace Tauron.TextAdventure.Engine.Systems.Rooms.Builders;
 [PublicAPI]
 public sealed class CustomBuilder : RoomBuilderBase
 {
-    private Func<AssetManager, BaseRoom>? _roomBuilder;
     private Action<AssetManager, BaseRoom>? _modify;
+    private Func<AssetManager, BaseRoom>? _roomBuilder;
 
-    public CustomBuilder WithFactory(Func<AssetManager,BaseRoom> factory)
+    public CustomBuilder WithFactory(Func<AssetManager, BaseRoom> factory)
     {
         _roomBuilder = factory;
         return this;
@@ -17,7 +17,7 @@ public sealed class CustomBuilder : RoomBuilderBase
 
     public CustomBuilder WithModify(Action<AssetManager, BaseRoom> mod)
     {
-        
+
         if(_modify is null)
             _modify = mod;
         else
@@ -25,7 +25,7 @@ public sealed class CustomBuilder : RoomBuilderBase
 
         return this;
     }
-    
+
     protected internal override BaseRoom CreateRoom(AssetManager assetManager)
     {
         if(_roomBuilder is null)

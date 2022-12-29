@@ -56,7 +56,7 @@ internal sealed class IpcConnection : IIpcConnection, IDisposable
                     break;
                 default:
                     #pragma warning disable EX006
-                    throw new ArgumentOutOfRangeException(nameof(type), type, message: null);
+                    throw new ArgumentOutOfRangeException(nameof(type), type, null);
                 #pragma warning restore EX006
             }
         }

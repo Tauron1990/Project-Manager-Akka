@@ -23,7 +23,7 @@ internal static class TranslatorHelper
                 yield return file;
         }
     }
-    
+
     private static IDirectoryContents? TryGet(IHostEnvironment provider, string baseDic, CultureInfo culture)
     {
         const string langDic = "lang";
@@ -43,13 +43,11 @@ internal static class TranslatorHelper
         searchPath = Path.Combine(baseDic, langDic);
         possibleContent = provider.ResolvePath(searchPath);
         if(possibleContent.Exists)
-        {
             possibleContent = possibleContent
                .Where(f => f.IsDirectory && !string.IsNullOrWhiteSpace(f.PhysicalPath))
                .Select(f => provider.ResolvePath(f.PhysicalPath!))
                .FirstOrDefault();
-        }
-        
+
         return possibleContent;
     }
 }

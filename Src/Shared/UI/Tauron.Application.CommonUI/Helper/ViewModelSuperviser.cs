@@ -187,7 +187,7 @@ public sealed partial class ViewModelSuperviserActor : ObservableActor
         private enum InternalState
         {
             Closed,
-            HalfOpen
+            HalfOpen,
         }
     }
 }

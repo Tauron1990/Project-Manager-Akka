@@ -13,8 +13,6 @@ public abstract class SpectreConsoleLayerBase<TVisitor> : IUILayer
     public IRenderVisitor CreateForPage()
         => CreateForConsole();
 
-    protected abstract TVisitor CreateForConsole();
-
     public ValueTask<string?> ExecutePage(IRenderVisitor visitor)
     {
         if(visitor is TVisitor spectreVisitor)
@@ -24,6 +22,7 @@ public abstract class SpectreConsoleLayerBase<TVisitor> : IUILayer
     }
 
     public abstract RenderElement CreateTitle();
+
     public void CriticalError(Exception exception)
     {
         AnsiConsole.Clear();
@@ -32,6 +31,8 @@ public abstract class SpectreConsoleLayerBase<TVisitor> : IUILayer
         AnsiConsole.WriteException(exception);
         System.Console.ReadLine();
     }
+
+    protected abstract TVisitor CreateForConsole();
 
     protected abstract ValueTask<string?> ExecutePage(TVisitor visitor);
 }

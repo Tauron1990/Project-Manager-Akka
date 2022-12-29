@@ -105,7 +105,7 @@ public sealed class SoftwareRepository : Workspace<SoftwareRepository, Applicati
                                                           id,
                                                           ImmutableList<DownloadEntry>.Empty.Add(new DownloadEntry(version, url)),
                                                           originalRepository,
-                                                          brnachName))
+                                                          brnachName)),
                                               };
 
                     return mc.Update(new CommonChange(newData), newData);
@@ -131,8 +131,8 @@ public sealed class SoftwareRepository : Workspace<SoftwareRepository, Applicati
                                                       entry with
                                                       {
                                                           Last = version,
-                                                          Downloads = entry.Downloads.Add(new DownloadEntry(version, url))
-                                                      })
+                                                          Downloads = entry.Downloads.Add(new DownloadEntry(version, url)),
+                                                      }),
                                               };
 
                     return mc.Update(new CommonChange(newData), newData);
